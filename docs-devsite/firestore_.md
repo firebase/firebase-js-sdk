@@ -56,7 +56,7 @@ countAll().as("totalUsers");
 |  [memoryEagerGarbageCollector()](./firestore_.md#memoryeagergarbagecollector) | Creates an instance of <code>MemoryEagerGarbageCollector</code>. This is also the default garbage collector unless it is explicitly specified otherwise. |
 |  [persistentMultipleTabManager()](./firestore_.md#persistentmultipletabmanager) | Creates an instance of <code>PersistentMultipleTabManager</code>. |
 |  [serverTimestamp()](./firestore_.md#servertimestamp) | Returns a sentinel used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) to include a server-generated timestamp in the written data. |
-|  [useFirestorePipelines()](./firestore_.md#usefirestorepipelines) |  |
+|  [useFirestorePipelines()](./firestore_.md#usefirestorepipelines) |  Copyright 2024 Google LLC<!-- -->Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at<!-- -->http://www.apache.org/licenses/LICENSE-2.0<!-- -->Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. |
 |  <b>function(array, ...)</b> |
 |  [arrayConcat(array, elements)](./firestore_.md#arrayconcat_0b3ddb9) | <b><i>(BETA)</i></b> Creates an expression that concatenates an array expression with other arrays.
 ```typescript
@@ -2431,6 +2431,14 @@ export declare function serverTimestamp(): FieldValue;
 [FieldValue](./firestore_.fieldvalue.md#fieldvalue_class)
 
 ### useFirestorePipelines() {:#usefirestorepipelines}
+
+ Copyright 2024 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 <b>Signature:</b>
 

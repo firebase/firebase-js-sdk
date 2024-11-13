@@ -42,7 +42,7 @@ countAll().as("totalUsers");
 |  [documentId()](./firestore_lite.md#documentid) | Returns a special sentinel <code>FieldPath</code> to refer to the ID of a document. It can be used in queries to sort or filter by the document ID. |
 |  [getFirestore()](./firestore_lite.md#getfirestore) | Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
 |  [serverTimestamp()](./firestore_lite.md#servertimestamp) | Returns a sentinel used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) to include a server-generated timestamp in the written data. |
-|  [useFirestorePipelines()](./firestore_lite.md#usefirestorepipelines) |  |
+|  [useFirestorePipelines()](./firestore_lite.md#usefirestorepipelines) |  Copyright 2024 Google LLC<!-- -->Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at<!-- -->http://www.apache.org/licenses/LICENSE-2.0<!-- -->Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. |
 |  <b>function(array, ...)</b> |
 |  [arrayConcat(array, elements)](./firestore_lite.md#arrayconcat_0b3ddb9) | <b><i>(BETA)</i></b> Creates an expression that concatenates an array expression with other arrays.
 ```typescript
@@ -1975,6 +1975,14 @@ export declare function serverTimestamp(): FieldValue;
 [FieldValue](./firestore_lite.fieldvalue.md#fieldvalue_class)
 
 ### useFirestorePipelines() {:#usefirestorepipelines}
+
+ Copyright 2024 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 <b>Signature:</b>
 
