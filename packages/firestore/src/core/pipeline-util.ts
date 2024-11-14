@@ -65,13 +65,20 @@ import {
 } from '../lite-api/stage';
 import { Pipeline } from '../api/pipeline';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
-import { canonifyQuery, Query, queryEquals, stringifyQuery } from './query';
+import {
+  canonifyQuery,
+  Query,
+  queryEquals,
+  QueryImpl,
+  stringifyQuery
+} from './query';
 import {
   canonifyTarget,
   Target,
   targetEquals,
   targetIsPipelineTarget
 } from './target';
+import { ResourcePath } from '../model/path';
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
@@ -405,7 +412,7 @@ export function getPipelineFlavor(p: Pipeline): PipelineFlavor {
 
 export type PipelineSourceType =
   | 'collection'
-  | 'collection-group'
+  | 'collection_group'
   | 'database'
   | 'documents';
 
@@ -416,10 +423,10 @@ export function getPipelineSourceType(
   const source = p.stages[0];
 
   if (
-    source.name === CollectionSource.name ||
-    source.name === CollectionGroupSource.name ||
-    source.name === DatabaseSource.name ||
-    source.name === DocumentsSource.name
+    source instanceof CollectionSource ||
+    source instanceof CollectionGroupSource ||
+    source instanceof DatabaseSource ||
+    source instanceof DocumentsSource
   ) {
     return source.name as PipelineSourceType;
   }
@@ -435,10 +442,32 @@ export function getPipelineCollection(p: Pipeline): string | undefined {
 }
 
 export function getPipelineCollectionGroup(p: Pipeline): string | undefined {
-  if (getPipelineSourceType(p) === 'collection-group') {
+  if (getPipelineSourceType(p) === 'collection_group') {
     return (p.stages[0] as CollectionGroupSource).collectionId;
   }
   return undefined;
+}
+
+export function asCollectionPipelineAtPath(
+  pipeline: Pipeline,
+  path: ResourcePath
+): Pipeline {
+  const newStages = pipeline.stages.map(s => {
+    if (s instanceof CollectionGroupSource) {
+      return new CollectionSource(path.canonicalString());
+    }
+
+    return s;
+  });
+
+  return new Pipeline(
+    pipeline.db,
+    pipeline.userDataReader,
+    pipeline.userDataWriter,
+    pipeline.documentReferenceFactory,
+    newStages,
+    pipeline.converter
+  );
 }
 
 export function getPipelineDocuments(p: Pipeline): string[] | undefined {
@@ -451,7 +480,7 @@ export function getPipelineDocuments(p: Pipeline): string[] | undefined {
 export type QueryOrPipeline = Query | Pipeline;
 
 export function isPipeline(q: QueryOrPipeline): q is Pipeline {
-  return q instanceof Pipeline;
+  return q instanceof Pipeline || q instanceof LitePipeline;
 }
 
 export function stringifyQueryOrPipeline(q: QueryOrPipeline): string {

@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { Timestamp } from '../../../src';
+import { ascending, Field, Timestamp } from '../../../src';
 import { User } from '../../../src/auth/user';
 import {
   LimitType,
@@ -78,6 +78,9 @@ import {
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
+import { isPipeline, QueryOrPipeline } from '../../../src/core/pipeline-util';
+import { newTestFirestore } from '../../util/api_helpers';
+import { Pipeline } from '../../../src/api/pipeline';
 
 const TEST_TARGET_ID = 1;
 
@@ -89,6 +92,7 @@ const UPDATED_MATCHING_DOC_B = doc('coll/b', 11, { matches: true, order: 2 });
 
 const LAST_LIMBO_FREE_SNAPSHOT = version(10);
 const MISSING_LAST_LIMBO_FREE_SNAPSHOT = SnapshotVersion.min();
+const db = newTestFirestore();
 
 /**
  * A LocalDocumentsView wrapper that inspects the arguments to
@@ -115,27 +119,21 @@ class TestLocalDocumentsView extends LocalDocumentsView {
   }
 }
 
-describe('QueryEngine', async () => {
+describe.only('QueryEngine', async () => {
   describe('MemoryEagerPersistence usePipeline=false', async () => {
     /* not durable and without client side indexing */
-    genericQueryEngineTest(
-      persistenceHelpers.testMemoryEagerPersistence,
-      {
-        configureCsi: false,
-        convertToPipeline: false
-      }
-    );
+    genericQueryEngineTest(persistenceHelpers.testMemoryEagerPersistence, {
+      configureCsi: false,
+      convertToPipeline: false
+    });
   });
 
   describe('MemoryEagerPersistence usePipeline=true', async () => {
     /* not durable and without client side indexing */
-    genericQueryEngineTest(
-      persistenceHelpers.testMemoryEagerPersistence,
-      {
-        configureCsi: false,
-        convertToPipeline: true
-      }
-    );
+    genericQueryEngineTest(persistenceHelpers.testMemoryEagerPersistence, {
+      configureCsi: false,
+      convertToPipeline: true
+    });
   });
 
   if (!IndexedDbPersistence.isAvailable()) {
@@ -145,20 +143,18 @@ describe('QueryEngine', async () => {
 
   describe('IndexedDbPersistence configureCsi=false usePipeline=false', async () => {
     /* durable but without client side indexing */
-    genericQueryEngineTest(persistenceHelpers.testIndexedDbPersistence,
-      {
-        configureCsi: false,
-        convertToPipeline: false
+    genericQueryEngineTest(persistenceHelpers.testIndexedDbPersistence, {
+      configureCsi: false,
+      convertToPipeline: false
     });
   });
 
   describe('IndexedDbPersistence configureCsi=false usePipeline=true', async () => {
     /* durable but without client side indexing */
-    genericQueryEngineTest(persistenceHelpers.testIndexedDbPersistence,
-      {
-        configureCsi: false,
-        convertToPipeline: true
-      });
+    genericQueryEngineTest(persistenceHelpers.testIndexedDbPersistence, {
+      configureCsi: false,
+      convertToPipeline: true
+    });
   });
 
   describe('IndexedDbQueryEngine configureCsi=true usePipeline=false', async () => {
@@ -256,7 +252,7 @@ function genericQueryEngineTest(
   }
 
   function runQuery(
-    query: Query,
+    queryOrPipeline: QueryOrPipeline,
     lastLimboFreeSnapshot: SnapshotVersion
   ): Promise<DocumentSet> {
     debugAssert(
@@ -264,6 +260,12 @@ function genericQueryEngineTest(
       'Encountered runQuery() call not wrapped in ' +
         'expectOptimizedCollectionQuery()/expectFullCollectionQuery()'
     );
+
+    let query = queryOrPipeline;
+    if (options.convertToPipeline && !isPipeline(queryOrPipeline)) {
+      // TODO(pipeline): uncomment when query.pipeline() is ready.
+      // query = queryOrPipeline.pipeline()
+    }
 
     // NOTE: Use a `readwrite` transaction (instead of `readonly`) so that
     // client-side indexes can be written to persistence.
@@ -759,6 +761,111 @@ function genericQueryEngineTest(
         runQuery(query5, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
       );
       verifyResult(result5, [doc1, doc2, doc4, doc5]);
+    });
+
+    it.only('pipeline source db', async () => {
+      const doc1 = doc('coll1/1', 1, { 'a': 1, 'b': 0 });
+      const doc2 = doc('coll1/2', 1, { 'b': 1 });
+      const doc3 = doc('coll2/3', 1, { 'a': 3, 'b': 2 });
+      const doc4 = doc('coll2/4', 1, { 'a': 1, 'b': 3 });
+      const doc5 = doc('coll3/5', 1, { 'a': 1 });
+      const doc6 = doc('coll3/6', 1, { 'a': 2 });
+      await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+
+      const query1 = db
+        .pipeline()
+        .database()
+        .sort(ascending(Field.of('__name__')));
+      const result1 = await expectFullCollectionQuery(() =>
+        runQuery(query1 as Pipeline, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+      );
+      verifyResult(result1, [doc1, doc2, doc3, doc4, doc5, doc6]);
+
+      const query2 = query1
+        .where(Field.of('a').gte(2))
+        .sort(Field.of('__name__').descending());
+      const result2 = await expectFullCollectionQuery(() =>
+        runQuery(query2 as Pipeline, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+      );
+      verifyResult(result2, [doc6, doc3]);
+
+      const query3 = query1
+        .where(Field.of('b').lte(2))
+        .sort(Field.of('a').descending());
+      const result3 = await expectFullCollectionQuery(() =>
+        runQuery(query3 as Pipeline, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+      );
+      verifyResult(result3, [doc3, doc1, doc2]);
+    });
+
+    it.only('pipeline source collection', async () => {
+      const doc1 = doc('coll/1', 1, { 'a': 1, 'b': 0 });
+      const doc2 = doc('coll/2', 1, { 'b': 1 });
+      const doc3 = doc('coll/3', 1, { 'a': 3, 'b': 2 });
+      const doc4 = doc('coll/4', 1, { 'a': 1, 'b': 3 });
+      const doc5 = doc('coll/5', 1, { 'a': 1 });
+      const doc6 = doc('coll/6', 1, { 'a': 2 });
+      await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+
+      const query1 = db
+        .pipeline()
+        .collection('coll')
+        .sort(ascending(Field.of('__name__')));
+      const result1 = await expectFullCollectionQuery(() =>
+        runQuery(query1 as Pipeline, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+      );
+      verifyResult(result1, [doc1, doc2, doc3, doc4, doc5, doc6]);
+
+      const query2 = query1
+        .where(Field.of('a').gte(2))
+        .sort(Field.of('__name__').descending());
+      const result2 = await expectFullCollectionQuery(() =>
+        runQuery(query2 as Pipeline, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+      );
+      verifyResult(result2, [doc6, doc3]);
+
+      const query3 = query1
+        .where(Field.of('b').lte(2))
+        .sort(Field.of('a').descending());
+      const result3 = await expectFullCollectionQuery(() =>
+        runQuery(query3 as Pipeline, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+      );
+      verifyResult(result3, [doc3, doc1, doc2]);
+    });
+
+    it.only('pipeline source collection group', async () => {
+      const doc1 = doc('coll/doc1/group/1', 1, { 'a': 1, 'b': 0 });
+      const doc2 = doc('coll/doc2/group/2', 1, { 'b': 1 });
+      const doc3 = doc('coll/doc2/group1/3', 1, { 'a': 3, 'b': 2 });
+      const doc4 = doc('coll/doc2/group/4', 1, { 'a': 1, 'b': 3 });
+      const doc5 = doc('coll/doc2/group/5', 1, { 'a': 1 });
+      const doc6 = doc('coll/doc2/group/6', 1, { 'a': 2 });
+      await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+
+      const query1 = db
+        .pipeline()
+        .collectionGroup('group')
+        .sort(ascending(Field.of('__name__')));
+      const result1 = await expectFullCollectionQuery(() =>
+        runQuery(query1 as Pipeline, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+      );
+      verifyResult(result1, [doc1, doc2, doc4, doc5, doc6]);
+
+      const query2 = query1
+        .where(Field.of('a').gte(2))
+        .sort(Field.of('__name__').descending());
+      const result2 = await expectFullCollectionQuery(() =>
+        runQuery(query2 as Pipeline, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+      );
+      verifyResult(result2, [doc6]);
+
+      const query3 = query1
+        .where(Field.of('b').lte(2))
+        .sort(Field.of('a').descending());
+      const result3 = await expectFullCollectionQuery(() =>
+        runQuery(query3 as Pipeline, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+      );
+      verifyResult(result3, [doc1, doc2]);
     });
   }
 

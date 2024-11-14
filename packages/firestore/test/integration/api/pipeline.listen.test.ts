@@ -262,7 +262,7 @@ apiDescribe('Pipelines', persistence => {
     ]);
   });
 
-  it.only('basic listen works', async () => {
+  it('basic listen works', async () => {
     const storeEvent = new EventsAccumulator<PipelineSnapshot>();
 
     let result = firestore

@@ -150,7 +150,7 @@ export class Pipeline<AppModelType = DocumentData>
     readonly stages: Stage[],
     // TODO(pipeline) support converter
     //private converter:  FirestorePipelineConverter<AppModelType> = defaultPipelineConverter()
-    protected converter: unknown = {}
+    readonly converter: unknown = {}
   ) {}
 
   /**

@@ -34,7 +34,7 @@ import {
 } from '../model/values';
 import { toEvaluable } from './expressions';
 import { UserDataReader } from '../lite-api/user_data_reader';
-import { Query, queryMatches } from './query';
+import { Query, queryMatches, queryMatchesAllDocuments } from './query';
 import { isPipeline, QueryOrPipeline } from './pipeline-util';
 
 export type PipelineInputOutput = MutableDocument;

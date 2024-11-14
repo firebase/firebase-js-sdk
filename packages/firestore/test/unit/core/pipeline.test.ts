@@ -38,16 +38,9 @@ import { runPipeline } from '../../../src/core/pipeline_run';
 
 import { doc } from '../../util/helpers';
 import { and, or } from '../../../src/lite-api/expressions';
+import { newTestFirestore } from '../../util/api_helpers';
 
-const fakeAuthProvider: CredentialsProvider<User> =
-  {} as unknown as CredentialsProvider<User>;
-const fakeAppCheckProvider: CredentialsProvider<string> =
-  {} as unknown as CredentialsProvider<string>;
-const db = new Firestore(
-  fakeAuthProvider,
-  fakeAppCheckProvider,
-  DatabaseId.empty()
-);
+const db = newTestFirestore();
 
 describe('Pipeline Canonify', () => {
   it('works as expected for simple where clause', () => {
@@ -158,7 +151,7 @@ describe('Pipeline Canonify', () => {
   });
 });
 
-describe.only('pipelineEq', () => {
+describe('pipelineEq', () => {
   it('returns true for identical pipelines', () => {
     const p1 = db.pipeline().collection('test').where(eq(`foo`, 42));
     const p2 = db.pipeline().collection('test').where(eq(`foo`, 42));

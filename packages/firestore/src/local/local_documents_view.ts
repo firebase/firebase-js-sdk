@@ -63,6 +63,7 @@ import { PersistenceTransaction } from './persistence_transaction';
 import { QueryContext } from './query_context';
 import { RemoteDocumentCache } from './remote_document_cache';
 import {
+  asCollectionPipelineAtPath,
   canonifyPipeline,
   getPipelineCollection,
   getPipelineCollectionGroup,
@@ -566,10 +567,33 @@ export class LocalDocumentsView {
     offset: IndexOffset,
     context?: QueryContext
   ): PersistencePromise<DocumentMap> {
-    if (getPipelineSourceType(pipeline) === 'collection-group') {
+    if (getPipelineSourceType(pipeline) === 'collection_group') {
       // TODO(pipeline): rewrite the pipeline as collection pipeline and recurse into this function
       // return this.getDocumentsMatchingPipeline(txn, pipeline, offset, context);
-      throw new Error('not implemented for collection group yet');
+      const collectionId = getPipelineCollectionGroup(pipeline)!;
+      let results = documentMap();
+      return this.indexManager
+        .getCollectionParents(txn, collectionId)
+        .next(parents => {
+          // Perform a collection query against each parent that contains the
+          // collectionId and aggregate the results.
+          return PersistencePromise.forEach(parents, (parent: ResourcePath) => {
+            const collectionPipeline = asCollectionPipelineAtPath(
+              pipeline,
+              parent.child(collectionId)
+            );
+            return this.getDocumentsMatchingPipeline(
+              txn,
+              collectionPipeline,
+              offset,
+              context
+            ).next(r => {
+              r.forEach((key, doc) => {
+                results = results.insert(key, doc);
+              });
+            });
+          }).next(() => results);
+        });
     } else {
       // Query the remote documents and overlay mutations.
       let overlays: OverlayMap;
@@ -661,7 +685,7 @@ export class LocalDocumentsView {
           ResourcePath.fromString(getPipelineCollection(pipeline)!),
           largestBatchId
         );
-      case 'collection-group':
+      case 'collection_group':
         throw new FirestoreError(
           'invalid-argument',
           `Unexpected collection group pipeline: ${canonifyPipeline(pipeline)}`

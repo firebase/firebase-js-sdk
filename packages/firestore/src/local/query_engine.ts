@@ -59,7 +59,8 @@ import {
 import * as querystring from 'node:querystring';
 import {
   pipelineMatches,
-  pipelineMatchesAllDocuments
+  pipelineMatchesAllDocuments,
+  queryOrPipelineMatchesFullCollection
 } from '../core/pipeline_run';
 import { compareByKey } from '../model/document_comparator';
 
