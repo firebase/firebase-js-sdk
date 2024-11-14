@@ -1,5 +1,23 @@
 # @firebase/vertexai
 
+## 1.0.1
+
+### Patch Changes
+
+- [`052e438bc`](https://github.com/firebase/firebase-js-sdk/commit/052e438bc9abc5bfaf553a41edd2cde44dc70bc2) [#8589](https://github.com/firebase/firebase-js-sdk/pull/8589) - Update to new base URL in documentation
+
+- [`1f1ba3fee`](https://github.com/firebase/firebase-js-sdk/commit/1f1ba3feedf543a8ce42326dda077b0cdae21f2f) [#8587](https://github.com/firebase/firebase-js-sdk/pull/8587) - Remove indentation in VertexAI API Not Enabled error
+
+- [`4db3d3e7b`](https://github.com/firebase/firebase-js-sdk/commit/4db3d3e7be8b435b523d23b0910958a495c09ad8) [#8591](https://github.com/firebase/firebase-js-sdk/pull/8591) - Send App Check dummy token in header if there is an App Check getToken error.
+
+- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
+
+- Updated dependencies [[`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1)]:
+  - @firebase/app-check-interop-types@0.3.3
+  - @firebase/component@0.6.11
+  - @firebase/logger@0.4.4
+  - @firebase/util@1.10.2
+
 ## 1.0.0
 
 ### Major Changes
