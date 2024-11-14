@@ -52,7 +52,7 @@ import {
   orderByEquals,
   stringifyOrderBy
 } from './order_by';
-import { Pipeline } from '../api/pipeline';
+import { Pipeline } from '../lite-api/pipeline';
 import { TargetOrPipeline } from './pipeline-util';
 
 /**

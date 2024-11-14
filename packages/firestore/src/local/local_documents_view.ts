@@ -72,7 +72,7 @@ import {
   isPipeline,
   QueryOrPipeline
 } from '../core/pipeline-util';
-import { Pipeline } from '../api/pipeline';
+import { Pipeline } from '../lite-api/pipeline';
 import { FirestoreError } from '../util/error';
 import { pipelineMatches } from '../core/pipeline_run';
 import { SortedSet } from '../util/sorted_set';

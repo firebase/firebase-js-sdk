@@ -24,8 +24,6 @@ import { ObjectMap } from '../util/obj_map';
 import { Query, stringifyQuery } from './query';
 import { OnlineState } from './types';
 import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
-import { Pipeline } from '../api/pipeline';
-import { PipelineSnapshot } from '../api/snapshot';
 import {
   canonifyPipeline,
   canonifyQueryOrPipeline,

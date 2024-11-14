@@ -35,7 +35,6 @@ import {
   Target,
   targetEquals
 } from './target';
-import { Pipeline } from '../api/pipeline';
 
 export const enum LimitType {
   First = 'F',

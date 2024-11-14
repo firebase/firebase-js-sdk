@@ -63,15 +63,8 @@ import {
   Stage,
   Where
 } from '../lite-api/stage';
-import { Pipeline } from '../api/pipeline';
-import { Pipeline as LitePipeline } from '../lite-api/pipeline';
-import {
-  canonifyQuery,
-  Query,
-  queryEquals,
-  QueryImpl,
-  stringifyQuery
-} from './query';
+import { Pipeline } from '../lite-api/pipeline';
+import { canonifyQuery, Query, queryEquals, stringifyQuery } from './query';
 import {
   canonifyTarget,
   Target,
@@ -372,17 +365,13 @@ function canonifyExprMap(map: Map<string, Expr>): string {
     .join(',')}`;
 }
 
-export function canonifyPipeline(p: LitePipeline): string;
 export function canonifyPipeline(p: Pipeline): string;
-export function canonifyPipeline(p: Pipeline | LitePipeline): string {
+export function canonifyPipeline(p: Pipeline): string {
   return p.stages.map(s => canonifyStage(s)).join('|');
 }
 
 // TODO(pipeline): do a proper implementation for eq.
-export function pipelineEq(
-  left: Pipeline | LitePipeline,
-  right: Pipeline | LitePipeline
-): boolean {
+export function pipelineEq(left: Pipeline, right: Pipeline): boolean {
   return canonifyPipeline(left) === canonifyPipeline(right);
 }
 
@@ -461,7 +450,7 @@ export function asCollectionPipelineAtPath(
   });
 
   return new Pipeline(
-    pipeline.db,
+    pipeline.liteDb,
     pipeline.userDataReader,
     pipeline.userDataWriter,
     pipeline.documentReferenceFactory,
@@ -480,7 +469,7 @@ export function getPipelineDocuments(p: Pipeline): string[] | undefined {
 export type QueryOrPipeline = Query | Pipeline;
 
 export function isPipeline(q: QueryOrPipeline): q is Pipeline {
-  return q instanceof Pipeline || q instanceof LitePipeline;
+  return q instanceof Pipeline;
 }
 
 export function stringifyQueryOrPipeline(q: QueryOrPipeline): string {

@@ -57,11 +57,7 @@ import {
   stringifyQueryOrPipeline
 } from '../core/pipeline-util';
 import * as querystring from 'node:querystring';
-import {
-  pipelineMatches,
-  pipelineMatchesAllDocuments,
-  queryOrPipelineMatchesFullCollection
-} from '../core/pipeline_run';
+import { pipelineMatchesAllDocuments } from '../core/pipeline_run';
 import { compareByKey } from '../model/document_comparator';
 
 const DEFAULT_INDEX_AUTO_CREATION_MIN_COLLECTION_SIZE = 100;

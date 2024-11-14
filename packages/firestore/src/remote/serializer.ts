@@ -116,7 +116,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { Pipeline } from '../api/pipeline';
+import { Pipeline } from '../lite-api/pipeline';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: ProtoOrderDirection } = {};

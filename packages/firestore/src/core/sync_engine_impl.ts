@@ -116,10 +116,6 @@ import {
   ViewChange
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import { Pipeline } from '../api/pipeline';
-import { PipelineSnapshot } from '../api/snapshot';
-import { PipelineResult } from '../lite-api/pipeline-result';
-import { doc } from '../lite-api/reference';
 import {
   canonifyQueryOrPipeline,
   isPipeline,

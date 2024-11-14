@@ -132,7 +132,7 @@ export class Pipeline<AppModelType = DocumentData>
    * @param converter
    */
   constructor(
-    private liteDb: Firestore,
+    readonly liteDb: Firestore,
     /**
      * @internal
      */

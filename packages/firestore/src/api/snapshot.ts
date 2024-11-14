@@ -40,7 +40,7 @@ import { Code, FirestoreError } from '../util/error';
 
 import { Firestore } from './database';
 import { SnapshotListenOptions } from './reference_impl';
-import { Pipeline } from './pipeline';
+import { Pipeline } from '../lite-api/pipeline';
 import { PipelineResult, toPipelineResult } from '../lite-api/pipeline-result';
 import { isPipeline } from '../core/pipeline-util';
 import { newPipelineComparator } from '../core/pipeline_run';

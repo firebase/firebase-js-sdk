@@ -95,7 +95,7 @@ import { ClientId } from './shared_client_state';
 import { isIndexedDbTransactionError } from './simple_db';
 import { TargetCache } from './target_cache';
 import { TargetData, TargetPurpose } from './target_data';
-import { Pipeline } from '../api/pipeline';
+import { Pipeline } from '../lite-api/pipeline';
 
 import {
   canonifyTargetOrPipeline,

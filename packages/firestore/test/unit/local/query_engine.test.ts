@@ -80,7 +80,7 @@ import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
 import { isPipeline, QueryOrPipeline } from '../../../src/core/pipeline-util';
 import { newTestFirestore } from '../../util/api_helpers';
-import { Pipeline } from '../../../src/api/pipeline';
+import { Pipeline } from '../../../src/lite-api/pipeline';
 
 const TEST_TARGET_ID = 1;
 

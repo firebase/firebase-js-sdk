@@ -61,6 +61,7 @@ import {
 import { apiDescribe, toDataArray, withTestCollection } from '../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
 import { PipelineSnapshot } from '../../../src/api/snapshot';
+import { _onSnapshot } from '../../../src/api/pipeline_impl';
 
 use(chaiAsPromised);
 
@@ -265,11 +266,13 @@ apiDescribe('Pipelines', persistence => {
   it('basic listen works', async () => {
     const storeEvent = new EventsAccumulator<PipelineSnapshot>();
 
-    let result = firestore
-      .pipeline()
-      .collection(randomCol.path)
-      .where(eq('author', 'Douglas Adams'))
-      ._onSnapshot(storeEvent.storeEvent);
+    let result = _onSnapshot(
+      firestore
+        .pipeline()
+        .collection(randomCol.path)
+        .where(eq('author', 'Douglas Adams')),
+      storeEvent.storeEvent
+    );
     let snapshot = await storeEvent.awaitEvent();
 
     expect(toDataArray(snapshot)).to.deep.equal([
