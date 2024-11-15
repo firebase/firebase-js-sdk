@@ -18,11 +18,11 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { pipeline } from '../../../src/api/pipeline';
-import { execute } from '../../../src/lite-api/pipeline_impl';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
 import {
+  pipeline,
+  execute,
   _internalPipelineToExecutePipelineRequestProto,
   add,
   andFunction,
