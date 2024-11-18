@@ -27,8 +27,7 @@ import { SettingsService } from './settings_service';
 
 use(sinonChai);
 
-// eslint-disable-next-line no-restricted-properties
-describe.only('Firebase Performance > transport_service', () => {
+describe('Firebase Performance > transport_service', () => {
   const sendBeaconSpy = spy(navigator, 'sendBeacon');
   const INITIAL_SEND_TIME_DELAY_MS = 5.5 * 1000;
   const DEFAULT_SEND_INTERVAL_MS = 10 * 1000;

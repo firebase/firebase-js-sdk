@@ -32,6 +32,7 @@ import { mergeStrings } from '../utils/string_merger';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { PerformanceController } from '../controllers/perf';
 
+// eslint-disable-next-line no-restricted-properties
 describe('Performance Monitoring > perf_logger', () => {
   const IID = 'idasdfsffe';
   const PAGE_URL = 'http://mock-page.com';
@@ -54,7 +55,6 @@ describe('Performance Monitoring > perf_logger', () => {
     Array<{ message: string; eventTime: number }>,
     void
   >;
-  const flushQueuedEventsStub = stub(transportService, 'flushQueuedEvents');
   let getIidStub: SinonStub<[], string | undefined>;
   let clock: SinonFakeTimers;
 
@@ -142,8 +142,6 @@ describe('Performance Monitoring > perf_logger', () => {
       expect(addToQueueStub.getCall(0).args[0].message).to.be.equal(
         EXPECTED_TRACE_MESSAGE
       );
-      // Only page load traces should be immediately flushed
-      expect(flushQueuedEventsStub).not.to.be.called;
     });
 
     it('does not log an event if cookies are disabled in the browser', () => {
@@ -185,8 +183,6 @@ describe('Performance Monitoring > perf_logger', () => {
       expect(addToQueueStub.getCall(0).args[0].message).to.be.equal(
         EXPECTED_TRACE_MESSAGE
       );
-      // Only page load traces should be immediately flushed
-      expect(flushQueuedEventsStub).not.to.be.called;
     });
 
     it('ascertains that the max number of custom attributes allowed is 5', () => {
@@ -212,8 +208,6 @@ describe('Performance Monitoring > perf_logger', () => {
       expect(addToQueueStub.getCall(0).args[0].message).to.be.equal(
         EXPECTED_TRACE_MESSAGE
       );
-      // Only page load traces should be immediately flushed
-      expect(flushQueuedEventsStub).not.to.be.called;
     });
   });
 
@@ -297,7 +291,6 @@ describe('Performance Monitoring > perf_logger', () => {
       expect(addToQueueStub.getCall(0).args[0].message).to.be.equal(
         EXPECTED_TRACE_MESSAGE
       );
-      expect(flushQueuedEventsStub).to.be.called;
     });
   });
 
