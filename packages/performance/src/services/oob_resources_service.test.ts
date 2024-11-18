@@ -43,6 +43,7 @@ import {
   LCPMetricWithAttribution
 } from 'web-vitals/attribution';
 
+// eslint-disable-next-line no-restricted-properties
 describe('Firebase Performance > oob_resources_service', () => {
   const MOCK_ID = 'idasdfsffe';
 
