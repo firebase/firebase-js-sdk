@@ -185,8 +185,7 @@ describe('Firebase Performance > oob_resources_service', () => {
     api.onFirstInputDelay = undefined;
   });
 
-  // eslint-disable-next-line no-restricted-properties
-  describe.only('setupOobResources', () => {
+  describe('setupOobResources', () => {
     it('does not start if there is no iid', () => {
       getIidStub.returns(undefined);
       setupOobResources(performanceController);
