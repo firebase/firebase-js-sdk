@@ -36,7 +36,7 @@ describe('Performance Monitoring > perf_logger', () => {
   const IID = 'idasdfsffe';
   const PAGE_URL = 'http://mock-page.com';
   const APP_ID = '1:123:web:2er';
-  const VISIBILITY_STATE = 3;
+  const VISIBILITY_STATE = attributeUtils.VisibilityState.UNKNOWN;
   const EFFECTIVE_CONNECTION_TYPE = 2;
   const SERVICE_WORKER_STATUS = 3;
   const TIME_ORIGIN = 1556512199893.9033;
@@ -54,6 +54,7 @@ describe('Performance Monitoring > perf_logger', () => {
     Array<{ message: string; eventTime: number }>,
     void
   >;
+  const flushQueuedEventsStub = stub(transportService, 'flushQueuedEvents');
   let getIidStub: SinonStub<[], string | undefined>;
   let clock: SinonFakeTimers;
 
@@ -141,6 +142,8 @@ describe('Performance Monitoring > perf_logger', () => {
       expect(addToQueueStub.getCall(0).args[0].message).to.be.equal(
         EXPECTED_TRACE_MESSAGE
       );
+      // Only page load traces should be immediately flushed
+      expect(flushQueuedEventsStub).not.to.be.called;
     });
 
     it('does not log an event if cookies are disabled in the browser', () => {
@@ -182,6 +185,8 @@ describe('Performance Monitoring > perf_logger', () => {
       expect(addToQueueStub.getCall(0).args[0].message).to.be.equal(
         EXPECTED_TRACE_MESSAGE
       );
+      // Only page load traces should be immediately flushed
+      expect(flushQueuedEventsStub).not.to.be.called;
     });
 
     it('ascertains that the max number of custom attributes allowed is 5', () => {
@@ -207,6 +212,8 @@ describe('Performance Monitoring > perf_logger', () => {
       expect(addToQueueStub.getCall(0).args[0].message).to.be.equal(
         EXPECTED_TRACE_MESSAGE
       );
+      // Only page load traces should be immediately flushed
+      expect(flushQueuedEventsStub).not.to.be.called;
     });
   });
 
@@ -222,7 +229,9 @@ describe('Performance Monitoring > perf_logger', () => {
 "application_process_state":0},"trace_metric":{"name":"_wt_${PAGE_URL}","is_auto":true,\
 "client_start_time_us":${flooredStartTime},"duration_us":${DURATION * 1000},\
 "counters":{"domInteractive":10000,"domContentLoadedEventEnd":20000,"loadEventEnd":10000,\
-"_fp":40000,"_fcp":50000,"_fid":90000}}}`;
+"_fp":40000,"_fcp":50000,"_fid":90000,"_lcp":3999,"_cls":250,"_inp":100},\
+"custom_attributes":{"lcp_element":"lcp-element","cls_largestShiftTarget":"cls-element",\
+"inp_interactionTarget":"inp-element"}}}`;
       stub(initializationService, 'isPerfInitialized').returns(true);
       getIidStub.returns(IID);
       SettingsService.getInstance().loggingEnabled = true;
@@ -275,6 +284,11 @@ describe('Performance Monitoring > perf_logger', () => {
         performanceController,
         navigationTimings,
         paintTimings,
+        {
+          lcp: { value: 3.999, elementAttribution: 'lcp-element' },
+          inp: { value: 0.1, elementAttribution: 'inp-element' },
+          cls: { value: 0.250, elementAttribution: 'cls-element' },
+        },
         90
       );
       clock.tick(1);
@@ -283,6 +297,7 @@ describe('Performance Monitoring > perf_logger', () => {
       expect(addToQueueStub.getCall(0).args[0].message).to.be.equal(
         EXPECTED_TRACE_MESSAGE
       );
+      expect(flushQueuedEventsStub).to.be.called;
     });
   });
 
