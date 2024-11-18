@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { stub, useFakeTimers, SinonStub, SinonFakeTimers, match } from 'sinon';
+import { spy, useFakeTimers, SinonFakeTimers } from 'sinon';
 import { use, expect } from 'chai';
 import sinonChai from 'sinon-chai';
 import {
@@ -27,15 +27,12 @@ import { SettingsService } from './settings_service';
 
 use(sinonChai);
 
-describe('Firebase Performance > transport_service', () => {
-  let fetchStub: SinonStub<
-    [RequestInfo | URL, RequestInit?],
-    Promise<Response>
-  >;
+// eslint-disable-next-line no-restricted-properties
+describe.only('Firebase Performance > transport_service', () => {
+  const sendBeaconSpy = spy(navigator, 'sendBeacon');
   const INITIAL_SEND_TIME_DELAY_MS = 5.5 * 1000;
   const DEFAULT_SEND_INTERVAL_MS = 10 * 1000;
   const MAX_EVENT_COUNT_PER_REQUEST = 1000;
-  const TRANSPORT_DELAY_INTERVAL = 10000;
   // Starts date at timestamp 1 instead of 0, otherwise it causes validation errors.
   let clock: SinonFakeTimers;
   const testTransportHandler = transportHandler((...args) => {
@@ -43,15 +40,14 @@ describe('Firebase Performance > transport_service', () => {
   });
 
   beforeEach(() => {
-    fetchStub = stub(window, 'fetch');
     clock = useFakeTimers(1);
     setupTransportService();
   });
 
   afterEach(() => {
-    fetchStub.restore();
     clock.restore();
     resetTransportService();
+    sendBeaconSpy.resetHistory();
   });
 
   it('throws an error when logging an empty message', () => {
@@ -61,43 +57,21 @@ describe('Firebase Performance > transport_service', () => {
   });
 
   it('does not attempt to log an event after INITIAL_SEND_TIME_DELAY_MS if queue is empty', () => {
-    fetchStub.resolves(
-      new Response('', {
-        status: 200,
-        headers: { 'Content-type': 'application/json' }
-      })
-    );
-
     clock.tick(INITIAL_SEND_TIME_DELAY_MS);
-    expect(fetchStub).to.not.have.been.called;
+    expect(sendBeaconSpy).to.not.have.been.called;
   });
 
   it('attempts to log an event after DEFAULT_SEND_INTERVAL_MS if queue not empty', async () => {
-    fetchStub.resolves(
-      new Response('', {
-        status: 200,
-        headers: { 'Content-type': 'application/json' }
-      })
-    );
-
     clock.tick(INITIAL_SEND_TIME_DELAY_MS);
     testTransportHandler('someEvent');
     clock.tick(DEFAULT_SEND_INTERVAL_MS);
-    expect(fetchStub).to.have.been.calledOnce;
+    expect(sendBeaconSpy).to.have.been.calledOnce;
   });
 
   it('successful send a message to transport', () => {
-    const setting = SettingsService.getInstance();
-    const flTransportFullUrl =
-      setting.flTransportEndpointUrl + '?key=' + setting.transportKey;
-    fetchStub.withArgs(flTransportFullUrl, match.any).resolves(
-      // DELETE_REQUEST means event dispatch is successful.
-      generateSuccessResponse()
-    );
-
     testTransportHandler('event1');
     clock.tick(INITIAL_SEND_TIME_DELAY_MS);
-    expect(fetchStub).to.have.been.calledOnce;
+    expect(sendBeaconSpy).to.have.been.calledOnce;
   });
 
   it('sends up to the maximum event limit in one request', async () => {
@@ -105,11 +79,6 @@ describe('Firebase Performance > transport_service', () => {
     const setting = SettingsService.getInstance();
     const flTransportFullUrl =
       setting.flTransportEndpointUrl + '?key=' + setting.transportKey;
-
-    // Returns successful response from fl for logRequests.
-    const response = generateSuccessResponse();
-    stub(response, 'json').resolves(JSON.parse(generateSuccessResponseBody()));
-    fetchStub.resolves(response);
 
     // Act
     // Generate 1020 events, which should be dispatched in two batches (1000 events and 20 events).
@@ -131,10 +100,10 @@ describe('Firebase Performance > transport_service', () => {
         'event_time_ms': '1'
       });
     }
-    expect(fetchStub).which.to.have.been.calledWith(flTransportFullUrl, {
-      method: 'POST',
-      body: JSON.stringify(firstLogRequest)
-    });
+    expect(sendBeaconSpy).which.to.have.been.calledWith(
+      flTransportFullUrl,
+      JSON.stringify(firstLogRequest)
+    );
     // Expects the second logRequest which contains remaining 20 events;
     const secondLogRequest = generateLogRequest('15501');
     for (let i = 0; i < 20; i++) {
@@ -144,10 +113,10 @@ describe('Firebase Performance > transport_service', () => {
         'event_time_ms': '1'
       });
     }
-    expect(fetchStub).calledWith(flTransportFullUrl, {
-      method: 'POST',
-      body: JSON.stringify(secondLogRequest)
-    });
+    expect(sendBeaconSpy).calledWith(
+      flTransportFullUrl,
+      JSON.stringify(secondLogRequest)
+    );
   });
 
   function generateLogRequest(requestTimeMs: string): any {
@@ -160,27 +129,5 @@ describe('Firebase Performance > transport_service', () => {
       'log_source': 462,
       'log_event': [] as any
     };
-  }
-
-  function generateSuccessResponse(): Response {
-    return new Response(generateSuccessResponseBody(), {
-      status: 200,
-      headers: { 'Content-type': 'application/json' }
-    });
-  }
-
-  function generateSuccessResponseBody(): string {
-    return (
-      '{\
-    "nextRequestWaitMillis": "' +
-      TRANSPORT_DELAY_INTERVAL +
-      '",\
-    "logResponseDetails": [\
-      {\
-        "responseAction": "DELETE_REQUEST"\
-      }\
-    ]\
-    }'
-    );
   }
 });

@@ -17,7 +17,6 @@
 
 import { SettingsService } from './settings_service';
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
-import { consoleLogger } from '../utils/console_logger';
 
 const DEFAULT_SEND_INTERVAL_MS = 10 * 1000;
 const INITIAL_SEND_TIME_DELAY_MS = 5.5 * 1000;
@@ -106,19 +105,6 @@ function dispatchQueueEvents(): void {
 function postToFlEndpoint(data: TransportBatchLogFormat): boolean {
   const flTransportFullUrl =
     SettingsService.getInstance().getFlTransportFullUrl();
-  for (const event of data.log_event) {
-    const ext = JSON.parse(event.source_extension_json_proto3);
-    if (ext.network_request_metric) {
-      consoleLogger.info(
-        ` >>>>>>   network_request: ${ext.network_request_metric.url}`
-      );
-    }
-    if (ext.trace_metric) {
-      consoleLogger.info(
-        ` >>>>>>   trace: ${JSON.stringify(ext.trace_metric)}`
-      );
-    }
-  }
   return navigator.sendBeacon(flTransportFullUrl, JSON.stringify(data));
 }
 
