@@ -24,6 +24,7 @@ import {
 import { ERROR_FACTORY, ErrorCode } from '../errors';
 import { getUserLanguage } from '../language';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
+import { isBrowser } from '@firebase/util';
 
 /**
  * Defines request body parameters required to call the fetch API:
@@ -65,8 +66,13 @@ export class RestClient implements RemoteConfigFetchClient {
    * @throws a {@link ErrorCode.FETCH_PARSE} error if {@link Response#json} can't parse the
    * fetch response.
    * @throws a {@link ErrorCode.FETCH_STATUS} error if the service returns an HTTP error status.
+   * @throws a {@link ErrorCode.REQUIRES_BROWSER_ENVIRONMENT} error if the invoked in a non browser
+   * environment.
    */
   async fetch(request: FetchRequest): Promise<FetchResponse> {
+    if (!isBrowser()) {
+      throw ERROR_FACTORY.create(ErrorCode.REQUIRES_BROWSER_ENVIRONMENT);
+    }
     const [installationId, installationToken] = await Promise.all([
       this.firebaseInstallations.getId(),
       this.firebaseInstallations.getToken()
