@@ -96,11 +96,9 @@ exports.resolveNodeExterns = function (id) {
 
 /** Breaks the build if there is a circular dependency. */
 exports.onwarn = function (warning, defaultWarn) {
-  // TODO(pipeline) re-enable and fix circular dependencies after the pipeline exploration phase
-  // if (warning.code === 'CIRCULAR_DEPENDENCY') {
-  //   console.log(JSON.stringify(warning));
-  //   throw new Error(warning);
-  // }
+  if (warning.code === 'CIRCULAR_DEPENDENCY') {
+    throw new Error(warning);
+  }
   defaultWarn(warning);
 };
 
