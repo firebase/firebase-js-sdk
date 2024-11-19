@@ -57,7 +57,10 @@ import {
   stringifyQueryOrPipeline
 } from '../core/pipeline-util';
 import * as querystring from 'node:querystring';
-import { pipelineMatchesAllDocuments } from '../core/pipeline_run';
+import {
+  pipelineMatches,
+  pipelineMatchesAllDocuments
+} from '../core/pipeline_run';
 import { compareByKey } from '../model/document_comparator';
 
 const DEFAULT_INDEX_AUTO_CREATION_MIN_COLLECTION_SIZE = 100;
@@ -428,6 +431,7 @@ export class QueryEngine {
       // TODO(pipeline): the order here does not actually matter, not until we implement
       // refill logic for pipelines as well.
       queryResults = new SortedSet<Document>(compareByKey);
+      matcher = doc => pipelineMatches(query, doc as MutableDocument);
     } else {
       // Sort the documents and re-apply the query filter since previously
       // matching documents do not necessarily still match the query.

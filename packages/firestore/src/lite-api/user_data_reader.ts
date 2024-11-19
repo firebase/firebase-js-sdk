@@ -75,6 +75,8 @@ import {
 } from './reference';
 import { Timestamp } from './timestamp';
 import { VectorValue } from './vector_value';
+import { isFirestoreValue } from '../core/pipeline-util';
+import { Constant } from './expressions';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
@@ -331,7 +333,7 @@ class ParseContextImpl implements ParseContext {
  * classes.
  */
 export class UserDataReader {
-  private readonly serializer: JsonProtoSerializer;
+  readonly serializer: JsonProtoSerializer;
 
   constructor(
     private readonly databaseId: DatabaseId,
@@ -796,6 +798,10 @@ export function parseData(
   // Unwrap the API type from the Compat SDK. This will return the API type
   // from firestore-exp.
   input = getModularInstance(input);
+
+  if (input instanceof Constant) {
+    return input._getValue();
+  }
 
   if (looksLikeJsonObject(input)) {
     validatePlainObject('Unsupported field value:', context, input);

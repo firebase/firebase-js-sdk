@@ -64,7 +64,16 @@ import {
   Where
 } from '../lite-api/stage';
 import { Pipeline } from '../lite-api/pipeline';
-import { canonifyQuery, Query, queryEquals, stringifyQuery } from './query';
+import {
+  canonifyQuery,
+  isCollectionGroupQuery,
+  isDocumentQuery,
+  LimitType,
+  Query,
+  queryEquals,
+  queryNormalizedOrderBy,
+  stringifyQuery
+} from './query';
 import {
   canonifyTarget,
   Target,
@@ -72,6 +81,9 @@ import {
   targetIsPipelineTarget
 } from './target';
 import { ResourcePath } from '../model/path';
+import { Firestore } from '../api/database';
+import { doc } from '../lite-api/reference';
+import { Direction } from './order_by';
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
@@ -222,34 +234,37 @@ export function toPipelineFilterCondition(
       const value = f.value;
       switch (f.op) {
         case Operator.LESS_THAN:
-          return and(field.exists(), field.lt(value));
+          return and(field.exists(), field.lt(Constant._fromProto(value)));
         case Operator.LESS_THAN_OR_EQUAL:
-          return and(field.exists(), field.lte(value));
+          return and(field.exists(), field.lte(Constant._fromProto(value)));
         case Operator.GREATER_THAN:
-          return and(field.exists(), field.gt(value));
+          return and(field.exists(), field.gt(Constant._fromProto(value)));
         case Operator.GREATER_THAN_OR_EQUAL:
-          return and(field.exists(), field.gte(value));
+          return and(field.exists(), field.gte(Constant._fromProto(value)));
         case Operator.EQUAL:
-          return and(field.exists(), field.eq(value));
+          return and(field.exists(), field.eq(Constant._fromProto(value)));
         case Operator.NOT_EQUAL:
-          return and(field.exists(), field.neq(value));
+          return and(field.exists(), field.neq(Constant._fromProto(value)));
         case Operator.ARRAY_CONTAINS:
-          return and(field.exists(), field.arrayContains(value));
+          return and(
+            field.exists(),
+            field.arrayContains(Constant._fromProto(value))
+          );
         case Operator.IN: {
           const values = value?.arrayValue?.values?.map((val: any) =>
-            Constant.of(val)
+            Constant._fromProto(val)
           );
           return and(field.exists(), field.in(...values!));
         }
         case Operator.ARRAY_CONTAINS_ANY: {
           const values = value?.arrayValue?.values?.map((val: any) =>
-            Constant.of(val)
+            Constant._fromProto(val)
           );
-          return and(field.exists(), field.arrayContainsAny(values!));
+          return and(field.exists(), field.arrayContainsAny(...values!));
         }
         case Operator.NOT_IN: {
           const values = value?.arrayValue?.values?.map((val: any) =>
-            Constant.of(val)
+            Constant._fromProto(val)
           );
           return and(field.exists(), not(field.in(...values!)));
         }
@@ -277,6 +292,56 @@ export function toPipelineFilterCondition(
   }
 
   throw new Error(`Failed to convert filter to pipeline conditions: ${f}`);
+}
+
+export function toPipeline(query: Query, db: Firestore): Pipeline {
+  let pipeline: Pipeline;
+  if (isCollectionGroupQuery(query)) {
+    pipeline = db.pipeline().collectionGroup(query.collectionGroup!);
+  } else if (isDocumentQuery(query)) {
+    pipeline = db.pipeline().documents([doc(db, query.path.canonicalString())]);
+  } else {
+    pipeline = db.pipeline().collection(query.path.canonicalString());
+  }
+
+  // filters
+  for (const filter of query.filters) {
+    pipeline = pipeline.where(toPipelineFilterCondition(filter));
+  }
+
+  // orders
+  const orders = queryNormalizedOrderBy(query);
+  const existsConditions = orders.map(order =>
+    Field.of(order.field.canonicalString()).exists()
+  );
+  if (existsConditions.length > 1) {
+    pipeline = pipeline.where(
+      and(existsConditions[0], ...existsConditions.slice(1))
+    );
+  } else {
+    pipeline = pipeline.where(existsConditions[0]);
+  }
+
+  pipeline = pipeline.sort(
+    ...orders.map(order =>
+      order.dir === Direction.ASCENDING
+        ? Field.of(order.field.canonicalString()).ascending()
+        : Field.of(order.field.canonicalString()).descending()
+    )
+  );
+
+  // cursors and limits
+  if (query.startAt !== null || query.endAt !== null) {
+    throw new Error('Cursors are not supported yet.');
+  }
+  if (query.limitType === LimitType.Last) {
+    throw new Error('Limit to last are not supported yet.');
+  }
+  if (query.limit !== null) {
+    pipeline = pipeline.limit(query.limit);
+  }
+
+  return pipeline;
 }
 
 function canonifyExpr(expr: Expr): string {
@@ -534,6 +599,6 @@ export function targetOrPipelineEqual(
 
 export function pipelineHasRanges(pipeline: Pipeline): boolean {
   return pipeline.stages.some(
-    stage => stage.name === Limit.name || stage.name === Offset.name
+    stage => stage instanceof Limit || stage instanceof Offset
   );
 }

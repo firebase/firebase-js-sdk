@@ -79,7 +79,12 @@ import {
   Field,
   Constant
 } from '../lite-api/expressions';
-import { FieldPath } from '../model/path';
+import {
+  CREATE_TIME_NAME,
+  DOCUMENT_KEY_NAME,
+  FieldPath,
+  UPDATE_TIME_NAME
+} from '../model/path';
 import {
   FALSE_VALUE,
   getVectorValue,
@@ -99,6 +104,7 @@ import {
 } from '../model/values';
 
 import { RE2JS } from 're2js';
+import { toName, toTimestamp, toVersion } from '../remote/serializer';
 
 export interface EvaluableExpr {
   evaluate(
@@ -246,6 +252,27 @@ export class CoreField implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
+    if (this.expr.fieldName() === DOCUMENT_KEY_NAME) {
+      return {
+        referenceValue: toName(context.userDataReader.serializer, input.key)
+      };
+    }
+    if (this.expr.fieldName() === UPDATE_TIME_NAME) {
+      return {
+        timestampValue: toVersion(
+          context.userDataReader.serializer,
+          input.version
+        )
+      };
+    }
+    if (this.expr.fieldName() === CREATE_TIME_NAME) {
+      return {
+        timestampValue: toVersion(
+          context.userDataReader.serializer,
+          input.createTime
+        )
+      };
+    }
     return (
       input.data.field(FieldPath.fromServerFormat(this.expr.fieldName())) ??
       undefined
@@ -936,17 +963,17 @@ export class CoreArrayContainsAny implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.array).evaluate(context, input);
-    if (evaluated === undefined || !isArray(evaluated)) {
+    const evaluatedExpr = toEvaluable(this.expr.array).evaluate(context, input);
+    if (evaluatedExpr === undefined || !isArray(evaluatedExpr)) {
       return undefined;
     }
 
-    const elements = this.expr.values.map(val =>
+    const candidates = this.expr.values.map(val =>
       toEvaluable(val).evaluate(context, input)
     );
 
-    for (const element of elements) {
-      for (const val of evaluated.arrayValue.values ?? []) {
+    for (const element of candidates) {
+      for (const val of evaluatedExpr.arrayValue.values ?? []) {
         if (element !== undefined && valueEquals(val, element!)) {
           return TRUE_VALUE;
         }

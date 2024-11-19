@@ -78,7 +78,11 @@ import {
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
-import { isPipeline, QueryOrPipeline } from '../../../src/core/pipeline-util';
+import {
+  isPipeline,
+  QueryOrPipeline,
+  toPipeline
+} from '../../../src/core/pipeline-util';
 import { newTestFirestore } from '../../util/api_helpers';
 import { Pipeline } from '../../../src/lite-api/pipeline';
 
@@ -103,7 +107,7 @@ class TestLocalDocumentsView extends LocalDocumentsView {
 
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
-    query: Query,
+    query: QueryOrPipeline,
     offset: IndexOffset,
     context?: QueryContext
   ): PersistencePromise<DocumentMap> {
@@ -263,8 +267,7 @@ function genericQueryEngineTest(
 
     let query = queryOrPipeline;
     if (options.convertToPipeline && !isPipeline(queryOrPipeline)) {
-      // TODO(pipeline): uncomment when query.pipeline() is ready.
-      // query = queryOrPipeline.pipeline()
+      query = toPipeline(queryOrPipeline, db);
     }
 
     // NOTE: Use a `readwrite` transaction (instead of `readonly`) so that
@@ -419,6 +422,11 @@ function genericQueryEngineTest(
     });
 
     it('does not use initial results for limitToLast query with document removal', async () => {
+      // TODO(pipeline): enable this test for pipelines when we can convert limit to last to pipelines
+      if (options.convertToPipeline) {
+        return;
+      }
+
       const query1 = queryWithLimit(
         query('coll', filter('matches', '==', true), orderBy('order', 'desc')),
         1,
@@ -462,6 +470,11 @@ function genericQueryEngineTest(
     });
 
     it('does not use initial results for limitToLast query when first document has pending write', async () => {
+      // TODO(pipeline): enable this test for pipelines when we can convert limit to last to pipelines
+      if (options.convertToPipeline) {
+        return;
+      }
+
       const query1 = queryWithLimit(
         query('coll', filter('matches', '==', true), orderBy('order')),
         1,
@@ -503,6 +516,11 @@ function genericQueryEngineTest(
     });
 
     it('does not use initial results for limitToLast query when first document in limit has been updated out of band', async () => {
+      // TODO(pipeline): enable this test for pipelines when we can convert limit to last to pipelines
+      if (options.convertToPipeline) {
+        return;
+      }
+
       const query1 = queryWithLimit(
         query('coll', filter('matches', '==', true), orderBy('order')),
         1,
@@ -536,12 +554,20 @@ function genericQueryEngineTest(
       // Update "coll/a" but make sure it still sorts before "coll/b"
       await addMutation(patchMutation('coll/a', { order: 2 }));
 
-      // Since the last document in the limit didn't change (and hence we know
-      // that all documents written prior to query execution still sort after
-      // "coll/b"), we should use an Index-Free query.
-      const docs = await expectOptimizedCollectionQuery(() =>
-        runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
-      );
+      let docs: DocumentSet;
+      if (options.convertToPipeline) {
+        // TODO(pipeline): do something similar to query
+        docs = await expectFullCollectionQuery(() =>
+          runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
+        );
+      } else {
+        // Since the last document in the limit didn't change (and hence we know
+        // that all documents written prior to query execution still sort after
+        // "coll/b"), we should use an Index-Free query.
+        docs = await expectOptimizedCollectionQuery(() =>
+          runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
+        );
+      }
       verifyResult(docs, [
         doc('coll/a', 1, { order: 2 }).setHasLocalMutations(),
         doc('coll/b', 1, { order: 3 })
@@ -640,16 +666,18 @@ function genericQueryEngineTest(
       );
       verifyResult(result6, [doc1, doc2]);
 
-      // Test with limits (implicit order by DESC): (a==1) || (b > 0) LIMIT_TO_LAST 2
-      const query7 = queryWithLimit(
-        query('coll', orFilter(filter('a', '==', 1), filter('b', '>', 0))),
-        2,
-        LimitType.Last
-      );
-      const result7 = await expectFullCollectionQuery(() =>
-        runQuery(query7, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
-      );
-      verifyResult(result7, [doc3, doc4]);
+      if (options.convertToPipeline === false) {
+        // Test with limits (implicit order by DESC): (a==1) || (b > 0) LIMIT_TO_LAST 2
+        const query7 = queryWithLimit(
+          query('coll', orFilter(filter('a', '==', 1), filter('b', '>', 0))),
+          2,
+          LimitType.Last
+        );
+        const result7 = await expectFullCollectionQuery(() =>
+          runQuery(query7, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+        );
+        verifyResult(result7, [doc3, doc4]);
+      }
 
       // Test with limits (explicit order by ASC): (a==2) || (b == 1) ORDER BY a LIMIT 1
       const query8 = queryWithAddedOrderBy(
@@ -665,19 +693,21 @@ function genericQueryEngineTest(
       );
       verifyResult(result8, [doc5]);
 
-      // Test with limits (explicit order by DESC): (a==2) || (b == 1) ORDER BY a LIMIT_TO_LAST 1
-      const query9 = queryWithAddedOrderBy(
-        queryWithLimit(
-          query('coll', orFilter(filter('a', '==', 2), filter('b', '==', 1))),
-          1,
-          LimitType.Last
-        ),
-        orderBy('a', 'desc')
-      );
-      const result9 = await expectFullCollectionQuery(() =>
-        runQuery(query9, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
-      );
-      verifyResult(result9, [doc5]);
+      if (options.convertToPipeline === false) {
+        // Test with limits (explicit order by DESC): (a==2) || (b == 1) ORDER BY a LIMIT_TO_LAST 1
+        const query9 = queryWithAddedOrderBy(
+          queryWithLimit(
+            query('coll', orFilter(filter('a', '==', 2), filter('b', '==', 1))),
+            1,
+            LimitType.Last
+          ),
+          orderBy('a', 'desc')
+        );
+        const result9 = await expectFullCollectionQuery(() =>
+          runQuery(query9, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+        );
+        verifyResult(result9, [doc5]);
+      }
 
       // Test with limits without orderBy (the __name__ ordering is the tie breaker).
       const query10 = queryWithLimit(
@@ -763,7 +793,7 @@ function genericQueryEngineTest(
       verifyResult(result5, [doc1, doc2, doc4, doc5]);
     });
 
-    it.only('pipeline source db', async () => {
+    it('pipeline source db', async () => {
       const doc1 = doc('coll1/1', 1, { 'a': 1, 'b': 0 });
       const doc2 = doc('coll1/2', 1, { 'b': 1 });
       const doc3 = doc('coll2/3', 1, { 'a': 3, 'b': 2 });
@@ -798,7 +828,7 @@ function genericQueryEngineTest(
       verifyResult(result3, [doc3, doc1, doc2]);
     });
 
-    it.only('pipeline source collection', async () => {
+    it('pipeline source collection', async () => {
       const doc1 = doc('coll/1', 1, { 'a': 1, 'b': 0 });
       const doc2 = doc('coll/2', 1, { 'b': 1 });
       const doc3 = doc('coll/3', 1, { 'a': 3, 'b': 2 });
@@ -833,7 +863,7 @@ function genericQueryEngineTest(
       verifyResult(result3, [doc3, doc1, doc2]);
     });
 
-    it.only('pipeline source collection group', async () => {
+    it('pipeline source collection group', async () => {
       const doc1 = doc('coll/doc1/group/1', 1, { 'a': 1, 'b': 0 });
       const doc2 = doc('coll/doc2/group/2', 1, { 'b': 1 });
       const doc3 = doc('coll/doc2/group1/3', 1, { 'a': 3, 'b': 2 });

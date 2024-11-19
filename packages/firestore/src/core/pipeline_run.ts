@@ -17,6 +17,9 @@ import {
   CollectionSource,
   DatabaseSource,
   DocumentsSource,
+  Exists,
+  exists,
+  Field,
   Limit,
   Offset,
   Ordering,
@@ -36,6 +39,7 @@ import { toEvaluable } from './expressions';
 import { UserDataReader } from '../lite-api/user_data_reader';
 import { Query, queryMatches, queryMatchesAllDocuments } from './query';
 import { isPipeline, QueryOrPipeline } from './pipeline-util';
+import { DOCUMENT_KEY_NAME } from '../model/path';
 
 export type PipelineInputOutput = MutableDocument;
 
@@ -78,8 +82,23 @@ export function queryOrPipelineMatches(
 }
 
 export function pipelineMatchesAllDocuments(pipeline: Pipeline): boolean {
-  // TODO(pipeline): implement properly.
-  return false;
+  for (const stage of pipeline.stages) {
+    if (stage instanceof Limit || stage instanceof Offset) {
+      return false;
+    }
+    if (stage instanceof Where) {
+      if (
+        stage.condition instanceof Exists &&
+        stage.condition.expr instanceof Field &&
+        stage.condition.expr.fieldName() === DOCUMENT_KEY_NAME
+      ) {
+        continue;
+      }
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function evaluate(
@@ -178,8 +197,9 @@ function evaluateCollection(
 ): Array<PipelineInputOutput> {
   return inputs.filter(input => {
     return (
+      input.isFoundDocument() &&
       `/${input.key.getCollectionPath().canonicalString()}` ===
-      coll.collectionPath
+        coll.collectionPath
     );
   });
 }
@@ -191,7 +211,10 @@ function evaluateCollectionGroup(
 ): Array<PipelineInputOutput> {
   // return those records in input whose collection id is stage.collectionId
   return input.filter(input => {
-    return input.key.getCollectionPath().lastSegment() === stage.collectionId;
+    return (
+      input.isFoundDocument() &&
+      input.key.getCollectionPath().lastSegment() === stage.collectionId
+    );
   });
 }
 
@@ -200,7 +223,7 @@ function evaluateDatabase(
   stage: DatabaseSource,
   input: Array<PipelineInputOutput>
 ): Array<PipelineInputOutput> {
-  return input;
+  return input.filter(input => input.isFoundDocument());
 }
 
 function evaluateDocuments(
@@ -209,7 +232,10 @@ function evaluateDocuments(
   input: Array<PipelineInputOutput>
 ): Array<PipelineInputOutput> {
   return input.filter(input => {
-    return stage.docPaths.includes(input.key.path.canonicalString());
+    return (
+      input.isFoundDocument() &&
+      stage.docPaths.includes(input.key.path.canonicalString())
+    );
   });
 }
 

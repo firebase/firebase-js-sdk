@@ -2154,6 +2154,16 @@ export class Constant extends Expr {
    * @private
    * @internal
    */
+  static _fromProto(value: ProtoValue): Constant {
+    const result = new Constant(value);
+    result._protoValue = value;
+    return result;
+  }
+
+  /**
+   * @private
+   * @internal
+   */
   _toProto(serializer: JsonProtoSerializer): ProtoValue {
     hardAssert(
       this._protoValue !== undefined,
@@ -2179,6 +2189,10 @@ export class Constant extends Expr {
    * @internal
    */
   _readUserData(dataReader: UserDataReader): void {
+    if (!!this._protoValue) {
+      return;
+    }
+
     const context = dataReader.createContext(
       UserDataSource.Argument,
       'Constant.of'
