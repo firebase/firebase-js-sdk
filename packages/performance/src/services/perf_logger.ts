@@ -85,7 +85,10 @@ interface TraceMetric {
 }
 
 interface Logger {
-  send: (resource: NetworkRequest | Trace, resourceType: ResourceType) => void | undefined;
+  send: (
+    resource: NetworkRequest | Trace,
+    resourceType: ResourceType
+  ) => void | undefined;
   flush: () => void;
 }
 
@@ -99,7 +102,7 @@ function sendLog(
   if (!logger) {
     logger = {
       send: transportHandler(serializer),
-      flush: flushQueuedEvents,
+      flush: flushQueuedEvents
     };
   }
   logger.send(resource, resourceType);

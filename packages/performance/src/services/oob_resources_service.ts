@@ -18,7 +18,7 @@
 import {
   CLSMetricWithAttribution,
   INPMetricWithAttribution,
-  LCPMetricWithAttribution,
+  LCPMetricWithAttribution
 } from 'web-vitals/attribution';
 
 import { TRACE_MEASURE_PREFIX } from '../constants';
