@@ -281,7 +281,7 @@ describe('Performance Monitoring > perf_logger', () => {
         {
           lcp: { value: 3.999, elementAttribution: 'lcp-element' },
           inp: { value: 0.1, elementAttribution: 'inp-element' },
-          cls: { value: 0.250, elementAttribution: 'cls-element' },
+          cls: { value: 0.25, elementAttribution: 'cls-element' }
         },
         90
       );
