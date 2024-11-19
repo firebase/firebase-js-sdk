@@ -41,6 +41,8 @@ import { cast } from '../util/input_validation';
 import { logWarn } from '../util/log';
 
 import { FirestoreService, removeComponents } from './components';
+// `import type` to avoid bundling the source for
+// pipelines if `useFirestorePipelines()` is not called
 import type { PipelineSource } from './pipeline-source';
 import {
   DEFAULT_HOST,
@@ -48,8 +50,6 @@ import {
   PrivateSettings,
   FirestoreSettings
 } from './settings';
-// `import type` to avoid bundling the source for
-// pipelines if `useFirestorePipelines()` is not called
 
 export { EmulatorMockTokenOptions } from '@firebase/util';
 

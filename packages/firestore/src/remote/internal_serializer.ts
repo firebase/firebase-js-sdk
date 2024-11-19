@@ -102,7 +102,6 @@ export function _internalAggregationQueryToProtoRunAggregationQueryRequest<
  *
  * @param pipeline - The Pipeline to convert to proto representation.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function _internalPipelineToExecutePipelineRequestProto(
   pipeline: Pipeline
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
