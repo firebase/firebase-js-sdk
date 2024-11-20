@@ -46,6 +46,7 @@ import {
   connectFirestoreEmulator,
   Firestore as LiteFirestore
 } from '../lite-api/database';
+import type { PipelineSource } from '../lite-api/pipeline-source';
 import { Query } from '../lite-api/reference';
 import {
   indexedDbClearPersistence,
@@ -127,6 +128,15 @@ export class Firestore extends LiteFirestore {
       this._firestoreClient = undefined;
       await terminate;
     }
+  }
+
+  /**
+   * Pipeline query.
+   */
+  pipeline(): PipelineSource {
+    throw new Error(
+      'Pipelines not initialized. Your application must call `useFirestorePipelines()` before using Firestore Pipeline features.'
+    );
   }
 }
 
