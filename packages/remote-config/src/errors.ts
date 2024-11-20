@@ -32,9 +32,7 @@ export const enum ErrorCode {
   FETCH_PARSE = 'fetch-client-parse',
   FETCH_STATUS = 'fetch-status',
   INDEXED_DB_UNAVAILABLE = 'indexed-db-unavailable',
-  CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS = 'custom-signal-max-allowed-signals',
-  CUSTOM_SIGNAL_KEY_LENGTH = 'custom-signal-key-length',
-  CUSTOM_SIGNAL_VALUE_LENGTH = 'custom-signal-value-length'
+  CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS = 'custom-signal-max-allowed-signals'
 }
 
 const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
@@ -72,11 +70,7 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
   [ErrorCode.INDEXED_DB_UNAVAILABLE]:
     'Indexed DB is not supported by current browser',
   [ErrorCode.CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS]:
-    'Setting more than {$maxSignals} custom signals is not supported.',
-  [ErrorCode.CUSTOM_SIGNAL_KEY_LENGTH]:
-    'Custom signal key {$key} is too long, max allowed length is {$maxLength}.',
-  [ErrorCode.CUSTOM_SIGNAL_VALUE_LENGTH]:
-    'Value supplied for custom signal {$key} is too long, max allowed length is {$maxLength}.'
+    'Setting more than {$maxSignals} custom signals is not supported.'
 };
 
 // Note this is effectively a type system binding a code to params. This approach overlaps with the
@@ -96,8 +90,6 @@ interface ErrorParams {
   [ErrorCode.FETCH_PARSE]: { originalErrorMessage: string };
   [ErrorCode.FETCH_STATUS]: { httpStatus: number };
   [ErrorCode.CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS]: { maxSignals: number };
-  [ErrorCode.CUSTOM_SIGNAL_KEY_LENGTH]: { key: string; maxLength: number };
-  [ErrorCode.CUSTOM_SIGNAL_VALUE_LENGTH]: { key: string; maxLength: number };
 }
 
 export const ERROR_FACTORY = new ErrorFactory<ErrorCode, ErrorParams>(

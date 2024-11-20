@@ -91,7 +91,9 @@ describe('StorageCache', () => {
     const customSignals = { key: 'value' };
 
     beforeEach(() => {
-      storage.setCustomSignals = sinon.stub().returns(Promise.resolve());
+      storage.setCustomSignals = sinon
+        .stub()
+        .returns(Promise.resolve(customSignals));
     });
 
     it('writes to memory cache', async () => {

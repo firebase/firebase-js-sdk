@@ -119,13 +119,18 @@ describe('Storage', () => {
   });
 
   it('sets and gets custom signals', async () => {
-    const customSignals = { key: 'value', key1: 'value1' };
+    const customSignals = { key: 'value', key1: 'value1', key2: 1 };
+    const customSignalsInStorage = {
+      key: 'value',
+      key1: 'value1',
+      key2: '1'
+    };
 
     await storage.setCustomSignals(customSignals);
 
     const storedCustomSignals = await storage.getCustomSignals();
 
-    expect(storedCustomSignals).to.deep.eq(customSignals);
+    expect(storedCustomSignals).to.deep.eq(customSignalsInStorage);
   });
 
   it('upserts custom signals when key is present in storage', async () => {

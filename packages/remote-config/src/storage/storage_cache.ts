@@ -111,8 +111,7 @@ export class StorageCache {
     return this.storage.setActiveConfig(activeConfig);
   }
 
-  setCustomSignals(customSignals: CustomSignals): Promise<void> {
-    this.customSignals = customSignals;
-    return this.storage.setCustomSignals(customSignals);
+  async setCustomSignals(customSignals: CustomSignals): Promise<void> {
+    this.customSignals = await this.storage.setCustomSignals(customSignals);
   }
 }

@@ -98,6 +98,7 @@ describe('RemoteConfig', () => {
     beforeEach(() => {
       storageCache.setCustomSignals = sinon.stub();
       storage.setCustomSignals = sinon.stub();
+      logger.error = sinon.stub();
     });
 
     it('call storage API to store signals', async () => {
@@ -108,26 +109,30 @@ describe('RemoteConfig', () => {
       });
     });
 
-    it('throws an error when supplied with a custom signal key greater than 250 characters', async () => {
+    it('logs an error when supplied with a custom signal key greater than 250 characters', async () => {
       const longKey = 'a'.repeat(251);
       const customSignals = { [longKey]: 'value' };
 
-      await expect(
-        setCustomSignals(rc, customSignals)
-      ).to.eventually.be.rejectedWith(
-        `Remote Config: Custom signal key ${longKey} is too long, max allowed length is 250.`
-      );
+      await setCustomSignals(rc, customSignals);
+
+      expect(storageCache.setCustomSignals).to.not.have.been.called;
+      expect(logger.error).to.have.been.called;
     });
 
-    it('throws an error when supplied with a custom signal value greater than 500 characters', async () => {
+    it('logs an error when supplied with a custom signal value greater than 500 characters', async () => {
       const longValue = 'a'.repeat(501);
       const customSignals = { 'key': longValue };
 
-      await expect(
-        setCustomSignals(rc, customSignals)
-      ).to.eventually.be.rejectedWith(
-        'Remote Config: Value supplied for custom signal key is too long, max allowed length is 500.'
-      );
+      await setCustomSignals(rc, customSignals);
+
+      expect(storageCache.setCustomSignals).to.not.have.been.called;
+      expect(logger.error).to.have.been.called;
+    });
+
+    it('empty custom signals map does nothing', async () => {
+      await setCustomSignals(rc, {});
+
+      expect(storageCache.setCustomSignals).to.not.have.been.called;
     });
   });
 

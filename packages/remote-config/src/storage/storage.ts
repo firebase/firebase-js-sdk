@@ -187,7 +187,7 @@ export class Storage {
     return this.get<CustomSignals>('custom_signals');
   }
 
-  async setCustomSignals(customSignals: CustomSignals): Promise<void> {
+  async setCustomSignals(customSignals: CustomSignals): Promise<CustomSignals> {
     const db = await this.openDbPromise;
     const transaction = db.transaction([APP_NAMESPACE_STORE], 'readwrite');
     const storedSignals = await this.getWithTransaction<CustomSignals>(
@@ -199,24 +199,34 @@ export class Storage {
       ...customSignals
     };
     // Filter out key-value assignments with null values since they are signals being unset
-    const signalsToUpdate = Object.fromEntries(
-      Object.entries(combinedSignals).filter(([_, v]) => v !== null)
+    const updatedSignals = Object.fromEntries(
+      Object.entries(combinedSignals)
+        .filter(([_, v]) => v !== null)
+        .map(([k, v]) => {
+          // Stringify numbers to store a map of string keys and values which can be sent
+          // as-is in a fetch call.
+          if (typeof v === 'number') {
+            return [k, v.toString()];
+          }
+          return [k, v];
+        })
     );
 
     // Throw an error if the number of custom signals to be stored exceeds the limit
     if (
-      Object.keys(signalsToUpdate).length > RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
+      Object.keys(updatedSignals).length > RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
     ) {
       throw ERROR_FACTORY.create(ErrorCode.CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS, {
         maxSignals: RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
       });
     }
 
-    return this.setWithTransaction<CustomSignals>(
+    await this.setWithTransaction<CustomSignals>(
       'custom_signals',
-      signalsToUpdate,
+      updatedSignals,
       transaction
     );
+    return updatedSignals;
   }
 
   /**
