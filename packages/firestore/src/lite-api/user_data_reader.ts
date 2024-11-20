@@ -852,7 +852,7 @@ function parseSentinelFieldValue(
  *
  * @returns The parsed value
  */
-function parseScalarValue(
+export function parseScalarValue(
   value: unknown,
   context: ParseContextImpl
 ): ProtoValue | null {
@@ -920,9 +920,10 @@ function parseScalarValue(
  * Creates a new VectorValue proto value (using the internal format).
  */
 export function parseVectorValue(
-  value: VectorValue,
+  value: VectorValue | number[],
   context: ParseContextImpl
-): ProtoValue {
+): { mapValue: ProtoMapValue } {
+  const values = value instanceof VectorValue ? value.toArray() : value;
   const mapValue: ProtoMapValue = {
     fields: {
       [TYPE_KEY]: {
@@ -930,7 +931,7 @@ export function parseVectorValue(
       },
       [VECTOR_MAP_VECTORS_KEY]: {
         arrayValue: {
-          values: value.toArray().map(value => {
+          values: values.map(value => {
             if (typeof value !== 'number') {
               throw context.createError(
                 'VectorValues must only contain numeric values.'

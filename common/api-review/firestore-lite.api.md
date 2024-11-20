@@ -9,13 +9,53 @@ import { FirebaseApp } from '@firebase/app';
 import { FirebaseError } from '@firebase/util';
 import { LogLevelString as LogLevel } from '@firebase/logger';
 
+// @beta
+export interface Accumulator {
+    // (undocumented)
+    accumulator: true;
+}
+
+// @beta
+export type AccumulatorTarget = ExprWithAlias<Constant & Accumulator>;
+
+// @beta (undocumented)
+export class Add extends FirestoreFunction {
+    constructor(left: Constant, right: Constant);
+    }
+
+// @beta
+export function add(left: Constant, right: Constant): Add;
+
+// @beta
+export function add(left: Constant, right: any): Add;
+
+// @beta
+export function add(left: string, right: Constant): Add;
+
+// @beta
+export function add(left: string, right: any): Add;
+
 // @public
 export function addDoc<AppModelType, DbModelType extends DocumentData>(reference: CollectionReference<AppModelType, DbModelType>, data: WithFieldValue<AppModelType>): Promise<DocumentReference<AppModelType, DbModelType>>;
+
+// @beta (undocumented)
+export class AddFields implements Stage {
+    constructor(fields: Map<string, Constant>);
+    // (undocumented)
+    name: string;
+}
 
 // @public
 export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unknown>> = {
     [K in keyof T & string as `${Prefix}.${K}`]+?: string extends K ? any : T[K];
 };
+
+// @beta (undocumented)
+export class Aggregate implements Stage {
+    constructor(accumulators: Map<string, Accumulator>, groups: Map<string, Constant>);
+    // (undocumented)
+    name: string;
+}
 
 // @public
 export class AggregateField<T> {
@@ -53,17 +93,137 @@ export type AggregateSpecData<T extends AggregateSpec> = {
 // @public
 export type AggregateType = 'count' | 'avg' | 'sum';
 
+// @beta (undocumented)
+export class And extends FirestoreFunction implements FilterCondition {
+    constructor(conditions: FilterExpr[]);
+    // (undocumented)
+    filterable: true;
+}
+
 // @public
 export function and(...queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
+
+// @beta (undocumented)
+export class ArrayConcat extends FirestoreFunction {
+    constructor(array: Constant, elements: Constant[]);
+    }
+
+// @beta
+export function arrayConcat(array: Constant, elements: Constant[]): ArrayConcat;
+
+// @beta
+export function arrayConcat(array: Constant, elements: any[]): ArrayConcat;
+
+// @beta
+export function arrayConcat(array: string, elements: Constant[]): ArrayConcat;
+
+// @beta
+export function arrayConcat(array: string, elements: any[]): ArrayConcat;
+
+// @beta (undocumented)
+export class ArrayContains extends FirestoreFunction implements FilterCondition {
+    constructor(array: Constant, element: Constant);
+    // (undocumented)
+    filterable: true;
+}
+
+// @beta
+export function arrayContains(array: Constant, element: Constant): ArrayContains;
+
+// @beta
+export function arrayContains(array: Constant, element: any): ArrayContains;
+
+// @beta
+export function arrayContains(array: string, element: Constant): ArrayContains;
+
+// @beta
+export function arrayContains(array: string, element: any): ArrayContains;
+
+// @beta (undocumented)
+export class ArrayContainsAll extends FirestoreFunction implements FilterCondition {
+    constructor(array: Constant, values: Constant[]);
+    // (undocumented)
+    filterable: true;
+    }
+
+// @beta
+export function arrayContainsAll(array: Constant, values: Constant[]): ArrayContainsAll;
+
+// @beta
+export function arrayContainsAll(array: Constant, values: any[]): ArrayContainsAll;
+
+// @beta
+export function arrayContainsAll(array: string, values: Constant[]): ArrayContainsAll;
+
+// @beta
+export function arrayContainsAll(array: string, values: any[]): ArrayContainsAll;
+
+// @beta (undocumented)
+export class ArrayContainsAny extends FirestoreFunction implements FilterCondition {
+    constructor(array: Constant, values: Constant[]);
+    // (undocumented)
+    filterable: true;
+    }
+
+// @beta
+export function arrayContainsAny(array: Constant, values: Constant[]): ArrayContainsAny;
+
+// @beta
+export function arrayContainsAny(array: Constant, values: any[]): ArrayContainsAny;
+
+// @beta
+export function arrayContainsAny(array: string, values: Constant[]): ArrayContainsAny;
+
+// @beta
+export function arrayContainsAny(array: string, values: any[]): ArrayContainsAny;
+
+// @beta (undocumented)
+export class ArrayElement extends FirestoreFunction {
+    constructor();
+}
+
+// @beta (undocumented)
+export class ArrayLength extends FirestoreFunction {
+    constructor(array: Constant);
+    }
+
+// @beta
+export function arrayLength(array: Constant): ArrayLength;
 
 // @public
 export function arrayRemove(...elements: unknown[]): FieldValue;
 
+// @beta (undocumented)
+export class ArrayReverse extends FirestoreFunction {
+    constructor(array: Constant);
+    }
+
 // @public
 export function arrayUnion(...elements: unknown[]): FieldValue;
 
+// @beta
+export function ascending(expr: Constant): Ordering;
+
 // @public
 export function average(field: string | FieldPath): AggregateField<number | null>;
+
+// @beta (undocumented)
+export class Avg extends FirestoreFunction implements Accumulator {
+    constructor(value: Constant, distinct: boolean);
+    // (undocumented)
+    accumulator: true;
+    }
+
+// @beta (undocumented)
+export class ByteLength extends FirestoreFunction {
+    constructor(value: Constant);
+    }
+
+// @beta
+export function byteLength(expr: Constant): ByteLength;
+
+// @beta
+export function byteLength(field: string): ByteLength;
 
 // @public
 export class Bytes {
@@ -74,6 +234,17 @@ export class Bytes {
     toString(): string;
     toUint8Array(): Uint8Array;
 }
+
+// @beta (undocumented)
+export class CharLength extends FirestoreFunction {
+    constructor(value: Constant);
+    }
+
+// @beta
+export function charLength(field: string): CharLength;
+
+// @beta
+export function charLength(expr: Constant): CharLength;
 
 // @public
 export type ChildUpdateFields<K extends string, V> = V extends Record<string, unknown> ? AddPrefixToKeys<K, UpdateData<V>> : never;
@@ -90,6 +261,13 @@ export function collection<AppModelType, DbModelType extends DocumentData>(refer
 // @public
 export function collectionGroup(firestore: Firestore, collectionId: string): Query<DocumentData, DocumentData>;
 
+// @beta (undocumented)
+export class CollectionGroupSource implements Stage {
+    constructor(collectionId: string);
+    // (undocumented)
+    name: string;
+}
+
 // @public
 export class CollectionReference<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> extends Query<AppModelType, DbModelType> {
     get id(): string;
@@ -100,19 +278,207 @@ export class CollectionReference<AppModelType = DocumentData, DbModelType extend
     withConverter(converter: null): CollectionReference<DocumentData, DocumentData>;
 }
 
+// @beta (undocumented)
+export class CollectionSource implements Stage {
+    constructor(collectionPath: string);
+    // (undocumented)
+    name: string;
+}
+
 // @public
 export function connectFirestoreEmulator(firestore: Firestore, host: string, port: number, options?: {
     mockUserToken?: EmulatorMockTokenOptions | string;
 }): void;
 
+// @beta
+export class Constant {
+    add(other: Constant): Add;
+    add(other: any): Add;
+    arrayConcat(arrays: Constant[]): ArrayConcat;
+    arrayConcat(arrays: any[]): ArrayConcat;
+    arrayContains(element: Constant): ArrayContains;
+    arrayContains(element: any): ArrayContains;
+    arrayContainsAll(...values: Constant[]): ArrayContainsAll;
+    arrayContainsAll(...values: any[]): ArrayContainsAll;
+    arrayContainsAny(...values: Constant[]): ArrayContainsAny;
+    arrayContainsAny(...values: any[]): ArrayContainsAny;
+    arrayLength(): ArrayLength;
+    as(name: string): ExprWithAlias<this>;
+    ascending(): Ordering;
+    avg(): Avg;
+    byteLength(): ByteLength;
+    charLength(): CharLength;
+    cosineDistance(other: Constant): CosineDistance;
+    cosineDistance(other: VectorValue): CosineDistance;
+    cosineDistance(other: number[]): CosineDistance;
+    count(): Count;
+    descending(): Ordering;
+    divide(other: Constant): Divide;
+    divide(other: any): Divide;
+    dotProduct(other: Constant): DotProduct;
+    dotProduct(other: VectorValue): DotProduct;
+    // (undocumented)
+    dotProduct(other: number[]): DotProduct;
+    endsWith(suffix: string): EndsWith;
+    endsWith(suffix: Constant): EndsWith;
+    eq(other: Constant): Eq;
+    eq(other: any): Eq;
+    euclideanDistance(other: Constant): EuclideanDistance;
+    euclideanDistance(other: VectorValue): EuclideanDistance;
+    // (undocumented)
+    euclideanDistance(other: number[]): EuclideanDistance;
+    exists(): Exists;
+    // (undocumented)
+    exprType: ExprType;
+    gt(other: Constant): Gt;
+    gt(other: any): Gt;
+    gte(other: Constant): Gte;
+    gte(other: any): Gte;
+    in(...others: Constant[]): In;
+    // (undocumented)
+    in(...others: any[]): In;
+    isNaN(): IsNan;
+    like(pattern: string): Like;
+    // (undocumented)
+    like(pattern: Constant): Like;
+    logicalMax(other: Constant): LogicalMax;
+    logicalMax(other: any): LogicalMax;
+    logicalMin(other: Constant): LogicalMin;
+    logicalMin(other: any): LogicalMin;
+    lt(other: Constant): Lt;
+    lt(other: any): Lt;
+    lte(other: Constant): Lte;
+    lte(other: any): Lte;
+    mapGet(subfield: string): MapGet;
+    max(): Max;
+    min(): Min;
+    mod(other: Constant): Mod;
+    mod(other: any): Mod;
+    multiply(other: Constant): Multiply;
+    multiply(other: any): Multiply;
+    neq(other: Constant): Neq;
+    neq(other: any): Neq;
+    static of(value: number): Constant;
+    static of(value: string): Constant;
+    static of(value: boolean): Constant;
+    static of(value: null): Constant;
+    static of(value: undefined): Constant;
+    static of(value: GeoPoint): Constant;
+    static of(value: Timestamp): Constant;
+    static of(value: Date): Constant;
+    static of(value: Uint8Array): Constant;
+    static of(value: DocumentReference): Constant;
+    static of(value: any[]): Constant;
+    static of(value: Map<string, any>): Constant;
+    static of(value: VectorValue): Constant;
+    regexContains(pattern: string): RegexContains;
+    regexContains(pattern: Constant): RegexContains;
+    regexMatch(pattern: string): RegexMatch;
+    regexMatch(pattern: Constant): RegexMatch;
+    replaceAll(find: string, replace: string): ReplaceAll;
+    replaceAll(find: Constant, replace: Constant): ReplaceAll;
+    replaceFirst(find: string, replace: string): ReplaceFirst;
+    replaceFirst(find: Constant, replace: Constant): ReplaceFirst;
+    reverse(): Reverse;
+    startsWith(prefix: string): StartsWith;
+    startsWith(prefix: Constant): StartsWith;
+    strConcat(...elements: Array<string | Constant>): StrConcat;
+    strContains(substring: string): StrContains;
+    strContains(expr: Constant): StrContains;
+    subtract(other: Constant): Subtract;
+    subtract(other: any): Subtract;
+    sum(): Sum;
+    timestampAdd(unit: Constant, amount: Constant): TimestampAdd;
+    timestampAdd(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampAdd;
+    timestampSub(unit: Constant, amount: Constant): TimestampSub;
+    timestampSub(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampSub;
+    timestampToUnixMicros(): TimestampToUnixMicros;
+    timestampToUnixMillis(): TimestampToUnixMillis;
+    timestampToUnixSeconds(): TimestampToUnixSeconds;
+    toLower(): ToLower;
+    toUpper(): ToUpper;
+    trim(): Trim;
+    unixMicrosToTimestamp(): UnixMicrosToTimestamp;
+    unixMillisToTimestamp(): UnixMillisToTimestamp;
+    unixSecondsToTimestamp(): UnixSecondsToTimestamp;
+    static vector(value: number[] | VectorValue): Constant;
+    vectorLength(): VectorLength;
+}
+
+// @beta (undocumented)
+export class CosineDistance extends FirestoreFunction {
+    constructor(vector1: Constant, vector2: Constant);
+    }
+
+// @beta
+export function cosineDistance(expr: string, other: number[]): CosineDistance;
+
+// @beta
+export function cosineDistance(expr: string, other: VectorValue): CosineDistance;
+
+// @beta
+export function cosineDistance(expr: string, other: Constant): CosineDistance;
+
+// @beta
+export function cosineDistance(expr: Constant, other: number[]): CosineDistance;
+
+// @beta
+export function cosineDistance(expr: Constant, other: VectorValue): CosineDistance;
+
+// @beta
+export function cosineDistance(expr: Constant, other: Constant): CosineDistance;
+
+// @beta (undocumented)
+export class Count extends FirestoreFunction implements Accumulator {
+    constructor(value: Constant | undefined, distinct: boolean);
+    // (undocumented)
+    accumulator: true;
+    }
+
 // @public
 export function count(): AggregateField<number>;
+
+// @beta
+export function countAll(): Count;
+
+// @beta (undocumented)
+export class DatabaseSource implements Stage {
+    // (undocumented)
+    name: string;
+}
 
 // @public
 export function deleteDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>): Promise<void>;
 
 // @public
 export function deleteField(): FieldValue;
+
+// @beta
+export function descending(expr: Constant): Ordering;
+
+// @beta (undocumented)
+export class Distinct implements Stage {
+    constructor(groups: Map<string, Constant>);
+    // (undocumented)
+    name: string;
+}
+
+// @beta (undocumented)
+export class Divide extends FirestoreFunction {
+    constructor(left: Constant, right: Constant);
+    }
+
+// @beta
+export function divide(left: Constant, right: Constant): Divide;
+
+// @beta
+export function divide(left: Constant, right: any): Divide;
+
+// @beta
+export function divide(left: string, right: Constant): Divide;
+
+// @beta
+export function divide(left: string, right: any): Divide;
 
 // @public
 export function doc(firestore: Firestore, path: string, ...pathSegments: string[]): DocumentReference<DocumentData, DocumentData>;
@@ -153,6 +519,38 @@ export class DocumentSnapshot<AppModelType = DocumentData, DbModelType extends D
     get ref(): DocumentReference<AppModelType, DbModelType>;
 }
 
+// @beta (undocumented)
+export class DocumentsSource implements Stage {
+    constructor(docPaths: string[]);
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    static of(refs: DocumentReference[]): DocumentsSource;
+}
+
+// @beta (undocumented)
+export class DotProduct extends FirestoreFunction {
+    constructor(vector1: Constant, vector2: Constant);
+    }
+
+// @beta
+export function dotProduct(expr: string, other: number[]): DotProduct;
+
+// @beta
+export function dotProduct(expr: string, other: VectorValue): DotProduct;
+
+// @beta
+export function dotProduct(expr: string, other: Constant): DotProduct;
+
+// @beta
+export function dotProduct(expr: Constant, other: number[]): DotProduct;
+
+// @beta
+export function dotProduct(expr: Constant, other: VectorValue): DotProduct;
+
+// @beta
+export function dotProduct(expr: Constant, other: Constant): DotProduct;
+
 export { EmulatorMockTokenOptions }
 
 // @public
@@ -167,10 +565,417 @@ export function endBefore<AppModelType, DbModelType extends DocumentData>(snapsh
 // @public
 export function endBefore(...fieldValues: unknown[]): QueryEndAtConstraint;
 
+// @beta (undocumented)
+export class EndsWith extends FirestoreFunction implements FilterCondition {
+    constructor(expr: Constant, suffix: Constant);
+    // (undocumented)
+    filterable: true;
+    }
+
+// @beta
+export function endsWith(expr: string, suffix: string): EndsWith;
+
+// @beta
+export function endsWith(expr: string, suffix: Constant): EndsWith;
+
+// @beta
+export function endsWith(expr: Constant, suffix: string): EndsWith;
+
+// @beta
+export function endsWith(expr: Constant, suffix: Constant): EndsWith;
+
+// @beta (undocumented)
+export class Eq extends FirestoreFunction implements FilterCondition {
+    constructor(left: Constant, right: Constant);
+    // (undocumented)
+    filterable: true;
+    }
+
+// @beta
+export function eq(left: Constant, right: Constant): Eq;
+
+// @beta
+export function eq(left: Constant, right: any): Eq;
+
+// @beta
+export function eq(left: string, right: Constant): Eq;
+
+// @beta
+export function eq(left: string, right: any): Eq;
+
+// @beta (undocumented)
+export class EuclideanDistance extends FirestoreFunction {
+    constructor(vector1: Constant, vector2: Constant);
+    }
+
+// @beta
+export function euclideanDistance(expr: string, other: number[]): EuclideanDistance;
+
+// @beta
+export function euclideanDistance(expr: string, other: VectorValue): EuclideanDistance;
+
+// @beta
+export function euclideanDistance(expr: string, other: Constant): EuclideanDistance;
+
+// @beta
+export function euclideanDistance(expr: Constant, other: number[]): EuclideanDistance;
+
+// @beta
+export function euclideanDistance(expr: Constant, other: VectorValue): EuclideanDistance;
+
+// @beta
+export function euclideanDistance(expr: Constant, other: Constant): EuclideanDistance;
+
+// @beta
+export function execute<AppModelType>(pipeline: Pipeline<AppModelType>): Promise<Array<PipelineResult<AppModelType>>>;
+
+// @beta (undocumented)
+export class Exists extends FirestoreFunction implements FilterCondition {
+    constructor(expr: Constant);
+    // (undocumented)
+    filterable: true;
+}
+
+// @beta
+export function exists(value: Constant): Exists;
+
+// @beta
+export function exists(field: string): Exists;
+
+// @beta
+export type ExprType = 'Field' | 'Constant' | 'Function' | 'ListOfExprs' | 'ExprWithAlias';
+
+// @beta (undocumented)
+export class ExprWithAlias<T extends Constant> implements Selectable {
+    constructor(expr: T, alias: string);
+    add(other: Constant): Add;
+    add(other: any): Add;
+    // (undocumented)
+    alias: string;
+    arrayConcat(arrays: Constant[]): ArrayConcat;
+    arrayConcat(arrays: any[]): ArrayConcat;
+    arrayContains(element: Constant): ArrayContains;
+    arrayContains(element: any): ArrayContains;
+    arrayContainsAll(...values: Constant[]): ArrayContainsAll;
+    arrayContainsAll(...values: any[]): ArrayContainsAll;
+    arrayContainsAny(...values: Constant[]): ArrayContainsAny;
+    arrayContainsAny(...values: any[]): ArrayContainsAny;
+    arrayLength(): ArrayLength;
+    as(name: string): ExprWithAlias<this>;
+    ascending(): Ordering;
+    avg(): Avg;
+    byteLength(): ByteLength;
+    charLength(): CharLength;
+    cosineDistance(other: Constant): CosineDistance;
+    cosineDistance(other: VectorValue): CosineDistance;
+    cosineDistance(other: number[]): CosineDistance;
+    count(): Count;
+    descending(): Ordering;
+    divide(other: Constant): Divide;
+    divide(other: any): Divide;
+    dotProduct(other: Constant): DotProduct;
+    dotProduct(other: VectorValue): DotProduct;
+    // (undocumented)
+    dotProduct(other: number[]): DotProduct;
+    endsWith(suffix: string): EndsWith;
+    endsWith(suffix: Constant): EndsWith;
+    eq(other: Constant): Eq;
+    eq(other: any): Eq;
+    euclideanDistance(other: Constant): EuclideanDistance;
+    euclideanDistance(other: VectorValue): EuclideanDistance;
+    // (undocumented)
+    euclideanDistance(other: number[]): EuclideanDistance;
+    exists(): Exists;
+    // (undocumented)
+    expr: T;
+    // (undocumented)
+    exprType: ExprType;
+    gt(other: Constant): Gt;
+    gt(other: any): Gt;
+    gte(other: Constant): Gte;
+    gte(other: any): Gte;
+    in(...others: Constant[]): In;
+    // (undocumented)
+    in(...others: any[]): In;
+    isNaN(): IsNan;
+    like(pattern: string): Like;
+    // (undocumented)
+    like(pattern: Constant): Like;
+    logicalMax(other: Constant): LogicalMax;
+    logicalMax(other: any): LogicalMax;
+    logicalMin(other: Constant): LogicalMin;
+    logicalMin(other: any): LogicalMin;
+    lt(other: Constant): Lt;
+    lt(other: any): Lt;
+    lte(other: Constant): Lte;
+    lte(other: any): Lte;
+    mapGet(subfield: string): MapGet;
+    max(): Max;
+    min(): Min;
+    mod(other: Constant): Mod;
+    mod(other: any): Mod;
+    multiply(other: Constant): Multiply;
+    multiply(other: any): Multiply;
+    neq(other: Constant): Neq;
+    neq(other: any): Neq;
+    regexContains(pattern: string): RegexContains;
+    regexContains(pattern: Constant): RegexContains;
+    regexMatch(pattern: string): RegexMatch;
+    regexMatch(pattern: Constant): RegexMatch;
+    replaceAll(find: string, replace: string): ReplaceAll;
+    replaceAll(find: Constant, replace: Constant): ReplaceAll;
+    replaceFirst(find: string, replace: string): ReplaceFirst;
+    replaceFirst(find: Constant, replace: Constant): ReplaceFirst;
+    reverse(): Reverse;
+    // (undocumented)
+    selectable: true;
+    startsWith(prefix: string): StartsWith;
+    startsWith(prefix: Constant): StartsWith;
+    strConcat(...elements: Array<string | Constant>): StrConcat;
+    strContains(substring: string): StrContains;
+    strContains(expr: Constant): StrContains;
+    subtract(other: Constant): Subtract;
+    subtract(other: any): Subtract;
+    sum(): Sum;
+    timestampAdd(unit: Constant, amount: Constant): TimestampAdd;
+    timestampAdd(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampAdd;
+    timestampSub(unit: Constant, amount: Constant): TimestampSub;
+    timestampSub(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampSub;
+    timestampToUnixMicros(): TimestampToUnixMicros;
+    timestampToUnixMillis(): TimestampToUnixMillis;
+    timestampToUnixSeconds(): TimestampToUnixSeconds;
+    toLower(): ToLower;
+    toUpper(): ToUpper;
+    trim(): Trim;
+    unixMicrosToTimestamp(): UnixMicrosToTimestamp;
+    unixMillisToTimestamp(): UnixMillisToTimestamp;
+    unixSecondsToTimestamp(): UnixSecondsToTimestamp;
+    vectorLength(): VectorLength;
+}
+
+// @beta
+export class Field implements Selectable {
+    add(other: Constant): Add;
+    add(other: any): Add;
+    arrayConcat(arrays: Constant[]): ArrayConcat;
+    arrayConcat(arrays: any[]): ArrayConcat;
+    arrayContains(element: Constant): ArrayContains;
+    arrayContains(element: any): ArrayContains;
+    arrayContainsAll(...values: Constant[]): ArrayContainsAll;
+    arrayContainsAll(...values: any[]): ArrayContainsAll;
+    arrayContainsAny(...values: Constant[]): ArrayContainsAny;
+    arrayContainsAny(...values: any[]): ArrayContainsAny;
+    arrayLength(): ArrayLength;
+    as(name: string): ExprWithAlias<this>;
+    ascending(): Ordering;
+    avg(): Avg;
+    byteLength(): ByteLength;
+    charLength(): CharLength;
+    cosineDistance(other: Constant): CosineDistance;
+    cosineDistance(other: VectorValue): CosineDistance;
+    cosineDistance(other: number[]): CosineDistance;
+    count(): Count;
+    descending(): Ordering;
+    divide(other: Constant): Divide;
+    divide(other: any): Divide;
+    dotProduct(other: Constant): DotProduct;
+    dotProduct(other: VectorValue): DotProduct;
+    // (undocumented)
+    dotProduct(other: number[]): DotProduct;
+    endsWith(suffix: string): EndsWith;
+    endsWith(suffix: Constant): EndsWith;
+    eq(other: Constant): Eq;
+    eq(other: any): Eq;
+    euclideanDistance(other: Constant): EuclideanDistance;
+    euclideanDistance(other: VectorValue): EuclideanDistance;
+    // (undocumented)
+    euclideanDistance(other: number[]): EuclideanDistance;
+    exists(): Exists;
+    // (undocumented)
+    exprType: ExprType;
+    // (undocumented)
+    fieldName(): string;
+    gt(other: Constant): Gt;
+    gt(other: any): Gt;
+    gte(other: Constant): Gte;
+    gte(other: any): Gte;
+    in(...others: Constant[]): In;
+    // (undocumented)
+    in(...others: any[]): In;
+    isNaN(): IsNan;
+    like(pattern: string): Like;
+    // (undocumented)
+    like(pattern: Constant): Like;
+    logicalMax(other: Constant): LogicalMax;
+    logicalMax(other: any): LogicalMax;
+    logicalMin(other: Constant): LogicalMin;
+    logicalMin(other: any): LogicalMin;
+    lt(other: Constant): Lt;
+    lt(other: any): Lt;
+    lte(other: Constant): Lte;
+    lte(other: any): Lte;
+    mapGet(subfield: string): MapGet;
+    max(): Max;
+    min(): Min;
+    mod(other: Constant): Mod;
+    mod(other: any): Mod;
+    multiply(other: Constant): Multiply;
+    multiply(other: any): Multiply;
+    neq(other: Constant): Neq;
+    neq(other: any): Neq;
+    static of(name: string): Field;
+    // (undocumented)
+    static of(path: FieldPath): Field;
+    // (undocumented)
+    static of(pipeline: Pipeline, name: string): Field;
+    regexContains(pattern: string): RegexContains;
+    regexContains(pattern: Constant): RegexContains;
+    regexMatch(pattern: string): RegexMatch;
+    regexMatch(pattern: Constant): RegexMatch;
+    replaceAll(find: string, replace: string): ReplaceAll;
+    replaceAll(find: Constant, replace: Constant): ReplaceAll;
+    replaceFirst(find: string, replace: string): ReplaceFirst;
+    replaceFirst(find: Constant, replace: Constant): ReplaceFirst;
+    reverse(): Reverse;
+    // (undocumented)
+    selectable: true;
+    startsWith(prefix: string): StartsWith;
+    startsWith(prefix: Constant): StartsWith;
+    strConcat(...elements: Array<string | Constant>): StrConcat;
+    strContains(substring: string): StrContains;
+    strContains(expr: Constant): StrContains;
+    subtract(other: Constant): Subtract;
+    subtract(other: any): Subtract;
+    sum(): Sum;
+    timestampAdd(unit: Constant, amount: Constant): TimestampAdd;
+    timestampAdd(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampAdd;
+    timestampSub(unit: Constant, amount: Constant): TimestampSub;
+    timestampSub(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampSub;
+    timestampToUnixMicros(): TimestampToUnixMicros;
+    timestampToUnixMillis(): TimestampToUnixMillis;
+    timestampToUnixSeconds(): TimestampToUnixSeconds;
+    toLower(): ToLower;
+    toUpper(): ToUpper;
+    trim(): Trim;
+    unixMicrosToTimestamp(): UnixMicrosToTimestamp;
+    unixMillisToTimestamp(): UnixMillisToTimestamp;
+    unixSecondsToTimestamp(): UnixSecondsToTimestamp;
+    vectorLength(): VectorLength;
+}
+
 // @public
 export class FieldPath {
     constructor(...fieldNames: string[]);
     isEqual(other: FieldPath): boolean;
+}
+
+// @beta (undocumented)
+export class Fields implements Selectable {
+    add(other: Constant): Add;
+    add(other: any): Add;
+    arrayConcat(arrays: Constant[]): ArrayConcat;
+    arrayConcat(arrays: any[]): ArrayConcat;
+    arrayContains(element: Constant): ArrayContains;
+    arrayContains(element: any): ArrayContains;
+    arrayContainsAll(...values: Constant[]): ArrayContainsAll;
+    arrayContainsAll(...values: any[]): ArrayContainsAll;
+    arrayContainsAny(...values: Constant[]): ArrayContainsAny;
+    arrayContainsAny(...values: any[]): ArrayContainsAny;
+    arrayLength(): ArrayLength;
+    as(name: string): ExprWithAlias<this>;
+    ascending(): Ordering;
+    avg(): Avg;
+    byteLength(): ByteLength;
+    charLength(): CharLength;
+    cosineDistance(other: Constant): CosineDistance;
+    cosineDistance(other: VectorValue): CosineDistance;
+    cosineDistance(other: number[]): CosineDistance;
+    count(): Count;
+    descending(): Ordering;
+    divide(other: Constant): Divide;
+    divide(other: any): Divide;
+    dotProduct(other: Constant): DotProduct;
+    dotProduct(other: VectorValue): DotProduct;
+    // (undocumented)
+    dotProduct(other: number[]): DotProduct;
+    endsWith(suffix: string): EndsWith;
+    endsWith(suffix: Constant): EndsWith;
+    eq(other: Constant): Eq;
+    eq(other: any): Eq;
+    euclideanDistance(other: Constant): EuclideanDistance;
+    euclideanDistance(other: VectorValue): EuclideanDistance;
+    // (undocumented)
+    euclideanDistance(other: number[]): EuclideanDistance;
+    exists(): Exists;
+    // (undocumented)
+    exprType: ExprType;
+    // (undocumented)
+    fieldList(): Field[];
+    gt(other: Constant): Gt;
+    gt(other: any): Gt;
+    gte(other: Constant): Gte;
+    gte(other: any): Gte;
+    in(...others: Constant[]): In;
+    // (undocumented)
+    in(...others: any[]): In;
+    isNaN(): IsNan;
+    like(pattern: string): Like;
+    // (undocumented)
+    like(pattern: Constant): Like;
+    logicalMax(other: Constant): LogicalMax;
+    logicalMax(other: any): LogicalMax;
+    logicalMin(other: Constant): LogicalMin;
+    logicalMin(other: any): LogicalMin;
+    lt(other: Constant): Lt;
+    lt(other: any): Lt;
+    lte(other: Constant): Lte;
+    lte(other: any): Lte;
+    mapGet(subfield: string): MapGet;
+    max(): Max;
+    min(): Min;
+    mod(other: Constant): Mod;
+    mod(other: any): Mod;
+    multiply(other: Constant): Multiply;
+    multiply(other: any): Multiply;
+    neq(other: Constant): Neq;
+    neq(other: any): Neq;
+    // (undocumented)
+    static of(name: string, ...others: string[]): Fields;
+    // (undocumented)
+    static ofAll(): Fields;
+    regexContains(pattern: string): RegexContains;
+    regexContains(pattern: Constant): RegexContains;
+    regexMatch(pattern: string): RegexMatch;
+    regexMatch(pattern: Constant): RegexMatch;
+    replaceAll(find: string, replace: string): ReplaceAll;
+    replaceAll(find: Constant, replace: Constant): ReplaceAll;
+    replaceFirst(find: string, replace: string): ReplaceFirst;
+    replaceFirst(find: Constant, replace: Constant): ReplaceFirst;
+    reverse(): Reverse;
+    // (undocumented)
+    selectable: true;
+    startsWith(prefix: string): StartsWith;
+    startsWith(prefix: Constant): StartsWith;
+    strConcat(...elements: Array<string | Constant>): StrConcat;
+    strContains(substring: string): StrContains;
+    strContains(expr: Constant): StrContains;
+    subtract(other: Constant): Subtract;
+    subtract(other: any): Subtract;
+    sum(): Sum;
+    timestampAdd(unit: Constant, amount: Constant): TimestampAdd;
+    timestampAdd(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampAdd;
+    timestampSub(unit: Constant, amount: Constant): TimestampSub;
+    timestampSub(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampSub;
+    timestampToUnixMicros(): TimestampToUnixMicros;
+    timestampToUnixMillis(): TimestampToUnixMillis;
+    timestampToUnixSeconds(): TimestampToUnixSeconds;
+    toLower(): ToLower;
+    toUpper(): ToUpper;
+    trim(): Trim;
+    unixMicrosToTimestamp(): UnixMicrosToTimestamp;
+    unixMillisToTimestamp(): UnixMillisToTimestamp;
+    unixSecondsToTimestamp(): UnixSecondsToTimestamp;
+    vectorLength(): VectorLength;
 }
 
 // @public
@@ -178,9 +983,40 @@ export abstract class FieldValue {
     abstract isEqual(other: FieldValue): boolean;
 }
 
+// @beta
+export interface FilterCondition {
+    // (undocumented)
+    filterable: true;
+}
+
+// @beta
+export type FilterExpr = Constant & FilterCondition;
+
+// @beta (undocumented)
+export class FindNearest implements Stage {
+    // (undocumented)
+    name: string;
+}
+
+// @beta (undocumented)
+export interface FindNearestOptions {
+    // (undocumented)
+    distanceField?: string;
+    // (undocumented)
+    distanceMeasure: 'euclidean' | 'cosine' | 'dot_product';
+    // (undocumented)
+    field: Field;
+    // (undocumented)
+    limit?: number;
+    // (undocumented)
+    vectorValue: VectorValue | number[];
+}
+
 // @public
 export class Firestore {
     get app(): FirebaseApp;
+    // Warning: (ae-incompatible-release-tags) The symbol "pipeline" is marked as @public, but its signature references "PipelineSource" which is marked as @beta
+    pipeline(): PipelineSource;
     toJSON(): object;
     type: 'firestore-lite' | 'firestore';
 }
@@ -201,6 +1037,118 @@ export class FirestoreError extends FirebaseError {
 
 // @public
 export type FirestoreErrorCode = 'cancelled' | 'unknown' | 'invalid-argument' | 'deadline-exceeded' | 'not-found' | 'already-exists' | 'permission-denied' | 'resource-exhausted' | 'failed-precondition' | 'aborted' | 'out-of-range' | 'unimplemented' | 'internal' | 'unavailable' | 'data-loss' | 'unauthenticated';
+
+// @beta
+export class FirestoreFunction {
+    constructor(name: string, params: Constant[]);
+    add(other: Constant): Add;
+    add(other: any): Add;
+    arrayConcat(arrays: Constant[]): ArrayConcat;
+    arrayConcat(arrays: any[]): ArrayConcat;
+    arrayContains(element: Constant): ArrayContains;
+    arrayContains(element: any): ArrayContains;
+    arrayContainsAll(...values: Constant[]): ArrayContainsAll;
+    arrayContainsAll(...values: any[]): ArrayContainsAll;
+    arrayContainsAny(...values: Constant[]): ArrayContainsAny;
+    arrayContainsAny(...values: any[]): ArrayContainsAny;
+    arrayLength(): ArrayLength;
+    as(name: string): ExprWithAlias<this>;
+    ascending(): Ordering;
+    avg(): Avg;
+    byteLength(): ByteLength;
+    charLength(): CharLength;
+    cosineDistance(other: Constant): CosineDistance;
+    cosineDistance(other: VectorValue): CosineDistance;
+    cosineDistance(other: number[]): CosineDistance;
+    count(): Count;
+    descending(): Ordering;
+    divide(other: Constant): Divide;
+    divide(other: any): Divide;
+    dotProduct(other: Constant): DotProduct;
+    dotProduct(other: VectorValue): DotProduct;
+    // (undocumented)
+    dotProduct(other: number[]): DotProduct;
+    endsWith(suffix: string): EndsWith;
+    endsWith(suffix: Constant): EndsWith;
+    eq(other: Constant): Eq;
+    eq(other: any): Eq;
+    euclideanDistance(other: Constant): EuclideanDistance;
+    euclideanDistance(other: VectorValue): EuclideanDistance;
+    // (undocumented)
+    euclideanDistance(other: number[]): EuclideanDistance;
+    exists(): Exists;
+    // (undocumented)
+    exprType: ExprType;
+    gt(other: Constant): Gt;
+    gt(other: any): Gt;
+    gte(other: Constant): Gte;
+    gte(other: any): Gte;
+    in(...others: Constant[]): In;
+    // (undocumented)
+    in(...others: any[]): In;
+    isNaN(): IsNan;
+    like(pattern: string): Like;
+    // (undocumented)
+    like(pattern: Constant): Like;
+    logicalMax(other: Constant): LogicalMax;
+    logicalMax(other: any): LogicalMax;
+    logicalMin(other: Constant): LogicalMin;
+    logicalMin(other: any): LogicalMin;
+    lt(other: Constant): Lt;
+    lt(other: any): Lt;
+    lte(other: Constant): Lte;
+    lte(other: any): Lte;
+    mapGet(subfield: string): MapGet;
+    max(): Max;
+    min(): Min;
+    mod(other: Constant): Mod;
+    mod(other: any): Mod;
+    multiply(other: Constant): Multiply;
+    multiply(other: any): Multiply;
+    neq(other: Constant): Neq;
+    neq(other: any): Neq;
+    regexContains(pattern: string): RegexContains;
+    regexContains(pattern: Constant): RegexContains;
+    regexMatch(pattern: string): RegexMatch;
+    regexMatch(pattern: Constant): RegexMatch;
+    replaceAll(find: string, replace: string): ReplaceAll;
+    replaceAll(find: Constant, replace: Constant): ReplaceAll;
+    replaceFirst(find: string, replace: string): ReplaceFirst;
+    replaceFirst(find: Constant, replace: Constant): ReplaceFirst;
+    reverse(): Reverse;
+    startsWith(prefix: string): StartsWith;
+    startsWith(prefix: Constant): StartsWith;
+    strConcat(...elements: Array<string | Constant>): StrConcat;
+    strContains(substring: string): StrContains;
+    strContains(expr: Constant): StrContains;
+    subtract(other: Constant): Subtract;
+    subtract(other: any): Subtract;
+    sum(): Sum;
+    timestampAdd(unit: Constant, amount: Constant): TimestampAdd;
+    timestampAdd(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampAdd;
+    timestampSub(unit: Constant, amount: Constant): TimestampSub;
+    timestampSub(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampSub;
+    timestampToUnixMicros(): TimestampToUnixMicros;
+    timestampToUnixMillis(): TimestampToUnixMillis;
+    timestampToUnixSeconds(): TimestampToUnixSeconds;
+    toLower(): ToLower;
+    toUpper(): ToUpper;
+    trim(): Trim;
+    unixMicrosToTimestamp(): UnixMicrosToTimestamp;
+    unixMillisToTimestamp(): UnixMillisToTimestamp;
+    unixSecondsToTimestamp(): UnixSecondsToTimestamp;
+    vectorLength(): VectorLength;
+}
+
+// @beta
+export function genericFunction(name: string, params: Constant[]): FirestoreFunction;
+
+// @beta (undocumented)
+export class GenericStage implements Stage {
+    constructor(name: string, params: unknown[]);
+    // (undocumented)
+    name: string;
+}
 
 // @public
 export class GeoPoint {
@@ -240,6 +1188,73 @@ export function getFirestore(databaseId: string): Firestore;
 // @beta
 export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
 
+// @beta (undocumented)
+export class Gt extends FirestoreFunction implements FilterCondition {
+    constructor(left: Constant, right: Constant);
+    // (undocumented)
+    filterable: true;
+    }
+
+// @beta
+export function gt(left: Constant, right: Constant): Gt;
+
+// @beta
+export function gt(left: Constant, right: any): Gt;
+
+// @beta
+export function gt(left: string, right: Constant): Gt;
+
+// @beta
+export function gt(left: string, right: any): Gt;
+
+// @beta (undocumented)
+export class Gte extends FirestoreFunction implements FilterCondition {
+    constructor(left: Constant, right: Constant);
+    // (undocumented)
+    filterable: true;
+    }
+
+// @beta
+export function gte(left: Constant, right: Constant): Gte;
+
+// @beta
+export function gte(left: Constant, right: any): Gte;
+
+// @beta
+export function gte(left: string, right: Constant): Gte;
+
+// @beta
+export function gte(left: string, right: any): Gte;
+
+// @beta (undocumented)
+export class If extends FirestoreFunction implements FilterCondition {
+    constructor(condition: FilterExpr, thenExpr: Constant, elseExpr: Constant);
+    // (undocumented)
+    filterable: true;
+    }
+
+// @beta
+export function ifFunction(condition: FilterExpr, thenExpr: Constant, elseExpr: Constant): If;
+
+// @beta (undocumented)
+export class In extends FirestoreFunction implements FilterCondition {
+    constructor(left: Constant, others: Constant[]);
+    // (undocumented)
+    filterable: true;
+    }
+
+// @beta
+export function inAny(element: Constant, others: Constant[]): In;
+
+// @beta
+export function inAny(element: Constant, others: any[]): In;
+
+// @beta
+export function inAny(element: string, others: Constant[]): In;
+
+// @beta
+export function inAny(element: string, others: any[]): In;
+
 // @public
 export function increment(n: number): FieldValue;
 
@@ -249,18 +1264,258 @@ export function initializeFirestore(app: FirebaseApp, settings: Settings): Fires
 // @beta
 export function initializeFirestore(app: FirebaseApp, settings: Settings, databaseId?: string): Firestore;
 
+// @beta (undocumented)
+export class IsNan extends FirestoreFunction implements FilterCondition {
+    constructor(expr: Constant);
+    // (undocumented)
+    filterable: true;
+}
+
+// @beta
+export function isNan(value: Constant): IsNan;
+
+// @beta
+export function isNan(value: string): IsNan;
+
+// @beta (undocumented)
+export class Like extends FirestoreFunction implements FilterCondition {
+    constructor(expr: Constant, pattern: Constant);
+    // (undocumented)
+    filterable: true;
+    }
+
+// @beta
+export function like(left: string, pattern: string): Like;
+
+// @beta
+export function like(left: string, pattern: Constant): Like;
+
+// @beta
+export function like(left: Constant, pattern: string): Like;
+
+// @beta
+export function like(left: Constant, pattern: Constant): Like;
+
+// @beta (undocumented)
+export class Limit implements Stage {
+    constructor(limit: number);
+    // (undocumented)
+    name: string;
+}
+
 // @public
 export function limit(limit: number): QueryLimitConstraint;
 
 // @public
 export function limitToLast(limit: number): QueryLimitConstraint;
 
+// @beta (undocumented)
+export class LogicalMax extends FirestoreFunction {
+    constructor(left: Constant, right: Constant);
+    }
+
+// @beta
+export function logicalMax(left: Constant, right: Constant): LogicalMax;
+
+// @beta
+export function logicalMax(left: Constant, right: any): LogicalMax;
+
+// @beta
+export function logicalMax(left: string, right: Constant): LogicalMax;
+
+// @beta
+export function logicalMax(left: string, right: any): LogicalMax;
+
+// @beta (undocumented)
+export class LogicalMin extends FirestoreFunction {
+    constructor(left: Constant, right: Constant);
+    }
+
+// @beta
+export function logicalMin(left: Constant, right: Constant): LogicalMin;
+
+// @beta
+export function logicalMin(left: Constant, right: any): LogicalMin;
+
+// @beta
+export function logicalMin(left: string, right: Constant): LogicalMin;
+
+// @beta
+export function logicalMin(left: string, right: any): LogicalMin;
+
 export { LogLevel }
+
+// @beta (undocumented)
+export class Lt extends FirestoreFunction implements FilterCondition {
+    constructor(left: Constant, right: Constant);
+    // (undocumented)
+    filterable: true;
+    }
+
+// @beta
+export function lt(left: Constant, right: Constant): Lt;
+
+// @beta
+export function lt(left: Constant, right: any): Lt;
+
+// @beta
+export function lt(left: string, right: Constant): Lt;
+
+// @beta
+export function lt(left: string, right: any): Lt;
+
+// @beta (undocumented)
+export class Lte extends FirestoreFunction implements FilterCondition {
+    constructor(left: Constant, right: Constant);
+    // (undocumented)
+    filterable: true;
+    }
+
+// @beta
+export function lte(left: Constant, right: Constant): Lte;
+
+// @beta
+export function lte(left: Constant, right: any): Lte;
+
+// Warning: (ae-incompatible-release-tags) The symbol "lte" is marked as @public, but its signature references "Constant" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "lte" is marked as @public, but its signature references "Lte" which is marked as @beta
+//
+// @public
+export function lte(left: string, right: Constant): Lte;
+
+// @beta
+export function lte(left: string, right: any): Lte;
+
+// @beta (undocumented)
+export class MapGet extends FirestoreFunction {
+    constructor(map: Constant, name: string);
+}
+
+// @beta
+export function mapGet(mapField: string, subField: string): MapGet;
+
+// @beta
+export function mapGet(mapExpr: Constant, subField: string): MapGet;
+
+// @beta (undocumented)
+export class Max extends FirestoreFunction implements Accumulator {
+    constructor(value: Constant, distinct: boolean);
+    // (undocumented)
+    accumulator: true;
+    }
+
+// @beta
+export function max(value: Constant): Max;
+
+// @beta
+export function max(value: string): Max;
+
+// @beta (undocumented)
+export class Min extends FirestoreFunction implements Accumulator {
+    constructor(value: Constant, distinct: boolean);
+    // (undocumented)
+    accumulator: true;
+    }
+
+// @beta
+export function min(value: Constant): Min;
+
+// @beta
+export function min(value: string): Min;
+
+// @beta (undocumented)
+export class Mod extends FirestoreFunction {
+    constructor(left: Constant, right: Constant);
+    }
+
+// @beta
+export function mod(left: Constant, right: Constant): Mod;
+
+// @beta
+export function mod(left: Constant, right: any): Mod;
+
+// @beta
+export function mod(left: string, right: Constant): Mod;
+
+// @beta
+export function mod(left: string, right: any): Mod;
+
+// @beta (undocumented)
+export class Multiply extends FirestoreFunction {
+    constructor(left: Constant, right: Constant);
+    }
+
+// @beta
+export function multiply(left: Constant, right: Constant): Multiply;
+
+// @beta
+export function multiply(left: Constant, right: any): Multiply;
+
+// @beta
+export function multiply(left: string, right: Constant): Multiply;
+
+// @beta
+export function multiply(left: string, right: any): Multiply;
+
+// @beta (undocumented)
+export class Neq extends FirestoreFunction implements FilterCondition {
+    constructor(left: Constant, right: Constant);
+    // (undocumented)
+    filterable: true;
+    }
+
+// @beta
+export function neq(left: Constant, right: Constant): Neq;
+
+// @beta
+export function neq(left: Constant, right: any): Neq;
+
+// @beta
+export function neq(left: string, right: Constant): Neq;
+
+// @beta
+export function neq(left: string, right: any): Neq;
 
 // @public
 export type NestedUpdateFields<T extends Record<string, unknown>> = UnionToIntersection<{
     [K in keyof T & string]: ChildUpdateFields<K, T[K]>;
 }[keyof T & string]>;
+
+// @beta (undocumented)
+export class Not extends FirestoreFunction implements FilterCondition {
+    constructor(expr: Constant);
+    // (undocumented)
+    filterable: true;
+}
+
+// @beta
+export function not(filter: FilterExpr): Not;
+
+// @beta
+export function notInAny(element: Constant, others: Constant[]): Not;
+
+// @beta
+export function notInAny(element: Constant, others: any[]): Not;
+
+// @beta
+export function notInAny(element: string, others: Constant[]): Not;
+
+// @beta
+export function notInAny(element: string, others: any[]): Not;
+
+// @beta (undocumented)
+export class Offset implements Stage {
+    constructor(offset: number);
+    // (undocumented)
+    name: string;
+    }
+
+// @beta (undocumented)
+export class Or extends FirestoreFunction implements FilterCondition {
+    constructor(conditions: FilterExpr[]);
+    // (undocumented)
+    filterable: true;
+}
 
 // @public
 export function or(...queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
@@ -271,10 +1526,108 @@ export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDir
 // @public
 export type OrderByDirection = 'desc' | 'asc';
 
+// @beta
+export class Ordering {
+    constructor(expr: Constant, direction: 'ascending' | 'descending');
+    }
+
 // @public
 export type PartialWithFieldValue<T> = Partial<T> | (T extends Primitive ? T : T extends {} ? {
     [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue;
 } : never);
+
+// @public
+export class Pipeline<AppModelType = DocumentData> {
+    /* Excluded from this release type: _db */
+    // Warning: (ae-incompatible-release-tags) The symbol "addFields" is marked as @public, but its signature references "Selectable" which is marked as @beta
+    addFields(...fields: Selectable[]): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
+    // Warning: (ae-incompatible-release-tags) The symbol "aggregate" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
+    aggregate(...accumulators: AccumulatorTarget[]): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
+    aggregate(options: {
+        accumulators: AccumulatorTarget[];
+        groups?: Array<string | Selectable>;
+    }): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
+    // Warning: (ae-incompatible-release-tags) The symbol "distinct" is marked as @public, but its signature references "Selectable" which is marked as @beta
+    distinct(...groups: Array<string | Selectable>): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
+    // Warning: (ae-incompatible-release-tags) The symbol "execute" is marked as @public, but its signature references "PipelineResult" which is marked as @beta
+    execute(): Promise<Array<PipelineResult<AppModelType>>>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
+    // Warning: (ae-incompatible-release-tags) The symbol "findNearest" is marked as @public, but its signature references "FindNearestOptions" which is marked as @beta
+    //
+    // (undocumented)
+    findNearest(options: FindNearestOptions): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
+    genericStage(name: string, params: any[]): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
+    limit(limit: number): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
+    offset(offset: number): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
+    // Warning: (ae-incompatible-release-tags) The symbol "select" is marked as @public, but its signature references "Selectable" which is marked as @beta
+    select(...selections: Array<Selectable | string>): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
+    // Warning: (ae-incompatible-release-tags) The symbol "sort" is marked as @public, but its signature references "Ordering" which is marked as @beta
+    sort(...orderings: Ordering[]): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
+    // (undocumented)
+    sort(options: {
+        orderings: Ordering[];
+    }): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
+    // Warning: (ae-incompatible-release-tags) The symbol "where" is marked as @public, but its signature references "FilterCondition" which is marked as @beta
+    // Warning: (ae-incompatible-release-tags) The symbol "where" is marked as @public, but its signature references "Constant" which is marked as @beta
+    where(condition: FilterCondition & Constant): Pipeline<AppModelType>;
+}
+
+// Warning: (ae-incompatible-release-tags) The symbol "pipeline" is marked as @public, but its signature references "PipelineSource" which is marked as @beta
+//
+// @public
+export function pipeline(firestore: Firestore): PipelineSource;
+
+// @public
+export function pipeline(query: Query): Pipeline;
+
+// @beta
+export class PipelineResult<AppModelType = DocumentData> {
+    /* Excluded from this release type: _ref */
+    /* Excluded from this release type: _fields */
+    /* Excluded from this release type: __constructor */
+    get createTime(): Timestamp | undefined;
+    data(): AppModelType | undefined;
+    get executionTime(): Timestamp;
+    get(fieldPath: string | FieldPath): any;
+    get id(): string | undefined;
+    get ref(): DocumentReference | undefined;
+    get updateTime(): Timestamp | undefined;
+}
+
+// @beta
+export class PipelineSource {
+    // (undocumented)
+    collection(collectionPath: string): Pipeline;
+    // (undocumented)
+    collectionGroup(collectionId: string): Pipeline;
+    // (undocumented)
+    database(): Pipeline;
+    // (undocumented)
+    documents(docs: DocumentReference[]): Pipeline;
+    }
 
 // @public
 export type Primitive = string | number | boolean | undefined | null;
@@ -284,6 +1637,7 @@ export class Query<AppModelType = DocumentData, DbModelType extends DocumentData
     protected constructor();
     readonly converter: FirestoreDataConverter<AppModelType, DbModelType> | null;
     readonly firestore: Firestore;
+    pipeline(): Pipeline;
     readonly type: 'query' | 'collection';
     withConverter(converter: null): Query<DocumentData, DocumentData>;
     withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): Query<NewAppModelType, NewDbModelType>;
@@ -360,8 +1714,101 @@ export class QueryStartAtConstraint extends QueryConstraint {
 // @public
 export function refEqual<AppModelType, DbModelType extends DocumentData>(left: DocumentReference<AppModelType, DbModelType> | CollectionReference<AppModelType, DbModelType>, right: DocumentReference<AppModelType, DbModelType> | CollectionReference<AppModelType, DbModelType>): boolean;
 
+// @beta (undocumented)
+export class RegexContains extends FirestoreFunction implements FilterCondition {
+    constructor(expr: Constant, pattern: Constant);
+    // (undocumented)
+    filterable: true;
+    }
+
+// @beta
+export function regexContains(left: string, pattern: string): RegexContains;
+
+// @beta
+export function regexContains(left: string, pattern: Constant): RegexContains;
+
+// @beta
+export function regexContains(left: Constant, pattern: string): RegexContains;
+
+// @beta
+export function regexContains(left: Constant, pattern: Constant): RegexContains;
+
+// @beta (undocumented)
+export class RegexMatch extends FirestoreFunction implements FilterCondition {
+    constructor(expr: Constant, pattern: Constant);
+    // (undocumented)
+    filterable: true;
+    }
+
+// @beta
+export function regexMatch(left: string, pattern: string): RegexMatch;
+
+// @beta
+export function regexMatch(left: string, pattern: Constant): RegexMatch;
+
+// @beta
+export function regexMatch(left: Constant, pattern: string): RegexMatch;
+
+// @beta
+export function regexMatch(left: Constant, pattern: Constant): RegexMatch;
+
+// @beta (undocumented)
+export class ReplaceAll extends FirestoreFunction {
+    constructor(value: Constant, find: Constant, replace: Constant);
+    }
+
+// @beta
+export function replaceAll(value: Constant, find: string, replace: string): ReplaceAll;
+
+// @beta
+export function replaceAll(value: Constant, find: Constant, replace: Constant): ReplaceAll;
+
+// @beta
+export function replaceAll(field: string, find: string, replace: string): ReplaceAll;
+
+// @beta (undocumented)
+export class ReplaceFirst extends FirestoreFunction {
+    constructor(value: Constant, find: Constant, replace: Constant);
+    }
+
+// @beta
+export function replaceFirst(value: Constant, find: string, replace: string): ReplaceFirst;
+
+// @beta
+export function replaceFirst(value: Constant, find: Constant, replace: Constant): ReplaceFirst;
+
+// @beta
+export function replaceFirst(field: string, find: string, replace: string): ReplaceFirst;
+
+// @beta (undocumented)
+export class Reverse extends FirestoreFunction {
+    constructor(value: Constant);
+    }
+
+// @beta
+export function reverse(expr: Constant): Reverse;
+
+// @beta
+export function reverse(field: string): Reverse;
+
 // @public
 export function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>, options?: TransactionOptions): Promise<T>;
+
+// @beta (undocumented)
+export class Select implements Stage {
+    constructor(projections: Map<string, Constant>);
+    // (undocumented)
+    name: string;
+    }
+
+// @beta
+export interface Selectable {
+    // (undocumented)
+    selectable: true;
+}
+
+// @beta
+export type SelectableExpr = Constant & Selectable;
 
 // @public
 export function serverTimestamp(): FieldValue;
@@ -392,6 +1839,19 @@ export interface Settings {
 // @public
 export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(left: DocumentSnapshot<AppModelType, DbModelType> | QuerySnapshot<AppModelType, DbModelType>, right: DocumentSnapshot<AppModelType, DbModelType> | QuerySnapshot<AppModelType, DbModelType>): boolean;
 
+// @beta (undocumented)
+export class Sort implements Stage {
+    constructor(orders: Ordering[]);
+    // (undocumented)
+    name: string;
+    }
+
+// @beta (undocumented)
+export interface Stage {
+    // (undocumented)
+    name: string;
+}
+
 // @public
 export function startAfter<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryStartAtConstraint;
 
@@ -403,6 +1863,79 @@ export function startAt<AppModelType, DbModelType extends DocumentData>(snapshot
 
 // @public
 export function startAt(...fieldValues: unknown[]): QueryStartAtConstraint;
+
+// @beta (undocumented)
+export class StartsWith extends FirestoreFunction implements FilterCondition {
+    constructor(expr: Constant, prefix: Constant);
+    // (undocumented)
+    filterable: true;
+    }
+
+// @beta
+export function startsWith(expr: string, prefix: string): StartsWith;
+
+// @beta
+export function startsWith(expr: string, prefix: Constant): StartsWith;
+
+// @beta
+export function startsWith(expr: Constant, prefix: string): StartsWith;
+
+// @beta
+export function startsWith(expr: Constant, prefix: Constant): StartsWith;
+
+// @beta (undocumented)
+export class StrConcat extends FirestoreFunction {
+    constructor(first: Constant, rest: Constant[]);
+    }
+
+// @beta
+export function strConcat(first: string, ...elements: Array<Constant | string>): StrConcat;
+
+// @beta
+export function strConcat(first: Constant, ...elements: Array<Constant | string>): StrConcat;
+
+// @beta (undocumented)
+export class StrContains extends FirestoreFunction implements FilterCondition {
+    constructor(expr: Constant, substring: Constant);
+    // (undocumented)
+    filterable: true;
+    }
+
+// @beta
+export function strContains(left: string, substring: string): StrContains;
+
+// @beta
+export function strContains(left: string, substring: Constant): StrContains;
+
+// @beta
+export function strContains(left: Constant, substring: string): StrContains;
+
+// @beta
+export function strContains(left: Constant, substring: Constant): StrContains;
+
+// @beta (undocumented)
+export class Subtract extends FirestoreFunction {
+    constructor(left: Constant, right: Constant);
+    }
+
+// @beta
+export function subtract(left: Constant, right: Constant): Subtract;
+
+// @beta
+export function subtract(left: Constant, right: any): Subtract;
+
+// @beta
+export function subtract(left: string, right: Constant): Subtract;
+
+// @beta
+export function subtract(left: string, right: any): Subtract;
+
+// @beta (undocumented)
+export class Sum extends FirestoreFunction implements Accumulator {
+    constructor(value: Constant, distinct: boolean);
+    // (undocumented)
+    accumulator: true;
+    }
 
 // @public
 export function sum(field: string | FieldPath): AggregateField<number>;
@@ -431,6 +1964,89 @@ export class Timestamp {
     valueOf(): string;
 }
 
+// @beta (undocumented)
+export class TimestampAdd extends FirestoreFunction {
+    constructor(timestamp: Constant, unit: Constant, amount: Constant);
+    }
+
+// @beta
+export function timestampAdd(timestamp: Constant, unit: Constant, amount: Constant): TimestampAdd;
+
+// @beta
+export function timestampAdd(timestamp: Constant, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampAdd;
+
+// @beta
+export function timestampAdd(field: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampAdd;
+
+// @beta (undocumented)
+export class TimestampSub extends FirestoreFunction {
+    constructor(timestamp: Constant, unit: Constant, amount: Constant);
+    }
+
+// @beta
+export function timestampSub(timestamp: Constant, unit: Constant, amount: Constant): TimestampSub;
+
+// @beta
+export function timestampSub(timestamp: Constant, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampSub;
+
+// @beta
+export function timestampSub(field: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampSub;
+
+// @beta (undocumented)
+export class TimestampToUnixMicros extends FirestoreFunction {
+    constructor(input: Constant);
+    }
+
+// @beta
+export function timestampToUnixMicros(expr: Constant): TimestampToUnixMicros;
+
+// @beta
+export function timestampToUnixMicros(field: string): TimestampToUnixMicros;
+
+// @beta (undocumented)
+export class TimestampToUnixMillis extends FirestoreFunction {
+    constructor(input: Constant);
+    }
+
+// @beta
+export function timestampToUnixMillis(expr: Constant): TimestampToUnixMillis;
+
+// @beta
+export function timestampToUnixMillis(field: string): TimestampToUnixMillis;
+
+// @beta (undocumented)
+export class TimestampToUnixSeconds extends FirestoreFunction {
+    constructor(input: Constant);
+    }
+
+// @beta
+export function timestampToUnixSeconds(expr: Constant): TimestampToUnixSeconds;
+
+// @beta
+export function timestampToUnixSeconds(field: string): TimestampToUnixSeconds;
+
+// @beta (undocumented)
+export class ToLower extends FirestoreFunction {
+    constructor(expr: Constant);
+    }
+
+// @beta
+export function toLower(expr: string): ToLower;
+
+// @beta
+export function toLower(expr: Constant): ToLower;
+
+// @beta (undocumented)
+export class ToUpper extends FirestoreFunction {
+    constructor(expr: Constant);
+    }
+
+// @beta
+export function toUpper(expr: string): ToUpper;
+
+// @beta
+export function toUpper(expr: Constant): ToUpper;
+
 // @public
 export class Transaction {
     delete<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>): this;
@@ -446,8 +2062,52 @@ export interface TransactionOptions {
     readonly maxAttempts?: number;
 }
 
+// @beta (undocumented)
+export class Trim extends FirestoreFunction {
+    constructor(expr: Constant);
+    }
+
+// @beta
+export function trim(expr: string): Trim;
+
+// @beta
+export function trim(expr: Constant): Trim;
+
 // @public
 export type UnionToIntersection<U> = (U extends unknown ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
+
+// @beta (undocumented)
+export class UnixMicrosToTimestamp extends FirestoreFunction {
+    constructor(input: Constant);
+    }
+
+// @beta
+export function unixMicrosToTimestamp(expr: Constant): UnixMicrosToTimestamp;
+
+// @beta
+export function unixMicrosToTimestamp(field: string): UnixMicrosToTimestamp;
+
+// @beta (undocumented)
+export class UnixMillisToTimestamp extends FirestoreFunction {
+    constructor(input: Constant);
+    }
+
+// @beta
+export function unixMillisToTimestamp(expr: Constant): UnixMillisToTimestamp;
+
+// @beta
+export function unixMillisToTimestamp(field: string): UnixMillisToTimestamp;
+
+// @beta (undocumented)
+export class UnixSecondsToTimestamp extends FirestoreFunction {
+    constructor(input: Constant);
+    }
+
+// @beta
+export function unixSecondsToTimestamp(expr: Constant): UnixSecondsToTimestamp;
+
+// @beta
+export function unixSecondsToTimestamp(field: string): UnixSecondsToTimestamp;
 
 // @public
 export type UpdateData<T> = T extends Primitive ? T : T extends {} ? {
@@ -461,13 +2121,34 @@ export function updateDoc<AppModelType, DbModelType extends DocumentData>(refere
 export function updateDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
 
 // @public
+export function useFirestorePipelines(): void;
+
+// @public
 export function vector(values?: number[]): VectorValue;
+
+// @beta (undocumented)
+export class VectorLength extends FirestoreFunction {
+    constructor(value: Constant);
+    }
+
+// @beta
+export function vectorLength(expr: Constant): VectorLength;
+
+// @beta
+export function vectorLength(field: string): VectorLength;
 
 // @public
 export class VectorValue {
     /* Excluded from this release type: __constructor */
     isEqual(other: VectorValue): boolean;
     toArray(): number[];
+}
+
+// @beta (undocumented)
+export class Where implements Stage {
+    constructor(condition: FilterCondition & Constant);
+    // (undocumented)
+    name: string;
 }
 
 // @public
@@ -493,5 +2174,22 @@ export class WriteBatch {
 
 // @public
 export function writeBatch(firestore: Firestore): WriteBatch;
+
+// @beta (undocumented)
+export class Xor extends FirestoreFunction implements FilterCondition {
+    constructor(conditions: FilterExpr[]);
+    // (undocumented)
+    filterable: true;
+}
+
+// @beta
+export function xor(left: FilterExpr, ...right: FilterExpr[]): Xor;
+
+
+// Warnings were encountered during analysis:
+//
+// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/lite/index.d.ts:9177:9 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
+// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/lite/index.d.ts:9178:9 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/lite/index.d.ts:9207:9 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
 
 ```
