@@ -54,7 +54,23 @@ export function getRemoteConfig(app: FirebaseApp = getApp(), options: RemoteConf
     throw ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
   }
   rcProvider.initialize({ options });
-  return rcProvider.getImmediate();
+  const rc = rcProvider.getImmediate() as RemoteConfigImpl;
+
+  if (options.initialFetchResponse) {
+    // 
+    rc._initializePromise = Promise.all([
+      rc._storage.setLastSuccessfulFetchResponse(options.initialFetchResponse),
+      rc._storage.setActiveConfigEtag(options.initialFetchResponse?.eTag || ''),
+      rc._storageCache.setLastSuccessfulFetchTimestampMillis(Date.now()),
+      rc._storageCache.setLastFetchStatus('success'),
+      rc._storageCache.setActiveConfig(options.initialFetchResponse?.config || {})
+    ]).then();
+    // The storageCache methods above set their in-memory fields sycnhronously, so it's
+    // safe to declare our initialization complete at this point.
+    rc._isInitializationComplete = true;
+  }
+
+  return rc;
 }
 
 /**
@@ -151,24 +167,6 @@ export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
     await rc._storageCache.setLastFetchStatus(lastFetchStatus);
     throw e;
   }
-}
-
-/**
- * Manually hydrates the config state without making an async fetch request.
- * @param remoteConfig - The {@link RemoteConfig} instance.
- * @param fetchResponse - The fetchResponse containing the config values and eTag
- *    with which to hydrate the internal state.
- */
-export async function setConfigState(remoteConfig: RemoteConfig, fetchResponse: FetchResponse) {
-  const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;
-  await Promise.all([
-    rc._storage.setLastSuccessfulFetchResponse(fetchResponse),
-    rc._storageCache.setLastSuccessfulFetchTimestampMillis(Date.now()),
-    rc._storageCache.setLastFetchStatus('success'),
-    // TODO - maybe we just call activate() here?
-    rc._storage.setActiveConfigEtag(fetchResponse.eTag || ''),
-    rc._storageCache.setActiveConfig(fetchResponse.config || {}),
-  ]);
 }
 
 /**

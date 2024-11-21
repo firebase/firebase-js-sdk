@@ -16,6 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app';
+import { FetchResponse } from './client/remote_config_fetch_client';
 
 /**
  * Options for Remote Config initialization.
@@ -24,9 +25,14 @@ import { FirebaseApp } from '@firebase/app';
  */
 export interface RemoteConfigOptions {
   /**
-   * The ID of the template to use. If not provided, defaults to "firebase"
+   * The ID of the template to use. If not provided, defaults to "firebase".
    */
   templateId?: string;
+
+  /**
+   * Hydrates the state with an initial fetch response.
+   */
+  initialFetchResponse?: FetchResponse;
 }
 
 /**

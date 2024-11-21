@@ -115,7 +115,6 @@ export interface FetchRequest {
  * <p>Modeled after the native {@link Response} interface, but simplified for Remote Config's
  * use case.
  */
-// TODO - should we move this public_types.ts?
 export interface FetchResponse {
   /**
    * The HTTP status, which is useful for differentiating success responses with data from
