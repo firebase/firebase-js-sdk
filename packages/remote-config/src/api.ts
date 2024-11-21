@@ -16,7 +16,7 @@
  */
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
-import { deepEqual } from '@firebase/util';
+import { deepEqual, getModularInstance } from '@firebase/util';
 import {
   CustomSignals,
   LogLevel as RemoteConfigLogLevel,
@@ -34,7 +34,6 @@ import { ERROR_FACTORY, ErrorCode, hasErrorCode } from './errors';
 import { RemoteConfig as RemoteConfigImpl } from './remote_config';
 import { Value as ValueImpl } from './value';
 import { LogLevel as FirebaseLogLevel } from '@firebase/logger';
-import { getModularInstance } from '@firebase/util';
 
 /**
  *

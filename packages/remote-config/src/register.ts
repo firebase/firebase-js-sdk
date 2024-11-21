@@ -24,7 +24,6 @@ import {
   Component,
   ComponentType,
   ComponentContainer,
-  InstanceFactoryOptions
 } from '@firebase/component';
 import { Logger, LogLevel as FirebaseLogLevel } from '@firebase/logger';
 import { RemoteConfig, RemoteConfigOptions } from './public_types';
@@ -36,7 +35,7 @@ import { RetryingClient } from './client/retrying_client';
 import { RC_COMPONENT_NAME } from './constants';
 import { ErrorCode, ERROR_FACTORY } from './errors';
 import { RemoteConfig as RemoteConfigImpl } from './remote_config';
-import { IndexedDbStorage, InMemoryStorage, Storage } from './storage/storage';
+import { IndexedDbStorage, InMemoryStorage } from './storage/storage';
 import { StorageCache } from './storage/storage_cache';
 // This needs to be in the same file that calls `getProvider()` on the component
 // or it will get tree-shaken out.
@@ -80,7 +79,9 @@ export function registerRemoteConfig(): void {
     }
     const namespace = options?.templateId || 'firebase';
 
-    const storage = isIndexedDBAvailable() ? new IndexedDbStorage(appId, app.name, namespace) : new InMemoryStorage();
+    const storage = isIndexedDBAvailable() ? 
+        new IndexedDbStorage(appId, app.name, namespace) :
+        new InMemoryStorage();
     const storageCache = new StorageCache(storage);
 
     const logger = new Logger(packageName);

@@ -355,7 +355,7 @@ export class IndexedDbStorage extends Storage {
 }
 
 export class InMemoryStorage extends Storage {
-  private db: { [key: string]: any } = {}
+  private db: { [key: string]: unknown } = {};
 
   async get<T>(key: ProjectNamespaceKeyFieldValue): Promise<T> {
     return Promise.resolve(this.db[key] as T);
