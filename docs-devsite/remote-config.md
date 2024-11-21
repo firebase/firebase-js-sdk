@@ -293,7 +293,7 @@ export declare function setCustomSignals(remoteConfig: RemoteConfig, customSigna
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) | The [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) instance. |
-|  customSignals | [CustomSignals](./remote-config.customsignals.md#customsignals_interface) | Map (key, value) of the custom signals to be set for the app instance. If a key already exists, the value is overwritten. Setting the value of a custom signal null unsets the signal. The signals will be persisted locally on the client. |
+|  customSignals | [CustomSignals](./remote-config.customsignals.md#customsignals_interface) | Map (key, value) of the custom signals to be set for the app instance. If a key already exists, the value is overwritten. Setting the value of a custom signal to null unsets the signal. The signals will be persisted locally on the client. |
 
 <b>Returns:</b>
 
