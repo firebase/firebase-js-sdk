@@ -113,19 +113,7 @@ export function openDatabase(): Promise<IDBDatabase> {
 /**
  * Abstracts data persistence.
  */
-export class Storage {
-  /**
-   * @param appId enables storage segmentation by app (ID + name).
-   * @param appName enables storage segmentation by app (ID + name).
-   * @param namespace enables storage segmentation by namespace.
-   */
-  constructor(
-    private readonly appId: string,
-    private readonly appName: string,
-    private readonly namespace: string,
-    private readonly openDbPromise = openDatabase()
-  ) {}
-
+export abstract class Storage {
   getLastFetchStatus(): Promise<FetchStatus | undefined> {
     return this.get<FetchStatus>('last_fetch_status');
   }
@@ -185,6 +173,27 @@ export class Storage {
 
   getCustomSignals(): Promise<CustomSignals | undefined> {
     return this.get<CustomSignals>('custom_signals');
+  }
+
+  abstract setCustomSignals(customSignals: CustomSignals): Promise<CustomSignals>;
+  abstract get<T>(key: ProjectNamespaceKeyFieldValue): Promise<T | undefined>;
+  abstract set<T>(key: ProjectNamespaceKeyFieldValue, value: T): Promise<void>;
+  abstract delete(key: ProjectNamespaceKeyFieldValue): Promise<void>;
+}
+
+export class IndexedDbStorage extends Storage {
+  /**
+   * @param appId enables storage segmentation by app (ID + name).
+   * @param appName enables storage segmentation by app (ID + name).
+   * @param namespace enables storage segmentation by namespace.
+   */
+  constructor(
+    private readonly appId: string,
+    private readonly appName: string,
+    private readonly namespace: string,
+    private readonly openDbPromise = openDatabase()
+  ) {
+    super();
   }
 
   async setCustomSignals(customSignals: CustomSignals): Promise<CustomSignals> {
@@ -342,5 +351,23 @@ export class Storage {
   // Facilitates composite key functionality (which is unsupported in IE).
   createCompositeKey(key: ProjectNamespaceKeyFieldValue): string {
     return [this.appId, this.appName, this.namespace, key].join();
+  }
+}
+
+export class InMemoryStorage extends Storage {
+  private db: { [key: string]: any } = {}
+
+  async get<T>(key: ProjectNamespaceKeyFieldValue): Promise<T> {
+    return Promise.resolve(this.db[key] as T);
+  }
+
+  async set<T>(key: ProjectNamespaceKeyFieldValue, value: T): Promise<void> {
+    this.db[key] = value;
+    return Promise.resolve(undefined);
+  }
+
+  async delete(key: ProjectNamespaceKeyFieldValue): Promise<void> {
+    this.db[key] = undefined;
+    return Promise.resolve();
   }
 }

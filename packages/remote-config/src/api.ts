@@ -57,7 +57,8 @@ export function getRemoteConfig(app: FirebaseApp = getApp(), options: RemoteConf
   const rc = rcProvider.getImmediate() as RemoteConfigImpl;
 
   if (options.initialFetchResponse) {
-    // 
+    // We use these initial writes as the initialization promise since they will hydrate the same
+    // fields that storageCache.loadFromStorage would set.
     rc._initializePromise = Promise.all([
       rc._storage.setLastSuccessfulFetchResponse(options.initialFetchResponse),
       rc._storage.setActiveConfigEtag(options.initialFetchResponse?.eTag || ''),
