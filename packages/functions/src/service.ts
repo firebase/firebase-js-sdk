@@ -109,7 +109,7 @@ export class FunctionsService implements _FirebaseService {
     messagingProvider: Provider<MessagingInternalComponentName>,
     appCheckProvider: Provider<AppCheckInternalComponentName>,
     regionOrCustomDomain: string = DEFAULT_REGION,
-    readonly fetchImpl: typeof fetch = (...args) => fetch(...args),
+    readonly fetchImpl: typeof fetch = (...args) => fetch(...args)
   ) {
     this.contextProvider = new ContextProvider(
       authProvider,
@@ -186,11 +186,16 @@ export function httpsCallable<RequestData, ResponseData, StreamData = unknown>(
   name: string,
   options?: HttpsCallableOptions
 ): HttpsCallable<RequestData, ResponseData, StreamData> {
-  const callable = (data?: RequestData | null): Promise<HttpsCallableResult> => {
+  const callable = (
+    data?: RequestData | null
+  ): Promise<HttpsCallableResult> => {
     return call(functionsInstance, name, data, options || {});
   };
 
-  callable.stream = (data?: RequestData | null, options?: HttpsCallableStreamOptions) => {
+  callable.stream = (
+    data?: RequestData | null,
+    options?: HttpsCallableStreamOptions
+  ) => {
     return stream(functionsInstance, name, data, options);
   };
 
@@ -202,16 +207,25 @@ export function httpsCallable<RequestData, ResponseData, StreamData = unknown>(
  * @param url - The url of the trigger.
  * @public
  */
-export function httpsCallableFromURL<RequestData, ResponseData, StreamData = unknown>(
+export function httpsCallableFromURL<
+  RequestData,
+  ResponseData,
+  StreamData = unknown
+>(
   functionsInstance: FunctionsService,
   url: string,
   options?: HttpsCallableOptions
 ): HttpsCallable<RequestData, ResponseData, StreamData> {
-  const callable = (data?: RequestData | null): Promise<HttpsCallableResult> => {
+  const callable = (
+    data?: RequestData | null
+  ): Promise<HttpsCallableResult> => {
     return callAtURL(functionsInstance, url, data, options || {});
   };
 
-  callable.stream = (data?: RequestData | null, options?: HttpsCallableStreamOptions) => {
+  callable.stream = (
+    data?: RequestData | null,
+    options?: HttpsCallableStreamOptions
+  ) => {
     return streamAtURL(functionsInstance, url, options);
   };
   return callable as HttpsCallable<RequestData, ResponseData, StreamData>;
@@ -410,10 +424,7 @@ async function streamAtURL(
     });
   } catch (e) {
     if (e instanceof Error && e.name === 'AbortError') {
-      const error = new FunctionsError(
-        'cancelled',
-        'Request was cancelled.'
-      );
+      const error = new FunctionsError('cancelled', 'Request was cancelled.');
       return {
         data: Promise.reject(error),
         stream: {
@@ -453,10 +464,7 @@ async function streamAtURL(
     resultRejecter = reject;
   });
   options?.signal?.addEventListener('abort', () => {
-    const error = new FunctionsError(
-      'cancelled',
-      'Request was cancelled.'
-    );
+    const error = new FunctionsError('cancelled', 'Request was cancelled.');
     resultRejecter(error);
   });
   const reader = response.body!.getReader();
@@ -482,7 +490,7 @@ async function streamAtURL(
         };
       }
     },
-    data: resultPromise,
+    data: resultPromise
   };
 }
 
@@ -492,7 +500,10 @@ function createResponseStream(
   resultRejecter: (reason: unknown) => void,
   signal?: AbortSignal
 ): ReadableStream<unknown> {
-  const processLine = (line: string, controller: ReadableStreamDefaultController): void => {
+  const processLine = (
+    line: string,
+    controller: ReadableStreamDefaultController
+  ): void => {
     const match = line.match(responseLineRE);
     // ignore all other lines (newline, comments, etc.)
     if (!match) {
@@ -532,7 +543,10 @@ function createResponseStream(
       return pump();
       async function pump(): Promise<void> {
         if (signal?.aborted) {
-          const error = new FunctionsError('cancelled', 'Request was cancelled');
+          const error = new FunctionsError(
+            'cancelled',
+            'Request was cancelled'
+          );
           controller.error(error);
           resultRejecter(error);
           return Promise.resolve();
@@ -547,14 +561,17 @@ function createResponseStream(
             return;
           }
           if (signal?.aborted) {
-            const error = new FunctionsError('cancelled', 'Request was cancelled');
+            const error = new FunctionsError(
+              'cancelled',
+              'Request was cancelled'
+            );
             controller.error(error);
             resultRejecter(error);
             await reader.cancel();
             return;
           }
           currentText += decoder.decode(value, { stream: true });
-          const lines = currentText.split("\n");
+          const lines = currentText.split('\n');
           currentText = lines.pop() || '';
           for (const line of lines) {
             if (line.trim()) {
@@ -563,12 +580,13 @@ function createResponseStream(
           }
           return pump();
         } catch (error) {
-          const functionsError = error instanceof FunctionsError
-            ? error
-            : _errorForResponse(0, null);
+          const functionsError =
+            error instanceof FunctionsError
+              ? error
+              : _errorForResponse(0, null);
           controller.error(functionsError);
           resultRejecter(functionsError);
-        };
+        }
       }
     },
     cancel() {

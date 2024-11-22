@@ -31,7 +31,10 @@ export interface HttpsCallableResult<ResponseData = unknown> {
  * An `HttpsCallableStreamResult` wraps a single streaming result from a function call.
  * @public
  */
-export interface HttpsCallableStreamResult<ResponseData = unknown, StreamData = unknown> {
+export interface HttpsCallableStreamResult<
+  ResponseData = unknown,
+  StreamData = unknown
+> {
   readonly data: Promise<ResponseData>;
   readonly stream: AsyncIterable<StreamData>;
 }
@@ -41,9 +44,16 @@ export interface HttpsCallableStreamResult<ResponseData = unknown, StreamData = 
  * @param data - Data to be passed to callable function.
  * @public
  */
-export interface HttpsCallable<RequestData = unknown, ResponseData = unknown, StreamData = unknown> {
+export interface HttpsCallable<
+  RequestData = unknown,
+  ResponseData = unknown,
+  StreamData = unknown
+> {
   (data?: RequestData | null): Promise<HttpsCallableResult<ResponseData>>;
-  stream: (data?: RequestData | null, options?: HttpsCallableStreamOptions) => Promise<HttpsCallableStreamResult<ResponseData, StreamData>>;
+  stream: (
+    data?: RequestData | null,
+    options?: HttpsCallableStreamOptions
+  ) => Promise<HttpsCallableStreamResult<ResponseData, StreamData>>;
 }
 
 /**
@@ -64,7 +74,6 @@ export interface HttpsCallableOptions {
   limitedUseAppCheckTokens?: boolean;
 }
 
-
 /**
  * An interface for metadata about how stream call should be executed.
  * @public
@@ -74,10 +83,8 @@ export interface HttpsCallableStreamOptions {
    * An AbortSignal that can be used to cancel the streaming response. When the signal is aborted,
    * both the underlying connection and stream will be terminated.
    */
-  signal?: AbortSignal
+  signal?: AbortSignal;
 }
-
-
 
 /**
  * A `Functions` instance.

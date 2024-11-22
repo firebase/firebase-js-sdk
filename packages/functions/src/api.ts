@@ -88,7 +88,11 @@ export function connectFunctionsEmulator(
  * @param name - The name of the trigger.
  * @public
  */
-export function httpsCallable<RequestData = unknown, ResponseData = unknown, StreamData = unknown>(
+export function httpsCallable<
+  RequestData = unknown,
+  ResponseData = unknown,
+  StreamData = unknown
+>(
   functionsInstance: Functions,
   name: string,
   options?: HttpsCallableOptions
@@ -108,7 +112,7 @@ export function httpsCallable<RequestData = unknown, ResponseData = unknown, Str
 export function httpsCallableFromURL<
   RequestData = unknown,
   ResponseData = unknown,
-  StreamData = unknown,
+  StreamData = unknown
 >(
   functionsInstance: Functions,
   url: string,
