@@ -33,6 +33,8 @@ import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types
 
 export const DEFAULT_REGION = 'us-central1';
 
+const responseLineRE = /^data: (.*?)(?:\n|$)/;
+
 /**
  * The response to an http request.
  */
@@ -449,7 +451,6 @@ async function streamAtURL(
 
   let resultResolver: (value: unknown) => void;
   let resultRejecter: (reason: unknown) => void;
-
   const resultPromise = new Promise<unknown>((resolve, reject) => {
     resultResolver = resolve;
     resultRejecter = reject;
@@ -463,14 +464,51 @@ async function streamAtURL(
     resultRejecter(error);
   });
 
+  const reader = response.body!.getReader();
+  const rstream = createResponseStream(
+    reader,
+    resultResolver!,
+    resultRejecter!,
+    options?.signal
+  );
+
+  return {
+    stream: {
+      [Symbol.asyncIterator]() {
+        const rreader = rstream.getReader();
+        return {
+          async next() {
+            const { value, done } = await rreader.read();
+            return { value: value as unknown, done };
+          },
+          async return() {
+            await rreader.cancel();
+            return { done: true, value: undefined };
+          }
+        };
+      }
+    },
+    data: resultPromise,
+  };
+}
+
+function createResponseStream(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  resultResolver: (value: unknown) => void,
+  resultRejecter: (reason: unknown) => void,
+  signal?: AbortSignal
+): ReadableStream<unknown> {
   const processLine = (line: string, controller: ReadableStreamDefaultController): void => {
+    const match = line.match(responseLineRE);
+    //
     // ignore all other lines (newline, comments, etc.)
-    if (!line.startsWith('data: ')) {
+    if (!match) {
       return;
     }
+
+    const data = match[1];
     try {
-      // Skip 'data: ' (5 chars)
-      const jsonData = JSON.parse(line.slice(6));
+      const jsonData = JSON.parse(data);
       if ('result' in jsonData) {
         resultResolver(decode(jsonData.result));
         return;
@@ -495,14 +533,13 @@ async function streamAtURL(
     }
   };
 
-  const reader = response.body!.getReader();
   const decoder = new TextDecoder();
-  const rstream = new ReadableStream({
+  return new ReadableStream({
     start(controller) {
       let currentText = '';
       return pump();
       async function pump(): Promise<void> {
-        if (options?.signal?.aborted) {
+        if (signal?.aborted) {
           const error = new FunctionsError('cancelled', 'Request was cancelled');
           controller.error(error);
           resultRejecter(error);
@@ -519,7 +556,7 @@ async function streamAtURL(
             return;
           }
 
-          if (options?.signal?.aborted) {
+          if (signal?.aborted) {
             const error = new FunctionsError('cancelled', 'Request was cancelled');
             controller.error(error);
             resultRejecter(error);
@@ -551,22 +588,5 @@ async function streamAtURL(
     }
   });
 
-  return {
-    stream: {
-      [Symbol.asyncIterator]() {
-        const rreader = rstream.getReader();
-        return {
-          async next() {
-            const { value, done } = await rreader.read();
-            return { value: value as unknown, done };
-          },
-          async return() {
-            await reader.cancel();
-            return { done: true, value: undefined };
-          }
-        };
-      }
-    },
-    data: resultPromise,
-  };
+
 }
