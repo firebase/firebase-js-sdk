@@ -1,5 +1,17 @@
 # @firebase/auth-compat
 
+## 0.5.16
+
+### Patch Changes
+
+- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
+
+- Updated dependencies [[`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1)]:
+  - @firebase/auth@1.8.1
+  - @firebase/auth-types@0.12.3
+  - @firebase/component@0.6.11
+  - @firebase/util@1.10.2
+
 ## 0.5.15
 
 ### Patch Changes
