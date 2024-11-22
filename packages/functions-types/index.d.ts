@@ -23,20 +23,11 @@ export interface HttpsCallableResult {
 }
 
 /**
- * An HttpsCallableStreamResult wraps a single streaming result from a function call.
- */
-export interface HttpsCallableStreamResult {
-  readonly data: Promise<any>;
-  readonly stream: AsyncIterable<any>;
-}
-
-/**
  * An HttpsCallable is a reference to a "callable" http trigger in
  * Google Cloud Functions.
  */
 export interface HttpsCallable {
   (data?: {} | null): Promise<HttpsCallableResult>;
-  stream(data?: {} | null): Promise<HttpsCallableStreamResult>;
 }
 
 /**
