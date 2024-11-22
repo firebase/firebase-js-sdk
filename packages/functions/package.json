@@ -37,7 +37,6 @@
     "test:browser": "karma start",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/{,!(browser)/**/}*.test.ts' --file src/index.ts --config ../../config/mocharc.node.js",
-    "test:emulator": "env FIREBASE_FUNCTIONS_EMULATOR_ORIGIN=http://127.0.0.1:5005 run-p test:node",
     "test:emulator": "env FIREBASE_FUNCTIONS_EMULATOR_ORIGIN=http://127.0.0.1:5005 run-p --npm-path npm test:node",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "api-extractor run --local --verbose",
