@@ -385,7 +385,6 @@ async function streamAtURL(
   // Encode any special types, such as dates, in the input data.
   data = encode(data);
   const body = { data };
-
   // Add a header for the authToken.
   const headers: { [key: string]: string } = {};
   const context = await functionsInstance.contextProvider.getContext();
@@ -398,7 +397,6 @@ async function streamAtURL(
   if (context.appCheckToken !== null) {
     headers['X-Firebase-AppCheck'] = context.appCheckToken;
   }
-
   headers['Content-Type'] = 'application/json';
   headers['Accept'] = 'text/event-stream';
 
@@ -448,14 +446,12 @@ async function streamAtURL(
       }
     };
   }
-
   let resultResolver: (value: unknown) => void;
   let resultRejecter: (reason: unknown) => void;
   const resultPromise = new Promise<unknown>((resolve, reject) => {
     resultResolver = resolve;
     resultRejecter = reject;
   });
-
   options?.signal?.addEventListener('abort', () => {
     const error = new FunctionsError(
       'cancelled',
@@ -463,7 +459,6 @@ async function streamAtURL(
     );
     resultRejecter(error);
   });
-
   const reader = response.body!.getReader();
   const rstream = createResponseStream(
     reader,
@@ -471,7 +466,6 @@ async function streamAtURL(
     resultRejecter!,
     options?.signal
   );
-
   return {
     stream: {
       [Symbol.asyncIterator]() {
@@ -500,12 +494,10 @@ function createResponseStream(
 ): ReadableStream<unknown> {
   const processLine = (line: string, controller: ReadableStreamDefaultController): void => {
     const match = line.match(responseLineRE);
-    //
     // ignore all other lines (newline, comments, etc.)
     if (!match) {
       return;
     }
-
     const data = match[1];
     try {
       const jsonData = JSON.parse(data);
@@ -545,7 +537,6 @@ function createResponseStream(
           resultRejecter(error);
           return Promise.resolve();
         }
-
         try {
           const { value, done } = await reader.read();
           if (done) {
@@ -555,7 +546,6 @@ function createResponseStream(
             controller.close();
             return;
           }
-
           if (signal?.aborted) {
             const error = new FunctionsError('cancelled', 'Request was cancelled');
             controller.error(error);
@@ -563,11 +553,9 @@ function createResponseStream(
             await reader.cancel();
             return;
           }
-
           currentText += decoder.decode(value, { stream: true });
           const lines = currentText.split("\n");
           currentText = lines.pop() || '';
-
           for (const line of lines) {
             if (line.trim()) {
               processLine(line.trim(), controller);
