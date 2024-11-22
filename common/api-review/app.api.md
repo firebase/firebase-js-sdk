@@ -79,6 +79,7 @@ export interface FirebaseServerApp extends FirebaseApp {
 
 // @public
 export interface FirebaseServerAppSettings extends Omit<FirebaseAppSettings, 'name'> {
+    appCheckToken?: string;
     authIdToken?: string;
     releaseOnDeref?: object;
 }

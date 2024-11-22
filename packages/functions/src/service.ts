@@ -107,6 +107,7 @@ export class FunctionsService implements _FirebaseService {
     regionOrCustomDomain: string = DEFAULT_REGION
   ) {
     this.contextProvider = new ContextProvider(
+      app,
       authProvider,
       messagingProvider,
       appCheckProvider

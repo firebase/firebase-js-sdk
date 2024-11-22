@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirebaseApp, _isFirebaseServerApp } from '@firebase/app';
 import {
   AppCheckInternalComponentName,
   AppCheckTokenListener,
@@ -497,6 +498,7 @@ export class FirebaseAppCheckTokenProvider
   private latestAppCheckToken: string | null = null;
 
   constructor(
+    private app: FirebaseApp,
     private appCheckProvider: Provider<AppCheckInternalComponentName>
   ) {}
 
@@ -562,6 +564,11 @@ export class FirebaseAppCheckTokenProvider
   }
 
   getToken(): Promise<Token | null> {
+    if (_isFirebaseServerApp(this.app) && this.app.settings.appCheckToken) {
+      return Promise.resolve(
+        new AppCheckToken(this.app.settings.appCheckToken)
+      );
+    }
     debugAssert(
       this.tokenListener != null,
       'FirebaseAppCheckTokenProvider not started.'
@@ -622,16 +629,25 @@ export class EmptyAppCheckTokenProvider implements CredentialsProvider<string> {
 /** AppCheck token provider for the Lite SDK. */
 export class LiteAppCheckTokenProvider implements CredentialsProvider<string> {
   private appCheck: FirebaseAppCheckInternal | null = null;
+  private serverAppAppCheckToken?: string;
 
   constructor(
+    private app: FirebaseApp,
     private appCheckProvider: Provider<AppCheckInternalComponentName>
   ) {
+    if (_isFirebaseServerApp(app) && app.settings.appCheckToken) {
+      this.serverAppAppCheckToken = app.settings.appCheckToken;
+    }
     appCheckProvider.onInit(appCheck => {
       this.appCheck = appCheck;
     });
   }
 
   getToken(): Promise<Token | null> {
+    if (this.serverAppAppCheckToken) {
+      return Promise.resolve(new AppCheckToken(this.serverAppAppCheckToken));
+    }
+
     if (!this.appCheck) {
       return Promise.resolve(null);
     }

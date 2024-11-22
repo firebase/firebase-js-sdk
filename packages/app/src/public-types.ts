@@ -197,6 +197,12 @@ export interface FirebaseServerAppSettings
   authIdToken?: string;
 
   /**
+   * An optional App Check token. If provided, the Firebase SDKs that use App Check will utilizze
+   * this App Check token in lieu of requiring an instance of App Check to be initialized.
+   */
+  appCheckToken?: string;
+
+  /**
    * An optional object. If provided, the Firebase SDK uses a `FinalizationRegistry`
    * object to monitor the garbage collection status of the provided object. The
    * Firebase SDK releases its reference on the `FirebaseServerApp` instance when the

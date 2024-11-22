@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirebaseApp, _isFirebaseServerApp } from '@firebase/app'; // eslint-disable-line import/no-extraneous-dependencies
 import {
   AppCheckInternalComponentName,
   AppCheckTokenListener,
@@ -30,10 +31,16 @@ import { warn } from './util/util';
  */
 export class AppCheckTokenProvider {
   private appCheck?: FirebaseAppCheckInternal;
+  private serverAppAppCheckToken?: string;
+  private appName: string;
   constructor(
-    private appName_: string,
+    app: FirebaseApp,
     private appCheckProvider?: Provider<AppCheckInternalComponentName>
   ) {
+    this.appName = app.name;
+    if (_isFirebaseServerApp(app) && app.settings.appCheckToken) {
+      this.serverAppAppCheckToken = app.settings.appCheckToken;
+    }
     this.appCheck = appCheckProvider?.getImmediate({ optional: true });
     if (!this.appCheck) {
       appCheckProvider?.get().then(appCheck => (this.appCheck = appCheck));
@@ -41,6 +48,9 @@ export class AppCheckTokenProvider {
   }
 
   getToken(forceRefresh?: boolean): Promise<AppCheckTokenResult> {
+    if (this.serverAppAppCheckToken) {
+      return Promise.resolve({ token: this.serverAppAppCheckToken });
+    }
     if (!this.appCheck) {
       return new Promise<AppCheckTokenResult>((resolve, reject) => {
         // Support delayed initialization of FirebaseAppCheck. This allows our
@@ -67,7 +77,7 @@ export class AppCheckTokenProvider {
 
   notifyForInvalidToken(): void {
     warn(
-      `Provided AppCheck credentials for the app named "${this.appName_}" ` +
+      `Provided AppCheck credentials for the app named "${this.appName}" ` +
         'are invalid. This usually indicates your app was not initialized correctly.'
     );
   }
