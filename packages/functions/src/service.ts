@@ -575,6 +575,4 @@ function createResponseStream(
       return reader.cancel();
     }
   });
-
-
 }
