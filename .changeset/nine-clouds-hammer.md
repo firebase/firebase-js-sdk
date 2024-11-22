@@ -1,6 +1,7 @@
 ---
 '@firebase/installations': minor
 '@firebase/app': minor
+'firebase': minor
 '@firebase/remote-config': patch
 ---
 
