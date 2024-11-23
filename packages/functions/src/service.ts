@@ -226,7 +226,7 @@ export function httpsCallableFromURL<
     data?: RequestData | null,
     options?: HttpsCallableStreamOptions
   ) => {
-    return streamAtURL(functionsInstance, url, options || {});
+    return streamAtURL(functionsInstance, url, data, options || {});
   };
   return callable as HttpsCallable<RequestData, ResponseData, StreamData>;
 }
@@ -278,7 +278,7 @@ async function postJSON(
 async function makeAuthHeaders(
   functionsInstance: FunctionsService,
   options: HttpsCallableOptions
-) {
+): Promise<Record<string, string>> {
   const headers: Record<string, string> = {};
   const context = await functionsInstance.contextProvider.getContext(
     options.limitedUseAppCheckTokens
