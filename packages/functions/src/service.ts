@@ -226,7 +226,7 @@ export function httpsCallableFromURL<
     data?: RequestData | null,
     options?: HttpsCallableStreamOptions
   ) => {
-    return streamAtURL(functionsInstance, url, options);
+    return streamAtURL(functionsInstance, url, options || {});
   };
   return callable as HttpsCallable<RequestData, ResponseData, StreamData>;
 }
@@ -275,6 +275,26 @@ async function postJSON(
   };
 }
 
+async function makeAuthHeaders(
+  functionsInstance: FunctionsService,
+  options: HttpsCallableOptions
+) {
+  const headers: Record<string, string> = {};
+  const context = await functionsInstance.contextProvider.getContext(
+    options.limitedUseAppCheckTokens
+  );
+  if (context.authToken) {
+    headers['Authorization'] = 'Bearer ' + context.authToken;
+  }
+  if (context.messagingToken) {
+    headers['Firebase-Instance-ID-Token'] = context.messagingToken;
+  }
+  if (context.appCheckToken !== null) {
+    headers['X-Firebase-AppCheck'] = context.appCheckToken;
+  }
+  return headers;
+}
+
 /**
  * Calls a callable function asynchronously and returns the result.
  * @param name The name of the callable trigger.
@@ -306,19 +326,7 @@ async function callAtURL(
   const body = { data };
 
   // Add a header for the authToken.
-  const headers: { [key: string]: string } = {};
-  const context = await functionsInstance.contextProvider.getContext(
-    options.limitedUseAppCheckTokens
-  );
-  if (context.authToken) {
-    headers['Authorization'] = 'Bearer ' + context.authToken;
-  }
-  if (context.messagingToken) {
-    headers['Firebase-Instance-ID-Token'] = context.messagingToken;
-  }
-  if (context.appCheckToken !== null) {
-    headers['X-Firebase-AppCheck'] = context.appCheckToken;
-  }
+  const headers = await makeAuthHeaders(functionsInstance, options);
 
   // Default timeout to 70s, but let the options override it.
   const timeout = options.timeout || 70000;
@@ -381,7 +389,7 @@ function stream(
   options?: HttpsCallableStreamOptions
 ): Promise<HttpsCallableStreamResult> {
   const url = functionsInstance._url(name);
-  return streamAtURL(functionsInstance, url, data, options);
+  return streamAtURL(functionsInstance, url, data, options || {});
 }
 
 /**
@@ -394,23 +402,14 @@ async function streamAtURL(
   functionsInstance: FunctionsService,
   url: string,
   data: unknown,
-  options?: HttpsCallableStreamOptions
+  options: HttpsCallableStreamOptions
 ): Promise<HttpsCallableStreamResult> {
   // Encode any special types, such as dates, in the input data.
   data = encode(data);
   const body = { data };
+  //
   // Add a header for the authToken.
-  const headers: { [key: string]: string } = {};
-  const context = await functionsInstance.contextProvider.getContext();
-  if (context.authToken) {
-    headers['Authorization'] = 'Bearer ' + context.authToken;
-  }
-  if (context.messagingToken) {
-    headers['Firebase-Instance-ID-Token'] = context.messagingToken;
-  }
-  if (context.appCheckToken !== null) {
-    headers['X-Firebase-AppCheck'] = context.appCheckToken;
-  }
+  const headers = await makeAuthHeaders(functionsInstance, options);
   headers['Content-Type'] = 'application/json';
   headers['Accept'] = 'text/event-stream';
 

@@ -84,6 +84,12 @@ export interface HttpsCallableStreamOptions {
    * both the underlying connection and stream will be terminated.
    */
   signal?: AbortSignal;
+  /**
+   * If set to true, uses limited-use App Check token for callable function requests from this
+   * instance of {@link Functions}. You must use limited-use tokens to call functions with
+   * replay protection enabled. By default, this is false.
+   */
+  limitedUseAppCheckTokens?: boolean;
 }
 
 /**
