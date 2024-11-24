@@ -270,61 +270,6 @@ function prunePrivateImports<
 
 /**
  * Iterates over the provided symbols and returns named declarations for these
- * symbols if they are missing from `currentClass`. This allows us to merge
- * class hierarchies for classes whose inherited types are not part of the
- * public API.
- *
- * This method relies on a private API in TypeScript's `codefix` package.
- */
-function convertPropertiesForEnclosingClass(
-  program: ts.Program,
-  host: ts.CompilerHost,
-  sourceFile: ts.SourceFile,
-  parentClassSymbols: ts.Symbol[],
-  currentClass: ts.ClassDeclaration
-): ts.ClassElement[] {
-  const newMembers: ts.ClassElement[] = [];
-  // The `codefix` package is not public but it does exactly what we want. It's
-  // the same package that is used by VSCode to fill in missing members, which
-  // is what we are using it for in this script. `codefix` handles missing
-  // properties, methods and correctly deduces generics.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (ts as any).codefix.createMissingMemberNodes(
-    currentClass,
-    parentClassSymbols,
-    sourceFile,
-    { program, host },
-    /* userPreferences= */ {},
-    /* importAdder= */ undefined,
-    (missingMember: ts.ClassElement) => {
-      const originalSymbol = parentClassSymbols.find(
-        symbol =>
-          symbol.escapedName ==
-          (missingMember.name as ts.Identifier).escapedText
-      );
-      if (originalSymbol) {
-        const jsDocComment = extractJSDocComment(originalSymbol, newMembers);
-        if (jsDocComment) {
-          ts.setSyntheticLeadingComments(missingMember, [
-            {
-              kind: ts.SyntaxKind.MultiLineCommentTrivia,
-              text: `*\n${jsDocComment}\n`,
-              hasTrailingNewLine: true,
-              pos: -1,
-              end: -1
-            }
-          ]);
-        }
-
-        newMembers.push(missingMember);
-      }
-    }
-  );
-  return newMembers;
-}
-
-/**
- * Iterates over the provided symbols and returns named declarations for these
  * symbols if they are missing from `currentInterface`. This allows us to merge
  * interface hierarchies for interfaces whose inherited properties are not part of the
  * public API.

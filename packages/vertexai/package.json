@@ -1,6 +1,6 @@
 {
   "name": "@firebase/vertexai",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Firebase SDK for VertexAI",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "engines": {
@@ -48,15 +48,15 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/app-check-interop-types": "0.3.2",
-    "@firebase/component": "0.6.10",
-    "@firebase/logger": "0.4.3",
-    "@firebase/util": "1.10.1",
+    "@firebase/app-check-interop-types": "0.3.3",
+    "@firebase/component": "0.6.11",
+    "@firebase/logger": "0.4.4",
+    "@firebase/util": "1.10.2",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.10.15",
+    "@firebase/app": "0.10.16",
     "@rollup/plugin-json": "4.1.0",
     "rollup": "2.79.1",
     "rollup-plugin-replace": "2.2.0",
