@@ -15,18 +15,15 @@
  * limitations under the License.
  */
 
-import { firestoreClientExecutePipeline } from '../core/firestore_client';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult } from '../lite-api/pipeline-result';
-import { PipelineSource } from '../lite-api/pipeline-source';
-import { DocumentData, DocumentReference, Query } from '../lite-api/reference';
+import { DocumentData, DocumentReference } from '../lite-api/reference';
 import { Stage } from '../lite-api/stage';
 import { UserDataReader } from '../lite-api/user_data_reader';
 import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 import { DocumentKey } from '../model/document_key';
-import { cast } from '../util/input_validation';
 
-import { ensureFirestoreConfigured, Firestore } from './database';
+import { Firestore } from './database';
 
 export class Pipeline<
   AppModelType = DocumentData
@@ -52,6 +49,24 @@ export class Pipeline<
     converter: unknown = {}
   ) {
     super(
+      db,
+      userDataReader,
+      userDataWriter,
+      documentReferenceFactory,
+      stages,
+      converter
+    );
+  }
+
+  protected newPipeline(
+    db: Firestore,
+    userDataReader: UserDataReader,
+    userDataWriter: AbstractUserDataWriter,
+    documentReferenceFactory: (id: DocumentKey) => DocumentReference,
+    stages: Stage[],
+    converter: unknown = {}
+  ): Pipeline<AppModelType> {
+    return new Pipeline<AppModelType>(
       db,
       userDataReader,
       userDataWriter,
@@ -93,43 +108,8 @@ export class Pipeline<
    * @return A Promise representing the asynchronous pipeline execution.
    */
   execute(): Promise<Array<PipelineResult<AppModelType>>> {
-    const firestore = cast(this._db, Firestore);
-    const client = ensureFirestoreConfigured(firestore);
-    return firestoreClientExecutePipeline(client, this).then(result => {
-      const docs = result.map(
-        element =>
-          new PipelineResult<AppModelType>(
-            this.userDataWriter,
-            element.key?.path
-              ? this.documentReferenceFactory(element.key)
-              : undefined,
-            element.fields,
-            element.executionTime?.toTimestamp(),
-            element.createTime?.toTimestamp(),
-            element.updateTime?.toTimestamp()
-            //this.converter
-          )
-      );
-
-      return docs;
-    });
+    throw new Error(
+      'Pipelines not initialized. Your application must call `useFirestorePipelines()` before using Firestore Pipeline features.'
+    );
   }
-}
-
-/**
- * Experimental Modular API for console testing.
- * @param firestore
- */
-export function pipeline(firestore: Firestore): PipelineSource;
-
-/**
- * Experimental Modular API for console testing.
- * @param query
- */
-export function pipeline(query: Query): Pipeline;
-
-export function pipeline(
-  firestoreOrQuery: Firestore | Query
-): PipelineSource | Pipeline {
-  return firestoreOrQuery.pipeline();
 }

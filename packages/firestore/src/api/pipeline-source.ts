@@ -15,25 +15,27 @@
  * limitations under the License.
  */
 
-import { DocumentKey } from '../model/document_key';
-
-import { Firestore } from './database';
-import { Pipeline } from './pipeline';
-import { DocumentReference } from './reference';
+import { PipelineSource as LitePipelineSoure } from '../lite-api/pipeline-source';
 import {
   CollectionGroupSource,
   CollectionSource,
   DatabaseSource,
   DocumentsSource
-} from './stage';
-import { UserDataReader } from './user_data_reader';
-import { AbstractUserDataWriter } from './user_data_writer';
+} from '../lite-api/stage';
+import { UserDataReader } from '../lite-api/user_data_reader';
+import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
+import { DocumentKey } from '../model/document_key';
+import { cast } from '../util/input_validation';
+
+import { Firestore } from './database';
+import { Pipeline } from './pipeline';
+import { DocumentReference } from './reference';
 
 /**
  * Represents the source of a Firestore {@link Pipeline}.
  * @beta
  */
-export class PipelineSource {
+export class PipelineSource extends LitePipelineSoure {
   /**
    * @internal
    * @private
@@ -42,16 +44,20 @@ export class PipelineSource {
    * @param userDataWriter
    * @param documentReferenceFactory
    */
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
   constructor(
-    protected db: Firestore,
-    protected userDataReader: UserDataReader,
-    protected userDataWriter: AbstractUserDataWriter,
-    protected documentReferenceFactory: (id: DocumentKey) => DocumentReference
-  ) {}
+    db: Firestore,
+    userDataReader: UserDataReader,
+    userDataWriter: AbstractUserDataWriter,
+    documentReferenceFactory: (id: DocumentKey) => DocumentReference
+  ) {
+    super(db, userDataReader, userDataWriter, documentReferenceFactory);
+  }
 
   collection(collectionPath: string): Pipeline {
+    const db = cast<Firestore>(this.db, Firestore);
     return new Pipeline(
-      this.db,
+      db,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -60,8 +66,9 @@ export class PipelineSource {
   }
 
   collectionGroup(collectionId: string): Pipeline {
+    const db = cast<Firestore>(this.db, Firestore);
     return new Pipeline(
-      this.db,
+      db,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -70,8 +77,9 @@ export class PipelineSource {
   }
 
   database(): Pipeline {
+    const db = cast<Firestore>(this.db, Firestore);
     return new Pipeline(
-      this.db,
+      db,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -80,8 +88,9 @@ export class PipelineSource {
   }
 
   documents(docs: DocumentReference[]): Pipeline {
+    const db = cast<Firestore>(this.db, Firestore);
     return new Pipeline(
-      this.db,
+      db,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,

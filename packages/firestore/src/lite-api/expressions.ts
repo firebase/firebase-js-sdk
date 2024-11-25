@@ -804,13 +804,13 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    *
    * ```typescript
    * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
-   * Field.of("category").in("Electronics", Field.of("primaryType"));
+   * Field.of("category").eqAny("Electronics", Field.of("primaryType"));
    * ```
    *
    * @param others The values or expressions to check against.
    * @return A new `Expr` representing the 'IN' comparison.
    */
-  in(...others: Expr[]): In;
+  eqAny(...others: Expr[]): EqAny;
 
   /**
    * Creates an expression that checks if this expression is equal to any of the provided values or
@@ -818,18 +818,52 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    *
    * ```typescript
    * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
-   * Field.of("category").in("Electronics", Field.of("primaryType"));
+   * Field.of("category").eqAny("Electronics", Field.of("primaryType"));
    * ```
    *
    * @param others The values or expressions to check against.
    * @return A new `Expr` representing the 'IN' comparison.
    */
-  in(...others: any[]): In;
-  in(...others: any[]): In {
+  eqAny(...others: any[]): EqAny;
+  eqAny(...others: any[]): EqAny {
     const exprOthers = others.map(other =>
       other instanceof Expr ? other : Constant.of(other)
     );
-    return new In(this, exprOthers);
+    return new EqAny(this, exprOthers);
+  }
+
+  /**
+   * Creates an expression that checks if this expression is not equal to any of the provided values or
+   * expressions.
+   *
+   * ```typescript
+   * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
+   * Field.of("status").notEqAny("pending", Field.of("rejectedStatus"));
+   * ```
+   *
+   * @param others The values or expressions to check against.
+   * @return A new `Expr` representing the 'NotEqAny' comparison.
+   */
+  notEqAny(...others: Expr[]): NotEqAny;
+
+  /**
+   * Creates an expression that checks if this expression is not equal to any of the provided values or
+   * expressions.
+   *
+   * ```typescript
+   * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
+   * Field.of("status").notEqAny("pending", Field.of("rejectedStatus"));
+   * ```
+   *
+   * @param others The values or expressions to check against.
+   * @return A new `Expr` representing the 'NotEqAny' comparison.
+   */
+  notEqAny(...others: any[]): NotEqAny;
+  notEqAny(...others: any[]): NotEqAny {
+    const exprOthers = others.map(other =>
+      other instanceof Expr ? other : Constant.of(other)
+    );
+    return new NotEqAny(this, exprOthers);
   }
 
   /**
@@ -1300,13 +1334,13 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    *
    * ```typescript
    * // Find the lowest price of all products
-   * Field.of("price").min().as("lowestPrice");
+   * Field.of("price").minimum().as("lowestPrice");
    * ```
    *
    * @return A new `Accumulator` representing the 'min' aggregation.
    */
-  min(): Min {
-    return new Min(this, false);
+  minimum(): Minimum {
+    return new Minimum(this, false);
   }
 
   /**
@@ -1314,13 +1348,13 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    *
    * ```typescript
    * // Find the highest score in a leaderboard
-   * Field.of("score").max().as("highestScore");
+   * Field.of("score").maximum().as("highestScore");
    * ```
    *
    * @return A new `Accumulator` representing the 'max' aggregation.
    */
-  max(): Max {
-    return new Max(this, false);
+  maximum(): Maximum {
+    return new Maximum(this, false);
   }
 
   /**
@@ -1328,31 +1362,31 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    *
    * ```typescript
    * // Returns the larger value between the 'timestamp' field and the current timestamp.
-   * Field.of("timestamp").logicalMax(Function.currentTimestamp());
+   * Field.of("timestamp").logicalMaximum(Function.currentTimestamp());
    * ```
    *
    * @param other The expression to compare with.
    * @return A new {@code Expr} representing the logical max operation.
    */
-  logicalMax(other: Expr): LogicalMax;
+  logicalMaximum(other: Expr): LogicalMaximum;
 
   /**
    * Creates an expression that returns the larger value between this expression and a constant value, based on Firestore's value type ordering.
    *
    * ```typescript
    * // Returns the larger value between the 'value' field and 10.
-   * Field.of("value").logicalMax(10);
+   * Field.of("value").logicalMaximum(10);
    * ```
    *
    * @param other The constant value to compare with.
    * @return A new {@code Expr} representing the logical max operation.
    */
-  logicalMax(other: any): LogicalMax;
-  logicalMax(other: any): LogicalMax {
+  logicalMaximum(other: any): LogicalMaximum;
+  logicalMaximum(other: any): LogicalMaximum {
     if (other instanceof Expr) {
-      return new LogicalMax(this, other as Expr);
+      return new LogicalMaximum(this, other as Expr);
     }
-    return new LogicalMax(this, Constant.of(other));
+    return new LogicalMaximum(this, Constant.of(other));
   }
 
   /**
@@ -1360,31 +1394,31 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    *
    * ```typescript
    * // Returns the smaller value between the 'timestamp' field and the current timestamp.
-   * Field.of("timestamp").logicalMin(Function.currentTimestamp());
+   * Field.of("timestamp").logicalMinimum(Function.currentTimestamp());
    * ```
    *
    * @param other The expression to compare with.
    * @return A new {@code Expr} representing the logical min operation.
    */
-  logicalMin(other: Expr): LogicalMin;
+  logicalMinimum(other: Expr): LogicalMinimum;
 
   /**
    * Creates an expression that returns the smaller value between this expression and a constant value, based on Firestore's value type ordering.
    *
    * ```typescript
    * // Returns the smaller value between the 'value' field and 10.
-   * Field.of("value").logicalMin(10);
+   * Field.of("value").logicalMinimum(10);
    * ```
    *
    * @param other The constant value to compare with.
    * @return A new {@code Expr} representing the logical min operation.
    */
-  logicalMin(other: any): LogicalMin;
-  logicalMin(other: any): LogicalMin {
+  logicalMinimum(other: any): LogicalMinimum;
+  logicalMinimum(other: any): LogicalMinimum {
     if (other instanceof Expr) {
-      return new LogicalMin(this, other as Expr);
+      return new LogicalMinimum(this, other as Expr);
     }
-    return new LogicalMin(this, Constant.of(other));
+    return new LogicalMinimum(this, Constant.of(other));
   }
 
   /**
@@ -2472,9 +2506,19 @@ export class ArrayElement extends FirestoreFunction {
 /**
  * @beta
  */
-export class In extends FirestoreFunction implements FilterCondition {
+export class EqAny extends FirestoreFunction implements FilterCondition {
   constructor(private left: Expr, private others: Expr[]) {
-    super('in', [left, new ListOfExprs(others)]);
+    super('eq_any', [left, new ListOfExprs(others)]);
+  }
+  filterable = true as const;
+}
+
+/**
+ * @beta
+ */
+export class NotEqAny extends FirestoreFunction implements FilterCondition {
+  constructor(private left: Expr, private others: Expr[]) {
+    super('not_eq_any', [left, new ListOfExprs(others)]);
   }
   filterable = true as const;
 }
@@ -2543,13 +2587,13 @@ export class Xor extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
-export class If extends FirestoreFunction implements FilterCondition {
+export class Cond extends FirestoreFunction implements FilterCondition {
   constructor(
     private condition: FilterExpr,
     private thenExpr: Expr,
     private elseExpr: Expr
   ) {
-    super('if', [condition, thenExpr, elseExpr]);
+    super('cond', [condition, thenExpr, elseExpr]);
   }
   filterable = true as const;
 }
@@ -2557,18 +2601,18 @@ export class If extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
-export class LogicalMax extends FirestoreFunction {
+export class LogicalMaximum extends FirestoreFunction {
   constructor(private left: Expr, private right: Expr) {
-    super('logical_max', [left, right]);
+    super('logical_maximum', [left, right]);
   }
 }
 
 /**
  * @beta
  */
-export class LogicalMin extends FirestoreFunction {
+export class LogicalMinimum extends FirestoreFunction {
   constructor(private left: Expr, private right: Expr) {
-    super('logical_min', [left, right]);
+    super('logical_minimum', [left, right]);
   }
 }
 
@@ -2758,20 +2802,20 @@ export class Avg extends FirestoreFunction implements Accumulator {
 /**
  * @beta
  */
-export class Min extends FirestoreFunction implements Accumulator {
+export class Minimum extends FirestoreFunction implements Accumulator {
   accumulator = true as const;
   constructor(private value: Expr, private distinct: boolean) {
-    super('min', [value]);
+    super('minimum', [value]);
   }
 }
 
 /**
  * @beta
  */
-export class Max extends FirestoreFunction implements Accumulator {
+export class Maximum extends FirestoreFunction implements Accumulator {
   accumulator = true as const;
   constructor(private value: Expr, private distinct: boolean) {
-    super('max', [value]);
+    super('maximum', [value]);
   }
 }
 
@@ -4378,14 +4422,14 @@ export function arrayLength(array: Expr): ArrayLength {
  *
  * ```typescript
  * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
- * inAny(Field.of("category"), [Constant.of("Electronics"), Field.of("primaryType")]);
+ * eqAny(Field.of("category"), [Constant.of("Electronics"), Field.of("primaryType")]);
  * ```
  *
  * @param element The expression to compare.
  * @param others The values to check against.
  * @return A new {@code Expr} representing the 'IN' comparison.
  */
-export function inAny(element: Expr, others: Expr[]): In;
+export function eqAny(element: Expr, others: Expr[]): EqAny;
 
 /**
  * @beta
@@ -4395,14 +4439,14 @@ export function inAny(element: Expr, others: Expr[]): In;
  *
  * ```typescript
  * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
- * inAny(Field.of("category"), ["Electronics", Field.of("primaryType")]);
+ * eqAny(Field.of("category"), ["Electronics", Field.of("primaryType")]);
  * ```
  *
  * @param element The expression to compare.
  * @param others The values to check against.
  * @return A new {@code Expr} representing the 'IN' comparison.
  */
-export function inAny(element: Expr, others: any[]): In;
+export function eqAny(element: Expr, others: any[]): EqAny;
 
 /**
  * @beta
@@ -4412,14 +4456,14 @@ export function inAny(element: Expr, others: any[]): In;
  *
  * ```typescript
  * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
- * inAny("category", [Constant.of("Electronics"), Field.of("primaryType")]);
+ * eqAny("category", [Constant.of("Electronics"), Field.of("primaryType")]);
  * ```
  *
  * @param element The field to compare.
  * @param others The values to check against.
  * @return A new {@code Expr} representing the 'IN' comparison.
  */
-export function inAny(element: string, others: Expr[]): In;
+export function eqAny(element: string, others: Expr[]): EqAny;
 
 /**
  * @beta
@@ -4429,20 +4473,20 @@ export function inAny(element: string, others: Expr[]): In;
  *
  * ```typescript
  * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
- * inAny("category", ["Electronics", Field.of("primaryType")]);
+ * eqAny("category", ["Electronics", Field.of("primaryType")]);
  * ```
  *
  * @param element The field to compare.
  * @param others The values to check against.
  * @return A new {@code Expr} representing the 'IN' comparison.
  */
-export function inAny(element: string, others: any[]): In;
-export function inAny(element: Expr | string, others: any[]): In {
+export function eqAny(element: string, others: any[]): EqAny;
+export function eqAny(element: Expr | string, others: any[]): EqAny {
   const elementExpr = element instanceof Expr ? element : Field.of(element);
   const exprOthers = others.map(other =>
     other instanceof Expr ? other : Constant.of(other)
   );
-  return new In(elementExpr, exprOthers);
+  return new EqAny(elementExpr, exprOthers);
 }
 
 /**
@@ -4453,14 +4497,14 @@ export function inAny(element: Expr | string, others: any[]): In {
  *
  * ```typescript
  * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
- * notInAny(Field.of("status"), [Constant.of("pending"), Field.of("rejectedStatus")]);
+ * notEqAny(Field.of("status"), [Constant.of("pending"), Field.of("rejectedStatus")]);
  * ```
  *
  * @param element The expression to compare.
  * @param others The values to check against.
  * @return A new {@code Expr} representing the 'NOT IN' comparison.
  */
-export function notInAny(element: Expr, others: Expr[]): Not;
+export function notEqAny(element: Expr, others: Expr[]): NotEqAny;
 
 /**
  * @beta
@@ -4470,14 +4514,14 @@ export function notInAny(element: Expr, others: Expr[]): Not;
  *
  * ```typescript
  * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
- * notInAny(Field.of("status"), ["pending", Field.of("rejectedStatus")]);
+ * notEqAny(Field.of("status"), ["pending", Field.of("rejectedStatus")]);
  * ```
  *
  * @param element The expression to compare.
  * @param others The values to check against.
  * @return A new {@code Expr} representing the 'NOT IN' comparison.
  */
-export function notInAny(element: Expr, others: any[]): Not;
+export function notEqAny(element: Expr, others: any[]): NotEqAny;
 
 /**
  * @beta
@@ -4487,14 +4531,14 @@ export function notInAny(element: Expr, others: any[]): Not;
  *
  * ```typescript
  * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
- * notInAny("status", [Constant.of("pending"), Field.of("rejectedStatus")]);
+ * notEqAny("status", [Constant.of("pending"), Field.of("rejectedStatus")]);
  * ```
  *
  * @param element The field name to compare.
  * @param others The values to check against.
  * @return A new {@code Expr} representing the 'NOT IN' comparison.
  */
-export function notInAny(element: string, others: Expr[]): Not;
+export function notEqAny(element: string, others: Expr[]): NotEqAny;
 
 /**
  * @beta
@@ -4504,20 +4548,20 @@ export function notInAny(element: string, others: Expr[]): Not;
  *
  * ```typescript
  * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
- * notInAny("status", ["pending", Field.of("rejectedStatus")]);
+ * notEqAny("status", ["pending", Field.of("rejectedStatus")]);
  * ```
  *
  * @param element The field name to compare.
  * @param others The values to check against.
  * @return A new {@code Expr} representing the 'NOT IN' comparison.
  */
-export function notInAny(element: string, others: any[]): Not;
-export function notInAny(element: Expr | string, others: any[]): Not {
+export function notEqAny(element: string, others: any[]): NotEqAny;
+export function notEqAny(element: Expr | string, others: any[]): NotEqAny {
   const elementExpr = element instanceof Expr ? element : Field.of(element);
   const exprOthers = others.map(other =>
     other instanceof Expr ? other : Constant.of(other)
   );
-  return new Not(new In(elementExpr, exprOthers));
+  return new NotEqAny(elementExpr, exprOthers);
 }
 
 /**
@@ -4551,7 +4595,7 @@ export function xor(left: FilterExpr, ...right: FilterExpr[]): Xor {
  *
  * ```typescript
  * // If 'age' is greater than 18, return "Adult"; otherwise, return "Minor".
- * ifFunction(
+ * cond(
  *     gt("age", 18), Constant.of("Adult"), Constant.of("Minor"));
  * ```
  *
@@ -4560,12 +4604,12 @@ export function xor(left: FilterExpr, ...right: FilterExpr[]): Xor {
  * @param elseExpr The expression to evaluate if the condition is false.
  * @return A new {@code Expr} representing the conditional expression.
  */
-export function ifFunction(
+export function cond(
   condition: FilterExpr,
   thenExpr: Expr,
   elseExpr: Expr
-): If {
-  return new If(condition, thenExpr, elseExpr);
+): Cond {
+  return new Cond(condition, thenExpr, elseExpr);
 }
 
 /**
@@ -4592,14 +4636,14 @@ export function not(filter: FilterExpr): Not {
  *
  * ```typescript
  * // Returns the larger value between the 'field1' field and the 'field2' field.
- * logicalMax(Field.of("field1"), Field.of("field2"));
+ * logicalMaximum(Field.of("field1"), Field.of("field2"));
  * ```
  *
  * @param left The left operand expression.
  * @param right The right operand expression.
  * @return A new {@code Expr} representing the logical max operation.
  */
-export function logicalMax(left: Expr, right: Expr): LogicalMax;
+export function logicalMaximum(left: Expr, right: Expr): LogicalMaximum;
 
 /**
  * @beta
@@ -4608,14 +4652,14 @@ export function logicalMax(left: Expr, right: Expr): LogicalMax;
  *
  * ```typescript
  * // Returns the larger value between the 'value' field and 10.
- * logicalMax(Field.of("value"), 10);
+ * logicalMaximum(Field.of("value"), 10);
  * ```
  *
  * @param left The left operand expression.
  * @param right The right operand constant.
  * @return A new {@code Expr} representing the logical max operation.
  */
-export function logicalMax(left: Expr, right: any): LogicalMax;
+export function logicalMaximum(left: Expr, right: any): LogicalMaximum;
 
 /**
  * @beta
@@ -4624,14 +4668,14 @@ export function logicalMax(left: Expr, right: any): LogicalMax;
  *
  * ```typescript
  * // Returns the larger value between the 'field1' field and the 'field2' field.
- * logicalMax("field1", Field.of('field2'));
+ * logicalMaximum("field1", Field.of('field2'));
  * ```
  *
  * @param left The left operand field name.
  * @param right The right operand expression.
  * @return A new {@code Expr} representing the logical max operation.
  */
-export function logicalMax(left: string, right: Expr): LogicalMax;
+export function logicalMaximum(left: string, right: Expr): LogicalMaximum;
 
 /**
  * @beta
@@ -4640,18 +4684,21 @@ export function logicalMax(left: string, right: Expr): LogicalMax;
  *
  * ```typescript
  * // Returns the larger value between the 'value' field and 10.
- * logicalMax("value", 10);
+ * logicalMaximum("value", 10);
  * ```
  *
  * @param left The left operand field name.
  * @param right The right operand constant.
  * @return A new {@code Expr} representing the logical max operation.
  */
-export function logicalMax(left: string, right: any): LogicalMax;
-export function logicalMax(left: Expr | string, right: Expr | any): LogicalMax {
+export function logicalMaximum(left: string, right: any): LogicalMaximum;
+export function logicalMaximum(
+  left: Expr | string,
+  right: Expr | any
+): LogicalMaximum {
   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
   const normalizedRight = right instanceof Expr ? right : Constant.of(right);
-  return new LogicalMax(normalizedLeft, normalizedRight);
+  return new LogicalMaximum(normalizedLeft, normalizedRight);
 }
 
 /**
@@ -4661,14 +4708,14 @@ export function logicalMax(left: Expr | string, right: Expr | any): LogicalMax {
  *
  * ```typescript
  * // Returns the smaller value between the 'field1' field and the 'field2' field.
- * logicalMin(Field.of("field1"), Field.of("field2"));
+ * logicalMinimum(Field.of("field1"), Field.of("field2"));
  * ```
  *
  * @param left The left operand expression.
  * @param right The right operand expression.
  * @return A new {@code Expr} representing the logical min operation.
  */
-export function logicalMin(left: Expr, right: Expr): LogicalMin;
+export function logicalMinimum(left: Expr, right: Expr): LogicalMinimum;
 
 /**
  * @beta
@@ -4677,14 +4724,14 @@ export function logicalMin(left: Expr, right: Expr): LogicalMin;
  *
  * ```typescript
  * // Returns the smaller value between the 'value' field and 10.
- * logicalMin(Field.of("value"), 10);
+ * logicalMinimum(Field.of("value"), 10);
  * ```
  *
  * @param left The left operand expression.
  * @param right The right operand constant.
  * @return A new {@code Expr} representing the logical min operation.
  */
-export function logicalMin(left: Expr, right: any): LogicalMin;
+export function logicalMinimum(left: Expr, right: any): LogicalMinimum;
 
 /**
  * @beta
@@ -4693,14 +4740,14 @@ export function logicalMin(left: Expr, right: any): LogicalMin;
  *
  * ```typescript
  * // Returns the smaller value between the 'field1' field and the 'field2' field.
- * logicalMin("field1", Field.of("field2"));
+ * logicalMinimum("field1", Field.of("field2"));
  * ```
  *
  * @param left The left operand field name.
  * @param right The right operand expression.
  * @return A new {@code Expr} representing the logical min operation.
  */
-export function logicalMin(left: string, right: Expr): LogicalMin;
+export function logicalMinimum(left: string, right: Expr): LogicalMinimum;
 
 /**
  * @beta
@@ -4709,18 +4756,21 @@ export function logicalMin(left: string, right: Expr): LogicalMin;
  *
  * ```typescript
  * // Returns the smaller value between the 'value' field and 10.
- * logicalMin("value", 10);
+ * logicalMinimum("value", 10);
  * ```
  *
  * @param left The left operand field name.
  * @param right The right operand constant.
  * @return A new {@code Expr} representing the logical min operation.
  */
-export function logicalMin(left: string, right: any): LogicalMin;
-export function logicalMin(left: Expr | string, right: Expr | any): LogicalMin {
+export function logicalMinimum(left: string, right: any): LogicalMinimum;
+export function logicalMinimum(
+  left: Expr | string,
+  right: Expr | any
+): LogicalMinimum {
   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
   const normalizedRight = right instanceof Expr ? right : Constant.of(right);
-  return new LogicalMin(normalizedLeft, normalizedRight);
+  return new LogicalMinimum(normalizedLeft, normalizedRight);
 }
 
 /**
@@ -5786,13 +5836,13 @@ export function avgFunction(value: Expr | string): Avg {
  *
  * ```typescript
  * // Find the lowest price of all products
- * min(Field.of("price")).as("lowestPrice");
+ * minimum(Field.of("price")).as("lowestPrice");
  * ```
  *
  * @param value The expression to find the minimum value of.
  * @return A new {@code Accumulator} representing the 'min' aggregation.
  */
-export function min(value: Expr): Min;
+export function minimum(value: Expr): Minimum;
 
 /**
  * @beta
@@ -5801,16 +5851,16 @@ export function min(value: Expr): Min;
  *
  * ```typescript
  * // Find the lowest price of all products
- * min("price").as("lowestPrice");
+ * minimum("price").as("lowestPrice");
  * ```
  *
  * @param value The name of the field to find the minimum value of.
  * @return A new {@code Accumulator} representing the 'min' aggregation.
  */
-export function min(value: string): Min;
-export function min(value: Expr | string): Min {
+export function minimum(value: string): Minimum;
+export function minimum(value: Expr | string): Minimum {
   const exprValue = value instanceof Expr ? value : Field.of(value);
-  return new Min(exprValue, false);
+  return new Minimum(exprValue, false);
 }
 
 /**
@@ -5821,13 +5871,13 @@ export function min(value: Expr | string): Min {
  *
  * ```typescript
  * // Find the highest score in a leaderboard
- * max(Field.of("score")).as("highestScore");
+ * maximum(Field.of("score")).as("highestScore");
  * ```
  *
  * @param value The expression to find the maximum value of.
  * @return A new {@code Accumulator} representing the 'max' aggregation.
  */
-export function max(value: Expr): Max;
+export function maximum(value: Expr): Maximum;
 
 /**
  * @beta
@@ -5836,16 +5886,16 @@ export function max(value: Expr): Max;
  *
  * ```typescript
  * // Find the highest score in a leaderboard
- * max("score").as("highestScore");
+ * maximum("score").as("highestScore");
  * ```
  *
  * @param value The name of the field to find the maximum value of.
  * @return A new {@code Accumulator} representing the 'max' aggregation.
  */
-export function max(value: string): Max;
-export function max(value: Expr | string): Max {
+export function maximum(value: string): Maximum;
+export function maximum(value: Expr | string): Maximum {
   const exprValue = value instanceof Expr ? value : Field.of(value);
-  return new Max(exprValue, false);
+  return new Maximum(exprValue, false);
 }
 
 /**

@@ -19,9 +19,9 @@ export { PipelineSource } from './lite-api/pipeline-source';
 
 export { PipelineResult } from './lite-api/pipeline-result';
 
-export { Pipeline, pipeline } from './api/pipeline';
+export { Pipeline } from './api/pipeline';
 
-export { useFirestorePipelines } from './api/database_augmentation';
+export { useFirestorePipelines, pipeline } from './api/pipeline_impl';
 
 export { execute } from './lite-api/pipeline_impl';
 
@@ -61,13 +61,13 @@ export {
   arrayContainsAny,
   arrayContainsAll,
   arrayLength,
-  inAny,
-  notInAny,
+  eqAny,
+  notEqAny,
   xor,
-  ifFunction,
+  cond,
   not,
-  logicalMax,
-  logicalMin,
+  logicalMaximum,
+  logicalMinimum,
   exists,
   isNan,
   reverse,
@@ -92,8 +92,8 @@ export {
   avgFunction,
   andFunction,
   orFunction,
-  min,
-  max,
+  minimum,
+  maximum,
   cosineDistance,
   dotProduct,
   euclideanDistance,
@@ -132,16 +132,17 @@ export {
   ArrayContainsAny,
   ArrayLength,
   ArrayElement,
-  In,
+  EqAny,
+  NotEqAny,
   IsNan,
   Exists,
   Not,
   And,
   Or,
   Xor,
-  If,
-  LogicalMax,
-  LogicalMin,
+  Cond,
+  LogicalMaximum,
+  LogicalMinimum,
   Reverse,
   ReplaceFirst,
   ReplaceAll,
@@ -161,8 +162,8 @@ export {
   Count,
   Sum,
   Avg,
-  Min,
-  Max,
+  Minimum,
+  Maximum,
   CosineDistance,
   DotProduct,
   EuclideanDistance,
