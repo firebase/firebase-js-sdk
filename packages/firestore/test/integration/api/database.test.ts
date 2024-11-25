@@ -16,7 +16,7 @@
  */
 
 import { deleteApp } from '@firebase/app';
-import { Deferred } from '@firebase/util';
+import { Deferred, FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
@@ -103,6 +103,33 @@ apiDescribe('Database', persistence => {
       const ref = doc(collection(db, 'foo'));
       // Auto IDs are 20 characters long
       expect(ref.id.length).to.equal(20);
+    });
+  });
+
+  it('can add a document with DocRef', () => {
+    return withTestCollection(persistence, {}, async coll => {
+      const docRef = doc(coll, 'foo');
+      await addDoc(docRef, { a: 'a' });
+      const docSnapshot = await getDoc(docRef);
+      expect(docSnapshot.data()).to.be.deep.equal({ a: 'a' });
+    });
+  });
+
+  it('can add a document with CollectionRef', () => {
+    return withTestCollection(persistence, {}, async coll => {
+      const docRef = await addDoc(coll, { a: 'a' });
+      const docSnapshot = await getDoc(docRef);
+      expect(docSnapshot.data()).to.be.deep.equal({ a: 'a' });
+    });
+  });
+
+  it("can't add a document with duplicated id", () => {
+    return withTestDoc(persistence, async docRef => {
+      await addDoc(docRef, { a: 'a' });
+      await expect(addDoc(docRef, { a: 'a' })).to.be.rejectedWith(
+        FirebaseError,
+        'Document already exists:'
+      );
     });
   });
 

@@ -439,6 +439,20 @@ export function deleteDoc<AppModelType, DbModelType extends DocumentData>(
 }
 
 /**
+ * Add a new document to specified `DocReference` with the given data.
+ *
+ * @param reference - A reference to the document to add.
+ * @param data - An Object containing the data for the new document.
+ * @returns A `Promise` resolved with a `DocumentReference` pointing to the
+ * newly created document after it has been written to the backend (Note that it
+ * won't resolve while you're offline).
+ * @throws FirestoreError if the document already exists.
+ */
+export function addDoc<AppModelType, DbModelType extends DocumentData>(
+  reference: DocumentReference<AppModelType, DbModelType>,
+  data: WithFieldValue<AppModelType>
+): Promise<DocumentReference<AppModelType, DbModelType>>;
+/**
  * Add a new document to specified `CollectionReference` with the given data,
  * assigning it a document ID automatically.
  *
@@ -451,10 +465,17 @@ export function deleteDoc<AppModelType, DbModelType extends DocumentData>(
 export function addDoc<AppModelType, DbModelType extends DocumentData>(
   reference: CollectionReference<AppModelType, DbModelType>,
   data: WithFieldValue<AppModelType>
+): Promise<DocumentReference<AppModelType, DbModelType>>;
+export function addDoc<AppModelType, DbModelType extends DocumentData>(
+  reference:
+    | CollectionReference<AppModelType, DbModelType>
+    | DocumentReference<AppModelType, DbModelType>,
+  data: WithFieldValue<AppModelType>
 ): Promise<DocumentReference<AppModelType, DbModelType>> {
   const firestore = cast(reference.firestore, Firestore);
 
-  const docRef = doc(reference);
+  const docRef =
+    reference instanceof DocumentReference ? reference : doc(reference);
   const convertedValue = applyFirestoreDataConverter(reference.converter, data);
 
   const dataReader = newUserDataReader(reference.firestore);
