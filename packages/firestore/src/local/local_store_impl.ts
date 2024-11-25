@@ -952,24 +952,6 @@ export function localStoreAllocateTarget(
   target: Target | Pipeline
 ): Promise<TargetData> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  if (targetIsPipelineTarget(target)) {
-    return localStoreImpl.persistence.runTransaction(
-      'Allocate pipeline target',
-      'readwrite',
-      txn => {
-        return localStoreImpl.targetCache
-          .allocateTargetId(txn)
-          .next(targetId => {
-            return new TargetData(
-              target,
-              targetId,
-              TargetPurpose.Listen,
-              txn.currentSequenceNumber
-            );
-          });
-      }
-    );
-  }
 
   return localStoreImpl.persistence
     .runTransaction('Allocate target', 'readwrite', txn => {

@@ -217,6 +217,10 @@ export class ResourcePath extends BasePath<ResourcePath> {
     return this.canonicalString();
   }
 
+  toStringWithLeadingSlash(): string {
+    return `/${this.canonicalString()}`;
+  }
+
   /**
    * Returns a string representation of this path
    * where each path segment has been encoded with

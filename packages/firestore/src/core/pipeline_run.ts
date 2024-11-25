@@ -234,7 +234,7 @@ function evaluateDocuments(
   return input.filter(input => {
     return (
       input.isFoundDocument() &&
-      stage.docPaths.includes(input.key.path.canonicalString())
+      stage.docPaths.includes(input.key.path.toStringWithLeadingSlash())
     );
   });
 }
