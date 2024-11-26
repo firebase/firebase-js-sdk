@@ -30,8 +30,6 @@ import { WebVitalMetrics } from '../resources/web_vitals';
 import { Api } from './api_service';
 import { getIid } from './iid_service';
 
-const FID_WAIT_TIME_MS = 5000;
-
 let webVitalMetrics: WebVitalMetrics = {};
 let sentPageLoadTrace: boolean = false;
 let firstInputDelay: number | undefined;
@@ -147,27 +145,13 @@ function sendOobTrace(performanceController: PerformanceController): void {
       'navigation'
     ) as PerformanceNavigationTiming[];
     const paintTimings = api.getEntriesByType('paint');
-    // If First Input Delay polyfill is added to the page, report the fid value.
-    // https://github.com/GoogleChromeLabs/first-input-delay
-    if (api.onFirstInputDelay && !firstInputDelay) {
-      setTimeout(() => {
-        Trace.createOobTrace(
-          performanceController,
-          navigationTimings,
-          paintTimings,
-          webVitalMetrics,
-          firstInputDelay
-        );
-      }, FID_WAIT_TIME_MS);
-    } else {
-      Trace.createOobTrace(
-        performanceController,
-        navigationTimings,
-        paintTimings,
-        webVitalMetrics,
-        firstInputDelay
-      );
-    }
+    Trace.createOobTrace(
+      performanceController,
+      navigationTimings,
+      paintTimings,
+      webVitalMetrics,
+      firstInputDelay
+    );
   }
 }
 
