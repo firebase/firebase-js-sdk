@@ -211,7 +211,7 @@ export function toPipelineFilterCondition(
           const values = value?.arrayValue?.values?.map((val: any) =>
             Constant.of(val)
           );
-          return andFunction(field.exists(), field.in(...values!));
+          return andFunction(field.exists(), field.eqAny(...values!));
         }
         case Operator.ARRAY_CONTAINS_ANY: {
           const values = value?.arrayValue?.values?.map((val: any) =>
@@ -223,7 +223,7 @@ export function toPipelineFilterCondition(
           const values = value?.arrayValue?.values?.map((val: any) =>
             Constant.of(val)
           );
-          return andFunction(field.exists(), not(field.in(...values!)));
+          return andFunction(field.exists(), not(field.eqAny(...values!)));
         }
         default:
           fail('Unexpected operator');

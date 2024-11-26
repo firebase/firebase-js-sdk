@@ -55,7 +55,7 @@ import {
   setDoc,
   startsWith,
   subtract,
-  useFirestorePipelines,
+  useFluentPipelines,
   setLogLevel,
   cond,
   eqAny,
@@ -267,7 +267,7 @@ apiDescribe.only('Pipelines', persistence => {
 
   describe('fluent API', () => {
     before(() => {
-      useFirestorePipelines();
+      useFluentPipelines();
     });
 
     it('empty results as expected', async () => {

@@ -20,7 +20,7 @@ export { PipelineResult } from './lite-api/pipeline-result';
 
 export { Pipeline } from './lite-api/pipeline';
 
-export { useFirestorePipelines } from './api/database_augmentation';
+export { useFluentPipelines, execute, pipeline } from './api/pipeline_impl';
 
 export {
   Stage,

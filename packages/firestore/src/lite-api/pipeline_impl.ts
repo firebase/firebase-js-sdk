@@ -107,7 +107,7 @@ export function pipeline(
   }
 }
 
-export function useFirestorePipelines(): void {
+export function useFluentPipelines(): void {
   Firestore.prototype.pipeline = function (): PipelineSource {
     return pipeline(this);
   };

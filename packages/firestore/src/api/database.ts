@@ -135,7 +135,7 @@ export class Firestore extends LiteFirestore {
    */
   pipeline(): PipelineSource {
     throw new Error(
-      'Pipelines not initialized. Your application must call `useFirestorePipelines()` before using Firestore Pipeline features.'
+      'Pipelines not initialized. Your application must call `useFluentPipelines()` before using Firestore Pipeline features.'
     );
   }
 }

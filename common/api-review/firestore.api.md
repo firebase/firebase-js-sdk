@@ -300,6 +300,16 @@ export class CollectionSource implements Stage {
     name: string;
 }
 
+// @beta (undocumented)
+export class Cond extends FirestoreFunction implements FilterCondition {
+    constructor(condition: FilterExpr, thenExpr: Constant, elseExpr: Constant);
+    // (undocumented)
+    filterable: true;
+    }
+
+// @beta
+export function cond(condition: FilterExpr, thenExpr: Constant, elseExpr: Constant): Cond;
+
 // @public
 export function connectFirestoreEmulator(firestore: Firestore, host: string, port: number, options?: {
     mockUserToken?: EmulatorMockTokenOptions | string;
@@ -338,6 +348,9 @@ export class Constant {
     endsWith(suffix: Constant): EndsWith;
     eq(other: Constant): Eq;
     eq(other: any): Eq;
+    eqAny(...others: Constant[]): EqAny;
+    // (undocumented)
+    eqAny(...others: any[]): EqAny;
     euclideanDistance(other: Constant): EuclideanDistance;
     euclideanDistance(other: VectorValue): EuclideanDistance;
     // (undocumented)
@@ -349,30 +362,30 @@ export class Constant {
     gt(other: any): Gt;
     gte(other: Constant): Gte;
     gte(other: any): Gte;
-    in(...others: Constant[]): In;
-    // (undocumented)
-    in(...others: any[]): In;
     isNaN(): IsNan;
     like(pattern: string): Like;
     // (undocumented)
     like(pattern: Constant): Like;
-    logicalMax(other: Constant): LogicalMax;
-    logicalMax(other: any): LogicalMax;
-    logicalMin(other: Constant): LogicalMin;
-    logicalMin(other: any): LogicalMin;
+    logicalMaximum(other: Constant): LogicalMaximum;
+    logicalMaximum(other: any): LogicalMaximum;
+    logicalMinimum(other: Constant): LogicalMinimum;
+    logicalMinimum(other: any): LogicalMinimum;
     lt(other: Constant): Lt;
     lt(other: any): Lt;
     lte(other: Constant): Lte;
     lte(other: any): Lte;
     mapGet(subfield: string): MapGet;
-    max(): Max;
-    min(): Min;
+    maximum(): Maximum;
+    minimum(): Minimum;
     mod(other: Constant): Mod;
     mod(other: any): Mod;
     multiply(other: Constant): Multiply;
     multiply(other: any): Multiply;
     neq(other: Constant): Neq;
     neq(other: any): Neq;
+    notEqAny(...others: Constant[]): NotEqAny;
+    // (undocumented)
+    notEqAny(...others: any[]): NotEqAny;
     static of(value: number): Constant;
     static of(value: string): Constant;
     static of(value: boolean): Constant;
@@ -660,6 +673,25 @@ export function eq(left: string, right: Constant): Eq;
 export function eq(left: string, right: any): Eq;
 
 // @beta (undocumented)
+export class EqAny extends FirestoreFunction implements FilterCondition {
+    constructor(left: Constant, others: Constant[]);
+    // (undocumented)
+    filterable: true;
+    }
+
+// @beta
+export function eqAny(element: Constant, others: Constant[]): EqAny;
+
+// @beta
+export function eqAny(element: Constant, others: any[]): EqAny;
+
+// @beta
+export function eqAny(element: string, others: Constant[]): EqAny;
+
+// @beta
+export function eqAny(element: string, others: any[]): EqAny;
+
+// @beta (undocumented)
 export class EuclideanDistance extends FirestoreFunction {
     constructor(vector1: Constant, vector2: Constant);
     }
@@ -682,8 +714,10 @@ export function euclideanDistance(expr: Constant, other: VectorValue): Euclidean
 // @beta
 export function euclideanDistance(expr: Constant, other: Constant): EuclideanDistance;
 
-// @beta
-export function execute<AppModelType>(pipeline: Pipeline<AppModelType>): Promise<Array<PipelineResult<AppModelType>>>;
+// Warning: (ae-incompatible-release-tags) The symbol "execute" is marked as @public, but its signature references "PipelineResult" which is marked as @beta
+//
+// @public (undocumented)
+export function execute<AppModelType>(pipeline: Pipeline): Promise<Array<PipelineResult<AppModelType>>>;
 
 // @beta (undocumented)
 export class Exists extends FirestoreFunction implements FilterCondition {
@@ -742,6 +776,9 @@ export class ExprWithAlias<T extends Constant> implements Selectable {
     endsWith(suffix: Constant): EndsWith;
     eq(other: Constant): Eq;
     eq(other: any): Eq;
+    eqAny(...others: Constant[]): EqAny;
+    // (undocumented)
+    eqAny(...others: any[]): EqAny;
     euclideanDistance(other: Constant): EuclideanDistance;
     euclideanDistance(other: VectorValue): EuclideanDistance;
     // (undocumented)
@@ -755,30 +792,30 @@ export class ExprWithAlias<T extends Constant> implements Selectable {
     gt(other: any): Gt;
     gte(other: Constant): Gte;
     gte(other: any): Gte;
-    in(...others: Constant[]): In;
-    // (undocumented)
-    in(...others: any[]): In;
     isNaN(): IsNan;
     like(pattern: string): Like;
     // (undocumented)
     like(pattern: Constant): Like;
-    logicalMax(other: Constant): LogicalMax;
-    logicalMax(other: any): LogicalMax;
-    logicalMin(other: Constant): LogicalMin;
-    logicalMin(other: any): LogicalMin;
+    logicalMaximum(other: Constant): LogicalMaximum;
+    logicalMaximum(other: any): LogicalMaximum;
+    logicalMinimum(other: Constant): LogicalMinimum;
+    logicalMinimum(other: any): LogicalMinimum;
     lt(other: Constant): Lt;
     lt(other: any): Lt;
     lte(other: Constant): Lte;
     lte(other: any): Lte;
     mapGet(subfield: string): MapGet;
-    max(): Max;
-    min(): Min;
+    maximum(): Maximum;
+    minimum(): Minimum;
     mod(other: Constant): Mod;
     mod(other: any): Mod;
     multiply(other: Constant): Multiply;
     multiply(other: any): Multiply;
     neq(other: Constant): Neq;
     neq(other: any): Neq;
+    notEqAny(...others: Constant[]): NotEqAny;
+    // (undocumented)
+    notEqAny(...others: any[]): NotEqAny;
     regexContains(pattern: string): RegexContains;
     regexContains(pattern: Constant): RegexContains;
     regexMatch(pattern: string): RegexMatch;
@@ -847,6 +884,9 @@ export class Field implements Selectable {
     endsWith(suffix: Constant): EndsWith;
     eq(other: Constant): Eq;
     eq(other: any): Eq;
+    eqAny(...others: Constant[]): EqAny;
+    // (undocumented)
+    eqAny(...others: any[]): EqAny;
     euclideanDistance(other: Constant): EuclideanDistance;
     euclideanDistance(other: VectorValue): EuclideanDistance;
     // (undocumented)
@@ -860,30 +900,30 @@ export class Field implements Selectable {
     gt(other: any): Gt;
     gte(other: Constant): Gte;
     gte(other: any): Gte;
-    in(...others: Constant[]): In;
-    // (undocumented)
-    in(...others: any[]): In;
     isNaN(): IsNan;
     like(pattern: string): Like;
     // (undocumented)
     like(pattern: Constant): Like;
-    logicalMax(other: Constant): LogicalMax;
-    logicalMax(other: any): LogicalMax;
-    logicalMin(other: Constant): LogicalMin;
-    logicalMin(other: any): LogicalMin;
+    logicalMaximum(other: Constant): LogicalMaximum;
+    logicalMaximum(other: any): LogicalMaximum;
+    logicalMinimum(other: Constant): LogicalMinimum;
+    logicalMinimum(other: any): LogicalMinimum;
     lt(other: Constant): Lt;
     lt(other: any): Lt;
     lte(other: Constant): Lte;
     lte(other: any): Lte;
     mapGet(subfield: string): MapGet;
-    max(): Max;
-    min(): Min;
+    maximum(): Maximum;
+    minimum(): Minimum;
     mod(other: Constant): Mod;
     mod(other: any): Mod;
     multiply(other: Constant): Multiply;
     multiply(other: any): Multiply;
     neq(other: Constant): Neq;
     neq(other: any): Neq;
+    notEqAny(...others: Constant[]): NotEqAny;
+    // (undocumented)
+    notEqAny(...others: any[]): NotEqAny;
     static of(name: string): Field;
     // (undocumented)
     static of(path: FieldPath): Field;
@@ -963,6 +1003,9 @@ export class Fields implements Selectable {
     endsWith(suffix: Constant): EndsWith;
     eq(other: Constant): Eq;
     eq(other: any): Eq;
+    eqAny(...others: Constant[]): EqAny;
+    // (undocumented)
+    eqAny(...others: any[]): EqAny;
     euclideanDistance(other: Constant): EuclideanDistance;
     euclideanDistance(other: VectorValue): EuclideanDistance;
     // (undocumented)
@@ -976,30 +1019,30 @@ export class Fields implements Selectable {
     gt(other: any): Gt;
     gte(other: Constant): Gte;
     gte(other: any): Gte;
-    in(...others: Constant[]): In;
-    // (undocumented)
-    in(...others: any[]): In;
     isNaN(): IsNan;
     like(pattern: string): Like;
     // (undocumented)
     like(pattern: Constant): Like;
-    logicalMax(other: Constant): LogicalMax;
-    logicalMax(other: any): LogicalMax;
-    logicalMin(other: Constant): LogicalMin;
-    logicalMin(other: any): LogicalMin;
+    logicalMaximum(other: Constant): LogicalMaximum;
+    logicalMaximum(other: any): LogicalMaximum;
+    logicalMinimum(other: Constant): LogicalMinimum;
+    logicalMinimum(other: any): LogicalMinimum;
     lt(other: Constant): Lt;
     lt(other: any): Lt;
     lte(other: Constant): Lte;
     lte(other: any): Lte;
     mapGet(subfield: string): MapGet;
-    max(): Max;
-    min(): Min;
+    maximum(): Maximum;
+    minimum(): Minimum;
     mod(other: Constant): Mod;
     mod(other: any): Mod;
     multiply(other: Constant): Multiply;
     multiply(other: any): Multiply;
     neq(other: Constant): Neq;
     neq(other: any): Neq;
+    notEqAny(...others: Constant[]): NotEqAny;
+    // (undocumented)
+    notEqAny(...others: any[]): NotEqAny;
     // (undocumented)
     static of(name: string, ...others: string[]): Fields;
     // (undocumented)
@@ -1133,6 +1176,9 @@ export class FirestoreFunction {
     endsWith(suffix: Constant): EndsWith;
     eq(other: Constant): Eq;
     eq(other: any): Eq;
+    eqAny(...others: Constant[]): EqAny;
+    // (undocumented)
+    eqAny(...others: any[]): EqAny;
     euclideanDistance(other: Constant): EuclideanDistance;
     euclideanDistance(other: VectorValue): EuclideanDistance;
     // (undocumented)
@@ -1144,30 +1190,30 @@ export class FirestoreFunction {
     gt(other: any): Gt;
     gte(other: Constant): Gte;
     gte(other: any): Gte;
-    in(...others: Constant[]): In;
-    // (undocumented)
-    in(...others: any[]): In;
     isNaN(): IsNan;
     like(pattern: string): Like;
     // (undocumented)
     like(pattern: Constant): Like;
-    logicalMax(other: Constant): LogicalMax;
-    logicalMax(other: any): LogicalMax;
-    logicalMin(other: Constant): LogicalMin;
-    logicalMin(other: any): LogicalMin;
+    logicalMaximum(other: Constant): LogicalMaximum;
+    logicalMaximum(other: any): LogicalMaximum;
+    logicalMinimum(other: Constant): LogicalMinimum;
+    logicalMinimum(other: any): LogicalMinimum;
     lt(other: Constant): Lt;
     lt(other: any): Lt;
     lte(other: Constant): Lte;
     lte(other: any): Lte;
     mapGet(subfield: string): MapGet;
-    max(): Max;
-    min(): Min;
+    maximum(): Maximum;
+    minimum(): Minimum;
     mod(other: Constant): Mod;
     mod(other: any): Mod;
     multiply(other: Constant): Multiply;
     multiply(other: any): Multiply;
     neq(other: Constant): Neq;
     neq(other: any): Neq;
+    notEqAny(...others: Constant[]): NotEqAny;
+    // (undocumented)
+    notEqAny(...others: any[]): NotEqAny;
     regexContains(pattern: string): RegexContains;
     regexContains(pattern: Constant): RegexContains;
     regexMatch(pattern: string): RegexMatch;
@@ -1317,35 +1363,6 @@ export function gte(left: string, right: Constant): Gte;
 // @beta
 export function gte(left: string, right: any): Gte;
 
-// @beta (undocumented)
-export class If extends FirestoreFunction implements FilterCondition {
-    constructor(condition: FilterExpr, thenExpr: Constant, elseExpr: Constant);
-    // (undocumented)
-    filterable: true;
-    }
-
-// @beta
-export function ifFunction(condition: FilterExpr, thenExpr: Constant, elseExpr: Constant): If;
-
-// @beta (undocumented)
-export class In extends FirestoreFunction implements FilterCondition {
-    constructor(left: Constant, others: Constant[]);
-    // (undocumented)
-    filterable: true;
-    }
-
-// @beta
-export function inAny(element: Constant, others: Constant[]): In;
-
-// @beta
-export function inAny(element: Constant, others: any[]): In;
-
-// @beta
-export function inAny(element: string, others: Constant[]): In;
-
-// @beta
-export function inAny(element: string, others: any[]): In;
-
 // @public
 export function increment(n: number): FieldValue;
 
@@ -1444,38 +1461,38 @@ export interface LoadBundleTaskProgress {
 }
 
 // @beta (undocumented)
-export class LogicalMax extends FirestoreFunction {
+export class LogicalMaximum extends FirestoreFunction {
     constructor(left: Constant, right: Constant);
     }
 
 // @beta
-export function logicalMax(left: Constant, right: Constant): LogicalMax;
+export function logicalMaximum(left: Constant, right: Constant): LogicalMaximum;
 
 // @beta
-export function logicalMax(left: Constant, right: any): LogicalMax;
+export function logicalMaximum(left: Constant, right: any): LogicalMaximum;
 
 // @beta
-export function logicalMax(left: string, right: Constant): LogicalMax;
+export function logicalMaximum(left: string, right: Constant): LogicalMaximum;
 
 // @beta
-export function logicalMax(left: string, right: any): LogicalMax;
+export function logicalMaximum(left: string, right: any): LogicalMaximum;
 
 // @beta (undocumented)
-export class LogicalMin extends FirestoreFunction {
+export class LogicalMinimum extends FirestoreFunction {
     constructor(left: Constant, right: Constant);
     }
 
 // @beta
-export function logicalMin(left: Constant, right: Constant): LogicalMin;
+export function logicalMinimum(left: Constant, right: Constant): LogicalMinimum;
 
 // @beta
-export function logicalMin(left: Constant, right: any): LogicalMin;
+export function logicalMinimum(left: Constant, right: any): LogicalMinimum;
 
 // @beta
-export function logicalMin(left: string, right: Constant): LogicalMin;
+export function logicalMinimum(left: string, right: Constant): LogicalMinimum;
 
 // @beta
-export function logicalMin(left: string, right: any): LogicalMin;
+export function logicalMinimum(left: string, right: any): LogicalMinimum;
 
 export { LogLevel }
 
@@ -1532,17 +1549,17 @@ export function mapGet(mapField: string, subField: string): MapGet;
 export function mapGet(mapExpr: Constant, subField: string): MapGet;
 
 // @beta (undocumented)
-export class Max extends FirestoreFunction implements Accumulator {
+export class Maximum extends FirestoreFunction implements Accumulator {
     constructor(value: Constant, distinct: boolean);
     // (undocumented)
     accumulator: true;
     }
 
 // @beta
-export function max(value: Constant): Max;
+export function maximum(value: Constant): Maximum;
 
 // @beta
-export function max(value: string): Max;
+export function maximum(value: string): Maximum;
 
 // @public
 export interface MemoryCacheSettings {
@@ -1582,17 +1599,17 @@ export function memoryLruGarbageCollector(settings?: {
 }): MemoryLruGarbageCollector;
 
 // @beta (undocumented)
-export class Min extends FirestoreFunction implements Accumulator {
+export class Minimum extends FirestoreFunction implements Accumulator {
     constructor(value: Constant, distinct: boolean);
     // (undocumented)
     accumulator: true;
     }
 
 // @beta
-export function min(value: Constant): Min;
+export function minimum(value: Constant): Minimum;
 
 // @beta
-export function min(value: string): Min;
+export function minimum(value: string): Minimum;
 
 // @beta (undocumented)
 export class Mod extends FirestoreFunction {
@@ -1665,17 +1682,24 @@ export class Not extends FirestoreFunction implements FilterCondition {
 // @beta
 export function not(filter: FilterExpr): Not;
 
-// @beta
-export function notInAny(element: Constant, others: Constant[]): Not;
+// @beta (undocumented)
+export class NotEqAny extends FirestoreFunction implements FilterCondition {
+    constructor(left: Constant, others: Constant[]);
+    // (undocumented)
+    filterable: true;
+    }
 
 // @beta
-export function notInAny(element: Constant, others: any[]): Not;
+export function notEqAny(element: Constant, others: Constant[]): NotEqAny;
 
 // @beta
-export function notInAny(element: string, others: Constant[]): Not;
+export function notEqAny(element: Constant, others: any[]): NotEqAny;
 
 // @beta
-export function notInAny(element: string, others: any[]): Not;
+export function notEqAny(element: string, others: Constant[]): NotEqAny;
+
+// @beta
+export function notEqAny(element: string, others: any[]): NotEqAny;
 
 // @beta (undocumented)
 export class Offset implements Stage {
@@ -1817,6 +1841,7 @@ export type PersistentTabManager = PersistentSingleTabManager | PersistentMultip
 // @public (undocumented)
 export class Pipeline<AppModelType = DocumentData> {
     /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: newPipeline */
     // Warning: (ae-incompatible-release-tags) The symbol "addFields" is marked as @public, but its signature references "Selectable" which is marked as @beta
     addFields(...fields: Selectable[]): Pipeline<AppModelType>;
     // Warning: (ae-incompatible-release-tags) The symbol "aggregate" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
@@ -1877,6 +1902,11 @@ export class PipelineResult<AppModelType = DocumentData> {
 
 // @beta
 export class PipelineSource {
+    /* Excluded from this release type: _db */
+    /* Excluded from this release type: _userDataReader */
+    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: _documentReferenceFactory */
+    /* Excluded from this release type: __constructor */
     // (undocumented)
     collection(collectionPath: string): Pipeline;
     // (undocumented)
@@ -1885,7 +1915,7 @@ export class PipelineSource {
     database(): Pipeline;
     // (undocumented)
     documents(docs: DocumentReference[]): Pipeline;
-    }
+}
 
 // @public
 export type Primitive = string | number | boolean | undefined | null;
@@ -2411,8 +2441,8 @@ export function updateDoc<AppModelType, DbModelType extends DocumentData>(refere
 // @public
 export function updateDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
 
-// @public
-export function useFirestorePipelines(): void;
+// @public (undocumented)
+export function useFluentPipelines(): void;
 
 // @public
 export function vector(values?: number[]): VectorValue;
@@ -2482,8 +2512,8 @@ export function xor(left: FilterExpr, ...right: FilterExpr[]): Xor;
 
 // Warnings were encountered during analysis:
 //
-// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/index.d.ts:10102:26 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
-// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/index.d.ts:10102:61 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/index.d.ts:10129:21 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/index.d.ts:10177:26 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/index.d.ts:10177:61 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/index.d.ts:10204:21 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
 
 ```

@@ -21,9 +21,7 @@ export { PipelineResult } from './lite-api/pipeline-result';
 
 export { Pipeline } from './api/pipeline';
 
-export { useFirestorePipelines, pipeline } from './api/pipeline_impl';
-
-export { execute } from './lite-api/pipeline_impl';
+export { useFluentPipelines, pipeline, execute } from './api/pipeline_impl';
 
 export {
   Stage,

@@ -17,8 +17,9 @@
 
 import { Pipeline } from '../api/pipeline';
 import { PipelineSource } from '../api/pipeline-source';
-import { PipelineResult } from '../api_pipelines';
 import { firestoreClientExecutePipeline } from '../core/firestore_client';
+import { Pipeline as LitePipeline } from '../lite-api/pipeline';
+import { PipelineResult } from '../lite-api/pipeline-result';
 import { newUserDataReader } from '../lite-api/user_data_reader';
 import { DocumentKey } from '../model/document_key';
 import { cast } from '../util/input_validation';
@@ -68,7 +69,7 @@ export function pipeline(
     return result;
   }
 }
-export function useFirestorePipelines(): void {
+export function useFluentPipelines(): void {
   Firestore.prototype.pipeline = function (): PipelineSource {
     return pipeline(this);
   };
@@ -83,7 +84,7 @@ export function useFirestorePipelines(): void {
 }
 
 export function execute<AppModelType>(
-  pipeline: Pipeline
+  pipeline: LitePipeline
 ): Promise<Array<PipelineResult<AppModelType>>> {
   const firestore = cast(pipeline._db, Firestore);
   const client = ensureFirestoreConfigured(firestore);

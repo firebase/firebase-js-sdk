@@ -42,7 +42,7 @@ import { logWarn } from '../util/log';
 
 import { FirestoreService, removeComponents } from './components';
 // `import type` to avoid bundling the source for
-// pipelines if `useFirestorePipelines()` is not called
+// pipelines if `useFluentPipelines()` is not called
 import type { PipelineSource } from './pipeline-source';
 import {
   DEFAULT_HOST,
@@ -182,7 +182,7 @@ export class Firestore implements FirestoreService {
    */
   pipeline(): PipelineSource {
     throw new Error(
-      'Pipelines not initialized. Your application must call `useFirestorePipelines()` before using Firestore Pipeline features.'
+      'Pipelines not initialized. Your application must call `useFluentPipelines()` before using Firestore Pipeline features.'
     );
   }
 }

@@ -37,54 +37,70 @@ export class PipelineSource {
   /**
    * @internal
    * @private
-   * @param db
-   * @param userDataReader
-   * @param userDataWriter
-   * @param documentReferenceFactory
+   * @param _db
+   * @param _userDataReader
+   * @param _userDataWriter
+   * @param _documentReferenceFactory
    */
   constructor(
-    protected db: Firestore,
-    protected userDataReader: UserDataReader,
-    protected userDataWriter: AbstractUserDataWriter,
-    protected documentReferenceFactory: (id: DocumentKey) => DocumentReference
+    /**
+     * @internal
+     * @private
+     */
+    public _db: Firestore,
+    /**
+     * @internal
+     * @private
+     */
+    public _userDataReader: UserDataReader,
+    /**
+     * @internal
+     * @private
+     */
+    public _userDataWriter: AbstractUserDataWriter,
+    /**
+     * @internal
+     * @private
+     */
+    public _documentReferenceFactory: (id: DocumentKey) => DocumentReference
   ) {}
 
   collection(collectionPath: string): Pipeline {
     return new Pipeline(
-      this.db,
-      this.userDataReader,
-      this.userDataWriter,
-      this.documentReferenceFactory,
+      this._db,
+      this._userDataReader,
+      this._userDataWriter,
+      this._documentReferenceFactory,
       [new CollectionSource(collectionPath)]
     );
   }
 
   collectionGroup(collectionId: string): Pipeline {
     return new Pipeline(
-      this.db,
-      this.userDataReader,
-      this.userDataWriter,
-      this.documentReferenceFactory,
+      this._db,
+      this._userDataReader,
+      this._userDataWriter,
+      this._documentReferenceFactory,
       [new CollectionGroupSource(collectionId)]
     );
   }
 
   database(): Pipeline {
     return new Pipeline(
-      this.db,
-      this.userDataReader,
-      this.userDataWriter,
-      this.documentReferenceFactory,
+      this._db,
+      this._userDataReader,
+      this._userDataWriter,
+      this._documentReferenceFactory,
       [new DatabaseSource()]
     );
   }
 
   documents(docs: DocumentReference[]): Pipeline {
     return new Pipeline(
-      this.db,
-      this.userDataReader,
-      this.userDataWriter,
-      this.documentReferenceFactory,
+      this._db,
+      this._userDataReader,
+      this._userDataWriter,
+      this._documentReferenceFactory,
       [DocumentsSource.of(docs)]
     );
   }
