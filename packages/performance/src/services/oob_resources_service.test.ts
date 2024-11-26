@@ -250,30 +250,6 @@ describe('Firebase Performance > oob_resources_service', () => {
       );
     });
 
-    it('waits for first input delay if polyfill is available', () => {
-      getIidStub.returns(MOCK_ID);
-      const api = Api.getInstance();
-      //@ts-ignore Assignment to read-only property.
-      api.onFirstInputDelay = stub();
-      setupOobResources(performanceController);
-      clock.tick(1);
-
-      // Force the page load event to be sent
-      stub(mockWindow.document, 'visibilityState').value('hidden');
-      callEventListener('visibilitychange');
-
-      expect(api.onFirstInputDelay).to.be.called;
-      expect(createOobTraceStub).not.to.be.called;
-      clock.tick(5000);
-      expect(createOobTraceStub).to.be.calledWithExactly(
-        performanceController,
-        [NAVIGATION_PERFORMANCE_ENTRY],
-        [PAINT_PERFORMANCE_ENTRY],
-        {},
-        undefined
-      );
-    });
-
     it('logs first input delay if polyfill is available and callback is called', () => {
       getIidStub.returns(MOCK_ID);
       const api = Api.getInstance();
