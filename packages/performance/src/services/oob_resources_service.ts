@@ -145,13 +145,18 @@ function sendOobTrace(performanceController: PerformanceController): void {
       'navigation'
     ) as PerformanceNavigationTiming[];
     const paintTimings = api.getEntriesByType('paint');
-    Trace.createOobTrace(
-      performanceController,
-      navigationTimings,
-      paintTimings,
-      webVitalMetrics,
-      firstInputDelay
-    );
+
+    // On page unload web vitals may be updated so queue the oob trace creation
+    // so that these updates have time to be included.
+    setTimeout(() => {
+      Trace.createOobTrace(
+        performanceController,
+        navigationTimings,
+        paintTimings,
+        webVitalMetrics,
+        firstInputDelay
+      );
+    }, 0);
   }
 }
 

@@ -220,6 +220,7 @@ describe('Firebase Performance > oob_resources_service', () => {
 
       stub(mockWindow.document, 'visibilityState').value('hidden');
       callEventListener('visibilitychange');
+      clock.tick(1);
 
       expect(getEntriesByTypeStub).to.be.calledWith('navigation');
       expect(getEntriesByTypeStub).to.be.calledWith('paint');
@@ -238,6 +239,7 @@ describe('Firebase Performance > oob_resources_service', () => {
       clock.tick(1);
 
       callEventListener('pagehide');
+      clock.tick(1);
 
       expect(getEntriesByTypeStub).to.be.calledWith('navigation');
       expect(getEntriesByTypeStub).to.be.calledWith('paint');
@@ -268,6 +270,7 @@ describe('Firebase Performance > oob_resources_service', () => {
       // Force the page load event to be sent
       stub(mockWindow.document, 'visibilityState').value('hidden');
       callEventListener('visibilitychange');
+      clock.tick(1);
 
       expect(createOobTraceStub).to.be.calledWithExactly(
         performanceController,
@@ -303,6 +306,7 @@ describe('Firebase Performance > oob_resources_service', () => {
       // Force the page load event to be sent
       stub(mockWindow.document, 'visibilityState').value('hidden');
       callEventListener('visibilitychange');
+      clock.tick(1);
 
       expect(createOobTraceStub).to.be.calledWithExactly(
         performanceController,
@@ -330,6 +334,7 @@ describe('Firebase Performance > oob_resources_service', () => {
       // Force the page load event to be sent
       stub(mockWindow.document, 'visibilityState').value('hidden');
       callEventListener('visibilitychange');
+      clock.tick(1);
 
       expect(createOobTraceStub).to.be.calledWithExactly(
         performanceController,
@@ -358,6 +363,7 @@ describe('Firebase Performance > oob_resources_service', () => {
       // Force the page load event to be sent
       stub(mockWindow.document, 'visibilityState').value('hidden');
       callEventListener('visibilitychange');
+      clock.tick(1);
 
       expect(createOobTraceStub).to.be.calledWithExactly(
         performanceController,
@@ -392,6 +398,7 @@ describe('Firebase Performance > oob_resources_service', () => {
       // Force the page load event to be sent
       stub(mockWindow.document, 'visibilityState').value('hidden');
       callEventListener('visibilitychange');
+      clock.tick(1);
 
       expect(createOobTraceStub).to.be.calledWithExactly(
         performanceController,
