@@ -45,6 +45,15 @@ import {
 import { BloomFilter, BloomFilterError } from './bloom_filter';
 import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
+import {
+  getPipelineDocuments,
+  getPipelineFlavor,
+  getPipelineSourceType,
+  isPipeline,
+  TargetOrPipeline
+} from '../core/pipeline-util';
+import { Pipeline } from '../lite-api/pipeline';
+import { ResourcePath } from '../model/path';
 
 /**
  * Internal representation of the watcher API protocol buffers.
@@ -405,6 +414,17 @@ export class WatchChangeAggregator {
     }
   }
 
+  isSingleDocumentTarget(target: TargetOrPipeline): boolean {
+    if (targetIsPipelineTarget(target)) {
+      return (
+        getPipelineSourceType(target) === 'documents' &&
+        getPipelineDocuments(target)?.length === 1
+      );
+    }
+
+    return targetIsDocumentTarget(target);
+  }
+
   /**
    * Handles existence filters and synthesizes deletes for filter mismatches.
    * Targets that are invalidated by filter mismatches are added to
@@ -417,29 +437,7 @@ export class WatchChangeAggregator {
     const targetData = this.targetDataForActiveTarget(targetId);
     if (targetData) {
       const target = targetData.target;
-      if (targetIsPipelineTarget(target)) {
-        //TODO(pipeline): handle existence filter correctly for pipelines
-      } else if (targetIsDocumentTarget(target)) {
-        if (expectedCount === 0) {
-          // The existence filter told us the document does not exist. We deduce
-          // that this document does not exist and apply a deleted document to
-          // our updates. Without applying this deleted document there might be
-          // another query that will raise this document as part of a snapshot
-          // until it is resolved, essentially exposing inconsistency between
-          // queries.
-          const key = new DocumentKey(target.path);
-          this.removeDocumentFromTarget(
-            targetId,
-            key,
-            MutableDocument.newNoDocument(key, SnapshotVersion.min())
-          );
-        } else {
-          hardAssert(
-            expectedCount === 1,
-            'Single document existence filter with count: ' + expectedCount
-          );
-        }
-      } else {
+      if (!this.isSingleDocumentTarget(target)) {
         const currentSize = this.getCurrentDocumentCountForTarget(targetId);
         // Existence filter mismatch. Mark the documents as being in limbo, and
         // raise a snapshot with `isFromCache:true`.
@@ -472,6 +470,30 @@ export class WatchChangeAggregator {
               bloomFilter,
               status
             )
+          );
+        }
+      } else {
+        if (expectedCount === 0) {
+          // The existence filter told us the document does not exist. We deduce
+          // that this document does not exist and apply a deleted document to
+          // our updates. Without applying this deleted document there might be
+          // another query that will raise this document as part of a snapshot
+          // until it is resolved, essentially exposing inconsistency between
+          // queries.
+          const key = new DocumentKey(
+            targetIsPipelineTarget(target)
+              ? ResourcePath.fromString(getPipelineDocuments(target)![0])
+              : target.path
+          );
+          this.removeDocumentFromTarget(
+            targetId,
+            key,
+            MutableDocument.newNoDocument(key, SnapshotVersion.min())
+          );
+        } else {
+          hardAssert(
+            expectedCount === 1,
+            'Single document existence filter with count: ' + expectedCount
           );
         }
       }
@@ -591,8 +613,7 @@ export class WatchChangeAggregator {
       if (targetData) {
         if (
           targetState.current &&
-          !targetIsPipelineTarget(targetData.target) &&
-          targetIsDocumentTarget(targetData.target)
+          this.isSingleDocumentTarget(targetData.target)
         ) {
           // Document queries for document that don't exist can produce an empty
           // result set. To update our local cache, we synthesize a document
@@ -603,7 +624,12 @@ export class WatchChangeAggregator {
           // TODO(dimond): Ideally we would have an explicit lookup target
           // instead resulting in an explicit delete message and we could
           // remove this special logic.
-          const key = new DocumentKey(targetData.target.path);
+          const path = targetIsPipelineTarget(targetData.target)
+            ? ResourcePath.fromString(
+                getPipelineDocuments(targetData.target)![0]
+              )
+            : targetData.target.path;
+          const key = new DocumentKey(path);
           if (
             this.pendingDocumentUpdates.get(key) === null &&
             !this.targetContainsDocument(targetId, key)
@@ -695,7 +721,12 @@ export class WatchChangeAggregator {
     targetState.addDocumentChange(document.key, changeType);
 
     if (
-      targetIsPipelineTarget(this.targetDataForActiveTarget(targetId)!.target)
+      targetIsPipelineTarget(
+        this.targetDataForActiveTarget(targetId)!.target
+      ) &&
+      getPipelineFlavor(
+        this.targetDataForActiveTarget(targetId)!.target as Pipeline
+      ) !== 'exact'
     ) {
       this.pendingAugmentedDocumentUpdates =
         this.pendingAugmentedDocumentUpdates.insert(document.key, document);
@@ -747,7 +778,12 @@ export class WatchChangeAggregator {
 
     if (updatedDocument) {
       if (
-        targetIsPipelineTarget(this.targetDataForActiveTarget(targetId)!.target)
+        targetIsPipelineTarget(
+          this.targetDataForActiveTarget(targetId)!.target
+        ) &&
+        getPipelineFlavor(
+          this.targetDataForActiveTarget(targetId)!.target as Pipeline
+        ) !== 'exact'
       ) {
         this.pendingAugmentedDocumentUpdates =
           this.pendingAugmentedDocumentUpdates.insert(key, updatedDocument);

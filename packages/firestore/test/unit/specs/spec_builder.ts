@@ -29,7 +29,12 @@ import {
   queryEquals,
   queryToTarget
 } from '../../../src/core/query';
-import { canonifyTarget, Target, targetEquals } from '../../../src/core/target';
+import {
+  canonifyTarget,
+  Target,
+  targetEquals,
+  targetIsPipelineTarget
+} from '../../../src/core/target';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
 import { TargetPurpose } from '../../../src/local/target_data';
@@ -50,7 +55,7 @@ import { Code } from '../../../src/util/error';
 import { forEach } from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { isNullOrUndefined } from '../../../src/util/types';
-import { firestore } from '../../util/api_helpers';
+import { firestore, newTestFirestore } from '../../util/api_helpers';
 import { TestSnapshotVersion } from '../../util/helpers';
 
 import { RpcError } from './spec_rpc_error';
@@ -68,6 +73,18 @@ import {
   SpecWriteAck,
   SpecWriteFailure
 } from './spec_test_runner';
+import {
+  canonifyPipeline,
+  canonifyTargetOrPipeline,
+  isPipeline,
+  pipelineEq,
+  QueryOrPipeline,
+  queryOrPipelineEqual,
+  TargetOrPipeline,
+  targetOrPipelineEqual,
+  toPipeline
+} from '../../../src/core/pipeline-util';
+import { Pipeline } from '../../../src';
 
 const userDataWriter = new ExpUserDataWriter(firestore());
 
@@ -78,7 +95,8 @@ export interface LimboMap {
 }
 
 export interface ActiveTargetSpec {
-  queries: SpecQuery[];
+  queries: Array<SpecQuery | Pipeline>;
+  pipelines: Array<Pipeline>;
   targetPurpose?: TargetPurpose;
   resumeToken?: string;
   readTime?: TestSnapshotVersion;
@@ -108,9 +126,9 @@ export interface ResumeSpec {
  */
 export class ClientMemoryState {
   activeTargets: ActiveTargetMap = {};
-  queryMapping = new ObjectMap<Target, TargetId>(
-    t => canonifyTarget(t),
-    targetEquals
+  queryMapping = new ObjectMap<TargetOrPipeline, TargetId>(
+    canonifyTargetOrPipeline,
+    targetOrPipelineEqual
   );
   limboMapping: LimboMap = {};
 
@@ -123,9 +141,9 @@ export class ClientMemoryState {
 
   /** Reset all internal memory state (as done during a client restart). */
   reset(): void {
-    this.queryMapping = new ObjectMap<Target, TargetId>(
-      t => canonifyTarget(t),
-      targetEquals
+    this.queryMapping = new ObjectMap<TargetOrPipeline, TargetId>(
+      canonifyTargetOrPipeline,
+      targetOrPipelineEqual
     );
     this.limboMapping = {};
     this.activeTargets = {};
@@ -146,9 +164,9 @@ export class ClientMemoryState {
  */
 class CachedTargetIdGenerator {
   // TODO(wuandy): rename this to targetMapping.
-  private queryMapping = new ObjectMap<Target, TargetId>(
-    t => canonifyTarget(t),
-    targetEquals
+  private queryMapping = new ObjectMap<TargetOrPipeline, TargetId>(
+    canonifyTargetOrPipeline,
+    targetOrPipelineEqual
   );
   private targetIdGenerator = TargetIdGenerator.forTargetCache();
 
@@ -156,7 +174,7 @@ class CachedTargetIdGenerator {
    * Returns a cached target ID for the provided Target, or a new ID if no
    * target ID has ever been assigned.
    */
-  next(target: Target): TargetId {
+  next(target: TargetOrPipeline): TargetId {
     if (this.queryMapping.has(target)) {
       return this.queryMapping.get(target)!;
     }
@@ -166,7 +184,7 @@ class CachedTargetIdGenerator {
   }
 
   /** Returns the target ID for a target that is known to exist. */
-  cachedId(target: Target): TargetId {
+  cachedId(target: TargetOrPipeline): TargetId {
     if (!this.queryMapping.has(target)) {
       throw new Error("Target ID doesn't exists for target: " + target);
     }
@@ -175,7 +193,7 @@ class CachedTargetIdGenerator {
   }
 
   /** Remove the cached target ID for the provided target. */
-  purge(target: Target): void {
+  purge(target: TargetOrPipeline): void {
     if (!this.queryMapping.has(target)) {
       throw new Error("Target ID doesn't exists for target: " + target);
     }
@@ -213,7 +231,7 @@ export class SpecBuilder {
     return this.clientState.limboIdGenerator;
   }
 
-  private get queryMapping(): ObjectMap<Target, TargetId> {
+  private get queryMapping(): ObjectMap<TargetOrPipeline, TargetId> {
     return this.clientState.queryMapping;
   }
 
@@ -248,9 +266,11 @@ export class SpecBuilder {
   runAsTest(
     name: string,
     tags: string[],
-    usePersistence: boolean
+    usePersistence: boolean,
+    convertToPipeline: boolean
   ): Promise<void> {
     this.nextStep();
+    this.config.convertToPipeline = convertToPipeline;
     return runSpec(name, tags, usePersistence, this.config, this.steps);
   }
 
@@ -271,19 +291,23 @@ export class SpecBuilder {
   }
 
   private addUserListenStep(
-    query: Query,
+    query: QueryOrPipeline,
     resume?: ResumeSpec,
     options?: ListenOptions
   ): void {
     this.nextStep();
 
-    const target = queryToTarget(query);
+    const target = isPipeline(query) ? query : queryToTarget(query);
     let targetId: TargetId = 0;
 
     if (this.injectFailures) {
       // Return a `userListens()` step but don't advance the target IDs.
       this.currentStep = {
-        userListen: { targetId, query: SpecBuilder.queryToSpec(query), options }
+        userListen: {
+          targetId,
+          query: isPipeline(query) ? query : SpecBuilder.queryToSpec(query),
+          options
+        }
       };
     } else {
       if (this.queryMapping.has(target)) {
@@ -302,7 +326,7 @@ export class SpecBuilder {
       this.currentStep = {
         userListen: {
           targetId,
-          query: SpecBuilder.queryToSpec(query),
+          query: isPipeline(query) ? query : SpecBuilder.queryToSpec(query),
           options
         },
         expectedState: { activeTargets: { ...this.activeTargets } }
@@ -310,12 +334,12 @@ export class SpecBuilder {
     }
   }
 
-  userListens(query: Query, resume?: ResumeSpec): this {
+  userListens(query: QueryOrPipeline, resume?: ResumeSpec): this {
     this.addUserListenStep(query, resume);
     return this;
   }
 
-  userListensToCache(query: Query, resume?: ResumeSpec): this {
+  userListensToCache(query: QueryOrPipeline, resume?: ResumeSpec): this {
     this.addUserListenStep(query, resume, { source: Source.Cache });
     return this;
   }
@@ -325,11 +349,13 @@ export class SpecBuilder {
    * stream disconnect.
    */
   restoreListen(
-    query: Query,
+    query: QueryOrPipeline,
     resumeToken: string,
     expectedCount?: number
   ): this {
-    const targetId = this.queryMapping.get(queryToTarget(query));
+    const targetId = this.queryMapping.get(
+      isPipeline(query) ? query : queryToTarget(query)
+    );
 
     if (isNullOrUndefined(targetId)) {
       throw new Error("Can't restore an unknown query: " + query);
@@ -346,9 +372,12 @@ export class SpecBuilder {
     return this;
   }
 
-  userUnlistens(query: Query, shouldRemoveWatchTarget: boolean = true): this {
+  userUnlistens(
+    query: QueryOrPipeline,
+    shouldRemoveWatchTarget: boolean = true
+  ): this {
     this.nextStep();
-    const target = queryToTarget(query);
+    const target = isPipeline(query) ? query : queryToTarget(query);
     if (!this.queryMapping.has(target)) {
       throw new Error('Unlistening to query not listened to: ' + query);
     }
@@ -363,13 +392,16 @@ export class SpecBuilder {
     }
 
     this.currentStep = {
-      userUnlisten: [targetId, SpecBuilder.queryToSpec(query)],
+      userUnlisten: [
+        targetId,
+        isPipeline(query) ? query : SpecBuilder.queryToSpec(query)
+      ],
       expectedState: { activeTargets: { ...this.activeTargets } }
     };
     return this;
   }
 
-  userUnlistensToCache(query: Query): this {
+  userUnlistensToCache(query: QueryOrPipeline): this {
     // Listener sourced from cache do not need to close watch stream.
     return this.userUnlistens(query, /** shouldRemoveWatchTarget= */ false);
   }
@@ -928,7 +960,7 @@ export class SpecBuilder {
   }
 
   expectEvents(
-    query: Query,
+    query: QueryOrPipeline,
     events: {
       fromCache?: boolean;
       hasPendingWrites?: boolean;
@@ -950,7 +982,10 @@ export class SpecBuilder {
       "Can't provide both error and events"
     );
     currentStep.expectedSnapshotEvents.push({
-      query: SpecBuilder.queryToSpec(query),
+      query: isPipeline(query) ? query : SpecBuilder.queryToSpec(query),
+      pipeline: isPipeline(query)
+        ? query
+        : toPipeline(query, newTestFirestore()),
       added: events.added && events.added.map(SpecBuilder.docToSpec),
       modified: events.modified && events.modified.map(SpecBuilder.docToSpec),
       removed: events.removed && events.removed.map(SpecBuilder.docToSpec),
@@ -1179,7 +1214,7 @@ export class SpecBuilder {
    */
   private addQueryToActiveTargets(
     targetId: number,
-    query: Query,
+    query: QueryOrPipeline,
     resume: ResumeSpec = {},
     targetPurpose?: TargetPurpose
   ): void {
@@ -1189,14 +1224,22 @@ export class SpecBuilder {
 
     if (this.activeTargets[targetId]) {
       const activeQueries = this.activeTargets[targetId].queries;
+      const activePipelines = this.activeTargets[targetId].pipelines;
       if (
         !activeQueries.some(specQuery =>
-          queryEquals(parseQuery(specQuery), query)
+          this.specQueryOrPipelineEq(specQuery, query)
         )
       ) {
         // `query` is not added yet.
         this.activeTargets[targetId] = {
-          queries: [SpecBuilder.queryToSpec(query), ...activeQueries],
+          queries: [
+            isPipeline(query) ? query : SpecBuilder.queryToSpec(query),
+            ...activeQueries
+          ],
+          pipelines: [
+            isPipeline(query) ? query : toPipeline(query, newTestFirestore()),
+            ...activePipelines
+          ],
           targetPurpose,
           resumeToken: resume.resumeToken || '',
           readTime: resume.readTime
@@ -1204,6 +1247,10 @@ export class SpecBuilder {
       } else {
         this.activeTargets[targetId] = {
           queries: activeQueries,
+          pipelines: [
+            isPipeline(query) ? query : toPipeline(query, newTestFirestore()),
+            ...activePipelines
+          ],
           targetPurpose,
           resumeToken: resume.resumeToken || '',
           readTime: resume.readTime
@@ -1211,7 +1258,10 @@ export class SpecBuilder {
       }
     } else {
       this.activeTargets[targetId] = {
-        queries: [SpecBuilder.queryToSpec(query)],
+        queries: [isPipeline(query) ? query : SpecBuilder.queryToSpec(query)],
+        pipelines: [
+          isPipeline(query) ? query : toPipeline(query, newTestFirestore())
+        ],
         targetPurpose,
         resumeToken: resume.resumeToken || '',
         readTime: resume.readTime
@@ -1219,13 +1269,36 @@ export class SpecBuilder {
     }
   }
 
-  private removeQueryFromActiveTargets(query: Query, targetId: number): void {
+  private specQueryOrPipelineEq(
+    spec: SpecQuery | Pipeline,
+    query: QueryOrPipeline
+  ): boolean {
+    if (isPipeline(query) && spec instanceof Pipeline) {
+      return pipelineEq(spec as Pipeline, query);
+    } else if (!isPipeline(query) && spec instanceof Pipeline) {
+      return pipelineEq(
+        spec as Pipeline,
+        toPipeline(query as Query, newTestFirestore())
+      );
+    } else {
+      return queryEquals(parseQuery(spec as SpecQuery), query as Query);
+    }
+  }
+
+  private removeQueryFromActiveTargets(
+    query: QueryOrPipeline,
+    targetId: number
+  ): void {
     const queriesAfterRemoval = this.activeTargets[targetId].queries.filter(
-      specQuery => !queryEquals(parseQuery(specQuery), query)
+      specQuery => !this.specQueryOrPipelineEq(specQuery, query)
+    );
+    const pipelinesAfterRemoval = this.activeTargets[targetId].pipelines.filter(
+      pipeline => !this.specQueryOrPipelineEq(pipeline, query)
     );
     if (queriesAfterRemoval.length > 0) {
       this.activeTargets[targetId] = {
         queries: queriesAfterRemoval,
+        pipelines: pipelinesAfterRemoval,
         resumeToken: this.activeTargets[targetId].resumeToken,
         expectedCount: this.activeTargets[targetId].expectedCount,
         targetPurpose: this.activeTargets[targetId].targetPurpose

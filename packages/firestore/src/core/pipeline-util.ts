@@ -349,7 +349,8 @@ function canonifyExpr(expr: Expr): string {
     return `fld(${expr.fieldName()})`;
   }
   if (expr instanceof Constant) {
-    return `cst(${expr.value})`;
+    // TODO(pipeline): use better alternatives than JSON.stringify
+    return `cst(${JSON.stringify(expr.value)})`;
   }
   if (expr instanceof FirestoreFunction) {
     return `fn(${expr.name},[${expr.params.map(canonifyExpr).join(',')}])`;

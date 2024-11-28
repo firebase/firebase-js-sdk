@@ -67,6 +67,7 @@ import { WindowLike } from '../../../src/util/types';
 import { FakeDocument } from '../../util/test_platform';
 
 import { PersistenceAction } from './spec_test_runner';
+import { QueryOrPipeline } from '../../../src/core/pipeline-util';
 
 /**
  * A test-only MemoryPersistence implementation that is able to inject
@@ -442,14 +443,13 @@ export class MockConnection implements Connection {
  */
 export class EventAggregator implements Observer<ViewSnapshot> {
   constructor(
-    private query: Query,
+    private query: QueryOrPipeline,
     private pushEvent: (e: QueryEvent) => void
   ) {}
 
   next(view: ViewSnapshot): void {
     this.pushEvent({
-      // TODO(pipeline): support pipelines in spec tests.
-      query: view.query as Query,
+      query: view.query,
       view
     });
   }
@@ -489,7 +489,7 @@ export class SharedWriteTracker {
  * or an error for the given query.
  */
 export interface QueryEvent {
-  query: Query;
+  query: QueryOrPipeline;
   view?: ViewSnapshot;
   error?: FirestoreError;
 }

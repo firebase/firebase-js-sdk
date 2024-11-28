@@ -596,7 +596,7 @@ function compareDocsWithCreateTime(
   );
 }
 
-describe.only('LocalStore w/ Memory Persistence', () => {
+describe('LocalStore w/ Memory Persistence', () => {
   async function initialize(): Promise<LocalStoreComponents> {
     const queryEngine = new CountingQueryEngine();
     const persistence = await persistenceHelpers.testMemoryEagerPersistence();
@@ -616,7 +616,7 @@ describe.only('LocalStore w/ Memory Persistence', () => {
   });
 });
 
-describe.only('LocalStore w/ Memory Persistence and Pipelines', () => {
+describe('LocalStore w/ Memory Persistence and Pipelines', () => {
   async function initialize(): Promise<LocalStoreComponents> {
     const queryEngine = new CountingQueryEngine();
     const persistence = await persistenceHelpers.testMemoryEagerPersistence();
@@ -663,7 +663,7 @@ describe('LocalStore w/ IndexedDB Persistence', () => {
   });
 });
 
-describe.only('LocalStore w/ IndexedDB Persistence and Pipeline', () => {
+describe('LocalStore w/ IndexedDB Persistence and Pipeline', () => {
   if (!IndexedDbPersistence.isAvailable()) {
     console.warn(
       'No IndexedDB. Skipping LocalStore w/ IndexedDB persistence tests.'
@@ -2507,7 +2507,7 @@ function genericLocalStoreTests(
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (options.gcIsEager ? it.skip : it.only)(
+  (options.gcIsEager ? it.skip : it)(
     'ignores target mapping after existence filter mismatch',
     async () => {
       const query1 = query('foo', filter('matches', '==', true));

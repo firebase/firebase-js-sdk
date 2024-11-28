@@ -199,7 +199,7 @@ describe('pipelineEq', () => {
   });
 });
 
-describe.only('runPipeline()', () => {
+describe('runPipeline()', () => {
   it('works with collection stage', () => {
     const p = db.pipeline().collection('test');
 

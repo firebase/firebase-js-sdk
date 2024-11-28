@@ -123,7 +123,7 @@ class TestLocalDocumentsView extends LocalDocumentsView {
   }
 }
 
-describe.only('QueryEngine', async () => {
+describe('QueryEngine', async () => {
   describe('MemoryEagerPersistence usePipeline=false', async () => {
     /* not durable and without client side indexing */
     genericQueryEngineTest(persistenceHelpers.testMemoryEagerPersistence, {
