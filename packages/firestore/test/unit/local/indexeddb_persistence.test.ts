@@ -910,7 +910,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         txn => {
           const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTargetStore);
           return targetsStore.iterate((key, value) => {
-            const targetData = fromDbTarget(value).target;
+            const targetData = fromDbTarget(TEST_SERIALIZER, value).target;
             // TODO(pipeline): This needs to handle pipeline properly.
             const expectedCanonicalId = canonifyTarget(targetData as Target);
 

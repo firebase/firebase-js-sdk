@@ -74,7 +74,7 @@ import {
 } from '../core/pipeline-util';
 import { Pipeline } from '../lite-api/pipeline';
 import { FirestoreError } from '../util/error';
-import { pipelineMatches } from '../core/pipeline_run';
+import { CorePipeline, pipelineMatches } from '../core/pipeline_run';
 import { SortedSet } from '../util/sorted_set';
 
 /**
@@ -563,7 +563,7 @@ export class LocalDocumentsView {
 
   private getDocumentsMatchingPipeline(
     txn: PersistenceTransaction,
-    pipeline: Pipeline,
+    pipeline: CorePipeline,
     offset: IndexOffset,
     context?: QueryContext
   ): PersistencePromise<DocumentMap> {
@@ -675,7 +675,7 @@ export class LocalDocumentsView {
 
   private getOverlaysForPipeline(
     txn: PersistenceTransaction,
-    pipeline: Pipeline,
+    pipeline: CorePipeline,
     largestBatchId: number
   ): PersistencePromise<OverlayMap> {
     switch (getPipelineSourceType(pipeline)) {

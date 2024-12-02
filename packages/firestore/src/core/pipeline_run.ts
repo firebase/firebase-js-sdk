@@ -18,12 +18,10 @@ import {
   DatabaseSource,
   DocumentsSource,
   Exists,
-  exists,
   Field,
   Limit,
   Offset,
   Ordering,
-  Pipeline,
   Sort,
   Stage,
   Where
@@ -40,31 +38,35 @@ import { UserDataReader } from '../lite-api/user_data_reader';
 import { Query, queryMatches, queryMatchesAllDocuments } from './query';
 import { isPipeline, QueryOrPipeline } from './pipeline-util';
 import { DOCUMENT_KEY_NAME } from '../model/path';
+import { JsonProtoSerializer } from '../remote/serializer';
+
+export class CorePipeline {
+  constructor(
+    readonly serializer: JsonProtoSerializer,
+    readonly stages: Stage[]
+  ) {}
+}
 
 export type PipelineInputOutput = MutableDocument;
 
 export interface EvaluationContext {
-  userDataReader: UserDataReader;
+  serializer: JsonProtoSerializer;
 }
 
 export function runPipeline(
-  pipeline: Pipeline,
+  pipeline: CorePipeline,
   input: Array<PipelineInputOutput>
 ): Array<PipelineInputOutput> {
   let current = input;
   for (const stage of pipeline.stages) {
-    current = evaluate(
-      { userDataReader: pipeline.userDataReader },
-      stage,
-      current
-    );
+    current = evaluate({ serializer: pipeline.serializer }, stage, current);
   }
 
   return current;
 }
 
 export function pipelineMatches(
-  pipeline: Pipeline,
+  pipeline: CorePipeline,
   data: PipelineInputOutput
 ): boolean {
   // TODO(pipeline): this is not true for aggregations, and we need to examine if there are other
@@ -81,7 +83,7 @@ export function queryOrPipelineMatches(
     : queryMatches(query, data);
 }
 
-export function pipelineMatchesAllDocuments(pipeline: Pipeline): boolean {
+export function pipelineMatchesAllDocuments(pipeline: CorePipeline): boolean {
   for (const stage of pipeline.stages) {
     if (stage instanceof Limit || stage instanceof Offset) {
       return false;
@@ -240,17 +242,17 @@ function evaluateDocuments(
 }
 
 export function newPipelineComparator(
-  pipeline: Pipeline
+  pipeline: CorePipeline
 ): (d1: Document, d2: Document) => number {
   const orderings = lastEffectiveSort(pipeline);
   return (d1: Document, d2: Document): number => {
     for (const ordering of orderings) {
       const leftValue = toEvaluable(ordering.expr).evaluate(
-        { userDataReader: pipeline.userDataReader },
+        { serializer: pipeline.serializer },
         d1 as MutableDocument
       );
       const rightValue = toEvaluable(ordering.expr).evaluate(
-        { userDataReader: pipeline.userDataReader },
+        { serializer: pipeline.serializer },
         d2 as MutableDocument
       );
       const comparison = valueCompare(
@@ -265,7 +267,7 @@ export function newPipelineComparator(
   };
 }
 
-function lastEffectiveSort(pipeline: Pipeline): Ordering[] {
+function lastEffectiveSort(pipeline: CorePipeline): Ordering[] {
   // return the last sort stage, throws exception if it doesn't exist
   // TODO(pipeline): this implementation is wrong, there are stages that can invalidate
   // the orderings later. The proper way to manipulate the pipeline so that last Sort
@@ -279,7 +281,9 @@ function lastEffectiveSort(pipeline: Pipeline): Ordering[] {
   throw new Error('Pipeline must contain at least one Sort stage');
 }
 
-export function getLastEffectiveLimit(pipeline: Pipeline): number | undefined {
+export function getLastEffectiveLimit(
+  pipeline: CorePipeline
+): number | undefined {
   // return the last sort stage, throws exception if it doesn't exist
   // TODO(pipeline): this implementation is wrong, there are stages that can invalidate
   // the orderings later. The proper way to manipulate the pipeline so that last Sort

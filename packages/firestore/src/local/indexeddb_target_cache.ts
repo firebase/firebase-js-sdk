@@ -170,7 +170,7 @@ export class IndexedDbTargetCache implements TargetCache {
     const promises: Array<PersistencePromise<void>> = [];
     return targetsStore(txn)
       .iterate((key, value) => {
-        const targetData = fromDbTarget(value);
+        const targetData = fromDbTarget(this.serializer, value);
         if (
           targetData.sequenceNumber <= upperBound &&
           activeTargetIds.get(targetData.targetId) === null
@@ -191,7 +191,7 @@ export class IndexedDbTargetCache implements TargetCache {
     f: (q: TargetData) => void
   ): PersistencePromise<void> {
     return targetsStore(txn).iterate((key, value) => {
-      const targetData = fromDbTarget(value);
+      const targetData = fromDbTarget(this.serializer, value);
       f(targetData);
     });
   }
@@ -270,7 +270,7 @@ export class IndexedDbTargetCache implements TargetCache {
       .iterate(
         { range, index: DbTargetQueryTargetsIndexName },
         (key, value, control) => {
-          const found = fromDbTarget(value);
+          const found = fromDbTarget(this.serializer, value);
           // After finding a potential match, check that the target is
           // actually equal to the requested target.
           // TODO(pipeline): This needs to handle pipeline properly.
@@ -401,7 +401,7 @@ export class IndexedDbTargetCache implements TargetCache {
       .get(targetId)
       .next(found => {
         if (found) {
-          return fromDbTarget(found);
+          return fromDbTarget(this.serializer, found);
         } else {
           return null;
         }

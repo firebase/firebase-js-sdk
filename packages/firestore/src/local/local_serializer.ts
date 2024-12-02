@@ -82,6 +82,10 @@ import {
 import { DbDocumentOverlayKey, DbTimestampKey } from './indexeddb_sentinels';
 import { TargetData, TargetPurpose } from './target_data';
 import { Pipeline } from '../lite-api/pipeline';
+import {
+  canonifyTargetOrPipeline,
+  TargetOrPipeline
+} from '../core/pipeline-util';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -245,16 +249,19 @@ export function fromDbMutationBatch(
 }
 
 /** Decodes a DbTarget into TargetData */
-export function fromDbTarget(dbTarget: DbTarget): TargetData {
+export function fromDbTarget(
+  serializer: LocalSerializer,
+  dbTarget: DbTarget
+): TargetData {
   const version = fromDbTimestamp(dbTarget.readTime);
   const lastLimboFreeSnapshotVersion =
     dbTarget.lastLimboFreeSnapshotVersion !== undefined
       ? fromDbTimestamp(dbTarget.lastLimboFreeSnapshotVersion)
       : SnapshotVersion.min();
 
-  let target: Target | Pipeline;
+  let target: TargetOrPipeline;
   if (isPipelineQueryTarget(dbTarget.query)) {
-    target = fromPipelineTarget(dbTarget.query);
+    target = fromPipelineTarget(dbTarget.query, serializer.remoteSerializer);
   } else if (isDocumentQuery(dbTarget.query)) {
     target = fromDocumentsTarget(dbTarget.query);
   } else {
@@ -293,15 +300,6 @@ export function toDbTarget(
       localSerializer.remoteSerializer,
       targetData.target
     );
-    return {
-      targetId: targetData.targetId,
-      canonicalId: '',
-      readTime: dbTimestamp,
-      resumeToken: '',
-      lastListenSequenceNumber: targetData.sequenceNumber,
-      lastLimboFreeSnapshotVersion: dbLastLimboFreeTimestamp,
-      query: queryProto
-    };
   } else if (targetIsDocumentTarget(targetData.target)) {
     queryProto = toDocumentsTarget(
       localSerializer.remoteSerializer,
@@ -321,7 +319,7 @@ export function toDbTarget(
   // lastListenSequenceNumber is always 0 until we do real GC.
   return {
     targetId: targetData.targetId,
-    canonicalId: canonifyTarget(targetData.target),
+    canonicalId: canonifyTargetOrPipeline(targetData.target),
     readTime: dbTimestamp,
     resumeToken,
     lastListenSequenceNumber: targetData.sequenceNumber,

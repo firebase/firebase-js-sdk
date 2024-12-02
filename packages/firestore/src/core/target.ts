@@ -54,6 +54,7 @@ import {
 } from './order_by';
 import { Pipeline } from '../lite-api/pipeline';
 import { TargetOrPipeline } from './pipeline-util';
+import { CorePipeline } from './pipeline_run';
 
 /**
  * A Target represents the WatchTarget representation of a Query, which is used
@@ -219,8 +220,8 @@ export function targetEquals(left: Target, right: Target): boolean {
 
 export function targetIsPipelineTarget(
   target: TargetOrPipeline
-): target is Pipeline {
-  return target instanceof Pipeline;
+): target is CorePipeline {
+  return target instanceof CorePipeline;
 }
 
 export function targetIsDocumentTarget(target: Target): boolean {

@@ -16,29 +16,25 @@
  */
 
 import { expect } from 'chai';
-
-import { Firestore } from '../../../src/api/database';
-import { CredentialsProvider } from '../../../src/api/credentials';
-import { User } from '../../../src/auth/user';
-import { DatabaseId } from '../../../src/core/database_info';
 import {
-  Field,
-  eq,
   Constant,
   doc as docRef,
+  eq,
+  Field,
+  gte,
   lt,
   lte,
-  add,
-  multiply,
-  gt,
-  gte
+  multiply
 } from '../../../src';
-import { canonifyPipeline, pipelineEq } from '../../../src/core/pipeline-util';
-import { runPipeline } from '../../../src/core/pipeline_run';
 
 import { doc } from '../../util/helpers';
 import { and, or } from '../../../src/lite-api/expressions';
 import { newTestFirestore } from '../../util/api_helpers';
+import {
+  canonifyPipeline,
+  pipelineEq,
+  runPipeline
+} from '../../util/pipelines';
 
 const db = newTestFirestore();
 

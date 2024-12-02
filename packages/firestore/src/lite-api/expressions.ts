@@ -1875,7 +1875,11 @@ export class Field extends Expr implements Selectable {
   exprType: ExprType = 'Field';
   selectable = true as const;
 
-  private constructor(
+  /**
+   * @internal
+   * @private
+   */
+  constructor(
     private fieldPath: InternalFieldPath,
     private pipeline: Pipeline | null = null
   ) {

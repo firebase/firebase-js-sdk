@@ -99,7 +99,7 @@ import {
 } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { SyncEngine } from './sync_engine';
-import { Target } from './target';
+import { Target, targetIsPipelineTarget } from './target';
 import { TargetIdGenerator } from './target_id_generator';
 import {
   BatchId,
@@ -118,10 +118,13 @@ import {
 import { ViewSnapshot } from './view_snapshot';
 import {
   canonifyQueryOrPipeline,
+  getPipelineCollection,
+  getPipelineCollectionId,
   isPipeline,
   QueryOrPipeline,
   queryOrPipelineEqual,
-  stringifyQueryOrPipeline
+  stringifyQueryOrPipeline,
+  TargetOrPipeline
 } from './pipeline-util';
 
 const LOG_TAG = 'SyncEngine';
@@ -1500,17 +1503,19 @@ async function synchronizeQueryViewsAndRaiseSnapshots(
  * difference will not cause issues.
  */
 // PORTING NOTE: Multi-Tab only.
-function synthesizeTargetToQuery(target: Target): Query {
-  return newQuery(
-    target.path,
-    target.collectionGroup,
-    target.orderBy,
-    target.filters,
-    target.limit,
-    LimitType.First,
-    target.startAt,
-    target.endAt
-  );
+function synthesizeTargetToQuery(target: TargetOrPipeline): QueryOrPipeline {
+  return targetIsPipelineTarget(target)
+    ? target
+    : newQuery(
+        target.path,
+        target.collectionGroup,
+        target.orderBy,
+        target.filters,
+        target.limit,
+        LimitType.First,
+        target.startAt,
+        target.endAt
+      );
 }
 
 /** Returns the IDs of the clients that are currently active. */
@@ -1545,8 +1550,10 @@ export async function syncEngineApplyTargetState(
       case 'not-current': {
         const changes = await localStoreGetNewDocumentChanges(
           syncEngineImpl.localStore,
-          // TODO(pipeline): handle pipeline properly
-          queryCollectionGroup(query[0] as Query)
+          // TODO(pipeline): handle database/documents pipeline
+          isPipeline(query[0])
+            ? getPipelineCollectionId(query[0])!
+            : queryCollectionGroup(query[0])
         );
         const synthesizedRemoteEvent =
           RemoteEvent.createSynthesizedRemoteEventForCurrentChange(

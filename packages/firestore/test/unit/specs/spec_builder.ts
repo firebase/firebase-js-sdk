@@ -84,7 +84,8 @@ import {
   targetOrPipelineEqual,
   toPipeline
 } from '../../../src/core/pipeline-util';
-import { Pipeline } from '../../../src';
+import { CorePipeline } from '../../../src/core/pipeline_run';
+import { toCorePipeline } from '../../util/pipelines';
 
 const userDataWriter = new ExpUserDataWriter(firestore());
 
@@ -95,8 +96,8 @@ export interface LimboMap {
 }
 
 export interface ActiveTargetSpec {
-  queries: Array<SpecQuery | Pipeline>;
-  pipelines: Array<Pipeline>;
+  queries: Array<SpecQuery | CorePipeline>;
+  pipelines: Array<CorePipeline>;
   targetPurpose?: TargetPurpose;
   resumeToken?: string;
   readTime?: TestSnapshotVersion;
@@ -985,7 +986,7 @@ export class SpecBuilder {
       query: isPipeline(query) ? query : SpecBuilder.queryToSpec(query),
       pipeline: isPipeline(query)
         ? query
-        : toPipeline(query, newTestFirestore()),
+        : toCorePipeline(toPipeline(query, newTestFirestore())),
       added: events.added && events.added.map(SpecBuilder.docToSpec),
       modified: events.modified && events.modified.map(SpecBuilder.docToSpec),
       removed: events.removed && events.removed.map(SpecBuilder.docToSpec),
@@ -1237,7 +1238,9 @@ export class SpecBuilder {
             ...activeQueries
           ],
           pipelines: [
-            isPipeline(query) ? query : toPipeline(query, newTestFirestore()),
+            isPipeline(query)
+              ? query
+              : toCorePipeline(toPipeline(query, newTestFirestore())),
             ...activePipelines
           ],
           targetPurpose,
@@ -1248,7 +1251,9 @@ export class SpecBuilder {
         this.activeTargets[targetId] = {
           queries: activeQueries,
           pipelines: [
-            isPipeline(query) ? query : toPipeline(query, newTestFirestore()),
+            isPipeline(query)
+              ? query
+              : toCorePipeline(toPipeline(query, newTestFirestore())),
             ...activePipelines
           ],
           targetPurpose,
@@ -1260,7 +1265,9 @@ export class SpecBuilder {
       this.activeTargets[targetId] = {
         queries: [isPipeline(query) ? query : SpecBuilder.queryToSpec(query)],
         pipelines: [
-          isPipeline(query) ? query : toPipeline(query, newTestFirestore())
+          isPipeline(query)
+            ? query
+            : toCorePipeline(toPipeline(query, newTestFirestore()))
         ],
         targetPurpose,
         resumeToken: resume.resumeToken || '',
@@ -1270,15 +1277,15 @@ export class SpecBuilder {
   }
 
   private specQueryOrPipelineEq(
-    spec: SpecQuery | Pipeline,
+    spec: SpecQuery | CorePipeline,
     query: QueryOrPipeline
   ): boolean {
-    if (isPipeline(query) && spec instanceof Pipeline) {
-      return pipelineEq(spec as Pipeline, query);
-    } else if (!isPipeline(query) && spec instanceof Pipeline) {
+    if (isPipeline(query) && spec instanceof CorePipeline) {
+      return pipelineEq(spec as CorePipeline, query);
+    } else if (!isPipeline(query) && spec instanceof CorePipeline) {
       return pipelineEq(
-        spec as Pipeline,
-        toPipeline(query as Query, newTestFirestore())
+        spec as CorePipeline,
+        toCorePipeline(toPipeline(query as Query, newTestFirestore()))
       );
     } else {
       return queryEquals(parseQuery(spec as SpecQuery), query as Query);

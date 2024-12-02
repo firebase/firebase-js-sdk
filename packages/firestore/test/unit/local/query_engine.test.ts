@@ -85,6 +85,8 @@ import {
 } from '../../../src/core/pipeline-util';
 import { newTestFirestore } from '../../util/api_helpers';
 import { Pipeline } from '../../../src/lite-api/pipeline';
+import { toCorePipeline } from '../../util/pipelines';
+import { CorePipeline } from '../../../src/core/pipeline_run';
 
 const TEST_TARGET_ID = 1;
 
@@ -267,7 +269,7 @@ function genericQueryEngineTest(
 
     let query = queryOrPipeline;
     if (options.convertToPipeline && !isPipeline(queryOrPipeline)) {
-      query = toPipeline(queryOrPipeline, db);
+      query = toCorePipeline(toPipeline(queryOrPipeline, db));
     }
 
     // NOTE: Use a `readwrite` transaction (instead of `readonly`) so that
@@ -807,7 +809,7 @@ function genericQueryEngineTest(
         .database()
         .sort(ascending(Field.of('__name__')));
       const result1 = await expectFullCollectionQuery(() =>
-        runQuery(query1 as Pipeline, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+        runQuery(toCorePipeline(query1), MISSING_LAST_LIMBO_FREE_SNAPSHOT)
       );
       verifyResult(result1, [doc1, doc2, doc3, doc4, doc5, doc6]);
 
@@ -815,7 +817,7 @@ function genericQueryEngineTest(
         .where(Field.of('a').gte(2))
         .sort(Field.of('__name__').descending());
       const result2 = await expectFullCollectionQuery(() =>
-        runQuery(query2 as Pipeline, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+        runQuery(toCorePipeline(query2), MISSING_LAST_LIMBO_FREE_SNAPSHOT)
       );
       verifyResult(result2, [doc6, doc3]);
 
@@ -823,7 +825,7 @@ function genericQueryEngineTest(
         .where(Field.of('b').lte(2))
         .sort(Field.of('a').descending());
       const result3 = await expectFullCollectionQuery(() =>
-        runQuery(query3 as Pipeline, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+        runQuery(toCorePipeline(query3), MISSING_LAST_LIMBO_FREE_SNAPSHOT)
       );
       verifyResult(result3, [doc3, doc1, doc2]);
     });
@@ -842,7 +844,7 @@ function genericQueryEngineTest(
         .collection('coll')
         .sort(ascending(Field.of('__name__')));
       const result1 = await expectFullCollectionQuery(() =>
-        runQuery(query1 as Pipeline, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+        runQuery(toCorePipeline(query1), MISSING_LAST_LIMBO_FREE_SNAPSHOT)
       );
       verifyResult(result1, [doc1, doc2, doc3, doc4, doc5, doc6]);
 
@@ -850,7 +852,7 @@ function genericQueryEngineTest(
         .where(Field.of('a').gte(2))
         .sort(Field.of('__name__').descending());
       const result2 = await expectFullCollectionQuery(() =>
-        runQuery(query2 as Pipeline, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+        runQuery(toCorePipeline(query2), MISSING_LAST_LIMBO_FREE_SNAPSHOT)
       );
       verifyResult(result2, [doc6, doc3]);
 
@@ -858,7 +860,7 @@ function genericQueryEngineTest(
         .where(Field.of('b').lte(2))
         .sort(Field.of('a').descending());
       const result3 = await expectFullCollectionQuery(() =>
-        runQuery(query3 as Pipeline, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+        runQuery(toCorePipeline(query3), MISSING_LAST_LIMBO_FREE_SNAPSHOT)
       );
       verifyResult(result3, [doc3, doc1, doc2]);
     });
@@ -877,7 +879,7 @@ function genericQueryEngineTest(
         .collectionGroup('group')
         .sort(ascending(Field.of('__name__')));
       const result1 = await expectFullCollectionQuery(() =>
-        runQuery(query1 as Pipeline, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+        runQuery(toCorePipeline(query1), MISSING_LAST_LIMBO_FREE_SNAPSHOT)
       );
       verifyResult(result1, [doc1, doc2, doc4, doc5, doc6]);
 
@@ -885,7 +887,7 @@ function genericQueryEngineTest(
         .where(Field.of('a').gte(2))
         .sort(Field.of('__name__').descending());
       const result2 = await expectFullCollectionQuery(() =>
-        runQuery(query2 as Pipeline, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+        runQuery(toCorePipeline(query2), MISSING_LAST_LIMBO_FREE_SNAPSHOT)
       );
       verifyResult(result2, [doc6]);
 
@@ -893,7 +895,7 @@ function genericQueryEngineTest(
         .where(Field.of('b').lte(2))
         .sort(Field.of('a').descending());
       const result3 = await expectFullCollectionQuery(() =>
-        runQuery(query3 as Pipeline, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+        runQuery(toCorePipeline(query3), MISSING_LAST_LIMBO_FREE_SNAPSHOT)
       );
       verifyResult(result3, [doc1, doc2]);
     });

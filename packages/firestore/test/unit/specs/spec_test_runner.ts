@@ -181,7 +181,6 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
-import { Pipeline } from '../../../src';
 import {
   canonifyPipeline,
   canonifyQueryOrPipeline,
@@ -192,6 +191,8 @@ import {
 } from '../../../src/core/pipeline-util';
 import { newTestFirestore } from '../../util/api_helpers';
 import { targetIsPipelineTarget } from '../../../src/core/target';
+import { CorePipeline } from '../../../src/core/pipeline_run';
+import { toCorePipeline } from '../../util/pipelines';
 
 use(chaiExclude);
 
@@ -499,10 +500,10 @@ abstract class TestRunner {
 
     const querySpec = listenSpec.query;
     const query =
-      querySpec instanceof Pipeline
+      querySpec instanceof CorePipeline
         ? querySpec
         : this.convertToPipeline
-        ? toPipeline(parseQuery(querySpec), newTestFirestore())
+        ? toCorePipeline(toPipeline(parseQuery(querySpec), newTestFirestore()))
         : parseQuery(querySpec);
 
     const aggregator = new EventAggregator(query, e => {
@@ -557,10 +558,10 @@ abstract class TestRunner {
     // let targetId = listenSpec[0];
     const querySpec = listenSpec[1];
     const query =
-      querySpec instanceof Pipeline
+      querySpec instanceof CorePipeline
         ? querySpec
         : this.convertToPipeline
-        ? toPipeline(parseQuery(querySpec), newTestFirestore())
+        ? toCorePipeline(toPipeline(parseQuery(querySpec), newTestFirestore()))
         : parseQuery(querySpec);
     const eventEmitter = this.queryListeners.get(query);
     debugAssert(!!eventEmitter, 'There must be a query to unlisten too!');
@@ -968,10 +969,10 @@ abstract class TestRunner {
       );
       const expectedEventsSorted = expectedEvents.sort((a, b) =>
         primitiveComparator(
-          a.query instanceof Pipeline || this.convertToPipeline
+          a.query instanceof CorePipeline || this.convertToPipeline
             ? canonifyPipeline(a.pipeline)
             : canonifyQuery(parseQuery(a.query as SpecQuery)),
-          b.query instanceof Pipeline || this.convertToPipeline
+          b.query instanceof CorePipeline || this.convertToPipeline
             ? canonifyPipeline(b.pipeline)
             : canonifyQuery(parseQuery(b.query as SpecQuery))
         )
@@ -1249,8 +1250,8 @@ abstract class TestRunner {
     );
   }
 
-  private specToTarget(spec: SpecQuery | Pipeline): TargetOrPipeline {
-    if (spec instanceof Pipeline) {
+  private specToTarget(spec: SpecQuery | CorePipeline): TargetOrPipeline {
+    if (spec instanceof CorePipeline) {
       return spec;
     }
     return queryToTarget(parseQuery(spec));
@@ -1261,7 +1262,7 @@ abstract class TestRunner {
     actual: QueryEvent
   ): void {
     const expectedQuery =
-      expected.query instanceof Pipeline
+      expected.query instanceof CorePipeline
         ? expected.query
         : this.convertToPipeline
         ? expected.pipeline
@@ -1631,12 +1632,12 @@ export interface SpecStep {
 
 export interface SpecUserListen {
   targetId: TargetId;
-  query: string | SpecQuery | Pipeline;
+  query: string | SpecQuery | CorePipeline;
   options?: ListenOptions;
 }
 
 /** [<target-id>, <query-path>] */
-export type SpecUserUnlisten = [TargetId, string | SpecQuery | Pipeline];
+export type SpecUserUnlisten = [TargetId, string | SpecQuery | CorePipeline];
 
 /** [<key>, <value>] */
 export type SpecUserSet = [string, JsonObject<unknown>];
@@ -1775,8 +1776,8 @@ export interface SpecDocument {
 }
 
 export interface SnapshotEvent {
-  query: SpecQuery | Pipeline;
-  pipeline: Pipeline;
+  query: SpecQuery | CorePipeline;
+  pipeline: CorePipeline;
   errorCode?: number;
   fromCache?: boolean;
   hasPendingWrites?: boolean;

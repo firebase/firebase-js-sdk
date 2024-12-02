@@ -949,7 +949,7 @@ export function localStoreReadDocument(
  */
 export function localStoreAllocateTarget(
   localStore: LocalStore,
-  target: Target | Pipeline
+  target: TargetOrPipeline
 ): Promise<TargetData> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
 
@@ -1012,7 +1012,7 @@ export function localStoreAllocateTarget(
 export function localStoreGetTargetData(
   localStore: LocalStore,
   transaction: PersistenceTransaction,
-  target: Target | Pipeline
+  target: TargetOrPipeline
 ): PersistencePromise<TargetData | null> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const targetId = localStoreImpl.targetIdByTarget.get(target);
@@ -1242,7 +1242,7 @@ export function localStoreGetActiveClients(
 export function localStoreGetCachedTarget(
   localStore: LocalStore,
   targetId: TargetId
-): Promise<Target | null> {
+): Promise<TargetOrPipeline | null> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const targetCacheImpl = debugCast(
     localStoreImpl.targetCache,
@@ -1250,21 +1250,15 @@ export function localStoreGetCachedTarget(
   );
   const cachedTargetData = localStoreImpl.targetDataByTarget.get(targetId);
   if (cachedTargetData) {
-    // TODO(pipeline): This needs to handle pipeline properly.
-    return Promise.resolve(cachedTargetData.target as Target);
+    return Promise.resolve(cachedTargetData.target ?? null);
   } else {
     return localStoreImpl.persistence.runTransaction(
       'Get target data',
       'readonly',
       txn => {
-        return (
-          targetCacheImpl
-            .getTargetDataForTarget(txn, targetId)
-            // TODO(pipeline): This needs to handle pipeline properly.
-            .next(targetData =>
-              targetData ? (targetData.target as Target) : null
-            )
-        );
+        return targetCacheImpl
+          .getTargetDataForTarget(txn, targetId)
+          .next(targetData => targetData?.target ?? null);
       }
     );
   }

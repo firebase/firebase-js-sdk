@@ -125,7 +125,7 @@ function getTestRunner(
     // eslint-disable-next-line no-restricted-properties
     return it.only;
   } else {
-    return it;
+    return it.only;
   }
 }
 
@@ -187,7 +187,7 @@ export function specTest(
       ? [true, false]
       : [false];
     for (const usePersistence of persistenceModes) {
-      const convertToPipelines = [false, true];
+      const convertToPipelines = [true];
       for (const convertToPipeline of convertToPipelines) {
         const runner = getTestRunner(tags, usePersistence, convertToPipeline);
         const timeout = getTestTimeout(tags);

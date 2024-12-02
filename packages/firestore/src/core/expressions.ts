@@ -12,7 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ArrayValue, Value } from '../protos/firestore_proto_api';
+import {
+  ArrayValue,
+  Value,
+  Function as ProtoFunction
+} from '../protos/firestore_proto_api';
 import { EvaluationContext, PipelineInputOutput } from './pipeline_run';
 import {
   And,
@@ -77,7 +81,8 @@ import {
   TimestampAdd,
   TimestampSub,
   Field,
-  Constant
+  Constant,
+  FilterExpr
 } from '../lite-api/expressions';
 import {
   CREATE_TIME_NAME,
@@ -105,6 +110,7 @@ import {
 
 import { RE2JS } from 're2js';
 import { toName, toTimestamp, toVersion } from '../remote/serializer';
+import { exprFromProto } from './pipeline_serialize';
 
 export interface EvaluableExpr {
   evaluate(
@@ -254,23 +260,17 @@ export class CoreField implements EvaluableExpr {
   ): Value | undefined {
     if (this.expr.fieldName() === DOCUMENT_KEY_NAME) {
       return {
-        referenceValue: toName(context.userDataReader.serializer, input.key)
+        referenceValue: toName(context.serializer, input.key)
       };
     }
     if (this.expr.fieldName() === UPDATE_TIME_NAME) {
       return {
-        timestampValue: toVersion(
-          context.userDataReader.serializer,
-          input.version
-        )
+        timestampValue: toVersion(context.serializer, input.version)
       };
     }
     if (this.expr.fieldName() === CREATE_TIME_NAME) {
       return {
-        timestampValue: toVersion(
-          context.userDataReader.serializer,
-          input.createTime
-        )
+        timestampValue: toVersion(context.serializer, input.createTime)
       };
     }
     return (
@@ -287,7 +287,6 @@ export class CoreConstant implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    this.expr._readUserData(context.userDataReader);
     return this.expr._getValue();
   }
 }
@@ -422,6 +421,13 @@ export class CoreAdd extends BigIntOrDoubleArithmetics<Add> {
     | undefined {
     return { doubleValue: asDouble(left) + asDouble(right) };
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): Add {
+    return new Add(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
+  }
 }
 
 export class CoreSubtract extends BigIntOrDoubleArithmetics<Subtract> {
@@ -456,6 +462,13 @@ export class CoreSubtract extends BigIntOrDoubleArithmetics<Subtract> {
     | undefined {
     return { doubleValue: asDouble(left) - asDouble(right) };
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): Subtract {
+    return new Subtract(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
+  }
 }
 
 export class CoreMultiply extends BigIntOrDoubleArithmetics<Multiply> {
@@ -489,6 +502,13 @@ export class CoreMultiply extends BigIntOrDoubleArithmetics<Multiply> {
       }
     | undefined {
     return { doubleValue: asDouble(left) * asDouble(right) };
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): Multiply {
+    return new Multiply(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
   }
 }
 
@@ -532,6 +552,13 @@ export class CoreDivide extends BigIntOrDoubleArithmetics<Divide> {
     }
     return { doubleValue: asDouble(left) / rightValue };
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): Divide {
+    return new Divide(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
+  }
 }
 
 export class CoreMod extends BigIntOrDoubleArithmetics<Mod> {
@@ -570,6 +597,13 @@ export class CoreMod extends BigIntOrDoubleArithmetics<Mod> {
     | undefined {
     return { doubleValue: asDouble(left) % asDouble(right) };
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): Mod {
+    return new Mod(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
+  }
 }
 
 export class CoreAnd implements EvaluableExpr {
@@ -593,6 +627,10 @@ export class CoreAnd implements EvaluableExpr {
     }
     return isError ? undefined : { booleanValue: true };
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): And {
+    return new And(value.args!.map(exprFromProto) as FilterExpr[]);
+  }
 }
 
 export class CoreNot implements EvaluableExpr {
@@ -608,6 +646,10 @@ export class CoreNot implements EvaluableExpr {
     }
 
     return { booleanValue: !result.booleanValue };
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): Not {
+    return new Not(exprFromProto(value.args![0]));
   }
 }
 
@@ -632,6 +674,10 @@ export class CoreOr implements EvaluableExpr {
     }
     return isError ? undefined : { booleanValue: false };
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): Or {
+    return new Or(value.args!.map(exprFromProto) as FilterExpr[]);
+  }
 }
 
 export class CoreXor implements EvaluableExpr {
@@ -655,6 +701,10 @@ export class CoreXor implements EvaluableExpr {
 
   static xor(a: boolean, b: boolean): boolean {
     return (a || b) && !(a && b);
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): Xor {
+    return new Xor(value.args!.map(exprFromProto) as FilterExpr[]);
   }
 }
 
@@ -691,6 +741,13 @@ export class CoreIn implements EvaluableExpr {
 
     return hasError ? undefined : FALSE_VALUE;
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): In {
+    return new In(
+      exprFromProto(value.args![0]),
+      value.args!.slice(1).map(exprFromProto)
+    );
+  }
 }
 
 export class CoreIsNan implements EvaluableExpr {
@@ -715,6 +772,10 @@ export class CoreIsNan implements EvaluableExpr {
       )
     };
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): IsNan {
+    return new IsNan(exprFromProto(value.args![0]));
+  }
 }
 
 export class CoreExists implements EvaluableExpr {
@@ -730,6 +791,10 @@ export class CoreExists implements EvaluableExpr {
     }
 
     return TRUE_VALUE;
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): Exists {
+    return new Exists(exprFromProto(value.args![0]));
   }
 }
 
@@ -747,6 +812,14 @@ export class CoreIf implements EvaluableExpr {
     }
 
     return toEvaluable(this.expr.elseExpr).evaluate(context, input);
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): If {
+    return new If(
+      exprFromProto(value.args![0]) as FilterExpr,
+      exprFromProto(value.args![1]),
+      exprFromProto(value.args![2])
+    );
   }
 }
 
@@ -769,6 +842,13 @@ export class CoreLogicalMax implements EvaluableExpr {
       return right ?? MIN_VALUE;
     }
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): LogicalMax {
+    return new LogicalMax(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
+  }
 }
 
 export class CoreLogicalMin implements EvaluableExpr {
@@ -789,6 +869,13 @@ export class CoreLogicalMin implements EvaluableExpr {
     } else {
       return right ?? MIN_VALUE;
     }
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): LogicalMin {
+    return new LogicalMin(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
   }
 }
 
@@ -820,6 +907,10 @@ export class CoreEq extends ComparisonBase<Eq> {
   trueCase(left: Value, right: Value): boolean {
     return valueEquals(left, right);
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): Eq {
+    return new Eq(exprFromProto(value.args![0]), exprFromProto(value.args![1]));
+  }
 }
 
 export class CoreNeq extends ComparisonBase<Neq> {
@@ -829,6 +920,13 @@ export class CoreNeq extends ComparisonBase<Neq> {
 
   trueCase(left: Value, right: Value): boolean {
     return !valueEquals(left, right);
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): Neq {
+    return new Neq(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
   }
 }
 
@@ -840,6 +938,10 @@ export class CoreLt extends ComparisonBase<Lt> {
   trueCase(left: Value, right: Value): boolean {
     return valueCompare(left, right) < 0;
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): Lt {
+    return new Lt(exprFromProto(value.args![0]), exprFromProto(value.args![1]));
+  }
 }
 
 export class CoreLte extends ComparisonBase<Lte> {
@@ -849,6 +951,13 @@ export class CoreLte extends ComparisonBase<Lte> {
 
   trueCase(left: Value, right: Value): boolean {
     return valueCompare(left, right) <= 0;
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): Lte {
+    return new Lte(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
   }
 }
 
@@ -860,6 +969,10 @@ export class CoreGt extends ComparisonBase<Gt> {
   trueCase(left: Value, right: Value): boolean {
     return valueCompare(left, right) > 0;
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): Gt {
+    return new Gt(exprFromProto(value.args![0]), exprFromProto(value.args![1]));
+  }
 }
 
 export class CoreGte extends ComparisonBase<Gte> {
@@ -869,6 +982,13 @@ export class CoreGte extends ComparisonBase<Gte> {
 
   trueCase(left: Value, right: Value): boolean {
     return valueCompare(left, right) >= 0;
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): Gte {
+    return new Gte(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
   }
 }
 
@@ -880,6 +1000,13 @@ export class CoreArrayConcat implements EvaluableExpr {
     input: PipelineInputOutput
   ): Value | undefined {
     throw new Error('Unimplemented');
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): ArrayConcat {
+    return new ArrayConcat(
+      exprFromProto(value.args![0]),
+      value.args!.slice(1).map(exprFromProto)
+    );
   }
 }
 
@@ -896,6 +1023,10 @@ export class CoreArrayReverse implements EvaluableExpr {
     }
 
     return { arrayValue: { values: evaluated.arrayValue.reverse() } };
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): ArrayReverse {
+    return new ArrayReverse(exprFromProto(value.args![0]));
   }
 }
 
@@ -919,6 +1050,13 @@ export class CoreArrayContains implements EvaluableExpr {
     return evaluated.arrayValue.values?.some(val => valueEquals(val, element!))
       ? TRUE_VALUE
       : FALSE_VALUE;
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): ArrayContains {
+    return new ArrayContains(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
   }
 }
 
@@ -954,6 +1092,13 @@ export class CoreArrayContainsAll implements EvaluableExpr {
 
     return TRUE_VALUE;
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): ArrayContainsAll {
+    return new ArrayContainsAll(
+      exprFromProto(value.args![0]),
+      value.args!.slice(1).map(exprFromProto)
+    );
+  }
 }
 
 export class CoreArrayContainsAny implements EvaluableExpr {
@@ -982,6 +1127,13 @@ export class CoreArrayContainsAny implements EvaluableExpr {
 
     return FALSE_VALUE;
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): ArrayContainsAny {
+    return new ArrayContainsAny(
+      exprFromProto(value.args![0]),
+      value.args!.slice(1).map(exprFromProto)
+    );
+  }
 }
 
 export class CoreArrayLength implements EvaluableExpr {
@@ -998,6 +1150,10 @@ export class CoreArrayLength implements EvaluableExpr {
 
     return { integerValue: `${evaluated.arrayValue.values?.length ?? 0}` };
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): ArrayLength {
+    return new ArrayLength(exprFromProto(value.args![0]));
+  }
 }
 
 export class CoreArrayElement implements EvaluableExpr {
@@ -1007,6 +1163,10 @@ export class CoreArrayElement implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
+    throw new Error('Unimplemented');
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): ArrayElement {
     throw new Error('Unimplemented');
   }
 }
@@ -1029,6 +1189,10 @@ export class CoreReverse implements EvaluableExpr {
 
     return { stringValue: evaluated.stringValue.split('').reverse().join('') };
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): Reverse {
+    return new Reverse(exprFromProto(value.args![0]));
+  }
 }
 
 export class CoreReplaceFirst implements EvaluableExpr {
@@ -1040,6 +1204,10 @@ export class CoreReplaceFirst implements EvaluableExpr {
   ): Value | undefined {
     throw new Error('Unimplemented');
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): ReplaceFirst {
+    throw new Error('Unimplemented');
+  }
 }
 
 export class CoreReplaceAll implements EvaluableExpr {
@@ -1049,6 +1217,10 @@ export class CoreReplaceAll implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
+    throw new Error('Unimplemented');
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): ReplaceAll {
     throw new Error('Unimplemented');
   }
 }
@@ -1069,6 +1241,10 @@ export class CoreCharLength implements EvaluableExpr {
     // return the number of characters in the string
     return { integerValue: `${evaluated.stringValue.length}` };
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): CharLength {
+    return new CharLength(exprFromProto(value.args![0]));
+  }
 }
 
 export class CoreByteLength implements EvaluableExpr {
@@ -1088,6 +1264,10 @@ export class CoreByteLength implements EvaluableExpr {
     return {
       integerValue: `${new TextEncoder().encode(evaluated.stringValue).length}`
     };
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): ByteLength {
+    return new ByteLength(exprFromProto(value.args![0]));
   }
 }
 
@@ -1151,6 +1331,13 @@ export class CoreLike implements EvaluableExpr {
         .find()
     };
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): Like {
+    return new Like(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
+  }
 }
 
 export class CoreRegexContains implements EvaluableExpr {
@@ -1175,6 +1362,13 @@ export class CoreRegexContains implements EvaluableExpr {
         .matcher(evaluated.stringValue)
         .find()
     };
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): RegexContains {
+    return new RegexContains(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
   }
 }
 
@@ -1201,6 +1395,13 @@ export class CoreRegexMatch implements EvaluableExpr {
       )
     };
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): RegexMatch {
+    return new RegexMatch(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
+  }
 }
 
 export class CoreStrContains implements EvaluableExpr {
@@ -1223,6 +1424,13 @@ export class CoreStrContains implements EvaluableExpr {
     return {
       booleanValue: evaluated.stringValue.includes(substring.stringValue)
     };
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): StrContains {
+    return new StrContains(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
   }
 }
 
@@ -1247,6 +1455,13 @@ export class CoreStartsWith implements EvaluableExpr {
       booleanValue: evaluated.stringValue.startsWith(prefix.stringValue)
     };
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): StartsWith {
+    return new StartsWith(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
+  }
 }
 
 export class CoreEndsWith implements EvaluableExpr {
@@ -1268,6 +1483,13 @@ export class CoreEndsWith implements EvaluableExpr {
 
     return { booleanValue: evaluated.stringValue.endsWith(suffix.stringValue) };
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): EndsWith {
+    return new EndsWith(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
+  }
 }
 
 export class CoreToLower implements EvaluableExpr {
@@ -1283,6 +1505,10 @@ export class CoreToLower implements EvaluableExpr {
     }
 
     return { stringValue: evaluated.stringValue.toLowerCase() };
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): ToLower {
+    return new ToLower(exprFromProto(value.args![0]));
   }
 }
 
@@ -1300,6 +1526,10 @@ export class CoreToUpper implements EvaluableExpr {
 
     return { stringValue: evaluated.stringValue.toUpperCase() };
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): ToUpper {
+    return new ToUpper(exprFromProto(value.args![0]));
+  }
 }
 
 export class CoreTrim implements EvaluableExpr {
@@ -1315,6 +1545,10 @@ export class CoreTrim implements EvaluableExpr {
     }
 
     return { stringValue: evaluated.stringValue.trim() };
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): Trim {
+    return new Trim(exprFromProto(value.args![0]));
   }
 }
 
@@ -1335,6 +1569,13 @@ export class CoreStrConcat implements EvaluableExpr {
 
     return { stringValue: evaluated.map(val => val!.stringValue).join('') };
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): StrConcat {
+    return new StrConcat(
+      exprFromProto(value.args![0]),
+      value.args!.slice(1).map(exprFromProto)
+    );
+  }
 }
 
 export class CoreMapGet implements EvaluableExpr {
@@ -1351,6 +1592,13 @@ export class CoreMapGet implements EvaluableExpr {
 
     return evaluatedMap.mapValue.fields?.[this.expr.name];
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): MapGet {
+    return new MapGet(
+      exprFromProto(value.args![0]),
+      value.args![1].stringValue!
+    );
+  }
 }
 
 export class CoreCount implements EvaluableExpr {
@@ -1360,6 +1608,10 @@ export class CoreCount implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
+    throw new Error('Unimplemented');
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): Count {
     throw new Error('Unimplemented');
   }
 }
@@ -1373,6 +1625,10 @@ export class CoreSum implements EvaluableExpr {
   ): Value | undefined {
     throw new Error('Unimplemented');
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): Sum {
+    throw new Error('Unimplemented');
+  }
 }
 
 export class CoreAvg implements EvaluableExpr {
@@ -1382,6 +1638,10 @@ export class CoreAvg implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
+    throw new Error('Unimplemented');
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): Avg {
     throw new Error('Unimplemented');
   }
 }
@@ -1395,6 +1655,10 @@ export class CoreMin implements EvaluableExpr {
   ): Value | undefined {
     throw new Error('Unimplemented');
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): Min {
+    throw new Error('Unimplemented');
+  }
 }
 
 export class CoreMax implements EvaluableExpr {
@@ -1404,6 +1668,10 @@ export class CoreMax implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
+    throw new Error('Unimplemented');
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): Max {
     throw new Error('Unimplemented');
   }
 }
@@ -1479,6 +1747,13 @@ export class CoreCosineDistance extends DistanceBase<CosineDistance> {
 
     return 1 - dotProduct / magnitude;
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): CosineDistance {
+    return new CosineDistance(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
+  }
 }
 
 export class CoreDotProduct extends DistanceBase<DotProduct> {
@@ -1499,6 +1774,13 @@ export class CoreDotProduct extends DistanceBase<DotProduct> {
     }
 
     return dotProduct;
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): DotProduct {
+    return new DotProduct(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
   }
 }
 
@@ -1522,6 +1804,13 @@ export class CoreEuclideanDistance extends DistanceBase<EuclideanDistance> {
 
     return euclideanDistance;
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): EuclideanDistance {
+    return new EuclideanDistance(
+      exprFromProto(value.args![0]),
+      exprFromProto(value.args![1])
+    );
+  }
 }
 
 export class CoreVectorLength implements EvaluableExpr {
@@ -1540,6 +1829,10 @@ export class CoreVectorLength implements EvaluableExpr {
 
     return { integerValue: vectorValue?.values?.length ?? 0 };
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): VectorLength {
+    return new VectorLength(exprFromProto(value.args![0]));
+  }
 }
 
 export class CoreUnixMicrosToTimestamp implements EvaluableExpr {
@@ -1549,6 +1842,10 @@ export class CoreUnixMicrosToTimestamp implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
+    throw new Error('Unimplemented');
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): UnixMicrosToTimestamp {
     throw new Error('Unimplemented');
   }
 }
@@ -1562,6 +1859,10 @@ export class CoreTimestampToUnixMicros implements EvaluableExpr {
   ): Value | undefined {
     throw new Error('Unimplemented');
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): TimestampToUnixMicros {
+    throw new Error('Unimplemented');
+  }
 }
 
 export class CoreUnixMillisToTimestamp implements EvaluableExpr {
@@ -1571,6 +1872,10 @@ export class CoreUnixMillisToTimestamp implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
+    throw new Error('Unimplemented');
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): UnixMillisToTimestamp {
     throw new Error('Unimplemented');
   }
 }
@@ -1584,6 +1889,10 @@ export class CoreTimestampToUnixMillis implements EvaluableExpr {
   ): Value | undefined {
     throw new Error('Unimplemented');
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): TimestampToUnixMillis {
+    throw new Error('Unimplemented');
+  }
 }
 
 export class CoreUnixSecondsToTimestamp implements EvaluableExpr {
@@ -1593,6 +1902,10 @@ export class CoreUnixSecondsToTimestamp implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
+    throw new Error('Unimplemented');
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): UnixSecondsToTimestamp {
     throw new Error('Unimplemented');
   }
 }
@@ -1606,6 +1919,10 @@ export class CoreTimestampToUnixSeconds implements EvaluableExpr {
   ): Value | undefined {
     throw new Error('Unimplemented');
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): TimestampToUnixSeconds {
+    throw new Error('Unimplemented');
+  }
 }
 
 export class CoreTimestampAdd implements EvaluableExpr {
@@ -1617,6 +1934,10 @@ export class CoreTimestampAdd implements EvaluableExpr {
   ): Value | undefined {
     throw new Error('Unimplemented');
   }
+
+  static fromProtoToApiObj(value: ProtoFunction): TimestampAdd {
+    throw new Error('Unimplemented');
+  }
 }
 
 export class CoreTimestampSub implements EvaluableExpr {
@@ -1626,6 +1947,10 @@ export class CoreTimestampSub implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
+    throw new Error('Unimplemented');
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): TimestampSub {
     throw new Error('Unimplemented');
   }
 }

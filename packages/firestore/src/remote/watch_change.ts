@@ -54,6 +54,7 @@ import {
 } from '../core/pipeline-util';
 import { Pipeline } from '../lite-api/pipeline';
 import { ResourcePath } from '../model/path';
+import { CorePipeline } from '../core/pipeline_run';
 
 /**
  * Internal representation of the watcher API protocol buffers.
@@ -725,7 +726,7 @@ export class WatchChangeAggregator {
         this.targetDataForActiveTarget(targetId)!.target
       ) &&
       getPipelineFlavor(
-        this.targetDataForActiveTarget(targetId)!.target as Pipeline
+        this.targetDataForActiveTarget(targetId)!.target as CorePipeline
       ) !== 'exact'
     ) {
       this.pendingAugmentedDocumentUpdates =
@@ -782,7 +783,7 @@ export class WatchChangeAggregator {
           this.targetDataForActiveTarget(targetId)!.target
         ) &&
         getPipelineFlavor(
-          this.targetDataForActiveTarget(targetId)!.target as Pipeline
+          this.targetDataForActiveTarget(targetId)!.target as CorePipeline
         ) !== 'exact'
       ) {
         this.pendingAugmentedDocumentUpdates =

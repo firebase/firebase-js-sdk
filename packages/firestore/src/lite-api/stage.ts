@@ -30,10 +30,12 @@ import {
   Expr,
   Field,
   FilterCondition,
+  In,
   Ordering
 } from './expressions';
 import { DocumentReference } from './reference';
 import { VectorValue } from './vector_value';
+import { hardAssert } from '../util/assert';
 
 /**
  * @beta
@@ -286,7 +288,12 @@ export class FindNearest implements Stage {
 export class Limit implements Stage {
   name = 'limit';
 
-  constructor(readonly limit: number) {}
+  constructor(readonly limit: number) {
+    hardAssert(
+      !isNaN(limit) && limit !== Infinity && limit !== -Infinity,
+      'Invalid limit value'
+    );
+  }
 
   /**
    * @internal

@@ -116,7 +116,8 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { Pipeline } from '../lite-api/pipeline';
+import { stageFromProto } from '../core/pipeline_serialize';
+import { CorePipeline } from '../core/pipeline_run';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: ProtoOrderDirection } = {};
@@ -1093,16 +1094,31 @@ export function toLabel(purpose: TargetPurpose): string | null {
   }
 }
 
-export function fromPipelineTarget(target: ProtoPipelineQueryTarget): Pipeline {
-  return {} as Pipeline;
+export function fromPipelineTarget(
+  target: ProtoPipelineQueryTarget,
+  serializer: JsonProtoSerializer
+): CorePipeline {
+  const pipeline = target.pipeline;
+  hardAssert(
+    (pipeline?.pipeline?.stages ?? []).length > 0,
+    'Deserializing pipeline without any stages.'
+  );
+
+  const stages = pipeline?.pipeline?.stages!.map(stageFromProto);
+
+  return new CorePipeline(serializer, stages!);
 }
 
 export function toPipelineTarget(
   serializer: JsonProtoSerializer,
-  target: Pipeline
+  target: CorePipeline
 ): ProtoPipelineQueryTarget {
   return {
-    pipeline: target._toStructuredPipeline(serializer)
+    pipeline: {
+      pipeline: {
+        stages: target.stages.map(s => s._toProto(serializer))
+      }
+    }
   };
 }
 
@@ -1113,11 +1129,13 @@ export function toTarget(
   let result: ProtoTarget;
   const target = targetData.target;
   if (targetIsPipelineTarget(target)) {
-    result = { pipelineQuery: toPipelineTarget(serializer, target) };
-  } else if (targetIsDocumentTarget(target)) {
-    result = { documents: toDocumentsTarget(serializer, target) };
+    result = {
+      pipelineQuery: toPipelineTarget(serializer, target as CorePipeline)
+    };
+  } else if (targetIsDocumentTarget(target as Target)) {
+    result = { documents: toDocumentsTarget(serializer, target as Target) };
   } else {
-    result = { query: toQueryTarget(serializer, target).queryTarget };
+    result = { query: toQueryTarget(serializer, target as Target).queryTarget };
   }
 
   result.targetId = targetData.targetId;

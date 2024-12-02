@@ -25,6 +25,7 @@ import {
 } from '../core/firestore_client';
 import { Pipeline } from '../lite-api/pipeline';
 import { PipelineResult } from '../lite-api/pipeline-result';
+import { CorePipeline } from '../core/pipeline_run';
 
 /**
  * Executes this pipeline and returns a Promise to represent the asynchronous operation.
@@ -114,7 +115,12 @@ export function _onSnapshot(
     complete: complete
   };
   // TODO(pipeline) hook up options
-  firestoreClientListen(client, pipeline, {}, observer);
+  firestoreClientListen(
+    client,
+    new CorePipeline(pipeline.userDataReader.serializer, pipeline.stages),
+    {},
+    observer
+  );
 
   return () => {};
 }

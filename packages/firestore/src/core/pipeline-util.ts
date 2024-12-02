@@ -84,6 +84,7 @@ import { ResourcePath } from '../model/path';
 import { Firestore } from '../api/database';
 import { doc } from '../lite-api/reference';
 import { Direction } from './order_by';
+import { CorePipeline } from './pipeline_run';
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
@@ -431,19 +432,19 @@ function canonifyExprMap(map: Map<string, Expr>): string {
     .join(',')}`;
 }
 
-export function canonifyPipeline(p: Pipeline): string;
-export function canonifyPipeline(p: Pipeline): string {
+export function canonifyPipeline(p: CorePipeline): string;
+export function canonifyPipeline(p: CorePipeline): string {
   return p.stages.map(s => canonifyStage(s)).join('|');
 }
 
 // TODO(pipeline): do a proper implementation for eq.
-export function pipelineEq(left: Pipeline, right: Pipeline): boolean {
+export function pipelineEq(left: CorePipeline, right: CorePipeline): boolean {
   return canonifyPipeline(left) === canonifyPipeline(right);
 }
 
 export type PipelineFlavor = 'exact' | 'augmented' | 'keyless';
 
-export function getPipelineFlavor(p: Pipeline): PipelineFlavor {
+export function getPipelineFlavor(p: CorePipeline): PipelineFlavor {
   let flavor: PipelineFlavor = 'exact';
   p.stages.forEach((stage, index) => {
     if (stage.name === Distinct.name || stage.name === Aggregate.name) {
@@ -472,7 +473,7 @@ export type PipelineSourceType =
   | 'documents';
 
 export function getPipelineSourceType(
-  p: Pipeline
+  p: CorePipeline
 ): PipelineSourceType | 'unknown' {
   debugAssert(p.stages.length > 0, 'Pipeline must have at least one stage');
   const source = p.stages[0];
@@ -489,24 +490,37 @@ export function getPipelineSourceType(
   return 'unknown';
 }
 
-export function getPipelineCollection(p: Pipeline): string | undefined {
+export function getPipelineCollection(p: CorePipeline): string | undefined {
   if (getPipelineSourceType(p) === 'collection') {
     return (p.stages[0] as CollectionSource).collectionPath;
   }
   return undefined;
 }
 
-export function getPipelineCollectionGroup(p: Pipeline): string | undefined {
+export function getPipelineCollectionGroup(
+  p: CorePipeline
+): string | undefined {
   if (getPipelineSourceType(p) === 'collection_group') {
     return (p.stages[0] as CollectionGroupSource).collectionId;
   }
   return undefined;
 }
 
+export function getPipelineCollectionId(p: CorePipeline): string | undefined {
+  switch (getPipelineSourceType(p)) {
+    case 'collection':
+      return ResourcePath.fromString(getPipelineCollection(p)!).lastSegment();
+    case 'collection_group':
+      return getPipelineCollectionGroup(p);
+    default:
+      return undefined;
+  }
+}
+
 export function asCollectionPipelineAtPath(
-  pipeline: Pipeline,
+  pipeline: CorePipeline,
   path: ResourcePath
-): Pipeline {
+): CorePipeline {
   const newStages = pipeline.stages.map(s => {
     if (s instanceof CollectionGroupSource) {
       return new CollectionSource(path.canonicalString());
@@ -515,27 +529,20 @@ export function asCollectionPipelineAtPath(
     return s;
   });
 
-  return new Pipeline(
-    pipeline.liteDb,
-    pipeline.userDataReader,
-    pipeline.userDataWriter,
-    pipeline.documentReferenceFactory,
-    newStages,
-    pipeline.converter
-  );
+  return new CorePipeline(pipeline.serializer, newStages);
 }
 
-export function getPipelineDocuments(p: Pipeline): string[] | undefined {
+export function getPipelineDocuments(p: CorePipeline): string[] | undefined {
   if (getPipelineSourceType(p) === 'documents') {
     return (p.stages[0] as DocumentsSource).docPaths;
   }
   return undefined;
 }
 
-export type QueryOrPipeline = Query | Pipeline;
+export type QueryOrPipeline = Query | CorePipeline;
 
-export function isPipeline(q: QueryOrPipeline): q is Pipeline {
-  return q instanceof Pipeline;
+export function isPipeline(q: QueryOrPipeline): q is CorePipeline {
+  return q instanceof CorePipeline;
 }
 
 export function stringifyQueryOrPipeline(q: QueryOrPipeline): string {
@@ -558,12 +565,12 @@ export function queryOrPipelineEqual(
   left: QueryOrPipeline,
   right: QueryOrPipeline
 ): boolean {
-  if (left instanceof Pipeline && right instanceof Pipeline) {
+  if (left instanceof CorePipeline && right instanceof CorePipeline) {
     return pipelineEq(left, right);
   }
   if (
-    (left instanceof Pipeline && !(right instanceof Pipeline)) ||
-    (!(left instanceof Pipeline) && right instanceof Pipeline)
+    (left instanceof CorePipeline && !(right instanceof CorePipeline)) ||
+    (!(left instanceof CorePipeline) && right instanceof CorePipeline)
   ) {
     return false;
   }
@@ -571,7 +578,7 @@ export function queryOrPipelineEqual(
   return queryEquals(left as Query, right as Query);
 }
 
-export type TargetOrPipeline = Target | Pipeline;
+export type TargetOrPipeline = Target | CorePipeline;
 
 export function canonifyTargetOrPipeline(q: TargetOrPipeline): string {
   if (targetIsPipelineTarget(q)) {
@@ -585,12 +592,12 @@ export function targetOrPipelineEqual(
   left: TargetOrPipeline,
   right: TargetOrPipeline
 ): boolean {
-  if (left instanceof Pipeline && right instanceof Pipeline) {
+  if (left instanceof CorePipeline && right instanceof CorePipeline) {
     return pipelineEq(left, right);
   }
   if (
-    (left instanceof Pipeline && !(right instanceof Pipeline)) ||
-    (!(left instanceof Pipeline) && right instanceof Pipeline)
+    (left instanceof CorePipeline && !(right instanceof CorePipeline)) ||
+    (!(left instanceof CorePipeline) && right instanceof CorePipeline)
   ) {
     return false;
   }
@@ -598,7 +605,7 @@ export function targetOrPipelineEqual(
   return targetEquals(left as Target, right as Target);
 }
 
-export function pipelineHasRanges(pipeline: Pipeline): boolean {
+export function pipelineHasRanges(pipeline: CorePipeline): boolean {
   return pipeline.stages.some(
     stage => stage instanceof Limit || stage instanceof Offset
   );

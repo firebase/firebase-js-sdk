@@ -281,12 +281,12 @@ export class View {
       // set), because there will only be adds -- no deletes or updates.
       const lastDocInLimit =
         query.limitType === LimitType.First &&
-        oldDocumentSet.size === this.query.limit
+        oldDocumentSet.size === this.getLimit(this.query)
           ? oldDocumentSet.last()
           : null;
       const firstDocInLimit =
         query.limitType === LimitType.Last &&
-        oldDocumentSet.size === this.query.limit
+        oldDocumentSet.size === this.getLimit(this.query)
           ? oldDocumentSet.first()
           : null;
       return [lastDocInLimit, firstDocInLimit];

@@ -836,13 +836,4 @@ export class Pipeline<AppModelType = DocumentData>
     );
     return { pipeline: { stages } };
   }
-
-  /**
-   * @internal
-   * @private
-   */
-  // TODO(pipeline): do better than this
-  _toCanonicalId(jsonProtoSerializer: JsonProtoSerializer): String {
-    return JSON.stringify(this._toStructuredPipeline(jsonProtoSerializer));
-  }
 }
