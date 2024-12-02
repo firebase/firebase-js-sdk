@@ -39,9 +39,40 @@ export async function registerDefaultSw(
     messaging.swRegistration.update().catch(() => {
       /* it is non blocking and we don't care if it failed */
     });
+    await waitForRegistrationActive(messaging.swRegistration);
   } catch (e) {
     throw ERROR_FACTORY.create(ErrorCode.FAILED_DEFAULT_REGISTRATION, {
       browserErrorMessage: (e as Error)?.message
     });
   }
+}
+
+/**
+ * Waits for registration to become active. MDN documentation claims that
+ * a service worker registration should be ready to use after awaiting
+ * navigator.serviceWorker.register() but that doesn't seem to be the case in
+ * practice, causing the SDK to throw errors when calling
+ * swRegistration.pushManager.subscribe() too soon after register(). The only
+ * solution seems to be waiting for the service worker registration `state`
+ * to become "active".
+ */
+async function waitForRegistrationActive(
+  registration: ServiceWorkerRegistration
+): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    if (registration.active) {
+      resolve();
+    }
+    const incomingSw = registration.installing || registration.waiting;
+    if (incomingSw) {
+      incomingSw.onstatechange = ev => {
+        if ((ev.target as ServiceWorker)?.state === 'activated') {
+          incomingSw.onstatechange = null;
+          resolve();
+        }
+      };
+    } else {
+      reject(new Error('No incoming service worker found.'));
+    }
+  });
 }
