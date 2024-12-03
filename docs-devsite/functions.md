@@ -34,10 +34,10 @@ Cloud Functions for Firebase
 |  Interface | Description |
 |  --- | --- |
 |  [Functions](./functions.functions.md#functions_interface) | A <code>Functions</code> instance. |
-|  [HttpsCallable](./functions.httpscallable.md#httpscallable_interface) | A reference to a "callable" HTTP trigger in Google Cloud Functions. |
+|  [HttpsCallable](./functions.httpscallable.md#httpscallable_interface) | A reference to a "callable" HTTP trigger in Cloud Functions. |
 |  [HttpsCallableOptions](./functions.httpscallableoptions.md#httpscallableoptions_interface) | An interface for metadata about how calls should be executed. |
 |  [HttpsCallableResult](./functions.httpscallableresult.md#httpscallableresult_interface) | An <code>HttpsCallableResult</code> wraps a single result from a function call. |
-|  [HttpsCallableStreamOptions](./functions.httpscallablestreamoptions.md#httpscallablestreamoptions_interface) | An interface for metadata about how stream call should be executed. |
+|  [HttpsCallableStreamOptions](./functions.httpscallablestreamoptions.md#httpscallablestreamoptions_interface) | An interface for metadata about how a stream call should be executed. |
 |  [HttpsCallableStreamResult](./functions.httpscallablestreamresult.md#httpscallablestreamresult_interface) | An <code>HttpsCallableStreamResult</code> wraps a single streaming result from a function call. |
 
 ## Type Aliases

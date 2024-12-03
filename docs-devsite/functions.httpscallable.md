@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # HttpsCallable interface
-A reference to a "callable" HTTP trigger in Google Cloud Functions.
+A reference to a "callable" HTTP trigger in Cloud Functions.
 
 <b>Signature:</b>
 

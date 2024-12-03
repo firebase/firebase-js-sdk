@@ -40,7 +40,7 @@ export interface HttpsCallableStreamResult<
 }
 
 /**
- * A reference to a "callable" HTTP trigger in Google Cloud Functions.
+ * A reference to a "callable" HTTP trigger in Cloud Functions.
  * @param data - Data to be passed to callable function.
  * @public
  */
@@ -67,7 +67,7 @@ export interface HttpsCallableOptions {
    */
   timeout?: number;
   /**
-   * If set to true, uses limited-use App Check token for callable function requests from this
+   * If set to true, uses a limited-use App Check token for callable function requests from this
    * instance of {@link Functions}. You must use limited-use tokens to call functions with
    * replay protection enabled. By default, this is false.
    */
@@ -75,17 +75,17 @@ export interface HttpsCallableOptions {
 }
 
 /**
- * An interface for metadata about how stream call should be executed.
+ * An interface for metadata about how a stream call should be executed.
  * @public
  */
 export interface HttpsCallableStreamOptions {
   /**
-   * An AbortSignal that can be used to cancel the streaming response. When the signal is aborted,
-   * the underlying http connection will be terminated.
+   * An `AbortSignal` that can be used to cancel the streaming response. When the signal is aborted,
+   * the underlying HTTP connection will be terminated.
    */
   signal?: AbortSignal;
   /**
-   * If set to true, uses limited-use App Check token for callable function requests from this
+   * If set to true, uses a limited-use App Check token for callable function requests from this
    * instance of {@link Functions}. You must use limited-use tokens to call functions with
    * replay protection enabled. By default, this is false.
    */
