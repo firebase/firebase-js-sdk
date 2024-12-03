@@ -23,7 +23,7 @@ export interface HttpsCallableStreamOptions
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [limitedUseAppCheckTokens](./functions.httpscallablestreamoptions.md#httpscallablestreamoptionslimiteduseappchecktokens) | boolean | If set to true, uses limited-use App Check token for callable function requests from this instance of [Functions](./functions.functions.md#functions_interface)<!-- -->. You must use limited-use tokens to call functions with replay protection enabled. By default, this is false. |
-|  [signal](./functions.httpscallablestreamoptions.md#httpscallablestreamoptionssignal) | AbortSignal | An AbortSignal that can be used to cancel the streaming response. When the signal is aborted, both the underlying connection and stream will be terminated. |
+|  [signal](./functions.httpscallablestreamoptions.md#httpscallablestreamoptionssignal) | AbortSignal | An AbortSignal that can be used to cancel the streaming response. When the signal is aborted, the underlying http connection will be terminated. |
 
 ## HttpsCallableStreamOptions.limitedUseAppCheckTokens
 
@@ -37,7 +37,7 @@ limitedUseAppCheckTokens?: boolean;
 
 ## HttpsCallableStreamOptions.signal
 
-An AbortSignal that can be used to cancel the streaming response. When the signal is aborted, both the underlying connection and stream will be terminated.
+An AbortSignal that can be used to cancel the streaming response. When the signal is aborted, the underlying http connection will be terminated.
 
 <b>Signature:</b>
 
