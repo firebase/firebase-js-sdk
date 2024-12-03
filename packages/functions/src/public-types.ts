@@ -81,7 +81,7 @@ export interface HttpsCallableOptions {
 export interface HttpsCallableStreamOptions {
   /**
    * An AbortSignal that can be used to cancel the streaming response. When the signal is aborted,
-   * both the underlying connection and stream will be terminated.
+   * the underlying http connection will be terminated.
    */
   signal?: AbortSignal;
   /**
