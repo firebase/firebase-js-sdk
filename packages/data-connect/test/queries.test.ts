@@ -33,11 +33,13 @@ import {
   subscribe,
   terminate,
   SOURCE_CACHE,
-  SOURCE_SERVER
+  SOURCE_SERVER,
+  toQueryRef
 } from '../src';
 
 import { setupQueries } from './emulatorSeeder';
 import { getConnectionConfig, initDatabase, PROJECT_ID } from './util';
+import { serialize } from 'v8';
 
 use(chaiAsPromised);
 
@@ -135,6 +137,15 @@ describe('DataConnect Tests', async () => {
     const result = await waitForFirstEvent(taskListQuery);
     expect(result.data).to.eq(queryResult.data);
     expect(result.source).to.eq(SOURCE_CACHE);
+  });
+  
+  it(`returns the result source as cache when data already exists`, async () => {
+    const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts');
+    const queryResult = await executeQuery(taskListQuery);
+    const serializedRef =  queryResult.toJSON();
+    const newRef = queryRef(dc, serializedRef);
+    expect(newRef.name).to.eq(serializedRef.refInfo.name);
+    expect(newRef.variables).to.eq(serializedRef.refInfo.variables);
   });
   it(`returns the proper JSON when calling .toJSON()`, async () => {
     const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts');
