@@ -21,6 +21,7 @@ import { ApiSettings } from '../types/internal';
 import {
   DEFAULT_API_VERSION,
   DEFAULT_BASE_URL,
+  DEFAULT_FETCH_TIMEOUT_MS,
   LANGUAGE_TAG,
   PACKAGE_VERSION
 } from '../constants';
@@ -145,9 +146,9 @@ export async function makeRequest(
     );
     // Timeout is 180s by default
     const timeoutMillis =
-      requestOptions?.timeout !== undefined
+      requestOptions?.timeout !== undefined && requestOptions.timeout >= 0
         ? requestOptions.timeout
-        : 180 * 1000;
+        : DEFAULT_FETCH_TIMEOUT_MS;
     const abortController = new AbortController();
     fetchTimeoutId = setTimeout(() => abortController.abort(), timeoutMillis);
     request.fetchOptions.signal = abortController.signal;
