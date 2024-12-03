@@ -43,9 +43,7 @@ export async function registerDefaultSw(
     messaging.swRegistration.update().catch(() => {
       /* it is non blocking and we don't care if it failed */
     });
-    await waitForRegistrationActive(
-      messaging.swRegistration
-    );
+    await waitForRegistrationActive(messaging.swRegistration);
   } catch (e) {
     throw ERROR_FACTORY.create(ErrorCode.FAILED_DEFAULT_REGISTRATION, {
       browserErrorMessage: (e as Error)?.message
