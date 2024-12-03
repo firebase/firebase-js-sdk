@@ -299,9 +299,6 @@ class PopupOperation extends AbstractPopupRedirectOperation {
 
   private pollUserCancellation(): void {
     const poll = (): void => {
-      if(typeof window !== 'undefined' && this.authWindow?.window?.location.host !== window.location.host) {
-        console.error('Unable to determine whether window was closed or not');
-      }
       if (this.authWindow?.window?.closed) {
         // Make sure that there is sufficient time for whatever action to
         // complete. The window could have closed but the sign in network
