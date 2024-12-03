@@ -97,17 +97,13 @@ describe('Firebase Functions > Call', () => {
       Record<string, any>,
       { message: string; code: number; long: number }
     >(functions, 'dataTest');
-    try {
-      const result = await func(data);
+    const result = await func(data);
 
-      expect(result.data).to.deep.equal({
-        message: 'stub response',
-        code: 42,
-        long: 420
-      });
-    } catch (err) {
-      console.error(err);
-    }
+    expect(result.data).to.deep.equal({
+      message: 'stub response',
+      code: 42,
+      long: 420
+    });
   });
 
   it('scalars', async () => {

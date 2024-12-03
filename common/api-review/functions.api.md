@@ -61,6 +61,7 @@ export interface HttpsCallableResult<ResponseData = unknown> {
 
 // @public
 export interface HttpsCallableStreamOptions {
+    limitedUseAppCheckTokens?: boolean;
     signal?: AbortSignal;
 }
 
