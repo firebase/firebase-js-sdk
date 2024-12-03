@@ -275,6 +275,12 @@ async function postJSON(
   };
 }
 
+/**
+ * Creates authorization headers for Firebase Functions requests.
+ * @param functionsInstance The Firebase Functions service instance.
+ * @param options Options for the callable function, including AppCheck token settings.
+ * @return A Promise that resolves a headers map to include in outgoing fetch request.
+ */
 async function makeAuthHeaders(
   functionsInstance: FunctionsService,
   options: HttpsCallableOptions
@@ -493,6 +499,21 @@ async function streamAtURL(
   };
 }
 
+/**
+ * Creates a ReadableStream that processes a streaming response from a streaming
+ * callable function that returns data in server-sent event format.
+ *
+ * @param reader The underlying reader providing raw response data
+ * @param resultResolver Callback to resolve the final result when received
+ * @param resultRejecter Callback to reject with an error if encountered
+ * @param signal Optional AbortSignal to cancel the stream processing
+ * @returns A ReadableStream that emits decoded messages from the response
+ * 
+ * The returned ReadableStream:
+ *   1. Emits individual messages when "message" data is received
+ *   2. Resolves with the final result when a "result" message is received
+ *   3. Rejects with an error if an "error" message is received
+ */
 function createResponseStream(
   reader: ReadableStreamDefaultReader<Uint8Array>,
   resultResolver: (value: unknown) => void,
