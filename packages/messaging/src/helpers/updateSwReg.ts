@@ -22,10 +22,11 @@ import { registerDefaultSw } from './registerDefaultSw';
 
 export async function updateSwReg(
   messaging: MessagingService,
-  swRegistration?: ServiceWorkerRegistration | undefined
+  swRegistration?: ServiceWorkerRegistration | undefined,
+  swRegistrationTimeoutMillis?: number
 ): Promise<void> {
   if (!swRegistration && !messaging.swRegistration) {
-    await registerDefaultSw(messaging);
+    await registerDefaultSw(messaging, swRegistrationTimeoutMillis);
   }
 
   if (!swRegistration && !!messaging.swRegistration) {

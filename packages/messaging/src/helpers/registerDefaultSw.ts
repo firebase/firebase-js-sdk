@@ -15,13 +15,18 @@
  * limitations under the License.
  */
 
-import { DEFAULT_SW_PATH, DEFAULT_SW_SCOPE } from '../util/constants';
+import {
+  DEFAULT_REGISTRATION_TIMEOUT,
+  DEFAULT_SW_PATH,
+  DEFAULT_SW_SCOPE
+} from '../util/constants';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
 import { MessagingService } from '../messaging-service';
 
 export async function registerDefaultSw(
-  messaging: MessagingService
+  messaging: MessagingService,
+  swRegistrationTimeoutMillis?: number
 ): Promise<void> {
   try {
     messaging.swRegistration = await navigator.serviceWorker.register(
@@ -39,7 +44,10 @@ export async function registerDefaultSw(
     messaging.swRegistration.update().catch(() => {
       /* it is non blocking and we don't care if it failed */
     });
-    await waitForRegistrationActive(messaging.swRegistration);
+    await waitForRegistrationActive(
+      messaging.swRegistration,
+      swRegistrationTimeoutMillis
+    );
   } catch (e) {
     throw ERROR_FACTORY.create(ErrorCode.FAILED_DEFAULT_REGISTRATION, {
       browserErrorMessage: (e as Error)?.message
@@ -57,21 +65,33 @@ export async function registerDefaultSw(
  * to become "active".
  */
 async function waitForRegistrationActive(
-  registration: ServiceWorkerRegistration
+  registration: ServiceWorkerRegistration,
+  swRegistrationTimeoutMillis: number = DEFAULT_REGISTRATION_TIMEOUT
 ): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    if (registration.active) {
-      resolve();
-    }
+    const rejectTimeout = setTimeout(
+      () =>
+        reject(
+          new Error(
+            `Service worker not registered after ${swRegistrationTimeoutMillis} ms`
+          )
+        ),
+      swRegistrationTimeoutMillis
+    );
     const incomingSw = registration.installing || registration.waiting;
-    if (incomingSw) {
+    if (registration.active) {
+      clearTimeout(rejectTimeout);
+      resolve();
+    } else if (incomingSw) {
       incomingSw.onstatechange = ev => {
         if ((ev.target as ServiceWorker)?.state === 'activated') {
           incomingSw.onstatechange = null;
+          clearTimeout(rejectTimeout);
           resolve();
         }
       };
     } else {
+      clearTimeout(rejectTimeout);
       reject(new Error('No incoming service worker found.'));
     }
   });

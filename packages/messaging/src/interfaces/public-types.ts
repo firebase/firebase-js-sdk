@@ -132,6 +132,11 @@ export interface GetTokenOptions {
    * for more details.
    */
   serviceWorkerRegistration?: ServiceWorkerRegistration;
+  /**
+   * Milliseconds to wait for service worker registration to complete before
+   * rejecting and throwing an error. Defaults to 10000.
+   */
+  serviceWorkerRegistrationTimeout?: number;
 }
 
 /**
