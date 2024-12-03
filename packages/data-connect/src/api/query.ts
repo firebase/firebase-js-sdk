@@ -125,13 +125,27 @@ export function queryRef<Data, Variables>(
   initialCache?: QueryResult<Data, Variables>
 ): QueryRef<Data, Variables> {
   dcInstance.setInitialized();
-  if(typeof queryNameOrSerializedRef === 'string') {
-    dcInstance._queryManager.track(queryNameOrSerializedRef, variables, initialCache);
+  if (typeof queryNameOrSerializedRef === 'string') {
+    dcInstance._queryManager.track(
+      queryNameOrSerializedRef,
+      variables,
+      initialCache
+    );
   } else {
-    dcInstance._queryManager.track(queryNameOrSerializedRef.refInfo.name, queryNameOrSerializedRef.refInfo.variables, queryNameOrSerializedRef);
+    dcInstance._queryManager.track(
+      queryNameOrSerializedRef.refInfo.name,
+      queryNameOrSerializedRef.refInfo.variables,
+      queryNameOrSerializedRef
+    );
   }
-  const vars = typeof queryNameOrSerializedRef !== 'string'? queryNameOrSerializedRef.refInfo.variables : variables;
-  const name = typeof queryNameOrSerializedRef !== 'string'? queryNameOrSerializedRef.refInfo.name : queryNameOrSerializedRef;
+  const vars =
+    typeof queryNameOrSerializedRef !== 'string'
+      ? queryNameOrSerializedRef.refInfo.variables
+      : variables;
+  const name =
+    typeof queryNameOrSerializedRef !== 'string'
+      ? queryNameOrSerializedRef.refInfo.name
+      : queryNameOrSerializedRef;
   return {
     dataConnect: dcInstance,
     refType: QUERY_STR,

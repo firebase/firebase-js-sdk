@@ -138,11 +138,11 @@ describe('DataConnect Tests', async () => {
     expect(result.data).to.eq(queryResult.data);
     expect(result.source).to.eq(SOURCE_CACHE);
   });
-  
+
   it(`returns the result source as cache when data already exists`, async () => {
     const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts');
     const queryResult = await executeQuery(taskListQuery);
-    const serializedRef =  queryResult.toJSON();
+    const serializedRef = queryResult.toJSON();
     const newRef = queryRef(dc, serializedRef);
     expect(newRef.name).to.eq(serializedRef.refInfo.name);
     expect(newRef.variables).to.eq(serializedRef.refInfo.variables);
