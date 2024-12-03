@@ -42,8 +42,7 @@ export async function getToken(
   await updateVapidKey(messaging, options?.vapidKey);
   await updateSwReg(
     messaging,
-    options?.serviceWorkerRegistration,
-    options?.serviceWorkerRegistrationTimeout
+    options?.serviceWorkerRegistration
   );
 
   return getTokenInternal(messaging);

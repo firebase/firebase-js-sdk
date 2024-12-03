@@ -25,8 +25,7 @@ import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { MessagingService } from '../messaging-service';
 
 export async function registerDefaultSw(
-  messaging: MessagingService,
-  swRegistrationTimeoutMillis?: number
+  messaging: MessagingService
 ): Promise<void> {
   try {
     messaging.swRegistration = await navigator.serviceWorker.register(
@@ -45,8 +44,7 @@ export async function registerDefaultSw(
       /* it is non blocking and we don't care if it failed */
     });
     await waitForRegistrationActive(
-      messaging.swRegistration,
-      swRegistrationTimeoutMillis
+      messaging.swRegistration
     );
   } catch (e) {
     throw ERROR_FACTORY.create(ErrorCode.FAILED_DEFAULT_REGISTRATION, {
@@ -65,18 +63,17 @@ export async function registerDefaultSw(
  * to become "active".
  */
 async function waitForRegistrationActive(
-  registration: ServiceWorkerRegistration,
-  swRegistrationTimeoutMillis: number = DEFAULT_REGISTRATION_TIMEOUT
+  registration: ServiceWorkerRegistration
 ): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     const rejectTimeout = setTimeout(
       () =>
         reject(
           new Error(
-            `Service worker not registered after ${swRegistrationTimeoutMillis} ms`
+            `Service worker not registered after ${DEFAULT_REGISTRATION_TIMEOUT} ms`
           )
         ),
-      swRegistrationTimeoutMillis
+      DEFAULT_REGISTRATION_TIMEOUT
     );
     const incomingSw = registration.installing || registration.waiting;
     if (registration.active) {

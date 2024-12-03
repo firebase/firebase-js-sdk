@@ -22,15 +22,14 @@ import { deleteTokenInternal } from '../internals/token-manager';
 import { registerDefaultSw } from '../helpers/registerDefaultSw';
 
 export async function deleteToken(
-  messaging: MessagingService,
-  swRegistrationTimeoutMillis?: number
+  messaging: MessagingService
 ): Promise<boolean> {
   if (!navigator) {
     throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
 
   if (!messaging.swRegistration) {
-    await registerDefaultSw(messaging, swRegistrationTimeoutMillis);
+    await registerDefaultSw(messaging);
   }
 
   return deleteTokenInternal(messaging);

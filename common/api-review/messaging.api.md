@@ -27,7 +27,6 @@ export function getToken(messaging: Messaging, options?: GetTokenOptions): Promi
 // @public
 export interface GetTokenOptions {
     serviceWorkerRegistration?: ServiceWorkerRegistration;
-    serviceWorkerRegistrationTimeout?: number;
     vapidKey?: string;
 }
 

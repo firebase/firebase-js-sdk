@@ -24,7 +24,6 @@ export function getMessaging(app?: FirebaseApp): Messaging;
 // @public
 export interface GetTokenOptions {
     serviceWorkerRegistration?: ServiceWorkerRegistration;
-    serviceWorkerRegistrationTimeout?: number;
     vapidKey?: string;
 }
 
