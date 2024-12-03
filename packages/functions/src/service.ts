@@ -508,7 +508,7 @@ async function streamAtURL(
  * @param resultRejecter Callback to reject with an error if encountered
  * @param signal Optional AbortSignal to cancel the stream processing
  * @returns A ReadableStream that emits decoded messages from the response
- * 
+ *
  * The returned ReadableStream:
  *   1. Emits individual messages when "message" data is received
  *   2. Resolves with the final result when a "result" message is received
