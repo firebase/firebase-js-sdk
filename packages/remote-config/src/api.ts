@@ -121,7 +121,9 @@ export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
 
   const customSignals = rc._storageCache.getCustomSignals();
   if (customSignals) {
-    rc._logger.debug(`Fetching config with custom signals: ${JSON.stringify(customSignals)}`);
+    rc._logger.debug(
+      `Fetching config with custom signals: ${JSON.stringify(customSignals)}`
+    );
   }
   // Catches *all* errors thrown by client so status can be set consistently.
   try {
