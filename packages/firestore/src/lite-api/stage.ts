@@ -288,7 +288,10 @@ export class FindNearest implements Stage {
 export class Limit implements Stage {
   name = 'limit';
 
-  constructor(readonly limit: number) {
+  constructor(
+    readonly limit: number,
+    readonly convertedFromLimitTolast: boolean = false
+  ) {
     hardAssert(
       !isNaN(limit) && limit !== Infinity && limit !== -Infinity,
       'Invalid limit value'

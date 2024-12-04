@@ -125,7 +125,7 @@ function getTestRunner(
     // eslint-disable-next-line no-restricted-properties
     return it.only;
   } else {
-    return it.only;
+    return it;
   }
 }
 

@@ -424,11 +424,6 @@ function genericQueryEngineTest(
     });
 
     it('does not use initial results for limitToLast query with document removal', async () => {
-      // TODO(pipeline): enable this test for pipelines when we can convert limit to last to pipelines
-      if (options.convertToPipeline) {
-        return;
-      }
-
       const query1 = queryWithLimit(
         query('coll', filter('matches', '==', true), orderBy('order', 'desc')),
         1,
@@ -472,11 +467,6 @@ function genericQueryEngineTest(
     });
 
     it('does not use initial results for limitToLast query when first document has pending write', async () => {
-      // TODO(pipeline): enable this test for pipelines when we can convert limit to last to pipelines
-      if (options.convertToPipeline) {
-        return;
-      }
-
       const query1 = queryWithLimit(
         query('coll', filter('matches', '==', true), orderBy('order')),
         1,
@@ -518,11 +508,6 @@ function genericQueryEngineTest(
     });
 
     it('does not use initial results for limitToLast query when first document in limit has been updated out of band', async () => {
-      // TODO(pipeline): enable this test for pipelines when we can convert limit to last to pipelines
-      if (options.convertToPipeline) {
-        return;
-      }
-
       const query1 = queryWithLimit(
         query('coll', filter('matches', '==', true), orderBy('order')),
         1,

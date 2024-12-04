@@ -568,8 +568,6 @@ export class LocalDocumentsView {
     context?: QueryContext
   ): PersistencePromise<DocumentMap> {
     if (getPipelineSourceType(pipeline) === 'collection_group') {
-      // TODO(pipeline): rewrite the pipeline as collection pipeline and recurse into this function
-      // return this.getDocumentsMatchingPipeline(txn, pipeline, offset, context);
       const collectionId = getPipelineCollectionGroup(pipeline)!;
       let results = documentMap();
       return this.indexManager

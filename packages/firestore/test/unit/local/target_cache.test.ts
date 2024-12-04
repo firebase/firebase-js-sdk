@@ -168,8 +168,7 @@ function genericTargetCacheTests(
   it('can set and read a target', async () => {
     const targetData = testTargetData(QUERY_ROOMS, 1, 1);
     await cache.addTargetData(targetData);
-    // TODO(pipeline): This needs to handle pipeline properly.
-    const read = await cache.getTargetData(targetData.target as Target);
+    const read = await cache.getTargetData(targetData.target);
     expect(read).to.deep.equal(targetData);
   });
 
@@ -211,8 +210,7 @@ function genericTargetCacheTests(
     await cache.addTargetData(testTargetData(QUERY_ROOMS, 1, 1));
     const updated = testTargetData(QUERY_ROOMS, 1, 2);
     await cache.updateTargetData(updated);
-    // TODO(pipeline): This needs to handle pipeline properly.
-    const retrieved = await cache.getTargetData(updated.target as Target);
+    const retrieved = await cache.getTargetData(updated.target);
     expect(retrieved).to.deep.equal(updated);
   });
 

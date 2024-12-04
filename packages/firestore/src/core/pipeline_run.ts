@@ -283,15 +283,16 @@ function lastEffectiveSort(pipeline: CorePipeline): Ordering[] {
 
 export function getLastEffectiveLimit(
   pipeline: CorePipeline
-): number | undefined {
-  // return the last sort stage, throws exception if it doesn't exist
-  // TODO(pipeline): this implementation is wrong, there are stages that can invalidate
-  // the orderings later. The proper way to manipulate the pipeline so that last Sort
-  // always has effects.
+): { limit: number; convertedFromLimitToLast: boolean } | undefined {
+  // TODO(pipeline): this implementation is wrong, there are stages that can change
+  // the limit later (findNearest).
   for (let i = pipeline.stages.length - 1; i >= 0; i--) {
     const stage = pipeline.stages[i];
     if (stage instanceof Limit) {
-      return stage.limit;
+      return {
+        limit: stage.limit,
+        convertedFromLimitToLast: stage.convertedFromLimitTolast
+      };
     }
   }
   return undefined;

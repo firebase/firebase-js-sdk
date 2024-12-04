@@ -13,12 +13,17 @@
 // limitations under the License.
 
 import {
+  And,
   and,
   Constant,
   Expr,
   Field,
   FilterCondition,
   FirestoreFunction,
+  gt,
+  gte,
+  lt,
+  lte,
   not,
   or,
   Ordering
@@ -85,6 +90,7 @@ import { Firestore } from '../api/database';
 import { doc } from '../lite-api/reference';
 import { Direction } from './order_by';
 import { CorePipeline } from './pipeline_run';
+import { Bound } from './bound';
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
@@ -295,6 +301,16 @@ export function toPipelineFilterCondition(
   throw new Error(`Failed to convert filter to pipeline conditions: ${f}`);
 }
 
+function reverseOrderings(orderings: Ordering[]): Ordering[] {
+  return orderings.map(
+    o =>
+      new Ordering(
+        o.expr,
+        o.direction === 'ascending' ? 'descending' : 'ascending'
+      )
+  );
+}
+
 export function toPipeline(query: Query, db: Firestore): Pipeline {
   let pipeline: Pipeline;
   if (isCollectionGroupQuery(query)) {
@@ -323,26 +339,66 @@ export function toPipeline(query: Query, db: Firestore): Pipeline {
     pipeline = pipeline.where(existsConditions[0]);
   }
 
-  pipeline = pipeline.sort(
-    ...orders.map(order =>
-      order.dir === Direction.ASCENDING
-        ? Field.of(order.field.canonicalString()).ascending()
-        : Field.of(order.field.canonicalString()).descending()
-    )
+  const orderings = orders.map(order =>
+    order.dir === Direction.ASCENDING
+      ? Field.of(order.field.canonicalString()).ascending()
+      : Field.of(order.field.canonicalString()).descending()
   );
 
-  // cursors and limits
-  if (query.startAt !== null || query.endAt !== null) {
-    throw new Error('Cursors are not supported yet.');
-  }
   if (query.limitType === LimitType.Last) {
-    throw new Error('Limit to last are not supported yet.');
-  }
-  if (query.limit !== null) {
-    pipeline = pipeline.limit(query.limit);
+    pipeline = pipeline.sort(...reverseOrderings(orderings));
+    // cursors
+    if (query.startAt !== null) {
+      pipeline = pipeline.where(
+        whereConditionsFromCursor(query.startAt, orderings, 'before')
+      );
+    }
+
+    if (query.endAt !== null) {
+      pipeline = pipeline.where(
+        whereConditionsFromCursor(query.endAt, orderings, 'after')
+      );
+    }
+
+    pipeline = pipeline._limit(query.limit!, true);
+    pipeline = pipeline.sort(...orderings);
+  } else {
+    pipeline = pipeline.sort(...orderings);
+    if (query.startAt !== null) {
+      pipeline = pipeline.where(
+        whereConditionsFromCursor(query.startAt, orderings, 'after')
+      );
+    }
+    if (query.endAt !== null) {
+      pipeline = pipeline.where(
+        whereConditionsFromCursor(query.endAt, orderings, 'before')
+      );
+    }
+
+    if (query.limit !== null) {
+      pipeline = pipeline.limit(query.limit);
+    }
   }
 
   return pipeline;
+}
+
+function whereConditionsFromCursor(
+  bound: Bound,
+  orderings: Ordering[],
+  position: 'before' | 'after'
+): And {
+  const cursors = bound.position.map(value => Constant._fromProto(value));
+  const filterFunc = position === 'before' ? lt : gt;
+  const filterInclusiveFunc = position === 'before' ? lte : gte;
+  const conditions = cursors.map((cursor, index) => {
+    if (!!bound.inclusive && index === cursors.length - 1) {
+      return filterInclusiveFunc(orderings[index].expr as Field, cursor);
+    } else {
+      return filterFunc(orderings[index].expr as Field, cursor);
+    }
+  });
+  return new And(conditions);
 }
 
 function canonifyExpr(expr: Expr): string {

@@ -1011,9 +1011,10 @@ describeSpec('Listens:', [], () => {
     }
   );
 
+  // Skipping pipeline conversion because pipeline has no concept of mirroring
   specTest(
     'Mirror queries from same secondary client',
-    ['multi-client'],
+    ['multi-client', 'no-pipeline-conversion'],
     () => {
       const limit = queryWithLimit(
         query('collection', orderBy('val', 'asc')),
@@ -1055,9 +1056,10 @@ describeSpec('Listens:', [], () => {
     }
   );
 
+  // Skipping pipeline conversion because pipeline has no concept of mirroring
   specTest(
     'Mirror queries from different secondary client',
-    ['multi-client'],
+    ['multi-client', 'no-pipeline-conversion'],
     () => {
       const limit = queryWithLimit(
         query('collection', orderBy('val', 'asc')),
@@ -1097,9 +1099,10 @@ describeSpec('Listens:', [], () => {
     }
   );
 
+  // Skipping pipeline conversion because pipeline has no concept of mirroring
   specTest(
     'Mirror queries from primary and secondary client',
-    ['multi-client'],
+    ['multi-client', 'no-pipeline-conversion'],
     () => {
       const limit = queryWithLimit(
         query('collection', orderBy('val', 'asc')),
@@ -1165,51 +1168,56 @@ describeSpec('Listens:', [], () => {
     }
   );
 
-  specTest('Can listen/unlisten to mirror queries.', [], () => {
-    const limit = queryWithLimit(
-      query('collection', orderBy('val', 'asc')),
-      2,
-      LimitType.First
-    );
-    const limitToLast = queryWithLimit(
-      query('collection', orderBy('val', 'desc')),
-      2,
-      LimitType.Last
-    );
-    const docA = doc('collection/a', 1000, { val: 0 });
-    const docB = doc('collection/b', 1000, { val: 1 });
-    const docC = doc('collection/c', 2000, { val: 0 });
+  // Skipping pipeline conversion because pipeline has no concept of mirroring
+  specTest(
+    'Can listen/unlisten to mirror queries.',
+    ['no-pipeline-conversion'],
+    () => {
+      const limit = queryWithLimit(
+        query('collection', orderBy('val', 'asc')),
+        2,
+        LimitType.First
+      );
+      const limitToLast = queryWithLimit(
+        query('collection', orderBy('val', 'desc')),
+        2,
+        LimitType.Last
+      );
+      const docA = doc('collection/a', 1000, { val: 0 });
+      const docB = doc('collection/b', 1000, { val: 1 });
+      const docC = doc('collection/c', 2000, { val: 0 });
 
-    return (
-      spec()
-        .userListens(limit)
-        .expectListen(limit)
-        .userListens(limitToLast)
-        .expectListen(limitToLast)
-        .watchAcksFull(limit, 1000, docA, docB)
-        .expectEvents(limit, { added: [docA, docB] })
-        .expectEvents(limitToLast, { added: [docB, docA] })
-        .userUnlistens(limitToLast)
-        .expectUnlisten(limitToLast)
-        .watchSends({ affects: [limit] }, docC)
-        .watchCurrents(limit, 'resume-token-2000')
-        .watchSnapshots(2000)
-        .expectEvents(limit, { added: [docC], removed: [docB] })
-        .userListens(limitToLast)
-        .expectListen(limitToLast)
-        // Note the result is not from cache because the target is kept
-        // alive since `limit` is still being listened to.
-        .expectEvents(limitToLast, { added: [docC, docA] })
-        // Backend fails the query.
-        .watchRemoves(
-          limit,
-          new RpcError(Code.RESOURCE_EXHAUSTED, 'Resource exhausted')
-        )
-        .expectEvents(limit, { errorCode: Code.RESOURCE_EXHAUSTED })
-        .expectEvents(limitToLast, { errorCode: Code.RESOURCE_EXHAUSTED })
-        .expectActiveTargets()
-    );
-  });
+      return (
+        spec()
+          .userListens(limit)
+          .expectListen(limit)
+          .userListens(limitToLast)
+          .expectListen(limitToLast)
+          .watchAcksFull(limit, 1000, docA, docB)
+          .expectEvents(limit, { added: [docA, docB] })
+          .expectEvents(limitToLast, { added: [docB, docA] })
+          .userUnlistens(limitToLast)
+          .expectUnlisten(limitToLast)
+          .watchSends({ affects: [limit] }, docC)
+          .watchCurrents(limit, 'resume-token-2000')
+          .watchSnapshots(2000)
+          .expectEvents(limit, { added: [docC], removed: [docB] })
+          .userListens(limitToLast)
+          .expectListen(limitToLast)
+          // Note the result is not from cache because the target is kept
+          // alive since `limit` is still being listened to.
+          .expectEvents(limitToLast, { added: [docC, docA] })
+          // Backend fails the query.
+          .watchRemoves(
+            limit,
+            new RpcError(Code.RESOURCE_EXHAUSTED, 'Resource exhausted')
+          )
+          .expectEvents(limit, { errorCode: Code.RESOURCE_EXHAUSTED })
+          .expectEvents(limitToLast, { errorCode: Code.RESOURCE_EXHAUSTED })
+          .expectActiveTargets()
+      );
+    }
+  );
 
   specTest(
     "Secondary client uses primary client's online state",

@@ -405,6 +405,22 @@ export class Pipeline<AppModelType = DocumentData>
     );
   }
 
+  _limit(
+    limit: number,
+    convertedFromLimitTolast: boolean
+  ): Pipeline<AppModelType> {
+    const copy = this.stages.map(s => s);
+    copy.push(new Limit(limit, convertedFromLimitTolast));
+    return new Pipeline(
+      this.liteDb,
+      this.userDataReader,
+      this.userDataWriter,
+      this.documentReferenceFactory,
+      copy,
+      this.converter
+    );
+  }
+
   /**
    * Returns a set of distinct {@link Expr} values from the inputs to this stage.
    *

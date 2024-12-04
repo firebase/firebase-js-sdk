@@ -107,7 +107,6 @@ export class CountingQueryEngine extends QueryEngine {
       getAllEntries(
         transaction: PersistenceTransaction
       ): PersistencePromise<MutableDocumentMap> {
-        // TODO(pipeline): support pipeline
         return subject.getAllEntries(transaction);
       },
       setIndexManager: (indexManager: IndexManager) => {
@@ -180,7 +179,6 @@ export class CountingQueryEngine extends QueryEngine {
         transaction: PersistenceTransaction,
         sinceBatchId: number
       ): PersistencePromise<OverlayMap> {
-        // TODO(pipeline): support pipeline
         return subject.getAllOverlays(transaction, sinceBatchId);
       },
       getOverlay: (transaction, key) => {

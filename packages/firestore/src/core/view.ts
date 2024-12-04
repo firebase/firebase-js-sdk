@@ -252,11 +252,17 @@ export class View {
 
   private getLimit(query: QueryOrPipeline): number | undefined {
     return isPipeline(query)
-      ? getLastEffectiveLimit(query)
+      ? getLastEffectiveLimit(query)?.limit
       : query.limit || undefined;
   }
+
   private getLimitType(query: QueryOrPipeline): LimitType {
-    return isPipeline(query) ? LimitType.First : query.limitType;
+    return isPipeline(query)
+      ? getLastEffectiveLimit(query)?.convertedFromLimitToLast
+        ? LimitType.Last
+        : LimitType.First
+      : query.limitType;
+    // return isPipeline(query) ? LimitType.First : query.limitType;
   }
 
   private getLimitEdges(
@@ -264,7 +270,7 @@ export class View {
     oldDocumentSet: DocumentSet
   ): [Document | null, Document | null] {
     if (isPipeline(query)) {
-      const limit = getLastEffectiveLimit(query);
+      const limit = getLastEffectiveLimit(query)?.limit;
       return [
         oldDocumentSet.size === limit ? oldDocumentSet.last() : null,
         null

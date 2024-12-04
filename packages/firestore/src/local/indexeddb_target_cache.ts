@@ -273,7 +273,6 @@ export class IndexedDbTargetCache implements TargetCache {
           const found = fromDbTarget(this.serializer, value);
           // After finding a potential match, check that the target is
           // actually equal to the requested target.
-          // TODO(pipeline): This needs to handle pipeline properly.
           if (targetOrPipelineEqual(target, found.target)) {
             result = found;
             control.done();

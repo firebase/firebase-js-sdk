@@ -124,6 +124,7 @@ import {
   TEST_PERSISTENCE_PREFIX,
   TEST_SERIALIZER
 } from './persistence_test_helpers';
+import { canonifyTargetOrPipeline } from '../../../src/core/pipeline-util';
 
 use(chaiAsPromised);
 
@@ -911,8 +912,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTargetStore);
           return targetsStore.iterate((key, value) => {
             const targetData = fromDbTarget(TEST_SERIALIZER, value).target;
-            // TODO(pipeline): This needs to handle pipeline properly.
-            const expectedCanonicalId = canonifyTarget(targetData as Target);
+            const expectedCanonicalId = canonifyTargetOrPipeline(targetData);
 
             const actualCanonicalId = value.canonicalId;
             expect(actualCanonicalId).to.equal(expectedCanonicalId);

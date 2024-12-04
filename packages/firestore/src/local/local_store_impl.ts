@@ -99,11 +99,13 @@ import { Pipeline } from '../lite-api/pipeline';
 
 import {
   canonifyTargetOrPipeline,
+  getPipelineDocuments,
   isPipeline,
   QueryOrPipeline,
   TargetOrPipeline,
   targetOrPipelineEqual
 } from '../core/pipeline-util';
+import { CorePipeline } from '../core/pipeline_run';
 
 export const LOG_TAG = 'LocalStore';
 
@@ -1041,12 +1043,6 @@ export async function localStoreReleaseTarget(
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const targetData = localStoreImpl.targetDataByTarget.get(targetId);
 
-  // TODO(pipeline): this is a hack that only works because pipelines are the only ones returning nulls here.
-  // REMOVE ASAP.
-  if (targetData === null) {
-    return;
-  }
-
   debugAssert(
     targetData !== null,
     `Tried to release nonexistent target: ${targetId}`
@@ -1086,7 +1082,7 @@ export async function localStoreReleaseTarget(
   localStoreImpl.targetDataByTarget =
     localStoreImpl.targetDataByTarget.remove(targetId);
   // TODO(pipeline): This needs to handle pipeline properly.
-  localStoreImpl.targetIdByTarget.delete(targetData!.target as Target);
+  localStoreImpl.targetIdByTarget.delete(targetData!.target);
 }
 
 /**
@@ -1262,6 +1258,24 @@ export function localStoreGetCachedTarget(
       }
     );
   }
+}
+
+// PORTING NOTE: Multi-Tab only.
+export function localStoreGetDocuments(
+  localStore: LocalStore,
+  pipeline: CorePipeline
+): Promise<DocumentMap> {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+
+  const keys = getPipelineDocuments(pipeline)!;
+  const keySet = documentKeySet(...keys.map(k => DocumentKey.fromPath(k)));
+  return localStoreImpl.persistence
+    .runTransaction('Get documents for pipeline', 'readonly', txn =>
+      localStoreImpl.remoteDocuments.getEntries(txn, keySet)
+    )
+    .then(changedDocs => {
+      return changedDocs;
+    });
 }
 
 /**

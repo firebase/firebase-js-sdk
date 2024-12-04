@@ -25,6 +25,7 @@ import {
   localStoreExecuteQuery,
   localStoreGetActiveClients,
   localStoreGetCachedTarget,
+  localStoreGetDocuments,
   localStoreGetHighestUnacknowledgedBatchId,
   localStoreGetNewDocumentChanges,
   localStoreHandleUserChange,
@@ -45,6 +46,7 @@ import { TargetData, TargetPurpose } from '../local/target_data';
 import {
   DocumentKeySet,
   documentKeySet,
+  documentMap,
   DocumentMap,
   mutableDocumentMap
 } from '../model/collections';
@@ -120,6 +122,7 @@ import {
   canonifyQueryOrPipeline,
   getPipelineCollection,
   getPipelineCollectionId,
+  getPipelineSourceType,
   isPipeline,
   QueryOrPipeline,
   queryOrPipelineEqual,
@@ -1096,7 +1099,6 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
     return;
   }
 
-  // TODO(pipeline): will this work for pipelines?
   syncEngineImpl.queryViewsByQuery.forEach((_, queryView) => {
     debugAssert(
       !!syncEngineImpl.applyDocChanges,
@@ -1548,13 +1550,35 @@ export async function syncEngineApplyTargetState(
     switch (state) {
       case 'current':
       case 'not-current': {
-        const changes = await localStoreGetNewDocumentChanges(
-          syncEngineImpl.localStore,
-          // TODO(pipeline): handle database/documents pipeline
-          isPipeline(query[0])
-            ? getPipelineCollectionId(query[0])!
-            : queryCollectionGroup(query[0])
-        );
+        let changes: DocumentMap;
+        if (isPipeline(query[0])) {
+          switch (getPipelineSourceType(query[0])) {
+            case 'collection_group':
+            case 'collection':
+              changes = await localStoreGetNewDocumentChanges(
+                syncEngineImpl.localStore,
+                getPipelineCollectionId(query[0])!
+              );
+              break;
+            case 'documents':
+              changes = await localStoreGetDocuments(
+                syncEngineImpl.localStore,
+                query[0]!
+              );
+              break;
+            case 'database':
+            case 'unknown':
+              logWarn('');
+              changes = documentMap();
+              break;
+          }
+        } else {
+          changes = await localStoreGetNewDocumentChanges(
+            syncEngineImpl.localStore,
+            queryCollectionGroup(query[0])
+          );
+        }
+
         const synthesizedRemoteEvent =
           RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
             targetId,
