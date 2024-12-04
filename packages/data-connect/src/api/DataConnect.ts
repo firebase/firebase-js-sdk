@@ -194,7 +194,12 @@ export class DataConnect {
   }
 }
 
-// @internal
+/**
+ * @internal
+ * @param transportOptions1 
+ * @param transportOptions2 
+ * @returns 
+ */
 export function areTransportOptionsEqual(
   transportOptions1: TransportOptions,
   transportOptions2: TransportOptions

@@ -104,53 +104,27 @@ export function queryRef<Data, Variables>(
   queryName: string,
   variables: Variables
 ): QueryRef<Data, Variables>;
-
-export function queryRef<Data, Variables>(
-  dcInstance: DataConnect,
-  serializedRef: SerializedRef<Data, Variables>
-): QueryRef<Data, Variables>;
-
 /**
  * Execute Query
  * @param dcInstance Data Connect instance to use.
- * @param queryNameOrSerializedRef Query to execute
+ * @param queryName Query to execute
  * @param variables Variables to execute with
  * @param initialCache initial cache to use for client hydration
  * @returns `QueryRef`
  */
 export function queryRef<Data, Variables>(
   dcInstance: DataConnect,
-  queryNameOrSerializedRef: string | SerializedRef<Data, Variables>,
+  queryName: string,
   variables?: Variables,
   initialCache?: QueryResult<Data, Variables>
 ): QueryRef<Data, Variables> {
   dcInstance.setInitialized();
-  if (typeof queryNameOrSerializedRef === 'string') {
-    dcInstance._queryManager.track(
-      queryNameOrSerializedRef,
-      variables,
-      initialCache
-    );
-  } else {
-    dcInstance._queryManager.track(
-      queryNameOrSerializedRef.refInfo.name,
-      queryNameOrSerializedRef.refInfo.variables,
-      queryNameOrSerializedRef
-    );
-  }
-  const vars =
-    typeof queryNameOrSerializedRef !== 'string'
-      ? queryNameOrSerializedRef.refInfo.variables
-      : variables;
-  const name =
-    typeof queryNameOrSerializedRef !== 'string'
-      ? queryNameOrSerializedRef.refInfo.name
-      : queryNameOrSerializedRef;
+  dcInstance._queryManager.track(queryName, variables, initialCache);
   return {
     dataConnect: dcInstance,
     refType: QUERY_STR,
-    name,
-    variables: vars
+    name: queryName,
+    variables: variables as Variables
   };
 }
 /**
