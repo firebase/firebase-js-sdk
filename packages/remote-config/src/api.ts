@@ -119,12 +119,16 @@ export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
     abortSignal.abort();
   }, rc.settings.fetchTimeoutMillis);
 
+  const customSignals = rc._storageCache.getCustomSignals();
+  if (customSignals) {
+    rc._logger.debug(`Fetching config with custom signals: ${JSON.stringify(customSignals)}`);
+  }
   // Catches *all* errors thrown by client so status can be set consistently.
   try {
     await rc._client.fetch({
       cacheMaxAgeMillis: rc.settings.minimumFetchIntervalMillis,
       signal: abortSignal,
-      customSignals: rc._storageCache.getCustomSignals()
+      customSignals
     });
 
     await rc._storageCache.setLastFetchStatus('success');
