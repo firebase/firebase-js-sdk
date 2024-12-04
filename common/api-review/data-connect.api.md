@@ -12,6 +12,9 @@ import { LogLevelString } from '@firebase/logger';
 import { Provider } from '@firebase/component';
 
 // @public (undocumented)
+export function areTransportOptionsEqual(transportOptions1: TransportOptions, transportOptions2: TransportOptions): boolean;
+
+// @public (undocumented)
 export interface CancellableOperation<T> extends PromiseLike<{
     data: T;
 }> {
@@ -158,6 +161,9 @@ export function queryRef<Data>(dcInstance: DataConnect, queryName: string): Quer
 
 // @public
 export function queryRef<Data, Variables>(dcInstance: DataConnect, queryName: string, variables: Variables): QueryRef<Data, Variables>;
+
+// @public (undocumented)
+export function queryRef<Data, Variables>(dcInstance: DataConnect, serializedRef: SerializedRef<Data, Variables>): QueryRef<Data, Variables>;
 
 // @public
 export interface QueryResult<Data, Variables> extends DataConnectResult<Data, Variables> {
