@@ -200,7 +200,9 @@ export function areTransportOptionsEqual(
   transportOptions2: TransportOptions
 ) {
   return (
-    JSON.stringify(transportOptions1) === JSON.stringify(transportOptions2)
+    transportOptions1.host === transportOptions2.host &&
+    transportOptions1.port === transportOptions2.port &&
+    transportOptions1.sslEnabled === transportOptions2.sslEnabled
   );
 }
 

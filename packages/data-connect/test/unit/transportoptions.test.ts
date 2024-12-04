@@ -24,7 +24,7 @@ import {
 } from '../../src/api/DataConnect';
 import { app } from '../util';
 import { queryRef } from '../../src';
-describe.only('Transport Options', () => {
+describe('Transport Options', () => {
   it('should return false if transport options are not equal', () => {
     const transportOptions1: TransportOptions = {
       host: 'h',
@@ -47,15 +47,15 @@ describe.only('Transport Options', () => {
       sslEnabled: false
     };
     const transportOptions2: TransportOptions = {
-      host: 'h',
       port: 1,
+      host: 'h',
       sslEnabled: false
     };
     expect(
       areTransportOptionsEqual(transportOptions1, transportOptions2)
     ).to.eq(true);
   });
-  it.only('should throw if emulator is connected to with new transport options', () => {
+  it('should throw if emulator is connected to with new transport options', () => {
     const dc = getDataConnect(app, {
       connector: 'c',
       location: 'l',
@@ -67,7 +67,7 @@ describe.only('Transport Options', () => {
       'DataConnect instance already initialized!'
     );
   });
-  it.only('should not throw if emulator is connected to with the same transport options', () => {
+  it('should not throw if emulator is connected to with the same transport options', () => {
     const dc = getDataConnect(app, {
       connector: 'c',
       location: 'l',
