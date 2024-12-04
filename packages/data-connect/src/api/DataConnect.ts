@@ -198,7 +198,7 @@ export class DataConnect {
 export function areTransportOptionsEqual(
   transportOptions1: TransportOptions,
   transportOptions2: TransportOptions
-) {
+): boolean {
   return (
     transportOptions1.host === transportOptions2.host &&
     transportOptions1.port === transportOptions2.port &&
