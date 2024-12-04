@@ -146,7 +146,7 @@ export async function makeRequest(
     );
     // Timeout is 180s by default
     const timeoutMillis =
-      requestOptions?.timeout !== undefined && requestOptions.timeout >= 0
+      requestOptions?.timeout != null && requestOptions.timeout >= 0
         ? requestOptions.timeout
         : DEFAULT_FETCH_TIMEOUT_MS;
     const abortController = new AbortController();
