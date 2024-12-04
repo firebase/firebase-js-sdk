@@ -26,6 +26,33 @@ import { ComponentContainer } from '@firebase/component';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ERROR_FACTORY, AppError } from './errors';
 import { name as packageName, version } from '../package.json';
+import { base64Decode } from '@firebase/util';
+
+// Parse the token and check to see if the `exp` claim is in the future.
+// Throws an error if the token or claim could not be parsed, or if `exp` is in the past.
+function validateTokenTTL(base64Token: string, tokenName: string): void {
+  const secondPart = base64Decode(base64Token.split('.')[1]);
+  if (secondPart === null) {
+    throw ERROR_FACTORY.create(AppError.INVALID_SERVER_APP_TOKEN_FORMAT, {
+      tokenName
+    });
+  }
+  const expClaim = JSON.parse(secondPart).exp;
+  if (expClaim === undefined) {
+    throw ERROR_FACTORY.create(AppError.INVALID_SERVER_APP_TOKEN_FORMAT, {
+      tokenName
+    });
+  }
+  const exp = JSON.parse(secondPart).exp * 1000;
+  const now = new Date().getTime();
+  // const now = new Date(new Date().getDate() - 1).now()
+  const diff = exp - now;
+  if (diff <= 0) {
+    throw ERROR_FACTORY.create(AppError.SERVER_APP_TOKEN_EXPIRED, {
+      tokenName
+    });
+  }
+}
 
 export class FirebaseServerAppImpl
   extends FirebaseAppImpl
@@ -66,6 +93,16 @@ export class FirebaseServerAppImpl
       automaticDataCollectionEnabled,
       ...serverConfig
     };
+
+    // Validate the authIdtoken validation window.
+    if (this._serverConfig.authIdToken) {
+      validateTokenTTL(this._serverConfig.authIdToken, 'authIdToken');
+    }
+
+    // Validate the appCheckToken validation window.
+    if (this._serverConfig.appCheckToken) {
+      validateTokenTTL(this._serverConfig.appCheckToken, 'appCheckToken');
+    }
 
     this._finalizationRegistry = null;
     if (typeof FinalizationRegistry !== 'undefined') {

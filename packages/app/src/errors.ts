@@ -31,7 +31,9 @@ export const enum AppError {
   IDB_WRITE = 'idb-set',
   IDB_DELETE = 'idb-delete',
   FINALIZATION_REGISTRY_NOT_SUPPORTED = 'finalization-registry-not-supported',
-  INVALID_SERVER_APP_ENVIRONMENT = 'invalid-server-app-environment'
+  INVALID_SERVER_APP_ENVIRONMENT = 'invalid-server-app-environment',
+  INVALID_SERVER_APP_TOKEN_FORMAT = 'invalid-server-app-token-format',
+  SERVER_APP_TOKEN_EXPIRED = 'server-app-token-expired'
 }
 
 const ERRORS: ErrorMap<AppError> = {
@@ -61,7 +63,11 @@ const ERRORS: ErrorMap<AppError> = {
   [AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED]:
     'FirebaseServerApp deleteOnDeref field defined but the JS runtime does not support FinalizationRegistry.',
   [AppError.INVALID_SERVER_APP_ENVIRONMENT]:
-    'FirebaseServerApp is not for use in browser environments.'
+    'FirebaseServerApp is not for use in browser environments.',
+  [AppError.INVALID_SERVER_APP_TOKEN_FORMAT]:
+    'FirebaseServerApp {$tokenName} could not be parsed.',
+  [AppError.SERVER_APP_TOKEN_EXPIRED]:
+    'FirebaseServerApp {$tokenName} could not be parsed.'
 };
 
 interface ErrorParams {
@@ -75,6 +81,8 @@ interface ErrorParams {
   [AppError.IDB_WRITE]: { originalErrorMessage?: string };
   [AppError.IDB_DELETE]: { originalErrorMessage?: string };
   [AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED]: { appName?: string };
+  [AppError.INVALID_SERVER_APP_TOKEN_FORMAT]: { tokenName: string };
+  [AppError.SERVER_APP_TOKEN_EXPIRED]: { tokenName: string };
 }
 
 export const ERROR_FACTORY = new ErrorFactory<AppError, ErrorParams>(
