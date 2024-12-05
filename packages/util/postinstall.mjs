@@ -52,17 +52,17 @@ async function getWebConfig() {
     ).catch((e) => {
         // TODO add sensible error
         console.error(e);
-        return undefined;
+        return configFromEnvironment;
     });
     if (!response.ok) {
         // TODO add sensible error
         console.error("yikes.");
-        return undefined;
+        return configFromEnvironment;
     }
     const json = await response.json().catch(() => {
         // TODO add sensible error
         console.error("also yikes.");
-        return undefined;
+        return configFromEnvironment;
     });
     return { ...json, apiKey };
 }
