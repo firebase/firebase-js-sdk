@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-const fs = require('fs');
+import type { Config } from 'jest';
 
-const contextHtml = fs.readFileSync('./context-template.html', 'utf8');
-fs.writeFileSync(
-  './context.html',
-  // Include single quotes so it doesn't replace the comment.
-  contextHtml.replace(
-    "'APP_CHECK_DEBUG_TOKEN'",
-    `'${process.env.APP_CHECK_DEBUG_TOKEN}'`
-  )
-);
+const config: Config = {
+  verbose: true,
+  testEnvironment: './fix-jsdom-environment.ts',
+  globals: {
+    FIREBASE_APPCHECK_DEBUG_TOKEN: process.env.APP_CHECK_DEBUG_TOKEN
+  }
+};
+
+export default config;
