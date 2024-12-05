@@ -49,7 +49,11 @@ async function getWebConfig() {
     const response = await fetch(
         `https://firebase.googleapis.com/v1alpha/projects/${projectId}/apps/${appId}/webConfig`,
         { headers: { "x-goog-api-key": apiKey } }
-    );
+    ).catch((e) => {
+        // TODO add sensible error
+        console.error(e);
+        return undefined;
+    });
     if (!response.ok) {
         // TODO add sensible error
         console.error("yikes.");
