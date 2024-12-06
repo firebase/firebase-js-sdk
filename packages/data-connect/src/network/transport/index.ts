@@ -35,10 +35,6 @@ export interface DataConnectTransport {
   onTokenChanged: (token: string | null) => void;
 }
 
-export interface CancellableOperation<T> extends Promise<{ data: T }> {
-  cancel: () => void;
-}
-
 /**
  * @internal
  */
