@@ -37,7 +37,7 @@ import { AutoId } from '../util/misc';
 import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import { FieldValue } from './field_value';
-import { Pipeline } from './pipeline';
+import type { Pipeline } from './pipeline';
 import { FirestoreDataConverter } from './snapshot';
 import { NestedUpdateFields, Primitive } from './types';
 
@@ -180,25 +180,12 @@ export class Query<
   }
 
   /**
-   * @private
-   * @internal
+   * Pipeline query.
    */
   pipeline(): Pipeline {
-    let pipeline;
-    if (this._query.collectionGroup) {
-      pipeline = this.firestore
-        .pipeline()
-        .collectionGroup(this._query.collectionGroup);
-    } else {
-      pipeline = this.firestore
-        .pipeline()
-        .collection(this._query.path.canonicalString());
-    }
-
-    // TODO(pipeline) convert existing query filters, limits, etc into
-    // pipeline stages
-
-    return pipeline;
+    throw new Error(
+      'Pipelines not initialized. Your application must call `useFirestorePipelines()` before using Firestore Pipeline features.'
+    );
   }
 }
 

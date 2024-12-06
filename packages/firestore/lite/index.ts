@@ -31,7 +31,11 @@ export { PipelineSource } from '../src/lite-api/pipeline-source';
 
 export { PipelineResult } from '../src/lite-api/pipeline-result';
 
-export { Pipeline } from '../src/lite-api/pipeline';
+export { Pipeline, pipeline } from '../src/lite-api/pipeline';
+
+export { useFirestorePipelines } from '../src/lite-api/database_augmentation';
+
+export { execute } from '../src/lite-api/pipeline_impl';
 
 export {
   Stage,
@@ -71,8 +75,6 @@ export {
   arrayLength,
   inAny,
   notInAny,
-  and as andExpression,
-  or as orExpression,
   xor,
   ifFunction,
   not,
@@ -97,9 +99,6 @@ export {
   strConcat,
   mapGet,
   countAll,
-  count as countExpression,
-  sum as sumExpression,
-  avg,
   min,
   max,
   cosineDistance,

@@ -56,7 +56,7 @@ import { forEach } from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { isNullOrUndefined } from '../../../src/util/types';
 import { firestore, newTestFirestore } from '../../util/api_helpers';
-import { TestSnapshotVersion } from '../../util/helpers';
+import { deletedDoc, TestSnapshotVersion } from '../../util/helpers';
 
 import { RpcError } from './spec_rpc_error';
 import {
@@ -337,6 +337,15 @@ export class SpecBuilder {
 
   userListens(query: QueryOrPipeline, resume?: ResumeSpec): this {
     this.addUserListenStep(query, resume);
+    return this;
+  }
+
+  /** Listen to query using the same options as executing a getDoc or getDocs */
+  userListensForGet(query: Query, resume?: ResumeSpec): this {
+    this.addUserListenStep(query, resume, {
+      includeMetadataChanges: true,
+      waitForSyncWhenOnline: true
+    });
     return this;
   }
 
@@ -848,6 +857,23 @@ export class SpecBuilder {
     this.currentStep = {
       watchEntity: {
         key: SpecBuilder.keyToSpec(key),
+        removedTargets: targets.map(query => this.getTargetId(query))
+      }
+    };
+    return this;
+  }
+
+  watchDeletesDoc(
+    key: DocumentKey,
+    version: TestSnapshotVersion,
+    ...targets: Query[]
+  ): this {
+    this.nextStep();
+    this.currentStep = {
+      watchEntity: {
+        doc: SpecBuilder.docToSpec(
+          deletedDoc(key.path.canonicalString(), version)
+        ),
         removedTargets: targets.map(query => this.getTargetId(query))
       }
     };

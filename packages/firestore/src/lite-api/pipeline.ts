@@ -1,16 +1,19 @@
-// Copyright 2024 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/**
+ * @license
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
@@ -21,14 +24,12 @@ import {
   StructuredPipeline,
   Stage as ProtoStage
 } from '../protos/firestore_proto_api';
-import { invokeExecutePipeline } from '../remote/datastore';
 import {
   getEncodedDatabaseId,
   JsonProtoSerializer,
   ProtoSerializable
 } from '../remote/serializer';
 
-import { getDatastore } from './components';
 import { Firestore } from './database';
 import {
   Accumulator,
@@ -124,29 +125,30 @@ export class Pipeline<AppModelType = DocumentData>
   /**
    * @internal
    * @private
-   * @param liteDb
+   * @param _db
    * @param userDataReader
-   * @param userDataWriter
-   * @param documentReferenceFactory
+   * @param _userDataWriter
+   * @param _documentReferenceFactory
    * @param stages
    * @param converter
    */
   constructor(
-    readonly liteDb: Firestore,
     /**
      * @internal
+     * @private
      */
+    public _db: Firestore,
     readonly userDataReader: UserDataReader,
     /**
      * @internal
      * @private
      */
-    readonly userDataWriter: AbstractUserDataWriter,
+    public _userDataWriter: AbstractUserDataWriter,
     /**
      * @internal
      * @private
      */
-    readonly documentReferenceFactory: (id: DocumentKey) => DocumentReference,
+    public _documentReferenceFactory: (id: DocumentKey) => DocumentReference,
     readonly stages: Stage[],
     // TODO(pipeline) support converter
     //private converter:  FirestorePipelineConverter<AppModelType> = defaultPipelineConverter()
@@ -186,11 +188,11 @@ export class Pipeline<AppModelType = DocumentData>
         this.readUserData('addFields', this.selectablesToMap(fields))
       )
     );
-    return new Pipeline(
-      this.liteDb,
+    return this.newPipeline(
+      this._db,
       this.userDataReader,
-      this.userDataWriter,
-      this.documentReferenceFactory,
+      this._userDataWriter,
+      this._documentReferenceFactory,
       copy,
       this.converter
     );
@@ -232,11 +234,11 @@ export class Pipeline<AppModelType = DocumentData>
     let projections: Map<string, Expr> = this.selectablesToMap(selections);
     projections = this.readUserData('select', projections);
     copy.push(new Select(projections));
-    return new Pipeline(
-      this.liteDb,
+    return this.newPipeline(
+      this._db,
       this.userDataReader,
-      this.userDataWriter,
-      this.documentReferenceFactory,
+      this._userDataWriter,
+      this._documentReferenceFactory,
       copy,
       this.converter
     );
@@ -289,6 +291,24 @@ export class Pipeline<AppModelType = DocumentData>
     return expressionMap;
   }
 
+  protected newPipeline(
+    db: Firestore,
+    userDataReader: UserDataReader,
+    userDataWriter: AbstractUserDataWriter,
+    documentReferenceFactory: (id: DocumentKey) => DocumentReference,
+    stages: Stage[],
+    converter: unknown = {}
+  ): Pipeline<AppModelType> {
+    return new Pipeline<AppModelType>(
+      db,
+      userDataReader,
+      userDataWriter,
+      documentReferenceFactory,
+      stages,
+      converter
+    );
+  }
+
   /**
    * Filters the documents from previous stages to only include those matching the specified {@link
    * FilterCondition}.
@@ -324,11 +344,11 @@ export class Pipeline<AppModelType = DocumentData>
     const copy = this.stages.map(s => s);
     this.readUserData('where', condition);
     copy.push(new Where(condition));
-    return new Pipeline(
-      this.liteDb,
+    return this.newPipeline(
+      this._db,
       this.userDataReader,
-      this.userDataWriter,
-      this.documentReferenceFactory,
+      this._userDataWriter,
+      this._documentReferenceFactory,
       copy,
       this.converter
     );
@@ -357,11 +377,11 @@ export class Pipeline<AppModelType = DocumentData>
   offset(offset: number): Pipeline<AppModelType> {
     const copy = this.stages.map(s => s);
     copy.push(new Offset(offset));
-    return new Pipeline(
-      this.liteDb,
+    return this.newPipeline(
+      this._db,
       this.userDataReader,
-      this.userDataWriter,
-      this.documentReferenceFactory,
+      this._userDataWriter,
+      this._documentReferenceFactory,
       copy,
       this.converter
     );
@@ -395,11 +415,11 @@ export class Pipeline<AppModelType = DocumentData>
   limit(limit: number): Pipeline<AppModelType> {
     const copy = this.stages.map(s => s);
     copy.push(new Limit(limit));
-    return new Pipeline(
-      this.liteDb,
+    return this.newPipeline(
+      this._db,
       this.userDataReader,
-      this.userDataWriter,
-      this.documentReferenceFactory,
+      this._userDataWriter,
+      this._documentReferenceFactory,
       copy,
       this.converter
     );
@@ -456,11 +476,11 @@ export class Pipeline<AppModelType = DocumentData>
         this.readUserData('distinct', this.selectablesToMap(groups || []))
       )
     );
-    return new Pipeline(
-      this.liteDb,
+    return this.newPipeline(
+      this._db,
       this.userDataReader,
-      this.userDataWriter,
-      this.documentReferenceFactory,
+      this._userDataWriter,
+      this._documentReferenceFactory,
       copy,
       this.converter
     );
@@ -569,11 +589,11 @@ export class Pipeline<AppModelType = DocumentData>
         )
       );
     }
-    return new Pipeline(
-      this.liteDb,
+    return this.newPipeline(
+      this._db,
       this.userDataReader,
-      this.userDataWriter,
-      this.documentReferenceFactory,
+      this._userDataWriter,
+      this._documentReferenceFactory,
       copy,
       this.converter
     );
@@ -597,11 +617,11 @@ export class Pipeline<AppModelType = DocumentData>
         options.distanceField
       )
     );
-    return new Pipeline(
-      this.liteDb,
+    return this.newPipeline(
+      this._db,
       this.userDataReader,
-      this.userDataWriter,
-      this.documentReferenceFactory,
+      this._userDataWriter,
+      this._documentReferenceFactory,
       copy
     );
   }
@@ -658,11 +678,11 @@ export class Pipeline<AppModelType = DocumentData>
       );
     }
 
-    return new Pipeline(
-      this.liteDb,
+    return this.newPipeline(
+      this._db,
       this.userDataReader,
-      this.userDataWriter,
-      this.documentReferenceFactory,
+      this._userDataWriter,
+      this._documentReferenceFactory,
       copy,
       this.converter
     );
@@ -696,11 +716,11 @@ export class Pipeline<AppModelType = DocumentData>
       }
     });
     copy.push(new GenericStage(name, params));
-    return new Pipeline(
-      this.liteDb,
+    return this.newPipeline(
+      this._db,
       this.userDataReader,
-      this.userDataWriter,
-      this.documentReferenceFactory,
+      this._userDataWriter,
+      this._documentReferenceFactory,
       copy,
       this.converter
     );
@@ -765,7 +785,7 @@ export class Pipeline<AppModelType = DocumentData>
   //   converter:  FirestorePipelineConverter<NewAppModelType> | null
   // ): Pipeline<NewAppModelType> {
   //   const copy = this.stages.map(s => s);
-  //   return new Pipeline<NewAppModelType>(
+  //   return this.newPipeline<NewAppModelType>(
   //     this.db,
   //     copy,
   //     converter ?? defaultPipelineConverter()
@@ -804,29 +824,9 @@ export class Pipeline<AppModelType = DocumentData>
    * @return A Promise representing the asynchronous pipeline execution.
    */
   execute(): Promise<Array<PipelineResult<AppModelType>>> {
-    const datastore = getDatastore(this.liteDb);
-    return invokeExecutePipeline(datastore, this).then(result => {
-      const docs = result
-        // Currently ignore any response from ExecutePipeline that does
-        // not contain any document data in the `fields` property.
-        .filter(element => !!element.fields)
-        .map(
-          element =>
-            new PipelineResult<AppModelType>(
-              this.userDataWriter,
-              element.key?.path
-                ? this.documentReferenceFactory(element.key)
-                : undefined,
-              element.fields,
-              element.executionTime?.toTimestamp(),
-              element.createTime?.toTimestamp(),
-              element.updateTime?.toTimestamp()
-              //this.converter
-            )
-        );
-
-      return docs;
-    });
+    throw new Error(
+      'Pipelines not initialized. Your application must call `useFirestorePipelines()` before using Firestore Pipeline features.'
+    );
   }
 
   /**

@@ -70,6 +70,7 @@ import { Aggregate } from './aggregate';
 import { NamedQuery } from './bundle';
 import {
   ComponentConfiguration,
+  LruGcMemoryOfflineComponentProvider,
   MemoryOfflineComponentProvider,
   OfflineComponentProvider,
   OnlineComponentProvider
@@ -339,7 +340,7 @@ async function ensureOfflineComponents(
       logDebug(LOG_TAG, 'Using default OfflineComponentProvider');
       await setOfflineComponentProvider(
         client,
-        new MemoryOfflineComponentProvider()
+        new LruGcMemoryOfflineComponentProvider(undefined)
       );
     }
   }
@@ -559,7 +560,7 @@ export function firestoreClientRunAggregateQuery(
 
 export function firestoreClientExecutePipeline(
   client: FirestoreClient,
-  pipeline: LitePipeline
+  pipeline: LitePipeline<unknown>
 ): Promise<PipelineStreamElement[]> {
   const deferred = new Deferred<PipelineStreamElement[]>();
 

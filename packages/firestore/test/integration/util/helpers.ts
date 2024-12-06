@@ -182,9 +182,7 @@ function apiDescribeInternal(
   message: string,
   testSuite: (persistence: PersistenceMode) => void
 ): void {
-  const persistenceModes: PersistenceMode[] = [
-    new MemoryEagerPersistenceMode()
-  ];
+  const persistenceModes: PersistenceMode[] = [new MemoryLruPersistenceMode()];
   if (isPersistenceAvailable()) {
     persistenceModes.push(new IndexedDbPersistenceMode());
   }

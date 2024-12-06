@@ -75,7 +75,7 @@ export interface GenerateContentResponse {
 }
 
 /**
- * Usage metadata about a {@link GenerateContentResponse}.
+ * Usage metadata about a <code>{@link GenerateContentResponse}</code>.
  *
  * @public
  */
@@ -91,13 +91,13 @@ export interface UsageMetadata {
  * @public
  */
 export interface PromptFeedback {
-  blockReason: BlockReason;
+  blockReason?: BlockReason;
   safetyRatings: SafetyRating[];
   blockReasonMessage?: string;
 }
 
 /**
- * A candidate returned as part of a {@link GenerateContentResponse}.
+ * A candidate returned as part of a <code>{@link GenerateContentResponse}</code>.
  * @public
  */
 export interface GenerateContentCandidate {
@@ -111,7 +111,7 @@ export interface GenerateContentCandidate {
 }
 
 /**
- * Citation metadata that may be found on a {@link GenerateContentCandidate}.
+ * Citation metadata that may be found on a <code>{@link GenerateContentCandidate}</code>.
  * @public
  */
 export interface CitationMetadata {
@@ -187,7 +187,7 @@ export interface Date {
 }
 
 /**
- * A safety rating associated with a {@link GenerateContentCandidate}
+ * A safety rating associated with a <code>{@link GenerateContentCandidate}</code>
  * @public
  */
 export interface SafetyRating {

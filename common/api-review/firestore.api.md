@@ -104,7 +104,7 @@ export class And extends FirestoreFunction implements FilterCondition {
 export function and(...queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
 
 // @beta
-export function andExpression(left: FilterExpr, ...right: FilterExpr[]): And;
+export function andFunction(left: FilterExpr, ...right: FilterExpr[]): And;
 
 // @beta (undocumented)
 export class ArrayConcat extends FirestoreFunction {
@@ -218,10 +218,10 @@ export class Avg extends FirestoreFunction implements Accumulator {
     }
 
 // @beta
-export function avg(value: Constant): Avg;
+export function avgFunction(value: Constant): Avg;
 
 // @beta
-export function avg(value: string): Avg;
+export function avgFunction(value: string): Avg;
 
 // @beta (undocumented)
 export class ByteLength extends FirestoreFunction {
@@ -457,12 +457,12 @@ export function count(): AggregateField<number>;
 export function countAll(): Count;
 
 // @beta
-export function countExpression(value: Constant): Count;
+export function countFunction(value: Constant): Count;
 
-// Warning: (ae-incompatible-release-tags) The symbol "countExpression" is marked as @public, but its signature references "Count" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "countFunction" is marked as @public, but its signature references "Count" which is marked as @beta
 //
 // @public
-export function countExpression(value: string): Count;
+export function countFunction(value: string): Count;
 
 // @beta (undocumented)
 export class DatabaseSource implements Stage {
@@ -681,6 +681,9 @@ export function euclideanDistance(expr: Constant, other: VectorValue): Euclidean
 
 // @beta
 export function euclideanDistance(expr: Constant, other: Constant): EuclideanDistance;
+
+// @beta
+export function execute<AppModelType>(pipeline: Pipeline<AppModelType>): Promise<Array<PipelineResult<AppModelType>>>;
 
 // @beta (undocumented)
 export class Exists extends FirestoreFunction implements FilterCondition {
@@ -1074,9 +1077,7 @@ export interface FindNearestOptions {
 export class Firestore {
     get app(): FirebaseApp;
     // Warning: (ae-incompatible-release-tags) The symbol "pipeline" is marked as @public, but its signature references "PipelineSource" which is marked as @beta
-    //
-    // (undocumented)
-    pipeline: () => PipelineSource;
+    pipeline(): PipelineSource;
     toJSON(): object;
     type: 'firestore-lite' | 'firestore';
 }
@@ -1755,7 +1756,7 @@ export class Ordering {
     }
 
 // @beta
-export function orExpression(left: FilterExpr, ...right: FilterExpr[]): Or;
+export function orFunction(left: FilterExpr, ...right: FilterExpr[]): Or;
 
 // @public
 export type PartialWithFieldValue<T> = Partial<T> | (T extends Primitive ? T : T extends {} ? {
@@ -1813,16 +1814,16 @@ export interface PersistentSingleTabManagerSettings {
 // @public
 export type PersistentTabManager = PersistentSingleTabManager | PersistentMultipleTabManager;
 
-// @public
+// @public (undocumented)
 export class Pipeline<AppModelType = DocumentData> {
+    /* Excluded from this release type: __constructor */
     // Warning: (ae-incompatible-release-tags) The symbol "addFields" is marked as @public, but its signature references "Selectable" which is marked as @beta
     addFields(...fields: Selectable[]): Pipeline<AppModelType>;
     // Warning: (ae-incompatible-release-tags) The symbol "aggregate" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
     aggregate(...accumulators: AccumulatorTarget[]): Pipeline<AppModelType>;
-    aggregate(options: {
-        accumulators: AccumulatorTarget[];
-        groups?: Array<string | Selectable>;
-    }): Pipeline<AppModelType>;
+    aggregate(options: { accumulators: AccumulatorTarget[]; groups?: Array<string | Selectable>; }): Pipeline<AppModelType>;
+    // (undocumented)
+    converter: any;
     // Warning: (ae-incompatible-release-tags) The symbol "distinct" is marked as @public, but its signature references "Selectable" which is marked as @beta
     distinct(...groups: Array<string | Selectable>): Pipeline<AppModelType>;
     // Warning: (ae-incompatible-release-tags) The symbol "execute" is marked as @public, but its signature references "PipelineResult" which is marked as @beta
@@ -1834,18 +1835,31 @@ export class Pipeline<AppModelType = DocumentData> {
     genericStage(name: string, params: any[]): Pipeline<AppModelType>;
     limit(limit: number): Pipeline<AppModelType>;
     offset(offset: number): Pipeline<AppModelType>;
+    readUserData: any;
     // Warning: (ae-incompatible-release-tags) The symbol "select" is marked as @public, but its signature references "Selectable" which is marked as @beta
     select(...selections: Array<Selectable | string>): Pipeline<AppModelType>;
+    // (undocumented)
+    selectablesToMap: any;
     // Warning: (ae-incompatible-release-tags) The symbol "sort" is marked as @public, but its signature references "Ordering" which is marked as @beta
     sort(...orderings: Ordering[]): Pipeline<AppModelType>;
     // (undocumented)
-    sort(options: {
-        orderings: Ordering[];
-    }): Pipeline<AppModelType>;
+    sort(options: { orderings: Ordering[]; }): Pipeline<AppModelType>;
+    // (undocumented)
+    stages: any;
+    // (undocumented)
+    userDataReader: any;
     // Warning: (ae-incompatible-release-tags) The symbol "where" is marked as @public, but its signature references "FilterCondition" which is marked as @beta
     // Warning: (ae-incompatible-release-tags) The symbol "where" is marked as @public, but its signature references "Constant" which is marked as @beta
     where(condition: FilterCondition & Constant): Pipeline<AppModelType>;
 }
+
+// Warning: (ae-incompatible-release-tags) The symbol "pipeline" is marked as @public, but its signature references "PipelineSource" which is marked as @beta
+//
+// @public
+export function pipeline(firestore: Firestore): PipelineSource;
+
+// @public
+export function pipeline(query: Query): Pipeline;
 
 // @beta
 export class PipelineResult<AppModelType = DocumentData> {
@@ -1881,6 +1895,7 @@ export class Query<AppModelType = DocumentData, DbModelType extends DocumentData
     protected constructor();
     readonly converter: FirestoreDataConverter<AppModelType, DbModelType> | null;
     readonly firestore: Firestore;
+    pipeline(): Pipeline;
     readonly type: 'query' | 'collection';
     withConverter(converter: null): Query<DocumentData, DocumentData>;
     withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): Query<NewAppModelType, NewDbModelType>;
@@ -2203,10 +2218,10 @@ export class Sum extends FirestoreFunction implements Accumulator {
 export function sum(field: string | FieldPath): AggregateField<number>;
 
 // @beta
-export function sumExpression(value: Constant): Sum;
+export function sumFunction(value: Constant): Sum;
 
 // @beta
-export function sumExpression(value: string): Sum;
+export function sumFunction(value: string): Sum;
 
 // @public
 export type TaskState = 'Error' | 'Running' | 'Success';
@@ -2397,6 +2412,9 @@ export function updateDoc<AppModelType, DbModelType extends DocumentData>(refere
 export function updateDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
 
 // @public
+export function useFirestorePipelines(): void;
+
+// @public
 export function vector(values?: number[]): VectorValue;
 
 // @beta (undocumented)
@@ -2464,8 +2482,8 @@ export function xor(left: FilterExpr, ...right: FilterExpr[]): Xor;
 
 // Warnings were encountered during analysis:
 //
-// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/index.d.ts:10108:9 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
-// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/index.d.ts:10109:9 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/index.d.ts:10138:9 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
+// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/index.d.ts:10102:26 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
+// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/index.d.ts:10102:61 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/index.d.ts:10129:21 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
 
 ```

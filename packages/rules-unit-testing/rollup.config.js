@@ -20,20 +20,9 @@ import pkg from './package.json';
 import typescript from 'typescript';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 
-const plugins = [
+const buildPlugins = [
   typescriptPlugin({
     typescript
-  })
-];
-
-const es2017BuildPlugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    }
   })
 ];
 
@@ -44,16 +33,22 @@ const deps = Object.keys(
 export default [
   {
     input: 'index.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-    plugins: [...plugins],
+    output: {
+      file: pkg.main,
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: [...buildPlugins],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
     input: 'index.ts',
-    output: [
-      { file: pkg.exports['.'].node.import, format: 'es', sourcemap: true }
-    ],
-    plugins: [...es2017BuildPlugins, emitModulePackageFile()],
+    output: {
+      file: pkg.exports['.'].node.import,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [...buildPlugins, emitModulePackageFile()],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];

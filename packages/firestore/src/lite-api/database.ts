@@ -28,7 +28,6 @@ import {
   getDefaultEmulatorHostnameAndPort
 } from '@firebase/util';
 
-import { PipelineSource, DocumentReference } from '../api';
 import {
   CredentialsProvider,
   EmulatorAuthCredentialsProvider,
@@ -37,20 +36,20 @@ import {
 } from '../api/credentials';
 import { User } from '../auth/user';
 import { DatabaseId, DEFAULT_DATABASE_NAME } from '../core/database_info';
-import { DocumentKey } from '../model/document_key';
 import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 import { logWarn } from '../util/log';
 
 import { FirestoreService, removeComponents } from './components';
-import { LiteUserDataWriter } from './reference_impl';
+// `import type` to avoid bundling the source for
+// pipelines if `useFirestorePipelines()` is not called
+import type { PipelineSource } from './pipeline-source';
 import {
   DEFAULT_HOST,
   FirestoreSettingsImpl,
   PrivateSettings,
   FirestoreSettings
 } from './settings';
-import { newUserDataReader } from './user_data_reader';
 
 export { EmulatorMockTokenOptions } from '@firebase/util';
 
@@ -178,16 +177,12 @@ export class Firestore implements FirestoreService {
     return Promise.resolve();
   }
 
+  /**
+   * Pipeline query.
+   */
   pipeline(): PipelineSource {
-    const userDataWriter = new LiteUserDataWriter(this);
-    const userDataReader = newUserDataReader(this);
-    return new PipelineSource(
-      this,
-      userDataReader,
-      userDataWriter,
-      (key: DocumentKey) => {
-        return new DocumentReference(this, null, key);
-      }
+    throw new Error(
+      'Pipelines not initialized. Your application must call `useFirestorePipelines()` before using Firestore Pipeline features.'
     );
   }
 }

@@ -26,6 +26,7 @@ import { VertexAIError } from './errors';
 import { GenerativeModel } from './models/generative-model';
 
 export { ChatSession } from './methods/chat-session';
+export * from './requests/schema-builder';
 
 export { GenerativeModel };
 
@@ -38,7 +39,7 @@ declare module '@firebase/component' {
 }
 
 /**
- * Returns a {@link VertexAI} instance for the given app.
+ * Returns a <code>{@link VertexAI}</code> instance for the given app.
  *
  * @public
  *
@@ -58,7 +59,7 @@ export function getVertexAI(
 }
 
 /**
- * Returns a {@link GenerativeModel} class with methods for inference
+ * Returns a <code>{@link GenerativeModel}</code> class with methods for inference
  * and other functionality.
  *
  * @public

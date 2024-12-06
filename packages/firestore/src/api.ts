@@ -19,7 +19,11 @@ export { PipelineSource } from './lite-api/pipeline-source';
 
 export { PipelineResult } from './lite-api/pipeline-result';
 
-export { Pipeline } from './lite-api/pipeline';
+export { Pipeline } from './api/pipeline';
+
+export { useFirestorePipelines, pipeline } from './api/pipeline_impl';
+
+export { execute } from './lite-api/pipeline_impl';
 
 export {
   Stage,
@@ -57,15 +61,13 @@ export {
   arrayContainsAny,
   arrayContainsAll,
   arrayLength,
-  inAny,
-  notInAny,
-  and as andExpression,
-  or as orExpression,
+  eqAny,
+  notEqAny,
   xor,
-  ifFunction,
+  cond,
   not,
-  logicalMax,
-  logicalMin,
+  logicalMaximum,
+  logicalMinimum,
   exists,
   isNan,
   reverse,
@@ -85,11 +87,13 @@ export {
   strConcat,
   mapGet,
   countAll,
-  count as countExpression,
-  sum as sumExpression,
-  avg,
-  min,
-  max,
+  countFunction,
+  sumFunction,
+  avgFunction,
+  andFunction,
+  orFunction,
+  minimum,
+  maximum,
   cosineDistance,
   dotProduct,
   euclideanDistance,
@@ -128,16 +132,17 @@ export {
   ArrayContainsAny,
   ArrayLength,
   ArrayElement,
-  In,
+  EqAny,
+  NotEqAny,
   IsNan,
   Exists,
   Not,
   And,
   Or,
   Xor,
-  If,
-  LogicalMax,
-  LogicalMin,
+  Cond,
+  LogicalMaximum,
+  LogicalMinimum,
   Reverse,
   ReplaceFirst,
   ReplaceAll,
@@ -157,8 +162,8 @@ export {
   Count,
   Sum,
   Avg,
-  Min,
-  Max,
+  Minimum,
+  Maximum,
   CosineDistance,
   DotProduct,
   EuclideanDistance,
@@ -390,7 +395,8 @@ export { isBase64Available as _isBase64Available } from './platform/base64';
 export { DatabaseId as _DatabaseId } from './core/database_info';
 export {
   _internalQueryToProtoQueryTarget,
-  _internalAggregationQueryToProtoRunAggregationQueryRequest
+  _internalAggregationQueryToProtoRunAggregationQueryRequest,
+  _internalPipelineToExecutePipelineRequestProto
 } from './remote/internal_serializer';
 export {
   cast as _cast,

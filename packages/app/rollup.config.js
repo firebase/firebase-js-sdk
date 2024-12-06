@@ -28,44 +28,17 @@ const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-const es5BuildPlugins = [
+const buildPlugins = [
   typescriptPlugin({
     typescript
   }),
-  json()
-];
-
-const es2017BuildPlugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    }
-  }),
-  json({
-    preferConst: true
-  })
+  json({ preferConst: true })
 ];
 
 const esmBuilds = [
   /**
    * Browser Builds
    */
-  {
-    input: 'src/index.ts',
-    output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: [
-      ...es5BuildPlugins,
-      replace({
-        ...generateBuildTargetReplaceConfig('esm', 5),
-        '__RUNTIME_ENV__': ''
-      }),
-      emitModulePackageFile()
-    ]
-  },
   {
     input: 'src/index.ts',
     output: {
@@ -75,7 +48,7 @@ const esmBuilds = [
     },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     plugins: [
-      ...es2017BuildPlugins,
+      ...buildPlugins,
       replace({
         ...generateBuildTargetReplaceConfig('esm', 2017),
         '__RUNTIME_ENV__': ''
@@ -88,12 +61,16 @@ const esmBuilds = [
 const cjsBuilds = [
   {
     input: 'src/index.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
+    output: {
+      file: pkg.main,
+      format: 'cjs',
+      sourcemap: true
+    },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     plugins: [
-      ...es5BuildPlugins,
+      ...buildPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('cjs', 5),
+        ...generateBuildTargetReplaceConfig('cjs', 2017),
         '__RUNTIME_ENV__': 'node'
       })
     ]

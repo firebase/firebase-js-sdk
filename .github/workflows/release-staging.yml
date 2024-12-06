@@ -49,7 +49,7 @@ jobs:
     - name: Set up node (20)
       uses: actions/setup-node@v3
       with:
-        node-version: 20.x
+        node-version: 22.10.0
     - name: Merge main into release
       uses: actions/github-script@v6
       with:
@@ -110,7 +110,7 @@ jobs:
         NPM_TOKEN_STORAGE: ${{secrets.NPM_TOKEN_STORAGE}}
         NPM_TOKEN_STORAGE_TYPES: ${{secrets.NPM_TOKEN_STORAGE_TYPES}}
         NPM_TOKEN_UTIL: ${{secrets.NPM_TOKEN_UTIL}}
-        NPM_TOKEN_VERTEXAI_PREVIEW: ${{secrets.NPM_TOKEN_VERTEXAI_PREVIEW}}
+        NPM_TOKEN_VERTEXAI: ${{secrets.NPM_TOKEN_VERTEXAI}}
         NPM_TOKEN_WEBCHANNEL_WRAPPER: ${{secrets.NPM_TOKEN_WEBCHANNEL_WRAPPER}}
         NPM_TOKEN_FIREBASE: ${{secrets.NPM_TOKEN_FIREBASE}}
         NPM_TOKEN_APP_COMPAT: ${{ secrets.NPM_TOKEN_APP_COMPAT }}

@@ -439,68 +439,6 @@ export function parseSetData(
   );
 }
 
-export function parse(
-  userDataReader: UserDataReader,
-  methodName: string,
-  targetDoc: DocumentKey,
-  input: unknown,
-  hasConverter: boolean,
-  options: SetOptions = {}
-): ParsedSetData {
-  const context = userDataReader.createContext(
-    options.merge || options.mergeFields
-      ? UserDataSource.MergeSet
-      : UserDataSource.Set,
-    methodName,
-    targetDoc,
-    hasConverter
-  );
-  validatePlainObject('Data must be an object, but it was:', context, input);
-  const updateData = parseObject(input, context)!;
-
-  let fieldMask: FieldMask | null;
-  let fieldTransforms: FieldTransform[];
-
-  if (options.merge) {
-    fieldMask = new FieldMask(context.fieldMask);
-    fieldTransforms = context.fieldTransforms;
-  } else if (options.mergeFields) {
-    const validatedFieldPaths: InternalFieldPath[] = [];
-
-    for (const stringOrFieldPath of options.mergeFields) {
-      const fieldPath = fieldPathFromArgument(
-        methodName,
-        stringOrFieldPath,
-        targetDoc
-      );
-      if (!context.contains(fieldPath)) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `Field '${fieldPath}' is specified in your field mask but missing from your input data.`
-        );
-      }
-
-      if (!fieldMaskContains(validatedFieldPaths, fieldPath)) {
-        validatedFieldPaths.push(fieldPath);
-      }
-    }
-
-    fieldMask = new FieldMask(validatedFieldPaths);
-    fieldTransforms = context.fieldTransforms.filter(transform =>
-      fieldMask!.covers(transform.field)
-    );
-  } else {
-    fieldMask = null;
-    fieldTransforms = context.fieldTransforms;
-  }
-
-  return new ParsedSetData(
-    new ObjectValue(updateData),
-    fieldMask,
-    fieldTransforms
-  );
-}
-
 export class DeleteFieldValueImpl extends FieldValue {
   _toFieldTransform(context: ParseContextImpl): null {
     if (context.dataSource === UserDataSource.MergeSet) {

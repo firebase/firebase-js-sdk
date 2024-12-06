@@ -9,36 +9,53 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# FunctionsError interface
+# FunctionsError class
 An error returned by the Firebase Functions client SDK.
+
+See [FunctionsErrorCode](./functions.md#functionserrorcode) for full documentation of codes.
 
 <b>Signature:</b>
 
 ```typescript
-export interface FunctionsError extends FirebaseError 
+export declare class FunctionsError extends FirebaseError 
 ```
 <b>Extends:</b> [FirebaseError](./util.firebaseerror.md#firebaseerror_class)
 
+## Constructors
+
+|  Constructor | Modifiers | Description |
+|  --- | --- | --- |
+|  [(constructor)(code, message, details)](./functions.functionserror.md#functionserrorconstructor) |  | Constructs a new instance of the <code>FunctionsError</code> class. |
+
 ## Properties
 
-|  Property | Type | Description |
-|  --- | --- | --- |
-|  [code](./functions.functionserror.md#functionserrorcode) | [FunctionsErrorCode](./functions.md#functionserrorcode) | A standard error code that will be returned to the client. This also determines the HTTP status code of the response, as defined in code.proto. |
-|  [details](./functions.functionserror.md#functionserrordetails) | unknown | Extra data to be converted to JSON and included in the error response. |
+|  Property | Modifiers | Type | Description |
+|  --- | --- | --- | --- |
+|  [details](./functions.functionserror.md#functionserrordetails) |  | unknown | Additional details to be converted to JSON and included in the error response. |
 
-## FunctionsError.code
+## FunctionsError.(constructor)
 
-A standard error code that will be returned to the client. This also determines the HTTP status code of the response, as defined in code.proto.
+Constructs a new instance of the `FunctionsError` class.
 
 <b>Signature:</b>
 
 ```typescript
-readonly code: FunctionsErrorCode;
+constructor(
+    code: FunctionsErrorCode, message?: string, 
+    details?: unknown);
 ```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  code | [FunctionsErrorCode](./functions.md#functionserrorcodecore) |  |
+|  message | string |  |
+|  details | unknown |  |
 
 ## FunctionsError.details
 
-Extra data to be converted to JSON and included in the error response.
+Additional details to be converted to JSON and included in the error response.
 
 <b>Signature:</b>
 

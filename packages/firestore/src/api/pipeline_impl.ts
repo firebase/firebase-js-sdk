@@ -27,49 +27,89 @@ import { Pipeline } from '../lite-api/pipeline';
 import { PipelineResult } from '../lite-api/pipeline-result';
 import { CorePipeline } from '../core/pipeline_run';
 
+import { Pipeline } from '../api/pipeline';
+import { PipelineSource } from '../api/pipeline-source';
+import { PipelineResult } from '../api_pipelines';
+import { firestoreClientExecutePipeline } from '../core/firestore_client';
+import { newUserDataReader } from '../lite-api/user_data_reader';
+import { DocumentKey } from '../model/document_key';
+import { cast } from '../util/input_validation';
+
+import { Firestore, ensureFirestoreConfigured } from './database';
+import { DocumentReference, Query } from './reference';
+import { ExpUserDataWriter } from './user_data_writer';
+
 /**
- * Executes this pipeline and returns a Promise to represent the asynchronous operation.
- *
- * <p>The returned Promise can be used to track the progress of the pipeline execution
- * and retrieve the results (or handle any errors) asynchronously.
- *
- * <p>The pipeline results are returned as a list of {@link PipelineResult} objects. Each {@link
- * PipelineResult} typically represents a single key/value map that has passed through all the
- * stages of the pipeline, however this might differ depending on the stages involved in the
- * pipeline. For example:
- *
- * <ul>
- *   <li>If there are no stages or only transformation stages, each {@link PipelineResult}
- *       represents a single document.</li>
- *   <li>If there is an aggregation, only a single {@link PipelineResult} is returned,
- *       representing the aggregated results over the entire dataset .</li>
- *   <li>If there is an aggregation stage with grouping, each {@link PipelineResult} represents a
- *       distinct group and its associated aggregated values.</li>
- * </ul>
- *
- * <p>Example:
- *
- * ```typescript
- * const futureResults = await firestore.pipeline().collection("books")
- *     .where(gt(Field.of("rating"), 4.5))
- *     .select("title", "author", "rating")
- *     .execute();
- * ```
- *
- * @return A Promise representing the asynchronous pipeline execution.
+ * Experimental Modular API for console testing.
+ * @param firestore
  */
+export function pipeline(firestore: Firestore): PipelineSource;
+
+/**
+ * Experimental Modular API for console testing.
+ * @param query
+ */
+export function pipeline(query: Query): Pipeline;
+
+export function pipeline(
+  firestoreOrQuery: Firestore | Query
+): PipelineSource | Pipeline {
+  if (firestoreOrQuery instanceof Firestore) {
+    const firestore = firestoreOrQuery;
+    return new PipelineSource(
+      firestore,
+      newUserDataReader(firestore),
+      new ExpUserDataWriter(firestore),
+      (key: DocumentKey) => {
+        return new DocumentReference(firestore, null, key);
+      }
+    );
+  } else {
+    let result;
+    const query = firestoreOrQuery;
+    const db = cast<Firestore>(query.firestore, Firestore);
+    if (query._query.collectionGroup) {
+      result = pipeline(db).collectionGroup(query._query.collectionGroup);
+    } else {
+      result = pipeline(db).collection(query._query.path.canonicalString());
+    }
+
+    // TODO(pipeline) convert existing query filters, limits, etc into
+    // pipeline stages
+
+    return result;
+  }
+}
+export function useFirestorePipelines(): void {
+  Firestore.prototype.pipeline = function (): PipelineSource {
+    return pipeline(this);
+  };
+
+  Query.prototype.pipeline = function (): Pipeline {
+    return pipeline(this);
+  };
+
+  Pipeline.prototype.execute = function (): Promise<PipelineResult[]> {
+    return execute(this);
+  };
+}
+
 export function execute<AppModelType>(
-  pipeline: Pipeline<AppModelType>
+  pipeline: Pipeline
 ): Promise<Array<PipelineResult<AppModelType>>> {
-  const client = ensureFirestoreConfigured(pipeline.liteDb as Firestore);
-  return firestoreClientExecutePipeline(client, pipeline as Pipeline).then(
-    result => {
-      const docs = result.map(
+  const firestore = cast(pipeline._db, Firestore);
+  const client = ensureFirestoreConfigured(firestore);
+  return firestoreClientExecutePipeline(client, pipeline).then(result => {
+    const docs = result
+      // Currently ignore any response from ExecutePipeline that does
+      // not contain any document data in the `fields` property.
+      .filter(element => !!element.fields)
+      .map(
         element =>
           new PipelineResult<AppModelType>(
-            pipeline.userDataWriter,
+            pipeline._userDataWriter,
             element.key?.path
-              ? pipeline.documentReferenceFactory(element.key)
+              ? pipeline._documentReferenceFactory(element.key)
               : undefined,
             element.fields,
             element.executionTime?.toTimestamp(),
@@ -79,9 +119,8 @@ export function execute<AppModelType>(
           )
       );
 
-      return docs;
-    }
-  );
+    return docs;
+  });
 }
 
 /**
