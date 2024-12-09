@@ -1,11 +1,5 @@
 # @firebase/auth-interop-types
 
-## 0.2.4
-
-### Patch Changes
-
-- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
-
 ## 0.2.3
 
 ### Patch Changes

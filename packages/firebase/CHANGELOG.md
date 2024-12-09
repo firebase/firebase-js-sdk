@@ -1,41 +1,5 @@
 # firebase
 
-## 11.0.2
-
-### Patch Changes
-
-- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
-
-- Updated dependencies [[`052e438bc`](https://github.com/firebase/firebase-js-sdk/commit/052e438bc9abc5bfaf553a41edd2cde44dc70bc2), [`1f1ba3fee`](https://github.com/firebase/firebase-js-sdk/commit/1f1ba3feedf543a8ce42326dda077b0cdae21f2f), [`4db3d3e7b`](https://github.com/firebase/firebase-js-sdk/commit/4db3d3e7be8b435b523d23b0910958a495c09ad8), [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1), [`0f5714ba5`](https://github.com/firebase/firebase-js-sdk/commit/0f5714ba5baab119a73355c0fd86db5a44cd3d20)]:
-  - @firebase/vertexai@1.0.1
-  - @firebase/analytics@0.10.10
-  - @firebase/analytics-compat@0.2.16
-  - @firebase/app@0.10.16
-  - @firebase/app-check@0.8.10
-  - @firebase/app-check-compat@0.3.17
-  - @firebase/app-compat@0.2.46
-  - @firebase/app-types@0.9.3
-  - @firebase/auth@1.8.1
-  - @firebase/auth-compat@0.5.16
-  - @firebase/data-connect@0.1.2
-  - @firebase/database@1.0.10
-  - @firebase/database-compat@2.0.1
-  - @firebase/firestore@4.7.5
-  - @firebase/firestore-compat@0.3.40
-  - @firebase/functions@0.11.10
-  - @firebase/functions-compat@0.3.16
-  - @firebase/installations@0.6.11
-  - @firebase/installations-compat@0.2.11
-  - @firebase/messaging@0.12.14
-  - @firebase/messaging-compat@0.2.14
-  - @firebase/performance@0.6.11
-  - @firebase/performance-compat@0.2.11
-  - @firebase/remote-config@0.4.11
-  - @firebase/remote-config-compat@0.2.11
-  - @firebase/storage@0.13.4
-  - @firebase/storage-compat@0.3.14
-  - @firebase/util@1.10.2
-
 ## 11.0.1
 
 ### Patch Changes

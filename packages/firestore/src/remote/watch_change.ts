@@ -291,7 +291,6 @@ export class WatchChangeAggregator {
 
   /** Keeps track of the documents to update since the last raised snapshot. */
   private pendingDocumentUpdates = mutableDocumentMap();
-  private pendingDocumentUpdatesByTarget = documentTargetMap();
 
   /** A mapping of document keys to their set of target IDs. */
   private pendingDocumentTargetMapping = documentTargetMap();
@@ -588,16 +587,16 @@ export class WatchChangeAggregator {
         if (targetState.current && targetIsDocumentTarget(targetData.target)) {
           // Document queries for document that don't exist can produce an empty
           // result set. To update our local cache, we synthesize a document
-          // delete if we have not previously received the document for this
-          // target. This resolves the limbo state of the document, removing it
-          // from limboDocumentRefs.
+          // delete if we have not previously received the document. This
+          // resolves the limbo state of the document, removing it from
+          // limboDocumentRefs.
           //
           // TODO(dimond): Ideally we would have an explicit lookup target
           // instead resulting in an explicit delete message and we could
           // remove this special logic.
           const key = new DocumentKey(targetData.target.path);
           if (
-            !this.ensureDocumentUpdateByTarget(key).has(targetId) &&
+            this.pendingDocumentUpdates.get(key) === null &&
             !this.targetContainsDocument(targetId, key)
           ) {
             this.removeDocumentFromTarget(
@@ -656,7 +655,6 @@ export class WatchChangeAggregator {
     );
 
     this.pendingDocumentUpdates = mutableDocumentMap();
-    this.pendingDocumentUpdatesByTarget = documentTargetMap();
     this.pendingDocumentTargetMapping = documentTargetMap();
     this.pendingTargetResets = new SortedMap<TargetId, TargetPurpose>(
       primitiveComparator
@@ -686,12 +684,6 @@ export class WatchChangeAggregator {
       document.key,
       document
     );
-
-    this.pendingDocumentUpdatesByTarget =
-      this.pendingDocumentUpdatesByTarget.insert(
-        document.key,
-        this.ensureDocumentUpdateByTarget(document.key).add(targetId)
-      );
 
     this.pendingDocumentTargetMapping =
       this.pendingDocumentTargetMapping.insert(
@@ -730,12 +722,6 @@ export class WatchChangeAggregator {
       this.pendingDocumentTargetMapping.insert(
         key,
         this.ensureDocumentTargetMapping(key).delete(targetId)
-      );
-
-    this.pendingDocumentTargetMapping =
-      this.pendingDocumentTargetMapping.insert(
-        key,
-        this.ensureDocumentTargetMapping(key).add(targetId)
       );
 
     if (updatedDocument) {
@@ -791,18 +777,6 @@ export class WatchChangeAggregator {
       targetMapping = new SortedSet<TargetId>(primitiveComparator);
       this.pendingDocumentTargetMapping =
         this.pendingDocumentTargetMapping.insert(key, targetMapping);
-    }
-
-    return targetMapping;
-  }
-
-  private ensureDocumentUpdateByTarget(key: DocumentKey): SortedSet<TargetId> {
-    let targetMapping = this.pendingDocumentUpdatesByTarget.get(key);
-
-    if (!targetMapping) {
-      targetMapping = new SortedSet<TargetId>(primitiveComparator);
-      this.pendingDocumentUpdatesByTarget =
-        this.pendingDocumentUpdatesByTarget.insert(key, targetMapping);
     }
 
     return targetMapping;

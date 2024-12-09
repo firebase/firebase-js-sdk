@@ -1,19 +1,5 @@
 # @firebase/firestore
 
-## 4.7.5
-
-### Patch Changes
-
-- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
-
-- [`0f5714ba5`](https://github.com/firebase/firebase-js-sdk/commit/0f5714ba5baab119a73355c0fd86db5a44cd3d20) [#8595](https://github.com/firebase/firebase-js-sdk/pull/8595) (fixes [#8474](https://github.com/firebase/firebase-js-sdk/issues/8474)) - Prevent a possible condition of slow snapshots, caused by a rapid series of document update(s) followed by a delete.
-
-- Updated dependencies [[`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1)]:
-  - @firebase/component@0.6.11
-  - @firebase/logger@0.4.4
-  - @firebase/util@1.10.2
-  - @firebase/webchannel-wrapper@1.0.3
-
 ## 4.7.4
 
 ### Patch Changes

@@ -1,11 +1,5 @@
 # @firebase/installations-types
 
-## 0.5.3
-
-### Patch Changes
-
-- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
-
 ## 0.5.2
 
 ### Patch Changes
