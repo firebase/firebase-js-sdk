@@ -15,15 +15,5 @@
  * limitations under the License.
  */
 
-import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
-import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
-
-export * from './imagen/internal';
-
-export interface ApiSettings {
-  apiKey: string;
-  project: string;
-  location: string;
-  getAuthToken?: () => Promise<FirebaseAuthTokenData | null>;
-  getAppCheckToken?: () => Promise<AppCheckTokenResult>;
-}
+export * from './requests';
+export * from './responses';

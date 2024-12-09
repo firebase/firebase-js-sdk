@@ -17,8 +17,16 @@
 
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
-import { Content } from '../types';
-import { formatGenerateContentInput } from './request-helpers';
+import {
+  Content,
+  ImagenAspectRatio,
+  ImagenPersonFilterLevel,
+  ImagenSafetyFilterLevel
+} from '../types';
+import {
+  createPredictRequestBody,
+  formatGenerateContentInput
+} from './request-helpers';
 
 use(sinonChai);
 
@@ -198,5 +206,72 @@ describe('request formatting methods', () => {
           ]
         });
       });
+  });
+  describe('createPredictRequestBody', () => {
+    it('creates body with default request parameters', () => {
+      const prompt = 'A photorealistic image of a toy boat at sea.';
+      const body = createPredictRequestBody({
+        prompt
+      });
+      expect(body.instances[0].prompt).to.equal(prompt);
+      expect(body.parameters.sampleCount).to.equal(1);
+      expect(body.parameters.mimeType).to.equal('image/png');
+      expect(body.parameters.includeRaiReason).to.be.true;
+      expect(body.parameters.aspectRatio).to.equal('1:1');
+
+      // Parameters without default values should be undefined
+      expect(body.parameters.storageUri).to.be.undefined;
+      expect(body.parameters.compressionQuality).to.be.undefined;
+      expect(body.parameters.negativePrompt).to.be.undefined;
+      expect(body.parameters.storageUri).to.be.undefined;
+      expect(body.parameters.addWatermark).to.be.undefined;
+      expect(body.parameters.safetyFilterLevel).to.be.undefined;
+      expect(body.parameters.personGeneration).to.be.undefined;
+    });
+  });
+  it('creates body with non-default request paramaters', () => {
+    const prompt = 'A photorealistic image of a toy boat at sea.';
+    const imageFormat = { mimeType: 'image/jpeg', compressionQuality: 75 };
+    const safetySettings = {
+      safetyFilterLevel: ImagenSafetyFilterLevel.BLOCK_LOW_AND_ABOVE,
+      personFilterLevel: ImagenPersonFilterLevel.ALLOW_ADULT
+    };
+    const addWatermark = true;
+    const numberOfImages = 4;
+    const negativePrompt = 'do not hallucinate';
+    const aspectRatio = ImagenAspectRatio.WIDESCREEN;
+    const body = createPredictRequestBody({
+      prompt,
+      numberOfImages,
+      imageFormat,
+      safetySettings,
+      addWatermark,
+      negativePrompt,
+      aspectRatio
+    });
+    expect(body.instances[0].prompt).to.equal(prompt);
+    expect(body.parameters).deep.equal({
+      sampleCount: numberOfImages,
+      mimeType: imageFormat.mimeType,
+      compressionQuality: imageFormat.compressionQuality,
+      addWatermark,
+      negativePrompt,
+      safetyFilterLevel: safetySettings.safetyFilterLevel,
+      personFilterLevel: safetySettings.personFilterLevel,
+      aspectRatio,
+      includeRaiReason: true,
+      storageUri: undefined
+    });
+  });
+  it('creates body with GCS URI', () => {
+    const prompt = 'A photorealistic image of a toy boat at sea.';
+    const gcsURI = 'gcs-uri';
+    const body = createPredictRequestBody({
+      prompt,
+      gcsURI
+    });
+
+    expect(body.instances[0].prompt).to.equal(prompt);
+    expect(body.parameters.storageUri).to.equal(gcsURI);
   });
 });

@@ -18,8 +18,11 @@
 import {
   Content,
   GenerateContentRequest,
+  PredictRequestBody,
   Part,
-  VertexAIErrorCode
+  VertexAIErrorCode,
+  ImagenAspectRatio,
+  ImagenRequestConfig
 } from '../types';
 import { VertexAIError } from '../errors';
 
@@ -49,11 +52,13 @@ export function formatNewContent(
   if (typeof request === 'string') {
     newParts = [{ text: request }];
   } else {
-    for (const partOrString of request) {
-      if (typeof partOrString === 'string') {
-        newParts.push({ text: partOrString });
+    for (const elem of request) {
+      // This throws an error if request is not iterable
+      if (typeof elem === 'string') {
+        newParts.push({ text: elem });
       } else {
-        newParts.push(partOrString);
+        // We assume this is a Part, but it could be anything.
+        newParts.push(elem); // This could be
       }
     }
   }
@@ -114,6 +119,7 @@ export function formatGenerateContentInput(
     formattedRequest = params as GenerateContentRequest;
   } else {
     // Array or string
+    // ... or something else
     const content = formatNewContent(params as string | Array<string | Part>);
     formattedRequest = { contents: [content] };
   }
@@ -123,4 +129,41 @@ export function formatGenerateContentInput(
     );
   }
   return formattedRequest;
+}
+
+/**
+ * Convert the user-defined parameters in {@link ImagenRequestConfig} to the format
+ * that is expected from the REST API.
+ *
+ * @internal
+ */
+export function createPredictRequestBody({
+  prompt,
+  gcsURI,
+  imageFormat = { mimeType: 'image/png' },
+  addWatermark,
+  safetySettings,
+  numberOfImages = 1,
+  negativePrompt,
+  aspectRatio = ImagenAspectRatio.SQUARE
+}: ImagenRequestConfig): PredictRequestBody {
+  // Properties that are undefined will be omitted from the JSON string.
+  const body: PredictRequestBody = {
+    instances: [
+      {
+        prompt
+      }
+    ],
+    parameters: {
+      storageUri: gcsURI,
+      ...imageFormat,
+      addWatermark,
+      ...safetySettings,
+      sampleCount: numberOfImages,
+      includeRaiReason: true,
+      negativePrompt,
+      aspectRatio
+    }
+  };
+  return body;
 }
