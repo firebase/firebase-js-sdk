@@ -50,10 +50,7 @@ jobs:
 
   test-firefox:
     name: Test Packages With Changed Files in Firefox
-    # Whatever version of Firefox comes with 22.04 is causing Firefox
-    # startup to hang when launched by karma. Need to look further into
-    # why.
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repo

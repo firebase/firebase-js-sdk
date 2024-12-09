@@ -70,11 +70,8 @@ jobs:
         run: xvfb-run yarn test:changed auth
   test-firefox:
     name: Test Auth on Firefox If Changed
-    # Whatever version of Firefox comes with 22.04 is causing Firefox
-    # startup to hang when launched by karma. Need to look further into
-    # why.
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: install Firefox stable
