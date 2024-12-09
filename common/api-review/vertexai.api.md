@@ -349,6 +349,9 @@ export class GenerativeModel {
 export function getGenerativeModel(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
 
 // @public
+export function getImagenModel(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
+
+// @public
 export function getVertexAI(app?: FirebaseApp, options?: VertexAIOptions): VertexAI;
 
 // @public (undocumented)
@@ -429,6 +432,148 @@ export enum HarmSeverity {
     HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE"
 }
 
+// @public (undocumented)
+export enum ImagenAspectRatio {
+    // (undocumented)
+    CLASSIC_LANDSCAPE = "4:3",
+    // (undocumented)
+    CLASSIC_PORTRAIT = "3:4",
+    // (undocumented)
+    PORTRAIT = "9:16",
+    // (undocumented)
+    SQUARE = "1:1",
+    // (undocumented)
+    WIDESCREEN = "16:9"
+}
+
+// Warning: (ae-incompatible-release-tags) The symbol "ImagenGCSImage" is marked as @public, but its signature references "ImagenImage" which is marked as @internal
+//
+// @public
+export interface ImagenGCSImage extends ImagenImage {
+    gcsURI: string;
+}
+
+// @public (undocumented)
+export interface ImagenGCSImageResponse {
+    // (undocumented)
+    filteredReason?: string;
+    // (undocumented)
+    images: ImagenGCSImage[];
+}
+
+// @public (undocumented)
+export interface ImagenGenerationConfig {
+    // (undocumented)
+    aspectRatio?: ImagenAspectRatio;
+    // (undocumented)
+    negativePrompt?: string;
+    // (undocumented)
+    numberOfImages?: number;
+}
+
+// Warning: (ae-internal-missing-underscore) The name "ImagenImage" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface ImagenImage {
+    // (undocumented)
+    mimeType: string;
+}
+
+// @public (undocumented)
+export interface ImagenImageFormat {
+    // (undocumented)
+    compressionQuality?: number;
+    // (undocumented)
+    mimeType: string;
+}
+
+// @public (undocumented)
+export interface ImagenImageReponse {
+    // (undocumented)
+    filteredReason?: string;
+    // Warning: (ae-incompatible-release-tags) The symbol "images" is marked as @public, but its signature references "ImagenImage" which is marked as @internal
+    //
+    // (undocumented)
+    images: ImagenImage[];
+}
+
+// Warning: (ae-incompatible-release-tags) The symbol "ImagenInlineImage" is marked as @public, but its signature references "ImagenImage" which is marked as @internal
+//
+// @public
+export interface ImagenInlineImage extends ImagenImage {
+    // (undocumented)
+    bytesBase64Encoded: string;
+}
+
+// @public
+export interface ImagenInlineImageResponse {
+    filteredReason?: string;
+    images: ImagenInlineImage[];
+}
+
+// @public
+export class ImagenModel {
+    constructor(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
+    generateImages(prompt: string, imagenRequestOptions?: ImagenGenerationConfig): Promise<ImagenInlineImageResponse>;
+    generateImagesGCS(prompt: string, gcsURI: string, imagenRequestOptions?: ImagenGenerationConfig): Promise<ImagenGCSImageResponse>;
+    // (undocumented)
+    model: string;
+    }
+
+// @public (undocumented)
+export interface ImagenModelConfig {
+    // (undocumented)
+    addWatermark?: boolean;
+    // (undocumented)
+    imageFormat?: ImagenImageFormat;
+    // (undocumented)
+    safetySettings?: ImagenSafetySettings;
+}
+
+// @public
+export interface ImagenModelParams extends ImagenModelConfig {
+    // (undocumented)
+    model: string;
+}
+
+// @public (undocumented)
+export enum ImagenPersonFilterLevel {
+    // (undocumented)
+    ALLOW_ADULT = "allow_adult",
+    // (undocumented)
+    ALLOW_ALL = "allow_all",
+    // (undocumented)
+    BLOCK_ALL = "dont_allow"
+}
+
+// Warning: (ae-internal-missing-underscore) The name "ImagenRequestConfig" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface ImagenRequestConfig extends ImagenModelConfig, ImagenGenerationConfig {
+    // (undocumented)
+    gcsURI?: string;
+    // (undocumented)
+    prompt: string;
+}
+
+// @public (undocumented)
+export enum ImagenSafetyFilterLevel {
+    // (undocumented)
+    BLOCK_LOW_AND_ABOVE = "block_low_and_above",
+    // (undocumented)
+    BLOCK_MEDIUM_AND_ABOVE = "block_medium_and_above",
+    // (undocumented)
+    BLOCK_NONE = "block_none",
+    // (undocumented)
+    BLOCK_ONLY_HIGH = "block_only_high"
+}
+
+// @public (undocumented)
+export interface ImagenSafetySettings {
+    personFilterLevel?: ImagenPersonFilterLevel;
+    safetyFilterLevel?: ImagenSafetyFilterLevel;
+}
+
 // @public
 export interface InlineDataPart {
     // (undocumented)
@@ -446,6 +591,9 @@ export interface InlineDataPart {
 export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
+
+// @public
+export function jpeg(compressionQuality: number): ImagenImageFormat;
 
 // @public
 export interface ModelParams extends BaseParams {
@@ -491,7 +639,35 @@ export interface ObjectSchemaInterface extends SchemaInterface {
 export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart;
 
 // @public
+export function png(): ImagenImageFormat;
+
+// @public
 export const POSSIBLE_ROLES: readonly ["user", "model", "function", "system"];
+
+// Warning: (ae-internal-missing-underscore) The name "PredictRequestBody" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface PredictRequestBody {
+    // (undocumented)
+    instances: [
+        {
+            prompt: string;
+        }
+    ];
+    // (undocumented)
+    parameters: {
+        sampleCount: number;
+        aspectRatio: string;
+        mimeType: string;
+        compressionQuality?: number;
+        negativePrompt?: string;
+        storageUri?: string;
+        addWatermark?: boolean;
+        safetyFilterLevel?: string;
+        personGeneration?: string;
+        includeRaiReason: boolean;
+    };
+}
 
 // @public
 export interface PromptFeedback {
@@ -519,6 +695,14 @@ export interface RetrievedContextAttribution {
 
 // @public
 export type Role = (typeof POSSIBLE_ROLES)[number];
+
+// @public (undocumented)
+export interface SafetyAttributes {
+    // (undocumented)
+    categories: string[];
+    // (undocumented)
+    scores: number[];
+}
 
 // @public
 export interface SafetyRating {
