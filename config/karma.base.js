@@ -118,3 +118,5 @@ config.mochaReporter = {
 };
 
 module.exports = config;
+
+// FIXME: trigger all CI tests
