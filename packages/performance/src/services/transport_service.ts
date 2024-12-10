@@ -17,10 +17,14 @@
 
 import { SettingsService } from './settings_service';
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
+import { consoleLogger } from '../utils/console_logger';
 
 const DEFAULT_SEND_INTERVAL_MS = 10 * 1000;
 const INITIAL_SEND_TIME_DELAY_MS = 5.5 * 1000;
 const MAX_EVENT_COUNT_PER_REQUEST = 1000;
+const DEFAULT_REMAINING_TRIES = 3;
+
+let remainingTries = DEFAULT_REMAINING_TRIES;
 
 interface BatchEvent {
   message: string;
@@ -68,6 +72,11 @@ export function resetTransportService(): void {
 
 function processQueue(timeOffset: number): void {
   setTimeout(() => {
+    // If there is no remainingTries left, stop retrying.
+    if (remainingTries === 0) {
+      return;
+    }
+
     if (queue.length > 0) {
       dispatchQueueEvents();
     }
@@ -99,13 +108,32 @@ function dispatchQueueEvents(): void {
   };
   /* eslint-enable camelcase */
 
-  postToFlEndpoint(data);
+  postToFlEndpoint(data)
+    .then(() => {
+      remainingTries = DEFAULT_REMAINING_TRIES;
+    })
+    .catch(() => {
+      // If the request fails for some reason, add the events that were attempted
+      // back to the primary queue to retry later.
+      queue = [...staged, ...queue];
+      remainingTries--;
+      consoleLogger.info(`Tries left: ${remainingTries}.`);
+      processQueue(DEFAULT_SEND_INTERVAL_MS);
+    });
 }
 
-function postToFlEndpoint(data: TransportBatchLogFormat): boolean {
+function postToFlEndpoint(data: TransportBatchLogFormat): Promise<void> {
   const flTransportFullUrl =
     SettingsService.getInstance().getFlTransportFullUrl();
-  return navigator.sendBeacon(flTransportFullUrl, JSON.stringify(data));
+  const body = JSON.stringify(data);
+
+  return navigator.sendBeacon && navigator.sendBeacon(flTransportFullUrl, body)
+    ? Promise.resolve()
+    : fetch(flTransportFullUrl, {
+        method: 'POST',
+        body,
+        keepalive: true
+      }).then();
 }
 
 function addToQueue(evt: BatchEvent): void {
