@@ -166,7 +166,7 @@ abstract class BasePath<B extends BasePath<B>> {
   }
 
   /**
-   * Compare 2 paths compared segment by segment, prioritizing numeric IDs
+   * Compare 2 paths segment by segment, prioritizing numeric IDs
    * (e.g., "__id123__") in numeric ascending order, followed by string
    * segments in lexicographical order.
    */
