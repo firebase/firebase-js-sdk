@@ -7,12 +7,21 @@ async function getWebConfig() {
     // $FIREBASE_WEBAPP_CONFIG can be either a JSON representation of FirebaseOptions or the path
     // to a filename
     if (process.env.FIREBASE_WEBAPP_CONFIG) {
-        if (process.env.FIREBASE_WEBAPP_CONFIG.startsWith("{")) {
+        if (process.env.FIREBASE_WEBAPP_CONFIG.startsWith("{\"")) {
             try {
                 configFromEnvironment = JSON.parse(process.env.FIREBASE_WEBAPP_CONFIG);
             } catch(e) {
                 console.error("FIREBASE_WEBAPP_CONFIG could not be parsed.", e);
             }
+        } if (process.env.FIREBASE_WEBAPP_CONFIG.startsWith("{")) {
+            // TODO temporary
+            configFromEnvironment = Object.fromEntries(
+                process.env.FIREBASE_WEBAPP_CONFIG
+                    .match(/^{(.+)}$/)[1]
+                    .split(',')
+                    .map(it => it.match("([^\:]+)\:(.+)")?.slice(1))
+                    .filter(it => it)
+                );
         } else {
             const fileName = process.env.FIREBASE_WEBAPP_CONFIG;
             const fileURL = pathToFileURL(isAbsolute(fileName) ? fileName : join(process.cwd(), fileName));
