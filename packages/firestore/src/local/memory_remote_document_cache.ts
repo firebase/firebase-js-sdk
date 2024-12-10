@@ -171,7 +171,10 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     // Documents are ordered by key, so we can use a prefix scan to narrow down
     // the documents we need to match the query against.
     const collectionPath = query.path;
-    const prefix = new DocumentKey(collectionPath.child(''));
+    // DocumentId can be numeric ("__id<Long>__") or a plain string. Numeric IDs ordered before strings, sorted numerically.
+    const prefix = new DocumentKey(
+      collectionPath.child('__id' + Number.MIN_SAFE_INTEGER + '__')
+    );
     const iterator = this.docs.getIteratorFrom(prefix);
     while (iterator.hasNext()) {
       const {

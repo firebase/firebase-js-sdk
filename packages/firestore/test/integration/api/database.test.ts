@@ -79,7 +79,8 @@ import {
   withTestDocAndInitialData,
   withNamedTestDbsOrSkipUnlessUsingEmulator,
   toDataArray,
-  checkOnlineAndOfflineResultsMatch
+  checkOnlineAndOfflineResultsMatch,
+  toIds
 } from '../util/helpers';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
 
@@ -2242,6 +2243,136 @@ apiDescribe('Database', persistence => {
         expect(doc.exists()).to.be.true;
         expect(doc.metadata.fromCache).to.be.true;
         expect(doc.data()).to.deep.equal(initialData);
+      });
+    });
+  });
+
+  describe('sort documents by DocumentId', () => {
+    it('snapshot listener sorts query by DocumentId same way as get query', async () => {
+      const testDocs = {
+        A: { a: 1 },
+        a: { a: 1 },
+        Aa: { a: 1 },
+        '7': { a: 1 },
+        12: { a: 1 },
+        '__id7__': { a: 1 },
+        __id12__: { a: 1 },
+        '__id-2__': { a: 1 },
+        '_id1__': { a: 1 },
+        '__id1_': { a: 1 }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const orderedQuery = query(collectionRef, orderBy(documentId()));
+        const expectedDocs = [
+          '__id-2__',
+          '__id7__',
+          '__id12__',
+          '12',
+          '7',
+          'A',
+          'Aa',
+          '__id1_',
+          '_id1__',
+          'a'
+        ];
+
+        const getSnapshot = await getDocsFromServer(orderedQuery);
+        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(expectedDocs);
+        unsubscribe();
+      });
+    });
+
+    it('snapshot listener sorts filtered query by DocumentId same way as get query', async () => {
+      const testDocs = {
+        A: { a: 1 },
+        a: { a: 1 },
+        Aa: { a: 1 },
+        '7': { a: 1 },
+        12: { a: 1 },
+        '__id7__': { a: 1 },
+        __id12__: { a: 1 },
+        '__id-2__': { a: 1 },
+        '_id1__': { a: 1 },
+        '__id1_': { a: 1 }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const filteredQuery = query(
+          collectionRef,
+          orderBy(documentId()),
+          where(documentId(), '>', '__id7__'),
+          where(documentId(), '<=', 'Aa')
+        );
+        const expectedDocs = ['__id12__', '12', '7', 'A', 'Aa'];
+
+        const getSnapshot = await getDocsFromServer(filteredQuery);
+        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(filteredQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(expectedDocs);
+        unsubscribe();
+      });
+    });
+
+    // eslint-disable-next-line no-restricted-properties
+    (persistence.gc === 'lru' ? describe : describe.skip)('offline', () => {
+      it('SDK orders query the same way online and offline', async () => {
+        const testDocs = {
+          A: { a: 1 },
+          a: { a: 1 },
+          Aa: { a: 1 },
+          '7': { a: 1 },
+          12: { a: 1 },
+          '__id7__': { a: 1 },
+          __id12__: { a: 1 },
+          '__id-2__': { a: 1 },
+          '_id1__': { a: 1 },
+          '__id1_': { a: 1 }
+        };
+
+        return withTestCollection(
+          persistence,
+          testDocs,
+          async collectionRef => {
+            const orderedQuery = query(collectionRef, orderBy(documentId()));
+            let expectedDocs = [
+              '__id-2__',
+              '__id7__',
+              '__id12__',
+              '12',
+              '7',
+              'A',
+              'Aa',
+              '__id1_',
+              '_id1__',
+              'a'
+            ];
+            await checkOnlineAndOfflineResultsMatch(
+              orderedQuery,
+              ...expectedDocs
+            );
+
+            const filteredQuery = query(
+              collectionRef,
+              orderBy(documentId()),
+              where(documentId(), '>', '__id7__'),
+              where(documentId(), '<=', 'Aa')
+            );
+            expectedDocs = ['__id12__', '12', '7', 'A', 'Aa'];
+            await checkOnlineAndOfflineResultsMatch(
+              filteredQuery,
+              ...expectedDocs
+            );
+          }
+        );
       });
     });
   });

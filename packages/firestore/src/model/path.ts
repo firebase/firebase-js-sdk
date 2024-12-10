@@ -163,28 +163,59 @@ abstract class BasePath<B extends BasePath<B>> {
     return this.segments.slice(this.offset, this.limit());
   }
 
+  /**
+   * Compare 2 paths compared segment by segment, prioritizing numeric IDs
+   * (e.g., "__id123__") in numeric ascending order, followed by string
+   * segments in lexicographical order.
+   */
   static comparator<T extends BasePath<T>>(
     p1: BasePath<T>,
     p2: BasePath<T>
   ): number {
     const len = Math.min(p1.length, p2.length);
     for (let i = 0; i < len; i++) {
-      const left = p1.get(i);
-      const right = p2.get(i);
-      if (left < right) {
+      const comparison = BasePath.compareSegments(p1.get(i), p2.get(i));
+      if (comparison !== 0) {
+        return comparison;
+      }
+    }
+    return Math.sign(p1.length - p2.length);
+  }
+
+  private static compareSegments(lhs: string, rhs: string): number {
+    const isLhsNumeric = BasePath.isNumericId(lhs);
+    const isRhsNumeric = BasePath.isNumericId(rhs);
+
+    if (isLhsNumeric && !isRhsNumeric) {
+      // Only lhs is numeric
+      return -1;
+    } else if (!isLhsNumeric && isRhsNumeric) {
+      // Only rhs is numeric
+      return 1;
+    } else if (isLhsNumeric && isRhsNumeric) {
+      // both numeric
+      return Math.sign(
+        BasePath.extractNumericId(lhs) - BasePath.extractNumericId(rhs)
+      );
+    } else {
+      // both non-numeric
+      if (lhs < rhs) {
         return -1;
       }
-      if (left > right) {
+      if (lhs > rhs) {
         return 1;
       }
+      return 0;
     }
-    if (p1.length < p2.length) {
-      return -1;
-    }
-    if (p1.length > p2.length) {
-      return 1;
-    }
-    return 0;
+  }
+
+  // Checks if a segment is a numeric ID (starts with "__id" and ends with "__").
+  private static isNumericId(segment: string): boolean {
+    return segment.startsWith('__id') && segment.endsWith('__');
+  }
+
+  private static extractNumericId(segment: string): number {
+    return parseInt(segment.substring(4, segment.length - 2), 10);
   }
 }
 
