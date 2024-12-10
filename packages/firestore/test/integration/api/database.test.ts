@@ -2259,15 +2259,25 @@ apiDescribe('Database', persistence => {
         __id12__: { a: 1 },
         '__id-2__': { a: 1 },
         '_id1__': { a: 1 },
-        '__id1_': { a: 1 }
+        '__id1_': { a: 1 },
+        // max safe integer +1, +2
+        '__id9007199254740992__': { a: 1 },
+        '__id9007199254740993__': { a: 2 },
+        // smallest long numbers
+        '__id-9223372036854775808__': { a: 3 },
+        '__id-9223372036854775807__': { a: 4 }
       };
 
       return withTestCollection(persistence, testDocs, async collectionRef => {
         const orderedQuery = query(collectionRef, orderBy(documentId()));
         const expectedDocs = [
+          '__id-9223372036854775808__',
+          '__id-9223372036854775807__',
           '__id-2__',
           '__id7__',
           '__id12__',
+          '__id9007199254740992__',
+          '__id9007199254740993__',
           '12',
           '7',
           'A',
@@ -2284,6 +2294,7 @@ apiDescribe('Database', persistence => {
         const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
         const watchSnapshot = await storeEvent.awaitEvent();
         expect(toIds(watchSnapshot)).to.deep.equal(expectedDocs);
+
         unsubscribe();
       });
     });
@@ -2299,7 +2310,13 @@ apiDescribe('Database', persistence => {
         __id12__: { a: 1 },
         '__id-2__': { a: 1 },
         '_id1__': { a: 1 },
-        '__id1_': { a: 1 }
+        '__id1_': { a: 1 },
+        // max safe integer +1, +2
+        '__id9007199254740992__': { a: 1 },
+        '__id9007199254740993__': { a: 2 },
+        // smallest long numbers
+        '__id-9223372036854775808__': { a: 3 },
+        '__id-9223372036854775807__': { a: 4 }
       };
 
       return withTestCollection(persistence, testDocs, async collectionRef => {
@@ -2309,7 +2326,15 @@ apiDescribe('Database', persistence => {
           where(documentId(), '>', '__id7__'),
           where(documentId(), '<=', 'Aa')
         );
-        const expectedDocs = ['__id12__', '12', '7', 'A', 'Aa'];
+        const expectedDocs = [
+          '__id12__',
+          '__id9007199254740992__',
+          '__id9007199254740993__',
+          '12',
+          '7',
+          'A',
+          'Aa'
+        ];
 
         const getSnapshot = await getDocsFromServer(filteredQuery);
         expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
@@ -2335,18 +2360,28 @@ apiDescribe('Database', persistence => {
           __id12__: { a: 1 },
           '__id-2__': { a: 1 },
           '_id1__': { a: 1 },
-          '__id1_': { a: 1 }
+          '__id1_': { a: 1 },
+          // max safe integer +1, +2
+          '__id9007199254740992__': { a: 1 },
+          '__id9007199254740993__': { a: 2 },
+          // smallest long numbers
+          '__id-9223372036854775808__': { a: 3 },
+          '__id-9223372036854775807__': { a: 4 }
         };
 
         return withTestCollection(
-          persistence,
+          persistence.toLruGc(),
           testDocs,
           async collectionRef => {
             const orderedQuery = query(collectionRef, orderBy(documentId()));
             let expectedDocs = [
+              '__id-9223372036854775808__',
+              '__id-9223372036854775807__',
               '__id-2__',
               '__id7__',
               '__id12__',
+              '__id9007199254740992__',
+              '__id9007199254740993__',
               '12',
               '7',
               'A',
@@ -2366,7 +2401,15 @@ apiDescribe('Database', persistence => {
               where(documentId(), '>', '__id7__'),
               where(documentId(), '<=', 'Aa')
             );
-            expectedDocs = ['__id12__', '12', '7', 'A', 'Aa'];
+            expectedDocs = [
+              '__id12__',
+              '__id9007199254740992__',
+              '__id9007199254740993__',
+              '12',
+              '7',
+              'A',
+              'Aa'
+            ];
             await checkOnlineAndOfflineResultsMatch(
               filteredQuery,
               ...expectedDocs

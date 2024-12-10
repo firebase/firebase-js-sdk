@@ -17,6 +17,7 @@
 
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
+import { Integer } from '@firebase/webchannel-wrapper/bloom-blob';
 
 export const DOCUMENT_KEY_NAME = '__name__';
 
@@ -194,8 +195,8 @@ abstract class BasePath<B extends BasePath<B>> {
       return 1;
     } else if (isLhsNumeric && isRhsNumeric) {
       // both numeric
-      return Math.sign(
-        BasePath.extractNumericId(lhs) - BasePath.extractNumericId(rhs)
+      return BasePath.extractNumericId(lhs).compare(
+        BasePath.extractNumericId(rhs)
       );
     } else {
       // both non-numeric
@@ -214,8 +215,8 @@ abstract class BasePath<B extends BasePath<B>> {
     return segment.startsWith('__id') && segment.endsWith('__');
   }
 
-  private static extractNumericId(segment: string): number {
-    return parseInt(segment.substring(4, segment.length - 2), 10);
+  private static extractNumericId(segment: string): Integer {
+    return Integer.fromString(segment.substring(4, segment.length - 2));
   }
 }
 
