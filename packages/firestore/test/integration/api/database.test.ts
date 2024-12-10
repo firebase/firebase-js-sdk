@@ -2260,9 +2260,9 @@ apiDescribe('Database', persistence => {
         '__id-2__': { a: 1 },
         '_id1__': { a: 1 },
         '__id1_': { a: 1 },
-        // max safe integer +1, +2
-        '__id9007199254740992__': { a: 1 },
-        '__id9007199254740993__': { a: 1 },
+        // largest long numbers
+        '__id9223372036854775807__': { a: 1 },
+        '__id9223372036854775806__': { a: 1 },
         // smallest long numbers
         '__id-9223372036854775808__': { a: 1 },
         '__id-9223372036854775807__': { a: 1 }
@@ -2276,8 +2276,8 @@ apiDescribe('Database', persistence => {
           '__id-2__',
           '__id7__',
           '__id12__',
-          '__id9007199254740992__',
-          '__id9007199254740993__',
+          '__id9223372036854775806__',
+          '__id9223372036854775807__',
           '12',
           '7',
           'A',
@@ -2311,9 +2311,9 @@ apiDescribe('Database', persistence => {
         '__id-2__': { a: 1 },
         '_id1__': { a: 1 },
         '__id1_': { a: 1 },
-        // max safe integer +1, +2
-        '__id9007199254740992__': { a: 1 },
-        '__id9007199254740993__': { a: 1 },
+        // largest long numbers
+        '__id9223372036854775807__': { a: 1 },
+        '__id9223372036854775806__': { a: 1 },
         // smallest long numbers
         '__id-9223372036854775808__': { a: 1 },
         '__id-9223372036854775807__': { a: 1 }
@@ -2328,8 +2328,8 @@ apiDescribe('Database', persistence => {
         );
         const expectedDocs = [
           '__id12__',
-          '__id9007199254740992__',
-          '__id9007199254740993__',
+          '__id9223372036854775806__',
+          '__id9223372036854775807__',
           '12',
           '7',
           'A',
@@ -2361,16 +2361,16 @@ apiDescribe('Database', persistence => {
           '__id-2__': { a: 1 },
           '_id1__': { a: 1 },
           '__id1_': { a: 1 },
-          // max safe integer +1, +2
-          '__id9007199254740992__': { a: 1 },
-          '__id9007199254740993__': { a: 1 },
+          // largest long numbers
+          '__id9223372036854775807__': { a: 1 },
+          '__id9223372036854775806__': { a: 1 },
           // smallest long numbers
           '__id-9223372036854775808__': { a: 1 },
           '__id-9223372036854775807__': { a: 1 }
         };
 
         return withTestCollection(
-          persistence.toLruGc(),
+          persistence,
           testDocs,
           async collectionRef => {
             const orderedQuery = query(collectionRef, orderBy(documentId()));
@@ -2380,8 +2380,8 @@ apiDescribe('Database', persistence => {
               '__id-2__',
               '__id7__',
               '__id12__',
-              '__id9007199254740992__',
-              '__id9007199254740993__',
+              '__id9223372036854775806__',
+              '__id9223372036854775807__',
               '12',
               '7',
               'A',
@@ -2403,8 +2403,8 @@ apiDescribe('Database', persistence => {
             );
             expectedDocs = [
               '__id12__',
-              '__id9007199254740992__',
-              '__id9007199254740993__',
+              '__id9223372036854775806__',
+              '__id9223372036854775807__',
               '12',
               '7',
               'A',
