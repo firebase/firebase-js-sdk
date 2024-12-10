@@ -2262,10 +2262,10 @@ apiDescribe('Database', persistence => {
         '__id1_': { a: 1 },
         // max safe integer +1, +2
         '__id9007199254740992__': { a: 1 },
-        '__id9007199254740993__': { a: 2 },
+        '__id9007199254740993__': { a: 1 },
         // smallest long numbers
-        '__id-9223372036854775808__': { a: 3 },
-        '__id-9223372036854775807__': { a: 4 }
+        '__id-9223372036854775808__': { a: 1 },
+        '__id-9223372036854775807__': { a: 1 }
       };
 
       return withTestCollection(persistence, testDocs, async collectionRef => {
@@ -2313,10 +2313,10 @@ apiDescribe('Database', persistence => {
         '__id1_': { a: 1 },
         // max safe integer +1, +2
         '__id9007199254740992__': { a: 1 },
-        '__id9007199254740993__': { a: 2 },
+        '__id9007199254740993__': { a: 1 },
         // smallest long numbers
-        '__id-9223372036854775808__': { a: 3 },
-        '__id-9223372036854775807__': { a: 4 }
+        '__id-9223372036854775808__': { a: 1 },
+        '__id-9223372036854775807__': { a: 1 }
       };
 
       return withTestCollection(persistence, testDocs, async collectionRef => {
@@ -2363,10 +2363,10 @@ apiDescribe('Database', persistence => {
           '__id1_': { a: 1 },
           // max safe integer +1, +2
           '__id9007199254740992__': { a: 1 },
-          '__id9007199254740993__': { a: 2 },
+          '__id9007199254740993__': { a: 1 },
           // smallest long numbers
-          '__id-9223372036854775808__': { a: 3 },
-          '__id-9223372036854775807__': { a: 4 }
+          '__id-9223372036854775808__': { a: 1 },
+          '__id-9223372036854775807__': { a: 1 }
         };
 
         return withTestCollection(
