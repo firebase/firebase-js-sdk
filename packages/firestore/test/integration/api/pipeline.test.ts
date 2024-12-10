@@ -69,7 +69,7 @@ use(chaiAsPromised);
 
 setLogLevel('debug');
 
-apiDescribe.only('Pipelines', persistence => {
+apiDescribe('Pipelines', persistence => {
   addEqualityMatcher();
   let firestore: Firestore;
   let randomCol: CollectionReference;

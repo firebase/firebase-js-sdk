@@ -28,6 +28,12 @@ import { Firestore, ensureFirestoreConfigured } from './database';
 import { DocumentReference, Query } from './reference';
 import { ExpUserDataWriter } from './user_data_writer';
 
+declare module './database' {
+  interface Firestore {
+    pipeline(): PipelineSource;
+  }
+}
+
 /**
  * Experimental Modular API for console testing.
  * @param firestore
