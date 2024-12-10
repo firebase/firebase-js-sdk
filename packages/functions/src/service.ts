@@ -19,7 +19,9 @@ import { FirebaseApp, _FirebaseService } from '@firebase/app';
 import {
   HttpsCallable,
   HttpsCallableResult,
-  HttpsCallableOptions
+  HttpsCallableStreamResult,
+  HttpsCallableOptions,
+  HttpsCallableStreamOptions
 } from './public-types';
 import { _errorForResponse, FunctionsError } from './error';
 import { ContextProvider } from './context';
@@ -30,6 +32,8 @@ import { MessagingInternalComponentName } from '@firebase/messaging-interop-type
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 
 export const DEFAULT_REGION = 'us-central1';
+
+const responseLineRE = /^data: (.*?)(?:\n|$)/;
 
 /**
  * The response to an http request.
@@ -104,7 +108,8 @@ export class FunctionsService implements _FirebaseService {
     authProvider: Provider<FirebaseAuthInternalName>,
     messagingProvider: Provider<MessagingInternalComponentName>,
     appCheckProvider: Provider<AppCheckInternalComponentName>,
-    regionOrCustomDomain: string = DEFAULT_REGION
+    regionOrCustomDomain: string = DEFAULT_REGION,
+    readonly fetchImpl: typeof fetch = (...args) => fetch(...args)
   ) {
     this.contextProvider = new ContextProvider(
       authProvider,
@@ -176,14 +181,25 @@ export function connectFunctionsEmulator(
  * @param name - The name of the trigger.
  * @public
  */
-export function httpsCallable<RequestData, ResponseData>(
+export function httpsCallable<RequestData, ResponseData, StreamData = unknown>(
   functionsInstance: FunctionsService,
   name: string,
   options?: HttpsCallableOptions
-): HttpsCallable<RequestData, ResponseData> {
-  return (data => {
+): HttpsCallable<RequestData, ResponseData, StreamData> {
+  const callable = (
+    data?: RequestData | null
+  ): Promise<HttpsCallableResult> => {
     return call(functionsInstance, name, data, options || {});
-  }) as HttpsCallable<RequestData, ResponseData>;
+  };
+
+  callable.stream = (
+    data?: RequestData | null,
+    options?: HttpsCallableStreamOptions
+  ) => {
+    return stream(functionsInstance, name, data, options);
+  };
+
+  return callable as HttpsCallable<RequestData, ResponseData, StreamData>;
 }
 
 /**
@@ -191,14 +207,28 @@ export function httpsCallable<RequestData, ResponseData>(
  * @param url - The url of the trigger.
  * @public
  */
-export function httpsCallableFromURL<RequestData, ResponseData>(
+export function httpsCallableFromURL<
+  RequestData,
+  ResponseData,
+  StreamData = unknown
+>(
   functionsInstance: FunctionsService,
   url: string,
   options?: HttpsCallableOptions
-): HttpsCallable<RequestData, ResponseData> {
-  return (data => {
+): HttpsCallable<RequestData, ResponseData, StreamData> {
+  const callable = (
+    data?: RequestData | null
+  ): Promise<HttpsCallableResult> => {
     return callAtURL(functionsInstance, url, data, options || {});
-  }) as HttpsCallable<RequestData, ResponseData>;
+  };
+
+  callable.stream = (
+    data?: RequestData | null,
+    options?: HttpsCallableStreamOptions
+  ) => {
+    return streamAtURL(functionsInstance, url, data, options || {});
+  };
+  return callable as HttpsCallable<RequestData, ResponseData, StreamData>;
 }
 
 /**
@@ -211,13 +241,14 @@ export function httpsCallableFromURL<RequestData, ResponseData>(
 async function postJSON(
   url: string,
   body: unknown,
-  headers: { [key: string]: string }
+  headers: { [key: string]: string },
+  fetchImpl: typeof fetch
 ): Promise<HttpResponse> {
   headers['Content-Type'] = 'application/json';
 
   let response: Response;
   try {
-    response = await fetch(url, {
+    response = await fetchImpl(url, {
       method: 'POST',
       body: JSON.stringify(body),
       headers
@@ -245,9 +276,35 @@ async function postJSON(
 }
 
 /**
+ * Creates authorization headers for Firebase Functions requests.
+ * @param functionsInstance The Firebase Functions service instance.
+ * @param options Options for the callable function, including AppCheck token settings.
+ * @return A Promise that resolves a headers map to include in outgoing fetch request.
+ */
+async function makeAuthHeaders(
+  functionsInstance: FunctionsService,
+  options: HttpsCallableOptions
+): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {};
+  const context = await functionsInstance.contextProvider.getContext(
+    options.limitedUseAppCheckTokens
+  );
+  if (context.authToken) {
+    headers['Authorization'] = 'Bearer ' + context.authToken;
+  }
+  if (context.messagingToken) {
+    headers['Firebase-Instance-ID-Token'] = context.messagingToken;
+  }
+  if (context.appCheckToken !== null) {
+    headers['X-Firebase-AppCheck'] = context.appCheckToken;
+  }
+  return headers;
+}
+
+/**
  * Calls a callable function asynchronously and returns the result.
  * @param name The name of the callable trigger.
- * @param data The data to pass as params to the function.s
+ * @param data The data to pass as params to the function.
  */
 function call(
   functionsInstance: FunctionsService,
@@ -262,7 +319,7 @@ function call(
 /**
  * Calls a callable function asynchronously and returns the result.
  * @param url The url of the callable trigger.
- * @param data The data to pass as params to the function.s
+ * @param data The data to pass as params to the function.
  */
 async function callAtURL(
   functionsInstance: FunctionsService,
@@ -275,26 +332,14 @@ async function callAtURL(
   const body = { data };
 
   // Add a header for the authToken.
-  const headers: { [key: string]: string } = {};
-  const context = await functionsInstance.contextProvider.getContext(
-    options.limitedUseAppCheckTokens
-  );
-  if (context.authToken) {
-    headers['Authorization'] = 'Bearer ' + context.authToken;
-  }
-  if (context.messagingToken) {
-    headers['Firebase-Instance-ID-Token'] = context.messagingToken;
-  }
-  if (context.appCheckToken !== null) {
-    headers['X-Firebase-AppCheck'] = context.appCheckToken;
-  }
+  const headers = await makeAuthHeaders(functionsInstance, options);
 
   // Default timeout to 70s, but let the options override it.
   const timeout = options.timeout || 70000;
 
   const failAfterHandle = failAfter(timeout);
   const response = await Promise.race([
-    postJSON(url, body, headers),
+    postJSON(url, body, headers, functionsInstance.fetchImpl),
     failAfterHandle.promise,
     functionsInstance.cancelAllRequests
   ]);
@@ -335,4 +380,237 @@ async function callAtURL(
   const decodedData = decode(responseData);
 
   return { data: decodedData };
+}
+
+/**
+ * Calls a callable function asynchronously and returns a streaming result.
+ * @param name The name of the callable trigger.
+ * @param data The data to pass as params to the function.
+ * @param options Streaming request options.
+ */
+function stream(
+  functionsInstance: FunctionsService,
+  name: string,
+  data: unknown,
+  options?: HttpsCallableStreamOptions
+): Promise<HttpsCallableStreamResult> {
+  const url = functionsInstance._url(name);
+  return streamAtURL(functionsInstance, url, data, options || {});
+}
+
+/**
+ * Calls a callable function asynchronously and return a streaming result.
+ * @param url The url of the callable trigger.
+ * @param data The data to pass as params to the function.
+ * @param options Streaming request options.
+ */
+async function streamAtURL(
+  functionsInstance: FunctionsService,
+  url: string,
+  data: unknown,
+  options: HttpsCallableStreamOptions
+): Promise<HttpsCallableStreamResult> {
+  // Encode any special types, such as dates, in the input data.
+  data = encode(data);
+  const body = { data };
+  //
+  // Add a header for the authToken.
+  const headers = await makeAuthHeaders(functionsInstance, options);
+  headers['Content-Type'] = 'application/json';
+  headers['Accept'] = 'text/event-stream';
+
+  let response: Response;
+  try {
+    response = await functionsInstance.fetchImpl(url, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers,
+      signal: options?.signal
+    });
+  } catch (e) {
+    if (e instanceof Error && e.name === 'AbortError') {
+      const error = new FunctionsError('cancelled', 'Request was cancelled.');
+      return {
+        data: Promise.reject(error),
+        stream: {
+          [Symbol.asyncIterator]() {
+            return {
+              next() {
+                return Promise.reject(error);
+              }
+            };
+          }
+        }
+      };
+    }
+    // This could be an unhandled error on the backend, or it could be a
+    // network error. There's no way to know, since an unhandled error on the
+    // backend will fail to set the proper CORS header, and thus will be
+    // treated as a network error by fetch.
+    const error = _errorForResponse(0, null);
+    return {
+      data: Promise.reject(error),
+      // Return an empty async iterator
+      stream: {
+        [Symbol.asyncIterator]() {
+          return {
+            next() {
+              return Promise.reject(error);
+            }
+          };
+        }
+      }
+    };
+  }
+  let resultResolver: (value: unknown) => void;
+  let resultRejecter: (reason: unknown) => void;
+  const resultPromise = new Promise<unknown>((resolve, reject) => {
+    resultResolver = resolve;
+    resultRejecter = reject;
+  });
+  options?.signal?.addEventListener('abort', () => {
+    const error = new FunctionsError('cancelled', 'Request was cancelled.');
+    resultRejecter(error);
+  });
+  const reader = response.body!.getReader();
+  const rstream = createResponseStream(
+    reader,
+    resultResolver!,
+    resultRejecter!,
+    options?.signal
+  );
+  return {
+    stream: {
+      [Symbol.asyncIterator]() {
+        const rreader = rstream.getReader();
+        return {
+          async next() {
+            const { value, done } = await rreader.read();
+            return { value: value as unknown, done };
+          },
+          async return() {
+            await rreader.cancel();
+            return { done: true, value: undefined };
+          }
+        };
+      }
+    },
+    data: resultPromise
+  };
+}
+
+/**
+ * Creates a ReadableStream that processes a streaming response from a streaming
+ * callable function that returns data in server-sent event format.
+ *
+ * @param reader The underlying reader providing raw response data
+ * @param resultResolver Callback to resolve the final result when received
+ * @param resultRejecter Callback to reject with an error if encountered
+ * @param signal Optional AbortSignal to cancel the stream processing
+ * @returns A ReadableStream that emits decoded messages from the response
+ *
+ * The returned ReadableStream:
+ *   1. Emits individual messages when "message" data is received
+ *   2. Resolves with the final result when a "result" message is received
+ *   3. Rejects with an error if an "error" message is received
+ */
+function createResponseStream(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  resultResolver: (value: unknown) => void,
+  resultRejecter: (reason: unknown) => void,
+  signal?: AbortSignal
+): ReadableStream<unknown> {
+  const processLine = (
+    line: string,
+    controller: ReadableStreamDefaultController
+  ): void => {
+    const match = line.match(responseLineRE);
+    // ignore all other lines (newline, comments, etc.)
+    if (!match) {
+      return;
+    }
+    const data = match[1];
+    try {
+      const jsonData = JSON.parse(data);
+      if ('result' in jsonData) {
+        resultResolver(decode(jsonData.result));
+        return;
+      }
+      if ('message' in jsonData) {
+        controller.enqueue(decode(jsonData.message));
+        return;
+      }
+      if ('error' in jsonData) {
+        const error = _errorForResponse(0, jsonData);
+        controller.error(error);
+        resultRejecter(error);
+        return;
+      }
+    } catch (error) {
+      if (error instanceof FunctionsError) {
+        controller.error(error);
+        resultRejecter(error);
+        return;
+      }
+      // ignore other parsing errors
+    }
+  };
+
+  const decoder = new TextDecoder();
+  return new ReadableStream({
+    start(controller) {
+      let currentText = '';
+      return pump();
+      async function pump(): Promise<void> {
+        if (signal?.aborted) {
+          const error = new FunctionsError(
+            'cancelled',
+            'Request was cancelled'
+          );
+          controller.error(error);
+          resultRejecter(error);
+          return Promise.resolve();
+        }
+        try {
+          const { value, done } = await reader.read();
+          if (done) {
+            if (currentText.trim()) {
+              processLine(currentText.trim(), controller);
+            }
+            controller.close();
+            return;
+          }
+          if (signal?.aborted) {
+            const error = new FunctionsError(
+              'cancelled',
+              'Request was cancelled'
+            );
+            controller.error(error);
+            resultRejecter(error);
+            await reader.cancel();
+            return;
+          }
+          currentText += decoder.decode(value, { stream: true });
+          const lines = currentText.split('\n');
+          currentText = lines.pop() || '';
+          for (const line of lines) {
+            if (line.trim()) {
+              processLine(line.trim(), controller);
+            }
+          }
+          return pump();
+        } catch (error) {
+          const functionsError =
+            error instanceof FunctionsError
+              ? error
+              : _errorForResponse(0, null);
+          controller.error(functionsError);
+          resultRejecter(functionsError);
+        }
+      }
+    },
+    cancel() {
+      return reader.cancel();
+    }
+  });
 }

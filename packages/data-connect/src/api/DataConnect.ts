@@ -179,7 +179,10 @@ export class DataConnect {
 
   // @internal
   enableEmulator(transportOptions: TransportOptions): void {
-    if (this._initialized) {
+    if (
+      this._initialized &&
+      !areTransportOptionsEqual(this._transportOptions, transportOptions)
+    ) {
       logError('enableEmulator called after initialization');
       throw new DataConnectError(
         Code.ALREADY_INITIALIZED,
@@ -189,6 +192,23 @@ export class DataConnect {
     this._transportOptions = transportOptions;
     this.isEmulator = true;
   }
+}
+
+/**
+ * @internal
+ * @param transportOptions1
+ * @param transportOptions2
+ * @returns
+ */
+export function areTransportOptionsEqual(
+  transportOptions1: TransportOptions,
+  transportOptions2: TransportOptions
+): boolean {
+  return (
+    transportOptions1.host === transportOptions2.host &&
+    transportOptions1.port === transportOptions2.port &&
+    transportOptions1.sslEnabled === transportOptions2.sslEnabled
+  );
 }
 
 /**
