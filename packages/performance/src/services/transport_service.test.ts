@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { spy, useFakeTimers, SinonFakeTimers } from 'sinon';
+import { stub, useFakeTimers, SinonFakeTimers } from 'sinon';
 import { use, expect } from 'chai';
 import sinonChai from 'sinon-chai';
 import {
@@ -27,8 +27,10 @@ import { SettingsService } from './settings_service';
 
 use(sinonChai);
 
-describe('Firebase Performance > transport_service', () => {
-  const sendBeaconSpy = spy(navigator, 'sendBeacon');
+/* eslint-disable no-restricted-properties */
+describe.only('Firebase Performance > transport_service', () => {
+  const sendBeaconStub = stub(navigator, 'sendBeacon');
+  const fetchStub = stub(window, 'fetch');
   const INITIAL_SEND_TIME_DELAY_MS = 5.5 * 1000;
   const DEFAULT_SEND_INTERVAL_MS = 10 * 1000;
   const MAX_EVENT_COUNT_PER_REQUEST = 1000;
@@ -41,12 +43,14 @@ describe('Firebase Performance > transport_service', () => {
   beforeEach(() => {
     clock = useFakeTimers(1);
     setupTransportService();
+    sendBeaconStub.returns(true);
   });
 
   afterEach(() => {
     clock.restore();
     resetTransportService();
-    sendBeaconSpy.resetHistory();
+    sendBeaconStub.restore();
+    fetchStub.restore();
   });
 
   it('throws an error when logging an empty message', () => {
@@ -57,20 +61,23 @@ describe('Firebase Performance > transport_service', () => {
 
   it('does not attempt to log an event after INITIAL_SEND_TIME_DELAY_MS if queue is empty', () => {
     clock.tick(INITIAL_SEND_TIME_DELAY_MS);
-    expect(sendBeaconSpy).to.not.have.been.called;
+    expect(sendBeaconStub).to.not.have.been.called;
+    expect(fetchStub).to.not.have.been.called;
   });
 
   it('attempts to log an event after DEFAULT_SEND_INTERVAL_MS if queue not empty', async () => {
     clock.tick(INITIAL_SEND_TIME_DELAY_MS);
     testTransportHandler('someEvent');
     clock.tick(DEFAULT_SEND_INTERVAL_MS);
-    expect(sendBeaconSpy).to.have.been.calledOnce;
+    expect(sendBeaconStub).to.have.been.calledOnce;
+    expect(fetchStub).to.not.have.been.called;
   });
 
   it('successful send a message to transport', () => {
     testTransportHandler('event1');
     clock.tick(INITIAL_SEND_TIME_DELAY_MS);
-    expect(sendBeaconSpy).to.have.been.calledOnce;
+    expect(sendBeaconStub).to.have.been.calledOnce;
+    expect(fetchStub).to.not.have.been.called;
   });
 
   it('sends up to the maximum event limit in one request', async () => {
@@ -99,7 +106,7 @@ describe('Firebase Performance > transport_service', () => {
         'event_time_ms': '1'
       });
     }
-    expect(sendBeaconSpy).which.to.have.been.calledWith(
+    expect(sendBeaconStub).which.to.have.been.calledWith(
       flTransportFullUrl,
       JSON.stringify(firstLogRequest)
     );
@@ -112,7 +119,55 @@ describe('Firebase Performance > transport_service', () => {
         'event_time_ms': '1'
       });
     }
-    expect(sendBeaconSpy).calledWith(
+    expect(sendBeaconStub).calledWith(
+      flTransportFullUrl,
+      JSON.stringify(secondLogRequest)
+    );
+    expect(fetchStub).to.not.have.been.called;
+  });
+
+  it('falls back to fetch if sendBeacon fails.', async () => {
+    sendBeaconStub.returns(false);
+    // Arrange
+    const setting = SettingsService.getInstance();
+    const flTransportFullUrl =
+      setting.flTransportEndpointUrl + '?key=' + setting.transportKey;
+
+    // Act
+    // Generate 1020 events, which should be dispatched in two batches (1000 events and 20 events).
+    for (let i = 0; i < 1020; i++) {
+      testTransportHandler('event' + i);
+    }
+    // Wait for first and second event dispatch to happen.
+    clock.tick(INITIAL_SEND_TIME_DELAY_MS);
+    // This is to resolve the floating promise chain in transport service.
+    await Promise.resolve().then().then().then();
+    clock.tick(DEFAULT_SEND_INTERVAL_MS);
+
+    // Assert
+    // Expects the first logRequest which contains first 1000 events.
+    const firstLogRequest = generateLogRequest('5501');
+    for (let i = 0; i < MAX_EVENT_COUNT_PER_REQUEST; i++) {
+      firstLogRequest['log_event'].push({
+        'source_extension_json_proto3': 'event' + i,
+        'event_time_ms': '1'
+      });
+    }
+    expect(fetchStub).to.not.have.been.called;
+    expect(sendBeaconStub).which.to.have.been.calledWith(
+      flTransportFullUrl,
+      JSON.stringify(firstLogRequest)
+    );
+    // Expects the second logRequest which contains remaining 20 events;
+    const secondLogRequest = generateLogRequest('15501');
+    for (let i = 0; i < 20; i++) {
+      secondLogRequest['log_event'].push({
+        'source_extension_json_proto3':
+          'event' + (MAX_EVENT_COUNT_PER_REQUEST + i),
+        'event_time_ms': '1'
+      });
+    }
+    expect(sendBeaconStub).calledWith(
       flTransportFullUrl,
       JSON.stringify(secondLogRequest)
     );

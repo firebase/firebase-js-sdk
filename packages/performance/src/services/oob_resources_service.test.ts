@@ -106,7 +106,7 @@ describe('Firebase Performance > oob_resources_service', () => {
     [EntryType, (entry: PerformanceEntry) => void],
     void
   >;
-  let createOobTraceStub: SinonSpy<
+  let createOobTraceSpy: SinonSpy<
     [
       PerformanceController,
       PerformanceNavigationTiming[],
@@ -170,7 +170,7 @@ describe('Firebase Performance > oob_resources_service', () => {
       }
     );
     setupObserverStub = stub(Api.prototype, 'setupObserver');
-    createOobTraceStub = spy(Trace, 'createOobTrace');
+    createOobTraceSpy = spy(Trace, 'createOobTrace');
     const api = Api.getInstance();
     lcpSpy = spy(api, 'onLCP');
     inpSpy = spy(api, 'onINP');
@@ -210,7 +210,7 @@ describe('Firebase Performance > oob_resources_service', () => {
       clock.tick(1);
 
       expect(apiGetInstanceSpy).to.be.called;
-      expect(createOobTraceStub).not.to.be.called;
+      expect(createOobTraceSpy).not.to.be.called;
     });
 
     it('creates page load trace after hidden', () => {
@@ -224,7 +224,7 @@ describe('Firebase Performance > oob_resources_service', () => {
 
       expect(getEntriesByTypeStub).to.be.calledWith('navigation');
       expect(getEntriesByTypeStub).to.be.calledWith('paint');
-      expect(createOobTraceStub).to.be.calledWithExactly(
+      expect(createOobTraceSpy).to.be.calledWithExactly(
         performanceController,
         [NAVIGATION_PERFORMANCE_ENTRY],
         [PAINT_PERFORMANCE_ENTRY],
@@ -243,7 +243,7 @@ describe('Firebase Performance > oob_resources_service', () => {
 
       expect(getEntriesByTypeStub).to.be.calledWith('navigation');
       expect(getEntriesByTypeStub).to.be.calledWith('paint');
-      expect(createOobTraceStub).to.be.calledWithExactly(
+      expect(createOobTraceSpy).to.be.calledWithExactly(
         performanceController,
         [NAVIGATION_PERFORMANCE_ENTRY],
         [PAINT_PERFORMANCE_ENTRY],
@@ -272,7 +272,7 @@ describe('Firebase Performance > oob_resources_service', () => {
       callEventListener('visibilitychange');
       clock.tick(1);
 
-      expect(createOobTraceStub).to.be.calledWithExactly(
+      expect(createOobTraceSpy).to.be.calledWithExactly(
         performanceController,
         [NAVIGATION_PERFORMANCE_ENTRY],
         [PAINT_PERFORMANCE_ENTRY],
@@ -308,7 +308,7 @@ describe('Firebase Performance > oob_resources_service', () => {
       callEventListener('visibilitychange');
       clock.tick(1);
 
-      expect(createOobTraceStub).to.be.calledWithExactly(
+      expect(createOobTraceSpy).to.be.calledWithExactly(
         performanceController,
         [NAVIGATION_PERFORMANCE_ENTRY],
         [PAINT_PERFORMANCE_ENTRY],
@@ -336,7 +336,7 @@ describe('Firebase Performance > oob_resources_service', () => {
       callEventListener('visibilitychange');
       clock.tick(1);
 
-      expect(createOobTraceStub).to.be.calledWithExactly(
+      expect(createOobTraceSpy).to.be.calledWithExactly(
         performanceController,
         [NAVIGATION_PERFORMANCE_ENTRY],
         [PAINT_PERFORMANCE_ENTRY],
@@ -365,7 +365,7 @@ describe('Firebase Performance > oob_resources_service', () => {
       callEventListener('visibilitychange');
       clock.tick(1);
 
-      expect(createOobTraceStub).to.be.calledWithExactly(
+      expect(createOobTraceSpy).to.be.calledWithExactly(
         performanceController,
         [NAVIGATION_PERFORMANCE_ENTRY],
         [PAINT_PERFORMANCE_ENTRY],
@@ -400,7 +400,7 @@ describe('Firebase Performance > oob_resources_service', () => {
       callEventListener('visibilitychange');
       clock.tick(1);
 
-      expect(createOobTraceStub).to.be.calledWithExactly(
+      expect(createOobTraceSpy).to.be.calledWithExactly(
         performanceController,
         [NAVIGATION_PERFORMANCE_ENTRY],
         [PAINT_PERFORMANCE_ENTRY],
