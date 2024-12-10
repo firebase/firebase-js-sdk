@@ -193,6 +193,8 @@ jobs:
         run: cd packages/firestore-compat && xvfb-run yarn run test:ci
         env:
           BROWSERS: 'Firefox'
+          SNAP_NAME: ''
+          SNAP_INSTANCE_NAME: ''
 
   test-firefox:
     name: Test Firestore on Firefox
@@ -224,6 +226,8 @@ jobs:
         env:
           BROWSERS: 'Firefox'
           EXPERIMENTAL_MODE: true
+          SNAP_NAME: ''
+          SNAP_INSTANCE_NAME: ''
 
   compat-test-webkit:
     name: Test Firestore Compatible on Webkit

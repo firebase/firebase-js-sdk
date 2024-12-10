@@ -99,6 +99,8 @@ jobs:
         run: xvfb-run yarn test:changed auth
         env:
           BROWSERS: 'Firefox'
+          SNAP_NAME: ''
+          SNAP_INSTANCE_NAME: ''
 
   test-webkit:
     name: Test Auth on Webkit if Changed

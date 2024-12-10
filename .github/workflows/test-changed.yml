@@ -75,6 +75,8 @@ jobs:
         run: xvfb-run yarn test:changed core
         env:
           BROWSERS: 'Firefox'
+          SNAP_NAME: ''
+          SNAP_INSTANCE_NAME: ''
           
           
   test-webkit:
