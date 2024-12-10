@@ -1,5 +1,11 @@
 # @firebase/functions
 
+## 0.12.0
+
+### Minor Changes
+
+- [`f05509e8c`](https://github.com/firebase/firebase-js-sdk/commit/f05509e8c526ce44656389ab9997a6e5ee957a3d) [#8609](https://github.com/firebase/firebase-js-sdk/pull/8609) - Add `.stream()` api for callable functions for consuming streaming responses.
+
 ## 0.11.10
 
 ### Patch Changes
