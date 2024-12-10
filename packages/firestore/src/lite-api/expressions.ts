@@ -1861,11 +1861,12 @@ export class ExprWithAlias<T extends Expr> extends Expr implements Selectable {
 }
 
 /**
+ * @private
  * @internal
  */
-class ListOfExprs extends Expr {
+export class ListOfExprs extends Expr {
   exprType: ExprType = 'ListOfExprs';
-  constructor(private exprs: Expr[]) {
+  constructor(readonly exprs: Expr[]) {
     super();
   }
 
@@ -2537,7 +2538,7 @@ export class ArrayElement extends FirestoreFunction {
  * @beta
  */
 export class EqAny extends FirestoreFunction implements FilterCondition {
-  constructor(private left: Expr, private others: Expr[]) {
+  constructor(readonly left: Expr, readonly others: Expr[]) {
     super('eq_any', [left, new ListOfExprs(others)]);
   }
   filterable = true as const;
@@ -2632,7 +2633,7 @@ export class Cond extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class LogicalMaximum extends FirestoreFunction {
-  constructor(private left: Expr, private right: Expr) {
+  constructor(readonly left: Expr, readonly right: Expr) {
     super('logical_maximum', [left, right]);
   }
 }
@@ -2641,7 +2642,7 @@ export class LogicalMaximum extends FirestoreFunction {
  * @beta
  */
 export class LogicalMinimum extends FirestoreFunction {
-  constructor(private left: Expr, private right: Expr) {
+  constructor(readonly left: Expr, readonly right: Expr) {
     super('logical_minimum', [left, right]);
   }
 }

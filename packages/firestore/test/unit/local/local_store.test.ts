@@ -17,7 +17,13 @@
 
 import { expect } from 'chai';
 
-import { arrayUnion, increment, Pipeline, Timestamp } from '../../../src';
+import {
+  arrayUnion,
+  increment,
+  Pipeline,
+  setLogLevel,
+  Timestamp
+} from '../../../src';
 import { User } from '../../../src/auth/user';
 import { BundledDocuments, NamedQuery } from '../../../src/core/bundle';
 import { BundleConverterImpl } from '../../../src/core/bundle_impl';

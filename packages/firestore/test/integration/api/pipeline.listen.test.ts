@@ -19,10 +19,9 @@ import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
 import {
   add,
-  andExpression,
+  andFunction,
   arrayContains,
   arrayContainsAny,
-  avg,
   CollectionReference,
   Constant,
   cosineDistance,
@@ -45,7 +44,7 @@ import {
   not,
   onSnapshot,
   orderBy,
-  orExpression,
+  orFunction,
   PipelineResult,
   query,
   QuerySnapshot,

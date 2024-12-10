@@ -16,7 +16,6 @@
  */
 
 import {
-  AndFunction,
   Constant,
   Expr,
   Field,
@@ -29,7 +28,9 @@ import {
   not,
   andFunction,
   orFunction,
-  Ordering
+  Ordering,
+  And,
+  ListOfExprs
 } from '../lite-api/expressions';
 import {
   isNanValue,
@@ -244,36 +245,60 @@ export function toPipelineFilterCondition(
       const value = f.value;
       switch (f.op) {
         case Operator.LESS_THAN:
-          return andFunction(field.exists(), field.lt(value));
+          return andFunction(
+            field.exists(),
+            field.lt(Constant._fromProto(value))
+          );
         case Operator.LESS_THAN_OR_EQUAL:
-          return andFunction(field.exists(), field.lte(value));
+          return andFunction(
+            field.exists(),
+            field.lte(Constant._fromProto(value))
+          );
         case Operator.GREATER_THAN:
-          return andFunction(field.exists(), field.gt(value));
+          return andFunction(
+            field.exists(),
+            field.gt(Constant._fromProto(value))
+          );
         case Operator.GREATER_THAN_OR_EQUAL:
-          return andFunction(field.exists(), field.gte(value));
+          return andFunction(
+            field.exists(),
+            field.gte(Constant._fromProto(value))
+          );
         case Operator.EQUAL:
-          return andFunction(field.exists(), field.eq(value));
+          return andFunction(
+            field.exists(),
+            field.eq(Constant._fromProto(value))
+          );
         case Operator.NOT_EQUAL:
-          return andFunction(field.exists(), field.neq(value));
+          return andFunction(
+            field.exists(),
+            field.neq(Constant._fromProto(value))
+          );
         case Operator.ARRAY_CONTAINS:
-          return andFunction(field.exists(), field.arrayContains(value));
+          return andFunction(
+            field.exists(),
+            field.arrayContains(Constant._fromProto(value))
+          );
         case Operator.IN: {
           const values = value?.arrayValue?.values?.map((val: any) =>
             Constant._fromProto(val)
           );
-          return andFunction(field.exists(), field.in(...values!));
+          return andFunction(field.exists(), field.eqAny(...values!));
         }
         case Operator.ARRAY_CONTAINS_ANY: {
           const values = value?.arrayValue?.values?.map((val: any) =>
             Constant._fromProto(val)
           );
-          return andFunction(field.exists(), field.arrayContainsAny(values!));
+          return andFunction(
+            field.exists(),
+            field.arrayContainsAny(...values!)
+          );
         }
         case Operator.NOT_IN: {
           const values = value?.arrayValue?.values?.map((val: any) =>
             Constant._fromProto(val)
           );
-          return andFunction(field.exists(), not(field.in(...values!)));
+          return andFunction(field.exists(), not(field.eqAny(...values!)));
         }
         default:
           fail('Unexpected operator');
@@ -333,7 +358,7 @@ export function toPipeline(query: Query, db: Firestore): Pipeline {
   );
   if (existsConditions.length > 1) {
     pipeline = pipeline.where(
-      and(existsConditions[0], ...existsConditions.slice(1))
+      andFunction(existsConditions[0], ...existsConditions.slice(1))
     );
   } else {
     pipeline = pipeline.where(existsConditions[0]);
@@ -412,7 +437,10 @@ function canonifyExpr(expr: Expr): string {
   if (expr instanceof FirestoreFunction) {
     return `fn(${expr.name},[${expr.params.map(canonifyExpr).join(',')}])`;
   }
-  throw new Error(`Unrecognized expr ${expr}`);
+  if (expr instanceof ListOfExprs) {
+    return `list([${expr.exprs.map(canonifyExpr).join(',')}])`;
+  }
+  throw new Error(`Unrecognized expr ${JSON.stringify(expr, null, 2)}`);
 }
 
 function canonifySortOrderings(orders: Ordering[]): string {

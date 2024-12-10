@@ -19,7 +19,6 @@ import {
 import { fieldPathFromArgument } from '../lite-api/user_data_reader';
 import {
   Constant,
-  Eq,
   Expr,
   Field,
   FilterCondition,
@@ -42,12 +41,11 @@ import {
   CoreEndsWith,
   CoreEq,
   CoreExists,
-  CoreIf,
-  CoreIn,
+  CoreCond,
   CoreIsNan,
   CoreLike,
-  CoreLogicalMax,
-  CoreLogicalMin,
+  CoreLogicalMaximum,
+  CoreLogicalMinimum,
   CoreMapGet,
   CoreMod,
   CoreMultiply,
@@ -158,7 +156,7 @@ function functionFromProto(value: ProtoValue): FirestoreFunction {
       return CoreXor.fromProtoToApiObj(value.functionValue!);
     }
     case 'in': {
-      return CoreIn.fromProtoToApiObj(value.functionValue!);
+      return CoreEq.fromProtoToApiObj(value.functionValue!);
     }
     case 'isnan': {
       return CoreIsNan.fromProtoToApiObj(value.functionValue!);
@@ -167,13 +165,13 @@ function functionFromProto(value: ProtoValue): FirestoreFunction {
       return CoreExists.fromProtoToApiObj(value.functionValue!);
     }
     case 'if': {
-      return CoreIf.fromProtoToApiObj(value.functionValue!);
+      return CoreCond.fromProtoToApiObj(value.functionValue!);
     }
     case 'logical_max': {
-      return CoreLogicalMax.fromProtoToApiObj(value.functionValue!);
+      return CoreLogicalMaximum.fromProtoToApiObj(value.functionValue!);
     }
     case 'logical_min': {
-      return CoreLogicalMin.fromProtoToApiObj(value.functionValue!);
+      return CoreLogicalMinimum.fromProtoToApiObj(value.functionValue!);
     }
     case 'array_concat': {
       return CoreArrayConcat.fromProtoToApiObj(value.functionValue!);

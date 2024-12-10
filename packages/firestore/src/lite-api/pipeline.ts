@@ -432,10 +432,10 @@ export class Pipeline<AppModelType = DocumentData>
     const copy = this.stages.map(s => s);
     copy.push(new Limit(limit, convertedFromLimitTolast));
     return new Pipeline(
-      this.liteDb,
+      this._db,
       this.userDataReader,
-      this.userDataWriter,
-      this.documentReferenceFactory,
+      this._userDataWriter,
+      this._documentReferenceFactory,
       copy,
       this.converter
     );

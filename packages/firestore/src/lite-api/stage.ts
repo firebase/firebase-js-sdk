@@ -33,7 +33,6 @@ import {
   Expr,
   Field,
   FilterCondition,
-  In,
   Ordering
 } from './expressions';
 import { DocumentReference } from './reference';

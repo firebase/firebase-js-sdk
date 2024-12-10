@@ -238,8 +238,8 @@ export function toPipelineResult<T>(
   pipeline: Pipeline<T>
 ): PipelineResult<T> {
   return new PipelineResult<T>(
-    pipeline.userDataWriter,
-    pipeline.documentReferenceFactory(doc.key),
+    pipeline._userDataWriter,
+    pipeline._documentReferenceFactory(doc.key),
     doc.data,
     doc.readTime.toTimestamp(),
     doc.createTime.toTimestamp(),

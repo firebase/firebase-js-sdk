@@ -1,4 +1,4 @@
-import { Pipeline as ApiPipeline } from '../../src';
+import { Pipeline as ApiPipeline } from '../../lite/index';
 import {
   canonifyPipeline as canonifyCorePipeline,
   pipelineEq as corePipelineEq

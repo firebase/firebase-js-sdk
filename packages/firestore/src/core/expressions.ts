@@ -38,15 +38,16 @@ import {
   ArrayContainsAny,
   ArrayLength,
   ArrayElement,
-  In,
+  EqAny,
+  NotEqAny,
   IsNan,
   Exists,
   Not,
   Or,
   Xor,
-  If,
-  LogicalMax,
-  LogicalMin,
+  Cond,
+  LogicalMaximum,
+  LogicalMinimum,
   Reverse,
   ReplaceFirst,
   ReplaceAll,
@@ -66,8 +67,8 @@ import {
   Count,
   Sum,
   Avg,
-  Min,
-  Max,
+  Minimum,
+  Maximum,
   CosineDistance,
   DotProduct,
   EuclideanDistance,
@@ -162,8 +163,8 @@ export function toEvaluable<T>(expr: T): EvaluableExpr {
     return new CoreArrayLength(expr);
   } else if (expr instanceof ArrayElement) {
     return new CoreArrayElement(expr);
-  } else if (expr instanceof In) {
-    return new CoreIn(expr);
+  } else if (expr instanceof EqAny) {
+    return new CoreEqAny(expr);
   } else if (expr instanceof IsNan) {
     return new CoreIsNan(expr);
   } else if (expr instanceof Exists) {
@@ -174,12 +175,12 @@ export function toEvaluable<T>(expr: T): EvaluableExpr {
     return new CoreOr(expr);
   } else if (expr instanceof Xor) {
     return new CoreXor(expr);
-  } else if (expr instanceof If) {
-    return new CoreIf(expr);
-  } else if (expr instanceof LogicalMax) {
-    return new CoreLogicalMax(expr);
-  } else if (expr instanceof LogicalMin) {
-    return new CoreLogicalMin(expr);
+  } else if (expr instanceof Cond) {
+    return new CoreCond(expr);
+  } else if (expr instanceof LogicalMaximum) {
+    return new CoreLogicalMaximum(expr);
+  } else if (expr instanceof LogicalMinimum) {
+    return new CoreLogicalMinimum(expr);
   } else if (expr instanceof Reverse) {
     return new CoreReverse(expr);
   } else if (expr instanceof ReplaceFirst) {
@@ -218,10 +219,10 @@ export function toEvaluable<T>(expr: T): EvaluableExpr {
     return new CoreSum(expr);
   } else if (expr instanceof Avg) {
     return new CoreAvg(expr);
-  } else if (expr instanceof Min) {
-    return new CoreMin(expr);
-  } else if (expr instanceof Max) {
-    return new CoreMax(expr);
+  } else if (expr instanceof Minimum) {
+    return new CoreMinimum(expr);
+  } else if (expr instanceof Maximum) {
+    return new CoreMaximum(expr);
   } else if (expr instanceof CosineDistance) {
     return new CoreCosineDistance(expr);
   } else if (expr instanceof DotProduct) {
@@ -708,22 +709,19 @@ export class CoreXor implements EvaluableExpr {
   }
 }
 
-export class CoreIn implements EvaluableExpr {
-  constructor(private expr: In) {}
+export class CoreEqAny implements EvaluableExpr {
+  constructor(private expr: EqAny) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const searchValue = toEvaluable(this.expr.searchValue).evaluate(
-      context,
-      input
-    );
+    const searchValue = toEvaluable(this.expr.left).evaluate(context, input);
     if (searchValue === undefined) {
       return undefined;
     }
 
-    const candidates = this.expr.candidates.map(candidate =>
+    const candidates = this.expr.others.map(candidate =>
       toEvaluable(candidate).evaluate(context, input)
     );
 
@@ -742,8 +740,8 @@ export class CoreIn implements EvaluableExpr {
     return hasError ? undefined : FALSE_VALUE;
   }
 
-  static fromProtoToApiObj(value: ProtoFunction): In {
-    return new In(
+  static fromProtoToApiObj(value: ProtoFunction): EqAny {
+    return new EqAny(
       exprFromProto(value.args![0]),
       value.args!.slice(1).map(exprFromProto)
     );
@@ -798,8 +796,8 @@ export class CoreExists implements EvaluableExpr {
   }
 }
 
-export class CoreIf implements EvaluableExpr {
-  constructor(private expr: If) {}
+export class CoreCond implements EvaluableExpr {
+  constructor(private expr: Cond) {}
 
   evaluate(
     context: EvaluationContext,
@@ -814,8 +812,8 @@ export class CoreIf implements EvaluableExpr {
     return toEvaluable(this.expr.elseExpr).evaluate(context, input);
   }
 
-  static fromProtoToApiObj(value: ProtoFunction): If {
-    return new If(
+  static fromProtoToApiObj(value: ProtoFunction): Cond {
+    return new Cond(
       exprFromProto(value.args![0]) as FilterExpr,
       exprFromProto(value.args![1]),
       exprFromProto(value.args![2])
@@ -823,8 +821,8 @@ export class CoreIf implements EvaluableExpr {
   }
 }
 
-export class CoreLogicalMax implements EvaluableExpr {
-  constructor(private expr: LogicalMax) {}
+export class CoreLogicalMaximum implements EvaluableExpr {
+  constructor(private expr: LogicalMaximum) {}
 
   evaluate(
     context: EvaluationContext,
@@ -843,16 +841,16 @@ export class CoreLogicalMax implements EvaluableExpr {
     }
   }
 
-  static fromProtoToApiObj(value: ProtoFunction): LogicalMax {
-    return new LogicalMax(
+  static fromProtoToApiObj(value: ProtoFunction): LogicalMaximum {
+    return new LogicalMaximum(
       exprFromProto(value.args![0]),
       exprFromProto(value.args![1])
     );
   }
 }
 
-export class CoreLogicalMin implements EvaluableExpr {
-  constructor(private expr: LogicalMin) {}
+export class CoreLogicalMinimum implements EvaluableExpr {
+  constructor(private expr: LogicalMinimum) {}
 
   evaluate(
     context: EvaluationContext,
@@ -871,8 +869,8 @@ export class CoreLogicalMin implements EvaluableExpr {
     }
   }
 
-  static fromProtoToApiObj(value: ProtoFunction): LogicalMin {
-    return new LogicalMin(
+  static fromProtoToApiObj(value: ProtoFunction): LogicalMinimum {
+    return new LogicalMinimum(
       exprFromProto(value.args![0]),
       exprFromProto(value.args![1])
     );
@@ -1646,8 +1644,8 @@ export class CoreAvg implements EvaluableExpr {
   }
 }
 
-export class CoreMin implements EvaluableExpr {
-  constructor(private expr: Min) {}
+export class CoreMinimum implements EvaluableExpr {
+  constructor(private expr: Minimum) {}
 
   evaluate(
     context: EvaluationContext,
@@ -1656,13 +1654,13 @@ export class CoreMin implements EvaluableExpr {
     throw new Error('Unimplemented');
   }
 
-  static fromProtoToApiObj(value: ProtoFunction): Min {
+  static fromProtoToApiObj(value: ProtoFunction): Minimum {
     throw new Error('Unimplemented');
   }
 }
 
-export class CoreMax implements EvaluableExpr {
-  constructor(private expr: Max) {}
+export class CoreMaximum implements EvaluableExpr {
+  constructor(private expr: Maximum) {}
 
   evaluate(
     context: EvaluationContext,
@@ -1671,7 +1669,7 @@ export class CoreMax implements EvaluableExpr {
     throw new Error('Unimplemented');
   }
 
-  static fromProtoToApiObj(value: ProtoFunction): Max {
+  static fromProtoToApiObj(value: ProtoFunction): Maximum {
     throw new Error('Unimplemented');
   }
 }

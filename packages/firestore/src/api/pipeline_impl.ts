@@ -27,15 +27,11 @@ import { Pipeline } from '../lite-api/pipeline';
 import { PipelineResult } from '../lite-api/pipeline-result';
 import { CorePipeline } from '../core/pipeline_run';
 
-import { Pipeline } from '../api/pipeline';
 import { PipelineSource } from '../api/pipeline-source';
-import { PipelineResult } from '../api_pipelines';
-import { firestoreClientExecutePipeline } from '../core/firestore_client';
 import { newUserDataReader } from '../lite-api/user_data_reader';
 import { DocumentKey } from '../model/document_key';
 import { cast } from '../util/input_validation';
 
-import { Firestore, ensureFirestoreConfigured } from './database';
 import { DocumentReference, Query } from './reference';
 import { ExpUserDataWriter } from './user_data_writer';
 
@@ -133,6 +129,7 @@ export function _onSnapshot(
   error?: (error: FirestoreError) => void,
   complete?: () => void
 ): Unsubscribe {
+  // TODO(pipeline): getting system fields needs to be done properly for type 2.
   // this.stages.push(
   //   new AddFields(
   //     this.selectablesToMap([
@@ -145,7 +142,7 @@ export function _onSnapshot(
 
   pipeline.stages.push(new Sort([Field.of('__name__').ascending()]));
 
-  const client = ensureFirestoreConfigured(pipeline.liteDb as Firestore);
+  const client = ensureFirestoreConfigured(pipeline._db as Firestore);
   const observer = {
     next: (snapshot: ViewSnapshot) => {
       new PipelineSnapshot(pipeline, snapshot);

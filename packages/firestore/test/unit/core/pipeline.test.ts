@@ -24,11 +24,12 @@ import {
   gte,
   lt,
   lte,
-  multiply
+  multiply,
+  useFirestorePipelines
 } from '../../../src';
 
 import { doc } from '../../util/helpers';
-import { and, or } from '../../../src/lite-api/expressions';
+import { andFunction, orFunction } from '../../../src/lite-api/expressions';
 import { newTestFirestore } from '../../util/api_helpers';
 import {
   canonifyPipeline,
@@ -37,7 +38,7 @@ import {
 } from '../../util/pipelines';
 
 const db = newTestFirestore();
-
+useFirestorePipelines();
 describe('Pipeline Canonify', () => {
   it('works as expected for simple where clause', () => {
     const p = db.pipeline().collection('test').where(eq(`foo`, 42));
@@ -144,6 +145,17 @@ describe('Pipeline Canonify', () => {
       .documents([docRef(db, 'cities/SF'), docRef(db, 'cities/LA')]);
 
     expect(canonifyPipeline(p)).to.equal('documents(/cities/LA,/cities/SF)');
+  });
+
+  it('works as expected for eqAny and arrays', () => {
+    const p = db
+      .pipeline()
+      .collection('foo')
+      .where(Field.of('bar').eqAny('a', 'b'));
+
+    expect(canonifyPipeline(p)).to.equal(
+      'collection(/foo)|where(fn(eq_any,[fld(bar),list([cst("a"),cst("b")])]))'
+    );
   });
 });
 
@@ -262,7 +274,7 @@ describe('runPipeline()', () => {
         db
           .pipeline()
           .collection('test')
-          .where(or(eq(`foo`, 42), eq('foo', 'bar'))),
+          .where(orFunction(eq(`foo`, 42), eq('foo', 'bar'))),
         dataset
       )
     ).to.deep.equal([
@@ -507,7 +519,10 @@ describe('runPipeline()', () => {
       .pipeline()
       .collection('test')
       .where(
-        and(lt(Field.of('published'), 1900), gte(Field.of('rating'), 4.5))
+        andFunction(
+          lt(Field.of('published'), 1900),
+          gte(Field.of('rating'), 4.5)
+        )
       );
 
     expect(runPipeline(p, bookDataset)).to.deep.equal([bookDataset[1]]);

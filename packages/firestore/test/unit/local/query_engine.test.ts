@@ -17,7 +17,12 @@
 
 import { expect } from 'chai';
 
-import { ascending, Field, Timestamp } from '../../../src';
+import {
+  ascending,
+  Field,
+  Timestamp,
+  useFirestorePipelines
+} from '../../../src';
 import { User } from '../../../src/auth/user';
 import {
   LimitType,
@@ -124,6 +129,8 @@ class TestLocalDocumentsView extends LocalDocumentsView {
     return super.getDocumentsMatchingQuery(transaction, query, offset, context);
   }
 }
+
+useFirestorePipelines();
 
 describe('QueryEngine', async () => {
   describe('MemoryEagerPersistence usePipeline=false', async () => {
