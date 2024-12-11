@@ -169,7 +169,7 @@ jobs:
 
   compat-test-firefox:
     name: Test Firestore Compatible on Firefox
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
@@ -193,15 +193,13 @@ jobs:
         run: cd packages/firestore-compat && xvfb-run yarn run test:ci
         env:
           BROWSERS: 'Firefox'
-          SNAP_NAME: ''
-          SNAP_INSTANCE_NAME: ''
 
   test-firefox:
     name: Test Firestore on Firefox
     strategy:
       matrix:
         test-name: ["test:browser", "test:travis", "test:lite:browser", "test:browser:prod:nameddb", "test:lite:browser:nameddb"]
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
@@ -226,8 +224,6 @@ jobs:
         env:
           BROWSERS: 'Firefox'
           EXPERIMENTAL_MODE: true
-          SNAP_NAME: ''
-          SNAP_INSTANCE_NAME: ''
 
   compat-test-webkit:
     name: Test Firestore Compatible on Webkit

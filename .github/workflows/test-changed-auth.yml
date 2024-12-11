@@ -76,9 +76,7 @@ jobs:
     steps:
       - name: install Firefox stable
         run: |
-          sudo apt-get update
-          sudo apt-get install firefox
-          sudo apt-get install wget
+          npx @puppeteer/browsers install firefox@stable
 
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -99,8 +97,6 @@ jobs:
         run: xvfb-run yarn test:changed auth
         env:
           BROWSERS: 'Firefox'
-          SNAP_NAME: ''
-          SNAP_INSTANCE_NAME: ''
 
   test-webkit:
     name: Test Auth on Webkit if Changed

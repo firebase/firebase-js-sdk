@@ -50,7 +50,7 @@ jobs:
 
   test-firefox:
     name: Test Packages With Changed Files in Firefox
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - name: Checkout Repo
@@ -75,8 +75,6 @@ jobs:
         run: xvfb-run yarn test:changed core
         env:
           BROWSERS: 'Firefox'
-          SNAP_NAME: ''
-          SNAP_INSTANCE_NAME: ''
           
           
   test-webkit:
