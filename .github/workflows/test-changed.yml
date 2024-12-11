@@ -50,7 +50,7 @@ jobs:
 
   test-firefox:
     name: Test Packages With Changed Files in Firefox
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repo
@@ -61,10 +61,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 22.10.0
-      - name: install Firefox stable
-        run: |
-          sudo apt-get update
-          sudo apt-get install firefox
+      # - name: install Firefox stable
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install firefox
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
