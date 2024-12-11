@@ -174,8 +174,7 @@ jobs:
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
       - name: install Firefox stable
-        run: |
-          npx @puppeteer/browsers install firefox@stable
+        run: npx @puppeteer/browsers install firefox@stable
       - name: Set up Node (20)
         uses: actions/setup-node@v3
         with:
@@ -202,10 +201,8 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
-      # - name: install Firefox stable
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get install firefox
+      - name: install Firefox stable
+        run: npx @puppeteer/browsers install firefox@stable
       - name: Download build archive
         uses: actions/download-artifact@v3
         with:

@@ -75,9 +75,7 @@ jobs:
 
     steps:
       - name: install Firefox stable
-        run: |
-          npx @puppeteer/browsers install firefox@stable
-
+        run: npx @puppeteer/browsers install firefox@stable
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
