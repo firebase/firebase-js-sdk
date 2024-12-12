@@ -2250,13 +2250,13 @@ apiDescribe('Database', persistence => {
   describe('sort documents by DocumentId', () => {
     it('snapshot listener sorts query by DocumentId same way as get query', async () => {
       const testDocs = {
-        A: { a: 1 },
-        a: { a: 1 },
-        Aa: { a: 1 },
+        'A': { a: 1 },
+        'a': { a: 1 },
+        'Aa': { a: 1 },
         '7': { a: 1 },
-        12: { a: 1 },
+        '12': { a: 1 },
         '__id7__': { a: 1 },
-        __id12__: { a: 1 },
+        '__id12__': { a: 1 },
         '__id-2__': { a: 1 },
         '_id1__': { a: 1 },
         '__id1_': { a: 1 },
@@ -2301,13 +2301,13 @@ apiDescribe('Database', persistence => {
 
     it('snapshot listener sorts filtered query by DocumentId same way as get query', async () => {
       const testDocs = {
-        A: { a: 1 },
-        a: { a: 1 },
-        Aa: { a: 1 },
+        'A': { a: 1 },
+        'a': { a: 1 },
+        'Aa': { a: 1 },
         '7': { a: 1 },
-        12: { a: 1 },
+        '12': { a: 1 },
         '__id7__': { a: 1 },
-        __id12__: { a: 1 },
+        '__id12__': { a: 1 },
         '__id-2__': { a: 1 },
         '_id1__': { a: 1 },
         '__id1_': { a: 1 },
@@ -2351,13 +2351,13 @@ apiDescribe('Database', persistence => {
     (persistence.gc === 'lru' ? describe : describe.skip)('offline', () => {
       it('SDK orders query the same way online and offline', async () => {
         const testDocs = {
-          A: { a: 1 },
-          a: { a: 1 },
-          Aa: { a: 1 },
+          'A': { a: 1 },
+          'a': { a: 1 },
+          'Aa': { a: 1 },
           '7': { a: 1 },
-          12: { a: 1 },
+          '12': { a: 1 },
           '__id7__': { a: 1 },
-          __id12__: { a: 1 },
+          '__id12__': { a: 1 },
           '__id-2__': { a: 1 },
           '_id1__': { a: 1 },
           '__id1_': { a: 1 },
