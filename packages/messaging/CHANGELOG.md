@@ -1,5 +1,11 @@
 # @firebase/messaging
 
+## 0.12.15
+
+### Patch Changes
+
+- [`1294e64c8`](https://github.com/firebase/firebase-js-sdk/commit/1294e64c813b6dbfb64f8dc24d90ec69a66f71ae) [#8661](https://github.com/firebase/firebase-js-sdk/pull/8661) (fixes [#7784](https://github.com/firebase/firebase-js-sdk/issues/7784)) - Fix an issue where PushManager.subscribe() is called too soon after registering the default service worker.
+
 ## 0.12.14
 
 ### Patch Changes

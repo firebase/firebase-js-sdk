@@ -1,5 +1,11 @@
 # @firebase/vertexai
 
+## 1.0.2
+
+### Patch Changes
+
+- [`c540ba9ee`](https://github.com/firebase/firebase-js-sdk/commit/c540ba9eedd189ec8ac0932124d2cc400d1bd1d6) [#8663](https://github.com/firebase/firebase-js-sdk/pull/8663) - Clear fetch timeout after request completion. Fixes an issue that caused Node scripts to hang due to a pending timeout.
+
 ## 1.0.1
 
 ### Patch Changes
