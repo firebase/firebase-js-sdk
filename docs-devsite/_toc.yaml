@@ -375,10 +375,16 @@ toc:
     path: /docs/reference/js/functions.functions.md
   - title: FunctionsError
     path: /docs/reference/js/functions.functionserror.md
+  - title: HttpsCallable
+    path: /docs/reference/js/functions.httpscallable.md
   - title: HttpsCallableOptions
     path: /docs/reference/js/functions.httpscallableoptions.md
   - title: HttpsCallableResult
     path: /docs/reference/js/functions.httpscallableresult.md
+  - title: HttpsCallableStreamOptions
+    path: /docs/reference/js/functions.httpscallablestreamoptions.md
+  - title: HttpsCallableStreamResult
+    path: /docs/reference/js/functions.httpscallablestreamresult.md
 - title: installations
   path: /docs/reference/js/installations.md
   section:
