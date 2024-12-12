@@ -1,5 +1,11 @@
 ## Unreleased
 
+## 0.1.3
+
+### Patch Changes
+
+- [`cb4309f13`](https://github.com/firebase/firebase-js-sdk/commit/cb4309f13a01a6c66eb502ae6f5d6fa93560ab06) [#8664](https://github.com/firebase/firebase-js-sdk/pull/8664) - Fixed issue where multiple calls to connectDataConnectEmulator caused an exception
+
 ## 0.1.2
 
 ### Patch Changes
