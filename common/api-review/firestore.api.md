@@ -390,14 +390,13 @@ export class Constant {
     static of(value: string): Constant;
     static of(value: boolean): Constant;
     static of(value: null): Constant;
-    static of(value: undefined): Constant;
     static of(value: GeoPoint): Constant;
     static of(value: Timestamp): Constant;
     static of(value: Date): Constant;
-    static of(value: Uint8Array): Constant;
+    static of(value: Bytes): Constant;
     static of(value: DocumentReference): Constant;
     static of(value: any[]): Constant;
-    static of(value: Map<string, any>): Constant;
+    static of(value: Record<string, any>): Constant;
     static of(value: VectorValue): Constant;
     regexContains(pattern: string): RegexContains;
     regexContains(pattern: Constant): RegexContains;
@@ -2509,8 +2508,8 @@ export function xor(left: FilterExpr, ...right: FilterExpr[]): Xor;
 
 // Warnings were encountered during analysis:
 //
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/index.d.ts:10173:26 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/index.d.ts:10173:61 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/index.d.ts:10200:21 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
+// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/index.d.ts:10167:26 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
+// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/index.d.ts:10167:61 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/index.d.ts:10194:21 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
 
 ```
