@@ -496,11 +496,16 @@ export class FirebaseAppCheckTokenProvider
   private forceRefresh = false;
   private appCheck: FirebaseAppCheckInternal | null = null;
   private latestAppCheckToken: string | null = null;
+  private serverAppAppCheckToken: string | null = null;
 
   constructor(
-    private app: FirebaseApp,
+    app: FirebaseApp,
     private appCheckProvider: Provider<AppCheckInternalComponentName>
-  ) {}
+  ) {
+    if (_isFirebaseServerApp(app) && app.settings.appCheckToken) {
+      this.serverAppAppCheckToken = app.settings.appCheckToken;
+    }
+  }
 
   start(
     asyncQueue: AsyncQueue,
@@ -564,10 +569,8 @@ export class FirebaseAppCheckTokenProvider
   }
 
   getToken(): Promise<Token | null> {
-    if (_isFirebaseServerApp(this.app) && this.app.settings.appCheckToken) {
-      return Promise.resolve(
-        new AppCheckToken(this.app.settings.appCheckToken)
-      );
+    if (this.serverAppAppCheckToken !== null) {
+      return Promise.resolve(new AppCheckToken(this.serverAppAppCheckToken));
     }
     debugAssert(
       this.tokenListener != null,
