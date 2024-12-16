@@ -9,7 +9,7 @@
     "test:manual": "mocha --exit"
   },
   "devDependencies": {
-    "firebase": "11.0.1",
+    "firebase": "11.1.0",
     "chai": "4.4.1",
     "chromedriver": "119.0.1",
     "express": "4.19.2",

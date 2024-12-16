@@ -21,6 +21,7 @@ import { ApiSettings } from '../types/internal';
 import {
   DEFAULT_API_VERSION,
   DEFAULT_BASE_URL,
+  DEFAULT_FETCH_TIMEOUT_MS,
   LANGUAGE_TAG,
   PACKAGE_VERSION
 } from '../constants';
@@ -116,7 +117,6 @@ export async function constructRequest(
   return {
     url: url.toString(),
     fetchOptions: {
-      ...buildFetchOptions(requestOptions),
       method: 'POST',
       headers: await getHeaders(url),
       body
@@ -134,6 +134,7 @@ export async function makeRequest(
 ): Promise<Response> {
   const url = new RequestUrl(model, task, apiSettings, stream, requestOptions);
   let response;
+  let fetchTimeoutId: string | number | NodeJS.Timeout | undefined;
   try {
     const request = await constructRequest(
       model,
@@ -143,6 +144,15 @@ export async function makeRequest(
       body,
       requestOptions
     );
+    // Timeout is 180s by default
+    const timeoutMillis =
+      requestOptions?.timeout != null && requestOptions.timeout >= 0
+        ? requestOptions.timeout
+        : DEFAULT_FETCH_TIMEOUT_MS;
+    const abortController = new AbortController();
+    fetchTimeoutId = setTimeout(() => abortController.abort(), timeoutMillis);
+    request.fetchOptions.signal = abortController.signal;
+
     response = await fetch(request.url, request.fetchOptions);
     if (!response.ok) {
       let message = '';
@@ -211,24 +221,10 @@ export async function makeRequest(
     }
 
     throw err;
+  } finally {
+    if (fetchTimeoutId) {
+      clearTimeout(fetchTimeoutId);
+    }
   }
   return response;
-}
-
-/**
- * Generates the request options to be passed to the fetch API.
- * @param requestOptions - The user-defined request options.
- * @returns The generated request options.
- */
-function buildFetchOptions(requestOptions?: RequestOptions): RequestInit {
-  const fetchOptions = {} as RequestInit;
-  let timeoutMillis = 180 * 1000; // default: 180 s
-  if (requestOptions?.timeout && requestOptions?.timeout >= 0) {
-    timeoutMillis = requestOptions.timeout;
-  }
-  const abortController = new AbortController();
-  const signal = abortController.signal;
-  setTimeout(() => abortController.abort(), timeoutMillis);
-  fetchOptions.signal = signal;
-  return fetchOptions;
 }
