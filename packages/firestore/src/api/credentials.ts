@@ -632,10 +632,10 @@ export class EmptyAppCheckTokenProvider implements CredentialsProvider<string> {
 /** AppCheck token provider for the Lite SDK. */
 export class LiteAppCheckTokenProvider implements CredentialsProvider<string> {
   private appCheck: FirebaseAppCheckInternal | null = null;
-  private serverAppAppCheckToken?: string;
+  private serverAppAppCheckToken: string | null = null;
 
   constructor(
-    private app: FirebaseApp,
+    app: FirebaseApp,
     private appCheckProvider: Provider<AppCheckInternalComponentName>
   ) {
     if (_isFirebaseServerApp(app) && app.settings.appCheckToken) {
@@ -647,7 +647,7 @@ export class LiteAppCheckTokenProvider implements CredentialsProvider<string> {
   }
 
   getToken(): Promise<Token | null> {
-    if (this.serverAppAppCheckToken) {
+    if (this.serverAppAppCheckToken !== null) {
       return Promise.resolve(new AppCheckToken(this.serverAppAppCheckToken));
     }
 
