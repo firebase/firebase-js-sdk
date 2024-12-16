@@ -96,22 +96,29 @@ import {
   getVectorValue,
   isArray,
   isBoolean,
+  isBytes,
   isDouble,
   isInteger,
   isMapValue,
+  isNanValue,
+  isNullValue,
   isNumber,
   isString,
   isVectorValue,
+  MAX_VALUE,
   MIN_VALUE,
   TRUE_VALUE,
+  typeOrder,
   valueCompare,
-  valueEquals,
+  valueEquals as valueEqualsWithOptions,
   VECTOR_MAP_VECTORS_KEY
 } from '../model/values';
 
 import { RE2JS } from 're2js';
 import { toName, toTimestamp, toVersion } from '../remote/serializer';
 import { exprFromProto } from './pipeline_serialize';
+import { isNegativeZero } from '../util/types';
+import { logWarn } from '../util/log';
 
 export interface EvaluableExpr {
   evaluate(
@@ -307,8 +314,8 @@ function asBigInt(protoNumber: { integerValue: number | string }): bigint {
   return BigInt(protoNumber.integerValue);
 }
 
-const LongMaxValue = BigInt('0x7fffffffffffffff');
-const LongMinValue = -BigInt('0x8000000000000000');
+export const LongMaxValue = BigInt('0x7fffffffffffffff');
+export const LongMinValue = -BigInt('0x8000000000000000');
 
 abstract class BigIntOrDoubleArithmetics<
   T extends Add | Subtract | Multiply | Divide | Mod
@@ -388,6 +395,10 @@ abstract class BigIntOrDoubleArithmetics<
       }
     }
   }
+}
+
+function valueEquals(left: Value, right: Value): boolean {
+  return valueEqualsWithOptions(left, right, { nanEqual: false, mixIntegerDouble: true, semanticsEqual: true });
 }
 
 export class CoreAdd extends BigIntOrDoubleArithmetics<Add> {
@@ -549,7 +560,11 @@ export class CoreDivide extends BigIntOrDoubleArithmetics<Divide> {
     | undefined {
     const rightValue = asDouble(right);
     if (rightValue === 0) {
-      return undefined;
+      return {
+        doubleValue: isNegativeZero(rightValue)
+          ? Number.NEGATIVE_INFINITY
+          : Number.POSITIVE_INFINITY
+      };
     }
     return { doubleValue: asDouble(left) / rightValue };
   }
@@ -596,7 +611,12 @@ export class CoreMod extends BigIntOrDoubleArithmetics<Mod> {
         doubleValue: number;
       }
     | undefined {
-    return { doubleValue: asDouble(left) % asDouble(right) };
+    const rightValue = asDouble(right);
+    if (rightValue === 0) {
+      return undefined;
+    }
+
+    return { doubleValue: asDouble(left) % rightValue };
   }
 
   static fromProtoToApiObj(value: ProtoFunction): Mod {
@@ -760,8 +780,8 @@ export class CoreIsNan implements EvaluableExpr {
       return undefined;
     }
 
-    if (!isNumber(evaluated) || isInteger(evaluated)) {
-      return FALSE_VALUE;
+    if (!isNumber(evaluated)) {
+      return undefined;
     }
 
     return {
@@ -828,17 +848,26 @@ export class CoreLogicalMaximum implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const left = toEvaluable(this.expr.left).evaluate(context, input);
-    const right = toEvaluable(this.expr.right).evaluate(context, input);
-    if (left === undefined && right === undefined) {
-      return undefined;
+    const values = [
+      toEvaluable(this.expr.left).evaluate(context, input),
+      toEvaluable(this.expr.right).evaluate(context, input)
+    ];
+
+    let result: Value | undefined;
+
+    for (const value of values) {
+      if (value === undefined || valueEquals(value, MIN_VALUE)) {
+        continue;
+      }
+
+      if (result === undefined) {
+        result = value;
+      } else {
+        result = valueCompare(value, result) > 0 ? value : result;
+      }
     }
 
-    if (valueCompare(left ?? MIN_VALUE, right ?? MIN_VALUE) >= 0) {
-      return left ?? MIN_VALUE;
-    } else {
-      return right ?? MIN_VALUE;
-    }
+    return result ?? MIN_VALUE;
   }
 
   static fromProtoToApiObj(value: ProtoFunction): LogicalMaximum {
@@ -856,17 +885,26 @@ export class CoreLogicalMinimum implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const left = toEvaluable(this.expr.left).evaluate(context, input);
-    const right = toEvaluable(this.expr.right).evaluate(context, input);
-    if (left === undefined && right === undefined) {
-      return undefined;
+    const values = [
+      toEvaluable(this.expr.left).evaluate(context, input),
+      toEvaluable(this.expr.right).evaluate(context, input)
+    ];
+
+    let result: Value | undefined;
+
+    for (const value of values) {
+      if (value === undefined || valueEquals(value, MIN_VALUE)) {
+        continue;
+      }
+
+      if (result === undefined) {
+        result = value;
+      } else {
+        result = valueCompare(value, result) < 0 ? value : result;
+      }
     }
 
-    if (valueCompare(left ?? MIN_VALUE, right ?? MIN_VALUE) < 0) {
-      return left ?? MIN_VALUE;
-    } else {
-      return right ?? MIN_VALUE;
-    }
+    return result ?? MIN_VALUE;
   }
 
   static fromProtoToApiObj(value: ProtoFunction): LogicalMinimum {
@@ -934,6 +972,12 @@ export class CoreLt extends ComparisonBase<Lt> {
   }
 
   trueCase(left: Value, right: Value): boolean {
+    if (typeOrder(left) !== typeOrder(right)) {
+      return false;
+    }
+    if (isNanValue(left) || isNanValue(right)) {
+      return false;
+    }
     return valueCompare(left, right) < 0;
   }
 
@@ -948,7 +992,17 @@ export class CoreLte extends ComparisonBase<Lte> {
   }
 
   trueCase(left: Value, right: Value): boolean {
-    return valueCompare(left, right) <= 0;
+    if (typeOrder(left) !== typeOrder(right)) {
+      return false;
+    }
+    if (isNanValue(left) || isNanValue(right)) {
+      return false;
+    }
+    if (valueEquals(left, right)) {
+      return true;
+    }
+
+    return valueCompare(left, right) < 0;
   }
 
   static fromProtoToApiObj(value: ProtoFunction): Lte {
@@ -965,6 +1019,13 @@ export class CoreGt extends ComparisonBase<Gt> {
   }
 
   trueCase(left: Value, right: Value): boolean {
+    if (typeOrder(left) !== typeOrder(right)) {
+      return false;
+    }
+    if (isNanValue(left) || isNanValue(right)) {
+      return false;
+    }
+
     return valueCompare(left, right) > 0;
   }
 
@@ -979,7 +1040,17 @@ export class CoreGte extends ComparisonBase<Gte> {
   }
 
   trueCase(left: Value, right: Value): boolean {
-    return valueCompare(left, right) >= 0;
+    if (typeOrder(left) !== typeOrder(right)) {
+      return false;
+    }
+    if (isNanValue(left) || isNanValue(right)) {
+      return false;
+    }
+    if (valueEquals(left, right)) {
+      return true;
+    }
+
+    return valueCompare(left, right) > 0;
   }
 
   static fromProtoToApiObj(value: ProtoFunction): Gte {
@@ -1016,11 +1087,14 @@ export class CoreArrayReverse implements EvaluableExpr {
     input: PipelineInputOutput
   ): Value | undefined {
     const evaluated = toEvaluable(this.expr.array).evaluate(context, input);
-    if (evaluated === undefined || !Array.isArray(evaluated.arrayValue)) {
+    if (
+      evaluated === undefined ||
+      !Array.isArray(evaluated.arrayValue?.values)
+    ) {
       return undefined;
     }
 
-    return { arrayValue: { values: evaluated.arrayValue.reverse() } };
+    return { arrayValue: { values: evaluated.arrayValue?.values.reverse() } };
   }
 
   static fromProtoToApiObj(value: ProtoFunction): ArrayReverse {
@@ -1041,7 +1115,7 @@ export class CoreArrayContains implements EvaluableExpr {
     }
 
     const element = toEvaluable(this.expr.element).evaluate(context, input);
-    if (evaluated === undefined) {
+    if (evaluated === undefined || element === undefined) {
       return undefined;
     }
 
@@ -1117,7 +1191,10 @@ export class CoreArrayContainsAny implements EvaluableExpr {
 
     for (const element of candidates) {
       for (const val of evaluatedExpr.arrayValue.values ?? []) {
-        if (element !== undefined && valueEquals(val, element!)) {
+        if (element === undefined) {
+          return undefined;
+        }
+        if (valueEquals(val, element!)) {
           return TRUE_VALUE;
         }
       }
@@ -1223,6 +1300,27 @@ export class CoreReplaceAll implements EvaluableExpr {
   }
 }
 
+function getUnicodePointCount(str: string) {
+  let count = 0;
+  for (let i = 0; i < str.length; i++) {
+    const codePoint = str.codePointAt(i);
+
+    if (codePoint === undefined) {
+      return undefined;
+    }
+
+    if (codePoint <= 0xdfff) {
+      count += 1;
+    } else if (codePoint <= 0x10ffff) {
+      count += 1;
+      i++;
+    } else {
+      return undefined; // Invalid code point (should not normally happen)
+    }
+  }
+  return count;
+}
+
 export class CoreCharLength implements EvaluableExpr {
   constructor(private expr: CharLength) {}
 
@@ -1232,17 +1330,64 @@ export class CoreCharLength implements EvaluableExpr {
   ): Value | undefined {
     const evaluated = toEvaluable(this.expr.value).evaluate(context, input);
 
-    if (evaluated === undefined || !isString(evaluated)) {
+    if (evaluated === undefined) {
       return undefined;
     }
 
-    // return the number of characters in the string
-    return { integerValue: `${evaluated.stringValue.length}` };
+    if (isString(evaluated)) {
+      return { integerValue: getUnicodePointCount(evaluated.stringValue) };
+    } else if (isNullValue(evaluated)) {
+      return MIN_VALUE;
+    } else {
+      return undefined;
+    }
   }
 
   static fromProtoToApiObj(value: ProtoFunction): CharLength {
     return new CharLength(exprFromProto(value.args![0]));
   }
+}
+
+function getUtf8ByteLength(str: string) {
+  let byteLength = 0;
+  for (let i = 0; i < str.length; i++) {
+    const codePoint = str.codePointAt(i);
+
+    // Check for out of range of lone surrogate
+    if (codePoint === undefined) {
+      return undefined;
+    }
+
+    if (codePoint >= 0xd800 && codePoint <= 0xdfff) {
+      // If it is a high surrogate, check if a low surrogate follows
+      if (codePoint <= 0xdbff) {
+        const lowSurrogate = str.codePointAt(i + 1);
+        if (
+          lowSurrogate === undefined ||
+          !(lowSurrogate >= 0xdc00 && lowSurrogate <= 0xdfff)
+        ) {
+          return undefined; // Lone high surrogate
+        }
+        // Valid surrogate pair
+        byteLength += 4;
+        i++; // Move past the low surrogate
+      } else {
+        return undefined; // Lone low surrogate
+      }
+    } else if (codePoint <= 0x7f) {
+      byteLength += 1;
+    } else if (codePoint <= 0x7ff) {
+      byteLength += 2;
+    } else if (codePoint <= 0xffff) {
+      byteLength += 3;
+    } else if (codePoint <= 0x10ffff) {
+      byteLength += 4;
+      i++; // Increment i to skip the next code unit of the surrogate pair
+    } else {
+      return undefined; // Invalid code point (should not normally happen)
+    }
+  }
+  return byteLength;
 }
 
 export class CoreByteLength implements EvaluableExpr {
@@ -1254,14 +1399,25 @@ export class CoreByteLength implements EvaluableExpr {
   ): Value | undefined {
     const evaluated = toEvaluable(this.expr.value).evaluate(context, input);
 
-    if (evaluated === undefined || !isString(evaluated)) {
+    if (evaluated === undefined) {
       return undefined;
     }
 
-    // return the number of bytes in the string
-    return {
-      integerValue: `${new TextEncoder().encode(evaluated.stringValue).length}`
-    };
+    if (isString(evaluated)) {
+      // return the number of bytes in the string
+      const result = getUtf8ByteLength(evaluated.stringValue);
+      return result === undefined
+        ? result
+        : {
+            integerValue: result
+          };
+    } else if (isBytes(evaluated)) {
+      return { integerValue: evaluated.bytesValue.length };
+    } else if (isNullValue(evaluated)) {
+      return MIN_VALUE;
+    } else {
+      return undefined;
+    }
   }
 
   static fromProtoToApiObj(value: ProtoFunction): ByteLength {
@@ -1324,9 +1480,10 @@ export class CoreLike implements EvaluableExpr {
     }
 
     return {
-      booleanValue: RE2JS.compile(likeToRegex(pattern.stringValue))
-        .matcher(evaluated.stringValue)
-        .find()
+      booleanValue: RE2JS.matches(
+        likeToRegex(pattern.stringValue),
+        evaluated.stringValue
+      )
     };
   }
 
@@ -1355,11 +1512,17 @@ export class CoreRegexContains implements EvaluableExpr {
       return undefined;
     }
 
-    return {
-      booleanValue: RE2JS.compile(pattern.stringValue)
-        .matcher(evaluated.stringValue)
-        .find()
-    };
+    try {
+      const regex = RE2JS.compile(pattern.stringValue);
+      return {
+        booleanValue: regex.matcher(evaluated.stringValue).find()
+      };
+    } catch (RE2JSError) {
+      logWarn(
+        `Invalid regex pattern found: ${pattern.stringValue}, returning error`
+      );
+      return undefined;
+    }
   }
 
   static fromProtoToApiObj(value: ProtoFunction): RegexContains {
@@ -1387,11 +1550,19 @@ export class CoreRegexMatch implements EvaluableExpr {
       return undefined;
     }
 
-    return {
-      booleanValue: RE2JS.compile(pattern.stringValue).matches(
-        evaluated.stringValue
-      )
-    };
+    try {
+      const regex = RE2JS.compile(pattern.stringValue);
+      return {
+        booleanValue: RE2JS.compile(pattern.stringValue).matches(
+          evaluated.stringValue
+        )
+      };
+    } catch (RE2JSError) {
+      logWarn(
+        `Invalid regex pattern found: ${pattern.stringValue}, returning error`
+      );
+      return undefined;
+    }
   }
 
   static fromProtoToApiObj(value: ProtoFunction): RegexMatch {
@@ -1694,7 +1865,7 @@ abstract class DistanceBase<
       return undefined;
     }
 
-    const vector2 = toEvaluable(this.expr.vector1).evaluate(context, input);
+    const vector2 = toEvaluable(this.expr.vector2).evaluate(context, input);
     if (vector2 === undefined || !isVectorValue(vector2)) {
       return undefined;
     }
@@ -1800,7 +1971,7 @@ export class CoreEuclideanDistance extends DistanceBase<EuclideanDistance> {
       );
     }
 
-    return euclideanDistance;
+    return Math.sqrt(euclideanDistance);
   }
 
   static fromProtoToApiObj(value: ProtoFunction): EuclideanDistance {

@@ -56,11 +56,14 @@ export function firestore(): Firestore {
   return FIRESTORE;
 }
 
-export function newTestFirestore(projectId = 'new-project'): Firestore {
+export function newTestFirestore(
+  projectId = 'new-project',
+  databaseId: string | undefined = undefined
+): Firestore {
   return new Firestore(
     new EmptyAuthCredentialsProvider(),
     new EmptyAppCheckTokenProvider(),
-    new DatabaseId(projectId)
+    new DatabaseId(databaseId ?? projectId)
   );
 }
 

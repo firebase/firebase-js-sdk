@@ -287,10 +287,7 @@ describe('runPipeline()', () => {
         db.pipeline().collection('test').where(lte(`foo`, '42')),
         dataset
       )
-    ).to.deep.equal([
-      doc('test/doc2', 1000, { foo: 42 }),
-      doc('test/doc3', 1000, { foo: '42' })
-    ]);
+    ).to.deep.equal([doc('test/doc3', 1000, { foo: '42' })]);
   });
 
   // a representative dataset

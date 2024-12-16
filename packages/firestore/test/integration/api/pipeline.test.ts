@@ -785,10 +785,10 @@ apiDescribe.only('Pipelines', persistence => {
     it('testChecks', async () => {
       const results = await randomCol
         .pipeline()
-        .where(not(Field.of('rating').isNaN()))
+        .where(not(Field.of('rating').isNan()))
         .select(
           Field.of('rating').eq(null).as('ratingIsNull'),
-          not(Field.of('rating').isNaN()).as('ratingIsNotNaN')
+          not(Field.of('rating').isNan()).as('ratingIsNotNaN')
         )
         .limit(1)
         .execute();

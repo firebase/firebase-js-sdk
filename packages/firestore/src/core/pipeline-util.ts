@@ -230,9 +230,9 @@ export function toPipelineFilterCondition(
     const field = Field.of(f.field.toString());
     if (isNanValue(f.value)) {
       if (f.op === Operator.EQUAL) {
-        return andFunction(field.exists(), field.isNaN());
+        return andFunction(field.exists(), field.isNan());
       } else {
-        return andFunction(field.exists(), not(field.isNaN()));
+        return andFunction(field.exists(), not(field.isNan()));
       }
     } else if (isNullValue(f.value)) {
       if (f.op === Operator.EQUAL) {
@@ -426,7 +426,7 @@ function whereConditionsFromCursor(
   return new And(conditions);
 }
 
-function canonifyExpr(expr: Expr): string {
+export function canonifyExpr(expr: Expr): string {
   if (expr instanceof Field) {
     return `fld(${expr.fieldName()})`;
   }

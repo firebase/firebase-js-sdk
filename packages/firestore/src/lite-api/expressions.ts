@@ -42,6 +42,7 @@ import {
   UserDataSource
 } from './user_data_reader';
 import { VectorValue } from './vector_value';
+import { Bytes } from './bytes';
 
 /**
  * @beta
@@ -798,6 +799,10 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
     return new ArrayLength(this);
   }
 
+  arrayReverse(): ArrayReverse {
+    return new ArrayReverse(this);
+  }
+
   /**
    * Creates an expression that checks if this expression is equal to any of the provided values or
    * expressions.
@@ -876,7 +881,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    *
    * @return A new `Expr` representing the 'isNaN' check.
    */
-  isNaN(): IsNan {
+  isNan(): IsNan {
     return new IsNan(this);
   }
 
@@ -2051,7 +2056,7 @@ export class Constant extends Expr {
 
   private _protoValue?: ProtoValue;
 
-  private constructor(readonly value: any) {
+  private constructor(readonly value: any, readonly options?: {preferIntegers: boolean}) {
     super();
   }
 
@@ -2062,6 +2067,8 @@ export class Constant extends Expr {
    * @return A new `Constant` instance.
    */
   static of(value: number): Constant;
+
+  static of(value: number, options?: {preferIntegers: boolean}): Constant;
 
   /**
    * Creates a `Constant` instance for a string value.
@@ -2120,12 +2127,12 @@ export class Constant extends Expr {
   static of(value: Date): Constant;
 
   /**
-   * Creates a `Constant` instance for a Uint8Array value.
+   * Creates a `Constant` instance for a `Bytes` value.
    *
-   * @param value The Uint8Array value.
+   * @param value The Bytes value.
    * @return A new `Constant` instance.
    */
-  static of(value: Uint8Array): Constant;
+  static of(value: Bytes): Constant;
 
   /**
    * Creates a `Constant` instance for a DocumentReference value.
@@ -2169,8 +2176,8 @@ export class Constant extends Expr {
    */
   static of(value: VectorValue): Constant;
 
-  static of(value: any): Constant {
-    return new Constant(value);
+  static of(value: any, options?: {preferIntegers: boolean}): Constant {
+    return new Constant(value, options);
   }
 
   /**
@@ -4451,6 +4458,10 @@ export function arrayContainsAll(
  */
 export function arrayLength(array: Expr): ArrayLength {
   return new ArrayLength(array);
+}
+
+export function arrayReverse(array: Expr): ArrayReverse {
+  return new ArrayReverse(array);
 }
 
 /**
