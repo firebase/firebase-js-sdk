@@ -45,7 +45,6 @@ function validateTokenTTL(base64Token: string, tokenName: string): void {
   }
   const exp = JSON.parse(secondPart).exp * 1000;
   const now = new Date().getTime();
-  // const now = new Date(new Date().getDate() - 1).now()
   const diff = exp - now;
   if (diff <= 0) {
     throw ERROR_FACTORY.create(AppError.SERVER_APP_TOKEN_EXPIRED, {
@@ -94,12 +93,12 @@ export class FirebaseServerAppImpl
       ...serverConfig
     };
 
-    // Validate the authIdtoken validation window.
+    // Ensure that the current time is within the authIdtoken window of validity.
     if (this._serverConfig.authIdToken) {
       validateTokenTTL(this._serverConfig.authIdToken, 'authIdToken');
     }
 
-    // Validate the appCheckToken validation window.
+    // Ensure that the current time is within the appCheckToken window of validity.
     if (this._serverConfig.appCheckToken) {
       validateTokenTTL(this._serverConfig.appCheckToken, 'appCheckToken');
     }
