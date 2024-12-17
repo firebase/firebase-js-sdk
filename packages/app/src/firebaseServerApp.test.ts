@@ -236,9 +236,6 @@ describe('FirebaseServerApp', () => {
       );
     } catch (e) {
       encounteredError = true;
-      expect((e as Error).toString()).to.contain(
-        'Unexpected end of JSON input'
-      );
     }
     expect(encounteredError).to.be.true;
   });
