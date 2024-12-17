@@ -92,7 +92,7 @@ export class DataConnect {
   private _transportOptions?: TransportOptions;
   private _authTokenProvider?: AuthTokenProvider;
   _isUsingGeneratedSdk: boolean = false;
-  private _appCheckTokenProvider: AppCheckTokenProvider;
+  private _appCheckTokenProvider?: AppCheckTokenProvider;
   // @internal
   constructor(
     public readonly app: FirebaseApp,
@@ -149,10 +149,12 @@ export class DataConnect {
         this._authProvider
       );
     }
-    this._appCheckTokenProvider = new AppCheckTokenProvider(
-      this.app,
-      this._appCheckProvider
-    );
+    if (this._appCheckProvider) {
+      this._appCheckTokenProvider = new AppCheckTokenProvider(
+        this.app.name,
+        this._appCheckProvider
+      );
+    }
 
     this._initialized = true;
     this._transport = new this._transportClass(
