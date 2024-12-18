@@ -1,0 +1,14 @@
+{
+  "name": "@firebase/firestore/pipelines",
+  "description": "pipelines",
+  "main": "../dist/pipelines.node.cjs.js",
+  "main-esm": "../dist/pipelines.node.mjs",
+  "module": "../dist/pipelines.browser.esm2017.js",
+  "browser": "../dist/pipelines.browser.esm2017.js",
+  "react-native": "../dist/pipelines.rn.esm2017.js",
+  "typings": "../dist/pipelines.d.ts",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

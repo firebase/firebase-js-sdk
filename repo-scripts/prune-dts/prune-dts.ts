@@ -18,6 +18,7 @@
 import * as yargs from 'yargs';
 import * as ts from 'typescript';
 import * as fs from 'fs';
+import * as path from 'path';
 import { ESLint } from 'eslint';
 
 /**
@@ -33,16 +34,17 @@ import { ESLint } from 'eslint';
  * @param inputLocation The file path to the .d.ts produced by API explorer.
  * @param outputLocation The output location for the pruned .d.ts file.
  */
-export function pruneDts(inputLocation: string, outputLocation: string): void {
+export function pruneDts(inputLocation: string, outputLocation: string, otherExportFileLocations: string[] = []): void {
   const compilerOptions = {};
   const host = ts.createCompilerHost(compilerOptions);
-  const program = ts.createProgram([inputLocation], compilerOptions, host);
+  const program = ts.createProgram([inputLocation, ...otherExportFileLocations], compilerOptions, host);
   const printer: ts.Printer = ts.createPrinter();
   const sourceFile = program.getSourceFile(inputLocation)!;
+  const otherExportSourceFiles = otherExportFileLocations.map(otherFileLocation => program.getSourceFile(otherFileLocation)).filter(value => value !== undefined) as ts.SourceFile[];
 
   const result: ts.TransformationResult<ts.SourceFile> =
     ts.transform<ts.SourceFile>(sourceFile, [
-      dropPrivateApiTransformer.bind(null, program, host)
+      dropPrivateApiTransformer.bind(null, program, host, otherExportSourceFiles )
     ]);
   const transformedSourceFile: ts.SourceFile = result.transformed[0];
   let content = printer.printFile(transformedSourceFile);
@@ -422,7 +424,7 @@ function extractJSDocComment(
 function extractExportedSymbol(
   typeChecker: ts.TypeChecker,
   sourceFile: ts.SourceFile,
-  typeName: ts.Node
+  typeName: ts.Node,
 ): ts.Symbol | undefined {
   if (!ts.isIdentifier(typeName)) {
     return undefined;
@@ -503,14 +505,58 @@ function extractExportedSymbol(
   return undefined;
 }
 
+function findExternalExport(
+  typeChecker: ts.TypeChecker,
+  sourceFile: ts.SourceFile,
+  node: ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeAliasDeclaration | ts.EnumDeclaration,
+  otherExportSourceFiles: ts.SourceFile[]
+): ts.SourceFile | undefined {
+  if (!node.name) return undefined;
+
+  const localSymbolName = node.name.text;
+
+  for (const otherExportSourceFile of otherExportSourceFiles) {
+
+    const otherExportedSymbols = typeChecker.getExportsOfModule(
+      typeChecker.getSymbolAtLocation(otherExportSourceFile)!
+    );
+
+    for (const symbol of otherExportedSymbols) {
+      // TODO: ideally this would compare definitions to handle the case
+      // of name collisions with different definitions. However, this
+      // implementation currently does not handle function exports,
+      // which is the only place we expect name collisions.
+      if (symbol.name === localSymbolName) {
+        console.log(`===== removing external export ${symbol.name}`)
+        return otherExportSourceFile;
+      }
+    }
+  }
+
+  return undefined;
+}
+
 function dropPrivateApiTransformer(
   program: ts.Program,
   host: ts.CompilerHost,
-  context: ts.TransformationContext
+  otherExportSourceFiles: ts.SourceFile[],
+  context: ts.TransformationContext,
+
 ): ts.Transformer<ts.SourceFile> {
   const typeChecker = program.getTypeChecker();
 
   return (sourceFile: ts.SourceFile) => {
+    const imports: Record<string, Array<string>> = {};
+
+    function ensureImportsForFile(filename: string): Array<string> {
+      let importsForFile = imports[filename];
+      if (!importsForFile) {
+        importsForFile = [];
+        imports[filename] = importsForFile;
+      }
+      return importsForFile;
+    }
+
     function visit(node: ts.Node): ts.Node {
       if (
         ts.isInterfaceDeclaration(node) ||
@@ -527,6 +573,22 @@ function dropPrivateApiTransformer(
             .getModifiers(node)
             ?.find(m => m.kind === ts.SyntaxKind.ExportKeyword)
         ) {
+          return ts.factory.createNotEmittedStatement(node);
+        }
+      }
+
+      if (
+        ts.isInterfaceDeclaration(node) ||
+        ts.isClassDeclaration(node) ||
+        ts.isTypeAliasDeclaration(node) ||
+        ts.isEnumDeclaration(node)
+      ) {
+        // Remove any types that are exported externally
+        const externalExportFile = findExternalExport(typeChecker, sourceFile, node, otherExportSourceFiles);
+        if (externalExportFile && node.name) {
+          console.log(`==== sourceFile.filename ${sourceFile.fileName}`)
+          console.log(`==== externalExportFile.filename ${externalExportFile.fileName}`)
+          ensureImportsForFile(path.relative(path.dirname(sourceFile.fileName), externalExportFile.fileName)).push(node.name.text);
           return ts.factory.createNotEmittedStatement(node);
         }
       }
@@ -580,7 +642,26 @@ function dropPrivateApiTransformer(
         context
       ) as T;
     }
-    return visitNodeAndChildren(sourceFile);
+    const result = visitNodeAndChildren(sourceFile);
+
+    const moreImports: ts.ImportDeclaration[] = [];
+    for (let filename in imports) {
+      const importSpecifiers: ts.ImportSpecifier[] = [];
+      for (let identifier of imports[filename]) {
+        importSpecifiers.push(ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier(identifier)));
+      }
+      let outFileName = filename.startsWith('.') ? filename : `./${filename}`;
+      outFileName = outFileName.replace('.d.ts', '');
+      const importDeclaration = ts.factory.createImportDeclaration(
+        [],
+        ts.factory.createImportClause(true, undefined, ts.factory.createNamedImports(importSpecifiers)),
+        ts.factory.createStringLiteral(outFileName, true)
+      )
+
+      moreImports.push(importDeclaration);
+    }
+
+    return ts.factory.updateSourceFile(result, [...moreImports, ...result.statements], true);
   };
 }
 

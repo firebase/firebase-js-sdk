@@ -51,6 +51,7 @@ const browserPlugins = [
     cacheDir: tmp.dirSync(),
     abortOnError: true,
     transformers: [util.removeAssertAndPrefixInternalTransformer]
+    //transformers: [util.removeAssertTransformer]
   }),
   json({ preferConst: true }),
   terser(util.manglePrivatePropertiesOptions)
@@ -61,9 +62,11 @@ const allBuilds = [
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: './src/index.node.ts',
+    input: ['./src/index.node.ts', './src/pipelines.node.ts'],
     output: {
-      file: pkg['main-esm'],
+      dir: 'dist/intermediate',
+      entryFileNames: '[name].mjs',
+      chunkFileNames: 'common-[hash].node.mjs',
       format: 'es',
       sourcemap: true
     },
@@ -76,9 +79,11 @@ const allBuilds = [
   },
   // Node CJS build
   {
-    input: pkg['main-esm'],
+    input: ['dist/intermediate/index.node.mjs', 'dist/intermediate/pipelines.node.mjs'],
     output: {
-      file: pkg.main,
+      dir: 'dist/',
+      entryFileNames: '[name].cjs.js',
+      chunkFileNames: 'common-[hash].node.cjs.js',
       format: 'cjs',
       sourcemap: true
     },
@@ -103,9 +108,11 @@ const allBuilds = [
   },
   // Node ESM build with build target reporting
   {
-    input: pkg['main-esm'],
+    input: ['dist/intermediate/index.node.mjs', 'dist/intermediate/pipelines.node.mjs'],
     output: {
-      file: pkg['main-esm'],
+      dir: 'dist/',
+      entryFileNames: '[name].mjs',
+      chunkFileNames: 'common-[hash].node.mjs',
       format: 'es',
       sourcemap: true
     },
@@ -122,13 +129,18 @@ const allBuilds = [
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: './src/index.ts',
+    input: ['./src/index.ts', './src/pipelines.ts'],
     output: {
-      file: pkg.browser,
+      dir: 'dist/intermediate',
+      entryFileNames: '[name].js',
+      chunkFileNames: 'common-[hash].js',
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('browser')), ...browserPlugins],
+    plugins: [
+      alias(util.generateAliasConfig('browser')),
+      ...browserPlugins
+    ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
@@ -136,10 +148,12 @@ const allBuilds = [
   },
   // Convert es2017 build to cjs
   {
-    input: pkg['browser'],
+    input: ['dist/intermediate/index.js', 'dist/intermediate/pipelines.js'],
     output: [
       {
-        file: './dist/index.cjs.js',
+        dir: 'dist/',
+        entryFileNames: '[name].cjs.js',
+        chunkFileNames: 'common-[hash].cjs.js',
         format: 'cjs',
         sourcemap: true
       }
@@ -155,10 +169,12 @@ const allBuilds = [
   },
   // es2017 build with build target reporting
   {
-    input: pkg['browser'],
+    input: ['dist/intermediate/index.js', 'dist/intermediate/pipelines.js'],
     output: [
       {
-        file: pkg['browser'],
+        dir: 'dist/',
+        entryFileNames: '[name].esm2017.js',
+        chunkFileNames: 'common-[hash].esm2017.js',
         format: 'es',
         sourcemap: true
       }
@@ -174,9 +190,11 @@ const allBuilds = [
   },
   // RN build
   {
-    input: './src/index.rn.ts',
+    input: ['./src/index.rn.ts', './src/pipelines.rn.ts',],
     output: {
-      file: pkg['react-native'],
+      dir: 'dist/',
+      entryFileNames: '[name].js',
+      chunkFileNames: 'common-[hash].rn.js',
       format: 'es',
       sourcemap: true
     },

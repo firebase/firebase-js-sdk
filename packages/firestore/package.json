@@ -47,12 +47,14 @@
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
     "test:minified": "(cd ../../integration/firestore ; yarn test)",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
-    "api-report:main": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package firestore --packageRoot . --typescriptDts ./dist/firestore/src/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/index.d.ts",
-    "api-report:lite": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package firestore-lite --packageRoot . --typescriptDts ./dist/firestore/lite/index.d.ts --rollupDts ./dist/lite/private.d.ts --untrimmedRollupDts ./dist/lite/internal.d.ts --publicDts ./dist/lite/index.d.ts",
+    "api-report:main":           "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package firestore                 --packageRoot . --typescriptDts ./dist/firestore/src/index.d.ts        --rollupDts ./dist/private.d.ts                --untrimmedRollupDts ./dist/internal.d.ts                --publicDts ./dist/index.d.ts",
+    "api-report:all-packages":   "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package firestore                 --packageRoot . --typescriptDts ./dist/firestore/src/all_packages.d.ts --rollupDts ./dist/private.all_packages.d.ts   --untrimmedRollupDts ./dist/internal.all_packages.d.ts   --publicDts ./dist/all_packages.d.ts",
+    "api-report:pipelines":      "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package firestore-pipelines       --packageRoot . --typescriptDts ./dist/firestore/src/pipelines.d.ts    --rollupDts ./dist/private.pipelines.d.ts      --untrimmedRollupDts ./dist/internal.pipelines.d.ts      --publicDts ./dist/pipelines.d.ts      --otherExportsPublicDtsFiles ./dist/index.d.ts",
+    "api-report:lite":           "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package firestore-lite            --packageRoot . --typescriptDts ./dist/firestore/lite/index.d.ts       --rollupDts ./dist/lite/private.d.ts           --untrimmedRollupDts ./dist/lite/internal.d.ts           --publicDts ./dist/lite/index.d.ts",
     "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose",
-    "api-report": "run-s --npm-path npm api-report:main api-report:lite && yarn api-report:api-json",
+    "api-report": "run-s --npm-path npm api-report:main api-report:pipelines api-report:lite && yarn api-report:api-json",
     "doc": "api-documenter markdown --input temp --output docs",
-    "typings:public": "node ../../scripts/build/use_typings.js ./dist/index.d.ts"
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/all-packages.d.ts"
   },
   "exports": {
     ".": {
@@ -76,10 +78,36 @@
       },
       "react-native": "./dist/lite/index.rn.esm2017.js",
       "browser": {
-        "require": "./dist/lite/index.cjs.js",
+        "require": "./dist/lite/index.browser.cjs.js",
         "import": "./dist/lite/index.browser.esm2017.js"
       },
       "default": "./dist/lite/index.browser.esm2017.js"
+    },
+    "./lite/pipelines": {
+      "types": "./dist/lite/pipelines.d.ts",
+      "node": {
+        "require": "./dist/lite/pipelines.node.cjs.js",
+        "import": "./dist/lite/pipelines.node.mjs"
+      },
+      "react-native": "./dist/lite/pipelines.rn.esm2017.js",
+      "browser": {
+        "require": "./dist/lite/pipelines.browser.cjs.js",
+        "import": "./dist/lite/pipelines.browser.esm2017.js"
+      },
+      "default": "./dist/lite/pipelines.browser.esm2017.js"
+    },
+    "./pipelines": {
+      "types": "./dist/pipelines.d.ts",
+      "node": {
+        "require": "./dist/pipelines.node.cjs.js",
+        "import": "./dist/pipelines.node.mjs"
+      },
+      "react-native": "./dist/index.rn.esm2017.js",
+      "browser": {
+        "require": "./dist/pipelines.cjs.js",
+        "import": "./dist/pipelines.esm2017.js"
+      },
+      "default": "./dist/pipelines.esm2017.js"
     },
     "./package.json": "./package.json"
   },
@@ -135,7 +163,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/firestore/src/index.d.ts",
+  "types": "dist/all_packages.d.ts",
   "nyc": {
     "extension": [
       ".ts"

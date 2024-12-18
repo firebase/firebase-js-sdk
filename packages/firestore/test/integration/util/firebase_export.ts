@@ -51,4 +51,5 @@ export function newTestFirestore(
 }
 
 export * from '../../../src';
+export * from '../../../src/pipelines';
 export { PrivateSettings };

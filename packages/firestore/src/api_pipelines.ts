@@ -14,13 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 export { PipelineSource } from './lite-api/pipeline-source';
 
 export { PipelineResult } from './lite-api/pipeline-result';
 
-export { Pipeline } from './lite-api/pipeline';
+export { Pipeline } from './api/pipeline';
 
-export { useFluentPipelines, execute, pipeline } from './api/pipeline_impl';
+export { useFluentPipelines, pipeline, execute } from './api/pipeline_impl';
 
 export {
   Stage,
@@ -174,6 +175,9 @@ export {
   TimestampAdd,
   TimestampSub,
   Ordering,
+} from './lite-api/expressions';
+
+export type {
   ExprType,
   AccumulatorTarget,
   FilterExpr,
