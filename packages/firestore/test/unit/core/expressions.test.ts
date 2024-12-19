@@ -59,7 +59,7 @@ import {
   strContains,
   subtract,
   Timestamp,
-  useFirestorePipelines,
+  useFluentPipelines,
   vectorLength,
   VectorValue,
   xor
@@ -1027,8 +1027,10 @@ describe.only('Expressions', () => {
 
       it('basic_add_nonNumerics', () => {
         expect(evaluate(add(Constant.of(1), Constant.of('1')))).to.be.undefined;
-        expect(evaluate(add(Constant.of('1'), Constant.of(1.0)))).to.be.undefined;
-        expect(evaluate(add(Constant.of('1'), Constant.of('1')))).to.be.undefined;
+        expect(evaluate(add(Constant.of('1'), Constant.of(1.0)))).to.be
+          .undefined;
+        expect(evaluate(add(Constant.of('1'), Constant.of('1')))).to.be
+          .undefined;
       });
 
       it('doubleLongAddition_overflow', () => {
@@ -1135,20 +1137,24 @@ describe.only('Expressions', () => {
           `add(Number.MIN_VALUE, NaN)`
         );
         expectEqual(
-          evaluate(add(Constant.of(Number.POSITIVE_INFINITY), Constant.of(NaN))),
+          evaluate(
+            add(Constant.of(Number.POSITIVE_INFINITY), Constant.of(NaN))
+          ),
           Constant.of(NaN),
           `add(Number.POSITIVE_INFINITY, NaN)`
         );
         expectEqual(
-          evaluate(add(Constant.of(Number.NEGATIVE_INFINITY), Constant.of(NaN))),
+          evaluate(
+            add(Constant.of(Number.NEGATIVE_INFINITY), Constant.of(NaN))
+          ),
           Constant.of(NaN),
           `add(Number.NEGATIVE_INFINITY, NaN)`
         );
       });
 
       it('nan_notNumberType_returnError', () => {
-        expect(evaluate(add(Constant.of(NaN), Constant.of('hello world')))).to.be
-          .undefined;
+        expect(evaluate(add(Constant.of(NaN), Constant.of('hello world')))).to
+          .be.undefined;
       });
 
       it('multiArgument', () => {
@@ -1240,7 +1246,9 @@ describe.only('Expressions', () => {
 
       it.skip('longSubtraction_overflow', () => {
         expect(
-          evaluate(subtract(Constant.of(Number.MIN_SAFE_INTEGER), Constant.of(1)))
+          evaluate(
+            subtract(Constant.of(Number.MIN_SAFE_INTEGER), Constant.of(1))
+          )
         ).to.be.undefined;
         expect(
           evaluate(
@@ -1419,7 +1427,10 @@ describe.only('Expressions', () => {
       it('doubleMultiplication_overflow', () => {
         expectEqual(
           evaluate(
-            multiply(Constant.of(Number.MAX_VALUE), Constant.of(Number.MAX_VALUE))
+            multiply(
+              Constant.of(Number.MAX_VALUE),
+              Constant.of(Number.MAX_VALUE)
+            )
           ),
           Constant.of(Number.POSITIVE_INFINITY),
           `multiply(Number.MAX_VALUE, Number.MAX_VALUE)`
@@ -1677,7 +1688,10 @@ describe.only('Expressions', () => {
         );
         expectEqual(
           evaluate(
-            divide(Constant.of(-Number.MAX_VALUE), Constant.of(Number.MIN_VALUE))
+            divide(
+              Constant.of(-Number.MAX_VALUE),
+              Constant.of(Number.MIN_VALUE)
+            )
           ),
           Constant.of(Number.NEGATIVE_INFINITY),
           `divide(-Number.MAX_VALUE, Number.MIN_VALUE)`
@@ -1685,7 +1699,8 @@ describe.only('Expressions', () => {
       });
 
       it.skip('divideByZero', () => {
-        expect(evaluate(divide(Constant.of(1), Constant.of(0)))).to.be.undefined; // Or your error handling
+        expect(evaluate(divide(Constant.of(1), Constant.of(0)))).to.be
+          .undefined; // Or your error handling
         expectEqual(
           evaluate(divide(Constant.of(1), Constant.of(0.0))),
           Constant.of(Number.POSITIVE_INFINITY),
@@ -1803,13 +1818,15 @@ describe.only('Expressions', () => {
       });
 
       it('nan_notNumberType_returnError', () => {
-        expect(evaluate(divide(Constant.of(NaN), Constant.of('hello world')))).to
-          .be.undefined;
+        expect(evaluate(divide(Constant.of(NaN), Constant.of('hello world'))))
+          .to.be.undefined;
       });
 
       it('positiveInfinity', () => {
         expectEqual(
-          evaluate(divide(Constant.of(Number.POSITIVE_INFINITY), Constant.of(1))),
+          evaluate(
+            divide(Constant.of(Number.POSITIVE_INFINITY), Constant.of(1))
+          ),
           Constant.of(Number.POSITIVE_INFINITY),
           `divide(Number.POSITIVE_INFINITY, 1)`
         );
@@ -1825,12 +1842,16 @@ describe.only('Expressions', () => {
 
       it('negativeInfinity', () => {
         expectEqual(
-          evaluate(divide(Constant.of(Number.NEGATIVE_INFINITY), Constant.of(1))),
+          evaluate(
+            divide(Constant.of(Number.NEGATIVE_INFINITY), Constant.of(1))
+          ),
           Constant.of(Number.NEGATIVE_INFINITY),
           `divide(Number.NEGATIVE_INFINITY, 1)`
         );
         expectEqual(
-          evaluate(divide(Constant.of(1), Constant.of(Number.NEGATIVE_INFINITY))),
+          evaluate(
+            divide(Constant.of(1), Constant.of(Number.NEGATIVE_INFINITY))
+          ),
           Constant.of(-0.0),
           `divide(1, Number.NEGATIVE_INFINITY)`
         );
@@ -1865,8 +1886,10 @@ describe.only('Expressions', () => {
         expect(evaluate(mod(Constant.of(42), Constant.of(0)))).to.be.undefined;
         expect(evaluate(mod(Constant.of(42), Constant.of(-0)))).to.be.undefined;
 
-        expect(evaluate(mod(Constant.of(42), Constant.of(0.0)))).to.be.undefined;
-        expect(evaluate(mod(Constant.of(42), Constant.of(-0.0)))).to.be.undefined;
+        expect(evaluate(mod(Constant.of(42), Constant.of(0.0)))).to.be
+          .undefined;
+        expect(evaluate(mod(Constant.of(42), Constant.of(-0.0)))).to.be
+          .undefined;
       });
 
       it('dividendZero_returnsZero', () => {
@@ -1996,9 +2019,12 @@ describe.only('Expressions', () => {
       });
 
       it('nonNumerics_returnError', () => {
-        expect(evaluate(mod(Constant.of(10), Constant.of('1')))).to.be.undefined;
-        expect(evaluate(mod(Constant.of('1'), Constant.of(10)))).to.be.undefined;
-        expect(evaluate(mod(Constant.of('1'), Constant.of('1')))).to.be.undefined;
+        expect(evaluate(mod(Constant.of(10), Constant.of('1')))).to.be
+          .undefined;
+        expect(evaluate(mod(Constant.of('1'), Constant.of(10)))).to.be
+          .undefined;
+        expect(evaluate(mod(Constant.of('1'), Constant.of('1')))).to.be
+          .undefined;
       });
 
       it('nan_number_returnNaN', () => {
@@ -2033,20 +2059,24 @@ describe.only('Expressions', () => {
           `mod(Number.MIN_VALUE, NaN)`
         );
         expectEqual(
-          evaluate(mod(Constant.of(Number.POSITIVE_INFINITY), Constant.of(NaN))),
+          evaluate(
+            mod(Constant.of(Number.POSITIVE_INFINITY), Constant.of(NaN))
+          ),
           Constant.of(NaN),
           `mod(Number.POSITIVE_INFINITY, NaN)`
         );
         expectEqual(
-          evaluate(mod(Constant.of(Number.NEGATIVE_INFINITY), Constant.of(NaN))),
+          evaluate(
+            mod(Constant.of(Number.NEGATIVE_INFINITY), Constant.of(NaN))
+          ),
           Constant.of(NaN),
           `mod(Number.NEGATIVE_INFINITY, NaN)`
         );
       });
 
       it('nan_notNumberType_returnError', () => {
-        expect(evaluate(mod(Constant.of(NaN), Constant.of('hello world')))).to.be
-          .undefined;
+        expect(evaluate(mod(Constant.of(NaN), Constant.of('hello world')))).to
+          .be.undefined;
       });
 
       it('number_posInfinity_returnSelf', () => {
@@ -2057,7 +2087,10 @@ describe.only('Expressions', () => {
         );
         expectEqual(
           evaluate(
-            mod(Constant.of(42.123456789), Constant.of(Number.POSITIVE_INFINITY))
+            mod(
+              Constant.of(42.123456789),
+              Constant.of(Number.POSITIVE_INFINITY)
+            )
           ),
           Constant.of(42.123456789),
           `mod(42.123456789, Number.POSITIVE_INFINITY)`
@@ -2079,7 +2112,10 @@ describe.only('Expressions', () => {
         );
         expectEqual(
           evaluate(
-            mod(Constant.of(Number.POSITIVE_INFINITY), Constant.of(42.123456789))
+            mod(
+              Constant.of(Number.POSITIVE_INFINITY),
+              Constant.of(42.123456789)
+            )
           ),
           Constant.of(NaN),
           `mod(Number.POSITIVE_INFINITY, 42.123456789)`
@@ -2101,7 +2137,10 @@ describe.only('Expressions', () => {
         );
         expectEqual(
           evaluate(
-            mod(Constant.of(42.123456789), Constant.of(Number.NEGATIVE_INFINITY))
+            mod(
+              Constant.of(42.123456789),
+              Constant.of(Number.NEGATIVE_INFINITY)
+            )
           ),
           Constant.of(42.123456789),
           `mod(42.123456789, Number.NEGATIVE_INFINITY)`
@@ -2123,7 +2162,10 @@ describe.only('Expressions', () => {
         );
         expectEqual(
           evaluate(
-            mod(Constant.of(Number.NEGATIVE_INFINITY), Constant.of(42.123456789))
+            mod(
+              Constant.of(Number.NEGATIVE_INFINITY),
+              Constant.of(42.123456789)
+            )
           ),
           Constant.of(NaN),
           `mod(Number.NEGATIVE_INFINITY, 42.123456789)`
@@ -2158,7 +2200,15 @@ describe.only('Expressions', () => {
         expect(
           evaluate(
             arrayContainsAll(
-              Constant.of(['1', 42, true, 'additional', 'values', 'in', 'array']),
+              Constant.of([
+                '1',
+                42,
+                true,
+                'additional',
+                'values',
+                'in',
+                'array'
+              ]),
               [Constant.of('1'), Constant.of(42), Constant.of(true)]
             )
           )
@@ -2206,7 +2256,9 @@ describe.only('Expressions', () => {
 
       it('searchValue_isNaN', () => {
         expect(
-          evaluate(arrayContainsAll(Constant.of([NaN, 42.0]), [Constant.of(NaN)]))
+          evaluate(
+            arrayContainsAll(Constant.of([NaN, 42.0]), [Constant.of(NaN)])
+          )
         ).to.deep.equal(FALSE_VALUE);
       });
 
@@ -2254,7 +2306,10 @@ describe.only('Expressions', () => {
       it('equivalentNumerics', () => {
         expect(
           evaluate(
-            arrayContainsAny(ARRAY_TO_SEARCH, [Constant.of(42.0), Constant.of(2)])
+            arrayContainsAny(ARRAY_TO_SEARCH, [
+              Constant.of(42.0),
+              Constant.of(2)
+            ])
           )
         ).to.deep.equal(TRUE_VALUE);
       });
@@ -2424,8 +2479,8 @@ describe.only('Expressions', () => {
       });
 
       it('searchValue_reference_notFound_returnsError', () => {
-        expect(evaluate(arrayContains(ARRAY_TO_SEARCH, Field.of('not-exist')))).to
-          .be.undefined;
+        expect(evaluate(arrayContains(ARRAY_TO_SEARCH, Field.of('not-exist'))))
+          .to.be.undefined;
       });
     }); // end describe('arrayContains')
 
@@ -2455,9 +2510,10 @@ describe.only('Expressions', () => {
       });
 
       it('notArrayType_returnsError', () => {
-        expect(evaluate(arrayLength(Constant.of(new VectorValue([0.0, 1.0]))))).to
-          .be.undefined; // Assuming double[] is not considered an array
-        expect(evaluate(arrayLength(Constant.of('notAnArray')))).to.be.undefined;
+        expect(evaluate(arrayLength(Constant.of(new VectorValue([0.0, 1.0])))))
+          .to.be.undefined; // Assuming double[] is not considered an array
+        expect(evaluate(arrayLength(Constant.of('notAnArray')))).to.be
+          .undefined;
       });
     }); // end describe('arrayLength')
 
@@ -2529,9 +2585,9 @@ describe.only('Expressions', () => {
       });
 
       it('false_error_isFalse', () => {
-        expect(evaluate(andFunction(falseExpr, errorFilterExpr()))).to.deep.equal(
-          FALSE_VALUE
-        );
+        expect(
+          evaluate(andFunction(falseExpr, errorFilterExpr()))
+        ).to.deep.equal(FALSE_VALUE);
       });
 
       it('false_true_isFalse', () => {
@@ -2541,14 +2597,14 @@ describe.only('Expressions', () => {
       });
 
       it('error_false_isFalse', () => {
-        expect(evaluate(andFunction(errorFilterExpr(), falseExpr))).to.deep.equal(
-          FALSE_VALUE
-        );
+        expect(
+          evaluate(andFunction(errorFilterExpr(), falseExpr))
+        ).to.deep.equal(FALSE_VALUE);
       });
 
       it('error_error_isError', () => {
-        expect(evaluate(andFunction(errorFilterExpr(), errorFilterExpr()))).to.be
-          .undefined;
+        expect(evaluate(andFunction(errorFilterExpr(), errorFilterExpr()))).to
+          .be.undefined;
       });
 
       it('error_true_isError', () => {
@@ -2678,8 +2734,8 @@ describe.only('Expressions', () => {
       });
 
       it('error_true_true_isError', () => {
-        expect(evaluate(andFunction(errorFilterExpr(), trueExpr, trueExpr))).to.be
-          .undefined;
+        expect(evaluate(andFunction(errorFilterExpr(), trueExpr, trueExpr))).to
+          .be.undefined;
       });
 
       it('true_false_false_isFalse', () => {
@@ -2713,8 +2769,8 @@ describe.only('Expressions', () => {
       });
 
       it('true_error_true_isError', () => {
-        expect(evaluate(andFunction(trueExpr, errorFilterExpr(), trueExpr))).to.be
-          .undefined;
+        expect(evaluate(andFunction(trueExpr, errorFilterExpr(), trueExpr))).to
+          .be.undefined;
       });
 
       it('true_true_false_isFalse', () => {
@@ -2724,14 +2780,14 @@ describe.only('Expressions', () => {
       });
 
       it('true_true_error_isError', () => {
-        expect(evaluate(andFunction(trueExpr, trueExpr, errorFilterExpr()))).to.be
-          .undefined;
+        expect(evaluate(andFunction(trueExpr, trueExpr, errorFilterExpr()))).to
+          .be.undefined;
       });
 
       it('true_true_true_isTrue', () => {
-        expect(evaluate(andFunction(trueExpr, trueExpr, trueExpr))).to.deep.equal(
-          TRUE_VALUE
-        );
+        expect(
+          evaluate(andFunction(trueExpr, trueExpr, trueExpr))
+        ).to.deep.equal(TRUE_VALUE);
       });
 
       it('nested_and', () => {
@@ -2741,9 +2797,9 @@ describe.only('Expressions', () => {
       });
 
       it('multipleArguments', () => {
-        expect(evaluate(andFunction(trueExpr, trueExpr, trueExpr))).to.deep.equal(
-          TRUE_VALUE
-        );
+        expect(
+          evaluate(andFunction(trueExpr, trueExpr, trueExpr))
+        ).to.deep.equal(TRUE_VALUE);
       });
     }); // end describe('and')
 
@@ -2832,8 +2888,8 @@ describe.only('Expressions', () => {
       });
 
       it('array_notFound_returnsError', () => {
-        expect(evaluate(eqAny(Constant.of('matang'), [Field.of('not-exist')]))).to
-          .be.undefined;
+        expect(evaluate(eqAny(Constant.of('matang'), [Field.of('not-exist')])))
+          .to.be.undefined;
       });
 
       it('array_isEmpty_returnsFalse', () => {
@@ -2866,7 +2922,9 @@ describe.only('Expressions', () => {
       });
 
       it('search_isNull_emptyValuesArray_returnsFalse', () => {
-        expect(evaluate(eqAny(Constant.of(null), []))).to.deep.equal(FALSE_VALUE);
+        expect(evaluate(eqAny(Constant.of(null), []))).to.deep.equal(
+          FALSE_VALUE
+        );
       });
 
       it('search_isNaN', () => {
@@ -2886,9 +2944,9 @@ describe.only('Expressions', () => {
       });
 
       it('search_isEmpty_array_containsEmptyArray_returnsTrue', () => {
-        expect(evaluate(eqAny(Constant.of([]), [Constant.of([])]))).to.deep.equal(
-          TRUE_VALUE
-        );
+        expect(
+          evaluate(eqAny(Constant.of([]), [Constant.of([])]))
+        ).to.deep.equal(TRUE_VALUE);
       });
 
       it.skip('search_isMap', () => {
@@ -2917,7 +2975,9 @@ describe.only('Expressions', () => {
       });
 
       it('isNotNan', () => {
-        expect(evaluate(not(isNan(Constant.of(42.0))))).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(not(isNan(Constant.of(42.0))))).to.deep.equal(
+          TRUE_VALUE
+        );
         expect(evaluate(not(isNan(Constant.of(42))))).to.deep.equal(TRUE_VALUE);
       });
 
@@ -3227,9 +3287,9 @@ describe.only('Expressions', () => {
       });
 
       it('false_true_true_isTrue', () => {
-        expect(evaluate(orFunction(falseExpr, trueExpr, trueExpr))).to.deep.equal(
-          TRUE_VALUE
-        );
+        expect(
+          evaluate(orFunction(falseExpr, trueExpr, trueExpr))
+        ).to.deep.equal(TRUE_VALUE);
       });
 
       it('error_false_false_isError', () => {
@@ -3300,9 +3360,9 @@ describe.only('Expressions', () => {
       });
 
       it('true_false_true_isTrue', () => {
-        expect(evaluate(orFunction(trueExpr, falseExpr, trueExpr))).to.deep.equal(
-          TRUE_VALUE
-        );
+        expect(
+          evaluate(orFunction(trueExpr, falseExpr, trueExpr))
+        ).to.deep.equal(TRUE_VALUE);
       });
 
       it('true_error_false_isTrue', () => {
@@ -3324,9 +3384,9 @@ describe.only('Expressions', () => {
       });
 
       it('true_true_false_isTrue', () => {
-        expect(evaluate(orFunction(trueExpr, trueExpr, falseExpr))).to.deep.equal(
-          TRUE_VALUE
-        );
+        expect(
+          evaluate(orFunction(trueExpr, trueExpr, falseExpr))
+        ).to.deep.equal(TRUE_VALUE);
       });
 
       it('true_true_error_isTrue', () => {
@@ -3336,9 +3396,9 @@ describe.only('Expressions', () => {
       });
 
       it('true_true_true_isTrue', () => {
-        expect(evaluate(orFunction(trueExpr, trueExpr, trueExpr))).to.deep.equal(
-          TRUE_VALUE
-        );
+        expect(
+          evaluate(orFunction(trueExpr, trueExpr, trueExpr))
+        ).to.deep.equal(TRUE_VALUE);
       });
 
       it('nested_or', () => {
@@ -3348,9 +3408,9 @@ describe.only('Expressions', () => {
       });
 
       it('multipleArguments', () => {
-        expect(evaluate(orFunction(trueExpr, falseExpr, trueExpr))).to.deep.equal(
-          TRUE_VALUE
-        );
+        expect(
+          evaluate(orFunction(trueExpr, falseExpr, trueExpr))
+        ).to.deep.equal(TRUE_VALUE);
       });
     }); // end describe('or')
 
@@ -3415,8 +3475,8 @@ describe.only('Expressions', () => {
       });
 
       it('false_error_error_isError', () => {
-        expect(evaluate(xor(falseExpr, errorFilterExpr(), errorFilterExpr()))).to
-          .be.undefined;
+        expect(evaluate(xor(falseExpr, errorFilterExpr(), errorFilterExpr())))
+          .to.be.undefined;
       });
 
       it('false_error_true_isError', () => {
@@ -3447,8 +3507,8 @@ describe.only('Expressions', () => {
       });
 
       it('error_false_error_isError', () => {
-        expect(evaluate(xor(errorFilterExpr(), falseExpr, errorFilterExpr()))).to
-          .be.undefined;
+        expect(evaluate(xor(errorFilterExpr(), falseExpr, errorFilterExpr())))
+          .to.be.undefined;
       });
 
       it('error_false_true_isError', () => {
@@ -3457,8 +3517,8 @@ describe.only('Expressions', () => {
       });
 
       it('error_error_false_isError', () => {
-        expect(evaluate(xor(errorFilterExpr(), errorFilterExpr(), falseExpr))).to
-          .be.undefined;
+        expect(evaluate(xor(errorFilterExpr(), errorFilterExpr(), falseExpr)))
+          .to.be.undefined;
       });
 
       it('error_error_error_isError', () => {
@@ -3653,11 +3713,16 @@ describe.only('Expressions', () => {
       });
 
       it('twoBytes_perCharacter', () => {
-        expectEqual(evaluate(byteLength(Constant.of('éçñöü'))), Constant.of(10));
+        expectEqual(
+          evaluate(byteLength(Constant.of('éçñöü'))),
+          Constant.of(10)
+        );
         expectEqual(
           evaluate(
             byteLength(
-              Constant.of(Bytes.fromUint8Array(new TextEncoder().encode('éçñöü')))
+              Constant.of(
+                Bytes.fromUint8Array(new TextEncoder().encode('éçñöü'))
+              )
             )
           ),
           Constant.of(10)
@@ -3694,11 +3759,16 @@ describe.only('Expressions', () => {
       });
 
       it('mixOfDifferentEncodedLengths', () => {
-        expectEqual(evaluate(byteLength(Constant.of('aé好🂡'))), Constant.of(10));
+        expectEqual(
+          evaluate(byteLength(Constant.of('aé好🂡'))),
+          Constant.of(10)
+        );
         expectEqual(
           evaluate(
             byteLength(
-              Constant.of(Bytes.fromUint8Array(new TextEncoder().encode('aé好🂡')))
+              Constant.of(
+                Bytes.fromUint8Array(new TextEncoder().encode('aé好🂡'))
+              )
             )
           ),
           Constant.of(10)
@@ -3937,19 +4007,21 @@ describe.only('Expressions', () => {
         const func = like(Constant.of('yummy food'), Field.of('regex'));
         expect(evaluate(func, { regex: 'yummy%' })).to.deep.equal(TRUE_VALUE);
         expect(evaluate(func, { regex: 'food%' })).to.deep.equal(FALSE_VALUE);
-        expect(evaluate(func, { regex: 'yummy_food' })).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(func, { regex: 'yummy_food' })).to.deep.equal(
+          TRUE_VALUE
+        );
       });
     }); // end describe('like')
 
     describe('regexContains', () => {
       it('get_nonStringRegex_isError', () => {
-        expect(evaluate(regexContains(Constant.of(42), Constant.of('search')))).to
-          .be.undefined;
+        expect(evaluate(regexContains(Constant.of(42), Constant.of('search'))))
+          .to.be.undefined;
       });
 
       it('get_nonStringValue_isError', () => {
-        expect(evaluate(regexContains(Constant.of('ear'), Constant.of(42)))).to.be
-          .undefined;
+        expect(evaluate(regexContains(Constant.of('ear'), Constant.of(42)))).to
+          .be.undefined;
       });
 
       it('get_invalidRegex_isError', () => {
@@ -3989,7 +4061,10 @@ describe.only('Expressions', () => {
       });
 
       it('get_dynamicRegex', () => {
-        const func = regexContains(Constant.of('yummy food'), Field.of('regex'));
+        const func = regexContains(
+          Constant.of('yummy food'),
+          Field.of('regex')
+        );
         expect(evaluate(func, { regex: '^yummy.*' })).to.deep.equal(TRUE_VALUE);
         expect(evaluate(func, { regex: 'fooood$' })).to.deep.equal(FALSE_VALUE);
         expect(evaluate(func, { regex: '.*' })).to.deep.equal(TRUE_VALUE);
@@ -3998,8 +4073,8 @@ describe.only('Expressions', () => {
 
     describe('regexMatch', () => {
       it('get_nonStringRegex_isError', () => {
-        expect(evaluate(regexMatch(Constant.of(42), Constant.of('search')))).to.be
-          .undefined;
+        expect(evaluate(regexMatch(Constant.of(42), Constant.of('search')))).to
+          .be.undefined;
       });
 
       it('get_nonStringValue_isError', () => {
@@ -4015,7 +4090,10 @@ describe.only('Expressions', () => {
       });
 
       it('get_staticRegex', () => {
-        const func = regexMatch(Constant.of('yummy food'), Constant.of('.*oo.*'));
+        const func = regexMatch(
+          Constant.of('yummy food'),
+          Constant.of('.*oo.*')
+        );
         expect(evaluate(func)).to.deep.equal(TRUE_VALUE);
         expect(evaluate(func)).to.deep.equal(TRUE_VALUE);
         expect(evaluate(func)).to.deep.equal(TRUE_VALUE);
@@ -4047,13 +4125,13 @@ describe.only('Expressions', () => {
 
     describe('startsWith', () => {
       it('get_nonStringValue_isError', () => {
-        expect(evaluate(startsWith(Constant.of(42), Constant.of('search')))).to.be
-          .undefined;
+        expect(evaluate(startsWith(Constant.of(42), Constant.of('search')))).to
+          .be.undefined;
       });
 
       it('get_nonStringPrefix_isError', () => {
-        expect(evaluate(startsWith(Constant.of('search'), Constant.of(42)))).to.be
-          .undefined;
+        expect(evaluate(startsWith(Constant.of('search'), Constant.of(42)))).to
+          .be.undefined;
       });
 
       it('get_emptyInputs_returnsTrue', () => {
@@ -4097,8 +4175,8 @@ describe.only('Expressions', () => {
 
     describe('strContains', () => {
       it('value_nonString_isError', () => {
-        expect(evaluate(strContains(Constant.of(42), Constant.of('value')))).to.be
-          .undefined;
+        expect(evaluate(strContains(Constant.of(42), Constant.of('value')))).to
+          .be.undefined;
       });
 
       it('subString_nonString_isError', () => {
@@ -4352,7 +4430,8 @@ describe.only('Expressions', () => {
 
       it('notVectorType_returnsError', () => {
         expect(evaluate(vectorLength(Constant.of([1])))).to.be.undefined;
-        expect(evaluate(vectorLength(Constant.of('notAnArray')))).to.be.undefined;
+        expect(evaluate(vectorLength(Constant.of('notAnArray')))).to.be
+          .undefined;
       });
     }); // end describe('vectorLength')
   }); // end describe('Vector Functions')

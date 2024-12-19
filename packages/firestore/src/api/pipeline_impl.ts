@@ -31,9 +31,7 @@ import { PipelineResult } from '../lite-api/pipeline-result';
 import { CorePipeline } from '../core/pipeline_run';
 
 import { PipelineSource } from '../api/pipeline-source';
-import { firestoreClientExecutePipeline } from '../core/firestore_client';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
-import { PipelineResult } from '../lite-api/pipeline-result';
 import { newUserDataReader } from '../lite-api/user_data_reader';
 import { DocumentKey } from '../model/document_key';
 import { cast } from '../util/input_validation';

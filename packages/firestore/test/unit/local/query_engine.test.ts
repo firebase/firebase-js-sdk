@@ -17,12 +17,7 @@
 
 import { expect } from 'chai';
 
-import {
-  ascending,
-  Field,
-  Timestamp,
-  useFirestorePipelines
-} from '../../../src';
+import { ascending, Field, Timestamp, useFluentPipelines } from '../../../src';
 import { User } from '../../../src/auth/user';
 import {
   LimitType,
@@ -130,7 +125,7 @@ class TestLocalDocumentsView extends LocalDocumentsView {
   }
 }
 
-useFirestorePipelines();
+useFluentPipelines();
 
 describe('QueryEngine', async () => {
   describe('MemoryEagerPersistence usePipeline=false', async () => {

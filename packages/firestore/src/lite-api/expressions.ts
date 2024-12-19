@@ -43,7 +43,6 @@ import {
   UserDataSource
 } from './user_data_reader';
 import { VectorValue } from './vector_value';
-import { Bytes } from './bytes';
 
 /**
  * @beta

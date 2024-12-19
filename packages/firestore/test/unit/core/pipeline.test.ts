@@ -26,7 +26,8 @@ import {
   eq,
   eqAny,
   exists,
-  Field, FilterExpr,
+  Field,
+  FilterExpr,
   gt,
   gte,
   isNan,
@@ -38,7 +39,7 @@ import {
   not,
   notEqAny,
   regexMatch,
-  useFirestorePipelines,
+  useFluentPipelines,
   xor
 } from '../../../src';
 
@@ -58,7 +59,7 @@ import {
 import { MutableDocument } from '../../../src/model/document';
 
 const db = newTestFirestore();
-useFirestorePipelines();
+useFluentPipelines();
 describe('Pipeline Canonify', () => {
   it('works as expected for simple where clause', () => {
     const p = db.pipeline().collection('test').where(eq(`foo`, 42));
@@ -1163,7 +1164,11 @@ describe.only('runPipeline()', () => {
       let valueCounter = 1;
       const documents = seedDatabase(10, numOfFields, () => valueCounter++);
 
-      let pipeline = db.pipeline().collection(`/${COLLECTION_ID}`);
+      // TODO(pipeline): Why do i need this hack?
+      let pipeline = db
+        .pipeline()
+        .collection(`/${COLLECTION_ID}`)
+        .where(eq(Constant.of(1), 1));
       for (let i = 1; i <= numOfFields; i++) {
         pipeline = pipeline.where(gt(Field.of(`field_${i}`), Constant.of(0)));
       }
@@ -6386,7 +6391,9 @@ describe.only('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(divide(Constant.of('100'), Constant.of('50')) as unknown as FilterExpr);
+        .where(
+          divide(Constant.of('100'), Constant.of('50')) as unknown as FilterExpr
+        );
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
     });
