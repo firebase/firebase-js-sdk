@@ -102,9 +102,9 @@ export function typeOrder(value: Value): TypeOrder {
 }
 
 export interface EqualOptions {
-  nanEqual: boolean,
-  mixIntegerDouble: boolean,
-  semanticsEqual: boolean
+  nanEqual: boolean;
+  mixIntegerDouble: boolean;
+  semanticsEqual: boolean;
 }
 
 /** Tests `left` and `right` for equality based on the backend semantics. */
@@ -202,23 +202,25 @@ export function numberEquals(
     );
   }
 
-    let n1:number, n2:number;
-    if ('doubleValue' in left && 'doubleValue' in right) {
-      n1 = normalizeNumber(left.doubleValue!);
-      n2 = normalizeNumber(right.doubleValue!);
-    } else if(options?.mixIntegerDouble) {
-      n1 = normalizeNumber(left.integerValue ?? left.doubleValue);
-      n2 = normalizeNumber(right.integerValue ?? right.doubleValue);
-    } else {
-      return false;
-    }
+  let n1: number, n2: number;
+  if ('doubleValue' in left && 'doubleValue' in right) {
+    n1 = normalizeNumber(left.doubleValue!);
+    n2 = normalizeNumber(right.doubleValue!);
+  } else if (options?.mixIntegerDouble) {
+    n1 = normalizeNumber(left.integerValue ?? left.doubleValue);
+    n2 = normalizeNumber(right.integerValue ?? right.doubleValue);
+  } else {
+    return false;
+  }
 
-    if (n1 === n2) {
-      return options?.semanticsEqual ? true : isNegativeZero(n1) === isNegativeZero(n2);
-    } else {
-      const nanEqual = options === undefined ? true : options.nanEqual;
-      return nanEqual ? isNaN(n1) && isNaN(n2) : false;
-    }
+  if (n1 === n2) {
+    return options?.semanticsEqual
+      ? true
+      : isNegativeZero(n1) === isNegativeZero(n2);
+  } else {
+    const nanEqual = options === undefined ? true : options.nanEqual;
+    return nanEqual ? isNaN(n1) && isNaN(n2) : false;
+  }
 }
 
 function objectEquals(

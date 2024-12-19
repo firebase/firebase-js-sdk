@@ -19,6 +19,7 @@ import {
   DocumentsSource,
   Exists,
   Field,
+  FirestoreError,
   Limit,
   Offset,
   Ordering,
@@ -39,6 +40,7 @@ import { Query, queryMatches, queryMatchesAllDocuments } from './query';
 import { isPipeline, QueryOrPipeline } from './pipeline-util';
 import { DOCUMENT_KEY_NAME } from '../model/path';
 import { JsonProtoSerializer } from '../remote/serializer';
+import { Code } from '../util/error';
 
 export class CorePipeline {
   constructor(
@@ -233,6 +235,22 @@ function evaluateDocuments(
   stage: DocumentsSource,
   input: Array<PipelineInputOutput>
 ): Array<PipelineInputOutput> {
+  if (stage.docPaths.length === 0) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      'Empty document paths are not allowed in DocumentsSource'
+    );
+  }
+  if (stage.docPaths) {
+    const uniqueDocPaths = new Set(stage.docPaths);
+    if (uniqueDocPaths.size !== stage.docPaths.length) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Duplicate document paths are not allowed in DocumentsSource'
+      );
+    }
+  }
+
   return input.filter(input => {
     return (
       input.isFoundDocument() &&

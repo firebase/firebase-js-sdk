@@ -172,6 +172,8 @@ export function toEvaluable<T>(expr: T): EvaluableExpr {
     return new CoreArrayElement(expr);
   } else if (expr instanceof EqAny) {
     return new CoreEqAny(expr);
+  } else if (expr instanceof NotEqAny) {
+    return new CoreNotEqAny(expr);
   } else if (expr instanceof IsNan) {
     return new CoreIsNan(expr);
   } else if (expr instanceof Exists) {
@@ -398,7 +400,11 @@ abstract class BigIntOrDoubleArithmetics<
 }
 
 function valueEquals(left: Value, right: Value): boolean {
-  return valueEqualsWithOptions(left, right, { nanEqual: false, mixIntegerDouble: true, semanticsEqual: true });
+  return valueEqualsWithOptions(left, right, {
+    nanEqual: false,
+    mixIntegerDouble: true,
+    semanticsEqual: true
+  });
 }
 
 export class CoreAdd extends BigIntOrDoubleArithmetics<Add> {
@@ -758,6 +764,29 @@ export class CoreEqAny implements EvaluableExpr {
     }
 
     return hasError ? undefined : FALSE_VALUE;
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): EqAny {
+    return new EqAny(
+      exprFromProto(value.args![0]),
+      value.args!.slice(1).map(exprFromProto)
+    );
+  }
+}
+
+export class CoreNotEqAny implements EvaluableExpr {
+  constructor(private expr: NotEqAny) {}
+
+  evaluate(
+    context: EvaluationContext,
+    input: PipelineInputOutput
+  ): Value | undefined {
+    const inverse = new CoreEqAny(new EqAny(this.expr.left, this.expr.others));
+    const result = inverse.evaluate(context, input);
+    if (result === undefined) {
+      return undefined;
+    }
+    return { booleanValue: !result.booleanValue };
   }
 
   static fromProtoToApiObj(value: ProtoFunction): EqAny {

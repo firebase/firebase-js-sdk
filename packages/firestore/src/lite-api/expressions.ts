@@ -2056,7 +2056,10 @@ export class Constant extends Expr {
 
   private _protoValue?: ProtoValue;
 
-  private constructor(readonly value: any, readonly options?: {preferIntegers: boolean}) {
+  private constructor(
+    readonly value: any,
+    readonly options?: { preferIntegers: boolean }
+  ) {
     super();
   }
 
@@ -2068,7 +2071,7 @@ export class Constant extends Expr {
    */
   static of(value: number): Constant;
 
-  static of(value: number, options?: {preferIntegers: boolean}): Constant;
+  static of(value: number, options?: { preferIntegers: boolean }): Constant;
 
   /**
    * Creates a `Constant` instance for a string value.
@@ -2176,7 +2179,7 @@ export class Constant extends Expr {
    */
   static of(value: VectorValue): Constant;
 
-  static of(value: any, options?: {preferIntegers: boolean}): Constant {
+  static of(value: any, options?: { preferIntegers: boolean }): Constant {
     return new Constant(value, options);
   }
 
@@ -2555,7 +2558,7 @@ export class EqAny extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class NotEqAny extends FirestoreFunction implements FilterCondition {
-  constructor(private left: Expr, private others: Expr[]) {
+  constructor(readonly left: Expr, readonly others: Expr[]) {
     super('not_eq_any', [left, new ListOfExprs(others)]);
   }
   filterable = true as const;
