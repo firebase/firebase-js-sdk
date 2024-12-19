@@ -18,6 +18,9 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
+import { Bytes, vector } from '../../../src/api';
+import { GeoPoint } from '../../../src/lite-api/geo_point';
+import { Timestamp } from '../../../src/lite-api/timestamp';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
 import {
@@ -55,7 +58,7 @@ import {
   setDoc,
   startsWith,
   subtract,
-  useFirestorePipelines,
+  useFluentPipelines,
   setLogLevel,
   cond,
   eqAny,
@@ -69,7 +72,7 @@ use(chaiAsPromised);
 
 setLogLevel('debug');
 
-apiDescribe.only('Pipelines', persistence => {
+apiDescribe('Pipelines', persistence => {
   addEqualityMatcher();
   let firestore: Firestore;
   let randomCol: CollectionReference;
@@ -267,7 +270,7 @@ apiDescribe.only('Pipelines', persistence => {
 
   describe('fluent API', () => {
     before(() => {
-      useFirestorePipelines();
+      useFluentPipelines();
     });
 
     it('empty results as expected', async () => {
@@ -474,6 +477,114 @@ apiDescribe.only('Pipelines', persistence => {
         { title: 'Crime and Punishment', 'published-safe': 1960 },
         { title: 'Dune', 'published-safe': 1965 }
       );
+    });
+
+    it('accepts and returns all data types', async () => {
+      const refDate = new Date();
+      const refTimestamp = Timestamp.now();
+      const constants = [
+        Constant.of(1).as('number'),
+        Constant.of('a string').as('string'),
+        Constant.of(true).as('boolean'),
+        Constant.of(null).as('null'),
+        Constant.of(new GeoPoint(0.1, 0.2)).as('geoPoint'),
+        Constant.of(refTimestamp).as('timestamp'),
+        Constant.of(refDate).as('date'),
+        Constant.of(
+          Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0]))
+        ).as('bytes'),
+        Constant.of(doc(firestore, 'foo', 'bar')).as('documentReference'),
+        Constant.of(vector([1, 2, 3])).as('vectorValue'),
+        Constant.of({
+          'number': 1,
+          'string': 'a string',
+          'boolean': true,
+          'null': null,
+          'geoPoint': new GeoPoint(0.1, 0.2),
+          'timestamp': refTimestamp,
+          'date': refDate,
+          'uint8Array': Bytes.fromUint8Array(
+            new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0])
+          ),
+          'documentReference': doc(firestore, 'foo', 'bar'),
+          'vectorValue': vector([1, 2, 3]),
+          'map': {
+            'number': 2,
+            'string': 'b string'
+          },
+          'array': [1, 'c string']
+        }).as('map'),
+        Constant.of([
+          1,
+          'a string',
+          true,
+          null,
+          new GeoPoint(0.1, 0.2),
+          refTimestamp,
+          refDate,
+          Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0])),
+          doc(firestore, 'foo', 'bar'),
+          vector([1, 2, 3]),
+          {
+            'number': 2,
+            'string': 'b string'
+          }
+        ]).as('array')
+      ];
+
+      const results = await randomCol
+        .pipeline()
+        .limit(1)
+        .select(...constants)
+        .execute();
+
+      expectResults(results, {
+        'number': 1,
+        'string': 'a string',
+        'boolean': true,
+        'null': null,
+        'geoPoint': new GeoPoint(0.1, 0.2),
+        'timestamp': refTimestamp,
+        'date': Timestamp.fromDate(refDate),
+        'bytes': Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0])),
+        'documentReference': doc(firestore, 'foo', 'bar'),
+        'vectorValue': vector([1, 2, 3]),
+        'map': {
+          'number': 1,
+          'string': 'a string',
+          'boolean': true,
+          'null': null,
+          'geoPoint': new GeoPoint(0.1, 0.2),
+          'timestamp': refTimestamp,
+          'date': Timestamp.fromDate(refDate),
+          'uint8Array': Bytes.fromUint8Array(
+            new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0])
+          ),
+          'documentReference': doc(firestore, 'foo', 'bar'),
+          'vectorValue': vector([1, 2, 3]),
+          'map': {
+            'number': 2,
+            'string': 'b string'
+          },
+          'array': [1, 'c string']
+        },
+        'array': [
+          1,
+          'a string',
+          true,
+          null,
+          new GeoPoint(0.1, 0.2),
+          refTimestamp,
+          Timestamp.fromDate(refDate),
+          Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0])),
+          doc(firestore, 'foo', 'bar'),
+          vector([1, 2, 3]),
+          {
+            'number': 2,
+            'string': 'b string'
+          }
+        ]
+      });
     });
 
     it('cond works', async () => {

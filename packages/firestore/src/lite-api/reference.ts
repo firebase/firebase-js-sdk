@@ -37,7 +37,6 @@ import { AutoId } from '../util/misc';
 import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import { FieldValue } from './field_value';
-import type { Pipeline } from './pipeline';
 import { FirestoreDataConverter } from './snapshot';
 import { NestedUpdateFields, Primitive } from './types';
 
@@ -176,15 +175,6 @@ export class Query<
       this.firestore,
       converter,
       this._query
-    );
-  }
-
-  /**
-   * Pipeline query.
-   */
-  pipeline(): Pipeline {
-    throw new Error(
-      'Pipelines not initialized. Your application must call `useFirestorePipelines()` before using Firestore Pipeline features.'
     );
   }
 }

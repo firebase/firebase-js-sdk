@@ -33,7 +33,11 @@ export { PipelineResult } from '../src/lite-api/pipeline-result';
 
 export { Pipeline } from '../src/lite-api/pipeline';
 
-export { execute } from '../src/lite-api/pipeline_impl';
+export {
+  useFluentPipelines,
+  pipeline,
+  execute
+} from '../src/lite-api/pipeline_impl';
 
 export {
   Stage,

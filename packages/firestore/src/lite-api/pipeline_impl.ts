@@ -27,6 +27,18 @@ import { DocumentReference, Query } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
 import { newUserDataReader } from './user_data_reader';
 
+declare module './database' {
+  interface Firestore {
+    pipeline(): PipelineSource;
+  }
+}
+
+declare module './reference' {
+  interface Query {
+    pipeline(): Pipeline;
+  }
+}
+
 /**
  * Modular API for console experimentation.
  * @param pipeline Execute this pipeline.
@@ -107,7 +119,7 @@ export function pipeline(
   }
 }
 
-export function useFirestorePipelines(): void {
+export function useFluentPipelines(): void {
   Firestore.prototype.pipeline = function (): PipelineSource {
     return pipeline(this);
   };

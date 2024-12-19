@@ -58,6 +58,17 @@ export class Pipeline<
     );
   }
 
+  /**
+   * @internal
+   * @private
+   * @param db
+   * @param userDataReader
+   * @param userDataWriter
+   * @param documentReferenceFactory
+   * @param stages
+   * @param converter
+   * @protected
+   */
   protected newPipeline(
     db: Firestore,
     userDataReader: UserDataReader,
@@ -109,7 +120,7 @@ export class Pipeline<
    */
   execute(): Promise<Array<PipelineResult<AppModelType>>> {
     throw new Error(
-      'Pipelines not initialized. Your application must call `useFirestorePipelines()` before using Firestore Pipeline features.'
+      'Pipelines not initialized. Your application must call `useFluentPipelines()` before using Firestore Pipeline features.'
     );
   }
 }

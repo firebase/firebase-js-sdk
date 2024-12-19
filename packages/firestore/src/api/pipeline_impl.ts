@@ -1,16 +1,19 @@
-// Copyright 2024 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/**
+ * @license
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 import { PipelineSnapshot } from './snapshot';
 import { FirestoreError } from '../util/error';
@@ -28,12 +31,21 @@ import { PipelineResult } from '../lite-api/pipeline-result';
 import { CorePipeline } from '../core/pipeline_run';
 
 import { PipelineSource } from '../api/pipeline-source';
+import { firestoreClientExecutePipeline } from '../core/firestore_client';
+import { Pipeline as LitePipeline } from '../lite-api/pipeline';
+import { PipelineResult } from '../lite-api/pipeline-result';
 import { newUserDataReader } from '../lite-api/user_data_reader';
 import { DocumentKey } from '../model/document_key';
 import { cast } from '../util/input_validation';
 
 import { DocumentReference, Query } from './reference';
 import { ExpUserDataWriter } from './user_data_writer';
+
+declare module './database' {
+  interface Firestore {
+    pipeline(): PipelineSource;
+  }
+}
 
 /**
  * Experimental Modular API for console testing.
@@ -76,7 +88,7 @@ export function pipeline(
     return result;
   }
 }
-export function useFirestorePipelines(): void {
+export function useFluentPipelines(): void {
   Firestore.prototype.pipeline = function (): PipelineSource {
     return pipeline(this);
   };
@@ -91,7 +103,7 @@ export function useFirestorePipelines(): void {
 }
 
 export function execute<AppModelType>(
-  pipeline: Pipeline
+  pipeline: LitePipeline
 ): Promise<Array<PipelineResult<AppModelType>>> {
   const firestore = cast(pipeline._db, Firestore);
   const client = ensureFirestoreConfigured(firestore);
