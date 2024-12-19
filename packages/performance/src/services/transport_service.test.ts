@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { stub, useFakeTimers, SinonFakeTimers } from 'sinon';
+import { stub, useFakeTimers, SinonFakeTimers, SinonStub } from 'sinon';
 import { use, expect } from 'chai';
 import sinonChai from 'sinon-chai';
 import {
@@ -28,9 +28,9 @@ import { SettingsService } from './settings_service';
 use(sinonChai);
 
 /* eslint-disable no-restricted-properties */
-describe.only('Firebase Performance > transport_service', () => {
-  const sendBeaconStub = stub(navigator, 'sendBeacon');
-  const fetchStub = stub(window, 'fetch');
+describe('Firebase Performance > transport_service', () => {
+  let sendBeaconStub: SinonStub<[url: string | URL, data?: BodyInit | null | undefined], boolean>;
+  let fetchStub: SinonStub<[RequestInfo | URL, RequestInit?], Promise<Response>>;
   const INITIAL_SEND_TIME_DELAY_MS = 5.5 * 1000;
   const DEFAULT_SEND_INTERVAL_MS = 10 * 1000;
   const MAX_EVENT_COUNT_PER_REQUEST = 1000;
@@ -43,7 +43,9 @@ describe.only('Firebase Performance > transport_service', () => {
   beforeEach(() => {
     clock = useFakeTimers(1);
     setupTransportService();
+    sendBeaconStub = stub(navigator, 'sendBeacon');
     sendBeaconStub.returns(true);
+    fetchStub = stub(window, 'fetch');
   });
 
   afterEach(() => {
@@ -128,49 +130,13 @@ describe.only('Firebase Performance > transport_service', () => {
 
   it('falls back to fetch if sendBeacon fails.', async () => {
     sendBeaconStub.returns(false);
-    // Arrange
-    const setting = SettingsService.getInstance();
-    const flTransportFullUrl =
-      setting.flTransportEndpointUrl + '?key=' + setting.transportKey;
-
-    // Act
-    // Generate 1020 events, which should be dispatched in two batches (1000 events and 20 events).
-    for (let i = 0; i < 1020; i++) {
-      testTransportHandler('event' + i);
-    }
-    // Wait for first and second event dispatch to happen.
+    fetchStub.resolves(new Response('{}', {
+      status: 200,
+      headers: { 'Content-type': 'application/json' }
+    }));
+    testTransportHandler('event1');
     clock.tick(INITIAL_SEND_TIME_DELAY_MS);
-    // This is to resolve the floating promise chain in transport service.
-    await Promise.resolve().then().then().then();
-    clock.tick(DEFAULT_SEND_INTERVAL_MS);
-
-    // Assert
-    // Expects the first logRequest which contains first 1000 events.
-    const firstLogRequest = generateLogRequest('5501');
-    for (let i = 0; i < MAX_EVENT_COUNT_PER_REQUEST; i++) {
-      firstLogRequest['log_event'].push({
-        'source_extension_json_proto3': 'event' + i,
-        'event_time_ms': '1'
-      });
-    }
-    expect(fetchStub).to.not.have.been.called;
-    expect(sendBeaconStub).which.to.have.been.calledWith(
-      flTransportFullUrl,
-      JSON.stringify(firstLogRequest)
-    );
-    // Expects the second logRequest which contains remaining 20 events;
-    const secondLogRequest = generateLogRequest('15501');
-    for (let i = 0; i < 20; i++) {
-      secondLogRequest['log_event'].push({
-        'source_extension_json_proto3':
-          'event' + (MAX_EVENT_COUNT_PER_REQUEST + i),
-        'event_time_ms': '1'
-      });
-    }
-    expect(sendBeaconStub).calledWith(
-      flTransportFullUrl,
-      JSON.stringify(secondLogRequest)
-    );
+    expect(fetchStub).to.have.been.calledOnce;
   });
 
   function generateLogRequest(requestTimeMs: string): any {
