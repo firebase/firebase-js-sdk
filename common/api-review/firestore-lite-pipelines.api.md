@@ -277,13 +277,17 @@ export class Constant {
     static of(value: boolean): Constant;
     static of(value: null): Constant;
     static of(value: undefined): Constant;
+    // Warning: (ae-forgotten-export) The symbol "GeoPoint" needs to be exported by the entry point pipelines.d.ts
     static of(value: GeoPoint): Constant;
+    // Warning: (ae-forgotten-export) The symbol "Timestamp" needs to be exported by the entry point pipelines.d.ts
     static of(value: Timestamp): Constant;
     static of(value: Date): Constant;
     static of(value: Uint8Array): Constant;
+    // Warning: (ae-forgotten-export) The symbol "DocumentReference" needs to be exported by the entry point pipelines.d.ts
     static of(value: DocumentReference): Constant;
     static of(value: any[]): Constant;
     static of(value: Map<string, any>): Constant;
+    // Warning: (ae-forgotten-export) The symbol "VectorValue" needs to be exported by the entry point pipelines.d.ts
     static of(value: VectorValue): Constant;
     regexContains(pattern: string): RegexContains;
     regexContains(pattern: Constant): RegexContains;
@@ -384,23 +388,6 @@ export function divide(left: string, right: Constant): Divide;
 
 // @beta
 export function divide(left: string, right: any): Divide;
-
-// @public
-export interface DocumentData {
-    [field: string]: any;
-}
-
-// @public
-export class DocumentReference<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> {
-    readonly converter: FirestoreDataConverter<AppModelType, DbModelType> | null;
-    readonly firestore: Firestore;
-    get id(): string;
-    get parent(): Query<AppModelType, DbModelType>;
-    get path(): string;
-    readonly type = "document";
-    withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): DocumentReference<NewAppModelType, NewDbModelType>;
-    withConverter(converter: null): DocumentReference<DocumentData, DocumentData>;
-}
 
 // @beta (undocumented)
 export class DocumentsSource implements Stage {
@@ -718,6 +705,8 @@ export class Field implements Selectable {
     // (undocumented)
     notEqAny(...others: any[]): FirestoreFunction;
     static of(name: string): Field;
+    // Warning: (ae-forgotten-export) The symbol "FieldPath" needs to be exported by the entry point pipelines.d.ts
+    //
     // (undocumented)
     static of(path: FieldPath): Field;
     // (undocumented)
@@ -755,12 +744,6 @@ export class Field implements Selectable {
     unixMillisToTimestamp(): UnixMillisToTimestamp;
     unixSecondsToTimestamp(): UnixSecondsToTimestamp;
     vectorLength(): VectorLength;
-}
-
-// @public
-export class FieldPath {
-    constructor(...fieldNames: string[]);
-    isEqual(other: FieldPath): boolean;
 }
 
 // @beta (undocumented)
@@ -875,11 +858,6 @@ export class Fields implements Selectable {
     vectorLength(): VectorLength;
 }
 
-// @public
-export abstract class FieldValue {
-    abstract isEqual(other: FieldValue): boolean;
-}
-
 // @beta
 export interface FilterCondition {
     // (undocumented)
@@ -907,20 +885,6 @@ export interface FindNearestOptions {
     limit?: number;
     // (undocumented)
     vectorValue: VectorValue | number[];
-}
-
-// @public
-export class Firestore {
-    get app(): FirebaseApp;
-    toJSON(): object;
-    type: 'firestore-lite' | 'firestore';
-}
-
-// @public
-export interface FirestoreDataConverter<AppModelType, DbModelType extends DocumentData = DocumentData> {
-    fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData, DocumentData>): AppModelType;
-    toFirestore(modelObject: WithFieldValue<AppModelType>): WithFieldValue<DbModelType>;
-    toFirestore(modelObject: PartialWithFieldValue<AppModelType>, options: SetOptions): PartialWithFieldValue<DbModelType>;
 }
 
 // @beta
@@ -1036,18 +1000,6 @@ export class GenericStage implements Stage {
     constructor(name: string, params: unknown[]);
     // (undocumented)
     name: string;
-}
-
-// @public
-export class GeoPoint {
-    constructor(latitude: number, longitude: number);
-    isEqual(other: GeoPoint): boolean;
-    get latitude(): number;
-    get longitude(): number;
-    toJSON(): {
-        latitude: number;
-        longitude: number;
-    };
 }
 
 // @beta (undocumented)
@@ -1333,11 +1285,8 @@ export class Ordering {
     constructor(expr: Constant, direction: 'ascending' | 'descending');
     }
 
-// @public
-export type PartialWithFieldValue<T> = Partial<T> | (T extends Primitive ? T : T extends {} ? {
-    [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue;
-} : never);
-
+// Warning: (ae-forgotten-export) The symbol "DocumentData" needs to be exported by the entry point pipelines.d.ts
+//
 // @public
 export class Pipeline<AppModelType = DocumentData> {
     /* Excluded from this release type: _db */
@@ -1397,11 +1346,14 @@ export class Pipeline<AppModelType = DocumentData> {
     where(condition: FilterCondition & Constant): Pipeline<AppModelType>;
 }
 
+// Warning: (ae-forgotten-export) The symbol "Firestore" needs to be exported by the entry point pipelines.d.ts
 // Warning: (ae-incompatible-release-tags) The symbol "pipeline" is marked as @public, but its signature references "PipelineSource" which is marked as @beta
 //
 // @public
 export function pipeline(firestore: Firestore): PipelineSource;
 
+// Warning: (ae-forgotten-export) The symbol "Query" needs to be exported by the entry point pipelines.d.ts
+//
 // @public
 export function pipeline(query: Query): Pipeline;
 
@@ -1434,29 +1386,6 @@ export class PipelineSource {
     database(): Pipeline;
     // (undocumented)
     documents(docs: DocumentReference[]): Pipeline;
-}
-
-// @public
-export type Primitive = string | number | boolean | undefined | null;
-
-// @public
-export class Query<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> {
-    protected constructor();
-    readonly converter: FirestoreDataConverter<AppModelType, DbModelType> | null;
-    readonly firestore: Firestore;
-    readonly type: 'query' | 'collection';
-    withConverter(converter: null): Query<DocumentData, DocumentData>;
-    withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): Query<NewAppModelType, NewDbModelType>;
-}
-
-// @public
-export class QueryDocumentSnapshot<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> {
-    // @override
-    data(): AppModelType;
-    exists(): this is QueryDocumentSnapshot<AppModelType, DbModelType>;
-    get(fieldPath: string | FieldPath);
-    get id(): string;
-    get ref(): DocumentReference<AppModelType, DbModelType>;
 }
 
 // @beta (undocumented)
@@ -1552,13 +1481,6 @@ export interface Selectable {
 // @beta
 export type SelectableExpr = Constant & Selectable;
 
-// @public
-export type SetOptions = {
-    readonly merge?: boolean;
-} | {
-    readonly mergeFields?: Array<string | FieldPath>;
-};
-
 // @beta (undocumented)
 export class Sort implements Stage {
     constructor(orders: Ordering[]);
@@ -1644,27 +1566,6 @@ export class Sum extends FirestoreFunction implements Accumulator {
     // (undocumented)
     accumulator: true;
     }
-
-// @public
-export class Timestamp {
-    constructor(
-    seconds: number,
-    nanoseconds: number);
-    static fromDate(date: Date): Timestamp;
-    static fromMillis(milliseconds: number): Timestamp;
-    isEqual(other: Timestamp): boolean;
-    readonly nanoseconds: number;
-    static now(): Timestamp;
-    readonly seconds: number;
-    toDate(): Date;
-    toJSON(): {
-        seconds: number;
-        nanoseconds: number;
-    };
-    toMillis(): number;
-    toString(): string;
-    valueOf(): string;
-}
 
 // @beta (undocumented)
 export class TimestampAdd extends FirestoreFunction {
@@ -1807,24 +1708,12 @@ export function vectorLength(expr: Constant): VectorLength;
 // @beta
 export function vectorLength(field: string): VectorLength;
 
-// @public
-export class VectorValue {
-    /* Excluded from this release type: __constructor */
-    isEqual(other: VectorValue): boolean;
-    toArray(): number[];
-}
-
 // @beta (undocumented)
 export class Where implements Stage {
     constructor(condition: FilterCondition & Constant);
     // (undocumented)
     name: string;
 }
-
-// @public
-export type WithFieldValue<T> = T | (T extends Primitive ? T : T extends {} ? {
-    [K in keyof T]: WithFieldValue<T[K]> | FieldValue;
-} : never);
 
 // @beta (undocumented)
 export class Xor extends FirestoreFunction implements FilterCondition {
@@ -1839,8 +1728,8 @@ export function xor(left: FilterExpr, ...right: FilterExpr[]): Xor;
 
 // Warnings were encountered during analysis:
 //
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:8518:9 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:8519:9 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:8548:9 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:8118:9 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:8119:9 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:8148:9 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
 
 ```
