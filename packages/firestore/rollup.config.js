@@ -79,7 +79,10 @@ const allBuilds = [
   },
   // Node CJS build
   {
-    input: ['dist/intermediate/index.node.mjs', 'dist/intermediate/pipelines.node.mjs'],
+    input: [
+      'dist/intermediate/index.node.mjs',
+      'dist/intermediate/pipelines.node.mjs'
+    ],
     output: {
       dir: 'dist/',
       entryFileNames: '[name].cjs.js',
@@ -108,7 +111,10 @@ const allBuilds = [
   },
   // Node ESM build with build target reporting
   {
-    input: ['dist/intermediate/index.node.mjs', 'dist/intermediate/pipelines.node.mjs'],
+    input: [
+      'dist/intermediate/index.node.mjs',
+      'dist/intermediate/pipelines.node.mjs'
+    ],
     output: {
       dir: 'dist/',
       entryFileNames: '[name].mjs',
@@ -137,10 +143,7 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [
-      alias(util.generateAliasConfig('browser')),
-      ...browserPlugins
-    ],
+    plugins: [alias(util.generateAliasConfig('browser')), ...browserPlugins],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
@@ -190,7 +193,7 @@ const allBuilds = [
   },
   // RN build
   {
-    input: ['./src/index.rn.ts', './src/pipelines.rn.ts',],
+    input: ['./src/index.rn.ts', './src/pipelines.rn.ts'],
     output: {
       dir: 'dist/',
       entryFileNames: '[name].js',

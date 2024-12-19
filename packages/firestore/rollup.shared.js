@@ -108,10 +108,6 @@ const publicIdentifiers = extractPublicIdentifiers(externsPaths);
 // manually add `_delegate` because we don't have typings for the compat package
 publicIdentifiers.add('_delegate');
 
-
-console.log(`==== publicIdentifiers`)
-console.log(JSON.stringify(publicIdentifiers, null, 2))
-
 /**
  * Transformers that remove calls to `debugAssert` and messages for 'fail` and
  * `hardAssert`.

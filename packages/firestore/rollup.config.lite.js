@@ -56,9 +56,11 @@ const allBuilds = [
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: './lite/index.ts',
+    input: ['./lite/index.ts', './lite/pipelines.ts'],
     output: {
-      file: path.resolve('./lite', pkg['main-esm']),
+      dir: 'dist/intermediate/lite/',
+      entryFileNames: '[name].node.mjs',
+      chunkFileNames: 'common-[hash].node.mjs',
       format: 'es',
       sourcemap: true
     },
@@ -77,9 +79,14 @@ const allBuilds = [
   },
   // Node CJS build
   {
-    input: path.resolve('./lite', pkg['main-esm']),
+    input: [
+      'dist/intermediate/lite/index.node.mjs',
+      'dist/intermediate/lite/pipelines.node.mjs'
+    ],
     output: {
-      file: path.resolve('./lite', pkg.main),
+      dir: 'dist/lite/',
+      entryFileNames: '[name].cjs.js',
+      chunkFileNames: 'common-[hash].node.cjs.js',
       format: 'cjs',
       sourcemap: true
     },
@@ -102,9 +109,14 @@ const allBuilds = [
   },
   // Node ESM build
   {
-    input: path.resolve('./lite', pkg['main-esm']),
+    input: [
+      'dist/intermediate/lite/index.node.mjs',
+      'dist/intermediate/lite/pipelines.node.mjs'
+    ],
     output: {
-      file: path.resolve('./lite', pkg['main-esm']),
+      dir: 'dist/lite/',
+      entryFileNames: '[name].mjs',
+      chunkFileNames: 'common-[hash].node.mjs',
       format: 'es',
       sourcemap: true
     },
@@ -121,9 +133,11 @@ const allBuilds = [
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: './lite/index.ts',
+    input: ['./lite/index.ts', './lite/pipelines.ts'],
     output: {
-      file: path.resolve('./lite', pkg.browser),
+      dir: 'dist/intermediate/lite/',
+      entryFileNames: '[name].browser.js',
+      chunkFileNames: 'common-[hash].browser.js',
       format: 'es',
       sourcemap: true
     },
@@ -142,10 +156,15 @@ const allBuilds = [
   },
   // Convert es2017 build to CJS
   {
-    input: path.resolve('./lite', pkg.browser),
+    input: [
+      'dist/intermediate/lite/index.browser.js',
+      'dist/intermediate/lite/pipelines.browser.js'
+    ],
     output: [
       {
-        file: './dist/lite/index.cjs.js',
+        dir: 'dist/lite/',
+        entryFileNames: '[name].cjs.js',
+        chunkFileNames: 'common-[hash].cjs.js',
         format: 'es',
         sourcemap: true
       }
@@ -161,10 +180,15 @@ const allBuilds = [
   },
   // Browser es2017 build
   {
-    input: path.resolve('./lite', pkg.browser),
+    input: [
+      'dist/intermediate/lite/index.browser.js',
+      'dist/intermediate/lite/pipelines.browser.js'
+    ],
     output: [
       {
-        file: path.resolve('./lite', pkg.browser),
+        dir: 'dist/lite/',
+        entryFileNames: '[name].esm2017.js',
+        chunkFileNames: 'common-[hash].esm2017.js',
         format: 'es',
         sourcemap: true
       }
@@ -180,9 +204,11 @@ const allBuilds = [
   },
   // RN build
   {
-    input: './lite/index.ts',
+    input: ['./lite/index.ts', './lite/pipelines.ts'],
     output: {
-      file: path.resolve('./lite', pkg['react-native']),
+      dir: 'dist/lite/',
+      entryFileNames: '[name].rn.esm2017.js',
+      chunkFileNames: 'common-[hash].rn.esm2017.js',
       format: 'es',
       sourcemap: true
     },

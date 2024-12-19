@@ -1,6 +1,14 @@
 /**
+ * Firestore Lite Pipelines
+ *
+ * @remarks Firestore Lite is a small online-only SDK that allows read
+ * and write access to your Firestore database. All operations connect
+ * directly to the backend, and `onSnapshot()` APIs are not supported.
+ * @packageDocumentation
+ */
+/**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +23,41 @@
  * limitations under the License.
  */
 
-export { PipelineSource } from './lite-api/pipeline-source';
+// External exports: ./index
+// These external exports will be stripped from the dist/pipelines.d.ts file
+// by the prune-dts script, in order to reduce type duplication. However, these
+// types need to be exported here to ensure that api-extractor behaves
+// correctly. If a type from api.ts is missing from this export, then
+// api-extractor may rename it with a suffix `_#`, e.g. `YourType_2`.
+export type {
+  Timestamp,
+  DocumentReference,
+  VectorValue,
+  GeoPoint,
+  FieldPath,
+  DocumentData,
+  Query,
+  Firestore,
+  FirestoreDataConverter,
+  WithFieldValue,
+  PartialWithFieldValue,
+  SetOptions,
+  QueryDocumentSnapshot,
+  Primitive,
+  FieldValue
+} from './index';
 
-export { PipelineResult } from './lite-api/pipeline-result';
+export { PipelineSource } from '../src/lite-api/pipeline-source';
 
-export { Pipeline } from './api/pipeline';
+export { PipelineResult } from '../src/lite-api/pipeline-result';
 
-export { useFluentPipelines, pipeline, execute } from './api/pipeline_impl';
+export { Pipeline } from '../src/lite-api/pipeline';
+
+export {
+  useFluentPipelines,
+  pipeline,
+  execute
+} from '../src/lite-api/pipeline_impl';
 
 export {
   Stage,
@@ -40,7 +76,7 @@ export {
   Select,
   Sort,
   GenericStage
-} from './lite-api/stage';
+} from '../src/lite-api/stage';
 
 export {
   add,
@@ -85,11 +121,6 @@ export {
   strConcat,
   mapGet,
   countAll,
-  countFunction,
-  sumFunction,
-  avgFunction,
-  andFunction,
-  orFunction,
   minimum,
   maximum,
   cosineDistance,
@@ -131,7 +162,6 @@ export {
   ArrayLength,
   ArrayElement,
   EqAny,
-  NotEqAny,
   IsNan,
   Exists,
   Not,
@@ -174,10 +204,7 @@ export {
   TimestampToUnixSeconds,
   TimestampAdd,
   TimestampSub,
-  Ordering
-} from './lite-api/expressions';
-
-export type {
+  Ordering,
   ExprType,
   AccumulatorTarget,
   FilterExpr,
@@ -185,4 +212,4 @@ export type {
   Selectable,
   FilterCondition,
   Accumulator
-} from './lite-api/expressions';
+} from '../src/lite-api/expressions';
