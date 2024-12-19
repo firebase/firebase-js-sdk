@@ -82,7 +82,7 @@ export class ContextProvider {
     }
 
     if (!this.appCheck) {
-      appCheckProvider.get().then(
+      appCheckProvider?.get().then(
         appCheck => (this.appCheck = appCheck),
         () => {
           /* get() never rejects */

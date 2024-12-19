@@ -47,7 +47,7 @@ export class AppCheckTokenProvider {
     }
   }
 
-  getToken(forceRefresh?: boolean): Promise<AppCheckTokenResult> {
+  getToken(): Promise<AppCheckTokenResult> {
     if (this.serverAppAppCheckToken) {
       return Promise.resolve({ token: this.serverAppAppCheckToken });
     }
@@ -60,14 +60,14 @@ export class AppCheckTokenProvider {
         // becomes available before the timoeout below expires.
         setTimeout(() => {
           if (this.appCheck) {
-            this.getToken(forceRefresh).then(resolve, reject);
+            this.getToken().then(resolve, reject);
           } else {
             resolve(null);
           }
         }, 0);
       });
     }
-    return this.appCheck.getToken(forceRefresh);
+    return this.appCheck.getToken();
   }
 
   addTokenChangeListener(listener: AppCheckTokenListener): void {

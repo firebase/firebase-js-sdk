@@ -49,6 +49,17 @@ export class AppCheckTokenProvider {
 
   getToken(forceRefresh?: boolean): Promise<AppCheckTokenResult> {
     if (this.serverAppAppCheckToken) {
+      if (forceRefresh) {
+        return new Promise<AppCheckTokenResult>(resolve => {
+          const appCheckTokenResult = {
+            token: 'ERROR',
+            error: new Error(
+              'Attempted reuse of FirebaseServerApp.appCheckToken after previous usage failed.'
+            )
+          };
+          resolve(appCheckTokenResult);
+        });
+      }
       return Promise.resolve({ token: this.serverAppAppCheckToken });
     }
     if (!this.appCheck) {

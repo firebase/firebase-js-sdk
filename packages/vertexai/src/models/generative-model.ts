@@ -85,7 +85,6 @@ export class GenerativeModel {
       };
 
       if (
-        vertexAI.app &&
         _isFirebaseServerApp(vertexAI.app) &&
         vertexAI.app.settings.appCheckToken
       ) {
