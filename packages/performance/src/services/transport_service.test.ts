@@ -29,8 +29,14 @@ use(sinonChai);
 
 /* eslint-disable no-restricted-properties */
 describe('Firebase Performance > transport_service', () => {
-  let sendBeaconStub: SinonStub<[url: string | URL, data?: BodyInit | null | undefined], boolean>;
-  let fetchStub: SinonStub<[RequestInfo | URL, RequestInit?], Promise<Response>>;
+  let sendBeaconStub: SinonStub<
+    [url: string | URL, data?: BodyInit | null | undefined],
+    boolean
+  >;
+  let fetchStub: SinonStub<
+    [RequestInfo | URL, RequestInit?],
+    Promise<Response>
+  >;
   const INITIAL_SEND_TIME_DELAY_MS = 5.5 * 1000;
   const DEFAULT_SEND_INTERVAL_MS = 10 * 1000;
   const MAX_EVENT_COUNT_PER_REQUEST = 1000;
@@ -130,10 +136,12 @@ describe('Firebase Performance > transport_service', () => {
 
   it('falls back to fetch if sendBeacon fails.', async () => {
     sendBeaconStub.returns(false);
-    fetchStub.resolves(new Response('{}', {
-      status: 200,
-      headers: { 'Content-type': 'application/json' }
-    }));
+    fetchStub.resolves(
+      new Response('{}', {
+        status: 200,
+        headers: { 'Content-type': 'application/json' }
+      })
+    );
     testTransportHandler('event1');
     clock.tick(INITIAL_SEND_TIME_DELAY_MS);
     expect(fetchStub).to.have.been.calledOnce;
