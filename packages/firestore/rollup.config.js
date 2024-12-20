@@ -51,7 +51,6 @@ const browserPlugins = [
     cacheDir: tmp.dirSync(),
     abortOnError: true,
     transformers: [util.removeAssertAndPrefixInternalTransformer]
-    //transformers: [util.removeAssertTransformer]
   }),
   json({ preferConst: true }),
   terser(util.manglePrivatePropertiesOptions)
@@ -62,7 +61,7 @@ const allBuilds = [
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: ['./src/index.node.ts', './src/pipelines.node.ts'],
+    input: ['./src/index.node.ts', './pipelines/pipelines.node.ts'],
     output: {
       dir: 'dist/intermediate',
       entryFileNames: '[name].mjs',
@@ -135,7 +134,7 @@ const allBuilds = [
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: ['./src/index.ts', './src/pipelines.ts'],
+    input: ['./src/index.ts', './pipelines/pipelines.ts'],
     output: {
       dir: 'dist/intermediate',
       entryFileNames: '[name].js',
@@ -193,7 +192,7 @@ const allBuilds = [
   },
   // RN build
   {
-    input: ['./src/index.rn.ts', './src/pipelines.rn.ts'],
+    input: ['./src/index.rn.ts', './pipelines/pipelines.rn.ts'],
     output: {
       dir: 'dist/',
       entryFileNames: '[name].js',

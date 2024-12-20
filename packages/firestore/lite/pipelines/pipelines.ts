@@ -45,19 +45,19 @@ export type {
   QueryDocumentSnapshot,
   Primitive,
   FieldValue
-} from './index';
+} from '../index';
 
-export { PipelineSource } from '../src/lite-api/pipeline-source';
+export { PipelineSource } from '../../src/lite-api/pipeline-source';
 
-export { PipelineResult } from '../src/lite-api/pipeline-result';
+export { PipelineResult } from '../../src/lite-api/pipeline-result';
 
-export { Pipeline } from '../src/lite-api/pipeline';
+export { Pipeline } from '../../src/lite-api/pipeline';
 
 export {
   useFluentPipelines,
   pipeline,
   execute
-} from '../src/lite-api/pipeline_impl';
+} from '../../src/lite-api/pipeline_impl';
 
 export {
   Stage,
@@ -76,7 +76,7 @@ export {
   Select,
   Sort,
   GenericStage
-} from '../src/lite-api/stage';
+} from '../../src/lite-api/stage';
 
 export {
   add,
@@ -212,4 +212,4 @@ export {
   Selectable,
   FilterCondition,
   Accumulator
-} from '../src/lite-api/expressions';
+} from '../../src/lite-api/expressions';

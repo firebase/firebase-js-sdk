@@ -56,7 +56,7 @@ const allBuilds = [
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: ['./lite/index.ts', './lite/pipelines.ts'],
+    input: ['./lite/index.ts', './lite/pipelines/pipelines.ts'],
     output: {
       dir: 'dist/intermediate/lite/',
       entryFileNames: '[name].node.mjs',
@@ -133,7 +133,7 @@ const allBuilds = [
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: ['./lite/index.ts', './lite/pipelines.ts'],
+    input: ['./lite/index.ts', './lite/pipelines/pipelines.ts'],
     output: {
       dir: 'dist/intermediate/lite/',
       entryFileNames: '[name].browser.js',
@@ -204,7 +204,7 @@ const allBuilds = [
   },
   // RN build
   {
-    input: ['./lite/index.ts', './lite/pipelines.ts'],
+    input: ['./lite/index.ts', './lite/pipelines/pipelines.ts'],
     output: {
       dir: 'dist/lite/',
       entryFileNames: '[name].rn.esm2017.js',
