@@ -344,7 +344,7 @@ abstract class BigIntOrDoubleArithmetics<
     right: {
       integerValue: number | string;
     }
-  ): bigint | undefined;
+  ): bigint | number | undefined;
   abstract doubleArith(
     left:
       | { doubleValue: number | string }
@@ -389,8 +389,11 @@ abstract class BigIntOrDoubleArithmetics<
         return undefined;
       }
 
+      if (typeof result === 'number') {
+        return { doubleValue: result };
+      }
       // Check for overflow
-      if (result < LongMinValue || result > LongMaxValue) {
+      else if (result < LongMinValue || result > LongMaxValue) {
         return undefined; // Simulate overflow error
       } else {
         return { integerValue: `${result}` };
@@ -540,10 +543,13 @@ export class CoreDivide extends BigIntOrDoubleArithmetics<Divide> {
     right: {
       integerValue: number | string;
     }
-  ): bigint | undefined {
+  ): bigint | number | undefined {
     const rightValue = asBigInt(right);
     if (rightValue === BigInt(0)) {
       return undefined;
+      // return isNegativeZero(asDouble(right))
+      //       ? Number.NEGATIVE_INFINITY
+      //       : Number.POSITIVE_INFINITY;
     }
     return asBigInt(left) / rightValue;
   }

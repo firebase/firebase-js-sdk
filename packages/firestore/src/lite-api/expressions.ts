@@ -2255,7 +2255,7 @@ export class Constant extends Expr {
       // TODO how should we treat the value of `undefined`?
       this._protoValue = parseData(null, context)!;
     } else {
-      this._protoValue = parseData(this.value, context)!;
+      this._protoValue = parseData(this.value, context, this.options)!;
     }
   }
 }

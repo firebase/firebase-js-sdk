@@ -428,35 +428,16 @@ describe.only('Comparison Expressions', () => {
       ).to.be.deep.equal(TRUE_VALUE);
     });
 
-    // TODO(pipeline): Constant.of(Map) is being rejected at runtime
-    it.skip('nullInMap_equality_returnsTrue', () => {
+    it('nullInMap_equality_returnsTrue', () => {
       expect(
-        evaluate(
-          eq(
-            Constant.of(new Map<string, any>([['foo', null]])),
-            Constant.of(new Map<string, any>([['foo', null]]))
-          )
-        )
+        evaluate(eq(Constant.of({ foo: null }), Constant.of({ foo: null })))
       ).to.be.deep.equal(TRUE_VALUE);
     });
 
-    it.skip('null_missingInMap_equality_returnsFalse', () => {
+    it('null_missingInMap_equality_returnsFalse', () => {
       expect(
-        evaluate(
-          eq(
-            Constant.of(new Map<string, any>([['foo', null]])),
-            Constant.of(new Map<string, any>([['foo', null]]))
-          )
-        )
+        evaluate(eq(Constant.of({ foo: null }), Constant.of({})))
       ).to.be.deep.equal(FALSE_VALUE);
-    });
-
-    // ... NaN tests (similar pattern as null tests)
-    it('nan_number_returnsFalse', () => {
-      ComparisonValueTestData.NUMERIC_VALUES.forEach(v => {
-        expect(evaluate(eq(Constant.of(NaN), v))).to.be.deep.equal(FALSE_VALUE);
-        expect(evaluate(eq(v, Constant.of(NaN)))).to.be.deep.equal(FALSE_VALUE);
-      });
     });
 
     describe('NaN tests', () => {
@@ -501,14 +482,9 @@ describe.only('Comparison Expressions', () => {
         ).to.be.deep.equal(FALSE_VALUE);
       });
 
-      it.skip('nanInMap_equality_returnsFalse', () => {
+      it('nanInMap_equality_returnsFalse', () => {
         expect(
-          evaluate(
-            eq(
-              Constant.of(new Map<string, any>([['foo', NaN]])),
-              Constant.of(new Map<string, any>([['foo', NaN]]))
-            )
-          )
+          evaluate(eq(Constant.of({ foo: NaN }), Constant.of({ foo: NaN })))
         ).to.be.deep.equal(FALSE_VALUE);
       });
     }); // end describe NaN tests
@@ -521,23 +497,13 @@ describe.only('Comparison Expressions', () => {
       });
     });
 
-    describe.skip('Map tests', () => {
+    describe('Map tests', () => {
       it('map_ambiguousNumerics', () => {
         expect(
           evaluate(
             eq(
-              Constant.of(
-                new Map<string, any>([
-                  ['foo', 1],
-                  ['bar', 42.0]
-                ])
-              ),
-              Constant.of(
-                new Map<string, any>([
-                  ['bar', 42],
-                  ['foo', 1.0]
-                ])
-              )
+              Constant.of({ foo: 1, bar: 42.0 }),
+              Constant.of({ bar: 42, foo: 1.0 })
             )
           )
         ).to.be.deep.equal(TRUE_VALUE);
@@ -945,22 +911,12 @@ describe.only('Comparison Expressions', () => {
       ).to.be.deep.equal(TRUE_VALUE);
     });
 
-    it.skip('map_ambiguousNumerics', () => {
+    it('map_ambiguousNumerics', () => {
       expect(
         evaluate(
           neq(
-            Constant.of(
-              new Map<string, any>([
-                ['foo', 1],
-                ['bar', 42.0]
-              ])
-            ),
-            Constant.of(
-              new Map<string, any>([
-                ['foo', 1.0],
-                ['bar', 42]
-              ])
-            )
+            Constant.of({ foo: 1, bar: 42.0 }),
+            Constant.of({ foo: 1.0, bar: 42 })
           )
         )
       ).to.be.deep.equal(FALSE_VALUE);
@@ -1078,7 +1034,7 @@ describe.only('Expressions', () => {
 
       // TODO(pipeline): It is not possible to do long overflow in javascript because
       // the number will be converted to double by UserDataReader first.
-      it.skip('longAddition_overflow', () => {
+      it('longAddition_overflow', () => {
         expect(
           evaluate(
             add(
@@ -1169,9 +1125,6 @@ describe.only('Expressions', () => {
           `add(add(1.0, 2), 3)`
         );
       });
-
-      // TODO(pipeline): Finish this when we support sum()
-      it.skip('sum_and_multiAdd_produceSameResult', () => {});
     }); // end describe('add')
 
     describe('subtract', () => {
@@ -1207,17 +1160,17 @@ describe.only('Expressions', () => {
           .undefined;
       });
 
-      // TODO(pipeline): We do not have a way to represent a Long.MIN_VALUE yet.
+      // TODO(pipeline): Overflow behavior is different in Javascript than backend.
       it.skip('doubleLongSubtraction_overflow', () => {
         expectEqual(
           evaluate(subtract(Constant.of(0x8000000000000000), Constant.of(1.0))),
           Constant.of(-9.223372036854776e18),
-          `subtract(Number.MIN_SAFE_INTEGER, 1.0)`
+          `subtract(Long.MIN_VALUE, 1.0)`
         );
         expectEqual(
           evaluate(subtract(Constant.of(0x8000000000000000), Constant.of(100))),
           Constant.of(-9.223372036854776e18),
-          `subtract(Number.MIN_SAFE_INTEGER, 100)`
+          `subtract(Long.MIN_VALUE, 100)`
         );
       });
 
@@ -1244,15 +1197,21 @@ describe.only('Expressions', () => {
         );
       });
 
-      it.skip('longSubtraction_overflow', () => {
+      it('longSubtraction_overflow', () => {
         expect(
           evaluate(
-            subtract(Constant.of(Number.MIN_SAFE_INTEGER), Constant.of(1))
+            subtract(
+              Constant.of(0x8000000000000000, { preferIntegers: true }),
+              Constant.of(1)
+            )
           )
         ).to.be.undefined;
         expect(
           evaluate(
-            subtract(Constant.of(Number.MAX_SAFE_INTEGER), Constant.of(-1))
+            subtract(
+              Constant.of(0x8000000000000000, { preferIntegers: true }),
+              Constant.of(-1)
+            )
           )
         ).to.be.undefined;
       });
@@ -1407,20 +1366,20 @@ describe.only('Expressions', () => {
           .undefined;
       });
 
-      it.skip('doubleLongMultiplication_overflow', () => {
+      it('doubleLongMultiplication_overflow', () => {
         expectEqual(
           evaluate(
-            multiply(Constant.of(Number.MAX_SAFE_INTEGER), Constant.of(100.0))
+            multiply(Constant.of(9223372036854775807), Constant.of(100.0))
           ),
-          Constant.of(900719925474099100),
-          `multiply(Number.MAX_SAFE_INTEGER, 100.0)`
+          Constant.of(922337203685477600000),
+          `multiply(Long.MAX_VALUE, 100.0)`
         );
         expectEqual(
           evaluate(
-            multiply(Constant.of(Number.MAX_SAFE_INTEGER), Constant.of(100))
+            multiply(Constant.of(9223372036854775807), Constant.of(100))
           ),
-          Constant.of(900719925474099200),
-          `multiply(Number.MAX_SAFE_INTEGER, 100)`
+          Constant.of(922337203685477600000),
+          `multiply(Long.MAX_VALUE, 100)`
         );
       });
 
@@ -1447,25 +1406,37 @@ describe.only('Expressions', () => {
         );
       });
 
-      it.skip('longMultiplication_overflow', () => {
+      it('longMultiplication_overflow', () => {
         expect(
           evaluate(
-            multiply(Constant.of(Number.MAX_SAFE_INTEGER), Constant.of(10))
+            multiply(
+              Constant.of(9223372036854775807, { preferIntegers: true }),
+              Constant.of(10)
+            )
           )
         ).to.be.undefined;
         expect(
           evaluate(
-            multiply(Constant.of(Number.MIN_SAFE_INTEGER), Constant.of(10))
+            multiply(
+              Constant.of(0x8000000000000000, { preferIntegers: true }),
+              Constant.of(10)
+            )
           )
         ).to.be.undefined;
         expect(
           evaluate(
-            multiply(Constant.of(-10), Constant.of(Number.MAX_SAFE_INTEGER))
+            multiply(
+              Constant.of(-10),
+              Constant.of(9223372036854775807, { preferIntegers: true })
+            )
           )
         ).to.be.undefined;
         expect(
           evaluate(
-            multiply(Constant.of(-10), Constant.of(Number.MIN_SAFE_INTEGER))
+            multiply(
+              Constant.of(-10),
+              Constant.of(0x8000000000000000, { preferIntegers: true })
+            )
           )
         ).to.be.undefined;
       });
@@ -1698,16 +1669,16 @@ describe.only('Expressions', () => {
         );
       });
 
-      it.skip('divideByZero', () => {
+      it('divideByZero', () => {
         expect(evaluate(divide(Constant.of(1), Constant.of(0)))).to.be
           .undefined; // Or your error handling
         expectEqual(
-          evaluate(divide(Constant.of(1), Constant.of(0.0))),
+          evaluate(divide(Constant.of(1.1), Constant.of(0.0))),
           Constant.of(Number.POSITIVE_INFINITY),
           `divide(1, 0.0)`
         );
         expectEqual(
-          evaluate(divide(Constant.of(1), Constant.of(-0.0))),
+          evaluate(divide(Constant.of(1.1), Constant.of(-0.0))),
           Constant.of(Number.NEGATIVE_INFINITY),
           `divide(1, -0.0)`
         );
@@ -2406,6 +2377,8 @@ describe.only('Expressions', () => {
         ).to.deep.equal(TRUE_VALUE);
       });
 
+      // TODO(pipeline): Nested arrays are not supported in documents. We need to
+      // support creating nested arrays as expressions however.
       it.skip('bothInputTypeIsArray', () => {
         expect(
           evaluate(
@@ -2438,17 +2411,12 @@ describe.only('Expressions', () => {
         ).to.deep.equal(FALSE_VALUE);
       });
 
-      it.skip('searchValue_isMap', () => {
+      it('searchValue_isMap', () => {
         expect(
           evaluate(
             arrayContains(
-              Constant.of([
-                123,
-                new Map<string, any>([['foo', 123]]),
-                new Map<string, any>([['bar', 42]]),
-                new Map<string, any>([['foo', 42]])
-              ]),
-              Constant.of(new Map<string, any>([['foo', 42]]))
+              Constant.of([123, { foo: 123 }, { bar: 42 }, { foo: 42 }]),
+              Constant.of({ foo: 42 })
             )
           )
         ).to.deep.equal(TRUE_VALUE);
@@ -2949,14 +2917,14 @@ describe.only('Expressions', () => {
         ).to.deep.equal(TRUE_VALUE);
       });
 
-      it.skip('search_isMap', () => {
+      it('search_isMap', () => {
         expect(
           evaluate(
-            eqAny(Constant.of(new Map<string, any>([['foo', 42]])), [
+            eqAny(Constant.of({ foo: 42 }), [
               Constant.of(123),
-              Constant.of(new Map<string, any>([['foo', 123]])),
-              Constant.of(new Map<string, any>([['bar', 42]])),
-              Constant.of(new Map<string, any>([['foo', 42]]))
+              Constant.of({ foo: 123 }),
+              Constant.of({ bar: 42 }),
+              Constant.of({ foo: 42 })
             ])
           )
         ).to.deep.equal(TRUE_VALUE);
@@ -3611,51 +3579,32 @@ describe.only('Expressions', () => {
   }); // end describe('Logical Functions')
 
   describe('Map Functions', () => {
-    // describe('mapGet', () => {
-    //   it('get_existingKey_returnsValue', () => {
-    //     const map = new Map<string, any>([
-    //       ['a', 1],
-    //       ['b', 2],
-    //       ['c', 3],
-    //     ]);
-    //     expect(
-    //       evaluate(mapGet(Constant.of(map), Constant.of('b')))
-    //     ).to.deep.equal(Constant.of(2));
-    //   });
-    //
-    //   it('get_missingKey_returnsUnset', () => {
-    //     const map = new Map<string, any>([
-    //       ['a', 1],
-    //       ['b', 2],
-    //       ['c', 3],
-    //     ]);
-    //     expect(
-    //       evaluate(mapGet(Constant.of(map), Constant.of('d')))
-    //     ).to.deep.equal(UNSET_VALUE);
-    //   });
-    //
-    //   it('get_emptyMap_returnsUnset', () => {
-    //     const map = new Map<string, any>();
-    //     expect(
-    //       evaluate(mapGet(Constant.of(map), Constant.of('d')))
-    //     ).to.deep.equal(UNSET_VALUE);
-    //   });
-    //
-    //   it('get_wrongMapType_returnsError', () => {
-    //     const map = 'not a map';
-    //     expect(evaluate(mapGet(Constant.of(map), Constant.of('d')))).to.be
-    //       .undefined;
-    //   });
-    //
-    //   it('get_wrongKeyType_returnsError', () => {
-    //     const map = new Map<string, any>([
-    //       ['a', 1],
-    //       ['b', 2],
-    //       ['c', 3],
-    //     ]);
-    //     expect(evaluate(mapGet(Constant.of(map), Constant.of(42)))).to.be.undefined;
-    //   });
-    // }); // end describe('mapGet')
+    describe('mapGet', () => {
+      it('get_existingKey_returnsValue', () => {
+        const map = { a: 1, b: 2, c: 3 };
+        expectEqual(evaluate(mapGet(Constant.of(map), 'b')), Constant.of(2));
+      });
+
+      it('get_missingKey_returnsUnset', () => {
+        const map = { a: 1, b: 2, c: 3 };
+        expect(evaluate(mapGet(Constant.of(map), 'd'))).to.be.undefined;
+      });
+
+      it('get_emptyMap_returnsUnset', () => {
+        const map = {};
+        expect(evaluate(mapGet(Constant.of(map), 'd'))).to.be.undefined;
+      });
+
+      it('get_wrongMapType_returnsError', () => {
+        const map = 'not a map';
+        expect(evaluate(mapGet(Constant.of(map), 'd'))).to.be.undefined;
+      });
+
+      // it('get_wrongKeyType_returnsError', () => {
+      //   const map = {a: 1, b: 2, c: 3};
+      //   expect(evaluate(mapGet(Constant.of(map), Constant.of(42)))).to.be.undefined;
+      // });
+    }); // end describe('mapGet')
   });
 
   describe('String Functions', () => {

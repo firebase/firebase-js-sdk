@@ -731,7 +731,8 @@ export function parseQueryValue(
  */
 export function parseData(
   input: unknown,
-  context: ParseContextImpl
+  context: ParseContextImpl,
+  options?: { preferIntegers: boolean }
 ): ProtoValue | null {
   // Unwrap the API type from the Compat SDK. This will return the API type
   // from firestore-exp.
@@ -779,7 +780,7 @@ export function parseData(
       }
       return parseArray(input as unknown[], context);
     } else {
-      return parseScalarValue(input, context);
+      return parseScalarValue(input, context, options);
     }
   }
 }
@@ -860,14 +861,15 @@ function parseSentinelFieldValue(
  */
 export function parseScalarValue(
   value: unknown,
-  context: ParseContextImpl
+  context: ParseContextImpl,
+  options?: { preferIntegers: boolean }
 ): ProtoValue | null {
   value = getModularInstance(value);
 
   if (value === null) {
     return { nullValue: 'NULL_VALUE' };
   } else if (typeof value === 'number') {
-    return toNumber(context.serializer, value);
+    return toNumber(context.serializer, value, options);
   } else if (typeof value === 'boolean') {
     return { booleanValue: value };
   } else if (typeof value === 'string') {

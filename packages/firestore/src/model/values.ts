@@ -150,7 +150,7 @@ export function valueEquals(
       );
     case TypeOrder.VectorValue:
     case TypeOrder.ObjectValue:
-      return objectEquals(left, right);
+      return objectEquals(left, right, options);
     case TypeOrder.MaxValue:
       return true;
     default:
