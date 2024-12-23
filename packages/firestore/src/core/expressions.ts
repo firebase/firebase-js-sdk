@@ -83,7 +83,8 @@ import {
   TimestampSub,
   Field,
   Constant,
-  FilterExpr
+  FilterExpr,
+  IsNull
 } from '../lite-api/expressions';
 import {
   CREATE_TIME_NAME,
@@ -176,6 +177,8 @@ export function toEvaluable<T>(expr: T): EvaluableExpr {
     return new CoreNotEqAny(expr);
   } else if (expr instanceof IsNan) {
     return new CoreIsNan(expr);
+  } else if (expr instanceof IsNull) {
+    return new CoreIsNull(expr);
   } else if (expr instanceof Exists) {
     return new CoreExists(expr);
   } else if (expr instanceof Not) {
@@ -283,10 +286,7 @@ export class CoreField implements EvaluableExpr {
         timestampValue: toVersion(context.serializer, input.createTime)
       };
     }
-    return (
-      input.data.field(FieldPath.fromServerFormat(this.expr.fieldName())) ??
-      undefined
-    );
+    return input.data.field(this.expr.fieldPath) ?? undefined;
   }
 }
 
@@ -831,6 +831,24 @@ export class CoreIsNan implements EvaluableExpr {
   }
 }
 
+export class CoreIsNull implements EvaluableExpr {
+  constructor(private expr: IsNull) {}
+
+  evaluate(
+    context: EvaluationContext,
+    input: PipelineInputOutput
+  ): Value | undefined {
+    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    return {
+      booleanValue: evaluated === undefined ? false : isNullValue(evaluated)
+    };
+  }
+
+  static fromProtoToApiObj(value: ProtoFunction): IsNan {
+    return new IsNan(exprFromProto(value.args![0]));
+  }
+}
+
 export class CoreExists implements EvaluableExpr {
   constructor(private expr: Exists) {}
 
@@ -839,11 +857,7 @@ export class CoreExists implements EvaluableExpr {
     input: PipelineInputOutput
   ): Value | undefined {
     const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
-    if (evaluated === undefined) {
-      return undefined;
-    }
-
-    return TRUE_VALUE;
+    return evaluated === undefined ? FALSE_VALUE : TRUE_VALUE;
   }
 
   static fromProtoToApiObj(value: ProtoFunction): Exists {

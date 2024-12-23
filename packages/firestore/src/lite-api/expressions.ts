@@ -886,6 +886,21 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
   }
 
   /**
+   * Creates an expression that checks if this expression evaluates to `null`.
+   *
+   * ```typescript
+   * // Check if a field is set to value `null`. Returns false if it is set to
+   * // other values or is not set at all.
+   * Field.of("value").isNull();
+   * ```
+   *
+   * @return A new `Expr` representing the 'isNull' check.
+   */
+  isNull(): IsNan {
+    return new IsNull(this);
+  }
+
+  /**
    * Creates an expression that checks if a field exists in the document.
    *
    * ```typescript
@@ -1923,7 +1938,7 @@ export class Field extends Expr implements Selectable {
    * @private
    */
   constructor(
-    private fieldPath: InternalFieldPath,
+    readonly fieldPath: InternalFieldPath,
     private pipeline: Pipeline | null = null
   ) {
     super();
@@ -1957,7 +1972,7 @@ export class Field extends Expr implements Selectable {
       if (DOCUMENT_KEY_NAME === pipelineOrName) {
         return new Field(documentId()._internalPath);
       }
-      return new Field(fieldPathFromArgument('of', pipelineOrName));
+      return new Field(InternalFieldPath.fromServerFormat(pipelineOrName));
     } else if (pipelineOrName instanceof FieldPath) {
       if (documentId().isEqual(pipelineOrName)) {
         return new Field(documentId()._internalPath);
@@ -2572,6 +2587,16 @@ export class NotEqAny extends FirestoreFunction implements FilterCondition {
 export class IsNan extends FirestoreFunction implements FilterCondition {
   constructor(readonly expr: Expr) {
     super('is_nan', [expr]);
+  }
+  filterable = true as const;
+}
+
+/**
+ * @beta
+ */
+export class IsNull extends FirestoreFunction implements FilterCondition {
+  constructor(readonly expr: Expr) {
+    super('is_null', [expr]);
   }
   filterable = true as const;
 }
@@ -4895,6 +4920,41 @@ export function isNan(value: string): IsNan;
 export function isNan(value: Expr | string): IsNan {
   const valueExpr = value instanceof Expr ? value : Field.of(value);
   return new IsNan(valueExpr);
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if an expression evaluates to 'null'.
+ *
+ * ```typescript
+ * // Check if the field is set to 'null'. Returns false if it is not set, or
+ * // set to any other value.
+ * isNull(Field.of("value"));
+ * ```
+ *
+ * @param value The expression to check.
+ * @return A new {@code Expr} representing the 'isNull' check.
+ */
+export function isNull(value: Expr): IsNull;
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if a field's value evaluates to 'null'.
+ *
+ * ```typescript
+ * // Check if the result of a calculation is null.
+ * isNull("value");
+ * ```
+ *
+ * @param value The name of the field to check.
+ * @return A new {@code Expr} representing the 'isNull' check.
+ */
+export function isNull(value: string): IsNull;
+export function isNull(value: Expr | string): IsNull {
+  const valueExpr = value instanceof Expr ? value : Field.of(value);
+  return new IsNull(valueExpr);
 }
 
 /**

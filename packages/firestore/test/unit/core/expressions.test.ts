@@ -351,7 +351,7 @@ function errorFilterExpr(): FilterExpr {
   return Field.of('not-an-array').gt(0);
 }
 
-describe.only('Comparison Expressions', () => {
+describe('Comparison Expressions', () => {
   describe('eq', () => {
     it('returns false for lessThan values', () => {
       ComparisonValueTestData.lessThanValues().forEach(({ left, right }) => {
@@ -955,7 +955,7 @@ function expectEqual(
   ).to.be.true;
 }
 
-describe.only('Expressions', () => {
+describe('Expressions', () => {
   describe('Arithmetic Expressions', () => {
     describe('add', () => {
       it('basic_add_numerics', () => {
