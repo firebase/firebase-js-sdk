@@ -1098,7 +1098,7 @@ export function fromPipelineTarget(
   target: ProtoPipelineQueryTarget,
   serializer: JsonProtoSerializer
 ): CorePipeline {
-  const pipeline = target.pipeline;
+  const pipeline = target.structuredPipeline;
   hardAssert(
     (pipeline?.pipeline?.stages ?? []).length > 0,
     'Deserializing pipeline without any stages.'
@@ -1114,7 +1114,7 @@ export function toPipelineTarget(
   target: CorePipeline
 ): ProtoPipelineQueryTarget {
   return {
-    pipeline: {
+    structuredPipeline: {
       pipeline: {
         stages: target.stages.map(s => s._toProto(serializer))
       }

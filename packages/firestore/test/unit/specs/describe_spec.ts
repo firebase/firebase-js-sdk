@@ -187,7 +187,7 @@ export function specTest(
       ? [true, false]
       : [false];
     for (const usePersistence of persistenceModes) {
-      const convertToPipelines = [true];
+      const convertToPipelines = [false, true];
       for (const convertToPipeline of convertToPipelines) {
         const runner = getTestRunner(tags, usePersistence, convertToPipeline);
         const timeout = getTestTimeout(tags);
