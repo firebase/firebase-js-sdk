@@ -918,7 +918,7 @@ message Target {
     // The pipeline to run.
     oneof pipeline_type {
       // A pipelined operation in structured format.
-      StructuredPipeline pipeline = 1;
+      StructuredPipeline structured_pipeline = 1;
     }
   }
 

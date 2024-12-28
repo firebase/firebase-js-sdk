@@ -357,7 +357,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     structuredQuery?: StructuredQuery;
   }
   interface PipelineQueryTarget {
-    pipeline?: StructuredPipeline;
+    structuredPipeline?: StructuredPipeline;
   }
   interface ReadOnly {
     readTime?: string;

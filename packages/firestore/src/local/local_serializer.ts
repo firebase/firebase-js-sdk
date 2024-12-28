@@ -331,7 +331,9 @@ export function toDbTarget(
 function isPipelineQueryTarget(
   dbQuery: DbQuery
 ): dbQuery is PublicPipelineQueryTarget {
-  return (dbQuery as PublicPipelineQueryTarget).pipeline !== undefined;
+  return (
+    (dbQuery as PublicPipelineQueryTarget).structuredPipeline !== undefined
+  );
 }
 
 /**

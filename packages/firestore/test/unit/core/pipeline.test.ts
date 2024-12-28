@@ -480,6 +480,21 @@ describe('runPipeline()', () => {
       );
     });
 
+    it('sort_onValues has dense semantics', () => {
+      const doc1 = doc('users/bob', 1000, { score: 90 });
+      const doc2 = doc('users/alice', 1000, { score: 50 });
+      const doc3 = doc('users/charlie', 1000, { number: 97 });
+
+      const pipeline = db
+          .pipeline()
+          .collectionGroup('users')
+          .sort(Field.of('score').descending());
+
+      expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
+          [doc1, doc2, doc3]
+      );
+    });
+
     it('sort_onPath', () => {
       const doc1 = doc('users/bob', 1000, { score: 90 });
       const doc2 = doc('users/alice', 1000, { score: 50 });

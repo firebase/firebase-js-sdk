@@ -2421,12 +2421,12 @@
                       "oneofs": {
                         "pipelineType": {
                           "oneof": [
-                            "pipeline"
+                            "structuredPipeline"
                           ]
                         }
                       },
                       "fields": {
-                        "pipeline": {
+                        "structuredPipeline": {
                           "type": "StructuredPipeline",
                           "id": 1
                         }
