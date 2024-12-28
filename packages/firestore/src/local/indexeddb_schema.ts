@@ -53,9 +53,11 @@ import { DbTimestampKey } from './indexeddb_sentinels';
  * 14. Add overlays.
  * 15. Add indexing support.
  * 16. Parse timestamp strings before creating index entries.
+ * 17. Add GlobalsStore.
+ * 18. Add pipeline results.
  */
 
-export const SCHEMA_VERSION = 17;
+export const SCHEMA_VERSION = 18;
 
 /**
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.
@@ -549,4 +551,19 @@ export interface DbGlobals {
   name: string;
   /** Value is a general purpose storage for global data. */
   value: Uint8Array;
+}
+
+/**
+ * An object representing pipeline results from the backend, when they are not
+ * exact Firestore documents (augmented documents or keyless documents).
+ */
+export interface DbPipelineResult {
+  /** The target id of the pipeline. */
+  targetId: number;
+  collectionPath: string;
+  documentId: string;
+  /** The execution time of the pipeline. */
+  executionTime: DbTimestamp;
+  /** The result. */
+  result: DbRemoteDocument | null;
 }

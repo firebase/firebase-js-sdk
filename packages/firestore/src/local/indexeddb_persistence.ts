@@ -71,6 +71,8 @@ import {
   SimpleDb,
   SimpleDbStore
 } from './simple_db';
+import { PipelineResultsCache } from './pipeline_results_cache';
+import { IndexedDbPipelineResultsCache } from './indexeddb_pipeline_results_cache';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -194,6 +196,7 @@ export class IndexedDbPersistence implements Persistence {
   private readonly targetCache: IndexedDbTargetCache;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
   private readonly bundleCache: IndexedDbBundleCache;
+  private readonly pipelineResultsCache: IndexedDbPipelineResultsCache;
   private readonly webStorage: Storage | null;
   readonly referenceDelegate: IndexedDbLruDelegateImpl;
 
@@ -242,6 +245,9 @@ export class IndexedDbPersistence implements Persistence {
     );
     this.remoteDocumentCache = newIndexedDbRemoteDocumentCache(this.serializer);
     this.bundleCache = new IndexedDbBundleCache();
+    this.pipelineResultsCache = new IndexedDbPipelineResultsCache(
+      this.serializer
+    );
     if (this.window && this.window.localStorage) {
       this.webStorage = this.window.localStorage;
     } else {
@@ -777,6 +783,14 @@ export class IndexedDbPersistence implements Persistence {
       'Cannot initialize BundleCache before persistence is started.'
     );
     return this.bundleCache;
+  }
+
+  getPipelineResultsCache(): PipelineResultsCache {
+    debugAssert(
+      this.started,
+      'Cannot initialize PipelineResultsCache before persistence is started.'
+    );
+    return this.pipelineResultsCache;
   }
 
   runTransaction<T>(

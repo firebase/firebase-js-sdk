@@ -74,18 +74,24 @@ import {
   DbIndexState,
   DbMutationBatch,
   DbNamedQuery,
+  DbPipelineResult,
   DbQuery,
   DbRemoteDocument,
   DbTarget,
   DbTimestamp
 } from './indexeddb_schema';
-import { DbDocumentOverlayKey, DbTimestampKey } from './indexeddb_sentinels';
+import {
+  DbDocumentOverlayKey,
+  DbPipelineResultsKey,
+  DbTimestampKey
+} from './indexeddb_sentinels';
 import { TargetData, TargetPurpose } from './target_data';
 import { Pipeline } from '../lite-api/pipeline';
 import {
   canonifyTargetOrPipeline,
   TargetOrPipeline
 } from '../core/pipeline-util';
+import { TargetId } from '../core/types';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -177,7 +183,7 @@ export function toDbTimestamp(snapshotVersion: SnapshotVersion): DbTimestamp {
   return { seconds: timestamp.seconds, nanoseconds: timestamp.nanoseconds };
 }
 
-function fromDbTimestamp(dbTimestamp: DbTimestamp): SnapshotVersion {
+export function fromDbTimestamp(dbTimestamp: DbTimestamp): SnapshotVersion {
   const timestamp = new Timestamp(dbTimestamp.seconds, dbTimestamp.nanoseconds);
   return SnapshotVersion.fromTimestamp(timestamp);
 }
@@ -326,6 +332,44 @@ export function toDbTarget(
     lastLimboFreeSnapshotVersion: dbLastLimboFreeTimestamp,
     query: queryProto
   };
+}
+
+export function fromDbPipelineResult(
+  serializer: LocalSerializer,
+  dbResult: DbPipelineResult
+): MutableDocument {
+  const executionTime = fromDbTimestamp(dbResult.executionTime);
+  const doc = fromDbRemoteDocument(serializer, dbResult.result!);
+  doc.setReadTime(executionTime);
+  return doc;
+}
+
+export function toDbPipelineResult(
+  serializer: LocalSerializer,
+  targetId: TargetId,
+  executionTime: SnapshotVersion,
+  doc: MutableDocument
+): DbPipelineResult {
+  const documentId = doc.key.path.lastSegment();
+  const collectionPath = encodeResourcePath(doc.key.path.popLast());
+
+  return {
+    targetId,
+    collectionPath,
+    documentId,
+    executionTime: toDbTimestamp(executionTime),
+    result: toDbRemoteDocument(serializer, doc)
+  };
+}
+
+export function toDbPipelineResultKey(
+  targetId: TargetId,
+  key: DocumentKey
+): DbPipelineResultsKey {
+  const documentId = key.path.lastSegment();
+  const collectionPath = encodeResourcePath(key.path.popLast());
+
+  return [targetId, collectionPath, documentId];
 }
 
 function isPipelineQueryTarget(

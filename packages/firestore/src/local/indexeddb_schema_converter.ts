@@ -92,6 +92,9 @@ import {
   DbMutationQueueStore,
   DbNamedQueryKeyPath,
   DbNamedQueryStore,
+  DbPipelineResultsKeyPath,
+  DbPipelineResultsStore,
+  DbPipelineResultsTargetIdIndex,
   DbPrimaryClientStore,
   DbRemoteDocumentCollectionGroupIndex,
   DbRemoteDocumentCollectionGroupIndexPath,
@@ -274,6 +277,12 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     if (fromVersion < 17 && toVersion >= 17) {
       p = p.next(() => {
         createGlobalsStore(db);
+      });
+    }
+
+    if (fromVersion < 18 && toVersion >= 18) {
+      p = p.next(() => {
+        createPipelineResultsStore(db);
       });
     }
 
@@ -762,6 +771,12 @@ function createDocumentOverlayStore(db: IDBDatabase): void {
 function createGlobalsStore(db: IDBDatabase): void {
   db.createObjectStore(DbGlobalsStore, {
     keyPath: DbGlobalsKeyPath
+  });
+}
+
+function createPipelineResultsStore(db: IDBDatabase): void {
+  db.createObjectStore(DbPipelineResultsStore, {
+    keyPath: DbPipelineResultsKeyPath
   });
 }
 

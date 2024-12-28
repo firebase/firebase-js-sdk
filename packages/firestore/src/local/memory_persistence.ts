@@ -58,6 +58,8 @@ import {
 } from './persistence_transaction';
 import { ReferenceSet } from './reference_set';
 import { TargetData } from './target_data';
+import { PipelineResultsCache } from './pipeline_results_cache';
+import { MemoryPipelineResultsCache } from './memory_pipeline_results_cache';
 
 const LOG_TAG = 'MemoryPersistence';
 /**
@@ -79,6 +81,7 @@ export class MemoryPersistence implements Persistence {
   private readonly remoteDocumentCache: MemoryRemoteDocumentCache;
   private readonly targetCache: MemoryTargetCache;
   private readonly bundleCache: MemoryBundleCache;
+  private readonly pipelineResultsCache: MemoryPipelineResultsCache;
   private readonly listenSequence = new ListenSequence(0);
   private serializer: LocalSerializer;
 
@@ -106,6 +109,7 @@ export class MemoryPersistence implements Persistence {
     this.remoteDocumentCache = newMemoryRemoteDocumentCache(sizer);
     this.serializer = new LocalSerializer(serializer);
     this.bundleCache = new MemoryBundleCache(this.serializer);
+    this.pipelineResultsCache = new MemoryPipelineResultsCache();
   }
 
   start(): Promise<void> {
@@ -168,6 +172,10 @@ export class MemoryPersistence implements Persistence {
 
   getBundleCache(): MemoryBundleCache {
     return this.bundleCache;
+  }
+
+  getPipelineResultsCache(): MemoryPipelineResultsCache {
+    return this.pipelineResultsCache;
   }
 
   runTransaction<T>(
