@@ -531,15 +531,18 @@ export type PipelineFlavor = 'exact' | 'augmented' | 'keyless';
 export function getPipelineFlavor(p: CorePipeline): PipelineFlavor {
   let flavor: PipelineFlavor = 'exact';
   p.stages.forEach((stage, index) => {
-    if (stage.name === Distinct.name || stage.name === Aggregate.name) {
+    if (stage instanceof Distinct || stage instanceof Aggregate) {
       flavor = 'keyless';
     }
-    if (stage.name === Select.name && flavor === 'exact') {
+    if (
+      stage instanceof Select ||
+      (stage instanceof AddFields && flavor === 'exact')
+    ) {
       flavor = 'augmented';
     }
     // TODO(pipeline): verify the last stage is addFields, and it is added by the SDK.
     if (
-      stage.name === AddFields.name &&
+      stage instanceof AddFields &&
       index < p.stages.length - 1 &&
       flavor === 'exact'
     ) {

@@ -58,7 +58,7 @@ export class RemoteEvent {
      * A set of which augmented documents (pipeline) have changed or been deleted, along with the
      * doc's new values (if not deleted).
      */
-    readonly augmentedDocumentUpdates: MutableDocumentMap,
+    readonly augmentedDocumentUpdates: Map<TargetId, MutableDocumentMap>,
     /**
      * A set of which document updates are due only to limbo resolution targets.
      */
@@ -91,7 +91,7 @@ export class RemoteEvent {
       targetChanges,
       new SortedMap<TargetId, TargetPurpose>(primitiveComparator),
       mutableDocumentMap(),
-      mutableDocumentMap(),
+      new Map<TargetId, MutableDocumentMap>(),
       documentKeySet()
     );
   }
@@ -134,7 +134,9 @@ export class TargetChange {
      * The set of documents that were removed from this target as part of this
      * remote event.
      */
-    readonly removedDocuments: DocumentKeySet
+    readonly removedDocuments: DocumentKeySet,
+
+    readonly isInitialChanges: boolean
   ) {}
 
   /**
@@ -152,7 +154,11 @@ export class TargetChange {
       current,
       documentKeySet(),
       documentKeySet(),
-      documentKeySet()
+      documentKeySet(),
+      // It does not really matter what the value actually is, isInitialChanges
+      // is only used when it is part of RemoteEvent and is used to update
+      // pipeline cache.
+      /*isInitialChanges*/ false
     );
   }
 }

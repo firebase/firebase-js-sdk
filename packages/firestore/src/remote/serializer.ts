@@ -118,6 +118,7 @@ import {
 } from './watch_change';
 import { stageFromProto } from '../core/pipeline_serialize';
 import { CorePipeline } from '../core/pipeline_run';
+import { getPipelineFlavor } from '../core/pipeline-util';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: ProtoOrderDirection } = {};
@@ -1140,7 +1141,14 @@ export function toTarget(
 
   result.targetId = targetData.targetId;
 
-  if (targetData.resumeToken.approximateByteSize() > 0) {
+  if (targetIsPipelineTarget(target) && getPipelineFlavor(target) !== 'exact') {
+    // For pipeline targets that do not return exact documents, we will provide
+    // no resume tokens, there is also no need for existence filter mismatch.
+    // The code below are ceremonious only.
+    result.resumeToken = undefined;
+    result.readTime = undefined;
+    result.expectedCount = undefined;
+  } else if (targetData.resumeToken.approximateByteSize() > 0) {
     result.resumeToken = toBytes(serializer, targetData.resumeToken);
     const expectedCount = toInt32Proto(serializer, targetData.expectedCount);
     if (expectedCount !== null) {

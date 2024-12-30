@@ -48,6 +48,7 @@ import {
   documentKeySet,
   documentMap,
   DocumentMap,
+  MutableDocumentMap,
   mutableDocumentMap
 } from '../model/collections';
 import { MutableDocument } from '../model/document';
@@ -722,7 +723,7 @@ export async function syncEngineRejectListen(
         primitiveComparator
       ),
       documentUpdates,
-      mutableDocumentMap(),
+      new Map<TargetId, MutableDocumentMap>(),
       resolvedLimboDocuments
     );
 

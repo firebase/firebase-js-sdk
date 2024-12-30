@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 
+import { Field } from '../../../src';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { TargetId } from '../../../src/core/types';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
@@ -35,15 +36,18 @@ import {
   deletedDoc,
   doc,
   expectEqual,
-  keys,
-  targetData,
-  resumeTokenForSnapshot,
-  updateMapping,
-  version,
+  forEachNumber,
   key,
-  forEachNumber
+  keys,
+  resumeTokenForSnapshot,
+  targetData,
+  updateMapping,
+  version
 } from '../../util/helpers';
 import { TEST_DATABASE_ID } from '../local/persistence_test_helpers';
+import { CorePipeline } from '../../../src/core/pipeline_run';
+import { newTestFirestore } from '../../util/api_helpers';
+import { toCorePipeline } from '../../util/pipelines';
 
 interface TargetMap {
   [targetId: string]: TargetData;
@@ -59,6 +63,24 @@ function listens(...targetIds: TargetId[]): TargetMap {
   }
 
   return targets;
+}
+
+interface PipelineListen {
+  targetId: TargetId;
+  pipeline: CorePipeline;
+}
+
+function pipelineListens(...targets: PipelineListen[]): TargetMap {
+  const result: TargetMap = {};
+  for (const target of targets) {
+    result[target.targetId] = targetData(
+      target.targetId,
+      TargetPurpose.Listen,
+      target.pipeline
+    );
+  }
+
+  return result;
 }
 
 function limboListens(...targetIds: TargetId[]): TargetMap {
@@ -93,6 +115,10 @@ function expectTargetChangeEquals(
   expect(actual.removedDocuments.isEqual(expected.removedDocuments)).to.equal(
     true,
     'TargetChange.removedDocuments'
+  );
+  expect(actual.isInitialChanges).to.equal(
+    expected.isInitialChanges,
+    'TargetChange.isInitialChanges'
   );
 }
 
@@ -557,7 +583,9 @@ describe('RemoteEvent', () => {
       version(3),
       [doc3],
       [updatedDoc2],
-      [deletedDoc1]
+      [deletedDoc1],
+      undefined,
+      'subsequent'
     );
     expectTargetChangeEquals(event.targetChanges.get(1)!, mapping1);
   });
@@ -589,7 +617,14 @@ describe('RemoteEvent', () => {
     expect(event.documentUpdates.size).to.equal(1);
     expect(event.targetChanges.size).to.equal(1);
 
-    const mapping1 = updateMapping(version(3), [], [updatedDoc2], []);
+    const mapping1 = updateMapping(
+      version(3),
+      [],
+      [updatedDoc2],
+      [],
+      undefined,
+      'subsequent'
+    );
     expectTargetChangeEquals(event.targetChanges.get(2)!, mapping1);
   });
 
@@ -696,5 +731,315 @@ describe('RemoteEvent', () => {
     expect(event.resolvedLimboDocuments.has(doc2.key)).to.be.true;
     // Doc3 is only in the non-limbo target, therefore not tracked as limbo
     expect(event.resolvedLimboDocuments.has(doc3.key)).to.be.false;
+  });
+
+  it('handles augmented pipeline results', () => {
+    const db = newTestFirestore();
+    const targets = pipelineListens(
+      {
+        targetId: 1,
+        pipeline: toCorePipeline(
+          db.pipeline().collection('docs').select('value')
+        )
+      },
+      {
+        targetId: 2,
+        pipeline: toCorePipeline(db.pipeline().collection('docs'))
+      },
+      {
+        targetId: 3,
+        pipeline: toCorePipeline(
+          db
+            .pipeline()
+            .collection('docs')
+            .addFields(Field.of('value').as('newValue'))
+        )
+      }
+    );
+
+    const doc1 = doc('docs/1', 1, { value: 1 });
+    const doc1Augmented = doc('docs/1', 1, { newValue: 1 });
+    const doc2 = doc('docs/2', 2, { value: 2 });
+    const doc2Augmented = doc('docs/2', 2, { newValue: 2 });
+
+    const change1 = new DocumentWatchChange([1, 2], [], doc1.key, doc1);
+    const change2 = new DocumentWatchChange([1, 2], [], doc2.key, doc2);
+    const change3 = new DocumentWatchChange([3], [], doc1.key, doc1Augmented);
+    const change4 = new DocumentWatchChange([3], [], doc2.key, doc2Augmented);
+
+    const event = createRemoteEvent({
+      snapshotVersion: 3,
+      targets,
+      changes: [change1, change2, change3, change4]
+    });
+
+    expect(event.documentUpdates.size).to.equal(2);
+    expectEqual(event.documentUpdates.get(doc1.key), doc1);
+    expectEqual(event.documentUpdates.get(doc2.key), doc2);
+
+    expect(event.augmentedDocumentUpdates.size).to.equal(2);
+    expectEqual(event.augmentedDocumentUpdates.get(1)!.get(doc1.key), doc1);
+    expectEqual(event.augmentedDocumentUpdates.get(1)!.get(doc2.key), doc2);
+    expectEqual(
+      event.augmentedDocumentUpdates.get(3)!.get(doc1.key),
+      doc1Augmented
+    );
+    expectEqual(
+      event.augmentedDocumentUpdates.get(3)!.get(doc2.key),
+      doc2Augmented
+    );
+
+    expect(event.targetChanges.size).to.equal(3);
+    const mapping1 = updateMapping(version(3), [doc1, doc2], [], []);
+    expectTargetChangeEquals(event.targetChanges.get(1)!, mapping1);
+
+    const mapping2 = updateMapping(version(3), [doc1, doc2], [], []);
+    expectTargetChangeEquals(event.targetChanges.get(2)!, mapping2);
+
+    const mapping3 = updateMapping(
+      version(3),
+      [doc1Augmented, doc2Augmented],
+      [],
+      []
+    );
+    expectTargetChangeEquals(event.targetChanges.get(3)!, mapping3);
+  });
+
+  it('handles mixed augmented pipeline and query results', () => {
+    const db = newTestFirestore();
+    const targets = pipelineListens(
+      {
+        targetId: 1,
+        pipeline: toCorePipeline(
+          db.pipeline().collection('docs').select('value')
+        )
+      },
+      {
+        targetId: 3,
+        pipeline: toCorePipeline(
+          db
+            .pipeline()
+            .collection('docs')
+            .addFields(Field.of('value').as('newValue'))
+        )
+      }
+    );
+    const queryTargets = listens(2);
+    targets[2] = queryTargets[2];
+
+    const doc1 = doc('docs/1', 1, { value: 1 });
+    const doc1Augmented = doc('docs/1', 1, { newValue: 1 });
+    const doc2 = doc('docs/2', 2, { value: 2 });
+    const doc2Augmented = doc('docs/2', 2, { newValue: 2 });
+
+    const change1 = new DocumentWatchChange([1, 2], [], doc1.key, doc1);
+    const change2 = new DocumentWatchChange([1, 2], [], doc2.key, doc2);
+    const change3 = new DocumentWatchChange([3], [], doc1.key, doc1Augmented);
+    const change4 = new DocumentWatchChange([3], [], doc2.key, doc2Augmented);
+
+    const event = createRemoteEvent({
+      snapshotVersion: 3,
+      targets,
+      changes: [change1, change2, change3, change4]
+    });
+
+    expect(event.documentUpdates.size).to.equal(2);
+    expectEqual(event.documentUpdates.get(doc1.key), doc1);
+    expectEqual(event.documentUpdates.get(doc2.key), doc2);
+
+    expect(event.augmentedDocumentUpdates.size).to.equal(2);
+    expectEqual(event.augmentedDocumentUpdates.get(1)!.get(doc1.key), doc1);
+    expectEqual(event.augmentedDocumentUpdates.get(1)!.get(doc2.key), doc2);
+    expectEqual(
+      event.augmentedDocumentUpdates.get(3)!.get(doc1.key),
+      doc1Augmented
+    );
+    expectEqual(
+      event.augmentedDocumentUpdates.get(3)!.get(doc2.key),
+      doc2Augmented
+    );
+
+    expect(event.targetChanges.size).to.equal(3);
+    const mapping1 = updateMapping(version(3), [doc1, doc2], [], []);
+    expectTargetChangeEquals(event.targetChanges.get(1)!, mapping1);
+
+    const mapping2 = updateMapping(version(3), [doc1, doc2], [], []);
+    expectTargetChangeEquals(event.targetChanges.get(2)!, mapping2);
+
+    const mapping3 = updateMapping(
+      version(3),
+      [doc1Augmented, doc2Augmented],
+      [],
+      []
+    );
+    expectTargetChangeEquals(event.targetChanges.get(3)!, mapping3);
+  });
+
+  it('handles initial and subsequent results', () => {
+    const db = newTestFirestore();
+    const targets = pipelineListens({
+      targetId: 1,
+      pipeline: toCorePipeline(db.pipeline().collection('docs').select('value'))
+    });
+    const queryTargets = listens(2);
+    targets[2] = queryTargets[2];
+
+    const doc1 = doc('docs/1', 1, { value: 1 });
+    const doc1Augmented = doc('docs/1', 1, { newValue: 1 });
+    const doc2 = doc('docs/2', 2, { value: 2 });
+    const doc2Augmented = doc('docs/2', 2, { newValue: 2 });
+
+    const change1 = new DocumentWatchChange([1, 2], [], doc1.key, doc1);
+    const change2 = new DocumentWatchChange([1, 2], [], doc2.key, doc2);
+
+    const aggregator = createAggregator({
+      snapshotVersion: 3,
+      targets,
+      changes: [change1, change2]
+    });
+    const event = aggregator.createRemoteEvent(version(3));
+    expect(event.documentUpdates.size).to.equal(2);
+    expectEqual(event.documentUpdates.get(doc1.key), doc1);
+    expectEqual(event.documentUpdates.get(doc2.key), doc2);
+
+    expect(event.augmentedDocumentUpdates.size).to.equal(1);
+    expectEqual(event.augmentedDocumentUpdates.get(1)!.get(doc1.key), doc1);
+    expectEqual(event.augmentedDocumentUpdates.get(1)!.get(doc2.key), doc2);
+
+    expect(event.targetChanges.size).to.equal(2);
+    const mapping1 = updateMapping(version(3), [doc1, doc2], [], []);
+    expectTargetChangeEquals(event.targetChanges.get(1)!, mapping1);
+
+    const mapping2 = updateMapping(version(3), [doc1, doc2], [], []);
+    expectTargetChangeEquals(event.targetChanges.get(2)!, mapping2);
+
+    aggregator.addDocumentToTarget(1, doc1Augmented);
+    aggregator.addDocumentToTarget(2, doc1Augmented);
+    aggregator.addDocumentToTarget(1, doc2Augmented);
+    aggregator.addDocumentToTarget(2, doc2Augmented);
+
+    const event2 = aggregator.createRemoteEvent(version(3));
+    expect(event2.documentUpdates.size).to.equal(2);
+    expectEqual(event2.documentUpdates.get(doc1.key), doc1Augmented);
+    expectEqual(event2.documentUpdates.get(doc2.key), doc2Augmented);
+
+    expect(event2.augmentedDocumentUpdates.size).to.equal(1);
+    expectEqual(
+      event2.augmentedDocumentUpdates.get(1)!.get(doc1.key),
+      doc1Augmented
+    );
+    expectEqual(
+      event2.augmentedDocumentUpdates.get(1)!.get(doc2.key),
+      doc2Augmented
+    );
+
+    expect(event2.targetChanges.size).to.equal(2);
+    const mapping3 = updateMapping(
+      version(3),
+      [doc1Augmented, doc2Augmented],
+      [],
+      [],
+      undefined,
+      'subsequent'
+    );
+    expectTargetChangeEquals(event2.targetChanges.get(1)!, mapping3);
+
+    const mapping4 = updateMapping(
+      version(3),
+      [doc1Augmented, doc2Augmented],
+      [],
+      [],
+      undefined,
+      'subsequent'
+    );
+    expectTargetChangeEquals(event2.targetChanges.get(2)!, mapping4);
+
+    aggregator.removeTarget(1);
+    aggregator.recordPendingTargetRequest(1);
+    aggregator.handleTargetChange(
+      new WatchTargetChange(
+        WatchTargetChangeState.Added,
+        [1],
+        resumeTokenForSnapshot(version(4))
+      )
+    );
+    aggregator.addDocumentToTarget(1, doc1Augmented);
+    aggregator.addDocumentToTarget(1, doc2Augmented);
+    const event3 = aggregator.createRemoteEvent(version(4));
+    expect(event3.targetChanges.size).to.equal(1);
+    const mapping5 = updateMapping(
+      version(4),
+      [doc1Augmented, doc2Augmented],
+      [],
+      [],
+      undefined,
+      'initial'
+    );
+    expectTargetChangeEquals(event3.targetChanges.get(1)!, mapping5);
+  });
+
+  it('handles augmented pipeline update/removal results', () => {
+    const db = newTestFirestore();
+    const targets = pipelineListens(
+      {
+        targetId: 1,
+        pipeline: toCorePipeline(
+          db.pipeline().collection('docs').select('value')
+        )
+      },
+      {
+        targetId: 2,
+        pipeline: toCorePipeline(db.pipeline().collection('docs'))
+      },
+      {
+        targetId: 3,
+        pipeline: toCorePipeline(
+          db
+            .pipeline()
+            .collection('docs')
+            .addFields(Field.of('value').as('newValue'))
+        )
+      }
+    );
+
+    const doc1 = doc('docs/1', 1, { value: 1 });
+    const doc1Augmented = doc('docs/1', 1, { newValue: 1 });
+    const doc2 = doc('docs/2', 2, { value: 2 });
+    const doc2Augmented = doc('docs/2', 2, { newValue: 2 });
+
+    const change1 = new DocumentWatchChange([1, 2], [], doc1.key, doc1);
+    const change2 = new DocumentWatchChange([], [1, 2], doc2.key, doc2);
+    const change3 = new DocumentWatchChange([3], [], doc1.key, doc1Augmented);
+    const change4 = new DocumentWatchChange([], [3], doc2.key, doc2Augmented);
+
+    const event = createRemoteEvent({
+      snapshotVersion: 3,
+      targets,
+      existingKeys: keys(doc1, doc2),
+      changes: [change1, change2, change3, change4]
+    });
+
+    expect(event.documentUpdates.size).to.equal(2);
+    expectEqual(event.documentUpdates.get(doc1.key), doc1);
+    expectEqual(event.documentUpdates.get(doc2.key), doc2);
+
+    expect(event.augmentedDocumentUpdates.size).to.equal(2);
+    expectEqual(event.augmentedDocumentUpdates.get(1)!.get(doc1.key), doc1);
+    expect(event.augmentedDocumentUpdates.get(1)!.get(doc2.key)).is.null;
+    expectEqual(
+      event.augmentedDocumentUpdates.get(3)!.get(doc1.key),
+      doc1Augmented
+    );
+    expect(event.augmentedDocumentUpdates.get(3)!.get(doc2.key)).is.null;
+
+    expect(event.targetChanges.size).to.equal(3);
+    const mapping1 = updateMapping(version(3), [], [doc1], [doc2]);
+    expectTargetChangeEquals(event.targetChanges.get(1)!, mapping1);
+
+    const mapping2 = updateMapping(version(3), [], [doc1], [doc2]);
+    expectTargetChangeEquals(event.targetChanges.get(2)!, mapping2);
+
+    const mapping3 = updateMapping(version(3), [], [doc1Augmented], [doc2]);
+    expectTargetChangeEquals(event.targetChanges.get(3)!, mapping3);
   });
 });

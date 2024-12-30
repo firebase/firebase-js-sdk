@@ -126,6 +126,7 @@ import {
 } from '../unit/local/persistence_test_helpers';
 
 import { FIRESTORE } from './api_helpers';
+import { CorePipeline } from '../../src/core/pipeline_run';
 
 /* eslint-disable no-restricted-globals */
 
@@ -404,16 +405,26 @@ export function query(
 export function targetData(
   targetId: TargetId,
   queryPurpose: TargetPurpose,
-  path: string
+  pathOrPipeline: string | CorePipeline
 ): TargetData {
   // Arbitrary value.
   const sequenceNumber = 0;
-  return new TargetData(
-    queryToTarget(query(path)),
-    targetId,
-    queryPurpose,
-    sequenceNumber
-  );
+
+  if (typeof pathOrPipeline === 'string') {
+    return new TargetData(
+      queryToTarget(query(pathOrPipeline)),
+      targetId,
+      queryPurpose,
+      sequenceNumber
+    );
+  } else {
+    return new TargetData(
+      pathOrPipeline,
+      targetId,
+      queryPurpose,
+      sequenceNumber
+    );
+  }
 }
 
 export function noChangeEvent(
@@ -615,7 +626,8 @@ export function updateMapping(
   added: Array<MutableDocument | string>,
   modified: Array<MutableDocument | string>,
   removed: Array<MutableDocument | string>,
-  current?: boolean
+  current?: boolean,
+  initialState: 'initial' | 'subsequent' = 'initial'
 ): TargetChange {
   let addedDocuments = documentKeySet();
   let modifiedDocuments = documentKeySet();
@@ -642,7 +654,8 @@ export function updateMapping(
     !!current,
     addedDocuments,
     modifiedDocuments,
-    removedDocuments
+    removedDocuments,
+    initialState === 'initial'
   );
 }
 

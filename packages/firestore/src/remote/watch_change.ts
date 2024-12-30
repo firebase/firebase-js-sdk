@@ -24,6 +24,7 @@ import { TargetData, TargetPurpose } from '../local/target_data';
 import {
   documentKeySet,
   DocumentKeySet,
+  MutableDocumentMap,
   mutableDocumentMap
 } from '../model/collections';
 import { MutableDocument } from '../model/document';
@@ -152,6 +153,8 @@ class TargetState {
    */
   private _hasPendingChanges = true;
 
+  private _isInitialChanges = true;
+
   /**
    * Whether this target has been marked 'current'.
    *
@@ -222,8 +225,13 @@ class TargetState {
       this._current,
       addedDocuments,
       modifiedDocuments,
-      removedDocuments
+      removedDocuments,
+      this._isInitialChanges
     );
+  }
+
+  markPastInitialChanges() {
+    this._isInitialChanges = false;
   }
 
   /**
@@ -304,7 +312,10 @@ export class WatchChangeAggregator {
   private pendingDocumentUpdatesByTarget = documentTargetMap();
 
   /** Keeps track of the augmented documents to update since the last raised snapshot. */
-  private pendingAugmentedDocumentUpdates = mutableDocumentMap();
+  private pendingAugmentedDocumentUpdates = new Map<
+    TargetId,
+    MutableDocumentMap
+  >();
 
   /** A mapping of document keys to their set of target IDs. */
   private pendingDocumentTargetMapping = documentTargetMap();
@@ -647,6 +658,7 @@ export class WatchChangeAggregator {
         if (targetState.hasPendingChanges) {
           targetChanges.set(targetId, targetState.toTargetChange());
           targetState.clearPendingChanges();
+          targetState.markPastInitialChanges();
         }
       }
     });
@@ -682,8 +694,10 @@ export class WatchChangeAggregator {
     this.pendingDocumentUpdates.forEach((_, doc) =>
       doc.setReadTime(snapshotVersion)
     );
-    this.pendingAugmentedDocumentUpdates.forEach((_, doc) =>
-      doc.setReadTime(snapshotVersion)
+    this.pendingAugmentedDocumentUpdates.forEach(docMap =>
+      docMap.forEach((_, doc) => {
+        doc.setReadTime(snapshotVersion);
+      })
     );
 
     const remoteEvent = new RemoteEvent(
@@ -697,7 +711,10 @@ export class WatchChangeAggregator {
 
     this.pendingDocumentUpdates = mutableDocumentMap();
     this.pendingDocumentUpdatesByTarget = documentTargetMap();
-    this.pendingAugmentedDocumentUpdates = mutableDocumentMap();
+    this.pendingAugmentedDocumentUpdates = new Map<
+      TargetId,
+      MutableDocumentMap
+    >();
     this.pendingDocumentTargetMapping = documentTargetMap();
     this.pendingTargetResets = new SortedMap<TargetId, TargetPurpose>(
       primitiveComparator
@@ -731,26 +748,28 @@ export class WatchChangeAggregator {
         this.targetDataForActiveTarget(targetId)!.target as CorePipeline
       ) !== 'exact'
     ) {
-      this.pendingAugmentedDocumentUpdates =
-        this.pendingAugmentedDocumentUpdates.insert(document.key, document);
+      let docMap = this.pendingAugmentedDocumentUpdates.has(targetId)
+        ? this.pendingAugmentedDocumentUpdates.get(targetId)!
+        : mutableDocumentMap();
+      docMap = docMap.insert(document.key, document);
+      this.pendingAugmentedDocumentUpdates.set(targetId, docMap);
     } else {
       this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
         document.key,
         document
       );
+      this.pendingDocumentUpdatesByTarget =
+        this.pendingDocumentUpdatesByTarget.insert(
+          document.key,
+          this.ensureDocumentUpdateByTarget(document.key).add(targetId)
+        );
+
+      this.pendingDocumentTargetMapping =
+        this.pendingDocumentTargetMapping.insert(
+          document.key,
+          this.ensureDocumentTargetMapping(document.key).add(targetId)
+        );
     }
-
-    this.pendingDocumentUpdatesByTarget =
-      this.pendingDocumentUpdatesByTarget.insert(
-        document.key,
-        this.ensureDocumentUpdateByTarget(document.key).add(targetId)
-      );
-
-    this.pendingDocumentTargetMapping =
-      this.pendingDocumentTargetMapping.insert(
-        document.key,
-        this.ensureDocumentTargetMapping(document.key).add(targetId)
-      );
   }
 
   /**
@@ -779,30 +798,32 @@ export class WatchChangeAggregator {
       targetState.removeDocumentChange(key);
     }
 
-    this.pendingDocumentTargetMapping =
-      this.pendingDocumentTargetMapping.insert(
-        key,
-        this.ensureDocumentTargetMapping(key).delete(targetId)
-      );
+    if (
+      targetIsPipelineTarget(
+        this.targetDataForActiveTarget(targetId)!.target
+      ) &&
+      getPipelineFlavor(
+        this.targetDataForActiveTarget(targetId)!.target as CorePipeline
+      ) !== 'exact'
+    ) {
+      const docMap = this.pendingAugmentedDocumentUpdates.get(targetId);
+      if (docMap) {
+        this.pendingAugmentedDocumentUpdates.set(targetId, docMap.remove(key));
+      }
+    } else {
+      this.pendingDocumentTargetMapping =
+        this.pendingDocumentTargetMapping.insert(
+          key,
+          this.ensureDocumentTargetMapping(key).delete(targetId)
+        );
 
-    this.pendingDocumentTargetMapping =
-      this.pendingDocumentTargetMapping.insert(
-        key,
-        this.ensureDocumentTargetMapping(key).add(targetId)
-      );
+      this.pendingDocumentTargetMapping =
+        this.pendingDocumentTargetMapping.insert(
+          key,
+          this.ensureDocumentTargetMapping(key).add(targetId)
+        );
 
-    if (updatedDocument) {
-      if (
-        targetIsPipelineTarget(
-          this.targetDataForActiveTarget(targetId)!.target
-        ) &&
-        getPipelineFlavor(
-          this.targetDataForActiveTarget(targetId)!.target as CorePipeline
-        ) !== 'exact'
-      ) {
-        this.pendingAugmentedDocumentUpdates =
-          this.pendingAugmentedDocumentUpdates.insert(key, updatedDocument);
-      } else {
+      if (updatedDocument) {
         this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
           key,
           updatedDocument
