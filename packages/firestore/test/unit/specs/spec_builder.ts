@@ -82,10 +82,10 @@ import {
   queryOrPipelineEqual,
   TargetOrPipeline,
   targetOrPipelineEqual,
+  toCorePipeline,
   toPipeline
 } from '../../../src/core/pipeline-util';
 import { CorePipeline } from '../../../src/core/pipeline_run';
-import { toCorePipeline } from '../../util/pipelines';
 
 const userDataWriter = new ExpUserDataWriter(firestore());
 

@@ -1,10 +1,10 @@
 import { Pipeline as LitePipeline } from '../../src/lite-api/pipeline';
 import {
   canonifyPipeline as canonifyCorePipeline,
-  pipelineEq as corePipelineEq
+  pipelineEq as corePipelineEq,
+  toCorePipeline
 } from '../../src/core/pipeline-util';
 import {
-  CorePipeline,
   PipelineInputOutput,
   runPipeline as runCorePipeline
 } from '../../src/core/pipeline_run';

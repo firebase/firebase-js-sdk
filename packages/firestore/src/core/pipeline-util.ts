@@ -16,23 +16,20 @@
  */
 
 import {
+  And,
+  andFunction,
   Constant,
   Field,
   FilterCondition,
   FirestoreFunction,
-  not,
-  andFunction,
-  orFunction,
-  Ordering,
-  And,
-  lt,
   gt,
-  lte,
   gte,
-  eq,
-  Or,
   ListOfExprs,
-  Expr
+  lt,
+  lte,
+  not,
+  Ordering,
+  orFunction
 } from '../lite-api/expressions';
 import { Pipeline } from '../lite-api/pipeline';
 import {
@@ -75,6 +72,7 @@ import {
   Stage,
   Where
 } from '../lite-api/stage';
+import { Pipeline as ApiPipeline, Pipeline } from '../lite-api/pipeline';
 import {
   canonifyQuery,
   isCollectionGroupQuery,
@@ -91,7 +89,12 @@ import {
   targetEquals,
   targetIsPipelineTarget
 } from './target';
-import { ResourcePath } from '../model/path';
+import {
+  CREATE_TIME_NAME,
+  DOCUMENT_KEY_NAME,
+  ResourcePath,
+  UPDATE_TIME_NAME
+} from '../model/path';
 import { Firestore } from '../api/database';
 import { doc } from '../lite-api/reference';
 import { Direction } from './order_by';
@@ -338,7 +341,7 @@ export function canonifyExpr(expr: Expr): string {
 }
 
 function canonifySortOrderings(orders: Ordering[]): string {
-  return orders.map(o => `${canonifyExpr(o.expr)} ${o.direction}`).join(',');
+  return orders.map(o => `${canonifyExpr(o.expr)}${o.direction}`).join(',');
 }
 
 function canonifyStage(stage: Stage): string {
@@ -587,4 +590,68 @@ export function pipelineHasRanges(pipeline: CorePipeline): boolean {
   return pipeline.stages.some(
     stage => stage instanceof Limit || stage instanceof Offset
   );
+}
+
+function rewriteStages(stages: Stage[]): Stage[] {
+  let hasOrder = false;
+  const newStages: Stage[] = [];
+  for (const stage of stages) {
+    // For stages that provide ordering semantics
+    if (stage instanceof Sort) {
+      hasOrder = true;
+      // add exists to force sparse semantics
+      // Is this really needed?
+      // newStages.push(new Where(new And(stage.orders.map(order => order.expr.exists()))));
+
+      // Ensure we have a stable ordering
+      if (
+        stage.orders.some(
+          order =>
+            order.expr instanceof Field &&
+            order.expr.fieldName() === DOCUMENT_KEY_NAME
+        )
+      ) {
+        newStages.push(stage);
+      } else {
+        const copy = stage.orders.map(o => o);
+        copy.push(Field.of(DOCUMENT_KEY_NAME).ascending());
+        newStages.push(new Sort(copy));
+      }
+    }
+    // For stages whose semantics depend on ordering
+    else if (stage instanceof Limit) {
+      if (!hasOrder) {
+        newStages.push(new Sort([Field.of(DOCUMENT_KEY_NAME).ascending()]));
+      }
+      newStages.push(stage);
+    }
+    // For stages augmenting outputs
+    else if (stage instanceof AddFields || stage instanceof Select) {
+      if (stage instanceof AddFields) {
+        newStages.push(new AddFields(addSystemFields(stage.fields)));
+      } else {
+        newStages.push(new Select(addSystemFields(stage.projections)));
+      }
+    } else {
+      newStages.push(stage);
+    }
+  }
+
+  if (!hasOrder) {
+    newStages.push(new Sort([Field.of(DOCUMENT_KEY_NAME).ascending()]));
+  }
+
+  return newStages;
+}
+
+function addSystemFields(fields: Map<string, Expr>): Map<string, Expr> {
+  const newFields = new Map<string, Expr>(fields);
+  newFields.set(DOCUMENT_KEY_NAME, Field.of(DOCUMENT_KEY_NAME));
+  newFields.set(CREATE_TIME_NAME, Field.of(CREATE_TIME_NAME));
+  newFields.set(UPDATE_TIME_NAME, Field.of(UPDATE_TIME_NAME));
+  return newFields;
+}
+
+export function toCorePipeline(p: ApiPipeline): CorePipeline {
+  return new CorePipeline(p.userDataReader.serializer, rewriteStages(p.stages));
 }

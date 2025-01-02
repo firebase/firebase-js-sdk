@@ -112,9 +112,9 @@ function evaluate(
     return evaluateCollection(context, stage, input);
   } else if (stage instanceof Where) {
     return evaluateWhere(context, stage, input);
-  } /*else if (stage instanceof AddFields) {
+  } else if (stage instanceof AddFields) {
     return evaluateAddFields(context, stage, input);
-  } else if (stage instanceof Aggregate) {
+  } /*else if (stage instanceof Aggregate) {
     return evaluateAggregate(context, stage, input);
   } else if (stage instanceof Distinct) {
     return evaluateDistinct(context, stage, input);
@@ -130,9 +130,9 @@ function evaluate(
     return evaluateLimit(context, stage, input);
   } else if (stage instanceof Offset) {
     return evaluateOffset(context, stage, input);
-  } /* else if (stage instanceof Select) {
+  } else if (stage instanceof Select) {
     return evaluateSelect(context, stage, input);
-  }*/ else if (stage instanceof Sort) {
+  } else if (stage instanceof Sort) {
     return evaluateSort(context, stage, input);
   }
 
