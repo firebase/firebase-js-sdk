@@ -16,8 +16,6 @@
  */
 
 import { expect } from 'chai';
-
-import { queryRef } from '../../src';
 import {
   TransportOptions,
   areTransportOptionsEqual,
@@ -25,6 +23,7 @@ import {
   getDataConnect
 } from '../../src/api/DataConnect';
 import { app } from '../util';
+import { queryRef } from '../../src';
 describe('Transport Options', () => {
   it('should return false if transport options are not equal', () => {
     const transportOptions1: TransportOptions = {
