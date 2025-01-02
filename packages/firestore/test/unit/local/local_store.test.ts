@@ -128,9 +128,12 @@ import {
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
-import { TargetOrPipeline, toPipeline } from '../../../src/core/pipeline-util';
+import {
+  TargetOrPipeline,
+  toCorePipeline,
+  toPipeline
+} from '../../../src/core/pipeline-util';
 import { newTestFirestore } from '../../util/api_helpers';
-import { toCorePipeline } from '../../util/pipelines';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;

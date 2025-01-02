@@ -22,11 +22,12 @@ import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
 import { RpcError } from './spec_rpc_error';
 import { newTestFirestore } from '../../util/api_helpers';
-import { toCorePipeline } from '../../util/pipelines';
+
+import { toCorePipeline } from '../../../src/core/pipeline-util';
 
 describeSpec(
   'Augmenting pipelines:',
-  ['explicit-pipeline', 'exclusive'],
+  ['explicit-pipeline', 'no-web'],
   () => {
     const db = newTestFirestore();
     specTest(
@@ -63,50 +64,54 @@ describeSpec(
         .expectEvents(query1, { modified: [docAV2] });
     });
 
-    specTest('Can get results merged from cache and backend', [], () => {
-      const query1 = toCorePipeline(
-        db
-          .pipeline()
-          .collection('collection')
-          .where(Field.of('key').like('?ab%c'))
-          .select('key')
-      );
-      const coll = query('collection');
-      const docA = doc('collection/a', 800, { key: 'aabcc' });
-      const docAV3 = doc('collection/a', 2100, { key: 'xxxxx' });
-      const docB = doc('collection/b', 900, { key: 'abcc' });
-      const docBV2 = doc('collection/b', 1500, { key: 'aaaabcc' });
-      const docC = doc('collection/c', 700, { key: 'bcca' });
-      const docCV3 = doc('collection/c', 2500, { key: 'aabcc' });
-      return (
-        spec()
-          .ensureManualLruGC()
-          .userListens(coll)
-          // Setting up document cache
-          .watchAcksFull(coll, 1000, docA, docB, docC)
-          .expectEvents(coll, { added: [docA, docB, docC] })
-          .userUnlistens(coll)
-          // listen to augmenting pipelines
-          .userListens(query1)
-          .expectEvents(query1, { added: [docA], fromCache: true })
-          .watchAcksFull(query1, 2000, docA, docBV2)
-          .expectEvents(query1, { added: [docBV2], fromCache: false })
-          .userUnlistens(query1)
-          // Listen to collection again, we do not see docBV2
-          .userListens(coll)
-          .expectEvents(coll, { added: [docA, docB, docC], fromCache: true })
-          .watchAcksFull(query1, 2000, docAV3, docBV2, docCV3)
-          .expectEvents(query1, {
-            modified: [docAV3, docCV3],
-            fromCache: false
-          })
-          // listen to augmenting pipelines again
-          .userListens(query1)
-          .expectEvents(query1, { added: [docBV2, docCV3], fromCache: true })
-          .watchAcksFull(query1, 3000, docBV2, docCV3)
-          .expectEvents(query1, { fromCache: false })
-      );
-    });
+    specTest(
+      'Can get results merged from cache and backend',
+      ['exclusive'],
+      () => {
+        const query1 = toCorePipeline(
+          db
+            .pipeline()
+            .collection('collection')
+            .where(Field.of('key').like('?ab%c'))
+            .select('key')
+        );
+        const coll = query('collection');
+        const docA = doc('collection/a', 800, { key: 'aabcc' });
+        const docAV3 = doc('collection/a', 2100, { key: 'xxxxx' });
+        const docB = doc('collection/b', 900, { key: 'abcc' });
+        const docBV2 = doc('collection/b', 1500, { key: 'aaaabcc' });
+        const docC = doc('collection/c', 700, { key: 'bcca' });
+        const docCV3 = doc('collection/c', 2500, { key: 'aabcc' });
+        return (
+          spec()
+            .ensureManualLruGC()
+            .userListens(coll)
+            // Setting up document cache
+            .watchAcksFull(coll, 1000, docA, docB, docC)
+            .expectEvents(coll, { added: [docA, docB, docC] })
+            .userUnlistens(coll)
+            // listen to augmenting pipelines
+            .userListens(query1)
+            .expectEvents(query1, { added: [docA], fromCache: true })
+            .watchAcksFull(query1, 2000, docA, docBV2)
+            .expectEvents(query1, { added: [docBV2], fromCache: false })
+            .userUnlistens(query1)
+            // Listen to collection again, we do not see docBV2
+            .userListens(coll)
+            .expectEvents(coll, { added: [docA, docB, docC], fromCache: true })
+            .watchAcksFull(query1, 2000, docAV3, docBV2, docCV3)
+            .expectEvents(query1, {
+              modified: [docAV3, docCV3],
+              fromCache: false
+            })
+            // listen to augmenting pipelines again
+            .userListens(query1)
+            .expectEvents(query1, { added: [docBV2, docCV3], fromCache: true })
+            .watchAcksFull(query1, 3000, docBV2, docCV3)
+            .expectEvents(query1, { fromCache: false })
+        );
+      }
+    );
 
     specTest('Can listen to updates resulted from local mutations', [], () => {
       const query1 = toCorePipeline(

@@ -18,6 +18,7 @@
 import { expect } from 'chai';
 import {
   add,
+  AddFields,
   arrayContains,
   arrayContainsAny,
   Constant,
@@ -32,6 +33,7 @@ import {
   gte,
   isNan,
   like,
+  Limit,
   lt,
   lte,
   multiply,
@@ -39,6 +41,8 @@ import {
   not,
   notEqAny,
   regexMatch,
+  Select,
+  Sort,
   useFluentPipelines,
   xor
 } from '../../../src';
@@ -61,15 +65,125 @@ import {
   UPDATE_TIME_NAME
 } from '../../../src/model/path';
 import { MutableDocument } from '../../../src/model/document';
+import { toCorePipeline } from '../../../src/core/pipeline-util';
 
 const db = newTestFirestore();
 useFluentPipelines();
+
+describe('Core Pipeline Rewrite', () => {
+  it('adds sort stage for simple pipelines', () => {
+    const p = db.pipeline().collection('test').where(eq(`foo`, 42));
+    const cp = toCorePipeline(p);
+    expect(cp.stages.length).to.equal(3);
+    expect(cp.stages[2]).to.deep.equal(
+      new Sort([Field.of(DOCUMENT_KEY_NAME).ascending()])
+    );
+  });
+
+  it('does not add sort stage for ordered pipelines', () => {
+    const p = db
+      .pipeline()
+      .collection('test')
+      .where(eq(`foo`, 42))
+      .sort(Field.of('bar').descending());
+    const cp = toCorePipeline(p);
+    expect(cp.stages.length).to.equal(3);
+    expect(cp.stages[2]).to.deep.equal(
+      new Sort([
+        Field.of('bar').descending(),
+        Field.of(DOCUMENT_KEY_NAME).ascending()
+      ])
+    );
+  });
+
+  it('adds sort stage before limit', () => {
+    const p = db
+      .pipeline()
+      .collection('test')
+      .where(eq(`foo`, 42))
+      .limit(10)
+      .sort(Field.of('bar').descending());
+
+    const cp = toCorePipeline(p);
+    expect(cp.stages.length).to.equal(5);
+    expect(cp.stages[2]).to.deep.equal(
+      new Sort([Field.of(DOCUMENT_KEY_NAME).ascending()])
+    );
+    expect(cp.stages[3]).to.deep.equal(new Limit(10));
+  });
+
+  it('does not add sort stage before limit if it is already ordered', () => {
+    const p = db
+      .pipeline()
+      .collection('test')
+      .where(eq(`foo`, 42))
+      .sort(Field.of('bar').ascending())
+      .limit(10)
+      .sort(Field.of('bar').descending());
+    const cp = toCorePipeline(p);
+
+    expect(cp.stages.length).to.equal(5);
+    expect(cp.stages[2]).to.deep.equal(
+      new Sort([
+        Field.of('bar').ascending(),
+        Field.of(DOCUMENT_KEY_NAME).ascending()
+      ])
+    );
+    expect(cp.stages[3]).to.deep.equal(new Limit(10));
+    expect(cp.stages[4]).to.deep.equal(
+      new Sort([
+        Field.of('bar').descending(),
+        Field.of(DOCUMENT_KEY_NAME).ascending()
+      ])
+    );
+  });
+
+  it('adds system fields for addFields()', () => {
+    const p = db.pipeline().collection('test').addFields(Field.of('foo'));
+    const cp = toCorePipeline(p);
+
+    expect(cp.stages.length).to.equal(3);
+    expect(cp.stages[1]).to.deep.equal(
+      new AddFields(
+        new Map([
+          ['foo', Field.of('foo')],
+          [DOCUMENT_KEY_NAME, Field.of(DOCUMENT_KEY_NAME)],
+          [CREATE_TIME_NAME, Field.of(CREATE_TIME_NAME)],
+          [UPDATE_TIME_NAME, Field.of(UPDATE_TIME_NAME)]
+        ])
+      )
+    );
+  });
+
+  it('adds system fields for select()', () => {
+    const p = db
+      .pipeline()
+      .collection('test')
+      .sort(Field.of('foo').ascending())
+      .where(Field.of('foo').gte(100))
+      .select('bar', 'foo');
+    const cp = toCorePipeline(p);
+    expect(cp.stages.length).to.equal(4);
+    expect(cp.stages[3]).to.deep.equal(
+      new Select(
+        new Map([
+          ['bar', Field.of('bar')],
+          ['foo', Field.of('foo')],
+          [DOCUMENT_KEY_NAME, Field.of(DOCUMENT_KEY_NAME)],
+          [CREATE_TIME_NAME, Field.of(CREATE_TIME_NAME)],
+          [UPDATE_TIME_NAME, Field.of(UPDATE_TIME_NAME)]
+        ])
+      )
+    );
+  });
+});
+
 describe('Pipeline Canonify', () => {
   it('works as expected for simple where clause', () => {
     const p = db.pipeline().collection('test').where(eq(`foo`, 42));
 
     expect(canonifyPipeline(p)).to.equal(
-      'collection(/test)|where(fn(eq,[fld(foo),cst(42)]))'
+      'collection(/test)|where(fn(eq,[fld(foo),cst(42)]))|sort(fld(__name__)ascending)'
     );
   });
 
@@ -82,7 +196,7 @@ describe('Pipeline Canonify', () => {
       .sort(Field.of('bar').descending());
 
     expect(canonifyPipeline(p)).to.equal(
-      'collection(/test)|where(fn(eq,[fld(foo),cst(42)]))|limit(10)|sort(fld(bar) descending)'
+      'collection(/test)|where(fn(eq,[fld(foo),cst(42)]))|sort(fld(__name__)ascending)|limit(10)|sort(fld(bar)descending,fld(__name__)ascending)'
     );
   });
 
@@ -93,7 +207,7 @@ describe('Pipeline Canonify', () => {
       .addFields(Field.of('existingField'), Constant.of(10).as('val'));
 
     expect(canonifyPipeline(p)).to.equal(
-      'collection(/test)|add_fields(existingField=fld(existingField),val=cst(10))'
+      'collection(/test)|add_fields(__create_time__=fld(__create_time__),__name__=fld(__name__),__update_time__=fld(__update_time__),existingField=fld(existingField),val=cst(10))|sort(fld(__name__)ascending)'
     );
   });
 
@@ -107,7 +221,7 @@ describe('Pipeline Canonify', () => {
       });
 
     expect(canonifyPipeline(p)).to.equal(
-      'collection(/test)|aggregate(totalValue=fn(sum,[fld(value)]))grouping(category=fld(category))'
+      'collection(/test)|aggregate(totalValue=fn(sum,[fld(value)]))grouping(category=fld(category))|sort(fld(__name__)ascending)'
     );
   });
 
@@ -115,7 +229,7 @@ describe('Pipeline Canonify', () => {
     const p = db.pipeline().collection('test').distinct('category', 'city');
 
     expect(canonifyPipeline(p)).to.equal(
-      'collection(/test)|distinct(category=fld(category),city=fld(city))'
+      'collection(/test)|distinct(category=fld(category),city=fld(city))|sort(fld(__name__)ascending)'
     );
   });
 
@@ -123,14 +237,16 @@ describe('Pipeline Canonify', () => {
     const p = db.pipeline().collection('test').select('name', Field.of('age'));
 
     expect(canonifyPipeline(p)).to.equal(
-      'collection(/test)|select(age=fld(age),name=fld(name))'
+      'collection(/test)|select(__create_time__=fld(__create_time__),__name__=fld(__name__),__update_time__=fld(__update_time__),age=fld(age),name=fld(name))|sort(fld(__name__)ascending)'
     );
   });
 
   it('works as expected for offset stage', () => {
     const p = db.pipeline().collection('test').offset(5);
 
-    expect(canonifyPipeline(p)).to.equal('collection(/test)|offset(5)');
+    expect(canonifyPipeline(p)).to.equal(
+      'collection(/test)|offset(5)|sort(fld(__name__)ascending)'
+    );
   });
 
   it('works as expected for FindNearest stage', () => {
@@ -148,20 +264,24 @@ describe('Pipeline Canonify', () => {
     // Note: The exact string representation of the mapValue might vary depending on
     // how GeoPoint is implemented. Adjust the expected string accordingly.
     expect(canonifyPipeline(p)).to.equal(
-      'collection(/test)|find_nearest(fld(location),cosine,[1,2,3],10,distance)'
+      'collection(/test)|find_nearest(fld(location),cosine,[1,2,3],10,distance)|sort(fld(__name__)ascending)'
     );
   });
 
   it('works as expected for CollectionGroupSource stage', () => {
     const p = db.pipeline().collectionGroup('cities');
 
-    expect(canonifyPipeline(p)).to.equal('collection_group(cities)');
+    expect(canonifyPipeline(p)).to.equal(
+      'collection_group(cities)|sort(fld(__name__)ascending)'
+    );
   });
 
   it('works as expected for DatabaseSource stage', () => {
     const p = db.pipeline().database(); // Assuming you have a `database()` method on your `db` object
 
-    expect(canonifyPipeline(p)).to.equal('database()');
+    expect(canonifyPipeline(p)).to.equal(
+      'database()|sort(fld(__name__)ascending)'
+    );
   });
 
   it('works as expected for DocumentsSource stage', () => {
@@ -169,7 +289,9 @@ describe('Pipeline Canonify', () => {
       .pipeline()
       .documents([docRef(db, 'cities/SF'), docRef(db, 'cities/LA')]);
 
-    expect(canonifyPipeline(p)).to.equal('documents(/cities/LA,/cities/SF)');
+    expect(canonifyPipeline(p)).to.equal(
+      'documents(/cities/LA,/cities/SF)|sort(fld(__name__)ascending)'
+    );
   });
 
   it('works as expected for eqAny and arrays', () => {
@@ -179,7 +301,7 @@ describe('Pipeline Canonify', () => {
       .where(Field.of('bar').eqAny('a', 'b'));
 
     expect(canonifyPipeline(p)).to.equal(
-      'collection(/foo)|where(fn(eq_any,[fld(bar),list([cst("a"),cst("b")])]))'
+      'collection(/foo)|where(fn(eq_any,[fld(bar),list([cst("a"),cst("b")])]))|sort(fld(__name__)ascending)'
     );
   });
 });
@@ -254,7 +376,7 @@ describe('runPipeline()', () => {
 
       expect(
         runPipeline(db.pipeline().collectionGroup('users'), [doc1, doc2, doc3])
-      ).to.deep.equal([doc1, doc2, doc3]);
+      ).to.deep.equal([doc2, doc1, doc3]);
     });
 
     it('skips other collection ids', () => {
@@ -274,28 +396,35 @@ describe('runPipeline()', () => {
           doc5,
           doc6
         ])
-      ).to.deep.equal([doc1, doc3, doc5]);
+      ).to.deep.equal([doc3, doc1, doc5]);
     });
 
     it('different parents', () => {
-      const doc1 = doc('users/bob/games/game1', 1000, { score: 90 });
-      const doc2 = doc('users/alice/games/game1', 1000, { score: 90 });
-      const doc3 = doc('users/bob/games/game2', 1000, { score: 20 });
-      const doc4 = doc('users/charlie/games/game1', 1000, { score: 20 });
-      const doc5 = doc('users/bob/games/game3', 1000, { score: 30 });
-      const doc6 = doc('users/alice/games/game2', 1000, { score: 30 });
-      const doc7 = doc('users/charlie/profiles/profile1', 1000, {});
+      const doc1 = doc('users/bob/games/game1', 1000, { score: 90, order: 1 });
+      const doc2 = doc('users/alice/games/game1', 1000, {
+        score: 90,
+        order: 2
+      });
+      const doc3 = doc('users/bob/games/game2', 1000, { score: 20, order: 3 });
+      const doc4 = doc('users/charlie/games/game1', 1000, {
+        score: 20,
+        order: 4
+      });
+      const doc5 = doc('users/bob/games/game3', 1000, { score: 30, order: 5 });
+      const doc6 = doc('users/alice/games/game2', 1000, {
+        score: 30,
+        order: 6
+      });
+      const doc7 = doc('users/charlie/profiles/profile1', 1000, { order: 7 });
 
       expect(
-        runPipeline(db.pipeline().collectionGroup('games'), [
-          doc1,
-          doc2,
-          doc3,
-          doc4,
-          doc5,
-          doc6,
-          doc7
-        ])
+        runPipeline(
+          db
+            .pipeline()
+            .collectionGroup('games')
+            .sort(Field.of('order').ascending()),
+          [doc1, doc2, doc3, doc4, doc5, doc6, doc7]
+        )
       ).to.deep.equal([doc1, doc2, doc3, doc4, doc5, doc6]);
     });
 
@@ -586,7 +715,7 @@ describe('runPipeline()', () => {
           doc3,
           doc4
         ])
-      ).to.deep.equal([doc1, doc2, doc3]);
+      ).to.deep.equal([doc2, doc1, doc3]);
     });
 
     it('multipleDocuments_nestedCollection_returnsDocuments', () => {
@@ -602,7 +731,7 @@ describe('runPipeline()', () => {
           doc3,
           doc4
         ])
-      ).to.deep.equal([doc1, doc2, doc3]);
+      ).to.deep.equal([doc2, doc1, doc3]);
     });
 
     it('subcollection_notReturned', () => {
@@ -636,7 +765,7 @@ describe('runPipeline()', () => {
           doc5,
           doc6
         ])
-      ).to.deep.equal([doc1, doc3, doc5]);
+      ).to.deep.equal([doc3, doc1, doc5]);
     });
 
     it('skipsOtherParents', () => {
@@ -897,7 +1026,7 @@ describe('runPipeline()', () => {
 
       expect(
         runPipeline(db.pipeline().database(), [doc1, doc2, doc3])
-      ).to.deep.equal([doc1, doc2, doc3]);
+      ).to.deep.equal([doc2, doc1, doc3]);
     });
 
     it('returnsMultipleCollections', () => {
@@ -981,7 +1110,7 @@ describe('runPipeline()', () => {
             ]),
           [doc1, doc2, doc3]
         )
-      ).to.deep.equal([doc1, doc2, doc3]);
+      ).to.deep.equal([doc2, doc1, doc3]);
     });
 
     it('hugeDocumentCount_returnsDocuments', function () {
@@ -995,9 +1124,12 @@ describe('runPipeline()', () => {
         docs.push(doc('k/' + (i + 1), 1000, { v: i }));
       }
 
-      expect(runPipeline(db.pipeline().documents(keys), docs)).to.deep.equal(
-        docs
-      );
+      expect(
+        runPipeline(
+          db.pipeline().documents(keys).sort(Field.of('v').ascending()),
+          docs
+        )
+      ).to.deep.equal(docs);
     });
 
     it('partiallyMissingDocuments_returnsDocuments', () => {
@@ -1574,7 +1706,7 @@ describe('runPipeline()', () => {
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
-      ).to.deep.equal([doc1, doc4]);
+      ).to.deep.equal([doc4, doc1]);
     });
 
     it('eqAny_withSortOnDifferentField', () => {
@@ -3331,8 +3463,8 @@ describe('runPipeline()', () => {
         .where(lte(Field.of('score'), Constant.of(90)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-        doc1,
-        doc2
+        doc2,
+        doc1
       ]);
     });
 
@@ -3854,8 +3986,8 @@ describe('runPipeline()', () => {
         );
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-        doc1,
         doc2,
+        doc1,
         doc3
       ]);
     });

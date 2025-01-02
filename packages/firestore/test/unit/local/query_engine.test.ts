@@ -81,11 +81,11 @@ import { TestIndexManager } from './test_index_manager';
 import {
   isPipeline,
   QueryOrPipeline,
+  toCorePipeline,
   toPipeline
 } from '../../../src/core/pipeline-util';
 import { newTestFirestore } from '../../util/api_helpers';
 import { Pipeline } from '../../../src/lite-api/pipeline';
-import { toCorePipeline } from '../../util/pipelines';
 import { CorePipeline } from '../../../src/core/pipeline_run';
 
 const TEST_TARGET_ID = 1;

@@ -1,17 +1,13 @@
 import { Pipeline as ApiPipeline } from '../../lite/index';
 import {
   canonifyPipeline as canonifyCorePipeline,
-  pipelineEq as corePipelineEq
+  pipelineEq as corePipelineEq,
+  toCorePipeline
 } from '../../src/core/pipeline-util';
 import {
-  CorePipeline,
   PipelineInputOutput,
   runPipeline as runCorePipeline
 } from '../../src/core/pipeline_run';
-
-export function toCorePipeline(p: ApiPipeline): CorePipeline {
-  return new CorePipeline(p.userDataReader.serializer, p.stages);
-}
 
 export function canonifyPipeline(p: ApiPipeline): string {
   return canonifyCorePipeline(toCorePipeline(p));

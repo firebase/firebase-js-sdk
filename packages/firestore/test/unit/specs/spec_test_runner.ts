@@ -187,12 +187,12 @@ import {
   QueryOrPipeline,
   queryOrPipelineEqual,
   TargetOrPipeline,
+  toCorePipeline,
   toPipeline
 } from '../../../src/core/pipeline-util';
 import { newTestFirestore } from '../../util/api_helpers';
 import { targetIsPipelineTarget } from '../../../src/core/target';
 import { CorePipeline } from '../../../src/core/pipeline_run';
-import { toCorePipeline } from '../../util/pipelines';
 
 use(chaiExclude);
 
