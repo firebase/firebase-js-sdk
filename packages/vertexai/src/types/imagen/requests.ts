@@ -15,128 +15,130 @@
  * limitations under the License.
  */
 
+import { ImagenImageFormat } from '../../requests/imagen-image-format';
+
+/**
+ * Parameters for configuring an {@link ImagenModel}.
+ *
+ * @public
+ */
 export interface ImagenModelParams extends ImagenModelConfig {
+  /**
+   * The Imagen model to use for generating images.
+   * For example: `imagen-3.0-generate-001`.
+   */
   model: string;
 }
 
+/**
+ * Model-level configuration options for Imagen.
+ *
+ * @public
+ */
 export interface ImagenModelConfig {
+  /**
+   * The image format of the generated images.
+   */
   imageFormat?: ImagenImageFormat;
+  /**
+   * Whether to add a watermark to generated images.
+   */
   addWatermark?: boolean;
+  /**
+   * Safety settings for filtering inapropriate content.
+   */
   safetySettings?: ImagenSafetySettings;
 }
 
-export interface ImagenGenerationConfig {
-  numberOfImages?: number; // Default to 1. Possible values are [1...4]
-  negativePrompt?: string; // Default to null
-  aspectRatio?: ImagenAspectRatio; // Default to "1:1"
-}
-
 /**
- * Contains all possible REST API paramaters.
- * This is the intersection of the model-level (`ImagenModelParams`),
- * request-level (`ImagenGenerationConfig`) configurations, along with
- * the other required parameters prompt and gcsURI (for GCS generation only).
+ * Request-level configuration options for generating images with Imagen.
  *
- * @internal
+ * @public
  */
-export interface ImagenRequestConfig
-  extends ImagenModelConfig,
-    ImagenGenerationConfig {
-  prompt: string;
-  gcsURI?: string;
-}
-
-export interface ImagenImageFormat {
-  mimeType: string; // image/png, or image/jpeg, default image/png
-  compressionQuality?: number; // 0-100, default 75. Only for image/jpeg
+export interface ImagenGenerationConfig {
+  /**
+   * The number of images to generate. Must be between 1 and 4. Defaults to 1.
+   */
+  numberOfImages?: number;
+  /**
+   * A text prompt describing what should not be included in the image.
+   */
+  negativePrompt?: string;
+  /**
+   * The aspect ratio of the generated images. Defaults to `1:1`.
+   */
+  aspectRatio?: ImagenAspectRatio;
 }
 
 /**
+ * Safety filter levels for Imagen.
+ *
  * @public
  */
 export enum ImagenSafetyFilterLevel {
+  /**
+   * Block images with low or higher safety severity.
+   */
   BLOCK_LOW_AND_ABOVE = 'block_low_and_above',
+  /**
+   * Block images with medium or higher safety severity.
+   */
   BLOCK_MEDIUM_AND_ABOVE = 'block_medium_and_above',
+  /**
+   * Block images with high safety severity.
+   */
   BLOCK_ONLY_HIGH = 'block_only_high',
+  /**
+   * Do not block any images based on safety.
+   */
   BLOCK_NONE = 'block_none'
 }
 
 /**
+ * Person filter levels for Imagen.
+ *
  * @public
  */
 export enum ImagenPersonFilterLevel {
+  /**
+   * Do not allow any person generation.
+   */
   BLOCK_ALL = 'dont_allow',
+  /**
+   * Allow only adults in generated images.
+   */
   ALLOW_ADULT = 'allow_adult',
+  /**
+   * Allow all person generation.
+   */
   ALLOW_ALL = 'allow_all'
 }
 
 /**
+ * Safety settings for Imagen.
+ *
  * @public
  */
 export interface ImagenSafetySettings {
   /**
-   * Safety filter level
+   * The safety filter level to use.
    */
   safetyFilterLevel?: ImagenSafetyFilterLevel;
   /**
-   * Generate people.
+   * The person filter level to use.
    */
   personFilterLevel?: ImagenPersonFilterLevel;
 }
 
+/**
+ * Aspect ratios for Imagen images.
+ *
+ * @public
+ */
 export enum ImagenAspectRatio {
   SQUARE = '1:1',
-  CLASSIC_PORTRAIT = '3:4',
-  CLASSIC_LANDSCAPE = '4:3',
-  WIDESCREEN = '16:9',
-  PORTRAIT = '9:16'
-}
-
-/**
- * The parameters to be sent in the request body of the HTTP call
- * to the Vertex AI backend.
- *
- * We need a seperate internal-only interface for this because the REST
- * API expects different parameter names than what we show to our users.
- *
- * This interface should be populated from the {@link ImagenGenerationConfig} that
- * the user defines.
- *
- * Sample request body JSON:
- * {
- *   "instances": [
- *     {
- *       "prompt": "Portrait of a golden retriever on a beach."
- *     }
- *   ],
- *   "parameters": {
- *     "mimeType": "image/png",
- *     "safetyFilterLevel": "block_low_and_above",
- *     "personGeneration": "allow_all",
- *     "sampleCount": 2,
- *     "includeRaiReason": true,
- *     "aspectRatio": "9:16"
- *   }
- * }
- *
- * @internal
- */
-export interface PredictRequestBody {
-  instances: [
-    {
-      prompt: string;
-    }
-  ];
-  parameters: {
-    sampleCount: number; // maps to numberOfImages
-    aspectRatio: string;
-    mimeType: string;
-    compressionQuality?: number;
-    negativePrompt?: string;
-    storageUri?: string;
-    addWatermark?: boolean;
-    safetyFilterLevel?: string;
-    personGeneration?: string;
-    includeRaiReason: boolean;
-  };
+  LANDSCAPE_3x4 = '3:4',
+  PORTRAIT_4x3 = '4:3',
+  LANDSCAPE_16x9 = '16:9',
+  PORTRAIT_9x16 = '9:16'
 }

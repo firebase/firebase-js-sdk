@@ -28,16 +28,12 @@ import {
   VertexAIErrorCode
 } from './types';
 import { VertexAIError } from './errors';
-import { GenerativeModel } from './models/generative-model';
-import { ImagenModel, jpeg, png } from './models/imagen-model';
+import { VertexAIModel, GenerativeModel, ImagenModel } from './models';
 
 export { ChatSession } from './methods/chat-session';
 export * from './requests/schema-builder';
-
-export { jpeg, png };
-
-export { GenerativeModel, ImagenModel };
-
+export { ImagenImageFormat } from './requests/imagen-image-format';
+export { VertexAIModel, GenerativeModel, ImagenModel };
 export { VertexAIError };
 
 declare module '@firebase/component' {

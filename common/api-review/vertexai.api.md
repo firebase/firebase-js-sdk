@@ -323,15 +323,13 @@ export interface GenerativeContentBlob {
 }
 
 // @public
-export class GenerativeModel {
+export class GenerativeModel extends VertexAIModel {
     constructor(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
     // (undocumented)
     generationConfig: GenerationConfig;
-    // (undocumented)
-    model: string;
     // (undocumented)
     requestOptions?: RequestOptions;
     // (undocumented)
@@ -432,77 +430,53 @@ export enum HarmSeverity {
     HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE"
 }
 
-// @public (undocumented)
+// @public
 export enum ImagenAspectRatio {
     // (undocumented)
-    CLASSIC_LANDSCAPE = "4:3",
+    LANDSCAPE_16x9 = "16:9",
     // (undocumented)
-    CLASSIC_PORTRAIT = "3:4",
+    LANDSCAPE_3x4 = "3:4",
     // (undocumented)
-    PORTRAIT = "9:16",
+    PORTRAIT_4x3 = "4:3",
     // (undocumented)
-    SQUARE = "1:1",
+    PORTRAIT_9x16 = "9:16",
     // (undocumented)
-    WIDESCREEN = "16:9"
+    SQUARE = "1:1"
 }
 
-// Warning: (ae-incompatible-release-tags) The symbol "ImagenGCSImage" is marked as @public, but its signature references "ImagenImage" which is marked as @internal
-//
 // @public
-export interface ImagenGCSImage extends ImagenImage {
+export interface ImagenGCSImage {
     gcsURI: string;
+    mimeType: string;
 }
 
-// @public (undocumented)
+// @public
 export interface ImagenGCSImageResponse {
-    // (undocumented)
     filteredReason?: string;
-    // (undocumented)
     images: ImagenGCSImage[];
 }
 
-// @public (undocumented)
+// @public
 export interface ImagenGenerationConfig {
-    // (undocumented)
     aspectRatio?: ImagenAspectRatio;
-    // (undocumented)
     negativePrompt?: string;
-    // (undocumented)
     numberOfImages?: number;
 }
 
-// Warning: (ae-internal-missing-underscore) The name "ImagenImage" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export interface ImagenImage {
-    // (undocumented)
-    mimeType: string;
-}
-
-// @public (undocumented)
-export interface ImagenImageFormat {
+// @public
+export class ImagenImageFormat {
     // (undocumented)
     compressionQuality?: number;
+    static jpeg(compressionQuality: number): ImagenImageFormat;
     // (undocumented)
     mimeType: string;
+    static png(): ImagenImageFormat;
 }
 
-// @public (undocumented)
-export interface ImagenImageReponse {
-    // (undocumented)
-    filteredReason?: string;
-    // Warning: (ae-incompatible-release-tags) The symbol "images" is marked as @public, but its signature references "ImagenImage" which is marked as @internal
-    //
-    // (undocumented)
-    images: ImagenImage[];
-}
-
-// Warning: (ae-incompatible-release-tags) The symbol "ImagenInlineImage" is marked as @public, but its signature references "ImagenImage" which is marked as @internal
-//
 // @public
-export interface ImagenInlineImage extends ImagenImage {
-    // (undocumented)
+export interface ImagenInlineImage {
     bytesBase64Encoded: string;
+    mimeType: string;
 }
 
 // @public
@@ -512,63 +486,43 @@ export interface ImagenInlineImageResponse {
 }
 
 // @public
-export class ImagenModel {
+export class ImagenModel extends VertexAIModel {
     constructor(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
     generateImages(prompt: string, imagenRequestOptions?: ImagenGenerationConfig): Promise<ImagenInlineImageResponse>;
     generateImagesGCS(prompt: string, gcsURI: string, imagenRequestOptions?: ImagenGenerationConfig): Promise<ImagenGCSImageResponse>;
+    readonly modelConfig: ImagenModelConfig;
     // (undocumented)
-    model: string;
-    }
+    readonly requestOptions?: RequestOptions | undefined;
+}
 
-// @public (undocumented)
+// @public
 export interface ImagenModelConfig {
-    // (undocumented)
     addWatermark?: boolean;
-    // (undocumented)
     imageFormat?: ImagenImageFormat;
-    // (undocumented)
     safetySettings?: ImagenSafetySettings;
 }
 
 // @public
 export interface ImagenModelParams extends ImagenModelConfig {
-    // (undocumented)
     model: string;
 }
 
-// @public (undocumented)
+// @public
 export enum ImagenPersonFilterLevel {
-    // (undocumented)
     ALLOW_ADULT = "allow_adult",
-    // (undocumented)
     ALLOW_ALL = "allow_all",
-    // (undocumented)
     BLOCK_ALL = "dont_allow"
 }
 
-// Warning: (ae-internal-missing-underscore) The name "ImagenRequestConfig" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export interface ImagenRequestConfig extends ImagenModelConfig, ImagenGenerationConfig {
-    // (undocumented)
-    gcsURI?: string;
-    // (undocumented)
-    prompt: string;
-}
-
-// @public (undocumented)
+// @public
 export enum ImagenSafetyFilterLevel {
-    // (undocumented)
     BLOCK_LOW_AND_ABOVE = "block_low_and_above",
-    // (undocumented)
     BLOCK_MEDIUM_AND_ABOVE = "block_medium_and_above",
-    // (undocumented)
     BLOCK_NONE = "block_none",
-    // (undocumented)
     BLOCK_ONLY_HIGH = "block_only_high"
 }
 
-// @public (undocumented)
+// @public
 export interface ImagenSafetySettings {
     personFilterLevel?: ImagenPersonFilterLevel;
     safetyFilterLevel?: ImagenSafetyFilterLevel;
@@ -591,9 +545,6 @@ export interface InlineDataPart {
 export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
-
-// @public
-export function jpeg(compressionQuality: number): ImagenImageFormat;
 
 // @public
 export interface ModelParams extends BaseParams {
@@ -639,35 +590,7 @@ export interface ObjectSchemaInterface extends SchemaInterface {
 export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart;
 
 // @public
-export function png(): ImagenImageFormat;
-
-// @public
 export const POSSIBLE_ROLES: readonly ["user", "model", "function", "system"];
-
-// Warning: (ae-internal-missing-underscore) The name "PredictRequestBody" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export interface PredictRequestBody {
-    // (undocumented)
-    instances: [
-        {
-            prompt: string;
-        }
-    ];
-    // (undocumented)
-    parameters: {
-        sampleCount: number;
-        aspectRatio: string;
-        mimeType: string;
-        compressionQuality?: number;
-        negativePrompt?: string;
-        storageUri?: string;
-        addWatermark?: boolean;
-        safetyFilterLevel?: string;
-        personGeneration?: string;
-        includeRaiReason: boolean;
-    };
-}
 
 // @public
 export interface PromptFeedback {
@@ -695,14 +618,6 @@ export interface RetrievedContextAttribution {
 
 // @public
 export type Role = (typeof POSSIBLE_ROLES)[number];
-
-// @public (undocumented)
-export interface SafetyAttributes {
-    // (undocumented)
-    categories: string[];
-    // (undocumented)
-    scores: number[];
-}
 
 // @public
 export interface SafetyRating {
@@ -900,6 +815,16 @@ export const enum VertexAIErrorCode {
     PARSE_FAILED = "parse-failed",
     REQUEST_ERROR = "request-error",
     RESPONSE_ERROR = "response-error"
+}
+
+// @public
+export class VertexAIModel {
+    // @internal
+    protected constructor(vertexAI: VertexAI, modelName: string);
+    // (undocumented)
+    protected _apiSettings: ApiSettings;
+    readonly model: string;
+    static normalizeModelName(modelName: string): string;
 }
 
 // @public

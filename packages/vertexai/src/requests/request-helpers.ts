@@ -18,13 +18,13 @@
 import {
   Content,
   GenerateContentRequest,
-  PredictRequestBody,
   Part,
   VertexAIErrorCode,
   ImagenAspectRatio,
-  ImagenRequestConfig
 } from '../types';
 import { VertexAIError } from '../errors';
+import { ImagenImageFormat } from './imagen-image-format';
+import { ImagenRequestConfig, PredictRequestBody } from '../types/internal';
 
 export function formatSystemInstruction(
   input?: string | Part | Content
@@ -53,12 +53,10 @@ export function formatNewContent(
     newParts = [{ text: request }];
   } else {
     for (const elem of request) {
-      // This throws an error if request is not iterable
       if (typeof elem === 'string') {
         newParts.push({ text: elem });
       } else {
-        // We assume this is a Part, but it could be anything.
-        newParts.push(elem); // This could be
+        newParts.push(elem);
       }
     }
   }
@@ -118,8 +116,6 @@ export function formatGenerateContentInput(
   if ((params as GenerateContentRequest).contents) {
     formattedRequest = params as GenerateContentRequest;
   } else {
-    // Array or string
-    // ... or something else
     const content = formatNewContent(params as string | Array<string | Part>);
     formattedRequest = { contents: [content] };
   }
@@ -140,7 +136,7 @@ export function formatGenerateContentInput(
 export function createPredictRequestBody({
   prompt,
   gcsURI,
-  imageFormat = { mimeType: 'image/png' },
+  imageFormat = ImagenImageFormat.png(),
   addWatermark,
   safetySettings,
   numberOfImages = 1,

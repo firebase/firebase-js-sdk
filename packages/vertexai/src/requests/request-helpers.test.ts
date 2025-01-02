@@ -239,7 +239,7 @@ describe('request formatting methods', () => {
     const addWatermark = true;
     const numberOfImages = 4;
     const negativePrompt = 'do not hallucinate';
-    const aspectRatio = ImagenAspectRatio.WIDESCREEN;
+    const aspectRatio = ImagenAspectRatio.LANDSCAPE_16x9;
     const body = createPredictRequestBody({
       prompt,
       numberOfImages,

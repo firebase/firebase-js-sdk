@@ -44,68 +44,6 @@ const fakeVertexAI: VertexAI = {
 };
 
 describe('ImagenModel', () => {
-  it('handles plain model name', () => {
-    const imagenModel = new ImagenModel(fakeVertexAI, { model: 'my-model' });
-    expect(imagenModel.model).to.equal('publishers/google/models/my-model');
-  });
-  it('handles models/ prefixed model name', () => {
-    const imagenModel = new ImagenModel(fakeVertexAI, {
-      model: 'models/my-model'
-    });
-    expect(imagenModel.model).to.equal('publishers/google/models/my-model');
-  });
-  it('handles full model name', () => {
-    const imagenModel = new ImagenModel(fakeVertexAI, {
-      model: 'publishers/google/models/my-model'
-    });
-    expect(imagenModel.model).to.equal('publishers/google/models/my-model');
-  });
-  it('handles prefixed tuned model name', () => {
-    const imagenModel = new ImagenModel(fakeVertexAI, {
-      model: 'tunedModels/my-model'
-    });
-    expect(imagenModel.model).to.equal('tunedModels/my-model');
-  });
-  it('throws if not passed an api key', () => {
-    const fakeVertexAI: VertexAI = {
-      app: {
-        name: 'DEFAULT',
-        automaticDataCollectionEnabled: true,
-        options: {
-          projectId: 'my-project'
-        }
-      },
-      location: 'us-central1'
-    };
-    try {
-      new ImagenModel(fakeVertexAI, {
-        model: 'my-model'
-      });
-    } catch (e) {
-      expect((e as VertexAIError).code).to.equal(VertexAIErrorCode.NO_API_KEY);
-    }
-  });
-  it('throws if not passed a project ID', () => {
-    const fakeVertexAI: VertexAI = {
-      app: {
-        name: 'DEFAULT',
-        automaticDataCollectionEnabled: true,
-        options: {
-          apiKey: 'key'
-        }
-      },
-      location: 'us-central1'
-    };
-    try {
-      new ImagenModel(fakeVertexAI, {
-        model: 'my-model'
-      });
-    } catch (e) {
-      expect((e as VertexAIError).code).to.equal(
-        VertexAIErrorCode.NO_PROJECT_ID
-      );
-    }
-  });
   it('generateImages makes a request to predict with default parameters', async () => {
     const imagenModel = new ImagenModel(fakeVertexAI, {
       model: 'my-model'
@@ -190,7 +128,7 @@ describe('ImagenModel', () => {
     const prompt = 'A photorealistic image of a toy boat at sea.';
     await imagenModel.generateImages(prompt, {
       numberOfImages: 4,
-      aspectRatio: ImagenAspectRatio.WIDESCREEN,
+      aspectRatio: ImagenAspectRatio.LANDSCAPE_16x9,
       negativePrompt: 'do not hallucinate'
     });
     expect(makeRequestStub).to.be.calledWith(
@@ -237,7 +175,7 @@ describe('ImagenModel', () => {
       expect((e as VertexAIError).code).to.equal(VertexAIErrorCode.FETCH_ERROR);
       expect((e as VertexAIError).message).to.include('400');
       expect((e as VertexAIError).message).to.include(
-        "Image generation failed with the following error: The prompt could not be submitted. This prompt contains sensitive words that violate Google's Responsible AI practices. Try rephrasing the prompt. If you think this was an error, send feedback. Support codes: 42876398"
+        "Image generation failed with the following error: The prompt could not be submitted. This prompt contains sensitive words that violate Google's Responsible AI practices. Try rephrasing the prompt. If you think this was an error, send feedback."
       );
     } finally {
       restore();

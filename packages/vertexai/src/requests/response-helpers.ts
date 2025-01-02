@@ -201,9 +201,9 @@ export function formatBlockErrorMessage(
 }
 
 /**
- * Convert a generic successful fetch {@link Response} body to an Imagen response object
+ * Convert a generic successful fetch response body to an Imagen response object
  * that can be returned to the user. This converts the REST APIs response format to our
- * representation of a response.
+ * APIs representation of a response.
  *
  * @internal
  */
