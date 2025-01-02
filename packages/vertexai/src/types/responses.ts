@@ -46,11 +46,6 @@ export interface GenerateContentStreamResult {
   response: Promise<EnhancedGenerateContentResponse>;
 }
 
-export interface SafetyAttributes {
-  categories: string[];
-  scores: number[];
-}
-
 /**
  * Response object wrapped with helper methods.
  *

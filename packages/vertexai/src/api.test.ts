@@ -129,7 +129,7 @@ describe('Top level API', () => {
       );
     }
   });
-  it('getGenerativeModel gets an ImagenModel', () => {
+  it('getImagenModel gets an ImagenModel', () => {
     const genModel = getImagenModel(fakeVertexAI, { model: 'my-model' });
     expect(genModel).to.be.an.instanceOf(ImagenModel);
     expect(genModel.model).to.equal('publishers/google/models/my-model');
