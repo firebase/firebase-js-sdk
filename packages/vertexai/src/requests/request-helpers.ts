@@ -20,7 +20,7 @@ import {
   GenerateContentRequest,
   Part,
   VertexAIErrorCode,
-  ImagenAspectRatio,
+  ImagenAspectRatio
 } from '../types';
 import { VertexAIError } from '../errors';
 import { ImagenImageFormat } from './imagen-image-format';

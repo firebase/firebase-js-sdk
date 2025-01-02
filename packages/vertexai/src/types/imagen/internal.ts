@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ImagenGenerationConfig, ImagenModelConfig } from "./requests";
+import { ImagenGenerationConfig, ImagenModelConfig } from './requests';
 
 /**
  * A response from the REST API is expected to look like this in the success case:

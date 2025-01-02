@@ -1,7 +1,24 @@
-import { VertexAIError } from "../errors";
-import { VertexAI, VertexAIErrorCode } from "../public-types";
-import { VertexAIService } from "../service";
-import { ApiSettings } from "../types/internal";
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { VertexAIError } from '../errors';
+import { VertexAI, VertexAIErrorCode } from '../public-types';
+import { VertexAIService } from '../service';
+import { ApiSettings } from '../types/internal';
 
 /**
  * Base class for Vertex AI in Firebase model APIs.
@@ -10,7 +27,7 @@ import { ApiSettings } from "../types/internal";
  */
 export class VertexAIModel {
   /**
-   * The fully qualified model resource name to use for generating images 
+   * The fully qualified model resource name to use for generating images
    * (e.g. `publishers/google/models/imagen-3.0-generate-001`).
    */
   readonly model: string;
@@ -22,7 +39,7 @@ export class VertexAIModel {
 
   /**
    * Constructs a new instance of the {@link VertexAIModel} class.
-   * 
+   *
    * This constructor should only be called from subclasses that provide
    * a model API.
    *
@@ -30,17 +47,14 @@ export class VertexAIModel {
    * @param modelName - The name of the model being used. It can be in one of the following formats:
    * - `my-model` (short name, will resolve to `publishers/google/models/my-model`)
    * - `models/my-model` (will resolve to `publishers/google/models/my-model`)
-   * - `publishers/my-publisher/models/my-model` (fully qualified model name) 
-   * 
+   * - `publishers/my-publisher/models/my-model` (fully qualified model name)
+   *
    * @throws If the `apiKey` or `projectId` fields are missing in your
    * Firebase config.
-   * 
+   *
    * @internal
    */
-  protected constructor(
-    vertexAI: VertexAI,
-    modelName: string
-  ) {
+  protected constructor(vertexAI: VertexAI, modelName: string) {
     this.model = VertexAIModel.normalizeModelName(modelName);
 
     if (!vertexAI.app?.options?.apiKey) {
@@ -73,7 +87,7 @@ export class VertexAIModel {
 
   /**
    * Normalizes the given model name to a fully qualified model resource name.
-   * 
+   *
    * @param modelName - The model name to normalize.
    * @returns The fully qualified model resource name.
    */
