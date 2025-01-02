@@ -15,6 +15,9 @@ export class VertexAIModel {
    */
   readonly model: string;
 
+  /**
+   * @internal
+   */
   protected _apiSettings: ApiSettings;
 
   /**

@@ -16,7 +16,13 @@
  * @public
  */
 export class ImagenImageFormat {
+  /**
+   * The MIME type.
+   */
   mimeType: string;
+  /**
+   * The level of compression (a number between 0 and 100).
+   */
   compressionQuality?: number;
 
   private constructor() {

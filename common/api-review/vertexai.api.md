@@ -432,15 +432,10 @@ export enum HarmSeverity {
 
 // @public
 export enum ImagenAspectRatio {
-    // (undocumented)
     LANDSCAPE_16x9 = "16:9",
-    // (undocumented)
     LANDSCAPE_3x4 = "3:4",
-    // (undocumented)
     PORTRAIT_4x3 = "4:3",
-    // (undocumented)
     PORTRAIT_9x16 = "9:16",
-    // (undocumented)
     SQUARE = "1:1"
 }
 
@@ -465,10 +460,8 @@ export interface ImagenGenerationConfig {
 
 // @public
 export class ImagenImageFormat {
-    // (undocumented)
     compressionQuality?: number;
     static jpeg(compressionQuality: number): ImagenImageFormat;
-    // (undocumented)
     mimeType: string;
     static png(): ImagenImageFormat;
 }
@@ -821,7 +814,7 @@ export const enum VertexAIErrorCode {
 export class VertexAIModel {
     // @internal
     protected constructor(vertexAI: VertexAI, modelName: string);
-    // (undocumented)
+    // @internal (undocumented)
     protected _apiSettings: ApiSettings;
     readonly model: string;
     static normalizeModelName(modelName: string): string;
