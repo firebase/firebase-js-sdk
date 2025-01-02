@@ -46,6 +46,7 @@ export const MULTI_CLIENT_TAG = 'multi-client';
 const EAGER_GC_TAG = 'eager-gc';
 const DURABLE_PERSISTENCE_TAG = 'durable-persistence';
 const BENCHMARK_TAG = 'benchmark';
+const EXPLICIT_PIPELINE = 'explicit-pipeline';
 const SKIP_PIPELINE_CONVERSION = 'no-pipeline-conversion';
 const KNOWN_TAGS = [
   BENCHMARK_TAG,
@@ -56,6 +57,7 @@ const KNOWN_TAGS = [
   NO_IOS_TAG,
   EAGER_GC_TAG,
   DURABLE_PERSISTENCE_TAG,
+  EXPLICIT_PIPELINE,
   SKIP_PIPELINE_CONVERSION
 ];
 
@@ -138,6 +140,10 @@ function getTestTimeout(tags: string[]): number | undefined {
   }
 }
 
+function isPipelineOnly(tags: string[]): boolean {
+  return tags.indexOf(EXPLICIT_PIPELINE) >= 0;
+}
+
 /**
  * Like it(), but for spec tests.
  * @param name - A name to give the test.
@@ -189,10 +195,16 @@ export function specTest(
     for (const usePersistence of persistenceModes) {
       const convertToPipelines = [false, true];
       for (const convertToPipeline of convertToPipelines) {
+        if (isPipelineOnly(tags) && convertToPipeline) {
+          // Is already a pipeline, skip the auto-conversion.
+          continue;
+        }
+
         const runner = getTestRunner(tags, usePersistence, convertToPipeline);
         const timeout = getTestTimeout(tags);
         const mode = usePersistence ? '(Persistence)' : '(Memory)';
-        const queryMode = convertToPipeline ? '(Pipeline)' : '(Query)';
+        const queryMode =
+          convertToPipeline || isPipelineOnly(tags) ? '(Pipeline)' : '(Query)';
         const fullName = `${mode} ${queryMode} ${name}`;
         const queuedTest = runner(fullName, async () => {
           const spec = builder();

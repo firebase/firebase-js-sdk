@@ -76,6 +76,7 @@ import {
 import {
   canonifyPipeline,
   canonifyTargetOrPipeline,
+  getPipelineCollection,
   isPipeline,
   pipelineEq,
   QueryOrPipeline,
@@ -788,7 +789,7 @@ export class SpecBuilder {
 
   // TODO(wuandy): watch* methods should really be dealing with Target, not
   // Query, make this happen.
-  watchAcks(query: Query): this {
+  watchAcks(query: QueryOrPipeline): this {
     this.nextStep();
     this.currentStep = {
       watchAck: [this.getTargetId(query)]
@@ -801,7 +802,7 @@ export class SpecBuilder {
   // Eventually we want to make the model more generic so we can add resume
   // tokens in other places.
   // TODO(b/37254270): Handle global resume tokens
-  watchCurrents(query: Query, resumeToken: string): this {
+  watchCurrents(query: QueryOrPipeline, resumeToken: string): this {
     this.nextStep();
     this.currentStep = {
       watchCurrent: [[this.getTargetId(query)], resumeToken]
@@ -809,7 +810,7 @@ export class SpecBuilder {
     return this;
   }
 
-  watchRemoves(query: Query, cause?: RpcError): this {
+  watchRemoves(query: QueryOrPipeline, cause?: RpcError): this {
     this.nextStep();
     this.currentStep = {
       watchRemove: { targetIds: [this.getTargetId(query)], cause }
@@ -824,7 +825,7 @@ export class SpecBuilder {
   }
 
   watchSends(
-    targets: { affects?: Query[]; removed?: Query[] },
+    targets: { affects?: QueryOrPipeline[]; removed?: QueryOrPipeline[] },
     ...docs: Document[]
   ): this {
     this.nextStep();
@@ -852,7 +853,7 @@ export class SpecBuilder {
     return this;
   }
 
-  watchRemovesDoc(key: DocumentKey, ...targets: Query[]): this {
+  watchRemovesDoc(key: DocumentKey, ...targets: QueryOrPipeline[]): this {
     this.nextStep();
     this.currentStep = {
       watchEntity: {
@@ -899,7 +900,7 @@ export class SpecBuilder {
     return this;
   }
 
-  watchResets(...queries: Query[]): this {
+  watchResets(...queries: QueryOrPipeline[]): this {
     this.nextStep();
     const targetIds = queries.map(query => this.getTargetId(query));
     this.currentStep = {
@@ -910,7 +911,7 @@ export class SpecBuilder {
 
   watchSnapshots(
     version: TestSnapshotVersion,
-    targets?: Query[],
+    targets?: QueryOrPipeline[],
     resumeToken?: string
   ): this {
     this.nextStep();
@@ -924,7 +925,7 @@ export class SpecBuilder {
   }
 
   watchAcksFull(
-    query: Query,
+    query: QueryOrPipeline,
     version: TestSnapshotVersion,
     ...docs: Document[]
   ): this {
@@ -1347,9 +1348,17 @@ export class SpecBuilder {
     }
   }
 
-  private getTargetId(query: Query): TargetId {
-    const queryTargetId = this.queryMapping.get(queryToTarget(query));
-    const limboTargetId = this.limboMapping[query.path.canonicalString()];
+  private getTargetId(query: QueryOrPipeline): TargetId {
+    const queryTargetId = this.queryMapping.get(
+      isPipeline(query) ? query : queryToTarget(query)
+    );
+    // TODO(pipeline): limbomapping needs to support other pipeline sources
+    const limboTargetId =
+      this.limboMapping[
+        isPipeline(query)
+          ? getPipelineCollection(query)!
+          : query.path.canonicalString()
+      ];
     if (queryTargetId && limboTargetId) {
       // TODO(dimond): add support for query for doc and limbo doc at the same
       // time?
