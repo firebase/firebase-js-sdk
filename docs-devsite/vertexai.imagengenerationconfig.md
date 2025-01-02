@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ImagenGenerationConfig interface
+Request-level configuration options for generating images with Imagen.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,11 +22,13 @@ export interface ImagenGenerationConfig
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [aspectRatio](./vertexai.imagengenerationconfig.md#imagengenerationconfigaspectratio) | [ImagenAspectRatio](./vertexai.md#imagenaspectratio) |  |
-|  [negativePrompt](./vertexai.imagengenerationconfig.md#imagengenerationconfignegativeprompt) | string |  |
-|  [numberOfImages](./vertexai.imagengenerationconfig.md#imagengenerationconfignumberofimages) | number |  |
+|  [aspectRatio](./vertexai.imagengenerationconfig.md#imagengenerationconfigaspectratio) | [ImagenAspectRatio](./vertexai.md#imagenaspectratio) | The aspect ratio of the generated images. Defaults to <code>1:1</code>. |
+|  [negativePrompt](./vertexai.imagengenerationconfig.md#imagengenerationconfignegativeprompt) | string | A text prompt describing what should not be included in the image. |
+|  [numberOfImages](./vertexai.imagengenerationconfig.md#imagengenerationconfignumberofimages) | number | The number of images to generate. Must be between 1 and 4. Defaults to 1. |
 
 ## ImagenGenerationConfig.aspectRatio
+
+The aspect ratio of the generated images. Defaults to `1:1`<!-- -->.
 
 <b>Signature:</b>
 
@@ -34,6 +38,8 @@ aspectRatio?: ImagenAspectRatio;
 
 ## ImagenGenerationConfig.negativePrompt
 
+A text prompt describing what should not be included in the image.
+
 <b>Signature:</b>
 
 ```typescript
@@ -41,6 +47,8 @@ negativePrompt?: string;
 ```
 
 ## ImagenGenerationConfig.numberOfImages
+
+The number of images to generate. Must be between 1 and 4. Defaults to 1.
 
 <b>Signature:</b>
 

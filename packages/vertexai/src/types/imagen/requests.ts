@@ -136,9 +136,24 @@ export interface ImagenSafetySettings {
  * @public
  */
 export enum ImagenAspectRatio {
+  /**
+   * Square 1:1 aspect ratio.
+   */
   SQUARE = '1:1',
+  /**
+   * Landscape 3:4 aspect ratio.
+   */
   LANDSCAPE_3x4 = '3:4',
+  /**
+   * Portrait 4:3 aspect ratio.
+   */
   PORTRAIT_4x3 = '4:3',
+  /**
+   * Landscape 16:9 aspect ratio.
+   */
   LANDSCAPE_16x9 = '16:9',
+  /**
+   * Portrait 9:16 aspect ratio.
+   */
   PORTRAIT_9x16 = '9:16'
 }

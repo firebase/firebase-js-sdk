@@ -10,6 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ImagenSafetySettings interface
+Safety settings for Imagen.
 
 <b>Signature:</b>
 
@@ -21,12 +22,12 @@ export interface ImagenSafetySettings
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [personFilterLevel](./vertexai.imagensafetysettings.md#imagensafetysettingspersonfilterlevel) | [ImagenPersonFilterLevel](./vertexai.md#imagenpersonfilterlevel) | Generate people. |
-|  [safetyFilterLevel](./vertexai.imagensafetysettings.md#imagensafetysettingssafetyfilterlevel) | [ImagenSafetyFilterLevel](./vertexai.md#imagensafetyfilterlevel) | Safety filter level |
+|  [personFilterLevel](./vertexai.imagensafetysettings.md#imagensafetysettingspersonfilterlevel) | [ImagenPersonFilterLevel](./vertexai.md#imagenpersonfilterlevel) | The person filter level to use. |
+|  [safetyFilterLevel](./vertexai.imagensafetysettings.md#imagensafetysettingssafetyfilterlevel) | [ImagenSafetyFilterLevel](./vertexai.md#imagensafetyfilterlevel) | The safety filter level to use. |
 
 ## ImagenSafetySettings.personFilterLevel
 
-Generate people.
+The person filter level to use.
 
 <b>Signature:</b>
 
@@ -36,7 +37,7 @@ personFilterLevel?: ImagenPersonFilterLevel;
 
 ## ImagenSafetySettings.safetyFilterLevel
 
-Safety filter level
+The safety filter level to use.
 
 <b>Signature:</b>
 

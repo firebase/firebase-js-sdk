@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ImagenModelConfig interface
+Model-level configuration options for Imagen.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,11 +22,13 @@ export interface ImagenModelConfig
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [addWatermark](./vertexai.imagenmodelconfig.md#imagenmodelconfigaddwatermark) | boolean |  |
-|  [imageFormat](./vertexai.imagenmodelconfig.md#imagenmodelconfigimageformat) | [ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_interface) |  |
-|  [safetySettings](./vertexai.imagenmodelconfig.md#imagenmodelconfigsafetysettings) | [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) |  |
+|  [addWatermark](./vertexai.imagenmodelconfig.md#imagenmodelconfigaddwatermark) | boolean | Whether to add a watermark to generated images. |
+|  [imageFormat](./vertexai.imagenmodelconfig.md#imagenmodelconfigimageformat) | [ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class) | The image format of the generated images. |
+|  [safetySettings](./vertexai.imagenmodelconfig.md#imagenmodelconfigsafetysettings) | [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) | Safety settings for filtering inapropriate content. |
 
 ## ImagenModelConfig.addWatermark
+
+Whether to add a watermark to generated images.
 
 <b>Signature:</b>
 
@@ -34,6 +38,8 @@ addWatermark?: boolean;
 
 ## ImagenModelConfig.imageFormat
 
+The image format of the generated images.
+
 <b>Signature:</b>
 
 ```typescript
@@ -41,6 +47,8 @@ imageFormat?: ImagenImageFormat;
 ```
 
 ## ImagenModelConfig.safetySettings
+
+Safety settings for filtering inapropriate content.
 
 <b>Signature:</b>
 

@@ -12,34 +12,38 @@ https://github.com/firebase/firebase-js-sdk
 # ImagenModel class
 Class for Imagen model APIs.
 
+This class provides methods for generating images using the Imagen model. You can generate images inline as base64-encoded strings, or directly to Google Cloud Storage (GCS).
+
 <b>Signature:</b>
 
 ```typescript
-export declare class ImagenModel 
+export declare class ImagenModel extends VertexAIModel 
 ```
+<b>Extends:</b> [VertexAIModel](./vertexai.vertexaimodel.md#vertexaimodel_class)
 
 ## Constructors
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(vertexAI, modelParams, requestOptions)](./vertexai.imagenmodel.md#imagenmodelconstructor) |  | Constructs a new instance of the <code>ImagenModel</code> class |
+|  [(constructor)(vertexAI, modelParams, requestOptions)](./vertexai.imagenmodel.md#imagenmodelconstructor) |  | Constructs a new instance of the [ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class) class. |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [model](./vertexai.imagenmodel.md#imagenmodelmodel) |  | string |  |
+|  [modelConfig](./vertexai.imagenmodel.md#imagenmodelmodelconfig) |  | [ImagenModelConfig](./vertexai.imagenmodelconfig.md#imagenmodelconfig_interface) | Model-level configurations to use when using Imagen. |
+|  [requestOptions](./vertexai.imagenmodel.md#imagenmodelrequestoptions) |  | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) \| undefined |  |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [generateImages(prompt, imagenRequestOptions)](./vertexai.imagenmodel.md#imagenmodelgenerateimages) |  | Generates images using the Imagen model and returns them as base64-encoded strings. |
-|  [generateImagesGCS(prompt, gcsURI, imagenRequestOptions)](./vertexai.imagenmodel.md#imagenmodelgenerateimagesgcs) |  | Generates images using the Imagen model and returns them as base64-encoded strings. |
+|  [generateImagesGCS(prompt, gcsURI, imagenRequestOptions)](./vertexai.imagenmodel.md#imagenmodelgenerateimagesgcs) |  | Generates images to Google Cloud Storage (GCS) using the Imagen model. |
 
 ## ImagenModel.(constructor)
 
-Constructs a new instance of the `ImagenModel` class
+Constructs a new instance of the [ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class) class.
 
 <b>Signature:</b>
 
@@ -51,16 +55,30 @@ constructor(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?:
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  vertexAI | [VertexAI](./vertexai.vertexai.md#vertexai_interface) |  |
-|  modelParams | [ImagenModelParams](./vertexai.imagenmodelparams.md#imagenmodelparams_interface) |  |
-|  requestOptions | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) \| undefined |  |
+|  vertexAI | [VertexAI](./vertexai.vertexai.md#vertexai_interface) | An instance of the Vertex AI in Firebase SDK. |
+|  modelParams | [ImagenModelParams](./vertexai.imagenmodelparams.md#imagenmodelparams_interface) | Parameters to use when making Imagen requests. |
+|  requestOptions | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) \| undefined | Additional options to use when making requests. |
 
-## ImagenModel.model
+#### Exceptions
+
+If the `apiKey` or `projectId` fields are missing in your Firebase config.
+
+## ImagenModel.modelConfig
+
+Model-level configurations to use when using Imagen.
 
 <b>Signature:</b>
 
 ```typescript
-model: string;
+readonly modelConfig: ImagenModelConfig;
+```
+
+## ImagenModel.requestOptions
+
+<b>Signature:</b>
+
+```typescript
+readonly requestOptions?: RequestOptions | undefined;
 ```
 
 ## ImagenModel.generateImages()
@@ -90,13 +108,13 @@ A promise that resolves to an [ImagenInlineImageResponse](./vertexai.imageninlin
 
 #### Exceptions
 
-If the request fails or if the prompt is blocked, throws a [VertexAIError](./vertexai.vertexaierror.md#vertexaierror_class)<!-- -->.
+If the request to generate images fails. This happens if the prompt is blocked.
 
 ## ImagenModel.generateImagesGCS()
 
-Generates images using the Imagen model and returns them as base64-encoded strings.
+Generates images to Google Cloud Storage (GCS) using the Imagen model.
 
-If one or more images are filtered, the returned object will have a defined `filteredReason` property. If all images are filtered, the `images` array will be empty, and no error will be thrown.
+If one or more images are filtered due to safety reasons, the returned object will have a defined `filteredReason` property. If all images are filtered, the `images` array will be empty, and no error will be thrown.
 
 <b>Signature:</b>
 
@@ -109,16 +127,29 @@ generateImagesGCS(prompt: string, gcsURI: string, imagenRequestOptions?: ImagenG
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  prompt | string | The text prompt used to generate the images. |
-|  gcsURI | string | The GCS URI where the images should be stored. |
+|  gcsURI | string | The GCS URI where the images should be stored. This should be a directory. For example, <code>gs://my-bucket/my-directory/</code>. |
 |  imagenRequestOptions | [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface) | Configuration options for the Imagen generation request. See [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->. |
 
 <b>Returns:</b>
 
 Promise&lt;[ImagenGCSImageResponse](./vertexai.imagengcsimageresponse.md#imagengcsimageresponse_interface)<!-- -->&gt;
 
-A promise that resolves to an [ImagenGCSImageResponse](./vertexai.imagengcsimageresponse.md#imagengcsimageresponse_interface) object containing the generated images.
+A promise that resolves to an [ImagenGCSImageResponse](./vertexai.imagengcsimageresponse.md#imagengcsimageresponse_interface) object containing the URLs of the generated images.
 
 #### Exceptions
 
-If the request fails or if the prompt is blocked, throws a [VertexAIError](./vertexai.vertexaierror.md#vertexaierror_class)<!-- -->.
+If the request fails to generate images fails. This happens if the prompt is blocked.
+
+### Example
+
+
+```javascript
+const imagen = new ImagenModel(vertexAI, {
+  model: 'imagen-3.0-generate-001'
+});
+
+const response = await imagen.generateImages('A photo of a cat');
+console.log(response.images[0].bytesBase64Encoded);
+
+```
 
