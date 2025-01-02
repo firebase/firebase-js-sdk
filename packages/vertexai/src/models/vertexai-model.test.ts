@@ -27,10 +27,7 @@ use(sinonChai);
  */
 class TestModel extends VertexAIModel {
   /* eslint-disable @typescript-eslint/no-useless-constructor */
-  constructor(
-    vertexAI: VertexAI,
-    modelName: string
-  ) {
+  constructor(vertexAI: VertexAI, modelName: string) {
     super(vertexAI, modelName);
   }
 }
@@ -57,7 +54,10 @@ describe('VertexAIModel', () => {
     expect(testModel.model).to.equal('publishers/google/models/my-model');
   });
   it('handles full model name', () => {
-    const testModel = new TestModel(fakeVertexAI, 'publishers/google/models/my-model');
+    const testModel = new TestModel(
+      fakeVertexAI,
+      'publishers/google/models/my-model'
+    );
     expect(testModel.model).to.equal('publishers/google/models/my-model');
   });
   it('handles prefixed tuned model name', () => {
