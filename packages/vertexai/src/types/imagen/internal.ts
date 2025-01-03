@@ -112,9 +112,9 @@ export interface PredictRequestBody {
 
 /**
  * Contains all possible REST API paramaters.
- * This is the intersection of the model-level (`ImagenModelParams`),
- * request-level (`ImagenGenerationConfig`) configurations, along with
- * the other required parameters prompt and gcsURI (for GCS generation only).
+ * This is the union of model-level (`ImagenModelParams`),
+ * request-level (`ImagenGenerationConfig`) configurations, prompt, 
+ * and gcsURI (for GCS generation only). 
  *
  * @internal
  */
