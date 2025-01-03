@@ -100,10 +100,22 @@ describe('ImagenModel', () => {
       false,
       match((value: string) => {
         return (
-          value.includes(JSON.stringify(imagenModel.modelConfig.addWatermark)) &&
-          value.includes(JSON.stringify(imagenModel.modelConfig.safetySettings?.safetyFilterLevel)) &&
-          value.includes(JSON.stringify(imagenModel.modelConfig.safetySettings?.personFilterLevel)) &&
-          value.includes(JSON.stringify(imagenModel.modelConfig.imageFormat?.mimeType))
+          value.includes(
+            JSON.stringify(imagenModel.modelConfig.addWatermark)
+          ) &&
+          value.includes(
+            JSON.stringify(
+              imagenModel.modelConfig.safetySettings?.safetyFilterLevel
+            )
+          ) &&
+          value.includes(
+            JSON.stringify(
+              imagenModel.modelConfig.safetySettings?.personFilterLevel
+            )
+          ) &&
+          value.includes(
+            JSON.stringify(imagenModel.modelConfig.imageFormat?.mimeType)
+          )
         );
       }),
       undefined
@@ -176,10 +188,22 @@ describe('ImagenModel', () => {
       false,
       match((value: string) => {
         return (
-          value.includes(JSON.stringify(imagenModel.modelConfig.addWatermark)) &&
-          value.includes(JSON.stringify(imagenModel.modelConfig.safetySettings?.safetyFilterLevel)) &&
-          value.includes(JSON.stringify(imagenModel.modelConfig.safetySettings?.personFilterLevel)) &&
-          value.includes(JSON.stringify(imagenModel.modelConfig.imageFormat?.mimeType)) &&
+          value.includes(
+            JSON.stringify(imagenModel.modelConfig.addWatermark)
+          ) &&
+          value.includes(
+            JSON.stringify(
+              imagenModel.modelConfig.safetySettings?.safetyFilterLevel
+            )
+          ) &&
+          value.includes(
+            JSON.stringify(
+              imagenModel.modelConfig.safetySettings?.personFilterLevel
+            )
+          ) &&
+          value.includes(
+            JSON.stringify(imagenModel.modelConfig.imageFormat?.mimeType)
+          ) &&
           value.includes(`"sampleCount":${requestConfig.numberOfImages}`) &&
           value.includes(`"aspectRatio":"${requestConfig.aspectRatio}"`) &&
           value.includes(`"negativePrompt":"${requestConfig.negativePrompt}"`)
