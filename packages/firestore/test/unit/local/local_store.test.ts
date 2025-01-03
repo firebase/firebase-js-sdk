@@ -58,7 +58,8 @@ import {
   localStoreReleaseTarget,
   localStoreSaveBundle,
   localStoreSaveNamedQuery,
-  newLocalStore
+  newLocalStore,
+  LocalStoreResultChanges
 } from '../../../src/local/local_store_impl';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
@@ -212,8 +213,8 @@ class LocalStoreTester {
       .then(() =>
         localStoreApplyRemoteEventToLocalCache(this.localStore, remoteEvent)
       )
-      .then((result: DocumentMap) => {
-        this.lastChanges = result;
+      .then((result: LocalStoreResultChanges) => {
+        this.lastChanges = result.changedDocs;
       });
     return this;
   }

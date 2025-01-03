@@ -86,6 +86,8 @@ import {
   PipelineResultsCache
 } from './pipeline_results_cache';
 import { TargetId } from '../core/types';
+import { TargetData } from './target_data';
+import { targetIsPipelineTarget } from '../core/target';
 
 /**
  * A readonly view of the local state of all documents we're tracking (i.e. we
@@ -782,5 +784,43 @@ export class LocalDocumentsView {
           `Failed to get overlays for pipeline: ${canonifyPipeline(pipeline)}`
         );
     }
+  }
+
+  calculateMergedAugmentPipelineResults(
+    targetMap: SortedMap<TargetId, TargetData>,
+    currentAugmentPipelineResults: Map<TargetId, PipelineCachedResults>,
+    changedDocs: SortedMap<DocumentKey, Document>
+  ): Map<TargetId, MutableDocumentMap> {
+    // We only care about documents with pending writes because changedDocs are results
+    // of two scenarios:
+    // 1. Global snapshot, which means currentAugmentPipelineResults should include all
+    // documents that have no pending mutations.
+    // 2. Local mutations, which does not need more explanation.
+    const docsWithMutations: MutableDocument[] = [];
+    changedDocs.forEach((key, doc) => {
+      if (doc.hasPendingWrites) {
+        docsWithMutations.push(doc as MutableDocument);
+      }
+    });
+
+    const mergedResults = new Map<TargetId, MutableDocumentMap>();
+    currentAugmentPipelineResults.forEach((results, targetId) => {
+      const pipeline = targetMap.get(targetId)?.target;
+      debugAssert(!!pipeline, `Target Id ${targetId} not found`);
+      debugAssert(
+        targetIsPipelineTarget(pipeline),
+        `Target Id ${targetId} is not a pipeline target`
+      );
+
+      const merged = results.results;
+      // TODO(pipeline): We need to handle limit pipelines here!!
+      const pipelineResult = runPipeline(pipeline, docsWithMutations);
+      for (const result of pipelineResult) {
+        merged.insert(result.key, result);
+      }
+      mergedResults.set(targetId, merged);
+    });
+
+    return mergedResults;
   }
 }

@@ -94,6 +94,7 @@ import {
   syncEngineRegisterPendingWritesCallback,
   syncEngineUnlisten,
   syncEngineWrite,
+  toLocalChangesToApplyToView,
   triggerRemoteStoreListen,
   triggerRemoteStoreUnlisten
 } from './sync_engine_impl';
@@ -753,8 +754,11 @@ async function executeQueryFromCache(
       query,
       /* usePreviousResults= */ true
     );
+
     const view = new View(query, queryResult.remoteKeys);
-    const viewDocChanges = view.computeDocChanges(queryResult.documents);
+    const viewDocChanges = view.computeResultChanges(
+      toLocalChangesToApplyToView(query, queryResult.documents)
+    );
     const viewChange = view.applyChanges(
       viewDocChanges,
       /* limboResolutionEnabled= */ false

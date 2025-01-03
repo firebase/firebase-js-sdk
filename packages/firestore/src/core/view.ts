@@ -15,11 +15,15 @@
  * limitations under the License.
  */
 
-import { QueryResult } from '../local/local_store_impl';
+import {
+  LocalStoreResultChanges,
+  QueryResult
+} from '../local/local_store_impl';
 import {
   documentKeySet,
   DocumentKeySet,
-  DocumentMap
+  DocumentMap,
+  MutableDocumentMap
 } from '../model/collections';
 import { Document, MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -28,7 +32,7 @@ import { TargetChange } from '../remote/remote_event';
 import { debugAssert, fail } from '../util/assert';
 
 import { LimitType, newQueryComparator } from './query';
-import { OnlineState } from './types';
+import { OnlineState, TargetId } from './types';
 import {
   ChangeType,
   DocumentChangeSet,
@@ -36,7 +40,11 @@ import {
   ViewSnapshot
 } from './view_snapshot';
 
-import { isPipeline, QueryOrPipeline } from './pipeline-util';
+import {
+  getPipelineFlavor,
+  isPipeline,
+  QueryOrPipeline
+} from './pipeline-util';
 import {
   getLastEffectiveLimit,
   newPipelineComparator,
@@ -70,6 +78,11 @@ export interface ViewDocumentChanges {
 export interface ViewChange {
   snapshot?: ViewSnapshot;
   limboChanges: LimboDocumentChange[];
+}
+
+export interface LocalChangesToApplyToView {
+  changedDocs: DocumentMap;
+  augmentedResults: DocumentMap | undefined;
 }
 
 /**
@@ -119,12 +132,82 @@ export class View {
    * what the new results should be, what the changes were, and whether we may
    * need to go back to the local cache for more results. Does not make any
    * changes to the view.
-   * @param docChanges - The doc changes to apply to this view.
+   * @param resultChanges - The doc changes to apply to this view.
    * @param previousChanges - If this is being called with a refill, then start
    *        with this set of docs and changes instead of the current view.
    * @returns a new set of docs, changes, and refill flag.
    */
-  computeDocChanges(
+  computeResultChanges(
+    resultChanges: LocalChangesToApplyToView,
+    previousChanges?: ViewDocumentChanges
+  ): ViewDocumentChanges {
+    if (isPipeline(this.query) && getPipelineFlavor(this.query) !== 'exact') {
+      return this.computeAugmentedResultChanges(resultChanges.augmentedResults);
+    } else {
+      return this.computeDocumentChanges(
+        resultChanges.changedDocs,
+        previousChanges
+      );
+    }
+  }
+
+  computeAugmentedResultChanges(
+    augmentedResults: DocumentMap | undefined
+  ): ViewDocumentChanges {
+    const changeSet = new DocumentChangeSet();
+    const oldDocumentSet = this.documentSet;
+    let newMutatedKeys = documentKeySet();
+    let newDocumentSet = new DocumentSet(this.docComparator);
+    let needsRefill = false;
+    augmentedResults?.inorderTraversal((key, entry) => {
+      const oldDoc = oldDocumentSet.get(key);
+      const newDoc = entry;
+      newDocumentSet = newDocumentSet.add(newDoc);
+
+      const oldDocHadPendingMutations = oldDoc
+        ? this.mutatedKeys.has(oldDoc.key)
+        : false;
+      const newDocHasPendingMutations = newDoc
+        ? newDoc.hasLocalMutations
+        : false;
+      if (newDocHasPendingMutations) {
+        newMutatedKeys = newMutatedKeys.add(key);
+      }
+
+      // Calculate change
+      if (!!oldDoc) {
+        const docsEqual = oldDoc.data.isEqual(newDoc.data);
+        if (!docsEqual) {
+          if (!this.shouldWaitForSyncedDocument(oldDoc, newDoc)) {
+            changeSet.track({
+              type: ChangeType.Modified,
+              doc: newDoc
+            });
+          }
+        } else if (oldDocHadPendingMutations !== newDocHasPendingMutations) {
+          changeSet.track({ type: ChangeType.Metadata, doc: newDoc });
+        }
+      } else {
+        // oldDoc === null
+        changeSet.track({ type: ChangeType.Added, doc: newDoc });
+      }
+    });
+
+    oldDocumentSet.forEach(oldDoc => {
+      if (!newDocumentSet.get(oldDoc.key)) {
+        changeSet.track({ type: ChangeType.Removed, doc: oldDoc });
+      }
+    });
+
+    return {
+      documentSet: newDocumentSet,
+      changeSet,
+      needsRefill,
+      mutatedKeys: newMutatedKeys
+    };
+  }
+
+  computeDocumentChanges(
     docChanges: DocumentMap,
     previousChanges?: ViewDocumentChanges
   ): ViewDocumentChanges {
@@ -519,7 +602,10 @@ export class View {
   synchronizeWithPersistedState(queryResult: QueryResult): ViewChange {
     this._syncedDocuments = queryResult.remoteKeys;
     this.limboDocuments = documentKeySet();
-    const docChanges = this.computeDocChanges(queryResult.documents);
+    const docChanges = this.computeResultChanges({
+      changedDocs: queryResult.documents,
+      augmentedResults: undefined
+    });
     return this.applyChanges(docChanges, /* limboResolutionEnabled= */ true);
   }
 

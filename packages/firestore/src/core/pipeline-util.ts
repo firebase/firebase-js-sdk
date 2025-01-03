@@ -526,7 +526,9 @@ export function canonifyPipeline(p: CorePipeline): string {
   return p.stages.map(s => canonifyStage(s)).join('|');
 }
 
-// TODO(pipeline): do a proper implementation for eq.
+// TODO(pipeline): do a proper implementation for eq. This functions currently
+// fails if one of the input is deserialized from local cache because its expressions
+// are in proto form.
 export function pipelineEq(left: CorePipeline, right: CorePipeline): boolean {
   return canonifyPipeline(left) === canonifyPipeline(right);
 }

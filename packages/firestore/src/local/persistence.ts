@@ -32,10 +32,7 @@ import {
 import { RemoteDocumentCache } from './remote_document_cache';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
-import {
-  PipelineCacheResults,
-  PipelineResultsCache
-} from './pipeline_results_cache';
+import { PipelineResultsCache } from './pipeline_results_cache';
 
 /**
  * Callback type for primary state notifications. This callback can be

@@ -16,7 +16,12 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { canonifyTarget, Target, targetEquals } from '../core/target';
+import {
+  canonifyTarget,
+  Target,
+  targetEquals,
+  targetIsPipelineTarget
+} from '../core/target';
 import { TargetIdGenerator } from '../core/target_id_generator';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { Timestamp } from '../lite-api/timestamp';
@@ -273,7 +278,12 @@ export class IndexedDbTargetCache implements TargetCache {
           const found = fromDbTarget(this.serializer, value);
           // After finding a potential match, check that the target is
           // actually equal to the requested target.
-          if (targetOrPipelineEqual(target, found.target)) {
+          // TODO(pipeline): Note this should not be necessary for pipelines, and right now pipelineEq also does not
+          // work comparing memory form and deserialized form.
+          if (
+            targetIsPipelineTarget(target) ||
+            targetOrPipelineEqual(target, found.target)
+          ) {
             result = found;
             control.done();
           }

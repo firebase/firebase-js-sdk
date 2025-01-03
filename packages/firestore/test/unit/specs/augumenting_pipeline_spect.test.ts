@@ -17,7 +17,7 @@
 
 import { deletedDoc, doc, filter, orderBy, query } from '../../util/helpers';
 
-import { Field } from '../../../src';
+import { Field, setLogLevel } from '../../../src';
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
 import { RpcError } from './spec_rpc_error';
@@ -27,12 +27,12 @@ import { toCorePipeline } from '../../../src/core/pipeline-util';
 
 describeSpec(
   'Augmenting pipelines:',
-  ['explicit-pipeline', 'exclusive'],
+  ['explicit-pipeline'],
   () => {
     const db = newTestFirestore();
     specTest(
       'Contents of pipeline are cleared when listen is removed.',
-      ['eager-gc', 'exclusive'],
+      ['eager-gc'],
       () => {
         const pipeline1 = toCorePipeline(
           db.pipeline().collection('collection').select('key')
@@ -47,7 +47,7 @@ describeSpec(
             .expectEvents(query1, { added: [docA] })
             .userListens(pipeline1)
             .expectEvents(pipeline1, { added: [docASelected], fromCache: true })
-            .watchAcksFull(pipeline1, 1000, docA)
+            .watchAcksFull(pipeline1, 1000, docASelected)
             .expectEvents(pipeline1, { fromCache: false })
             .userUnlistens(query1)
             .userUnlistens(pipeline1)
@@ -63,12 +63,23 @@ describeSpec(
       );
       const docA = doc('collection/a', 1000, { key: 'a' });
       const docAV2 = doc('collection/a', 2000, { key: 'v2' });
+      const docAV3 = doc('collection/a', 3000, { key: 42 });
       return spec()
         .userListens(query1)
         .watchAcksFull(query1, 1000, docA)
         .expectEvents(query1, { added: [docA] })
-        .watchAcksFull(query1, 2000, docAV2)
-        .expectEvents(query1, { modified: [docAV2] });
+        .watchSends({ removed: [query1] }, docA)
+        .watchSnapshots(1001)
+        .expectEvents(query1, { removed: [docA] })
+        .watchSends({ affects: [query1] }, docAV2)
+        .watchSnapshots(2000)
+        .expectEvents(query1, { added: [docAV2] })
+        .watchSends({ affects: [query1] }, docAV3)
+        .watchSnapshots(3000)
+        .expectEvents(query1, { modified: [docAV3] })
+        .watchSends({ removed: [query1] }, docAV3)
+        .watchSnapshots(4000)
+        .expectEvents(query1, { removed: [docAV3] });
     });
 
     specTest('Can get results merged from cache and backend', [], () => {
@@ -76,14 +87,14 @@ describeSpec(
         db
           .pipeline()
           .collection('collection')
-          .where(Field.of('key').like('?ab%c'))
+          .where(Field.of('key').like('_ab%c%'))
           .select('key')
       );
       const coll = query('collection');
       const docA = doc('collection/a', 800, { key: 'aabcc' });
       const docAV3 = doc('collection/a', 2100, { key: 'xxxxx' });
       const docB = doc('collection/b', 900, { key: 'abcc' });
-      const docBV2 = doc('collection/b', 1500, { key: 'aaaabcc' });
+      const docBV2 = doc('collection/b', 1500, { key: 'xabcc' });
       const docC = doc('collection/c', 700, { key: 'bcca' });
       const docCV3 = doc('collection/c', 2500, { key: 'aabcc' });
       return (
@@ -94,18 +105,20 @@ describeSpec(
           .watchAcksFull(coll, 1000, docA, docB, docC)
           .expectEvents(coll, { added: [docA, docB, docC] })
           .userUnlistens(coll)
+          .watchRemoves(coll)
           // listen to augmenting pipelines
           .userListens(query1)
           .expectEvents(query1, { added: [docA], fromCache: true })
           .watchAcksFull(query1, 2000, docA, docBV2)
           .expectEvents(query1, { added: [docBV2], fromCache: false })
           .userUnlistens(query1)
+          .watchRemoves(query1)
           // Listen to collection again, we do not see docBV2
-          .userListens(coll)
+          .userListens(coll, { resumeToken: 'resume-token-1000' })
           .expectEvents(coll, { added: [docA, docB, docC], fromCache: true })
-          .watchAcksFull(query1, 2000, docAV3, docBV2, docCV3)
-          .expectEvents(query1, {
-            modified: [docAV3, docCV3],
+          .watchAcksFull(coll, 2500, docAV3, docBV2, docCV3)
+          .expectEvents(coll, {
+            modified: [docAV3, docBV2, docCV3],
             fromCache: false
           })
           // listen to augmenting pipelines again

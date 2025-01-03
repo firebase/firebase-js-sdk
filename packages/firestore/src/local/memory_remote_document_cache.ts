@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query, queryMatches } from '../core/query';
+import { Query, queryEvaluate, queryMatches } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
@@ -185,7 +185,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     mutatedDocs: OverlayMap
   ): PersistencePromise<MutableDocumentMap> {
     let collectionPath: ResourcePath;
-    let matcher: (doc: Document) => Boolean;
+    let matcher: (doc: Document) => Document | undefined;
     if (isPipeline(query)) {
       // Documents are ordered by key, so we can use a prefix scan to narrow down
       // the documents we need to match the query against.
@@ -196,7 +196,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
       // Documents are ordered by key, so we can use a prefix scan to narrow down
       // the documents we need to match the query against.
       collectionPath = query.path;
-      matcher = (doc: Document) => queryMatches(query, doc);
+      matcher = (doc: Document) => queryEvaluate(query, doc);
     }
 
     let results = mutableDocumentMap();

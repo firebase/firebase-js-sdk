@@ -67,15 +67,18 @@ import {
   CoreXor
 } from './expressions';
 import {
+  AddFields,
   CollectionGroupSource,
   CollectionSource,
   DatabaseSource,
   DocumentsSource,
   Limit,
+  Select,
   Sort,
   Stage,
   Where
 } from '../lite-api/stage';
+import { debugAssert } from '../util/assert';
 
 export function stageFromProto(protoStage: ProtoStage): Stage {
   switch (protoStage.name) {
@@ -108,10 +111,28 @@ export function stageFromProto(protoStage: ProtoStage): Stage {
     case 'sort': {
       return new Sort(protoStage.args!.map(arg => orderingFromProto(arg)));
     }
+    case 'select': {
+      return new Select(stageArgsToExprMap(protoStage.args));
+    }
+    case 'addFields': {
+      return new AddFields(stageArgsToExprMap(protoStage.args));
+    }
     default: {
       throw new Error(`Stage type: ${protoStage.name} not supported.`);
     }
   }
+}
+
+function stageArgsToExprMap(
+  stageArgs: ProtoValue[] | undefined
+): Map<string, Expr> {
+  const argMap = stageArgs![0].mapValue?.fields;
+  const exprMap = new Map<string, Expr>();
+
+  for (const [key, value] of Object.entries(argMap || {})) {
+    exprMap.set(key, exprFromProto(value));
+  }
+  return exprMap;
 }
 
 export function exprFromProto(value: ProtoValue): Expr {

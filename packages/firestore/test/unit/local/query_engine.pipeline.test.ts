@@ -28,7 +28,7 @@ import {
   queryWithLimit
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { View } from '../../../src/core/view';
+import { LocalChangesToApplyToView, View } from '../../../src/core/view';
 import { DocumentOverlayCache } from '../../../src/local/document_overlay_cache';
 import {
   displayNameForIndexType,
@@ -81,6 +81,7 @@ import {
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
 import {
+  getPipelineFlavor,
   isPipeline,
   QueryOrPipeline,
   toCorePipeline,
@@ -96,6 +97,7 @@ import {
   FieldPath,
   UPDATE_TIME_NAME
 } from '../../../src/model/path';
+import { toLocalChangesToApplyToView } from '../../../src/core/sync_engine_impl';
 
 const TEST_TARGET_ID = 1;
 
@@ -284,7 +286,9 @@ function genericQueryEnginePipelineTest(
             )
             .next(docs => {
               const view = new View(query, remoteKeys);
-              const viewDocChanges = view.computeDocChanges(docs);
+              const viewDocChanges = view.computeResultChanges(
+                toLocalChangesToApplyToView(query, docs)
+              );
               return view.applyChanges(
                 viewDocChanges,
                 /* limboResolutionEnabled= */ true

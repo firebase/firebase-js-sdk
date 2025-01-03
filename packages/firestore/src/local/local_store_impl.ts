@@ -41,7 +41,7 @@ import {
   MutableDocumentMap,
   OverlayedDocumentMap
 } from '../model/collections';
-import { Document } from '../model/document';
+import { Document, MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
   FieldIndex,
@@ -100,13 +100,17 @@ import { Pipeline } from '../lite-api/pipeline';
 import {
   canonifyTargetOrPipeline,
   getPipelineDocuments,
+  getPipelineFlavor,
   isPipeline,
   QueryOrPipeline,
   TargetOrPipeline,
   targetOrPipelineEqual
 } from '../core/pipeline-util';
 import { CorePipeline } from '../core/pipeline_run';
-import { PipelineResultsCache } from './pipeline_results_cache';
+import {
+  PipelineCachedResults,
+  PipelineResultsCache
+} from './pipeline_results_cache';
 
 export const LOG_TAG = 'LocalStore';
 
@@ -118,6 +122,11 @@ export const LOG_TAG = 'LocalStore';
  * recent resume token.
  */
 const RESUME_TOKEN_MAX_AGE_MICROS = 5 * 60 * 1e6;
+
+export interface LocalStoreResultChanges {
+  changedDocs: DocumentMap;
+  newAugmentedResults: Map<TargetId, DocumentMap>;
+}
 
 /** The result of a write to the local store. */
 export interface LocalWriteResult {
@@ -173,10 +182,11 @@ class LocalStoreImpl implements LocalStore {
 
   /** The set of all cached bundle metadata and named queries. */
   bundleCache: BundleCache;
-  pipelineResultsCache: PipelineResultsCache;
 
   /** Maps a target to its `TargetData`. */
   targetCache: TargetCache;
+
+  pipelineResultsCache: PipelineResultsCache;
 
   /**
    * Maps a targetID to data about its target.
@@ -214,6 +224,7 @@ class LocalStoreImpl implements LocalStore {
     );
     this.remoteDocuments = persistence.getRemoteDocumentCache();
     this.targetCache = persistence.getTargetCache();
+    this.pipelineResultsCache = persistence.getPipelineResultsCache();
     this.bundleCache = persistence.getBundleCache();
     this.pipelineResultsCache = persistence.getPipelineResultsCache();
 
@@ -582,7 +593,7 @@ export function localStoreGetLastRemoteSnapshotVersion(
 export function localStoreApplyRemoteEventToLocalCache(
   localStore: LocalStore,
   remoteEvent: RemoteEvent
-): Promise<DocumentMap> {
+): Promise<LocalStoreResultChanges> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const remoteVersion = remoteEvent.snapshotVersion;
   let newTargetDataByTargetMap = localStoreImpl.targetDataByTarget;
@@ -699,6 +710,58 @@ export function localStoreApplyRemoteEventToLocalCache(
         promises.push(updateRemoteVersion);
       }
 
+      const currentAugmentPipelineResults: Map<
+        TargetId,
+        PipelineCachedResults
+      > = new Map();
+      remoteEvent.targetChanges.forEach((targetChange, targetId) => {
+        const targetData = localStoreImpl.targetDataByTarget.get(targetId);
+        if (
+          !!targetData &&
+          targetIsPipelineTarget(targetData.target) &&
+          getPipelineFlavor(targetData.target) !== 'exact'
+        ) {
+          const docMap = remoteEvent.augmentedDocumentUpdates.get(targetId);
+          const results: Array<MutableDocument> = [];
+          docMap?.forEach((key, doc) => {
+            results.push(doc);
+          });
+
+          const deletes: DocumentKey[] = [];
+          targetChange.removedDocuments.forEach(k => deletes.push(k));
+          let promise: PersistencePromise<void> | undefined = undefined;
+          if (targetChange.isInitialChanges) {
+            promise = localStoreImpl.pipelineResultsCache.setResults(
+              txn,
+              targetId,
+              remoteVersion,
+              results,
+              deletes
+            );
+          } else {
+            promise = localStoreImpl.pipelineResultsCache.updateResults(
+              txn,
+              targetId,
+              remoteVersion,
+              results,
+              deletes
+            );
+          }
+
+          promises.push(
+            promise
+              .next(() =>
+                localStoreImpl.pipelineResultsCache.getResults(txn, targetId)
+              )
+              .next(results => {
+                if (!!results) {
+                  currentAugmentPipelineResults.set(targetId, results);
+                }
+              })
+          );
+        }
+      });
+
       return PersistencePromise.waitFor(promises)
         .next(() => documentBuffer.apply(txn))
         .next(() =>
@@ -708,11 +771,19 @@ export function localStoreApplyRemoteEventToLocalCache(
             existenceChangedKeys
           )
         )
-        .next(() => changedDocs);
+        .next(changedDocs => {
+          const newAugmentedResults =
+            localStoreImpl.localDocuments.calculateMergedAugmentPipelineResults(
+              localStoreImpl.targetDataByTarget,
+              currentAugmentPipelineResults,
+              changedDocs
+            );
+          return { changedDocs, newAugmentedResults };
+        });
     })
-    .then(changedDocs => {
+    .then(resultChanges => {
       localStoreImpl.targetDataByTarget = newTargetDataByTargetMap;
-      return changedDocs;
+      return resultChanges;
     });
 }
 

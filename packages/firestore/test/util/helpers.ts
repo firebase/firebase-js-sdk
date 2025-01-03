@@ -41,6 +41,7 @@ import { TargetId } from '../../src/core/types';
 import {
   AddedLimboDocument,
   LimboDocumentChange,
+  LocalChangesToApplyToView,
   RemovedLimboDocument,
   View,
   ViewChange
@@ -792,7 +793,7 @@ export function mapAsArray<K, V>(
  */
 export function documentUpdates(
   ...docsOrKeys: Array<Document | DocumentKey>
-): DocumentMap {
+): LocalChangesToApplyToView {
   let changes = documentMap();
   for (const docOrKey of docsOrKeys) {
     if (docOrKey instanceof MutableDocument) {
@@ -804,7 +805,7 @@ export function documentUpdates(
       );
     }
   }
-  return changes;
+  return { changedDocs: changes, augmentedResults: undefined };
 }
 
 /**
@@ -814,7 +815,7 @@ export function applyDocChanges(
   view: View,
   ...docsOrKeys: Array<Document | DocumentKey>
 ): ViewChange {
-  const changes = view.computeDocChanges(documentUpdates(...docsOrKeys));
+  const changes = view.computeResultChanges(documentUpdates(...docsOrKeys));
   return view.applyChanges(changes, true);
 }
 

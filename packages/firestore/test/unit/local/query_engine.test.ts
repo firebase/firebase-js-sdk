@@ -297,7 +297,10 @@ function genericQueryEngineTest(
             )
             .next(docs => {
               const view = new View(query, remoteKeys);
-              const viewDocChanges = view.computeDocChanges(docs);
+              const viewDocChanges = view.computeResultChanges({
+                changedDocs: docs,
+                augmentedResults: undefined
+              });
               return view.applyChanges(
                 viewDocChanges,
                 /* limboResolutionEnabled= */ true

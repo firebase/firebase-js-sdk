@@ -38,13 +38,10 @@ import {
   LocalSerializer,
   toDbPipelineResult,
   toDbPipelineResultKey,
-  toDbRemoteDocument,
   toDbTimestamp
 } from './local_serializer';
 import { DocumentKey } from '../model/document_key';
 import { mutableDocumentMap } from '../model/collections';
-import { Serializer } from '../remote/number_serializer';
-import { encodeResourcePath } from './encoded_resource_path';
 import { debugAssert } from '../util/assert';
 
 function newDbPipelineResult(
@@ -162,28 +159,24 @@ export class IndexedDbPipelineResultsCache implements PipelineResultsCache {
       promises.push(store.delete(toDbPipelineResultKey(targetId, key)));
     }
 
-    store.loadFirst(range, 2).next(results => {
-      if (results.length === 0) {
-        promises.push(
-          store.put(
+    return PersistencePromise.waitFor(promises).next(() => {
+      return store.loadFirst(range, 2).next(results => {
+        if (results.length === 0) {
+          return store.put(
             newDbPipelineResult(this.serializer, targetId, executionTime)
-          )
-        );
-      } else {
-        const firstDoc = results[0];
-        if (firstDoc.result === null && results.length > 1) {
-          promises.push(
-            store.delete([
+          );
+        } else {
+          const firstDoc = results[0];
+          if (firstDoc.result === null && results.length > 1) {
+            return store.delete([
               targetId,
               firstDoc.collectionPath,
               firstDoc.documentId
-            ])
-          );
+            ]);
+          }
         }
-      }
+      });
     });
-
-    return PersistencePromise.waitFor(promises);
   }
 }
 

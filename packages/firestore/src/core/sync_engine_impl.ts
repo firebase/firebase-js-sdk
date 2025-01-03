@@ -35,6 +35,7 @@ import {
   localStoreRejectBatch,
   localStoreReleaseTarget,
   localStoreRemoveCachedMutationBatchMetadata,
+  LocalStoreResultChanges,
   localStoreSaveBundle,
   localStoreWriteLocally
 } from '../local/local_store_impl';
@@ -116,13 +117,15 @@ import {
   LimboDocumentChange,
   RemovedLimboDocument,
   View,
-  ViewChange
+  ViewChange,
+  LocalChangesToApplyToView
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
 import {
   canonifyQueryOrPipeline,
   getPipelineCollection,
   getPipelineCollectionId,
+  getPipelineFlavor,
   getPipelineSourceType,
   isPipeline,
   QueryOrPipeline,
@@ -177,7 +180,7 @@ class LimboResolution {
  */
 type ApplyDocChangesHandler = (
   queryView: QueryView,
-  changes: DocumentMap,
+  changes: LocalStoreResultChanges,
   remoteEvent?: RemoteEvent
 ) => Promise<ViewSnapshot | undefined>;
 
@@ -392,6 +395,15 @@ async function allocateTargetAndMaybeListen(
   return viewSnapshot;
 }
 
+export function toLocalChangesToApplyToView(
+  query: QueryOrPipeline,
+  results: DocumentMap
+): LocalChangesToApplyToView {
+  return isPipeline(query) && getPipelineFlavor(query) !== 'exact'
+    ? { changedDocs: documentMap(), augmentedResults: results }
+    : { changedDocs: results, augmentedResults: undefined };
+}
+
 /**
  * Registers a view for a previously unknown query and computes its initial
  * snapshot.
@@ -407,15 +419,19 @@ async function initializeViewAndComputeSnapshot(
   // targets based on view changes. This allows us to only depend on Limbo
   // changes when user code includes queries.
   syncEngineImpl.applyDocChanges = (queryView, changes, remoteEvent) =>
-    applyDocChanges(syncEngineImpl, queryView, changes, remoteEvent);
+    applyLocalResultChanges(syncEngineImpl, queryView, changes, remoteEvent);
 
   const queryResult = await localStoreExecuteQuery(
     syncEngineImpl.localStore,
     query,
     /* usePreviousResults= */ true
   );
+  const localResultChanges = toLocalChangesToApplyToView(
+    query,
+    queryResult.documents
+  );
   const view = new View(query, queryResult.remoteKeys);
-  const viewDocChanges = view.computeDocChanges(queryResult.documents);
+  const viewDocChanges = view.computeResultChanges(localResultChanges);
   const synthesizedTargetChange =
     TargetChange.createSynthesizedTargetChangeForCurrentChange(
       targetId,
@@ -550,10 +566,10 @@ export async function syncEngineWrite(
     );
     syncEngineImpl.sharedClientState.addPendingMutation(result.batchId);
     addMutationCallback(syncEngineImpl, result.batchId, userCallback);
-    await syncEngineEmitNewSnapsAndNotifyLocalStore(
-      syncEngineImpl,
-      result.changes
-    );
+    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, {
+      changedDocs: result.changes,
+      newAugmentedResults: new Map()
+    });
     await fillWritePipeline(syncEngineImpl.remoteStore);
   } catch (e) {
     // If we can't persist the mutation, we reject the user callback and
@@ -584,6 +600,15 @@ export async function syncEngineApplyRemoteEvent(
     );
     // Update `receivedDocument` as appropriate for any limbo targets.
     remoteEvent.targetChanges.forEach((targetChange, targetId) => {
+      const queryOrPipeline = syncEngineImpl.queriesByTarget.get(targetId);
+      if (
+        !!queryOrPipeline &&
+        isPipeline(queryOrPipeline[0]) &&
+        getPipelineFlavor(queryOrPipeline[0]) !== 'exact'
+      ) {
+        return;
+      }
+
       const limboResolution =
         syncEngineImpl.activeLimboResolutionsByTarget.get(targetId);
       if (limboResolution) {
@@ -773,7 +798,10 @@ export async function syncEngineApplySuccessfulWrite(
       batchId,
       'acknowledged'
     );
-    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes);
+    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, {
+      changedDocs: changes,
+      newAugmentedResults: new Map()
+    });
   } catch (error) {
     await ignoreIfPrimaryLeaseLoss(error as FirestoreError);
   }
@@ -804,7 +832,10 @@ export async function syncEngineRejectFailedWrite(
       'rejected',
       error
     );
-    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes);
+    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, {
+      changedDocs: changes,
+      newAugmentedResults: new Map()
+    });
   } catch (error) {
     await ignoreIfPrimaryLeaseLoss(error as FirestoreError);
   }
@@ -1087,7 +1118,7 @@ export function syncEngineGetEnqueuedLimboDocumentResolutions(
 
 export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
   syncEngine: SyncEngine,
-  changes: DocumentMap,
+  changes: LocalStoreResultChanges,
   remoteEvent?: RemoteEvent
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
@@ -1148,13 +1179,25 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
   );
 }
 
-async function applyDocChanges(
+function getViewResultsForTarget(
+  targetId: TargetId,
+  changes: LocalStoreResultChanges
+): LocalChangesToApplyToView {
+  return {
+    changedDocs: changes.changedDocs,
+    augmentedResults: changes.newAugmentedResults.get(targetId)
+  };
+}
+
+async function applyLocalResultChanges(
   syncEngineImpl: SyncEngineImpl,
   queryView: QueryView,
-  changes: DocumentMap,
+  changes: LocalStoreResultChanges,
   remoteEvent?: RemoteEvent
 ): Promise<ViewSnapshot | undefined> {
-  let viewDocChanges = queryView.view.computeDocChanges(changes);
+  let viewDocChanges = queryView.view.computeResultChanges(
+    getViewResultsForTarget(queryView.targetId, changes)
+  );
   if (viewDocChanges.needsRefill) {
     // The query has a limit and some docs were removed, so we need
     // to re-run the query against the local store to make sure we
@@ -1164,7 +1207,11 @@ async function applyDocChanges(
       queryView.query,
       /* usePreviousResults= */ false
     ).then(({ documents }) => {
-      return queryView.view.computeDocChanges(documents, viewDocChanges);
+      // augmented results do not need to be refilled, so this must be a document result set.
+      return queryView.view.computeResultChanges(
+        { changedDocs: documents, augmentedResults: undefined },
+        viewDocChanges
+      );
     });
   }
 
@@ -1213,10 +1260,10 @@ export async function syncEngineHandleCredentialChange(
       result.removedBatchIds,
       result.addedBatchIds
     );
-    await syncEngineEmitNewSnapsAndNotifyLocalStore(
-      syncEngineImpl,
-      result.affectedDocuments
-    );
+    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, {
+      changedDocs: result.affectedDocuments,
+      newAugmentedResults: new Map()
+    });
   }
 }
 
@@ -1288,7 +1335,10 @@ export async function syncEngineSynchronizeWithChangedDocuments(
     syncEngineImpl.localStore,
     collectionGroup
   ).then(changes =>
-    syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes)
+    syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, {
+      changedDocs: changes,
+      newAugmentedResults: new Map()
+    })
   );
 }
 
@@ -1336,7 +1386,10 @@ export async function syncEngineApplyBatchState(
     fail(`Unknown batchState: ${batchState}`);
   }
 
-  await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, documents);
+  await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, {
+    changedDocs: documents,
+    newAugmentedResults: new Map()
+  });
 }
 
 /** Applies a query target change from a different tab. */
@@ -1588,7 +1641,7 @@ export async function syncEngineApplyTargetState(
           );
         await syncEngineEmitNewSnapsAndNotifyLocalStore(
           syncEngineImpl,
-          changes,
+          { changedDocs: changes, newAugmentedResults: new Map() },
           synthesizedRemoteEvent
         );
         break;
@@ -1759,7 +1812,7 @@ async function loadBundleImpl(
     const result = await loader.complete();
     await syncEngineEmitNewSnapsAndNotifyLocalStore(
       syncEngine,
-      result.changedDocs,
+      { changedDocs: result.changedDocs, newAugmentedResults: new Map() },
       /* remoteEvent */ undefined
     );
 
