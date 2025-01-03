@@ -45,18 +45,18 @@ const fakeVertexAI: VertexAI = {
 
 describe('ImagenModel', () => {
   it('generateImages makes a request to predict with default parameters', async () => {
-    const imagenModel = new ImagenModel(fakeVertexAI, {
-      model: 'my-model'
-    });
-
     const mockResponse = getMockResponse(
       'unary-success-generate-images-base64.json'
     );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
       mockResponse as Response
     );
+
+    const imagenModel = new ImagenModel(fakeVertexAI, {
+      model: 'my-model'
+    });
     const prompt = 'A photorealistic image of a toy boat at sea.';
-    await imagenModel.generateImages(prompt, { numberOfImages: 1 });
+    await imagenModel.generateImages(prompt);
     expect(makeRequestStub).to.be.calledWith(
       'publishers/google/models/my-model',
       request.Task.PREDICT,
@@ -64,10 +64,10 @@ describe('ImagenModel', () => {
       false,
       match((value: string) => {
         return (
-          value.includes('sampleCount') &&
-          value.includes('includeRaiReason') &&
-          value.includes('aspectRatio') &&
-          value.includes('mimeType')
+          value.includes(`"prompt":"${prompt}"`) &&
+          value.includes(`"mimeType":"image/png"`) &&
+          value.includes(`"sampleCount":1`) &&
+          value.includes(`"aspectRatio":"1:1"`)
         );
       }),
       undefined
@@ -100,14 +100,10 @@ describe('ImagenModel', () => {
       false,
       match((value: string) => {
         return (
-          value.includes('safetyFilterLevel') &&
-          value.includes('block_only_high') &&
-          value.includes('personFilterLevel') &&
-          value.includes('allow_adult') &&
-          value.includes('mimeType') &&
-          value.includes('image/jpeg') &&
-          value.includes('addWatermark') &&
-          value.includes('true')
+          value.includes(JSON.stringify(imagenModel.modelConfig.addWatermark)) &&
+          value.includes(JSON.stringify(imagenModel.modelConfig.safetySettings?.safetyFilterLevel)) &&
+          value.includes(JSON.stringify(imagenModel.modelConfig.safetySettings?.personFilterLevel)) &&
+          value.includes(JSON.stringify(imagenModel.modelConfig.imageFormat?.mimeType))
         );
       }),
       undefined
@@ -126,11 +122,12 @@ describe('ImagenModel', () => {
       mockResponse as Response
     );
     const prompt = 'A photorealistic image of a toy boat at sea.';
-    await imagenModel.generateImages(prompt, {
+    const requestConfig = {
       numberOfImages: 4,
       aspectRatio: ImagenAspectRatio.LANDSCAPE_16x9,
       negativePrompt: 'do not hallucinate'
-    });
+    };
+    await imagenModel.generateImages(prompt, requestConfig);
     expect(makeRequestStub).to.be.calledWith(
       'publishers/google/models/my-model',
       request.Task.PREDICT,
@@ -138,12 +135,54 @@ describe('ImagenModel', () => {
       false,
       match((value: string) => {
         return (
-          value.includes('sampleCount') &&
-          value.includes('4') &&
-          value.includes('aspectRatio') &&
-          value.includes('16:9') &&
-          value.includes('negativePrompt') &&
-          value.includes('do not hallucinate')
+          value.includes(`"sampleCount":${requestConfig.numberOfImages}`) &&
+          value.includes(`"aspectRatio":"${requestConfig.aspectRatio}"`) &&
+          value.includes(`"negativePrompt":"${requestConfig.negativePrompt}"`)
+        );
+      }),
+      undefined
+    );
+
+    restore();
+  });
+  it('generateImages makes a request to predict with model-level and request-level image configs', async () => {
+    const imagenModel = new ImagenModel(fakeVertexAI, {
+      model: 'my-model',
+      addWatermark: true,
+      imageFormat: { mimeType: 'image/jpeg', compressionQuality: 75 },
+      safetySettings: {
+        safetyFilterLevel: ImagenSafetyFilterLevel.BLOCK_ONLY_HIGH,
+        personFilterLevel: ImagenPersonFilterLevel.ALLOW_ADULT
+      }
+    });
+
+    const mockResponse = getMockResponse(
+      'unary-success-generate-images-base64.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    const prompt = 'A photorealistic image of a toy boat at sea.';
+    const requestConfig = {
+      numberOfImages: 4,
+      aspectRatio: ImagenAspectRatio.LANDSCAPE_16x9,
+      negativePrompt: 'do not hallucinate'
+    };
+    await imagenModel.generateImages(prompt, requestConfig);
+    expect(makeRequestStub).to.be.calledWith(
+      'publishers/google/models/my-model',
+      request.Task.PREDICT,
+      match.any,
+      false,
+      match((value: string) => {
+        return (
+          value.includes(JSON.stringify(imagenModel.modelConfig.addWatermark)) &&
+          value.includes(JSON.stringify(imagenModel.modelConfig.safetySettings?.safetyFilterLevel)) &&
+          value.includes(JSON.stringify(imagenModel.modelConfig.safetySettings?.personFilterLevel)) &&
+          value.includes(JSON.stringify(imagenModel.modelConfig.imageFormat?.mimeType)) &&
+          value.includes(`"sampleCount":${requestConfig.numberOfImages}`) &&
+          value.includes(`"aspectRatio":"${requestConfig.aspectRatio}"`) &&
+          value.includes(`"negativePrompt":"${requestConfig.negativePrompt}"`)
         );
       }),
       undefined
@@ -158,7 +197,7 @@ describe('ImagenModel', () => {
 
     stub(globalThis, 'fetch').resolves({
       ok: false,
-      status: 400, // TODO (dlarocque): Get this from the mock response
+      status: 400,
       statusText: 'Bad Request',
       json: mockResponse.json
     } as Response);
