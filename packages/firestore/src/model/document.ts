@@ -371,6 +371,18 @@ export class MutableDocument implements Document {
     );
   }
 
+  emptyDocWithSystemFields(): MutableDocument {
+    return new MutableDocument(
+      this.key,
+      this.documentType,
+      this.version,
+      this.readTime,
+      this.createTime,
+      ObjectValue.empty(),
+      this.documentState
+    );
+  }
+
   toString(): string {
     return (
       `Document(${this.key}, ${this.version}, ${JSON.stringify(

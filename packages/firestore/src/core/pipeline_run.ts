@@ -40,9 +40,14 @@ import { toEvaluable } from './expressions';
 import { UserDataReader } from '../lite-api/user_data_reader';
 import { Query, queryMatches, queryMatchesAllDocuments } from './query';
 import { isPipeline, QueryOrPipeline } from './pipeline-util';
-import { DOCUMENT_KEY_NAME } from '../model/path';
+import {
+  CREATE_TIME_NAME,
+  DOCUMENT_KEY_NAME,
+  UPDATE_TIME_NAME
+} from '../model/path';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { Code } from '../util/error';
+import { ObjectValue } from '../model/object_value';
 
 export class CorePipeline {
   constructor(
@@ -193,6 +198,50 @@ function evaluateSort(
     }
 
     return 0;
+  });
+}
+
+function evaluateAddFields(
+  context: EvaluationContext,
+  stage: AddFields,
+  input: Array<PipelineInputOutput>
+): Array<PipelineInputOutput> {
+  return input.map(doc => {
+    for (const [fieldName, expr] of stage.fields.entries()) {
+      if (
+        fieldName === DOCUMENT_KEY_NAME ||
+        fieldName === CREATE_TIME_NAME ||
+        fieldName === UPDATE_TIME_NAME
+      ) {
+        continue;
+      }
+
+      const value = toEvaluable(expr).evaluate(context, doc);
+      if (value !== undefined) {
+        doc.data.set(Field.of(fieldName).fieldPath, value);
+      }
+    }
+
+    return doc;
+  });
+}
+
+function evaluateSelect(
+  context: EvaluationContext,
+  stage: Select,
+  input: Array<PipelineInputOutput>
+): Array<PipelineInputOutput> {
+  return input.map(doc => {
+    const newDoc = doc.emptyDocWithSystemFields();
+
+    for (const [fieldName, expr] of stage.projections.entries()) {
+      const value = toEvaluable(expr).evaluate(context, doc);
+      if (value !== undefined) {
+        newDoc.data.set(Field.of(fieldName).fieldPath, value);
+      }
+    }
+
+    return newDoc;
   });
 }
 
