@@ -41,6 +41,7 @@ import {
   isServerTimestamp
 } from './server_timestamps';
 import { TypeOrder } from './type_order';
+import {ByteString} from "../util/byte_string";
 
 export const TYPE_KEY = '__type__';
 const MAX_VALUE_TYPE = '__max__';
@@ -251,7 +252,9 @@ export function valueCompare(left: Value, right: Value): number {
         getLocalWriteTime(right)
       );
     case TypeOrder.StringValue:
-      return primitiveComparator(left.stringValue!, right.stringValue!);
+      return compareBlobs(stringValueToUint8Array(left.stringValue!),stringValueToUint8Array(right.stringValue!))
+    // return compareBlobs(left.stringValue!, right.stringValue!);
+    // return primitiveComparator(left.stringValue!, right.stringValue!);
     case TypeOrder.BlobValue:
       return compareBlobs(left.bytesValue!, right.bytesValue!);
     case TypeOrder.RefValue:
@@ -267,6 +270,12 @@ export function valueCompare(left: Value, right: Value): number {
     default:
       throw fail('Invalid value type: ' + leftType);
   }
+}
+
+function stringValueToUint8Array(stringValue: string): Uint8Array {
+  // Use TextEncoder to convert the string to UTF-8 encoded bytes
+  const encoder = new TextEncoder();
+  return encoder.encode(stringValue);
 }
 
 function compareNumbers(left: Value, right: Value): number {
