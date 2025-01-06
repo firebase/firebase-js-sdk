@@ -2220,7 +2220,7 @@ apiDescribe('Queries', persistence => {
     }
   ).timeout('90s');
 
-  it.only('snapshot listener sorts cross type numbers same way as server', async () => {
+  it('snapshot listener sorts unicode strings the same way as server', async () => {
     const testDocs = {
       'a': { value: 'Łukasiewicz' },
       'b': { value: 'Sierpiński' },

@@ -41,7 +41,6 @@ import {
   isServerTimestamp
 } from './server_timestamps';
 import { TypeOrder } from './type_order';
-import {ByteString} from "../util/byte_string";
 
 export const TYPE_KEY = '__type__';
 const MAX_VALUE_TYPE = '__max__';
