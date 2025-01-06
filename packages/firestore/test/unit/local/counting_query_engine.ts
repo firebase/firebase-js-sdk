@@ -95,7 +95,8 @@ export class CountingQueryEngine extends QueryEngine {
       this.wrapRemoteDocumentCache(localDocuments.remoteDocumentCache),
       localDocuments.mutationQueue,
       this.wrapOverlayCache(localDocuments.documentOverlayCache),
-      localDocuments.indexManager
+      localDocuments.indexManager,
+      localDocuments.pipelineResultsCache
     );
     return super.initialize(view, indexManager);
   }

@@ -87,6 +87,7 @@ import {
 import { newTestFirestore } from '../../util/api_helpers';
 import { Pipeline } from '../../../src/lite-api/pipeline';
 import { CorePipeline } from '../../../src/core/pipeline_run';
+import { TargetId } from '../../../src/core/types';
 
 const TEST_TARGET_ID = 1;
 
@@ -104,13 +105,14 @@ const db = newTestFirestore();
  * A LocalDocumentsView wrapper that inspects the arguments to
  * `getDocumentsMatchingQuery()` to detect index-free execution.
  */
-class TestLocalDocumentsView extends LocalDocumentsView {
+export class TestLocalDocumentsView extends LocalDocumentsView {
   expectFullCollectionScan: boolean | undefined;
 
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: QueryOrPipeline,
     offset: IndexOffset,
+    targetId: TargetId | undefined,
     context?: QueryContext
   ): PersistencePromise<DocumentMap> {
     const skipsDocumentsBeforeSnapshot =
@@ -121,7 +123,13 @@ class TestLocalDocumentsView extends LocalDocumentsView {
       'Observed query execution mode did not match expectation'
     );
 
-    return super.getDocumentsMatchingQuery(transaction, query, offset, context);
+    return super.getDocumentsMatchingQuery(
+      transaction,
+      query,
+      offset,
+      targetId,
+      context
+    );
   }
 }
 
@@ -320,7 +328,8 @@ function genericQueryEngineTest(
       remoteDocumentCache,
       mutationQueue,
       documentOverlayCache,
-      underlyingIndexManager
+      underlyingIndexManager,
+      persistence.getPipelineResultsCache()
     );
     queryEngine.initialize(localDocuments, underlyingIndexManager);
 

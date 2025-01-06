@@ -94,7 +94,6 @@ import {
   DbNamedQueryStore,
   DbPipelineResultsKeyPath,
   DbPipelineResultsStore,
-  DbPipelineResultsTargetIdIndex,
   DbPrimaryClientStore,
   DbRemoteDocumentCollectionGroupIndex,
   DbRemoteDocumentCollectionGroupIndexPath,
@@ -534,11 +533,13 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
             this.serializer,
             user
           );
-          // NOTE: The index manager and the reference delegate are
+          // NOTE: The index manager, the reference delegate and the pipelineResultsCache are
           // irrelevant for the purpose of recalculating and saving
           // overlays. We can therefore simply use the memory
           // implementation.
           const indexManager = memoryPersistence.getIndexManager(user);
+          const pipelineResultsCache =
+            memoryPersistence.getPipelineResultsCache();
           const mutationQueue = IndexedDbMutationQueue.forUser(
             user,
             this.serializer,
@@ -549,7 +550,8 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
             remoteDocumentCache,
             mutationQueue,
             documentOverlayCache,
-            indexManager
+            indexManager,
+            pipelineResultsCache
           );
           return localDocumentsView
             .recalculateAndSaveOverlaysForDocumentKeys(

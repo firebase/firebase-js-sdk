@@ -44,7 +44,7 @@ import {
   QueryOrPipeline
 } from '../core/pipeline-util';
 import { ResourcePath } from '../model/path';
-import { pipelineMatches } from '../core/pipeline_run';
+import { pipelineEvaluate } from '../core/pipeline_run';
 
 export type DocumentSizer = (doc: Document) => number;
 
@@ -191,7 +191,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
       // the documents we need to match the query against.
       collectionPath = ResourcePath.fromString(getPipelineCollection(query)!);
       matcher = (doc: Document) =>
-        pipelineMatches(query, doc as MutableDocument);
+        pipelineEvaluate(query, doc as MutableDocument);
     } else {
       // Documents are ordered by key, so we can use a prefix scan to narrow down
       // the documents we need to match the query against.

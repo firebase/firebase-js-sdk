@@ -74,13 +74,14 @@ export function runPipeline(
   return current;
 }
 
-export function pipelineMatches(
+export function pipelineEvaluate(
   pipeline: CorePipeline,
   data: PipelineInputOutput
-): boolean {
+): PipelineInputOutput | undefined {
   // TODO(pipeline): this is not true for aggregations, and we need to examine if there are other
   // stages that will not work this way.
-  return runPipeline(pipeline, [data]).length > 0;
+  const results = runPipeline(pipeline, [data]);
+  return results.length === 1 ? results[0] : undefined;
 }
 
 export function queryOrPipelineMatches(
@@ -88,7 +89,7 @@ export function queryOrPipelineMatches(
   data: PipelineInputOutput
 ): boolean {
   return isPipeline(query)
-    ? pipelineMatches(query, data)
+    ? !!pipelineEvaluate(query, data)
     : queryMatches(query, data);
 }
 
@@ -235,6 +236,14 @@ function evaluateSelect(
     const newDoc = doc.emptyDocWithSystemFields();
 
     for (const [fieldName, expr] of stage.projections.entries()) {
+      if (
+        fieldName === DOCUMENT_KEY_NAME ||
+        fieldName === CREATE_TIME_NAME ||
+        fieldName === UPDATE_TIME_NAME
+      ) {
+        continue;
+      }
+
       const value = toEvaluable(expr).evaluate(context, doc);
       if (value !== undefined) {
         newDoc.data.set(Field.of(fieldName).fieldPath, value);

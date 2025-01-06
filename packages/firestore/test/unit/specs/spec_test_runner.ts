@@ -193,6 +193,7 @@ import {
 import { newTestFirestore } from '../../util/api_helpers';
 import { targetIsPipelineTarget } from '../../../src/core/target';
 import { CorePipeline } from '../../../src/core/pipeline_run';
+import { isArrayEqual } from '../../../src/util/array';
 
 use(chaiExclude);
 

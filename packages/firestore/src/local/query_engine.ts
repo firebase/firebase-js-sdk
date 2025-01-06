@@ -21,6 +21,7 @@ import {
   LimitType,
   newQueryComparator,
   Query,
+  queryEvaluate,
   queryMatches,
   queryMatchesAllDocuments,
   queryToTarget,
@@ -58,10 +59,11 @@ import {
 } from '../core/pipeline-util';
 import * as querystring from 'node:querystring';
 import {
-  pipelineMatches,
+  pipelineEvaluate,
   pipelineMatchesAllDocuments
 } from '../core/pipeline_run';
 import { compareByKey } from '../model/document_comparator';
+import { TargetId } from '../core/types';
 
 const DEFAULT_INDEX_AUTO_CREATION_MIN_COLLECTION_SIZE = 100;
 
@@ -154,7 +156,8 @@ export class QueryEngine {
     transaction: PersistenceTransaction,
     query: QueryOrPipeline,
     lastLimboFreeSnapshotVersion: SnapshotVersion,
-    remoteKeys: DocumentKeySet
+    remoteKeys: DocumentKeySet,
+    targetId: TargetId | undefined = undefined
   ): PersistencePromise<DocumentMap> {
     debugAssert(this.initialized, 'initialize() not called');
 
@@ -175,7 +178,8 @@ export class QueryEngine {
           transaction,
           query,
           remoteKeys,
-          lastLimboFreeSnapshotVersion
+          lastLimboFreeSnapshotVersion,
+          targetId
         ).next(result => {
           queryResult.result = result;
         });
@@ -185,19 +189,22 @@ export class QueryEngine {
           return;
         }
         const context = new QueryContext();
-        return this.executeFullCollectionScan(transaction, query, context).next(
-          result => {
-            queryResult.result = result;
-            if (this.indexAutoCreationEnabled) {
-              return this.createCacheIndexes(
-                transaction,
-                query,
-                context,
-                result.size
-              );
-            }
+        return this.executeFullCollectionScan(
+          transaction,
+          query,
+          targetId,
+          context
+        ).next(result => {
+          queryResult.result = result;
+          if (this.indexAutoCreationEnabled) {
+            return this.createCacheIndexes(
+              transaction,
+              query,
+              context,
+              result.size
+            );
           }
-        );
+        });
       })
       .next(() => queryResult.result!);
   }
@@ -346,7 +353,8 @@ export class QueryEngine {
                       transaction,
                       previousResults,
                       query as Query,
-                      offset
+                      offset,
+                      undefined
                     ) as PersistencePromise<DocumentMap | null>;
                   });
               });
@@ -362,7 +370,8 @@ export class QueryEngine {
     transaction: PersistenceTransaction,
     query: QueryOrPipeline,
     remoteKeys: DocumentKeySet,
-    lastLimboFreeSnapshotVersion: SnapshotVersion
+    lastLimboFreeSnapshotVersion: SnapshotVersion,
+    targetId: TargetId | undefined
   ): PersistencePromise<DocumentMap | null> {
     if (
       isPipeline(query)
@@ -414,7 +423,8 @@ export class QueryEngine {
           newIndexOffsetSuccessorFromReadTime(
             lastLimboFreeSnapshotVersion,
             INITIAL_LARGEST_BATCH_ID
-          )
+          ),
+          targetId
         ).next<DocumentMap | null>(results => results);
       }
     );
@@ -426,22 +436,23 @@ export class QueryEngine {
     documents: DocumentMap
   ): SortedSet<Document> {
     let queryResults: SortedSet<Document>;
-    let matcher: (doc: Document) => boolean;
+    let evaluator: (doc: Document) => Document | undefined;
     if (isPipeline(query)) {
       // TODO(pipeline): the order here does not actually matter, not until we implement
       // refill logic for pipelines as well.
       queryResults = new SortedSet<Document>(compareByKey);
-      matcher = doc => pipelineMatches(query, doc as MutableDocument);
+      evaluator = doc => pipelineEvaluate(query, doc as MutableDocument);
     } else {
       // Sort the documents and re-apply the query filter since previously
       // matching documents do not necessarily still match the query.
       queryResults = new SortedSet<Document>(newQueryComparator(query));
-      matcher = doc => queryMatches(query, doc);
+      evaluator = doc => queryEvaluate(query, doc);
     }
 
     documents.forEach((_, maybeDoc) => {
-      if (matcher(maybeDoc)) {
-        queryResults = queryResults.add(maybeDoc);
+      const evaluated = evaluator(maybeDoc);
+      if (!!evaluated) {
+        queryResults = queryResults.add(evaluated);
       }
     });
     return queryResults;
@@ -507,6 +518,7 @@ export class QueryEngine {
   private executeFullCollectionScan(
     transaction: PersistenceTransaction,
     query: QueryOrPipeline,
+    targetId: TargetId | undefined,
     context: QueryContext
   ): PersistencePromise<DocumentMap> {
     if (getLogLevel() <= LogLevel.DEBUG) {
@@ -521,6 +533,7 @@ export class QueryEngine {
       transaction,
       query,
       IndexOffset.min(),
+      targetId,
       context
     );
   }
@@ -533,11 +546,12 @@ export class QueryEngine {
     transaction: PersistenceTransaction,
     indexedResults: Iterable<Document>,
     query: QueryOrPipeline,
-    offset: IndexOffset
+    offset: IndexOffset,
+    targetId: TargetId | undefined
   ): PersistencePromise<DocumentMap> {
     // Retrieve all results for documents that were updated since the offset.
     return this.localDocumentsView
-      .getDocumentsMatchingQuery(transaction, query, offset)
+      .getDocumentsMatchingQuery(transaction, query, offset, targetId)
       .next(remainingResults => {
         // Merge with existing results
         indexedResults.forEach(d => {

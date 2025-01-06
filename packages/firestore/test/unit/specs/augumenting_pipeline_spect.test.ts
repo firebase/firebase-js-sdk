@@ -27,25 +27,32 @@ import { toCorePipeline } from '../../../src/core/pipeline-util';
 
 describeSpec(
   'Augmenting pipelines:',
-  ['explicit-pipeline', 'no-web'],
+  ['explicit-pipeline', 'exclusive'],
   () => {
     const db = newTestFirestore();
     specTest(
       'Contents of pipeline are cleared when listen is removed.',
-      ['eager-gc'],
+      ['eager-gc', 'exclusive'],
       () => {
-        const query1 = toCorePipeline(
+        const pipeline1 = toCorePipeline(
           db.pipeline().collection('collection').select('key')
         );
-        const docA = doc('collection/a', 1000, { key: 'a' });
+        const query1 = query('collection');
+        const docA = doc('collection/a', 1000, { key: 'a', value: 42 });
+        const docASelected = doc('collection/a', 1000, { key: 'a' });
         return (
           spec()
             .userListens(query1)
             .watchAcksFull(query1, 1000, docA)
             .expectEvents(query1, { added: [docA] })
+            .userListens(pipeline1)
+            .expectEvents(pipeline1, { added: [docASelected], fromCache: true })
+            .watchAcksFull(pipeline1, 1000, docA)
+            .expectEvents(pipeline1, { fromCache: false })
             .userUnlistens(query1)
+            .userUnlistens(pipeline1)
             // should get no events.
-            .userListens(query1)
+            .userListens(pipeline1)
         );
       }
     );

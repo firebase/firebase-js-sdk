@@ -106,6 +106,7 @@ import {
   targetOrPipelineEqual
 } from '../core/pipeline-util';
 import { CorePipeline } from '../core/pipeline_run';
+import { PipelineResultsCache } from './pipeline_results_cache';
 
 export const LOG_TAG = 'LocalStore';
 
@@ -172,6 +173,7 @@ class LocalStoreImpl implements LocalStore {
 
   /** The set of all cached bundle metadata and named queries. */
   bundleCache: BundleCache;
+  pipelineResultsCache: PipelineResultsCache;
 
   /** Maps a target to its `TargetData`. */
   targetCache: TargetCache;
@@ -213,6 +215,7 @@ class LocalStoreImpl implements LocalStore {
     this.remoteDocuments = persistence.getRemoteDocumentCache();
     this.targetCache = persistence.getTargetCache();
     this.bundleCache = persistence.getBundleCache();
+    this.pipelineResultsCache = persistence.getPipelineResultsCache();
 
     this.initializeUserComponents(initialUser);
   }
@@ -230,7 +233,8 @@ class LocalStoreImpl implements LocalStore {
       this.remoteDocuments,
       this.mutationQueue,
       this.documentOverlayCache,
-      this.indexManager
+      this.indexManager,
+      this.pipelineResultsCache
     );
     this.remoteDocuments.setIndexManager(this.indexManager);
     this.queryEngine.initialize(this.localDocuments, this.indexManager);
@@ -1101,6 +1105,7 @@ export function localStoreExecuteQuery(
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   let lastLimboFreeSnapshotVersion = SnapshotVersion.min();
   let remoteKeys = documentKeySet();
+  let targetId: TargetId | undefined = undefined;
 
   return localStoreImpl.persistence.runTransaction(
     'Execute query',
@@ -1115,6 +1120,7 @@ export function localStoreExecuteQuery(
           if (targetData) {
             lastLimboFreeSnapshotVersion =
               targetData.lastLimboFreeSnapshotVersion;
+            targetId = targetData.targetId;
             return localStoreImpl.targetCache
               .getMatchingKeysForTargetId(txn, targetData.targetId)
               .next(result => {
@@ -1129,7 +1135,8 @@ export function localStoreExecuteQuery(
             usePreviousResults
               ? lastLimboFreeSnapshotVersion
               : SnapshotVersion.min(),
-            usePreviousResults ? remoteKeys : documentKeySet()
+            usePreviousResults ? remoteKeys : documentKeySet(),
+            targetId
           )
         )
         .next(documents => {

@@ -20,6 +20,7 @@ import {
   isCollectionGroupQuery,
   isDocumentQuery,
   Query,
+  queryEvaluate,
   queryMatches
 } from '../core/query';
 import { Timestamp } from '../lite-api/timestamp';
@@ -74,8 +75,17 @@ import {
 } from '../core/pipeline-util';
 import { Pipeline } from '../lite-api/pipeline';
 import { FirestoreError } from '../util/error';
-import { CorePipeline, pipelineMatches } from '../core/pipeline_run';
+import {
+  CorePipeline,
+  pipelineEvaluate,
+  runPipeline
+} from '../core/pipeline_run';
 import { SortedSet } from '../util/sorted_set';
+import {
+  PipelineCachedResults,
+  PipelineResultsCache
+} from './pipeline_results_cache';
+import { TargetId } from '../core/types';
 
 /**
  * A readonly view of the local state of all documents we're tracking (i.e. we
@@ -88,7 +98,8 @@ export class LocalDocumentsView {
     readonly remoteDocumentCache: RemoteDocumentCache,
     readonly mutationQueue: MutationQueue,
     readonly documentOverlayCache: DocumentOverlayCache,
-    readonly indexManager: IndexManager
+    readonly indexManager: IndexManager,
+    readonly pipelineResultsCache: PipelineResultsCache
   ) {}
 
   /**
@@ -377,6 +388,7 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     query: QueryOrPipeline,
     offset: IndexOffset,
+    targetId: TargetId | undefined,
     context?: QueryContext
   ): PersistencePromise<DocumentMap> {
     if (isPipeline(query)) {
@@ -384,6 +396,7 @@ export class LocalDocumentsView {
         transaction,
         query,
         offset,
+        targetId,
         context
       );
     } else if (isDocumentQuery(query)) {
@@ -556,12 +569,79 @@ export class LocalDocumentsView {
         return this.retrieveMatchingLocalDocuments(
           overlays,
           remoteDocuments,
-          doc => queryMatches(query, doc)
+          doc => queryEvaluate(query, doc)
         );
       });
   }
 
   private getDocumentsMatchingPipeline(
+    txn: PersistenceTransaction,
+    pipeline: CorePipeline,
+    offset: IndexOffset,
+    targetId: TargetId | undefined,
+    context?: QueryContext
+  ): PersistencePromise<DocumentMap> {
+    let results = documentMap();
+    let pipelineCachedResults: PipelineCachedResults | undefined = undefined;
+    return this.getDocumentsMatchingPipelineFromDocumentCache(
+      txn,
+      pipeline,
+      offset,
+      context
+    )
+      .next(rs => {
+        results = rs;
+
+        return !!targetId
+          ? this.pipelineResultsCache.getResults(txn, targetId)
+          : undefined;
+      })
+      .next(pipelineCacheResults => {
+        pipelineCachedResults = pipelineCacheResults;
+
+        const keys: DocumentKey[] = [];
+        pipelineCacheResults?.results.forEach(key => {
+          keys.push(key);
+        });
+        return this.getDocuments(txn, documentKeySet(...keys));
+      })
+      .next(docs => {
+        if (!pipelineCachedResults) {
+          return results;
+        }
+
+        // merge the two results based on document readtime and execution time.
+        let merged = pipelineCachedResults.results;
+        results.forEach((key, doc) => {
+          if (
+            doc.readTime.compareTo(pipelineCachedResults!.executionTime) > 0 ||
+            doc.hasLocalMutations
+          ) {
+            merged = merged.insert(key, doc as MutableDocument);
+          }
+        });
+
+        docs.forEach((key, doc) => {
+          if (
+            doc.readTime.compareTo(pipelineCachedResults!.executionTime) > 0 ||
+            doc.hasLocalMutations
+          ) {
+            const pipelineResult = runPipeline(pipeline, [
+              doc as MutableDocument
+            ]);
+            if (pipelineResult.length > 0) {
+              merged = merged.insert(key, pipelineResult[0]);
+            } else {
+              // local mutations exclude this doc from the results.
+              merged = merged.remove(key);
+            }
+          }
+        });
+        return merged;
+      });
+  }
+
+  private getDocumentsMatchingPipelineFromDocumentCache(
     txn: PersistenceTransaction,
     pipeline: CorePipeline,
     offset: IndexOffset,
@@ -580,7 +660,7 @@ export class LocalDocumentsView {
               pipeline,
               parent.child(collectionId)
             );
-            return this.getDocumentsMatchingPipeline(
+            return this.getDocumentsMatchingPipelineFromDocumentCache(
               txn,
               collectionPipeline,
               offset,
@@ -628,7 +708,7 @@ export class LocalDocumentsView {
           return this.retrieveMatchingLocalDocuments(
             overlays,
             remoteDocuments,
-            doc => pipelineMatches(pipeline, doc as MutableDocument)
+            doc => pipelineEvaluate(pipeline, doc as MutableDocument)
           );
         });
     }
@@ -637,7 +717,7 @@ export class LocalDocumentsView {
   private retrieveMatchingLocalDocuments(
     overlays: OverlayMap,
     remoteDocuments: MutableDocumentMap,
-    matcher: (d: Document) => boolean
+    evaluator: (d: Document) => Document | undefined
   ): DocumentMap {
     // As documents might match the query because of their overlay we need to
     // include documents for all overlays in the initial document set.
@@ -664,8 +744,9 @@ export class LocalDocumentsView {
         );
       }
       // Finally, insert the documents that still match the query
-      if (matcher(document)) {
-        results = results.insert(key, document);
+      const result = evaluator(document);
+      if (!!result) {
+        results = results.insert(key, result);
       }
     });
     return results;

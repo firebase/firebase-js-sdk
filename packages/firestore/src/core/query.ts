@@ -457,6 +457,13 @@ export function queryMatches(query: Query, doc: Document): boolean {
   );
 }
 
+export function queryEvaluate(
+  query: Query,
+  doc: Document
+): Document | undefined {
+  return queryMatches(query, doc) ? doc : undefined;
+}
+
 function queryMatchesPathAndCollectionGroup(
   query: Query,
   doc: Document
