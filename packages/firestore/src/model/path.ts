@@ -17,6 +17,7 @@
 
 import { Integer } from '@firebase/webchannel-wrapper/bloom-blob';
 
+import { compareUtf8Strings } from '../model/values';
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 
@@ -201,13 +202,7 @@ abstract class BasePath<B extends BasePath<B>> {
       );
     } else {
       // both non-numeric
-      if (lhs < rhs) {
-        return -1;
-      }
-      if (lhs > rhs) {
-        return 1;
-      }
-      return 0;
+      return compareUtf8Strings(lhs, rhs);
     }
   }
 

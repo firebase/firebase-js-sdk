@@ -54,8 +54,7 @@ import {
   writeBatch,
   CollectionReference,
   WriteBatch,
-  Firestore,
-  getDocsFromServer
+  Firestore
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -67,8 +66,7 @@ import {
   withRetry,
   withTestCollection,
   withTestDb,
-  checkOnlineAndOfflineResultsMatch,
-  toIds
+  checkOnlineAndOfflineResultsMatch
 } from '../util/helpers';
 import { USE_EMULATOR } from '../util/settings';
 import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
@@ -2219,32 +2217,6 @@ apiDescribe('Queries', persistence => {
       });
     }
   ).timeout('90s');
-
-  it('snapshot listener sorts unicode strings the same way as server', async () => {
-    const testDocs = {
-      'a': { value: 'Łukasiewicz' },
-      'b': { value: 'Sierpiński' },
-      'c': { value: '岩澤' },
-      'd': { value: '🄟' },
-      'e': { value: 'Ｐ' },
-      'f': { value: '︒' },
-      'g': { value: '🐵' },
-    };
-
-    return withTestCollection(persistence, testDocs, async collectionRef => {
-      const orderedQuery = query(collectionRef, orderBy('value'));
-
-      const getSnapshot = await getDocsFromServer(orderedQuery);
-      expect(toIds(getSnapshot)).to.deep.equal(["b", "a", "c", "f", "e", "d", "g"]);
-
-      const storeEvent = new EventsAccumulator<QuerySnapshot>();
-      const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
-      const watchSnapshot = await storeEvent.awaitEvent();
-      expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
-
-      unsubscribe();
-    });
-  });
 
   it('can query large documents with multi-byte character strings', () => {
     function randomMultiByteCharString(length: number): string {

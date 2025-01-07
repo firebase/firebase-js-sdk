@@ -251,8 +251,7 @@ export function valueCompare(left: Value, right: Value): number {
         getLocalWriteTime(right)
       );
     case TypeOrder.StringValue:
-      return compareBlobs(stringValueToUint8Array(left.stringValue!),stringValueToUint8Array(right.stringValue!))
-    // return compareBlobs(left.stringValue!, right.stringValue!);
+      return compareUtf8Strings(left.stringValue!, right.stringValue!);
     // return primitiveComparator(left.stringValue!, right.stringValue!);
     case TypeOrder.BlobValue:
       return compareBlobs(left.bytesValue!, right.bytesValue!);
@@ -275,6 +274,12 @@ function stringValueToUint8Array(stringValue: string): Uint8Array {
   // Use TextEncoder to convert the string to UTF-8 encoded bytes
   const encoder = new TextEncoder();
   return encoder.encode(stringValue);
+}
+
+export function compareUtf8Strings(left: string, right: string): number {
+  const leftBytes = stringValueToUint8Array(left);
+  const rightBytes = stringValueToUint8Array(right);
+  return compareBlobs(leftBytes, rightBytes);
 }
 
 function compareNumbers(left: Value, right: Value): number {
@@ -408,7 +413,7 @@ function compareMaps(left: MapValue, right: MapValue): number {
   rightKeys.sort();
 
   for (let i = 0; i < leftKeys.length && i < rightKeys.length; ++i) {
-    const keyCompare = primitiveComparator(leftKeys[i], rightKeys[i]);
+    const keyCompare = compareUtf8Strings(leftKeys[i], rightKeys[i]);
     if (keyCompare !== 0) {
       return keyCompare;
     }

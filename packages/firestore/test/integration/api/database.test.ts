@@ -2424,4 +2424,176 @@ apiDescribe('Database', persistence => {
       });
     });
   });
+
+  describe('Unicode strings', () => {
+    it('snapshot listener sorts unicode strings the same as server', async () => {
+      const testDocs = {
+        'a': { value: 'Łukasiewicz' },
+        'b': { value: 'Sierpiński' },
+        'c': { value: '岩澤' },
+        'd': { value: '🄟' },
+        'e': { value: 'Ｐ' },
+        'f': { value: '︒' },
+        'g': { value: '🐵' }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const orderedQuery = query(collectionRef, orderBy('value'));
+
+        const getSnapshot = await getDocsFromServer(orderedQuery);
+        expect(toIds(getSnapshot)).to.deep.equal([
+          'b',
+          'a',
+          'c',
+          'f',
+          'e',
+          'd',
+          'g'
+        ]);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+
+        unsubscribe();
+      });
+    });
+
+    it('snapshot listener sorts unicode strings in array the same  as server', async () => {
+      const testDocs = {
+        'a': { value: ['Łukasiewicz'] },
+        'b': { value: ['Sierpiński'] },
+        'c': { value: ['岩澤'] },
+        'd': { value: ['🄟'] },
+        'e': { value: ['Ｐ'] },
+        'f': { value: ['︒'] },
+        'g': { value: ['🐵'] }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const orderedQuery = query(collectionRef, orderBy('value'));
+
+        const getSnapshot = await getDocsFromServer(orderedQuery);
+        expect(toIds(getSnapshot)).to.deep.equal([
+          'b',
+          'a',
+          'c',
+          'f',
+          'e',
+          'd',
+          'g'
+        ]);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+
+        unsubscribe();
+      });
+    });
+
+    it('snapshot listener sorts unicode strings in map the same as server', async () => {
+      const testDocs = {
+        'a': { value: { foo: 'Łukasiewicz' } },
+        'b': { value: { foo: 'Sierpiński' } },
+        'c': { value: { foo: '岩澤' } },
+        'd': { value: { foo: '🄟' } },
+        'e': { value: { foo: 'Ｐ' } },
+        'f': { value: { foo: '︒' } },
+        'g': { value: { foo: '🐵' } }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const orderedQuery = query(collectionRef, orderBy('value'));
+
+        const getSnapshot = await getDocsFromServer(orderedQuery);
+        expect(toIds(getSnapshot)).to.deep.equal([
+          'b',
+          'a',
+          'c',
+          'f',
+          'e',
+          'd',
+          'g'
+        ]);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+
+        unsubscribe();
+      });
+    });
+
+    it('snapshot listener sorts unicode strings in map key the same as server', async () => {
+      const testDocs = {
+        'a': { value: { 'Łukasiewicz': true } },
+        'b': { value: { 'Sierpiński': true } },
+        'c': { value: { '岩澤': true } },
+        'd': { value: { '🄟': true } },
+        'e': { value: { 'Ｐ': true } },
+        'f': { value: { '︒': true } },
+        'g': { value: { '🐵': true } }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const orderedQuery = query(collectionRef, orderBy('value'));
+
+        const getSnapshot = await getDocsFromServer(orderedQuery);
+        expect(toIds(getSnapshot)).to.deep.equal([
+          'b',
+          'a',
+          'c',
+          'f',
+          'e',
+          'd',
+          'g'
+        ]);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+
+        unsubscribe();
+      });
+    });
+
+    // it('snapshot listener sorts unicode strings in document key the same as server', async () => {
+    //   const testDocs = {
+    //     'Łukasiewicz': { value: true },
+    //     'Sierpiński': { value: true },
+    //     '岩澤': { value: true },
+    //     '🄟': { value: true },
+    //     'Ｐ': { value: true },
+    //     '︒': { value: true },
+    //     '🐵': { value: true }
+    //   };
+    //
+    //   return withTestCollection(persistence, testDocs, async collectionRef => {
+    //     const orderedQuery = query(collectionRef, orderBy('value'));
+    //
+    //     const getSnapshot = await getDocsFromServer(orderedQuery);
+    //     expect(toIds(getSnapshot)).to.deep.equal([
+    //       'Sierpiński',
+    //       'Łukasiewicz',
+    //       '岩澤',
+    //       '︒',
+    //       'Ｐ',
+    //       '🄟',
+    //       '🐵'
+    //     ]);
+    //
+    //     const storeEvent = new EventsAccumulator<QuerySnapshot>();
+    //     const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+    //     const watchSnapshot = await storeEvent.awaitEvent();
+    //     expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+    //
+    //     unsubscribe();
+    //   });
+    // });
+  });
 });
