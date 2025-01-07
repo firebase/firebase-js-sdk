@@ -1,5 +1,23 @@
 # @firebase/messaging
 
+## 0.12.15
+
+### Patch Changes
+
+- [`1294e64c8`](https://github.com/firebase/firebase-js-sdk/commit/1294e64c813b6dbfb64f8dc24d90ec69a66f71ae) [#8661](https://github.com/firebase/firebase-js-sdk/pull/8661) (fixes [#7784](https://github.com/firebase/firebase-js-sdk/issues/7784)) - Fix an issue where PushManager.subscribe() is called too soon after registering the default service worker.
+
+## 0.12.14
+
+### Patch Changes
+
+- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
+
+- Updated dependencies [[`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1)]:
+  - @firebase/component@0.6.11
+  - @firebase/installations@0.6.11
+  - @firebase/messaging-interop-types@0.2.3
+  - @firebase/util@1.10.2
+
 ## 0.12.13
 
 ### Patch Changes

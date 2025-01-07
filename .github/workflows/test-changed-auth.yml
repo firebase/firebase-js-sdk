@@ -59,7 +59,7 @@ jobs:
       - name: Set up Node (20)
         uses: actions/setup-node@v3
         with:
-          node-version: 20.x
+          node-version: 22.10.0
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
@@ -70,19 +70,12 @@ jobs:
         run: xvfb-run yarn test:changed auth
   test-firefox:
     name: Test Auth on Firefox If Changed
-    # Whatever version of Firefox comes with 22.04 is causing Firefox
-    # startup to hang when launched by karma. Need to look further into
-    # why.
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: install Firefox stable
-        run: |
-          sudo apt-get update
-          sudo apt-get install firefox
-          sudo apt-get install wget
-
+        run: npx @puppeteer/browsers install firefox@stable
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
@@ -91,7 +84,7 @@ jobs:
       - name: Set up Node (20)
         uses: actions/setup-node@v3
         with:
-          node-version: 20.x
+          node-version: 22.10.0
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
@@ -115,7 +108,7 @@ jobs:
       - name: Set up Node (20)
         uses: actions/setup-node@v3
         with:
-          node-version: 20.x
+          node-version: 22.10.0
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json

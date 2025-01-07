@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "4.7.4",
+  "version": "4.7.5",
   "engines": {
     "node": ">=18.0.0"
   },
@@ -94,10 +94,10 @@
     "lite/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.6.10",
-    "@firebase/logger": "0.4.3",
-    "@firebase/util": "1.10.1",
-    "@firebase/webchannel-wrapper": "1.0.2",
+    "@firebase/component": "0.6.11",
+    "@firebase/logger": "0.4.4",
+    "@firebase/util": "1.10.2",
+    "@firebase/webchannel-wrapper": "1.0.3",
     "@grpc/grpc-js": "~1.9.0",
     "@grpc/proto-loader": "^0.7.8",
     "tslib": "^2.1.0"
@@ -106,9 +106,9 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.10.15",
-    "@firebase/app-compat": "0.2.45",
-    "@firebase/auth": "1.8.0",
+    "@firebase/app": "0.10.17",
+    "@firebase/app-compat": "0.2.47",
+    "@firebase/auth": "1.8.1",
     "@rollup/plugin-alias": "5.1.0",
     "@rollup/plugin-json": "4.1.0",
     "@types/eslint": "7.29.0",
@@ -124,7 +124,7 @@
     "rollup-plugin-terser": "7.0.2",
     "rollup-plugin-typescript2": "0.31.2",
     "rollup-plugin-dts": "5.3.1",
-    "ts-node": "10.9.1",
+    "ts-node": "10.9.2",
     "typescript": "5.5.4"
   },
   "repository": {
