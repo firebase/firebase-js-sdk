@@ -77,6 +77,7 @@ export async function readOrCreateDebugTokenFromStorage(): Promise<string> {
 
   if (!existingDebugToken) {
     // create a new debug token
+    // This function is only available in secure contexts. See https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts
     const newToken = crypto.randomUUID();
     // We don't need to block on writing to indexeddb
     // In case persistence failed, a new debug token will be generated every time the page is refreshed.
