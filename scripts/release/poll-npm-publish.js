@@ -35,10 +35,10 @@ async function pollNpmPublish() {
           reject(error);
         }
         const version = stdout.trim();
-        if (!version.match(/^\d+\.\d+\.\d+$/)) {
+        if (!version.match(/^\d+(\.[-\d\w]+)+$/)) {
           reject(
             new Error(
-              `npm view did not return a valid semver version. Received: ${version}`
+              `npm view did not return a valid tag. Received: ${version}`
             )
           );
         }
