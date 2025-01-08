@@ -372,6 +372,34 @@ export class InMemoryStorage extends Storage {
   }
 
   async setCustomSignals(customSignals: CustomSignals): Promise<CustomSignals> {
-    return Promise.resolve({});
+    const combinedSignals = {
+      ...this.storage['custom_signals'] as CustomSignals,
+      ...customSignals,
+    };
+
+    const updatedSignals = Object.fromEntries(
+      Object.entries(combinedSignals)
+        .filter(([_, v]) => v !== null)
+        .map(([k, v]) => {
+          // Stringify numbers to store a map of string keys and values which can be sent
+          // as-is in a fetch call.
+          if (typeof v === 'number') {
+            return [k, v.toString()];
+          }
+          return [k, v];
+        })
+    );
+
+    if (
+      Object.keys(updatedSignals).length > RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
+    ) {
+      throw ERROR_FACTORY.create(ErrorCode.CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS, {
+        maxSignals: RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
+      });
+    }
+
+    this.storage['custom_signals'] = updatedSignals;
+
+    return Promise.resolve(this.storage['custom_signals'] as CustomSignals);
   }
 }

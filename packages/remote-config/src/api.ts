@@ -24,7 +24,7 @@ import {
   Value,
   RemoteConfigOptions
 } from './public_types';
-import { RemoteConfigAbortSignal, FetchResponse } from './client/remote_config_fetch_client';
+import { RemoteConfigAbortSignal } from './client/remote_config_fetch_client';
 import {
   RC_COMPONENT_NAME,
   RC_CUSTOM_SIGNAL_KEY_MAX_LENGTH,
