@@ -4,4 +4,4 @@
 'firebase': minor
 ---
 
-Add custom signals support to RC in client environments
+Added support for custom signal targeting in Remote Config. Use `setCustomSignals` API for setting custom signals and use them to build custom targeting conditions in Remote Config.
