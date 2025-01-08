@@ -115,10 +115,7 @@ jobs:
 
     steps:
       - name: install Firefox stable
-        run: |
-          sudo apt-get update
-          sudo apt-get install firefox
-          sudo apt-get install wget
+        run: npx @puppeteer/browsers install firefox@stable
 
       - name: Checkout Repo
         uses: actions/checkout@v4
