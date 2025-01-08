@@ -29,6 +29,7 @@ import { arrayEquals, primitiveComparator } from '../util/misc';
 import { forEach, objectSize } from '../util/obj';
 import { isNegativeZero } from '../util/types';
 
+import { compareBlobs, compareUtf8Strings } from './comparator';
 import { DocumentKey } from './document_key';
 import {
   normalizeByteString,
@@ -270,18 +271,6 @@ export function valueCompare(left: Value, right: Value): number {
   }
 }
 
-function stringValueToUint8Array(stringValue: string): Uint8Array {
-  // Use TextEncoder to convert the string to UTF-8 encoded bytes
-  const encoder = new TextEncoder();
-  return encoder.encode(stringValue);
-}
-
-export function compareUtf8Strings(left: string, right: string): number {
-  const leftBytes = stringValueToUint8Array(left);
-  const rightBytes = stringValueToUint8Array(right);
-  return compareBlobs(leftBytes, rightBytes);
-}
-
 function compareNumbers(left: Value, right: Value): number {
   const leftNumber = normalizeNumber(left.integerValue || left.doubleValue);
   const rightNumber = normalizeNumber(right.integerValue || right.doubleValue);
@@ -348,15 +337,6 @@ function compareGeoPoints(left: LatLng, right: LatLng): number {
     normalizeNumber(left.longitude),
     normalizeNumber(right.longitude)
   );
-}
-
-function compareBlobs(
-  left: string | Uint8Array,
-  right: string | Uint8Array
-): number {
-  const leftBytes = normalizeByteString(left);
-  const rightBytes = normalizeByteString(right);
-  return leftBytes.compareTo(rightBytes);
 }
 
 function compareArrays(left: ArrayValue, right: ArrayValue): number {

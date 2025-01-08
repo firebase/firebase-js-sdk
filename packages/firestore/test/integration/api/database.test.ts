@@ -2562,38 +2562,38 @@ apiDescribe('Database', persistence => {
       });
     });
 
-    // it('snapshot listener sorts unicode strings in document key the same as server', async () => {
-    //   const testDocs = {
-    //     'Łukasiewicz': { value: true },
-    //     'Sierpiński': { value: true },
-    //     '岩澤': { value: true },
-    //     '🄟': { value: true },
-    //     'Ｐ': { value: true },
-    //     '︒': { value: true },
-    //     '🐵': { value: true }
-    //   };
-    //
-    //   return withTestCollection(persistence, testDocs, async collectionRef => {
-    //     const orderedQuery = query(collectionRef, orderBy('value'));
-    //
-    //     const getSnapshot = await getDocsFromServer(orderedQuery);
-    //     expect(toIds(getSnapshot)).to.deep.equal([
-    //       'Sierpiński',
-    //       'Łukasiewicz',
-    //       '岩澤',
-    //       '︒',
-    //       'Ｐ',
-    //       '🄟',
-    //       '🐵'
-    //     ]);
-    //
-    //     const storeEvent = new EventsAccumulator<QuerySnapshot>();
-    //     const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
-    //     const watchSnapshot = await storeEvent.awaitEvent();
-    //     expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
-    //
-    //     unsubscribe();
-    //   });
-    // });
+    it('snapshot listener sorts unicode strings in document key the same as server', async () => {
+      const testDocs = {
+        'Łukasiewicz': { value: true },
+        'Sierpiński': { value: true },
+        '岩澤': { value: true },
+        '🄟': { value: true },
+        'Ｐ': { value: true },
+        '︒': { value: true },
+        '🐵': { value: true }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const orderedQuery = query(collectionRef, orderBy(documentId()));
+
+        const getSnapshot = await getDocsFromServer(orderedQuery);
+        expect(toIds(getSnapshot)).to.deep.equal([
+          'Sierpiński',
+          'Łukasiewicz',
+          '岩澤',
+          '︒',
+          'Ｐ',
+          '🄟',
+          '🐵'
+        ]);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+
+        unsubscribe();
+      });
+    });
   });
 });
