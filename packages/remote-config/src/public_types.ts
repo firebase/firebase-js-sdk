@@ -134,6 +134,23 @@ export type FetchStatus = 'no-fetch-yet' | 'success' | 'failure' | 'throttle';
  */
 export type LogLevel = 'debug' | 'error' | 'silent';
 
+/**
+ * Defines the type for representing custom signals and their values.
+ *
+ * <p>The values in CustomSignals must be one of the following types:
+ *
+ * <ul>
+ *   <li><code>string</code>
+ *   <li><code>number</code>
+ *   <li><code>null</code>
+ * </ul>
+ *
+ * @public
+ */
+export interface CustomSignals {
+  [key: string]: string | number | null;
+}
+
 declare module '@firebase/component' {
   interface NameServiceMapping {
     'remote-config': RemoteConfig;
