@@ -355,19 +355,23 @@ export class IndexedDbStorage extends Storage {
 }
 
 export class InMemoryStorage extends Storage {
-  private db: { [key: string]: unknown } = {};
+  private storage: { [key: string]: unknown } = {};
 
   async get<T>(key: ProjectNamespaceKeyFieldValue): Promise<T> {
-    return Promise.resolve(this.db[key] as T);
+    return Promise.resolve(this.storage[key] as T);
   }
 
   async set<T>(key: ProjectNamespaceKeyFieldValue, value: T): Promise<void> {
-    this.db[key] = value;
+    this.storage[key] = value;
     return Promise.resolve(undefined);
   }
 
   async delete(key: ProjectNamespaceKeyFieldValue): Promise<void> {
-    this.db[key] = undefined;
+    this.storage[key] = undefined;
     return Promise.resolve();
+  }
+
+  async setCustomSignals(customSignals: CustomSignals): Promise<CustomSignals> {
+    return Promise.resolve({});
   }
 }
