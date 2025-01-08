@@ -16,7 +16,6 @@
  */
 
 import { FirebaseApp, initializeApp } from '@firebase/app';
-import { uuidv4 } from '@firebase/util';
 import { expect } from 'chai';
 
 import {
@@ -105,7 +104,7 @@ export function waitFor(waitTimeInMS: number) {
 
 // Creates a unique reference using uuid
 export function getUniqueRef(db: Database) {
-  const path = uuidv4();
+  const path = crypto.randomUUID();
   return ref(db, path);
 }
 

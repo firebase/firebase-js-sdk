@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { uuidv4 } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
@@ -51,11 +50,11 @@ interface TaskListResponse {
 
 const SEEDED_DATA = [
   {
-    id: uuidv4(),
+    id: crypto.randomUUID(),
     content: 'task 1'
   },
   {
-    id: uuidv4(),
+    id: crypto.randomUUID(),
     content: 'task 2'
   }
 ];
