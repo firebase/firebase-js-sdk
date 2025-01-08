@@ -26,6 +26,7 @@ import { ComponentContainer } from '@firebase/component';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ERROR_FACTORY, AppError } from './errors';
 import { name as packageName, version } from '../package.json';
+import { base64Decode } from '@firebase/util';
 
 export class FirebaseServerAppImpl
   extends FirebaseAppImpl
@@ -34,6 +35,7 @@ export class FirebaseServerAppImpl
   private readonly _serverConfig: FirebaseServerAppSettings;
   private _finalizationRegistry: FinalizationRegistry<object> | null;
   private _refCount: number;
+  private _installationsId: string | null;
 
   constructor(
     options: FirebaseOptions | FirebaseAppImpl,
@@ -66,6 +68,26 @@ export class FirebaseServerAppImpl
       automaticDataCollectionEnabled,
       ...serverConfig
     };
+
+    // Parse the installationAuthToken if provided.
+    // TODO: kick off the token verification process.
+    this._installationsId = null;
+    if (this._serverConfig.installationsAuthToken !== undefined) {
+      try {
+        const decodedToken = base64Decode(
+          this._serverConfig.installationsAuthToken.split('.')[1]
+        );
+        const tokenJSON = JSON.parse(decodedToken ? decodedToken : '');
+        this._installationsId = tokenJSON.fid;
+      } catch (e) {
+        console.warn(e);
+      }
+      if (this._installationsId === null) {
+        throw ERROR_FACTORY.create(
+          AppError.INVALID_SERVER_APP_INSTALLATIONS_AUTH_TOKEN
+        );
+      }
+    }
 
     this._finalizationRegistry = null;
     if (typeof FinalizationRegistry !== 'undefined') {
@@ -123,6 +145,11 @@ export class FirebaseServerAppImpl
   get settings(): FirebaseServerAppSettings {
     this.checkDestroyed();
     return this._serverConfig;
+  }
+
+  get installationsId(): string | null {
+    this.checkDestroyed();
+    return this._installationsId;
   }
 
   /**

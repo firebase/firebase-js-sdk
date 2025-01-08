@@ -24,6 +24,7 @@ module.exports = function (config) {
     ...karmaBase,
     // files to load into karma
     files,
+    exclude: ['src/**/*-server-app.test.ts'],
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha']

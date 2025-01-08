@@ -24,7 +24,8 @@ export const enum ErrorCode {
   INSTALLATION_NOT_FOUND = 'installation-not-found',
   REQUEST_FAILED = 'request-failed',
   APP_OFFLINE = 'app-offline',
-  DELETE_PENDING_REGISTRATION = 'delete-pending-registration'
+  DELETE_PENDING_REGISTRATION = 'delete-pending-registration',
+  SERVER_APP_MISSING_INSTALLATIONS_AUTH_TOKEN = 'server-app-missing-installations-auth-token'
 }
 
 const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
@@ -36,7 +37,9 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
     '{$requestName} request failed with error "{$serverCode} {$serverStatus}: {$serverMessage}"',
   [ErrorCode.APP_OFFLINE]: 'Could not process request. Application offline.',
   [ErrorCode.DELETE_PENDING_REGISTRATION]:
-    "Can't delete installation while there is a pending registration request."
+    "Can't delete installation while there is a pending registration request.",
+  [ErrorCode.SERVER_APP_MISSING_INSTALLATIONS_AUTH_TOKEN]:
+    'The instance of FirebaseServerApp was not initialized with a valid installationsAuthToken'
 };
 
 interface ErrorParams {

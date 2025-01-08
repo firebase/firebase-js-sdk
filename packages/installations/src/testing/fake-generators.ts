@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app';
+import { FirebaseApp, FirebaseServerApp } from '@firebase/app';
 import {
   Component,
   ComponentContainer,
@@ -26,6 +26,8 @@ import {
   FirebaseInstallationsImpl,
   AppConfig
 } from '../interfaces/installation-impl';
+
+export const FAKE_INSTALLATIONS_ID = 'abc123';
 
 export function getFakeApp(): FirebaseApp {
   return {
@@ -43,13 +45,29 @@ export function getFakeApp(): FirebaseApp {
   };
 }
 
+export function getFakeServerApp(
+  installationsAuthToken: string | null = null
+): FirebaseServerApp {
+  const app = getFakeApp() as any;
+  app.settings = {
+    automaticDataCollectionEnabled: true
+  };
+  if (installationsAuthToken !== null) {
+    app.settings.installationsAuthToken = installationsAuthToken;
+    app.installationsId = FAKE_INSTALLATIONS_ID;
+  }
+  return app;
+}
+
 export function getFakeAppConfig(
   customValues: Partial<AppConfig> = {}
 ): AppConfig {
   return { ...extractAppConfig(getFakeApp()), ...customValues };
 }
 
-export function getFakeInstallations(): FirebaseInstallationsImpl {
+export function getFakeInstallations(
+  app?: FirebaseApp
+): FirebaseInstallationsImpl {
   const container = new ComponentContainer('test');
   container.addComponent(
     new Component(
@@ -61,9 +79,9 @@ export function getFakeInstallations(): FirebaseInstallationsImpl {
       ComponentType.PRIVATE
     )
   );
-
+  const configuredApp: FirebaseApp = app ? app : getFakeApp();
   return {
-    app: getFakeApp(),
+    app: configuredApp,
     appConfig: getFakeAppConfig(),
     heartbeatServiceProvider: container.getProvider('heartbeat'),
     _delete: () => {

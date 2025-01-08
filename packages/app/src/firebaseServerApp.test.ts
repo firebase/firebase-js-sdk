@@ -19,7 +19,19 @@ import { expect } from 'chai';
 import '../test/setup';
 import { ComponentContainer } from '@firebase/component';
 import { FirebaseServerAppImpl } from './firebaseServerApp';
-import { FirebaseServerAppSettings } from './public-types';
+import { FirebaseApp, FirebaseServerAppSettings } from './public-types';
+
+const VALID_INSTATLLATIONS_AUTH_TOKEN_SECONDPART: string =
+  'foo.eyJhcHBJZCI6IjE6MDAwMDAwMDAwMDAwOndlYjowMDAwMDAwMDAwMDAwMDAwMDAwMDAwIiwiZXhwIjoiMDAwMDAwMD' +
+  'AwMCIsImZpZCI6IjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAiLCJwcm9qZWN0TnVtYmVyIjoiMDAwMDAwMDAwMDAwIn0.foo';
+
+const INVALID_INSTATLLATIONS_AUTH_TOKEN: string =
+  'foo.eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9eyJhcHBJZCI6IjE6MDAwMDAwMDAwMDAwOndlYjowMDAwMDAwMDAwMD' +
+  'AwMDAwMDAwMDAwIiwiZXhwIjowMDAwMDAwMDAwLCJwcm9qZWN0TnVtYmVyIjowMDAwMDAwMDAwMDB9.foo';
+
+const INVALID_INSTATLLATIONS_AUTH_TOKEN_ONE_PART: string =
+  'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9eyJhcHBJZCI6IjE6MDAwMDAwMDAwMDAwOndlYjowMDAwMDAwMDAwMD' +
+  'AwMDAwMDAwMDAwIiwiZXhwIjowMDAwMDAwMDAwLCJwcm9qZWN0TnVtYmVyIjowMDAwMDAwMDAwMDB9';
 
 describe('FirebaseServerApp', () => {
   it('has various accessors', () => {
@@ -154,5 +166,75 @@ describe('FirebaseServerApp', () => {
     );
 
     expect(JSON.stringify(app)).to.eql(undefined);
+  });
+
+  it('parses valid installationsAuthToken', () => {
+    const options = {
+      apiKey: 'APIKEY'
+    };
+
+    const serverAppSettings: FirebaseServerAppSettings = {
+      automaticDataCollectionEnabled: false,
+      installationsAuthToken: VALID_INSTATLLATIONS_AUTH_TOKEN_SECONDPART
+    };
+
+    let app: FirebaseApp | null = null;
+    try {
+      app = new FirebaseServerAppImpl(
+        options,
+        serverAppSettings,
+        'testName',
+        new ComponentContainer('test')
+      );
+    } catch (e) {}
+    expect(app).to.not.be.null;
+  });
+
+  it('invalid installationsAuthToken throws', () => {
+    const options = {
+      apiKey: 'APIKEY'
+    };
+
+    const serverAppSettings: FirebaseServerAppSettings = {
+      automaticDataCollectionEnabled: false,
+      installationsAuthToken: INVALID_INSTATLLATIONS_AUTH_TOKEN
+    };
+
+    let failed = false;
+    try {
+      new FirebaseServerAppImpl(
+        options,
+        serverAppSettings,
+        'testName',
+        new ComponentContainer('test')
+      );
+    } catch (e) {
+      failed = true;
+    }
+    expect(failed).to.be.true;
+  });
+
+  it('invalid single part installationsAuthToken throws', () => {
+    const options = {
+      apiKey: 'APIKEY'
+    };
+
+    const serverAppSettings: FirebaseServerAppSettings = {
+      automaticDataCollectionEnabled: false,
+      installationsAuthToken: INVALID_INSTATLLATIONS_AUTH_TOKEN_ONE_PART
+    };
+
+    let failed = false;
+    try {
+      new FirebaseServerAppImpl(
+        options,
+        serverAppSettings,
+        'testName',
+        new ComponentContainer('test')
+      );
+    } catch (e) {
+      failed = true;
+    }
+    expect(failed).to.be.true;
   });
 });
