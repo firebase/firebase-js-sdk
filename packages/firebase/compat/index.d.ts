@@ -2046,6 +2046,7 @@ declare namespace firebase.remoteConfig {
    * Defines levels of Remote Config logging.
    */
   export type LogLevel = 'debug' | 'error' | 'silent';
+
   /**
    * This method provides two different checks:
    *

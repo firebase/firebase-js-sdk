@@ -165,10 +165,7 @@ jobs:
 
   compat-test-firefox:
     name: Test Firestore Compatible on Firefox
-    # Whatever version of Firefox comes with 22.04 is causing Firefox
-    # startup to hang when launched by karma. Need to look further into
-    # why.
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
@@ -179,9 +176,7 @@ jobs:
       - name: Unzip build artifact
         run: tar xf build.tar.gz
       - name: install Firefox stable
-        run: |
-          sudo apt-get update
-          sudo apt-get install firefox
+        run: npx @puppeteer/browsers install firefox@stable
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -197,17 +192,12 @@ jobs:
     strategy:
       matrix:
         test-name: ["test:browser", "test:travis", "test:lite:browser", "test:browser:prod:nameddb", "test:lite:browser:nameddb"]
-    # Whatever version of Firefox comes with 22.04 is causing Firefox
-    # startup to hang when launched by karma. Need to look further into
-    # why.
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
       - name: install Firefox stable
-        run: |
-          sudo apt-get update
-          sudo apt-get install firefox
+        run: npx @puppeteer/browsers install firefox@stable
       - name: Download build archive
         uses: actions/download-artifact@v4
         with:

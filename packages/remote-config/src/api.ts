@@ -17,12 +17,17 @@
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
 import {
+  CustomSignals,
   LogLevel as RemoteConfigLogLevel,
   RemoteConfig,
   Value
 } from './public_types';
 import { RemoteConfigAbortSignal } from './client/remote_config_fetch_client';
-import { RC_COMPONENT_NAME } from './constants';
+import {
+  RC_COMPONENT_NAME,
+  RC_CUSTOM_SIGNAL_KEY_MAX_LENGTH,
+  RC_CUSTOM_SIGNAL_VALUE_MAX_LENGTH
+} from './constants';
 import { ErrorCode, hasErrorCode } from './errors';
 import { RemoteConfig as RemoteConfigImpl } from './remote_config';
 import { Value as ValueImpl } from './value';
@@ -114,11 +119,18 @@ export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
     abortSignal.abort();
   }, rc.settings.fetchTimeoutMillis);
 
+  const customSignals = rc._storageCache.getCustomSignals();
+  if (customSignals) {
+    rc._logger.debug(
+      `Fetching config with custom signals: ${JSON.stringify(customSignals)}`
+    );
+  }
   // Catches *all* errors thrown by client so status can be set consistently.
   try {
     await rc._client.fetch({
       cacheMaxAgeMillis: rc.settings.minimumFetchIntervalMillis,
-      signal: abortSignal
+      signal: abortSignal,
+      customSignals
     });
 
     await rc._storageCache.setLastFetchStatus('success');
@@ -257,4 +269,52 @@ export function setLogLevel(
  */
 function getAllKeys(obj1: {} = {}, obj2: {} = {}): string[] {
   return Object.keys({ ...obj1, ...obj2 });
+}
+
+/**
+ * Sets the custom signals for the app instance.
+ *
+ * @param remoteConfig - The {@link RemoteConfig} instance.
+ * @param customSignals - Map (key, value) of the custom signals to be set for the app instance. If
+ * a key already exists, the value is overwritten. Setting the value of a custom signal to null
+ * unsets the signal. The signals will be persisted locally on the client.
+ *
+ * @public
+ */
+export async function setCustomSignals(
+  remoteConfig: RemoteConfig,
+  customSignals: CustomSignals
+): Promise<void> {
+  const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;
+  if (Object.keys(customSignals).length === 0) {
+    return;
+  }
+
+  // eslint-disable-next-line guard-for-in
+  for (const key in customSignals) {
+    if (key.length > RC_CUSTOM_SIGNAL_KEY_MAX_LENGTH) {
+      rc._logger.error(
+        `Custom signal key ${key} is too long, max allowed length is ${RC_CUSTOM_SIGNAL_KEY_MAX_LENGTH}.`
+      );
+      return;
+    }
+    const value = customSignals[key];
+    if (
+      typeof value === 'string' &&
+      value.length > RC_CUSTOM_SIGNAL_VALUE_MAX_LENGTH
+    ) {
+      rc._logger.error(
+        `Value supplied for custom signal ${key} is too long, max allowed length is ${RC_CUSTOM_SIGNAL_VALUE_MAX_LENGTH}.`
+      );
+      return;
+    }
+  }
+
+  try {
+    await rc._storageCache.setCustomSignals(customSignals);
+  } catch (error) {
+    rc._logger.error(
+      `Error encountered while setting custom signals: ${error}`
+    );
+  }
 }

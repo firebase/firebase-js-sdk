@@ -51,6 +51,12 @@ jobs:
           TEST_ACCOUNT: ${{ secrets.TEST_ACCOUNT }}
         run: |
           echo "export const config = $PROJECT_CONFIG; export const testAccount = $TEST_ACCOUNT" > firebase-config.js
+      - name: Poll npm until version to test is available for install
+        run: |
+          echo "Polling npm for firebase@${{ github.event.client_payload.versionOrTag }}"
+          node ../scripts/release/poll-npm-publish.js
+        env:
+          VERSION: ${{ github.event.client_payload.versionOrTag }}
       - name: Yarn install
         run: |
           echo "Installing firebase@${{ github.event.client_payload.versionOrTag }}"
