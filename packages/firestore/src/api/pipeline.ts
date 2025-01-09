@@ -36,21 +36,18 @@ export class Pipeline<
    * @param db
    * @param userDataReader
    * @param userDataWriter
-   * @param documentReferenceFactory
    * @param stages
    */
   constructor(
     db: Firestore,
     userDataReader: UserDataReader,
     userDataWriter: AbstractUserDataWriter,
-    documentReferenceFactory: (id: DocumentKey) => DocumentReference,
     stages: Stage[]
   ) {
     super(
       db,
       userDataReader,
       userDataWriter,
-      documentReferenceFactory,
       stages
     );
   }
@@ -61,7 +58,6 @@ export class Pipeline<
    * @param db
    * @param userDataReader
    * @param userDataWriter
-   * @param documentReferenceFactory
    * @param stages
    * @param converter
    * @protected
@@ -70,7 +66,6 @@ export class Pipeline<
     db: Firestore,
     userDataReader: UserDataReader,
     userDataWriter: AbstractUserDataWriter,
-    documentReferenceFactory: (id: DocumentKey) => DocumentReference,
     stages: Stage[],
     converter: unknown = {}
   ): Pipeline {
@@ -78,7 +73,6 @@ export class Pipeline<
       db,
       userDataReader,
       userDataWriter,
-      documentReferenceFactory,
       stages
     );
   }
@@ -127,7 +121,7 @@ export class Pipeline<
             new PipelineResult(
               this._userDataWriter,
               element.key?.path
-                ? this._documentReferenceFactory(element.key)
+                ? new DocumentReference(firestore, null, element.key)
                 : undefined,
               element.fields,
               element.executionTime?.toTimestamp(),

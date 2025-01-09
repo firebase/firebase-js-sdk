@@ -69,6 +69,7 @@ import {ensureFirestoreConfigured} from "../api/database";
 import {firestoreClientExecutePipeline} from "../core/firestore_client";
 import {getDatastore} from "./components";
 import {invokeExecutePipeline} from "../remote/datastore";
+import {firestore} from "../../test/util/api_helpers";
 
 interface ReadableUserData {
   _readUserData(dataReader: UserDataReader): void;
@@ -133,7 +134,6 @@ export class Pipeline
    * @param _db
    * @param userDataReader
    * @param _userDataWriter
-   * @param _documentReferenceFactory
    * @param stages
    */
   constructor(
@@ -148,11 +148,6 @@ export class Pipeline
      * @private
      */
     public _userDataWriter: AbstractUserDataWriter,
-    /**
-     * @internal
-     * @private
-     */
-    public _documentReferenceFactory: (id: DocumentKey) => DocumentReference,
     private stages: Stage[]
   ) {}
 
@@ -193,7 +188,6 @@ export class Pipeline
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
       copy
     );
   }
@@ -238,7 +232,6 @@ export class Pipeline
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
       copy
     );
   }
@@ -296,7 +289,6 @@ export class Pipeline
    * @param db
    * @param userDataReader
    * @param userDataWriter
-   * @param documentReferenceFactory
    * @param stages
    * @protected
    */
@@ -304,7 +296,6 @@ export class Pipeline
     db: Firestore,
     userDataReader: UserDataReader,
     userDataWriter: AbstractUserDataWriter,
-    documentReferenceFactory: (id: DocumentKey) => DocumentReference,
     stages: Stage[],
     converter: unknown = {}
   ): Pipeline {
@@ -312,7 +303,6 @@ export class Pipeline
       db,
       userDataReader,
       userDataWriter,
-      documentReferenceFactory,
       stages
     );
   }
@@ -356,7 +346,6 @@ export class Pipeline
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
       copy
     );
   }
@@ -388,7 +377,6 @@ export class Pipeline
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
       copy
     );
   }
@@ -425,7 +413,6 @@ export class Pipeline
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
       copy
     );
   }
@@ -469,7 +456,6 @@ export class Pipeline
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
       copy
     );
   }
@@ -581,7 +567,6 @@ export class Pipeline
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
       copy
     );
   }
@@ -607,7 +592,6 @@ export class Pipeline
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
       copy
     );
   }
@@ -668,7 +652,6 @@ export class Pipeline
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
       copy
     );
   }
@@ -705,7 +688,6 @@ export class Pipeline
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
       copy
     );
   }
@@ -753,7 +735,7 @@ export class Pipeline
             new PipelineResult(
               this._userDataWriter,
               element.key?.path
-                ? this._documentReferenceFactory(element.key)
+                ? new DocumentReference(this._db, null,element.key)
                 : undefined,
               element.fields,
               element.executionTime?.toTimestamp(),

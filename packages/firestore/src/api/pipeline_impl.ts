@@ -57,9 +57,6 @@ export function pipeline(
         firestore,
         newUserDataReader(firestore),
         new ExpUserDataWriter(firestore),
-        (key: DocumentKey) => {
-          return new DocumentReference(firestore, null, key);
-        },
         stages);
     });
   } else {

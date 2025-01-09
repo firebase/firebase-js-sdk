@@ -75,9 +75,6 @@ export function pipeline(
         db,
         userDataReader,
         userDataWriter,
-        (key: DocumentKey) => {
-          return new DocumentReference(db, null, key);
-        },
         stages);
     });
   } else {
