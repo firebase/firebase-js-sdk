@@ -1,5 +1,23 @@
 # firebase
 
+## 11.1.0
+
+### Minor Changes
+
+- [`f05509e8c`](https://github.com/firebase/firebase-js-sdk/commit/f05509e8c526ce44656389ab9997a6e5ee957a3d) [#8609](https://github.com/firebase/firebase-js-sdk/pull/8609) - Add `.stream()` api for callable functions for consuming streaming responses.
+
+### Patch Changes
+
+- Updated dependencies [[`f05509e8c`](https://github.com/firebase/firebase-js-sdk/commit/f05509e8c526ce44656389ab9997a6e5ee957a3d), [`c540ba9ee`](https://github.com/firebase/firebase-js-sdk/commit/c540ba9eedd189ec8ac0932124d2cc400d1bd1d6), [`cb4309f13`](https://github.com/firebase/firebase-js-sdk/commit/cb4309f13a01a6c66eb502ae6f5d6fa93560ab06), [`1294e64c8`](https://github.com/firebase/firebase-js-sdk/commit/1294e64c813b6dbfb64f8dc24d90ec69a66f71ae)]:
+  - @firebase/functions@0.12.0
+  - @firebase/app@0.10.17
+  - @firebase/vertexai@1.0.2
+  - @firebase/data-connect@0.1.3
+  - @firebase/messaging@0.12.15
+  - @firebase/functions-compat@0.3.17
+  - @firebase/app-compat@0.2.47
+  - @firebase/messaging-compat@0.2.15
+
 ## 11.0.2
 
 ### Patch Changes

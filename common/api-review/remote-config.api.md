@@ -10,6 +10,12 @@ import { FirebaseApp } from '@firebase/app';
 export function activate(remoteConfig: RemoteConfig): Promise<boolean>;
 
 // @public
+export interface CustomSignals {
+    // (undocumented)
+    [key: string]: string | number | null;
+}
+
+// @public
 export function ensureInitialized(remoteConfig: RemoteConfig): Promise<void>;
 
 // @public
@@ -61,6 +67,9 @@ export interface RemoteConfigSettings {
     fetchTimeoutMillis: number;
     minimumFetchIntervalMillis: number;
 }
+
+// @public
+export function setCustomSignals(remoteConfig: RemoteConfig, customSignals: CustomSignals): Promise<void>;
 
 // @public
 export function setLogLevel(remoteConfig: RemoteConfig, logLevel: LogLevel): void;

@@ -117,4 +117,58 @@ describe('Storage', () => {
 
     expect(actualMetadata).to.be.undefined;
   });
+
+  it('sets and gets custom signals', async () => {
+    const customSignals = { key: 'value', key1: 'value1', key2: 1 };
+    const customSignalsInStorage = {
+      key: 'value',
+      key1: 'value1',
+      key2: '1'
+    };
+
+    await storage.setCustomSignals(customSignals);
+
+    const storedCustomSignals = await storage.getCustomSignals();
+
+    expect(storedCustomSignals).to.deep.eq(customSignalsInStorage);
+  });
+
+  it('upserts custom signals when key is present in storage', async () => {
+    const customSignals = { key: 'value', key1: 'value1' };
+    const updatedSignals = { key: 'value', key1: 'value2' };
+
+    await storage.setCustomSignals(customSignals);
+
+    await storage.setCustomSignals({ key1: 'value2' });
+
+    const storedCustomSignals = await storage.getCustomSignals();
+
+    expect(storedCustomSignals).to.deep.eq(updatedSignals);
+  });
+
+  it('deletes custom signal when value supplied is null', async () => {
+    const customSignals = { key: 'value', key1: 'value1' };
+    const updatedSignals = { key: 'value' };
+
+    await storage.setCustomSignals(customSignals);
+
+    await storage.setCustomSignals({ key1: null });
+
+    const storedCustomSignals = await storage.getCustomSignals();
+
+    expect(storedCustomSignals).to.deep.eq(updatedSignals);
+  });
+
+  it('throws an error when supplied with excess custom signals', async () => {
+    const customSignals: { [key: string]: string } = {};
+    for (let i = 0; i < 101; i++) {
+      customSignals[`key${i}`] = `value${i}`;
+    }
+
+    await expect(
+      storage.setCustomSignals(customSignals)
+    ).to.eventually.be.rejectedWith(
+      'Remote Config: Setting more than 100 custom signals is not supported.'
+    );
+  });
 });
