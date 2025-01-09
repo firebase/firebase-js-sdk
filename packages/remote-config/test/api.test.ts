@@ -1,18 +1,39 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { expect } from 'chai';
-import { ensureInitialized, fetchAndActivate, getRemoteConfig, getString } from '../src/index';
+import {
+  ensureInitialized,
+  fetchAndActivate,
+  getRemoteConfig,
+  getString
+} from '../src/index';
 import '../test/setup';
-import { deleteApp, FirebaseApp, initializeApp, _addOrOverwriteComponent } from '@firebase/app';
+import {
+  deleteApp,
+  FirebaseApp,
+  initializeApp,
+  _addOrOverwriteComponent
+} from '@firebase/app';
 import * as sinon from 'sinon';
 import { FetchResponse } from '../src/client/remote_config_fetch_client';
-import {
-  Component,
-  ComponentType
-} from '@firebase/component';
+import { Component, ComponentType } from '@firebase/component';
 import { FirebaseInstallations } from '@firebase/installations-types';
-import {
-  openDatabase,
-  APP_NAMESPACE_STORE,
-} from '../src/storage/storage';
+import { openDatabase, APP_NAMESPACE_STORE } from '../src/storage/storage';
 
 const fakeFirebaseConfig = {
   apiKey: 'api-key',
@@ -36,7 +57,7 @@ describe('Remote Config API', () => {
   const STUB_FETCH_RESPONSE: FetchResponse = {
     status: 200,
     eTag: 'asdf',
-    config: { 'foobar': 'hello world' },
+    config: { 'foobar': 'hello world' }
   };
   let fetchStub: sinon.SinonStub;
 
@@ -50,11 +71,11 @@ describe('Remote Config API', () => {
         () => {
           return {
             getId: () => Promise.resolve('fis-id'),
-            getToken: () => Promise.resolve('fis-token'),
+            getToken: () => Promise.resolve('fis-token')
           } as any as FirebaseInstallations;
         },
         ComponentType.PUBLIC
-      ) as any,
+      ) as any
     );
   });
 
@@ -65,16 +86,18 @@ describe('Remote Config API', () => {
   });
 
   function setFetchResponse(response: FetchResponse = { status: 200 }): void {
-    fetchStub.returns(Promise.resolve({
-      ok: response.status === 200,
-      status: response.status,
-      headers: new Headers({ ETag: response.eTag || '' }),
-      json: () =>
-        Promise.resolve({
-          entries: response.config,
-          state: 'OK'
-        })
-    } as Response));
+    fetchStub.returns(
+      Promise.resolve({
+        ok: response.status === 200,
+        status: response.status,
+        headers: new Headers({ ETag: response.eTag || '' }),
+        json: () =>
+          Promise.resolve({
+            entries: response.config,
+            state: 'OK'
+          })
+      } as Response)
+    );
   }
 
   it('allows multiple initializations if options are same', () => {
@@ -115,11 +138,14 @@ describe('Remote Config API', () => {
     await fetchAndActivate(rc);
     expect(fetchStub).to.be.calledOnceWith(
       'https://firebaseremoteconfig.googleapis.com/v1/projects/project-id/namespaces/altTemplate:fetch?key=api-key',
-      sinon.match.object);
+      sinon.match.object
+    );
   });
 
   it('hydrates with initialFetchResponse', async () => {
-    const rc = getRemoteConfig(app, { initialFetchResponse: STUB_FETCH_RESPONSE });
+    const rc = getRemoteConfig(app, {
+      initialFetchResponse: STUB_FETCH_RESPONSE
+    });
     await ensureInitialized(rc);
     expect(getString(rc, 'foobar')).to.equal('hello world');
   });

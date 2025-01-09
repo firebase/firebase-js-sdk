@@ -175,7 +175,9 @@ export abstract class Storage {
     return this.get<CustomSignals>('custom_signals');
   }
 
-  abstract setCustomSignals(customSignals: CustomSignals): Promise<CustomSignals>;
+  abstract setCustomSignals(
+    customSignals: CustomSignals
+  ): Promise<CustomSignals>;
   abstract get<T>(key: ProjectNamespaceKeyFieldValue): Promise<T | undefined>;
   abstract set<T>(key: ProjectNamespaceKeyFieldValue, value: T): Promise<void>;
   abstract delete(key: ProjectNamespaceKeyFieldValue): Promise<void>;
@@ -373,8 +375,8 @@ export class InMemoryStorage extends Storage {
 
   async setCustomSignals(customSignals: CustomSignals): Promise<CustomSignals> {
     const combinedSignals = {
-      ...this.storage['custom_signals'] as CustomSignals,
-      ...customSignals,
+      ...(this.storage['custom_signals'] as CustomSignals),
+      ...customSignals
     };
 
     const updatedSignals = Object.fromEntries(

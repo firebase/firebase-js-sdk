@@ -23,7 +23,7 @@ import { isIndexedDBAvailable } from '@firebase/util';
 import {
   Component,
   ComponentType,
-  ComponentContainer,
+  ComponentContainer
 } from '@firebase/component';
 import { Logger, LogLevel as FirebaseLogLevel } from '@firebase/logger';
 import { RemoteConfig, RemoteConfigOptions } from './public_types';
@@ -79,9 +79,9 @@ export function registerRemoteConfig(): void {
     }
     const namespace = options?.templateId || 'firebase';
 
-    const storage = isIndexedDBAvailable() ? 
-        new IndexedDbStorage(appId, app.name, namespace) :
-        new InMemoryStorage();
+    const storage = isIndexedDBAvailable()
+      ? new IndexedDbStorage(appId, app.name, namespace)
+      : new InMemoryStorage();
     const storageCache = new StorageCache(storage);
 
     const logger = new Logger(packageName);

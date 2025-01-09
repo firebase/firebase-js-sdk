@@ -42,7 +42,10 @@ import { LogLevel as FirebaseLogLevel } from '@firebase/logger';
  *
  * @public
  */
-export function getRemoteConfig(app: FirebaseApp = getApp(), options: RemoteConfigOptions = {}): RemoteConfig {
+export function getRemoteConfig(
+  app: FirebaseApp = getApp(),
+  options: RemoteConfigOptions = {}
+): RemoteConfig {
   app = getModularInstance(app);
   const rcProvider = _getProvider(app, RC_COMPONENT_NAME);
   if (rcProvider.isInitialized()) {
@@ -63,7 +66,9 @@ export function getRemoteConfig(app: FirebaseApp = getApp(), options: RemoteConf
       rc._storage.setActiveConfigEtag(options.initialFetchResponse?.eTag || ''),
       rc._storageCache.setLastSuccessfulFetchTimestampMillis(Date.now()),
       rc._storageCache.setLastFetchStatus('success'),
-      rc._storageCache.setActiveConfig(options.initialFetchResponse?.config || {})
+      rc._storageCache.setActiveConfig(
+        options.initialFetchResponse?.config || {}
+      )
     ]).then();
     // The storageCache methods above set their in-memory fields sycnhronously, so it's
     // safe to declare our initialization complete at this point.
@@ -249,7 +254,7 @@ export function getValue(remoteConfig: RemoteConfig, key: string): Value {
   if (!rc._isInitializationComplete) {
     rc._logger.debug(
       `A value was requested for key "${key}" before SDK initialization completed.` +
-      ' Await on ensureInitialized if the intent was to get a previously activated value.'
+        ' Await on ensureInitialized if the intent was to get a previously activated value.'
     );
   }
   const activeConfig = rc._storageCache.getActiveConfig();
@@ -260,7 +265,7 @@ export function getValue(remoteConfig: RemoteConfig, key: string): Value {
   }
   rc._logger.debug(
     `Returning static value for key "${key}".` +
-    ' Define a default or remote value if this is unintentional.'
+      ' Define a default or remote value if this is unintentional.'
   );
   return new ValueImpl('static');
 }

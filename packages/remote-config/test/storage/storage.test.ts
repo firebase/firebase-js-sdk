@@ -36,15 +36,14 @@ async function clearDatabase(): Promise<void> {
 }
 
 describe('Storage', () => {
-
   const indexedDbTestCase = {
     getStorage: () => new IndexedDbStorage('appId', 'appName', 'namespace'),
-    name: 'IndexedDbStorage',
+    name: 'IndexedDbStorage'
   };
 
   const inMemoryStorage = {
     getStorage: () => new InMemoryStorage(),
-    name: 'InMemoryStorage',
+    name: 'InMemoryStorage'
   };
 
   beforeEach(async () => {
@@ -53,9 +52,9 @@ describe('Storage', () => {
 
   it(`${indexedDbTestCase.name} constructs a composite key`, async () => {
     // This is defensive, but the cost of accidentally changing the key composition is high.
-    expect(indexedDbTestCase.getStorage().createCompositeKey('throttle_metadata')).to.eq(
-      'appId,appName,namespace,throttle_metadata'
-    );
+    expect(
+      indexedDbTestCase.getStorage().createCompositeKey('throttle_metadata')
+    ).to.eq('appId,appName,namespace,throttle_metadata');
   });
 
   for (const { name, getStorage } of [indexedDbTestCase, inMemoryStorage]) {
@@ -92,7 +91,9 @@ describe('Storage', () => {
       it('sets and gets last successful fetch response', async () => {
         const lastSuccessfulFetchResponse = { status: 200 } as FetchResponse;
 
-        await storage.setLastSuccessfulFetchResponse(lastSuccessfulFetchResponse);
+        await storage.setLastSuccessfulFetchResponse(
+          lastSuccessfulFetchResponse
+        );
 
         const actualConfig = await storage.getLastSuccessfulFetchResponse();
 
