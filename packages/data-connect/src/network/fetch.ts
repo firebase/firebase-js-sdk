@@ -30,9 +30,14 @@ function getGoogApiClientValue(_isUsingGen: boolean): string {
   }
   return str;
 }
+export interface DataConnectFetchBody<T> {
+  name: string;
+  operationName: string;
+  variables: T;
+}
 export function dcFetch<T, U>(
   url: string,
-  body: U,
+  body: DataConnectFetchBody<U>,
   { signal }: AbortController,
   appId: string | null,
   accessToken: string | null,
@@ -95,7 +100,7 @@ export function dcFetch<T, U>(
         logError('DataConnect error while performing request: ' + stringified);
         throw new DataConnectError(Code.OTHER, stringified);
       }
-      return res as { data: T; errors: Error[] };
+      return res;
     });
 }
 interface MessageObject {
