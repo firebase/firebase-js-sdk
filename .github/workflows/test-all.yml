@@ -114,6 +114,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - name: install Chrome stable
+      run: |
+        npx @puppeteer/browsers install chrome@stable
+        chromeVersionString=$(ls chrome)
+        if [ "$CHROME_VALIDATED_VERSION" != "$chromeVersionString" ]; then
+        echo "::warning ::The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
+        echo "::warning ::Previously validated version: ${CHROME_VALIDATED_VERSION} vs. Installed version: $chromeVersionString"
+        echo "CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE" >> "$GITHUB_ENV"
+        fi
     - name: Test Env TEMP
       run: |
         echo $CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE
