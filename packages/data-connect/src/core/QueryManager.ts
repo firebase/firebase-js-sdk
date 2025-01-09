@@ -105,9 +105,10 @@ export class QueryManager {
       variables: queryRef.variables,
       refType: QUERY_STR
     });
-    const trackedQuery = this._queries.get(
-      key
-    ) as TrackedQuery<Data, Variables>;
+    const trackedQuery = this._queries.get(key) as TrackedQuery<
+      Data,
+      Variables
+    >;
     const subscription = {
       userCallback: onResultCallback,
       errCallback: onErrorCallback
