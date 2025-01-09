@@ -66,7 +66,7 @@ describe('Storage', () => {
         storage = getStorage();
       });
 
-      it(`sets and gets last fetch attempt status`, async () => {
+      it('sets and gets last fetch attempt status', async () => {
         const expectedStatus = 'success';
 
         await storage.setLastFetchStatus(expectedStatus);
@@ -76,7 +76,7 @@ describe('Storage', () => {
         expect(actualStatus).to.deep.eq(expectedStatus);
       });
 
-      it(`sets and gets last fetch success timestamp`, async () => {
+      it('sets and gets last fetch success timestamp', async () => {
         const lastSuccessfulFetchTimestampMillis = 123;
 
         await storage.setLastSuccessfulFetchTimestampMillis(
@@ -89,7 +89,7 @@ describe('Storage', () => {
         expect(actualMetadata).to.deep.eq(lastSuccessfulFetchTimestampMillis);
       });
 
-      it(`sets and gets last successful fetch response`, async () => {
+      it('sets and gets last successful fetch response', async () => {
         const lastSuccessfulFetchResponse = { status: 200 } as FetchResponse;
 
         await storage.setLastSuccessfulFetchResponse(lastSuccessfulFetchResponse);
@@ -99,7 +99,7 @@ describe('Storage', () => {
         expect(actualConfig).to.deep.eq(lastSuccessfulFetchResponse);
       });
 
-      it(`sets and gets active config`, async () => {
+      it('sets and gets active config', async () => {
         const expectedConfig = { key: 'value' };
 
         await storage.setActiveConfig(expectedConfig);
@@ -109,7 +109,7 @@ describe('Storage', () => {
         expect(storedConfig).to.deep.eq(expectedConfig);
       });
 
-      it(`sets and gets active config etag`, async () => {
+      it('sets and gets active config etag', async () => {
         const expectedEtag = 'etag';
 
         await storage.setActiveConfigEtag(expectedEtag);
@@ -119,7 +119,7 @@ describe('Storage', () => {
         expect(storedConfigEtag).to.deep.eq(expectedEtag);
       });
 
-      it(`sets, gets and deletes throttle metadata`, async () => {
+      it('sets, gets and deletes throttle metadata', async () => {
         const expectedMetadata = {
           throttleEndTimeMillis: 1
         } as ThrottleMetadata;
@@ -137,7 +137,7 @@ describe('Storage', () => {
         expect(actualMetadata).to.be.undefined;
       });
 
-      it(`sets and gets custom signals`, async () => {
+      it('sets and gets custom signals', async () => {
         const customSignals = { key: 'value', key1: 'value1', key2: 1 };
         const customSignalsInStorage = {
           key: 'value',
@@ -152,7 +152,7 @@ describe('Storage', () => {
         expect(storedCustomSignals).to.deep.eq(customSignalsInStorage);
       });
 
-      it(`upserts custom signals when key is present in storage`, async () => {
+      it('upserts custom signals when key is present in storage', async () => {
         const customSignals = { key: 'value', key1: 'value1' };
         const updatedSignals = { key: 'value', key1: 'value2' };
 
@@ -165,7 +165,7 @@ describe('Storage', () => {
         expect(storedCustomSignals).to.deep.eq(updatedSignals);
       });
 
-      it(`deletes custom signal when value supplied is null`, async () => {
+      it('deletes custom signal when value supplied is null', async () => {
         const customSignals = { key: 'value', key1: 'value1' };
         const updatedSignals = { key: 'value' };
 
@@ -178,7 +178,7 @@ describe('Storage', () => {
         expect(storedCustomSignals).to.deep.eq(updatedSignals);
       });
 
-      it(`throws an error when supplied with excess custom signals`, async () => {
+      it('throws an error when supplied with excess custom signals', async () => {
         const customSignals: { [key: string]: string } = {};
         for (let i = 0; i < 101; i++) {
           customSignals[`key${i}`] = `value${i}`;

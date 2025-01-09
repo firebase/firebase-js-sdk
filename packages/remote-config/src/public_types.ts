@@ -18,6 +18,8 @@
 import { FirebaseApp } from '@firebase/app';
 import { FetchResponse } from './client/remote_config_fetch_client';
 
+export { FetchResponse, FirebaseRemoteConfigObject } from './client/remote_config_fetch_client';
+
 /**
  * Options for Remote Config initialization.
  * 
