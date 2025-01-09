@@ -113,8 +113,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
     - name: Test Env TEMP
       run: |
         echo $CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE
@@ -139,7 +137,7 @@ jobs:
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       run: |
-        xvfb-run yarn test:changed auth
+        xvfb-run yarn lerna run test:ci --scope '@firebase/auth*'
         node scripts/print_test_logs.js
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
