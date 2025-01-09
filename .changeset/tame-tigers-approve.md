@@ -1,5 +1,5 @@
 ---
-"@firebase/data-connect": patch
+"@firebase/data-connect": minor
 ---
 
 Updated to include promise instead of promiselike
