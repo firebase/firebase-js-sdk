@@ -16,18 +16,16 @@
  */
 
 import { Pipeline } from '../api/pipeline';
-import { PipelineSource } from '../lite-api/pipeline-source';
-import { firestoreClientExecutePipeline } from '../core/firestore_client';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult } from '../lite-api/pipeline-result';
+import { PipelineSource } from '../lite-api/pipeline-source';
+import { Stage } from '../lite-api/stage';
 import { newUserDataReader } from '../lite-api/user_data_reader';
-import { DocumentKey } from '../model/document_key';
 import { cast } from '../util/input_validation';
 
-import { Firestore, ensureFirestoreConfigured } from './database';
-import { DocumentReference, Query } from './reference';
+import { Firestore } from './database';
+import { Query } from './reference';
 import { ExpUserDataWriter } from './user_data_writer';
-import {Stage} from "../lite-api/stage";
 
 declare module './database' {
   interface Firestore {
@@ -57,7 +55,8 @@ export function pipeline(
         firestore,
         newUserDataReader(firestore),
         new ExpUserDataWriter(firestore),
-        stages);
+        stages
+      );
     });
   } else {
     let result;
@@ -76,9 +75,7 @@ export function pipeline(
   }
 }
 
-export function execute(
-  pipeline: LitePipeline
-): Promise<Array<PipelineResult>> {
+export function execute(pipeline: LitePipeline): Promise<PipelineResult[]> {
   return pipeline.execute();
 }
 

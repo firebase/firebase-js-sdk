@@ -17,19 +17,20 @@
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
-import { DocumentKey } from '../model/document_key';
 import { ObjectValue } from '../model/object_value';
 import {
   ExecutePipelineRequest,
   StructuredPipeline,
   Stage as ProtoStage
 } from '../protos/firestore_proto_api';
+import { invokeExecutePipeline } from '../remote/datastore';
 import {
   getEncodedDatabaseId,
   JsonProtoSerializer,
   ProtoSerializable
 } from '../remote/serializer';
 
+import { getDatastore } from './components';
 import { Firestore } from './database';
 import {
   Accumulator,
@@ -43,7 +44,7 @@ import {
   Selectable
 } from './expressions';
 import { PipelineResult } from './pipeline-result';
-import { DocumentData, DocumentReference } from './reference';
+import { DocumentReference } from './reference';
 import {
   AddFields,
   Aggregate,
@@ -64,12 +65,6 @@ import {
   UserDataSource
 } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
-import {cast} from "../util/input_validation";
-import {ensureFirestoreConfigured} from "../api/database";
-import {firestoreClientExecutePipeline} from "../core/firestore_client";
-import {getDatastore} from "./components";
-import {invokeExecutePipeline} from "../remote/datastore";
-import {firestore} from "../../test/util/api_helpers";
 
 interface ReadableUserData {
   _readUserData(dataReader: UserDataReader): void;
@@ -125,9 +120,7 @@ function isReadableUserData(value: any): value is ReadableUserData {
 /**
  * Base-class implementation
  */
-export class Pipeline
-  implements ProtoSerializable<ExecutePipelineRequest>
-{
+export class Pipeline implements ProtoSerializable<ExecutePipelineRequest> {
   /**
    * @internal
    * @private
@@ -299,12 +292,7 @@ export class Pipeline
     stages: Stage[],
     converter: unknown = {}
   ): Pipeline {
-    return new Pipeline(
-      db,
-      userDataReader,
-      userDataWriter,
-      stages
-    );
+    return new Pipeline(db, userDataReader, userDataWriter, stages);
   }
 
   /**
@@ -723,7 +711,7 @@ export class Pipeline
    *
    * @return A Promise representing the asynchronous pipeline execution.
    */
-  execute(): Promise<Array<PipelineResult>> {
+  execute(): Promise<PipelineResult[]> {
     const datastore = getDatastore(this._db);
     return invokeExecutePipeline(datastore, this).then(result => {
       const docs = result
@@ -735,7 +723,7 @@ export class Pipeline
             new PipelineResult(
               this._userDataWriter,
               element.key?.path
-                ? new DocumentReference(this._db, null,element.key)
+                ? new DocumentReference(this._db, null, element.key)
                 : undefined,
               element.fields,
               element.executionTime?.toTimestamp(),

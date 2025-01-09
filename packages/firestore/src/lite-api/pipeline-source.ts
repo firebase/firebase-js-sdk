@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import { Pipeline } from './pipeline';
 import { DocumentReference } from './reference';
 import {
   CollectionGroupSource,
   CollectionSource,
   DatabaseSource,
-  DocumentsSource, Stage
+  DocumentsSource,
+  Stage
 } from './stage';
 
 /**
@@ -43,26 +43,18 @@ export class PipelineSource<PipelineType> {
   ) {}
 
   collection(collectionPath: string): PipelineType {
-    return this._createPipeline(
-      [new CollectionSource(collectionPath)]
-    );
+    return this._createPipeline([new CollectionSource(collectionPath)]);
   }
 
   collectionGroup(collectionId: string): PipelineType {
-    return this._createPipeline(
-      [new CollectionGroupSource(collectionId)]
-    );
+    return this._createPipeline([new CollectionGroupSource(collectionId)]);
   }
 
   database(): PipelineType {
-    return this._createPipeline(
-      [new DatabaseSource()]
-    );
+    return this._createPipeline([new DatabaseSource()]);
   }
 
   documents(docs: DocumentReference[]): PipelineType {
-    return this._createPipeline(
-      [DocumentsSource.of(docs)]
-    );
+    return this._createPipeline([DocumentsSource.of(docs)]);
   }
 }

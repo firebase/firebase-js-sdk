@@ -15,43 +15,18 @@
  * limitations under the License.
  */
 
+import { firestoreClientExecutePipeline } from '../core/firestore_client';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult } from '../lite-api/pipeline-result';
-import { DocumentData, DocumentReference } from '../lite-api/reference';
+import { DocumentReference } from '../lite-api/reference';
 import { Stage } from '../lite-api/stage';
 import { UserDataReader } from '../lite-api/user_data_reader';
 import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
-import { DocumentKey } from '../model/document_key';
+import { cast } from '../util/input_validation';
 
-import {ensureFirestoreConfigured, Firestore} from './database';
-import {cast} from "../util/input_validation";
-import {firestoreClientExecutePipeline} from "../core/firestore_client";
+import { ensureFirestoreConfigured, Firestore } from './database';
 
-export class Pipeline<
-  AppModelType = DocumentData
-> extends LitePipeline {
-  /**
-   * @internal
-   * @private
-   * @param db
-   * @param userDataReader
-   * @param userDataWriter
-   * @param stages
-   */
-  constructor(
-    db: Firestore,
-    userDataReader: UserDataReader,
-    userDataWriter: AbstractUserDataWriter,
-    stages: Stage[]
-  ) {
-    super(
-      db,
-      userDataReader,
-      userDataWriter,
-      stages
-    );
-  }
-
+export class Pipeline extends LitePipeline {
   /**
    * @internal
    * @private
@@ -69,12 +44,7 @@ export class Pipeline<
     stages: Stage[],
     converter: unknown = {}
   ): Pipeline {
-    return new Pipeline(
-      db,
-      userDataReader,
-      userDataWriter,
-      stages
-    );
+    return new Pipeline(db, userDataReader, userDataWriter, stages);
   }
 
   /**
@@ -108,7 +78,7 @@ export class Pipeline<
    *
    * @return A Promise representing the asynchronous pipeline execution.
    */
-  execute(): Promise<Array<PipelineResult>> {
+  execute(): Promise<PipelineResult[]> {
     const firestore = cast(this._db, Firestore);
     const client = ensureFirestoreConfigured(firestore);
     return firestoreClientExecutePipeline(client, this).then(result => {

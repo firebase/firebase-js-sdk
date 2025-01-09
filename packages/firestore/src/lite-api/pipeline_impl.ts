@@ -15,18 +15,14 @@
  * limitations under the License.
  */
 
-import { DocumentKey } from '../model/document_key';
-import { invokeExecutePipeline } from '../remote/datastore';
-
-import { getDatastore } from './components';
 import { Firestore } from './database';
 import { Pipeline } from './pipeline';
 import { PipelineResult } from './pipeline-result';
 import { PipelineSource } from './pipeline-source';
-import { DocumentReference, Query } from './reference';
+import { Query } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
+import { Stage } from './stage';
 import { newUserDataReader } from './user_data_reader';
-import {Stage} from "./stage";
 
 declare module './database' {
   interface Firestore {
@@ -45,9 +41,7 @@ declare module './reference' {
  * @param pipeline Execute this pipeline.
  * @beta
  */
-export function execute(
-  pipeline: Pipeline
-): Promise<Array<PipelineResult>> {
+export function execute(pipeline: Pipeline): Promise<PipelineResult[]> {
   return pipeline.execute();
 }
 
@@ -71,11 +65,7 @@ export function pipeline(
     const userDataWriter = new LiteUserDataWriter(db);
     const userDataReader = newUserDataReader(db);
     return new PipelineSource<Pipeline>((stages: Stage[]) => {
-      return  new Pipeline(
-        db,
-        userDataReader,
-        userDataWriter,
-        stages);
+      return new Pipeline(db, userDataReader, userDataWriter, stages);
     });
   } else {
     let pipeline;
