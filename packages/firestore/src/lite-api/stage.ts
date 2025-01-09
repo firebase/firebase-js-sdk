@@ -204,7 +204,7 @@ export class DocumentsSource implements Stage {
 export class Where implements Stage {
   name = 'where';
 
-  constructor(private condition: FilterCondition & Expr) {}
+  constructor(private condition: FilterCondition) {}
 
   /**
    * @internal

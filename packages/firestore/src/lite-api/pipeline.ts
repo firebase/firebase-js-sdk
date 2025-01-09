@@ -351,7 +351,7 @@ export class Pipeline<AppModelType = DocumentData>
    * @param condition The {@link FilterCondition} to apply.
    * @return A new Pipeline object with this stage appended to the stage list.
    */
-  where(condition: FilterCondition & Expr): Pipeline<AppModelType> {
+  where(condition: FilterCondition): Pipeline<AppModelType> {
     const copy = this.stages.map(s => s);
     this.readUserData('where', condition);
     copy.push(new Where(condition));

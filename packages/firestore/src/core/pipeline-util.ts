@@ -174,7 +174,7 @@ export function isFirestoreValue(obj: any): obj is ProtoValue {
 
 export function toPipelineFilterCondition(
   f: FilterInternal
-): FilterCondition & Expr {
+): FilterCondition {
   if (f instanceof FieldFilterInternal) {
     const field = Field.of(f.field.toString());
     if (isNanValue(f.value)) {
