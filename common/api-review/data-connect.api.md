@@ -11,14 +11,6 @@ import { FirebaseError } from '@firebase/util';
 import { LogLevelString } from '@firebase/logger';
 import { Provider } from '@firebase/component';
 
-// @public (undocumented)
-export interface CancellableOperation<T> extends PromiseLike<{
-    data: T;
-}> {
-    // (undocumented)
-    cancel: () => void;
-}
-
 // @public
 export function connectDataConnectEmulator(dc: DataConnect, host: string, port?: number, sslEnabled?: boolean): void;
 
@@ -88,7 +80,7 @@ export function getDataConnect(app: FirebaseApp, options: ConnectorConfig): Data
 export const MUTATION_STR = "mutation";
 
 // @public
-export interface MutationPromise<Data, Variables> extends PromiseLike<MutationResult<Data, Variables>> {
+export interface MutationPromise<Data, Variables> extends Promise<MutationResult<Data, Variables>> {
 }
 
 // @public (undocumented)
@@ -144,7 +136,7 @@ export interface OpResult<Data> {
 export const QUERY_STR = "query";
 
 // @public
-export interface QueryPromise<Data, Variables> extends PromiseLike<QueryResult<Data, Variables>> {
+export interface QueryPromise<Data, Variables> extends Promise<QueryResult<Data, Variables>> {
 }
 
 // @public

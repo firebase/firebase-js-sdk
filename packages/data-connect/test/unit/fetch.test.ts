@@ -42,7 +42,11 @@ describe('fetch', () => {
     await expect(
       dcFetch(
         'http://localhost',
-        {},
+        {
+          name: 'n',
+          operationName: 'n',
+          variables: {}
+        },
         {} as AbortController,
         null,
         null,
@@ -61,7 +65,11 @@ describe('fetch', () => {
     await expect(
       dcFetch(
         'http://localhost',
-        {},
+        {
+          name: 'n',
+          operationName: 'n',
+          variables: {}
+        },
         {} as AbortController,
         null,
         null,
