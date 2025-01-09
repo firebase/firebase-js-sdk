@@ -11,14 +11,6 @@ import { FirebaseError } from '@firebase/util';
 import { LogLevelString } from '@firebase/logger';
 import { Provider } from '@firebase/component';
 
-// @public (undocumented)
-export interface CancellableOperation<T> extends Promise<{
-    data: T;
-}> {
-    // (undocumented)
-    cancel: () => void;
-}
-
 // @public
 export function connectDataConnectEmulator(dc: DataConnect, host: string, port?: number, sslEnabled?: boolean): void;
 
