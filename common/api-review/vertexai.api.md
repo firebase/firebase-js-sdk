@@ -446,16 +446,16 @@ export interface ImagenGCSImage {
 }
 
 // @public
-export interface ImagenGCSImageResponse {
-    filteredReason?: string;
-    images: ImagenGCSImage[];
-}
-
-// @public
 export interface ImagenGenerationConfig {
     aspectRatio?: ImagenAspectRatio;
     negativePrompt?: string;
     numberOfImages?: number;
+}
+
+// @public
+export interface ImagenGenerationResponse<T extends ImagenInlineImage | ImagenGCSImage> {
+    filteredReason?: string;
+    images: T[];
 }
 
 // @public
@@ -473,16 +473,10 @@ export interface ImagenInlineImage {
 }
 
 // @public
-export interface ImagenInlineImageResponse {
-    filteredReason?: string;
-    images: ImagenInlineImage[];
-}
-
-// @public
 export class ImagenModel extends VertexAIModel {
     constructor(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
-    generateImages(prompt: string, imagenRequestOptions?: ImagenGenerationConfig): Promise<ImagenInlineImageResponse>;
-    generateImagesGCS(prompt: string, gcsURI: string, imagenRequestOptions?: ImagenGenerationConfig): Promise<ImagenGCSImageResponse>;
+    generateImages(prompt: string, imagenRequestOptions?: ImagenGenerationConfig): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
+    generateImagesGCS(prompt: string, gcsURI: string, imagenRequestOptions?: ImagenGenerationConfig): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
     readonly modelConfig: ImagenModelConfig;
     // (undocumented)
     readonly requestOptions?: RequestOptions | undefined;

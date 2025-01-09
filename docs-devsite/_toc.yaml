@@ -530,16 +530,14 @@ toc:
     path: /docs/reference/js/vertexai.groundingmetadata.md
   - title: ImagenGCSImage
     path: /docs/reference/js/vertexai.imagengcsimage.md
-  - title: ImagenGCSImageResponse
-    path: /docs/reference/js/vertexai.imagengcsimageresponse.md
   - title: ImagenGenerationConfig
     path: /docs/reference/js/vertexai.imagengenerationconfig.md
+  - title: ImagenGenerationResponse
+    path: /docs/reference/js/vertexai.imagengenerationresponse.md
   - title: ImagenImageFormat
     path: /docs/reference/js/vertexai.imagenimageformat.md
   - title: ImagenInlineImage
     path: /docs/reference/js/vertexai.imageninlineimage.md
-  - title: ImagenInlineImageResponse
-    path: /docs/reference/js/vertexai.imageninlineimageresponse.md
   - title: ImagenModel
     path: /docs/reference/js/vertexai.imagenmodel.md
   - title: ImagenModelConfig

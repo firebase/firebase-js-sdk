@@ -90,7 +90,7 @@ If one or more images are filtered, the returned object will have a defined `fil
 <b>Signature:</b>
 
 ```typescript
-generateImages(prompt: string, imagenRequestOptions?: ImagenGenerationConfig): Promise<ImagenInlineImageResponse>;
+generateImages(prompt: string, imagenRequestOptions?: ImagenGenerationConfig): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
 ```
 
 #### Parameters
@@ -102,9 +102,9 @@ generateImages(prompt: string, imagenRequestOptions?: ImagenGenerationConfig): P
 
 <b>Returns:</b>
 
-Promise&lt;[ImagenInlineImageResponse](./vertexai.imageninlineimageresponse.md#imageninlineimageresponse_interface)<!-- -->&gt;
+Promise&lt;[ImagenGenerationResponse](./vertexai.imagengenerationresponse.md#imagengenerationresponse_interface)<!-- -->&lt;[ImagenInlineImage](./vertexai.imageninlineimage.md#imageninlineimage_interface)<!-- -->&gt;&gt;
 
-A promise that resolves to an [ImagenInlineImageResponse](./vertexai.imageninlineimageresponse.md#imageninlineimageresponse_interface) object containing the generated images.
+A promise that resolves to an [ImagenGenerationResponse](./vertexai.imagengenerationresponse.md#imagengenerationresponse_interface) object containing the generated images.
 
 #### Exceptions
 
@@ -119,7 +119,7 @@ If one or more images are filtered due to safety reasons, the returned object wi
 <b>Signature:</b>
 
 ```typescript
-generateImagesGCS(prompt: string, gcsURI: string, imagenRequestOptions?: ImagenGenerationConfig): Promise<ImagenGCSImageResponse>;
+generateImagesGCS(prompt: string, gcsURI: string, imagenRequestOptions?: ImagenGenerationConfig): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
 ```
 
 #### Parameters
@@ -132,9 +132,9 @@ generateImagesGCS(prompt: string, gcsURI: string, imagenRequestOptions?: ImagenG
 
 <b>Returns:</b>
 
-Promise&lt;[ImagenGCSImageResponse](./vertexai.imagengcsimageresponse.md#imagengcsimageresponse_interface)<!-- -->&gt;
+Promise&lt;[ImagenGenerationResponse](./vertexai.imagengenerationresponse.md#imagengenerationresponse_interface)<!-- -->&lt;[ImagenGCSImage](./vertexai.imagengcsimage.md#imagengcsimage_interface)<!-- -->&gt;&gt;
 
-A promise that resolves to an [ImagenGCSImageResponse](./vertexai.imagengcsimageresponse.md#imagengcsimageresponse_interface) object containing the URLs of the generated images.
+A promise that resolves to an [ImagenGenerationResponse](./vertexai.imagengenerationresponse.md#imagengenerationresponse_interface) object containing the URLs of the generated images.
 
 #### Exceptions
 

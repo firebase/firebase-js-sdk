@@ -21,13 +21,12 @@ import { createPredictRequestBody } from '../requests/request-helpers';
 import { handlePredictResponse } from '../requests/response-helpers';
 import {
   ImagenGCSImage,
-  ImagenGCSImageResponse,
   ImagenGenerationConfig,
   ImagenInlineImage,
   RequestOptions,
   ImagenModelParams,
-  ImagenInlineImageResponse,
-  ImagenModelConfig
+  ImagenModelConfig,
+  ImagenGenerationResponse
 } from '../types';
 import { VertexAIModel } from './vertexai-model';
 
@@ -84,7 +83,7 @@ export class ImagenModel extends VertexAIModel {
    * @param imagenRequestOptions - Configuration options for the Imagen
    * generation request.
    * See {@link ImagenGenerationConfig}.
-   * @returns A promise that resolves to an {@link ImagenInlineImageResponse}
+   * @returns A promise that resolves to an {@link ImagenGenerationResponse}
    * object containing the generated images.
    *
    * @throws If the request to generate images fails. This happens if the
@@ -98,7 +97,7 @@ export class ImagenModel extends VertexAIModel {
   async generateImages(
     prompt: string,
     imagenRequestOptions?: ImagenGenerationConfig
-  ): Promise<ImagenInlineImageResponse> {
+  ): Promise<ImagenGenerationResponse<ImagenInlineImage>> {
     const body = createPredictRequestBody({
       prompt,
       ...imagenRequestOptions,
@@ -123,7 +122,7 @@ export class ImagenModel extends VertexAIModel {
    * This should be a directory. For example, `gs://my-bucket/my-directory/`.
    * @param imagenRequestOptions - Configuration options for the Imagen
    * generation request. See {@link ImagenGenerationConfig}.
-   * @returns A promise that resolves to an {@link ImagenGCSImageResponse}
+   * @returns A promise that resolves to an {@link ImagenGenerationResponse}
    * object containing the URLs of the generated images.
    *
    * @throws If the request fails to generate images fails. This happens if
@@ -138,7 +137,7 @@ export class ImagenModel extends VertexAIModel {
     prompt: string,
     gcsURI: string,
     imagenRequestOptions?: ImagenGenerationConfig
-  ): Promise<ImagenGCSImageResponse> {
+  ): Promise<ImagenGenerationResponse<ImagenGCSImage>> {
     const body = createPredictRequestBody({
       prompt,
       gcsURI,
