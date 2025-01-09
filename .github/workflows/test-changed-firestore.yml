@@ -38,7 +38,7 @@ jobs:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
       - name: Set up Node (20)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.10.0
       - name: install Chrome stable
@@ -85,7 +85,7 @@ jobs:
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
       - name: Set up Node (20)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.10.0
       - name: install Chrome stable
@@ -113,7 +113,7 @@ jobs:
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
       - name: Set up Node (20)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.10.0
       - name: install Chrome stable
@@ -143,7 +143,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' }}
     steps:
       - name: Set up Node (20)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.10.0
       - name: install Chrome stable
@@ -176,7 +176,7 @@ jobs:
       - name: install Firefox stable
         run: npx @puppeteer/browsers install firefox@stable
       - name: Set up Node (20)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.10.0
       - name: Download build archive
@@ -265,7 +265,7 @@ jobs:
       - name: Unzip build artifact
         run: tar xf build.tar.gz
       - name: Set up Node (20)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.10.0
       - name: Test setup
