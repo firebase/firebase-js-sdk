@@ -72,8 +72,6 @@ export class PipelineResult<AppModelType = DocumentData> {
     executionTime?: Timestamp,
     createTime?: Timestamp,
     updateTime?: Timestamp
-    // TODO converter
-    //readonly converter:  FirestorePipelineConverter<AppModelType> = defaultPipelineConverter()
   ) {
     this._ref = ref;
     this._userDataWriter = userDataWriter;
@@ -160,26 +158,9 @@ export class PipelineResult<AppModelType = DocumentData> {
       return undefined;
     }
 
-    // TODO(pipelines)
-    // We only want to use the converter and create a new QueryDocumentSnapshot
-    // if a converter has been provided.
-    // if (!!this.converter && this.converter !== defaultPipelineConverter()) {
-    //   return this.converter.fromFirestore(
-    //     new PipelineResult< DocumentData>(
-    //       this._serializer,
-    //       this.ref,
-    //       this._fieldsProto,
-    //       this._executionTime,
-    //       this.createTime,
-    //       this.updateTime,
-    //       defaultPipelineConverter()
-    //     )
-    //   );
-    // } else {{
     return this._userDataWriter.convertValue(
       this._fields.value
     ) as AppModelType;
-    //}
   }
 
   /**
@@ -217,9 +198,9 @@ export class PipelineResult<AppModelType = DocumentData> {
   }
 }
 
-export function pipelineResultEqual<AppModelType>(
-  left: PipelineResult<AppModelType>,
-  right: PipelineResult<AppModelType>
+export function pipelineResultEqual(
+  left: PipelineResult,
+  right: PipelineResult
 ): boolean {
   if (left === right) {
     return true;

@@ -29,7 +29,7 @@ import {firestoreClientExecutePipeline} from "../core/firestore_client";
 
 export class Pipeline<
   AppModelType = DocumentData
-> extends LitePipeline<AppModelType> {
+> extends LitePipeline {
   /**
    * @internal
    * @private
@@ -38,25 +38,20 @@ export class Pipeline<
    * @param userDataWriter
    * @param documentReferenceFactory
    * @param stages
-   * @param converter
    */
   constructor(
     db: Firestore,
     userDataReader: UserDataReader,
     userDataWriter: AbstractUserDataWriter,
     documentReferenceFactory: (id: DocumentKey) => DocumentReference,
-    stages: Stage[],
-    // TODO(pipeline) support converter
-    //private converter:  FirestorePipelineConverter<AppModelType> = defaultPipelineConverter()
-    converter: unknown = {}
+    stages: Stage[]
   ) {
     super(
       db,
       userDataReader,
       userDataWriter,
       documentReferenceFactory,
-      stages,
-      converter
+      stages
     );
   }
 
@@ -78,14 +73,13 @@ export class Pipeline<
     documentReferenceFactory: (id: DocumentKey) => DocumentReference,
     stages: Stage[],
     converter: unknown = {}
-  ): Pipeline<AppModelType> {
-    return new Pipeline<AppModelType>(
+  ): Pipeline {
+    return new Pipeline(
       db,
       userDataReader,
       userDataWriter,
       documentReferenceFactory,
-      stages,
-      converter
+      stages
     );
   }
 
@@ -120,7 +114,7 @@ export class Pipeline<
    *
    * @return A Promise representing the asynchronous pipeline execution.
    */
-  execute(): Promise<Array<PipelineResult<AppModelType>>> {
+  execute(): Promise<Array<PipelineResult>> {
     const firestore = cast(this._db, Firestore);
     const client = ensureFirestoreConfigured(firestore);
     return firestoreClientExecutePipeline(client, this).then(result => {
@@ -130,7 +124,7 @@ export class Pipeline<
         .filter(element => !!element.fields)
         .map(
           element =>
-            new PipelineResult<AppModelType>(
+            new PipelineResult(
               this._userDataWriter,
               element.key?.path
                 ? this._documentReferenceFactory(element.key)
@@ -139,7 +133,6 @@ export class Pipeline<
               element.executionTime?.toTimestamp(),
               element.createTime?.toTimestamp(),
               element.updateTime?.toTimestamp()
-              //this.converter
             )
         );
 

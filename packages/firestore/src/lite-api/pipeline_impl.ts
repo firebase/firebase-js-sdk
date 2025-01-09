@@ -45,9 +45,9 @@ declare module './reference' {
  * @param pipeline Execute this pipeline.
  * @beta
  */
-export function execute<AppModelType>(
-  pipeline: Pipeline<AppModelType>
-): Promise<Array<PipelineResult<AppModelType>>> {
+export function execute(
+  pipeline: Pipeline
+): Promise<Array<PipelineResult>> {
   return pipeline.execute();
 }
 
