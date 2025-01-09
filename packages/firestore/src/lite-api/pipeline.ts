@@ -64,6 +64,11 @@ import {
   UserDataSource
 } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
+import {cast} from "../util/input_validation";
+import {ensureFirestoreConfigured} from "../api/database";
+import {firestoreClientExecutePipeline} from "../core/firestore_client";
+import {getDatastore} from "./components";
+import {invokeExecutePipeline} from "../remote/datastore";
 
 interface ReadableUserData {
   _readUserData(dataReader: UserDataReader): void;
@@ -819,9 +824,29 @@ export class Pipeline<AppModelType = DocumentData>
    * @return A Promise representing the asynchronous pipeline execution.
    */
   execute(): Promise<Array<PipelineResult<AppModelType>>> {
-    throw new Error(
-      'Pipelines not initialized. Your application must call `useFluentPipelines()` before using Firestore Pipeline features.'
-    );
+    const datastore = getDatastore(this._db);
+    return invokeExecutePipeline(datastore, this).then(result => {
+      const docs = result
+        // Currently ignore any response from ExecutePipeline that does
+        // not contain any document data in the `fields` property.
+        .filter(element => !!element.fields)
+        .map(
+          element =>
+            new PipelineResult<AppModelType>(
+              this._userDataWriter,
+              element.key?.path
+                ? this._documentReferenceFactory(element.key)
+                : undefined,
+              element.fields,
+              element.executionTime?.toTimestamp(),
+              element.createTime?.toTimestamp(),
+              element.updateTime?.toTimestamp()
+              //this.converter
+            )
+        );
+
+      return docs;
+    });
   }
 
   /**

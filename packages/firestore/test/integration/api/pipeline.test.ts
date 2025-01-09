@@ -55,7 +55,6 @@ import {
   setDoc,
   startsWith,
   subtract,
-  useFluentPipelines,
   setLogLevel,
   cond,
   eqAny,
@@ -266,10 +265,6 @@ apiDescribe('Pipelines', persistence => {
   });
 
   describe('fluent API', () => {
-    before(() => {
-      useFluentPipelines();
-    });
-
     it('empty results as expected', async () => {
       const result = await firestore
         .pipeline()

@@ -26,10 +26,11 @@ import { PipelineSource } from './pipeline-source';
 import { DocumentReference, Query } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
 import { newUserDataReader } from './user_data_reader';
+import {Stage} from "./stage";
 
 declare module './database' {
   interface Firestore {
-    pipeline(): PipelineSource;
+    pipeline(): PipelineSource<Pipeline>;
   }
 }
 
@@ -47,36 +48,14 @@ declare module './reference' {
 export function execute<AppModelType>(
   pipeline: Pipeline<AppModelType>
 ): Promise<Array<PipelineResult<AppModelType>>> {
-  const datastore = getDatastore(pipeline._db);
-  return invokeExecutePipeline(datastore, pipeline).then(result => {
-    const docs = result
-      // Currently ignore any response from ExecutePipeline that does
-      // not contain any document data in the `fields` property.
-      .filter(element => !!element.fields)
-      .map(
-        element =>
-          new PipelineResult<AppModelType>(
-            pipeline._userDataWriter,
-            element.key?.path
-              ? pipeline._documentReferenceFactory(element.key)
-              : undefined,
-            element.fields,
-            element.executionTime?.toTimestamp(),
-            element.createTime?.toTimestamp(),
-            element.updateTime?.toTimestamp()
-            //this.converter
-          )
-      );
-
-    return docs;
-  });
+  return pipeline.execute();
 }
 
 /**
  * Experimental Modular API for console testing.
  * @param firestore
  */
-export function pipeline(firestore: Firestore): PipelineSource;
+export function pipeline(firestore: Firestore): PipelineSource<Pipeline>;
 
 /**
  * Experimental Modular API for console testing.
@@ -86,19 +65,21 @@ export function pipeline(query: Query): Pipeline;
 
 export function pipeline(
   firestoreOrQuery: Firestore | Query
-): PipelineSource | Pipeline {
+): PipelineSource<Pipeline> | Pipeline {
   if (firestoreOrQuery instanceof Firestore) {
     const db = firestoreOrQuery;
     const userDataWriter = new LiteUserDataWriter(db);
     const userDataReader = newUserDataReader(db);
-    return new PipelineSource(
-      db,
-      userDataReader,
-      userDataWriter,
-      (key: DocumentKey) => {
-        return new DocumentReference(db, null, key);
-      }
-    );
+    return new PipelineSource<Pipeline>((stages: Stage[]) => {
+      return  new Pipeline(
+        db,
+        userDataReader,
+        userDataWriter,
+        (key: DocumentKey) => {
+          return new DocumentReference(db, null, key);
+        },
+        stages);
+    });
   } else {
     let pipeline;
     const query = firestoreOrQuery;
@@ -119,12 +100,10 @@ export function pipeline(
   }
 }
 
-export function useFluentPipelines(): void {
-  Firestore.prototype.pipeline = function (): PipelineSource {
-    return pipeline(this);
-  };
+Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
+  return pipeline(this);
+};
 
-  Query.prototype.pipeline = function (): Pipeline {
-    return pipeline(this);
-  };
-}
+Query.prototype.pipeline = function (): Pipeline {
+  return pipeline(this);
+};

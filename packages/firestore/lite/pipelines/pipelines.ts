@@ -54,7 +54,6 @@ export { PipelineResult } from '../../src/lite-api/pipeline-result';
 export { Pipeline } from '../../src/lite-api/pipeline';
 
 export {
-  useFluentPipelines,
   pipeline,
   execute
 } from '../../src/lite-api/pipeline_impl';
@@ -207,8 +206,6 @@ export {
   Ordering,
   ExprType,
   AccumulatorTarget,
-  FilterExpr,
-  SelectableExpr,
   Selectable,
   FilterCondition,
   Accumulator

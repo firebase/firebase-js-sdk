@@ -21,7 +21,7 @@ export { PipelineResult } from './lite-api/pipeline-result';
 
 export { Pipeline } from './api/pipeline';
 
-export { useFluentPipelines, pipeline, execute } from './api/pipeline_impl';
+export { pipeline, execute } from './api/pipeline_impl';
 
 export {
   Stage,
@@ -180,8 +180,6 @@ export {
 export type {
   ExprType,
   AccumulatorTarget,
-  FilterExpr,
-  SelectableExpr,
   Selectable,
   FilterCondition,
   Accumulator
