@@ -27,12 +27,6 @@ import { Firestore } from './database';
 import { Query } from './reference';
 import { ExpUserDataWriter } from './user_data_writer';
 
-declare module './database' {
-  interface Firestore {
-    pipeline(): PipelineSource<Pipeline>;
-  }
-}
-
 /**
  * Experimental Modular API for console testing.
  * @param firestore
@@ -79,12 +73,12 @@ export function execute(pipeline: LitePipeline): Promise<PipelineResult[]> {
   return pipeline.execute();
 }
 
-// Augument the Firestore class with the pipeline() factory method
+// Augment the Firestore class with the pipeline() factory method
 Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
   return pipeline(this);
 };
 
-// Augument the Query class with the pipeline() factory method
+// Augment the Query class with the pipeline() factory method
 Query.prototype.pipeline = function (): Pipeline {
   return pipeline(this);
 };

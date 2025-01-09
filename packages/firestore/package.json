@@ -98,7 +98,7 @@
       "default": "./dist/lite/pipelines.browser.esm2017.js"
     },
     "./pipelines": {
-      "types": "./dist/pipelines.d.ts",
+      "types": "./pipelines/pipelines.d.ts",
       "node": {
         "require": "./dist/pipelines.node.cjs.js",
         "import": "./dist/pipelines.node.mjs"
