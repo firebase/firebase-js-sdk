@@ -72,7 +72,7 @@ jobs:
           gzip build.tar
       - name: Upload build archive
         if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.check-changed.outcome != 'success' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build.tar.gz
           path: build.tar.gz
