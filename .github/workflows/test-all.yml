@@ -51,6 +51,7 @@ jobs:
           path: "**/node_modules"
           key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
       - run: yarn install --frozen-lockfile
+      - run: cp config/ci.config.json config/project.json
       - run: yarn build
       - name: Upload build archive
         uses: actions/upload-artifact@v4
