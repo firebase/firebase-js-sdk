@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {PipelineSource, Pipeline} from "../../dist/lite/pipelines";
+import { PipelineSource, Pipeline } from '../../dist/lite/pipelines';
 
 // Augument the Firestore class with the pipeline() method.
 // This is stripped from dist/lite/pipelines.d.ts during the build
@@ -25,4 +25,4 @@ declare module '@firebase/firestore' {
   }
 }
 
-export * from "../../dist/lite/pipelines";
+export * from '../../dist/lite/pipelines';
