@@ -907,40 +907,6 @@ apiDescribe('Pipelines', persistence => {
       const proto = _internalPipelineToExecutePipelineRequestProto(pipeline);
       expect(proto).not.to.be.null;
     });
-
-    // TODO(pipeline) support converter
-    // it('pipeline converter works', async () => {
-    //   interface AppModel {myTitle: string; myAuthor: string; myPublished: number}
-    //   const converter: FirestorePipelineConverter<AppModel> = {
-    //     fromFirestore(result: FirebaseFirestore.PipelineResult): AppModel {
-    //       return {
-    //         myTitle: result.data()!.title as string,
-    //         myAuthor: result.data()!.author as string,
-    //         myPublished: result.data()!.published as number,
-    //       };
-    //     },
-    //   };
-    //
-    //   const results = await firestore
-    //     .pipeline()
-    //     .collection(randomCol.path)
-    //     .sort(Field.of('published').ascending())
-    //     .limit(2)
-    //     .withConverter(converter)
-    //     .execute();
-    //
-    //   const objs = results.map(r => r.data());
-    //   expect(objs[0]).to.deep.equal({
-    //     myAuthor: 'Jane Austen',
-    //     myPublished: 1813,
-    //     myTitle: 'Pride and Prejudice',
-    //   });
-    //   expect(objs[1]).to.deep.equal({
-    //     myAuthor: 'Fyodor Dostoevsky',
-    //     myPublished: 1866,
-    //     myTitle: 'Crime and Punishment',
-    //   });
-    // });
   });
 
   describe('modular API', () => {

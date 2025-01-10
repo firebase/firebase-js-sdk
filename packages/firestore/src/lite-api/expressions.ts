@@ -2118,7 +2118,6 @@ export class Constant extends Expr {
    */
   static of(value: DocumentReference): Constant;
 
-  // TODO(pipeline) if we make this public, then the Proto types should also be documented
   /**
    * Creates a `Constant` instance for a Firestore proto value.
    * @private
