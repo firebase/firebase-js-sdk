@@ -25,11 +25,14 @@ import {
   Value
 } from '../protos/firestore_proto_api';
 import { fail } from '../util/assert';
-import { arrayEquals, primitiveComparator } from '../util/misc';
+import {
+  arrayEquals,
+  primitiveComparator,
+  compareUtf8Strings
+} from '../util/misc';
 import { forEach, objectSize } from '../util/obj';
 import { isNegativeZero } from '../util/types';
 
-import { compareBlobs, compareUtf8Strings } from './byteComparator';
 import { DocumentKey } from './document_key';
 import {
   normalizeByteString,
@@ -336,6 +339,15 @@ function compareGeoPoints(left: LatLng, right: LatLng): number {
     normalizeNumber(left.longitude),
     normalizeNumber(right.longitude)
   );
+}
+
+function compareBlobs(
+  left: string | Uint8Array,
+  right: string | Uint8Array
+): number {
+  const leftBytes = normalizeByteString(left);
+  const rightBytes = normalizeByteString(right);
+  return leftBytes.compareTo(rightBytes);
 }
 
 function compareArrays(left: ArrayValue, right: ArrayValue): number {

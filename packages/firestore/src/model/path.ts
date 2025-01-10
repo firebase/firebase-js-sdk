@@ -19,9 +19,7 @@ import { Integer } from '@firebase/webchannel-wrapper/bloom-blob';
 
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { primitiveComparator } from '../util/misc';
-
-import { compareUtf8Strings } from './byteComparator';
+import { primitiveComparator, compareUtf8Strings } from '../util/misc';
 
 export const DOCUMENT_KEY_NAME = '__name__';
 
