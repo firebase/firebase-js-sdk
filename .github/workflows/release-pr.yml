@@ -32,13 +32,20 @@ jobs:
           # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
           fetch-depth: 0
 
-      - name: Setup Node.js 20.x
-        uses: actions/setup-node@master
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22.10.0
+          node-version-file: '.nvmrc'
+          cache: yarn
+          cache-dependency-path: yarn.lock
 
-      - name: Install Dependencies
-        run: yarn
+      - name: Restore cached node_modules
+        uses: actions/cache@v4
+        id: node_modules
+        with:
+          path: "**/node_modules"
+          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+
+      - run: yarn install --frozen-lockfile
 
       # Ensures a new @firebase/app is published with every release.
       # This keeps the SDK_VERSION variable up to date.

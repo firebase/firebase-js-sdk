@@ -37,10 +37,9 @@ jobs:
         with:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
-      - name: Set up Node (20)
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22.10.0
+          node-version-file: .nvmrc
       - name: install Chrome stable
         run: |
           sudo apt-get update
@@ -74,7 +73,7 @@ jobs:
         if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.check-changed.outcome != 'success' }}
         uses: actions/upload-artifact@v4
         with:
-          name: build.tar.gz
+          name: build-${{ github.sha }}
           path: build.tar.gz
           retention-days: ${{ env.artifactRetentionDays }}
 
@@ -84,20 +83,19 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
-      - name: Set up Node (20)
-        uses: actions/setup-node@v4
+      - name: Download build archive
+        uses: actions/download-artifact@v4
         with:
-          node-version: 22.10.0
+          name: build-${{ github.sha }}
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
       - name: install Chrome stable
         run: |
           sudo apt-get update
           sudo apt-get install google-chrome-stable
-      - name: Download build archive
-        uses: actions/download-artifact@v4
-        with:
-          name: build.tar.gz
-      - name: Unzip build artifact
-        run: tar xf build.tar.gz
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run compat tests
@@ -112,20 +110,19 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
-      - name: Set up Node (20)
-        uses: actions/setup-node@v4
+      - name: Download build archive
+        uses: actions/download-artifact@v4
         with:
-          node-version: 22.10.0
+          name: build-${{ github.sha }}
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
       - name: install Chrome stable
         run: |
           sudo apt-get update
           sudo apt-get install google-chrome-stable
-      - name: Download build archive
-        uses: actions/download-artifact@v4
-        with:
-          name: build.tar.gz
-      - name: Unzip build artifact
-        run: tar xf build.tar.gz
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run tests
@@ -142,20 +139,19 @@ jobs:
     needs: build
     if: ${{ github.event_name != 'pull_request' }}
     steps:
-      - name: Set up Node (20)
-        uses: actions/setup-node@v4
+      - name: Download build archive
+        uses: actions/download-artifact@v4
         with:
-          node-version: 22.10.0
+          name: build-${{ github.sha }}
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
       - name: install Chrome stable
         run: |
           sudo apt-get update
           sudo apt-get install google-chrome-stable
-      - name: Download build archive
-        uses: actions/download-artifact@v4
-        with:
-          name: build.tar.gz
-      - name: Unzip build artifact
-        run: tar xf build.tar.gz
       - name: Test setup against nightly Firestore
         env:
           INTEG_TESTS_GOOGLE_SERVICES: ${{ secrets.FIRESTORE_SDK_NIGHTLY_PROJECT_JSON }}
@@ -173,18 +169,17 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
-      - name: install Firefox stable
-        run: npx @puppeteer/browsers install firefox@stable
-      - name: Set up Node (20)
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.10.0
       - name: Download build archive
         uses: actions/download-artifact@v4
         with:
-          name: build.tar.gz
+          name: build-${{ github.sha }}
       - name: Unzip build artifact
         run: tar xf build.tar.gz
+      - name: install Firefox stable
+        run: npx @puppeteer/browsers install firefox@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run compat tests
@@ -206,13 +201,12 @@ jobs:
       - name: Download build archive
         uses: actions/download-artifact@v4
         with:
-          name: build.tar.gz
+          name: build-${{ github.sha }}
       - name: Unzip build artifact
         run: tar xf build.tar.gz
-      - name: Set up Node (20)
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22.10.0
+          node-version-file: .nvmrc
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run tests
@@ -227,16 +221,15 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
-      - name: Set up Node (20)
-        uses: actions/setup-node@v3
-        with:
-          node-version: 22.10.0
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: build.tar.gz
+          name: build-${{ github.sha }}
       - name: Unzip build artifact
         run: tar xf build.tar.gz
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
       - name: Test setup
         run: |
           cp config/ci.config.json config/project.json
@@ -259,15 +252,14 @@ jobs:
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: build.tar.gz
+          name: build-${{ github.sha }}
       - name: Unzip build artifact
         run: tar xf build.tar.gz
-      - name: Set up Node (20)
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22.10.0
+          node-version-file: .nvmrc
       - name: Test setup
         run: |
           cp config/ci.config.json config/project.json

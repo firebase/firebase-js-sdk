@@ -28,10 +28,9 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20.x
-        uses: actions/setup-node@master
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22.10.0
+          node-version-file: '.nvmrc'
 
       - name: Get PR number and send to tracker.
         run: node scripts/ci/log-changesets.js
