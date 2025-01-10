@@ -107,6 +107,7 @@ export {
   genericFunction,
   ascending,
   descending,
+  Expr,
   ExprWithAlias,
   Field,
   Fields,
