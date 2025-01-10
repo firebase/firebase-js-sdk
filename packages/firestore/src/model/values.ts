@@ -29,7 +29,7 @@ import { arrayEquals, primitiveComparator } from '../util/misc';
 import { forEach, objectSize } from '../util/obj';
 import { isNegativeZero } from '../util/types';
 
-import { compareBlobs, compareUtf8Strings } from './comparator';
+import { compareBlobs, compareUtf8Strings } from './byteComparator';
 import { DocumentKey } from './document_key';
 import {
   normalizeByteString,
@@ -253,7 +253,6 @@ export function valueCompare(left: Value, right: Value): number {
       );
     case TypeOrder.StringValue:
       return compareUtf8Strings(left.stringValue!, right.stringValue!);
-    // return primitiveComparator(left.stringValue!, right.stringValue!);
     case TypeOrder.BlobValue:
       return compareBlobs(left.bytesValue!, right.bytesValue!);
     case TypeOrder.RefValue:

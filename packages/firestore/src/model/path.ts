@@ -19,8 +19,9 @@ import { Integer } from '@firebase/webchannel-wrapper/bloom-blob';
 
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
+import { primitiveComparator } from '../util/misc';
 
-import { compareUtf8Strings } from './comparator';
+import { compareUtf8Strings } from './byteComparator';
 
 export const DOCUMENT_KEY_NAME = '__name__';
 
@@ -183,7 +184,7 @@ abstract class BasePath<B extends BasePath<B>> {
         return comparison;
       }
     }
-    return Math.sign(p1.length - p2.length);
+    return primitiveComparator(p1.length, p2.length);
   }
 
   private static compareSegments(lhs: string, rhs: string): number {

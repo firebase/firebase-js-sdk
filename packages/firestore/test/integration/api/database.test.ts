@@ -2426,6 +2426,7 @@ apiDescribe('Database', persistence => {
   });
 
   describe('Unicode strings', () => {
+    const expectedResult = ['b', 'a', 'c', 'f', 'e', 'd', 'g'];
     it('snapshot listener sorts unicode strings the same as server', async () => {
       const testDocs = {
         'a': { value: 'Łukasiewicz' },
@@ -2441,15 +2442,7 @@ apiDescribe('Database', persistence => {
         const orderedQuery = query(collectionRef, orderBy('value'));
 
         const getSnapshot = await getDocsFromServer(orderedQuery);
-        expect(toIds(getSnapshot)).to.deep.equal([
-          'b',
-          'a',
-          'c',
-          'f',
-          'e',
-          'd',
-          'g'
-        ]);
+        expect(toIds(getSnapshot)).to.deep.equal(expectedResult);
 
         const storeEvent = new EventsAccumulator<QuerySnapshot>();
         const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
@@ -2475,15 +2468,7 @@ apiDescribe('Database', persistence => {
         const orderedQuery = query(collectionRef, orderBy('value'));
 
         const getSnapshot = await getDocsFromServer(orderedQuery);
-        expect(toIds(getSnapshot)).to.deep.equal([
-          'b',
-          'a',
-          'c',
-          'f',
-          'e',
-          'd',
-          'g'
-        ]);
+        expect(toIds(getSnapshot)).to.deep.equal(expectedResult);
 
         const storeEvent = new EventsAccumulator<QuerySnapshot>();
         const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
@@ -2509,15 +2494,7 @@ apiDescribe('Database', persistence => {
         const orderedQuery = query(collectionRef, orderBy('value'));
 
         const getSnapshot = await getDocsFromServer(orderedQuery);
-        expect(toIds(getSnapshot)).to.deep.equal([
-          'b',
-          'a',
-          'c',
-          'f',
-          'e',
-          'd',
-          'g'
-        ]);
+        expect(toIds(getSnapshot)).to.deep.equal(expectedResult);
 
         const storeEvent = new EventsAccumulator<QuerySnapshot>();
         const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
@@ -2543,15 +2520,7 @@ apiDescribe('Database', persistence => {
         const orderedQuery = query(collectionRef, orderBy('value'));
 
         const getSnapshot = await getDocsFromServer(orderedQuery);
-        expect(toIds(getSnapshot)).to.deep.equal([
-          'b',
-          'a',
-          'c',
-          'f',
-          'e',
-          'd',
-          'g'
-        ]);
+        expect(toIds(getSnapshot)).to.deep.equal(expectedResult);
 
         const storeEvent = new EventsAccumulator<QuerySnapshot>();
         const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
