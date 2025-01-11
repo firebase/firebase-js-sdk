@@ -147,6 +147,7 @@ export abstract class Emulator {
       if (this.isDataConnect) {
         const dataConnectConfigDir = this.findDataConnectConfigDir();
         const password = process.env['POSTGRES_PASSWORD'];
+        console.log('postgres password: ' + password);
         promise = spawn(this.binaryPath, [
           '--v=2',
           'dev',
