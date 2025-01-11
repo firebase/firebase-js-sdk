@@ -26,16 +26,13 @@ export class DataConnectEmulator extends Emulator {
     let urlString = '';
     switch (os) {
       case 'darwin':
-        urlString =
-          `https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-macos-v${DATACONNECT_EMULATOR_VERSION}?alt=media`;
+        urlString = `https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-macos-v${DATACONNECT_EMULATOR_VERSION}?alt=media`;
         break;
       case 'linux':
-        urlString =
-          `https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-linux-v${DATACONNECT_EMULATOR_VERSION}?alt=media`;
+        urlString = `https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-linux-v${DATACONNECT_EMULATOR_VERSION}?alt=media`;
         break;
       case 'win32':
-        urlString =
-          `https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-windows-v${DATACONNECT_EMULATOR_VERSION}?alt=media`;
+        urlString = `https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-windows-v${DATACONNECT_EMULATOR_VERSION}?alt=media`;
         break;
       default:
         throw new Error(

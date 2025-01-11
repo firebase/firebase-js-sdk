@@ -161,7 +161,10 @@ describe('DataConnect Tests', async () => {
     );
   });
   it('throws an error with just the message when the server responds with an error', async () => {
-    const invalidTaskListQuery = queryRef<PostListResponse>(dc, 'UnauthorizedQuery');
+    const invalidTaskListQuery = queryRef<PostListResponse>(
+      dc,
+      'UnauthorizedQuery'
+    );
     const message =
       'unauthorized: you are not authorized to perform this operation';
     await expect(
