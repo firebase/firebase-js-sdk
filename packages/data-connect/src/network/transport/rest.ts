@@ -166,6 +166,7 @@ export class RESTTransport implements DataConnectTransport {
     body: U
   ) => {
     const abortController = new AbortController();
+    
     // TODO(mtewani): Update to proper value
     const withAuth = this.withRetry(() =>
       dcFetch<T, U>(

@@ -1,0 +1,9 @@
+mutation RemovePost($id: UUID!) @auth(level: PUBLIC) {
+    post_delete(id: $id)
+}
+mutation AddPost($id: UUID!, $description: String!) @auth(level: PUBLIC) {
+    post_insert(data: {
+        id: $id,
+        description: $description
+    })
+}

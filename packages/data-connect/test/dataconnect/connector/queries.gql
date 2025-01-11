@@ -1,0 +1,13 @@
+query ListPosts @auth(level: PUBLIC) {
+    posts {
+        id,
+        description
+    }
+}
+
+query UnauthorizedQuery {
+    posts {
+        id,
+        description
+    }
+}

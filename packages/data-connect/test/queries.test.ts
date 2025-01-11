@@ -29,58 +29,51 @@ import {
   queryRef,
   QueryResult,
   SerializedRef,
-  subscribe,
-  terminate,
   SOURCE_CACHE,
-  SOURCE_SERVER
+  SOURCE_SERVER,
+  subscribe,
+  terminate
 } from '../src';
 
-import { setupQueries } from './emulatorSeeder';
+// import { setupQueries } from './emulatorSeeder';
 import { getConnectionConfig, initDatabase, PROJECT_ID } from './util';
 
 use(chaiAsPromised);
 
-interface Task {
+interface Post {
   id: string;
-  content: string;
+  description: string;
 }
-interface TaskListResponse {
-  posts: Task[];
+interface PostListResponse {
+  posts: Post[];
 }
 
 const SEEDED_DATA = [
   {
     id: crypto.randomUUID(),
-    content: 'task 1'
+    description: 'task 1'
   },
   {
     id: crypto.randomUUID(),
-    content: 'task 2'
+    description: 'task 2'
   }
 ];
 const REAL_DATA = SEEDED_DATA.map(obj => ({
   ...obj,
   id: obj.id.replace(/-/g, '')
 }));
-function seedDatabase(instance: DataConnect): Promise<void> {
-  // call mutation query that adds SEEDED_DATA to database
-  return new Promise((resolve, reject) => {
-    async function run(): Promise<void> {
-      let idx = 0;
-      while (idx < SEEDED_DATA.length) {
-        const data = SEEDED_DATA[idx];
-        const ref = mutationRef(instance, 'seedDatabase', data);
-        await executeMutation(ref);
-        idx++;
-      }
-    }
-    run().then(resolve, reject);
-  });
-}
+
 async function deleteDatabase(instance: DataConnect): Promise<void> {
   for (let i = 0; i < SEEDED_DATA.length; i++) {
     const data = SEEDED_DATA[i];
-    const ref = mutationRef(instance, 'removePost', { id: data.id });
+    const ref = mutationRef(instance, 'RemovePost', { id: data.id });
+    await executeMutation(ref);
+  }
+}
+async function seedDatabase(instance: DataConnect): Promise<void> {
+  for (let i = 0; i < SEEDED_DATA.length; i++) {
+    const data = SEEDED_DATA[i];
+    const ref = mutationRef(instance, 'AddPost', data);
     await executeMutation(ref);
   }
 }
@@ -89,10 +82,6 @@ describe('DataConnect Tests', async () => {
   let dc: DataConnect;
   beforeEach(async () => {
     dc = initDatabase();
-    await setupQueries('queries.schema.gql', [
-      { type: 'query', name: 'post' },
-      { type: 'mutation', name: 'mutations' }
-    ]);
     await seedDatabase(dc);
   });
   afterEach(async () => {
@@ -100,15 +89,16 @@ describe('DataConnect Tests', async () => {
     await terminate(dc);
   });
   it('Can get all posts', async () => {
-    const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts');
+    expect(dc.isEmulator).to.eq(true);
+    const taskListQuery = queryRef<PostListResponse>(dc, 'ListPosts');
     const taskListRes = await executeQuery(taskListQuery);
     expect(taskListRes.data).to.deep.eq({
       posts: REAL_DATA
     });
   });
   it(`instantly executes a query if one hasn't been subscribed to`, async () => {
-    const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts');
-    const promise = new Promise<QueryResult<TaskListResponse, undefined>>(
+    const taskListQuery = queryRef<PostListResponse>(dc, 'ListPosts');
+    const promise = new Promise<QueryResult<PostListResponse, undefined>>(
       (resolve, reject) => {
         const unsubscribe = subscribe(taskListQuery, {
           onNext: res => {
@@ -129,17 +119,17 @@ describe('DataConnect Tests', async () => {
     expect(res.source).to.eq(SOURCE_SERVER);
   });
   it(`returns the result source as cache when data already exists`, async () => {
-    const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts');
+    const taskListQuery = queryRef<PostListResponse>(dc, 'ListPosts');
     const queryResult = await executeQuery(taskListQuery);
     const result = await waitForFirstEvent(taskListQuery);
     expect(result.data).to.eq(queryResult.data);
     expect(result.source).to.eq(SOURCE_CACHE);
   });
   it(`returns the proper JSON when calling .toJSON()`, async () => {
-    const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts');
+    const taskListQuery = queryRef<PostListResponse>(dc, 'ListPosts');
     await executeQuery(taskListQuery);
     const result = await waitForFirstEvent(taskListQuery);
-    const serializedRef: SerializedRef<TaskListResponse, undefined> = {
+    const serializedRef: SerializedRef<PostListResponse, undefined> = {
       data: {
         posts: REAL_DATA
       },
@@ -165,13 +155,13 @@ describe('DataConnect Tests', async () => {
       service: 'wrong'
     });
     connectDataConnectEmulator(fakeInstance, 'localhost', 3512);
-    const taskListQuery = queryRef<TaskListResponse>(fakeInstance, 'listPosts');
+    const taskListQuery = queryRef<PostListResponse>(fakeInstance, 'ListPosts');
     await expect(executeQuery(taskListQuery)).to.eventually.be.rejectedWith(
       'ECONNREFUSED'
     );
   });
   it('throws an error with just the message when the server responds with an error', async () => {
-    const invalidTaskListQuery = queryRef<TaskListResponse>(dc, 'listPosts2');
+    const invalidTaskListQuery = queryRef<PostListResponse>(dc, 'UnauthorizedQuery');
     const message =
       'unauthorized: you are not authorized to perform this operation';
     await expect(

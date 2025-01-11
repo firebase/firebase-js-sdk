@@ -14,10 +14,6 @@
 #   product: Product!
 #   quantity: Int!
 # }
-type Movie @table {
-    id: String!
-    name: String!
-    genre: String!
+type Post @table {
     description: String!
-    test: String
 }

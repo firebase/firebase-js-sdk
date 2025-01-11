@@ -27,9 +27,9 @@ import {
 export const USE_EMULATOR = true;
 export const EMULATOR_PORT = process.env.DC_EMULATOR_PORT;
 // export const EMULATOR_PROJECT = process.env.PROJECT;
-export const CONNECTOR_NAME = 'c';
-export const LOCATION_NAME = 'l';
-export const SERVICE_NAME = 'l';
+export const CONNECTOR_NAME = 'movies'; // TODO(mtewani): Rename this and connector.yaml
+export const LOCATION_NAME = 'us-west2';
+export const SERVICE_NAME = 'dataconnect';
 export const PROJECT_ID = 'p';
 export function getConnectionConfig(): ConnectorConfig {
   return {
@@ -46,8 +46,6 @@ export const app = initializeApp({
 // Seed the database to have the proper fields to query, such as a list of tasks.
 export function initDatabase(): DataConnect {
   const instance = getDataConnect(getConnectionConfig());
-  if (!instance.isEmulator) {
-    connectDataConnectEmulator(instance, 'localhost', Number(EMULATOR_PORT));
-  }
+  connectDataConnectEmulator(instance, 'localhost', Number(EMULATOR_PORT));
   return instance;
 }
