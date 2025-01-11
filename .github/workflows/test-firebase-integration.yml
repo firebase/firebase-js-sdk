@@ -57,3 +57,5 @@ jobs:
       run: yarn build:changed firebase-integration
     - name: Run tests on changed packages
       run: yarn test:changed firebase-integration
+      env:
+        POSTGRES_PASSWORD: postgres
