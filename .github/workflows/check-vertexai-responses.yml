@@ -31,7 +31,7 @@ jobs:
         echo "latest_tag=$LATEST" >> $GITHUB_ENV
       working-directory: packages/vertexai/test-utils/vertexai-sdk-test-data
     - name: Find comment from previous run if exists
-      uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e
+      uses: peter-evans/find-comment@e76f357e30529cc76b22f37e8166c9edb5197e75
       id: fc
       with:
         issue-number: ${{github.event.number}}
