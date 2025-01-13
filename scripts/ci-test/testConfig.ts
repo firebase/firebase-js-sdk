@@ -55,7 +55,6 @@ export const testConfig: {
       'firebase-compat-typings-test',
       '@firebase/rules-unit-testing',
       '@firebase/auth',
-      '@firebase/data-connect',
       '@firebase/auth-compat',
       'firebase'
     ]
@@ -77,5 +76,8 @@ export const testConfig: {
   },
   'auth': {
     'onlyIncludePackages': ['@firebase/auth', '@firebase/auth-compat']
+  },
+  'data-connect': {
+    'onlyIncludePackages': ['@firebase/data-connect']
   }
 };
