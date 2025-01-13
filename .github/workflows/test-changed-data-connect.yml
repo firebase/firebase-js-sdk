@@ -40,6 +40,9 @@ jobs:
             --health-interval 10s
             --health-timeout 5s
             --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
     runs-on: ubuntu-latest
     steps:
       # install Chrome first, so the correct version of webdriver can be installed by chromedriver
@@ -115,6 +118,7 @@ jobs:
       - name: Run tests on data-connect changed packages
         run: xvfb-run yarn test:changed data-connect
         env:
+          POSTGRES_PASSWORD: postgres
           BROWSERS: 'Firefox'
 
   test-webkit:
@@ -149,4 +153,5 @@ jobs:
       - name: Run tests on changed packages
         run: yarn test:changed data-connect
         env:
+          POSTGRES_PASSWORD: postgres
           BROWSERS: 'WebkitHeadless'
