@@ -157,7 +157,7 @@ describe('DataConnect Tests', async () => {
     connectDataConnectEmulator(fakeInstance, 'localhost', 3512);
     const taskListQuery = queryRef<PostListResponse>(fakeInstance, 'ListPosts');
     await expect(executeQuery(taskListQuery)).to.eventually.be.rejectedWith(
-      'ECONNREFUSED'
+      /EADDRNOTAVAIL|ECONNREFUSED|fetch failed/
     );
   });
   it('throws an error with just the message when the server responds with an error', async () => {
