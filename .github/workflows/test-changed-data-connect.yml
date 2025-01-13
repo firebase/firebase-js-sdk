@@ -30,6 +30,16 @@ env:
 jobs:
   test-chrome:
     name: Test Data Connect on Chrome and Node If Changed
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+            --health-cmd pg_isready
+            --health-interval 10s
+            --health-timeout 5s
+            --health-retries 5
     runs-on: ubuntu-latest
     steps:
       # install Chrome first, so the correct version of webdriver can be installed by chromedriver
@@ -68,9 +78,20 @@ jobs:
         run: yarn build:changed data-connect
       - name: Run tests on changed packages
         run: xvfb-run yarn test:changed data-connect
+        env:
+          POSTGRES_PASSWORD: postgres
   test-firefox:
     name: Test Data Connect on Firefox If Changed
-
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+            --health-cmd pg_isready
+            --health-interval 10s
+            --health-timeout 5s
+            --health-retries 5
     runs-on: ubuntu-latest
 
     steps:
@@ -99,7 +120,16 @@ jobs:
   test-webkit:
     name: Test Data Connect on Webkit if Changed
     runs-on: macos-latest
-
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+            --health-cmd pg_isready
+            --health-interval 10s
+            --health-timeout 5s
+            --health-retries 5
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
