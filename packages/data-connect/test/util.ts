@@ -46,6 +46,8 @@ export const app = initializeApp({
 // Seed the database to have the proper fields to query, such as a list of tasks.
 export function initDatabase(): DataConnect {
   const instance = getDataConnect(getConnectionConfig());
-  connectDataConnectEmulator(instance, 'localhost', Number(EMULATOR_PORT));
+  if(EMULATOR_PORT !== undefined) {
+    connectDataConnectEmulator(instance, 'localhost', Number(EMULATOR_PORT));
+  }
   return instance;
 }
