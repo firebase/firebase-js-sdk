@@ -55,6 +55,7 @@ export const testConfig: {
       'firebase-compat-typings-test',
       '@firebase/rules-unit-testing',
       '@firebase/auth',
+      '@firebase/data-connect',
       '@firebase/auth-compat',
       'firebase'
     ]
