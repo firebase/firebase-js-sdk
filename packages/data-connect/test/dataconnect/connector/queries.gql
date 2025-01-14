@@ -1,7 +1,11 @@
-query ListPosts @auth(level: PUBLIC) {
-    posts {
+query ListPosts($testId: String!) @auth(level: PUBLIC) {
+    posts(where: {
+        testId: {
+            eq: $testId
+        }
+    }) {
         id,
-        description
+        description,
     }
 }
 

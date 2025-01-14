@@ -70,34 +70,46 @@ async function deleteDatabase(instance: DataConnect): Promise<void> {
     await executeMutation(ref);
   }
 }
-async function seedDatabase(instance: DataConnect): Promise<void> {
+async function seedDatabase(
+  instance: DataConnect,
+  testId: string
+): Promise<void> {
   for (let i = 0; i < SEEDED_DATA.length; i++) {
-    const data = SEEDED_DATA[i];
+    const data = { ...SEEDED_DATA[i], testId };
     const ref = mutationRef(instance, 'AddPost', data);
     await executeMutation(ref);
   }
 }
 
+interface PostVariables {
+  testId: string;
+}
 describe('DataConnect Tests', async () => {
   let dc: DataConnect;
+  const TEST_ID = crypto.randomUUID();
   beforeEach(async () => {
     dc = initDatabase();
-    await seedDatabase(dc);
+    await seedDatabase(dc, TEST_ID);
   });
   afterEach(async () => {
     await deleteDatabase(dc);
     await terminate(dc);
   });
+  function getPostsRef(): QueryRef<PostListResponse, PostVariables> {
+    return queryRef<PostListResponse, PostVariables>(dc, 'ListPosts', {
+      testId: TEST_ID
+    });
+  }
   it('Can get all posts', async () => {
-    const taskListQuery = queryRef<PostListResponse>(dc, 'ListPosts');
+    const taskListQuery = getPostsRef();
     const taskListRes = await executeQuery(taskListQuery);
     expect(taskListRes.data).to.deep.eq({
       posts: REAL_DATA
     });
   });
   it(`instantly executes a query if one hasn't been subscribed to`, async () => {
-    const taskListQuery = queryRef<PostListResponse>(dc, 'ListPosts');
-    const promise = new Promise<QueryResult<PostListResponse, undefined>>(
+    const taskListQuery = getPostsRef();
+    const promise = new Promise<QueryResult<PostListResponse, PostVariables>>(
       (resolve, reject) => {
         const unsubscribe = subscribe(taskListQuery, {
           onNext: res => {
@@ -118,17 +130,17 @@ describe('DataConnect Tests', async () => {
     expect(res.source).to.eq(SOURCE_SERVER);
   });
   it(`returns the result source as cache when data already exists`, async () => {
-    const taskListQuery = queryRef<PostListResponse>(dc, 'ListPosts');
+    const taskListQuery = getPostsRef();
     const queryResult = await executeQuery(taskListQuery);
     const result = await waitForFirstEvent(taskListQuery);
     expect(result.data).to.eq(queryResult.data);
     expect(result.source).to.eq(SOURCE_CACHE);
   });
   it(`returns the proper JSON when calling .toJSON()`, async () => {
-    const taskListQuery = queryRef<PostListResponse>(dc, 'ListPosts');
+    const taskListQuery = getPostsRef();
     await executeQuery(taskListQuery);
     const result = await waitForFirstEvent(taskListQuery);
-    const serializedRef: SerializedRef<PostListResponse, undefined> = {
+    const serializedRef: SerializedRef<PostListResponse, PostVariables> = {
       data: {
         posts: REAL_DATA
       },
@@ -139,7 +151,7 @@ describe('DataConnect Tests', async () => {
           projectId: PROJECT_ID
         },
         name: taskListQuery.name,
-        variables: undefined
+        variables: { testId: TEST_ID }
       },
       source: SOURCE_CACHE
     };

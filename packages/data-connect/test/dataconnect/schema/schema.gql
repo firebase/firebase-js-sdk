@@ -16,4 +16,5 @@
 # }
 type Post @table {
     description: String!
+    testId: String!
 }
