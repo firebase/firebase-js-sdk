@@ -193,53 +193,6 @@ describe('FirebaseServerApp', () => {
     expect(encounteredError).to.be.false;
   });
 
-  it('throws when authIdToken has expired', () => {
-    const options = { apiKey: 'APIKEY' };
-    const authIdToken = createServerAppTokenWithOffset(/*daysOffset=*/ -1);
-    const serverAppSettings: FirebaseServerAppSettings = {
-      automaticDataCollectionEnabled: false,
-      releaseOnDeref: options,
-      authIdToken
-    };
-    let encounteredError = false;
-    try {
-      new FirebaseServerAppImpl(
-        options,
-        serverAppSettings,
-        'testName',
-        new ComponentContainer('test')
-      );
-    } catch (e) {
-      encounteredError = true;
-      expect((e as Error).toString()).to.contain(
-        'app/server-app-token-expired'
-      );
-    }
-    expect(encounteredError).to.be.true;
-  });
-
-  it('throws when authIdToken has too few parts', () => {
-    const options = { apiKey: 'APIKEY' };
-    const authIdToken = 'blah';
-    const serverAppSettings: FirebaseServerAppSettings = {
-      automaticDataCollectionEnabled: false,
-      releaseOnDeref: options,
-      authIdToken: base64Encode(authIdToken)
-    };
-    let encounteredError = false;
-    try {
-      new FirebaseServerAppImpl(
-        options,
-        serverAppSettings,
-        'testName',
-        new ComponentContainer('test')
-      );
-    } catch (e) {
-      encounteredError = true;
-    }
-    expect(encounteredError).to.be.true;
-  });
-
   it('accepts a valid appCheckToken expiration', () => {
     const options = { apiKey: 'APIKEY' };
     const appCheckToken = createServerAppTokenWithOffset(/*daysOffset=*/ 1);
@@ -260,52 +213,5 @@ describe('FirebaseServerApp', () => {
       encounteredError = true;
     }
     expect(encounteredError).to.be.false;
-  });
-
-  it('throws when appCheckToken has expired', () => {
-    const options = { apiKey: 'APIKEY' };
-    const appCheckToken = createServerAppTokenWithOffset(/*daysOffset=*/ -1);
-    const serverAppSettings: FirebaseServerAppSettings = {
-      automaticDataCollectionEnabled: false,
-      releaseOnDeref: options,
-      appCheckToken
-    };
-    let encounteredError = false;
-    try {
-      new FirebaseServerAppImpl(
-        options,
-        serverAppSettings,
-        'testName',
-        new ComponentContainer('test')
-      );
-    } catch (e) {
-      encounteredError = true;
-      expect((e as Error).toString()).to.contain(
-        'app/server-app-token-expired'
-      );
-    }
-    expect(encounteredError).to.be.true;
-  });
-
-  it('throws when appCheckToken has too few parts', () => {
-    const options = { apiKey: 'APIKEY' };
-    const appCheckToken = 'blah';
-    const serverAppSettings: FirebaseServerAppSettings = {
-      automaticDataCollectionEnabled: false,
-      releaseOnDeref: options,
-      appCheckToken: base64Encode(appCheckToken)
-    };
-    let encounteredError = false;
-    try {
-      new FirebaseServerAppImpl(
-        options,
-        serverAppSettings,
-        'testName',
-        new ComponentContainer('test')
-      );
-    } catch (e) {
-      encounteredError = true;
-    }
-    expect(encounteredError).to.be.true;
   });
 });

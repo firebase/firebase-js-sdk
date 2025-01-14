@@ -569,7 +569,7 @@ export class FirebaseAppCheckTokenProvider
   }
 
   getToken(): Promise<Token | null> {
-    if (this.serverAppAppCheckToken !== null) {
+    if (this.serverAppAppCheckToken) {
       return Promise.resolve(new AppCheckToken(this.serverAppAppCheckToken));
     }
     debugAssert(
@@ -647,7 +647,7 @@ export class LiteAppCheckTokenProvider implements CredentialsProvider<string> {
   }
 
   getToken(): Promise<Token | null> {
-    if (this.serverAppAppCheckToken !== null) {
+    if (this.serverAppAppCheckToken) {
       return Promise.resolve(new AppCheckToken(this.serverAppAppCheckToken));
     }
 

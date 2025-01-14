@@ -29,27 +29,30 @@ import { name as packageName, version } from '../package.json';
 import { base64Decode } from '@firebase/util';
 
 // Parse the token and check to see if the `exp` claim is in the future.
-// Throws an error if the token or claim could not be parsed, or if `exp` is in the past.
+// Reports an error to the console if the token or claim could not be parsed, or if `exp` is in
+// the past.
 function validateTokenTTL(base64Token: string, tokenName: string): void {
   const secondPart = base64Decode(base64Token.split('.')[1]);
   if (secondPart === null) {
-    throw ERROR_FACTORY.create(AppError.INVALID_SERVER_APP_TOKEN_FORMAT, {
-      tokenName
-    });
+    console.error(
+      `FirebaseServerApp ${tokenName} is invalid: second part could not be parsed.`
+    );
+    return;
   }
   const expClaim = JSON.parse(secondPart).exp;
   if (expClaim === undefined) {
-    throw ERROR_FACTORY.create(AppError.INVALID_SERVER_APP_TOKEN_FORMAT, {
-      tokenName
-    });
+    console.error(
+      `FirebaseServerApp ${tokenName} is invalid: expiration claim could not be parsed`
+    );
+    return;
   }
   const exp = JSON.parse(secondPart).exp * 1000;
   const now = new Date().getTime();
   const diff = exp - now;
   if (diff <= 0) {
-    throw ERROR_FACTORY.create(AppError.SERVER_APP_TOKEN_EXPIRED, {
-      tokenName
-    });
+    console.error(
+      `FirebaseServerApp ${tokenName} is invalid: the token has expired.`
+    );
   }
 }
 
