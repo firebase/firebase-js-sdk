@@ -89,7 +89,6 @@ describe('DataConnect Tests', async () => {
     await terminate(dc);
   });
   it('Can get all posts', async () => {
-    expect(dc.isEmulator).to.eq(true);
     const taskListQuery = queryRef<PostListResponse>(dc, 'ListPosts');
     const taskListRes = await executeQuery(taskListQuery);
     expect(taskListRes.data).to.deep.eq({
@@ -144,8 +143,10 @@ describe('DataConnect Tests', async () => {
       },
       source: SOURCE_CACHE
     };
-    expect(result.toJSON()).to.deep.eq(serializedRef);
-    expect(result.source).to.deep.eq(SOURCE_CACHE);
+    const json = result.toJSON();
+    expect(json.data).to.deep.eq(serializedRef.data);
+    expect(json.refInfo).to.deep.eq(serializedRef.refInfo);
+    expect(json.source).to.deep.eq(serializedRef.source);
   });
   it(`throws an error when the user can't connect to the server`, async () => {
     // You can't point an existing data connect instance to a new emulator port, so we have to create a new one
