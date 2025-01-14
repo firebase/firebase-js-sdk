@@ -232,7 +232,7 @@ jobs:
         with:
           node-version: 22.10.0
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build.tar.gz
       - name: Unzip build artifact
@@ -259,7 +259,7 @@ jobs:
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build.tar.gz
       - name: Unzip build artifact
