@@ -145,12 +145,10 @@ export abstract class Emulator {
       let promise: ChildProcessPromise<SpawnPromiseResult>;
       if (this.isDataConnect) {
         const dataConnectConfigDir = this.findDataConnectConfigDir();
-        const password = process.env['POSTGRES_PASSWORD'];
         promise = spawn(this.binaryPath, [
           '--v=2',
           'dev',
           `--listen=127.0.0.1:${this.port},[::1]:${this.port}`,
-          `--local_connection_string=postgresql://postgres:${password}@localhost:5432/dataconnect-integration?sslmode=disable`,
           `--config_dir=${dataConnectConfigDir}`
         ]);
         promise.childProcess.stdout?.on('data', console.log);
