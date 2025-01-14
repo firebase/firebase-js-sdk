@@ -26,17 +26,13 @@ export interface DataConnectTransport {
   invokeQuery<T, U>(
     queryName: string,
     body?: U
-  ): PromiseLike<{ data: T; errors: Error[] }>;
+  ): Promise<{ data: T; errors: Error[] }>;
   invokeMutation<T, U>(
     queryName: string,
     body?: U
-  ): PromiseLike<{ data: T; errors: Error[] }>;
+  ): Promise<{ data: T; errors: Error[] }>;
   useEmulator(host: string, port?: number, sslEnabled?: boolean): void;
   onTokenChanged: (token: string | null) => void;
-}
-
-export interface CancellableOperation<T> extends PromiseLike<{ data: T }> {
-  cancel: () => void;
 }
 
 /**

@@ -33,7 +33,7 @@ jobs:
 
     steps:
     - name: Set up node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
     - name: Checkout release branch (with history)
