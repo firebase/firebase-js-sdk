@@ -24,13 +24,12 @@ import {
   getDataConnect
 } from '../src';
 
-export const USE_EMULATOR = true;
 export const EMULATOR_PORT = process.env.DC_EMULATOR_PORT;
-// export const EMULATOR_PROJECT = process.env.PROJECT;
-export const CONNECTOR_NAME = 'c';
-export const LOCATION_NAME = 'l';
-export const SERVICE_NAME = 'l';
-export const PROJECT_ID = 'p';
+const USE_EMULATOR = !!EMULATOR_PORT;
+export const CONNECTOR_NAME = 'tests';
+export const LOCATION_NAME = 'us-west2';
+export const SERVICE_NAME = 'fdc-service';
+export const PROJECT_ID = USE_EMULATOR ? 'p' : 'jscore-sandbox-141b5';
 export function getConnectionConfig(): ConnectorConfig {
   return {
     connector: CONNECTOR_NAME,
@@ -46,7 +45,7 @@ export const app = initializeApp({
 // Seed the database to have the proper fields to query, such as a list of tasks.
 export function initDatabase(): DataConnect {
   const instance = getDataConnect(getConnectionConfig());
-  if (!instance.isEmulator) {
+  if (USE_EMULATOR) {
     connectDataConnectEmulator(instance, 'localhost', Number(EMULATOR_PORT));
   }
   return instance;
