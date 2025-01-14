@@ -21,8 +21,7 @@ import { expect } from 'chai';
 import { getDataConnect } from '../../src';
 
 describe('Data Connect Test', () => {
-  beforeEach(() => {
-  });
+  beforeEach(() => {});
   it('should throw an error if `projectId` is not provided', async () => {
     const app = initializeApp({ projectId: undefined }, 'a');
     expect(() =>
@@ -40,7 +39,11 @@ describe('Data Connect Test', () => {
     ).to.not.throw(
       'Project ID must be provided. Did you pass in a proper projectId to initializeApp?'
     );
-    const dc = getDataConnect(customApp, { connector: 'c', location: 'l', service: 's' });
+    const dc = getDataConnect(customApp, {
+      connector: 'c',
+      location: 'l',
+      service: 's'
+    });
     expect(dc.app.options.projectId).to.eq(projectId);
     await deleteApp(customApp);
   });
@@ -48,10 +51,12 @@ describe('Data Connect Test', () => {
     const projectId = 'p';
     const customApp = initializeApp({ projectId }, 'customApp');
     // @ts-ignore
-    expect(() => getDataConnect(customApp)).to.throw(
-      'DC Option Required'
-    );
-    const dc = getDataConnect(customApp, { connector: 'c', location: 'l', service: 's' });
+    expect(() => getDataConnect(customApp)).to.throw('DC Option Required');
+    const dc = getDataConnect(customApp, {
+      connector: 'c',
+      location: 'l',
+      service: 's'
+    });
     expect(dc.app.options.projectId).to.eq(projectId);
     await deleteApp(customApp);
   });
