@@ -39,9 +39,9 @@ jobs:
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
     - name: Test setup and yarn install
@@ -57,7 +57,7 @@ jobs:
         gzip build.tar
     - name: Upload build archive
       if: ${{ !cancelled() }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
           name: build.tar.gz
           path: build.tar.gz
@@ -74,13 +74,13 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - name: Download build archive
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
     - name: Set up Node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
     - name: Test setup and yarn install
@@ -125,13 +125,13 @@ jobs:
       run: |
         echo $CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE
     - name: Download build archive
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
     - name: Set up Node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
     - name: Test setup and yarn install
@@ -165,13 +165,13 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - name: Download build archive
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
     - name: Set up Node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
     - name: Test setup and yarn install
@@ -209,13 +209,13 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - name: Download build archive
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
     - name: Set up Node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
     - run: cp config/ci.config.json config/project.json

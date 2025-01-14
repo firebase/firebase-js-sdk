@@ -161,7 +161,7 @@ export class RESTTransport implements DataConnectTransport {
   invokeQuery: <T, U>(
     queryName: string,
     body?: U
-  ) => PromiseLike<{ data: T; errors: Error[] }> = <T, U = unknown>(
+  ) => Promise<{ data: T; errors: Error[] }> = <T, U = unknown>(
     queryName: string,
     body: U
   ) => {
@@ -174,7 +174,7 @@ export class RESTTransport implements DataConnectTransport {
           name: `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`,
           operationName: queryName,
           variables: body
-        } as unknown as U, // TODO(mtewani): This is a patch, fix this.
+        },
         abortController,
         this.appId,
         this._accessToken,
@@ -182,16 +182,12 @@ export class RESTTransport implements DataConnectTransport {
         this._isUsingGen
       )
     );
-
-    return {
-      then: withAuth.then.bind(withAuth),
-      catch: withAuth.catch.bind(withAuth)
-    };
+    return withAuth;
   };
   invokeMutation: <T, U>(
     queryName: string,
     body?: U
-  ) => PromiseLike<{ data: T; errors: Error[] }> = <T, U = unknown>(
+  ) => Promise<{ data: T; errors: Error[] }> = <T, U = unknown>(
     mutationName: string,
     body: U
   ) => {
@@ -203,7 +199,7 @@ export class RESTTransport implements DataConnectTransport {
           name: `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`,
           operationName: mutationName,
           variables: body
-        } as unknown as U,
+        },
         abortController,
         this.appId,
         this._accessToken,
@@ -211,12 +207,6 @@ export class RESTTransport implements DataConnectTransport {
         this._isUsingGen
       );
     });
-
-    return {
-      then: taskResult.then.bind(taskResult),
-      // catch: taskResult.catch.bind(taskResult),
-      // finally: taskResult.finally.bind(taskResult),
-      cancel: () => abortController.abort()
-    };
+    return taskResult;
   };
 }
