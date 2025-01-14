@@ -1,6 +1,6 @@
-connectorId: "movies"
+connectorId: "tests"
 authMode: "PUBLIC" 
 generate:
     javascriptSdk:
       outputDir: "./gen/web"
-      package: "@movie-app-ssr/movies"
+      package: "@test-app/tests"
