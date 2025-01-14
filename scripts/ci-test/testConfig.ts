@@ -76,8 +76,5 @@ export const testConfig: {
   },
   'auth': {
     'onlyIncludePackages': ['@firebase/auth', '@firebase/auth-compat']
-  },
-  'data-connect': {
-    'onlyIncludePackages': ['@firebase/data-connect']
   }
 };

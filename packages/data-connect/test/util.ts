@@ -26,7 +26,6 @@ import {
 
 export const EMULATOR_PORT = process.env.DC_EMULATOR_PORT;
 // eslint-disable-next-line no-console
-console.log('Emulator Port: ' + EMULATOR_PORT);
 const USE_EMULATOR = !!EMULATOR_PORT;
 export const CONNECTOR_NAME = 'tests';
 export const LOCATION_NAME = 'us-west2';
@@ -49,9 +48,6 @@ export function initDatabase(): DataConnect {
   const instance = getDataConnect(getConnectionConfig());
   if (USE_EMULATOR) {
     connectDataConnectEmulator(instance, 'localhost', Number(EMULATOR_PORT));
-  } else {
-    // eslint-disable-next-line no-console
-    console.log('not running emulator');
   }
   return instance;
 }
