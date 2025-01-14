@@ -51,7 +51,7 @@ export class DataConnectEmulator extends Emulator {
   }
   async setUp(): Promise<void> {
     await super.setUp();
-    await fetch(`localhost:${this.port}/emulator/configure`, {
+    await fetch(`http://localhost:${this.port}/emulator/configure`, {
       method: 'POST',
       body: JSON.stringify({
         'use_dummy': true
