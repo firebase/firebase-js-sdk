@@ -197,8 +197,8 @@ export interface FirebaseServerAppSettings
   authIdToken?: string;
 
   /**
-   * An optional App Check token. If provided, the Firebase SDKs that use App Check will utilizze
-   * this App Check token in lieu of requiring an instance of App Check to be initialized.
+   * An optional App Check token. If provided, the Firebase SDKs that use App Check will utilize
+   * this App Check token in place of requiring an instance of App Check to be initialized.
    */
   appCheckToken?: string;
 

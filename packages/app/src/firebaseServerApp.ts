@@ -93,12 +93,12 @@ export class FirebaseServerAppImpl
       ...serverConfig
     };
 
-    // Ensure that the current time is within the authIdtoken window of validity.
+    // Ensure that the current time is within the `authIdtoken` window of validity.
     if (this._serverConfig.authIdToken) {
       validateTokenTTL(this._serverConfig.authIdToken, 'authIdToken');
     }
 
-    // Ensure that the current time is within the appCheckToken window of validity.
+    // Ensure that the current time is within the `appCheckToken` window of validity.
     if (this._serverConfig.appCheckToken) {
       validateTokenTTL(this._serverConfig.appCheckToken, 'appCheckToken');
     }
