@@ -201,7 +201,7 @@ class LocalStoreTester {
         this.batches.push(
           new MutationBatch(result.batchId, Timestamp.now(), [], mutations)
         );
-        this.lastChanges = result.changes;
+        this.lastChanges = result.changes.changedDocs;
       });
     return this;
   }
@@ -281,8 +281,8 @@ class LocalStoreTester {
 
         return localStoreAcknowledgeBatch(this.localStore, write);
       })
-      .then((changes: DocumentMap) => {
-        this.lastChanges = changes;
+      .then(changes => {
+        this.lastChanges = changes.changedDocs;
       });
     return this;
   }
@@ -294,8 +294,8 @@ class LocalStoreTester {
       .then(() =>
         localStoreRejectBatch(this.localStore, this.batches.shift()!.batchId)
       )
-      .then((changes: DocumentMap) => {
-        this.lastChanges = changes;
+      .then(changes => {
+        this.lastChanges = changes.changedDocs;
       });
     return this;
   }

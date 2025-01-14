@@ -50,6 +50,7 @@ import {
   newPipelineComparator,
   queryOrPipelineMatches
 } from './pipeline_run';
+import { MergedPipelineResults } from '../local/local_documents_view';
 
 export type LimboDocumentChange = AddedLimboDocument | RemovedLimboDocument;
 export class AddedLimboDocument {
@@ -82,7 +83,7 @@ export interface ViewChange {
 
 export interface LocalChangesToApplyToView {
   changedDocs: DocumentMap;
-  augmentedResults: DocumentMap | undefined;
+  augmentedResults: MergedPipelineResults | undefined;
 }
 
 /**
@@ -152,14 +153,14 @@ export class View {
   }
 
   computeAugmentedResultChanges(
-    augmentedResults: DocumentMap | undefined
+    augmentedResults: MergedPipelineResults | undefined
   ): ViewDocumentChanges {
     const changeSet = new DocumentChangeSet();
     const oldDocumentSet = this.documentSet;
-    let newMutatedKeys = documentKeySet();
+    let newMutatedKeys = augmentedResults?.mutatedKeys ?? documentKeySet();
     let newDocumentSet = new DocumentSet(this.docComparator);
     let needsRefill = false;
-    augmentedResults?.inorderTraversal((key, entry) => {
+    augmentedResults?.results.inorderTraversal((key, entry) => {
       const oldDoc = oldDocumentSet.get(key);
       const newDoc = entry;
       newDocumentSet = newDocumentSet.add(newDoc);

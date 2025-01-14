@@ -24,6 +24,7 @@ import { RpcError } from './spec_rpc_error';
 import { newTestFirestore } from '../../util/api_helpers';
 
 import { toCorePipeline } from '../../../src/core/pipeline-util';
+import { Code } from '../../../src/util/error';
 
 describeSpec(
   'Augmenting pipelines:',
@@ -138,29 +139,227 @@ describeSpec(
           .select('key')
       );
       const docA = doc('collection/a', 1000, { key: 'a' });
-      const docAModified = doc('collection/a', 1000, { key: 'a2' });
+      // Initial doc in SDK's cache
+      const docA2Local = doc('collection/a', 0, {
+        key: 'a2'
+      }).setHasLocalMutations();
+      const docB2Local = doc('collection/a', 0, {
+        key: 'b2'
+      }).setHasLocalMutations();
       return spec()
         .userListens(query1)
         .watchAcksFull(query1, 1000, docA)
         .expectEvents(query1, { added: [docA] })
         .userSets('collection/a', { key: 'a2' })
         .expectEvents(query1, {
-          modified: [docAModified],
+          modified: [docA2Local],
           hasPendingWrites: true
         })
         .userSets('collection/a', { key: 'b2' })
         .expectEvents(query1, {
-          removed: [docAModified],
+          removed: [docA2Local],
           hasPendingWrites: true
         })
         .userSets('collection/a', { key: 'a2' })
-        .expectEvents(query1, { added: [docAModified], hasPendingWrites: true })
+        .expectEvents(query1, { added: [docA2Local], hasPendingWrites: true })
         .watchRemovesDoc(docA.key, query1)
         .watchCurrents(query1, 'resume-token-2000')
         .watchSnapshots(2000)
-        .expectEvents(query1, { removed: [docAModified] });
+        .expectEvents(query1, { removed: [docA2Local] });
+    });
+
+    specTest(
+      'Can raise initial snapshots with local mutations and update with subsequent mutations',
+      [],
+      () => {
+        const coll = query('collection');
+        const query1 = toCorePipeline(
+          db
+            .pipeline()
+            .collection('collection')
+            .where(Field.of('key').startsWith('a'))
+            .select('key')
+        );
+        const docA = doc('collection/a', 1000, { key: 'a' });
+        // Initial doc in SDK's cache
+        const docA2Local = doc('collection/a', 1000, {
+          key: 'a2'
+        }).setHasLocalMutations();
+        const docA3 = doc('collection/a', 2000, {
+          key: 'a3'
+        });
+        const docA3Local = doc('collection/a', 2000, {
+          key: 'a3aa'
+        }).setHasLocalMutations();
+        return (
+          spec()
+            .ensureManualLruGC()
+            // Setting up document cache to have docA
+            .userListens(coll)
+            .watchAcksFull(coll, 1000, docA)
+            .expectEvents(coll, { added: [docA] })
+            .userUnlistens(coll)
+            .watchRemoves(coll)
+            // update the cache to docA2Local
+            .userPatches('collection/a', { key: 'a2' })
+            // listen to augmenting pipelines
+            .userListens(query1)
+            .expectEvents(query1, {
+              added: [docA2Local],
+              fromCache: true,
+              hasPendingWrites: true
+            })
+            .watchAcksFull(query1, 1000, docA3)
+            .expectEvents(query1, { modified: [docA3] })
+            .userSets('collection/a', { key: 'a3aa' })
+            .expectEvents(query1, {
+              modified: [docA3Local],
+              hasPendingWrites: true
+            })
+            .userDeletes('collection/a')
+            .expectEvents(query1, {
+              removed: [docA3Local],
+              hasPendingWrites: true
+            })
+        );
+      }
+    );
+
+    specTest('Can handle mutation acknowledgement', [], () => {
+      const query1 = toCorePipeline(
+        db
+          .pipeline()
+          .collection('collection')
+          .where(Field.of('key').startsWith('a'))
+          .select('key')
+      );
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      // Initial doc in SDK's cache
+      const docA2Local = doc('collection/a', 0, {
+        key: 'a2'
+      }).setHasLocalMutations();
+      const docA2Ack = doc('collection/a', 2000, {
+        key: 'a2'
+      }).setHasCommittedMutations();
+      const docA2Sync = doc('collection/a', 2000, {
+        key: 'a2'
+      });
+      const docA3Local = doc('collection/a', 0, {
+        key: 'a3'
+      }).setHasLocalMutations();
+      const docA3Ack = doc('collection/a', 3000, {
+        key: 'a3'
+      }).setHasCommittedMutations();
+      const docA3Sync = doc('collection/a', 3000, {
+        key: 'a3'
+      });
+      return spec()
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, docA)
+        .expectEvents(query1, { added: [docA] })
+        .userSets('collection/a', { key: 'a2' })
+        .expectEvents(query1, {
+          modified: [docA2Local],
+          hasPendingWrites: true
+        })
+        .writeAcks('collection/a', 2000)
+        .expectEvents(query1, {
+          metadata: [docA2Ack],
+          hasPendingWrites: true
+        })
+        .watchSends({ affects: [query1] }, docA2Sync)
+        .watchCurrents(query1, 'resume-token-2000')
+        .watchSnapshots(2000)
+        .expectEvents(query1, {
+          metadata: [docA2Sync]
+        })
+        .userPatches('collection/a', { key: 'a3' })
+        .expectEvents(query1, {
+          modified: [docA3Local],
+          hasPendingWrites: true
+        })
+        .writeAcks('collection/a', 3000)
+        .expectEvents(query1, {
+          metadata: [docA3Ack],
+          hasPendingWrites: true
+        })
+        .watchSends({ affects: [query1] }, docA3Sync)
+        .watchCurrents(query1, 'resume-token-3000')
+        .watchSnapshots(3000)
+        .expectEvents(query1, { metadata: [docA3Sync], fromCache: false });
+    });
+
+    specTest('Can handle mutation rejection', [], () => {
+      const query1 = toCorePipeline(
+        db
+          .pipeline()
+          .collection('collection')
+          .where(Field.of('key').endsWith('aa'))
+          .select('key')
+      );
+      const docA = doc('collection/a', 1000, { key: 'aa', noise: 'noise' });
+      // Initial doc in SDK's cache
+      const docA2Local = doc('collection/a', 0, {
+        key: '2aa'
+      }).setHasLocalMutations();
+      const docA3Local = doc('collection/a', 0, {
+        key: '3aa'
+      }).setHasLocalMutations();
+      return (
+        spec()
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA)
+          .expectEvents(query1, { added: [docA] })
+          .userSets('collection/a', { key: 'a2', noise: 'more noise' })
+          .expectEvents(query1, {
+            removed: [docA],
+            hasPendingWrites: true
+          })
+          .failWrite(
+            'collection/a',
+            new RpcError(Code.FAILED_PRECONDITION, 'failure')
+          )
+          .expectEvents(query1, {
+            added: [docA]
+          })
+          .userDeletes('collection/a')
+          .expectEvents(query1, {
+            removed: [docA],
+            hasPendingWrites: true
+          })
+          .userSets('collection/a', { key: '2aa' })
+          .expectEvents(query1, {
+            added: [docA2Local],
+            hasPendingWrites: true
+          })
+          .userPatches('collection/a', { key: '3aa' })
+          .expectEvents(query1, {
+            modified: [docA3Local],
+            hasPendingWrites: true
+          })
+          // failing the delete
+          .failWrite(
+            'collection/a',
+            new RpcError(Code.FAILED_PRECONDITION, 'failure')
+          )
+          // expect no events
+          // failing the set
+          .failWrite(
+            'collection/a',
+            new RpcError(Code.FAILED_PRECONDITION, 'failure')
+          )
+          // expect no events because a blind patch is not visible in the cache
+          // failing the update
+          .failWrite(
+            'collection/a',
+            new RpcError(Code.FAILED_PRECONDITION, 'failure')
+          )
+          .expectEvents(query1, {
+            modified: [docA]
+          })
+      );
     });
   }
 
-  // TODO: document deletion, GC, Multitab, etc
+  // TODO: limits, user switch, GC, Multitab, view refactor, etc
 );

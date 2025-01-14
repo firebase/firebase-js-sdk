@@ -31,6 +31,7 @@ import { Persistence, Scheduler } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { isIndexedDbTransactionError } from './simple_db';
+import { NextDocuments } from './local_documents_view';
 
 const LOG_TAG = 'IndexBackfiller';
 
@@ -203,7 +204,7 @@ export class IndexBackfiller {
   /** Returns the next offset based on the provided documents. */
   private getNewOffset(
     existingOffset: IndexOffset,
-    lookupResult: LocalWriteResult
+    lookupResult: NextDocuments
   ): IndexOffset {
     let maxOffset: IndexOffset = existingOffset;
     lookupResult.changes.forEach((key, document) => {

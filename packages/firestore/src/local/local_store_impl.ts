@@ -79,7 +79,10 @@ import { IndexManager } from './index_manager';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
-import { LocalDocumentsView } from './local_documents_view';
+import {
+  LocalDocumentsView,
+  MergedPipelineResults
+} from './local_documents_view';
 import { fromBundledQuery } from './local_serializer';
 import { LocalStore } from './local_store';
 import { LocalViewChanges } from './local_view_changes';
@@ -125,13 +128,13 @@ const RESUME_TOKEN_MAX_AGE_MICROS = 5 * 60 * 1e6;
 
 export interface LocalStoreResultChanges {
   changedDocs: DocumentMap;
-  newAugmentedResults: Map<TargetId, DocumentMap>;
+  newAugmentedResults: Map<TargetId, MergedPipelineResults>;
 }
 
 /** The result of a write to the local store. */
 export interface LocalWriteResult {
   batchId: BatchId;
-  changes: DocumentMap;
+  changes: LocalStoreResultChanges;
 }
 
 /** The result of a user-change operation in the local store. */
@@ -352,10 +355,13 @@ export function localStoreWriteLocally(
   const keys = mutations.reduce((keys, m) => keys.add(m.key), documentKeySet());
 
   let overlayedDocuments: OverlayedDocumentMap;
+  let writeResult: LocalWriteResult;
   let mutationBatch: MutationBatch;
 
-  return localStoreImpl.persistence
-    .runTransaction('Locally write mutations', 'readwrite', txn => {
+  return localStoreImpl.persistence.runTransaction(
+    'Locally write mutations',
+    'readwrite',
+    txn => {
       // Figure out which keys do not have a remote version in the cache, this
       // is needed to create the right overlay mutation: if no remote version
       // presents, we do not need to create overlays as patch mutations.
@@ -421,6 +427,13 @@ export function localStoreWriteLocally(
           );
         })
         .next(batch => {
+          writeResult = {
+            batchId: batch.batchId,
+            changes: {
+              changedDocs: mutableDocumentMap(),
+              newAugmentedResults: new Map()
+            }
+          };
           mutationBatch = batch;
           const overlays = batch.applyToLocalDocumentSet(
             overlayedDocuments,
@@ -431,12 +444,67 @@ export function localStoreWriteLocally(
             batch.batchId,
             overlays
           );
+        })
+        .next(() => {
+          writeResult.changes.changedDocs =
+            convertOverlayedDocumentMapToDocumentMap(overlayedDocuments);
+
+          return localStoreGetAugmentingPipelineResults(localStoreImpl, txn);
+        })
+        .next(({ augmentingPipelineTargets, targetToCachedResults }) => {
+          writeResult.changes.newAugmentedResults =
+            localStoreImpl.localDocuments.calculateMergedAugmentPipelineResults(
+              augmentingPipelineTargets,
+              targetToCachedResults,
+              writeResult.changes.changedDocs
+            );
+
+          return writeResult;
         });
-    })
-    .then(() => ({
-      batchId: mutationBatch.batchId,
-      changes: convertOverlayedDocumentMapToDocumentMap(overlayedDocuments)
-    }));
+    }
+  );
+}
+
+// TODO(pipeline): This method reads all active augmenting pipeline results everytime
+// it is called. This could be a performance issue. The same information exists in the
+// active query views. We should refactor the SDK to move the view management into local
+// store instead.
+function localStoreGetAugmentingPipelineResults(
+  localStoreImpl: LocalStoreImpl,
+  txn: PersistenceTransaction
+): PersistencePromise<{
+  augmentingPipelineTargets: SortedMap<TargetId, TargetData>;
+  targetToCachedResults: Map<TargetId, PipelineCachedResults | undefined>;
+}> {
+  let augmentingPipelineTargets = new SortedMap<TargetId, TargetData>(
+    primitiveComparator
+  );
+  const targetToCachedResults = new Map<
+    TargetId,
+    PipelineCachedResults | undefined
+  >();
+  const promises: Array<PersistencePromise<void>> = [];
+  localStoreImpl.targetDataByTarget.forEach((targetId, targetData) => {
+    if (
+      targetIsPipelineTarget(targetData.target) &&
+      getPipelineFlavor(targetData.target) !== 'exact'
+    ) {
+      augmentingPipelineTargets = augmentingPipelineTargets.insert(
+        targetId,
+        targetData
+      );
+      promises.push(
+        localStoreImpl.pipelineResultsCache
+          .getResults(txn, targetId)
+          .next(currentCachedResults => {
+            targetToCachedResults.set(targetId, currentCachedResults);
+          })
+      );
+    }
+  });
+  return PersistencePromise.waitFor(promises).next(() => {
+    return { augmentingPipelineTargets, targetToCachedResults };
+  });
 }
 
 /**
@@ -456,7 +524,7 @@ export function localStoreWriteLocally(
 export function localStoreAcknowledgeBatch(
   localStore: LocalStore,
   batchResult: MutationBatchResult
-): Promise<DocumentMap> {
+): Promise<LocalStoreResultChanges> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   return localStoreImpl.persistence.runTransaction(
     'Acknowledge batch',
@@ -487,7 +555,21 @@ export function localStoreAcknowledgeBatch(
             getKeysWithTransformResults(batchResult)
           )
         )
-        .next(() => localStoreImpl.localDocuments.getDocuments(txn, affected));
+        .next(() => localStoreImpl.localDocuments.getDocuments(txn, affected))
+        .next(changedDocs => {
+          return localStoreGetAugmentingPipelineResults(
+            localStoreImpl,
+            txn
+          ).next(({ augmentingPipelineTargets, targetToCachedResults }) => {
+            const newAugmentedResults =
+              localStoreImpl.localDocuments.calculateMergedAugmentPipelineResults(
+                augmentingPipelineTargets,
+                targetToCachedResults,
+                changedDocs
+              );
+            return { changedDocs, newAugmentedResults };
+          });
+        });
     }
   );
 }
@@ -515,7 +597,7 @@ function getKeysWithTransformResults(
 export function localStoreRejectBatch(
   localStore: LocalStore,
   batchId: BatchId
-): Promise<DocumentMap> {
+): Promise<LocalStoreResultChanges> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   return localStoreImpl.persistence.runTransaction(
     'Reject batch',
@@ -545,7 +627,21 @@ export function localStoreRejectBatch(
         )
         .next(() =>
           localStoreImpl.localDocuments.getDocuments(txn, affectedKeys)
-        );
+        )
+        .next(changedDocs => {
+          return localStoreGetAugmentingPipelineResults(
+            localStoreImpl,
+            txn
+          ).next(({ augmentingPipelineTargets, targetToCachedResults }) => {
+            const newAugmentedResults =
+              localStoreImpl.localDocuments.calculateMergedAugmentPipelineResults(
+                augmentingPipelineTargets,
+                targetToCachedResults,
+                changedDocs
+              );
+            return { changedDocs, newAugmentedResults };
+          });
+        });
     }
   );
 }

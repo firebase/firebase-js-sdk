@@ -132,7 +132,7 @@ class AsyncLocalStoreTester {
     this.batches.push(
       new MutationBatch(result.batchId, Timestamp.now(), [], mutations)
     );
-    this.lastChanges = result.changes;
+    this.lastChanges = result.changes.changedDocs;
   }
 
   configureIndexAutoCreation(config: {

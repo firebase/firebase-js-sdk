@@ -400,8 +400,17 @@ export function toLocalChangesToApplyToView(
   results: DocumentMap
 ): LocalChangesToApplyToView {
   return isPipeline(query) && getPipelineFlavor(query) !== 'exact'
-    ? { changedDocs: documentMap(), augmentedResults: results }
-    : { changedDocs: results, augmentedResults: undefined };
+    ? {
+        changedDocs: documentMap(),
+        augmentedResults: { results, mutatedKeys: documentKeySet() }
+      }
+    : {
+        changedDocs: results,
+        augmentedResults: {
+          results: documentMap(),
+          mutatedKeys: documentKeySet()
+        }
+      };
 }
 
 /**
@@ -566,10 +575,10 @@ export async function syncEngineWrite(
     );
     syncEngineImpl.sharedClientState.addPendingMutation(result.batchId);
     addMutationCallback(syncEngineImpl, result.batchId, userCallback);
-    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, {
-      changedDocs: result.changes,
-      newAugmentedResults: new Map()
-    });
+    await syncEngineEmitNewSnapsAndNotifyLocalStore(
+      syncEngineImpl,
+      result.changes
+    );
     await fillWritePipeline(syncEngineImpl.remoteStore);
   } catch (e) {
     // If we can't persist the mutation, we reject the user callback and
@@ -798,10 +807,7 @@ export async function syncEngineApplySuccessfulWrite(
       batchId,
       'acknowledged'
     );
-    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, {
-      changedDocs: changes,
-      newAugmentedResults: new Map()
-    });
+    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes);
   } catch (error) {
     await ignoreIfPrimaryLeaseLoss(error as FirestoreError);
   }
@@ -832,10 +838,7 @@ export async function syncEngineRejectFailedWrite(
       'rejected',
       error
     );
-    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, {
-      changedDocs: changes,
-      newAugmentedResults: new Map()
-    });
+    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes);
   } catch (error) {
     await ignoreIfPrimaryLeaseLoss(error as FirestoreError);
   }

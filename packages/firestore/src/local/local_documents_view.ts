@@ -56,7 +56,6 @@ import { SortedMap } from '../util/sorted_map';
 
 import { DocumentOverlayCache } from './document_overlay_cache';
 import { IndexManager } from './index_manager';
-import { LocalWriteResult } from './local_store_impl';
 import { MutationQueue } from './mutation_queue';
 import { OverlayedDocument } from './overlayed_document';
 import { PersistencePromise } from './persistence_promise';
@@ -73,21 +72,29 @@ import {
   isPipeline,
   QueryOrPipeline
 } from '../core/pipeline-util';
-import { Pipeline } from '../lite-api/pipeline';
 import { FirestoreError } from '../util/error';
 import {
   CorePipeline,
   pipelineEvaluate,
   runPipeline
 } from '../core/pipeline_run';
-import { SortedSet } from '../util/sorted_set';
 import {
   PipelineCachedResults,
   PipelineResultsCache
 } from './pipeline_results_cache';
-import { TargetId } from '../core/types';
+import { BatchId, TargetId } from '../core/types';
 import { TargetData } from './target_data';
 import { targetIsPipelineTarget } from '../core/target';
+
+export interface NextDocuments {
+  batchId: BatchId;
+  changes: DocumentMap;
+}
+
+export interface MergedPipelineResults {
+  results: DocumentMap;
+  mutatedKeys: DocumentKeySet;
+}
 
 /**
  * A readonly view of the local state of all documents we're tracking (i.e. we
@@ -433,14 +440,14 @@ export class LocalDocumentsView {
    * @param collectionGroup The collection group for the documents.
    * @param offset The offset to index into.
    * @param count The number of documents to return
-   * @return A LocalWriteResult with the documents that follow the provided offset and the last processed batch id.
+   * @return A NextDocuments with the documents that follow the provided offset and the last processed batch id.
    */
   getNextDocuments(
     transaction: PersistenceTransaction,
     collectionGroup: string,
     offset: IndexOffset,
     count: number
-  ): PersistencePromise<LocalWriteResult> {
+  ): PersistencePromise<NextDocuments> {
     return this.remoteDocumentCache
       .getAllFromCollectionGroup(transaction, collectionGroup, offset, count)
       .next((originalDocs: MutableDocumentMap) => {
@@ -788,9 +795,12 @@ export class LocalDocumentsView {
 
   calculateMergedAugmentPipelineResults(
     targetMap: SortedMap<TargetId, TargetData>,
-    currentAugmentPipelineResults: Map<TargetId, PipelineCachedResults>,
-    changedDocs: SortedMap<DocumentKey, Document>
-  ): Map<TargetId, MutableDocumentMap> {
+    currentAugmentPipelineResults: Map<
+      TargetId,
+      PipelineCachedResults | undefined
+    >,
+    changedDocs: DocumentMap
+  ): Map<TargetId, MergedPipelineResults> {
     // We only care about documents with pending writes because changedDocs are results
     // of two scenarios:
     // 1. Global snapshot, which means currentAugmentPipelineResults should include all
@@ -803,7 +813,7 @@ export class LocalDocumentsView {
       }
     });
 
-    const mergedResults = new Map<TargetId, MutableDocumentMap>();
+    const mergedResults = new Map<TargetId, MergedPipelineResults>();
     currentAugmentPipelineResults.forEach((results, targetId) => {
       const pipeline = targetMap.get(targetId)?.target;
       debugAssert(!!pipeline, `Target Id ${targetId} not found`);
@@ -812,13 +822,21 @@ export class LocalDocumentsView {
         `Target Id ${targetId} is not a pipeline target`
       );
 
-      const merged = results.results;
+      let merged = results?.results ?? mutableDocumentMap();
+      let mutatedKeys = documentKeySet();
       // TODO(pipeline): We need to handle limit pipelines here!!
       const pipelineResult = runPipeline(pipeline, docsWithMutations);
       for (const result of pipelineResult) {
-        merged.insert(result.key, result);
+        mutatedKeys = mutatedKeys.add(result.key);
+        merged = merged.insert(result.key, result);
       }
-      mergedResults.set(targetId, merged);
+      for (const doc of docsWithMutations) {
+        if (!mutatedKeys.has(doc.key) && !!merged.get(doc.key)) {
+          merged = merged.remove(doc.key);
+          mutatedKeys = mutatedKeys.add(doc.key);
+        }
+      }
+      mergedResults.set(targetId, { results: merged, mutatedKeys });
     });
 
     return mergedResults;
