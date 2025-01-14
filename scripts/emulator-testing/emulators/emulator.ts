@@ -126,7 +126,6 @@ export abstract class Emulator {
   findDataConnectConfigDir() {
     let path = './';
     const files = fs.readdirSync(path);
-    console.log(files);
     if (files.includes('dataconnect')) {
       return path + 'dataconnect';
     }
@@ -147,7 +146,6 @@ export abstract class Emulator {
       if (this.isDataConnect) {
         const dataConnectConfigDir = this.findDataConnectConfigDir();
         const password = process.env['POSTGRES_PASSWORD'];
-        console.log('postgres password: ' + password);
         promise = spawn(this.binaryPath, [
           '--v=2',
           'dev',

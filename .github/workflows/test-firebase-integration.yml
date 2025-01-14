@@ -22,16 +22,6 @@ env:
 
 jobs:
   test:
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_PASSWORD: postgres
-        options: >-
-            --health-cmd pg_isready
-            --health-interval 10s
-            --health-timeout 5s
-            --health-retries 5
     name: Test Firebase Namespace
     runs-on: ubuntu-latest
 
@@ -57,5 +47,3 @@ jobs:
       run: yarn build:changed firebase-integration
     - name: Run tests on changed packages
       run: yarn test:changed firebase-integration
-      env:
-        POSTGRES_PASSWORD: postgres

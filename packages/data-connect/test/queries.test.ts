@@ -35,7 +35,6 @@ import {
   terminate
 } from '../src';
 
-// import { setupQueries } from './emulatorSeeder';
 import { getConnectionConfig, initDatabase, PROJECT_ID } from './util';
 
 use(chaiAsPromised);

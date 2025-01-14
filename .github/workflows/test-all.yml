@@ -90,7 +90,7 @@ jobs:
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
-      # Ignore auth data-connect and firestore since they're handled in their own separate jobs.
+      # Ignore auth and firestore since they're handled in their own separate jobs.
       run: |
         xvfb-run yarn lerna run --ignore '{firebase-messaging-integration-test,@firebase/auth*,@firebase/firestore*,firebase-firestore-integration-test}' test:ci
         node scripts/print_test_logs.js
@@ -146,68 +146,6 @@ jobs:
         node scripts/print_test_logs.js
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
-    - name: Generate coverage file
-      run: yarn ci:coverage
-    - name: Run coverage
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        path-to-lcov: ./lcov-all.info
-      continue-on-error: true
-  test-data-connect:
-    name: (Data Connect) Node.js and Browser (Chrome) Tests
-    needs: build
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_PASSWORD: postgres
-        options: >-
-            --health-cmd pg_isready
-            --health-interval 10s
-            --health-timeout 5s
-            --health-retries 5
-    name: Test Firebase Namespace
-    runs-on: ubuntu-latest
-    runs-on: ubuntu-latest
-    steps:
-      # install Chrome first, so the correct version of webdriver can be installed by chromedriver
-      # when setting up the repo
-    - name: install Chrome stable
-      run: |
-        npx @puppeteer/browsers install chrome@stable
-        chromeVersionString=$(ls chrome)
-        if [ "$CHROME_VALIDATED_VERSION" != "$chromeVersionString" ]; then
-        echo "::warning ::The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
-        echo "::warning ::Previously validated version: ${CHROME_VALIDATED_VERSION} vs. Installed version: $chromeVersionString"
-        echo "CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE" >> "$GITHUB_ENV"
-        fi
-    - name: Test Evn TEMP
-      run: |
-        echo $CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE
-    - name: Download build archive
-      uses: actions/download-artifact@v4
-      with:
-        name: build.tar.gz
-    - name: Unzip build artifact
-      run: tar xf build.tar.gz
-    - name: Set up Node (20)
-      uses: actions/setup-node@v4
-      with:
-        node-version: 22.10.0
-    - name: Test setup and yarn install
-      run: |
-        cp config/ci.config.json config/project.json
-        yarn
-    - name: Set start timestamp env var
-      run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
-    - name: Run unit tests
-      run: |
-        xvfb-run yarn lerna run test:ci --scope '@firebase/data-connect*'
-        node scripts/print_test_logs.js
-      env:
-        FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
-        POSTGRES_PASSWORD: postgres
     - name: Generate coverage file
       run: yarn ci:coverage
     - name: Run coverage

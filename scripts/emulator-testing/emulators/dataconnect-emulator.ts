@@ -22,7 +22,6 @@ const DATACONNECT_EMULATOR_VERSION = '1.7.5';
 
 export class DataConnectEmulator extends Emulator {
   constructor(port = 9399) {
-    console.log('passing in ' + port + ' as port for fdc');
     const os = platform();
     let urlString = '';
     switch (os) {
@@ -49,5 +48,14 @@ export class DataConnectEmulator extends Emulator {
       port
     );
     this.isDataConnect = true;
+  }
+  async setUp(): Promise<void> {
+    await super.setUp();
+    await fetch(`localhost:${this.port}/emulator/configure`, {
+      method: 'POST',
+      body: JSON.stringify({
+        'use_dummy': true
+      })
+    });
   }
 }
