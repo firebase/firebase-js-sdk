@@ -123,41 +123,4 @@ jobs:
         env:
           POSTGRES_PASSWORD: postgres
           BROWSERS: 'Firefox'
-
-  test-webkit:
-    name: Test Data Connect on Webkit if Changed
-    runs-on: macos-latest
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_PASSWORD: postgres
-        options: >-
-            --health-cmd pg_isready
-            --health-interval 10s
-            --health-timeout 5s
-            --health-retries 5
-        ports:
-          # Maps tcp port 5432 on service container to the host
-          - 5432:5432
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Set up Node (20)
-        uses: actions/setup-node@v3
-        with:
-          node-version: 22.10.0
-      - name: Test setup and yarn install
-        run: |
-          cp config/ci.config.json config/project.json
-          yarn
-          npx playwright install webkit
-      - name: build
-        run: yarn build:changed data-connect
-      - name: Run tests on changed packages
-        run: yarn test:changed data-connect
-        env:
-          POSTGRES_PASSWORD: postgres
-          BROWSERS: 'WebkitHeadless'
+# Note: webkit tests were removed due to docker not being available on macos
