@@ -54,8 +54,8 @@ const config = {
   // Doing 65 seconds to allow for the 20 second firestore tests
   browserNoActivityTimeout: 65000,
 
-  // preprocess matching files before serving them to the browser
-  // available preprocessors:
+  // Preprocess matching files before serving them to the browser.
+  // Available preprocessors:
   // https://npmjs.org/browse/keyword/karma-preprocessor
   preprocessors: {
     'test/**/*.ts': ['webpack', 'sourcemap'],
