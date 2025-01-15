@@ -33,6 +33,15 @@ export const FIRST_CONTENTFUL_PAINT_COUNTER_NAME = '_fcp';
 
 export const FIRST_INPUT_DELAY_COUNTER_NAME = '_fid';
 
+export const LARGEST_CONTENTFUL_PAINT_METRIC_NAME = '_lcp';
+export const LARGEST_CONTENTFUL_PAINT_ATTRIBUTE_NAME = 'lcp_element';
+
+export const INTERACTION_TO_NEXT_PAINT_METRIC_NAME = '_inp';
+export const INTERACTION_TO_NEXT_PAINT_ATTRIBUTE_NAME = 'inp_interactionTarget';
+
+export const CUMULATIVE_LAYOUT_SHIFT_METRIC_NAME = '_cls';
+export const CUMULATIVE_LAYOUT_SHIFT_ATTRIBUTE_NAME = 'cls_largestShiftTarget';
+
 export const CONFIG_LOCAL_STORAGE_KEY = '@firebase/performance/config';
 
 export const CONFIG_EXPIRY_LOCAL_STORAGE_KEY =
