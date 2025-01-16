@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
+import { FetchResponse } from '../public_types';
 import {
   RemoteConfigAbortSignal,
   RemoteConfigFetchClient,
-  FetchResponse,
   FetchRequest
 } from './remote_config_fetch_client';
 import { ThrottleMetadata, Storage } from '../storage/storage';
@@ -91,7 +91,7 @@ export class RetryingClient implements RemoteConfigFetchClient {
   constructor(
     private readonly client: RemoteConfigFetchClient,
     private readonly storage: Storage
-  ) {}
+  ) { }
 
   async fetch(request: FetchRequest): Promise<FetchResponse> {
     const throttleMetadata = (await this.storage.getThrottleMetadata()) || {

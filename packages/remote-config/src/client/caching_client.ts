@@ -16,8 +16,8 @@
  */
 
 import { StorageCache } from '../storage/storage_cache';
+import { FetchResponse } from '../public_types';
 import {
-  FetchResponse,
   RemoteConfigFetchClient,
   FetchRequest
 } from './remote_config_fetch_client';
@@ -37,7 +37,7 @@ export class CachingClient implements RemoteConfigFetchClient {
     private readonly storage: Storage,
     private readonly storageCache: StorageCache,
     private readonly logger: Logger
-  ) {}
+  ) { }
 
   /**
    * Returns true if the age of the cached fetched configs is less than or equal to
@@ -65,9 +65,9 @@ export class CachingClient implements RemoteConfigFetchClient {
 
     this.logger.debug(
       'Config fetch cache check.' +
-        ` Cache age millis: ${cacheAgeMillis}.` +
-        ` Cache max age millis (minimumFetchIntervalMillis setting): ${cacheMaxAgeMillis}.` +
-        ` Is cache hit: ${isCachedDataFresh}.`
+      ` Cache age millis: ${cacheAgeMillis}.` +
+      ` Cache max age millis (minimumFetchIntervalMillis setting): ${cacheMaxAgeMillis}.` +
+      ` Is cache hit: ${isCachedDataFresh}.`
     );
 
     return isCachedDataFresh;

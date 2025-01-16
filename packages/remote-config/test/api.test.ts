@@ -19,9 +19,10 @@ import { expect } from 'chai';
 import {
   ensureInitialized,
   fetchAndActivate,
+  FetchResponse,
   getRemoteConfig,
   getString
-} from '../src/index';
+} from '../src';
 import '../test/setup';
 import {
   deleteApp,
@@ -30,7 +31,6 @@ import {
   _addOrOverwriteComponent
 } from '@firebase/app';
 import * as sinon from 'sinon';
-import { FetchResponse } from '../src/client/remote_config_fetch_client';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { openDatabase, APP_NAMESPACE_STORE } from '../src/storage/storage';

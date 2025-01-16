@@ -16,10 +16,7 @@
  */
 
 import { FetchStatus, CustomSignals } from '@firebase/remote-config-types';
-import {
-  FetchResponse,
-  FirebaseRemoteConfigObject
-} from '../client/remote_config_fetch_client';
+import { FetchResponse, FirebaseRemoteConfigObject } from '../public_types';
 import { ERROR_FACTORY, ErrorCode } from '../errors';
 import { RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS } from '../constants';
 import { FirebaseError } from '@firebase/util';

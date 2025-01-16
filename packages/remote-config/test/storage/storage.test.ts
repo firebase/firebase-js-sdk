@@ -25,7 +25,7 @@ import {
   InMemoryStorage,
   Storage
 } from '../../src/storage/storage';
-import { FetchResponse } from '../../src/client/remote_config_fetch_client';
+import { FetchResponse } from '../../src';
 
 // Clears global IndexedDB state.
 async function clearDatabase(): Promise<void> {
