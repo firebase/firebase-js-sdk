@@ -23,7 +23,7 @@ import { Storage } from './storage';
  * A memory cache layer over storage to support the SDK's synchronous read requirements.
  */
 export class StorageCache {
-  constructor(private readonly storage: Storage) { }
+  constructor(private readonly storage: Storage) {}
 
   /**
    * Memory caches.

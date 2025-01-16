@@ -101,4 +101,3 @@ export interface FetchRequest {
    */
   customSignals?: CustomSignals;
 }
-

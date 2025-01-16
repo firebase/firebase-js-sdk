@@ -202,7 +202,10 @@ export class IndexedDbStorage extends Storage {
       'custom_signals',
       transaction
     );
-    const updatedSignals = mergeCustomSignals(customSignals, storedSignals || {});
+    const updatedSignals = mergeCustomSignals(
+      customSignals,
+      storedSignals || {}
+    );
     await this.setWithTransaction<CustomSignals>(
       'custom_signals',
       updatedSignals,
@@ -345,13 +348,20 @@ export class InMemoryStorage extends Storage {
   }
 
   async setCustomSignals(customSignals: CustomSignals): Promise<CustomSignals> {
-    const storedSignals = (this.storage['custom_signals'] || {}) as CustomSignals;
-    this.storage['custom_signals'] = mergeCustomSignals(customSignals, storedSignals);
+    const storedSignals = (this.storage['custom_signals'] ||
+      {}) as CustomSignals;
+    this.storage['custom_signals'] = mergeCustomSignals(
+      customSignals,
+      storedSignals
+    );
     return Promise.resolve(this.storage['custom_signals'] as CustomSignals);
   }
 }
 
-function mergeCustomSignals(customSignals: CustomSignals, storedSignals: CustomSignals): CustomSignals {
+function mergeCustomSignals(
+  customSignals: CustomSignals,
+  storedSignals: CustomSignals
+): CustomSignals {
   const combinedSignals = {
     ...storedSignals,
     ...customSignals

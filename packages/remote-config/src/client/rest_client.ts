@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { CustomSignals, FetchResponse, FirebaseRemoteConfigObject } from '../public_types';
+import {
+  CustomSignals,
+  FetchResponse,
+  FirebaseRemoteConfigObject
+} from '../public_types';
 import {
   RemoteConfigFetchClient,
   FetchRequest
@@ -55,7 +59,7 @@ export class RestClient implements RemoteConfigFetchClient {
     private readonly projectId: string,
     private readonly apiKey: string,
     private readonly appId: string
-  ) { }
+  ) {}
 
   /**
    * Fetches from the Remote Config REST API.

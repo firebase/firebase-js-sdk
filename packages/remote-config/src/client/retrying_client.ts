@@ -91,7 +91,7 @@ export class RetryingClient implements RemoteConfigFetchClient {
   constructor(
     private readonly client: RemoteConfigFetchClient,
     private readonly storage: Storage
-  ) { }
+  ) {}
 
   async fetch(request: FetchRequest): Promise<FetchResponse> {
     const throttleMetadata = (await this.storage.getThrottleMetadata()) || {
