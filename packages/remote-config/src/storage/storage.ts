@@ -202,33 +202,7 @@ export class IndexedDbStorage extends Storage {
       'custom_signals',
       transaction
     );
-    const combinedSignals = {
-      ...storedSignals,
-      ...customSignals
-    };
-    // Filter out key-value assignments with null values since they are signals being unset
-    const updatedSignals = Object.fromEntries(
-      Object.entries(combinedSignals)
-        .filter(([_, v]) => v !== null)
-        .map(([k, v]) => {
-          // Stringify numbers to store a map of string keys and values which can be sent
-          // as-is in a fetch call.
-          if (typeof v === 'number') {
-            return [k, v.toString()];
-          }
-          return [k, v];
-        })
-    );
-
-    // Throw an error if the number of custom signals to be stored exceeds the limit
-    if (
-      Object.keys(updatedSignals).length > RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
-    ) {
-      throw ERROR_FACTORY.create(ErrorCode.CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS, {
-        maxSignals: RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
-      });
-    }
-
+    const updatedSignals = mergeCustomSignals(customSignals, storedSignals || {});
     await this.setWithTransaction<CustomSignals>(
       'custom_signals',
       updatedSignals,
@@ -371,34 +345,39 @@ export class InMemoryStorage extends Storage {
   }
 
   async setCustomSignals(customSignals: CustomSignals): Promise<CustomSignals> {
-    const combinedSignals = {
-      ...(this.storage['custom_signals'] as CustomSignals),
-      ...customSignals
-    };
-
-    const updatedSignals = Object.fromEntries(
-      Object.entries(combinedSignals)
-        .filter(([_, v]) => v !== null)
-        .map(([k, v]) => {
-          // Stringify numbers to store a map of string keys and values which can be sent
-          // as-is in a fetch call.
-          if (typeof v === 'number') {
-            return [k, v.toString()];
-          }
-          return [k, v];
-        })
-    );
-
-    if (
-      Object.keys(updatedSignals).length > RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
-    ) {
-      throw ERROR_FACTORY.create(ErrorCode.CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS, {
-        maxSignals: RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
-      });
-    }
-
-    this.storage['custom_signals'] = updatedSignals;
-
+    const storedSignals = (this.storage['custom_signals'] || {}) as CustomSignals;
+    this.storage['custom_signals'] = mergeCustomSignals(customSignals, storedSignals);
     return Promise.resolve(this.storage['custom_signals'] as CustomSignals);
   }
+}
+
+function mergeCustomSignals(customSignals: CustomSignals, storedSignals: CustomSignals): CustomSignals {
+  const combinedSignals = {
+    ...storedSignals,
+    ...customSignals
+  };
+
+  // Filter out key-value assignments with null values since they are signals being unset
+  const updatedSignals = Object.fromEntries(
+    Object.entries(combinedSignals)
+      .filter(([_, v]) => v !== null)
+      .map(([k, v]) => {
+        // Stringify numbers to store a map of string keys and values which can be sent
+        // as-is in a fetch call.
+        if (typeof v === 'number') {
+          return [k, v.toString()];
+        }
+        return [k, v];
+      })
+  );
+
+  // Throw an error if the number of custom signals to be stored exceeds the limit
+  if (
+    Object.keys(updatedSignals).length > RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
+  ) {
+    throw ERROR_FACTORY.create(ErrorCode.CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS, {
+      maxSignals: RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
+    });
+  }
+  return updatedSignals;
 }
