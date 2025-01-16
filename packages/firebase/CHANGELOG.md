@@ -1,5 +1,44 @@
 # firebase
 
+## 11.2.0
+
+### Minor Changes
+
+- [`7bf2aec63`](https://github.com/firebase/firebase-js-sdk/commit/7bf2aec6328b06c9c7dda91354630c0d59f2b411) [#8602](https://github.com/firebase/firebase-js-sdk/pull/8602) - Added support for custom signal targeting in Remote Config. Use `setCustomSignals` API for setting custom signals and use them to build custom targeting conditions in Remote Config.
+
+- [`c19a051ce`](https://github.com/firebase/firebase-js-sdk/commit/c19a051ce490398f49fbf9bdb7181a986b66fa14) [#8667](https://github.com/firebase/firebase-js-sdk/pull/8667) - Updated to include promise instead of promiselike
+
+### Patch Changes
+
+- Updated dependencies [[`25a6204c1`](https://github.com/firebase/firebase-js-sdk/commit/25a6204c1531b6c772e5368d12b2411ae1d21bbc), [`7bf2aec63`](https://github.com/firebase/firebase-js-sdk/commit/7bf2aec6328b06c9c7dda91354630c0d59f2b411), [`c19a051ce`](https://github.com/firebase/firebase-js-sdk/commit/c19a051ce490398f49fbf9bdb7181a986b66fa14)]:
+  - @firebase/app-check@0.8.11
+  - @firebase/util@1.10.3
+  - @firebase/remote-config@0.5.0
+  - @firebase/data-connect@0.2.0
+  - @firebase/app-check-compat@0.3.18
+  - @firebase/analytics@0.10.11
+  - @firebase/analytics-compat@0.2.17
+  - @firebase/app@0.10.18
+  - @firebase/app-compat@0.2.48
+  - @firebase/auth@1.8.2
+  - @firebase/auth-compat@0.5.17
+  - @firebase/database@1.0.11
+  - @firebase/database-compat@2.0.2
+  - @firebase/firestore@4.7.6
+  - @firebase/firestore-compat@0.3.41
+  - @firebase/functions@0.12.1
+  - @firebase/functions-compat@0.3.18
+  - @firebase/installations@0.6.12
+  - @firebase/installations-compat@0.2.12
+  - @firebase/messaging@0.12.16
+  - @firebase/messaging-compat@0.2.16
+  - @firebase/performance@0.6.12
+  - @firebase/performance-compat@0.2.12
+  - @firebase/remote-config-compat@0.2.12
+  - @firebase/storage@0.13.5
+  - @firebase/storage-compat@0.3.15
+  - @firebase/vertexai@1.0.3
+
 ## 11.1.0
 
 ### Minor Changes
