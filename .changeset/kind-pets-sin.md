@@ -10,6 +10,6 @@
 '@firebase/auth': patch
 ---
 
-`FirebaseServerApp` may now be initalized with an App Check token in leu of invoking the App Check
+`FirebaseServerApp` can now be initalized with an App Check token instead of invoking the App Check
 `getToken` method. This should unblock the use of App Check enforced products in SSR environments
 where the App Check SDK cannot be initialized.
