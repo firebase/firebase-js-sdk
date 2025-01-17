@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { addHelpers, formatBlockErrorMessage } from './response-helpers';
+import {
+  addHelpers,
+  formatBlockErrorMessage,
+  handlePredictResponse
+} from './response-helpers';
 import { expect, use } from 'chai';
 import { restore } from 'sinon';
 import sinonChai from 'sinon-chai';
@@ -23,8 +27,11 @@ import {
   BlockReason,
   Content,
   FinishReason,
-  GenerateContentResponse
+  GenerateContentResponse,
+  ImagenGCSImage,
+  ImagenInlineImage
 } from '../types';
+import { getMockResponse } from '../../test-utils/mock-response';
 
 use(sinonChai);
 
@@ -244,6 +251,73 @@ describe('response-helpers methods', () => {
       expect(message).to.include(
         'Candidate was blocked due to SAFETY: unsafe candidate'
       );
+    });
+  });
+
+  describe('handlePredictResponse', () => {
+    it('returns base64 images', async () => {
+      const mockResponse = getMockResponse(
+        'unary-success-generate-images-base64.json'
+      ) as Response;
+      const res = await handlePredictResponse<ImagenInlineImage>(mockResponse);
+      expect(res.filteredReason).to.be.undefined;
+      expect(res.images.length).to.equal(4);
+      res.images.forEach(image => {
+        expect(image.mimeType).to.equal('image/png');
+        expect(image.bytesBase64Encoded.length).to.be.greaterThan(0);
+      });
+    });
+  });
+  it('returns GCS images', async () => {
+    const mockResponse = getMockResponse(
+      'unary-success-generate-images-gcs.json'
+    ) as Response;
+    const res = await handlePredictResponse<ImagenGCSImage>(mockResponse);
+    expect(res.filteredReason).to.be.undefined;
+    expect(res.images.length).to.equal(4);
+    res.images.forEach((image, i) => {
+      expect(image.mimeType).to.equal('image/jpeg');
+      expect(image.gcsURI).to.equal(
+        `gs://test-project-id-1234.firebasestorage.app/images/1234567890123/sample_${i}.jpg`
+      );
+    });
+  });
+  it('has filtered reason and no images if all images were filtered', async () => {
+    const mockResponse = getMockResponse(
+      'unary-failure-generate-images-all-filtered.json'
+    ) as Response;
+    const res = await handlePredictResponse<ImagenInlineImage>(mockResponse);
+    expect(res.filteredReason).to.equal(
+      "Unable to show generated images. All images were filtered out because they violated Vertex AI's usage guidelines. You will not be charged for blocked images. Try rephrasing the prompt. If you think this was an error, send feedback. Support codes: 39322892, 29310472"
+    );
+    expect(res.images.length).to.equal(0);
+  });
+  it('has filtered reason and no images if all base64 images were filtered', async () => {
+    const mockResponse = getMockResponse(
+      'unary-failure-generate-images-base64-some-filtered.json'
+    ) as Response;
+    const res = await handlePredictResponse<ImagenInlineImage>(mockResponse);
+    expect(res.filteredReason).to.equal(
+      'Your current safety filter threshold filtered out 2 generated images. You will not be charged for blocked images. Try rephrasing the prompt. If you think this was an error, send feedback.'
+    );
+    expect(res.images.length).to.equal(2);
+    res.images.forEach(image => {
+      expect(image.mimeType).to.equal('image/png');
+      expect(image.bytesBase64Encoded).to.have.length.greaterThan(0);
+    });
+  });
+  it('has filtered reason and no images if all GCS images were filtered', async () => {
+    const mockResponse = getMockResponse(
+      'unary-failure-generate-images-gcs-some-filtered.json'
+    ) as Response;
+    const res = await handlePredictResponse<ImagenGCSImage>(mockResponse);
+    expect(res.filteredReason).to.equal(
+      'Your current safety filter threshold filtered out 2 generated images. You will not be charged for blocked images. Try rephrasing the prompt. If you think this was an error, send feedback.'
+    );
+    expect(res.images.length).to.equal(2);
+    res.images.forEach(image => {
+      expect(image.mimeType).to.equal('image/jpeg');
+      expect(image.gcsURI).to.have.length.greaterThan(0);
     });
   });
 });

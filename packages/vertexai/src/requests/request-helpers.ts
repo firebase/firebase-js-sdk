@@ -19,9 +19,12 @@ import {
   Content,
   GenerateContentRequest,
   Part,
-  VertexAIErrorCode
+  VertexAIErrorCode,
+  ImagenAspectRatio
 } from '../types';
 import { VertexAIError } from '../errors';
+import { ImagenImageFormat } from './imagen-image-format';
+import { ImagenRequestConfig, PredictRequestBody } from '../types/internal';
 
 export function formatSystemInstruction(
   input?: string | Part | Content
@@ -49,11 +52,11 @@ export function formatNewContent(
   if (typeof request === 'string') {
     newParts = [{ text: request }];
   } else {
-    for (const partOrString of request) {
-      if (typeof partOrString === 'string') {
-        newParts.push({ text: partOrString });
+    for (const elem of request) {
+      if (typeof elem === 'string') {
+        newParts.push({ text: elem });
       } else {
-        newParts.push(partOrString);
+        newParts.push(elem);
       }
     }
   }
@@ -113,7 +116,6 @@ export function formatGenerateContentInput(
   if ((params as GenerateContentRequest).contents) {
     formattedRequest = params as GenerateContentRequest;
   } else {
-    // Array or string
     const content = formatNewContent(params as string | Array<string | Part>);
     formattedRequest = { contents: [content] };
   }
@@ -123,4 +125,41 @@ export function formatGenerateContentInput(
     );
   }
   return formattedRequest;
+}
+
+/**
+ * Convert the user-defined parameters in {@link ImagenRequestConfig} to the format
+ * that is expected from the REST API.
+ *
+ * @internal
+ */
+export function createPredictRequestBody({
+  prompt,
+  gcsURI,
+  imageFormat = ImagenImageFormat.png(),
+  addWatermark,
+  safetySettings,
+  numberOfImages = 1,
+  negativePrompt,
+  aspectRatio = ImagenAspectRatio.SQUARE
+}: ImagenRequestConfig): PredictRequestBody {
+  // Properties that are undefined will be omitted from the JSON string.
+  const body: PredictRequestBody = {
+    instances: [
+      {
+        prompt
+      }
+    ],
+    parameters: {
+      storageUri: gcsURI,
+      ...imageFormat,
+      addWatermark,
+      ...safetySettings,
+      sampleCount: numberOfImages,
+      includeRaiReason: true,
+      negativePrompt,
+      aspectRatio
+    }
+  };
+  return body;
 }
