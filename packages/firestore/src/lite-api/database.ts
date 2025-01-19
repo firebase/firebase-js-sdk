@@ -41,12 +41,15 @@ import { cast } from '../util/input_validation';
 import { logWarn } from '../util/log';
 
 import { FirestoreService, removeComponents } from './components';
+import type { PipelineSource } from './pipeline-source';
 import {
   DEFAULT_HOST,
   FirestoreSettingsImpl,
   PrivateSettings,
   FirestoreSettings
 } from './settings';
+// `import type` to avoid bundling the source for
+// pipelines if `useFirestorePipelines()` is not called
 
 export { EmulatorMockTokenOptions } from '@firebase/util';
 
@@ -172,6 +175,15 @@ export class Firestore implements FirestoreService {
   protected _terminate(): Promise<void> {
     removeComponents(this);
     return Promise.resolve();
+  }
+
+  /**
+   * Pipeline query.
+   */
+  pipeline(): PipelineSource {
+    throw new Error(
+      'Pipelines not initialized. Your application must call `useFirestorePipelines()` before using Firestore Pipeline features.'
+    );
   }
 }
 
