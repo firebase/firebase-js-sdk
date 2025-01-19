@@ -220,14 +220,21 @@ export function validateIndexedDBOpenable(): Promise<boolean> {
   });
 }
 
+
+let cookiesEnabled: boolean | undefined = undefined;
 /**
  *
  * This method checks whether cookie is enabled within current browser
  * @return true if cookie is enabled within current browser
  */
 export function areCookiesEnabled(): boolean {
-  if (typeof navigator === 'undefined' || !navigator.cookieEnabled) {
-    return false;
+  if (cookiesEnabled !== undefined) {
+    return cookiesEnabled;
   }
-  return true;
+  cookiesEnabled = navigator?.cookieEnabled;
+  if (typeof navigator === 'undefined' || !navigator.cookieEnabled) {
+    cookiesEnabled = false;
+  }
+  cookiesEnabled = true;
+  return cookiesEnabled;
 }
