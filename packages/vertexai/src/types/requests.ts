@@ -18,6 +18,7 @@
 import { TypedSchema } from '../requests/schema-builder';
 import { Content, Part } from './content';
 import {
+  ApiVersion,
   FunctionCallingMode,
   HarmBlockMethod,
   HarmBlockThreshold,
@@ -129,6 +130,11 @@ export interface RequestOptions {
    * Base url for endpoint. Defaults to https://firebasevertexai.googleapis.com
    */
   baseUrl?: string;
+  /**
+   * API version for endpoint. Defaults to <code>"v1beta"</code>
+   * (<code>{@link ApiVersion.V1BETA}</code>).
+   */
+  apiVersion?: ApiVersion;
 }
 
 /**

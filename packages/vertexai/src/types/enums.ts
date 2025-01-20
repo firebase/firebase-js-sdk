@@ -28,6 +28,17 @@ export type Role = (typeof POSSIBLE_ROLES)[number];
 export const POSSIBLE_ROLES = ['user', 'model', 'function', 'system'] as const;
 
 /**
+ * Supported API versions for the Vertex AI in Firebase endpoint.
+ * @public
+ */
+export enum ApiVersion {
+  /** The stable channel for version 1 of the API. */
+  V1 = 'v1',
+  /** The beta channel for version 1 of the API. */
+  V1BETA = 'v1beta'
+}
+
+/**
  * Harm categories that would cause prompts or candidates to be blocked.
  * @public
  */
