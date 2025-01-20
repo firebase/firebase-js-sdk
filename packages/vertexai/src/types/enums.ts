@@ -28,7 +28,7 @@ export type Role = (typeof POSSIBLE_ROLES)[number];
 export const POSSIBLE_ROLES = ['user', 'model', 'function', 'system'] as const;
 
 /**
- * Supported API versions for the Vertex AI in Firebase endpoint.
+ * API versions for the Vertex AI in Firebase endpoint.
  * @public
  */
 export enum ApiVersion {

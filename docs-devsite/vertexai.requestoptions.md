@@ -22,8 +22,19 @@ export interface RequestOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
+|  [apiVersion](./vertexai.requestoptions.md#requestoptionsapiversion) | [ApiVersion](./vertexai.md#apiversion) | API version for endpoint. Defaults to <code>"v1beta"</code> (<code>[ApiVersion.V1BETA](./vertexai.md#apiversionv1beta_enummember)</code>). |
 |  [baseUrl](./vertexai.requestoptions.md#requestoptionsbaseurl) | string | Base url for endpoint. Defaults to https://firebasevertexai.googleapis.com |
 |  [timeout](./vertexai.requestoptions.md#requestoptionstimeout) | number | Request timeout in milliseconds. Defaults to 180 seconds (180000ms). |
+
+## RequestOptions.apiVersion
+
+API version for endpoint. Defaults to <code>"v1beta"</code> (<code>[ApiVersion.V1BETA](./vertexai.md#apiversionv1beta_enummember)</code>).
+
+<b>Signature:</b>
+
+```typescript
+apiVersion?: ApiVersion;
+```
 
 ## RequestOptions.baseUrl
 
