@@ -46,6 +46,7 @@ import {
 import { VertexAI } from '../public-types';
 import { ApiSettings } from '../types/internal';
 import { VertexAIService } from '../service';
+import { _isFirebaseServerApp } from '@firebase/app';
 
 /**
  * Class for generative model APIs.
@@ -82,7 +83,16 @@ export class GenerativeModel {
         project: vertexAI.app.options.projectId,
         location: vertexAI.location
       };
-      if ((vertexAI as VertexAIService).appCheck) {
+
+      if (
+        _isFirebaseServerApp(vertexAI.app) &&
+        vertexAI.app.settings.appCheckToken
+      ) {
+        const token = vertexAI.app.settings.appCheckToken;
+        this._apiSettings.getAppCheckToken = () => {
+          return Promise.resolve({ token });
+        };
+      } else if ((vertexAI as VertexAIService).appCheck) {
         this._apiSettings.getAppCheckToken = () =>
           (vertexAI as VertexAIService).appCheck!.getToken();
       }
