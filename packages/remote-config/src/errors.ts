@@ -18,6 +18,7 @@
 import { ErrorFactory, FirebaseError } from '@firebase/util';
 
 export const enum ErrorCode {
+  ALREADY_INITIALIZED = 'already-initialized',
   REGISTRATION_WINDOW = 'registration-window',
   REGISTRATION_PROJECT_ID = 'registration-project-id',
   REGISTRATION_API_KEY = 'registration-api-key',
@@ -36,6 +37,7 @@ export const enum ErrorCode {
 }
 
 const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
+  [ErrorCode.ALREADY_INITIALIZED]: 'Remote Config already initialized',
   [ErrorCode.REGISTRATION_WINDOW]:
     'Undefined window object. This SDK only supports usage in a browser environment.',
   [ErrorCode.REGISTRATION_PROJECT_ID]:
