@@ -40,7 +40,7 @@
     "@firebase/installations": "0.6.12",
     "@firebase/util": "1.10.3",
     "@firebase/component": "0.6.12",
-    "tslib": "^2.1.0"
+    "tslib": "^2.1.0",
     "web-vitals": "^4.2.4"
   },
   "license": "Apache-2.0",
