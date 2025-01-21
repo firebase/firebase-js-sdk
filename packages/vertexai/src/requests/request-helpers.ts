@@ -19,12 +19,10 @@ import {
   Content,
   GenerateContentRequest,
   Part,
-  VertexAIErrorCode,
-  ImagenAspectRatio
+  VertexAIErrorCode
 } from '../types';
 import { VertexAIError } from '../errors';
-import { ImagenImageFormat } from './imagen-image-format';
-import { ImagenRequestConfig, PredictRequestBody } from '../types/internal';
+import { ImagenGenerationParams, PredictRequestBody } from '../types/internal';
 
 export function formatSystemInstruction(
   input?: string | Part | Content
@@ -128,22 +126,25 @@ export function formatGenerateContentInput(
 }
 
 /**
- * Convert the user-defined parameters in {@link ImagenRequestConfig} to the format
+ * Convert the user-defined parameters in {@link ImagenGenerationParams} to the format
  * that is expected from the REST API.
  *
  * @internal
  */
-export function createPredictRequestBody({
-  prompt,
-  gcsURI,
-  imageFormat = ImagenImageFormat.png(),
-  addWatermark,
-  safetySettings,
-  numberOfImages = 1,
-  negativePrompt,
-  aspectRatio = ImagenAspectRatio.SQUARE
-}: ImagenRequestConfig): PredictRequestBody {
-  // Properties that are undefined will be omitted from the JSON string.
+export function createPredictRequestBody(
+  prompt: string,
+  {
+    gcsURI,
+    imageFormat,
+    addWatermark,
+    numberOfImages = 1,
+    negativePrompt,
+    aspectRatio,
+    safetyFilterLevel,
+    personFilterLevel
+  }: ImagenGenerationParams
+): PredictRequestBody {
+  // Properties that are undefined will be omitted from the JSON string that is sent in the request.
   const body: PredictRequestBody = {
     instances: [
       {
@@ -152,13 +153,14 @@ export function createPredictRequestBody({
     ],
     parameters: {
       storageUri: gcsURI,
+      negativePrompt,
+      sampleCount: numberOfImages,
+      aspectRatio,
       ...imageFormat,
       addWatermark,
-      ...safetySettings,
-      sampleCount: numberOfImages,
-      includeRaiReason: true,
-      negativePrompt,
-      aspectRatio
+      safetyFilterLevel,
+      personGeneration: personFilterLevel,
+      includeRaiReason: true
     }
   };
   return body;

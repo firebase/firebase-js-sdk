@@ -65,20 +65,23 @@ describe('ImagenModel', () => {
       match((value: string) => {
         return (
           value.includes(`"prompt":"${prompt}"`) &&
-          value.includes(`"mimeType":"image/png"`) &&
-          value.includes(`"sampleCount":1`) &&
-          value.includes(`"aspectRatio":"1:1"`)
+          value.includes(`"sampleCount":1`)
         );
       }),
       undefined
     );
     restore();
   });
-  it('generateImages makes a request to predict with model-level image configs', async () => {
+  it('generateImages makes a request to predict with generation config and safety settings', async () => {
     const imagenModel = new ImagenModel(fakeVertexAI, {
       model: 'my-model',
-      addWatermark: true,
-      imageFormat: { mimeType: 'image/jpeg', compressionQuality: 75 },
+      generationConfig: {
+        negativePrompt: 'do not hallucinate',
+        numberOfImages: 4,
+        aspectRatio: ImagenAspectRatio.LANDSCAPE_16x9,
+        imageFormat: { mimeType: 'image/jpeg', compressionQuality: 75 },
+        addWatermark: true
+      },
       safetySettings: {
         safetyFilterLevel: ImagenSafetyFilterLevel.BLOCK_ONLY_HIGH,
         personFilterLevel: ImagenPersonFilterLevel.ALLOW_ADULT
@@ -92,7 +95,7 @@ describe('ImagenModel', () => {
       mockResponse as Response
     );
     const prompt = 'A photorealistic image of a toy boat at sea.';
-    await imagenModel.generateImages(prompt, { numberOfImages: 1 });
+    await imagenModel.generateImages(prompt);
     expect(makeRequestStub).to.be.calledWith(
       'publishers/google/models/my-model',
       request.Task.PREDICT,
@@ -101,117 +104,30 @@ describe('ImagenModel', () => {
       match((value: string) => {
         return (
           value.includes(
-            JSON.stringify(imagenModel.modelConfig.addWatermark)
+            `"negativePrompt":"${imagenModel.generationConfig?.negativePrompt}"`
           ) &&
           value.includes(
-            JSON.stringify(
-              imagenModel.modelConfig.safetySettings?.safetyFilterLevel
-            )
+            `"sampleCount":${imagenModel.generationConfig?.numberOfImages}`
           ) &&
           value.includes(
-            JSON.stringify(
-              imagenModel.modelConfig.safetySettings?.personFilterLevel
-            )
+            `"aspectRatio":"${imagenModel.generationConfig?.aspectRatio}"`
           ) &&
           value.includes(
-            JSON.stringify(imagenModel.modelConfig.imageFormat?.mimeType)
+            JSON.stringify(imagenModel.generationConfig?.imageFormat?.mimeType)
+          ) &&
+          value.includes(
+            JSON.stringify(imagenModel.generationConfig?.addWatermark)
+          ) &&
+          value.includes(
+            JSON.stringify(imagenModel.safetySettings?.safetyFilterLevel)
+          ) &&
+          value.includes(
+            JSON.stringify(imagenModel.safetySettings?.personFilterLevel)
           )
         );
       }),
       undefined
     );
-    restore();
-  });
-  it('generateImages makes a request to predict with request-level image configs', async () => {
-    const imagenModel = new ImagenModel(fakeVertexAI, {
-      model: 'my-model'
-    });
-
-    const mockResponse = getMockResponse(
-      'unary-success-generate-images-base64.json'
-    );
-    const makeRequestStub = stub(request, 'makeRequest').resolves(
-      mockResponse as Response
-    );
-    const prompt = 'A photorealistic image of a toy boat at sea.';
-    const requestConfig = {
-      numberOfImages: 4,
-      aspectRatio: ImagenAspectRatio.LANDSCAPE_16x9,
-      negativePrompt: 'do not hallucinate'
-    };
-    await imagenModel.generateImages(prompt, requestConfig);
-    expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.PREDICT,
-      match.any,
-      false,
-      match((value: string) => {
-        return (
-          value.includes(`"sampleCount":${requestConfig.numberOfImages}`) &&
-          value.includes(`"aspectRatio":"${requestConfig.aspectRatio}"`) &&
-          value.includes(`"negativePrompt":"${requestConfig.negativePrompt}"`)
-        );
-      }),
-      undefined
-    );
-
-    restore();
-  });
-  it('generateImages makes a request to predict with model-level and request-level image configs', async () => {
-    const imagenModel = new ImagenModel(fakeVertexAI, {
-      model: 'my-model',
-      addWatermark: true,
-      imageFormat: { mimeType: 'image/jpeg', compressionQuality: 75 },
-      safetySettings: {
-        safetyFilterLevel: ImagenSafetyFilterLevel.BLOCK_ONLY_HIGH,
-        personFilterLevel: ImagenPersonFilterLevel.ALLOW_ADULT
-      }
-    });
-
-    const mockResponse = getMockResponse(
-      'unary-success-generate-images-base64.json'
-    );
-    const makeRequestStub = stub(request, 'makeRequest').resolves(
-      mockResponse as Response
-    );
-    const prompt = 'A photorealistic image of a toy boat at sea.';
-    const requestConfig = {
-      numberOfImages: 4,
-      aspectRatio: ImagenAspectRatio.LANDSCAPE_16x9,
-      negativePrompt: 'do not hallucinate'
-    };
-    await imagenModel.generateImages(prompt, requestConfig);
-    expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.PREDICT,
-      match.any,
-      false,
-      match((value: string) => {
-        return (
-          value.includes(
-            JSON.stringify(imagenModel.modelConfig.addWatermark)
-          ) &&
-          value.includes(
-            JSON.stringify(
-              imagenModel.modelConfig.safetySettings?.safetyFilterLevel
-            )
-          ) &&
-          value.includes(
-            JSON.stringify(
-              imagenModel.modelConfig.safetySettings?.personFilterLevel
-            )
-          ) &&
-          value.includes(
-            JSON.stringify(imagenModel.modelConfig.imageFormat?.mimeType)
-          ) &&
-          value.includes(`"sampleCount":${requestConfig.numberOfImages}`) &&
-          value.includes(`"aspectRatio":"${requestConfig.aspectRatio}"`) &&
-          value.includes(`"negativePrompt":"${requestConfig.negativePrompt}"`)
-        );
-      }),
-      undefined
-    );
-
     restore();
   });
   it('throws if prompt blocked', async () => {
@@ -230,10 +146,7 @@ describe('ImagenModel', () => {
       model: 'my-model'
     });
     try {
-      await imagenModel.generateImages(
-        'A photorealistic image of a toy boat at sea.',
-        { numberOfImages: 1 }
-      );
+      await imagenModel.generateImages('some inappropriate prompt.');
     } catch (e) {
       expect((e as VertexAIError).code).to.equal(VertexAIErrorCode.FETCH_ERROR);
       expect((e as VertexAIError).message).to.include('400');

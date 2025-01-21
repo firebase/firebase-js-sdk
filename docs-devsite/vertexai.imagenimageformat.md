@@ -61,7 +61,7 @@ Creates an ImagenImageFormat for a JPEG image.
 <b>Signature:</b>
 
 ```typescript
-static jpeg(compressionQuality: number): ImagenImageFormat;
+static jpeg(compressionQuality?: number): ImagenImageFormat;
 ```
 
 #### Parameters

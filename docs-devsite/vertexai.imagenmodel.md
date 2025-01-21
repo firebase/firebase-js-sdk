@@ -31,15 +31,16 @@ export declare class ImagenModel extends VertexAIModel
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [modelConfig](./vertexai.imagenmodel.md#imagenmodelmodelconfig) |  | [ImagenModelConfig](./vertexai.imagenmodelconfig.md#imagenmodelconfig_interface) | Model-level configurations to use when using Imagen. |
+|  [generationConfig](./vertexai.imagenmodel.md#imagenmodelgenerationconfig) |  | [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface) | The Imagen Generation Configuration. |
 |  [requestOptions](./vertexai.imagenmodel.md#imagenmodelrequestoptions) |  | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) \| undefined |  |
+|  [safetySettings](./vertexai.imagenmodel.md#imagenmodelsafetysettings) |  | [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) | Safety settings for filtering inappropriate content. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [generateImages(prompt, imagenRequestOptions)](./vertexai.imagenmodel.md#imagenmodelgenerateimages) |  | Generates images using the Imagen model and returns them as base64-encoded strings. |
-|  [generateImagesGCS(prompt, gcsURI, imagenRequestOptions)](./vertexai.imagenmodel.md#imagenmodelgenerateimagesgcs) |  | Generates images to Google Cloud Storage (GCS) using the Imagen model. |
+|  [generateImages(prompt)](./vertexai.imagenmodel.md#imagenmodelgenerateimages) |  | Generates images using the Imagen model and returns them as base64-encoded strings. |
+|  [generateImagesGCS(prompt, gcsURI)](./vertexai.imagenmodel.md#imagenmodelgenerateimagesgcs) |  | Generates images to Google Cloud Storage (GCS) using the Imagen model. |
 
 ## ImagenModel.(constructor)
 
@@ -63,14 +64,14 @@ constructor(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?:
 
 If the `apiKey` or `projectId` fields are missing in your Firebase config.
 
-## ImagenModel.modelConfig
+## ImagenModel.generationConfig
 
-Model-level configurations to use when using Imagen.
+The Imagen Generation Configuration.
 
 <b>Signature:</b>
 
 ```typescript
-readonly modelConfig: ImagenModelConfig;
+readonly generationConfig?: ImagenGenerationConfig;
 ```
 
 ## ImagenModel.requestOptions
@@ -81,16 +82,26 @@ readonly modelConfig: ImagenModelConfig;
 readonly requestOptions?: RequestOptions | undefined;
 ```
 
-## ImagenModel.generateImages()
+## ImagenModel.safetySettings
 
-Generates images using the Imagen model and returns them as base64-encoded strings.
-
-If one or more images are filtered, the returned object will have a defined `filteredReason` property. If all images are filtered, the `images` array will be empty, and no error will be thrown.
+Safety settings for filtering inappropriate content.
 
 <b>Signature:</b>
 
 ```typescript
-generateImages(prompt: string, imagenRequestOptions?: ImagenGenerationConfig): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
+readonly safetySettings?: ImagenSafetySettings;
+```
+
+## ImagenModel.generateImages()
+
+Generates images using the Imagen model and returns them as base64-encoded strings.
+
+If the prompt was not blocked, but one or more of the generated images were filtered, the returned object will have a `filteredReason` property. If all images are filtered, the `images` array will be empty.
+
+<b>Signature:</b>
+
+```typescript
+generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
 ```
 
 #### Parameters
@@ -98,7 +109,6 @@ generateImages(prompt: string, imagenRequestOptions?: ImagenGenerationConfig): P
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  prompt | string | The text prompt used to generate the images. |
-|  imagenRequestOptions | [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface) | Configuration options for the Imagen generation request. See [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->. |
 
 <b>Returns:</b>
 
@@ -114,12 +124,12 @@ If the request to generate images fails. This happens if the prompt is blocked.
 
 Generates images to Google Cloud Storage (GCS) using the Imagen model.
 
-If one or more images are filtered due to safety reasons, the returned object will have a defined `filteredReason` property. If all images are filtered, the `images` array will be empty, and no error will be thrown.
+If the prompt was not blocked, but one or more of the generated images were filtered, the returned object will have a `filteredReason` property. If all images are filtered, the `images` array will be empty.
 
 <b>Signature:</b>
 
 ```typescript
-generateImagesGCS(prompt: string, gcsURI: string, imagenRequestOptions?: ImagenGenerationConfig): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
+generateImagesGCS(prompt: string, gcsURI: string): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
 ```
 
 #### Parameters
@@ -128,7 +138,6 @@ generateImagesGCS(prompt: string, gcsURI: string, imagenRequestOptions?: ImagenG
 |  --- | --- | --- |
 |  prompt | string | The text prompt used to generate the images. |
 |  gcsURI | string | The GCS URI where the images should be stored. This should be a directory. For example, <code>gs://my-bucket/my-directory/</code>. |
-|  imagenRequestOptions | [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface) | Configuration options for the Imagen generation request. See [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->. |
 
 <b>Returns:</b>
 
@@ -144,12 +153,17 @@ If the request fails to generate images fails. This happens if the prompt is blo
 
 
 ```javascript
-const imagen = new ImagenModel(vertexAI, {
-  model: 'imagen-3.0-generate-001'
-});
+const imagen = new ImagenModel(
+  vertexAI,
+  {
+    model: 'imagen-3.0-generate-001'
+  }
+);
 
 const response = await imagen.generateImages('A photo of a cat');
-console.log(response.images[0].bytesBase64Encoded);
+if (response.images.length > 0) {
+  console.log(response.images[0].bytesBase64Encoded);
+}
 
 ```
 

@@ -447,7 +447,9 @@ export interface ImagenGCSImage {
 
 // @public
 export interface ImagenGenerationConfig {
+    addWatermark?: boolean;
     aspectRatio?: ImagenAspectRatio;
+    imageFormat?: ImagenImageFormat;
     negativePrompt?: string;
     numberOfImages?: number;
 }
@@ -461,7 +463,7 @@ export interface ImagenGenerationResponse<T extends ImagenInlineImage | ImagenGC
 // @public
 export class ImagenImageFormat {
     compressionQuality?: number;
-    static jpeg(compressionQuality: number): ImagenImageFormat;
+    static jpeg(compressionQuality?: number): ImagenImageFormat;
     mimeType: string;
     static png(): ImagenImageFormat;
 }
@@ -475,23 +477,19 @@ export interface ImagenInlineImage {
 // @public
 export class ImagenModel extends VertexAIModel {
     constructor(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
-    generateImages(prompt: string, imagenRequestOptions?: ImagenGenerationConfig): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
-    generateImagesGCS(prompt: string, gcsURI: string, imagenRequestOptions?: ImagenGenerationConfig): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
-    readonly modelConfig: ImagenModelConfig;
+    generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
+    generateImagesGCS(prompt: string, gcsURI: string): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
+    readonly generationConfig?: ImagenGenerationConfig;
     // (undocumented)
     readonly requestOptions?: RequestOptions | undefined;
+    readonly safetySettings?: ImagenSafetySettings;
 }
 
 // @public
-export interface ImagenModelConfig {
-    addWatermark?: boolean;
-    imageFormat?: ImagenImageFormat;
-    safetySettings?: ImagenSafetySettings;
-}
-
-// @public
-export interface ImagenModelParams extends ImagenModelConfig {
+export interface ImagenModelParams {
+    generationConfig?: ImagenGenerationConfig;
     model: string;
+    safetySettings?: ImagenSafetySettings;
 }
 
 // @public

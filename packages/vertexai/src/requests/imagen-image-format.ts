@@ -54,7 +54,7 @@ export class ImagenImageFormat {
    *
    * @public
    */
-  static jpeg(compressionQuality: number): ImagenImageFormat {
+  static jpeg(compressionQuality?: number): ImagenImageFormat {
     return { mimeType: 'image/jpeg', compressionQuality };
   }
 

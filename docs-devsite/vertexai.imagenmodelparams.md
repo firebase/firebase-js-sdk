@@ -15,15 +15,26 @@ Parameters for configuring an [ImagenModel](./vertexai.imagenmodel.md#imagenmode
 <b>Signature:</b>
 
 ```typescript
-export interface ImagenModelParams extends ImagenModelConfig 
+export interface ImagenModelParams 
 ```
-<b>Extends:</b> [ImagenModelConfig](./vertexai.imagenmodelconfig.md#imagenmodelconfig_interface)
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
+|  [generationConfig](./vertexai.imagenmodelparams.md#imagenmodelparamsgenerationconfig) | [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface) | The Imagen Generation Configuration. |
 |  [model](./vertexai.imagenmodelparams.md#imagenmodelparamsmodel) | string | The Imagen model to use for generating images. For example: <code>imagen-3.0-generate-001</code>. |
+|  [safetySettings](./vertexai.imagenmodelparams.md#imagenmodelparamssafetysettings) | [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) | Safety settings for filtering inappropriate content. |
+
+## ImagenModelParams.generationConfig
+
+The Imagen Generation Configuration.
+
+<b>Signature:</b>
+
+```typescript
+generationConfig?: ImagenGenerationConfig;
+```
 
 ## ImagenModelParams.model
 
@@ -33,4 +44,14 @@ The Imagen model to use for generating images. For example: `imagen-3.0-generate
 
 ```typescript
 model: string;
+```
+
+## ImagenModelParams.safetySettings
+
+Safety settings for filtering inappropriate content.
+
+<b>Signature:</b>
+
+```typescript
+safetySettings?: ImagenSafetySettings;
 ```

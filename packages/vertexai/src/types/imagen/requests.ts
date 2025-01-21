@@ -22,56 +22,55 @@ import { ImagenImageFormat } from '../../requests/imagen-image-format';
  *
  * @public
  */
-export interface ImagenModelParams extends ImagenModelConfig {
+export interface ImagenModelParams {
   /**
    * The Imagen model to use for generating images.
    * For example: `imagen-3.0-generate-001`.
    */
   model: string;
-}
-
-/**
- * Model-level configuration options for Imagen.
- *
- * @public
- */
-export interface ImagenModelConfig {
   /**
-   * The image format of the generated images.
+   * The Imagen Generation Configuration.
    */
-  imageFormat?: ImagenImageFormat;
+  generationConfig?: ImagenGenerationConfig;
   /**
-   * Whether to add a watermark to generated images.
-   */
-  addWatermark?: boolean;
-  /**
-   * Safety settings for filtering inapropriate content.
+   * Safety settings for filtering inappropriate content.
    */
   safetySettings?: ImagenSafetySettings;
 }
 
 /**
- * Request-level configuration options for generating images with Imagen.
+ * Configuration options for generating images with Imagen.
+ *
+ * See the [Google Cloud Docs](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#rest_1).
  *
  * @public
  */
 export interface ImagenGenerationConfig {
   /**
-   * The number of images to generate. Must be between 1 and 4. Defaults to 1.
-   */
-  numberOfImages?: number;
-  /**
-   * A text prompt describing what should not be included in the image.
+   * A description of what should be omitted from the generated images.
    */
   negativePrompt?: string;
   /**
-   * The aspect ratio of the generated images. Defaults to `1:1`.
+   * The number of images to generate. Must be between 1 and 4. The default value is 1.
+   */
+  numberOfImages?: number;
+  /**
+   * The aspect ratio of the generated images. The default value is 1:1.
+   * used.
    */
   aspectRatio?: ImagenAspectRatio;
+  /**
+   * The image format of the generated images. The default is PNG.
+   */
+  imageFormat?: ImagenImageFormat;
+  /**
+   * If true, adds a SynthID watermark to the generated images.
+   */
+  addWatermark?: boolean;
 }
 
 /**
- * Safety filter levels for Imagen.
+ * Safety filter levels for Imagen
  *
  * @public
  */

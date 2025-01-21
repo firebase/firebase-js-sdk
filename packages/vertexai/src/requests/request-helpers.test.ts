@@ -210,20 +210,18 @@ describe('request formatting methods', () => {
   describe('createPredictRequestBody', () => {
     it('creates body with default request parameters', () => {
       const prompt = 'A photorealistic image of a toy boat at sea.';
-      const body = createPredictRequestBody({
-        prompt
-      });
+      const body = createPredictRequestBody(prompt, {});
       expect(body.instances[0].prompt).to.equal(prompt);
       expect(body.parameters.sampleCount).to.equal(1);
-      expect(body.parameters.mimeType).to.equal('image/png');
       expect(body.parameters.includeRaiReason).to.be.true;
-      expect(body.parameters.aspectRatio).to.equal('1:1');
 
       // Parameters without default values should be undefined
       expect(body.parameters.storageUri).to.be.undefined;
       expect(body.parameters.compressionQuality).to.be.undefined;
       expect(body.parameters.negativePrompt).to.be.undefined;
       expect(body.parameters.storageUri).to.be.undefined;
+      expect(body.parameters.mimeType).to.be.undefined;
+      expect(body.parameters.aspectRatio).to.be.undefined;
       expect(body.parameters.addWatermark).to.be.undefined;
       expect(body.parameters.safetyFilterLevel).to.be.undefined;
       expect(body.parameters.personGeneration).to.be.undefined;
@@ -240,16 +238,16 @@ describe('request formatting methods', () => {
     const numberOfImages = 4;
     const negativePrompt = 'do not hallucinate';
     const aspectRatio = ImagenAspectRatio.LANDSCAPE_16x9;
-    const body = createPredictRequestBody({
-      prompt,
+    const body = createPredictRequestBody(prompt, {
       numberOfImages,
       imageFormat,
-      safetySettings,
       addWatermark,
       negativePrompt,
-      aspectRatio
+      aspectRatio,
+      ...safetySettings
     });
     expect(body.instances[0].prompt).to.equal(prompt);
+    console.log(body);
     expect(body.parameters).deep.equal({
       sampleCount: numberOfImages,
       mimeType: imageFormat.mimeType,
@@ -257,7 +255,7 @@ describe('request formatting methods', () => {
       addWatermark,
       negativePrompt,
       safetyFilterLevel: safetySettings.safetyFilterLevel,
-      personFilterLevel: safetySettings.personFilterLevel,
+      personGeneration: safetySettings.personFilterLevel,
       aspectRatio,
       includeRaiReason: true,
       storageUri: undefined
@@ -266,8 +264,7 @@ describe('request formatting methods', () => {
   it('creates body with GCS URI', () => {
     const prompt = 'A photorealistic image of a toy boat at sea.';
     const gcsURI = 'gcs-uri';
-    const body = createPredictRequestBody({
-      prompt,
+    const body = createPredictRequestBody(prompt, {
       gcsURI
     });
 

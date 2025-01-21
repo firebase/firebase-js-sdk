@@ -10,7 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ImagenGenerationConfig interface
-Request-level configuration options for generating images with Imagen.
+Configuration options for generating images with Imagen.
+
+See the \[Google Cloud Docs\](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api\#rest\_1).
 
 <b>Signature:</b>
 
@@ -22,13 +24,25 @@ export interface ImagenGenerationConfig
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [aspectRatio](./vertexai.imagengenerationconfig.md#imagengenerationconfigaspectratio) | [ImagenAspectRatio](./vertexai.md#imagenaspectratio) | The aspect ratio of the generated images. Defaults to <code>1:1</code>. |
-|  [negativePrompt](./vertexai.imagengenerationconfig.md#imagengenerationconfignegativeprompt) | string | A text prompt describing what should not be included in the image. |
-|  [numberOfImages](./vertexai.imagengenerationconfig.md#imagengenerationconfignumberofimages) | number | The number of images to generate. Must be between 1 and 4. Defaults to 1. |
+|  [addWatermark](./vertexai.imagengenerationconfig.md#imagengenerationconfigaddwatermark) | boolean | If true, adds a SynthID watermark to the generated images. |
+|  [aspectRatio](./vertexai.imagengenerationconfig.md#imagengenerationconfigaspectratio) | [ImagenAspectRatio](./vertexai.md#imagenaspectratio) | The aspect ratio of the generated images. The default value is 1:1. used. |
+|  [imageFormat](./vertexai.imagengenerationconfig.md#imagengenerationconfigimageformat) | [ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class) | The image format of the generated images. The default is PNG. |
+|  [negativePrompt](./vertexai.imagengenerationconfig.md#imagengenerationconfignegativeprompt) | string | A description of what should be omitted from the generated images. |
+|  [numberOfImages](./vertexai.imagengenerationconfig.md#imagengenerationconfignumberofimages) | number | The number of images to generate. Must be between 1 and 4. The default value is 1. |
+
+## ImagenGenerationConfig.addWatermark
+
+If true, adds a SynthID watermark to the generated images.
+
+<b>Signature:</b>
+
+```typescript
+addWatermark?: boolean;
+```
 
 ## ImagenGenerationConfig.aspectRatio
 
-The aspect ratio of the generated images. Defaults to `1:1`<!-- -->.
+The aspect ratio of the generated images. The default value is 1:1. used.
 
 <b>Signature:</b>
 
@@ -36,9 +50,19 @@ The aspect ratio of the generated images. Defaults to `1:1`<!-- -->.
 aspectRatio?: ImagenAspectRatio;
 ```
 
+## ImagenGenerationConfig.imageFormat
+
+The image format of the generated images. The default is PNG.
+
+<b>Signature:</b>
+
+```typescript
+imageFormat?: ImagenImageFormat;
+```
+
 ## ImagenGenerationConfig.negativePrompt
 
-A text prompt describing what should not be included in the image.
+A description of what should be omitted from the generated images.
 
 <b>Signature:</b>
 
@@ -48,7 +72,7 @@ negativePrompt?: string;
 
 ## ImagenGenerationConfig.numberOfImages
 
-The number of images to generate. Must be between 1 and 4. Defaults to 1.
+The number of images to generate. Must be between 1 and 4. The default value is 1.
 
 <b>Signature:</b>
 

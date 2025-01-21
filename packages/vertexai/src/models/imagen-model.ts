@@ -25,8 +25,8 @@ import {
   ImagenInlineImage,
   RequestOptions,
   ImagenModelParams,
-  ImagenModelConfig,
-  ImagenGenerationResponse
+  ImagenGenerationResponse,
+  ImagenSafetySettings
 } from '../types';
 import { VertexAIModel } from './vertexai-model';
 
@@ -39,21 +39,30 @@ import { VertexAIModel } from './vertexai-model';
  *
  * @example
  * ```javascript
- * const imagen = new ImagenModel(vertexAI, {
- *   model: 'imagen-3.0-generate-001'
- * });
+ * const imagen = new ImagenModel(
+ *   vertexAI,
+ *   {
+ *     model: 'imagen-3.0-generate-001'
+ *   }
+ * );
  *
  * const response = await imagen.generateImages('A photo of a cat');
- * console.log(response.images[0].bytesBase64Encoded);
+ * if (response.images.length > 0) {
+ *   console.log(response.images[0].bytesBase64Encoded);
+ * }
  * ```
  *
  * @public
  */
 export class ImagenModel extends VertexAIModel {
   /**
-   * Model-level configurations to use when using Imagen.
+   * The Imagen Generation Configuration.
    */
-  readonly modelConfig: ImagenModelConfig;
+  readonly generationConfig?: ImagenGenerationConfig;
+  /**
+   * Safety settings for filtering inappropriate content.
+   */
+  readonly safetySettings?: ImagenSafetySettings;
 
   /**
    * Constructs a new instance of the {@link ImagenModel} class.
@@ -70,9 +79,10 @@ export class ImagenModel extends VertexAIModel {
     modelParams: ImagenModelParams,
     readonly requestOptions?: RequestOptions
   ) {
-    const { model, ...modelConfig } = modelParams;
+    const { model, generationConfig, safetySettings } = modelParams;
     super(vertexAI, model);
-    this.modelConfig = modelConfig;
+    this.generationConfig = generationConfig;
+    this.safetySettings = safetySettings;
   }
 
   /**
@@ -80,9 +90,6 @@ export class ImagenModel extends VertexAIModel {
    * base64-encoded strings.
    *
    * @param prompt - The text prompt used to generate the images.
-   * @param imagenRequestOptions - Configuration options for the Imagen
-   * generation request.
-   * See {@link ImagenGenerationConfig}.
    * @returns A promise that resolves to an {@link ImagenGenerationResponse}
    * object containing the generated images.
    *
@@ -90,18 +97,16 @@ export class ImagenModel extends VertexAIModel {
    * prompt is blocked.
    *
    * @remarks
-   * If one or more images are filtered, the returned object will have a
-   * defined `filteredReason` property. If all images are filtered, the
-   * `images` array will be empty, and no error will be thrown.
+   * If the prompt was not blocked, but one or more of the generated images were filtered, the
+   * returned object will have a `filteredReason` property.
+   * If all images are filtered, the `images` array will be empty.
    */
   async generateImages(
-    prompt: string,
-    imagenRequestOptions?: ImagenGenerationConfig
+    prompt: string
   ): Promise<ImagenGenerationResponse<ImagenInlineImage>> {
-    const body = createPredictRequestBody({
-      prompt,
-      ...imagenRequestOptions,
-      ...this.modelConfig
+    const body = createPredictRequestBody(prompt, {
+      ...this.generationConfig,
+      ...this.safetySettings
     });
     const response = await makeRequest(
       this.model,
@@ -120,8 +125,6 @@ export class ImagenModel extends VertexAIModel {
    * @param prompt - The text prompt used to generate the images.
    * @param gcsURI - The GCS URI where the images should be stored.
    * This should be a directory. For example, `gs://my-bucket/my-directory/`.
-   * @param imagenRequestOptions - Configuration options for the Imagen
-   * generation request. See {@link ImagenGenerationConfig}.
    * @returns A promise that resolves to an {@link ImagenGenerationResponse}
    * object containing the URLs of the generated images.
    *
@@ -129,20 +132,18 @@ export class ImagenModel extends VertexAIModel {
    * the prompt is blocked.
    *
    * @remarks
-   * If one or more images are filtered due to safety reasons, the returned object
-   * will have a defined `filteredReason` property. If all images are filtered,
-   * the `images` array will be empty, and no error will be thrown.
+   * If the prompt was not blocked, but one or more of the generated images were filtered, the
+   * returned object will have a `filteredReason` property.
+   * If all images are filtered, the `images` array will be empty.
    */
   async generateImagesGCS(
     prompt: string,
-    gcsURI: string,
-    imagenRequestOptions?: ImagenGenerationConfig
+    gcsURI: string
   ): Promise<ImagenGenerationResponse<ImagenGCSImage>> {
-    const body = createPredictRequestBody({
-      prompt,
+    const body = createPredictRequestBody(prompt, {
       gcsURI,
-      ...imagenRequestOptions,
-      ...this.modelConfig
+      ...this.generationConfig,
+      ...this.safetySettings
     });
     const response = await makeRequest(
       this.model,

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ImagenGenerationConfig, ImagenModelConfig } from './requests';
+import { ImagenGenerationConfig, ImagenSafetySettings } from './requests';
 
 /**
  * A response from the REST API is expected to look like this in the success case:
@@ -51,9 +51,10 @@ export interface ImagenResponseInternal {
      * The image data encoded as a base64 string.
      */
     bytesBase64Encoded?: string;
-
+    /**
+     * The GCS URI where the image was stored.
+     */
     gcsUri?: string;
-
     /**
      * The reason why the image was filtered.
      */
@@ -67,9 +68,6 @@ export interface ImagenResponseInternal {
  *
  * We need a seperate internal-only interface for this because the REST
  * API expects different parameter names than what we show to our users.
- *
- * This interface should be populated from the ImagenGenerationConfig that
- * the user defines.
  *
  * Sample request body JSON:
  * {
@@ -88,6 +86,8 @@ export interface ImagenResponseInternal {
  *   }
  * }
  *
+ * See the Google Cloud docs: https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#-drest
+ *
  * @internal
  */
 export interface PredictRequestBody {
@@ -98,8 +98,8 @@ export interface PredictRequestBody {
   ];
   parameters: {
     sampleCount: number; // Maps to numberOfImages
-    aspectRatio: string;
-    mimeType: string;
+    aspectRatio?: string;
+    mimeType?: string;
     compressionQuality?: number;
     negativePrompt?: string;
     storageUri?: string; // Maps to gcsURI
@@ -111,23 +111,15 @@ export interface PredictRequestBody {
 }
 
 /**
- * Contains all possible REST API paramaters.
- * This is the union of model-level (`ImagenModelParams`),
- * request-level (`ImagenGenerationConfig`) configurations, prompt,
- * and gcsURI (for GCS generation only).
+ * Contains all possible REST API paramaters that are provided by the caller.
  *
  * @internal
  */
-export interface ImagenRequestConfig
-  extends ImagenModelConfig,
-    ImagenGenerationConfig {
-  /**
-   * The text prompt used to generate the images.
-   */
-  prompt: string;
+export type ImagenGenerationParams = {
   /**
    * The Google Cloud Storage (GCS) URI where the images should be stored
    * (for GCS requests only).
    */
   gcsURI?: string;
-}
+} & ImagenGenerationConfig &
+  ImagenSafetySettings;

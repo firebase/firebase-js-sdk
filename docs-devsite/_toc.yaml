@@ -540,8 +540,6 @@ toc:
     path: /docs/reference/js/vertexai.imageninlineimage.md
   - title: ImagenModel
     path: /docs/reference/js/vertexai.imagenmodel.md
-  - title: ImagenModelConfig
-    path: /docs/reference/js/vertexai.imagenmodelconfig.md
   - title: ImagenModelParams
     path: /docs/reference/js/vertexai.imagenmodelparams.md
   - title: ImagenSafetySettings
