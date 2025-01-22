@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # FetchResponse interface
 Defines a successful response (200 or 304).
 
-<p>Modeled after the native  interface, but simplified for Remote Config's use case.
+<p>Modeled after the native `Response` interface, but simplified for Remote Config's use case.
 
 <b>Signature:</b>
 
@@ -26,7 +26,7 @@ export interface FetchResponse
 |  --- | --- | --- |
 |  [config](./remote-config.fetchresponse.md#fetchresponseconfig) | [FirebaseRemoteConfigObject](./remote-config.firebaseremoteconfigobject.md#firebaseremoteconfigobject_interface) | Defines the map of parameters returned as "entries" in the fetch response body.<p>Only defined for 200 responses. |
 |  [eTag](./remote-config.fetchresponse.md#fetchresponseetag) | string | Defines the ETag response header value.<p>Only defined for 200 and 304 responses. |
-|  [status](./remote-config.fetchresponse.md#fetchresponsestatus) | number | The HTTP status, which is useful for differentiating success responses with data from those without.<p> is modeled after the native  interface, so HTTP status is first-class.<p>Disambiguation: the fetch response returns a legacy "state" value that is redundant with the HTTP status code. The former is normalized into the latter. |
+|  [status](./remote-config.fetchresponse.md#fetchresponsestatus) | number | The HTTP status, which is useful for differentiating success responses with data from those without.<p>The Remote Config client is modeled after the native <code>Fetch</code> interface, so HTTP status is first-class.<p>Disambiguation: the fetch response returns a legacy "state" value that is redundant with the HTTP status code. The former is normalized into the latter. |
 
 ## FetchResponse.config
 
@@ -56,7 +56,7 @@ eTag?: string;
 
 The HTTP status, which is useful for differentiating success responses with data from those without.
 
-<p> is modeled after the native  interface, so HTTP status is first-class.
+<p>The Remote Config client is modeled after the native `Fetch` interface, so HTTP status is first-class.
 
 <p>Disambiguation: the fetch response returns a legacy "state" value that is redundant with the HTTP status code. The former is normalized into the latter.
 
