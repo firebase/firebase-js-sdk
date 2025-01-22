@@ -60,7 +60,7 @@ export function getRemoteConfig(
 
   if (options.initialFetchResponse) {
     // We use these initial writes as the initialization promise since they will hydrate the same
-    // fields that storageCache.loadFromStorage would set.
+    // fields that `storageCache.loadFromStorage` would set.
     rc._initializePromise = Promise.all([
       rc._storage.setLastSuccessfulFetchResponse(options.initialFetchResponse),
       rc._storage.setActiveConfigEtag(options.initialFetchResponse?.eTag || ''),
@@ -70,7 +70,7 @@ export function getRemoteConfig(
         options.initialFetchResponse?.config || {}
       )
     ]).then();
-    // The storageCache methods above set their in-memory fields sycnhronously, so it's
+    // The `storageCache` methods above set their in-memory fields synchronously, so it's
     // safe to declare our initialization complete at this point.
     rc._isInitializationComplete = true;
   }
@@ -254,7 +254,7 @@ export function getValue(remoteConfig: RemoteConfig, key: string): Value {
   if (!rc._isInitializationComplete) {
     rc._logger.debug(
       `A value was requested for key "${key}" before SDK initialization completed.` +
-        ' Await on ensureInitialized if the intent was to get a previously activated value.'
+      ' Await on ensureInitialized if the intent was to get a previously activated value.'
     );
   }
   const activeConfig = rc._storageCache.getActiveConfig();
@@ -265,7 +265,7 @@ export function getValue(remoteConfig: RemoteConfig, key: string): Value {
   }
   rc._logger.debug(
     `Returning static value for key "${key}".` +
-      ' Define a default or remote value if this is unintentional.'
+    ' Define a default or remote value if this is unintentional.'
   );
   return new ValueImpl('static');
 }

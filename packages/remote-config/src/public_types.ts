@@ -60,7 +60,7 @@ export interface FirebaseRemoteConfigObject {
 /**
  * Defines a successful response (200 or 304).
  *
- * <p>Modeled after the native {@link Response} interface, but simplified for Remote Config's
+ * <p>Modeled after the native `Response` interface, but simplified for Remote Config's
  * use case.
  */
 export interface FetchResponse {
@@ -68,7 +68,7 @@ export interface FetchResponse {
    * The HTTP status, which is useful for differentiating success responses with data from
    * those without.
    *
-   * <p>{@link RemoteConfigClient} is modeled after the native {@link GlobalFetch} interface, so
+   * <p>The Remote Config client is modeled after the native `Fetch` interface, so
    * HTTP status is first-class.
    *
    * <p>Disambiguation: the fetch response returns a legacy "state" value that is redundant with the
