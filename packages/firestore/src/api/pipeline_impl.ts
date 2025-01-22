@@ -16,6 +16,7 @@
  */
 
 import { Pipeline } from '../api/pipeline';
+import { toPipeline } from '../core/pipeline-util';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult } from '../lite-api/pipeline-result';
 import { PipelineSource } from '../lite-api/pipeline-source';
@@ -26,6 +27,12 @@ import { cast } from '../util/input_validation';
 import { Firestore } from './database';
 import { Query } from './reference';
 import { ExpUserDataWriter } from './user_data_writer';
+
+declare module './database' {
+  interface Firestore {
+    pipeline(): PipelineSource<Pipeline>;
+  }
+}
 
 /**
  * Experimental Modular API for console testing.
@@ -53,19 +60,11 @@ export function pipeline(
       );
     });
   } else {
-    let result;
     const query = firestoreOrQuery;
     const db = cast<Firestore>(query.firestore, Firestore);
-    if (query._query.collectionGroup) {
-      result = pipeline(db).collectionGroup(query._query.collectionGroup);
-    } else {
-      result = pipeline(db).collection(query._query.path.canonicalString());
-    }
 
-    // TODO(pipeline) convert existing query filters, limits, etc into
-    // pipeline stages
-
-    return result;
+    const litePipeline: LitePipeline = toPipeline(query._query, db);
+    return cast<Pipeline>(litePipeline, Pipeline);
   }
 }
 

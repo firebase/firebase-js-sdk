@@ -15,14 +15,26 @@
  * limitations under the License.
  */
 
+import { Firestore } from '../api/database';
 import {
   Constant,
   Field,
   FilterCondition,
   not,
   andFunction,
-  orFunction
+  orFunction,
+  Ordering,
+  And,
+  lt,
+  gt,
+  lte,
+  gte,
+  Expr,
+  eq,
+  Or
 } from '../lite-api/expressions';
+import { Pipeline } from '../lite-api/pipeline';
+import { doc } from '../lite-api/reference';
 import { isNanValue, isNullValue } from '../model/values';
 import {
   ArrayValue as ProtoArrayValue,
@@ -36,6 +48,7 @@ import {
 import { fail } from '../util/assert';
 import { isPlainObject } from '../util/input_validation';
 
+import { Bound } from './bound';
 import {
   CompositeFilter as CompositeFilterInternal,
   CompositeOperator,
@@ -43,6 +56,14 @@ import {
   Filter as FilterInternal,
   Operator
 } from './filter';
+import { Direction } from './order_by';
+import {
+  isCollectionGroupQuery,
+  isDocumentQuery,
+  LimitType,
+  Query,
+  queryNormalizedOrderBy
+} from './query';
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
@@ -246,4 +267,123 @@ export function toPipelineFilterCondition(f: FilterInternal): FilterCondition {
   }
 
   throw new Error(`Failed to convert filter to pipeline conditions: ${f}`);
+}
+
+function reverseOrderings(orderings: Ordering[]): Ordering[] {
+  return orderings.map(
+    o =>
+      new Ordering(
+        o.expr,
+        o.direction === 'ascending' ? 'descending' : 'ascending'
+      )
+  );
+}
+
+export function toPipeline(query: Query, db: Firestore): Pipeline {
+  let pipeline: Pipeline;
+  if (isCollectionGroupQuery(query)) {
+    pipeline = db.pipeline().collectionGroup(query.collectionGroup!);
+  } else if (isDocumentQuery(query)) {
+    pipeline = db.pipeline().documents([doc(db, query.path.canonicalString())]);
+  } else {
+    pipeline = db.pipeline().collection(query.path.canonicalString());
+  }
+
+  // filters
+  for (const filter of query.filters) {
+    pipeline = pipeline.where(toPipelineFilterCondition(filter));
+  }
+
+  // orders
+  const orders = queryNormalizedOrderBy(query);
+  const existsConditions = orders.map(order =>
+    Field.of(order.field.canonicalString()).exists()
+  );
+  if (existsConditions.length > 1) {
+    pipeline = pipeline.where(
+      andFunction(existsConditions[0], ...existsConditions.slice(1))
+    );
+  } else {
+    pipeline = pipeline.where(existsConditions[0]);
+  }
+
+  const orderings = orders.map(order =>
+    order.dir === Direction.ASCENDING
+      ? Field.of(order.field.canonicalString()).ascending()
+      : Field.of(order.field.canonicalString()).descending()
+  );
+
+  if (query.limitType === LimitType.Last) {
+    pipeline = pipeline.sort(...reverseOrderings(orderings));
+    // cursors
+    if (query.startAt !== null) {
+      pipeline = pipeline.where(
+        whereConditionsFromCursor(query.startAt, orderings, 'before')
+      );
+    }
+
+    if (query.endAt !== null) {
+      pipeline = pipeline.where(
+        whereConditionsFromCursor(query.endAt, orderings, 'after')
+      );
+    }
+
+    pipeline = pipeline._limit(query.limit!, true);
+    pipeline = pipeline.sort(...orderings);
+  } else {
+    pipeline = pipeline.sort(...orderings);
+    if (query.startAt !== null) {
+      pipeline = pipeline.where(
+        whereConditionsFromCursor(query.startAt, orderings, 'after')
+      );
+    }
+    if (query.endAt !== null) {
+      pipeline = pipeline.where(
+        whereConditionsFromCursor(query.endAt, orderings, 'before')
+      );
+    }
+
+    if (query.limit !== null) {
+      pipeline = pipeline.limit(query.limit);
+    }
+  }
+
+  return pipeline;
+}
+
+function whereConditionsFromCursor(
+  bound: Bound,
+  orderings: Ordering[],
+  position: 'before' | 'after'
+): Expr {
+  const cursors = bound.position.map(value => Constant._fromProto(value));
+  const filterFunc = position === 'before' ? lt : gt;
+  const filterInclusiveFunc = position === 'before' ? lte : gte;
+
+  const orConditions = [];
+  for (let i = 1; i <= orderings.length; i++) {
+    const cursorSubset = cursors.slice(0, i);
+
+    const conditions = cursorSubset.map((cursor, index) => {
+      if (index < cursorSubset.length - 1) {
+        return eq(orderings[index].expr as Field, cursor);
+      } else if (!!bound.inclusive && i === orderings.length) {
+        return filterInclusiveFunc(orderings[index].expr as Field, cursor);
+      } else {
+        return filterFunc(orderings[index].expr as Field, cursor);
+      }
+    });
+
+    if (conditions.length === 1) {
+      orConditions.push(conditions[0]);
+    } else {
+      orConditions.push(new And(conditions));
+    }
+  }
+
+  if (orConditions.length === 1) {
+    return orConditions[0];
+  } else {
+    return new Or(orConditions);
+  }
 }

@@ -48,13 +48,13 @@ export class Aggregate implements Stage {
 
 // @beta (undocumented)
 export class And extends FirestoreFunction implements FilterCondition {
-    constructor(conditions: (FilterCondition)[]);
+    constructor(conditions: FilterCondition[]);
     // (undocumented)
     filterable: true;
 }
 
 // @beta
-export function andFunction(left: FilterCondition, ...right: (FilterCondition)[]): And;
+export function andFunction(left: FilterCondition, ...right: FilterCondition[]): And;
 
 // @beta (undocumented)
 export class ArrayConcat extends FirestoreFunction {
@@ -699,7 +699,11 @@ export function like(left: Expr, pattern: Expr): Like;
 
 // @beta (undocumented)
 export class Limit implements Stage {
-    constructor(limit: number);
+    constructor(limit: number, convertedFromLimitTolast?: boolean);
+    // (undocumented)
+    readonly convertedFromLimitTolast: boolean;
+    // (undocumented)
+    readonly limit: number;
     // (undocumented)
     name: string;
 }
@@ -907,7 +911,7 @@ export class Offset implements Stage {
 
 // @beta (undocumented)
 export class Or extends FirestoreFunction implements FilterCondition {
-    constructor(conditions: (FilterCondition)[]);
+    constructor(conditions: FilterCondition[]);
     // (undocumented)
     filterable: true;
 }
@@ -922,7 +926,7 @@ export class Ordering {
 }
 
 // @beta
-export function orFunction(left: FilterCondition, ...right: (FilterCondition)[]): Or;
+export function orFunction(left: FilterCondition, ...right: FilterCondition[]): Or;
 
 // @public (undocumented)
 export class Pipeline {
@@ -933,7 +937,7 @@ export class Pipeline {
     aggregate(...accumulators: AccumulatorTarget[]): Pipeline;
     aggregate(options: { accumulators: AccumulatorTarget[]; groups?: Array<string | Selectable>; }): Pipeline;
     // Warning: (ae-incompatible-release-tags) The symbol "distinct" is marked as @public, but its signature references "Selectable" which is marked as @beta
-    distinct(...groups: Array<string | (Selectable)>): Pipeline;
+    distinct(...groups: Array<string | Selectable>): Pipeline;
     // Warning: (ae-incompatible-release-tags) The symbol "execute" is marked as @public, but its signature references "PipelineResult" which is marked as @beta
     execute(): Promise<PipelineResult[]>;
     // Warning: (ae-incompatible-release-tags) The symbol "findNearest" is marked as @public, but its signature references "FindNearestOptions" which is marked as @beta
@@ -1330,19 +1334,21 @@ export class Where implements Stage {
 
 // @beta (undocumented)
 export class Xor extends FirestoreFunction implements FilterCondition {
-    constructor(conditions: (FilterCondition)[]);
+    constructor(conditions: FilterCondition[]);
     // (undocumented)
     filterable: true;
 }
 
 // @beta
-export function xor(left: FilterCondition, ...right: (FilterCondition)[]): Xor;
+export function xor(left: FilterCondition, ...right: FilterCondition[]): Xor;
 
 
 // Warnings were encountered during analysis:
 //
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:3982:26 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:3982:61 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:4009:21 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:3983:26 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:3983:61 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:4010:21 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
+
+// (No @packageDocumentation comment for this package)
 
 ```

@@ -17,6 +17,7 @@
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
+import { isFirestoreValue } from '../core/pipeline-util';
 import {
   DOCUMENT_KEY_NAME,
   FieldPath as InternalFieldPath
@@ -2178,6 +2179,16 @@ export class Constant extends Expr {
    * @private
    * @internal
    */
+  static _fromProto(value: ProtoValue): Constant {
+    const result = new Constant(value);
+    result._protoValue = value;
+    return result;
+  }
+
+  /**
+   * @private
+   * @internal
+   */
   _toProto(serializer: JsonProtoSerializer): ProtoValue {
     hardAssert(
       this._protoValue !== undefined,
@@ -2195,8 +2206,13 @@ export class Constant extends Expr {
       UserDataSource.Argument,
       'Constant.of'
     );
-    if (this.value === undefined) {
-      // TODO how should we treat the value of `undefined`?
+
+    if (isFirestoreValue(this.value)) {
+      // Special case where value is a proto value.
+      // This can occur when converting a Query to Pipeline.
+      this._protoValue = this.value;
+    } else if (this.value === undefined) {
+      // TODO(pipeline) how should we treat the value of `undefined`?
       this._protoValue = parseData(null, context)!;
     } else {
       this._protoValue = parseData(this.value, context)!;

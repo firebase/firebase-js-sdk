@@ -405,6 +405,17 @@ export class Pipeline implements ProtoSerializable<ExecutePipelineRequest> {
     );
   }
 
+  _limit(limit: number, convertedFromLimitTolast: boolean): Pipeline {
+    const copy = this.stages.map(s => s);
+    copy.push(new Limit(limit, convertedFromLimitTolast));
+    return this.newPipeline(
+      this._db,
+      this.userDataReader,
+      this._userDataWriter,
+      copy
+    );
+  }
+
   /**
    * Returns a set of distinct {@link Expr} values from the inputs to this stage.
    *
