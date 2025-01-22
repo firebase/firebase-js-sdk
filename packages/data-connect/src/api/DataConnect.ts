@@ -151,7 +151,7 @@ export class DataConnect {
     }
     if (this._appCheckProvider) {
       this._appCheckTokenProvider = new AppCheckTokenProvider(
-        this.app.name,
+        this.app,
         this._appCheckProvider
       );
     }

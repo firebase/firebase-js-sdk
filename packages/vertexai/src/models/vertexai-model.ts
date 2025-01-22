@@ -19,6 +19,7 @@ import { VertexAIError } from '../errors';
 import { VertexAI, VertexAIErrorCode } from '../public-types';
 import { VertexAIService } from '../service';
 import { ApiSettings } from '../types/internal';
+import { _isFirebaseServerApp } from '@firebase/app';
 
 /**
  * Base class for Vertex AI in Firebase model APIs.
@@ -73,7 +74,16 @@ export class VertexAIModel {
         project: vertexAI.app.options.projectId,
         location: vertexAI.location
       };
-      if ((vertexAI as VertexAIService).appCheck) {
+
+      if (
+        _isFirebaseServerApp(vertexAI.app) &&
+        vertexAI.app.settings.appCheckToken
+      ) {
+        const token = vertexAI.app.settings.appCheckToken;
+        this._apiSettings.getAppCheckToken = () => {
+          return Promise.resolve({ token });
+        };
+      } else if ((vertexAI as VertexAIService).appCheck) {
         this._apiSettings.getAppCheckToken = () =>
           (vertexAI as VertexAIService).appCheck!.getToken();
       }

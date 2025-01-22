@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-import { FetchStatus } from '@firebase/remote-config-types';
+import { FetchStatus, CustomSignals } from '@firebase/remote-config-types';
 import {
   FetchResponse,
   FirebaseRemoteConfigObject
 } from '../client/remote_config_fetch_client';
 import { ERROR_FACTORY, ErrorCode } from '../errors';
+import { RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS } from '../constants';
 import { FirebaseError } from '@firebase/util';
 
 /**
@@ -70,7 +71,8 @@ type ProjectNamespaceKeyFieldValue =
   | 'last_successful_fetch_timestamp_millis'
   | 'last_successful_fetch_response'
   | 'settings'
-  | 'throttle_metadata';
+  | 'throttle_metadata'
+  | 'custom_signals';
 
 // Visible for testing.
 export function openDatabase(): Promise<IDBDatabase> {
@@ -181,10 +183,64 @@ export class Storage {
     return this.delete('throttle_metadata');
   }
 
-  async get<T>(key: ProjectNamespaceKeyFieldValue): Promise<T | undefined> {
+  getCustomSignals(): Promise<CustomSignals | undefined> {
+    return this.get<CustomSignals>('custom_signals');
+  }
+
+  async setCustomSignals(customSignals: CustomSignals): Promise<CustomSignals> {
     const db = await this.openDbPromise;
+    const transaction = db.transaction([APP_NAMESPACE_STORE], 'readwrite');
+    const storedSignals = await this.getWithTransaction<CustomSignals>(
+      'custom_signals',
+      transaction
+    );
+    const combinedSignals = {
+      ...storedSignals,
+      ...customSignals
+    };
+    // Filter out key-value assignments with null values since they are signals being unset
+    const updatedSignals = Object.fromEntries(
+      Object.entries(combinedSignals)
+        .filter(([_, v]) => v !== null)
+        .map(([k, v]) => {
+          // Stringify numbers to store a map of string keys and values which can be sent
+          // as-is in a fetch call.
+          if (typeof v === 'number') {
+            return [k, v.toString()];
+          }
+          return [k, v];
+        })
+    );
+
+    // Throw an error if the number of custom signals to be stored exceeds the limit
+    if (
+      Object.keys(updatedSignals).length > RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
+    ) {
+      throw ERROR_FACTORY.create(ErrorCode.CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS, {
+        maxSignals: RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
+      });
+    }
+
+    await this.setWithTransaction<CustomSignals>(
+      'custom_signals',
+      updatedSignals,
+      transaction
+    );
+    return updatedSignals;
+  }
+
+  /**
+   * Gets a value from the database using the provided transaction.
+   *
+   * @param key The key of the value to get.
+   * @param transaction The transaction to use for the operation.
+   * @returns The value associated with the key, or undefined if no such value exists.
+   */
+  async getWithTransaction<T>(
+    key: ProjectNamespaceKeyFieldValue,
+    transaction: IDBTransaction
+  ): Promise<T | undefined> {
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([APP_NAMESPACE_STORE], 'readonly');
       const objectStore = transaction.objectStore(APP_NAMESPACE_STORE);
       const compositeKey = this.createCompositeKey(key);
       try {
@@ -210,10 +266,20 @@ export class Storage {
     });
   }
 
-  async set<T>(key: ProjectNamespaceKeyFieldValue, value: T): Promise<void> {
-    const db = await this.openDbPromise;
+  /**
+   * Sets a value in the database using the provided transaction.
+   *
+   * @param key The key of the value to set.
+   * @param value The value to set.
+   * @param transaction The transaction to use for the operation.
+   * @returns A promise that resolves when the operation is complete.
+   */
+  async setWithTransaction<T>(
+    key: ProjectNamespaceKeyFieldValue,
+    value: T,
+    transaction: IDBTransaction
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([APP_NAMESPACE_STORE], 'readwrite');
       const objectStore = transaction.objectStore(APP_NAMESPACE_STORE);
       const compositeKey = this.createCompositeKey(key);
       try {
@@ -235,6 +301,18 @@ export class Storage {
         );
       }
     });
+  }
+
+  async get<T>(key: ProjectNamespaceKeyFieldValue): Promise<T | undefined> {
+    const db = await this.openDbPromise;
+    const transaction = db.transaction([APP_NAMESPACE_STORE], 'readonly');
+    return this.getWithTransaction<T>(key, transaction);
+  }
+
+  async set<T>(key: ProjectNamespaceKeyFieldValue, value: T): Promise<void> {
+    const db = await this.openDbPromise;
+    const transaction = db.transaction([APP_NAMESPACE_STORE], 'readwrite');
+    return this.setWithTransaction<T>(key, value, transaction);
   }
 
   async delete(key: ProjectNamespaceKeyFieldValue): Promise<void> {

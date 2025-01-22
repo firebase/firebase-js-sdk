@@ -1,6 +1,6 @@
 {
   "name": "@firebase/functions-compat",
-  "version": "0.3.17",
+  "version": "0.3.18",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -29,7 +29,7 @@
     "@firebase/app-compat": "0.x"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.2.47",
+    "@firebase/app-compat": "0.2.48",
     "rollup": "2.79.1",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.31.2",
@@ -62,10 +62,10 @@
   },
   "typings": "dist/src/index.d.ts",
   "dependencies": {
-    "@firebase/component": "0.6.11",
-    "@firebase/functions": "0.12.0",
+    "@firebase/component": "0.6.12",
+    "@firebase/functions": "0.12.1",
     "@firebase/functions-types": "0.6.3",
-    "@firebase/util": "1.10.2",
+    "@firebase/util": "1.10.3",
     "tslib": "^2.1.0"
   },
   "nyc": {

@@ -38,7 +38,7 @@ jobs:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
       - name: Set up Node (20)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.10.0
       - name: install Chrome stable
@@ -72,7 +72,7 @@ jobs:
           gzip build.tar
       - name: Upload build archive
         if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.check-changed.outcome != 'success' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build.tar.gz
           path: build.tar.gz
@@ -85,7 +85,7 @@ jobs:
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
       - name: Set up Node (20)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.10.0
       - name: install Chrome stable
@@ -93,7 +93,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install google-chrome-stable
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build.tar.gz
       - name: Unzip build artifact
@@ -113,7 +113,7 @@ jobs:
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
       - name: Set up Node (20)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.10.0
       - name: install Chrome stable
@@ -121,7 +121,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install google-chrome-stable
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build.tar.gz
       - name: Unzip build artifact
@@ -143,7 +143,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' }}
     steps:
       - name: Set up Node (20)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.10.0
       - name: install Chrome stable
@@ -151,7 +151,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install google-chrome-stable
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build.tar.gz
       - name: Unzip build artifact
@@ -176,11 +176,11 @@ jobs:
       - name: install Firefox stable
         run: npx @puppeteer/browsers install firefox@stable
       - name: Set up Node (20)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.10.0
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build.tar.gz
       - name: Unzip build artifact
@@ -204,7 +204,7 @@ jobs:
       - name: install Firefox stable
         run: npx @puppeteer/browsers install firefox@stable
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build.tar.gz
       - name: Unzip build artifact
@@ -232,7 +232,7 @@ jobs:
         with:
           node-version: 22.10.0
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build.tar.gz
       - name: Unzip build artifact
@@ -259,13 +259,13 @@ jobs:
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build.tar.gz
       - name: Unzip build artifact
         run: tar xf build.tar.gz
       - name: Set up Node (20)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.10.0
       - name: Test setup
