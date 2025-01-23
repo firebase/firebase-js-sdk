@@ -17,7 +17,6 @@
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
-import { isFirestoreValue } from '../core/pipeline-util';
 import {
   DOCUMENT_KEY_NAME,
   FieldPath as InternalFieldPath
@@ -30,6 +29,7 @@ import {
   UserData
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
+import { isFirestoreValue } from '../util/proto';
 
 import { documentId, FieldPath } from './field_path';
 import { GeoPoint } from './geo_point';
@@ -43,45 +43,6 @@ import {
   UserDataSource
 } from './user_data_reader';
 import { VectorValue } from './vector_value';
-
-/**
- * @beta
- *
- * An interface that represents a selectable expression.
- */
-export interface Selectable extends Expr {
-  selectable: true;
-}
-
-/**
- * @beta
- *
- * An interface that represents a filter condition.
- */
-export interface FilterCondition extends Expr {
-  filterable: true;
-}
-
-/**
- * @beta
- *
- * An interface that represents an accumulator.
- */
-export interface Accumulator extends Expr {
-  accumulator: true;
-  /**
-   * @private
-   * @internal
-   */
-  _toProto(serializer: JsonProtoSerializer): ProtoValue;
-}
-
-/**
- * @beta
- *
- * An accumulator target, which is an expression with an alias that also implements the Accumulator interface.
- */
-export type AccumulatorTarget = ExprWithAlias<Accumulator>;
 
 /**
  * @beta
@@ -1823,8 +1784,48 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
 
 /**
  * @beta
+ *
+ * An interface that represents a selectable expression.
  */
-export class ExprWithAlias<T extends Expr> extends Expr implements Selectable {
+export abstract class Selectable extends Expr {
+  selectable: true = true;
+}
+
+/**
+ * @beta
+ *
+ * An interface that represents a filter condition.
+ */
+export abstract class FilterCondition extends Expr {
+  filterable: true = true;
+}
+
+/**
+ * @beta
+ *
+ * An interface that represents an accumulator.
+ */
+export abstract class Accumulator extends Expr {
+  accumulator: true = true;
+
+  /**
+   * @private
+   * @internal
+   */
+  abstract _toProto(serializer: JsonProtoSerializer): ProtoValue;
+}
+
+/**
+ * @beta
+ *
+ * An accumulator target, which is an expression with an alias that also implements the Accumulator interface.
+ */
+export type AccumulatorTarget = ExprWithAlias<Accumulator>;
+
+/**
+ * @beta
+ */
+export class ExprWithAlias<T extends Expr> extends Selectable {
   exprType: ExprType = 'ExprWithAlias';
   selectable = true as const;
 
@@ -1897,7 +1898,7 @@ class ListOfExprs extends Expr {
  * const cityField = Field.of("address.city");
  * ```
  */
-export class Field extends Expr implements Selectable {
+export class Field extends Selectable {
   exprType: ExprType = 'Field';
   selectable = true as const;
 
@@ -1927,7 +1928,6 @@ export class Field extends Expr implements Selectable {
    */
   static of(name: string): Field;
   static of(path: FieldPath): Field;
-  static of(pipeline: Pipeline, name: string): Field;
   static of(
     pipelineOrName: Pipeline | string | FieldPath,
     name?: string
@@ -1974,7 +1974,7 @@ export class Field extends Expr implements Selectable {
 /**
  * @beta
  */
-export class Fields extends Expr implements Selectable {
+export class Fields extends Selectable {
   exprType: ExprType = 'Field';
   selectable = true as const;
 

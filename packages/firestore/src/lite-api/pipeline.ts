@@ -620,7 +620,6 @@ export class Pipeline implements ProtoSerializable<ExecutePipelineRequest> {
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
    */
   sort(...orderings: Ordering[]): Pipeline;
-  sort(options: { orderings: Ordering[] }): Pipeline;
   sort(
     optionsOrOrderings:
       | Ordering
