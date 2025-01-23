@@ -283,14 +283,18 @@ describe('HeartbeatServiceImpl', () => {
         clock.tick(24 * 60 * 60 * 1000);
       }
 
-      expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(MAX_NUM_STORED_HEARTBEATS);
+      expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(
+        MAX_NUM_STORED_HEARTBEATS
+      );
       const earliestHeartbeatDate = getEarliestHeartbeatIdx(
         heartbeatService._heartbeatsCache?.heartbeats!
       );
       const earliestHeartbeat =
         heartbeatService._heartbeatsCache?.heartbeats[earliestHeartbeatDate]!;
       await heartbeatService.triggerHeartbeat();
-      expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(MAX_NUM_STORED_HEARTBEATS);
+      expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(
+        MAX_NUM_STORED_HEARTBEATS
+      );
       expect(
         heartbeatService._heartbeatsCache?.heartbeats.indexOf(earliestHeartbeat)
       ).to.equal(-1);
