@@ -20,14 +20,15 @@ import '../test/setup';
 import {
   countBytes,
   HeartbeatServiceImpl,
-  extractHeartbeatsForHeader
+  extractHeartbeatsForHeader,
+  getEarliestHeartbeatIdx
 } from './heartbeatService';
 import {
   Component,
   ComponentType,
   ComponentContainer
 } from '@firebase/component';
-import { PlatformLoggerService } from './types';
+import { PlatformLoggerService, SingleDateHeartbeat } from './types';
 import { FirebaseApp } from './public-types';
 import * as firebaseUtil from '@firebase/util';
 import { SinonStub, stub, useFakeTimers } from 'sinon';
@@ -173,7 +174,6 @@ describe('HeartbeatServiceImpl', () => {
     let writeStub: SinonStub;
     let userAgentString = USER_AGENT_STRING_1;
     const mockIndexedDBHeartbeats = [
-      // Chosen so one will exceed 30 day limit and one will not.
       {
         agent: 'old-user-agent',
         date: '1969-12-01'
@@ -236,15 +236,14 @@ describe('HeartbeatServiceImpl', () => {
         });
       }
     });
-    it(`triggerHeartbeat() writes new heartbeats and retains old ones newer than 30 days`, async () => {
+    it(`triggerHeartbeat() writes new heartbeats and retains old ones`, async () => {
       userAgentString = USER_AGENT_STRING_2;
       clock.tick(3 * 24 * 60 * 60 * 1000);
       await heartbeatService.triggerHeartbeat();
       if (firebaseUtil.isIndexedDBAvailable()) {
         expect(writeStub).to.be.calledWith({
           heartbeats: [
-            // The first entry exceeds the 30 day retention limit.
-            mockIndexedDBHeartbeats[1],
+            ...mockIndexedDBHeartbeats,
             { agent: USER_AGENT_STRING_2, date: '1970-01-04' }
           ]
         });
@@ -260,6 +259,7 @@ describe('HeartbeatServiceImpl', () => {
       );
       if (firebaseUtil.isIndexedDBAvailable()) {
         expect(heartbeatHeaders).to.include('old-user-agent');
+        expect(heartbeatHeaders).to.include('1969-12-01');
         expect(heartbeatHeaders).to.include('1969-12-31');
       }
       expect(heartbeatHeaders).to.include(USER_AGENT_STRING_2);
@@ -272,6 +272,36 @@ describe('HeartbeatServiceImpl', () => {
       });
       const emptyHeaders = await heartbeatService.getHeartbeatsHeader();
       expect(emptyHeaders).to.equal('');
+    });
+    it('triggerHeartbeat() removes the earliest heartbeat once it exceeds the max number of heartbeats', async () => {
+      // Trigger heartbeats until we reach the limit
+      const numHeartbeats =
+        heartbeatService._heartbeatsCache?.heartbeats.length!;
+      for (let i = numHeartbeats; i <= 30; i++) {
+        await heartbeatService.triggerHeartbeat();
+        clock.tick(24 * 60 * 60 * 1000);
+      }
+
+      expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(30);
+      const earliestHeartbeatDate = getEarliestHeartbeatIdx(
+        heartbeatService._heartbeatsCache?.heartbeats!
+      );
+      const earliestHeartbeat =
+        heartbeatService._heartbeatsCache?.heartbeats[earliestHeartbeatDate]!;
+      await heartbeatService.triggerHeartbeat();
+      expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(30);
+      expect(
+        heartbeatService._heartbeatsCache?.heartbeats.indexOf(earliestHeartbeat)
+      ).to.equal(-1);
+    });
+    it('triggerHeartbeat() never exceeds 30 heartbeats', async () => {
+      for (let i = 0; i <= 50; i++) {
+        await heartbeatService.triggerHeartbeat();
+        clock.tick(24 * 60 * 60 * 1000);
+        expect(
+          heartbeatService._heartbeatsCache?.heartbeats.length
+        ).to.be.lessThanOrEqual(30);
+      }
     });
   });
 
@@ -424,6 +454,24 @@ describe('HeartbeatServiceImpl', () => {
       expect(heartbeatsToSend[0].dates.length + unsentEntries.length).to.equal(
         heartbeats.length
       );
+    });
+  });
+
+  describe('getEarliestHeartbeatIdx()', () => {
+    it('returns -1 if the heartbeats array is empty', () => {
+      const heartbeats: SingleDateHeartbeat[] = [];
+      const idx = getEarliestHeartbeatIdx(heartbeats);
+      expect(idx).to.equal(-1);
+    });
+
+    it('returns the index of the earliest date', () => {
+      const heartbeats = [
+        { agent: generateUserAgentString(2), date: '2022-01-02' },
+        { agent: generateUserAgentString(1), date: '2022-01-01' },
+        { agent: generateUserAgentString(3), date: '2022-01-03' }
+      ];
+      const idx = getEarliestHeartbeatIdx(heartbeats);
+      expect(idx).to.equal(1);
     });
   });
 });

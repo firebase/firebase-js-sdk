@@ -36,8 +36,7 @@ import {
 import { logger } from './logger';
 
 const MAX_HEADER_BYTES = 1024;
-// 30 days
-const STORED_HEARTBEAT_RETENTION_MAX_MILLIS = 30 * 24 * 60 * 60 * 1000;
+const MAX_NUM_STORED_HEARTBEATS = 30;
 
 export class HeartbeatServiceImpl implements HeartbeatService {
   /**
@@ -109,14 +108,19 @@ export class HeartbeatServiceImpl implements HeartbeatService {
       } else {
         // There is no entry for this date. Create one.
         this._heartbeatsCache.heartbeats.push({ date, agent });
+
+        // If the number of stored heartbeats exceeds the maximum number of stored heartbeats, remove the heartbeat with the earliest date.
+        // Since this is executed each time a heartbeat is pushed, the limit can only be exceeded by one, so only one needs to be removed.
+        if (
+          this._heartbeatsCache.heartbeats.length > MAX_NUM_STORED_HEARTBEATS
+        ) {
+          const earliestHeartbeatIdx = getEarliestHeartbeatIdx(
+            this._heartbeatsCache.heartbeats
+          );
+          this._heartbeatsCache.heartbeats.splice(earliestHeartbeatIdx, 1);
+        }
       }
-      // Remove entries older than 30 days.
-      this._heartbeatsCache.heartbeats =
-        this._heartbeatsCache.heartbeats.filter(singleDateHeartbeat => {
-          const hbTimestamp = new Date(singleDateHeartbeat.date).valueOf();
-          const now = Date.now();
-          return now - hbTimestamp <= STORED_HEARTBEAT_RETENTION_MAX_MILLIS;
-        });
+
       return this._storage.overwrite(this._heartbeatsCache);
     } catch (e) {
       logger.warn(e);
@@ -302,4 +306,28 @@ export function countBytes(heartbeatsCache: HeartbeatsByUserAgent[]): number {
     // heartbeatsCache wrapper properties
     JSON.stringify({ version: 2, heartbeats: heartbeatsCache })
   ).length;
+}
+
+/**
+ * Returns the index of the heartbeat with the earliest date.
+ * If the heartbeats array is empty, -1 is returned.
+ */
+export function getEarliestHeartbeatIdx(
+  heartbeats: SingleDateHeartbeat[]
+): number {
+  if (heartbeats.length === 0) {
+    return -1;
+  }
+
+  let earliestHeartbeatIdx = 0;
+  let earliestHeartbeatDate = heartbeats[0].date;
+
+  for (let i = 1; i < heartbeats.length; i++) {
+    if (heartbeats[i].date < earliestHeartbeatDate) {
+      earliestHeartbeatDate = heartbeats[i].date;
+      earliestHeartbeatIdx = i;
+    }
+  }
+
+  return earliestHeartbeatIdx;
 }
