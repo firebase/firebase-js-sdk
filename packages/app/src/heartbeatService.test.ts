@@ -295,7 +295,7 @@ describe('HeartbeatServiceImpl', () => {
         heartbeatService._heartbeatsCache?.heartbeats.indexOf(earliestHeartbeat)
       ).to.equal(-1);
     });
-    it('triggerHeartbeat() never exceeds MAX_NUM_STORED_HEARTBEATS heartbeats', async () => {
+    it('triggerHeartbeat() never exceeds max heartbeats', async () => {
       for (let i = 0; i <= 50; i++) {
         await heartbeatService.triggerHeartbeat();
         clock.tick(24 * 60 * 60 * 1000);
