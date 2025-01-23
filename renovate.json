@@ -16,7 +16,8 @@
     "rollup-plugin-copy-assets",
     "typedoc",
     "@microsoft/tsdoc",
-    "idb"
+    "idb",
+    "karma-webpack"
   ],
   "ignorePaths": ["auth/demo", "auth/cordova/demo", "auth-compat/demo"],
   "assignees": ["@hsubox76"],
