@@ -274,7 +274,7 @@ describe('HeartbeatServiceImpl', () => {
       const emptyHeaders = await heartbeatService.getHeartbeatsHeader();
       expect(emptyHeaders).to.equal('');
     });
-    it('triggerHeartbeat() removes the earliest heartbeat once it exceeds the max number of heartbeats', async () => {
+    it('triggerHeartbeat() removes the earliest heartbeat once the max number of heartbeats is exceeded', async () => {
       // Trigger heartbeats until we reach the limit
       const numHeartbeats =
         heartbeatService._heartbeatsCache?.heartbeats.length!;
@@ -295,7 +295,7 @@ describe('HeartbeatServiceImpl', () => {
         heartbeatService._heartbeatsCache?.heartbeats.indexOf(earliestHeartbeat)
       ).to.equal(-1);
     });
-    it('triggerHeartbeat() never exceeds max heartbeats', async () => {
+    it('triggerHeartbeat() never causes the heartbeat count to exceed the max', async () => {
       for (let i = 0; i <= 50; i++) {
         await heartbeatService.triggerHeartbeat();
         clock.tick(24 * 60 * 60 * 1000);
