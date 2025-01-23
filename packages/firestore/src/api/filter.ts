@@ -16,14 +16,12 @@
  */
 
 export {
-  and,
   endAt,
   endBefore,
   startAfter,
   startAt,
   limitToLast,
   limit,
-  or,
   orderBy,
   OrderByDirection,
   where,
