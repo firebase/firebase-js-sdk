@@ -23,7 +23,7 @@ env:
   # the behavior to use the new URLs.
   CHROMEDRIVER_CDNURL: https://googlechromelabs.github.io/
   CHROMEDRIVER_CDNBINARIESURL: https://storage.googleapis.com/chrome-for-testing-public
-  CHROME_VALIDATED_VERSION: linux-132.0.6834.190
+  CHROME_VALIDATED_VERSION: linux-132.0.6834.110
   CHROME_VERSION_MISMATCH_MESSAGE: "The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass, or rollback the installed Chrome version if tests fail."
   artifactRetentionDays: 14
   # Bump Node memory limit
