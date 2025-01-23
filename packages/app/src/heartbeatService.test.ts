@@ -21,7 +21,8 @@ import {
   countBytes,
   HeartbeatServiceImpl,
   extractHeartbeatsForHeader,
-  getEarliestHeartbeatIdx
+  getEarliestHeartbeatIdx,
+  MAX_NUM_STORED_HEARTBEATS
 } from './heartbeatService';
 import {
   Component,
@@ -277,30 +278,30 @@ describe('HeartbeatServiceImpl', () => {
       // Trigger heartbeats until we reach the limit
       const numHeartbeats =
         heartbeatService._heartbeatsCache?.heartbeats.length!;
-      for (let i = numHeartbeats; i <= 30; i++) {
+      for (let i = numHeartbeats; i <= MAX_NUM_STORED_HEARTBEATS; i++) {
         await heartbeatService.triggerHeartbeat();
         clock.tick(24 * 60 * 60 * 1000);
       }
 
-      expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(30);
+      expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(MAX_NUM_STORED_HEARTBEATS);
       const earliestHeartbeatDate = getEarliestHeartbeatIdx(
         heartbeatService._heartbeatsCache?.heartbeats!
       );
       const earliestHeartbeat =
         heartbeatService._heartbeatsCache?.heartbeats[earliestHeartbeatDate]!;
       await heartbeatService.triggerHeartbeat();
-      expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(30);
+      expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(MAX_NUM_STORED_HEARTBEATS);
       expect(
         heartbeatService._heartbeatsCache?.heartbeats.indexOf(earliestHeartbeat)
       ).to.equal(-1);
     });
-    it('triggerHeartbeat() never exceeds 30 heartbeats', async () => {
+    it('triggerHeartbeat() never exceeds MAX_NUM_STORED_HEARTBEATS heartbeats', async () => {
       for (let i = 0; i <= 50; i++) {
         await heartbeatService.triggerHeartbeat();
         clock.tick(24 * 60 * 60 * 1000);
         expect(
           heartbeatService._heartbeatsCache?.heartbeats.length
-        ).to.be.lessThanOrEqual(30);
+        ).to.be.lessThanOrEqual(MAX_NUM_STORED_HEARTBEATS);
       }
     });
   });
@@ -310,7 +311,6 @@ describe('HeartbeatServiceImpl', () => {
     let writeStub: SinonStub;
     const userAgentString = USER_AGENT_STRING_1;
     const mockIndexedDBHeartbeats = [
-      // Chosen so one will exceed 30 day limit and one will not.
       {
         agent: 'old-user-agent',
         date: '1969-12-01'

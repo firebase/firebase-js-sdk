@@ -36,7 +36,7 @@ import {
 import { logger } from './logger';
 
 const MAX_HEADER_BYTES = 1024;
-const MAX_NUM_STORED_HEARTBEATS = 30;
+export const MAX_NUM_STORED_HEARTBEATS = 30;
 
 export class HeartbeatServiceImpl implements HeartbeatService {
   /**
