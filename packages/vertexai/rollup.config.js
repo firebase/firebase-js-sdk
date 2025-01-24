@@ -75,25 +75,37 @@ const browserBuilds = [
   }
 ];
 
-// const nodeBuilds = [
-//   {
-//     input: 'index.node.ts',
-//     output: {
-//      file: pkg.main,
-//      format: 'cjs',
-//      sourcemap: true
-//    },
-//     plugins: buildPlugins,
-//     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-//   },
-//   {
-//     input: 'index.node.ts',
-//     output: [
-//       { file: pkg.exports['.'].node.import, format: 'es', sourcemap: true }
-//     ],
-//     plugins: [...buildPlugins, emitModulePackageFile()],
-//     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-//   }
-// ];
+const nodeBuilds = [
+  {
+    input: 'src/index.node.ts',
+    output: {
+      file: pkg.exports['.'].node.import,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      ...buildPlugins,
+      replace({
+        ...generateBuildTargetReplaceConfig('esm', 2017),
+      }),
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'src/index.node.ts',
+    output: {
+     file: pkg.exports['.'].node.require,
+     format: 'cjs',
+     sourcemap: true
+   },
+    plugins: [
+      ...buildPlugins,
+      replace({
+        ...generateBuildTargetReplaceConfig('cjs', 2017),
+      })
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
 
-export default [...browserBuilds];
+export default [...browserBuilds, ...nodeBuilds];
