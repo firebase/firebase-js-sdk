@@ -58,7 +58,7 @@
     "@firebase/auth": "1.8.2",
     "rollup": "2.79.1",
     "@rollup/plugin-alias": "5.1.0",
-    "@rollup/plugin-json": "4.1.0",
+    "@rollup/plugin-json": "6.1.0",
     "rollup-plugin-typescript2": "0.31.2",
     "typescript": "5.5.4"
   },
