@@ -256,7 +256,7 @@ export function describeSpec(
       space: 2,
       cmp: stringifyComparator
     });
-    writeJSONFile(output);
+    writeJSONFile(output || '');
   }
 }
 
@@ -300,8 +300,8 @@ function stringifyGroup(s: string): number {
  * some logically-first keys before others.
  */
 function stringifyComparator(
-  a: stringify.Element,
-  b: stringify.Element
+  a: { key: string, value: unknown },
+  b: { key: string, value: unknown }
 ): number {
   const aGroup = stringifyGroup(a.key);
   const bGroup = stringifyGroup(b.key);

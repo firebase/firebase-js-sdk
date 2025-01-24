@@ -18,8 +18,8 @@
   },
   "dependencies": {
     "@changesets/types": "3.3.0",
-    "@changesets/get-github-info": "0.5.2",
-    "@types/node": "18.19.57"
+    "@changesets/get-github-info": "0.6.0",
+    "@types/node": "18.19.74"
   },
   "license": "Apache-2.0",
   "devDependencies": {
