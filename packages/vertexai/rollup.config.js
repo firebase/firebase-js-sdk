@@ -86,22 +86,22 @@ const nodeBuilds = [
     plugins: [
       ...buildPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('esm', 2017),
-      }),
+        ...generateBuildTargetReplaceConfig('esm', 2017)
+      })
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
     input: 'src/index.node.ts',
     output: {
-     file: pkg.exports['.'].node.require,
-     format: 'cjs',
-     sourcemap: true
-   },
+      file: pkg.exports['.'].node.require,
+      format: 'cjs',
+      sourcemap: true
+    },
     plugins: [
       ...buildPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('cjs', 2017),
+        ...generateBuildTargetReplaceConfig('cjs', 2017)
       })
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
