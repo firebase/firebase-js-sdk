@@ -44,7 +44,8 @@ export type {
   SnapshotOptions,
   Primitive,
   FieldValue,
-  SnapshotMetadata
+  SnapshotMetadata,
+  Bytes
 } from '../src/api';
 
 export * from '../src/api_pipelines';

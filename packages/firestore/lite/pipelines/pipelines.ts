@@ -44,7 +44,8 @@ export type {
   SetOptions,
   QueryDocumentSnapshot,
   Primitive,
-  FieldValue
+  FieldValue,
+  Bytes
 } from '../index';
 
 export { PipelineSource } from '../../src/lite-api/pipeline-source';
