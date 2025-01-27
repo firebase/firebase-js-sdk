@@ -44,6 +44,7 @@ import { Pipeline } from '../lite-api/pipeline';
 import { PipelineResult, toPipelineResult } from '../lite-api/pipeline-result';
 import { isPipeline } from '../core/pipeline-util';
 import { newPipelineComparator } from '../core/pipeline_run';
+import {RealtimePipeline} from './realtime_pipeline';
 
 /**
  * Converter used by `withConverter()` to transform user objects of type
@@ -799,7 +800,7 @@ export class RealtimePipelineSnapshot {
    * The query on which you called `get` or `onSnapshot` in order to get this
    * `QuerySnapshot`.
    */
-  readonly pipeline: Pipeline;
+  readonly pipeline: RealtimePipeline;
 
   /**
    * Metadata about this snapshot, concerning its source and if it has local
@@ -808,7 +809,7 @@ export class RealtimePipelineSnapshot {
   readonly metadata: SnapshotMetadata;
 
   /** @hideconstructor */
-  constructor(pipeline: Pipeline, readonly _snapshot: ViewSnapshot) {
+  constructor(pipeline: RealtimePipeline, readonly _snapshot: ViewSnapshot) {
     this.metadata = new SnapshotMetadata(
       _snapshot.hasPendingWrites,
       _snapshot.fromCache

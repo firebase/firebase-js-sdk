@@ -25,6 +25,7 @@ import { Timestamp } from './timestamp';
 import { AbstractUserDataWriter } from './user_data_writer';
 import { Document } from '../model/document';
 import { Pipeline } from './pipeline';
+import {RealtimePipeline} from '../api/realtime_pipeline';
 
 /**
  * @beta
@@ -216,7 +217,7 @@ export function pipelineResultEqual(
 
 export function toPipelineResult(
   doc: Document,
-  pipeline: Pipeline
+  pipeline: RealtimePipeline
 ): PipelineResult {
   return new PipelineResult(
     pipeline._userDataWriter,

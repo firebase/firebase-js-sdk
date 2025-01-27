@@ -55,7 +55,7 @@ import {
   startsWith,
   strConcat,
   subtract,
-  updateDoc, useFluentPipelines
+  updateDoc
 } from '../util/firebase_export';
 import { apiDescribe, toDataArray, withTestCollection } from '../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
@@ -63,8 +63,6 @@ import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
 import { _onSnapshot } from '../../../src/api/pipeline_impl';
 
 use(chaiAsPromised);
-
-useFluentPipelines();
 
 apiDescribe.only('Pipelines', persistence => {
   addEqualityMatcher();
@@ -253,11 +251,11 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('basic listen with where() works', async () => {
-    const storeEvent = new EventsAccumulator<PipelineSnapshot>();
+    const storeEvent = new EventsAccumulator<RealtimePipelineSnapshot>();
 
     const unsubscribe = _onSnapshot(
       firestore
-        .pipeline()
+        .realtimePipeline()
         .collection(randomCol.path)
         .where(eq('author', 'Douglas Adams')),
       storeEvent.storeEvent
@@ -330,11 +328,11 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('listen with where/sort/limit works', async () => {
-    const storeEvent = new EventsAccumulator<PipelineSnapshot>();
+    const storeEvent = new EventsAccumulator<RealtimePipelineSnapshot>();
 
     const unsubscribe = _onSnapshot(
       firestore
-        .pipeline()
+        .realtimePipeline()
         .collection(randomCol.path)
         // "Frank Herbert" "Douglas Adams" "George Orwell"
         .where(Field.of('author').charLength().eq(13))

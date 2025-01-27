@@ -19,6 +19,8 @@ import {
   And,
   andFunction,
   Constant,
+  eq,
+  Expr,
   Field,
   FilterCondition,
   FirestoreFunction,
@@ -28,6 +30,7 @@ import {
   lt,
   lte,
   not,
+  Or,
   Ordering,
   orFunction
 } from '../lite-api/expressions';
@@ -72,7 +75,9 @@ import {
   Stage,
   Where
 } from '../lite-api/stage';
-import { Pipeline as ApiPipeline, Pipeline } from '../lite-api/pipeline';
+import {
+  Pipeline as ApiPipeline
+} from '../lite-api/pipeline';
 import {
   canonifyQuery,
   isCollectionGroupQuery,
@@ -100,6 +105,7 @@ import { doc } from '../lite-api/reference';
 import { Direction } from './order_by';
 import { CorePipeline } from './pipeline_run';
 import { Bound } from './bound';
+import {RealtimePipeline} from '../api/realtime_pipeline';
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
@@ -652,6 +658,8 @@ function addSystemFields(fields: Map<string, Expr>): Map<string, Expr> {
   return newFields;
 }
 
-export function toCorePipeline(p: ApiPipeline): CorePipeline {
+export function toCorePipeline(
+  p: ApiPipeline | RealtimePipeline
+): CorePipeline {
   return new CorePipeline(p.userDataReader.serializer, rewriteStages(p.stages));
 }

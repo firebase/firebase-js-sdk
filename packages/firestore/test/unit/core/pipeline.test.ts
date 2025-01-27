@@ -18,45 +18,32 @@
 import { expect } from 'chai';
 import { doc as docRef } from '../../../src';
 
-import { doc } from '../../util/helpers';
 import {
-  andFunction,
   eq,
   Constant,
   Field,
-  FilterExpr,
   gt,
   gte,
   isNan,
   like,
   lt,
   lte,
-  multiply,
   neq,
-  gt,
   notEqAny,
   arrayContainsAny,
   add,
-  lte,
-  lt,
-  gte,
   not,
-  isNan,
   divide,
   FilterCondition,
-  xor,
   exists,
   regexMatch,
-  useFluentPipelines,
-  xor
-} from '../../../src';
+  eqAny,
+  xor,
+  arrayContains
+} from '../../../lite/pipelines/pipelines';
 
 import { doc } from '../../util/helpers';
-import {
-  andFunction,
-  isNull,
-  orFunction
-} from '../../../src/lite-api/expressions';
+
 import { newTestFirestore } from '../../util/api_helpers';
 import {
   canonifyPipeline,
@@ -69,9 +56,10 @@ import {
   UPDATE_TIME_NAME
 } from '../../../src/model/path';
 import { MutableDocument } from '../../../src/model/document';
+import { andFunction, orFunction } from '../../../src/api_pipelines';
+import { isNull } from '../../../src/lite-api/expressions';
 
 const db = newTestFirestore();
-useFluentPipelines();
 describe('Pipeline Canonify', () => {
   it('works as expected for simple where clause', () => {
     const p = db.pipeline().collection('test').where(eq(`foo`, 42));

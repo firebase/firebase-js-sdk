@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import { Pipeline } from './pipeline';
 import { toPipeline } from '../core/pipeline-util';
+import { Pipeline } from '../lite-api/pipeline';
+
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult } from '../lite-api/pipeline-result';
 import { PipelineSource } from '../lite-api/pipeline-source';
@@ -30,15 +31,15 @@ import { ExpUserDataWriter } from './user_data_writer';
 import { RealtimePipelineSnapshot } from './snapshot';
 import { FirestoreError } from '../util/error';
 import { Unsubscribe } from './reference_impl';
-import { Field } from '../lite-api/expressions';
 import { firestoreClientListen } from '../core/firestore_client';
-import { CorePipeline } from '../core/pipeline_run';
 import { ViewSnapshot } from '../core/view_snapshot';
-import {toCorePipeline} from '../core/pipeline-util';
+import { toCorePipeline } from '../core/pipeline-util';
+import {RealtimePipeline} from './realtime_pipeline';
 
 declare module './database' {
   interface Firestore {
     pipeline(): PipelineSource<Pipeline>;
+    realtimePipeline(): PipelineSource<RealtimePipeline>;
   }
 }
 
@@ -90,12 +91,29 @@ Query.prototype.pipeline = function (): Pipeline {
   return pipeline(this);
 };
 
+export function realtimePipeline(
+  firestore: Firestore
+): PipelineSource<RealtimePipeline> {
+    return new PipelineSource<RealtimePipeline>((stages: Stage[]) => {
+      return new RealtimePipeline(
+        firestore,
+        newUserDataReader(firestore),
+        new ExpUserDataWriter(firestore),
+        stages
+      );
+    });
+}
+
+Firestore.prototype.realtimePipeline = function (): PipelineSource<RealtimePipeline> {
+  return realtimePipeline(this);
+};
+
 /**
  * @internal
  * @private
  */
 export function _onSnapshot(
-  pipeline: LitePipeline,
+  pipeline: RealtimePipeline,
   next: (snapshot: RealtimePipelineSnapshot) => void,
   error?: (error: FirestoreError) => void,
   complete?: () => void
@@ -103,18 +121,13 @@ export function _onSnapshot(
   const client = ensureFirestoreConfigured(pipeline._db as Firestore);
   const observer = {
     next: (snapshot: ViewSnapshot) => {
-      new PipelineSnapshot(pipeline, snapshot);
+      next(new RealtimePipelineSnapshot(pipeline, snapshot));
     },
     error: error,
     complete: complete
   };
   // TODO(pipeline) hook up options
-  firestoreClientListen(
-    client,
-    toCorePipeline(pipeline),
-    {},
-    observer
-  );
+  firestoreClientListen(client, toCorePipeline(pipeline), {}, observer);
 
   return () => {};
 }
