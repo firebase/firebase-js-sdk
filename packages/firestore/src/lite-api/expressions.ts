@@ -31,6 +31,7 @@ import {
 import { hardAssert } from '../util/assert';
 import { isFirestoreValue } from '../util/proto';
 
+import { Bytes } from './bytes';
 import { documentId, FieldPath } from './field_path';
 import { GeoPoint } from './geo_point';
 import { Pipeline } from './pipeline';
@@ -2073,6 +2074,8 @@ export class Constant extends Expr {
 
   /**
    * Creates a `Constant` instance for an undefined value.
+   * @private
+   * @internal
    *
    * @param value The undefined value.
    * @return A new `Constant` instance.
@@ -2104,12 +2107,12 @@ export class Constant extends Expr {
   static of(value: Date): Constant;
 
   /**
-   * Creates a `Constant` instance for a Uint8Array value.
+   * Creates a `Constant` instance for a Bytes value.
    *
-   * @param value The Uint8Array value.
+   * @param value The Bytes value.
    * @return A new `Constant` instance.
    */
-  static of(value: Uint8Array): Constant;
+  static of(value: Bytes): Constant;
 
   /**
    * Creates a `Constant` instance for a DocumentReference value.
@@ -2121,6 +2124,7 @@ export class Constant extends Expr {
 
   /**
    * Creates a `Constant` instance for a Firestore proto value.
+   * For internal use only.
    * @private
    * @internal
    * @param value The Firestore proto value.
@@ -2142,7 +2146,7 @@ export class Constant extends Expr {
    * @param value The map value.
    * @return A new `Constant` instance.
    */
-  static of(value: Map<string, any>): Constant;
+  static of(value: Record<string, any>): Constant;
 
   /**
    * Creates a `Constant` instance for a VectorValue value.
