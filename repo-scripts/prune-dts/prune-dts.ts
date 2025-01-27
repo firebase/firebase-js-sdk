@@ -527,7 +527,6 @@ function findExternalExport(
       // implementation currently does not handle function exports,
       // which is the only place we expect name collisions.
       if (symbol.name === localSymbolName) {
-        console.log(`===== removing external export ${symbol.name}`)
         return otherExportSourceFile;
       }
     }
@@ -586,8 +585,6 @@ function dropPrivateApiTransformer(
         // Remove any types that are exported externally
         const externalExportFile = findExternalExport(typeChecker, sourceFile, node, otherExportSourceFiles);
         if (externalExportFile && node.name) {
-          console.log(`==== sourceFile.filename ${sourceFile.fileName}`)
-          console.log(`==== externalExportFile.filename ${externalExportFile.fileName}`)
           ensureImportsForFile(path.relative(path.dirname(sourceFile.fileName), externalExportFile.fileName)).push(node.name.text);
           return ts.factory.createNotEmittedStatement(node);
         }
