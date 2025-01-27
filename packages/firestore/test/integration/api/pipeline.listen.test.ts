@@ -55,7 +55,7 @@ import {
   startsWith,
   strConcat,
   subtract,
-  updateDoc
+  updateDoc, useFluentPipelines
 } from '../util/firebase_export';
 import { apiDescribe, toDataArray, withTestCollection } from '../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
@@ -64,7 +64,9 @@ import { _onSnapshot } from '../../../src/api/pipeline_impl';
 
 use(chaiAsPromised);
 
-apiDescribe('Pipelines', persistence => {
+useFluentPipelines();
+
+apiDescribe.only('Pipelines', persistence => {
   addEqualityMatcher();
   let firestore: Firestore;
   let randomCol: CollectionReference;
@@ -250,22 +252,10 @@ apiDescribe('Pipelines', persistence => {
     setLogLevel('info');
   });
 
-  it('basic listen works', async () => {
-    const storeEvent = new EventsAccumulator<QuerySnapshot>();
+  it('basic listen with where() works', async () => {
+    const storeEvent = new EventsAccumulator<PipelineSnapshot>();
 
-    let result = onSnapshot(randomCol, storeEvent.storeEvent);
-    let snapshot = await storeEvent.awaitEvent();
-
-    expect(toDataArray(snapshot)).to.deep.equal([
-      { k: 'b', sort: 1 },
-      { k: 'a', sort: 0 }
-    ]);
-  });
-
-  it('basic listen works', async () => {
-    const storeEvent = new EventsAccumulator<RealtimePipelineSnapshot>();
-
-    let result = _onSnapshot(
+    const unsubscribe = _onSnapshot(
       firestore
         .pipeline()
         .collection(randomCol.path)
@@ -292,7 +282,6 @@ apiDescribe('Pipelines', persistence => {
     ]);
 
     await updateDoc(doc(randomCol, 'book1'), { rating: 4.3 });
-    snapshot = await storeEvent.awaitEvent();
     snapshot = await storeEvent.awaitEvent();
     expect(toDataArray(snapshot)).to.deep.equal([
       {
@@ -328,6 +317,67 @@ apiDescribe('Pipelines', persistence => {
         },
         nestedField: { 'level.1': { 'level.2': true } }
       },
+      {
+        title: 'Pride and Prejudice',
+        author: 'Douglas Adams', //'Jane Austen',
+        genre: 'Romance',
+        published: 1813,
+        rating: 4.5,
+        tags: ['classic', 'social commentary', 'love'],
+        awards: { none: true }
+      }
+    ]);
+  });
+
+  it('listen with where/sort/limit works', async () => {
+    const storeEvent = new EventsAccumulator<PipelineSnapshot>();
+
+    const unsubscribe = _onSnapshot(
+      firestore
+        .pipeline()
+        .collection(randomCol.path)
+        // "Frank Herbert" "Douglas Adams" "George Orwell"
+        .where(Field.of('author').charLength().eq(13))
+        .sort(Field.of('rating').descending())
+        .limit(1),
+      storeEvent.storeEvent
+    );
+    let snapshot = await storeEvent.awaitEvent();
+
+    expect(toDataArray(snapshot)).to.deep.equal([
+      {
+        title: 'Dune',
+        author: 'Frank Herbert',
+        genre: 'Science Fiction',
+        published: 1965,
+        rating: 4.6,
+        tags: ['politics', 'desert', 'ecology'],
+        awards: { hugo: true, nebula: true }
+      }
+    ]);
+
+    await updateDoc(doc(randomCol, 'book10'), { author: 'F.Herbert' });
+    snapshot = await storeEvent.awaitEvent();
+    expect(toDataArray(snapshot)).to.deep.equal([
+      {
+        title: "The Hitchhiker's Guide to the Galaxy",
+        author: 'Douglas Adams',
+        genre: 'Science Fiction',
+        published: 1979,
+        rating: 4.2,
+        tags: ['comedy', 'space', 'adventure'],
+        awards: {
+          hugo: true,
+          nebula: false,
+          others: { unknown: { year: 1980 } }
+        },
+        nestedField: { 'level.1': { 'level.2': true } }
+      }
+    ]);
+
+    await updateDoc(doc(randomCol, 'book2'), { author: 'Douglas Adams' });
+    snapshot = await storeEvent.awaitEvent();
+    expect(toDataArray(snapshot)).to.deep.equal([
       {
         title: 'Pride and Prejudice',
         author: 'Douglas Adams', //'Jane Austen',

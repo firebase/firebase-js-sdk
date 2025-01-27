@@ -34,6 +34,7 @@ import { Field } from '../lite-api/expressions';
 import { firestoreClientListen } from '../core/firestore_client';
 import { CorePipeline } from '../core/pipeline_run';
 import { ViewSnapshot } from '../core/view_snapshot';
+import {toCorePipeline} from '../core/pipeline-util';
 
 declare module './database' {
   interface Firestore {
@@ -99,23 +100,10 @@ export function _onSnapshot(
   error?: (error: FirestoreError) => void,
   complete?: () => void
 ): Unsubscribe {
-  // TODO(pipeline): getting system fields needs to be done properly for type 2.
-  // this.stages.push(
-  //   new AddFields(
-  //     this.selectablesToMap([
-  //       '__name__',
-  //       '__create_time__',
-  //       '__update_time__'
-  //     ])
-  //   )
-  // );
-
-  pipeline.stages.push(new Sort([Field.of('__name__').ascending()]));
-
   const client = ensureFirestoreConfigured(pipeline._db as Firestore);
   const observer = {
     next: (snapshot: ViewSnapshot) => {
-      new RealtimePipelineSnapshot(pipeline, snapshot);
+      new PipelineSnapshot(pipeline, snapshot);
     },
     error: error,
     complete: complete
@@ -123,7 +111,7 @@ export function _onSnapshot(
   // TODO(pipeline) hook up options
   firestoreClientListen(
     client,
-    new CorePipeline(pipeline.userDataReader.serializer, pipeline.stages),
+    toCorePipeline(pipeline),
     {},
     observer
   );
