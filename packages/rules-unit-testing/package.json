@@ -50,7 +50,7 @@
     "type": "git",
     "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
-  "typings": "dist/rules-unut-testing/index.d.ts",
+  "typings": "dist/rules-unit-testing/index.d.ts",
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   }
