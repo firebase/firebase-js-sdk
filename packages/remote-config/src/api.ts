@@ -38,6 +38,8 @@ import { LogLevel as FirebaseLogLevel } from '@firebase/logger';
 /**
  *
  * @param app - The {@link @firebase/app#FirebaseApp} instance.
+ * @param options - The {@link RemoteConfigOptions} with which to instantiate the
+ *     Remote Config instance.
  * @returns A {@link RemoteConfig} instance.
  *
  * @public
