@@ -27,6 +27,7 @@ import {
   toMapValue,
   toStringValue
 } from '../remote/serializer';
+import { hardAssert } from '../util/assert';
 
 import {
   Accumulator,
@@ -204,7 +205,7 @@ export class DocumentsSource implements Stage {
 export class Where implements Stage {
   name = 'where';
 
-  constructor(private condition: FilterCondition & Expr) {}
+  constructor(private condition: FilterCondition) {}
 
   /**
    * @internal
@@ -289,7 +290,15 @@ export class FindNearest implements Stage {
 export class Limit implements Stage {
   name = 'limit';
 
-  constructor(private limit: number) {}
+  constructor(
+    readonly limit: number,
+    readonly convertedFromLimitTolast: boolean = false
+  ) {
+    hardAssert(
+      !isNaN(limit) && limit !== Infinity && limit !== -Infinity,
+      'Invalid limit value'
+    );
+  }
 
   /**
    * @internal

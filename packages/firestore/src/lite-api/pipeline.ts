@@ -17,19 +17,20 @@
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
-import { DocumentKey } from '../model/document_key';
 import { ObjectValue } from '../model/object_value';
 import {
   ExecutePipelineRequest,
   StructuredPipeline,
   Stage as ProtoStage
 } from '../protos/firestore_proto_api';
+import { invokeExecutePipeline } from '../remote/datastore';
 import {
   getEncodedDatabaseId,
   JsonProtoSerializer,
   ProtoSerializable
 } from '../remote/serializer';
 
+import { getDatastore } from './components';
 import { Firestore } from './database';
 import {
   Accumulator,
@@ -43,7 +44,7 @@ import {
   Selectable
 } from './expressions';
 import { PipelineResult } from './pipeline-result';
-import { DocumentData, DocumentReference } from './reference';
+import { DocumentReference } from './reference';
 import {
   AddFields,
   Aggregate,
@@ -119,18 +120,14 @@ function isReadableUserData(value: any): value is ReadableUserData {
 /**
  * Base-class implementation
  */
-export class Pipeline<AppModelType = DocumentData>
-  implements ProtoSerializable<ExecutePipelineRequest>
-{
+export class Pipeline implements ProtoSerializable<ExecutePipelineRequest> {
   /**
    * @internal
    * @private
    * @param _db
    * @param userDataReader
    * @param _userDataWriter
-   * @param _documentReferenceFactory
    * @param stages
-   * @param converter
    */
   constructor(
     /**
@@ -144,15 +141,7 @@ export class Pipeline<AppModelType = DocumentData>
      * @private
      */
     public _userDataWriter: AbstractUserDataWriter,
-    /**
-     * @internal
-     * @private
-     */
-    public _documentReferenceFactory: (id: DocumentKey) => DocumentReference,
-    private stages: Stage[],
-    // TODO(pipeline) support converter
-    //private converter:  FirestorePipelineConverter<AppModelType> = defaultPipelineConverter()
-    private converter: unknown = {}
+    private stages: Stage[]
   ) {}
 
   /**
@@ -181,7 +170,7 @@ export class Pipeline<AppModelType = DocumentData>
    * @param fields The fields to add to the documents, specified as {@link Selectable}s.
    * @return A new Pipeline object with this stage appended to the stage list.
    */
-  addFields(...fields: Selectable[]): Pipeline<AppModelType> {
+  addFields(...fields: Selectable[]): Pipeline {
     const copy = this.stages.map(s => s);
     copy.push(
       new AddFields(
@@ -192,9 +181,7 @@ export class Pipeline<AppModelType = DocumentData>
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
-      copy,
-      this.converter
+      copy
     );
   }
 
@@ -229,7 +216,7 @@ export class Pipeline<AppModelType = DocumentData>
    *     Selectable} expressions or {@code string} values representing field names.
    * @return A new Pipeline object with this stage appended to the stage list.
    */
-  select(...selections: Array<Selectable | string>): Pipeline<AppModelType> {
+  select(...selections: Array<Selectable | string>): Pipeline {
     const copy = this.stages.map(s => s);
     let projections: Map<string, Expr> = this.selectablesToMap(selections);
     projections = this.readUserData('select', projections);
@@ -238,9 +225,7 @@ export class Pipeline<AppModelType = DocumentData>
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
-      copy,
-      this.converter
+      copy
     );
   }
 
@@ -297,27 +282,17 @@ export class Pipeline<AppModelType = DocumentData>
    * @param db
    * @param userDataReader
    * @param userDataWriter
-   * @param documentReferenceFactory
    * @param stages
-   * @param converter
    * @protected
    */
   protected newPipeline(
     db: Firestore,
     userDataReader: UserDataReader,
     userDataWriter: AbstractUserDataWriter,
-    documentReferenceFactory: (id: DocumentKey) => DocumentReference,
     stages: Stage[],
     converter: unknown = {}
-  ): Pipeline<AppModelType> {
-    return new Pipeline<AppModelType>(
-      db,
-      userDataReader,
-      userDataWriter,
-      documentReferenceFactory,
-      stages,
-      converter
-    );
+  ): Pipeline {
+    return new Pipeline(db, userDataReader, userDataWriter, stages);
   }
 
   /**
@@ -351,7 +326,7 @@ export class Pipeline<AppModelType = DocumentData>
    * @param condition The {@link FilterCondition} to apply.
    * @return A new Pipeline object with this stage appended to the stage list.
    */
-  where(condition: FilterCondition & Expr): Pipeline<AppModelType> {
+  where(condition: FilterCondition): Pipeline {
     const copy = this.stages.map(s => s);
     this.readUserData('where', condition);
     copy.push(new Where(condition));
@@ -359,9 +334,7 @@ export class Pipeline<AppModelType = DocumentData>
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
-      copy,
-      this.converter
+      copy
     );
   }
 
@@ -385,16 +358,14 @@ export class Pipeline<AppModelType = DocumentData>
    * @param offset The number of documents to skip.
    * @return A new Pipeline object with this stage appended to the stage list.
    */
-  offset(offset: number): Pipeline<AppModelType> {
+  offset(offset: number): Pipeline {
     const copy = this.stages.map(s => s);
     copy.push(new Offset(offset));
     return this.newPipeline(
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
-      copy,
-      this.converter
+      copy
     );
   }
 
@@ -423,16 +394,25 @@ export class Pipeline<AppModelType = DocumentData>
    * @param limit The maximum number of documents to return.
    * @return A new Pipeline object with this stage appended to the stage list.
    */
-  limit(limit: number): Pipeline<AppModelType> {
+  limit(limit: number): Pipeline {
     const copy = this.stages.map(s => s);
     copy.push(new Limit(limit));
     return this.newPipeline(
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
-      copy,
-      this.converter
+      copy
+    );
+  }
+
+  _limit(limit: number, convertedFromLimitTolast: boolean): Pipeline {
+    const copy = this.stages.map(s => s);
+    copy.push(new Limit(limit, convertedFromLimitTolast));
+    return this.newPipeline(
+      this._db,
+      this.userDataReader,
+      this._userDataWriter,
+      copy
     );
   }
 
@@ -464,7 +444,7 @@ export class Pipeline<AppModelType = DocumentData>
    *     value combinations or {@code string}s representing field names.
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
    */
-  distinct(...groups: Array<string | Selectable>): Pipeline<AppModelType> {
+  distinct(...groups: Array<string | Selectable>): Pipeline {
     const copy = this.stages.map(s => s);
     copy.push(
       new Distinct(
@@ -475,9 +455,7 @@ export class Pipeline<AppModelType = DocumentData>
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
-      copy,
-      this.converter
+      copy
     );
   }
 
@@ -503,7 +481,7 @@ export class Pipeline<AppModelType = DocumentData>
    *     and provide a name for the accumulated results.
    * @return A new Pipeline object with this stage appended to the stage list.
    */
-  aggregate(...accumulators: AccumulatorTarget[]): Pipeline<AppModelType>;
+  aggregate(...accumulators: AccumulatorTarget[]): Pipeline;
   /**
    * Performs optionally grouped aggregation operations on the documents from previous stages.
    *
@@ -539,7 +517,7 @@ export class Pipeline<AppModelType = DocumentData>
   aggregate(options: {
     accumulators: AccumulatorTarget[];
     groups?: Array<string | Selectable>;
-  }): Pipeline<AppModelType>;
+  }): Pipeline;
   aggregate(
     optionsOrTarget:
       | AccumulatorTarget
@@ -548,7 +526,7 @@ export class Pipeline<AppModelType = DocumentData>
           groups?: Array<string | Selectable>;
         },
     ...rest: AccumulatorTarget[]
-  ): Pipeline<AppModelType> {
+  ): Pipeline {
     const copy = this.stages.map(s => s);
     if ('accumulators' in optionsOrTarget) {
       copy.push(
@@ -588,14 +566,11 @@ export class Pipeline<AppModelType = DocumentData>
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
-      copy,
-      this.converter
+      copy
     );
   }
 
-  findNearest(options: FindNearestOptions): Pipeline<AppModelType>;
-  findNearest(options: FindNearestOptions): Pipeline<AppModelType> {
+  findNearest(options: FindNearestOptions): Pipeline {
     const copy = this.stages.map(s => s);
     const parseContext = this.userDataReader.createContext(
       UserDataSource.Argument,
@@ -616,7 +591,6 @@ export class Pipeline<AppModelType = DocumentData>
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
       copy
     );
   }
@@ -645,8 +619,7 @@ export class Pipeline<AppModelType = DocumentData>
    * @param orders One or more {@link Ordering} instances specifying the sorting criteria.
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
    */
-  sort(...orderings: Ordering[]): Pipeline<AppModelType>;
-  sort(options: { orderings: Ordering[] }): Pipeline<AppModelType>;
+  sort(...orderings: Ordering[]): Pipeline;
   sort(
     optionsOrOrderings:
       | Ordering
@@ -654,7 +627,7 @@ export class Pipeline<AppModelType = DocumentData>
           orderings: Ordering[];
         },
     ...rest: Ordering[]
-  ): Pipeline<AppModelType> {
+  ): Pipeline {
     const copy = this.stages.map(s => s);
     // Option object
     if ('orderings' in optionsOrOrderings) {
@@ -677,9 +650,7 @@ export class Pipeline<AppModelType = DocumentData>
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
-      copy,
-      this.converter
+      copy
     );
   }
 
@@ -703,7 +674,7 @@ export class Pipeline<AppModelType = DocumentData>
    * @param params A list of parameters to configure the generic stage's behavior.
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
    */
-  genericStage(name: string, params: any[]): Pipeline<AppModelType> {
+  genericStage(name: string, params: any[]): Pipeline {
     const copy = this.stages.map(s => s);
     params.forEach(param => {
       if (isReadableUserData(param)) {
@@ -715,77 +686,9 @@ export class Pipeline<AppModelType = DocumentData>
       this._db,
       this.userDataReader,
       this._userDataWriter,
-      this._documentReferenceFactory,
-      copy,
-      this.converter
+      copy
     );
   }
-
-  // TODO(pipeline) support converter
-  // withConverter(converter: null): Pipeline;
-  // withConverter<NewAppModelType>(
-  //   converter:  FirestorePipelineConverter<NewAppModelType>
-  // ): Pipeline<NewAppModelType>;
-  // /**
-  //  * Applies a custom data converter to this Query, allowing you to use your
-  //  * own custom model objects with Firestore. When you call get() on the
-  //  * returned Query, the provided converter will convert between Firestore
-  //  * data of type `NewDbModelType` and your custom type `NewAppModelType`.
-  //  *
-  //  * Using the converter allows you to specify generic type arguments when
-  //  * storing and retrieving objects from Firestore.
-  //  *
-  //  * Passing in `null` as the converter parameter removes the current
-  //  * converter.
-  //  *
-  //  * @example
-  //  * ```
-  //  * class Post {
-  //  *   constructor(readonly title: string, readonly author: string) {}
-  //  *
-  //  *   toString(): string {
-  //  *     return this.title + ', by ' + this.author;
-  //  *   }
-  //  * }
-  //  *
-  //  * const postConverter = {
-  //  *   toFirestore(post: Post): FirebaseFirestore.DocumentData {
-  //  *     return {title: post.title, author: post.author};
-  //  *   },
-  //  *   fromFirestore(
-  //  *     snapshot: FirebaseFirestore.QueryDocumentSnapshot
-  //  *   ): Post {
-  //  *     const data = snapshot.data();
-  //  *     return new Post(data.title, data.author);
-  //  *   }
-  //  * };
-  //  *
-  //  * const postSnap = await Firestore()
-  //  *   .collection('posts')
-  //  *   .withConverter(postConverter)
-  //  *   .doc().get();
-  //  * const post = postSnap.data();
-  //  * if (post !== undefined) {
-  //  *   post.title; // string
-  //  *   post.toString(); // Should be defined
-  //  *   post.someNonExistentProperty; // TS error
-  //  * }
-  //  *
-  //  * ```
-  //  * @param {FirestoreDataConverter | null} converter Converts objects to and
-  //  * from Firestore. Passing in `null` removes the current converter.
-  //  * @return A Query that uses the provided converter.
-  //  */
-  // withConverter<NewAppModelType>(
-  //   converter:  FirestorePipelineConverter<NewAppModelType> | null
-  // ): Pipeline<NewAppModelType> {
-  //   const copy = this.stages.map(s => s);
-  //   return this.newPipeline<NewAppModelType>(
-  //     this.db,
-  //     copy,
-  //     converter ?? defaultPipelineConverter()
-  //   );
-  // }
 
   /**
    * Executes this pipeline and returns a Promise to represent the asynchronous operation.
@@ -818,10 +721,29 @@ export class Pipeline<AppModelType = DocumentData>
    *
    * @return A Promise representing the asynchronous pipeline execution.
    */
-  execute(): Promise<Array<PipelineResult<AppModelType>>> {
-    throw new Error(
-      'Pipelines not initialized. Your application must call `useFluentPipelines()` before using Firestore Pipeline features.'
-    );
+  execute(): Promise<PipelineResult[]> {
+    const datastore = getDatastore(this._db);
+    return invokeExecutePipeline(datastore, this).then(result => {
+      const docs = result
+        // Currently ignore any response from ExecutePipeline that does
+        // not contain any document data in the `fields` property.
+        .filter(element => !!element.fields)
+        .map(
+          element =>
+            new PipelineResult(
+              this._userDataWriter,
+              element.key?.path
+                ? new DocumentReference(this._db, null, element.key)
+                : undefined,
+              element.fields,
+              element.executionTime?.toTimestamp(),
+              element.createTime?.toTimestamp(),
+              element.updateTime?.toTimestamp()
+            )
+        );
+
+      return docs;
+    });
   }
 
   /**

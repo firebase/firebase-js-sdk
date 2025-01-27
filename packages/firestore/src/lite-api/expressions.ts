@@ -29,6 +29,7 @@ import {
   UserData
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
+import { isFirestoreValue } from '../util/proto';
 
 import { Bytes } from './bytes';
 import { documentId, FieldPath } from './field_path';
@@ -43,59 +44,6 @@ import {
   UserDataSource
 } from './user_data_reader';
 import { VectorValue } from './vector_value';
-
-/**
- * @beta
- *
- * An interface that represents a selectable expression.
- */
-export interface Selectable {
-  selectable: true;
-}
-
-/**
- * @beta
- *
- * An interface that represents a filter condition.
- */
-export interface FilterCondition {
-  filterable: true;
-}
-
-/**
- * @beta
- *
- * An interface that represents an accumulator.
- */
-export interface Accumulator {
-  accumulator: true;
-  /**
-   * @private
-   * @internal
-   */
-  _toProto(serializer: JsonProtoSerializer): ProtoValue;
-}
-
-/**
- * @beta
- *
- * An accumulator target, which is an expression with an alias that also implements the Accumulator interface.
- */
-export type AccumulatorTarget = ExprWithAlias<Expr & Accumulator>;
-
-/**
- * @beta
- *
- * A filter expression, which is an expression that also implements the FilterCondition interface.
- */
-export type FilterExpr = Expr & FilterCondition;
-
-/**
- * @beta
- *
- * A selectable expression, which is an expression that also implements the Selectable interface.
- */
-export type SelectableExpr = Expr & Selectable;
 
 /**
  * @beta
@@ -127,6 +75,8 @@ export type ExprType =
  * method calls to create complex expressions.
  */
 export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
+  abstract exprType: ExprType;
+
   /**
    * Creates an expression that adds this expression to another expression.
    *
@@ -667,21 +617,21 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    * @param arrays The array expressions to concatenate.
    * @return A new `Expr` representing the concatenated array.
    */
-  arrayConcat(arrays: Expr[]): ArrayConcat;
+  arrayConcat(...arrays: Expr[]): ArrayConcat;
 
   /**
-   * Creates an expression that concatenates an array expression with one or more other arrays.
+   * Creates an expression that concatenates an array with one or more other arrays.
    *
    * ```typescript
    * // Combine the 'tags' array with a new array and an array field
    * Field.of("tags").arrayConcat(Arrays.asList("newTag1", "newTag2"), Field.of("otherTag"));
    * ```
    *
-   * @param arrays The array expressions or values to concatenate.
-   * @return A new `Expr` representing the concatenated array.
+   * @param arrays The arrays to concatenate.
+   * @return A new `Expr` representing the concatenated arrays.
    */
-  arrayConcat(arrays: any[]): ArrayConcat;
-  arrayConcat(arrays: any[]): ArrayConcat {
+  arrayConcat(...arrays: any[][]): ArrayConcat;
+  arrayConcat(...arrays: any[]): ArrayConcat {
     const exprValues = arrays.map(value =>
       value instanceof Expr ? value : Constant.of(value)
     );
@@ -1835,12 +1785,52 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
 
 /**
  * @beta
+ *
+ * An interface that represents a selectable expression.
  */
-export class ExprWithAlias<T extends Expr> extends Expr implements Selectable {
+export abstract class Selectable extends Expr {
+  selectable: true = true;
+}
+
+/**
+ * @beta
+ *
+ * An interface that represents a filter condition.
+ */
+export abstract class FilterCondition extends Expr {
+  filterable: true = true;
+}
+
+/**
+ * @beta
+ *
+ * An interface that represents an accumulator.
+ */
+export abstract class Accumulator extends Expr {
+  accumulator: true = true;
+
+  /**
+   * @private
+   * @internal
+   */
+  abstract _toProto(serializer: JsonProtoSerializer): ProtoValue;
+}
+
+/**
+ * @beta
+ *
+ * An accumulator target, which is an expression with an alias that also implements the Accumulator interface.
+ */
+export type AccumulatorTarget = ExprWithAlias<Accumulator>;
+
+/**
+ * @beta
+ */
+export class ExprWithAlias<T extends Expr> extends Selectable {
   exprType: ExprType = 'ExprWithAlias';
   selectable = true as const;
 
-  constructor(public expr: T, public alias: string) {
+  constructor(readonly expr: T, readonly alias: string) {
     super();
   }
 
@@ -1909,7 +1899,7 @@ class ListOfExprs extends Expr {
  * const cityField = Field.of("address.city");
  * ```
  */
-export class Field extends Expr implements Selectable {
+export class Field extends Selectable {
   exprType: ExprType = 'Field';
   selectable = true as const;
 
@@ -1939,7 +1929,6 @@ export class Field extends Expr implements Selectable {
    */
   static of(name: string): Field;
   static of(path: FieldPath): Field;
-  static of(pipeline: Pipeline, name: string): Field;
   static of(
     pipelineOrName: Pipeline | string | FieldPath,
     name?: string
@@ -1986,7 +1975,7 @@ export class Field extends Expr implements Selectable {
 /**
  * @beta
  */
-export class Fields extends Expr implements Selectable {
+export class Fields extends Selectable {
   exprType: ExprType = 'Field';
   selectable = true as const;
 
@@ -2194,6 +2183,16 @@ export class Constant extends Expr {
    * @private
    * @internal
    */
+  static _fromProto(value: ProtoValue): Constant {
+    const result = new Constant(value);
+    result._protoValue = value;
+    return result;
+  }
+
+  /**
+   * @private
+   * @internal
+   */
   _toProto(serializer: JsonProtoSerializer): ProtoValue {
     hardAssert(
       this._protoValue !== undefined,
@@ -2211,8 +2210,13 @@ export class Constant extends Expr {
       UserDataSource.Argument,
       'Constant.of'
     );
-    if (this.value === undefined) {
-      // TODO how should we treat the value of `undefined`?
+
+    if (isFirestoreValue(this.value)) {
+      // Special case where value is a proto value.
+      // This can occur when converting a Query to Pipeline.
+      this._protoValue = this.value;
+    } else if (this.value === undefined) {
+      // TODO(pipeline) how should we treat the value of `undefined`?
       this._protoValue = parseData(null, context)!;
     } else {
       this._protoValue = parseData(this.value, context)!;
@@ -2560,7 +2564,7 @@ export class Not extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class And extends FirestoreFunction implements FilterCondition {
-  constructor(private conditions: FilterExpr[]) {
+  constructor(private conditions: FilterCondition[]) {
     super('and', conditions);
   }
 
@@ -2571,7 +2575,7 @@ export class And extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class Or extends FirestoreFunction implements FilterCondition {
-  constructor(private conditions: FilterExpr[]) {
+  constructor(private conditions: FilterCondition[]) {
     super('or', conditions);
   }
   filterable = true as const;
@@ -2581,7 +2585,7 @@ export class Or extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class Xor extends FirestoreFunction implements FilterCondition {
-  constructor(private conditions: FilterExpr[]) {
+  constructor(private conditions: FilterCondition[]) {
     super('xor', conditions);
   }
   filterable = true as const;
@@ -2590,9 +2594,9 @@ export class Xor extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
-export class Cond extends FirestoreFunction implements FilterCondition {
+export class Cond extends FirestoreFunction {
   constructor(
-    private condition: FilterExpr,
+    private condition: FilterCondition,
     private thenExpr: Expr,
     private elseExpr: Expr
   ) {
@@ -4324,8 +4328,8 @@ export function arrayContainsAny(
  * Creates an expression that checks if an array expression contains all the specified elements.
  *
  * ```typescript
- * // Check if the 'tags' array contains both of the values from field 'tag1', 'tag2' and "tag3"
- * arrayContainsAll(Field.of("tags"), [Field.of("tag1"), "SciFi", "Adventure"]);
+ * // Check if the "tags" array contains all of the values: "SciFi", "Adventure", and the value from field "tag1"
+ * arrayContainsAll(Field.of("tags"), [Field.of("tag1"), Constant.of("SciFi"), Constant.of("Adventure")]);
  * ```
  *
  * @param array The array expression to check.
@@ -4340,7 +4344,7 @@ export function arrayContainsAll(array: Expr, values: Expr[]): ArrayContainsAll;
  * Creates an expression that checks if an array expression contains all the specified elements.
  *
  * ```typescript
- * // Check if the 'tags' array contains both of the values from field 'tag1', 'tag2' and "tag3"
+ * // Check if the "tags" array contains all of the values: "SciFi", "Adventure", and the value from field "tag1"
  * arrayContainsAll(Field.of("tags"), [Field.of("tag1"), "SciFi", "Adventure"]);
  * ```
  *
@@ -4586,7 +4590,7 @@ export function notEqAny(element: Expr | string, others: any[]): NotEqAny {
  * @param right Additional filter conditions to 'XOR' together.
  * @return A new {@code Expr} representing the logical 'XOR' operation.
  */
-export function xor(left: FilterExpr, ...right: FilterExpr[]): Xor {
+export function xor(left: FilterCondition, ...right: FilterCondition[]): Xor {
   return new Xor([left, ...right]);
 }
 
@@ -4608,7 +4612,7 @@ export function xor(left: FilterExpr, ...right: FilterExpr[]): Xor {
  * @return A new {@code Expr} representing the conditional expression.
  */
 export function cond(
-  condition: FilterExpr,
+  condition: FilterCondition,
   thenExpr: Expr,
   elseExpr: Expr
 ): Cond {
@@ -4628,7 +4632,7 @@ export function cond(
  * @param filter The filter condition to negate.
  * @return A new {@code Expr} representing the negated filter condition.
  */
-export function not(filter: FilterExpr): Not {
+export function not(filter: FilterCondition): Not {
   return new Not(filter);
 }
 
@@ -6694,7 +6698,10 @@ export function genericFunction(
  * @param right Additional filter conditions to 'AND' together.
  * @return A new {@code Expr} representing the logical 'AND' operation.
  */
-export function andFunction(left: FilterExpr, ...right: FilterExpr[]): And {
+export function andFunction(
+  left: FilterCondition,
+  ...right: FilterCondition[]
+): And {
   return new And([left, ...right]);
 }
 
@@ -6713,7 +6720,10 @@ export function andFunction(left: FilterExpr, ...right: FilterExpr[]): And {
  * @param right Additional filter conditions to 'OR' together.
  * @return A new {@code Expr} representing the logical 'OR' operation.
  */
-export function orFunction(left: FilterExpr, ...right: FilterExpr[]): Or {
+export function orFunction(
+  left: FilterCondition,
+  ...right: FilterCondition[]
+): Or {
   return new Or([left, ...right]);
 }
 
@@ -6762,8 +6772,8 @@ export function descending(expr: Expr): Ordering {
  */
 export class Ordering {
   constructor(
-    private expr: Expr,
-    private direction: 'ascending' | 'descending'
+    readonly expr: Expr,
+    readonly direction: 'ascending' | 'descending'
   ) {}
 
   /**
