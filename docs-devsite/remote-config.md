@@ -68,7 +68,7 @@ export declare function getRemoteConfig(app?: FirebaseApp, options?: RemoteConfi
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance. |
-|  options | [RemoteConfigOptions](./remote-config.remoteconfigoptions.md#remoteconfigoptions_interface) | The [RemoteConfigOptions](./remote-config.remoteconfigoptions.md#remoteconfigoptions_interface) with which to instantiate the Remote Config instance. |
+|  options | [RemoteConfigOptions](./remote-config.remoteconfigoptions.md#remoteconfigoptions_interface) | Optional. The [RemoteConfigOptions](./remote-config.remoteconfigoptions.md#remoteconfigoptions_interface) with which to instantiate the Remote Config instance. |
 
 <b>Returns:</b>
 
