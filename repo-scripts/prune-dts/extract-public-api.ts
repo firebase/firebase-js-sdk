@@ -240,5 +240,9 @@ void generateApi(
   path.resolve(argv.rollupDts),
   path.resolve(argv.untrimmedRollupDts),
   path.resolve(argv.publicDts),
-  argv.otherExportsPublicDtsFiles ? argv.otherExportsPublicDtsFiles.split(',').map(filePath => path.resolve(filePath)) : []
+  argv.otherExportsPublicDtsFiles
+    ? argv.otherExportsPublicDtsFiles
+        .split(',')
+        .map(filePath => path.resolve(filePath))
+    : []
 );
