@@ -300,8 +300,8 @@ function stringifyGroup(s: string): number {
  * some logically-first keys before others.
  */
 function stringifyComparator(
-  a: { key: string, value: unknown },
-  b: { key: string, value: unknown }
+  a: { key: string; value: unknown },
+  b: { key: string; value: unknown }
 ): number {
   const aGroup = stringifyGroup(a.key);
   const bGroup = stringifyGroup(b.key);

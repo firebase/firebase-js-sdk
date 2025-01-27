@@ -28,6 +28,7 @@ import typescript from 'typescript';
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
 import pkg from './package.json';
+import tsconfig from './tsconfig.json';
 
 const sourcemaps = require('rollup-plugin-sourcemaps');
 const util = require('./rollup.shared');
@@ -35,6 +36,7 @@ const util = require('./rollup.shared');
 const nodePlugins = [
   typescriptPlugin({
     typescript,
+    exclude: [...tsconfig.exclude, '**/*.test.ts'],
     cacheDir: tmp.dirSync(),
     abortOnError: true,
     transformers: [util.removeAssertTransformer]
@@ -48,6 +50,7 @@ const nodePlugins = [
 const browserPlugins = [
   typescriptPlugin({
     typescript,
+    exclude: [...tsconfig.exclude, '**/*.test.ts'],
     cacheDir: tmp.dirSync(),
     abortOnError: true,
     transformers: [util.removeAssertAndPrefixInternalTransformer]

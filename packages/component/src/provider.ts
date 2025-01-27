@@ -319,7 +319,7 @@ export class Provider<T extends Name> {
         instanceIdentifier: normalizeIdentifierForFactory(instanceIdentifier),
         options
       });
-      this.instances.set(instanceIdentifier, instance);
+      this.instances.set(instanceIdentifier, instance!);
       this.instancesOptions.set(instanceIdentifier, options);
 
       /**
@@ -327,7 +327,7 @@ export class Provider<T extends Name> {
        * Note this.component.onInstanceCreated is different, which is used by the component creator,
        * while onInit listeners are registered by consumers of the provider.
        */
-      this.invokeOnInitCallbacks(instance, instanceIdentifier);
+      this.invokeOnInitCallbacks(instance!, instanceIdentifier);
 
       /**
        * Order is important
@@ -339,7 +339,7 @@ export class Provider<T extends Name> {
           this.component.onInstanceCreated(
             this.container,
             instanceIdentifier,
-            instance
+            instance!
           );
         } catch {
           // ignore errors in the onInstanceCreatedCallback

@@ -6,7 +6,7 @@
   "main": "dist/index.cjs.js",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./dist/rules-unit-testing/index.d.ts",
       "node": {
         "import": "./dist/esm/index.esm.js",
         "require": "./dist/index.cjs.js"
@@ -50,7 +50,7 @@
     "type": "git",
     "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
-  "typings": "dist/index.d.ts",
+  "typings": "dist/rules-unut-testing/index.d.ts",
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   }
