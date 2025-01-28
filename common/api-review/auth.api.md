@@ -40,6 +40,7 @@ export interface ActionCodeSettings {
         minimumVersion?: string;
         packageName: string;
     };
+    // @deprecated
     dynamicLinkDomain?: string;
     handleCodeInApp?: boolean;
     iOS?: {
