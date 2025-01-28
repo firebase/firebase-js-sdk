@@ -59,7 +59,7 @@ import {
 } from '../util/firebase_export';
 import { apiDescribe, toDataArray, withTestCollection } from '../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
-import { PipelineSnapshot } from '../../../src/api/snapshot';
+import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
 import { _onSnapshot } from '../../../src/api/pipeline_impl';
 
 use(chaiAsPromised);
@@ -81,17 +81,17 @@ apiDescribe('Pipelines', persistence => {
     return randomCol;
   }
 
-  function expectResults<AppModelType>(
-    result: Array<PipelineResult<AppModelType>>,
+  function expectResults(
+    result: Array<PipelineResult>,
     ...docs: string[]
   ): void;
-  function expectResults<AppModelType>(
-    result: Array<PipelineResult<AppModelType>>,
+  function expectResults(
+    result: Array<PipelineResult>,
     ...data: DocumentData[]
   ): void;
 
-  function expectResults<AppModelType>(
-    result: Array<PipelineResult<AppModelType>>,
+  function expectResults(
+    result: Array<PipelineResult>,
     ...data: DocumentData[] | string[]
   ): void {
     expect(result.length).to.equal(data.length);
@@ -263,7 +263,7 @@ apiDescribe('Pipelines', persistence => {
   });
 
   it('basic listen works', async () => {
-    const storeEvent = new EventsAccumulator<PipelineSnapshot>();
+    const storeEvent = new EventsAccumulator<RealtimePipelineSnapshot>();
 
     let result = _onSnapshot(
       firestore

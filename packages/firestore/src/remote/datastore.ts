@@ -241,7 +241,7 @@ export async function invokeBatchGetDocumentsRpc(
 
 export async function invokeExecutePipeline(
   datastore: Datastore,
-  pipeline: Pipeline<unknown>
+  pipeline: Pipeline
 ): Promise<PipelineStreamElement[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const executePipelineRequest = pipeline._toProto(datastoreImpl.serializer);

@@ -75,7 +75,6 @@ import {
 } from './reference';
 import { Timestamp } from './timestamp';
 import { VectorValue } from './vector_value';
-import { isFirestoreValue } from '../core/pipeline-util';
 import { Constant } from './expressions';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;

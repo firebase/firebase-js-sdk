@@ -103,7 +103,7 @@ import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
 import { Unsubscribe } from '../api/reference_impl';
-import { PipelineSnapshot } from '../api/snapshot';
+import { RealtimePipelineSnapshot } from '../api/snapshot';
 import { QueryOrPipeline } from './pipeline-util';
 
 const LOG_TAG = 'FirestoreClient';
@@ -560,7 +560,7 @@ export function firestoreClientRunAggregateQuery(
 
 export function firestoreClientExecutePipeline(
   client: FirestoreClient,
-  pipeline: LitePipeline<unknown>
+  pipeline: LitePipeline
 ): Promise<PipelineStreamElement[]> {
   const deferred = new Deferred<PipelineStreamElement[]>();
 
