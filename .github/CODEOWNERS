@@ -51,9 +51,9 @@ packages/installations-compat @avolkovi @yoyomyo @firebase/jssdk-global-approver
 packages/installations-types @avolkovi @yoyomyo @firebase/jssdk-global-approvers
 
 # Performance Code
-packages/performance @jposuna @firebase/jssdk-global-approvers
-packages/performance-compat @jposuna @firebase/jssdk-global-approvers
-packages/performance-types @jposuna @firebase/jssdk-global-approvers
+packages/performance @visumickey @firebase/jssdk-global-approvers
+packages/performance-compat @visumickey @firebase/jssdk-global-approvers
+packages/performance-types @visumickey @firebase/jssdk-global-approvers
 
 # Analytics Code
 packages/analytics @hsubox76 @firebase/jssdk-global-approvers
