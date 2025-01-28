@@ -47,6 +47,7 @@ import { VertexAI } from '../public-types';
 import { ApiSettings } from '../types/internal';
 import { VertexAIService } from '../service';
 import { _isFirebaseServerApp } from '@firebase/app';
+import { LiveClientContent, LiveClientSetup, LiveGenerationConfig, LiveServerContent } from '../types/live';
 
 /**
  * Class for generative model APIs.
@@ -190,6 +191,55 @@ export class GenerativeModel {
     );
   }
 
+  async startLiveSession(config?: LiveGenerationConfig): Promise<LiveSession> {
+    const _bidiGoogleAI = true;
+    const _baseDailyUrl = 'daily-firebaseml.sandbox.googleapis.com';
+    const _apiUrl =
+        'ws/google.firebase.machinelearning.v2beta.LlmBidiService/BidiGenerateContent?key=';
+    const _baseGAIUrl = 'generativelanguage.googleapis.com';
+    const _apiGAIUrl = 'ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=';
+    const model = 'gemini-2.0-flash-exp'
+
+    let url;
+    let modelString = '';
+    if (_bidiGoogleAI) {
+      const gaiApiKey = '';
+      url = `wss://${_baseGAIUrl}/${_apiGAIUrl}${gaiApiKey}`;
+      modelString = `models/${model}`;
+    } else {
+      url = `wss://${_baseDailyUrl}/${_apiUrl}${this._apiSettings.apiKey}`;
+      modelString =
+          `projects/${this._apiSettings.project}/locations/${this._apiSettings.location}/publishers/google/models/${model}`;
+    }
+
+    const socket = new WebSocket(url)
+
+    socket.onopen = () => {
+      const liveClientSetup: LiveClientSetup = {
+        setup: {
+          model: modelString,
+          generation_config: config
+        }
+      }
+      socket.send(JSON.stringify(liveClientSetup));
+    }
+
+    const setupComplete = new Promise((resolve, reject) => {
+      socket.onmessage = async (event) => {
+        console.log('received message in `startLiveSession`')
+        const msg = JSON.parse(await (event.data as Blob).text());
+        if (msg.setupComplete) {
+          resolve('setup complete.');
+        } else {
+          reject('first message did not contain `setup_complete`');
+        }
+      };
+    });
+
+    await setupComplete;
+    return new LiveSession(socket);
+  }
+
   /**
    * Counts the tokens in the provided request.
    */
@@ -198,5 +248,46 @@ export class GenerativeModel {
   ): Promise<CountTokensResponse> {
     const formattedParams = formatGenerateContentInput(request);
     return countTokens(this._apiSettings, this.model, formattedParams);
+  }
+}
+
+export class LiveSession {
+  constructor(private socket: WebSocket) { 
+    console.log('started new LiveSession');
+    this.socket.onclose = (event) => {
+      console.log('websocket closed', event);
+    }
+
+    this.socket.onerror = (event) => {
+      console.log('websocket error:', event)
+    }
+  }
+
+  send(data: string, turnComplete: boolean) {
+    if(!this.socket.OPEN) {
+      throw new Error("Cannot send message. Live connection was closed.")
+    }
+    const msg: LiveClientContent = {
+      client_content: {
+        turns: [{
+          role: 'user',
+          parts: [{
+            text: data
+          }]
+        }],
+        turn_complete: turnComplete
+      },
+    }
+    this.socket.send(JSON.stringify(msg));
+  }
+
+  // Assumes the setup_complete message was already received
+  onMessage(callback: (content: LiveServerContent) => void) {
+    console.log("setting onMessage callback");
+    this.socket.onmessage = async (event) => {
+      console.log("triggering onMessage callback");
+      const content: LiveServerContent = JSON.parse(await (event.data as Blob).text())
+      callback(content);
+    }
   }
 }

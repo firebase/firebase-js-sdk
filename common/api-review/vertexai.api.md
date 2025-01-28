@@ -337,6 +337,11 @@ export class GenerativeModel {
     // (undocumented)
     safetySettings: SafetySetting[];
     startChat(startChatParams?: StartChatParams): ChatSession;
+    // Warning: (ae-forgotten-export) The symbol "LiveGenerationConfig" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "LiveSession" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    startLiveSession(config?: LiveGenerationConfig): Promise<LiveSession>;
     // (undocumented)
     systemInstruction?: Content;
     // (undocumented)
