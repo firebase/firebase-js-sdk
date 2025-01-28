@@ -794,12 +794,12 @@ export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(
   return false;
 }
 
-export class PipelineSnapshot<AppModelType = DocumentData> {
+export class RealtimePipelineSnapshot {
   /**
    * The query on which you called `get` or `onSnapshot` in order to get this
    * `QuerySnapshot`.
    */
-  readonly pipeline: Pipeline<AppModelType>;
+  readonly pipeline: Pipeline;
 
   /**
    * Metadata about this snapshot, concerning its source and if it has local
@@ -808,10 +808,7 @@ export class PipelineSnapshot<AppModelType = DocumentData> {
   readonly metadata: SnapshotMetadata;
 
   /** @hideconstructor */
-  constructor(
-    pipeline: Pipeline<AppModelType>,
-    readonly _snapshot: ViewSnapshot
-  ) {
+  constructor(pipeline: Pipeline, readonly _snapshot: ViewSnapshot) {
     this.metadata = new SnapshotMetadata(
       _snapshot.hasPendingWrites,
       _snapshot.fromCache
@@ -820,8 +817,8 @@ export class PipelineSnapshot<AppModelType = DocumentData> {
   }
 
   /** An array of all the documents in the `QuerySnapshot`. */
-  get results(): Array<PipelineResult<AppModelType>> {
-    const result: Array<PipelineResult<AppModelType>> = [];
+  get results(): Array<PipelineResult> {
+    const result: Array<PipelineResult> = [];
     this._snapshot.docs.forEach(doc =>
       result.push(toPipelineResult(doc, this.pipeline))
     );

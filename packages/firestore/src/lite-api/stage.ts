@@ -27,6 +27,7 @@ import {
   toMapValue,
   toStringValue
 } from '../remote/serializer';
+import { hardAssert } from '../util/assert';
 
 import {
   Accumulator,
@@ -37,7 +38,6 @@ import {
 } from './expressions';
 import { DocumentReference } from './reference';
 import { VectorValue } from './vector_value';
-import { hardAssert } from '../util/assert';
 
 /**
  * @beta
@@ -205,7 +205,7 @@ export class DocumentsSource implements Stage {
 export class Where implements Stage {
   name = 'where';
 
-  constructor(readonly condition: FilterCondition & Expr) {}
+  constructor(readonly condition: FilterCondition) {}
 
   /**
    * @internal

@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { ascending, Field, Timestamp, useFluentPipelines } from '../../../src';
+import { Timestamp } from '../../../src';
 import { User } from '../../../src/auth/user';
 import {
   LimitType,
@@ -87,6 +87,7 @@ import { newTestFirestore } from '../../util/api_helpers';
 import { Pipeline } from '../../../src/lite-api/pipeline';
 import { toCorePipeline } from '../../util/pipelines';
 import { CorePipeline } from '../../../src/core/pipeline_run';
+import { ascending, Field } from '../../../lite/pipelines/pipelines';
 
 const TEST_TARGET_ID = 1;
 
@@ -124,8 +125,6 @@ class TestLocalDocumentsView extends LocalDocumentsView {
     return super.getDocumentsMatchingQuery(transaction, query, offset, context);
   }
 }
-
-useFluentPipelines();
 
 describe('QueryEngine', async () => {
   describe('MemoryEagerPersistence usePipeline=false', async () => {

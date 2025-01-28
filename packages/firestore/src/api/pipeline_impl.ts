@@ -15,33 +15,29 @@
  * limitations under the License.
  */
 
-import { PipelineSnapshot } from './snapshot';
-import { FirestoreError } from '../util/error';
-import { Unsubscribe } from './reference_impl';
-import { Sort } from '../lite-api/stage';
-import { Field } from '../lite-api/expressions';
-import { ensureFirestoreConfigured, Firestore } from './database';
-import { ViewSnapshot } from '../core/view_snapshot';
-import {
-  firestoreClientExecutePipeline,
-  firestoreClientListen
-} from '../core/firestore_client';
-import { Pipeline } from '../lite-api/pipeline';
-import { PipelineResult } from '../lite-api/pipeline-result';
-import { CorePipeline } from '../core/pipeline_run';
-
-import { PipelineSource } from '../api/pipeline-source';
+import { Pipeline } from '../api/pipeline';
+import { toPipeline } from '../core/pipeline-util';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
+import { PipelineResult } from '../lite-api/pipeline-result';
+import { PipelineSource } from '../lite-api/pipeline-source';
+import { Sort, Stage } from '../lite-api/stage';
 import { newUserDataReader } from '../lite-api/user_data_reader';
-import { DocumentKey } from '../model/document_key';
 import { cast } from '../util/input_validation';
 
-import { DocumentReference, Query } from './reference';
+import { ensureFirestoreConfigured, Firestore } from './database';
+import { Query } from './reference';
 import { ExpUserDataWriter } from './user_data_writer';
+import { RealtimePipelineSnapshot } from './snapshot';
+import { FirestoreError } from '../util/error';
+import { Unsubscribe } from './reference_impl';
+import { Field } from '../lite-api/expressions';
+import { firestoreClientListen } from '../core/firestore_client';
+import { CorePipeline } from '../core/pipeline_run';
+import { ViewSnapshot } from '../core/view_snapshot';
 
 declare module './database' {
   interface Firestore {
-    pipeline(): PipelineSource;
+    pipeline(): PipelineSource<Pipeline>;
   }
 }
 
@@ -49,7 +45,7 @@ declare module './database' {
  * Experimental Modular API for console testing.
  * @param firestore
  */
-export function pipeline(firestore: Firestore): PipelineSource;
+export function pipeline(firestore: Firestore): PipelineSource<Pipeline>;
 
 /**
  * Experimental Modular API for console testing.
@@ -59,83 +55,47 @@ export function pipeline(query: Query): Pipeline;
 
 export function pipeline(
   firestoreOrQuery: Firestore | Query
-): PipelineSource | Pipeline {
+): PipelineSource<Pipeline> | Pipeline {
   if (firestoreOrQuery instanceof Firestore) {
     const firestore = firestoreOrQuery;
-    return new PipelineSource(
-      firestore,
-      newUserDataReader(firestore),
-      new ExpUserDataWriter(firestore),
-      (key: DocumentKey) => {
-        return new DocumentReference(firestore, null, key);
-      }
-    );
+    return new PipelineSource<Pipeline>((stages: Stage[]) => {
+      return new Pipeline(
+        firestore,
+        newUserDataReader(firestore),
+        new ExpUserDataWriter(firestore),
+        stages
+      );
+    });
   } else {
-    let result;
     const query = firestoreOrQuery;
     const db = cast<Firestore>(query.firestore, Firestore);
-    if (query._query.collectionGroup) {
-      result = pipeline(db).collectionGroup(query._query.collectionGroup);
-    } else {
-      result = pipeline(db).collection(query._query.path.canonicalString());
-    }
 
-    // TODO(pipeline) convert existing query filters, limits, etc into
-    // pipeline stages
-
-    return result;
+    const litePipeline: LitePipeline = toPipeline(query._query, db);
+    return cast<Pipeline>(litePipeline, Pipeline);
   }
 }
-export function useFluentPipelines(): void {
-  Firestore.prototype.pipeline = function (): PipelineSource {
-    return pipeline(this);
-  };
 
-  Query.prototype.pipeline = function (): Pipeline {
-    return pipeline(this);
-  };
-
-  Pipeline.prototype.execute = function (): Promise<PipelineResult[]> {
-    return execute(this);
-  };
+export function execute(pipeline: LitePipeline): Promise<PipelineResult[]> {
+  return pipeline.execute();
 }
 
-export function execute<AppModelType>(
-  pipeline: LitePipeline
-): Promise<Array<PipelineResult<AppModelType>>> {
-  const firestore = cast(pipeline._db, Firestore);
-  const client = ensureFirestoreConfigured(firestore);
-  return firestoreClientExecutePipeline(client, pipeline).then(result => {
-    const docs = result
-      // Currently ignore any response from ExecutePipeline that does
-      // not contain any document data in the `fields` property.
-      .filter(element => !!element.fields)
-      .map(
-        element =>
-          new PipelineResult<AppModelType>(
-            pipeline._userDataWriter,
-            element.key?.path
-              ? pipeline._documentReferenceFactory(element.key)
-              : undefined,
-            element.fields,
-            element.executionTime?.toTimestamp(),
-            element.createTime?.toTimestamp(),
-            element.updateTime?.toTimestamp()
-            //this.converter
-          )
-      );
+// Augment the Firestore class with the pipeline() factory method
+Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
+  return pipeline(this);
+};
 
-    return docs;
-  });
-}
+// Augment the Query class with the pipeline() factory method
+Query.prototype.pipeline = function (): Pipeline {
+  return pipeline(this);
+};
 
 /**
  * @internal
  * @private
  */
 export function _onSnapshot(
-  pipeline: Pipeline,
-  next: (snapshot: PipelineSnapshot) => void,
+  pipeline: LitePipeline,
+  next: (snapshot: RealtimePipelineSnapshot) => void,
   error?: (error: FirestoreError) => void,
   complete?: () => void
 ): Unsubscribe {
@@ -155,7 +115,7 @@ export function _onSnapshot(
   const client = ensureFirestoreConfigured(pipeline._db as Firestore);
   const observer = {
     next: (snapshot: ViewSnapshot) => {
-      new PipelineSnapshot(pipeline, snapshot);
+      new RealtimePipelineSnapshot(pipeline, snapshot);
     },
     error: error,
     complete: complete

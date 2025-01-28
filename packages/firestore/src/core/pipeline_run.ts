@@ -12,21 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  CollectionGroupSource,
-  CollectionSource,
-  DatabaseSource,
-  DocumentsSource,
-  Exists,
-  Field,
-  FirestoreError,
-  Limit,
-  Offset,
-  Ordering,
-  Sort,
-  Stage,
-  Where
-} from '../api';
+import { FirestoreError } from '../api';
 import { Document, MutableDocument } from '../model/document';
 import {
   MIN_VALUE,
@@ -41,6 +27,18 @@ import { isPipeline, QueryOrPipeline } from './pipeline-util';
 import { DOCUMENT_KEY_NAME } from '../model/path';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { Code } from '../util/error';
+import {
+  CollectionGroupSource,
+  CollectionSource,
+  DatabaseSource,
+  DocumentsSource,
+  Limit,
+  Offset,
+  Sort,
+  Stage,
+  Where
+} from '../lite-api/stage';
+import { Exists, Field, Ordering } from '../api_pipelines';
 
 export class CorePipeline {
   constructor(

@@ -15,56 +15,24 @@
  * limitations under the License.
  */
 
+import { firestoreClientExecutePipeline } from '../core/firestore_client';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult } from '../lite-api/pipeline-result';
-import { DocumentData, DocumentReference } from '../lite-api/reference';
+import { DocumentReference } from '../lite-api/reference';
 import { Stage } from '../lite-api/stage';
 import { UserDataReader } from '../lite-api/user_data_reader';
 import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
-import { DocumentKey } from '../model/document_key';
+import { cast } from '../util/input_validation';
 
-import { Firestore } from './database';
+import { ensureFirestoreConfigured, Firestore } from './database';
 
-export class Pipeline<
-  AppModelType = DocumentData
-> extends LitePipeline<AppModelType> {
+export class Pipeline extends LitePipeline {
   /**
    * @internal
    * @private
    * @param db
    * @param userDataReader
    * @param userDataWriter
-   * @param documentReferenceFactory
-   * @param stages
-   * @param converter
-   */
-  constructor(
-    db: Firestore,
-    userDataReader: UserDataReader,
-    userDataWriter: AbstractUserDataWriter,
-    documentReferenceFactory: (id: DocumentKey) => DocumentReference,
-    stages: Stage[],
-    // TODO(pipeline) support converter
-    //private converter:  FirestorePipelineConverter<AppModelType> = defaultPipelineConverter()
-    converter: unknown = {}
-  ) {
-    super(
-      db,
-      userDataReader,
-      userDataWriter,
-      documentReferenceFactory,
-      stages,
-      converter
-    );
-  }
-
-  /**
-   * @internal
-   * @private
-   * @param db
-   * @param userDataReader
-   * @param userDataWriter
-   * @param documentReferenceFactory
    * @param stages
    * @param converter
    * @protected
@@ -73,18 +41,10 @@ export class Pipeline<
     db: Firestore,
     userDataReader: UserDataReader,
     userDataWriter: AbstractUserDataWriter,
-    documentReferenceFactory: (id: DocumentKey) => DocumentReference,
     stages: Stage[],
     converter: unknown = {}
-  ): Pipeline<AppModelType> {
-    return new Pipeline<AppModelType>(
-      db,
-      userDataReader,
-      userDataWriter,
-      documentReferenceFactory,
-      stages,
-      converter
-    );
+  ): Pipeline {
+    return new Pipeline(db, userDataReader, userDataWriter, stages);
   }
 
   /**
@@ -118,9 +78,29 @@ export class Pipeline<
    *
    * @return A Promise representing the asynchronous pipeline execution.
    */
-  execute(): Promise<Array<PipelineResult<AppModelType>>> {
-    throw new Error(
-      'Pipelines not initialized. Your application must call `useFluentPipelines()` before using Firestore Pipeline features.'
-    );
+  execute(): Promise<PipelineResult[]> {
+    const firestore = cast(this._db, Firestore);
+    const client = ensureFirestoreConfigured(firestore);
+    return firestoreClientExecutePipeline(client, this).then(result => {
+      const docs = result
+        // Currently ignore any response from ExecutePipeline that does
+        // not contain any document data in the `fields` property.
+        .filter(element => !!element.fields)
+        .map(
+          element =>
+            new PipelineResult(
+              this._userDataWriter,
+              element.key?.path
+                ? new DocumentReference(firestore, null, element.key)
+                : undefined,
+              element.fields,
+              element.executionTime?.toTimestamp(),
+              element.createTime?.toTimestamp(),
+              element.updateTime?.toTimestamp()
+            )
+        );
+
+      return docs;
+    });
   }
 }

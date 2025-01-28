@@ -35,7 +35,7 @@ import { Pipeline } from './pipeline';
  * <p>If the PipelineResult represents a non-document result, `ref` will return a undefined
  * value.
  */
-export class PipelineResult<AppModelType = DocumentData> {
+export class PipelineResult {
   private readonly _userDataWriter: AbstractUserDataWriter;
 
   private readonly _executionTime: Timestamp | undefined;
@@ -74,8 +74,6 @@ export class PipelineResult<AppModelType = DocumentData> {
     executionTime?: Timestamp,
     createTime?: Timestamp,
     updateTime?: Timestamp
-    // TODO converter
-    //readonly converter:  FirestorePipelineConverter<AppModelType> = defaultPipelineConverter()
   ) {
     this._ref = ref;
     this._userDataWriter = userDataWriter;
@@ -157,31 +155,14 @@ export class PipelineResult<AppModelType = DocumentData> {
    * });
    * ```
    */
-  data(): AppModelType | undefined {
+  data(): DocumentData | undefined {
     if (this._fields === undefined) {
       return undefined;
     }
 
-    // TODO(pipelines)
-    // We only want to use the converter and create a new QueryDocumentSnapshot
-    // if a converter has been provided.
-    // if (!!this.converter && this.converter !== defaultPipelineConverter()) {
-    //   return this.converter.fromFirestore(
-    //     new PipelineResult< DocumentData>(
-    //       this._serializer,
-    //       this.ref,
-    //       this._fieldsProto,
-    //       this._executionTime,
-    //       this.createTime,
-    //       this.updateTime,
-    //       defaultPipelineConverter()
-    //     )
-    //   );
-    // } else {{
     return this._userDataWriter.convertValue(
       this._fields.value
-    ) as AppModelType;
-    //}
+    ) as DocumentData;
   }
 
   /**
@@ -219,9 +200,9 @@ export class PipelineResult<AppModelType = DocumentData> {
   }
 }
 
-export function pipelineResultEqual<AppModelType>(
-  left: PipelineResult<AppModelType>,
-  right: PipelineResult<AppModelType>
+export function pipelineResultEqual(
+  left: PipelineResult,
+  right: PipelineResult
 ): boolean {
   if (left === right) {
     return true;
@@ -233,13 +214,15 @@ export function pipelineResultEqual<AppModelType>(
   );
 }
 
-export function toPipelineResult<T>(
+export function toPipelineResult(
   doc: Document,
-  pipeline: Pipeline<T>
-): PipelineResult<T> {
-  return new PipelineResult<T>(
+  pipeline: Pipeline
+): PipelineResult {
+  return new PipelineResult(
     pipeline._userDataWriter,
-    pipeline._documentReferenceFactory(doc.key),
+    doc.key.path
+      ? new DocumentReference(pipeline._db, null, doc.key)
+      : undefined,
     doc.data,
     doc.readTime.toTimestamp(),
     doc.createTime.toTimestamp(),

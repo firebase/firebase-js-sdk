@@ -17,21 +17,24 @@
 
 import {
   Constant,
-  Expr,
   Field,
   FilterCondition,
   FirestoreFunction,
-  gt,
-  gte,
-  lt,
-  lte,
   not,
   andFunction,
   orFunction,
   Ordering,
   And,
-  ListOfExprs
+  lt,
+  gt,
+  lte,
+  gte,
+  eq,
+  Or,
+  ListOfExprs,
+  Expr
 } from '../lite-api/expressions';
+import { Pipeline } from '../lite-api/pipeline';
 import {
   isNanValue,
   isNullValue,
@@ -72,7 +75,6 @@ import {
   Stage,
   Where
 } from '../lite-api/stage';
-import { Pipeline } from '../lite-api/pipeline';
 import {
   canonifyQuery,
   isCollectionGroupQuery,
@@ -98,134 +100,7 @@ import { Bound } from './bound';
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
-function isITimestamp(obj: any): obj is ProtoTimestamp {
-  if (typeof obj !== 'object' || obj === null) {
-    return false; // Must be a non-null object
-  }
-  if (
-    'seconds' in obj &&
-    (obj.seconds === null ||
-      typeof obj.seconds === 'number' ||
-      typeof obj.seconds === 'string') &&
-    'nanos' in obj &&
-    (obj.nanos === null || typeof obj.nanos === 'number')
-  ) {
-    return true;
-  }
-
-  return false;
-}
-function isILatLng(obj: any): obj is ProtoLatLng {
-  if (typeof obj !== 'object' || obj === null) {
-    return false; // Must be a non-null object
-  }
-  if (
-    'latitude' in obj &&
-    (obj.latitude === null || typeof obj.latitude === 'number') &&
-    'longitude' in obj &&
-    (obj.longitude === null || typeof obj.longitude === 'number')
-  ) {
-    return true;
-  }
-
-  return false;
-}
-function isIArrayValue(obj: any): obj is ProtoArrayValue {
-  if (typeof obj !== 'object' || obj === null) {
-    return false; // Must be a non-null object
-  }
-  if ('values' in obj && (obj.values === null || Array.isArray(obj.values))) {
-    return true;
-  }
-
-  return false;
-}
-function isIMapValue(obj: any): obj is ProtoMapValue {
-  if (typeof obj !== 'object' || obj === null) {
-    return false; // Must be a non-null object
-  }
-  if ('fields' in obj && (obj.fields === null || isPlainObject(obj.fields))) {
-    return true;
-  }
-
-  return false;
-}
-function isIFunction(obj: any): obj is ProtoFunction {
-  if (typeof obj !== 'object' || obj === null) {
-    return false; // Must be a non-null object
-  }
-  if (
-    'name' in obj &&
-    (obj.name === null || typeof obj.name === 'string') &&
-    'args' in obj &&
-    (obj.args === null || Array.isArray(obj.args))
-  ) {
-    return true;
-  }
-
-  return false;
-}
-
-function isIPipeline(obj: any): obj is ProtoPipeline {
-  if (typeof obj !== 'object' || obj === null) {
-    return false; // Must be a non-null object
-  }
-  if ('stages' in obj && (obj.stages === null || Array.isArray(obj.stages))) {
-    return true;
-  }
-
-  return false;
-}
-
-export function isFirestoreValue(obj: any): obj is ProtoValue {
-  if (typeof obj !== 'object' || obj === null) {
-    return false; // Must be a non-null object
-  }
-
-  // Check optional properties and their types
-  if (
-    ('nullValue' in obj &&
-      (obj.nullValue === null || obj.nullValue === 'NULL_VALUE')) ||
-    ('booleanValue' in obj &&
-      (obj.booleanValue === null || typeof obj.booleanValue === 'boolean')) ||
-    ('integerValue' in obj &&
-      (obj.integerValue === null ||
-        typeof obj.integerValue === 'number' ||
-        typeof obj.integerValue === 'string')) ||
-    ('doubleValue' in obj &&
-      (obj.doubleValue === null || typeof obj.doubleValue === 'number')) ||
-    ('timestampValue' in obj &&
-      (obj.timestampValue === null || isITimestamp(obj.timestampValue))) ||
-    ('stringValue' in obj &&
-      (obj.stringValue === null || typeof obj.stringValue === 'string')) ||
-    ('bytesValue' in obj &&
-      (obj.bytesValue === null || obj.bytesValue instanceof Uint8Array)) ||
-    ('referenceValue' in obj &&
-      (obj.referenceValue === null ||
-        typeof obj.referenceValue === 'string')) ||
-    ('geoPointValue' in obj &&
-      (obj.geoPointValue === null || isILatLng(obj.geoPointValue))) ||
-    ('arrayValue' in obj &&
-      (obj.arrayValue === null || isIArrayValue(obj.arrayValue))) ||
-    ('mapValue' in obj &&
-      (obj.mapValue === null || isIMapValue(obj.mapValue))) ||
-    ('fieldReferenceValue' in obj &&
-      (obj.fieldReferenceValue === null ||
-        typeof obj.fieldReferenceValue === 'string')) ||
-    ('functionValue' in obj &&
-      (obj.functionValue === null || isIFunction(obj.functionValue))) ||
-    ('pipelineValue' in obj &&
-      (obj.pipelineValue === null || isIPipeline(obj.pipelineValue)))
-  ) {
-    return true;
-  }
-
-  return false;
-}
-
-export function toPipelineFilterCondition(
-  f: FilterInternal
-): FilterCondition & Expr {
+export function toPipelineFilterCondition(f: FilterInternal): FilterCondition {
   if (f instanceof FieldFilterInternal) {
     const field = Field.of(f.field.toString());
     if (isNanValue(f.value)) {
@@ -412,18 +287,37 @@ function whereConditionsFromCursor(
   bound: Bound,
   orderings: Ordering[],
   position: 'before' | 'after'
-): And {
+): FilterCondition {
   const cursors = bound.position.map(value => Constant._fromProto(value));
   const filterFunc = position === 'before' ? lt : gt;
   const filterInclusiveFunc = position === 'before' ? lte : gte;
-  const conditions = cursors.map((cursor, index) => {
-    if (!!bound.inclusive && index === cursors.length - 1) {
-      return filterInclusiveFunc(orderings[index].expr as Field, cursor);
+
+  const orConditions = [];
+  for (let i = 1; i <= orderings.length; i++) {
+    const cursorSubset = cursors.slice(0, i);
+
+    const conditions = cursorSubset.map((cursor, index) => {
+      if (index < cursorSubset.length - 1) {
+        return eq(orderings[index].expr as Field, cursor);
+      } else if (!!bound.inclusive && i === orderings.length) {
+        return filterInclusiveFunc(orderings[index].expr as Field, cursor);
+      } else {
+        return filterFunc(orderings[index].expr as Field, cursor);
+      }
+    });
+
+    if (conditions.length === 1) {
+      orConditions.push(conditions[0]);
     } else {
-      return filterFunc(orderings[index].expr as Field, cursor);
+      orConditions.push(new And(conditions));
     }
-  });
-  return new And(conditions);
+  }
+
+  if (orConditions.length === 1) {
+    return orConditions[0];
+  } else {
+    return new Or(orConditions);
+  }
 }
 
 export function canonifyExpr(expr: Expr): string {
