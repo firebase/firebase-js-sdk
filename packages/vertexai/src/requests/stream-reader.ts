@@ -68,7 +68,9 @@ async function getResponsePromise(
     if (value.candidates && value.candidates.length > 0) {
       value.candidates.forEach(candidate => {
         if (candidate.content) {
-          candidate.content.parts = candidate.content.parts.filter(part => part.text !== '');
+          candidate.content.parts = candidate.content.parts.filter(
+            part => part.text !== ''
+          );
         }
       });
     }
@@ -91,7 +93,9 @@ async function* generateResponseSequence(
     if (value.candidates && value.candidates.length > 0) {
       value.candidates.forEach(candidate => {
         if (candidate.content) {
-          candidate.content.parts = candidate.content.parts.filter(part => part.text !== '');
+          candidate.content.parts = candidate.content.parts.filter(
+            part => part.text !== ''
+          );
         }
       });
     }
@@ -221,14 +225,4 @@ export function aggregateResponses(
     }
   }
   return aggregatedResponse;
-}
-
-/**
- * The backend can send empty text parts, but if they are sent back (e.g. in a chat history) there
- * will be an error. To prevent this, filter out the empty text part from responses.
- *
- * @internal
- */
-export function filterEmptyTextParts(parts: Part[]): Part[] {
-  return parts?.filter(part => part.text !== '');
 }
