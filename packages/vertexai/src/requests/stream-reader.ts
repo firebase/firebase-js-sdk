@@ -62,6 +62,16 @@ async function getResponsePromise(
       );
       return enhancedResponse;
     }
+
+    // The backend can send empty text parts, but if they are sent back (e.g. in a chat history) there
+    // will be an error. To prevent this, filter out the empty text part from responses.
+    if (value.candidates && value.candidates.length > 0) {
+      value.candidates.forEach(candidate => {
+        if (candidate.content) {
+          candidate.content.parts = candidate.content.parts.filter(part => part.text !== '');
+        }
+      });
+    }
     allResponses.push(value);
   }
 }
@@ -76,6 +86,15 @@ async function* generateResponseSequence(
       break;
     }
 
+    // The backend can send empty text parts, but if they are sent back (e.g. in a chat history) there
+    // will be an error. To prevent this, filter out the empty text part from responses.
+    if (value.candidates && value.candidates.length > 0) {
+      value.candidates.forEach(candidate => {
+        if (candidate.content) {
+          candidate.content.parts = candidate.content.parts.filter(part => part.text !== '');
+        }
+      });
+    }
     const enhancedResponse = createEnhancedContentResponse(value);
     yield enhancedResponse;
   }
@@ -202,4 +221,14 @@ export function aggregateResponses(
     }
   }
   return aggregatedResponse;
+}
+
+/**
+ * The backend can send empty text parts, but if they are sent back (e.g. in a chat history) there
+ * will be an error. To prevent this, filter out the empty text part from responses.
+ *
+ * @internal
+ */
+export function filterEmptyTextParts(parts: Part[]): Part[] {
+  return parts?.filter(part => part.text !== '');
 }

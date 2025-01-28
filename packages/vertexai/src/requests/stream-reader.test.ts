@@ -18,7 +18,8 @@
 import {
   aggregateResponses,
   getResponseStream,
-  processStream
+  processStream,
+  filterEmptyTextParts
 } from './stream-reader';
 import { expect, use } from 'chai';
 import { restore } from 'sinon';
@@ -402,5 +403,31 @@ describe('aggregateResponses', () => {
         response.candidates?.[0].citationMetadata?.citations[1].startIndex
       ).to.equal(150);
     });
+  });
+});
+
+describe('filterEmptyTextParts', () => {
+  it('Removes only empty text parts', () => {
+    const parts = [
+      {
+        text: 'foo'
+      },
+      {
+        text: ''
+      },
+      {
+        text: 'bar'
+      }
+    ];
+
+    const filteredParts = filterEmptyTextParts(parts);
+    expect(filteredParts).to.deep.equal([
+      {
+        text: 'foo'
+      },
+      {
+        text: 'bar'
+      }
+    ]);
   });
 });
