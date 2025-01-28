@@ -83,7 +83,7 @@ import {
   TimestampSub,
   Field,
   Constant,
-  FilterExpr,
+  FilterCondition,
   IsNull
 } from '../lite-api/expressions';
 import {
@@ -662,7 +662,7 @@ export class CoreAnd implements EvaluableExpr {
   }
 
   static fromProtoToApiObj(value: ProtoFunction): And {
-    return new And(value.args!.map(exprFromProto) as FilterExpr[]);
+    return new And(value.args!.map(exprFromProto) as FilterCondition[]);
   }
 }
 
@@ -709,7 +709,7 @@ export class CoreOr implements EvaluableExpr {
   }
 
   static fromProtoToApiObj(value: ProtoFunction): Or {
-    return new Or(value.args!.map(exprFromProto) as FilterExpr[]);
+    return new Or(value.args!.map(exprFromProto) as FilterCondition[]);
   }
 }
 
@@ -737,7 +737,7 @@ export class CoreXor implements EvaluableExpr {
   }
 
   static fromProtoToApiObj(value: ProtoFunction): Xor {
-    return new Xor(value.args!.map(exprFromProto) as FilterExpr[]);
+    return new Xor(value.args!.map(exprFromProto) as FilterCondition[]);
   }
 }
 
@@ -883,7 +883,7 @@ export class CoreCond implements EvaluableExpr {
 
   static fromProtoToApiObj(value: ProtoFunction): Cond {
     return new Cond(
-      exprFromProto(value.args![0]) as FilterExpr,
+      exprFromProto(value.args![0]) as FilterCondition,
       exprFromProto(value.args![1]),
       exprFromProto(value.args![2])
     );

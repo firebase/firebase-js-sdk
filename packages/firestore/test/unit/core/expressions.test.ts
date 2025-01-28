@@ -17,28 +17,37 @@
 
 import { expect } from 'chai';
 import {
-  add,
+  Bytes,
+  doc as docRef,
+  GeoPoint,
+  Timestamp,
+  VectorValue
+} from '../../../src';
+
+import { doc } from '../../util/helpers';
+import {
   arrayContains,
   arrayContainsAll,
   arrayContainsAny,
   arrayLength,
   byteLength,
-  Bytes,
+  add,
+  andFunction,
+  arrayReverse,
   charLength,
   cond,
   Constant,
   cosineDistance,
   divide,
-  doc as docRef,
   dotProduct,
   endsWith,
   eq,
   eqAny,
   euclideanDistance,
   Field,
-  FilterExpr,
+  FilterCondition,
   FirestoreFunction,
-  GeoPoint,
+  Expr,
   gt,
   gte,
   isNan,
@@ -58,19 +67,9 @@ import {
   strConcat,
   strContains,
   subtract,
-  Timestamp,
-  useFluentPipelines,
-  vectorLength,
-  VectorValue,
-  xor
-} from '../../../src';
-
-import { doc } from '../../util/helpers';
-import {
-  andFunction,
-  arrayReverse,
-  Expr,
-  orFunction
+  orFunction,
+  xor,
+  vectorLength
 } from '../../../src/lite-api/expressions';
 import { newTestFirestore } from '../../util/api_helpers';
 import { canonifyPipeline } from '../../util/pipelines';
@@ -347,7 +346,7 @@ function errorExpr(): Expr {
   return Field.of('not-an-array').arrayLength();
 }
 
-function errorFilterExpr(): FilterExpr {
+function errorFilterCondition(): FilterCondition {
   return Field.of('not-an-array').gt(0);
 }
 
@@ -2554,7 +2553,7 @@ describe('Expressions', () => {
 
       it('false_error_isFalse', () => {
         expect(
-          evaluate(andFunction(falseExpr, errorFilterExpr()))
+          evaluate(andFunction(falseExpr, errorFilterCondition()))
         ).to.deep.equal(FALSE_VALUE);
       });
 
@@ -2566,17 +2565,18 @@ describe('Expressions', () => {
 
       it('error_false_isFalse', () => {
         expect(
-          evaluate(andFunction(errorFilterExpr(), falseExpr))
+          evaluate(andFunction(errorFilterCondition(), falseExpr))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('error_error_isError', () => {
-        expect(evaluate(andFunction(errorFilterExpr(), errorFilterExpr()))).to
-          .be.undefined;
+        expect(
+          evaluate(andFunction(errorFilterCondition(), errorFilterCondition()))
+        ).to.be.undefined;
       });
 
       it('error_true_isError', () => {
-        expect(evaluate(andFunction(errorFilterExpr(), trueExpr))).to.be
+        expect(evaluate(andFunction(errorFilterCondition(), trueExpr))).to.be
           .undefined;
       });
 
@@ -2587,7 +2587,7 @@ describe('Expressions', () => {
       });
 
       it('true_error_isError', () => {
-        expect(evaluate(andFunction(trueExpr, errorFilterExpr()))).to.be
+        expect(evaluate(andFunction(trueExpr, errorFilterCondition()))).to.be
           .undefined;
       });
 
@@ -2605,7 +2605,7 @@ describe('Expressions', () => {
 
       it('false_false_error_isFalse', () => {
         expect(
-          evaluate(andFunction(falseExpr, falseExpr, errorFilterExpr()))
+          evaluate(andFunction(falseExpr, falseExpr, errorFilterCondition()))
         ).to.deep.equal(FALSE_VALUE);
       });
 
@@ -2617,19 +2617,25 @@ describe('Expressions', () => {
 
       it('false_error_false_isFalse', () => {
         expect(
-          evaluate(andFunction(falseExpr, errorFilterExpr(), falseExpr))
+          evaluate(andFunction(falseExpr, errorFilterCondition(), falseExpr))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('false_error_error_isFalse', () => {
         expect(
-          evaluate(andFunction(falseExpr, errorFilterExpr(), errorFilterExpr()))
+          evaluate(
+            andFunction(
+              falseExpr,
+              errorFilterCondition(),
+              errorFilterCondition()
+            )
+          )
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('false_error_true_isFalse', () => {
         expect(
-          evaluate(andFunction(falseExpr, errorFilterExpr(), trueExpr))
+          evaluate(andFunction(falseExpr, errorFilterCondition(), trueExpr))
         ).to.deep.equal(FALSE_VALUE);
       });
 
@@ -2641,7 +2647,7 @@ describe('Expressions', () => {
 
       it('false_true_error_isFalse', () => {
         expect(
-          evaluate(andFunction(falseExpr, trueExpr, errorFilterExpr()))
+          evaluate(andFunction(falseExpr, trueExpr, errorFilterCondition()))
         ).to.deep.equal(FALSE_VALUE);
       });
 
@@ -2653,57 +2659,86 @@ describe('Expressions', () => {
 
       it('error_false_false_isFalse', () => {
         expect(
-          evaluate(andFunction(errorFilterExpr(), falseExpr, falseExpr))
+          evaluate(andFunction(errorFilterCondition(), falseExpr, falseExpr))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('error_false_error_isFalse', () => {
         expect(
-          evaluate(andFunction(errorFilterExpr(), falseExpr, errorFilterExpr()))
+          evaluate(
+            andFunction(
+              errorFilterCondition(),
+              falseExpr,
+              errorFilterCondition()
+            )
+          )
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('error_false_true_isFalse', () => {
         expect(
-          evaluate(andFunction(errorFilterExpr(), falseExpr, trueExpr))
+          evaluate(andFunction(errorFilterCondition(), falseExpr, trueExpr))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('error_error_false_isFalse', () => {
         expect(
-          evaluate(andFunction(errorFilterExpr(), errorFilterExpr(), falseExpr))
+          evaluate(
+            andFunction(
+              errorFilterCondition(),
+              errorFilterCondition(),
+              falseExpr
+            )
+          )
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('error_error_error_isError', () => {
         expect(
           evaluate(
-            andFunction(errorFilterExpr(), errorFilterExpr(), errorFilterExpr())
+            andFunction(
+              errorFilterCondition(),
+              errorFilterCondition(),
+              errorFilterCondition()
+            )
           )
         ).to.be.undefined;
       });
 
       it('error_error_true_isError', () => {
         expect(
-          evaluate(andFunction(errorFilterExpr(), errorFilterExpr(), trueExpr))
+          evaluate(
+            andFunction(
+              errorFilterCondition(),
+              errorFilterCondition(),
+              trueExpr
+            )
+          )
         ).to.be.undefined;
       });
 
       it('error_true_false_isFalse', () => {
         expect(
-          evaluate(andFunction(errorFilterExpr(), trueExpr, falseExpr))
+          evaluate(andFunction(errorFilterCondition(), trueExpr, falseExpr))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('error_true_error_isError', () => {
         expect(
-          evaluate(andFunction(errorFilterExpr(), trueExpr, errorFilterExpr()))
+          evaluate(
+            andFunction(
+              errorFilterCondition(),
+              trueExpr,
+              errorFilterCondition()
+            )
+          )
         ).to.be.undefined;
       });
 
       it('error_true_true_isError', () => {
-        expect(evaluate(andFunction(errorFilterExpr(), trueExpr, trueExpr))).to
-          .be.undefined;
+        expect(
+          evaluate(andFunction(errorFilterCondition(), trueExpr, trueExpr))
+        ).to.be.undefined;
       });
 
       it('true_false_false_isFalse', () => {
@@ -2714,7 +2749,7 @@ describe('Expressions', () => {
 
       it('true_false_error_isFalse', () => {
         expect(
-          evaluate(andFunction(trueExpr, falseExpr, errorFilterExpr()))
+          evaluate(andFunction(trueExpr, falseExpr, errorFilterCondition()))
         ).to.deep.equal(FALSE_VALUE);
       });
 
@@ -2726,19 +2761,26 @@ describe('Expressions', () => {
 
       it('true_error_false_isFalse', () => {
         expect(
-          evaluate(andFunction(trueExpr, errorFilterExpr(), falseExpr))
+          evaluate(andFunction(trueExpr, errorFilterCondition(), falseExpr))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('true_error_error_isError', () => {
         expect(
-          evaluate(andFunction(trueExpr, errorFilterExpr(), errorFilterExpr()))
+          evaluate(
+            andFunction(
+              trueExpr,
+              errorFilterCondition(),
+              errorFilterCondition()
+            )
+          )
         ).to.be.undefined;
       });
 
       it('true_error_true_isError', () => {
-        expect(evaluate(andFunction(trueExpr, errorFilterExpr(), trueExpr))).to
-          .be.undefined;
+        expect(
+          evaluate(andFunction(trueExpr, errorFilterCondition(), trueExpr))
+        ).to.be.undefined;
       });
 
       it('true_true_false_isFalse', () => {
@@ -2748,8 +2790,9 @@ describe('Expressions', () => {
       });
 
       it('true_true_error_isError', () => {
-        expect(evaluate(andFunction(trueExpr, trueExpr, errorFilterExpr()))).to
-          .be.undefined;
+        expect(
+          evaluate(andFunction(trueExpr, trueExpr, errorFilterCondition()))
+        ).to.be.undefined;
       });
 
       it('true_true_true_isTrue', () => {
@@ -2783,7 +2826,11 @@ describe('Expressions', () => {
       });
 
       it('errorCondition_returnsFalseCase', () => {
-        const func = cond(errorFilterExpr(), errorExpr(), Constant.of('false'));
+        const func = cond(
+          errorFilterCondition(),
+          errorExpr(),
+          Constant.of('false')
+        );
         expect(evaluate(func)?.stringValue).to.deep.equal('false');
       });
     }); // end describe('cond')
@@ -3164,7 +3211,7 @@ describe('Expressions', () => {
       });
 
       it('false_error_isError', () => {
-        expect(evaluate(orFunction(falseExpr, errorFilterExpr()))).to.be
+        expect(evaluate(orFunction(falseExpr, errorFilterCondition()))).to.be
           .undefined;
       });
 
@@ -3175,19 +3222,20 @@ describe('Expressions', () => {
       });
 
       it('error_false_isError', () => {
-        expect(evaluate(orFunction(errorFilterExpr(), falseExpr))).to.be
+        expect(evaluate(orFunction(errorFilterCondition(), falseExpr))).to.be
           .undefined;
       });
 
       it('error_error_isError', () => {
-        expect(evaluate(orFunction(errorFilterExpr(), errorFilterExpr()))).to.be
-          .undefined;
+        expect(
+          evaluate(orFunction(errorFilterCondition(), errorFilterCondition()))
+        ).to.be.undefined;
       });
 
       it('error_true_isTrue', () => {
-        expect(evaluate(orFunction(errorFilterExpr(), trueExpr))).to.deep.equal(
-          TRUE_VALUE
-        );
+        expect(
+          evaluate(orFunction(errorFilterCondition(), trueExpr))
+        ).to.deep.equal(TRUE_VALUE);
       });
 
       it('true_false_isTrue', () => {
@@ -3197,9 +3245,9 @@ describe('Expressions', () => {
       });
 
       it('true_error_isTrue', () => {
-        expect(evaluate(orFunction(trueExpr, errorFilterExpr()))).to.deep.equal(
-          TRUE_VALUE
-        );
+        expect(
+          evaluate(orFunction(trueExpr, errorFilterCondition()))
+        ).to.deep.equal(TRUE_VALUE);
       });
 
       it('true_true_isTrue', () => {
@@ -3215,8 +3263,9 @@ describe('Expressions', () => {
       });
 
       it('false_false_error_isError', () => {
-        expect(evaluate(orFunction(falseExpr, falseExpr, errorFilterExpr()))).to
-          .be.undefined;
+        expect(
+          evaluate(orFunction(falseExpr, falseExpr, errorFilterCondition()))
+        ).to.be.undefined;
       });
 
       it('false_false_true_isTrue', () => {
@@ -3226,19 +3275,26 @@ describe('Expressions', () => {
       });
 
       it('false_error_false_isError', () => {
-        expect(evaluate(orFunction(falseExpr, errorFilterExpr(), falseExpr))).to
-          .be.undefined;
+        expect(
+          evaluate(orFunction(falseExpr, errorFilterCondition(), falseExpr))
+        ).to.be.undefined;
       });
 
       it('false_error_error_isError', () => {
         expect(
-          evaluate(orFunction(falseExpr, errorFilterExpr(), errorFilterExpr()))
+          evaluate(
+            orFunction(
+              falseExpr,
+              errorFilterCondition(),
+              errorFilterCondition()
+            )
+          )
         ).to.be.undefined;
       });
 
       it('false_error_true_isTrue', () => {
         expect(
-          evaluate(orFunction(falseExpr, errorFilterExpr(), trueExpr))
+          evaluate(orFunction(falseExpr, errorFilterCondition(), trueExpr))
         ).to.deep.equal(TRUE_VALUE);
       });
 
@@ -3250,7 +3306,7 @@ describe('Expressions', () => {
 
       it('false_true_error_isTrue', () => {
         expect(
-          evaluate(orFunction(falseExpr, trueExpr, errorFilterExpr()))
+          evaluate(orFunction(falseExpr, trueExpr, errorFilterCondition()))
         ).to.deep.equal(TRUE_VALUE);
       });
 
@@ -3261,57 +3317,78 @@ describe('Expressions', () => {
       });
 
       it('error_false_false_isError', () => {
-        expect(evaluate(orFunction(errorFilterExpr(), falseExpr, falseExpr))).to
-          .be.undefined;
+        expect(
+          evaluate(orFunction(errorFilterCondition(), falseExpr, falseExpr))
+        ).to.be.undefined;
       });
 
       it('error_false_error_isError', () => {
         expect(
-          evaluate(orFunction(errorFilterExpr(), falseExpr, errorFilterExpr()))
+          evaluate(
+            orFunction(
+              errorFilterCondition(),
+              falseExpr,
+              errorFilterCondition()
+            )
+          )
         ).to.be.undefined;
       });
 
       it('error_false_true_isTrue', () => {
         expect(
-          evaluate(orFunction(errorFilterExpr(), falseExpr, trueExpr))
+          evaluate(orFunction(errorFilterCondition(), falseExpr, trueExpr))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('error_error_false_isError', () => {
         expect(
-          evaluate(orFunction(errorFilterExpr(), errorFilterExpr(), falseExpr))
+          evaluate(
+            orFunction(
+              errorFilterCondition(),
+              errorFilterCondition(),
+              falseExpr
+            )
+          )
         ).to.be.undefined;
       });
 
       it('error_error_error_isError', () => {
         expect(
           evaluate(
-            orFunction(errorFilterExpr(), errorFilterExpr(), errorFilterExpr())
+            orFunction(
+              errorFilterCondition(),
+              errorFilterCondition(),
+              errorFilterCondition()
+            )
           )
         ).to.be.undefined;
       });
 
       it('error_error_true_isTrue', () => {
         expect(
-          evaluate(orFunction(errorFilterExpr(), errorFilterExpr(), trueExpr))
+          evaluate(
+            orFunction(errorFilterCondition(), errorFilterCondition(), trueExpr)
+          )
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('error_true_false_isTrue', () => {
         expect(
-          evaluate(orFunction(errorFilterExpr(), trueExpr, falseExpr))
+          evaluate(orFunction(errorFilterCondition(), trueExpr, falseExpr))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('error_true_error_isTrue', () => {
         expect(
-          evaluate(orFunction(errorFilterExpr(), trueExpr, errorFilterExpr()))
+          evaluate(
+            orFunction(errorFilterCondition(), trueExpr, errorFilterCondition())
+          )
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('error_true_true_isTrue', () => {
         expect(
-          evaluate(orFunction(errorFilterExpr(), trueExpr, trueExpr))
+          evaluate(orFunction(errorFilterCondition(), trueExpr, trueExpr))
         ).to.deep.equal(TRUE_VALUE);
       });
 
@@ -3323,7 +3400,7 @@ describe('Expressions', () => {
 
       it('true_false_error_isTrue', () => {
         expect(
-          evaluate(orFunction(trueExpr, falseExpr, errorFilterExpr()))
+          evaluate(orFunction(trueExpr, falseExpr, errorFilterCondition()))
         ).to.deep.equal(TRUE_VALUE);
       });
 
@@ -3335,19 +3412,21 @@ describe('Expressions', () => {
 
       it('true_error_false_isTrue', () => {
         expect(
-          evaluate(orFunction(trueExpr, errorFilterExpr(), falseExpr))
+          evaluate(orFunction(trueExpr, errorFilterCondition(), falseExpr))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('true_error_error_isTrue', () => {
         expect(
-          evaluate(orFunction(trueExpr, errorFilterExpr(), errorFilterExpr()))
+          evaluate(
+            orFunction(trueExpr, errorFilterCondition(), errorFilterCondition())
+          )
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('true_error_true_isTrue', () => {
         expect(
-          evaluate(orFunction(trueExpr, errorFilterExpr(), trueExpr))
+          evaluate(orFunction(trueExpr, errorFilterCondition(), trueExpr))
         ).to.deep.equal(TRUE_VALUE);
       });
 
@@ -3359,7 +3438,7 @@ describe('Expressions', () => {
 
       it('true_true_error_isTrue', () => {
         expect(
-          evaluate(orFunction(trueExpr, trueExpr, errorFilterExpr()))
+          evaluate(orFunction(trueExpr, trueExpr, errorFilterCondition()))
         ).to.deep.equal(TRUE_VALUE);
       });
 
@@ -3388,7 +3467,8 @@ describe('Expressions', () => {
       });
 
       it('false_error_isError', () => {
-        expect(evaluate(xor(falseExpr, errorFilterExpr()))).to.be.undefined;
+        expect(evaluate(xor(falseExpr, errorFilterCondition()))).to.be
+          .undefined;
       });
 
       it('false_true_isTrue', () => {
@@ -3396,16 +3476,17 @@ describe('Expressions', () => {
       });
 
       it('error_false_isError', () => {
-        expect(evaluate(xor(errorFilterExpr(), falseExpr))).to.be.undefined;
-      });
-
-      it('error_error_isError', () => {
-        expect(evaluate(xor(errorFilterExpr(), errorFilterExpr()))).to.be
+        expect(evaluate(xor(errorFilterCondition(), falseExpr))).to.be
           .undefined;
       });
 
+      it('error_error_isError', () => {
+        expect(evaluate(xor(errorFilterCondition(), errorFilterCondition()))).to
+          .be.undefined;
+      });
+
       it('error_true_isError', () => {
-        expect(evaluate(xor(errorFilterExpr(), trueExpr))).to.be.undefined;
+        expect(evaluate(xor(errorFilterCondition(), trueExpr))).to.be.undefined;
       });
 
       it('true_false_isTrue', () => {
@@ -3413,7 +3494,7 @@ describe('Expressions', () => {
       });
 
       it('true_error_isError', () => {
-        expect(evaluate(xor(trueExpr, errorFilterExpr()))).to.be.undefined;
+        expect(evaluate(xor(trueExpr, errorFilterCondition()))).to.be.undefined;
       });
 
       it('true_true_isFalse', () => {
@@ -3427,8 +3508,8 @@ describe('Expressions', () => {
       });
 
       it('false_false_error_isError', () => {
-        expect(evaluate(xor(falseExpr, falseExpr, errorFilterExpr()))).to.be
-          .undefined;
+        expect(evaluate(xor(falseExpr, falseExpr, errorFilterCondition()))).to
+          .be.undefined;
       });
 
       it('false_false_true_isTrue', () => {
@@ -3438,17 +3519,20 @@ describe('Expressions', () => {
       });
 
       it('false_error_false_isError', () => {
-        expect(evaluate(xor(falseExpr, errorFilterExpr(), falseExpr))).to.be
-          .undefined;
+        expect(evaluate(xor(falseExpr, errorFilterCondition(), falseExpr))).to
+          .be.undefined;
       });
 
       it('false_error_error_isError', () => {
-        expect(evaluate(xor(falseExpr, errorFilterExpr(), errorFilterExpr())))
-          .to.be.undefined;
+        expect(
+          evaluate(
+            xor(falseExpr, errorFilterCondition(), errorFilterCondition())
+          )
+        ).to.be.undefined;
       });
 
       it('false_error_true_isError', () => {
-        expect(evaluate(xor(falseExpr, errorFilterExpr(), trueExpr))).to.be
+        expect(evaluate(xor(falseExpr, errorFilterCondition(), trueExpr))).to.be
           .undefined;
       });
 
@@ -3459,7 +3543,7 @@ describe('Expressions', () => {
       });
 
       it('false_true_error_isError', () => {
-        expect(evaluate(xor(falseExpr, trueExpr, errorFilterExpr()))).to.be
+        expect(evaluate(xor(falseExpr, trueExpr, errorFilterCondition()))).to.be
           .undefined;
       });
 
@@ -3470,48 +3554,66 @@ describe('Expressions', () => {
       });
 
       it('error_false_false_isError', () => {
-        expect(evaluate(xor(errorFilterExpr(), falseExpr, falseExpr))).to.be
-          .undefined;
+        expect(evaluate(xor(errorFilterCondition(), falseExpr, falseExpr))).to
+          .be.undefined;
       });
 
       it('error_false_error_isError', () => {
-        expect(evaluate(xor(errorFilterExpr(), falseExpr, errorFilterExpr())))
-          .to.be.undefined;
+        expect(
+          evaluate(
+            xor(errorFilterCondition(), falseExpr, errorFilterCondition())
+          )
+        ).to.be.undefined;
       });
 
       it('error_false_true_isError', () => {
-        expect(evaluate(xor(errorFilterExpr(), falseExpr, trueExpr))).to.be
+        expect(evaluate(xor(errorFilterCondition(), falseExpr, trueExpr))).to.be
           .undefined;
       });
 
       it('error_error_false_isError', () => {
-        expect(evaluate(xor(errorFilterExpr(), errorFilterExpr(), falseExpr)))
-          .to.be.undefined;
+        expect(
+          evaluate(
+            xor(errorFilterCondition(), errorFilterCondition(), falseExpr)
+          )
+        ).to.be.undefined;
       });
 
       it('error_error_error_isError', () => {
         expect(
-          evaluate(xor(errorFilterExpr(), errorFilterExpr(), errorFilterExpr()))
+          evaluate(
+            xor(
+              errorFilterCondition(),
+              errorFilterCondition(),
+              errorFilterCondition()
+            )
+          )
         ).to.be.undefined;
       });
 
       it('error_error_true_isError', () => {
-        expect(evaluate(xor(errorFilterExpr(), errorFilterExpr(), trueExpr))).to
-          .be.undefined;
+        expect(
+          evaluate(
+            xor(errorFilterCondition(), errorFilterCondition(), trueExpr)
+          )
+        ).to.be.undefined;
       });
 
       it('error_true_false_isError', () => {
-        expect(evaluate(xor(errorFilterExpr(), trueExpr, falseExpr))).to.be
+        expect(evaluate(xor(errorFilterCondition(), trueExpr, falseExpr))).to.be
           .undefined;
       });
 
       it('error_true_error_isError', () => {
-        expect(evaluate(xor(errorFilterExpr(), trueExpr, errorFilterExpr()))).to
-          .be.undefined;
+        expect(
+          evaluate(
+            xor(errorFilterCondition(), trueExpr, errorFilterCondition())
+          )
+        ).to.be.undefined;
       });
 
       it('error_true_true_isError', () => {
-        expect(evaluate(xor(errorFilterExpr(), trueExpr, trueExpr))).to.be
+        expect(evaluate(xor(errorFilterCondition(), trueExpr, trueExpr))).to.be
           .undefined;
       });
 
@@ -3522,7 +3624,7 @@ describe('Expressions', () => {
       });
 
       it('true_false_error_isError', () => {
-        expect(evaluate(xor(trueExpr, falseExpr, errorFilterExpr()))).to.be
+        expect(evaluate(xor(trueExpr, falseExpr, errorFilterCondition()))).to.be
           .undefined;
       });
 
@@ -3533,17 +3635,20 @@ describe('Expressions', () => {
       });
 
       it('true_error_false_isError', () => {
-        expect(evaluate(xor(trueExpr, errorFilterExpr(), falseExpr))).to.be
+        expect(evaluate(xor(trueExpr, errorFilterCondition(), falseExpr))).to.be
           .undefined;
       });
 
       it('true_error_error_isError', () => {
-        expect(evaluate(xor(trueExpr, errorFilterExpr(), errorFilterExpr()))).to
-          .be.undefined;
+        expect(
+          evaluate(
+            xor(trueExpr, errorFilterCondition(), errorFilterCondition())
+          )
+        ).to.be.undefined;
       });
 
       it('true_error_true_isError', () => {
-        expect(evaluate(xor(trueExpr, errorFilterExpr(), trueExpr))).to.be
+        expect(evaluate(xor(trueExpr, errorFilterCondition(), trueExpr))).to.be
           .undefined;
       });
 
@@ -3554,7 +3659,7 @@ describe('Expressions', () => {
       });
 
       it('true_true_error_isError', () => {
-        expect(evaluate(xor(trueExpr, trueExpr, errorFilterExpr()))).to.be
+        expect(evaluate(xor(trueExpr, trueExpr, errorFilterCondition()))).to.be
           .undefined;
       });
 

@@ -41,8 +41,6 @@ import { cast } from '../util/input_validation';
 import { logWarn } from '../util/log';
 
 import { FirestoreService, removeComponents } from './components';
-// `import type` to avoid bundling the source for
-// pipelines if `useFluentPipelines()` is not called
 import {
   DEFAULT_HOST,
   FirestoreSettingsImpl,

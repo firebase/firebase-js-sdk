@@ -16,38 +16,34 @@
  */
 
 import { expect } from 'chai';
-import {
-  add,
-  arrayContains,
-  arrayContainsAny,
-  Constant,
-  divide,
-  doc as docRef,
-  eq,
-  eqAny,
-  exists,
-  Field,
-  FilterExpr,
-  gt,
-  gte,
-  isNan,
-  like,
-  lt,
-  lte,
-  multiply,
-  neq,
-  not,
-  notEqAny,
-  regexMatch,
-  useFluentPipelines,
-  xor
-} from '../../../src';
+import { doc as docRef } from '../../../src';
 
 import { doc } from '../../util/helpers';
 import {
   andFunction,
+  eq,
+  Constant,
+  Field,
   isNull,
-  orFunction
+  orFunction,
+  eqAny,
+  arrayContains,
+  neq,
+  gt,
+  notEqAny,
+  arrayContainsAny,
+  add,
+  lte,
+  lt,
+  gte,
+  not,
+  isNan,
+  divide,
+  FilterCondition,
+  xor,
+  exists,
+  regexMatch,
+  like
 } from '../../../src/lite-api/expressions';
 import { newTestFirestore } from '../../util/api_helpers';
 import {
@@ -61,9 +57,7 @@ import {
   UPDATE_TIME_NAME
 } from '../../../src/model/path';
 import { MutableDocument } from '../../../src/model/document';
-
 const db = newTestFirestore();
-useFluentPipelines();
 describe('Pipeline Canonify', () => {
   it('works as expected for simple where clause', () => {
     const p = db.pipeline().collection('test').where(eq(`foo`, 42));
@@ -3237,9 +3231,9 @@ describe('runPipeline()', () => {
         .database()
         .where(
           xor(
-            Field.of('a') as unknown as FilterExpr,
-            Field.of('b') as unknown as FilterExpr,
-            Field.of('c') as unknown as FilterExpr
+            Field.of('a') as unknown as FilterCondition,
+            Field.of('b') as unknown as FilterCondition,
+            Field.of('c') as unknown as FilterCondition
           )
         );
 
@@ -3256,7 +3250,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(not(Field.of('a') as unknown as FilterExpr));
+        .where(not(Field.of('a') as unknown as FilterCondition));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
     });
@@ -6435,7 +6429,10 @@ describe('runPipeline()', () => {
         .pipeline()
         .database()
         .where(
-          divide(Constant.of('100'), Constant.of('50')) as unknown as FilterExpr
+          divide(
+            Constant.of('100'),
+            Constant.of('50')
+          ) as unknown as FilterCondition
         );
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;

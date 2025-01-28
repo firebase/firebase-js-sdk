@@ -31,7 +31,7 @@ import {
   pipelineEq,
   queryOrPipelineEqual
 } from '../../../src/core/pipeline-util';
-import { Pipeline } from '../../../src';
+import { Pipeline } from '../../../lite/pipelines/pipelines';
 
 // Disables all other tests; useful for debugging. Multiple tests can have
 // this tag and they'll all be run (but all others won't).
