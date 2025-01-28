@@ -45,5 +45,8 @@ export type TransportClass = new (
   authProvider?: AuthTokenProvider,
   appCheckProvider?: AppCheckTokenProvider,
   transportOptions?: TransportOptions,
-  _isUsingGen?: boolean
+  _isUsingGen?: boolean,
+  _isUsingTanStack?: boolean,
+  _isUsingReact?: boolean,
+  _isUsingAngularFire?: boolean
 ) => DataConnectTransport;

@@ -43,7 +43,10 @@ export class RESTTransport implements DataConnectTransport {
     private authProvider?: AuthTokenProvider | undefined,
     private appCheckProvider?: AppCheckTokenProvider | undefined,
     transportOptions?: TransportOptions | undefined,
-    private _isUsingGen = false
+    private _isUsingGen = false,
+    private _isUsingReact = false,
+    private _isUsingAngularFire = false,
+    private _isUsingTanStack = false
   ) {
     if (transportOptions) {
       if (typeof transportOptions.port === 'number') {
@@ -180,7 +183,10 @@ export class RESTTransport implements DataConnectTransport {
         this.appId,
         this._accessToken,
         this._appCheckToken,
-        this._isUsingGen
+        this._isUsingGen,
+        this._isUsingTanStack,
+        this._isUsingReact,
+        this._isUsingAngularFire
       )
     );
     return withAuth;
@@ -205,7 +211,10 @@ export class RESTTransport implements DataConnectTransport {
         this.appId,
         this._accessToken,
         this._appCheckToken,
-        this._isUsingGen
+        this._isUsingGen,
+        this._isUsingTanStack,
+        this._isUsingReact,
+        this._isUsingAngularFire
       );
     });
     return taskResult;

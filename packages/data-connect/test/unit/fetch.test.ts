@@ -51,6 +51,9 @@ describe('fetch', () => {
         null,
         null,
         null,
+        false,
+        false,
+        false,
         false
       )
     ).to.eventually.be.rejectedWith(message);
@@ -74,6 +77,9 @@ describe('fetch', () => {
         null,
         null,
         null,
+        false,
+        false,
+        false,
         false
       )
     ).to.eventually.be.rejectedWith(JSON.stringify(json));

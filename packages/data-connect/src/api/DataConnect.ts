@@ -92,6 +92,9 @@ export class DataConnect {
   private _transportOptions?: TransportOptions;
   private _authTokenProvider?: AuthTokenProvider;
   _isUsingGeneratedSdk: boolean = false;
+  _isUsingTanStackSdk: boolean = false;
+  _isUsingReactSdk: boolean = false;
+  _isUsingAngularFireSdk: boolean = false;
   private _appCheckTokenProvider?: AppCheckTokenProvider;
   // @internal
   constructor(
@@ -114,6 +117,24 @@ export class DataConnect {
   _useGeneratedSdk(): void {
     if (!this._isUsingGeneratedSdk) {
       this._isUsingGeneratedSdk = true;
+    }
+  }
+  // @internal
+  _useTanStackSdk(): void {
+    if (!this._isUsingTanStackSdk) {
+      this._isUsingTanStackSdk = true;
+    }
+  }
+  // @internal
+  _useReactSdk(): void {
+    if (!this._isUsingReactSdk) {
+      this._isUsingReactSdk = true;
+    }
+  }
+  // @internal
+  _useAngularFireSdk(): void {
+    if (!this._isUsingAngularFireSdk) {
+      this._isUsingAngularFireSdk = true;
     }
   }
   _delete(): Promise<void> {
@@ -164,7 +185,10 @@ export class DataConnect {
       this._authTokenProvider,
       this._appCheckTokenProvider,
       undefined,
-      this._isUsingGeneratedSdk
+      this._isUsingGeneratedSdk,
+      this._isUsingTanStackSdk,
+      this._isUsingReactSdk,
+      this._isUsingAngularFireSdk
     );
     if (this._transportOptions) {
       this._transport.useEmulator(

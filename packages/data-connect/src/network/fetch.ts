@@ -30,6 +30,27 @@ function getGoogApiClientValue(_isUsingGen: boolean): string {
   }
   return str;
 }
+function getWebFrameworkValue(
+  _isUsingTanStack: boolean,
+  _isUsingReact: boolean,
+  _isUsingAngularFire: boolean
+): string {
+  let str = '';
+  if (_isUsingTanStack) {
+    str += ' tanstack/';
+  }
+  if (_isUsingReact) {
+    str += ' react/';
+  }
+  if (_isUsingAngularFire) {
+    str += ' angularfire/';
+  }
+  // no framework SDK used
+  if (str === '') {
+    str = 'vanilla/';
+  }
+  return str.trim();
+}
 export interface DataConnectFetchBody<T> {
   name: string;
   operationName: string;
@@ -42,14 +63,22 @@ export function dcFetch<T, U>(
   appId: string | null,
   accessToken: string | null,
   appCheckToken: string | null,
-  _isUsingGen: boolean
+  _isUsingGen: boolean,
+  _isUsingTanStack: boolean,
+  _isUsingReact: boolean,
+  _isUsingAngularFire: boolean
 ): Promise<{ data: T; errors: Error[] }> {
   if (!connectFetch) {
     throw new DataConnectError(Code.OTHER, 'No Fetch Implementation detected!');
   }
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    'X-Goog-Api-Client': getGoogApiClientValue(_isUsingGen)
+    'X-Goog-Api-Client': getGoogApiClientValue(_isUsingGen),
+    'X-Firebase-DataConnect-Web-Frameworks': getWebFrameworkValue(
+      _isUsingTanStack,
+      _isUsingReact,
+      _isUsingAngularFire
+    )
   };
   if (accessToken) {
     headers['X-Firebase-Auth-Token'] = accessToken;
