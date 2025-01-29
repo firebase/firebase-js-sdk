@@ -38,7 +38,7 @@ import {
   Stage,
   Where
 } from '../lite-api/stage';
-import { Exists, Field, Ordering } from '../api_pipelines';
+import { Exists, Field, Ordering } from '../lite-api/expressions';
 
 export class CorePipeline {
   constructor(

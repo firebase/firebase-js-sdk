@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Pipeline } from '../api/pipeline';
+import { Pipeline } from './pipeline';
 import { toPipeline } from '../core/pipeline-util';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult } from '../lite-api/pipeline-result';
