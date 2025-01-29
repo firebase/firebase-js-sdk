@@ -38,6 +38,13 @@ import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
+import {
+  getPipelineCollection,
+  isPipeline,
+  QueryOrPipeline
+} from '../core/pipeline-util';
+import { ResourcePath } from '../model/path';
+import { pipelineMatches } from '../core/pipeline_run';
 
 export type DocumentSizer = (doc: Document) => number;
 
@@ -160,17 +167,40 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     return PersistencePromise.resolve(results);
   }
 
+  getAllEntries(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<MutableDocumentMap> {
+    let results = mutableDocumentMap();
+    this.docs.forEach((k, entry) => {
+      results = results.insert(k, entry.document as MutableDocument);
+    });
+
+    return PersistencePromise.resolve(results);
+  }
+
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
-    query: Query,
+    query: QueryOrPipeline,
     offset: IndexOffset,
     mutatedDocs: OverlayMap
   ): PersistencePromise<MutableDocumentMap> {
+    let collectionPath: ResourcePath;
+    let matcher: (doc: Document) => Boolean;
+    if (isPipeline(query)) {
+      // Documents are ordered by key, so we can use a prefix scan to narrow down
+      // the documents we need to match the query against.
+      collectionPath = ResourcePath.fromString(getPipelineCollection(query)!);
+      matcher = (doc: Document) =>
+        pipelineMatches(query, doc as MutableDocument);
+    } else {
+      // Documents are ordered by key, so we can use a prefix scan to narrow down
+      // the documents we need to match the query against.
+      collectionPath = query.path;
+      matcher = (doc: Document) => queryMatches(query, doc);
+    }
+
     let results = mutableDocumentMap();
 
-    // Documents are ordered by key, so we can use a prefix scan to narrow down
-    // the documents we need to match the query against.
-    const collectionPath = query.path;
     const prefix = new DocumentKey(collectionPath.child(''));
     const iterator = this.docs.getIteratorFrom(prefix);
     while (iterator.hasNext()) {
@@ -191,7 +221,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
         // The document sorts before the offset.
         continue;
       }
-      if (!mutatedDocs.has(document.key) && !queryMatches(query, document)) {
+      if (!mutatedDocs.has(document.key) && !matcher(document)) {
         // The document cannot possibly match the query.
         continue;
       }

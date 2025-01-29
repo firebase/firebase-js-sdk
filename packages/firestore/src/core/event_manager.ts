@@ -21,9 +21,16 @@ import { Code, FirestoreError } from '../util/error';
 import { EventHandler } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 
-import { canonifyQuery, Query, queryEquals, stringifyQuery } from './query';
+import { Query, stringifyQuery } from './query';
 import { OnlineState } from './types';
 import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
+import {
+  canonifyPipeline,
+  canonifyQueryOrPipeline,
+  isPipeline,
+  QueryOrPipeline,
+  queryOrPipelineEqual
+} from './pipeline-util';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
@@ -58,12 +65,15 @@ export interface Observer<T> {
  */
 export interface EventManager {
   onListen?: (
-    query: Query,
+    query: QueryOrPipeline,
     enableRemoteListen: boolean
   ) => Promise<ViewSnapshot>;
-  onUnlisten?: (query: Query, disableRemoteListen: boolean) => Promise<void>;
-  onFirstRemoteStoreListen?: (query: Query) => Promise<void>;
-  onLastRemoteStoreUnlisten?: (query: Query) => Promise<void>;
+  onUnlisten?: (
+    query: QueryOrPipeline,
+    disableRemoteListen: boolean
+  ) => Promise<void>;
+  onFirstRemoteStoreListen?: (query: QueryOrPipeline) => Promise<void>;
+  onLastRemoteStoreUnlisten?: (query: QueryOrPipeline) => Promise<void>;
   terminate(): void;
 }
 
@@ -72,7 +82,8 @@ export function newEventManager(): EventManager {
 }
 
 export class EventManagerImpl implements EventManager {
-  queries: ObjectMap<Query, QueryListenersInfo> = newQueriesObjectMap();
+  queries: ObjectMap<QueryOrPipeline, QueryListenersInfo> =
+    newQueriesObjectMap();
 
   onlineState: OnlineState = OnlineState.Unknown;
 
@@ -80,22 +91,25 @@ export class EventManagerImpl implements EventManager {
 
   /** Callback invoked when a Query is first listen to. */
   onListen?: (
-    query: Query,
+    query: QueryOrPipeline,
     enableRemoteListen: boolean
   ) => Promise<ViewSnapshot>;
   /** Callback invoked once all listeners to a Query are removed. */
-  onUnlisten?: (query: Query, disableRemoteListen: boolean) => Promise<void>;
+  onUnlisten?: (
+    query: QueryOrPipeline,
+    disableRemoteListen: boolean
+  ) => Promise<void>;
 
   /**
    * Callback invoked when a Query starts listening to the remote store, while
    * already listening to the cache.
    */
-  onFirstRemoteStoreListen?: (query: Query) => Promise<void>;
+  onFirstRemoteStoreListen?: (query: QueryOrPipeline) => Promise<void>;
   /**
    * Callback invoked when a Query stops listening to the remote store, while
    * still listening to the cache.
    */
-  onLastRemoteStoreUnlisten?: (query: Query) => Promise<void>;
+  onLastRemoteStoreUnlisten?: (query: QueryOrPipeline) => Promise<void>;
 
   terminate(): void {
     errorAllTargets(
@@ -105,10 +119,10 @@ export class EventManagerImpl implements EventManager {
   }
 }
 
-function newQueriesObjectMap(): ObjectMap<Query, QueryListenersInfo> {
-  return new ObjectMap<Query, QueryListenersInfo>(
-    q => canonifyQuery(q),
-    queryEquals
+function newQueriesObjectMap(): ObjectMap<QueryOrPipeline, QueryListenersInfo> {
+  return new ObjectMap<QueryOrPipeline, QueryListenersInfo>(
+    q => canonifyQueryOrPipeline(q),
+    queryOrPipelineEqual
   );
 }
 
@@ -187,7 +201,11 @@ export async function eventManagerListen(
   } catch (e) {
     const firestoreError = wrapInUserErrorIfRecoverable(
       e as Error,
-      `Initialization of query '${stringifyQuery(listener.query)}' failed`
+      `Initialization of query '${
+        isPipeline(listener.query)
+          ? canonifyPipeline(listener.query)
+          : stringifyQuery(listener.query)
+      }' failed`
     );
     listener.onError(firestoreError);
     return;
@@ -412,7 +430,7 @@ export class QueryListener {
   private onlineState = OnlineState.Unknown;
 
   constructor(
-    readonly query: Query,
+    readonly query: QueryOrPipeline,
     private queryObserver: Observer<ViewSnapshot>,
     options?: ListenOptions
   ) {

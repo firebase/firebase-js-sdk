@@ -15,18 +15,25 @@
  * limitations under the License.
  */
 
-import { Pipeline } from '../api/pipeline';
+import { Pipeline } from './pipeline';
 import { toPipeline } from '../core/pipeline-util';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult } from '../lite-api/pipeline-result';
 import { PipelineSource } from '../lite-api/pipeline-source';
-import { Stage } from '../lite-api/stage';
+import { Sort, Stage } from '../lite-api/stage';
 import { newUserDataReader } from '../lite-api/user_data_reader';
 import { cast } from '../util/input_validation';
 
-import { Firestore } from './database';
+import { ensureFirestoreConfigured, Firestore } from './database';
 import { Query } from './reference';
 import { ExpUserDataWriter } from './user_data_writer';
+import { RealtimePipelineSnapshot } from './snapshot';
+import { FirestoreError } from '../util/error';
+import { Unsubscribe } from './reference_impl';
+import { Field } from '../lite-api/expressions';
+import { firestoreClientListen } from '../core/firestore_client';
+import { CorePipeline } from '../core/pipeline_run';
+import { ViewSnapshot } from '../core/view_snapshot';
 
 declare module './database' {
   interface Firestore {
@@ -81,3 +88,45 @@ Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
 Query.prototype.pipeline = function (): Pipeline {
   return pipeline(this);
 };
+
+/**
+ * @internal
+ * @private
+ */
+export function _onSnapshot(
+  pipeline: LitePipeline,
+  next: (snapshot: RealtimePipelineSnapshot) => void,
+  error?: (error: FirestoreError) => void,
+  complete?: () => void
+): Unsubscribe {
+  // TODO(pipeline): getting system fields needs to be done properly for type 2.
+  // this.stages.push(
+  //   new AddFields(
+  //     this.selectablesToMap([
+  //       '__name__',
+  //       '__create_time__',
+  //       '__update_time__'
+  //     ])
+  //   )
+  // );
+
+  pipeline.stages.push(new Sort([Field.of('__name__').ascending()]));
+
+  const client = ensureFirestoreConfigured(pipeline._db as Firestore);
+  const observer = {
+    next: (snapshot: ViewSnapshot) => {
+      new RealtimePipelineSnapshot(pipeline, snapshot);
+    },
+    error: error,
+    complete: complete
+  };
+  // TODO(pipeline) hook up options
+  firestoreClientListen(
+    client,
+    new CorePipeline(pipeline.userDataReader.serializer, pipeline.stages),
+    {},
+    observer
+  );
+
+  return () => {};
+}

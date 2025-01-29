@@ -749,6 +749,10 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
     return new ArrayLength(this);
   }
 
+  arrayReverse(): ArrayReverse {
+    return new ArrayReverse(this);
+  }
+
   /**
    * Creates an expression that checks if this expression is equal to any of the provided values or
    * expressions.
@@ -827,8 +831,23 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    *
    * @return A new `Expr` representing the 'isNaN' check.
    */
-  isNaN(): IsNan {
+  isNan(): IsNan {
     return new IsNan(this);
+  }
+
+  /**
+   * Creates an expression that checks if this expression evaluates to `null`.
+   *
+   * ```typescript
+   * // Check if a field is set to value `null`. Returns false if it is set to
+   * // other values or is not set at all.
+   * Field.of("value").isNull();
+   * ```
+   *
+   * @return A new `Expr` representing the 'isNull' check.
+   */
+  isNull(): IsNan {
+    return new IsNull(this);
   }
 
   /**
@@ -1852,11 +1871,12 @@ export class ExprWithAlias<T extends Expr> extends Selectable {
 }
 
 /**
+ * @private
  * @internal
  */
-class ListOfExprs extends Expr {
+export class ListOfExprs extends Expr {
   exprType: ExprType = 'ListOfExprs';
-  constructor(private exprs: Expr[]) {
+  constructor(readonly exprs: Expr[]) {
     super();
   }
 
@@ -1903,8 +1923,12 @@ export class Field extends Selectable {
   exprType: ExprType = 'Field';
   selectable = true as const;
 
-  private constructor(
-    private fieldPath: InternalFieldPath,
+  /**
+   * @internal
+   * @private
+   */
+  constructor(
+    readonly fieldPath: InternalFieldPath,
     private pipeline: Pipeline | null = null
   ) {
     super();
@@ -1937,7 +1961,7 @@ export class Field extends Selectable {
       if (DOCUMENT_KEY_NAME === pipelineOrName) {
         return new Field(documentId()._internalPath);
       }
-      return new Field(fieldPathFromArgument('of', pipelineOrName));
+      return new Field(InternalFieldPath.fromServerFormat(pipelineOrName));
     } else if (pipelineOrName instanceof FieldPath) {
       if (documentId().isEqual(pipelineOrName)) {
         return new Field(documentId()._internalPath);
@@ -2036,7 +2060,10 @@ export class Constant extends Expr {
 
   private _protoValue?: ProtoValue;
 
-  private constructor(private value: any) {
+  private constructor(
+    readonly value: any,
+    readonly options?: { preferIntegers: boolean }
+  ) {
     super();
   }
 
@@ -2047,6 +2074,8 @@ export class Constant extends Expr {
    * @return A new `Constant` instance.
    */
   static of(value: number): Constant;
+
+  static of(value: number, options?: { preferIntegers: boolean }): Constant;
 
   /**
    * Creates a `Constant` instance for a string value.
@@ -2107,7 +2136,7 @@ export class Constant extends Expr {
   static of(value: Date): Constant;
 
   /**
-   * Creates a `Constant` instance for a Bytes value.
+   * Creates a `Constant` instance for a `Bytes` value.
    *
    * @param value The Bytes value.
    * @return A new `Constant` instance.
@@ -2156,8 +2185,8 @@ export class Constant extends Expr {
    */
   static of(value: VectorValue): Constant;
 
-  static of(value: any): Constant {
-    return new Constant(value);
+  static of(value: any, options?: { preferIntegers: boolean }): Constant {
+    return new Constant(value, options);
   }
 
   /**
@@ -2205,7 +2234,23 @@ export class Constant extends Expr {
    * @private
    * @internal
    */
+  _getValue(): ProtoValue {
+    hardAssert(
+      this._protoValue !== undefined,
+      'Value of this constant has not been serialized to proto value'
+    );
+    return this._protoValue;
+  }
+
+  /**
+   * @private
+   * @internal
+   */
   _readUserData(dataReader: UserDataReader): void {
+    if (!!this._protoValue) {
+      return;
+    }
+
     const context = dataReader.createContext(
       UserDataSource.Argument,
       'Constant.of'
@@ -2219,7 +2264,7 @@ export class Constant extends Expr {
       // TODO(pipeline) how should we treat the value of `undefined`?
       this._protoValue = parseData(null, context)!;
     } else {
-      this._protoValue = parseData(this.value, context)!;
+      this._protoValue = parseData(this.value, context, this.options)!;
     }
   }
 }
@@ -2235,7 +2280,7 @@ export class Constant extends Expr {
  */
 export class FirestoreFunction extends Expr {
   exprType: ExprType = 'Function';
-  constructor(private name: string, private params: Expr[]) {
+  constructor(readonly name: string, readonly params: Expr[]) {
     super();
   }
 
@@ -2265,7 +2310,7 @@ export class FirestoreFunction extends Expr {
  * @beta
  */
 export class Add extends FirestoreFunction {
-  constructor(private left: Expr, private right: Expr) {
+  constructor(readonly left: Expr, readonly right: Expr) {
     super('add', [left, right]);
   }
 }
@@ -2274,7 +2319,7 @@ export class Add extends FirestoreFunction {
  * @beta
  */
 export class Subtract extends FirestoreFunction {
-  constructor(private left: Expr, private right: Expr) {
+  constructor(readonly left: Expr, readonly right: Expr) {
     super('subtract', [left, right]);
   }
 }
@@ -2283,7 +2328,7 @@ export class Subtract extends FirestoreFunction {
  * @beta
  */
 export class Multiply extends FirestoreFunction {
-  constructor(private left: Expr, private right: Expr) {
+  constructor(readonly left: Expr, readonly right: Expr) {
     super('multiply', [left, right]);
   }
 }
@@ -2292,7 +2337,7 @@ export class Multiply extends FirestoreFunction {
  * @beta
  */
 export class Divide extends FirestoreFunction {
-  constructor(private left: Expr, private right: Expr) {
+  constructor(readonly left: Expr, readonly right: Expr) {
     super('divide', [left, right]);
   }
 }
@@ -2301,7 +2346,7 @@ export class Divide extends FirestoreFunction {
  * @beta
  */
 export class Mod extends FirestoreFunction {
-  constructor(private left: Expr, private right: Expr) {
+  constructor(readonly left: Expr, readonly right: Expr) {
     super('mod', [left, right]);
   }
 }
@@ -2379,7 +2424,7 @@ export class Mod extends FirestoreFunction {
  * @beta
  */
 export class Eq extends FirestoreFunction implements FilterCondition {
-  constructor(private left: Expr, private right: Expr) {
+  constructor(readonly left: Expr, readonly right: Expr) {
     super('eq', [left, right]);
   }
   filterable = true as const;
@@ -2389,7 +2434,7 @@ export class Eq extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class Neq extends FirestoreFunction implements FilterCondition {
-  constructor(private left: Expr, private right: Expr) {
+  constructor(readonly left: Expr, readonly right: Expr) {
     super('neq', [left, right]);
   }
   filterable = true as const;
@@ -2399,7 +2444,7 @@ export class Neq extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class Lt extends FirestoreFunction implements FilterCondition {
-  constructor(private left: Expr, private right: Expr) {
+  constructor(readonly left: Expr, readonly right: Expr) {
     super('lt', [left, right]);
   }
   filterable = true as const;
@@ -2409,7 +2454,7 @@ export class Lt extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class Lte extends FirestoreFunction implements FilterCondition {
-  constructor(private left: Expr, private right: Expr) {
+  constructor(readonly left: Expr, readonly right: Expr) {
     super('lte', [left, right]);
   }
   filterable = true as const;
@@ -2419,7 +2464,7 @@ export class Lte extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class Gt extends FirestoreFunction implements FilterCondition {
-  constructor(private left: Expr, private right: Expr) {
+  constructor(readonly left: Expr, readonly right: Expr) {
     super('gt', [left, right]);
   }
   filterable = true as const;
@@ -2429,7 +2474,7 @@ export class Gt extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class Gte extends FirestoreFunction implements FilterCondition {
-  constructor(private left: Expr, private right: Expr) {
+  constructor(readonly left: Expr, readonly right: Expr) {
     super('gte', [left, right]);
   }
   filterable = true as const;
@@ -2448,7 +2493,7 @@ export class ArrayConcat extends FirestoreFunction {
  * @beta
  */
 export class ArrayReverse extends FirestoreFunction {
-  constructor(private array: Expr) {
+  constructor(readonly array: Expr) {
     super('array_reverse', [array]);
   }
 }
@@ -2460,7 +2505,7 @@ export class ArrayContains
   extends FirestoreFunction
   implements FilterCondition
 {
-  constructor(private array: Expr, private element: Expr) {
+  constructor(readonly array: Expr, readonly element: Expr) {
     super('array_contains', [array, element]);
   }
   filterable = true as const;
@@ -2473,7 +2518,7 @@ export class ArrayContainsAll
   extends FirestoreFunction
   implements FilterCondition
 {
-  constructor(private array: Expr, private values: Expr[]) {
+  constructor(readonly array: Expr, readonly values: Expr[]) {
     super('array_contains_all', [array, new ListOfExprs(values)]);
   }
   filterable = true as const;
@@ -2486,7 +2531,7 @@ export class ArrayContainsAny
   extends FirestoreFunction
   implements FilterCondition
 {
-  constructor(private array: Expr, private values: Expr[]) {
+  constructor(readonly array: Expr, readonly values: Expr[]) {
     super('array_contains_any', [array, new ListOfExprs(values)]);
   }
   filterable = true as const;
@@ -2496,7 +2541,7 @@ export class ArrayContainsAny
  * @beta
  */
 export class ArrayLength extends FirestoreFunction {
-  constructor(private array: Expr) {
+  constructor(readonly array: Expr) {
     super('array_length', [array]);
   }
 }
@@ -2514,7 +2559,7 @@ export class ArrayElement extends FirestoreFunction {
  * @beta
  */
 export class EqAny extends FirestoreFunction implements FilterCondition {
-  constructor(private left: Expr, private others: Expr[]) {
+  constructor(readonly left: Expr, readonly others: Expr[]) {
     super('eq_any', [left, new ListOfExprs(others)]);
   }
   filterable = true as const;
@@ -2524,7 +2569,7 @@ export class EqAny extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class NotEqAny extends FirestoreFunction implements FilterCondition {
-  constructor(private left: Expr, private others: Expr[]) {
+  constructor(readonly left: Expr, readonly others: Expr[]) {
     super('not_eq_any', [left, new ListOfExprs(others)]);
   }
   filterable = true as const;
@@ -2534,7 +2579,7 @@ export class NotEqAny extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class IsNan extends FirestoreFunction implements FilterCondition {
-  constructor(private expr: Expr) {
+  constructor(readonly expr: Expr) {
     super('is_nan', [expr]);
   }
   filterable = true as const;
@@ -2543,8 +2588,18 @@ export class IsNan extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
+export class IsNull extends FirestoreFunction implements FilterCondition {
+  constructor(readonly expr: Expr) {
+    super('is_null', [expr]);
+  }
+  filterable = true as const;
+}
+
+/**
+ * @beta
+ */
 export class Exists extends FirestoreFunction implements FilterCondition {
-  constructor(private expr: Expr) {
+  constructor(readonly expr: Expr) {
     super('exists', [expr]);
   }
   filterable = true as const;
@@ -2554,7 +2609,7 @@ export class Exists extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class Not extends FirestoreFunction implements FilterCondition {
-  constructor(private expr: Expr) {
+  constructor(readonly expr: Expr) {
     super('not', [expr]);
   }
   filterable = true as const;
@@ -2564,7 +2619,7 @@ export class Not extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class And extends FirestoreFunction implements FilterCondition {
-  constructor(private conditions: FilterCondition[]) {
+  constructor(readonly conditions: FilterCondition[]) {
     super('and', conditions);
   }
 
@@ -2575,7 +2630,7 @@ export class And extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class Or extends FirestoreFunction implements FilterCondition {
-  constructor(private conditions: FilterCondition[]) {
+  constructor(readonly conditions: FilterCondition[]) {
     super('or', conditions);
   }
   filterable = true as const;
@@ -2585,7 +2640,7 @@ export class Or extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class Xor extends FirestoreFunction implements FilterCondition {
-  constructor(private conditions: FilterCondition[]) {
+  constructor(readonly conditions: FilterCondition[]) {
     super('xor', conditions);
   }
   filterable = true as const;
@@ -2596,9 +2651,9 @@ export class Xor extends FirestoreFunction implements FilterCondition {
  */
 export class Cond extends FirestoreFunction {
   constructor(
-    private condition: FilterCondition,
-    private thenExpr: Expr,
-    private elseExpr: Expr
+    readonly condition: FilterCondition,
+    readonly thenExpr: Expr,
+    readonly elseExpr: Expr
   ) {
     super('cond', [condition, thenExpr, elseExpr]);
   }
@@ -2609,7 +2664,7 @@ export class Cond extends FirestoreFunction {
  * @beta
  */
 export class LogicalMaximum extends FirestoreFunction {
-  constructor(private left: Expr, private right: Expr) {
+  constructor(readonly left: Expr, readonly right: Expr) {
     super('logical_maximum', [left, right]);
   }
 }
@@ -2618,7 +2673,7 @@ export class LogicalMaximum extends FirestoreFunction {
  * @beta
  */
 export class LogicalMinimum extends FirestoreFunction {
-  constructor(private left: Expr, private right: Expr) {
+  constructor(readonly left: Expr, readonly right: Expr) {
     super('logical_minimum', [left, right]);
   }
 }
@@ -2627,7 +2682,7 @@ export class LogicalMinimum extends FirestoreFunction {
  * @beta
  */
 export class Reverse extends FirestoreFunction {
-  constructor(private value: Expr) {
+  constructor(readonly value: Expr) {
     super('reverse', [value]);
   }
 }
@@ -2636,7 +2691,11 @@ export class Reverse extends FirestoreFunction {
  * @beta
  */
 export class ReplaceFirst extends FirestoreFunction {
-  constructor(private value: Expr, private find: Expr, private replace: Expr) {
+  constructor(
+    readonly value: Expr,
+    readonly find: Expr,
+    readonly replace: Expr
+  ) {
     super('replace_first', [value, find, replace]);
   }
 }
@@ -2645,7 +2704,11 @@ export class ReplaceFirst extends FirestoreFunction {
  * @beta
  */
 export class ReplaceAll extends FirestoreFunction {
-  constructor(private value: Expr, private find: Expr, private replace: Expr) {
+  constructor(
+    readonly value: Expr,
+    readonly find: Expr,
+    readonly replace: Expr
+  ) {
     super('replace_all', [value, find, replace]);
   }
 }
@@ -2654,7 +2717,7 @@ export class ReplaceAll extends FirestoreFunction {
  * @beta
  */
 export class CharLength extends FirestoreFunction {
-  constructor(private value: Expr) {
+  constructor(readonly value: Expr) {
     super('char_length', [value]);
   }
 }
@@ -2663,7 +2726,7 @@ export class CharLength extends FirestoreFunction {
  * @beta
  */
 export class ByteLength extends FirestoreFunction {
-  constructor(private value: Expr) {
+  constructor(readonly value: Expr) {
     super('byte_length', [value]);
   }
 }
@@ -2672,7 +2735,7 @@ export class ByteLength extends FirestoreFunction {
  * @beta
  */
 export class Like extends FirestoreFunction implements FilterCondition {
-  constructor(private expr: Expr, private pattern: Expr) {
+  constructor(readonly expr: Expr, readonly pattern: Expr) {
     super('like', [expr, pattern]);
   }
   filterable = true as const;
@@ -2685,7 +2748,7 @@ export class RegexContains
   extends FirestoreFunction
   implements FilterCondition
 {
-  constructor(private expr: Expr, private pattern: Expr) {
+  constructor(readonly expr: Expr, readonly pattern: Expr) {
     super('regex_contains', [expr, pattern]);
   }
   filterable = true as const;
@@ -2695,7 +2758,7 @@ export class RegexContains
  * @beta
  */
 export class RegexMatch extends FirestoreFunction implements FilterCondition {
-  constructor(private expr: Expr, private pattern: Expr) {
+  constructor(readonly expr: Expr, readonly pattern: Expr) {
     super('regex_match', [expr, pattern]);
   }
   filterable = true as const;
@@ -2705,7 +2768,7 @@ export class RegexMatch extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class StrContains extends FirestoreFunction implements FilterCondition {
-  constructor(private expr: Expr, private substring: Expr) {
+  constructor(readonly expr: Expr, readonly substring: Expr) {
     super('str_contains', [expr, substring]);
   }
   filterable = true as const;
@@ -2715,7 +2778,7 @@ export class StrContains extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class StartsWith extends FirestoreFunction implements FilterCondition {
-  constructor(private expr: Expr, private prefix: Expr) {
+  constructor(readonly expr: Expr, readonly prefix: Expr) {
     super('starts_with', [expr, prefix]);
   }
   filterable = true as const;
@@ -2725,7 +2788,7 @@ export class StartsWith extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class EndsWith extends FirestoreFunction implements FilterCondition {
-  constructor(private expr: Expr, private suffix: Expr) {
+  constructor(readonly expr: Expr, readonly suffix: Expr) {
     super('ends_with', [expr, suffix]);
   }
   filterable = true as const;
@@ -2735,7 +2798,7 @@ export class EndsWith extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class ToLower extends FirestoreFunction {
-  constructor(private expr: Expr) {
+  constructor(readonly expr: Expr) {
     super('to_lower', [expr]);
   }
 }
@@ -2744,7 +2807,7 @@ export class ToLower extends FirestoreFunction {
  * @beta
  */
 export class ToUpper extends FirestoreFunction {
-  constructor(private expr: Expr) {
+  constructor(readonly expr: Expr) {
     super('to_upper', [expr]);
   }
 }
@@ -2753,7 +2816,7 @@ export class ToUpper extends FirestoreFunction {
  * @beta
  */
 export class Trim extends FirestoreFunction {
-  constructor(private expr: Expr) {
+  constructor(readonly expr: Expr) {
     super('trim', [expr]);
   }
 }
@@ -2762,7 +2825,7 @@ export class Trim extends FirestoreFunction {
  * @beta
  */
 export class StrConcat extends FirestoreFunction {
-  constructor(private first: Expr, private rest: Expr[]) {
+  constructor(readonly first: Expr, readonly rest: Expr[]) {
     super('str_concat', [first, ...rest]);
   }
 }
@@ -2771,7 +2834,7 @@ export class StrConcat extends FirestoreFunction {
  * @beta
  */
 export class MapGet extends FirestoreFunction {
-  constructor(map: Expr, name: string) {
+  constructor(readonly map: Expr, readonly name: string) {
     super('map_get', [map, Constant.of(name)]);
   }
 }
@@ -2781,7 +2844,7 @@ export class MapGet extends FirestoreFunction {
  */
 export class Count extends FirestoreFunction implements Accumulator {
   accumulator = true as const;
-  constructor(private value: Expr | undefined, private distinct: boolean) {
+  constructor(readonly value: Expr | undefined, readonly distinct: boolean) {
     super('count', value === undefined ? [] : [value]);
   }
 }
@@ -2791,7 +2854,7 @@ export class Count extends FirestoreFunction implements Accumulator {
  */
 export class Sum extends FirestoreFunction implements Accumulator {
   accumulator = true as const;
-  constructor(private value: Expr, private distinct: boolean) {
+  constructor(readonly value: Expr, readonly distinct: boolean) {
     super('sum', [value]);
   }
 }
@@ -2801,7 +2864,7 @@ export class Sum extends FirestoreFunction implements Accumulator {
  */
 export class Avg extends FirestoreFunction implements Accumulator {
   accumulator = true as const;
-  constructor(private value: Expr, private distinct: boolean) {
+  constructor(readonly value: Expr, readonly distinct: boolean) {
     super('avg', [value]);
   }
 }
@@ -2830,7 +2893,7 @@ export class Maximum extends FirestoreFunction implements Accumulator {
  * @beta
  */
 export class CosineDistance extends FirestoreFunction {
-  constructor(private vector1: Expr, private vector2: Expr) {
+  constructor(readonly vector1: Expr, readonly vector2: Expr) {
     super('cosine_distance', [vector1, vector2]);
   }
 }
@@ -2839,7 +2902,7 @@ export class CosineDistance extends FirestoreFunction {
  * @beta
  */
 export class DotProduct extends FirestoreFunction {
-  constructor(private vector1: Expr, private vector2: Expr) {
+  constructor(readonly vector1: Expr, readonly vector2: Expr) {
     super('dot_product', [vector1, vector2]);
   }
 }
@@ -2848,7 +2911,7 @@ export class DotProduct extends FirestoreFunction {
  * @beta
  */
 export class EuclideanDistance extends FirestoreFunction {
-  constructor(private vector1: Expr, private vector2: Expr) {
+  constructor(readonly vector1: Expr, readonly vector2: Expr) {
     super('euclidean_distance', [vector1, vector2]);
   }
 }
@@ -2857,7 +2920,7 @@ export class EuclideanDistance extends FirestoreFunction {
  * @beta
  */
 export class VectorLength extends FirestoreFunction {
-  constructor(private value: Expr) {
+  constructor(readonly value: Expr) {
     super('vector_length', [value]);
   }
 }
@@ -2866,7 +2929,7 @@ export class VectorLength extends FirestoreFunction {
  * @beta
  */
 export class UnixMicrosToTimestamp extends FirestoreFunction {
-  constructor(private input: Expr) {
+  constructor(readonly input: Expr) {
     super('unix_micros_to_timestamp', [input]);
   }
 }
@@ -2875,7 +2938,7 @@ export class UnixMicrosToTimestamp extends FirestoreFunction {
  * @beta
  */
 export class TimestampToUnixMicros extends FirestoreFunction {
-  constructor(private input: Expr) {
+  constructor(readonly input: Expr) {
     super('timestamp_to_unix_micros', [input]);
   }
 }
@@ -2884,7 +2947,7 @@ export class TimestampToUnixMicros extends FirestoreFunction {
  * @beta
  */
 export class UnixMillisToTimestamp extends FirestoreFunction {
-  constructor(private input: Expr) {
+  constructor(readonly input: Expr) {
     super('unix_millis_to_timestamp', [input]);
   }
 }
@@ -2893,7 +2956,7 @@ export class UnixMillisToTimestamp extends FirestoreFunction {
  * @beta
  */
 export class TimestampToUnixMillis extends FirestoreFunction {
-  constructor(private input: Expr) {
+  constructor(readonly input: Expr) {
     super('timestamp_to_unix_millis', [input]);
   }
 }
@@ -2902,7 +2965,7 @@ export class TimestampToUnixMillis extends FirestoreFunction {
  * @beta
  */
 export class UnixSecondsToTimestamp extends FirestoreFunction {
-  constructor(private input: Expr) {
+  constructor(readonly input: Expr) {
     super('unix_seconds_to_timestamp', [input]);
   }
 }
@@ -2911,7 +2974,7 @@ export class UnixSecondsToTimestamp extends FirestoreFunction {
  * @beta
  */
 export class TimestampToUnixSeconds extends FirestoreFunction {
-  constructor(private input: Expr) {
+  constructor(readonly input: Expr) {
     super('timestamp_to_unix_seconds', [input]);
   }
 }
@@ -2921,9 +2984,9 @@ export class TimestampToUnixSeconds extends FirestoreFunction {
  */
 export class TimestampAdd extends FirestoreFunction {
   constructor(
-    private timestamp: Expr,
-    private unit: Expr,
-    private amount: Expr
+    readonly timestamp: Expr,
+    readonly unit: Expr,
+    readonly amount: Expr
   ) {
     super('timestamp_add', [timestamp, unit, amount]);
   }
@@ -2934,9 +2997,9 @@ export class TimestampAdd extends FirestoreFunction {
  */
 export class TimestampSub extends FirestoreFunction {
   constructor(
-    private timestamp: Expr,
-    private unit: Expr,
-    private amount: Expr
+    readonly timestamp: Expr,
+    readonly unit: Expr,
+    readonly amount: Expr
   ) {
     super('timestamp_sub', [timestamp, unit, amount]);
   }
@@ -4421,6 +4484,10 @@ export function arrayLength(array: Expr): ArrayLength {
   return new ArrayLength(array);
 }
 
+export function arrayReverse(array: Expr): ArrayReverse {
+  return new ArrayReverse(array);
+}
+
 /**
  * @beta
  *
@@ -4847,6 +4914,41 @@ export function isNan(value: string): IsNan;
 export function isNan(value: Expr | string): IsNan {
   const valueExpr = value instanceof Expr ? value : Field.of(value);
   return new IsNan(valueExpr);
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if an expression evaluates to 'null'.
+ *
+ * ```typescript
+ * // Check if the field is set to 'null'. Returns false if it is not set, or
+ * // set to any other value.
+ * isNull(Field.of("value"));
+ * ```
+ *
+ * @param value The expression to check.
+ * @return A new {@code Expr} representing the 'isNull' check.
+ */
+export function isNull(value: Expr): IsNull;
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if a field's value evaluates to 'null'.
+ *
+ * ```typescript
+ * // Check if the result of a calculation is null.
+ * isNull("value");
+ * ```
+ *
+ * @param value The name of the field to check.
+ * @return A new {@code Expr} representing the 'isNull' check.
+ */
+export function isNull(value: string): IsNull;
+export function isNull(value: Expr | string): IsNull {
+  const valueExpr = value instanceof Expr ? value : Field.of(value);
+  return new IsNull(valueExpr);
 }
 
 /**

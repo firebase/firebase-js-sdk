@@ -30,6 +30,7 @@ import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { QueryContext } from './query_context';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
+import { QueryOrPipeline } from '../core/pipeline-util';
 
 /**
  * Represents cached documents received from the remote backend.
@@ -66,6 +67,10 @@ export interface RemoteDocumentCache {
     documentKeys: DocumentKeySet
   ): PersistencePromise<MutableDocumentMap>;
 
+  getAllEntries(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<MutableDocumentMap>;
+
   /**
    * Returns the documents matching the given query
    *
@@ -77,7 +82,7 @@ export interface RemoteDocumentCache {
    */
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
-    query: Query,
+    query: QueryOrPipeline,
     offset: IndexOffset,
     mutatedDocs: OverlayMap,
     context?: QueryContext

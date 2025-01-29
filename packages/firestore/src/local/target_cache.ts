@@ -24,6 +24,7 @@ import { DocumentKey } from '../model/document_key';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { TargetData } from './target_data';
+import { TargetOrPipeline } from '../core/pipeline-util';
 
 /**
  * Represents cached targets received from the remote backend.
@@ -130,7 +131,7 @@ export interface TargetCache {
    */
   getTargetData(
     transaction: PersistenceTransaction,
-    target: Target
+    target: TargetOrPipeline
   ): PersistencePromise<TargetData | null>;
 
   /**

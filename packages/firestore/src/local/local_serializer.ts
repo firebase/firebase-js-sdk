@@ -19,7 +19,12 @@ import { Timestamp } from '../api/timestamp';
 import { BundleMetadata, NamedQuery } from '../core/bundle';
 import { LimitType, Query, queryWithLimit } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { canonifyTarget, Target, targetIsDocumentTarget } from '../core/target';
+import {
+  canonifyTarget,
+  Target,
+  targetIsDocumentTarget,
+  targetIsPipelineTarget
+} from '../core/target';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
@@ -36,18 +41,23 @@ import {
   BundleMetadata as ProtoBundleMetadata,
   NamedQuery as ProtoNamedQuery
 } from '../protos/firestore_bundle_proto';
-import { DocumentsTarget as PublicDocumentsTarget } from '../protos/firestore_proto_api';
+import {
+  DocumentsTarget as PublicDocumentsTarget,
+  PipelineQueryTarget as PublicPipelineQueryTarget
+} from '../protos/firestore_proto_api';
 import {
   convertQueryTargetToQuery,
   fromDocument,
   fromDocumentsTarget,
   fromMutation,
+  fromPipelineTarget,
   fromQueryTarget,
   fromVersion,
   JsonProtoSerializer,
   toDocument,
   toDocumentsTarget,
   toMutation,
+  toPipelineTarget,
   toQueryTarget
 } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
@@ -71,6 +81,11 @@ import {
 } from './indexeddb_schema';
 import { DbDocumentOverlayKey, DbTimestampKey } from './indexeddb_sentinels';
 import { TargetData, TargetPurpose } from './target_data';
+import { Pipeline } from '../lite-api/pipeline';
+import {
+  canonifyTargetOrPipeline,
+  TargetOrPipeline
+} from '../core/pipeline-util';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -234,15 +249,20 @@ export function fromDbMutationBatch(
 }
 
 /** Decodes a DbTarget into TargetData */
-export function fromDbTarget(dbTarget: DbTarget): TargetData {
+export function fromDbTarget(
+  serializer: LocalSerializer,
+  dbTarget: DbTarget
+): TargetData {
   const version = fromDbTimestamp(dbTarget.readTime);
   const lastLimboFreeSnapshotVersion =
     dbTarget.lastLimboFreeSnapshotVersion !== undefined
       ? fromDbTimestamp(dbTarget.lastLimboFreeSnapshotVersion)
       : SnapshotVersion.min();
 
-  let target: Target;
-  if (isDocumentQuery(dbTarget.query)) {
+  let target: TargetOrPipeline;
+  if (isPipelineQueryTarget(dbTarget.query)) {
+    target = fromPipelineTarget(dbTarget.query, serializer.remoteSerializer);
+  } else if (isDocumentQuery(dbTarget.query)) {
     target = fromDocumentsTarget(dbTarget.query);
   } else {
     target = fromQueryTarget(dbTarget.query);
@@ -275,7 +295,12 @@ export function toDbTarget(
     targetData.lastLimboFreeSnapshotVersion
   );
   let queryProto: DbQuery;
-  if (targetIsDocumentTarget(targetData.target)) {
+  if (targetIsPipelineTarget(targetData.target)) {
+    queryProto = toPipelineTarget(
+      localSerializer.remoteSerializer,
+      targetData.target
+    );
+  } else if (targetIsDocumentTarget(targetData.target)) {
     queryProto = toDocumentsTarget(
       localSerializer.remoteSerializer,
       targetData.target
@@ -294,13 +319,21 @@ export function toDbTarget(
   // lastListenSequenceNumber is always 0 until we do real GC.
   return {
     targetId: targetData.targetId,
-    canonicalId: canonifyTarget(targetData.target),
+    canonicalId: canonifyTargetOrPipeline(targetData.target),
     readTime: dbTimestamp,
     resumeToken,
     lastListenSequenceNumber: targetData.sequenceNumber,
     lastLimboFreeSnapshotVersion: dbLastLimboFreeTimestamp,
     query: queryProto
   };
+}
+
+function isPipelineQueryTarget(
+  dbQuery: DbQuery
+): dbQuery is PublicPipelineQueryTarget {
+  return (
+    (dbQuery as PublicPipelineQueryTarget).structuredPipeline !== undefined
+  );
 }
 
 /**

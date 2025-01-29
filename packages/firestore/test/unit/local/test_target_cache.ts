@@ -23,6 +23,7 @@ import { TargetCache } from '../../../src/local/target_cache';
 import { TargetData } from '../../../src/local/target_data';
 import { documentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
+import { TargetOrPipeline } from '../../../src/core/pipeline-util';
 
 /**
  * A wrapper around a TargetCache that automatically creates a
@@ -71,7 +72,7 @@ export class TestTargetCache {
     );
   }
 
-  getTargetData(target: Target): Promise<TargetData | null> {
+  getTargetData(target: TargetOrPipeline): Promise<TargetData | null> {
     return this.persistence.runTransaction('getTargetData', 'readonly', txn => {
       return this.cache.getTargetData(txn, target);
     });

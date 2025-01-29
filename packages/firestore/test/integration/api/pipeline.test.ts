@@ -110,17 +110,17 @@ apiDescribe.only('Pipelines', persistence => {
       return randomCol;
     }
 
-    function expectResults<AppModelType>(
-      result: Array<PipelineResult<AppModelType>>,
+    function expectResults(
+      result: Array<PipelineResult>,
       ...docs: string[]
     ): void;
-    function expectResults<AppModelType>(
-      result: Array<PipelineResult<AppModelType>>,
+    function expectResults(
+      result: Array<PipelineResult>,
       ...data: DocumentData[]
     ): void;
 
     function expectResults<AppModelType>(
-      result: Array<PipelineResult<AppModelType>>,
+      result: Array<PipelineResult>,
       ...data: DocumentData[] | string[]
     ): void {
       expect(result.length).to.equal(data.length);
@@ -904,10 +904,10 @@ apiDescribe.only('Pipelines', persistence => {
       it('testChecks', async () => {
         const results = await randomCol
           .pipeline()
-          .where(not(Field.of('rating').isNaN()))
+          .where(not(Field.of('rating').isNan()))
           .select(
             Field.of('rating').eq(null).as('ratingIsNull'),
-            not(Field.of('rating').isNaN()).as('ratingIsNotNaN')
+            not(Field.of('rating').isNan()).as('ratingIsNotNaN')
           )
           .limit(1)
           .execute();
@@ -1232,7 +1232,7 @@ apiDescribe.only('Pipelines', persistence => {
   // with some additional test cases added for more complete coverage.
   describe('Query to Pipeline', () => {
     function verifyResults(
-      actual: Array<PipelineResult<DocumentData>>,
+      actual: Array<PipelineResult>,
       ...expected: DocumentData[]
     ): void {
       expect(actual.length).to.equal(expected.length);

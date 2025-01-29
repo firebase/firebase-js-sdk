@@ -135,13 +135,13 @@ export class Pipeline implements ProtoSerializable<ExecutePipelineRequest> {
      * @private
      */
     public _db: Firestore,
-    private userDataReader: UserDataReader,
+    readonly userDataReader: UserDataReader,
     /**
      * @internal
      * @private
      */
     public _userDataWriter: AbstractUserDataWriter,
-    private stages: Stage[]
+    readonly stages: Stage[]
   ) {}
 
   /**
@@ -229,7 +229,7 @@ export class Pipeline implements ProtoSerializable<ExecutePipelineRequest> {
     );
   }
 
-  private selectablesToMap(
+  protected selectablesToMap(
     selectables: Array<Selectable | string>
   ): Map<string, Expr> {
     const result = new Map<string, Expr>();
@@ -258,7 +258,7 @@ export class Pipeline implements ProtoSerializable<ExecutePipelineRequest> {
    * @return the expressionMap argument.
    * @private
    */
-  private readUserData<
+  protected readUserData<
     T extends
       | Map<string, ReadableUserData>
       | ReadableUserData[]
@@ -751,13 +751,22 @@ export class Pipeline implements ProtoSerializable<ExecutePipelineRequest> {
    * @private
    */
   _toProto(jsonProtoSerializer: JsonProtoSerializer): ExecutePipelineRequest {
+    return {
+      database: getEncodedDatabaseId(jsonProtoSerializer),
+      structuredPipeline: this._toStructuredPipeline(jsonProtoSerializer)
+    };
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toStructuredPipeline(
+    jsonProtoSerializer: JsonProtoSerializer
+  ): StructuredPipeline {
     const stages: ProtoStage[] = this.stages.map(stage =>
       stage._toProto(jsonProtoSerializer)
     );
-    const structuredPipeline: StructuredPipeline = { pipeline: { stages } };
-    return {
-      database: getEncodedDatabaseId(jsonProtoSerializer),
-      structuredPipeline
-    };
+    return { pipeline: { stages } };
   }
 }

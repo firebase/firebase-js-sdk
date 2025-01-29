@@ -29,6 +29,7 @@ import {
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
 import { RpcError } from './spec_rpc_error';
+import { setLogLevel } from '../../../src';
 
 describeSpec('Existence Filters:', [], () => {
   specTest('Existence filter match', [], () => {

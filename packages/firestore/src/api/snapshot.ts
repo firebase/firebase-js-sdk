@@ -40,6 +40,10 @@ import { Code, FirestoreError } from '../util/error';
 
 import { Firestore } from './database';
 import { SnapshotListenOptions } from './reference_impl';
+import { Pipeline } from '../lite-api/pipeline';
+import { PipelineResult, toPipelineResult } from '../lite-api/pipeline-result';
+import { isPipeline } from '../core/pipeline-util';
+import { newPipelineComparator } from '../core/pipeline_run';
 
 /**
  * Converter used by `withConverter()` to transform user objects of type
@@ -671,12 +675,11 @@ export function changesFromSnapshot<
         change.type === ChangeType.Added,
         'Invalid event type for first snapshot'
       );
+      const comparator = isPipeline(querySnapshot._snapshot.query)
+        ? newPipelineComparator(querySnapshot._snapshot.query)
+        : newQueryComparator(querySnapshot.query._query);
       debugAssert(
-        !lastDoc ||
-          newQueryComparator(querySnapshot._snapshot.query)(
-            lastDoc,
-            change.doc
-          ) < 0,
+        !lastDoc || comparator(lastDoc, change.doc) < 0,
         'Got added events in wrong order'
       );
       const doc = new QueryDocumentSnapshot<AppModelType, DbModelType>(
@@ -789,4 +792,36 @@ export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(
   }
 
   return false;
+}
+
+export class RealtimePipelineSnapshot {
+  /**
+   * The query on which you called `get` or `onSnapshot` in order to get this
+   * `QuerySnapshot`.
+   */
+  readonly pipeline: Pipeline;
+
+  /**
+   * Metadata about this snapshot, concerning its source and if it has local
+   * modifications.
+   */
+  readonly metadata: SnapshotMetadata;
+
+  /** @hideconstructor */
+  constructor(pipeline: Pipeline, readonly _snapshot: ViewSnapshot) {
+    this.metadata = new SnapshotMetadata(
+      _snapshot.hasPendingWrites,
+      _snapshot.fromCache
+    );
+    this.pipeline = pipeline;
+  }
+
+  /** An array of all the documents in the `QuerySnapshot`. */
+  get results(): Array<PipelineResult> {
+    const result: Array<PipelineResult> = [];
+    this._snapshot.docs.forEach(doc =>
+      result.push(toPipelineResult(doc, this.pipeline))
+    );
+    return result;
+  }
 }

@@ -20,12 +20,15 @@ import { expect } from 'chai';
 import { Deferred } from '../../util/promise';
 
 import { DocumentSnapshot, QuerySnapshot } from './firebase_export';
+import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
 
 /**
  * A helper object that can accumulate an arbitrary amount of events and resolve
  * a promise when expected number has been emitted.
  */
-export class EventsAccumulator<T extends DocumentSnapshot | QuerySnapshot> {
+export class EventsAccumulator<
+  T extends DocumentSnapshot | QuerySnapshot | RealtimePipelineSnapshot
+> {
   private events: T[] = [];
   private waitingFor: number = 0;
   private deferred: Deferred<T[]> | null = null;
