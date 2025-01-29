@@ -2834,8 +2834,8 @@ export class StrConcat extends FirestoreFunction {
  * @beta
  */
 export class MapGet extends FirestoreFunction {
-  constructor(readonly map: Expr, readonly name: string) {
-    super('map_get', [map, Constant.of(name)]);
+  constructor(readonly map: Expr, readonly subfield: string) {
+    super('map_get', [map, Constant.of(subfield)]);
   }
 }
 
