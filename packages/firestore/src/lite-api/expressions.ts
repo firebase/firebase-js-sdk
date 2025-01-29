@@ -29,6 +29,7 @@ import {
   UserData
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
+import { isPlainObject } from '../util/input_validation';
 import { isFirestoreValue } from '../util/proto';
 
 import { Bytes } from './bytes';
@@ -58,6 +59,26 @@ export type ExprType =
   | 'ExprWithAlias';
 
 /**
+ * Converts a value to an Expr, Returning either a Constant, MapFunction,
+ * ArrayFunction, or the input itself (if it's already an expression).
+ *
+ * @private
+ * @internal
+ * @param value
+ */
+function valueToDefaultExpr(value: unknown): Expr {
+  if (value instanceof Expr) {
+    return value;
+  } else if (isPlainObject(value)) {
+    return map(value);
+  } else if (value instanceof Array) {
+    return array(value);
+  } else {
+    return Constant.of(value);
+  }
+}
+
+/**
  * @beta
  *
  * Represents an expression that can be evaluated to a value within the execution of a {@link
@@ -85,28 +106,25 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    * Field.of("quantity").add(Field.of("reserve"));
    * ```
    *
-   * @param other The expression to add to this expression.
+   * @param expression The expression to add to this expression.
    * @return A new `Expr` representing the addition operation.
    */
-  add(other: Expr): Add;
+  add(expression: Expr): Add;
 
   /**
-   * Creates an expression that adds this expression to a constant value.
+   * Creates an expression that adds this expression to another expression or constant value.
    *
    * ```typescript
    * // Add 5 to the value of the 'age' field
    * Field.of("age").add(5);
    * ```
    *
-   * @param other The constant value to add.
+   * @param value The constant value to add.
    * @return A new `Expr` representing the addition operation.
    */
-  add(other: any): Add;
-  add(other: any): Add {
-    if (other instanceof Expr) {
-      return new Add(this, other);
-    }
-    return new Add(this, Constant.of(other));
+  add(value: any): Add;
+  add(other: Expr | any): Add {
+    return new Add(this, valueToDefaultExpr(other));
   }
 
   /**
@@ -135,10 +153,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    */
   subtract(other: any): Subtract;
   subtract(other: any): Subtract {
-    if (other instanceof Expr) {
-      return new Subtract(this, other);
-    }
-    return new Subtract(this, Constant.of(other));
+    return new Subtract(this, valueToDefaultExpr(other));
   }
 
   /**
@@ -167,10 +182,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    */
   multiply(other: any): Multiply;
   multiply(other: any): Multiply {
-    if (other instanceof Expr) {
-      return new Multiply(this, other);
-    }
-    return new Multiply(this, Constant.of(other));
+    return new Multiply(this, valueToDefaultExpr(other));
   }
 
   /**
@@ -199,10 +211,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    */
   divide(other: any): Divide;
   divide(other: any): Divide {
-    if (other instanceof Expr) {
-      return new Divide(this, other);
-    }
-    return new Divide(this, Constant.of(other));
+    return new Divide(this, valueToDefaultExpr(other));
   }
 
   /**
@@ -231,10 +240,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    */
   mod(other: any): Mod;
   mod(other: any): Mod {
-    if (other instanceof Expr) {
-      return new Mod(this, other);
-    }
-    return new Mod(this, Constant.of(other));
+    return new Mod(this, valueToDefaultExpr(other));
   }
 
   // /**
@@ -437,10 +443,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    */
   eq(other: any): Eq;
   eq(other: any): Eq {
-    if (other instanceof Expr) {
-      return new Eq(this, other);
-    }
-    return new Eq(this, Constant.of(other));
+    return new Eq(this, valueToDefaultExpr(other));
   }
 
   /**
@@ -469,10 +472,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    */
   neq(other: any): Neq;
   neq(other: any): Neq {
-    if (other instanceof Expr) {
-      return new Neq(this, other);
-    }
-    return new Neq(this, Constant.of(other));
+    return new Neq(this, valueToDefaultExpr(other));
   }
 
   /**
@@ -501,10 +501,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    */
   lt(other: any): Lt;
   lt(other: any): Lt {
-    if (other instanceof Expr) {
-      return new Lt(this, other);
-    }
-    return new Lt(this, Constant.of(other));
+    return new Lt(this, valueToDefaultExpr(other));
   }
 
   /**
@@ -534,10 +531,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    */
   lte(other: any): Lte;
   lte(other: any): Lte {
-    if (other instanceof Expr) {
-      return new Lte(this, other);
-    }
-    return new Lte(this, Constant.of(other));
+    return new Lte(this, valueToDefaultExpr(other));
   }
 
   /**
@@ -566,10 +560,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    */
   gt(other: any): Gt;
   gt(other: any): Gt {
-    if (other instanceof Expr) {
-      return new Gt(this, other);
-    }
-    return new Gt(this, Constant.of(other));
+    return new Gt(this, valueToDefaultExpr(other));
   }
 
   /**
@@ -600,10 +591,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    */
   gte(other: any): Gte;
   gte(other: any): Gte {
-    if (other instanceof Expr) {
-      return new Gte(this, other);
-    }
-    return new Gte(this, Constant.of(other));
+    return new Gte(this, valueToDefaultExpr(other));
   }
 
   /**
@@ -633,7 +621,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
   arrayConcat(...arrays: any[][]): ArrayConcat;
   arrayConcat(...arrays: any[]): ArrayConcat {
     const exprValues = arrays.map(value =>
-      value instanceof Expr ? value : Constant.of(value)
+      value instanceof Expr ? value : valueToDefaultExpr(value)
     );
     return new ArrayConcat(this, exprValues);
   }
@@ -664,10 +652,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    */
   arrayContains(element: any): ArrayContains;
   arrayContains(element: any): ArrayContains {
-    if (element instanceof Expr) {
-      return new ArrayContains(this, element);
-    }
-    return new ArrayContains(this, Constant.of(element));
+    return new ArrayContains(this, valueToDefaultExpr(element));
   }
 
   /**
@@ -697,7 +682,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
   arrayContainsAll(...values: any[]): ArrayContainsAll;
   arrayContainsAll(...values: any[]): ArrayContainsAll {
     const exprValues = values.map(value =>
-      value instanceof Expr ? value : Constant.of(value)
+      value instanceof Expr ? value : valueToDefaultExpr(value)
     );
     return new ArrayContainsAll(this, exprValues);
   }
@@ -730,7 +715,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
   arrayContainsAny(...values: any[]): ArrayContainsAny;
   arrayContainsAny(...values: any[]): ArrayContainsAny {
     const exprValues = values.map(value =>
-      value instanceof Expr ? value : Constant.of(value)
+      value instanceof Expr ? value : valueToDefaultExpr(value)
     );
     return new ArrayContainsAny(this, exprValues);
   }
@@ -778,7 +763,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
   eqAny(...others: any[]): EqAny;
   eqAny(...others: any[]): EqAny {
     const exprOthers = others.map(other =>
-      other instanceof Expr ? other : Constant.of(other)
+      other instanceof Expr ? other : valueToDefaultExpr(other)
     );
     return new EqAny(this, exprOthers);
   }
@@ -812,7 +797,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
   notEqAny(...others: any[]): NotEqAny;
   notEqAny(...others: any[]): NotEqAny {
     const exprOthers = others.map(other =>
-      other instanceof Expr ? other : Constant.of(other)
+      other instanceof Expr ? other : valueToDefaultExpr(other)
     );
     return new NotEqAny(this, exprOthers);
   }
@@ -1334,10 +1319,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    */
   logicalMaximum(other: any): LogicalMaximum;
   logicalMaximum(other: any): LogicalMaximum {
-    if (other instanceof Expr) {
-      return new LogicalMaximum(this, other as Expr);
-    }
-    return new LogicalMaximum(this, Constant.of(other));
+    return new LogicalMaximum(this, valueToDefaultExpr(other));
   }
 
   /**
@@ -1366,10 +1348,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    */
   logicalMinimum(other: any): LogicalMinimum;
   logicalMinimum(other: any): LogicalMinimum {
-    if (other instanceof Expr) {
-      return new LogicalMinimum(this, other as Expr);
-    }
-    return new LogicalMinimum(this, Constant.of(other));
+    return new LogicalMinimum(this, valueToDefaultExpr(other));
   }
 
   /**
@@ -1974,50 +1953,6 @@ export class Field extends Selectable {
 
 /**
  * @beta
- */
-export class Fields extends Selectable {
-  exprType: ExprType = 'Field';
-  selectable = true as const;
-
-  private constructor(private fields: Field[]) {
-    super();
-  }
-
-  static of(name: string, ...others: string[]): Fields {
-    return new Fields([Field.of(name), ...others.map(Field.of)]);
-  }
-
-  static ofAll(): Fields {
-    return new Fields([]);
-  }
-
-  fieldList(): Field[] {
-    return this.fields.map(f => f);
-  }
-
-  /**
-   * @private
-   * @internal
-   */
-  _toProto(serializer: JsonProtoSerializer): ProtoValue {
-    return {
-      arrayValue: {
-        values: this.fields.map(f => f._toProto(serializer))
-      }
-    };
-  }
-
-  /**
-   * @private
-   * @internal
-   */
-  _readUserData(dataReader: UserDataReader): void {
-    this.fields.forEach(expr => expr._readUserData(dataReader));
-  }
-}
-
-/**
- * @beta
  *
  * Represents a constant value that can be used in a Firestore pipeline expression.
  *
@@ -2211,10 +2146,8 @@ export class Constant extends Expr {
       'Constant.of'
     );
 
-    if (isFirestoreValue(this.value)) {
-      // Special case where value is a proto value.
-      // This can occur when converting a Query to Pipeline.
-      this._protoValue = this.value;
+    if (isFirestoreValue(this._protoValue)) {
+      return;
     } else if (this.value === undefined) {
       // TODO(pipeline) how should we treat the value of `undefined`?
       this._protoValue = parseData(null, context)!;
@@ -2303,6 +2236,18 @@ export class Divide extends FirestoreFunction {
 export class Mod extends FirestoreFunction {
   constructor(private left: Expr, private right: Expr) {
     super('mod', [left, right]);
+  }
+}
+
+export class MapFunction extends FirestoreFunction {
+  constructor(private elements: Expr[]) {
+    super('map', elements);
+  }
+}
+
+export class ArrayFunction extends FirestoreFunction {
+  constructor(private elements: Expr[]) {
+    super('array', elements);
   }
 }
 
@@ -3007,7 +2952,8 @@ export function add(left: string, right: Expr): Add;
 export function add(left: string, right: any): Add;
 export function add(left: Expr | string, right: Expr | any): Add {
   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-  const normalizedRight = right instanceof Expr ? right : Constant.of(right);
+  const normalizedRight =
+    right instanceof Expr ? right : valueToDefaultExpr(right);
   return new Add(normalizedLeft, normalizedRight);
 }
 
@@ -3076,7 +3022,8 @@ export function subtract(left: string, right: Expr): Subtract;
 export function subtract(left: string, right: any): Subtract;
 export function subtract(left: Expr | string, right: Expr | any): Subtract {
   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-  const normalizedRight = right instanceof Expr ? right : Constant.of(right);
+  const normalizedRight =
+    right instanceof Expr ? right : valueToDefaultExpr(right);
   return new Subtract(normalizedLeft, normalizedRight);
 }
 
@@ -3145,7 +3092,8 @@ export function multiply(left: string, right: Expr): Multiply;
 export function multiply(left: string, right: any): Multiply;
 export function multiply(left: Expr | string, right: Expr | any): Multiply {
   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-  const normalizedRight = right instanceof Expr ? right : Constant.of(right);
+  const normalizedRight =
+    right instanceof Expr ? right : valueToDefaultExpr(right);
   return new Multiply(normalizedLeft, normalizedRight);
 }
 
@@ -3214,7 +3162,8 @@ export function divide(left: string, right: Expr): Divide;
 export function divide(left: string, right: any): Divide;
 export function divide(left: Expr | string, right: Expr | any): Divide {
   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-  const normalizedRight = right instanceof Expr ? right : Constant.of(right);
+  const normalizedRight =
+    right instanceof Expr ? right : valueToDefaultExpr(right);
   return new Divide(normalizedLeft, normalizedRight);
 }
 
@@ -3283,8 +3232,27 @@ export function mod(left: string, right: Expr): Mod;
 export function mod(left: string, right: any): Mod;
 export function mod(left: Expr | string, right: Expr | any): Mod {
   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-  const normalizedRight = right instanceof Expr ? right : Constant.of(right);
+  const normalizedRight =
+    right instanceof Expr ? right : valueToDefaultExpr(right);
   return new Mod(normalizedLeft, normalizedRight);
+}
+
+export function map(elements: Record<string, any>): MapFunction {
+  const result: any[] = [];
+  for (const key in elements) {
+    if (Object.prototype.hasOwnProperty.call(elements, key)) {
+      const value = elements[key];
+      result.push(Constant.of(key));
+      result.push(valueToDefaultExpr(value));
+    }
+  }
+  return new MapFunction(result);
+}
+
+export function array(elements: any[]): ArrayFunction {
+  return new ArrayFunction(
+    elements.map(element => valueToDefaultExpr(element))
+  );
 }
 
 // /**
@@ -3352,7 +3320,7 @@ export function mod(left: Expr | string, right: Expr | any): Mod {
 // export function bitAnd(left: string, right: any): BitAnd;
 // export function bitAnd(left: Expr | string, right: Expr | any): BitAnd {
 //   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-//   const normalizedRight = right instanceof Expr ? right : Constant.of(right);
+//   const normalizedRight = right instanceof Expr ? right : valueToDefaultExpr(right);
 //   return new BitAnd(normalizedLeft, normalizedRight);
 // }
 //
@@ -3421,7 +3389,7 @@ export function mod(left: Expr | string, right: Expr | any): Mod {
 // export function bitOr(left: string, right: any): BitOr;
 // export function bitOr(left: Expr | string, right: Expr | any): BitOr {
 //   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-//   const normalizedRight = right instanceof Expr ? right : Constant.of(right);
+//   const normalizedRight = right instanceof Expr ? right : valueToDefaultExpr(right);
 //   return new BitOr(normalizedLeft, normalizedRight);
 // }
 //
@@ -3490,7 +3458,7 @@ export function mod(left: Expr | string, right: Expr | any): Mod {
 // export function bitXor(left: string, right: any): BitXor;
 // export function bitXor(left: Expr | string, right: Expr | any): BitXor {
 //   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-//   const normalizedRight = right instanceof Expr ? right : Constant.of(right);
+//   const normalizedRight = right instanceof Expr ? right : valueToDefaultExpr(right);
 //   return new BitXor(normalizedLeft, normalizedRight);
 // }
 //
@@ -3597,7 +3565,7 @@ export function mod(left: Expr | string, right: Expr | any): Mod {
 //   right: Expr | any
 // ): BitLeftShift {
 //   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-//   const normalizedRight = right instanceof Expr ? right : Constant.of(right);
+//   const normalizedRight = right instanceof Expr ? right : valueToDefaultExpr(right);
 //   return new BitLeftShift(normalizedLeft, normalizedRight);
 // }
 //
@@ -3669,7 +3637,7 @@ export function mod(left: Expr | string, right: Expr | any): Mod {
 //   right: Expr | any
 // ): BitRightShift {
 //   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-//   const normalizedRight = right instanceof Expr ? right : Constant.of(right);
+//   const normalizedRight = right instanceof Expr ? right : valueToDefaultExpr(right);
 //   return new BitRightShift(normalizedLeft, normalizedRight);
 // }
 
@@ -3738,7 +3706,7 @@ export function eq(left: string, right: Expr): Eq;
 export function eq(left: string, right: any): Eq;
 export function eq(left: Expr | string, right: any): Eq {
   const leftExpr = left instanceof Expr ? left : Field.of(left);
-  const rightExpr = right instanceof Expr ? right : Constant.of(right);
+  const rightExpr = right instanceof Expr ? right : valueToDefaultExpr(right);
   return new Eq(leftExpr, rightExpr);
 }
 
@@ -3807,7 +3775,7 @@ export function neq(left: string, right: Expr): Neq;
 export function neq(left: string, right: any): Neq;
 export function neq(left: Expr | string, right: any): Neq {
   const leftExpr = left instanceof Expr ? left : Field.of(left);
-  const rightExpr = right instanceof Expr ? right : Constant.of(right);
+  const rightExpr = right instanceof Expr ? right : valueToDefaultExpr(right);
   return new Neq(leftExpr, rightExpr);
 }
 
@@ -3876,7 +3844,7 @@ export function lt(left: string, right: Expr): Lt;
 export function lt(left: string, right: any): Lt;
 export function lt(left: Expr | string, right: any): Lt {
   const leftExpr = left instanceof Expr ? left : Field.of(left);
-  const rightExpr = right instanceof Expr ? right : Constant.of(right);
+  const rightExpr = right instanceof Expr ? right : valueToDefaultExpr(right);
   return new Lt(leftExpr, rightExpr);
 }
 
@@ -3944,7 +3912,7 @@ export function lte(left: string, right: Expr): Lte;
 export function lte(left: string, right: any): Lte;
 export function lte(left: Expr | string, right: any): Lte {
   const leftExpr = left instanceof Expr ? left : Field.of(left);
-  const rightExpr = right instanceof Expr ? right : Constant.of(right);
+  const rightExpr = right instanceof Expr ? right : valueToDefaultExpr(right);
   return new Lte(leftExpr, rightExpr);
 }
 
@@ -4014,7 +3982,7 @@ export function gt(left: string, right: Expr): Gt;
 export function gt(left: string, right: any): Gt;
 export function gt(left: Expr | string, right: any): Gt {
   const leftExpr = left instanceof Expr ? left : Field.of(left);
-  const rightExpr = right instanceof Expr ? right : Constant.of(right);
+  const rightExpr = right instanceof Expr ? right : valueToDefaultExpr(right);
   return new Gt(leftExpr, rightExpr);
 }
 
@@ -4086,7 +4054,7 @@ export function gte(left: string, right: Expr): Gte;
 export function gte(left: string, right: any): Gte;
 export function gte(left: Expr | string, right: any): Gte {
   const leftExpr = left instanceof Expr ? left : Field.of(left);
-  const rightExpr = right instanceof Expr ? right : Constant.of(right);
+  const rightExpr = right instanceof Expr ? right : valueToDefaultExpr(right);
   return new Gte(leftExpr, rightExpr);
 }
 
@@ -4159,7 +4127,7 @@ export function arrayConcat(
 ): ArrayConcat {
   const arrayExpr = array instanceof Expr ? array : Field.of(array);
   const exprValues = elements.map(element =>
-    element instanceof Expr ? element : Constant.of(element)
+    element instanceof Expr ? element : valueToDefaultExpr(element)
   );
   return new ArrayConcat(arrayExpr, exprValues);
 }
@@ -4232,7 +4200,8 @@ export function arrayContains(
   element: any
 ): ArrayContains {
   const arrayExpr = array instanceof Expr ? array : Field.of(array);
-  const elementExpr = element instanceof Expr ? element : Constant.of(element);
+  const elementExpr =
+    element instanceof Expr ? element : valueToDefaultExpr(element);
   return new ArrayContains(arrayExpr, elementExpr);
 }
 
@@ -4317,7 +4286,7 @@ export function arrayContainsAny(
 ): ArrayContainsAny {
   const arrayExpr = array instanceof Expr ? array : Field.of(array);
   const exprValues = values.map(value =>
-    value instanceof Expr ? value : Constant.of(value)
+    value instanceof Expr ? value : valueToDefaultExpr(value)
   );
   return new ArrayContainsAny(arrayExpr, exprValues);
 }
@@ -4399,7 +4368,7 @@ export function arrayContainsAll(
 ): ArrayContainsAll {
   const arrayExpr = array instanceof Expr ? array : Field.of(array);
   const exprValues = values.map(value =>
-    value instanceof Expr ? value : Constant.of(value)
+    value instanceof Expr ? value : valueToDefaultExpr(value)
   );
   return new ArrayContainsAll(arrayExpr, exprValues);
 }
@@ -4491,7 +4460,7 @@ export function eqAny(element: string, others: any[]): EqAny;
 export function eqAny(element: Expr | string, others: any[]): EqAny {
   const elementExpr = element instanceof Expr ? element : Field.of(element);
   const exprOthers = others.map(other =>
-    other instanceof Expr ? other : Constant.of(other)
+    other instanceof Expr ? other : valueToDefaultExpr(other)
   );
   return new EqAny(elementExpr, exprOthers);
 }
@@ -4566,7 +4535,7 @@ export function notEqAny(element: string, others: any[]): NotEqAny;
 export function notEqAny(element: Expr | string, others: any[]): NotEqAny {
   const elementExpr = element instanceof Expr ? element : Field.of(element);
   const exprOthers = others.map(other =>
-    other instanceof Expr ? other : Constant.of(other)
+    other instanceof Expr ? other : valueToDefaultExpr(other)
   );
   return new NotEqAny(elementExpr, exprOthers);
 }
@@ -4704,7 +4673,8 @@ export function logicalMaximum(
   right: Expr | any
 ): LogicalMaximum {
   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-  const normalizedRight = right instanceof Expr ? right : Constant.of(right);
+  const normalizedRight =
+    right instanceof Expr ? right : valueToDefaultExpr(right);
   return new LogicalMaximum(normalizedLeft, normalizedRight);
 }
 
@@ -4776,7 +4746,8 @@ export function logicalMinimum(
   right: Expr | any
 ): LogicalMinimum {
   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-  const normalizedRight = right instanceof Expr ? right : Constant.of(right);
+  const normalizedRight =
+    right instanceof Expr ? right : valueToDefaultExpr(right);
   return new LogicalMinimum(normalizedLeft, normalizedRight);
 }
 
@@ -5164,7 +5135,8 @@ export function like(left: Expr, pattern: string): Like;
 export function like(left: Expr, pattern: Expr): Like;
 export function like(left: Expr | string, pattern: Expr | string): Like {
   const leftExpr = left instanceof Expr ? left : Field.of(left);
-  const patternExpr = pattern instanceof Expr ? pattern : Constant.of(pattern);
+  const patternExpr =
+    pattern instanceof Expr ? pattern : valueToDefaultExpr(pattern);
   return new Like(leftExpr, patternExpr);
 }
 
@@ -5240,7 +5212,8 @@ export function regexContains(
   pattern: Expr | string
 ): RegexContains {
   const leftExpr = left instanceof Expr ? left : Field.of(left);
-  const patternExpr = pattern instanceof Expr ? pattern : Constant.of(pattern);
+  const patternExpr =
+    pattern instanceof Expr ? pattern : valueToDefaultExpr(pattern);
   return new RegexContains(leftExpr, patternExpr);
 }
 
@@ -5314,7 +5287,8 @@ export function regexMatch(
   pattern: Expr | string
 ): RegexMatch {
   const leftExpr = left instanceof Expr ? left : Field.of(left);
-  const patternExpr = pattern instanceof Expr ? pattern : Constant.of(pattern);
+  const patternExpr =
+    pattern instanceof Expr ? pattern : valueToDefaultExpr(pattern);
   return new RegexMatch(leftExpr, patternExpr);
 }
 
@@ -5387,7 +5361,7 @@ export function strContains(
 ): StrContains {
   const leftExpr = left instanceof Expr ? left : Field.of(left);
   const substringExpr =
-    substring instanceof Expr ? substring : Constant.of(substring);
+    substring instanceof Expr ? substring : valueToDefaultExpr(substring);
   return new StrContains(leftExpr, substringExpr);
 }
 
@@ -5459,7 +5433,8 @@ export function startsWith(
   prefix: Expr | string
 ): StartsWith {
   const exprLeft = expr instanceof Expr ? expr : Field.of(expr);
-  const prefixExpr = prefix instanceof Expr ? prefix : Constant.of(prefix);
+  const prefixExpr =
+    prefix instanceof Expr ? prefix : valueToDefaultExpr(prefix);
   return new StartsWith(exprLeft, prefixExpr);
 }
 
@@ -5528,7 +5503,8 @@ export function endsWith(expr: Expr, suffix: string): EndsWith;
 export function endsWith(expr: Expr, suffix: Expr): EndsWith;
 export function endsWith(expr: Expr | string, suffix: Expr | string): EndsWith {
   const exprLeft = expr instanceof Expr ? expr : Field.of(expr);
-  const suffixExpr = suffix instanceof Expr ? suffix : Constant.of(suffix);
+  const suffixExpr =
+    suffix instanceof Expr ? suffix : valueToDefaultExpr(suffix);
   return new EndsWith(exprLeft, suffixExpr);
 }
 
@@ -5671,7 +5647,9 @@ export function strConcat(
   first: string | Expr,
   ...elements: Array<string | Expr>
 ): StrConcat {
-  const exprs = elements.map(e => (e instanceof Expr ? e : Constant.of(e)));
+  const exprs = elements.map(e =>
+    e instanceof Expr ? e : valueToDefaultExpr(e)
+  );
   return new StrConcat(first instanceof Expr ? first : Field.of(first), exprs);
 }
 
@@ -6565,7 +6543,7 @@ export function timestampAdd(
 ): TimestampAdd {
   const normalizedTimestamp =
     typeof timestamp === 'string' ? Field.of(timestamp) : timestamp;
-  const normalizedUnit = unit instanceof Expr ? unit : Constant.of(unit);
+  const normalizedUnit = unit instanceof Expr ? unit : valueToDefaultExpr(unit);
   const normalizedAmount =
     typeof amount === 'number' ? Constant.of(amount) : amount;
   return new TimestampAdd(
@@ -6651,7 +6629,7 @@ export function timestampSub(
 ): TimestampSub {
   const normalizedTimestamp =
     typeof timestamp === 'string' ? Field.of(timestamp) : timestamp;
-  const normalizedUnit = unit instanceof Expr ? unit : Constant.of(unit);
+  const normalizedUnit = unit instanceof Expr ? unit : valueToDefaultExpr(unit);
   const normalizedAmount =
     typeof amount === 'number' ? Constant.of(amount) : amount;
   return new TimestampSub(

@@ -38,7 +38,6 @@ import {
   Expr,
   ExprWithAlias,
   Field,
-  Fields,
   FilterCondition,
   Ordering,
   Selectable
@@ -238,11 +237,6 @@ export class Pipeline implements ProtoSerializable<ExecutePipelineRequest> {
         result.set(selectable as string, Field.of(selectable));
       } else if (selectable instanceof Field) {
         result.set((selectable as Field).fieldName(), selectable);
-      } else if (selectable instanceof Fields) {
-        const fields = selectable as Fields;
-        for (const field of fields.fieldList()) {
-          result.set(field.fieldName(), field);
-        }
       } else if (selectable instanceof ExprWithAlias) {
         const expr = selectable as ExprWithAlias<Expr>;
         result.set(expr.alias, expr.expr);
