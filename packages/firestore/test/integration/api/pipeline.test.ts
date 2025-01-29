@@ -19,6 +19,7 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import { Bytes, vector } from '../../../src/api';
+import { array, map } from '../../../src/lite-api/expressions';
 import { GeoPoint } from '../../../src/lite-api/geo_point';
 import { Timestamp } from '../../../src/lite-api/timestamp';
 import { addEqualityMatcher } from '../../util/equality_matcher';
@@ -79,7 +80,8 @@ import {
   and,
   documentId,
   addDoc,
-  getDoc
+  getDoc,
+  multiply
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -281,6 +283,142 @@ apiDescribe.only('Pipelines', persistence => {
           .collection(randomCol.path)
           .execute();
         expect(result.length).to.equal(10);
+      });
+
+      it('evaluates expression in map', async () => {
+        const result = await firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .addFields(
+            map({
+              genre: Field.of('genre'),
+              rating: Field.of('rating').multiply(10)
+            }).as('metadata')
+          )
+          .execute();
+
+        expect(result.length).to.equal(1);
+        expectResults(result, {
+          title: 'The Lord of the Rings',
+          author: 'J.R.R. Tolkien',
+          genre: 'Fantasy',
+          published: 1954,
+          rating: 4.7,
+          tags: ['adventure', 'magic', 'epic'],
+          awards: { hugo: false, nebula: false },
+          metadata: {
+            genre: 'Fantasy',
+            rating: 47
+          }
+        });
+      });
+
+      it('evaluates expression in array', async () => {
+        const result = await firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .addFields(
+            array([1, 2, Field.of('genre'), multiply('rating', 10)]).as(
+              'metadata'
+            )
+          )
+          .execute();
+        expect(result.length).to.equal(1);
+        expectResults(result, {
+          title: 'The Lord of the Rings',
+          author: 'J.R.R. Tolkien',
+          genre: 'Fantasy',
+          published: 1954,
+          rating: 4.7,
+          tags: ['adventure', 'magic', 'epic'],
+          awards: { hugo: false, nebula: false },
+          metadata: [1, 2, 'Fantasy', 47]
+        });
+      });
+
+      it('converts arrays and plain objects to functionValues if the customer intent is unspecified', async () => {
+        const result = await firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .addFields(
+            array([
+              1,
+              2,
+              Field.of('genre'),
+              multiply('rating', 10),
+              [Field.of('title')],
+              {
+                published: Field.of('published')
+              }
+            ]).as('metadataArray'),
+            map({
+              genre: Field.of('genre'),
+              rating: multiply('rating', 10),
+              nestedArray: [Field.of('title')],
+              nestedMap: {
+                published: Field.of('published')
+              }
+            }).as('metadata')
+          )
+          .where(
+            andFunction(
+              eq('metadataArray', [
+                1,
+                2,
+                Field.of('genre'),
+                multiply('rating', 10),
+                [Field.of('title')],
+                {
+                  published: Field.of('published')
+                }
+              ]),
+              eq('metadata', {
+                genre: Field.of('genre'),
+                rating: multiply('rating', 10),
+                nestedArray: [Field.of('title')],
+                nestedMap: {
+                  published: Field.of('published')
+                }
+              })
+            )
+          )
+          .execute();
+
+        expect(result.length).to.equal(1);
+
+        expectResults(result, {
+          title: 'The Lord of the Rings',
+          author: 'J.R.R. Tolkien',
+          genre: 'Fantasy',
+          published: 1954,
+          rating: 4.7,
+          tags: ['adventure', 'magic', 'epic'],
+          awards: { hugo: false, nebula: false },
+          metadataArray: [
+            1,
+            2,
+            'Fantasy',
+            47,
+            ['The Lord of the Rings'],
+            {
+              published: 1954
+            }
+          ],
+          metadata: {
+            genre: 'Fantasy',
+            rating: 47,
+            nestedArray: ['The Lord of the Rings'],
+            nestedMap: {
+              published: 1954
+            }
+          }
+        });
       });
 
       it('returns aggregate results as expected', async () => {
@@ -681,18 +819,20 @@ apiDescribe.only('Pipelines', persistence => {
       });
 
       // skip: arrayConcat not supported
-      // it.skip('arrayConcat works', async () => {
-      //   const results = await randomCol
-      //     .pipeline()
-      //     .select(
-      //       Field.of('tags').arrayConcat(['newTag1', 'newTag2']).as('modifiedTags')
-      //     )
-      //     .limit(1)
-      //     .execute();
-      //   expectResults(results, {
-      //     modifiedTags: ['comedy', 'space', 'adventure', 'newTag1', 'newTag2']
-      //   });
-      // });
+      it('arrayConcat works', async () => {
+        const results = await randomCol
+          .pipeline()
+          .select(
+            Field.of('tags')
+              .arrayConcat(['newTag1', 'newTag2'])
+              .as('modifiedTags')
+          )
+          .limit(1)
+          .execute();
+        expectResults(results, {
+          modifiedTags: ['comedy', 'space', 'adventure', 'newTag1', 'newTag2']
+        });
+      });
 
       it('testStrConcat', async () => {
         const results = await randomCol
@@ -917,6 +1057,7 @@ apiDescribe.only('Pipelines', persistence => {
       it('testMapGet', async () => {
         const results = await randomCol
           .pipeline()
+          .sort(Field.of('published').descending())
           .select(
             Field.of('awards').mapGet('hugo').as('hugoAward'),
             Field.of('awards').mapGet('others').as('others'),
@@ -931,7 +1072,7 @@ apiDescribe.only('Pipelines', persistence => {
             title: "The Hitchhiker's Guide to the Galaxy",
             others: { unknown: { year: 1980 } }
           },
-          { hugoAward: true, title: 'Dune', others: null }
+          { hugoAward: true, hugoAward2: true, title: 'Dune', others: null }
         );
       });
 
@@ -1108,7 +1249,7 @@ apiDescribe.only('Pipelines', persistence => {
               orFunction(
                 andFunction(
                   Field.of('rating').eq(lastDoc.get('rating')),
-                  Field.of('__path__').gt(lastDoc.ref?.path)
+                  Field.of('__path__').gt(lastDoc.ref?.id)
                 ),
                 Field.of('rating').lt(lastDoc.get('rating'))
               )
