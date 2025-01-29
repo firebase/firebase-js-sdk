@@ -390,8 +390,8 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
     [AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS]:
       'The password does not meet the requirements.',
     [AuthErrorCode.INVALID_HOSTING_LINK_DOMAIN]:
-      'The provided hosting link domain is not configured in Firebase Hosting or is not owned by ' +
-      'the current project. This cannot be a default hosting domain (web.app or firebaseapp.com).'
+      'The provided Hosting link domain is not configured in Firebase Hosting or is not owned by ' +
+      'the current project. This cannot be a default Hosting domain (`web.app` or `firebaseapp.com`).'
   };
 }
 

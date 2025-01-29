@@ -72,7 +72,7 @@ describe('core/strategies/action_code_settings', () => {
     ).to.throw(FirebaseError, '(auth/invalid-dynamic-link-domain)');
   });
 
-  it('should require a non empty hosting link URL', () => {
+  it('should require a non empty Hosting link URL', () => {
     expect(() =>
       _setActionCodeSettingsOnRequest(auth, request, {
         handleCodeInApp: true,
