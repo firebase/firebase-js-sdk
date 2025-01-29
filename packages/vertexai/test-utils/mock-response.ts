@@ -49,6 +49,9 @@ export function getMockResponseStreaming(
   filename: string,
   chunkLength: number = 20
 ): Partial<Response> {
+  if (!(filename in mocksLookup)) {
+    throw Error(`Mock response file not found: '${filename}'`);
+  }
   const fullText = mocksLookup[filename];
 
   return {
