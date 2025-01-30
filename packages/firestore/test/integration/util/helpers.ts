@@ -173,6 +173,8 @@ export function isPersistenceAvailable(): boolean {
   );
 }
 
+export type PipelineMode = 'no-pipeline-conversion' | 'query-to-pipeline';
+
 /**
  * A wrapper around Mocha's describe method that allows for it to be run with
  * persistence both disabled and enabled (if the browser is supported).
@@ -197,6 +199,35 @@ function apiDescribeInternal(
   }
 }
 
+function apiPipelineDescribeInternal(
+  describeFn: Mocha.PendingSuiteFunction,
+  message: string,
+  testSuite: (persistence: PersistenceMode, pipelineMode: PipelineMode) => void
+): void {
+  const persistenceModes: PersistenceMode[] = [new MemoryLruPersistenceMode()];
+  if (isPersistenceAvailable()) {
+    persistenceModes.push(new IndexedDbPersistenceMode());
+  }
+
+  const pipelineModes: PipelineMode[] = [
+    'no-pipeline-conversion',
+    'query-to-pipeline'
+  ];
+
+  for (const persistenceMode of persistenceModes) {
+    for (const pipelineMode of pipelineModes) {
+      describeFn(
+        `(Persistence=${persistenceMode.name} Pipeline=${pipelineMode}) ${message}`,
+        () =>
+          // Freeze the properties of the `PersistenceMode` object specified to the
+          // test suite so that it cannot (accidentally or intentionally) change
+          // its properties, and affect all subsequent test suites.
+          testSuite(Object.freeze(persistenceMode), pipelineMode)
+      );
+    }
+  }
+}
+
 type ApiSuiteFunction = (
   message: string,
   testSuite: (persistence: PersistenceMode) => void
@@ -216,6 +247,37 @@ apiDescribe.skip = apiDescribeInternal.bind(null, describe.skip);
 // eslint-disable-next-line no-restricted-properties
 apiDescribe.only = apiDescribeInternal.bind(null, describe.only);
 
+type ApiPipelineSuiteFunction = (
+  message: string,
+  testSuite: (persistence: PersistenceMode, pipelineMode: PipelineMode) => void
+) => void;
+interface ApiPipelineDescribe {
+  (
+    message: string,
+    testSuite: (
+      persistence: PersistenceMode,
+      pipelineMode: PipelineMode
+    ) => void
+  ): void;
+  skip: ApiPipelineSuiteFunction;
+  only: ApiPipelineSuiteFunction;
+}
+
+export const apiPipelineDescribe = apiPipelineDescribeInternal.bind(
+  null,
+  describe
+) as ApiPipelineDescribe;
+// eslint-disable-next-line no-restricted-properties
+apiPipelineDescribe.skip = apiPipelineDescribeInternal.bind(
+  null,
+  describe.skip
+);
+// eslint-disable-next-line no-restricted-properties
+apiPipelineDescribe.only = apiPipelineDescribeInternal.bind(
+  null,
+  describe.only
+);
+
 /** Converts the documents in a QuerySnapshot to an array with the data of each document. */
 export function toDataArray(
   docSet: QuerySnapshot | RealtimePipelineSnapshot
@@ -229,10 +291,13 @@ export function toDataArray(
 
 /** Converts the changes in a QuerySnapshot to an array with the data of each document. */
 export function toChangesArray(
-  docSet: QuerySnapshot,
+  docSet: QuerySnapshot | RealtimePipelineSnapshot,
   options?: SnapshotListenOptions
 ): DocumentData[] {
-  return docSet.docChanges(options).map(d => d.doc.data());
+  if (docSet instanceof QuerySnapshot) {
+    return docSet.docChanges(options).map(d => d.doc.data());
+  }
+  return docSet.resultChanges(options).map(d => d.result.data()!);
 }
 
 export function toDataMap(docSet: QuerySnapshot): {

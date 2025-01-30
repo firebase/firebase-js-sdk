@@ -1808,7 +1808,7 @@ export class CoreMapGet implements EvaluableExpr {
       return undefined;
     }
 
-    return evaluatedMap.mapValue.fields?.[this.expr.name];
+    return evaluatedMap.mapValue.fields?.[this.expr.subfield];
   }
 
   static fromProtoToApiObj(value: ProtoFunction): MapGet {

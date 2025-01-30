@@ -34,7 +34,7 @@ import { Unsubscribe } from './reference_impl';
 import { firestoreClientListen } from '../core/firestore_client';
 import { ViewSnapshot } from '../core/view_snapshot';
 import { toCorePipeline } from '../core/pipeline-util';
-import {RealtimePipeline} from './realtime_pipeline';
+import { RealtimePipeline } from './realtime_pipeline';
 
 declare module './database' {
   interface Firestore {
@@ -94,25 +94,26 @@ Query.prototype.pipeline = function (): Pipeline {
 export function realtimePipeline(
   firestore: Firestore
 ): PipelineSource<RealtimePipeline> {
-    return new PipelineSource<RealtimePipeline>((stages: Stage[]) => {
-      return new RealtimePipeline(
-        firestore,
-        newUserDataReader(firestore),
-        new ExpUserDataWriter(firestore),
-        stages
-      );
-    });
+  return new PipelineSource<RealtimePipeline>((stages: Stage[]) => {
+    return new RealtimePipeline(
+      firestore,
+      newUserDataReader(firestore),
+      new ExpUserDataWriter(firestore),
+      stages
+    );
+  });
 }
 
-Firestore.prototype.realtimePipeline = function (): PipelineSource<RealtimePipeline> {
-  return realtimePipeline(this);
-};
+Firestore.prototype.realtimePipeline =
+  function (): PipelineSource<RealtimePipeline> {
+    return realtimePipeline(this);
+  };
 
 /**
  * @internal
  * @private
  */
-export function _onSnapshot(
+export function _onRealtimePipelineSnapshot(
   pipeline: RealtimePipeline,
   next: (snapshot: RealtimePipelineSnapshot) => void,
   error?: (error: FirestoreError) => void,
@@ -127,7 +128,5 @@ export function _onSnapshot(
     complete: complete
   };
   // TODO(pipeline) hook up options
-  firestoreClientListen(client, toCorePipeline(pipeline), {}, observer);
-
-  return () => {};
+  return firestoreClientListen(client, toCorePipeline(pipeline), {}, observer);
 }

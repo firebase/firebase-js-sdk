@@ -1,11 +1,31 @@
-import {getEncodedDatabaseId, JsonProtoSerializer, ProtoSerializable} from '../remote/serializer';
-import {ExecutePipelineRequest, Stage as ProtoStage, StructuredPipeline} from '../protos/firestore_proto_api';
-import {Firestore} from '../lite-api/database';
-import {UserDataReader} from '../lite-api/user_data_reader';
-import {AbstractUserDataWriter} from '../lite-api/user_data_writer';
-import {Limit, Sort, Stage, Where} from '../lite-api/stage';
-import {Expr, ExprWithAlias, Field, Fields, FilterCondition, Ordering, Selectable} from '../lite-api/expressions';
-import {isReadableUserData, Pipeline, ReadableUserData} from '../lite-api/pipeline';
+import {
+  getEncodedDatabaseId,
+  JsonProtoSerializer,
+  ProtoSerializable
+} from '../remote/serializer';
+import {
+  ExecutePipelineRequest,
+  Stage as ProtoStage,
+  StructuredPipeline
+} from '../protos/firestore_proto_api';
+import { Firestore } from '../lite-api/database';
+import { UserDataReader } from '../lite-api/user_data_reader';
+import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
+import { Limit, Sort, Stage, Where } from '../lite-api/stage';
+import {
+  Expr,
+  ExprWithAlias,
+  Field,
+  Fields,
+  FilterCondition,
+  Ordering,
+  Selectable
+} from '../lite-api/expressions';
+import {
+  isReadableUserData,
+  Pipeline,
+  ReadableUserData
+} from '../lite-api/pipeline';
 
 /**
  * Base-class implementation
@@ -35,8 +55,7 @@ export class RealtimePipeline {
     public _userDataWriter: AbstractUserDataWriter,
     readonly stages: Stage[],
     readonly converter: unknown = {}
-  ) {
-  }
+  ) {}
 
   /**
    * Reads user data for each expression in the expressionMap.
@@ -46,7 +65,8 @@ export class RealtimePipeline {
    * @private
    */
   protected readUserData<
-    T extends | Map<string, ReadableUserData>
+    T extends
+      | Map<string, ReadableUserData>
       | ReadableUserData[]
       | ReadableUserData
   >(name: string, expressionMap: T): T {
@@ -123,8 +143,8 @@ export class RealtimePipeline {
     optionsOrOrderings:
       | Ordering
       | {
-      orderings: Ordering[];
-    },
+          orderings: Ordering[];
+        },
     ...rest: Ordering[]
   ): RealtimePipeline {
     const copy = this.stages.map(s => s);
@@ -164,6 +184,6 @@ export class RealtimePipeline {
     const stages: ProtoStage[] = this.stages.map(stage =>
       stage._toProto(jsonProtoSerializer)
     );
-    return {pipeline: {stages}};
+    return { pipeline: { stages } };
   }
 }

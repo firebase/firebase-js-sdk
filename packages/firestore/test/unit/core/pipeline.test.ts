@@ -497,12 +497,12 @@ describe('runPipeline()', () => {
       const doc3 = doc('users/charlie', 1000, { number: 97 });
 
       const pipeline = db
-          .pipeline()
-          .collectionGroup('users')
-          .sort(Field.of('score').descending());
+        .pipeline()
+        .collectionGroup('users')
+        .sort(Field.of('score').descending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
-          [doc1, doc2, doc3]
+        [doc1, doc2, doc3]
       );
     });
 

@@ -60,11 +60,11 @@ import {
 import { apiDescribe, toDataArray, withTestCollection } from '../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
 import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
-import { _onSnapshot } from '../../../src/api/pipeline_impl';
+import { _onRealtimePipelineSnapshot } from '../../../src/api/pipeline_impl';
 
 use(chaiAsPromised);
 
-apiDescribe.only('Pipelines', persistence => {
+apiDescribe('Pipelines', persistence => {
   addEqualityMatcher();
   let firestore: Firestore;
   let randomCol: CollectionReference;
@@ -253,7 +253,7 @@ apiDescribe.only('Pipelines', persistence => {
   it('basic listen with where() works', async () => {
     const storeEvent = new EventsAccumulator<RealtimePipelineSnapshot>();
 
-    const unsubscribe = _onSnapshot(
+    const unsubscribe = _onRealtimePipelineSnapshot(
       firestore
         .realtimePipeline()
         .collection(randomCol.path)
@@ -330,7 +330,7 @@ apiDescribe.only('Pipelines', persistence => {
   it('listen with where/sort/limit works', async () => {
     const storeEvent = new EventsAccumulator<RealtimePipelineSnapshot>();
 
-    const unsubscribe = _onSnapshot(
+    const unsubscribe = _onRealtimePipelineSnapshot(
       firestore
         .realtimePipeline()
         .collection(randomCol.path)

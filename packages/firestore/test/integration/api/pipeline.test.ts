@@ -18,7 +18,7 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import {Bytes, getDocs, vector} from '../../../src/api';
+import { Bytes, getDocs, vector } from '../../../src/api';
 import { GeoPoint } from '../../../src/lite-api/geo_point';
 import { Timestamp } from '../../../src/lite-api/timestamp';
 import { addEqualityMatcher } from '../../util/equality_matcher';
@@ -82,7 +82,8 @@ import {
   getDoc
 } from '../util/firebase_export';
 import {
-  apiDescribe, MemoryLruPersistenceMode,
+  apiDescribe,
+  MemoryLruPersistenceMode,
   PERSISTENCE_MODE_UNSPECIFIED,
   withTestCollection
 } from '../util/helpers';

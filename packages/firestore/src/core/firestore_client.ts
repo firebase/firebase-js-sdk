@@ -104,7 +104,8 @@ import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
 import { Unsubscribe } from '../api/reference_impl';
 import { RealtimePipelineSnapshot } from '../api/snapshot';
-import { QueryOrPipeline } from './pipeline-util';
+import { QueryOrPipeline, toCorePipeline } from './pipeline-util';
+import { RealtimePipeline } from '../api/realtime_pipeline';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -517,7 +518,7 @@ export function firestoreClientGetDocumentsFromLocalCache(
 
 export function firestoreClientGetDocumentsViaSnapshotListener(
   client: FirestoreClient,
-  query: Query,
+  query: Query | RealtimePipeline,
   options: GetOptions = {}
 ): Promise<ViewSnapshot> {
   const deferred = new Deferred<ViewSnapshot>();
@@ -776,7 +777,7 @@ async function executeQueryFromCache(
 function executeQueryViaSnapshotListener(
   eventManager: EventManager,
   asyncQueue: AsyncQueue,
-  query: Query,
+  query: Query | RealtimePipeline,
   options: GetOptions,
   result: Deferred<ViewSnapshot>
 ): Promise<void> {
@@ -806,10 +807,16 @@ function executeQueryViaSnapshotListener(
     error: e => result.reject(e)
   });
 
-  const listener = new QueryListener(query, wrappedObserver, {
-    includeMetadataChanges: true,
-    waitForSyncWhenOnline: true
-  });
+  const listener =
+    query instanceof RealtimePipeline
+      ? new QueryListener(toCorePipeline(query), wrappedObserver, {
+          includeMetadataChanges: true,
+          waitForSyncWhenOnline: true
+        })
+      : new QueryListener(query, wrappedObserver, {
+          includeMetadataChanges: true,
+          waitForSyncWhenOnline: true
+        });
   return eventManagerListen(eventManager, listener);
 }
 

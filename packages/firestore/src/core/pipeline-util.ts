@@ -75,9 +75,7 @@ import {
   Stage,
   Where
 } from '../lite-api/stage';
-import {
-  Pipeline as ApiPipeline
-} from '../lite-api/pipeline';
+import { Pipeline as ApiPipeline } from '../lite-api/pipeline';
 import {
   canonifyQuery,
   isCollectionGroupQuery,
@@ -105,7 +103,7 @@ import { doc } from '../lite-api/reference';
 import { Direction } from './order_by';
 import { CorePipeline } from './pipeline_run';
 import { Bound } from './bound';
-import {RealtimePipeline} from '../api/realtime_pipeline';
+import { RealtimePipeline } from '../api/realtime_pipeline';
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
@@ -120,9 +118,9 @@ export function toPipelineFilterCondition(f: FilterInternal): FilterCondition {
       }
     } else if (isNullValue(f.value)) {
       if (f.op === Operator.EQUAL) {
-        return andFunction(field.exists(), field.eq(null));
+        return andFunction(field.exists(), field.isNull());
       } else {
-        return andFunction(field.exists(), not(field.eq(null)));
+        return andFunction(field.exists(), not(field.isNull()));
       }
     } else {
       // Comparison filters
@@ -628,6 +626,7 @@ function rewriteStages(stages: Stage[]): Stage[] {
     else if (stage instanceof Limit) {
       if (!hasOrder) {
         newStages.push(new Sort([Field.of(DOCUMENT_KEY_NAME).ascending()]));
+        hasOrder = true;
       }
       newStages.push(stage);
     }

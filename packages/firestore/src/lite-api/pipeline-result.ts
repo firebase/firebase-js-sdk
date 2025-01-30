@@ -25,7 +25,8 @@ import { Timestamp } from './timestamp';
 import { AbstractUserDataWriter } from './user_data_writer';
 import { Document } from '../model/document';
 import { Pipeline } from './pipeline';
-import {RealtimePipeline} from '../api/realtime_pipeline';
+import { RealtimePipeline } from '../api/realtime_pipeline';
+import { SnapshotMetadata } from '../api/snapshot';
 
 /**
  * @beta
@@ -74,7 +75,8 @@ export class PipelineResult {
     fields?: ObjectValue,
     executionTime?: Timestamp,
     createTime?: Timestamp,
-    updateTime?: Timestamp
+    updateTime?: Timestamp,
+    readonly metadata?: SnapshotMetadata
   ) {
     this._ref = ref;
     this._userDataWriter = userDataWriter;
@@ -82,6 +84,23 @@ export class PipelineResult {
     this._createTime = createTime;
     this._updateTime = updateTime;
     this._fields = fields;
+  }
+
+  static fromDocument(
+    userDataWriter: AbstractUserDataWriter,
+    doc: Document,
+    ref?: DocumentReference,
+    metadata?: SnapshotMetadata
+  ): PipelineResult {
+    return new PipelineResult(
+      userDataWriter,
+      ref,
+      doc.data,
+      doc.readTime.toTimestamp(),
+      doc.createTime.toTimestamp(),
+      doc.version.toTimestamp(),
+      metadata
+    );
   }
 
   /**
@@ -219,14 +238,11 @@ export function toPipelineResult(
   doc: Document,
   pipeline: RealtimePipeline
 ): PipelineResult {
-  return new PipelineResult(
+  return PipelineResult.fromDocument(
     pipeline._userDataWriter,
+    doc,
     doc.key.path
       ? new DocumentReference(pipeline._db, null, doc.key)
-      : undefined,
-    doc.data,
-    doc.readTime.toTimestamp(),
-    doc.createTime.toTimestamp(),
-    doc.version.toTimestamp()
+      : undefined
   );
 }

@@ -17,24 +17,59 @@
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
-import {ObjectValue} from '../model/object_value';
-import {ExecutePipelineRequest, Stage as ProtoStage, StructuredPipeline} from '../protos/firestore_proto_api';
-import {invokeExecutePipeline} from '../remote/datastore';
-import {getEncodedDatabaseId, JsonProtoSerializer, ProtoSerializable} from '../remote/serializer';
+import { ObjectValue } from '../model/object_value';
+import {
+  ExecutePipelineRequest,
+  Stage as ProtoStage,
+  StructuredPipeline
+} from '../protos/firestore_proto_api';
+import { invokeExecutePipeline } from '../remote/datastore';
+import {
+  getEncodedDatabaseId,
+  JsonProtoSerializer,
+  ProtoSerializable
+} from '../remote/serializer';
 
-import {getDatastore} from './components';
-import {Firestore} from './database';
-import {Accumulator, AccumulatorTarget, Expr, ExprWithAlias, Field, Fields, FilterCondition, Ordering, Selectable} from './expressions';
-import {PipelineResult} from './pipeline-result';
-import {DocumentReference} from './reference';
-import {AddFields, Aggregate, Distinct, FindNearest, FindNearestOptions, GenericStage, Limit, Offset, Select, Sort, Stage, Where} from './stage';
-import {parseVectorValue, UserDataReader, UserDataSource} from './user_data_reader';
-import {AbstractUserDataWriter} from './user_data_writer';
+import { getDatastore } from './components';
+import { Firestore } from './database';
+import {
+  Accumulator,
+  AccumulatorTarget,
+  Expr,
+  ExprWithAlias,
+  Field,
+  Fields,
+  FilterCondition,
+  Ordering,
+  Selectable
+} from './expressions';
+import { PipelineResult } from './pipeline-result';
+import { DocumentReference } from './reference';
+import {
+  AddFields,
+  Aggregate,
+  Distinct,
+  FindNearest,
+  FindNearestOptions,
+  GenericStage,
+  Limit,
+  Offset,
+  Select,
+  Sort,
+  Stage,
+  Where
+} from './stage';
+import {
+  parseVectorValue,
+  UserDataReader,
+  UserDataSource
+} from './user_data_reader';
+import { AbstractUserDataWriter } from './user_data_writer';
 
 /**
  * @private
-*/
- export interface ReadableUserData {
+ */
+export interface ReadableUserData {
   _readUserData(dataReader: UserDataReader): void;
 }
 
