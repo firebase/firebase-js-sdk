@@ -231,7 +231,9 @@ export declare enum BlockReason
 
 |  Member | Value | Description |
 |  --- | --- | --- |
+|  BLOCKLIST | <code>&quot;BLOCKLIST&quot;</code> |  |
 |  OTHER | <code>&quot;OTHER&quot;</code> |  |
+|  PROHIBITED\_CONTENT | <code>&quot;PROHIBITED_CONTENT&quot;</code> |  |
 |  SAFETY | <code>&quot;SAFETY&quot;</code> |  |
 
 ## FinishReason
@@ -248,10 +250,14 @@ export declare enum FinishReason
 
 |  Member | Value | Description |
 |  --- | --- | --- |
+|  BLOCKLIST | <code>&quot;BLOCKLIST&quot;</code> |  |
+|  MALFORMED\_FUNCTION\_CALL | <code>&quot;MALFORMED_FUNCTION_CALL&quot;</code> |  |
 |  MAX\_TOKENS | <code>&quot;MAX_TOKENS&quot;</code> |  |
 |  OTHER | <code>&quot;OTHER&quot;</code> |  |
+|  PROHIBITED\_CONTENT | <code>&quot;PROHIBITED_CONTENT&quot;</code> |  |
 |  RECITATION | <code>&quot;RECITATION&quot;</code> |  |
 |  SAFETY | <code>&quot;SAFETY&quot;</code> |  |
+|  SPII | <code>&quot;SPII&quot;</code> |  |
 |  STOP | <code>&quot;STOP&quot;</code> |  |
 
 ## FunctionCallingMode

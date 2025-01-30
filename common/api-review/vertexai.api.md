@@ -29,7 +29,11 @@ export interface BaseParams {
 // @public
 export enum BlockReason {
     // (undocumented)
+    BLOCKLIST = "BLOCKLIST",
+    // (undocumented)
     OTHER = "OTHER",
+    // (undocumented)
+    PROHIBITED_CONTENT = "PROHIBITED_CONTENT",
     // (undocumented)
     SAFETY = "SAFETY"
 }
@@ -158,13 +162,21 @@ export interface FileDataPart {
 // @public
 export enum FinishReason {
     // (undocumented)
+    BLOCKLIST = "BLOCKLIST",
+    // (undocumented)
+    MALFORMED_FUNCTION_CALL = "MALFORMED_FUNCTION_CALL",
+    // (undocumented)
     MAX_TOKENS = "MAX_TOKENS",
     // (undocumented)
     OTHER = "OTHER",
     // (undocumented)
+    PROHIBITED_CONTENT = "PROHIBITED_CONTENT",
+    // (undocumented)
     RECITATION = "RECITATION",
     // (undocumented)
     SAFETY = "SAFETY",
+    // (undocumented)
+    SPII = "SPII",
     // (undocumented)
     STOP = "STOP"
 }
