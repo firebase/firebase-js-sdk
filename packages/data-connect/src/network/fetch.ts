@@ -43,7 +43,7 @@ function getWebFrameworkValue(
     str += ' react/';
   }
   if (_isUsingAngular) {
-    str += ' angularfire/';
+    str += ' angular/';
   }
   // no framework SDK used
   if (str === '') {
