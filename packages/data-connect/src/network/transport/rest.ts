@@ -45,7 +45,7 @@ export class RESTTransport implements DataConnectTransport {
     transportOptions?: TransportOptions | undefined,
     private _isUsingGen = false,
     private _isUsingReact = false,
-    private _isUsingAngularFire = false,
+    private _isUsingAngular = false,
     private _isUsingTanStack = false
   ) {
     if (transportOptions) {
@@ -186,7 +186,7 @@ export class RESTTransport implements DataConnectTransport {
         this._isUsingGen,
         this._isUsingTanStack,
         this._isUsingReact,
-        this._isUsingAngularFire
+        this._isUsingAngular
       )
     );
     return withAuth;
@@ -214,9 +214,25 @@ export class RESTTransport implements DataConnectTransport {
         this._isUsingGen,
         this._isUsingTanStack,
         this._isUsingReact,
-        this._isUsingAngularFire
+        this._isUsingAngular
       );
     });
     return taskResult;
   };
+
+  _useTanStack(): void {
+    if (!this._isUsingTanStack) {
+      this._isUsingTanStack = true;
+    }
+  }
+  _useReact(): void {
+    if (!this._isUsingReact) {
+      this._isUsingReact = true;
+    }
+  }
+  _useAngular(): void {
+    if (!this._isUsingAngular) {
+      this._isUsingAngular = true;
+    }
+  }
 }

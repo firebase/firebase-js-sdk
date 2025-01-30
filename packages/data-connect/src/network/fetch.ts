@@ -33,7 +33,7 @@ function getGoogApiClientValue(_isUsingGen: boolean): string {
 function getWebFrameworkValue(
   _isUsingTanStack: boolean,
   _isUsingReact: boolean,
-  _isUsingAngularFire: boolean
+  _isUsingAngular: boolean
 ): string {
   let str = '';
   if (_isUsingTanStack) {
@@ -42,7 +42,7 @@ function getWebFrameworkValue(
   if (_isUsingReact) {
     str += ' react/';
   }
-  if (_isUsingAngularFire) {
+  if (_isUsingAngular) {
     str += ' angularfire/';
   }
   // no framework SDK used
@@ -66,7 +66,7 @@ export function dcFetch<T, U>(
   _isUsingGen: boolean,
   _isUsingTanStack: boolean,
   _isUsingReact: boolean,
-  _isUsingAngularFire: boolean
+  _isUsingAngular: boolean
 ): Promise<{ data: T; errors: Error[] }> {
   if (!connectFetch) {
     throw new DataConnectError(Code.OTHER, 'No Fetch Implementation detected!');
@@ -77,7 +77,7 @@ export function dcFetch<T, U>(
     'X-Firebase-DataConnect-Web-Frameworks': getWebFrameworkValue(
       _isUsingTanStack,
       _isUsingReact,
-      _isUsingAngularFire
+      _isUsingAngular
     )
   };
   if (accessToken) {

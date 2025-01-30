@@ -33,6 +33,9 @@ export interface DataConnectTransport {
   ): Promise<{ data: T; errors: Error[] }>;
   useEmulator(host: string, port?: number, sslEnabled?: boolean): void;
   onTokenChanged: (token: string | null) => void;
+  _useTanStack(): void;
+  _useReact(): void;
+  _useAngular(): void;
 }
 
 /**
@@ -48,5 +51,5 @@ export type TransportClass = new (
   _isUsingGen?: boolean,
   _isUsingTanStack?: boolean,
   _isUsingReact?: boolean,
-  _isUsingAngularFire?: boolean
+  _isUsingAngular?: boolean
 ) => DataConnectTransport;
