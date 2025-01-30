@@ -22,6 +22,7 @@ jobs:
     # Allow GITHUB_TOKEN to have write permissions
     permissions:
       contents: write
+      pull_requests: write
     steps:
       - uses: actions/checkout@v4
       - name: Clone mock responses
