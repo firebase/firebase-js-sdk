@@ -231,8 +231,8 @@ export declare enum BlockReason
 
 |  Member | Value | Description |
 |  --- | --- | --- |
-|  OTHER | <code>&quot;OTHER&quot;</code> |  |
-|  SAFETY | <code>&quot;SAFETY&quot;</code> |  |
+|  OTHER | <code>&quot;OTHER&quot;</code> | Content was blocked, but the reason is uncategorized. |
+|  SAFETY | <code>&quot;SAFETY&quot;</code> | Content was blocked by safety settings. |
 
 ## FinishReason
 
@@ -248,11 +248,11 @@ export declare enum FinishReason
 
 |  Member | Value | Description |
 |  --- | --- | --- |
-|  MAX\_TOKENS | <code>&quot;MAX_TOKENS&quot;</code> |  |
-|  OTHER | <code>&quot;OTHER&quot;</code> |  |
-|  RECITATION | <code>&quot;RECITATION&quot;</code> |  |
-|  SAFETY | <code>&quot;SAFETY&quot;</code> |  |
-|  STOP | <code>&quot;STOP&quot;</code> |  |
+|  MAX\_TOKENS | <code>&quot;MAX_TOKENS&quot;</code> | The maximum number of tokens as specified in the request was reached. |
+|  OTHER | <code>&quot;OTHER&quot;</code> | Unknown reason. |
+|  RECITATION | <code>&quot;RECITATION&quot;</code> | The candidate content was flagged for recitation reasons. |
+|  SAFETY | <code>&quot;SAFETY&quot;</code> | The candidate content was flagged for safety reasons. |
+|  STOP | <code>&quot;STOP&quot;</code> | Natural stop point of the model or provided stop sequence. |
 
 ## FunctionCallingMode
 
@@ -267,9 +267,9 @@ export declare enum FunctionCallingMode
 
 |  Member | Value | Description |
 |  --- | --- | --- |
-|  ANY | <code>&quot;ANY&quot;</code> |  |
-|  AUTO | <code>&quot;AUTO&quot;</code> |  |
-|  NONE | <code>&quot;NONE&quot;</code> |  |
+|  ANY | <code>&quot;ANY&quot;</code> | Model is constrained to always predicting a function call only. If "allowed\_function\_names" is set, the predicted function call will be limited to any one of "allowed\_function\_names", else the predicted function call will be any one of the provided "function\_declarations". |
+|  AUTO | <code>&quot;AUTO&quot;</code> | Default model behavior, model decides to predict either a function call or a natural language response. |
+|  NONE | <code>&quot;NONE&quot;</code> | Model will not predict any function call. Model behavior is same as when not passing any function declarations. |
 
 ## HarmBlockMethod
 
@@ -284,8 +284,8 @@ export declare enum HarmBlockMethod
 
 |  Member | Value | Description |
 |  --- | --- | --- |
-|  PROBABILITY | <code>&quot;PROBABILITY&quot;</code> |  |
-|  SEVERITY | <code>&quot;SEVERITY&quot;</code> |  |
+|  PROBABILITY | <code>&quot;PROBABILITY&quot;</code> | The harm block method uses the probability score. |
+|  SEVERITY | <code>&quot;SEVERITY&quot;</code> | The harm block method uses both probability and severity scores. |
 
 ## HarmBlockThreshold
 
@@ -301,10 +301,10 @@ export declare enum HarmBlockThreshold
 
 |  Member | Value | Description |
 |  --- | --- | --- |
-|  BLOCK\_LOW\_AND\_ABOVE | <code>&quot;BLOCK_LOW_AND_ABOVE&quot;</code> |  |
-|  BLOCK\_MEDIUM\_AND\_ABOVE | <code>&quot;BLOCK_MEDIUM_AND_ABOVE&quot;</code> |  |
-|  BLOCK\_NONE | <code>&quot;BLOCK_NONE&quot;</code> |  |
-|  BLOCK\_ONLY\_HIGH | <code>&quot;BLOCK_ONLY_HIGH&quot;</code> |  |
+|  BLOCK\_LOW\_AND\_ABOVE | <code>&quot;BLOCK_LOW_AND_ABOVE&quot;</code> | Content with NEGLIGIBLE will be allowed. |
+|  BLOCK\_MEDIUM\_AND\_ABOVE | <code>&quot;BLOCK_MEDIUM_AND_ABOVE&quot;</code> | Content with NEGLIGIBLE and LOW will be allowed. |
+|  BLOCK\_NONE | <code>&quot;BLOCK_NONE&quot;</code> | All content will be allowed. |
+|  BLOCK\_ONLY\_HIGH | <code>&quot;BLOCK_ONLY_HIGH&quot;</code> | Content with NEGLIGIBLE, LOW, and MEDIUM will be allowed. |
 
 ## HarmCategory
 
@@ -339,10 +339,10 @@ export declare enum HarmProbability
 
 |  Member | Value | Description |
 |  --- | --- | --- |
-|  HIGH | <code>&quot;HIGH&quot;</code> |  |
-|  LOW | <code>&quot;LOW&quot;</code> |  |
-|  MEDIUM | <code>&quot;MEDIUM&quot;</code> |  |
-|  NEGLIGIBLE | <code>&quot;NEGLIGIBLE&quot;</code> |  |
+|  HIGH | <code>&quot;HIGH&quot;</code> | Content has a high chance of being unsafe. |
+|  LOW | <code>&quot;LOW&quot;</code> | Content has a low chance of being unsafe. |
+|  MEDIUM | <code>&quot;MEDIUM&quot;</code> | Content has a medium chance of being unsafe. |
+|  NEGLIGIBLE | <code>&quot;NEGLIGIBLE&quot;</code> | Content has a negligible chance of being unsafe. |
 
 ## HarmSeverity
 
@@ -358,10 +358,10 @@ export declare enum HarmSeverity
 
 |  Member | Value | Description |
 |  --- | --- | --- |
-|  HARM\_SEVERITY\_HIGH | <code>&quot;HARM_SEVERITY_HIGH&quot;</code> |  |
-|  HARM\_SEVERITY\_LOW | <code>&quot;HARM_SEVERITY_LOW&quot;</code> |  |
-|  HARM\_SEVERITY\_MEDIUM | <code>&quot;HARM_SEVERITY_MEDIUM&quot;</code> |  |
-|  HARM\_SEVERITY\_NEGLIGIBLE | <code>&quot;HARM_SEVERITY_NEGLIGIBLE&quot;</code> |  |
+|  HARM\_SEVERITY\_HIGH | <code>&quot;HARM_SEVERITY_HIGH&quot;</code> | High level of harm severity. |
+|  HARM\_SEVERITY\_LOW | <code>&quot;HARM_SEVERITY_LOW&quot;</code> | Low level of harm severity. |
+|  HARM\_SEVERITY\_MEDIUM | <code>&quot;HARM_SEVERITY_MEDIUM&quot;</code> | Medium level of harm severity. |
+|  HARM\_SEVERITY\_NEGLIGIBLE | <code>&quot;HARM_SEVERITY_NEGLIGIBLE&quot;</code> | Negligible level of harm severity. |
 
 ## SchemaType
 
