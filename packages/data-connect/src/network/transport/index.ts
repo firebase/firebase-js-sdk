@@ -30,14 +30,14 @@ export type CallerSdkType =
   | 'GeneratedReact' // Generated React SDK
   | 'TanstackAngularCore' // Tanstack non-generated Angular SDK
   | 'GeneratedAngular'; // Generated Angular SDK
-export const CallerSdkTypeEnum = Object.freeze({
+export const CallerSdkTypeEnum = {
   Base: 'Base', // Core JS SDK
   Generated: 'Generated', // Generated JS SDK
   TanstackReactCore: 'TanstackReactCore', // Tanstack non-generated React SDK
   GeneratedReact: 'GeneratedReact', // Tanstack non-generated Angular SDK
   TanstackAngularCore: 'TanstackAngularCore', // Tanstack non-generated Angular SDK
   GeneratedAngular: 'GeneratedAngular' // Generated Angular SDK
-} as const);
+} as const;
 
 /**
  * @internal
