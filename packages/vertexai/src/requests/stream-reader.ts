@@ -63,7 +63,6 @@ async function getResponsePromise(
       return enhancedResponse;
     }
 
-    deleteEmptyTextParts(value);
     allResponses.push(value);
   }
 }
@@ -78,7 +77,6 @@ async function* generateResponseSequence(
       break;
     }
 
-    deleteEmptyTextParts(value);
     const enhancedResponse = createEnhancedContentResponse(value);
     yield enhancedResponse;
   }
@@ -187,7 +185,13 @@ export function aggregateResponses(
           }
           const newPart: Partial<Part> = {};
           for (const part of candidate.content.parts) {
-            if (part.text) {
+            if (part.text !== undefined) {
+              // The backend can send empty text parts. If these are sent back
+              // (e.g. in chat history), the backend will respond with an error.
+              // To prevent this, ignore empty text parts.
+              if (part.text === '') {
+                continue;
+              }
               newPart.text = part.text;
             }
             if (part.functionCall) {
@@ -205,22 +209,4 @@ export function aggregateResponses(
     }
   }
   return aggregatedResponse;
-}
-
-/**
- * The backend can send empty text parts, but if they are sent back (e.g. in a chat history) there
- * will be an error. To prevent this, filter out the empty text part from responses.
- *
- * See: https://github.com/firebase/firebase-js-sdk/issues/8714
- */
-export function deleteEmptyTextParts(response: GenerateContentResponse): void {
-  if (response.candidates) {
-    response.candidates.forEach(candidate => {
-      if (candidate.content && candidate.content.parts) {
-        candidate.content.parts = candidate.content.parts.filter(
-          part => part.text !== ''
-        );
-      }
-    });
-  }
 }

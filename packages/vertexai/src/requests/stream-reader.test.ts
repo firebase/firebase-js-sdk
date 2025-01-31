@@ -17,7 +17,6 @@
 
 import {
   aggregateResponses,
-  deleteEmptyTextParts,
   getResponseStream,
   processStream
 } from './stream-reader';
@@ -34,7 +33,6 @@ import {
   GenerateContentResponse,
   HarmCategory,
   HarmProbability,
-  Part,
   SafetyRating
 } from '../types';
 
@@ -228,6 +226,7 @@ describe('processStream', () => {
     );
     const result = processStream(fakeResponse as Response);
     const aggregatedResponse = await result.response;
+    console.log(aggregatedResponse.candidates?.[0].content.parts);
     expect(aggregatedResponse.text()).to.equal('1');
     expect(aggregatedResponse.candidates?.length).to.equal(1);
     expect(aggregatedResponse.candidates?.[0].content.parts.length).to.equal(1);
@@ -421,106 +420,5 @@ describe('aggregateResponses', () => {
         response.candidates?.[0].citationMetadata?.citations[1].startIndex
       ).to.equal(150);
     });
-  });
-});
-
-describe('deleteEmptyTextParts', () => {
-  it('removes empty text parts from a single candidate', () => {
-    const parts: Part[] = [
-      {
-        text: ''
-      },
-      {
-        text: 'foo'
-      }
-    ];
-    const generateContentResponse: GenerateContentResponse = {
-      candidates: [
-        {
-          index: 0,
-          content: {
-            role: 'model',
-            parts
-          }
-        }
-      ]
-    };
-
-    deleteEmptyTextParts(generateContentResponse);
-    expect(generateContentResponse.candidates?.[0].content.parts).to.deep.equal(
-      [
-        {
-          text: 'foo'
-        }
-      ]
-    );
-  });
-  it('removes empty text parts from all candidates', () => {
-    const parts: Part[] = [
-      {
-        text: ''
-      },
-      {
-        text: 'foo'
-      }
-    ];
-    const generateContentResponse: GenerateContentResponse = {
-      candidates: [
-        {
-          index: 0,
-          content: {
-            role: 'model',
-            parts
-          }
-        },
-        {
-          index: 1,
-          content: {
-            role: 'model',
-            parts
-          }
-        }
-      ]
-    };
-
-    deleteEmptyTextParts(generateContentResponse);
-    expect(generateContentResponse.candidates?.[0].content.parts).to.deep.equal(
-      [
-        {
-          text: 'foo'
-        }
-      ]
-    );
-    expect(generateContentResponse.candidates?.[1].content.parts).to.deep.equal(
-      [
-        {
-          text: 'foo'
-        }
-      ]
-    );
-  });
-  it('does not remove candidate even if all parts are removed', () => {
-    const parts: Part[] = [
-      {
-        text: ''
-      }
-    ];
-    const generateContentResponse: GenerateContentResponse = {
-      candidates: [
-        {
-          index: 0,
-          content: {
-            role: 'model',
-            parts
-          }
-        }
-      ]
-    };
-
-    deleteEmptyTextParts(generateContentResponse);
-    expect(generateContentResponse.candidates?.length).to.equal(1);
-    expect(generateContentResponse.candidates?.[0].content.parts).to.deep.equal(
-      []
-    );
   });
 });
