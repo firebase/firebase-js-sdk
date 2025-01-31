@@ -52,6 +52,7 @@ describe('fetch', () => {
         null,
         null,
         null,
+        false,
         CallerSdkTypeEnum.Base
       )
     ).to.eventually.be.rejectedWith(message);
@@ -75,6 +76,7 @@ describe('fetch', () => {
         null,
         null,
         null,
+        false,
         CallerSdkTypeEnum.Base
       )
     ).to.eventually.be.rejectedWith(JSON.stringify(json));

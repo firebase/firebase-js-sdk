@@ -67,5 +67,6 @@ export type TransportClass = new (
   authProvider?: AuthTokenProvider,
   appCheckProvider?: AppCheckTokenProvider,
   transportOptions?: TransportOptions,
-  _callerSdkType?: CallerSdkType
+  _isUsingGen?: boolean,
+    _callerSdkType?: CallerSdkType
 ) => DataConnectTransport;

@@ -27,15 +27,12 @@ export function initializeFetch(fetchImpl: typeof fetch): void {
 }
 function getGoogApiClientValue(_callerSdkType: CallerSdkType): string {
   let str = 'gl-js/ fire/' + SDK_VERSION;
-  if (_callerSdkType !== CallerSdkTypeEnum.Base) {
+  if (_callerSdkType === CallerSdkTypeEnum.Generated) {
     str += ' js/gen';
+  } else if (_callerSdkType !== CallerSdkTypeEnum.Base) {
+    str += ' js/' + _callerSdkType.toLowerCase();
   }
   return str;
-}
-function getWebFrameworkValue(
-  _callerSdkType: CallerSdkType
-): string {
-  return _callerSdkType + "/";
 }
 export interface DataConnectFetchBody<T> {
   name: string;
@@ -49,6 +46,7 @@ export function dcFetch<T, U>(
   appId: string | null,
   accessToken: string | null,
   appCheckToken: string | null,
+  _isUsingGen: boolean,
   _callerSdkType: CallerSdkType
 ): Promise<{ data: T; errors: Error[] }> {
   if (!connectFetch) {
@@ -56,9 +54,7 @@ export function dcFetch<T, U>(
   }
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    'X-Goog-Api-Client': getGoogApiClientValue(_callerSdkType),
-    'X-Firebase-DataConnect-Web-Frameworks':
-      getWebFrameworkValue(_callerSdkType)
+    'X-Goog-Api-Client': getGoogApiClientValue(_callerSdkType)
   };
   if (accessToken) {
     headers['X-Firebase-Auth-Token'] = accessToken;

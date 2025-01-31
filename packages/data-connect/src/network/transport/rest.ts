@@ -43,6 +43,7 @@ export class RESTTransport implements DataConnectTransport {
     private authProvider?: AuthTokenProvider | undefined,
     private appCheckProvider?: AppCheckTokenProvider | undefined,
     transportOptions?: TransportOptions | undefined,
+    private _isUsingGen = false,
     private _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base,
   ) {
     if (transportOptions) {
@@ -180,6 +181,7 @@ export class RESTTransport implements DataConnectTransport {
         this.appId,
         this._accessToken,
         this._appCheckToken,
+        this._isUsingGen,
         this._callerSdkType
       )
     );
@@ -205,6 +207,7 @@ export class RESTTransport implements DataConnectTransport {
         this.appId,
         this._accessToken,
         this._appCheckToken,
+        this._isUsingGen,
         this._callerSdkType
       );
     });

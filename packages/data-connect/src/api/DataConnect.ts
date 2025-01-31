@@ -33,7 +33,12 @@ import {
 } from '../core/FirebaseAuthProvider';
 import { QueryManager } from '../core/QueryManager';
 import { logDebug, logError } from '../logger';
-import { CallerSdkType, CallerSdkTypeEnum, DataConnectTransport, TransportClass } from '../network';
+import {
+  CallerSdkType,
+  CallerSdkTypeEnum,
+  DataConnectTransport,
+  TransportClass
+} from '../network';
 import { RESTTransport } from '../network/transport/rest';
 
 import { MutationManager } from './Mutation';
@@ -91,6 +96,7 @@ export class DataConnect {
   private _transportClass: TransportClass | undefined;
   private _transportOptions?: TransportOptions;
   private _authTokenProvider?: AuthTokenProvider;
+  _isUsingGeneratedSdk: boolean = false;
   _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base;
   private _appCheckTokenProvider?: AppCheckTokenProvider;
   // @internal
@@ -108,6 +114,12 @@ export class DataConnect {
         this.isEmulator = true;
         this._transportOptions = parseOptions(host);
       }
+    }
+  }
+  // @internal
+  _useGeneratedSdk(): void {
+    if (!this._isUsingGeneratedSdk) {
+      this._isUsingGeneratedSdk = true;
     }
   }
   // @internal
@@ -162,6 +174,7 @@ export class DataConnect {
       this._authTokenProvider,
       this._appCheckTokenProvider,
       undefined,
+      this._isUsingGeneratedSdk,
       this._callerSdkType
     );
     if (this._transportOptions) {
