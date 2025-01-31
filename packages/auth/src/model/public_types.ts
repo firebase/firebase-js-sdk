@@ -462,12 +462,7 @@ export interface ActionCodeSettings {
    * Sets the Android package name.
    *
    * @remarks
-   * This will try to open the link in an android app if it is
-   * installed. If `installApp` is passed, it specifies whether to install the Android app if the
-   * device supports it and the app is not already installed. If this field is provided without
-   * a `packageName`, an error is thrown explaining that the `packageName` must be provided in
-   * conjunction with this field. If `minimumVersion` is specified, and an older version of the
-   * app is installed, the user is taken to the Play Store to upgrade the app.
+   * This will try to open the link in an Android app if it is installed.
    */
   android?: {
     installApp?: boolean;
@@ -490,8 +485,6 @@ export interface ActionCodeSettings {
    *
    * @remarks
    * This will try to open the link in an iOS app if it is installed.
-   *
-   * App installation is not supported for iOS.
    */
   iOS?: {
     bundleId: string;
@@ -522,7 +515,8 @@ export interface ActionCodeSettings {
    * The optional custom Firebase Hosting domain to use when the link is to be opened via
    * a specified mobile app. The domain must be configured in Firebase Hosting and owned
    * by the project. This cannot be a default Hosting domain (`web.app` or `firebaseapp.com`).
-   * @defaultValue The default Hosting domain will be used (for example, `example.firebaseapp.com`)
+   *
+   * @defaultValue The default Hosting domain will be used (for example, `example.firebaseapp.com`).
    */
   linkDomain?: string;
 }

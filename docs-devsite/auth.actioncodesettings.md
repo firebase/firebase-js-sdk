@@ -33,7 +33,7 @@ export interface ActionCodeSettings
 
 Sets the Android package name.
 
-This will try to open the link in an android app if it is installed. If `installApp` is passed, it specifies whether to install the Android app if the device supports it and the app is not already installed. If this field is provided without a `packageName`<!-- -->, an error is thrown explaining that the `packageName` must be provided in conjunction with this field. If `minimumVersion` is specified, and an older version of the app is installed, the user is taken to the Play Store to upgrade the app.
+This will try to open the link in an Android app if it is installed.
 
 <b>Signature:</b>
 
@@ -77,8 +77,6 @@ handleCodeInApp?: boolean;
 Sets the iOS bundle ID.
 
 This will try to open the link in an iOS app if it is installed.
-
-App installation is not supported for iOS.
 
 <b>Signature:</b>
 
