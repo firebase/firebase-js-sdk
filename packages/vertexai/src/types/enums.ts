@@ -44,15 +44,15 @@ export enum HarmCategory {
  */
 export enum HarmBlockThreshold {
   /**
-   * Content with NEGLIGIBLE will be allowed.
+   * Content with `NEGLIGIBLE` will be allowed.
    */
   BLOCK_LOW_AND_ABOVE = 'BLOCK_LOW_AND_ABOVE',
   /**
-   * Content with NEGLIGIBLE and LOW will be allowed.
+   * Content with `NEGLIGIBLE` and `LOW` will be allowed.
    */
   BLOCK_MEDIUM_AND_ABOVE = 'BLOCK_MEDIUM_AND_ABOVE',
   /**
-   * Content with NEGLIGIBLE, LOW, and MEDIUM will be allowed.
+   * Content with `NEGLIGIBLE`, `LOW`, and `MEDIUM` will be allowed.
    */
   BLOCK_ONLY_HIGH = 'BLOCK_ONLY_HIGH',
   /**

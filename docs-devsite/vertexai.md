@@ -301,10 +301,10 @@ export declare enum HarmBlockThreshold
 
 |  Member | Value | Description |
 |  --- | --- | --- |
-|  BLOCK\_LOW\_AND\_ABOVE | <code>&quot;BLOCK_LOW_AND_ABOVE&quot;</code> | Content with NEGLIGIBLE will be allowed. |
-|  BLOCK\_MEDIUM\_AND\_ABOVE | <code>&quot;BLOCK_MEDIUM_AND_ABOVE&quot;</code> | Content with NEGLIGIBLE and LOW will be allowed. |
+|  BLOCK\_LOW\_AND\_ABOVE | <code>&quot;BLOCK_LOW_AND_ABOVE&quot;</code> | Content with <code>NEGLIGIBLE</code> will be allowed. |
+|  BLOCK\_MEDIUM\_AND\_ABOVE | <code>&quot;BLOCK_MEDIUM_AND_ABOVE&quot;</code> | Content with <code>NEGLIGIBLE</code> and <code>LOW</code> will be allowed. |
 |  BLOCK\_NONE | <code>&quot;BLOCK_NONE&quot;</code> | All content will be allowed. |
-|  BLOCK\_ONLY\_HIGH | <code>&quot;BLOCK_ONLY_HIGH&quot;</code> | Content with NEGLIGIBLE, LOW, and MEDIUM will be allowed. |
+|  BLOCK\_ONLY\_HIGH | <code>&quot;BLOCK_ONLY_HIGH&quot;</code> | Content with <code>NEGLIGIBLE</code>, <code>LOW</code>, and <code>MEDIUM</code> will be allowed. |
 
 ## HarmCategory
 
