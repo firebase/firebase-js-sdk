@@ -267,8 +267,8 @@ export declare enum FunctionCallingMode
 
 |  Member | Value | Description |
 |  --- | --- | --- |
-|  ANY | <code>&quot;ANY&quot;</code> | Model is constrained to always predicting a function call only. If "allowed\_function\_names" is set, the predicted function call will be limited to any one of "allowed\_function\_names", else the predicted function call will be any one of the provided "function\_declarations". |
-|  AUTO | <code>&quot;AUTO&quot;</code> | Default model behavior, model decides to predict either a function call or a natural language response. |
+|  ANY | <code>&quot;ANY&quot;</code> | Model is constrained to always predicting a function call only. If <code>allowed_function_names</code> is set, the predicted function call will be limited to any one of <code>allowed_function_names</code>, else the predicted function call will be any one of the provided <code>function_declarations</code>. |
+|  AUTO | <code>&quot;AUTO&quot;</code> | Default model behavior; model decides to predict either a function call or a natural language response. |
 |  NONE | <code>&quot;NONE&quot;</code> | Model will not predict any function call. Model behavior is same as when not passing any function declarations. |
 
 ## HarmBlockMethod

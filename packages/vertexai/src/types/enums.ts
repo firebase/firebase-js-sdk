@@ -168,15 +168,15 @@ export enum FinishReason {
  */
 export enum FunctionCallingMode {
   /**
-   * Default model behavior, model decides to predict either a function call
+   * Default model behavior; model decides to predict either a function call
    * or a natural language response.
    */
   AUTO = 'AUTO',
   /**
    * Model is constrained to always predicting a function call only.
-   * If "allowed_function_names" is set, the predicted function call will be
-   * limited to any one of "allowed_function_names", else the predicted
-   * function call will be any one of the provided "function_declarations".
+   * If `allowed_function_names` is set, the predicted function call will be
+   * limited to any one of `allowed_function_names`, else the predicted
+   * function call will be any one of the provided `function_declarations`.
    */
   ANY = 'ANY',
   /**
