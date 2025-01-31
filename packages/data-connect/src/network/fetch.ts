@@ -25,9 +25,9 @@ let connectFetch: typeof fetch | null = globalThis.fetch;
 export function initializeFetch(fetchImpl: typeof fetch): void {
   connectFetch = fetchImpl;
 }
-function getGoogApiClientValue(_callerSdkType: CallerSdkType): string {
+function getGoogApiClientValue(_isUsingGen: boolean, _callerSdkType: CallerSdkType): string {
   let str = 'gl-js/ fire/' + SDK_VERSION;
-  if (_callerSdkType === CallerSdkTypeEnum.Generated) {
+  if (_isUsingGen || _callerSdkType === CallerSdkTypeEnum.Generated) {
     str += ' js/gen';
   } else if (_callerSdkType !== CallerSdkTypeEnum.Base) {
     str += ' js/' + _callerSdkType.toLowerCase();
@@ -54,7 +54,7 @@ export function dcFetch<T, U>(
   }
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    'X-Goog-Api-Client': getGoogApiClientValue(_callerSdkType)
+    'X-Goog-Api-Client': getGoogApiClientValue(_isUsingGen, _callerSdkType)
   };
   if (accessToken) {
     headers['X-Firebase-Auth-Token'] = accessToken;
