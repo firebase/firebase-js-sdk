@@ -20,6 +20,7 @@ import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 
 import { dcFetch, initializeFetch } from '../../src/network/fetch';
+import { CallerSdkTypeEnum } from '../../src/network/transport';
 use(chaiAsPromised);
 function mockFetch(json: object): void {
   const fakeFetchImpl = sinon.stub().returns(
@@ -51,10 +52,7 @@ describe('fetch', () => {
         null,
         null,
         null,
-        false,
-        false,
-        false,
-        false
+        CallerSdkTypeEnum.Base
       )
     ).to.eventually.be.rejectedWith(message);
   });
@@ -77,10 +75,7 @@ describe('fetch', () => {
         null,
         null,
         null,
-        false,
-        false,
-        false,
-        false
+        CallerSdkTypeEnum.Base
       )
     ).to.eventually.be.rejectedWith(JSON.stringify(json));
   });

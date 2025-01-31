@@ -23,7 +23,7 @@ import { logDebug } from '../../logger';
 import { addToken, urlBuilder } from '../../util/url';
 import { dcFetch } from '../fetch';
 
-import { DataConnectTransport } from '.';
+import { CallerSdkType, CallerSdkTypeEnum, DataConnectTransport } from '.';
 
 export class RESTTransport implements DataConnectTransport {
   private _host = '';
@@ -43,10 +43,7 @@ export class RESTTransport implements DataConnectTransport {
     private authProvider?: AuthTokenProvider | undefined,
     private appCheckProvider?: AppCheckTokenProvider | undefined,
     transportOptions?: TransportOptions | undefined,
-    private _isUsingGen = false,
-    private _isUsingReact = false,
-    private _isUsingAngular = false,
-    private _isUsingTanStack = false
+    private _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base,
   ) {
     if (transportOptions) {
       if (typeof transportOptions.port === 'number') {
@@ -183,10 +180,7 @@ export class RESTTransport implements DataConnectTransport {
         this.appId,
         this._accessToken,
         this._appCheckToken,
-        this._isUsingGen,
-        this._isUsingTanStack,
-        this._isUsingReact,
-        this._isUsingAngular
+        this._callerSdkType
       )
     );
     return withAuth;
@@ -211,28 +205,14 @@ export class RESTTransport implements DataConnectTransport {
         this.appId,
         this._accessToken,
         this._appCheckToken,
-        this._isUsingGen,
-        this._isUsingTanStack,
-        this._isUsingReact,
-        this._isUsingAngular
+        this._callerSdkType
       );
     });
     return taskResult;
   };
 
-  _useTanStack(): void {
-    if (!this._isUsingTanStack) {
-      this._isUsingTanStack = true;
-    }
-  }
-  _useReact(): void {
-    if (!this._isUsingReact) {
-      this._isUsingReact = true;
-    }
-  }
-  _useAngular(): void {
-    if (!this._isUsingAngular) {
-      this._isUsingAngular = true;
-    }
+  // @internal
+  _setCallerSdkType(callerSdkType: CallerSdkType): void {
+    this._callerSdkType = callerSdkType;
   }
 }

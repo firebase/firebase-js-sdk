@@ -20,6 +20,26 @@ import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
 
 /**
+ * enum representing different flavors of the SDK used by developers
+ * use the CallerSdkType for type-checking, and the CallerSdkTypeEnum for value-checking/assigning
+ */
+export type CallerSdkType =
+  | 'Base' // Core JS SDK
+  | 'Generated' // Generated JS SDK
+  | 'TanstackReactCore' // Tanstack non-generated React SDK
+  | 'GeneratedReact' // Generated React SDK
+  | 'TanstackAngularCore' // Tanstack non-generated Angular SDK
+  | 'GeneratedAngular'; // Generated Angular SDK
+export const CallerSdkTypeEnum = Object.freeze({
+  Base: 'Base', // Core JS SDK
+  Generated: 'Generated', // Generated JS SDK
+  TanstackReactCore: 'TanstackReactCore', // Tanstack non-generated React SDK
+  GeneratedReact: 'GeneratedReact', // Tanstack non-generated Angular SDK
+  TanstackAngularCore: 'TanstackAngularCore', // Tanstack non-generated Angular SDK
+  GeneratedAngular: 'GeneratedAngular' // Generated Angular SDK
+} as const);
+
+/**
  * @internal
  */
 export interface DataConnectTransport {
@@ -33,9 +53,8 @@ export interface DataConnectTransport {
   ): Promise<{ data: T; errors: Error[] }>;
   useEmulator(host: string, port?: number, sslEnabled?: boolean): void;
   onTokenChanged: (token: string | null) => void;
-  _useTanStack(): void;
-  _useReact(): void;
-  _useAngular(): void;
+  // @internal
+  _setCallerSdkType(callerSdkType: CallerSdkType): void;
 }
 
 /**
@@ -48,8 +67,5 @@ export type TransportClass = new (
   authProvider?: AuthTokenProvider,
   appCheckProvider?: AppCheckTokenProvider,
   transportOptions?: TransportOptions,
-  _isUsingGen?: boolean,
-  _isUsingTanStack?: boolean,
-  _isUsingReact?: boolean,
-  _isUsingAngular?: boolean
+  _callerSdkType?: CallerSdkType
 ) => DataConnectTransport;

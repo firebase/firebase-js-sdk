@@ -12,6 +12,19 @@ import { LogLevelString } from '@firebase/logger';
 import { Provider } from '@firebase/component';
 
 // @public
+export type CallerSdkType = 'Base' | 'Generated' | 'TanstackReactCore' | 'GeneratedReact' | 'TanstackAngularCore' | 'GeneratedAngular';
+
+// @public (undocumented)
+export const CallerSdkTypeEnum: Readonly<{
+    readonly Base: "Base";
+    readonly Generated: "Generated";
+    readonly TanstackReactCore: "TanstackReactCore";
+    readonly GeneratedReact: "GeneratedReact";
+    readonly TanstackAngularCore: "TanstackAngularCore";
+    readonly GeneratedAngular: "GeneratedAngular";
+}>;
+
+// @public
 export function connectDataConnectEmulator(dc: DataConnect, host: string, port?: number, sslEnabled?: boolean): void;
 
 // @public

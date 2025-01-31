@@ -33,7 +33,7 @@ import {
 } from '../core/FirebaseAuthProvider';
 import { QueryManager } from '../core/QueryManager';
 import { logDebug, logError } from '../logger';
-import { DataConnectTransport, TransportClass } from '../network';
+import { CallerSdkType, CallerSdkTypeEnum, DataConnectTransport, TransportClass } from '../network';
 import { RESTTransport } from '../network/transport/rest';
 
 import { MutationManager } from './Mutation';
@@ -91,10 +91,7 @@ export class DataConnect {
   private _transportClass: TransportClass | undefined;
   private _transportOptions?: TransportOptions;
   private _authTokenProvider?: AuthTokenProvider;
-  _isUsingGeneratedSdk: boolean = false;
-  _isUsingTanStackSdk: boolean = false;
-  _isUsingReactSdk: boolean = false;
-  _isUsingAngularSdk: boolean = false;
+  _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base;
   private _appCheckTokenProvider?: AppCheckTokenProvider;
   // @internal
   constructor(
@@ -114,37 +111,8 @@ export class DataConnect {
     }
   }
   // @internal
-  _useGeneratedSdk(): void {
-    if (!this._isUsingGeneratedSdk) {
-      this._isUsingGeneratedSdk = true;
-    }
-  }
-  // @internal
-  _useTanStackSdk(): void {
-    if (!this._isUsingTanStackSdk) {
-      this._isUsingTanStackSdk = true;
-    }
-    if (this._transport) {
-      this._transport._useTanStack();
-    }
-  }
-  // @internal
-  _useReactSdk(): void {
-    if (!this._isUsingReactSdk) {
-      this._isUsingReactSdk = true;
-    }
-    if (this._transport) {
-      this._transport._useReact();
-    }
-  }
-  // @internal
-  _useAngularSdk(): void {
-    if (!this._isUsingAngularSdk) {
-      this._isUsingAngularSdk = true;
-    }
-    if (this._transport) {
-      this._transport._useAngular();
-    }
+  _setCallerSdkType(callerSdkType: CallerSdkType): void {
+    this._callerSdkType = callerSdkType;
   }
   _delete(): Promise<void> {
     _removeServiceInstance(
@@ -194,10 +162,7 @@ export class DataConnect {
       this._authTokenProvider,
       this._appCheckTokenProvider,
       undefined,
-      this._isUsingGeneratedSdk,
-      this._isUsingTanStackSdk,
-      this._isUsingReactSdk,
-      this._isUsingAngularSdk
+      this._callerSdkType
     );
     if (this._transportOptions) {
       this._transport.useEmulator(
