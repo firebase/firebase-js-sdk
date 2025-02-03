@@ -32,8 +32,6 @@ export function emitModulePackageFile() {
         source: `{"type":"module"}`,
         type: 'asset'
       });
-      // I'm not sure why, this seems to prevent a rollup race condition?
-      console.log('Emitted module package.json file for:', options.file);
     },
     name: 'emit-module-package-file'
   };
