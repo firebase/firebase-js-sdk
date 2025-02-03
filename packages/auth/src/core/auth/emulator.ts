@@ -44,15 +44,9 @@ import { _castAuth } from './auth_impl';
 export function connectAuthEmulator(
   auth: Auth,
   url: string,
-  options?: { disableWarnings: boolean }
+  options: { disableWarnings: boolean } = { disableWarnings: false }
 ): void {
   const authInternal = _castAuth(auth);
-  _assert(
-    authInternal._canInitEmulator,
-    authInternal,
-    AuthErrorCode.EMULATOR_CONFIG_FAILED
-  );
-
   _assert(
     /^https?:\/\//.test(url),
     authInternal,
@@ -66,14 +60,28 @@ export function connectAuthEmulator(
   const portStr = port === null ? '' : `:${port}`;
 
   // Always replace path with "/" (even if input url had no path at all, or had a different one).
-  authInternal.config.emulator = { url: `${protocol}//${host}${portStr}/` };
-  authInternal.settings.appVerificationDisabledForTesting = true;
-  authInternal.emulatorConfig = Object.freeze({
+  const emulator = { url: `${protocol}//${host}${portStr}/` };
+  const emulatorConfig = Object.freeze({
     host,
     port,
     protocol: protocol.replace(':', ''),
     options: Object.freeze({ disableWarnings })
   });
+
+  if (!authInternal._canInitEmulator) {
+    _assert(
+      JSON.stringify(emulator) ===
+        JSON.stringify(authInternal.config.emulator) &&
+        JSON.stringify(emulatorConfig) ===
+          JSON.stringify(authInternal.emulatorConfig),
+      authInternal,
+      AuthErrorCode.EMULATOR_CONFIG_FAILED
+    );
+  }
+
+  authInternal.config.emulator = emulator;
+  authInternal.emulatorConfig = emulatorConfig;
+  authInternal.settings.appVerificationDisabledForTesting = true;
 
   if (!disableWarnings) {
     emitEmulatorWarning();
