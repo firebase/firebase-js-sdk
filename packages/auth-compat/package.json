@@ -59,7 +59,7 @@
   "devDependencies": {
     "@firebase/app-compat": "0.2.48",
     "@rollup/plugin-json": "6.1.0",
-    "rollup": "2.79.1",
+    "rollup": "2.79.2",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.31.2",
     "selenium-webdriver": "4.8.0",
