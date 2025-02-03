@@ -803,7 +803,7 @@ export const enum VertexAIErrorCode {
 }
 
 // @public
-export class VertexAIModel {
+export abstract class VertexAIModel {
     // @internal
     protected constructor(vertexAI: VertexAI, modelName: string);
     // @internal (undocumented)
