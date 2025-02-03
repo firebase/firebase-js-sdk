@@ -220,7 +220,7 @@ export async function handlePredictResponse<
   if (!responseJson.predictions || responseJson.predictions?.length === 0) {
     throw new VertexAIError(
       VertexAIErrorCode.RESPONSE_ERROR,
-      "No predictions or filtered reason received from Vertex AI. Please report this issue with the full error details at https://github.com/firebase/firebase-js-sdk/issues."
+      'No predictions or filtered reason received from Vertex AI. Please report this issue with the full error details at https://github.com/firebase/firebase-js-sdk/issues.'
     );
   }
 
