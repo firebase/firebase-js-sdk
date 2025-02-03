@@ -216,10 +216,11 @@ export async function handlePredictResponse<
   const images: T[] = [];
   let filteredReason: string | undefined = undefined;
 
+  // The backend should always send a non-empty array of predictions if the response was successful.
   if (!responseJson.predictions || responseJson.predictions?.length === 0) {
     throw new VertexAIError(
-      VertexAIErrorCode.ERROR,
-      "Predictions array is undefined or empty in response. Was 'includeRaiReason' enabled in the request?"
+      VertexAIErrorCode.RESPONSE_ERROR,
+      "No predictions or filtered reason received from Vertex AI. Please report this issue with the full error details at https://github.com/firebase/firebase-js-sdk/issues."
     );
   }
 

@@ -26,7 +26,7 @@ import { _isFirebaseServerApp } from '@firebase/app';
  *
  * @public
  */
-export class VertexAIModel {
+export abstract class VertexAIModel {
   /**
    * The fully qualified model resource name to use for generating images
    * (e.g. `publishers/google/models/imagen-3.0-generate-001`).
