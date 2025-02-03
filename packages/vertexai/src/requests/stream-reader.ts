@@ -197,9 +197,6 @@ export function aggregateResponses(
             if (part.functionCall) {
               newPart.functionCall = part.functionCall;
             }
-            if (Object.keys(newPart).length === 0) {
-              newPart.text = '';
-            }
             aggregatedResponse.candidates[i].content.parts.push(
               newPart as Part
             );

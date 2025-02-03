@@ -226,7 +226,6 @@ describe('processStream', () => {
     );
     const result = processStream(fakeResponse as Response);
     const aggregatedResponse = await result.response;
-    console.log(aggregatedResponse.candidates?.[0].content.parts);
     expect(aggregatedResponse.text()).to.equal('1');
     expect(aggregatedResponse.candidates?.length).to.equal(1);
     expect(aggregatedResponse.candidates?.[0].content.parts.length).to.equal(1);
