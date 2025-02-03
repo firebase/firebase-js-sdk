@@ -77,6 +77,7 @@ export function connectAuthEmulator(
       authInternal,
       AuthErrorCode.EMULATOR_CONFIG_FAILED
     );
+    return;
   }
 
   authInternal.config.emulator = emulator;
