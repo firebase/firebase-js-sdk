@@ -44,7 +44,7 @@ import { _castAuth } from './auth_impl';
 export function connectAuthEmulator(
   auth: Auth,
   url: string,
-  options: { disableWarnings: boolean } = { disableWarnings: false }
+  options?: { disableWarnings: boolean }
 ): void {
   const authInternal = _castAuth(auth);
   _assert(

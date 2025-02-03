@@ -76,6 +76,41 @@ describe('core/auth/emulator', () => {
       );
     });
 
+    it('passes with same config if a network request has already been made', async () => {
+      expect(() => connectAuthEmulator(auth, 'http://127.0.0.1:2020')).to.not
+        .throw;
+      await user.delete();
+      expect(() => connectAuthEmulator(auth, 'http://127.0.0.1:2020')).to.not
+        .throw;
+    });
+
+    it('fails with differeing config if a network request has already been made', async () => {
+      expect(() => connectAuthEmulator(auth, 'http://127.0.0.1:2020')).to.not
+        .throw;
+      await user.delete();
+      expect(() => connectAuthEmulator(auth, 'http://127.0.0.1:2021')).to.throw(
+        FirebaseError,
+        'auth/emulator-config-failed'
+      );
+    });
+
+    it('subsequent calls update the endpoint appropriately', async () => {
+      connectAuthEmulator(auth, 'http://127.0.0.2:2020');
+      expect(auth.emulatorConfig).to.eql({
+        protocol: 'http',
+        host: '127.0.0.2',
+        port: 2020,
+        options: { disableWarnings: false }
+      });
+      connectAuthEmulator(auth, 'http://127.0.0.1:2020');
+      expect(auth.emulatorConfig).to.eql({
+        protocol: 'http',
+        host: '127.0.0.1',
+        port: 2020,
+        options: { disableWarnings: false }
+      });
+    });
+
     it('updates the endpoint appropriately', async () => {
       connectAuthEmulator(auth, 'http://127.0.0.1:2020');
       await user.delete();
