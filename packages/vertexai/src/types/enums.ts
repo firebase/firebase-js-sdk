@@ -143,7 +143,7 @@ export enum FunctionCallingMode {
  * @public
  */
 export enum Modality {
-  UNSPECIFIED = 'UNSPECIFIED',
+  MODALITY_UNSPECIFIED = 'MODALITY_UNSPECIFIED',
   TEXT = 'TEXT',
   IMAGE = 'IMAGE',
   VIDEO = 'VIDEO',
