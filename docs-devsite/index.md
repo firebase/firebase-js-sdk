@@ -28,3 +28,4 @@ https://github.com/firebase/firebase-js-sdk
 |  [@firebase/remote-config](./remote-config.md#remote-config_package) | The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environment. |
 |  [@firebase/storage](./storage.md#storage_package) | Cloud Storage for Firebase |
 |  [@firebase/vertexai](./vertexai.md#vertexai_package) | The Vertex AI in Firebase Web SDK. |
+ 
