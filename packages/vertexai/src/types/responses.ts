@@ -21,7 +21,8 @@ import {
   FinishReason,
   HarmCategory,
   HarmProbability,
-  HarmSeverity
+  HarmSeverity,
+  Modality
 } from './enums';
 
 /**
@@ -83,6 +84,17 @@ export interface UsageMetadata {
   promptTokenCount: number;
   candidatesTokenCount: number;
   totalTokenCount: number;
+  promptTokensDetails?: ModalityTokenCount[];
+  candidatesTokensDetails?: ModalityTokenCount[];
+}
+
+/**
+ * The number of tokens used by a given content type.
+ * @public
+ */
+export interface ModalityTokenCount {
+  modality: Modality;
+  tokenCount: number;
 }
 
 /**
@@ -213,4 +225,6 @@ export interface CountTokensResponse {
    * from the request.
    */
   totalBillableCharacters?: number;
+
+  promptTokensDetails?: ModalityTokenCount;
 }
