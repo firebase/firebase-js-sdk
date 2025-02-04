@@ -125,6 +125,7 @@ export class DataConnect {
   // @internal
   _setCallerSdkType(callerSdkType: CallerSdkType): void {
     this._callerSdkType = callerSdkType;
+    this._transport._setCallerSdkType(callerSdkType);
   }
   _delete(): Promise<void> {
     _removeServiceInstance(
