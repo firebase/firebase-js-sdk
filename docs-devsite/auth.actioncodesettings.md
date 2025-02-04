@@ -49,7 +49,7 @@ android?: {
 
 > Warning: This API is now obsolete.
 > 
-> Firebase Dynamic Links is deprecated and will be shut down as early as August 2025. Instead, use  to set a custom domain for mobile links. Learn more in the [Dynamic Links deprecation FAQ](https://firebase.google.com/support/dynamic-links-faq)<!-- -->.
+> Firebase Dynamic Links is deprecated and will be shut down as early as August 2025. Instead, use [ActionCodeSettings.linkDomain](./auth.actioncodesettings.md#actioncodesettingslinkdomain) to set a custom domain for mobile links. Learn more in the [Dynamic Links deprecation FAQ](https://firebase.google.com/support/dynamic-links-faq)<!-- -->.
 > 
 
 When multiple custom dynamic link domains are defined for a project, specify which one to use when the link is to be opened via a specified mobile app (for example, `example.page.link`<!-- -->).

@@ -508,8 +508,8 @@ export interface ActionCodeSettings {
    * @defaultValue The first domain is automatically selected.
    *
    * @deprecated Firebase Dynamic Links is deprecated and will be shut down as early as August
-   * 2025. Instead, use {@link linkDomain} to set a custom domain for mobile links. Learn more in
-   * the {@link https://firebase.google.com/support/dynamic-links-faq | Dynamic Links deprecation FAQ}.
+   * 2025. Instead, use {@link ActionCodeSettings.linkDomain} to set a custom domain for mobile
+   * links. Learn more in the {@link https://firebase.google.com/support/dynamic-links-faq | Dynamic Links deprecation FAQ}.
    */
   dynamicLinkDomain?: string;
   /**
