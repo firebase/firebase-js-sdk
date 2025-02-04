@@ -507,8 +507,8 @@ export interface ActionCodeSettings {
    *
    * @defaultValue The first domain is automatically selected.
    *
-   * @deprecated Firebase Dynamic Links is deprecated. Migrate to use Firebase Hosting link and use
-   * `linkDomain` to set a custom domain instead.
+   * @deprecated Firebase Dynamic Links is deprecated. Instead, use `linkDomain` to set a custom
+   * domain for mobile links.
    */
   dynamicLinkDomain?: string;
   /**
