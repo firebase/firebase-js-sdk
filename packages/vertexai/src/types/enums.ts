@@ -137,3 +137,16 @@ export enum FunctionCallingMode {
   // not passing any function declarations.
   NONE = 'NONE'
 }
+
+/**
+ * Type of content.
+ * @public
+ */
+export enum Modality {
+  MODALITY_UNSPECIFIED = 'MODALITY_UNSPECIFIED',
+  TEXT = 'TEXT',
+  IMAGE = 'IMAGE',
+  VIDEO = 'VIDEO',
+  AUDIO = 'AUDIO',
+  DOCUMENT = 'DOCUMENT'
+}
