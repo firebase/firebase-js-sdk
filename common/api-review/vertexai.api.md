@@ -92,6 +92,8 @@ export interface CountTokensRequest {
 
 // @public
 export interface CountTokensResponse {
+    // (undocumented)
+    promptTokensDetails?: ModalityTokenCount;
     totalBillableCharacters?: number;
     totalTokens: number;
 }
@@ -448,6 +450,30 @@ export class IntegerSchema extends Schema {
 }
 
 // @public
+export enum Modality {
+    // (undocumented)
+    AUDIO = "AUDIO",
+    // (undocumented)
+    DOCUMENT = "DOCUMENT",
+    // (undocumented)
+    IMAGE = "IMAGE",
+    // (undocumented)
+    MODALITY_UNSPECIFIED = "MODALITY_UNSPECIFIED",
+    // (undocumented)
+    TEXT = "TEXT",
+    // (undocumented)
+    VIDEO = "VIDEO"
+}
+
+// @public
+export interface ModalityTokenCount {
+    // (undocumented)
+    modality: Modality;
+    // (undocumented)
+    tokenCount: number;
+}
+
+// @public
 export interface ModelParams extends BaseParams {
     // (undocumented)
     model: string;
@@ -682,7 +708,11 @@ export interface UsageMetadata {
     // (undocumented)
     candidatesTokenCount: number;
     // (undocumented)
+    candidatesTokensDetails?: ModalityTokenCount[];
+    // (undocumented)
     promptTokenCount: number;
+    // (undocumented)
+    promptTokensDetails?: ModalityTokenCount[];
     // (undocumented)
     totalTokenCount: number;
 }
