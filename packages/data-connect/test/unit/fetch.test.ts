@@ -20,26 +20,30 @@ import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 
 import { dcFetch, initializeFetch } from '../../src/network/fetch';
-import { CallerSdkTypeEnum } from '../../src/network/transport';
+import { CallerSdkType, CallerSdkTypeEnum } from '../../src/network/transport';
 use(chaiAsPromised);
-function mockFetch(json: object): void {
+function mockFetch(json: object, reject: boolean): sinon.SinonStub {
   const fakeFetchImpl = sinon.stub().returns(
     Promise.resolve({
       json: () => {
         return Promise.resolve(json);
       },
-      status: 401
+      status: reject ? 401 : 200
     } as Response)
   );
   initializeFetch(fakeFetchImpl);
+  return fakeFetchImpl;
 }
 describe('fetch', () => {
   it('should throw an error with just the message when the server responds with an error with a message property in the body', async () => {
     const message = 'Failed to connect to Postgres instance';
-    mockFetch({
-      code: 401,
-      message
-    });
+    mockFetch(
+      {
+        code: 401,
+        message
+      },
+      true
+    );
     await expect(
       dcFetch(
         'http://localhost',
@@ -63,7 +67,7 @@ describe('fetch', () => {
       code: 401,
       message1: message
     };
-    mockFetch(json);
+    mockFetch(json, true);
     await expect(
       dcFetch(
         'http://localhost',
@@ -80,5 +84,78 @@ describe('fetch', () => {
         CallerSdkTypeEnum.Base
       )
     ).to.eventually.be.rejectedWith(JSON.stringify(json));
+  });
+  it('should assign different values to custom headers based on the _callerSdkType argument', async () => {
+    const json = {
+      code: 200,
+      message1: 'success'
+    };
+    const fakeFetchImpl = mockFetch(json, false);
+
+    const callerSdkTypesUsed: string[] = [];
+
+    for (const callerSdkType in CallerSdkTypeEnum) {
+      if (
+        Object.prototype.hasOwnProperty.call(CallerSdkTypeEnum, callerSdkType)
+      ) {
+        callerSdkTypesUsed.push(callerSdkType);
+        await dcFetch(
+          'http://localhost',
+          {
+            name: 'n',
+            operationName: 'n',
+            variables: {}
+          },
+          {} as AbortController,
+          null,
+          null,
+          null,
+          false,
+          callerSdkType as CallerSdkType
+        );
+      }
+    }
+
+    // an example of the args to fetch():
+    // [
+    //    "http://localhost",
+    //    {
+    //      "body": "{\"name\":\"n\",\"operationName\":\"n\",\"variables\":{}}",
+    //      "headers": {
+    //        "Content-Type": "application/json",
+    //        "X-Goog-Api-Client": "gl-js/ fire/11.2.0"
+    //      },
+    //      "method": "POST",
+    //      "signal": [undefined]
+    //    }
+    // ]
+    for (let i = 0; i < fakeFetchImpl.args.length; i++) {
+      const args = fakeFetchImpl.args[i];
+      expect(args.length).to.equal(2);
+      expect(Object.prototype.hasOwnProperty.call(args[1], 'headers')).to.be
+        .true;
+      expect(
+        Object.prototype.hasOwnProperty.call(
+          args[1]['headers'],
+          'X-Goog-Api-Client'
+        )
+      ).to.be.true;
+      expect(typeof args[1]['headers']['X-Goog-Api-Client']).to.equal('string');
+
+      const xGoogApiClientValue: string =
+        args[1]['headers']['X-Goog-Api-Client'];
+      // the sdk type headers are always of the form "js/xxx", where xxx is _callerSdkType.toLower()
+      // when the _callerSdkType is Base, we do not set any header
+      // when the _callerSdkType is Generated, we use "js/gen" instead of "js/generated"
+      if (callerSdkTypesUsed[i] === CallerSdkTypeEnum.Base) {
+        expect(xGoogApiClientValue).to.not.match(RegExp(`js\/w`));
+      } else if (callerSdkTypesUsed[i] === CallerSdkTypeEnum.Generated) {
+        expect(xGoogApiClientValue).to.match(RegExp(`js\/gen`));
+      } else {
+        expect(xGoogApiClientValue).to.match(
+          RegExp(`js\/${callerSdkTypesUsed[i].toLowerCase()}`)
+        );
+      }
+    }
   });
 });
