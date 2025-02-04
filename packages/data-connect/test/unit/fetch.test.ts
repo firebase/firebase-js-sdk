@@ -85,7 +85,7 @@ describe('fetch', () => {
       )
     ).to.eventually.be.rejectedWith(JSON.stringify(json));
   });
-  it('should assign different values to custom headers based on the _callerSdkType argument', async () => {
+  it('should assign different values to custom headers based on the _callerSdkType argument (_isUsingGen is false)', async () => {
     const json = {
       code: 200,
       message1: 'success'
@@ -110,7 +110,7 @@ describe('fetch', () => {
           null,
           null,
           null,
-          false,
+          false, // _isUsingGen is false
           callerSdkType as CallerSdkType
         );
       }
@@ -150,6 +150,66 @@ describe('fetch', () => {
       if (callerSdkTypesUsed[i] === CallerSdkTypeEnum.Base) {
         expect(xGoogApiClientValue).to.not.match(RegExp(`js\/w`));
       } else if (callerSdkTypesUsed[i] === CallerSdkTypeEnum.Generated) {
+        expect(xGoogApiClientValue).to.match(RegExp(`js\/gen`));
+      } else {
+        expect(xGoogApiClientValue).to.match(
+          RegExp(`js\/${callerSdkTypesUsed[i].toLowerCase()}`)
+        );
+      }
+    }
+  });
+  it('should assign custom headers based on _callerSdkType before checking to-be-deprecated _isUsingGen', async () => {
+    const json = {
+      code: 200,
+      message1: 'success'
+    };
+    const fakeFetchImpl = mockFetch(json, false);
+
+    const callerSdkTypesUsed: string[] = [];
+
+    for (const callerSdkType in CallerSdkTypeEnum) {
+      if (
+        Object.prototype.hasOwnProperty.call(CallerSdkTypeEnum, callerSdkType)
+      ) {
+        callerSdkTypesUsed.push(callerSdkType);
+        await dcFetch(
+          'http://localhost',
+          {
+            name: 'n',
+            operationName: 'n',
+            variables: {}
+          },
+          {} as AbortController,
+          null,
+          null,
+          null,
+          true, // _isUsingGen is true
+          callerSdkType as CallerSdkType
+        );
+      }
+    }
+
+    for (let i = 0; i < fakeFetchImpl.args.length; i++) {
+      const args = fakeFetchImpl.args[i];
+      expect(args.length).to.equal(2);
+      expect(Object.prototype.hasOwnProperty.call(args[1], 'headers')).to.be
+        .true;
+      expect(
+        Object.prototype.hasOwnProperty.call(
+          args[1]['headers'],
+          'X-Goog-Api-Client'
+        )
+      ).to.be.true;
+      expect(typeof args[1]['headers']['X-Goog-Api-Client']).to.equal('string');
+
+      const xGoogApiClientValue: string =
+        args[1]['headers']['X-Goog-Api-Client'];
+      // despite _isUsingGen being true, the headers should be based on _callerSdkType
+      // _isUsingGen should only take precedence when _callerSdkType is "Base"
+      if (
+        callerSdkTypesUsed[i] === CallerSdkTypeEnum.Generated ||
+        callerSdkTypesUsed[i] === CallerSdkTypeEnum.Base
+      ) {
         expect(xGoogApiClientValue).to.match(RegExp(`js\/gen`));
       } else {
         expect(xGoogApiClientValue).to.match(
