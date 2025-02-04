@@ -93,7 +93,7 @@ export interface CountTokensRequest {
 // @public
 export interface CountTokensResponse {
     // (undocumented)
-    promptTokensDetails?: ModalityTokenCount;
+    promptTokensDetails?: ModalityTokenCount[];
     totalBillableCharacters?: number;
     totalTokens: number;
 }
