@@ -113,48 +113,25 @@ describe('fetch', () => {
           false, // _isUsingGen is false
           callerSdkType as CallerSdkType
         );
-      }
-    }
 
-    // an example of the args to fetch():
-    // [
-    //    "http://localhost",
-    //    {
-    //      "body": "{\"name\":\"n\",\"operationName\":\"n\",\"variables\":{}}",
-    //      "headers": {
-    //        "Content-Type": "application/json",
-    //        "X-Goog-Api-Client": "gl-js/ fire/11.2.0"
-    //      },
-    //      "method": "POST",
-    //      "signal": [undefined]
-    //    }
-    // ]
-    for (let i = 0; i < fakeFetchImpl.args.length; i++) {
-      const args = fakeFetchImpl.args[i];
-      expect(args.length).to.equal(2);
-      expect(Object.prototype.hasOwnProperty.call(args[1], 'headers')).to.be
-        .true;
-      expect(
-        Object.prototype.hasOwnProperty.call(
-          args[1]['headers'],
-          'X-Goog-Api-Client'
-        )
-      ).to.be.true;
-      expect(typeof args[1]['headers']['X-Goog-Api-Client']).to.equal('string');
-
-      const xGoogApiClientValue: string =
-        args[1]['headers']['X-Goog-Api-Client'];
-      // the sdk type headers are always of the form "js/xxx", where xxx is _callerSdkType.toLower()
-      // when the _callerSdkType is Base, we do not set any header
-      // when the _callerSdkType is Generated, we use "js/gen" instead of "js/generated"
-      if (callerSdkTypesUsed[i] === CallerSdkTypeEnum.Base) {
-        expect(xGoogApiClientValue).to.not.match(RegExp(`js\/w`));
-      } else if (callerSdkTypesUsed[i] === CallerSdkTypeEnum.Generated) {
-        expect(xGoogApiClientValue).to.match(RegExp(`js\/gen`));
-      } else {
-        expect(xGoogApiClientValue).to.match(
-          RegExp(`js\/${callerSdkTypesUsed[i].toLowerCase()}`)
-        );
+        let expectedHeaderRegex: RegExp;
+        if (callerSdkType === CallerSdkTypeEnum.Base) {
+          // should not contain any "js/xxx" substring
+          expectedHeaderRegex = RegExp(`^((?!js\/\w).)*$`);
+        } else if (callerSdkType === CallerSdkTypeEnum.Generated) {
+          expectedHeaderRegex = RegExp(`js\/gen`);
+        } else {
+          expectedHeaderRegex = RegExp(`js\/${callerSdkType.toLowerCase()}`);
+        }
+        expect(
+          fakeFetchImpl.calledWithMatch(
+            'http://localhost',
+            sinon.match.hasNested(
+              'headers.X-Goog-Api-Client',
+              sinon.match(expectedHeaderRegex)
+            )
+          )
+        ).to.be.true;
       }
     }
   });
@@ -165,13 +142,10 @@ describe('fetch', () => {
     };
     const fakeFetchImpl = mockFetch(json, false);
 
-    const callerSdkTypesUsed: string[] = [];
-
     for (const callerSdkType in CallerSdkTypeEnum) {
       if (
         Object.prototype.hasOwnProperty.call(CallerSdkTypeEnum, callerSdkType)
       ) {
-        callerSdkTypesUsed.push(callerSdkType);
         await dcFetch(
           'http://localhost',
           {
@@ -186,35 +160,25 @@ describe('fetch', () => {
           true, // _isUsingGen is true
           callerSdkType as CallerSdkType
         );
-      }
-    }
 
-    for (let i = 0; i < fakeFetchImpl.args.length; i++) {
-      const args = fakeFetchImpl.args[i];
-      expect(args.length).to.equal(2);
-      expect(Object.prototype.hasOwnProperty.call(args[1], 'headers')).to.be
-        .true;
-      expect(
-        Object.prototype.hasOwnProperty.call(
-          args[1]['headers'],
-          'X-Goog-Api-Client'
-        )
-      ).to.be.true;
-      expect(typeof args[1]['headers']['X-Goog-Api-Client']).to.equal('string');
-
-      const xGoogApiClientValue: string =
-        args[1]['headers']['X-Goog-Api-Client'];
-      // despite _isUsingGen being true, the headers should be based on _callerSdkType
-      // _isUsingGen should only take precedence when _callerSdkType is "Base"
-      if (
-        callerSdkTypesUsed[i] === CallerSdkTypeEnum.Generated ||
-        callerSdkTypesUsed[i] === CallerSdkTypeEnum.Base
-      ) {
-        expect(xGoogApiClientValue).to.match(RegExp(`js\/gen`));
-      } else {
-        expect(xGoogApiClientValue).to.match(
-          RegExp(`js\/${callerSdkTypesUsed[i].toLowerCase()}`)
-        );
+        let expectedHeaderRegex: RegExp;
+        if (
+          callerSdkType === CallerSdkTypeEnum.Generated ||
+          callerSdkType === CallerSdkTypeEnum.Base
+        ) {
+          expectedHeaderRegex = RegExp(`js\/gen`);
+        } else {
+          expectedHeaderRegex = RegExp(`js\/${callerSdkType.toLowerCase()}`);
+        }
+        expect(
+          fakeFetchImpl.calledWithMatch(
+            'http://localhost',
+            sinon.match.hasNested(
+              'headers.X-Goog-Api-Client',
+              sinon.match(expectedHeaderRegex)
+            )
+          )
+        ).to.be.true;
       }
     }
   });
