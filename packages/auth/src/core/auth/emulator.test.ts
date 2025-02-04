@@ -84,7 +84,7 @@ describe('core/auth/emulator', () => {
         .throw;
     });
 
-    it('fails with differeing config if a network request has already been made', async () => {
+    it('fails with alternate config if a network request has already been made', async () => {
       expect(() => connectAuthEmulator(auth, 'http://127.0.0.1:2020')).to.not
         .throw;
       await user.delete();
@@ -95,11 +95,11 @@ describe('core/auth/emulator', () => {
     });
 
     it('subsequent calls update the endpoint appropriately', async () => {
-      connectAuthEmulator(auth, 'http://127.0.0.2:2020');
+      connectAuthEmulator(auth, 'http://127.0.0.1:2021');
       expect(auth.emulatorConfig).to.eql({
         protocol: 'http',
-        host: '127.0.0.2',
-        port: 2020,
+        host: '127.0.0.1',
+        port: 2021,
         options: { disableWarnings: false }
       });
       connectAuthEmulator(auth, 'http://127.0.0.1:2020');
