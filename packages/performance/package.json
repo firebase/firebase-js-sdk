@@ -1,6 +1,6 @@
 {
   "name": "@firebase/performance",
-  "version": "0.6.11",
+  "version": "0.6.12",
   "description": "Firebase performance for web",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -14,9 +14,7 @@
     },
     "./package.json": "./package.json"
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -39,16 +37,17 @@
   },
   "dependencies": {
     "@firebase/logger": "0.4.4",
-    "@firebase/installations": "0.6.11",
-    "@firebase/util": "1.10.2",
-    "@firebase/component": "0.6.11",
-    "tslib": "^2.1.0"
+    "@firebase/installations": "0.6.12",
+    "@firebase/util": "1.10.3",
+    "@firebase/component": "0.6.12",
+    "tslib": "^2.1.0",
+    "web-vitals": "^4.2.4"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.10.17",
+    "@firebase/app": "0.10.18",
     "rollup": "2.79.1",
-    "@rollup/plugin-json": "4.1.0",
+    "@rollup/plugin-json": "6.1.0",
     "rollup-plugin-typescript2": "0.31.2",
     "typescript": "5.5.4"
   },
@@ -62,9 +61,7 @@
   },
   "typings": "dist/src/index.d.ts",
   "nyc": {
-    "extension": [
-      ".ts"
-    ],
+    "extension": [".ts"],
     "reportDir": "./coverage/node"
   }
 }

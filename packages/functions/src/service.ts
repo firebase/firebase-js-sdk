@@ -112,6 +112,7 @@ export class FunctionsService implements _FirebaseService {
     readonly fetchImpl: typeof fetch = (...args) => fetch(...args)
   ) {
     this.contextProvider = new ContextProvider(
+      app,
       authProvider,
       messagingProvider,
       appCheckProvider

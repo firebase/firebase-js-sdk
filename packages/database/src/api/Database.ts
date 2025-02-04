@@ -164,7 +164,7 @@ export function repoManagerDatabaseFromApp(
     repoInfo,
     app,
     authTokenProvider,
-    new AppCheckTokenProvider(app.name, appCheckProvider)
+    new AppCheckTokenProvider(app, appCheckProvider)
   );
   return new Database(repo, app);
 }

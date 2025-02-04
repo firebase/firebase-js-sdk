@@ -31,8 +31,8 @@ import {
   Provider
 } from '@firebase/component';
 
-import { Database } from '../api.standalone';
 import { repoManagerDatabaseFromApp } from '../api/Database';
+import { Database } from '../api.standalone';
 import { setSDKVersion } from '../core/version';
 
 /**
