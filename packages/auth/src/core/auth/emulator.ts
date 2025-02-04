@@ -18,6 +18,7 @@ import { Auth } from '../../model/public_types';
 import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
 import { _castAuth } from './auth_impl';
+import { deepEqual } from '@firebase/util';
 
 /**
  * Changes the {@link Auth} instance to communicate with the Firebase Auth Emulator, instead of production
@@ -70,10 +71,8 @@ export function connectAuthEmulator(
 
   if (!authInternal._canInitEmulator) {
     _assert(
-      JSON.stringify(emulator) ===
-        JSON.stringify(authInternal.config.emulator) &&
-        JSON.stringify(emulatorConfig) ===
-          JSON.stringify(authInternal.emulatorConfig),
+      deepEqual(emulator, authInternal.config.emulator || {}) &&
+        deepEqual(emulatorConfig, authInternal.emulatorConfig || {}),
       authInternal,
       AuthErrorCode.EMULATOR_CONFIG_FAILED
     );
