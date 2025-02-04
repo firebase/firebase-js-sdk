@@ -27,10 +27,10 @@ export function initializeFetch(fetchImpl: typeof fetch): void {
 }
 function getGoogApiClientValue(_isUsingGen: boolean, _callerSdkType: CallerSdkType): string {
   let str = 'gl-js/ fire/' + SDK_VERSION;
-  if (_isUsingGen || _callerSdkType === CallerSdkTypeEnum.Generated) {
-    str += ' js/gen';
-  } else if (_callerSdkType !== CallerSdkTypeEnum.Base) {
+  if (_callerSdkType !== CallerSdkTypeEnum.Base && _callerSdkType !== CallerSdkTypeEnum.Generated) {
     str += ' js/' + _callerSdkType.toLowerCase();
+  } else if (_isUsingGen || _callerSdkType === CallerSdkTypeEnum.Generated)  {
+    str += ' js/gen';
   }
   return str;
 }
