@@ -226,5 +226,5 @@ export interface CountTokensResponse {
    */
   totalBillableCharacters?: number;
 
-  promptTokensDetails?: ModalityTokenCount;
+  promptTokensDetails?: ModalityTokenCount[];
 }
