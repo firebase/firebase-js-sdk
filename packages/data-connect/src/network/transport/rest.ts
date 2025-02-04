@@ -44,7 +44,7 @@ export class RESTTransport implements DataConnectTransport {
     private appCheckProvider?: AppCheckTokenProvider | undefined,
     transportOptions?: TransportOptions | undefined,
     private _isUsingGen = false,
-    private _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base,
+    private _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base
   ) {
     if (transportOptions) {
       if (typeof transportOptions.port === 'number') {
