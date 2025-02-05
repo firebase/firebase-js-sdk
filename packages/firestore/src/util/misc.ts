@@ -74,6 +74,22 @@ export interface Equatable<T> {
   isEqual(other: T): boolean;
 }
 
+/** Compare strings in UTF-8 encoded byte order */
+export function compareUtf8Strings(left: string, right: string): number {
+  // Convert the string to UTF-8 encoded bytes
+  const encodedLeft = new TextEncoder().encode(left);
+  const encodedRight = new TextEncoder().encode(right);
+
+  for (let i = 0; i < Math.min(encodedLeft.length, encodedRight.length); i++) {
+    const comparison = primitiveComparator(encodedLeft[i], encodedRight[i]);
+    if (comparison !== 0) {
+      return comparison;
+    }
+  }
+
+  return primitiveComparator(encodedLeft.length, encodedRight.length);
+}
+
 export interface Iterable<V> {
   forEach: (cb: (v: V) => void) => void;
 }
