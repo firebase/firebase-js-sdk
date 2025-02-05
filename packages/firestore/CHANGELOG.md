@@ -1,5 +1,15 @@
 # @firebase/firestore
 
+## 4.7.7
+
+### Patch Changes
+
+- [`97d48c7`](https://github.com/firebase/firebase-js-sdk/commit/97d48c7650e2d4273b7f94c8964dfcb44113952a) [#8651](https://github.com/firebase/firebase-js-sdk/pull/8651) - `FirebaseServerApp` can now be initalized with an App Check token instead of invoking the App Check
+  `getToken` method. This should unblock the use of App Check enforced products in SSR environments
+  where the App Check SDK cannot be initialized.
+
+- [`721e5a7`](https://github.com/firebase/firebase-js-sdk/commit/721e5a7e97db5d2136c8338e2522dd07dbc3a29e) [#8691](https://github.com/firebase/firebase-js-sdk/pull/8691) - Fixed a server and sdk mismatch in unicode string sorting.
+
 ## 4.7.6
 
 ### Patch Changes
