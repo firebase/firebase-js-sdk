@@ -133,7 +133,7 @@
   "devDependencies": {
     "@firebase/app": "0.10.18",
     "@rollup/plugin-json": "6.1.0",
-    "@rollup/plugin-strip": "2.1.0",
+    "@rollup/plugin-strip": "3.0.4",
     "@types/express": "4.17.21",
     "chromedriver": "119.0.1",
     "rollup": "2.79.2",
