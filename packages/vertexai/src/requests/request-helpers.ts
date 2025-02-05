@@ -22,6 +22,7 @@ import {
   VertexAIErrorCode
 } from '../types';
 import { VertexAIError } from '../errors';
+import { ImagenGenerationParams, PredictRequestBody } from '../types/internal';
 
 export function formatSystemInstruction(
   input?: string | Part | Content
@@ -49,11 +50,11 @@ export function formatNewContent(
   if (typeof request === 'string') {
     newParts = [{ text: request }];
   } else {
-    for (const partOrString of request) {
-      if (typeof partOrString === 'string') {
-        newParts.push({ text: partOrString });
+    for (const elem of request) {
+      if (typeof elem === 'string') {
+        newParts.push({ text: elem });
       } else {
-        newParts.push(partOrString);
+        newParts.push(elem);
       }
     }
   }
@@ -113,7 +114,6 @@ export function formatGenerateContentInput(
   if ((params as GenerateContentRequest).contents) {
     formattedRequest = params as GenerateContentRequest;
   } else {
-    // Array or string
     const content = formatNewContent(params as string | Array<string | Part>);
     formattedRequest = { contents: [content] };
   }
@@ -123,4 +123,45 @@ export function formatGenerateContentInput(
     );
   }
   return formattedRequest;
+}
+
+/**
+ * Convert the user-defined parameters in {@link ImagenGenerationParams} to the format
+ * that is expected from the REST API.
+ *
+ * @internal
+ */
+export function createPredictRequestBody(
+  prompt: string,
+  {
+    gcsURI,
+    imageFormat,
+    addWatermark,
+    numberOfImages = 1,
+    negativePrompt,
+    aspectRatio,
+    safetyFilterLevel,
+    personFilterLevel
+  }: ImagenGenerationParams
+): PredictRequestBody {
+  // Properties that are undefined will be omitted from the JSON string that is sent in the request.
+  const body: PredictRequestBody = {
+    instances: [
+      {
+        prompt
+      }
+    ],
+    parameters: {
+      storageUri: gcsURI,
+      negativePrompt,
+      sampleCount: numberOfImages,
+      aspectRatio,
+      ...imageFormat,
+      addWatermark,
+      safetyFilterLevel,
+      personGeneration: personFilterLevel,
+      includeRaiReason: true
+    }
+  };
+  return body;
 }

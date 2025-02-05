@@ -30,7 +30,8 @@ import { logger } from '../logger';
 export enum Task {
   GENERATE_CONTENT = 'generateContent',
   STREAM_GENERATE_CONTENT = 'streamGenerateContent',
-  COUNT_TOKENS = 'countTokens'
+  COUNT_TOKENS = 'countTokens',
+  PREDICT = 'predict'
 }
 
 export class RequestUrl {
