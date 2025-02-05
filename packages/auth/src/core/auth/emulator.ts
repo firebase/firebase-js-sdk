@@ -69,13 +69,27 @@ export function connectAuthEmulator(
     options: Object.freeze({ disableWarnings })
   });
 
+  // There are a few scenarios to guard against if the Auth instance has already started:
   if (!authInternal._canInitEmulator) {
+    // Applications may not initialize the emulator for the first time if Auth has already started
+    // to make network requests.
     _assert(
-      deepEqual(emulator, authInternal.config.emulator || {}) &&
-        deepEqual(emulatorConfig, authInternal.emulatorConfig || {}),
+      authInternal.config.emulator && authInternal.emulatorConfig,
       authInternal,
       AuthErrorCode.EMULATOR_CONFIG_FAILED
     );
+
+    // Applications may not alter the configuration of the emulator (aka pass a different config)
+    // once Auth has started to make network requests.
+    _assert(
+      deepEqual(emulator, authInternal.config.emulator) &&
+        deepEqual(emulatorConfig, authInternal.emulatorConfig),
+      authInternal,
+      AuthErrorCode.EMULATOR_CONFIG_FAILED
+    );
+
+    // It's valid, however, to invoke connectAuthEmulator() after Auth has started making
+    // connections, so long as the config matches the existing config. This results in a no-op.
     return;
   }
 
