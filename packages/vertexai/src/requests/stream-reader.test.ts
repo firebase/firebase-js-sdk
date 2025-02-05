@@ -220,6 +220,23 @@ describe('processStream', () => {
     }
     expect(foundCitationMetadata).to.be.true;
   });
+  it('removes empty text parts', async () => {
+    const fakeResponse = getMockResponseStreaming(
+      'streaming-success-empty-text-part.txt'
+    );
+    const result = processStream(fakeResponse as Response);
+    const aggregatedResponse = await result.response;
+    expect(aggregatedResponse.text()).to.equal('1');
+    expect(aggregatedResponse.candidates?.length).to.equal(1);
+    expect(aggregatedResponse.candidates?.[0].content.parts.length).to.equal(1);
+
+    // The chunk with the empty text part will still go through the stream
+    let numChunks = 0;
+    for await (const _ of result.stream) {
+      numChunks++;
+    }
+    expect(numChunks).to.equal(2);
+  });
 });
 
 describe('aggregateResponses', () => {
