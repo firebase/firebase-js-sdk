@@ -20,6 +20,7 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
 import typescript from 'typescript';
 import pkg from './package.json';
+import tsconfig from './tsconfig.json';
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 
@@ -31,6 +32,7 @@ const buildPlugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
+      exclude: [...tsconfig.exclude, '**/*.test.ts', 'test-utils'],
       compilerOptions: {
         target: 'es2017'
       }

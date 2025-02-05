@@ -124,7 +124,7 @@ export function queryRef<Data, Variables>(
     dataConnect: dcInstance,
     refType: QUERY_STR,
     name: queryName,
-    variables: variables
+    variables
   };
 }
 /**

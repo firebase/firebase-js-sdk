@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirebaseApp, _isFirebaseServerApp } from '@firebase/app';
 import {
   AppCheckInternalComponentName,
   AppCheckTokenListener,
@@ -495,10 +496,16 @@ export class FirebaseAppCheckTokenProvider
   private forceRefresh = false;
   private appCheck: FirebaseAppCheckInternal | null = null;
   private latestAppCheckToken: string | null = null;
+  private serverAppAppCheckToken: string | null = null;
 
   constructor(
+    app: FirebaseApp,
     private appCheckProvider: Provider<AppCheckInternalComponentName>
-  ) {}
+  ) {
+    if (_isFirebaseServerApp(app) && app.settings.appCheckToken) {
+      this.serverAppAppCheckToken = app.settings.appCheckToken;
+    }
+  }
 
   start(
     asyncQueue: AsyncQueue,
@@ -562,6 +569,9 @@ export class FirebaseAppCheckTokenProvider
   }
 
   getToken(): Promise<Token | null> {
+    if (this.serverAppAppCheckToken) {
+      return Promise.resolve(new AppCheckToken(this.serverAppAppCheckToken));
+    }
     debugAssert(
       this.tokenListener != null,
       'FirebaseAppCheckTokenProvider not started.'
@@ -622,16 +632,25 @@ export class EmptyAppCheckTokenProvider implements CredentialsProvider<string> {
 /** AppCheck token provider for the Lite SDK. */
 export class LiteAppCheckTokenProvider implements CredentialsProvider<string> {
   private appCheck: FirebaseAppCheckInternal | null = null;
+  private serverAppAppCheckToken: string | null = null;
 
   constructor(
+    app: FirebaseApp,
     private appCheckProvider: Provider<AppCheckInternalComponentName>
   ) {
+    if (_isFirebaseServerApp(app) && app.settings.appCheckToken) {
+      this.serverAppAppCheckToken = app.settings.appCheckToken;
+    }
     appCheckProvider.onInit(appCheck => {
       this.appCheck = appCheck;
     });
   }
 
   getToken(): Promise<Token | null> {
+    if (this.serverAppAppCheckToken) {
+      return Promise.resolve(new AppCheckToken(this.serverAppAppCheckToken));
+    }
+
     if (!this.appCheck) {
       return Promise.resolve(null);
     }

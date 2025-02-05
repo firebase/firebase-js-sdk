@@ -23,7 +23,7 @@ import { logDebug } from '../../logger';
 import { addToken, urlBuilder } from '../../util/url';
 import { dcFetch } from '../fetch';
 
-import { DataConnectTransport } from '.';
+import { CallerSdkType, CallerSdkTypeEnum, DataConnectTransport } from '.';
 
 export class RESTTransport implements DataConnectTransport {
   private _host = '';
@@ -43,7 +43,8 @@ export class RESTTransport implements DataConnectTransport {
     private authProvider?: AuthTokenProvider | undefined,
     private appCheckProvider?: AppCheckTokenProvider | undefined,
     transportOptions?: TransportOptions | undefined,
-    private _isUsingGen = false
+    private _isUsingGen = false,
+    private _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base
   ) {
     if (transportOptions) {
       if (typeof transportOptions.port === 'number') {
@@ -166,6 +167,7 @@ export class RESTTransport implements DataConnectTransport {
     body: U
   ) => {
     const abortController = new AbortController();
+
     // TODO(mtewani): Update to proper value
     const withAuth = this.withRetry(() =>
       dcFetch<T, U>(
@@ -179,7 +181,8 @@ export class RESTTransport implements DataConnectTransport {
         this.appId,
         this._accessToken,
         this._appCheckToken,
-        this._isUsingGen
+        this._isUsingGen,
+        this._callerSdkType
       )
     );
     return withAuth;
@@ -204,9 +207,14 @@ export class RESTTransport implements DataConnectTransport {
         this.appId,
         this._accessToken,
         this._appCheckToken,
-        this._isUsingGen
+        this._isUsingGen,
+        this._callerSdkType
       );
     });
     return taskResult;
   };
+
+  _setCallerSdkType(callerSdkType: CallerSdkType): void {
+    this._callerSdkType = callerSdkType;
+  }
 }

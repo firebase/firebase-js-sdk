@@ -210,7 +210,7 @@ jobs:
       - name: Unzip build artifact
         run: tar xf build.tar.gz
       - name: Set up Node (20)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.10.0
       - name: Test setup and yarn install
@@ -228,11 +228,11 @@ jobs:
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
       - name: Set up Node (20)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.10.0
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build.tar.gz
       - name: Unzip build artifact
@@ -259,7 +259,7 @@ jobs:
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build.tar.gz
       - name: Unzip build artifact
