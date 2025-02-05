@@ -143,3 +143,7 @@ export async function waitUntil(cb: () => boolean, maxRetries = 5) {
     }
   });
 }
+
+export function isEmulatorActive(): boolean {
+  return USE_EMULATOR;
+}

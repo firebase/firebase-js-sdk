@@ -20,6 +20,7 @@ import { Deferred } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
+import { connectDatabaseEmulator } from '../../src/api/Database';
 import {
   child,
   get,
@@ -48,6 +49,7 @@ import {
   DATABASE_URL,
   getFreshRepo,
   getRWRefs,
+  isEmulatorActive,
   waitFor,
   waitUntil,
   writeAndValidate
@@ -136,6 +138,43 @@ describe('Database@exp Tests', () => {
     expect(snap1).to.equal('a');
     expect(snap2).to.equal('b');
     unsubscribe();
+  });
+
+  it('can connected to emulator', async () => {
+    if (isEmulatorActive()) {
+      const db = getDatabase(defaultApp);
+      connectDatabaseEmulator(db, 'localhost', 9000);
+      await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
+    }
+  });
+
+  it('can chnage emulator config before network operations', async () => {
+    if (isEmulatorActive()) {
+      const db = getDatabase(defaultApp);
+      connectDatabaseEmulator(db, 'localhost', 9001);
+      connectDatabaseEmulator(db, 'localhost', 9000);
+      await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
+    }
+  });
+
+  it('can connected to emulator after network operations with same parameters', async () => {
+    if (isEmulatorActive()) {
+      const db = getDatabase(defaultApp);
+      connectDatabaseEmulator(db, 'localhost', 9000);
+      await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
+      connectDatabaseEmulator(db, 'localhost', 9000);
+    }
+  });
+
+  it('cannot connect to emulator after network operations with different parameters', async () => {
+    if (isEmulatorActive()) {
+      const db = getDatabase(defaultApp);
+      connectDatabaseEmulator(db, 'localhost', 9000);
+      await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
+      expect(() => {
+        connectDatabaseEmulator(db, 'localhost', 9001);
+      }).to.throw();
+    }
   });
 
   it('can properly handle unknown deep merges', async () => {
