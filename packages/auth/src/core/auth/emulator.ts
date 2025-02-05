@@ -18,6 +18,7 @@ import { Auth } from '../../model/public_types';
 import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
 import { _castAuth } from './auth_impl';
+import { deepEqual } from '@firebase/util';
 
 /**
  * Changes the {@link Auth} instance to communicate with the Firebase Auth Emulator, instead of production
@@ -48,12 +49,6 @@ export function connectAuthEmulator(
 ): void {
   const authInternal = _castAuth(auth);
   _assert(
-    authInternal._canInitEmulator,
-    authInternal,
-    AuthErrorCode.EMULATOR_CONFIG_FAILED
-  );
-
-  _assert(
     /^https?:\/\//.test(url),
     authInternal,
     AuthErrorCode.INVALID_EMULATOR_SCHEME
@@ -66,14 +61,27 @@ export function connectAuthEmulator(
   const portStr = port === null ? '' : `:${port}`;
 
   // Always replace path with "/" (even if input url had no path at all, or had a different one).
-  authInternal.config.emulator = { url: `${protocol}//${host}${portStr}/` };
-  authInternal.settings.appVerificationDisabledForTesting = true;
-  authInternal.emulatorConfig = Object.freeze({
+  const emulator = { url: `${protocol}//${host}${portStr}/` };
+  const emulatorConfig = Object.freeze({
     host,
     port,
     protocol: protocol.replace(':', ''),
     options: Object.freeze({ disableWarnings })
   });
+
+  if (!authInternal._canInitEmulator) {
+    _assert(
+      deepEqual(emulator, authInternal.config.emulator || {}) &&
+        deepEqual(emulatorConfig, authInternal.emulatorConfig || {}),
+      authInternal,
+      AuthErrorCode.EMULATOR_CONFIG_FAILED
+    );
+    return;
+  }
+
+  authInternal.config.emulator = emulator;
+  authInternal.emulatorConfig = emulatorConfig;
+  authInternal.settings.appVerificationDisabledForTesting = true;
 
   if (!disableWarnings) {
     emitEmulatorWarning();
