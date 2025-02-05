@@ -115,9 +115,9 @@ describe('fetch', () => {
         let expectedHeaderRegex: RegExp;
         if (callerSdkType === CallerSdkTypeEnum.Base) {
           // should not contain any "js/xxx" substring
-          expectedHeaderRegex = RegExp(`^((?!js\/\w).)*$`);
+          expectedHeaderRegex = RegExp(/^((?!js\/\w).)*$/);
         } else if (callerSdkType === CallerSdkTypeEnum.Generated) {
-          expectedHeaderRegex = RegExp(`js\/gen`);
+          expectedHeaderRegex = RegExp(/js\/gen/);
         } else {
           expectedHeaderRegex = RegExp(`js\/${callerSdkType.toLowerCase()}`);
         }
