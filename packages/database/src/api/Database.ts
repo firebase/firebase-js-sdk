@@ -383,7 +383,7 @@ export function connectDatabaseEmulator(
   }
 
   // Modify the repo to apply emulator settings
-  repoManagerApplyEmulatorSettings(repo, host, tokenProvider);
+  repoManagerApplyEmulatorSettings(repo, hostAndPort, tokenProvider);
 }
 
 /**
