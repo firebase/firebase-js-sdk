@@ -122,7 +122,6 @@ export class DataConnect {
       this._isUsingGeneratedSdk = true;
     }
   }
-  // @internal
   _setCallerSdkType(callerSdkType: CallerSdkType): void {
     this._callerSdkType = callerSdkType;
     if (this._initialized) {

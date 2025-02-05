@@ -214,7 +214,6 @@ export class RESTTransport implements DataConnectTransport {
     return taskResult;
   };
 
-  // @internal
   _setCallerSdkType(callerSdkType: CallerSdkType): void {
     this._callerSdkType = callerSdkType;
   }

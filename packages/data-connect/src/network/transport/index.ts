@@ -53,7 +53,6 @@ export interface DataConnectTransport {
   ): Promise<{ data: T; errors: Error[] }>;
   useEmulator(host: string, port?: number, sslEnabled?: boolean): void;
   onTokenChanged: (token: string | null) => void;
-  // @internal
   _setCallerSdkType(callerSdkType: CallerSdkType): void;
 }
 
