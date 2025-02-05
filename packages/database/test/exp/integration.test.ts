@@ -47,6 +47,7 @@ import { EventAccumulatorFactory } from '../helpers/EventAccumulator';
 import {
   DATABASE_ADDRESS,
   DATABASE_URL,
+  EMULATOR_PORT,
   getFreshRepo,
   getRWRefs,
   isEmulatorActive,
@@ -143,7 +144,7 @@ describe('Database@exp Tests', () => {
   it('can connected to emulator', async () => {
     if (isEmulatorActive()) {
       const db = getDatabase(defaultApp);
-      connectDatabaseEmulator(db, 'localhost', 9000);
+      connectDatabaseEmulator(db, 'localhost', parseInt(EMULATOR_PORT, 10));
       await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
     }
   });
@@ -151,8 +152,9 @@ describe('Database@exp Tests', () => {
   it('can chnage emulator config before network operations', async () => {
     if (isEmulatorActive()) {
       const db = getDatabase(defaultApp);
-      connectDatabaseEmulator(db, 'localhost', 9001);
-      connectDatabaseEmulator(db, 'localhost', 9000);
+      const port = parseInt(EMULATOR_PORT, 10);
+      connectDatabaseEmulator(db, 'localhost', port + 1);
+      connectDatabaseEmulator(db, 'localhost', port);
       await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
     }
   });
@@ -160,16 +162,18 @@ describe('Database@exp Tests', () => {
   it('can connected to emulator after network operations with same parameters', async () => {
     if (isEmulatorActive()) {
       const db = getDatabase(defaultApp);
-      connectDatabaseEmulator(db, 'localhost', 9000);
+      const port = parseInt(EMULATOR_PORT, 10);
+      connectDatabaseEmulator(db, 'localhost', port);
       await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
-      connectDatabaseEmulator(db, 'localhost', 9000);
+      connectDatabaseEmulator(db, 'localhost', port);
     }
   });
 
   it('cannot connect to emulator after network operations with different parameters', async () => {
     if (isEmulatorActive()) {
       const db = getDatabase(defaultApp);
-      connectDatabaseEmulator(db, 'localhost', 9000);
+      const port = parseInt(EMULATOR_PORT, 10);
+      connectDatabaseEmulator(db, 'localhost', port);
       await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
       expect(() => {
         connectDatabaseEmulator(db, 'localhost', 9001);
