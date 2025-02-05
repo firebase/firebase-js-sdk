@@ -92,13 +92,11 @@ describe('fetch', () => {
     };
     const fakeFetchImpl = mockFetch(json, false);
 
-    const callerSdkTypesUsed: string[] = [];
-
     for (const callerSdkType in CallerSdkTypeEnum) {
+      // this check is done to follow the best practices outlined by the "guard-for-in" eslint rule
       if (
         Object.prototype.hasOwnProperty.call(CallerSdkTypeEnum, callerSdkType)
       ) {
-        callerSdkTypesUsed.push(callerSdkType);
         await dcFetch(
           'http://localhost',
           {
@@ -143,6 +141,7 @@ describe('fetch', () => {
     const fakeFetchImpl = mockFetch(json, false);
 
     for (const callerSdkType in CallerSdkTypeEnum) {
+      // this check is done to follow the best practices outlined by the "guard-for-in" eslint rule
       if (
         Object.prototype.hasOwnProperty.call(CallerSdkTypeEnum, callerSdkType)
       ) {
