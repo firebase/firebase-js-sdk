@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { CustomSignals } from '../public_types';
+import { CustomSignals, FetchResponse } from '../public_types';
 
 /**
  * Defines a client, as in https://en.wikipedia.org/wiki/Client%E2%80%93server_model, for the
@@ -34,13 +34,6 @@ export interface RemoteConfigFetchClient {
    * @throws if response status is not 200 or 304.
    */
   fetch(request: FetchRequest): Promise<FetchResponse>;
-}
-
-/**
- * Defines a self-descriptive reference for config key-value pairs.
- */
-export interface FirebaseRemoteConfigObject {
-  [key: string]: string;
 }
 
 /**
@@ -107,41 +100,4 @@ export interface FetchRequest {
    * <p>Optional in case no custom signals are set for the instance.
    */
   customSignals?: CustomSignals;
-}
-
-/**
- * Defines a successful response (200 or 304).
- *
- * <p>Modeled after the native {@link Response} interface, but simplified for Remote Config's
- * use case.
- */
-export interface FetchResponse {
-  /**
-   * The HTTP status, which is useful for differentiating success responses with data from
-   * those without.
-   *
-   * <p>{@link RemoteConfigClient} is modeled after the native {@link GlobalFetch} interface, so
-   * HTTP status is first-class.
-   *
-   * <p>Disambiguation: the fetch response returns a legacy "state" value that is redundant with the
-   * HTTP status code. The former is normalized into the latter.
-   */
-  status: number;
-
-  /**
-   * Defines the ETag response header value.
-   *
-   * <p>Only defined for 200 and 304 responses.
-   */
-  eTag?: string;
-
-  /**
-   * Defines the map of parameters returned as "entries" in the fetch response body.
-   *
-   * <p>Only defined for 200 responses.
-   */
-  config?: FirebaseRemoteConfigObject;
-
-  // Note: we're not extracting experiment metadata until
-  // ABT and Analytics have Web SDKs.
 }

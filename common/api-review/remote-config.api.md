@@ -25,7 +25,20 @@ export function fetchAndActivate(remoteConfig: RemoteConfig): Promise<boolean>;
 export function fetchConfig(remoteConfig: RemoteConfig): Promise<void>;
 
 // @public
+export interface FetchResponse {
+    config?: FirebaseRemoteConfigObject;
+    eTag?: string;
+    status: number;
+}
+
+// @public
 export type FetchStatus = 'no-fetch-yet' | 'success' | 'failure' | 'throttle';
+
+// @public
+export interface FirebaseRemoteConfigObject {
+    // (undocumented)
+    [key: string]: string;
+}
 
 // @public
 export function getAll(remoteConfig: RemoteConfig): Record<string, Value>;
@@ -37,7 +50,7 @@ export function getBoolean(remoteConfig: RemoteConfig, key: string): boolean;
 export function getNumber(remoteConfig: RemoteConfig, key: string): number;
 
 // @public (undocumented)
-export function getRemoteConfig(app?: FirebaseApp): RemoteConfig;
+export function getRemoteConfig(app?: FirebaseApp, options?: RemoteConfigOptions): RemoteConfig;
 
 // @public
 export function getString(remoteConfig: RemoteConfig, key: string): string;
@@ -60,6 +73,12 @@ export interface RemoteConfig {
     fetchTimeMillis: number;
     lastFetchStatus: FetchStatus;
     settings: RemoteConfigSettings;
+}
+
+// @public
+export interface RemoteConfigOptions {
+    initialFetchResponse?: FetchResponse;
+    templateId?: string;
 }
 
 // @public

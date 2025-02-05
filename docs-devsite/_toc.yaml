@@ -430,8 +430,14 @@ toc:
   section:
   - title: CustomSignals
     path: /docs/reference/js/remote-config.customsignals.md
+  - title: FetchResponse
+    path: /docs/reference/js/remote-config.fetchresponse.md
+  - title: FirebaseRemoteConfigObject
+    path: /docs/reference/js/remote-config.firebaseremoteconfigobject.md
   - title: RemoteConfig
     path: /docs/reference/js/remote-config.remoteconfig.md
+  - title: RemoteConfigOptions
+    path: /docs/reference/js/remote-config.remoteconfigoptions.md
   - title: RemoteConfigSettings
     path: /docs/reference/js/remote-config.remoteconfigsettings.md
   - title: Value

@@ -17,9 +17,9 @@
 
 import '../setup';
 import { expect } from 'chai';
+import { FetchResponse } from '../../src';
 import {
   RemoteConfigFetchClient,
-  FetchResponse,
   FetchRequest,
   RemoteConfigAbortSignal
 } from '../../src/client/remote_config_fetch_client';

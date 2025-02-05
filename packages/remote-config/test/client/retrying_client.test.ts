@@ -18,10 +18,10 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { Storage, ThrottleMetadata } from '../../src/storage/storage';
+import { FetchResponse } from '../../src';
 import {
   RemoteConfigFetchClient,
   FetchRequest,
-  FetchResponse,
   RemoteConfigAbortSignal
 } from '../../src/client/remote_config_fetch_client';
 import {

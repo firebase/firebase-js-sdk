@@ -17,6 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app';
 import {
+  FetchResponse,
   RemoteConfig as RemoteConfigType,
   LogLevel as RemoteConfigLogLevel
 } from '../src/public_types';
@@ -25,10 +26,7 @@ import * as sinon from 'sinon';
 import { StorageCache } from '../src/storage/storage_cache';
 import { Storage } from '../src/storage/storage';
 import { RemoteConfig } from '../src/remote_config';
-import {
-  RemoteConfigFetchClient,
-  FetchResponse
-} from '../src/client/remote_config_fetch_client';
+import { RemoteConfigFetchClient } from '../src/client/remote_config_fetch_client';
 import { Value } from '../src/value';
 import './setup';
 import { ERROR_FACTORY, ErrorCode } from '../src/errors';
