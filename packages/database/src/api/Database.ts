@@ -353,8 +353,8 @@ export function connectDatabaseEmulator(
   const hostAndPort = `${host}:${port}`;
   const repo = db._repoInternal;
   if (db._instanceStarted) {
-    // If the instance has already been started, and this function is called again with the same
-    // parameters, then silently return. If the parameters differ then assert.
+    // If the instance has already been started, then silenty fail if this function is called again
+    // with the same parameters. If the parameters differ then assert.
     if (
       hostAndPort === repo.repoInfo_.host &&
       deepEqual(options, repo.repoInfo_.emulatorOptions)
