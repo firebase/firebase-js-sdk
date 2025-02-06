@@ -27,7 +27,7 @@ import { Provider } from '@firebase/component';
 import {
   getModularInstance,
   createMockUserToken,
-  // deepEqual,
+  deepEqual,
   EmulatorMockTokenOptions,
   getDefaultEmulatorHostnameAndPort
 } from '@firebase/util';
@@ -358,9 +358,8 @@ export function connectDatabaseEmulator(
     // If the instance has already been started, then silenty fail if this function is called again
     // with the same parameters. If the parameters differ then assert.
     if (
-      true
-      // hostAndPort === db._repoInternal.repoInfo_.host //&&
-      //deepEqual(options, repo.repoInfo_.emulatorOptions)
+      hostAndPort === db._repoInternal.repoInfo_.host &&
+      deepEqual(options, repo.repoInfo_.emulatorOptions)
     ) {
       return;
     }
