@@ -84,12 +84,11 @@ let useRestClient = false;
  */
 function repoManagerApplyEmulatorSettings(
   repo: Repo,
-  host: string,
-  port: number,
+  hostAndPort: string,
   tokenProvider?: AuthTokenProvider
 ): void {
   repo.repoInfo_ = new RepoInfo(
-    `${host}:${port}`,
+    hostAndPort,
     /* secure= */ false,
     repo.repoInfo_.namespace,
     repo.repoInfo_.webSocketOnly,
@@ -350,6 +349,7 @@ export function connectDatabaseEmulator(
 ): void {
   db = getModularInstance(db);
   db._checkNotDeleted('useEmulator');
+  const hostAndPort = `${host}:${port}`;
   if (db._instanceStarted) {
     fatal(
       'Cannot call useEmulator() after instance has already been initialized.'
@@ -374,7 +374,7 @@ export function connectDatabaseEmulator(
   }
 
   // Modify the repo to apply emulator settings
-  repoManagerApplyEmulatorSettings(repo, host, port, tokenProvider);
+  repoManagerApplyEmulatorSettings(repo, hostAndPort, tokenProvider);
 }
 
 /**
