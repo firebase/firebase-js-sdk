@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-import { assert, EmulatorMockTokenOptions } from '@firebase/util';
+import { 
+  assert, 
+  //EmulatorMockTokenOptions //DEDB replace
+} from '@firebase/util';
 
 import { LONG_POLLING, WEBSOCKET } from '../realtime/Constants';
 
@@ -28,9 +31,12 @@ import { each } from './util/util';
 export class RepoInfo {
   private _host: string;
   private _domain: string;
+  /*
+  //DEDB replace
   private _emulatorOptions: {
     mockUserToken?: EmulatorMockTokenOptions | string;
   };
+  */
   internalHost: string;
 
   /**
@@ -53,7 +59,7 @@ export class RepoInfo {
   ) {
     this._host = host.toLowerCase();
     this._domain = this._host.substr(this._host.indexOf('.') + 1);
-    this._emulatorOptions = {};
+    // this._emulatorOptions = {}; //DEDB replace
     this.internalHost =
       (PersistentStorage.get('host:' + host) as string) || this._host;
   }
@@ -82,11 +88,14 @@ export class RepoInfo {
     }
   }
 
+  /*
+  //DEDB replace
   get emulatorOptions(): {
     mockUserToken?: EmulatorMockTokenOptions | string;
   } {
     return this._emulatorOptions;
   }
+  */
 
   toString(): string {
     let str = this.toURLString();
