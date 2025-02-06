@@ -22,6 +22,7 @@ jobs:
     # Allow GITHUB_TOKEN to have write permissions
     permissions:
       contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
       - name: Clone mock responses
@@ -52,7 +53,7 @@ jobs:
             should be updated to clone the latest version of the responses: `${{env.latest_tag}}`
       - name: Delete comment when version gets updated
         if: ${{env.cloned_tag == env.latest_tag && steps.fc.outputs.comment-id}}
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             github.rest.issues.deleteComment({
