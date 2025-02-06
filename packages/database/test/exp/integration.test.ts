@@ -138,6 +138,44 @@ describe('Database@exp Tests', () => {
     unsubscribe();
   });
 
+  /*it('can connected to emulator', async () => {
+    if (isEmulatorActive()) {
+      const db = getDatabase(defaultApp);
+      connectDatabaseEmulator(db, 'localhost', parseInt(EMULATOR_PORT, 10));
+      await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
+    }
+  });
+  it('can chnage emulator config before network operations', async () => {
+    if (isEmulatorActive()) {
+      const db = getDatabase(defaultApp);
+      const port = parseInt(EMULATOR_PORT, 10);
+      connectDatabaseEmulator(db, 'localhost', port + 1);
+      connectDatabaseEmulator(db, 'localhost', port);
+      await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
+    }
+  });
+  it('can connected to emulator after network operations with same parameters', async () => {
+    if (isEmulatorActive()) {
+      const db = getDatabase(defaultApp);
+      const port = parseInt(EMULATOR_PORT, 10);
+      connectDatabaseEmulator(db, 'localhost', port);
+      await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
+      connectDatabaseEmulator(db, 'localhost', port);
+    }
+  });
+  it('cannot connect to emulator after network operations with different parameters', async () => {
+    if (isEmulatorActive()) {
+      const db = getDatabase(defaultApp);
+      const port = parseInt(EMULATOR_PORT, 10);
+      connectDatabaseEmulator(db, 'localhost', port);
+      await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
+      expect(() => {
+        connectDatabaseEmulator(db, 'localhost', 9001);
+      }).to.throw();
+    }
+  });
+  */
+
   it('can properly handle unknown deep merges', async () => {
     // Note: This test requires `testIndex` to be added as an index.
     // Please run `yarn test:setup` to ensure that this gets added.
