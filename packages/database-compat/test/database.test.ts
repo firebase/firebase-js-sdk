@@ -301,7 +301,7 @@ describe('Database Tests', () => {
 
     expect(() => {
       db.useEmulator('localhost', 1234);
-    }).to.throw(/Cannot call useEmulator/);
+    }).to.throw(/connectDatabaseEmulator() cannot initialize/);
   });
 
   it('refFromURL returns an emulated ref with useEmulator', () => {

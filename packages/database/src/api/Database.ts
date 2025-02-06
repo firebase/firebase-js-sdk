@@ -364,7 +364,7 @@ export function connectDatabaseEmulator(
       return;
     }
     fatal(
-      'connectDatabaseEmulator() cannot alter the emulator configuration after the database instance has started.'
+      'connectDatabaseEmulator() cannot initialize or alter the emulator configuration after the database instance has started.'
     );
   }
 
