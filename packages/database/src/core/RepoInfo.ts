@@ -22,15 +22,16 @@ import { LONG_POLLING, WEBSOCKET } from '../realtime/Constants';
 import { PersistentStorage } from './storage/storage';
 import { each } from './util/util';
 
+export interface RepoInfoEmulatorOptions {
+  mockUserToken?: string | EmulatorMockTokenOptions;
+};
+
 /**
  * A class that holds metadata about a Repo object
  */
 export class RepoInfo {
   private _host: string;
   private _domain: string;
-  private _emulatorOptions: {
-    mockUserToken?: EmulatorMockTokenOptions | string;
-  };
   internalHost: string;
 
   /**
@@ -49,11 +50,11 @@ export class RepoInfo {
     public readonly nodeAdmin: boolean = false,
     public readonly persistenceKey: string = '',
     public readonly includeNamespaceInQueryParams: boolean = false,
-    public readonly isUsingEmulator: boolean = false
+    public readonly isUsingEmulator: boolean = false,
+    public readonly emulatorOptions: RepoInfoEmulatorOptions | null = null
   ) {
     this._host = host.toLowerCase();
     this._domain = this._host.substr(this._host.indexOf('.') + 1);
-    this._emulatorOptions = {};
     this.internalHost =
       (PersistentStorage.get('host:' + host) as string) || this._host;
   }
@@ -80,12 +81,6 @@ export class RepoInfo {
         PersistentStorage.set('host:' + this._host, this.internalHost);
       }
     }
-  }
-
-  get emulatorOptions(): {
-    mockUserToken?: EmulatorMockTokenOptions | string;
-  } {
-    return this._emulatorOptions;
   }
 
   toString(): string {
