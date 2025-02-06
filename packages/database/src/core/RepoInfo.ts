@@ -24,7 +24,7 @@ import { each } from './util/util';
 
 export interface RepoInfoEmulatorOptions {
   mockUserToken?: string | EmulatorMockTokenOptions;
-};
+}
 
 /**
  * A class that holds metadata about a Repo object

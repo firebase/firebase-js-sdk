@@ -39,7 +39,7 @@ import {
   FirebaseAuthTokenProvider
 } from '../core/AuthTokenProvider';
 import { Repo, repoInterrupt, repoResume, repoStart } from '../core/Repo';
-import { RepoInfo, RepoInfoEmulatorOptions} from '../core/RepoInfo';
+import { RepoInfo, RepoInfoEmulatorOptions } from '../core/RepoInfo';
 import { parseRepoInfo } from '../core/util/libs/parser';
 import { newEmptyPath, pathIsEmpty } from '../core/util/Path';
 import {
@@ -87,7 +87,7 @@ function repoManagerApplyEmulatorSettings(
   repo: Repo,
   hostAndPort: string,
   emulatorOptions: RepoInfoEmulatorOptions,
-  tokenProvider?: AuthTokenProvider,
+  tokenProvider?: AuthTokenProvider
 ): void {
   repo.repoInfo_ = new RepoInfo(
     hostAndPort,
