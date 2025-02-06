@@ -40,6 +40,8 @@ import { ImagenGenerationConfig, ImagenSafetySettings } from './requests';
  *     }
  *   ]
  * }
+ *
+ * @internal
  */
 export interface ImagenResponseInternal {
   predictions?: Array<{

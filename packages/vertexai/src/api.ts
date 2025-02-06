@@ -84,7 +84,7 @@ export function getGenerativeModel(
 
 /**
  * Returns a <code>{@link ImagenModel}</code> class with methods for using Imagen.
- * 
+ *
  * @beta
  * This feature is in public preview and is not intended for production use.
  * The API is subject to change.

@@ -88,7 +88,7 @@ export class ImagenModel extends VertexAIModel {
   /**
    * Generates images using the Imagen model and returns them as
    * base64-encoded strings.
-   * 
+   *
    * @beta
    * This feature is in public preview and is not intended for production use.
    * The API is subject to change.
@@ -125,7 +125,7 @@ export class ImagenModel extends VertexAIModel {
 
   /**
    * Generates images to Google Cloud Storage (GCS) using the Imagen model.
-   * 
+   *
    * @beta
    * This feature is in public preview and is not intended for production use.
    * The API is subject to change.

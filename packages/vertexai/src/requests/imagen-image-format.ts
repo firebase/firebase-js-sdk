@@ -48,7 +48,7 @@ export class ImagenImageFormat {
 
   /**
    * Creates an <code>{@link ImagenImageFormat}</code> for a JPEG image.
-   * 
+   *
    * @beta
    * This feature is in public preview and is not intended for production use.
    * The API is subject to change.
@@ -64,7 +64,7 @@ export class ImagenImageFormat {
 
   /**
    * Creates an <code>{@link ImagenImageFormat}</code> for a PNG image.
-   * 
+   *
    * @beta
    * This feature is in public preview and is not intended for production use.
    * The API is subject to change.
