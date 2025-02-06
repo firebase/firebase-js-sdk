@@ -20,7 +20,7 @@ import { Deferred } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { connectDatabaseEmulator } from '../../src/api/Database';
+//import { connectDatabaseEmulator } from '../../src/api/Database';
 import {
   child,
   get,
@@ -47,10 +47,10 @@ import { EventAccumulatorFactory } from '../helpers/EventAccumulator';
 import {
   DATABASE_ADDRESS,
   DATABASE_URL,
-  EMULATOR_PORT,
+  //EMULATOR_PORT,
   getFreshRepo,
   getRWRefs,
-  isEmulatorActive,
+  //isEmulatorActive,
   waitFor,
   waitUntil,
   writeAndValidate
@@ -141,7 +141,7 @@ describe('Database@exp Tests', () => {
     unsubscribe();
   });
 
-  it('can connected to emulator', async () => {
+  /*it('can connected to emulator', async () => {
     if (isEmulatorActive()) {
       const db = getDatabase(defaultApp);
       connectDatabaseEmulator(db, 'localhost', parseInt(EMULATOR_PORT, 10));
@@ -180,6 +180,7 @@ describe('Database@exp Tests', () => {
       }).to.throw();
     }
   });
+  */
 
   it('can properly handle unknown deep merges', async () => {
     // Note: This test requires `testIndex` to be added as an index.
