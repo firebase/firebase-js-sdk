@@ -477,12 +477,14 @@ export interface ImagenInlineImage {
 // @public
 export class ImagenModel extends VertexAIModel {
     constructor(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
+    // @beta
     generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
+    // @beta
     generateImagesGCS(prompt: string, gcsURI: string): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
-    readonly generationConfig?: ImagenGenerationConfig;
+    generationConfig?: ImagenGenerationConfig;
     // (undocumented)
-    readonly requestOptions?: RequestOptions | undefined;
-    readonly safetySettings?: ImagenSafetySettings;
+    requestOptions?: RequestOptions | undefined;
+    safetySettings?: ImagenSafetySettings;
 }
 
 // @public
