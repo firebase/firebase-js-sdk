@@ -1,4 +1,5 @@
 ---
+'firebase': minor
 '@firebase/vertexai': minor
 ---
 

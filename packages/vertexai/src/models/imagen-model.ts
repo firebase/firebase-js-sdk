@@ -58,11 +58,11 @@ export class ImagenModel extends VertexAIModel {
   /**
    * The Imagen Generation Configuration.
    */
-  readonly generationConfig?: ImagenGenerationConfig;
+  generationConfig?: ImagenGenerationConfig;
   /**
    * Safety settings for filtering inappropriate content.
    */
-  readonly safetySettings?: ImagenSafetySettings;
+  safetySettings?: ImagenSafetySettings;
 
   /**
    * Constructs a new instance of the {@link ImagenModel} class.
@@ -77,7 +77,7 @@ export class ImagenModel extends VertexAIModel {
   constructor(
     vertexAI: VertexAI,
     modelParams: ImagenModelParams,
-    readonly requestOptions?: RequestOptions
+    public requestOptions?: RequestOptions
   ) {
     const { model, generationConfig, safetySettings } = modelParams;
     super(vertexAI, model);
@@ -88,6 +88,10 @@ export class ImagenModel extends VertexAIModel {
   /**
    * Generates images using the Imagen model and returns them as
    * base64-encoded strings.
+   * 
+   * @beta
+   * This feature is in public preview and is not intended for production use.
+   * The API is subject to change.
    *
    * @param prompt - The text prompt used to generate the images.
    * @returns A promise that resolves to an {@link ImagenGenerationResponse}
@@ -121,6 +125,10 @@ export class ImagenModel extends VertexAIModel {
 
   /**
    * Generates images to Google Cloud Storage (GCS) using the Imagen model.
+   * 
+   * @beta
+   * This feature is in public preview and is not intended for production use.
+   * The API is subject to change.
    *
    * @param prompt - The text prompt used to generate the images.
    * @param gcsURI - The GCS URI where the images should be stored.
