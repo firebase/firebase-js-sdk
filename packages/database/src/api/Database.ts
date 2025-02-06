@@ -27,6 +27,7 @@ import { Provider } from '@firebase/component';
 import {
   getModularInstance,
   createMockUserToken,
+  deepEqual,
   EmulatorMockTokenOptions,
   getDefaultEmulatorHostnameAndPort
 } from '@firebase/util';
@@ -350,13 +351,21 @@ export function connectDatabaseEmulator(
   db = getModularInstance(db);
   db._checkNotDeleted('useEmulator');
   const hostAndPort = `${host}:${port}`;
+  const repo = db._repoInternal;
   if (db._instanceStarted) {
+    // If the instance has already been started, then silenty fail if this function is called again
+    // with the same parameters. If the parameters differ then assert.
+    if (
+      hostAndPort === db._repoInternal.repoInfo_.host &&
+      deepEqual(options, repo.repoInfo_.emulatorOptions)
+    ) {
+      return;
+    }
     fatal(
-      'Cannot call useEmulator() after instance has already been initialized.'
+      'connectDatabaseEmulator() cannot alter the emulator configuration after the database instance has started.'
     );
   }
 
-  const repo = db._repoInternal;
   let tokenProvider: EmulatorTokenProvider | undefined = undefined;
   if (repo.repoInfo_.nodeAdmin) {
     if (options.mockUserToken) {
