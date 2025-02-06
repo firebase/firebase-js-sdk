@@ -301,7 +301,7 @@ describe('Database Tests', () => {
 
     expect(() => {
       db.useEmulator('localhost', 1234);
-    }).to.throw(/connectDatabaseEmulator() cannot initialize/);
+    }).to.throw(/FIREBASE FATAL ERROR: connectDatabaseEmulator() cannot initialize/);
   });
 
   it('refFromURL returns an emulated ref with useEmulator', () => {
