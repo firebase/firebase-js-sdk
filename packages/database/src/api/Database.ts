@@ -27,7 +27,7 @@ import { Provider } from '@firebase/component';
 import {
   getModularInstance,
   createMockUserToken,
-  deepEqual,
+  //deepEqual,  DEDB replace
   EmulatorMockTokenOptions,
   getDefaultEmulatorHostnameAndPort
 } from '@firebase/util';
@@ -86,10 +86,12 @@ let useRestClient = false;
 function repoManagerApplyEmulatorSettings(
   repo: Repo,
   host: string,
+  port: number, // DEDB remove
   tokenProvider?: AuthTokenProvider
 ): void {
   repo.repoInfo_ = new RepoInfo(
-    host,
+    //host, DDB replace
+    `${host}:${port}`, // DEDB remove
     /* secure= */ false,
     repo.repoInfo_.namespace,
     repo.repoInfo_.webSocketOnly,
@@ -352,11 +354,12 @@ export function connectDatabaseEmulator(
   db._checkNotDeleted('useEmulator');
   const hostAndPort = `${host}:${port}`;
   const repo = db._repoInternal;
+  /*
   if (db._instanceStarted) {
     // If the instance has already been started, then silenty fail if this function is called again
     // with the same parameters. If the parameters differ then assert.
     if (
-      hostAndPort === repo.repoInfo_.host &&
+      hostAndPort === db._repoInternal.repoInfo_.host &&
       deepEqual(options, repo.repoInfo_.emulatorOptions)
     ) {
       return;
@@ -365,6 +368,7 @@ export function connectDatabaseEmulator(
       'connectDatabaseEmulator() cannot alter the emulator configuration after the database instance has started.'
     );
   }
+    */
 
   let tokenProvider: EmulatorTokenProvider | undefined = undefined;
   if (repo.repoInfo_.nodeAdmin) {
@@ -383,7 +387,9 @@ export function connectDatabaseEmulator(
   }
 
   // Modify the repo to apply emulator settings
-  repoManagerApplyEmulatorSettings(repo, hostAndPort, tokenProvider);
+  //repoManagerApplyEmulatorSettings(repo, hostAndPort, tokenProvider); // DDB Replace
+  repoManagerApplyEmulatorSettings(repo, host, port, tokenProvider); // DDB Remove
+
 }
 
 /**
