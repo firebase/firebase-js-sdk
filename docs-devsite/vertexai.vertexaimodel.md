@@ -10,19 +10,21 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # VertexAIModel class
+Base class for Vertex AI in Firebase model APIs.
+
 The constructor for this class is marked as internal. Third-party code should not call the constructor directly or create subclasses that extend the `VertexAIModel` class.
 
 <b>Signature:</b>
 
 ```typescript
-export declare abstract class VertexAIModel 
+export declare class VertexAIModel 
 ```
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [model](./vertexai.vertexaimodel.md#vertexaimodelmodel) |  | string |  |
+|  [model](./vertexai.vertexaimodel.md#vertexaimodelmodel) |  | string | The fully qualified model resource name to use for generating images (e.g. <code>publishers/google/models/imagen-3.0-generate-001</code>). |
 
 ## Methods
 
@@ -31,6 +33,8 @@ export declare abstract class VertexAIModel
 |  [normalizeModelName(modelName)](./vertexai.vertexaimodel.md#vertexaimodelnormalizemodelname) | <code>static</code> | Normalizes the given model name to a fully qualified model resource name. |
 
 ## VertexAIModel.model
+
+The fully qualified model resource name to use for generating images (e.g. `publishers/google/models/imagen-3.0-generate-001`<!-- -->).
 
 <b>Signature:</b>
 

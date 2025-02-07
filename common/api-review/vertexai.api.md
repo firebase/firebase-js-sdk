@@ -346,7 +346,7 @@ export class GenerativeModel extends VertexAIModel {
 // @public
 export function getGenerativeModel(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
 
-// @public (undocumented)
+// @public
 export function getImagenModel(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
 
 // @public
@@ -430,122 +430,88 @@ export enum HarmSeverity {
     HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE"
 }
 
-// @public (undocumented)
+// @public
 export enum ImagenAspectRatio {
-    // (undocumented)
     LANDSCAPE_16x9 = "16:9",
-    // (undocumented)
     LANDSCAPE_3x4 = "3:4",
-    // (undocumented)
     PORTRAIT_4x3 = "4:3",
-    // (undocumented)
     PORTRAIT_9x16 = "9:16",
-    // (undocumented)
     SQUARE = "1:1"
 }
 
-// @public (undocumented)
+// @public
 export interface ImagenGCSImage {
-    // (undocumented)
     gcsURI: string;
-    // (undocumented)
     mimeType: string;
 }
 
-// @public (undocumented)
+// @public
 export interface ImagenGenerationConfig {
-    // (undocumented)
     addWatermark?: boolean;
-    // (undocumented)
     aspectRatio?: ImagenAspectRatio;
-    // (undocumented)
     imageFormat?: ImagenImageFormat;
-    // (undocumented)
     negativePrompt?: string;
-    // (undocumented)
     numberOfImages?: number;
 }
 
-// @public (undocumented)
+// @public
 export interface ImagenGenerationResponse<T extends ImagenInlineImage | ImagenGCSImage> {
-    // (undocumented)
     filteredReason?: string;
-    // (undocumented)
     images: T[];
 }
 
 // @public
 export class ImagenImageFormat {
-    // (undocumented)
     compressionQuality?: number;
-    // (undocumented)
     static jpeg(compressionQuality?: number): ImagenImageFormat;
-    // (undocumented)
     mimeType: string;
-    // (undocumented)
     static png(): ImagenImageFormat;
 }
 
 // @public
 export interface ImagenInlineImage {
-    // (undocumented)
     bytesBase64Encoded: string;
-    // (undocumented)
     mimeType: string;
 }
 
-// @public (undocumented)
+// @public
 export class ImagenModel extends VertexAIModel {
     constructor(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
-    // (undocumented)
+    // @beta
     generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
-    // (undocumented)
+    // @beta
     generateImagesGCS(prompt: string, gcsURI: string): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
-    // (undocumented)
     generationConfig?: ImagenGenerationConfig;
     // (undocumented)
     requestOptions?: RequestOptions | undefined;
-    // (undocumented)
     safetySettings?: ImagenSafetySettings;
 }
 
-// @public (undocumented)
+// @public
 export interface ImagenModelParams {
-    // (undocumented)
     generationConfig?: ImagenGenerationConfig;
-    // (undocumented)
     model: string;
-    // (undocumented)
     safetySettings?: ImagenSafetySettings;
 }
 
-// @public (undocumented)
+// @public
 export enum ImagenPersonFilterLevel {
-    // (undocumented)
     ALLOW_ADULT = "allow_adult",
-    // (undocumented)
     ALLOW_ALL = "allow_all",
-    // (undocumented)
     BLOCK_ALL = "dont_allow"
 }
 
-// @public (undocumented)
+// @public
 export enum ImagenSafetyFilterLevel {
-    // (undocumented)
     BLOCK_LOW_AND_ABOVE = "block_low_and_above",
-    // (undocumented)
     BLOCK_MEDIUM_AND_ABOVE = "block_medium_and_above",
-    // (undocumented)
     BLOCK_NONE = "block_none",
-    // (undocumented)
     BLOCK_ONLY_HIGH = "block_only_high"
 }
 
-// @public (undocumented)
+// @public
 export interface ImagenSafetySettings {
-    // (undocumented)
     personFilterLevel?: ImagenPersonFilterLevel;
-    // (undocumented)
     safetyFilterLevel?: ImagenSafetyFilterLevel;
 }
 
@@ -838,13 +804,12 @@ export const enum VertexAIErrorCode {
     RESPONSE_ERROR = "response-error"
 }
 
-// @public (undocumented)
+// @public
 export abstract class VertexAIModel {
     // @internal
     protected constructor(vertexAI: VertexAI, modelName: string);
     // @internal (undocumented)
     protected _apiSettings: ApiSettings;
-    // (undocumented)
     readonly model: string;
     static normalizeModelName(modelName: string): string;
 }
