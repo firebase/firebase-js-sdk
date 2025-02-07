@@ -30,50 +30,10 @@ import {
 } from '../types';
 import { VertexAIModel } from './vertexai-model';
 
-/**
- * Class for Imagen model APIs.
- *
- * This class provides methods for generating images using the Imagen model.
- * You can generate images inline as base64-encoded strings, or directly to
- * Google Cloud Storage (GCS).
- *
- * @example
- * ```javascript
- * const imagen = new ImagenModel(
- *   vertexAI,
- *   {
- *     model: 'imagen-3.0-generate-001'
- *   }
- * );
- *
- * const response = await imagen.generateImages('A photo of a cat');
- * if (response.images.length > 0) {
- *   console.log(response.images[0].bytesBase64Encoded);
- * }
- * ```
- *
- * @public
- */
 export class ImagenModel extends VertexAIModel {
-  /**
-   * The Imagen Generation Configuration.
-   */
   generationConfig?: ImagenGenerationConfig;
-  /**
-   * Safety settings for filtering inappropriate content.
-   */
   safetySettings?: ImagenSafetySettings;
 
-  /**
-   * Constructs a new instance of the {@link ImagenModel} class.
-   *
-   * @param vertexAI - An instance of the Vertex AI in Firebase SDK.
-   * @param modelParams - Parameters to use when making Imagen requests.
-   * @param requestOptions - Additional options to use when making requests.
-   *
-   * @throws If the `apiKey` or `projectId` fields are missing in your
-   * Firebase config.
-   */
   constructor(
     vertexAI: VertexAI,
     modelParams: ImagenModelParams,
@@ -85,26 +45,6 @@ export class ImagenModel extends VertexAIModel {
     this.safetySettings = safetySettings;
   }
 
-  /**
-   * Generates images using the Imagen model and returns them as
-   * base64-encoded strings.
-   *
-   * @beta
-   * This feature is in public preview and is not intended for production use.
-   * The API is subject to change.
-   *
-   * @param prompt - The text prompt used to generate the images.
-   * @returns A promise that resolves to an {@link ImagenGenerationResponse}
-   * object containing the generated images.
-   *
-   * @throws If the request to generate images fails. This happens if the
-   * prompt is blocked.
-   *
-   * @remarks
-   * If the prompt was not blocked, but one or more of the generated images were filtered, the
-   * returned object will have a `filteredReason` property.
-   * If all images are filtered, the `images` array will be empty.
-   */
   async generateImages(
     prompt: string
   ): Promise<ImagenGenerationResponse<ImagenInlineImage>> {
@@ -123,27 +63,6 @@ export class ImagenModel extends VertexAIModel {
     return handlePredictResponse<ImagenInlineImage>(response);
   }
 
-  /**
-   * Generates images to Google Cloud Storage (GCS) using the Imagen model.
-   *
-   * @beta
-   * This feature is in public preview and is not intended for production use.
-   * The API is subject to change.
-   *
-   * @param prompt - The text prompt used to generate the images.
-   * @param gcsURI - The GCS URI where the images should be stored.
-   * This should be a directory. For example, `gs://my-bucket/my-directory/`.
-   * @returns A promise that resolves to an {@link ImagenGenerationResponse}
-   * object containing the URLs of the generated images.
-   *
-   * @throws If the request fails to generate images fails. This happens if
-   * the prompt is blocked.
-   *
-   * @remarks
-   * If the prompt was not blocked, but one or more of the generated images were filtered, the
-   * returned object will have a `filteredReason` property.
-   * If all images are filtered, the `images` array will be empty.
-   */
   async generateImagesGCS(
     prompt: string,
     gcsURI: string

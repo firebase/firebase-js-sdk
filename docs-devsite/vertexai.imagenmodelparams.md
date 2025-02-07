@@ -10,8 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ImagenModelParams interface
-Parameters for configuring an [ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)<!-- -->.
-
 <b>Signature:</b>
 
 ```typescript
@@ -22,13 +20,11 @@ export interface ImagenModelParams
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [generationConfig](./vertexai.imagenmodelparams.md#imagenmodelparamsgenerationconfig) | [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface) | The Imagen Generation Configuration. |
-|  [model](./vertexai.imagenmodelparams.md#imagenmodelparamsmodel) | string | The Imagen model to use for generating images. For example: <code>imagen-3.0-generate-001</code>. |
-|  [safetySettings](./vertexai.imagenmodelparams.md#imagenmodelparamssafetysettings) | [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) | Safety settings for filtering inappropriate content. |
+|  [generationConfig](./vertexai.imagenmodelparams.md#imagenmodelparamsgenerationconfig) | [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface) |  |
+|  [model](./vertexai.imagenmodelparams.md#imagenmodelparamsmodel) | string |  |
+|  [safetySettings](./vertexai.imagenmodelparams.md#imagenmodelparamssafetysettings) | [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) |  |
 
 ## ImagenModelParams.generationConfig
-
-The Imagen Generation Configuration.
 
 <b>Signature:</b>
 
@@ -38,8 +34,6 @@ generationConfig?: ImagenGenerationConfig;
 
 ## ImagenModelParams.model
 
-The Imagen model to use for generating images. For example: `imagen-3.0-generate-001`<!-- -->.
-
 <b>Signature:</b>
 
 ```typescript
@@ -47,8 +41,6 @@ model: string;
 ```
 
 ## ImagenModelParams.safetySettings
-
-Safety settings for filtering inappropriate content.
 
 <b>Signature:</b>
 
