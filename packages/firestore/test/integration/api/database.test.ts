@@ -83,6 +83,7 @@ import {
   toIds
 } from '../util/helpers';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
+import { AutoId } from '../../../src/util/misc';
 
 use(chaiAsPromised);
 
@@ -2616,6 +2617,47 @@ apiDescribe('Database', persistence => {
             unsubscribe();
           }
         );
+      }
+    );
+  });
+
+  const NIGHTLY_PROJECT_ID = 'firestore-sdk-nightly';
+  const settings = {
+    ...DEFAULT_SETTINGS,
+    host: 'test-firestore.sandbox.googleapis.com'
+  };
+
+  it.only('can run transactions on documents with bson types', async () => {
+    const testDocs = {
+      a: { key: 'a' },
+      b: { key: 'b' },
+      c: { key: 'c' }
+    };
+    return withTestDbsSettings(
+      persistence,
+      NIGHTLY_PROJECT_ID,
+      settings,
+      1,
+      async dbs => {
+        const coll = collection(dbs[0], AutoId.newId());
+        const docA = await addDoc(coll, testDocs['a']);
+        const docB = await addDoc(coll, { key: 'place holder' });
+        const docC = await addDoc(coll, testDocs['c']);
+
+        await runTransaction(dbs[0], async transaction => {
+          const docSnapshot = await transaction.get(docA);
+          expect(docSnapshot.data()).to.deep.equal(testDocs['a']);
+          transaction.set(docB, testDocs['b']);
+          transaction.delete(docC);
+        });
+
+        const orderedQuery = query(coll, orderBy('key', 'asc'));
+        const snapshot = await getDocs(orderedQuery);
+
+        expect(toDataArray(snapshot)).to.deep.equal([
+          testDocs['a'],
+          testDocs['b']
+        ]);
       }
     );
   });
