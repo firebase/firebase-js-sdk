@@ -90,10 +90,11 @@ export class ImagenModel extends VertexAIModel {
    * base64-encoded strings.
    *
    * @beta
-   * This feature is in public preview and is not intended for production use.
-   * The API is subject to change.
+   * For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which
+   * means that the feature is not subject to any SLA or deprecation policy and could change in
+   * backwards-incompatible ways.
    *
-   * @param prompt - The text prompt used to generate the images.
+   * @param prompt - A text prompt describing the image(s) to generate.
    * @returns A promise that resolves to an {@link ImagenGenerationResponse}
    * object containing the generated images.
    *
@@ -127,11 +128,12 @@ export class ImagenModel extends VertexAIModel {
    * Generates images to Google Cloud Storage (GCS) using the Imagen model.
    *
    * @beta
-   * This feature is in public preview and is not intended for production use.
-   * The API is subject to change.
+   * For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which
+   * means that the feature is not subject to any SLA or deprecation policy and could change in
+   * backwards-incompatible ways.
    *
-   * @param prompt - The text prompt used to generate the images.
-   * @param gcsURI - The GCS URI where the images should be stored.
+   * @param prompt - A text prompt describing the image(s) to generate.
+   * @param gcsURI - The Google Cloud Storage (GCS) URI where the images should be stored.
    * This should be a directory. For example, `gs://my-bucket/my-directory/`.
    * @returns A promise that resolves to an {@link ImagenGenerationResponse}
    * object containing the URLs of the generated images.

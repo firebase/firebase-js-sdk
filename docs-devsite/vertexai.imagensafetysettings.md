@@ -10,7 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ImagenSafetySettings interface
-Safety settings for Imagen.
+Settings for controlling the aggressiveness of filtering out sensitive content.
+
+See the \[Responsible AI and usage guidelines\](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen\#config-safety-filters) for more details.
 
 <b>Signature:</b>
 
@@ -22,12 +24,12 @@ export interface ImagenSafetySettings
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [personFilterLevel](./vertexai.imagensafetysettings.md#imagensafetysettingspersonfilterlevel) | [ImagenPersonFilterLevel](./vertexai.md#imagenpersonfilterlevel) | The person filter level to use. |
-|  [safetyFilterLevel](./vertexai.imagensafetysettings.md#imagensafetysettingssafetyfilterlevel) | [ImagenSafetyFilterLevel](./vertexai.md#imagensafetyfilterlevel) | The safety filter level to use. |
+|  [personFilterLevel](./vertexai.imagensafetysettings.md#imagensafetysettingspersonfilterlevel) | [ImagenPersonFilterLevel](./vertexai.md#imagenpersonfilterlevel) | A filter level controlling whether generation of images containing people or faces is allowed. |
+|  [safetyFilterLevel](./vertexai.imagensafetysettings.md#imagensafetysettingssafetyfilterlevel) | [ImagenSafetyFilterLevel](./vertexai.md#imagensafetyfilterlevel) | A filter level controlling how aggressive to filter out sensitive content from generated images. |
 
 ## ImagenSafetySettings.personFilterLevel
 
-The person filter level to use.
+A filter level controlling whether generation of images containing people or faces is allowed.
 
 <b>Signature:</b>
 
@@ -37,7 +39,7 @@ personFilterLevel?: ImagenPersonFilterLevel;
 
 ## ImagenSafetySettings.safetyFilterLevel
 
-The safety filter level to use.
+A filter level controlling how aggressive to filter out sensitive content from generated images.
 
 <b>Signature:</b>
 

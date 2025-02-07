@@ -17,7 +17,7 @@ The constructor for this class is marked as internal. Third-party code should no
 <b>Signature:</b>
 
 ```typescript
-export declare class VertexAIModel 
+export declare abstract class VertexAIModel 
 ```
 
 ## Properties

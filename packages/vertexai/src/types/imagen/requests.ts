@@ -25,15 +25,20 @@ import { ImagenImageFormat } from '../../requests/imagen-image-format';
 export interface ImagenModelParams {
   /**
    * The Imagen model to use for generating images.
-   * For example: `imagen-3.0-generate-001`.
+   * For example: `imagen-3.0-generate-002`.
+   * 
+   * Only Imagen 3 models (named `imagen-3.0-*`) are supported.
+   * 
+   * See [model versions](https://cloud.google.com/vertex-ai/generative-ai/docs/image/model-versioning)
+   * for a full list of supported Imagen 3 models.
    */
   model: string;
   /**
-   * The Imagen Generation Configuration.
+   * Configuration options for generating images with Imagen.
    */
   generationConfig?: ImagenGenerationConfig;
   /**
-   * Safety settings for filtering inappropriate content.
+   * Safety settings for filtering potentially inappropriate content.
    */
   safetySettings?: ImagenSafetySettings;
 }
@@ -41,118 +46,168 @@ export interface ImagenModelParams {
 /**
  * Configuration options for generating images with Imagen.
  *
- * See the [Google Cloud Docs](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#rest_1).
+ * See the [Cloud documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images) for more details.
  *
  * @public
  */
 export interface ImagenGenerationConfig {
   /**
    * A description of what should be omitted from the generated images.
+   * 
+   * Support for negative prompts depends on the Imagen model.
+   * 
+   * See the [Cloud documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images#negative-prompt) for more details.
    */
   negativePrompt?: string;
   /**
-   * The number of images to generate. Must be between 1 and 4. The default value is 1.
+   * The number of images to generate. The default value is 1.
+   * 
+   * The number of sample images that may be generated in each request depends on the model
+   * (typically up to 4); see the [`sampleCount`](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list)
+   * documentation for more details.
    */
   numberOfImages?: number;
   /**
-   * The aspect ratio of the generated images. The default value is 1:1.
-   * used.
+   * The aspect ratio of the generated images. The default value is square 1:1.
+   * Supported aspect ratios depend on the Imagen model, see <code>{@link ImagenAspectRatio}</code>
+   * for more details.
    */
   aspectRatio?: ImagenAspectRatio;
   /**
    * The image format of the generated images. The default is PNG.
+   * 
+   * See <code>{@link ImagenImageFormat}</code> for more details.
    */
   imageFormat?: ImagenImageFormat;
   /**
-   * If true, adds a SynthID watermark to the generated images.
+   * Whether to add an invisible watermark to generated images.
+   * 
+   * If set to `true`, an invisible SynthID watermark is embedded in generated images to indicate
+   * that they are AI generated. If set to `false`, watermarking will be disabled.
+   * 
+   * The default value depends on the Imagen model; see the [`addWatermark`](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list)
+   * documentation for more details.
    */
   addWatermark?: boolean;
 }
 
 /**
- * Safety filter levels for Imagen
+ * A filter level controlling how aggressively to filter sensitive content.
+ *
+ * Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI
+ * are assessed against a list of safety filters, which include 'harmful categories' (for example,
+ * `violence`, `sexual`, `derogatory`, and `toxic`). This filter level controls how aggressively to
+ * filter out potentially harmful content from responses. See the [`safetySetting`](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list)
+ * documentation and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters)
+ * for more details.
  *
  * @public
  */
 export enum ImagenSafetyFilterLevel {
   /**
-   * Block images with low or higher safety severity.
+   * The most aggressive filtering level; most strict blocking.
    */
   BLOCK_LOW_AND_ABOVE = 'block_low_and_above',
   /**
-   * Block images with medium or higher safety severity.
+   * Blocks some sensitive prompts and responses.
    */
   BLOCK_MEDIUM_AND_ABOVE = 'block_medium_and_above',
   /**
-   * Block images with high safety severity.
+   * Blocks few sensitive prompts and responses.
    */
   BLOCK_ONLY_HIGH = 'block_only_high',
   /**
-   * Do not block any images based on safety.
+   * The least aggressive filtering level; blocks very few sensitive prompts and responses.
+   * 
+   * Access to this feature is restricted and may require your case to be reviewed and approved by
+   * Cloud support.
    */
   BLOCK_NONE = 'block_none'
 }
 
 /**
- * Person filter levels for Imagen.
+ * A filter level controlling whether generation of images containing people or faces is allowed.
+ *
+ * See the [`personGeneration`](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list)
+ * documentation for more details.
  *
  * @public
  */
 export enum ImagenPersonFilterLevel {
   /**
-   * Do not allow any person generation.
+   * Disallow generation of images containing people or faces; images of people are filtered out.
    */
   BLOCK_ALL = 'dont_allow',
   /**
-   * Allow only adults in generated images.
+   * Allow generation of images containing adults only; images of children are filtered out.
+ 
+   * Generation of images containing people or faces may require your use case to be
+   * reviewed and approved by Cloud support; see the [Responsible AI and usage
+   * guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#person-face-gen)
+   * for more details.
    */
   ALLOW_ADULT = 'allow_adult',
-  /**
-   * Allow all person generation.
+  /** 
+   * Allow generation of images containing adults only; images of children are filtered out.
+   * 
+   * Generation of images containing people or faces may require your use case to be
+   * reviewed and approved by Cloud support; see the [Responsible AI and usage
+   * guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#person-face-gen)
+   * for more details.
    */
   ALLOW_ALL = 'allow_all'
 }
 
 /**
- * Safety settings for Imagen.
+ * Settings for controlling the aggressiveness of filtering out sensitive content.
+ *
+ * See the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#config-safety-filters)
+ * for more details.
  *
  * @public
  */
 export interface ImagenSafetySettings {
   /**
-   * The safety filter level to use.
+   * A filter level controlling how aggressive to filter out sensitive content from generated
+   * images.
    */
   safetyFilterLevel?: ImagenSafetyFilterLevel;
   /**
-   * The person filter level to use.
+   * A filter level controlling whether generation of images containing people or faces is allowed.
    */
   personFilterLevel?: ImagenPersonFilterLevel;
 }
 
 /**
  * Aspect ratios for Imagen images.
+ * 
+ * To specify an aspect ratio for generated images, set the `aspectRatio` property in your
+ * <code>{@link ImagenGenerationConfig}</code>.
+ * 
+ * See the the [Cloud documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images#aspect-ratio) 
+ * for more details and examples of the supported aspect ratios.
  *
  * @public
  */
 export enum ImagenAspectRatio {
   /**
-   * Square 1:1 aspect ratio.
+   * Square (1:1) aspect ratio.
    */
   SQUARE = '1:1',
   /**
-   * Landscape 3:4 aspect ratio.
+   * Landscape (3:4) aspect ratio.
    */
   LANDSCAPE_3x4 = '3:4',
   /**
-   * Portrait 4:3 aspect ratio.
+   * Portrait (4:3) aspect ratio.
    */
   PORTRAIT_4x3 = '4:3',
   /**
-   * Landscape 16:9 aspect ratio.
+   * Landscape (16:9) aspect ratio.
    */
   LANDSCAPE_16x9 = '16:9',
   /**
-   * Portrait 9:16 aspect ratio.
+   * Portrait (9:16) aspect ratio.
    */
   PORTRAIT_9x16 = '9:16'
 }

@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # ImagenGenerationConfig interface
 Configuration options for generating images with Imagen.
 
-See the \[Google Cloud Docs\](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api\#rest\_1).
+See the \[Cloud documentation\](https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images) for more details.
 
 <b>Signature:</b>
 
@@ -24,15 +24,19 @@ export interface ImagenGenerationConfig
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [addWatermark](./vertexai.imagengenerationconfig.md#imagengenerationconfigaddwatermark) | boolean | If true, adds a SynthID watermark to the generated images. |
-|  [aspectRatio](./vertexai.imagengenerationconfig.md#imagengenerationconfigaspectratio) | [ImagenAspectRatio](./vertexai.md#imagenaspectratio) | The aspect ratio of the generated images. The default value is 1:1. used. |
-|  [imageFormat](./vertexai.imagengenerationconfig.md#imagengenerationconfigimageformat) | [ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class) | The image format of the generated images. The default is PNG. |
-|  [negativePrompt](./vertexai.imagengenerationconfig.md#imagengenerationconfignegativeprompt) | string | A description of what should be omitted from the generated images. |
-|  [numberOfImages](./vertexai.imagengenerationconfig.md#imagengenerationconfignumberofimages) | number | The number of images to generate. Must be between 1 and 4. The default value is 1. |
+|  [addWatermark](./vertexai.imagengenerationconfig.md#imagengenerationconfigaddwatermark) | boolean | Whether to add an invisible watermark to generated images.<!-- -->If set to <code>true</code>, an invisible SynthID watermark is embedded in generated images to indicate that they are AI generated. If set to <code>false</code>, watermarking will be disabled.<!-- -->The default value depends on the Imagen model; see the \[<code>addWatermark</code>\](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api\#parameter\_list) documentation for more details. |
+|  [aspectRatio](./vertexai.imagengenerationconfig.md#imagengenerationconfigaspectratio) | [ImagenAspectRatio](./vertexai.md#imagenaspectratio) | The aspect ratio of the generated images. The default value is square 1:1. Supported aspect ratios depend on the Imagen model, see <code>[ImagenAspectRatio](./vertexai.md#imagenaspectratio)</code> for more details. |
+|  [imageFormat](./vertexai.imagengenerationconfig.md#imagengenerationconfigimageformat) | [ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class) | The image format of the generated images. The default is PNG.<!-- -->See <code>[ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class)</code> for more details. |
+|  [negativePrompt](./vertexai.imagengenerationconfig.md#imagengenerationconfignegativeprompt) | string | A description of what should be omitted from the generated images.<!-- -->Support for negative prompts depends on the Imagen model.<!-- -->See the \[Cloud documentation\](https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images\#negative-prompt) for more details. |
+|  [numberOfImages](./vertexai.imagengenerationconfig.md#imagengenerationconfignumberofimages) | number | The number of images to generate. The default value is 1.<!-- -->The number of sample images that may be generated in each request depends on the model (typically up to 4); see the \[<code>sampleCount</code>\](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api\#parameter\_list) documentation for more details. |
 
 ## ImagenGenerationConfig.addWatermark
 
-If true, adds a SynthID watermark to the generated images.
+Whether to add an invisible watermark to generated images.
+
+If set to `true`<!-- -->, an invisible SynthID watermark is embedded in generated images to indicate that they are AI generated. If set to `false`<!-- -->, watermarking will be disabled.
+
+The default value depends on the Imagen model; see the \[`addWatermark`<!-- -->\](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api\#parameter\_list) documentation for more details.
 
 <b>Signature:</b>
 
@@ -42,7 +46,7 @@ addWatermark?: boolean;
 
 ## ImagenGenerationConfig.aspectRatio
 
-The aspect ratio of the generated images. The default value is 1:1. used.
+The aspect ratio of the generated images. The default value is square 1:1. Supported aspect ratios depend on the Imagen model, see <code>[ImagenAspectRatio](./vertexai.md#imagenaspectratio)</code> for more details.
 
 <b>Signature:</b>
 
@@ -54,6 +58,8 @@ aspectRatio?: ImagenAspectRatio;
 
 The image format of the generated images. The default is PNG.
 
+See <code>[ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class)</code> for more details.
+
 <b>Signature:</b>
 
 ```typescript
@@ -64,6 +70,10 @@ imageFormat?: ImagenImageFormat;
 
 A description of what should be omitted from the generated images.
 
+Support for negative prompts depends on the Imagen model.
+
+See the \[Cloud documentation\](https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images\#negative-prompt) for more details.
+
 <b>Signature:</b>
 
 ```typescript
@@ -72,7 +82,9 @@ negativePrompt?: string;
 
 ## ImagenGenerationConfig.numberOfImages
 
-The number of images to generate. Must be between 1 and 4. The default value is 1.
+The number of images to generate. The default value is 1.
+
+The number of sample images that may be generated in each request depends on the model (typically up to 4); see the \[`sampleCount`<!-- -->\](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api\#parameter\_list) documentation for more details.
 
 <b>Signature:</b>
 
