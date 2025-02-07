@@ -29,6 +29,7 @@ import {
 import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../local/lru_garbage_collector_impl';
 import { Code, FirestoreError } from '../util/error';
 import { validateIsNotUsedTogether } from '../util/input_validation';
+import { EmulatorMockTokenOptions } from '@firebase/util';
 
 // settings() defaults:
 export const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -80,6 +81,7 @@ export interface PrivateSettings extends FirestoreSettings {
   experimentalAutoDetectLongPolling?: boolean;
   experimentalLongPollingOptions?: ExperimentalLongPollingOptions;
   useFetchStreams?: boolean;
+  emulatorOptions?: { mockUserToken?: EmulatorMockTokenOptions | string; };
 
   localCache?: FirestoreLocalCache;
 }

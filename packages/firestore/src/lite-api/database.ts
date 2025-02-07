@@ -72,6 +72,7 @@ export class Firestore implements FirestoreService {
 
   private _settings = new FirestoreSettingsImpl({});
   private _settingsFrozen = false;
+  private _emulatorOptions? : { mockUserToken?: EmulatorMockTokenOptions | string; };  
 
   // A task that is assigned when the terminate() is invoked and resolved when
   // all components have shut down. Otherwise, Firestore is not terminated,
@@ -120,6 +121,8 @@ export class Firestore implements FirestoreService {
       );
     }
     this._settings = new FirestoreSettingsImpl(settings);
+    this._emulatorOptions = settings.emulatorOptions;
+    
     if (settings.credentials !== undefined) {
       this._authCredentials = makeAuthCredentialsProvider(settings.credentials);
     }
@@ -127,6 +130,17 @@ export class Firestore implements FirestoreService {
 
   _getSettings(): FirestoreSettingsImpl {
     return this._settings;
+  }
+
+  _getPrivateSettings() : PrivateSettings {
+    const privateSettings : PrivateSettings   = {
+      ...this._settings,
+      emulatorOptions: this._emulatorOptions
+    };
+    if(this._settings.localCache !== undefined) {
+      privateSettings.localCache = this._settings.localCache;
+    }
+    return privateSettings;
   }
 
   _freezeSettings(): FirestoreSettingsImpl {
@@ -316,7 +330,7 @@ export function connectFirestoreEmulator(
   } = {}
 ): void {
   firestore = cast(firestore, Firestore);
-  const settings = firestore._getSettings();
+  const settings = firestore._getPrivateSettings();
   const newHostSetting = `${host}:${port}`;
 
   if (settings.host !== DEFAULT_HOST && settings.host !== newHostSetting) {
@@ -325,20 +339,22 @@ export function connectFirestoreEmulator(
         'will be used.'
     );
   }
-  const privateSettings = {
+  const newSettings = {
     ...settings,
     host: newHostSetting,
-    ssl: false
+    ssl: false,
+    emulatorOptions: options
   };
 
-  // Turn this invocation into a no-op if the new configuration matches the current configuration.
-  // This helps support SSR enviornments where `connectFirestoreEmulator` could be called multiple
-  // times.
-  if(deepEqual(privateSettings, settings)) {
+  // No-op if the new configuration matches the current configuration. This supports SSR
+  // enviornments which might call `connectFirestoreEmulator` multiple times as a standard practice.
+  if(deepEqual(newSettings, settings)) {
+    console.error("DEDB settings are the same!");
     return;
   }
+  console.error("DEDB settings differ!")
 
-  firestore._setSettings(privateSettings);
+  firestore._setSettings(newSettings);
 
   if (options.mockUserToken) {
     let token: string;
