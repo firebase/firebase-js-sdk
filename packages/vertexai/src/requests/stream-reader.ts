@@ -197,6 +197,13 @@ export function aggregateResponses(
             if (part.functionCall) {
               newPart.functionCall = part.functionCall;
             }
+            if (Object.keys(newPart).length === 0) {
+              throw new VertexAIError(
+                VertexAIErrorCode.INVALID_CONTENT,
+                'Part should have at least one property, but there are none. This is likely caused ' +
+                  'by a malformed response from the backend.'
+              );
+            }
             aggregatedResponse.candidates[i].content.parts.push(
               newPart as Part
             );

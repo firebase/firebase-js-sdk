@@ -33,8 +33,10 @@ import {
   GenerateContentResponse,
   HarmCategory,
   HarmProbability,
-  SafetyRating
+  SafetyRating,
+  VertexAIErrorCode
 } from '../types';
+import { VertexAIError } from '../errors';
 
 use(sinonChai);
 
@@ -419,5 +421,50 @@ describe('aggregateResponses', () => {
         response.candidates?.[0].citationMetadata?.citations[1].startIndex
       ).to.equal(150);
     });
+  });
+
+  it('throws if a part has no properties', () => {
+    const responsesToAggregate: GenerateContentResponse[] = [
+      {
+        candidates: [
+          {
+            index: 0,
+            content: {
+              role: 'user',
+              parts: [{} as any] // Empty
+            },
+            finishReason: FinishReason.STOP,
+            finishMessage: 'something',
+            safetyRatings: [
+              {
+                category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+                probability: HarmProbability.NEGLIGIBLE
+              } as SafetyRating
+            ]
+          }
+        ],
+        promptFeedback: {
+          blockReason: BlockReason.SAFETY,
+          safetyRatings: [
+            {
+              category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+              probability: HarmProbability.LOW
+            } as SafetyRating
+          ]
+        }
+      }
+    ];
+
+    try {
+      aggregateResponses(responsesToAggregate);
+    } catch (e) {
+      expect((e as VertexAIError).code).includes(
+        VertexAIErrorCode.INVALID_CONTENT
+      );
+      expect((e as VertexAIError).message).to.include(
+        'Part should have at least one property, but there are none. This is likely caused ' +
+          'by a malformed response from the backend.'
+      );
+    }
   });
 });
