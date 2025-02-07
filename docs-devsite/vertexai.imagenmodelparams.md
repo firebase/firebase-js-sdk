@@ -23,7 +23,7 @@ export interface ImagenModelParams
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [generationConfig](./vertexai.imagenmodelparams.md#imagenmodelparamsgenerationconfig) | [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface) | Configuration options for generating images with Imagen. |
-|  [model](./vertexai.imagenmodelparams.md#imagenmodelparamsmodel) | string | The Imagen model to use for generating images. For example: <code>imagen-3.0-generate-002</code>.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported.<!-- -->See \[model versions\](https://cloud.google.com/vertex-ai/generative-ai/docs/image/model-versioning) for a full list of supported Imagen 3 models. |
+|  [model](./vertexai.imagenmodelparams.md#imagenmodelparamsmodel) | string | The Imagen model to use for generating images. For example: <code>imagen-3.0-generate-002</code>.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported.<!-- -->See [model versions](https://cloud.google.com/vertex-ai/generative-ai/docs/image/model-versioning) for a full list of supported Imagen 3 models. |
 |  [safetySettings](./vertexai.imagenmodelparams.md#imagenmodelparamssafetysettings) | [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) | Safety settings for filtering potentially inappropriate content. |
 
 ## ImagenModelParams.generationConfig
@@ -42,7 +42,7 @@ The Imagen model to use for generating images. For example: `imagen-3.0-generate
 
 Only Imagen 3 models (named `imagen-3.0-*`<!-- -->) are supported.
 
-See \[model versions\](https://cloud.google.com/vertex-ai/generative-ai/docs/image/model-versioning) for a full list of supported Imagen 3 models.
+See [model versions](https://cloud.google.com/vertex-ai/generative-ai/docs/image/model-versioning) for a full list of supported Imagen 3 models.
 
 <b>Signature:</b>
 

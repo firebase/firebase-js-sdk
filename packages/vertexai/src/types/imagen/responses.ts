@@ -76,7 +76,7 @@ export interface ImagenGenerationResponse<
    * <code>{@link ImagenPersonFilterLevel}</code>, or filtering included in the model.
    * The filter levels may be adjusted in your <code>{@link ImagenSafetySettings}</code>.
    * 
-   * See the [Responsible AI and usage guidelines for Imagen](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen)
+   * See the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen | Responsible AI and usage guidelines for Imagen}
    * for more details.
    */
   filteredReason?: string;

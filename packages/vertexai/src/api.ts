@@ -84,13 +84,13 @@ export function getGenerativeModel(
 
 /**
  * Returns an <code>{@link ImagenModel}</code> class with methods for using Imagen.
+ * 
+ * Only Imagen 3 models (named `imagen-3.0-*`) are supported.
  *
  * @beta
  * For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which
  * means that the feature is not subject to any SLA or deprecation policy and could change in
  * backwards-incompatible ways.
- * 
- * Only Imagen 3 models (named `imagen-3.0-*`) are supported.
  * 
  * @param vertexAI - An instance of the Vertex AI in Firebase SDK.
  * @param modelParams - Parameters to use when making Imagen requests.

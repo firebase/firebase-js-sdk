@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # ImagenModel class
 Class for Imagen model APIs.
 
-This class provides methods for generating images using the Imagen model. You can generate images inline as base64-encoded strings, or directly to Google Cloud Storage (GCS).
+This class provides methods for generating images using the Imagen model.
 
 <b>Signature:</b>
 
@@ -25,7 +25,7 @@ export declare class ImagenModel extends VertexAIModel
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(vertexAI, modelParams, requestOptions)](./vertexai.imagenmodel.md#imagenmodelconstructor) |  | Constructs a new instance of the [ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class) class. |
+|  [(constructor)(vertexAI, modelParams, requestOptions)](./vertexai.imagenmodel.md#imagenmodelconstructor) |  | Constructs a new instance of the <code>[ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)</code> class. |
 
 ## Properties
 
@@ -44,7 +44,7 @@ export declare class ImagenModel extends VertexAIModel
 
 ## ImagenModel.(constructor)
 
-Constructs a new instance of the [ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class) class.
+Constructs a new instance of the <code>[ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)</code> class.
 
 <b>Signature:</b>
 
@@ -153,7 +153,7 @@ generateImagesGCS(prompt: string, gcsURI: string): Promise<ImagenGenerationRespo
 
 Promise&lt;[ImagenGenerationResponse](./vertexai.imagengenerationresponse.md#imagengenerationresponse_interface)<!-- -->&lt;[ImagenGCSImage](./vertexai.imagengcsimage.md#imagengcsimage_interface)<!-- -->&gt;&gt;
 
-A promise that resolves to an [ImagenGenerationResponse](./vertexai.imagengenerationresponse.md#imagengenerationresponse_interface) object containing the URLs of the generated images.
+A promise that resolves to an <code>[ImagenGenerationResponse](./vertexai.imagengenerationresponse.md#imagengenerationresponse_interface)</code> object containing the URLs of the generated images.
 
 #### Exceptions
 

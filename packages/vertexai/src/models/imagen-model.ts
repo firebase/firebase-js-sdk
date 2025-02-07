@@ -34,8 +34,6 @@ import { VertexAIModel } from './vertexai-model';
  * Class for Imagen model APIs.
  *
  * This class provides methods for generating images using the Imagen model.
- * You can generate images inline as base64-encoded strings, or directly to
- * Google Cloud Storage (GCS).
  *
  * @example
  * ```javascript
@@ -65,7 +63,7 @@ export class ImagenModel extends VertexAIModel {
   safetySettings?: ImagenSafetySettings;
 
   /**
-   * Constructs a new instance of the {@link ImagenModel} class.
+   * Constructs a new instance of the <code>{@link ImagenModel}</code> class.
    *
    * @param vertexAI - An instance of the Vertex AI in Firebase SDK.
    * @param modelParams - Parameters to use when making Imagen requests.
@@ -135,7 +133,7 @@ export class ImagenModel extends VertexAIModel {
    * @param prompt - A text prompt describing the image(s) to generate.
    * @param gcsURI - The Google Cloud Storage (GCS) URI where the images should be stored.
    * This should be a directory. For example, `gs://my-bucket/my-directory/`.
-   * @returns A promise that resolves to an {@link ImagenGenerationResponse}
+   * @returns A promise that resolves to an <code>{@link ImagenGenerationResponse}</code>
    * object containing the URLs of the generated images.
    *
    * @throws If the request fails to generate images fails. This happens if

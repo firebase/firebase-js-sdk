@@ -29,7 +29,7 @@ export interface ImagenModelParams {
    * 
    * Only Imagen 3 models (named `imagen-3.0-*`) are supported.
    * 
-   * See [model versions](https://cloud.google.com/vertex-ai/generative-ai/docs/image/model-versioning)
+   * See {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/model-versioning | model versions}
    * for a full list of supported Imagen 3 models.
    */
   model: string;
@@ -46,7 +46,7 @@ export interface ImagenModelParams {
 /**
  * Configuration options for generating images with Imagen.
  *
- * See the [Cloud documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images) for more details.
+ * See the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images | Cloud documentation} for more details.
  *
  * @public
  */
@@ -56,14 +56,14 @@ export interface ImagenGenerationConfig {
    * 
    * Support for negative prompts depends on the Imagen model.
    * 
-   * See the [Cloud documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images#negative-prompt) for more details.
+   * See the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images#negative-prompt | Cloud documentation} for more details.
    */
   negativePrompt?: string;
   /**
    * The number of images to generate. The default value is 1.
    * 
    * The number of sample images that may be generated in each request depends on the model
-   * (typically up to 4); see the [`sampleCount`](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list)
+   * (typically up to 4); see the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list | sampleCount}
    * documentation for more details.
    */
   numberOfImages?: number;
@@ -85,7 +85,7 @@ export interface ImagenGenerationConfig {
    * If set to `true`, an invisible SynthID watermark is embedded in generated images to indicate
    * that they are AI generated. If set to `false`, watermarking will be disabled.
    * 
-   * The default value depends on the Imagen model; see the [`addWatermark`](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list)
+   * The default value depends on the Imagen model; see the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list | addWatermark }
    * documentation for more details.
    */
   addWatermark?: boolean;
@@ -97,8 +97,8 @@ export interface ImagenGenerationConfig {
  * Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI
  * are assessed against a list of safety filters, which include 'harmful categories' (for example,
  * `violence`, `sexual`, `derogatory`, and `toxic`). This filter level controls how aggressively to
- * filter out potentially harmful content from responses. See the [`safetySetting`](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list)
- * documentation and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters)
+ * filter out potentially harmful content from responses. See the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list | `safetySetting`}
+ * documentation and the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters | Responsible AI and usage guidelines}
  * for more details.
  *
  * @public
@@ -128,7 +128,7 @@ export enum ImagenSafetyFilterLevel {
 /**
  * A filter level controlling whether generation of images containing people or faces is allowed.
  *
- * See the [`personGeneration`](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list)
+ * See the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list | `personGeneration`}
  * documentation for more details.
  *
  * @public
@@ -142,8 +142,7 @@ export enum ImagenPersonFilterLevel {
    * Allow generation of images containing adults only; images of children are filtered out.
  
    * Generation of images containing people or faces may require your use case to be
-   * reviewed and approved by Cloud support; see the [Responsible AI and usage
-   * guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#person-face-gen)
+   * reviewed and approved by Cloud support; see the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#person-face-gen | Responsible AI and usage guidelines}
    * for more details.
    */
   ALLOW_ADULT = 'allow_adult',
@@ -151,8 +150,7 @@ export enum ImagenPersonFilterLevel {
    * Allow generation of images containing adults only; images of children are filtered out.
    * 
    * Generation of images containing people or faces may require your use case to be
-   * reviewed and approved by Cloud support; see the [Responsible AI and usage
-   * guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#person-face-gen)
+   * reviewed and approved by Cloud support; see the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#person-face-gen | Responsible AI and usage guidelines}
    * for more details.
    */
   ALLOW_ALL = 'allow_all'
@@ -161,7 +159,7 @@ export enum ImagenPersonFilterLevel {
 /**
  * Settings for controlling the aggressiveness of filtering out sensitive content.
  *
- * See the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#config-safety-filters)
+ * See the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#config-safety-filters | https://www.newyorker.com/magazine/2018/12/10/the-friendship-that-made-google-huge}
  * for more details.
  *
  * @public
@@ -184,7 +182,7 @@ export interface ImagenSafetySettings {
  * To specify an aspect ratio for generated images, set the `aspectRatio` property in your
  * <code>{@link ImagenGenerationConfig}</code>.
  * 
- * See the the [Cloud documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images#aspect-ratio) 
+ * See the the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images#aspect-ratio | Cloud documentation } 
  * for more details and examples of the supported aspect ratios.
  *
  * @public
