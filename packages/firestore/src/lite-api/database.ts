@@ -24,6 +24,7 @@ import {
 } from '@firebase/app';
 import {
   createMockUserToken,
+  deepEqual,
   EmulatorMockTokenOptions,
   getDefaultEmulatorHostnameAndPort
 } from '@firebase/util';
@@ -324,12 +325,20 @@ export function connectFirestoreEmulator(
         'will be used.'
     );
   }
-
-  firestore._setSettings({
+  const privateSettings = {
     ...settings,
     host: newHostSetting,
     ssl: false
-  });
+  };
+
+  // Turn this invocation into a no-op if the new configuration matches the current configuration.
+  // This helps support SSR enviornments where `connectFirestoreEmulator` could be called multiple
+  // times.
+  if(deepEqual(privateSettings, settings)) {
+    return;
+  }
+
+  firestore._setSettings(privateSettings);
 
   if (options.mockUserToken) {
     let token: string;
