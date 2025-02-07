@@ -2627,7 +2627,7 @@ apiDescribe('Database', persistence => {
     host: 'test-firestore.sandbox.googleapis.com'
   };
 
-  it.only('can run transactions on documents with bson types', async () => {
+  it('can run transactions on documents against nightly configuration', async () => {
     const testDocs = {
       a: { key: 'a' },
       b: { key: 'b' },
