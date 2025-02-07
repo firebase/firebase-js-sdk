@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database-compat",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "The Realtime Database component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.js",
@@ -49,7 +49,7 @@
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../database/dist/public.d.ts -o dist/database-compat/src/index.d.ts -a -r Database:types.FirebaseDatabase -r Query:types.Query -r DatabaseReference:types.Reference -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/database"
   },
   "dependencies": {
-    "@firebase/database": "1.0.11",
+    "@firebase/database": "1.0.12",
     "@firebase/database-types": "1.0.8",
     "@firebase/logger": "0.4.4",
     "@firebase/util": "1.10.3",
@@ -57,7 +57,7 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.2.48",
+    "@firebase/app-compat": "0.2.49",
     "typescript": "5.5.4"
   },
   "repository": {
