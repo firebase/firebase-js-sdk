@@ -67,7 +67,9 @@ describe('countTokens()', () => {
     );
   });
   it('total tokens with modality details', async () => {
-    const mockResponse = getMockResponse('unary-success-detailed-token-response.json');
+    const mockResponse = getMockResponse(
+      'unary-success-detailed-token-response.json'
+    );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
       mockResponse as Response
     );
