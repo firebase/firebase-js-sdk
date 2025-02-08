@@ -1956,6 +1956,7 @@ AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY: {
     readonly MISSING_RECAPTCHA_VERSION: "auth/missing-recaptcha-version";
     readonly INVALID_RECAPTCHA_VERSION: "auth/invalid-recaptcha-version";
     readonly INVALID_REQ_TYPE: "auth/invalid-req-type";
+    readonly INVALID_HOSTING_LINK_DOMAIN: "auth/invalid-hosting-link-domain";
 }
 ```
 
