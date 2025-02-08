@@ -467,9 +467,7 @@ export enum Modality {
 
 // @public
 export interface ModalityTokenCount {
-    // (undocumented)
     modality: Modality;
-    // (undocumented)
     tokenCount: number;
 }
 
