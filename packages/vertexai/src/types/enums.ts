@@ -139,14 +139,20 @@ export enum FunctionCallingMode {
 }
 
 /**
- * Type of content.
+ * Content part modality.
  * @public
  */
 export enum Modality {
+  // Unspecified modality.
   MODALITY_UNSPECIFIED = 'MODALITY_UNSPECIFIED',
+  // Plain text.
   TEXT = 'TEXT',
+  // Image.
   IMAGE = 'IMAGE',
+  // Video.
   VIDEO = 'VIDEO',
+  // Audio.
   AUDIO = 'AUDIO',
+  // Document, e.g. PDF.
   DOCUMENT = 'DOCUMENT'
 }

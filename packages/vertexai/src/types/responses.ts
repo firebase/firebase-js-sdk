@@ -89,11 +89,14 @@ export interface UsageMetadata {
 }
 
 /**
- * The number of tokens used by a given content type.
+ * Represents token counting info for a single modality.
+ *
  * @public
  */
 export interface ModalityTokenCount {
+  /** The modality associated with this token count. */
   modality: Modality;
+  /** The number of tokens counted. */
   tokenCount: number;
 }
 
