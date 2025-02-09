@@ -72,7 +72,9 @@ export class Firestore implements FirestoreService {
 
   private _settings = new FirestoreSettingsImpl({});
   private _settingsFrozen = false;
-  private _emulatorOptions? : { mockUserToken?: EmulatorMockTokenOptions | string; };  
+  private _emulatorOptions?: {
+    mockUserToken?: EmulatorMockTokenOptions | string;
+  };
 
   // A task that is assigned when the terminate() is invoked and resolved when
   // all components have shut down. Otherwise, Firestore is not terminated,
@@ -122,22 +124,18 @@ export class Firestore implements FirestoreService {
     }
     this._settings = new FirestoreSettingsImpl(settings);
     this._emulatorOptions = settings.emulatorOptions;
-    
+
     if (settings.credentials !== undefined) {
       this._authCredentials = makeAuthCredentialsProvider(settings.credentials);
     }
   }
 
-  _getSettings(): FirestoreSettingsImpl {
-    return this._settings;
-  }
-
-  _getPrivateSettings() : PrivateSettings {
-    const privateSettings : PrivateSettings   = {
+  _getSettings(): PrivateSettings {
+    const privateSettings: PrivateSettings = {
       ...this._settings,
       emulatorOptions: this._emulatorOptions
     };
-    if(this._settings.localCache !== undefined) {
+    if (this._settings.localCache !== undefined) {
       privateSettings.localCache = this._settings.localCache;
     }
     return privateSettings;
@@ -330,7 +328,7 @@ export function connectFirestoreEmulator(
   } = {}
 ): void {
   firestore = cast(firestore, Firestore);
-  const settings = firestore._getPrivateSettings();
+  const settings = firestore._getSettings();
   const newHostSetting = `${host}:${port}`;
 
   if (settings.host !== DEFAULT_HOST && settings.host !== newHostSetting) {
@@ -348,11 +346,11 @@ export function connectFirestoreEmulator(
 
   // No-op if the new configuration matches the current configuration. This supports SSR
   // enviornments which might call `connectFirestoreEmulator` multiple times as a standard practice.
-  if(deepEqual(newSettings, settings)) {
-    console.error("DEDB settings are the same!");
+  if (deepEqual(newSettings, settings)) {
+    console.error('DEDB settings are the same!');
     return;
   }
-  console.error("DEDB settings differ!")
+  console.error('DEDB settings differ!');
 
   firestore._setSettings(newSettings);
 
