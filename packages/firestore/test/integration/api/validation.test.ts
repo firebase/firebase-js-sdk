@@ -64,7 +64,8 @@ import {
 import {
   ALT_PROJECT_ID,
   DEFAULT_PROJECT_ID,
-  TARGET_DB_ID
+  TARGET_DB_ID,
+  USE_EMULATOR
 } from '../util/settings';
 
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
@@ -179,6 +180,18 @@ apiDescribe('Validation:', persistence => {
 
     validationIt(
       persistence,
+      'connectFirestoreEmulator() can set mockUserToken object',
+      () => {
+        const db = newTestFirestore(newTestApp('test-project'));
+        // Verify that this doesn't throw.
+        connectFirestoreEmulator(db, '127.0.0.1', 9000, {
+          mockUserToken: { sub: 'foo' }
+        });
+      }
+    );
+
+    validationIt(
+      persistence,
       'disallows calling connectFirestoreEmulator() for first time after use',
       async db => {
         const errorMsg =
@@ -195,11 +208,13 @@ apiDescribe('Validation:', persistence => {
       persistence,
       'allows calling connectFirestoreEmulator() after use with same config',
       async db => {
-        connectFirestoreEmulator(db, '127.0.0.1', 9000);
-        await setDoc(doc(db, 'foo/bar'), {});
-        expect(() =>
-          connectFirestoreEmulator(db, '127.0.0.1', 9000)
-        ).to.not.throw();
+        if (USE_EMULATOR) {
+          connectFirestoreEmulator(db, '127.0.0.1', 9000);
+          await setDoc(doc(db, 'foo/bar'), {});
+          expect(() =>
+            connectFirestoreEmulator(db, '127.0.0.1', 9000)
+          ).to.not.throw();
+        }
       }
     );
 
@@ -207,25 +222,15 @@ apiDescribe('Validation:', persistence => {
       persistence,
       'disallows calling connectFirestoreEmulator() after use with different config',
       async db => {
-        const errorMsg =
-          'Firestore has already been started and its settings can no longer be changed.';
-        connectFirestoreEmulator(db, '127.0.0.1', 9000);
-        await setDoc(doc(db, 'foo/bar'), {});
-        expect(() => connectFirestoreEmulator(db, '127.0.0.1', 9001)).to.throw(
-          errorMsg
-        );
-      }
-    );
-
-    validationIt(
-      persistence,
-      'connectFirestoreEmulator() can set mockUserToken object',
-      () => {
-        const db = newTestFirestore(newTestApp('test-project'));
-        // Verify that this doesn't throw.
-        connectFirestoreEmulator(db, '127.0.0.1', 9000, {
-          mockUserToken: { sub: 'foo' }
-        });
+        if (USE_EMULATOR) {
+          const errorMsg =
+            'Firestore has already been started and its settings can no longer be changed.';
+          connectFirestoreEmulator(db, '127.0.0.1', 9000);
+          await setDoc(doc(db, 'foo/bar'), {});
+          expect(() =>
+            connectFirestoreEmulator(db, '127.0.0.1', 9001)
+          ).to.throw(errorMsg);
+        }
       }
     );
 
