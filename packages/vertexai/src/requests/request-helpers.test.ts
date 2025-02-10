@@ -217,10 +217,9 @@ describe('request formatting methods', () => {
 
       // Parameters without default values should be undefined
       expect(body.parameters.storageUri).to.be.undefined;
-      expect(body.parameters.compressionQuality).to.be.undefined;
-      expect(body.parameters.negativePrompt).to.be.undefined;
       expect(body.parameters.storageUri).to.be.undefined;
-      expect(body.parameters.mimeType).to.be.undefined;
+      expect(body.parameters.outputOptions).to.be.undefined;
+      expect(body.parameters.negativePrompt).to.be.undefined;
       expect(body.parameters.aspectRatio).to.be.undefined;
       expect(body.parameters.addWatermark).to.be.undefined;
       expect(body.parameters.safetyFilterLevel).to.be.undefined;
@@ -250,8 +249,10 @@ describe('request formatting methods', () => {
     console.log(body);
     expect(body.parameters).deep.equal({
       sampleCount: numberOfImages,
-      mimeType: imageFormat.mimeType,
-      compressionQuality: imageFormat.compressionQuality,
+      outputOptions: {
+        mimeType: imageFormat.mimeType,
+        compressionQuality: imageFormat.compressionQuality
+      },
       addWatermark,
       negativePrompt,
       safetyFilterLevel: safetySettings.safetyFilterLevel,

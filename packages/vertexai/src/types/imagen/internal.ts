@@ -101,8 +101,10 @@ export interface PredictRequestBody {
   parameters: {
     sampleCount: number; // Maps to numberOfImages
     aspectRatio?: string;
-    mimeType?: string;
-    compressionQuality?: number;
+    outputOptions?: {
+      mimeType: string;
+      compressionQuality?: number;
+    };
     negativePrompt?: string;
     storageUri?: string; // Maps to gcsURI
     addWatermark?: boolean;

@@ -156,7 +156,7 @@ export function createPredictRequestBody(
       negativePrompt,
       sampleCount: numberOfImages,
       aspectRatio,
-      ...imageFormat,
+      outputOptions: imageFormat,
       addWatermark,
       safetyFilterLevel,
       personGeneration: personFilterLevel,
