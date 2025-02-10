@@ -141,14 +141,14 @@ describe('Database@exp Tests', () => {
     unsubscribe();
   });
 
-  it('can connected to emulator', async () => {
+  it('can connect to emulator', async () => {
     if (USE_EMULATOR) {
       const db = getDatabase(defaultApp);
       connectDatabaseEmulator(db, 'localhost', parseInt(EMULATOR_PORT, 10));
       await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
     }
   });
-  it('can chnage emulator config before network operations', async () => {
+  it('can change emulator config before network operations', async () => {
     if (USE_EMULATOR) {
       const db = getDatabase(defaultApp);
       const port = parseInt(EMULATOR_PORT, 10);
@@ -157,7 +157,7 @@ describe('Database@exp Tests', () => {
       await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
     }
   });
-  it('can connected to emulator after network operations with same parameters', async () => {
+  it('can connect to emulator after network operations with same parameters', async () => {
     if (USE_EMULATOR) {
       const db = getDatabase(defaultApp);
       const port = parseInt(EMULATOR_PORT, 10);
