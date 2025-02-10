@@ -18,18 +18,21 @@
 import JSDOMEnvironment from 'jest-environment-jsdom';
 
 /**
- * JSDOMEnvironment patch to polyfill missing fetch with native
- * Node fetch
+ * JSDOMEnvironment patch to polyfill missing APIs with Node APIs.
  */
 // https://github.com/facebook/jest/blob/v29.4.3/website/versioned_docs/version-29.4/Configuration.md#testenvironment-string
 export default class FixJSDOMEnvironment extends JSDOMEnvironment {
   constructor(...args: ConstructorParameters<typeof JSDOMEnvironment>) {
     super(...args);
 
-    // FIXME https://github.com/jsdom/jsdom/issues/1724
+    // Fetch
+    // FIXME: https://github.com/jsdom/jsdom/issues/1724
     this.global.fetch = fetch;
     this.global.Headers = Headers;
     this.global.Request = Request;
     this.global.Response = Response;
+
+    // Util
+    this.global.TextEncoder = TextEncoder;
   }
 }
