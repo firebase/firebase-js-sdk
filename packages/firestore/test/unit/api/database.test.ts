@@ -559,11 +559,9 @@ describe('Settings', () => {
     const emulatorOptions = { mockUserToken: 'test' };
     connectFirestoreEmulator(db, '127.0.0.1', 9000, emulatorOptions);
 
-    expect(db._getPrivateSettings().host).to.exist.and.to.equal(
-      '127.0.0.1:9000'
-    );
-    expect(db._getPrivateSettings().ssl).to.exist.and.to.be.false;
-    expect(db._getPrivateSettings().emulatorOptions).to.equal(emulatorOptions);
+    expect(db._getSettings().host).to.exist.and.to.equal('127.0.0.1:9000');
+    expect(db._getSettings().ssl).to.exist.and.to.be.false;
+    expect(db._getEmulatorOptions()).to.equal(emulatorOptions);
   });
 
   it('prefers host from useEmulator to host from settings', () => {
