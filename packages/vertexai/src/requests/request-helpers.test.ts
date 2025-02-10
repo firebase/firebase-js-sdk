@@ -246,7 +246,6 @@ describe('request formatting methods', () => {
       ...safetySettings
     });
     expect(body.instances[0].prompt).to.equal(prompt);
-    console.log(body);
     expect(body.parameters).deep.equal({
       sampleCount: numberOfImages,
       outputOptions: {
