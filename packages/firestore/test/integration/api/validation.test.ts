@@ -179,13 +179,39 @@ apiDescribe('Validation:', persistence => {
 
     validationIt(
       persistence,
-      'disallows calling connectFirestoreEmulator() after use',
+      'disallows calling connectFirestoreEmulator() for first time after use',
       async db => {
         const errorMsg =
           'Firestore has already been started and its settings can no longer be changed.';
 
         await setDoc(doc(db, 'foo/bar'), {});
         expect(() => connectFirestoreEmulator(db, '127.0.0.1', 9000)).to.throw(
+          errorMsg
+        );
+      }
+    );
+
+    validationIt(
+      persistence,
+      'allows calling connectFirestoreEmulator() after use with same config',
+      async db => {
+        connectFirestoreEmulator(db, '127.0.0.1', 9000);
+        await setDoc(doc(db, 'foo/bar'), {});
+        expect(() =>
+          connectFirestoreEmulator(db, '127.0.0.1', 9000)
+        ).to.not.throw();
+      }
+    );
+
+    validationIt(
+      persistence,
+      'disallows calling connectFirestoreEmulator() after use with different config',
+      async db => {
+        const errorMsg =
+          'Firestore has already been started and its settings can no longer be changed.';
+        connectFirestoreEmulator(db, '127.0.0.1', 9000);
+        await setDoc(doc(db, 'foo/bar'), {});
+        expect(() => connectFirestoreEmulator(db, '127.0.0.1', 9001)).to.throw(
           errorMsg
         );
       }

@@ -130,7 +130,11 @@ export class Firestore implements FirestoreService {
     }
   }
 
-  _getSettings(): PrivateSettings {
+  _getSettings(): FirestoreSettingsImpl {
+    return this._settings;
+  }
+
+  _getPrivateSettings(): PrivateSettings {
     const privateSettings: PrivateSettings = {
       ...this._settings,
       emulatorOptions: this._emulatorOptions
@@ -328,7 +332,7 @@ export function connectFirestoreEmulator(
   } = {}
 ): void {
   firestore = cast(firestore, Firestore);
-  const settings = firestore._getSettings();
+  const settings = firestore._getPrivateSettings();
   const newHostSetting = `${host}:${port}`;
 
   if (settings.host !== DEFAULT_HOST && settings.host !== newHostSetting) {
