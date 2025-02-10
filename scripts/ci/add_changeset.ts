@@ -142,7 +142,9 @@ async function addChangeSet() {
       releaseTypeValues[maxProductRelease] > releaseTypeValues[firebaseRelease]
     ) {
       console.log(
-        `Creating a ${maxProductRelease} changeset for firebase due to ${maxProducts.join(', ')}`
+        `Creating a ${maxProductRelease} changeset for firebase due to ${maxProducts.join(
+          ', '
+        )}`
       );
       writeFileSync(
         join(CHANGESET_DIR_PATH, 'bump-root-package.md'),
