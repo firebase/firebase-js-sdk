@@ -40,7 +40,7 @@ export declare class ImagenModel extends VertexAIModel
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [generateImages(prompt)](./vertexai.imagenmodel.md#imagenmodelgenerateimages) |  | <b><i>(BETA)</i></b> Generates images using the Imagen model and returns them as base64-encoded strings.<!-- -->For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which means that the feature is not subject to any SLA or deprecation policy and could change in backwards-incompatible ways. |
-|  [generateImagesGCS(prompt, gcsURI)](./vertexai.imagenmodel.md#imagenmodelgenerateimagesgcs) |  | <b><i>(BETA)</i></b> Generates images to Google Cloud Storage (GCS) using the Imagen model.<!-- -->For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which means that the feature is not subject to any SLA or deprecation policy and could change in backwards-incompatible ways. |
+|  [generateImagesGCS(prompt, gcsURI)](./vertexai.imagenmodel.md#imagenmodelgenerateimagesgcs) |  | <b><i>(BETA)</i></b> Generates images to Cloud Storage (GCS) for Firebase using the Imagen model.<!-- -->For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which means that the feature is not subject to any SLA or deprecation policy and could change in backwards-incompatible ways. |
 
 ## ImagenModel.(constructor)
 
@@ -130,7 +130,7 @@ If the request to generate images fails. This happens if the prompt is blocked.
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Generates images to Google Cloud Storage (GCS) using the Imagen model.
+Generates images to Cloud Storage (GCS) for Firebase using the Imagen model.
 
 For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which means that the feature is not subject to any SLA or deprecation policy and could change in backwards-incompatible ways.
 
@@ -147,7 +147,7 @@ generateImagesGCS(prompt: string, gcsURI: string): Promise<ImagenGenerationRespo
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  prompt | string | A text prompt describing the image(s) to generate. |
-|  gcsURI | string | The Google Cloud Storage (GCS) URI where the images should be stored. This should be a directory. For example, <code>gs://my-bucket/my-directory/</code>. |
+|  gcsURI | string | The Cloud Storage (GCS) for Firebase URI where the images should be stored. This should be a directory. For example, <code>gs://my-bucket/my-directory/</code>. |
 
 <b>Returns:</b>
 
@@ -166,7 +166,7 @@ If the request fails to generate images fails. This happens if the prompt is blo
 const imagen = new ImagenModel(
   vertexAI,
   {
-    model: 'imagen-3.0-generate-001'
+    model: 'imagen-3.0-generate-002'
   }
 );
 

@@ -40,7 +40,7 @@ import { VertexAIModel } from './vertexai-model';
  * const imagen = new ImagenModel(
  *   vertexAI,
  *   {
- *     model: 'imagen-3.0-generate-001'
+ *     model: 'imagen-3.0-generate-002'
  *   }
  * );
  *
@@ -123,7 +123,7 @@ export class ImagenModel extends VertexAIModel {
   }
 
   /**
-   * Generates images to Google Cloud Storage (GCS) using the Imagen model.
+   * Generates images to Cloud Storage (GCS) for Firebase using the Imagen model.
    *
    * @beta
    * For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which
@@ -131,7 +131,7 @@ export class ImagenModel extends VertexAIModel {
    * backwards-incompatible ways.
    *
    * @param prompt - A text prompt describing the image(s) to generate.
-   * @param gcsURI - The Google Cloud Storage (GCS) URI where the images should be stored.
+   * @param gcsURI - The Cloud Storage (GCS) for Firebase URI where the images should be stored.
    * This should be a directory. For example, `gs://my-bucket/my-directory/`.
    * @returns A promise that resolves to an <code>{@link ImagenGenerationResponse}</code>
    * object containing the URLs of the generated images.
