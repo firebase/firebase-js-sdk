@@ -65,7 +65,8 @@ import {
   ALT_PROJECT_ID,
   DEFAULT_PROJECT_ID,
   TARGET_DB_ID,
-  USE_EMULATOR
+  USE_EMULATOR,
+  getEmulatorPort
 } from '../util/settings';
 
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
@@ -209,10 +210,11 @@ apiDescribe('Validation:', persistence => {
       'allows calling connectFirestoreEmulator() after use with same config',
       async db => {
         if (USE_EMULATOR) {
-          connectFirestoreEmulator(db, '127.0.0.1', 9000);
+          const port = getEmulatorPort();
+          connectFirestoreEmulator(db, '127.0.0.1', port);
           await setDoc(doc(db, 'foo/bar'), {});
           expect(() =>
-            connectFirestoreEmulator(db, '127.0.0.1', 9000)
+            connectFirestoreEmulator(db, '127.0.0.1', port)
           ).to.not.throw();
         }
       }
@@ -225,10 +227,11 @@ apiDescribe('Validation:', persistence => {
         if (USE_EMULATOR) {
           const errorMsg =
             'Firestore has already been started and its settings can no longer be changed.';
-          connectFirestoreEmulator(db, '127.0.0.1', 9000);
+          const port = getEmulatorPort();
+          connectFirestoreEmulator(db, '127.0.0.1', port);
           await setDoc(doc(db, 'foo/bar'), {});
           expect(() =>
-            connectFirestoreEmulator(db, '127.0.0.1', 9001)
+            connectFirestoreEmulator(db, '127.0.0.1', port + 1)
           ).to.throw(errorMsg);
         }
       }
