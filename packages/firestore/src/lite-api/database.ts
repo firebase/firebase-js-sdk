@@ -328,9 +328,8 @@ export function connectFirestoreEmulator(
   const settings = firestore._getSettings();
   const existingConfig = {
     ...settings,
-    emultorOptions: firestore._getEmulatorOptions()
+    emulatorOptions: firestore._getEmulatorOptions()
   };
-
   const newHostSetting = `${host}:${port}`;
   if (settings.host !== DEFAULT_HOST && settings.host !== newHostSetting) {
     logWarn(
@@ -344,14 +343,11 @@ export function connectFirestoreEmulator(
     ssl: false,
     emulatorOptions: options
   };
-
   // No-op if the new configuration matches the current configuration. This supports SSR
   // enviornments which might call `connectFirestoreEmulator` multiple times as a standard practice.
   if (deepEqual(newConfig, existingConfig)) {
-    console.error('DEDB settings are the same!');
     return;
   }
-  console.error('DEDB settings differ!');
 
   firestore._setSettings(newConfig);
 
