@@ -140,7 +140,7 @@ export enum ImagenPersonFilterLevel {
   BLOCK_ALL = 'dont_allow',
   /**
    * Allow generation of images containing adults only; images of children are filtered out.
-   * 
+   *
    * Generation of images containing people or faces may require your use case to be
    * reviewed and approved by Cloud support; see the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#person-face-gen | Responsible AI and usage guidelines}
    * for more details.
