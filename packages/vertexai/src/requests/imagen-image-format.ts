@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { logger } from "../logger";
+import { logger } from '../logger';
 
 export class ImagenImageFormat {
   mimeType: string;
@@ -26,8 +26,13 @@ export class ImagenImageFormat {
   }
 
   static jpeg(compressionQuality?: number): ImagenImageFormat {
-    if (compressionQuality && (compressionQuality < 0 || compressionQuality > 100)) {
-      logger.warn(`Invalid JPEG compression quality of ${compressionQuality} specified; the supported range is [0, 100].`);
+    if (
+      compressionQuality &&
+      (compressionQuality < 0 || compressionQuality > 100)
+    ) {
+      logger.warn(
+        `Invalid JPEG compression quality of ${compressionQuality} specified; the supported range is [0, 100].`
+      );
     }
     return { mimeType: 'image/jpeg', compressionQuality };
   }
