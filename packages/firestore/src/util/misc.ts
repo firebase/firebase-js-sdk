@@ -16,6 +16,7 @@
  */
 
 import { randomBytes } from '../platform/random_bytes';
+import { newTextEncoder } from '../platform/text_serializer';
 
 import { debugAssert } from './assert';
 
@@ -72,6 +73,45 @@ export function primitiveComparator<T>(left: T, right: T): number {
 
 export interface Equatable<T> {
   isEqual(other: T): boolean;
+}
+
+/** Compare strings in UTF-8 encoded byte order */
+export function compareUtf8Strings(left: string, right: string): number {
+  let i = 0;
+  while (i < left.length && i < right.length) {
+    const leftCodePoint = left.codePointAt(i)!;
+    const rightCodePoint = right.codePointAt(i)!;
+
+    if (leftCodePoint !== rightCodePoint) {
+      if (leftCodePoint < 128 && rightCodePoint < 128) {
+        // ASCII comparison
+        return primitiveComparator(leftCodePoint, rightCodePoint);
+      } else {
+        // Lazy instantiate TextEncoder
+        const encoder = newTextEncoder();
+
+        // UTF-8 encoded byte comparison, substring 2 indexes to cover surrogate pairs
+        const leftBytes = encoder.encode(left.substring(i, i + 2));
+        const rightBytes = encoder.encode(right.substring(i, i + 2));
+        for (
+          let j = 0;
+          j < Math.min(leftBytes.length, rightBytes.length);
+          j++
+        ) {
+          const comparison = primitiveComparator(leftBytes[j], rightBytes[j]);
+          if (comparison !== 0) {
+            return comparison;
+          }
+        }
+      }
+    }
+
+    // Increment by 2 for surrogate pairs, 1 otherwise
+    i += leftCodePoint > 0xffff ? 2 : 1; 
+  }
+
+  // Compare lengths if all characters are equal
+  return primitiveComparator(left.length, right.length);
 }
 
 export interface Iterable<V> {
