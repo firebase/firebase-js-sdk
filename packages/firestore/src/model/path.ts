@@ -19,7 +19,7 @@ import { Integer } from '@firebase/webchannel-wrapper/bloom-blob';
 
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { primitiveComparator, compareUtf8Strings } from '../util/misc';
+import { primitiveComparator, compareUtf16Strings } from '../util/misc';
 
 export const DOCUMENT_KEY_NAME = '__name__';
 
@@ -202,7 +202,7 @@ abstract class BasePath<B extends BasePath<B>> {
       );
     } else {
       // both non-numeric
-      return compareUtf8Strings(lhs, rhs);
+      return compareUtf16Strings(lhs, rhs);
     }
   }
 
