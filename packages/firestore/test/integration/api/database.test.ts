@@ -2451,7 +2451,7 @@ apiDescribe('Database', persistence => {
         'h': { value: '你好' },
         'i': { value: '你顥' },
         'j': { value: '😁' },
-        'k': { value: '😀' },
+        'k': { value: '😀' }
       };
 
       return withTestCollection(persistence, testDocs, async collectionRef => {

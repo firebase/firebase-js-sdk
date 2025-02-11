@@ -107,7 +107,7 @@ export function compareUtf8Strings(left: string, right: string): number {
     }
 
     // Increment by 2 for surrogate pairs, 1 otherwise
-    i += leftCodePoint > 0xffff ? 2 : 1; 
+    i += leftCodePoint > 0xffff ? 2 : 1;
   }
 
   // Compare lengths if all characters are equal
