@@ -141,33 +141,27 @@ describe('Database@exp Tests', () => {
     unsubscribe();
   });
 
-  it('can connect to emulator', async () => {
-    if (USE_EMULATOR) {
+  if (USE_EMULATOR) {
+    it('can connect to emulator', async () => {
       const db = getDatabase(defaultApp);
       connectDatabaseEmulator(db, 'localhost', parseInt(EMULATOR_PORT, 10));
       await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
-    }
-  });
-  it('can change emulator config before network operations', async () => {
-    if (USE_EMULATOR) {
+    });
+    it('can change emulator config before network operations', async () => {
       const db = getDatabase(defaultApp);
       const port = parseInt(EMULATOR_PORT, 10);
       connectDatabaseEmulator(db, 'localhost', port + 1);
       connectDatabaseEmulator(db, 'localhost', port);
       await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
-    }
-  });
-  it('can connect to emulator after network operations with same parameters', async () => {
-    if (USE_EMULATOR) {
+    });
+    it('can connect to emulator after network operations with same parameters', async () => {
       const db = getDatabase(defaultApp);
       const port = parseInt(EMULATOR_PORT, 10);
       connectDatabaseEmulator(db, 'localhost', port);
       await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
       connectDatabaseEmulator(db, 'localhost', port);
-    }
-  });
-  it('cannot connect to emulator after network operations with different parameters', async () => {
-    if (USE_EMULATOR) {
+    });
+    it('cannot connect to emulator after network operations with different parameters', async () => {
       const db = getDatabase(defaultApp);
       const port = parseInt(EMULATOR_PORT, 10);
       connectDatabaseEmulator(db, 'localhost', port);
@@ -175,8 +169,8 @@ describe('Database@exp Tests', () => {
       expect(() => {
         connectDatabaseEmulator(db, 'localhost', 9001);
       }).to.throw();
-    }
-  });
+    });
+  }
 
   it('can properly handle unknown deep merges', async () => {
     // Note: This test requires `testIndex` to be added as an index.
