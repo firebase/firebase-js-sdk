@@ -74,9 +74,10 @@ export class RestClient implements RemoteConfigFetchClient {
       this.firebaseInstallations.getToken()
     ]);
 
-    const urlBase =
-      window.FIREBASE_REMOTE_CONFIG_URL_BASE ||
-      'https://firebaseremoteconfig.googleapis.com';
+    let urlBase = 'https://firebaseremoteconfig.googleapis.com';
+    if (typeof window!== 'undefined' && window.FIREBASE_REMOTE_CONFIG_URL_BASE) {
+      urlBase = window.FIREBASE_REMOTE_CONFIG_URL_BASE;
+    }
 
     const url = `${urlBase}/v1/projects/${this.projectId}/namespaces/${this.namespace}:fetch?key=${this.apiKey}`;
 

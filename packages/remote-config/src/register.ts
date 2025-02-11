@@ -66,11 +66,7 @@ export function registerRemoteConfig(): void {
     const installations = container
       .getProvider('installations-internal')
       .getImmediate();
-
-    // Guards against the SDK being used in non-browser environments.
-    if (typeof window === 'undefined') {
-      throw ERROR_FACTORY.create(ErrorCode.REGISTRATION_WINDOW);
-    }
+      
     // Guards against the SDK being used when indexedDB is not available.
     if (!isIndexedDBAvailable()) {
       throw ERROR_FACTORY.create(ErrorCode.INDEXED_DB_UNAVAILABLE);
