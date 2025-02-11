@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "11.3.0",
+  "version": "11.3.1",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -399,16 +399,16 @@
     "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@firebase/app": "0.11.0",
-    "@firebase/app-compat": "0.2.49",
+    "@firebase/app": "0.11.1",
+    "@firebase/app-compat": "0.2.50",
     "@firebase/app-types": "0.9.3",
     "@firebase/auth": "1.9.0",
     "@firebase/auth-compat": "0.5.18",
     "@firebase/data-connect": "0.3.0",
     "@firebase/database": "1.0.12",
     "@firebase/database-compat": "2.0.3",
-    "@firebase/firestore": "4.7.7",
-    "@firebase/firestore-compat": "0.3.42",
+    "@firebase/firestore": "4.7.8",
+    "@firebase/firestore-compat": "0.3.43",
     "@firebase/functions": "0.12.2",
     "@firebase/functions-compat": "0.3.19",
     "@firebase/installations": "0.6.12",

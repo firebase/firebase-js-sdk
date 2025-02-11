@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 4.7.8
+
+### Patch Changes
+
+- [`3418ef8`](https://github.com/firebase/firebase-js-sdk/commit/3418ef8078ef2f8a7218e9a702cb42671f078b7d) [#8782](https://github.com/firebase/firebase-js-sdk/pull/8782) - Reverted a change to use UTF-8 encoding in string comparisons which caused a performance issue. See [GitHub issue #8778](https://github.com/firebase/firebase-js-sdk/issues/8778)
+
 ## 4.7.7
 
 ### Patch Changes
