@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "setup": "node test-setup.js",
     "test": "yarn jest",
     "test:compat": "yarn jest tests/compat.test.ts",
     "test:modular": "yarn jest tests/modular.test.ts",
@@ -18,7 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "firebase": "11.0.2"
+    "firebase": "11.3.0"
   },
   "devDependencies": {
     "@babel/core": "7.26.0",
