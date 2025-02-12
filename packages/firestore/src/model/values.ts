@@ -25,11 +25,7 @@ import {
   Value
 } from '../protos/firestore_proto_api';
 import { fail } from '../util/assert';
-import {
-  arrayEquals,
-  primitiveComparator,
-  compareUtf8Strings
-} from '../util/misc';
+import { arrayEquals, primitiveComparator } from '../util/misc';
 import { forEach, objectSize } from '../util/obj';
 import { isNegativeZero } from '../util/types';
 
@@ -255,7 +251,7 @@ export function valueCompare(left: Value, right: Value): number {
         getLocalWriteTime(right)
       );
     case TypeOrder.StringValue:
-      return compareUtf8Strings(left.stringValue!, right.stringValue!);
+      return primitiveComparator(left.stringValue!, right.stringValue!);
     case TypeOrder.BlobValue:
       return compareBlobs(left.bytesValue!, right.bytesValue!);
     case TypeOrder.RefValue:
@@ -404,7 +400,7 @@ function compareMaps(left: MapValue, right: MapValue): number {
   rightKeys.sort();
 
   for (let i = 0; i < leftKeys.length && i < rightKeys.length; ++i) {
-    const keyCompare = compareUtf8Strings(leftKeys[i], rightKeys[i]);
+    const keyCompare = primitiveComparator(leftKeys[i], rightKeys[i]);
     if (keyCompare !== 0) {
       return keyCompare;
     }

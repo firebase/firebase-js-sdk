@@ -33,9 +33,9 @@ import { EventAccumulator } from './EventAccumulator';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../../config/project.json');
-const EMULATOR_PORT = process.env.RTDB_EMULATOR_PORT;
+export const EMULATOR_PORT = process.env.RTDB_EMULATOR_PORT;
 const EMULATOR_NAMESPACE = process.env.RTDB_EMULATOR_NAMESPACE;
-const USE_EMULATOR = !!EMULATOR_PORT;
+export const USE_EMULATOR = !!EMULATOR_PORT;
 
 let freshRepoId = 0;
 const activeFreshApps: FirebaseApp[] = [];
