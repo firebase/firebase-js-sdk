@@ -46,7 +46,7 @@ export interface ImagenModelParams {
 /**
  * Configuration options for generating images with Imagen.
  *
- * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation} for 
+ * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation} for
  * more details.
  *
  * @beta
