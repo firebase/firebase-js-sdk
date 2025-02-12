@@ -78,7 +78,7 @@ import {
   createThrowsSection,
   createEntryPointTitleCell,
   createExampleSection,
-  getHeadingAnchorForApiItem,
+  getHeadingAnchorForApiItem
 } from './MarkdownDocumenterHelpers';
 import * as path from 'path';
 import { DocHeading } from '../nodes/DocHeading';
