@@ -439,7 +439,7 @@ export enum ImagenAspectRatio {
     SQUARE = "1:1"
 }
 
-// @beta
+// @public
 export interface ImagenGCSImage {
     gcsURI: string;
     mimeType: string;

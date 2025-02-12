@@ -29,7 +29,7 @@ import { _isFirebaseServerApp } from '@firebase/app';
 export abstract class VertexAIModel {
   /**
    * The fully qualified model resource name to use for generating images
-   * (e.g. `publishers/google/models/imagen-3.0-generate-002`).
+   * (for example, `publishers/google/models/imagen-3.0-generate-002`).
    */
   readonly model: string;
 

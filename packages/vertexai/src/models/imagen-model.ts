@@ -54,7 +54,7 @@ import { VertexAIModel } from './vertexai-model';
  */
 export class ImagenModel extends VertexAIModel {
   /**
-   * The Imagen Generation Configuration.
+   * The Imagen generation configuration.
    */
   generationConfig?: ImagenGenerationConfig;
   /**
@@ -66,7 +66,7 @@ export class ImagenModel extends VertexAIModel {
    * Constructs a new instance of the <code>{@link ImagenModel}</code> class.
    *
    * @param vertexAI - An instance of the Vertex AI in Firebase SDK.
-   * @param modelParams - Parameters to use when making Imagen requests.
+   * @param modelParams - Parameters to use when making requests to Imagen.
    * @param requestOptions - Additional options to use when making requests.
    *
    * @throws If the `apiKey` or `projectId` fields are missing in your
@@ -93,7 +93,7 @@ export class ImagenModel extends VertexAIModel {
    * backwards-incompatible ways.
    *
    * @param prompt - A text prompt describing the image(s) to generate.
-   * @returns A promise that resolves to an {@link ImagenGenerationResponse}
+   * @returns A promise that resolves to an <code>{@link ImagenGenerationResponse}</code>
    * object containing the generated images.
    *
    * @throws If the request to generate images fails. This happens if the

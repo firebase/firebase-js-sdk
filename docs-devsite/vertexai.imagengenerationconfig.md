@@ -15,7 +15,7 @@ https://github.com/firebase/firebase-js-sdk
 
 Configuration options for generating images with Imagen.
 
-See the [Cloud documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images) for more details.
+See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details.
 
 <b>Signature:</b>
 

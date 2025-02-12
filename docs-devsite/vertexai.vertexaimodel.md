@@ -24,7 +24,7 @@ export declare abstract class VertexAIModel
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [model](./vertexai.vertexaimodel.md#vertexaimodelmodel) |  | string | The fully qualified model resource name to use for generating images (e.g. <code>publishers/google/models/imagen-3.0-generate-002</code>). |
+|  [model](./vertexai.vertexaimodel.md#vertexaimodelmodel) |  | string | The fully qualified model resource name to use for generating images (for example, <code>publishers/google/models/imagen-3.0-generate-002</code>). |
 
 ## Methods
 
@@ -34,7 +34,7 @@ export declare abstract class VertexAIModel
 
 ## VertexAIModel.model
 
-The fully qualified model resource name to use for generating images (e.g. `publishers/google/models/imagen-3.0-generate-002`<!-- -->).
+The fully qualified model resource name to use for generating images (for example, `publishers/google/models/imagen-3.0-generate-002`<!-- -->).
 
 <b>Signature:</b>
 

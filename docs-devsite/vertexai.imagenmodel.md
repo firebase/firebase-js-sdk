@@ -34,7 +34,7 @@ export declare class ImagenModel extends VertexAIModel
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [generationConfig](./vertexai.imagenmodel.md#imagenmodelgenerationconfig) |  | [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface) | <b><i>(BETA)</i></b> The Imagen Generation Configuration. |
+|  [generationConfig](./vertexai.imagenmodel.md#imagenmodelgenerationconfig) |  | [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface) | <b><i>(BETA)</i></b> The Imagen generation configuration. |
 |  [requestOptions](./vertexai.imagenmodel.md#imagenmodelrequestoptions) |  | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) \| undefined | <b><i>(BETA)</i></b> |
 |  [safetySettings](./vertexai.imagenmodel.md#imagenmodelsafetysettings) |  | [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) | <b><i>(BETA)</i></b> Safety settings for filtering inappropriate content. |
 
@@ -62,7 +62,7 @@ constructor(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?:
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  vertexAI | [VertexAI](./vertexai.vertexai.md#vertexai_interface) | An instance of the Vertex AI in Firebase SDK. |
-|  modelParams | [ImagenModelParams](./vertexai.imagenmodelparams.md#imagenmodelparams_interface) | Parameters to use when making Imagen requests. |
+|  modelParams | [ImagenModelParams](./vertexai.imagenmodelparams.md#imagenmodelparams_interface) | Parameters to use when making requests to Imagen. |
 |  requestOptions | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) \| undefined | Additional options to use when making requests. |
 
 #### Exceptions
@@ -74,7 +74,7 @@ If the `apiKey` or `projectId` fields are missing in your Firebase config.
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-The Imagen Generation Configuration.
+The Imagen generation configuration.
 
 <b>Signature:</b>
 
@@ -133,7 +133,7 @@ generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineIma
 
 Promise&lt;[ImagenGenerationResponse](./vertexai.imagengenerationresponse.md#imagengenerationresponse_interface)<!-- -->&lt;[ImagenInlineImage](./vertexai.imageninlineimage.md#imageninlineimage_interface)<!-- -->&gt;&gt;
 
-A promise that resolves to an [ImagenGenerationResponse](./vertexai.imagengenerationresponse.md#imagengenerationresponse_interface) object containing the generated images.
+A promise that resolves to an <code>[ImagenGenerationResponse](./vertexai.imagengenerationresponse.md#imagengenerationresponse_interface)</code> object containing the generated images.
 
 #### Exceptions
 

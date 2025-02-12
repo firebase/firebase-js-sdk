@@ -18,7 +18,7 @@
 import { ImagenImageFormat } from '../../requests/imagen-image-format';
 
 /**
- * Parameters for configuring an {@link ImagenModel}.
+ * Parameters for configuring an <code>{@link ImagenModel}</code>.
  *
  * @beta
  */
@@ -29,7 +29,7 @@ export interface ImagenModelParams {
    *
    * Only Imagen 3 models (named `imagen-3.0-*`) are supported.
    *
-   * See {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/model-versioning | model versions}
+   * See {@link https://firebase.google.com/docs/vertex-ai/models | model versions}
    * for a full list of supported Imagen 3 models.
    */
   model: string;
@@ -46,7 +46,8 @@ export interface ImagenModelParams {
 /**
  * Configuration options for generating images with Imagen.
  *
- * See the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images | Cloud documentation} for more details.
+ * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation} for 
+ * more details.
  *
  * @beta
  */
@@ -159,7 +160,7 @@ export enum ImagenPersonFilterLevel {
 /**
  * Settings for controlling the aggressiveness of filtering out sensitive content.
  *
- * See the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#config-safety-filters | https://www.newyorker.com/magazine/2018/12/10/the-friendship-that-made-google-huge}
+ * See the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#config-safety-filters | Cloud documentation }
  * for more details.
  *
  * @beta

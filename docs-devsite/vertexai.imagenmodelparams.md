@@ -13,7 +13,7 @@ https://github.com/firebase/firebase-js-sdk
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Parameters for configuring an [ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)<!-- -->.
+Parameters for configuring an <code>[ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)</code>.
 
 <b>Signature:</b>
 
@@ -26,7 +26,7 @@ export interface ImagenModelParams
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [generationConfig](./vertexai.imagenmodelparams.md#imagenmodelparamsgenerationconfig) | [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface) | <b><i>(BETA)</i></b> Configuration options for generating images with Imagen. |
-|  [model](./vertexai.imagenmodelparams.md#imagenmodelparamsmodel) | string | <b><i>(BETA)</i></b> The Imagen model to use for generating images. For example: <code>imagen-3.0-generate-002</code>.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported.<!-- -->See [model versions](https://cloud.google.com/vertex-ai/generative-ai/docs/image/model-versioning) for a full list of supported Imagen 3 models. |
+|  [model](./vertexai.imagenmodelparams.md#imagenmodelparamsmodel) | string | <b><i>(BETA)</i></b> The Imagen model to use for generating images. For example: <code>imagen-3.0-generate-002</code>.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported.<!-- -->See [model versions](https://firebase.google.com/docs/vertex-ai/models) for a full list of supported Imagen 3 models. |
 |  [safetySettings](./vertexai.imagenmodelparams.md#imagenmodelparamssafetysettings) | [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) | <b><i>(BETA)</i></b> Safety settings for filtering potentially inappropriate content. |
 
 ## ImagenModelParams.generationConfig
@@ -51,7 +51,7 @@ The Imagen model to use for generating images. For example: `imagen-3.0-generate
 
 Only Imagen 3 models (named `imagen-3.0-*`<!-- -->) are supported.
 
-See [model versions](https://cloud.google.com/vertex-ai/generative-ai/docs/image/model-versioning) for a full list of supported Imagen 3 models.
+See [model versions](https://firebase.google.com/docs/vertex-ai/models) for a full list of supported Imagen 3 models.
 
 <b>Signature:</b>
 
