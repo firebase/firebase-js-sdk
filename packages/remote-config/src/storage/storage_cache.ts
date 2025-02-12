@@ -16,7 +16,7 @@
  */
 
 import { FetchStatus, CustomSignals } from '@firebase/remote-config-types';
-import { FirebaseRemoteConfigObject } from '../client/remote_config_fetch_client';
+import { FirebaseRemoteConfigObject } from '../public_types';
 import { Storage } from './storage';
 
 /**

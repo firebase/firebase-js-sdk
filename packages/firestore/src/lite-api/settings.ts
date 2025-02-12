@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { EmulatorMockTokenOptions } from '@firebase/util';
+
 import { FirestoreLocalCache } from '../api/cache_config';
 import { CredentialsSettings } from '../api/credentials';
 import {
@@ -80,6 +82,7 @@ export interface PrivateSettings extends FirestoreSettings {
   experimentalAutoDetectLongPolling?: boolean;
   experimentalLongPollingOptions?: ExperimentalLongPollingOptions;
   useFetchStreams?: boolean;
+  emulatorOptions?: { mockUserToken?: EmulatorMockTokenOptions | string };
 
   localCache?: FirestoreLocalCache;
 }

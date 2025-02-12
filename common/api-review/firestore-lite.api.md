@@ -494,4 +494,5 @@ export class WriteBatch {
 // @public
 export function writeBatch(firestore: Firestore): WriteBatch;
 
+
 ```

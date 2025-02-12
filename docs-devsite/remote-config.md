@@ -17,7 +17,7 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 |  Function | Description |
 |  --- | --- |
 |  <b>function(app, ...)</b> |
-|  [getRemoteConfig(app)](./remote-config.md#getremoteconfig_cf608e1) |  |
+|  [getRemoteConfig(app, options)](./remote-config.md#getremoteconfig_61d368f) |  |
 |  <b>function(remoteConfig, ...)</b> |
 |  [activate(remoteConfig)](./remote-config.md#activate_722a192) | Makes the last fetched config available to the getters. |
 |  [ensureInitialized(remoteConfig)](./remote-config.md#ensureinitialized_722a192) | Ensures the last activated config are available to the getters. |
@@ -38,7 +38,10 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 |  Interface | Description |
 |  --- | --- |
 |  [CustomSignals](./remote-config.customsignals.md#customsignals_interface) | Defines the type for representing custom signals and their values.<p>The values in CustomSignals must be one of the following types:<ul> <li><code>string</code> <li><code>number</code> <li><code>null</code> </ul> |
+|  [FetchResponse](./remote-config.fetchresponse.md#fetchresponse_interface) | Defines a successful response (200 or 304).<p>Modeled after the native <code>Response</code> interface, but simplified for Remote Config's use case. |
+|  [FirebaseRemoteConfigObject](./remote-config.firebaseremoteconfigobject.md#firebaseremoteconfigobject_interface) | Defines a self-descriptive reference for config key-value pairs. |
 |  [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) | The Firebase Remote Config service interface. |
+|  [RemoteConfigOptions](./remote-config.remoteconfigoptions.md#remoteconfigoptions_interface) | Options for Remote Config initialization. |
 |  [RemoteConfigSettings](./remote-config.remoteconfigsettings.md#remoteconfigsettings_interface) | Defines configuration options for the Remote Config SDK. |
 |  [Value](./remote-config.value.md#value_interface) | Wraps a value with metadata and type-safe getters. |
 
@@ -52,12 +55,12 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 
 ## function(app, ...)
 
-### getRemoteConfig(app) {:#getremoteconfig_cf608e1}
+### getRemoteConfig(app, options) {:#getremoteconfig_61d368f}
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getRemoteConfig(app?: FirebaseApp): RemoteConfig;
+export declare function getRemoteConfig(app?: FirebaseApp, options?: RemoteConfigOptions): RemoteConfig;
 ```
 
 #### Parameters
@@ -65,6 +68,7 @@ export declare function getRemoteConfig(app?: FirebaseApp): RemoteConfig;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance. |
+|  options | [RemoteConfigOptions](./remote-config.remoteconfigoptions.md#remoteconfigoptions_interface) | Optional. The [RemoteConfigOptions](./remote-config.remoteconfigoptions.md#remoteconfigoptions_interface) with which to instantiate the Remote Config instance. |
 
 <b>Returns:</b>
 
