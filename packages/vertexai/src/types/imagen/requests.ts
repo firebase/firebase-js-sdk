@@ -20,7 +20,7 @@ import { ImagenImageFormat } from '../../requests/imagen-image-format';
 /**
  * Parameters for configuring an {@link ImagenModel}.
  *
- * @public
+ * @beta
  */
 export interface ImagenModelParams {
   /**
@@ -48,7 +48,7 @@ export interface ImagenModelParams {
  *
  * See the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images | Cloud documentation} for more details.
  *
- * @public
+ * @beta
  */
 export interface ImagenGenerationConfig {
   /**
@@ -101,7 +101,7 @@ export interface ImagenGenerationConfig {
  * documentation and the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters | Responsible AI and usage guidelines}
  * for more details.
  *
- * @public
+ * @beta
  */
 export enum ImagenSafetyFilterLevel {
   /**
@@ -131,7 +131,7 @@ export enum ImagenSafetyFilterLevel {
  * See the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list | `personGeneration`}
  * documentation for more details.
  *
- * @public
+ * @beta
  */
 export enum ImagenPersonFilterLevel {
   /**
@@ -162,7 +162,7 @@ export enum ImagenPersonFilterLevel {
  * See the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#config-safety-filters | https://www.newyorker.com/magazine/2018/12/10/the-friendship-that-made-google-huge}
  * for more details.
  *
- * @public
+ * @beta
  */
 export interface ImagenSafetySettings {
   /**
@@ -185,7 +185,7 @@ export interface ImagenSafetySettings {
  * See the the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images#aspect-ratio | Cloud documentation }
  * for more details and examples of the supported aspect ratios.
  *
- * @public
+ * @beta
  */
 export enum ImagenAspectRatio {
   /**

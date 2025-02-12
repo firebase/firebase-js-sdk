@@ -10,6 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ImagenModelParams interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Parameters for configuring an [ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)<!-- -->.
 
 <b>Signature:</b>
@@ -22,11 +25,14 @@ export interface ImagenModelParams
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [generationConfig](./vertexai.imagenmodelparams.md#imagenmodelparamsgenerationconfig) | [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface) | Configuration options for generating images with Imagen. |
-|  [model](./vertexai.imagenmodelparams.md#imagenmodelparamsmodel) | string | The Imagen model to use for generating images. For example: <code>imagen-3.0-generate-002</code>.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported.<!-- -->See [model versions](https://cloud.google.com/vertex-ai/generative-ai/docs/image/model-versioning) for a full list of supported Imagen 3 models. |
-|  [safetySettings](./vertexai.imagenmodelparams.md#imagenmodelparamssafetysettings) | [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) | Safety settings for filtering potentially inappropriate content. |
+|  [generationConfig](./vertexai.imagenmodelparams.md#imagenmodelparamsgenerationconfig) | [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface) | <b><i>(BETA)</i></b> Configuration options for generating images with Imagen. |
+|  [model](./vertexai.imagenmodelparams.md#imagenmodelparamsmodel) | string | <b><i>(BETA)</i></b> The Imagen model to use for generating images. For example: <code>imagen-3.0-generate-002</code>.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported.<!-- -->See [model versions](https://cloud.google.com/vertex-ai/generative-ai/docs/image/model-versioning) for a full list of supported Imagen 3 models. |
+|  [safetySettings](./vertexai.imagenmodelparams.md#imagenmodelparamssafetysettings) | [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) | <b><i>(BETA)</i></b> Safety settings for filtering potentially inappropriate content. |
 
 ## ImagenModelParams.generationConfig
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Configuration options for generating images with Imagen.
 
@@ -37,6 +43,9 @@ generationConfig?: ImagenGenerationConfig;
 ```
 
 ## ImagenModelParams.model
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 The Imagen model to use for generating images. For example: `imagen-3.0-generate-002`<!-- -->.
 
@@ -51,6 +60,9 @@ model: string;
 ```
 
 ## ImagenModelParams.safetySettings
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Safety settings for filtering potentially inappropriate content.
 

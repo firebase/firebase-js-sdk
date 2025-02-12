@@ -32,7 +32,7 @@ import { logger } from '../logger';
  * }
  * ```
  *
- * @public
+ * @beta
  */
 export class ImagenImageFormat {
   /**
@@ -58,8 +58,6 @@ export class ImagenImageFormat {
    *
    * @param compressionQuality - The level of compression (a number between 0 and 100).
    * @returns An <code>{@link ImagenImageFormat}</code> object for a JPEG image.
-   *
-   * @public
    */
   static jpeg(compressionQuality?: number): ImagenImageFormat {
     if (
@@ -82,8 +80,6 @@ export class ImagenImageFormat {
    * backwards-incompatible ways.
    *
    * @returns An <code>{@link ImagenImageFormat}</code> object for a PNG image.
-   *
-   * @public
    */
   static png(): ImagenImageFormat {
     return { mimeType: 'image/png' };

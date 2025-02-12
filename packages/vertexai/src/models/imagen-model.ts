@@ -50,7 +50,7 @@ import { VertexAIModel } from './vertexai-model';
  * }
  * ```
  *
- * @public
+ * @beta
  */
 export class ImagenModel extends VertexAIModel {
   /**
@@ -125,10 +125,7 @@ export class ImagenModel extends VertexAIModel {
   /**
    * Generates images to Cloud Storage (GCS) for Firebase using the Imagen model.
    *
-   * @beta
-   * For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which
-   * means that the feature is not subject to any SLA or deprecation policy and could change in
-   * backwards-incompatible ways.
+   * @internal This method is temporarily internal.
    *
    * @param prompt - A text prompt describing the image(s) to generate.
    * @param gcsURI - The Cloud Storage (GCS) for Firebase URI where the images should be stored.

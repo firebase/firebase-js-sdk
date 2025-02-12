@@ -10,6 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ImagenGenerationConfig interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Configuration options for generating images with Imagen.
 
 See the [Cloud documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images) for more details.
@@ -24,13 +27,16 @@ export interface ImagenGenerationConfig
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [addWatermark](./vertexai.imagengenerationconfig.md#imagengenerationconfigaddwatermark) | boolean | Whether to add an invisible watermark to generated images.<!-- -->If set to <code>true</code>, an invisible SynthID watermark is embedded in generated images to indicate that they are AI generated. If set to <code>false</code>, watermarking will be disabled.<!-- -->The default value depends on the Imagen model; see the [addWatermark](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list) documentation for more details. |
-|  [aspectRatio](./vertexai.imagengenerationconfig.md#imagengenerationconfigaspectratio) | [ImagenAspectRatio](./vertexai.md#imagenaspectratio) | The aspect ratio of the generated images. The default value is square 1:1. Supported aspect ratios depend on the Imagen model, see <code>[ImagenAspectRatio](./vertexai.md#imagenaspectratio)</code> for more details. |
-|  [imageFormat](./vertexai.imagengenerationconfig.md#imagengenerationconfigimageformat) | [ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class) | The image format of the generated images. The default is PNG.<!-- -->See <code>[ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class)</code> for more details. |
-|  [negativePrompt](./vertexai.imagengenerationconfig.md#imagengenerationconfignegativeprompt) | string | A description of what should be omitted from the generated images.<!-- -->Support for negative prompts depends on the Imagen model.<!-- -->See the [Cloud documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images#negative-prompt) for more details. |
-|  [numberOfImages](./vertexai.imagengenerationconfig.md#imagengenerationconfignumberofimages) | number | The number of images to generate. The default value is 1.<!-- -->The number of sample images that may be generated in each request depends on the model (typically up to 4); see the [sampleCount](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list) documentation for more details. |
+|  [addWatermark](./vertexai.imagengenerationconfig.md#imagengenerationconfigaddwatermark) | boolean | <b><i>(BETA)</i></b> Whether to add an invisible watermark to generated images.<!-- -->If set to <code>true</code>, an invisible SynthID watermark is embedded in generated images to indicate that they are AI generated. If set to <code>false</code>, watermarking will be disabled.<!-- -->The default value depends on the Imagen model; see the [addWatermark](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list) documentation for more details. |
+|  [aspectRatio](./vertexai.imagengenerationconfig.md#imagengenerationconfigaspectratio) | [ImagenAspectRatio](./vertexai.md#imagenaspectratio) | <b><i>(BETA)</i></b> The aspect ratio of the generated images. The default value is square 1:1. Supported aspect ratios depend on the Imagen model, see <code>[ImagenAspectRatio](./vertexai.md#imagenaspectratio)</code> for more details. |
+|  [imageFormat](./vertexai.imagengenerationconfig.md#imagengenerationconfigimageformat) | [ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class) | <b><i>(BETA)</i></b> The image format of the generated images. The default is PNG.<!-- -->See <code>[ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class)</code> for more details. |
+|  [negativePrompt](./vertexai.imagengenerationconfig.md#imagengenerationconfignegativeprompt) | string | <b><i>(BETA)</i></b> A description of what should be omitted from the generated images.<!-- -->Support for negative prompts depends on the Imagen model.<!-- -->See the [Cloud documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images#negative-prompt) for more details. |
+|  [numberOfImages](./vertexai.imagengenerationconfig.md#imagengenerationconfignumberofimages) | number | <b><i>(BETA)</i></b> The number of images to generate. The default value is 1.<!-- -->The number of sample images that may be generated in each request depends on the model (typically up to 4); see the [sampleCount](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list) documentation for more details. |
 
 ## ImagenGenerationConfig.addWatermark
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Whether to add an invisible watermark to generated images.
 
@@ -46,6 +52,9 @@ addWatermark?: boolean;
 
 ## ImagenGenerationConfig.aspectRatio
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 The aspect ratio of the generated images. The default value is square 1:1. Supported aspect ratios depend on the Imagen model, see <code>[ImagenAspectRatio](./vertexai.md#imagenaspectratio)</code> for more details.
 
 <b>Signature:</b>
@@ -55,6 +64,9 @@ aspectRatio?: ImagenAspectRatio;
 ```
 
 ## ImagenGenerationConfig.imageFormat
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 The image format of the generated images. The default is PNG.
 
@@ -67,6 +79,9 @@ imageFormat?: ImagenImageFormat;
 ```
 
 ## ImagenGenerationConfig.negativePrompt
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 A description of what should be omitted from the generated images.
 
@@ -81,6 +96,9 @@ negativePrompt?: string;
 ```
 
 ## ImagenGenerationConfig.numberOfImages
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 The number of images to generate. The default value is 1.
 

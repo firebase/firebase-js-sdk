@@ -10,6 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ImagenSafetySettings interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Settings for controlling the aggressiveness of filtering out sensitive content.
 
 See the [https://www.newyorker.com/magazine/2018/12/10/the-friendship-that-made-google-huge](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#config-safety-filters) for more details.
@@ -24,10 +27,13 @@ export interface ImagenSafetySettings
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [personFilterLevel](./vertexai.imagensafetysettings.md#imagensafetysettingspersonfilterlevel) | [ImagenPersonFilterLevel](./vertexai.md#imagenpersonfilterlevel) | A filter level controlling whether generation of images containing people or faces is allowed. |
-|  [safetyFilterLevel](./vertexai.imagensafetysettings.md#imagensafetysettingssafetyfilterlevel) | [ImagenSafetyFilterLevel](./vertexai.md#imagensafetyfilterlevel) | A filter level controlling how aggressive to filter out sensitive content from generated images. |
+|  [personFilterLevel](./vertexai.imagensafetysettings.md#imagensafetysettingspersonfilterlevel) | [ImagenPersonFilterLevel](./vertexai.md#imagenpersonfilterlevel) | <b><i>(BETA)</i></b> A filter level controlling whether generation of images containing people or faces is allowed. |
+|  [safetyFilterLevel](./vertexai.imagensafetysettings.md#imagensafetysettingssafetyfilterlevel) | [ImagenSafetyFilterLevel](./vertexai.md#imagensafetyfilterlevel) | <b><i>(BETA)</i></b> A filter level controlling how aggressive to filter out sensitive content from generated images. |
 
 ## ImagenSafetySettings.personFilterLevel
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 A filter level controlling whether generation of images containing people or faces is allowed.
 
@@ -38,6 +44,9 @@ personFilterLevel?: ImagenPersonFilterLevel;
 ```
 
 ## ImagenSafetySettings.safetyFilterLevel
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 A filter level controlling how aggressive to filter out sensitive content from generated images.
 

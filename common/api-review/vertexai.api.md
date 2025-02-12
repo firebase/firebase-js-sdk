@@ -346,7 +346,7 @@ export class GenerativeModel extends VertexAIModel {
 // @public
 export function getGenerativeModel(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
 
-// @public
+// @beta
 export function getImagenModel(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
 
 // @public
@@ -430,7 +430,7 @@ export enum HarmSeverity {
     HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE"
 }
 
-// @public
+// @beta
 export enum ImagenAspectRatio {
     LANDSCAPE_16x9 = "16:9",
     LANDSCAPE_3x4 = "3:4",
@@ -439,13 +439,13 @@ export enum ImagenAspectRatio {
     SQUARE = "1:1"
 }
 
-// @public
+// @beta
 export interface ImagenGCSImage {
     gcsURI: string;
     mimeType: string;
 }
 
-// @public
+// @beta
 export interface ImagenGenerationConfig {
     addWatermark?: boolean;
     aspectRatio?: ImagenAspectRatio;
@@ -454,13 +454,13 @@ export interface ImagenGenerationConfig {
     numberOfImages?: number;
 }
 
-// @public
+// @beta
 export interface ImagenGenerationResponse<T extends ImagenInlineImage | ImagenGCSImage> {
     filteredReason?: string;
     images: T[];
 }
 
-// @public
+// @beta
 export class ImagenImageFormat {
     compressionQuality?: number;
     static jpeg(compressionQuality?: number): ImagenImageFormat;
@@ -468,18 +468,17 @@ export class ImagenImageFormat {
     static png(): ImagenImageFormat;
 }
 
-// @public
+// @beta
 export interface ImagenInlineImage {
     bytesBase64Encoded: string;
     mimeType: string;
 }
 
-// @public
+// @beta
 export class ImagenModel extends VertexAIModel {
     constructor(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
-    // @beta
     generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
-    // @beta
+    // @internal
     generateImagesGCS(prompt: string, gcsURI: string): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
     generationConfig?: ImagenGenerationConfig;
     // (undocumented)
@@ -487,21 +486,21 @@ export class ImagenModel extends VertexAIModel {
     safetySettings?: ImagenSafetySettings;
 }
 
-// @public
+// @beta
 export interface ImagenModelParams {
     generationConfig?: ImagenGenerationConfig;
     model: string;
     safetySettings?: ImagenSafetySettings;
 }
 
-// @public
+// @beta
 export enum ImagenPersonFilterLevel {
     ALLOW_ADULT = "allow_adult",
     ALLOW_ALL = "allow_all",
     BLOCK_ALL = "dont_allow"
 }
 
-// @public
+// @beta
 export enum ImagenSafetyFilterLevel {
     BLOCK_LOW_AND_ABOVE = "block_low_and_above",
     BLOCK_MEDIUM_AND_ABOVE = "block_medium_and_above",
@@ -509,7 +508,7 @@ export enum ImagenSafetyFilterLevel {
     BLOCK_ONLY_HIGH = "block_only_high"
 }
 
-// @public
+// @beta
 export interface ImagenSafetySettings {
     personFilterLevel?: ImagenPersonFilterLevel;
     safetyFilterLevel?: ImagenSafetyFilterLevel;
