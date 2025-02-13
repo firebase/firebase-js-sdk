@@ -384,14 +384,16 @@ export class Sort implements Stage {
  * @beta
  */
 export class GenericStage implements Stage {
-  constructor(public name: string, params: unknown[]) {}
+  constructor(public name: string, private params: Expr[]) {}
 
   /**
    * @internal
    * @private
    */
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
-    // TODO support generic stage
-    return {};
+    return {
+      name: this.name,
+      args: this.params.map(o => o._toProto(serializer))
+    };
   }
 }

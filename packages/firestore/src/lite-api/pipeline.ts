@@ -34,6 +34,7 @@ import { isPlainObject } from '../util/input_validation';
 import { getDatastore } from './components';
 import { Firestore } from './database';
 import {
+  _mapValue,
   Accumulator,
   AccumulatorTarget,
   Constant,
@@ -672,12 +673,27 @@ export class Pipeline implements ProtoSerializable<ExecutePipelineRequest> {
    */
   genericStage(name: string, params: any[]): Pipeline {
     const copy = this.stages.map(s => s);
-    params.forEach(param => {
+
+    // Convert input values to Expressions.
+    // We treat objects as mapValues and arrays as arrayValues,
+    // this is unlike the default conversion for objects and arrays
+    // passed to an expression.
+    const expressionParams = params.map((value: any) => {
+      if (value instanceof Expr) {
+        return value;
+      } else if (isPlainObject(value)) {
+        return _mapValue(value);
+      } else {
+        return Constant.of(value);
+      }
+    });
+
+    expressionParams.forEach(param => {
       if (isReadableUserData(param)) {
         param._readUserData(this.userDataReader);
       }
     });
-    copy.push(new GenericStage(name, params));
+    copy.push(new GenericStage(name, expressionParams));
     return this.newPipeline(
       this._db,
       this.userDataReader,

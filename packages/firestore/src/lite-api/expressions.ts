@@ -2176,6 +2176,29 @@ export class Constant extends Expr {
 }
 
 /**
+ * Internal only
+ * @internal
+ * @private
+ */
+export class MapValue extends Expr {
+  constructor(private plainObject: Map<string, Expr>) {
+    super();
+  }
+
+  exprType: ExprType = 'Constant';
+
+  _readUserData(dataReader: UserDataReader): void {
+    this.plainObject.forEach(expr => {
+      expr._readUserData(dataReader);
+    });
+  }
+
+  _toProto(serializer: JsonProtoSerializer): ProtoValue {
+    return toMapValue(serializer, this.plainObject);
+  }
+}
+
+/**
  * @beta
  *
  * This class defines the base class for Firestore {@link Pipeline} functions, which can be evaluated within pipeline
@@ -2212,6 +2235,17 @@ export class FirestoreFunction extends Expr {
       return expr._readUserData(dataReader);
     });
   }
+}
+
+/**
+ * @beta
+ */
+export class GenericFunction
+  extends FirestoreFunction
+  implements FilterCondition, Accumulator
+{
+  accumulator: true = true;
+  filterable: true = true;
 }
 
 /**
@@ -4096,6 +4130,28 @@ export function map(elements: Record<string, any>): MapFunction {
     }
   }
   return new MapFunction(result);
+}
+
+/**
+ * Internal use only
+ * Converts a plainObject to a mapValue in the proto representation,
+ * rather than a functionValue+map that is the result of the map(...) function.
+ * This behaves different than Constant.of(plainObject) because it
+ * traverses the input object, converts values in the object to expressions,
+ * and calls _readUserData on each of these expressions.
+ * @private
+ * @internal
+ * @param plainObject
+ */
+export function _mapValue(plainObject: Record<string, any>): MapValue {
+  const result: Map<string, Expr> = new Map<string, Expr>();
+  for (const key in plainObject) {
+    if (Object.prototype.hasOwnProperty.call(plainObject, key)) {
+      const value = plainObject[key];
+      result.set(key, valueToDefaultExpr(value));
+    }
+  }
+  return new MapValue(result);
 }
 
 export function array(elements: any[]): ArrayFunction {
@@ -7499,15 +7555,15 @@ export function timestampSub(
  * genericFunction("sum", [Field.of("price")]);
  * ```
  *
- * @param name The name of the user defined function.
+ * @param functionName The name of the user defined function.
  * @param params The arguments to pass to the function.
- * @return A new {@code Function} representing the function call.
+ * @return A new {@code GenericFucntion} representing the function call.
  */
 export function genericFunction(
-  name: string,
-  params: Expr[]
-): FirestoreFunction {
-  return new FirestoreFunction(name, params);
+  functionName: string,
+  params: any[]
+): GenericFunction {
+  return new GenericFunction(functionName, params.map(valueToDefaultExpr));
 }
 
 /**
