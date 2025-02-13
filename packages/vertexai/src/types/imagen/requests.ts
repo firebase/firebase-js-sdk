@@ -64,7 +64,7 @@ export interface ImagenGenerationConfig {
    * The number of images to generate. The default value is 1.
    *
    * The number of sample images that may be generated in each request depends on the model
-   * (typically up to 4); see the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list | sampleCount}
+   * (typically up to 4); see the <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list"><code>sampleCount</code></a>
    * documentation for more details.
    */
   numberOfImages?: number;
@@ -86,7 +86,7 @@ export interface ImagenGenerationConfig {
    * If set to `true`, an invisible SynthID watermark is embedded in generated images to indicate
    * that they are AI generated. If set to `false`, watermarking will be disabled.
    *
-   * The default value depends on the Imagen model; see the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list | addWatermark }
+   * The default value depends on the Imagen model; see the <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list"><code>addWatermark</code></a>
    * documentation for more details.
    */
   addWatermark?: boolean;
