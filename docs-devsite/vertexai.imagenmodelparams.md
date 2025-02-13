@@ -25,9 +25,9 @@ export interface ImagenModelParams
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [generationConfig](./vertexai.imagenmodelparams.md#imagenmodelparamsgenerationconfig) | [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface) | <b><i>(BETA)</i></b> Configuration options for generating images with Imagen. |
-|  [model](./vertexai.imagenmodelparams.md#imagenmodelparamsmodel) | string | <b><i>(BETA)</i></b> The Imagen model to use for generating images. For example: <code>imagen-3.0-generate-002</code>.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported.<!-- -->See [model versions](https://firebase.google.com/docs/vertex-ai/models) for a full list of supported Imagen 3 models. |
-|  [safetySettings](./vertexai.imagenmodelparams.md#imagenmodelparamssafetysettings) | [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) | <b><i>(BETA)</i></b> Safety settings for filtering potentially inappropriate content. |
+|  [generationConfig](./vertexai.imagenmodelparams.md#imagenmodelparamsgenerationconfig) | [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface) | <b><i>(Public Preview)</i></b> Configuration options for generating images with Imagen. |
+|  [model](./vertexai.imagenmodelparams.md#imagenmodelparamsmodel) | string | <b><i>(Public Preview)</i></b> The Imagen model to use for generating images. For example: <code>imagen-3.0-generate-002</code>.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported.<!-- -->See [model versions](https://firebase.google.com/docs/vertex-ai/models) for a full list of supported Imagen 3 models. |
+|  [safetySettings](./vertexai.imagenmodelparams.md#imagenmodelparamssafetysettings) | [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) | <b><i>(Public Preview)</i></b> Safety settings for filtering potentially inappropriate content. |
 
 ## ImagenModelParams.generationConfig
 

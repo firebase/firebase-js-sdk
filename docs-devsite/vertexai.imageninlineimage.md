@@ -25,8 +25,8 @@ export interface ImagenInlineImage
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [bytesBase64Encoded](./vertexai.imageninlineimage.md#imageninlineimagebytesbase64encoded) | string | <b><i>(BETA)</i></b> The base64-encoded image data. |
-|  [mimeType](./vertexai.imageninlineimage.md#imageninlineimagemimetype) | string | <b><i>(BETA)</i></b> The MIME type of the image; either <code>&quot;image/png&quot;</code> or <code>&quot;image/jpeg&quot;</code>.<!-- -->To request a different format, set the <code>imageFormat</code> property in your <code>[ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface)</code>. |
+|  [bytesBase64Encoded](./vertexai.imageninlineimage.md#imageninlineimagebytesbase64encoded) | string | <b><i>(Public Preview)</i></b> The base64-encoded image data. |
+|  [mimeType](./vertexai.imageninlineimage.md#imageninlineimagemimetype) | string | <b><i>(Public Preview)</i></b> The MIME type of the image; either <code>&quot;image/png&quot;</code> or <code>&quot;image/jpeg&quot;</code>.<!-- -->To request a different format, set the <code>imageFormat</code> property in your <code>[ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface)</code>. |
 
 ## ImagenInlineImage.bytesBase64Encoded
 

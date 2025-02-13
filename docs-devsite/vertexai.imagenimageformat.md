@@ -27,15 +27,15 @@ export declare class ImagenImageFormat
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [compressionQuality](./vertexai.imagenimageformat.md#imagenimageformatcompressionquality) |  | number | <b><i>(BETA)</i></b> The level of compression (a number between 0 and 100). |
-|  [mimeType](./vertexai.imagenimageformat.md#imagenimageformatmimetype) |  | string | <b><i>(BETA)</i></b> The MIME type. |
+|  [compressionQuality](./vertexai.imagenimageformat.md#imagenimageformatcompressionquality) |  | number | <b><i>(Public Preview)</i></b> The level of compression (a number between 0 and 100). |
+|  [mimeType](./vertexai.imagenimageformat.md#imagenimageformatmimetype) |  | string | <b><i>(Public Preview)</i></b> The MIME type. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [jpeg(compressionQuality)](./vertexai.imagenimageformat.md#imagenimageformatjpeg) | <code>static</code> | <b><i>(BETA)</i></b> Creates an <code>[ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class)</code> for a JPEG image.<!-- -->For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which means that the feature is not subject to any SLA or deprecation policy and could change in backwards-incompatible ways. |
-|  [png()](./vertexai.imagenimageformat.md#imagenimageformatpng) | <code>static</code> | <b><i>(BETA)</i></b> Creates an <code>[ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class)</code> for a PNG image.<!-- -->For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which means that the feature is not subject to any SLA or deprecation policy and could change in backwards-incompatible ways. |
+|  [jpeg(compressionQuality)](./vertexai.imagenimageformat.md#imagenimageformatjpeg) | <code>static</code> | <b><i>(Public Preview)</i></b> Creates an <code>[ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class)</code> for a JPEG image.<!-- -->For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which means that the feature is not subject to any SLA or deprecation policy and could change in backwards-incompatible ways. |
+|  [png()](./vertexai.imagenimageformat.md#imagenimageformatpng) | <code>static</code> | <b><i>(Public Preview)</i></b> Creates an <code>[ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class)</code> for a PNG image.<!-- -->For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which means that the feature is not subject to any SLA or deprecation policy and could change in backwards-incompatible ways. |
 
 ## ImagenImageFormat.compressionQuality
 
