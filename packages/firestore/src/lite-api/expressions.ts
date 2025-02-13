@@ -25,12 +25,14 @@ import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import {
   JsonProtoSerializer,
   ProtoSerializable,
+  toMapValue,
   toStringValue,
   UserData
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
 import { isPlainObject } from '../util/input_validation';
 import { isFirestoreValue } from '../util/proto';
+import { isString } from '../util/types';
 
 import { Bytes } from './bytes';
 import { documentId, FieldPath } from './field_path';
@@ -66,7 +68,7 @@ export type ExprType =
  * @internal
  * @param value
  */
-function valueToDefaultExpr(value: unknown): Expr {
+function valueToDefaultExpr(value: any): Expr {
   if (value instanceof Expr) {
     return value;
   } else if (isPlainObject(value)) {
@@ -75,6 +77,22 @@ function valueToDefaultExpr(value: unknown): Expr {
     return array(value);
   } else {
     return Constant.of(value);
+  }
+}
+
+/**
+ * Converts a value to an Expr, Returning either a Constant, MapFunction,
+ * ArrayFunction, or the input itself (if it's already an expression).
+ *
+ * @private
+ * @internal
+ * @param value
+ */
+function fieldOfOrExpr(value: string | Expr): Expr {
+  if (isString(value)) {
+    return Field.of(value);
+  } else {
+    return value;
   }
 }
 
@@ -2190,7 +2208,9 @@ export class FirestoreFunction extends Expr {
    * @internal
    */
   _readUserData(dataReader: UserDataReader): void {
-    this.params.forEach(expr => expr._readUserData(dataReader));
+    this.params.forEach(expr => {
+      return expr._readUserData(dataReader);
+    });
   }
 }
 
@@ -2885,6 +2905,835 @@ export class TimestampSub extends FirestoreFunction {
   ) {
     super('timestamp_sub', [timestamp, unit, amount]);
   }
+}
+
+/**
+ * @beta
+ */
+export class Countif extends FirestoreFunction implements Accumulator {
+  constructor(private booleanExpr: Expr) {
+    super('countif', [booleanExpr]);
+  }
+  accumulator = true as const;
+}
+
+/**
+ * @beta
+ * Creates an aggregation that counts the number of stage inputs where the provided
+ * boolean expression evaluates to true.
+ *
+ * ```typescript
+ * // Count the number of documents where 'is_active' field equals true
+ * countif(Field.of("is_active")).as("numActiveDocuments");
+ * ```
+ *
+ * @param booleanExpr - The boolean expression to evaluate on each input.
+ * @returns A new `Accumulator` representing the 'countif' aggregation.
+ */
+export function countif(booleanExpr: Expr): Countif {
+  return new Countif(booleanExpr);
+}
+
+/**
+ * @beta
+ */
+export class Rand extends FirestoreFunction {
+  constructor() {
+    super('rand', []);
+  }
+}
+
+export function rand(): Rand {
+  return new Rand();
+}
+
+/**
+ * @beta
+ */
+export class BitAnd extends FirestoreFunction {
+  constructor(private left: Expr, private right: Expr) {
+    super('bit_and', [left, right]);
+  }
+}
+
+export function bitAnd(field: string, otherBits: number | Bytes): BitAnd;
+export function bitAnd(field: string, bitsExpression: Expr): BitAnd;
+export function bitAnd(bitsExpression: Expr, otherBits: number | Bytes): BitAnd;
+export function bitAnd(bitsExpression: Expr, otherBitsExpression: Expr): BitAnd;
+export function bitAnd(
+  fieldOrExpression: string | Expr,
+  bitsOrExpression: number | Expr | Bytes
+): BitAnd {
+  const left =
+    fieldOrExpression instanceof Expr
+      ? fieldOrExpression
+      : Field.of(fieldOrExpression);
+  // @ts-ignore
+  const right =
+    bitsOrExpression instanceof Expr
+      ? bitsOrExpression
+      : Constant.of(bitsOrExpression);
+  return new BitAnd(left, right);
+}
+
+/**
+ * @beta
+ */
+export class BitOr extends FirestoreFunction {
+  constructor(private left: Expr, private right: Expr) {
+    super('bit_or', [left, right]);
+  }
+}
+
+export function bitOr(field: string, otherBits: number | Bytes): BitOr;
+export function bitOr(field: string, bitsExpression: Expr): BitOr;
+export function bitOr(bitsExpression: Expr, otherBits: number | Bytes): BitOr;
+export function bitOr(bitsExpression: Expr, otherBitsExpression: Expr): BitOr;
+export function bitOr(
+  fieldOrExpression: string | Expr,
+  bitsOrExpression: number | Expr | Bytes
+): BitOr {
+  const left =
+    fieldOrExpression instanceof Expr
+      ? fieldOrExpression
+      : Field.of(fieldOrExpression);
+  // @ts-ignore
+  const right =
+    bitsOrExpression instanceof Expr
+      ? bitsOrExpression
+      : Constant.of(bitsOrExpression);
+  return new BitOr(left, right);
+}
+
+/**
+ * @beta
+ */
+export class BitXor extends FirestoreFunction {
+  constructor(private left: Expr, private right: Expr) {
+    super('bit_xor', [left, right]);
+  }
+}
+
+export function bitXor(field: string, otherBits: number | Bytes): BitXor;
+export function bitXor(field: string, bitsExpression: Expr): BitXor;
+export function bitXor(bitsExpression: Expr, otherBits: number | Bytes): BitXor;
+export function bitXor(bitsExpression: Expr, otherBitsExpression: Expr): BitXor;
+export function bitXor(
+  fieldOrExpression: string | Expr,
+  bitsOrExpression: number | Expr | Bytes
+): BitXor {
+  const left =
+    fieldOrExpression instanceof Expr
+      ? fieldOrExpression
+      : Field.of(fieldOrExpression);
+  // @ts-ignore
+  const right =
+    bitsOrExpression instanceof Expr
+      ? bitsOrExpression
+      : Constant.of(bitsOrExpression);
+  return new BitXor(left, right);
+}
+
+/**
+ * @beta
+ */
+export class BitNot extends FirestoreFunction {
+  constructor(private value: Expr) {
+    super('bit_not', [value]);
+  }
+}
+export function bitNot(field: string): BitNot;
+export function bitNot(bitsValue: number | Bytes): BitNot;
+export function bitNot(bitsValueExpression: Expr): BitNot;
+export function bitNot(bits: string | number | Bytes | Expr): BitNot {
+  return new BitNot(isString(bits) ? Field.of(bits) : valueToDefaultExpr(bits));
+}
+
+/**
+ * @beta
+ */
+export class BitLeftShift extends FirestoreFunction {
+  constructor(value: Expr, y: Expr) {
+    super('bit_left_shift', [value, y]);
+  }
+}
+
+export function bitLeftShift(field: string, y: number): BitRightShift;
+export function bitLeftShift(field: string, numberExpr: Expr): BitRightShift;
+export function bitLeftShift(xValue: number | Bytes, y: number): BitRightShift;
+export function bitLeftShift(
+  xValue: number | Bytes,
+  numberExpr: Expr
+): BitRightShift;
+export function bitLeftShift(xValue: Expr, y: number): BitRightShift;
+export function bitLeftShift(xValue: Expr, numberExpr: Expr): BitRightShift;
+export function bitLeftShift(
+  xValue: string | number | Bytes,
+  numberExpr: number | Expr
+): BitRightShift {
+  return new BitLeftShift(
+    isString(xValue) ? Field.of(xValue) : valueToDefaultExpr(xValue),
+    valueToDefaultExpr(numberExpr)
+  );
+}
+
+/**
+ * @beta
+ */
+export class BitRightShift extends FirestoreFunction {
+  constructor(value: Expr, y: Expr) {
+    super('bit_right_shift', [value, y]);
+  }
+}
+
+export function bitRightShift(field: string, y: number): BitRightShift;
+export function bitRightShift(field: string, numberExpr: Expr): BitRightShift;
+export function bitRightShift(xValue: number | Bytes, y: number): BitRightShift;
+export function bitRightShift(
+  xValue: number | Bytes,
+  numberExpr: Expr
+): BitRightShift;
+export function bitRightShift(xValue: Expr, y: number): BitRightShift;
+export function bitRightShift(xValue: Expr, numberExpr: Expr): BitRightShift;
+export function bitRightShift(
+  xValue: string | number | Bytes | Expr,
+  numberExpr: number | Expr
+): BitRightShift {
+  return new BitRightShift(
+    isString(xValue) ? Field.of(xValue) : valueToDefaultExpr(xValue),
+    valueToDefaultExpr(numberExpr)
+  );
+}
+
+/**
+ * @beta
+ */
+export class ArrayOffset extends FirestoreFunction {
+  constructor(private arrayExpression: Expr, private offset: Expr) {
+    super('array_offset', [arrayExpression, offset]);
+  }
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ *
+ * ```typescript
+ * // Check if the result of a calculation is NaN
+ * isNaN(Field.of("value").divide(0));
+ * ```
+ *
+ * @param value The expression to check.
+ * @return A new {@code Expr} representing the 'isNaN' check.
+ */
+export function arrayOffset(arrayField: string, offset: number): ArrayOffset;
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ *
+ * ```typescript
+ * // Check if the result of a calculation is NaN
+ * isNaN(Field.of("value").divide(0));
+ * ```
+ *
+ * @param value The expression to check.
+ * @return A new {@code Expr} representing the 'isNaN' check.
+ */
+export function arrayOffset(arrayField: string, offsetExpr: Expr): ArrayOffset;
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ *
+ * ```typescript
+ * // Check if the result of a calculation is NaN
+ * isNaN(Field.of("value").divide(0));
+ * ```
+ *
+ * @param value The expression to check.
+ * @return A new {@code Expr} representing the 'isNaN' check.
+ */
+export function arrayOffset(arrayExpression: Expr, offset: number): ArrayOffset;
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ *
+ * ```typescript
+ * // Check if the result of a calculation is NaN
+ * isNaN(Field.of("value").divide(0));
+ * ```
+ *
+ * @param value The expression to check.
+ * @return A new {@code Expr} representing the 'isNaN' check.
+ */
+export function arrayOffset(
+  arrayExpression: Expr,
+  offsetExpr: Expr
+): ArrayOffset;
+export function arrayOffset(
+  array: Expr | string,
+  offset: Expr | number
+): ArrayOffset {
+  return new ArrayOffset(fieldOfOrExpr(array), valueToDefaultExpr(offset));
+}
+
+/**
+ * @beta
+ */
+export class CurrentContext extends FirestoreFunction {
+  constructor() {
+    super('current_context', []);
+  }
+}
+
+export function currentContext(): CurrentContext {
+  return new CurrentContext();
+}
+
+/**
+ * @beta
+ */
+export class IsError extends FirestoreFunction implements FilterCondition {
+  constructor(private expr: Expr) {
+    super('is_error', [expr]);
+  }
+  filterable = true as const;
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ *
+ * ```typescript
+ * // Check if the result of a calculation is NaN
+ * isNaN(Field.of("value").divide(0));
+ * ```
+ *
+ * @param value The expression to check.
+ * @return A new {@code Expr} representing the 'isNaN' check.
+ */
+export function isError(value: Expr): IsError {
+  return new IsError(value);
+}
+
+/**
+ * @beta
+ */
+export class IfError extends FirestoreFunction {
+  constructor(private tryExpr: Expr, private catchExpr: Expr) {
+    super('if_error', [tryExpr, catchExpr]);
+  }
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ *
+ * ```typescript
+ * // Check if the result of a calculation is NaN
+ * isNaN(Field.of("value").divide(0));
+ * ```
+ *
+ * @param value The expression to check.
+ * @return A new {@code Expr} representing the 'isNaN' check.
+ */
+export function ifError(tryExpr: Expr, catchExpr: Expr): IfError;
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if a field's value evaluates to 'NaN' (Not a Number).
+ *
+ * ```typescript
+ * // Check if the result of a calculation is NaN
+ * isNaN("value");
+ * ```
+ *
+ * @param value The name of the field to check.
+ * @return A new {@code Expr} representing the 'isNaN' check.
+ */
+export function ifError(tryExpr: Expr, catchValue: any): IfError;
+export function ifError(tryExpr: Expr, catchValue: any): IfError {
+  return new IfError(tryExpr, valueToDefaultExpr(catchValue));
+}
+
+/**
+ * @beta
+ */
+export class IsAbsent extends FirestoreFunction implements FilterCondition {
+  constructor(private expr: Expr) {
+    super('is_absent', [expr]);
+  }
+  filterable = true as const;
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ *
+ * ```typescript
+ * // Check if the result of a calculation is NaN
+ * isNaN(Field.of("value").divide(0));
+ * ```
+ *
+ * @param value The expression to check.
+ * @return A new {@code Expr} representing the 'isNaN' check.
+ */
+export function isAbsent(value: Expr): IsAbsent;
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if a field's value evaluates to 'NaN' (Not a Number).
+ *
+ * ```typescript
+ * // Check if the result of a calculation is NaN
+ * isNaN("value");
+ * ```
+ *
+ * @param value The name of the field to check.
+ * @return A new {@code Expr} representing the 'isNaN' check.
+ */
+export function isAbsent(value: string): IsAbsent;
+export function isAbsent(value: Expr | string): IsAbsent {
+  return new IsAbsent(fieldOfOrExpr(value));
+}
+
+/**
+ * @beta
+ */
+export class IsNull extends FirestoreFunction implements FilterCondition {
+  constructor(private expr: Expr) {
+    super('is_null', [expr]);
+  }
+  filterable = true as const;
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ *
+ * ```typescript
+ * // Check if the result of a calculation is NaN
+ * isNaN(Field.of("value").divide(0));
+ * ```
+ *
+ * @param value The expression to check.
+ * @return A new {@code Expr} representing the 'isNaN' check.
+ */
+export function isNull(value: Expr): IsNull;
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if a field's value evaluates to 'NaN' (Not a Number).
+ *
+ * ```typescript
+ * // Check if the result of a calculation is NaN
+ * isNaN("value");
+ * ```
+ *
+ * @param value The name of the field to check.
+ * @return A new {@code Expr} representing the 'isNaN' check.
+ */
+export function isNull(value: string): IsNull;
+export function isNull(value: Expr | string): IsNull {
+  return new IsNull(fieldOfOrExpr(value));
+}
+
+/**
+ * @beta
+ */
+export class IsNotNull extends FirestoreFunction implements FilterCondition {
+  constructor(private expr: Expr) {
+    super('is_not_null', [expr]);
+  }
+  filterable = true as const;
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ *
+ * ```typescript
+ * // Check if the result of a calculation is NaN
+ * isNaN(Field.of("value").divide(0));
+ * ```
+ *
+ * @param value The expression to check.
+ * @return A new {@code Expr} representing the 'isNaN' check.
+ */
+export function isNotNull(value: Expr): IsNotNull;
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if a field's value evaluates to 'NaN' (Not a Number).
+ *
+ * ```typescript
+ * // Check if the result of a calculation is NaN
+ * isNaN("value");
+ * ```
+ *
+ * @param value The name of the field to check.
+ * @return A new {@code Expr} representing the 'isNaN' check.
+ */
+export function isNotNull(value: string): IsNotNull;
+export function isNotNull(value: Expr | string): IsNotNull {
+  return new IsNotNull(fieldOfOrExpr(value));
+}
+
+/**
+ * @beta
+ */
+export class IsNotNan extends FirestoreFunction implements FilterCondition {
+  constructor(private expr: Expr) {
+    super('is_not_nan', [expr]);
+  }
+  filterable = true as const;
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ *
+ * ```typescript
+ * // Check if the result of a calculation is NaN
+ * isNaN(Field.of("value").divide(0));
+ * ```
+ *
+ * @param value The expression to check.
+ * @return A new {@code Expr} representing the 'isNaN' check.
+ */
+export function isNotNan(value: Expr): IsNotNan;
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if a field's value evaluates to 'NaN' (Not a Number).
+ *
+ * ```typescript
+ * // Check if the result of a calculation is NaN
+ * isNaN("value");
+ * ```
+ *
+ * @param value The name of the field to check.
+ * @return A new {@code Expr} representing the 'isNaN' check.
+ */
+export function isNotNan(value: string): IsNotNan;
+export function isNotNan(value: Expr | string): IsNotNan {
+  return new IsNotNan(fieldOfOrExpr(value));
+}
+
+/**
+ * @beta
+ */
+export class MapRemove extends FirestoreFunction {
+  constructor(map: Expr, nameExpr: Expr) {
+    super('map_remove', [map, nameExpr]);
+  }
+}
+
+export function mapRemove(mapField: string, name: string): MapRemove;
+
+export function mapRemove(mapExpr: Expr, name: string): MapRemove;
+
+export function mapRemove(mapField: string, stringExpr: Expr): MapRemove;
+
+export function mapRemove(mapExpr: Expr, stringExpr: Expr): MapRemove;
+
+export function mapRemove(
+  mapExpr: Expr | string,
+  stringExpr: Expr | string
+): MapRemove {
+  return new MapRemove(fieldOfOrExpr(mapExpr), valueToDefaultExpr(stringExpr));
+}
+
+/**
+ * @beta
+ */
+export class MapMerge extends FirestoreFunction {
+  constructor(maps: Expr[]) {
+    super('map_merge', maps);
+  }
+}
+
+export function mapMerge(
+  mapField: string,
+  secondMap: Record<string, any> | Expr,
+  ...otherMaps: Array<Record<string, any> | Expr>
+): MapMerge;
+
+export function mapMerge(
+  firstMap: Record<string, any> | Expr,
+  secondMap: Record<string, any> | Expr,
+  ...otherMaps: Array<Record<string, any> | Expr>
+): MapMerge;
+
+export function mapMerge(
+  firstMap: string | Record<string, any> | Expr,
+  secondMap: Record<string, any> | Expr,
+  ...otherMaps: Array<Record<string, any> | Expr>
+): MapMerge {
+  const firstMapExpr =
+    typeof firstMap === 'string'
+      ? Field.of(firstMap)
+      : valueToDefaultExpr(firstMap);
+  const secondMapExpr = valueToDefaultExpr(secondMap);
+  const otherMapExprs = otherMaps.map(valueToDefaultExpr);
+  return new MapMerge([firstMapExpr, secondMapExpr, ...otherMapExprs]);
+}
+
+/**
+ * @beta
+ */
+export class Parent extends FirestoreFunction {
+  constructor(pathExpr: Expr) {
+    super('parent', [pathExpr]);
+  }
+}
+
+export function parent(path: string | DocumentReference): Parent;
+
+export function parent(pathExpr: Expr): Parent;
+
+export function parent(path: Expr | string | DocumentReference): Parent {
+  // @ts-ignore
+  const pathExpr = valueToDefaultExpr(path);
+  return new Parent(pathExpr);
+}
+
+/**
+ * @beta
+ */
+export class CollectionId extends FirestoreFunction {
+  constructor(pathExpr: Expr) {
+    super('collection_id', [pathExpr]);
+  }
+}
+
+export function collectionId(path: string | DocumentReference): CollectionId;
+
+export function collectionId(pathExpr: Expr): CollectionId;
+
+export function collectionId(
+  path: Expr | string | DocumentReference
+): CollectionId {
+  // @ts-ignore
+  const pathExpr = valueToDefaultExpr(path);
+  return new CollectionId(pathExpr);
+}
+
+/**
+ * @beta
+ */
+export class DocumentId extends FirestoreFunction {
+  constructor(pathExpr: Expr) {
+    super('document_id', [pathExpr]);
+  }
+}
+
+export function documentIdFunction(
+  documentPath: string | DocumentReference
+): DocumentId;
+
+export function documentIdFunction(documentPathExpr: Expr): DocumentId;
+
+export function documentIdFunction(
+  documentPath: Expr | string | DocumentReference
+): DocumentId {
+  // @ts-ignore
+  const documentPathExpr = valueToDefaultExpr(documentPath);
+  return new DocumentId(documentPathExpr);
+}
+
+/**
+ * @beta
+ */
+export class Key extends FirestoreFunction {
+  constructor(namespaceExpr: Expr, pathExpr: Expr) {
+    super('key', [namespaceExpr, pathExpr]);
+  }
+}
+
+export function key(namespace: string, path: string): Key;
+
+export function key(namespaceExpr: Expr, pathExpr: Expr): Key;
+
+export function key(namespace: Expr | string, path: Expr | string): Key {
+  const namespaceExpr = valueToDefaultExpr(namespace);
+  const pathExpr = path instanceof Expr ? path : Constant.of(path);
+  return new Key(namespaceExpr, pathExpr);
+}
+
+/**
+ * @beta
+ */
+export class Substr extends FirestoreFunction {
+  constructor(inputExpr: Expr, position: Expr, length: Expr) {
+    super('substr', [inputExpr, position, length]);
+  }
+}
+
+export function substr(field: string, position: number, length: number): Substr;
+
+export function substr(
+  stringExpr: Expr,
+  position: number,
+  length: number
+): Substr;
+
+export function substr(field: string, position: Expr, length: Expr): Substr;
+
+export function substr(stringExpr: Expr, position: Expr, length: Expr): Substr;
+
+export function substr(
+  field: Expr | string,
+  position: Expr | number,
+  length: Expr | number
+): Substr {
+  const fieldExpr = fieldOfOrExpr(field);
+  const positionExpr = valueToDefaultExpr(position);
+  const lengthExpr = valueToDefaultExpr(length);
+  return new Substr(fieldExpr, positionExpr, lengthExpr);
+}
+
+/**
+ * @beta
+ */
+export class ManhattanDistance extends FirestoreFunction {
+  constructor(vector1: Expr, vector2: Expr) {
+    super('manhattan_distance', [vector1, vector2]);
+  }
+}
+
+/**
+ * @beta
+ *
+ * Calculates the Manhattan distance between a field's vector value and a double array.
+ *
+ * ```typescript
+ * // Calculate the Manhattan distance between the 'location' field and a target location
+ * manhattanDistance("location", [37.7749, -122.4194]);
+ * ```
+ *
+ * @param expr The name of the field containing the first vector.
+ * @param other The other vector (as an array of doubles) to compare against.
+ * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
+ */
+export function manhattanDistance(
+  expr: string,
+  other: number[]
+): ManhattanDistance;
+
+/**
+ * @beta
+ *
+ * Calculates the Manhattan distance between a field's vector value and a VectorValue.
+ *
+ * ```typescript
+ * // Calculate the Manhattan distance between the 'location' field and a target location
+ * manhattanDistance("location", new VectorValue([37.7749, -122.4194]));
+ * ```
+ *
+ * @param expr The name of the field containing the first vector.
+ * @param other The other vector (as a VectorValue) to compare against.
+ * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
+ */
+export function manhattanDistance(
+  expr: string,
+  other: VectorValue
+): ManhattanDistance;
+
+/**
+ * @beta
+ *
+ * Calculates the Manhattan distance between a field's vector value and a vector expression.
+ *
+ * ```typescript
+ * // Calculate the Manhattan distance between two vector fields: 'pointA' and 'pointB'
+ * manhattanDistance("pointA", Field.of("pointB"));
+ * ```
+ *
+ * @param expr The name of the field containing the first vector.
+ * @param other The other vector (represented as an Expr) to compare against.
+ * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
+ */
+export function manhattanDistance(expr: string, other: Expr): ManhattanDistance;
+
+/**
+ * @beta
+ *
+ * Calculates the Manhattan distance between a vector expression and a double array.
+ *
+ * ```typescript
+ * // Calculate the Manhattan distance between the 'location' field and a target location
+ *
+ * manhattanDistance(Field.of("location"), [37.7749, -122.4194]);
+ * ```
+ *
+ * @param expr The first vector (represented as an Expr) to compare against.
+ * @param other The other vector (as an array of doubles) to compare against.
+ * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
+ */
+export function manhattanDistance(
+  expr: Expr,
+  other: number[]
+): ManhattanDistance;
+
+/**
+ * @beta
+ *
+ * Calculates the Manhattan distance between a vector expression and a VectorValue.
+ *
+ * ```typescript
+ * // Calculate the Manhattan distance between the 'location' field and a target location
+ * manhattanDistance(Field.of("location"), new VectorValue([37.7749, -122.4194]));
+ * ```
+ *
+ * @param expr The first vector (represented as an Expr) to compare against.
+ * @param other The other vector (as a VectorValue) to compare against.
+ * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
+ */
+export function manhattanDistance(
+  expr: Expr,
+  other: VectorValue
+): ManhattanDistance;
+
+/**
+ * @beta
+ *
+ * Calculates the Manhattan distance between two vector expressions.
+ *
+ * ```typescript
+ * // Calculate the Manhattan distance between two vector fields: 'pointA' and 'pointB'
+ * manhattanDistance(Field.of("pointA"), Field.of("pointB"));
+ * ```
+ *
+ * @param expr The first vector (represented as an Expr) to compare against.
+ * @param other The other vector (represented as an Expr) to compare against.
+ * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
+ */
+export function manhattanDistance(expr: Expr, other: Expr): ManhattanDistance;
+export function manhattanDistance(
+  expr: Expr | string,
+  other: Expr | number[] | VectorValue
+): ManhattanDistance {
+  const expr1 = fieldOfOrExpr(expr);
+  const expr2 = other instanceof Expr ? other : Constant.vector(other);
+  return new ManhattanDistance(expr1, expr2);
 }
 
 /**
@@ -6737,8 +7586,10 @@ export function ascending(expr: Expr): Ordering {
  * @param expr The expression to create a descending ordering for.
  * @return A new `Ordering` for descending sorting.
  */
-export function descending(expr: Expr): Ordering {
-  return new Ordering(expr, 'descending');
+export function descending(expr: Expr): Ordering;
+export function descending(fieldName: string): Ordering;
+export function descending(field: Expr | string): Ordering {
+  return new Ordering(fieldOfOrExpr(field), 'descending');
 }
 
 /**

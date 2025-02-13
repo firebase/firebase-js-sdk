@@ -137,7 +137,6 @@ export {
   descending,
   ExprWithAlias,
   Field,
-  Fields,
   Constant,
   FirestoreFunction,
   Add,

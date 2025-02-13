@@ -64,7 +64,7 @@ export function pipeline(
     const db = firestoreOrQuery;
     const userDataWriter = new LiteUserDataWriter(db);
     const userDataReader = newUserDataReader(db);
-    return new PipelineSource<Pipeline>((stages: Stage[]) => {
+    return new PipelineSource<Pipeline>(db._databaseId, (stages: Stage[]) => {
       return new Pipeline(db, userDataReader, userDataWriter, stages);
     });
   } else {

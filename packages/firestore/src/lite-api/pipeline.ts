@@ -29,12 +29,14 @@ import {
   JsonProtoSerializer,
   ProtoSerializable
 } from '../remote/serializer';
+import { isPlainObject } from '../util/input_validation';
 
 import { getDatastore } from './components';
 import { Firestore } from './database';
 import {
   Accumulator,
   AccumulatorTarget,
+  Constant,
   Expr,
   ExprWithAlias,
   Field,

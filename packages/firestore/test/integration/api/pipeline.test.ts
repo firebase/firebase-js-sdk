@@ -18,8 +18,13 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { Bytes, vector } from '../../../src/api';
-import { array, map } from '../../../src/lite-api/expressions';
+import { Bytes, getFirestore, terminate, vector } from '../../../src/api';
+import {
+  array,
+  descending,
+  genericFunction,
+  map
+} from '../../../src/lite-api/expressions';
 import { GeoPoint } from '../../../src/lite-api/geo_point';
 import { Timestamp } from '../../../src/lite-api/timestamp';
 import { addEqualityMatcher } from '../../util/equality_matcher';
@@ -81,7 +86,28 @@ import {
   documentId,
   addDoc,
   getDoc,
-  multiply
+  multiply,
+  countif,
+  bitAnd,
+  bitOr,
+  bitXor,
+  bitNot,
+  bitLeftShift,
+  bitRightShift,
+  rand,
+  arrayOffset,
+  currentContext,
+  isError,
+  ifError,
+  isAbsent,
+  isNull,
+  isNotNull,
+  isNotNan,
+  mapRemove,
+  mapMerge,
+  documentIdFunction,
+  substr,
+  manhattanDistance
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -180,7 +206,9 @@ apiDescribe.only('Pipelines', persistence => {
           published: 1954,
           rating: 4.7,
           tags: ['adventure', 'magic', 'epic'],
-          awards: { hugo: false, nebula: false }
+          awards: { hugo: false, nebula: false },
+          remarks: null,
+          cost: NaN
         },
         book5: {
           title: "The Handmaid's Tale",
@@ -285,59 +313,46 @@ apiDescribe.only('Pipelines', persistence => {
         expect(result.length).to.equal(10);
       });
 
-      it('evaluates expression in map', async () => {
+      it('supports CollectionReference as source', async () => {
         const result = await firestore
           .pipeline()
-          .collection(randomCol.path)
-          .sort(Field.of('rating').descending())
-          .limit(1)
-          .addFields(
-            map({
-              genre: Field.of('genre'),
-              rating: Field.of('rating').multiply(10)
-            }).as('metadata')
-          )
+          .collection(randomCol)
           .execute();
-
-        expect(result.length).to.equal(1);
-        expectResults(result, {
-          title: 'The Lord of the Rings',
-          author: 'J.R.R. Tolkien',
-          genre: 'Fantasy',
-          published: 1954,
-          rating: 4.7,
-          tags: ['adventure', 'magic', 'epic'],
-          awards: { hugo: false, nebula: false },
-          metadata: {
-            genre: 'Fantasy',
-            rating: 47
-          }
-        });
+        expect(result.length).to.equal(10);
       });
 
-      it('evaluates expression in array', async () => {
+      it('supports list of documents as source', async () => {
+        const collName = randomCol.id;
+
         const result = await firestore
           .pipeline()
-          .collection(randomCol.path)
-          .sort(Field.of('rating').descending())
-          .limit(1)
-          .addFields(
-            array([1, 2, Field.of('genre'), multiply('rating', 10)]).as(
-              'metadata'
-            )
-          )
+          .documents([
+            `${collName}/book1`,
+            doc(randomCol, 'book2'),
+            doc(randomCol, 'book3').path
+          ])
           .execute();
-        expect(result.length).to.equal(1);
-        expectResults(result, {
-          title: 'The Lord of the Rings',
-          author: 'J.R.R. Tolkien',
-          genre: 'Fantasy',
-          published: 1954,
-          rating: 4.7,
-          tags: ['adventure', 'magic', 'epic'],
-          awards: { hugo: false, nebula: false },
-          metadata: [1, 2, 'Fantasy', 47]
-        });
+        expect(result.length).to.equal(3);
+      });
+
+      it('reject CollectionReference for another DB', async () => {
+        const db2 = getFirestore(firestore.app, 'notDefault');
+
+        expect(() => {
+          firestore.pipeline().collection(collection(db2, 'foo'));
+        }).to.throw(/Invalid CollectionReference/);
+
+        await terminate(db2);
+      });
+
+      it('reject DocumentReference for another DB', async () => {
+        const db2 = getFirestore(firestore.app, 'notDefault');
+
+        expect(() => {
+          firestore.pipeline().documents([doc(db2, 'foo/bar')]);
+        }).to.throw(/Invalid DocumentReference/);
+
+        await terminate(db2);
       });
 
       it('converts arrays and plain objects to functionValues if the customer intent is unspecified', async () => {
@@ -419,202 +434,6 @@ apiDescribe.only('Pipelines', persistence => {
             }
           }
         });
-      });
-
-      it('returns aggregate results as expected', async () => {
-        let result = await firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .aggregate(countAll().as('count'))
-          .execute();
-        expectResults(result, { count: 10 });
-
-        result = await randomCol
-          .pipeline()
-          .where(eq('genre', 'Science Fiction'))
-          .aggregate(
-            countAll().as('count'),
-            avgFunction('rating').as('avgRating'),
-            Field.of('rating').maximum().as('maxRating')
-          )
-          .execute();
-        expectResults(result, { count: 2, avgRating: 4.4, maxRating: 4.6 });
-      });
-
-      it('rejects groups without accumulators', async () => {
-        await expect(
-          randomCol
-            .pipeline()
-            .where(lt('published', 1900))
-            .aggregate({
-              accumulators: [],
-              groups: ['genre']
-            })
-            .execute()
-        ).to.be.rejected;
-      });
-
-      it('returns distinct values as expected', async () => {
-        const results = await randomCol
-          .pipeline()
-          .distinct('genre', 'author')
-          .sort(Field.of('genre').ascending(), Field.of('author').ascending())
-          .execute();
-        expectResults(
-          results,
-          { genre: 'Dystopian', author: 'George Orwell' },
-          { genre: 'Dystopian', author: 'Margaret Atwood' },
-          { genre: 'Fantasy', author: 'J.R.R. Tolkien' },
-          { genre: 'Magical Realism', author: 'Gabriel García Márquez' },
-          { genre: 'Modernist', author: 'F. Scott Fitzgerald' },
-          { genre: 'Psychological Thriller', author: 'Fyodor Dostoevsky' },
-          { genre: 'Romance', author: 'Jane Austen' },
-          { genre: 'Science Fiction', author: 'Douglas Adams' },
-          { genre: 'Science Fiction', author: 'Frank Herbert' },
-          { genre: 'Southern Gothic', author: 'Harper Lee' }
-        );
-      });
-
-      it('returns group and accumulate results', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(lt(Field.of('published'), 1984))
-          .aggregate({
-            accumulators: [avgFunction('rating').as('avgRating')],
-            groups: ['genre']
-          })
-          .where(gt('avgRating', 4.3))
-          .sort(Field.of('avgRating').descending())
-          .execute();
-        expectResults(
-          results,
-          { avgRating: 4.7, genre: 'Fantasy' },
-          { avgRating: 4.5, genre: 'Romance' },
-          { avgRating: 4.4, genre: 'Science Fiction' }
-        );
-      });
-
-      it('returns min and max accumulations', async () => {
-        const results = await randomCol
-          .pipeline()
-          .aggregate(
-            countAll().as('count'),
-            Field.of('rating').maximum().as('maxRating'),
-            Field.of('published').minimum().as('minPublished')
-          )
-          .execute();
-        expectResults(results, {
-          count: 10,
-          maxRating: 4.7,
-          minPublished: 1813
-        });
-      });
-
-      it('can select fields', async () => {
-        const results = await firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .select('title', 'author')
-          .sort(Field.of('author').ascending())
-          .execute();
-        expectResults(
-          results,
-          {
-            title: "The Hitchhiker's Guide to the Galaxy",
-            author: 'Douglas Adams'
-          },
-          { title: 'The Great Gatsby', author: 'F. Scott Fitzgerald' },
-          { title: 'Dune', author: 'Frank Herbert' },
-          { title: 'Crime and Punishment', author: 'Fyodor Dostoevsky' },
-          {
-            title: 'One Hundred Years of Solitude',
-            author: 'Gabriel García Márquez'
-          },
-          { title: '1984', author: 'George Orwell' },
-          { title: 'To Kill a Mockingbird', author: 'Harper Lee' },
-          { title: 'The Lord of the Rings', author: 'J.R.R. Tolkien' },
-          { title: 'Pride and Prejudice', author: 'Jane Austen' },
-          { title: "The Handmaid's Tale", author: 'Margaret Atwood' }
-        );
-      });
-
-      it('where with and', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(andFunction(gt('rating', 4.5), eq('genre', 'Science Fiction')))
-          .execute();
-        expectResults(results, 'book10');
-      });
-
-      it('where with or', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(orFunction(eq('genre', 'Romance'), eq('genre', 'Dystopian')))
-          .select('title')
-          .execute();
-        expectResults(
-          results,
-          { title: 'Pride and Prejudice' },
-          { title: "The Handmaid's Tale" },
-          { title: '1984' }
-        );
-      });
-
-      it('offset and limits', async () => {
-        const results = await firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .sort(Field.of('author').ascending())
-          .offset(5)
-          .limit(3)
-          .select('title', 'author')
-          .execute();
-        expectResults(
-          results,
-          { title: '1984', author: 'George Orwell' },
-          { title: 'To Kill a Mockingbird', author: 'Harper Lee' },
-          { title: 'The Lord of the Rings', author: 'J.R.R. Tolkien' }
-        );
-      });
-
-      it('logical min works', async () => {
-        const results = await randomCol
-          .pipeline()
-          .select(
-            'title',
-            logicalMinimum(Constant.of(1960), Field.of('published')).as(
-              'published-safe'
-            )
-          )
-          .sort(Field.of('title').ascending())
-          .limit(3)
-          .execute();
-        expectResults(
-          results,
-          { title: '1984', 'published-safe': 1949 },
-          { title: 'Crime and Punishment', 'published-safe': 1866 },
-          { title: 'Dune', 'published-safe': 1960 }
-        );
-      });
-
-      it('logical max works', async () => {
-        const results = await randomCol
-          .pipeline()
-          .select(
-            'title',
-            logicalMaximum(Constant.of(1960), Field.of('published')).as(
-              'published-safe'
-            )
-          )
-          .sort(Field.of('title').ascending())
-          .limit(3)
-          .execute();
-        expectResults(
-          results,
-          { title: '1984', 'published-safe': 1960 },
-          { title: 'Crime and Punishment', 'published-safe': 1960 },
-          { title: 'Dune', 'published-safe': 1965 }
-        );
       });
 
       it('accepts and returns all data types', async () => {
@@ -727,440 +546,6 @@ apiDescribe.only('Pipelines', persistence => {
         });
       });
 
-      it('cond works', async () => {
-        const results = await randomCol
-          .pipeline()
-          .select(
-            'title',
-            cond(
-              lt(Field.of('published'), 1960),
-              Constant.of(1960),
-              Field.of('published')
-            ).as('published-safe')
-          )
-          .sort(Field.of('title').ascending())
-          .limit(3)
-          .execute();
-        expectResults(
-          results,
-          { title: '1984', 'published-safe': 1960 },
-          { title: 'Crime and Punishment', 'published-safe': 1960 },
-          { title: 'Dune', 'published-safe': 1965 }
-        );
-      });
-
-      it('eqAny works', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(eqAny('published', [1979, 1999, 1967]))
-          .select('title')
-          .execute();
-        expectResults(
-          results,
-          { title: "The Hitchhiker's Guide to the Galaxy" },
-          { title: 'One Hundred Years of Solitude' }
-        );
-      });
-
-      it('notEqAny works', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(
-            notEqAny(
-              'published',
-              [1965, 1925, 1949, 1960, 1866, 1985, 1954, 1967, 1979]
-            )
-          )
-          .select('title')
-          .execute();
-        expectResults(results, { title: 'Pride and Prejudice' });
-      });
-
-      it('arrayContains works', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(arrayContains('tags', 'comedy'))
-          .select('title')
-          .execute();
-        expectResults(results, {
-          title: "The Hitchhiker's Guide to the Galaxy"
-        });
-      });
-
-      it('arrayContainsAny works', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(arrayContainsAny('tags', ['comedy', 'classic']))
-          .select('title')
-          .execute();
-        expectResults(
-          results,
-          { title: "The Hitchhiker's Guide to the Galaxy" },
-          { title: 'Pride and Prejudice' }
-        );
-      });
-
-      it('arrayContainsAll works', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(Field.of('tags').arrayContainsAll('adventure', 'magic'))
-          .select('title')
-          .execute();
-        expectResults(results, { title: 'The Lord of the Rings' });
-      });
-
-      it('arrayLength works', async () => {
-        const results = await randomCol
-          .pipeline()
-          .select(Field.of('tags').arrayLength().as('tagsCount'))
-          .where(eq('tagsCount', 3))
-          .execute();
-        expect(results.length).to.equal(10);
-      });
-
-      // skip: arrayConcat not supported
-      it('arrayConcat works', async () => {
-        const results = await randomCol
-          .pipeline()
-          .select(
-            Field.of('tags')
-              .arrayConcat(['newTag1', 'newTag2'])
-              .as('modifiedTags')
-          )
-          .limit(1)
-          .execute();
-        expectResults(results, {
-          modifiedTags: ['comedy', 'space', 'adventure', 'newTag1', 'newTag2']
-        });
-      });
-
-      it('testStrConcat', async () => {
-        const results = await randomCol
-          .pipeline()
-          .select(
-            Field.of('author')
-              .strConcat(' - ', Field.of('title'))
-              .as('bookInfo')
-          )
-          .limit(1)
-          .execute();
-        expectResults(results, {
-          bookInfo: "Douglas Adams - The Hitchhiker's Guide to the Galaxy"
-        });
-      });
-
-      it('testStartsWith', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(startsWith('title', 'The'))
-          .select('title')
-          .sort(Field.of('title').ascending())
-          .execute();
-        expectResults(
-          results,
-          { title: 'The Great Gatsby' },
-          { title: "The Handmaid's Tale" },
-          { title: "The Hitchhiker's Guide to the Galaxy" },
-          { title: 'The Lord of the Rings' }
-        );
-      });
-
-      it('testEndsWith', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(endsWith('title', 'y'))
-          .select('title')
-          .sort(Field.of('title').descending())
-          .execute();
-        expectResults(
-          results,
-          { title: "The Hitchhiker's Guide to the Galaxy" },
-          { title: 'The Great Gatsby' }
-        );
-      });
-
-      it('testLength', async () => {
-        const results = await randomCol
-          .pipeline()
-          .select(
-            Field.of('title').charLength().as('titleLength'),
-            Field.of('title')
-          )
-          .where(gt('titleLength', 20))
-          .sort(Field.of('title').ascending())
-          .execute();
-
-        expectResults(
-          results,
-
-          {
-            titleLength: 29,
-            title: 'One Hundred Years of Solitude'
-          },
-          {
-            titleLength: 36,
-            title: "The Hitchhiker's Guide to the Galaxy"
-          },
-          {
-            titleLength: 21,
-            title: 'The Lord of the Rings'
-          },
-          {
-            titleLength: 21,
-            title: 'To Kill a Mockingbird'
-          }
-        );
-      });
-
-      // skip: toLower not supported
-      // it.skip('testToLowercase', async () => {
-      //   const results = await randomCol
-      //     .pipeline()
-      //     .select(Field.of('title').toLower().as('lowercaseTitle'))
-      //     .limit(1)
-      //     .execute();
-      //   expectResults(results, {
-      //     lowercaseTitle: "the hitchhiker's guide to the galaxy"
-      //   });
-      // });
-
-      // skip: toUpper not supported
-      // it.skip('testToUppercase', async () => {
-      //   const results = await randomCol
-      //     .pipeline()
-      //     .select(Field.of('author').toUpper().as('uppercaseAuthor'))
-      //     .limit(1)
-      //     .execute();
-      //   expectResults(results, { uppercaseAuthor: 'DOUGLAS ADAMS' });
-      // });
-
-      // skip: trim not supported
-      // it.skip('testTrim', async () => {
-      //   const results = await randomCol
-      //     .pipeline()
-      //     .addFields(strConcat(' ', Field.of('title'), ' ').as('spacedTitle'))
-      //     .select(
-      //       Field.of('spacedTitle').trim().as('trimmedTitle'),
-      //       Field.of('spacedTitle')
-      //     )
-      //     .limit(1)
-      //     .execute();
-      //   expectResults(results, {
-      //     spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
-      //     trimmedTitle: "The Hitchhiker's Guide to the Galaxy"
-      //   });
-      // });
-
-      it('testLike', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(like('title', '%Guide%'))
-          .select('title')
-          .execute();
-        expectResults(results, {
-          title: "The Hitchhiker's Guide to the Galaxy"
-        });
-      });
-
-      it('testRegexContains', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(regexContains('title', '(?i)(the|of)'))
-          .execute();
-        expect(results.length).to.equal(5);
-      });
-
-      it('testRegexMatches', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(regexMatch('title', '.*(?i)(the|of).*'))
-          .execute();
-        expect(results.length).to.equal(5);
-      });
-
-      it('testArithmeticOperations', async () => {
-        const results = await randomCol
-          .pipeline()
-          .select(
-            add(Field.of('rating'), 1).as('ratingPlusOne'),
-            subtract(Field.of('published'), 1900).as('yearsSince1900'),
-            Field.of('rating').multiply(10).as('ratingTimesTen'),
-            Field.of('rating').divide(2).as('ratingDividedByTwo')
-          )
-          .limit(1)
-          .execute();
-        expectResults(results, {
-          ratingPlusOne: 5.2,
-          yearsSince1900: 79,
-          ratingTimesTen: 42,
-          ratingDividedByTwo: 2.1
-        });
-      });
-
-      it('testComparisonOperators', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(
-            andFunction(
-              gt('rating', 4.2),
-              lte(Field.of('rating'), 4.5),
-              neq('genre', 'Science Fiction')
-            )
-          )
-          .select('rating', 'title')
-          .sort(Field.of('title').ascending())
-          .execute();
-        expectResults(
-          results,
-          { rating: 4.3, title: 'Crime and Punishment' },
-          {
-            rating: 4.3,
-            title: 'One Hundred Years of Solitude'
-          },
-          { rating: 4.5, title: 'Pride and Prejudice' }
-        );
-      });
-
-      it('testLogicalOperators', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(
-            orFunction(
-              andFunction(gt('rating', 4.5), eq('genre', 'Science Fiction')),
-              lt('published', 1900)
-            )
-          )
-          .select('title')
-          .sort(Field.of('title').ascending())
-          .execute();
-        expectResults(
-          results,
-          { title: 'Crime and Punishment' },
-          { title: 'Dune' },
-          { title: 'Pride and Prejudice' }
-        );
-      });
-
-      it('testChecks', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(not(Field.of('rating').isNaN()))
-          .select(
-            Field.of('rating').eq(null).as('ratingIsNull'),
-            not(Field.of('rating').isNaN()).as('ratingIsNotNaN')
-          )
-          .limit(1)
-          .execute();
-        expectResults(results, { ratingIsNull: false, ratingIsNotNaN: true });
-      });
-
-      it('testMapGet', async () => {
-        const results = await randomCol
-          .pipeline()
-          .sort(Field.of('published').descending())
-          .select(
-            Field.of('awards').mapGet('hugo').as('hugoAward'),
-            Field.of('awards').mapGet('others').as('others'),
-            Field.of('title')
-          )
-          .where(eq('hugoAward', true))
-          .execute();
-        expectResults(
-          results,
-          {
-            hugoAward: true,
-            title: "The Hitchhiker's Guide to the Galaxy",
-            others: { unknown: { year: 1980 } }
-          },
-          { hugoAward: true, hugoAward2: true, title: 'Dune', others: null }
-        );
-      });
-
-      // it('testParent', async () => {
-      //   const results = await randomCol
-      //       .pipeline()
-      //       .select(
-      //           parent(randomCol.doc('chile').collection('subCollection').path).as(
-      //               'parent'
-      //           )
-      //       )
-      //       .limit(1)
-      //       .execute();
-      //   expect(results[0].data().parent.endsWith('/books')).to.be.true;
-      // });
-      //
-      // it('testCollectionId', async () => {
-      //   const results = await randomCol
-      //       .pipeline()
-      //       .select(collectionId(randomCol.doc('chile')).as('collectionId'))
-      //       .limit(1)
-      //       .execute();
-      //   expectResults(results, {collectionId: 'books'});
-      // });
-
-      it('testDistanceFunctions', async () => {
-        const sourceVector = [0.1, 0.1];
-        const targetVector = [0.5, 0.8];
-        const results = await randomCol
-          .pipeline()
-          .select(
-            cosineDistance(Constant.vector(sourceVector), targetVector).as(
-              'cosineDistance'
-            ),
-            dotProduct(Constant.vector(sourceVector), targetVector).as(
-              'dotProductDistance'
-            ),
-            euclideanDistance(Constant.vector(sourceVector), targetVector).as(
-              'euclideanDistance'
-            )
-          )
-          .limit(1)
-          .execute();
-
-        expectResults(results, {
-          cosineDistance: 0.02560880430538015,
-          dotProductDistance: 0.13,
-          euclideanDistance: 0.806225774829855
-        });
-      });
-
-      it('testNestedFields', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(eq('awards.hugo', true))
-          .select('title', 'awards.hugo')
-          .execute();
-        expectResults(
-          results,
-          {
-            title: "The Hitchhiker's Guide to the Galaxy",
-            'awards.hugo': true
-          },
-          { title: 'Dune', 'awards.hugo': true }
-        );
-      });
-
-      it('test mapGet with field name including . notation', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(eq('awards.hugo', true))
-          .select(
-            'title',
-            Field.of('nestedField.level.1'),
-            mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
-          )
-          .execute();
-        expectResults(
-          results,
-          {
-            title: "The Hitchhiker's Guide to the Galaxy",
-            'nestedField.level.`1`': null,
-            nested: true
-          },
-          { title: 'Dune', 'nestedField.level.`1`': null, nested: null }
-        );
-      });
-
       it('supports internal serialization to proto', async () => {
         const pipeline = firestore
           .pipeline()
@@ -1176,7 +561,1241 @@ apiDescribe.only('Pipelines', persistence => {
         expect(proto).not.to.be.null;
       });
 
+      describe('aggregate stage', () => {
+        it('supports aggregate', async () => {
+          let result = await firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .aggregate(countAll().as('count'))
+            .execute();
+          expectResults(result, { count: 10 });
+
+          result = await randomCol
+            .pipeline()
+            .where(eq('genre', 'Science Fiction'))
+            .aggregate(
+              countAll().as('count'),
+              avgFunction('rating').as('avgRating'),
+              Field.of('rating').maximum().as('maxRating')
+            )
+            .execute();
+          expectResults(result, { count: 2, avgRating: 4.4, maxRating: 4.6 });
+        });
+
+        it('rejects groups without accumulators', async () => {
+          await expect(
+            randomCol
+              .pipeline()
+              .where(lt('published', 1900))
+              .aggregate({
+                accumulators: [],
+                groups: ['genre']
+              })
+              .execute()
+          ).to.be.rejected;
+        });
+
+        it('returns group and accumulate results', async () => {
+          const results = await randomCol
+            .pipeline()
+            .where(lt(Field.of('published'), 1984))
+            .aggregate({
+              accumulators: [avgFunction('rating').as('avgRating')],
+              groups: ['genre']
+            })
+            .where(gt('avgRating', 4.3))
+            .sort(Field.of('avgRating').descending())
+            .execute();
+          expectResults(
+            results,
+            { avgRating: 4.7, genre: 'Fantasy' },
+            { avgRating: 4.5, genre: 'Romance' },
+            { avgRating: 4.4, genre: 'Science Fiction' }
+          );
+        });
+
+        it('returns min and max accumulations', async () => {
+          const results = await randomCol
+            .pipeline()
+            .aggregate(
+              countAll().as('count'),
+              Field.of('rating').maximum().as('maxRating'),
+              Field.of('published').minimum().as('minPublished')
+            )
+            .execute();
+          expectResults(results, {
+            count: 10,
+            maxRating: 4.7,
+            minPublished: 1813
+          });
+        });
+      });
+
+      describe('distinct stage', () => {
+        it('returns distinct values as expected', async () => {
+          const results = await randomCol
+            .pipeline()
+            .distinct('genre', 'author')
+            .sort(Field.of('genre').ascending(), Field.of('author').ascending())
+            .execute();
+          expectResults(
+            results,
+            { genre: 'Dystopian', author: 'George Orwell' },
+            { genre: 'Dystopian', author: 'Margaret Atwood' },
+            { genre: 'Fantasy', author: 'J.R.R. Tolkien' },
+            { genre: 'Magical Realism', author: 'Gabriel García Márquez' },
+            { genre: 'Modernist', author: 'F. Scott Fitzgerald' },
+            { genre: 'Psychological Thriller', author: 'Fyodor Dostoevsky' },
+            { genre: 'Romance', author: 'Jane Austen' },
+            { genre: 'Science Fiction', author: 'Douglas Adams' },
+            { genre: 'Science Fiction', author: 'Frank Herbert' },
+            { genre: 'Southern Gothic', author: 'Harper Lee' }
+          );
+        });
+      });
+
+      describe('select stage', () => {
+        it('can select fields', async () => {
+          const results = await firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select('title', 'author')
+            .sort(Field.of('author').ascending())
+            .execute();
+          expectResults(
+            results,
+            {
+              title: "The Hitchhiker's Guide to the Galaxy",
+              author: 'Douglas Adams'
+            },
+            { title: 'The Great Gatsby', author: 'F. Scott Fitzgerald' },
+            { title: 'Dune', author: 'Frank Herbert' },
+            { title: 'Crime and Punishment', author: 'Fyodor Dostoevsky' },
+            {
+              title: 'One Hundred Years of Solitude',
+              author: 'Gabriel García Márquez'
+            },
+            { title: '1984', author: 'George Orwell' },
+            { title: 'To Kill a Mockingbird', author: 'Harper Lee' },
+            { title: 'The Lord of the Rings', author: 'J.R.R. Tolkien' },
+            { title: 'Pride and Prejudice', author: 'Jane Austen' },
+            { title: "The Handmaid's Tale", author: 'Margaret Atwood' }
+          );
+        });
+      });
+
+      describe('addField stage', () => {
+        it('can add fields', async () => {
+          const results = await firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select('title', 'author')
+            .addFields(Constant.of('bar').as('foo'))
+            .sort(Field.of('author').ascending())
+            .execute();
+          expectResults(
+            results,
+            {
+              title: "The Hitchhiker's Guide to the Galaxy",
+              author: 'Douglas Adams',
+              foo: 'bar'
+            },
+            {
+              title: 'The Great Gatsby',
+              author: 'F. Scott Fitzgerald',
+              foo: 'bar'
+            },
+            { title: 'Dune', author: 'Frank Herbert', foo: 'bar' },
+            {
+              title: 'Crime and Punishment',
+              author: 'Fyodor Dostoevsky',
+              foo: 'bar'
+            },
+            {
+              title: 'One Hundred Years of Solitude',
+              author: 'Gabriel García Márquez',
+              foo: 'bar'
+            },
+            { title: '1984', author: 'George Orwell', foo: 'bar' },
+            {
+              title: 'To Kill a Mockingbird',
+              author: 'Harper Lee',
+              foo: 'bar'
+            },
+            {
+              title: 'The Lord of the Rings',
+              author: 'J.R.R. Tolkien',
+              foo: 'bar'
+            },
+            { title: 'Pride and Prejudice', author: 'Jane Austen', foo: 'bar' },
+            {
+              title: "The Handmaid's Tale",
+              author: 'Margaret Atwood',
+              foo: 'bar'
+            }
+          );
+        });
+      });
+
+      describe('where stage', () => {
+        it('where with and', async () => {
+          const results = await randomCol
+            .pipeline()
+            .where(
+              andFunction(gt('rating', 4.5), eq('genre', 'Science Fiction'))
+            )
+            .execute();
+          expectResults(results, 'book10');
+        });
+        it('where with or', async () => {
+          const results = await randomCol
+            .pipeline()
+            .where(orFunction(eq('genre', 'Romance'), eq('genre', 'Dystopian')))
+            .select('title')
+            .execute();
+          expectResults(
+            results,
+            { title: 'Pride and Prejudice' },
+            { title: "The Handmaid's Tale" },
+            { title: '1984' }
+          );
+        });
+      });
+
+      describe('sort, offset, and limit stages', () => {
+        it('supports sort, offset, and limits', async () => {
+          const results = await firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(Field.of('author').ascending())
+            .offset(5)
+            .limit(3)
+            .select('title', 'author')
+            .execute();
+          expectResults(
+            results,
+            { title: '1984', author: 'George Orwell' },
+            { title: 'To Kill a Mockingbird', author: 'Harper Lee' },
+            { title: 'The Lord of the Rings', author: 'J.R.R. Tolkien' }
+          );
+        });
+      });
+
+      describe('generic stage', () => {
+        it('can select fields', async () => {
+          const results = await firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .genericStage('select', [
+              {
+                title: Field.of('title'),
+                metadata: {
+                  'author': Field.of('author')
+                }
+              }
+            ])
+            .sort(Field.of('author').ascending())
+            .limit(1)
+            .execute();
+          expectResults(results, {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            metadata: {
+              author: 'Douglas Adams'
+            }
+          });
+        });
+
+        it('can add fields', async () => {
+          const results = await firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(Field.of('author').ascending())
+            .limit(1)
+            .select('title', 'author')
+            .genericStage('add_fields', [
+              {
+                display: Field.of('title').strConcat(' - ', Field.of('author'))
+              }
+            ])
+            .execute();
+          expectResults(results, {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            author: 'Douglas Adams',
+            display: "The Hitchhiker's Guide to the Galaxy - Douglas Adams"
+          });
+        });
+
+        it('can filter with where', async () => {
+          const results = await firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select('title', 'author')
+            .genericStage('where', [Field.of('author').eq('Douglas Adams')])
+            .execute();
+          expectResults(results, {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            author: 'Douglas Adams'
+          });
+        });
+
+        it('can limit, offset, and sort', async () => {
+          const results = await firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select('title', 'author')
+            .genericStage('sort', [
+              {
+                direction: 'ascending',
+                expression: Field.of('author')
+              }
+            ])
+            .genericStage('offset', [3])
+            .genericStage('limit', [1])
+            .execute();
+          expectResults(results, {
+            author: 'Fyodor Dostoevsky',
+            title: 'Crime and Punishment'
+          });
+        });
+
+        it('can perform aggregate query', async () => {
+          const results = await firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select('title', 'author', 'rating')
+            .genericStage('aggregate', [
+              { averageRating: Field.of('rating').avg() },
+              {}
+            ])
+            .execute();
+          expectResults(results, {
+            averageRating: 4.3100000000000005
+          });
+        });
+
+        it('can perform distinct query', async () => {
+          const results = await firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select('title', 'author', 'rating')
+            .genericStage('distinct', [{ rating: Field.of('rating') }])
+            .sort(Field.of('rating').descending())
+            .execute();
+          expectResults(
+            results,
+            {
+              rating: 4.7
+            },
+            {
+              rating: 4.6
+            },
+            {
+              rating: 4.5
+            },
+            {
+              rating: 4.3
+            },
+            {
+              rating: 4.2
+            },
+            {
+              rating: 4.1
+            },
+            {
+              rating: 4.0
+            }
+          );
+        });
+      });
+        it('logical max works', async () => {
+          const results = await randomCol
+            .pipeline()
+            .select(
+              'title',
+              logicalMaximum(Constant.of(1960), Field.of('published')).as(
+                'published-safe'
+              )
+            )
+            .sort(Field.of('title').ascending())
+            .limit(3)
+            .execute();
+          expectResults(
+            results,
+            { title: '1984', 'published-safe': 1960 },
+            { title: 'Crime and Punishment', 'published-safe': 1960 },
+            { title: 'Dune', 'published-safe': 1965 }
+          );
+        });
+
+        it('cond works', async () => {
+          const results = await randomCol
+            .pipeline()
+            .select(
+              'title',
+              cond(
+                lt(Field.of('published'), 1960),
+                Constant.of(1960),
+                Field.of('published')
+              ).as('published-safe')
+            )
+            .sort(Field.of('title').ascending())
+            .limit(3)
+            .execute();
+          expectResults(
+            results,
+            { title: '1984', 'published-safe': 1960 },
+            { title: 'Crime and Punishment', 'published-safe': 1960 },
+            { title: 'Dune', 'published-safe': 1965 }
+          );
+        });
+
+        it('eqAny works', async () => {
+          const results = await randomCol
+            .pipeline()
+            .where(eqAny('published', [1979, 1999, 1967]))
+            .select('title')
+            .execute();
+          expectResults(
+            results,
+            { title: "The Hitchhiker's Guide to the Galaxy" },
+            { title: 'One Hundred Years of Solitude' }
+          );
+        });
+
+        it('notEqAny works', async () => {
+          const results = await randomCol
+            .pipeline()
+            .where(
+              notEqAny(
+                'published',
+                [1965, 1925, 1949, 1960, 1866, 1985, 1954, 1967, 1979]
+              )
+            )
+            .select('title')
+            .execute();
+          expectResults(results, { title: 'Pride and Prejudice' });
+        });
+
+        it('arrayContains works', async () => {
+          const results = await randomCol
+            .pipeline()
+            .where(arrayContains('tags', 'comedy'))
+            .select('title')
+            .execute();
+          expectResults(results, {
+            title: "The Hitchhiker's Guide to the Galaxy"
+          });
+        });
+
+        it('arrayContainsAny works', async () => {
+          const results = await randomCol
+            .pipeline()
+            .where(arrayContainsAny('tags', ['comedy', 'classic']))
+            .select('title')
+            .execute();
+          expectResults(
+            results,
+            { title: "The Hitchhiker's Guide to the Galaxy" },
+            { title: 'Pride and Prejudice' }
+          );
+        });
+
+        it('arrayContainsAll works', async () => {
+          const results = await randomCol
+            .pipeline()
+            .where(Field.of('tags').arrayContainsAll('adventure', 'magic'))
+            .select('title')
+            .execute();
+          expectResults(results, { title: 'The Lord of the Rings' });
+        });
+
+        it('arrayLength works', async () => {
+          const results = await randomCol
+            .pipeline()
+            .select(Field.of('tags').arrayLength().as('tagsCount'))
+            .where(eq('tagsCount', 3))
+            .execute();
+          expect(results.length).to.equal(10);
+        });
+
+        it('testStrConcat', async () => {
+          const results = await randomCol
+            .pipeline()
+            .select(
+              Field.of('author')
+                .strConcat(' - ', Field.of('title'))
+                .as('bookInfo')
+            )
+            .limit(1)
+            .execute();
+          expectResults(results, {
+            bookInfo: "Douglas Adams - The Hitchhiker's Guide to the Galaxy"
+          });
+        });
+
+        it('testStartsWith', async () => {
+          const results = await randomCol
+            .pipeline()
+            .where(startsWith('title', 'The'))
+            .select('title')
+            .sort(Field.of('title').ascending())
+            .execute();
+          expectResults(
+            results,
+            { title: 'The Great Gatsby' },
+            { title: "The Handmaid's Tale" },
+            { title: "The Hitchhiker's Guide to the Galaxy" },
+            { title: 'The Lord of the Rings' }
+          );
+        });
+
+        it('testEndsWith', async () => {
+          const results = await randomCol
+            .pipeline()
+            .where(endsWith('title', 'y'))
+            .select('title')
+            .sort(Field.of('title').descending())
+            .execute();
+          expectResults(
+            results,
+            { title: "The Hitchhiker's Guide to the Galaxy" },
+            { title: 'The Great Gatsby' }
+          );
+        });
+
+        it('testLength', async () => {
+          const results = await randomCol
+            .pipeline()
+            .select(
+              Field.of('title').charLength().as('titleLength'),
+              Field.of('title')
+            )
+            .where(gt('titleLength', 20))
+            .sort(Field.of('title').ascending())
+            .execute();
+
+          expectResults(
+            results,
+
+            {
+              titleLength: 29,
+              title: 'One Hundred Years of Solitude'
+            },
+            {
+              titleLength: 36,
+              title: "The Hitchhiker's Guide to the Galaxy"
+            },
+            {
+              titleLength: 21,
+              title: 'The Lord of the Rings'
+            },
+            {
+              titleLength: 21,
+              title: 'To Kill a Mockingbird'
+            }
+          );
+        });
+
+        it('testLike', async () => {
+          const results = await randomCol
+            .pipeline()
+            .where(like('title', '%Guide%'))
+            .select('title')
+            .execute();
+          expectResults(results, {
+            title: "The Hitchhiker's Guide to the Galaxy"
+          });
+        });
+
+        it('testRegexContains', async () => {
+          const results = await randomCol
+            .pipeline()
+            .where(regexContains('title', '(?i)(the|of)'))
+            .execute();
+          expect(results.length).to.equal(5);
+        });
+
+        it('testRegexMatches', async () => {
+          const results = await randomCol
+            .pipeline()
+            .where(regexMatch('title', '.*(?i)(the|of).*'))
+            .execute();
+          expect(results.length).to.equal(5);
+        });
+
+        it('testArithmeticOperations', async () => {
+          const results = await randomCol
+            .pipeline()
+            .select(
+              add(Field.of('rating'), 1).as('ratingPlusOne'),
+              subtract(Field.of('published'), 1900).as('yearsSince1900'),
+              Field.of('rating').multiply(10).as('ratingTimesTen'),
+              Field.of('rating').divide(2).as('ratingDividedByTwo')
+            )
+            .limit(1)
+            .execute();
+          expectResults(results, {
+            ratingPlusOne: 5.2,
+            yearsSince1900: 79,
+            ratingTimesTen: 42,
+            ratingDividedByTwo: 2.1
+          });
+        });
+
+        it('testComparisonOperators', async () => {
+          const results = await randomCol
+            .pipeline()
+            .where(
+              andFunction(
+                gt('rating', 4.2),
+                lte(Field.of('rating'), 4.5),
+                neq('genre', 'Science Fiction')
+              )
+            )
+            .select('rating', 'title')
+            .sort(Field.of('title').ascending())
+            .execute();
+          expectResults(
+            results,
+            { rating: 4.3, title: 'Crime and Punishment' },
+            {
+              rating: 4.3,
+              title: 'One Hundred Years of Solitude'
+            },
+            { rating: 4.5, title: 'Pride and Prejudice' }
+          );
+        });
+
+        it('testLogicalOperators', async () => {
+          const results = await randomCol
+            .pipeline()
+            .where(
+              orFunction(
+                andFunction(gt('rating', 4.5), eq('genre', 'Science Fiction')),
+                lt('published', 1900)
+              )
+            )
+            .select('title')
+            .sort(Field.of('title').ascending())
+            .execute();
+          expectResults(
+            results,
+            { title: 'Crime and Punishment' },
+            { title: 'Dune' },
+            { title: 'Pride and Prejudice' }
+          );
+        });
+
+        it('testChecks', async () => {
+          const results = await randomCol
+            .pipeline()
+            .where(not(Field.of('rating').isNaN()))
+            .select(
+              Field.of('rating').eq(null).as('ratingIsNull'),
+              not(Field.of('rating').isNaN()).as('ratingIsNotNaN')
+            )
+            .limit(1)
+            .execute();
+          expectResults(results, { ratingIsNull: false, ratingIsNotNaN: true });
+        });
+
+        it('testMapGet', async () => {
+          const results = await randomCol
+            .pipeline()
+            .sort(Field.of('published').descending())
+            .select(
+              Field.of('awards').mapGet('hugo').as('hugoAward'),
+              Field.of('awards').mapGet('others').as('others'),
+              Field.of('title')
+            )
+            .where(eq('hugoAward', true))
+            .execute();
+          expectResults(
+            results,
+            {
+              hugoAward: true,
+              title: "The Hitchhiker's Guide to the Galaxy",
+              others: { unknown: { year: 1980 } }
+            },
+            { hugoAward: true, hugoAward2: true, title: 'Dune', others: null }
+          );
+        });
+
+        it('testDistanceFunctions', async () => {
+          const sourceVector = [0.1, 0.1];
+          const targetVector = [0.5, 0.8];
+          const results = await randomCol
+            .pipeline()
+            .select(
+              cosineDistance(Constant.vector(sourceVector), targetVector).as(
+                'cosineDistance'
+              ),
+              dotProduct(Constant.vector(sourceVector), targetVector).as(
+                'dotProductDistance'
+              ),
+              euclideanDistance(Constant.vector(sourceVector), targetVector).as(
+                'euclideanDistance'
+              )
+            )
+            .limit(1)
+            .execute();
+
+          expectResults(results, {
+            cosineDistance: 0.02560880430538015,
+            dotProductDistance: 0.13,
+            euclideanDistance: 0.806225774829855
+          });
+        });
+
+        it('testNestedFields', async () => {
+          const results = await randomCol
+            .pipeline()
+            .where(eq('awards.hugo', true))
+            .select('title', 'awards.hugo')
+            .execute();
+          expectResults(
+            results,
+            {
+              title: "The Hitchhiker's Guide to the Galaxy",
+              'awards.hugo': true
+            },
+            { title: 'Dune', 'awards.hugo': true }
+          );
+        });
+
+        it('test mapGet with field name including . notation', async () => {
+          const results = await randomCol
+            .pipeline()
+            .where(eq('awards.hugo', true))
+            .select(
+              'title',
+              Field.of('nestedField.level.1'),
+              mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
+            )
+            .execute();
+          expectResults(
+            results,
+            {
+              title: "The Hitchhiker's Guide to the Galaxy",
+              'nestedField.level.`1`': null,
+              nested: true
+            },
+            { title: 'Dune', 'nestedField.level.`1`': null, nested: null }
+          );
+        });
+
+        it('supports countIf', async () => {
+          const results = await randomCol
+            .pipeline()
+            .aggregate(countif(Field.of('rating').gt(4.3)).as('count'))
+            .execute();
+          expectResults(results, {
+            count: 3
+          });
+        });
+
+        describe('genericFunction', () => {
+          it('add selectable', async () => {
+            const results = await randomCol
+              .pipeline()
+              .sort(descending('rating'))
+              .limit(1)
+              .select(
+                genericFunction('add', [Field.of('rating'), Constant.of(1)]).as(
+                  'rating'
+                )
+              )
+              .execute();
+            expectResults(results, {
+              rating: 5.7
+            });
+          });
+
+          it('and (variadic) selectable', async () => {
+            const results = await randomCol
+              .pipeline()
+              .where(
+                genericFunction('and', [
+                  Field.of('rating').gt(0),
+                  Field.of('title').charLength().lt(5),
+                  Field.of('tags').arrayContains('propaganda')
+                ])
+              )
+              .select('title')
+              .execute();
+            expectResults(results, {
+              title: '1984'
+            });
+          });
+
+          it('array contains any', async () => {
+            const results = await randomCol
+              .pipeline()
+              .where(
+                genericFunction('array_contains_any', [
+                  Field.of('tags'),
+                  ['politics']
+                ])
+              )
+              .select('title')
+              .execute();
+            expectResults(results, {
+              title: 'Dune'
+            });
+          });
+
+          it('countif aggregate', async () => {
+            const results = await randomCol
+              .pipeline()
+              .aggregate(
+                genericFunction('countif', [Field.of('rating').gte(4.5)]).as(
+                  'countOfBest'
+                )
+              )
+              .execute();
+            expectResults(results, {
+              countOfBest: 3
+            });
+          });
+
+          it('sort by char_len', async () => {
+            const results = await randomCol
+              .pipeline()
+              .sort(
+                genericFunction('char_length', [Field.of('title')]).ascending(),
+                descending('__name__')
+              )
+              .limit(3)
+              .select('title')
+              .execute();
+            expectResults(
+              results,
+              {
+                title: '1984'
+              },
+              {
+                title: 'Dune'
+              },
+              {
+                title: 'The Great Gatsby'
+              }
+            );
+          });
+        });
+
+        describe.skip('not implemented in backend', () => {
+          it('supports Bit_and', async () => {
+            const results = await randomCol
+              .pipeline()
+              .limit(1)
+              .select(bitAnd(Constant.of(5), 12).as('result'))
+              .execute();
+            expectResults(results, {
+              result: 4
+            });
+          });
+
+          it('supports Bit_or', async () => {
+            const results = await randomCol
+              .pipeline()
+              .limit(1)
+              .select(bitOr(Constant.of(5), 12).as('result'))
+              .execute();
+            expectResults(results, {
+              result: 13
+            });
+          });
+
+          it('supports Bit_xor', async () => {
+            const results = await randomCol
+              .pipeline()
+              .limit(1)
+              .select(bitXor(Constant.of(5), 12).as('result'))
+              .execute();
+            expectResults(results, {
+              result: 9
+            });
+          });
+
+          it('supports Bit_not', async () => {
+            const results = await randomCol
+              .pipeline()
+              .limit(1)
+              .select(
+                bitNot(
+                  Constant.of(Bytes.fromUint8Array(Uint8Array.of(0xfd)))
+                ).as('result')
+              )
+              .execute();
+            expectResults(results, {
+              result: Bytes.fromUint8Array(Uint8Array.of(0x02))
+            });
+          });
+
+          it('supports Bit_left_shift', async () => {
+            const results = await randomCol
+              .pipeline()
+              .limit(1)
+              .select(
+                bitLeftShift(
+                  Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02))),
+                  2
+                ).as('result')
+              )
+              .execute();
+            expectResults(results, {
+              result: Bytes.fromUint8Array(Uint8Array.of(0x04))
+            });
+          });
+
+          it('supports Bit_right_shift', async () => {
+            const results = await randomCol
+              .pipeline()
+              .limit(1)
+              .select(
+                bitRightShift(
+                  Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02))),
+                  2
+                ).as('result')
+              )
+              .execute();
+            expectResults(results, {
+              result: Bytes.fromUint8Array(Uint8Array.of(0x01))
+            });
+          });
+
+          it('supports Document_id', async () => {
+            const results = await randomCol
+              .pipeline()
+              .sort(Field.of('rating').descending())
+              .limit(1)
+              .select(documentIdFunction(Field.of('__path__')).as('docId'))
+              .execute();
+            expectResults(results, {
+              docId: 'book4'
+            });
+          });
+
+          it('supports Substr', async () => {
+            const results = await randomCol
+              .pipeline()
+              .sort(Field.of('rating').descending())
+              .limit(1)
+              .select(substr('title', 9, 2).as('of'))
+              .execute();
+            expectResults(results, {
+              of: 'of'
+            });
+          });
+
+          it('arrayConcat works', async () => {
+            const results = await randomCol
+              .pipeline()
+              .select(
+                Field.of('tags')
+                  .arrayConcat(['newTag1', 'newTag2'])
+                  .as('modifiedTags')
+              )
+              .limit(1)
+              .execute();
+            expectResults(results, {
+              modifiedTags: [
+                'comedy',
+                'space',
+                'adventure',
+                'newTag1',
+                'newTag2'
+              ]
+            });
+          });
+
+          it('testToLowercase', async () => {
+            const results = await randomCol
+              .pipeline()
+              .select(Field.of('title').toLower().as('lowercaseTitle'))
+              .limit(1)
+              .execute();
+            expectResults(results, {
+              lowercaseTitle: "the hitchhiker's guide to the galaxy"
+            });
+          });
+
+          it('testToUppercase', async () => {
+            const results = await randomCol
+              .pipeline()
+              .select(Field.of('author').toUpper().as('uppercaseAuthor'))
+              .limit(1)
+              .execute();
+            expectResults(results, { uppercaseAuthor: 'DOUGLAS ADAMS' });
+          });
+
+          it('testTrim', async () => {
+            const results = await randomCol
+              .pipeline()
+              .addFields(
+                Constant.of(" The Hitchhiker's Guide to the Galaxy ").as(
+                  'spacedTitle'
+                )
+              )
+              .select(
+                Field.of('spacedTitle').trim().as('trimmedTitle'),
+                Field.of('spacedTitle')
+              )
+              .limit(1)
+              .execute();
+            expectResults(results, {
+              spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
+              trimmedTitle: "The Hitchhiker's Guide to the Galaxy"
+            });
+          });
+        });
+
+        it('supports Rand', async () => {
+          const results = await randomCol
+            .pipeline()
+            .limit(10)
+            .select(rand().as('result'))
+            .execute();
+          expect(results.length).to.equal(10);
+          results.forEach(d => {
+            expect(d.get('result')).to.be.lt(1);
+            expect(d.get('result')).to.be.gte(0);
+          });
+        });
+
+        it('supports array', async () => {
+          const result = await firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(Field.of('rating').descending())
+            .limit(1)
+            .select(array([1, 2, 3, 4]).as('metadata'))
+            .execute();
+          expect(result.length).to.equal(1);
+          expectResults(result, {
+            metadata: [1, 2, 3, 4]
+          });
+        });
+
+        it('evaluates expression in array', async () => {
+          const result = await firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(Field.of('rating').descending())
+            .limit(1)
+            .select(
+              array([1, 2, Field.of('genre'), multiply('rating', 10)]).as(
+                'metadata'
+              )
+            )
+            .execute();
+          expect(result.length).to.equal(1);
+          expectResults(result, {
+            metadata: [1, 2, 'Fantasy', 47]
+          });
+        });
+
+        it('supports arrayOffset', async () => {
+          const results = await randomCol
+            .pipeline()
+            .sort(Field.of('rating').descending())
+            .limit(3)
+            .select(arrayOffset('tags', 0).as('firstTag'))
+            .execute();
+          expectResults(
+            results,
+            {
+              firstTag: 'adventure'
+            },
+            {
+              firstTag: 'politics'
+            },
+            {
+              firstTag: 'classic'
+            }
+          );
+        });
+
+        // TODO: current_context tests with are failing because of b/395937453
+        it('supports currentContext', async () => {
+          const results = await randomCol
+            .pipeline()
+            .sort(Field.of('rating').descending())
+            .limit(1)
+            .select(currentContext().as('currentContext'))
+            .execute();
+          expectResults(results, {
+            currentContext: 'TODO'
+          });
+        });
+
+        it('supports isError', async () => {
+          const results = await randomCol
+            .pipeline()
+            .sort(Field.of('rating').descending())
+            .limit(1)
+            .select(isError(arrayOffset('title', 0)).as('firstTag'))
+            .execute();
+          expectResults(results, {
+            firstTag: true
+          });
+        });
+
+        it('supports ifError', async () => {
+          const results = await randomCol
+            .pipeline()
+            .sort(Field.of('rating').descending())
+            .limit(1)
+            .select(
+              ifError(arrayOffset('title', 0), Constant.of('was error')).as(
+                'firstTag'
+              )
+            )
+            .execute();
+          expectResults(results, {
+            firstTag: 'was error'
+          });
+        });
+
+        it('supports isAbsent', async () => {
+          const results = await randomCol
+            .pipeline()
+            .sort(Field.of('rating').descending())
+            .limit(1)
+            .select(isAbsent('foo').as('firstTag'))
+            .execute();
+          expectResults(results, {
+            firstTag: true
+          });
+        });
+
+        it('supports isNull', async () => {
+          const results = await randomCol
+            .pipeline()
+            .sort(Field.of('rating').descending())
+            .limit(1)
+            .select(isNull('remarks').as('remarksIsNull'))
+            .execute();
+          expectResults(results, {
+            remarksIsNull: true
+          });
+        });
+
+        it('supports isNotNull', async () => {
+          const results = await randomCol
+            .pipeline()
+            .sort(Field.of('rating').descending())
+            .limit(1)
+            .select(isNotNull('title').as('titleIsNotNull'))
+            .execute();
+          expectResults(results, {
+            titleIsNotNull: true
+          });
+        });
+
+        it('supports isNotNan', async () => {
+          const results = await randomCol
+            .pipeline()
+            .sort(Field.of('rating').descending())
+            .limit(1)
+            .select(isNotNan('cost').as('costIsNotNan'))
+            .execute();
+          expectResults(results, {
+            costIsNotNan: false
+          });
+        });
+
+        it('supports map', async () => {
+          const result = await firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(Field.of('rating').descending())
+            .limit(1)
+            .select(
+              map({
+                foo: 'bar'
+              }).as('metadata')
+            )
+            .execute();
+
+          expect(result.length).to.equal(1);
+          expectResults(result, {
+            metadata: {
+              foo: 'bar'
+            }
+          });
+        });
+
+        it('evaluates expression in map', async () => {
+          const result = await firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(Field.of('rating').descending())
+            .limit(1)
+            .select(
+              map({
+                genre: Field.of('genre'),
+                rating: Field.of('rating').multiply(10)
+              }).as('metadata')
+            )
+            .execute();
+
+          expect(result.length).to.equal(1);
+          expectResults(result, {
+            metadata: {
+              genre: 'Fantasy',
+              rating: 47
+            }
+          });
+        });
+
+        it('supports mapRemove', async () => {
+          const results = await randomCol
+            .pipeline()
+            .sort(Field.of('rating').descending())
+            .limit(1)
+            .select(mapRemove('awards', 'hugo').as('awards'))
+            .execute();
+          expectResults(results, {
+            awards: { nebula: false }
+          });
+        });
+
+        it('supports mapMerge', async () => {
+          const results = await randomCol
+            .pipeline()
+            .sort(Field.of('rating').descending())
+            .limit(1)
+            .select(mapMerge('awards', { fakeAward: true }).as('awards'))
+            .execute();
+          expectResults(results, {
+            awards: { nebula: false, hugo: false, fakeAward: true }
+          });
+        });
+
+        it('supports manhattanDistance', async () => {
+          const results = await randomCol
+            .pipeline()
+            .sort(Field.of('rating').descending())
+            .limit(1)
+            .select(Constant.vector([1, 1]).as('embedding'))
+            .addFields(manhattanDistance('embedding', [3, 3]).as('distance'))
+            .execute();
+          expectResults(results, {
+            distance: 4,
+            embedding: vector([1, 1])
+          });
+        });
+      });
+
       describe('pagination', () => {
+        /**
+         * Adds several books to the test collection. These
+         * additional books support pagination test scenarios
+         * that would otherwise not be possible with the original
+         * set of books.
+         * @param collection
+         */
         async function addBooks(
           collection: CollectionReference
         ): Promise<void> {

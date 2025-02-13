@@ -51,14 +51,17 @@ export function pipeline(
 ): PipelineSource<Pipeline> | Pipeline {
   if (firestoreOrQuery instanceof Firestore) {
     const firestore = firestoreOrQuery;
-    return new PipelineSource<Pipeline>((stages: Stage[]) => {
-      return new Pipeline(
-        firestore,
-        newUserDataReader(firestore),
-        new ExpUserDataWriter(firestore),
-        stages
-      );
-    });
+    return new PipelineSource<Pipeline>(
+      firestore._databaseId,
+      (stages: Stage[]) => {
+        return new Pipeline(
+          firestore,
+          newUserDataReader(firestore),
+          new ExpUserDataWriter(firestore),
+          stages
+        );
+      }
+    );
   } else {
     const query = firestoreOrQuery;
     const db = cast<Firestore>(query.firestore, Firestore);

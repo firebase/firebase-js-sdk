@@ -181,8 +181,16 @@ export class DocumentsSource implements Stage {
 
   constructor(private docPaths: string[]) {}
 
-  static of(refs: DocumentReference[]): DocumentsSource {
-    return new DocumentsSource(refs.map(ref => '/' + ref.path));
+  static of(refs: Array<string | DocumentReference>): DocumentsSource {
+    return new DocumentsSource(
+      refs.map(ref =>
+        ref instanceof DocumentReference
+          ? '/' + ref.path
+          : ref.startsWith('/')
+          ? ref
+          : '/' + ref
+      )
+    );
   }
 
   /**
