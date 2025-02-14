@@ -116,24 +116,36 @@ export async function getToken(
    * Check token using the debug token, and return it directly.
    */
   if (isDebugMode()) {
-    // Avoid making another call to the exchange endpoint if one is in flight.
-    if (!state.exchangeTokenPromise) {
-      state.exchangeTokenPromise = exchangeToken(
-        getExchangeDebugTokenRequest(app, await getDebugToken()),
-        appCheck.heartbeatServiceProvider
-      ).finally(() => {
-        // Clear promise when settled - either resolved or rejected.
-        state.exchangeTokenPromise = undefined;
-      });
-      shouldCallListeners = true;
+    try {
+      // Avoid making another call to the exchange endpoint if one is in flight.
+      if (!state.exchangeTokenPromise) {
+        state.exchangeTokenPromise = exchangeToken(
+          getExchangeDebugTokenRequest(app, await getDebugToken()),
+          appCheck.heartbeatServiceProvider
+        ).finally(() => {
+          // Clear promise when settled - either resolved or rejected.
+          state.exchangeTokenPromise = undefined;
+        });
+        shouldCallListeners = true;
+      }
+      const tokenFromDebugExchange: AppCheckTokenInternal =
+        await state.exchangeTokenPromise;
+      // Write debug token to indexedDB.
+      await writeTokenToStorage(app, tokenFromDebugExchange);
+      // Write debug token to state.
+      state.token = tokenFromDebugExchange;
+      return { token: tokenFromDebugExchange.token };
+    } catch (e) {
+      if ((e as FirebaseError).code === `appCheck/${AppCheckError.THROTTLED}`) {
+        // Warn if throttled, but do not treat it as an error.
+        logger.warn((e as FirebaseError).message);
+      } else {
+        // `getToken()` should never throw, but logging error text to console will aid debugging.
+        logger.warn(e);
+      }
+      // Return dummy token and error
+      return makeDummyTokenResult(e as FirebaseError);
     }
-    const tokenFromDebugExchange: AppCheckTokenInternal =
-      await state.exchangeTokenPromise;
-    // Write debug token to indexedDB.
-    await writeTokenToStorage(app, tokenFromDebugExchange);
-    // Write debug token to state.
-    state.token = tokenFromDebugExchange;
-    return { token: tokenFromDebugExchange.token };
   }
 
   /**
@@ -160,7 +172,7 @@ export async function getToken(
       logger.warn((e as FirebaseError).message);
     } else {
       // `getToken()` should never throw, but logging error text to console will aid debugging.
-      logger.error(e);
+      logger.warn(e);
     }
     // Always save error to be added to dummy token.
     error = e as FirebaseError;
