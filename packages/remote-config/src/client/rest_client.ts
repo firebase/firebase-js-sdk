@@ -15,11 +15,13 @@
  * limitations under the License.
  */
 
-import { CustomSignals } from '../public_types';
 import {
+  CustomSignals,
   FetchResponse,
+  FirebaseRemoteConfigObject
+} from '../public_types';
+import {
   RemoteConfigFetchClient,
-  FirebaseRemoteConfigObject,
   FetchRequest
 } from './remote_config_fetch_client';
 import { ERROR_FACTORY, ErrorCode } from '../errors';

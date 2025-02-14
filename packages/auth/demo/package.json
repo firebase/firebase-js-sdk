@@ -32,7 +32,7 @@
     "@rollup/plugin-terser": "0.4.4",
     "rollup-plugin-typescript2": "0.31.2",
     "rollup-plugin-uglify": "6.0.4",
-    "@rollup/plugin-node-resolve": "13.3.0",
+    "@rollup/plugin-node-resolve": "16.0.0",
     "lerna": "4.0.0"
   },
   "repository": {
