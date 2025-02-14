@@ -1,5 +1,29 @@
 # firebase
 
+## 11.4.0
+
+### Minor Changes
+
+- [`70e08cf`](https://github.com/firebase/firebase-js-sdk/commit/70e08cf95b5c43d3b98382a6f68fbd3c3555e31f) [#8699](https://github.com/firebase/firebase-js-sdk/pull/8699) - Adds support for initial state hydration (from SSR contexts)
+
+### Patch Changes
+
+- [`b3e68ca`](https://github.com/firebase/firebase-js-sdk/commit/b3e68ca410d9b984736780098330bd6b8ee2e997) [#8769](https://github.com/firebase/firebase-js-sdk/pull/8769) - Fixed: invoking `connectDatabaseEmulator` multiple times with the same parameters will no longer
+  cause an error. Fixes [GitHub Issue #6824](https://github.com/firebase/firebase-js-sdk/issues/6824).
+
+- [`c791ecf`](https://github.com/firebase/firebase-js-sdk/commit/c791ecf3a03a0e4f56fcdc49b703578135bf8ce6) [#8750](https://github.com/firebase/firebase-js-sdk/pull/8750) - Fixed: invoking `connectAuthEmulator` multiple times with the same parameters will no longer cause
+  an error. Fixes [GitHub Issue #6824](https://github.com/firebase/firebase-js-sdk/issues/6824).
+- Updated dependencies [[`70e08cf`](https://github.com/firebase/firebase-js-sdk/commit/70e08cf95b5c43d3b98382a6f68fbd3c3555e31f), [`b3e68ca`](https://github.com/firebase/firebase-js-sdk/commit/b3e68ca410d9b984736780098330bd6b8ee2e997), [`c791ecf`](https://github.com/firebase/firebase-js-sdk/commit/c791ecf3a03a0e4f56fcdc49b703578135bf8ce6), [`554c7bd`](https://github.com/firebase/firebase-js-sdk/commit/554c7bdc12cfde834ce5c4fa729a6cb790e1e5c2)]:
+  - @firebase/app@0.11.2
+  - @firebase/remote-config@0.6.0
+  - @firebase/database-compat@2.0.4
+  - @firebase/database@1.0.13
+  - @firebase/auth@1.9.1
+  - @firebase/vertexai@1.0.5
+  - @firebase/app-compat@0.2.51
+  - @firebase/remote-config-compat@0.2.13
+  - @firebase/auth-compat@0.5.19
+
 ## 11.3.1
 
 ### Patch Changes

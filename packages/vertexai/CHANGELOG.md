@@ -1,5 +1,11 @@
 # @firebase/vertexai
 
+## 1.0.5
+
+### Patch Changes
+
+- [`554c7bd`](https://github.com/firebase/firebase-js-sdk/commit/554c7bdc12cfde834ce5c4fa729a6cb790e1e5c2) [#8736](https://github.com/firebase/firebase-js-sdk/pull/8736) (fixes [#8714](https://github.com/firebase/firebase-js-sdk/issues/8714)) - Filter out empty text parts from streaming responses.
+
 ## 1.0.4
 
 ### Patch Changes
