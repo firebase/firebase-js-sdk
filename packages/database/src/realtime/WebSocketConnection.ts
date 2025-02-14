@@ -52,7 +52,9 @@ if (typeof MozWebSocket !== 'undefined') {
 }
 
 export function setWebSocketImpl(impl) {
-  WebSocketImpl = impl;
+  if (!WebSocketImpl) {
+    WebSocketImpl = impl;
+  }
 }
 
 /**
