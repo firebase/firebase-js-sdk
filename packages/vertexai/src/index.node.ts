@@ -42,7 +42,7 @@ function registerVertex(): void {
     ).setMultipleInstances(true)
   );
 
-  registerVersion(name, version);
+  registerVersion(name, version, 'node');
   // BUILD_TARGET will be replaced by values like esm2017, cjs2017, etc during the compilation
   registerVersion(name, version, '__BUILD_TARGET__');
 }
