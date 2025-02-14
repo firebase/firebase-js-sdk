@@ -126,7 +126,7 @@ export function formatGenerateContentInput(
 }
 
 /**
- * Convert the user-defined parameters in {@link ImagenGenerationParams} to the format
+ * Convert the user-defined parameters in <code>{@link ImagenGenerationParams}</code> to the format
  * that is expected from the REST API.
  *
  * @internal

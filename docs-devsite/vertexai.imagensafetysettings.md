@@ -15,7 +15,7 @@ https://github.com/firebase/firebase-js-sdk
 
 Settings for controlling the aggressiveness of filtering out sensitive content.
 
-See the [Cloud documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#config-safety-filters) for more details.
+See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details.
 
 <b>Signature:</b>
 

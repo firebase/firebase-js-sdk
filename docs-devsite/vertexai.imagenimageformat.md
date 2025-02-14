@@ -34,8 +34,8 @@ export declare class ImagenImageFormat
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [jpeg(compressionQuality)](./vertexai.imagenimageformat.md#imagenimageformatjpeg) | <code>static</code> | <b><i>(Public Preview)</i></b> Creates an <code>[ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class)</code> for a JPEG image.<!-- -->For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which means that the feature is not subject to any SLA or deprecation policy and could change in backwards-incompatible ways. |
-|  [png()](./vertexai.imagenimageformat.md#imagenimageformatpng) | <code>static</code> | <b><i>(Public Preview)</i></b> Creates an <code>[ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class)</code> for a PNG image.<!-- -->For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which means that the feature is not subject to any SLA or deprecation policy and could change in backwards-incompatible ways. |
+|  [jpeg(compressionQuality)](./vertexai.imagenimageformat.md#imagenimageformatjpeg) | <code>static</code> | <b><i>(Public Preview)</i></b> Creates an <code>[ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class)</code> for a JPEG image. |
+|  [png()](./vertexai.imagenimageformat.md#imagenimageformatpng) | <code>static</code> | <b><i>(Public Preview)</i></b> Creates an <code>[ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class)</code> for a PNG image. |
 
 ## ImagenImageFormat.compressionQuality
 
@@ -70,8 +70,6 @@ mimeType: string;
 
 Creates an <code>[ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class)</code> for a JPEG image.
 
-For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which means that the feature is not subject to any SLA or deprecation policy and could change in backwards-incompatible ways.
-
 <b>Signature:</b>
 
 ```typescript
@@ -96,8 +94,6 @@ An <code>[ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_c
 > 
 
 Creates an <code>[ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class)</code> for a PNG image.
-
-For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which means that the feature is not subject to any SLA or deprecation policy and could change in backwards-incompatible ways.
 
 <b>Signature:</b>
 

@@ -57,14 +57,14 @@ export interface ImagenGenerationConfig {
    *
    * Support for negative prompts depends on the Imagen model.
    *
-   * See the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images#negative-prompt | Cloud documentation} for more details.
+   * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation} for more details.
    */
   negativePrompt?: string;
   /**
    * The number of images to generate. The default value is 1.
    *
    * The number of sample images that may be generated in each request depends on the model
-   * (typically up to 4); see the <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list"><code>sampleCount</code></a>
+   * (typically up to 4); see the <a href="http://firebase.google.com/docs/vertex-ai/generate-images"><code>sampleCount</code></a>
    * documentation for more details.
    */
   numberOfImages?: number;
@@ -86,7 +86,7 @@ export interface ImagenGenerationConfig {
    * If set to `true`, an invisible SynthID watermark is embedded in generated images to indicate
    * that they are AI generated. If set to `false`, watermarking will be disabled.
    *
-   * The default value depends on the Imagen model; see the <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list"><code>addWatermark</code></a>
+   * The default value depends on the Imagen model; see the <a href="http://firebase.google.com/docs/vertex-ai/generate-images"><code>addWatermark</code></a>
    * documentation for more details.
    */
   addWatermark?: boolean;
@@ -98,8 +98,8 @@ export interface ImagenGenerationConfig {
  * Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI
  * are assessed against a list of safety filters, which include 'harmful categories' (for example,
  * `violence`, `sexual`, `derogatory`, and `toxic`). This filter level controls how aggressively to
- * filter out potentially harmful content from responses. See the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list | `safetySetting`}
- * documentation and the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters | Responsible AI and usage guidelines}
+ * filter out potentially harmful content from responses. See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
+ * and the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters | Responsible AI and usage guidelines}
  * for more details.
  *
  * @beta
@@ -129,7 +129,7 @@ export enum ImagenSafetyFilterLevel {
 /**
  * A filter level controlling whether generation of images containing people or faces is allowed.
  *
- * See the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list | `personGeneration`}
+ * See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images"><code>personGeneration</code></a>
  * documentation for more details.
  *
  * @beta
@@ -160,7 +160,7 @@ export enum ImagenPersonFilterLevel {
 /**
  * Settings for controlling the aggressiveness of filtering out sensitive content.
  *
- * See the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#config-safety-filters | Cloud documentation }
+ * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
  * for more details.
  *
  * @beta
@@ -183,7 +183,7 @@ export interface ImagenSafetySettings {
  * To specify an aspect ratio for generated images, set the `aspectRatio` property in your
  * <code>{@link ImagenGenerationConfig}</code>.
  *
- * See the the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images#aspect-ratio | Cloud documentation }
+ * See the the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
  * for more details and examples of the supported aspect ratios.
  *
  * @beta

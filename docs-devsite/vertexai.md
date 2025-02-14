@@ -20,7 +20,7 @@ The Vertex AI in Firebase Web SDK.
 |  [getVertexAI(app, options)](./vertexai.md#getvertexai_04094cf) | Returns a <code>[VertexAI](./vertexai.vertexai.md#vertexai_interface)</code> instance for the given app. |
 |  <b>function(vertexAI, ...)</b> |
 |  [getGenerativeModel(vertexAI, modelParams, requestOptions)](./vertexai.md#getgenerativemodel_e3037c9) | Returns a <code>[GenerativeModel](./vertexai.generativemodel.md#generativemodel_class)</code> class with methods for inference and other functionality. |
-|  [getImagenModel(vertexAI, modelParams, requestOptions)](./vertexai.md#getimagenmodel_812c375) | <b><i>(Public Preview)</i></b> Returns an <code>[ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)</code> class with methods for using Imagen.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported.<!-- -->For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which means that the feature is not subject to any SLA or deprecation policy and could change in backwards-incompatible ways. |
+|  [getImagenModel(vertexAI, modelParams, requestOptions)](./vertexai.md#getimagenmodel_812c375) | <b><i>(Public Preview)</i></b> Returns an <code>[ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)</code> class with methods for using Imagen.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported. |
 
 ## Classes
 
@@ -52,9 +52,9 @@ The Vertex AI in Firebase Web SDK.
 |  [HarmCategory](./vertexai.md#harmcategory) | Harm categories that would cause prompts or candidates to be blocked. |
 |  [HarmProbability](./vertexai.md#harmprobability) | Probability that a prompt or candidate matches a harm category. |
 |  [HarmSeverity](./vertexai.md#harmseverity) | Harm severity levels. |
-|  [ImagenAspectRatio](./vertexai.md#imagenaspectratio) | <b><i>(Public Preview)</i></b> Aspect ratios for Imagen images.<!-- -->To specify an aspect ratio for generated images, set the <code>aspectRatio</code> property in your <code>[ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface)</code>.<!-- -->See the the [Cloud documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images#aspect-ratio) for more details and examples of the supported aspect ratios. |
-|  [ImagenPersonFilterLevel](./vertexai.md#imagenpersonfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the [\`personGeneration\`](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list) documentation for more details. |
-|  [ImagenSafetyFilterLevel](./vertexai.md#imagensafetyfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [\`safetySetting\`](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list) documentation and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
+|  [ImagenAspectRatio](./vertexai.md#imagenaspectratio) | <b><i>(Public Preview)</i></b> Aspect ratios for Imagen images.<!-- -->To specify an aspect ratio for generated images, set the <code>aspectRatio</code> property in your <code>[ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface)</code>.<!-- -->See the the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details and examples of the supported aspect ratios. |
+|  [ImagenPersonFilterLevel](./vertexai.md#imagenpersonfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images"><code>personGeneration</code></a> documentation for more details. |
+|  [ImagenSafetyFilterLevel](./vertexai.md#imagensafetyfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
 |  [SchemaType](./vertexai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
 |  [VertexAIErrorCode](./vertexai.md#vertexaierrorcode) | Standardized error codes that <code>[VertexAIError](./vertexai.vertexaierror.md#vertexaierror_class)</code> can have. |
 
@@ -95,7 +95,7 @@ The Vertex AI in Firebase Web SDK.
 |  [ImagenGenerationResponse](./vertexai.imagengenerationresponse.md#imagengenerationresponse_interface) | <b><i>(Public Preview)</i></b> The response from a request to generate images with Imagen. |
 |  [ImagenInlineImage](./vertexai.imageninlineimage.md#imageninlineimage_interface) | <b><i>(Public Preview)</i></b> An image generated by Imagen, represented as inline data. |
 |  [ImagenModelParams](./vertexai.imagenmodelparams.md#imagenmodelparams_interface) | <b><i>(Public Preview)</i></b> Parameters for configuring an <code>[ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)</code>. |
-|  [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) | <b><i>(Public Preview)</i></b> Settings for controlling the aggressiveness of filtering out sensitive content.<!-- -->See the [Cloud documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#config-safety-filters) for more details. |
+|  [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) | <b><i>(Public Preview)</i></b> Settings for controlling the aggressiveness of filtering out sensitive content.<!-- -->See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details. |
 |  [InlineDataPart](./vertexai.inlinedatapart.md#inlinedatapart_interface) | Content part interface if the part represents an image. |
 |  [ModelParams](./vertexai.modelparams.md#modelparams_interface) | Params passed to <code>[getGenerativeModel()](./vertexai.md#getgenerativemodel_e3037c9)</code>. |
 |  [ObjectSchemaInterface](./vertexai.objectschemainterface.md#objectschemainterface_interface) | Interface for <code>[ObjectSchema](./vertexai.objectschema.md#objectschema_class)</code> class. |
@@ -188,8 +188,6 @@ export declare function getGenerativeModel(vertexAI: VertexAI, modelParams: Mode
 Returns an <code>[ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)</code> class with methods for using Imagen.
 
 Only Imagen 3 models (named `imagen-3.0-*`<!-- -->) are supported.
-
-For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which means that the feature is not subject to any SLA or deprecation policy and could change in backwards-incompatible ways.
 
 <b>Signature:</b>
 
@@ -418,7 +416,7 @@ Aspect ratios for Imagen images.
 
 To specify an aspect ratio for generated images, set the `aspectRatio` property in your <code>[ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface)</code>.
 
-See the the [Cloud documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/image/generate-images#aspect-ratio) for more details and examples of the supported aspect ratios.
+See the the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details and examples of the supported aspect ratios.
 
 <b>Signature:</b>
 
@@ -443,7 +441,7 @@ export declare enum ImagenAspectRatio
 
 A filter level controlling whether generation of images containing people or faces is allowed.
 
-See the [\`personGeneration\`](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list) documentation for more details.
+See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images"><code>personGeneration</code></a> documentation for more details.
 
 <b>Signature:</b>
 
@@ -466,7 +464,7 @@ export declare enum ImagenPersonFilterLevel
 
 A filter level controlling how aggressively to filter sensitive content.
 
-Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, `violence`<!-- -->, `sexual`<!-- -->, `derogatory`<!-- -->, and `toxic`<!-- -->). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [\`safetySetting\`](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/imagen-api#parameter_list) documentation and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details.
+Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, `violence`<!-- -->, `sexual`<!-- -->, `derogatory`<!-- -->, and `toxic`<!-- -->). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details.
 
 <b>Signature:</b>
 

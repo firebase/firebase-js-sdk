@@ -51,13 +51,10 @@ export class ImagenImageFormat {
   /**
    * Creates an <code>{@link ImagenImageFormat}</code> for a JPEG image.
    *
-   * @beta
-   * For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which
-   * means that the feature is not subject to any SLA or deprecation policy and could change in
-   * backwards-incompatible ways.
-   *
    * @param compressionQuality - The level of compression (a number between 0 and 100).
    * @returns An <code>{@link ImagenImageFormat}</code> object for a JPEG image.
+   *
+   * @beta
    */
   static jpeg(compressionQuality?: number): ImagenImageFormat {
     if (
@@ -74,12 +71,9 @@ export class ImagenImageFormat {
   /**
    * Creates an <code>{@link ImagenImageFormat}</code> for a PNG image.
    *
-   * @beta
-   * For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which
-   * means that the feature is not subject to any SLA or deprecation policy and could change in
-   * backwards-incompatible ways.
-   *
    * @returns An <code>{@link ImagenImageFormat}</code> object for a PNG image.
+   *
+   * @beta
    */
   static png(): ImagenImageFormat {
     return { mimeType: 'image/png' };

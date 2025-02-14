@@ -42,7 +42,7 @@ export declare class ImagenModel extends VertexAIModel
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [generateImages(prompt)](./vertexai.imagenmodel.md#imagenmodelgenerateimages) |  | <b><i>(Public Preview)</i></b> Generates images using the Imagen model and returns them as base64-encoded strings.<!-- -->For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which means that the feature is not subject to any SLA or deprecation policy and could change in backwards-incompatible ways. |
+|  [generateImages(prompt)](./vertexai.imagenmodel.md#imagenmodelgenerateimages) |  | <b><i>(Public Preview)</i></b> Generates images using the Imagen model and returns them as base64-encoded strings. |
 
 ## ImagenModel.(constructor)
 
@@ -112,8 +112,6 @@ safetySettings?: ImagenSafetySettings;
 > 
 
 Generates images using the Imagen model and returns them as base64-encoded strings.
-
-For Vertex AI in Firebase, image generation using Imagen 3 models is in Public Preview, which means that the feature is not subject to any SLA or deprecation policy and could change in backwards-incompatible ways.
 
 If the prompt was not blocked, but one or more of the generated images were filtered, the returned object will have a `filteredReason` property. If all images are filtered, the `images` array will be empty.
 
