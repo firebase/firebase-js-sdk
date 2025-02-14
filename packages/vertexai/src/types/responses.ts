@@ -228,6 +228,8 @@ export interface CountTokensResponse {
    * from the request.
    */
   totalBillableCharacters?: number;
-
+  /**
+   * The breakdown, by modality, of how many tokens are consumed by the prompt.
+   */
   promptTokensDetails?: ModalityTokenCount[];
 }
