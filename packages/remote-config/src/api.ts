@@ -16,11 +16,13 @@
  */
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
+import { deepEqual, getModularInstance } from '@firebase/util';
 import {
   CustomSignals,
   LogLevel as RemoteConfigLogLevel,
   RemoteConfig,
-  Value
+  Value,
+  RemoteConfigOptions
 } from './public_types';
 import { RemoteConfigAbortSignal } from './client/remote_config_fetch_client';
 import {
@@ -28,23 +30,54 @@ import {
   RC_CUSTOM_SIGNAL_KEY_MAX_LENGTH,
   RC_CUSTOM_SIGNAL_VALUE_MAX_LENGTH
 } from './constants';
-import { ErrorCode, hasErrorCode } from './errors';
+import { ERROR_FACTORY, ErrorCode, hasErrorCode } from './errors';
 import { RemoteConfig as RemoteConfigImpl } from './remote_config';
 import { Value as ValueImpl } from './value';
 import { LogLevel as FirebaseLogLevel } from '@firebase/logger';
-import { getModularInstance } from '@firebase/util';
 
 /**
  *
  * @param app - The {@link @firebase/app#FirebaseApp} instance.
+ * @param options - Optional. The {@link RemoteConfigOptions} with which to instantiate the
+ *     Remote Config instance.
  * @returns A {@link RemoteConfig} instance.
  *
  * @public
  */
-export function getRemoteConfig(app: FirebaseApp = getApp()): RemoteConfig {
+export function getRemoteConfig(
+  app: FirebaseApp = getApp(),
+  options: RemoteConfigOptions = {}
+): RemoteConfig {
   app = getModularInstance(app);
   const rcProvider = _getProvider(app, RC_COMPONENT_NAME);
-  return rcProvider.getImmediate();
+  if (rcProvider.isInitialized()) {
+    const initialOptions = rcProvider.getOptions() as RemoteConfigOptions;
+    if (deepEqual(initialOptions, options)) {
+      return rcProvider.getImmediate();
+    }
+    throw ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
+  }
+  rcProvider.initialize({ options });
+  const rc = rcProvider.getImmediate() as RemoteConfigImpl;
+
+  if (options.initialFetchResponse) {
+    // We use these initial writes as the initialization promise since they will hydrate the same
+    // fields that `storageCache.loadFromStorage` would set.
+    rc._initializePromise = Promise.all([
+      rc._storage.setLastSuccessfulFetchResponse(options.initialFetchResponse),
+      rc._storage.setActiveConfigEtag(options.initialFetchResponse?.eTag || ''),
+      rc._storageCache.setLastSuccessfulFetchTimestampMillis(Date.now()),
+      rc._storageCache.setLastFetchStatus('success'),
+      rc._storageCache.setActiveConfig(
+        options.initialFetchResponse?.config || {}
+      )
+    ]).then();
+    // The `storageCache` methods above set their in-memory fields synchronously, so it's
+    // safe to declare our initialization complete at this point.
+    rc._isInitializationComplete = true;
+  }
+
+  return rc;
 }
 
 /**

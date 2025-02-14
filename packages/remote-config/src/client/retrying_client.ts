@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
+import { FetchResponse } from '../public_types';
 import {
   RemoteConfigAbortSignal,
   RemoteConfigFetchClient,
-  FetchResponse,
   FetchRequest
 } from './remote_config_fetch_client';
 import { ThrottleMetadata, Storage } from '../storage/storage';

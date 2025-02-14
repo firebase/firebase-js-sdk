@@ -16,10 +16,7 @@
  */
 
 import { FetchStatus, CustomSignals } from '@firebase/remote-config-types';
-import {
-  FetchResponse,
-  FirebaseRemoteConfigObject
-} from '../client/remote_config_fetch_client';
+import { FetchResponse, FirebaseRemoteConfigObject } from '../public_types';
 import { ERROR_FACTORY, ErrorCode } from '../errors';
 import { RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS } from '../constants';
 import { FirebaseError } from '@firebase/util';
@@ -113,19 +110,7 @@ export function openDatabase(): Promise<IDBDatabase> {
 /**
  * Abstracts data persistence.
  */
-export class Storage {
-  /**
-   * @param appId enables storage segmentation by app (ID + name).
-   * @param appName enables storage segmentation by app (ID + name).
-   * @param namespace enables storage segmentation by namespace.
-   */
-  constructor(
-    private readonly appId: string,
-    private readonly appName: string,
-    private readonly namespace: string,
-    private readonly openDbPromise = openDatabase()
-  ) {}
-
+export abstract class Storage {
   getLastFetchStatus(): Promise<FetchStatus | undefined> {
     return this.get<FetchStatus>('last_fetch_status');
   }
@@ -187,6 +172,29 @@ export class Storage {
     return this.get<CustomSignals>('custom_signals');
   }
 
+  abstract setCustomSignals(
+    customSignals: CustomSignals
+  ): Promise<CustomSignals>;
+  abstract get<T>(key: ProjectNamespaceKeyFieldValue): Promise<T | undefined>;
+  abstract set<T>(key: ProjectNamespaceKeyFieldValue, value: T): Promise<void>;
+  abstract delete(key: ProjectNamespaceKeyFieldValue): Promise<void>;
+}
+
+export class IndexedDbStorage extends Storage {
+  /**
+   * @param appId enables storage segmentation by app (ID + name).
+   * @param appName enables storage segmentation by app (ID + name).
+   * @param namespace enables storage segmentation by namespace.
+   */
+  constructor(
+    private readonly appId: string,
+    private readonly appName: string,
+    private readonly namespace: string,
+    private readonly openDbPromise = openDatabase()
+  ) {
+    super();
+  }
+
   async setCustomSignals(customSignals: CustomSignals): Promise<CustomSignals> {
     const db = await this.openDbPromise;
     const transaction = db.transaction([APP_NAMESPACE_STORE], 'readwrite');
@@ -194,33 +202,10 @@ export class Storage {
       'custom_signals',
       transaction
     );
-    const combinedSignals = {
-      ...storedSignals,
-      ...customSignals
-    };
-    // Filter out key-value assignments with null values since they are signals being unset
-    const updatedSignals = Object.fromEntries(
-      Object.entries(combinedSignals)
-        .filter(([_, v]) => v !== null)
-        .map(([k, v]) => {
-          // Stringify numbers to store a map of string keys and values which can be sent
-          // as-is in a fetch call.
-          if (typeof v === 'number') {
-            return [k, v.toString()];
-          }
-          return [k, v];
-        })
+    const updatedSignals = mergeCustomSignals(
+      customSignals,
+      storedSignals || {}
     );
-
-    // Throw an error if the number of custom signals to be stored exceeds the limit
-    if (
-      Object.keys(updatedSignals).length > RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
-    ) {
-      throw ERROR_FACTORY.create(ErrorCode.CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS, {
-        maxSignals: RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
-      });
-    }
-
     await this.setWithTransaction<CustomSignals>(
       'custom_signals',
       updatedSignals,
@@ -343,4 +328,66 @@ export class Storage {
   createCompositeKey(key: ProjectNamespaceKeyFieldValue): string {
     return [this.appId, this.appName, this.namespace, key].join();
   }
+}
+
+export class InMemoryStorage extends Storage {
+  private storage: { [key: string]: unknown } = {};
+
+  async get<T>(key: ProjectNamespaceKeyFieldValue): Promise<T> {
+    return Promise.resolve(this.storage[key] as T);
+  }
+
+  async set<T>(key: ProjectNamespaceKeyFieldValue, value: T): Promise<void> {
+    this.storage[key] = value;
+    return Promise.resolve(undefined);
+  }
+
+  async delete(key: ProjectNamespaceKeyFieldValue): Promise<void> {
+    this.storage[key] = undefined;
+    return Promise.resolve();
+  }
+
+  async setCustomSignals(customSignals: CustomSignals): Promise<CustomSignals> {
+    const storedSignals = (this.storage['custom_signals'] ||
+      {}) as CustomSignals;
+    this.storage['custom_signals'] = mergeCustomSignals(
+      customSignals,
+      storedSignals
+    );
+    return Promise.resolve(this.storage['custom_signals'] as CustomSignals);
+  }
+}
+
+function mergeCustomSignals(
+  customSignals: CustomSignals,
+  storedSignals: CustomSignals
+): CustomSignals {
+  const combinedSignals = {
+    ...storedSignals,
+    ...customSignals
+  };
+
+  // Filter out key-value assignments with null values since they are signals being unset
+  const updatedSignals = Object.fromEntries(
+    Object.entries(combinedSignals)
+      .filter(([_, v]) => v !== null)
+      .map(([k, v]) => {
+        // Stringify numbers to store a map of string keys and values which can be sent
+        // as-is in a fetch call.
+        if (typeof v === 'number') {
+          return [k, v.toString()];
+        }
+        return [k, v];
+      })
+  );
+
+  // Throw an error if the number of custom signals to be stored exceeds the limit
+  if (
+    Object.keys(updatedSignals).length > RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
+  ) {
+    throw ERROR_FACTORY.create(ErrorCode.CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS, {
+      maxSignals: RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
+    });
+  }
+  return updatedSignals;
 }
