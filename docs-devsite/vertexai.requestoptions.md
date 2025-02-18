@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # RequestOptions interface
-Params passed to <code>[getGenerativeModel()](./vertexai.md#getgenerativemodel_e3037c9)</code>.
+Params passed to <code>[getGenerativeModel()](./vertexai.md#getgenerativemodel_e3ccf80)</code>.
 
 <b>Signature:</b>
 

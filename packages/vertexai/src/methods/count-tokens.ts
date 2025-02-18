@@ -22,6 +22,7 @@ import {
 } from '../types';
 import { Task, makeRequest } from '../requests/request';
 import { ApiSettings } from '../types/internal';
+import * as DeveloperAPIMapper from '../developerAPI'; // FIXME: (code smell) Is there a better way to namespace this?
 
 export async function countTokens(
   apiSettings: ApiSettings,
@@ -29,12 +30,19 @@ export async function countTokens(
   params: CountTokensRequest,
   requestOptions?: RequestOptions
 ): Promise<CountTokensResponse> {
+  let body: string = '';
+  if (apiSettings.backend.backendType === "GOOGLE_AI") {
+    const mappedParams = DeveloperAPIMapper.mapCountTokensRequest(params, model);
+    body = JSON.stringify(mappedParams);
+  } else {
+    body = JSON.stringify(params);
+  }
   const response = await makeRequest(
     model,
     Task.COUNT_TOKENS,
     apiSettings,
     false,
-    JSON.stringify(params),
+    body,
     requestOptions
   );
   return response.json();

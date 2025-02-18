@@ -16,12 +16,22 @@
  */
 
 import { version } from '../package.json';
+import { BackendType, InstanceIdentifier } from './public-types';
 
 export const VERTEX_TYPE = 'vertexAI';
+
+export const GENAI_TYPE = 'genAI';
+
+export const DEFAULT_INSTANCE_IDENTIFER: InstanceIdentifier = {
+  backendType: BackendType.GOOGLE_AI,
+}
 
 export const DEFAULT_LOCATION = 'us-central1';
 
 export const DEFAULT_BASE_URL = 'https://firebasevertexai.googleapis.com';
+
+export const DEVELOPER_API_BASE_URL =
+  'https://generativelanguage.googleapis.com';
 
 export const DEFAULT_API_VERSION = 'v1beta';
 

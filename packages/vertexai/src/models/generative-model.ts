@@ -41,14 +41,14 @@ import {
   formatGenerateContentInput,
   formatSystemInstruction
 } from '../requests/request-helpers';
-import { VertexAI } from '../public-types';
-import { VertexAIModel } from './vertexai-model';
+import { GenAI } from '../public-types';
+import { GenAIModel } from './vertexai-model';
 
 /**
  * Class for generative model APIs.
  * @public
  */
-export class GenerativeModel extends VertexAIModel {
+export class GenerativeModel extends GenAIModel {
   generationConfig: GenerationConfig;
   safetySettings: SafetySetting[];
   requestOptions?: RequestOptions;
@@ -57,11 +57,11 @@ export class GenerativeModel extends VertexAIModel {
   systemInstruction?: Content;
 
   constructor(
-    vertexAI: VertexAI,
+    genAI: GenAI,
     modelParams: ModelParams,
     requestOptions?: RequestOptions
   ) {
-    super(vertexAI, modelParams.model);
+    super(genAI, modelParams.model);
     this.generationConfig = modelParams.generationConfig || {};
     this.safetySettings = modelParams.safetySettings || [];
     this.tools = modelParams.tools;

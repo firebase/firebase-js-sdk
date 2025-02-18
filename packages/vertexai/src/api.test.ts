@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ImagenModelParams, ModelParams, VertexAIErrorCode } from './types';
-import { VertexAIError } from './errors';
+import { ImagenModelParams, ModelParams, GenAIErrorCode } from './types';
+import { GenAIError } from './errors';
 import { ImagenModel, getGenerativeModel, getImagenModel } from './api';
 import { expect } from 'chai';
 import { VertexAI } from './public-types';
@@ -39,10 +39,10 @@ describe('Top level API', () => {
     try {
       getGenerativeModel(fakeVertexAI, {} as ModelParams);
     } catch (e) {
-      expect((e as VertexAIError).code).includes(VertexAIErrorCode.NO_MODEL);
-      expect((e as VertexAIError).message).includes(
+      expect((e as GenAIError).code).includes(GenAIErrorCode.NO_MODEL);
+      expect((e as GenAIError).message).includes(
         `VertexAI: Must provide a model name. Example: ` +
-          `getGenerativeModel({ model: 'my-model-name' }) (vertexAI/${VertexAIErrorCode.NO_MODEL})`
+          `getGenerativeModel({ model: 'my-model-name' }) (vertexAI/${GenAIErrorCode.NO_MODEL})`
       );
     }
   });
@@ -54,11 +54,11 @@ describe('Top level API', () => {
     try {
       getGenerativeModel(fakeVertexNoApiKey, { model: 'my-model' });
     } catch (e) {
-      expect((e as VertexAIError).code).includes(VertexAIErrorCode.NO_API_KEY);
-      expect((e as VertexAIError).message).equals(
+      expect((e as GenAIError).code).includes(GenAIErrorCode.NO_API_KEY);
+      expect((e as GenAIError).message).equals(
         `VertexAI: The "apiKey" field is empty in the local ` +
           `Firebase config. Firebase VertexAI requires this field to` +
-          ` contain a valid API key. (vertexAI/${VertexAIErrorCode.NO_API_KEY})`
+          ` contain a valid API key. (vertexAI/${GenAIErrorCode.NO_API_KEY})`
       );
     }
   });
@@ -70,13 +70,13 @@ describe('Top level API', () => {
     try {
       getGenerativeModel(fakeVertexNoProject, { model: 'my-model' });
     } catch (e) {
-      expect((e as VertexAIError).code).includes(
-        VertexAIErrorCode.NO_PROJECT_ID
+      expect((e as GenAIError).code).includes(
+        GenAIErrorCode.NO_PROJECT_ID
       );
-      expect((e as VertexAIError).message).equals(
+      expect((e as GenAIError).message).equals(
         `VertexAI: The "projectId" field is empty in the local` +
           ` Firebase config. Firebase VertexAI requires this field ` +
-          `to contain a valid project ID. (vertexAI/${VertexAIErrorCode.NO_PROJECT_ID})`
+          `to contain a valid project ID. (vertexAI/${GenAIErrorCode.NO_PROJECT_ID})`
       );
     }
   });
@@ -105,10 +105,10 @@ describe('Top level API', () => {
     try {
       getImagenModel(fakeVertexAI, {} as ImagenModelParams);
     } catch (e) {
-      expect((e as VertexAIError).code).includes(VertexAIErrorCode.NO_MODEL);
-      expect((e as VertexAIError).message).includes(
+      expect((e as GenAIError).code).includes(GenAIErrorCode.NO_MODEL);
+      expect((e as GenAIError).message).includes(
         `VertexAI: Must provide a model name. Example: ` +
-          `getImagenModel({ model: 'my-model-name' }) (vertexAI/${VertexAIErrorCode.NO_MODEL})`
+          `getImagenModel({ model: 'my-model-name' }) (vertexAI/${GenAIErrorCode.NO_MODEL})`
       );
     }
   });
@@ -120,11 +120,11 @@ describe('Top level API', () => {
     try {
       getImagenModel(fakeVertexNoApiKey, { model: 'my-model' });
     } catch (e) {
-      expect((e as VertexAIError).code).includes(VertexAIErrorCode.NO_API_KEY);
-      expect((e as VertexAIError).message).equals(
+      expect((e as GenAIError).code).includes(GenAIErrorCode.NO_API_KEY);
+      expect((e as GenAIError).message).equals(
         `VertexAI: The "apiKey" field is empty in the local ` +
           `Firebase config. Firebase VertexAI requires this field to` +
-          ` contain a valid API key. (vertexAI/${VertexAIErrorCode.NO_API_KEY})`
+          ` contain a valid API key. (vertexAI/${GenAIErrorCode.NO_API_KEY})`
       );
     }
   });
@@ -136,13 +136,13 @@ describe('Top level API', () => {
     try {
       getImagenModel(fakeVertexNoProject, { model: 'my-model' });
     } catch (e) {
-      expect((e as VertexAIError).code).includes(
-        VertexAIErrorCode.NO_PROJECT_ID
+      expect((e as GenAIError).code).includes(
+        GenAIErrorCode.NO_PROJECT_ID
       );
-      expect((e as VertexAIError).message).equals(
+      expect((e as GenAIError).message).equals(
         `VertexAI: The "projectId" field is empty in the local` +
           ` Firebase config. Firebase VertexAI requires this field ` +
-          `to contain a valid project ID. (vertexAI/${VertexAIErrorCode.NO_PROJECT_ID})`
+          `to contain a valid project ID. (vertexAI/${GenAIErrorCode.NO_PROJECT_ID})`
       );
     }
   });

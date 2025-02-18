@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { VertexAIError } from '../errors';
-import { VertexAIErrorCode } from '../types';
+import { GenAIError } from '../errors';
+import { GenAIErrorCode } from '../types';
 import {
   SchemaInterface,
   SchemaType,
@@ -266,8 +266,8 @@ export class ObjectSchema extends Schema {
     if (this.optionalProperties) {
       for (const propertyKey of this.optionalProperties) {
         if (!this.properties.hasOwnProperty(propertyKey)) {
-          throw new VertexAIError(
-            VertexAIErrorCode.INVALID_SCHEMA,
+          throw new GenAIError(
+            GenAIErrorCode.INVALID_SCHEMA,
             `Property "${propertyKey}" specified in "optionalProperties" does not exist.`
           );
         }

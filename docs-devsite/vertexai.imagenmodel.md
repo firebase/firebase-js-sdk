@@ -20,9 +20,9 @@ This class provides methods for generating images using the Imagen model.
 <b>Signature:</b>
 
 ```typescript
-export declare class ImagenModel extends VertexAIModel 
+export declare class ImagenModel extends GenAIModel 
 ```
-<b>Extends:</b> [VertexAIModel](./vertexai.vertexaimodel.md#vertexaimodel_class)
+<b>Extends:</b> GenAIModel
 
 ## Constructors
 
@@ -61,7 +61,7 @@ constructor(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?:
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  vertexAI | [VertexAI](./vertexai.vertexai.md#vertexai_interface) | An instance of the Vertex AI in Firebase SDK. |
+|  vertexAI | [VertexAI](./vertexai.md#vertexai) | An instance of the Vertex AI in Firebase SDK. |
 |  modelParams | [ImagenModelParams](./vertexai.imagenmodelparams.md#imagenmodelparams_interface) | Parameters to use when making requests to Imagen. |
 |  requestOptions | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) \| undefined | Additional options to use when making requests. |
 

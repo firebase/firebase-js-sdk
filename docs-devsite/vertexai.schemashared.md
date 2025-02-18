@@ -25,7 +25,7 @@ export interface SchemaShared<T>
 |  [description](./vertexai.schemashared.md#schemashareddescription) | string | Optional. The description of the property. |
 |  [enum](./vertexai.schemashared.md#schemasharedenum) | string\[\] | Optional. The enum of the property. |
 |  [example](./vertexai.schemashared.md#schemasharedexample) | unknown | Optional. The example of the property. |
-|  [format](./vertexai.schemashared.md#schemasharedformat) | string | Optional. The format of the property. |
+|  [format](./vertexai.schemashared.md#schemasharedformat) | string | Optional. The format of the property. When using the Developer API, this must be either <code>'enum'</code> or <code>'date-time'</code>. |
 |  [items](./vertexai.schemashared.md#schemashareditems) | T | Optional. The items of the property. |
 |  [nullable](./vertexai.schemashared.md#schemasharednullable) | boolean | Optional. Whether the property is nullable. |
 |  [properties](./vertexai.schemashared.md#schemasharedproperties) | { \[k: string\]: T; } | Optional. Map of <code>Schema</code> objects. |
@@ -62,7 +62,7 @@ example?: unknown;
 
 ## SchemaShared.format
 
-Optional. The format of the property.
+Optional. The format of the property. When using the Developer API, this must be either `'enum'` or `'date-time'`<!-- -->.
 
 <b>Signature:</b>
 

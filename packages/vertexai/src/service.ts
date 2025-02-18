@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp, _FirebaseService } from '@firebase/app';
-import { VertexAI, VertexAIOptions } from './public-types';
+import { Backend, GenAI } from './public-types';
 import {
   AppCheckInternalComponentName,
   FirebaseAppCheckInternal
@@ -26,8 +26,8 @@ import {
   FirebaseAuthInternal,
   FirebaseAuthInternalName
 } from '@firebase/auth-interop-types';
-import { DEFAULT_LOCATION } from './constants';
 
+/*
 export class VertexAIService implements VertexAI, _FirebaseService {
   auth: FirebaseAuthInternal | null;
   appCheck: FirebaseAppCheckInternal | null;
@@ -44,6 +44,35 @@ export class VertexAIService implements VertexAI, _FirebaseService {
     this.auth = auth || null;
     this.appCheck = appCheck || null;
     this.location = this.options?.location || DEFAULT_LOCATION;
+  }
+
+  _delete(): Promise<void> {
+    return Promise.resolve();
+  }
+}
+*/
+
+export class GenAIService implements GenAI, _FirebaseService {
+  auth: FirebaseAuthInternal | null;
+  appCheck: FirebaseAppCheckInternal | null;
+  location: string;
+
+  constructor(
+    public app: FirebaseApp,
+    public backend: Backend,
+    authProvider?: Provider<FirebaseAuthInternalName>,
+    appCheckProvider?: Provider<AppCheckInternalComponentName>,
+  ) {
+    const appCheck = appCheckProvider?.getImmediate({ optional: true });
+    const auth = authProvider?.getImmediate({ optional: true });
+    this.auth = auth || null;
+    this.appCheck = appCheck || null;
+    
+    if (backend.backendType === "VERTEX_AI") {
+      this.location = backend.location;
+    } else {
+      this.location = "";
+    }
   }
 
   _delete(): Promise<void> {

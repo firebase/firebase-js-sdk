@@ -18,6 +18,18 @@ export class ArraySchema extends Schema {
     toJSON(): SchemaRequest;
 }
 
+// @public (undocumented)
+export type Backend = GoogleAIBackend | VertexAIBackend;
+
+// @public (undocumented)
+export const BackendType: {
+    readonly VERTEX_AI: "VERTEX_AI";
+    readonly GOOGLE_AI: "GOOGLE_AI";
+};
+
+// @public (undocumented)
+export type BackendType = typeof BackendType[keyof typeof BackendType];
+
 // @public
 export interface BaseParams {
     // (undocumented)
@@ -240,6 +252,70 @@ export interface FunctionResponsePart {
 }
 
 // @public
+export interface GenAI {
+    app: FirebaseApp;
+    // (undocumented)
+    backend: Backend;
+    // @deprecated (undocumented)
+    location: string;
+}
+
+// @public
+class GenAIError extends FirebaseError {
+    constructor(code: GenAIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
+    // (undocumented)
+    readonly code: GenAIErrorCode;
+    // (undocumented)
+    readonly customErrorData?: CustomErrorData | undefined;
+}
+
+export { GenAIError }
+
+export { GenAIError as VertexAIError }
+
+// @public
+const enum GenAIErrorCode {
+    API_NOT_ENABLED = "api-not-enabled",
+    ERROR = "error",
+    FETCH_ERROR = "fetch-error",
+    INVALID_CONTENT = "invalid-content",
+    INVALID_SCHEMA = "invalid-schema",
+    NO_API_KEY = "no-api-key",
+    NO_APP_ID = "no-app-id",
+    NO_MODEL = "no-model",
+    NO_PROJECT_ID = "no-project-id",
+    PARSE_FAILED = "parse-failed",
+    REQUEST_ERROR = "request-error",
+    RESPONSE_ERROR = "response-error",
+    UNSUPPORTED = "unsupported"
+}
+
+export { GenAIErrorCode }
+
+export { GenAIErrorCode as VertexAIErrorCode }
+
+// @public
+abstract class GenAIModel {
+    // @internal
+    protected constructor(genAI: GenAI, modelName: string);
+    // @internal (undocumented)
+    protected _apiSettings: ApiSettings;
+    readonly model: string;
+    // @internal (undocumented)
+    static normalizeModelName(modelName: string, backendType: BackendType): string;
+    }
+
+export { GenAIModel }
+
+export { GenAIModel as VertexAIModel }
+
+// @public (undocumented)
+export interface GenAIOptions {
+    // (undocumented)
+    backend: Backend;
+}
+
+// @public
 export interface GenerateContentCandidate {
     // (undocumented)
     citationMetadata?: CitationMetadata;
@@ -323,8 +399,8 @@ export interface GenerativeContentBlob {
 }
 
 // @public
-export class GenerativeModel extends VertexAIModel {
-    constructor(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions);
+export class GenerativeModel extends GenAIModel {
+    constructor(genAI: GenAI, modelParams: ModelParams, requestOptions?: RequestOptions);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
@@ -344,13 +420,24 @@ export class GenerativeModel extends VertexAIModel {
 }
 
 // @public
-export function getGenerativeModel(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
+export function getGenAI(app?: FirebaseApp, options?: GenAIOptions): GenAI;
+
+// @public
+export function getGenerativeModel(genAI: GenAI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
 
 // @beta
-export function getImagenModel(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
+export function getImagenModel(genAI: GenAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
 
 // @public
 export function getVertexAI(app?: FirebaseApp, options?: VertexAIOptions): VertexAI;
+
+// @public (undocumented)
+export type GoogleAIBackend = {
+    backendType: typeof BackendType.GOOGLE_AI;
+};
+
+// @public (undocumented)
+export function googleAIBackend(): GoogleAIBackend;
 
 // @public @deprecated (undocumented)
 export interface GroundingAttribution {
@@ -413,7 +500,8 @@ export enum HarmSeverity {
     HARM_SEVERITY_HIGH = "HARM_SEVERITY_HIGH",
     HARM_SEVERITY_LOW = "HARM_SEVERITY_LOW",
     HARM_SEVERITY_MEDIUM = "HARM_SEVERITY_MEDIUM",
-    HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE"
+    HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE",
+    HARM_SEVERITY_UNSUPPORTED = "HARM_SEVERITY_UNSPECIFIED"
 }
 
 // @beta
@@ -461,7 +549,7 @@ export interface ImagenInlineImage {
 }
 
 // @beta
-export class ImagenModel extends VertexAIModel {
+export class ImagenModel extends GenAIModel {
     constructor(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
     generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
     // @internal
@@ -512,6 +600,9 @@ export interface InlineDataPart {
     text?: never;
     videoMetadata?: VideoMetadata;
 }
+
+// @public (undocumented)
+export type InstanceIdentifier = Backend;
 
 // @public
 export class IntegerSchema extends Schema {
@@ -627,7 +718,6 @@ export interface SafetyRating {
 export interface SafetySetting {
     // (undocumented)
     category: HarmCategory;
-    // (undocumented)
     method?: HarmBlockMethod;
     // (undocumented)
     threshold: HarmBlockThreshold;
@@ -778,47 +868,17 @@ export interface UsageMetadata {
     totalTokenCount: number;
 }
 
-// @public
-export interface VertexAI {
-    app: FirebaseApp;
-    // (undocumented)
+// @public (undocumented)
+export type VertexAI = GenAI;
+
+// @public (undocumented)
+export type VertexAIBackend = {
+    backendType: typeof BackendType.VERTEX_AI;
     location: string;
-}
+};
 
-// @public
-export class VertexAIError extends FirebaseError {
-    constructor(code: VertexAIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
-    // (undocumented)
-    readonly code: VertexAIErrorCode;
-    // (undocumented)
-    readonly customErrorData?: CustomErrorData | undefined;
-}
-
-// @public
-export const enum VertexAIErrorCode {
-    API_NOT_ENABLED = "api-not-enabled",
-    ERROR = "error",
-    FETCH_ERROR = "fetch-error",
-    INVALID_CONTENT = "invalid-content",
-    INVALID_SCHEMA = "invalid-schema",
-    NO_API_KEY = "no-api-key",
-    NO_APP_ID = "no-app-id",
-    NO_MODEL = "no-model",
-    NO_PROJECT_ID = "no-project-id",
-    PARSE_FAILED = "parse-failed",
-    REQUEST_ERROR = "request-error",
-    RESPONSE_ERROR = "response-error"
-}
-
-// @public
-export abstract class VertexAIModel {
-    // @internal
-    protected constructor(vertexAI: VertexAI, modelName: string);
-    // @internal (undocumented)
-    protected _apiSettings: ApiSettings;
-    readonly model: string;
-    static normalizeModelName(modelName: string): string;
-}
+// @public (undocumented)
+export function vertexAIBackend(location?: string): VertexAIBackend;
 
 // @public
 export interface VertexAIOptions {

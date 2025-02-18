@@ -22,8 +22,8 @@ import chaiAsPromised from 'chai-as-promised';
 import { RequestUrl, Task, getHeaders, makeRequest } from './request';
 import { ApiSettings } from '../types/internal';
 import { DEFAULT_API_VERSION } from '../constants';
-import { VertexAIErrorCode } from '../types';
-import { VertexAIError } from '../errors';
+import { GenAIErrorCode } from '../types';
+import { GenAIError } from '../errors';
 import { getMockResponse } from '../../test-utils/mock-response';
 
 use(sinonChai);
@@ -302,14 +302,14 @@ describe('request methods', () => {
           }
         );
       } catch (e) {
-        expect((e as VertexAIError).code).to.equal(
-          VertexAIErrorCode.FETCH_ERROR
+        expect((e as GenAIError).code).to.equal(
+          GenAIErrorCode.FETCH_ERROR
         );
-        expect((e as VertexAIError).customErrorData?.status).to.equal(500);
-        expect((e as VertexAIError).customErrorData?.statusText).to.equal(
+        expect((e as GenAIError).customErrorData?.status).to.equal(500);
+        expect((e as GenAIError).customErrorData?.statusText).to.equal(
           'AbortError'
         );
-        expect((e as VertexAIError).message).to.include('500 AbortError');
+        expect((e as GenAIError).message).to.include('500 AbortError');
       }
 
       expect(fetchStub).to.be.calledOnce;
@@ -329,14 +329,14 @@ describe('request methods', () => {
           ''
         );
       } catch (e) {
-        expect((e as VertexAIError).code).to.equal(
-          VertexAIErrorCode.FETCH_ERROR
+        expect((e as GenAIError).code).to.equal(
+          GenAIErrorCode.FETCH_ERROR
         );
-        expect((e as VertexAIError).customErrorData?.status).to.equal(500);
-        expect((e as VertexAIError).customErrorData?.statusText).to.equal(
+        expect((e as GenAIError).customErrorData?.status).to.equal(500);
+        expect((e as GenAIError).customErrorData?.statusText).to.equal(
           'Server Error'
         );
-        expect((e as VertexAIError).message).to.include('500 Server Error');
+        expect((e as GenAIError).message).to.include('500 Server Error');
       }
       expect(fetchStub).to.be.calledOnce;
     });
@@ -356,15 +356,15 @@ describe('request methods', () => {
           ''
         );
       } catch (e) {
-        expect((e as VertexAIError).code).to.equal(
-          VertexAIErrorCode.FETCH_ERROR
+        expect((e as GenAIError).code).to.equal(
+          GenAIErrorCode.FETCH_ERROR
         );
-        expect((e as VertexAIError).customErrorData?.status).to.equal(500);
-        expect((e as VertexAIError).customErrorData?.statusText).to.equal(
+        expect((e as GenAIError).customErrorData?.status).to.equal(500);
+        expect((e as GenAIError).customErrorData?.statusText).to.equal(
           'Server Error'
         );
-        expect((e as VertexAIError).message).to.include('500 Server Error');
-        expect((e as VertexAIError).message).to.include('extra info');
+        expect((e as GenAIError).message).to.include('500 Server Error');
+        expect((e as GenAIError).message).to.include('extra info');
       }
       expect(fetchStub).to.be.calledOnce;
     });
@@ -396,16 +396,16 @@ describe('request methods', () => {
           ''
         );
       } catch (e) {
-        expect((e as VertexAIError).code).to.equal(
-          VertexAIErrorCode.FETCH_ERROR
+        expect((e as GenAIError).code).to.equal(
+          GenAIErrorCode.FETCH_ERROR
         );
-        expect((e as VertexAIError).customErrorData?.status).to.equal(500);
-        expect((e as VertexAIError).customErrorData?.statusText).to.equal(
+        expect((e as GenAIError).customErrorData?.status).to.equal(500);
+        expect((e as GenAIError).customErrorData?.statusText).to.equal(
           'Server Error'
         );
-        expect((e as VertexAIError).message).to.include('500 Server Error');
-        expect((e as VertexAIError).message).to.include('extra info');
-        expect((e as VertexAIError).message).to.include(
+        expect((e as GenAIError).message).to.include('500 Server Error');
+        expect((e as GenAIError).message).to.include('extra info');
+        expect((e as GenAIError).message).to.include(
           'generic::invalid_argument'
         );
       }
@@ -428,11 +428,11 @@ describe('request methods', () => {
         ''
       );
     } catch (e) {
-      expect((e as VertexAIError).code).to.equal(
-        VertexAIErrorCode.API_NOT_ENABLED
+      expect((e as GenAIError).code).to.equal(
+        GenAIErrorCode.API_NOT_ENABLED
       );
-      expect((e as VertexAIError).message).to.include('my-project');
-      expect((e as VertexAIError).message).to.include('googleapis.com');
+      expect((e as GenAIError).message).to.include('my-project');
+      expect((e as GenAIError).message).to.include('googleapis.com');
     }
     expect(fetchStub).to.be.calledOnce;
   });
