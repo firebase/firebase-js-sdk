@@ -450,17 +450,11 @@ export class IntegerSchema extends Schema {
 
 // @public
 export enum Modality {
-    // (undocumented)
     AUDIO = "AUDIO",
-    // (undocumented)
     DOCUMENT = "DOCUMENT",
-    // (undocumented)
     IMAGE = "IMAGE",
-    // (undocumented)
     MODALITY_UNSPECIFIED = "MODALITY_UNSPECIFIED",
-    // (undocumented)
     TEXT = "TEXT",
-    // (undocumented)
     VIDEO = "VIDEO"
 }
 
