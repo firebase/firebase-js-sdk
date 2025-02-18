@@ -797,6 +797,8 @@ export interface UsageMetadata {
 export interface VertexAI {
     app: FirebaseApp;
     // (undocumented)
+    developerAPIEnabled: boolean;
+    // (undocumented)
     location: string;
 }
 
@@ -831,11 +833,13 @@ export abstract class VertexAIModel {
     // @internal (undocumented)
     protected _apiSettings: ApiSettings;
     readonly model: string;
-    static normalizeModelName(modelName: string): string;
+    static normalizeModelName(modelName: string, developerAPIEnabled?: boolean): string;
 }
 
 // @public
 export interface VertexAIOptions {
+    // (undocumented)
+    developerAPIEnabled: boolean;
     // (undocumented)
     location?: string;
 }

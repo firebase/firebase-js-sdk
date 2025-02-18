@@ -28,7 +28,8 @@ export interface VertexAI {
    * The {@link @firebase/app#FirebaseApp} this <code>{@link VertexAI}</code> instance is associated with.
    */
   app: FirebaseApp;
-  location: string;
+  developerAPIEnabled: boolean;
+  location: string; // This is only applicable if we're using the VertexAI API.
 }
 
 /**
@@ -36,5 +37,6 @@ export interface VertexAI {
  * @public
  */
 export interface VertexAIOptions {
+  developerAPIEnabled: boolean;
   location?: string;
 }

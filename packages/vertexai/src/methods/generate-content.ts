@@ -26,6 +26,7 @@ import { Task, makeRequest } from '../requests/request';
 import { createEnhancedContentResponse } from '../requests/response-helpers';
 import { processStream } from '../requests/stream-reader';
 import { ApiSettings } from '../types/internal';
+import { mapGenerateContentResponse } from '../mapper';
 
 export async function generateContentStream(
   apiSettings: ApiSettings,
@@ -58,8 +59,13 @@ export async function generateContent(
     JSON.stringify(params),
     requestOptions
   );
-  const responseJson: GenerateContentResponse = await response.json();
-  const enhancedResponse = createEnhancedContentResponse(responseJson);
+  const responseJson: any = await response.json();
+  const generateContentResponse: GenerateContentResponse = apiSettings.developerAPIEnabled
+    ? mapGenerateContentResponse(responseJson)
+    : await responseJson;
+  const enhancedResponse = createEnhancedContentResponse(
+    generateContentResponse
+  );
   return {
     response: enhancedResponse
   };

@@ -24,6 +24,7 @@ export interface ApiSettings {
   apiKey: string;
   project: string;
   location: string;
+  developerAPIEnabled: boolean;
   getAuthToken?: () => Promise<FirebaseAuthTokenData | null>;
   getAppCheckToken?: () => Promise<AppCheckTokenResult>;
 }

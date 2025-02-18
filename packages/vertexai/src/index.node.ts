@@ -26,17 +26,35 @@ import { VertexAIService } from './service';
 import { VERTEX_TYPE } from './constants';
 import { Component, ComponentType } from '@firebase/component';
 import { name, version } from '../package.json';
+import { VertexAIOptions } from './public-types';
+import { parseInstanceIdentifier } from './helpers';
 
 function registerVertex(): void {
   _registerComponent(
     new Component(
       VERTEX_TYPE,
-      (container, { instanceIdentifier: location }) => {
+      (container, options) => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const auth = container.getProvider('auth-internal');
         const appCheckProvider = container.getProvider('app-check-internal');
-        return new VertexAIService(app, auth, appCheckProvider, { location });
+
+        let vertexAIOptions: VertexAIOptions;
+        if (options.instanceIdentifier) {
+          vertexAIOptions = parseInstanceIdentifier(options.instanceIdentifier);
+        } else {
+          vertexAIOptions = {
+            developerAPIEnabled: false,
+            location: undefined
+          };
+        }
+
+        return new VertexAIService(
+          app,
+          auth,
+          appCheckProvider,
+          vertexAIOptions
+        );
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)

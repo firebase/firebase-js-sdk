@@ -31,6 +31,7 @@ import { DEFAULT_LOCATION } from './constants';
 export class VertexAIService implements VertexAI, _FirebaseService {
   auth: FirebaseAuthInternal | null;
   appCheck: FirebaseAppCheckInternal | null;
+  developerAPIEnabled: boolean;
   location: string;
 
   constructor(
@@ -43,6 +44,7 @@ export class VertexAIService implements VertexAI, _FirebaseService {
     const auth = authProvider?.getImmediate({ optional: true });
     this.auth = auth || null;
     this.appCheck = appCheck || null;
+    this.developerAPIEnabled = this.options?.developerAPIEnabled || false; // FIXME: Should the developer API be enabled by default?
     this.location = this.options?.location || DEFAULT_LOCATION;
   }
 
