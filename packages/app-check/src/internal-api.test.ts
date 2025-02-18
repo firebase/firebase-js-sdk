@@ -195,7 +195,7 @@ describe('internal api', () => {
       expect(errorStub.args[0][1].message).to.include(
         'oops, something went wrong'
       );
-      window.FIREBASE_APPCHECK_DEBUG_TOKEN = false;
+      delete window.FIREBASE_APPCHECK_DEBUG_TOKEN;
       errorStub.restore();
     });
 

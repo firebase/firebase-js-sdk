@@ -141,7 +141,7 @@ export async function getToken(
         logger.warn((e as FirebaseError).message);
       } else {
         // `getToken()` should never throw, but logging error text to console will aid debugging.
-        logger.warn(e);
+        logger.error(e);
       }
       // Return dummy token and error
       return makeDummyTokenResult(e as FirebaseError);
@@ -172,7 +172,7 @@ export async function getToken(
       logger.warn((e as FirebaseError).message);
     } else {
       // `getToken()` should never throw, but logging error text to console will aid debugging.
-      logger.warn(e);
+      logger.error(e);
     }
     // Always save error to be added to dummy token.
     error = e as FirebaseError;
