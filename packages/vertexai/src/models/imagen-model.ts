@@ -28,7 +28,7 @@ import {
   ImagenGenerationResponse,
   ImagenSafetySettings
 } from '../types';
-import { VertexAIModel } from './vertexai-model';
+import { GenAIModel } from './vertexai-model';
 
 /**
  * Class for Imagen model APIs.
@@ -52,7 +52,7 @@ import { VertexAIModel } from './vertexai-model';
  *
  * @beta
  */
-export class ImagenModel extends VertexAIModel {
+export class ImagenModel extends GenAIModel {
   /**
    * The Imagen generation configuration.
    */

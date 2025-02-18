@@ -19,17 +19,9 @@ import { FirebaseApp } from '@firebase/app';
 
 export * from './types';
 
-/**
- * An instance of the Vertex AI in Firebase SDK.
- * @public
- */
-export interface VertexAI {
-  /**
-   * The {@link @firebase/app#FirebaseApp} this <code>{@link VertexAI}</code> instance is associated with.
-   */
-  app: FirebaseApp;
-  location: string;
-}
+export type InstanceIdentifier = Backend;
+
+export type VertexAI = GenAI;
 
 /**
  * Options when initializing the Vertex AI in Firebase SDK.
@@ -37,4 +29,43 @@ export interface VertexAI {
  */
 export interface VertexAIOptions {
   location?: string;
+}
+
+/**
+ * An instance of the Firebase GenAI SDK.
+ * @public
+ */
+export interface GenAI {
+  /**
+   * The {@link @firebase/app#FirebaseApp} this <code>{@link GenAI}</code> instance is associated with.
+   */
+  app: FirebaseApp;
+  backend: Backend;
+  /**
+   * @deprecated This is here to maintain backwards-compatibility. Use `GenAI.backend.location` instead.
+   */
+  location: string;
+}
+
+
+export type Backend = GoogleAIBackend | VertexAIBackend;
+
+export type GoogleAIBackend = {
+  backendType: typeof BackendType.GOOGLE_AI;
+}
+
+export type VertexAIBackend = {
+  backendType: typeof BackendType.VERTEX_AI;
+  location: string;
+}
+
+export const BackendType = {
+  VERTEX_AI: "VERTEX_AI",
+  GOOGLE_AI: "GOOGLE_AI"
+} as const;
+
+export type BackendType = typeof BackendType[keyof typeof BackendType];
+
+export interface GenAIOptions {
+  backend: Backend;
 }

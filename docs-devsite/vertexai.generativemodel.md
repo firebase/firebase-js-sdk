@@ -15,15 +15,15 @@ Class for generative model APIs.
 <b>Signature:</b>
 
 ```typescript
-export declare class GenerativeModel extends VertexAIModel 
+export declare class GenerativeModel extends GenAIModel 
 ```
-<b>Extends:</b> [VertexAIModel](./vertexai.vertexaimodel.md#vertexaimodel_class)
+<b>Extends:</b> GenAIModel
 
 ## Constructors
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(vertexAI, modelParams, requestOptions)](./vertexai.generativemodel.md#generativemodelconstructor) |  | Constructs a new instance of the <code>GenerativeModel</code> class |
+|  [(constructor)(genAI, modelParams, requestOptions)](./vertexai.generativemodel.md#generativemodelconstructor) |  | Constructs a new instance of the <code>GenerativeModel</code> class |
 
 ## Properties
 
@@ -52,14 +52,14 @@ Constructs a new instance of the `GenerativeModel` class
 <b>Signature:</b>
 
 ```typescript
-constructor(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions);
+constructor(genAI: GenAI, modelParams: ModelParams, requestOptions?: RequestOptions);
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  vertexAI | [VertexAI](./vertexai.vertexai.md#vertexai_interface) |  |
+|  genAI | [GenAI](./vertexai.genai.md#genai_interface) |  |
 |  modelParams | [ModelParams](./vertexai.modelparams.md#modelparams_interface) |  |
 |  requestOptions | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) |  |
 

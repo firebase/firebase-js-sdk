@@ -63,6 +63,9 @@ export interface GenerateContentRequest extends BaseParams {
 export interface SafetySetting {
   category: HarmCategory;
   threshold: HarmBlockThreshold;
+  /**
+   * This property is unsupported in the Developer API. A {@link VertexAIError} will be thrown if it's used.
+   */
   method?: HarmBlockMethod;
 }
 

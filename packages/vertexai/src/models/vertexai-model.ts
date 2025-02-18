@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { VertexAIError } from '../errors';
-import { VertexAI, VertexAIErrorCode } from '../public-types';
-import { VertexAIService } from '../service';
+import { GenAIError } from '../errors';
+import { GenAIErrorCode, GenAI, BackendType } from '../public-types';
+import { GenAIService } from '../service';
 import { ApiSettings } from '../types/internal';
 import { _isFirebaseServerApp } from '@firebase/app';
 
@@ -26,7 +26,7 @@ import { _isFirebaseServerApp } from '@firebase/app';
  *
  * @public
  */
-export abstract class VertexAIModel {
+export abstract class GenAIModel {
   /**
    * The fully qualified model resource name to use for generating images
    * (for example, `publishers/google/models/imagen-3.0-generate-002`).
@@ -39,12 +39,12 @@ export abstract class VertexAIModel {
   protected _apiSettings: ApiSettings;
 
   /**
-   * Constructs a new instance of the {@link VertexAIModel} class.
+   * Constructs a new instance of the {@link GenAIModel} class.
    *
    * This constructor should only be called from subclasses that provide
    * a model API.
    *
-   * @param vertexAI - An instance of the Vertex AI in Firebase SDK.
+   * @param genAI - An instance of the Vertex AI in Firebase SDK.
    * @param modelName - The name of the model being used. It can be in one of the following formats:
    * - `my-model` (short name, will resolve to `publishers/google/models/my-model`)
    * - `models/my-model` (will resolve to `publishers/google/models/my-model`)
@@ -55,61 +55,79 @@ export abstract class VertexAIModel {
    *
    * @internal
    */
-  protected constructor(vertexAI: VertexAI, modelName: string) {
-    this.model = VertexAIModel.normalizeModelName(modelName);
-
-    if (!vertexAI.app?.options?.apiKey) {
-      throw new VertexAIError(
-        VertexAIErrorCode.NO_API_KEY,
+  protected constructor(genAI: GenAI, modelName: string) {
+    if (!genAI.app?.options?.apiKey) {
+      throw new GenAIError(
+        GenAIErrorCode.NO_API_KEY,
         `The "apiKey" field is empty in the local Firebase config. Firebase VertexAI requires this field to contain a valid API key.`
       );
-    } else if (!vertexAI.app?.options?.projectId) {
-      throw new VertexAIError(
-        VertexAIErrorCode.NO_PROJECT_ID,
+    } else if (!genAI.app?.options?.projectId) {
+      throw new GenAIError(
+        GenAIErrorCode.NO_PROJECT_ID,
         `The "projectId" field is empty in the local Firebase config. Firebase VertexAI requires this field to contain a valid project ID.`
       );
-    } else if (!vertexAI.app?.options?.appId) {
-      throw new VertexAIError(
-        VertexAIErrorCode.NO_APP_ID,
+    } else if (!genAI.app?.options?.appId) {
+      throw new GenAIError(
+        GenAIErrorCode.NO_APP_ID,
         `The "appId" field is empty in the local Firebase config. Firebase VertexAI requires this field to contain a valid app ID.`
       );
     } else {
       this._apiSettings = {
-        apiKey: vertexAI.app.options.apiKey,
-        project: vertexAI.app.options.projectId,
-        appId: vertexAI.app.options.appId,
+        apiKey: genAI.app.options.apiKey,
+        project: genAI.app.options.projectId,
+        appId: genAI.app.options.appId,
         automaticDataCollectionEnabled:
-          vertexAI.app.automaticDataCollectionEnabled,
-        location: vertexAI.location
+          genAI.app.automaticDataCollectionEnabled,
+        location: genAI.location,
+        backend: genAI.backend
       };
 
       if (
-        _isFirebaseServerApp(vertexAI.app) &&
-        vertexAI.app.settings.appCheckToken
+        _isFirebaseServerApp(genAI.app) &&
+        genAI.app.settings.appCheckToken
       ) {
-        const token = vertexAI.app.settings.appCheckToken;
+        const token = genAI.app.settings.appCheckToken;
         this._apiSettings.getAppCheckToken = () => {
           return Promise.resolve({ token });
         };
-      } else if ((vertexAI as VertexAIService).appCheck) {
+      } else if ((genAI as GenAIService).appCheck) {
         this._apiSettings.getAppCheckToken = () =>
-          (vertexAI as VertexAIService).appCheck!.getToken();
+          (genAI as GenAIService).appCheck!.getToken();
       }
 
-      if ((vertexAI as VertexAIService).auth) {
+      if ((genAI as GenAIService).auth) {
         this._apiSettings.getAuthToken = () =>
-          (vertexAI as VertexAIService).auth!.getToken();
+          (genAI as GenAIService).auth!.getToken();
       }
+
+      this.model = GenAIModel.normalizeModelName(
+        modelName,
+        this._apiSettings.backend.backendType
+      );
     }
   }
 
   /**
-   * Normalizes the given model name to a fully qualified model resource name.
-   *
+   * @internal
    * @param modelName - The model name to normalize.
    * @returns The fully qualified model resource name.
    */
-  static normalizeModelName(modelName: string): string {
+  static normalizeModelName(
+    modelName: string,
+    backendType: BackendType
+  ): string {
+    if (backendType === "GOOGLE_AI") {
+      return GenAIModel.normalizeDeveloperApiModelName(modelName);
+    } else {
+      return GenAIModel.normalizeVertexAIModelName(modelName);
+    }
+  }
+
+  private static normalizeDeveloperApiModelName(modelName: string): string {
+    return `models/${modelName}`;
+  }
+
+  private static normalizeVertexAIModelName(modelName: string): string {
     let model: string;
     if (modelName.includes('/')) {
       if (modelName.startsWith('models/')) {

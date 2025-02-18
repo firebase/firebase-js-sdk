@@ -12,12 +12,12 @@ https://github.com/firebase/firebase-js-sdk
 # VertexAIModel class
 Base class for Vertex AI in Firebase model APIs.
 
-The constructor for this class is marked as internal. Third-party code should not call the constructor directly or create subclasses that extend the `VertexAIModel` class.
+The constructor for this class is marked as internal. Third-party code should not call the constructor directly or create subclasses that extend the `GenAIModel` class.
 
 <b>Signature:</b>
 
 ```typescript
-export declare abstract class VertexAIModel 
+export declare abstract class GenAIModel 
 ```
 
 ## Properties
@@ -25,12 +25,6 @@ export declare abstract class VertexAIModel
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [model](./vertexai.vertexaimodel.md#vertexaimodelmodel) |  | string | The fully qualified model resource name to use for generating images (for example, <code>publishers/google/models/imagen-3.0-generate-002</code>). |
-
-## Methods
-
-|  Method | Modifiers | Description |
-|  --- | --- | --- |
-|  [normalizeModelName(modelName)](./vertexai.vertexaimodel.md#vertexaimodelnormalizemodelname) | <code>static</code> | Normalizes the given model name to a fully qualified model resource name. |
 
 ## VertexAIModel.model
 
@@ -41,26 +35,3 @@ The fully qualified model resource name to use for generating images (for exampl
 ```typescript
 readonly model: string;
 ```
-
-## VertexAIModel.normalizeModelName()
-
-Normalizes the given model name to a fully qualified model resource name.
-
-<b>Signature:</b>
-
-```typescript
-static normalizeModelName(modelName: string): string;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  modelName | string | The model name to normalize. |
-
-<b>Returns:</b>
-
-string
-
-The fully qualified model resource name.
-

@@ -23,7 +23,7 @@ export interface SafetySetting
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [category](./vertexai.safetysetting.md#safetysettingcategory) | [HarmCategory](./vertexai.md#harmcategory) |  |
-|  [method](./vertexai.safetysetting.md#safetysettingmethod) | [HarmBlockMethod](./vertexai.md#harmblockmethod) |  |
+|  [method](./vertexai.safetysetting.md#safetysettingmethod) | [HarmBlockMethod](./vertexai.md#harmblockmethod) | This property is unsupported in the Developer API. A  will be thrown if it's used. |
 |  [threshold](./vertexai.safetysetting.md#safetysettingthreshold) | [HarmBlockThreshold](./vertexai.md#harmblockthreshold) |  |
 
 ## SafetySetting.category
@@ -35,6 +35,8 @@ category: HarmCategory;
 ```
 
 ## SafetySetting.method
+
+This property is unsupported in the Developer API. A  will be thrown if it's used.
 
 <b>Signature:</b>
 

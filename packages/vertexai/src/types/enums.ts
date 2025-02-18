@@ -118,7 +118,12 @@ export enum HarmSeverity {
   /**
    * High level of harm severity.
    */
-  HARM_SEVERITY_HIGH = 'HARM_SEVERITY_HIGH'
+  HARM_SEVERITY_HIGH = 'HARM_SEVERITY_HIGH',
+  /**
+   * Harm severity is not supported. 
+   * The GoogleAI backend does not support `HarmSeverity`, so this value is used as a fallback.
+   */
+  HARM_SEVERITY_UNSUPPORTED = 'HARM_SEVERITY_UNSUPPORTED'
 }
 
 /**

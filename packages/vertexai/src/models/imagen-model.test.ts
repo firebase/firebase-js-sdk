@@ -21,11 +21,11 @@ import {
   ImagenPersonFilterLevel,
   ImagenSafetyFilterLevel,
   VertexAI,
-  VertexAIErrorCode
+  GenAIErrorCode
 } from '../public-types';
 import * as request from '../requests/request';
 import sinonChai from 'sinon-chai';
-import { VertexAIError } from '../errors';
+import { GenAIError } from '../errors';
 import { getMockResponse } from '../../test-utils/mock-response';
 import { match, restore, stub } from 'sinon';
 
@@ -149,9 +149,9 @@ describe('ImagenModel', () => {
     try {
       await imagenModel.generateImages('some inappropriate prompt.');
     } catch (e) {
-      expect((e as VertexAIError).code).to.equal(VertexAIErrorCode.FETCH_ERROR);
-      expect((e as VertexAIError).message).to.include('400');
-      expect((e as VertexAIError).message).to.include(
+      expect((e as GenAIError).code).to.equal(GenAIErrorCode.FETCH_ERROR);
+      expect((e as GenAIError).message).to.include('400');
+      expect((e as GenAIError).message).to.include(
         "Image generation failed with the following error: The prompt could not be submitted. This prompt contains sensitive words that violate Google's Responsible AI practices. Try rephrasing the prompt. If you think this was an error, send feedback."
       );
     } finally {

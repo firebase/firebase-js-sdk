@@ -15,17 +15,17 @@
  * limitations under the License.
  */
 import { use, expect } from 'chai';
-import { VertexAI, VertexAIErrorCode } from '../public-types';
+import { VertexAI, GenAIErrorCode } from '../public-types';
 import sinonChai from 'sinon-chai';
-import { VertexAIModel } from './vertexai-model';
-import { VertexAIError } from '../errors';
+import { GenAIModel } from './vertexai-model';
+import { GenAIError } from '../errors';
 
 use(sinonChai);
 
 /**
  * A class that extends VertexAIModel that allows us to test the protected constructor.
  */
-class TestModel extends VertexAIModel {
+class TestModel extends GenAIModel {
   /* eslint-disable @typescript-eslint/no-useless-constructor */
   constructor(vertexAI: VertexAI, modelName: string) {
     super(vertexAI, modelName);
@@ -79,7 +79,7 @@ describe('VertexAIModel', () => {
     try {
       new TestModel(fakeVertexAI, 'my-model');
     } catch (e) {
-      expect((e as VertexAIError).code).to.equal(VertexAIErrorCode.NO_API_KEY);
+      expect((e as GenAIError).code).to.equal(GenAIErrorCode.NO_API_KEY);
     }
   });
   it('throws if not passed a project ID', () => {
@@ -96,8 +96,8 @@ describe('VertexAIModel', () => {
     try {
       new TestModel(fakeVertexAI, 'my-model');
     } catch (e) {
-      expect((e as VertexAIError).code).to.equal(
-        VertexAIErrorCode.NO_PROJECT_ID
+      expect((e as GenAIError).code).to.equal(
+        GenAIErrorCode.NO_PROJECT_ID
       );
     }
   });
