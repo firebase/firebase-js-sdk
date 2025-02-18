@@ -13,8 +13,8 @@
     ".": {
       "types": "./dist/vertexai-public.d.ts",
       "node": {
-        "require": "./dist/index.cjs.js",
-        "import": "./dist/esm/index.esm2017.js"
+        "require": "./dist/index.node.cjs.js",
+        "import": "./dist/index.node.mjs"
       },
       "browser": {
         "require": "./dist/index.cjs.js",
