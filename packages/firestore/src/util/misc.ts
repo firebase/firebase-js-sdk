@@ -77,8 +77,7 @@ export interface Equatable<T> {
 
 /** Compare strings in UTF-8 encoded byte order */
 export function compareUtf8Strings(left: string, right: string): number {
-  let i = 0;
-  while (i < left.length && i < right.length) {
+  for (let i = 0; i < left.length && i < right.length; i++) {
     const leftCodePoint = left.codePointAt(i)!;
     const rightCodePoint = right.codePointAt(i)!;
 
@@ -90,9 +89,8 @@ export function compareUtf8Strings(left: string, right: string): number {
         // Lazy instantiate TextEncoder
         const encoder = newTextEncoder();
 
-        // UTF-8 encoded byte comparison, substring 2 indexes to cover surrogate pairs
-        const leftBytes = encoder.encode(left.substring(i, i + 2));
-        const rightBytes = encoder.encode(right.substring(i, i + 2));
+        const leftBytes = encoder.encode(getUtf8SafeSubstring(left, i));
+        const rightBytes = encoder.encode(getUtf8SafeSubstring(right, i));
         for (
           let j = 0;
           j < Math.min(leftBytes.length, rightBytes.length);
@@ -103,18 +101,23 @@ export function compareUtf8Strings(left: string, right: string): number {
             return comparison;
           }
         }
-
-        // Compare lengths if all bytes are equal
-        return primitiveComparator(leftBytes.length, rightBytes.length);
       }
     }
-
-    // Increment by 2 for surrogate pairs, 1 otherwise
-    i += leftCodePoint > 0xffff ? 2 : 1;
   }
 
   // Compare lengths if all characters are equal
   return primitiveComparator(left.length, right.length);
+}
+
+function getUtf8SafeSubstring(str: string, index: number): string {
+  const firstCodePoint = str.codePointAt(index)!;
+  if (firstCodePoint > 0xffff) {
+    // It's a surrogate pair, return the whole pair
+    return str.substring(index, index + 2);
+  } else {
+    // It's a single code point, return it
+    return str.substring(index, index + 1);
+  }
 }
 
 export interface Iterable<V> {
