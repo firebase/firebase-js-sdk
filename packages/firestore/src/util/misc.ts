@@ -103,6 +103,9 @@ export function compareUtf8Strings(left: string, right: string): number {
             return comparison;
           }
         }
+
+        // Compare lengths if all bytes are equal
+        return primitiveComparator(leftBytes.length, rightBytes.length);
       }
     }
 
