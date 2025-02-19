@@ -83,16 +83,18 @@ function valueToDefaultExpr(value: any): Expr {
 /**
  * Converts a value to an Expr, Returning either a Constant, MapFunction,
  * ArrayFunction, or the input itself (if it's already an expression).
+ * If the input is a string, it is assumed to be a field name, and a
+ * Field.of(value) is returned.
  *
  * @private
  * @internal
  * @param value
  */
-function fieldOfOrExpr(value: string | Expr): Expr {
+function fieldOfOrExpr(value: any): Expr {
   if (isString(value)) {
     return Field.of(value);
   } else {
-    return value;
+    return valueToDefaultExpr(value);
   }
 }
 
@@ -260,180 +262,6 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
   mod(other: any): Mod {
     return new Mod(this, valueToDefaultExpr(other));
   }
-
-  // /**
-  //  * Creates an expression that applies a bitwise AND operation between this expression and another expression.
-  //  *
-  //  * ```typescript
-  //  * // Calculate the bitwise AND of 'field1' and 'field2'.
-  //  * Field.of("field1").bitAnd(Field.of("field2"));
-  //  * ```
-  //  *
-  //  * @param other The right operand expression.
-  //  * @return A new {@code Expr} representing the bitwise AND operation.
-  //  */
-  // bitAnd(other: Expr): BitAnd;
-  //
-  // /**
-  //  * Creates an expression that applies a bitwise AND operation between this expression and a constant value.
-  //  *
-  //  * ```typescript
-  //  * // Calculate the bitwise AND of 'field1' and 0xFF.
-  //  * Field.of("field1").bitAnd(0xFF);
-  //  * ```
-  //  *
-  //  * @param other The right operand constant.
-  //  * @return A new {@code Expr} representing the bitwise AND operation.
-  //  */
-  // bitAnd(other: any): BitAnd;
-  // bitAnd(other: any): BitAnd {
-  //   if (other instanceof Expr) {
-  //     return new BitAnd(this, other);
-  //   }
-  //   return new BitAnd(this, Constant.of(other));
-  // }
-  //
-  // /**
-  //  * Creates an expression that applies a bitwise OR operation between this expression and another expression.
-  //  *
-  //  * ```typescript
-  //  * // Calculate the bitwise OR of 'field1' and 'field2'.
-  //  * Field.of("field1").bitOr(Field.of("field2"));
-  //  * ```
-  //  *
-  //  * @param other The right operand expression.
-  //  * @return A new {@code Expr} representing the bitwise OR operation.
-  //  */
-  // bitOr(other: Expr): BitOr;
-  //
-  // /**
-  //  * Creates an expression that applies a bitwise OR operation between this expression and a constant value.
-  //  *
-  //  * ```typescript
-  //  * // Calculate the bitwise OR of 'field1' and 0xFF.
-  //  * Field.of("field1").bitOr(0xFF);
-  //  * ```
-  //  *
-  //  * @param other The right operand constant.
-  //  * @return A new {@code Expr} representing the bitwise OR operation.
-  //  */
-  // bitOr(other: any): BitOr;
-  // bitOr(other: any): BitOr {
-  //   if (other instanceof Expr) {
-  //     return new BitOr(this, other);
-  //   }
-  //   return new BitOr(this, Constant.of(other));
-  // }
-  //
-  // /**
-  //  * Creates an expression that applies a bitwise XOR operation between this expression and another expression.
-  //  *
-  //  * ```typescript
-  //  * // Calculate the bitwise XOR of 'field1' and 'field2'.
-  //  * Field.of("field1").bitXor(Field.of("field2"));
-  //  * ```
-  //  *
-  //  * @param other The right operand expression.
-  //  * @return A new {@code Expr} representing the bitwise XOR operation.
-  //  */
-  // bitXor(other: Expr): BitXor;
-  //
-  // /**
-  //  * Creates an expression that applies a bitwise XOR operation between this expression and a constant value.
-  //  *
-  //  * ```typescript
-  //  * // Calculate the bitwise XOR of 'field1' and 0xFF.
-  //  * Field.of("field1").bitXor(0xFF);
-  //  * ```
-  //  *
-  //  * @param other The right operand constant.
-  //  * @return A new {@code Expr} representing the bitwise XOR operation.
-  //  */
-  // bitXor(other: any): BitXor;
-  // bitXor(other: any): BitXor {
-  //   if (other instanceof Expr) {
-  //     return new BitXor(this, other);
-  //   }
-  //   return new BitXor(this, Constant.of(other));
-  // }
-  //
-  // /**
-  //  * Creates an expression that applies a bitwise NOT operation to this expression.
-  //  *
-  //  * ```typescript
-  //  * // Calculate the bitwise NOT of 'field1'.
-  //  * Field.of("field1").bitNot();
-  //  * ```
-  //  *
-  //  * @return A new {@code Expr} representing the bitwise NOT operation.
-  //  */
-  // bitNot(): BitNot {
-  //   return new BitNot(this);
-  // }
-  //
-  // /**
-  //  * Creates an expression that applies a bitwise left shift operation between this expression and another expression.
-  //  *
-  //  * ```typescript
-  //  * // Calculate the bitwise left shift of 'field1' by 'field2' bits.
-  //  * Field.of("field1").bitLeftShift(Field.of("field2"));
-  //  * ```
-  //  *
-  //  * @param other The right operand expression representing the number of bits to shift.
-  //  * @return A new {@code Expr} representing the bitwise left shift operation.
-  //  */
-  // bitLeftShift(other: Expr): BitLeftShift;
-  //
-  // /**
-  //  * Creates an expression that applies a bitwise left shift operation between this expression and a constant value.
-  //  *
-  //  * ```typescript
-  //  * // Calculate the bitwise left shift of 'field1' by 2 bits.
-  //  * Field.of("field1").bitLeftShift(2);
-  //  * ```
-  //  *
-  //  * @param other The right operand constant representing the number of bits to shift.
-  //  * @return A new {@code Expr} representing the bitwise left shift operation.
-  //  */
-  // bitLeftShift(other: number): BitLeftShift;
-  // bitLeftShift(other: Expr | number): BitLeftShift {
-  //   if (typeof other === 'number') {
-  //     return new BitLeftShift(this, Constant.of(other));
-  //   }
-  //   return new BitLeftShift(this, other as Expr);
-  // }
-  //
-  // /**
-  //  * Creates an expression that applies a bitwise right shift operation between this expression and another expression.
-  //  *
-  //  * ```typescript
-  //  * // Calculate the bitwise right shift of 'field1' by 'field2' bits.
-  //  * Field.of("field1").bitRightShift(Field.of("field2"));
-  //  * ```
-  //  *
-  //  * @param other The right operand expression representing the number of bits to shift.
-  //  * @return A new {@code Expr} representing the bitwise right shift operation.
-  //  */
-  // bitRightShift(other: Expr): BitRightShift;
-  //
-  // /**
-  //  * Creates an expression that applies a bitwise right shift operation between this expression and a constant value.
-  //  *
-  //  * ```typescript
-  //  * // Calculate the bitwise right shift of 'field1' by 2 bits.
-  //  * Field.of("field1").bitRightShift(2);
-  //  * ```
-  //  *
-  //  * @param other The right operand constant representing the number of bits to shift.
-  //  * @return A new {@code Expr} representing the bitwise right shift operation.
-  //  */
-  // bitRightShift(other: number): BitRightShift;
-  // bitRightShift(other: Expr | number): BitRightShift {
-  //   if (typeof other === 'number') {
-  //     return new BitRightShift(this, Constant.of(other));
-  //   }
-  //   return new BitRightShift(this, other as Expr);
-  // }
 
   /**
    * Creates an expression that checks if this expression is equal to another expression.
@@ -832,6 +660,20 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    */
   isNaN(): IsNan {
     return new IsNan(this);
+  }
+
+  /**
+   * Creates an expression that checks if this expression evaluates to 'Null'.
+   *
+   * ```typescript
+   * // Check if the result of a calculation is NaN
+   * Field.of("value").isNull();
+   * ```
+   *
+   * @return A new `Expr` representing the 'isNull' check.
+   */
+  isNull(): IsNull {
+    return new IsNull(this);
   }
 
   /**
@@ -1312,6 +1154,21 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
   }
 
   /**
+   * Creates an aggregation that finds the count of input documents satisfying
+   * the conditional expression.
+   *
+   * ```typescript
+   * // Find the count of documents with a score greater than 90
+   * Field.of("score").gt(90).countIf().as("highestScore");
+   * ```
+   *
+   * @return A new `Accumulator` representing the 'countIf' aggregation.
+   */
+  countif(): Countif {
+    return new Countif(this);
+  }
+
+  /**
    * Creates an expression that returns the larger value between this expression and another expression, based on Firestore's value type ordering.
    *
    * ```typescript
@@ -1718,6 +1575,467 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
   }
 
   /**
+   * @beta
+   *
+   * Creates an expression that applies a bitwise AND operation between this expression and a constant.
+   *
+   * ```typescript
+   * // Calculate the bitwise AND of 'field1' and 0xFF.
+   * Field.of("field1").bitAnd(0xFF);
+   * ```
+   *
+   * @param otherBits A constant representing bits.
+   * @return A new {@code Expr} representing the bitwise AND operation.
+   */
+  bitAnd(otherBits: number | Bytes): BitAnd;
+  /**
+   * @beta
+   *
+   * Creates an expression that applies a bitwise AND operation between two expressions.
+   *
+   * ```typescript
+   * // Calculate the bitwise AND of 'field1' and 'field2'.
+   * Field.of("field1").bitAnd(Field.of("field2"));
+   * ```
+   *
+   * @param bitsExpression An expression that returns bits when evaluated.
+   * @return A new {@code Expr} representing the bitwise AND operation.
+   */
+  bitAnd(bitsExpression: Expr): BitAnd;
+  bitAnd(bitsOrExpression: number | Expr | Bytes): BitAnd {
+    return new BitAnd(this, valueToDefaultExpr(bitsOrExpression));
+  }
+
+  /**
+   * @beta
+   *
+   * Creates an expression that applies a bitwise OR operation between this expression and a constant.
+   *
+   * ```typescript
+   * // Calculate the bitwise OR of 'field1' and 0xFF.
+   * Field.of("field1").bitOr(0xFF);
+   * ```
+   *
+   * @param otherBits A constant representing bits.
+   * @return A new {@code Expr} representing the bitwise OR operation.
+   */
+  bitOr(otherBits: number | Bytes): BitOr;
+  /**
+   * @beta
+   *
+   * Creates an expression that applies a bitwise OR operation between two expressions.
+   *
+   * ```typescript
+   * // Calculate the bitwise OR of 'field1' and 'field2'.
+   * Field.of("field1").bitOr(Field.of("field2"));
+   * ```
+   *
+   * @param bitsExpression An expression that returns bits when evaluated.
+   * @return A new {@code Expr} representing the bitwise OR operation.
+   */
+  bitOr(bitsExpression: Expr): BitOr;
+  bitOr(bitsOrExpression: number | Expr | Bytes): BitOr {
+    return new BitOr(this, valueToDefaultExpr(bitsOrExpression));
+  }
+
+  /**
+   * @beta
+   *
+   * Creates an expression that applies a bitwise XOR operation between this expression and a constant.
+   *
+   * ```typescript
+   * // Calculate the bitwise XOR of 'field1' and 0xFF.
+   * Field.of("field1").bitXor(0xFF);
+   * ```
+   *
+   * @param otherBits A constant representing bits.
+   * @return A new {@code Expr} representing the bitwise XOR operation.
+   */
+  bitXor(otherBits: number | Bytes): BitXor;
+  /**
+   * @beta
+   *
+   * Creates an expression that applies a bitwise XOR operation between two expressions.
+   *
+   * ```typescript
+   * // Calculate the bitwise XOR of 'field1' and 'field2'.
+   * Field.of("field1").bitXor(Field.of("field2"));
+   * ```
+   *
+   * @param bitsExpression An expression that returns bits when evaluated.
+   * @return A new {@code Expr} representing the bitwise XOR operation.
+   */
+  bitXor(bitsExpression: Expr): BitXor;
+  bitXor(bitsOrExpression: number | Expr | Bytes): BitXor {
+    return new BitXor(this, valueToDefaultExpr(bitsOrExpression));
+  }
+
+  /**
+   * @beta
+   *
+   * Creates an expression that applies a bitwise NOT operation to this expression.
+   *
+   * ```typescript
+   * // Calculate the bitwise NOT of 'field1'.
+   * Field.of("field1").bitNot();
+   * ```
+   *
+   * @return A new {@code Expr} representing the bitwise NOT operation.
+   */
+  bitNot(): BitNot {
+    return new BitNot(this);
+  }
+
+  /**
+   * @beta
+   *
+   * Creates an expression that applies a bitwise left shift operation to this expression.
+   *
+   * ```typescript
+   * // Calculate the bitwise left shift of 'field1' by 2 bits.
+   * Field.of("field1").bitLeftShift(2);
+   * ```
+   *
+   * @param y The operand constant representing the number of bits to shift.
+   * @return A new {@code Expr} representing the bitwise left shift operation.
+   */
+  bitLeftShift(y: number): BitLeftShift;
+  /**
+   * @beta
+   *
+   * Creates an expression that applies a bitwise left shift operation to this expression.
+   *
+   * ```typescript
+   * // Calculate the bitwise left shift of 'field1' by 'field2' bits.
+   * Field.of("field1").bitLeftShift(Field.of("field2"));
+   * ```
+   *
+   * @param numberExpr The operand expression representing the number of bits to shift.
+   * @return A new {@code Expr} representing the bitwise left shift operation.
+   */
+  bitLeftShift(numberExpr: Expr): BitLeftShift;
+  bitLeftShift(numberExpr: number | Expr): BitLeftShift {
+    return new BitLeftShift(this, valueToDefaultExpr(numberExpr));
+  }
+
+  /**
+   * @beta
+   *
+   * Creates an expression that applies a bitwise right shift operation to this expression.
+   *
+   * ```typescript
+   * // Calculate the bitwise right shift of 'field1' by 2 bits.
+   * Field.of("field1").bitRightShift(2);
+   * ```
+   *
+   * @param right The operand constant representing the number of bits to shift.
+   * @return A new {@code Expr} representing the bitwise right shift operation.
+   */
+  bitRightShift(y: number): BitRightShift;
+  /**
+   * @beta
+   *
+   * Creates an expression that applies a bitwise right shift operation to this expression.
+   *
+   * ```typescript
+   * // Calculate the bitwise right shift of 'field1' by 'field2' bits.
+   * Field.of("field1").bitRightShift(Field.of("field2"));
+   * ```
+   *
+   * @param numberExpr The operand expression representing the number of bits to shift.
+   * @return A new {@code Expr} representing the bitwise right shift operation.
+   */
+  bitRightShift(numberExpr: Expr): BitRightShift;
+  bitRightShift(numberExpr: number | Expr): BitRightShift {
+    return new BitRightShift(this, valueToDefaultExpr(numberExpr));
+  }
+
+  /**
+   * @beta
+   *
+   * Creates an expression that returns the document ID from a path.
+   *
+   * ```typescript
+   * // Get the document ID from a path.
+   * Field.of("__path__").documentId();
+   * ```
+   *
+   * @return A new {@code Expr} representing the documentId operation.
+   */
+  documentId(): DocumentId {
+    return new DocumentId(this);
+  }
+
+  /**
+   * @beta
+   *
+   * Creates an expression that returns a substring of the results of this expression.
+   *
+   * @param position Index of the first character of the substring.
+   * @param length Length of the substring.
+   */
+  substr(position: number, length: number): Substr;
+
+  /**
+   * @beta
+   *
+   * Creates an expression that returns a substring of the results of this expression.
+   *
+   * @param position An expression returning the index of the first character of the substring.
+   * @param length An expression returning the length of the substring.
+   */
+  substr(position: Expr, length: Expr): Substr;
+  substr(position: Expr | number, length: Expr | number): Substr {
+    const positionExpr = valueToDefaultExpr(position);
+    const lengthExpr = valueToDefaultExpr(length);
+    return new Substr(this, positionExpr, lengthExpr);
+  }
+
+  /**
+   * @beta
+   * Creates an expression that indexes into an array from the beginning or end
+   * and returns the element. If the offset exceeds the array length, an error is
+   * returned. A negative offset, starts from the end.
+   *
+   * ```typescript
+   * // Return the value in the 'tags' field array at index `1`.
+   * Field.of('tags').arrayOffset(1);
+   * ```
+   *
+   * @param offset The index of the element to return.
+   * @return A new Expr representing the 'arrayOffset' operation.
+   */
+  arrayOffset(offset: number): ArrayOffset;
+
+  /**
+   * @beta
+   * Creates an expression that indexes into an array from the beginning or end
+   * and returns the element. If the offset exceeds the array length, an error is
+   * returned. A negative offset, starts from the end.
+   *
+   * ```typescript
+   * // Return the value in the tags field array at index specified by field
+   * // 'favoriteTag'.
+   * Field.of('tags').arrayOffset(Field.of('favoriteTag'));
+   * ```
+   *
+   * @param offsetExpr An Expr evaluating to the index of the element to return.
+   * @return A new Expr representing the 'arrayOffset' operation.
+   */
+  arrayOffset(offsetExpr: Expr): ArrayOffset;
+  arrayOffset(offset: Expr | number): ArrayOffset {
+    return new ArrayOffset(fieldOfOrExpr(array), valueToDefaultExpr(offset));
+  }
+
+  /**
+   * @beta
+   *
+   * Creates an expression that checks if a given expression produces an error.
+   *
+   * ```typescript
+   * // Check if the result of a calculation is an error
+   * Field.of("title").arrayContains(1).isError();
+   * ```
+   *
+   * @return A new {@code Expr} representing the 'isError' check.
+   */
+  isError(): IsError {
+    return new IsError(this);
+  }
+
+  /**
+   * @beta
+   *
+   * Creates an expression that returns the result of the `catchExpr` argument
+   * if there is an error, else return the result of this expression.
+   *
+   * ```typescript
+   * // Returns the first item in the title field arrays, or returns
+   * // the entire title field if the array is empty or the field is another type.
+   * Field.of("title").arrayOffset(0).ifError(Field.of("title"));
+   * ```
+   *
+   * @param catchExpr The catch expression that will be evaluated and
+   * returned if this expression produces an error.
+   * @return A new {@code Expr} representing the 'ifError' operation.
+   */
+  ifError(catchExpr: Expr): IfError;
+
+  /**
+   * @beta
+   *
+   * Creates an expression that returns the `catch` argument if there is an
+   * error, else return the result of this expression.
+   *
+   * ```typescript
+   * // Returns the first item in the title field arrays, or returns
+   * // "Default Title"
+   * Field.of("title").arrayOffset(0).ifError("Default Title");
+   * ```
+   *
+   * @param catchValue The value that will be returned if this expression
+   * produces an error.
+   * @return A new {@code Expr} representing the 'ifError' operation.
+   */
+  ifError(catchValue: any): IfError;
+  ifError(catchValue: any): IfError {
+    return new IfError(this, valueToDefaultExpr(catchValue));
+  }
+
+  /**
+   * @beta
+   *
+   * Creates an expression that returns `true` if the result of this expression
+   * is absent. Otherwise, returns `false` even if the value is `null`.
+   *
+   * ```typescript
+   * // Check if the field `value` is absent.
+   * Field.of("value").isAbsent();
+   * ```
+   *
+   * @return A new {@code Expr} representing the 'isAbsent' check.
+   */
+  isAbsent(): IsAbsent {
+    return new IsAbsent(this);
+  }
+
+  /**
+   * @beta
+   *
+   * Creates an expression that checks if tbe result of an expression is not null.
+   *
+   * ```typescript
+   * // Check if the value of the 'name' field is not null
+   * Field.of("name").isNotNull();
+   * ```
+   *
+   * @return A new {@code Expr} representing the 'isNotNull' check.
+   */
+  isNotNull(): IsNotNull {
+    return new IsNotNull(this);
+  }
+
+  /**
+   * @beta
+   *
+   * Creates an expression that checks if the results of this expression is NOT 'NaN' (Not a Number).
+   *
+   * ```typescript
+   * // Check if the result of a calculation is NOT NaN
+   * Field.of("value").divide(0).isNotNan();
+   * ```
+   *
+   * @return A new {@code Expr} representing the 'isNaN' check.
+   */
+  isNotNan(): IsNotNan {
+    return new IsNotNan(this);
+  }
+
+  /**
+   * @beta
+   *
+   * Creates an expression that removes a key from the map produced by evaluating this expression.
+   *
+   * ```
+   * // Removes the key 'baz' from the input map.
+   * map({foo: 'bar', baz: true}).mapRemove('baz');
+   * ```
+   *
+   * @param key The name of the key to remove from the input map.
+   */
+  mapRemove(key: string): MapRemove;
+  /**
+   * @beta
+   *
+   * Creates an expression that removes a key from the map produced by evaluating this expression.
+   *
+   * ```
+   * // Removes the key 'baz' from the input map.
+   * map({foo: 'bar', baz: true}).mapRemove(Constant.of('baz'));
+   * ```
+   *
+   * @param keyExpr An expression that produces the name of the key to remove from the input map.
+   */
+  mapRemove(keyExpr: Expr): MapRemove;
+  mapRemove(stringExpr: Expr | string): MapRemove {
+    return new MapRemove(this, valueToDefaultExpr(stringExpr));
+  }
+
+  /**
+   * @beta
+   *
+   * Creates an expression that merges multiple map values.
+   *
+   * ```
+   * // Merges the map in the settings field with, a map literal, and a map in
+   * // that is conditionally returned by another expression
+   * Field.of('settings').mapMerge({ enabled: true }, cond(Field.of('isAdmin'), { admin: true}, {})
+   * ```
+   *
+   * @param secondMap A required second map to merge. Represented as a literal or
+   * an expression that returns a map.
+   * @param otherMaps Optional additional maps to merge. Each map is represented
+   * as a literal or an expression that returns a map.
+   */
+  mapMerge(
+    secondMap: Record<string, any> | Expr,
+    ...otherMaps: Array<Record<string, any> | Expr>
+  ): MapMerge {
+    const secondMapExpr = valueToDefaultExpr(secondMap);
+    const otherMapExprs = otherMaps.map(valueToDefaultExpr);
+    return new MapMerge([this, secondMapExpr, ...otherMapExprs]);
+  }
+
+  /**
+   * @beta
+   *
+   * Calculates the Manhattan distance between the result of this expression and another VectorValue.
+   *
+   * ```typescript
+   * // Calculate the Manhattan distance between the 'location' field and a target location
+   * Field.of("location").manhattanDistance(new VectorValue([37.7749, -122.4194]));
+   * ```
+   *
+   * @param other The other vector (as a VectorValue) to compare against.
+   * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
+   */
+  manhattanDistance(other: VectorValue): ManhattanDistance;
+
+  /**
+   * @beta
+   *
+   * Calculates the Manhattan distance between the result of this expression and a double array.
+   *
+   * ```typescript
+   * // Calculate the Manhattan distance between the 'location' field and a target location
+   * Field.of("location").manhattanDistance([37.7749, -122.4194]);
+   * ```
+   *
+   * @param other The other vector (as an array of doubles) to compare against.
+   * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
+   */
+  manhattanDistance(other: number[]): ManhattanDistance;
+
+  /**
+   * @beta
+   *
+   * Calculates the Manhattan distance between two vector expressions.
+   *
+   * ```typescript
+   * // Calculate the Manhattan distance between two vector fields: 'pointA' and 'pointB'
+   * Field.of("pointA").manhattanDistance(Field.of("pointB"));
+   * ```
+   *
+   * @param other The other vector (represented as an Expr) to compare against.
+   * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
+   */
+  manhattanDistance(other: Expr): ManhattanDistance;
+  manhattanDistance(other: Expr | number[] | VectorValue): ManhattanDistance {
+    const expr2 = other instanceof Expr ? other : Constant.vector(other);
+    return new ManhattanDistance(this, expr2);
+  }
+
+  /**
    * Creates an {@link Ordering} that sorts documents in ascending order based on this expression.
    *
    * ```typescript
@@ -1853,6 +2171,7 @@ export class ExprWithAlias<T extends Expr> extends Selectable {
  */
 class ListOfExprs extends Expr {
   exprType: ExprType = 'ListOfExprs';
+
   constructor(private exprs: Expr[]) {
     super();
   }
@@ -2209,6 +2528,7 @@ export class MapValue extends Expr {
  */
 export class FirestoreFunction extends Expr {
   exprType: ExprType = 'Function';
+
   constructor(private name: string, private params: Expr[]) {
     super();
   }
@@ -2305,75 +2625,6 @@ export class ArrayFunction extends FirestoreFunction {
   }
 }
 
-// /**
-//  * @beta
-//  */
-// export class BitAnd extends FirestoreFunction {
-//   constructor(
-//     private left: Expr,
-//     private right: Expr
-//   ) {
-//     super('bit_and', [left, right]);
-//   }
-// }
-//
-// /**
-//  * @beta
-//  */
-// export class BitOr extends FirestoreFunction {
-//   constructor(
-//     private left: Expr,
-//     private right: Expr
-//   ) {
-//     super('bit_or', [left, right]);
-//   }
-// }
-//
-// /**
-//  * @beta
-//  */
-// export class BitXor extends FirestoreFunction {
-//   constructor(
-//     private left: Expr,
-//     private right: Expr
-//   ) {
-//     super('bit_xor', [left, right]);
-//   }
-// }
-//
-// /**
-//  * @beta
-//  */
-// export class BitNot extends FirestoreFunction {
-//   constructor(private operand: Expr) {
-//     super('bit_not', [operand]);
-//   }
-// }
-//
-// /**
-//  * @beta
-//  */
-// export class BitLeftShift extends FirestoreFunction {
-//   constructor(
-//     private left: Expr,
-//     private right: Expr
-//   ) {
-//     super('bit_left_shift', [left, right]);
-//   }
-// }
-//
-// /**
-//  * @beta
-//  */
-// export class BitRightShift extends FirestoreFunction {
-//   constructor(
-//     private left: Expr,
-//     private right: Expr
-//   ) {
-//     super('bit_right_shift', [left, right]);
-//   }
-// }
-
 /**
  * @beta
  */
@@ -2381,6 +2632,7 @@ export class Eq extends FirestoreFunction implements FilterCondition {
   constructor(private left: Expr, private right: Expr) {
     super('eq', [left, right]);
   }
+
   filterable = true as const;
 }
 
@@ -2391,6 +2643,7 @@ export class Neq extends FirestoreFunction implements FilterCondition {
   constructor(private left: Expr, private right: Expr) {
     super('neq', [left, right]);
   }
+
   filterable = true as const;
 }
 
@@ -2401,6 +2654,7 @@ export class Lt extends FirestoreFunction implements FilterCondition {
   constructor(private left: Expr, private right: Expr) {
     super('lt', [left, right]);
   }
+
   filterable = true as const;
 }
 
@@ -2411,6 +2665,7 @@ export class Lte extends FirestoreFunction implements FilterCondition {
   constructor(private left: Expr, private right: Expr) {
     super('lte', [left, right]);
   }
+
   filterable = true as const;
 }
 
@@ -2421,6 +2676,7 @@ export class Gt extends FirestoreFunction implements FilterCondition {
   constructor(private left: Expr, private right: Expr) {
     super('gt', [left, right]);
   }
+
   filterable = true as const;
 }
 
@@ -2431,6 +2687,7 @@ export class Gte extends FirestoreFunction implements FilterCondition {
   constructor(private left: Expr, private right: Expr) {
     super('gte', [left, right]);
   }
+
   filterable = true as const;
 }
 
@@ -2462,6 +2719,7 @@ export class ArrayContains
   constructor(private array: Expr, private element: Expr) {
     super('array_contains', [array, element]);
   }
+
   filterable = true as const;
 }
 
@@ -2475,6 +2733,7 @@ export class ArrayContainsAll
   constructor(private array: Expr, private values: Expr[]) {
     super('array_contains_all', [array, new ListOfExprs(values)]);
   }
+
   filterable = true as const;
 }
 
@@ -2488,6 +2747,7 @@ export class ArrayContainsAny
   constructor(private array: Expr, private values: Expr[]) {
     super('array_contains_any', [array, new ListOfExprs(values)]);
   }
+
   filterable = true as const;
 }
 
@@ -2516,6 +2776,7 @@ export class EqAny extends FirestoreFunction implements FilterCondition {
   constructor(private left: Expr, private others: Expr[]) {
     super('eq_any', [left, new ListOfExprs(others)]);
   }
+
   filterable = true as const;
 }
 
@@ -2526,6 +2787,7 @@ export class NotEqAny extends FirestoreFunction implements FilterCondition {
   constructor(private left: Expr, private others: Expr[]) {
     super('not_eq_any', [left, new ListOfExprs(others)]);
   }
+
   filterable = true as const;
 }
 
@@ -2536,6 +2798,7 @@ export class IsNan extends FirestoreFunction implements FilterCondition {
   constructor(private expr: Expr) {
     super('is_nan', [expr]);
   }
+
   filterable = true as const;
 }
 
@@ -2546,6 +2809,7 @@ export class Exists extends FirestoreFunction implements FilterCondition {
   constructor(private expr: Expr) {
     super('exists', [expr]);
   }
+
   filterable = true as const;
 }
 
@@ -2556,6 +2820,7 @@ export class Not extends FirestoreFunction implements FilterCondition {
   constructor(private expr: Expr) {
     super('not', [expr]);
   }
+
   filterable = true as const;
 }
 
@@ -2577,6 +2842,7 @@ export class Or extends FirestoreFunction implements FilterCondition {
   constructor(private conditions: FilterCondition[]) {
     super('or', conditions);
   }
+
   filterable = true as const;
 }
 
@@ -2587,6 +2853,7 @@ export class Xor extends FirestoreFunction implements FilterCondition {
   constructor(private conditions: FilterCondition[]) {
     super('xor', conditions);
   }
+
   filterable = true as const;
 }
 
@@ -2601,6 +2868,7 @@ export class Cond extends FirestoreFunction {
   ) {
     super('cond', [condition, thenExpr, elseExpr]);
   }
+
   filterable = true as const;
 }
 
@@ -2674,6 +2942,7 @@ export class Like extends FirestoreFunction implements FilterCondition {
   constructor(private expr: Expr, private pattern: Expr) {
     super('like', [expr, pattern]);
   }
+
   filterable = true as const;
 }
 
@@ -2687,6 +2956,7 @@ export class RegexContains
   constructor(private expr: Expr, private pattern: Expr) {
     super('regex_contains', [expr, pattern]);
   }
+
   filterable = true as const;
 }
 
@@ -2697,6 +2967,7 @@ export class RegexMatch extends FirestoreFunction implements FilterCondition {
   constructor(private expr: Expr, private pattern: Expr) {
     super('regex_match', [expr, pattern]);
   }
+
   filterable = true as const;
 }
 
@@ -2707,6 +2978,7 @@ export class StrContains extends FirestoreFunction implements FilterCondition {
   constructor(private expr: Expr, private substring: Expr) {
     super('str_contains', [expr, substring]);
   }
+
   filterable = true as const;
 }
 
@@ -2717,6 +2989,7 @@ export class StartsWith extends FirestoreFunction implements FilterCondition {
   constructor(private expr: Expr, private prefix: Expr) {
     super('starts_with', [expr, prefix]);
   }
+
   filterable = true as const;
 }
 
@@ -2727,6 +3000,7 @@ export class EndsWith extends FirestoreFunction implements FilterCondition {
   constructor(private expr: Expr, private suffix: Expr) {
     super('ends_with', [expr, suffix]);
   }
+
   filterable = true as const;
 }
 
@@ -2780,6 +3054,7 @@ export class MapGet extends FirestoreFunction {
  */
 export class Count extends FirestoreFunction implements Accumulator {
   accumulator = true as const;
+
   constructor(private value: Expr | undefined, private distinct: boolean) {
     super('count', value === undefined ? [] : [value]);
   }
@@ -2790,6 +3065,7 @@ export class Count extends FirestoreFunction implements Accumulator {
  */
 export class Sum extends FirestoreFunction implements Accumulator {
   accumulator = true as const;
+
   constructor(private value: Expr, private distinct: boolean) {
     super('sum', [value]);
   }
@@ -2800,6 +3076,7 @@ export class Sum extends FirestoreFunction implements Accumulator {
  */
 export class Avg extends FirestoreFunction implements Accumulator {
   accumulator = true as const;
+
   constructor(private value: Expr, private distinct: boolean) {
     super('avg', [value]);
   }
@@ -2810,6 +3087,7 @@ export class Avg extends FirestoreFunction implements Accumulator {
  */
 export class Minimum extends FirestoreFunction implements Accumulator {
   accumulator = true as const;
+
   constructor(private value: Expr, private distinct: boolean) {
     super('minimum', [value]);
   }
@@ -2820,6 +3098,7 @@ export class Minimum extends FirestoreFunction implements Accumulator {
  */
 export class Maximum extends FirestoreFunction implements Accumulator {
   accumulator = true as const;
+
   constructor(private value: Expr, private distinct: boolean) {
     super('maximum', [value]);
   }
@@ -2948,6 +3227,7 @@ export class Countif extends FirestoreFunction implements Accumulator {
   constructor(private booleanExpr: Expr) {
     super('countif', [booleanExpr]);
   }
+
   accumulator = true as const;
 }
 
@@ -2958,13 +3238,13 @@ export class Countif extends FirestoreFunction implements Accumulator {
  *
  * ```typescript
  * // Count the number of documents where 'is_active' field equals true
- * countif(Field.of("is_active")).as("numActiveDocuments");
+ * countif(Field.of("is_active").eq(true)).as("numActiveDocuments");
  * ```
  *
  * @param booleanExpr - The boolean expression to evaluate on each input.
  * @returns A new `Accumulator` representing the 'countif' aggregation.
  */
-export function countif(booleanExpr: Expr): Countif {
+export function countif(booleanExpr: FilterCondition): Countif {
   return new Countif(booleanExpr);
 }
 
@@ -2977,6 +3257,13 @@ export class Rand extends FirestoreFunction {
   }
 }
 
+/**
+ * @beta
+ * Creates an expression that return a pseudo-random value of type double in the
+ * range of [0, 1), inclusive of 0 and exclusive of 1.
+ *
+ * @returns A new `Expr` representing the 'rand' function.
+ */
 export function rand(): Rand {
   return new Rand();
 }
@@ -2990,24 +3277,74 @@ export class BitAnd extends FirestoreFunction {
   }
 }
 
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise AND operation between a field and a constant.
+ *
+ * ```typescript
+ * // Calculate the bitwise AND of 'field1' and 0xFF.
+ * bitAnd("field1", 0xFF);
+ * ```
+ *
+ * @param field The left operand field name.
+ * @param otherBits A constant representing bits.
+ * @return A new {@code Expr} representing the bitwise AND operation.
+ */
 export function bitAnd(field: string, otherBits: number | Bytes): BitAnd;
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise AND operation between a field and an expression.
+ *
+ * ```typescript
+ * // Calculate the bitwise AND of 'field1' and 'field2'.
+ * bitAnd("field1", Field.of("field2"));
+ * ```
+ *
+ * @param field The left operand field name.
+ * @param bitsExpression An expression that returns bits when evaluated.
+ * @return A new {@code Expr} representing the bitwise AND operation.
+ */
 export function bitAnd(field: string, bitsExpression: Expr): BitAnd;
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise AND operation between an expression and a constant.
+ *
+ * ```typescript
+ * // Calculate the bitwise AND of 'field1' and 0xFF.
+ * bitAnd(Field.of("field1"), 0xFF);
+ * ```
+ *
+ * @param bitsExpression An expression returning bits.
+ * @param otherBits A constant representing bits.
+ * @return A new {@code Expr} representing the bitwise AND operation.
+ */
 export function bitAnd(bitsExpression: Expr, otherBits: number | Bytes): BitAnd;
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise AND operation between two expressions.
+ *
+ * ```typescript
+ * // Calculate the bitwise AND of 'field1' and 'field2'.
+ * bitAnd(Field.of("field1"), Field.of("field2"));
+ * ```
+ *
+ * @param bitsExpression An expression that returns bits when evaluated.
+ * @param otherBitsExpression An expression that returns bits when evaluated.
+ * @return A new {@code Expr} representing the bitwise AND operation.
+ */
 export function bitAnd(bitsExpression: Expr, otherBitsExpression: Expr): BitAnd;
 export function bitAnd(
   fieldOrExpression: string | Expr,
   bitsOrExpression: number | Expr | Bytes
 ): BitAnd {
-  const left =
-    fieldOrExpression instanceof Expr
-      ? fieldOrExpression
-      : Field.of(fieldOrExpression);
-  // @ts-ignore
-  const right =
-    bitsOrExpression instanceof Expr
-      ? bitsOrExpression
-      : Constant.of(bitsOrExpression);
-  return new BitAnd(left, right);
+  return new BitAnd(
+    fieldOfOrExpr(fieldOrExpression),
+    valueToDefaultExpr(bitsOrExpression)
+  );
 }
 
 /**
@@ -3019,24 +3356,74 @@ export class BitOr extends FirestoreFunction {
   }
 }
 
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise OR operation between a field and a constant.
+ *
+ * ```typescript
+ * // Calculate the bitwise OR of 'field1' and 0xFF.
+ * bitOr("field1", 0xFF);
+ * ```
+ *
+ * @param field The left operand field name.
+ * @param otherBits A constant representing bits.
+ * @return A new {@code Expr} representing the bitwise OR operation.
+ */
 export function bitOr(field: string, otherBits: number | Bytes): BitOr;
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise OR operation between a field and an expression.
+ *
+ * ```typescript
+ * // Calculate the bitwise OR of 'field1' and 'field2'.
+ * bitOr("field1", Field.of("field2"));
+ * ```
+ *
+ * @param field The left operand field name.
+ * @param bitsExpression An expression that returns bits when evaluated.
+ * @return A new {@code Expr} representing the bitwise OR operation.
+ */
 export function bitOr(field: string, bitsExpression: Expr): BitOr;
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise OR operation between an expression and a constant.
+ *
+ * ```typescript
+ * // Calculate the bitwise OR of 'field1' and 0xFF.
+ * bitOr(Field.of("field1"), 0xFF);
+ * ```
+ *
+ * @param bitsExpression An expression returning bits.
+ * @param otherBits A constant representing bits.
+ * @return A new {@code Expr} representing the bitwise OR operation.
+ */
 export function bitOr(bitsExpression: Expr, otherBits: number | Bytes): BitOr;
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise OR operation between two expressions.
+ *
+ * ```typescript
+ * // Calculate the bitwise OR of 'field1' and 'field2'.
+ * bitOr(Field.of("field1"), Field.of("field2"));
+ * ```
+ *
+ * @param bitsExpression An expression that returns bits when evaluated.
+ * @param otherBitsExpression An expression that returns bits when evaluated.
+ * @return A new {@code Expr} representing the bitwise OR operation.
+ */
 export function bitOr(bitsExpression: Expr, otherBitsExpression: Expr): BitOr;
 export function bitOr(
   fieldOrExpression: string | Expr,
   bitsOrExpression: number | Expr | Bytes
 ): BitOr {
-  const left =
-    fieldOrExpression instanceof Expr
-      ? fieldOrExpression
-      : Field.of(fieldOrExpression);
-  // @ts-ignore
-  const right =
-    bitsOrExpression instanceof Expr
-      ? bitsOrExpression
-      : Constant.of(bitsOrExpression);
-  return new BitOr(left, right);
+  return new BitOr(
+    fieldOfOrExpr(fieldOrExpression),
+    valueToDefaultExpr(bitsOrExpression)
+  );
 }
 
 /**
@@ -3048,24 +3435,74 @@ export class BitXor extends FirestoreFunction {
   }
 }
 
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise XOR operation between a field and a constant.
+ *
+ * ```typescript
+ * // Calculate the bitwise XOR of 'field1' and 0xFF.
+ * bitXor("field1", 0xFF);
+ * ```
+ *
+ * @param field The left operand field name.
+ * @param otherBits A constant representing bits.
+ * @return A new {@code Expr} representing the bitwise XOR operation.
+ */
 export function bitXor(field: string, otherBits: number | Bytes): BitXor;
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise XOR operation between a field and an expression.
+ *
+ * ```typescript
+ * // Calculate the bitwise XOR of 'field1' and 'field2'.
+ * bitXor("field1", Field.of("field2"));
+ * ```
+ *
+ * @param field The left operand field name.
+ * @param bitsExpression An expression that returns bits when evaluated.
+ * @return A new {@code Expr} representing the bitwise XOR operation.
+ */
 export function bitXor(field: string, bitsExpression: Expr): BitXor;
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise XOR operation between an expression and a constant.
+ *
+ * ```typescript
+ * // Calculate the bitwise XOR of 'field1' and 0xFF.
+ * bitXor(Field.of("field1"), 0xFF);
+ * ```
+ *
+ * @param bitsExpression An expression returning bits.
+ * @param otherBits A constant representing bits.
+ * @return A new {@code Expr} representing the bitwise XOR operation.
+ */
 export function bitXor(bitsExpression: Expr, otherBits: number | Bytes): BitXor;
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise XOR operation between two expressions.
+ *
+ * ```typescript
+ * // Calculate the bitwise XOR of 'field1' and 'field2'.
+ * bitXor(Field.of("field1"), Field.of("field2"));
+ * ```
+ *
+ * @param bitsExpression An expression that returns bits when evaluated.
+ * @param otherBitsExpression An expression that returns bits when evaluated.
+ * @return A new {@code Expr} representing the bitwise XOR operation.
+ */
 export function bitXor(bitsExpression: Expr, otherBitsExpression: Expr): BitXor;
 export function bitXor(
   fieldOrExpression: string | Expr,
   bitsOrExpression: number | Expr | Bytes
 ): BitXor {
-  const left =
-    fieldOrExpression instanceof Expr
-      ? fieldOrExpression
-      : Field.of(fieldOrExpression);
-  // @ts-ignore
-  const right =
-    bitsOrExpression instanceof Expr
-      ? bitsOrExpression
-      : Constant.of(bitsOrExpression);
-  return new BitXor(left, right);
+  return new BitXor(
+    fieldOfOrExpr(fieldOrExpression),
+    valueToDefaultExpr(bitsOrExpression)
+  );
 }
 
 /**
@@ -3076,11 +3513,37 @@ export class BitNot extends FirestoreFunction {
     super('bit_not', [value]);
   }
 }
+
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise NOT operation to a field.
+ *
+ * ```typescript
+ * // Calculate the bitwise NOT of 'field1'.
+ * bitNot("field1");
+ * ```
+ *
+ * @param field The operand field name.
+ * @return A new {@code Expr} representing the bitwise NOT operation.
+ */
 export function bitNot(field: string): BitNot;
-export function bitNot(bitsValue: number | Bytes): BitNot;
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise NOT operation to an expression.
+ *
+ * ```typescript
+ * // Calculate the bitwise NOT of 'field1'.
+ * bitNot(Field.of("field1"));
+ * ```
+ *
+ * @param bitsValueExpression An expression that returns bits when evaluated.
+ * @return A new {@code Expr} representing the bitwise NOT operation.
+ */
 export function bitNot(bitsValueExpression: Expr): BitNot;
-export function bitNot(bits: string | number | Bytes | Expr): BitNot {
-  return new BitNot(isString(bits) ? Field.of(bits) : valueToDefaultExpr(bits));
+export function bitNot(bits: string | Expr): BitNot {
+  return new BitNot(fieldOfOrExpr(bits));
 }
 
 /**
@@ -3092,21 +3555,72 @@ export class BitLeftShift extends FirestoreFunction {
   }
 }
 
-export function bitLeftShift(field: string, y: number): BitRightShift;
-export function bitLeftShift(field: string, numberExpr: Expr): BitRightShift;
-export function bitLeftShift(xValue: number | Bytes, y: number): BitRightShift;
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise left shift operation between a field and a constant.
+ *
+ * ```typescript
+ * // Calculate the bitwise left shift of 'field1' by 2 bits.
+ * bitLeftShift("field1", 2);
+ * ```
+ *
+ * @param field The left operand field name.
+ * @param y The right operand constant representing the number of bits to shift.
+ * @return A new {@code Expr} representing the bitwise left shift operation.
+ */
+export function bitLeftShift(field: string, y: number): BitLeftShift;
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise left shift operation between a field and an expression.
+ *
+ * ```typescript
+ * // Calculate the bitwise left shift of 'field1' by 'field2' bits.
+ * bitLeftShift("field1", Field.of("field2"));
+ * ```
+ *
+ * @param field The left operand field name.
+ * @param numberExpr The right operand expression representing the number of bits to shift.
+ * @return A new {@code Expr} representing the bitwise left shift operation.
+ */
+export function bitLeftShift(field: string, numberExpr: Expr): BitLeftShift;
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise left shift operation between an expression and a constant.
+ *
+ * ```typescript
+ * // Calculate the bitwise left shift of 'field1' by 2 bits.
+ * bitLeftShift(Field.of("field1"), 2);
+ * ```
+ *
+ * @param xValue An expression returning bits.
+ * @param y The right operand constant representing the number of bits to shift.
+ * @return A new {@code Expr} representing the bitwise left shift operation.
+ */
+export function bitLeftShift(xValue: Expr, y: number): BitLeftShift;
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise left shift operation between two expressions.
+ *
+ * ```typescript
+ * // Calculate the bitwise left shift of 'field1' by 'field2' bits.
+ * bitLeftShift(Field.of("field1"), Field.of("field2"));
+ * ```
+ *
+ * @param xValue An expression returning bits.
+ * @param right The right operand expression representing the number of bits to shift.
+ * @return A new {@code Expr} representing the bitwise left shift operation.
+ */
+export function bitLeftShift(xValue: Expr, numberExpr: Expr): BitLeftShift;
 export function bitLeftShift(
-  xValue: number | Bytes,
-  numberExpr: Expr
-): BitRightShift;
-export function bitLeftShift(xValue: Expr, y: number): BitRightShift;
-export function bitLeftShift(xValue: Expr, numberExpr: Expr): BitRightShift;
-export function bitLeftShift(
-  xValue: string | number | Bytes,
+  xValue: string | Expr,
   numberExpr: number | Expr
-): BitRightShift {
+): BitLeftShift {
   return new BitLeftShift(
-    isString(xValue) ? Field.of(xValue) : valueToDefaultExpr(xValue),
+    fieldOfOrExpr(xValue),
     valueToDefaultExpr(numberExpr)
   );
 }
@@ -3120,21 +3634,72 @@ export class BitRightShift extends FirestoreFunction {
   }
 }
 
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise right shift operation between a field and a constant.
+ *
+ * ```typescript
+ * // Calculate the bitwise right shift of 'field1' by 2 bits.
+ * bitRightShift("field1", 2);
+ * ```
+ *
+ * @param left The left operand field name.
+ * @param right The right operand constant representing the number of bits to shift.
+ * @return A new {@code Expr} representing the bitwise right shift operation.
+ */
 export function bitRightShift(field: string, y: number): BitRightShift;
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise right shift operation between a field and an expression.
+ *
+ * ```typescript
+ * // Calculate the bitwise right shift of 'field1' by 'field2' bits.
+ * bitRightShift("field1", Field.of("field2"));
+ * ```
+ *
+ * @param field The left operand field name.
+ * @param numberExpr The right operand expression representing the number of bits to shift.
+ * @return A new {@code Expr} representing the bitwise right shift operation.
+ */
 export function bitRightShift(field: string, numberExpr: Expr): BitRightShift;
-export function bitRightShift(xValue: number | Bytes, y: number): BitRightShift;
-export function bitRightShift(
-  xValue: number | Bytes,
-  numberExpr: Expr
-): BitRightShift;
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise right shift operation between an expression and a constant.
+ *
+ * ```typescript
+ * // Calculate the bitwise right shift of 'field1' by 2 bits.
+ * bitRightShift(Field.of("field1"), 2);
+ * ```
+ *
+ * @param xValue An expression returning bits.
+ * @param y The right operand constant representing the number of bits to shift.
+ * @return A new {@code Expr} representing the bitwise right shift operation.
+ */
 export function bitRightShift(xValue: Expr, y: number): BitRightShift;
+/**
+ * @beta
+ *
+ * Creates an expression that applies a bitwise right shift operation between two expressions.
+ *
+ * ```typescript
+ * // Calculate the bitwise right shift of 'field1' by 'field2' bits.
+ * bitRightShift(Field.of("field1"), Field.of("field2"));
+ * ```
+ *
+ * @param xValue An expression returning bits.
+ * @param right The right operand expression representing the number of bits to shift.
+ * @return A new {@code Expr} representing the bitwise right shift operation.
+ */
 export function bitRightShift(xValue: Expr, numberExpr: Expr): BitRightShift;
 export function bitRightShift(
-  xValue: string | number | Bytes | Expr,
+  xValue: string | Expr,
   numberExpr: number | Expr
 ): BitRightShift {
   return new BitRightShift(
-    isString(xValue) ? Field.of(xValue) : valueToDefaultExpr(xValue),
+    fieldOfOrExpr(xValue),
     valueToDefaultExpr(numberExpr)
   );
 }
@@ -3150,61 +3715,71 @@ export class ArrayOffset extends FirestoreFunction {
 
 /**
  * @beta
- *
- * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ * Creates an expression that indexes into an array from the beginning or end
+ * and return the element. If the offset exceeds the array length, an error is
+ * returned. A negative offset, starts from the end.
  *
  * ```typescript
- * // Check if the result of a calculation is NaN
- * isNaN(Field.of("value").divide(0));
+ * // Return the value in the tags field array at index 1.
+ * arrayOffset('tags', 1);
  * ```
  *
- * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @param arrayField The name of the array field.
+ * @param offset The index of the element to return.
+ * @return A new Expr representing the 'arrayOffset' operation.
  */
 export function arrayOffset(arrayField: string, offset: number): ArrayOffset;
 
 /**
  * @beta
- *
- * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ * Creates an expression that indexes into an array from the beginning or end
+ * and return the element. If the offset exceeds the array length, an error is
+ * returned. A negative offset, starts from the end.
  *
  * ```typescript
- * // Check if the result of a calculation is NaN
- * isNaN(Field.of("value").divide(0));
+ * // Return the value in the tags field array at index specified by field
+ * // 'favoriteTag'.
+ * arrayOffset('tags', Field.of('favoriteTag'));
  * ```
  *
- * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @param arrayField The name of the array field.
+ * @param offsetExpr An Expr evaluating to the index of the element to return.
+ * @return A new Expr representing the 'arrayOffset' operation.
  */
 export function arrayOffset(arrayField: string, offsetExpr: Expr): ArrayOffset;
 
 /**
  * @beta
- *
- * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ * Creates an expression that indexes into an array from the beginning or end
+ * and return the element. If the offset exceeds the array length, an error is
+ * returned. A negative offset, starts from the end.
  *
  * ```typescript
- * // Check if the result of a calculation is NaN
- * isNaN(Field.of("value").divide(0));
+ * // Return the value in the tags field array at index 1.
+ * arrayOffset(Field.of('tags'), 1);
  * ```
  *
- * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @param arrayExpression An Expr evaluating to an array.
+ * @param offset The index of the element to return.
+ * @return A new Expr representing the 'arrayOffset' operation.
  */
 export function arrayOffset(arrayExpression: Expr, offset: number): ArrayOffset;
 
 /**
  * @beta
- *
- * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ * Creates an expression that indexes into an array from the beginning or end
+ * and return the element. If the offset exceeds the array length, an error is
+ * returned. A negative offset, starts from the end.
  *
  * ```typescript
- * // Check if the result of a calculation is NaN
- * isNaN(Field.of("value").divide(0));
+ * // Return the value in the tags field array at index specified by field
+ * // 'favoriteTag'.
+ * arrayOffset(Field.of('tags'), Field.of('favoriteTag'));
  * ```
  *
- * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @param arrayExpression An Expr evaluating to an array.
+ * @param offsetExpr An Expr evaluating to the index of the element to return.
+ * @return A new Expr representing the 'arrayOffset' operation.
  */
 export function arrayOffset(
   arrayExpression: Expr,
@@ -3226,6 +3801,12 @@ export class CurrentContext extends FirestoreFunction {
   }
 }
 
+/**
+ * @beta
+ * Creates an Expr that returns a map of all values in the current expression context.
+ *
+ * @return A new {@code Expr} representing the 'current_context' function.
+ */
 export function currentContext(): CurrentContext {
   return new CurrentContext();
 }
@@ -3237,21 +3818,22 @@ export class IsError extends FirestoreFunction implements FilterCondition {
   constructor(private expr: Expr) {
     super('is_error', [expr]);
   }
+
   filterable = true as const;
 }
 
 /**
  * @beta
  *
- * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ * Creates an expression that checks if a given expression produces an error.
  *
  * ```typescript
- * // Check if the result of a calculation is NaN
- * isNaN(Field.of("value").divide(0));
+ * // Check if the result of a calculation is an error
+ * isError(Field.of("title").arrayContains(1));
  * ```
  *
  * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @return A new {@code Expr} representing the 'isError' check.
  */
 export function isError(value: Expr): IsError {
   return new IsError(value);
@@ -3269,30 +3851,38 @@ export class IfError extends FirestoreFunction {
 /**
  * @beta
  *
- * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ * Creates an expression that returns the `catch` argument if there is an
+ * error, else return the result of the `try` argument evaluation.
  *
  * ```typescript
- * // Check if the result of a calculation is NaN
- * isNaN(Field.of("value").divide(0));
+ * // Returns the first item in the title field arrays, or returns
+ * // the entire title field if the array is empty or the field is another type.
+ * ifError(Field.of("title").arrayOffset(0), Field.of("title"));
  * ```
  *
- * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @param tryExpr The try expression.
+ * @param catchExpr The catch expression that will be evaluated and
+ * returned if the tryExpr produces an error.
+ * @return A new {@code Expr} representing the 'ifError' operation.
  */
 export function ifError(tryExpr: Expr, catchExpr: Expr): IfError;
 
 /**
  * @beta
  *
- * Creates an expression that checks if a field's value evaluates to 'NaN' (Not a Number).
+ * Creates an expression that returns the `catch` argument if there is an
+ * error, else return the result of the `try` argument evaluation.
  *
  * ```typescript
- * // Check if the result of a calculation is NaN
- * isNaN("value");
+ * // Returns the first item in the title field arrays, or returns
+ * // "Default Title"
+ * ifError(Field.of("title").arrayOffset(0), "Default Title");
  * ```
  *
- * @param value The name of the field to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @param tryExpr The try expression.
+ * @param catchValue The value that will be returned if the tryExpr produces an
+ * error.
+ * @return A new {@code Expr} representing the 'ifError' operation.
  */
 export function ifError(tryExpr: Expr, catchValue: any): IfError;
 export function ifError(tryExpr: Expr, catchValue: any): IfError {
@@ -3306,38 +3896,41 @@ export class IsAbsent extends FirestoreFunction implements FilterCondition {
   constructor(private expr: Expr) {
     super('is_absent', [expr]);
   }
+
   filterable = true as const;
 }
 
 /**
  * @beta
  *
- * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ * Creates an expression that returns `true` if a value is absent. Otherwise,
+ * returns `false` even if the value is `null`.
  *
  * ```typescript
- * // Check if the result of a calculation is NaN
- * isNaN(Field.of("value").divide(0));
+ * // Check if the field `value` is absent.
+ * isAbsent(Field.of("value"));
  * ```
  *
  * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @return A new {@code Expr} representing the 'isAbsent' check.
  */
 export function isAbsent(value: Expr): IsAbsent;
 
 /**
  * @beta
  *
- * Creates an expression that checks if a field's value evaluates to 'NaN' (Not a Number).
+ * Creates an expression that returns `true` if a field is absent. Otherwise,
+ * returns `false` even if the field value is `null`.
  *
  * ```typescript
- * // Check if the result of a calculation is NaN
- * isNaN("value");
+ * // Check if the field `value` is absent.
+ * isAbsent("value");
  * ```
  *
- * @param value The name of the field to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @param field The field to check.
+ * @return A new {@code Expr} representing the 'isAbsent' check.
  */
-export function isAbsent(value: string): IsAbsent;
+export function isAbsent(field: string): IsAbsent;
 export function isAbsent(value: Expr | string): IsAbsent {
   return new IsAbsent(fieldOfOrExpr(value));
 }
@@ -3349,6 +3942,7 @@ export class IsNull extends FirestoreFunction implements FilterCondition {
   constructor(private expr: Expr) {
     super('is_null', [expr]);
   }
+
   filterable = true as const;
 }
 
@@ -3392,17 +3986,18 @@ export class IsNotNull extends FirestoreFunction implements FilterCondition {
   constructor(private expr: Expr) {
     super('is_not_null', [expr]);
   }
+
   filterable = true as const;
 }
 
 /**
  * @beta
  *
- * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ * Creates an expression that checks if tbe result of an expression is not null.
  *
  * ```typescript
- * // Check if the result of a calculation is NaN
- * isNaN(Field.of("value").divide(0));
+ * // Check if the value of the 'name' field is not null
+ * isNotNull(Field.of("name"));
  * ```
  *
  * @param value The expression to check.
@@ -3413,11 +4008,11 @@ export function isNotNull(value: Expr): IsNotNull;
 /**
  * @beta
  *
- * Creates an expression that checks if a field's value evaluates to 'NaN' (Not a Number).
+ * Creates an expression that checks if tbe value of a field is not null.
  *
  * ```typescript
- * // Check if the result of a calculation is NaN
- * isNaN("value");
+ * // Check if the value of the 'name' field is not null
+ * isNotNull("name");
  * ```
  *
  * @param value The name of the field to check.
@@ -3435,36 +4030,37 @@ export class IsNotNan extends FirestoreFunction implements FilterCondition {
   constructor(private expr: Expr) {
     super('is_not_nan', [expr]);
   }
+
   filterable = true as const;
 }
 
 /**
  * @beta
  *
- * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ * Creates an expression that checks if the results of this expression is NOT 'NaN' (Not a Number).
  *
  * ```typescript
- * // Check if the result of a calculation is NaN
- * isNaN(Field.of("value").divide(0));
+ * // Check if the result of a calculation is NOT NaN
+ * isNotNaN(Field.of("value").divide(0));
  * ```
  *
  * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @return A new {@code Expr} representing the 'isNotNaN' check.
  */
 export function isNotNan(value: Expr): IsNotNan;
 
 /**
  * @beta
  *
- * Creates an expression that checks if a field's value evaluates to 'NaN' (Not a Number).
+ * Creates an expression that checks if the results of this expression is NOT 'NaN' (Not a Number).
  *
  * ```typescript
- * // Check if the result of a calculation is NaN
- * isNaN("value");
+ * // Check if the value of a field is NOT NaN
+ * isNotNaN("value");
  * ```
  *
  * @param value The name of the field to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @return A new {@code Expr} representing the 'isNotNaN' check.
  */
 export function isNotNan(value: string): IsNotNan;
 export function isNotNan(value: Expr | string): IsNotNan {
@@ -3479,14 +4075,62 @@ export class MapRemove extends FirestoreFunction {
     super('map_remove', [map, nameExpr]);
   }
 }
-
-export function mapRemove(mapField: string, name: string): MapRemove;
-
-export function mapRemove(mapExpr: Expr, name: string): MapRemove;
-
-export function mapRemove(mapField: string, stringExpr: Expr): MapRemove;
-
-export function mapRemove(mapExpr: Expr, stringExpr: Expr): MapRemove;
+/**
+ * @beta
+ *
+ * Creates an expression that removes a key from the map at the specified field name.
+ *
+ * ```
+ * // Removes the key 'city' field from the map in the address field of the input document.
+ * mapRemove('address', 'city');
+ * ```
+ *
+ * @param mapField The name of a field containing a map value.
+ * @param key The name of the key to remove from the input map.
+ */
+export function mapRemove(mapField: string, key: string): MapRemove;
+/**
+ * @beta
+ *
+ * Creates an expression that removes a key from the map produced by evaluating an expression.
+ *
+ * ```
+ * // Removes the key 'baz' from the input map.
+ * mapRemove(map({foo: 'bar', baz: true}), 'baz');
+ * ```
+ *
+ * @param mapExpr An expression return a map value.
+ * @param key The name of the key to remove from the input map.
+ */
+export function mapRemove(mapExpr: Expr, key: string): MapRemove;
+/**
+ * @beta
+ *
+ * Creates an expression that removes a key from the map at the specified field name.
+ *
+ * ```
+ * // Removes the key 'city' field from the map in the address field of the input document.
+ * mapRemove('address', Constant.of('city'));
+ * ```
+ *
+ * @param mapField The name of a field containing a map value.
+ * @param keyExpr An expression that produces the name of the key to remove from the input map.
+ */
+export function mapRemove(mapField: string, keyExpr: Expr): MapRemove;
+/**
+ * @beta
+ *
+ * Creates an expression that removes a key from the map produced by evaluating an expression.
+ *
+ * ```
+ * // Removes the key 'baz' from the input map.
+ * mapRemove(map({foo: 'bar', baz: true}), Constant.of('baz'));
+ * ```
+ *
+ * @param mapExpr An expression return a map value.
+ * @param keyExpr An expression that produces the name of the key to remove from the input map.
+ */
+export function mapRemove(mapExpr: Expr, keyExpr: Expr): MapRemove;
 
 export function mapRemove(
   mapExpr: Expr | string,
@@ -3504,12 +4148,46 @@ export class MapMerge extends FirestoreFunction {
   }
 }
 
+/**
+ * @beta
+ *
+ * Creates an expression that merges multiple map values.
+ *
+ * ```
+ * // Merges the map in the settings field with, a map literal, and a map in
+ * // that is conditionally returned by another expression
+ * mapMerge('settings', { enabled: true }, cond(Field.of('isAdmin'), { admin: true}, {})
+ * ```
+ *
+ * @param mapField Name of a field containing a map value that will be merged.
+ * @param secondMap A required second map to merge. Represented as a literal or
+ * an expression that returns a map.
+ * @param otherMaps Optional additional maps to merge. Each map is represented
+ * as a literal or an expression that returns a map.
+ */
 export function mapMerge(
   mapField: string,
   secondMap: Record<string, any> | Expr,
   ...otherMaps: Array<Record<string, any> | Expr>
 ): MapMerge;
 
+/**
+ * @beta
+ *
+ * Creates an expression that merges multiple map values.
+ *
+ * ```
+ * // Merges the map in the settings field with, a map literal, and a map in
+ * // that is conditionally returned by another expression
+ * mapMerge(Field.of('settings'), { enabled: true }, cond(Field.of('isAdmin'), { admin: true}, {})
+ * ```
+ *
+ * @param firstMap An expression or literal map map value that will be merged.
+ * @param secondMap A required second map to merge. Represented as a literal or
+ * an expression that returns a map.
+ * @param otherMaps Optional additional maps to merge. Each map is represented
+ * as a literal or an expression that returns a map.
+ */
 export function mapMerge(
   firstMap: Record<string, any> | Expr,
   secondMap: Record<string, any> | Expr,
@@ -3579,10 +4257,34 @@ export class DocumentId extends FirestoreFunction {
   }
 }
 
+/**
+ * @beta
+ *
+ * Creates an expression that returns the document ID from a path.
+ *
+ * ```typescript
+ * // Get the document ID from a path.
+ * documentId(myDocumentReference);
+ * ```
+ *
+ * @return A new {@code Expr} representing the documentId operation.
+ */
 export function documentIdFunction(
   documentPath: string | DocumentReference
 ): DocumentId;
 
+/**
+ * @beta
+ *
+ * Creates an expression that returns the document ID from a path.
+ *
+ * ```typescript
+ * // Get the document ID from a path.
+ * documentId(Field.of("__path__"));
+ * ```
+ *
+ * @return A new {@code Expr} representing the documentId operation.
+ */
 export function documentIdFunction(documentPathExpr: Expr): DocumentId;
 
 export function documentIdFunction(
@@ -3621,17 +4323,49 @@ export class Substr extends FirestoreFunction {
   }
 }
 
+/**
+ * @beta
+ *
+ * Creates an expression that returns a substring of a string or byte array.
+ *
+ * @param field The name of a field containing a string or byte array to compute the substring from.
+ * @param position Index of the first character of the substring.
+ * @param length Length of the substring.
+ */
 export function substr(field: string, position: number, length: number): Substr;
 
-export function substr(
-  stringExpr: Expr,
-  position: number,
-  length: number
-): Substr;
+/**
+ * @beta
+ *
+ * Creates an expression that returns a substring of a string or byte array.
+ *
+ * @param input An expression returning a string or byte array to compute the substring from.
+ * @param position Index of the first character of the substring.
+ * @param length Length of the substring.
+ */
+export function substr(input: Expr, position: number, length: number): Substr;
 
+/**
+ * @beta
+ *
+ * Creates an expression that returns a substring of a string or byte array.
+ *
+ * @param field The name of a field containing a string or byte array to compute the substring from.
+ * @param position An expression that returns the index of the first character of the substring.
+ * @param length An expression that returns the length of the substring.
+ */
 export function substr(field: string, position: Expr, length: Expr): Substr;
 
-export function substr(stringExpr: Expr, position: Expr, length: Expr): Substr;
+/**
+ * @beta
+ *
+ * Creates an expression that returns a substring of a string or byte array.
+ *
+ * @param input An expression returning a string or byte array to compute the substring from.
+ * @param position An expression that returns the index of the first character of the substring.
+ * @param length An expression that returns the length of the substring.
+ */
+export function substr(input: Expr, position: Expr, length: Expr): Substr;
 
 export function substr(
   field: Expr | string,
@@ -3663,12 +4397,12 @@ export class ManhattanDistance extends FirestoreFunction {
  * manhattanDistance("location", [37.7749, -122.4194]);
  * ```
  *
- * @param expr The name of the field containing the first vector.
+ * @param field The name of the field containing the first vector.
  * @param other The other vector (as an array of doubles) to compare against.
  * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
  */
 export function manhattanDistance(
-  expr: string,
+  field: string,
   other: number[]
 ): ManhattanDistance;
 
@@ -3762,10 +4496,10 @@ export function manhattanDistance(
  */
 export function manhattanDistance(expr: Expr, other: Expr): ManhattanDistance;
 export function manhattanDistance(
-  expr: Expr | string,
+  fieldOrExpr: Expr | string,
   other: Expr | number[] | VectorValue
 ): ManhattanDistance {
-  const expr1 = fieldOfOrExpr(expr);
+  const expr1 = fieldOfOrExpr(fieldOrExpr);
   const expr2 = other instanceof Expr ? other : Constant.vector(other);
   return new ManhattanDistance(expr1, expr2);
 }

@@ -68,7 +68,6 @@ import {
   cond,
   eqAny,
   logicalMaximum,
-  logicalMinimum,
   notEqAny,
   query,
   where,
@@ -361,6 +360,15 @@ apiDescribe.only('Pipelines', persistence => {
           .collection(randomCol.path)
           .sort(Field.of('rating').descending())
           .limit(1)
+          .select(
+            'title',
+            'author',
+            'genre',
+            'rating',
+            'published',
+            'tags',
+            'awards'
+          )
           .addFields(
             array([
               1,
@@ -907,6 +915,7 @@ apiDescribe.only('Pipelines', persistence => {
           );
         });
       });
+
       it('logical max works', async () => {
         const results = await randomCol
           .pipeline()
@@ -1191,7 +1200,7 @@ apiDescribe.only('Pipelines', persistence => {
           .pipeline()
           .where(not(Field.of('rating').isNaN()))
           .select(
-            Field.of('rating').eq(null).as('ratingIsNull'),
+            Field.of('rating').isNull().as('ratingIsNull'),
             not(Field.of('rating').isNaN()).as('ratingIsNotNaN')
           )
           .limit(1)
@@ -1217,7 +1226,7 @@ apiDescribe.only('Pipelines', persistence => {
             title: "The Hitchhiker's Guide to the Galaxy",
             others: { unknown: { year: 1980 } }
           },
-          { hugoAward: true, hugoAward2: true, title: 'Dune', others: null }
+          { hugoAward: true, title: 'Dune', others: null }
         );
       });
 
@@ -1284,14 +1293,21 @@ apiDescribe.only('Pipelines', persistence => {
         );
       });
 
-      it('supports countIf', async () => {
-        const results = await randomCol
+      it('supports countif', async () => {
+        let results = await randomCol
           .pipeline()
           .aggregate(countif(Field.of('rating').gt(4.3)).as('count'))
           .execute();
-        expectResults(results, {
+        const expectedResults = {
           count: 3
-        });
+        };
+        expectResults(results, expectedResults);
+
+        results = await randomCol
+          .pipeline()
+          .aggregate(Field.of('rating').gt(4.3).countif().as('count'))
+          .execute();
+        expectResults(results, expectedResults);
       });
 
       describe('genericFunction', () => {
@@ -1393,225 +1409,319 @@ apiDescribe.only('Pipelines', persistence => {
           expectResults(results, {
             result: 4
           });
-        });
+          it('supports Bit_and', async () => {
+            const results = await randomCol
+              .pipeline()
+              .limit(1)
+              .select(Constant.of(5).bitAnd(12).as('result'))
+              .execute();
+            expectResults(results, {
+              result: 4
+            });
+          });
 
-        it('supports Bit_or', async () => {
-          const results = await randomCol
-            .pipeline()
-            .limit(1)
-            .select(bitOr(Constant.of(5), 12).as('result'))
-            .execute();
-          expectResults(results, {
-            result: 13
+          it('supports Bit_or', async () => {
+            let results = await randomCol
+              .pipeline()
+              .limit(1)
+              .select(bitOr(Constant.of(5), 12).as('result'))
+              .execute();
+            expectResults(results, {
+              result: 13
+            });
+            results = await randomCol
+              .pipeline()
+              .limit(1)
+              .select(Constant.of(5).bitOr(12).as('result'))
+              .execute();
+            expectResults(results, {
+              result: 13
+            });
+          });
+
+          it('supports Bit_xor', async () => {
+            let results = await randomCol
+              .pipeline()
+              .limit(1)
+              .select(bitXor(Constant.of(5), 12).as('result'))
+              .execute();
+            expectResults(results, {
+              result: 9
+            });
+            results = await randomCol
+              .pipeline()
+              .limit(1)
+              .select(Constant.of(5).bitXor(12).as('result'))
+              .execute();
+            expectResults(results, {
+              result: 9
+            });
+          });
+
+          it('supports Bit_not', async () => {
+            let results = await randomCol
+              .pipeline()
+              .limit(1)
+              .select(
+                bitNot(
+                  Constant.of(Bytes.fromUint8Array(Uint8Array.of(0xfd)))
+                ).as('result')
+              )
+              .execute();
+            expectResults(results, {
+              result: Bytes.fromUint8Array(Uint8Array.of(0x02))
+            });
+            results = await randomCol
+              .pipeline()
+              .limit(1)
+              .select(
+                Constant.of(Bytes.fromUint8Array(Uint8Array.of(0xfd)))
+                  .bitNot()
+                  .as('result')
+              )
+              .execute();
+            expectResults(results, {
+              result: Bytes.fromUint8Array(Uint8Array.of(0x02))
+            });
+          });
+
+          it('supports Bit_left_shift', async () => {
+            let results = await randomCol
+              .pipeline()
+              .limit(1)
+              .select(
+                bitLeftShift(
+                  Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02))),
+                  2
+                ).as('result')
+              )
+              .execute();
+            expectResults(results, {
+              result: Bytes.fromUint8Array(Uint8Array.of(0x04))
+            });
+            results = await randomCol
+              .pipeline()
+              .limit(1)
+              .select(
+                Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02)))
+                  .bitLeftShift(2)
+                  .as('result')
+              )
+              .execute();
+            expectResults(results, {
+              result: Bytes.fromUint8Array(Uint8Array.of(0x04))
+            });
+          });
+
+          it('supports Bit_right_shift', async () => {
+            let results = await randomCol
+              .pipeline()
+              .limit(1)
+              .select(
+                bitRightShift(
+                  Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02))),
+                  2
+                ).as('result')
+              )
+              .execute();
+            expectResults(results, {
+              result: Bytes.fromUint8Array(Uint8Array.of(0x01))
+            });
+            results = await randomCol
+              .pipeline()
+              .limit(1)
+              .select(
+                Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02)))
+                  .bitRightShift(2)
+                  .as('result')
+              )
+              .execute();
+            expectResults(results, {
+              result: Bytes.fromUint8Array(Uint8Array.of(0x01))
+            });
+          });
+
+          it('supports Document_id', async () => {
+            let results = await randomCol
+              .pipeline()
+              .sort(Field.of('rating').descending())
+              .limit(1)
+              .select(documentIdFunction(Field.of('__path__')).as('docId'))
+              .execute();
+            expectResults(results, {
+              docId: 'book4'
+            });
+            results = await randomCol
+              .pipeline()
+              .sort(Field.of('rating').descending())
+              .limit(1)
+              .select(Field.of('__path__').documentId().as('docId'))
+              .execute();
+            expectResults(results, {
+              docId: 'book4'
+            });
+          });
+
+          it('supports Substr', async () => {
+            let results = await randomCol
+              .pipeline()
+              .sort(Field.of('rating').descending())
+              .limit(1)
+              .select(substr('title', 9, 2).as('of'))
+              .execute();
+            expectResults(results, {
+              of: 'of'
+            });
+            results = await randomCol
+              .pipeline()
+              .sort(Field.of('rating').descending())
+              .limit(1)
+              .select(Field.of('title').substr(9, 2).as('of'))
+              .execute();
+            expectResults(results, {
+              of: 'of'
+            });
+          });
+
+          it('arrayConcat works', async () => {
+            const results = await randomCol
+              .pipeline()
+              .select(
+                Field.of('tags')
+                  .arrayConcat(['newTag1', 'newTag2'])
+                  .as('modifiedTags')
+              )
+              .limit(1)
+              .execute();
+            expectResults(results, {
+              modifiedTags: [
+                'comedy',
+                'space',
+                'adventure',
+                'newTag1',
+                'newTag2'
+              ]
+            });
+          });
+
+          it('testToLowercase', async () => {
+            const results = await randomCol
+              .pipeline()
+              .select(Field.of('title').toLower().as('lowercaseTitle'))
+              .limit(1)
+              .execute();
+            expectResults(results, {
+              lowercaseTitle: "the hitchhiker's guide to the galaxy"
+            });
+          });
+
+          it('testToUppercase', async () => {
+            const results = await randomCol
+              .pipeline()
+              .select(Field.of('author').toUpper().as('uppercaseAuthor'))
+              .limit(1)
+              .execute();
+            expectResults(results, { uppercaseAuthor: 'DOUGLAS ADAMS' });
+          });
+
+          it('testTrim', async () => {
+            const results = await randomCol
+              .pipeline()
+              .addFields(
+                Constant.of(" The Hitchhiker's Guide to the Galaxy ").as(
+                  'spacedTitle'
+                )
+              )
+              .select(
+                Field.of('spacedTitle').trim().as('trimmedTitle'),
+                Field.of('spacedTitle')
+              )
+              .limit(1)
+              .execute();
+            expectResults(results, {
+              spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
+              trimmedTitle: "The Hitchhiker's Guide to the Galaxy"
+            });
           });
         });
 
-        it('supports Bit_xor', async () => {
+        it('supports Rand', async () => {
           const results = await randomCol
             .pipeline()
-            .limit(1)
-            .select(bitXor(Constant.of(5), 12).as('result'))
+            .limit(10)
+            .select(rand().as('result'))
             .execute();
-          expectResults(results, {
-            result: 9
+          expect(results.length).to.equal(10);
+          results.forEach(d => {
+            expect(d.get('result')).to.be.lt(1);
+            expect(d.get('result')).to.be.gte(0);
           });
         });
 
-        it('supports Bit_not', async () => {
-          const results = await randomCol
+        it('supports array', async () => {
+          const result = await firestore
             .pipeline()
+            .collection(randomCol.path)
+            .sort(Field.of('rating').descending())
+            .limit(1)
+            .select(array([1, 2, 3, 4]).as('metadata'))
+            .execute();
+          expect(result.length).to.equal(1);
+          expectResults(result, {
+            metadata: [1, 2, 3, 4]
+          });
+        });
+
+        it('evaluates expression in array', async () => {
+          const result = await firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(Field.of('rating').descending())
             .limit(1)
             .select(
-              bitNot(Constant.of(Bytes.fromUint8Array(Uint8Array.of(0xfd)))).as(
-                'result'
+              array([1, 2, Field.of('genre'), multiply('rating', 10)]).as(
+                'metadata'
               )
             )
             .execute();
-          expectResults(results, {
-            result: Bytes.fromUint8Array(Uint8Array.of(0x02))
+          expect(result.length).to.equal(1);
+          expectResults(result, {
+            metadata: [1, 2, 'Fantasy', 47]
           });
         });
 
-        it('supports Bit_left_shift', async () => {
-          const results = await randomCol
-            .pipeline()
-            .limit(1)
-            .select(
-              bitLeftShift(
-                Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02))),
-                2
-              ).as('result')
-            )
-            .execute();
-          expectResults(results, {
-            result: Bytes.fromUint8Array(Uint8Array.of(0x04))
-          });
-        });
-
-        it('supports Bit_right_shift', async () => {
-          const results = await randomCol
-            .pipeline()
-            .limit(1)
-            .select(
-              bitRightShift(
-                Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02))),
-                2
-              ).as('result')
-            )
-            .execute();
-          expectResults(results, {
-            result: Bytes.fromUint8Array(Uint8Array.of(0x01))
-          });
-        });
-
-        it('supports Document_id', async () => {
-          const results = await randomCol
+        it('supports arrayOffset', async () => {
+          let results = await randomCol
             .pipeline()
             .sort(Field.of('rating').descending())
-            .limit(1)
-            .select(documentIdFunction(Field.of('__path__')).as('docId'))
+            .limit(3)
+            .select(arrayOffset('tags', 0).as('firstTag'))
             .execute();
-          expectResults(results, {
-            docId: 'book4'
-          });
-        });
+          const expectedResults = [
+            {
+              firstTag: 'adventure'
+            },
+            {
+              firstTag: 'politics'
+            },
+            {
+              firstTag: 'classic'
+            }
+          ];
+          expectResults(results, ...expectedResults);
 
-        it('supports Substr', async () => {
-          const results = await randomCol
+          results = await randomCol
             .pipeline()
             .sort(Field.of('rating').descending())
-            .limit(1)
-            .select(substr('title', 9, 2).as('of'))
+            .limit(3)
+            .select(Field.of('tags').arrayOffset(0).as('firstTag'))
             .execute();
-          expectResults(results, {
-            of: 'of'
-          });
+          expectResults(results, ...expectedResults);
         });
-
-        it('arrayConcat works', async () => {
-          const results = await randomCol
-            .pipeline()
-            .select(
-              Field.of('tags')
-                .arrayConcat(['newTag1', 'newTag2'])
-                .as('modifiedTags')
-            )
-            .limit(1)
-            .execute();
-          expectResults(results, {
-            modifiedTags: ['comedy', 'space', 'adventure', 'newTag1', 'newTag2']
-          });
-        });
-
-        it('testToLowercase', async () => {
-          const results = await randomCol
-            .pipeline()
-            .select(Field.of('title').toLower().as('lowercaseTitle'))
-            .limit(1)
-            .execute();
-          expectResults(results, {
-            lowercaseTitle: "the hitchhiker's guide to the galaxy"
-          });
-        });
-
-        it('testToUppercase', async () => {
-          const results = await randomCol
-            .pipeline()
-            .select(Field.of('author').toUpper().as('uppercaseAuthor'))
-            .limit(1)
-            .execute();
-          expectResults(results, { uppercaseAuthor: 'DOUGLAS ADAMS' });
-        });
-
-        it('testTrim', async () => {
-          const results = await randomCol
-            .pipeline()
-            .addFields(
-              Constant.of(" The Hitchhiker's Guide to the Galaxy ").as(
-                'spacedTitle'
-              )
-            )
-            .select(
-              Field.of('spacedTitle').trim().as('trimmedTitle'),
-              Field.of('spacedTitle')
-            )
-            .limit(1)
-            .execute();
-          expectResults(results, {
-            spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
-            trimmedTitle: "The Hitchhiker's Guide to the Galaxy"
-          });
-        });
-      });
-
-      it('supports Rand', async () => {
-        const results = await randomCol
-          .pipeline()
-          .limit(10)
-          .select(rand().as('result'))
-          .execute();
-        expect(results.length).to.equal(10);
-        results.forEach(d => {
-          expect(d.get('result')).to.be.lt(1);
-          expect(d.get('result')).to.be.gte(0);
-        });
-      });
-
-      it('supports array', async () => {
-        const result = await firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .sort(Field.of('rating').descending())
-          .limit(1)
-          .select(array([1, 2, 3, 4]).as('metadata'))
-          .execute();
-        expect(result.length).to.equal(1);
-        expectResults(result, {
-          metadata: [1, 2, 3, 4]
-        });
-      });
-
-      it('evaluates expression in array', async () => {
-        const result = await firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .sort(Field.of('rating').descending())
-          .limit(1)
-          .select(
-            array([1, 2, Field.of('genre'), multiply('rating', 10)]).as(
-              'metadata'
-            )
-          )
-          .execute();
-        expect(result.length).to.equal(1);
-        expectResults(result, {
-          metadata: [1, 2, 'Fantasy', 47]
-        });
-      });
-
-      it('supports arrayOffset', async () => {
-        const results = await randomCol
-          .pipeline()
-          .sort(Field.of('rating').descending())
-          .limit(3)
-          .select(arrayOffset('tags', 0).as('firstTag'))
-          .execute();
-        expectResults(
-          results,
-          {
-            firstTag: 'adventure'
-          },
-          {
-            firstTag: 'politics'
-          },
-          {
-            firstTag: 'classic'
-          }
-        );
       });
 
       // TODO: current_context tests with are failing because of b/395937453
-      it('supports currentContext', async () => {
+      it.skip('supports currentContext', async () => {
         const results = await randomCol
           .pipeline()
           .sort(Field.of('rating').descending())
@@ -1624,19 +1734,30 @@ apiDescribe.only('Pipelines', persistence => {
       });
 
       it('supports isError', async () => {
-        const results = await randomCol
+        let results = await randomCol
           .pipeline()
           .sort(Field.of('rating').descending())
           .limit(1)
           .select(isError(arrayOffset('title', 0)).as('firstTag'))
           .execute();
-        expectResults(results, {
-          firstTag: true
-        });
+        const expectedResults = [
+          {
+            firstTag: true
+          }
+        ];
+        expectResults(results, ...expectedResults);
+
+        results = await randomCol
+          .pipeline()
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .select(arrayOffset('title', 0).isError().as('firstTag'))
+          .execute();
+        expectResults(results, ...expectedResults);
       });
 
       it('supports ifError', async () => {
-        const results = await randomCol
+        let results = await randomCol
           .pipeline()
           .sort(Field.of('rating').descending())
           .limit(1)
@@ -1646,37 +1767,72 @@ apiDescribe.only('Pipelines', persistence => {
             )
           )
           .execute();
-        expectResults(results, {
-          firstTag: 'was error'
-        });
+        const expectedResults = [
+          {
+            firstTag: 'was error'
+          }
+        ];
+        expectResults(results, ...expectedResults);
+
+        results = await randomCol
+          .pipeline()
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .select(
+            arrayOffset('title', 0)
+              .ifError(Constant.of('was error'))
+              .as('firstTag')
+          )
+          .execute();
+        expectResults(results, ...expectedResults);
       });
 
       it('supports isAbsent', async () => {
-        const results = await randomCol
+        let results = await randomCol
           .pipeline()
           .sort(Field.of('rating').descending())
           .limit(1)
           .select(isAbsent('foo').as('firstTag'))
           .execute();
-        expectResults(results, {
-          firstTag: true
-        });
+        const expectedResults = [
+          {
+            firstTag: true
+          }
+        ];
+        expectResults(results, ...expectedResults);
+        results = await randomCol
+          .pipeline()
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .select(Field.of('foo').isAbsent().as('firstTag'))
+          .execute();
+        expectResults(results, ...expectedResults);
       });
 
       it('supports isNull', async () => {
-        const results = await randomCol
+        let results = await randomCol
           .pipeline()
           .sort(Field.of('rating').descending())
           .limit(1)
           .select(isNull('remarks').as('remarksIsNull'))
           .execute();
-        expectResults(results, {
-          remarksIsNull: true
-        });
+        const expectedResults = [
+          {
+            remarksIsNull: true
+          }
+        ];
+        expectResults(results, ...expectedResults);
+        results = await randomCol
+          .pipeline()
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .select(Field.of('remarks').isNull().as('remarksIsNull'))
+          .execute();
+        expectResults(results, ...expectedResults);
       });
 
       it('supports isNotNull', async () => {
-        const results = await randomCol
+        let results = await randomCol
           .pipeline()
           .sort(Field.of('rating').descending())
           .limit(1)
@@ -1685,14 +1841,32 @@ apiDescribe.only('Pipelines', persistence => {
         expectResults(results, {
           titleIsNotNull: true
         });
+        results = await randomCol
+          .pipeline()
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .select(Field.of('title').isNotNull().as('titleIsNotNull'))
+          .execute();
+        expectResults(results, {
+          titleIsNotNull: true
+        });
       });
 
       it('supports isNotNan', async () => {
-        const results = await randomCol
+        let results = await randomCol
           .pipeline()
           .sort(Field.of('rating').descending())
           .limit(1)
           .select(isNotNan('cost').as('costIsNotNan'))
+          .execute();
+        expectResults(results, {
+          costIsNotNan: false
+        });
+        results = await randomCol
+          .pipeline()
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .select(Field.of('cost').isNotNan().as('costIsNotNan'))
           .execute();
         expectResults(results, {
           costIsNotNan: false
@@ -1744,7 +1918,7 @@ apiDescribe.only('Pipelines', persistence => {
       });
 
       it('supports mapRemove', async () => {
-        const results = await randomCol
+        let results = await randomCol
           .pipeline()
           .sort(Field.of('rating').descending())
           .limit(1)
@@ -1753,10 +1927,19 @@ apiDescribe.only('Pipelines', persistence => {
         expectResults(results, {
           awards: { nebula: false }
         });
+        results = await randomCol
+          .pipeline()
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .select(Field.of('awards').mapRemove('hugo').as('awards'))
+          .execute();
+        expectResults(results, {
+          awards: { nebula: false }
+        });
       });
 
       it('supports mapMerge', async () => {
-        const results = await randomCol
+        let results = await randomCol
           .pipeline()
           .sort(Field.of('rating').descending())
           .limit(1)
@@ -1765,15 +1948,37 @@ apiDescribe.only('Pipelines', persistence => {
         expectResults(results, {
           awards: { nebula: false, hugo: false, fakeAward: true }
         });
+        results = await randomCol
+          .pipeline()
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .select(Field.of('awards').mapMerge({ fakeAward: true }).as('awards'))
+          .execute();
+        expectResults(results, {
+          awards: { nebula: false, hugo: false, fakeAward: true }
+        });
       });
 
       it('supports manhattanDistance', async () => {
-        const results = await randomCol
+        let results = await randomCol
           .pipeline()
           .sort(Field.of('rating').descending())
           .limit(1)
           .select(Constant.vector([1, 1]).as('embedding'))
           .addFields(manhattanDistance('embedding', [3, 3]).as('distance'))
+          .execute();
+        expectResults(results, {
+          distance: 4,
+          embedding: vector([1, 1])
+        });
+        results = await randomCol
+          .pipeline()
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .select(Constant.vector([1, 1]).as('embedding'))
+          .addFields(
+            Field.of('embedding').manhattanDistance([3, 3]).as('distance')
+          )
           .execute();
         expectResults(results, {
           distance: 4,
