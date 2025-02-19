@@ -540,6 +540,8 @@ toc:
     path: /docs/reference/js/vertexai.inlinedatapart.md
   - title: IntegerSchema
     path: /docs/reference/js/vertexai.integerschema.md
+  - title: ModalityTokenCount
+    path: /docs/reference/js/vertexai.modalitytokencount.md
   - title: ModelParams
     path: /docs/reference/js/vertexai.modelparams.md
   - title: NumberSchema
