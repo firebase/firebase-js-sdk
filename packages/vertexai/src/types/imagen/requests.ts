@@ -46,7 +46,7 @@ export interface ImagenModelParams {
 /**
  * Configuration options for generating images with Imagen.
  *
- * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation} for
+ * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images-imagen | documentation} for
  * more details.
  *
  * @beta
@@ -57,14 +57,14 @@ export interface ImagenGenerationConfig {
    *
    * Support for negative prompts depends on the Imagen model.
    *
-   * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation} for more details.
+   * See the {@link http://firebase.google.com/docs/vertex-ai/model-parameters#imagen | documentation} for more details.
    */
   negativePrompt?: string;
   /**
    * The number of images to generate. The default value is 1.
    *
    * The number of sample images that may be generated in each request depends on the model
-   * (typically up to 4); see the <a href="http://firebase.google.com/docs/vertex-ai/generate-images"><code>sampleCount</code></a>
+   * (typically up to 4); see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen"><code>sampleCount</code></a>
    * documentation for more details.
    */
   numberOfImages?: number;
@@ -86,7 +86,7 @@ export interface ImagenGenerationConfig {
    * If set to `true`, an invisible SynthID watermark is embedded in generated images to indicate
    * that they are AI generated. If set to `false`, watermarking will be disabled.
    *
-   * The default value depends on the Imagen model; see the <a href="http://firebase.google.com/docs/vertex-ai/generate-images"><code>addWatermark</code></a>
+   * For Imagen 3 models, the default value is `true`; see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen"><code>addWatermark</code></a>
    * documentation for more details.
    */
   addWatermark?: boolean;

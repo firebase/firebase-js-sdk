@@ -121,7 +121,7 @@ export interface PredictRequestBody {
  */
 export type ImagenGenerationParams = {
   /**
-   * The Cloud Storage (GCS) for Firebase URI where the images should be stored
+   * The Cloud Storage for Firebase bucket URI where the images should be stored
    * (for GCS requests only).
    */
   gcsURI?: string;

@@ -120,12 +120,12 @@ export class ImagenModel extends VertexAIModel {
   }
 
   /**
-   * Generates images to Cloud Storage (GCS) for Firebase using the Imagen model.
+   * Generates images to Cloud Storage for Firebase using the Imagen model.
    *
    * @internal This method is temporarily internal.
    *
    * @param prompt - A text prompt describing the image(s) to generate.
-   * @param gcsURI - The URI of file stored in a Cloud Storage (GCS) for Firebase bucket.
+   * @param gcsURI - The URI of file stored in a Cloud Storage for Firebase bucket.
    * This should be a directory. For example, `gs://my-bucket/my-directory/`.
    * @returns A promise that resolves to an <code>{@link ImagenGenerationResponse}</code>
    * object containing the URLs of the generated images.
