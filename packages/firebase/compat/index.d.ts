@@ -7370,7 +7370,10 @@ declare namespace firebase.database {
 
   interface ThenableReference
     extends firebase.database.Reference,
-      Pick<Promise<Reference>, 'then' | 'catch'> {}
+      Pick<Promise<Reference>, 'then' | 'catch'> {
+    key: string;
+    parent: Reference;
+  }
 
   /**
    * Logs debugging information to the console.
