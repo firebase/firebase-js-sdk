@@ -10,6 +10,12 @@ import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
 
 // @public
+export enum ApiVersion {
+    V1 = "v1",
+    V1BETA = "v1beta"
+}
+
+// @public
 export class ArraySchema extends Schema {
     constructor(schemaParams: SchemaParams, items: TypedSchema);
     // (undocumented)
@@ -505,6 +511,7 @@ export interface PromptFeedback {
 
 // @public
 export interface RequestOptions {
+    apiVersion?: ApiVersion;
     baseUrl?: string;
     timeout?: number;
 }
