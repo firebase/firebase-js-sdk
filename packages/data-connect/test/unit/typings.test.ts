@@ -18,7 +18,7 @@
 import { deleteApp, initializeApp } from '@firebase/app';
 import { DataConnect, getDataConnect, QueryRef, queryRef } from '../../src/api';
 describe('Typings', () => {
-  it('should properly infer the type', () => {
+  it('should properly infer the type', async () => {
     interface MyData {
       extraField: boolean;
     }
@@ -40,6 +40,6 @@ describe('Typings', () => {
       return { data };
     }
     myFn(extendedType).data.extraField;
-    deleteApp(app);
+    await deleteApp(app);
   });
 });
