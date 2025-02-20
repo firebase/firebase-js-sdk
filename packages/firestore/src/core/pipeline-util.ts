@@ -76,34 +76,55 @@ export function toPipelineFilterCondition(f: FilterInternal): FilterCondition {
       const value = f.value;
       switch (f.op) {
         case Operator.LESS_THAN:
-          return andFunction(field.exists(), field.lt(value));
+          return andFunction(
+            field.exists(),
+            field.lt(Constant._fromProto(value))
+          );
         case Operator.LESS_THAN_OR_EQUAL:
-          return andFunction(field.exists(), field.lte(value));
+          return andFunction(
+            field.exists(),
+            field.lte(Constant._fromProto(value))
+          );
         case Operator.GREATER_THAN:
-          return andFunction(field.exists(), field.gt(value));
+          return andFunction(
+            field.exists(),
+            field.gt(Constant._fromProto(value))
+          );
         case Operator.GREATER_THAN_OR_EQUAL:
-          return andFunction(field.exists(), field.gte(value));
+          return andFunction(
+            field.exists(),
+            field.gte(Constant._fromProto(value))
+          );
         case Operator.EQUAL:
-          return andFunction(field.exists(), field.eq(value));
+          return andFunction(
+            field.exists(),
+            field.eq(Constant._fromProto(value))
+          );
         case Operator.NOT_EQUAL:
-          return andFunction(field.exists(), field.neq(value));
+          return andFunction(
+            field.exists(),
+            field.neq(Constant._fromProto(value))
+          );
         case Operator.ARRAY_CONTAINS:
-          return andFunction(field.exists(), field.arrayContains(value));
+          return andFunction(
+            field.exists(),
+            field.arrayContains(Constant._fromProto(value))
+          );
         case Operator.IN: {
           const values = value?.arrayValue?.values?.map((val: any) =>
-            Constant.of(val)
+            Constant._fromProto(val)
           );
           return andFunction(field.exists(), field.eqAny(...values!));
         }
         case Operator.ARRAY_CONTAINS_ANY: {
           const values = value?.arrayValue?.values?.map((val: any) =>
-            Constant.of(val)
+            Constant._fromProto(val)
           );
           return andFunction(field.exists(), field.arrayContainsAny(values!));
         }
         case Operator.NOT_IN: {
           const values = value?.arrayValue?.values?.map((val: any) =>
-            Constant.of(val)
+            Constant._fromProto(val)
           );
           return andFunction(field.exists(), not(field.eqAny(...values!)));
         }

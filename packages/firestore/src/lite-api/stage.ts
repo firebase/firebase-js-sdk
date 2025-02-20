@@ -181,8 +181,16 @@ export class DocumentsSource implements Stage {
 
   constructor(private docPaths: string[]) {}
 
-  static of(refs: DocumentReference[]): DocumentsSource {
-    return new DocumentsSource(refs.map(ref => '/' + ref.path));
+  static of(refs: Array<string | DocumentReference>): DocumentsSource {
+    return new DocumentsSource(
+      refs.map(ref =>
+        ref instanceof DocumentReference
+          ? '/' + ref.path
+          : ref.startsWith('/')
+          ? ref
+          : '/' + ref
+      )
+    );
   }
 
   /**
@@ -376,14 +384,16 @@ export class Sort implements Stage {
  * @beta
  */
 export class GenericStage implements Stage {
-  constructor(public name: string, params: unknown[]) {}
+  constructor(public name: string, private params: Expr[]) {}
 
   /**
    * @internal
    * @private
    */
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
-    // TODO support generic stage
-    return {};
+    return {
+      name: this.name,
+      args: this.params.map(o => o._toProto(serializer))
+    };
   }
 }
