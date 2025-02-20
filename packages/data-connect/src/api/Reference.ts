@@ -30,11 +30,12 @@ export interface OpResult<Data> {
   fetchTime: string;
 }
 
-export interface OperationRef<_Data, Variables> {
+export interface OperationRef<Data, Variables> {
   name: string;
   variables: Variables;
   refType: ReferenceType;
   dataConnect: DataConnect;
+  __keepForTypingsOnly?: Data; // Never used, just here to ensure that the Data type doesn't get erased.
 }
 
 export interface DataConnectResult<Data, Variables> extends OpResult<Data> {
