@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ModelParams, VertexAIErrorCode } from './types';
+import { ImagenModelParams, ModelParams, VertexAIErrorCode } from './types';
 import { VertexAIError } from './errors';
-import { getGenerativeModel } from './api';
+import { ImagenModel, getGenerativeModel, getImagenModel } from './api';
 import { expect } from 'chai';
 import { VertexAI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
@@ -82,6 +82,56 @@ describe('Top level API', () => {
   it('getGenerativeModel gets a GenerativeModel', () => {
     const genModel = getGenerativeModel(fakeVertexAI, { model: 'my-model' });
     expect(genModel).to.be.an.instanceOf(GenerativeModel);
+    expect(genModel.model).to.equal('publishers/google/models/my-model');
+  });
+  it('getImagenModel throws if no model is provided', () => {
+    try {
+      getImagenModel(fakeVertexAI, {} as ImagenModelParams);
+    } catch (e) {
+      expect((e as VertexAIError).code).includes(VertexAIErrorCode.NO_MODEL);
+      expect((e as VertexAIError).message).includes(
+        `VertexAI: Must provide a model name. Example: ` +
+          `getImagenModel({ model: 'my-model-name' }) (vertexAI/${VertexAIErrorCode.NO_MODEL})`
+      );
+    }
+  });
+  it('getImagenModel throws if no apiKey is provided', () => {
+    const fakeVertexNoApiKey = {
+      ...fakeVertexAI,
+      app: { options: { projectId: 'my-project' } }
+    } as VertexAI;
+    try {
+      getImagenModel(fakeVertexNoApiKey, { model: 'my-model' });
+    } catch (e) {
+      expect((e as VertexAIError).code).includes(VertexAIErrorCode.NO_API_KEY);
+      expect((e as VertexAIError).message).equals(
+        `VertexAI: The "apiKey" field is empty in the local ` +
+          `Firebase config. Firebase VertexAI requires this field to` +
+          ` contain a valid API key. (vertexAI/${VertexAIErrorCode.NO_API_KEY})`
+      );
+    }
+  });
+  it('getImagenModel throws if no projectId is provided', () => {
+    const fakeVertexNoProject = {
+      ...fakeVertexAI,
+      app: { options: { apiKey: 'my-key' } }
+    } as VertexAI;
+    try {
+      getImagenModel(fakeVertexNoProject, { model: 'my-model' });
+    } catch (e) {
+      expect((e as VertexAIError).code).includes(
+        VertexAIErrorCode.NO_PROJECT_ID
+      );
+      expect((e as VertexAIError).message).equals(
+        `VertexAI: The "projectId" field is empty in the local` +
+          ` Firebase config. Firebase VertexAI requires this field ` +
+          `to contain a valid project ID. (vertexAI/${VertexAIErrorCode.NO_PROJECT_ID})`
+      );
+    }
+  });
+  it('getImagenModel gets an ImagenModel', () => {
+    const genModel = getImagenModel(fakeVertexAI, { model: 'my-model' });
+    expect(genModel).to.be.an.instanceOf(ImagenModel);
     expect(genModel.model).to.equal('publishers/google/models/my-model');
   });
 });

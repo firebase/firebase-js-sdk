@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2024 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,6 @@
  * limitations under the License.
  */
 
-import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
-import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
-
-export * from './imagen/internal';
-
-export interface ApiSettings {
-  apiKey: string;
-  project: string;
-  location: string;
-  getAuthToken?: () => Promise<FirebaseAuthTokenData | null>;
-  getAppCheckToken?: () => Promise<AppCheckTokenResult>;
-}
+export * from './vertexai-model';
+export * from './generative-model';
+export * from './imagen-model';

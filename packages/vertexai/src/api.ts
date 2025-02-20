@@ -21,15 +21,19 @@ import { getModularInstance } from '@firebase/util';
 import { DEFAULT_LOCATION, VERTEX_TYPE } from './constants';
 import { VertexAIService } from './service';
 import { VertexAI, VertexAIOptions } from './public-types';
-import { ModelParams, RequestOptions, VertexAIErrorCode } from './types';
+import {
+  ImagenModelParams,
+  ModelParams,
+  RequestOptions,
+  VertexAIErrorCode
+} from './types';
 import { VertexAIError } from './errors';
-import { GenerativeModel } from './models/generative-model';
+import { VertexAIModel, GenerativeModel, ImagenModel } from './models';
 
 export { ChatSession } from './methods/chat-session';
 export * from './requests/schema-builder';
-
-export { GenerativeModel };
-
+export { ImagenImageFormat } from './requests/imagen-image-format';
+export { VertexAIModel, GenerativeModel, ImagenModel };
 export { VertexAIError };
 
 declare module '@firebase/component' {
@@ -76,4 +80,32 @@ export function getGenerativeModel(
     );
   }
   return new GenerativeModel(vertexAI, modelParams, requestOptions);
+}
+
+/**
+ * Returns an <code>{@link ImagenModel}</code> class with methods for using Imagen.
+ *
+ * Only Imagen 3 models (named `imagen-3.0-*`) are supported.
+ *
+ * @param vertexAI - An instance of the Vertex AI in Firebase SDK.
+ * @param modelParams - Parameters to use when making Imagen requests.
+ * @param requestOptions - Additional options to use when making requests.
+ *
+ * @throws If the `apiKey` or `projectId` fields are missing in your
+ * Firebase config.
+ *
+ * @beta
+ */
+export function getImagenModel(
+  vertexAI: VertexAI,
+  modelParams: ImagenModelParams,
+  requestOptions?: RequestOptions
+): ImagenModel {
+  if (!modelParams.model) {
+    throw new VertexAIError(
+      VertexAIErrorCode.NO_MODEL,
+      `Must provide a model name. Example: getImagenModel({ model: 'my-model-name' })`
+    );
+  }
+  return new ImagenModel(vertexAI, modelParams, requestOptions);
 }

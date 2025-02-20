@@ -536,6 +536,22 @@ toc:
     path: /docs/reference/js/vertexai.groundingattribution.md
   - title: GroundingMetadata
     path: /docs/reference/js/vertexai.groundingmetadata.md
+  - title: ImagenGCSImage
+    path: /docs/reference/js/vertexai.imagengcsimage.md
+  - title: ImagenGenerationConfig
+    path: /docs/reference/js/vertexai.imagengenerationconfig.md
+  - title: ImagenGenerationResponse
+    path: /docs/reference/js/vertexai.imagengenerationresponse.md
+  - title: ImagenImageFormat
+    path: /docs/reference/js/vertexai.imagenimageformat.md
+  - title: ImagenInlineImage
+    path: /docs/reference/js/vertexai.imageninlineimage.md
+  - title: ImagenModel
+    path: /docs/reference/js/vertexai.imagenmodel.md
+  - title: ImagenModelParams
+    path: /docs/reference/js/vertexai.imagenmodelparams.md
+  - title: ImagenSafetySettings
+    path: /docs/reference/js/vertexai.imagensafetysettings.md
   - title: InlineDataPart
     path: /docs/reference/js/vertexai.inlinedatapart.md
   - title: IntegerSchema
@@ -584,6 +600,8 @@ toc:
     path: /docs/reference/js/vertexai.vertexai.md
   - title: VertexAIError
     path: /docs/reference/js/vertexai.vertexaierror.md
+  - title: VertexAIModel
+    path: /docs/reference/js/vertexai.vertexaimodel.md
   - title: VertexAIOptions
     path: /docs/reference/js/vertexai.vertexaioptions.md
   - title: VideoMetadata

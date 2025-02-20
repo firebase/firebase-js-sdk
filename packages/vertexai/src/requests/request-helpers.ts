@@ -22,6 +22,7 @@ import {
   VertexAIErrorCode
 } from '../types';
 import { VertexAIError } from '../errors';
+import { ImagenGenerationParams, PredictRequestBody } from '../types/internal';
 
 export function formatSystemInstruction(
   input?: string | Part | Content
@@ -123,4 +124,45 @@ export function formatGenerateContentInput(
     );
   }
   return formattedRequest;
+}
+
+/**
+ * Convert the user-defined parameters in <code>{@link ImagenGenerationParams}</code> to the format
+ * that is expected from the REST API.
+ *
+ * @internal
+ */
+export function createPredictRequestBody(
+  prompt: string,
+  {
+    gcsURI,
+    imageFormat,
+    addWatermark,
+    numberOfImages = 1,
+    negativePrompt,
+    aspectRatio,
+    safetyFilterLevel,
+    personFilterLevel
+  }: ImagenGenerationParams
+): PredictRequestBody {
+  // Properties that are undefined will be omitted from the JSON string that is sent in the request.
+  const body: PredictRequestBody = {
+    instances: [
+      {
+        prompt
+      }
+    ],
+    parameters: {
+      storageUri: gcsURI,
+      negativePrompt,
+      sampleCount: numberOfImages,
+      aspectRatio,
+      outputOptions: imageFormat,
+      addWatermark,
+      safetyFilterLevel,
+      personGeneration: personFilterLevel,
+      includeRaiReason: true
+    }
+  };
+  return body;
 }
