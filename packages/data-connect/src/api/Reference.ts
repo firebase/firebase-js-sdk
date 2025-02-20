@@ -30,12 +30,14 @@ export interface OpResult<Data> {
   fetchTime: string;
 }
 
+const fdcSymbol = Symbol();
+
 export interface OperationRef<Data, Variables> {
   name: string;
   variables: Variables;
   refType: ReferenceType;
   dataConnect: DataConnect;
-  __keepForTypingsOnly?: Data; // Never used, just here to ensure that the Data type doesn't get erased.
+  [fdcSymbol]: Data; // Never used, just here to ensure that the Data type doesn't get erased.
 }
 
 export interface DataConnectResult<Data, Variables> extends OpResult<Data> {
