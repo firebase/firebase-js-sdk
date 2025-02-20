@@ -19,6 +19,7 @@ import { Integer } from '@firebase/webchannel-wrapper/bloom-blob';
 
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
+import { compareUtf8Strings, primitiveComparator } from '../util/misc';
 
 export const DOCUMENT_KEY_NAME = '__name__';
 
@@ -181,7 +182,7 @@ abstract class BasePath<B extends BasePath<B>> {
         return comparison;
       }
     }
-    return Math.sign(p1.length - p2.length);
+    return primitiveComparator(p1.length, p2.length);
   }
 
   private static compareSegments(lhs: string, rhs: string): number {
@@ -201,13 +202,7 @@ abstract class BasePath<B extends BasePath<B>> {
       );
     } else {
       // both non-numeric
-      if (lhs < rhs) {
-        return -1;
-      }
-      if (lhs > rhs) {
-        return 1;
-      }
-      return 0;
+      return compareUtf8Strings(lhs, rhs);
     }
   }
 

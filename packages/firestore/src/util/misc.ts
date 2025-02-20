@@ -16,6 +16,7 @@
  */
 
 import { randomBytes } from '../platform/random_bytes';
+import { newTextEncoder } from '../platform/text_serializer';
 
 import { debugAssert } from './assert';
 
@@ -72,6 +73,52 @@ export function primitiveComparator<T>(left: T, right: T): number {
 
 export interface Equatable<T> {
   isEqual(other: T): boolean;
+}
+
+/** Compare strings in UTF-8 encoded byte order */
+export function compareUtf8Strings(left: string, right: string): number {
+  for (let i = 0; i < left.length && i < right.length; i++) {
+    const leftCodePoint = left.codePointAt(i)!;
+    const rightCodePoint = right.codePointAt(i)!;
+
+    if (leftCodePoint !== rightCodePoint) {
+      if (leftCodePoint < 128 && rightCodePoint < 128) {
+        // ASCII comparison
+        return primitiveComparator(leftCodePoint, rightCodePoint);
+      } else {
+        // Lazy instantiate TextEncoder
+        const encoder = newTextEncoder();
+
+        // Substring and do UTF-8 encoded byte comparison
+        const leftBytes = encoder.encode(getUtf8SafeSubstring(left, i));
+        const rightBytes = encoder.encode(getUtf8SafeSubstring(right, i));
+        for (
+          let j = 0;
+          j < Math.min(leftBytes.length, rightBytes.length);
+          j++
+        ) {
+          const comp = primitiveComparator(leftBytes[j], rightBytes[j]);
+          if (comp !== 0) {
+            return comp;
+          }
+        }
+      }
+    }
+  }
+
+  // Compare lengths if all characters are equal
+  return primitiveComparator(left.length, right.length);
+}
+
+function getUtf8SafeSubstring(str: string, index: number): string {
+  const firstCodePoint = str.codePointAt(index)!;
+  if (firstCodePoint > 0xffff) {
+    // It's a surrogate pair, return the whole pair
+    return str.substring(index, index + 2);
+  } else {
+    // It's a single code point, return it
+    return str.substring(index, index + 1);
+  }
 }
 
 export interface Iterable<V> {
