@@ -440,7 +440,7 @@
     "gulp-sourcemaps": "3.0.0",
     "gulp-replace": "1.1.4",
     "typescript": "5.5.4",
-    "rollup-plugin-license": "3.5.3"
+    "rollup-plugin-license": "3.6.0"
   },
   "components": [
     "analytics",
