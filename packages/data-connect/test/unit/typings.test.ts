@@ -15,14 +15,20 @@
  * limitations under the License.
  */
 
-import { DataConnect, QueryRef, queryRef } from '../../src/api';
+import { deleteApp, initializeApp } from '@firebase/app';
+import { DataConnect, getDataConnect, QueryRef, queryRef } from '../../src/api';
 describe('Typings', () => {
   it('should properly infer the type', () => {
     interface MyData {
       extraField: boolean;
     }
+    const app = initializeApp({ projectId: 'a' }, 'test');
     const extendedType = Object.assign(
-      queryRef<MyData, undefined>({} as DataConnect, '', undefined),
+      queryRef<MyData, undefined>(
+        getDataConnect({ connector: 'c', location: 'l', service: 'n' }),
+        '',
+        undefined
+      ),
       {
         __abc: true
       }
@@ -34,5 +40,6 @@ describe('Typings', () => {
       return { data };
     }
     myFn(extendedType).data.extraField;
+    deleteApp(app);
   });
 });
