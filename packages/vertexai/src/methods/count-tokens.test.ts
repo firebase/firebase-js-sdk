@@ -66,6 +66,33 @@ describe('countTokens()', () => {
       undefined
     );
   });
+  it('total tokens with modality details', async () => {
+    const mockResponse = getMockResponse(
+      'unary-success-detailed-token-response.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    const result = await countTokens(
+      fakeApiSettings,
+      'model',
+      fakeRequestParams
+    );
+    expect(result.totalTokens).to.equal(1837);
+    expect(result.totalBillableCharacters).to.equal(117);
+    expect(result.promptTokensDetails?.[0].modality).to.equal('IMAGE');
+    expect(result.promptTokensDetails?.[0].tokenCount).to.equal(1806);
+    expect(makeRequestStub).to.be.calledWith(
+      'model',
+      Task.COUNT_TOKENS,
+      fakeApiSettings,
+      false,
+      match((value: string) => {
+        return value.includes('contents');
+      }),
+      undefined
+    );
+  });
   it('total tokens no billable characters', async () => {
     const mockResponse = getMockResponse(
       'unary-success-no-billable-characters.json'

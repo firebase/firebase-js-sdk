@@ -48,6 +48,7 @@ The Vertex AI in Firebase Web SDK.
 |  [HarmCategory](./vertexai.md#harmcategory) | Harm categories that would cause prompts or candidates to be blocked. |
 |  [HarmProbability](./vertexai.md#harmprobability) | Probability that a prompt or candidate matches a harm category. |
 |  [HarmSeverity](./vertexai.md#harmseverity) | Harm severity levels. |
+|  [Modality](./vertexai.md#modality) | Content part modality. |
 |  [SchemaType](./vertexai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
 |  [VertexAIErrorCode](./vertexai.md#vertexaierrorcode) | Standardized error codes that <code>[VertexAIError](./vertexai.vertexaierror.md#vertexaierror_class)</code> can have. |
 
@@ -84,6 +85,7 @@ The Vertex AI in Firebase Web SDK.
 |  [GroundingAttribution](./vertexai.groundingattribution.md#groundingattribution_interface) |  |
 |  [GroundingMetadata](./vertexai.groundingmetadata.md#groundingmetadata_interface) | Metadata returned to client when grounding is enabled. |
 |  [InlineDataPart](./vertexai.inlinedatapart.md#inlinedatapart_interface) | Content part interface if the part represents an image. |
+|  [ModalityTokenCount](./vertexai.modalitytokencount.md#modalitytokencount_interface) | Represents token counting info for a single modality. |
 |  [ModelParams](./vertexai.modelparams.md#modelparams_interface) | Params passed to <code>[getGenerativeModel()](./vertexai.md#getgenerativemodel_e3037c9)</code>. |
 |  [ObjectSchemaInterface](./vertexai.objectschemainterface.md#objectschemainterface_interface) | Interface for <code>[ObjectSchema](./vertexai.objectschema.md#objectschema_class)</code> class. |
 |  [PromptFeedback](./vertexai.promptfeedback.md#promptfeedback_interface) | If the prompt was blocked, this will be populated with <code>blockReason</code> and the relevant <code>safetyRatings</code>. |
@@ -362,6 +364,27 @@ export declare enum HarmSeverity
 |  HARM\_SEVERITY\_LOW | <code>&quot;HARM_SEVERITY_LOW&quot;</code> |  |
 |  HARM\_SEVERITY\_MEDIUM | <code>&quot;HARM_SEVERITY_MEDIUM&quot;</code> |  |
 |  HARM\_SEVERITY\_NEGLIGIBLE | <code>&quot;HARM_SEVERITY_NEGLIGIBLE&quot;</code> |  |
+
+## Modality
+
+Content part modality.
+
+<b>Signature:</b>
+
+```typescript
+export declare enum Modality 
+```
+
+## Enumeration Members
+
+|  Member | Value | Description |
+|  --- | --- | --- |
+|  AUDIO | <code>&quot;AUDIO&quot;</code> | Audio. |
+|  DOCUMENT | <code>&quot;DOCUMENT&quot;</code> | Document, e.g. PDF. |
+|  IMAGE | <code>&quot;IMAGE&quot;</code> | Image. |
+|  MODALITY\_UNSPECIFIED | <code>&quot;MODALITY_UNSPECIFIED&quot;</code> | Unspecified modality. |
+|  TEXT | <code>&quot;TEXT&quot;</code> | Plain text. |
+|  VIDEO | <code>&quot;VIDEO&quot;</code> | Video. |
 
 ## SchemaType
 

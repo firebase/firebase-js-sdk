@@ -102,6 +102,40 @@ describe('generateContent()', () => {
       match.any
     );
   });
+  it('long response with token details', async () => {
+    const mockResponse = getMockResponse(
+      'unary-success-basic-response-long-usage-metadata.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    const result = await generateContent(
+      fakeApiSettings,
+      'model',
+      fakeRequestParams
+    );
+    expect(result.response.usageMetadata?.totalTokenCount).to.equal(1913);
+    expect(result.response.usageMetadata?.candidatesTokenCount).to.equal(76);
+    expect(
+      result.response.usageMetadata?.promptTokensDetails?.[0].modality
+    ).to.equal('IMAGE');
+    expect(
+      result.response.usageMetadata?.promptTokensDetails?.[0].tokenCount
+    ).to.equal(1806);
+    expect(
+      result.response.usageMetadata?.candidatesTokensDetails?.[0].modality
+    ).to.equal('TEXT');
+    expect(
+      result.response.usageMetadata?.candidatesTokensDetails?.[0].tokenCount
+    ).to.equal(76);
+    expect(makeRequestStub).to.be.calledWith(
+      'model',
+      Task.GENERATE_CONTENT,
+      fakeApiSettings,
+      false,
+      match.any
+    );
+  });
   it('citations', async () => {
     const mockResponse = getMockResponse('unary-success-citations.json');
     const makeRequestStub = stub(request, 'makeRequest').resolves(
