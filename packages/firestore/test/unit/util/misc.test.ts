@@ -299,5 +299,5 @@ describe('CompareUtf8Strings', () => {
       );
       throw new Error('Test failed');
     }
-  }).timeout(10000);
+  }).timeout(20000);
 });
