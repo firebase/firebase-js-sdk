@@ -21,7 +21,16 @@ import { VertexAIService } from '../service';
 import { ApiSettings } from '../types/internal';
 import { _isFirebaseServerApp } from '@firebase/app';
 
+/**
+ * Base class for Vertex AI in Firebase model APIs.
+ *
+ * @public
+ */
 export abstract class VertexAIModel {
+  /**
+   * The fully qualified model resource name to use for generating images
+   * (for example, `publishers/google/models/imagen-3.0-generate-002`).
+   */
   readonly model: string;
 
   /**

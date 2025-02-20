@@ -10,6 +10,13 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ImagenModel class
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Class for Imagen model APIs.
+
+This class provides methods for generating images using the Imagen model.
+
 <b>Signature:</b>
 
 ```typescript
@@ -21,26 +28,28 @@ export declare class ImagenModel extends VertexAIModel
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(vertexAI, modelParams, requestOptions)](./vertexai.imagenmodel.md#imagenmodelconstructor) |  | Constructs a new instance of the <code>ImagenModel</code> class |
+|  [(constructor)(vertexAI, modelParams, requestOptions)](./vertexai.imagenmodel.md#imagenmodelconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the <code>[ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)</code> class. |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [generationConfig](./vertexai.imagenmodel.md#imagenmodelgenerationconfig) |  | [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface) |  |
-|  [requestOptions](./vertexai.imagenmodel.md#imagenmodelrequestoptions) |  | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) \| undefined |  |
-|  [safetySettings](./vertexai.imagenmodel.md#imagenmodelsafetysettings) |  | [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) |  |
+|  [generationConfig](./vertexai.imagenmodel.md#imagenmodelgenerationconfig) |  | [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface) | <b><i>(Public Preview)</i></b> The Imagen generation configuration. |
+|  [requestOptions](./vertexai.imagenmodel.md#imagenmodelrequestoptions) |  | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) \| undefined | <b><i>(Public Preview)</i></b> |
+|  [safetySettings](./vertexai.imagenmodel.md#imagenmodelsafetysettings) |  | [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) | <b><i>(Public Preview)</i></b> Safety settings for filtering inappropriate content. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [generateImages(prompt)](./vertexai.imagenmodel.md#imagenmodelgenerateimages) |  |  |
-|  [generateImagesGCS(prompt, gcsURI)](./vertexai.imagenmodel.md#imagenmodelgenerateimagesgcs) |  |  |
+|  [generateImages(prompt)](./vertexai.imagenmodel.md#imagenmodelgenerateimages) |  | <b><i>(Public Preview)</i></b> Generates images using the Imagen model and returns them as base64-encoded strings. |
 
 ## ImagenModel.(constructor)
 
-Constructs a new instance of the `ImagenModel` class
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Constructs a new instance of the <code>[ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)</code> class.
 
 <b>Signature:</b>
 
@@ -52,11 +61,20 @@ constructor(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?:
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  vertexAI | [VertexAI](./vertexai.vertexai.md#vertexai_interface) |  |
-|  modelParams | [ImagenModelParams](./vertexai.imagenmodelparams.md#imagenmodelparams_interface) |  |
-|  requestOptions | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) \| undefined |  |
+|  vertexAI | [VertexAI](./vertexai.vertexai.md#vertexai_interface) | An instance of the Vertex AI in Firebase SDK. |
+|  modelParams | [ImagenModelParams](./vertexai.imagenmodelparams.md#imagenmodelparams_interface) | Parameters to use when making requests to Imagen. |
+|  requestOptions | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) \| undefined | Additional options to use when making requests. |
+
+#### Exceptions
+
+If the `apiKey` or `projectId` fields are missing in your Firebase config.
 
 ## ImagenModel.generationConfig
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+The Imagen generation configuration.
 
 <b>Signature:</b>
 
@@ -66,6 +84,9 @@ generationConfig?: ImagenGenerationConfig;
 
 ## ImagenModel.requestOptions
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 <b>Signature:</b>
 
 ```typescript
@@ -74,6 +95,11 @@ requestOptions?: RequestOptions | undefined;
 
 ## ImagenModel.safetySettings
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Safety settings for filtering inappropriate content.
+
 <b>Signature:</b>
 
 ```typescript
@@ -81,6 +107,13 @@ safetySettings?: ImagenSafetySettings;
 ```
 
 ## ImagenModel.generateImages()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Generates images using the Imagen model and returns them as base64-encoded strings.
+
+If the prompt was not blocked, but one or more of the generated images were filtered, the returned object will have a `filteredReason` property. If all images are filtered, the `images` array will be empty.
 
 <b>Signature:</b>
 
@@ -92,28 +125,33 @@ generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineIma
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  prompt | string |  |
+|  prompt | string | A text prompt describing the image(s) to generate. |
 
 <b>Returns:</b>
 
 Promise&lt;[ImagenGenerationResponse](./vertexai.imagengenerationresponse.md#imagengenerationresponse_interface)<!-- -->&lt;[ImagenInlineImage](./vertexai.imageninlineimage.md#imageninlineimage_interface)<!-- -->&gt;&gt;
 
-## ImagenModel.generateImagesGCS()
+A promise that resolves to an <code>[ImagenGenerationResponse](./vertexai.imagengenerationresponse.md#imagengenerationresponse_interface)</code> object containing the generated images.
 
-<b>Signature:</b>
+#### Exceptions
 
-```typescript
-generateImagesGCS(prompt: string, gcsURI: string): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
+If the request to generate images fails. This happens if the prompt is blocked.
+
+### Example
+
+
+```javascript
+const imagen = new ImagenModel(
+  vertexAI,
+  {
+    model: 'imagen-3.0-generate-002'
+  }
+);
+
+const response = await imagen.generateImages('A photo of a cat');
+if (response.images.length > 0) {
+  console.log(response.images[0].bytesBase64Encoded);
+}
+
 ```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  prompt | string |  |
-|  gcsURI | string |  |
-
-<b>Returns:</b>
-
-Promise&lt;[ImagenGenerationResponse](./vertexai.imagengenerationresponse.md#imagengenerationresponse_interface)<!-- -->&lt;[ImagenGCSImage](./vertexai.imagengcsimage.md#imagengcsimage_interface)<!-- -->&gt;&gt;
 

@@ -10,6 +10,13 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ImagenSafetySettings interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Settings for controlling the aggressiveness of filtering out sensitive content.
+
+See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,10 +27,15 @@ export interface ImagenSafetySettings
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [personFilterLevel](./vertexai.imagensafetysettings.md#imagensafetysettingspersonfilterlevel) | [ImagenPersonFilterLevel](./vertexai.md#imagenpersonfilterlevel) |  |
-|  [safetyFilterLevel](./vertexai.imagensafetysettings.md#imagensafetysettingssafetyfilterlevel) | [ImagenSafetyFilterLevel](./vertexai.md#imagensafetyfilterlevel) |  |
+|  [personFilterLevel](./vertexai.imagensafetysettings.md#imagensafetysettingspersonfilterlevel) | [ImagenPersonFilterLevel](./vertexai.md#imagenpersonfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling whether generation of images containing people or faces is allowed. |
+|  [safetyFilterLevel](./vertexai.imagensafetysettings.md#imagensafetysettingssafetyfilterlevel) | [ImagenSafetyFilterLevel](./vertexai.md#imagensafetyfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling how aggressive to filter out sensitive content from generated images. |
 
 ## ImagenSafetySettings.personFilterLevel
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+A filter level controlling whether generation of images containing people or faces is allowed.
 
 <b>Signature:</b>
 
@@ -32,6 +44,11 @@ personFilterLevel?: ImagenPersonFilterLevel;
 ```
 
 ## ImagenSafetySettings.safetyFilterLevel
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+A filter level controlling how aggressive to filter out sensitive content from generated images.
 
 <b>Signature:</b>
 
