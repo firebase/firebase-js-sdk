@@ -89,6 +89,7 @@ export function compareUtf8Strings(left: string, right: string): number {
         // Lazy instantiate TextEncoder
         const encoder = newTextEncoder();
 
+        // Substring and do UTF-8 encoded byte comparison
         const leftBytes = encoder.encode(getUtf8SafeSubstring(left, i));
         const rightBytes = encoder.encode(getUtf8SafeSubstring(right, i));
         for (
@@ -96,9 +97,9 @@ export function compareUtf8Strings(left: string, right: string): number {
           j < Math.min(leftBytes.length, rightBytes.length);
           j++
         ) {
-          const comparison = primitiveComparator(leftBytes[j], rightBytes[j]);
-          if (comparison !== 0) {
-            return comparison;
+          const comp = primitiveComparator(leftBytes[j], rightBytes[j]);
+          if (comp !== 0) {
+            return comp;
           }
         }
       }

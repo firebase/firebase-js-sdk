@@ -267,7 +267,7 @@ class StringBuilder {
 }
 
 describe('CompareUtf8Strings', () => {
-  it('testCompareUtf8Strings', () => {
+  it('compareUtf8Strings should return correct results', () => {
     const errors = [];
     const seed = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
     let passCount = 0;
