@@ -27,7 +27,9 @@ describe('Typings', () => {
         __abc: true
       }
     );
-    function myFn<Data, Variables>(queryRef: QueryRef<Data, Variables>): { data: Data } {
+    function myFn<Data, Variables>(
+      queryRef: QueryRef<Data, Variables>
+    ): { data: Data } {
       const data = {} as Data;
       return { data };
     }
