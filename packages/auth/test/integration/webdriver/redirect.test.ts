@@ -332,7 +332,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
       expect(user.email).to.eq(user1.email);
     });
 
-    it('reauthenticate throws for wrong user', async function () {
+    it('reauthenticate throws for wrong user', async () => {
       // Sign in using pre-populated user
       await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
 
@@ -355,7 +355,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
       );
     });
 
-    it('handles aborted sign ins', async function () {
+    it('handles aborted sign ins', async () => {
       await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
       const widget = new IdPPage(driver.webDriver);
 
