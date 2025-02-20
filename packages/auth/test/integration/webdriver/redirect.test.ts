@@ -333,10 +333,6 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     });
 
     it('reauthenticate throws for wrong user', async function () {
-      // Test is ignored for now as it fails on Chrome version 111+.
-      // TODO(b/297245662): Investigate and unskip the test.
-      this.skip();
-
       // Sign in using pre-populated user
       await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
 
@@ -360,10 +356,6 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     });
 
     it('handles aborted sign ins', async function () {
-      // Test is ignored for now as it fails on Chrome version 111+.
-      // TODO(b/297245662): Investigate and unskip the test.
-      this.skip();
-
       await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
       const widget = new IdPPage(driver.webDriver);
 
