@@ -55,7 +55,7 @@ describe('FieldMask', () => {
 });
 
 class StringPair {
-  constructor(public s1: string, public s2: string) {}
+  constructor(readonly s1: string, readonly s2: string) {}
 }
 
 class StringPairGenerator {
