@@ -124,7 +124,9 @@ export type OnErrorSubscription = (err?: FirebaseError) => void;
 export type OnResultSubscription<Data, Variables> = (res: QueryResult<Data, Variables>) => void;
 
 // @public (undocumented)
-export interface OperationRef<_Data, Variables> {
+export interface OperationRef<Data, Variables> {
+    // (undocumented)
+    __keepForTypingsOnly?: Data;
     // (undocumented)
     dataConnect: DataConnect;
     // (undocumented)
