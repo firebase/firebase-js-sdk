@@ -207,7 +207,6 @@ export function formatBlockErrorMessage(
  *
  * @internal
  */
-
 export async function handlePredictResponse<
   T extends ImagenInlineImage | ImagenGCSImage
 >(response: Response): Promise<{ images: T[]; filteredReason?: string }> {

@@ -50,11 +50,11 @@ export function formatNewContent(
   if (typeof request === 'string') {
     newParts = [{ text: request }];
   } else {
-    for (const elem of request) {
-      if (typeof elem === 'string') {
-        newParts.push({ text: elem });
+    for (const partOrString of request) {
+      if (typeof partOrString === 'string') {
+        newParts.push({ text: partOrString });
       } else {
-        newParts.push(elem);
+        newParts.push(partOrString);
       }
     }
   }
@@ -114,6 +114,7 @@ export function formatGenerateContentInput(
   if ((params as GenerateContentRequest).contents) {
     formattedRequest = params as GenerateContentRequest;
   } else {
+    // Array or string
     const content = formatNewContent(params as string | Array<string | Part>);
     formattedRequest = { contents: [content] };
   }
