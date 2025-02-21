@@ -41,8 +41,7 @@ export class Pipeline extends LitePipeline {
     db: Firestore,
     userDataReader: UserDataReader,
     userDataWriter: AbstractUserDataWriter,
-    stages: Stage[],
-    converter: unknown = {}
+    stages: Stage[]
   ): Pipeline {
     return new Pipeline(db, userDataReader, userDataWriter, stages);
   }

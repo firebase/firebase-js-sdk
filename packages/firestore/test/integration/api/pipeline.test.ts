@@ -18,19 +18,20 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { Bytes, getFirestore, terminate, vector } from '../../../src/api';
+import { addEqualityMatcher } from '../../util/equality_matcher';
+import { Deferred } from '../../util/promise';
 import {
+  GeoPoint,
+  Timestamp,
   array,
   descending,
   genericFunction,
   isNan,
-  map
-} from '../../../src/lite-api/expressions';
-import { GeoPoint } from '../../../src/lite-api/geo_point';
-import { Timestamp } from '../../../src/lite-api/timestamp';
-import { addEqualityMatcher } from '../../util/equality_matcher';
-import { Deferred } from '../../util/promise';
-import {
+  map,
+  Bytes,
+  getFirestore,
+  terminate,
+  vector,
   pipeline,
   execute,
   _internalPipelineToExecutePipelineRequestProto,
@@ -91,7 +92,8 @@ import {
   mapMerge,
   documentIdFunction,
   substr,
-  manhattanDistance
+  manhattanDistance,
+  documentId
 } from '../util/firebase_export';
 import { apiDescribe, withTestCollection } from '../util/helpers';
 
@@ -901,6 +903,197 @@ apiDescribe.only('Pipelines', persistence => {
           },
           {
             rating: 4.0
+          }
+        );
+      });
+    });
+
+    describe('replace stage', () => {
+      it('run pipleine with replace', async () => {
+        const results = await randomCol
+          .pipeline()
+          .where(eq('title', "The Hitchhiker's Guide to the Galaxy"))
+          .replaceWith('awards')
+          .execute();
+        expectResults(results, {
+          hugo: true,
+          nebula: false,
+          others: { unknown: { year: 1980 } }
+        });
+      });
+    });
+
+    describe('sample stage', () => {
+      it('run pipeline with sample limit of 3', async () => {
+        const results = await randomCol.pipeline().sample(3).execute();
+        expect(results.length).to.equal(3);
+      });
+
+      it('run pipeline with sample limit of {documents: 3}', async () => {
+        const results = await randomCol
+          .pipeline()
+          .sample({ documents: 3 })
+          .execute();
+        expect(results.length).to.equal(3);
+      });
+
+      it('run pipeline with sample limit of {percentage: 0.6}', async () => {
+        let avgSize = 0;
+        const numIterations = 20;
+        for (let i = 0; i < numIterations; i++) {
+          const results = await randomCol
+            .pipeline()
+            .sample({ percentage: 0.6 })
+            .execute();
+
+          avgSize += results.length;
+        }
+        avgSize /= numIterations;
+        expect(avgSize).to.be.closeTo(6, 1);
+      });
+    });
+
+    describe('union stage', () => {
+      it('run pipeline with union', async () => {
+        const results = await randomCol
+          .pipeline()
+          .union(randomCol.pipeline())
+          .sort(Field.of(documentId()).ascending())
+          .execute();
+        expectResults(
+          results,
+          'book1',
+          'book1',
+          'book10',
+          'book10',
+          'book2',
+          'book2',
+          'book3',
+          'book3',
+          'book4',
+          'book4',
+          'book5',
+          'book5',
+          'book6',
+          'book6',
+          'book7',
+          'book7',
+          'book8',
+          'book8',
+          'book9',
+          'book9'
+        );
+      });
+    });
+
+    describe('unnest stage', () => {
+      it('run pipeline with unnest', async () => {
+        const results = await randomCol
+          .pipeline()
+          .where(eq('title', "The Hitchhiker's Guide to the Galaxy"))
+          .unnest(Field.of('tags').as('tag'))
+          .execute();
+        expectResults(
+          results,
+          {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            author: 'Douglas Adams',
+            genre: 'Science Fiction',
+            published: 1979,
+            rating: 4.2,
+            tags: ['comedy', 'space', 'adventure'],
+            tag: 'comedy',
+            awards: {
+              hugo: true,
+              nebula: false,
+              others: { unknown: { year: 1980 } }
+            },
+            nestedField: { 'level.1': { 'level.2': true } }
+          },
+          {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            author: 'Douglas Adams',
+            genre: 'Science Fiction',
+            published: 1979,
+            rating: 4.2,
+            tags: ['comedy', 'space', 'adventure'],
+            tag: 'space',
+            awards: {
+              hugo: true,
+              nebula: false,
+              others: { unknown: { year: 1980 } }
+            },
+            nestedField: { 'level.1': { 'level.2': true } }
+          },
+          {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            author: 'Douglas Adams',
+            genre: 'Science Fiction',
+            published: 1979,
+            rating: 4.2,
+            tags: ['comedy', 'space', 'adventure'],
+            tag: 'adventure',
+            awards: {
+              hugo: true,
+              nebula: false,
+              others: { unknown: { year: 1980 } }
+            },
+            nestedField: { 'level.1': { 'level.2': true } }
+          }
+        );
+      });
+      it('unnest an expr', async () => {
+        const results = await randomCol
+          .pipeline()
+          .where(eq('title', "The Hitchhiker's Guide to the Galaxy"))
+          .unnest(array([1, 2, 3]).as('copy'))
+          .execute();
+        expectResults(
+          results,
+          {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            author: 'Douglas Adams',
+            genre: 'Science Fiction',
+            published: 1979,
+            rating: 4.2,
+            tags: ['comedy', 'space', 'adventure'],
+            copy: 1,
+            awards: {
+              hugo: true,
+              nebula: false,
+              others: { unknown: { year: 1980 } }
+            },
+            nestedField: { 'level.1': { 'level.2': true } }
+          },
+          {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            author: 'Douglas Adams',
+            genre: 'Science Fiction',
+            published: 1979,
+            rating: 4.2,
+            tags: ['comedy', 'space', 'adventure'],
+            copy: 2,
+            awards: {
+              hugo: true,
+              nebula: false,
+              others: { unknown: { year: 1980 } }
+            },
+            nestedField: { 'level.1': { 'level.2': true } }
+          },
+          {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            author: 'Douglas Adams',
+            genre: 'Science Fiction',
+            published: 1979,
+            rating: 4.2,
+            tags: ['comedy', 'space', 'adventure'],
+            copy: 3,
+            awards: {
+              hugo: true,
+              nebula: false,
+              others: { unknown: { year: 1980 } }
+            },
+            nestedField: { 'level.1': { 'level.2': true } }
           }
         );
       });

@@ -25,6 +25,7 @@ import {
   JsonProtoSerializer,
   ProtoSerializable,
   toMapValue,
+  toPipelineValue,
   toStringValue
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
@@ -36,6 +37,7 @@ import {
   FilterCondition,
   Ordering
 } from './expressions';
+import { Pipeline } from './pipeline';
 import { DocumentReference } from './reference';
 import { VectorValue } from './vector_value';
 
@@ -62,6 +64,26 @@ export class AddFields implements Stage {
     return {
       name: this.name,
       args: [toMapValue(serializer, this.fields)]
+    };
+  }
+}
+
+/**
+ * @beta
+ */
+export class RemoveFields implements Stage {
+  name = 'remove_fields';
+
+  constructor(private fields: Field[]) {}
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      name: this.name,
+      args: this.fields.map(f => f._toProto(serializer))
     };
   }
 }
@@ -376,6 +398,87 @@ export class Sort implements Stage {
     return {
       name: this.name,
       args: this.orders.map(o => o._toProto(serializer))
+    };
+  }
+}
+
+/**
+ * @beta
+ */
+export class Sample implements Stage {
+  name = 'sample';
+
+  constructor(private limit: number, private mode: string) {}
+
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      name: this.name,
+      args: [toNumber(serializer, this.limit)!, toStringValue(this.mode)!]
+    };
+  }
+}
+
+/**
+ * @beta
+ */
+export class Union implements Stage {
+  name = 'union';
+
+  constructor(private _other: Pipeline) {}
+
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      name: this.name,
+      args: [toPipelineValue(this._other._toProto(serializer))]
+    };
+  }
+}
+
+/**
+ * @beta
+ */
+export class Unnest implements Stage {
+  name = 'unnest';
+  constructor(
+    private expr: Expr,
+    private alias: Field,
+    private indexField?: string
+  ) {}
+
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    const stageProto: ProtoStage = {
+      name: this.name,
+      args: [this.expr._toProto(serializer), this.alias._toProto(serializer)]
+    };
+
+    if (this.indexField) {
+      stageProto.options = {
+        indexField: toStringValue(this.indexField)
+      };
+    }
+
+    return stageProto;
+  }
+}
+
+/**
+ * @beta
+ */
+export class Replace implements Stage {
+  name = 'replace';
+
+  constructor(
+    private field: Field,
+    private mode:
+      | 'full_replace'
+      | 'merge_prefer_nest'
+      | 'merge_prefer_parent' = 'full_replace'
+  ) {}
+
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      name: this.name,
+      args: [this.field._toProto(serializer), toStringValue(this.mode)]
     };
   }
 }

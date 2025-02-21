@@ -94,7 +94,8 @@ import {
   WriteResult as ProtoWriteResult,
   Value as ProtoValue,
   MapValue as ProtoMapValue,
-  ExecutePipelineResponse as ProtoExecutePipelineResponse
+  ExecutePipelineResponse as ProtoExecutePipelineResponse,
+  Pipeline
 } from '../protos/firestore_proto_api';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
@@ -1464,6 +1465,10 @@ export function toBooleanValue(value: boolean): ProtoValue {
 
 export function toStringValue(value: string): ProtoValue {
   return { stringValue: value };
+}
+
+export function toPipelineValue(value: Pipeline): ProtoValue {
+  return { pipelineValue: value };
 }
 
 export function dateToTimestampValue(

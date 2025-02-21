@@ -2105,6 +2105,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
  */
 export abstract class Selectable extends Expr {
   selectable: true = true;
+  abstract readonly alias: string;
 }
 
 /**
@@ -2245,29 +2246,25 @@ export class Field extends Selectable {
    */
   static of(name: string): Field;
   static of(path: FieldPath): Field;
-  static of(
-    pipelineOrName: Pipeline | string | FieldPath,
-    name?: string
-  ): Field {
-    if (typeof pipelineOrName === 'string') {
-      if (DOCUMENT_KEY_NAME === pipelineOrName) {
+  static of(nameOrPath: string | FieldPath): Field {
+    if (typeof nameOrPath === 'string') {
+      if (DOCUMENT_KEY_NAME === nameOrPath) {
         return new Field(documentId()._internalPath);
       }
-      return new Field(fieldPathFromArgument('of', pipelineOrName));
-    } else if (pipelineOrName instanceof FieldPath) {
-      if (documentId().isEqual(pipelineOrName)) {
-        return new Field(documentId()._internalPath);
-      }
-      return new Field(pipelineOrName._internalPath);
+      return new Field(fieldPathFromArgument('of', nameOrPath));
     } else {
-      return new Field(
-        fieldPathFromArgument('of', name!),
-        pipelineOrName as Pipeline
-      );
+      if (documentId().isEqual(nameOrPath)) {
+        return new Field(documentId()._internalPath);
+      }
+      return new Field(nameOrPath._internalPath);
     }
   }
 
   fieldName(): string {
+    return this.fieldPath.canonicalString();
+  }
+
+  get alias(): string {
     return this.fieldPath.canonicalString();
   }
 
