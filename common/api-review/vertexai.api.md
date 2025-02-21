@@ -90,6 +90,9 @@ export interface Content {
 export interface CountTokensRequest {
     // (undocumented)
     contents: Content[];
+    generationConfig?: GenerationConfig;
+    systemInstruction?: string | Part | Content;
+    tools?: Tool[];
 }
 
 // @public
