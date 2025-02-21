@@ -34,7 +34,7 @@ import {
   Accumulator,
   Expr,
   Field,
-  FilterCondition,
+  BooleanExpr,
   Ordering
 } from './expressions';
 import { Pipeline } from './pipeline';
@@ -235,7 +235,7 @@ export class DocumentsSource implements Stage {
 export class Where implements Stage {
   name = 'where';
 
-  constructor(private condition: FilterCondition) {}
+  constructor(private condition: BooleanExpr) {}
 
   /**
    * @internal

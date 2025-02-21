@@ -204,6 +204,6 @@ export {
   ExprType,
   AccumulatorTarget,
   Selectable,
-  FilterCondition,
+  BooleanExpr,
   Accumulator
 } from '../../src/lite-api/expressions';

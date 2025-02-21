@@ -36,7 +36,7 @@ import {
   Expr,
   ExprWithAlias,
   Field,
-  FilterCondition,
+  BooleanExpr,
   Ordering,
   Selectable
 } from './expressions';
@@ -244,11 +244,11 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
   /**
    * Filters the documents from previous stages to only include those matching the specified {@link
-   * FilterCondition}.
+   * BooleanExpr}.
    *
    * <p>This stage allows you to apply conditions to the data, similar to a "WHERE" clause in SQL.
    * You can filter documents based on their field values, using implementations of {@link
-   * FilterCondition}, typically including but not limited to:
+   * BooleanExpr}, typically including but not limited to:
    *
    * <ul>
    *   <li>field comparators: {@link Function#eq}, {@link Function#lt} (less than), {@link
@@ -270,10 +270,10 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   );
    * ```
    *
-   * @param condition The {@link FilterCondition} to apply.
+   * @param condition The {@link BooleanExpr} to apply.
    * @return A new Pipeline object with this stage appended to the stage list.
    */
-  where(condition: FilterCondition): Pipeline {
+  where(condition: BooleanExpr): Pipeline {
     this.readUserData('where', condition);
     return this._addStage(new Where(condition));
   }

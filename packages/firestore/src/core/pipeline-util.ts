@@ -19,7 +19,7 @@ import { Firestore } from '../api/database';
 import {
   Constant,
   Field,
-  FilterCondition,
+  BooleanExpr,
   not,
   andFunction,
   orFunction,
@@ -56,7 +56,7 @@ import {
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
-export function toPipelineFilterCondition(f: FilterInternal): FilterCondition {
+export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
   if (f instanceof FieldFilterInternal) {
     const field = Field.of(f.field.toString());
     if (isNanValue(f.value)) {
@@ -137,13 +137,13 @@ export function toPipelineFilterCondition(f: FilterInternal): FilterCondition {
       case CompositeOperator.AND: {
         const conditions = f
           .getFilters()
-          .map(f => toPipelineFilterCondition(f));
+          .map(f => toPipelineBooleanExpr(f));
         return andFunction(conditions[0], ...conditions.slice(1));
       }
       case CompositeOperator.OR: {
         const conditions = f
           .getFilters()
-          .map(f => toPipelineFilterCondition(f));
+          .map(f => toPipelineBooleanExpr(f));
         return orFunction(conditions[0], ...conditions.slice(1));
       }
       default:
@@ -176,7 +176,7 @@ export function toPipeline(query: Query, db: Firestore): Pipeline {
 
   // filters
   for (const filter of query.filters) {
-    pipeline = pipeline.where(toPipelineFilterCondition(filter));
+    pipeline = pipeline.where(toPipelineBooleanExpr(filter));
   }
 
   // orders
@@ -240,7 +240,7 @@ function whereConditionsFromCursor(
   bound: Bound,
   orderings: Ordering[],
   position: 'before' | 'after'
-): FilterCondition {
+): BooleanExpr {
   const cursors = bound.position.map(value => Constant._fromProto(value));
   const filterFunc = position === 'before' ? lt : gt;
   const filterInclusiveFunc = position === 'before' ? lte : gte;

@@ -2113,7 +2113,7 @@ export abstract class Selectable extends Expr {
  *
  * An interface that represents a filter condition.
  */
-export abstract class FilterCondition extends Expr {
+export abstract class BooleanExpr extends Expr {
   filterable: true = true;
 }
 
@@ -2559,7 +2559,7 @@ export class FirestoreFunction extends Expr {
  */
 export class GenericFunction
   extends FirestoreFunction
-  implements FilterCondition, Accumulator
+  implements BooleanExpr, Accumulator
 {
   accumulator: true = true;
   filterable: true = true;
@@ -2625,7 +2625,7 @@ export class ArrayFunction extends FirestoreFunction {
 /**
  * @beta
  */
-export class Eq extends FirestoreFunction implements FilterCondition {
+export class Eq extends FirestoreFunction implements BooleanExpr {
   constructor(private left: Expr, private right: Expr) {
     super('eq', [left, right]);
   }
@@ -2636,7 +2636,7 @@ export class Eq extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
-export class Neq extends FirestoreFunction implements FilterCondition {
+export class Neq extends FirestoreFunction implements BooleanExpr {
   constructor(private left: Expr, private right: Expr) {
     super('neq', [left, right]);
   }
@@ -2647,7 +2647,7 @@ export class Neq extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
-export class Lt extends FirestoreFunction implements FilterCondition {
+export class Lt extends FirestoreFunction implements BooleanExpr {
   constructor(private left: Expr, private right: Expr) {
     super('lt', [left, right]);
   }
@@ -2658,7 +2658,7 @@ export class Lt extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
-export class Lte extends FirestoreFunction implements FilterCondition {
+export class Lte extends FirestoreFunction implements BooleanExpr {
   constructor(private left: Expr, private right: Expr) {
     super('lte', [left, right]);
   }
@@ -2669,7 +2669,7 @@ export class Lte extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
-export class Gt extends FirestoreFunction implements FilterCondition {
+export class Gt extends FirestoreFunction implements BooleanExpr {
   constructor(private left: Expr, private right: Expr) {
     super('gt', [left, right]);
   }
@@ -2680,7 +2680,7 @@ export class Gt extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
-export class Gte extends FirestoreFunction implements FilterCondition {
+export class Gte extends FirestoreFunction implements BooleanExpr {
   constructor(private left: Expr, private right: Expr) {
     super('gte', [left, right]);
   }
@@ -2711,7 +2711,7 @@ export class ArrayReverse extends FirestoreFunction {
  */
 export class ArrayContains
   extends FirestoreFunction
-  implements FilterCondition
+  implements BooleanExpr
 {
   constructor(private array: Expr, private element: Expr) {
     super('array_contains', [array, element]);
@@ -2725,7 +2725,7 @@ export class ArrayContains
  */
 export class ArrayContainsAll
   extends FirestoreFunction
-  implements FilterCondition
+  implements BooleanExpr
 {
   constructor(private array: Expr, private values: Expr[]) {
     super('array_contains_all', [array, new ListOfExprs(values)]);
@@ -2739,7 +2739,7 @@ export class ArrayContainsAll
  */
 export class ArrayContainsAny
   extends FirestoreFunction
-  implements FilterCondition
+  implements BooleanExpr
 {
   constructor(private array: Expr, private values: Expr[]) {
     super('array_contains_any', [array, new ListOfExprs(values)]);
@@ -2769,7 +2769,7 @@ export class ArrayElement extends FirestoreFunction {
 /**
  * @beta
  */
-export class EqAny extends FirestoreFunction implements FilterCondition {
+export class EqAny extends FirestoreFunction implements BooleanExpr {
   constructor(private left: Expr, private others: Expr[]) {
     super('eq_any', [left, new ListOfExprs(others)]);
   }
@@ -2780,7 +2780,7 @@ export class EqAny extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
-export class NotEqAny extends FirestoreFunction implements FilterCondition {
+export class NotEqAny extends FirestoreFunction implements BooleanExpr {
   constructor(private left: Expr, private others: Expr[]) {
     super('not_eq_any', [left, new ListOfExprs(others)]);
   }
@@ -2791,7 +2791,7 @@ export class NotEqAny extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
-export class IsNan extends FirestoreFunction implements FilterCondition {
+export class IsNan extends FirestoreFunction implements BooleanExpr {
   constructor(private expr: Expr) {
     super('is_nan', [expr]);
   }
@@ -2802,7 +2802,7 @@ export class IsNan extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
-export class Exists extends FirestoreFunction implements FilterCondition {
+export class Exists extends FirestoreFunction implements BooleanExpr {
   constructor(private expr: Expr) {
     super('exists', [expr]);
   }
@@ -2813,7 +2813,7 @@ export class Exists extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
-export class Not extends FirestoreFunction implements FilterCondition {
+export class Not extends FirestoreFunction implements BooleanExpr {
   constructor(private expr: Expr) {
     super('not', [expr]);
   }
@@ -2824,8 +2824,8 @@ export class Not extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
-export class And extends FirestoreFunction implements FilterCondition {
-  constructor(private conditions: FilterCondition[]) {
+export class And extends FirestoreFunction implements BooleanExpr {
+  constructor(private conditions: BooleanExpr[]) {
     super('and', conditions);
   }
 
@@ -2835,8 +2835,8 @@ export class And extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
-export class Or extends FirestoreFunction implements FilterCondition {
-  constructor(private conditions: FilterCondition[]) {
+export class Or extends FirestoreFunction implements BooleanExpr {
+  constructor(private conditions: BooleanExpr[]) {
     super('or', conditions);
   }
 
@@ -2846,8 +2846,8 @@ export class Or extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
-export class Xor extends FirestoreFunction implements FilterCondition {
-  constructor(private conditions: FilterCondition[]) {
+export class Xor extends FirestoreFunction implements BooleanExpr {
+  constructor(private conditions: BooleanExpr[]) {
     super('xor', conditions);
   }
 
@@ -2859,7 +2859,7 @@ export class Xor extends FirestoreFunction implements FilterCondition {
  */
 export class Cond extends FirestoreFunction {
   constructor(
-    private condition: FilterCondition,
+    private condition: BooleanExpr,
     private thenExpr: Expr,
     private elseExpr: Expr
   ) {
@@ -2935,7 +2935,7 @@ export class ByteLength extends FirestoreFunction {
 /**
  * @beta
  */
-export class Like extends FirestoreFunction implements FilterCondition {
+export class Like extends FirestoreFunction implements BooleanExpr {
   constructor(private expr: Expr, private pattern: Expr) {
     super('like', [expr, pattern]);
   }
@@ -2948,7 +2948,7 @@ export class Like extends FirestoreFunction implements FilterCondition {
  */
 export class RegexContains
   extends FirestoreFunction
-  implements FilterCondition
+  implements BooleanExpr
 {
   constructor(private expr: Expr, private pattern: Expr) {
     super('regex_contains', [expr, pattern]);
@@ -2960,7 +2960,7 @@ export class RegexContains
 /**
  * @beta
  */
-export class RegexMatch extends FirestoreFunction implements FilterCondition {
+export class RegexMatch extends FirestoreFunction implements BooleanExpr {
   constructor(private expr: Expr, private pattern: Expr) {
     super('regex_match', [expr, pattern]);
   }
@@ -2971,7 +2971,7 @@ export class RegexMatch extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
-export class StrContains extends FirestoreFunction implements FilterCondition {
+export class StrContains extends FirestoreFunction implements BooleanExpr {
   constructor(private expr: Expr, private substring: Expr) {
     super('str_contains', [expr, substring]);
   }
@@ -2982,7 +2982,7 @@ export class StrContains extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
-export class StartsWith extends FirestoreFunction implements FilterCondition {
+export class StartsWith extends FirestoreFunction implements BooleanExpr {
   constructor(private expr: Expr, private prefix: Expr) {
     super('starts_with', [expr, prefix]);
   }
@@ -2993,7 +2993,7 @@ export class StartsWith extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
-export class EndsWith extends FirestoreFunction implements FilterCondition {
+export class EndsWith extends FirestoreFunction implements BooleanExpr {
   constructor(private expr: Expr, private suffix: Expr) {
     super('ends_with', [expr, suffix]);
   }
@@ -3241,7 +3241,7 @@ export class Countif extends FirestoreFunction implements Accumulator {
  * @param booleanExpr - The boolean expression to evaluate on each input.
  * @returns A new `Accumulator` representing the 'countif' aggregation.
  */
-export function countif(booleanExpr: FilterCondition): Countif {
+export function countif(booleanExpr: BooleanExpr): Countif {
   return new Countif(booleanExpr);
 }
 
@@ -3811,7 +3811,7 @@ export function currentContext(): CurrentContext {
 /**
  * @beta
  */
-export class IsError extends FirestoreFunction implements FilterCondition {
+export class IsError extends FirestoreFunction implements BooleanExpr {
   constructor(private expr: Expr) {
     super('is_error', [expr]);
   }
@@ -3889,7 +3889,7 @@ export function ifError(tryExpr: Expr, catchValue: any): IfError {
 /**
  * @beta
  */
-export class IsAbsent extends FirestoreFunction implements FilterCondition {
+export class IsAbsent extends FirestoreFunction implements BooleanExpr {
   constructor(private expr: Expr) {
     super('is_absent', [expr]);
   }
@@ -3935,7 +3935,7 @@ export function isAbsent(value: Expr | string): IsAbsent {
 /**
  * @beta
  */
-export class IsNull extends FirestoreFunction implements FilterCondition {
+export class IsNull extends FirestoreFunction implements BooleanExpr {
   constructor(private expr: Expr) {
     super('is_null', [expr]);
   }
@@ -3979,7 +3979,7 @@ export function isNull(value: Expr | string): IsNull {
 /**
  * @beta
  */
-export class IsNotNull extends FirestoreFunction implements FilterCondition {
+export class IsNotNull extends FirestoreFunction implements BooleanExpr {
   constructor(private expr: Expr) {
     super('is_not_null', [expr]);
   }
@@ -4023,7 +4023,7 @@ export function isNotNull(value: Expr | string): IsNotNull {
 /**
  * @beta
  */
-export class IsNotNan extends FirestoreFunction implements FilterCondition {
+export class IsNotNan extends FirestoreFunction implements BooleanExpr {
   constructor(private expr: Expr) {
     super('is_not_nan', [expr]);
   }
@@ -6195,7 +6195,7 @@ export function notEqAny(element: Expr | string, others: any[]): NotEqAny {
  * @param right Additional filter conditions to 'XOR' together.
  * @return A new {@code Expr} representing the logical 'XOR' operation.
  */
-export function xor(left: FilterCondition, ...right: FilterCondition[]): Xor {
+export function xor(left: BooleanExpr, ...right: BooleanExpr[]): Xor {
   return new Xor([left, ...right]);
 }
 
@@ -6217,7 +6217,7 @@ export function xor(left: FilterCondition, ...right: FilterCondition[]): Xor {
  * @return A new {@code Expr} representing the conditional expression.
  */
 export function cond(
-  condition: FilterCondition,
+  condition: BooleanExpr,
   thenExpr: Expr,
   elseExpr: Expr
 ): Cond {
@@ -6237,7 +6237,7 @@ export function cond(
  * @param filter The filter condition to negate.
  * @return A new {@code Expr} representing the negated filter condition.
  */
-export function not(filter: FilterCondition): Not {
+export function not(filter: BooleanExpr): Not {
   return new Not(filter);
 }
 
@@ -8313,8 +8313,8 @@ export function genericFunction(
  * @return A new {@code Expr} representing the logical 'AND' operation.
  */
 export function andFunction(
-  left: FilterCondition,
-  ...right: FilterCondition[]
+  left: BooleanExpr,
+  ...right: BooleanExpr[]
 ): And {
   return new And([left, ...right]);
 }
@@ -8335,8 +8335,8 @@ export function andFunction(
  * @return A new {@code Expr} representing the logical 'OR' operation.
  */
 export function orFunction(
-  left: FilterCondition,
-  ...right: FilterCondition[]
+  left: BooleanExpr,
+  ...right: BooleanExpr[]
 ): Or {
   return new Or([left, ...right]);
 }
