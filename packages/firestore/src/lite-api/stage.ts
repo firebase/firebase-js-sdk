@@ -30,13 +30,7 @@ import {
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
 
-import {
-  Accumulator,
-  Expr,
-  Field,
-  BooleanExpr,
-  Ordering
-} from './expressions';
+import { Accumulator, Expr, Field, BooleanExpr, Ordering } from './expressions';
 import { Pipeline } from './pipeline';
 import { DocumentReference } from './reference';
 import { VectorValue } from './vector_value';

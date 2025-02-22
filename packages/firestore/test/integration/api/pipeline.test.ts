@@ -72,7 +72,7 @@ import {
   notEqAny,
   collection,
   multiply,
-  countif,
+  countIf,
   bitAnd,
   bitOr,
   bitXor,
@@ -93,7 +93,9 @@ import {
   documentIdFunction,
   substr,
   manhattanDistance,
-  documentId
+  documentId,
+  logicalMinimum,
+  xor
 } from '../util/firebase_export';
 import { apiDescribe, withTestCollection } from '../util/helpers';
 
@@ -618,7 +620,7 @@ apiDescribe.only('Pipelines', persistence => {
       it('returns countif accumulation', async () => {
         let results = await randomCol
           .pipeline()
-          .aggregate(countif(Field.of('rating').gt(4.3)).as('count'))
+          .aggregate(countIf(Field.of('rating').gt(4.3)).as('count'))
           .execute();
         const expectedResults = {
           count: 3
@@ -627,7 +629,7 @@ apiDescribe.only('Pipelines', persistence => {
 
         results = await randomCol
           .pipeline()
-          .aggregate(Field.of('rating').gt(4.3).countif().as('count'))
+          .aggregate(Field.of('rating').gt(4.3).countIf().as('count'))
           .execute();
         expectResults(results, expectedResults);
       });
@@ -743,21 +745,55 @@ apiDescribe.only('Pipelines', persistence => {
       it('where with and', async () => {
         const results = await randomCol
           .pipeline()
-          .where(andFunction(gt('rating', 4.5), eq('genre', 'Science Fiction')))
+          .where(
+            andFunction(
+              gt('rating', 4.5),
+              eq('genre', 'Science Fiction'),
+              lte('published', 1965)
+            )
+          )
           .execute();
         expectResults(results, 'book10');
       });
       it('where with or', async () => {
         const results = await randomCol
           .pipeline()
-          .where(orFunction(eq('genre', 'Romance'), eq('genre', 'Dystopian')))
+          .where(
+            orFunction(
+              eq('genre', 'Romance'),
+              eq('genre', 'Dystopian'),
+              eq('genre', 'Fantasy')
+            )
+          )
           .select('title')
           .execute();
         expectResults(
           results,
           { title: 'Pride and Prejudice' },
+          { title: 'The Lord of the Rings' },
           { title: "The Handmaid's Tale" },
           { title: '1984' }
+        );
+      });
+
+      it('where with xor', async () => {
+        const results = await randomCol
+          .pipeline()
+          .where(
+            xor(
+              eq('genre', 'Romance'),
+              eq('genre', 'Dystopian'),
+              eq('genre', 'Fantasy'),
+              eq('published', 1949)
+            )
+          )
+          .select('title')
+          .execute();
+        expectResults(
+          results,
+          { title: 'Pride and Prejudice' },
+          { title: 'The Lord of the Rings' },
+          { title: "The Handmaid's Tale" }
         );
       });
     });
@@ -1106,7 +1142,7 @@ apiDescribe.only('Pipelines', persistence => {
         .pipeline()
         .select(
           'title',
-          logicalMaximum(Constant.of(1960), Field.of('published')).as(
+          logicalMaximum(Constant.of(1960), Field.of('published'), 1961).as(
             'published-safe'
           )
         )
@@ -1115,9 +1151,29 @@ apiDescribe.only('Pipelines', persistence => {
         .execute();
       expectResults(
         results,
-        { title: '1984', 'published-safe': 1960 },
-        { title: 'Crime and Punishment', 'published-safe': 1960 },
+        { title: '1984', 'published-safe': 1961 },
+        { title: 'Crime and Punishment', 'published-safe': 1961 },
         { title: 'Dune', 'published-safe': 1965 }
+      );
+    });
+
+    it('logical min works', async () => {
+      const results = await randomCol
+        .pipeline()
+        .select(
+          'title',
+          logicalMinimum(Constant.of(1960), Field.of('published'), 1961).as(
+            'published-safe'
+          )
+        )
+        .sort(Field.of('title').ascending())
+        .limit(3)
+        .execute();
+      expectResults(
+        results,
+        { title: '1984', 'published-safe': 1949 },
+        { title: 'Crime and Punishment', 'published-safe': 1866 },
+        { title: 'Dune', 'published-safe': 1960 }
       );
     });
 
@@ -1322,7 +1378,9 @@ apiDescribe.only('Pipelines', persistence => {
           add(Field.of('rating'), 1).as('ratingPlusOne'),
           subtract(Field.of('published'), 1900).as('yearsSince1900'),
           Field.of('rating').multiply(10).as('ratingTimesTen'),
-          Field.of('rating').divide(2).as('ratingDividedByTwo')
+          Field.of('rating').divide(2).as('ratingDividedByTwo'),
+          multiply('rating', 10, 2).as('ratingTimes20'),
+          add('rating', 1, 2).as('ratingPlus3')
         )
         .limit(1)
         .execute();
@@ -1330,7 +1388,9 @@ apiDescribe.only('Pipelines', persistence => {
         ratingPlusOne: 5.2,
         yearsSince1900: 79,
         ratingTimesTen: 42,
-        ratingDividedByTwo: 2.1
+        ratingDividedByTwo: 2.1,
+        ratingTimes20: 84,
+        ratingPlus3: 7.2
       });
     });
 
@@ -1601,7 +1661,7 @@ apiDescribe.only('Pipelines', persistence => {
         const results = await randomCol
           .pipeline()
           .aggregate(
-            genericFunction('countif', [Field.of('rating').gte(4.5)]).as(
+            genericFunction('count_if', [Field.of('rating').gte(4.5)]).as(
               'countOfBest'
             )
           )
@@ -1820,18 +1880,49 @@ apiDescribe.only('Pipelines', persistence => {
           });
         });
 
+        it.only('supports Substr without length', async () => {
+          let results = await randomCol
+            .pipeline()
+            .sort(Field.of('rating').descending())
+            .limit(1)
+            .select(substr('title', 9).as('of'))
+            .execute();
+          expectResults(results, {
+            of: 'of the Rings'
+          });
+          results = await randomCol
+            .pipeline()
+            .sort(Field.of('rating').descending())
+            .limit(1)
+            .select(Field.of('title').substr(9).as('of'))
+            .execute();
+          expectResults(results, {
+            of: 'of the Rings'
+          });
+        });
+
         it('arrayConcat works', async () => {
           const results = await randomCol
             .pipeline()
             .select(
               Field.of('tags')
-                .arrayConcat(['newTag1', 'newTag2'])
+                .arrayConcat(['newTag1', 'newTag2'], Field.of('tags'), [null])
                 .as('modifiedTags')
             )
             .limit(1)
             .execute();
           expectResults(results, {
-            modifiedTags: ['comedy', 'space', 'adventure', 'newTag1', 'newTag2']
+            modifiedTags: [
+              'comedy',
+              'space',
+              'adventure',
+              'newTag1',
+              'newTag2',
+              'comedy',
+              'space',
+              'adventure',
+              null
+            ]
           });
         });
 

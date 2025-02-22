@@ -135,16 +135,16 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
   } else if (f instanceof CompositeFilterInternal) {
     switch (f.op) {
       case CompositeOperator.AND: {
-        const conditions = f
-          .getFilters()
-          .map(f => toPipelineBooleanExpr(f));
-        return andFunction(conditions[0], ...conditions.slice(1));
+        const conditions = f.getFilters().map(f => toPipelineBooleanExpr(f));
+        return andFunction(
+          conditions[0],
+          conditions[1],
+          ...conditions.slice(2)
+        );
       }
       case CompositeOperator.OR: {
-        const conditions = f
-          .getFilters()
-          .map(f => toPipelineBooleanExpr(f));
-        return orFunction(conditions[0], ...conditions.slice(1));
+        const conditions = f.getFilters().map(f => toPipelineBooleanExpr(f));
+        return orFunction(conditions[0], conditions[1], ...conditions.slice(2));
       }
       default:
         fail('Unexpected operator');

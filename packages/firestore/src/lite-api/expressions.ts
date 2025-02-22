@@ -126,25 +126,16 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    * Field.of("quantity").add(Field.of("reserve"));
    * ```
    *
-   * @param expression The expression to add to this expression.
+   * @param second The expression or literal to add to this expression.
+   * @param others Optional additional expressions or literals to add to this expression.
    * @return A new `Expr` representing the addition operation.
    */
-  add(expression: Expr): Add;
-
-  /**
-   * Creates an expression that adds this expression to another expression or constant value.
-   *
-   * ```typescript
-   * // Add 5 to the value of the 'age' field
-   * Field.of("age").add(5);
-   * ```
-   *
-   * @param value The constant value to add.
-   * @return A new `Expr` representing the addition operation.
-   */
-  add(value: any): Add;
-  add(other: Expr | any): Add {
-    return new Add(this, valueToDefaultExpr(other));
+  add(second: Expr | any, ...others: Array<Expr | any>): Add {
+    const values = [second, ...others];
+    return new Add(
+      this,
+      values.map(value => valueToDefaultExpr(value))
+    );
   }
 
   /**
@@ -184,25 +175,16 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    * Field.of("quantity").multiply(Field.of("price"));
    * ```
    *
-   * @param other The expression to multiply by.
+   * @param second The second expression or literal to multiply by.
+   * @param others Optional additional expressions or literals to multiply by.
    * @return A new `Expr` representing the multiplication operation.
    */
-  multiply(other: Expr): Multiply;
-
-  /**
-   * Creates an expression that multiplies this expression by a constant value.
-   *
-   * ```typescript
-   * // Multiply the 'value' field by 2
-   * Field.of("value").multiply(2);
-   * ```
-   *
-   * @param other The constant value to multiply by.
-   * @return A new `Expr` representing the multiplication operation.
-   */
-  multiply(other: any): Multiply;
-  multiply(other: any): Multiply {
-    return new Multiply(this, valueToDefaultExpr(other));
+  multiply(second: Expr | any, ...others: Array<Expr | any>): Multiply {
+    const values = [second, ...others];
+    return new Multiply(
+      this,
+      values.map(value => valueToDefaultExpr(value))
+    );
   }
 
   /**
@@ -447,28 +429,16 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    * // Combine the 'items' array with another array field.
    * Field.of("items").arrayConcat(Field.of("otherItems"));
    * ```
-   *
-   * @param arrays The array expressions to concatenate.
+   * @param secondArray Second array expression or array literal to concatenate.
+   * @param otherArrays Optional additional array expressions or array literals to concatenate.
    * @return A new `Expr` representing the concatenated array.
    */
-  arrayConcat(...arrays: Expr[]): ArrayConcat;
-
-  /**
-   * Creates an expression that concatenates an array with one or more other arrays.
-   *
-   * ```typescript
-   * // Combine the 'tags' array with a new array and an array field
-   * Field.of("tags").arrayConcat(Arrays.asList("newTag1", "newTag2"), Field.of("otherTag"));
-   * ```
-   *
-   * @param arrays The arrays to concatenate.
-   * @return A new `Expr` representing the concatenated arrays.
-   */
-  arrayConcat(...arrays: any[][]): ArrayConcat;
-  arrayConcat(...arrays: any[]): ArrayConcat {
-    const exprValues = arrays.map(value =>
-      value instanceof Expr ? value : valueToDefaultExpr(value)
-    );
+  arrayConcat(
+    secondArray: Expr | any[],
+    ...otherArrays: Array<Expr | any[]>
+  ): ArrayConcat {
+    const elements = [secondArray, ...otherArrays];
+    const exprValues = elements.map(value => valueToDefaultExpr(value));
     return new ArrayConcat(this, exprValues);
   }
 
@@ -950,10 +920,15 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    * Field.of("firstName").strConcat(Constant.of(" "), Field.of("lastName"));
    * ```
    *
-   * @param elements The expressions (typically strings) to concatenate.
+   * @param secondString The additional expression or string literal to concatenate.
+   * @param otherStrings Optional additional expressions or string literals to concatenate.
    * @return A new `Expr` representing the concatenated string.
    */
-  strConcat(...elements: Array<string | Expr>): StrConcat {
+  strConcat(
+    secondString: Expr | string,
+    ...otherStrings: Array<Expr | string>
+  ): StrConcat {
+    const elements = [secondString, ...otherStrings];
     const exprs = elements.map(e =>
       typeof e === 'string' ? Constant.of(e) : (e as Expr)
     );
@@ -1164,8 +1139,8 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    *
    * @return A new `Accumulator` representing the 'countIf' aggregation.
    */
-  countif(): Countif {
-    return new Countif(this);
+  countIf(): CountIf {
+    return new CountIf(this);
   }
 
   /**
@@ -1176,25 +1151,19 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    * Field.of("timestamp").logicalMaximum(Function.currentTimestamp());
    * ```
    *
-   * @param other The expression to compare with.
+   * @param second The second expression or literal to compare with.
+   * @param others Optional additional expressions or literals to compare with.
    * @return A new {@code Expr} representing the logical max operation.
    */
-  logicalMaximum(other: Expr): LogicalMaximum;
-
-  /**
-   * Creates an expression that returns the larger value between this expression and a constant value, based on Firestore's value type ordering.
-   *
-   * ```typescript
-   * // Returns the larger value between the 'value' field and 10.
-   * Field.of("value").logicalMaximum(10);
-   * ```
-   *
-   * @param other The constant value to compare with.
-   * @return A new {@code Expr} representing the logical max operation.
-   */
-  logicalMaximum(other: any): LogicalMaximum;
-  logicalMaximum(other: any): LogicalMaximum {
-    return new LogicalMaximum(this, valueToDefaultExpr(other));
+  logicalMaximum(
+    second: Expr | any,
+    ...others: Array<Expr | any>
+  ): LogicalMaximum {
+    const values = [second, ...others];
+    return new LogicalMaximum(
+      this,
+      values.map(value => valueToDefaultExpr(value))
+    );
   }
 
   /**
@@ -1205,25 +1174,19 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    * Field.of("timestamp").logicalMinimum(Function.currentTimestamp());
    * ```
    *
-   * @param other The expression to compare with.
+   * @param second The second expression or literal to compare with.
+   * @param others Optional additional expressions or literals to compare with.
    * @return A new {@code Expr} representing the logical min operation.
    */
-  logicalMinimum(other: Expr): LogicalMinimum;
-
-  /**
-   * Creates an expression that returns the smaller value between this expression and a constant value, based on Firestore's value type ordering.
-   *
-   * ```typescript
-   * // Returns the smaller value between the 'value' field and 10.
-   * Field.of("value").logicalMinimum(10);
-   * ```
-   *
-   * @param other The constant value to compare with.
-   * @return A new {@code Expr} representing the logical min operation.
-   */
-  logicalMinimum(other: any): LogicalMinimum;
-  logicalMinimum(other: any): LogicalMinimum {
-    return new LogicalMinimum(this, valueToDefaultExpr(other));
+  logicalMinimum(
+    second: Expr | any,
+    ...others: Array<Expr | any>
+  ): LogicalMinimum {
+    const values = [second, ...others];
+    return new LogicalMinimum(
+      this,
+      values.map(value => valueToDefaultExpr(value))
+    );
   }
 
   /**
@@ -1772,9 +1735,10 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    * Creates an expression that returns a substring of the results of this expression.
    *
    * @param position Index of the first character of the substring.
-   * @param length Length of the substring.
+   * @param length Length of the substring. If not provided, the substring will
+   * end at the end of the input.
    */
-  substr(position: number, length: number): Substr;
+  substr(position: number, length?: number): Substr;
 
   /**
    * @beta
@@ -1782,12 +1746,14 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    * Creates an expression that returns a substring of the results of this expression.
    *
    * @param position An expression returning the index of the first character of the substring.
-   * @param length An expression returning the length of the substring.
+   * @param length An expression returning the length of the substring. If not provided the
+   * substring will end at the end of the input.
    */
-  substr(position: Expr, length: Expr): Substr;
-  substr(position: Expr | number, length: Expr | number): Substr {
+  substr(position: Expr, length?: Expr): Substr;
+  substr(position: Expr | number, length?: Expr | number): Substr {
     const positionExpr = valueToDefaultExpr(position);
-    const lengthExpr = valueToDefaultExpr(length);
+    const lengthExpr =
+      length === undefined ? undefined : valueToDefaultExpr(length);
     return new Substr(this, positionExpr, lengthExpr);
   }
 
@@ -2569,8 +2535,8 @@ export class GenericFunction
  * @beta
  */
 export class Add extends FirestoreFunction {
-  constructor(private left: Expr, private right: Expr) {
-    super('add', [left, right]);
+  constructor(left: Expr, others: Expr[]) {
+    super('add', [left, ...others]);
   }
 }
 
@@ -2587,8 +2553,8 @@ export class Subtract extends FirestoreFunction {
  * @beta
  */
 export class Multiply extends FirestoreFunction {
-  constructor(private left: Expr, private right: Expr) {
-    super('multiply', [left, right]);
+  constructor(left: Expr, others: Expr[]) {
+    super('multiply', [left, ...others]);
   }
 }
 
@@ -2692,7 +2658,7 @@ export class Gte extends FirestoreFunction implements BooleanExpr {
  * @beta
  */
 export class ArrayConcat extends FirestoreFunction {
-  constructor(private array: Expr, private elements: Expr[]) {
+  constructor(array: Expr, elements: Expr[]) {
     super('array_concat', [array, ...elements]);
   }
 }
@@ -2709,10 +2675,7 @@ export class ArrayReverse extends FirestoreFunction {
 /**
  * @beta
  */
-export class ArrayContains
-  extends FirestoreFunction
-  implements BooleanExpr
-{
+export class ArrayContains extends FirestoreFunction implements BooleanExpr {
   constructor(private array: Expr, private element: Expr) {
     super('array_contains', [array, element]);
   }
@@ -2723,10 +2686,7 @@ export class ArrayContains
 /**
  * @beta
  */
-export class ArrayContainsAll
-  extends FirestoreFunction
-  implements BooleanExpr
-{
+export class ArrayContainsAll extends FirestoreFunction implements BooleanExpr {
   constructor(private array: Expr, private values: Expr[]) {
     super('array_contains_all', [array, new ListOfExprs(values)]);
   }
@@ -2737,10 +2697,7 @@ export class ArrayContainsAll
 /**
  * @beta
  */
-export class ArrayContainsAny
-  extends FirestoreFunction
-  implements BooleanExpr
-{
+export class ArrayContainsAny extends FirestoreFunction implements BooleanExpr {
   constructor(private array: Expr, private values: Expr[]) {
     super('array_contains_any', [array, new ListOfExprs(values)]);
   }
@@ -2873,8 +2830,8 @@ export class Cond extends FirestoreFunction {
  * @beta
  */
 export class LogicalMaximum extends FirestoreFunction {
-  constructor(private left: Expr, private right: Expr) {
-    super('logical_maximum', [left, right]);
+  constructor(first: Expr, others: Expr[]) {
+    super('logical_maximum', [first, ...others]);
   }
 }
 
@@ -2882,8 +2839,8 @@ export class LogicalMaximum extends FirestoreFunction {
  * @beta
  */
 export class LogicalMinimum extends FirestoreFunction {
-  constructor(private left: Expr, private right: Expr) {
-    super('logical_minimum', [left, right]);
+  constructor(first: Expr, others: Expr[]) {
+    super('logical_minimum', [first, ...others]);
   }
 }
 
@@ -2946,10 +2903,7 @@ export class Like extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class RegexContains
-  extends FirestoreFunction
-  implements BooleanExpr
-{
+export class RegexContains extends FirestoreFunction implements BooleanExpr {
   constructor(private expr: Expr, private pattern: Expr) {
     super('regex_contains', [expr, pattern]);
   }
@@ -3220,9 +3174,9 @@ export class TimestampSub extends FirestoreFunction {
 /**
  * @beta
  */
-export class Countif extends FirestoreFunction implements Accumulator {
+export class CountIf extends FirestoreFunction implements Accumulator {
   constructor(private booleanExpr: Expr) {
-    super('countif', [booleanExpr]);
+    super('count_if', [booleanExpr]);
   }
 
   accumulator = true as const;
@@ -3241,8 +3195,8 @@ export class Countif extends FirestoreFunction implements Accumulator {
  * @param booleanExpr - The boolean expression to evaluate on each input.
  * @returns A new `Accumulator` representing the 'countif' aggregation.
  */
-export function countif(booleanExpr: BooleanExpr): Countif {
-  return new Countif(booleanExpr);
+export function countIf(booleanExpr: BooleanExpr): CountIf {
+  return new CountIf(booleanExpr);
 }
 
 /**
@@ -4315,8 +4269,12 @@ export function key(namespace: Expr | string, path: Expr | string): Key {
  * @beta
  */
 export class Substr extends FirestoreFunction {
-  constructor(inputExpr: Expr, position: Expr, length: Expr) {
-    super('substr', [inputExpr, position, length]);
+  constructor(inputExpr: Expr, position: Expr, length: Expr | undefined) {
+    if (length) {
+      super('substr', [inputExpr, position, length]);
+    } else {
+      super('substr', [inputExpr, position]);
+    }
   }
 }
 
@@ -4329,7 +4287,11 @@ export class Substr extends FirestoreFunction {
  * @param position Index of the first character of the substring.
  * @param length Length of the substring.
  */
-export function substr(field: string, position: number, length: number): Substr;
+export function substr(
+  field: string,
+  position: number,
+  length?: number
+): Substr;
 
 /**
  * @beta
@@ -4340,7 +4302,7 @@ export function substr(field: string, position: number, length: number): Substr;
  * @param position Index of the first character of the substring.
  * @param length Length of the substring.
  */
-export function substr(input: Expr, position: number, length: number): Substr;
+export function substr(input: Expr, position: number, length?: number): Substr;
 
 /**
  * @beta
@@ -4351,7 +4313,7 @@ export function substr(input: Expr, position: number, length: number): Substr;
  * @param position An expression that returns the index of the first character of the substring.
  * @param length An expression that returns the length of the substring.
  */
-export function substr(field: string, position: Expr, length: Expr): Substr;
+export function substr(field: string, position: Expr, length?: Expr): Substr;
 
 /**
  * @beta
@@ -4362,16 +4324,17 @@ export function substr(field: string, position: Expr, length: Expr): Substr;
  * @param position An expression that returns the index of the first character of the substring.
  * @param length An expression that returns the length of the substring.
  */
-export function substr(input: Expr, position: Expr, length: Expr): Substr;
+export function substr(input: Expr, position: Expr, length?: Expr): Substr;
 
 export function substr(
   field: Expr | string,
   position: Expr | number,
-  length: Expr | number
+  length?: Expr | number
 ): Substr {
   const fieldExpr = fieldOfOrExpr(field);
   const positionExpr = valueToDefaultExpr(position);
-  const lengthExpr = valueToDefaultExpr(length);
+  const lengthExpr =
+    length === undefined ? undefined : valueToDefaultExpr(length);
   return new Substr(fieldExpr, positionExpr, lengthExpr);
 }
 
@@ -4511,27 +4474,16 @@ export function manhattanDistance(
  * add(Field.of("quantity"), Field.of("reserve"));
  * ```
  *
- * @param left The first expression to add.
- * @param right The second expression to add.
+ * @param first The first expression to add.
+ * @param second The second expression or literal to add.
+ * @param others Optional other expressions or literals to add.
  * @return A new {@code Expr} representing the addition operation.
  */
-export function add(left: Expr, right: Expr): Add;
-
-/**
- * @beta
- *
- * Creates an expression that adds an expression to a constant value.
- *
- * ```typescript
- * // Add 5 to the value of the 'age' field
- * add(Field.of("age"), 5);
- * ```
- *
- * @param left The expression to add to.
- * @param right The constant value to add.
- * @return A new {@code Expr} representing the addition operation.
- */
-export function add(left: Expr, right: any): Add;
+export function add(
+  first: Expr,
+  second: Expr | any,
+  ...others: Array<Expr | any>
+): Add;
 
 /**
  * @beta
@@ -4543,31 +4495,20 @@ export function add(left: Expr, right: any): Add;
  * add("quantity", Field.of("reserve"));
  * ```
  *
- * @param left The field name to add to.
- * @param right The expression to add.
+ * @param fieldName The name of the field containing the value to add.
+ * @param second The second expression or literal to add.
+ * @param others Optional other expressions or literals to add.
  * @return A new {@code Expr} representing the addition operation.
  */
-export function add(left: string, right: Expr): Add;
+export function add(
+  fieldName: string,
+  second: Expr | any,
+  ...others: Array<Expr | any>
+): Add;
 
-/**
- * @beta
- *
- * Creates an expression that adds a field's value to a constant value.
- *
- * ```typescript
- * // Add 5 to the value of the 'age' field
- * add("age", 5);
- * ```
- *
- * @param left The field name to add to.
- * @param right The constant value to add.
- * @return A new {@code Expr} representing the addition operation.
- */
-export function add(left: string, right: any): Add;
-export function add(left: Expr | string, right: Expr | any): Add {
-  const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-  const normalizedRight =
-    right instanceof Expr ? right : valueToDefaultExpr(right);
+export function add(first: Expr | string, ...others: Array<Expr | any>): Add {
+  const normalizedLeft = fieldOfOrExpr(first);
+  const normalizedRight = others.map(value => valueToDefaultExpr(value));
   return new Add(normalizedLeft, normalizedRight);
 }
 
@@ -4651,27 +4592,16 @@ export function subtract(left: Expr | string, right: Expr | any): Subtract {
  * multiply(Field.of("quantity"), Field.of("price"));
  * ```
  *
- * @param left The first expression to multiply.
- * @param right The second expression to multiply.
+ * @param first The first expression to multiply.
+ * @param second The second expression or literal to multiply.
+ * @param others Optional additional expressions or literals to multiply.
  * @return A new {@code Expr} representing the multiplication operation.
  */
-export function multiply(left: Expr, right: Expr): Multiply;
-
-/**
- * @beta
- *
- * Creates an expression that multiplies an expression by a constant value.
- *
- * ```typescript
- * // Multiply the value of the 'price' field by 2
- * multiply(Field.of("price"), 2);
- * ```
- *
- * @param left The expression to multiply.
- * @param right The constant value to multiply by.
- * @return A new {@code Expr} representing the multiplication operation.
- */
-export function multiply(left: Expr, right: any): Multiply;
+export function multiply(
+  first: Expr,
+  second: Expr | any,
+  ...others: Array<Expr | any>
+): Multiply;
 
 /**
  * @beta
@@ -4683,31 +4613,23 @@ export function multiply(left: Expr, right: any): Multiply;
  * multiply("quantity", Field.of("price"));
  * ```
  *
- * @param left The field name to multiply.
- * @param right The expression to multiply by.
+ * @param fieldName The name of the field containing the value to add.
+ * @param second The second expression or literal to add.
+ * @param others Optional other expressions or literals to add.
  * @return A new {@code Expr} representing the multiplication operation.
  */
-export function multiply(left: string, right: Expr): Multiply;
+export function multiply(
+  fieldName: string,
+  second: Expr | any,
+  ...others: Array<Expr | any>
+): Multiply;
 
-/**
- * @beta
- *
- * Creates an expression that multiplies a field's value by a constant value.
- *
- * ```typescript
- * // Multiply the 'value' field by 2
- * multiply("value", 2);
- * ```
- *
- * @param left The field name to multiply.
- * @param right The constant value to multiply by.
- * @return A new {@code Expr} representing the multiplication operation.
- */
-export function multiply(left: string, right: any): Multiply;
-export function multiply(left: Expr | string, right: Expr | any): Multiply {
-  const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-  const normalizedRight =
-    right instanceof Expr ? right : valueToDefaultExpr(right);
+export function multiply(
+  left: Expr | string,
+  ...others: Array<Expr | any>
+): Multiply {
+  const normalizedLeft = fieldOfOrExpr(left);
+  const normalizedRight = others.map(value => valueToDefaultExpr(value));
   return new Multiply(normalizedLeft, normalizedRight);
 }
 
@@ -5704,27 +5626,16 @@ export function gte(left: Expr | string, right: any): Gte {
  * arrayConcat(Field.of("items"), [Field.of("newItems"), Field.of("otherItems")]);
  * ```
  *
- * @param array The array expression to concatenate to.
- * @param elements The array expressions to concatenate.
+ * @param firstArray The first array expression to concatenate to.
+ * @param secondArray The second array expression or array literal to concatenate to.
+ * @param otherArrays Optional additional array expressions or array literals to concatenate.
  * @return A new {@code Expr} representing the concatenated array.
  */
-export function arrayConcat(array: Expr, elements: Expr[]): ArrayConcat;
-
-/**
- * @beta
- *
- * Creates an expression that concatenates an array expression with other arrays and/or values.
- *
- * ```typescript
- * // Combine the 'tags' array with a new array
- * arrayConcat(Field.of("tags"), ["newTag1", "newTag2"]);
- * ```
- *
- * @param array The array expression to concatenate to.
- * @param elements The array expressions or single values to concatenate.
- * @return A new {@code Expr} representing the concatenated array.
- */
-export function arrayConcat(array: Expr, elements: any[]): ArrayConcat;
+export function arrayConcat(
+  firstArray: Expr,
+  secondArray: Expr | any,
+  ...otherArrays: Array<Expr | any>
+): ArrayConcat;
 
 /**
  * @beta
@@ -5736,35 +5647,23 @@ export function arrayConcat(array: Expr, elements: any[]): ArrayConcat;
  * arrayConcat("items", [Field.of("newItems"), Field.of("otherItems")]);
  * ```
  *
- * @param array The field name containing array values.
- * @param elements The array expressions to concatenate.
+ * @param firstArrayField The first array to concatenate to.
+ * @param secondArray The second array expression or array literal to concatenate to.
+ * @param otherArrays Optional additional array expressions or array literals to concatenate.
  * @return A new {@code Expr} representing the concatenated array.
  */
-export function arrayConcat(array: string, elements: Expr[]): ArrayConcat;
-
-/**
- * @beta
- *
- * Creates an expression that concatenates a field's array value with other arrays and/or values.
- *
- * ```typescript
- * // Combine the 'tags' array with a new array
- * arrayConcat("tags", ["newTag1", "newTag2"]);
- * ```
- *
- * @param array The field name containing array values.
- * @param elements The array expressions or single values to concatenate.
- * @return A new {@code Expr} representing the concatenated array.
- */
-export function arrayConcat(array: string, elements: any[]): ArrayConcat;
 export function arrayConcat(
-  array: Expr | string,
-  elements: any[]
+  firstArrayField: string,
+  secondArray: Expr | any[],
+  ...otherArrays: Array<Expr | any>
+): ArrayConcat;
+
+export function arrayConcat(
+  firstArray: Expr | string,
+  ...otherArrays: Array<Expr | any[]>
 ): ArrayConcat {
-  const arrayExpr = array instanceof Expr ? array : Field.of(array);
-  const exprValues = elements.map(element =>
-    element instanceof Expr ? element : valueToDefaultExpr(element)
-  );
+  const arrayExpr = fieldOfOrExpr(firstArray);
+  const exprValues = otherArrays.map(element => valueToDefaultExpr(element));
   return new ArrayConcat(arrayExpr, exprValues);
 }
 
@@ -6191,12 +6090,17 @@ export function notEqAny(element: Expr | string, others: any[]): NotEqAny {
  *     eq("status", "active"));
  * ```
  *
- * @param left The first filter condition.
- * @param right Additional filter conditions to 'XOR' together.
+ * @param first The first filter condition.
+ * @param second The second filter condition.
+ * @param more Additional filter conditions to 'XOR' together.
  * @return A new {@code Expr} representing the logical 'XOR' operation.
  */
-export function xor(left: BooleanExpr, ...right: BooleanExpr[]): Xor {
-  return new Xor([left, ...right]);
+export function xor(
+  first: BooleanExpr,
+  second: BooleanExpr,
+  ...more: BooleanExpr[]
+): Xor {
+  return new Xor([first, second, ...more]);
 }
 
 /**
@@ -6251,27 +6155,16 @@ export function not(filter: BooleanExpr): Not {
  * logicalMaximum(Field.of("field1"), Field.of("field2"));
  * ```
  *
- * @param left The left operand expression.
- * @param right The right operand expression.
+ * @param first The first operand expression.
+ * @param second The second expression or literal.
+ * @param others Optional additional expressions or literals.
  * @return A new {@code Expr} representing the logical max operation.
  */
-export function logicalMaximum(left: Expr, right: Expr): LogicalMaximum;
-
-/**
- * @beta
- *
- * Creates an expression that returns the larger value between an expression and a constant value, based on Firestore's value type ordering.
- *
- * ```typescript
- * // Returns the larger value between the 'value' field and 10.
- * logicalMaximum(Field.of("value"), 10);
- * ```
- *
- * @param left The left operand expression.
- * @param right The right operand constant.
- * @return A new {@code Expr} representing the logical max operation.
- */
-export function logicalMaximum(left: Expr, right: any): LogicalMaximum;
+export function logicalMaximum(
+  first: Expr,
+  second: Expr | any,
+  ...others: Array<Expr | any>
+): LogicalMaximum;
 
 /**
  * @beta
@@ -6283,35 +6176,25 @@ export function logicalMaximum(left: Expr, right: any): LogicalMaximum;
  * logicalMaximum("field1", Field.of('field2'));
  * ```
  *
- * @param left The left operand field name.
- * @param right The right operand expression.
+ * @param fieldName The first operand field name.
+ * @param second The second expression or literal.
+ * @param others Optional additional expressions or literals.
  * @return A new {@code Expr} representing the logical max operation.
  */
-export function logicalMaximum(left: string, right: Expr): LogicalMaximum;
-
-/**
- * @beta
- *
- * Creates an expression that returns the larger value between a field and a constant value, based on Firestore's value type ordering.
- *
- * ```typescript
- * // Returns the larger value between the 'value' field and 10.
- * logicalMaximum("value", 10);
- * ```
- *
- * @param left The left operand field name.
- * @param right The right operand constant.
- * @return A new {@code Expr} representing the logical max operation.
- */
-export function logicalMaximum(left: string, right: any): LogicalMaximum;
 export function logicalMaximum(
-  left: Expr | string,
-  right: Expr | any
+  left: string,
+  second: Expr | any,
+  ...others: Array<Expr | any>
+): LogicalMaximum;
+
+export function logicalMaximum(
+  first: Expr | string,
+  ...others: Array<Expr | any>
 ): LogicalMaximum {
-  const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-  const normalizedRight =
-    right instanceof Expr ? right : valueToDefaultExpr(right);
-  return new LogicalMaximum(normalizedLeft, normalizedRight);
+  return new LogicalMaximum(
+    fieldOfOrExpr(first),
+    others.map(value => valueToDefaultExpr(value))
+  );
 }
 
 /**
@@ -6324,27 +6207,16 @@ export function logicalMaximum(
  * logicalMinimum(Field.of("field1"), Field.of("field2"));
  * ```
  *
- * @param left The left operand expression.
- * @param right The right operand expression.
+ * @param first The first operand expression.
+ * @param second The second expression or literal.
+ * @param others Optional additional expressions or literals.
  * @return A new {@code Expr} representing the logical min operation.
  */
-export function logicalMinimum(left: Expr, right: Expr): LogicalMinimum;
-
-/**
- * @beta
- *
- * Creates an expression that returns the smaller value between an expression and a constant value, based on Firestore's value type ordering.
- *
- * ```typescript
- * // Returns the smaller value between the 'value' field and 10.
- * logicalMinimum(Field.of("value"), 10);
- * ```
- *
- * @param left The left operand expression.
- * @param right The right operand constant.
- * @return A new {@code Expr} representing the logical min operation.
- */
-export function logicalMinimum(left: Expr, right: any): LogicalMinimum;
+export function logicalMinimum(
+  first: Expr,
+  second: Expr | any,
+  ...others: Array<Expr | any>
+): LogicalMinimum;
 
 /**
  * @beta
@@ -6356,35 +6228,25 @@ export function logicalMinimum(left: Expr, right: any): LogicalMinimum;
  * logicalMinimum("field1", Field.of("field2"));
  * ```
  *
- * @param left The left operand field name.
- * @param right The right operand expression.
+ * @param fieldName The first operand field name.
+ * @param second The second expression or literal.
+ * @param others Optional additional expressions or literals.
  * @return A new {@code Expr} representing the logical min operation.
  */
-export function logicalMinimum(left: string, right: Expr): LogicalMinimum;
-
-/**
- * @beta
- *
- * Creates an expression that returns the smaller value between a field and a constant value, based on Firestore's value type ordering.
- *
- * ```typescript
- * // Returns the smaller value between the 'value' field and 10.
- * logicalMinimum("value", 10);
- * ```
- *
- * @param left The left operand field name.
- * @param right The right operand constant.
- * @return A new {@code Expr} representing the logical min operation.
- */
-export function logicalMinimum(left: string, right: any): LogicalMinimum;
 export function logicalMinimum(
-  left: Expr | string,
-  right: Expr | any
+  fieldName: string,
+  second: Expr | any,
+  ...others: Array<Expr | any>
+): LogicalMinimum;
+
+export function logicalMinimum(
+  first: Expr | string,
+  ...others: Array<Expr | any>
 ): LogicalMinimum {
-  const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-  const normalizedRight =
-    right instanceof Expr ? right : valueToDefaultExpr(right);
-  return new LogicalMinimum(normalizedLeft, normalizedRight);
+  return new LogicalMinimum(
+    fieldOfOrExpr(first),
+    others.map(value => valueToDefaultExpr(value))
+  );
 }
 
 /**
@@ -7253,13 +7115,15 @@ export function trim(expr: Expr | string): Trim {
  * strConcat("firstName", " ", Field.of("lastName"));
  * ```
  *
- * @param first The field name containing the initial string value.
- * @param elements The expressions (typically strings) to concatenate.
+ * @param fieldName The field name containing the initial string value.
+ * @param secondString An expression or string literal to concatenate.
+ * @param otherStrings Optional additional expressions or literals (typically strings) to concatenate.
  * @return A new {@code Expr} representing the concatenated string.
  */
 export function strConcat(
-  first: string,
-  ...elements: Array<Expr | string>
+  fieldName: string,
+  secondString: Expr | string,
+  ...otherStrings: Array<Expr | string>
 ): StrConcat;
 
 /**
@@ -7271,13 +7135,15 @@ export function strConcat(
  * strConcat(Field.of("firstName"), " ", Field.of("lastName"));
  * ```
  *
- * @param first The initial string expression to concatenate to.
- * @param elements The expressions (typically strings) to concatenate.
+ * @param firstString The initial string expression to concatenate to.
+ * @param secondString An expression or string literal to concatenate.
+ * @param otherStrings Optional additional expressions or literals (typically strings) to concatenate.
  * @return A new {@code Expr} representing the concatenated string.
  */
 export function strConcat(
-  first: Expr,
-  ...elements: Array<Expr | string>
+  firstString: Expr,
+  secondString: Expr | string,
+  ...otherStrings: Array<Expr | string>
 ): StrConcat;
 export function strConcat(
   first: string | Expr,
@@ -7286,7 +7152,7 @@ export function strConcat(
   const exprs = elements.map(e =>
     e instanceof Expr ? e : valueToDefaultExpr(e)
   );
-  return new StrConcat(first instanceof Expr ? first : Field.of(first), exprs);
+  return new StrConcat(valueToDefaultExpr(first), exprs);
 }
 
 /**
@@ -8308,15 +8174,17 @@ export function genericFunction(
  * const condition = and(gt("age", 18), eq("city", "London"), eq("status", "active"));
  * ```
  *
- * @param left The first filter condition.
- * @param right Additional filter conditions to 'AND' together.
+ * @param first The first filter condition.
+ * @param second The second filter condition.
+ * @param more Additional filter conditions to 'AND' together.
  * @return A new {@code Expr} representing the logical 'AND' operation.
  */
 export function andFunction(
-  left: BooleanExpr,
-  ...right: BooleanExpr[]
+  first: BooleanExpr,
+  second: BooleanExpr,
+  ...more: BooleanExpr[]
 ): And {
-  return new And([left, ...right]);
+  return new And([first, second, ...more]);
 }
 
 /**
@@ -8330,15 +8198,17 @@ export function andFunction(
  * const condition = or(gt("age", 18), eq("city", "London"), eq("status", "active"));
  * ```
  *
- * @param left The first filter condition.
- * @param right Additional filter conditions to 'OR' together.
+ * @param first The first filter condition.
+ * @param second The second filter condition.
+ * @param more Additional filter conditions to 'OR' together.
  * @return A new {@code Expr} representing the logical 'OR' operation.
  */
 export function orFunction(
-  left: BooleanExpr,
-  ...right: BooleanExpr[]
+  first: BooleanExpr,
+  second: BooleanExpr,
+  ...more: BooleanExpr[]
 ): Or {
-  return new Or([left, ...right]);
+  return new Or([first, second, ...more]);
 }
 
 /**
