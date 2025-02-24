@@ -37,7 +37,6 @@ import { isString } from '../util/types';
 import { Bytes } from './bytes';
 import { documentId, FieldPath } from './field_path';
 import { GeoPoint } from './geo_point';
-import { Pipeline } from './pipeline';
 import { DocumentReference } from './reference';
 import { Timestamp } from './timestamp';
 import {
@@ -1065,7 +1064,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    * Field.of("productId").count().as("totalProducts");
    * ```
    *
-   * @return A new `Accumulator` representing the 'count' aggregation.
+   * @return A new `AggregateFunction` representing the 'count' aggregation.
    */
   count(): Count {
     return new Count(this, false);
@@ -1079,7 +1078,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    * Field.of("orderAmount").sum().as("totalRevenue");
    * ```
    *
-   * @return A new `Accumulator` representing the 'sum' aggregation.
+   * @return A new `AggregateFunction` representing the 'sum' aggregation.
    */
   sum(): Sum {
     return new Sum(this, false);
@@ -1094,7 +1093,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    * Field.of("age").avg().as("averageAge");
    * ```
    *
-   * @return A new `Accumulator` representing the 'avg' aggregation.
+   * @return A new `AggregateFunction` representing the 'avg' aggregation.
    */
   avg(): Avg {
     return new Avg(this, false);
@@ -1108,7 +1107,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    * Field.of("price").minimum().as("lowestPrice");
    * ```
    *
-   * @return A new `Accumulator` representing the 'min' aggregation.
+   * @return A new `AggregateFunction` representing the 'min' aggregation.
    */
   minimum(): Minimum {
     return new Minimum(this, false);
@@ -1122,25 +1121,10 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    * Field.of("score").maximum().as("highestScore");
    * ```
    *
-   * @return A new `Accumulator` representing the 'max' aggregation.
+   * @return A new `AggregateFunction` representing the 'max' aggregation.
    */
   maximum(): Maximum {
     return new Maximum(this, false);
-  }
-
-  /**
-   * Creates an aggregation that finds the count of input documents satisfying
-   * the conditional expression.
-   *
-   * ```typescript
-   * // Find the count of documents with a score greater than 90
-   * Field.of("score").gt(90).countIf().as("highestScore");
-   * ```
-   *
-   * @return A new `Accumulator` representing the 'countIf' aggregation.
-   */
-  countIf(): CountIf {
-    return new CountIf(this);
   }
 
   /**
@@ -2069,52 +2053,75 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
  *
  * An interface that represents a selectable expression.
  */
-export abstract class Selectable extends Expr {
-  selectable: true = true;
-  abstract readonly alias: string;
+export interface Selectable {
+  selectable: true;
+  readonly alias: string;
+  readonly expr: Expr;
 }
 
 /**
  * @beta
  *
- * An interface that represents a filter condition.
+ * An class that represents an aggregate function.
  */
-export abstract class BooleanExpr extends Expr {
-  filterable: true = true;
-}
+export class AggregateFunction
+  implements ProtoSerializable<ProtoValue>, UserData
+{
+  aggregateFunction: true = true;
 
-/**
- * @beta
- *
- * An interface that represents an accumulator.
- */
-export abstract class Accumulator extends Expr {
-  accumulator: true = true;
+  constructor(private name: string, private params: Expr[]) {}
+
+  /**
+   * Assigns an alias to this AggregateFunction. The alias specifies the name that
+   * the aggregated value will have in the output document.
+   *
+   * ```typescript
+   * // Calculate the average price of all items and assign it the alias "averagePrice".
+   * firestore.pipeline().collection("items")
+   *   .aggregate(Field.of("price").avg().as("averagePrice"));
+   * ```
+   *
+   * @param name The alias to assign to this AggregateFunction.
+   * @return A new {@link AggregateFunctionWithAlias} that wraps this
+   *     AggregateFunction and associates it with the provided alias.
+   */
+  as(name: string): AggregateFunctionWithAlias {
+    return new AggregateFunctionWithAlias(this, name);
+  }
 
   /**
    * @private
    * @internal
    */
-  abstract _toProto(serializer: JsonProtoSerializer): ProtoValue;
+  _toProto(serializer: JsonProtoSerializer): ProtoValue {
+    return {
+      functionValue: {
+        name: this.name,
+        args: this.params.map(p => p._toProto(serializer))
+      }
+    };
+  }
+
+  /**
+   * @private
+   * @internal
+   */
+  _readUserData(dataReader: UserDataReader): void {
+    this.params.forEach(expr => {
+      return expr._readUserData(dataReader);
+    });
+  }
 }
 
 /**
  * @beta
  *
- * An accumulator target, which is an expression with an alias that also implements the Accumulator interface.
+ * An AggregateFunction with alias.
  */
-export type AccumulatorTarget = ExprWithAlias<Accumulator>;
-
-/**
- * @beta
- */
-export class ExprWithAlias<T extends Expr> extends Selectable {
-  exprType: ExprType = 'ExprWithAlias';
-  selectable = true as const;
-
-  constructor(readonly expr: T, readonly alias: string) {
-    super();
-  }
+export class AggregateFunctionWithAlias
+  implements UserData, ProtoSerializable<ProtoValue>
+{
+  constructor(readonly expr: AggregateFunction, readonly alias: string) {}
 
   /**
    * @private
@@ -2123,6 +2130,24 @@ export class ExprWithAlias<T extends Expr> extends Selectable {
   _toProto(serializer: JsonProtoSerializer): ProtoValue {
     throw new Error('ExprWithAlias should not be serialized directly.');
   }
+
+  /**
+   * @private
+   * @internal
+   */
+  _readUserData(dataReader: UserDataReader): void {
+    this.expr._readUserData(dataReader);
+  }
+}
+
+/**
+ * @beta
+ */
+export class ExprWithAlias<T extends Expr> implements Selectable, UserData {
+  exprType: ExprType = 'ExprWithAlias';
+  selectable = true as const;
+
+  constructor(readonly expr: T, readonly alias: string) {}
 
   /**
    * @private
@@ -2182,14 +2207,11 @@ class ListOfExprs extends Expr {
  * const cityField = Field.of("address.city");
  * ```
  */
-export class Field extends Selectable {
+export class Field extends Expr implements Selectable {
   exprType: ExprType = 'Field';
   selectable = true as const;
 
-  private constructor(
-    private fieldPath: InternalFieldPath,
-    private pipeline: Pipeline | null = null
-  ) {
+  private constructor(private fieldPath: InternalFieldPath) {
     super();
   }
 
@@ -2231,7 +2253,11 @@ export class Field extends Selectable {
   }
 
   get alias(): string {
-    return this.fieldPath.canonicalString();
+    return this.fieldName();
+  }
+
+  get expr(): Expr {
+    return this;
   }
 
   /**
@@ -2522,13 +2548,40 @@ export class FirestoreFunction extends Expr {
 
 /**
  * @beta
+ *
+ * An interface that represents a filter condition.
  */
-export class GenericFunction
-  extends FirestoreFunction
-  implements BooleanExpr, Accumulator
-{
-  accumulator: true = true;
+export class BooleanExpr extends FirestoreFunction {
   filterable: true = true;
+
+  /**
+   * Creates an aggregation that finds the count of input documents satisfying
+   * this boolean expression.
+   *
+   * ```typescript
+   * // Find the count of documents with a score greater than 90
+   * Field.of("score").gt(90).countIf().as("highestScore");
+   * ```
+   *
+   * @return A new `AggregateFunction` representing the 'countIf' aggregation.
+   */
+  countIf(): AggregateFunction {
+    return new CountIf(this);
+  }
+
+  /**
+   * Creates an expression that negates this boolean expression.
+   *
+   * ```typescript
+   * // Find documents where the 'tags' field does not contain 'completed'
+   * Field.of("tags").arrayContains("completed").not();
+   * ```
+   *
+   * @return A new {@code Expr} representing the negated filter condition.
+   */
+  not(filter: BooleanExpr): BooleanExpr {
+    return new Not(filter);
+  }
 }
 
 /**
@@ -2591,7 +2644,7 @@ export class ArrayFunction extends FirestoreFunction {
 /**
  * @beta
  */
-export class Eq extends FirestoreFunction implements BooleanExpr {
+export class Eq extends BooleanExpr {
   constructor(private left: Expr, private right: Expr) {
     super('eq', [left, right]);
   }
@@ -2602,7 +2655,7 @@ export class Eq extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class Neq extends FirestoreFunction implements BooleanExpr {
+export class Neq extends BooleanExpr {
   constructor(private left: Expr, private right: Expr) {
     super('neq', [left, right]);
   }
@@ -2613,7 +2666,7 @@ export class Neq extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class Lt extends FirestoreFunction implements BooleanExpr {
+export class Lt extends BooleanExpr {
   constructor(private left: Expr, private right: Expr) {
     super('lt', [left, right]);
   }
@@ -2624,7 +2677,7 @@ export class Lt extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class Lte extends FirestoreFunction implements BooleanExpr {
+export class Lte extends BooleanExpr {
   constructor(private left: Expr, private right: Expr) {
     super('lte', [left, right]);
   }
@@ -2635,7 +2688,7 @@ export class Lte extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class Gt extends FirestoreFunction implements BooleanExpr {
+export class Gt extends BooleanExpr {
   constructor(private left: Expr, private right: Expr) {
     super('gt', [left, right]);
   }
@@ -2646,7 +2699,7 @@ export class Gt extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class Gte extends FirestoreFunction implements BooleanExpr {
+export class Gte extends BooleanExpr {
   constructor(private left: Expr, private right: Expr) {
     super('gte', [left, right]);
   }
@@ -2675,7 +2728,7 @@ export class ArrayReverse extends FirestoreFunction {
 /**
  * @beta
  */
-export class ArrayContains extends FirestoreFunction implements BooleanExpr {
+export class ArrayContains extends BooleanExpr {
   constructor(private array: Expr, private element: Expr) {
     super('array_contains', [array, element]);
   }
@@ -2686,7 +2739,7 @@ export class ArrayContains extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class ArrayContainsAll extends FirestoreFunction implements BooleanExpr {
+export class ArrayContainsAll extends BooleanExpr {
   constructor(private array: Expr, private values: Expr[]) {
     super('array_contains_all', [array, new ListOfExprs(values)]);
   }
@@ -2697,7 +2750,7 @@ export class ArrayContainsAll extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class ArrayContainsAny extends FirestoreFunction implements BooleanExpr {
+export class ArrayContainsAny extends BooleanExpr {
   constructor(private array: Expr, private values: Expr[]) {
     super('array_contains_any', [array, new ListOfExprs(values)]);
   }
@@ -2726,7 +2779,7 @@ export class ArrayElement extends FirestoreFunction {
 /**
  * @beta
  */
-export class EqAny extends FirestoreFunction implements BooleanExpr {
+export class EqAny extends BooleanExpr {
   constructor(private left: Expr, private others: Expr[]) {
     super('eq_any', [left, new ListOfExprs(others)]);
   }
@@ -2737,7 +2790,7 @@ export class EqAny extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class NotEqAny extends FirestoreFunction implements BooleanExpr {
+export class NotEqAny extends BooleanExpr {
   constructor(private left: Expr, private others: Expr[]) {
     super('not_eq_any', [left, new ListOfExprs(others)]);
   }
@@ -2748,7 +2801,7 @@ export class NotEqAny extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class IsNan extends FirestoreFunction implements BooleanExpr {
+export class IsNan extends BooleanExpr {
   constructor(private expr: Expr) {
     super('is_nan', [expr]);
   }
@@ -2759,7 +2812,7 @@ export class IsNan extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class Exists extends FirestoreFunction implements BooleanExpr {
+export class Exists extends BooleanExpr {
   constructor(private expr: Expr) {
     super('exists', [expr]);
   }
@@ -2770,7 +2823,7 @@ export class Exists extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class Not extends FirestoreFunction implements BooleanExpr {
+export class Not extends BooleanExpr {
   constructor(private expr: Expr) {
     super('not', [expr]);
   }
@@ -2781,7 +2834,7 @@ export class Not extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class And extends FirestoreFunction implements BooleanExpr {
+export class And extends BooleanExpr {
   constructor(private conditions: BooleanExpr[]) {
     super('and', conditions);
   }
@@ -2792,7 +2845,7 @@ export class And extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class Or extends FirestoreFunction implements BooleanExpr {
+export class Or extends BooleanExpr {
   constructor(private conditions: BooleanExpr[]) {
     super('or', conditions);
   }
@@ -2803,7 +2856,7 @@ export class Or extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class Xor extends FirestoreFunction implements BooleanExpr {
+export class Xor extends BooleanExpr {
   constructor(private conditions: BooleanExpr[]) {
     super('xor', conditions);
   }
@@ -2840,7 +2893,7 @@ export class LogicalMaximum extends FirestoreFunction {
  */
 export class LogicalMinimum extends FirestoreFunction {
   constructor(first: Expr, others: Expr[]) {
-    super('logical_minimum', [first, ...others]);
+    super('logical_min', [first, ...others]);
   }
 }
 
@@ -2892,7 +2945,7 @@ export class ByteLength extends FirestoreFunction {
 /**
  * @beta
  */
-export class Like extends FirestoreFunction implements BooleanExpr {
+export class Like extends BooleanExpr {
   constructor(private expr: Expr, private pattern: Expr) {
     super('like', [expr, pattern]);
   }
@@ -2903,7 +2956,7 @@ export class Like extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class RegexContains extends FirestoreFunction implements BooleanExpr {
+export class RegexContains extends BooleanExpr {
   constructor(private expr: Expr, private pattern: Expr) {
     super('regex_contains', [expr, pattern]);
   }
@@ -2914,7 +2967,7 @@ export class RegexContains extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class RegexMatch extends FirestoreFunction implements BooleanExpr {
+export class RegexMatch extends BooleanExpr {
   constructor(private expr: Expr, private pattern: Expr) {
     super('regex_match', [expr, pattern]);
   }
@@ -2925,7 +2978,7 @@ export class RegexMatch extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class StrContains extends FirestoreFunction implements BooleanExpr {
+export class StrContains extends BooleanExpr {
   constructor(private expr: Expr, private substring: Expr) {
     super('str_contains', [expr, substring]);
   }
@@ -2936,7 +2989,7 @@ export class StrContains extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class StartsWith extends FirestoreFunction implements BooleanExpr {
+export class StartsWith extends BooleanExpr {
   constructor(private expr: Expr, private prefix: Expr) {
     super('starts_with', [expr, prefix]);
   }
@@ -2947,7 +3000,7 @@ export class StartsWith extends FirestoreFunction implements BooleanExpr {
 /**
  * @beta
  */
-export class EndsWith extends FirestoreFunction implements BooleanExpr {
+export class EndsWith extends BooleanExpr {
   constructor(private expr: Expr, private suffix: Expr) {
     super('ends_with', [expr, suffix]);
   }
@@ -3003,8 +3056,8 @@ export class MapGet extends FirestoreFunction {
 /**
  * @beta
  */
-export class Count extends FirestoreFunction implements Accumulator {
-  accumulator = true as const;
+export class Count extends AggregateFunction {
+  aggregateFunction = true as const;
 
   constructor(private value: Expr | undefined, private distinct: boolean) {
     super('count', value === undefined ? [] : [value]);
@@ -3014,8 +3067,8 @@ export class Count extends FirestoreFunction implements Accumulator {
 /**
  * @beta
  */
-export class Sum extends FirestoreFunction implements Accumulator {
-  accumulator = true as const;
+export class Sum extends AggregateFunction {
+  aggregateFunction = true as const;
 
   constructor(private value: Expr, private distinct: boolean) {
     super('sum', [value]);
@@ -3025,8 +3078,8 @@ export class Sum extends FirestoreFunction implements Accumulator {
 /**
  * @beta
  */
-export class Avg extends FirestoreFunction implements Accumulator {
-  accumulator = true as const;
+export class Avg extends AggregateFunction {
+  aggregateFunction = true as const;
 
   constructor(private value: Expr, private distinct: boolean) {
     super('avg', [value]);
@@ -3036,8 +3089,8 @@ export class Avg extends FirestoreFunction implements Accumulator {
 /**
  * @beta
  */
-export class Minimum extends FirestoreFunction implements Accumulator {
-  accumulator = true as const;
+export class Minimum extends AggregateFunction {
+  aggregateFunction = true as const;
 
   constructor(private value: Expr, private distinct: boolean) {
     super('minimum', [value]);
@@ -3047,8 +3100,8 @@ export class Minimum extends FirestoreFunction implements Accumulator {
 /**
  * @beta
  */
-export class Maximum extends FirestoreFunction implements Accumulator {
-  accumulator = true as const;
+export class Maximum extends AggregateFunction {
+  aggregateFunction = true as const;
 
   constructor(private value: Expr, private distinct: boolean) {
     super('maximum', [value]);
@@ -3174,12 +3227,12 @@ export class TimestampSub extends FirestoreFunction {
 /**
  * @beta
  */
-export class CountIf extends FirestoreFunction implements Accumulator {
-  constructor(private booleanExpr: Expr) {
+export class CountIf extends AggregateFunction {
+  constructor(private booleanExpr: BooleanExpr) {
     super('count_if', [booleanExpr]);
   }
 
-  accumulator = true as const;
+  aggregateFunction = true as const;
 }
 
 /**
@@ -3193,7 +3246,7 @@ export class CountIf extends FirestoreFunction implements Accumulator {
  * ```
  *
  * @param booleanExpr - The boolean expression to evaluate on each input.
- * @returns A new `Accumulator` representing the 'countif' aggregation.
+ * @returns A new `AggregateFunction` representing the 'countif' aggregation.
  */
 export function countIf(booleanExpr: BooleanExpr): CountIf {
   return new CountIf(booleanExpr);
@@ -3765,7 +3818,7 @@ export function currentContext(): CurrentContext {
 /**
  * @beta
  */
-export class IsError extends FirestoreFunction implements BooleanExpr {
+export class IsError extends BooleanExpr {
   constructor(private expr: Expr) {
     super('is_error', [expr]);
   }
@@ -3843,7 +3896,7 @@ export function ifError(tryExpr: Expr, catchValue: any): IfError {
 /**
  * @beta
  */
-export class IsAbsent extends FirestoreFunction implements BooleanExpr {
+export class IsAbsent extends BooleanExpr {
   constructor(private expr: Expr) {
     super('is_absent', [expr]);
   }
@@ -3889,7 +3942,7 @@ export function isAbsent(value: Expr | string): IsAbsent {
 /**
  * @beta
  */
-export class IsNull extends FirestoreFunction implements BooleanExpr {
+export class IsNull extends BooleanExpr {
   constructor(private expr: Expr) {
     super('is_null', [expr]);
   }
@@ -3933,7 +3986,7 @@ export function isNull(value: Expr | string): IsNull {
 /**
  * @beta
  */
-export class IsNotNull extends FirestoreFunction implements BooleanExpr {
+export class IsNotNull extends BooleanExpr {
   constructor(private expr: Expr) {
     super('is_not_null', [expr]);
   }
@@ -3977,7 +4030,7 @@ export function isNotNull(value: Expr | string): IsNotNull {
 /**
  * @beta
  */
-export class IsNotNan extends FirestoreFunction implements BooleanExpr {
+export class IsNotNan extends BooleanExpr {
   constructor(private expr: Expr) {
     super('is_not_nan', [expr]);
   }
@@ -4168,11 +4221,13 @@ export class Parent extends FirestoreFunction {
   }
 }
 
-export function parent(path: string | DocumentReference): Parent;
+export function parentFunction(path: string | DocumentReference): Parent;
 
-export function parent(pathExpr: Expr): Parent;
+export function parentFunction(pathExpr: Expr): Parent;
 
-export function parent(path: Expr | string | DocumentReference): Parent {
+export function parentFunction(
+  path: Expr | string | DocumentReference
+): Parent {
   // @ts-ignore
   const pathExpr = valueToDefaultExpr(path);
   return new Parent(pathExpr);
@@ -7203,7 +7258,7 @@ export function mapGet(fieldOrExpr: string | Expr, subField: string): MapGet {
  * countAll().as("totalUsers");
  * ```
  *
- * @return A new {@code Accumulator} representing the 'countAll' aggregation.
+ * @return A new {@code AggregateFunction} representing the 'countAll' aggregation.
  */
 export function countAll(): Count {
   return new Count(undefined, false);
@@ -7221,7 +7276,7 @@ export function countAll(): Count {
  * ```
  *
  * @param value The expression to count.
- * @return A new {@code Accumulator} representing the 'count' aggregation.
+ * @return A new {@code AggregateFunction} representing the 'count' aggregation.
  */
 export function countFunction(value: Expr): Count;
 
@@ -7235,7 +7290,7 @@ export function countFunction(value: Expr): Count;
  * ```
  *
  * @param value The name of the field to count.
- * @return A new {@code Accumulator} representing the 'count' aggregation.
+ * @return A new {@code AggregateFunction} representing the 'count' aggregation.
  */
 export function countFunction(value: string): Count;
 export function countFunction(value: Expr | string): Count {
@@ -7255,7 +7310,7 @@ export function countFunction(value: Expr | string): Count {
  * ```
  *
  * @param value The expression to sum up.
- * @return A new {@code Accumulator} representing the 'sum' aggregation.
+ * @return A new {@code AggregateFunction} representing the 'sum' aggregation.
  */
 export function sumFunction(value: Expr): Sum;
 
@@ -7271,7 +7326,7 @@ export function sumFunction(value: Expr): Sum;
  * ```
  *
  * @param value The name of the field containing numeric values to sum up.
- * @return A new {@code Accumulator} representing the 'sum' aggregation.
+ * @return A new {@code AggregateFunction} representing the 'sum' aggregation.
  */
 export function sumFunction(value: string): Sum;
 export function sumFunction(value: Expr | string): Sum {
@@ -7291,7 +7346,7 @@ export function sumFunction(value: Expr | string): Sum {
  * ```
  *
  * @param value The expression representing the values to average.
- * @return A new {@code Accumulator} representing the 'avg' aggregation.
+ * @return A new {@code AggregateFunction} representing the 'avg' aggregation.
  */
 export function avgFunction(value: Expr): Avg;
 
@@ -7307,7 +7362,7 @@ export function avgFunction(value: Expr): Avg;
  * ```
  *
  * @param value The name of the field containing numeric values to average.
- * @return A new {@code Accumulator} representing the 'avg' aggregation.
+ * @return A new {@code AggregateFunction} representing the 'avg' aggregation.
  */
 export function avgFunction(value: string): Avg;
 export function avgFunction(value: Expr | string): Avg {
@@ -7327,7 +7382,7 @@ export function avgFunction(value: Expr | string): Avg {
  * ```
  *
  * @param value The expression to find the minimum value of.
- * @return A new {@code Accumulator} representing the 'min' aggregation.
+ * @return A new {@code AggregateFunction} representing the 'min' aggregation.
  */
 export function minimum(value: Expr): Minimum;
 
@@ -7342,7 +7397,7 @@ export function minimum(value: Expr): Minimum;
  * ```
  *
  * @param value The name of the field to find the minimum value of.
- * @return A new {@code Accumulator} representing the 'min' aggregation.
+ * @return A new {@code AggregateFunction} representing the 'min' aggregation.
  */
 export function minimum(value: string): Minimum;
 export function minimum(value: Expr | string): Minimum {
@@ -7362,7 +7417,7 @@ export function minimum(value: Expr | string): Minimum {
  * ```
  *
  * @param value The expression to find the maximum value of.
- * @return A new {@code Accumulator} representing the 'max' aggregation.
+ * @return A new {@code AggregateFunction} representing the 'max' aggregation.
  */
 export function maximum(value: Expr): Maximum;
 
@@ -7377,7 +7432,7 @@ export function maximum(value: Expr): Maximum;
  * ```
  *
  * @param value The name of the field to find the maximum value of.
- * @return A new {@code Accumulator} representing the 'max' aggregation.
+ * @return A new {@code AggregateFunction} representing the 'max' aggregation.
  */
 export function maximum(value: string): Maximum;
 export function maximum(value: Expr | string): Maximum {
@@ -8147,20 +8202,61 @@ export function timestampSub(
  * Creates functions that work on the backend but do not exist in the SDK yet.
  *
  * ```typescript
- * // Call a user defined function named "myFunc" with the arguments 10 and 20
- * // This is the same of the 'sum(Field.of("price"))', if it did not exist
+ * // This is the same of the 'sum(Field.of("price"))', if it was not yet implemented in the SDK.
  * genericFunction("sum", [Field.of("price")]);
  * ```
  *
- * @param functionName The name of the user defined function.
+ * @param functionName The name of the server function.
  * @param params The arguments to pass to the function.
- * @return A new {@code GenericFucntion} representing the function call.
+ * @return A new {@code FirestoreFunction} representing the function call.
  */
 export function genericFunction(
   functionName: string,
   params: any[]
-): GenericFunction {
-  return new GenericFunction(functionName, params.map(valueToDefaultExpr));
+): FirestoreFunction {
+  return new FirestoreFunction(functionName, params.map(valueToDefaultExpr));
+}
+
+/**
+ * @beta
+ *
+ * Creates a boolean expression that works on the backend but does not exist in the SDK yet.
+ *
+ * ```typescript
+ * // This is the same of the 'eq("price", 10)', if it was not yet implemented in the SDK.
+ * genericFunction("eq", [Field.of("price"), Constant.of(10)]);
+ * ```
+ *
+ * @param functionName The name of the server boolean expression.
+ * @param params The arguments to pass to the boolean expression.
+ * @return A new {@code BooleanExpr} representing the function call.
+ */
+export function genericBooleanExpr(
+  functionName: string,
+  params: any[]
+): BooleanExpr {
+  return new BooleanExpr(functionName, params.map(valueToDefaultExpr));
+}
+
+/**
+ * @beta
+ *
+ * Creates a boolean expression that works on the backend but does not exist in the SDK yet.
+ *
+ * ```typescript
+ * // This is the same of the 'eq("price", 10)', if it was not yet implemented in the SDK.
+ * genericFunction("eq", [Field.of("price"), Constant.of(10)]);
+ * ```
+ *
+ * @param functionName The name of the server boolean expression.
+ * @param params The arguments to pass to the boolean expression.
+ * @return A new {@code BooleanExpr} representing the function call.
+ */
+export function genericAggregateFunction(
+  functionName: string,
+  params: any[]
+): AggregateFunction {
+  return new AggregateFunction(functionName, params.map(valueToDefaultExpr));
 }
 
 /**

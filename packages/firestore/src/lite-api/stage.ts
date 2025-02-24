@@ -30,7 +30,13 @@ import {
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
 
-import { Accumulator, Expr, Field, BooleanExpr, Ordering } from './expressions';
+import {
+  AggregateFunction,
+  Expr,
+  Field,
+  BooleanExpr,
+  Ordering
+} from './expressions';
 import { Pipeline } from './pipeline';
 import { DocumentReference } from './reference';
 import { VectorValue } from './vector_value';
@@ -89,7 +95,7 @@ export class Aggregate implements Stage {
   name = 'aggregate';
 
   constructor(
-    private accumulators: Map<string, Accumulator>,
+    private accumulators: Map<string, AggregateFunction>,
     private groups: Map<string, Expr>
   ) {}
 
@@ -481,7 +487,14 @@ export class Replace implements Stage {
  * @beta
  */
 export class GenericStage implements Stage {
-  constructor(public name: string, private params: Expr[]) {}
+  /**
+   * @private
+   * @internal
+   */
+  constructor(
+    public name: string,
+    private params: Array<ProtoSerializable<ProtoValue>>
+  ) {}
 
   /**
    * @internal

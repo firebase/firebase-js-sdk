@@ -20,7 +20,8 @@
 import { ObjectValue } from '../model/object_value';
 import {
   Pipeline as ProtoPipeline,
-  Stage as ProtoStage
+  Stage as ProtoStage,
+  Value as ProtoValue
 } from '../protos/firestore_proto_api';
 import { invokeExecutePipeline } from '../remote/datastore';
 import { JsonProtoSerializer, ProtoSerializable } from '../remote/serializer';
@@ -30,8 +31,8 @@ import { getDatastore } from './components';
 import { Firestore } from './database';
 import {
   _mapValue,
-  Accumulator,
-  AccumulatorTarget,
+  AggregateFunction,
+  AggregateFunctionWithAlias,
   Constant,
   Expr,
   ExprWithAlias,
@@ -385,8 +386,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * Performs aggregation operations on the documents from previous stages.
    *
    * <p>This stage allows you to calculate aggregate values over a set of documents. You define the
-   * aggregations to perform using {@link AccumulatorTarget} expressions which are typically results of
-   * calling {@link Expr#as} on {@link Accumulator} instances.
+   * aggregations to perform using {@link AggregateFunctionWithAlias} expressions which are typically results of
+   * calling {@link Expr#as} on {@link AggregateFunction} instances.
    *
    * <p>Example:
    *
@@ -399,11 +400,11 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *     );
    * ```
    *
-   * @param accumulators The {@link AccumulatorTarget} expressions, each wrapping an {@link Accumulator}
+   * @param accumulators The {@link AggregateFunctionWithAlias} expressions, each wrapping an {@link AggregateFunction}
    *     and provide a name for the accumulated results.
    * @return A new Pipeline object with this stage appended to the stage list.
    */
-  aggregate(...accumulators: AccumulatorTarget[]): Pipeline;
+  aggregate(...accumulators: AggregateFunctionWithAlias[]): Pipeline;
   /**
    * Performs optionally grouped aggregation operations on the documents from previous stages.
    *
@@ -416,8 +417,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *       If no grouping fields are provided, a single group containing all documents is used. Not
    *       specifying groups is the same as putting the entire inputs into one group.</li>
    *   <li>**Accumulators:** One or more accumulation operations to perform within each group. These
-   *       are defined using {@link AccumulatorTarget} expressions, which are typically created by
-   *       calling {@link Expr#as} on {@link Accumulator} instances. Each aggregation
+   *       are defined using {@link AggregateFunctionWithAlias} expressions, which are typically created by
+   *       calling {@link Expr#as} on {@link AggregateFunction} instances. Each aggregation
    *       calculates a value (e.g., sum, average, count) based on the documents within its group.</li>
    * </ul>
    *
@@ -438,29 +439,31 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * list.
    */
   aggregate(options: {
-    accumulators: AccumulatorTarget[];
+    accumulators: AggregateFunctionWithAlias[];
     groups?: Array<string | Selectable>;
   }): Pipeline;
   aggregate(
     optionsOrTarget:
-      | AccumulatorTarget
+      | AggregateFunctionWithAlias
       | {
-          accumulators: AccumulatorTarget[];
+          accumulators: AggregateFunctionWithAlias[];
           groups?: Array<string | Selectable>;
         },
-    ...rest: AccumulatorTarget[]
+    ...rest: AggregateFunctionWithAlias[]
   ): Pipeline {
     if ('accumulators' in optionsOrTarget) {
       return this._addStage(
         new Aggregate(
-          new Map<string, Accumulator>(
-            optionsOrTarget.accumulators.map((target: AccumulatorTarget) => [
-              (target as unknown as AccumulatorTarget).alias,
-              this.readUserData(
-                'aggregate',
-                (target as unknown as AccumulatorTarget).expr
-              )
-            ])
+          new Map<string, AggregateFunction>(
+            optionsOrTarget.accumulators.map(
+              (target: AggregateFunctionWithAlias) => [
+                (target as unknown as AggregateFunctionWithAlias).alias,
+                this.readUserData(
+                  'aggregate',
+                  (target as unknown as AggregateFunctionWithAlias).expr
+                )
+              ]
+            )
           ),
           this.readUserData(
             'aggregate',
@@ -471,12 +474,12 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     } else {
       return this._addStage(
         new Aggregate(
-          new Map<string, Accumulator>(
+          new Map<string, AggregateFunction>(
             [optionsOrTarget, ...rest].map(target => [
-              (target as unknown as AccumulatorTarget).alias,
+              (target as unknown as AggregateFunctionWithAlias).alias,
               this.readUserData(
                 'aggregate',
-                (target as unknown as AccumulatorTarget).expr
+                (target as unknown as AggregateFunctionWithAlias).expr
               )
             ])
           ),
@@ -740,7 +743,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     // this is unlike the default conversion for objects and arrays
     // passed to an expression.
     const expressionParams = params.map((value: any) => {
-      if (value instanceof Expr) {
+      if (value instanceof Expr || value instanceof AggregateFunction) {
         return value;
       } else if (isPlainObject(value)) {
         return _mapValue(value);
@@ -890,8 +893,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     db: Firestore,
     userDataReader: UserDataReader,
     userDataWriter: AbstractUserDataWriter,
-    stages: Stage[],
-    converter: unknown = {}
+    stages: Stage[]
   ): Pipeline {
     return new Pipeline(db, userDataReader, userDataWriter, stages);
   }
