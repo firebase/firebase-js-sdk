@@ -35,13 +35,24 @@ jobs:
       run: yarn
     - name: Run doc generation
       run: yarn docgen:all
+    - name: Check for changes in common/api-review dir (fail if so)
+      run: |
+        if [[ -n "$(git status common/api-review --porcelain)" ]]; then
+          echo "Unstaged changes detected in api-report(s):"
+          git status -s
+          echo "COMMAND_TO_RUN='yarn build'" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+      # Overwrite the command if there are also docs-devsite changes since
+      # running yarn docgen:all will also run yarn build first.
     - name: Check for changes in docs-devsite dir (fail if so)
       run: |
         if [[ -n "$(git status docs-devsite --porcelain)" ]]; then
-          echo "Unstaged changes detected:"
+          echo "Unstaged changes detected in docs-devsite/:"
           git status -s
+          echo "COMMAND_TO_RUN='yarn docgen:all'" >> $GITHUB_OUTPUT
           exit 1
         fi
     - name: Reference documentation needs to be updated. See message below.
       if: ${{ failure() }}
-      run: echo "Changes in this PR affect the reference docs. Run \`yarn docgen:all\` locally to regenerate docs and add them to this PR."
+      run: echo "Changes in this PR affect the reference docs or API reports. Run \`$COMMAND_TO_RUN\` locally to regenerate the changed files and add them to this PR."
