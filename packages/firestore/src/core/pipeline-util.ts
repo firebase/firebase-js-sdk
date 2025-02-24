@@ -186,7 +186,11 @@ export function toPipeline(query: Query, db: Firestore): Pipeline {
   );
   if (existsConditions.length > 1) {
     pipeline = pipeline.where(
-      andFunction(existsConditions[0], ...existsConditions.slice(1))
+      andFunction(
+        existsConditions[0],
+        existsConditions[1],
+        ...existsConditions.slice(2)
+      )
     );
   } else {
     pipeline = pipeline.where(existsConditions[0]);
