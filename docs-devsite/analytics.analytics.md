@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # Analytics interface
-An instance of Firebase Analytics.
+An instance of Firebase Analytics. test
 
 <b>Signature:</b>
 
