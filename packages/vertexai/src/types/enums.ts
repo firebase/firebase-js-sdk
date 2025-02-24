@@ -164,7 +164,7 @@ export enum Modality {
    */
   AUDIO = 'AUDIO',
   /**
-   * Document, e.g. PDF.
+   * Document (for example, PDF).
    */
   DOCUMENT = 'DOCUMENT'
 }
