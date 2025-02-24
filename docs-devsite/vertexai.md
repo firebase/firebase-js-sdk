@@ -55,6 +55,7 @@ The Vertex AI in Firebase Web SDK.
 |  [ImagenAspectRatio](./vertexai.md#imagenaspectratio) | <b><i>(Public Preview)</i></b> Aspect ratios for Imagen images.<!-- -->To specify an aspect ratio for generated images, set the <code>aspectRatio</code> property in your <code>[ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface)</code>.<!-- -->See the the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details and examples of the supported aspect ratios. |
 |  [ImagenPersonFilterLevel](./vertexai.md#imagenpersonfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images"><code>personGeneration</code></a> documentation for more details. |
 |  [ImagenSafetyFilterLevel](./vertexai.md#imagensafetyfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
+|  [Modality](./vertexai.md#modality) | Content part modality. |
 |  [SchemaType](./vertexai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
 |  [VertexAIErrorCode](./vertexai.md#vertexaierrorcode) | Standardized error codes that <code>[VertexAIError](./vertexai.vertexaierror.md#vertexaierror_class)</code> can have. |
 
@@ -97,6 +98,7 @@ The Vertex AI in Firebase Web SDK.
 |  [ImagenModelParams](./vertexai.imagenmodelparams.md#imagenmodelparams_interface) | <b><i>(Public Preview)</i></b> Parameters for configuring an <code>[ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)</code>. |
 |  [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) | <b><i>(Public Preview)</i></b> Settings for controlling the aggressiveness of filtering out sensitive content.<!-- -->See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details. |
 |  [InlineDataPart](./vertexai.inlinedatapart.md#inlinedatapart_interface) | Content part interface if the part represents an image. |
+|  [ModalityTokenCount](./vertexai.modalitytokencount.md#modalitytokencount_interface) | Represents token counting info for a single modality. |
 |  [ModelParams](./vertexai.modelparams.md#modelparams_interface) | Params passed to <code>[getGenerativeModel()](./vertexai.md#getgenerativemodel_e3037c9)</code>. |
 |  [ObjectSchemaInterface](./vertexai.objectschemainterface.md#objectschemainterface_interface) | Interface for <code>[ObjectSchema](./vertexai.objectschema.md#objectschema_class)</code> class. |
 |  [PromptFeedback](./vertexai.promptfeedback.md#promptfeedback_interface) | If the prompt was blocked, this will be populated with <code>blockReason</code> and the relevant <code>safetyRatings</code>. |
@@ -480,6 +482,27 @@ export declare enum ImagenSafetyFilterLevel
 |  BLOCK\_MEDIUM\_AND\_ABOVE | <code>&quot;block_medium_and_above&quot;</code> | <b><i>(Public Preview)</i></b> Blocks some sensitive prompts and responses. |
 |  BLOCK\_NONE | <code>&quot;block_none&quot;</code> | <b><i>(Public Preview)</i></b> The least aggressive filtering level; blocks very few sensitive prompts and responses.<!-- -->Access to this feature is restricted and may require your case to be reviewed and approved by Cloud support. |
 |  BLOCK\_ONLY\_HIGH | <code>&quot;block_only_high&quot;</code> | <b><i>(Public Preview)</i></b> Blocks few sensitive prompts and responses. |
+
+## Modality
+
+Content part modality.
+
+<b>Signature:</b>
+
+```typescript
+export declare enum Modality 
+```
+
+## Enumeration Members
+
+|  Member | Value | Description |
+|  --- | --- | --- |
+|  AUDIO | <code>&quot;AUDIO&quot;</code> | Audio. |
+|  DOCUMENT | <code>&quot;DOCUMENT&quot;</code> | Document (for example, PDF). |
+|  IMAGE | <code>&quot;IMAGE&quot;</code> | Image. |
+|  MODALITY\_UNSPECIFIED | <code>&quot;MODALITY_UNSPECIFIED&quot;</code> | Unspecified modality. |
+|  TEXT | <code>&quot;TEXT&quot;</code> | Plain text. |
+|  VIDEO | <code>&quot;VIDEO&quot;</code> | Video. |
 
 ## SchemaType
 
