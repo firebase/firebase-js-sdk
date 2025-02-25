@@ -125,12 +125,16 @@ try {
           `'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
 exports.postinstallDefaults = ${JSON.stringify(defaults)};`
-        ),
+        ).catch(() => {
+          console.warn('Unable to save FIREBASE_WEBAPP_CONFIG to CJS entry.');
+        }),
         writeFile(
           join(__dirname, 'dist', 'autoinit_env.mjs'),
           `const postinstallDefaults = ${JSON.stringify(defaults)};
 export { postinstallDefaults };`
-        )
+        ).catch(() => {
+          console.warn('Unable to save FIREBASE_WEBAPP_CONFIG to ESM entry.');
+        })
       ]);
 
       process.exit(0);
