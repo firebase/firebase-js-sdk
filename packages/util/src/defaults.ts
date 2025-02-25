@@ -17,8 +17,8 @@
 
 import { base64Decode } from './crypt';
 import { getGlobal } from './global';
-// @ts-ignore
-import postinstallDefaults from "@firebase/util/postinstall";
+// @ts-expect-error
+import postinstallDefaults from "@firebase/util/autoinit_env";
 
 /**
  * Keys for experimental properties on the `FirebaseDefaults` object.

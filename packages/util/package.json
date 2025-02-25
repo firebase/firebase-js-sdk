@@ -19,19 +19,15 @@
       },
       "default": "./dist/index.esm2017.js"
     },
-    "./postinstall": {
-      "types": "./defaults.d.ts",
-      "require": "./defaults.js",
-      "import": "./defaults.mjs",
-      "default": "./defaults.mjs"
+    "./autoinit_env": {
+      "require": "./dist/autoinit_env.js",
+      "import": "./dist/autoinit_env.mjs",
+      "default": "./dist/autoinit_env.mjs"
     },
     "./package.json": "./package.json"
   },
   "files": [
-    "dist",
-    "defaults.*js",
-    "defaults.d.ts",
-    "postinstall.mjs"
+    "dist"
   ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -48,7 +44,7 @@
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "api-extractor run --local --verbose",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/util-public.d.ts",
-    "postinstall": "node ./postinstall.mjs"
+    "postinstall": "node ./dist/postinstall.js"
   },
   "license": "Apache-2.0",
   "dependencies": {

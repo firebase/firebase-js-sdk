@@ -72,4 +72,33 @@ const nodeBuilds = [
   }
 ];
 
-export default [...browserBuilds, ...nodeBuilds];
+const autoinitBuild = [
+  { 
+    input: './src/autoinit_env.ts',
+    output: {
+      file: './dist/autoinit_env.js',
+      format: 'cjs',
+      exports: 'default',
+    },
+    plugins: buildPlugins,
+  },
+  { 
+    input: './src/autoinit_env.ts',
+    output: {
+      file: './dist/autoinit_env.mjs',
+      format: 'es',
+    },
+    plugins: buildPlugins,
+  },
+  { 
+    input: './postinstall.ts',
+    output: {
+      file: './dist/postinstall.js',
+      format: 'cjs',
+    },
+    plugins: buildPlugins,
+    external: () => true,
+  }
+]
+
+export default [...browserBuilds, ...nodeBuilds, ...autoinitBuild];
