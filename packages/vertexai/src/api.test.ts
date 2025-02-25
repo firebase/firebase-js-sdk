@@ -83,14 +83,12 @@ describe('Top level API', () => {
   it('getGenerativeModel throws if no appId is provided', () => {
     const fakeVertexNoProject = {
       ...fakeVertexAI,
-      app: { options: { apiKey: 'my-key' , projectId: 'my-projectid'} }
+      app: { options: { apiKey: 'my-key', projectId: 'my-projectid' } }
     } as VertexAI;
     try {
       getGenerativeModel(fakeVertexNoProject, { model: 'my-model' });
     } catch (e) {
-      expect((e as VertexAIError).code).includes(
-        VertexAIErrorCode.NO_APP_ID
-      );
+      expect((e as VertexAIError).code).includes(VertexAIErrorCode.NO_APP_ID);
       expect((e as VertexAIError).message).equals(
         `VertexAI: The "appId" field is empty in the local` +
           ` Firebase config. Firebase VertexAI requires this field ` +
@@ -156,9 +154,7 @@ describe('Top level API', () => {
     try {
       getImagenModel(fakeVertexNoProject, { model: 'my-model' });
     } catch (e) {
-      expect((e as VertexAIError).code).includes(
-        VertexAIErrorCode.NO_APP_ID
-      );
+      expect((e as VertexAIError).code).includes(VertexAIErrorCode.NO_APP_ID);
       expect((e as VertexAIError).message).equals(
         `VertexAI: The "appId" field is empty in the local` +
           ` Firebase config. Firebase VertexAI requires this field ` +

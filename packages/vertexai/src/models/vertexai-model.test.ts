@@ -116,9 +116,7 @@ describe('VertexAIModel', () => {
     try {
       new TestModel(fakeVertexAI, 'my-model');
     } catch (e) {
-      expect((e as VertexAIError).code).to.equal(
-        VertexAIErrorCode.NO_APP_ID
-      );
+      expect((e as VertexAIError).code).to.equal(VertexAIErrorCode.NO_APP_ID);
     }
   });
 });
