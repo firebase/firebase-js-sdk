@@ -89,15 +89,6 @@ const autoinitBuild = [
       format: 'es',
     },
     plugins: buildPlugins,
-  },
-  { 
-    input: './postinstall.ts',
-    output: {
-      file: './dist/postinstall.js',
-      format: 'cjs',
-    },
-    plugins: buildPlugins,
-    external: () => true,
   }
 ]
 

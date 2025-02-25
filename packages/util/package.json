@@ -27,7 +27,8 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "postinstall.js"
   ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -44,7 +45,7 @@
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "api-extractor run --local --verbose",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/util-public.d.ts",
-    "postinstall": "node ./dist/postinstall.js"
+    "postinstall": "node ./postinstall.js"
   },
   "license": "Apache-2.0",
   "dependencies": {

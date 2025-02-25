@@ -1,0 +1,1 @@
+module.exports = {"config":{"projectId":"web-frameworks-e2e","appId":"1:1087080420931:web:a3151cc6bccd2e1aa1a6f6","databaseURL":"https://web-frameworks-e2e-default-rtdb.firebaseio.com","storageBucket":"web-frameworks-e2e.firebasestorage.app","authDomain":"web-frameworks-e2e.firebaseapp.com","messagingSenderId":"1087080420931","apiKey":"AIzaSyCgZEulMefCoYike_SESqhPW0dTwo5nWxs"}}
