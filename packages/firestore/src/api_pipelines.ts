@@ -161,7 +161,7 @@ export {
   Key,
   Substr,
   ManhattanDistance,
-  ScalarExpr,
+  Expr,
   ExprWithAlias,
   Field,
   Constant,

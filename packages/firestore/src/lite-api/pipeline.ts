@@ -33,13 +33,12 @@ import {
   AggregateFunction,
   AggregateFunctionWithAlias,
   Constant,
-  ScalarExpr,
+  Expr,
   ExprWithAlias,
   Field,
   BooleanExpr,
   Ordering,
-  Selectable,
-  Expr
+  Selectable
 } from './expressions';
 import { PipelineResult } from './pipeline-result';
 import { DocumentReference } from './reference';
@@ -158,7 +157,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * - {@link Field}: References an existing document field.
    * - {@link Function}: Performs a calculation using functions like `add`, `multiply` with
-   *   assigned aliases using {@link ScalarExpr#as}.
+   *   assigned aliases using {@link Expr#as}.
    *
    * Example:
    *
@@ -215,7 +214,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   <li>{@code string}: Name of an existing field</li>
    *   <li>{@link Field}: References an existing field.</li>
    *   <li>{@link Function}: Represents the result of a function with an assigned alias name using
-   *       {@link ScalarExpr#as}</li>
+   *       {@link Expr#as}</li>
    * </ul>
    *
    * <p>If no selections are provided, the output of this stage is empty. Use {@link
@@ -238,8 +237,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @return A new Pipeline object with this stage appended to the stage list.
    */
   select(...selections: Array<Selectable | string>): Pipeline {
-    let projections: Map<string, ScalarExpr> =
-      this.selectablesToMap(selections);
+    let projections: Map<string, Expr> = this.selectablesToMap(selections);
     projections = this.readUserData('select', projections);
     return this._addStage(new Select(projections));
   }
@@ -348,10 +346,10 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   }
 
   /**
-   * Returns a set of distinct {@link ScalarExpr} values from the inputs to this stage.
+   * Returns a set of distinct {@link Expr} values from the inputs to this stage.
    *
    * <p>This stage run through the results from previous stages to include only results with unique
-   * combinations of {@link ScalarExpr} values ({@link Field}, {@link Function}, etc).
+   * combinations of {@link Expr} values ({@link Field}, {@link Function}, etc).
    *
    * <p>The parameters to this stage are defined using {@link Selectable} expressions or {@code string}s:
    *
@@ -359,7 +357,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   <li>{@code string}: Name of an existing field</li>
    *   <li>{@link Field}: References an existing document field.</li>
    *   <li>{@link Function}: Represents the result of a function with an assigned alias name using
-   *       {@link ScalarExpr#as}</li>
+   *       {@link Expr#as}</li>
    * </ul>
    *
    * <p>Example:
@@ -388,7 +386,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>This stage allows you to calculate aggregate values over a set of documents. You define the
    * aggregations to perform using {@link AggregateFunctionWithAlias} expressions which are typically results of
-   * calling {@link ScalarExpr#as} on {@link AggregateFunction} instances.
+   * calling {@link Expr#as} on {@link AggregateFunction} instances.
    *
    * <p>Example:
    *
@@ -419,7 +417,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *       specifying groups is the same as putting the entire inputs into one group.</li>
    *   <li>**Accumulators:** One or more accumulation operations to perform within each group. These
    *       are defined using {@link AggregateFunctionWithAlias} expressions, which are typically created by
-   *       calling {@link ScalarExpr#as} on {@link AggregateFunction} instances. Each aggregation
+   *       calling {@link Expr#as} on {@link AggregateFunction} instances. Each aggregation
    *       calculates a value (e.g., sum, average, count) based on the documents within its group.</li>
    * </ul>
    *
@@ -484,7 +482,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
               )
             ])
           ),
-          new Map<string, ScalarExpr>()
+          new Map<string, Expr>()
         )
       );
     }
@@ -708,14 +706,12 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
    */
   unnest(selectable: Selectable, indexField?: string): Pipeline {
-    const field =
-      selectable instanceof ExprWithAlias ? selectable.expr : selectable;
-    this.readUserData('unnest', field);
+    this.readUserData('unnest', selectable.expr);
 
     const alias = Field.of(selectable.alias);
     this.readUserData('unnest', alias);
 
-    return this._addStage(new Unnest(field, alias, indexField));
+    return this._addStage(new Unnest(selectable.expr, alias, indexField));
   }
 
   /**
@@ -745,6 +741,9 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     // passed to an expression.
     const expressionParams = params.map((value: any) => {
       if (value instanceof Expr) {
+        return value;
+      }
+      if (value instanceof AggregateFunction) {
         return value;
       } else if (isPlainObject(value)) {
         return _mapValue(value);
@@ -841,15 +840,15 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
   private selectablesToMap(
     selectables: Array<Selectable | string>
-  ): Map<string, ScalarExpr> {
-    const result = new Map<string, ScalarExpr>();
+  ): Map<string, Expr> {
+    const result = new Map<string, Expr>();
     for (const selectable of selectables) {
       if (typeof selectable === 'string') {
         result.set(selectable as string, Field.of(selectable));
       } else if (selectable instanceof Field) {
         result.set((selectable as Field).fieldName(), selectable);
       } else if (selectable instanceof ExprWithAlias) {
-        const expr = selectable as ExprWithAlias<ScalarExpr>;
+        const expr = selectable as ExprWithAlias;
         result.set(expr.alias, expr.expr);
       }
     }

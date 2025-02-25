@@ -65,7 +65,7 @@ import { Dict, forEach, isEmpty } from '../util/obj';
 
 import { Bytes } from './bytes';
 import { Firestore } from './database';
-import { Expr } from './expressions';
+import { AggregateFunction, Expr } from './expressions';
 import { FieldPath } from './field_path';
 import { FieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
@@ -912,6 +912,8 @@ export function parseScalarValue(
     return parseVectorValue(value, context);
   } else if (value instanceof Expr) {
     return value._toProto(context.serializer);
+  } else if (value instanceof AggregateFunction) {
+    return value._toProto(context.serializer);
   } else {
     throw context.createError(
       `Unsupported field value: ${valueDescription(value)}`
@@ -970,7 +972,8 @@ export function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof DocumentReference) &&
     !(input instanceof FieldValue) &&
     !(input instanceof VectorValue) &&
-    !(input instanceof Expr)
+    !(input instanceof Expr) &&
+    !(input instanceof AggregateFunction)
   );
 }
 
