@@ -32,6 +32,7 @@ use(chaiAsPromised);
 const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
+  appId: 'my-appid',
   location: 'us-central1'
 };
 
@@ -103,6 +104,7 @@ describe('request methods', () => {
     const fakeApiSettings: ApiSettings = {
       apiKey: 'key',
       project: 'myproject',
+      appId: 'my-appid',
       location: 'moon',
       getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
       getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
@@ -135,6 +137,7 @@ describe('request methods', () => {
         {
           apiKey: 'key',
           project: 'myproject',
+          appId: 'my-appid',
           location: 'moon'
         },
         true,
@@ -167,6 +170,7 @@ describe('request methods', () => {
         {
           apiKey: 'key',
           project: 'myproject',
+          appId: 'my-appid',
           location: 'moon',
           getAppCheckToken: () =>
             Promise.resolve({ token: 'dummytoken', error: Error('oops') })
@@ -193,6 +197,7 @@ describe('request methods', () => {
         {
           apiKey: 'key',
           project: 'myproject',
+          appId: 'my-appid',
           location: 'moon'
         },
         true,

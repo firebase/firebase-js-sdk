@@ -38,7 +38,8 @@ const fakeVertexAI: VertexAI = {
     automaticDataCollectionEnabled: true,
     options: {
       apiKey: 'key',
-      projectId: 'my-project'
+      projectId: 'my-project',
+      appId: 'my-appid'
     }
   },
   location: 'us-central1'
@@ -97,6 +98,26 @@ describe('VertexAIModel', () => {
     } catch (e) {
       expect((e as VertexAIError).code).to.equal(
         VertexAIErrorCode.NO_PROJECT_ID
+      );
+    }
+  });
+  it('throws if not passed an app ID', () => {
+    const fakeVertexAI: VertexAI = {
+      app: {
+        name: 'DEFAULT',
+        automaticDataCollectionEnabled: true,
+        options: {
+          apiKey: 'key',
+          projectId: 'my-project'
+        }
+      },
+      location: 'us-central1'
+    };
+    try {
+      new TestModel(fakeVertexAI, 'my-model');
+    } catch (e) {
+      expect((e as VertexAIError).code).to.equal(
+        VertexAIErrorCode.NO_APP_ID
       );
     }
   });

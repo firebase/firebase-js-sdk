@@ -23,6 +23,7 @@ export * from './imagen/internal';
 export interface ApiSettings {
   apiKey: string;
   project: string;
+  appId: string;
   location: string;
   getAuthToken?: () => Promise<FirebaseAuthTokenData | null>;
   getAppCheckToken?: () => Promise<AppCheckTokenResult>;

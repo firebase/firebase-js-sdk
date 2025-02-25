@@ -27,7 +27,8 @@ const fakeVertexAI: VertexAI = {
     automaticDataCollectionEnabled: true,
     options: {
       apiKey: 'key',
-      projectId: 'my-project'
+      projectId: 'my-project',
+      appId: 'my-appid'
     }
   },
   location: 'us-central1'
@@ -48,7 +49,7 @@ describe('Top level API', () => {
   it('getGenerativeModel throws if no apiKey is provided', () => {
     const fakeVertexNoApiKey = {
       ...fakeVertexAI,
-      app: { options: { projectId: 'my-project' } }
+      app: { options: { projectId: 'my-project', appId: 'my-appid' } }
     } as VertexAI;
     try {
       getGenerativeModel(fakeVertexNoApiKey, { model: 'my-model' });
@@ -64,7 +65,7 @@ describe('Top level API', () => {
   it('getGenerativeModel throws if no projectId is provided', () => {
     const fakeVertexNoProject = {
       ...fakeVertexAI,
-      app: { options: { apiKey: 'my-key' } }
+      app: { options: { apiKey: 'my-key', appId: 'my-appid' } }
     } as VertexAI;
     try {
       getGenerativeModel(fakeVertexNoProject, { model: 'my-model' });
@@ -76,6 +77,24 @@ describe('Top level API', () => {
         `VertexAI: The "projectId" field is empty in the local` +
           ` Firebase config. Firebase VertexAI requires this field ` +
           `to contain a valid project ID. (vertexAI/${VertexAIErrorCode.NO_PROJECT_ID})`
+      );
+    }
+  });
+  it('getGenerativeModel throws if no appId is provided', () => {
+    const fakeVertexNoProject = {
+      ...fakeVertexAI,
+      app: { options: { apiKey: 'my-key' , projectId: 'my-projectid'} }
+    } as VertexAI;
+    try {
+      getGenerativeModel(fakeVertexNoProject, { model: 'my-model' });
+    } catch (e) {
+      expect((e as VertexAIError).code).includes(
+        VertexAIErrorCode.NO_APP_ID
+      );
+      expect((e as VertexAIError).message).equals(
+        `VertexAI: The "appId" field is empty in the local` +
+          ` Firebase config. Firebase VertexAI requires this field ` +
+          `to contain a valid app ID. (vertexAI/${VertexAIErrorCode.NO_APP_ID})`
       );
     }
   });
@@ -98,7 +117,7 @@ describe('Top level API', () => {
   it('getImagenModel throws if no apiKey is provided', () => {
     const fakeVertexNoApiKey = {
       ...fakeVertexAI,
-      app: { options: { projectId: 'my-project' } }
+      app: { options: { projectId: 'my-project', appId: 'my-appid' } }
     } as VertexAI;
     try {
       getImagenModel(fakeVertexNoApiKey, { model: 'my-model' });
@@ -114,7 +133,7 @@ describe('Top level API', () => {
   it('getImagenModel throws if no projectId is provided', () => {
     const fakeVertexNoProject = {
       ...fakeVertexAI,
-      app: { options: { apiKey: 'my-key' } }
+      app: { options: { apiKey: 'my-key', appId: 'my-appid' } }
     } as VertexAI;
     try {
       getImagenModel(fakeVertexNoProject, { model: 'my-model' });
@@ -126,6 +145,24 @@ describe('Top level API', () => {
         `VertexAI: The "projectId" field is empty in the local` +
           ` Firebase config. Firebase VertexAI requires this field ` +
           `to contain a valid project ID. (vertexAI/${VertexAIErrorCode.NO_PROJECT_ID})`
+      );
+    }
+  });
+  it('getImagenModel throws if no appId is provided', () => {
+    const fakeVertexNoProject = {
+      ...fakeVertexAI,
+      app: { options: { apiKey: 'my-key', projectId: 'my-project' } }
+    } as VertexAI;
+    try {
+      getImagenModel(fakeVertexNoProject, { model: 'my-model' });
+    } catch (e) {
+      expect((e as VertexAIError).code).includes(
+        VertexAIErrorCode.NO_APP_ID
+      );
+      expect((e as VertexAIError).message).equals(
+        `VertexAI: The "appId" field is empty in the local` +
+          ` Firebase config. Firebase VertexAI requires this field ` +
+          `to contain a valid app ID. (vertexAI/${VertexAIErrorCode.NO_APP_ID})`
       );
     }
   });
