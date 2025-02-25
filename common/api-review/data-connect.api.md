@@ -83,6 +83,9 @@ export function executeMutation<Data, Variables>(mutationRef: MutationRef<Data, 
 // @public
 export function executeQuery<Data, Variables>(queryRef: QueryRef<Data, Variables>): QueryPromise<Data, Variables>;
 
+// @public (undocumented)
+export const fdcSymbol: unique symbol;
+
 // @public
 export function getDataConnect(options: ConnectorConfig): DataConnect;
 
@@ -126,7 +129,7 @@ export type OnResultSubscription<Data, Variables> = (res: QueryResult<Data, Vari
 // @public (undocumented)
 export interface OperationRef<Data, Variables> {
     // (undocumented)
-    __keepForTypingsOnly?: Data;
+    [fdcSymbol]?: Data;
     // (undocumented)
     dataConnect: DataConnect;
     // (undocumented)
