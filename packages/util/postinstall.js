@@ -86,6 +86,9 @@ getConfigFromEnv()
         return undefined;
       }
       return response.json().then(json => ({ ...json, apiKey }));
+    }, (e) => {
+      console.error(`Unable to fetch Firebase config\n${e.cause}`);
+      return undefined;
     });
   })
   .then(config => {
