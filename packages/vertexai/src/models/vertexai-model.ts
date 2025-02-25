@@ -78,6 +78,8 @@ export abstract class VertexAIModel {
         apiKey: vertexAI.app.options.apiKey,
         project: vertexAI.app.options.projectId,
         appId: vertexAI.app.options.appId,
+        automaticDataCollectionEnabled:
+          vertexAI.app.automaticDataCollectionEnabled,
         location: vertexAI.location
       };
 

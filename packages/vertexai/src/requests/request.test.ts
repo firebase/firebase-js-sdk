@@ -126,6 +126,50 @@ describe('request methods', () => {
       const headers = await getHeaders(fakeUrl);
       expect(headers.get('x-goog-api-key')).to.equal('key');
     });
+    it('adds app id if automatedDataCollectionEnabled is undefined', async () => {
+      const headers = await getHeaders(fakeUrl);
+      expect(headers.get('X-Firebase-AppId')).to.equal('my-appid');
+    });
+    it('adds app id if automatedDataCollectionEnabled is true', async () => {
+      const fakeApiSettings: ApiSettings = {
+        apiKey: 'key',
+        project: 'myproject',
+        appId: 'my-appid',
+        location: 'moon',
+        automaticDataCollectionEnabled: true,
+        getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
+        getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
+      };
+      const fakeUrl = new RequestUrl(
+        'models/model-name',
+        Task.GENERATE_CONTENT,
+        fakeApiSettings,
+        true,
+        {}
+      );
+      const headers = await getHeaders(fakeUrl);
+      expect(headers.get('X-Firebase-AppId')).to.equal('my-appid');
+    });
+    it('does not add app id if automatedDataCollectionEnabled is false', async () => {
+      const fakeApiSettings: ApiSettings = {
+        apiKey: 'key',
+        project: 'myproject',
+        appId: 'my-appid',
+        location: 'moon',
+        automaticDataCollectionEnabled: false,
+        getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
+        getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
+      };
+      const fakeUrl = new RequestUrl(
+        'models/model-name',
+        Task.GENERATE_CONTENT,
+        fakeApiSettings,
+        true,
+        {}
+      );
+      const headers = await getHeaders(fakeUrl);
+      expect(headers.get('X-Firebase-AppId')).to.be.null;
+    });
     it('adds app check token if it exists', async () => {
       const headers = await getHeaders(fakeUrl);
       expect(headers.get('X-Firebase-AppCheck')).to.equal('appchecktoken');

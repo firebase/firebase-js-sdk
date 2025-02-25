@@ -25,6 +25,7 @@ export interface ApiSettings {
   project: string;
   appId: string;
   location: string;
+  automaticDataCollectionEnabled?: boolean;
   getAuthToken?: () => Promise<FirebaseAuthTokenData | null>;
   getAppCheckToken?: () => Promise<AppCheckTokenResult>;
 }
