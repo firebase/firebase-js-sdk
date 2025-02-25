@@ -22,15 +22,17 @@ import pkg from './package.json';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 
 const deps = [
-  ...Object.keys(
-    Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-  ),
+  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
   './autoinit_env'
 ];
 
 const buildPlugins = [
   typescriptPlugin({ typescript }),
-  replacePlugin({ './src/autoinit_env': '"@firebase/util/autoinit_env"', delimiters: ["'", "'"], preventAssignment: true })
+  replacePlugin({
+    './src/autoinit_env': '"@firebase/util/autoinit_env"',
+    delimiters: ["'", "'"],
+    preventAssignment: true
+  })
 ];
 
 const browserBuilds = [
@@ -80,22 +82,22 @@ const nodeBuilds = [
 ];
 
 const autoinitBuild = [
-  { 
+  {
     input: './src/autoinit_env.ts',
     output: {
       file: './dist/autoinit_env.js',
-      format: 'cjs',
+      format: 'cjs'
     },
-    plugins: buildPlugins,
+    plugins: buildPlugins
   },
-  { 
+  {
     input: './src/autoinit_env.ts',
     output: {
       file: './dist/autoinit_env.mjs',
-      format: 'es',
+      format: 'es'
     },
-    plugins: buildPlugins,
+    plugins: buildPlugins
   }
-]
+];
 
 export default [...browserBuilds, ...nodeBuilds, ...autoinitBuild];

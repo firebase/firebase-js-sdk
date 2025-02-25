@@ -1,93 +1,126 @@
-const { writeFile, readFile } = require("node:fs/promises");
-const { pathToFileURL } = require("node:url");
-const { isAbsolute, join } = require("node:path");
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+const { writeFile, readFile } = require('node:fs/promises');
+const { pathToFileURL } = require('node:url');
+const { isAbsolute, join } = require('node:path');
 
 function getConfigFromEnv() {
-    if (!process.env.FIREBASE_WEBAPP_CONFIG) {
-        return Promise.resolve(undefined);
-    }
-    
-    // Like FIREBASE_CONFIG (admin autoinit) FIREBASE_WEBAPP_CONFIG can be
-    // either a JSON representation of FirebaseOptions or the path to a filename
-    if (process.env.FIREBASE_WEBAPP_CONFIG.startsWith("{\"")) {
-        try {
-            return Promise.resolve(JSON.parse(process.env.FIREBASE_WEBAPP_CONFIG));
-        } catch(e) {
-            console.error("FIREBASE_WEBAPP_CONFIG could not be parsed.\n", e);
-            return Promise.resolve(undefined);
-        }
-    }
+  if (!process.env.FIREBASE_WEBAPP_CONFIG) {
+    return Promise.resolve(undefined);
+  }
 
-    const fileName = process.env.FIREBASE_WEBAPP_CONFIG;
-    const fileURL = pathToFileURL(isAbsolute(fileName) ? fileName : join(process.cwd(), fileName));
-    return readFile(fileURL, "utf-8").then((fileContents) => {
-        try {
-            return JSON.parse(fileContents);
-        } catch(e) {
-            console.error(`Contents of "${fileName}" could not be parsed.\n`, e);
-            return undefined;
-        }
-    }, (e) => {
+  // Like FIREBASE_CONFIG (admin autoinit) FIREBASE_WEBAPP_CONFIG can be
+  // either a JSON representation of FirebaseOptions or the path to a filename
+  if (process.env.FIREBASE_WEBAPP_CONFIG.startsWith('{"')) {
+    try {
+      return Promise.resolve(JSON.parse(process.env.FIREBASE_WEBAPP_CONFIG));
+    } catch (e) {
+      console.error('FIREBASE_WEBAPP_CONFIG could not be parsed.\n', e);
+      return Promise.resolve(undefined);
+    }
+  }
+
+  const fileName = process.env.FIREBASE_WEBAPP_CONFIG;
+  const fileURL = pathToFileURL(
+    isAbsolute(fileName) ? fileName : join(process.cwd(), fileName)
+  );
+  return readFile(fileURL, 'utf-8').then(
+    fileContents => {
+      try {
+        return JSON.parse(fileContents);
+      } catch (e) {
         console.error(`Contents of "${fileName}" could not be parsed.\n`, e);
         return undefined;
-    });
+      }
+    },
+    e => {
+      console.error(`Contents of "${fileName}" could not be parsed.\n`, e);
+      return undefined;
+    }
+  );
 }
 
-getConfigFromEnv().then((partialConfig) => {
-
+getConfigFromEnv()
+  .then(partialConfig => {
     if (!partialConfig) {
-        return undefined;
+      return undefined;
     }
     // In Firebase App Hosting the config provided to the environment variable is up-to-date and
     // "complete" we should not reach out to the webConfig endpoint to freshen it
-    if (process.env.X_GOOGLE_TARGET_PLATFORM === "fah") {
-        return partialConfig;
+    if (process.env.X_GOOGLE_TARGET_PLATFORM === 'fah') {
+      return partialConfig;
     }
-    const projectId = partialConfig.projectId || "-";
+    const projectId = partialConfig.projectId || '-';
     const appId = partialConfig.appId;
     const apiKey = partialConfig.apiKey;
     if (!appId || !apiKey) {
-        console.error(`Unable to fetch Firebase config, appId and apiKey are required.`);
-        return undefined;
+      console.error(
+        `Unable to fetch Firebase config, appId and apiKey are required.`
+      );
+      return undefined;
     }
-    
+
     return fetch(
-        `https://firebase.googleapis.com/v1alpha/projects/${projectId}/apps/${appId}/webConfig`,
-        { headers: { "x-goog-api-key": apiKey } }
-    ).then((response) => {
-        if (!response.ok) {
-            console.error(`Unable to fetch Firebase config, API returned ${response.statusText} (${response.status})`);
-            return undefined;
-        }
-        return response.json().then((json) => ({ ...json, apiKey }));
+      `https://firebase.googleapis.com/v1alpha/projects/${projectId}/apps/${appId}/webConfig`,
+      { headers: { 'x-goog-api-key': apiKey } }
+    ).then(response => {
+      if (!response.ok) {
+        console.error(
+          `Unable to fetch Firebase config, API returned ${response.statusText} (${response.status})`
+        );
+        return undefined;
+      }
+      return response.json().then(json => ({ ...json, apiKey }));
     });
-
-}).then((config) => {
-
+  })
+  .then(config => {
     const emulatorHosts = Object.entries({
-        firestore: process.env.FIRESTORE_EMULATOR_HOST,
-        database: process.env.FIREBASE_DATABASE_EMULATOR_HOST,
-        storage: process.env.FIREBASE_STORAGE_EMULATOR_HOST,
-        auth: process.env.FIREBASE_AUTH_EMULATOR_HOST,
+      firestore: process.env.FIRESTORE_EMULATOR_HOST,
+      database: process.env.FIREBASE_DATABASE_EMULATOR_HOST,
+      storage: process.env.FIREBASE_STORAGE_EMULATOR_HOST,
+      auth: process.env.FIREBASE_AUTH_EMULATOR_HOST
     }).reduce(
-        // We want a falsy value if none of the above are defined
-        (current, [key, value]) => value ? { ...current, [key]: value } : current,
-        undefined
+      // We want a falsy value if none of the above are defined
+      (current, [key, value]) =>
+        value ? { ...current, [key]: value } : current,
+      undefined
     );
-    
+
     // getDefaults() will use this object, rather than fallback to other autoinit suppliers, if it's
     // truthy—if we've done nothing here, make it falsy.
-    const defaults = (config || emulatorHosts) ? { config, emulatorHosts } : undefined;
+    const defaults =
+      config || emulatorHosts ? { config, emulatorHosts } : undefined;
 
     return Promise.all([
-        writeFile(join(__dirname, "dist", "autoinit_env.js"), `'use strict';
+      writeFile(
+        join(__dirname, 'dist', 'autoinit_env.js'),
+        `'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
-exports.postinstallDefaults = ${JSON.stringify(defaults)};`),
-        writeFile(join(__dirname, "dist", "autoinit_env.mjs"), `const postinstallDefaults = ${JSON.stringify(defaults)};
-export { postinstallDefaults };`),
+exports.postinstallDefaults = ${JSON.stringify(defaults)};`
+      ),
+      writeFile(
+        join(__dirname, 'dist', 'autoinit_env.mjs'),
+        `const postinstallDefaults = ${JSON.stringify(defaults)};
+export { postinstallDefaults };`
+      )
     ]);
-
-}).then(
+  })
+  .then(
     () => process.exit(0),
-    () => process.exit(0),
-);
+    () => process.exit(0)
+  );
