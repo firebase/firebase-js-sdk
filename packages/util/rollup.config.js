@@ -85,7 +85,6 @@ const autoinitBuild = [
     output: {
       file: './dist/autoinit_env.js',
       format: 'cjs',
-      exports: 'default',
     },
     plugins: buildPlugins,
   },

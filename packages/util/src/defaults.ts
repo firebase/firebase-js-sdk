@@ -17,7 +17,7 @@
 
 import { base64Decode } from './crypt';
 import { getGlobal } from './global';
-import postinstallDefaults from "./autoinit_env";
+import { postinstallDefaults } from "./autoinit_env";
 
 /**
  * Keys for experimental properties on the `FirebaseDefaults` object.

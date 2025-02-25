@@ -80,8 +80,11 @@ getConfigFromEnv().then((partialConfig) => {
     const defaults = (config || emulatorHosts) ? { config, emulatorHosts } : undefined;
 
     return Promise.all([
-        writeFile(join(__dirname, "dist", "autoinit_env.js"), `module.exports = ${JSON.stringify(defaults)}`),
-        writeFile(join(__dirname, "dist", "autoinit_env.mjs"), `export default ${JSON.stringify(defaults)}`),
+        writeFile(join(__dirname, "dist", "autoinit_env.js"), `'use strict';
+Object.defineProperty(exports, '__esModule', { value: true });
+exports.postinstallDefaults = ${JSON.stringify(defaults)};`),
+        writeFile(join(__dirname, "dist", "autoinit_env.mjs"), `const postinstallDefaults = ${JSON.stringify(defaults)};
+export { postinstallDefaults };`),
     ]);
 
 }).then(
