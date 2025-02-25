@@ -493,7 +493,7 @@ An enumeration of the possible string formats for upload.
 <b>Signature:</b>
 
 ```typescript
-export declare type StringFormat = (typeof StringFormat)[keyof typeof StringFormat];
+export type StringFormat = (typeof StringFormat)[keyof typeof StringFormat];
 ```
 
 ## TaskEvent
@@ -503,7 +503,7 @@ An event that is triggered on a task.
 <b>Signature:</b>
 
 ```typescript
-export declare type TaskEvent = 'state_changed';
+export type TaskEvent = 'state_changed';
 ```
 
 ## TaskState
@@ -513,7 +513,7 @@ Represents the current state of a running upload.
 <b>Signature:</b>
 
 ```typescript
-export declare type TaskState = 'running' | 'paused' | 'success' | 'canceled' | 'error';
+export type TaskState = 'running' | 'paused' | 'success' | 'canceled' | 'error';
 ```
 
 ## StorageErrorCode

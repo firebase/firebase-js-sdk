@@ -40,11 +40,13 @@ export interface ActionCodeSettings {
         minimumVersion?: string;
         packageName: string;
     };
+    // @deprecated
     dynamicLinkDomain?: string;
     handleCodeInApp?: boolean;
     iOS?: {
         bundleId: string;
     };
+    linkDomain?: string;
     url: string;
 }
 
@@ -236,6 +238,7 @@ export const AuthErrorCodes: {
     readonly MISSING_RECAPTCHA_VERSION: "auth/missing-recaptcha-version";
     readonly INVALID_RECAPTCHA_VERSION: "auth/invalid-recaptcha-version";
     readonly INVALID_REQ_TYPE: "auth/invalid-req-type";
+    readonly INVALID_HOSTING_LINK_DOMAIN: "auth/invalid-hosting-link-domain";
 };
 
 // @public
@@ -445,7 +448,7 @@ export function isSignInWithEmailLink(auth: Auth, emailLink: string): boolean;
 export function linkWithCredential(user: User, credential: AuthCredential): Promise<UserCredential>;
 
 // @public
-export function linkWithPhoneNumber(user: User, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
+export function linkWithPhoneNumber(user: User, phoneNumber: string, appVerifier?: ApplicationVerifier): Promise<ConfirmationResult>;
 
 // @public
 export function linkWithPopup(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<UserCredential>;
@@ -625,7 +628,7 @@ export class PhoneAuthProvider {
     static readonly PHONE_SIGN_IN_METHOD: 'phone';
     static readonly PROVIDER_ID: 'phone';
     readonly providerId: "phone";
-    verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: ApplicationVerifier): Promise<string>;
+    verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier?: ApplicationVerifier): Promise<string>;
 }
 
 // @public
@@ -692,7 +695,7 @@ export interface ReactNativeAsyncStorage {
 export function reauthenticateWithCredential(user: User, credential: AuthCredential): Promise<UserCredential>;
 
 // @public
-export function reauthenticateWithPhoneNumber(user: User, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
+export function reauthenticateWithPhoneNumber(user: User, phoneNumber: string, appVerifier?: ApplicationVerifier): Promise<ConfirmationResult>;
 
 // @public
 export function reauthenticateWithPopup(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<UserCredential>;
@@ -778,7 +781,7 @@ export function signInWithEmailAndPassword(auth: Auth, email: string, password: 
 export function signInWithEmailLink(auth: Auth, email: string, emailLink?: string): Promise<UserCredential>;
 
 // @public
-export function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
+export function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier?: ApplicationVerifier): Promise<ConfirmationResult>;
 
 // @public
 export function signInWithPopup(auth: Auth, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<UserCredential>;

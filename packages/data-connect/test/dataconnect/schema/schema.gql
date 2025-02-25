@@ -1,0 +1,20 @@
+# # Example schema
+# # TODO: Replace with a really good illustrative example from devrel!
+# type Product @table {
+#   name: String!
+#   price: Int!
+# }
+
+# type Order @table {
+#   name: String!
+# }
+
+# type OrderItem @table(key: ["order", "product"]) {
+#   order: Order!
+#   product: Product!
+#   quantity: Int!
+# }
+type Post @table {
+    description: String!
+    testId: String!
+}

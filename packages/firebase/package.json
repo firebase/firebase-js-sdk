@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "10.13.1",
+  "version": "11.3.0",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -106,6 +106,18 @@
         "import": "./database/dist/esm/index.esm.js"
       },
       "default": "./database/dist/esm/index.esm.js"
+    },
+    "./data-connect": {
+      "types": "./data-connect/dist/data-connect/index.d.ts",
+      "node": {
+        "require": "./data-connect/dist/index.cjs.js",
+        "import": "./data-connect/dist/index.mjs"
+      },
+      "browser": {
+        "require": "./data-connect/dist/index.cjs.js",
+        "import": "./data-connect/dist/esm/index.esm.js"
+      },
+      "default": "./data-connect/dist/esm/index.esm.js"
     },
     "./firestore": {
       "types": "./firestore/dist/firestore/index.d.ts",
@@ -215,17 +227,17 @@
       },
       "default": "./storage/dist/esm/index.esm.js"
     },
-    "./vertexai-preview": {
-      "types": "./vertexai-preview/dist/vertexai-preview/index.d.ts",
+    "./vertexai": {
+      "types": "./vertexai/dist/vertexai/index.d.ts",
       "node": {
-        "require": "./vertexai-preview/dist/index.cjs.js",
-        "import": "./vertexai-preview/dist/index.mjs"
+        "require": "./vertexai/dist/index.cjs.js",
+        "import": "./vertexai/dist/index.mjs"
       },
       "browser": {
-        "require": "./vertexai-preview/dist/index.cjs.js",
-        "import": "./vertexai-preview/dist/esm/index.esm.js"
+        "require": "./vertexai/dist/index.cjs.js",
+        "import": "./vertexai/dist/esm/index.esm.js"
       },
-      "default": "./vertexai-preview/dist/esm/index.esm.js"
+      "default": "./vertexai/dist/esm/index.esm.js"
     },
     "./compat/analytics": {
       "types": "./compat/analytics/dist/compat/analytics/index.d.ts",
@@ -387,47 +399,48 @@
     "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@firebase/app": "0.10.10",
-    "@firebase/app-compat": "0.2.40",
-    "@firebase/app-types": "0.9.2",
-    "@firebase/auth": "1.7.8",
-    "@firebase/auth-compat": "0.5.13",
-    "@firebase/database": "1.0.7",
-    "@firebase/database-compat": "1.0.7",
-    "@firebase/firestore": "4.7.1",
-    "@firebase/firestore-compat": "0.3.36",
-    "@firebase/functions": "0.11.7",
-    "@firebase/functions-compat": "0.3.13",
-    "@firebase/installations": "0.6.8",
-    "@firebase/installations-compat": "0.2.8",
-    "@firebase/messaging": "0.12.10",
-    "@firebase/messaging-compat": "0.2.10",
-    "@firebase/storage": "0.13.1",
-    "@firebase/storage-compat": "0.3.11",
-    "@firebase/performance": "0.6.8",
-    "@firebase/performance-compat": "0.2.8",
-    "@firebase/remote-config": "0.4.8",
-    "@firebase/remote-config-compat": "0.2.8",
-    "@firebase/analytics": "0.10.7",
-    "@firebase/analytics-compat": "0.2.13",
-    "@firebase/app-check": "0.8.7",
-    "@firebase/app-check-compat": "0.3.14",
-    "@firebase/util": "1.9.7",
-    "@firebase/vertexai-preview": "0.0.3"
+    "@firebase/app": "0.11.0",
+    "@firebase/app-compat": "0.2.49",
+    "@firebase/app-types": "0.9.3",
+    "@firebase/auth": "1.9.0",
+    "@firebase/auth-compat": "0.5.18",
+    "@firebase/data-connect": "0.3.0",
+    "@firebase/database": "1.0.12",
+    "@firebase/database-compat": "2.0.3",
+    "@firebase/firestore": "4.7.7",
+    "@firebase/firestore-compat": "0.3.42",
+    "@firebase/functions": "0.12.2",
+    "@firebase/functions-compat": "0.3.19",
+    "@firebase/installations": "0.6.12",
+    "@firebase/installations-compat": "0.2.12",
+    "@firebase/messaging": "0.12.16",
+    "@firebase/messaging-compat": "0.2.16",
+    "@firebase/storage": "0.13.6",
+    "@firebase/storage-compat": "0.3.16",
+    "@firebase/performance": "0.7.0",
+    "@firebase/performance-compat": "0.2.13",
+    "@firebase/remote-config": "0.5.0",
+    "@firebase/remote-config-compat": "0.2.12",
+    "@firebase/analytics": "0.10.11",
+    "@firebase/analytics-compat": "0.2.17",
+    "@firebase/app-check": "0.8.11",
+    "@firebase/app-check-compat": "0.3.18",
+    "@firebase/util": "1.10.3",
+    "@firebase/vertexai": "1.0.4"
   },
   "devDependencies": {
-    "rollup": "2.79.1",
+    "rollup": "2.79.2",
     "@rollup/plugin-commonjs": "21.1.0",
-    "@rollup/plugin-node-resolve": "13.3.0",
+    "@rollup/plugin-node-resolve": "16.0.0",
     "rollup-plugin-sourcemaps": "0.6.3",
-    "rollup-plugin-terser": "7.0.2",
-    "rollup-plugin-typescript2": "0.31.2",
+    "@rollup/plugin-terser": "0.4.4",
+    "rollup-plugin-typescript2": "0.36.0",
     "rollup-plugin-uglify": "6.0.4",
     "gulp": "4.0.2",
     "gulp-sourcemaps": "3.0.0",
     "gulp-replace": "1.1.4",
-    "typescript": "4.2.2",
-    "rollup-plugin-license": "3.0.1"
+    "typescript": "5.5.4",
+    "rollup-plugin-license": "3.5.3"
   },
   "components": [
     "analytics",
@@ -446,7 +459,8 @@
     "messaging",
     "messaging/sw",
     "database",
-    "vertexai-preview"
+    "vertexai",
+    "data-connect"
   ],
   "typings": "empty.d.ts"
 }

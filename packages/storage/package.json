@@ -1,12 +1,11 @@
 {
   "name": "@firebase/storage",
-  "version": "0.13.1",
+  "version": "0.13.6",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
   "module": "dist/index.esm2017.js",
   "browser": "dist/index.esm2017.js",
-  "esm5": "dist/index.esm5.js",
   "exports": {
     ".": {
       "types": "./dist/storage-public.d.ts",
@@ -14,7 +13,6 @@
         "import": "./dist/node-esm/index.node.esm.js",
         "default": "./dist/index.node.cjs.js"
       },
-      "esm5": "./dist/index.esm5.js",
       "browser": {
         "require": "./dist/index.cjs.js",
         "import": "./dist/index.esm2017.js"
@@ -36,9 +34,9 @@
     "test": "run-p --npm-path npm test:browser test:node lint",
     "test:all": "run-p --npm-path npm test:browser test:node",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
-    "test:browser:unit": "karma start --single-run --unit",
-    "test:browser:integration": "karma start --single-run --integration",
-    "test:browser": "karma start --single-run",
+    "test:browser:unit": "karma start --unit",
+    "test:browser:integration": "karma start --integration",
+    "test:browser": "karma start",
     "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
     "test:debug": "karma start --browser=Chrome",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
@@ -48,22 +46,21 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/util": "1.9.7",
-    "@firebase/component": "0.6.8",
-    "undici": "6.19.7",
+    "@firebase/util": "1.10.3",
+    "@firebase/component": "0.6.12",
     "tslib": "^2.1.0"
   },
   "peerDependencies": {
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.10.10",
-    "@firebase/auth": "1.7.8",
-    "rollup": "2.79.1",
-    "@rollup/plugin-alias": "5.1.0",
-    "@rollup/plugin-json": "4.1.0",
-    "rollup-plugin-typescript2": "0.31.2",
-    "typescript": "4.7.4"
+    "@firebase/app": "0.11.0",
+    "@firebase/auth": "1.9.0",
+    "rollup": "2.79.2",
+    "@rollup/plugin-alias": "5.1.1",
+    "@rollup/plugin-json": "6.1.0",
+    "rollup-plugin-typescript2": "0.36.0",
+    "typescript": "5.5.4"
   },
   "repository": {
     "directory": "packages/storage",
@@ -73,5 +70,8 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/src/index.d.ts"
+  "typings": "dist/src/index.d.ts",
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }

@@ -47,11 +47,11 @@ jobs:
     if: github.event.inputs.release-branch == 'release' || endsWith(github.event.inputs.release-branch, '-releasebranch')
     steps:
     - name: Set up node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
-        node-version: 20.x
+        node-version: 22.10.0
     - name: Merge main into release
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         github-token: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
         script: |
@@ -91,6 +91,7 @@ jobs:
         NPM_TOKEN_AUTH_INTEROP_TYPES: ${{secrets.NPM_TOKEN_AUTH_INTEROP_TYPES}}
         NPM_TOKEN_AUTH_TYPES: ${{secrets.NPM_TOKEN_AUTH_TYPES}}
         NPM_TOKEN_COMPONENT: ${{secrets.NPM_TOKEN_COMPONENT}}
+        NPM_TOKEN_DATA_CONNECT: ${{secrets.NPM_TOKEN_DATA_CONNECT}}
         NPM_TOKEN_DATABASE: ${{secrets.NPM_TOKEN_DATABASE}}
         NPM_TOKEN_DATABASE_TYPES: ${{secrets.NPM_TOKEN_DATABASE_TYPES}}
         NPM_TOKEN_FIRESTORE: ${{secrets.NPM_TOKEN_FIRESTORE}}
@@ -109,7 +110,7 @@ jobs:
         NPM_TOKEN_STORAGE: ${{secrets.NPM_TOKEN_STORAGE}}
         NPM_TOKEN_STORAGE_TYPES: ${{secrets.NPM_TOKEN_STORAGE_TYPES}}
         NPM_TOKEN_UTIL: ${{secrets.NPM_TOKEN_UTIL}}
-        NPM_TOKEN_VERTEXAI_PREVIEW: ${{secrets.NPM_TOKEN_VERTEXAI_PREVIEW}}
+        NPM_TOKEN_VERTEXAI: ${{secrets.NPM_TOKEN_VERTEXAI}}
         NPM_TOKEN_WEBCHANNEL_WRAPPER: ${{secrets.NPM_TOKEN_WEBCHANNEL_WRAPPER}}
         NPM_TOKEN_FIREBASE: ${{secrets.NPM_TOKEN_FIREBASE}}
         NPM_TOKEN_APP_COMPAT: ${{ secrets.NPM_TOKEN_APP_COMPAT }}

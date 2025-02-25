@@ -22,72 +22,52 @@ import typescript from 'typescript';
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 import pkg from './package.json';
+import tsconfig from './tsconfig.json';
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
-/**
- * ES5 Builds
- */
-const es5BuildPlugins = [
-  typescriptPlugin({
-    typescript
-  }),
-  json()
-];
 
-const es2017BuildPlugins = [
+const buildPlugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
+      exclude: [...tsconfig.exclude, '**/*.test.ts']
     }
   }),
   json({ preferConst: true })
 ];
 
-const esmBuilds = [
-  {
-    input: 'src/index.ts',
-    output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: [
-      ...es5BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 5)),
-      emitModulePackageFile()
-    ]
+const esmBuild = {
+  /**
+   * Browser Build
+   */
+  input: 'src/index.ts',
+  output: {
+    file: pkg.browser,
+    format: 'es',
+    sourcemap: true
   },
-  {
-    /**
-     * Browser Build
-     */
-    input: 'src/index.ts',
-    output: {
-      file: pkg.browser,
-      format: 'es',
-      sourcemap: true
-    },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: [
-      ...es2017BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 2017)),
-      emitModulePackageFile()
-    ]
-  }
-];
+  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+  plugins: [
+    ...buildPlugins,
+    replace(generateBuildTargetReplaceConfig('esm', 2017)),
+    emitModulePackageFile()
+  ]
+};
 
-const cjsBuilds = [
-  {
-    input: 'src/index.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: [
-      ...es5BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 5))
-    ]
-  }
-];
+const cjsBuild = {
+  input: 'src/index.ts',
+  output: {
+    file: pkg.main,
+    format: 'cjs',
+    sourcemap: true
+  },
+  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+  plugins: [
+    ...buildPlugins,
+    replace(generateBuildTargetReplaceConfig('cjs', 2017))
+  ]
+};
 
-export default [...esmBuilds, ...cjsBuilds];
+export default [esmBuild, cjsBuild];

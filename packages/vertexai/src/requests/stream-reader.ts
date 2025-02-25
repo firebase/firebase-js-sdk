@@ -24,7 +24,7 @@ import {
   VertexAIErrorCode
 } from '../types';
 import { VertexAIError } from '../errors';
-import { addHelpers } from './response-helpers';
+import { createEnhancedContentResponse } from './response-helpers';
 
 const responseLineRE = /^data\: (.*)(?:\n\n|\r\r|\r\n\r\n)/;
 
@@ -57,8 +57,12 @@ async function getResponsePromise(
   while (true) {
     const { done, value } = await reader.read();
     if (done) {
-      return addHelpers(aggregateResponses(allResponses));
+      const enhancedResponse = createEnhancedContentResponse(
+        aggregateResponses(allResponses)
+      );
+      return enhancedResponse;
     }
+
     allResponses.push(value);
   }
 }
@@ -72,7 +76,9 @@ async function* generateResponseSequence(
     if (done) {
       break;
     }
-    yield addHelpers(value);
+
+    const enhancedResponse = createEnhancedContentResponse(value);
+    yield enhancedResponse;
   }
 }
 
@@ -146,7 +152,9 @@ export function aggregateResponses(
   for (const response of responses) {
     if (response.candidates) {
       for (const candidate of response.candidates) {
-        const i = candidate.index;
+        // Index will be undefined if it's the first index (0), so we should use 0 if it's undefined.
+        // See: https://github.com/firebase/firebase-js-sdk/issues/8566
+        const i = candidate.index || 0;
         if (!aggregatedResponse.candidates) {
           aggregatedResponse.candidates = [];
         }
@@ -177,14 +185,24 @@ export function aggregateResponses(
           }
           const newPart: Partial<Part> = {};
           for (const part of candidate.content.parts) {
-            if (part.text) {
+            if (part.text !== undefined) {
+              // The backend can send empty text parts. If these are sent back
+              // (e.g. in chat history), the backend will respond with an error.
+              // To prevent this, ignore empty text parts.
+              if (part.text === '') {
+                continue;
+              }
               newPart.text = part.text;
             }
             if (part.functionCall) {
               newPart.functionCall = part.functionCall;
             }
             if (Object.keys(newPart).length === 0) {
-              newPart.text = '';
+              throw new VertexAIError(
+                VertexAIErrorCode.INVALID_CONTENT,
+                'Part should have at least one property, but there are none. This is likely caused ' +
+                  'by a malformed response from the backend.'
+              );
             }
             aggregatedResponse.candidates[i].content.parts.push(
               newPart as Part

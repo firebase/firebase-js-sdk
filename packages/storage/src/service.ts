@@ -24,7 +24,11 @@ import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { FirebaseApp, FirebaseOptions } from '@firebase/app';
+import {
+  FirebaseApp,
+  FirebaseOptions,
+  _isFirebaseServerApp
+} from '@firebase/app';
 import {
   CONFIG_STORAGE_BUCKET_KEY,
   DEFAULT_HOST,
@@ -262,6 +266,9 @@ export class FirebaseStorageImpl implements FirebaseStorage {
   }
 
   async _getAppCheckToken(): Promise<string | null> {
+    if (_isFirebaseServerApp(this.app) && this.app.settings.appCheckToken) {
+      return this.app.settings.appCheckToken;
+    }
     const appCheck = this._appCheckProvider.getImmediate({ optional: true });
     if (appCheck) {
       const result = await appCheck.getToken();

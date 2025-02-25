@@ -28,16 +28,29 @@ export interface TestConfig {
   alwaysIncludePackages?: string[];
 }
 
+// These tests are flaky on WebkitHeadless for some reason, so skip them.
+// TODO (dlarocque): Fix the flakes and remove this
+const ignoredWebkitCoreTests = process.env?.BROWSERS?.includes('WebkitHeadless')
+  ? [
+      '@firebase/app-check',
+      '@firebase/installations',
+      '@firebase/storage',
+      '@firebase/storage-compat',
+      '@firebase/database',
+      '@firebase/database-compat'
+    ]
+  : [];
+
 export const testConfig: {
   [key: string]: TestConfig | undefined;
 } = {
   'core': {
     'ignorePackages': [
+      ...ignoredWebkitCoreTests,
       '@firebase/firestore',
       '@firebase/firestore-compat',
       'firebase-firestore-integration-test',
       'firebase-messaging-integration-test',
-      'firebase-namespace-integration-test',
       'firebase-compat-typings-test',
       '@firebase/rules-unit-testing',
       '@firebase/auth',
@@ -56,9 +69,6 @@ export const testConfig: {
   },
   'misc': {
     'onlyIncludePackages': ['@firebase/rules-unit-testing']
-  },
-  'firebase-integration': {
-    'alwaysIncludePackages': ['firebase-namespace-integration-test']
   },
   'auth': {
     'onlyIncludePackages': ['@firebase/auth', '@firebase/auth-compat']

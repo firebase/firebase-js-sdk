@@ -18,6 +18,8 @@
 import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 
+export * from './imagen/internal';
+
 export interface ApiSettings {
   apiKey: string;
   project: string;

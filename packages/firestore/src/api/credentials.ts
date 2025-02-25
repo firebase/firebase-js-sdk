@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirebaseApp, _isFirebaseServerApp } from '@firebase/app';
 import {
   AppCheckInternalComponentName,
   AppCheckTokenListener,
@@ -235,7 +236,7 @@ export class FirebaseAuthCredentialsProvider
    * The auth token listener registered with FirebaseApp, retained here so we
    * can unregister it.
    */
-  private tokenListener!: () => void;
+  private tokenListener: (() => void) | undefined;
 
   /** Tracks the current User. */
   private currentUser: User = User.UNAUTHENTICATED;
@@ -256,6 +257,10 @@ export class FirebaseAuthCredentialsProvider
     asyncQueue: AsyncQueue,
     changeListener: CredentialChangeListener<User>
   ): void {
+    hardAssert(
+      this.tokenListener === undefined,
+      'Token listener already added'
+    );
     let lastTokenId = this.tokenCounter;
 
     // A change listener that prevents double-firing for the same token change.
@@ -293,8 +298,10 @@ export class FirebaseAuthCredentialsProvider
     const registerAuth = (auth: FirebaseAuthInternal): void => {
       logDebug('FirebaseAuthCredentialsProvider', 'Auth detected');
       this.auth = auth;
-      this.auth.addAuthTokenListener(this.tokenListener);
-      awaitNextToken();
+      if (this.tokenListener) {
+        this.auth.addAuthTokenListener(this.tokenListener);
+        awaitNextToken();
+      }
     };
 
     this.authProvider.onInit(auth => registerAuth(auth));
@@ -365,9 +372,10 @@ export class FirebaseAuthCredentialsProvider
   }
 
   shutdown(): void {
-    if (this.auth) {
-      this.auth.removeAuthTokenListener(this.tokenListener!);
+    if (this.auth && this.tokenListener) {
+      this.auth.removeAuthTokenListener(this.tokenListener);
     }
+    this.tokenListener = undefined;
   }
 
   // Auth.getUid() can return null even with a user logged in. It is because
@@ -484,19 +492,30 @@ export class FirebaseAppCheckTokenProvider
    * The AppCheck token listener registered with FirebaseApp, retained here so
    * we can unregister it.
    */
-  private tokenListener!: AppCheckTokenListener;
+  private tokenListener: AppCheckTokenListener | undefined;
   private forceRefresh = false;
   private appCheck: FirebaseAppCheckInternal | null = null;
   private latestAppCheckToken: string | null = null;
+  private serverAppAppCheckToken: string | null = null;
 
   constructor(
+    app: FirebaseApp,
     private appCheckProvider: Provider<AppCheckInternalComponentName>
-  ) {}
+  ) {
+    if (_isFirebaseServerApp(app) && app.settings.appCheckToken) {
+      this.serverAppAppCheckToken = app.settings.appCheckToken;
+    }
+  }
 
   start(
     asyncQueue: AsyncQueue,
     changeListener: CredentialChangeListener<string>
   ): void {
+    hardAssert(
+      this.tokenListener === undefined,
+      'Token listener already added'
+    );
+
     const onTokenChanged: (
       tokenResult: AppCheckTokenResult
     ) => Promise<void> = tokenResult => {
@@ -524,7 +543,9 @@ export class FirebaseAppCheckTokenProvider
     const registerAppCheck = (appCheck: FirebaseAppCheckInternal): void => {
       logDebug('FirebaseAppCheckTokenProvider', 'AppCheck detected');
       this.appCheck = appCheck;
-      this.appCheck.addTokenListener(this.tokenListener);
+      if (this.tokenListener) {
+        this.appCheck.addTokenListener(this.tokenListener);
+      }
     };
 
     this.appCheckProvider.onInit(appCheck => registerAppCheck(appCheck));
@@ -548,6 +569,9 @@ export class FirebaseAppCheckTokenProvider
   }
 
   getToken(): Promise<Token | null> {
+    if (this.serverAppAppCheckToken) {
+      return Promise.resolve(new AppCheckToken(this.serverAppAppCheckToken));
+    }
     debugAssert(
       this.tokenListener != null,
       'FirebaseAppCheckTokenProvider not started.'
@@ -579,9 +603,10 @@ export class FirebaseAppCheckTokenProvider
   }
 
   shutdown(): void {
-    if (this.appCheck) {
-      this.appCheck.removeTokenListener(this.tokenListener!);
+    if (this.appCheck && this.tokenListener) {
+      this.appCheck.removeTokenListener(this.tokenListener);
     }
+    this.tokenListener = undefined;
   }
 }
 
@@ -607,16 +632,25 @@ export class EmptyAppCheckTokenProvider implements CredentialsProvider<string> {
 /** AppCheck token provider for the Lite SDK. */
 export class LiteAppCheckTokenProvider implements CredentialsProvider<string> {
   private appCheck: FirebaseAppCheckInternal | null = null;
+  private serverAppAppCheckToken: string | null = null;
 
   constructor(
+    app: FirebaseApp,
     private appCheckProvider: Provider<AppCheckInternalComponentName>
   ) {
+    if (_isFirebaseServerApp(app) && app.settings.appCheckToken) {
+      this.serverAppAppCheckToken = app.settings.appCheckToken;
+    }
     appCheckProvider.onInit(appCheck => {
       this.appCheck = appCheck;
     });
   }
 
   getToken(): Promise<Token | null> {
+    if (this.serverAppAppCheckToken) {
+      return Promise.resolve(new AppCheckToken(this.serverAppAppCheckToken));
+    }
+
     if (!this.appCheck) {
       return Promise.resolve(null);
     }

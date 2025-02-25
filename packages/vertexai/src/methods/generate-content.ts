@@ -23,7 +23,7 @@ import {
   RequestOptions
 } from '../types';
 import { Task, makeRequest } from '../requests/request';
-import { addHelpers } from '../requests/response-helpers';
+import { createEnhancedContentResponse } from '../requests/response-helpers';
 import { processStream } from '../requests/stream-reader';
 import { ApiSettings } from '../types/internal';
 
@@ -59,7 +59,7 @@ export async function generateContent(
     requestOptions
   );
   const responseJson: GenerateContentResponse = await response.json();
-  const enhancedResponse = addHelpers(responseJson);
+  const enhancedResponse = createEnhancedContentResponse(responseJson);
   return {
     response: enhancedResponse
   };

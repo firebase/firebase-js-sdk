@@ -16,7 +16,7 @@
  */
 
 import { expect, use } from 'chai';
-import { restore, stub } from 'sinon';
+import { match, restore, stub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import { RequestUrl, Task, getHeaders, makeRequest } from './request';
@@ -24,6 +24,7 @@ import { ApiSettings } from '../types/internal';
 import { DEFAULT_API_VERSION } from '../constants';
 import { VertexAIErrorCode } from '../types';
 import { VertexAIError } from '../errors';
+import { getMockResponse } from '../../test-utils/mock-response';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -168,13 +169,18 @@ describe('request methods', () => {
           project: 'myproject',
           location: 'moon',
           getAppCheckToken: () =>
-            Promise.resolve({ token: 'token', error: Error('oops') })
+            Promise.resolve({ token: 'dummytoken', error: Error('oops') })
         },
         true,
         {}
       );
+      const warnStub = stub(console, 'warn');
       const headers = await getHeaders(fakeUrl);
-      expect(headers.has('X-Firebase-AppCheck')).to.be.false;
+      expect(headers.get('X-Firebase-AppCheck')).to.equal('dummytoken');
+      expect(warnStub).to.be.calledWith(
+        match(/vertexai/),
+        match(/App Check.*oops/)
+      );
     });
     it('adds auth token if it exists', async () => {
       const headers = await getHeaders(fakeUrl);
@@ -243,7 +249,7 @@ describe('request methods', () => {
           false,
           '',
           {
-            timeout: 0
+            timeout: 180000
           }
         );
       } catch (e) {
@@ -356,5 +362,29 @@ describe('request methods', () => {
       }
       expect(fetchStub).to.be.calledOnce;
     });
+  });
+  it('Network error, API not enabled', async () => {
+    const mockResponse = getMockResponse(
+      'unary-failure-firebasevertexai-api-not-enabled.json'
+    );
+    const fetchStub = stub(globalThis, 'fetch').resolves(
+      mockResponse as Response
+    );
+    try {
+      await makeRequest(
+        'models/model-name',
+        Task.GENERATE_CONTENT,
+        fakeApiSettings,
+        false,
+        ''
+      );
+    } catch (e) {
+      expect((e as VertexAIError).code).to.equal(
+        VertexAIErrorCode.API_NOT_ENABLED
+      );
+      expect((e as VertexAIError).message).to.include('my-project');
+      expect((e as VertexAIError).message).to.include('googleapis.com');
+    }
+    expect(fetchStub).to.be.calledOnce;
   });
 });

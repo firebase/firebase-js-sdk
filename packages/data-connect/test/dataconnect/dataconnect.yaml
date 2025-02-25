@@ -1,0 +1,12 @@
+specVersion: "v1beta"
+serviceId: "fdc-service"
+location: "us-west2"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "tests"
+      cloudSql:
+        instanceId: "prod"
+      # schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]

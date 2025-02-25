@@ -19,54 +19,37 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 import pkg from './package.json';
+import tsconfig from './tsconfig.json';
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-const es5BuildPlugins = [
-  typescriptPlugin({
-    typescript
-  })
-];
-
-const es2017BuildPlugins = [
+const buildPlugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
+      exclude: [...tsconfig.exclude, '**/*.test.ts']
     }
   })
 ];
 
-const esmBuilds = [
-  {
-    input: 'index.ts',
-    output: { file: pkg.module, format: 'es', sourcemap: true },
-    plugins: [...es2017BuildPlugins, emitModulePackageFile()],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+const esmBuild = {
+  input: 'index.ts',
+  output: { file: pkg.module, format: 'es', sourcemap: true },
+  plugins: [...buildPlugins, emitModulePackageFile()],
+  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+};
+
+const cjsBuild = {
+  input: 'index.ts',
+  output: {
+    file: pkg.main,
+    format: 'cjs',
+    sourcemap: true
   },
-  {
-    input: 'index.ts',
-    output: {
-      file: pkg.esm5,
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: [...es5BuildPlugins, emitModulePackageFile()],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  }
-];
+  plugins: buildPlugins,
+  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+};
 
-const cjsBuilds = [
-  {
-    input: 'index.ts',
-    output: { file: pkg.main, format: 'cjs', sourcemap: true },
-    plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  }
-];
-
-export default [...esmBuilds, ...cjsBuilds];
+export default [esmBuild, cjsBuild];

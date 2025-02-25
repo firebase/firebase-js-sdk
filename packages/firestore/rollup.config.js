@@ -19,7 +19,7 @@ import { version as grpcVersion } from '@grpc/grpc-js/package.json';
 import alias from '@rollup/plugin-alias';
 import json from '@rollup/plugin-json';
 import replace from 'rollup-plugin-replace';
-import { terser } from 'rollup-plugin-terser';
+import terser from '@rollup/plugin-terser';
 import dts from 'rollup-plugin-dts';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import tmp from 'tmp';
@@ -28,47 +28,36 @@ import typescript from 'typescript';
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
 import pkg from './package.json';
+import tsconfig from './tsconfig.json';
 
 const sourcemaps = require('rollup-plugin-sourcemaps');
 const util = require('./rollup.shared');
 
-const nodePlugins = function () {
-  return [
-    typescriptPlugin({
-      typescript,
-      tsconfigOverride: {
-        compilerOptions: {
-          target: 'es2017'
-        }
-      },
-      cacheDir: tmp.dirSync(),
-      abortOnError: true,
-      transformers: [util.removeAssertTransformer]
-    }),
-    json({ preferConst: true }),
-    replace({
-      '__GRPC_VERSION__': grpcVersion
-    })
-  ];
-};
+const nodePlugins = [
+  typescriptPlugin({
+    typescript,
+    exclude: [...tsconfig.exclude, '**/*.test.ts'],
+    cacheDir: tmp.dirSync(),
+    abortOnError: true,
+    transformers: [util.removeAssertTransformer]
+  }),
+  json({ preferConst: true }),
+  replace({
+    '__GRPC_VERSION__': grpcVersion
+  })
+];
 
-const browserPlugins = function () {
-  return [
-    typescriptPlugin({
-      typescript,
-      tsconfigOverride: {
-        compilerOptions: {
-          target: 'es2017'
-        }
-      },
-      cacheDir: tmp.dirSync(),
-      abortOnError: true,
-      transformers: [util.removeAssertAndPrefixInternalTransformer]
-    }),
-    json({ preferConst: true }),
-    terser(util.manglePrivatePropertiesOptions)
-  ];
-};
+const browserPlugins = [
+  typescriptPlugin({
+    typescript,
+    exclude: [...tsconfig.exclude, '**/*.test.ts'],
+    cacheDir: tmp.dirSync(),
+    abortOnError: true,
+    transformers: [util.removeAssertAndPrefixInternalTransformer]
+  }),
+  json({ preferConst: true }),
+  terser(util.manglePrivatePropertiesOptions)
+];
 
 const allBuilds = [
   // Intermediate Node ESM build without build target reporting
@@ -81,7 +70,7 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('node')), ...nodePlugins()],
+    plugins: [alias(util.generateAliasConfig('node')), ...nodePlugins],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
@@ -97,7 +86,17 @@ const allBuilds = [
       sourcemap: true
     },
     plugins: [
-      ...util.es2017ToEs5Plugins(/* mangled= */ false),
+      typescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            allowJs: true
+          }
+        },
+        include: ['dist/**/*.js'],
+        cacheDir: tmp.dirSync()
+      }),
+      sourcemaps(),
       replace(generateBuildTargetReplaceConfig('cjs', 2017))
     ],
     external: util.resolveNodeExterns,
@@ -132,26 +131,7 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('browser')), ...browserPlugins()],
-    external: util.resolveBrowserExterns,
-    treeshake: {
-      moduleSideEffects: false
-    }
-  },
-  // Convert es2017 build to ES5
-  {
-    input: pkg['browser'],
-    output: [
-      {
-        file: pkg['esm5'],
-        format: 'es',
-        sourcemap: true
-      }
-    ],
-    plugins: [
-      ...util.es2017ToEs5Plugins(/* mangled= */ true),
-      replace(generateBuildTargetReplaceConfig('esm', 5))
-    ],
+    plugins: [alias(util.generateAliasConfig('browser')), ...browserPlugins],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
@@ -205,7 +185,7 @@ const allBuilds = [
     },
     plugins: [
       alias(util.generateAliasConfig('rn')),
-      ...browserPlugins(),
+      ...browserPlugins,
       replace(generateBuildTargetReplaceConfig('esm', 2017))
     ],
     external: util.resolveBrowserExterns,
