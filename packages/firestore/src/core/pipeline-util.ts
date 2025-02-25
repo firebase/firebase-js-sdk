@@ -24,13 +24,11 @@ import {
   andFunction,
   orFunction,
   Ordering,
-  And,
   lt,
   gt,
   lte,
   gte,
-  eq,
-  Or
+  eq
 } from '../lite-api/expressions';
 import { Pipeline } from '../lite-api/pipeline';
 import { doc } from '../lite-api/reference';
@@ -61,9 +59,9 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
     const field = Field.of(f.field.toString());
     if (isNanValue(f.value)) {
       if (f.op === Operator.EQUAL) {
-        return andFunction(field.exists(), field.isNaN());
+        return andFunction(field.exists(), field.isNan());
       } else {
-        return andFunction(field.exists(), not(field.isNaN()));
+        return andFunction(field.exists(), not(field.isNan()));
       }
     } else if (isNullValue(f.value)) {
       if (f.op === Operator.EQUAL) {
@@ -249,11 +247,11 @@ function whereConditionsFromCursor(
   const filterFunc = position === 'before' ? lt : gt;
   const filterInclusiveFunc = position === 'before' ? lte : gte;
 
-  const orConditions = [];
+  const orConditions: BooleanExpr[] = [];
   for (let i = 1; i <= orderings.length; i++) {
     const cursorSubset = cursors.slice(0, i);
 
-    const conditions = cursorSubset.map((cursor, index) => {
+    const conditions: BooleanExpr[] = cursorSubset.map((cursor, index) => {
       if (index < cursorSubset.length - 1) {
         return eq(orderings[index].expr as Field, cursor);
       } else if (!!bound.inclusive && i === orderings.length) {
@@ -266,13 +264,19 @@ function whereConditionsFromCursor(
     if (conditions.length === 1) {
       orConditions.push(conditions[0]);
     } else {
-      orConditions.push(new And(conditions));
+      orConditions.push(
+        andFunction(conditions[0], conditions[1], ...conditions.slice(2))
+      );
     }
   }
 
   if (orConditions.length === 1) {
     return orConditions[0];
   } else {
-    return new Or(orConditions);
+    return orFunction(
+      orConditions[0],
+      orConditions[1],
+      ...orConditions.slice(2)
+    );
   }
 }

@@ -79,6 +79,21 @@ function valueToDefaultExpr(value: any): ScalarExpr {
     return Constant.of(value);
   }
 }
+/**
+ * Converts a value to an Expr, Returning either a Constant, MapFunction,
+ * ArrayFunction, or the input itself (if it's already an expression).
+ *
+ * @private
+ * @internal
+ * @param value
+ */
+function vectorToExpr(value: VectorValue | number[] | ScalarExpr): ScalarExpr {
+  if (value instanceof ScalarExpr) {
+    return value;
+  } else {
+    return Constant.vector(value);
+  }
+}
 
 /**
  * Converts a value to an Expr, Returning either a Constant, MapFunction,
@@ -161,12 +176,15 @@ export abstract class ScalarExpr extends Expr {
    * @param others Optional additional expressions or literals to add to this expression.
    * @return A new `Expr` representing the addition operation.
    */
-  add(second: ScalarExpr | any, ...others: Array<ScalarExpr | any>): Add {
+  add(
+    second: ScalarExpr | any,
+    ...others: Array<ScalarExpr | any>
+  ): FirestoreFunction {
     const values = [second, ...others];
-    return new Add(
+    return new FirestoreFunction('add', [
       this,
-      values.map(value => valueToDefaultExpr(value))
-    );
+      ...values.map(value => valueToDefaultExpr(value))
+    ]);
   }
 
   /**
@@ -180,7 +198,7 @@ export abstract class ScalarExpr extends Expr {
    * @param other The expression to subtract from this expression.
    * @return A new `Expr` representing the subtraction operation.
    */
-  subtract(other: ScalarExpr): Subtract;
+  subtract(other: ScalarExpr): FirestoreFunction;
 
   /**
    * Creates an expression that subtracts a constant value from this expression.
@@ -193,9 +211,9 @@ export abstract class ScalarExpr extends Expr {
    * @param other The constant value to subtract.
    * @return A new `Expr` representing the subtraction operation.
    */
-  subtract(other: any): Subtract;
-  subtract(other: any): Subtract {
-    return new Subtract(this, valueToDefaultExpr(other));
+  subtract(other: any): FirestoreFunction;
+  subtract(other: any): FirestoreFunction {
+    return new FirestoreFunction('subtract', [this, valueToDefaultExpr(other)]);
   }
 
   /**
@@ -213,12 +231,12 @@ export abstract class ScalarExpr extends Expr {
   multiply(
     second: ScalarExpr | any,
     ...others: Array<ScalarExpr | any>
-  ): Multiply {
-    const values = [second, ...others];
-    return new Multiply(
+  ): FirestoreFunction {
+    return new FirestoreFunction('multiply', [
       this,
-      values.map(value => valueToDefaultExpr(value))
-    );
+      valueToDefaultExpr(second),
+      ...others.map(value => valueToDefaultExpr(value))
+    ]);
   }
 
   /**
@@ -232,7 +250,7 @@ export abstract class ScalarExpr extends Expr {
    * @param other The expression to divide by.
    * @return A new `Expr` representing the division operation.
    */
-  divide(other: ScalarExpr): Divide;
+  divide(other: ScalarExpr): FirestoreFunction;
 
   /**
    * Creates an expression that divides this expression by a constant value.
@@ -245,9 +263,9 @@ export abstract class ScalarExpr extends Expr {
    * @param other The constant value to divide by.
    * @return A new `Expr` representing the division operation.
    */
-  divide(other: any): Divide;
-  divide(other: any): Divide {
-    return new Divide(this, valueToDefaultExpr(other));
+  divide(other: any): FirestoreFunction;
+  divide(other: any): FirestoreFunction {
+    return new FirestoreFunction('divide', [this, valueToDefaultExpr(other)]);
   }
 
   /**
@@ -261,7 +279,7 @@ export abstract class ScalarExpr extends Expr {
    * @param other The expression to divide by.
    * @return A new `Expr` representing the modulo operation.
    */
-  mod(other: ScalarExpr): Mod;
+  mod(other: ScalarExpr): FirestoreFunction;
 
   /**
    * Creates an expression that calculates the modulo (remainder) of dividing this expression by a constant value.
@@ -274,9 +292,9 @@ export abstract class ScalarExpr extends Expr {
    * @param other The constant value to divide by.
    * @return A new `Expr` representing the modulo operation.
    */
-  mod(other: any): Mod;
-  mod(other: any): Mod {
-    return new Mod(this, valueToDefaultExpr(other));
+  mod(other: any): FirestoreFunction;
+  mod(other: any): FirestoreFunction {
+    return new FirestoreFunction('mod', [this, valueToDefaultExpr(other)]);
   }
 
   /**
@@ -290,7 +308,7 @@ export abstract class ScalarExpr extends Expr {
    * @param other The expression to compare for equality.
    * @return A new `Expr` representing the equality comparison.
    */
-  eq(other: ScalarExpr): Eq;
+  eq(other: ScalarExpr): BooleanExpr;
 
   /**
    * Creates an expression that checks if this expression is equal to a constant value.
@@ -303,9 +321,9 @@ export abstract class ScalarExpr extends Expr {
    * @param other The constant value to compare for equality.
    * @return A new `Expr` representing the equality comparison.
    */
-  eq(other: any): Eq;
-  eq(other: any): Eq {
-    return new Eq(this, valueToDefaultExpr(other));
+  eq(other: any): BooleanExpr;
+  eq(other: any): BooleanExpr {
+    return new BooleanExpr('eq', [this, valueToDefaultExpr(other)]);
   }
 
   /**
@@ -319,7 +337,7 @@ export abstract class ScalarExpr extends Expr {
    * @param other The expression to compare for inequality.
    * @return A new `Expr` representing the inequality comparison.
    */
-  neq(other: ScalarExpr): Neq;
+  neq(other: ScalarExpr): BooleanExpr;
 
   /**
    * Creates an expression that checks if this expression is not equal to a constant value.
@@ -332,9 +350,9 @@ export abstract class ScalarExpr extends Expr {
    * @param other The constant value to compare for inequality.
    * @return A new `Expr` representing the inequality comparison.
    */
-  neq(other: any): Neq;
-  neq(other: any): Neq {
-    return new Neq(this, valueToDefaultExpr(other));
+  neq(other: any): BooleanExpr;
+  neq(other: any): BooleanExpr {
+    return new BooleanExpr('neq', [this, valueToDefaultExpr(other)]);
   }
 
   /**
@@ -348,7 +366,7 @@ export abstract class ScalarExpr extends Expr {
    * @param other The expression to compare for less than.
    * @return A new `Expr` representing the less than comparison.
    */
-  lt(other: ScalarExpr): Lt;
+  lt(other: ScalarExpr): BooleanExpr;
 
   /**
    * Creates an expression that checks if this expression is less than a constant value.
@@ -361,9 +379,9 @@ export abstract class ScalarExpr extends Expr {
    * @param other The constant value to compare for less than.
    * @return A new `Expr` representing the less than comparison.
    */
-  lt(other: any): Lt;
-  lt(other: any): Lt {
-    return new Lt(this, valueToDefaultExpr(other));
+  lt(other: any): BooleanExpr;
+  lt(other: any): BooleanExpr {
+    return new BooleanExpr('lt', [this, valueToDefaultExpr(other)]);
   }
 
   /**
@@ -378,7 +396,7 @@ export abstract class ScalarExpr extends Expr {
    * @param other The expression to compare for less than or equal to.
    * @return A new `Expr` representing the less than or equal to comparison.
    */
-  lte(other: ScalarExpr): Lte;
+  lte(other: ScalarExpr): BooleanExpr;
 
   /**
    * Creates an expression that checks if this expression is less than or equal to a constant value.
@@ -391,9 +409,9 @@ export abstract class ScalarExpr extends Expr {
    * @param other The constant value to compare for less than or equal to.
    * @return A new `Expr` representing the less than or equal to comparison.
    */
-  lte(other: any): Lte;
-  lte(other: any): Lte {
-    return new Lte(this, valueToDefaultExpr(other));
+  lte(other: any): BooleanExpr;
+  lte(other: any): BooleanExpr {
+    return new BooleanExpr('lte', [this, valueToDefaultExpr(other)]);
   }
 
   /**
@@ -407,7 +425,7 @@ export abstract class ScalarExpr extends Expr {
    * @param other The expression to compare for greater than.
    * @return A new `Expr` representing the greater than comparison.
    */
-  gt(other: ScalarExpr): Gt;
+  gt(other: ScalarExpr): BooleanExpr;
 
   /**
    * Creates an expression that checks if this expression is greater than a constant value.
@@ -420,9 +438,9 @@ export abstract class ScalarExpr extends Expr {
    * @param other The constant value to compare for greater than.
    * @return A new `Expr` representing the greater than comparison.
    */
-  gt(other: any): Gt;
-  gt(other: any): Gt {
-    return new Gt(this, valueToDefaultExpr(other));
+  gt(other: any): BooleanExpr;
+  gt(other: any): BooleanExpr {
+    return new BooleanExpr('gt', [this, valueToDefaultExpr(other)]);
   }
 
   /**
@@ -437,7 +455,7 @@ export abstract class ScalarExpr extends Expr {
    * @param other The expression to compare for greater than or equal to.
    * @return A new `Expr` representing the greater than or equal to comparison.
    */
-  gte(other: ScalarExpr): Gte;
+  gte(other: ScalarExpr): BooleanExpr;
 
   /**
    * Creates an expression that checks if this expression is greater than or equal to a constant
@@ -451,9 +469,9 @@ export abstract class ScalarExpr extends Expr {
    * @param other The constant value to compare for greater than or equal to.
    * @return A new `Expr` representing the greater than or equal to comparison.
    */
-  gte(other: any): Gte;
-  gte(other: any): Gte {
-    return new Gte(this, valueToDefaultExpr(other));
+  gte(other: any): BooleanExpr;
+  gte(other: any): BooleanExpr {
+    return new BooleanExpr('gte', [this, valueToDefaultExpr(other)]);
   }
 
   /**
@@ -470,10 +488,10 @@ export abstract class ScalarExpr extends Expr {
   arrayConcat(
     secondArray: ScalarExpr | any[],
     ...otherArrays: Array<ScalarExpr | any[]>
-  ): ArrayConcat {
+  ): FirestoreFunction {
     const elements = [secondArray, ...otherArrays];
     const exprValues = elements.map(value => valueToDefaultExpr(value));
-    return new ArrayConcat(this, exprValues);
+    return new FirestoreFunction('array_concat', [this, ...exprValues]);
   }
 
   /**
@@ -487,7 +505,7 @@ export abstract class ScalarExpr extends Expr {
    * @param element The element to search for in the array.
    * @return A new `Expr` representing the 'array_contains' comparison.
    */
-  arrayContains(element: ScalarExpr): ArrayContains;
+  arrayContains(element: ScalarExpr): BooleanExpr;
 
   /**
    * Creates an expression that checks if an array contains a specific value.
@@ -500,9 +518,12 @@ export abstract class ScalarExpr extends Expr {
    * @param element The element to search for in the array.
    * @return A new `Expr` representing the 'array_contains' comparison.
    */
-  arrayContains(element: any): ArrayContains;
-  arrayContains(element: any): ArrayContains {
-    return new ArrayContains(this, valueToDefaultExpr(element));
+  arrayContains(element: any): BooleanExpr;
+  arrayContains(element: any): BooleanExpr {
+    return new BooleanExpr('array_contains', [
+      this,
+      valueToDefaultExpr(element)
+    ]);
   }
 
   /**
@@ -516,7 +537,7 @@ export abstract class ScalarExpr extends Expr {
    * @param values The elements to check for in the array.
    * @return A new `Expr` representing the 'array_contains_all' comparison.
    */
-  arrayContainsAll(...values: ScalarExpr[]): ArrayContainsAll;
+  arrayContainsAll(...values: ScalarExpr[]): BooleanExpr;
 
   /**
    * Creates an expression that checks if an array contains all the specified elements.
@@ -529,12 +550,13 @@ export abstract class ScalarExpr extends Expr {
    * @param values The elements to check for in the array.
    * @return A new `Expr` representing the 'array_contains_all' comparison.
    */
-  arrayContainsAll(...values: any[]): ArrayContainsAll;
-  arrayContainsAll(...values: any[]): ArrayContainsAll {
-    const exprValues = values.map(value =>
-      value instanceof ScalarExpr ? value : valueToDefaultExpr(value)
-    );
-    return new ArrayContainsAll(this, exprValues);
+  arrayContainsAll(...values: any[]): BooleanExpr;
+  arrayContainsAll(...values: any[]): BooleanExpr {
+    const exprValues = values.map(value => valueToDefaultExpr(value));
+    return new BooleanExpr('array_contains_all', [
+      this,
+      new ListOfExprs(exprValues)
+    ]);
   }
 
   /**
@@ -548,7 +570,7 @@ export abstract class ScalarExpr extends Expr {
    * @param values The elements to check for in the array.
    * @return A new `Expr` representing the 'array_contains_any' comparison.
    */
-  arrayContainsAny(...values: ScalarExpr[]): ArrayContainsAny;
+  arrayContainsAny(...values: ScalarExpr[]): BooleanExpr;
 
   /**
    * Creates an expression that checks if an array contains any of the specified elements.
@@ -562,12 +584,13 @@ export abstract class ScalarExpr extends Expr {
    * @param values The elements to check for in the array.
    * @return A new `Expr` representing the 'array_contains_any' comparison.
    */
-  arrayContainsAny(...values: any[]): ArrayContainsAny;
-  arrayContainsAny(...values: any[]): ArrayContainsAny {
-    const exprValues = values.map(value =>
-      value instanceof ScalarExpr ? value : valueToDefaultExpr(value)
-    );
-    return new ArrayContainsAny(this, exprValues);
+  arrayContainsAny(...values: any[]): BooleanExpr;
+  arrayContainsAny(...values: any[]): BooleanExpr {
+    const exprValues = values.map(value => valueToDefaultExpr(value));
+    return new BooleanExpr('array_contains_any', [
+      this,
+      new ListOfExprs(exprValues)
+    ]);
   }
 
   /**
@@ -580,8 +603,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new `Expr` representing the length of the array.
    */
-  arrayLength(): ArrayLength {
-    return new ArrayLength(this);
+  arrayLength(): FirestoreFunction {
+    return new FirestoreFunction('array_length', [this]);
   }
 
   /**
@@ -596,7 +619,7 @@ export abstract class ScalarExpr extends Expr {
    * @param others The values or expressions to check against.
    * @return A new `Expr` representing the 'IN' comparison.
    */
-  eqAny(...others: ScalarExpr[]): EqAny;
+  eqAny(...others: ScalarExpr[]): BooleanExpr;
 
   /**
    * Creates an expression that checks if this expression is equal to any of the provided values or
@@ -610,12 +633,10 @@ export abstract class ScalarExpr extends Expr {
    * @param others The values or expressions to check against.
    * @return A new `Expr` representing the 'IN' comparison.
    */
-  eqAny(...others: any[]): EqAny;
-  eqAny(...others: any[]): EqAny {
-    const exprOthers = others.map(other =>
-      other instanceof ScalarExpr ? other : valueToDefaultExpr(other)
-    );
-    return new EqAny(this, exprOthers);
+  eqAny(...others: any[]): BooleanExpr;
+  eqAny(...others: any[]): BooleanExpr {
+    const exprOthers = others.map(other => valueToDefaultExpr(other));
+    return new BooleanExpr('eq_any', [this, new ListOfExprs(exprOthers)]);
   }
 
   /**
@@ -630,7 +651,7 @@ export abstract class ScalarExpr extends Expr {
    * @param others The values or expressions to check against.
    * @return A new `Expr` representing the 'NotEqAny' comparison.
    */
-  notEqAny(...others: ScalarExpr[]): NotEqAny;
+  notEqAny(...others: ScalarExpr[]): BooleanExpr;
 
   /**
    * Creates an expression that checks if this expression is not equal to any of the provided values or
@@ -644,12 +665,10 @@ export abstract class ScalarExpr extends Expr {
    * @param others The values or expressions to check against.
    * @return A new `Expr` representing the 'NotEqAny' comparison.
    */
-  notEqAny(...others: any[]): NotEqAny;
-  notEqAny(...others: any[]): NotEqAny {
-    const exprOthers = others.map(other =>
-      other instanceof ScalarExpr ? other : valueToDefaultExpr(other)
-    );
-    return new NotEqAny(this, exprOthers);
+  notEqAny(...others: any[]): BooleanExpr;
+  notEqAny(...others: any[]): BooleanExpr {
+    const exprOthers = others.map(other => valueToDefaultExpr(other));
+    return new BooleanExpr('not_eq_any', [this, new ListOfExprs(exprOthers)]);
   }
 
   /**
@@ -662,8 +681,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new `Expr` representing the 'isNaN' check.
    */
-  isNaN(): IsNan {
-    return new IsNan(this);
+  isNan(): BooleanExpr {
+    return new BooleanExpr('is_nan', [this]);
   }
 
   /**
@@ -676,8 +695,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new `Expr` representing the 'isNull' check.
    */
-  isNull(): IsNull {
-    return new IsNull(this);
+  isNull(): BooleanExpr {
+    return new BooleanExpr('is_null', [this]);
   }
 
   /**
@@ -690,8 +709,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new `Expr` representing the 'exists' check.
    */
-  exists(): Exists {
-    return new Exists(this);
+  exists(): BooleanExpr {
+    return new BooleanExpr('exists', [this]);
   }
 
   /**
@@ -704,8 +723,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new `Expr` representing the length of the string.
    */
-  charLength(): CharLength {
-    return new CharLength(this);
+  charLength(): FirestoreFunction {
+    return new FirestoreFunction('char_length', [this]);
   }
 
   /**
@@ -719,7 +738,7 @@ export abstract class ScalarExpr extends Expr {
    * @param pattern The pattern to search for. You can use "%" as a wildcard character.
    * @return A new `Expr` representing the 'like' comparison.
    */
-  like(pattern: string): Like;
+  like(pattern: string): FirestoreFunction;
 
   /**
    * Creates an expression that performs a case-sensitive string comparison.
@@ -732,12 +751,12 @@ export abstract class ScalarExpr extends Expr {
    * @param pattern The pattern to search for. You can use "%" as a wildcard character.
    * @return A new `Expr` representing the 'like' comparison.
    */
-  like(pattern: ScalarExpr): Like;
-  like(stringOrExpr: string | ScalarExpr): Like {
-    if (typeof stringOrExpr === 'string') {
-      return new Like(this, Constant.of(stringOrExpr));
-    }
-    return new Like(this, stringOrExpr as ScalarExpr);
+  like(pattern: ScalarExpr): FirestoreFunction;
+  like(stringOrExpr: string | ScalarExpr): FirestoreFunction {
+    return new FirestoreFunction('like', [
+      this,
+      valueToDefaultExpr(stringOrExpr)
+    ]);
   }
 
   /**
@@ -752,7 +771,7 @@ export abstract class ScalarExpr extends Expr {
    * @param pattern The regular expression to use for the search.
    * @return A new `Expr` representing the 'contains' comparison.
    */
-  regexContains(pattern: string): RegexContains;
+  regexContains(pattern: string): BooleanExpr;
 
   /**
    * Creates an expression that checks if a string contains a specified regular expression as a
@@ -766,12 +785,12 @@ export abstract class ScalarExpr extends Expr {
    * @param pattern The regular expression to use for the search.
    * @return A new `Expr` representing the 'contains' comparison.
    */
-  regexContains(pattern: ScalarExpr): RegexContains;
-  regexContains(stringOrExpr: string | ScalarExpr): RegexContains {
-    if (typeof stringOrExpr === 'string') {
-      return new RegexContains(this, Constant.of(stringOrExpr));
-    }
-    return new RegexContains(this, stringOrExpr as ScalarExpr);
+  regexContains(pattern: ScalarExpr): BooleanExpr;
+  regexContains(stringOrExpr: string | ScalarExpr): BooleanExpr {
+    return new BooleanExpr('regex_contains', [
+      this,
+      valueToDefaultExpr(stringOrExpr)
+    ]);
   }
 
   /**
@@ -785,7 +804,7 @@ export abstract class ScalarExpr extends Expr {
    * @param pattern The regular expression to use for the match.
    * @return A new `Expr` representing the regular expression match.
    */
-  regexMatch(pattern: string): RegexMatch;
+  regexMatch(pattern: string): BooleanExpr;
 
   /**
    * Creates an expression that checks if a string matches a specified regular expression.
@@ -798,12 +817,12 @@ export abstract class ScalarExpr extends Expr {
    * @param pattern The regular expression to use for the match.
    * @return A new `Expr` representing the regular expression match.
    */
-  regexMatch(pattern: ScalarExpr): RegexMatch;
-  regexMatch(stringOrExpr: string | ScalarExpr): RegexMatch {
-    if (typeof stringOrExpr === 'string') {
-      return new RegexMatch(this, Constant.of(stringOrExpr));
-    }
-    return new RegexMatch(this, stringOrExpr as ScalarExpr);
+  regexMatch(pattern: ScalarExpr): BooleanExpr;
+  regexMatch(stringOrExpr: string | ScalarExpr): BooleanExpr {
+    return new BooleanExpr('regex_match', [
+      this,
+      valueToDefaultExpr(stringOrExpr)
+    ]);
   }
 
   /**
@@ -817,7 +836,7 @@ export abstract class ScalarExpr extends Expr {
    * @param substring The substring to search for.
    * @return A new `Expr` representing the 'contains' comparison.
    */
-  strContains(substring: string): StrContains;
+  strContains(substring: string): BooleanExpr;
 
   /**
    * Creates an expression that checks if a string contains the string represented by another expression.
@@ -830,12 +849,12 @@ export abstract class ScalarExpr extends Expr {
    * @param expr The expression representing the substring to search for.
    * @return A new `Expr` representing the 'contains' comparison.
    */
-  strContains(expr: ScalarExpr): StrContains;
-  strContains(stringOrExpr: string | ScalarExpr): StrContains {
-    if (typeof stringOrExpr === 'string') {
-      return new StrContains(this, Constant.of(stringOrExpr));
-    }
-    return new StrContains(this, stringOrExpr as ScalarExpr);
+  strContains(expr: ScalarExpr): BooleanExpr;
+  strContains(stringOrExpr: string | ScalarExpr): BooleanExpr {
+    return new BooleanExpr('str_contains', [
+      this,
+      valueToDefaultExpr(stringOrExpr)
+    ]);
   }
 
   /**
@@ -849,7 +868,7 @@ export abstract class ScalarExpr extends Expr {
    * @param prefix The prefix to check for.
    * @return A new `Expr` representing the 'starts with' comparison.
    */
-  startsWith(prefix: string): StartsWith;
+  startsWith(prefix: string): BooleanExpr;
 
   /**
    * Creates an expression that checks if a string starts with a given prefix (represented as an
@@ -863,12 +882,12 @@ export abstract class ScalarExpr extends Expr {
    * @param prefix The prefix expression to check for.
    * @return A new `Expr` representing the 'starts with' comparison.
    */
-  startsWith(prefix: ScalarExpr): StartsWith;
-  startsWith(stringOrExpr: string | ScalarExpr): StartsWith {
-    if (typeof stringOrExpr === 'string') {
-      return new StartsWith(this, Constant.of(stringOrExpr));
-    }
-    return new StartsWith(this, stringOrExpr as ScalarExpr);
+  startsWith(prefix: ScalarExpr): BooleanExpr;
+  startsWith(stringOrExpr: string | ScalarExpr): BooleanExpr {
+    return new BooleanExpr('starts_with', [
+      this,
+      valueToDefaultExpr(stringOrExpr)
+    ]);
   }
 
   /**
@@ -882,7 +901,7 @@ export abstract class ScalarExpr extends Expr {
    * @param suffix The postfix to check for.
    * @return A new `Expr` representing the 'ends with' comparison.
    */
-  endsWith(suffix: string): EndsWith;
+  endsWith(suffix: string): BooleanExpr;
 
   /**
    * Creates an expression that checks if a string ends with a given postfix (represented as an
@@ -896,12 +915,12 @@ export abstract class ScalarExpr extends Expr {
    * @param suffix The postfix expression to check for.
    * @return A new `Expr` representing the 'ends with' comparison.
    */
-  endsWith(suffix: ScalarExpr): EndsWith;
-  endsWith(stringOrExpr: string | ScalarExpr): EndsWith {
-    if (typeof stringOrExpr === 'string') {
-      return new EndsWith(this, Constant.of(stringOrExpr));
-    }
-    return new EndsWith(this, stringOrExpr as ScalarExpr);
+  endsWith(suffix: ScalarExpr): BooleanExpr;
+  endsWith(stringOrExpr: string | ScalarExpr): BooleanExpr {
+    return new BooleanExpr('ends_with', [
+      this,
+      valueToDefaultExpr(stringOrExpr)
+    ]);
   }
 
   /**
@@ -914,8 +933,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new `Expr` representing the lowercase string.
    */
-  toLower(): ToLower {
-    return new ToLower(this);
+  toLower(): FirestoreFunction {
+    return new FirestoreFunction('to_lower', [this]);
   }
 
   /**
@@ -928,8 +947,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new `Expr` representing the uppercase string.
    */
-  toUpper(): ToUpper {
-    return new ToUpper(this);
+  toUpper(): FirestoreFunction {
+    return new FirestoreFunction('to_upper', [this]);
   }
 
   /**
@@ -942,8 +961,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new `Expr` representing the trimmed string.
    */
-  trim(): Trim {
-    return new Trim(this);
+  trim(): FirestoreFunction {
+    return new FirestoreFunction('trim', [this]);
   }
 
   /**
@@ -961,12 +980,10 @@ export abstract class ScalarExpr extends Expr {
   strConcat(
     secondString: ScalarExpr | string,
     ...otherStrings: Array<ScalarExpr | string>
-  ): StrConcat {
+  ): FirestoreFunction {
     const elements = [secondString, ...otherStrings];
-    const exprs = elements.map(e =>
-      typeof e === 'string' ? Constant.of(e) : (e as ScalarExpr)
-    );
-    return new StrConcat(this, exprs);
+    const exprs = elements.map(valueToDefaultExpr);
+    return new FirestoreFunction('str_concat', [this, ...exprs]);
   }
 
   /**
@@ -979,8 +996,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new {@code Expr} representing the reversed string.
    */
-  reverse(): Reverse {
-    return new Reverse(this);
+  reverse(): FirestoreFunction {
+    return new FirestoreFunction('reverse', [this]);
   }
 
   /**
@@ -995,7 +1012,7 @@ export abstract class ScalarExpr extends Expr {
    * @param replace The substring to replace the first occurrence of 'find' with.
    * @return A new {@code Expr} representing the string with the first occurrence replaced.
    */
-  replaceFirst(find: string, replace: string): ReplaceFirst;
+  replaceFirst(find: string, replace: string): FirestoreFunction;
 
   /**
    * Creates an expression that replaces the first occurrence of a substring within this string expression with another substring,
@@ -1010,19 +1027,16 @@ export abstract class ScalarExpr extends Expr {
    * @param replace The expression representing the substring to replace the first occurrence of 'find' with.
    * @return A new {@code Expr} representing the string with the first occurrence replaced.
    */
-  replaceFirst(find: ScalarExpr, replace: ScalarExpr): ReplaceFirst;
+  replaceFirst(find: ScalarExpr, replace: ScalarExpr): FirestoreFunction;
   replaceFirst(
     find: ScalarExpr | string,
     replace: ScalarExpr | string
-  ): ReplaceFirst {
-    const normalizedFind = typeof find === 'string' ? Constant.of(find) : find;
-    const normalizedReplace =
-      typeof replace === 'string' ? Constant.of(replace) : replace;
-    return new ReplaceFirst(
+  ): FirestoreFunction {
+    return new FirestoreFunction('replace_first', [
       this,
-      normalizedFind as ScalarExpr,
-      normalizedReplace as ScalarExpr
-    );
+      valueToDefaultExpr(find),
+      valueToDefaultExpr(replace)
+    ]);
   }
 
   /**
@@ -1037,7 +1051,7 @@ export abstract class ScalarExpr extends Expr {
    * @param replace The substring to replace all occurrences of 'find' with.
    * @return A new {@code Expr} representing the string with all occurrences replaced.
    */
-  replaceAll(find: string, replace: string): ReplaceAll;
+  replaceAll(find: string, replace: string): FirestoreFunction;
 
   /**
    * Creates an expression that replaces all occurrences of a substring within this string expression with another substring,
@@ -1052,19 +1066,16 @@ export abstract class ScalarExpr extends Expr {
    * @param replace The expression representing the substring to replace all occurrences of 'find' with.
    * @return A new {@code Expr} representing the string with all occurrences replaced.
    */
-  replaceAll(find: ScalarExpr, replace: ScalarExpr): ReplaceAll;
+  replaceAll(find: ScalarExpr, replace: ScalarExpr): FirestoreFunction;
   replaceAll(
     find: ScalarExpr | string,
     replace: ScalarExpr | string
-  ): ReplaceAll {
-    const normalizedFind = typeof find === 'string' ? Constant.of(find) : find;
-    const normalizedReplace =
-      typeof replace === 'string' ? Constant.of(replace) : replace;
-    return new ReplaceAll(
+  ): FirestoreFunction {
+    return new FirestoreFunction('replace_all', [
       this,
-      normalizedFind as ScalarExpr,
-      normalizedReplace as ScalarExpr
-    );
+      valueToDefaultExpr(find),
+      valueToDefaultExpr(replace)
+    ]);
   }
 
   /**
@@ -1077,8 +1088,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new {@code Expr} representing the length of the string in bytes.
    */
-  byteLength(): ByteLength {
-    return new ByteLength(this);
+  byteLength(): FirestoreFunction {
+    return new FirestoreFunction('byte_length', [this]);
   }
 
   /**
@@ -1092,8 +1103,8 @@ export abstract class ScalarExpr extends Expr {
    * @param subfield The key to access in the map.
    * @return A new `Expr` representing the value associated with the given key in the map.
    */
-  mapGet(subfield: string): MapGet {
-    return new MapGet(this, subfield);
+  mapGet(subfield: string): FirestoreFunction {
+    return new FirestoreFunction('map_get', [this, Constant.of(subfield)]);
   }
 
   /**
@@ -1107,8 +1118,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new `AggregateFunction` representing the 'count' aggregation.
    */
-  count(): Count {
-    return new Count(this, false);
+  count(): AggregateFunction {
+    return new AggregateFunction('count', [this]);
   }
 
   /**
@@ -1121,8 +1132,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new `AggregateFunction` representing the 'sum' aggregation.
    */
-  sum(): Sum {
-    return new Sum(this, false);
+  sum(): AggregateFunction {
+    return new AggregateFunction('sum', [this]);
   }
 
   /**
@@ -1136,8 +1147,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new `AggregateFunction` representing the 'avg' aggregation.
    */
-  avg(): Avg {
-    return new Avg(this, false);
+  avg(): AggregateFunction {
+    return new AggregateFunction('avg', [this]);
   }
 
   /**
@@ -1150,8 +1161,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new `AggregateFunction` representing the 'min' aggregation.
    */
-  minimum(): Minimum {
-    return new Minimum(this, false);
+  minimum(): AggregateFunction {
+    return new AggregateFunction('minimum', [this]);
   }
 
   /**
@@ -1164,8 +1175,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new `AggregateFunction` representing the 'max' aggregation.
    */
-  maximum(): Maximum {
-    return new Maximum(this, false);
+  maximum(): AggregateFunction {
+    return new AggregateFunction('maximum', [this]);
   }
 
   /**
@@ -1183,12 +1194,12 @@ export abstract class ScalarExpr extends Expr {
   logicalMaximum(
     second: ScalarExpr | any,
     ...others: Array<ScalarExpr | any>
-  ): LogicalMaximum {
+  ): FirestoreFunction {
     const values = [second, ...others];
-    return new LogicalMaximum(
+    return new FirestoreFunction('logical_maximum', [
       this,
-      values.map(value => valueToDefaultExpr(value))
-    );
+      ...values.map(valueToDefaultExpr)
+    ]);
   }
 
   /**
@@ -1206,12 +1217,12 @@ export abstract class ScalarExpr extends Expr {
   logicalMinimum(
     second: ScalarExpr | any,
     ...others: Array<ScalarExpr | any>
-  ): LogicalMinimum {
+  ): FirestoreFunction {
     const values = [second, ...others];
-    return new LogicalMinimum(
+    return new FirestoreFunction('logical_min', [
       this,
-      values.map(value => valueToDefaultExpr(value))
-    );
+      ...values.map(valueToDefaultExpr)
+    ]);
   }
 
   /**
@@ -1224,8 +1235,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new {@code Expr} representing the length of the vector.
    */
-  vectorLength(): VectorLength {
-    return new VectorLength(this);
+  vectorLength(): FirestoreFunction {
+    return new FirestoreFunction('vector_length', [this]);
   }
 
   /**
@@ -1239,7 +1250,7 @@ export abstract class ScalarExpr extends Expr {
    * @param other The other vector (represented as an Expr) to compare against.
    * @return A new `Expr` representing the cosine distance between the two vectors.
    */
-  cosineDistance(other: ScalarExpr): CosineDistance;
+  cosineDistance(other: ScalarExpr): FirestoreFunction;
   /**
    * Calculates the Cosine distance between two vectors.
    *
@@ -1251,7 +1262,7 @@ export abstract class ScalarExpr extends Expr {
    * @param other The other vector (as a VectorValue) to compare against.
    * @return A new `Expr` representing the Cosine* distance between the two vectors.
    */
-  cosineDistance(other: VectorValue): CosineDistance;
+  cosineDistance(other: VectorValue): FirestoreFunction;
   /**
    * Calculates the Cosine distance between two vectors.
    *
@@ -1263,16 +1274,14 @@ export abstract class ScalarExpr extends Expr {
    * @param other The other vector (as an array of numbers) to compare against.
    * @return A new `Expr` representing the Cosine distance between the two vectors.
    */
-  cosineDistance(other: number[]): CosineDistance;
-  cosineDistance(other: ScalarExpr | VectorValue | number[]): CosineDistance {
-    if (other instanceof ScalarExpr) {
-      return new CosineDistance(this, other as ScalarExpr);
-    } else {
-      return new CosineDistance(
-        this,
-        Constant.vector(other as VectorValue | number[])
-      );
-    }
+  cosineDistance(other: number[]): FirestoreFunction;
+  cosineDistance(
+    other: ScalarExpr | VectorValue | number[]
+  ): FirestoreFunction {
+    return new FirestoreFunction('cosine_distance', [
+      this,
+      vectorToExpr(other)
+    ]);
   }
 
   /**
@@ -1286,7 +1295,7 @@ export abstract class ScalarExpr extends Expr {
    * @param other The other vector (as an array of numbers) to calculate with.
    * @return A new `Expr` representing the dot product between the two vectors.
    */
-  dotProduct(other: ScalarExpr): DotProduct;
+  dotProduct(other: ScalarExpr): FirestoreFunction;
 
   /**
    * Calculates the dot product between two vectors.
@@ -1299,7 +1308,7 @@ export abstract class ScalarExpr extends Expr {
    * @param other The other vector (as an array of numbers) to calculate with.
    * @return A new `Expr` representing the dot product between the two vectors.
    */
-  dotProduct(other: VectorValue): DotProduct;
+  dotProduct(other: VectorValue): FirestoreFunction;
 
   /**
    * Calculates the dot product between two vectors.
@@ -1312,16 +1321,9 @@ export abstract class ScalarExpr extends Expr {
    * @param other The other vector (as an array of numbers) to calculate with.
    * @return A new `Expr` representing the dot product between the two vectors.
    */
-  dotProduct(other: number[]): DotProduct;
-  dotProduct(other: ScalarExpr | VectorValue | number[]): DotProduct {
-    if (other instanceof ScalarExpr) {
-      return new DotProduct(this, other as ScalarExpr);
-    } else {
-      return new DotProduct(
-        this,
-        Constant.vector(other as VectorValue | number[])
-      );
-    }
+  dotProduct(other: number[]): FirestoreFunction;
+  dotProduct(other: ScalarExpr | VectorValue | number[]): FirestoreFunction {
+    return new FirestoreFunction('dot_product', [this, vectorToExpr(other)]);
   }
 
   /**
@@ -1335,7 +1337,7 @@ export abstract class ScalarExpr extends Expr {
    * @param other The other vector (as an array of numbers) to calculate with.
    * @return A new `Expr` representing the Euclidean distance between the two vectors.
    */
-  euclideanDistance(other: ScalarExpr): EuclideanDistance;
+  euclideanDistance(other: ScalarExpr): FirestoreFunction;
 
   /**
    * Calculates the Euclidean distance between two vectors.
@@ -1348,7 +1350,7 @@ export abstract class ScalarExpr extends Expr {
    * @param other The other vector (as a VectorValue) to compare against.
    * @return A new `Expr` representing the Euclidean distance between the two vectors.
    */
-  euclideanDistance(other: VectorValue): EuclideanDistance;
+  euclideanDistance(other: VectorValue): FirestoreFunction;
 
   /**
    * Calculates the Euclidean distance between two vectors.
@@ -1361,18 +1363,66 @@ export abstract class ScalarExpr extends Expr {
    * @param other The other vector (as an array of numbers) to compare against.
    * @return A new `Expr` representing the Euclidean distance between the two vectors.
    */
-  euclideanDistance(other: number[]): EuclideanDistance;
+  euclideanDistance(other: number[]): FirestoreFunction;
   euclideanDistance(
     other: ScalarExpr | VectorValue | number[]
-  ): EuclideanDistance {
-    if (other instanceof ScalarExpr) {
-      return new EuclideanDistance(this, other as ScalarExpr);
-    } else {
-      return new EuclideanDistance(
-        this,
-        Constant.vector(other as VectorValue | number[])
-      );
-    }
+  ): FirestoreFunction {
+    return new FirestoreFunction('euclidean_distance', [
+      this,
+      vectorToExpr(other)
+    ]);
+  }
+  /**
+   * @beta
+   *
+   * Calculates the Manhattan distance between the result of this expression and another VectorValue.
+   *
+   * ```typescript
+   * // Calculate the Manhattan distance between the 'location' field and a target location
+   * Field.of("location").manhattanDistance(new VectorValue([37.7749, -122.4194]));
+   * ```
+   *
+   * @param other The other vector (as a VectorValue) to compare against.
+   * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
+   */
+  manhattanDistance(other: VectorValue): FirestoreFunction;
+
+  /**
+   * @beta
+   *
+   * Calculates the Manhattan distance between the result of this expression and a double array.
+   *
+   * ```typescript
+   * // Calculate the Manhattan distance between the 'location' field and a target location
+   * Field.of("location").manhattanDistance([37.7749, -122.4194]);
+   * ```
+   *
+   * @param other The other vector (as an array of doubles) to compare against.
+   * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
+   */
+  manhattanDistance(other: number[]): FirestoreFunction;
+
+  /**
+   * @beta
+   *
+   * Calculates the Manhattan distance between two vector expressions.
+   *
+   * ```typescript
+   * // Calculate the Manhattan distance between two vector fields: 'pointA' and 'pointB'
+   * Field.of("pointA").manhattanDistance(Field.of("pointB"));
+   * ```
+   *
+   * @param other The other vector (represented as an Expr) to compare against.
+   * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
+   */
+  manhattanDistance(other: ScalarExpr): FirestoreFunction;
+  manhattanDistance(
+    other: ScalarExpr | number[] | VectorValue
+  ): FirestoreFunction {
+    return new FirestoreFunction('manhattan_distance', [
+      this,
+      vectorToExpr(other)
+    ]);
   }
 
   /**
@@ -1386,8 +1436,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new {@code Expr} representing the timestamp.
    */
-  unixMicrosToTimestamp(): UnixMicrosToTimestamp {
-    return new UnixMicrosToTimestamp(this);
+  unixMicrosToTimestamp(): FirestoreFunction {
+    return new FirestoreFunction('unix_micros_to_timestamp', [this]);
   }
 
   /**
@@ -1400,8 +1450,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new {@code Expr} representing the number of microseconds since epoch.
    */
-  timestampToUnixMicros(): TimestampToUnixMicros {
-    return new TimestampToUnixMicros(this);
+  timestampToUnixMicros(): FirestoreFunction {
+    return new FirestoreFunction('timestamp_to_unix_micros', [this]);
   }
 
   /**
@@ -1415,8 +1465,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new {@code Expr} representing the timestamp.
    */
-  unixMillisToTimestamp(): UnixMillisToTimestamp {
-    return new UnixMillisToTimestamp(this);
+  unixMillisToTimestamp(): FirestoreFunction {
+    return new FirestoreFunction('unix_millis_to_timestamp', [this]);
   }
 
   /**
@@ -1429,8 +1479,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new {@code Expr} representing the number of milliseconds since epoch.
    */
-  timestampToUnixMillis(): TimestampToUnixMillis {
-    return new TimestampToUnixMillis(this);
+  timestampToUnixMillis(): FirestoreFunction {
+    return new FirestoreFunction('timestamp_to_unix_millis', [this]);
   }
 
   /**
@@ -1444,8 +1494,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new {@code Expr} representing the timestamp.
    */
-  unixSecondsToTimestamp(): UnixSecondsToTimestamp {
-    return new UnixSecondsToTimestamp(this);
+  unixSecondsToTimestamp(): FirestoreFunction {
+    return new FirestoreFunction('unix_seconds_to_timestamp', [this]);
   }
 
   /**
@@ -1458,8 +1508,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new {@code Expr} representing the number of seconds since epoch.
    */
-  timestampToUnixSeconds(): TimestampToUnixSeconds {
-    return new TimestampToUnixSeconds(this);
+  timestampToUnixSeconds(): FirestoreFunction {
+    return new FirestoreFunction('timestamp_to_unix_seconds', [this]);
   }
 
   /**
@@ -1474,7 +1524,7 @@ export abstract class ScalarExpr extends Expr {
    * @param amount The expression evaluates to amount of the unit.
    * @return A new {@code Expr} representing the resulting timestamp.
    */
-  timestampAdd(unit: ScalarExpr, amount: ScalarExpr): TimestampAdd;
+  timestampAdd(unit: ScalarExpr, amount: ScalarExpr): FirestoreFunction;
 
   /**
    * Creates an expression that adds a specified amount of time to this timestamp expression.
@@ -1491,7 +1541,7 @@ export abstract class ScalarExpr extends Expr {
   timestampAdd(
     unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
     amount: number
-  ): TimestampAdd;
+  ): FirestoreFunction;
   timestampAdd(
     unit:
       | ScalarExpr
@@ -1502,15 +1552,12 @@ export abstract class ScalarExpr extends Expr {
       | 'hour'
       | 'day',
     amount: ScalarExpr | number
-  ): TimestampAdd {
-    const normalizedUnit = typeof unit === 'string' ? Constant.of(unit) : unit;
-    const normalizedAmount =
-      typeof amount === 'number' ? Constant.of(amount) : amount;
-    return new TimestampAdd(
+  ): FirestoreFunction {
+    return new FirestoreFunction('timestamp_add', [
       this,
-      normalizedUnit as ScalarExpr,
-      normalizedAmount as ScalarExpr
-    );
+      valueToDefaultExpr(unit),
+      valueToDefaultExpr(amount)
+    ]);
   }
 
   /**
@@ -1525,7 +1572,7 @@ export abstract class ScalarExpr extends Expr {
    * @param amount The expression evaluates to amount of the unit.
    * @return A new {@code Expr} representing the resulting timestamp.
    */
-  timestampSub(unit: ScalarExpr, amount: ScalarExpr): TimestampSub;
+  timestampSub(unit: ScalarExpr, amount: ScalarExpr): FirestoreFunction;
 
   /**
    * Creates an expression that subtracts a specified amount of time from this timestamp expression.
@@ -1542,7 +1589,7 @@ export abstract class ScalarExpr extends Expr {
   timestampSub(
     unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
     amount: number
-  ): TimestampSub;
+  ): FirestoreFunction;
   timestampSub(
     unit:
       | ScalarExpr
@@ -1553,15 +1600,12 @@ export abstract class ScalarExpr extends Expr {
       | 'hour'
       | 'day',
     amount: ScalarExpr | number
-  ): TimestampSub {
-    const normalizedUnit = typeof unit === 'string' ? Constant.of(unit) : unit;
-    const normalizedAmount =
-      typeof amount === 'number' ? Constant.of(amount) : amount;
-    return new TimestampSub(
+  ): FirestoreFunction {
+    return new FirestoreFunction('timestamp_sub', [
       this,
-      normalizedUnit as ScalarExpr,
-      normalizedAmount as ScalarExpr
-    );
+      valueToDefaultExpr(unit),
+      valueToDefaultExpr(amount)
+    ]);
   }
 
   /**
@@ -1577,7 +1621,7 @@ export abstract class ScalarExpr extends Expr {
    * @param otherBits A constant representing bits.
    * @return A new {@code Expr} representing the bitwise AND operation.
    */
-  bitAnd(otherBits: number | Bytes): BitAnd;
+  bitAnd(otherBits: number | Bytes): FirestoreFunction;
   /**
    * @beta
    *
@@ -1591,9 +1635,12 @@ export abstract class ScalarExpr extends Expr {
    * @param bitsExpression An expression that returns bits when evaluated.
    * @return A new {@code Expr} representing the bitwise AND operation.
    */
-  bitAnd(bitsExpression: ScalarExpr): BitAnd;
-  bitAnd(bitsOrExpression: number | ScalarExpr | Bytes): BitAnd {
-    return new BitAnd(this, valueToDefaultExpr(bitsOrExpression));
+  bitAnd(bitsExpression: ScalarExpr): FirestoreFunction;
+  bitAnd(bitsOrExpression: number | ScalarExpr | Bytes): FirestoreFunction {
+    return new FirestoreFunction('bit_and', [
+      this,
+      valueToDefaultExpr(bitsOrExpression)
+    ]);
   }
 
   /**
@@ -1609,7 +1656,7 @@ export abstract class ScalarExpr extends Expr {
    * @param otherBits A constant representing bits.
    * @return A new {@code Expr} representing the bitwise OR operation.
    */
-  bitOr(otherBits: number | Bytes): BitOr;
+  bitOr(otherBits: number | Bytes): FirestoreFunction;
   /**
    * @beta
    *
@@ -1623,9 +1670,12 @@ export abstract class ScalarExpr extends Expr {
    * @param bitsExpression An expression that returns bits when evaluated.
    * @return A new {@code Expr} representing the bitwise OR operation.
    */
-  bitOr(bitsExpression: ScalarExpr): BitOr;
-  bitOr(bitsOrExpression: number | ScalarExpr | Bytes): BitOr {
-    return new BitOr(this, valueToDefaultExpr(bitsOrExpression));
+  bitOr(bitsExpression: ScalarExpr): FirestoreFunction;
+  bitOr(bitsOrExpression: number | ScalarExpr | Bytes): FirestoreFunction {
+    return new FirestoreFunction('bit_or', [
+      this,
+      valueToDefaultExpr(bitsOrExpression)
+    ]);
   }
 
   /**
@@ -1641,7 +1691,7 @@ export abstract class ScalarExpr extends Expr {
    * @param otherBits A constant representing bits.
    * @return A new {@code Expr} representing the bitwise XOR operation.
    */
-  bitXor(otherBits: number | Bytes): BitXor;
+  bitXor(otherBits: number | Bytes): FirestoreFunction;
   /**
    * @beta
    *
@@ -1655,9 +1705,12 @@ export abstract class ScalarExpr extends Expr {
    * @param bitsExpression An expression that returns bits when evaluated.
    * @return A new {@code Expr} representing the bitwise XOR operation.
    */
-  bitXor(bitsExpression: ScalarExpr): BitXor;
-  bitXor(bitsOrExpression: number | ScalarExpr | Bytes): BitXor {
-    return new BitXor(this, valueToDefaultExpr(bitsOrExpression));
+  bitXor(bitsExpression: ScalarExpr): FirestoreFunction;
+  bitXor(bitsOrExpression: number | ScalarExpr | Bytes): FirestoreFunction {
+    return new FirestoreFunction('bit_xor', [
+      this,
+      valueToDefaultExpr(bitsOrExpression)
+    ]);
   }
 
   /**
@@ -1672,8 +1725,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new {@code Expr} representing the bitwise NOT operation.
    */
-  bitNot(): BitNot {
-    return new BitNot(this);
+  bitNot(): FirestoreFunction {
+    return new FirestoreFunction('bit_not', [this]);
   }
 
   /**
@@ -1689,7 +1742,7 @@ export abstract class ScalarExpr extends Expr {
    * @param y The operand constant representing the number of bits to shift.
    * @return A new {@code Expr} representing the bitwise left shift operation.
    */
-  bitLeftShift(y: number): BitLeftShift;
+  bitLeftShift(y: number): FirestoreFunction;
   /**
    * @beta
    *
@@ -1703,9 +1756,12 @@ export abstract class ScalarExpr extends Expr {
    * @param numberExpr The operand expression representing the number of bits to shift.
    * @return A new {@code Expr} representing the bitwise left shift operation.
    */
-  bitLeftShift(numberExpr: ScalarExpr): BitLeftShift;
-  bitLeftShift(numberExpr: number | ScalarExpr): BitLeftShift {
-    return new BitLeftShift(this, valueToDefaultExpr(numberExpr));
+  bitLeftShift(numberExpr: ScalarExpr): FirestoreFunction;
+  bitLeftShift(numberExpr: number | ScalarExpr): FirestoreFunction {
+    return new FirestoreFunction('bit_left_shift', [
+      this,
+      valueToDefaultExpr(numberExpr)
+    ]);
   }
 
   /**
@@ -1721,7 +1777,7 @@ export abstract class ScalarExpr extends Expr {
    * @param right The operand constant representing the number of bits to shift.
    * @return A new {@code Expr} representing the bitwise right shift operation.
    */
-  bitRightShift(y: number): BitRightShift;
+  bitRightShift(y: number): FirestoreFunction;
   /**
    * @beta
    *
@@ -1735,9 +1791,12 @@ export abstract class ScalarExpr extends Expr {
    * @param numberExpr The operand expression representing the number of bits to shift.
    * @return A new {@code Expr} representing the bitwise right shift operation.
    */
-  bitRightShift(numberExpr: ScalarExpr): BitRightShift;
-  bitRightShift(numberExpr: number | ScalarExpr): BitRightShift {
-    return new BitRightShift(this, valueToDefaultExpr(numberExpr));
+  bitRightShift(numberExpr: ScalarExpr): FirestoreFunction;
+  bitRightShift(numberExpr: number | ScalarExpr): FirestoreFunction {
+    return new FirestoreFunction('bit_right_shift', [
+      this,
+      valueToDefaultExpr(numberExpr)
+    ]);
   }
 
   /**
@@ -1752,8 +1811,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new {@code Expr} representing the documentId operation.
    */
-  documentId(): DocumentId {
-    return new DocumentId(this);
+  documentId(): FirestoreFunction {
+    return new FirestoreFunction('document_id', [this]);
   }
 
   /**
@@ -1765,7 +1824,7 @@ export abstract class ScalarExpr extends Expr {
    * @param length Length of the substring. If not provided, the substring will
    * end at the end of the input.
    */
-  substr(position: number, length?: number): Substr;
+  substr(position: number, length?: number): FirestoreFunction;
 
   /**
    * @beta
@@ -1776,12 +1835,21 @@ export abstract class ScalarExpr extends Expr {
    * @param length An expression returning the length of the substring. If not provided the
    * substring will end at the end of the input.
    */
-  substr(position: ScalarExpr, length?: ScalarExpr): Substr;
-  substr(position: ScalarExpr | number, length?: ScalarExpr | number): Substr {
+  substr(position: ScalarExpr, length?: ScalarExpr): FirestoreFunction;
+  substr(
+    position: ScalarExpr | number,
+    length?: ScalarExpr | number
+  ): FirestoreFunction {
     const positionExpr = valueToDefaultExpr(position);
-    const lengthExpr =
-      length === undefined ? undefined : valueToDefaultExpr(length);
-    return new Substr(this, positionExpr, lengthExpr);
+    if (length === undefined) {
+      return new FirestoreFunction('substr', [this, positionExpr]);
+    } else {
+      return new FirestoreFunction('substr', [
+        this,
+        positionExpr,
+        valueToDefaultExpr(length)
+      ]);
+    }
   }
 
   /**
@@ -1798,7 +1866,7 @@ export abstract class ScalarExpr extends Expr {
    * @param offset The index of the element to return.
    * @return A new Expr representing the 'arrayOffset' operation.
    */
-  arrayOffset(offset: number): ArrayOffset;
+  arrayOffset(offset: number): FirestoreFunction;
 
   /**
    * @beta
@@ -1815,9 +1883,12 @@ export abstract class ScalarExpr extends Expr {
    * @param offsetExpr An Expr evaluating to the index of the element to return.
    * @return A new Expr representing the 'arrayOffset' operation.
    */
-  arrayOffset(offsetExpr: ScalarExpr): ArrayOffset;
-  arrayOffset(offset: ScalarExpr | number): ArrayOffset {
-    return new ArrayOffset(fieldOfOrExpr(array), valueToDefaultExpr(offset));
+  arrayOffset(offsetExpr: ScalarExpr): FirestoreFunction;
+  arrayOffset(offset: ScalarExpr | number): FirestoreFunction {
+    return new FirestoreFunction('array_offset', [
+      this,
+      valueToDefaultExpr(offset)
+    ]);
   }
 
   /**
@@ -1830,10 +1901,10 @@ export abstract class ScalarExpr extends Expr {
    * Field.of("title").arrayContains(1).isError();
    * ```
    *
-   * @return A new {@code Expr} representing the 'isError' check.
+   * @return A new {@code BooleanExpr} representing the 'isError' check.
    */
-  isError(): IsError {
-    return new IsError(this);
+  isError(): BooleanExpr {
+    return new BooleanExpr('is_error', [this]);
   }
 
   /**
@@ -1852,7 +1923,7 @@ export abstract class ScalarExpr extends Expr {
    * returned if this expression produces an error.
    * @return A new {@code Expr} representing the 'ifError' operation.
    */
-  ifError(catchExpr: ScalarExpr): IfError;
+  ifError(catchExpr: ScalarExpr): FirestoreFunction;
 
   /**
    * @beta
@@ -1870,9 +1941,12 @@ export abstract class ScalarExpr extends Expr {
    * produces an error.
    * @return A new {@code Expr} representing the 'ifError' operation.
    */
-  ifError(catchValue: any): IfError;
-  ifError(catchValue: any): IfError {
-    return new IfError(this, valueToDefaultExpr(catchValue));
+  ifError(catchValue: any): FirestoreFunction;
+  ifError(catchValue: any): FirestoreFunction {
+    return new FirestoreFunction('if_error', [
+      this,
+      valueToDefaultExpr(catchValue)
+    ]);
   }
 
   /**
@@ -1886,10 +1960,10 @@ export abstract class ScalarExpr extends Expr {
    * Field.of("value").isAbsent();
    * ```
    *
-   * @return A new {@code Expr} representing the 'isAbsent' check.
+   * @return A new {@code BooleanExpr} representing the 'isAbsent' check.
    */
-  isAbsent(): IsAbsent {
-    return new IsAbsent(this);
+  isAbsent(): BooleanExpr {
+    return new BooleanExpr('is_absent', [this]);
   }
 
   /**
@@ -1902,10 +1976,10 @@ export abstract class ScalarExpr extends Expr {
    * Field.of("name").isNotNull();
    * ```
    *
-   * @return A new {@code Expr} representing the 'isNotNull' check.
+   * @return A new {@code BooleanExpr} representing the 'isNotNull' check.
    */
-  isNotNull(): IsNotNull {
-    return new IsNotNull(this);
+  isNotNull(): BooleanExpr {
+    return new BooleanExpr('is_not_null', [this]);
   }
 
   /**
@@ -1920,8 +1994,8 @@ export abstract class ScalarExpr extends Expr {
    *
    * @return A new {@code Expr} representing the 'isNaN' check.
    */
-  isNotNan(): IsNotNan {
-    return new IsNotNan(this);
+  isNotNan(): BooleanExpr {
+    return new BooleanExpr('is_not_nan', [this]);
   }
 
   /**
@@ -1935,8 +2009,9 @@ export abstract class ScalarExpr extends Expr {
    * ```
    *
    * @param key The name of the key to remove from the input map.
+   * @returns A new {@code FirestoreFunction} representing the 'mapRemove' operation.
    */
-  mapRemove(key: string): MapRemove;
+  mapRemove(key: string): FirestoreFunction;
   /**
    * @beta
    *
@@ -1948,10 +2023,14 @@ export abstract class ScalarExpr extends Expr {
    * ```
    *
    * @param keyExpr An expression that produces the name of the key to remove from the input map.
+   * @returns A new {@code FirestoreFunction} representing the 'mapRemove' operation.
    */
-  mapRemove(keyExpr: ScalarExpr): MapRemove;
-  mapRemove(stringExpr: ScalarExpr | string): MapRemove {
-    return new MapRemove(this, valueToDefaultExpr(stringExpr));
+  mapRemove(keyExpr: ScalarExpr): FirestoreFunction;
+  mapRemove(stringExpr: ScalarExpr | string): FirestoreFunction {
+    return new FirestoreFunction('map_remove', [
+      this,
+      valueToDefaultExpr(stringExpr)
+    ]);
   }
 
   /**
@@ -1969,65 +2048,20 @@ export abstract class ScalarExpr extends Expr {
    * an expression that returns a map.
    * @param otherMaps Optional additional maps to merge. Each map is represented
    * as a literal or an expression that returns a map.
+   *
+   * @returns A new {@code FirestoreFunction} representing the 'mapMerge' operation.
    */
   mapMerge(
     secondMap: Record<string, any> | ScalarExpr,
     ...otherMaps: Array<Record<string, any> | ScalarExpr>
-  ): MapMerge {
+  ): FirestoreFunction {
     const secondMapExpr = valueToDefaultExpr(secondMap);
     const otherMapExprs = otherMaps.map(valueToDefaultExpr);
-    return new MapMerge([this, secondMapExpr, ...otherMapExprs]);
-  }
-
-  /**
-   * @beta
-   *
-   * Calculates the Manhattan distance between the result of this expression and another VectorValue.
-   *
-   * ```typescript
-   * // Calculate the Manhattan distance between the 'location' field and a target location
-   * Field.of("location").manhattanDistance(new VectorValue([37.7749, -122.4194]));
-   * ```
-   *
-   * @param other The other vector (as a VectorValue) to compare against.
-   * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
-   */
-  manhattanDistance(other: VectorValue): ManhattanDistance;
-
-  /**
-   * @beta
-   *
-   * Calculates the Manhattan distance between the result of this expression and a double array.
-   *
-   * ```typescript
-   * // Calculate the Manhattan distance between the 'location' field and a target location
-   * Field.of("location").manhattanDistance([37.7749, -122.4194]);
-   * ```
-   *
-   * @param other The other vector (as an array of doubles) to compare against.
-   * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
-   */
-  manhattanDistance(other: number[]): ManhattanDistance;
-
-  /**
-   * @beta
-   *
-   * Calculates the Manhattan distance between two vector expressions.
-   *
-   * ```typescript
-   * // Calculate the Manhattan distance between two vector fields: 'pointA' and 'pointB'
-   * Field.of("pointA").manhattanDistance(Field.of("pointB"));
-   * ```
-   *
-   * @param other The other vector (represented as an Expr) to compare against.
-   * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
-   */
-  manhattanDistance(other: ScalarExpr): ManhattanDistance;
-  manhattanDistance(
-    other: ScalarExpr | number[] | VectorValue
-  ): ManhattanDistance {
-    const expr2 = other instanceof ScalarExpr ? other : Constant.vector(other);
-    return new ManhattanDistance(this, expr2);
+    return new FirestoreFunction('map_merge', [
+      this,
+      secondMapExpr,
+      ...otherMapExprs
+    ]);
   }
 
   /**
@@ -2076,7 +2110,7 @@ export abstract class ScalarExpr extends Expr {
    * @return A new {@link ExprWithAlias} that wraps this
    *     expression and associates it with the provided alias.
    */
-  as(name: string): ExprWithAlias<this> {
+  as(name: string): ExprWithAlias {
     return new ExprWithAlias(this, name);
   }
 }
@@ -2176,13 +2210,11 @@ export class AggregateFunctionWithAlias
 /**
  * @beta
  */
-export class ExprWithAlias<T extends ScalarExpr>
-  implements Selectable, UserData
-{
+export class ExprWithAlias implements Selectable, UserData {
   exprType: ExprType = 'ExprWithAlias';
   selectable = true as const;
 
-  constructor(readonly expr: T, readonly alias: string) {}
+  constructor(readonly expr: ScalarExpr, readonly alias: string) {}
 
   /**
    * @private
@@ -2601,7 +2633,7 @@ export class BooleanExpr extends FirestoreFunction {
    * @return A new `AggregateFunction` representing the 'countIf' aggregation.
    */
   countIf(): AggregateFunction {
-    return new CountIf(this);
+    return new AggregateFunction('count_if', [this]);
   }
 
   /**
@@ -2614,671 +2646,9 @@ export class BooleanExpr extends FirestoreFunction {
    *
    * @return A new {@code Expr} representing the negated filter condition.
    */
-  not(filter: BooleanExpr): BooleanExpr {
-    return new Not(filter);
+  not(): BooleanExpr {
+    return new BooleanExpr('not', [this]);
   }
-}
-
-/**
- * @beta
- */
-export class Add extends FirestoreFunction {
-  constructor(left: ScalarExpr, others: ScalarExpr[]) {
-    super('add', [left, ...others]);
-  }
-}
-
-/**
- * @beta
- */
-export class Subtract extends FirestoreFunction {
-  constructor(private left: ScalarExpr, private right: ScalarExpr) {
-    super('subtract', [left, right]);
-  }
-}
-
-/**
- * @beta
- */
-export class Multiply extends FirestoreFunction {
-  constructor(left: ScalarExpr, others: ScalarExpr[]) {
-    super('multiply', [left, ...others]);
-  }
-}
-
-/**
- * @beta
- */
-export class Divide extends FirestoreFunction {
-  constructor(private left: ScalarExpr, private right: ScalarExpr) {
-    super('divide', [left, right]);
-  }
-}
-
-/**
- * @beta
- */
-export class Mod extends FirestoreFunction {
-  constructor(private left: ScalarExpr, private right: ScalarExpr) {
-    super('mod', [left, right]);
-  }
-}
-
-export class MapFunction extends FirestoreFunction {
-  constructor(private elements: ScalarExpr[]) {
-    super('map', elements);
-  }
-}
-
-export class ArrayFunction extends FirestoreFunction {
-  constructor(private elements: ScalarExpr[]) {
-    super('array', elements);
-  }
-}
-
-/**
- * @beta
- */
-export class Eq extends BooleanExpr {
-  constructor(private left: ScalarExpr, private right: ScalarExpr) {
-    super('eq', [left, right]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class Neq extends BooleanExpr {
-  constructor(private left: ScalarExpr, private right: ScalarExpr) {
-    super('neq', [left, right]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class Lt extends BooleanExpr {
-  constructor(private left: ScalarExpr, private right: ScalarExpr) {
-    super('lt', [left, right]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class Lte extends BooleanExpr {
-  constructor(private left: ScalarExpr, private right: ScalarExpr) {
-    super('lte', [left, right]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class Gt extends BooleanExpr {
-  constructor(private left: ScalarExpr, private right: ScalarExpr) {
-    super('gt', [left, right]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class Gte extends BooleanExpr {
-  constructor(private left: ScalarExpr, private right: ScalarExpr) {
-    super('gte', [left, right]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class ArrayConcat extends FirestoreFunction {
-  constructor(array: ScalarExpr, elements: ScalarExpr[]) {
-    super('array_concat', [array, ...elements]);
-  }
-}
-
-/**
- * @beta
- */
-export class ArrayReverse extends FirestoreFunction {
-  constructor(private array: ScalarExpr) {
-    super('array_reverse', [array]);
-  }
-}
-
-/**
- * @beta
- */
-export class ArrayContains extends BooleanExpr {
-  constructor(private array: ScalarExpr, private element: ScalarExpr) {
-    super('array_contains', [array, element]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class ArrayContainsAll extends BooleanExpr {
-  constructor(private array: ScalarExpr, private values: ScalarExpr[]) {
-    super('array_contains_all', [array, new ListOfExprs(values)]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class ArrayContainsAny extends BooleanExpr {
-  constructor(private array: ScalarExpr, private values: ScalarExpr[]) {
-    super('array_contains_any', [array, new ListOfExprs(values)]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class ArrayLength extends FirestoreFunction {
-  constructor(private array: ScalarExpr) {
-    super('array_length', [array]);
-  }
-}
-
-/**
- * @beta
- */
-export class ArrayElement extends FirestoreFunction {
-  constructor() {
-    super('array_element', []);
-  }
-}
-
-/**
- * @beta
- */
-export class EqAny extends BooleanExpr {
-  constructor(private left: ScalarExpr, private others: ScalarExpr[]) {
-    super('eq_any', [left, new ListOfExprs(others)]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class NotEqAny extends BooleanExpr {
-  constructor(private left: ScalarExpr, private others: ScalarExpr[]) {
-    super('not_eq_any', [left, new ListOfExprs(others)]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class IsNan extends BooleanExpr {
-  constructor(private expr: ScalarExpr) {
-    super('is_nan', [expr]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class Exists extends BooleanExpr {
-  constructor(private expr: ScalarExpr) {
-    super('exists', [expr]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class Not extends BooleanExpr {
-  constructor(private expr: ScalarExpr) {
-    super('not', [expr]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class And extends BooleanExpr {
-  constructor(private conditions: BooleanExpr[]) {
-    super('and', conditions);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class Or extends BooleanExpr {
-  constructor(private conditions: BooleanExpr[]) {
-    super('or', conditions);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class Xor extends BooleanExpr {
-  constructor(private conditions: BooleanExpr[]) {
-    super('xor', conditions);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class Cond extends FirestoreFunction {
-  constructor(
-    private condition: BooleanExpr,
-    private thenExpr: ScalarExpr,
-    private elseExpr: ScalarExpr
-  ) {
-    super('cond', [condition, thenExpr, elseExpr]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class LogicalMaximum extends FirestoreFunction {
-  constructor(first: ScalarExpr, others: ScalarExpr[]) {
-    super('logical_maximum', [first, ...others]);
-  }
-}
-
-/**
- * @beta
- */
-export class LogicalMinimum extends FirestoreFunction {
-  constructor(first: ScalarExpr, others: ScalarExpr[]) {
-    super('logical_min', [first, ...others]);
-  }
-}
-
-/**
- * @beta
- */
-export class Reverse extends FirestoreFunction {
-  constructor(private value: ScalarExpr) {
-    super('reverse', [value]);
-  }
-}
-
-/**
- * @beta
- */
-export class ReplaceFirst extends FirestoreFunction {
-  constructor(
-    private value: ScalarExpr,
-    private find: ScalarExpr,
-    private replace: ScalarExpr
-  ) {
-    super('replace_first', [value, find, replace]);
-  }
-}
-
-/**
- * @beta
- */
-export class ReplaceAll extends FirestoreFunction {
-  constructor(
-    private value: ScalarExpr,
-    private find: ScalarExpr,
-    private replace: ScalarExpr
-  ) {
-    super('replace_all', [value, find, replace]);
-  }
-}
-
-/**
- * @beta
- */
-export class CharLength extends FirestoreFunction {
-  constructor(private value: ScalarExpr) {
-    super('char_length', [value]);
-  }
-}
-
-/**
- * @beta
- */
-export class ByteLength extends FirestoreFunction {
-  constructor(private value: ScalarExpr) {
-    super('byte_length', [value]);
-  }
-}
-
-/**
- * @beta
- */
-export class Like extends BooleanExpr {
-  constructor(private expr: ScalarExpr, private pattern: ScalarExpr) {
-    super('like', [expr, pattern]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class RegexContains extends BooleanExpr {
-  constructor(private expr: ScalarExpr, private pattern: ScalarExpr) {
-    super('regex_contains', [expr, pattern]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class RegexMatch extends BooleanExpr {
-  constructor(private expr: ScalarExpr, private pattern: ScalarExpr) {
-    super('regex_match', [expr, pattern]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class StrContains extends BooleanExpr {
-  constructor(private expr: ScalarExpr, private substring: ScalarExpr) {
-    super('str_contains', [expr, substring]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class StartsWith extends BooleanExpr {
-  constructor(private expr: ScalarExpr, private prefix: ScalarExpr) {
-    super('starts_with', [expr, prefix]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class EndsWith extends BooleanExpr {
-  constructor(private expr: ScalarExpr, private suffix: ScalarExpr) {
-    super('ends_with', [expr, suffix]);
-  }
-
-  filterable = true as const;
-}
-
-/**
- * @beta
- */
-export class ToLower extends FirestoreFunction {
-  constructor(private expr: ScalarExpr) {
-    super('to_lower', [expr]);
-  }
-}
-
-/**
- * @beta
- */
-export class ToUpper extends FirestoreFunction {
-  constructor(private expr: ScalarExpr) {
-    super('to_upper', [expr]);
-  }
-}
-
-/**
- * @beta
- */
-export class Trim extends FirestoreFunction {
-  constructor(private expr: ScalarExpr) {
-    super('trim', [expr]);
-  }
-}
-
-/**
- * @beta
- */
-export class StrConcat extends FirestoreFunction {
-  constructor(private first: ScalarExpr, private rest: ScalarExpr[]) {
-    super('str_concat', [first, ...rest]);
-  }
-}
-
-/**
- * @beta
- */
-export class MapGet extends FirestoreFunction {
-  constructor(map: ScalarExpr, name: string) {
-    super('map_get', [map, Constant.of(name)]);
-  }
-}
-
-/**
- * @beta
- */
-export class Count extends AggregateFunction {
-  aggregateFunction = true as const;
-
-  constructor(
-    private value: ScalarExpr | undefined,
-    private distinct: boolean
-  ) {
-    super('count', value === undefined ? [] : [value]);
-  }
-}
-
-/**
- * @beta
- */
-export class Sum extends AggregateFunction {
-  aggregateFunction = true as const;
-
-  constructor(private value: ScalarExpr, private distinct: boolean) {
-    super('sum', [value]);
-  }
-}
-
-/**
- * @beta
- */
-export class Avg extends AggregateFunction {
-  aggregateFunction = true as const;
-
-  constructor(private value: ScalarExpr, private distinct: boolean) {
-    super('avg', [value]);
-  }
-}
-
-/**
- * @beta
- */
-export class Minimum extends AggregateFunction {
-  aggregateFunction = true as const;
-
-  constructor(private value: ScalarExpr, private distinct: boolean) {
-    super('minimum', [value]);
-  }
-}
-
-/**
- * @beta
- */
-export class Maximum extends AggregateFunction {
-  aggregateFunction = true as const;
-
-  constructor(private value: ScalarExpr, private distinct: boolean) {
-    super('maximum', [value]);
-  }
-}
-
-/**
- * @beta
- */
-export class CosineDistance extends FirestoreFunction {
-  constructor(private vector1: ScalarExpr, private vector2: ScalarExpr) {
-    super('cosine_distance', [vector1, vector2]);
-  }
-}
-
-/**
- * @beta
- */
-export class DotProduct extends FirestoreFunction {
-  constructor(private vector1: ScalarExpr, private vector2: ScalarExpr) {
-    super('dot_product', [vector1, vector2]);
-  }
-}
-
-/**
- * @beta
- */
-export class EuclideanDistance extends FirestoreFunction {
-  constructor(private vector1: ScalarExpr, private vector2: ScalarExpr) {
-    super('euclidean_distance', [vector1, vector2]);
-  }
-}
-
-/**
- * @beta
- */
-export class VectorLength extends FirestoreFunction {
-  constructor(private value: ScalarExpr) {
-    super('vector_length', [value]);
-  }
-}
-
-/**
- * @beta
- */
-export class UnixMicrosToTimestamp extends FirestoreFunction {
-  constructor(private input: ScalarExpr) {
-    super('unix_micros_to_timestamp', [input]);
-  }
-}
-
-/**
- * @beta
- */
-export class TimestampToUnixMicros extends FirestoreFunction {
-  constructor(private input: ScalarExpr) {
-    super('timestamp_to_unix_micros', [input]);
-  }
-}
-
-/**
- * @beta
- */
-export class UnixMillisToTimestamp extends FirestoreFunction {
-  constructor(private input: ScalarExpr) {
-    super('unix_millis_to_timestamp', [input]);
-  }
-}
-
-/**
- * @beta
- */
-export class TimestampToUnixMillis extends FirestoreFunction {
-  constructor(private input: ScalarExpr) {
-    super('timestamp_to_unix_millis', [input]);
-  }
-}
-
-/**
- * @beta
- */
-export class UnixSecondsToTimestamp extends FirestoreFunction {
-  constructor(private input: ScalarExpr) {
-    super('unix_seconds_to_timestamp', [input]);
-  }
-}
-
-/**
- * @beta
- */
-export class TimestampToUnixSeconds extends FirestoreFunction {
-  constructor(private input: ScalarExpr) {
-    super('timestamp_to_unix_seconds', [input]);
-  }
-}
-
-/**
- * @beta
- */
-export class TimestampAdd extends FirestoreFunction {
-  constructor(
-    private timestamp: ScalarExpr,
-    private unit: ScalarExpr,
-    private amount: ScalarExpr
-  ) {
-    super('timestamp_add', [timestamp, unit, amount]);
-  }
-}
-
-/**
- * @beta
- */
-export class TimestampSub extends FirestoreFunction {
-  constructor(
-    private timestamp: ScalarExpr,
-    private unit: ScalarExpr,
-    private amount: ScalarExpr
-  ) {
-    super('timestamp_sub', [timestamp, unit, amount]);
-  }
-}
-
-/**
- * @beta
- */
-export class CountIf extends AggregateFunction {
-  constructor(private booleanExpr: BooleanExpr) {
-    super('count_if', [booleanExpr]);
-  }
-
-  aggregateFunction = true as const;
 }
 
 /**
@@ -3294,17 +2664,8 @@ export class CountIf extends AggregateFunction {
  * @param booleanExpr - The boolean expression to evaluate on each input.
  * @returns A new `AggregateFunction` representing the 'countif' aggregation.
  */
-export function countIf(booleanExpr: BooleanExpr): CountIf {
-  return new CountIf(booleanExpr);
-}
-
-/**
- * @beta
- */
-export class Rand extends FirestoreFunction {
-  constructor() {
-    super('rand', []);
-  }
+export function countIf(booleanExpr: BooleanExpr): AggregateFunction {
+  return booleanExpr.countIf();
 }
 
 /**
@@ -3314,17 +2675,8 @@ export class Rand extends FirestoreFunction {
  *
  * @returns A new `Expr` representing the 'rand' function.
  */
-export function rand(): Rand {
-  return new Rand();
-}
-
-/**
- * @beta
- */
-export class BitAnd extends FirestoreFunction {
-  constructor(private left: ScalarExpr, private right: ScalarExpr) {
-    super('bit_and', [left, right]);
-  }
+export function rand(): FirestoreFunction {
+  return new FirestoreFunction('rand', []);
 }
 
 /**
@@ -3341,7 +2693,10 @@ export class BitAnd extends FirestoreFunction {
  * @param otherBits A constant representing bits.
  * @return A new {@code Expr} representing the bitwise AND operation.
  */
-export function bitAnd(field: string, otherBits: number | Bytes): BitAnd;
+export function bitAnd(
+  field: string,
+  otherBits: number | Bytes
+): FirestoreFunction;
 /**
  * @beta
  *
@@ -3356,7 +2711,10 @@ export function bitAnd(field: string, otherBits: number | Bytes): BitAnd;
  * @param bitsExpression An expression that returns bits when evaluated.
  * @return A new {@code Expr} representing the bitwise AND operation.
  */
-export function bitAnd(field: string, bitsExpression: ScalarExpr): BitAnd;
+export function bitAnd(
+  field: string,
+  bitsExpression: ScalarExpr
+): FirestoreFunction;
 /**
  * @beta
  *
@@ -3374,7 +2732,7 @@ export function bitAnd(field: string, bitsExpression: ScalarExpr): BitAnd;
 export function bitAnd(
   bitsExpression: ScalarExpr,
   otherBits: number | Bytes
-): BitAnd;
+): FirestoreFunction;
 /**
  * @beta
  *
@@ -3392,24 +2750,14 @@ export function bitAnd(
 export function bitAnd(
   bitsExpression: ScalarExpr,
   otherBitsExpression: ScalarExpr
-): BitAnd;
+): FirestoreFunction;
 export function bitAnd(
   fieldOrExpression: string | ScalarExpr,
   bitsOrExpression: number | ScalarExpr | Bytes
-): BitAnd {
-  return new BitAnd(
-    fieldOfOrExpr(fieldOrExpression),
+): FirestoreFunction {
+  return fieldOfOrExpr(fieldOrExpression).bitAnd(
     valueToDefaultExpr(bitsOrExpression)
   );
-}
-
-/**
- * @beta
- */
-export class BitOr extends FirestoreFunction {
-  constructor(private left: ScalarExpr, private right: ScalarExpr) {
-    super('bit_or', [left, right]);
-  }
 }
 
 /**
@@ -3426,7 +2774,10 @@ export class BitOr extends FirestoreFunction {
  * @param otherBits A constant representing bits.
  * @return A new {@code Expr} representing the bitwise OR operation.
  */
-export function bitOr(field: string, otherBits: number | Bytes): BitOr;
+export function bitOr(
+  field: string,
+  otherBits: number | Bytes
+): FirestoreFunction;
 /**
  * @beta
  *
@@ -3441,7 +2792,10 @@ export function bitOr(field: string, otherBits: number | Bytes): BitOr;
  * @param bitsExpression An expression that returns bits when evaluated.
  * @return A new {@code Expr} representing the bitwise OR operation.
  */
-export function bitOr(field: string, bitsExpression: ScalarExpr): BitOr;
+export function bitOr(
+  field: string,
+  bitsExpression: ScalarExpr
+): FirestoreFunction;
 /**
  * @beta
  *
@@ -3459,7 +2813,7 @@ export function bitOr(field: string, bitsExpression: ScalarExpr): BitOr;
 export function bitOr(
   bitsExpression: ScalarExpr,
   otherBits: number | Bytes
-): BitOr;
+): FirestoreFunction;
 /**
  * @beta
  *
@@ -3477,24 +2831,14 @@ export function bitOr(
 export function bitOr(
   bitsExpression: ScalarExpr,
   otherBitsExpression: ScalarExpr
-): BitOr;
+): FirestoreFunction;
 export function bitOr(
   fieldOrExpression: string | ScalarExpr,
   bitsOrExpression: number | ScalarExpr | Bytes
-): BitOr {
-  return new BitOr(
-    fieldOfOrExpr(fieldOrExpression),
+): FirestoreFunction {
+  return fieldOfOrExpr(fieldOrExpression).bitOr(
     valueToDefaultExpr(bitsOrExpression)
   );
-}
-
-/**
- * @beta
- */
-export class BitXor extends FirestoreFunction {
-  constructor(private left: ScalarExpr, private right: ScalarExpr) {
-    super('bit_xor', [left, right]);
-  }
 }
 
 /**
@@ -3511,7 +2855,10 @@ export class BitXor extends FirestoreFunction {
  * @param otherBits A constant representing bits.
  * @return A new {@code Expr} representing the bitwise XOR operation.
  */
-export function bitXor(field: string, otherBits: number | Bytes): BitXor;
+export function bitXor(
+  field: string,
+  otherBits: number | Bytes
+): FirestoreFunction;
 /**
  * @beta
  *
@@ -3526,7 +2873,10 @@ export function bitXor(field: string, otherBits: number | Bytes): BitXor;
  * @param bitsExpression An expression that returns bits when evaluated.
  * @return A new {@code Expr} representing the bitwise XOR operation.
  */
-export function bitXor(field: string, bitsExpression: ScalarExpr): BitXor;
+export function bitXor(
+  field: string,
+  bitsExpression: ScalarExpr
+): FirestoreFunction;
 /**
  * @beta
  *
@@ -3544,7 +2894,7 @@ export function bitXor(field: string, bitsExpression: ScalarExpr): BitXor;
 export function bitXor(
   bitsExpression: ScalarExpr,
   otherBits: number | Bytes
-): BitXor;
+): FirestoreFunction;
 /**
  * @beta
  *
@@ -3562,24 +2912,14 @@ export function bitXor(
 export function bitXor(
   bitsExpression: ScalarExpr,
   otherBitsExpression: ScalarExpr
-): BitXor;
+): FirestoreFunction;
 export function bitXor(
   fieldOrExpression: string | ScalarExpr,
   bitsOrExpression: number | ScalarExpr | Bytes
-): BitXor {
-  return new BitXor(
-    fieldOfOrExpr(fieldOrExpression),
+): FirestoreFunction {
+  return fieldOfOrExpr(fieldOrExpression).bitXor(
     valueToDefaultExpr(bitsOrExpression)
   );
-}
-
-/**
- * @beta
- */
-export class BitNot extends FirestoreFunction {
-  constructor(private value: ScalarExpr) {
-    super('bit_not', [value]);
-  }
 }
 
 /**
@@ -3595,7 +2935,7 @@ export class BitNot extends FirestoreFunction {
  * @param field The operand field name.
  * @return A new {@code Expr} representing the bitwise NOT operation.
  */
-export function bitNot(field: string): BitNot;
+export function bitNot(field: string): FirestoreFunction;
 /**
  * @beta
  *
@@ -3609,18 +2949,9 @@ export function bitNot(field: string): BitNot;
  * @param bitsValueExpression An expression that returns bits when evaluated.
  * @return A new {@code Expr} representing the bitwise NOT operation.
  */
-export function bitNot(bitsValueExpression: ScalarExpr): BitNot;
-export function bitNot(bits: string | ScalarExpr): BitNot {
-  return new BitNot(fieldOfOrExpr(bits));
-}
-
-/**
- * @beta
- */
-export class BitLeftShift extends FirestoreFunction {
-  constructor(value: ScalarExpr, y: ScalarExpr) {
-    super('bit_left_shift', [value, y]);
-  }
+export function bitNot(bitsValueExpression: ScalarExpr): FirestoreFunction;
+export function bitNot(bits: string | ScalarExpr): FirestoreFunction {
+  return fieldOfOrExpr(bits).bitNot();
 }
 
 /**
@@ -3637,7 +2968,7 @@ export class BitLeftShift extends FirestoreFunction {
  * @param y The right operand constant representing the number of bits to shift.
  * @return A new {@code Expr} representing the bitwise left shift operation.
  */
-export function bitLeftShift(field: string, y: number): BitLeftShift;
+export function bitLeftShift(field: string, y: number): FirestoreFunction;
 /**
  * @beta
  *
@@ -3655,7 +2986,7 @@ export function bitLeftShift(field: string, y: number): BitLeftShift;
 export function bitLeftShift(
   field: string,
   numberExpr: ScalarExpr
-): BitLeftShift;
+): FirestoreFunction;
 /**
  * @beta
  *
@@ -3670,7 +3001,7 @@ export function bitLeftShift(
  * @param y The right operand constant representing the number of bits to shift.
  * @return A new {@code Expr} representing the bitwise left shift operation.
  */
-export function bitLeftShift(xValue: ScalarExpr, y: number): BitLeftShift;
+export function bitLeftShift(xValue: ScalarExpr, y: number): FirestoreFunction;
 /**
  * @beta
  *
@@ -3688,24 +3019,12 @@ export function bitLeftShift(xValue: ScalarExpr, y: number): BitLeftShift;
 export function bitLeftShift(
   xValue: ScalarExpr,
   numberExpr: ScalarExpr
-): BitLeftShift;
+): FirestoreFunction;
 export function bitLeftShift(
   xValue: string | ScalarExpr,
   numberExpr: number | ScalarExpr
-): BitLeftShift {
-  return new BitLeftShift(
-    fieldOfOrExpr(xValue),
-    valueToDefaultExpr(numberExpr)
-  );
-}
-
-/**
- * @beta
- */
-export class BitRightShift extends FirestoreFunction {
-  constructor(value: ScalarExpr, y: ScalarExpr) {
-    super('bit_right_shift', [value, y]);
-  }
+): FirestoreFunction {
+  return fieldOfOrExpr(xValue).bitLeftShift(valueToDefaultExpr(numberExpr));
 }
 
 /**
@@ -3722,7 +3041,7 @@ export class BitRightShift extends FirestoreFunction {
  * @param right The right operand constant representing the number of bits to shift.
  * @return A new {@code Expr} representing the bitwise right shift operation.
  */
-export function bitRightShift(field: string, y: number): BitRightShift;
+export function bitRightShift(field: string, y: number): FirestoreFunction;
 /**
  * @beta
  *
@@ -3740,7 +3059,7 @@ export function bitRightShift(field: string, y: number): BitRightShift;
 export function bitRightShift(
   field: string,
   numberExpr: ScalarExpr
-): BitRightShift;
+): FirestoreFunction;
 /**
  * @beta
  *
@@ -3755,7 +3074,7 @@ export function bitRightShift(
  * @param y The right operand constant representing the number of bits to shift.
  * @return A new {@code Expr} representing the bitwise right shift operation.
  */
-export function bitRightShift(xValue: ScalarExpr, y: number): BitRightShift;
+export function bitRightShift(xValue: ScalarExpr, y: number): FirestoreFunction;
 /**
  * @beta
  *
@@ -3773,24 +3092,12 @@ export function bitRightShift(xValue: ScalarExpr, y: number): BitRightShift;
 export function bitRightShift(
   xValue: ScalarExpr,
   numberExpr: ScalarExpr
-): BitRightShift;
+): FirestoreFunction;
 export function bitRightShift(
   xValue: string | ScalarExpr,
   numberExpr: number | ScalarExpr
-): BitRightShift {
-  return new BitRightShift(
-    fieldOfOrExpr(xValue),
-    valueToDefaultExpr(numberExpr)
-  );
-}
-
-/**
- * @beta
- */
-export class ArrayOffset extends FirestoreFunction {
-  constructor(private arrayExpression: ScalarExpr, private offset: ScalarExpr) {
-    super('array_offset', [arrayExpression, offset]);
-  }
+): FirestoreFunction {
+  return fieldOfOrExpr(xValue).bitRightShift(valueToDefaultExpr(numberExpr));
 }
 
 /**
@@ -3808,7 +3115,10 @@ export class ArrayOffset extends FirestoreFunction {
  * @param offset The index of the element to return.
  * @return A new Expr representing the 'arrayOffset' operation.
  */
-export function arrayOffset(arrayField: string, offset: number): ArrayOffset;
+export function arrayOffset(
+  arrayField: string,
+  offset: number
+): FirestoreFunction;
 
 /**
  * @beta
@@ -3829,7 +3139,7 @@ export function arrayOffset(arrayField: string, offset: number): ArrayOffset;
 export function arrayOffset(
   arrayField: string,
   offsetExpr: ScalarExpr
-): ArrayOffset;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -3849,7 +3159,7 @@ export function arrayOffset(
 export function arrayOffset(
   arrayExpression: ScalarExpr,
   offset: number
-): ArrayOffset;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -3870,21 +3180,12 @@ export function arrayOffset(
 export function arrayOffset(
   arrayExpression: ScalarExpr,
   offsetExpr: ScalarExpr
-): ArrayOffset;
+): FirestoreFunction;
 export function arrayOffset(
   array: ScalarExpr | string,
   offset: ScalarExpr | number
-): ArrayOffset {
-  return new ArrayOffset(fieldOfOrExpr(array), valueToDefaultExpr(offset));
-}
-
-/**
- * @beta
- */
-export class CurrentContext extends FirestoreFunction {
-  constructor() {
-    super('current_context', []);
-  }
+): FirestoreFunction {
+  return fieldOfOrExpr(array).arrayOffset(valueToDefaultExpr(offset));
 }
 
 /**
@@ -3893,19 +3194,8 @@ export class CurrentContext extends FirestoreFunction {
  *
  * @return A new {@code Expr} representing the 'current_context' function.
  */
-export function currentContext(): CurrentContext {
-  return new CurrentContext();
-}
-
-/**
- * @beta
- */
-export class IsError extends BooleanExpr {
-  constructor(private expr: ScalarExpr) {
-    super('is_error', [expr]);
-  }
-
-  filterable = true as const;
+export function currentContext(): FirestoreFunction {
+  return new FirestoreFunction('current_context', []);
 }
 
 /**
@@ -3921,17 +3211,8 @@ export class IsError extends BooleanExpr {
  * @param value The expression to check.
  * @return A new {@code Expr} representing the 'isError' check.
  */
-export function isError(value: ScalarExpr): IsError {
-  return new IsError(value);
-}
-
-/**
- * @beta
- */
-export class IfError extends FirestoreFunction {
-  constructor(private tryExpr: ScalarExpr, private catchExpr: ScalarExpr) {
-    super('if_error', [tryExpr, catchExpr]);
-  }
+export function isError(value: ScalarExpr): BooleanExpr {
+  return value.isError();
 }
 
 /**
@@ -3951,7 +3232,10 @@ export class IfError extends FirestoreFunction {
  * returned if the tryExpr produces an error.
  * @return A new {@code Expr} representing the 'ifError' operation.
  */
-export function ifError(tryExpr: ScalarExpr, catchExpr: ScalarExpr): IfError;
+export function ifError(
+  tryExpr: ScalarExpr,
+  catchExpr: ScalarExpr
+): FirestoreFunction;
 
 /**
  * @beta
@@ -3970,20 +3254,15 @@ export function ifError(tryExpr: ScalarExpr, catchExpr: ScalarExpr): IfError;
  * error.
  * @return A new {@code Expr} representing the 'ifError' operation.
  */
-export function ifError(tryExpr: ScalarExpr, catchValue: any): IfError;
-export function ifError(tryExpr: ScalarExpr, catchValue: any): IfError {
-  return new IfError(tryExpr, valueToDefaultExpr(catchValue));
-}
-
-/**
- * @beta
- */
-export class IsAbsent extends BooleanExpr {
-  constructor(private expr: ScalarExpr) {
-    super('is_absent', [expr]);
-  }
-
-  filterable = true as const;
+export function ifError(
+  tryExpr: ScalarExpr,
+  catchValue: any
+): FirestoreFunction;
+export function ifError(
+  tryExpr: ScalarExpr,
+  catchValue: any
+): FirestoreFunction {
+  return tryExpr.ifError(valueToDefaultExpr(catchValue));
 }
 
 /**
@@ -4000,7 +3279,7 @@ export class IsAbsent extends BooleanExpr {
  * @param value The expression to check.
  * @return A new {@code Expr} representing the 'isAbsent' check.
  */
-export function isAbsent(value: ScalarExpr): IsAbsent;
+export function isAbsent(value: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -4016,20 +3295,9 @@ export function isAbsent(value: ScalarExpr): IsAbsent;
  * @param field The field to check.
  * @return A new {@code Expr} representing the 'isAbsent' check.
  */
-export function isAbsent(field: string): IsAbsent;
-export function isAbsent(value: ScalarExpr | string): IsAbsent {
-  return new IsAbsent(fieldOfOrExpr(value));
-}
-
-/**
- * @beta
- */
-export class IsNull extends BooleanExpr {
-  constructor(private expr: ScalarExpr) {
-    super('is_null', [expr]);
-  }
-
-  filterable = true as const;
+export function isAbsent(field: string): BooleanExpr;
+export function isAbsent(value: ScalarExpr | string): BooleanExpr {
+  return fieldOfOrExpr(value).isAbsent();
 }
 
 /**
@@ -4045,7 +3313,7 @@ export class IsNull extends BooleanExpr {
  * @param value The expression to check.
  * @return A new {@code Expr} representing the 'isNaN' check.
  */
-export function isNull(value: ScalarExpr): IsNull;
+export function isNull(value: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -4060,20 +3328,9 @@ export function isNull(value: ScalarExpr): IsNull;
  * @param value The name of the field to check.
  * @return A new {@code Expr} representing the 'isNaN' check.
  */
-export function isNull(value: string): IsNull;
-export function isNull(value: ScalarExpr | string): IsNull {
-  return new IsNull(fieldOfOrExpr(value));
-}
-
-/**
- * @beta
- */
-export class IsNotNull extends BooleanExpr {
-  constructor(private expr: ScalarExpr) {
-    super('is_not_null', [expr]);
-  }
-
-  filterable = true as const;
+export function isNull(value: string): BooleanExpr;
+export function isNull(value: ScalarExpr | string): BooleanExpr {
+  return fieldOfOrExpr(value).isNull();
 }
 
 /**
@@ -4089,7 +3346,7 @@ export class IsNotNull extends BooleanExpr {
  * @param value The expression to check.
  * @return A new {@code Expr} representing the 'isNaN' check.
  */
-export function isNotNull(value: ScalarExpr): IsNotNull;
+export function isNotNull(value: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -4104,20 +3361,9 @@ export function isNotNull(value: ScalarExpr): IsNotNull;
  * @param value The name of the field to check.
  * @return A new {@code Expr} representing the 'isNaN' check.
  */
-export function isNotNull(value: string): IsNotNull;
-export function isNotNull(value: ScalarExpr | string): IsNotNull {
-  return new IsNotNull(fieldOfOrExpr(value));
-}
-
-/**
- * @beta
- */
-export class IsNotNan extends BooleanExpr {
-  constructor(private expr: ScalarExpr) {
-    super('is_not_nan', [expr]);
-  }
-
-  filterable = true as const;
+export function isNotNull(value: string): BooleanExpr;
+export function isNotNull(value: ScalarExpr | string): BooleanExpr {
+  return fieldOfOrExpr(value).isNotNull();
 }
 
 /**
@@ -4133,7 +3379,7 @@ export class IsNotNan extends BooleanExpr {
  * @param value The expression to check.
  * @return A new {@code Expr} representing the 'isNotNaN' check.
  */
-export function isNotNan(value: ScalarExpr): IsNotNan;
+export function isNotNan(value: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -4148,19 +3394,11 @@ export function isNotNan(value: ScalarExpr): IsNotNan;
  * @param value The name of the field to check.
  * @return A new {@code Expr} representing the 'isNotNaN' check.
  */
-export function isNotNan(value: string): IsNotNan;
-export function isNotNan(value: ScalarExpr | string): IsNotNan {
-  return new IsNotNan(fieldOfOrExpr(value));
+export function isNotNan(value: string): BooleanExpr;
+export function isNotNan(value: ScalarExpr | string): BooleanExpr {
+  return fieldOfOrExpr(value).isNotNan();
 }
 
-/**
- * @beta
- */
-export class MapRemove extends FirestoreFunction {
-  constructor(map: ScalarExpr, nameExpr: ScalarExpr) {
-    super('map_remove', [map, nameExpr]);
-  }
-}
 /**
  * @beta
  *
@@ -4174,7 +3412,7 @@ export class MapRemove extends FirestoreFunction {
  * @param mapField The name of a field containing a map value.
  * @param key The name of the key to remove from the input map.
  */
-export function mapRemove(mapField: string, key: string): MapRemove;
+export function mapRemove(mapField: string, key: string): FirestoreFunction;
 /**
  * @beta
  *
@@ -4188,7 +3426,7 @@ export function mapRemove(mapField: string, key: string): MapRemove;
  * @param mapExpr An expression return a map value.
  * @param key The name of the key to remove from the input map.
  */
-export function mapRemove(mapExpr: ScalarExpr, key: string): MapRemove;
+export function mapRemove(mapExpr: ScalarExpr, key: string): FirestoreFunction;
 /**
  * @beta
  *
@@ -4202,7 +3440,10 @@ export function mapRemove(mapExpr: ScalarExpr, key: string): MapRemove;
  * @param mapField The name of a field containing a map value.
  * @param keyExpr An expression that produces the name of the key to remove from the input map.
  */
-export function mapRemove(mapField: string, keyExpr: ScalarExpr): MapRemove;
+export function mapRemove(
+  mapField: string,
+  keyExpr: ScalarExpr
+): FirestoreFunction;
 /**
  * @beta
  *
@@ -4216,22 +3457,16 @@ export function mapRemove(mapField: string, keyExpr: ScalarExpr): MapRemove;
  * @param mapExpr An expression return a map value.
  * @param keyExpr An expression that produces the name of the key to remove from the input map.
  */
-export function mapRemove(mapExpr: ScalarExpr, keyExpr: ScalarExpr): MapRemove;
+export function mapRemove(
+  mapExpr: ScalarExpr,
+  keyExpr: ScalarExpr
+): FirestoreFunction;
 
 export function mapRemove(
   mapExpr: ScalarExpr | string,
   stringExpr: ScalarExpr | string
-): MapRemove {
-  return new MapRemove(fieldOfOrExpr(mapExpr), valueToDefaultExpr(stringExpr));
-}
-
-/**
- * @beta
- */
-export class MapMerge extends FirestoreFunction {
-  constructor(maps: ScalarExpr[]) {
-    super('map_merge', maps);
-  }
+): FirestoreFunction {
+  return fieldOfOrExpr(mapExpr).mapRemove(valueToDefaultExpr(stringExpr));
 }
 
 /**
@@ -4255,7 +3490,7 @@ export function mapMerge(
   mapField: string,
   secondMap: Record<string, any> | ScalarExpr,
   ...otherMaps: Array<Record<string, any> | ScalarExpr>
-): MapMerge;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -4278,71 +3513,16 @@ export function mapMerge(
   firstMap: Record<string, any> | ScalarExpr,
   secondMap: Record<string, any> | ScalarExpr,
   ...otherMaps: Array<Record<string, any> | ScalarExpr>
-): MapMerge;
+): FirestoreFunction;
 
 export function mapMerge(
   firstMap: string | Record<string, any> | ScalarExpr,
   secondMap: Record<string, any> | ScalarExpr,
   ...otherMaps: Array<Record<string, any> | ScalarExpr>
-): MapMerge {
-  const firstMapExpr =
-    typeof firstMap === 'string'
-      ? Field.of(firstMap)
-      : valueToDefaultExpr(firstMap);
+): FirestoreFunction {
   const secondMapExpr = valueToDefaultExpr(secondMap);
   const otherMapExprs = otherMaps.map(valueToDefaultExpr);
-  return new MapMerge([firstMapExpr, secondMapExpr, ...otherMapExprs]);
-}
-
-/**
- * @beta
- */
-export class Parent extends FirestoreFunction {
-  constructor(pathExpr: ScalarExpr) {
-    super('parent', [pathExpr]);
-  }
-}
-
-export function parentFunction(path: string | DocumentReference): Parent;
-
-export function parentFunction(pathExpr: ScalarExpr): Parent;
-
-export function parentFunction(
-  path: ScalarExpr | string | DocumentReference
-): Parent {
-  // @ts-ignore
-  const pathExpr = valueToDefaultExpr(path);
-  return new Parent(pathExpr);
-}
-
-/**
- * @beta
- */
-export class CollectionId extends FirestoreFunction {
-  constructor(pathExpr: ScalarExpr) {
-    super('collection_id', [pathExpr]);
-  }
-}
-
-export function collectionId(path: string | DocumentReference): CollectionId;
-
-export function collectionId(pathExpr: ScalarExpr): CollectionId;
-
-export function collectionId(
-  path: ScalarExpr | string | DocumentReference
-): CollectionId {
-  // @ts-ignore
-  const pathExpr = valueToDefaultExpr(path);
-  return new CollectionId(pathExpr);
-}
-
-/**
- * @beta
- */
-export class DocumentId extends FirestoreFunction {
-  constructor(pathExpr: ScalarExpr) {
-    super('document_id', [pathExpr]);
-  }
+  return fieldOfOrExpr(firstMap).mapMerge(secondMapExpr, ...otherMapExprs);
 }
 
 /**
@@ -4359,7 +3539,7 @@ export class DocumentId extends FirestoreFunction {
  */
 export function documentIdFunction(
   documentPath: string | DocumentReference
-): DocumentId;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -4373,53 +3553,16 @@ export function documentIdFunction(
  *
  * @return A new {@code Expr} representing the documentId operation.
  */
-export function documentIdFunction(documentPathExpr: ScalarExpr): DocumentId;
+export function documentIdFunction(
+  documentPathExpr: ScalarExpr
+): FirestoreFunction;
 
 export function documentIdFunction(
   documentPath: ScalarExpr | string | DocumentReference
-): DocumentId {
+): FirestoreFunction {
   // @ts-ignore
   const documentPathExpr = valueToDefaultExpr(documentPath);
-  return new DocumentId(documentPathExpr);
-}
-
-/**
- * @beta
- */
-export class Key extends FirestoreFunction {
-  constructor(namespaceExpr: ScalarExpr, pathExpr: ScalarExpr) {
-    super('key', [namespaceExpr, pathExpr]);
-  }
-}
-
-export function key(namespace: string, path: string): Key;
-
-export function key(namespaceExpr: ScalarExpr, pathExpr: ScalarExpr): Key;
-
-export function key(
-  namespace: ScalarExpr | string,
-  path: ScalarExpr | string
-): Key {
-  const namespaceExpr = valueToDefaultExpr(namespace);
-  const pathExpr = path instanceof ScalarExpr ? path : Constant.of(path);
-  return new Key(namespaceExpr, pathExpr);
-}
-
-/**
- * @beta
- */
-export class Substr extends FirestoreFunction {
-  constructor(
-    inputExpr: ScalarExpr,
-    position: ScalarExpr,
-    length: ScalarExpr | undefined
-  ) {
-    if (length) {
-      super('substr', [inputExpr, position, length]);
-    } else {
-      super('substr', [inputExpr, position]);
-    }
-  }
+  return documentPathExpr.documentId();
 }
 
 /**
@@ -4435,7 +3578,7 @@ export function substr(
   field: string,
   position: number,
   length?: number
-): Substr;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -4450,7 +3593,7 @@ export function substr(
   input: ScalarExpr,
   position: number,
   length?: number
-): Substr;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -4465,7 +3608,7 @@ export function substr(
   field: string,
   position: ScalarExpr,
   length?: ScalarExpr
-): Substr;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -4480,150 +3623,18 @@ export function substr(
   input: ScalarExpr,
   position: ScalarExpr,
   length?: ScalarExpr
-): Substr;
+): FirestoreFunction;
 
 export function substr(
   field: ScalarExpr | string,
   position: ScalarExpr | number,
   length?: ScalarExpr | number
-): Substr {
+): FirestoreFunction {
   const fieldExpr = fieldOfOrExpr(field);
   const positionExpr = valueToDefaultExpr(position);
   const lengthExpr =
     length === undefined ? undefined : valueToDefaultExpr(length);
-  return new Substr(fieldExpr, positionExpr, lengthExpr);
-}
-
-/**
- * @beta
- */
-export class ManhattanDistance extends FirestoreFunction {
-  constructor(vector1: ScalarExpr, vector2: ScalarExpr) {
-    super('manhattan_distance', [vector1, vector2]);
-  }
-}
-
-/**
- * @beta
- *
- * Calculates the Manhattan distance between a field's vector value and a double array.
- *
- * ```typescript
- * // Calculate the Manhattan distance between the 'location' field and a target location
- * manhattanDistance("location", [37.7749, -122.4194]);
- * ```
- *
- * @param field The name of the field containing the first vector.
- * @param other The other vector (as an array of doubles) to compare against.
- * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
- */
-export function manhattanDistance(
-  field: string,
-  other: number[]
-): ManhattanDistance;
-
-/**
- * @beta
- *
- * Calculates the Manhattan distance between a field's vector value and a VectorValue.
- *
- * ```typescript
- * // Calculate the Manhattan distance between the 'location' field and a target location
- * manhattanDistance("location", new VectorValue([37.7749, -122.4194]));
- * ```
- *
- * @param expr The name of the field containing the first vector.
- * @param other The other vector (as a VectorValue) to compare against.
- * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
- */
-export function manhattanDistance(
-  expr: string,
-  other: VectorValue
-): ManhattanDistance;
-
-/**
- * @beta
- *
- * Calculates the Manhattan distance between a field's vector value and a vector expression.
- *
- * ```typescript
- * // Calculate the Manhattan distance between two vector fields: 'pointA' and 'pointB'
- * manhattanDistance("pointA", Field.of("pointB"));
- * ```
- *
- * @param expr The name of the field containing the first vector.
- * @param other The other vector (represented as an Expr) to compare against.
- * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
- */
-export function manhattanDistance(
-  expr: string,
-  other: ScalarExpr
-): ManhattanDistance;
-
-/**
- * @beta
- *
- * Calculates the Manhattan distance between a vector expression and a double array.
- *
- * ```typescript
- * // Calculate the Manhattan distance between the 'location' field and a target location
- *
- * manhattanDistance(Field.of("location"), [37.7749, -122.4194]);
- * ```
- *
- * @param expr The first vector (represented as an Expr) to compare against.
- * @param other The other vector (as an array of doubles) to compare against.
- * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
- */
-export function manhattanDistance(
-  expr: ScalarExpr,
-  other: number[]
-): ManhattanDistance;
-
-/**
- * @beta
- *
- * Calculates the Manhattan distance between a vector expression and a VectorValue.
- *
- * ```typescript
- * // Calculate the Manhattan distance between the 'location' field and a target location
- * manhattanDistance(Field.of("location"), new VectorValue([37.7749, -122.4194]));
- * ```
- *
- * @param expr The first vector (represented as an Expr) to compare against.
- * @param other The other vector (as a VectorValue) to compare against.
- * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
- */
-export function manhattanDistance(
-  expr: ScalarExpr,
-  other: VectorValue
-): ManhattanDistance;
-
-/**
- * @beta
- *
- * Calculates the Manhattan distance between two vector expressions.
- *
- * ```typescript
- * // Calculate the Manhattan distance between two vector fields: 'pointA' and 'pointB'
- * manhattanDistance(Field.of("pointA"), Field.of("pointB"));
- * ```
- *
- * @param expr The first vector (represented as an Expr) to compare against.
- * @param other The other vector (represented as an Expr) to compare against.
- * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
- */
-export function manhattanDistance(
-  expr: ScalarExpr,
-  other: ScalarExpr
-): ManhattanDistance;
-export function manhattanDistance(
-  fieldOrExpr: ScalarExpr | string,
-  other: ScalarExpr | number[] | VectorValue
-): ManhattanDistance {
-  const expr1 = fieldOfOrExpr(fieldOrExpr);
-  const expr2 = other instanceof ScalarExpr ? other : Constant.vector(other);
-  return new ManhattanDistance(expr1, expr2);
+  return fieldExpr.substr(positionExpr, lengthExpr);
 }
 
 /**
@@ -4645,7 +3656,7 @@ export function add(
   first: ScalarExpr,
   second: ScalarExpr | any,
   ...others: Array<ScalarExpr | any>
-): Add;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -4666,15 +3677,17 @@ export function add(
   fieldName: string,
   second: ScalarExpr | any,
   ...others: Array<ScalarExpr | any>
-): Add;
+): FirestoreFunction;
 
 export function add(
   first: ScalarExpr | string,
+  second: ScalarExpr | any,
   ...others: Array<ScalarExpr | any>
-): Add {
-  const normalizedLeft = fieldOfOrExpr(first);
-  const normalizedRight = others.map(value => valueToDefaultExpr(value));
-  return new Add(normalizedLeft, normalizedRight);
+): FirestoreFunction {
+  return fieldOfOrExpr(first).add(
+    valueToDefaultExpr(second),
+    ...others.map(value => valueToDefaultExpr(value))
+  );
 }
 
 /**
@@ -4691,7 +3704,10 @@ export function add(
  * @param right The expression to subtract.
  * @return A new {@code Expr} representing the subtraction operation.
  */
-export function subtract(left: ScalarExpr, right: ScalarExpr): Subtract;
+export function subtract(
+  left: ScalarExpr,
+  right: ScalarExpr
+): FirestoreFunction;
 
 /**
  * @beta
@@ -4707,7 +3723,7 @@ export function subtract(left: ScalarExpr, right: ScalarExpr): Subtract;
  * @param right The constant value to subtract.
  * @return A new {@code Expr} representing the subtraction operation.
  */
-export function subtract(left: ScalarExpr, right: any): Subtract;
+export function subtract(left: ScalarExpr, right: any): FirestoreFunction;
 
 /**
  * @beta
@@ -4723,7 +3739,7 @@ export function subtract(left: ScalarExpr, right: any): Subtract;
  * @param right The expression to subtract.
  * @return A new {@code Expr} representing the subtraction operation.
  */
-export function subtract(left: string, right: ScalarExpr): Subtract;
+export function subtract(left: string, right: ScalarExpr): FirestoreFunction;
 
 /**
  * @beta
@@ -4739,15 +3755,14 @@ export function subtract(left: string, right: ScalarExpr): Subtract;
  * @param right The constant value to subtract.
  * @return A new {@code Expr} representing the subtraction operation.
  */
-export function subtract(left: string, right: any): Subtract;
+export function subtract(left: string, right: any): FirestoreFunction;
 export function subtract(
   left: ScalarExpr | string,
   right: ScalarExpr | any
-): Subtract {
+): FirestoreFunction {
   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-  const normalizedRight =
-    right instanceof ScalarExpr ? right : valueToDefaultExpr(right);
-  return new Subtract(normalizedLeft, normalizedRight);
+  const normalizedRight = valueToDefaultExpr(right);
+  return normalizedLeft.subtract(normalizedRight);
 }
 
 /**
@@ -4769,7 +3784,7 @@ export function multiply(
   first: ScalarExpr,
   second: ScalarExpr | any,
   ...others: Array<ScalarExpr | any>
-): Multiply;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -4790,15 +3805,17 @@ export function multiply(
   fieldName: string,
   second: ScalarExpr | any,
   ...others: Array<ScalarExpr | any>
-): Multiply;
+): FirestoreFunction;
 
 export function multiply(
-  left: ScalarExpr | string,
+  first: ScalarExpr | string,
+  second: ScalarExpr | any,
   ...others: Array<ScalarExpr | any>
-): Multiply {
-  const normalizedLeft = fieldOfOrExpr(left);
-  const normalizedRight = others.map(value => valueToDefaultExpr(value));
-  return new Multiply(normalizedLeft, normalizedRight);
+): FirestoreFunction {
+  return fieldOfOrExpr(first).multiply(
+    valueToDefaultExpr(second),
+    ...others.map(valueToDefaultExpr)
+  );
 }
 
 /**
@@ -4815,7 +3832,7 @@ export function multiply(
  * @param right The expression to divide by.
  * @return A new {@code Expr} representing the division operation.
  */
-export function divide(left: ScalarExpr, right: ScalarExpr): Divide;
+export function divide(left: ScalarExpr, right: ScalarExpr): FirestoreFunction;
 
 /**
  * @beta
@@ -4831,7 +3848,7 @@ export function divide(left: ScalarExpr, right: ScalarExpr): Divide;
  * @param right The constant value to divide by.
  * @return A new {@code Expr} representing the division operation.
  */
-export function divide(left: ScalarExpr, right: any): Divide;
+export function divide(left: ScalarExpr, right: any): FirestoreFunction;
 
 /**
  * @beta
@@ -4847,7 +3864,7 @@ export function divide(left: ScalarExpr, right: any): Divide;
  * @param right The expression to divide by.
  * @return A new {@code Expr} representing the division operation.
  */
-export function divide(left: string, right: ScalarExpr): Divide;
+export function divide(left: string, right: ScalarExpr): FirestoreFunction;
 
 /**
  * @beta
@@ -4863,15 +3880,14 @@ export function divide(left: string, right: ScalarExpr): Divide;
  * @param right The constant value to divide by.
  * @return A new {@code Expr} representing the division operation.
  */
-export function divide(left: string, right: any): Divide;
+export function divide(left: string, right: any): FirestoreFunction;
 export function divide(
   left: ScalarExpr | string,
   right: ScalarExpr | any
-): Divide {
+): FirestoreFunction {
   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-  const normalizedRight =
-    right instanceof ScalarExpr ? right : valueToDefaultExpr(right);
-  return new Divide(normalizedLeft, normalizedRight);
+  const normalizedRight = valueToDefaultExpr(right);
+  return normalizedLeft.divide(normalizedRight);
 }
 
 /**
@@ -4888,7 +3904,7 @@ export function divide(
  * @param right The divisor expression.
  * @return A new {@code Expr} representing the modulo operation.
  */
-export function mod(left: ScalarExpr, right: ScalarExpr): Mod;
+export function mod(left: ScalarExpr, right: ScalarExpr): FirestoreFunction;
 
 /**
  * @beta
@@ -4904,7 +3920,7 @@ export function mod(left: ScalarExpr, right: ScalarExpr): Mod;
  * @param right The divisor constant.
  * @return A new {@code Expr} representing the modulo operation.
  */
-export function mod(left: ScalarExpr, right: any): Mod;
+export function mod(left: ScalarExpr, right: any): FirestoreFunction;
 
 /**
  * @beta
@@ -4920,7 +3936,7 @@ export function mod(left: ScalarExpr, right: any): Mod;
  * @param right The divisor expression.
  * @return A new {@code Expr} representing the modulo operation.
  */
-export function mod(left: string, right: ScalarExpr): Mod;
+export function mod(left: string, right: ScalarExpr): FirestoreFunction;
 
 /**
  * @beta
@@ -4936,15 +3952,17 @@ export function mod(left: string, right: ScalarExpr): Mod;
  * @param right The divisor constant.
  * @return A new {@code Expr} representing the modulo operation.
  */
-export function mod(left: string, right: any): Mod;
-export function mod(left: ScalarExpr | string, right: ScalarExpr | any): Mod {
+export function mod(left: string, right: any): FirestoreFunction;
+export function mod(
+  left: ScalarExpr | string,
+  right: ScalarExpr | any
+): FirestoreFunction {
   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-  const normalizedRight =
-    right instanceof ScalarExpr ? right : valueToDefaultExpr(right);
-  return new Mod(normalizedLeft, normalizedRight);
+  const normalizedRight = valueToDefaultExpr(right);
+  return normalizedLeft.mod(normalizedRight);
 }
 
-export function map(elements: Record<string, any>): MapFunction {
+export function map(elements: Record<string, any>): FirestoreFunction {
   const result: any[] = [];
   for (const key in elements) {
     if (Object.prototype.hasOwnProperty.call(elements, key)) {
@@ -4953,7 +3971,7 @@ export function map(elements: Record<string, any>): MapFunction {
       result.push(valueToDefaultExpr(value));
     }
   }
-  return new MapFunction(result);
+  return new FirestoreFunction('map', result);
 }
 
 /**
@@ -4978,397 +3996,12 @@ export function _mapValue(plainObject: Record<string, any>): MapValue {
   return new MapValue(result);
 }
 
-export function array(elements: any[]): ArrayFunction {
-  return new ArrayFunction(
+export function array(elements: any[]): FirestoreFunction {
+  return new FirestoreFunction(
+    'array',
     elements.map(element => valueToDefaultExpr(element))
   );
 }
-
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise AND operation between two expressions.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise AND of 'field1' and 'field2'.
-//  * bitAnd(Field.of("field1"), Field.of("field2"));
-//  * ```
-//  *
-//  * @param left The left operand expression.
-//  * @param right The right operand expression.
-//  * @return A new {@code Expr} representing the bitwise AND operation.
-//  */
-// export function bitAnd(left: Expr, right: Expr): BitAnd;
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise AND operation between an expression and a constant.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise AND of 'field1' and 0xFF.
-//  * bitAnd(Field.of("field1"), 0xFF);
-//  * ```
-//  *
-//  * @param left The left operand expression.
-//  * @param right The right operand constant.
-//  * @return A new {@code Expr} representing the bitwise AND operation.
-//  */
-// export function bitAnd(left: Expr, right: any): BitAnd;
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise AND operation between a field and an expression.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise AND of 'field1' and 'field2'.
-//  * bitAnd("field1", Field.of("field2"));
-//  * ```
-//  *
-//  * @param left The left operand field name.
-//  * @param right The right operand expression.
-//  * @return A new {@code Expr} representing the bitwise AND operation.
-//  */
-// export function bitAnd(left: string, right: Expr): BitAnd;
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise AND operation between a field and a constant.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise AND of 'field1' and 0xFF.
-//  * bitAnd("field1", 0xFF);
-//  * ```
-//  *
-//  * @param left The left operand field name.
-//  * @param right The right operand constant.
-//  * @return A new {@code Expr} representing the bitwise AND operation.
-//  */
-// export function bitAnd(left: string, right: any): BitAnd;
-// export function bitAnd(left: Expr | string, right: Expr | any): BitAnd {
-//   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-//   const normalizedRight = right instanceof Expr ? right : valueToDefaultExpr(right);
-//   return new BitAnd(normalizedLeft, normalizedRight);
-// }
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise OR operation between two expressions.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise OR of 'field1' and 'field2'.
-//  * bitOr(Field.of("field1"), Field.of("field2"));
-//  * ```
-//  *
-//  * @param left The left operand expression.
-//  * @param right The right operand expression.
-//  * @return A new {@code Expr} representing the bitwise OR operation.
-//  */
-// export function bitOr(left: Expr, right: Expr): BitOr;
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise OR operation between an expression and a constant.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise OR of 'field1' and 0xFF.
-//  * bitOr(Field.of("field1"), 0xFF);
-//  * ```
-//  *
-//  * @param left The left operand expression.
-//  * @param right The right operand constant.
-//  * @return A new {@code Expr} representing the bitwise OR operation.
-//  */
-// export function bitOr(left: Expr, right: any): BitOr;
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise OR operation between a field and an expression.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise OR of 'field1' and 'field2'.
-//  * bitOr("field1", Field.of("field2"));
-//  * ```
-//  *
-//  * @param left The left operand field name.
-//  * @param right The right operand expression.
-//  * @return A new {@code Expr} representing the bitwise OR operation.
-//  */
-// export function bitOr(left: string, right: Expr): BitOr;
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise OR operation between a field and a constant.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise OR of 'field1' and 0xFF.
-//  * bitOr("field1", 0xFF);
-//  * ```
-//  *
-//  * @param left The left operand field name.
-//  * @param right The right operand constant.
-//  * @return A new {@code Expr} representing the bitwise OR operation.
-//  */
-// export function bitOr(left: string, right: any): BitOr;
-// export function bitOr(left: Expr | string, right: Expr | any): BitOr {
-//   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-//   const normalizedRight = right instanceof Expr ? right : valueToDefaultExpr(right);
-//   return new BitOr(normalizedLeft, normalizedRight);
-// }
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise XOR operation between two expressions.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise XOR of 'field1' and 'field2'.
-//  * bitXor(Field.of("field1"), Field.of("field2"));
-//  * ```
-//  *
-//  * @param left The left operand expression.
-//  * @param right The right operand expression.
-//  * @return A new {@code Expr} representing the bitwise XOR operation.
-//  */
-// export function bitXor(left: Expr, right: Expr): BitXor;
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise XOR operation between an expression and a constant.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise XOR of 'field1' and 0xFF.
-//  * bitXor(Field.of("field1"), 0xFF);
-//  * ```
-//  *
-//  * @param left The left operand expression.
-//  * @param right The right operand constant.
-//  * @return A new {@code Expr} representing the bitwise XOR operation.
-//  */
-// export function bitXor(left: Expr, right: any): BitXor;
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise XOR operation between a field and an expression.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise XOR of 'field1' and 'field2'.
-//  * bitXor("field1", Field.of("field2"));
-//  * ```
-//  *
-//  * @param left The left operand field name.
-//  * @param right The right operand expression.
-//  * @return A new {@code Expr} representing the bitwise XOR operation.
-//  */
-// export function bitXor(left: string, right: Expr): BitXor;
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise XOR operation between a field and a constant.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise XOR of 'field1' and 0xFF.
-//  * bitXor("field1", 0xFF);
-//  * ```
-//  *
-//  * @param left The left operand field name.
-//  * @param right The right operand constant.
-//  * @return A new {@code Expr} representing the bitwise XOR operation.
-//  */
-// export function bitXor(left: string, right: any): BitXor;
-// export function bitXor(left: Expr | string, right: Expr | any): BitXor {
-//   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-//   const normalizedRight = right instanceof Expr ? right : valueToDefaultExpr(right);
-//   return new BitXor(normalizedLeft, normalizedRight);
-// }
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise NOT operation to an expression.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise NOT of 'field1'.
-//  * bitNot(Field.of("field1"));
-//  * ```
-//  *
-//  * @param operand The operand expression.
-//  * @return A new {@code Expr} representing the bitwise NOT operation.
-//  */
-// export function bitNot(operand: Expr): BitNot;
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise NOT operation to a field.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise NOT of 'field1'.
-//  * bitNot("field1");
-//  * ```
-//  *
-//  * @param operand The operand field name.
-//  * @return A new {@code Expr} representing the bitwise NOT operation.
-//  */
-// export function bitNot(operand: string): BitNot;
-// export function bitNot(operand: Expr | string): BitNot {
-//   const normalizedOperand =
-//     typeof operand === 'string' ? Field.of(operand) : operand;
-//   return new BitNot(normalizedOperand);
-// }
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise left shift operation between two expressions.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise left shift of 'field1' by 'field2' bits.
-//  * bitLeftShift(Field.of("field1"), Field.of("field2"));
-//  * ```
-//  *
-//  * @param left The left operand expression.
-//  * @param right The right operand expression representing the number of bits to shift.
-//  * @return A new {@code Expr} representing the bitwise left shift operation.
-//  */
-// export function bitLeftShift(left: Expr, right: Expr): BitLeftShift;
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise left shift operation between an expression and a constant.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise left shift of 'field1' by 2 bits.
-//  * bitLeftShift(Field.of("field1"), 2);
-//  * ```
-//  *
-//  * @param left The left operand expression.
-//  * @param right The right operand constant representing the number of bits to shift.
-//  * @return A new {@code Expr} representing the bitwise left shift operation.
-//  */
-// export function bitLeftShift(left: Expr, right: any): BitLeftShift;
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise left shift operation between a field and an expression.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise left shift of 'field1' by 'field2' bits.
-//  * bitLeftShift("field1", Field.of("field2"));
-//  * ```
-//  *
-//  * @param left The left operand field name.
-//  * @param right The right operand expression representing the number of bits to shift.
-//  * @return A new {@code Expr} representing the bitwise left shift operation.
-//  */
-// export function bitLeftShift(left: string, right: Expr): BitLeftShift;
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise left shift operation between a field and a constant.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise left shift of 'field1' by 2 bits.
-//  * bitLeftShift("field1", 2);
-//  * ```
-//  *
-//  * @param left The left operand field name.
-//  * @param right The right operand constant representing the number of bits to shift.
-//  * @return A new {@code Expr} representing the bitwise left shift operation.
-//  */
-// export function bitLeftShift(left: string, right: any): BitLeftShift;
-// export function bitLeftShift(
-//   left: Expr | string,
-//   right: Expr | any
-// ): BitLeftShift {
-//   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-//   const normalizedRight = right instanceof Expr ? right : valueToDefaultExpr(right);
-//   return new BitLeftShift(normalizedLeft, normalizedRight);
-// }
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise right shift operation between two expressions.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise right shift of 'field1' by 'field2' bits.
-//  * bitRightShift(Field.of("field1"), Field.of("field2"));
-//  * ```
-//  *
-//  * @param left The left operand expression.
-//  * @param right The right operand expression representing the number of bits to shift.
-//  * @return A new {@code Expr} representing the bitwise right shift operation.
-//  */
-// export function bitRightShift(left: Expr, right: Expr): BitRightShift;
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise right shift operation between an expression and a constant.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise right shift of 'field1' by 2 bits.
-//  * bitRightShift(Field.of("field1"), 2);
-//  * ```
-//  *
-//  * @param left The left operand expression.
-//  * @param right The right operand constant representing the number of bits to shift.
-//  * @return A new {@code Expr} representing the bitwise right shift operation.
-//  */
-// export function bitRightShift(left: Expr, right: any): BitRightShift;
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise right shift operation between a field and an expression.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise right shift of 'field1' by 'field2' bits.
-//  * bitRightShift("field1", Field.of("field2"));
-//  * ```
-//  *
-//  * @param left The left operand field name.
-//  * @param right The right operand expression representing the number of bits to shift.
-//  * @return A new {@code Expr} representing the bitwise right shift operation.
-//  */
-// export function bitRightShift(left: string, right: Expr): BitRightShift;
-//
-// /**
-//  * @beta
-//  *
-//  * Creates an expression that applies a bitwise right shift operation between a field and a constant.
-//  *
-//  * ```typescript
-//  * // Calculate the bitwise right shift of 'field1' by 2 bits.
-//  * bitRightShift("field1", 2);
-//  * ```
-//  *
-//  * @param left The left operand field name.
-//  * @param right The right operand constant representing the number of bits to shift.
-//  * @return A new {@code Expr} representing the bitwise right shift operation.
-//  */
-// export function bitRightShift(left: string, right: any): BitRightShift;
-// export function bitRightShift(
-//   left: Expr | string,
-//   right: Expr | any
-// ): BitRightShift {
-//   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
-//   const normalizedRight = right instanceof Expr ? right : valueToDefaultExpr(right);
-//   return new BitRightShift(normalizedLeft, normalizedRight);
-// }
 
 /**
  * @beta
@@ -5384,7 +4017,7 @@ export function array(elements: any[]): ArrayFunction {
  * @param right The second expression to compare.
  * @return A new `Expr` representing the equality comparison.
  */
-export function eq(left: ScalarExpr, right: ScalarExpr): Eq;
+export function eq(left: ScalarExpr, right: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -5400,7 +4033,7 @@ export function eq(left: ScalarExpr, right: ScalarExpr): Eq;
  * @param right The constant value to compare to.
  * @return A new `Expr` representing the equality comparison.
  */
-export function eq(left: ScalarExpr, right: any): Eq;
+export function eq(left: ScalarExpr, right: any): BooleanExpr;
 
 /**
  * @beta
@@ -5416,7 +4049,7 @@ export function eq(left: ScalarExpr, right: any): Eq;
  * @param right The expression to compare to.
  * @return A new `Expr` representing the equality comparison.
  */
-export function eq(left: string, right: ScalarExpr): Eq;
+export function eq(left: string, right: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -5432,12 +4065,11 @@ export function eq(left: string, right: ScalarExpr): Eq;
  * @param right The constant value to compare to.
  * @return A new `Expr` representing the equality comparison.
  */
-export function eq(left: string, right: any): Eq;
-export function eq(left: ScalarExpr | string, right: any): Eq {
+export function eq(left: string, right: any): BooleanExpr;
+export function eq(left: ScalarExpr | string, right: any): BooleanExpr {
   const leftExpr = left instanceof ScalarExpr ? left : Field.of(left);
-  const rightExpr =
-    right instanceof ScalarExpr ? right : valueToDefaultExpr(right);
-  return new Eq(leftExpr, rightExpr);
+  const rightExpr = valueToDefaultExpr(right);
+  return leftExpr.eq(rightExpr);
 }
 
 /**
@@ -5454,7 +4086,7 @@ export function eq(left: ScalarExpr | string, right: any): Eq {
  * @param right The second expression to compare.
  * @return A new `Expr` representing the inequality comparison.
  */
-export function neq(left: ScalarExpr, right: ScalarExpr): Neq;
+export function neq(left: ScalarExpr, right: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -5470,7 +4102,7 @@ export function neq(left: ScalarExpr, right: ScalarExpr): Neq;
  * @param right The constant value to compare to.
  * @return A new `Expr` representing the inequality comparison.
  */
-export function neq(left: ScalarExpr, right: any): Neq;
+export function neq(left: ScalarExpr, right: any): BooleanExpr;
 
 /**
  * @beta
@@ -5486,7 +4118,7 @@ export function neq(left: ScalarExpr, right: any): Neq;
  * @param right The expression to compare to.
  * @return A new `Expr` representing the inequality comparison.
  */
-export function neq(left: string, right: ScalarExpr): Neq;
+export function neq(left: string, right: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -5502,12 +4134,11 @@ export function neq(left: string, right: ScalarExpr): Neq;
  * @param right The constant value to compare to.
  * @return A new `Expr` representing the inequality comparison.
  */
-export function neq(left: string, right: any): Neq;
-export function neq(left: ScalarExpr | string, right: any): Neq {
+export function neq(left: string, right: any): BooleanExpr;
+export function neq(left: ScalarExpr | string, right: any): BooleanExpr {
   const leftExpr = left instanceof ScalarExpr ? left : Field.of(left);
-  const rightExpr =
-    right instanceof ScalarExpr ? right : valueToDefaultExpr(right);
-  return new Neq(leftExpr, rightExpr);
+  const rightExpr = valueToDefaultExpr(right);
+  return leftExpr.neq(rightExpr);
 }
 
 /**
@@ -5524,7 +4155,7 @@ export function neq(left: ScalarExpr | string, right: any): Neq {
  * @param right The second expression to compare.
  * @return A new `Expr` representing the less than comparison.
  */
-export function lt(left: ScalarExpr, right: ScalarExpr): Lt;
+export function lt(left: ScalarExpr, right: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -5540,7 +4171,7 @@ export function lt(left: ScalarExpr, right: ScalarExpr): Lt;
  * @param right The constant value to compare to.
  * @return A new `Expr` representing the less than comparison.
  */
-export function lt(left: ScalarExpr, right: any): Lt;
+export function lt(left: ScalarExpr, right: any): BooleanExpr;
 
 /**
  * @beta
@@ -5556,7 +4187,7 @@ export function lt(left: ScalarExpr, right: any): Lt;
  * @param right The expression to compare to.
  * @return A new `Expr` representing the less than comparison.
  */
-export function lt(left: string, right: ScalarExpr): Lt;
+export function lt(left: string, right: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -5572,12 +4203,11 @@ export function lt(left: string, right: ScalarExpr): Lt;
  * @param right The constant value to compare to.
  * @return A new `Expr` representing the less than comparison.
  */
-export function lt(left: string, right: any): Lt;
-export function lt(left: ScalarExpr | string, right: any): Lt {
+export function lt(left: string, right: any): BooleanExpr;
+export function lt(left: ScalarExpr | string, right: any): BooleanExpr {
   const leftExpr = left instanceof ScalarExpr ? left : Field.of(left);
-  const rightExpr =
-    right instanceof ScalarExpr ? right : valueToDefaultExpr(right);
-  return new Lt(leftExpr, rightExpr);
+  const rightExpr = valueToDefaultExpr(right);
+  return leftExpr.lt(rightExpr);
 }
 
 /**
@@ -5595,7 +4225,7 @@ export function lt(left: ScalarExpr | string, right: any): Lt {
  * @param right The second expression to compare.
  * @return A new `Expr` representing the less than or equal to comparison.
  */
-export function lte(left: ScalarExpr, right: ScalarExpr): Lte;
+export function lte(left: ScalarExpr, right: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -5611,7 +4241,7 @@ export function lte(left: ScalarExpr, right: ScalarExpr): Lte;
  * @param right The constant value to compare to.
  * @return A new `Expr` representing the less than or equal to comparison.
  */
-export function lte(left: ScalarExpr, right: any): Lte;
+export function lte(left: ScalarExpr, right: any): BooleanExpr;
 
 /**
  * Creates an expression that checks if a field's value is less than or equal to an expression.
@@ -5625,7 +4255,7 @@ export function lte(left: ScalarExpr, right: any): Lte;
  * @param right The expression to compare to.
  * @return A new `Expr` representing the less than or equal to comparison.
  */
-export function lte(left: string, right: ScalarExpr): Lte;
+export function lte(left: string, right: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -5641,12 +4271,11 @@ export function lte(left: string, right: ScalarExpr): Lte;
  * @param right The constant value to compare to.
  * @return A new `Expr` representing the less than or equal to comparison.
  */
-export function lte(left: string, right: any): Lte;
-export function lte(left: ScalarExpr | string, right: any): Lte {
+export function lte(left: string, right: any): BooleanExpr;
+export function lte(left: ScalarExpr | string, right: any): BooleanExpr {
   const leftExpr = left instanceof ScalarExpr ? left : Field.of(left);
-  const rightExpr =
-    right instanceof ScalarExpr ? right : valueToDefaultExpr(right);
-  return new Lte(leftExpr, rightExpr);
+  const rightExpr = valueToDefaultExpr(right);
+  return leftExpr.lte(rightExpr);
 }
 
 /**
@@ -5664,7 +4293,7 @@ export function lte(left: ScalarExpr | string, right: any): Lte {
  * @param right The second expression to compare.
  * @return A new `Expr` representing the greater than comparison.
  */
-export function gt(left: ScalarExpr, right: ScalarExpr): Gt;
+export function gt(left: ScalarExpr, right: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -5680,7 +4309,7 @@ export function gt(left: ScalarExpr, right: ScalarExpr): Gt;
  * @param right The constant value to compare to.
  * @return A new `Expr` representing the greater than comparison.
  */
-export function gt(left: ScalarExpr, right: any): Gt;
+export function gt(left: ScalarExpr, right: any): BooleanExpr;
 
 /**
  * @beta
@@ -5696,7 +4325,7 @@ export function gt(left: ScalarExpr, right: any): Gt;
  * @param right The expression to compare to.
  * @return A new `Expr` representing the greater than comparison.
  */
-export function gt(left: string, right: ScalarExpr): Gt;
+export function gt(left: string, right: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -5712,12 +4341,11 @@ export function gt(left: string, right: ScalarExpr): Gt;
  * @param right The constant value to compare to.
  * @return A new `Expr` representing the greater than comparison.
  */
-export function gt(left: string, right: any): Gt;
-export function gt(left: ScalarExpr | string, right: any): Gt {
+export function gt(left: string, right: any): BooleanExpr;
+export function gt(left: ScalarExpr | string, right: any): BooleanExpr {
   const leftExpr = left instanceof ScalarExpr ? left : Field.of(left);
-  const rightExpr =
-    right instanceof ScalarExpr ? right : valueToDefaultExpr(right);
-  return new Gt(leftExpr, rightExpr);
+  const rightExpr = valueToDefaultExpr(right);
+  return leftExpr.gt(rightExpr);
 }
 
 /**
@@ -5735,7 +4363,7 @@ export function gt(left: ScalarExpr | string, right: any): Gt {
  * @param right The second expression to compare.
  * @return A new `Expr` representing the greater than or equal to comparison.
  */
-export function gte(left: ScalarExpr, right: ScalarExpr): Gte;
+export function gte(left: ScalarExpr, right: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -5752,7 +4380,7 @@ export function gte(left: ScalarExpr, right: ScalarExpr): Gte;
  * @param right The constant value to compare to.
  * @return A new `Expr` representing the greater than or equal to comparison.
  */
-export function gte(left: ScalarExpr, right: any): Gte;
+export function gte(left: ScalarExpr, right: any): BooleanExpr;
 
 /**
  * @beta
@@ -5768,7 +4396,7 @@ export function gte(left: ScalarExpr, right: any): Gte;
  * @param right The expression to compare to.
  * @return A new `Expr` representing the greater than or equal to comparison.
  */
-export function gte(left: string, right: ScalarExpr): Gte;
+export function gte(left: string, right: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -5785,12 +4413,11 @@ export function gte(left: string, right: ScalarExpr): Gte;
  * @param right The constant value to compare to.
  * @return A new `Expr` representing the greater than or equal to comparison.
  */
-export function gte(left: string, right: any): Gte;
-export function gte(left: ScalarExpr | string, right: any): Gte {
+export function gte(left: string, right: any): BooleanExpr;
+export function gte(left: ScalarExpr | string, right: any): BooleanExpr {
   const leftExpr = left instanceof ScalarExpr ? left : Field.of(left);
-  const rightExpr =
-    right instanceof ScalarExpr ? right : valueToDefaultExpr(right);
-  return new Gte(leftExpr, rightExpr);
+  const rightExpr = valueToDefaultExpr(right);
+  return leftExpr.gte(rightExpr);
 }
 
 /**
@@ -5812,7 +4439,7 @@ export function arrayConcat(
   firstArray: ScalarExpr,
   secondArray: ScalarExpr | any,
   ...otherArrays: Array<ScalarExpr | any>
-): ArrayConcat;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -5833,15 +4460,18 @@ export function arrayConcat(
   firstArrayField: string,
   secondArray: ScalarExpr | any[],
   ...otherArrays: Array<ScalarExpr | any>
-): ArrayConcat;
+): FirestoreFunction;
 
 export function arrayConcat(
   firstArray: ScalarExpr | string,
+  secondArray: ScalarExpr | any[],
   ...otherArrays: Array<ScalarExpr | any[]>
-): ArrayConcat {
-  const arrayExpr = fieldOfOrExpr(firstArray);
+): FirestoreFunction {
   const exprValues = otherArrays.map(element => valueToDefaultExpr(element));
-  return new ArrayConcat(arrayExpr, exprValues);
+  return fieldOfOrExpr(firstArray).arrayConcat(
+    fieldOfOrExpr(secondArray),
+    ...exprValues
+  );
 }
 
 /**
@@ -5861,7 +4491,7 @@ export function arrayConcat(
 export function arrayContains(
   array: ScalarExpr,
   element: ScalarExpr
-): ArrayContains;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -5877,7 +4507,10 @@ export function arrayContains(
  * @param element The element to search for in the array.
  * @return A new {@code Expr} representing the 'array_contains' comparison.
  */
-export function arrayContains(array: ScalarExpr, element: any): ArrayContains;
+export function arrayContains(
+  array: ScalarExpr,
+  element: any
+): FirestoreFunction;
 
 /**
  * @beta
@@ -5896,7 +4529,7 @@ export function arrayContains(array: ScalarExpr, element: any): ArrayContains;
 export function arrayContains(
   array: string,
   element: ScalarExpr
-): ArrayContains;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -5912,15 +4545,14 @@ export function arrayContains(
  * @param element The element to search for in the array.
  * @return A new {@code Expr} representing the 'array_contains' comparison.
  */
-export function arrayContains(array: string, element: any): ArrayContains;
+export function arrayContains(array: string, element: any): BooleanExpr;
 export function arrayContains(
   array: ScalarExpr | string,
   element: any
-): ArrayContains {
-  const arrayExpr = array instanceof ScalarExpr ? array : Field.of(array);
-  const elementExpr =
-    element instanceof ScalarExpr ? element : valueToDefaultExpr(element);
-  return new ArrayContains(arrayExpr, elementExpr);
+): BooleanExpr {
+  const arrayExpr = fieldOfOrExpr(array);
+  const elementExpr = valueToDefaultExpr(element);
+  return arrayExpr.arrayContains(elementExpr);
 }
 
 /**
@@ -5941,7 +4573,7 @@ export function arrayContains(
 export function arrayContainsAny(
   array: ScalarExpr,
   values: ScalarExpr[]
-): ArrayContainsAny;
+): BooleanExpr;
 
 /**
  * @beta
@@ -5958,10 +4590,7 @@ export function arrayContainsAny(
  * @param values The elements to check for in the array.
  * @return A new {@code Expr} representing the 'array_contains_any' comparison.
  */
-export function arrayContainsAny(
-  array: ScalarExpr,
-  values: any[]
-): ArrayContainsAny;
+export function arrayContainsAny(array: ScalarExpr, values: any[]): BooleanExpr;
 
 /**
  * @beta
@@ -5982,7 +4611,7 @@ export function arrayContainsAny(
 export function arrayContainsAny(
   array: string,
   values: ScalarExpr[]
-): ArrayContainsAny;
+): BooleanExpr;
 
 /**
  * @beta
@@ -6000,19 +4629,14 @@ export function arrayContainsAny(
  * @param values The elements to check for in the array.
  * @return A new {@code Expr} representing the 'array_contains_any' comparison.
  */
-export function arrayContainsAny(
-  array: string,
-  values: any[]
-): ArrayContainsAny;
+export function arrayContainsAny(array: string, values: any[]): BooleanExpr;
 export function arrayContainsAny(
   array: ScalarExpr | string,
   values: any[]
-): ArrayContainsAny {
-  const arrayExpr = array instanceof ScalarExpr ? array : Field.of(array);
-  const exprValues = values.map(value =>
-    value instanceof ScalarExpr ? value : valueToDefaultExpr(value)
+): BooleanExpr {
+  return fieldOfOrExpr(array).arrayContainsAny(
+    ...values.map(valueToDefaultExpr)
   );
-  return new ArrayContainsAny(arrayExpr, exprValues);
 }
 
 /**
@@ -6032,7 +4656,7 @@ export function arrayContainsAny(
 export function arrayContainsAll(
   array: ScalarExpr,
   values: ScalarExpr[]
-): ArrayContainsAll;
+): BooleanExpr;
 
 /**
  * @beta
@@ -6048,10 +4672,7 @@ export function arrayContainsAll(
  * @param values The elements to check for in the array.
  * @return A new {@code Expr} representing the 'array_contains_all' comparison.
  */
-export function arrayContainsAll(
-  array: ScalarExpr,
-  values: any[]
-): ArrayContainsAll;
+export function arrayContainsAll(array: ScalarExpr, values: any[]): BooleanExpr;
 
 /**
  * @beta
@@ -6071,7 +4692,7 @@ export function arrayContainsAll(
 export function arrayContainsAll(
   array: string,
   values: ScalarExpr[]
-): ArrayContainsAll;
+): BooleanExpr;
 
 /**
  * @beta
@@ -6088,19 +4709,14 @@ export function arrayContainsAll(
  * @param values The elements to check for in the array.
  * @return A new {@code Expr} representing the 'array_contains_all' comparison.
  */
-export function arrayContainsAll(
-  array: string,
-  values: any[]
-): ArrayContainsAll;
+export function arrayContainsAll(array: string, values: any[]): BooleanExpr;
 export function arrayContainsAll(
   array: ScalarExpr | string,
   values: any[]
-): ArrayContainsAll {
-  const arrayExpr = array instanceof ScalarExpr ? array : Field.of(array);
-  const exprValues = values.map(value =>
-    value instanceof ScalarExpr ? value : valueToDefaultExpr(value)
-  );
-  return new ArrayContainsAll(arrayExpr, exprValues);
+): BooleanExpr {
+  const arrayExpr = fieldOfOrExpr(array);
+  const exprValues = values.map(value => valueToDefaultExpr(value));
+  return arrayExpr.arrayContainsAll(exprValues);
 }
 
 /**
@@ -6116,8 +4732,8 @@ export function arrayContainsAll(
  * @param array The array expression to calculate the length of.
  * @return A new {@code Expr} representing the length of the array.
  */
-export function arrayLength(array: ScalarExpr): ArrayLength {
-  return new ArrayLength(array);
+export function arrayLength(array: ScalarExpr): FirestoreFunction {
+  return array.arrayLength();
 }
 
 /**
@@ -6135,7 +4751,7 @@ export function arrayLength(array: ScalarExpr): ArrayLength {
  * @param others The values to check against.
  * @return A new {@code Expr} representing the 'IN' comparison.
  */
-export function eqAny(element: ScalarExpr, others: ScalarExpr[]): EqAny;
+export function eqAny(element: ScalarExpr, others: ScalarExpr[]): BooleanExpr;
 
 /**
  * @beta
@@ -6152,7 +4768,7 @@ export function eqAny(element: ScalarExpr, others: ScalarExpr[]): EqAny;
  * @param others The values to check against.
  * @return A new {@code Expr} representing the 'IN' comparison.
  */
-export function eqAny(element: ScalarExpr, others: any[]): EqAny;
+export function eqAny(element: ScalarExpr, others: any[]): BooleanExpr;
 
 /**
  * @beta
@@ -6169,7 +4785,7 @@ export function eqAny(element: ScalarExpr, others: any[]): EqAny;
  * @param others The values to check against.
  * @return A new {@code Expr} representing the 'IN' comparison.
  */
-export function eqAny(element: string, others: ScalarExpr[]): EqAny;
+export function eqAny(element: string, others: ScalarExpr[]): BooleanExpr;
 
 /**
  * @beta
@@ -6186,14 +4802,14 @@ export function eqAny(element: string, others: ScalarExpr[]): EqAny;
  * @param others The values to check against.
  * @return A new {@code Expr} representing the 'IN' comparison.
  */
-export function eqAny(element: string, others: any[]): EqAny;
-export function eqAny(element: ScalarExpr | string, others: any[]): EqAny {
-  const elementExpr =
-    element instanceof ScalarExpr ? element : Field.of(element);
-  const exprOthers = others.map(other =>
-    other instanceof ScalarExpr ? other : valueToDefaultExpr(other)
-  );
-  return new EqAny(elementExpr, exprOthers);
+export function eqAny(element: string, others: any[]): BooleanExpr;
+export function eqAny(
+  element: ScalarExpr | string,
+  others: any[]
+): BooleanExpr {
+  const elementExpr = fieldOfOrExpr(element);
+  const exprOthers = others.map(other => valueToDefaultExpr(other));
+  return elementExpr.eqAny(...exprOthers);
 }
 
 /**
@@ -6211,7 +4827,10 @@ export function eqAny(element: ScalarExpr | string, others: any[]): EqAny {
  * @param others The values to check against.
  * @return A new {@code Expr} representing the 'NOT IN' comparison.
  */
-export function notEqAny(element: ScalarExpr, others: ScalarExpr[]): NotEqAny;
+export function notEqAny(
+  element: ScalarExpr,
+  others: ScalarExpr[]
+): BooleanExpr;
 
 /**
  * @beta
@@ -6228,7 +4847,7 @@ export function notEqAny(element: ScalarExpr, others: ScalarExpr[]): NotEqAny;
  * @param others The values to check against.
  * @return A new {@code Expr} representing the 'NOT IN' comparison.
  */
-export function notEqAny(element: ScalarExpr, others: any[]): NotEqAny;
+export function notEqAny(element: ScalarExpr, others: any[]): BooleanExpr;
 
 /**
  * @beta
@@ -6245,7 +4864,7 @@ export function notEqAny(element: ScalarExpr, others: any[]): NotEqAny;
  * @param others The values to check against.
  * @return A new {@code Expr} representing the 'NOT IN' comparison.
  */
-export function notEqAny(element: string, others: ScalarExpr[]): NotEqAny;
+export function notEqAny(element: string, others: ScalarExpr[]): BooleanExpr;
 
 /**
  * @beta
@@ -6262,17 +4881,14 @@ export function notEqAny(element: string, others: ScalarExpr[]): NotEqAny;
  * @param others The values to check against.
  * @return A new {@code Expr} representing the 'NOT IN' comparison.
  */
-export function notEqAny(element: string, others: any[]): NotEqAny;
+export function notEqAny(element: string, others: any[]): BooleanExpr;
 export function notEqAny(
   element: ScalarExpr | string,
   others: any[]
-): NotEqAny {
-  const elementExpr =
-    element instanceof ScalarExpr ? element : Field.of(element);
-  const exprOthers = others.map(other =>
-    other instanceof ScalarExpr ? other : valueToDefaultExpr(other)
-  );
-  return new NotEqAny(elementExpr, exprOthers);
+): BooleanExpr {
+  const elementExpr = fieldOfOrExpr(element);
+  const exprOthers = others.map(other => valueToDefaultExpr(other));
+  return elementExpr.notEqAny(...exprOthers);
 }
 
 /**
@@ -6299,8 +4915,8 @@ export function xor(
   first: BooleanExpr,
   second: BooleanExpr,
   ...more: BooleanExpr[]
-): Xor {
-  return new Xor([first, second, ...more]);
+): BooleanExpr {
+  return new BooleanExpr('xor', [first, second, ...more]);
 }
 
 /**
@@ -6324,8 +4940,8 @@ export function cond(
   condition: BooleanExpr,
   thenExpr: ScalarExpr,
   elseExpr: ScalarExpr
-): Cond {
-  return new Cond(condition, thenExpr, elseExpr);
+): FirestoreFunction {
+  return new BooleanExpr('cond', [condition, thenExpr, elseExpr]);
 }
 
 /**
@@ -6341,8 +4957,8 @@ export function cond(
  * @param filter The filter condition to negate.
  * @return A new {@code Expr} representing the negated filter condition.
  */
-export function not(filter: BooleanExpr): Not {
-  return new Not(filter);
+export function not(filter: BooleanExpr): BooleanExpr {
+  return filter.not();
 }
 
 /**
@@ -6364,7 +4980,7 @@ export function logicalMaximum(
   first: ScalarExpr,
   second: ScalarExpr | any,
   ...others: Array<ScalarExpr | any>
-): LogicalMaximum;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -6385,15 +5001,16 @@ export function logicalMaximum(
   left: string,
   second: ScalarExpr | any,
   ...others: Array<ScalarExpr | any>
-): LogicalMaximum;
+): FirestoreFunction;
 
 export function logicalMaximum(
   first: ScalarExpr | string,
+  second: ScalarExpr | any,
   ...others: Array<ScalarExpr | any>
-): LogicalMaximum {
-  return new LogicalMaximum(
-    fieldOfOrExpr(first),
-    others.map(value => valueToDefaultExpr(value))
+): FirestoreFunction {
+  return fieldOfOrExpr(first).logicalMaximum(
+    valueToDefaultExpr(second),
+    ...others.map(value => valueToDefaultExpr(value))
   );
 }
 
@@ -6416,7 +5033,7 @@ export function logicalMinimum(
   first: ScalarExpr,
   second: ScalarExpr | any,
   ...others: Array<ScalarExpr | any>
-): LogicalMinimum;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -6437,15 +5054,16 @@ export function logicalMinimum(
   fieldName: string,
   second: ScalarExpr | any,
   ...others: Array<ScalarExpr | any>
-): LogicalMinimum;
+): FirestoreFunction;
 
 export function logicalMinimum(
   first: ScalarExpr | string,
+  second: ScalarExpr | any,
   ...others: Array<ScalarExpr | any>
-): LogicalMinimum {
-  return new LogicalMinimum(
-    fieldOfOrExpr(first),
-    others.map(value => valueToDefaultExpr(value))
+): FirestoreFunction {
+  return fieldOfOrExpr(first).logicalMinimum(
+    valueToDefaultExpr(second),
+    ...others.map(value => valueToDefaultExpr(value))
   );
 }
 
@@ -6462,7 +5080,7 @@ export function logicalMinimum(
  * @param value An expression evaluates to the name of the field to check.
  * @return A new {@code Expr} representing the 'exists' check.
  */
-export function exists(value: ScalarExpr): Exists;
+export function exists(value: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -6477,11 +5095,9 @@ export function exists(value: ScalarExpr): Exists;
  * @param field The field name to check.
  * @return A new {@code Expr} representing the 'exists' check.
  */
-export function exists(field: string): Exists;
-export function exists(valueOrField: ScalarExpr | string): Exists {
-  const valueExpr =
-    valueOrField instanceof ScalarExpr ? valueOrField : Field.of(valueOrField);
-  return new Exists(valueExpr);
+export function exists(field: string): BooleanExpr;
+export function exists(valueOrField: ScalarExpr | string): BooleanExpr {
+  return fieldOfOrExpr(valueOrField).exists();
 }
 
 /**
@@ -6497,7 +5113,7 @@ export function exists(valueOrField: ScalarExpr | string): Exists {
  * @param value The expression to check.
  * @return A new {@code Expr} representing the 'isNaN' check.
  */
-export function isNan(value: ScalarExpr): IsNan;
+export function isNan(value: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -6512,10 +5128,9 @@ export function isNan(value: ScalarExpr): IsNan;
  * @param value The name of the field to check.
  * @return A new {@code Expr} representing the 'isNaN' check.
  */
-export function isNan(value: string): IsNan;
-export function isNan(value: ScalarExpr | string): IsNan {
-  const valueExpr = value instanceof ScalarExpr ? value : Field.of(value);
-  return new IsNan(valueExpr);
+export function isNan(value: string): BooleanExpr;
+export function isNan(value: ScalarExpr | string): BooleanExpr {
+  return fieldOfOrExpr(value).isNan();
 }
 
 /**
@@ -6531,7 +5146,7 @@ export function isNan(value: ScalarExpr | string): IsNan {
  * @param expr The expression representing the string to reverse.
  * @return A new {@code Expr} representing the reversed string.
  */
-export function reverse(expr: ScalarExpr): Reverse;
+export function reverse(expr: ScalarExpr): FirestoreFunction;
 
 /**
  * @beta
@@ -6546,10 +5161,9 @@ export function reverse(expr: ScalarExpr): Reverse;
  * @param field The name of the field representing the string to reverse.
  * @return A new {@code Expr} representing the reversed string.
  */
-export function reverse(field: string): Reverse;
-export function reverse(expr: ScalarExpr | string): Reverse {
-  const normalizedExpr = typeof expr === 'string' ? Field.of(expr) : expr;
-  return new Reverse(normalizedExpr);
+export function reverse(field: string): FirestoreFunction;
+export function reverse(expr: ScalarExpr | string): FirestoreFunction {
+  return fieldOfOrExpr(expr).reverse();
 }
 
 /**
@@ -6571,7 +5185,7 @@ export function replaceFirst(
   value: ScalarExpr,
   find: string,
   replace: string
-): ReplaceFirst;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -6593,7 +5207,7 @@ export function replaceFirst(
   value: ScalarExpr,
   find: ScalarExpr,
   replace: ScalarExpr
-): ReplaceFirst;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -6614,17 +5228,16 @@ export function replaceFirst(
   field: string,
   find: string,
   replace: string
-): ReplaceFirst;
+): FirestoreFunction;
 export function replaceFirst(
   value: ScalarExpr | string,
   find: ScalarExpr | string,
   replace: ScalarExpr | string
-): ReplaceFirst {
-  const normalizedValue = typeof value === 'string' ? Field.of(value) : value;
-  const normalizedFind = typeof find === 'string' ? Constant.of(find) : find;
-  const normalizedReplace =
-    typeof replace === 'string' ? Constant.of(replace) : replace;
-  return new ReplaceFirst(normalizedValue, normalizedFind, normalizedReplace);
+): FirestoreFunction {
+  const normalizedValue = fieldOfOrExpr(value);
+  const normalizedFind = valueToDefaultExpr(find);
+  const normalizedReplace = valueToDefaultExpr(replace);
+  return normalizedValue.replaceFirst(normalizedFind, normalizedReplace);
 }
 
 /**
@@ -6646,7 +5259,7 @@ export function replaceAll(
   value: ScalarExpr,
   find: string,
   replace: string
-): ReplaceAll;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -6668,7 +5281,7 @@ export function replaceAll(
   value: ScalarExpr,
   find: ScalarExpr,
   replace: ScalarExpr
-): ReplaceAll;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -6689,17 +5302,16 @@ export function replaceAll(
   field: string,
   find: string,
   replace: string
-): ReplaceAll;
+): FirestoreFunction;
 export function replaceAll(
   value: ScalarExpr | string,
   find: ScalarExpr | string,
   replace: ScalarExpr | string
-): ReplaceAll {
-  const normalizedValue = typeof value === 'string' ? Field.of(value) : value;
-  const normalizedFind = typeof find === 'string' ? Constant.of(find) : find;
-  const normalizedReplace =
-    typeof replace === 'string' ? Constant.of(replace) : replace;
-  return new ReplaceAll(normalizedValue, normalizedFind, normalizedReplace);
+): FirestoreFunction {
+  const normalizedValue = fieldOfOrExpr(value);
+  const normalizedFind = valueToDefaultExpr(find);
+  const normalizedReplace = valueToDefaultExpr(replace);
+  return normalizedValue.replaceAll(normalizedFind, normalizedReplace);
 }
 
 /**
@@ -6715,7 +5327,7 @@ export function replaceAll(
  * @param expr The expression representing the string.
  * @return A new {@code Expr} representing the length of the string in bytes.
  */
-export function byteLength(expr: ScalarExpr): ByteLength;
+export function byteLength(expr: ScalarExpr): FirestoreFunction;
 
 /**
  * @beta
@@ -6730,10 +5342,10 @@ export function byteLength(expr: ScalarExpr): ByteLength;
  * @param field The name of the field representing the string.
  * @return A new {@code Expr} representing the length of the string in bytes.
  */
-export function byteLength(field: string): ByteLength;
-export function byteLength(expr: ScalarExpr | string): ByteLength {
-  const normalizedExpr = typeof expr === 'string' ? Field.of(expr) : expr;
-  return new ByteLength(normalizedExpr);
+export function byteLength(field: string): FirestoreFunction;
+export function byteLength(expr: ScalarExpr | string): FirestoreFunction {
+  const normalizedExpr = fieldOfOrExpr(expr);
+  return normalizedExpr.byteLength();
 }
 
 /**
@@ -6749,7 +5361,7 @@ export function byteLength(expr: ScalarExpr | string): ByteLength {
  * @param field The name of the field containing the string.
  * @return A new {@code Expr} representing the length of the string.
  */
-export function charLength(field: string): CharLength;
+export function charLength(field: string): FirestoreFunction;
 
 /**
  * @beta
@@ -6764,10 +5376,10 @@ export function charLength(field: string): CharLength;
  * @param expr The expression representing the string to calculate the length of.
  * @return A new {@code Expr} representing the length of the string.
  */
-export function charLength(expr: ScalarExpr): CharLength;
-export function charLength(value: ScalarExpr | string): CharLength {
-  const valueExpr = value instanceof ScalarExpr ? value : Field.of(value);
-  return new CharLength(valueExpr);
+export function charLength(expr: ScalarExpr): FirestoreFunction;
+export function charLength(value: ScalarExpr | string): FirestoreFunction {
+  const valueExpr = fieldOfOrExpr(value);
+  return valueExpr.charLength();
 }
 
 /**
@@ -6785,7 +5397,7 @@ export function charLength(value: ScalarExpr | string): CharLength {
  * @param pattern The pattern to search for. You can use "%" as a wildcard character.
  * @return A new {@code Expr} representing the 'like' comparison.
  */
-export function like(left: string, pattern: string): Like;
+export function like(left: string, pattern: string): BooleanExpr;
 
 /**
  * @beta
@@ -6802,7 +5414,7 @@ export function like(left: string, pattern: string): Like;
  * @param pattern The pattern to search for. You can use "%" as a wildcard character.
  * @return A new {@code Expr} representing the 'like' comparison.
  */
-export function like(left: string, pattern: ScalarExpr): Like;
+export function like(left: string, pattern: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -6818,7 +5430,7 @@ export function like(left: string, pattern: ScalarExpr): Like;
  * @param pattern The pattern to search for. You can use "%" as a wildcard character.
  * @return A new {@code Expr} representing the 'like' comparison.
  */
-export function like(left: ScalarExpr, pattern: string): Like;
+export function like(left: ScalarExpr, pattern: string): BooleanExpr;
 
 /**
  * @beta
@@ -6834,15 +5446,14 @@ export function like(left: ScalarExpr, pattern: string): Like;
  * @param pattern The pattern to search for. You can use "%" as a wildcard character.
  * @return A new {@code Expr} representing the 'like' comparison.
  */
-export function like(left: ScalarExpr, pattern: ScalarExpr): Like;
+export function like(left: ScalarExpr, pattern: ScalarExpr): BooleanExpr;
 export function like(
   left: ScalarExpr | string,
   pattern: ScalarExpr | string
-): Like {
-  const leftExpr = left instanceof ScalarExpr ? left : Field.of(left);
-  const patternExpr =
-    pattern instanceof ScalarExpr ? pattern : valueToDefaultExpr(pattern);
-  return new Like(leftExpr, patternExpr);
+): FirestoreFunction {
+  const leftExpr = fieldOfOrExpr(left);
+  const patternExpr = valueToDefaultExpr(pattern);
+  return leftExpr.like(patternExpr);
 }
 
 /**
@@ -6860,7 +5471,7 @@ export function like(
  * @param pattern The regular expression to use for the search.
  * @return A new {@code Expr} representing the 'contains' comparison.
  */
-export function regexContains(left: string, pattern: string): RegexContains;
+export function regexContains(left: string, pattern: string): BooleanExpr;
 
 /**
  * @beta
@@ -6877,7 +5488,7 @@ export function regexContains(left: string, pattern: string): RegexContains;
  * @param pattern The regular expression to use for the search.
  * @return A new {@code Expr} representing the 'contains' comparison.
  */
-export function regexContains(left: string, pattern: ScalarExpr): RegexContains;
+export function regexContains(left: string, pattern: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -6894,7 +5505,7 @@ export function regexContains(left: string, pattern: ScalarExpr): RegexContains;
  * @param pattern The regular expression to use for the search.
  * @return A new {@code Expr} representing the 'contains' comparison.
  */
-export function regexContains(left: ScalarExpr, pattern: string): RegexContains;
+export function regexContains(left: ScalarExpr, pattern: string): BooleanExpr;
 
 /**
  * @beta
@@ -6914,15 +5525,14 @@ export function regexContains(left: ScalarExpr, pattern: string): RegexContains;
 export function regexContains(
   left: ScalarExpr,
   pattern: ScalarExpr
-): RegexContains;
+): BooleanExpr;
 export function regexContains(
   left: ScalarExpr | string,
   pattern: ScalarExpr | string
-): RegexContains {
-  const leftExpr = left instanceof ScalarExpr ? left : Field.of(left);
-  const patternExpr =
-    pattern instanceof ScalarExpr ? pattern : valueToDefaultExpr(pattern);
-  return new RegexContains(leftExpr, patternExpr);
+): BooleanExpr {
+  const leftExpr = fieldOfOrExpr(left);
+  const patternExpr = valueToDefaultExpr(pattern);
+  return leftExpr.regexContains(patternExpr);
 }
 
 /**
@@ -6939,7 +5549,7 @@ export function regexContains(
  * @param pattern The regular expression to use for the match.
  * @return A new {@code Expr} representing the regular expression match.
  */
-export function regexMatch(left: string, pattern: string): RegexMatch;
+export function regexMatch(left: string, pattern: string): BooleanExpr;
 
 /**
  * @beta
@@ -6955,7 +5565,7 @@ export function regexMatch(left: string, pattern: string): RegexMatch;
  * @param pattern The regular expression to use for the match.
  * @return A new {@code Expr} representing the regular expression match.
  */
-export function regexMatch(left: string, pattern: ScalarExpr): RegexMatch;
+export function regexMatch(left: string, pattern: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -6972,7 +5582,7 @@ export function regexMatch(left: string, pattern: ScalarExpr): RegexMatch;
  * @param pattern The regular expression to use for the match.
  * @return A new {@code Expr} representing the regular expression match.
  */
-export function regexMatch(left: ScalarExpr, pattern: string): RegexMatch;
+export function regexMatch(left: ScalarExpr, pattern: string): BooleanExpr;
 
 /**
  * @beta
@@ -6989,15 +5599,14 @@ export function regexMatch(left: ScalarExpr, pattern: string): RegexMatch;
  * @param pattern The regular expression to use for the match.
  * @return A new {@code Expr} representing the regular expression match.
  */
-export function regexMatch(left: ScalarExpr, pattern: ScalarExpr): RegexMatch;
+export function regexMatch(left: ScalarExpr, pattern: ScalarExpr): BooleanExpr;
 export function regexMatch(
   left: ScalarExpr | string,
   pattern: ScalarExpr | string
-): RegexMatch {
-  const leftExpr = left instanceof ScalarExpr ? left : Field.of(left);
-  const patternExpr =
-    pattern instanceof ScalarExpr ? pattern : valueToDefaultExpr(pattern);
-  return new RegexMatch(leftExpr, patternExpr);
+): BooleanExpr {
+  const leftExpr = fieldOfOrExpr(left);
+  const patternExpr = valueToDefaultExpr(pattern);
+  return leftExpr.regexMatch(patternExpr);
 }
 
 /**
@@ -7014,7 +5623,7 @@ export function regexMatch(
  * @param substring The substring to search for.
  * @return A new {@code Expr} representing the 'contains' comparison.
  */
-export function strContains(left: string, substring: string): StrContains;
+export function strContains(left: string, substring: string): BooleanExpr;
 
 /**
  * @beta
@@ -7030,7 +5639,7 @@ export function strContains(left: string, substring: string): StrContains;
  * @param substring The expression representing the substring to search for.
  * @return A new {@code Expr} representing the 'contains' comparison.
  */
-export function strContains(left: string, substring: ScalarExpr): StrContains;
+export function strContains(left: string, substring: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -7046,7 +5655,7 @@ export function strContains(left: string, substring: ScalarExpr): StrContains;
  * @param substring The substring to search for.
  * @return A new {@code Expr} representing the 'contains' comparison.
  */
-export function strContains(left: ScalarExpr, substring: string): StrContains;
+export function strContains(left: ScalarExpr, substring: string): BooleanExpr;
 
 /**
  * @beta
@@ -7065,15 +5674,14 @@ export function strContains(left: ScalarExpr, substring: string): StrContains;
 export function strContains(
   left: ScalarExpr,
   substring: ScalarExpr
-): StrContains;
+): BooleanExpr;
 export function strContains(
   left: ScalarExpr | string,
   substring: ScalarExpr | string
-): StrContains {
-  const leftExpr = left instanceof ScalarExpr ? left : Field.of(left);
-  const substringExpr =
-    substring instanceof ScalarExpr ? substring : valueToDefaultExpr(substring);
-  return new StrContains(leftExpr, substringExpr);
+): BooleanExpr {
+  const leftExpr = fieldOfOrExpr(left);
+  const substringExpr = valueToDefaultExpr(substring);
+  return leftExpr.strContains(substringExpr);
 }
 
 /**
@@ -7090,7 +5698,7 @@ export function strContains(
  * @param prefix The prefix to check for.
  * @return A new {@code Expr} representing the 'starts with' comparison.
  */
-export function startsWith(expr: string, prefix: string): StartsWith;
+export function startsWith(expr: string, prefix: string): BooleanExpr;
 
 /**
  * @beta
@@ -7106,7 +5714,7 @@ export function startsWith(expr: string, prefix: string): StartsWith;
  * @param prefix The expression representing the prefix.
  * @return A new {@code Expr} representing the 'starts with' comparison.
  */
-export function startsWith(expr: string, prefix: ScalarExpr): StartsWith;
+export function startsWith(expr: string, prefix: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -7122,7 +5730,7 @@ export function startsWith(expr: string, prefix: ScalarExpr): StartsWith;
  * @param prefix The prefix to check for.
  * @return A new {@code Expr} representing the 'starts with' comparison.
  */
-export function startsWith(expr: ScalarExpr, prefix: string): StartsWith;
+export function startsWith(expr: ScalarExpr, prefix: string): BooleanExpr;
 
 /**
  * @beta
@@ -7138,15 +5746,12 @@ export function startsWith(expr: ScalarExpr, prefix: string): StartsWith;
  * @param prefix The prefix to check for.
  * @return A new {@code Expr} representing the 'starts with' comparison.
  */
-export function startsWith(expr: ScalarExpr, prefix: ScalarExpr): StartsWith;
+export function startsWith(expr: ScalarExpr, prefix: ScalarExpr): BooleanExpr;
 export function startsWith(
   expr: ScalarExpr | string,
   prefix: ScalarExpr | string
-): StartsWith {
-  const exprLeft = expr instanceof ScalarExpr ? expr : Field.of(expr);
-  const prefixExpr =
-    prefix instanceof ScalarExpr ? prefix : valueToDefaultExpr(prefix);
-  return new StartsWith(exprLeft, prefixExpr);
+): BooleanExpr {
+  return fieldOfOrExpr(expr).startsWith(valueToDefaultExpr(prefix));
 }
 
 /**
@@ -7163,7 +5768,7 @@ export function startsWith(
  * @param suffix The postfix to check for.
  * @return A new {@code Expr} representing the 'ends with' comparison.
  */
-export function endsWith(expr: string, suffix: string): EndsWith;
+export function endsWith(expr: string, suffix: string): BooleanExpr;
 
 /**
  * @beta
@@ -7179,7 +5784,7 @@ export function endsWith(expr: string, suffix: string): EndsWith;
  * @param suffix The expression representing the postfix.
  * @return A new {@code Expr} representing the 'ends with' comparison.
  */
-export function endsWith(expr: string, suffix: ScalarExpr): EndsWith;
+export function endsWith(expr: string, suffix: ScalarExpr): BooleanExpr;
 
 /**
  * @beta
@@ -7195,7 +5800,7 @@ export function endsWith(expr: string, suffix: ScalarExpr): EndsWith;
  * @param suffix The postfix to check for.
  * @return A new {@code Expr} representing the 'ends with' comparison.
  */
-export function endsWith(expr: ScalarExpr, suffix: string): EndsWith;
+export function endsWith(expr: ScalarExpr, suffix: string): BooleanExpr;
 
 /**
  * @beta
@@ -7211,15 +5816,12 @@ export function endsWith(expr: ScalarExpr, suffix: string): EndsWith;
  * @param suffix The postfix to check for.
  * @return A new {@code Expr} representing the 'ends with' comparison.
  */
-export function endsWith(expr: ScalarExpr, suffix: ScalarExpr): EndsWith;
+export function endsWith(expr: ScalarExpr, suffix: ScalarExpr): BooleanExpr;
 export function endsWith(
   expr: ScalarExpr | string,
   suffix: ScalarExpr | string
-): EndsWith {
-  const exprLeft = expr instanceof ScalarExpr ? expr : Field.of(expr);
-  const suffixExpr =
-    suffix instanceof ScalarExpr ? suffix : valueToDefaultExpr(suffix);
-  return new EndsWith(exprLeft, suffixExpr);
+): BooleanExpr {
+  return fieldOfOrExpr(expr).endsWith(valueToDefaultExpr(suffix));
 }
 
 /**
@@ -7235,7 +5837,7 @@ export function endsWith(
  * @param expr The name of the field containing the string.
  * @return A new {@code Expr} representing the lowercase string.
  */
-export function toLower(expr: string): ToLower;
+export function toLower(expr: string): FirestoreFunction;
 
 /**
  * @beta
@@ -7250,9 +5852,9 @@ export function toLower(expr: string): ToLower;
  * @param expr The expression representing the string to convert to lowercase.
  * @return A new {@code Expr} representing the lowercase string.
  */
-export function toLower(expr: ScalarExpr): ToLower;
-export function toLower(expr: ScalarExpr | string): ToLower {
-  return new ToLower(expr instanceof ScalarExpr ? expr : Field.of(expr));
+export function toLower(expr: ScalarExpr): FirestoreFunction;
+export function toLower(expr: ScalarExpr | string): FirestoreFunction {
+  return fieldOfOrExpr(expr).toLower();
 }
 
 /**
@@ -7268,7 +5870,7 @@ export function toLower(expr: ScalarExpr | string): ToLower {
  * @param expr The name of the field containing the string.
  * @return A new {@code Expr} representing the uppercase string.
  */
-export function toUpper(expr: string): ToUpper;
+export function toUpper(expr: string): FirestoreFunction;
 
 /**
  * @beta
@@ -7283,9 +5885,9 @@ export function toUpper(expr: string): ToUpper;
  * @param expr The expression representing the string to convert to uppercase.
  * @return A new {@code Expr} representing the uppercase string.
  */
-export function toUpper(expr: ScalarExpr): ToUpper;
-export function toUpper(expr: ScalarExpr | string): ToUpper {
-  return new ToUpper(expr instanceof ScalarExpr ? expr : Field.of(expr));
+export function toUpper(expr: ScalarExpr): FirestoreFunction;
+export function toUpper(expr: ScalarExpr | string): FirestoreFunction {
+  return fieldOfOrExpr(expr).toUpper();
 }
 
 /**
@@ -7301,7 +5903,7 @@ export function toUpper(expr: ScalarExpr | string): ToUpper {
  * @param expr The name of the field containing the string.
  * @return A new {@code Expr} representing the trimmed string.
  */
-export function trim(expr: string): Trim;
+export function trim(expr: string): FirestoreFunction;
 
 /**
  * @beta
@@ -7316,9 +5918,9 @@ export function trim(expr: string): Trim;
  * @param expr The expression representing the string to trim.
  * @return A new {@code Expr} representing the trimmed string.
  */
-export function trim(expr: ScalarExpr): Trim;
-export function trim(expr: ScalarExpr | string): Trim {
-  return new Trim(expr instanceof ScalarExpr ? expr : Field.of(expr));
+export function trim(expr: ScalarExpr): FirestoreFunction;
+export function trim(expr: ScalarExpr | string): FirestoreFunction {
+  return fieldOfOrExpr(expr).trim();
 }
 
 /**
@@ -7340,7 +5942,7 @@ export function strConcat(
   fieldName: string,
   secondString: ScalarExpr | string,
   ...otherStrings: Array<ScalarExpr | string>
-): StrConcat;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -7360,15 +5962,16 @@ export function strConcat(
   firstString: ScalarExpr,
   secondString: ScalarExpr | string,
   ...otherStrings: Array<ScalarExpr | string>
-): StrConcat;
+): FirestoreFunction;
 export function strConcat(
   first: string | ScalarExpr,
+  second: string | ScalarExpr,
   ...elements: Array<string | ScalarExpr>
-): StrConcat {
-  const exprs = elements.map(e =>
-    e instanceof ScalarExpr ? e : valueToDefaultExpr(e)
+): FirestoreFunction {
+  return valueToDefaultExpr(first).strConcat(
+    valueToDefaultExpr(second),
+    ...elements.map(valueToDefaultExpr)
   );
-  return new StrConcat(valueToDefaultExpr(first), exprs);
 }
 
 /**
@@ -7385,7 +5988,7 @@ export function strConcat(
  * @param subField The key to access in the map.
  * @return A new {@code Expr} representing the value associated with the given key in the map.
  */
-export function mapGet(mapField: string, subField: string): MapGet;
+export function mapGet(mapField: string, subField: string): FirestoreFunction;
 
 /**
  * @beta
@@ -7401,15 +6004,15 @@ export function mapGet(mapField: string, subField: string): MapGet;
  * @param subField The key to access in the map.
  * @return A new {@code Expr} representing the value associated with the given key in the map.
  */
-export function mapGet(mapExpr: ScalarExpr, subField: string): MapGet;
+export function mapGet(
+  mapExpr: ScalarExpr,
+  subField: string
+): FirestoreFunction;
 export function mapGet(
   fieldOrExpr: string | ScalarExpr,
   subField: string
-): MapGet {
-  return new MapGet(
-    typeof fieldOrExpr === 'string' ? Field.of(fieldOrExpr) : fieldOrExpr,
-    subField
-  );
+): FirestoreFunction {
+  return fieldOfOrExpr(fieldOrExpr).mapGet(subField);
 }
 
 /**
@@ -7418,14 +6021,14 @@ export function mapGet(
  * Creates an aggregation that counts the total number of stage inputs.
  *
  * ```typescript
- * // Count the total number of users
- * countAll().as("totalUsers");
+ * // Count the total number of input documents
+ * countAll().as("totalDocument");
  * ```
  *
  * @return A new {@code AggregateFunction} representing the 'countAll' aggregation.
  */
-export function countAll(): Count {
-  return new Count(undefined, false);
+export function countAll(): AggregateFunction {
+  return new AggregateFunction('count', []);
 }
 
 /**
@@ -7442,7 +6045,7 @@ export function countAll(): Count {
  * @param value The expression to count.
  * @return A new {@code AggregateFunction} representing the 'count' aggregation.
  */
-export function countFunction(value: ScalarExpr): Count;
+export function countFunction(value: ScalarExpr): AggregateFunction;
 
 /**
  * Creates an aggregation that counts the number of stage inputs with valid evaluations of the
@@ -7456,10 +6059,9 @@ export function countFunction(value: ScalarExpr): Count;
  * @param value The name of the field to count.
  * @return A new {@code AggregateFunction} representing the 'count' aggregation.
  */
-export function countFunction(value: string): Count;
-export function countFunction(value: ScalarExpr | string): Count {
-  const exprValue = value instanceof ScalarExpr ? value : Field.of(value);
-  return new Count(exprValue, false);
+export function countFunction(value: string): AggregateFunction;
+export function countFunction(value: ScalarExpr | string): AggregateFunction {
+  return fieldOfOrExpr(value).count();
 }
 
 /**
@@ -7476,7 +6078,7 @@ export function countFunction(value: ScalarExpr | string): Count {
  * @param value The expression to sum up.
  * @return A new {@code AggregateFunction} representing the 'sum' aggregation.
  */
-export function sumFunction(value: ScalarExpr): Sum;
+export function sumFunction(value: ScalarExpr): AggregateFunction;
 
 /**
  * @beta
@@ -7492,10 +6094,9 @@ export function sumFunction(value: ScalarExpr): Sum;
  * @param value The name of the field containing numeric values to sum up.
  * @return A new {@code AggregateFunction} representing the 'sum' aggregation.
  */
-export function sumFunction(value: string): Sum;
-export function sumFunction(value: ScalarExpr | string): Sum {
-  const exprValue = value instanceof ScalarExpr ? value : Field.of(value);
-  return new Sum(exprValue, false);
+export function sumFunction(value: string): AggregateFunction;
+export function sumFunction(value: ScalarExpr | string): AggregateFunction {
+  return fieldOfOrExpr(value).sum();
 }
 
 /**
@@ -7512,7 +6113,7 @@ export function sumFunction(value: ScalarExpr | string): Sum {
  * @param value The expression representing the values to average.
  * @return A new {@code AggregateFunction} representing the 'avg' aggregation.
  */
-export function avgFunction(value: ScalarExpr): Avg;
+export function avgFunction(value: ScalarExpr): AggregateFunction;
 
 /**
  * @beta
@@ -7528,10 +6129,9 @@ export function avgFunction(value: ScalarExpr): Avg;
  * @param value The name of the field containing numeric values to average.
  * @return A new {@code AggregateFunction} representing the 'avg' aggregation.
  */
-export function avgFunction(value: string): Avg;
-export function avgFunction(value: ScalarExpr | string): Avg {
-  const exprValue = value instanceof ScalarExpr ? value : Field.of(value);
-  return new Avg(exprValue, false);
+export function avgFunction(value: string): AggregateFunction;
+export function avgFunction(value: ScalarExpr | string): AggregateFunction {
+  return fieldOfOrExpr(value).avg();
 }
 
 /**
@@ -7548,7 +6148,7 @@ export function avgFunction(value: ScalarExpr | string): Avg {
  * @param value The expression to find the minimum value of.
  * @return A new {@code AggregateFunction} representing the 'min' aggregation.
  */
-export function minimum(value: ScalarExpr): Minimum;
+export function minimum(value: ScalarExpr): AggregateFunction;
 
 /**
  * @beta
@@ -7563,10 +6163,9 @@ export function minimum(value: ScalarExpr): Minimum;
  * @param value The name of the field to find the minimum value of.
  * @return A new {@code AggregateFunction} representing the 'min' aggregation.
  */
-export function minimum(value: string): Minimum;
-export function minimum(value: ScalarExpr | string): Minimum {
-  const exprValue = value instanceof ScalarExpr ? value : Field.of(value);
-  return new Minimum(exprValue, false);
+export function minimum(value: string): AggregateFunction;
+export function minimum(value: ScalarExpr | string): AggregateFunction {
+  return fieldOfOrExpr(value).minimum();
 }
 
 /**
@@ -7583,7 +6182,7 @@ export function minimum(value: ScalarExpr | string): Minimum {
  * @param value The expression to find the maximum value of.
  * @return A new {@code AggregateFunction} representing the 'max' aggregation.
  */
-export function maximum(value: ScalarExpr): Maximum;
+export function maximum(value: ScalarExpr): AggregateFunction;
 
 /**
  * @beta
@@ -7598,10 +6197,9 @@ export function maximum(value: ScalarExpr): Maximum;
  * @param value The name of the field to find the maximum value of.
  * @return A new {@code AggregateFunction} representing the 'max' aggregation.
  */
-export function maximum(value: string): Maximum;
-export function maximum(value: ScalarExpr | string): Maximum {
-  const exprValue = value instanceof ScalarExpr ? value : Field.of(value);
-  return new Maximum(exprValue, false);
+export function maximum(value: string): AggregateFunction;
+export function maximum(value: ScalarExpr | string): AggregateFunction {
+  return fieldOfOrExpr(value).maximum();
 }
 
 /**
@@ -7618,7 +6216,10 @@ export function maximum(value: ScalarExpr | string): Maximum {
  * @param other The other vector (as an array of doubles) to compare against.
  * @return A new {@code Expr} representing the Cosine distance between the two vectors.
  */
-export function cosineDistance(expr: string, other: number[]): CosineDistance;
+export function cosineDistance(
+  expr: string,
+  other: number[]
+): FirestoreFunction;
 
 /**
  * @beta
@@ -7637,7 +6238,7 @@ export function cosineDistance(expr: string, other: number[]): CosineDistance;
 export function cosineDistance(
   expr: string,
   other: VectorValue
-): CosineDistance;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -7653,7 +6254,10 @@ export function cosineDistance(
  * @param other The other vector (represented as an Expr) to compare against.
  * @return A new {@code Expr} representing the cosine distance between the two vectors.
  */
-export function cosineDistance(expr: string, other: ScalarExpr): CosineDistance;
+export function cosineDistance(
+  expr: string,
+  other: ScalarExpr
+): FirestoreFunction;
 
 /**
  * @beta
@@ -7672,7 +6276,7 @@ export function cosineDistance(expr: string, other: ScalarExpr): CosineDistance;
 export function cosineDistance(
   expr: ScalarExpr,
   other: number[]
-): CosineDistance;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -7691,7 +6295,7 @@ export function cosineDistance(
 export function cosineDistance(
   expr: ScalarExpr,
   other: VectorValue
-): CosineDistance;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -7710,14 +6314,14 @@ export function cosineDistance(
 export function cosineDistance(
   expr: ScalarExpr,
   other: ScalarExpr
-): CosineDistance;
+): FirestoreFunction;
 export function cosineDistance(
   expr: ScalarExpr | string,
   other: ScalarExpr | number[] | VectorValue
-): CosineDistance {
-  const expr1 = expr instanceof ScalarExpr ? expr : Field.of(expr);
-  const expr2 = other instanceof ScalarExpr ? other : Constant.vector(other);
-  return new CosineDistance(expr1, expr2);
+): FirestoreFunction {
+  const expr1 = fieldOfOrExpr(expr);
+  const expr2 = vectorToExpr(other);
+  return expr1.cosineDistance(expr2);
 }
 
 /**
@@ -7734,7 +6338,7 @@ export function cosineDistance(
  * @param other The other vector (as an array of doubles) to calculate with.
  * @return A new {@code Expr} representing the dot product between the two vectors.
  */
-export function dotProduct(expr: string, other: number[]): DotProduct;
+export function dotProduct(expr: string, other: number[]): FirestoreFunction;
 
 /**
  * @beta
@@ -7750,7 +6354,7 @@ export function dotProduct(expr: string, other: number[]): DotProduct;
  * @param other The other vector (as a VectorValue) to calculate with.
  * @return A new {@code Expr} representing the dot product between the two vectors.
  */
-export function dotProduct(expr: string, other: VectorValue): DotProduct;
+export function dotProduct(expr: string, other: VectorValue): FirestoreFunction;
 
 /**
  * @beta
@@ -7766,7 +6370,7 @@ export function dotProduct(expr: string, other: VectorValue): DotProduct;
  * @param other The other vector (represented as an Expr) to calculate with.
  * @return A new {@code Expr} representing the dot product between the two vectors.
  */
-export function dotProduct(expr: string, other: ScalarExpr): DotProduct;
+export function dotProduct(expr: string, other: ScalarExpr): FirestoreFunction;
 
 /**
  * @beta
@@ -7782,7 +6386,10 @@ export function dotProduct(expr: string, other: ScalarExpr): DotProduct;
  * @param other The other vector (as an array of doubles) to calculate with.
  * @return A new {@code Expr} representing the dot product between the two vectors.
  */
-export function dotProduct(expr: ScalarExpr, other: number[]): DotProduct;
+export function dotProduct(
+  expr: ScalarExpr,
+  other: number[]
+): FirestoreFunction;
 
 /**
  * @beta
@@ -7798,7 +6405,10 @@ export function dotProduct(expr: ScalarExpr, other: number[]): DotProduct;
  * @param other The other vector (as a VectorValue) to calculate with.
  * @return A new {@code Expr} representing the dot product between the two vectors.
  */
-export function dotProduct(expr: ScalarExpr, other: VectorValue): DotProduct;
+export function dotProduct(
+  expr: ScalarExpr,
+  other: VectorValue
+): FirestoreFunction;
 
 /**
  * @beta
@@ -7814,14 +6424,17 @@ export function dotProduct(expr: ScalarExpr, other: VectorValue): DotProduct;
  * @param other The other vector (represented as an Expr) to calculate with.
  * @return A new {@code Expr} representing the dot product between the two vectors.
  */
-export function dotProduct(expr: ScalarExpr, other: ScalarExpr): DotProduct;
+export function dotProduct(
+  expr: ScalarExpr,
+  other: ScalarExpr
+): FirestoreFunction;
 export function dotProduct(
   expr: ScalarExpr | string,
   other: ScalarExpr | number[] | VectorValue
-): DotProduct {
-  const expr1 = expr instanceof ScalarExpr ? expr : Field.of(expr);
-  const expr2 = other instanceof ScalarExpr ? other : Constant.vector(other);
-  return new DotProduct(expr1, expr2);
+): FirestoreFunction {
+  const expr1 = fieldOfOrExpr(expr);
+  const expr2 = vectorToExpr(other);
+  return expr1.dotProduct(expr2);
 }
 
 /**
@@ -7841,7 +6454,7 @@ export function dotProduct(
 export function euclideanDistance(
   expr: string,
   other: number[]
-): EuclideanDistance;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -7860,7 +6473,7 @@ export function euclideanDistance(
 export function euclideanDistance(
   expr: string,
   other: VectorValue
-): EuclideanDistance;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -7879,7 +6492,7 @@ export function euclideanDistance(
 export function euclideanDistance(
   expr: string,
   other: ScalarExpr
-): EuclideanDistance;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -7899,7 +6512,7 @@ export function euclideanDistance(
 export function euclideanDistance(
   expr: ScalarExpr,
   other: number[]
-): EuclideanDistance;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -7918,7 +6531,7 @@ export function euclideanDistance(
 export function euclideanDistance(
   expr: ScalarExpr,
   other: VectorValue
-): EuclideanDistance;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -7937,14 +6550,137 @@ export function euclideanDistance(
 export function euclideanDistance(
   expr: ScalarExpr,
   other: ScalarExpr
-): EuclideanDistance;
+): FirestoreFunction;
 export function euclideanDistance(
   expr: ScalarExpr | string,
   other: ScalarExpr | number[] | VectorValue
-): EuclideanDistance {
-  const expr1 = expr instanceof ScalarExpr ? expr : Field.of(expr);
-  const expr2 = other instanceof ScalarExpr ? other : Constant.vector(other);
-  return new EuclideanDistance(expr1, expr2);
+): FirestoreFunction {
+  const expr1 = fieldOfOrExpr(expr);
+  const expr2 = vectorToExpr(other);
+  return expr1.euclideanDistance(expr2);
+}
+
+/**
+ * @beta
+ *
+ * Calculates the Manhattan distance between a field's vector value and a double array.
+ *
+ * ```typescript
+ * // Calculate the Manhattan distance between the 'location' field and a target location
+ * manhattanDistance("location", [37.7749, -122.4194]);
+ * ```
+ *
+ * @param field The name of the field containing the first vector.
+ * @param other The other vector (as an array of doubles) to compare against.
+ * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
+ */
+export function manhattanDistance(
+  field: string,
+  other: number[]
+): FirestoreFunction;
+
+/**
+ * @beta
+ *
+ * Calculates the Manhattan distance between a field's vector value and a VectorValue.
+ *
+ * ```typescript
+ * // Calculate the Manhattan distance between the 'location' field and a target location
+ * manhattanDistance("location", new VectorValue([37.7749, -122.4194]));
+ * ```
+ *
+ * @param expr The name of the field containing the first vector.
+ * @param other The other vector (as a VectorValue) to compare against.
+ * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
+ */
+export function manhattanDistance(
+  expr: string,
+  other: VectorValue
+): FirestoreFunction;
+
+/**
+ * @beta
+ *
+ * Calculates the Manhattan distance between a field's vector value and a vector expression.
+ *
+ * ```typescript
+ * // Calculate the Manhattan distance between two vector fields: 'pointA' and 'pointB'
+ * manhattanDistance("pointA", Field.of("pointB"));
+ * ```
+ *
+ * @param expr The name of the field containing the first vector.
+ * @param other The other vector (represented as an Expr) to compare against.
+ * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
+ */
+export function manhattanDistance(
+  expr: string,
+  other: ScalarExpr
+): FirestoreFunction;
+
+/**
+ * @beta
+ *
+ * Calculates the Manhattan distance between a vector expression and a double array.
+ *
+ * ```typescript
+ * // Calculate the Manhattan distance between the 'location' field and a target location
+ *
+ * manhattanDistance(Field.of("location"), [37.7749, -122.4194]);
+ * ```
+ *
+ * @param expr The first vector (represented as an Expr) to compare against.
+ * @param other The other vector (as an array of doubles) to compare against.
+ * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
+ */
+export function manhattanDistance(
+  expr: ScalarExpr,
+  other: number[]
+): FirestoreFunction;
+
+/**
+ * @beta
+ *
+ * Calculates the Manhattan distance between a vector expression and a VectorValue.
+ *
+ * ```typescript
+ * // Calculate the Manhattan distance between the 'location' field and a target location
+ * manhattanDistance(Field.of("location"), new VectorValue([37.7749, -122.4194]));
+ * ```
+ *
+ * @param expr The first vector (represented as an Expr) to compare against.
+ * @param other The other vector (as a VectorValue) to compare against.
+ * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
+ */
+export function manhattanDistance(
+  expr: ScalarExpr,
+  other: VectorValue
+): FirestoreFunction;
+
+/**
+ * @beta
+ *
+ * Calculates the Manhattan distance between two vector expressions.
+ *
+ * ```typescript
+ * // Calculate the Manhattan distance between two vector fields: 'pointA' and 'pointB'
+ * manhattanDistance(Field.of("pointA"), Field.of("pointB"));
+ * ```
+ *
+ * @param expr The first vector (represented as an Expr) to compare against.
+ * @param other The other vector (represented as an Expr) to compare against.
+ * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
+ */
+export function manhattanDistance(
+  expr: ScalarExpr,
+  other: ScalarExpr
+): FirestoreFunction;
+export function manhattanDistance(
+  fieldOrExpr: ScalarExpr | string,
+  other: ScalarExpr | number[] | VectorValue
+): FirestoreFunction {
+  const expr1 = fieldOfOrExpr(fieldOrExpr);
+  const expr2 = vectorToExpr(other);
+  return expr1.manhattanDistance(expr2);
 }
 
 /**
@@ -7960,7 +6696,7 @@ export function euclideanDistance(
  * @param expr The expression representing the Firestore Vector.
  * @return A new {@code Expr} representing the length of the array.
  */
-export function vectorLength(expr: ScalarExpr): VectorLength;
+export function vectorLength(expr: ScalarExpr): FirestoreFunction;
 
 /**
  * @beta
@@ -7975,10 +6711,9 @@ export function vectorLength(expr: ScalarExpr): VectorLength;
  * @param field The name of the field representing the Firestore Vector.
  * @return A new {@code Expr} representing the length of the array.
  */
-export function vectorLength(field: string): VectorLength;
-export function vectorLength(expr: ScalarExpr | string): VectorLength {
-  const normalizedExpr = typeof expr === 'string' ? Field.of(expr) : expr;
-  return new VectorLength(normalizedExpr);
+export function vectorLength(field: string): FirestoreFunction;
+export function vectorLength(expr: ScalarExpr | string): FirestoreFunction {
+  return fieldOfOrExpr(expr).vectorLength();
 }
 
 /**
@@ -7995,7 +6730,7 @@ export function vectorLength(expr: ScalarExpr | string): VectorLength {
  * @param expr The expression representing the number of microseconds since epoch.
  * @return A new {@code Expr} representing the timestamp.
  */
-export function unixMicrosToTimestamp(expr: ScalarExpr): UnixMicrosToTimestamp;
+export function unixMicrosToTimestamp(expr: ScalarExpr): FirestoreFunction;
 
 /**
  * @beta
@@ -8011,12 +6746,11 @@ export function unixMicrosToTimestamp(expr: ScalarExpr): UnixMicrosToTimestamp;
  * @param field The name of the field representing the number of microseconds since epoch.
  * @return A new {@code Expr} representing the timestamp.
  */
-export function unixMicrosToTimestamp(field: string): UnixMicrosToTimestamp;
+export function unixMicrosToTimestamp(field: string): FirestoreFunction;
 export function unixMicrosToTimestamp(
   expr: ScalarExpr | string
-): UnixMicrosToTimestamp {
-  const normalizedExpr = typeof expr === 'string' ? Field.of(expr) : expr;
-  return new UnixMicrosToTimestamp(normalizedExpr);
+): FirestoreFunction {
+  return fieldOfOrExpr(expr).unixMicrosToTimestamp();
 }
 
 /**
@@ -8032,7 +6766,7 @@ export function unixMicrosToTimestamp(
  * @param expr The expression representing the timestamp.
  * @return A new {@code Expr} representing the number of microseconds since epoch.
  */
-export function timestampToUnixMicros(expr: ScalarExpr): TimestampToUnixMicros;
+export function timestampToUnixMicros(expr: ScalarExpr): FirestoreFunction;
 
 /**
  * @beta
@@ -8047,12 +6781,11 @@ export function timestampToUnixMicros(expr: ScalarExpr): TimestampToUnixMicros;
  * @param field The name of the field representing the timestamp.
  * @return A new {@code Expr} representing the number of microseconds since epoch.
  */
-export function timestampToUnixMicros(field: string): TimestampToUnixMicros;
+export function timestampToUnixMicros(field: string): FirestoreFunction;
 export function timestampToUnixMicros(
   expr: ScalarExpr | string
-): TimestampToUnixMicros {
-  const normalizedExpr = typeof expr === 'string' ? Field.of(expr) : expr;
-  return new TimestampToUnixMicros(normalizedExpr);
+): FirestoreFunction {
+  return fieldOfOrExpr(expr).timestampToUnixMicros();
 }
 
 /**
@@ -8069,7 +6802,7 @@ export function timestampToUnixMicros(
  * @param expr The expression representing the number of milliseconds since epoch.
  * @return A new {@code Expr} representing the timestamp.
  */
-export function unixMillisToTimestamp(expr: ScalarExpr): UnixMillisToTimestamp;
+export function unixMillisToTimestamp(expr: ScalarExpr): FirestoreFunction;
 
 /**
  * @beta
@@ -8085,12 +6818,12 @@ export function unixMillisToTimestamp(expr: ScalarExpr): UnixMillisToTimestamp;
  * @param field The name of the field representing the number of milliseconds since epoch.
  * @return A new {@code Expr} representing the timestamp.
  */
-export function unixMillisToTimestamp(field: string): UnixMillisToTimestamp;
+export function unixMillisToTimestamp(field: string): FirestoreFunction;
 export function unixMillisToTimestamp(
   expr: ScalarExpr | string
-): UnixMillisToTimestamp {
-  const normalizedExpr = typeof expr === 'string' ? Field.of(expr) : expr;
-  return new UnixMillisToTimestamp(normalizedExpr);
+): FirestoreFunction {
+  const normalizedExpr = fieldOfOrExpr(expr);
+  return normalizedExpr.unixMillisToTimestamp();
 }
 
 /**
@@ -8106,7 +6839,7 @@ export function unixMillisToTimestamp(
  * @param expr The expression representing the timestamp.
  * @return A new {@code Expr} representing the number of milliseconds since epoch.
  */
-export function timestampToUnixMillis(expr: ScalarExpr): TimestampToUnixMillis;
+export function timestampToUnixMillis(expr: ScalarExpr): FirestoreFunction;
 
 /**
  * @beta
@@ -8121,12 +6854,12 @@ export function timestampToUnixMillis(expr: ScalarExpr): TimestampToUnixMillis;
  * @param field The name of the field representing the timestamp.
  * @return A new {@code Expr} representing the number of milliseconds since epoch.
  */
-export function timestampToUnixMillis(field: string): TimestampToUnixMillis;
+export function timestampToUnixMillis(field: string): FirestoreFunction;
 export function timestampToUnixMillis(
   expr: ScalarExpr | string
-): TimestampToUnixMillis {
-  const normalizedExpr = typeof expr === 'string' ? Field.of(expr) : expr;
-  return new TimestampToUnixMillis(normalizedExpr);
+): FirestoreFunction {
+  const normalizedExpr = fieldOfOrExpr(expr);
+  return normalizedExpr.timestampToUnixMillis();
 }
 
 /**
@@ -8143,9 +6876,7 @@ export function timestampToUnixMillis(
  * @param expr The expression representing the number of seconds since epoch.
  * @return A new {@code Expr} representing the timestamp.
  */
-export function unixSecondsToTimestamp(
-  expr: ScalarExpr
-): UnixSecondsToTimestamp;
+export function unixSecondsToTimestamp(expr: ScalarExpr): FirestoreFunction;
 
 /**
  * @beta
@@ -8161,12 +6892,12 @@ export function unixSecondsToTimestamp(
  * @param field The name of the field representing the number of seconds since epoch.
  * @return A new {@code Expr} representing the timestamp.
  */
-export function unixSecondsToTimestamp(field: string): UnixSecondsToTimestamp;
+export function unixSecondsToTimestamp(field: string): FirestoreFunction;
 export function unixSecondsToTimestamp(
   expr: ScalarExpr | string
-): UnixSecondsToTimestamp {
-  const normalizedExpr = typeof expr === 'string' ? Field.of(expr) : expr;
-  return new UnixSecondsToTimestamp(normalizedExpr);
+): FirestoreFunction {
+  const normalizedExpr = fieldOfOrExpr(expr);
+  return normalizedExpr.unixSecondsToTimestamp();
 }
 
 /**
@@ -8182,9 +6913,7 @@ export function unixSecondsToTimestamp(
  * @param expr The expression representing the timestamp.
  * @return A new {@code Expr} representing the number of seconds since epoch.
  */
-export function timestampToUnixSeconds(
-  expr: ScalarExpr
-): TimestampToUnixSeconds;
+export function timestampToUnixSeconds(expr: ScalarExpr): FirestoreFunction;
 
 /**
  * @beta
@@ -8199,12 +6928,12 @@ export function timestampToUnixSeconds(
  * @param field The name of the field representing the timestamp.
  * @return A new {@code Expr} representing the number of seconds since epoch.
  */
-export function timestampToUnixSeconds(field: string): TimestampToUnixSeconds;
+export function timestampToUnixSeconds(field: string): FirestoreFunction;
 export function timestampToUnixSeconds(
   expr: ScalarExpr | string
-): TimestampToUnixSeconds {
-  const normalizedExpr = typeof expr === 'string' ? Field.of(expr) : expr;
-  return new TimestampToUnixSeconds(normalizedExpr);
+): FirestoreFunction {
+  const normalizedExpr = fieldOfOrExpr(expr);
+  return normalizedExpr.timestampToUnixSeconds();
 }
 
 /**
@@ -8226,7 +6955,7 @@ export function timestampAdd(
   timestamp: ScalarExpr,
   unit: ScalarExpr,
   amount: ScalarExpr
-): TimestampAdd;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -8247,7 +6976,7 @@ export function timestampAdd(
   timestamp: ScalarExpr,
   unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
   amount: number
-): TimestampAdd;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -8268,7 +6997,7 @@ export function timestampAdd(
   field: string,
   unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
   amount: number
-): TimestampAdd;
+): FirestoreFunction;
 export function timestampAdd(
   timestamp: ScalarExpr | string,
   unit:
@@ -8280,18 +7009,11 @@ export function timestampAdd(
     | 'hour'
     | 'day',
   amount: ScalarExpr | number
-): TimestampAdd {
-  const normalizedTimestamp =
-    typeof timestamp === 'string' ? Field.of(timestamp) : timestamp;
-  const normalizedUnit =
-    unit instanceof ScalarExpr ? unit : valueToDefaultExpr(unit);
-  const normalizedAmount =
-    typeof amount === 'number' ? Constant.of(amount) : amount;
-  return new TimestampAdd(
-    normalizedTimestamp,
-    normalizedUnit,
-    normalizedAmount
-  );
+): FirestoreFunction {
+  const normalizedTimestamp = fieldOfOrExpr(timestamp);
+  const normalizedUnit = valueToDefaultExpr(unit);
+  const normalizedAmount = valueToDefaultExpr(amount);
+  return normalizedTimestamp.timestampAdd(normalizedUnit, normalizedAmount);
 }
 
 /**
@@ -8313,7 +7035,7 @@ export function timestampSub(
   timestamp: ScalarExpr,
   unit: ScalarExpr,
   amount: ScalarExpr
-): TimestampSub;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -8334,7 +7056,7 @@ export function timestampSub(
   timestamp: ScalarExpr,
   unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
   amount: number
-): TimestampSub;
+): FirestoreFunction;
 
 /**
  * @beta
@@ -8355,7 +7077,7 @@ export function timestampSub(
   field: string,
   unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
   amount: number
-): TimestampSub;
+): FirestoreFunction;
 export function timestampSub(
   timestamp: ScalarExpr | string,
   unit:
@@ -8367,18 +7089,11 @@ export function timestampSub(
     | 'hour'
     | 'day',
   amount: ScalarExpr | number
-): TimestampSub {
-  const normalizedTimestamp =
-    typeof timestamp === 'string' ? Field.of(timestamp) : timestamp;
-  const normalizedUnit =
-    unit instanceof ScalarExpr ? unit : valueToDefaultExpr(unit);
-  const normalizedAmount =
-    typeof amount === 'number' ? Constant.of(amount) : amount;
-  return new TimestampSub(
-    normalizedTimestamp,
-    normalizedUnit,
-    normalizedAmount
-  );
+): FirestoreFunction {
+  const normalizedTimestamp = fieldOfOrExpr(timestamp);
+  const normalizedUnit = valueToDefaultExpr(unit);
+  const normalizedAmount = valueToDefaultExpr(amount);
+  return normalizedTimestamp.timestampSub(normalizedUnit, normalizedAmount);
 }
 
 /**
@@ -8464,8 +7179,8 @@ export function andFunction(
   first: BooleanExpr,
   second: BooleanExpr,
   ...more: BooleanExpr[]
-): And {
-  return new And([first, second, ...more]);
+): BooleanExpr {
+  return new BooleanExpr('and', [first, second, ...more]);
 }
 
 /**
@@ -8488,8 +7203,8 @@ export function orFunction(
   first: BooleanExpr,
   second: BooleanExpr,
   ...more: BooleanExpr[]
-): Or {
-  return new Or([first, second, ...more]);
+): BooleanExpr {
+  return new BooleanExpr('or', [first, second, ...more]);
 }
 
 /**

@@ -1473,7 +1473,7 @@ apiDescribe.only('Pipelines', persistence => {
         .limit(1)
         .select(
           Field.of('rating').isNull().as('ratingIsNull'),
-          Field.of('rating').isNaN().as('ratingIsNaN'),
+          Field.of('rating').isNan().as('ratingIsNaN'),
           arrayOffset('title', 0).isError().as('isError'),
           arrayOffset('title', 0)
             .ifError(Constant.of('was error'))

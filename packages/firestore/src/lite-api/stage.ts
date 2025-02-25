@@ -35,7 +35,8 @@ import {
   ScalarExpr,
   Field,
   BooleanExpr,
-  Ordering, Expr
+  Ordering,
+  Expr
 } from './expressions';
 import { Pipeline } from './pipeline';
 import { DocumentReference } from './reference';
@@ -491,10 +492,7 @@ export class GenericStage implements Stage {
    * @private
    * @internal
    */
-  constructor(
-    public name: string,
-    private params: Array<Expr>
-  ) {}
+  constructor(public name: string, private params: Expr[]) {}
 
   /**
    * @internal
