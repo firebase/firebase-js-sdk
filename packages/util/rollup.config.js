@@ -16,15 +16,22 @@
  */
 
 import typescriptPlugin from 'rollup-plugin-typescript2';
+import replacePlugin from '@rollup/plugin-replace';
 import typescript from 'typescript';
 import pkg from './package.json';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+const deps = [
+  ...Object.keys(
+    Object.assign({}, pkg.peerDependencies, pkg.dependencies)
+  ),
+  './autoinit_env'
+];
 
-const buildPlugins = [typescriptPlugin({ typescript })];
+const buildPlugins = [
+  typescriptPlugin({ typescript }),
+  replacePlugin({ './src/autoinit_env': '"@firebase/util/autoinit_env"', delimiters: ["'", "'"], preventAssignment: true })
+];
 
 const browserBuilds = [
   {
