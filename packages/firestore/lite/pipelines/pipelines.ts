@@ -202,8 +202,8 @@ export {
   TimestampSub,
   Ordering,
   ExprType,
-  AccumulatorTarget,
+  AggregateFunctionWithAlias,
   Selectable,
   BooleanExpr,
-  Accumulator
+  AggregateFunction
 } from '../../src/lite-api/expressions';

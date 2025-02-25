@@ -26,6 +26,8 @@ import {
   array,
   descending,
   genericFunction,
+  genericAggregateFunction,
+  genericBooleanExpr,
   isNan,
   map,
   Bytes,
@@ -1628,7 +1630,7 @@ apiDescribe.only('Pipelines', persistence => {
         const results = await randomCol
           .pipeline()
           .where(
-            genericFunction('and', [
+            genericBooleanExpr('and', [
               Field.of('rating').gt(0),
               Field.of('title').charLength().lt(5),
               Field.of('tags').arrayContains('propaganda')
@@ -1645,7 +1647,7 @@ apiDescribe.only('Pipelines', persistence => {
         const results = await randomCol
           .pipeline()
           .where(
-            genericFunction('array_contains_any', [
+            genericBooleanExpr('array_contains_any', [
               Field.of('tags'),
               ['politics']
             ])
@@ -1661,9 +1663,9 @@ apiDescribe.only('Pipelines', persistence => {
         const results = await randomCol
           .pipeline()
           .aggregate(
-            genericFunction('count_if', [Field.of('rating').gte(4.5)]).as(
-              'countOfBest'
-            )
+            genericAggregateFunction('count_if', [
+              Field.of('rating').gte(4.5)
+            ]).as('countOfBest')
           )
           .execute();
         expectResults(results, {
@@ -1880,7 +1882,7 @@ apiDescribe.only('Pipelines', persistence => {
           });
         });
 
-        it.only('supports Substr without length', async () => {
+        it('supports Substr without length', async () => {
           let results = await randomCol
             .pipeline()
             .sort(Field.of('rating').descending())

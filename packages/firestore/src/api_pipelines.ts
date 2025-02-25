@@ -105,6 +105,8 @@ export {
   timestampAdd,
   timestampSub,
   genericFunction,
+  genericBooleanExpr,
+  genericAggregateFunction,
   ascending,
   descending,
   countIf,
@@ -127,7 +129,7 @@ export {
   map,
   mapRemove,
   mapMerge,
-  parent,
+  parentFunction,
   collectionId,
   documentIdFunction,
   key,
@@ -159,7 +161,7 @@ export {
   Key,
   Substr,
   ManhattanDistance,
-  Expr,
+  ScalarExpr,
   ExprWithAlias,
   Field,
   Constant,
@@ -231,8 +233,8 @@ export {
 
 export type {
   ExprType,
-  AccumulatorTarget,
+  AggregateFunctionWithAlias,
   Selectable,
   BooleanExpr,
-  Accumulator
+  AggregateFunction
 } from './lite-api/expressions';
