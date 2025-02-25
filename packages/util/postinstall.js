@@ -102,6 +102,7 @@ async function getFullConfig(partialConfig) {
       `Unable to fetch Firebase config, ignoring FIREBASE_WEBAPP_CONFIG.\n`,
       e
     );
+    return undefined;
   }
 }
 
