@@ -62,6 +62,8 @@ export interface UserInternal extends User {
 
   auth: AuthInternal;
   providerId: ProviderId.FIREBASE;
+  // TODO(jamesdaniels): refreshToken should either be optional or a sentinel value for COOKIE
+  //                     persistence, if refresh token has an identifier maybe that?
   refreshToken: string;
   emailVerified: boolean;
   tenantId: string | null;

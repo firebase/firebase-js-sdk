@@ -241,6 +241,9 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
   request?: T,
   customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
+  // TODO(jamedaniels) if auth persistence is cookie, proxy through the server endpoint
+  //                   Q, do we want to allow signIn/Out to work normally on the server if cookie
+  //                   persistence is set and FirebaseServerApp authIdToken is not?
   const serverResponse = await _performApiRequest<T, V | IdTokenMfaResponse>(
     auth,
     method,
