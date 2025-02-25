@@ -20,8 +20,7 @@
 import { ObjectValue } from '../model/object_value';
 import {
   Pipeline as ProtoPipeline,
-  Stage as ProtoStage,
-  Value as ProtoValue
+  Stage as ProtoStage
 } from '../protos/firestore_proto_api';
 import { invokeExecutePipeline } from '../remote/datastore';
 import { JsonProtoSerializer, ProtoSerializable } from '../remote/serializer';
@@ -34,12 +33,13 @@ import {
   AggregateFunction,
   AggregateFunctionWithAlias,
   Constant,
-  Expr,
+  ScalarExpr,
   ExprWithAlias,
   Field,
   BooleanExpr,
   Ordering,
-  Selectable
+  Selectable,
+  Expr
 } from './expressions';
 import { PipelineResult } from './pipeline-result';
 import { DocumentReference } from './reference';
@@ -158,7 +158,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * - {@link Field}: References an existing document field.
    * - {@link Function}: Performs a calculation using functions like `add`, `multiply` with
-   *   assigned aliases using {@link Expr#as}.
+   *   assigned aliases using {@link ScalarExpr#as}.
    *
    * Example:
    *
@@ -215,7 +215,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   <li>{@code string}: Name of an existing field</li>
    *   <li>{@link Field}: References an existing field.</li>
    *   <li>{@link Function}: Represents the result of a function with an assigned alias name using
-   *       {@link Expr#as}</li>
+   *       {@link ScalarExpr#as}</li>
    * </ul>
    *
    * <p>If no selections are provided, the output of this stage is empty. Use {@link
@@ -238,7 +238,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @return A new Pipeline object with this stage appended to the stage list.
    */
   select(...selections: Array<Selectable | string>): Pipeline {
-    let projections: Map<string, Expr> = this.selectablesToMap(selections);
+    let projections: Map<string, ScalarExpr> =
+      this.selectablesToMap(selections);
     projections = this.readUserData('select', projections);
     return this._addStage(new Select(projections));
   }
@@ -347,10 +348,10 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   }
 
   /**
-   * Returns a set of distinct {@link Expr} values from the inputs to this stage.
+   * Returns a set of distinct {@link ScalarExpr} values from the inputs to this stage.
    *
    * <p>This stage run through the results from previous stages to include only results with unique
-   * combinations of {@link Expr} values ({@link Field}, {@link Function}, etc).
+   * combinations of {@link ScalarExpr} values ({@link Field}, {@link Function}, etc).
    *
    * <p>The parameters to this stage are defined using {@link Selectable} expressions or {@code string}s:
    *
@@ -358,7 +359,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   <li>{@code string}: Name of an existing field</li>
    *   <li>{@link Field}: References an existing document field.</li>
    *   <li>{@link Function}: Represents the result of a function with an assigned alias name using
-   *       {@link Expr#as}</li>
+   *       {@link ScalarExpr#as}</li>
    * </ul>
    *
    * <p>Example:
@@ -387,7 +388,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>This stage allows you to calculate aggregate values over a set of documents. You define the
    * aggregations to perform using {@link AggregateFunctionWithAlias} expressions which are typically results of
-   * calling {@link Expr#as} on {@link AggregateFunction} instances.
+   * calling {@link ScalarExpr#as} on {@link AggregateFunction} instances.
    *
    * <p>Example:
    *
@@ -418,7 +419,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *       specifying groups is the same as putting the entire inputs into one group.</li>
    *   <li>**Accumulators:** One or more accumulation operations to perform within each group. These
    *       are defined using {@link AggregateFunctionWithAlias} expressions, which are typically created by
-   *       calling {@link Expr#as} on {@link AggregateFunction} instances. Each aggregation
+   *       calling {@link ScalarExpr#as} on {@link AggregateFunction} instances. Each aggregation
    *       calculates a value (e.g., sum, average, count) based on the documents within its group.</li>
    * </ul>
    *
@@ -483,7 +484,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
               )
             ])
           ),
-          new Map<string, Expr>()
+          new Map<string, ScalarExpr>()
         )
       );
     }
@@ -743,7 +744,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     // this is unlike the default conversion for objects and arrays
     // passed to an expression.
     const expressionParams = params.map((value: any) => {
-      if (value instanceof Expr || value instanceof AggregateFunction) {
+      if (value instanceof Expr) {
         return value;
       } else if (isPlainObject(value)) {
         return _mapValue(value);
@@ -840,15 +841,15 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
   private selectablesToMap(
     selectables: Array<Selectable | string>
-  ): Map<string, Expr> {
-    const result = new Map<string, Expr>();
+  ): Map<string, ScalarExpr> {
+    const result = new Map<string, ScalarExpr>();
     for (const selectable of selectables) {
       if (typeof selectable === 'string') {
         result.set(selectable as string, Field.of(selectable));
       } else if (selectable instanceof Field) {
         result.set((selectable as Field).fieldName(), selectable);
       } else if (selectable instanceof ExprWithAlias) {
-        const expr = selectable as ExprWithAlias<Expr>;
+        const expr = selectable as ExprWithAlias<ScalarExpr>;
         result.set(expr.alias, expr.expr);
       }
     }

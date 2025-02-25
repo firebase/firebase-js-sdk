@@ -32,10 +32,10 @@ import { hardAssert } from '../util/assert';
 
 import {
   AggregateFunction,
-  Expr,
+  ScalarExpr,
   Field,
   BooleanExpr,
-  Ordering
+  Ordering, Expr
 } from './expressions';
 import { Pipeline } from './pipeline';
 import { DocumentReference } from './reference';
@@ -54,7 +54,7 @@ export interface Stage extends ProtoSerializable<ProtoStage> {
 export class AddFields implements Stage {
   name = 'add_fields';
 
-  constructor(private fields: Map<string, Expr>) {}
+  constructor(private fields: Map<string, ScalarExpr>) {}
 
   /**
    * @internal
@@ -96,7 +96,7 @@ export class Aggregate implements Stage {
 
   constructor(
     private accumulators: Map<string, AggregateFunction>,
-    private groups: Map<string, Expr>
+    private groups: Map<string, ScalarExpr>
   ) {}
 
   /**
@@ -120,7 +120,7 @@ export class Aggregate implements Stage {
 export class Distinct implements Stage {
   name = 'distinct';
 
-  constructor(private groups: Map<string, Expr>) {}
+  constructor(private groups: Map<string, ScalarExpr>) {}
 
   /**
    * @internal
@@ -244,7 +244,7 @@ export class Where implements Stage {
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
     return {
       name: this.name,
-      args: [(this.condition as unknown as Expr)._toProto(serializer)]
+      args: [(this.condition as unknown as ScalarExpr)._toProto(serializer)]
     };
   }
 }
@@ -368,7 +368,7 @@ export class Offset implements Stage {
 export class Select implements Stage {
   name = 'select';
 
-  constructor(private projections: Map<string, Expr>) {}
+  constructor(private projections: Map<string, ScalarExpr>) {}
 
   /**
    * @internal
@@ -440,7 +440,7 @@ export class Union implements Stage {
 export class Unnest implements Stage {
   name = 'unnest';
   constructor(
-    private expr: Expr,
+    private expr: ScalarExpr,
     private alias: Field,
     private indexField?: string
   ) {}
@@ -493,7 +493,7 @@ export class GenericStage implements Stage {
    */
   constructor(
     public name: string,
-    private params: Array<ProtoSerializable<ProtoValue>>
+    private params: Array<Expr>
   ) {}
 
   /**
