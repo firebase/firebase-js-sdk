@@ -42,6 +42,7 @@ async function getPartialConfig() {
   const fileURL = pathToFileURL(
     isAbsolute(fileName) ? fileName : join(process.cwd(), fileName)
   );
+
   try {
     const fileContents = await readFile(fileURL, 'utf-8');
     return JSON.parse(fileContents);
@@ -79,6 +80,7 @@ async function getFullConfig(partialConfig) {
   }
 
   const url = `https://firebase.googleapis.com/v1alpha/projects/${projectId}/apps/${appId}/webConfig`;
+
   try {
     const response = await fetch(url, {
       headers: { 'x-goog-api-key': apiKey }
@@ -106,43 +108,42 @@ async function getFullConfig(partialConfig) {
   }
 }
 
-try {
-  getPartialConfig()
-    .then(getFullConfig)
-    .then(async config => {
-      const emulatorHosts = {
-        firestore: process.env.FIRESTORE_EMULATOR_HOST,
-        database: process.env.FIREBASE_DATABASE_EMULATOR_HOST,
-        storage: process.env.FIREBASE_STORAGE_EMULATOR_HOST,
-        auth: process.env.FIREBASE_AUTH_EMULATOR_HOST
-      };
-
-      const defaults = config && { config, emulatorHosts };
-
-      await Promise.all([
-        writeFile(
-          join(__dirname, 'dist', 'autoinit_env.js'),
-          `'use strict';
-Object.defineProperty(exports, '__esModule', { value: true });
-exports.postinstallDefaults = ${JSON.stringify(defaults)};`
-        ).catch(() => {
-          console.warn('Unable to save FIREBASE_WEBAPP_CONFIG to CJS entry.');
-        }),
-        writeFile(
-          join(__dirname, 'dist', 'autoinit_env.mjs'),
-          `const postinstallDefaults = ${JSON.stringify(defaults)};
-export { postinstallDefaults };`
-        ).catch(() => {
-          console.warn('Unable to save FIREBASE_WEBAPP_CONFIG to ESM entry.');
-        })
-      ]);
-
-      process.exit(0);
-    });
-} catch (e) {
+function handleUnexpectedError(e) {
   console.warn(
-    'Unexpected error encountered in @firebase/util postinstall script, ignoring FIREBASE_WEBAPP_CONFIG\n',
-    e
+    'Unexpected error encountered in @firebase/util postinstall script, ignoring FIREBASE_WEBAPP_CONFIG.'
   );
+  console.warn(e);
   process.exit(0);
 }
+
+getPartialConfig()
+  .catch(handleUnexpectedError)
+  .then(getFullConfig)
+  .catch(handleUnexpectedError)
+  .then(async config => {
+    const emulatorHosts = {
+      firestore: process.env.FIRESTORE_EMULATOR_HOST,
+      database: process.env.FIREBASE_DATABASE_EMULATOR_HOST,
+      storage: process.env.FIREBASE_STORAGE_EMULATOR_HOST,
+      auth: process.env.FIREBASE_AUTH_EMULATOR_HOST
+    };
+
+    const defaults = config && { config, emulatorHosts };
+
+    await Promise.all([
+      writeFile(
+        join(__dirname, 'dist', 'autoinit_env.js'),
+        `'use strict';
+Object.defineProperty(exports, '__esModule', { value: true });
+exports.postinstallDefaults = ${JSON.stringify(defaults)};`
+      ),
+      writeFile(
+        join(__dirname, 'dist', 'autoinit_env.mjs'),
+        `const postinstallDefaults = ${JSON.stringify(defaults)};
+export { postinstallDefaults };`
+      )
+    ]);
+
+    process.exit(0);
+  })
+  .catch(handleUnexpectedError);
