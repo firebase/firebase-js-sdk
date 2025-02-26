@@ -1434,6 +1434,21 @@ export interface ProtoSerializable<ProtoType> {
   _toProto(serializer: JsonProtoSerializer): ProtoType;
 }
 
+export interface ProtoValueSerializable extends ProtoSerializable<ProtoValue> {
+  // Supports runtime identification of the ProtoSerializable<ProtoValue> type.
+  _protoValueType: 'ProtoValue';
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function isProtoValueSerializable(
+  value: any
+): value is ProtoValueSerializable {
+  return (
+    typeof value._toProto === 'function' &&
+    value._protoValueType === 'ProtoValue'
+  );
+}
+
 export interface UserData {
   _readUserData(dataReader: UserDataReader): void;
 }

@@ -56,7 +56,8 @@ import {
   JsonProtoSerializer,
   toBytes,
   toResourceName,
-  toTimestamp
+  toTimestamp,
+  isProtoValueSerializable
 } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
@@ -65,7 +66,6 @@ import { Dict, forEach, isEmpty } from '../util/obj';
 
 import { Bytes } from './bytes';
 import { Firestore } from './database';
-import { AggregateFunction, Expr } from './expressions';
 import { FieldPath } from './field_path';
 import { FieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
@@ -910,9 +910,7 @@ export function parseScalarValue(
     };
   } else if (value instanceof VectorValue) {
     return parseVectorValue(value, context);
-  } else if (value instanceof Expr) {
-    return value._toProto(context.serializer);
-  } else if (value instanceof AggregateFunction) {
+  } else if (isProtoValueSerializable(value)) {
     return value._toProto(context.serializer);
   } else {
     throw context.createError(
@@ -972,8 +970,7 @@ export function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof DocumentReference) &&
     !(input instanceof FieldValue) &&
     !(input instanceof VectorValue) &&
-    !(input instanceof Expr) &&
-    !(input instanceof AggregateFunction)
+    !isProtoValueSerializable(input)
   );
 }
 

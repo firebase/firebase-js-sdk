@@ -25,6 +25,7 @@ import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import {
   JsonProtoSerializer,
   ProtoSerializable,
+  ProtoValueSerializable,
   toMapValue,
   toStringValue,
   UserData
@@ -129,7 +130,7 @@ function fieldOfOrExpr(value: any): Expr {
  * The `Expr` class provides a fluent API for building expressions. You can chain together
  * method calls to create complex expressions.
  */
-export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
+export abstract class Expr implements ProtoValueSerializable, UserData {
   abstract exprType: ExprType;
 
   /**
@@ -137,6 +138,7 @@ export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
    * @internal
    */
   abstract _toProto(serializer: JsonProtoSerializer): ProtoValue;
+  _protoValueType = 'ProtoValue' as const;
 
   /**
    * @private
@@ -2088,20 +2090,12 @@ export interface Selectable {
   readonly expr: Expr;
 }
 
-export function _isSelectable(value: any): value is Selectable {
-  return value.selectable &&
-    typeof value.alias === 'string' &&
-    value.expr instanceof Expr;
-}
-
 /**
  * @beta
  *
  * A class that represents an aggregate function.
  */
-export class AggregateFunction
-  implements ProtoSerializable<ProtoValue>, UserData
-{
+export class AggregateFunction implements ProtoValueSerializable, UserData {
   exprType: ExprType = 'AggregateFunction';
 
   constructor(private name: string, private params: Expr[]) {}
@@ -2136,6 +2130,8 @@ export class AggregateFunction
       }
     };
   }
+
+  _protoValueType = 'ProtoValue' as const;
 
   /**
    * @private
