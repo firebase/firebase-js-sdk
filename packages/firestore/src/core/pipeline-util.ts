@@ -20,7 +20,6 @@ import {
   Constant,
   Field,
   BooleanExpr,
-  not,
   andFunction,
   orFunction,
   Ordering,
@@ -61,13 +60,13 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
       if (f.op === Operator.EQUAL) {
         return andFunction(field.exists(), field.isNan());
       } else {
-        return andFunction(field.exists(), not(field.isNan()));
+        return andFunction(field.exists(), field.isNotNan());
       }
     } else if (isNullValue(f.value)) {
       if (f.op === Operator.EQUAL) {
         return andFunction(field.exists(), field.eq(null));
       } else {
-        return andFunction(field.exists(), not(field.eq(null)));
+        return andFunction(field.exists(), field.neq(null));
       }
     } else {
       // Comparison filters
@@ -124,7 +123,7 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
           const values = value?.arrayValue?.values?.map((val: any) =>
             Constant._fromProto(val)
           );
-          return andFunction(field.exists(), not(field.eqAny(...values!)));
+          return andFunction(field.exists(), field.notEqAny(...values!));
         }
         default:
           fail('Unexpected operator');
