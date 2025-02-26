@@ -1,5 +1,15 @@
 # @firebase/app-check
 
+## 0.8.12
+
+### Patch Changes
+
+- [`f681482`](https://github.com/firebase/firebase-js-sdk/commit/f68148253349b8e80fc649386fede51339266a3c) [#8792](https://github.com/firebase/firebase-js-sdk/pull/8792) - Fixed a bug that caused an error to be thrown when the debug exchange failed.
+
+- Updated dependencies [[`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5)]:
+  - @firebase/util@1.11.0
+  - @firebase/component@0.6.13
+
 ## 0.8.11
 
 ### Patch Changes
