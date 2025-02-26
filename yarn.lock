@@ -2633,6 +2633,14 @@
     is-module "^1.0.0"
     resolve "^1.22.1"
 
+"@rollup/plugin-replace@6.0.2":
+  version "6.0.2"
+  resolved "https://registry.npmjs.org/@rollup/plugin-replace/-/plugin-replace-6.0.2.tgz#2f565d312d681e4570ff376c55c5c08eb6f1908d"
+  integrity sha512-7QaYCf8bqF04dOy7w/eHmJeNExxTYwvKAmlSAH/EaWWUzbT0h5sbF6bktFoX/0F/0qwng5/dWFMyf3gzaM8DsQ==
+  dependencies:
+    "@rollup/pluginutils" "^5.0.1"
+    magic-string "^0.30.3"
+
 "@rollup/plugin-strip@2.1.0":
   version "2.1.0"
   resolved "https://registry.npmjs.org/@rollup/plugin-strip/-/plugin-strip-2.1.0.tgz#04c2d2ccfb2c6b192bb70447fbf26e336379a333"
@@ -11233,7 +11241,7 @@ magic-string@^0.25.2, magic-string@^0.25.7:
   dependencies:
     sourcemap-codec "^1.4.8"
 
-magic-string@^0.30.2, magic-string@~0.30.0:
+magic-string@^0.30.2, magic-string@^0.30.3, magic-string@~0.30.0:
   version "0.30.17"
   resolved "https://registry.npmjs.org/magic-string/-/magic-string-0.30.17.tgz#450a449673d2460e5bbcfba9a61916a1714c7453"
   integrity sha512-sNPKHvyjVf7gyjwS4xGTaW/mCnF8wnjtifKBEhxfZ7E/S8tQ0rssrwGNn6q8JH/ohItJfSQp9mBtQYuTlH5QnA==
