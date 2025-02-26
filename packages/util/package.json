@@ -19,11 +19,6 @@
       },
       "default": "./dist/index.esm2017.js"
     },
-    "./autoinit_env": {
-      "require": "./dist/autoinit_env.js",
-      "import": "./dist/autoinit_env.mjs",
-      "default": "./dist/autoinit_env.mjs"
-    },
     "./package.json": "./package.json"
   },
   "files": [

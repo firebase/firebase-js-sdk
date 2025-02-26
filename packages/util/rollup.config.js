@@ -23,17 +23,18 @@ import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_pa
 
 const deps = [
   ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
-  './autoinit_env'
+  './postinstall'
 ];
 
-const buildPlugins = [
-  typescriptPlugin({ typescript }),
-  replacePlugin({
-    './src/autoinit_env': '"@firebase/util/autoinit_env"',
+const buildPlugins = [typescriptPlugin({ typescript })];
+
+function replaceSrcPostinstallWith(path) {
+  return replacePlugin({
+    './src/postinstall': `'${path}'`,
     delimiters: ["'", "'"],
     preventAssignment: true
-  })
-];
+  });
+}
 
 const browserBuilds = [
   {
@@ -43,7 +44,7 @@ const browserBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: buildPlugins,
+    plugins: [...buildPlugins, replaceSrcPostinstallWith('./postinstall.mjs')],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
@@ -53,7 +54,7 @@ const browserBuilds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: buildPlugins,
+    plugins: [...buildPlugins, replaceSrcPostinstallWith('./postinstall.js')],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
@@ -66,7 +67,7 @@ const nodeBuilds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: buildPlugins,
+    plugins: [...buildPlugins, replaceSrcPostinstallWith('./postinstall.js')],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
@@ -76,24 +77,28 @@ const nodeBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [...buildPlugins, emitModulePackageFile()],
+    plugins: [
+      ...buildPlugins,
+      emitModulePackageFile(),
+      replaceSrcPostinstallWith('../postinstall.mjs')
+    ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
 
 const autoinitBuild = [
   {
-    input: './src/autoinit_env.ts',
+    input: './src/postinstall.ts',
     output: {
-      file: './dist/autoinit_env.js',
+      file: './dist/postinstall.js',
       format: 'cjs'
     },
     plugins: buildPlugins
   },
   {
-    input: './src/autoinit_env.ts',
+    input: './src/postinstall.ts',
     output: {
-      file: './dist/autoinit_env.mjs',
+      file: './dist/postinstall.mjs',
       format: 'es'
     },
     plugins: buildPlugins

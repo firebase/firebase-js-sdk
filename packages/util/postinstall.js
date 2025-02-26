@@ -132,15 +132,15 @@ getPartialConfig()
 
     await Promise.all([
       writeFile(
-        join(__dirname, 'dist', 'autoinit_env.js'),
+        join(__dirname, 'dist', 'postinstall.js'),
         `'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
-exports.postinstallDefaults = ${JSON.stringify(defaults)};`
+exports.getDefaultsFromPostinstall = () => (${JSON.stringify(defaults)});`
       ),
       writeFile(
-        join(__dirname, 'dist', 'autoinit_env.mjs'),
-        `const postinstallDefaults = ${JSON.stringify(defaults)};
-export { postinstallDefaults };`
+        join(__dirname, 'dist', 'postinstall.mjs'),
+        `const getDefaultsFromPostinstall = () => (${JSON.stringify(defaults)});
+export { getDefaultsFromPostinstall };`
       )
     ]);
 
