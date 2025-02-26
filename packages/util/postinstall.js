@@ -19,28 +19,31 @@ const { writeFile, readFile } = require('node:fs/promises');
 const { pathToFileURL } = require('node:url');
 const { isAbsolute, join } = require('node:path');
 
+const ENV_VARIABLE = 'FIREBASE_WEBAPP_CONFIG';
+
 async function getPartialConfig() {
-  if (!process.env.FIREBASE_WEBAPP_CONFIG) {
+  const envVariable = process.env[ENV_VARIABLE]?.trim();
+
+  if (!envVariable) {
     return undefined;
   }
 
   // Like FIREBASE_CONFIG (admin autoinit) FIREBASE_WEBAPP_CONFIG can be
   // either a JSON representation of FirebaseOptions or the path to a filename
-  if (process.env.FIREBASE_WEBAPP_CONFIG.startsWith('{"')) {
+  if (envVariable.startsWith('{"')) {
     try {
-      return JSON.parse(process.env.FIREBASE_WEBAPP_CONFIG);
+      return JSON.parse(envVariable);
     } catch (e) {
       console.warn(
-        'FIREBASE_WEBAPP_CONFIG could not be parsed, ignoring.\n',
+        `JSON payload in \$${ENV_VARIABLE} could not be parsed, ignoring.\n`,
         e
       );
       return undefined;
     }
   }
 
-  const fileName = process.env.FIREBASE_WEBAPP_CONFIG;
   const fileURL = pathToFileURL(
-    isAbsolute(fileName) ? fileName : join(process.cwd(), fileName)
+    isAbsolute(envVariable) ? envVariable : join(process.cwd(), envVariable)
   );
 
   try {
@@ -48,14 +51,14 @@ async function getPartialConfig() {
     return JSON.parse(fileContents);
   } catch (e) {
     console.warn(
-      `Contents of "${fileName}" could not be parsed, ignoring FIREBASE_WEBAPP_CONFIG.\n`,
+      `Contents of "${envVariable}" could not be parsed, ignoring \$${ENV_VARIABLE}.\n`,
       e
     );
     return undefined;
   }
 }
 
-async function getFullConfig(partialConfig) {
+async function getFinalConfig(partialConfig) {
   if (!partialConfig) {
     return undefined;
   }
@@ -74,7 +77,7 @@ async function getFullConfig(partialConfig) {
   const apiKey = partialConfig.apiKey;
   if (!appId || !apiKey) {
     console.warn(
-      `Unable to fetch Firebase config, appId and apiKey are required, ignoring FIREBASE_WEBAPP_CONFIG.`
+      `Unable to fetch Firebase config, appId and apiKey are required, ignoring \$${ENV_VARIABLE}.`
     );
     return undefined;
   }
@@ -87,7 +90,7 @@ async function getFullConfig(partialConfig) {
     });
     if (!response.ok) {
       console.warn(
-        `Unable to fetch Firebase config, ignoring FIREBASE_WEBAPP_CONFIG.`
+        `Unable to fetch Firebase config, ignoring \$${ENV_VARIABLE}.`
       );
       console.warn(
         `${url} returned ${response.statusText} (${response.status})`
@@ -101,7 +104,7 @@ async function getFullConfig(partialConfig) {
     return { ...json, apiKey };
   } catch (e) {
     console.warn(
-      `Unable to fetch Firebase config, ignoring FIREBASE_WEBAPP_CONFIG.\n`,
+      `Unable to fetch Firebase config, ignoring \$${ENV_VARIABLE}.\n`,
       e
     );
     return undefined;
@@ -110,7 +113,7 @@ async function getFullConfig(partialConfig) {
 
 function handleUnexpectedError(e) {
   console.warn(
-    'Unexpected error encountered in @firebase/util postinstall script, ignoring FIREBASE_WEBAPP_CONFIG.'
+    `Unexpected error encountered in @firebase/util postinstall script, ignoring \$${ENV_VARIABLE}.`
   );
   console.warn(e);
   process.exit(0);
@@ -118,17 +121,18 @@ function handleUnexpectedError(e) {
 
 getPartialConfig()
   .catch(handleUnexpectedError)
-  .then(getFullConfig)
+  .then(getFinalConfig)
   .catch(handleUnexpectedError)
-  .then(async config => {
-    const emulatorHosts = {
-      firestore: process.env.FIRESTORE_EMULATOR_HOST,
-      database: process.env.FIREBASE_DATABASE_EMULATOR_HOST,
-      storage: process.env.FIREBASE_STORAGE_EMULATOR_HOST,
-      auth: process.env.FIREBASE_AUTH_EMULATOR_HOST
+  .then(async finalConfig => {
+    const defaults = finalConfig && {
+      config: finalConfig,
+      emulatorHosts: {
+        firestore: process.env.FIRESTORE_EMULATOR_HOST,
+        database: process.env.FIREBASE_DATABASE_EMULATOR_HOST,
+        storage: process.env.FIREBASE_STORAGE_EMULATOR_HOST,
+        auth: process.env.FIREBASE_AUTH_EMULATOR_HOST
+      }
     };
-
-    const defaults = config && { config, emulatorHosts };
 
     await Promise.all([
       writeFile(
