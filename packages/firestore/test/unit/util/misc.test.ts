@@ -92,40 +92,33 @@ class StringGenerator {
     } else {
       this.rnd = seedOrRnd;
       this.surrogatePairProbability = StringGenerator.validateProbability(
-        'surrogate pair',
         surrogatePairProbability!
       );
-      this.maxLength = StringGenerator.validateLength(
-        'maximum string',
-        maxLength!
-      );
+      this.maxLength = StringGenerator.validateLength(maxLength!);
     }
   }
 
-  private static validateProbability(
-    name: string,
-    probability: number
-  ): number {
+  private static validateProbability(probability: number): number {
     if (!Number.isFinite(probability)) {
       throw new Error(
-        `invalid ${name} probability: ${probability} (must be between 0.0 and 1.0, inclusive)`
+        `invalid surrogate pair probability: ${probability} (must be between 0.0 and 1.0, inclusive)`
       );
     } else if (probability < 0.0) {
       throw new Error(
-        `invalid ${name} probability: ${probability} (must be greater than or equal to zero)`
+        `invalid surrogate pair probability: ${probability} (must be greater than or equal to zero)`
       );
     } else if (probability > 1.0) {
       throw new Error(
-        `invalid ${name} probability: ${probability} (must be less than or equal to 1)`
+        `invalid surrogate pair probability: ${probability} (must be less than or equal to 1)`
       );
     }
     return probability;
   }
 
-  private static validateLength(name: string, length: number): number {
+  private static validateLength(length: number): number {
     if (length < 0) {
       throw new Error(
-        `invalid ${name} length: ${length} (must be greater than or equal to zero)`
+        `invalid maximum string length: ${length} (must be greater than or equal to zero)`
       );
     }
     return length;
