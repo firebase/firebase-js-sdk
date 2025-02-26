@@ -55,10 +55,6 @@ export class DataConnect {
 // @public
 export class DataConnectError extends FirebaseError {
     readonly code: DataConnectErrorCode;
-    readonly message: string;
-    readonly name: string;
-    // (undocumented)
-    toString(): string;
 }
 
 // @public (undocumented)
@@ -66,7 +62,7 @@ export type DataConnectErrorCode = 'other' | 'already-initialized' | 'not-initia
 
 // @public
 export class DataConnectOperationError extends DataConnectError {
-    readonly name: string;
+    /* Excluded from this release type: name */
     readonly response: DataConnectOperationResponse;
 }
 
