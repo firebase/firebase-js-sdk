@@ -20,7 +20,7 @@ import { invokeExecutePipeline } from '../remote/datastore';
 import { getDatastore } from './components';
 import { Firestore } from './database';
 import { Pipeline } from './pipeline';
-import { PipelineResult } from './pipeline-result';
+import { PipelineResult, PipelineSnapshot } from './pipeline-result';
 import { PipelineSource } from './pipeline-source';
 import { DocumentReference, Query } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
@@ -70,28 +70,33 @@ declare module './reference' {
  * @param pipeline The pipeline to execute.
  * @return A Promise representing the asynchronous pipeline execution.
  */
-export function execute(pipeline: Pipeline): Promise<PipelineResult[]> {
+export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
   const datastore = getDatastore(pipeline._db);
   return invokeExecutePipeline(datastore, pipeline).then(result => {
-    return (
-      result
-        // Currently ignore any response from ExecutePipeline that does
-        // not contain any document data in the `fields` property.
-        .filter(element => !!element.fields)
-        .map(
-          element =>
-            new PipelineResult(
-              pipeline._userDataWriter,
-              element.key?.path
-                ? new DocumentReference(pipeline._db, null, element.key)
-                : undefined,
-              element.fields,
-              element.executionTime?.toTimestamp(),
-              element.createTime?.toTimestamp(),
-              element.updateTime?.toTimestamp()
-            )
-        )
-    );
+    // Get the execution time from the first result.
+    // firestoreClientExecutePipeline returns at least one PipelineStreamElement
+    // even if the returned document set is empty.
+    const executionTime =
+      result.length > 0 ? result[0].executionTime?.toTimestamp() : undefined;
+
+    const docs = result
+      // Currently ignore any response from ExecutePipeline that does
+      // not contain any document data in the `fields` property.
+      .filter(element => !!element.fields)
+      .map(
+        element =>
+          new PipelineResult(
+            pipeline._userDataWriter,
+            element.key?.path
+              ? new DocumentReference(pipeline._db, null, element.key)
+              : undefined,
+            element.fields,
+            element.createTime?.toTimestamp(),
+            element.updateTime?.toTimestamp()
+          )
+      );
+
+    return new PipelineSnapshot(pipeline, docs, executionTime);
   });
 }
 

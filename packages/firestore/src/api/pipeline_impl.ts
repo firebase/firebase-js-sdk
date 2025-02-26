@@ -19,7 +19,7 @@ import { Pipeline } from '../api/pipeline';
 import { firestoreClientExecutePipeline } from '../core/firestore_client';
 import { toPipeline } from '../core/pipeline-util';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
-import { PipelineResult } from '../lite-api/pipeline-result';
+import { PipelineResult, PipelineSnapshot } from '../lite-api/pipeline-result';
 import { PipelineSource } from '../lite-api/pipeline-source';
 import { Stage } from '../lite-api/stage';
 import { newUserDataReader } from '../lite-api/user_data_reader';
@@ -66,10 +66,16 @@ declare module './database' {
  * @param pipeline The pipeline to execute.
  * @return A Promise representing the asynchronous pipeline execution.
  */
-export function execute(pipeline: LitePipeline): Promise<PipelineResult[]> {
+export function execute(pipeline: LitePipeline): Promise<PipelineSnapshot> {
   const firestore = cast(pipeline._db, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   return firestoreClientExecutePipeline(client, pipeline).then(result => {
+    // Get the execution time from the first result.
+    // firestoreClientExecutePipeline returns at least one PipelineStreamElement
+    // even if the returned document set is empty.
+    const executionTime =
+      result.length > 0 ? result[0].executionTime?.toTimestamp() : undefined;
+
     const docs = result
       // Currently ignore any response from ExecutePipeline that does
       // not contain any document data in the `fields` property.
@@ -82,13 +88,12 @@ export function execute(pipeline: LitePipeline): Promise<PipelineResult[]> {
               ? new DocumentReference(firestore, null, element.key)
               : undefined,
             element.fields,
-            element.executionTime?.toTimestamp(),
             element.createTime?.toTimestamp(),
             element.updateTime?.toTimestamp()
           )
       );
 
-    return docs;
+    return new PipelineSnapshot(pipeline, docs, executionTime);
   });
 }
 
