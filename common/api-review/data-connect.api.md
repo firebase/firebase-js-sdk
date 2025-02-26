@@ -53,6 +53,40 @@ export class DataConnect {
 }
 
 // @public
+export class DataConnectError extends FirebaseError {
+    readonly code: DataConnectErrorCode;
+    readonly message: string;
+    readonly name: string;
+    // (undocumented)
+    toString(): string;
+}
+
+// @public (undocumented)
+export type DataConnectErrorCode = 'other' | 'already-initialized' | 'not-initialized' | 'not-supported' | 'invalid-argument' | 'partial-error' | 'unauthorized';
+
+// @public
+export class DataConnectOperationError extends DataConnectError {
+    readonly name: string;
+    readonly response: DataConnectOperationResponse;
+}
+
+// @public (undocumented)
+export interface DataConnectOperationErrorInfo {
+    // (undocumented)
+    readonly message: string;
+    // (undocumented)
+    readonly path: Array<string | number>;
+}
+
+// @public (undocumented)
+export interface DataConnectOperationResponse {
+    // (undocumented)
+    readonly data?: Record<string, unknown> | null;
+    // (undocumented)
+    readonly errors: DataConnectOperationErrorInfo[];
+}
+
+// @public
 export interface DataConnectOptions extends ConnectorConfig {
     // (undocumented)
     projectId: string;
@@ -67,7 +101,7 @@ export interface DataConnectResult<Data, Variables> extends OpResult<Data> {
 // @public
 export interface DataConnectSubscription<Data, Variables> {
     // (undocumented)
-    errCallback?: (e?: FirebaseError) => void;
+    errCallback?: (e?: DataConnectError) => void;
     // (undocumented)
     unsubscribe: () => void;
     // (undocumented)
@@ -118,7 +152,7 @@ export interface MutationResult<Data, Variables> extends DataConnectResult<Data,
 export type OnCompleteSubscription = () => void;
 
 // @public
-export type OnErrorSubscription = (err?: FirebaseError) => void;
+export type OnErrorSubscription = (err?: DataConnectError) => void;
 
 // @public
 export type OnResultSubscription<Data, Variables> = (res: QueryResult<Data, Variables>) => void;
