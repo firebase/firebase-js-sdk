@@ -22,11 +22,9 @@ import {
   Pipeline as ProtoPipeline,
   Stage as ProtoStage
 } from '../protos/firestore_proto_api';
-import { invokeExecutePipeline } from '../remote/datastore';
 import { JsonProtoSerializer, ProtoSerializable } from '../remote/serializer';
 import { isPlainObject } from '../util/input_validation';
 
-import { getDatastore } from './components';
 import { Firestore } from './database';
 import {
   _mapValue,
@@ -40,8 +38,6 @@ import {
   Ordering,
   Selectable
 } from './expressions';
-import { PipelineResult } from './pipeline-result';
-import { DocumentReference } from './reference';
 import {
   AddFields,
   Aggregate,
@@ -99,23 +95,20 @@ function isReadableUserData(value: any): value is ReadableUserData {
  * const db: Firestore; // Assumes a valid firestore instance.
  *
  * // Example 1: Select specific fields and rename 'rating' to 'bookRating'
- * const results1 = await db.pipeline()
+ * const results1 = await execute(db.pipeline()
  *     .collection("books")
- *     .select("title", "author", Field.of("rating").as("bookRating"))
- *     .execute();
+ *     .select("title", "author", Field.of("rating").as("bookRating")));
  *
  * // Example 2: Filter documents where 'genre' is "Science Fiction" and 'published' is after 1950
- * const results2 = await db.pipeline()
+ * const results2 = await execute(db.pipeline()
  *     .collection("books")
- *     .where(and(Field.of("genre").eq("Science Fiction"), Field.of("published").gt(1950)))
- *     .execute();
+ *     .where(and(Field.of("genre").eq("Science Fiction"), Field.of("published").gt(1950))));
  *
  * // Example 3: Calculate the average rating of books published after 1980
- * const results3 = await db.pipeline()
+ * const results3 = await execute(db.pipeline()
  *     .collection("books")
  *     .where(Field.of("published").gt(1980))
- *     .aggregate(avg(Field.of("rating")).as("averageRating"))
- *     .execute();
+ *     .aggregate(avg(Field.of("rating")).as("averageRating")));
  * ```
  */
 
@@ -758,62 +751,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
       }
     });
     return this._addStage(new GenericStage(name, expressionParams));
-  }
-
-  /**
-   * Executes this pipeline and returns a Promise to represent the asynchronous operation.
-   *
-   * <p>The returned Promise can be used to track the progress of the pipeline execution
-   * and retrieve the results (or handle any errors) asynchronously.
-   *
-   * <p>The pipeline results are returned as a list of {@link PipelineResult} objects. Each {@link
-   * PipelineResult} typically represents a single key/value map that has passed through all the
-   * stages of the pipeline, however this might differ depending on the stages involved in the
-   * pipeline. For example:
-   *
-   * <ul>
-   *   <li>If there are no stages or only transformation stages, each {@link PipelineResult}
-   *       represents a single document.</li>
-   *   <li>If there is an aggregation, only a single {@link PipelineResult} is returned,
-   *       representing the aggregated results over the entire dataset .</li>
-   *   <li>If there is an aggregation stage with grouping, each {@link PipelineResult} represents a
-   *       distinct group and its associated aggregated values.</li>
-   * </ul>
-   *
-   * <p>Example:
-   *
-   * ```typescript
-   * const futureResults = await firestore.pipeline().collection("books")
-   *     .where(gt(Field.of("rating"), 4.5))
-   *     .select("title", "author", "rating")
-   *     .execute();
-   * ```
-   *
-   * @return A Promise representing the asynchronous pipeline execution.
-   */
-  execute(): Promise<PipelineResult[]> {
-    const datastore = getDatastore(this._db);
-    return invokeExecutePipeline(datastore, this).then(result => {
-      return (
-        result
-          // Currently ignore any response from ExecutePipeline that does
-          // not contain any document data in the `fields` property.
-          .filter(element => !!element.fields)
-          .map(
-            element =>
-              new PipelineResult(
-                this._userDataWriter,
-                element.key?.path
-                  ? new DocumentReference(this._db, null, element.key)
-                  : undefined,
-                element.fields,
-                element.executionTime?.toTimestamp(),
-                element.createTime?.toTimestamp(),
-                element.updateTime?.toTimestamp()
-              )
-          )
-      );
-    });
   }
 
   /**

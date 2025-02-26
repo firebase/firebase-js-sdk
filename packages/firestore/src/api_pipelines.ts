@@ -21,7 +21,7 @@ export { PipelineResult } from './lite-api/pipeline-result';
 
 export { Pipeline } from './api/pipeline';
 
-export { pipeline, execute } from './api/pipeline_impl';
+export { execute } from './api/pipeline_impl';
 
 export {
   Stage,

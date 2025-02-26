@@ -40,7 +40,8 @@ import {
   and,
   documentId,
   addDoc,
-  getDoc
+  getDoc,
+  execute
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -73,7 +74,7 @@ apiDescribe('Query to Pipeline', persistence => {
       PERSISTENCE_MODE_UNSPECIFIED,
       { 1: { foo: 1 } },
       async collRef => {
-        const result = await collRef.pipeline().execute();
+        const result = await execute(collRef.pipeline());
         verifyResults(result, { foo: 1 });
       }
     );
@@ -88,7 +89,7 @@ apiDescribe('Query to Pipeline', persistence => {
       },
       async collRef => {
         const query1 = query(collRef, where('foo', '==', 1));
-        const result = await query1.pipeline().execute();
+        const result = await execute(query1.pipeline());
         verifyResults(result, { foo: 1 });
       }
     );
@@ -103,7 +104,7 @@ apiDescribe('Query to Pipeline', persistence => {
       },
       async collRef => {
         const query1 = query(collRef, where(new FieldPath('foo'), '==', 1));
-        const result = await query1.pipeline().execute();
+        const result = await execute(query1.pipeline());
         verifyResults(result, { foo: 1 });
       }
     );
@@ -118,7 +119,7 @@ apiDescribe('Query to Pipeline', persistence => {
       },
       async collRef => {
         const query1 = query(collRef, orderBy('foo'));
-        const result = await query1.pipeline().execute();
+        const result = await execute(query1.pipeline());
         verifyResults(result, { foo: 1 }, { foo: 2 });
       }
     );
@@ -133,7 +134,7 @@ apiDescribe('Query to Pipeline', persistence => {
       },
       async collRef => {
         const query1 = query(collRef, orderBy('foo', 'asc'));
-        const result = await query1.pipeline().execute();
+        const result = await execute(query1.pipeline());
         verifyResults(result, { foo: 1 }, { foo: 2 });
       }
     );
@@ -148,7 +149,7 @@ apiDescribe('Query to Pipeline', persistence => {
       },
       async collRef => {
         const query1 = query(collRef, orderBy('foo', 'desc'));
-        const result = await query1.pipeline().execute();
+        const result = await execute(query1.pipeline());
         verifyResults(result, { foo: 2 }, { foo: 1 });
       }
     );
@@ -163,7 +164,7 @@ apiDescribe('Query to Pipeline', persistence => {
       },
       async collRef => {
         const query1 = query(collRef, orderBy('foo'), limit(1));
-        const result = await query1.pipeline().execute();
+        const result = await execute(query1.pipeline());
         verifyResults(result, { foo: 1 });
       }
     );
@@ -179,7 +180,7 @@ apiDescribe('Query to Pipeline', persistence => {
       },
       async collRef => {
         const query1 = query(collRef, orderBy('foo'), limitToLast(2));
-        const result = await query1.pipeline().execute();
+        const result = await execute(query1.pipeline());
         verifyResults(result, { foo: 2 }, { foo: 3 });
       }
     );
@@ -194,7 +195,7 @@ apiDescribe('Query to Pipeline', persistence => {
       },
       async collRef => {
         const query1 = query(collRef, orderBy('foo'), startAt(2));
-        const result = await query1.pipeline().execute();
+        const result = await execute(query1.pipeline());
         verifyResults(result, { foo: 2 });
       }
     );
@@ -226,7 +227,7 @@ apiDescribe('Query to Pipeline', persistence => {
           orderBy('baz'),
           startAfter(docRef)
         );
-        let result = await query1.pipeline().execute();
+        let result = await execute(query1.pipeline());
         verifyResults(
           result,
           { id: 3, foo: 1, bar: 1, baz: 2 },
@@ -249,7 +250,7 @@ apiDescribe('Query to Pipeline', persistence => {
           orderBy('baz'),
           startAfter(docRef)
         );
-        result = await query1.pipeline().execute();
+        result = await execute(query1.pipeline());
         verifyResults(
           result,
           { id: 4, foo: 1, bar: 2, baz: 1 },
@@ -292,7 +293,7 @@ apiDescribe('Query to Pipeline', persistence => {
           orderBy('baz'),
           startAt(docRef)
         );
-        let result = await query1.pipeline().execute();
+        let result = await execute(query1.pipeline());
         verifyResults(
           result,
           { id: 2, foo: 1, bar: 1, baz: 2 },
@@ -316,7 +317,7 @@ apiDescribe('Query to Pipeline', persistence => {
           orderBy('baz'),
           startAt(docRef)
         );
-        result = await query1.pipeline().execute();
+        result = await execute(query1.pipeline());
         verifyResults(
           result,
           { id: 3, foo: 1, bar: 1, baz: 2 },
@@ -343,7 +344,7 @@ apiDescribe('Query to Pipeline', persistence => {
       },
       async collRef => {
         const query1 = query(collRef, orderBy('foo'), startAfter(1));
-        const result = await query1.pipeline().execute();
+        const result = await execute(query1.pipeline());
         verifyResults(result, { foo: 2 });
       }
     );
@@ -358,7 +359,7 @@ apiDescribe('Query to Pipeline', persistence => {
       },
       async collRef => {
         const query1 = query(collRef, orderBy('foo'), endAt(1));
-        const result = await query1.pipeline().execute();
+        const result = await execute(query1.pipeline());
         verifyResults(result, { foo: 1 });
       }
     );
@@ -373,7 +374,7 @@ apiDescribe('Query to Pipeline', persistence => {
       },
       async collRef => {
         const query1 = query(collRef, orderBy('foo'), endBefore(2));
-        const result = await query1.pipeline().execute();
+        const result = await execute(query1.pipeline());
         verifyResults(result, { foo: 1 });
       }
     );
@@ -389,12 +390,12 @@ apiDescribe('Query to Pipeline', persistence => {
       async collRef => {
         let query1 = query(collRef, orderBy('foo'), limit(1));
         const pipeline1 = query1.pipeline();
-        let result = await pipeline1.execute();
+        let result = await execute(pipeline1);
         verifyResults(result, { foo: 1 });
 
         // Pass the document snapshot from the previous result
         query1 = query(query1, startAfter(result[0].get('foo')));
-        result = await query1.pipeline().execute();
+        result = await execute(query1.pipeline());
         verifyResults(result, { foo: 2 });
       }
     );
@@ -415,7 +416,7 @@ apiDescribe('Query to Pipeline', persistence => {
           limit(1)
         );
         const pipeline1 = query1.pipeline();
-        let result = await pipeline1.execute();
+        let result = await execute(pipeline1);
         verifyResults(result, { foo: 1 });
 
         // Pass the document snapshot from the previous result
@@ -423,7 +424,7 @@ apiDescribe('Query to Pipeline', persistence => {
           query1,
           startAfter(result[0].get('foo'), result[0].ref?.id)
         );
-        result = await query1.pipeline().execute();
+        result = await execute(query1.pipeline());
         verifyResults(result, { foo: 2 });
       }
     );
@@ -448,7 +449,7 @@ apiDescribe('Query to Pipeline', persistence => {
         await setDoc(barDoc, { bar: 1 });
 
         const query1 = collectionGroup(collRef.firestore, collectionGroupId);
-        const result = await query1.pipeline().execute();
+        const result = await execute(query1.pipeline());
 
         verifyResults(result, { bar: 1 }, { foo: 1 });
       }
@@ -469,12 +470,9 @@ apiDescribe('Query to Pipeline', persistence => {
         await addDoc(collectionWithSpecials, { foo: 1 });
         await addDoc(collectionWithSpecials, { foo: 2 });
 
-        const result = await query(
-          collectionWithSpecials,
-          orderBy('foo', 'asc')
-        )
-          .pipeline()
-          .execute();
+        const result = await execute(
+          query(collectionWithSpecials, orderBy('foo', 'asc')).pipeline()
+        );
 
         verifyResults(result, { foo: 1 }, { foo: 2 });
       }
@@ -503,7 +501,7 @@ apiDescribe('Query to Pipeline', persistence => {
           collRef,
           and(where('id', '>', 2), where('id', '<=', 10))
         );
-        const result = await query1.pipeline().execute();
+        const result = await execute(query1.pipeline());
         verifyResults(
           result,
           { id: 3, foo: 1, bar: 1, baz: 2 },
@@ -541,7 +539,7 @@ apiDescribe('Query to Pipeline', persistence => {
           collRef,
           and(where('id', '>=', 2), where('baz', '<', 2))
         );
-        const result = await query1.pipeline().execute();
+        const result = await execute(query1.pipeline());
         verifyResults(
           result,
           { id: 4, foo: 1, bar: 2, baz: 1 },

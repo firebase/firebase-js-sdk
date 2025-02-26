@@ -34,7 +34,6 @@ import {
   getFirestore,
   terminate,
   vector,
-  pipeline,
   execute,
   _internalPipelineToExecutePipelineRequestProto,
   add,
@@ -281,38 +280,36 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('empty results as expected', async () => {
-    const result = await firestore
-      .pipeline()
-      .collection(randomCol.path)
-      .limit(0)
-      .execute();
+    const result = await execute(
+      firestore.pipeline().collection(randomCol.path).limit(0)
+    );
     expect(result.length).to.equal(0);
   });
 
   it('full results as expected', async () => {
-    const result = await firestore
-      .pipeline()
-      .collection(randomCol.path)
-      .execute();
+    const result = await execute(
+      firestore.pipeline().collection(randomCol.path)
+    );
     expect(result.length).to.equal(10);
   });
 
   it('supports CollectionReference as source', async () => {
-    const result = await firestore.pipeline().collection(randomCol).execute();
+    const result = await execute(firestore.pipeline().collection(randomCol));
     expect(result.length).to.equal(10);
   });
 
   it('supports list of documents as source', async () => {
     const collName = randomCol.id;
 
-    const result = await firestore
-      .pipeline()
-      .documents([
-        `${collName}/book1`,
-        doc(randomCol, 'book2'),
-        doc(randomCol, 'book3').path
-      ])
-      .execute();
+    const result = await execute(
+      firestore
+        .pipeline()
+        .documents([
+          `${collName}/book1`,
+          doc(randomCol, 'book2'),
+          doc(randomCol, 'book3').path
+        ])
+    );
     expect(result.length).to.equal(3);
   });
 
@@ -337,43 +334,23 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('converts arrays and plain objects to functionValues if the customer intent is unspecified', async () => {
-    const result = await firestore
-      .pipeline()
-      .collection(randomCol.path)
-      .sort(Field.of('rating').descending())
-      .limit(1)
-      .select(
-        'title',
-        'author',
-        'genre',
-        'rating',
-        'published',
-        'tags',
-        'awards'
-      )
-      .addFields(
-        array([
-          1,
-          2,
-          Field.of('genre'),
-          multiply('rating', 10),
-          [Field.of('title')],
-          {
-            published: Field.of('published')
-          }
-        ]).as('metadataArray'),
-        map({
-          genre: Field.of('genre'),
-          rating: multiply('rating', 10),
-          nestedArray: [Field.of('title')],
-          nestedMap: {
-            published: Field.of('published')
-          }
-        }).as('metadata')
-      )
-      .where(
-        andFunction(
-          eq('metadataArray', [
+    const result = await execute(
+      firestore
+        .pipeline()
+        .collection(randomCol.path)
+        .sort(Field.of('rating').descending())
+        .limit(1)
+        .select(
+          'title',
+          'author',
+          'genre',
+          'rating',
+          'published',
+          'tags',
+          'awards'
+        )
+        .addFields(
+          array([
             1,
             2,
             Field.of('genre'),
@@ -382,18 +359,39 @@ apiDescribe.only('Pipelines', persistence => {
             {
               published: Field.of('published')
             }
-          ]),
-          eq('metadata', {
+          ]).as('metadataArray'),
+          map({
             genre: Field.of('genre'),
             rating: multiply('rating', 10),
             nestedArray: [Field.of('title')],
             nestedMap: {
               published: Field.of('published')
             }
-          })
+          }).as('metadata')
         )
-      )
-      .execute();
+        .where(
+          andFunction(
+            eq('metadataArray', [
+              1,
+              2,
+              Field.of('genre'),
+              multiply('rating', 10),
+              [Field.of('title')],
+              {
+                published: Field.of('published')
+              }
+            ]),
+            eq('metadata', {
+              genre: Field.of('genre'),
+              rating: multiply('rating', 10),
+              nestedArray: [Field.of('title')],
+              nestedMap: {
+                published: Field.of('published')
+              }
+            })
+          )
+        )
+    );
 
     expect(result.length).to.equal(1);
 
@@ -479,11 +477,12 @@ apiDescribe.only('Pipelines', persistence => {
       ]).as('array')
     ];
 
-    const results = await randomCol
-      .pipeline()
-      .limit(1)
-      .select(...constants)
-      .execute();
+    const results = await execute(
+      randomCol
+        .pipeline()
+        .limit(1)
+        .select(...constants)
+    );
 
     expectResults(results, {
       'number': 1,
@@ -552,49 +551,53 @@ apiDescribe.only('Pipelines', persistence => {
   describe('stages', () => {
     describe('aggregate stage', () => {
       it('supports aggregate', async () => {
-        let result = await firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .aggregate(countAll().as('count'))
-          .execute();
+        let result = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .aggregate(countAll().as('count'))
+        );
         expectResults(result, { count: 10 });
 
-        result = await randomCol
-          .pipeline()
-          .where(eq('genre', 'Science Fiction'))
-          .aggregate(
-            countAll().as('count'),
-            avgFunction('rating').as('avgRating'),
-            Field.of('rating').maximum().as('maxRating')
-          )
-          .execute();
+        result = await execute(
+          randomCol
+            .pipeline()
+            .where(eq('genre', 'Science Fiction'))
+            .aggregate(
+              countAll().as('count'),
+              avgFunction('rating').as('avgRating'),
+              Field.of('rating').maximum().as('maxRating')
+            )
+        );
         expectResults(result, { count: 2, avgRating: 4.4, maxRating: 4.6 });
       });
 
       it('rejects groups without accumulators', async () => {
         await expect(
-          randomCol
-            .pipeline()
-            .where(lt('published', 1900))
-            .aggregate({
-              accumulators: [],
-              groups: ['genre']
-            })
-            .execute()
+          execute(
+            randomCol
+              .pipeline()
+              .where(lt('published', 1900))
+              .aggregate({
+                accumulators: [],
+                groups: ['genre']
+              })
+          )
         ).to.be.rejected;
       });
 
       it('returns group and accumulate results', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(lt(Field.of('published'), 1984))
-          .aggregate({
-            accumulators: [avgFunction('rating').as('avgRating')],
-            groups: ['genre']
-          })
-          .where(gt('avgRating', 4.3))
-          .sort(Field.of('avgRating').descending())
-          .execute();
+        const results = await execute(
+          randomCol
+            .pipeline()
+            .where(lt(Field.of('published'), 1984))
+            .aggregate({
+              accumulators: [avgFunction('rating').as('avgRating')],
+              groups: ['genre']
+            })
+            .where(gt('avgRating', 4.3))
+            .sort(Field.of('avgRating').descending())
+        );
         expectResults(
           results,
           { avgRating: 4.7, genre: 'Fantasy' },
@@ -604,14 +607,15 @@ apiDescribe.only('Pipelines', persistence => {
       });
 
       it('returns min and max accumulations', async () => {
-        const results = await randomCol
-          .pipeline()
-          .aggregate(
-            countAll().as('count'),
-            Field.of('rating').maximum().as('maxRating'),
-            Field.of('published').minimum().as('minPublished')
-          )
-          .execute();
+        const results = await execute(
+          randomCol
+            .pipeline()
+            .aggregate(
+              countAll().as('count'),
+              Field.of('rating').maximum().as('maxRating'),
+              Field.of('published').minimum().as('minPublished')
+            )
+        );
         expectResults(results, {
           count: 10,
           maxRating: 4.7,
@@ -620,30 +624,33 @@ apiDescribe.only('Pipelines', persistence => {
       });
 
       it('returns countif accumulation', async () => {
-        let results = await randomCol
-          .pipeline()
-          .aggregate(countIf(Field.of('rating').gt(4.3)).as('count'))
-          .execute();
+        let results = await execute(
+          randomCol
+            .pipeline()
+            .aggregate(countIf(Field.of('rating').gt(4.3)).as('count'))
+        );
         const expectedResults = {
           count: 3
         };
         expectResults(results, expectedResults);
 
-        results = await randomCol
-          .pipeline()
-          .aggregate(Field.of('rating').gt(4.3).countIf().as('count'))
-          .execute();
+        results = await execute(
+          randomCol
+            .pipeline()
+            .aggregate(Field.of('rating').gt(4.3).countIf().as('count'))
+        );
         expectResults(results, expectedResults);
       });
     });
 
     describe('distinct stage', () => {
       it('returns distinct values as expected', async () => {
-        const results = await randomCol
-          .pipeline()
-          .distinct('genre', 'author')
-          .sort(Field.of('genre').ascending(), Field.of('author').ascending())
-          .execute();
+        const results = await execute(
+          randomCol
+            .pipeline()
+            .distinct('genre', 'author')
+            .sort(Field.of('genre').ascending(), Field.of('author').ascending())
+        );
         expectResults(
           results,
           { genre: 'Dystopian', author: 'George Orwell' },
@@ -662,12 +669,13 @@ apiDescribe.only('Pipelines', persistence => {
 
     describe('select stage', () => {
       it('can select fields', async () => {
-        const results = await firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .select('title', 'author')
-          .sort(Field.of('author').ascending())
-          .execute();
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select('title', 'author')
+            .sort(Field.of('author').ascending())
+        );
         expectResults(
           results,
           {
@@ -692,13 +700,14 @@ apiDescribe.only('Pipelines', persistence => {
 
     describe('addField stage', () => {
       it('can add fields', async () => {
-        const results = await firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .select('title', 'author')
-          .addFields(Constant.of('bar').as('foo'))
-          .sort(Field.of('author').ascending())
-          .execute();
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select('title', 'author')
+            .addFields(Constant.of('bar').as('foo'))
+            .sort(Field.of('author').ascending())
+        );
         expectResults(
           results,
           {
@@ -745,30 +754,32 @@ apiDescribe.only('Pipelines', persistence => {
 
     describe('where stage', () => {
       it('where with and', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(
-            andFunction(
-              gt('rating', 4.5),
-              eq('genre', 'Science Fiction'),
-              lte('published', 1965)
+        const results = await execute(
+          randomCol
+            .pipeline()
+            .where(
+              andFunction(
+                gt('rating', 4.5),
+                eq('genre', 'Science Fiction'),
+                lte('published', 1965)
+              )
             )
-          )
-          .execute();
+        );
         expectResults(results, 'book10');
       });
       it('where with or', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(
-            orFunction(
-              eq('genre', 'Romance'),
-              eq('genre', 'Dystopian'),
-              eq('genre', 'Fantasy')
+        const results = await execute(
+          randomCol
+            .pipeline()
+            .where(
+              orFunction(
+                eq('genre', 'Romance'),
+                eq('genre', 'Dystopian'),
+                eq('genre', 'Fantasy')
+              )
             )
-          )
-          .select('title')
-          .execute();
+            .select('title')
+        );
         expectResults(
           results,
           { title: 'Pride and Prejudice' },
@@ -779,18 +790,19 @@ apiDescribe.only('Pipelines', persistence => {
       });
 
       it('where with xor', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(
-            xor(
-              eq('genre', 'Romance'),
-              eq('genre', 'Dystopian'),
-              eq('genre', 'Fantasy'),
-              eq('published', 1949)
+        const results = await execute(
+          randomCol
+            .pipeline()
+            .where(
+              xor(
+                eq('genre', 'Romance'),
+                eq('genre', 'Dystopian'),
+                eq('genre', 'Fantasy'),
+                eq('published', 1949)
+              )
             )
-          )
-          .select('title')
-          .execute();
+            .select('title')
+        );
         expectResults(
           results,
           { title: 'Pride and Prejudice' },
@@ -802,14 +814,15 @@ apiDescribe.only('Pipelines', persistence => {
 
     describe('sort, offset, and limit stages', () => {
       it('supports sort, offset, and limits', async () => {
-        const results = await firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .sort(Field.of('author').ascending())
-          .offset(5)
-          .limit(3)
-          .select('title', 'author')
-          .execute();
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(Field.of('author').ascending())
+            .offset(5)
+            .limit(3)
+            .select('title', 'author')
+        );
         expectResults(
           results,
           { title: '1984', author: 'George Orwell' },
@@ -821,20 +834,21 @@ apiDescribe.only('Pipelines', persistence => {
 
     describe('generic stage', () => {
       it('can select fields', async () => {
-        const results = await firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .genericStage('select', [
-            {
-              title: Field.of('title'),
-              metadata: {
-                'author': Field.of('author')
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .genericStage('select', [
+              {
+                title: Field.of('title'),
+                metadata: {
+                  'author': Field.of('author')
+                }
               }
-            }
-          ])
-          .sort(Field.of('author').ascending())
-          .limit(1)
-          .execute();
+            ])
+            .sort(Field.of('author').ascending())
+            .limit(1)
+        );
         expectResults(results, {
           title: "The Hitchhiker's Guide to the Galaxy",
           metadata: {
@@ -844,18 +858,19 @@ apiDescribe.only('Pipelines', persistence => {
       });
 
       it('can add fields', async () => {
-        const results = await firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .sort(Field.of('author').ascending())
-          .limit(1)
-          .select('title', 'author')
-          .genericStage('add_fields', [
-            {
-              display: Field.of('title').strConcat(' - ', Field.of('author'))
-            }
-          ])
-          .execute();
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(Field.of('author').ascending())
+            .limit(1)
+            .select('title', 'author')
+            .genericStage('add_fields', [
+              {
+                display: Field.of('title').strConcat(' - ', Field.of('author'))
+              }
+            ])
+        );
         expectResults(results, {
           title: "The Hitchhiker's Guide to the Galaxy",
           author: 'Douglas Adams',
@@ -864,12 +879,13 @@ apiDescribe.only('Pipelines', persistence => {
       });
 
       it('can filter with where', async () => {
-        const results = await firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .select('title', 'author')
-          .genericStage('where', [Field.of('author').eq('Douglas Adams')])
-          .execute();
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select('title', 'author')
+            .genericStage('where', [Field.of('author').eq('Douglas Adams')])
+        );
         expectResults(results, {
           title: "The Hitchhiker's Guide to the Galaxy",
           author: 'Douglas Adams'
@@ -877,19 +893,20 @@ apiDescribe.only('Pipelines', persistence => {
       });
 
       it('can limit, offset, and sort', async () => {
-        const results = await firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .select('title', 'author')
-          .genericStage('sort', [
-            {
-              direction: 'ascending',
-              expression: Field.of('author')
-            }
-          ])
-          .genericStage('offset', [3])
-          .genericStage('limit', [1])
-          .execute();
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select('title', 'author')
+            .genericStage('sort', [
+              {
+                direction: 'ascending',
+                expression: Field.of('author')
+              }
+            ])
+            .genericStage('offset', [3])
+            .genericStage('limit', [1])
+        );
         expectResults(results, {
           author: 'Fyodor Dostoevsky',
           title: 'Crime and Punishment'
@@ -897,28 +914,30 @@ apiDescribe.only('Pipelines', persistence => {
       });
 
       it('can perform aggregate query', async () => {
-        const results = await firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .select('title', 'author', 'rating')
-          .genericStage('aggregate', [
-            { averageRating: Field.of('rating').avg() },
-            {}
-          ])
-          .execute();
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select('title', 'author', 'rating')
+            .genericStage('aggregate', [
+              { averageRating: Field.of('rating').avg() },
+              {}
+            ])
+        );
         expectResults(results, {
           averageRating: 4.3100000000000005
         });
       });
 
       it('can perform distinct query', async () => {
-        const results = await firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .select('title', 'author', 'rating')
-          .genericStage('distinct', [{ rating: Field.of('rating') }])
-          .sort(Field.of('rating').descending())
-          .execute();
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select('title', 'author', 'rating')
+            .genericStage('distinct', [{ rating: Field.of('rating') }])
+            .sort(Field.of('rating').descending())
+        );
         expectResults(
           results,
           {
@@ -948,11 +967,12 @@ apiDescribe.only('Pipelines', persistence => {
 
     describe('replace stage', () => {
       it('run pipleine with replace', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(eq('title', "The Hitchhiker's Guide to the Galaxy"))
-          .replaceWith('awards')
-          .execute();
+        const results = await execute(
+          randomCol
+            .pipeline()
+            .where(eq('title', "The Hitchhiker's Guide to the Galaxy"))
+            .replaceWith('awards')
+        );
         expectResults(results, {
           hugo: true,
           nebula: false,
@@ -963,15 +983,14 @@ apiDescribe.only('Pipelines', persistence => {
 
     describe('sample stage', () => {
       it('run pipeline with sample limit of 3', async () => {
-        const results = await randomCol.pipeline().sample(3).execute();
+        const results = await execute(randomCol.pipeline().sample(3));
         expect(results.length).to.equal(3);
       });
 
       it('run pipeline with sample limit of {documents: 3}', async () => {
-        const results = await randomCol
-          .pipeline()
-          .sample({ documents: 3 })
-          .execute();
+        const results = await execute(
+          randomCol.pipeline().sample({ documents: 3 })
+        );
         expect(results.length).to.equal(3);
       });
 
@@ -979,10 +998,9 @@ apiDescribe.only('Pipelines', persistence => {
         let avgSize = 0;
         const numIterations = 20;
         for (let i = 0; i < numIterations; i++) {
-          const results = await randomCol
-            .pipeline()
-            .sample({ percentage: 0.6 })
-            .execute();
+          const results = await execute(
+            randomCol.pipeline().sample({ percentage: 0.6 })
+          );
 
           avgSize += results.length;
         }
@@ -993,11 +1011,12 @@ apiDescribe.only('Pipelines', persistence => {
 
     describe('union stage', () => {
       it('run pipeline with union', async () => {
-        const results = await randomCol
-          .pipeline()
-          .union(randomCol.pipeline())
-          .sort(Field.of(documentId()).ascending())
-          .execute();
+        const results = await execute(
+          randomCol
+            .pipeline()
+            .union(randomCol.pipeline())
+            .sort(Field.of(documentId()).ascending())
+        );
         expectResults(
           results,
           'book1',
@@ -1026,11 +1045,12 @@ apiDescribe.only('Pipelines', persistence => {
 
     describe('unnest stage', () => {
       it('run pipeline with unnest', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(eq('title', "The Hitchhiker's Guide to the Galaxy"))
-          .unnest(Field.of('tags').as('tag'))
-          .execute();
+        const results = await execute(
+          randomCol
+            .pipeline()
+            .where(eq('title', "The Hitchhiker's Guide to the Galaxy"))
+            .unnest(Field.of('tags').as('tag'))
+        );
         expectResults(
           results,
           {
@@ -1081,11 +1101,12 @@ apiDescribe.only('Pipelines', persistence => {
         );
       });
       it('unnest an expr', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(eq('title', "The Hitchhiker's Guide to the Galaxy"))
-          .unnest(array([1, 2, 3]).as('copy'))
-          .execute();
+        const results = await execute(
+          randomCol
+            .pipeline()
+            .where(eq('title', "The Hitchhiker's Guide to the Galaxy"))
+            .unnest(array([1, 2, 3]).as('copy'))
+        );
         expectResults(
           results,
           {
@@ -1140,17 +1161,18 @@ apiDescribe.only('Pipelines', persistence => {
 
   describe('function expressions', () => {
     it('logical max works', async () => {
-      const results = await randomCol
-        .pipeline()
-        .select(
-          'title',
-          logicalMaximum(Constant.of(1960), Field.of('published'), 1961).as(
-            'published-safe'
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .select(
+            'title',
+            logicalMaximum(Constant.of(1960), Field.of('published'), 1961).as(
+              'published-safe'
+            )
           )
-        )
-        .sort(Field.of('title').ascending())
-        .limit(3)
-        .execute();
+          .sort(Field.of('title').ascending())
+          .limit(3)
+      );
       expectResults(
         results,
         { title: '1984', 'published-safe': 1961 },
@@ -1160,17 +1182,18 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     it('logical min works', async () => {
-      const results = await randomCol
-        .pipeline()
-        .select(
-          'title',
-          logicalMinimum(Constant.of(1960), Field.of('published'), 1961).as(
-            'published-safe'
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .select(
+            'title',
+            logicalMinimum(Constant.of(1960), Field.of('published'), 1961).as(
+              'published-safe'
+            )
           )
-        )
-        .sort(Field.of('title').ascending())
-        .limit(3)
-        .execute();
+          .sort(Field.of('title').ascending())
+          .limit(3)
+      );
       expectResults(
         results,
         { title: '1984', 'published-safe': 1949 },
@@ -1180,19 +1203,20 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     it('cond works', async () => {
-      const results = await randomCol
-        .pipeline()
-        .select(
-          'title',
-          cond(
-            lt(Field.of('published'), 1960),
-            Constant.of(1960),
-            Field.of('published')
-          ).as('published-safe')
-        )
-        .sort(Field.of('title').ascending())
-        .limit(3)
-        .execute();
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .select(
+            'title',
+            cond(
+              lt(Field.of('published'), 1960),
+              Constant.of(1960),
+              Field.of('published')
+            ).as('published-safe')
+          )
+          .sort(Field.of('title').ascending())
+          .limit(3)
+      );
       expectResults(
         results,
         { title: '1984', 'published-safe': 1960 },
@@ -1202,11 +1226,12 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     it('eqAny works', async () => {
-      const results = await randomCol
-        .pipeline()
-        .where(eqAny('published', [1979, 1999, 1967]))
-        .select('title')
-        .execute();
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .where(eqAny('published', [1979, 1999, 1967]))
+          .select('title')
+      );
       expectResults(
         results,
         { title: "The Hitchhiker's Guide to the Galaxy" },
@@ -1215,36 +1240,39 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     it('notEqAny works', async () => {
-      const results = await randomCol
-        .pipeline()
-        .where(
-          notEqAny(
-            'published',
-            [1965, 1925, 1949, 1960, 1866, 1985, 1954, 1967, 1979]
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .where(
+            notEqAny(
+              'published',
+              [1965, 1925, 1949, 1960, 1866, 1985, 1954, 1967, 1979]
+            )
           )
-        )
-        .select('title')
-        .execute();
+          .select('title')
+      );
       expectResults(results, { title: 'Pride and Prejudice' });
     });
 
     it('arrayContains works', async () => {
-      const results = await randomCol
-        .pipeline()
-        .where(arrayContains('tags', 'comedy'))
-        .select('title')
-        .execute();
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .where(arrayContains('tags', 'comedy'))
+          .select('title')
+      );
       expectResults(results, {
         title: "The Hitchhiker's Guide to the Galaxy"
       });
     });
 
     it('arrayContainsAny works', async () => {
-      const results = await randomCol
-        .pipeline()
-        .where(arrayContainsAny('tags', ['comedy', 'classic']))
-        .select('title')
-        .execute();
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .where(arrayContainsAny('tags', ['comedy', 'classic']))
+          .select('title')
+      );
       expectResults(
         results,
         { title: "The Hitchhiker's Guide to the Galaxy" },
@@ -1253,43 +1281,49 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     it('arrayContainsAll works', async () => {
-      const results = await randomCol
-        .pipeline()
-        .where(Field.of('tags').arrayContainsAll('adventure', 'magic'))
-        .select('title')
-        .execute();
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .where(Field.of('tags').arrayContainsAll('adventure', 'magic'))
+          .select('title')
+      );
       expectResults(results, { title: 'The Lord of the Rings' });
     });
 
     it('arrayLength works', async () => {
-      const results = await randomCol
-        .pipeline()
-        .select(Field.of('tags').arrayLength().as('tagsCount'))
-        .where(eq('tagsCount', 3))
-        .execute();
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .select(Field.of('tags').arrayLength().as('tagsCount'))
+          .where(eq('tagsCount', 3))
+      );
       expect(results.length).to.equal(10);
     });
 
     it('testStrConcat', async () => {
-      const results = await randomCol
-        .pipeline()
-        .select(
-          Field.of('author').strConcat(' - ', Field.of('title')).as('bookInfo')
-        )
-        .limit(1)
-        .execute();
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .select(
+            Field.of('author')
+              .strConcat(' - ', Field.of('title'))
+              .as('bookInfo')
+          )
+          .limit(1)
+      );
       expectResults(results, {
         bookInfo: "Douglas Adams - The Hitchhiker's Guide to the Galaxy"
       });
     });
 
     it('testStartsWith', async () => {
-      const results = await randomCol
-        .pipeline()
-        .where(startsWith('title', 'The'))
-        .select('title')
-        .sort(Field.of('title').ascending())
-        .execute();
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .where(startsWith('title', 'The'))
+          .select('title')
+          .sort(Field.of('title').ascending())
+      );
       expectResults(
         results,
         { title: 'The Great Gatsby' },
@@ -1300,12 +1334,13 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     it('testEndsWith', async () => {
-      const results = await randomCol
-        .pipeline()
-        .where(endsWith('title', 'y'))
-        .select('title')
-        .sort(Field.of('title').descending())
-        .execute();
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .where(endsWith('title', 'y'))
+          .select('title')
+          .sort(Field.of('title').descending())
+      );
       expectResults(
         results,
         { title: "The Hitchhiker's Guide to the Galaxy" },
@@ -1314,15 +1349,16 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     it('testLength', async () => {
-      const results = await randomCol
-        .pipeline()
-        .select(
-          Field.of('title').charLength().as('titleLength'),
-          Field.of('title')
-        )
-        .where(gt('titleLength', 20))
-        .sort(Field.of('title').ascending())
-        .execute();
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .select(
+            Field.of('title').charLength().as('titleLength'),
+            Field.of('title')
+          )
+          .where(gt('titleLength', 20))
+          .sort(Field.of('title').ascending())
+      );
 
       expectResults(
         results,
@@ -1347,45 +1383,42 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     it('testLike', async () => {
-      const results = await randomCol
-        .pipeline()
-        .where(like('title', '%Guide%'))
-        .select('title')
-        .execute();
+      const results = await execute(
+        randomCol.pipeline().where(like('title', '%Guide%')).select('title')
+      );
       expectResults(results, {
         title: "The Hitchhiker's Guide to the Galaxy"
       });
     });
 
     it('testRegexContains', async () => {
-      const results = await randomCol
-        .pipeline()
-        .where(regexContains('title', '(?i)(the|of)'))
-        .execute();
+      const results = await execute(
+        randomCol.pipeline().where(regexContains('title', '(?i)(the|of)'))
+      );
       expect(results.length).to.equal(5);
     });
 
     it('testRegexMatches', async () => {
-      const results = await randomCol
-        .pipeline()
-        .where(regexMatch('title', '.*(?i)(the|of).*'))
-        .execute();
+      const results = await execute(
+        randomCol.pipeline().where(regexMatch('title', '.*(?i)(the|of).*'))
+      );
       expect(results.length).to.equal(5);
     });
 
     it('testArithmeticOperations', async () => {
-      const results = await randomCol
-        .pipeline()
-        .select(
-          add(Field.of('rating'), 1).as('ratingPlusOne'),
-          subtract(Field.of('published'), 1900).as('yearsSince1900'),
-          Field.of('rating').multiply(10).as('ratingTimesTen'),
-          Field.of('rating').divide(2).as('ratingDividedByTwo'),
-          multiply('rating', 10, 2).as('ratingTimes20'),
-          add('rating', 1, 2).as('ratingPlus3')
-        )
-        .limit(1)
-        .execute();
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .select(
+            add(Field.of('rating'), 1).as('ratingPlusOne'),
+            subtract(Field.of('published'), 1900).as('yearsSince1900'),
+            Field.of('rating').multiply(10).as('ratingTimesTen'),
+            Field.of('rating').divide(2).as('ratingDividedByTwo'),
+            multiply('rating', 10, 2).as('ratingTimes20'),
+            add('rating', 1, 2).as('ratingPlus3')
+          )
+          .limit(1)
+      );
       expectResults(results, {
         ratingPlusOne: 5.2,
         yearsSince1900: 79,
@@ -1397,18 +1430,19 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     it('testComparisonOperators', async () => {
-      const results = await randomCol
-        .pipeline()
-        .where(
-          andFunction(
-            gt('rating', 4.2),
-            lte(Field.of('rating'), 4.5),
-            neq('genre', 'Science Fiction')
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .where(
+            andFunction(
+              gt('rating', 4.2),
+              lte(Field.of('rating'), 4.5),
+              neq('genre', 'Science Fiction')
+            )
           )
-        )
-        .select('rating', 'title')
-        .sort(Field.of('title').ascending())
-        .execute();
+          .select('rating', 'title')
+          .sort(Field.of('title').ascending())
+      );
       expectResults(
         results,
         { rating: 4.3, title: 'Crime and Punishment' },
@@ -1421,17 +1455,18 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     it('testLogicalOperators', async () => {
-      const results = await randomCol
-        .pipeline()
-        .where(
-          orFunction(
-            andFunction(gt('rating', 4.5), eq('genre', 'Science Fiction')),
-            lt('published', 1900)
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .where(
+            orFunction(
+              andFunction(gt('rating', 4.5), eq('genre', 'Science Fiction')),
+              lt('published', 1900)
+            )
           )
-        )
-        .select('title')
-        .sort(Field.of('title').ascending())
-        .execute();
+          .select('title')
+          .sort(Field.of('title').ascending())
+      );
       expectResults(
         results,
         { title: 'Crime and Punishment' },
@@ -1441,22 +1476,23 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     it('testChecks', async () => {
-      let results = await randomCol
-        .pipeline()
-        .sort(Field.of('rating').descending())
-        .limit(1)
-        .select(
-          isNull('rating').as('ratingIsNull'),
-          isNan('rating').as('ratingIsNaN'),
-          isError(arrayOffset('title', 0)).as('isError'),
-          ifError(arrayOffset('title', 0), Constant.of('was error')).as(
-            'ifError'
-          ),
-          isAbsent('foo').as('isAbsent'),
-          isNotNull('title').as('titleIsNotNull'),
-          isNotNan('cost').as('costIsNotNan')
-        )
-        .execute();
+      let results = await execute(
+        randomCol
+          .pipeline()
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .select(
+            isNull('rating').as('ratingIsNull'),
+            isNan('rating').as('ratingIsNaN'),
+            isError(arrayOffset('title', 0)).as('isError'),
+            ifError(arrayOffset('title', 0), Constant.of('was error')).as(
+              'ifError'
+            ),
+            isAbsent('foo').as('isAbsent'),
+            isNotNull('title').as('titleIsNotNull'),
+            isNotNan('cost').as('costIsNotNan')
+          )
+      );
       expectResults(results, {
         ratingIsNull: false,
         ratingIsNaN: false,
@@ -1467,22 +1503,23 @@ apiDescribe.only('Pipelines', persistence => {
         costIsNotNan: false
       });
 
-      results = await randomCol
-        .pipeline()
-        .sort(Field.of('rating').descending())
-        .limit(1)
-        .select(
-          Field.of('rating').isNull().as('ratingIsNull'),
-          Field.of('rating').isNan().as('ratingIsNaN'),
-          arrayOffset('title', 0).isError().as('isError'),
-          arrayOffset('title', 0)
-            .ifError(Constant.of('was error'))
-            .as('ifError'),
-          Field.of('foo').isAbsent().as('isAbsent'),
-          Field.of('title').isNotNull().as('titleIsNotNull'),
-          Field.of('cost').isNotNan().as('costIsNotNan')
-        )
-        .execute();
+      results = await execute(
+        randomCol
+          .pipeline()
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .select(
+            Field.of('rating').isNull().as('ratingIsNull'),
+            Field.of('rating').isNan().as('ratingIsNaN'),
+            arrayOffset('title', 0).isError().as('isError'),
+            arrayOffset('title', 0)
+              .ifError(Constant.of('was error'))
+              .as('ifError'),
+            Field.of('foo').isAbsent().as('isAbsent'),
+            Field.of('title').isNotNull().as('titleIsNotNull'),
+            Field.of('cost').isNotNan().as('costIsNotNan')
+          )
+      );
       expectResults(results, {
         ratingIsNull: false,
         ratingIsNaN: false,
@@ -1495,16 +1532,17 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     it('testMapGet', async () => {
-      const results = await randomCol
-        .pipeline()
-        .sort(Field.of('published').descending())
-        .select(
-          Field.of('awards').mapGet('hugo').as('hugoAward'),
-          Field.of('awards').mapGet('others').as('others'),
-          Field.of('title')
-        )
-        .where(eq('hugoAward', true))
-        .execute();
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .sort(Field.of('published').descending())
+          .select(
+            Field.of('awards').mapGet('hugo').as('hugoAward'),
+            Field.of('awards').mapGet('others').as('others'),
+            Field.of('title')
+          )
+          .where(eq('hugoAward', true))
+      );
       expectResults(
         results,
         {
@@ -1519,24 +1557,25 @@ apiDescribe.only('Pipelines', persistence => {
     it('testDistanceFunctions', async () => {
       const sourceVector = [0.1, 0.1];
       const targetVector = [0.5, 0.8];
-      let results = await randomCol
-        .pipeline()
-        .select(
-          cosineDistance(Constant.vector(sourceVector), targetVector).as(
-            'cosineDistance'
-          ),
-          dotProduct(Constant.vector(sourceVector), targetVector).as(
-            'dotProductDistance'
-          ),
-          euclideanDistance(Constant.vector(sourceVector), targetVector).as(
-            'euclideanDistance'
-          ),
-          manhattanDistance(Constant.vector(sourceVector), targetVector).as(
-            'manhattanDistance'
+      let results = await execute(
+        randomCol
+          .pipeline()
+          .select(
+            cosineDistance(Constant.vector(sourceVector), targetVector).as(
+              'cosineDistance'
+            ),
+            dotProduct(Constant.vector(sourceVector), targetVector).as(
+              'dotProductDistance'
+            ),
+            euclideanDistance(Constant.vector(sourceVector), targetVector).as(
+              'euclideanDistance'
+            ),
+            manhattanDistance(Constant.vector(sourceVector), targetVector).as(
+              'manhattanDistance'
+            )
           )
-        )
-        .limit(1)
-        .execute();
+          .limit(1)
+      );
 
       expectResults(results, {
         cosineDistance: 0.02560880430538015,
@@ -1545,24 +1584,25 @@ apiDescribe.only('Pipelines', persistence => {
         manhattanDistance: 1.1
       });
 
-      results = await randomCol
-        .pipeline()
-        .select(
-          Constant.vector(sourceVector)
-            .cosineDistance(targetVector)
-            .as('cosineDistance'),
-          Constant.vector(sourceVector)
-            .dotProduct(targetVector)
-            .as('dotProductDistance'),
-          Constant.vector(sourceVector)
-            .euclideanDistance(targetVector)
-            .as('euclideanDistance'),
-          Constant.vector(sourceVector)
-            .manhattanDistance(targetVector)
-            .as('manhattanDistance')
-        )
-        .limit(1)
-        .execute();
+      results = await execute(
+        randomCol
+          .pipeline()
+          .select(
+            Constant.vector(sourceVector)
+              .cosineDistance(targetVector)
+              .as('cosineDistance'),
+            Constant.vector(sourceVector)
+              .dotProduct(targetVector)
+              .as('dotProductDistance'),
+            Constant.vector(sourceVector)
+              .euclideanDistance(targetVector)
+              .as('euclideanDistance'),
+            Constant.vector(sourceVector)
+              .manhattanDistance(targetVector)
+              .as('manhattanDistance')
+          )
+          .limit(1)
+      );
 
       expectResults(results, {
         cosineDistance: 0.02560880430538015,
@@ -1573,11 +1613,12 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     it('testNestedFields', async () => {
-      const results = await randomCol
-        .pipeline()
-        .where(eq('awards.hugo', true))
-        .select('title', 'awards.hugo')
-        .execute();
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .where(eq('awards.hugo', true))
+          .select('title', 'awards.hugo')
+      );
       expectResults(
         results,
         {
@@ -1589,15 +1630,16 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     it('test mapGet with field name including . notation', async () => {
-      const results = await randomCol
-        .pipeline()
-        .where(eq('awards.hugo', true))
-        .select(
-          'title',
-          Field.of('nestedField.level.1'),
-          mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
-        )
-        .execute();
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .where(eq('awards.hugo', true))
+          .select(
+            'title',
+            Field.of('nestedField.level.1'),
+            mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
+          )
+      );
       expectResults(
         results,
         {
@@ -1611,78 +1653,83 @@ apiDescribe.only('Pipelines', persistence => {
 
     describe('genericFunction', () => {
       it('add selectable', async () => {
-        const results = await randomCol
-          .pipeline()
-          .sort(descending('rating'))
-          .limit(1)
-          .select(
-            genericFunction('add', [Field.of('rating'), Constant.of(1)]).as(
-              'rating'
+        const results = await execute(
+          randomCol
+            .pipeline()
+            .sort(descending('rating'))
+            .limit(1)
+            .select(
+              genericFunction('add', [Field.of('rating'), Constant.of(1)]).as(
+                'rating'
+              )
             )
-          )
-          .execute();
+        );
         expectResults(results, {
           rating: 5.7
         });
       });
 
       it('and (variadic) selectable', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(
-            genericBooleanExpr('and', [
-              Field.of('rating').gt(0),
-              Field.of('title').charLength().lt(5),
-              Field.of('tags').arrayContains('propaganda')
-            ])
-          )
-          .select('title')
-          .execute();
+        const results = await execute(
+          randomCol
+            .pipeline()
+            .where(
+              genericBooleanExpr('and', [
+                Field.of('rating').gt(0),
+                Field.of('title').charLength().lt(5),
+                Field.of('tags').arrayContains('propaganda')
+              ])
+            )
+            .select('title')
+        );
         expectResults(results, {
           title: '1984'
         });
       });
 
       it('array contains any', async () => {
-        const results = await randomCol
-          .pipeline()
-          .where(
-            genericBooleanExpr('array_contains_any', [
-              Field.of('tags'),
-              ['politics']
-            ])
-          )
-          .select('title')
-          .execute();
+        const results = await execute(
+          randomCol
+            .pipeline()
+            .where(
+              genericBooleanExpr('array_contains_any', [
+                Field.of('tags'),
+                ['politics']
+              ])
+            )
+            .select('title')
+        );
         expectResults(results, {
           title: 'Dune'
         });
       });
 
       it('countif aggregate', async () => {
-        const results = await randomCol
-          .pipeline()
-          .aggregate(
-            genericAggregateFunction('count_if', [
-              Field.of('rating').gte(4.5)
-            ]).as('countOfBest')
-          )
-          .execute();
+        const results = await execute(
+          randomCol
+            .pipeline()
+            .aggregate(
+              genericAggregateFunction('count_if', [
+                Field.of('rating').gte(4.5)
+              ]).as('countOfBest')
+            )
+        );
         expectResults(results, {
           countOfBest: 3
         });
       });
 
       it('sort by char_len', async () => {
-        const results = await randomCol
-          .pipeline()
-          .sort(
-            genericFunction('char_length', [Field.of('title')]).ascending(),
-            descending('__name__')
-          )
-          .limit(3)
-          .select('title')
-          .execute();
+        const results = await execute(
+          randomCol
+            .pipeline()
+            .sort(
+              genericFunction('char_length', [Field.of('title')]).ascending(),
+              descending('__name__')
+            )
+            .limit(3)
+            .select('title')
+        );
         expectResults(
           results,
           {
@@ -1700,219 +1747,238 @@ apiDescribe.only('Pipelines', persistence => {
 
     describe.skip('not implemented in backend', () => {
       it('supports Bit_and', async () => {
-        const results = await randomCol
-          .pipeline()
-          .limit(1)
-          .select(bitAnd(Constant.of(5), 12).as('result'))
-          .execute();
+        const results = await execute(
+          randomCol
+            .pipeline()
+            .limit(1)
+            .select(bitAnd(Constant.of(5), 12).as('result'))
+        );
         expectResults(results, {
           result: 4
         });
         it('supports Bit_and', async () => {
-          const results = await randomCol
-            .pipeline()
-            .limit(1)
-            .select(Constant.of(5).bitAnd(12).as('result'))
-            .execute();
+          const results = await execute(
+            randomCol
+              .pipeline()
+              .limit(1)
+              .select(Constant.of(5).bitAnd(12).as('result'))
+          );
           expectResults(results, {
             result: 4
           });
         });
 
         it('supports Bit_or', async () => {
-          let results = await randomCol
-            .pipeline()
-            .limit(1)
-            .select(bitOr(Constant.of(5), 12).as('result'))
-            .execute();
+          let results = await execute(
+            randomCol
+              .pipeline()
+              .limit(1)
+              .select(bitOr(Constant.of(5), 12).as('result'))
+          );
           expectResults(results, {
             result: 13
           });
-          results = await randomCol
-            .pipeline()
-            .limit(1)
-            .select(Constant.of(5).bitOr(12).as('result'))
-            .execute();
+          results = await execute(
+            randomCol
+              .pipeline()
+              .limit(1)
+              .select(Constant.of(5).bitOr(12).as('result'))
+          );
           expectResults(results, {
             result: 13
           });
         });
 
         it('supports Bit_xor', async () => {
-          let results = await randomCol
-            .pipeline()
-            .limit(1)
-            .select(bitXor(Constant.of(5), 12).as('result'))
-            .execute();
+          let results = await execute(
+            randomCol
+              .pipeline()
+              .limit(1)
+              .select(bitXor(Constant.of(5), 12).as('result'))
+          );
           expectResults(results, {
             result: 9
           });
-          results = await randomCol
-            .pipeline()
-            .limit(1)
-            .select(Constant.of(5).bitXor(12).as('result'))
-            .execute();
+          results = await execute(
+            randomCol
+              .pipeline()
+              .limit(1)
+              .select(Constant.of(5).bitXor(12).as('result'))
+          );
           expectResults(results, {
             result: 9
           });
         });
 
         it('supports Bit_not', async () => {
-          let results = await randomCol
-            .pipeline()
-            .limit(1)
-            .select(
-              bitNot(Constant.of(Bytes.fromUint8Array(Uint8Array.of(0xfd)))).as(
-                'result'
+          let results = await execute(
+            randomCol
+              .pipeline()
+              .limit(1)
+              .select(
+                bitNot(
+                  Constant.of(Bytes.fromUint8Array(Uint8Array.of(0xfd)))
+                ).as('result')
               )
-            )
-            .execute();
+          );
           expectResults(results, {
             result: Bytes.fromUint8Array(Uint8Array.of(0x02))
           });
-          results = await randomCol
-            .pipeline()
-            .limit(1)
-            .select(
-              Constant.of(Bytes.fromUint8Array(Uint8Array.of(0xfd)))
-                .bitNot()
-                .as('result')
-            )
-            .execute();
+          results = await execute(
+            randomCol
+              .pipeline()
+              .limit(1)
+              .select(
+                Constant.of(Bytes.fromUint8Array(Uint8Array.of(0xfd)))
+                  .bitNot()
+                  .as('result')
+              )
+          );
           expectResults(results, {
             result: Bytes.fromUint8Array(Uint8Array.of(0x02))
           });
         });
 
         it('supports Bit_left_shift', async () => {
-          let results = await randomCol
-            .pipeline()
-            .limit(1)
-            .select(
-              bitLeftShift(
-                Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02))),
-                2
-              ).as('result')
-            )
-            .execute();
+          let results = await execute(
+            randomCol
+              .pipeline()
+              .limit(1)
+              .select(
+                bitLeftShift(
+                  Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02))),
+                  2
+                ).as('result')
+              )
+          );
           expectResults(results, {
             result: Bytes.fromUint8Array(Uint8Array.of(0x04))
           });
-          results = await randomCol
-            .pipeline()
-            .limit(1)
-            .select(
-              Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02)))
-                .bitLeftShift(2)
-                .as('result')
-            )
-            .execute();
+          results = await execute(
+            randomCol
+              .pipeline()
+              .limit(1)
+              .select(
+                Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02)))
+                  .bitLeftShift(2)
+                  .as('result')
+              )
+          );
           expectResults(results, {
             result: Bytes.fromUint8Array(Uint8Array.of(0x04))
           });
         });
 
         it('supports Bit_right_shift', async () => {
-          let results = await randomCol
-            .pipeline()
-            .limit(1)
-            .select(
-              bitRightShift(
-                Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02))),
-                2
-              ).as('result')
-            )
-            .execute();
+          let results = await execute(
+            randomCol
+              .pipeline()
+              .limit(1)
+              .select(
+                bitRightShift(
+                  Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02))),
+                  2
+                ).as('result')
+              )
+          );
           expectResults(results, {
             result: Bytes.fromUint8Array(Uint8Array.of(0x01))
           });
-          results = await randomCol
-            .pipeline()
-            .limit(1)
-            .select(
-              Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02)))
-                .bitRightShift(2)
-                .as('result')
-            )
-            .execute();
+          results = await execute(
+            randomCol
+              .pipeline()
+              .limit(1)
+              .select(
+                Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02)))
+                  .bitRightShift(2)
+                  .as('result')
+              )
+          );
           expectResults(results, {
             result: Bytes.fromUint8Array(Uint8Array.of(0x01))
           });
         });
 
         it('supports Document_id', async () => {
-          let results = await randomCol
-            .pipeline()
-            .sort(Field.of('rating').descending())
-            .limit(1)
-            .select(documentIdFunction(Field.of('__path__')).as('docId'))
-            .execute();
+          let results = await execute(
+            randomCol
+              .pipeline()
+              .sort(Field.of('rating').descending())
+              .limit(1)
+              .select(documentIdFunction(Field.of('__path__')).as('docId'))
+          );
           expectResults(results, {
             docId: 'book4'
           });
-          results = await randomCol
-            .pipeline()
-            .sort(Field.of('rating').descending())
-            .limit(1)
-            .select(Field.of('__path__').documentId().as('docId'))
-            .execute();
+          results = await execute(
+            randomCol
+              .pipeline()
+              .sort(Field.of('rating').descending())
+              .limit(1)
+              .select(Field.of('__path__').documentId().as('docId'))
+          );
           expectResults(results, {
             docId: 'book4'
           });
         });
 
         it('supports Substr', async () => {
-          let results = await randomCol
-            .pipeline()
-            .sort(Field.of('rating').descending())
-            .limit(1)
-            .select(substr('title', 9, 2).as('of'))
-            .execute();
+          let results = await execute(
+            randomCol
+              .pipeline()
+              .sort(Field.of('rating').descending())
+              .limit(1)
+              .select(substr('title', 9, 2).as('of'))
+          );
           expectResults(results, {
             of: 'of'
           });
-          results = await randomCol
-            .pipeline()
-            .sort(Field.of('rating').descending())
-            .limit(1)
-            .select(Field.of('title').substr(9, 2).as('of'))
-            .execute();
+          results = await execute(
+            randomCol
+              .pipeline()
+              .sort(Field.of('rating').descending())
+              .limit(1)
+              .select(Field.of('title').substr(9, 2).as('of'))
+          );
           expectResults(results, {
             of: 'of'
           });
         });
 
         it('supports Substr without length', async () => {
-          let results = await randomCol
-            .pipeline()
-            .sort(Field.of('rating').descending())
-            .limit(1)
-            .select(substr('title', 9).as('of'))
-            .execute();
+          let results = await execute(
+            randomCol
+              .pipeline()
+              .sort(Field.of('rating').descending())
+              .limit(1)
+              .select(substr('title', 9).as('of'))
+          );
           expectResults(results, {
             of: 'of the Rings'
           });
-          results = await randomCol
-            .pipeline()
-            .sort(Field.of('rating').descending())
-            .limit(1)
-            .select(Field.of('title').substr(9).as('of'))
-            .execute();
+          results = await execute(
+            randomCol
+              .pipeline()
+              .sort(Field.of('rating').descending())
+              .limit(1)
+              .select(Field.of('title').substr(9).as('of'))
+          );
           expectResults(results, {
             of: 'of the Rings'
           });
         });
 
         it('arrayConcat works', async () => {
-          const results = await randomCol
-            .pipeline()
-            .select(
-              Field.of('tags')
-                .arrayConcat(['newTag1', 'newTag2'], Field.of('tags'), [null])
-                .as('modifiedTags')
-            )
-            .limit(1)
-            .execute();
+          const results = await execute(
+            randomCol
+              .pipeline()
+              .select(
+                Field.of('tags')
+                  .arrayConcat(['newTag1', 'newTag2'], Field.of('tags'), [null])
+                  .as('modifiedTags')
+              )
+              .limit(1)
+          );
           expectResults(results, {
             modifiedTags: [
               'comedy',
@@ -1929,39 +1995,42 @@ apiDescribe.only('Pipelines', persistence => {
         });
 
         it('testToLowercase', async () => {
-          const results = await randomCol
-            .pipeline()
-            .select(Field.of('title').toLower().as('lowercaseTitle'))
-            .limit(1)
-            .execute();
+          const results = await execute(
+            randomCol
+              .pipeline()
+              .select(Field.of('title').toLower().as('lowercaseTitle'))
+              .limit(1)
+          );
           expectResults(results, {
             lowercaseTitle: "the hitchhiker's guide to the galaxy"
           });
         });
 
         it('testToUppercase', async () => {
-          const results = await randomCol
-            .pipeline()
-            .select(Field.of('author').toUpper().as('uppercaseAuthor'))
-            .limit(1)
-            .execute();
+          const results = await execute(
+            randomCol
+              .pipeline()
+              .select(Field.of('author').toUpper().as('uppercaseAuthor'))
+              .limit(1)
+          );
           expectResults(results, { uppercaseAuthor: 'DOUGLAS ADAMS' });
         });
 
         it('testTrim', async () => {
-          const results = await randomCol
-            .pipeline()
-            .addFields(
-              Constant.of(" The Hitchhiker's Guide to the Galaxy ").as(
-                'spacedTitle'
+          const results = await execute(
+            randomCol
+              .pipeline()
+              .addFields(
+                Constant.of(" The Hitchhiker's Guide to the Galaxy ").as(
+                  'spacedTitle'
+                )
               )
-            )
-            .select(
-              Field.of('spacedTitle').trim().as('trimmedTitle'),
-              Field.of('spacedTitle')
-            )
-            .limit(1)
-            .execute();
+              .select(
+                Field.of('spacedTitle').trim().as('trimmedTitle'),
+                Field.of('spacedTitle')
+              )
+              .limit(1)
+          );
           expectResults(results, {
             spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
             trimmedTitle: "The Hitchhiker's Guide to the Galaxy"
@@ -1970,11 +2039,9 @@ apiDescribe.only('Pipelines', persistence => {
       });
 
       it('supports Rand', async () => {
-        const results = await randomCol
-          .pipeline()
-          .limit(10)
-          .select(rand().as('result'))
-          .execute();
+        const results = await execute(
+          randomCol.pipeline().limit(10).select(rand().as('result'))
+        );
         expect(results.length).to.equal(10);
         results.forEach(d => {
           expect(d.get('result')).to.be.lt(1);
@@ -1983,13 +2050,14 @@ apiDescribe.only('Pipelines', persistence => {
       });
 
       it('supports array', async () => {
-        const result = await firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .sort(Field.of('rating').descending())
-          .limit(1)
-          .select(array([1, 2, 3, 4]).as('metadata'))
-          .execute();
+        const result = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(Field.of('rating').descending())
+            .limit(1)
+            .select(array([1, 2, 3, 4]).as('metadata'))
+        );
         expect(result.length).to.equal(1);
         expectResults(result, {
           metadata: [1, 2, 3, 4]
@@ -1997,17 +2065,18 @@ apiDescribe.only('Pipelines', persistence => {
       });
 
       it('evaluates expression in array', async () => {
-        const result = await firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .sort(Field.of('rating').descending())
-          .limit(1)
-          .select(
-            array([1, 2, Field.of('genre'), multiply('rating', 10)]).as(
-              'metadata'
+        const result = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(Field.of('rating').descending())
+            .limit(1)
+            .select(
+              array([1, 2, Field.of('genre'), multiply('rating', 10)]).as(
+                'metadata'
+              )
             )
-          )
-          .execute();
+        );
         expect(result.length).to.equal(1);
         expectResults(result, {
           metadata: [1, 2, 'Fantasy', 47]
@@ -2015,12 +2084,13 @@ apiDescribe.only('Pipelines', persistence => {
       });
 
       it('supports arrayOffset', async () => {
-        let results = await randomCol
-          .pipeline()
-          .sort(Field.of('rating').descending())
-          .limit(3)
-          .select(arrayOffset('tags', 0).as('firstTag'))
-          .execute();
+        let results = await execute(
+          randomCol
+            .pipeline()
+            .sort(Field.of('rating').descending())
+            .limit(3)
+            .select(arrayOffset('tags', 0).as('firstTag'))
+        );
         const expectedResults = [
           {
             firstTag: 'adventure'
@@ -2034,41 +2104,44 @@ apiDescribe.only('Pipelines', persistence => {
         ];
         expectResults(results, ...expectedResults);
 
-        results = await randomCol
-          .pipeline()
-          .sort(Field.of('rating').descending())
-          .limit(3)
-          .select(Field.of('tags').arrayOffset(0).as('firstTag'))
-          .execute();
+        results = await execute(
+          randomCol
+            .pipeline()
+            .sort(Field.of('rating').descending())
+            .limit(3)
+            .select(Field.of('tags').arrayOffset(0).as('firstTag'))
+        );
         expectResults(results, ...expectedResults);
       });
     });
 
     // TODO: current_context tests with are failing because of b/395937453
     it.skip('supports currentContext', async () => {
-      const results = await randomCol
-        .pipeline()
-        .sort(Field.of('rating').descending())
-        .limit(1)
-        .select(currentContext().as('currentContext'))
-        .execute();
+      const results = await execute(
+        randomCol
+          .pipeline()
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .select(currentContext().as('currentContext'))
+      );
       expectResults(results, {
         currentContext: 'TODO'
       });
     });
 
     it('supports map', async () => {
-      const result = await firestore
-        .pipeline()
-        .collection(randomCol.path)
-        .sort(Field.of('rating').descending())
-        .limit(1)
-        .select(
-          map({
-            foo: 'bar'
-          }).as('metadata')
-        )
-        .execute();
+      const result = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .select(
+            map({
+              foo: 'bar'
+            }).as('metadata')
+          )
+      );
 
       expect(result.length).to.equal(1);
       expectResults(result, {
@@ -2079,18 +2152,19 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     it('evaluates expression in map', async () => {
-      const result = await firestore
-        .pipeline()
-        .collection(randomCol.path)
-        .sort(Field.of('rating').descending())
-        .limit(1)
-        .select(
-          map({
-            genre: Field.of('genre'),
-            rating: Field.of('rating').multiply(10)
-          }).as('metadata')
-        )
-        .execute();
+      const result = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .select(
+            map({
+              genre: Field.of('genre'),
+              rating: Field.of('rating').multiply(10)
+            }).as('metadata')
+          )
+      );
 
       expect(result.length).to.equal(1);
       expectResults(result, {
@@ -2102,42 +2176,46 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     it('supports mapRemove', async () => {
-      let results = await randomCol
-        .pipeline()
-        .sort(Field.of('rating').descending())
-        .limit(1)
-        .select(mapRemove('awards', 'hugo').as('awards'))
-        .execute();
+      let results = await execute(
+        randomCol
+          .pipeline()
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .select(mapRemove('awards', 'hugo').as('awards'))
+      );
       expectResults(results, {
         awards: { nebula: false }
       });
-      results = await randomCol
-        .pipeline()
-        .sort(Field.of('rating').descending())
-        .limit(1)
-        .select(Field.of('awards').mapRemove('hugo').as('awards'))
-        .execute();
+      results = await execute(
+        randomCol
+          .pipeline()
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .select(Field.of('awards').mapRemove('hugo').as('awards'))
+      );
       expectResults(results, {
         awards: { nebula: false }
       });
     });
 
     it('supports mapMerge', async () => {
-      let results = await randomCol
-        .pipeline()
-        .sort(Field.of('rating').descending())
-        .limit(1)
-        .select(mapMerge('awards', { fakeAward: true }).as('awards'))
-        .execute();
+      let results = await execute(
+        randomCol
+          .pipeline()
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .select(mapMerge('awards', { fakeAward: true }).as('awards'))
+      );
       expectResults(results, {
         awards: { nebula: false, hugo: false, fakeAward: true }
       });
-      results = await randomCol
-        .pipeline()
-        .sort(Field.of('rating').descending())
-        .limit(1)
-        .select(Field.of('awards').mapMerge({ fakeAward: true }).as('awards'))
-        .execute();
+      results = await execute(
+        randomCol
+          .pipeline()
+          .sort(Field.of('rating').descending())
+          .limit(1)
+          .select(Field.of('awards').mapMerge({ fakeAward: true }).as('awards'))
+      );
       expectResults(results, {
         awards: { nebula: false, hugo: false, fakeAward: true }
       });
@@ -2198,7 +2276,7 @@ apiDescribe.only('Pipelines', persistence => {
           Field.of('__name__').ascending()
         );
 
-      let results = await pipeline.limit(pageSize).execute();
+      let results = await execute(pipeline.limit(pageSize));
       expectResults(
         results,
         { title: 'The Lord of the Rings', rating: 4.7 },
@@ -2207,18 +2285,19 @@ apiDescribe.only('Pipelines', persistence => {
 
       const lastDoc = results[results.length - 1];
 
-      results = await pipeline
-        .where(
-          orFunction(
-            andFunction(
-              Field.of('rating').eq(lastDoc.get('rating')),
-              Field.of('__path__').gt(lastDoc.ref?.id)
-            ),
-            Field.of('rating').lt(lastDoc.get('rating'))
+      results = await execute(
+        pipeline
+          .where(
+            orFunction(
+              andFunction(
+                Field.of('rating').eq(lastDoc.get('rating')),
+                Field.of('__path__').gt(lastDoc.ref?.id)
+              ),
+              Field.of('rating').lt(lastDoc.get('rating'))
+            )
           )
-        )
-        .limit(pageSize)
-        .execute();
+          .limit(pageSize)
+      );
       expectResults(
         results,
         { title: 'Pride and Prejudice', rating: 4.5 },
@@ -2242,10 +2321,9 @@ apiDescribe.only('Pipelines', persistence => {
       const pageSize = 2;
       let currPage = 0;
 
-      let results = await pipeline
-        .offset(currPage++ * pageSize)
-        .limit(pageSize)
-        .execute();
+      let results = await execute(
+        pipeline.offset(currPage++ * pageSize).limit(pageSize)
+      );
 
       expectResults(
         results,
@@ -2256,10 +2334,9 @@ apiDescribe.only('Pipelines', persistence => {
         { title: 'Dune', rating: 4.6 }
       );
 
-      results = await pipeline
-        .offset(currPage++ * pageSize)
-        .limit(pageSize)
-        .execute();
+      results = await execute(
+        pipeline.offset(currPage++ * pageSize).limit(pageSize)
+      );
       expectResults(
         results,
         {
@@ -2269,10 +2346,9 @@ apiDescribe.only('Pipelines', persistence => {
         { title: 'The Master and Margarita', rating: 4.6 }
       );
 
-      results = await pipeline
-        .offset(currPage++ * pageSize)
-        .limit(pageSize)
-        .execute();
+      results = await execute(
+        pipeline.offset(currPage++ * pageSize).limit(pageSize)
+      );
       expectResults(
         results,
         {
@@ -2283,49 +2359,6 @@ apiDescribe.only('Pipelines', persistence => {
           title: 'Pride and Prejudice',
           rating: 4.5
         }
-      );
-    });
-  });
-
-  describe('modular API', () => {
-    it('works when creating a pipeline from a Firestore instance', async () => {
-      const myPipeline = pipeline(firestore)
-        .collection(randomCol.path)
-        .where(lt(Field.of('published'), 1984))
-        .aggregate({
-          accumulators: [avgFunction('rating').as('avgRating')],
-          groups: ['genre']
-        })
-        .where(gt('avgRating', 4.3))
-        .sort(Field.of('avgRating').descending());
-
-      const results = await execute(myPipeline);
-
-      expectResults(
-        results,
-        { avgRating: 4.7, genre: 'Fantasy' },
-        { avgRating: 4.5, genre: 'Romance' },
-        { avgRating: 4.4, genre: 'Science Fiction' }
-      );
-    });
-
-    it('works when creating a pipeline from a collection', async () => {
-      const myPipeline = pipeline(randomCol)
-        .where(lt(Field.of('published'), 1984))
-        .aggregate({
-          accumulators: [avgFunction('rating').as('avgRating')],
-          groups: ['genre']
-        })
-        .where(gt('avgRating', 4.3))
-        .sort(Field.of('avgRating').descending());
-
-      const results = await execute(myPipeline);
-
-      expectResults(
-        results,
-        { avgRating: 4.7, genre: 'Fantasy' },
-        { avgRating: 4.5, genre: 'Romance' },
-        { avgRating: 4.4, genre: 'Science Fiction' }
       );
     });
   });
