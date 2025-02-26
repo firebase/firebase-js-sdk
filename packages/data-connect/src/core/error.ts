@@ -40,7 +40,7 @@ export const Code = {
 
 /** An error returned by a DataConnect operation. */
 export class DataConnectError extends FirebaseError {
-  /** The custom name for DataConnectError. */
+  /** @internal */
   readonly name: string = 'DataConnectError';
 
   /** @hideconstructor */
@@ -52,7 +52,7 @@ export class DataConnectError extends FirebaseError {
     /**
      * A custom error description.
      */
-    readonly message: string
+    message: string
   ) {
     super(code, message);
 
@@ -62,6 +62,7 @@ export class DataConnectError extends FirebaseError {
     Object.setPrototypeOf(this, new.target.prototype);
   }
 
+  /** @internal */
   toString(): string {
     return `${this.name}[code=${this.code}]: ${this.message}`;
   }
@@ -69,7 +70,7 @@ export class DataConnectError extends FirebaseError {
 
 /** An error returned by a DataConnect operation. */
 export class DataConnectOperationError extends DataConnectError {
-  /** The custom name for DataConnectOperationError. */
+  /** @internal */
   readonly name: string = 'DataConnectOperationError';
 
   /** The response received from the backend. */
