@@ -72,7 +72,7 @@ export function resetTransportService(): void {
 
 function processQueue(timeOffset: number): void {
   setTimeout(() => {
-    // If there is no remaining Tries left, stop retrying.
+    // If there is no remainingTries left, stop retrying.
     if (remainingTries <= 0) {
       return;
     }
