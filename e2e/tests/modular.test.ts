@@ -86,6 +86,8 @@ import {
   StorageReference,
   deleteObject
 } from 'firebase/storage';
+import { getGenerativeModel, getVertexAI, VertexAI } from 'firebase/vertexai';
+import { getDataConnect, DataConnect } from 'firebase/data-connect';
 import { config, testAccount } from '../firebase-config';
 import 'jest';
 
@@ -302,6 +304,33 @@ describe('MODULAR', () => {
       trace.stop();
       trace.putAttribute('testattr', 'perftestvalue');
       expect(trace.getAttribute('testattr')).toBe('perftestvalue');
+    });
+  });
+
+  describe('VERTEXAI', () => {
+    let vertexAI: VertexAI;
+    it('getVertexAI()', () => {
+      vertexAI = getVertexAI(app);
+    });
+    it('getGenerativeModel() and countTokens()', async () => {
+      const model = getGenerativeModel(vertexAI, { model: 'gemini-1.5-flash' });
+      expect(model.model).toMatch(/gemini-1.5-flash$/);
+      const result = await model.countTokens('abcdefg');
+      expect(result.totalTokens).toBeTruthy;
+    });
+  });
+
+  describe('DATA CONNECT', () => {
+    let dataConnect: DataConnect;
+    it('getDataConnect()', () => {
+      dataConnect = getDataConnect(app, {
+        location: 'a-location',
+        connector: 'a-connector',
+        service: 'service'
+      });
+    });
+    it('dataConnect.getSettings()', () => {
+      expect(dataConnect.getSettings().location).toBe('a-location');
     });
   });
 });

@@ -17,9 +17,9 @@
     "test": "tsc -p . --noEmit"
   },
   "dependencies": {
-    "@changesets/types": "3.3.0",
+    "@changesets/types": "6.1.0",
     "@changesets/get-github-info": "0.6.0",
-    "@types/node": "18.19.74"
+    "@types/node": "18.19.75"
   },
   "license": "Apache-2.0",
   "devDependencies": {
