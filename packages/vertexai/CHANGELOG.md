@@ -1,5 +1,23 @@
 # @firebase/vertexai
 
+## 1.1.0
+
+### Minor Changes
+
+- [`9d82665`](https://github.com/firebase/firebase-js-sdk/commit/9d826659334e1a43acd1126fab6e09a305e04936) [#8757](https://github.com/firebase/firebase-js-sdk/pull/8757) - Added support for modality-based token count.
+
+- [`ce2c775`](https://github.com/firebase/firebase-js-sdk/commit/ce2c77511210df109fdf381c7c02175173a6f7a2) [#8683](https://github.com/firebase/firebase-js-sdk/pull/8683) - **Public Preview** Added support for generating images using the Imagen 3 model.
+
+### Patch Changes
+
+- [`554c7bd`](https://github.com/firebase/firebase-js-sdk/commit/554c7bdc12cfde834ce5c4fa729a6cb790e1e5c2) [#8736](https://github.com/firebase/firebase-js-sdk/pull/8736) (fixes [#8714](https://github.com/firebase/firebase-js-sdk/issues/8714)) - Filter out empty text parts from streaming responses.
+
+- [`884cbd7`](https://github.com/firebase/firebase-js-sdk/commit/884cbd7d89d4dd9162858f108c39e75896c2db5a) [#8728](https://github.com/firebase/firebase-js-sdk/pull/8728) - Create Node CJS and ESM bundles.
+
+- Updated dependencies [[`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5)]:
+  - @firebase/util@1.11.0
+  - @firebase/component@0.6.13
+
 ## 1.0.4
 
 ### Patch Changes

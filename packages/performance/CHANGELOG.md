@@ -1,5 +1,14 @@
 # @firebase/performance
 
+## 0.7.1
+
+### Patch Changes
+
+- Updated dependencies [[`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5)]:
+  - @firebase/util@1.11.0
+  - @firebase/installations@0.6.13
+  - @firebase/component@0.6.13
+
 ## 0.7.0
 
 ### Minor Changes
