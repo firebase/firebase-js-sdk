@@ -93,23 +93,19 @@ export function compareUtf8Strings(left: string, right: string): number {
         // UTF-8 encode the character at index i for byte comparison.
         const leftBytes = encoder.encode(getUtf8SafeSubstring(left, i));
         const rightBytes = encoder.encode(getUtf8SafeSubstring(right, i));
-        for (
-          let j = 0;
-          j < Math.min(leftBytes.length, rightBytes.length);
-          j++
-        ) {
-          const comp = primitiveComparator(leftBytes[j], rightBytes[j]);
-          if (comp !== 0) {
-            return comp;
-          }
+
+        const comp = compareByteArrays(leftBytes, rightBytes);
+        if (comp !== 0) {
+          return comp;
+        } else {
+          // EXTREMELY RARE CASE: Code points differ, but their UTF-8 byte
+          // representations are identical. This can happen with malformed input
+          // (invalid surrogate pairs). The backend also actively prevents invalid
+          // surrogates as INVALID_ARGUMENT errors, so we almost never receive
+          // invalid strings from backend.
+          // Fallback to code point comparison for graceful handling.
+          return primitiveComparator(leftCodePoint, rightCodePoint);
         }
-        // EXTREMELY RARE CASE: Code points differ, but their UTF-8 byte
-        // representations are identical. This can happen with malformed input
-        // (invalid surrogate pairs). The backend also actively prevents invalid
-        // surrogates as INVALID_ARGUMENT errors, so we almost never receive
-        // invalid strings from backend.
-        // Fallback to code point comparison for graceful handling.
-        return primitiveComparator(leftCodePoint, rightCodePoint);
       }
     }
     // Increment by 2 for surrogate pairs, 1 otherwise
@@ -129,6 +125,15 @@ function getUtf8SafeSubstring(str: string, index: number): string {
     // It's a single code point, return it
     return str.substring(index, index + 1);
   }
+}
+
+function compareByteArrays(left: Uint8Array, right: Uint8Array): number {
+  for (let i = 0; i < left.length && i < right.length; ++i) {
+    if (left[i] !== right[i]) {
+      return primitiveComparator(left[i], right[i]);
+    }
+  }
+  return primitiveComparator(left.length, right.length);
 }
 
 export interface Iterable<V> {
