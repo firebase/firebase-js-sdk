@@ -17,7 +17,7 @@
 
 export { PipelineSource } from './lite-api/pipeline-source';
 
-export { PipelineResult } from './lite-api/pipeline-result';
+export { PipelineResult, PipelineSnapshot } from './lite-api/pipeline-result';
 
 export { Pipeline } from './api/pipeline';
 
