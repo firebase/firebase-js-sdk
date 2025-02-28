@@ -34,7 +34,7 @@ function mockFetch(json: object, reject: boolean): sinon.SinonStub {
   initializeFetch(fakeFetchImpl);
   return fakeFetchImpl;
 }
-describe.only('fetch', () => {
+describe('fetch', () => {
   it('should throw an error with just the message when the server responds with an error with a message property in the body', async () => {
     const message = 'Failed to connect to Postgres instance';
     mockFetch(
@@ -85,7 +85,7 @@ describe.only('fetch', () => {
       )
     ).to.eventually.be.rejectedWith(JSON.stringify(json));
   });
-  it.only('should throw a stringified message when the server responds with an error without a message property in the body', async () => {
+  it('should throw a stringified message when the server responds with an error without a message property in the body', async () => {
     const json = {
       'data': { 'abc': 'def' },
       'errors': [
