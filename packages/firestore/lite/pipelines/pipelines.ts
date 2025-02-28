@@ -137,7 +137,6 @@ export {
   timestampToUnixSeconds,
   timestampAdd,
   timestampSub,
-  genericFunction,
   ascending,
   descending,
   ExprWithAlias,

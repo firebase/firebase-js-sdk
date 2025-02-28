@@ -6862,69 +6862,6 @@ export function timestampSub(
 /**
  * @beta
  *
- * Creates functions that work on the backend but do not exist in the SDK yet.
- *
- * ```typescript
- * // This is the same of the 'sum(field("price"))', if it was not yet implemented in the SDK.
- * genericFunction("sum", [field("price")]);
- * ```
- *
- * @param functionName The name of the server function.
- * @param params The arguments to pass to the function.
- * @return A new {@code FirestoreFunction} representing the function call.
- */
-export function genericFunction(
-  functionName: string,
-  params: any[]
-): FunctionExpr {
-  return new FunctionExpr(functionName, params.map(valueToDefaultExpr));
-}
-
-/**
- * @beta
- *
- * Creates a boolean expression that works on the backend but does not exist in the SDK yet.
- *
- * ```typescript
- * // This is the same of the 'eq("price", 10)', if it was not yet implemented in the SDK.
- * genericFunction("eq", [field("price"), constant(10)]);
- * ```
- *
- * @param functionName The name of the server boolean expression.
- * @param params The arguments to pass to the boolean expression.
- * @return A new {@code BooleanExpr} representing the function call.
- */
-export function genericBooleanExpr(
-  functionName: string,
-  params: any[]
-): BooleanExpr {
-  return new BooleanExpr(functionName, params.map(valueToDefaultExpr));
-}
-
-/**
- * @beta
- *
- * Creates a boolean expression that works on the backend but does not exist in the SDK yet.
- *
- * ```typescript
- * // This is the same of the 'eq("price", 10)', if it was not yet implemented in the SDK.
- * genericFunction("eq", [field("price"), constant(10)]);
- * ```
- *
- * @param functionName The name of the server boolean expression.
- * @param params The arguments to pass to the boolean expression.
- * @return A new {@code BooleanExpr} representing the function call.
- */
-export function genericAggregateFunction(
-  functionName: string,
-  params: any[]
-): AggregateFunction {
-  return new AggregateFunction(functionName, params.map(valueToDefaultExpr));
-}
-
-/**
- * @beta
- *
  * Creates an expression that performs a logical 'AND' operation on multiple filter conditions.
  *
  * ```typescript
@@ -7001,7 +6938,7 @@ export function ascending(expr: Expr): Ordering;
  * @return A new `Ordering` for ascending sorting.
  */
 export function ascending(fieldName: string): Ordering;
-export function ascending(field: Expr | string): Ordering  {
+export function ascending(field: Expr | string): Ordering {
   return new Ordering(fieldOfOrExpr(field), 'ascending');
 }
 
@@ -7076,5 +7013,5 @@ export class Ordering implements ProtoValueSerializable, UserData {
     this.expr._readUserData(dataReader);
   }
 
-  _protoValueType: "ProtoValue" = "ProtoValue";
+  _protoValueType: 'ProtoValue' = 'ProtoValue';
 }

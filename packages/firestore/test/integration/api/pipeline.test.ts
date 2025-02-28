@@ -18,7 +18,12 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { constantVector } from '../../../src/lite-api/expressions';
+import {
+  AggregateFunction,
+  BooleanExpr,
+  constantVector,
+  FunctionExpr
+} from '../../../src/lite-api/expressions';
 import { PipelineSnapshot } from '../../../src/lite-api/pipeline-result';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
@@ -27,9 +32,6 @@ import {
   Timestamp,
   array,
   descending,
-  genericFunction,
-  genericAggregateFunction,
-  genericBooleanExpr,
   isNan,
   map,
   Bytes,
@@ -1695,7 +1697,7 @@ apiDescribe.only('Pipelines', persistence => {
             .sort(descending('rating'))
             .limit(1)
             .select(
-              genericFunction('add', [field('rating'), constant(1)]).as(
+              new FunctionExpr('add', [field('rating'), constant(1)]).as(
                 'rating'
               )
             )
@@ -1710,7 +1712,7 @@ apiDescribe.only('Pipelines', persistence => {
           randomCol
             .pipeline()
             .where(
-              genericBooleanExpr('and', [
+              new BooleanExpr('and', [
                 field('rating').gt(0),
                 field('title').charLength().lt(5),
                 field('tags').arrayContains('propaganda')
@@ -1728,9 +1730,9 @@ apiDescribe.only('Pipelines', persistence => {
           randomCol
             .pipeline()
             .where(
-              genericBooleanExpr('array_contains_any', [
+              new BooleanExpr('array_contains_any', [
                 field('tags'),
-                ['politics']
+                array(['politics'])
               ])
             )
             .select('title')
@@ -1745,9 +1747,9 @@ apiDescribe.only('Pipelines', persistence => {
           randomCol
             .pipeline()
             .aggregate(
-              genericAggregateFunction('count_if', [
-                field('rating').gte(4.5)
-              ]).as('countOfBest')
+              new AggregateFunction('count_if', [field('rating').gte(4.5)]).as(
+                'countOfBest'
+              )
             )
         );
         expectResults(snapshot, {
@@ -1760,7 +1762,7 @@ apiDescribe.only('Pipelines', persistence => {
           randomCol
             .pipeline()
             .sort(
-              genericFunction('char_length', [field('title')]).ascending(),
+              new FunctionExpr('char_length', [field('title')]).ascending(),
               descending('__name__')
             )
             .limit(3)
