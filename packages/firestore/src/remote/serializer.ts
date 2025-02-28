@@ -1439,8 +1439,8 @@ export interface ProtoValueSerializable extends ProtoSerializable<ProtoValue> {
   _protoValueType: 'ProtoValue';
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isProtoValueSerializable(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any
 ): value is ProtoValueSerializable {
   return (

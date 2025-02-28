@@ -480,7 +480,7 @@ apiDescribe.only('Pipelines', persistence => {
       randomCol
         .pipeline()
         .limit(1)
-        .select(...constants)
+        .select(constants[0], ...constants.slice(1))
     );
 
     expectResults(snapshots, {
@@ -746,6 +746,47 @@ apiDescribe.only('Pipelines', persistence => {
             title: "The Handmaid's Tale",
             author: 'Margaret Atwood',
             foo: 'bar'
+          }
+        );
+      });
+    });
+
+    describe('removeFields stage', () => {
+      it('can remove fields', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select('title', 'author')
+            .sort(Field.of('author').ascending())
+            .removeFields(Field.of('author'))
+            .sort(Field.of('author').ascending())
+        );
+        expectResults(
+          snapshot,
+          {
+            title: "The Hitchhiker's Guide to the Galaxy"
+          },
+          {
+            title: 'The Great Gatsby'
+          },
+          { title: 'Dune' },
+          {
+            title: 'Crime and Punishment'
+          },
+          {
+            title: 'One Hundred Years of Solitude'
+          },
+          { title: '1984' },
+          {
+            title: 'To Kill a Mockingbird'
+          },
+          {
+            title: 'The Lord of the Rings'
+          },
+          { title: 'Pride and Prejudice' },
+          {
+            title: "The Handmaid's Tale"
           }
         );
       });
