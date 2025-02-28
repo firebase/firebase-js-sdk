@@ -37,7 +37,7 @@
   "devDependencies": {
     "rollup": "2.79.2",
     "rollup-plugin-typescript2": "0.36.0",
-    "typescript": "5.5.4"
+    "typescript": "5.8.2"
   },
   "repository": {
     "directory": "packages/logger",
