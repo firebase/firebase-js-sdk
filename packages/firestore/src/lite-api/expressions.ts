@@ -77,7 +77,7 @@ function valueToDefaultExpr(value: any): Expr {
   } else if (value instanceof Array) {
     return array(value);
   } else {
-    return Constant.of(value);
+    return constant(value);
   }
 }
 /**
@@ -92,7 +92,7 @@ function vectorToExpr(value: VectorValue | number[] | Expr): Expr {
   if (value instanceof Expr) {
     return value;
   } else {
-    return Constant.vector(value);
+    return constantVector(value);
   }
 }
 
@@ -366,7 +366,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'quantity' field is less than or equal to 20
-   * field("quantity").lte(Constant.of(20));
+   * field("quantity").lte(constant(20));
    * ```
    *
    * @param other The expression to compare for less than or equal to.
@@ -943,7 +943,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Combine the 'firstName', " ", and 'lastName' fields into a single string
-   * field("firstName").strConcat(Constant.of(" "), field("lastName"));
+   * field("firstName").strConcat(constant(" "), field("lastName"));
    * ```
    *
    * @param secondString The additional expression or string literal to concatenate.
@@ -1071,7 +1071,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `Expr` representing the value associated with the given key in the map.
    */
   mapGet(subfield: string): FunctionExpr {
-    return new FunctionExpr('map_get', [this, Constant.of(subfield)]);
+    return new FunctionExpr('map_get', [this, constant(subfield)]);
   }
 
   /**
@@ -1962,7 +1962,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```
    * // Removes the key 'baz' from the input map.
-   * map({foo: 'bar', baz: true}).mapRemove(Constant.of('baz'));
+   * map({foo: 'bar', baz: true}).mapRemove(constant('baz'));
    * ```
    *
    * @param keyExpr An expression that produces the name of the key to remove from the input map.
@@ -2302,10 +2302,10 @@ export function field(nameOrPath: string | FieldPath): Field {
  *
  * ```typescript
  * // Create a Constant instance for the number 10
- * const ten = Constant.of(10);
+ * const ten = constant(10);
  *
  * // Create a Constant instance for the string "hello"
- * const hello = Constant.of("hello");
+ * const hello = constant("hello");
  * ```
  */
 export class Constant extends Expr {
@@ -2313,147 +2313,14 @@ export class Constant extends Expr {
 
   private _protoValue?: ProtoValue;
 
-  private constructor(private value: any) {
+  /**
+   * @private
+   * @internal
+   * @hideconstructor
+   * @param value The value of the constant.
+   */
+  constructor(private value: any) {
     super();
-  }
-
-  /**
-   * Creates a `Constant` instance for a number value.
-   *
-   * @param value The number value.
-   * @return A new `Constant` instance.
-   */
-  static of(value: number): Constant;
-
-  /**
-   * Creates a `Constant` instance for a string value.
-   *
-   * @param value The string value.
-   * @return A new `Constant` instance.
-   */
-  static of(value: string): Constant;
-
-  /**
-   * Creates a `Constant` instance for a boolean value.
-   *
-   * @param value The boolean value.
-   * @return A new `Constant` instance.
-   */
-  static of(value: boolean): Constant;
-
-  /**
-   * Creates a `Constant` instance for a null value.
-   *
-   * @param value The null value.
-   * @return A new `Constant` instance.
-   */
-  static of(value: null): Constant;
-
-  /**
-   * Creates a `Constant` instance for an undefined value.
-   * @private
-   * @internal
-   *
-   * @param value The undefined value.
-   * @return A new `Constant` instance.
-   */
-  static of(value: undefined): Constant;
-
-  /**
-   * Creates a `Constant` instance for a GeoPoint value.
-   *
-   * @param value The GeoPoint value.
-   * @return A new `Constant` instance.
-   */
-  static of(value: GeoPoint): Constant;
-
-  /**
-   * Creates a `Constant` instance for a Timestamp value.
-   *
-   * @param value The Timestamp value.
-   * @return A new `Constant` instance.
-   */
-  static of(value: Timestamp): Constant;
-
-  /**
-   * Creates a `Constant` instance for a Date value.
-   *
-   * @param value The Date value.
-   * @return A new `Constant` instance.
-   */
-  static of(value: Date): Constant;
-
-  /**
-   * Creates a `Constant` instance for a Bytes value.
-   *
-   * @param value The Bytes value.
-   * @return A new `Constant` instance.
-   */
-  static of(value: Bytes): Constant;
-
-  /**
-   * Creates a `Constant` instance for a DocumentReference value.
-   *
-   * @param value The DocumentReference value.
-   * @return A new `Constant` instance.
-   */
-  static of(value: DocumentReference): Constant;
-
-  /**
-   * Creates a `Constant` instance for a Firestore proto value.
-   * For internal use only.
-   * @private
-   * @internal
-   * @param value The Firestore proto value.
-   * @return A new `Constant` instance.
-   */
-  static of(value: ProtoValue): Constant;
-
-  /**
-   * Creates a `Constant` instance for an array value.
-   *
-   * @param value The array value.
-   * @return A new `Constant` instance.
-   */
-  static of(value: any[]): Constant;
-
-  /**
-   * Creates a `Constant` instance for a map value.
-   *
-   * @param value The map value.
-   * @return A new `Constant` instance.
-   */
-  static of(value: Record<string, any>): Constant;
-
-  /**
-   * Creates a `Constant` instance for a VectorValue value.
-   *
-   * @param value The VectorValue value.
-   * @return A new `Constant` instance.
-   */
-  static of(value: VectorValue): Constant;
-
-  static of(value: any): Constant {
-    return new Constant(value);
-  }
-
-  /**
-   * Creates a `Constant` instance for a VectorValue value.
-   *
-   * ```typescript
-   * // Create a Constant instance for a vector value
-   * const vectorConstant = Constant.ofVector([1, 2, 3]);
-   * ```
-   *
-   * @param value The VectorValue value.
-   * @return A new `Constant` instance.
-   */
-  static vector(value: number[] | VectorValue): Constant {
-    if (value instanceof VectorValue) {
-      return new Constant(value);
-    } else {
-      return new Constant(new VectorValue(value as number[]));
-    }
   }
 
   /**
@@ -2496,6 +2363,145 @@ export class Constant extends Expr {
     } else {
       this._protoValue = parseData(this.value, context)!;
     }
+  }
+}
+
+/**
+ * Creates a `Constant` instance for a number value.
+ *
+ * @param value The number value.
+ * @return A new `Constant` instance.
+ */
+export function constant(value: number): Constant;
+
+/**
+ * Creates a `Constant` instance for a string value.
+ *
+ * @param value The string value.
+ * @return A new `Constant` instance.
+ */
+export function constant(value: string): Constant;
+
+/**
+ * Creates a `Constant` instance for a boolean value.
+ *
+ * @param value The boolean value.
+ * @return A new `Constant` instance.
+ */
+export function constant(value: boolean): Constant;
+
+/**
+ * Creates a `Constant` instance for a null value.
+ *
+ * @param value The null value.
+ * @return A new `Constant` instance.
+ */
+export function constant(value: null): Constant;
+
+/**
+ * Creates a `Constant` instance for an undefined value.
+ * @private
+ * @internal
+ *
+ * @param value The undefined value.
+ * @return A new `Constant` instance.
+ */
+export function constant(value: undefined): Constant;
+
+/**
+ * Creates a `Constant` instance for a GeoPoint value.
+ *
+ * @param value The GeoPoint value.
+ * @return A new `Constant` instance.
+ */
+export function constant(value: GeoPoint): Constant;
+
+/**
+ * Creates a `Constant` instance for a Timestamp value.
+ *
+ * @param value The Timestamp value.
+ * @return A new `Constant` instance.
+ */
+export function constant(value: Timestamp): Constant;
+
+/**
+ * Creates a `Constant` instance for a Date value.
+ *
+ * @param value The Date value.
+ * @return A new `Constant` instance.
+ */
+export function constant(value: Date): Constant;
+
+/**
+ * Creates a `Constant` instance for a Bytes value.
+ *
+ * @param value The Bytes value.
+ * @return A new `Constant` instance.
+ */
+export function constant(value: Bytes): Constant;
+
+/**
+ * Creates a `Constant` instance for a DocumentReference value.
+ *
+ * @param value The DocumentReference value.
+ * @return A new `Constant` instance.
+ */
+export function constant(value: DocumentReference): Constant;
+
+/**
+ * Creates a `Constant` instance for a Firestore proto value.
+ * For internal use only.
+ * @private
+ * @internal
+ * @param value The Firestore proto value.
+ * @return A new `Constant` instance.
+ */
+export function constant(value: ProtoValue): Constant;
+
+/**
+ * Creates a `Constant` instance for an array value.
+ *
+ * @param value The array value.
+ * @return A new `Constant` instance.
+ */
+export function constant(value: any[]): Constant;
+
+/**
+ * Creates a `Constant` instance for a map value.
+ *
+ * @param value The map value.
+ * @return A new `Constant` instance.
+ */
+export function constant(value: Record<string, any>): Constant;
+
+/**
+ * Creates a `Constant` instance for a VectorValue value.
+ *
+ * @param value The VectorValue value.
+ * @return A new `Constant` instance.
+ */
+export function constant(value: VectorValue): Constant;
+
+export function constant(value: any): Constant {
+  return new Constant(value);
+}
+
+/**
+ * Creates a `Constant` instance for a VectorValue value.
+ *
+ * ```typescript
+ * // Create a Constant instance for a vector value
+ * const vectorConstant = constantVector([1, 2, 3]);
+ * ```
+ *
+ * @param value The VectorValue value.
+ * @return A new `Constant` instance.
+ */
+export function constantVector(value: number[] | VectorValue): Constant {
+  if (value instanceof VectorValue) {
+    return new Constant(value);
+  } else {
+    return new Constant(new VectorValue(value as number[]));
   }
 }
 
@@ -3338,7 +3344,7 @@ export function mapRemove(mapExpr: Expr, key: string): FunctionExpr;
  *
  * ```
  * // Removes the key 'city' field from the map in the address field of the input document.
- * mapRemove('address', Constant.of('city'));
+ * mapRemove('address', constant('city'));
  * ```
  *
  * @param mapField The name of a field containing a map value.
@@ -3352,7 +3358,7 @@ export function mapRemove(mapField: string, keyExpr: Expr): FunctionExpr;
  *
  * ```
  * // Removes the key 'baz' from the input map.
- * mapRemove(map({foo: 'bar', baz: true}), Constant.of('baz'));
+ * mapRemove(map({foo: 'bar', baz: true}), constant('baz'));
  * ```
  *
  * @param mapExpr An expression return a map value.
@@ -3851,7 +3857,7 @@ export function map(elements: Record<string, any>): FunctionExpr {
   for (const key in elements) {
     if (Object.prototype.hasOwnProperty.call(elements, key)) {
       const value = elements[key];
-      result.push(Constant.of(key));
+      result.push(constant(key));
       result.push(valueToDefaultExpr(value));
     }
   }
@@ -3862,7 +3868,7 @@ export function map(elements: Record<string, any>): FunctionExpr {
  * Internal use only
  * Converts a plainObject to a mapValue in the proto representation,
  * rather than a functionValue+map that is the result of the map(...) function.
- * This behaves different than Constant.of(plainObject) because it
+ * This behaves different than constant(plainObject) because it
  * traverses the input object, converts values in the object to expressions,
  * and calls _readUserData on each of these expressions.
  * @private
@@ -4512,7 +4518,7 @@ export function arrayContainsAny(
  *
  * ```typescript
  * // Check if the "tags" array contains all of the values: "SciFi", "Adventure", and the value from field "tag1"
- * arrayContainsAll(field("tags"), [field("tag1"), Constant.of("SciFi"), Constant.of("Adventure")]);
+ * arrayContainsAll(field("tags"), [field("tag1"), constant("SciFi"), constant("Adventure")]);
  * ```
  *
  * @param array The array expression to check.
@@ -4604,7 +4610,7 @@ export function arrayLength(array: Expr): FunctionExpr {
  *
  * ```typescript
  * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
- * eqAny(field("category"), [Constant.of("Electronics"), field("primaryType")]);
+ * eqAny(field("category"), [constant("Electronics"), field("primaryType")]);
  * ```
  *
  * @param element The expression to compare.
@@ -4638,7 +4644,7 @@ export function eqAny(element: Expr, others: any[]): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
- * eqAny("category", [Constant.of("Electronics"), field("primaryType")]);
+ * eqAny("category", [constant("Electronics"), field("primaryType")]);
  * ```
  *
  * @param element The field to compare.
@@ -4677,7 +4683,7 @@ export function eqAny(element: Expr | string, others: any[]): BooleanExpr {
  *
  * ```typescript
  * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
- * notEqAny(field("status"), [Constant.of("pending"), field("rejectedStatus")]);
+ * notEqAny(field("status"), [constant("pending"), field("rejectedStatus")]);
  * ```
  *
  * @param element The expression to compare.
@@ -4711,7 +4717,7 @@ export function notEqAny(element: Expr, others: any[]): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
- * notEqAny("status", [Constant.of("pending"), field("rejectedStatus")]);
+ * notEqAny("status", [constant("pending"), field("rejectedStatus")]);
  * ```
  *
  * @param element The field name to compare.
@@ -4779,7 +4785,7 @@ export function xor(
  * ```typescript
  * // If 'age' is greater than 18, return "Adult"; otherwise, return "Minor".
  * cond(
- *     gt("age", 18), Constant.of("Adult"), Constant.of("Minor"));
+ *     gt("age", 18), constant("Adult"), constant("Minor"));
  * ```
  *
  * @param condition The condition to evaluate.
@@ -5654,7 +5660,7 @@ export function endsWith(expr: Expr, suffix: string): BooleanExpr;
  *
  * ```typescript
  * // Check if the result of concatenating 'firstName' and 'lastName' fields ends with "Jr."
- * endsWith(field("fullName"), Constant.of("Jr."));
+ * endsWith(field("fullName"), constant("Jr."));
  * ```
  *
  * @param expr The expression to check.
@@ -6897,7 +6903,7 @@ export function genericFunction(
  *
  * ```typescript
  * // This is the same of the 'eq("price", 10)', if it was not yet implemented in the SDK.
- * genericFunction("eq", [field("price"), Constant.of(10)]);
+ * genericFunction("eq", [field("price"), constant(10)]);
  * ```
  *
  * @param functionName The name of the server boolean expression.
@@ -6918,7 +6924,7 @@ export function genericBooleanExpr(
  *
  * ```typescript
  * // This is the same of the 'eq("price", 10)', if it was not yet implemented in the SDK.
- * genericFunction("eq", [field("price"), Constant.of(10)]);
+ * genericFunction("eq", [field("price"), constant(10)]);
  * ```
  *
  * @param functionName The name of the server boolean expression.

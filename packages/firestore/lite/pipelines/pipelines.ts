@@ -50,7 +50,10 @@ export type {
 
 export { PipelineSource } from '../../src/lite-api/pipeline-source';
 
-export { PipelineResult, PipelineSnapshot } from '../../src/lite-api/pipeline-result';
+export {
+  PipelineResult,
+  PipelineSnapshot
+} from '../../src/lite-api/pipeline-result';
 
 export { Pipeline } from '../../src/lite-api/pipeline';
 
@@ -77,6 +80,7 @@ export {
 
 export {
   field,
+  constant,
   add,
   subtract,
   multiply,

@@ -44,6 +44,7 @@ export {
 
 export {
   field,
+  constant,
   add,
   subtract,
   multiply,

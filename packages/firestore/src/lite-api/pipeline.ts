@@ -30,14 +30,14 @@ import {
   _mapValue,
   AggregateFunction,
   AggregateWithAlias,
-  Constant,
   Expr,
   ExprWithAlias,
   Field,
   BooleanExpr,
   Ordering,
   Selectable,
-  field
+  field,
+  constant
 } from './expressions';
 import {
   AddFields,
@@ -771,7 +771,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
       } else if (isPlainObject(value)) {
         return _mapValue(value);
       } else {
-        return Constant.of(value);
+        return constant(value);
       }
     });
 

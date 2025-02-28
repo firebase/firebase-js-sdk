@@ -18,6 +18,7 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
+import { constantVector } from '../../../src/lite-api/expressions';
 import { PipelineSnapshot } from '../../../src/lite-api/pipeline-result';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
@@ -43,7 +44,6 @@ import {
   arrayContainsAny,
   avgFunction,
   CollectionReference,
-  Constant,
   cosineDistance,
   countAll,
   doc,
@@ -96,7 +96,8 @@ import {
   documentId,
   logicalMinimum,
   xor,
-  field
+  field,
+  constant
 } from '../util/firebase_export';
 import { apiDescribe, withTestCollection } from '../util/helpers';
 
@@ -427,19 +428,19 @@ apiDescribe.only('Pipelines', persistence => {
     const refDate = new Date();
     const refTimestamp = Timestamp.now();
     const constants = [
-      Constant.of(1).as('number'),
-      Constant.of('a string').as('string'),
-      Constant.of(true).as('boolean'),
-      Constant.of(null).as('null'),
-      Constant.of(new GeoPoint(0.1, 0.2)).as('geoPoint'),
-      Constant.of(refTimestamp).as('timestamp'),
-      Constant.of(refDate).as('date'),
-      Constant.of(
+      constant(1).as('number'),
+      constant('a string').as('string'),
+      constant(true).as('boolean'),
+      constant(null).as('null'),
+      constant(new GeoPoint(0.1, 0.2)).as('geoPoint'),
+      constant(refTimestamp).as('timestamp'),
+      constant(refDate).as('date'),
+      constant(
         Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0]))
       ).as('bytes'),
-      Constant.of(doc(firestore, 'foo', 'bar')).as('documentReference'),
-      Constant.of(vector([1, 2, 3])).as('vectorValue'),
-      Constant.of({
+      constant(doc(firestore, 'foo', 'bar')).as('documentReference'),
+      constant(vector([1, 2, 3])).as('vectorValue'),
+      constant({
         'number': 1,
         'string': 'a string',
         'boolean': true,
@@ -458,7 +459,7 @@ apiDescribe.only('Pipelines', persistence => {
         },
         'array': [1, 'c string']
       }).as('map'),
-      Constant.of([
+      constant([
         1,
         'a string',
         true,
@@ -704,7 +705,7 @@ apiDescribe.only('Pipelines', persistence => {
             .pipeline()
             .collection(randomCol.path)
             .select('title', 'author')
-            .addFields(Constant.of('bar').as('foo'))
+            .addFields(constant('bar').as('foo'))
             .sort(field('author').ascending())
         );
         expectResults(
@@ -1206,7 +1207,7 @@ apiDescribe.only('Pipelines', persistence => {
           .pipeline()
           .select(
             'title',
-            logicalMaximum(Constant.of(1960), field('published'), 1961).as(
+            logicalMaximum(constant(1960), field('published'), 1961).as(
               'published-safe'
             )
           )
@@ -1227,7 +1228,7 @@ apiDescribe.only('Pipelines', persistence => {
           .pipeline()
           .select(
             'title',
-            logicalMinimum(Constant.of(1960), field('published'), 1961).as(
+            logicalMinimum(constant(1960), field('published'), 1961).as(
               'published-safe'
             )
           )
@@ -1250,7 +1251,7 @@ apiDescribe.only('Pipelines', persistence => {
             'title',
             cond(
               lt(field('published'), 1960),
-              Constant.of(1960),
+              constant(1960),
               field('published')
             ).as('published-safe')
           )
@@ -1520,7 +1521,7 @@ apiDescribe.only('Pipelines', persistence => {
             isNull('rating').as('ratingIsNull'),
             isNan('rating').as('ratingIsNaN'),
             isError(arrayOffset('title', 0)).as('isError'),
-            ifError(arrayOffset('title', 0), Constant.of('was error')).as(
+            ifError(arrayOffset('title', 0), constant('was error')).as(
               'ifError'
             ),
             isAbsent('foo').as('isAbsent'),
@@ -1548,7 +1549,7 @@ apiDescribe.only('Pipelines', persistence => {
             field('rating').isNan().as('ratingIsNaN'),
             arrayOffset('title', 0).isError().as('isError'),
             arrayOffset('title', 0)
-              .ifError(Constant.of('was error'))
+              .ifError(constant('was error'))
               .as('ifError'),
             field('foo').isAbsent().as('isAbsent'),
             field('title').isNotNull().as('titleIsNotNull'),
@@ -1596,16 +1597,16 @@ apiDescribe.only('Pipelines', persistence => {
         randomCol
           .pipeline()
           .select(
-            cosineDistance(Constant.vector(sourceVector), targetVector).as(
+            cosineDistance(constantVector(sourceVector), targetVector).as(
               'cosineDistance'
             ),
-            dotProduct(Constant.vector(sourceVector), targetVector).as(
+            dotProduct(constantVector(sourceVector), targetVector).as(
               'dotProductDistance'
             ),
-            euclideanDistance(Constant.vector(sourceVector), targetVector).as(
+            euclideanDistance(constantVector(sourceVector), targetVector).as(
               'euclideanDistance'
             ),
-            manhattanDistance(Constant.vector(sourceVector), targetVector).as(
+            manhattanDistance(constantVector(sourceVector), targetVector).as(
               'manhattanDistance'
             )
           )
@@ -1623,16 +1624,16 @@ apiDescribe.only('Pipelines', persistence => {
         randomCol
           .pipeline()
           .select(
-            Constant.vector(sourceVector)
+            constantVector(sourceVector)
               .cosineDistance(targetVector)
               .as('cosineDistance'),
-            Constant.vector(sourceVector)
+            constantVector(sourceVector)
               .dotProduct(targetVector)
               .as('dotProductDistance'),
-            Constant.vector(sourceVector)
+            constantVector(sourceVector)
               .euclideanDistance(targetVector)
               .as('euclideanDistance'),
-            Constant.vector(sourceVector)
+            constantVector(sourceVector)
               .manhattanDistance(targetVector)
               .as('manhattanDistance')
           )
@@ -1694,7 +1695,7 @@ apiDescribe.only('Pipelines', persistence => {
             .sort(descending('rating'))
             .limit(1)
             .select(
-              genericFunction('add', [field('rating'), Constant.of(1)]).as(
+              genericFunction('add', [field('rating'), constant(1)]).as(
                 'rating'
               )
             )
@@ -1786,7 +1787,7 @@ apiDescribe.only('Pipelines', persistence => {
           randomCol
             .pipeline()
             .limit(1)
-            .select(bitAnd(Constant.of(5), 12).as('result'))
+            .select(bitAnd(constant(5), 12).as('result'))
         );
         expectResults(snapshot, {
           result: 4
@@ -1796,7 +1797,7 @@ apiDescribe.only('Pipelines', persistence => {
             randomCol
               .pipeline()
               .limit(1)
-              .select(Constant.of(5).bitAnd(12).as('result'))
+              .select(constant(5).bitAnd(12).as('result'))
           );
           expectResults(snapshot, {
             result: 4
@@ -1808,7 +1809,7 @@ apiDescribe.only('Pipelines', persistence => {
             randomCol
               .pipeline()
               .limit(1)
-              .select(bitOr(Constant.of(5), 12).as('result'))
+              .select(bitOr(constant(5), 12).as('result'))
           );
           expectResults(snapshot, {
             result: 13
@@ -1817,7 +1818,7 @@ apiDescribe.only('Pipelines', persistence => {
             randomCol
               .pipeline()
               .limit(1)
-              .select(Constant.of(5).bitOr(12).as('result'))
+              .select(constant(5).bitOr(12).as('result'))
           );
           expectResults(snapshot, {
             result: 13
@@ -1829,7 +1830,7 @@ apiDescribe.only('Pipelines', persistence => {
             randomCol
               .pipeline()
               .limit(1)
-              .select(bitXor(Constant.of(5), 12).as('result'))
+              .select(bitXor(constant(5), 12).as('result'))
           );
           expectResults(snapshot, {
             result: 9
@@ -1838,7 +1839,7 @@ apiDescribe.only('Pipelines', persistence => {
             randomCol
               .pipeline()
               .limit(1)
-              .select(Constant.of(5).bitXor(12).as('result'))
+              .select(constant(5).bitXor(12).as('result'))
           );
           expectResults(snapshot, {
             result: 9
@@ -1851,9 +1852,9 @@ apiDescribe.only('Pipelines', persistence => {
               .pipeline()
               .limit(1)
               .select(
-                bitNot(
-                  Constant.of(Bytes.fromUint8Array(Uint8Array.of(0xfd)))
-                ).as('result')
+                bitNot(constant(Bytes.fromUint8Array(Uint8Array.of(0xfd)))).as(
+                  'result'
+                )
               )
           );
           expectResults(snapshot, {
@@ -1864,7 +1865,7 @@ apiDescribe.only('Pipelines', persistence => {
               .pipeline()
               .limit(1)
               .select(
-                Constant.of(Bytes.fromUint8Array(Uint8Array.of(0xfd)))
+                constant(Bytes.fromUint8Array(Uint8Array.of(0xfd)))
                   .bitNot()
                   .as('result')
               )
@@ -1881,7 +1882,7 @@ apiDescribe.only('Pipelines', persistence => {
               .limit(1)
               .select(
                 bitLeftShift(
-                  Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02))),
+                  constant(Bytes.fromUint8Array(Uint8Array.of(0x02))),
                   2
                 ).as('result')
               )
@@ -1894,7 +1895,7 @@ apiDescribe.only('Pipelines', persistence => {
               .pipeline()
               .limit(1)
               .select(
-                Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02)))
+                constant(Bytes.fromUint8Array(Uint8Array.of(0x02)))
                   .bitLeftShift(2)
                   .as('result')
               )
@@ -1911,7 +1912,7 @@ apiDescribe.only('Pipelines', persistence => {
               .limit(1)
               .select(
                 bitRightShift(
-                  Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02))),
+                  constant(Bytes.fromUint8Array(Uint8Array.of(0x02))),
                   2
                 ).as('result')
               )
@@ -1924,7 +1925,7 @@ apiDescribe.only('Pipelines', persistence => {
               .pipeline()
               .limit(1)
               .select(
-                Constant.of(Bytes.fromUint8Array(Uint8Array.of(0x02)))
+                constant(Bytes.fromUint8Array(Uint8Array.of(0x02)))
                   .bitRightShift(2)
                   .as('result')
               )
@@ -2056,7 +2057,7 @@ apiDescribe.only('Pipelines', persistence => {
             randomCol
               .pipeline()
               .addFields(
-                Constant.of(" The Hitchhiker's Guide to the Galaxy ").as(
+                constant(" The Hitchhiker's Guide to the Galaxy ").as(
                   'spacedTitle'
                 )
               )
