@@ -111,7 +111,6 @@ export function dcFetch<T, U>(
       return jsonResponse;
     })
     .then(res => {
-      console.log(res.errors);
       if (res.errors && res.errors.length) {
         const stringified = JSON.stringify(res.errors);
         const response: DataConnectOperationResponse = {
