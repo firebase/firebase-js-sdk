@@ -54,7 +54,7 @@ export { PipelineResult } from '../../src/lite-api/pipeline-result';
 
 export { Pipeline } from '../../src/lite-api/pipeline';
 
-export { pipeline, execute } from '../../src/lite-api/pipeline_impl';
+export { execute } from '../../src/lite-api/pipeline_impl';
 
 export {
   Stage,
@@ -76,6 +76,7 @@ export {
 } from '../../src/lite-api/stage';
 
 export {
+  field,
   add,
   subtract,
   multiply,

@@ -63,7 +63,7 @@ declare module './reference' {
  *
  * ```typescript
  * const futureResults = await execute(firestore.pipeline().collection("books")
- *     .where(gt(Field.of("rating"), 4.5))
+ *     .where(gt(field("rating"), 4.5))
  *     .select("title", "author", "rating"));
  * ```
  *

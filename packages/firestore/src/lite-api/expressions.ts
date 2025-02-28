@@ -100,7 +100,7 @@ function vectorToExpr(value: VectorValue | number[] | Expr): Expr {
  * Converts a value to an Expr, Returning either a Constant, MapFunction,
  * ArrayFunction, or the input itself (if it's already an expression).
  * If the input is a string, it is assumed to be a field name, and a
- * Field.of(value) is returned.
+ * field(value) is returned.
  *
  * @private
  * @internal
@@ -108,7 +108,7 @@ function vectorToExpr(value: VectorValue | number[] | Expr): Expr {
  */
 function fieldOfOrExpr(value: any): Expr {
   if (isString(value)) {
-    return Field.of(value);
+    return field(value);
   } else {
     return valueToDefaultExpr(value);
   }
@@ -151,7 +151,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Add the value of the 'quantity' field and the 'reserve' field.
-   * Field.of("quantity").add(Field.of("reserve"));
+   * field("quantity").add(field("reserve"));
    * ```
    *
    * @param second The expression or literal to add to this expression.
@@ -171,7 +171,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Subtract the 'discount' field from the 'price' field
-   * Field.of("price").subtract(Field.of("discount"));
+   * field("price").subtract(field("discount"));
    * ```
    *
    * @param other The expression to subtract from this expression.
@@ -184,7 +184,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Subtract 20 from the value of the 'total' field
-   * Field.of("total").subtract(20);
+   * field("total").subtract(20);
    * ```
    *
    * @param other The constant value to subtract.
@@ -200,7 +200,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Multiply the 'quantity' field by the 'price' field
-   * Field.of("quantity").multiply(Field.of("price"));
+   * field("quantity").multiply(field("price"));
    * ```
    *
    * @param second The second expression or literal to multiply by.
@@ -220,7 +220,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Divide the 'total' field by the 'count' field
-   * Field.of("total").divide(Field.of("count"));
+   * field("total").divide(field("count"));
    * ```
    *
    * @param other The expression to divide by.
@@ -233,7 +233,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Divide the 'value' field by 10
-   * Field.of("value").divide(10);
+   * field("value").divide(10);
    * ```
    *
    * @param other The constant value to divide by.
@@ -249,7 +249,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the remainder of dividing the 'value' field by the 'divisor' field
-   * Field.of("value").mod(Field.of("divisor"));
+   * field("value").mod(field("divisor"));
    * ```
    *
    * @param other The expression to divide by.
@@ -262,7 +262,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the remainder of dividing the 'value' field by 10
-   * Field.of("value").mod(10);
+   * field("value").mod(10);
    * ```
    *
    * @param other The constant value to divide by.
@@ -278,7 +278,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'age' field is equal to 21
-   * Field.of("age").eq(21);
+   * field("age").eq(21);
    * ```
    *
    * @param other The expression to compare for equality.
@@ -291,7 +291,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'city' field is equal to "London"
-   * Field.of("city").eq("London");
+   * field("city").eq("London");
    * ```
    *
    * @param other The constant value to compare for equality.
@@ -307,7 +307,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'status' field is not equal to "completed"
-   * Field.of("status").neq("completed");
+   * field("status").neq("completed");
    * ```
    *
    * @param other The expression to compare for inequality.
@@ -320,7 +320,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'country' field is not equal to "USA"
-   * Field.of("country").neq("USA");
+   * field("country").neq("USA");
    * ```
    *
    * @param other The constant value to compare for inequality.
@@ -336,7 +336,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'age' field is less than 'limit'
-   * Field.of("age").lt(Field.of('limit'));
+   * field("age").lt(field('limit'));
    * ```
    *
    * @param other The expression to compare for less than.
@@ -349,7 +349,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'price' field is less than 50
-   * Field.of("price").lt(50);
+   * field("price").lt(50);
    * ```
    *
    * @param other The constant value to compare for less than.
@@ -366,7 +366,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'quantity' field is less than or equal to 20
-   * Field.of("quantity").lte(Constant.of(20));
+   * field("quantity").lte(Constant.of(20));
    * ```
    *
    * @param other The expression to compare for less than or equal to.
@@ -379,7 +379,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'score' field is less than or equal to 70
-   * Field.of("score").lte(70);
+   * field("score").lte(70);
    * ```
    *
    * @param other The constant value to compare for less than or equal to.
@@ -395,7 +395,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'age' field is greater than the 'limit' field
-   * Field.of("age").gt(Field.of("limit"));
+   * field("age").gt(field("limit"));
    * ```
    *
    * @param other The expression to compare for greater than.
@@ -408,7 +408,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'price' field is greater than 100
-   * Field.of("price").gt(100);
+   * field("price").gt(100);
    * ```
    *
    * @param other The constant value to compare for greater than.
@@ -425,7 +425,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'quantity' field is greater than or equal to field 'requirement' plus 1
-   * Field.of("quantity").gte(Field.of('requirement').add(1));
+   * field("quantity").gte(field('requirement').add(1));
    * ```
    *
    * @param other The expression to compare for greater than or equal to.
@@ -439,7 +439,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'score' field is greater than or equal to 80
-   * Field.of("score").gte(80);
+   * field("score").gte(80);
    * ```
    *
    * @param other The constant value to compare for greater than or equal to.
@@ -455,7 +455,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Combine the 'items' array with another array field.
-   * Field.of("items").arrayConcat(Field.of("otherItems"));
+   * field("items").arrayConcat(field("otherItems"));
    * ```
    * @param secondArray Second array expression or array literal to concatenate.
    * @param otherArrays Optional additional array expressions or array literals to concatenate.
@@ -475,7 +475,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'sizes' array contains the value from the 'selectedSize' field
-   * Field.of("sizes").arrayContains(Field.of("selectedSize"));
+   * field("sizes").arrayContains(field("selectedSize"));
    * ```
    *
    * @param element The element to search for in the array.
@@ -488,7 +488,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'colors' array contains "red"
-   * Field.of("colors").arrayContains("red");
+   * field("colors").arrayContains("red");
    * ```
    *
    * @param element The element to search for in the array.
@@ -507,7 +507,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'tags' array contains both "news" and "sports"
-   * Field.of("tags").arrayContainsAll(Field.of("tag1"), Field.of("tag2"));
+   * field("tags").arrayContainsAll(field("tag1"), field("tag2"));
    * ```
    *
    * @param values The elements to check for in the array.
@@ -520,7 +520,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'tags' array contains both of the values from field 'tag1' and "tag2"
-   * Field.of("tags").arrayContainsAll(Field.of("tag1"), Field.of("tag2"));
+   * field("tags").arrayContainsAll(field("tag1"), field("tag2"));
    * ```
    *
    * @param values The elements to check for in the array.
@@ -540,7 +540,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'categories' array contains either values from field "cate1" or "cate2"
-   * Field.of("categories").arrayContainsAny(Field.of("cate1"), Field.of("cate2"));
+   * field("categories").arrayContainsAny(field("cate1"), field("cate2"));
    * ```
    *
    * @param values The elements to check for in the array.
@@ -554,7 +554,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * ```typescript
    * // Check if the 'groups' array contains either the value from the 'userGroup' field
    * // or the value "guest"
-   * Field.of("groups").arrayContainsAny(Field.of("userGroup"), "guest");
+   * field("groups").arrayContainsAny(field("userGroup"), "guest");
    * ```
    *
    * @param values The elements to check for in the array.
@@ -574,7 +574,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Get the number of items in the 'cart' array
-   * Field.of("cart").arrayLength();
+   * field("cart").arrayLength();
    * ```
    *
    * @return A new `Expr` representing the length of the array.
@@ -589,7 +589,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
-   * Field.of("category").eqAny("Electronics", Field.of("primaryType"));
+   * field("category").eqAny("Electronics", field("primaryType"));
    * ```
    *
    * @param others The values or expressions to check against.
@@ -603,7 +603,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
-   * Field.of("category").eqAny("Electronics", Field.of("primaryType"));
+   * field("category").eqAny("Electronics", field("primaryType"));
    * ```
    *
    * @param others The values or expressions to check against.
@@ -621,7 +621,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
-   * Field.of("status").notEqAny("pending", Field.of("rejectedStatus"));
+   * field("status").notEqAny("pending", field("rejectedStatus"));
    * ```
    *
    * @param others The values or expressions to check against.
@@ -635,7 +635,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
-   * Field.of("status").notEqAny("pending", Field.of("rejectedStatus"));
+   * field("status").notEqAny("pending", field("rejectedStatus"));
    * ```
    *
    * @param others The values or expressions to check against.
@@ -652,7 +652,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the result of a calculation is NaN
-   * Field.of("value").divide(0).isNaN();
+   * field("value").divide(0).isNaN();
    * ```
    *
    * @return A new `Expr` representing the 'isNaN' check.
@@ -666,7 +666,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the result of a calculation is NaN
-   * Field.of("value").isNull();
+   * field("value").isNull();
    * ```
    *
    * @return A new `Expr` representing the 'isNull' check.
@@ -680,7 +680,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the document has a field named "phoneNumber"
-   * Field.of("phoneNumber").exists();
+   * field("phoneNumber").exists();
    * ```
    *
    * @return A new `Expr` representing the 'exists' check.
@@ -694,7 +694,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Get the character length of the 'name' field in its UTF-8 form.
-   * Field.of("name").charLength();
+   * field("name").charLength();
    * ```
    *
    * @return A new `Expr` representing the length of the string.
@@ -708,7 +708,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'title' field contains the word "guide" (case-sensitive)
-   * Field.of("title").like("%guide%");
+   * field("title").like("%guide%");
    * ```
    *
    * @param pattern The pattern to search for. You can use "%" as a wildcard character.
@@ -721,7 +721,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'title' field contains the word "guide" (case-sensitive)
-   * Field.of("title").like("%guide%");
+   * field("title").like("%guide%");
    * ```
    *
    * @param pattern The pattern to search for. You can use "%" as a wildcard character.
@@ -738,7 +738,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'description' field contains "example" (case-insensitive)
-   * Field.of("description").regexContains("(?i)example");
+   * field("description").regexContains("(?i)example");
    * ```
    *
    * @param pattern The regular expression to use for the search.
@@ -752,7 +752,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'description' field contains the regular expression stored in field 'regex'
-   * Field.of("description").regexContains(Field.of("regex"));
+   * field("description").regexContains(field("regex"));
    * ```
    *
    * @param pattern The regular expression to use for the search.
@@ -771,7 +771,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'email' field matches a valid email pattern
-   * Field.of("email").regexMatch("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
+   * field("email").regexMatch("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
    * ```
    *
    * @param pattern The regular expression to use for the match.
@@ -784,7 +784,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'email' field matches a regular expression stored in field 'regex'
-   * Field.of("email").regexMatch(Field.of("regex"));
+   * field("email").regexMatch(field("regex"));
    * ```
    *
    * @param pattern The regular expression to use for the match.
@@ -803,7 +803,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'description' field contains "example".
-   * Field.of("description").strContains("example");
+   * field("description").strContains("example");
    * ```
    *
    * @param substring The substring to search for.
@@ -816,7 +816,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'description' field contains the value of the 'keyword' field.
-   * Field.of("description").strContains(Field.of("keyword"));
+   * field("description").strContains(field("keyword"));
    * ```
    *
    * @param expr The expression representing the substring to search for.
@@ -835,7 +835,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'name' field starts with "Mr."
-   * Field.of("name").startsWith("Mr.");
+   * field("name").startsWith("Mr.");
    * ```
    *
    * @param prefix The prefix to check for.
@@ -849,7 +849,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'fullName' field starts with the value of the 'firstName' field
-   * Field.of("fullName").startsWith(Field.of("firstName"));
+   * field("fullName").startsWith(field("firstName"));
    * ```
    *
    * @param prefix The prefix expression to check for.
@@ -868,7 +868,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'filename' field ends with ".txt"
-   * Field.of("filename").endsWith(".txt");
+   * field("filename").endsWith(".txt");
    * ```
    *
    * @param suffix The postfix to check for.
@@ -882,7 +882,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'url' field ends with the value of the 'extension' field
-   * Field.of("url").endsWith(Field.of("extension"));
+   * field("url").endsWith(field("extension"));
    * ```
    *
    * @param suffix The postfix expression to check for.
@@ -901,7 +901,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Convert the 'name' field to lowercase
-   * Field.of("name").toLower();
+   * field("name").toLower();
    * ```
    *
    * @return A new `Expr` representing the lowercase string.
@@ -915,7 +915,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Convert the 'title' field to uppercase
-   * Field.of("title").toUpper();
+   * field("title").toUpper();
    * ```
    *
    * @return A new `Expr` representing the uppercase string.
@@ -929,7 +929,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Trim whitespace from the 'userInput' field
-   * Field.of("userInput").trim();
+   * field("userInput").trim();
    * ```
    *
    * @return A new `Expr` representing the trimmed string.
@@ -943,7 +943,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Combine the 'firstName', " ", and 'lastName' fields into a single string
-   * Field.of("firstName").strConcat(Constant.of(" "), Field.of("lastName"));
+   * field("firstName").strConcat(Constant.of(" "), field("lastName"));
    * ```
    *
    * @param secondString The additional expression or string literal to concatenate.
@@ -964,7 +964,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Reverse the value of the 'myString' field.
-   * Field.of("myString").reverse();
+   * field("myString").reverse();
    * ```
    *
    * @return A new {@code Expr} representing the reversed string.
@@ -978,7 +978,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Replace the first occurrence of "hello" with "hi" in the 'message' field
-   * Field.of("message").replaceFirst("hello", "hi");
+   * field("message").replaceFirst("hello", "hi");
    * ```
    *
    * @param find The substring to search for.
@@ -993,7 +993,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Replace the first occurrence of the value in 'findField' with the value in 'replaceField' in the 'message' field
-   * Field.of("message").replaceFirst(Field.of("findField"), Field.of("replaceField"));
+   * field("message").replaceFirst(field("findField"), field("replaceField"));
    * ```
    *
    * @param find The expression representing the substring to search for.
@@ -1014,7 +1014,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Replace all occurrences of "hello" with "hi" in the 'message' field
-   * Field.of("message").replaceAll("hello", "hi");
+   * field("message").replaceAll("hello", "hi");
    * ```
    *
    * @param find The substring to search for.
@@ -1029,7 +1029,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Replace all occurrences of the value in 'findField' with the value in 'replaceField' in the 'message' field
-   * Field.of("message").replaceAll(Field.of("findField"), Field.of("replaceField"));
+   * field("message").replaceAll(field("findField"), field("replaceField"));
    * ```
    *
    * @param find The expression representing the substring to search for.
@@ -1050,7 +1050,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the length of the 'myString' field in bytes.
-   * Field.of("myString").byteLength();
+   * field("myString").byteLength();
    * ```
    *
    * @return A new {@code Expr} representing the length of the string in bytes.
@@ -1064,7 +1064,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Get the 'city' value from the 'address' map field
-   * Field.of("address").mapGet("city");
+   * field("address").mapGet("city");
    * ```
    *
    * @param subfield The key to access in the map.
@@ -1080,7 +1080,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Count the total number of products
-   * Field.of("productId").count().as("totalProducts");
+   * field("productId").count().as("totalProducts");
    * ```
    *
    * @return A new `AggregateFunction` representing the 'count' aggregation.
@@ -1094,7 +1094,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the total revenue from a set of orders
-   * Field.of("orderAmount").sum().as("totalRevenue");
+   * field("orderAmount").sum().as("totalRevenue");
    * ```
    *
    * @return A new `AggregateFunction` representing the 'sum' aggregation.
@@ -1109,7 +1109,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the average age of users
-   * Field.of("age").avg().as("averageAge");
+   * field("age").avg().as("averageAge");
    * ```
    *
    * @return A new `AggregateFunction` representing the 'avg' aggregation.
@@ -1123,7 +1123,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Find the lowest price of all products
-   * Field.of("price").minimum().as("lowestPrice");
+   * field("price").minimum().as("lowestPrice");
    * ```
    *
    * @return A new `AggregateFunction` representing the 'min' aggregation.
@@ -1137,7 +1137,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Find the highest score in a leaderboard
-   * Field.of("score").maximum().as("highestScore");
+   * field("score").maximum().as("highestScore");
    * ```
    *
    * @return A new `AggregateFunction` representing the 'max' aggregation.
@@ -1151,7 +1151,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Returns the larger value between the 'timestamp' field and the current timestamp.
-   * Field.of("timestamp").logicalMaximum(Function.currentTimestamp());
+   * field("timestamp").logicalMaximum(Function.currentTimestamp());
    * ```
    *
    * @param second The second expression or literal to compare with.
@@ -1174,7 +1174,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Returns the smaller value between the 'timestamp' field and the current timestamp.
-   * Field.of("timestamp").logicalMinimum(Function.currentTimestamp());
+   * field("timestamp").logicalMinimum(Function.currentTimestamp());
    * ```
    *
    * @param second The second expression or literal to compare with.
@@ -1197,7 +1197,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Get the vector length (dimension) of the field 'embedding'.
-   * Field.of("embedding").vectorLength();
+   * field("embedding").vectorLength();
    * ```
    *
    * @return A new {@code Expr} representing the length of the vector.
@@ -1211,7 +1211,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the cosine distance between the 'userVector' field and the 'itemVector' field
-   * Field.of("userVector").cosineDistance(Field.of("itemVector"));
+   * field("userVector").cosineDistance(field("itemVector"));
    * ```
    *
    * @param other The other vector (represented as an Expr) to compare against.
@@ -1223,7 +1223,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the Cosine distance between the 'location' field and a target location
-   * Field.of("location").cosineDistance(new VectorValue([37.7749, -122.4194]));
+   * field("location").cosineDistance(new VectorValue([37.7749, -122.4194]));
    * ```
    *
    * @param other The other vector (as a VectorValue) to compare against.
@@ -1235,7 +1235,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the Cosine distance between the 'location' field and a target location
-   * Field.of("location").cosineDistance([37.7749, -122.4194]);
+   * field("location").cosineDistance([37.7749, -122.4194]);
    * ```
    *
    * @param other The other vector (as an array of numbers) to compare against.
@@ -1251,7 +1251,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the dot product between a feature vector and a target vector
-   * Field.of("features").dotProduct([0.5, 0.8, 0.2]);
+   * field("features").dotProduct([0.5, 0.8, 0.2]);
    * ```
    *
    * @param other The other vector (as an array of numbers) to calculate with.
@@ -1264,7 +1264,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the dot product between a feature vector and a target vector
-   * Field.of("features").dotProduct(new VectorValue([0.5, 0.8, 0.2]));
+   * field("features").dotProduct(new VectorValue([0.5, 0.8, 0.2]));
    * ```
    *
    * @param other The other vector (as an array of numbers) to calculate with.
@@ -1277,7 +1277,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the dot product between a feature vector and a target vector
-   * Field.of("features").dotProduct([0.5, 0.8, 0.2]);
+   * field("features").dotProduct([0.5, 0.8, 0.2]);
    * ```
    *
    * @param other The other vector (as an array of numbers) to calculate with.
@@ -1293,7 +1293,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the Euclidean distance between the 'location' field and a target location
-   * Field.of("location").euclideanDistance([37.7749, -122.4194]);
+   * field("location").euclideanDistance([37.7749, -122.4194]);
    * ```
    *
    * @param other The other vector (as an array of numbers) to calculate with.
@@ -1306,7 +1306,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the Euclidean distance between the 'location' field and a target location
-   * Field.of("location").euclideanDistance(new VectorValue([37.7749, -122.4194]));
+   * field("location").euclideanDistance(new VectorValue([37.7749, -122.4194]));
    * ```
    *
    * @param other The other vector (as a VectorValue) to compare against.
@@ -1319,7 +1319,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the Euclidean distance between the 'location' field and a target location
-   * Field.of("location").euclideanDistance([37.7749, -122.4194]);
+   * field("location").euclideanDistance([37.7749, -122.4194]);
    * ```
    *
    * @param other The other vector (as an array of numbers) to compare against.
@@ -1336,7 +1336,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the Manhattan distance between the 'location' field and a target location
-   * Field.of("location").manhattanDistance(new VectorValue([37.7749, -122.4194]));
+   * field("location").manhattanDistance(new VectorValue([37.7749, -122.4194]));
    * ```
    *
    * @param other The other vector (as a VectorValue) to compare against.
@@ -1351,7 +1351,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the Manhattan distance between the 'location' field and a target location
-   * Field.of("location").manhattanDistance([37.7749, -122.4194]);
+   * field("location").manhattanDistance([37.7749, -122.4194]);
    * ```
    *
    * @param other The other vector (as an array of doubles) to compare against.
@@ -1366,7 +1366,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the Manhattan distance between two vector fields: 'pointA' and 'pointB'
-   * Field.of("pointA").manhattanDistance(Field.of("pointB"));
+   * field("pointA").manhattanDistance(field("pointB"));
    * ```
    *
    * @param other The other vector (represented as an Expr) to compare against.
@@ -1383,7 +1383,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Interpret the 'microseconds' field as microseconds since epoch.
-   * Field.of("microseconds").unixMicrosToTimestamp();
+   * field("microseconds").unixMicrosToTimestamp();
    * ```
    *
    * @return A new {@code Expr} representing the timestamp.
@@ -1397,7 +1397,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Convert the 'timestamp' field to microseconds since epoch.
-   * Field.of("timestamp").timestampToUnixMicros();
+   * field("timestamp").timestampToUnixMicros();
    * ```
    *
    * @return A new {@code Expr} representing the number of microseconds since epoch.
@@ -1412,7 +1412,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Interpret the 'milliseconds' field as milliseconds since epoch.
-   * Field.of("milliseconds").unixMillisToTimestamp();
+   * field("milliseconds").unixMillisToTimestamp();
    * ```
    *
    * @return A new {@code Expr} representing the timestamp.
@@ -1426,7 +1426,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Convert the 'timestamp' field to milliseconds since epoch.
-   * Field.of("timestamp").timestampToUnixMillis();
+   * field("timestamp").timestampToUnixMillis();
    * ```
    *
    * @return A new {@code Expr} representing the number of milliseconds since epoch.
@@ -1441,7 +1441,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Interpret the 'seconds' field as seconds since epoch.
-   * Field.of("seconds").unixSecondsToTimestamp();
+   * field("seconds").unixSecondsToTimestamp();
    * ```
    *
    * @return A new {@code Expr} representing the timestamp.
@@ -1455,7 +1455,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Convert the 'timestamp' field to seconds since epoch.
-   * Field.of("timestamp").timestampToUnixSeconds();
+   * field("timestamp").timestampToUnixSeconds();
    * ```
    *
    * @return A new {@code Expr} representing the number of seconds since epoch.
@@ -1469,7 +1469,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Add some duration determined by field 'unit' and 'amount' to the 'timestamp' field.
-   * Field.of("timestamp").timestampAdd(Field.of("unit"), Field.of("amount"));
+   * field("timestamp").timestampAdd(field("unit"), field("amount"));
    * ```
    *
    * @param unit The expression evaluates to unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
@@ -1483,7 +1483,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Add 1 day to the 'timestamp' field.
-   * Field.of("timestamp").timestampAdd("day", 1);
+   * field("timestamp").timestampAdd("day", 1);
    * ```
    *
    * @param unit The unit of time to add (e.g., "day", "hour").
@@ -1517,7 +1517,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Subtract some duration determined by field 'unit' and 'amount' from the 'timestamp' field.
-   * Field.of("timestamp").timestampSub(Field.of("unit"), Field.of("amount"));
+   * field("timestamp").timestampSub(field("unit"), field("amount"));
    * ```
    *
    * @param unit The expression evaluates to unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
@@ -1531,7 +1531,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Subtract 1 day from the 'timestamp' field.
-   * Field.of("timestamp").timestampSub("day", 1);
+   * field("timestamp").timestampSub("day", 1);
    * ```
    *
    * @param unit The unit of time to subtract (e.g., "day", "hour").
@@ -1567,7 +1567,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the bitwise AND of 'field1' and 0xFF.
-   * Field.of("field1").bitAnd(0xFF);
+   * field("field1").bitAnd(0xFF);
    * ```
    *
    * @param otherBits A constant representing bits.
@@ -1581,7 +1581,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the bitwise AND of 'field1' and 'field2'.
-   * Field.of("field1").bitAnd(Field.of("field2"));
+   * field("field1").bitAnd(field("field2"));
    * ```
    *
    * @param bitsExpression An expression that returns bits when evaluated.
@@ -1602,7 +1602,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the bitwise OR of 'field1' and 0xFF.
-   * Field.of("field1").bitOr(0xFF);
+   * field("field1").bitOr(0xFF);
    * ```
    *
    * @param otherBits A constant representing bits.
@@ -1616,7 +1616,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the bitwise OR of 'field1' and 'field2'.
-   * Field.of("field1").bitOr(Field.of("field2"));
+   * field("field1").bitOr(field("field2"));
    * ```
    *
    * @param bitsExpression An expression that returns bits when evaluated.
@@ -1637,7 +1637,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the bitwise XOR of 'field1' and 0xFF.
-   * Field.of("field1").bitXor(0xFF);
+   * field("field1").bitXor(0xFF);
    * ```
    *
    * @param otherBits A constant representing bits.
@@ -1651,7 +1651,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the bitwise XOR of 'field1' and 'field2'.
-   * Field.of("field1").bitXor(Field.of("field2"));
+   * field("field1").bitXor(field("field2"));
    * ```
    *
    * @param bitsExpression An expression that returns bits when evaluated.
@@ -1672,7 +1672,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the bitwise NOT of 'field1'.
-   * Field.of("field1").bitNot();
+   * field("field1").bitNot();
    * ```
    *
    * @return A new {@code Expr} representing the bitwise NOT operation.
@@ -1688,7 +1688,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the bitwise left shift of 'field1' by 2 bits.
-   * Field.of("field1").bitLeftShift(2);
+   * field("field1").bitLeftShift(2);
    * ```
    *
    * @param y The operand constant representing the number of bits to shift.
@@ -1702,7 +1702,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the bitwise left shift of 'field1' by 'field2' bits.
-   * Field.of("field1").bitLeftShift(Field.of("field2"));
+   * field("field1").bitLeftShift(field("field2"));
    * ```
    *
    * @param numberExpr The operand expression representing the number of bits to shift.
@@ -1723,7 +1723,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the bitwise right shift of 'field1' by 2 bits.
-   * Field.of("field1").bitRightShift(2);
+   * field("field1").bitRightShift(2);
    * ```
    *
    * @param right The operand constant representing the number of bits to shift.
@@ -1737,7 +1737,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Calculate the bitwise right shift of 'field1' by 'field2' bits.
-   * Field.of("field1").bitRightShift(Field.of("field2"));
+   * field("field1").bitRightShift(field("field2"));
    * ```
    *
    * @param numberExpr The operand expression representing the number of bits to shift.
@@ -1758,7 +1758,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Get the document ID from a path.
-   * Field.of("__path__").documentId();
+   * field("__path__").documentId();
    * ```
    *
    * @return A new {@code Expr} representing the documentId operation.
@@ -1809,7 +1809,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Return the value in the 'tags' field array at index `1`.
-   * Field.of('tags').arrayOffset(1);
+   * field('tags').arrayOffset(1);
    * ```
    *
    * @param offset The index of the element to return.
@@ -1826,7 +1826,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * ```typescript
    * // Return the value in the tags field array at index specified by field
    * // 'favoriteTag'.
-   * Field.of('tags').arrayOffset(Field.of('favoriteTag'));
+   * field('tags').arrayOffset(field('favoriteTag'));
    * ```
    *
    * @param offsetExpr An Expr evaluating to the index of the element to return.
@@ -1844,7 +1844,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the result of a calculation is an error
-   * Field.of("title").arrayContains(1).isError();
+   * field("title").arrayContains(1).isError();
    * ```
    *
    * @return A new {@code BooleanExpr} representing the 'isError' check.
@@ -1862,7 +1862,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * ```typescript
    * // Returns the first item in the title field arrays, or returns
    * // the entire title field if the array is empty or the field is another type.
-   * Field.of("title").arrayOffset(0).ifError(Field.of("title"));
+   * field("title").arrayOffset(0).ifError(field("title"));
    * ```
    *
    * @param catchExpr The catch expression that will be evaluated and
@@ -1880,7 +1880,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * ```typescript
    * // Returns the first item in the title field arrays, or returns
    * // "Default Title"
-   * Field.of("title").arrayOffset(0).ifError("Default Title");
+   * field("title").arrayOffset(0).ifError("Default Title");
    * ```
    *
    * @param catchValue The value that will be returned if this expression
@@ -1900,7 +1900,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the field `value` is absent.
-   * Field.of("value").isAbsent();
+   * field("value").isAbsent();
    * ```
    *
    * @return A new {@code BooleanExpr} representing the 'isAbsent' check.
@@ -1916,7 +1916,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the value of the 'name' field is not null
-   * Field.of("name").isNotNull();
+   * field("name").isNotNull();
    * ```
    *
    * @return A new {@code BooleanExpr} representing the 'isNotNull' check.
@@ -1932,7 +1932,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the result of a calculation is NOT NaN
-   * Field.of("value").divide(0).isNotNan();
+   * field("value").divide(0).isNotNan();
    * ```
    *
    * @return A new {@code Expr} representing the 'isNaN' check.
@@ -1984,7 +1984,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * ```
    * // Merges the map in the settings field with, a map literal, and a map in
    * // that is conditionally returned by another expression
-   * Field.of('settings').mapMerge({ enabled: true }, cond(Field.of('isAdmin'), { admin: true}, {})
+   * field('settings').mapMerge({ enabled: true }, cond(field('isAdmin'), { admin: true}, {})
    * ```
    *
    * @param secondMap A required second map to merge. Represented as a literal or
@@ -2013,7 +2013,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * ```typescript
    * // Sort documents by the 'name' field in ascending order
    * pipeline().collection("users")
-   *   .sort(Field.of("name").ascending());
+   *   .sort(field("name").ascending());
    * ```
    *
    * @return A new `Ordering` for ascending sorting.
@@ -2028,7 +2028,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * ```typescript
    * // Sort documents by the 'createdAt' field in descending order
    * firestore.pipeline().collection("users")
-   *   .sort(Field.of("createdAt").descending());
+   *   .sort(field("createdAt").descending());
    * ```
    *
    * @return A new `Ordering` for descending sorting.
@@ -2046,7 +2046,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * ```typescript
    * // Calculate the total price and assign it the alias "totalPrice" and add it to the output.
    * firestore.pipeline().collection("items")
-   *   .addFields(Field.of("price").multiply(Field.of("quantity")).as("totalPrice"));
+   *   .addFields(field("price").multiply(field("quantity")).as("totalPrice"));
    * ```
    *
    * @param name The alias to assign to this expression.
@@ -2086,7 +2086,7 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
    * ```typescript
    * // Calculate the average price of all items and assign it the alias "averagePrice".
    * firestore.pipeline().collection("items")
-   *   .aggregate(Field.of("price").avg().as("averagePrice"));
+   *   .aggregate(field("price").avg().as("averagePrice"));
    * ```
    *
    * @param name The alias to assign to this AggregateFunction.
@@ -2211,51 +2211,24 @@ class ListOfExprs extends Expr {
  *
  * ```typescript
  * // Create a Field instance for the 'name' field
- * const nameField = Field.of("name");
+ * const nameField = field("name");
  *
  * // Create a Field instance for a nested field 'address.city'
- * const cityField = Field.of("address.city");
+ * const cityField = field("address.city");
  * ```
  */
 export class Field extends Expr implements Selectable {
   readonly exprType: ExprType = 'Field';
   selectable = true as const;
 
-  private constructor(private fieldPath: InternalFieldPath) {
-    super();
-  }
-
   /**
-   * Creates a {@code Field} instance representing the field at the given path.
-   *
-   * The path can be a simple field name (e.g., "name") or a dot-separated path to a nested field
-   * (e.g., "address.city").
-   *
-   * ```typescript
-   * // Create a Field instance for the 'title' field
-   * const titleField = Field.of("title");
-   *
-   * // Create a Field instance for a nested field 'author.firstName'
-   * const authorFirstNameField = Field.of("author.firstName");
-   * ```
-   *
-   * @param name The path to the field.
-   * @return A new {@code Field} instance representing the specified field.
+   * @internal
+   * @private
+   * @hideconstructor
+   * @param fieldPath
    */
-  static of(name: string): Field;
-  static of(path: FieldPath): Field;
-  static of(nameOrPath: string | FieldPath): Field {
-    if (typeof nameOrPath === 'string') {
-      if (DOCUMENT_KEY_NAME === nameOrPath) {
-        return new Field(documentId()._internalPath);
-      }
-      return new Field(fieldPathFromArgument('of', nameOrPath));
-    } else {
-      if (documentId().isEqual(nameOrPath)) {
-        return new Field(documentId()._internalPath);
-      }
-      return new Field(nameOrPath._internalPath);
-    }
+  constructor(private fieldPath: InternalFieldPath) {
+    super();
   }
 
   fieldName(): string {
@@ -2285,6 +2258,39 @@ export class Field extends Expr implements Selectable {
    * @internal
    */
   _readUserData(dataReader: UserDataReader): void {}
+}
+
+/**
+ * Creates a {@code Field} instance representing the field at the given path.
+ *
+ * The path can be a simple field name (e.g., "name") or a dot-separated path to a nested field
+ * (e.g., "address.city").
+ *
+ * ```typescript
+ * // Create a Field instance for the 'title' field
+ * const titleField = field("title");
+ *
+ * // Create a Field instance for a nested field 'author.firstName'
+ * const authorFirstNameField = field("author.firstName");
+ * ```
+ *
+ * @param name The path to the field.
+ * @return A new {@code Field} instance representing the specified field.
+ */
+export function field(name: string): Field;
+export function field(path: FieldPath): Field;
+export function field(nameOrPath: string | FieldPath): Field {
+  if (typeof nameOrPath === 'string') {
+    if (DOCUMENT_KEY_NAME === nameOrPath) {
+      return new Field(documentId()._internalPath);
+    }
+    return new Field(fieldPathFromArgument('of', nameOrPath));
+  } else {
+    if (documentId().isEqual(nameOrPath)) {
+      return new Field(documentId()._internalPath);
+    }
+    return new Field(nameOrPath._internalPath);
+  }
 }
 
 /**
@@ -2570,7 +2576,7 @@ export class BooleanExpr extends FunctionExpr {
    *
    * ```typescript
    * // Find the count of documents with a score greater than 90
-   * Field.of("score").gt(90).countIf().as("highestScore");
+   * field("score").gt(90).countIf().as("highestScore");
    * ```
    *
    * @return A new `AggregateFunction` representing the 'countIf' aggregation.
@@ -2584,7 +2590,7 @@ export class BooleanExpr extends FunctionExpr {
    *
    * ```typescript
    * // Find documents where the 'tags' field does not contain 'completed'
-   * Field.of("tags").arrayContains("completed").not();
+   * field("tags").arrayContains("completed").not();
    * ```
    *
    * @return A new {@code Expr} representing the negated filter condition.
@@ -2601,7 +2607,7 @@ export class BooleanExpr extends FunctionExpr {
  *
  * ```typescript
  * // Count the number of documents where 'is_active' field equals true
- * countif(Field.of("is_active").eq(true)).as("numActiveDocuments");
+ * countif(field("is_active").eq(true)).as("numActiveDocuments");
  * ```
  *
  * @param booleanExpr - The boolean expression to evaluate on each input.
@@ -2644,7 +2650,7 @@ export function bitAnd(field: string, otherBits: number | Bytes): FunctionExpr;
  *
  * ```typescript
  * // Calculate the bitwise AND of 'field1' and 'field2'.
- * bitAnd("field1", Field.of("field2"));
+ * bitAnd("field1", field("field2"));
  * ```
  *
  * @param field The left operand field name.
@@ -2659,7 +2665,7 @@ export function bitAnd(field: string, bitsExpression: Expr): FunctionExpr;
  *
  * ```typescript
  * // Calculate the bitwise AND of 'field1' and 0xFF.
- * bitAnd(Field.of("field1"), 0xFF);
+ * bitAnd(field("field1"), 0xFF);
  * ```
  *
  * @param bitsExpression An expression returning bits.
@@ -2677,7 +2683,7 @@ export function bitAnd(
  *
  * ```typescript
  * // Calculate the bitwise AND of 'field1' and 'field2'.
- * bitAnd(Field.of("field1"), Field.of("field2"));
+ * bitAnd(field("field1"), field("field2"));
  * ```
  *
  * @param bitsExpression An expression that returns bits when evaluated.
@@ -2719,7 +2725,7 @@ export function bitOr(field: string, otherBits: number | Bytes): FunctionExpr;
  *
  * ```typescript
  * // Calculate the bitwise OR of 'field1' and 'field2'.
- * bitOr("field1", Field.of("field2"));
+ * bitOr("field1", field("field2"));
  * ```
  *
  * @param field The left operand field name.
@@ -2734,7 +2740,7 @@ export function bitOr(field: string, bitsExpression: Expr): FunctionExpr;
  *
  * ```typescript
  * // Calculate the bitwise OR of 'field1' and 0xFF.
- * bitOr(Field.of("field1"), 0xFF);
+ * bitOr(field("field1"), 0xFF);
  * ```
  *
  * @param bitsExpression An expression returning bits.
@@ -2752,7 +2758,7 @@ export function bitOr(
  *
  * ```typescript
  * // Calculate the bitwise OR of 'field1' and 'field2'.
- * bitOr(Field.of("field1"), Field.of("field2"));
+ * bitOr(field("field1"), field("field2"));
  * ```
  *
  * @param bitsExpression An expression that returns bits when evaluated.
@@ -2794,7 +2800,7 @@ export function bitXor(field: string, otherBits: number | Bytes): FunctionExpr;
  *
  * ```typescript
  * // Calculate the bitwise XOR of 'field1' and 'field2'.
- * bitXor("field1", Field.of("field2"));
+ * bitXor("field1", field("field2"));
  * ```
  *
  * @param field The left operand field name.
@@ -2809,7 +2815,7 @@ export function bitXor(field: string, bitsExpression: Expr): FunctionExpr;
  *
  * ```typescript
  * // Calculate the bitwise XOR of 'field1' and 0xFF.
- * bitXor(Field.of("field1"), 0xFF);
+ * bitXor(field("field1"), 0xFF);
  * ```
  *
  * @param bitsExpression An expression returning bits.
@@ -2827,7 +2833,7 @@ export function bitXor(
  *
  * ```typescript
  * // Calculate the bitwise XOR of 'field1' and 'field2'.
- * bitXor(Field.of("field1"), Field.of("field2"));
+ * bitXor(field("field1"), field("field2"));
  * ```
  *
  * @param bitsExpression An expression that returns bits when evaluated.
@@ -2868,7 +2874,7 @@ export function bitNot(field: string): FunctionExpr;
  *
  * ```typescript
  * // Calculate the bitwise NOT of 'field1'.
- * bitNot(Field.of("field1"));
+ * bitNot(field("field1"));
  * ```
  *
  * @param bitsValueExpression An expression that returns bits when evaluated.
@@ -2901,7 +2907,7 @@ export function bitLeftShift(field: string, y: number): FunctionExpr;
  *
  * ```typescript
  * // Calculate the bitwise left shift of 'field1' by 'field2' bits.
- * bitLeftShift("field1", Field.of("field2"));
+ * bitLeftShift("field1", field("field2"));
  * ```
  *
  * @param field The left operand field name.
@@ -2916,7 +2922,7 @@ export function bitLeftShift(field: string, numberExpr: Expr): FunctionExpr;
  *
  * ```typescript
  * // Calculate the bitwise left shift of 'field1' by 2 bits.
- * bitLeftShift(Field.of("field1"), 2);
+ * bitLeftShift(field("field1"), 2);
  * ```
  *
  * @param xValue An expression returning bits.
@@ -2931,7 +2937,7 @@ export function bitLeftShift(xValue: Expr, y: number): FunctionExpr;
  *
  * ```typescript
  * // Calculate the bitwise left shift of 'field1' by 'field2' bits.
- * bitLeftShift(Field.of("field1"), Field.of("field2"));
+ * bitLeftShift(field("field1"), field("field2"));
  * ```
  *
  * @param xValue An expression returning bits.
@@ -2968,7 +2974,7 @@ export function bitRightShift(field: string, y: number): FunctionExpr;
  *
  * ```typescript
  * // Calculate the bitwise right shift of 'field1' by 'field2' bits.
- * bitRightShift("field1", Field.of("field2"));
+ * bitRightShift("field1", field("field2"));
  * ```
  *
  * @param field The left operand field name.
@@ -2983,7 +2989,7 @@ export function bitRightShift(field: string, numberExpr: Expr): FunctionExpr;
  *
  * ```typescript
  * // Calculate the bitwise right shift of 'field1' by 2 bits.
- * bitRightShift(Field.of("field1"), 2);
+ * bitRightShift(field("field1"), 2);
  * ```
  *
  * @param xValue An expression returning bits.
@@ -2998,7 +3004,7 @@ export function bitRightShift(xValue: Expr, y: number): FunctionExpr;
  *
  * ```typescript
  * // Calculate the bitwise right shift of 'field1' by 'field2' bits.
- * bitRightShift(Field.of("field1"), Field.of("field2"));
+ * bitRightShift(field("field1"), field("field2"));
  * ```
  *
  * @param xValue An expression returning bits.
@@ -3039,7 +3045,7 @@ export function arrayOffset(arrayField: string, offset: number): FunctionExpr;
  * ```typescript
  * // Return the value in the tags field array at index specified by field
  * // 'favoriteTag'.
- * arrayOffset('tags', Field.of('favoriteTag'));
+ * arrayOffset('tags', field('favoriteTag'));
  * ```
  *
  * @param arrayField The name of the array field.
@@ -3056,7 +3062,7 @@ export function arrayOffset(arrayField: string, offsetExpr: Expr): FunctionExpr;
  *
  * ```typescript
  * // Return the value in the tags field array at index 1.
- * arrayOffset(Field.of('tags'), 1);
+ * arrayOffset(field('tags'), 1);
  * ```
  *
  * @param arrayExpression An Expr evaluating to an array.
@@ -3077,7 +3083,7 @@ export function arrayOffset(
  * ```typescript
  * // Return the value in the tags field array at index specified by field
  * // 'favoriteTag'.
- * arrayOffset(Field.of('tags'), Field.of('favoriteTag'));
+ * arrayOffset(field('tags'), field('favoriteTag'));
  * ```
  *
  * @param arrayExpression An Expr evaluating to an array.
@@ -3112,7 +3118,7 @@ export function currentContext(): FunctionExpr {
  *
  * ```typescript
  * // Check if the result of a calculation is an error
- * isError(Field.of("title").arrayContains(1));
+ * isError(field("title").arrayContains(1));
  * ```
  *
  * @param value The expression to check.
@@ -3131,7 +3137,7 @@ export function isError(value: Expr): BooleanExpr {
  * ```typescript
  * // Returns the first item in the title field arrays, or returns
  * // the entire title field if the array is empty or the field is another type.
- * ifError(Field.of("title").arrayOffset(0), Field.of("title"));
+ * ifError(field("title").arrayOffset(0), field("title"));
  * ```
  *
  * @param tryExpr The try expression.
@@ -3150,7 +3156,7 @@ export function ifError(tryExpr: Expr, catchExpr: Expr): FunctionExpr;
  * ```typescript
  * // Returns the first item in the title field arrays, or returns
  * // "Default Title"
- * ifError(Field.of("title").arrayOffset(0), "Default Title");
+ * ifError(field("title").arrayOffset(0), "Default Title");
  * ```
  *
  * @param tryExpr The try expression.
@@ -3171,7 +3177,7 @@ export function ifError(tryExpr: Expr, catchValue: any): FunctionExpr {
  *
  * ```typescript
  * // Check if the field `value` is absent.
- * isAbsent(Field.of("value"));
+ * isAbsent(field("value"));
  * ```
  *
  * @param value The expression to check.
@@ -3205,7 +3211,7 @@ export function isAbsent(value: Expr | string): BooleanExpr {
  *
  * ```typescript
  * // Check if the result of a calculation is NaN
- * isNaN(Field.of("value").divide(0));
+ * isNaN(field("value").divide(0));
  * ```
  *
  * @param value The expression to check.
@@ -3238,7 +3244,7 @@ export function isNull(value: Expr | string): BooleanExpr {
  *
  * ```typescript
  * // Check if the value of the 'name' field is not null
- * isNotNull(Field.of("name"));
+ * isNotNull(field("name"));
  * ```
  *
  * @param value The expression to check.
@@ -3271,7 +3277,7 @@ export function isNotNull(value: Expr | string): BooleanExpr {
  *
  * ```typescript
  * // Check if the result of a calculation is NOT NaN
- * isNotNaN(Field.of("value").divide(0));
+ * isNotNaN(field("value").divide(0));
  * ```
  *
  * @param value The expression to check.
@@ -3369,7 +3375,7 @@ export function mapRemove(
  * ```
  * // Merges the map in the settings field with, a map literal, and a map in
  * // that is conditionally returned by another expression
- * mapMerge('settings', { enabled: true }, cond(Field.of('isAdmin'), { admin: true}, {})
+ * mapMerge('settings', { enabled: true }, cond(field('isAdmin'), { admin: true}, {})
  * ```
  *
  * @param mapField Name of a field containing a map value that will be merged.
@@ -3392,7 +3398,7 @@ export function mapMerge(
  * ```
  * // Merges the map in the settings field with, a map literal, and a map in
  * // that is conditionally returned by another expression
- * mapMerge(Field.of('settings'), { enabled: true }, cond(Field.of('isAdmin'), { admin: true}, {})
+ * mapMerge(field('settings'), { enabled: true }, cond(field('isAdmin'), { admin: true}, {})
  * ```
  *
  * @param firstMap An expression or literal map map value that will be merged.
@@ -3440,7 +3446,7 @@ export function documentIdFunction(
  *
  * ```typescript
  * // Get the document ID from a path.
- * documentId(Field.of("__path__"));
+ * documentId(field("__path__"));
  * ```
  *
  * @return A new {@code Expr} representing the documentId operation.
@@ -3534,7 +3540,7 @@ export function substr(
  *
  * ```typescript
  * // Add the value of the 'quantity' field and the 'reserve' field.
- * add(Field.of("quantity"), Field.of("reserve"));
+ * add(field("quantity"), field("reserve"));
  * ```
  *
  * @param first The first expression to add.
@@ -3555,7 +3561,7 @@ export function add(
  *
  * ```typescript
  * // Add the value of the 'quantity' field and the 'reserve' field.
- * add("quantity", Field.of("reserve"));
+ * add("quantity", field("reserve"));
  * ```
  *
  * @param fieldName The name of the field containing the value to add.
@@ -3587,7 +3593,7 @@ export function add(
  *
  * ```typescript
  * // Subtract the 'discount' field from the 'price' field
- * subtract(Field.of("price"), Field.of("discount"));
+ * subtract(field("price"), field("discount"));
  * ```
  *
  * @param left The expression to subtract from.
@@ -3603,7 +3609,7 @@ export function subtract(left: Expr, right: Expr): FunctionExpr;
  *
  * ```typescript
  * // Subtract the constant value 2 from the 'value' field
- * subtract(Field.of("value"), 2);
+ * subtract(field("value"), 2);
  * ```
  *
  * @param left The expression to subtract from.
@@ -3619,7 +3625,7 @@ export function subtract(left: Expr, right: any): FunctionExpr;
  *
  * ```typescript
  * // Subtract the 'discount' field from the 'price' field
- * subtract("price", Field.of("discount"));
+ * subtract("price", field("discount"));
  * ```
  *
  * @param left The field name to subtract from.
@@ -3644,7 +3650,7 @@ export function subtract(left: string, right: Expr): FunctionExpr;
  */
 export function subtract(left: string, right: any): FunctionExpr;
 export function subtract(left: Expr | string, right: Expr | any): FunctionExpr {
-  const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
+  const normalizedLeft = typeof left === 'string' ? field(left) : left;
   const normalizedRight = valueToDefaultExpr(right);
   return normalizedLeft.subtract(normalizedRight);
 }
@@ -3656,7 +3662,7 @@ export function subtract(left: Expr | string, right: Expr | any): FunctionExpr {
  *
  * ```typescript
  * // Multiply the 'quantity' field by the 'price' field
- * multiply(Field.of("quantity"), Field.of("price"));
+ * multiply(field("quantity"), field("price"));
  * ```
  *
  * @param first The first expression to multiply.
@@ -3677,7 +3683,7 @@ export function multiply(
  *
  * ```typescript
  * // Multiply the 'quantity' field by the 'price' field
- * multiply("quantity", Field.of("price"));
+ * multiply("quantity", field("price"));
  * ```
  *
  * @param fieldName The name of the field containing the value to add.
@@ -3709,7 +3715,7 @@ export function multiply(
  *
  * ```typescript
  * // Divide the 'total' field by the 'count' field
- * divide(Field.of("total"), Field.of("count"));
+ * divide(field("total"), field("count"));
  * ```
  *
  * @param left The expression to be divided.
@@ -3725,7 +3731,7 @@ export function divide(left: Expr, right: Expr): FunctionExpr;
  *
  * ```typescript
  * // Divide the 'value' field by 10
- * divide(Field.of("value"), 10);
+ * divide(field("value"), 10);
  * ```
  *
  * @param left The expression to be divided.
@@ -3741,7 +3747,7 @@ export function divide(left: Expr, right: any): FunctionExpr;
  *
  * ```typescript
  * // Divide the 'total' field by the 'count' field
- * divide("total", Field.of("count"));
+ * divide("total", field("count"));
  * ```
  *
  * @param left The field name to be divided.
@@ -3766,7 +3772,7 @@ export function divide(left: string, right: Expr): FunctionExpr;
  */
 export function divide(left: string, right: any): FunctionExpr;
 export function divide(left: Expr | string, right: Expr | any): FunctionExpr {
-  const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
+  const normalizedLeft = typeof left === 'string' ? field(left) : left;
   const normalizedRight = valueToDefaultExpr(right);
   return normalizedLeft.divide(normalizedRight);
 }
@@ -3778,7 +3784,7 @@ export function divide(left: Expr | string, right: Expr | any): FunctionExpr {
  *
  * ```typescript
  * // Calculate the remainder of dividing 'field1' by 'field2'.
- * mod(Field.of("field1"), Field.of("field2"));
+ * mod(field("field1"), field("field2"));
  * ```
  *
  * @param left The dividend expression.
@@ -3794,7 +3800,7 @@ export function mod(left: Expr, right: Expr): FunctionExpr;
  *
  * ```typescript
  * // Calculate the remainder of dividing 'field1' by 5.
- * mod(Field.of("field1"), 5);
+ * mod(field("field1"), 5);
  * ```
  *
  * @param left The dividend expression.
@@ -3810,7 +3816,7 @@ export function mod(left: Expr, right: any): FunctionExpr;
  *
  * ```typescript
  * // Calculate the remainder of dividing 'field1' by 'field2'.
- * mod("field1", Field.of("field2"));
+ * mod("field1", field("field2"));
  * ```
  *
  * @param left The dividend field name.
@@ -3835,7 +3841,7 @@ export function mod(left: string, right: Expr): FunctionExpr;
  */
 export function mod(left: string, right: any): FunctionExpr;
 export function mod(left: Expr | string, right: Expr | any): FunctionExpr {
-  const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
+  const normalizedLeft = typeof left === 'string' ? field(left) : left;
   const normalizedRight = valueToDefaultExpr(right);
   return normalizedLeft.mod(normalizedRight);
 }
@@ -3888,7 +3894,7 @@ export function array(elements: any[]): FunctionExpr {
  *
  * ```typescript
  * // Check if the 'age' field is equal to an expression
- * eq(Field.of("age"), Field.of("minAge").add(10));
+ * eq(field("age"), field("minAge").add(10));
  * ```
  *
  * @param left The first expression to compare.
@@ -3904,7 +3910,7 @@ export function eq(left: Expr, right: Expr): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'age' field is equal to 21
- * eq(Field.of("age"), 21);
+ * eq(field("age"), 21);
  * ```
  *
  * @param left The expression to compare.
@@ -3920,7 +3926,7 @@ export function eq(left: Expr, right: any): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'age' field is equal to the 'limit' field
- * eq("age", Field.of("limit"));
+ * eq("age", field("limit"));
  * ```
  *
  * @param left The field name to compare.
@@ -3945,7 +3951,7 @@ export function eq(left: string, right: Expr): BooleanExpr;
  */
 export function eq(left: string, right: any): BooleanExpr;
 export function eq(left: Expr | string, right: any): BooleanExpr {
-  const leftExpr = left instanceof Expr ? left : Field.of(left);
+  const leftExpr = left instanceof Expr ? left : field(left);
   const rightExpr = valueToDefaultExpr(right);
   return leftExpr.eq(rightExpr);
 }
@@ -3957,7 +3963,7 @@ export function eq(left: Expr | string, right: any): BooleanExpr {
  *
  * ```typescript
  * // Check if the 'status' field is not equal to field 'finalState'
- * neq(Field.of("status"), Field.of("finalState"));
+ * neq(field("status"), field("finalState"));
  * ```
  *
  * @param left The first expression to compare.
@@ -3973,7 +3979,7 @@ export function neq(left: Expr, right: Expr): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'status' field is not equal to "completed"
- * neq(Field.of("status"), "completed");
+ * neq(field("status"), "completed");
  * ```
  *
  * @param left The expression to compare.
@@ -3989,7 +3995,7 @@ export function neq(left: Expr, right: any): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'status' field is not equal to the value of 'expectedStatus'
- * neq("status", Field.of("expectedStatus"));
+ * neq("status", field("expectedStatus"));
  * ```
  *
  * @param left The field name to compare.
@@ -4014,7 +4020,7 @@ export function neq(left: string, right: Expr): BooleanExpr;
  */
 export function neq(left: string, right: any): BooleanExpr;
 export function neq(left: Expr | string, right: any): BooleanExpr {
-  const leftExpr = left instanceof Expr ? left : Field.of(left);
+  const leftExpr = left instanceof Expr ? left : field(left);
   const rightExpr = valueToDefaultExpr(right);
   return leftExpr.neq(rightExpr);
 }
@@ -4026,7 +4032,7 @@ export function neq(left: Expr | string, right: any): BooleanExpr {
  *
  * ```typescript
  * // Check if the 'age' field is less than 30
- * lt(Field.of("age"), Field.of("limit"));
+ * lt(field("age"), field("limit"));
  * ```
  *
  * @param left The first expression to compare.
@@ -4042,7 +4048,7 @@ export function lt(left: Expr, right: Expr): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'age' field is less than 30
- * lt(Field.of("age"), 30);
+ * lt(field("age"), 30);
  * ```
  *
  * @param left The expression to compare.
@@ -4058,7 +4064,7 @@ export function lt(left: Expr, right: any): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'age' field is less than the 'limit' field
- * lt("age", Field.of("limit"));
+ * lt("age", field("limit"));
  * ```
  *
  * @param left The field name to compare.
@@ -4083,7 +4089,7 @@ export function lt(left: string, right: Expr): BooleanExpr;
  */
 export function lt(left: string, right: any): BooleanExpr;
 export function lt(left: Expr | string, right: any): BooleanExpr {
-  const leftExpr = left instanceof Expr ? left : Field.of(left);
+  const leftExpr = left instanceof Expr ? left : field(left);
   const rightExpr = valueToDefaultExpr(right);
   return leftExpr.lt(rightExpr);
 }
@@ -4096,7 +4102,7 @@ export function lt(left: Expr | string, right: any): BooleanExpr {
  *
  * ```typescript
  * // Check if the 'quantity' field is less than or equal to 20
- * lte(Field.of("quantity"), Field.of("limit"));
+ * lte(field("quantity"), field("limit"));
  * ```
  *
  * @param left The first expression to compare.
@@ -4112,7 +4118,7 @@ export function lte(left: Expr, right: Expr): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'quantity' field is less than or equal to 20
- * lte(Field.of("quantity"), 20);
+ * lte(field("quantity"), 20);
  * ```
  *
  * @param left The expression to compare.
@@ -4126,7 +4132,7 @@ export function lte(left: Expr, right: any): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'quantity' field is less than or equal to the 'limit' field
- * lte("quantity", Field.of("limit"));
+ * lte("quantity", field("limit"));
  * ```
  *
  * @param left The field name to compare.
@@ -4151,7 +4157,7 @@ export function lte(left: string, right: Expr): BooleanExpr;
  */
 export function lte(left: string, right: any): BooleanExpr;
 export function lte(left: Expr | string, right: any): BooleanExpr {
-  const leftExpr = left instanceof Expr ? left : Field.of(left);
+  const leftExpr = left instanceof Expr ? left : field(left);
   const rightExpr = valueToDefaultExpr(right);
   return leftExpr.lte(rightExpr);
 }
@@ -4164,7 +4170,7 @@ export function lte(left: Expr | string, right: any): BooleanExpr {
  *
  * ```typescript
  * // Check if the 'age' field is greater than 18
- * gt(Field.of("age"), Constant(9).add(9));
+ * gt(field("age"), Constant(9).add(9));
  * ```
  *
  * @param left The first expression to compare.
@@ -4180,7 +4186,7 @@ export function gt(left: Expr, right: Expr): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'age' field is greater than 18
- * gt(Field.of("age"), 18);
+ * gt(field("age"), 18);
  * ```
  *
  * @param left The expression to compare.
@@ -4196,7 +4202,7 @@ export function gt(left: Expr, right: any): BooleanExpr;
  *
  * ```typescript
  * // Check if the value of field 'age' is greater than the value of field 'limit'
- * gt("age", Field.of("limit"));
+ * gt("age", field("limit"));
  * ```
  *
  * @param left The field name to compare.
@@ -4221,7 +4227,7 @@ export function gt(left: string, right: Expr): BooleanExpr;
  */
 export function gt(left: string, right: any): BooleanExpr;
 export function gt(left: Expr | string, right: any): BooleanExpr {
-  const leftExpr = left instanceof Expr ? left : Field.of(left);
+  const leftExpr = left instanceof Expr ? left : field(left);
   const rightExpr = valueToDefaultExpr(right);
   return leftExpr.gt(rightExpr);
 }
@@ -4234,7 +4240,7 @@ export function gt(left: Expr | string, right: any): BooleanExpr {
  *
  * ```typescript
  * // Check if the 'quantity' field is greater than or equal to the field "threshold"
- * gte(Field.of("quantity"), Field.of("threshold"));
+ * gte(field("quantity"), field("threshold"));
  * ```
  *
  * @param left The first expression to compare.
@@ -4251,7 +4257,7 @@ export function gte(left: Expr, right: Expr): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'quantity' field is greater than or equal to 10
- * gte(Field.of("quantity"), 10);
+ * gte(field("quantity"), 10);
  * ```
  *
  * @param left The expression to compare.
@@ -4267,7 +4273,7 @@ export function gte(left: Expr, right: any): BooleanExpr;
  *
  * ```typescript
  * // Check if the value of field 'age' is greater than or equal to the value of field 'limit'
- * gte("age", Field.of("limit"));
+ * gte("age", field("limit"));
  * ```
  *
  * @param left The field name to compare.
@@ -4293,7 +4299,7 @@ export function gte(left: string, right: Expr): BooleanExpr;
  */
 export function gte(left: string, right: any): BooleanExpr;
 export function gte(left: Expr | string, right: any): BooleanExpr {
-  const leftExpr = left instanceof Expr ? left : Field.of(left);
+  const leftExpr = left instanceof Expr ? left : field(left);
   const rightExpr = valueToDefaultExpr(right);
   return leftExpr.gte(rightExpr);
 }
@@ -4305,7 +4311,7 @@ export function gte(left: Expr | string, right: any): BooleanExpr {
  *
  * ```typescript
  * // Combine the 'items' array with two new item arrays
- * arrayConcat(Field.of("items"), [Field.of("newItems"), Field.of("otherItems")]);
+ * arrayConcat(field("items"), [field("newItems"), field("otherItems")]);
  * ```
  *
  * @param firstArray The first array expression to concatenate to.
@@ -4326,7 +4332,7 @@ export function arrayConcat(
  *
  * ```typescript
  * // Combine the 'items' array with two new item arrays
- * arrayConcat("items", [Field.of("newItems"), Field.of("otherItems")]);
+ * arrayConcat("items", [field("newItems"), field("otherItems")]);
  * ```
  *
  * @param firstArrayField The first array to concatenate to.
@@ -4359,7 +4365,7 @@ export function arrayConcat(
  *
  * ```typescript
  * // Check if the 'colors' array contains the value of field 'selectedColor'
- * arrayContains(Field.of("colors"), Field.of("selectedColor"));
+ * arrayContains(field("colors"), field("selectedColor"));
  * ```
  *
  * @param array The array expression to check.
@@ -4375,7 +4381,7 @@ export function arrayContains(array: Expr, element: Expr): FunctionExpr;
  *
  * ```typescript
  * // Check if the 'colors' array contains "red"
- * arrayContains(Field.of("colors"), "red");
+ * arrayContains(field("colors"), "red");
  * ```
  *
  * @param array The array expression to check.
@@ -4391,7 +4397,7 @@ export function arrayContains(array: Expr, element: any): FunctionExpr;
  *
  * ```typescript
  * // Check if the 'colors' array contains the value of field 'selectedColor'
- * arrayContains("colors", Field.of("selectedColor"));
+ * arrayContains("colors", field("selectedColor"));
  * ```
  *
  * @param array The field name to check.
@@ -4429,7 +4435,7 @@ export function arrayContains(array: Expr | string, element: any): BooleanExpr {
  *
  * ```typescript
  * // Check if the 'categories' array contains either values from field "cate1" or "Science"
- * arrayContainsAny(Field.of("categories"), [Field.of("cate1"), "Science"]);
+ * arrayContainsAny(field("categories"), [field("cate1"), "Science"]);
  * ```
  *
  * @param array The array expression to check.
@@ -4446,7 +4452,7 @@ export function arrayContainsAny(array: Expr, values: Expr[]): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'categories' array contains either values from field "cate1" or "Science"
- * arrayContainsAny(Field.of("categories"), [Field.of("cate1"), "Science"]);
+ * arrayContainsAny(field("categories"), [field("cate1"), "Science"]);
  * ```
  *
  * @param array The array expression to check.
@@ -4464,7 +4470,7 @@ export function arrayContainsAny(array: Expr, values: any[]): BooleanExpr;
  * ```typescript
  * // Check if the 'groups' array contains either the value from the 'userGroup' field
  * // or the value "guest"
- * arrayContainsAny("categories", [Field.of("cate1"), "Science"]);
+ * arrayContainsAny("categories", [field("cate1"), "Science"]);
  * ```
  *
  * @param array The field name to check.
@@ -4482,7 +4488,7 @@ export function arrayContainsAny(array: string, values: Expr[]): BooleanExpr;
  * ```typescript
  * // Check if the 'groups' array contains either the value from the 'userGroup' field
  * // or the value "guest"
- * arrayContainsAny("categories", [Field.of("cate1"), "Science"]);
+ * arrayContainsAny("categories", [field("cate1"), "Science"]);
  * ```
  *
  * @param array The field name to check.
@@ -4506,7 +4512,7 @@ export function arrayContainsAny(
  *
  * ```typescript
  * // Check if the "tags" array contains all of the values: "SciFi", "Adventure", and the value from field "tag1"
- * arrayContainsAll(Field.of("tags"), [Field.of("tag1"), Constant.of("SciFi"), Constant.of("Adventure")]);
+ * arrayContainsAll(field("tags"), [field("tag1"), Constant.of("SciFi"), Constant.of("Adventure")]);
  * ```
  *
  * @param array The array expression to check.
@@ -4522,7 +4528,7 @@ export function arrayContainsAll(array: Expr, values: Expr[]): BooleanExpr;
  *
  * ```typescript
  * // Check if the "tags" array contains all of the values: "SciFi", "Adventure", and the value from field "tag1"
- * arrayContainsAll(Field.of("tags"), [Field.of("tag1"), "SciFi", "Adventure"]);
+ * arrayContainsAll(field("tags"), [field("tag1"), "SciFi", "Adventure"]);
  * ```
  *
  * @param array The array expression to check.
@@ -4539,7 +4545,7 @@ export function arrayContainsAll(array: Expr, values: any[]): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'tags' array contains both of the values from field 'tag1' and "tag2"
- * arrayContainsAll("tags", [Field.of("tag1"), "SciFi", "Adventure"]);
+ * arrayContainsAll("tags", [field("tag1"), "SciFi", "Adventure"]);
  * ```
  *
  * @param array The field name to check.
@@ -4556,7 +4562,7 @@ export function arrayContainsAll(array: string, values: Expr[]): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'tags' array contains both of the values from field 'tag1' and "tag2"
- * arrayContainsAll("tags", [Field.of("tag1"), "SciFi", "Adventure"]);
+ * arrayContainsAll("tags", [field("tag1"), "SciFi", "Adventure"]);
  * ```
  *
  * @param array The field name to check.
@@ -4580,7 +4586,7 @@ export function arrayContainsAll(
  *
  * ```typescript
  * // Get the number of items in the 'cart' array
- * arrayLength(Field.of("cart"));
+ * arrayLength(field("cart"));
  * ```
  *
  * @param array The array expression to calculate the length of.
@@ -4598,7 +4604,7 @@ export function arrayLength(array: Expr): FunctionExpr {
  *
  * ```typescript
  * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
- * eqAny(Field.of("category"), [Constant.of("Electronics"), Field.of("primaryType")]);
+ * eqAny(field("category"), [Constant.of("Electronics"), field("primaryType")]);
  * ```
  *
  * @param element The expression to compare.
@@ -4615,7 +4621,7 @@ export function eqAny(element: Expr, others: Expr[]): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
- * eqAny(Field.of("category"), ["Electronics", Field.of("primaryType")]);
+ * eqAny(field("category"), ["Electronics", field("primaryType")]);
  * ```
  *
  * @param element The expression to compare.
@@ -4632,7 +4638,7 @@ export function eqAny(element: Expr, others: any[]): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
- * eqAny("category", [Constant.of("Electronics"), Field.of("primaryType")]);
+ * eqAny("category", [Constant.of("Electronics"), field("primaryType")]);
  * ```
  *
  * @param element The field to compare.
@@ -4649,7 +4655,7 @@ export function eqAny(element: string, others: Expr[]): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
- * eqAny("category", ["Electronics", Field.of("primaryType")]);
+ * eqAny("category", ["Electronics", field("primaryType")]);
  * ```
  *
  * @param element The field to compare.
@@ -4671,7 +4677,7 @@ export function eqAny(element: Expr | string, others: any[]): BooleanExpr {
  *
  * ```typescript
  * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
- * notEqAny(Field.of("status"), [Constant.of("pending"), Field.of("rejectedStatus")]);
+ * notEqAny(field("status"), [Constant.of("pending"), field("rejectedStatus")]);
  * ```
  *
  * @param element The expression to compare.
@@ -4688,7 +4694,7 @@ export function notEqAny(element: Expr, others: Expr[]): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
- * notEqAny(Field.of("status"), ["pending", Field.of("rejectedStatus")]);
+ * notEqAny(field("status"), ["pending", field("rejectedStatus")]);
  * ```
  *
  * @param element The expression to compare.
@@ -4705,7 +4711,7 @@ export function notEqAny(element: Expr, others: any[]): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
- * notEqAny("status", [Constant.of("pending"), Field.of("rejectedStatus")]);
+ * notEqAny("status", [Constant.of("pending"), field("rejectedStatus")]);
  * ```
  *
  * @param element The field name to compare.
@@ -4722,7 +4728,7 @@ export function notEqAny(element: string, others: Expr[]): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
- * notEqAny("status", ["pending", Field.of("rejectedStatus")]);
+ * notEqAny("status", ["pending", field("rejectedStatus")]);
  * ```
  *
  * @param element The field name to compare.
@@ -4813,7 +4819,7 @@ export function not(filter: BooleanExpr): BooleanExpr {
  *
  * ```typescript
  * // Returns the larger value between the 'field1' field and the 'field2' field.
- * logicalMaximum(Field.of("field1"), Field.of("field2"));
+ * logicalMaximum(field("field1"), field("field2"));
  * ```
  *
  * @param first The first operand expression.
@@ -4834,7 +4840,7 @@ export function logicalMaximum(
  *
  * ```typescript
  * // Returns the larger value between the 'field1' field and the 'field2' field.
- * logicalMaximum("field1", Field.of('field2'));
+ * logicalMaximum("field1", field('field2'));
  * ```
  *
  * @param fieldName The first operand field name.
@@ -4866,7 +4872,7 @@ export function logicalMaximum(
  *
  * ```typescript
  * // Returns the smaller value between the 'field1' field and the 'field2' field.
- * logicalMinimum(Field.of("field1"), Field.of("field2"));
+ * logicalMinimum(field("field1"), field("field2"));
  * ```
  *
  * @param first The first operand expression.
@@ -4887,7 +4893,7 @@ export function logicalMinimum(
  *
  * ```typescript
  * // Returns the smaller value between the 'field1' field and the 'field2' field.
- * logicalMinimum("field1", Field.of("field2"));
+ * logicalMinimum("field1", field("field2"));
  * ```
  *
  * @param fieldName The first operand field name.
@@ -4919,7 +4925,7 @@ export function logicalMinimum(
  *
  * ```typescript
  * // Check if the document has a field named "phoneNumber"
- * exists(Field.of("phoneNumber"));
+ * exists(field("phoneNumber"));
  * ```
  *
  * @param value An expression evaluates to the name of the field to check.
@@ -4952,7 +4958,7 @@ export function exists(valueOrField: Expr | string): BooleanExpr {
  *
  * ```typescript
  * // Check if the result of a calculation is NaN
- * isNaN(Field.of("value").divide(0));
+ * isNaN(field("value").divide(0));
  * ```
  *
  * @param value The expression to check.
@@ -4985,7 +4991,7 @@ export function isNan(value: Expr | string): BooleanExpr {
  *
  * ```typescript
  * // Reverse the value of the 'myString' field.
- * reverse(Field.of("myString"));
+ * reverse(field("myString"));
  * ```
  *
  * @param expr The expression representing the string to reverse.
@@ -5018,7 +5024,7 @@ export function reverse(expr: Expr | string): FunctionExpr {
  *
  * ```typescript
  * // Replace the first occurrence of "hello" with "hi" in the 'message' field.
- * replaceFirst(Field.of("message"), "hello", "hi");
+ * replaceFirst(field("message"), "hello", "hi");
  * ```
  *
  * @param value The expression representing the string to perform the replacement on.
@@ -5040,7 +5046,7 @@ export function replaceFirst(
  *
  * ```typescript
  * // Replace the first occurrence of the value in 'findField' with the value in 'replaceField' in the 'message' field.
- * replaceFirst(Field.of("message"), Field.of("findField"), Field.of("replaceField"));
+ * replaceFirst(field("message"), field("findField"), field("replaceField"));
  * ```
  *
  * @param value The expression representing the string to perform the replacement on.
@@ -5092,7 +5098,7 @@ export function replaceFirst(
  *
  * ```typescript
  * // Replace all occurrences of "hello" with "hi" in the 'message' field.
- * replaceAll(Field.of("message"), "hello", "hi");
+ * replaceAll(field("message"), "hello", "hi");
  * ```
  *
  * @param value The expression representing the string to perform the replacement on.
@@ -5114,7 +5120,7 @@ export function replaceAll(
  *
  * ```typescript
  * // Replace all occurrences of the value in 'findField' with the value in 'replaceField' in the 'message' field.
- * replaceAll(Field.of("message"), Field.of("findField"), Field.of("replaceField"));
+ * replaceAll(field("message"), field("findField"), field("replaceField"));
  * ```
  *
  * @param value The expression representing the string to perform the replacement on.
@@ -5166,7 +5172,7 @@ export function replaceAll(
  *
  * ```typescript
  * // Calculate the length of the 'myString' field in bytes.
- * byteLength(Field.of("myString"));
+ * byteLength(field("myString"));
  * ```
  *
  * @param expr The expression representing the string.
@@ -5215,7 +5221,7 @@ export function charLength(field: string): FunctionExpr;
  *
  * ```typescript
  * // Get the character length of the 'name' field in UTF-8.
- * strLength(Field.of("name"));
+ * strLength(field("name"));
  * ```
  *
  * @param expr The expression representing the string to calculate the length of.
@@ -5252,7 +5258,7 @@ export function like(left: string, pattern: string): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'title' field contains the string "guide"
- * like("title", Field.of("pattern"));
+ * like("title", field("pattern"));
  * ```
  *
  * @param left The name of the field containing the string.
@@ -5268,7 +5274,7 @@ export function like(left: string, pattern: Expr): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'title' field contains the string "guide"
- * like(Field.of("title"), "%guide%");
+ * like(field("title"), "%guide%");
  * ```
  *
  * @param left The expression representing the string to perform the comparison on.
@@ -5284,7 +5290,7 @@ export function like(left: Expr, pattern: string): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'title' field contains the string "guide"
- * like(Field.of("title"), Field.of("pattern"));
+ * like(field("title"), field("pattern"));
  * ```
  *
  * @param left The expression representing the string to perform the comparison on.
@@ -5326,7 +5332,7 @@ export function regexContains(left: string, pattern: string): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'description' field contains "example" (case-insensitive)
- * regexContains("description", Field.of("pattern"));
+ * regexContains("description", field("pattern"));
  * ```
  *
  * @param left The name of the field containing the string.
@@ -5343,7 +5349,7 @@ export function regexContains(left: string, pattern: Expr): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'description' field contains "example" (case-insensitive)
- * regexContains(Field.of("description"), "(?i)example");
+ * regexContains(field("description"), "(?i)example");
  * ```
  *
  * @param left The expression representing the string to perform the comparison on.
@@ -5360,7 +5366,7 @@ export function regexContains(left: Expr, pattern: string): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'description' field contains "example" (case-insensitive)
- * regexContains(Field.of("description"), Field.of("pattern"));
+ * regexContains(field("description"), field("pattern"));
  * ```
  *
  * @param left The expression representing the string to perform the comparison on.
@@ -5400,7 +5406,7 @@ export function regexMatch(left: string, pattern: string): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'email' field matches a valid email pattern
- * regexMatch("email", Field.of("pattern"));
+ * regexMatch("email", field("pattern"));
  * ```
  *
  * @param left The name of the field containing the string.
@@ -5417,7 +5423,7 @@ export function regexMatch(left: string, pattern: Expr): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'email' field matches a valid email pattern
- * regexMatch(Field.of("email"), "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
+ * regexMatch(field("email"), "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
  * ```
  *
  * @param left The expression representing the string to match against.
@@ -5434,7 +5440,7 @@ export function regexMatch(left: Expr, pattern: string): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'email' field matches a valid email pattern
- * regexMatch(Field.of("email"), Field.of("pattern"));
+ * regexMatch(field("email"), field("pattern"));
  * ```
  *
  * @param left The expression representing the string to match against.
@@ -5474,7 +5480,7 @@ export function strContains(left: string, substring: string): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'description' field contains the value of the 'keyword' field.
- * strContains("description", Field.of("keyword"));
+ * strContains("description", field("keyword"));
  * ```
  *
  * @param left The name of the field containing the string.
@@ -5490,7 +5496,7 @@ export function strContains(left: string, substring: Expr): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'description' field contains "example".
- * strContains(Field.of("description"), "example");
+ * strContains(field("description"), "example");
  * ```
  *
  * @param left The expression representing the string to perform the comparison on.
@@ -5506,7 +5512,7 @@ export function strContains(left: Expr, substring: string): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'description' field contains the value of the 'keyword' field.
- * strContains(Field.of("description"), Field.of("keyword"));
+ * strContains(field("description"), field("keyword"));
  * ```
  *
  * @param left The expression representing the string to perform the comparison on.
@@ -5546,7 +5552,7 @@ export function startsWith(expr: string, prefix: string): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'fullName' field starts with the value of the 'firstName' field
- * startsWith("fullName", Field.of("firstName"));
+ * startsWith("fullName", field("firstName"));
  * ```
  *
  * @param expr The field name to check.
@@ -5562,7 +5568,7 @@ export function startsWith(expr: string, prefix: Expr): BooleanExpr;
  *
  * ```typescript
  * // Check if the result of concatenating 'firstName' and 'lastName' fields starts with "Mr."
- * startsWith(Field.of("fullName"), "Mr.");
+ * startsWith(field("fullName"), "Mr.");
  * ```
  *
  * @param expr The expression to check.
@@ -5578,7 +5584,7 @@ export function startsWith(expr: Expr, prefix: string): BooleanExpr;
  *
  * ```typescript
  * // Check if the result of concatenating 'firstName' and 'lastName' fields starts with "Mr."
- * startsWith(Field.of("fullName"), Field.of("prefix"));
+ * startsWith(field("fullName"), field("prefix"));
  * ```
  *
  * @param expr The expression to check.
@@ -5616,7 +5622,7 @@ export function endsWith(expr: string, suffix: string): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'url' field ends with the value of the 'extension' field
- * endsWith("url", Field.of("extension"));
+ * endsWith("url", field("extension"));
  * ```
  *
  * @param expr The field name to check.
@@ -5632,7 +5638,7 @@ export function endsWith(expr: string, suffix: Expr): BooleanExpr;
  *
  * ```typescript
  * // Check if the result of concatenating 'firstName' and 'lastName' fields ends with "Jr."
- * endsWith(Field.of("fullName"), "Jr.");
+ * endsWith(field("fullName"), "Jr.");
  * ```
  *
  * @param expr The expression to check.
@@ -5648,7 +5654,7 @@ export function endsWith(expr: Expr, suffix: string): BooleanExpr;
  *
  * ```typescript
  * // Check if the result of concatenating 'firstName' and 'lastName' fields ends with "Jr."
- * endsWith(Field.of("fullName"), Constant.of("Jr."));
+ * endsWith(field("fullName"), Constant.of("Jr."));
  * ```
  *
  * @param expr The expression to check.
@@ -5685,7 +5691,7 @@ export function toLower(expr: string): FunctionExpr;
  *
  * ```typescript
  * // Convert the 'name' field to lowercase
- * toLower(Field.of("name"));
+ * toLower(field("name"));
  * ```
  *
  * @param expr The expression representing the string to convert to lowercase.
@@ -5718,7 +5724,7 @@ export function toUpper(expr: string): FunctionExpr;
  *
  * ```typescript
  * // Convert the 'title' field to uppercase
- * toUppercase(Field.of("title"));
+ * toUppercase(field("title"));
  * ```
  *
  * @param expr The expression representing the string to convert to uppercase.
@@ -5751,7 +5757,7 @@ export function trim(expr: string): FunctionExpr;
  *
  * ```typescript
  * // Trim whitespace from the 'userInput' field
- * trim(Field.of("userInput"));
+ * trim(field("userInput"));
  * ```
  *
  * @param expr The expression representing the string to trim.
@@ -5769,7 +5775,7 @@ export function trim(expr: Expr | string): FunctionExpr {
  *
  * ```typescript
  * // Combine the 'firstName', " ", and 'lastName' fields into a single string
- * strConcat("firstName", " ", Field.of("lastName"));
+ * strConcat("firstName", " ", field("lastName"));
  * ```
  *
  * @param fieldName The field name containing the initial string value.
@@ -5789,7 +5795,7 @@ export function strConcat(
  *
  * ```typescript
  * // Combine the 'firstName', " ", and 'lastName' fields into a single string
- * strConcat(Field.of("firstName"), " ", Field.of("lastName"));
+ * strConcat(field("firstName"), " ", field("lastName"));
  * ```
  *
  * @param firstString The initial string expression to concatenate to.
@@ -5836,7 +5842,7 @@ export function mapGet(mapField: string, subField: string): FunctionExpr;
  *
  * ```typescript
  * // Get the 'city' value from the 'address' map field
- * mapGet(Field.of("address"), "city");
+ * mapGet(field("address"), "city");
  * ```
  *
  * @param mapExpr The expression representing the map.
@@ -5875,7 +5881,7 @@ export function countAll(): AggregateFunction {
  *
  * ```typescript
  * // Count the number of items where the price is greater than 10
- * count(Field.of("price").gt(10)).as("expensiveItemCount");
+ * count(field("price").gt(10)).as("expensiveItemCount");
  * ```
  *
  * @param value The expression to count.
@@ -5908,7 +5914,7 @@ export function countFunction(value: Expr | string): AggregateFunction {
  *
  * ```typescript
  * // Calculate the total revenue from a set of orders
- * sum(Field.of("orderAmount")).as("totalRevenue");
+ * sum(field("orderAmount")).as("totalRevenue");
  * ```
  *
  * @param value The expression to sum up.
@@ -5943,7 +5949,7 @@ export function sumFunction(value: Expr | string): AggregateFunction {
  *
  * ```typescript
  * // Calculate the average age of users
- * avg(Field.of("age")).as("averageAge");
+ * avg(field("age")).as("averageAge");
  * ```
  *
  * @param value The expression representing the values to average.
@@ -5978,7 +5984,7 @@ export function avgFunction(value: Expr | string): AggregateFunction {
  *
  * ```typescript
  * // Find the lowest price of all products
- * minimum(Field.of("price")).as("lowestPrice");
+ * minimum(field("price")).as("lowestPrice");
  * ```
  *
  * @param value The expression to find the minimum value of.
@@ -6012,7 +6018,7 @@ export function minimum(value: Expr | string): AggregateFunction {
  *
  * ```typescript
  * // Find the highest score in a leaderboard
- * maximum(Field.of("score")).as("highestScore");
+ * maximum(field("score")).as("highestScore");
  * ```
  *
  * @param value The expression to find the maximum value of.
@@ -6077,7 +6083,7 @@ export function cosineDistance(expr: string, other: VectorValue): FunctionExpr;
  *
  * ```typescript
  * // Calculate the cosine distance between the 'userVector' field and the 'itemVector' field
- * cosineDistance("userVector", Field.of("itemVector"));
+ * cosineDistance("userVector", field("itemVector"));
  * ```
  *
  * @param expr The name of the field containing the first vector.
@@ -6093,7 +6099,7 @@ export function cosineDistance(expr: string, other: Expr): FunctionExpr;
  *
  * ```typescript
  * // Calculate the cosine distance between the 'location' field and a target location
- * cosineDistance(Field.of("location"), [37.7749, -122.4194]);
+ * cosineDistance(field("location"), [37.7749, -122.4194]);
  * ```
  *
  * @param expr The first vector (represented as an Expr) to compare against.
@@ -6109,7 +6115,7 @@ export function cosineDistance(expr: Expr, other: number[]): FunctionExpr;
  *
  * ```typescript
  * // Calculate the cosine distance between the 'location' field and a target location
- * cosineDistance(Field.of("location"), new VectorValue([37.7749, -122.4194]));
+ * cosineDistance(field("location"), new VectorValue([37.7749, -122.4194]));
  * ```
  *
  * @param expr The first vector (represented as an Expr) to compare against.
@@ -6125,7 +6131,7 @@ export function cosineDistance(expr: Expr, other: VectorValue): FunctionExpr;
  *
  * ```typescript
  * // Calculate the cosine distance between the 'userVector' field and the 'itemVector' field
- * cosineDistance(Field.of("userVector"), Field.of("itemVector"));
+ * cosineDistance(field("userVector"), field("itemVector"));
  * ```
  *
  * @param expr The first vector (represented as an Expr) to compare against.
@@ -6181,7 +6187,7 @@ export function dotProduct(expr: string, other: VectorValue): FunctionExpr;
  *
  * ```typescript
  * // Calculate the dot product distance between two document vectors: 'docVector1' and 'docVector2'
- * dotProduct("docVector1", Field.of("docVector2"));
+ * dotProduct("docVector1", field("docVector2"));
  * ```
  *
  * @param expr The name of the field containing the first vector.
@@ -6197,7 +6203,7 @@ export function dotProduct(expr: string, other: Expr): FunctionExpr;
  *
  * ```typescript
  * // Calculate the dot product between a feature vector and a target vector
- * dotProduct(Field.of("features"), [0.5, 0.8, 0.2]);
+ * dotProduct(field("features"), [0.5, 0.8, 0.2]);
  * ```
  *
  * @param expr The first vector (represented as an Expr) to calculate with.
@@ -6213,7 +6219,7 @@ export function dotProduct(expr: Expr, other: number[]): FunctionExpr;
  *
  * ```typescript
  * // Calculate the dot product between a feature vector and a target vector
- * dotProduct(Field.of("features"), new VectorValue([0.5, 0.8, 0.2]));
+ * dotProduct(field("features"), new VectorValue([0.5, 0.8, 0.2]));
  * ```
  *
  * @param expr The first vector (represented as an Expr) to calculate with.
@@ -6229,7 +6235,7 @@ export function dotProduct(expr: Expr, other: VectorValue): FunctionExpr;
  *
  * ```typescript
  * // Calculate the dot product between two document vectors: 'docVector1' and 'docVector2'
- * dotProduct(Field.of("docVector1"), Field.of("docVector2"));
+ * dotProduct(field("docVector1"), field("docVector2"));
  * ```
  *
  * @param expr The first vector (represented as an Expr) to calculate with.
@@ -6288,7 +6294,7 @@ export function euclideanDistance(
  *
  * ```typescript
  * // Calculate the Euclidean distance between two vector fields: 'pointA' and 'pointB'
- * euclideanDistance("pointA", Field.of("pointB"));
+ * euclideanDistance("pointA", field("pointB"));
  * ```
  *
  * @param expr The name of the field containing the first vector.
@@ -6305,7 +6311,7 @@ export function euclideanDistance(expr: string, other: Expr): FunctionExpr;
  * ```typescript
  * // Calculate the Euclidean distance between the 'location' field and a target location
  *
- * euclideanDistance(Field.of("location"), [37.7749, -122.4194]);
+ * euclideanDistance(field("location"), [37.7749, -122.4194]);
  * ```
  *
  * @param expr The first vector (represented as an Expr) to compare against.
@@ -6321,7 +6327,7 @@ export function euclideanDistance(expr: Expr, other: number[]): FunctionExpr;
  *
  * ```typescript
  * // Calculate the Euclidean distance between the 'location' field and a target location
- * euclideanDistance(Field.of("location"), new VectorValue([37.7749, -122.4194]));
+ * euclideanDistance(field("location"), new VectorValue([37.7749, -122.4194]));
  * ```
  *
  * @param expr The first vector (represented as an Expr) to compare against.
@@ -6337,7 +6343,7 @@ export function euclideanDistance(expr: Expr, other: VectorValue): FunctionExpr;
  *
  * ```typescript
  * // Calculate the Euclidean distance between two vector fields: 'pointA' and 'pointB'
- * euclideanDistance(Field.of("pointA"), Field.of("pointB"));
+ * euclideanDistance(field("pointA"), field("pointB"));
  * ```
  *
  * @param expr The first vector (represented as an Expr) to compare against.
@@ -6396,7 +6402,7 @@ export function manhattanDistance(
  *
  * ```typescript
  * // Calculate the Manhattan distance between two vector fields: 'pointA' and 'pointB'
- * manhattanDistance("pointA", Field.of("pointB"));
+ * manhattanDistance("pointA", field("pointB"));
  * ```
  *
  * @param expr The name of the field containing the first vector.
@@ -6413,7 +6419,7 @@ export function manhattanDistance(expr: string, other: Expr): FunctionExpr;
  * ```typescript
  * // Calculate the Manhattan distance between the 'location' field and a target location
  *
- * manhattanDistance(Field.of("location"), [37.7749, -122.4194]);
+ * manhattanDistance(field("location"), [37.7749, -122.4194]);
  * ```
  *
  * @param expr The first vector (represented as an Expr) to compare against.
@@ -6429,7 +6435,7 @@ export function manhattanDistance(expr: Expr, other: number[]): FunctionExpr;
  *
  * ```typescript
  * // Calculate the Manhattan distance between the 'location' field and a target location
- * manhattanDistance(Field.of("location"), new VectorValue([37.7749, -122.4194]));
+ * manhattanDistance(field("location"), new VectorValue([37.7749, -122.4194]));
  * ```
  *
  * @param expr The first vector (represented as an Expr) to compare against.
@@ -6445,7 +6451,7 @@ export function manhattanDistance(expr: Expr, other: VectorValue): FunctionExpr;
  *
  * ```typescript
  * // Calculate the Manhattan distance between two vector fields: 'pointA' and 'pointB'
- * manhattanDistance(Field.of("pointA"), Field.of("pointB"));
+ * manhattanDistance(field("pointA"), field("pointB"));
  * ```
  *
  * @param expr The first vector (represented as an Expr) to compare against.
@@ -6469,7 +6475,7 @@ export function manhattanDistance(
  *
  * ```typescript
  * // Get the vector length (dimension) of the field 'embedding'.
- * vectorLength(Field.of("embedding"));
+ * vectorLength(field("embedding"));
  * ```
  *
  * @param expr The expression representing the Firestore Vector.
@@ -6503,7 +6509,7 @@ export function vectorLength(expr: Expr | string): FunctionExpr {
  *
  * ```typescript
  * // Interpret the 'microseconds' field as microseconds since epoch.
- * unixMicrosToTimestamp(Field.of("microseconds"));
+ * unixMicrosToTimestamp(field("microseconds"));
  * ```
  *
  * @param expr The expression representing the number of microseconds since epoch.
@@ -6537,7 +6543,7 @@ export function unixMicrosToTimestamp(expr: Expr | string): FunctionExpr {
  *
  * ```typescript
  * // Convert the 'timestamp' field to microseconds since epoch.
- * timestampToUnixMicros(Field.of("timestamp"));
+ * timestampToUnixMicros(field("timestamp"));
  * ```
  *
  * @param expr The expression representing the timestamp.
@@ -6571,7 +6577,7 @@ export function timestampToUnixMicros(expr: Expr | string): FunctionExpr {
  *
  * ```typescript
  * // Interpret the 'milliseconds' field as milliseconds since epoch.
- * unixMillisToTimestamp(Field.of("milliseconds"));
+ * unixMillisToTimestamp(field("milliseconds"));
  * ```
  *
  * @param expr The expression representing the number of milliseconds since epoch.
@@ -6606,7 +6612,7 @@ export function unixMillisToTimestamp(expr: Expr | string): FunctionExpr {
  *
  * ```typescript
  * // Convert the 'timestamp' field to milliseconds since epoch.
- * timestampToUnixMillis(Field.of("timestamp"));
+ * timestampToUnixMillis(field("timestamp"));
  * ```
  *
  * @param expr The expression representing the timestamp.
@@ -6641,7 +6647,7 @@ export function timestampToUnixMillis(expr: Expr | string): FunctionExpr {
  *
  * ```typescript
  * // Interpret the 'seconds' field as seconds since epoch.
- * unixSecondsToTimestamp(Field.of("seconds"));
+ * unixSecondsToTimestamp(field("seconds"));
  * ```
  *
  * @param expr The expression representing the number of seconds since epoch.
@@ -6676,7 +6682,7 @@ export function unixSecondsToTimestamp(expr: Expr | string): FunctionExpr {
  *
  * ```typescript
  * // Convert the 'timestamp' field to seconds since epoch.
- * timestampToUnixSeconds(Field.of("timestamp"));
+ * timestampToUnixSeconds(field("timestamp"));
  * ```
  *
  * @param expr The expression representing the timestamp.
@@ -6710,7 +6716,7 @@ export function timestampToUnixSeconds(expr: Expr | string): FunctionExpr {
  *
  * ```typescript
  * // Add some duration determined by field 'unit' and 'amount' to the 'timestamp' field.
- * timestampAdd(Field.of("timestamp"), Field.of("unit"), Field.of("amount"));
+ * timestampAdd(field("timestamp"), field("unit"), field("amount"));
  * ```
  *
  * @param timestamp The expression representing the timestamp.
@@ -6731,7 +6737,7 @@ export function timestampAdd(
  *
  * ```typescript
  * // Add 1 day to the 'timestamp' field.
- * timestampAdd(Field.of("timestamp"), "day", 1);
+ * timestampAdd(field("timestamp"), "day", 1);
  * ```
  *
  * @param timestamp The expression representing the timestamp.
@@ -6790,7 +6796,7 @@ export function timestampAdd(
  *
  * ```typescript
  * // Subtract some duration determined by field 'unit' and 'amount' from the 'timestamp' field.
- * timestampSub(Field.of("timestamp"), Field.of("unit"), Field.of("amount"));
+ * timestampSub(field("timestamp"), field("unit"), field("amount"));
  * ```
  *
  * @param timestamp The expression representing the timestamp.
@@ -6811,7 +6817,7 @@ export function timestampSub(
  *
  * ```typescript
  * // Subtract 1 day from the 'timestamp' field.
- * timestampSub(Field.of("timestamp"), "day", 1);
+ * timestampSub(field("timestamp"), "day", 1);
  * ```
  *
  * @param timestamp The expression representing the timestamp.
@@ -6869,8 +6875,8 @@ export function timestampSub(
  * Creates functions that work on the backend but do not exist in the SDK yet.
  *
  * ```typescript
- * // This is the same of the 'sum(Field.of("price"))', if it was not yet implemented in the SDK.
- * genericFunction("sum", [Field.of("price")]);
+ * // This is the same of the 'sum(field("price"))', if it was not yet implemented in the SDK.
+ * genericFunction("sum", [field("price")]);
  * ```
  *
  * @param functionName The name of the server function.
@@ -6891,7 +6897,7 @@ export function genericFunction(
  *
  * ```typescript
  * // This is the same of the 'eq("price", 10)', if it was not yet implemented in the SDK.
- * genericFunction("eq", [Field.of("price"), Constant.of(10)]);
+ * genericFunction("eq", [field("price"), Constant.of(10)]);
  * ```
  *
  * @param functionName The name of the server boolean expression.
@@ -6912,7 +6918,7 @@ export function genericBooleanExpr(
  *
  * ```typescript
  * // This is the same of the 'eq("price", 10)', if it was not yet implemented in the SDK.
- * genericFunction("eq", [Field.of("price"), Constant.of(10)]);
+ * genericFunction("eq", [field("price"), Constant.of(10)]);
  * ```
  *
  * @param functionName The name of the server boolean expression.
@@ -6982,7 +6988,7 @@ export function orFunction(
  * ```typescript
  * // Sort documents by the 'name' field in ascending order
  * firestore.pipeline().collection("users")
- *   .sort(ascending(Field.of("name")));
+ *   .sort(ascending(field("name")));
  * ```
  *
  * @param expr The expression to create an ascending ordering for.
@@ -7000,7 +7006,7 @@ export function ascending(expr: Expr): Ordering {
  * ```typescript
  * // Sort documents by the 'createdAt' field in descending order
  * firestore.pipeline().collection("users")
- *   .sort(descending(Field.of("createdAt")));
+ *   .sort(descending(field("createdAt")));
  * ```
  *
  * @param expr The expression to create a descending ordering for.

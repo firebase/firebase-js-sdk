@@ -36,7 +36,8 @@ import {
   Field,
   BooleanExpr,
   Ordering,
-  Selectable
+  Selectable,
+  field
 } from './expressions';
 import {
   AddFields,
@@ -97,18 +98,18 @@ function isReadableUserData(value: any): value is ReadableUserData {
  * // Example 1: Select specific fields and rename 'rating' to 'bookRating'
  * const results1 = await execute(db.pipeline()
  *     .collection("books")
- *     .select("title", "author", Field.of("rating").as("bookRating")));
+ *     .select("title", "author", field("rating").as("bookRating")));
  *
  * // Example 2: Filter documents where 'genre' is "Science Fiction" and 'published' is after 1950
  * const results2 = await execute(db.pipeline()
  *     .collection("books")
- *     .where(and(Field.of("genre").eq("Science Fiction"), Field.of("published").gt(1950))));
+ *     .where(and(field("genre").eq("Science Fiction"), field("published").gt(1950))));
  *
  * // Example 3: Calculate the average rating of books published after 1980
  * const results3 = await execute(db.pipeline()
  *     .collection("books")
- *     .where(Field.of("published").gt(1980))
- *     .aggregate(avg(Field.of("rating")).as("averageRating")));
+ *     .where(field("published").gt(1980))
+ *     .aggregate(avg(field("rating")).as("averageRating")));
  * ```
  */
 
@@ -157,8 +158,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```typescript
    * firestore.pipeline().collection("books")
    *   .addFields(
-   *     Field.of("rating").as("bookRating"), // Rename 'rating' to 'bookRating'
-   *     add(5, Field.of("quantity")).as("totalCost")  // Calculate 'totalCost'
+   *     field("rating").as("bookRating"), // Rename 'rating' to 'bookRating'
+   *     add(5, field("quantity")).as("totalCost")  // Calculate 'totalCost'
    *   );
    * ```
    *
@@ -186,21 +187,21 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * firestore.pipeline().collection('books')
    *   // removes field 'rating' and 'cost' from the previous stage outputs.
    *   .removeFields(
-   *     Field.of('rating'),
+   *     field('rating'),
    *     'cost'
    *   );
    * ```
    *
-   * @param field The first field to remove.
+   * @param fieldValue The first field to remove.
    * @param additionalFields Optional additional fields to remove.
    * @return A new Pipeline object with this stage appended to the stage list.
    */
   removeFields(
-    field: Field | string,
+    fieldValue: Field | string,
     ...additionalFields: Array<Field | string>
   ): Pipeline {
-    const fieldExpressions = [field, ...additionalFields].map(f =>
-      typeof f === 'string' ? Field.of(f) : (f as Field)
+    const fieldExpressions = [fieldValue, ...additionalFields].map(f =>
+      typeof f === 'string' ? field(f) : (f as Field)
     );
     this.readUserData('removeFields', fieldExpressions);
     return this._addStage(new RemoveFields(fieldExpressions));
@@ -228,8 +229,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * firestore.pipeline().collection("books")
    *   .select(
    *     "firstName",
-   *     Field.of("lastName"),
-   *     Field.of("address").toUppercase().as("upperAddress"),
+   *     field("lastName"),
+   *     field("address").toUppercase().as("upperAddress"),
    *   );
    * ```
    *
@@ -273,8 +274,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * firestore.pipeline().collection("books")
    *   .where(
    *     and(
-   *         gt(Field.of("rating"), 4.0),   // Filter for ratings greater than 4.0
-   *         Field.of("genre").eq("Science Fiction") // Equivalent to gt("genre", "Science Fiction")
+   *         gt(field("rating"), 4.0),   // Filter for ratings greater than 4.0
+   *         field("genre").eq("Science Fiction") // Equivalent to gt("genre", "Science Fiction")
    *     )
    *   );
    * ```
@@ -299,7 +300,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```typescript
    * // Retrieve the second page of 20 results
    * firestore.pipeline().collection("books")
-   *     .sort(Field.of("published").descending())
+   *     .sort(field("published").descending())
    *     .offset(20)  // Skip the first 20 results
    *     .limit(20);   // Take the next 20 results
    * ```
@@ -329,7 +330,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```typescript
    * // Limit the results to the top 10 highest-rated books
    * firestore.pipeline().collection("books")
-   *     .sort(Field.of("rating").descending())
+   *     .sort(field("rating").descending())
    *     .limit(10);
    * ```
    *
@@ -374,7 +375,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```typescript
    * // Get a list of unique author names in uppercase and genre combinations.
    * firestore.pipeline().collection("books")
-   *     .distinct(toUppercase(Field.of("author")).as("authorName"), Field.of("genre"), "publishedAt")
+   *     .distinct(toUppercase(field("author")).as("authorName"), field("genre"), "publishedAt")
    *     .select("authorName");
    * ```
    *
@@ -411,7 +412,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // Calculate the average rating and the total number of books
    * firestore.pipeline().collection("books")
    *     .aggregate(
-   *         Field.of("rating").avg().as("averageRating"),
+   *         field("rating").avg().as("averageRating"),
    *         countAll().as("totalBooks")
    *     );
    * ```
@@ -449,7 +450,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // Calculate the average rating for each genre.
    * firestore.pipeline().collection("books")
    *   .aggregate({
-   *       accumulators: [avg(Field.of("rating")).as("avg_rating")]
+   *       accumulators: [avg(field("rating")).as("avg_rating")]
    *       groups: ["genre"]
    *       });
    * ```
@@ -542,8 +543,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // with the same rating
    * firestore.pipeline().collection("books")
    *     .sort(
-   *         Ordering.of(Field.of("rating")).descending(),
-   *         Ordering.of(Field.of("title"))  // Ascending order is the default
+   *         Ordering.of(field("rating")).descending(),
+   *         Ordering.of(field("title"))  // Ascending order is the default
    *     );
    * ```
    *
@@ -597,7 +598,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // }
    *
    * // Emit parents as document.
-   * firestore.pipeline().collection('people').replaceWith(Field.of('parents'));
+   * firestore.pipeline().collection('people').replaceWith(field('parents'));
    *
    * // Output
    * // {
@@ -609,8 +610,9 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @param field The {@link Field} field containing the nested map.
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
    */
-  replaceWith(field: Field | string): Pipeline {
-    const fieldExpr = typeof field === 'string' ? Field.of(field) : field;
+  replaceWith(fieldValue: Field | string): Pipeline {
+    const fieldExpr =
+      typeof fieldValue === 'string' ? field(fieldValue) : fieldValue;
     return this._addStage(new Replace(fieldExpr, 'full_replace'));
   }
 
@@ -714,7 +716,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * // Emit a book document for each tag of the book.
    * firestore.pipeline().collection("books")
-   *     .unnest(Field.of("tags").as('tag'), 'tagIndex');
+   *     .unnest(field("tags").as('tag'), 'tagIndex');
    *
    * // Output:
    * // { "title": "The Hitchhiker's Guide to the Galaxy", "tag": "comedy", "tagIndex": 0, ... }
@@ -729,7 +731,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   unnest(selectable: Selectable, indexField?: string): Pipeline {
     this.readUserData('unnest', selectable.expr);
 
-    const alias = Field.of(selectable.alias);
+    const alias = field(selectable.alias);
     this.readUserData('unnest', alias);
 
     return this._addStage(new Unnest(selectable.expr, alias, indexField));
@@ -747,7 +749,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```typescript
    * // Assume we don't have a built-in "where" stage
    * firestore.pipeline().collection("books")
-   *     .genericStage("where", [Field.of("published").lt(1900)]) // Custom "where" stage
+   *     .genericStage("where", [field("published").lt(1900)]) // Custom "where" stage
    *     .select("title", "author");
    * ```
    *
@@ -809,7 +811,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     const result = new Map<string, Expr>();
     for (const selectable of selectables) {
       if (typeof selectable === 'string') {
-        result.set(selectable as string, Field.of(selectable));
+        result.set(selectable as string, field(selectable));
       } else if (selectable instanceof Field) {
         result.set((selectable as Field).fieldName(), selectable);
       } else if (selectable instanceof ExprWithAlias) {

@@ -52,7 +52,6 @@ import {
   endsWith,
   eq,
   euclideanDistance,
-  Field,
   Firestore,
   gt,
   like,
@@ -96,7 +95,8 @@ import {
   manhattanDistance,
   documentId,
   logicalMinimum,
-  xor
+  xor,
+  field
 } from '../util/firebase_export';
 import { apiDescribe, withTestCollection } from '../util/helpers';
 
@@ -337,7 +337,7 @@ apiDescribe.only('Pipelines', persistence => {
       firestore
         .pipeline()
         .collection(randomCol.path)
-        .sort(Field.of('rating').descending())
+        .sort(field('rating').descending())
         .limit(1)
         .select(
           'title',
@@ -352,19 +352,19 @@ apiDescribe.only('Pipelines', persistence => {
           array([
             1,
             2,
-            Field.of('genre'),
+            field('genre'),
             multiply('rating', 10),
-            [Field.of('title')],
+            [field('title')],
             {
-              published: Field.of('published')
+              published: field('published')
             }
           ]).as('metadataArray'),
           map({
-            genre: Field.of('genre'),
+            genre: field('genre'),
             rating: multiply('rating', 10),
-            nestedArray: [Field.of('title')],
+            nestedArray: [field('title')],
             nestedMap: {
-              published: Field.of('published')
+              published: field('published')
             }
           }).as('metadata')
         )
@@ -373,19 +373,19 @@ apiDescribe.only('Pipelines', persistence => {
             eq('metadataArray', [
               1,
               2,
-              Field.of('genre'),
+              field('genre'),
               multiply('rating', 10),
-              [Field.of('title')],
+              [field('title')],
               {
-                published: Field.of('published')
+                published: field('published')
               }
             ]),
             eq('metadata', {
-              genre: Field.of('genre'),
+              genre: field('genre'),
               rating: multiply('rating', 10),
-              nestedArray: [Field.of('title')],
+              nestedArray: [field('title')],
               nestedMap: {
-                published: Field.of('published')
+                published: field('published')
               }
             })
           )
@@ -539,7 +539,7 @@ apiDescribe.only('Pipelines', persistence => {
       .where(eq('awards.hugo', true))
       .select(
         'title',
-        Field.of('nestedField.level.1'),
+        field('nestedField.level.1'),
         mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
       );
 
@@ -565,7 +565,7 @@ apiDescribe.only('Pipelines', persistence => {
             .aggregate(
               countAll().as('count'),
               avgFunction('rating').as('avgRating'),
-              Field.of('rating').maximum().as('maxRating')
+              field('rating').maximum().as('maxRating')
             )
         );
         expectResults(snapshot, { count: 2, avgRating: 4.4, maxRating: 4.6 });
@@ -589,13 +589,13 @@ apiDescribe.only('Pipelines', persistence => {
         const snapshot = await execute(
           randomCol
             .pipeline()
-            .where(lt(Field.of('published'), 1984))
+            .where(lt(field('published'), 1984))
             .aggregate({
               accumulators: [avgFunction('rating').as('avgRating')],
               groups: ['genre']
             })
             .where(gt('avgRating', 4.3))
-            .sort(Field.of('avgRating').descending())
+            .sort(field('avgRating').descending())
         );
         expectResults(
           snapshot,
@@ -611,8 +611,8 @@ apiDescribe.only('Pipelines', persistence => {
             .pipeline()
             .aggregate(
               countAll().as('count'),
-              Field.of('rating').maximum().as('maxRating'),
-              Field.of('published').minimum().as('minPublished')
+              field('rating').maximum().as('maxRating'),
+              field('published').minimum().as('minPublished')
             )
         );
         expectResults(snapshot, {
@@ -626,7 +626,7 @@ apiDescribe.only('Pipelines', persistence => {
         let snapshot = await execute(
           randomCol
             .pipeline()
-            .aggregate(countIf(Field.of('rating').gt(4.3)).as('count'))
+            .aggregate(countIf(field('rating').gt(4.3)).as('count'))
         );
         const expectedResults = {
           count: 3
@@ -636,7 +636,7 @@ apiDescribe.only('Pipelines', persistence => {
         snapshot = await execute(
           randomCol
             .pipeline()
-            .aggregate(Field.of('rating').gt(4.3).countIf().as('count'))
+            .aggregate(field('rating').gt(4.3).countIf().as('count'))
         );
         expectResults(snapshot, expectedResults);
       });
@@ -648,7 +648,7 @@ apiDescribe.only('Pipelines', persistence => {
           randomCol
             .pipeline()
             .distinct('genre', 'author')
-            .sort(Field.of('genre').ascending(), Field.of('author').ascending())
+            .sort(field('genre').ascending(), field('author').ascending())
         );
         expectResults(
           snapshot,
@@ -673,7 +673,7 @@ apiDescribe.only('Pipelines', persistence => {
             .pipeline()
             .collection(randomCol.path)
             .select('title', 'author')
-            .sort(Field.of('author').ascending())
+            .sort(field('author').ascending())
         );
         expectResults(
           snapshot,
@@ -705,7 +705,7 @@ apiDescribe.only('Pipelines', persistence => {
             .collection(randomCol.path)
             .select('title', 'author')
             .addFields(Constant.of('bar').as('foo'))
-            .sort(Field.of('author').ascending())
+            .sort(field('author').ascending())
         );
         expectResults(
           snapshot,
@@ -758,9 +758,9 @@ apiDescribe.only('Pipelines', persistence => {
             .pipeline()
             .collection(randomCol.path)
             .select('title', 'author')
-            .sort(Field.of('author').ascending())
-            .removeFields(Field.of('author'))
-            .sort(Field.of('author').ascending())
+            .sort(field('author').ascending())
+            .removeFields(field('author'))
+            .sort(field('author').ascending())
         );
         expectResults(
           snapshot,
@@ -858,7 +858,7 @@ apiDescribe.only('Pipelines', persistence => {
           firestore
             .pipeline()
             .collection(randomCol.path)
-            .sort(Field.of('author').ascending())
+            .sort(field('author').ascending())
             .offset(5)
             .limit(3)
             .select('title', 'author')
@@ -880,13 +880,13 @@ apiDescribe.only('Pipelines', persistence => {
             .collection(randomCol.path)
             .genericStage('select', [
               {
-                title: Field.of('title'),
+                title: field('title'),
                 metadata: {
-                  'author': Field.of('author')
+                  'author': field('author')
                 }
               }
             ])
-            .sort(Field.of('author').ascending())
+            .sort(field('author').ascending())
             .limit(1)
         );
         expectResults(snapshot, {
@@ -902,12 +902,12 @@ apiDescribe.only('Pipelines', persistence => {
           firestore
             .pipeline()
             .collection(randomCol.path)
-            .sort(Field.of('author').ascending())
+            .sort(field('author').ascending())
             .limit(1)
             .select('title', 'author')
             .genericStage('add_fields', [
               {
-                display: Field.of('title').strConcat(' - ', Field.of('author'))
+                display: field('title').strConcat(' - ', field('author'))
               }
             ])
         );
@@ -924,7 +924,7 @@ apiDescribe.only('Pipelines', persistence => {
             .pipeline()
             .collection(randomCol.path)
             .select('title', 'author')
-            .genericStage('where', [Field.of('author').eq('Douglas Adams')])
+            .genericStage('where', [field('author').eq('Douglas Adams')])
         );
         expectResults(snapshot, {
           title: "The Hitchhiker's Guide to the Galaxy",
@@ -941,7 +941,7 @@ apiDescribe.only('Pipelines', persistence => {
             .genericStage('sort', [
               {
                 direction: 'ascending',
-                expression: Field.of('author')
+                expression: field('author')
               }
             ])
             .genericStage('offset', [3])
@@ -960,7 +960,7 @@ apiDescribe.only('Pipelines', persistence => {
             .collection(randomCol.path)
             .select('title', 'author', 'rating')
             .genericStage('aggregate', [
-              { averageRating: Field.of('rating').avg() },
+              { averageRating: field('rating').avg() },
               {}
             ])
         );
@@ -975,8 +975,8 @@ apiDescribe.only('Pipelines', persistence => {
             .pipeline()
             .collection(randomCol.path)
             .select('title', 'author', 'rating')
-            .genericStage('distinct', [{ rating: Field.of('rating') }])
-            .sort(Field.of('rating').descending())
+            .genericStage('distinct', [{ rating: field('rating') }])
+            .sort(field('rating').descending())
         );
         expectResults(
           snapshot,
@@ -1055,7 +1055,7 @@ apiDescribe.only('Pipelines', persistence => {
           randomCol
             .pipeline()
             .union(randomCol.pipeline())
-            .sort(Field.of(documentId()).ascending())
+            .sort(field(documentId()).ascending())
         );
         expectResults(
           snapshot,
@@ -1089,7 +1089,7 @@ apiDescribe.only('Pipelines', persistence => {
           randomCol
             .pipeline()
             .where(eq('title', "The Hitchhiker's Guide to the Galaxy"))
-            .unnest(Field.of('tags').as('tag'))
+            .unnest(field('tags').as('tag'))
         );
         expectResults(
           snapshot,
@@ -1206,11 +1206,11 @@ apiDescribe.only('Pipelines', persistence => {
           .pipeline()
           .select(
             'title',
-            logicalMaximum(Constant.of(1960), Field.of('published'), 1961).as(
+            logicalMaximum(Constant.of(1960), field('published'), 1961).as(
               'published-safe'
             )
           )
-          .sort(Field.of('title').ascending())
+          .sort(field('title').ascending())
           .limit(3)
       );
       expectResults(
@@ -1227,11 +1227,11 @@ apiDescribe.only('Pipelines', persistence => {
           .pipeline()
           .select(
             'title',
-            logicalMinimum(Constant.of(1960), Field.of('published'), 1961).as(
+            logicalMinimum(Constant.of(1960), field('published'), 1961).as(
               'published-safe'
             )
           )
-          .sort(Field.of('title').ascending())
+          .sort(field('title').ascending())
           .limit(3)
       );
       expectResults(
@@ -1249,12 +1249,12 @@ apiDescribe.only('Pipelines', persistence => {
           .select(
             'title',
             cond(
-              lt(Field.of('published'), 1960),
+              lt(field('published'), 1960),
               Constant.of(1960),
-              Field.of('published')
+              field('published')
             ).as('published-safe')
           )
-          .sort(Field.of('title').ascending())
+          .sort(field('title').ascending())
           .limit(3)
       );
       expectResults(
@@ -1324,7 +1324,7 @@ apiDescribe.only('Pipelines', persistence => {
       const snapshot = await execute(
         randomCol
           .pipeline()
-          .where(Field.of('tags').arrayContainsAll('adventure', 'magic'))
+          .where(field('tags').arrayContainsAll('adventure', 'magic'))
           .select('title')
       );
       expectResults(snapshot, { title: 'The Lord of the Rings' });
@@ -1334,7 +1334,7 @@ apiDescribe.only('Pipelines', persistence => {
       const snapshot = await execute(
         randomCol
           .pipeline()
-          .select(Field.of('tags').arrayLength().as('tagsCount'))
+          .select(field('tags').arrayLength().as('tagsCount'))
           .where(eq('tagsCount', 3))
       );
       expect(snapshot.results.length).to.equal(10);
@@ -1345,9 +1345,7 @@ apiDescribe.only('Pipelines', persistence => {
         randomCol
           .pipeline()
           .select(
-            Field.of('author')
-              .strConcat(' - ', Field.of('title'))
-              .as('bookInfo')
+            field('author').strConcat(' - ', field('title')).as('bookInfo')
           )
           .limit(1)
       );
@@ -1362,7 +1360,7 @@ apiDescribe.only('Pipelines', persistence => {
           .pipeline()
           .where(startsWith('title', 'The'))
           .select('title')
-          .sort(Field.of('title').ascending())
+          .sort(field('title').ascending())
       );
       expectResults(
         snapshot,
@@ -1379,7 +1377,7 @@ apiDescribe.only('Pipelines', persistence => {
           .pipeline()
           .where(endsWith('title', 'y'))
           .select('title')
-          .sort(Field.of('title').descending())
+          .sort(field('title').descending())
       );
       expectResults(
         snapshot,
@@ -1392,12 +1390,9 @@ apiDescribe.only('Pipelines', persistence => {
       const snapshot = await execute(
         randomCol
           .pipeline()
-          .select(
-            Field.of('title').charLength().as('titleLength'),
-            Field.of('title')
-          )
+          .select(field('title').charLength().as('titleLength'), field('title'))
           .where(gt('titleLength', 20))
-          .sort(Field.of('title').ascending())
+          .sort(field('title').ascending())
       );
 
       expectResults(
@@ -1450,10 +1445,10 @@ apiDescribe.only('Pipelines', persistence => {
         randomCol
           .pipeline()
           .select(
-            add(Field.of('rating'), 1).as('ratingPlusOne'),
-            subtract(Field.of('published'), 1900).as('yearsSince1900'),
-            Field.of('rating').multiply(10).as('ratingTimesTen'),
-            Field.of('rating').divide(2).as('ratingDividedByTwo'),
+            add(field('rating'), 1).as('ratingPlusOne'),
+            subtract(field('published'), 1900).as('yearsSince1900'),
+            field('rating').multiply(10).as('ratingTimesTen'),
+            field('rating').divide(2).as('ratingDividedByTwo'),
             multiply('rating', 10, 2).as('ratingTimes20'),
             add('rating', 1, 2).as('ratingPlus3')
           )
@@ -1476,12 +1471,12 @@ apiDescribe.only('Pipelines', persistence => {
           .where(
             andFunction(
               gt('rating', 4.2),
-              lte(Field.of('rating'), 4.5),
+              lte(field('rating'), 4.5),
               neq('genre', 'Science Fiction')
             )
           )
           .select('rating', 'title')
-          .sort(Field.of('title').ascending())
+          .sort(field('title').ascending())
       );
       expectResults(
         snapshot,
@@ -1505,7 +1500,7 @@ apiDescribe.only('Pipelines', persistence => {
             )
           )
           .select('title')
-          .sort(Field.of('title').ascending())
+          .sort(field('title').ascending())
       );
       expectResults(
         snapshot,
@@ -1519,7 +1514,7 @@ apiDescribe.only('Pipelines', persistence => {
       let snapshot = await execute(
         randomCol
           .pipeline()
-          .sort(Field.of('rating').descending())
+          .sort(field('rating').descending())
           .limit(1)
           .select(
             isNull('rating').as('ratingIsNull'),
@@ -1546,18 +1541,18 @@ apiDescribe.only('Pipelines', persistence => {
       snapshot = await execute(
         randomCol
           .pipeline()
-          .sort(Field.of('rating').descending())
+          .sort(field('rating').descending())
           .limit(1)
           .select(
-            Field.of('rating').isNull().as('ratingIsNull'),
-            Field.of('rating').isNan().as('ratingIsNaN'),
+            field('rating').isNull().as('ratingIsNull'),
+            field('rating').isNan().as('ratingIsNaN'),
             arrayOffset('title', 0).isError().as('isError'),
             arrayOffset('title', 0)
               .ifError(Constant.of('was error'))
               .as('ifError'),
-            Field.of('foo').isAbsent().as('isAbsent'),
-            Field.of('title').isNotNull().as('titleIsNotNull'),
-            Field.of('cost').isNotNan().as('costIsNotNan')
+            field('foo').isAbsent().as('isAbsent'),
+            field('title').isNotNull().as('titleIsNotNull'),
+            field('cost').isNotNan().as('costIsNotNan')
           )
       );
       expectResults(snapshot, {
@@ -1575,11 +1570,11 @@ apiDescribe.only('Pipelines', persistence => {
       const snapshot = await execute(
         randomCol
           .pipeline()
-          .sort(Field.of('published').descending())
+          .sort(field('published').descending())
           .select(
-            Field.of('awards').mapGet('hugo').as('hugoAward'),
-            Field.of('awards').mapGet('others').as('others'),
-            Field.of('title')
+            field('awards').mapGet('hugo').as('hugoAward'),
+            field('awards').mapGet('others').as('others'),
+            field('title')
           )
           .where(eq('hugoAward', true))
       );
@@ -1676,7 +1671,7 @@ apiDescribe.only('Pipelines', persistence => {
           .where(eq('awards.hugo', true))
           .select(
             'title',
-            Field.of('nestedField.level.1'),
+            field('nestedField.level.1'),
             mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
           )
       );
@@ -1699,7 +1694,7 @@ apiDescribe.only('Pipelines', persistence => {
             .sort(descending('rating'))
             .limit(1)
             .select(
-              genericFunction('add', [Field.of('rating'), Constant.of(1)]).as(
+              genericFunction('add', [field('rating'), Constant.of(1)]).as(
                 'rating'
               )
             )
@@ -1715,9 +1710,9 @@ apiDescribe.only('Pipelines', persistence => {
             .pipeline()
             .where(
               genericBooleanExpr('and', [
-                Field.of('rating').gt(0),
-                Field.of('title').charLength().lt(5),
-                Field.of('tags').arrayContains('propaganda')
+                field('rating').gt(0),
+                field('title').charLength().lt(5),
+                field('tags').arrayContains('propaganda')
               ])
             )
             .select('title')
@@ -1733,7 +1728,7 @@ apiDescribe.only('Pipelines', persistence => {
             .pipeline()
             .where(
               genericBooleanExpr('array_contains_any', [
-                Field.of('tags'),
+                field('tags'),
                 ['politics']
               ])
             )
@@ -1750,7 +1745,7 @@ apiDescribe.only('Pipelines', persistence => {
             .pipeline()
             .aggregate(
               genericAggregateFunction('count_if', [
-                Field.of('rating').gte(4.5)
+                field('rating').gte(4.5)
               ]).as('countOfBest')
             )
         );
@@ -1764,7 +1759,7 @@ apiDescribe.only('Pipelines', persistence => {
           randomCol
             .pipeline()
             .sort(
-              genericFunction('char_length', [Field.of('title')]).ascending(),
+              genericFunction('char_length', [field('title')]).ascending(),
               descending('__name__')
             )
             .limit(3)
@@ -1943,9 +1938,9 @@ apiDescribe.only('Pipelines', persistence => {
           let snapshot = await execute(
             randomCol
               .pipeline()
-              .sort(Field.of('rating').descending())
+              .sort(field('rating').descending())
               .limit(1)
-              .select(documentIdFunction(Field.of('__path__')).as('docId'))
+              .select(documentIdFunction(field('__path__')).as('docId'))
           );
           expectResults(snapshot, {
             docId: 'book4'
@@ -1953,9 +1948,9 @@ apiDescribe.only('Pipelines', persistence => {
           snapshot = await execute(
             randomCol
               .pipeline()
-              .sort(Field.of('rating').descending())
+              .sort(field('rating').descending())
               .limit(1)
-              .select(Field.of('__path__').documentId().as('docId'))
+              .select(field('__path__').documentId().as('docId'))
           );
           expectResults(snapshot, {
             docId: 'book4'
@@ -1966,7 +1961,7 @@ apiDescribe.only('Pipelines', persistence => {
           let snapshot = await execute(
             randomCol
               .pipeline()
-              .sort(Field.of('rating').descending())
+              .sort(field('rating').descending())
               .limit(1)
               .select(substr('title', 9, 2).as('of'))
           );
@@ -1976,9 +1971,9 @@ apiDescribe.only('Pipelines', persistence => {
           snapshot = await execute(
             randomCol
               .pipeline()
-              .sort(Field.of('rating').descending())
+              .sort(field('rating').descending())
               .limit(1)
-              .select(Field.of('title').substr(9, 2).as('of'))
+              .select(field('title').substr(9, 2).as('of'))
           );
           expectResults(snapshot, {
             of: 'of'
@@ -1989,7 +1984,7 @@ apiDescribe.only('Pipelines', persistence => {
           let snapshot = await execute(
             randomCol
               .pipeline()
-              .sort(Field.of('rating').descending())
+              .sort(field('rating').descending())
               .limit(1)
               .select(substr('title', 9).as('of'))
           );
@@ -1999,9 +1994,9 @@ apiDescribe.only('Pipelines', persistence => {
           snapshot = await execute(
             randomCol
               .pipeline()
-              .sort(Field.of('rating').descending())
+              .sort(field('rating').descending())
               .limit(1)
-              .select(Field.of('title').substr(9).as('of'))
+              .select(field('title').substr(9).as('of'))
           );
           expectResults(snapshot, {
             of: 'of the Rings'
@@ -2013,8 +2008,8 @@ apiDescribe.only('Pipelines', persistence => {
             randomCol
               .pipeline()
               .select(
-                Field.of('tags')
-                  .arrayConcat(['newTag1', 'newTag2'], Field.of('tags'), [null])
+                field('tags')
+                  .arrayConcat(['newTag1', 'newTag2'], field('tags'), [null])
                   .as('modifiedTags')
               )
               .limit(1)
@@ -2038,7 +2033,7 @@ apiDescribe.only('Pipelines', persistence => {
           const snapshot = await execute(
             randomCol
               .pipeline()
-              .select(Field.of('title').toLower().as('lowercaseTitle'))
+              .select(field('title').toLower().as('lowercaseTitle'))
               .limit(1)
           );
           expectResults(snapshot, {
@@ -2050,7 +2045,7 @@ apiDescribe.only('Pipelines', persistence => {
           const snapshot = await execute(
             randomCol
               .pipeline()
-              .select(Field.of('author').toUpper().as('uppercaseAuthor'))
+              .select(field('author').toUpper().as('uppercaseAuthor'))
               .limit(1)
           );
           expectResults(snapshot, { uppercaseAuthor: 'DOUGLAS ADAMS' });
@@ -2066,8 +2061,8 @@ apiDescribe.only('Pipelines', persistence => {
                 )
               )
               .select(
-                Field.of('spacedTitle').trim().as('trimmedTitle'),
-                Field.of('spacedTitle')
+                field('spacedTitle').trim().as('trimmedTitle'),
+                field('spacedTitle')
               )
               .limit(1)
           );
@@ -2094,7 +2089,7 @@ apiDescribe.only('Pipelines', persistence => {
           firestore
             .pipeline()
             .collection(randomCol.path)
-            .sort(Field.of('rating').descending())
+            .sort(field('rating').descending())
             .limit(1)
             .select(array([1, 2, 3, 4]).as('metadata'))
         );
@@ -2109,10 +2104,10 @@ apiDescribe.only('Pipelines', persistence => {
           firestore
             .pipeline()
             .collection(randomCol.path)
-            .sort(Field.of('rating').descending())
+            .sort(field('rating').descending())
             .limit(1)
             .select(
-              array([1, 2, Field.of('genre'), multiply('rating', 10)]).as(
+              array([1, 2, field('genre'), multiply('rating', 10)]).as(
                 'metadata'
               )
             )
@@ -2127,7 +2122,7 @@ apiDescribe.only('Pipelines', persistence => {
         let snapshot = await execute(
           randomCol
             .pipeline()
-            .sort(Field.of('rating').descending())
+            .sort(field('rating').descending())
             .limit(3)
             .select(arrayOffset('tags', 0).as('firstTag'))
         );
@@ -2147,9 +2142,9 @@ apiDescribe.only('Pipelines', persistence => {
         snapshot = await execute(
           randomCol
             .pipeline()
-            .sort(Field.of('rating').descending())
+            .sort(field('rating').descending())
             .limit(3)
-            .select(Field.of('tags').arrayOffset(0).as('firstTag'))
+            .select(field('tags').arrayOffset(0).as('firstTag'))
         );
         expectResults(snapshot, ...expectedResults);
       });
@@ -2160,7 +2155,7 @@ apiDescribe.only('Pipelines', persistence => {
       const snapshot = await execute(
         randomCol
           .pipeline()
-          .sort(Field.of('rating').descending())
+          .sort(field('rating').descending())
           .limit(1)
           .select(currentContext().as('currentContext'))
       );
@@ -2174,7 +2169,7 @@ apiDescribe.only('Pipelines', persistence => {
         firestore
           .pipeline()
           .collection(randomCol.path)
-          .sort(Field.of('rating').descending())
+          .sort(field('rating').descending())
           .limit(1)
           .select(
             map({
@@ -2196,12 +2191,12 @@ apiDescribe.only('Pipelines', persistence => {
         firestore
           .pipeline()
           .collection(randomCol.path)
-          .sort(Field.of('rating').descending())
+          .sort(field('rating').descending())
           .limit(1)
           .select(
             map({
-              genre: Field.of('genre'),
-              rating: Field.of('rating').multiply(10)
+              genre: field('genre'),
+              rating: field('rating').multiply(10)
             }).as('metadata')
           )
       );
@@ -2219,7 +2214,7 @@ apiDescribe.only('Pipelines', persistence => {
       let snapshot = await execute(
         randomCol
           .pipeline()
-          .sort(Field.of('rating').descending())
+          .sort(field('rating').descending())
           .limit(1)
           .select(mapRemove('awards', 'hugo').as('awards'))
       );
@@ -2229,9 +2224,9 @@ apiDescribe.only('Pipelines', persistence => {
       snapshot = await execute(
         randomCol
           .pipeline()
-          .sort(Field.of('rating').descending())
+          .sort(field('rating').descending())
           .limit(1)
-          .select(Field.of('awards').mapRemove('hugo').as('awards'))
+          .select(field('awards').mapRemove('hugo').as('awards'))
       );
       expectResults(snapshot, {
         awards: { nebula: false }
@@ -2242,7 +2237,7 @@ apiDescribe.only('Pipelines', persistence => {
       let snapshot = await execute(
         randomCol
           .pipeline()
-          .sort(Field.of('rating').descending())
+          .sort(field('rating').descending())
           .limit(1)
           .select(mapMerge('awards', { fakeAward: true }).as('awards'))
       );
@@ -2252,9 +2247,9 @@ apiDescribe.only('Pipelines', persistence => {
       snapshot = await execute(
         randomCol
           .pipeline()
-          .sort(Field.of('rating').descending())
+          .sort(field('rating').descending())
           .limit(1)
-          .select(Field.of('awards').mapMerge({ fakeAward: true }).as('awards'))
+          .select(field('awards').mapMerge({ fakeAward: true }).as('awards'))
       );
       expectResults(snapshot, {
         awards: { nebula: false, hugo: false, fakeAward: true }
@@ -2311,10 +2306,7 @@ apiDescribe.only('Pipelines', persistence => {
       const pipeline = randomCol
         .pipeline()
         .select('title', 'rating', '__name__')
-        .sort(
-          Field.of('rating').descending(),
-          Field.of('__name__').ascending()
-        );
+        .sort(field('rating').descending(), field('__name__').ascending());
 
       let snapshot = await execute(pipeline.limit(pageSize));
       expectResults(
@@ -2330,10 +2322,10 @@ apiDescribe.only('Pipelines', persistence => {
           .where(
             orFunction(
               andFunction(
-                Field.of('rating').eq(lastDoc.get('rating')),
-                Field.of('__path__').gt(lastDoc.ref?.id)
+                field('rating').eq(lastDoc.get('rating')),
+                field('__path__').gt(lastDoc.ref?.id)
               ),
-              Field.of('rating').lt(lastDoc.get('rating'))
+              field('rating').lt(lastDoc.get('rating'))
             )
           )
           .limit(pageSize)
@@ -2354,8 +2346,8 @@ apiDescribe.only('Pipelines', persistence => {
         .pipeline()
         .select('title', 'rating', secondFilterField)
         .sort(
-          Field.of('rating').descending(),
-          Field.of(secondFilterField).ascending()
+          field('rating').descending(),
+          field(secondFilterField).ascending()
         );
 
       const pageSize = 2;

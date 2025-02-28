@@ -43,6 +43,7 @@ export {
 } from './lite-api/stage';
 
 export {
+  field,
   add,
   subtract,
   multiply,

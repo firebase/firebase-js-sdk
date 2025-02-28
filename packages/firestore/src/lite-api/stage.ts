@@ -35,7 +35,8 @@ import {
   Expr,
   Field,
   BooleanExpr,
-  Ordering
+  Ordering,
+  field
 } from './expressions';
 import { Pipeline } from './pipeline';
 import { DocumentReference } from './reference';
@@ -297,9 +298,7 @@ export class FindNearest implements Stage {
 
     if (this._distanceField) {
       // eslint-disable-next-line camelcase
-      options.distance_field = Field.of(this._distanceField)._toProto(
-        serializer
-      );
+      options.distance_field = field(this._distanceField)._toProto(serializer);
     }
 
     return {
