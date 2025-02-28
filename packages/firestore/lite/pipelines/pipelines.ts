@@ -138,10 +138,10 @@ export {
   ExprWithAlias,
   Field,
   Constant,
-  FirestoreFunction,
+  FunctionExpr,
   Ordering,
   ExprType,
-  AggregateFunctionWithAlias,
+  AggregateWithAlias,
   Selectable,
   BooleanExpr,
   AggregateFunction

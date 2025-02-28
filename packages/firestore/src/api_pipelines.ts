@@ -136,13 +136,13 @@ export {
   ExprWithAlias,
   Field,
   Constant,
-  FirestoreFunction,
+  FunctionExpr,
   Ordering
 } from './lite-api/expressions';
 
 export type {
   ExprType,
-  AggregateFunctionWithAlias,
+  AggregateWithAlias,
   Selectable,
   BooleanExpr,
   AggregateFunction

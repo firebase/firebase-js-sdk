@@ -29,7 +29,7 @@ import { Firestore } from './database';
 import {
   _mapValue,
   AggregateFunction,
-  AggregateFunctionWithAlias,
+  AggregateWithAlias,
   Constant,
   Expr,
   ExprWithAlias,
@@ -162,13 +162,17 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   );
    * ```
    *
-   * @param fields The fields to add to the documents, specified as {@link Selectable}s.
+   * @param field The first field to add to the documents, specified as a {@link Selectable}.
+   * @param additionalFields Optional additional fields to add to the documents, specified as {@link Selectable}s.
    * @return A new Pipeline object with this stage appended to the stage list.
    */
-  addFields(...fields: Selectable[]): Pipeline {
+  addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline {
     return this._addStage(
       new AddFields(
-        this.readUserData('addFields', this.selectablesToMap(fields))
+        this.readUserData(
+          'addFields',
+          this.selectablesToMap([field, ...additionalFields])
+        )
       )
     );
   }
@@ -187,11 +191,15 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   );
    * ```
    *
-   * @param fields The fields to remove.
+   * @param field The first field to remove.
+   * @param additionalFields Optional additional fields to remove.
    * @return A new Pipeline object with this stage appended to the stage list.
    */
-  removeFields(...fields: Array<Field | string>): Pipeline {
-    const fieldExpressions = fields.map(f =>
+  removeFields(
+    field: Field | string,
+    ...additionalFields: Array<Field | string>
+  ): Pipeline {
+    const fieldExpressions = [field, ...additionalFields].map(f =>
       typeof f === 'string' ? Field.of(f) : (f as Field)
     );
     this.readUserData('removeFields', fieldExpressions);
@@ -211,7 +219,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * </ul>
    *
    * <p>If no selections are provided, the output of this stage is empty. Use {@link
-   * com.google.cloud.firestore.Pipeline#addFields} instead if only additions are
+   * Pipeline#addFields} instead if only additions are
    * desired.
    *
    * <p>Example:
@@ -225,12 +233,20 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   );
    * ```
    *
-   * @param selections The fields to include in the output documents, specified as {@link
+   * @param selection The first field to include in the output documents, specified as {@link
+   *     Selectable} expression or string value representing the field name.
+   * @param additionalSelections Optional additional fields to include in the output documents, specified as {@link
    *     Selectable} expressions or {@code string} values representing field names.
    * @return A new Pipeline object with this stage appended to the stage list.
    */
-  select(...selections: Array<Selectable | string>): Pipeline {
-    let projections: Map<string, Expr> = this.selectablesToMap(selections);
+  select(
+    selection: Selectable | string,
+    ...additionalSelections: Array<Selectable | string>
+  ): Pipeline {
+    let projections: Map<string, Expr> = this.selectablesToMap([
+      selection,
+      ...additionalSelections
+    ]);
     projections = this.readUserData('select', projections);
     return this._addStage(new Select(projections));
   }
@@ -362,14 +378,22 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *     .select("authorName");
    * ```
    *
-   * @param groups The {@link Selectable} expressions to consider when determining distinct
-   *     value combinations or {@code string}s representing field names.
+   * @param group The first {@link Selectable} expression to consider when determining distinct
+   *     value combinations or strings representing field names.
+   * @param additionalGroups Optional additional {@link Selectable} expressions to consider when determining distinct
+   *     value combinations or strings representing field names.
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
    */
-  distinct(...groups: Array<string | Selectable>): Pipeline {
+  distinct(
+    group: string | Selectable,
+    ...additionalGroups: Array<string | Selectable>
+  ): Pipeline {
     return this._addStage(
       new Distinct(
-        this.readUserData('distinct', this.selectablesToMap(groups || []))
+        this.readUserData(
+          'distinct',
+          this.selectablesToMap([group, ...additionalGroups])
+        )
       )
     );
   }
@@ -378,7 +402,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * Performs aggregation operations on the documents from previous stages.
    *
    * <p>This stage allows you to calculate aggregate values over a set of documents. You define the
-   * aggregations to perform using {@link AggregateFunctionWithAlias} expressions which are typically results of
+   * aggregations to perform using {@link AggregateWithAlias} expressions which are typically results of
    * calling {@link Expr#as} on {@link AggregateFunction} instances.
    *
    * <p>Example:
@@ -392,11 +416,16 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *     );
    * ```
    *
-   * @param accumulators The {@link AggregateFunctionWithAlias} expressions, each wrapping an {@link AggregateFunction}
+   * @param accumulator The first {@link AggregateWithAlias}, wrapping an {@link AggregateFunction}
+   *     and provide a name for the accumulated results.
+   * @param additionalAccumulators Optional additional {@link AggregateWithAlias}, each wrapping an {@link AggregateFunction}
    *     and provide a name for the accumulated results.
    * @return A new Pipeline object with this stage appended to the stage list.
    */
-  aggregate(...accumulators: AggregateFunctionWithAlias[]): Pipeline;
+  aggregate(
+    accumulator: AggregateWithAlias,
+    ...additionalAccumulators: AggregateWithAlias[]
+  ): Pipeline;
   /**
    * Performs optionally grouped aggregation operations on the documents from previous stages.
    *
@@ -409,7 +438,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *       If no grouping fields are provided, a single group containing all documents is used. Not
    *       specifying groups is the same as putting the entire inputs into one group.</li>
    *   <li>**Accumulators:** One or more accumulation operations to perform within each group. These
-   *       are defined using {@link AggregateFunctionWithAlias} expressions, which are typically created by
+   *       are defined using {@link AggregateWithAlias} expressions, which are typically created by
    *       calling {@link Expr#as} on {@link AggregateFunction} instances. Each aggregation
    *       calculates a value (e.g., sum, average, count) based on the documents within its group.</li>
    * </ul>
@@ -431,31 +460,29 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * list.
    */
   aggregate(options: {
-    accumulators: AggregateFunctionWithAlias[];
+    accumulators: AggregateWithAlias[];
     groups?: Array<string | Selectable>;
   }): Pipeline;
   aggregate(
     optionsOrTarget:
-      | AggregateFunctionWithAlias
+      | AggregateWithAlias
       | {
-          accumulators: AggregateFunctionWithAlias[];
+          accumulators: AggregateWithAlias[];
           groups?: Array<string | Selectable>;
         },
-    ...rest: AggregateFunctionWithAlias[]
+    ...rest: AggregateWithAlias[]
   ): Pipeline {
     if ('accumulators' in optionsOrTarget) {
       return this._addStage(
         new Aggregate(
           new Map<string, AggregateFunction>(
-            optionsOrTarget.accumulators.map(
-              (target: AggregateFunctionWithAlias) => [
-                (target as unknown as AggregateFunctionWithAlias).alias,
-                this.readUserData(
-                  'aggregate',
-                  (target as unknown as AggregateFunctionWithAlias).expr
-                )
-              ]
-            )
+            optionsOrTarget.accumulators.map((target: AggregateWithAlias) => [
+              (target as unknown as AggregateWithAlias).alias,
+              this.readUserData(
+                'aggregate',
+                (target as unknown as AggregateWithAlias).aggregate
+              )
+            ])
           ),
           this.readUserData(
             'aggregate',
@@ -468,10 +495,10 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
         new Aggregate(
           new Map<string, AggregateFunction>(
             [optionsOrTarget, ...rest].map(target => [
-              (target as unknown as AggregateFunctionWithAlias).alias,
+              (target as unknown as AggregateWithAlias).alias,
               this.readUserData(
                 'aggregate',
-                (target as unknown as AggregateFunctionWithAlias).expr
+                (target as unknown as AggregateWithAlias).aggregate
               )
             ])
           ),
@@ -520,10 +547,11 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *     );
    * ```
    *
-   * @param orderings One or more {@link Ordering} instances specifying the sorting criteria.
+   * @param ordering The first {@link Ordering} instance specifying the sorting criteria.
+   * @param additionalOrderings Optional additional {@link Ordering} instances specifying the additional sorting criteria.
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
    */
-  sort(...orderings: Ordering[]): Pipeline;
+  sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
   sort(
     optionsOrOrderings:
       | Ordering
@@ -533,7 +561,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     ...rest: Ordering[]
   ): Pipeline {
     // Option object
-    if ('orderings' in optionsOrOrderings) {
+    if (optionsOrOrderings && 'orderings' in optionsOrOrderings) {
       return this._addStage(
         new Sort(
           this.readUserData(

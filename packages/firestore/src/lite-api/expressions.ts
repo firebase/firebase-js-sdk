@@ -158,9 +158,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param others Optional additional expressions or literals to add to this expression.
    * @return A new `Expr` representing the addition operation.
    */
-  add(second: Expr | any, ...others: Array<Expr | any>): FirestoreFunction {
+  add(second: Expr | any, ...others: Array<Expr | any>): FunctionExpr {
     const values = [second, ...others];
-    return new FirestoreFunction('add', [
+    return new FunctionExpr('add', [
       this,
       ...values.map(value => valueToDefaultExpr(value))
     ]);
@@ -177,7 +177,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The expression to subtract from this expression.
    * @return A new `Expr` representing the subtraction operation.
    */
-  subtract(other: Expr): FirestoreFunction;
+  subtract(other: Expr): FunctionExpr;
 
   /**
    * Creates an expression that subtracts a constant value from this expression.
@@ -190,9 +190,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The constant value to subtract.
    * @return A new `Expr` representing the subtraction operation.
    */
-  subtract(other: any): FirestoreFunction;
-  subtract(other: any): FirestoreFunction {
-    return new FirestoreFunction('subtract', [this, valueToDefaultExpr(other)]);
+  subtract(other: any): FunctionExpr;
+  subtract(other: any): FunctionExpr {
+    return new FunctionExpr('subtract', [this, valueToDefaultExpr(other)]);
   }
 
   /**
@@ -207,11 +207,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param others Optional additional expressions or literals to multiply by.
    * @return A new `Expr` representing the multiplication operation.
    */
-  multiply(
-    second: Expr | any,
-    ...others: Array<Expr | any>
-  ): FirestoreFunction {
-    return new FirestoreFunction('multiply', [
+  multiply(second: Expr | any, ...others: Array<Expr | any>): FunctionExpr {
+    return new FunctionExpr('multiply', [
       this,
       valueToDefaultExpr(second),
       ...others.map(value => valueToDefaultExpr(value))
@@ -229,7 +226,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The expression to divide by.
    * @return A new `Expr` representing the division operation.
    */
-  divide(other: Expr): FirestoreFunction;
+  divide(other: Expr): FunctionExpr;
 
   /**
    * Creates an expression that divides this expression by a constant value.
@@ -242,9 +239,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The constant value to divide by.
    * @return A new `Expr` representing the division operation.
    */
-  divide(other: any): FirestoreFunction;
-  divide(other: any): FirestoreFunction {
-    return new FirestoreFunction('divide', [this, valueToDefaultExpr(other)]);
+  divide(other: any): FunctionExpr;
+  divide(other: any): FunctionExpr {
+    return new FunctionExpr('divide', [this, valueToDefaultExpr(other)]);
   }
 
   /**
@@ -258,7 +255,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The expression to divide by.
    * @return A new `Expr` representing the modulo operation.
    */
-  mod(other: Expr): FirestoreFunction;
+  mod(other: Expr): FunctionExpr;
 
   /**
    * Creates an expression that calculates the modulo (remainder) of dividing this expression by a constant value.
@@ -271,9 +268,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The constant value to divide by.
    * @return A new `Expr` representing the modulo operation.
    */
-  mod(other: any): FirestoreFunction;
-  mod(other: any): FirestoreFunction {
-    return new FirestoreFunction('mod', [this, valueToDefaultExpr(other)]);
+  mod(other: any): FunctionExpr;
+  mod(other: any): FunctionExpr {
+    return new FunctionExpr('mod', [this, valueToDefaultExpr(other)]);
   }
 
   /**
@@ -467,10 +464,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   arrayConcat(
     secondArray: Expr | any[],
     ...otherArrays: Array<Expr | any[]>
-  ): FirestoreFunction {
+  ): FunctionExpr {
     const elements = [secondArray, ...otherArrays];
     const exprValues = elements.map(value => valueToDefaultExpr(value));
-    return new FirestoreFunction('array_concat', [this, ...exprValues]);
+    return new FunctionExpr('array_concat', [this, ...exprValues]);
   }
 
   /**
@@ -582,8 +579,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * @return A new `Expr` representing the length of the array.
    */
-  arrayLength(): FirestoreFunction {
-    return new FirestoreFunction('array_length', [this]);
+  arrayLength(): FunctionExpr {
+    return new FunctionExpr('array_length', [this]);
   }
 
   /**
@@ -702,8 +699,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * @return A new `Expr` representing the length of the string.
    */
-  charLength(): FirestoreFunction {
-    return new FirestoreFunction('char_length', [this]);
+  charLength(): FunctionExpr {
+    return new FunctionExpr('char_length', [this]);
   }
 
   /**
@@ -717,7 +714,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param pattern The pattern to search for. You can use "%" as a wildcard character.
    * @return A new `Expr` representing the 'like' comparison.
    */
-  like(pattern: string): FirestoreFunction;
+  like(pattern: string): FunctionExpr;
 
   /**
    * Creates an expression that performs a case-sensitive string comparison.
@@ -730,12 +727,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param pattern The pattern to search for. You can use "%" as a wildcard character.
    * @return A new `Expr` representing the 'like' comparison.
    */
-  like(pattern: Expr): FirestoreFunction;
-  like(stringOrExpr: string | Expr): FirestoreFunction {
-    return new FirestoreFunction('like', [
-      this,
-      valueToDefaultExpr(stringOrExpr)
-    ]);
+  like(pattern: Expr): FunctionExpr;
+  like(stringOrExpr: string | Expr): FunctionExpr {
+    return new FunctionExpr('like', [this, valueToDefaultExpr(stringOrExpr)]);
   }
 
   /**
@@ -912,8 +906,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * @return A new `Expr` representing the lowercase string.
    */
-  toLower(): FirestoreFunction {
-    return new FirestoreFunction('to_lower', [this]);
+  toLower(): FunctionExpr {
+    return new FunctionExpr('to_lower', [this]);
   }
 
   /**
@@ -926,8 +920,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * @return A new `Expr` representing the uppercase string.
    */
-  toUpper(): FirestoreFunction {
-    return new FirestoreFunction('to_upper', [this]);
+  toUpper(): FunctionExpr {
+    return new FunctionExpr('to_upper', [this]);
   }
 
   /**
@@ -940,8 +934,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * @return A new `Expr` representing the trimmed string.
    */
-  trim(): FirestoreFunction {
-    return new FirestoreFunction('trim', [this]);
+  trim(): FunctionExpr {
+    return new FunctionExpr('trim', [this]);
   }
 
   /**
@@ -959,10 +953,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   strConcat(
     secondString: Expr | string,
     ...otherStrings: Array<Expr | string>
-  ): FirestoreFunction {
+  ): FunctionExpr {
     const elements = [secondString, ...otherStrings];
     const exprs = elements.map(valueToDefaultExpr);
-    return new FirestoreFunction('str_concat', [this, ...exprs]);
+    return new FunctionExpr('str_concat', [this, ...exprs]);
   }
 
   /**
@@ -975,8 +969,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * @return A new {@code Expr} representing the reversed string.
    */
-  reverse(): FirestoreFunction {
-    return new FirestoreFunction('reverse', [this]);
+  reverse(): FunctionExpr {
+    return new FunctionExpr('reverse', [this]);
   }
 
   /**
@@ -991,7 +985,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param replace The substring to replace the first occurrence of 'find' with.
    * @return A new {@code Expr} representing the string with the first occurrence replaced.
    */
-  replaceFirst(find: string, replace: string): FirestoreFunction;
+  replaceFirst(find: string, replace: string): FunctionExpr;
 
   /**
    * Creates an expression that replaces the first occurrence of a substring within this string expression with another substring,
@@ -1006,9 +1000,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param replace The expression representing the substring to replace the first occurrence of 'find' with.
    * @return A new {@code Expr} representing the string with the first occurrence replaced.
    */
-  replaceFirst(find: Expr, replace: Expr): FirestoreFunction;
-  replaceFirst(find: Expr | string, replace: Expr | string): FirestoreFunction {
-    return new FirestoreFunction('replace_first', [
+  replaceFirst(find: Expr, replace: Expr): FunctionExpr;
+  replaceFirst(find: Expr | string, replace: Expr | string): FunctionExpr {
+    return new FunctionExpr('replace_first', [
       this,
       valueToDefaultExpr(find),
       valueToDefaultExpr(replace)
@@ -1027,7 +1021,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param replace The substring to replace all occurrences of 'find' with.
    * @return A new {@code Expr} representing the string with all occurrences replaced.
    */
-  replaceAll(find: string, replace: string): FirestoreFunction;
+  replaceAll(find: string, replace: string): FunctionExpr;
 
   /**
    * Creates an expression that replaces all occurrences of a substring within this string expression with another substring,
@@ -1042,9 +1036,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param replace The expression representing the substring to replace all occurrences of 'find' with.
    * @return A new {@code Expr} representing the string with all occurrences replaced.
    */
-  replaceAll(find: Expr, replace: Expr): FirestoreFunction;
-  replaceAll(find: Expr | string, replace: Expr | string): FirestoreFunction {
-    return new FirestoreFunction('replace_all', [
+  replaceAll(find: Expr, replace: Expr): FunctionExpr;
+  replaceAll(find: Expr | string, replace: Expr | string): FunctionExpr {
+    return new FunctionExpr('replace_all', [
       this,
       valueToDefaultExpr(find),
       valueToDefaultExpr(replace)
@@ -1061,8 +1055,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * @return A new {@code Expr} representing the length of the string in bytes.
    */
-  byteLength(): FirestoreFunction {
-    return new FirestoreFunction('byte_length', [this]);
+  byteLength(): FunctionExpr {
+    return new FunctionExpr('byte_length', [this]);
   }
 
   /**
@@ -1076,8 +1070,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param subfield The key to access in the map.
    * @return A new `Expr` representing the value associated with the given key in the map.
    */
-  mapGet(subfield: string): FirestoreFunction {
-    return new FirestoreFunction('map_get', [this, Constant.of(subfield)]);
+  mapGet(subfield: string): FunctionExpr {
+    return new FunctionExpr('map_get', [this, Constant.of(subfield)]);
   }
 
   /**
@@ -1167,9 +1161,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   logicalMaximum(
     second: Expr | any,
     ...others: Array<Expr | any>
-  ): FirestoreFunction {
+  ): FunctionExpr {
     const values = [second, ...others];
-    return new FirestoreFunction('logical_maximum', [
+    return new FunctionExpr('logical_maximum', [
       this,
       ...values.map(valueToDefaultExpr)
     ]);
@@ -1190,9 +1184,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   logicalMinimum(
     second: Expr | any,
     ...others: Array<Expr | any>
-  ): FirestoreFunction {
+  ): FunctionExpr {
     const values = [second, ...others];
-    return new FirestoreFunction('logical_min', [
+    return new FunctionExpr('logical_min', [
       this,
       ...values.map(valueToDefaultExpr)
     ]);
@@ -1208,8 +1202,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * @return A new {@code Expr} representing the length of the vector.
    */
-  vectorLength(): FirestoreFunction {
-    return new FirestoreFunction('vector_length', [this]);
+  vectorLength(): FunctionExpr {
+    return new FunctionExpr('vector_length', [this]);
   }
 
   /**
@@ -1223,7 +1217,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The other vector (represented as an Expr) to compare against.
    * @return A new `Expr` representing the cosine distance between the two vectors.
    */
-  cosineDistance(other: Expr): FirestoreFunction;
+  cosineDistance(other: Expr): FunctionExpr;
   /**
    * Calculates the Cosine distance between two vectors.
    *
@@ -1235,7 +1229,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The other vector (as a VectorValue) to compare against.
    * @return A new `Expr` representing the Cosine* distance between the two vectors.
    */
-  cosineDistance(other: VectorValue): FirestoreFunction;
+  cosineDistance(other: VectorValue): FunctionExpr;
   /**
    * Calculates the Cosine distance between two vectors.
    *
@@ -1247,12 +1241,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The other vector (as an array of numbers) to compare against.
    * @return A new `Expr` representing the Cosine distance between the two vectors.
    */
-  cosineDistance(other: number[]): FirestoreFunction;
-  cosineDistance(other: Expr | VectorValue | number[]): FirestoreFunction {
-    return new FirestoreFunction('cosine_distance', [
-      this,
-      vectorToExpr(other)
-    ]);
+  cosineDistance(other: number[]): FunctionExpr;
+  cosineDistance(other: Expr | VectorValue | number[]): FunctionExpr {
+    return new FunctionExpr('cosine_distance', [this, vectorToExpr(other)]);
   }
 
   /**
@@ -1266,7 +1257,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The other vector (as an array of numbers) to calculate with.
    * @return A new `Expr` representing the dot product between the two vectors.
    */
-  dotProduct(other: Expr): FirestoreFunction;
+  dotProduct(other: Expr): FunctionExpr;
 
   /**
    * Calculates the dot product between two vectors.
@@ -1279,7 +1270,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The other vector (as an array of numbers) to calculate with.
    * @return A new `Expr` representing the dot product between the two vectors.
    */
-  dotProduct(other: VectorValue): FirestoreFunction;
+  dotProduct(other: VectorValue): FunctionExpr;
 
   /**
    * Calculates the dot product between two vectors.
@@ -1292,9 +1283,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The other vector (as an array of numbers) to calculate with.
    * @return A new `Expr` representing the dot product between the two vectors.
    */
-  dotProduct(other: number[]): FirestoreFunction;
-  dotProduct(other: Expr | VectorValue | number[]): FirestoreFunction {
-    return new FirestoreFunction('dot_product', [this, vectorToExpr(other)]);
+  dotProduct(other: number[]): FunctionExpr;
+  dotProduct(other: Expr | VectorValue | number[]): FunctionExpr {
+    return new FunctionExpr('dot_product', [this, vectorToExpr(other)]);
   }
 
   /**
@@ -1308,7 +1299,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The other vector (as an array of numbers) to calculate with.
    * @return A new `Expr` representing the Euclidean distance between the two vectors.
    */
-  euclideanDistance(other: Expr): FirestoreFunction;
+  euclideanDistance(other: Expr): FunctionExpr;
 
   /**
    * Calculates the Euclidean distance between two vectors.
@@ -1321,7 +1312,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The other vector (as a VectorValue) to compare against.
    * @return A new `Expr` representing the Euclidean distance between the two vectors.
    */
-  euclideanDistance(other: VectorValue): FirestoreFunction;
+  euclideanDistance(other: VectorValue): FunctionExpr;
 
   /**
    * Calculates the Euclidean distance between two vectors.
@@ -1334,12 +1325,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The other vector (as an array of numbers) to compare against.
    * @return A new `Expr` representing the Euclidean distance between the two vectors.
    */
-  euclideanDistance(other: number[]): FirestoreFunction;
-  euclideanDistance(other: Expr | VectorValue | number[]): FirestoreFunction {
-    return new FirestoreFunction('euclidean_distance', [
-      this,
-      vectorToExpr(other)
-    ]);
+  euclideanDistance(other: number[]): FunctionExpr;
+  euclideanDistance(other: Expr | VectorValue | number[]): FunctionExpr {
+    return new FunctionExpr('euclidean_distance', [this, vectorToExpr(other)]);
   }
   /**
    * @beta
@@ -1354,7 +1342,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The other vector (as a VectorValue) to compare against.
    * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
    */
-  manhattanDistance(other: VectorValue): FirestoreFunction;
+  manhattanDistance(other: VectorValue): FunctionExpr;
 
   /**
    * @beta
@@ -1369,7 +1357,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The other vector (as an array of doubles) to compare against.
    * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
    */
-  manhattanDistance(other: number[]): FirestoreFunction;
+  manhattanDistance(other: number[]): FunctionExpr;
 
   /**
    * @beta
@@ -1384,12 +1372,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The other vector (represented as an Expr) to compare against.
    * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
    */
-  manhattanDistance(other: Expr): FirestoreFunction;
-  manhattanDistance(other: Expr | number[] | VectorValue): FirestoreFunction {
-    return new FirestoreFunction('manhattan_distance', [
-      this,
-      vectorToExpr(other)
-    ]);
+  manhattanDistance(other: Expr): FunctionExpr;
+  manhattanDistance(other: Expr | number[] | VectorValue): FunctionExpr {
+    return new FunctionExpr('manhattan_distance', [this, vectorToExpr(other)]);
   }
 
   /**
@@ -1403,8 +1388,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * @return A new {@code Expr} representing the timestamp.
    */
-  unixMicrosToTimestamp(): FirestoreFunction {
-    return new FirestoreFunction('unix_micros_to_timestamp', [this]);
+  unixMicrosToTimestamp(): FunctionExpr {
+    return new FunctionExpr('unix_micros_to_timestamp', [this]);
   }
 
   /**
@@ -1417,8 +1402,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * @return A new {@code Expr} representing the number of microseconds since epoch.
    */
-  timestampToUnixMicros(): FirestoreFunction {
-    return new FirestoreFunction('timestamp_to_unix_micros', [this]);
+  timestampToUnixMicros(): FunctionExpr {
+    return new FunctionExpr('timestamp_to_unix_micros', [this]);
   }
 
   /**
@@ -1432,8 +1417,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * @return A new {@code Expr} representing the timestamp.
    */
-  unixMillisToTimestamp(): FirestoreFunction {
-    return new FirestoreFunction('unix_millis_to_timestamp', [this]);
+  unixMillisToTimestamp(): FunctionExpr {
+    return new FunctionExpr('unix_millis_to_timestamp', [this]);
   }
 
   /**
@@ -1446,8 +1431,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * @return A new {@code Expr} representing the number of milliseconds since epoch.
    */
-  timestampToUnixMillis(): FirestoreFunction {
-    return new FirestoreFunction('timestamp_to_unix_millis', [this]);
+  timestampToUnixMillis(): FunctionExpr {
+    return new FunctionExpr('timestamp_to_unix_millis', [this]);
   }
 
   /**
@@ -1461,8 +1446,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * @return A new {@code Expr} representing the timestamp.
    */
-  unixSecondsToTimestamp(): FirestoreFunction {
-    return new FirestoreFunction('unix_seconds_to_timestamp', [this]);
+  unixSecondsToTimestamp(): FunctionExpr {
+    return new FunctionExpr('unix_seconds_to_timestamp', [this]);
   }
 
   /**
@@ -1475,8 +1460,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * @return A new {@code Expr} representing the number of seconds since epoch.
    */
-  timestampToUnixSeconds(): FirestoreFunction {
-    return new FirestoreFunction('timestamp_to_unix_seconds', [this]);
+  timestampToUnixSeconds(): FunctionExpr {
+    return new FunctionExpr('timestamp_to_unix_seconds', [this]);
   }
 
   /**
@@ -1491,7 +1476,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param amount The expression evaluates to amount of the unit.
    * @return A new {@code Expr} representing the resulting timestamp.
    */
-  timestampAdd(unit: Expr, amount: Expr): FirestoreFunction;
+  timestampAdd(unit: Expr, amount: Expr): FunctionExpr;
 
   /**
    * Creates an expression that adds a specified amount of time to this timestamp expression.
@@ -1508,7 +1493,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   timestampAdd(
     unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
     amount: number
-  ): FirestoreFunction;
+  ): FunctionExpr;
   timestampAdd(
     unit:
       | Expr
@@ -1519,8 +1504,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
       | 'hour'
       | 'day',
     amount: Expr | number
-  ): FirestoreFunction {
-    return new FirestoreFunction('timestamp_add', [
+  ): FunctionExpr {
+    return new FunctionExpr('timestamp_add', [
       this,
       valueToDefaultExpr(unit),
       valueToDefaultExpr(amount)
@@ -1539,7 +1524,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param amount The expression evaluates to amount of the unit.
    * @return A new {@code Expr} representing the resulting timestamp.
    */
-  timestampSub(unit: Expr, amount: Expr): FirestoreFunction;
+  timestampSub(unit: Expr, amount: Expr): FunctionExpr;
 
   /**
    * Creates an expression that subtracts a specified amount of time from this timestamp expression.
@@ -1556,7 +1541,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   timestampSub(
     unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
     amount: number
-  ): FirestoreFunction;
+  ): FunctionExpr;
   timestampSub(
     unit:
       | Expr
@@ -1567,8 +1552,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
       | 'hour'
       | 'day',
     amount: Expr | number
-  ): FirestoreFunction {
-    return new FirestoreFunction('timestamp_sub', [
+  ): FunctionExpr {
+    return new FunctionExpr('timestamp_sub', [
       this,
       valueToDefaultExpr(unit),
       valueToDefaultExpr(amount)
@@ -1588,7 +1573,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param otherBits A constant representing bits.
    * @return A new {@code Expr} representing the bitwise AND operation.
    */
-  bitAnd(otherBits: number | Bytes): FirestoreFunction;
+  bitAnd(otherBits: number | Bytes): FunctionExpr;
   /**
    * @beta
    *
@@ -1602,9 +1587,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param bitsExpression An expression that returns bits when evaluated.
    * @return A new {@code Expr} representing the bitwise AND operation.
    */
-  bitAnd(bitsExpression: Expr): FirestoreFunction;
-  bitAnd(bitsOrExpression: number | Expr | Bytes): FirestoreFunction {
-    return new FirestoreFunction('bit_and', [
+  bitAnd(bitsExpression: Expr): FunctionExpr;
+  bitAnd(bitsOrExpression: number | Expr | Bytes): FunctionExpr {
+    return new FunctionExpr('bit_and', [
       this,
       valueToDefaultExpr(bitsOrExpression)
     ]);
@@ -1623,7 +1608,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param otherBits A constant representing bits.
    * @return A new {@code Expr} representing the bitwise OR operation.
    */
-  bitOr(otherBits: number | Bytes): FirestoreFunction;
+  bitOr(otherBits: number | Bytes): FunctionExpr;
   /**
    * @beta
    *
@@ -1637,9 +1622,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param bitsExpression An expression that returns bits when evaluated.
    * @return A new {@code Expr} representing the bitwise OR operation.
    */
-  bitOr(bitsExpression: Expr): FirestoreFunction;
-  bitOr(bitsOrExpression: number | Expr | Bytes): FirestoreFunction {
-    return new FirestoreFunction('bit_or', [
+  bitOr(bitsExpression: Expr): FunctionExpr;
+  bitOr(bitsOrExpression: number | Expr | Bytes): FunctionExpr {
+    return new FunctionExpr('bit_or', [
       this,
       valueToDefaultExpr(bitsOrExpression)
     ]);
@@ -1658,7 +1643,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param otherBits A constant representing bits.
    * @return A new {@code Expr} representing the bitwise XOR operation.
    */
-  bitXor(otherBits: number | Bytes): FirestoreFunction;
+  bitXor(otherBits: number | Bytes): FunctionExpr;
   /**
    * @beta
    *
@@ -1672,9 +1657,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param bitsExpression An expression that returns bits when evaluated.
    * @return A new {@code Expr} representing the bitwise XOR operation.
    */
-  bitXor(bitsExpression: Expr): FirestoreFunction;
-  bitXor(bitsOrExpression: number | Expr | Bytes): FirestoreFunction {
-    return new FirestoreFunction('bit_xor', [
+  bitXor(bitsExpression: Expr): FunctionExpr;
+  bitXor(bitsOrExpression: number | Expr | Bytes): FunctionExpr {
+    return new FunctionExpr('bit_xor', [
       this,
       valueToDefaultExpr(bitsOrExpression)
     ]);
@@ -1692,8 +1677,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * @return A new {@code Expr} representing the bitwise NOT operation.
    */
-  bitNot(): FirestoreFunction {
-    return new FirestoreFunction('bit_not', [this]);
+  bitNot(): FunctionExpr {
+    return new FunctionExpr('bit_not', [this]);
   }
 
   /**
@@ -1709,7 +1694,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param y The operand constant representing the number of bits to shift.
    * @return A new {@code Expr} representing the bitwise left shift operation.
    */
-  bitLeftShift(y: number): FirestoreFunction;
+  bitLeftShift(y: number): FunctionExpr;
   /**
    * @beta
    *
@@ -1723,9 +1708,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param numberExpr The operand expression representing the number of bits to shift.
    * @return A new {@code Expr} representing the bitwise left shift operation.
    */
-  bitLeftShift(numberExpr: Expr): FirestoreFunction;
-  bitLeftShift(numberExpr: number | Expr): FirestoreFunction {
-    return new FirestoreFunction('bit_left_shift', [
+  bitLeftShift(numberExpr: Expr): FunctionExpr;
+  bitLeftShift(numberExpr: number | Expr): FunctionExpr {
+    return new FunctionExpr('bit_left_shift', [
       this,
       valueToDefaultExpr(numberExpr)
     ]);
@@ -1744,7 +1729,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param right The operand constant representing the number of bits to shift.
    * @return A new {@code Expr} representing the bitwise right shift operation.
    */
-  bitRightShift(y: number): FirestoreFunction;
+  bitRightShift(y: number): FunctionExpr;
   /**
    * @beta
    *
@@ -1758,9 +1743,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param numberExpr The operand expression representing the number of bits to shift.
    * @return A new {@code Expr} representing the bitwise right shift operation.
    */
-  bitRightShift(numberExpr: Expr): FirestoreFunction;
-  bitRightShift(numberExpr: number | Expr): FirestoreFunction {
-    return new FirestoreFunction('bit_right_shift', [
+  bitRightShift(numberExpr: Expr): FunctionExpr;
+  bitRightShift(numberExpr: number | Expr): FunctionExpr {
+    return new FunctionExpr('bit_right_shift', [
       this,
       valueToDefaultExpr(numberExpr)
     ]);
@@ -1778,8 +1763,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * @return A new {@code Expr} representing the documentId operation.
    */
-  documentId(): FirestoreFunction {
-    return new FirestoreFunction('document_id', [this]);
+  documentId(): FunctionExpr {
+    return new FunctionExpr('document_id', [this]);
   }
 
   /**
@@ -1791,7 +1776,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param length Length of the substring. If not provided, the substring will
    * end at the end of the input.
    */
-  substr(position: number, length?: number): FirestoreFunction;
+  substr(position: number, length?: number): FunctionExpr;
 
   /**
    * @beta
@@ -1802,13 +1787,13 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param length An expression returning the length of the substring. If not provided the
    * substring will end at the end of the input.
    */
-  substr(position: Expr, length?: Expr): FirestoreFunction;
-  substr(position: Expr | number, length?: Expr | number): FirestoreFunction {
+  substr(position: Expr, length?: Expr): FunctionExpr;
+  substr(position: Expr | number, length?: Expr | number): FunctionExpr {
     const positionExpr = valueToDefaultExpr(position);
     if (length === undefined) {
-      return new FirestoreFunction('substr', [this, positionExpr]);
+      return new FunctionExpr('substr', [this, positionExpr]);
     } else {
-      return new FirestoreFunction('substr', [
+      return new FunctionExpr('substr', [
         this,
         positionExpr,
         valueToDefaultExpr(length)
@@ -1830,7 +1815,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param offset The index of the element to return.
    * @return A new Expr representing the 'arrayOffset' operation.
    */
-  arrayOffset(offset: number): FirestoreFunction;
+  arrayOffset(offset: number): FunctionExpr;
 
   /**
    * @beta
@@ -1847,12 +1832,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param offsetExpr An Expr evaluating to the index of the element to return.
    * @return A new Expr representing the 'arrayOffset' operation.
    */
-  arrayOffset(offsetExpr: Expr): FirestoreFunction;
-  arrayOffset(offset: Expr | number): FirestoreFunction {
-    return new FirestoreFunction('array_offset', [
-      this,
-      valueToDefaultExpr(offset)
-    ]);
+  arrayOffset(offsetExpr: Expr): FunctionExpr;
+  arrayOffset(offset: Expr | number): FunctionExpr {
+    return new FunctionExpr('array_offset', [this, valueToDefaultExpr(offset)]);
   }
 
   /**
@@ -1887,7 +1869,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * returned if this expression produces an error.
    * @return A new {@code Expr} representing the 'ifError' operation.
    */
-  ifError(catchExpr: Expr): FirestoreFunction;
+  ifError(catchExpr: Expr): FunctionExpr;
 
   /**
    * @beta
@@ -1905,12 +1887,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * produces an error.
    * @return A new {@code Expr} representing the 'ifError' operation.
    */
-  ifError(catchValue: any): FirestoreFunction;
-  ifError(catchValue: any): FirestoreFunction {
-    return new FirestoreFunction('if_error', [
-      this,
-      valueToDefaultExpr(catchValue)
-    ]);
+  ifError(catchValue: any): FunctionExpr;
+  ifError(catchValue: any): FunctionExpr {
+    return new FunctionExpr('if_error', [this, valueToDefaultExpr(catchValue)]);
   }
 
   /**
@@ -1975,7 +1954,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param key The name of the key to remove from the input map.
    * @returns A new {@code FirestoreFunction} representing the 'mapRemove' operation.
    */
-  mapRemove(key: string): FirestoreFunction;
+  mapRemove(key: string): FunctionExpr;
   /**
    * @beta
    *
@@ -1989,9 +1968,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param keyExpr An expression that produces the name of the key to remove from the input map.
    * @returns A new {@code FirestoreFunction} representing the 'mapRemove' operation.
    */
-  mapRemove(keyExpr: Expr): FirestoreFunction;
-  mapRemove(stringExpr: Expr | string): FirestoreFunction {
-    return new FirestoreFunction('map_remove', [
+  mapRemove(keyExpr: Expr): FunctionExpr;
+  mapRemove(stringExpr: Expr | string): FunctionExpr {
+    return new FunctionExpr('map_remove', [
       this,
       valueToDefaultExpr(stringExpr)
     ]);
@@ -2018,10 +1997,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   mapMerge(
     secondMap: Record<string, any> | Expr,
     ...otherMaps: Array<Record<string, any> | Expr>
-  ): FirestoreFunction {
+  ): FunctionExpr {
     const secondMapExpr = valueToDefaultExpr(secondMap);
     const otherMapExprs = otherMaps.map(valueToDefaultExpr);
-    return new FirestoreFunction('map_merge', [
+    return new FunctionExpr('map_merge', [
       this,
       secondMapExpr,
       ...otherMapExprs
@@ -2111,11 +2090,11 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
    * ```
    *
    * @param name The alias to assign to this AggregateFunction.
-   * @return A new {@link AggregateFunctionWithAlias} that wraps this
+   * @return A new {@link AggregateWithAlias} that wraps this
    *     AggregateFunction and associates it with the provided alias.
    */
-  as(name: string): AggregateFunctionWithAlias {
-    return new AggregateFunctionWithAlias(this, name);
+  as(name: string): AggregateWithAlias {
+    return new AggregateWithAlias(this, name);
   }
 
   /**
@@ -2149,10 +2128,10 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
  *
  * An AggregateFunction with alias.
  */
-export class AggregateFunctionWithAlias
+export class AggregateWithAlias
   implements UserData, ProtoSerializable<ProtoValue>
 {
-  constructor(readonly expr: AggregateFunction, readonly alias: string) {}
+  constructor(readonly aggregate: AggregateFunction, readonly alias: string) {}
 
   /**
    * @private
@@ -2167,7 +2146,7 @@ export class AggregateFunctionWithAlias
    * @internal
    */
   _readUserData(dataReader: UserDataReader): void {
-    this.expr._readUserData(dataReader);
+    this.aggregate._readUserData(dataReader);
   }
 }
 
@@ -2546,7 +2525,7 @@ export class MapValue extends Expr {
  * Typically, you would not use this class or its children directly. Use either the functions like {@link and}, {@link eq},
  * or the methods on {@link Expr} ({@link Expr#eq}, {@link Expr#lt}, etc) to construct new Function instances.
  */
-export class FirestoreFunction extends Expr {
+export class FunctionExpr extends Expr {
   exprType: ExprType = 'Function';
 
   constructor(private name: string, private params: Expr[]) {
@@ -2582,7 +2561,7 @@ export class FirestoreFunction extends Expr {
  *
  * An interface that represents a filter condition.
  */
-export class BooleanExpr extends FirestoreFunction {
+export class BooleanExpr extends FunctionExpr {
   filterable: true = true;
 
   /**
@@ -2639,8 +2618,8 @@ export function countIf(booleanExpr: BooleanExpr): AggregateFunction {
  *
  * @returns A new `Expr` representing the 'rand' function.
  */
-export function rand(): FirestoreFunction {
-  return new FirestoreFunction('rand', []);
+export function rand(): FunctionExpr {
+  return new FunctionExpr('rand', []);
 }
 
 /**
@@ -2657,10 +2636,7 @@ export function rand(): FirestoreFunction {
  * @param otherBits A constant representing bits.
  * @return A new {@code Expr} representing the bitwise AND operation.
  */
-export function bitAnd(
-  field: string,
-  otherBits: number | Bytes
-): FirestoreFunction;
+export function bitAnd(field: string, otherBits: number | Bytes): FunctionExpr;
 /**
  * @beta
  *
@@ -2675,7 +2651,7 @@ export function bitAnd(
  * @param bitsExpression An expression that returns bits when evaluated.
  * @return A new {@code Expr} representing the bitwise AND operation.
  */
-export function bitAnd(field: string, bitsExpression: Expr): FirestoreFunction;
+export function bitAnd(field: string, bitsExpression: Expr): FunctionExpr;
 /**
  * @beta
  *
@@ -2693,7 +2669,7 @@ export function bitAnd(field: string, bitsExpression: Expr): FirestoreFunction;
 export function bitAnd(
   bitsExpression: Expr,
   otherBits: number | Bytes
-): FirestoreFunction;
+): FunctionExpr;
 /**
  * @beta
  *
@@ -2711,11 +2687,11 @@ export function bitAnd(
 export function bitAnd(
   bitsExpression: Expr,
   otherBitsExpression: Expr
-): FirestoreFunction;
+): FunctionExpr;
 export function bitAnd(
   fieldOrExpression: string | Expr,
   bitsOrExpression: number | Expr | Bytes
-): FirestoreFunction {
+): FunctionExpr {
   return fieldOfOrExpr(fieldOrExpression).bitAnd(
     valueToDefaultExpr(bitsOrExpression)
   );
@@ -2735,10 +2711,7 @@ export function bitAnd(
  * @param otherBits A constant representing bits.
  * @return A new {@code Expr} representing the bitwise OR operation.
  */
-export function bitOr(
-  field: string,
-  otherBits: number | Bytes
-): FirestoreFunction;
+export function bitOr(field: string, otherBits: number | Bytes): FunctionExpr;
 /**
  * @beta
  *
@@ -2753,7 +2726,7 @@ export function bitOr(
  * @param bitsExpression An expression that returns bits when evaluated.
  * @return A new {@code Expr} representing the bitwise OR operation.
  */
-export function bitOr(field: string, bitsExpression: Expr): FirestoreFunction;
+export function bitOr(field: string, bitsExpression: Expr): FunctionExpr;
 /**
  * @beta
  *
@@ -2771,7 +2744,7 @@ export function bitOr(field: string, bitsExpression: Expr): FirestoreFunction;
 export function bitOr(
   bitsExpression: Expr,
   otherBits: number | Bytes
-): FirestoreFunction;
+): FunctionExpr;
 /**
  * @beta
  *
@@ -2789,11 +2762,11 @@ export function bitOr(
 export function bitOr(
   bitsExpression: Expr,
   otherBitsExpression: Expr
-): FirestoreFunction;
+): FunctionExpr;
 export function bitOr(
   fieldOrExpression: string | Expr,
   bitsOrExpression: number | Expr | Bytes
-): FirestoreFunction {
+): FunctionExpr {
   return fieldOfOrExpr(fieldOrExpression).bitOr(
     valueToDefaultExpr(bitsOrExpression)
   );
@@ -2813,10 +2786,7 @@ export function bitOr(
  * @param otherBits A constant representing bits.
  * @return A new {@code Expr} representing the bitwise XOR operation.
  */
-export function bitXor(
-  field: string,
-  otherBits: number | Bytes
-): FirestoreFunction;
+export function bitXor(field: string, otherBits: number | Bytes): FunctionExpr;
 /**
  * @beta
  *
@@ -2831,7 +2801,7 @@ export function bitXor(
  * @param bitsExpression An expression that returns bits when evaluated.
  * @return A new {@code Expr} representing the bitwise XOR operation.
  */
-export function bitXor(field: string, bitsExpression: Expr): FirestoreFunction;
+export function bitXor(field: string, bitsExpression: Expr): FunctionExpr;
 /**
  * @beta
  *
@@ -2849,7 +2819,7 @@ export function bitXor(field: string, bitsExpression: Expr): FirestoreFunction;
 export function bitXor(
   bitsExpression: Expr,
   otherBits: number | Bytes
-): FirestoreFunction;
+): FunctionExpr;
 /**
  * @beta
  *
@@ -2867,11 +2837,11 @@ export function bitXor(
 export function bitXor(
   bitsExpression: Expr,
   otherBitsExpression: Expr
-): FirestoreFunction;
+): FunctionExpr;
 export function bitXor(
   fieldOrExpression: string | Expr,
   bitsOrExpression: number | Expr | Bytes
-): FirestoreFunction {
+): FunctionExpr {
   return fieldOfOrExpr(fieldOrExpression).bitXor(
     valueToDefaultExpr(bitsOrExpression)
   );
@@ -2890,7 +2860,7 @@ export function bitXor(
  * @param field The operand field name.
  * @return A new {@code Expr} representing the bitwise NOT operation.
  */
-export function bitNot(field: string): FirestoreFunction;
+export function bitNot(field: string): FunctionExpr;
 /**
  * @beta
  *
@@ -2904,8 +2874,8 @@ export function bitNot(field: string): FirestoreFunction;
  * @param bitsValueExpression An expression that returns bits when evaluated.
  * @return A new {@code Expr} representing the bitwise NOT operation.
  */
-export function bitNot(bitsValueExpression: Expr): FirestoreFunction;
-export function bitNot(bits: string | Expr): FirestoreFunction {
+export function bitNot(bitsValueExpression: Expr): FunctionExpr;
+export function bitNot(bits: string | Expr): FunctionExpr {
   return fieldOfOrExpr(bits).bitNot();
 }
 
@@ -2923,7 +2893,7 @@ export function bitNot(bits: string | Expr): FirestoreFunction {
  * @param y The right operand constant representing the number of bits to shift.
  * @return A new {@code Expr} representing the bitwise left shift operation.
  */
-export function bitLeftShift(field: string, y: number): FirestoreFunction;
+export function bitLeftShift(field: string, y: number): FunctionExpr;
 /**
  * @beta
  *
@@ -2938,10 +2908,7 @@ export function bitLeftShift(field: string, y: number): FirestoreFunction;
  * @param numberExpr The right operand expression representing the number of bits to shift.
  * @return A new {@code Expr} representing the bitwise left shift operation.
  */
-export function bitLeftShift(
-  field: string,
-  numberExpr: Expr
-): FirestoreFunction;
+export function bitLeftShift(field: string, numberExpr: Expr): FunctionExpr;
 /**
  * @beta
  *
@@ -2956,7 +2923,7 @@ export function bitLeftShift(
  * @param y The right operand constant representing the number of bits to shift.
  * @return A new {@code Expr} representing the bitwise left shift operation.
  */
-export function bitLeftShift(xValue: Expr, y: number): FirestoreFunction;
+export function bitLeftShift(xValue: Expr, y: number): FunctionExpr;
 /**
  * @beta
  *
@@ -2971,11 +2938,11 @@ export function bitLeftShift(xValue: Expr, y: number): FirestoreFunction;
  * @param right The right operand expression representing the number of bits to shift.
  * @return A new {@code Expr} representing the bitwise left shift operation.
  */
-export function bitLeftShift(xValue: Expr, numberExpr: Expr): FirestoreFunction;
+export function bitLeftShift(xValue: Expr, numberExpr: Expr): FunctionExpr;
 export function bitLeftShift(
   xValue: string | Expr,
   numberExpr: number | Expr
-): FirestoreFunction {
+): FunctionExpr {
   return fieldOfOrExpr(xValue).bitLeftShift(valueToDefaultExpr(numberExpr));
 }
 
@@ -2993,7 +2960,7 @@ export function bitLeftShift(
  * @param right The right operand constant representing the number of bits to shift.
  * @return A new {@code Expr} representing the bitwise right shift operation.
  */
-export function bitRightShift(field: string, y: number): FirestoreFunction;
+export function bitRightShift(field: string, y: number): FunctionExpr;
 /**
  * @beta
  *
@@ -3008,10 +2975,7 @@ export function bitRightShift(field: string, y: number): FirestoreFunction;
  * @param numberExpr The right operand expression representing the number of bits to shift.
  * @return A new {@code Expr} representing the bitwise right shift operation.
  */
-export function bitRightShift(
-  field: string,
-  numberExpr: Expr
-): FirestoreFunction;
+export function bitRightShift(field: string, numberExpr: Expr): FunctionExpr;
 /**
  * @beta
  *
@@ -3026,7 +2990,7 @@ export function bitRightShift(
  * @param y The right operand constant representing the number of bits to shift.
  * @return A new {@code Expr} representing the bitwise right shift operation.
  */
-export function bitRightShift(xValue: Expr, y: number): FirestoreFunction;
+export function bitRightShift(xValue: Expr, y: number): FunctionExpr;
 /**
  * @beta
  *
@@ -3041,14 +3005,11 @@ export function bitRightShift(xValue: Expr, y: number): FirestoreFunction;
  * @param right The right operand expression representing the number of bits to shift.
  * @return A new {@code Expr} representing the bitwise right shift operation.
  */
-export function bitRightShift(
-  xValue: Expr,
-  numberExpr: Expr
-): FirestoreFunction;
+export function bitRightShift(xValue: Expr, numberExpr: Expr): FunctionExpr;
 export function bitRightShift(
   xValue: string | Expr,
   numberExpr: number | Expr
-): FirestoreFunction {
+): FunctionExpr {
   return fieldOfOrExpr(xValue).bitRightShift(valueToDefaultExpr(numberExpr));
 }
 
@@ -3067,10 +3028,7 @@ export function bitRightShift(
  * @param offset The index of the element to return.
  * @return A new Expr representing the 'arrayOffset' operation.
  */
-export function arrayOffset(
-  arrayField: string,
-  offset: number
-): FirestoreFunction;
+export function arrayOffset(arrayField: string, offset: number): FunctionExpr;
 
 /**
  * @beta
@@ -3088,10 +3046,7 @@ export function arrayOffset(
  * @param offsetExpr An Expr evaluating to the index of the element to return.
  * @return A new Expr representing the 'arrayOffset' operation.
  */
-export function arrayOffset(
-  arrayField: string,
-  offsetExpr: Expr
-): FirestoreFunction;
+export function arrayOffset(arrayField: string, offsetExpr: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -3111,7 +3066,7 @@ export function arrayOffset(
 export function arrayOffset(
   arrayExpression: Expr,
   offset: number
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -3132,11 +3087,11 @@ export function arrayOffset(
 export function arrayOffset(
   arrayExpression: Expr,
   offsetExpr: Expr
-): FirestoreFunction;
+): FunctionExpr;
 export function arrayOffset(
   array: Expr | string,
   offset: Expr | number
-): FirestoreFunction {
+): FunctionExpr {
   return fieldOfOrExpr(array).arrayOffset(valueToDefaultExpr(offset));
 }
 
@@ -3146,8 +3101,8 @@ export function arrayOffset(
  *
  * @return A new {@code Expr} representing the 'current_context' function.
  */
-export function currentContext(): FirestoreFunction {
-  return new FirestoreFunction('current_context', []);
+export function currentContext(): FunctionExpr {
+  return new FunctionExpr('current_context', []);
 }
 
 /**
@@ -3184,7 +3139,7 @@ export function isError(value: Expr): BooleanExpr {
  * returned if the tryExpr produces an error.
  * @return A new {@code Expr} representing the 'ifError' operation.
  */
-export function ifError(tryExpr: Expr, catchExpr: Expr): FirestoreFunction;
+export function ifError(tryExpr: Expr, catchExpr: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -3203,8 +3158,8 @@ export function ifError(tryExpr: Expr, catchExpr: Expr): FirestoreFunction;
  * error.
  * @return A new {@code Expr} representing the 'ifError' operation.
  */
-export function ifError(tryExpr: Expr, catchValue: any): FirestoreFunction;
-export function ifError(tryExpr: Expr, catchValue: any): FirestoreFunction {
+export function ifError(tryExpr: Expr, catchValue: any): FunctionExpr;
+export function ifError(tryExpr: Expr, catchValue: any): FunctionExpr {
   return tryExpr.ifError(valueToDefaultExpr(catchValue));
 }
 
@@ -3355,7 +3310,7 @@ export function isNotNan(value: Expr | string): BooleanExpr {
  * @param mapField The name of a field containing a map value.
  * @param key The name of the key to remove from the input map.
  */
-export function mapRemove(mapField: string, key: string): FirestoreFunction;
+export function mapRemove(mapField: string, key: string): FunctionExpr;
 /**
  * @beta
  *
@@ -3369,7 +3324,7 @@ export function mapRemove(mapField: string, key: string): FirestoreFunction;
  * @param mapExpr An expression return a map value.
  * @param key The name of the key to remove from the input map.
  */
-export function mapRemove(mapExpr: Expr, key: string): FirestoreFunction;
+export function mapRemove(mapExpr: Expr, key: string): FunctionExpr;
 /**
  * @beta
  *
@@ -3383,7 +3338,7 @@ export function mapRemove(mapExpr: Expr, key: string): FirestoreFunction;
  * @param mapField The name of a field containing a map value.
  * @param keyExpr An expression that produces the name of the key to remove from the input map.
  */
-export function mapRemove(mapField: string, keyExpr: Expr): FirestoreFunction;
+export function mapRemove(mapField: string, keyExpr: Expr): FunctionExpr;
 /**
  * @beta
  *
@@ -3397,12 +3352,12 @@ export function mapRemove(mapField: string, keyExpr: Expr): FirestoreFunction;
  * @param mapExpr An expression return a map value.
  * @param keyExpr An expression that produces the name of the key to remove from the input map.
  */
-export function mapRemove(mapExpr: Expr, keyExpr: Expr): FirestoreFunction;
+export function mapRemove(mapExpr: Expr, keyExpr: Expr): FunctionExpr;
 
 export function mapRemove(
   mapExpr: Expr | string,
   stringExpr: Expr | string
-): FirestoreFunction {
+): FunctionExpr {
   return fieldOfOrExpr(mapExpr).mapRemove(valueToDefaultExpr(stringExpr));
 }
 
@@ -3427,7 +3382,7 @@ export function mapMerge(
   mapField: string,
   secondMap: Record<string, any> | Expr,
   ...otherMaps: Array<Record<string, any> | Expr>
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -3450,13 +3405,13 @@ export function mapMerge(
   firstMap: Record<string, any> | Expr,
   secondMap: Record<string, any> | Expr,
   ...otherMaps: Array<Record<string, any> | Expr>
-): FirestoreFunction;
+): FunctionExpr;
 
 export function mapMerge(
   firstMap: string | Record<string, any> | Expr,
   secondMap: Record<string, any> | Expr,
   ...otherMaps: Array<Record<string, any> | Expr>
-): FirestoreFunction {
+): FunctionExpr {
   const secondMapExpr = valueToDefaultExpr(secondMap);
   const otherMapExprs = otherMaps.map(valueToDefaultExpr);
   return fieldOfOrExpr(firstMap).mapMerge(secondMapExpr, ...otherMapExprs);
@@ -3476,7 +3431,7 @@ export function mapMerge(
  */
 export function documentIdFunction(
   documentPath: string | DocumentReference
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -3490,11 +3445,11 @@ export function documentIdFunction(
  *
  * @return A new {@code Expr} representing the documentId operation.
  */
-export function documentIdFunction(documentPathExpr: Expr): FirestoreFunction;
+export function documentIdFunction(documentPathExpr: Expr): FunctionExpr;
 
 export function documentIdFunction(
   documentPath: Expr | string | DocumentReference
-): FirestoreFunction {
+): FunctionExpr {
   // @ts-ignore
   const documentPathExpr = valueToDefaultExpr(documentPath);
   return documentPathExpr.documentId();
@@ -3513,7 +3468,7 @@ export function substr(
   field: string,
   position: number,
   length?: number
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -3528,7 +3483,7 @@ export function substr(
   input: Expr,
   position: number,
   length?: number
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -3543,7 +3498,7 @@ export function substr(
   field: string,
   position: Expr,
   length?: Expr
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -3558,13 +3513,13 @@ export function substr(
   input: Expr,
   position: Expr,
   length?: Expr
-): FirestoreFunction;
+): FunctionExpr;
 
 export function substr(
   field: Expr | string,
   position: Expr | number,
   length?: Expr | number
-): FirestoreFunction {
+): FunctionExpr {
   const fieldExpr = fieldOfOrExpr(field);
   const positionExpr = valueToDefaultExpr(position);
   const lengthExpr =
@@ -3591,7 +3546,7 @@ export function add(
   first: Expr,
   second: Expr | any,
   ...others: Array<Expr | any>
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -3612,13 +3567,13 @@ export function add(
   fieldName: string,
   second: Expr | any,
   ...others: Array<Expr | any>
-): FirestoreFunction;
+): FunctionExpr;
 
 export function add(
   first: Expr | string,
   second: Expr | any,
   ...others: Array<Expr | any>
-): FirestoreFunction {
+): FunctionExpr {
   return fieldOfOrExpr(first).add(
     valueToDefaultExpr(second),
     ...others.map(value => valueToDefaultExpr(value))
@@ -3639,7 +3594,7 @@ export function add(
  * @param right The expression to subtract.
  * @return A new {@code Expr} representing the subtraction operation.
  */
-export function subtract(left: Expr, right: Expr): FirestoreFunction;
+export function subtract(left: Expr, right: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -3655,7 +3610,7 @@ export function subtract(left: Expr, right: Expr): FirestoreFunction;
  * @param right The constant value to subtract.
  * @return A new {@code Expr} representing the subtraction operation.
  */
-export function subtract(left: Expr, right: any): FirestoreFunction;
+export function subtract(left: Expr, right: any): FunctionExpr;
 
 /**
  * @beta
@@ -3671,7 +3626,7 @@ export function subtract(left: Expr, right: any): FirestoreFunction;
  * @param right The expression to subtract.
  * @return A new {@code Expr} representing the subtraction operation.
  */
-export function subtract(left: string, right: Expr): FirestoreFunction;
+export function subtract(left: string, right: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -3687,11 +3642,8 @@ export function subtract(left: string, right: Expr): FirestoreFunction;
  * @param right The constant value to subtract.
  * @return A new {@code Expr} representing the subtraction operation.
  */
-export function subtract(left: string, right: any): FirestoreFunction;
-export function subtract(
-  left: Expr | string,
-  right: Expr | any
-): FirestoreFunction {
+export function subtract(left: string, right: any): FunctionExpr;
+export function subtract(left: Expr | string, right: Expr | any): FunctionExpr {
   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
   const normalizedRight = valueToDefaultExpr(right);
   return normalizedLeft.subtract(normalizedRight);
@@ -3716,7 +3668,7 @@ export function multiply(
   first: Expr,
   second: Expr | any,
   ...others: Array<Expr | any>
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -3737,13 +3689,13 @@ export function multiply(
   fieldName: string,
   second: Expr | any,
   ...others: Array<Expr | any>
-): FirestoreFunction;
+): FunctionExpr;
 
 export function multiply(
   first: Expr | string,
   second: Expr | any,
   ...others: Array<Expr | any>
-): FirestoreFunction {
+): FunctionExpr {
   return fieldOfOrExpr(first).multiply(
     valueToDefaultExpr(second),
     ...others.map(valueToDefaultExpr)
@@ -3764,7 +3716,7 @@ export function multiply(
  * @param right The expression to divide by.
  * @return A new {@code Expr} representing the division operation.
  */
-export function divide(left: Expr, right: Expr): FirestoreFunction;
+export function divide(left: Expr, right: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -3780,7 +3732,7 @@ export function divide(left: Expr, right: Expr): FirestoreFunction;
  * @param right The constant value to divide by.
  * @return A new {@code Expr} representing the division operation.
  */
-export function divide(left: Expr, right: any): FirestoreFunction;
+export function divide(left: Expr, right: any): FunctionExpr;
 
 /**
  * @beta
@@ -3796,7 +3748,7 @@ export function divide(left: Expr, right: any): FirestoreFunction;
  * @param right The expression to divide by.
  * @return A new {@code Expr} representing the division operation.
  */
-export function divide(left: string, right: Expr): FirestoreFunction;
+export function divide(left: string, right: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -3812,11 +3764,8 @@ export function divide(left: string, right: Expr): FirestoreFunction;
  * @param right The constant value to divide by.
  * @return A new {@code Expr} representing the division operation.
  */
-export function divide(left: string, right: any): FirestoreFunction;
-export function divide(
-  left: Expr | string,
-  right: Expr | any
-): FirestoreFunction {
+export function divide(left: string, right: any): FunctionExpr;
+export function divide(left: Expr | string, right: Expr | any): FunctionExpr {
   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
   const normalizedRight = valueToDefaultExpr(right);
   return normalizedLeft.divide(normalizedRight);
@@ -3836,7 +3785,7 @@ export function divide(
  * @param right The divisor expression.
  * @return A new {@code Expr} representing the modulo operation.
  */
-export function mod(left: Expr, right: Expr): FirestoreFunction;
+export function mod(left: Expr, right: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -3852,7 +3801,7 @@ export function mod(left: Expr, right: Expr): FirestoreFunction;
  * @param right The divisor constant.
  * @return A new {@code Expr} representing the modulo operation.
  */
-export function mod(left: Expr, right: any): FirestoreFunction;
+export function mod(left: Expr, right: any): FunctionExpr;
 
 /**
  * @beta
@@ -3868,7 +3817,7 @@ export function mod(left: Expr, right: any): FirestoreFunction;
  * @param right The divisor expression.
  * @return A new {@code Expr} representing the modulo operation.
  */
-export function mod(left: string, right: Expr): FirestoreFunction;
+export function mod(left: string, right: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -3884,14 +3833,14 @@ export function mod(left: string, right: Expr): FirestoreFunction;
  * @param right The divisor constant.
  * @return A new {@code Expr} representing the modulo operation.
  */
-export function mod(left: string, right: any): FirestoreFunction;
-export function mod(left: Expr | string, right: Expr | any): FirestoreFunction {
+export function mod(left: string, right: any): FunctionExpr;
+export function mod(left: Expr | string, right: Expr | any): FunctionExpr {
   const normalizedLeft = typeof left === 'string' ? Field.of(left) : left;
   const normalizedRight = valueToDefaultExpr(right);
   return normalizedLeft.mod(normalizedRight);
 }
 
-export function map(elements: Record<string, any>): FirestoreFunction {
+export function map(elements: Record<string, any>): FunctionExpr {
   const result: any[] = [];
   for (const key in elements) {
     if (Object.prototype.hasOwnProperty.call(elements, key)) {
@@ -3900,7 +3849,7 @@ export function map(elements: Record<string, any>): FirestoreFunction {
       result.push(valueToDefaultExpr(value));
     }
   }
-  return new FirestoreFunction('map', result);
+  return new FunctionExpr('map', result);
 }
 
 /**
@@ -3925,8 +3874,8 @@ export function _mapValue(plainObject: Record<string, any>): MapValue {
   return new MapValue(result);
 }
 
-export function array(elements: any[]): FirestoreFunction {
-  return new FirestoreFunction(
+export function array(elements: any[]): FunctionExpr {
+  return new FunctionExpr(
     'array',
     elements.map(element => valueToDefaultExpr(element))
   );
@@ -4368,7 +4317,7 @@ export function arrayConcat(
   firstArray: Expr,
   secondArray: Expr | any,
   ...otherArrays: Array<Expr | any>
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -4389,13 +4338,13 @@ export function arrayConcat(
   firstArrayField: string,
   secondArray: Expr | any[],
   ...otherArrays: Array<Expr | any>
-): FirestoreFunction;
+): FunctionExpr;
 
 export function arrayConcat(
   firstArray: Expr | string,
   secondArray: Expr | any[],
   ...otherArrays: Array<Expr | any[]>
-): FirestoreFunction {
+): FunctionExpr {
   const exprValues = otherArrays.map(element => valueToDefaultExpr(element));
   return fieldOfOrExpr(firstArray).arrayConcat(
     fieldOfOrExpr(secondArray),
@@ -4417,7 +4366,7 @@ export function arrayConcat(
  * @param element The element to search for in the array.
  * @return A new {@code Expr} representing the 'array_contains' comparison.
  */
-export function arrayContains(array: Expr, element: Expr): FirestoreFunction;
+export function arrayContains(array: Expr, element: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -4433,7 +4382,7 @@ export function arrayContains(array: Expr, element: Expr): FirestoreFunction;
  * @param element The element to search for in the array.
  * @return A new {@code Expr} representing the 'array_contains' comparison.
  */
-export function arrayContains(array: Expr, element: any): FirestoreFunction;
+export function arrayContains(array: Expr, element: any): FunctionExpr;
 
 /**
  * @beta
@@ -4449,7 +4398,7 @@ export function arrayContains(array: Expr, element: any): FirestoreFunction;
  * @param element The element to search for in the array.
  * @return A new {@code Expr} representing the 'array_contains' comparison.
  */
-export function arrayContains(array: string, element: Expr): FirestoreFunction;
+export function arrayContains(array: string, element: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -4637,7 +4586,7 @@ export function arrayContainsAll(
  * @param array The array expression to calculate the length of.
  * @return A new {@code Expr} representing the length of the array.
  */
-export function arrayLength(array: Expr): FirestoreFunction {
+export function arrayLength(array: Expr): FunctionExpr {
   return array.arrayLength();
 }
 
@@ -4836,7 +4785,7 @@ export function cond(
   condition: BooleanExpr,
   thenExpr: Expr,
   elseExpr: Expr
-): FirestoreFunction {
+): FunctionExpr {
   return new BooleanExpr('cond', [condition, thenExpr, elseExpr]);
 }
 
@@ -4876,7 +4825,7 @@ export function logicalMaximum(
   first: Expr,
   second: Expr | any,
   ...others: Array<Expr | any>
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -4897,13 +4846,13 @@ export function logicalMaximum(
   left: string,
   second: Expr | any,
   ...others: Array<Expr | any>
-): FirestoreFunction;
+): FunctionExpr;
 
 export function logicalMaximum(
   first: Expr | string,
   second: Expr | any,
   ...others: Array<Expr | any>
-): FirestoreFunction {
+): FunctionExpr {
   return fieldOfOrExpr(first).logicalMaximum(
     valueToDefaultExpr(second),
     ...others.map(value => valueToDefaultExpr(value))
@@ -4929,7 +4878,7 @@ export function logicalMinimum(
   first: Expr,
   second: Expr | any,
   ...others: Array<Expr | any>
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -4950,13 +4899,13 @@ export function logicalMinimum(
   fieldName: string,
   second: Expr | any,
   ...others: Array<Expr | any>
-): FirestoreFunction;
+): FunctionExpr;
 
 export function logicalMinimum(
   first: Expr | string,
   second: Expr | any,
   ...others: Array<Expr | any>
-): FirestoreFunction {
+): FunctionExpr {
   return fieldOfOrExpr(first).logicalMinimum(
     valueToDefaultExpr(second),
     ...others.map(value => valueToDefaultExpr(value))
@@ -5042,7 +4991,7 @@ export function isNan(value: Expr | string): BooleanExpr {
  * @param expr The expression representing the string to reverse.
  * @return A new {@code Expr} representing the reversed string.
  */
-export function reverse(expr: Expr): FirestoreFunction;
+export function reverse(expr: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -5057,8 +5006,8 @@ export function reverse(expr: Expr): FirestoreFunction;
  * @param field The name of the field representing the string to reverse.
  * @return A new {@code Expr} representing the reversed string.
  */
-export function reverse(field: string): FirestoreFunction;
-export function reverse(expr: Expr | string): FirestoreFunction {
+export function reverse(field: string): FunctionExpr;
+export function reverse(expr: Expr | string): FunctionExpr {
   return fieldOfOrExpr(expr).reverse();
 }
 
@@ -5081,7 +5030,7 @@ export function replaceFirst(
   value: Expr,
   find: string,
   replace: string
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -5103,7 +5052,7 @@ export function replaceFirst(
   value: Expr,
   find: Expr,
   replace: Expr
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -5124,12 +5073,12 @@ export function replaceFirst(
   field: string,
   find: string,
   replace: string
-): FirestoreFunction;
+): FunctionExpr;
 export function replaceFirst(
   value: Expr | string,
   find: Expr | string,
   replace: Expr | string
-): FirestoreFunction {
+): FunctionExpr {
   const normalizedValue = fieldOfOrExpr(value);
   const normalizedFind = valueToDefaultExpr(find);
   const normalizedReplace = valueToDefaultExpr(replace);
@@ -5155,7 +5104,7 @@ export function replaceAll(
   value: Expr,
   find: string,
   replace: string
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -5177,7 +5126,7 @@ export function replaceAll(
   value: Expr,
   find: Expr,
   replace: Expr
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -5198,12 +5147,12 @@ export function replaceAll(
   field: string,
   find: string,
   replace: string
-): FirestoreFunction;
+): FunctionExpr;
 export function replaceAll(
   value: Expr | string,
   find: Expr | string,
   replace: Expr | string
-): FirestoreFunction {
+): FunctionExpr {
   const normalizedValue = fieldOfOrExpr(value);
   const normalizedFind = valueToDefaultExpr(find);
   const normalizedReplace = valueToDefaultExpr(replace);
@@ -5223,7 +5172,7 @@ export function replaceAll(
  * @param expr The expression representing the string.
  * @return A new {@code Expr} representing the length of the string in bytes.
  */
-export function byteLength(expr: Expr): FirestoreFunction;
+export function byteLength(expr: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -5238,8 +5187,8 @@ export function byteLength(expr: Expr): FirestoreFunction;
  * @param field The name of the field representing the string.
  * @return A new {@code Expr} representing the length of the string in bytes.
  */
-export function byteLength(field: string): FirestoreFunction;
-export function byteLength(expr: Expr | string): FirestoreFunction {
+export function byteLength(field: string): FunctionExpr;
+export function byteLength(expr: Expr | string): FunctionExpr {
   const normalizedExpr = fieldOfOrExpr(expr);
   return normalizedExpr.byteLength();
 }
@@ -5257,7 +5206,7 @@ export function byteLength(expr: Expr | string): FirestoreFunction {
  * @param field The name of the field containing the string.
  * @return A new {@code Expr} representing the length of the string.
  */
-export function charLength(field: string): FirestoreFunction;
+export function charLength(field: string): FunctionExpr;
 
 /**
  * @beta
@@ -5272,8 +5221,8 @@ export function charLength(field: string): FirestoreFunction;
  * @param expr The expression representing the string to calculate the length of.
  * @return A new {@code Expr} representing the length of the string.
  */
-export function charLength(expr: Expr): FirestoreFunction;
-export function charLength(value: Expr | string): FirestoreFunction {
+export function charLength(expr: Expr): FunctionExpr;
+export function charLength(value: Expr | string): FunctionExpr {
   const valueExpr = fieldOfOrExpr(value);
   return valueExpr.charLength();
 }
@@ -5346,7 +5295,7 @@ export function like(left: Expr, pattern: Expr): BooleanExpr;
 export function like(
   left: Expr | string,
   pattern: Expr | string
-): FirestoreFunction {
+): FunctionExpr {
   const leftExpr = fieldOfOrExpr(left);
   const patternExpr = valueToDefaultExpr(pattern);
   return leftExpr.like(patternExpr);
@@ -5727,7 +5676,7 @@ export function endsWith(
  * @param expr The name of the field containing the string.
  * @return A new {@code Expr} representing the lowercase string.
  */
-export function toLower(expr: string): FirestoreFunction;
+export function toLower(expr: string): FunctionExpr;
 
 /**
  * @beta
@@ -5742,8 +5691,8 @@ export function toLower(expr: string): FirestoreFunction;
  * @param expr The expression representing the string to convert to lowercase.
  * @return A new {@code Expr} representing the lowercase string.
  */
-export function toLower(expr: Expr): FirestoreFunction;
-export function toLower(expr: Expr | string): FirestoreFunction {
+export function toLower(expr: Expr): FunctionExpr;
+export function toLower(expr: Expr | string): FunctionExpr {
   return fieldOfOrExpr(expr).toLower();
 }
 
@@ -5760,7 +5709,7 @@ export function toLower(expr: Expr | string): FirestoreFunction {
  * @param expr The name of the field containing the string.
  * @return A new {@code Expr} representing the uppercase string.
  */
-export function toUpper(expr: string): FirestoreFunction;
+export function toUpper(expr: string): FunctionExpr;
 
 /**
  * @beta
@@ -5775,8 +5724,8 @@ export function toUpper(expr: string): FirestoreFunction;
  * @param expr The expression representing the string to convert to uppercase.
  * @return A new {@code Expr} representing the uppercase string.
  */
-export function toUpper(expr: Expr): FirestoreFunction;
-export function toUpper(expr: Expr | string): FirestoreFunction {
+export function toUpper(expr: Expr): FunctionExpr;
+export function toUpper(expr: Expr | string): FunctionExpr {
   return fieldOfOrExpr(expr).toUpper();
 }
 
@@ -5793,7 +5742,7 @@ export function toUpper(expr: Expr | string): FirestoreFunction {
  * @param expr The name of the field containing the string.
  * @return A new {@code Expr} representing the trimmed string.
  */
-export function trim(expr: string): FirestoreFunction;
+export function trim(expr: string): FunctionExpr;
 
 /**
  * @beta
@@ -5808,8 +5757,8 @@ export function trim(expr: string): FirestoreFunction;
  * @param expr The expression representing the string to trim.
  * @return A new {@code Expr} representing the trimmed string.
  */
-export function trim(expr: Expr): FirestoreFunction;
-export function trim(expr: Expr | string): FirestoreFunction {
+export function trim(expr: Expr): FunctionExpr;
+export function trim(expr: Expr | string): FunctionExpr {
   return fieldOfOrExpr(expr).trim();
 }
 
@@ -5832,7 +5781,7 @@ export function strConcat(
   fieldName: string,
   secondString: Expr | string,
   ...otherStrings: Array<Expr | string>
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -5852,12 +5801,12 @@ export function strConcat(
   firstString: Expr,
   secondString: Expr | string,
   ...otherStrings: Array<Expr | string>
-): FirestoreFunction;
+): FunctionExpr;
 export function strConcat(
   first: string | Expr,
   second: string | Expr,
   ...elements: Array<string | Expr>
-): FirestoreFunction {
+): FunctionExpr {
   return valueToDefaultExpr(first).strConcat(
     valueToDefaultExpr(second),
     ...elements.map(valueToDefaultExpr)
@@ -5878,7 +5827,7 @@ export function strConcat(
  * @param subField The key to access in the map.
  * @return A new {@code Expr} representing the value associated with the given key in the map.
  */
-export function mapGet(mapField: string, subField: string): FirestoreFunction;
+export function mapGet(mapField: string, subField: string): FunctionExpr;
 
 /**
  * @beta
@@ -5894,11 +5843,11 @@ export function mapGet(mapField: string, subField: string): FirestoreFunction;
  * @param subField The key to access in the map.
  * @return A new {@code Expr} representing the value associated with the given key in the map.
  */
-export function mapGet(mapExpr: Expr, subField: string): FirestoreFunction;
+export function mapGet(mapExpr: Expr, subField: string): FunctionExpr;
 export function mapGet(
   fieldOrExpr: string | Expr,
   subField: string
-): FirestoreFunction {
+): FunctionExpr {
   return fieldOfOrExpr(fieldOrExpr).mapGet(subField);
 }
 
@@ -6103,10 +6052,7 @@ export function maximum(value: Expr | string): AggregateFunction {
  * @param other The other vector (as an array of doubles) to compare against.
  * @return A new {@code Expr} representing the Cosine distance between the two vectors.
  */
-export function cosineDistance(
-  expr: string,
-  other: number[]
-): FirestoreFunction;
+export function cosineDistance(expr: string, other: number[]): FunctionExpr;
 
 /**
  * @beta
@@ -6122,10 +6068,7 @@ export function cosineDistance(
  * @param other The other vector (as a VectorValue) to compare against.
  * @return A new {@code Expr} representing the Cosine distance between the two vectors.
  */
-export function cosineDistance(
-  expr: string,
-  other: VectorValue
-): FirestoreFunction;
+export function cosineDistance(expr: string, other: VectorValue): FunctionExpr;
 
 /**
  * @beta
@@ -6141,7 +6084,7 @@ export function cosineDistance(
  * @param other The other vector (represented as an Expr) to compare against.
  * @return A new {@code Expr} representing the cosine distance between the two vectors.
  */
-export function cosineDistance(expr: string, other: Expr): FirestoreFunction;
+export function cosineDistance(expr: string, other: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -6157,7 +6100,7 @@ export function cosineDistance(expr: string, other: Expr): FirestoreFunction;
  * @param other The other vector (as an array of doubles) to compare against.
  * @return A new {@code Expr} representing the cosine distance between the two vectors.
  */
-export function cosineDistance(expr: Expr, other: number[]): FirestoreFunction;
+export function cosineDistance(expr: Expr, other: number[]): FunctionExpr;
 
 /**
  * @beta
@@ -6173,10 +6116,7 @@ export function cosineDistance(expr: Expr, other: number[]): FirestoreFunction;
  * @param other The other vector (as a VectorValue) to compare against.
  * @return A new {@code Expr} representing the cosine distance between the two vectors.
  */
-export function cosineDistance(
-  expr: Expr,
-  other: VectorValue
-): FirestoreFunction;
+export function cosineDistance(expr: Expr, other: VectorValue): FunctionExpr;
 
 /**
  * @beta
@@ -6192,11 +6132,11 @@ export function cosineDistance(
  * @param other The other vector (represented as an Expr) to compare against.
  * @return A new {@code Expr} representing the cosine distance between the two vectors.
  */
-export function cosineDistance(expr: Expr, other: Expr): FirestoreFunction;
+export function cosineDistance(expr: Expr, other: Expr): FunctionExpr;
 export function cosineDistance(
   expr: Expr | string,
   other: Expr | number[] | VectorValue
-): FirestoreFunction {
+): FunctionExpr {
   const expr1 = fieldOfOrExpr(expr);
   const expr2 = vectorToExpr(other);
   return expr1.cosineDistance(expr2);
@@ -6216,7 +6156,7 @@ export function cosineDistance(
  * @param other The other vector (as an array of doubles) to calculate with.
  * @return A new {@code Expr} representing the dot product between the two vectors.
  */
-export function dotProduct(expr: string, other: number[]): FirestoreFunction;
+export function dotProduct(expr: string, other: number[]): FunctionExpr;
 
 /**
  * @beta
@@ -6232,7 +6172,7 @@ export function dotProduct(expr: string, other: number[]): FirestoreFunction;
  * @param other The other vector (as a VectorValue) to calculate with.
  * @return A new {@code Expr} representing the dot product between the two vectors.
  */
-export function dotProduct(expr: string, other: VectorValue): FirestoreFunction;
+export function dotProduct(expr: string, other: VectorValue): FunctionExpr;
 
 /**
  * @beta
@@ -6248,7 +6188,7 @@ export function dotProduct(expr: string, other: VectorValue): FirestoreFunction;
  * @param other The other vector (represented as an Expr) to calculate with.
  * @return A new {@code Expr} representing the dot product between the two vectors.
  */
-export function dotProduct(expr: string, other: Expr): FirestoreFunction;
+export function dotProduct(expr: string, other: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -6264,7 +6204,7 @@ export function dotProduct(expr: string, other: Expr): FirestoreFunction;
  * @param other The other vector (as an array of doubles) to calculate with.
  * @return A new {@code Expr} representing the dot product between the two vectors.
  */
-export function dotProduct(expr: Expr, other: number[]): FirestoreFunction;
+export function dotProduct(expr: Expr, other: number[]): FunctionExpr;
 
 /**
  * @beta
@@ -6280,7 +6220,7 @@ export function dotProduct(expr: Expr, other: number[]): FirestoreFunction;
  * @param other The other vector (as a VectorValue) to calculate with.
  * @return A new {@code Expr} representing the dot product between the two vectors.
  */
-export function dotProduct(expr: Expr, other: VectorValue): FirestoreFunction;
+export function dotProduct(expr: Expr, other: VectorValue): FunctionExpr;
 
 /**
  * @beta
@@ -6296,11 +6236,11 @@ export function dotProduct(expr: Expr, other: VectorValue): FirestoreFunction;
  * @param other The other vector (represented as an Expr) to calculate with.
  * @return A new {@code Expr} representing the dot product between the two vectors.
  */
-export function dotProduct(expr: Expr, other: Expr): FirestoreFunction;
+export function dotProduct(expr: Expr, other: Expr): FunctionExpr;
 export function dotProduct(
   expr: Expr | string,
   other: Expr | number[] | VectorValue
-): FirestoreFunction {
+): FunctionExpr {
   const expr1 = fieldOfOrExpr(expr);
   const expr2 = vectorToExpr(other);
   return expr1.dotProduct(expr2);
@@ -6320,10 +6260,7 @@ export function dotProduct(
  * @param other The other vector (as an array of doubles) to compare against.
  * @return A new {@code Expr} representing the Euclidean distance between the two vectors.
  */
-export function euclideanDistance(
-  expr: string,
-  other: number[]
-): FirestoreFunction;
+export function euclideanDistance(expr: string, other: number[]): FunctionExpr;
 
 /**
  * @beta
@@ -6342,7 +6279,7 @@ export function euclideanDistance(
 export function euclideanDistance(
   expr: string,
   other: VectorValue
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -6358,7 +6295,7 @@ export function euclideanDistance(
  * @param other The other vector (represented as an Expr) to compare against.
  * @return A new {@code Expr} representing the Euclidean distance between the two vectors.
  */
-export function euclideanDistance(expr: string, other: Expr): FirestoreFunction;
+export function euclideanDistance(expr: string, other: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -6375,10 +6312,7 @@ export function euclideanDistance(expr: string, other: Expr): FirestoreFunction;
  * @param other The other vector (as an array of doubles) to compare against.
  * @return A new {@code Expr} representing the Euclidean distance between the two vectors.
  */
-export function euclideanDistance(
-  expr: Expr,
-  other: number[]
-): FirestoreFunction;
+export function euclideanDistance(expr: Expr, other: number[]): FunctionExpr;
 
 /**
  * @beta
@@ -6394,10 +6328,7 @@ export function euclideanDistance(
  * @param other The other vector (as a VectorValue) to compare against.
  * @return A new {@code Expr} representing the Euclidean distance between the two vectors.
  */
-export function euclideanDistance(
-  expr: Expr,
-  other: VectorValue
-): FirestoreFunction;
+export function euclideanDistance(expr: Expr, other: VectorValue): FunctionExpr;
 
 /**
  * @beta
@@ -6413,11 +6344,11 @@ export function euclideanDistance(
  * @param other The other vector (represented as an Expr) to compare against.
  * @return A new {@code Expr} representing the Euclidean distance between the two vectors.
  */
-export function euclideanDistance(expr: Expr, other: Expr): FirestoreFunction;
+export function euclideanDistance(expr: Expr, other: Expr): FunctionExpr;
 export function euclideanDistance(
   expr: Expr | string,
   other: Expr | number[] | VectorValue
-): FirestoreFunction {
+): FunctionExpr {
   const expr1 = fieldOfOrExpr(expr);
   const expr2 = vectorToExpr(other);
   return expr1.euclideanDistance(expr2);
@@ -6437,10 +6368,7 @@ export function euclideanDistance(
  * @param other The other vector (as an array of doubles) to compare against.
  * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
  */
-export function manhattanDistance(
-  field: string,
-  other: number[]
-): FirestoreFunction;
+export function manhattanDistance(field: string, other: number[]): FunctionExpr;
 
 /**
  * @beta
@@ -6459,7 +6387,7 @@ export function manhattanDistance(
 export function manhattanDistance(
   expr: string,
   other: VectorValue
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -6475,7 +6403,7 @@ export function manhattanDistance(
  * @param other The other vector (represented as an Expr) to compare against.
  * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
  */
-export function manhattanDistance(expr: string, other: Expr): FirestoreFunction;
+export function manhattanDistance(expr: string, other: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -6492,10 +6420,7 @@ export function manhattanDistance(expr: string, other: Expr): FirestoreFunction;
  * @param other The other vector (as an array of doubles) to compare against.
  * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
  */
-export function manhattanDistance(
-  expr: Expr,
-  other: number[]
-): FirestoreFunction;
+export function manhattanDistance(expr: Expr, other: number[]): FunctionExpr;
 
 /**
  * @beta
@@ -6511,10 +6436,7 @@ export function manhattanDistance(
  * @param other The other vector (as a VectorValue) to compare against.
  * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
  */
-export function manhattanDistance(
-  expr: Expr,
-  other: VectorValue
-): FirestoreFunction;
+export function manhattanDistance(expr: Expr, other: VectorValue): FunctionExpr;
 
 /**
  * @beta
@@ -6530,11 +6452,11 @@ export function manhattanDistance(
  * @param other The other vector (represented as an Expr) to compare against.
  * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
  */
-export function manhattanDistance(expr: Expr, other: Expr): FirestoreFunction;
+export function manhattanDistance(expr: Expr, other: Expr): FunctionExpr;
 export function manhattanDistance(
   fieldOrExpr: Expr | string,
   other: Expr | number[] | VectorValue
-): FirestoreFunction {
+): FunctionExpr {
   const expr1 = fieldOfOrExpr(fieldOrExpr);
   const expr2 = vectorToExpr(other);
   return expr1.manhattanDistance(expr2);
@@ -6553,7 +6475,7 @@ export function manhattanDistance(
  * @param expr The expression representing the Firestore Vector.
  * @return A new {@code Expr} representing the length of the array.
  */
-export function vectorLength(expr: Expr): FirestoreFunction;
+export function vectorLength(expr: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -6568,8 +6490,8 @@ export function vectorLength(expr: Expr): FirestoreFunction;
  * @param field The name of the field representing the Firestore Vector.
  * @return A new {@code Expr} representing the length of the array.
  */
-export function vectorLength(field: string): FirestoreFunction;
-export function vectorLength(expr: Expr | string): FirestoreFunction {
+export function vectorLength(field: string): FunctionExpr;
+export function vectorLength(expr: Expr | string): FunctionExpr {
   return fieldOfOrExpr(expr).vectorLength();
 }
 
@@ -6587,7 +6509,7 @@ export function vectorLength(expr: Expr | string): FirestoreFunction {
  * @param expr The expression representing the number of microseconds since epoch.
  * @return A new {@code Expr} representing the timestamp.
  */
-export function unixMicrosToTimestamp(expr: Expr): FirestoreFunction;
+export function unixMicrosToTimestamp(expr: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -6603,8 +6525,8 @@ export function unixMicrosToTimestamp(expr: Expr): FirestoreFunction;
  * @param field The name of the field representing the number of microseconds since epoch.
  * @return A new {@code Expr} representing the timestamp.
  */
-export function unixMicrosToTimestamp(field: string): FirestoreFunction;
-export function unixMicrosToTimestamp(expr: Expr | string): FirestoreFunction {
+export function unixMicrosToTimestamp(field: string): FunctionExpr;
+export function unixMicrosToTimestamp(expr: Expr | string): FunctionExpr {
   return fieldOfOrExpr(expr).unixMicrosToTimestamp();
 }
 
@@ -6621,7 +6543,7 @@ export function unixMicrosToTimestamp(expr: Expr | string): FirestoreFunction {
  * @param expr The expression representing the timestamp.
  * @return A new {@code Expr} representing the number of microseconds since epoch.
  */
-export function timestampToUnixMicros(expr: Expr): FirestoreFunction;
+export function timestampToUnixMicros(expr: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -6636,8 +6558,8 @@ export function timestampToUnixMicros(expr: Expr): FirestoreFunction;
  * @param field The name of the field representing the timestamp.
  * @return A new {@code Expr} representing the number of microseconds since epoch.
  */
-export function timestampToUnixMicros(field: string): FirestoreFunction;
-export function timestampToUnixMicros(expr: Expr | string): FirestoreFunction {
+export function timestampToUnixMicros(field: string): FunctionExpr;
+export function timestampToUnixMicros(expr: Expr | string): FunctionExpr {
   return fieldOfOrExpr(expr).timestampToUnixMicros();
 }
 
@@ -6655,7 +6577,7 @@ export function timestampToUnixMicros(expr: Expr | string): FirestoreFunction {
  * @param expr The expression representing the number of milliseconds since epoch.
  * @return A new {@code Expr} representing the timestamp.
  */
-export function unixMillisToTimestamp(expr: Expr): FirestoreFunction;
+export function unixMillisToTimestamp(expr: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -6671,8 +6593,8 @@ export function unixMillisToTimestamp(expr: Expr): FirestoreFunction;
  * @param field The name of the field representing the number of milliseconds since epoch.
  * @return A new {@code Expr} representing the timestamp.
  */
-export function unixMillisToTimestamp(field: string): FirestoreFunction;
-export function unixMillisToTimestamp(expr: Expr | string): FirestoreFunction {
+export function unixMillisToTimestamp(field: string): FunctionExpr;
+export function unixMillisToTimestamp(expr: Expr | string): FunctionExpr {
   const normalizedExpr = fieldOfOrExpr(expr);
   return normalizedExpr.unixMillisToTimestamp();
 }
@@ -6690,7 +6612,7 @@ export function unixMillisToTimestamp(expr: Expr | string): FirestoreFunction {
  * @param expr The expression representing the timestamp.
  * @return A new {@code Expr} representing the number of milliseconds since epoch.
  */
-export function timestampToUnixMillis(expr: Expr): FirestoreFunction;
+export function timestampToUnixMillis(expr: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -6705,8 +6627,8 @@ export function timestampToUnixMillis(expr: Expr): FirestoreFunction;
  * @param field The name of the field representing the timestamp.
  * @return A new {@code Expr} representing the number of milliseconds since epoch.
  */
-export function timestampToUnixMillis(field: string): FirestoreFunction;
-export function timestampToUnixMillis(expr: Expr | string): FirestoreFunction {
+export function timestampToUnixMillis(field: string): FunctionExpr;
+export function timestampToUnixMillis(expr: Expr | string): FunctionExpr {
   const normalizedExpr = fieldOfOrExpr(expr);
   return normalizedExpr.timestampToUnixMillis();
 }
@@ -6725,7 +6647,7 @@ export function timestampToUnixMillis(expr: Expr | string): FirestoreFunction {
  * @param expr The expression representing the number of seconds since epoch.
  * @return A new {@code Expr} representing the timestamp.
  */
-export function unixSecondsToTimestamp(expr: Expr): FirestoreFunction;
+export function unixSecondsToTimestamp(expr: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -6741,8 +6663,8 @@ export function unixSecondsToTimestamp(expr: Expr): FirestoreFunction;
  * @param field The name of the field representing the number of seconds since epoch.
  * @return A new {@code Expr} representing the timestamp.
  */
-export function unixSecondsToTimestamp(field: string): FirestoreFunction;
-export function unixSecondsToTimestamp(expr: Expr | string): FirestoreFunction {
+export function unixSecondsToTimestamp(field: string): FunctionExpr;
+export function unixSecondsToTimestamp(expr: Expr | string): FunctionExpr {
   const normalizedExpr = fieldOfOrExpr(expr);
   return normalizedExpr.unixSecondsToTimestamp();
 }
@@ -6760,7 +6682,7 @@ export function unixSecondsToTimestamp(expr: Expr | string): FirestoreFunction {
  * @param expr The expression representing the timestamp.
  * @return A new {@code Expr} representing the number of seconds since epoch.
  */
-export function timestampToUnixSeconds(expr: Expr): FirestoreFunction;
+export function timestampToUnixSeconds(expr: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -6775,8 +6697,8 @@ export function timestampToUnixSeconds(expr: Expr): FirestoreFunction;
  * @param field The name of the field representing the timestamp.
  * @return A new {@code Expr} representing the number of seconds since epoch.
  */
-export function timestampToUnixSeconds(field: string): FirestoreFunction;
-export function timestampToUnixSeconds(expr: Expr | string): FirestoreFunction {
+export function timestampToUnixSeconds(field: string): FunctionExpr;
+export function timestampToUnixSeconds(expr: Expr | string): FunctionExpr {
   const normalizedExpr = fieldOfOrExpr(expr);
   return normalizedExpr.timestampToUnixSeconds();
 }
@@ -6800,7 +6722,7 @@ export function timestampAdd(
   timestamp: Expr,
   unit: Expr,
   amount: Expr
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -6821,7 +6743,7 @@ export function timestampAdd(
   timestamp: Expr,
   unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
   amount: number
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -6842,7 +6764,7 @@ export function timestampAdd(
   field: string,
   unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
   amount: number
-): FirestoreFunction;
+): FunctionExpr;
 export function timestampAdd(
   timestamp: Expr | string,
   unit:
@@ -6854,7 +6776,7 @@ export function timestampAdd(
     | 'hour'
     | 'day',
   amount: Expr | number
-): FirestoreFunction {
+): FunctionExpr {
   const normalizedTimestamp = fieldOfOrExpr(timestamp);
   const normalizedUnit = valueToDefaultExpr(unit);
   const normalizedAmount = valueToDefaultExpr(amount);
@@ -6880,7 +6802,7 @@ export function timestampSub(
   timestamp: Expr,
   unit: Expr,
   amount: Expr
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -6901,7 +6823,7 @@ export function timestampSub(
   timestamp: Expr,
   unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
   amount: number
-): FirestoreFunction;
+): FunctionExpr;
 
 /**
  * @beta
@@ -6922,7 +6844,7 @@ export function timestampSub(
   field: string,
   unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
   amount: number
-): FirestoreFunction;
+): FunctionExpr;
 export function timestampSub(
   timestamp: Expr | string,
   unit:
@@ -6934,7 +6856,7 @@ export function timestampSub(
     | 'hour'
     | 'day',
   amount: Expr | number
-): FirestoreFunction {
+): FunctionExpr {
   const normalizedTimestamp = fieldOfOrExpr(timestamp);
   const normalizedUnit = valueToDefaultExpr(unit);
   const normalizedAmount = valueToDefaultExpr(amount);
@@ -6958,8 +6880,8 @@ export function timestampSub(
 export function genericFunction(
   functionName: string,
   params: any[]
-): FirestoreFunction {
-  return new FirestoreFunction(functionName, params.map(valueToDefaultExpr));
+): FunctionExpr {
+  return new FunctionExpr(functionName, params.map(valueToDefaultExpr));
 }
 
 /**
