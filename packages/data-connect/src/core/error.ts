@@ -40,8 +40,8 @@ export const Code = {
 
 /** An error returned by a DataConnect operation. */
 export class DataConnectError extends FirebaseError {
-  /** The stack of the error. */
-  readonly stack?: string;
+  /** @internal */
+  readonly name: string = 'DataConnectError';
 
   /** @hideconstructor */
   constructor(
@@ -52,13 +52,64 @@ export class DataConnectError extends FirebaseError {
     /**
      * A custom error description.
      */
-    readonly message: string
+    message: string
   ) {
     super(code, message);
 
-    // HACK: We write a toString property directly because Error is not a real
-    // class and so inheritance does not work correctly. We could alternatively
-    // do the same "back-door inheritance" trick that FirebaseError does.
-    this.toString = () => `${this.name}: [code=${this.code}]: ${this.message}`;
+    // Ensure the instanceof operator works as expected on subclasses of Error.
+    // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#custom_error_types
+    // and https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
+    Object.setPrototypeOf(this, new.target.prototype);
   }
+
+  /** @internal */
+  toString(): string {
+    return `${this.name}[code=${this.code}]: ${this.message}`;
+  }
+}
+
+/** An error returned by a DataConnect operation. */
+export class DataConnectOperationError extends DataConnectError {
+  /** @internal */
+  readonly name: string = 'DataConnectOperationError';
+
+  /** The response received from the backend. */
+  readonly response: DataConnectOperationResponse;
+
+  /** @hideconstructor */
+  constructor(message: string, response: DataConnectOperationResponse) {
+    super('partial-error', message);
+    this.response = response;
+
+    // Ensure the instanceof operator works as expected on subclasses of Error.
+    // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#custom_error_types
+    // and https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+export interface DataConnectOperationResponse {
+  // The "data" provided by the backend in the response message.
+  //
+  // Will be `undefined` if no "data" was provided in the response message.
+  // Otherwise, will be `null` if `null` was explicitly specified as the "data"
+  // in the response message. Otherwise, will be the value of the "data"
+  // specified as the "data" in the response message
+  readonly data?: Record<string, unknown> | null;
+
+  // The list of errors provided by the backend in the response message.
+  readonly errors: DataConnectOperationErrorInfo[];
+}
+
+// Information about the error, as provided in the response from the backend.
+// See https://spec.graphql.org/draft/#sec-Errors
+export interface DataConnectOperationErrorInfo {
+  // The error message.
+  readonly message: string;
+
+  // The path of the field in the response data to which this error relates.
+  // String values in this array refer to field names. Numeric values in this
+  // array always satisfy `Number.isInteger()` and refer to the index in an
+  // array.
+  readonly path: Array<string | number>;
 }
