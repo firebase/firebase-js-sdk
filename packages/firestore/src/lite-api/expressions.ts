@@ -6973,36 +6973,68 @@ export function orFunction(
 /**
  * @beta
  *
- * Creates an {@link Ordering} that sorts documents in ascending order based on this expression.
+ * Creates an {@link Ordering} that sorts documents in ascending order based on an expression.
  *
  * ```typescript
- * // Sort documents by the 'name' field in ascending order
+ * // Sort documents by the 'name' field in lowercase in ascending order
  * firestore.pipeline().collection("users")
- *   .sort(ascending(field("name")));
+ *   .sort(ascending(field("name").toLower()));
  * ```
  *
  * @param expr The expression to create an ascending ordering for.
  * @return A new `Ordering` for ascending sorting.
  */
-export function ascending(expr: Expr): Ordering {
-  return new Ordering(expr, 'ascending');
+export function ascending(expr: Expr): Ordering;
+
+/**
+ * @beta
+ *
+ * Creates an {@link Ordering} that sorts documents in ascending order based on a field.
+ *
+ * ```typescript
+ * // Sort documents by the 'name' field in ascending order
+ * firestore.pipeline().collection("users")
+ *   .sort(ascending("name"));
+ * ```
+ *
+ * @param fieldName The field to create an ascending ordering for.
+ * @return A new `Ordering` for ascending sorting.
+ */
+export function ascending(fieldName: string): Ordering;
+export function ascending(field: Expr | string): Ordering  {
+  return new Ordering(fieldOfOrExpr(field), 'ascending');
 }
 
 /**
  * @beta
  *
- * Creates an {@link Ordering} that sorts documents in descending order based on this expression.
+ * Creates an {@link Ordering} that sorts documents in descending order based on an expression.
  *
  * ```typescript
- * // Sort documents by the 'createdAt' field in descending order
+ * // Sort documents by the 'name' field in lowercase in descending order
  * firestore.pipeline().collection("users")
- *   .sort(descending(field("createdAt")));
+ *   .sort(descending(field("name").toLower()));
  * ```
  *
  * @param expr The expression to create a descending ordering for.
  * @return A new `Ordering` for descending sorting.
  */
 export function descending(expr: Expr): Ordering;
+
+/**
+ * @beta
+ *
+ * Creates an {@link Ordering} that sorts documents in descending order based on a field.
+ *
+ * ```typescript
+ * // Sort documents by the 'name' field in descending order
+ * firestore.pipeline().collection("users")
+ *   .sort(descending("name"));
+ * ```
+ *
+ * @param fieldName The field to create a descending ordering for.
+ * @return A new `Ordering` for descending sorting.
+ */
 export function descending(fieldName: string): Ordering;
 export function descending(field: Expr | string): Ordering {
   return new Ordering(fieldOfOrExpr(field), 'descending');
@@ -7015,7 +7047,7 @@ export function descending(field: Expr | string): Ordering {
  *
  * You create `Ordering` instances using the `ascending` and `descending` helper functions.
  */
-export class Ordering {
+export class Ordering implements ProtoValueSerializable, UserData {
   constructor(
     readonly expr: Expr,
     readonly direction: 'ascending' | 'descending'
@@ -7043,4 +7075,6 @@ export class Ordering {
   _readUserData(dataReader: UserDataReader): void {
     this.expr._readUserData(dataReader);
   }
+
+  _protoValueType: "ProtoValue" = "ProtoValue";
 }
