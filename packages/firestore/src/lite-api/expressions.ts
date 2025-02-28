@@ -131,7 +131,7 @@ function fieldOfOrExpr(value: any): Expr {
  * method calls to create complex expressions.
  */
 export abstract class Expr implements ProtoValueSerializable, UserData {
-  abstract exprType: ExprType;
+  abstract readonly exprType: ExprType;
 
   /**
    * @private
@@ -2218,7 +2218,7 @@ class ListOfExprs extends Expr {
  * ```
  */
 export class Field extends Expr implements Selectable {
-  exprType: ExprType = 'Field';
+  readonly exprType: ExprType = 'Field';
   selectable = true as const;
 
   private constructor(private fieldPath: InternalFieldPath) {
@@ -2303,7 +2303,7 @@ export class Field extends Expr implements Selectable {
  * ```
  */
 export class Constant extends Expr {
-  exprType: ExprType = 'Constant';
+  readonly exprType: ExprType = 'Constant';
 
   private _protoValue?: ProtoValue;
 
@@ -2526,7 +2526,7 @@ export class MapValue extends Expr {
  * or the methods on {@link Expr} ({@link Expr#eq}, {@link Expr#lt}, etc) to construct new Function instances.
  */
 export class FunctionExpr extends Expr {
-  exprType: ExprType = 'Function';
+  readonly exprType: ExprType = 'Function';
 
   constructor(private name: string, private params: Expr[]) {
     super();
