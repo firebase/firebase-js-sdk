@@ -440,7 +440,7 @@ apiDescribe.only('Pipelines', persistence => {
       ).as('bytes'),
       constant(doc(firestore, 'foo', 'bar')).as('documentReference'),
       constant(vector([1, 2, 3])).as('vectorValue'),
-      constant({
+      map({
         'number': 1,
         'string': 'a string',
         'boolean': true,
@@ -459,7 +459,7 @@ apiDescribe.only('Pipelines', persistence => {
         },
         'array': [1, 'c string']
       }).as('map'),
-      constant([
+      array([
         1,
         'a string',
         true,
