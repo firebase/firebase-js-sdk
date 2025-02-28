@@ -2459,22 +2459,6 @@ export function constant(value: DocumentReference): Constant;
 export function constant(value: ProtoValue): Constant;
 
 /**
- * Creates a `Constant` instance for an array value.
- *
- * @param value The array value.
- * @return A new `Constant` instance.
- */
-export function constant(value: any[]): Constant;
-
-/**
- * Creates a `Constant` instance for a map value.
- *
- * @param value The map value.
- * @return A new `Constant` instance.
- */
-export function constant(value: Record<string, any>): Constant;
-
-/**
  * Creates a `Constant` instance for a VectorValue value.
  *
  * @param value The VectorValue value.
