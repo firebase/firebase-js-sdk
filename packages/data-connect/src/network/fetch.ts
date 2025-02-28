@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { Code, DataConnectError } from '../core/error';
+import {
+  Code,
+  DataConnectError,
+  DataConnectOperationError,
+  DataConnectOperationResponse
+} from '../core/error';
 import { SDK_VERSION } from '../core/version';
 import { logDebug, logError } from '../logger';
 
@@ -106,10 +111,17 @@ export function dcFetch<T, U>(
       return jsonResponse;
     })
     .then(res => {
+      console.log(res.errors);
       if (res.errors && res.errors.length) {
         const stringified = JSON.stringify(res.errors);
-        logError('DataConnect error while performing request: ' + stringified);
-        throw new DataConnectError(Code.OTHER, stringified);
+        const response: DataConnectOperationResponse = {
+          errors: res.errors,
+          data: res.data
+        };
+        throw new DataConnectOperationError(
+          'DataConnect error while performing request: ' + stringified,
+          response
+        );
       }
       return res;
     });
