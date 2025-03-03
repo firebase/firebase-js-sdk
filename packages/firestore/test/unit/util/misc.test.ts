@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 
 import { debugCast } from '../../../src/util/assert';
-import { immediateSuccessor } from '../../../src/util/misc';
+import { compareUtf8Strings, immediateSuccessor } from '../../../src/util/misc';
 import { mask } from '../../util/helpers';
 
 describe('immediateSuccessor', () => {
