@@ -555,53 +555,107 @@ apiDescribe.only('Pipelines', persistence => {
     expect(proto).not.to.be.null;
   });
 
-  it('returns execution time', async () => {
-    const start = new Date().valueOf();
-    const pipeline = firestore.pipeline().collection(randomCol.path);
+  describe('timestamps', () => {
+    it('returns execution time', async () => {
+      const start = new Date().valueOf();
+      const pipeline = firestore.pipeline().collection(randomCol.path);
 
-    const snapshot = await execute(pipeline);
-    const end = new Date().valueOf();
+      const snapshot = await execute(pipeline);
+      const end = new Date().valueOf();
 
-    expect(snapshot.executionTime.toDate().valueOf()).to.approximately(
-      (start + end) / 2,
-      end - start
-    );
-  });
-
-  it('returns create and update time for each document', async () => {
-    const pipeline = firestore.pipeline().collection(randomCol.path);
-
-    let snapshot = await execute(pipeline);
-    expect(snapshot.results.length).to.equal(10);
-    snapshot.results.forEach(doc => {
-      expect(doc.createTime).to.not.be.null;
-      expect(doc.updateTime).to.not.be.null;
-
-      expect(doc.createTime!.toDate().valueOf()).to.approximately(
-        (beginDocCreation + endDocCreation) / 2,
-        endDocCreation - beginDocCreation
+      expect(snapshot.executionTime.toDate().valueOf()).to.approximately(
+        (start + end) / 2,
+        end - start
       );
-      expect(doc.updateTime!.toDate().valueOf()).to.approximately(
-        (beginDocCreation + endDocCreation) / 2,
-        endDocCreation - beginDocCreation
-      );
-      expect(doc.createTime?.valueOf()).to.equal(doc.updateTime?.valueOf());
     });
 
-    const wb = writeBatch(firestore);
-    snapshot.results.forEach(doc => {
-      wb.update(doc.ref!, { newField: 'value' });
-    });
-    await wb.commit();
+    it('returns execution time for an empty query', async () => {
+      const start = new Date().valueOf();
+      const pipeline = firestore.pipeline().collection(randomCol.path).limit(0);
 
-    snapshot = await execute(pipeline);
-    expect(snapshot.results.length).to.equal(10);
-    snapshot.results.forEach(doc => {
-      expect(doc.createTime).to.not.be.null;
-      expect(doc.updateTime).to.not.be.null;
-      expect(doc.createTime!.toDate().valueOf()).to.be.lessThan(
-        doc.updateTime!.toDate().valueOf()
+      const snapshot = await execute(pipeline);
+      const end = new Date().valueOf();
+
+      expect(snapshot.results.length).to.equal(0);
+
+      expect(snapshot.executionTime.toDate().valueOf()).to.approximately(
+        (start + end) / 2,
+        end - start
       );
+    });
+
+    it('returns create and update time for each document', async () => {
+      const pipeline = firestore.pipeline().collection(randomCol.path);
+
+      let snapshot = await execute(pipeline);
+      expect(snapshot.results.length).to.equal(10);
+      snapshot.results.forEach(doc => {
+        expect(doc.createTime).to.not.be.null;
+        expect(doc.updateTime).to.not.be.null;
+
+        expect(doc.createTime!.toDate().valueOf()).to.approximately(
+          (beginDocCreation + endDocCreation) / 2,
+          endDocCreation - beginDocCreation
+        );
+        expect(doc.updateTime!.toDate().valueOf()).to.approximately(
+          (beginDocCreation + endDocCreation) / 2,
+          endDocCreation - beginDocCreation
+        );
+        expect(doc.createTime?.valueOf()).to.equal(doc.updateTime?.valueOf());
+      });
+
+      const wb = writeBatch(firestore);
+      snapshot.results.forEach(doc => {
+        wb.update(doc.ref!, { newField: 'value' });
+      });
+      await wb.commit();
+
+      snapshot = await execute(pipeline);
+      expect(snapshot.results.length).to.equal(10);
+      snapshot.results.forEach(doc => {
+        expect(doc.createTime).to.not.be.null;
+        expect(doc.updateTime).to.not.be.null;
+        expect(doc.createTime!.toDate().valueOf()).to.be.lessThan(
+          doc.updateTime!.toDate().valueOf()
+        );
+      });
+    });
+
+    it('returns execution time for an aggregate query', async () => {
+      const start = new Date().valueOf();
+      const pipeline = firestore
+        .pipeline()
+        .collection(randomCol.path)
+        .aggregate(avgFunction('rating').as('avgRating'));
+
+      const snapshot = await execute(pipeline);
+      const end = new Date().valueOf();
+
+      expect(snapshot.results.length).to.equal(1);
+
+      expect(snapshot.executionTime.toDate().valueOf()).to.approximately(
+        (start + end) / 2,
+        end - start
+      );
+    });
+
+    it('returns undefined create and update time for each result in an aggregate query', async () => {
+      const pipeline = firestore
+        .pipeline()
+        .collection(randomCol.path)
+        .aggregate({
+          accumulators: [avgFunction('rating').as('avgRating')],
+          groups: ['genre']
+        });
+
+      const snapshot = await execute(pipeline);
+
+      expect(snapshot.results.length).to.equal(8);
+
+      snapshot.results.forEach(doc => {
+        expect(doc.updateTime).to.be.undefined;
+        expect(doc.createTime).to.be.undefined;
+      });
     });
   });
 
