@@ -99,7 +99,8 @@ import {
   logicalMinimum,
   xor,
   field,
-  constant
+  constant,
+  writeBatch
 } from '../util/firebase_export';
 import { apiDescribe, withTestCollection } from '../util/helpers';
 
@@ -112,16 +113,20 @@ apiDescribe.only('Pipelines', persistence => {
 
   let firestore: Firestore;
   let randomCol: CollectionReference;
+  let beginDocCreation: number = 0;
+  let endDocCreation: number = 0;
 
   async function testCollectionWithDocs(docs: {
     [id: string]: DocumentData;
   }): Promise<CollectionReference<DocumentData>> {
+    beginDocCreation = new Date().valueOf();
     for (const id in docs) {
       if (docs.hasOwnProperty(id)) {
         const ref = doc(randomCol, id);
         await setDoc(ref, docs[id]);
       }
     }
+    endDocCreation = new Date().valueOf();
     return randomCol;
   }
 
@@ -548,6 +553,56 @@ apiDescribe.only('Pipelines', persistence => {
 
     const proto = _internalPipelineToExecutePipelineRequestProto(pipeline);
     expect(proto).not.to.be.null;
+  });
+
+  it('returns execution time', async () => {
+    const start = new Date().valueOf();
+    const pipeline = firestore.pipeline().collection(randomCol.path);
+
+    const snapshot = await execute(pipeline);
+    const end = new Date().valueOf();
+
+    expect(snapshot.executionTime.toDate().valueOf()).to.approximately(
+      (start + end) / 2,
+      end - start
+    );
+  });
+
+  it('returns create and update time for each document', async () => {
+    const pipeline = firestore.pipeline().collection(randomCol.path);
+
+    let snapshot = await execute(pipeline);
+    expect(snapshot.results.length).to.equal(10);
+    snapshot.results.forEach(doc => {
+      expect(doc.createTime).to.not.be.null;
+      expect(doc.updateTime).to.not.be.null;
+
+      expect(doc.createTime!.toDate().valueOf()).to.approximately(
+        (beginDocCreation + endDocCreation) / 2,
+        endDocCreation - beginDocCreation
+      );
+      expect(doc.updateTime!.toDate().valueOf()).to.approximately(
+        (beginDocCreation + endDocCreation) / 2,
+        endDocCreation - beginDocCreation
+      );
+      expect(doc.createTime?.valueOf()).to.equal(doc.updateTime?.valueOf());
+    });
+
+    const wb = writeBatch(firestore);
+    snapshot.results.forEach(doc => {
+      wb.update(doc.ref!, { newField: 'value' });
+    });
+    await wb.commit();
+
+    snapshot = await execute(pipeline);
+    expect(snapshot.results.length).to.equal(10);
+    snapshot.results.forEach(doc => {
+      expect(doc.createTime).to.not.be.null;
+      expect(doc.updateTime).to.not.be.null;
+      expect(doc.createTime!.toDate().valueOf()).to.be.lessThan(
+        doc.updateTime!.toDate().valueOf()
+      );
+    });
   });
 
   describe('stages', () => {
