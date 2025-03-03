@@ -206,8 +206,8 @@ export async function getToken(
     appCheckInstance as AppCheckService,
     forceRefresh
   );
-  if (result.error) {
-    throw result.error;
+  if (result.internalError) {
+    throw result.internalError;
   }
   return { token: result.token };
 }
