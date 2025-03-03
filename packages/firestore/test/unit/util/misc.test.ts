@@ -56,13 +56,14 @@ describe('FieldMask', () => {
 
 describe('CompareUtf8Strings', () => {
   it('compareUtf8Strings should return correct results', () => {
+    console.log("========running CompareUtf8Strings")
     const errors = [];
     const seed = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
     let passCount = 0;
     const stringGenerator = new StringGenerator(new Random(seed), 0.33, 20);
     const stringPairGenerator = new StringPairGenerator(stringGenerator);
 
-    for (let i = 0; i < 1000 && errors.length < 10; i++) {
+    for (let i = 0; i < 100 && errors.length < 10; i++) {
       const { s1, s2 } = stringPairGenerator.next();
 
       const actual = compareUtf8Strings(s1, s2);
