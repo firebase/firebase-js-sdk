@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Firestore } from '../api/database';
+import { Firestore } from '../lite-api/database';
 import {
   Constant,
   Field,

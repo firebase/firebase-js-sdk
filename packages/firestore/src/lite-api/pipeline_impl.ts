@@ -22,7 +22,7 @@ import { Firestore } from './database';
 import { Pipeline } from './pipeline';
 import { PipelineResult, PipelineSnapshot } from './pipeline-result';
 import { PipelineSource } from './pipeline-source';
-import { DocumentReference, Query } from './reference';
+import { DocumentReference } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
 import { Stage } from './stage';
 import { newUserDataReader } from './user_data_reader';
@@ -30,12 +30,6 @@ import { newUserDataReader } from './user_data_reader';
 declare module './database' {
   interface Firestore {
     pipeline(): PipelineSource<Pipeline>;
-  }
-}
-
-declare module './reference' {
-  interface Query {
-    pipeline(): Pipeline;
   }
 }
 
@@ -106,23 +100,4 @@ Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
   return new PipelineSource<Pipeline>(this._databaseId, (stages: Stage[]) => {
     return new Pipeline(this, userDataReader, userDataWriter, stages);
   });
-};
-
-Query.prototype.pipeline = function (): Pipeline {
-  let pipeline;
-  const query = this;
-  if (query._query.collectionGroup) {
-    pipeline = query.firestore
-      .pipeline()
-      .collectionGroup(query._query.collectionGroup);
-  } else {
-    pipeline = query.firestore
-      .pipeline()
-      .collection(query._query.path.canonicalString());
-  }
-
-  // TODO(pipeline) convert existing query filters, limits, etc into
-  // pipeline stages
-
-  return pipeline;
 };

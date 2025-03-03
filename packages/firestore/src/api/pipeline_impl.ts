@@ -17,7 +17,6 @@
 
 import { Pipeline } from '../api/pipeline';
 import { firestoreClientExecutePipeline } from '../core/firestore_client';
-import { toPipeline } from '../core/pipeline-util';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult, PipelineSnapshot } from '../lite-api/pipeline-result';
 import { PipelineSource } from '../lite-api/pipeline-source';
@@ -26,7 +25,7 @@ import { newUserDataReader } from '../lite-api/user_data_reader';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
-import { DocumentReference, Query } from './reference';
+import { DocumentReference } from './reference';
 import { ExpUserDataWriter } from './user_data_writer';
 
 declare module './database' {
@@ -107,12 +106,4 @@ Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
       stages
     );
   });
-};
-
-// Augment the Query class with the pipeline() factory method
-Query.prototype.pipeline = function (): Pipeline {
-  const db = cast<Firestore>(this.firestore, Firestore);
-
-  const litePipeline: LitePipeline = toPipeline(this._query, db);
-  return cast<Pipeline>(litePipeline, Pipeline);
 };

@@ -16,9 +16,11 @@
  */
 
 import { DatabaseId } from '../core/database_info';
+import { toPipeline } from '../core/pipeline-util';
 import { FirestoreError, Code } from '../util/error';
 
-import { CollectionReference, DocumentReference } from './reference';
+import { Pipeline } from './pipeline';
+import { CollectionReference, DocumentReference, Query } from './reference';
 import {
   CollectionGroupSource,
   CollectionSource,
@@ -103,6 +105,17 @@ export class PipelineSource<PipelineType> {
     });
 
     return this._createPipeline([DocumentsSource.of(docs)]);
+  }
+
+  /**
+   * Convert the given Query into an equivalent Pipeline.
+   *
+   * @param query A Query to be converted into a Pipeline.
+   *
+   * @throws {@FirestoreError} Thrown if any of the provided DocumentReferences target a different project or database than the pipeline.
+   */
+  createFrom(query: Query): Pipeline {
+    return toPipeline(query._query, query.firestore);
   }
 
   _validateReference(reference: CollectionReference | DocumentReference): void {
