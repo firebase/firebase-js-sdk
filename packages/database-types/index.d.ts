@@ -164,7 +164,10 @@ export interface TransactionResult {
 
 export interface ThenableReference
   extends Reference,
-    Pick<Promise<Reference>, 'then' | 'catch'> {}
+    Pick<Promise<Reference>, 'then' | 'catch'> {
+  key: string;
+  parent: Reference;
+}
 
 export function enableLogging(
   logger?: boolean | ((a: string) => any),
