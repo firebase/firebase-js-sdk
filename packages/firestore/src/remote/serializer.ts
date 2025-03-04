@@ -94,7 +94,8 @@ import {
   WriteResult as ProtoWriteResult,
   Value as ProtoValue,
   MapValue as ProtoMapValue,
-  ExecutePipelineResponse as ProtoExecutePipelineResponse
+  ExecutePipelineResponse as ProtoExecutePipelineResponse,
+  Pipeline
 } from '../protos/firestore_proto_api';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
@@ -1433,6 +1434,21 @@ export interface ProtoSerializable<ProtoType> {
   _toProto(serializer: JsonProtoSerializer): ProtoType;
 }
 
+export interface ProtoValueSerializable extends ProtoSerializable<ProtoValue> {
+  // Supports runtime identification of the ProtoSerializable<ProtoValue> type.
+  _protoValueType: 'ProtoValue';
+}
+
+export function isProtoValueSerializable(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  value: any
+): value is ProtoValueSerializable {
+  return (
+    typeof value._toProto === 'function' &&
+    value._protoValueType === 'ProtoValue'
+  );
+}
+
 export interface UserData {
   _readUserData(dataReader: UserDataReader): void;
 }
@@ -1464,6 +1480,10 @@ export function toBooleanValue(value: boolean): ProtoValue {
 
 export function toStringValue(value: string): ProtoValue {
   return { stringValue: value };
+}
+
+export function toPipelineValue(value: Pipeline): ProtoValue {
+  return { pipelineValue: value };
 }
 
 export function dateToTimestampValue(
