@@ -854,8 +854,8 @@ function syncTreeParseQueryKey_(queryKey: string): {
     'Bad queryKey.'
   );
   return {
-    queryId: queryKey.substr(splitIndex + 1),
-    path: new Path(queryKey.substr(0, splitIndex))
+    queryId: queryKey.slice(splitIndex + 1),
+    path: new Path(queryKey.slice(0, splitIndex))
   };
 }
 
