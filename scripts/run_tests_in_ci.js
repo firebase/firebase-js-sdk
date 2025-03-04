@@ -70,6 +70,7 @@ const argv = yargs.options({
         }
       }
     }
+    console.log('Starting: ' + name);
     const testProcess = spawn('yarn', ['--cwd', dir, scriptName]);
 
     testProcess.childProcess.stdout.on('data', data => {
