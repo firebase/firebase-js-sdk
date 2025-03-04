@@ -37,7 +37,8 @@ const fakeVertexAI: VertexAI = {
     automaticDataCollectionEnabled: true,
     options: {
       apiKey: 'key',
-      projectId: 'my-project'
+      projectId: 'my-project',
+      appId: 'my-appid'
     }
   },
   location: 'us-central1'
