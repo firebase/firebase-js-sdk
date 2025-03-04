@@ -114,6 +114,18 @@ export interface StartChatParams extends BaseParams {
  */
 export interface CountTokensRequest {
   contents: Content[];
+  /**
+   * Instructions that direct the model to behave a certain way.
+   */
+  systemInstruction?: string | Part | Content;
+  /**
+   * <code>{@link Tool}</code> configuration.
+   */
+  tools?: Tool[];
+  /**
+   * Configuration options used for content-related requests.
+   */
+  generationConfig?: GenerationConfig;
 }
 
 /**
