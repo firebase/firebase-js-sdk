@@ -92,7 +92,7 @@ jobs:
     - name: Run unit tests
       # Ignore auth and firestore since they're handled in their own separate jobs.
       run: |
-        xvfb-run yarn lerna run --ignore '{firebase-messaging-integration-test,@firebase/auth*,@firebase/firestore*,firebase-firestore-integration-test}' test:ci
+        yarn lerna run --ignore '{firebase-messaging-integration-test,@firebase/auth*,@firebase/firestore*,firebase-firestore-integration-test}' test:ci
         node scripts/print_test_logs.js
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
@@ -178,7 +178,7 @@ jobs:
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       run: |
-        xvfb-run yarn lerna run test:ci --scope '@firebase/firestore*'
+        yarn lerna run test:ci --scope '@firebase/firestore*'
         node scripts/print_test_logs.js
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
@@ -218,7 +218,7 @@ jobs:
     - run: yarn
     - run: yarn build:${{ matrix.persistence }}
       working-directory: integration/firestore
-    - run: xvfb-run yarn karma:singlerun
+    - run: yarn karma:singlerun
       working-directory: integration/firestore
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
