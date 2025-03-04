@@ -2641,14 +2641,14 @@
     "@rollup/pluginutils" "^5.0.1"
     magic-string "^0.30.3"
 
-"@rollup/plugin-strip@2.1.0":
-  version "2.1.0"
-  resolved "https://registry.npmjs.org/@rollup/plugin-strip/-/plugin-strip-2.1.0.tgz#04c2d2ccfb2c6b192bb70447fbf26e336379a333"
-  integrity sha512-OKlIlXMFlH4nVxq0beNSIKVw0LkpNUpVjjvfzH5OAOAR5dhLZgLZBzwYX4ifIAs18YDrreMcZH4xnKmW9fI2AQ==
+"@rollup/plugin-strip@3.0.4":
+  version "3.0.4"
+  resolved "https://registry.npmjs.org/@rollup/plugin-strip/-/plugin-strip-3.0.4.tgz#ad623cc18cf305b484f8bf38fde4ae855c1229e4"
+  integrity sha512-LDRV49ZaavxUo2YoKKMQjCxzCxugu1rCPQa0lDYBOWLj6vtzBMr8DcoJjsmg+s450RbKbe3qI9ZLaSO+O1oNbg==
   dependencies:
-    "@rollup/pluginutils" "^3.1.0"
-    estree-walker "^2.0.1"
-    magic-string "^0.25.7"
+    "@rollup/pluginutils" "^5.0.1"
+    estree-walker "^2.0.2"
+    magic-string "^0.30.3"
 
 "@rollup/plugin-terser@0.4.4":
   version "0.4.4"
