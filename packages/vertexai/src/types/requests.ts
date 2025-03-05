@@ -123,7 +123,7 @@ export interface CountTokensRequest {
    */
   tools?: Tool[];
   /**
-   * Configuration options used for content-related requests.
+   * Configuration options that control how the model generates a response.
    */
   generationConfig?: GenerationConfig;
 }
