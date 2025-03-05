@@ -485,8 +485,9 @@ apiDescribe.only('Pipelines', persistence => {
     ];
 
     const snapshots = await execute(
-      randomCol
+      firestore
         .pipeline()
+        .collection(randomCol.path)
         .limit(1)
         .select(constants[0], ...constants.slice(1))
     );
@@ -671,8 +672,9 @@ apiDescribe.only('Pipelines', persistence => {
         expectResults(snapshot, { count: 10 });
 
         snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .where(eq('genre', 'Science Fiction'))
             .aggregate(
               countAll().as('count'),
@@ -686,8 +688,9 @@ apiDescribe.only('Pipelines', persistence => {
       it('rejects groups without accumulators', async () => {
         await expect(
           execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .where(lt('published', 1900))
               .aggregate({
                 accumulators: [],
@@ -699,8 +702,9 @@ apiDescribe.only('Pipelines', persistence => {
 
       it('returns group and accumulate results', async () => {
         const snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .where(lt(field('published'), 1984))
             .aggregate({
               accumulators: [avgFunction('rating').as('avgRating')],
@@ -719,8 +723,9 @@ apiDescribe.only('Pipelines', persistence => {
 
       it('returns min and max accumulations', async () => {
         const snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .aggregate(
               countAll().as('count'),
               field('rating').maximum().as('maxRating'),
@@ -736,8 +741,9 @@ apiDescribe.only('Pipelines', persistence => {
 
       it('returns countif accumulation', async () => {
         let snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .aggregate(countIf(field('rating').gt(4.3)).as('count'))
         );
         const expectedResults = {
@@ -746,8 +752,9 @@ apiDescribe.only('Pipelines', persistence => {
         expectResults(snapshot, expectedResults);
 
         snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .aggregate(field('rating').gt(4.3).countIf().as('count'))
         );
         expectResults(snapshot, expectedResults);
@@ -757,8 +764,9 @@ apiDescribe.only('Pipelines', persistence => {
     describe('distinct stage', () => {
       it('returns distinct values as expected', async () => {
         const snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .distinct('genre', 'author')
             .sort(field('genre').ascending(), field('author').ascending())
         );
@@ -907,8 +915,9 @@ apiDescribe.only('Pipelines', persistence => {
     describe('where stage', () => {
       it('where with and', async () => {
         const snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .where(
               andFunction(
                 gt('rating', 4.5),
@@ -921,8 +930,9 @@ apiDescribe.only('Pipelines', persistence => {
       });
       it('where with or', async () => {
         const snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .where(
               orFunction(
                 eq('genre', 'Romance'),
@@ -943,8 +953,9 @@ apiDescribe.only('Pipelines', persistence => {
 
       it('where with xor', async () => {
         const snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .where(
               xor(
                 eq('genre', 'Romance'),
@@ -1120,8 +1131,9 @@ apiDescribe.only('Pipelines', persistence => {
     describe('replace stage', () => {
       it('run pipleine with replace', async () => {
         const snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .where(eq('title', "The Hitchhiker's Guide to the Galaxy"))
             .replaceWith('awards')
         );
@@ -1135,13 +1147,18 @@ apiDescribe.only('Pipelines', persistence => {
 
     describe('sample stage', () => {
       it('run pipeline with sample limit of 3', async () => {
-        const snapshot = await execute(randomCol.pipeline().sample(3));
+        const snapshot = await execute(
+          firestore.pipeline().collection(randomCol.path).sample(3)
+        );
         expect(snapshot.results.length).to.equal(3);
       });
 
       it('run pipeline with sample limit of {documents: 3}', async () => {
         const snapshot = await execute(
-          randomCol.pipeline().sample({ documents: 3 })
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sample({ documents: 3 })
         );
         expect(snapshot.results.length).to.equal(3);
       });
@@ -1151,7 +1168,10 @@ apiDescribe.only('Pipelines', persistence => {
         const numIterations = 20;
         for (let i = 0; i < numIterations; i++) {
           const snapshot = await execute(
-            randomCol.pipeline().sample({ percentage: 0.6 })
+            firestore
+              .pipeline()
+              .collection(randomCol.path)
+              .sample({ percentage: 0.6 })
           );
 
           avgSize += snapshot.results.length;
@@ -1164,9 +1184,10 @@ apiDescribe.only('Pipelines', persistence => {
     describe('union stage', () => {
       it('run pipeline with union', async () => {
         const snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
-            .union(randomCol.pipeline())
+            .collection(randomCol.path)
+            .union(firestore.pipeline().collection(randomCol.path))
             .sort(field(documentId()).ascending())
         );
         expectResults(
@@ -1198,8 +1219,9 @@ apiDescribe.only('Pipelines', persistence => {
     describe('unnest stage', () => {
       it('run pipeline with unnest', async () => {
         const snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .where(eq('title', "The Hitchhiker's Guide to the Galaxy"))
             .unnest(field('tags').as('tag'))
         );
@@ -1254,8 +1276,9 @@ apiDescribe.only('Pipelines', persistence => {
       });
       it('unnest an expr', async () => {
         const snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .where(eq('title', "The Hitchhiker's Guide to the Galaxy"))
             .unnest(array([1, 2, 3]).as('copy'))
         );
@@ -1314,8 +1337,9 @@ apiDescribe.only('Pipelines', persistence => {
   describe('function expressions', () => {
     it('logical max works', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .select(
             'title',
             logicalMaximum(constant(1960), field('published'), 1961).as(
@@ -1335,8 +1359,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('logical min works', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .select(
             'title',
             logicalMinimum(constant(1960), field('published'), 1961).as(
@@ -1356,8 +1381,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('cond works', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .select(
             'title',
             cond(
@@ -1379,8 +1405,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('eqAny works', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .where(eqAny('published', [1979, 1999, 1967]))
           .select('title')
       );
@@ -1393,8 +1420,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('notEqAny works', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .where(
             notEqAny(
               'published',
@@ -1408,8 +1436,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('arrayContains works', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .where(arrayContains('tags', 'comedy'))
           .select('title')
       );
@@ -1420,8 +1449,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('arrayContainsAny works', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .where(arrayContainsAny('tags', ['comedy', 'classic']))
           .select('title')
       );
@@ -1434,8 +1464,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('arrayContainsAll works', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .where(field('tags').arrayContainsAll('adventure', 'magic'))
           .select('title')
       );
@@ -1444,8 +1475,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('arrayLength works', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .select(field('tags').arrayLength().as('tagsCount'))
           .where(eq('tagsCount', 3))
       );
@@ -1454,8 +1486,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('testStrConcat', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .select(
             field('author').strConcat(' - ', field('title')).as('bookInfo')
           )
@@ -1468,8 +1501,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('testStartsWith', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .where(startsWith('title', 'The'))
           .select('title')
           .sort(field('title').ascending())
@@ -1485,8 +1519,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('testEndsWith', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .where(endsWith('title', 'y'))
           .select('title')
           .sort(field('title').descending())
@@ -1500,8 +1535,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('testLength', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .select(field('title').charLength().as('titleLength'), field('title'))
           .where(gt('titleLength', 20))
           .sort(field('title').ascending())
@@ -1531,7 +1567,11 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('testLike', async () => {
       const snapshot = await execute(
-        randomCol.pipeline().where(like('title', '%Guide%')).select('title')
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(like('title', '%Guide%'))
+          .select('title')
       );
       expectResults(snapshot, {
         title: "The Hitchhiker's Guide to the Galaxy"
@@ -1540,22 +1580,29 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('testRegexContains', async () => {
       const snapshot = await execute(
-        randomCol.pipeline().where(regexContains('title', '(?i)(the|of)'))
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(regexContains('title', '(?i)(the|of)'))
       );
       expect(snapshot.results.length).to.equal(5);
     });
 
     it('testRegexMatches', async () => {
       const snapshot = await execute(
-        randomCol.pipeline().where(regexMatch('title', '.*(?i)(the|of).*'))
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(regexMatch('title', '.*(?i)(the|of).*'))
       );
       expect(snapshot.results.length).to.equal(5);
     });
 
     it('testArithmeticOperations', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .select(
             add(field('rating'), 1).as('ratingPlusOne'),
             subtract(field('published'), 1900).as('yearsSince1900'),
@@ -1578,8 +1625,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('testComparisonOperators', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .where(
             andFunction(
               gt('rating', 4.2),
@@ -1603,8 +1651,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('testLogicalOperators', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .where(
             orFunction(
               andFunction(gt('rating', 4.5), eq('genre', 'Science Fiction')),
@@ -1624,8 +1673,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('testChecks', async () => {
       let snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .sort(field('rating').descending())
           .limit(1)
           .select(
@@ -1651,8 +1701,9 @@ apiDescribe.only('Pipelines', persistence => {
       });
 
       snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .sort(field('rating').descending())
           .limit(1)
           .select(
@@ -1680,8 +1731,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('testMapGet', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .sort(field('published').descending())
           .select(
             field('awards').mapGet('hugo').as('hugoAward'),
@@ -1705,8 +1757,9 @@ apiDescribe.only('Pipelines', persistence => {
       const sourceVector = [0.1, 0.1];
       const targetVector = [0.5, 0.8];
       let snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .select(
             cosineDistance(constantVector(sourceVector), targetVector).as(
               'cosineDistance'
@@ -1732,8 +1785,9 @@ apiDescribe.only('Pipelines', persistence => {
       });
 
       snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .select(
             constantVector(sourceVector)
               .cosineDistance(targetVector)
@@ -1761,8 +1815,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('testNestedFields', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .where(eq('awards.hugo', true))
           .select('title', 'awards.hugo')
       );
@@ -1778,8 +1833,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('test mapGet with field name including . notation', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .where(eq('awards.hugo', true))
           .select(
             'title',
@@ -1801,8 +1857,9 @@ apiDescribe.only('Pipelines', persistence => {
     describe('genericFunction', () => {
       it('add selectable', async () => {
         const snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .sort(descending('rating'))
             .limit(1)
             .select(
@@ -1818,8 +1875,9 @@ apiDescribe.only('Pipelines', persistence => {
 
       it('and (variadic) selectable', async () => {
         const snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .where(
               new BooleanExpr('and', [
                 field('rating').gt(0),
@@ -1836,8 +1894,9 @@ apiDescribe.only('Pipelines', persistence => {
 
       it('array contains any', async () => {
         const snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .where(
               new BooleanExpr('array_contains_any', [
                 field('tags'),
@@ -1853,8 +1912,9 @@ apiDescribe.only('Pipelines', persistence => {
 
       it('countif aggregate', async () => {
         const snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .aggregate(
               new AggregateFunction('count_if', [field('rating').gte(4.5)]).as(
                 'countOfBest'
@@ -1868,8 +1928,9 @@ apiDescribe.only('Pipelines', persistence => {
 
       it('sort by char_len', async () => {
         const snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .sort(
               new FunctionExpr('char_length', [field('title')]).ascending(),
               descending('__name__')
@@ -1895,8 +1956,9 @@ apiDescribe.only('Pipelines', persistence => {
     describe.skip('not implemented in backend', () => {
       it('supports Bit_and', async () => {
         const snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .limit(1)
             .select(bitAnd(constant(5), 12).as('result'))
         );
@@ -1905,8 +1967,9 @@ apiDescribe.only('Pipelines', persistence => {
         });
         it('supports Bit_and', async () => {
           const snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .limit(1)
               .select(constant(5).bitAnd(12).as('result'))
           );
@@ -1917,8 +1980,9 @@ apiDescribe.only('Pipelines', persistence => {
 
         it('supports Bit_or', async () => {
           let snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .limit(1)
               .select(bitOr(constant(5), 12).as('result'))
           );
@@ -1926,8 +1990,9 @@ apiDescribe.only('Pipelines', persistence => {
             result: 13
           });
           snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .limit(1)
               .select(constant(5).bitOr(12).as('result'))
           );
@@ -1938,8 +2003,9 @@ apiDescribe.only('Pipelines', persistence => {
 
         it('supports Bit_xor', async () => {
           let snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .limit(1)
               .select(bitXor(constant(5), 12).as('result'))
           );
@@ -1947,8 +2013,9 @@ apiDescribe.only('Pipelines', persistence => {
             result: 9
           });
           snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .limit(1)
               .select(constant(5).bitXor(12).as('result'))
           );
@@ -1959,8 +2026,9 @@ apiDescribe.only('Pipelines', persistence => {
 
         it('supports Bit_not', async () => {
           let snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .limit(1)
               .select(
                 bitNot(constant(Bytes.fromUint8Array(Uint8Array.of(0xfd)))).as(
@@ -1972,8 +2040,9 @@ apiDescribe.only('Pipelines', persistence => {
             result: Bytes.fromUint8Array(Uint8Array.of(0x02))
           });
           snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .limit(1)
               .select(
                 constant(Bytes.fromUint8Array(Uint8Array.of(0xfd)))
@@ -1988,8 +2057,9 @@ apiDescribe.only('Pipelines', persistence => {
 
         it('supports Bit_left_shift', async () => {
           let snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .limit(1)
               .select(
                 bitLeftShift(
@@ -2002,8 +2072,9 @@ apiDescribe.only('Pipelines', persistence => {
             result: Bytes.fromUint8Array(Uint8Array.of(0x04))
           });
           snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .limit(1)
               .select(
                 constant(Bytes.fromUint8Array(Uint8Array.of(0x02)))
@@ -2018,8 +2089,9 @@ apiDescribe.only('Pipelines', persistence => {
 
         it('supports Bit_right_shift', async () => {
           let snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .limit(1)
               .select(
                 bitRightShift(
@@ -2032,8 +2104,9 @@ apiDescribe.only('Pipelines', persistence => {
             result: Bytes.fromUint8Array(Uint8Array.of(0x01))
           });
           snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .limit(1)
               .select(
                 constant(Bytes.fromUint8Array(Uint8Array.of(0x02)))
@@ -2048,8 +2121,9 @@ apiDescribe.only('Pipelines', persistence => {
 
         it('supports Document_id', async () => {
           let snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .sort(field('rating').descending())
               .limit(1)
               .select(documentIdFunction(field('__path__')).as('docId'))
@@ -2058,8 +2132,9 @@ apiDescribe.only('Pipelines', persistence => {
             docId: 'book4'
           });
           snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .sort(field('rating').descending())
               .limit(1)
               .select(field('__path__').documentId().as('docId'))
@@ -2071,8 +2146,9 @@ apiDescribe.only('Pipelines', persistence => {
 
         it('supports Substr', async () => {
           let snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .sort(field('rating').descending())
               .limit(1)
               .select(substr('title', 9, 2).as('of'))
@@ -2081,8 +2157,9 @@ apiDescribe.only('Pipelines', persistence => {
             of: 'of'
           });
           snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .sort(field('rating').descending())
               .limit(1)
               .select(field('title').substr(9, 2).as('of'))
@@ -2094,8 +2171,9 @@ apiDescribe.only('Pipelines', persistence => {
 
         it('supports Substr without length', async () => {
           let snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .sort(field('rating').descending())
               .limit(1)
               .select(substr('title', 9).as('of'))
@@ -2104,8 +2182,9 @@ apiDescribe.only('Pipelines', persistence => {
             of: 'of the Rings'
           });
           snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .sort(field('rating').descending())
               .limit(1)
               .select(field('title').substr(9).as('of'))
@@ -2117,8 +2196,9 @@ apiDescribe.only('Pipelines', persistence => {
 
         it('arrayConcat works', async () => {
           const snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .select(
                 field('tags')
                   .arrayConcat(['newTag1', 'newTag2'], field('tags'), [null])
@@ -2143,8 +2223,9 @@ apiDescribe.only('Pipelines', persistence => {
 
         it('testToLowercase', async () => {
           const snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .select(field('title').toLower().as('lowercaseTitle'))
               .limit(1)
           );
@@ -2155,8 +2236,9 @@ apiDescribe.only('Pipelines', persistence => {
 
         it('testToUppercase', async () => {
           const snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .select(field('author').toUpper().as('uppercaseAuthor'))
               .limit(1)
           );
@@ -2165,8 +2247,9 @@ apiDescribe.only('Pipelines', persistence => {
 
         it('testTrim', async () => {
           const snapshot = await execute(
-            randomCol
+            firestore
               .pipeline()
+              .collection(randomCol.path)
               .addFields(
                 constant(" The Hitchhiker's Guide to the Galaxy ").as(
                   'spacedTitle'
@@ -2187,7 +2270,11 @@ apiDescribe.only('Pipelines', persistence => {
 
       it('supports Rand', async () => {
         const snapshot = await execute(
-          randomCol.pipeline().limit(10).select(rand().as('result'))
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(10)
+            .select(rand().as('result'))
         );
         expect(snapshot.results.length).to.equal(10);
         snapshot.results.forEach(d => {
@@ -2232,8 +2319,9 @@ apiDescribe.only('Pipelines', persistence => {
 
       it('supports arrayOffset', async () => {
         let snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .sort(field('rating').descending())
             .limit(3)
             .select(arrayOffset('tags', 0).as('firstTag'))
@@ -2252,8 +2340,9 @@ apiDescribe.only('Pipelines', persistence => {
         expectResults(snapshot, ...expectedResults);
 
         snapshot = await execute(
-          randomCol
+          firestore
             .pipeline()
+            .collection(randomCol.path)
             .sort(field('rating').descending())
             .limit(3)
             .select(field('tags').arrayOffset(0).as('firstTag'))
@@ -2265,8 +2354,9 @@ apiDescribe.only('Pipelines', persistence => {
     // TODO: current_context tests with are failing because of b/395937453
     it.skip('supports currentContext', async () => {
       const snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .sort(field('rating').descending())
           .limit(1)
           .select(currentContext().as('currentContext'))
@@ -2324,8 +2414,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('supports mapRemove', async () => {
       let snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .sort(field('rating').descending())
           .limit(1)
           .select(mapRemove('awards', 'hugo').as('awards'))
@@ -2334,8 +2425,9 @@ apiDescribe.only('Pipelines', persistence => {
         awards: { nebula: false }
       });
       snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .sort(field('rating').descending())
           .limit(1)
           .select(field('awards').mapRemove('hugo').as('awards'))
@@ -2347,8 +2439,9 @@ apiDescribe.only('Pipelines', persistence => {
 
     it('supports mapMerge', async () => {
       let snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .sort(field('rating').descending())
           .limit(1)
           .select(mapMerge('awards', { fakeAward: true }).as('awards'))
@@ -2357,8 +2450,9 @@ apiDescribe.only('Pipelines', persistence => {
         awards: { nebula: false, hugo: false, fakeAward: true }
       });
       snapshot = await execute(
-        randomCol
+        firestore
           .pipeline()
+          .collection(randomCol.path)
           .sort(field('rating').descending())
           .limit(1)
           .select(field('awards').mapMerge({ fakeAward: true }).as('awards'))
@@ -2375,10 +2469,12 @@ apiDescribe.only('Pipelines', persistence => {
      * additional books support pagination test scenarios
      * that would otherwise not be possible with the original
      * set of books.
-     * @param collection
+     * @param collectionReference
      */
-    async function addBooks(collection: CollectionReference): Promise<void> {
-      await setDoc(doc(randomCol, 'book11'), {
+    async function addBooks(
+      collectionReference: CollectionReference
+    ): Promise<void> {
+      await setDoc(doc(collectionReference, 'book11'), {
         title: 'Jonathan Strange & Mr Norrell',
         author: 'Susanna Clarke',
         genre: 'Fantasy',
@@ -2387,7 +2483,7 @@ apiDescribe.only('Pipelines', persistence => {
         tags: ['historical fantasy', 'magic', 'alternate history', 'england'],
         awards: { hugo: false, nebula: false }
       });
-      await setDoc(doc(randomCol, 'book12'), {
+      await setDoc(doc(collectionReference, 'book12'), {
         title: 'The Master and Margarita',
         author: 'Mikhail Bulgakov',
         genre: 'Satire',
@@ -2401,7 +2497,7 @@ apiDescribe.only('Pipelines', persistence => {
         ],
         awards: {}
       });
-      await setDoc(doc(randomCol, 'book13'), {
+      await setDoc(doc(collectionReference, 'book13'), {
         title: 'A Long Way to a Small, Angry Planet',
         author: 'Becky Chambers',
         genre: 'Science Fiction',
@@ -2415,8 +2511,9 @@ apiDescribe.only('Pipelines', persistence => {
     it('supports pagination with filters', async () => {
       await addBooks(randomCol);
       const pageSize = 2;
-      const pipeline = randomCol
+      const pipeline = firestore
         .pipeline()
+        .collection(randomCol.path)
         .select('title', 'rating', '__name__')
         .sort(field('rating').descending(), field('__name__').ascending());
 
@@ -2454,8 +2551,9 @@ apiDescribe.only('Pipelines', persistence => {
 
       const secondFilterField = '__path__';
 
-      const pipeline = randomCol
+      const pipeline = firestore
         .pipeline()
+        .collection(randomCol.path)
         .select('title', 'rating', secondFilterField)
         .sort(
           field('rating').descending(),
