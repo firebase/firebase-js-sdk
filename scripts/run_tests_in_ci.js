@@ -58,6 +58,8 @@ const argv = yargs.options({
 (async () => {
   const myPath = argv.d;
   let scriptName = argv.s;
+  console.log(argv.d);
+  console.log(argv.s);
   const dir = path.resolve(myPath);
   const { name } = require(`${dir}/package.json`);
 
@@ -70,14 +72,15 @@ const argv = yargs.options({
         }
       }
     }
-    const testProcess = spawn('yarn', ['--cwd', dir, scriptName]);
+    console.log('Starting: ' + name);
+    const testProcess = spawn('yarn', ['--cwd', dir, scriptName], { stdio: 'inherit' });
 
-    testProcess.childProcess.stdout.on('data', data => {
-      testProcessOutput += '[stdout]' + data.toString();
-    });
-    testProcess.childProcess.stderr.on('data', data => {
-      testProcessOutput += '[stderr]' + data.toString();
-    });
+    // testProcess.childProcess.stdout.on('data', data => {
+    //   console.log('[stdout]' + data.toString());
+    // });
+    // testProcess.childProcess.stderr.on('data', data => {
+    //   console.log('[stderr]' + data.toString());
+    // });
 
     await testProcess;
     console.log('Success: ' + name);

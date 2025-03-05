@@ -28,7 +28,7 @@
     "test:lite:browser:nameddb": "karma start --lite --databaseId=test-db",
     "test:lite:browser:debug": "karma start --browsers=Chrome --lite --auto-watch",
     "test": "run-s --npm-path npm lint test:all",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all:ci",
+    "test:ci": "run-s --npm-path npm test:browser test:travis test:lite:browser test:browser:prod:nameddb test:lite:browser:nameddb",
     "test:all:ci": "run-s --npm-path npm test:browser test:travis test:lite:browser test:browser:prod:nameddb test:lite:browser:nameddb",
     "test:all": "run-p --npm-path npm test:browser test:lite:browser test:travis test:minified test:browser:prod:nameddb test:lite:browser:nameddb",
     "test:browser": "karma start",

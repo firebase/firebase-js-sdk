@@ -24,6 +24,9 @@ module.exports = function (config) {
     browsers: getTestBrowsers(argv),
     // files to load into karma
     files: getTestFiles(argv),
+    browserDisconnectTimeout: 5000,
+    
+    concurrency: 1,
 
     preprocessors: {
       'test/**/*.ts': ['webpack', 'sourcemap']
