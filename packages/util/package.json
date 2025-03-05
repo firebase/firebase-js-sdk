@@ -1,6 +1,6 @@
 {
   "name": "@firebase/util",
-  "version": "1.10.3",
+  "version": "1.11.0",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -22,7 +22,8 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "postinstall.js"
   ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -38,15 +39,17 @@
     "test:node": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --config ../../config/mocharc.node.js",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "api-extractor run --local --verbose",
-    "typings:public": "node ../../scripts/build/use_typings.js ./dist/util-public.d.ts"
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/util-public.d.ts",
+    "postinstall": "node ./postinstall.js"
   },
   "license": "Apache-2.0",
   "dependencies": {
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "rollup": "2.79.1",
-    "rollup-plugin-typescript2": "0.31.2",
+    "@rollup/plugin-replace": "6.0.2",
+    "rollup": "2.79.2",
+    "rollup-plugin-typescript2": "0.36.0",
     "typescript": "5.5.4"
   },
   "repository": {

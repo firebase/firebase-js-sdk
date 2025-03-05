@@ -23,6 +23,7 @@ import alias from '@rollup/plugin-alias';
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 import pkg from './package.json';
+import tsconfig from './tsconfig.json';
 
 function generateAliasConfig(platform) {
   return {
@@ -44,6 +45,9 @@ const nodeDeps = [...deps, 'util'];
 const buildPlugins = [
   typescriptPlugin({
     typescript,
+    tsconfigOverride: {
+      exclude: [...tsconfig.exclude, '**/*.test.ts']
+    },
     abortOnError: false
   }),
   json({ preferConst: true })

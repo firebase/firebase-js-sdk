@@ -24,6 +24,7 @@ import alias from '@rollup/plugin-alias';
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 import pkg from './package.json';
+import tsconfig from './tsconfig.json';
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
@@ -47,7 +48,10 @@ const nodeAliasPlugin = alias({
 const buildPlugins = [
   json(),
   strip({ functions: ['debugAssert.*'] }),
-  typescriptPlugin({ typescript })
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: { exclude: [...tsconfig.exclude, '**/*.test.ts'] }
+  })
 ];
 
 const browserBuilds = [
@@ -191,6 +195,7 @@ const webWorkerBuild = {
     }),
     typescriptPlugin({
       typescript,
+      exclude: [...tsconfig.exclude, '**/*.test.*'],
       compilerOptions: {
         lib: [
           // Remove dom after we figure out why navigator stuff doesn't exist
