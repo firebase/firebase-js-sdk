@@ -22,3 +22,11 @@ export * from './Mutation';
 export * from './query';
 export { setLogLevel } from '../logger';
 export { validateArgs } from '../util/validateArgs';
+
+export { DataConnectError, DataConnectOperationError } from '../core/error';
+
+export type {
+  DataConnectErrorCode,
+  DataConnectOperationResponse,
+  DataConnectOperationErrorInfo
+} from '../core/error';
