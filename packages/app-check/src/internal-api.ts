@@ -192,10 +192,19 @@ export async function getToken(
       // count this as a failed attempt and use the backoff instead of
       // retrying repeatedly with no delay, but any 3P listeners will not
       // be hindered in getting the still-valid token.
-      interopTokenResult = {
-        token: token.token,
-        internalError: error
-      };
+      if (forceRefresh) {
+        // If forceRefresh is true, return the error alongside the token
+        // to propagate the failure properly.
+        interopTokenResult = {
+          token: token.token,
+          error
+        };
+      } else {
+        interopTokenResult = {
+          token: token.token,
+          internalError: error
+        };
+      }
     } else {
       // No invalid tokens should make it to this step. Memory and cached tokens
       // are checked. Other tokens are from fresh exchanges. But just in case.
