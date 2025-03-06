@@ -366,7 +366,7 @@ export interface GroundingAttribution {
 
 // @public
 export interface GroundingMetadata {
-    // (undocumented)
+    // @deprecated (undocumented)
     groundingAttributions: GroundingAttribution[];
     // (undocumented)
     retrievalQueries?: string[];
