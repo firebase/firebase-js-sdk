@@ -1467,7 +1467,7 @@ apiDescribe.only('Pipelines', persistence => {
         firestore
           .pipeline()
           .collection(randomCol.path)
-          .where(field('tags').arrayContainsAll('adventure', 'magic'))
+          .where(field('tags').arrayContainsAll(['adventure', 'magic']))
           .select('title')
       );
       expectResults(snapshot, { title: 'The Lord of the Rings' });
