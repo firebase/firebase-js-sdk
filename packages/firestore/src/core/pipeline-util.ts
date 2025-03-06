@@ -114,7 +114,7 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
           );
           if (!values) {
             return fieldValue.exists();
-          } else if (values.length == 1) {
+          } else if (values.length === 1) {
             return and(fieldValue.exists(), fieldValue.eq(values[0]));
           } else {
             return and(fieldValue.exists(), fieldValue.eqAny(values));
@@ -132,7 +132,7 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
           );
           if (!values) {
             return fieldValue.exists();
-          } else if (values.length == 1) {
+          } else if (values.length === 1) {
             return and(fieldValue.exists(), fieldValue.neq(values[0]));
           } else {
             return and(fieldValue.exists(), fieldValue.notEqAny(values));
