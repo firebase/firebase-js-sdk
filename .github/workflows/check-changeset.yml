@@ -28,6 +28,9 @@ jobs:
     name: Check changeset vs changed files
     runs-on: ubuntu-latest
 
+    permissions:
+      pull-requests: write
+
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v4
