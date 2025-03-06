@@ -50,11 +50,14 @@ export type {
 
 export { PipelineSource } from '../../src/lite-api/pipeline-source';
 
-export { PipelineResult } from '../../src/lite-api/pipeline-result';
+export {
+  PipelineResult,
+  PipelineSnapshot
+} from '../../src/lite-api/pipeline-result';
 
 export { Pipeline } from '../../src/lite-api/pipeline';
 
-export { pipeline, execute } from '../../src/lite-api/pipeline_impl';
+export { execute } from '../../src/lite-api/pipeline_impl';
 
 export {
   Stage,
@@ -76,6 +79,8 @@ export {
 } from '../../src/lite-api/stage';
 
 export {
+  field,
+  constant,
   add,
   subtract,
   multiply,
@@ -132,79 +137,16 @@ export {
   timestampToUnixSeconds,
   timestampAdd,
   timestampSub,
-  genericFunction,
   ascending,
   descending,
   ExprWithAlias,
   Field,
-  Fields,
   Constant,
-  FirestoreFunction,
-  Add,
-  Subtract,
-  Multiply,
-  Divide,
-  Mod,
-  Eq,
-  Neq,
-  Lt,
-  Lte,
-  Gt,
-  Gte,
-  ArrayConcat,
-  ArrayReverse,
-  ArrayContains,
-  ArrayContainsAll,
-  ArrayContainsAny,
-  ArrayLength,
-  ArrayElement,
-  EqAny,
-  IsNan,
-  Exists,
-  Not,
-  And,
-  Or,
-  Xor,
-  Cond,
-  LogicalMaximum,
-  LogicalMinimum,
-  Reverse,
-  ReplaceFirst,
-  ReplaceAll,
-  CharLength,
-  ByteLength,
-  Like,
-  RegexContains,
-  RegexMatch,
-  StrContains,
-  StartsWith,
-  EndsWith,
-  ToLower,
-  ToUpper,
-  Trim,
-  StrConcat,
-  MapGet,
-  Count,
-  Sum,
-  Avg,
-  Minimum,
-  Maximum,
-  CosineDistance,
-  DotProduct,
-  EuclideanDistance,
-  VectorLength,
-  UnixMicrosToTimestamp,
-  TimestampToUnixMicros,
-  UnixMillisToTimestamp,
-  TimestampToUnixMillis,
-  UnixSecondsToTimestamp,
-  TimestampToUnixSeconds,
-  TimestampAdd,
-  TimestampSub,
+  FunctionExpr,
   Ordering,
   ExprType,
-  AccumulatorTarget,
+  AggregateWithAlias,
   Selectable,
-  FilterCondition,
-  Accumulator
+  BooleanExpr,
+  AggregateFunction
 } from '../../src/lite-api/expressions';

@@ -56,7 +56,8 @@ import {
   JsonProtoSerializer,
   toBytes,
   toResourceName,
-  toTimestamp
+  toTimestamp,
+  isProtoValueSerializable
 } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
@@ -909,6 +910,8 @@ export function parseScalarValue(
     };
   } else if (value instanceof VectorValue) {
     return parseVectorValue(value, context);
+  } else if (isProtoValueSerializable(value)) {
+    return value._toProto(context.serializer);
   } else {
     throw context.createError(
       `Unsupported field value: ${valueDescription(value)}`
@@ -955,7 +958,7 @@ export function parseVectorValue(
  * GeoPoints, etc. are not considered to look like JSON objects since they map
  * to specific FieldValue types other than ObjectValue.
  */
-function looksLikeJsonObject(input: unknown): boolean {
+export function looksLikeJsonObject(input: unknown): boolean {
   return (
     typeof input === 'object' &&
     input !== null &&
@@ -966,7 +969,8 @@ function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof Bytes) &&
     !(input instanceof DocumentReference) &&
     !(input instanceof FieldValue) &&
-    !(input instanceof VectorValue)
+    !(input instanceof VectorValue) &&
+    !isProtoValueSerializable(input)
   );
 }
 
