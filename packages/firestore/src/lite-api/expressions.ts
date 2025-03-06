@@ -80,6 +80,7 @@ function valueToDefaultExpr(value: any): Expr {
     return constant(value);
   }
 }
+
 /**
  * Converts a value to an Expr, Returning either a Constant, MapFunction,
  * ArrayFunction, or the input itself (if it's already an expression).
@@ -252,10 +253,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("value").mod(field("divisor"));
    * ```
    *
-   * @param other The expression to divide by.
+   * @param expression The expression to divide by.
    * @return A new `Expr` representing the modulo operation.
    */
-  mod(other: Expr): FunctionExpr;
+  mod(expression: Expr): FunctionExpr;
 
   /**
    * Creates an expression that calculates the modulo (remainder) of dividing this expression by a constant value.
@@ -265,10 +266,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("value").mod(10);
    * ```
    *
-   * @param other The constant value to divide by.
+   * @param value The constant value to divide by.
    * @return A new `Expr` representing the modulo operation.
    */
-  mod(other: any): FunctionExpr;
+  mod(value: any): FunctionExpr;
   mod(other: any): FunctionExpr {
     return new FunctionExpr('mod', [this, valueToDefaultExpr(other)]);
   }
@@ -281,10 +282,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("age").eq(21);
    * ```
    *
-   * @param other The expression to compare for equality.
+   * @param expression The expression to compare for equality.
    * @return A new `Expr` representing the equality comparison.
    */
-  eq(other: Expr): BooleanExpr;
+  eq(expression: Expr): BooleanExpr;
 
   /**
    * Creates an expression that checks if this expression is equal to a constant value.
@@ -294,10 +295,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("city").eq("London");
    * ```
    *
-   * @param other The constant value to compare for equality.
+   * @param value The constant value to compare for equality.
    * @return A new `Expr` representing the equality comparison.
    */
-  eq(other: any): BooleanExpr;
+  eq(value: any): BooleanExpr;
   eq(other: any): BooleanExpr {
     return new BooleanExpr('eq', [this, valueToDefaultExpr(other)]);
   }
@@ -310,10 +311,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("status").neq("completed");
    * ```
    *
-   * @param other The expression to compare for inequality.
+   * @param expression The expression to compare for inequality.
    * @return A new `Expr` representing the inequality comparison.
    */
-  neq(other: Expr): BooleanExpr;
+  neq(expression: Expr): BooleanExpr;
 
   /**
    * Creates an expression that checks if this expression is not equal to a constant value.
@@ -323,10 +324,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("country").neq("USA");
    * ```
    *
-   * @param other The constant value to compare for inequality.
+   * @param value The constant value to compare for inequality.
    * @return A new `Expr` representing the inequality comparison.
    */
-  neq(other: any): BooleanExpr;
+  neq(value: any): BooleanExpr;
   neq(other: any): BooleanExpr {
     return new BooleanExpr('neq', [this, valueToDefaultExpr(other)]);
   }
@@ -339,10 +340,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("age").lt(field('limit'));
    * ```
    *
-   * @param other The expression to compare for less than.
+   * @param experession The expression to compare for less than.
    * @return A new `Expr` representing the less than comparison.
    */
-  lt(other: Expr): BooleanExpr;
+  lt(experession: Expr): BooleanExpr;
 
   /**
    * Creates an expression that checks if this expression is less than a constant value.
@@ -352,10 +353,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("price").lt(50);
    * ```
    *
-   * @param other The constant value to compare for less than.
+   * @param value The constant value to compare for less than.
    * @return A new `Expr` representing the less than comparison.
    */
-  lt(other: any): BooleanExpr;
+  lt(value: any): BooleanExpr;
   lt(other: any): BooleanExpr {
     return new BooleanExpr('lt', [this, valueToDefaultExpr(other)]);
   }
@@ -369,10 +370,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("quantity").lte(constant(20));
    * ```
    *
-   * @param other The expression to compare for less than or equal to.
+   * @param expression The expression to compare for less than or equal to.
    * @return A new `Expr` representing the less than or equal to comparison.
    */
-  lte(other: Expr): BooleanExpr;
+  lte(expression: Expr): BooleanExpr;
 
   /**
    * Creates an expression that checks if this expression is less than or equal to a constant value.
@@ -382,10 +383,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("score").lte(70);
    * ```
    *
-   * @param other The constant value to compare for less than or equal to.
+   * @param value The constant value to compare for less than or equal to.
    * @return A new `Expr` representing the less than or equal to comparison.
    */
-  lte(other: any): BooleanExpr;
+  lte(value: any): BooleanExpr;
   lte(other: any): BooleanExpr {
     return new BooleanExpr('lte', [this, valueToDefaultExpr(other)]);
   }
@@ -398,10 +399,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("age").gt(field("limit"));
    * ```
    *
-   * @param other The expression to compare for greater than.
+   * @param expression The expression to compare for greater than.
    * @return A new `Expr` representing the greater than comparison.
    */
-  gt(other: Expr): BooleanExpr;
+  gt(expression: Expr): BooleanExpr;
 
   /**
    * Creates an expression that checks if this expression is greater than a constant value.
@@ -411,10 +412,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("price").gt(100);
    * ```
    *
-   * @param other The constant value to compare for greater than.
+   * @param value The constant value to compare for greater than.
    * @return A new `Expr` representing the greater than comparison.
    */
-  gt(other: any): BooleanExpr;
+  gt(value: any): BooleanExpr;
   gt(other: any): BooleanExpr {
     return new BooleanExpr('gt', [this, valueToDefaultExpr(other)]);
   }
@@ -428,10 +429,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("quantity").gte(field('requirement').add(1));
    * ```
    *
-   * @param other The expression to compare for greater than or equal to.
+   * @param expression The expression to compare for greater than or equal to.
    * @return A new `Expr` representing the greater than or equal to comparison.
    */
-  gte(other: Expr): BooleanExpr;
+  gte(expression: Expr): BooleanExpr;
 
   /**
    * Creates an expression that checks if this expression is greater than or equal to a constant
@@ -442,10 +443,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("score").gte(80);
    * ```
    *
-   * @param other The constant value to compare for greater than or equal to.
+   * @param value The constant value to compare for greater than or equal to.
    * @return A new `Expr` representing the greater than or equal to comparison.
    */
-  gte(other: any): BooleanExpr;
+  gte(value: any): BooleanExpr;
   gte(other: any): BooleanExpr {
     return new BooleanExpr('gte', [this, valueToDefaultExpr(other)]);
   }
@@ -478,10 +479,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("sizes").arrayContains(field("selectedSize"));
    * ```
    *
-   * @param element The element to search for in the array.
+   * @param expression The element to search for in the array.
    * @return A new `Expr` representing the 'array_contains' comparison.
    */
-  arrayContains(element: Expr): BooleanExpr;
+  arrayContains(expression: Expr): BooleanExpr;
 
   /**
    * Creates an expression that checks if an array contains a specific value.
@@ -491,10 +492,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("colors").arrayContains("red");
    * ```
    *
-   * @param element The element to search for in the array.
+   * @param value The element to search for in the array.
    * @return A new `Expr` representing the 'array_contains' comparison.
    */
-  arrayContains(element: any): BooleanExpr;
+  arrayContains(value: any): BooleanExpr;
   arrayContains(element: any): BooleanExpr {
     return new BooleanExpr('array_contains', [
       this,
@@ -506,33 +507,32 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * Creates an expression that checks if an array contains all the specified elements.
    *
    * ```typescript
-   * // Check if the 'tags' array contains both "news" and "sports"
-   * field("tags").arrayContainsAll(field("tag1"), field("tag2"));
+   * // Check if the 'tags' array contains both the value in field "tag1" and the literal value "tag2"
+   * field("tags").arrayContainsAll([field("tag1"), "tag2"]);
    * ```
    *
    * @param values The elements to check for in the array.
    * @return A new `Expr` representing the 'array_contains_all' comparison.
    */
-  arrayContainsAll(...values: Expr[]): BooleanExpr;
+  arrayContainsAll(values: Array<Expr | any>): BooleanExpr;
 
   /**
    * Creates an expression that checks if an array contains all the specified elements.
    *
    * ```typescript
-   * // Check if the 'tags' array contains both of the values from field 'tag1' and "tag2"
-   * field("tags").arrayContainsAll(field("tag1"), field("tag2"));
+   * // Check if the 'tags' array contains both of the values from field "tag1" and the literal value "tag2"
+   * field("tags").arrayContainsAll(array([field("tag1"), "tag2"]));
    * ```
    *
-   * @param values The elements to check for in the array.
+   * @param arrayExpression The elements to check for in the array.
    * @return A new `Expr` representing the 'array_contains_all' comparison.
    */
-  arrayContainsAll(...values: any[]): BooleanExpr;
-  arrayContainsAll(...values: any[]): BooleanExpr {
-    const exprValues = values.map(value => valueToDefaultExpr(value));
-    return new BooleanExpr('array_contains_all', [
-      this,
-      new ListOfExprs(exprValues)
-    ]);
+  arrayContainsAll(arrayExpression: Expr): BooleanExpr;
+  arrayContainsAll(values: any[] | Expr): BooleanExpr {
+    const normalizedExpr = Array.isArray(values)
+      ? new ListOfExprs(values.map(valueToDefaultExpr))
+      : values;
+    return new BooleanExpr('array_contains_all', [this, normalizedExpr]);
   }
 
   /**
@@ -540,13 +540,13 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'categories' array contains either values from field "cate1" or "cate2"
-   * field("categories").arrayContainsAny(field("cate1"), field("cate2"));
+   * field("categories").arrayContainsAny([field("cate1"), field("cate2")]);
    * ```
    *
    * @param values The elements to check for in the array.
    * @return A new `Expr` representing the 'array_contains_any' comparison.
    */
-  arrayContainsAny(...values: Expr[]): BooleanExpr;
+  arrayContainsAny(values: Array<Expr | any>): BooleanExpr;
 
   /**
    * Creates an expression that checks if an array contains any of the specified elements.
@@ -554,19 +554,18 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * ```typescript
    * // Check if the 'groups' array contains either the value from the 'userGroup' field
    * // or the value "guest"
-   * field("groups").arrayContainsAny(field("userGroup"), "guest");
+   * field("groups").arrayContainsAny(array([field("userGroup"), "guest"]));
    * ```
    *
-   * @param values The elements to check for in the array.
+   * @param arrayExpression The elements to check for in the array.
    * @return A new `Expr` representing the 'array_contains_any' comparison.
    */
-  arrayContainsAny(...values: any[]): BooleanExpr;
-  arrayContainsAny(...values: any[]): BooleanExpr {
-    const exprValues = values.map(value => valueToDefaultExpr(value));
-    return new BooleanExpr('array_contains_any', [
-      this,
-      new ListOfExprs(exprValues)
-    ]);
+  arrayContainsAny(arrayExpression: Expr): BooleanExpr;
+  arrayContainsAny(values: Array<any | Expr> | Expr): BooleanExpr {
+    const normalizedExpr = Array.isArray(values)
+      ? new ListOfExprs(values.map(valueToDefaultExpr))
+      : values;
+    return new BooleanExpr('array_contains_any', [this, normalizedExpr]);
   }
 
   /**
@@ -592,10 +591,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("category").eqAny("Electronics", field("primaryType"));
    * ```
    *
-   * @param others The values or expressions to check against.
+   * @param values The values or expressions to check against.
    * @return A new `Expr` representing the 'IN' comparison.
    */
-  eqAny(...others: Expr[]): BooleanExpr;
+  eqAny(values: Array<Expr | any>): BooleanExpr;
 
   /**
    * Creates an expression that checks if this expression is equal to any of the provided values or
@@ -603,16 +602,18 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
-   * field("category").eqAny("Electronics", field("primaryType"));
+   * field("category").eqAny(array(["Electronics", field("primaryType")]));
    * ```
    *
-   * @param others The values or expressions to check against.
+   * @param arrayExpression An expression that evaluates to an array of values to check against.
    * @return A new `Expr` representing the 'IN' comparison.
    */
-  eqAny(...others: any[]): BooleanExpr;
-  eqAny(...others: any[]): BooleanExpr {
-    const exprOthers = others.map(other => valueToDefaultExpr(other));
-    return new BooleanExpr('eq_any', [this, new ListOfExprs(exprOthers)]);
+  eqAny(arrayExpression: Expr): BooleanExpr;
+  eqAny(others: any[] | Expr): BooleanExpr {
+    const exprOthers = Array.isArray(others)
+      ? new ListOfExprs(others.map(valueToDefaultExpr))
+      : others;
+    return new BooleanExpr('eq_any', [this, exprOthers]);
   }
 
   /**
@@ -621,30 +622,31 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
-   * field("status").notEqAny("pending", field("rejectedStatus"));
+   * field("status").notEqAny([]"pending", field("rejectedStatus")]);
    * ```
    *
-   * @param others The values or expressions to check against.
+   * @param values The values or expressions to check against.
    * @return A new `Expr` representing the 'NotEqAny' comparison.
    */
-  notEqAny(...others: Expr[]): BooleanExpr;
+  notEqAny(values: Array<Expr | any>): BooleanExpr;
 
   /**
-   * Creates an expression that checks if this expression is not equal to any of the provided values or
-   * expressions.
+   * Creates an expression that checks if this expression is not equal to any of the values in the evaluated expression.
    *
    * ```typescript
-   * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
-   * field("status").notEqAny("pending", field("rejectedStatus"));
+   * // Check if the 'status' field is not equal to any value in the field 'rejectedStatuses'
+   * field("status").notEqAny(field('rejectedStatuses'));
    * ```
    *
-   * @param others The values or expressions to check against.
+   * @param arrayExpression The values or expressions to check against.
    * @return A new `Expr` representing the 'NotEqAny' comparison.
    */
-  notEqAny(...others: any[]): BooleanExpr;
-  notEqAny(...others: any[]): BooleanExpr {
-    const exprOthers = others.map(other => valueToDefaultExpr(other));
-    return new BooleanExpr('not_eq_any', [this, new ListOfExprs(exprOthers)]);
+  notEqAny(arrayExpression: Expr): BooleanExpr;
+  notEqAny(others: any[] | Expr): BooleanExpr {
+    const exprOthers = Array.isArray(others)
+      ? new ListOfExprs(others.map(valueToDefaultExpr))
+      : others;
+    return new BooleanExpr('not_eq_any', [this, exprOthers]);
   }
 
   /**
@@ -1214,10 +1216,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("userVector").cosineDistance(field("itemVector"));
    * ```
    *
-   * @param other The other vector (represented as an Expr) to compare against.
+   * @param vectorExpression The other vector (represented as an Expr) to compare against.
    * @return A new `Expr` representing the cosine distance between the two vectors.
    */
-  cosineDistance(other: Expr): FunctionExpr;
+  cosineDistance(vectorExpression: Expr): FunctionExpr;
   /**
    * Calculates the Cosine distance between two vectors.
    *
@@ -1226,22 +1228,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("location").cosineDistance(new VectorValue([37.7749, -122.4194]));
    * ```
    *
-   * @param other The other vector (as a VectorValue) to compare against.
+   * @param vector The other vector (as a VectorValue) to compare against.
    * @return A new `Expr` representing the Cosine* distance between the two vectors.
    */
-  cosineDistance(other: VectorValue): FunctionExpr;
-  /**
-   * Calculates the Cosine distance between two vectors.
-   *
-   * ```typescript
-   * // Calculate the Cosine distance between the 'location' field and a target location
-   * field("location").cosineDistance([37.7749, -122.4194]);
-   * ```
-   *
-   * @param other The other vector (as an array of numbers) to compare against.
-   * @return A new `Expr` representing the Cosine distance between the two vectors.
-   */
-  cosineDistance(other: number[]): FunctionExpr;
+  cosineDistance(vector: VectorValue | number[]): FunctionExpr;
   cosineDistance(other: Expr | VectorValue | number[]): FunctionExpr {
     return new FunctionExpr('cosine_distance', [this, vectorToExpr(other)]);
   }
@@ -1254,10 +1244,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("features").dotProduct([0.5, 0.8, 0.2]);
    * ```
    *
-   * @param other The other vector (as an array of numbers) to calculate with.
+   * @param vectorExpression The other vector (as an array of numbers) to calculate with.
    * @return A new `Expr` representing the dot product between the two vectors.
    */
-  dotProduct(other: Expr): FunctionExpr;
+  dotProduct(vectorExpression: Expr): FunctionExpr;
 
   /**
    * Calculates the dot product between two vectors.
@@ -1267,23 +1257,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("features").dotProduct(new VectorValue([0.5, 0.8, 0.2]));
    * ```
    *
-   * @param other The other vector (as an array of numbers) to calculate with.
+   * @param vector The other vector (as an array of numbers) to calculate with.
    * @return A new `Expr` representing the dot product between the two vectors.
    */
-  dotProduct(other: VectorValue): FunctionExpr;
-
-  /**
-   * Calculates the dot product between two vectors.
-   *
-   * ```typescript
-   * // Calculate the dot product between a feature vector and a target vector
-   * field("features").dotProduct([0.5, 0.8, 0.2]);
-   * ```
-   *
-   * @param other The other vector (as an array of numbers) to calculate with.
-   * @return A new `Expr` representing the dot product between the two vectors.
-   */
-  dotProduct(other: number[]): FunctionExpr;
+  dotProduct(vector: VectorValue | number[]): FunctionExpr;
   dotProduct(other: Expr | VectorValue | number[]): FunctionExpr {
     return new FunctionExpr('dot_product', [this, vectorToExpr(other)]);
   }
@@ -1296,10 +1273,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("location").euclideanDistance([37.7749, -122.4194]);
    * ```
    *
-   * @param other The other vector (as an array of numbers) to calculate with.
+   * @param vectorExpression The other vector (as an array of numbers) to calculate with.
    * @return A new `Expr` representing the Euclidean distance between the two vectors.
    */
-  euclideanDistance(other: Expr): FunctionExpr;
+  euclideanDistance(vectorExpression: Expr): FunctionExpr;
 
   /**
    * Calculates the Euclidean distance between two vectors.
@@ -1309,26 +1286,14 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("location").euclideanDistance(new VectorValue([37.7749, -122.4194]));
    * ```
    *
-   * @param other The other vector (as a VectorValue) to compare against.
+   * @param vector The other vector (as a VectorValue) to compare against.
    * @return A new `Expr` representing the Euclidean distance between the two vectors.
    */
-  euclideanDistance(other: VectorValue): FunctionExpr;
-
-  /**
-   * Calculates the Euclidean distance between two vectors.
-   *
-   * ```typescript
-   * // Calculate the Euclidean distance between the 'location' field and a target location
-   * field("location").euclideanDistance([37.7749, -122.4194]);
-   * ```
-   *
-   * @param other The other vector (as an array of numbers) to compare against.
-   * @return A new `Expr` representing the Euclidean distance between the two vectors.
-   */
-  euclideanDistance(other: number[]): FunctionExpr;
+  euclideanDistance(vector: VectorValue | number[]): FunctionExpr;
   euclideanDistance(other: Expr | VectorValue | number[]): FunctionExpr {
     return new FunctionExpr('euclidean_distance', [this, vectorToExpr(other)]);
   }
+
   /**
    * @beta
    *
@@ -1339,25 +1304,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("location").manhattanDistance(new VectorValue([37.7749, -122.4194]));
    * ```
    *
-   * @param other The other vector (as a VectorValue) to compare against.
+   * @param vector The other vector (as a VectorValue) to compare against.
    * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
    */
-  manhattanDistance(other: VectorValue): FunctionExpr;
-
-  /**
-   * @beta
-   *
-   * Calculates the Manhattan distance between the result of this expression and a double array.
-   *
-   * ```typescript
-   * // Calculate the Manhattan distance between the 'location' field and a target location
-   * field("location").manhattanDistance([37.7749, -122.4194]);
-   * ```
-   *
-   * @param other The other vector (as an array of doubles) to compare against.
-   * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
-   */
-  manhattanDistance(other: number[]): FunctionExpr;
+  manhattanDistance(vector: VectorValue | number[]): FunctionExpr;
 
   /**
    * @beta
@@ -1369,10 +1319,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * field("pointA").manhattanDistance(field("pointB"));
    * ```
    *
-   * @param other The other vector (represented as an Expr) to compare against.
+   * @param vectorExpression The other vector (represented as an Expr) to compare against.
    * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
    */
-  manhattanDistance(other: Expr): FunctionExpr;
+  manhattanDistance(vectorExpression: Expr): FunctionExpr;
   manhattanDistance(other: Expr | number[] | VectorValue): FunctionExpr {
     return new FunctionExpr('manhattan_distance', [this, vectorToExpr(other)]);
   }
@@ -3602,11 +3552,11 @@ export function subtract(left: Expr, right: Expr): FunctionExpr;
  * subtract(field("value"), 2);
  * ```
  *
- * @param left The expression to subtract from.
- * @param right The constant value to subtract.
+ * @param expression The expression to subtract from.
+ * @param value The constant value to subtract.
  * @return A new {@code Expr} representing the subtraction operation.
  */
-export function subtract(left: Expr, right: any): FunctionExpr;
+export function subtract(expression: Expr, value: any): FunctionExpr;
 
 /**
  * @beta
@@ -3618,11 +3568,11 @@ export function subtract(left: Expr, right: any): FunctionExpr;
  * subtract("price", field("discount"));
  * ```
  *
- * @param left The field name to subtract from.
- * @param right The expression to subtract.
+ * @param fieldName The field name to subtract from.
+ * @param expression The expression to subtract.
  * @return A new {@code Expr} representing the subtraction operation.
  */
-export function subtract(left: string, right: Expr): FunctionExpr;
+export function subtract(fieldName: string, expression: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -3634,11 +3584,11 @@ export function subtract(left: string, right: Expr): FunctionExpr;
  * subtract("total", 20);
  * ```
  *
- * @param left The field name to subtract from.
- * @param right The constant value to subtract.
+ * @param fieldName The field name to subtract from.
+ * @param value The constant value to subtract.
  * @return A new {@code Expr} representing the subtraction operation.
  */
-export function subtract(left: string, right: any): FunctionExpr;
+export function subtract(fieldName: string, value: any): FunctionExpr;
 export function subtract(left: Expr | string, right: Expr | any): FunctionExpr {
   const normalizedLeft = typeof left === 'string' ? field(left) : left;
   const normalizedRight = valueToDefaultExpr(right);
@@ -3724,11 +3674,11 @@ export function divide(left: Expr, right: Expr): FunctionExpr;
  * divide(field("value"), 10);
  * ```
  *
- * @param left The expression to be divided.
- * @param right The constant value to divide by.
+ * @param expression The expression to be divided.
+ * @param value The constant value to divide by.
  * @return A new {@code Expr} representing the division operation.
  */
-export function divide(left: Expr, right: any): FunctionExpr;
+export function divide(expression: Expr, value: any): FunctionExpr;
 
 /**
  * @beta
@@ -3740,11 +3690,11 @@ export function divide(left: Expr, right: any): FunctionExpr;
  * divide("total", field("count"));
  * ```
  *
- * @param left The field name to be divided.
- * @param right The expression to divide by.
+ * @param fieldName The field name to be divided.
+ * @param expressions The expression to divide by.
  * @return A new {@code Expr} representing the division operation.
  */
-export function divide(left: string, right: Expr): FunctionExpr;
+export function divide(fieldName: string, expressions: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -3756,11 +3706,11 @@ export function divide(left: string, right: Expr): FunctionExpr;
  * divide("value", 10);
  * ```
  *
- * @param left The field name to be divided.
- * @param right The constant value to divide by.
+ * @param fieldName The field name to be divided.
+ * @param value The constant value to divide by.
  * @return A new {@code Expr} representing the division operation.
  */
-export function divide(left: string, right: any): FunctionExpr;
+export function divide(fieldName: string, value: any): FunctionExpr;
 export function divide(left: Expr | string, right: Expr | any): FunctionExpr {
   const normalizedLeft = typeof left === 'string' ? field(left) : left;
   const normalizedRight = valueToDefaultExpr(right);
@@ -3793,11 +3743,11 @@ export function mod(left: Expr, right: Expr): FunctionExpr;
  * mod(field("field1"), 5);
  * ```
  *
- * @param left The dividend expression.
- * @param right The divisor constant.
+ * @param expression The dividend expression.
+ * @param value The divisor constant.
  * @return A new {@code Expr} representing the modulo operation.
  */
-export function mod(left: Expr, right: any): FunctionExpr;
+export function mod(expression: Expr, value: any): FunctionExpr;
 
 /**
  * @beta
@@ -3809,11 +3759,11 @@ export function mod(left: Expr, right: any): FunctionExpr;
  * mod("field1", field("field2"));
  * ```
  *
- * @param left The dividend field name.
- * @param right The divisor expression.
+ * @param fieldName The dividend field name.
+ * @param expression The divisor expression.
  * @return A new {@code Expr} representing the modulo operation.
  */
-export function mod(left: string, right: Expr): FunctionExpr;
+export function mod(fieldName: string, expression: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -3825,17 +3775,30 @@ export function mod(left: string, right: Expr): FunctionExpr;
  * mod("field1", 5);
  * ```
  *
- * @param left The dividend field name.
- * @param right The divisor constant.
+ * @param fieldName The dividend field name.
+ * @param value The divisor constant.
  * @return A new {@code Expr} representing the modulo operation.
  */
-export function mod(left: string, right: any): FunctionExpr;
+export function mod(fieldName: string, value: any): FunctionExpr;
 export function mod(left: Expr | string, right: Expr | any): FunctionExpr {
   const normalizedLeft = typeof left === 'string' ? field(left) : left;
   const normalizedRight = valueToDefaultExpr(right);
   return normalizedLeft.mod(normalizedRight);
 }
 
+/**
+ * @beta
+ *
+ * Creates an expression that creates a Firestore map value from an input object.
+ *
+ * ```typescript
+ * // Create a map from the input object and reference the 'baz' field value from the input document.
+ * map({foo: 'bar', baz: Field.of('baz')}).as('data');
+ * ```
+ *
+ * @param elements The input map to evaluate in the expression.
+ * @return A new {@code Expr} representing the map function.
+ */
 export function map(elements: Record<string, any>): FunctionExpr {
   const result: any[] = [];
   for (const key in elements) {
@@ -3870,6 +3833,19 @@ export function _mapValue(plainObject: Record<string, any>): MapValue {
   return new MapValue(result);
 }
 
+/**
+ * @beta
+ *
+ * Creates an expression that creates a Firestore array value from an input array.
+ *
+ * ```typescript
+ * // Create an array value from the input array and reference the 'baz' field value from the input document.
+ * array(['bar', Field.of('baz')]).as('foo');
+ * ```
+ *
+ * @param elements The input array to evaluate in the expression.
+ * @return A new {@code Expr} representing the array function.
+ */
 export function array(elements: any[]): FunctionExpr {
   return new FunctionExpr(
     'array',
@@ -3903,11 +3879,11 @@ export function eq(left: Expr, right: Expr): BooleanExpr;
  * eq(field("age"), 21);
  * ```
  *
- * @param left The expression to compare.
- * @param right The constant value to compare to.
+ * @param expression The expression to compare.
+ * @param value The constant value to compare to.
  * @return A new `Expr` representing the equality comparison.
  */
-export function eq(left: Expr, right: any): BooleanExpr;
+export function eq(expression: Expr, value: any): BooleanExpr;
 
 /**
  * @beta
@@ -3919,11 +3895,11 @@ export function eq(left: Expr, right: any): BooleanExpr;
  * eq("age", field("limit"));
  * ```
  *
- * @param left The field name to compare.
- * @param right The expression to compare to.
+ * @param fieldName The field name to compare.
+ * @param expression The expression to compare to.
  * @return A new `Expr` representing the equality comparison.
  */
-export function eq(left: string, right: Expr): BooleanExpr;
+export function eq(fieldName: string, expression: Expr): BooleanExpr;
 
 /**
  * @beta
@@ -3935,11 +3911,11 @@ export function eq(left: string, right: Expr): BooleanExpr;
  * eq("city", "London");
  * ```
  *
- * @param left The field name to compare.
- * @param right The constant value to compare to.
+ * @param fieldName The field name to compare.
+ * @param value The constant value to compare to.
  * @return A new `Expr` representing the equality comparison.
  */
-export function eq(left: string, right: any): BooleanExpr;
+export function eq(fieldName: string, value: any): BooleanExpr;
 export function eq(left: Expr | string, right: any): BooleanExpr {
   const leftExpr = left instanceof Expr ? left : field(left);
   const rightExpr = valueToDefaultExpr(right);
@@ -3972,11 +3948,11 @@ export function neq(left: Expr, right: Expr): BooleanExpr;
  * neq(field("status"), "completed");
  * ```
  *
- * @param left The expression to compare.
- * @param right The constant value to compare to.
+ * @param expression The expression to compare.
+ * @param value The constant value to compare to.
  * @return A new `Expr` representing the inequality comparison.
  */
-export function neq(left: Expr, right: any): BooleanExpr;
+export function neq(expression: Expr, value: any): BooleanExpr;
 
 /**
  * @beta
@@ -3988,11 +3964,11 @@ export function neq(left: Expr, right: any): BooleanExpr;
  * neq("status", field("expectedStatus"));
  * ```
  *
- * @param left The field name to compare.
- * @param right The expression to compare to.
+ * @param fieldName The field name to compare.
+ * @param expression The expression to compare to.
  * @return A new `Expr` representing the inequality comparison.
  */
-export function neq(left: string, right: Expr): BooleanExpr;
+export function neq(fieldName: string, expression: Expr): BooleanExpr;
 
 /**
  * @beta
@@ -4004,11 +3980,11 @@ export function neq(left: string, right: Expr): BooleanExpr;
  * neq("country", "USA");
  * ```
  *
- * @param left The field name to compare.
- * @param right The constant value to compare to.
+ * @param fieldName The field name to compare.
+ * @param value The constant value to compare to.
  * @return A new `Expr` representing the inequality comparison.
  */
-export function neq(left: string, right: any): BooleanExpr;
+export function neq(fieldName: string, value: any): BooleanExpr;
 export function neq(left: Expr | string, right: any): BooleanExpr {
   const leftExpr = left instanceof Expr ? left : field(left);
   const rightExpr = valueToDefaultExpr(right);
@@ -4041,11 +4017,11 @@ export function lt(left: Expr, right: Expr): BooleanExpr;
  * lt(field("age"), 30);
  * ```
  *
- * @param left The expression to compare.
- * @param right The constant value to compare to.
+ * @param expression The expression to compare.
+ * @param value The constant value to compare to.
  * @return A new `Expr` representing the less than comparison.
  */
-export function lt(left: Expr, right: any): BooleanExpr;
+export function lt(expression: Expr, value: any): BooleanExpr;
 
 /**
  * @beta
@@ -4057,11 +4033,11 @@ export function lt(left: Expr, right: any): BooleanExpr;
  * lt("age", field("limit"));
  * ```
  *
- * @param left The field name to compare.
- * @param right The expression to compare to.
+ * @param fieldName The field name to compare.
+ * @param expression The expression to compare to.
  * @return A new `Expr` representing the less than comparison.
  */
-export function lt(left: string, right: Expr): BooleanExpr;
+export function lt(fieldName: string, expression: Expr): BooleanExpr;
 
 /**
  * @beta
@@ -4073,11 +4049,11 @@ export function lt(left: string, right: Expr): BooleanExpr;
  * lt("price", 50);
  * ```
  *
- * @param left The field name to compare.
- * @param right The constant value to compare to.
+ * @param fieldName The field name to compare.
+ * @param value The constant value to compare to.
  * @return A new `Expr` representing the less than comparison.
  */
-export function lt(left: string, right: any): BooleanExpr;
+export function lt(fieldName: string, value: any): BooleanExpr;
 export function lt(left: Expr | string, right: any): BooleanExpr {
   const leftExpr = left instanceof Expr ? left : field(left);
   const rightExpr = valueToDefaultExpr(right);
@@ -4111,11 +4087,11 @@ export function lte(left: Expr, right: Expr): BooleanExpr;
  * lte(field("quantity"), 20);
  * ```
  *
- * @param left The expression to compare.
- * @param right The constant value to compare to.
+ * @param expression The expression to compare.
+ * @param value The constant value to compare to.
  * @return A new `Expr` representing the less than or equal to comparison.
  */
-export function lte(left: Expr, right: any): BooleanExpr;
+export function lte(expression: Expr, value: any): BooleanExpr;
 
 /**
  * Creates an expression that checks if a field's value is less than or equal to an expression.
@@ -4125,11 +4101,11 @@ export function lte(left: Expr, right: any): BooleanExpr;
  * lte("quantity", field("limit"));
  * ```
  *
- * @param left The field name to compare.
- * @param right The expression to compare to.
+ * @param fieldName The field name to compare.
+ * @param expression The expression to compare to.
  * @return A new `Expr` representing the less than or equal to comparison.
  */
-export function lte(left: string, right: Expr): BooleanExpr;
+export function lte(fieldName: string, expression: Expr): BooleanExpr;
 
 /**
  * @beta
@@ -4141,11 +4117,11 @@ export function lte(left: string, right: Expr): BooleanExpr;
  * lte("score", 70);
  * ```
  *
- * @param left The field name to compare.
- * @param right The constant value to compare to.
+ * @param fieldName The field name to compare.
+ * @param value The constant value to compare to.
  * @return A new `Expr` representing the less than or equal to comparison.
  */
-export function lte(left: string, right: any): BooleanExpr;
+export function lte(fieldName: string, value: any): BooleanExpr;
 export function lte(left: Expr | string, right: any): BooleanExpr {
   const leftExpr = left instanceof Expr ? left : field(left);
   const rightExpr = valueToDefaultExpr(right);
@@ -4179,11 +4155,11 @@ export function gt(left: Expr, right: Expr): BooleanExpr;
  * gt(field("age"), 18);
  * ```
  *
- * @param left The expression to compare.
- * @param right The constant value to compare to.
+ * @param expression The expression to compare.
+ * @param value The constant value to compare to.
  * @return A new `Expr` representing the greater than comparison.
  */
-export function gt(left: Expr, right: any): BooleanExpr;
+export function gt(expression: Expr, value: any): BooleanExpr;
 
 /**
  * @beta
@@ -4195,11 +4171,11 @@ export function gt(left: Expr, right: any): BooleanExpr;
  * gt("age", field("limit"));
  * ```
  *
- * @param left The field name to compare.
- * @param right The expression to compare to.
+ * @param fieldName The field name to compare.
+ * @param expression The expression to compare to.
  * @return A new `Expr` representing the greater than comparison.
  */
-export function gt(left: string, right: Expr): BooleanExpr;
+export function gt(fieldName: string, expression: Expr): BooleanExpr;
 
 /**
  * @beta
@@ -4211,11 +4187,11 @@ export function gt(left: string, right: Expr): BooleanExpr;
  * gt("price", 100);
  * ```
  *
- * @param left The field name to compare.
- * @param right The constant value to compare to.
+ * @param fieldName The field name to compare.
+ * @param value The constant value to compare to.
  * @return A new `Expr` representing the greater than comparison.
  */
-export function gt(left: string, right: any): BooleanExpr;
+export function gt(fieldName: string, value: any): BooleanExpr;
 export function gt(left: Expr | string, right: any): BooleanExpr {
   const leftExpr = left instanceof Expr ? left : field(left);
   const rightExpr = valueToDefaultExpr(right);
@@ -4250,11 +4226,11 @@ export function gte(left: Expr, right: Expr): BooleanExpr;
  * gte(field("quantity"), 10);
  * ```
  *
- * @param left The expression to compare.
- * @param right The constant value to compare to.
+ * @param expression The expression to compare.
+ * @param value The constant value to compare to.
  * @return A new `Expr` representing the greater than or equal to comparison.
  */
-export function gte(left: Expr, right: any): BooleanExpr;
+export function gte(expression: Expr, value: any): BooleanExpr;
 
 /**
  * @beta
@@ -4266,11 +4242,11 @@ export function gte(left: Expr, right: any): BooleanExpr;
  * gte("age", field("limit"));
  * ```
  *
- * @param left The field name to compare.
- * @param right The expression to compare to.
+ * @param fieldName The field name to compare.
+ * @param value The expression to compare to.
  * @return A new `Expr` representing the greater than or equal to comparison.
  */
-export function gte(left: string, right: Expr): BooleanExpr;
+export function gte(fieldName: string, value: Expr): BooleanExpr;
 
 /**
  * @beta
@@ -4283,11 +4259,11 @@ export function gte(left: string, right: Expr): BooleanExpr;
  * gte("score", 80);
  * ```
  *
- * @param left The field name to compare.
- * @param right The constant value to compare to.
+ * @param fieldName The field name to compare.
+ * @param value The constant value to compare to.
  * @return A new `Expr` representing the greater than or equal to comparison.
  */
-export function gte(left: string, right: any): BooleanExpr;
+export function gte(fieldName: string, value: any): BooleanExpr;
 export function gte(left: Expr | string, right: any): BooleanExpr {
   const leftExpr = left instanceof Expr ? left : field(left);
   const rightExpr = valueToDefaultExpr(right);
@@ -4390,11 +4366,11 @@ export function arrayContains(array: Expr, element: any): FunctionExpr;
  * arrayContains("colors", field("selectedColor"));
  * ```
  *
- * @param array The field name to check.
+ * @param fieldName The field name to check.
  * @param element The element to search for in the array.
  * @return A new {@code Expr} representing the 'array_contains' comparison.
  */
-export function arrayContains(array: string, element: Expr): FunctionExpr;
+export function arrayContains(fieldName: string, element: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -4406,11 +4382,11 @@ export function arrayContains(array: string, element: Expr): FunctionExpr;
  * arrayContains("colors", "red");
  * ```
  *
- * @param array The field name to check.
+ * @param fieldName The field name to check.
  * @param element The element to search for in the array.
  * @return A new {@code Expr} representing the 'array_contains' comparison.
  */
-export function arrayContains(array: string, element: any): BooleanExpr;
+export function arrayContains(fieldName: string, element: any): BooleanExpr;
 export function arrayContains(array: Expr | string, element: any): BooleanExpr {
   const arrayExpr = fieldOfOrExpr(array);
   const elementExpr = valueToDefaultExpr(element);
@@ -4432,7 +4408,31 @@ export function arrayContains(array: Expr | string, element: any): BooleanExpr {
  * @param values The elements to check for in the array.
  * @return A new {@code Expr} representing the 'array_contains_any' comparison.
  */
-export function arrayContainsAny(array: Expr, values: Expr[]): BooleanExpr;
+export function arrayContainsAny(
+  array: Expr,
+  values: Array<Expr | any>
+): BooleanExpr;
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if a field's array value contains any of the specified
+ * elements.
+ *
+ * ```typescript
+ * // Check if the 'groups' array contains either the value from the 'userGroup' field
+ * // or the value "guest"
+ * arrayContainsAny("categories", [field("cate1"), "Science"]);
+ * ```
+ *
+ * @param fieldName The field name to check.
+ * @param values The elements to check for in the array.
+ * @return A new {@code Expr} representing the 'array_contains_any' comparison.
+ */
+export function arrayContainsAny(
+  fieldName: string,
+  values: Array<Expr | any>
+): BooleanExpr;
 
 /**
  * @beta
@@ -4442,14 +4442,14 @@ export function arrayContainsAny(array: Expr, values: Expr[]): BooleanExpr;
  *
  * ```typescript
  * // Check if the 'categories' array contains either values from field "cate1" or "Science"
- * arrayContainsAny(field("categories"), [field("cate1"), "Science"]);
+ * arrayContainsAny(field("categories"), array([field("cate1"), "Science"]));
  * ```
  *
  * @param array The array expression to check.
- * @param values The elements to check for in the array.
+ * @param values An expression that evaluates to an array, whose elements to check for in the array.
  * @return A new {@code Expr} representing the 'array_contains_any' comparison.
  */
-export function arrayContainsAny(array: Expr, values: any[]): BooleanExpr;
+export function arrayContainsAny(array: Expr, values: Expr): BooleanExpr;
 
 /**
  * @beta
@@ -4460,39 +4460,20 @@ export function arrayContainsAny(array: Expr, values: any[]): BooleanExpr;
  * ```typescript
  * // Check if the 'groups' array contains either the value from the 'userGroup' field
  * // or the value "guest"
- * arrayContainsAny("categories", [field("cate1"), "Science"]);
+ * arrayContainsAny("categories", array([field("cate1"), "Science"]));
  * ```
  *
- * @param array The field name to check.
- * @param values The elements to check for in the array.
+ * @param fieldName The field name to check.
+ * @param values An expression that evaluates to an array, whose elements to check for in the array field.
  * @return A new {@code Expr} representing the 'array_contains_any' comparison.
  */
-export function arrayContainsAny(array: string, values: Expr[]): BooleanExpr;
-
-/**
- * @beta
- *
- * Creates an expression that checks if a field's array value contains any of the specified
- * elements.
- *
- * ```typescript
- * // Check if the 'groups' array contains either the value from the 'userGroup' field
- * // or the value "guest"
- * arrayContainsAny("categories", [field("cate1"), "Science"]);
- * ```
- *
- * @param array The field name to check.
- * @param values The elements to check for in the array.
- * @return A new {@code Expr} representing the 'array_contains_any' comparison.
- */
-export function arrayContainsAny(array: string, values: any[]): BooleanExpr;
+export function arrayContainsAny(fieldName: string, values: Expr): BooleanExpr;
 export function arrayContainsAny(
   array: Expr | string,
-  values: any[]
+  values: any[] | Expr
 ): BooleanExpr {
-  return fieldOfOrExpr(array).arrayContainsAny(
-    ...values.map(valueToDefaultExpr)
-  );
+  // @ts-ignore implementation accepts both types
+  return fieldOfOrExpr(array).arrayContainsAny(values);
 }
 
 /**
@@ -4502,14 +4483,37 @@ export function arrayContainsAny(
  *
  * ```typescript
  * // Check if the "tags" array contains all of the values: "SciFi", "Adventure", and the value from field "tag1"
- * arrayContainsAll(field("tags"), [field("tag1"), constant("SciFi"), constant("Adventure")]);
+ * arrayContainsAll(field("tags"), [field("tag1"), constant("SciFi"), "Adventure"]);
  * ```
  *
  * @param array The array expression to check.
  * @param values The elements to check for in the array.
  * @return A new {@code Expr} representing the 'array_contains_all' comparison.
  */
-export function arrayContainsAll(array: Expr, values: Expr[]): BooleanExpr;
+export function arrayContainsAll(
+  array: Expr,
+  values: Array<Expr | any>
+): BooleanExpr;
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if a field's array value contains all the specified values or
+ * expressions.
+ *
+ * ```typescript
+ * // Check if the 'tags' array contains both of the values from field 'tag1', the value "SciFi", and "Adventure"
+ * arrayContainsAll("tags", [field("tag1"), "SciFi", "Adventure"]);
+ * ```
+ *
+ * @param fieldName The field name to check.
+ * @param values The elements to check for in the array.
+ * @return A new {@code Expr} representing the 'array_contains_all' comparison.
+ */
+export function arrayContainsAll(
+  fieldName: string,
+  values: Array<Expr | any>
+): BooleanExpr;
 
 /**
  * @beta
@@ -4518,14 +4522,17 @@ export function arrayContainsAll(array: Expr, values: Expr[]): BooleanExpr;
  *
  * ```typescript
  * // Check if the "tags" array contains all of the values: "SciFi", "Adventure", and the value from field "tag1"
- * arrayContainsAll(field("tags"), [field("tag1"), "SciFi", "Adventure"]);
+ * arrayContainsAll(field("tags"), [field("tag1"), constant("SciFi"), "Adventure"]);
  * ```
  *
  * @param array The array expression to check.
- * @param values The elements to check for in the array.
+ * @param arrayExpression The elements to check for in the array.
  * @return A new {@code Expr} representing the 'array_contains_all' comparison.
  */
-export function arrayContainsAll(array: Expr, values: any[]): BooleanExpr;
+export function arrayContainsAll(
+  array: Expr,
+  arrayExpression: Expr
+): BooleanExpr;
 
 /**
  * @beta
@@ -4534,39 +4541,24 @@ export function arrayContainsAll(array: Expr, values: any[]): BooleanExpr;
  * expressions.
  *
  * ```typescript
- * // Check if the 'tags' array contains both of the values from field 'tag1' and "tag2"
+ * // Check if the 'tags' array contains both of the values from field 'tag1', the value "SciFi", and "Adventure"
  * arrayContainsAll("tags", [field("tag1"), "SciFi", "Adventure"]);
  * ```
  *
- * @param array The field name to check.
- * @param values The elements to check for in the array.
+ * @param fieldName The field name to check.
+ * @param arrayExpression The elements to check for in the array.
  * @return A new {@code Expr} representing the 'array_contains_all' comparison.
  */
-export function arrayContainsAll(array: string, values: Expr[]): BooleanExpr;
-
-/**
- * @beta
- *
- * Creates an expression that checks if a field's array value contains all the specified values or
- * expressions.
- *
- * ```typescript
- * // Check if the 'tags' array contains both of the values from field 'tag1' and "tag2"
- * arrayContainsAll("tags", [field("tag1"), "SciFi", "Adventure"]);
- * ```
- *
- * @param array The field name to check.
- * @param values The elements to check for in the array.
- * @return A new {@code Expr} representing the 'array_contains_all' comparison.
- */
-export function arrayContainsAll(array: string, values: any[]): BooleanExpr;
+export function arrayContainsAll(
+  fieldName: string,
+  arrayExpression: Expr
+): BooleanExpr;
 export function arrayContainsAll(
   array: Expr | string,
-  values: any[]
+  values: any[] | Expr
 ): BooleanExpr {
-  const arrayExpr = fieldOfOrExpr(array);
-  const exprValues = values.map(value => valueToDefaultExpr(value));
-  return arrayExpr.arrayContainsAll(exprValues);
+  // @ts-ignore implementation accepts both types
+  return fieldOfOrExpr(array).arrayContainsAll(values);
 }
 
 /**
@@ -4589,7 +4581,7 @@ export function arrayLength(array: Expr): FunctionExpr {
 /**
  * @beta
  *
- * Creates an expression that checks if an expression is equal to any of the provided values or
+ * Creates an expression that checks if an expression, when evaluated, is equal to any of the provided values or
  * expressions.
  *
  * ```typescript
@@ -4597,28 +4589,27 @@ export function arrayLength(array: Expr): FunctionExpr {
  * eqAny(field("category"), [constant("Electronics"), field("primaryType")]);
  * ```
  *
- * @param element The expression to compare.
- * @param others The values to check against.
+ * @param expression The expression whose results to compare.
+ * @param values The values to check against.
  * @return A new {@code Expr} representing the 'IN' comparison.
  */
-export function eqAny(element: Expr, others: Expr[]): BooleanExpr;
+export function eqAny(expression: Expr, values: Array<Expr | any>): BooleanExpr;
 
 /**
  * @beta
  *
- * Creates an expression that checks if an expression is equal to any of the provided values or
- * expressions.
+ * Creates an expression that checks if an expression is equal to any of the provided values.
  *
  * ```typescript
- * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
- * eqAny(field("category"), ["Electronics", field("primaryType")]);
+ * // Check if the 'category' field is set to a value in the disabledCategories field
+ * eqAny(field("category"), field('disabledCategories'));
  * ```
  *
- * @param element The expression to compare.
- * @param others The values to check against.
+ * @param expression The expression whose results to compare.
+ * @param arrayExpression An expression that evaluates to an array, whose elements to check for equality to the input.
  * @return A new {@code Expr} representing the 'IN' comparison.
  */
-export function eqAny(element: Expr, others: any[]): BooleanExpr;
+export function eqAny(expression: Expr, arrayExpression: Expr): BooleanExpr;
 
 /**
  * @beta
@@ -4631,11 +4622,14 @@ export function eqAny(element: Expr, others: any[]): BooleanExpr;
  * eqAny("category", [constant("Electronics"), field("primaryType")]);
  * ```
  *
- * @param element The field to compare.
- * @param others The values to check against.
+ * @param fieldName The field to compare.
+ * @param values The values to check against.
  * @return A new {@code Expr} representing the 'IN' comparison.
  */
-export function eqAny(element: string, others: Expr[]): BooleanExpr;
+export function eqAny(
+  fieldName: string,
+  values: Array<Expr | any>
+): BooleanExpr;
 
 /**
  * @beta
@@ -4648,33 +4642,18 @@ export function eqAny(element: string, others: Expr[]): BooleanExpr;
  * eqAny("category", ["Electronics", field("primaryType")]);
  * ```
  *
- * @param element The field to compare.
- * @param others The values to check against.
+ * @param fieldName The field to compare.
+ * @param arrayExpression An expression that evaluates to an array, whose elements to check for equality to the input field.
  * @return A new {@code Expr} representing the 'IN' comparison.
  */
-export function eqAny(element: string, others: any[]): BooleanExpr;
-export function eqAny(element: Expr | string, others: any[]): BooleanExpr {
-  const elementExpr = fieldOfOrExpr(element);
-  const exprOthers = others.map(other => valueToDefaultExpr(other));
-  return elementExpr.eqAny(...exprOthers);
+export function eqAny(fieldName: string, arrayExpression: Expr): BooleanExpr;
+export function eqAny(
+  element: Expr | string,
+  values: any[] | Expr
+): BooleanExpr {
+  // @ts-ignore implementation accepts both types
+  return fieldOfOrExpr(element).eqAny(values);
 }
-
-/**
- * @beta
- *
- * Creates an expression that checks if an expression is not equal to any of the provided values
- * or expressions.
- *
- * ```typescript
- * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
- * notEqAny(field("status"), [constant("pending"), field("rejectedStatus")]);
- * ```
- *
- * @param element The expression to compare.
- * @param others The values to check against.
- * @return A new {@code Expr} representing the 'NOT IN' comparison.
- */
-export function notEqAny(element: Expr, others: Expr[]): BooleanExpr;
 
 /**
  * @beta
@@ -4688,10 +4667,10 @@ export function notEqAny(element: Expr, others: Expr[]): BooleanExpr;
  * ```
  *
  * @param element The expression to compare.
- * @param others The values to check against.
+ * @param values The values to check against.
  * @return A new {@code Expr} representing the 'NOT IN' comparison.
  */
-export function notEqAny(element: Expr, others: any[]): BooleanExpr;
+export function notEqAny(element: Expr, values: Array<Expr | any>): BooleanExpr;
 
 /**
  * @beta
@@ -4704,39 +4683,60 @@ export function notEqAny(element: Expr, others: any[]): BooleanExpr;
  * notEqAny("status", [constant("pending"), field("rejectedStatus")]);
  * ```
  *
- * @param element The field name to compare.
- * @param others The values to check against.
+ * @param fieldName The field name to compare.
+ * @param values The values to check against.
  * @return A new {@code Expr} representing the 'NOT IN' comparison.
  */
-export function notEqAny(element: string, others: Expr[]): BooleanExpr;
+export function notEqAny(
+  fieldName: string,
+  values: Array<Expr | any>
+): BooleanExpr;
 
 /**
  * @beta
  *
- * Creates an expression that checks if a field's value is not equal to any of the provided values
+ * Creates an expression that checks if an expression is not equal to any of the provided values
  * or expressions.
  *
  * ```typescript
- * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
- * notEqAny("status", ["pending", field("rejectedStatus")]);
+ * // Check if the 'status' field is neither "pending" nor the value of the field 'rejectedStatus'
+ * notEqAny(field("status"), ["pending", field("rejectedStatus")]);
  * ```
  *
- * @param element The field name to compare.
- * @param others The values to check against.
+ * @param element The expression to compare.
+ * @param arrayExpression The values to check against.
  * @return A new {@code Expr} representing the 'NOT IN' comparison.
  */
-export function notEqAny(element: string, others: any[]): BooleanExpr;
-export function notEqAny(element: Expr | string, others: any[]): BooleanExpr {
-  const elementExpr = fieldOfOrExpr(element);
-  const exprOthers = others.map(other => valueToDefaultExpr(other));
-  return elementExpr.notEqAny(...exprOthers);
+export function notEqAny(element: Expr, arrayExpression: Expr): BooleanExpr;
+
+/**
+ * @beta
+ *
+ * Creates an expression that checks if a field's value is not equal to any of the values in the evaluated expression.
+ *
+ * ```typescript
+ * // Check if the 'status' field is not equal to any value in the field 'rejectedStatuses'
+ * notEqAny("status", field("rejectedStatuses"));
+ * ```
+ *
+ * @param fieldName The field name to compare.
+ * @param arrayExpression The values to check against.
+ * @return A new {@code Expr} representing the 'NOT IN' comparison.
+ */
+export function notEqAny(fieldName: string, arrayExpression: Expr): BooleanExpr;
+
+export function notEqAny(
+  element: Expr | string,
+  values: any[] | Expr
+): BooleanExpr {
+  // @ts-ignore implementation accepts both types
+  return fieldOfOrExpr(element).notEqAny(values);
 }
 
 /**
  * @beta
  *
- * Creates an expression that performs a logical 'XOR' (exclusive OR) operation on multiple filter
- * conditions.
+ * Creates an expression that performs a logical 'XOR' (exclusive OR) operation on multiple BooleanExpressions.
  *
  * ```typescript
  * // Check if only one of the conditions is true: 'age' greater than 18, 'city' is "London",
@@ -4747,17 +4747,17 @@ export function notEqAny(element: Expr | string, others: any[]): BooleanExpr {
  *     eq("status", "active"));
  * ```
  *
- * @param first The first filter condition.
- * @param second The second filter condition.
- * @param more Additional filter conditions to 'XOR' together.
+ * @param first The first condition.
+ * @param second The second condition.
+ * @param additionalConditions Additional conditions to 'XOR' together.
  * @return A new {@code Expr} representing the logical 'XOR' operation.
  */
 export function xor(
   first: BooleanExpr,
   second: BooleanExpr,
-  ...more: BooleanExpr[]
+  ...additionalConditions: BooleanExpr[]
 ): BooleanExpr {
-  return new BooleanExpr('xor', [first, second, ...more]);
+  return new BooleanExpr('xor', [first, second, ...additionalConditions]);
 }
 
 /**
@@ -4782,7 +4782,7 @@ export function cond(
   thenExpr: Expr,
   elseExpr: Expr
 ): FunctionExpr {
-  return new BooleanExpr('cond', [condition, thenExpr, elseExpr]);
+  return new FunctionExpr('cond', [condition, thenExpr, elseExpr]);
 }
 
 /**
@@ -4795,21 +4795,23 @@ export function cond(
  * not(eq("completed", true));
  * ```
  *
- * @param filter The filter condition to negate.
+ * @param booleanExpr The filter condition to negate.
  * @return A new {@code Expr} representing the negated filter condition.
  */
-export function not(filter: BooleanExpr): BooleanExpr {
-  return filter.not();
+export function not(booleanExpr: BooleanExpr): BooleanExpr {
+  return booleanExpr.not();
 }
 
 /**
  * @beta
  *
- * Creates an expression that returns the larger value between two expressions, based on Firestore's value type ordering.
+ * Creates an expression that returns the largest value between multiple input
+ * expressions or literal values. Based on Firestore's value type ordering.
  *
  * ```typescript
- * // Returns the larger value between the 'field1' field and the 'field2' field.
- * logicalMaximum(field("field1"), field("field2"));
+ * // Returns the largest value between the 'field1' field, the 'field2' field,
+ * // and 1000
+ * logicalMaximum(field("field1"), field("field2"), 1000);
  * ```
  *
  * @param first The first operand expression.
@@ -4826,11 +4828,13 @@ export function logicalMaximum(
 /**
  * @beta
  *
- * Creates an expression that returns the larger value between a field and an expression, based on Firestore's value type ordering.
+ * Creates an expression that returns the largest value between multiple input
+ * expressions or literal values. Based on Firestore's value type ordering.
  *
  * ```typescript
- * // Returns the larger value between the 'field1' field and the 'field2' field.
- * logicalMaximum("field1", field('field2'));
+ * // Returns the largest value between the 'field1' field, the 'field2' field,
+ * // and 1000.
+ * logicalMaximum("field1", field("field2"), 1000);
  * ```
  *
  * @param fieldName The first operand field name.
@@ -4839,7 +4843,7 @@ export function logicalMaximum(
  * @return A new {@code Expr} representing the logical max operation.
  */
 export function logicalMaximum(
-  left: string,
+  fieldName: string,
   second: Expr | any,
   ...others: Array<Expr | any>
 ): FunctionExpr;
@@ -4858,11 +4862,13 @@ export function logicalMaximum(
 /**
  * @beta
  *
- * Creates an expression that returns the smaller value between two expressions, based on Firestore's value type ordering.
+ * Creates an expression that returns the smallest value between multiple input
+ * expressions and literal values. Based on Firestore's value type ordering.
  *
  * ```typescript
- * // Returns the smaller value between the 'field1' field and the 'field2' field.
- * logicalMinimum(field("field1"), field("field2"));
+ * // Returns the smallest value between the 'field1' field, the 'field2' field,
+ * // and 1000.
+ * logicalMinimum(field("field1"), field("field2"), 1000);
  * ```
  *
  * @param first The first operand expression.
@@ -4879,11 +4885,14 @@ export function logicalMinimum(
 /**
  * @beta
  *
- * Creates an expression that returns the smaller value between a field and an expression, based on Firestore's value type ordering.
+ * Creates an expression that returns the smallest value between a field's value
+ * and other input expressions or literal values.
+ * Based on Firestore's value type ordering.
  *
  * ```typescript
- * // Returns the smaller value between the 'field1' field and the 'field2' field.
- * logicalMinimum("field1", field("field2"));
+ * // Returns the smallest value between the 'field1' field, the 'field2' field,
+ * // and 1000.
+ * logicalMinimum("field1", field("field2"), 1000);
  * ```
  *
  * @param fieldName The first operand field name.
@@ -4933,10 +4942,10 @@ export function exists(value: Expr): BooleanExpr;
  * exists("phoneNumber");
  * ```
  *
- * @param field The field name to check.
+ * @param fieldName The field name to check.
  * @return A new {@code Expr} representing the 'exists' check.
  */
-export function exists(field: string): BooleanExpr;
+export function exists(fieldName: string): BooleanExpr;
 export function exists(valueOrField: Expr | string): BooleanExpr {
   return fieldOfOrExpr(valueOrField).exists();
 }
@@ -4966,10 +4975,10 @@ export function isNan(value: Expr): BooleanExpr;
  * isNaN("value");
  * ```
  *
- * @param value The name of the field to check.
+ * @param fieldName The name of the field to check.
  * @return A new {@code Expr} representing the 'isNaN' check.
  */
-export function isNan(value: string): BooleanExpr;
+export function isNan(fieldName: string): BooleanExpr;
 export function isNan(value: Expr | string): BooleanExpr {
   return fieldOfOrExpr(value).isNan();
 }
@@ -4984,15 +4993,15 @@ export function isNan(value: Expr | string): BooleanExpr {
  * reverse(field("myString"));
  * ```
  *
- * @param expr The expression representing the string to reverse.
+ * @param stringExpression An expression evaluating to a string value, which will be reversed.
  * @return A new {@code Expr} representing the reversed string.
  */
-export function reverse(expr: Expr): FunctionExpr;
+export function reverse(stringExpression: Expr): FunctionExpr;
 
 /**
  * @beta
  *
- * Creates an expression that reverses a string represented by a field.
+ * Creates an expression that reverses a string value in the specified field.
  *
  * ```typescript
  * // Reverse the value of the 'myString' field.
@@ -5060,13 +5069,13 @@ export function replaceFirst(
  * replaceFirst("message", "hello", "hi");
  * ```
  *
- * @param field The name of the field representing the string to perform the replacement on.
+ * @param fieldName The name of the field representing the string to perform the replacement on.
  * @param find The substring to search for.
  * @param replace The substring to replace the first occurrence of 'find' with.
  * @return A new {@code Expr} representing the string with the first occurrence replaced.
  */
 export function replaceFirst(
-  field: string,
+  fieldName: string,
   find: string,
   replace: string
 ): FunctionExpr;
@@ -5134,13 +5143,13 @@ export function replaceAll(
  * replaceAll("message", "hello", "hi");
  * ```
  *
- * @param field The name of the field representing the string to perform the replacement on.
+ * @param fieldName The name of the field representing the string to perform the replacement on.
  * @param find The substring to search for.
  * @param replace The substring to replace all occurrences of 'find' with.
  * @return A new {@code Expr} representing the string with all occurrences replaced.
  */
 export function replaceAll(
-  field: string,
+  fieldName: string,
   find: string,
   replace: string
 ): FunctionExpr;
@@ -5180,10 +5189,10 @@ export function byteLength(expr: Expr): FunctionExpr;
  * byteLength("myString");
  * ```
  *
- * @param field The name of the field representing the string.
+ * @param fieldName The name of the field containing the string.
  * @return A new {@code Expr} representing the length of the string in bytes.
  */
-export function byteLength(field: string): FunctionExpr;
+export function byteLength(fieldName: string): FunctionExpr;
 export function byteLength(expr: Expr | string): FunctionExpr {
   const normalizedExpr = fieldOfOrExpr(expr);
   return normalizedExpr.byteLength();
@@ -5199,10 +5208,10 @@ export function byteLength(expr: Expr | string): FunctionExpr {
  * strLength("name");
  * ```
  *
- * @param field The name of the field containing the string.
+ * @param fieldName The name of the field containing the string.
  * @return A new {@code Expr} representing the length of the string.
  */
-export function charLength(field: string): FunctionExpr;
+export function charLength(fieldName: string): FunctionExpr;
 
 /**
  * @beta
@@ -5214,10 +5223,10 @@ export function charLength(field: string): FunctionExpr;
  * strLength(field("name"));
  * ```
  *
- * @param expr The expression representing the string to calculate the length of.
+ * @param stringExpression The expression representing the string to calculate the length of.
  * @return A new {@code Expr} representing the length of the string.
  */
-export function charLength(expr: Expr): FunctionExpr;
+export function charLength(stringExpression: Expr): FunctionExpr;
 export function charLength(value: Expr | string): FunctionExpr {
   const valueExpr = fieldOfOrExpr(value);
   return valueExpr.charLength();
@@ -5234,11 +5243,11 @@ export function charLength(value: Expr | string): FunctionExpr {
  * like("title", "%guide%");
  * ```
  *
- * @param left The name of the field containing the string.
+ * @param fieldName The name of the field containing the string.
  * @param pattern The pattern to search for. You can use "%" as a wildcard character.
  * @return A new {@code Expr} representing the 'like' comparison.
  */
-export function like(left: string, pattern: string): BooleanExpr;
+export function like(fieldName: string, pattern: string): BooleanExpr;
 
 /**
  * @beta
@@ -5251,11 +5260,11 @@ export function like(left: string, pattern: string): BooleanExpr;
  * like("title", field("pattern"));
  * ```
  *
- * @param left The name of the field containing the string.
+ * @param fieldName The name of the field containing the string.
  * @param pattern The pattern to search for. You can use "%" as a wildcard character.
  * @return A new {@code Expr} representing the 'like' comparison.
  */
-export function like(left: string, pattern: Expr): BooleanExpr;
+export function like(fieldName: string, pattern: Expr): BooleanExpr;
 
 /**
  * @beta
@@ -5267,11 +5276,11 @@ export function like(left: string, pattern: Expr): BooleanExpr;
  * like(field("title"), "%guide%");
  * ```
  *
- * @param left The expression representing the string to perform the comparison on.
+ * @param stringExpression The expression representing the string to perform the comparison on.
  * @param pattern The pattern to search for. You can use "%" as a wildcard character.
  * @return A new {@code Expr} representing the 'like' comparison.
  */
-export function like(left: Expr, pattern: string): BooleanExpr;
+export function like(stringExpression: Expr, pattern: string): BooleanExpr;
 
 /**
  * @beta
@@ -5283,11 +5292,11 @@ export function like(left: Expr, pattern: string): BooleanExpr;
  * like(field("title"), field("pattern"));
  * ```
  *
- * @param left The expression representing the string to perform the comparison on.
+ * @param stringExpression The expression representing the string to perform the comparison on.
  * @param pattern The pattern to search for. You can use "%" as a wildcard character.
  * @return A new {@code Expr} representing the 'like' comparison.
  */
-export function like(left: Expr, pattern: Expr): BooleanExpr;
+export function like(stringExpression: Expr, pattern: Expr): BooleanExpr;
 export function like(
   left: Expr | string,
   pattern: Expr | string
@@ -5308,11 +5317,11 @@ export function like(
  * regexContains("description", "(?i)example");
  * ```
  *
- * @param left The name of the field containing the string.
+ * @param fieldName The name of the field containing the string.
  * @param pattern The regular expression to use for the search.
  * @return A new {@code Expr} representing the 'contains' comparison.
  */
-export function regexContains(left: string, pattern: string): BooleanExpr;
+export function regexContains(fieldName: string, pattern: string): BooleanExpr;
 
 /**
  * @beta
@@ -5325,11 +5334,11 @@ export function regexContains(left: string, pattern: string): BooleanExpr;
  * regexContains("description", field("pattern"));
  * ```
  *
- * @param left The name of the field containing the string.
+ * @param fieldName The name of the field containing the string.
  * @param pattern The regular expression to use for the search.
  * @return A new {@code Expr} representing the 'contains' comparison.
  */
-export function regexContains(left: string, pattern: Expr): BooleanExpr;
+export function regexContains(fieldName: string, pattern: Expr): BooleanExpr;
 
 /**
  * @beta
@@ -5342,11 +5351,14 @@ export function regexContains(left: string, pattern: Expr): BooleanExpr;
  * regexContains(field("description"), "(?i)example");
  * ```
  *
- * @param left The expression representing the string to perform the comparison on.
+ * @param stringExpression The expression representing the string to perform the comparison on.
  * @param pattern The regular expression to use for the search.
  * @return A new {@code Expr} representing the 'contains' comparison.
  */
-export function regexContains(left: Expr, pattern: string): BooleanExpr;
+export function regexContains(
+  stringExpression: Expr,
+  pattern: string
+): BooleanExpr;
 
 /**
  * @beta
@@ -5359,11 +5371,14 @@ export function regexContains(left: Expr, pattern: string): BooleanExpr;
  * regexContains(field("description"), field("pattern"));
  * ```
  *
- * @param left The expression representing the string to perform the comparison on.
+ * @param stringExpression The expression representing the string to perform the comparison on.
  * @param pattern The regular expression to use for the search.
  * @return A new {@code Expr} representing the 'contains' comparison.
  */
-export function regexContains(left: Expr, pattern: Expr): BooleanExpr;
+export function regexContains(
+  stringExpression: Expr,
+  pattern: Expr
+): BooleanExpr;
 export function regexContains(
   left: Expr | string,
   pattern: Expr | string
@@ -5383,11 +5398,11 @@ export function regexContains(
  * regexMatch("email", "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
  * ```
  *
- * @param left The name of the field containing the string.
+ * @param fieldName The name of the field containing the string.
  * @param pattern The regular expression to use for the match.
  * @return A new {@code Expr} representing the regular expression match.
  */
-export function regexMatch(left: string, pattern: string): BooleanExpr;
+export function regexMatch(fieldName: string, pattern: string): BooleanExpr;
 
 /**
  * @beta
@@ -5399,11 +5414,11 @@ export function regexMatch(left: string, pattern: string): BooleanExpr;
  * regexMatch("email", field("pattern"));
  * ```
  *
- * @param left The name of the field containing the string.
+ * @param fieldName The name of the field containing the string.
  * @param pattern The regular expression to use for the match.
  * @return A new {@code Expr} representing the regular expression match.
  */
-export function regexMatch(left: string, pattern: Expr): BooleanExpr;
+export function regexMatch(fieldName: string, pattern: Expr): BooleanExpr;
 
 /**
  * @beta
@@ -5416,11 +5431,14 @@ export function regexMatch(left: string, pattern: Expr): BooleanExpr;
  * regexMatch(field("email"), "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
  * ```
  *
- * @param left The expression representing the string to match against.
+ * @param stringExpression The expression representing the string to match against.
  * @param pattern The regular expression to use for the match.
  * @return A new {@code Expr} representing the regular expression match.
  */
-export function regexMatch(left: Expr, pattern: string): BooleanExpr;
+export function regexMatch(
+  stringExpression: Expr,
+  pattern: string
+): BooleanExpr;
 
 /**
  * @beta
@@ -5433,11 +5451,11 @@ export function regexMatch(left: Expr, pattern: string): BooleanExpr;
  * regexMatch(field("email"), field("pattern"));
  * ```
  *
- * @param left The expression representing the string to match against.
+ * @param stringExpression The expression representing the string to match against.
  * @param pattern The regular expression to use for the match.
  * @return A new {@code Expr} representing the regular expression match.
  */
-export function regexMatch(left: Expr, pattern: Expr): BooleanExpr;
+export function regexMatch(stringExpression: Expr, pattern: Expr): BooleanExpr;
 export function regexMatch(
   left: Expr | string,
   pattern: Expr | string
@@ -5457,11 +5475,11 @@ export function regexMatch(
  * strContains("description", "example");
  * ```
  *
- * @param left The name of the field containing the string.
+ * @param fieldName The name of the field containing the string.
  * @param substring The substring to search for.
  * @return A new {@code Expr} representing the 'contains' comparison.
  */
-export function strContains(left: string, substring: string): BooleanExpr;
+export function strContains(fieldName: string, substring: string): BooleanExpr;
 
 /**
  * @beta
@@ -5473,11 +5491,11 @@ export function strContains(left: string, substring: string): BooleanExpr;
  * strContains("description", field("keyword"));
  * ```
  *
- * @param left The name of the field containing the string.
+ * @param fieldName The name of the field containing the string.
  * @param substring The expression representing the substring to search for.
  * @return A new {@code Expr} representing the 'contains' comparison.
  */
-export function strContains(left: string, substring: Expr): BooleanExpr;
+export function strContains(fieldName: string, substring: Expr): BooleanExpr;
 
 /**
  * @beta
@@ -5489,11 +5507,14 @@ export function strContains(left: string, substring: Expr): BooleanExpr;
  * strContains(field("description"), "example");
  * ```
  *
- * @param left The expression representing the string to perform the comparison on.
+ * @param stringExpression The expression representing the string to perform the comparison on.
  * @param substring The substring to search for.
  * @return A new {@code Expr} representing the 'contains' comparison.
  */
-export function strContains(left: Expr, substring: string): BooleanExpr;
+export function strContains(
+  stringExpression: Expr,
+  substring: string
+): BooleanExpr;
 
 /**
  * @beta
@@ -5505,11 +5526,14 @@ export function strContains(left: Expr, substring: string): BooleanExpr;
  * strContains(field("description"), field("keyword"));
  * ```
  *
- * @param left The expression representing the string to perform the comparison on.
+ * @param stringExpression The expression representing the string to perform the comparison on.
  * @param substring The expression representing the substring to search for.
  * @return A new {@code Expr} representing the 'contains' comparison.
  */
-export function strContains(left: Expr, substring: Expr): BooleanExpr;
+export function strContains(
+  stringExpression: Expr,
+  substring: Expr
+): BooleanExpr;
 export function strContains(
   left: Expr | string,
   substring: Expr | string
@@ -5529,11 +5553,11 @@ export function strContains(
  * startsWith("name", "Mr.");
  * ```
  *
- * @param expr The field name to check.
+ * @param fieldName The field name to check.
  * @param prefix The prefix to check for.
  * @return A new {@code Expr} representing the 'starts with' comparison.
  */
-export function startsWith(expr: string, prefix: string): BooleanExpr;
+export function startsWith(fieldName: string, prefix: string): BooleanExpr;
 
 /**
  * @beta
@@ -5545,11 +5569,11 @@ export function startsWith(expr: string, prefix: string): BooleanExpr;
  * startsWith("fullName", field("firstName"));
  * ```
  *
- * @param expr The field name to check.
+ * @param fieldName The field name to check.
  * @param prefix The expression representing the prefix.
  * @return A new {@code Expr} representing the 'starts with' comparison.
  */
-export function startsWith(expr: string, prefix: Expr): BooleanExpr;
+export function startsWith(fieldName: string, prefix: Expr): BooleanExpr;
 
 /**
  * @beta
@@ -5561,11 +5585,11 @@ export function startsWith(expr: string, prefix: Expr): BooleanExpr;
  * startsWith(field("fullName"), "Mr.");
  * ```
  *
- * @param expr The expression to check.
+ * @param stringExpression The expression to check.
  * @param prefix The prefix to check for.
  * @return A new {@code Expr} representing the 'starts with' comparison.
  */
-export function startsWith(expr: Expr, prefix: string): BooleanExpr;
+export function startsWith(stringExpression: Expr, prefix: string): BooleanExpr;
 
 /**
  * @beta
@@ -5577,11 +5601,11 @@ export function startsWith(expr: Expr, prefix: string): BooleanExpr;
  * startsWith(field("fullName"), field("prefix"));
  * ```
  *
- * @param expr The expression to check.
+ * @param stringExpression The expression to check.
  * @param prefix The prefix to check for.
  * @return A new {@code Expr} representing the 'starts with' comparison.
  */
-export function startsWith(expr: Expr, prefix: Expr): BooleanExpr;
+export function startsWith(stringExpression: Expr, prefix: Expr): BooleanExpr;
 export function startsWith(
   expr: Expr | string,
   prefix: Expr | string
@@ -5599,11 +5623,11 @@ export function startsWith(
  * endsWith("filename", ".txt");
  * ```
  *
- * @param expr The field name to check.
+ * @param fieldName The field name to check.
  * @param suffix The postfix to check for.
  * @return A new {@code Expr} representing the 'ends with' comparison.
  */
-export function endsWith(expr: string, suffix: string): BooleanExpr;
+export function endsWith(fieldName: string, suffix: string): BooleanExpr;
 
 /**
  * @beta
@@ -5615,11 +5639,11 @@ export function endsWith(expr: string, suffix: string): BooleanExpr;
  * endsWith("url", field("extension"));
  * ```
  *
- * @param expr The field name to check.
+ * @param fieldName The field name to check.
  * @param suffix The expression representing the postfix.
  * @return A new {@code Expr} representing the 'ends with' comparison.
  */
-export function endsWith(expr: string, suffix: Expr): BooleanExpr;
+export function endsWith(fieldName: string, suffix: Expr): BooleanExpr;
 
 /**
  * @beta
@@ -5631,11 +5655,11 @@ export function endsWith(expr: string, suffix: Expr): BooleanExpr;
  * endsWith(field("fullName"), "Jr.");
  * ```
  *
- * @param expr The expression to check.
+ * @param stringExpression The expression to check.
  * @param suffix The postfix to check for.
  * @return A new {@code Expr} representing the 'ends with' comparison.
  */
-export function endsWith(expr: Expr, suffix: string): BooleanExpr;
+export function endsWith(stringExpression: Expr, suffix: string): BooleanExpr;
 
 /**
  * @beta
@@ -5647,11 +5671,11 @@ export function endsWith(expr: Expr, suffix: string): BooleanExpr;
  * endsWith(field("fullName"), constant("Jr."));
  * ```
  *
- * @param expr The expression to check.
+ * @param stringExpression The expression to check.
  * @param suffix The postfix to check for.
  * @return A new {@code Expr} representing the 'ends with' comparison.
  */
-export function endsWith(expr: Expr, suffix: Expr): BooleanExpr;
+export function endsWith(stringExpression: Expr, suffix: Expr): BooleanExpr;
 export function endsWith(
   expr: Expr | string,
   suffix: Expr | string
@@ -5669,10 +5693,10 @@ export function endsWith(
  * toLower("name");
  * ```
  *
- * @param expr The name of the field containing the string.
+ * @param fieldName The name of the field containing the string.
  * @return A new {@code Expr} representing the lowercase string.
  */
-export function toLower(expr: string): FunctionExpr;
+export function toLower(fieldName: string): FunctionExpr;
 
 /**
  * @beta
@@ -5684,10 +5708,10 @@ export function toLower(expr: string): FunctionExpr;
  * toLower(field("name"));
  * ```
  *
- * @param expr The expression representing the string to convert to lowercase.
+ * @param stringExpression The expression representing the string to convert to lowercase.
  * @return A new {@code Expr} representing the lowercase string.
  */
-export function toLower(expr: Expr): FunctionExpr;
+export function toLower(stringExpression: Expr): FunctionExpr;
 export function toLower(expr: Expr | string): FunctionExpr {
   return fieldOfOrExpr(expr).toLower();
 }
@@ -5702,10 +5726,10 @@ export function toLower(expr: Expr | string): FunctionExpr {
  * toUpper("title");
  * ```
  *
- * @param expr The name of the field containing the string.
+ * @param fieldName The name of the field containing the string.
  * @return A new {@code Expr} representing the uppercase string.
  */
-export function toUpper(expr: string): FunctionExpr;
+export function toUpper(fieldName: string): FunctionExpr;
 
 /**
  * @beta
@@ -5717,10 +5741,10 @@ export function toUpper(expr: string): FunctionExpr;
  * toUppercase(field("title"));
  * ```
  *
- * @param expr The expression representing the string to convert to uppercase.
+ * @param stringExpression The expression representing the string to convert to uppercase.
  * @return A new {@code Expr} representing the uppercase string.
  */
-export function toUpper(expr: Expr): FunctionExpr;
+export function toUpper(stringExpression: Expr): FunctionExpr;
 export function toUpper(expr: Expr | string): FunctionExpr {
   return fieldOfOrExpr(expr).toUpper();
 }
@@ -5735,10 +5759,10 @@ export function toUpper(expr: Expr | string): FunctionExpr {
  * trim("userInput");
  * ```
  *
- * @param expr The name of the field containing the string.
+ * @param fieldName The name of the field containing the string.
  * @return A new {@code Expr} representing the trimmed string.
  */
-export function trim(expr: string): FunctionExpr;
+export function trim(fieldName: string): FunctionExpr;
 
 /**
  * @beta
@@ -5750,10 +5774,10 @@ export function trim(expr: string): FunctionExpr;
  * trim(field("userInput"));
  * ```
  *
- * @param expr The expression representing the string to trim.
+ * @param stringExpression The expression representing the string to trim.
  * @return A new {@code Expr} representing the trimmed string.
  */
-export function trim(expr: Expr): FunctionExpr;
+export function trim(stringExpression: Expr): FunctionExpr;
 export function trim(expr: Expr | string): FunctionExpr {
   return fieldOfOrExpr(expr).trim();
 }
@@ -5819,11 +5843,11 @@ export function strConcat(
  * mapGet("address", "city");
  * ```
  *
- * @param mapField The field name of the map field.
+ * @param fieldName The field name of the map field.
  * @param subField The key to access in the map.
  * @return A new {@code Expr} representing the value associated with the given key in the map.
  */
-export function mapGet(mapField: string, subField: string): FunctionExpr;
+export function mapGet(fieldName: string, subField: string): FunctionExpr;
 
 /**
  * @beta
@@ -5835,11 +5859,11 @@ export function mapGet(mapField: string, subField: string): FunctionExpr;
  * mapGet(field("address"), "city");
  * ```
  *
- * @param mapExpr The expression representing the map.
+ * @param mapExpression The expression representing the map.
  * @param subField The key to access in the map.
  * @return A new {@code Expr} representing the value associated with the given key in the map.
  */
-export function mapGet(mapExpr: Expr, subField: string): FunctionExpr;
+export function mapGet(mapExpression: Expr, subField: string): FunctionExpr;
 export function mapGet(
   fieldOrExpr: string | Expr,
   subField: string
@@ -5874,10 +5898,10 @@ export function countAll(): AggregateFunction {
  * count(field("price").gt(10)).as("expensiveItemCount");
  * ```
  *
- * @param value The expression to count.
+ * @param expression The expression to count.
  * @return A new {@code AggregateFunction} representing the 'count' aggregation.
  */
-export function countFunction(value: Expr): AggregateFunction;
+export function countFunction(expression: Expr): AggregateFunction;
 
 /**
  * Creates an aggregation that counts the number of stage inputs with valid evaluations of the
@@ -5888,10 +5912,10 @@ export function countFunction(value: Expr): AggregateFunction;
  * count("productId").as("totalProducts");
  * ```
  *
- * @param value The name of the field to count.
+ * @param fieldName The name of the field to count.
  * @return A new {@code AggregateFunction} representing the 'count' aggregation.
  */
-export function countFunction(value: string): AggregateFunction;
+export function countFunction(fieldName: string): AggregateFunction;
 export function countFunction(value: Expr | string): AggregateFunction {
   return fieldOfOrExpr(value).count();
 }
@@ -5907,10 +5931,10 @@ export function countFunction(value: Expr | string): AggregateFunction {
  * sum(field("orderAmount")).as("totalRevenue");
  * ```
  *
- * @param value The expression to sum up.
+ * @param expression The expression to sum up.
  * @return A new {@code AggregateFunction} representing the 'sum' aggregation.
  */
-export function sumFunction(value: Expr): AggregateFunction;
+export function sumFunction(expression: Expr): AggregateFunction;
 
 /**
  * @beta
@@ -5923,10 +5947,10 @@ export function sumFunction(value: Expr): AggregateFunction;
  * sum("orderAmount").as("totalRevenue");
  * ```
  *
- * @param value The name of the field containing numeric values to sum up.
+ * @param fieldName The name of the field containing numeric values to sum up.
  * @return A new {@code AggregateFunction} representing the 'sum' aggregation.
  */
-export function sumFunction(value: string): AggregateFunction;
+export function sumFunction(fieldName: string): AggregateFunction;
 export function sumFunction(value: Expr | string): AggregateFunction {
   return fieldOfOrExpr(value).sum();
 }
@@ -5942,10 +5966,10 @@ export function sumFunction(value: Expr | string): AggregateFunction {
  * avg(field("age")).as("averageAge");
  * ```
  *
- * @param value The expression representing the values to average.
+ * @param expression The expression representing the values to average.
  * @return A new {@code AggregateFunction} representing the 'avg' aggregation.
  */
-export function avgFunction(value: Expr): AggregateFunction;
+export function avgFunction(expression: Expr): AggregateFunction;
 
 /**
  * @beta
@@ -5958,10 +5982,10 @@ export function avgFunction(value: Expr): AggregateFunction;
  * avg("age").as("averageAge");
  * ```
  *
- * @param value The name of the field containing numeric values to average.
+ * @param fieldName The name of the field containing numeric values to average.
  * @return A new {@code AggregateFunction} representing the 'avg' aggregation.
  */
-export function avgFunction(value: string): AggregateFunction;
+export function avgFunction(fieldName: string): AggregateFunction;
 export function avgFunction(value: Expr | string): AggregateFunction {
   return fieldOfOrExpr(value).avg();
 }
@@ -5977,10 +6001,10 @@ export function avgFunction(value: Expr | string): AggregateFunction {
  * minimum(field("price")).as("lowestPrice");
  * ```
  *
- * @param value The expression to find the minimum value of.
+ * @param expression The expression to find the minimum value of.
  * @return A new {@code AggregateFunction} representing the 'min' aggregation.
  */
-export function minimum(value: Expr): AggregateFunction;
+export function minimum(expression: Expr): AggregateFunction;
 
 /**
  * @beta
@@ -5992,10 +6016,10 @@ export function minimum(value: Expr): AggregateFunction;
  * minimum("price").as("lowestPrice");
  * ```
  *
- * @param value The name of the field to find the minimum value of.
+ * @param fieldName The name of the field to find the minimum value of.
  * @return A new {@code AggregateFunction} representing the 'min' aggregation.
  */
-export function minimum(value: string): AggregateFunction;
+export function minimum(fieldName: string): AggregateFunction;
 export function minimum(value: Expr | string): AggregateFunction {
   return fieldOfOrExpr(value).minimum();
 }
@@ -6011,10 +6035,10 @@ export function minimum(value: Expr | string): AggregateFunction {
  * maximum(field("score")).as("highestScore");
  * ```
  *
- * @param value The expression to find the maximum value of.
+ * @param expression The expression to find the maximum value of.
  * @return A new {@code AggregateFunction} representing the 'max' aggregation.
  */
-export function maximum(value: Expr): AggregateFunction;
+export function maximum(expression: Expr): AggregateFunction;
 
 /**
  * @beta
@@ -6026,10 +6050,10 @@ export function maximum(value: Expr): AggregateFunction;
  * maximum("score").as("highestScore");
  * ```
  *
- * @param value The name of the field to find the maximum value of.
+ * @param fieldName The name of the field to find the maximum value of.
  * @return A new {@code AggregateFunction} representing the 'max' aggregation.
  */
-export function maximum(value: string): AggregateFunction;
+export function maximum(fieldName: string): AggregateFunction;
 export function maximum(value: Expr | string): AggregateFunction {
   return fieldOfOrExpr(value).maximum();
 }
@@ -6037,34 +6061,21 @@ export function maximum(value: Expr | string): AggregateFunction {
 /**
  * @beta
  *
- * Calculates the Cosine distance between a field's vector value and a double array.
+ * Calculates the Cosine distance between a field's vector value and a literal vector value.
  *
  * ```typescript
  * // Calculate the Cosine distance between the 'location' field and a target location
  * cosineDistance("location", [37.7749, -122.4194]);
  * ```
  *
- * @param expr The name of the field containing the first vector.
- * @param other The other vector (as an array of doubles) to compare against.
+ * @param fieldName The name of the field containing the first vector.
+ * @param vector The other vector (as an array of doubles) or {@link VectorValue} to compare against.
  * @return A new {@code Expr} representing the Cosine distance between the two vectors.
  */
-export function cosineDistance(expr: string, other: number[]): FunctionExpr;
-
-/**
- * @beta
- *
- * Calculates the Cosine distance between a field's vector value and a VectorValue.
- *
- * ```typescript
- * // Calculate the Cosine distance between the 'location' field and a target location
- * cosineDistance("location", new VectorValue([37.7749, -122.4194]));
- * ```
- *
- * @param expr The name of the field containing the first vector.
- * @param other The other vector (as a VectorValue) to compare against.
- * @return A new {@code Expr} representing the Cosine distance between the two vectors.
- */
-export function cosineDistance(expr: string, other: VectorValue): FunctionExpr;
+export function cosineDistance(
+  fieldName: string,
+  vector: number[] | VectorValue
+): FunctionExpr;
 
 /**
  * @beta
@@ -6076,43 +6087,33 @@ export function cosineDistance(expr: string, other: VectorValue): FunctionExpr;
  * cosineDistance("userVector", field("itemVector"));
  * ```
  *
- * @param expr The name of the field containing the first vector.
- * @param other The other vector (represented as an Expr) to compare against.
+ * @param fieldName The name of the field containing the first vector.
+ * @param vectorExpression The other vector (represented as an Expr) to compare against.
  * @return A new {@code Expr} representing the cosine distance between the two vectors.
  */
-export function cosineDistance(expr: string, other: Expr): FunctionExpr;
+export function cosineDistance(
+  fieldName: string,
+  vectorExpression: Expr
+): FunctionExpr;
 
 /**
  * @beta
  *
- * Calculates the Cosine distance between a vector expression and a double array.
+ * Calculates the Cosine distance between a vector expression and a vector literal.
  *
  * ```typescript
  * // Calculate the cosine distance between the 'location' field and a target location
  * cosineDistance(field("location"), [37.7749, -122.4194]);
  * ```
  *
- * @param expr The first vector (represented as an Expr) to compare against.
- * @param other The other vector (as an array of doubles) to compare against.
+ * @param vectorExpression The first vector (represented as an Expr) to compare against.
+ * @param vector The other vector (as an array of doubles or VectorValue) to compare against.
  * @return A new {@code Expr} representing the cosine distance between the two vectors.
  */
-export function cosineDistance(expr: Expr, other: number[]): FunctionExpr;
-
-/**
- * @beta
- *
- * Calculates the Cosine distance between a vector expression and a VectorValue.
- *
- * ```typescript
- * // Calculate the cosine distance between the 'location' field and a target location
- * cosineDistance(field("location"), new VectorValue([37.7749, -122.4194]));
- * ```
- *
- * @param expr The first vector (represented as an Expr) to compare against.
- * @param other The other vector (as a VectorValue) to compare against.
- * @return A new {@code Expr} representing the cosine distance between the two vectors.
- */
-export function cosineDistance(expr: Expr, other: VectorValue): FunctionExpr;
+export function cosineDistance(
+  vectorExpression: Expr,
+  vector: number[] | Expr
+): FunctionExpr;
 
 /**
  * @beta
@@ -6124,11 +6125,14 @@ export function cosineDistance(expr: Expr, other: VectorValue): FunctionExpr;
  * cosineDistance(field("userVector"), field("itemVector"));
  * ```
  *
- * @param expr The first vector (represented as an Expr) to compare against.
- * @param other The other vector (represented as an Expr) to compare against.
+ * @param vectorExpression The first vector (represented as an Expr) to compare against.
+ * @param otherVectorExpression The other vector (represented as an Expr) to compare against.
  * @return A new {@code Expr} representing the cosine distance between the two vectors.
  */
-export function cosineDistance(expr: Expr, other: Expr): FunctionExpr;
+export function cosineDistance(
+  vectorExpression: Expr,
+  otherVectorExpression: Expr
+): FunctionExpr;
 export function cosineDistance(
   expr: Expr | string,
   other: Expr | number[] | VectorValue
@@ -6148,27 +6152,14 @@ export function cosineDistance(
  * dotProduct("features", [0.5, 0.8, 0.2]);
  * ```
  *
- * @param expr The name of the field containing the first vector.
- * @param other The other vector (as an array of doubles) to calculate with.
+ * @param fieldName The name of the field containing the first vector.
+ * @param vector The other vector (as an array of doubles or VectorValue) to calculate with.
  * @return A new {@code Expr} representing the dot product between the two vectors.
  */
-export function dotProduct(expr: string, other: number[]): FunctionExpr;
-
-/**
- * @beta
- *
- * Calculates the dot product between a field's vector value and a VectorValue.
- *
- * ```typescript
- * // Calculate the dot product distance between a feature vector and a target vector
- * dotProduct("features", new VectorValue([0.5, 0.8, 0.2]));
- * ```
- *
- * @param expr The name of the field containing the first vector.
- * @param other The other vector (as a VectorValue) to calculate with.
- * @return A new {@code Expr} representing the dot product between the two vectors.
- */
-export function dotProduct(expr: string, other: VectorValue): FunctionExpr;
+export function dotProduct(
+  fieldName: string,
+  vector: number[] | VectorValue
+): FunctionExpr;
 
 /**
  * @beta
@@ -6180,11 +6171,14 @@ export function dotProduct(expr: string, other: VectorValue): FunctionExpr;
  * dotProduct("docVector1", field("docVector2"));
  * ```
  *
- * @param expr The name of the field containing the first vector.
- * @param other The other vector (represented as an Expr) to calculate with.
+ * @param fieldName The name of the field containing the first vector.
+ * @param vectorExpression The other vector (represented as an Expr) to calculate with.
  * @return A new {@code Expr} representing the dot product between the two vectors.
  */
-export function dotProduct(expr: string, other: Expr): FunctionExpr;
+export function dotProduct(
+  fieldName: string,
+  vectorExpression: Expr
+): FunctionExpr;
 
 /**
  * @beta
@@ -6196,27 +6190,14 @@ export function dotProduct(expr: string, other: Expr): FunctionExpr;
  * dotProduct(field("features"), [0.5, 0.8, 0.2]);
  * ```
  *
- * @param expr The first vector (represented as an Expr) to calculate with.
- * @param other The other vector (as an array of doubles) to calculate with.
+ * @param vectorExpression The first vector (represented as an Expr) to calculate with.
+ * @param vector The other vector (as an array of doubles or VectorValue) to calculate with.
  * @return A new {@code Expr} representing the dot product between the two vectors.
  */
-export function dotProduct(expr: Expr, other: number[]): FunctionExpr;
-
-/**
- * @beta
- *
- * Calculates the dot product between a vector expression and a VectorValue.
- *
- * ```typescript
- * // Calculate the dot product between a feature vector and a target vector
- * dotProduct(field("features"), new VectorValue([0.5, 0.8, 0.2]));
- * ```
- *
- * @param expr The first vector (represented as an Expr) to calculate with.
- * @param other The other vector (as a VectorValue) to calculate with.
- * @return A new {@code Expr} representing the dot product between the two vectors.
- */
-export function dotProduct(expr: Expr, other: VectorValue): FunctionExpr;
+export function dotProduct(
+  vectorExpression: Expr,
+  vector: number[] | VectorValue
+): FunctionExpr;
 
 /**
  * @beta
@@ -6228,11 +6209,14 @@ export function dotProduct(expr: Expr, other: VectorValue): FunctionExpr;
  * dotProduct(field("docVector1"), field("docVector2"));
  * ```
  *
- * @param expr The first vector (represented as an Expr) to calculate with.
- * @param other The other vector (represented as an Expr) to calculate with.
+ * @param vectorExpression The first vector (represented as an Expr) to calculate with.
+ * @param otherVectorExpression The other vector (represented as an Expr) to calculate with.
  * @return A new {@code Expr} representing the dot product between the two vectors.
  */
-export function dotProduct(expr: Expr, other: Expr): FunctionExpr;
+export function dotProduct(
+  vectorExpression: Expr,
+  otherVectorExpression: Expr
+): FunctionExpr;
 export function dotProduct(
   expr: Expr | string,
   other: Expr | number[] | VectorValue
@@ -6252,29 +6236,13 @@ export function dotProduct(
  * euclideanDistance("location", [37.7749, -122.4194]);
  * ```
  *
- * @param expr The name of the field containing the first vector.
- * @param other The other vector (as an array of doubles) to compare against.
- * @return A new {@code Expr} representing the Euclidean distance between the two vectors.
- */
-export function euclideanDistance(expr: string, other: number[]): FunctionExpr;
-
-/**
- * @beta
- *
- * Calculates the Euclidean distance between a field's vector value and a VectorValue.
- *
- * ```typescript
- * // Calculate the Euclidean distance between the 'location' field and a target location
- * euclideanDistance("location", new VectorValue([37.7749, -122.4194]));
- * ```
- *
- * @param expr The name of the field containing the first vector.
- * @param other The other vector (as a VectorValue) to compare against.
+ * @param fieldName The name of the field containing the first vector.
+ * @param vector The other vector (as an array of doubles or VectorValue) to compare against.
  * @return A new {@code Expr} representing the Euclidean distance between the two vectors.
  */
 export function euclideanDistance(
-  expr: string,
-  other: VectorValue
+  fieldName: string,
+  vector: number[] | VectorValue
 ): FunctionExpr;
 
 /**
@@ -6287,11 +6255,14 @@ export function euclideanDistance(
  * euclideanDistance("pointA", field("pointB"));
  * ```
  *
- * @param expr The name of the field containing the first vector.
- * @param other The other vector (represented as an Expr) to compare against.
+ * @param fieldName The name of the field containing the first vector.
+ * @param vectorExpression The other vector (represented as an Expr) to compare against.
  * @return A new {@code Expr} representing the Euclidean distance between the two vectors.
  */
-export function euclideanDistance(expr: string, other: Expr): FunctionExpr;
+export function euclideanDistance(
+  fieldName: string,
+  vectorExpression: Expr
+): FunctionExpr;
 
 /**
  * @beta
@@ -6304,27 +6275,14 @@ export function euclideanDistance(expr: string, other: Expr): FunctionExpr;
  * euclideanDistance(field("location"), [37.7749, -122.4194]);
  * ```
  *
- * @param expr The first vector (represented as an Expr) to compare against.
- * @param other The other vector (as an array of doubles) to compare against.
+ * @param vectorExpression The first vector (represented as an Expr) to compare against.
+ * @param vector The other vector (as an array of doubles or VectorValue) to compare against.
  * @return A new {@code Expr} representing the Euclidean distance between the two vectors.
  */
-export function euclideanDistance(expr: Expr, other: number[]): FunctionExpr;
-
-/**
- * @beta
- *
- * Calculates the Euclidean distance between a vector expression and a VectorValue.
- *
- * ```typescript
- * // Calculate the Euclidean distance between the 'location' field and a target location
- * euclideanDistance(field("location"), new VectorValue([37.7749, -122.4194]));
- * ```
- *
- * @param expr The first vector (represented as an Expr) to compare against.
- * @param other The other vector (as a VectorValue) to compare against.
- * @return A new {@code Expr} representing the Euclidean distance between the two vectors.
- */
-export function euclideanDistance(expr: Expr, other: VectorValue): FunctionExpr;
+export function euclideanDistance(
+  vectorExpression: Expr,
+  vector: number[] | VectorValue
+): FunctionExpr;
 
 /**
  * @beta
@@ -6336,11 +6294,14 @@ export function euclideanDistance(expr: Expr, other: VectorValue): FunctionExpr;
  * euclideanDistance(field("pointA"), field("pointB"));
  * ```
  *
- * @param expr The first vector (represented as an Expr) to compare against.
- * @param other The other vector (represented as an Expr) to compare against.
+ * @param vectorExpression The first vector (represented as an Expr) to compare against.
+ * @param otherVectorExpression The other vector (represented as an Expr) to compare against.
  * @return A new {@code Expr} representing the Euclidean distance between the two vectors.
  */
-export function euclideanDistance(expr: Expr, other: Expr): FunctionExpr;
+export function euclideanDistance(
+  vectorExpression: Expr,
+  otherVectorExpression: Expr
+): FunctionExpr;
 export function euclideanDistance(
   expr: Expr | string,
   other: Expr | number[] | VectorValue
@@ -6360,29 +6321,13 @@ export function euclideanDistance(
  * manhattanDistance("location", [37.7749, -122.4194]);
  * ```
  *
- * @param field The name of the field containing the first vector.
- * @param other The other vector (as an array of doubles) to compare against.
- * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
- */
-export function manhattanDistance(field: string, other: number[]): FunctionExpr;
-
-/**
- * @beta
- *
- * Calculates the Manhattan distance between a field's vector value and a VectorValue.
- *
- * ```typescript
- * // Calculate the Manhattan distance between the 'location' field and a target location
- * manhattanDistance("location", new VectorValue([37.7749, -122.4194]));
- * ```
- *
- * @param expr The name of the field containing the first vector.
- * @param other The other vector (as a VectorValue) to compare against.
+ * @param fieldName The name of the field containing the first vector.
+ * @param vector The other vector (as an array of doubles or VectorValue) to compare against.
  * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
  */
 export function manhattanDistance(
-  expr: string,
-  other: VectorValue
+  fieldName: string,
+  vector: number[] | VectorValue
 ): FunctionExpr;
 
 /**
@@ -6395,11 +6340,14 @@ export function manhattanDistance(
  * manhattanDistance("pointA", field("pointB"));
  * ```
  *
- * @param expr The name of the field containing the first vector.
- * @param other The other vector (represented as an Expr) to compare against.
+ * @param fieldName The name of the field containing the first vector.
+ * @param vectorExpression The other vector (represented as an Expr) to compare against.
  * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
  */
-export function manhattanDistance(expr: string, other: Expr): FunctionExpr;
+export function manhattanDistance(
+  fieldName: string,
+  vectorExpression: Expr
+): FunctionExpr;
 
 /**
  * @beta
@@ -6412,27 +6360,14 @@ export function manhattanDistance(expr: string, other: Expr): FunctionExpr;
  * manhattanDistance(field("location"), [37.7749, -122.4194]);
  * ```
  *
- * @param expr The first vector (represented as an Expr) to compare against.
- * @param other The other vector (as an array of doubles) to compare against.
+ * @param vectorExpression The first vector (represented as an Expr) to compare against.
+ * @param vector The other vector (as an array of doubles or Vectorvalue) to compare against.
  * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
  */
-export function manhattanDistance(expr: Expr, other: number[]): FunctionExpr;
-
-/**
- * @beta
- *
- * Calculates the Manhattan distance between a vector expression and a VectorValue.
- *
- * ```typescript
- * // Calculate the Manhattan distance between the 'location' field and a target location
- * manhattanDistance(field("location"), new VectorValue([37.7749, -122.4194]));
- * ```
- *
- * @param expr The first vector (represented as an Expr) to compare against.
- * @param other The other vector (as a VectorValue) to compare against.
- * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
- */
-export function manhattanDistance(expr: Expr, other: VectorValue): FunctionExpr;
+export function manhattanDistance(
+  vectorExpression: Expr,
+  vector: number[] | VectorValue
+): FunctionExpr;
 
 /**
  * @beta
@@ -6444,11 +6379,14 @@ export function manhattanDistance(expr: Expr, other: VectorValue): FunctionExpr;
  * manhattanDistance(field("pointA"), field("pointB"));
  * ```
  *
- * @param expr The first vector (represented as an Expr) to compare against.
- * @param other The other vector (represented as an Expr) to compare against.
+ * @param vectorExpression The first vector (represented as an Expr) to compare against.
+ * @param otherVectorExpression The other vector (represented as an Expr) to compare against.
  * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
  */
-export function manhattanDistance(expr: Expr, other: Expr): FunctionExpr;
+export function manhattanDistance(
+  vectorExpression: Expr,
+  otherVectorExpression: Expr
+): FunctionExpr;
 export function manhattanDistance(
   fieldOrExpr: Expr | string,
   other: Expr | number[] | VectorValue
@@ -6468,10 +6406,10 @@ export function manhattanDistance(
  * vectorLength(field("embedding"));
  * ```
  *
- * @param expr The expression representing the Firestore Vector.
+ * @param vectorExpression The expression representing the Firestore Vector.
  * @return A new {@code Expr} representing the length of the array.
  */
-export function vectorLength(expr: Expr): FunctionExpr;
+export function vectorLength(vectorExpression: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -6483,10 +6421,10 @@ export function vectorLength(expr: Expr): FunctionExpr;
  * vectorLength("embedding");
  * ```
  *
- * @param field The name of the field representing the Firestore Vector.
+ * @param fieldName The name of the field representing the Firestore Vector.
  * @return A new {@code Expr} representing the length of the array.
  */
-export function vectorLength(field: string): FunctionExpr;
+export function vectorLength(fieldName: string): FunctionExpr;
 export function vectorLength(expr: Expr | string): FunctionExpr {
   return fieldOfOrExpr(expr).vectorLength();
 }
@@ -6518,10 +6456,10 @@ export function unixMicrosToTimestamp(expr: Expr): FunctionExpr;
  * unixMicrosToTimestamp("microseconds");
  * ```
  *
- * @param field The name of the field representing the number of microseconds since epoch.
+ * @param fieldName The name of the field representing the number of microseconds since epoch.
  * @return A new {@code Expr} representing the timestamp.
  */
-export function unixMicrosToTimestamp(field: string): FunctionExpr;
+export function unixMicrosToTimestamp(fieldName: string): FunctionExpr;
 export function unixMicrosToTimestamp(expr: Expr | string): FunctionExpr {
   return fieldOfOrExpr(expr).unixMicrosToTimestamp();
 }
@@ -6551,10 +6489,10 @@ export function timestampToUnixMicros(expr: Expr): FunctionExpr;
  * timestampToUnixMicros("timestamp");
  * ```
  *
- * @param field The name of the field representing the timestamp.
+ * @param fieldName The name of the field representing the timestamp.
  * @return A new {@code Expr} representing the number of microseconds since epoch.
  */
-export function timestampToUnixMicros(field: string): FunctionExpr;
+export function timestampToUnixMicros(fieldName: string): FunctionExpr;
 export function timestampToUnixMicros(expr: Expr | string): FunctionExpr {
   return fieldOfOrExpr(expr).timestampToUnixMicros();
 }
@@ -6586,10 +6524,10 @@ export function unixMillisToTimestamp(expr: Expr): FunctionExpr;
  * unixMillisToTimestamp("milliseconds");
  * ```
  *
- * @param field The name of the field representing the number of milliseconds since epoch.
+ * @param fieldName The name of the field representing the number of milliseconds since epoch.
  * @return A new {@code Expr} representing the timestamp.
  */
-export function unixMillisToTimestamp(field: string): FunctionExpr;
+export function unixMillisToTimestamp(fieldName: string): FunctionExpr;
 export function unixMillisToTimestamp(expr: Expr | string): FunctionExpr {
   const normalizedExpr = fieldOfOrExpr(expr);
   return normalizedExpr.unixMillisToTimestamp();
@@ -6620,10 +6558,10 @@ export function timestampToUnixMillis(expr: Expr): FunctionExpr;
  * timestampToUnixMillis("timestamp");
  * ```
  *
- * @param field The name of the field representing the timestamp.
+ * @param fieldName The name of the field representing the timestamp.
  * @return A new {@code Expr} representing the number of milliseconds since epoch.
  */
-export function timestampToUnixMillis(field: string): FunctionExpr;
+export function timestampToUnixMillis(fieldName: string): FunctionExpr;
 export function timestampToUnixMillis(expr: Expr | string): FunctionExpr {
   const normalizedExpr = fieldOfOrExpr(expr);
   return normalizedExpr.timestampToUnixMillis();
@@ -6656,10 +6594,10 @@ export function unixSecondsToTimestamp(expr: Expr): FunctionExpr;
  * unixSecondsToTimestamp("seconds");
  * ```
  *
- * @param field The name of the field representing the number of seconds since epoch.
+ * @param fieldName The name of the field representing the number of seconds since epoch.
  * @return A new {@code Expr} representing the timestamp.
  */
-export function unixSecondsToTimestamp(field: string): FunctionExpr;
+export function unixSecondsToTimestamp(fieldName: string): FunctionExpr;
 export function unixSecondsToTimestamp(expr: Expr | string): FunctionExpr {
   const normalizedExpr = fieldOfOrExpr(expr);
   return normalizedExpr.unixSecondsToTimestamp();
@@ -6690,10 +6628,10 @@ export function timestampToUnixSeconds(expr: Expr): FunctionExpr;
  * timestampToUnixSeconds("timestamp");
  * ```
  *
- * @param field The name of the field representing the timestamp.
+ * @param fieldName The name of the field representing the timestamp.
  * @return A new {@code Expr} representing the number of seconds since epoch.
  */
-export function timestampToUnixSeconds(field: string): FunctionExpr;
+export function timestampToUnixSeconds(fieldName: string): FunctionExpr;
 export function timestampToUnixSeconds(expr: Expr | string): FunctionExpr {
   const normalizedExpr = fieldOfOrExpr(expr);
   return normalizedExpr.timestampToUnixSeconds();
@@ -6751,13 +6689,13 @@ export function timestampAdd(
  * timestampAdd("timestamp", "day", 1);
  * ```
  *
- * @param field The name of the field representing the timestamp.
+ * @param fieldName The name of the field representing the timestamp.
  * @param unit The unit of time to add (e.g., "day", "hour").
  * @param amount The amount of time to add.
  * @return A new {@code Expr} representing the resulting timestamp.
  */
 export function timestampAdd(
-  field: string,
+  fieldName: string,
   unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
   amount: number
 ): FunctionExpr;
@@ -6831,13 +6769,13 @@ export function timestampSub(
  * timestampSub("timestamp", "day", 1);
  * ```
  *
- * @param field The name of the field representing the timestamp.
+ * @param fieldName The name of the field representing the timestamp.
  * @param unit The unit of time to subtract (e.g., "day", "hour").
  * @param amount The amount of time to subtract.
  * @return A new {@code Expr} representing the resulting timestamp.
  */
 export function timestampSub(
-  field: string,
+  fieldName: string,
   unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
   amount: number
 ): FunctionExpr;
