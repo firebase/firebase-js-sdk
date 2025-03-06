@@ -50,7 +50,7 @@
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.36.0",
     "rollup-plugin-dts": "5.3.1",
-    "typescript": "5.5.4"
+    "typescript": "5.8.2"
   },
   "repository": {
     "directory": "packages/app",
