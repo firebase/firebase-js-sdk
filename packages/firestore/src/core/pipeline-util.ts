@@ -112,7 +112,13 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
           const values = value?.arrayValue?.values?.map((val: any) =>
             Constant._fromProto(val)
           );
-          return andFunction(fieldValue.exists(), fieldValue.eqAny(...values!));
+          if (!values) {
+            return fieldValue.exists();
+          } else if (values.length == 1) {
+            return andFunction(fieldValue.exists(), fieldValue.eq(values[0]));
+          } else {
+            return andFunction(fieldValue.exists(), fieldValue.eqAny(values));
+          }
         }
         case Operator.ARRAY_CONTAINS_ANY: {
           const values = value?.arrayValue?.values?.map((val: any) =>
@@ -127,10 +133,13 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
           const values = value?.arrayValue?.values?.map((val: any) =>
             Constant._fromProto(val)
           );
-          return andFunction(
-            fieldValue.exists(),
-            fieldValue.notEqAny(...values!)
-          );
+          if (!values) {
+            return fieldValue.exists();
+          } else if (values.length == 1) {
+            return andFunction(fieldValue.exists(), fieldValue.neq(values[0]));
+          } else {
+            return andFunction(fieldValue.exists(), fieldValue.notEqAny(values));
+          }
         }
         default:
           fail('Unexpected operator');
