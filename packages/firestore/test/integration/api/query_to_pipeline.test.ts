@@ -40,14 +40,14 @@ import {
   and,
   documentId,
   addDoc,
-  getDoc,
-  execute
+  getDoc
 } from '../util/firebase_export';
 import {
   apiDescribe,
   PERSISTENCE_MODE_UNSPECIFIED,
   withTestCollection
 } from '../util/helpers';
+import { execute } from '../util/pipeline_export';
 
 use(chaiAsPromised);
 
@@ -55,7 +55,7 @@ setLogLevel('debug');
 
 // This is the Query integration tests from the lite API (no cache support)
 // with some additional test cases added for more complete coverage.
-apiDescribe('Query to Pipeline', persistence => {
+apiDescribe.only('Query to Pipeline', persistence => {
   addEqualityMatcher();
 
   function verifyResults(

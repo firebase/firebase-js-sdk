@@ -87,11 +87,11 @@ export {
   strConcat,
   mapGet,
   countAll,
-  countFunction,
-  sumFunction,
-  avgFunction,
-  andFunction,
-  orFunction,
+  count,
+  sum,
+  avg,
+  and,
+  or,
   minimum,
   maximum,
   cosineDistance,
@@ -128,7 +128,7 @@ export {
   map,
   mapRemove,
   mapMerge,
-  documentIdFunction,
+  documentId,
   substr,
   manhattanDistance,
   Expr,
@@ -146,3 +146,5 @@ export type {
   BooleanExpr,
   AggregateFunction
 } from './lite-api/expressions';
+
+export { _internalPipelineToExecutePipelineRequestProto } from './remote/internal_serializer';

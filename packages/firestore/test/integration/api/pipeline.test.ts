@@ -30,49 +30,53 @@ import { Deferred } from '../../util/promise';
 import {
   GeoPoint,
   Timestamp,
-  array,
-  descending,
-  isNan,
-  map,
   Bytes,
   getFirestore,
   terminate,
   vector,
-  execute,
-  _internalPipelineToExecutePipelineRequestProto,
-  add,
-  andFunction,
-  arrayContains,
-  arrayContainsAny,
-  avgFunction,
   CollectionReference,
-  cosineDistance,
-  countAll,
   doc,
   DocumentData,
+  Firestore,
+  setDoc,
+  setLogLevel,
+  collection,
+  documentId as documentIdFieldPath,
+  writeBatch
+} from '../util/firebase_export';
+import { apiDescribe, withTestCollection } from '../util/helpers';
+import {
+  array,
+  descending,
+  isNan,
+  map,
+  execute,
+  add,
+  and,
+  arrayContains,
+  arrayContainsAny,
+  avg,
+  cosineDistance,
+  countAll,
   dotProduct,
   endsWith,
   eq,
   euclideanDistance,
-  Firestore,
   gt,
   like,
   lt,
   lte,
   mapGet,
   neq,
-  orFunction,
+  or,
   regexContains,
   regexMatch,
-  setDoc,
   startsWith,
   subtract,
-  setLogLevel,
   cond,
   eqAny,
   logicalMaximum,
   notEqAny,
-  collection,
   multiply,
   countIf,
   bitAnd,
@@ -92,23 +96,21 @@ import {
   isNotNan,
   mapRemove,
   mapMerge,
-  documentIdFunction,
+  documentId,
   substr,
   manhattanDistance,
-  documentId,
   logicalMinimum,
   xor,
   field,
   constant,
-  writeBatch
-} from '../util/firebase_export';
-import { apiDescribe, withTestCollection } from '../util/helpers';
+  _internalPipelineToExecutePipelineRequestProto
+} from '../util/pipeline_export';
 
 use(chaiAsPromised);
 
 setLogLevel('debug');
 
-apiDescribe.only('Pipelines', persistence => {
+apiDescribe('Pipelines', persistence => {
   addEqualityMatcher();
 
   let firestore: Firestore;
@@ -377,7 +379,7 @@ apiDescribe.only('Pipelines', persistence => {
           }).as('metadata')
         )
         .where(
-          andFunction(
+          and(
             eq('metadataArray', [
               1,
               2,
@@ -627,7 +629,7 @@ apiDescribe.only('Pipelines', persistence => {
       const pipeline = firestore
         .pipeline()
         .collection(randomCol.path)
-        .aggregate(avgFunction('rating').as('avgRating'));
+        .aggregate(avg('rating').as('avgRating'));
 
       const snapshot = await execute(pipeline);
       const end = new Date().valueOf();
@@ -645,7 +647,7 @@ apiDescribe.only('Pipelines', persistence => {
         .pipeline()
         .collection(randomCol.path)
         .aggregate({
-          accumulators: [avgFunction('rating').as('avgRating')],
+          accumulators: [avg('rating').as('avgRating')],
           groups: ['genre']
         });
 
@@ -678,7 +680,7 @@ apiDescribe.only('Pipelines', persistence => {
             .where(eq('genre', 'Science Fiction'))
             .aggregate(
               countAll().as('count'),
-              avgFunction('rating').as('avgRating'),
+              avg('rating').as('avgRating'),
               field('rating').maximum().as('maxRating')
             )
         );
@@ -707,7 +709,7 @@ apiDescribe.only('Pipelines', persistence => {
             .collection(randomCol.path)
             .where(lt(field('published'), 1984))
             .aggregate({
-              accumulators: [avgFunction('rating').as('avgRating')],
+              accumulators: [avg('rating').as('avgRating')],
               groups: ['genre']
             })
             .where(gt('avgRating', 4.3))
@@ -919,7 +921,7 @@ apiDescribe.only('Pipelines', persistence => {
             .pipeline()
             .collection(randomCol.path)
             .where(
-              andFunction(
+              and(
                 gt('rating', 4.5),
                 eq('genre', 'Science Fiction'),
                 lte('published', 1965)
@@ -934,7 +936,7 @@ apiDescribe.only('Pipelines', persistence => {
             .pipeline()
             .collection(randomCol.path)
             .where(
-              orFunction(
+              or(
                 eq('genre', 'Romance'),
                 eq('genre', 'Dystopian'),
                 eq('genre', 'Fantasy')
@@ -1188,7 +1190,7 @@ apiDescribe.only('Pipelines', persistence => {
             .pipeline()
             .collection(randomCol.path)
             .union(firestore.pipeline().collection(randomCol.path))
-            .sort(field(documentId()).ascending())
+            .sort(field(documentIdFieldPath()).ascending())
         );
         expectResults(
           snapshot,
@@ -1629,7 +1631,7 @@ apiDescribe.only('Pipelines', persistence => {
           .pipeline()
           .collection(randomCol.path)
           .where(
-            andFunction(
+            and(
               gt('rating', 4.2),
               lte(field('rating'), 4.5),
               neq('genre', 'Science Fiction')
@@ -1655,8 +1657,8 @@ apiDescribe.only('Pipelines', persistence => {
           .pipeline()
           .collection(randomCol.path)
           .where(
-            orFunction(
-              andFunction(gt('rating', 4.5), eq('genre', 'Science Fiction')),
+            or(
+              and(gt('rating', 4.5), eq('genre', 'Science Fiction')),
               lt('published', 1900)
             )
           )
@@ -2126,7 +2128,7 @@ apiDescribe.only('Pipelines', persistence => {
               .collection(randomCol.path)
               .sort(field('rating').descending())
               .limit(1)
-              .select(documentIdFunction(field('__path__')).as('docId'))
+              .select(documentId(field('__path__')).as('docId'))
           );
           expectResults(snapshot, {
             docId: 'book4'
@@ -2529,8 +2531,8 @@ apiDescribe.only('Pipelines', persistence => {
       snapshot = await execute(
         pipeline
           .where(
-            orFunction(
-              andFunction(
+            or(
+              and(
                 field('rating').eq(lastDoc.get('rating')),
                 field('__path__').gt(lastDoc.ref?.id)
               ),

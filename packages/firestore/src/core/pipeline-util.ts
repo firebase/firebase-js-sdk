@@ -20,8 +20,8 @@ import {
   Constant,
   Field,
   BooleanExpr,
-  andFunction,
-  orFunction,
+  and,
+  or,
   Ordering,
   lt,
   gt,
@@ -59,52 +59,52 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
     const fieldValue = field(f.field.toString());
     if (isNanValue(f.value)) {
       if (f.op === Operator.EQUAL) {
-        return andFunction(fieldValue.exists(), fieldValue.isNan());
+        return and(fieldValue.exists(), fieldValue.isNan());
       } else {
-        return andFunction(fieldValue.exists(), fieldValue.isNotNan());
+        return and(fieldValue.exists(), fieldValue.isNotNan());
       }
     } else if (isNullValue(f.value)) {
       if (f.op === Operator.EQUAL) {
-        return andFunction(fieldValue.exists(), fieldValue.eq(null));
+        return and(fieldValue.exists(), fieldValue.eq(null));
       } else {
-        return andFunction(fieldValue.exists(), fieldValue.neq(null));
+        return and(fieldValue.exists(), fieldValue.neq(null));
       }
     } else {
       // Comparison filters
       const value = f.value;
       switch (f.op) {
         case Operator.LESS_THAN:
-          return andFunction(
+          return and(
             fieldValue.exists(),
             fieldValue.lt(Constant._fromProto(value))
           );
         case Operator.LESS_THAN_OR_EQUAL:
-          return andFunction(
+          return and(
             fieldValue.exists(),
             fieldValue.lte(Constant._fromProto(value))
           );
         case Operator.GREATER_THAN:
-          return andFunction(
+          return and(
             fieldValue.exists(),
             fieldValue.gt(Constant._fromProto(value))
           );
         case Operator.GREATER_THAN_OR_EQUAL:
-          return andFunction(
+          return and(
             fieldValue.exists(),
             fieldValue.gte(Constant._fromProto(value))
           );
         case Operator.EQUAL:
-          return andFunction(
+          return and(
             fieldValue.exists(),
             fieldValue.eq(Constant._fromProto(value))
           );
         case Operator.NOT_EQUAL:
-          return andFunction(
+          return and(
             fieldValue.exists(),
             fieldValue.neq(Constant._fromProto(value))
           );
         case Operator.ARRAY_CONTAINS:
-          return andFunction(
+          return and(
             fieldValue.exists(),
             fieldValue.arrayContains(Constant._fromProto(value))
           );
@@ -115,19 +115,16 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
           if (!values) {
             return fieldValue.exists();
           } else if (values.length == 1) {
-            return andFunction(fieldValue.exists(), fieldValue.eq(values[0]));
+            return and(fieldValue.exists(), fieldValue.eq(values[0]));
           } else {
-            return andFunction(fieldValue.exists(), fieldValue.eqAny(values));
+            return and(fieldValue.exists(), fieldValue.eqAny(values));
           }
         }
         case Operator.ARRAY_CONTAINS_ANY: {
           const values = value?.arrayValue?.values?.map((val: any) =>
             Constant._fromProto(val)
           );
-          return andFunction(
-            fieldValue.exists(),
-            fieldValue.arrayContainsAny(values!)
-          );
+          return and(fieldValue.exists(), fieldValue.arrayContainsAny(values!));
         }
         case Operator.NOT_IN: {
           const values = value?.arrayValue?.values?.map((val: any) =>
@@ -136,9 +133,9 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
           if (!values) {
             return fieldValue.exists();
           } else if (values.length == 1) {
-            return andFunction(fieldValue.exists(), fieldValue.neq(values[0]));
+            return and(fieldValue.exists(), fieldValue.neq(values[0]));
           } else {
-            return andFunction(fieldValue.exists(), fieldValue.notEqAny(values));
+            return and(fieldValue.exists(), fieldValue.notEqAny(values));
           }
         }
         default:
@@ -149,15 +146,11 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
     switch (f.op) {
       case CompositeOperator.AND: {
         const conditions = f.getFilters().map(f => toPipelineBooleanExpr(f));
-        return andFunction(
-          conditions[0],
-          conditions[1],
-          ...conditions.slice(2)
-        );
+        return and(conditions[0], conditions[1], ...conditions.slice(2));
       }
       case CompositeOperator.OR: {
         const conditions = f.getFilters().map(f => toPipelineBooleanExpr(f));
-        return orFunction(conditions[0], conditions[1], ...conditions.slice(2));
+        return or(conditions[0], conditions[1], ...conditions.slice(2));
       }
       default:
         fail('Unexpected operator');
@@ -199,7 +192,7 @@ export function toPipeline(query: Query, db: Firestore): Pipeline {
   );
   if (existsConditions.length > 1) {
     pipeline = pipeline.where(
-      andFunction(
+      and(
         existsConditions[0],
         existsConditions[1],
         ...existsConditions.slice(2)
@@ -283,7 +276,7 @@ function whereConditionsFromCursor(
       orConditions.push(conditions[0]);
     } else {
       orConditions.push(
-        andFunction(conditions[0], conditions[1], ...conditions.slice(2))
+        and(conditions[0], conditions[1], ...conditions.slice(2))
       );
     }
   }
@@ -291,10 +284,6 @@ function whereConditionsFromCursor(
   if (orConditions.length === 1) {
     return orConditions[0];
   } else {
-    return orFunction(
-      orConditions[0],
-      orConditions[1],
-      ...orConditions.slice(2)
-    );
+    return or(orConditions[0], orConditions[1], ...orConditions.slice(2));
   }
 }

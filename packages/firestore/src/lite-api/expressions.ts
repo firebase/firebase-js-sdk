@@ -36,7 +36,7 @@ import { isFirestoreValue } from '../util/proto';
 import { isString } from '../util/types';
 
 import { Bytes } from './bytes';
-import { documentId, FieldPath } from './field_path';
+import { documentId as documentIdFieldPath, FieldPath } from './field_path';
 import { GeoPoint } from './geo_point';
 import { DocumentReference } from './reference';
 import { Timestamp } from './timestamp';
@@ -2232,12 +2232,12 @@ export function field(path: FieldPath): Field;
 export function field(nameOrPath: string | FieldPath): Field {
   if (typeof nameOrPath === 'string') {
     if (DOCUMENT_KEY_NAME === nameOrPath) {
-      return new Field(documentId()._internalPath);
+      return new Field(documentIdFieldPath()._internalPath);
     }
     return new Field(fieldPathFromArgument('of', nameOrPath));
   } else {
-    if (documentId().isEqual(nameOrPath)) {
-      return new Field(documentId()._internalPath);
+    if (documentIdFieldPath().isEqual(nameOrPath)) {
+      return new Field(documentIdFieldPath()._internalPath);
     }
     return new Field(nameOrPath._internalPath);
   }
@@ -3375,7 +3375,7 @@ export function mapMerge(
  *
  * @return A new {@code Expr} representing the documentId operation.
  */
-export function documentIdFunction(
+export function documentId(
   documentPath: string | DocumentReference
 ): FunctionExpr;
 
@@ -3391,9 +3391,9 @@ export function documentIdFunction(
  *
  * @return A new {@code Expr} representing the documentId operation.
  */
-export function documentIdFunction(documentPathExpr: Expr): FunctionExpr;
+export function documentId(documentPathExpr: Expr): FunctionExpr;
 
-export function documentIdFunction(
+export function documentId(
   documentPath: Expr | string | DocumentReference
 ): FunctionExpr {
   // @ts-ignore
@@ -5901,7 +5901,7 @@ export function countAll(): AggregateFunction {
  * @param expression The expression to count.
  * @return A new {@code AggregateFunction} representing the 'count' aggregation.
  */
-export function countFunction(expression: Expr): AggregateFunction;
+export function count(expression: Expr): AggregateFunction;
 
 /**
  * Creates an aggregation that counts the number of stage inputs with valid evaluations of the
@@ -5915,8 +5915,8 @@ export function countFunction(expression: Expr): AggregateFunction;
  * @param fieldName The name of the field to count.
  * @return A new {@code AggregateFunction} representing the 'count' aggregation.
  */
-export function countFunction(fieldName: string): AggregateFunction;
-export function countFunction(value: Expr | string): AggregateFunction {
+export function count(fieldName: string): AggregateFunction;
+export function count(value: Expr | string): AggregateFunction {
   return fieldOfOrExpr(value).count();
 }
 
@@ -5934,7 +5934,7 @@ export function countFunction(value: Expr | string): AggregateFunction {
  * @param expression The expression to sum up.
  * @return A new {@code AggregateFunction} representing the 'sum' aggregation.
  */
-export function sumFunction(expression: Expr): AggregateFunction;
+export function sum(expression: Expr): AggregateFunction;
 
 /**
  * @beta
@@ -5950,8 +5950,8 @@ export function sumFunction(expression: Expr): AggregateFunction;
  * @param fieldName The name of the field containing numeric values to sum up.
  * @return A new {@code AggregateFunction} representing the 'sum' aggregation.
  */
-export function sumFunction(fieldName: string): AggregateFunction;
-export function sumFunction(value: Expr | string): AggregateFunction {
+export function sum(fieldName: string): AggregateFunction;
+export function sum(value: Expr | string): AggregateFunction {
   return fieldOfOrExpr(value).sum();
 }
 
@@ -5969,7 +5969,7 @@ export function sumFunction(value: Expr | string): AggregateFunction {
  * @param expression The expression representing the values to average.
  * @return A new {@code AggregateFunction} representing the 'avg' aggregation.
  */
-export function avgFunction(expression: Expr): AggregateFunction;
+export function avg(expression: Expr): AggregateFunction;
 
 /**
  * @beta
@@ -5985,8 +5985,8 @@ export function avgFunction(expression: Expr): AggregateFunction;
  * @param fieldName The name of the field containing numeric values to average.
  * @return A new {@code AggregateFunction} representing the 'avg' aggregation.
  */
-export function avgFunction(fieldName: string): AggregateFunction;
-export function avgFunction(value: Expr | string): AggregateFunction {
+export function avg(fieldName: string): AggregateFunction;
+export function avg(value: Expr | string): AggregateFunction {
   return fieldOfOrExpr(value).avg();
 }
 
@@ -6813,7 +6813,7 @@ export function timestampSub(
  * @param more Additional filter conditions to 'AND' together.
  * @return A new {@code Expr} representing the logical 'AND' operation.
  */
-export function andFunction(
+export function and(
   first: BooleanExpr,
   second: BooleanExpr,
   ...more: BooleanExpr[]
@@ -6837,7 +6837,7 @@ export function andFunction(
  * @param more Additional filter conditions to 'OR' together.
  * @return A new {@code Expr} representing the logical 'OR' operation.
  */
-export function orFunction(
+export function or(
   first: BooleanExpr,
   second: BooleanExpr,
   ...more: BooleanExpr[]

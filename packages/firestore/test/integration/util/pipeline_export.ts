@@ -20,5 +20,4 @@
 // reference to the minified sources. If you change any exports in this file,
 // you need to also adjust "integration/firestore/pipeline_export.ts".
 
-
 export * from '../../../pipelines/pipelines';
