@@ -1,5 +1,5 @@
 ---
-'@firebase/vertexai': minor
+'@firebase/vertexai': patch
 ---
 
-Deprecate `GroundingAttribution`.
+Mark `GroundingAttribution` as deprecated.
