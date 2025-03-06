@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-/* eslint @typescript-eslint/no-explicit-any: 0 */
-
 import {
   DOCUMENT_KEY_NAME,
   FieldPath as InternalFieldPath
@@ -69,15 +67,15 @@ export type ExprType =
  * @internal
  * @param value
  */
-function valueToDefaultExpr(value: any): Expr {
+function valueToDefaultExpr(value: unknown): Expr {
   if (value instanceof Expr) {
     return value;
   } else if (isPlainObject(value)) {
-    return map(value);
+    return map(value as Record<string, unknown>);
   } else if (value instanceof Array) {
     return array(value);
   } else {
-    return constant(value);
+    return new Constant(value);
   }
 }
 
@@ -107,7 +105,7 @@ function vectorToExpr(value: VectorValue | number[] | Expr): Expr {
  * @internal
  * @param value
  */
-function fieldOfOrExpr(value: any): Expr {
+function fieldOfOrExpr(value: unknown): Expr {
   if (isString(value)) {
     return field(value);
   } else {
@@ -159,7 +157,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param others Optional additional expressions or literals to add to this expression.
    * @return A new `Expr` representing the addition operation.
    */
-  add(second: Expr | any, ...others: Array<Expr | any>): FunctionExpr {
+  add(second: Expr | unknown, ...others: Array<Expr | unknown>): FunctionExpr {
     const values = [second, ...others];
     return new FunctionExpr('add', [
       this,
@@ -191,8 +189,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The constant value to subtract.
    * @return A new `Expr` representing the subtraction operation.
    */
-  subtract(other: any): FunctionExpr;
-  subtract(other: any): FunctionExpr {
+  subtract(other: unknown): FunctionExpr;
+  subtract(other: unknown): FunctionExpr {
     return new FunctionExpr('subtract', [this, valueToDefaultExpr(other)]);
   }
 
@@ -208,7 +206,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param others Optional additional expressions or literals to multiply by.
    * @return A new `Expr` representing the multiplication operation.
    */
-  multiply(second: Expr | any, ...others: Array<Expr | any>): FunctionExpr {
+  multiply(
+    second: Expr | unknown,
+    ...others: Array<Expr | unknown>
+  ): FunctionExpr {
     return new FunctionExpr('multiply', [
       this,
       valueToDefaultExpr(second),
@@ -240,8 +241,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The constant value to divide by.
    * @return A new `Expr` representing the division operation.
    */
-  divide(other: any): FunctionExpr;
-  divide(other: any): FunctionExpr {
+  divide(other: unknown): FunctionExpr;
+  divide(other: unknown): FunctionExpr {
     return new FunctionExpr('divide', [this, valueToDefaultExpr(other)]);
   }
 
@@ -269,8 +270,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param value The constant value to divide by.
    * @return A new `Expr` representing the modulo operation.
    */
-  mod(value: any): FunctionExpr;
-  mod(other: any): FunctionExpr {
+  mod(value: unknown): FunctionExpr;
+  mod(other: unknown): FunctionExpr {
     return new FunctionExpr('mod', [this, valueToDefaultExpr(other)]);
   }
 
@@ -298,8 +299,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param value The constant value to compare for equality.
    * @return A new `Expr` representing the equality comparison.
    */
-  eq(value: any): BooleanExpr;
-  eq(other: any): BooleanExpr {
+  eq(value: unknown): BooleanExpr;
+  eq(other: unknown): BooleanExpr {
     return new BooleanExpr('eq', [this, valueToDefaultExpr(other)]);
   }
 
@@ -327,8 +328,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param value The constant value to compare for inequality.
    * @return A new `Expr` representing the inequality comparison.
    */
-  neq(value: any): BooleanExpr;
-  neq(other: any): BooleanExpr {
+  neq(value: unknown): BooleanExpr;
+  neq(other: unknown): BooleanExpr {
     return new BooleanExpr('neq', [this, valueToDefaultExpr(other)]);
   }
 
@@ -356,8 +357,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param value The constant value to compare for less than.
    * @return A new `Expr` representing the less than comparison.
    */
-  lt(value: any): BooleanExpr;
-  lt(other: any): BooleanExpr {
+  lt(value: unknown): BooleanExpr;
+  lt(other: unknown): BooleanExpr {
     return new BooleanExpr('lt', [this, valueToDefaultExpr(other)]);
   }
 
@@ -386,8 +387,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param value The constant value to compare for less than or equal to.
    * @return A new `Expr` representing the less than or equal to comparison.
    */
-  lte(value: any): BooleanExpr;
-  lte(other: any): BooleanExpr {
+  lte(value: unknown): BooleanExpr;
+  lte(other: unknown): BooleanExpr {
     return new BooleanExpr('lte', [this, valueToDefaultExpr(other)]);
   }
 
@@ -415,8 +416,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param value The constant value to compare for greater than.
    * @return A new `Expr` representing the greater than comparison.
    */
-  gt(value: any): BooleanExpr;
-  gt(other: any): BooleanExpr {
+  gt(value: unknown): BooleanExpr;
+  gt(other: unknown): BooleanExpr {
     return new BooleanExpr('gt', [this, valueToDefaultExpr(other)]);
   }
 
@@ -446,8 +447,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param value The constant value to compare for greater than or equal to.
    * @return A new `Expr` representing the greater than or equal to comparison.
    */
-  gte(value: any): BooleanExpr;
-  gte(other: any): BooleanExpr {
+  gte(value: unknown): BooleanExpr;
+  gte(other: unknown): BooleanExpr {
     return new BooleanExpr('gte', [this, valueToDefaultExpr(other)]);
   }
 
@@ -463,8 +464,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `Expr` representing the concatenated array.
    */
   arrayConcat(
-    secondArray: Expr | any[],
-    ...otherArrays: Array<Expr | any[]>
+    secondArray: Expr | unknown[],
+    ...otherArrays: Array<Expr | unknown[]>
   ): FunctionExpr {
     const elements = [secondArray, ...otherArrays];
     const exprValues = elements.map(value => valueToDefaultExpr(value));
@@ -495,8 +496,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param value The element to search for in the array.
    * @return A new `Expr` representing the 'array_contains' comparison.
    */
-  arrayContains(value: any): BooleanExpr;
-  arrayContains(element: any): BooleanExpr {
+  arrayContains(value: unknown): BooleanExpr;
+  arrayContains(element: unknown): BooleanExpr {
     return new BooleanExpr('array_contains', [
       this,
       valueToDefaultExpr(element)
@@ -514,7 +515,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param values The elements to check for in the array.
    * @return A new `Expr` representing the 'array_contains_all' comparison.
    */
-  arrayContainsAll(values: Array<Expr | any>): BooleanExpr;
+  arrayContainsAll(values: Array<Expr | unknown>): BooleanExpr;
 
   /**
    * Creates an expression that checks if an array contains all the specified elements.
@@ -528,7 +529,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `Expr` representing the 'array_contains_all' comparison.
    */
   arrayContainsAll(arrayExpression: Expr): BooleanExpr;
-  arrayContainsAll(values: any[] | Expr): BooleanExpr {
+  arrayContainsAll(values: unknown[] | Expr): BooleanExpr {
     const normalizedExpr = Array.isArray(values)
       ? new ListOfExprs(values.map(valueToDefaultExpr))
       : values;
@@ -546,7 +547,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param values The elements to check for in the array.
    * @return A new `Expr` representing the 'array_contains_any' comparison.
    */
-  arrayContainsAny(values: Array<Expr | any>): BooleanExpr;
+  arrayContainsAny(values: Array<Expr | unknown>): BooleanExpr;
 
   /**
    * Creates an expression that checks if an array contains any of the specified elements.
@@ -561,7 +562,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `Expr` representing the 'array_contains_any' comparison.
    */
   arrayContainsAny(arrayExpression: Expr): BooleanExpr;
-  arrayContainsAny(values: Array<any | Expr> | Expr): BooleanExpr {
+  arrayContainsAny(values: Array<unknown | Expr> | Expr): BooleanExpr {
     const normalizedExpr = Array.isArray(values)
       ? new ListOfExprs(values.map(valueToDefaultExpr))
       : values;
@@ -594,7 +595,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param values The values or expressions to check against.
    * @return A new `Expr` representing the 'IN' comparison.
    */
-  eqAny(values: Array<Expr | any>): BooleanExpr;
+  eqAny(values: Array<Expr | unknown>): BooleanExpr;
 
   /**
    * Creates an expression that checks if this expression is equal to any of the provided values or
@@ -609,7 +610,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `Expr` representing the 'IN' comparison.
    */
   eqAny(arrayExpression: Expr): BooleanExpr;
-  eqAny(others: any[] | Expr): BooleanExpr {
+  eqAny(others: unknown[] | Expr): BooleanExpr {
     const exprOthers = Array.isArray(others)
       ? new ListOfExprs(others.map(valueToDefaultExpr))
       : others;
@@ -628,7 +629,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param values The values or expressions to check against.
    * @return A new `Expr` representing the 'NotEqAny' comparison.
    */
-  notEqAny(values: Array<Expr | any>): BooleanExpr;
+  notEqAny(values: Array<Expr | unknown>): BooleanExpr;
 
   /**
    * Creates an expression that checks if this expression is not equal to any of the values in the evaluated expression.
@@ -642,7 +643,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `Expr` representing the 'NotEqAny' comparison.
    */
   notEqAny(arrayExpression: Expr): BooleanExpr;
-  notEqAny(others: any[] | Expr): BooleanExpr {
+  notEqAny(others: unknown[] | Expr): BooleanExpr {
     const exprOthers = Array.isArray(others)
       ? new ListOfExprs(others.map(valueToDefaultExpr))
       : others;
@@ -1161,8 +1162,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new {@code Expr} representing the logical max operation.
    */
   logicalMaximum(
-    second: Expr | any,
-    ...others: Array<Expr | any>
+    second: Expr | unknown,
+    ...others: Array<Expr | unknown>
   ): FunctionExpr {
     const values = [second, ...others];
     return new FunctionExpr('logical_maximum', [
@@ -1184,8 +1185,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new {@code Expr} representing the logical min operation.
    */
   logicalMinimum(
-    second: Expr | any,
-    ...others: Array<Expr | any>
+    second: Expr | unknown,
+    ...others: Array<Expr | unknown>
   ): FunctionExpr {
     const values = [second, ...others];
     return new FunctionExpr('logical_min', [
@@ -1837,8 +1838,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * produces an error.
    * @return A new {@code Expr} representing the 'ifError' operation.
    */
-  ifError(catchValue: any): FunctionExpr;
-  ifError(catchValue: any): FunctionExpr {
+  ifError(catchValue: unknown): FunctionExpr;
+  ifError(catchValue: unknown): FunctionExpr {
     return new FunctionExpr('if_error', [this, valueToDefaultExpr(catchValue)]);
   }
 
@@ -1945,8 +1946,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @returns A new {@code FirestoreFunction} representing the 'mapMerge' operation.
    */
   mapMerge(
-    secondMap: Record<string, any> | Expr,
-    ...otherMaps: Array<Record<string, any> | Expr>
+    secondMap: Record<string, unknown> | Expr,
+    ...otherMaps: Array<Record<string, unknown> | Expr>
   ): FunctionExpr {
     const secondMapExpr = valueToDefaultExpr(secondMap);
     const otherMapExprs = otherMaps.map(valueToDefaultExpr);
@@ -2269,7 +2270,7 @@ export class Constant extends Expr {
    * @hideconstructor
    * @param value The value of the constant.
    */
-  constructor(private value: any) {
+  constructor(private value: unknown) {
     super();
   }
 
@@ -2416,7 +2417,7 @@ export function constant(value: ProtoValue): Constant;
  */
 export function constant(value: VectorValue): Constant;
 
-export function constant(value: any): Constant {
+export function constant(value: unknown): Constant {
   return new Constant(value);
 }
 
@@ -3104,8 +3105,8 @@ export function ifError(tryExpr: Expr, catchExpr: Expr): FunctionExpr;
  * error.
  * @return A new {@code Expr} representing the 'ifError' operation.
  */
-export function ifError(tryExpr: Expr, catchValue: any): FunctionExpr;
-export function ifError(tryExpr: Expr, catchValue: any): FunctionExpr {
+export function ifError(tryExpr: Expr, catchValue: unknown): FunctionExpr;
+export function ifError(tryExpr: Expr, catchValue: unknown): FunctionExpr {
   return tryExpr.ifError(valueToDefaultExpr(catchValue));
 }
 
@@ -3326,8 +3327,8 @@ export function mapRemove(
  */
 export function mapMerge(
   mapField: string,
-  secondMap: Record<string, any> | Expr,
-  ...otherMaps: Array<Record<string, any> | Expr>
+  secondMap: Record<string, unknown> | Expr,
+  ...otherMaps: Array<Record<string, unknown> | Expr>
 ): FunctionExpr;
 
 /**
@@ -3348,15 +3349,15 @@ export function mapMerge(
  * as a literal or an expression that returns a map.
  */
 export function mapMerge(
-  firstMap: Record<string, any> | Expr,
-  secondMap: Record<string, any> | Expr,
-  ...otherMaps: Array<Record<string, any> | Expr>
+  firstMap: Record<string, unknown> | Expr,
+  secondMap: Record<string, unknown> | Expr,
+  ...otherMaps: Array<Record<string, unknown> | Expr>
 ): FunctionExpr;
 
 export function mapMerge(
-  firstMap: string | Record<string, any> | Expr,
-  secondMap: Record<string, any> | Expr,
-  ...otherMaps: Array<Record<string, any> | Expr>
+  firstMap: string | Record<string, unknown> | Expr,
+  secondMap: Record<string, unknown> | Expr,
+  ...otherMaps: Array<Record<string, unknown> | Expr>
 ): FunctionExpr {
   const secondMapExpr = valueToDefaultExpr(secondMap);
   const otherMapExprs = otherMaps.map(valueToDefaultExpr);
@@ -3490,8 +3491,8 @@ export function substr(
  */
 export function add(
   first: Expr,
-  second: Expr | any,
-  ...others: Array<Expr | any>
+  second: Expr | unknown,
+  ...others: Array<Expr | unknown>
 ): FunctionExpr;
 
 /**
@@ -3511,14 +3512,14 @@ export function add(
  */
 export function add(
   fieldName: string,
-  second: Expr | any,
-  ...others: Array<Expr | any>
+  second: Expr | unknown,
+  ...others: Array<Expr | unknown>
 ): FunctionExpr;
 
 export function add(
   first: Expr | string,
-  second: Expr | any,
-  ...others: Array<Expr | any>
+  second: Expr | unknown,
+  ...others: Array<Expr | unknown>
 ): FunctionExpr {
   return fieldOfOrExpr(first).add(
     valueToDefaultExpr(second),
@@ -3556,7 +3557,7 @@ export function subtract(left: Expr, right: Expr): FunctionExpr;
  * @param value The constant value to subtract.
  * @return A new {@code Expr} representing the subtraction operation.
  */
-export function subtract(expression: Expr, value: any): FunctionExpr;
+export function subtract(expression: Expr, value: unknown): FunctionExpr;
 
 /**
  * @beta
@@ -3588,8 +3589,11 @@ export function subtract(fieldName: string, expression: Expr): FunctionExpr;
  * @param value The constant value to subtract.
  * @return A new {@code Expr} representing the subtraction operation.
  */
-export function subtract(fieldName: string, value: any): FunctionExpr;
-export function subtract(left: Expr | string, right: Expr | any): FunctionExpr {
+export function subtract(fieldName: string, value: unknown): FunctionExpr;
+export function subtract(
+  left: Expr | string,
+  right: Expr | unknown
+): FunctionExpr {
   const normalizedLeft = typeof left === 'string' ? field(left) : left;
   const normalizedRight = valueToDefaultExpr(right);
   return normalizedLeft.subtract(normalizedRight);
@@ -3612,8 +3616,8 @@ export function subtract(left: Expr | string, right: Expr | any): FunctionExpr {
  */
 export function multiply(
   first: Expr,
-  second: Expr | any,
-  ...others: Array<Expr | any>
+  second: Expr | unknown,
+  ...others: Array<Expr | unknown>
 ): FunctionExpr;
 
 /**
@@ -3633,14 +3637,14 @@ export function multiply(
  */
 export function multiply(
   fieldName: string,
-  second: Expr | any,
-  ...others: Array<Expr | any>
+  second: Expr | unknown,
+  ...others: Array<Expr | unknown>
 ): FunctionExpr;
 
 export function multiply(
   first: Expr | string,
-  second: Expr | any,
-  ...others: Array<Expr | any>
+  second: Expr | unknown,
+  ...others: Array<Expr | unknown>
 ): FunctionExpr {
   return fieldOfOrExpr(first).multiply(
     valueToDefaultExpr(second),
@@ -3678,7 +3682,7 @@ export function divide(left: Expr, right: Expr): FunctionExpr;
  * @param value The constant value to divide by.
  * @return A new {@code Expr} representing the division operation.
  */
-export function divide(expression: Expr, value: any): FunctionExpr;
+export function divide(expression: Expr, value: unknown): FunctionExpr;
 
 /**
  * @beta
@@ -3710,8 +3714,11 @@ export function divide(fieldName: string, expressions: Expr): FunctionExpr;
  * @param value The constant value to divide by.
  * @return A new {@code Expr} representing the division operation.
  */
-export function divide(fieldName: string, value: any): FunctionExpr;
-export function divide(left: Expr | string, right: Expr | any): FunctionExpr {
+export function divide(fieldName: string, value: unknown): FunctionExpr;
+export function divide(
+  left: Expr | string,
+  right: Expr | unknown
+): FunctionExpr {
   const normalizedLeft = typeof left === 'string' ? field(left) : left;
   const normalizedRight = valueToDefaultExpr(right);
   return normalizedLeft.divide(normalizedRight);
@@ -3747,7 +3754,7 @@ export function mod(left: Expr, right: Expr): FunctionExpr;
  * @param value The divisor constant.
  * @return A new {@code Expr} representing the modulo operation.
  */
-export function mod(expression: Expr, value: any): FunctionExpr;
+export function mod(expression: Expr, value: unknown): FunctionExpr;
 
 /**
  * @beta
@@ -3779,8 +3786,8 @@ export function mod(fieldName: string, expression: Expr): FunctionExpr;
  * @param value The divisor constant.
  * @return A new {@code Expr} representing the modulo operation.
  */
-export function mod(fieldName: string, value: any): FunctionExpr;
-export function mod(left: Expr | string, right: Expr | any): FunctionExpr {
+export function mod(fieldName: string, value: unknown): FunctionExpr;
+export function mod(left: Expr | string, right: Expr | unknown): FunctionExpr {
   const normalizedLeft = typeof left === 'string' ? field(left) : left;
   const normalizedRight = valueToDefaultExpr(right);
   return normalizedLeft.mod(normalizedRight);
@@ -3799,8 +3806,8 @@ export function mod(left: Expr | string, right: Expr | any): FunctionExpr {
  * @param elements The input map to evaluate in the expression.
  * @return A new {@code Expr} representing the map function.
  */
-export function map(elements: Record<string, any>): FunctionExpr {
-  const result: any[] = [];
+export function map(elements: Record<string, unknown>): FunctionExpr {
+  const result: Expr[] = [];
   for (const key in elements) {
     if (Object.prototype.hasOwnProperty.call(elements, key)) {
       const value = elements[key];
@@ -3822,7 +3829,7 @@ export function map(elements: Record<string, any>): FunctionExpr {
  * @internal
  * @param plainObject
  */
-export function _mapValue(plainObject: Record<string, any>): MapValue {
+export function _mapValue(plainObject: Record<string, unknown>): MapValue {
   const result: Map<string, Expr> = new Map<string, Expr>();
   for (const key in plainObject) {
     if (Object.prototype.hasOwnProperty.call(plainObject, key)) {
@@ -3846,7 +3853,7 @@ export function _mapValue(plainObject: Record<string, any>): MapValue {
  * @param elements The input array to evaluate in the expression.
  * @return A new {@code Expr} representing the array function.
  */
-export function array(elements: any[]): FunctionExpr {
+export function array(elements: unknown[]): FunctionExpr {
   return new FunctionExpr(
     'array',
     elements.map(element => valueToDefaultExpr(element))
@@ -3883,7 +3890,7 @@ export function eq(left: Expr, right: Expr): BooleanExpr;
  * @param value The constant value to compare to.
  * @return A new `Expr` representing the equality comparison.
  */
-export function eq(expression: Expr, value: any): BooleanExpr;
+export function eq(expression: Expr, value: unknown): BooleanExpr;
 
 /**
  * @beta
@@ -3915,8 +3922,8 @@ export function eq(fieldName: string, expression: Expr): BooleanExpr;
  * @param value The constant value to compare to.
  * @return A new `Expr` representing the equality comparison.
  */
-export function eq(fieldName: string, value: any): BooleanExpr;
-export function eq(left: Expr | string, right: any): BooleanExpr {
+export function eq(fieldName: string, value: unknown): BooleanExpr;
+export function eq(left: Expr | string, right: unknown): BooleanExpr {
   const leftExpr = left instanceof Expr ? left : field(left);
   const rightExpr = valueToDefaultExpr(right);
   return leftExpr.eq(rightExpr);
@@ -3952,7 +3959,7 @@ export function neq(left: Expr, right: Expr): BooleanExpr;
  * @param value The constant value to compare to.
  * @return A new `Expr` representing the inequality comparison.
  */
-export function neq(expression: Expr, value: any): BooleanExpr;
+export function neq(expression: Expr, value: unknown): BooleanExpr;
 
 /**
  * @beta
@@ -3984,8 +3991,8 @@ export function neq(fieldName: string, expression: Expr): BooleanExpr;
  * @param value The constant value to compare to.
  * @return A new `Expr` representing the inequality comparison.
  */
-export function neq(fieldName: string, value: any): BooleanExpr;
-export function neq(left: Expr | string, right: any): BooleanExpr {
+export function neq(fieldName: string, value: unknown): BooleanExpr;
+export function neq(left: Expr | string, right: unknown): BooleanExpr {
   const leftExpr = left instanceof Expr ? left : field(left);
   const rightExpr = valueToDefaultExpr(right);
   return leftExpr.neq(rightExpr);
@@ -4021,7 +4028,7 @@ export function lt(left: Expr, right: Expr): BooleanExpr;
  * @param value The constant value to compare to.
  * @return A new `Expr` representing the less than comparison.
  */
-export function lt(expression: Expr, value: any): BooleanExpr;
+export function lt(expression: Expr, value: unknown): BooleanExpr;
 
 /**
  * @beta
@@ -4053,8 +4060,8 @@ export function lt(fieldName: string, expression: Expr): BooleanExpr;
  * @param value The constant value to compare to.
  * @return A new `Expr` representing the less than comparison.
  */
-export function lt(fieldName: string, value: any): BooleanExpr;
-export function lt(left: Expr | string, right: any): BooleanExpr {
+export function lt(fieldName: string, value: unknown): BooleanExpr;
+export function lt(left: Expr | string, right: unknown): BooleanExpr {
   const leftExpr = left instanceof Expr ? left : field(left);
   const rightExpr = valueToDefaultExpr(right);
   return leftExpr.lt(rightExpr);
@@ -4091,7 +4098,7 @@ export function lte(left: Expr, right: Expr): BooleanExpr;
  * @param value The constant value to compare to.
  * @return A new `Expr` representing the less than or equal to comparison.
  */
-export function lte(expression: Expr, value: any): BooleanExpr;
+export function lte(expression: Expr, value: unknown): BooleanExpr;
 
 /**
  * Creates an expression that checks if a field's value is less than or equal to an expression.
@@ -4121,8 +4128,8 @@ export function lte(fieldName: string, expression: Expr): BooleanExpr;
  * @param value The constant value to compare to.
  * @return A new `Expr` representing the less than or equal to comparison.
  */
-export function lte(fieldName: string, value: any): BooleanExpr;
-export function lte(left: Expr | string, right: any): BooleanExpr {
+export function lte(fieldName: string, value: unknown): BooleanExpr;
+export function lte(left: Expr | string, right: unknown): BooleanExpr {
   const leftExpr = left instanceof Expr ? left : field(left);
   const rightExpr = valueToDefaultExpr(right);
   return leftExpr.lte(rightExpr);
@@ -4159,7 +4166,7 @@ export function gt(left: Expr, right: Expr): BooleanExpr;
  * @param value The constant value to compare to.
  * @return A new `Expr` representing the greater than comparison.
  */
-export function gt(expression: Expr, value: any): BooleanExpr;
+export function gt(expression: Expr, value: unknown): BooleanExpr;
 
 /**
  * @beta
@@ -4191,8 +4198,8 @@ export function gt(fieldName: string, expression: Expr): BooleanExpr;
  * @param value The constant value to compare to.
  * @return A new `Expr` representing the greater than comparison.
  */
-export function gt(fieldName: string, value: any): BooleanExpr;
-export function gt(left: Expr | string, right: any): BooleanExpr {
+export function gt(fieldName: string, value: unknown): BooleanExpr;
+export function gt(left: Expr | string, right: unknown): BooleanExpr {
   const leftExpr = left instanceof Expr ? left : field(left);
   const rightExpr = valueToDefaultExpr(right);
   return leftExpr.gt(rightExpr);
@@ -4230,7 +4237,7 @@ export function gte(left: Expr, right: Expr): BooleanExpr;
  * @param value The constant value to compare to.
  * @return A new `Expr` representing the greater than or equal to comparison.
  */
-export function gte(expression: Expr, value: any): BooleanExpr;
+export function gte(expression: Expr, value: unknown): BooleanExpr;
 
 /**
  * @beta
@@ -4263,8 +4270,8 @@ export function gte(fieldName: string, value: Expr): BooleanExpr;
  * @param value The constant value to compare to.
  * @return A new `Expr` representing the greater than or equal to comparison.
  */
-export function gte(fieldName: string, value: any): BooleanExpr;
-export function gte(left: Expr | string, right: any): BooleanExpr {
+export function gte(fieldName: string, value: unknown): BooleanExpr;
+export function gte(left: Expr | string, right: unknown): BooleanExpr {
   const leftExpr = left instanceof Expr ? left : field(left);
   const rightExpr = valueToDefaultExpr(right);
   return leftExpr.gte(rightExpr);
@@ -4287,8 +4294,8 @@ export function gte(left: Expr | string, right: any): BooleanExpr {
  */
 export function arrayConcat(
   firstArray: Expr,
-  secondArray: Expr | any,
-  ...otherArrays: Array<Expr | any>
+  secondArray: Expr | unknown[],
+  ...otherArrays: Array<Expr | unknown[]>
 ): FunctionExpr;
 
 /**
@@ -4308,14 +4315,14 @@ export function arrayConcat(
  */
 export function arrayConcat(
   firstArrayField: string,
-  secondArray: Expr | any[],
-  ...otherArrays: Array<Expr | any>
+  secondArray: Expr | unknown[],
+  ...otherArrays: Array<Expr | unknown[]>
 ): FunctionExpr;
 
 export function arrayConcat(
   firstArray: Expr | string,
-  secondArray: Expr | any[],
-  ...otherArrays: Array<Expr | any[]>
+  secondArray: Expr | unknown[],
+  ...otherArrays: Array<Expr | unknown[]>
 ): FunctionExpr {
   const exprValues = otherArrays.map(element => valueToDefaultExpr(element));
   return fieldOfOrExpr(firstArray).arrayConcat(
@@ -4354,7 +4361,7 @@ export function arrayContains(array: Expr, element: Expr): FunctionExpr;
  * @param element The element to search for in the array.
  * @return A new {@code Expr} representing the 'array_contains' comparison.
  */
-export function arrayContains(array: Expr, element: any): FunctionExpr;
+export function arrayContains(array: Expr, element: unknown): FunctionExpr;
 
 /**
  * @beta
@@ -4386,8 +4393,11 @@ export function arrayContains(fieldName: string, element: Expr): FunctionExpr;
  * @param element The element to search for in the array.
  * @return A new {@code Expr} representing the 'array_contains' comparison.
  */
-export function arrayContains(fieldName: string, element: any): BooleanExpr;
-export function arrayContains(array: Expr | string, element: any): BooleanExpr {
+export function arrayContains(fieldName: string, element: unknown): BooleanExpr;
+export function arrayContains(
+  array: Expr | string,
+  element: unknown
+): BooleanExpr {
   const arrayExpr = fieldOfOrExpr(array);
   const elementExpr = valueToDefaultExpr(element);
   return arrayExpr.arrayContains(elementExpr);
@@ -4410,7 +4420,7 @@ export function arrayContains(array: Expr | string, element: any): BooleanExpr {
  */
 export function arrayContainsAny(
   array: Expr,
-  values: Array<Expr | any>
+  values: Array<Expr | unknown>
 ): BooleanExpr;
 
 /**
@@ -4431,7 +4441,7 @@ export function arrayContainsAny(
  */
 export function arrayContainsAny(
   fieldName: string,
-  values: Array<Expr | any>
+  values: Array<Expr | unknown>
 ): BooleanExpr;
 
 /**
@@ -4470,7 +4480,7 @@ export function arrayContainsAny(array: Expr, values: Expr): BooleanExpr;
 export function arrayContainsAny(fieldName: string, values: Expr): BooleanExpr;
 export function arrayContainsAny(
   array: Expr | string,
-  values: any[] | Expr
+  values: unknown[] | Expr
 ): BooleanExpr {
   // @ts-ignore implementation accepts both types
   return fieldOfOrExpr(array).arrayContainsAny(values);
@@ -4492,7 +4502,7 @@ export function arrayContainsAny(
  */
 export function arrayContainsAll(
   array: Expr,
-  values: Array<Expr | any>
+  values: Array<Expr | unknown>
 ): BooleanExpr;
 
 /**
@@ -4512,7 +4522,7 @@ export function arrayContainsAll(
  */
 export function arrayContainsAll(
   fieldName: string,
-  values: Array<Expr | any>
+  values: Array<Expr | unknown>
 ): BooleanExpr;
 
 /**
@@ -4555,7 +4565,7 @@ export function arrayContainsAll(
 ): BooleanExpr;
 export function arrayContainsAll(
   array: Expr | string,
-  values: any[] | Expr
+  values: unknown[] | Expr
 ): BooleanExpr {
   // @ts-ignore implementation accepts both types
   return fieldOfOrExpr(array).arrayContainsAll(values);
@@ -4593,7 +4603,10 @@ export function arrayLength(array: Expr): FunctionExpr {
  * @param values The values to check against.
  * @return A new {@code Expr} representing the 'IN' comparison.
  */
-export function eqAny(expression: Expr, values: Array<Expr | any>): BooleanExpr;
+export function eqAny(
+  expression: Expr,
+  values: Array<Expr | unknown>
+): BooleanExpr;
 
 /**
  * @beta
@@ -4628,7 +4641,7 @@ export function eqAny(expression: Expr, arrayExpression: Expr): BooleanExpr;
  */
 export function eqAny(
   fieldName: string,
-  values: Array<Expr | any>
+  values: Array<Expr | unknown>
 ): BooleanExpr;
 
 /**
@@ -4649,7 +4662,7 @@ export function eqAny(
 export function eqAny(fieldName: string, arrayExpression: Expr): BooleanExpr;
 export function eqAny(
   element: Expr | string,
-  values: any[] | Expr
+  values: unknown[] | Expr
 ): BooleanExpr {
   // @ts-ignore implementation accepts both types
   return fieldOfOrExpr(element).eqAny(values);
@@ -4670,7 +4683,10 @@ export function eqAny(
  * @param values The values to check against.
  * @return A new {@code Expr} representing the 'NOT IN' comparison.
  */
-export function notEqAny(element: Expr, values: Array<Expr | any>): BooleanExpr;
+export function notEqAny(
+  element: Expr,
+  values: Array<Expr | unknown>
+): BooleanExpr;
 
 /**
  * @beta
@@ -4689,7 +4705,7 @@ export function notEqAny(element: Expr, values: Array<Expr | any>): BooleanExpr;
  */
 export function notEqAny(
   fieldName: string,
-  values: Array<Expr | any>
+  values: Array<Expr | unknown>
 ): BooleanExpr;
 
 /**
@@ -4727,7 +4743,7 @@ export function notEqAny(fieldName: string, arrayExpression: Expr): BooleanExpr;
 
 export function notEqAny(
   element: Expr | string,
-  values: any[] | Expr
+  values: unknown[] | Expr
 ): BooleanExpr {
   // @ts-ignore implementation accepts both types
   return fieldOfOrExpr(element).notEqAny(values);
@@ -4821,8 +4837,8 @@ export function not(booleanExpr: BooleanExpr): BooleanExpr {
  */
 export function logicalMaximum(
   first: Expr,
-  second: Expr | any,
-  ...others: Array<Expr | any>
+  second: Expr | unknown,
+  ...others: Array<Expr | unknown>
 ): FunctionExpr;
 
 /**
@@ -4844,14 +4860,14 @@ export function logicalMaximum(
  */
 export function logicalMaximum(
   fieldName: string,
-  second: Expr | any,
-  ...others: Array<Expr | any>
+  second: Expr | unknown,
+  ...others: Array<Expr | unknown>
 ): FunctionExpr;
 
 export function logicalMaximum(
   first: Expr | string,
-  second: Expr | any,
-  ...others: Array<Expr | any>
+  second: Expr | unknown,
+  ...others: Array<Expr | unknown>
 ): FunctionExpr {
   return fieldOfOrExpr(first).logicalMaximum(
     valueToDefaultExpr(second),
@@ -4878,8 +4894,8 @@ export function logicalMaximum(
  */
 export function logicalMinimum(
   first: Expr,
-  second: Expr | any,
-  ...others: Array<Expr | any>
+  second: Expr | unknown,
+  ...others: Array<Expr | unknown>
 ): FunctionExpr;
 
 /**
@@ -4902,14 +4918,14 @@ export function logicalMinimum(
  */
 export function logicalMinimum(
   fieldName: string,
-  second: Expr | any,
-  ...others: Array<Expr | any>
+  second: Expr | unknown,
+  ...others: Array<Expr | unknown>
 ): FunctionExpr;
 
 export function logicalMinimum(
   first: Expr | string,
-  second: Expr | any,
-  ...others: Array<Expr | any>
+  second: Expr | unknown,
+  ...others: Array<Expr | unknown>
 ): FunctionExpr {
   return fieldOfOrExpr(first).logicalMinimum(
     valueToDefaultExpr(second),

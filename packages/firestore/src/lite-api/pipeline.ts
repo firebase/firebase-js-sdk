@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-/* eslint @typescript-eslint/no-explicit-any: 0 */
-
 import { ObjectValue } from '../model/object_value';
 import {
   Pipeline as ProtoPipeline,
@@ -37,7 +35,7 @@ import {
   Ordering,
   Selectable,
   field,
-  constant
+  Constant
 } from './expressions';
 import {
   AddFields,
@@ -69,7 +67,7 @@ interface ReadableUserData {
   _readUserData(dataReader: UserDataReader): void;
 }
 
-function isReadableUserData(value: any): value is ReadableUserData {
+function isReadableUserData(value: unknown): value is ReadableUserData {
   return typeof (value as ReadableUserData)._readUserData === 'function';
 }
 
@@ -757,21 +755,21 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @param params A list of parameters to configure the generic stage's behavior.
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
    */
-  genericStage(name: string, params: any[]): Pipeline {
+  genericStage(name: string, params: unknown[]): Pipeline {
     // Convert input values to Expressions.
     // We treat objects as mapValues and arrays as arrayValues,
     // this is unlike the default conversion for objects and arrays
     // passed to an expression.
-    const expressionParams = params.map((value: any) => {
+    const expressionParams = params.map((value: unknown) => {
       if (value instanceof Expr) {
         return value;
       }
       if (value instanceof AggregateFunction) {
         return value;
       } else if (isPlainObject(value)) {
-        return _mapValue(value);
+        return _mapValue(value as Record<string, unknown>);
       } else {
-        return constant(value);
+        return new Constant(value);
       }
     });
 
