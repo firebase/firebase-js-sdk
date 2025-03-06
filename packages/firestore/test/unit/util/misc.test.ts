@@ -54,11 +54,7 @@ describe('FieldMask', () => {
   });
 });
 
-// TODO(b/401243560): This test is contributing to the flakiness of the github
-// check "(Firestore) Node.js and Browser (Chrome) Tests". Re-enable this test
-// once b/401243560 is fixed.
-// eslint-disable-next-line no-restricted-properties
-describe.skip('CompareUtf8Strings', () => {
+describe('CompareUtf8Strings', () => {
   it('compareUtf8Strings should return correct results', () => {
     const errors = [];
     const seed = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
