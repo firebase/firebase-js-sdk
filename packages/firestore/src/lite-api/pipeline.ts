@@ -516,7 +516,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     const vectorObjectValue = new ObjectValue(value);
     return this._addStage(
       new FindNearest(
-        options.field,
+        options.field instanceof Field ? options.field : field(options.field),
         vectorObjectValue,
         options.distanceMeasure,
         options.limit,

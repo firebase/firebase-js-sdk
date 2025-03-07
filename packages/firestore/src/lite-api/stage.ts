@@ -254,7 +254,7 @@ export class Where implements Stage {
  * @beta
  */
 export interface FindNearestOptions {
-  field: Field;
+  field: Field | string;
   vectorValue: VectorValue | number[];
   distanceMeasure: 'euclidean' | 'cosine' | 'dot_product';
   limit?: number;

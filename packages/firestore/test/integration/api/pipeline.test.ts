@@ -103,14 +103,15 @@ import {
   xor,
   field,
   constant,
-  _internalPipelineToExecutePipelineRequestProto
+  _internalPipelineToExecutePipelineRequestProto,
+  FindNearestOptions
 } from '../util/pipeline_export';
 
 use(chaiAsPromised);
 
 setLogLevel('debug');
 
-apiDescribe('Pipelines', persistence => {
+apiDescribe.only('Pipelines', persistence => {
   addEqualityMatcher();
 
   let firestore: Firestore;
@@ -172,7 +173,8 @@ apiDescribe('Pipelines', persistence => {
           nebula: false,
           others: { unknown: { year: 1980 } }
         },
-        nestedField: { 'level.1': { 'level.2': true } }
+        nestedField: { 'level.1': { 'level.2': true } },
+        embedding: vector([10, 1, 1, 1, 1, 1, 1, 1, 1, 1])
       },
       book2: {
         title: 'Pride and Prejudice',
@@ -181,7 +183,8 @@ apiDescribe('Pipelines', persistence => {
         published: 1813,
         rating: 4.5,
         tags: ['classic', 'social commentary', 'love'],
-        awards: { none: true }
+        awards: { none: true },
+        embedding: vector([1, 10, 1, 1, 1, 1, 1, 1, 1, 1])
       },
       book3: {
         title: 'One Hundred Years of Solitude',
@@ -190,7 +193,8 @@ apiDescribe('Pipelines', persistence => {
         published: 1967,
         rating: 4.3,
         tags: ['family', 'history', 'fantasy'],
-        awards: { nobel: true, nebula: false }
+        awards: { nobel: true, nebula: false },
+        embedding: vector([1, 1, 10, 1, 1, 1, 1, 1, 1, 1])
       },
       book4: {
         title: 'The Lord of the Rings',
@@ -201,7 +205,8 @@ apiDescribe('Pipelines', persistence => {
         tags: ['adventure', 'magic', 'epic'],
         awards: { hugo: false, nebula: false },
         remarks: null,
-        cost: NaN
+        cost: NaN,
+        embedding: vector([1, 1, 1, 10, 1, 1, 1, 1, 1, 1])
       },
       book5: {
         title: "The Handmaid's Tale",
@@ -210,7 +215,8 @@ apiDescribe('Pipelines', persistence => {
         published: 1985,
         rating: 4.1,
         tags: ['feminism', 'totalitarianism', 'resistance'],
-        awards: { 'arthur c. clarke': true, 'booker prize': false }
+        awards: { 'arthur c. clarke': true, 'booker prize': false },
+        embedding: vector([1, 1, 1, 1, 10, 1, 1, 1, 1, 1])
       },
       book6: {
         title: 'Crime and Punishment',
@@ -219,7 +225,8 @@ apiDescribe('Pipelines', persistence => {
         published: 1866,
         rating: 4.3,
         tags: ['philosophy', 'crime', 'redemption'],
-        awards: { none: true }
+        awards: { none: true },
+        embedding: vector([1, 1, 1, 1, 1, 10, 1, 1, 1, 1])
       },
       book7: {
         title: 'To Kill a Mockingbird',
@@ -228,7 +235,8 @@ apiDescribe('Pipelines', persistence => {
         published: 1960,
         rating: 4.2,
         tags: ['racism', 'injustice', 'coming-of-age'],
-        awards: { pulitzer: true }
+        awards: { pulitzer: true },
+        embedding: vector([1, 1, 1, 1, 1, 1, 10, 1, 1, 1])
       },
       book8: {
         title: '1984',
@@ -237,7 +245,8 @@ apiDescribe('Pipelines', persistence => {
         published: 1949,
         rating: 4.2,
         tags: ['surveillance', 'totalitarianism', 'propaganda'],
-        awards: { prometheus: true }
+        awards: { prometheus: true },
+        embedding: vector([1, 1, 1, 1, 1, 1, 1, 10, 1, 1])
       },
       book9: {
         title: 'The Great Gatsby',
@@ -246,7 +255,8 @@ apiDescribe('Pipelines', persistence => {
         published: 1925,
         rating: 4.0,
         tags: ['wealth', 'american dream', 'love'],
-        awards: { none: true }
+        awards: { none: true },
+        embedding: vector([1, 1, 1, 1, 1, 1, 1, 1, 10, 1])
       },
       book10: {
         title: 'Dune',
@@ -255,7 +265,8 @@ apiDescribe('Pipelines', persistence => {
         published: 1965,
         rating: 4.6,
         tags: ['politics', 'desert', 'ecology'],
-        awards: { hugo: true, nebula: true }
+        awards: { hugo: true, nebula: true },
+        embedding: vector([1, 1, 1, 1, 1, 1, 1, 1, 1, 10])
       }
     };
     return testCollectionWithDocs(bookDocs);
@@ -1226,6 +1237,17 @@ apiDescribe('Pipelines', persistence => {
             .collection(randomCol.path)
             .where(eq('title', "The Hitchhiker's Guide to the Galaxy"))
             .unnest(field('tags').as('tag'))
+            .select(
+              'title',
+              'author',
+              'genre',
+              'published',
+              'rating',
+              'tags',
+              'tag',
+              'awards',
+              'nestedField'
+            )
         );
         expectResults(
           snapshot,
@@ -1283,6 +1305,17 @@ apiDescribe('Pipelines', persistence => {
             .collection(randomCol.path)
             .where(eq('title', "The Hitchhiker's Guide to the Galaxy"))
             .unnest(array([1, 2, 3]).as('copy'))
+            .select(
+              'title',
+              'author',
+              'genre',
+              'published',
+              'rating',
+              'tags',
+              'copy',
+              'awards',
+              'nestedField'
+            )
         );
         expectResults(
           snapshot,
@@ -1330,6 +1363,69 @@ apiDescribe('Pipelines', persistence => {
               others: { unknown: { year: 1980 } }
             },
             nestedField: { 'level.1': { 'level.2': true } }
+          }
+        );
+      });
+    });
+
+    describe('findNearest stage', () => {
+      it('run pipeline with findNearest', async () => {
+        const measures: Array<FindNearestOptions['distanceMeasure']> = [
+          'euclidean',
+          'dot_product',
+          'cosine'
+        ];
+        for (const measure of measures) {
+          const snapshot = await execute(
+            firestore
+              .pipeline()
+              .collection(randomCol)
+              .findNearest({
+                field: 'embedding',
+                vectorValue: vector([10, 1, 3, 1, 2, 1, 1, 1, 1, 1]),
+                limit: 3,
+                distanceMeasure: measure
+              })
+              .select('title')
+          );
+          expectResults(
+            snapshot,
+            {
+              title: "The Hitchhiker's Guide to the Galaxy"
+            },
+            {
+              title: 'One Hundred Years of Solitude'
+            },
+            {
+              title: "The Handmaid's Tale"
+            }
+          );
+        }
+      });
+
+      it('optionally returns the computed distance', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol)
+            .findNearest({
+              field: 'embedding',
+              vectorValue: vector([10, 1, 2, 1, 1, 1, 1, 1, 1, 1]),
+              limit: 2,
+              distanceMeasure: 'euclidean',
+              distanceField: 'computedDistance'
+            })
+            .select('title', 'computedDistance')
+        );
+        expectResults(
+          snapshot,
+          {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            computedDistance: 1
+          },
+          {
+            title: 'One Hundred Years of Solitude',
+            computedDistance: 12.041594578792296
           }
         );
       });
