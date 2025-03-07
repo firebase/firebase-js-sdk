@@ -347,17 +347,17 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @private
    *
    * @param limit
-   * @param convertedFromLimitTolast
+   * @param convertedFromLimitToLast
    */
-  _limit(limit: number, convertedFromLimitTolast: boolean): Pipeline {
-    return this._addStage(new Limit(limit, convertedFromLimitTolast));
+  _limit(limit: number, convertedFromLimitToLast: boolean): Pipeline {
+    return this._addStage(new Limit(limit, convertedFromLimitToLast));
   }
 
   /**
    * Returns a set of distinct {@link Expr} values from the inputs to this stage.
    *
    * <p>This stage run through the results from previous stages to include only results with unique
-   * combinations of {@link Expr} values ({@link Field}, {@link Function}, etc).
+   * combinations of {@link Expr} values ({@link Field}, {@link Function}, etc.).
    *
    * <p>The parameters to this stage are defined using {@link Selectable} expressions or {@code string}s:
    *
@@ -605,7 +605,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // }
    * ```
    *
-   * @param field The {@link Field} field containing the nested map.
+   * @param fieldValue The {@link Field} field containing the nested map.
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
    */
   replaceWith(fieldValue: Field | string): Pipeline {
@@ -628,7 +628,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *     .sample(25);
    * ```
    *
-   * @param documents The number of documents to sample..
+   * @param documents The number of documents to sample.
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
    */
   sample(documents: number): Pipeline;
@@ -648,8 +648,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // Sample 50% of books.
    * firestore.pipeline().collection("books")
    *     .sample({ percentage: 0.5 });
-   * }
-   * </pre>
    *
    * @param options The {@code SampleOptions} specifies how sampling is performed.
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
@@ -722,8 +720,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // { "title": "The Hitchhiker's Guide to the Galaxy", "tag": "adventure", "tagIndex": 2, ... }
    * ```
    *
-   * @param selectable A selectable expression defining the field to unnest and the alias to use for each unnested element in the output documents.
-   * @param indexField An optional string value specifying the field path to write the offset (starting at zero) into the array the unnested element is from
+   * @param selectable A selectable expression defining the field to unnest and the alias to use for each un-nested element in the output documents.
+   * @param indexField An optional string value specifying the field path to write the offset (starting at zero) into the array the un-nested element is from
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
    */
   unnest(selectable: Selectable, indexField?: string): Pipeline {

@@ -22,7 +22,6 @@ import {
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import {
   JsonProtoSerializer,
-  ProtoSerializable,
   ProtoValueSerializable,
   toMapValue,
   toStringValue,
@@ -623,7 +622,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
-   * field("status").notEqAny([]"pending", field("rejectedStatus")]);
+   * field("status").notEqAny(["pending", field("rejectedStatus")]);
    * ```
    *
    * @param values The values or expressions to check against.
@@ -2079,18 +2078,8 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
  *
  * An AggregateFunction with alias.
  */
-export class AggregateWithAlias
-  implements UserData, ProtoSerializable<ProtoValue>
-{
+export class AggregateWithAlias implements UserData {
   constructor(readonly aggregate: AggregateFunction, readonly alias: string) {}
-
-  /**
-   * @private
-   * @internal
-   */
-  _toProto(serializer: JsonProtoSerializer): ProtoValue {
-    throw new Error('ExprWithAlias should not be serialized directly.');
-  }
 
   /**
    * @private
@@ -2470,7 +2459,7 @@ export class MapValue extends Expr {
  * execution.
  *
  * Typically, you would not use this class or its children directly. Use either the functions like {@link and}, {@link eq},
- * or the methods on {@link Expr} ({@link Expr#eq}, {@link Expr#lt}, etc) to construct new Function instances.
+ * or the methods on {@link Expr} ({@link Expr#eq}, {@link Expr#lt}, etc.) to construct new Function instances.
  */
 export class FunctionExpr extends Expr {
   readonly exprType: ExprType = 'Function';
@@ -2548,11 +2537,11 @@ export class BooleanExpr extends FunctionExpr {
  *
  * ```typescript
  * // Count the number of documents where 'is_active' field equals true
- * countif(field("is_active").eq(true)).as("numActiveDocuments");
+ * countIf(field("is_active").eq(true)).as("numActiveDocuments");
  * ```
  *
  * @param booleanExpr - The boolean expression to evaluate on each input.
- * @returns A new `AggregateFunction` representing the 'countif' aggregation.
+ * @returns A new `AggregateFunction` representing the 'countIf' aggregation.
  */
 export function countIf(booleanExpr: BooleanExpr): AggregateFunction {
   return booleanExpr.countIf();
@@ -2882,7 +2871,7 @@ export function bitLeftShift(xValue: Expr, y: number): FunctionExpr;
  * ```
  *
  * @param xValue An expression returning bits.
- * @param right The right operand expression representing the number of bits to shift.
+ * @param numberExpr The right operand expression representing the number of bits to shift.
  * @return A new {@code Expr} representing the bitwise left shift operation.
  */
 export function bitLeftShift(xValue: Expr, numberExpr: Expr): FunctionExpr;
@@ -2903,8 +2892,8 @@ export function bitLeftShift(
  * bitRightShift("field1", 2);
  * ```
  *
- * @param left The left operand field name.
- * @param right The right operand constant representing the number of bits to shift.
+ * @param field The left operand field name.
+ * @param y The right operand constant representing the number of bits to shift.
  * @return A new {@code Expr} representing the bitwise right shift operation.
  */
 export function bitRightShift(field: string, y: number): FunctionExpr;
@@ -3342,7 +3331,7 @@ export function mapMerge(
  * mapMerge(field('settings'), { enabled: true }, cond(field('isAdmin'), { admin: true}, {})
  * ```
  *
- * @param firstMap An expression or literal map map value that will be merged.
+ * @param firstMap An expression or literal map value that will be merged.
  * @param secondMap A required second map to merge. Represented as a literal or
  * an expression that returns a map.
  * @param otherMaps Optional additional maps to merge. Each map is represented
@@ -3822,7 +3811,7 @@ export function map(elements: Record<string, unknown>): FunctionExpr {
  * Internal use only
  * Converts a plainObject to a mapValue in the proto representation,
  * rather than a functionValue+map that is the result of the map(...) function.
- * This behaves different than constant(plainObject) because it
+ * This behaves different from constant(plainObject) because it
  * traverses the input object, converts values in the object to expressions,
  * and calls _readUserData on each of these expressions.
  * @private
@@ -6377,7 +6366,7 @@ export function manhattanDistance(
  * ```
  *
  * @param vectorExpression The first vector (represented as an Expr) to compare against.
- * @param vector The other vector (as an array of doubles or Vectorvalue) to compare against.
+ * @param vector The other vector (as an array of doubles or VectorValue) to compare against.
  * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
  */
 export function manhattanDistance(
