@@ -23,6 +23,9 @@ export interface CountTokensRequest
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [contents](./vertexai.counttokensrequest.md#counttokensrequestcontents) | [Content](./vertexai.content.md#content_interface)<!-- -->\[\] |  |
+|  [generationConfig](./vertexai.counttokensrequest.md#counttokensrequestgenerationconfig) | [GenerationConfig](./vertexai.generationconfig.md#generationconfig_interface) | Configuration options that control how the model generates a response. |
+|  [systemInstruction](./vertexai.counttokensrequest.md#counttokensrequestsysteminstruction) | string \| [Part](./vertexai.md#part) \| [Content](./vertexai.content.md#content_interface) | Instructions that direct the model to behave a certain way. |
+|  [tools](./vertexai.counttokensrequest.md#counttokensrequesttools) | [Tool](./vertexai.md#tool)<!-- -->\[\] | <code>[Tool](./vertexai.md#tool)</code> configuration. |
 
 ## CountTokensRequest.contents
 
@@ -30,4 +33,34 @@ export interface CountTokensRequest
 
 ```typescript
 contents: Content[];
+```
+
+## CountTokensRequest.generationConfig
+
+Configuration options that control how the model generates a response.
+
+<b>Signature:</b>
+
+```typescript
+generationConfig?: GenerationConfig;
+```
+
+## CountTokensRequest.systemInstruction
+
+Instructions that direct the model to behave a certain way.
+
+<b>Signature:</b>
+
+```typescript
+systemInstruction?: string | Part | Content;
+```
+
+## CountTokensRequest.tools
+
+<code>[Tool](./vertexai.md#tool)</code> configuration.
+
+<b>Signature:</b>
+
+```typescript
+tools?: Tool[];
 ```

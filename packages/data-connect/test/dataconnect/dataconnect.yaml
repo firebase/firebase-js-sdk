@@ -1,4 +1,4 @@
-specVersion: "v1beta"
+specVersion: "v1"
 serviceId: "fdc-service"
 location: "us-west2"
 schema:
