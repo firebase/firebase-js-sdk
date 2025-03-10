@@ -49,7 +49,7 @@ export class CookiePersistence implements PersistenceInternal {
     if (!cookie) {
       return;
     }
-    await (window as any).cookieStore.set({ ...cookie, value: "0" });
+    await (window as any).cookieStore.set({ ...cookie, value: "" });
     await fetch(`/__cookies__`, { method: 'DELETE' }).catch(() => undefined);
   }
 

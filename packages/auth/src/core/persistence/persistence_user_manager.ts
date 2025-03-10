@@ -70,10 +70,10 @@ export class PersistenceUserManager {
     const blob = await this.persistence._get<PersistedBlob | string>(
       this.fullUserKey
     );
+    if (!blob) {
+      return null;
+    }
     if (typeof blob === 'string') {
-      if (blob === '0') {
-        return null;
-      }
       const response = await getAccountInfo(this.auth, { idToken: blob });
       return await UserImpl._fromGetAccountInfoResponse(
         this.auth,
@@ -81,7 +81,7 @@ export class PersistenceUserManager {
         blob
       );
     }
-    return blob ? UserImpl._fromJSON(this.auth, blob) : null;
+    return UserImpl._fromJSON(this.auth, blob);
   }
 
   removeCurrentUser(): Promise<void> {
@@ -155,7 +155,7 @@ export class PersistenceUserManager {
     for (const persistence of persistenceHierarchy) {
       try {
         const blob = await persistence._get<PersistedBlob | string>(key);
-        if (blob && blob !== '0') {
+        if (blob) {
           let user: UserInternal;
           if (typeof blob === 'string') {
             const response = await getAccountInfo(auth, { idToken: blob });
