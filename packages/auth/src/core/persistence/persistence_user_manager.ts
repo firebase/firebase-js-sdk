@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { getAccountInfo } from '../../api/account_management/account';
 import { ApiKey, AppName, AuthInternal } from '../../model/auth';
 import { UserInternal } from '../../model/user';
 import { PersistedBlob, PersistenceInternal } from '../persistence';
@@ -66,7 +67,20 @@ export class PersistenceUserManager {
   }
 
   async getCurrentUser(): Promise<UserInternal | null> {
-    const blob = await this.persistence._get<PersistedBlob>(this.fullUserKey);
+    const blob = await this.persistence._get<PersistedBlob | string>(
+      this.fullUserKey
+    );
+    if (typeof blob === 'string') {
+      if (blob === '0') {
+        return null;
+      }
+      const response = await getAccountInfo(this.auth, { idToken: blob });
+      return await UserImpl._fromGetAccountInfoResponse(
+        this.auth,
+        response,
+        blob
+      );
+    }
     return blob ? UserImpl._fromJSON(this.auth, blob) : null;
   }
 
@@ -140,9 +154,19 @@ export class PersistenceUserManager {
     // persistence, we will (but only if that persistence supports migration).
     for (const persistence of persistenceHierarchy) {
       try {
-        const blob = await persistence._get<PersistedBlob>(key);
-        if (blob) {
-          const user = UserImpl._fromJSON(auth, blob); // throws for unparsable blob (wrong format)
+        const blob = await persistence._get<PersistedBlob | string>(key);
+        if (blob && blob !== '0') {
+          let user: UserInternal;
+          if (typeof blob === 'string') {
+            const response = await getAccountInfo(auth, { idToken: blob });
+            user = await UserImpl._fromGetAccountInfoResponse(
+              auth,
+              response,
+              blob
+            );
+          } else {
+            user = UserImpl._fromJSON(auth, blob); // throws for unparsable blob (wrong format)
+          }
           if (persistence !== selectedPersistence) {
             userToMigrate = user;
           }

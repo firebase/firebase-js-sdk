@@ -31,6 +31,7 @@ import { AuthInternal, ConfigInternal } from '../model/auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from '../model/id_token';
 import { IdTokenMfaResponse } from './authentication/mfa';
 import { SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
+import { PersistenceType } from '../core/persistence';
 
 export const enum HttpMethod {
   POST = 'POST',
@@ -268,11 +269,21 @@ export function _getFinalTarget(
 ): string {
   const base = `${host}${path}?${query}`;
 
-  if (!(auth as AuthInternal).config.emulator) {
-    return `${auth.config.apiScheme}://${base}`;
+  const finalTarget = (auth as AuthInternal).config.emulator
+    ? _emulatorUrl(auth.config as ConfigInternal, base)
+    : `${auth.config.apiScheme}://${base}`;
+
+  // TODO get the exchange URL from the persistence method
+  //      don't use startsWith v1/accounts...
+  if (
+    (auth as AuthInternal)._getPersistence() === PersistenceType.COOKIE &&
+    (path.startsWith('/v1/accounts:signIn') || path === Endpoint.TOKEN)
+  ) {
+    const params = new URLSearchParams({ finalTarget });
+    return `${window.location.origin}/__cookies__?${params.toString()}`;
   }
 
-  return _emulatorUrl(auth.config as ConfigInternal, base);
+  return finalTarget;
 }
 
 export function _parseEnforcementState(
