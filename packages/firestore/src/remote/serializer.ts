@@ -1444,6 +1444,7 @@ export function isProtoValueSerializable(
   value: any
 ): value is ProtoValueSerializable {
   return (
+    !!value &&
     typeof value._toProto === 'function' &&
     value._protoValueType === 'ProtoValue'
   );

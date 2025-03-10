@@ -2225,10 +2225,9 @@ export function field(nameOrPath: string | FieldPath): Field {
       return new Field(documentIdFieldPath()._internalPath);
     }
     return new Field(fieldPathFromArgument('of', nameOrPath));
+  } else if (documentIdFieldPath().isEqual(nameOrPath)) {
+    return new Field(documentIdFieldPath()._internalPath);
   } else {
-    if (documentIdFieldPath().isEqual(nameOrPath)) {
-      return new Field(documentIdFieldPath()._internalPath);
-    }
     return new Field(nameOrPath._internalPath);
   }
 }
@@ -2292,14 +2291,11 @@ export class Constant extends Expr {
   _readUserData(dataReader: UserDataReader): void {
     const context = dataReader.createContext(
       UserDataSource.Argument,
-      'Constant.of'
+      'constant'
     );
 
     if (isFirestoreValue(this._protoValue)) {
       return;
-    } else if (this.value === undefined) {
-      // TODO(pipeline) how should we treat the value of `undefined`?
-      this._protoValue = parseData(null, context)!;
     } else {
       this._protoValue = parseData(this.value, context)!;
     }
@@ -2337,16 +2333,6 @@ export function constant(value: boolean): Constant;
  * @return A new `Constant` instance.
  */
 export function constant(value: null): Constant;
-
-/**
- * Creates a `Constant` instance for an undefined value.
- * @private
- * @internal
- *
- * @param value The undefined value.
- * @return A new `Constant` instance.
- */
-export function constant(value: undefined): Constant;
 
 /**
  * Creates a `Constant` instance for a GeoPoint value.
@@ -5909,8 +5895,7 @@ export function countAll(): AggregateFunction {
 export function count(expression: Expr): AggregateFunction;
 
 /**
- * Creates an aggregation that counts the number of stage inputs with valid evaluations of the
- * provided field.
+ * Creates an aggregation that counts the number of stage inputs where the input field exists.
  *
  * ```typescript
  * // Count the total number of products

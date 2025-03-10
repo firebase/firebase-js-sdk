@@ -475,13 +475,16 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
       return this._addStage(
         new Aggregate(
           new Map<string, AggregateFunction>(
-            optionsOrTarget.accumulators.map((target: AggregateWithAlias) => [
-              (target as unknown as AggregateWithAlias).alias,
+            optionsOrTarget.accumulators.map((target: AggregateWithAlias) => {
               this.readUserData(
                 'aggregate',
+                target as unknown as AggregateWithAlias
+              );
+              return [
+                (target as unknown as AggregateWithAlias).alias,
                 (target as unknown as AggregateWithAlias).aggregate
-              )
-            ])
+              ];
+            })
           ),
           this.readUserData(
             'aggregate',
@@ -611,6 +614,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   replaceWith(fieldValue: Field | string): Pipeline {
     const fieldExpr =
       typeof fieldValue === 'string' ? field(fieldValue) : fieldValue;
+    this.readUserData('replaceWith', fieldExpr);
     return this._addStage(new Replace(fieldExpr, 'full_replace'));
   }
 
@@ -761,8 +765,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     const expressionParams = params.map((value: unknown) => {
       if (value instanceof Expr) {
         return value;
-      }
-      if (value instanceof AggregateFunction) {
+      } else if (value instanceof AggregateFunction) {
         return value;
       } else if (isPlainObject(value)) {
         return _mapValue(value as Record<string, unknown>);

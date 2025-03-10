@@ -20,9 +20,17 @@ import chaiAsPromised from 'chai-as-promised';
 
 import {
   AggregateFunction,
+  ascending,
   BooleanExpr,
   constantVector,
-  FunctionExpr
+  FunctionExpr,
+  timestampAdd,
+  timestampToUnixMicros,
+  timestampToUnixMillis,
+  timestampToUnixSeconds,
+  unixMicrosToTimestamp,
+  unixMillisToTimestamp,
+  vectorLength
 } from '../../../src/lite-api/expressions';
 import { PipelineSnapshot } from '../../../src/lite-api/pipeline-result';
 import { addEqualityMatcher } from '../../util/equality_matcher';
@@ -42,30 +50,37 @@ import {
   setLogLevel,
   collection,
   documentId as documentIdFieldPath,
-  writeBatch
+  writeBatch,
+  addDoc
 } from '../util/firebase_export';
 import { apiDescribe, withTestCollection } from '../util/helpers';
 import {
   array,
+  mod,
   descending,
   isNan,
   map,
   execute,
   add,
+  unixSecondsToTimestamp,
   and,
   arrayContains,
   arrayContainsAny,
+  count,
   avg,
   cosineDistance,
   countAll,
   dotProduct,
   endsWith,
   eq,
+  reverse,
   euclideanDistance,
   gt,
   like,
   lt,
+  strContains,
   lte,
+  arrayConcat,
   mapGet,
   neq,
   or,
@@ -83,10 +98,13 @@ import {
   bitOr,
   bitXor,
   bitNot,
+  exists,
   bitLeftShift,
   bitRightShift,
   rand,
   arrayOffset,
+  minimum,
+  maximum,
   currentContext,
   isError,
   ifError,
@@ -94,6 +112,7 @@ import {
   isNull,
   isNotNull,
   isNotNan,
+  timestampSub,
   mapRemove,
   mapMerge,
   documentId,
@@ -149,7 +168,7 @@ apiDescribe.only('Pipelines', persistence => {
 
     if (data.length > 0) {
       if (typeof data[0] === 'string') {
-        const actualIds = docs.map(doc => doc.ref?.id);
+        const actualIds = docs.map(doc => doc.id);
         expect(actualIds).to.deep.equal(data);
       } else {
         docs.forEach(r => {
@@ -299,277 +318,34 @@ apiDescribe.only('Pipelines', persistence => {
     await withTestCollectionPromise;
   });
 
-  it('empty snapshot as expected', async () => {
-    const snapshot = await execute(
-      firestore.pipeline().collection(randomCol.path).limit(0)
-    );
-    expect(snapshot.results.length).to.equal(0);
-  });
-
-  it('full snapshot as expected', async () => {
-    const snapshot = await execute(
-      firestore.pipeline().collection(randomCol.path)
-    );
-    expect(snapshot.results.length).to.equal(10);
-  });
-
-  it('supports CollectionReference as source', async () => {
-    const snapshot = await execute(firestore.pipeline().collection(randomCol));
-    expect(snapshot.results.length).to.equal(10);
-  });
-
-  it('supports list of documents as source', async () => {
-    const collName = randomCol.id;
-
-    const snapshot = await execute(
-      firestore
-        .pipeline()
-        .documents([
-          `${collName}/book1`,
-          doc(randomCol, 'book2'),
-          doc(randomCol, 'book3').path
-        ])
-    );
-    expect(snapshot.results.length).to.equal(3);
-  });
-
-  it('reject CollectionReference for another DB', async () => {
-    const db2 = getFirestore(firestore.app, 'notDefault');
-
-    expect(() => {
-      firestore.pipeline().collection(collection(db2, 'foo'));
-    }).to.throw(/Invalid CollectionReference/);
-
-    await terminate(db2);
-  });
-
-  it('reject DocumentReference for another DB', async () => {
-    const db2 = getFirestore(firestore.app, 'notDefault');
-
-    expect(() => {
-      firestore.pipeline().documents([doc(db2, 'foo/bar')]);
-    }).to.throw(/Invalid DocumentReference/);
-
-    await terminate(db2);
-  });
-
-  it('converts arrays and plain objects to functionValues if the customer intent is unspecified', async () => {
-    const snapshot = await execute(
-      firestore
-        .pipeline()
-        .collection(randomCol.path)
-        .sort(field('rating').descending())
-        .limit(1)
-        .select(
-          'title',
-          'author',
-          'genre',
-          'rating',
-          'published',
-          'tags',
-          'awards'
-        )
-        .addFields(
-          array([
-            1,
-            2,
-            field('genre'),
-            multiply('rating', 10),
-            [field('title')],
-            {
-              published: field('published')
-            }
-          ]).as('metadataArray'),
-          map({
-            genre: field('genre'),
-            rating: multiply('rating', 10),
-            nestedArray: [field('title')],
-            nestedMap: {
-              published: field('published')
-            }
-          }).as('metadata')
-        )
-        .where(
-          and(
-            eq('metadataArray', [
-              1,
-              2,
-              field('genre'),
-              multiply('rating', 10),
-              [field('title')],
-              {
-                published: field('published')
-              }
-            ]),
-            eq('metadata', {
-              genre: field('genre'),
-              rating: multiply('rating', 10),
-              nestedArray: [field('title')],
-              nestedMap: {
-                published: field('published')
-              }
-            })
-          )
-        )
-    );
-
-    expect(snapshot.results.length).to.equal(1);
-
-    expectResults(snapshot, {
-      title: 'The Lord of the Rings',
-      author: 'J.R.R. Tolkien',
-      genre: 'Fantasy',
-      published: 1954,
-      rating: 4.7,
-      tags: ['adventure', 'magic', 'epic'],
-      awards: { hugo: false, nebula: false },
-      metadataArray: [
-        1,
-        2,
-        'Fantasy',
-        47,
-        ['The Lord of the Rings'],
-        {
-          published: 1954
-        }
-      ],
-      metadata: {
-        genre: 'Fantasy',
-        rating: 47,
-        nestedArray: ['The Lord of the Rings'],
-        nestedMap: {
-          published: 1954
-        }
-      }
-    });
-  });
-
-  it('accepts and returns all data types', async () => {
-    const refDate = new Date();
-    const refTimestamp = Timestamp.now();
-    const constants = [
-      constant(1).as('number'),
-      constant('a string').as('string'),
-      constant(true).as('boolean'),
-      constant(null).as('null'),
-      constant(new GeoPoint(0.1, 0.2)).as('geoPoint'),
-      constant(refTimestamp).as('timestamp'),
-      constant(refDate).as('date'),
-      constant(
-        Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0]))
-      ).as('bytes'),
-      constant(doc(firestore, 'foo', 'bar')).as('documentReference'),
-      constant(vector([1, 2, 3])).as('vectorValue'),
-      map({
-        'number': 1,
-        'string': 'a string',
-        'boolean': true,
-        'null': null,
-        'geoPoint': new GeoPoint(0.1, 0.2),
-        'timestamp': refTimestamp,
-        'date': refDate,
-        'uint8Array': Bytes.fromUint8Array(
-          new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0])
-        ),
-        'documentReference': doc(firestore, 'foo', 'bar'),
-        'vectorValue': vector([1, 2, 3]),
-        'map': {
-          'number': 2,
-          'string': 'b string'
-        },
-        'array': [1, 'c string']
-      }).as('map'),
-      array([
-        1,
-        'a string',
-        true,
-        null,
-        new GeoPoint(0.1, 0.2),
-        refTimestamp,
-        refDate,
-        Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0])),
-        doc(firestore, 'foo', 'bar'),
-        vector([1, 2, 3]),
-        {
-          'number': 2,
-          'string': 'b string'
-        }
-      ]).as('array')
-    ];
-
-    const snapshots = await execute(
-      firestore
-        .pipeline()
-        .collection(randomCol.path)
-        .limit(1)
-        .select(constants[0], ...constants.slice(1))
-    );
-
-    expectResults(snapshots, {
-      'number': 1,
-      'string': 'a string',
-      'boolean': true,
-      'null': null,
-      'geoPoint': new GeoPoint(0.1, 0.2),
-      'timestamp': refTimestamp,
-      'date': Timestamp.fromDate(refDate),
-      'bytes': Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0])),
-      'documentReference': doc(firestore, 'foo', 'bar'),
-      'vectorValue': vector([1, 2, 3]),
-      'map': {
-        'number': 1,
-        'string': 'a string',
-        'boolean': true,
-        'null': null,
-        'geoPoint': new GeoPoint(0.1, 0.2),
-        'timestamp': refTimestamp,
-        'date': Timestamp.fromDate(refDate),
-        'uint8Array': Bytes.fromUint8Array(
-          new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0])
-        ),
-        'documentReference': doc(firestore, 'foo', 'bar'),
-        'vectorValue': vector([1, 2, 3]),
-        'map': {
-          'number': 2,
-          'string': 'b string'
-        },
-        'array': [1, 'c string']
-      },
-      'array': [
-        1,
-        'a string',
-        true,
-        null,
-        new GeoPoint(0.1, 0.2),
-        refTimestamp,
-        Timestamp.fromDate(refDate),
-        Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0])),
-        doc(firestore, 'foo', 'bar'),
-        vector([1, 2, 3]),
-        {
-          'number': 2,
-          'string': 'b string'
-        }
-      ]
-    });
-  });
-
-  it('supports internal serialization to proto', async () => {
-    const pipeline = firestore
-      .pipeline()
-      .collection('books')
-      .where(eq('awards.hugo', true))
-      .select(
-        'title',
-        field('nestedField.level.1'),
-        mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
+  describe('pipeline results', () => {
+    it('empty snapshot as expected', async () => {
+      const snapshot = await execute(
+        firestore.pipeline().collection(randomCol.path).limit(0)
       );
+      expect(snapshot.results.length).to.equal(0);
+    });
 
-    const proto = _internalPipelineToExecutePipelineRequestProto(pipeline);
-    expect(proto).not.to.be.null;
-  });
+    it('full snapshot as expected', async () => {
+      const ppl = firestore.pipeline().collection(randomCol.path);
+      const snapshot = await execute(ppl);
+      expect(snapshot.results.length).to.equal(10);
+      expect(snapshot.pipeline).to.equal(ppl);
+      expectResults(
+        snapshot,
+        'book1',
+        'book10',
+        'book2',
+        'book3',
+        'book4',
+        'book5',
+        'book6',
+        'book7',
+        'book8',
+        'book9'
+      );
+    });
 
-  describe('timestamps', () => {
     it('returns execution time', async () => {
       const start = new Date().valueOf();
       const pipeline = firestore.pipeline().collection(randomCol.path);
@@ -673,6 +449,323 @@ apiDescribe.only('Pipelines', persistence => {
     });
   });
 
+  describe('pipeline sources', () => {
+    it('supports CollectionReference as source', async () => {
+      const snapshot = await execute(
+        firestore.pipeline().collection(randomCol)
+      );
+      expect(snapshot.results.length).to.equal(10);
+    });
+
+    it('supports list of documents as source', async () => {
+      const collName = randomCol.id;
+
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .documents([
+            `${collName}/book1`,
+            doc(randomCol, 'book2'),
+            doc(randomCol, 'book3').path
+          ])
+      );
+      expect(snapshot.results.length).to.equal(3);
+    });
+
+    it('reject CollectionReference for another DB', async () => {
+      const db2 = getFirestore(firestore.app, 'notDefault');
+
+      expect(() => {
+        firestore.pipeline().collection(collection(db2, 'foo'));
+      }).to.throw(/Invalid CollectionReference/);
+
+      await terminate(db2);
+    });
+
+    it('reject DocumentReference for another DB', async () => {
+      const db2 = getFirestore(firestore.app, 'notDefault');
+
+      expect(() => {
+        firestore.pipeline().documents([doc(db2, 'foo/bar')]);
+      }).to.throw(/Invalid DocumentReference/);
+
+      await terminate(db2);
+    });
+
+    it('supports collection group as source', async () => {
+      const randomSubCollectionId = Math.random().toString(16).slice(2);
+      const doc1 = await addDoc(
+        collection(randomCol, 'book1', randomSubCollectionId),
+        { order: 1 }
+      );
+      const doc2 = await addDoc(
+        collection(randomCol, 'book2', randomSubCollectionId),
+        { order: 2 }
+      );
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collectionGroup(randomSubCollectionId)
+          .sort(ascending('order'))
+      );
+      expectResults(snapshot, doc1.id, doc2.id);
+    });
+
+    it('supports database as source', async () => {
+      const randomId = Math.random().toString(16).slice(2);
+      const doc1 = await addDoc(collection(randomCol, 'book1', 'sub'), {
+        order: 1,
+        randomId
+      });
+      const doc2 = await addDoc(collection(randomCol, 'book2', 'sub'), {
+        order: 2,
+        randomId
+      });
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .database()
+          .where(eq('randomId', randomId))
+          .sort(ascending('order'))
+      );
+      expectResults(snapshot, doc1.id, doc2.id);
+    });
+  });
+
+  describe('supported data types', () => {
+    it('accepts and returns all data types', async () => {
+      const refDate = new Date();
+      const refTimestamp = Timestamp.now();
+      const constants = [
+        constant(1).as('number'),
+        constant('a string').as('string'),
+        constant(true).as('boolean'),
+        constant(null).as('null'),
+        constant(new GeoPoint(0.1, 0.2)).as('geoPoint'),
+        constant(refTimestamp).as('timestamp'),
+        constant(refDate).as('date'),
+        constant(
+          Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0]))
+        ).as('bytes'),
+        constant(doc(firestore, 'foo', 'bar')).as('documentReference'),
+        constantVector(vector([1, 2, 3])).as('vectorValue'),
+        constantVector([1, 2, 3]).as('vectorValue2'),
+        map({
+          'number': 1,
+          'string': 'a string',
+          'boolean': true,
+          'null': null,
+          'geoPoint': new GeoPoint(0.1, 0.2),
+          'timestamp': refTimestamp,
+          'date': refDate,
+          'uint8Array': Bytes.fromUint8Array(
+            new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0])
+          ),
+          'documentReference': doc(firestore, 'foo', 'bar'),
+          'vectorValue': vector([1, 2, 3]),
+          'map': {
+            'number': 2,
+            'string': 'b string'
+          },
+          'array': [1, 'c string']
+        }).as('map'),
+        array([
+          1,
+          'a string',
+          true,
+          null,
+          new GeoPoint(0.1, 0.2),
+          refTimestamp,
+          refDate,
+          Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0])),
+          doc(firestore, 'foo', 'bar'),
+          vector([1, 2, 3]),
+          {
+            'number': 2,
+            'string': 'b string'
+          }
+        ]).as('array')
+      ];
+
+      const snapshots = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(constants[0], ...constants.slice(1))
+      );
+
+      expectResults(snapshots, {
+        'number': 1,
+        'string': 'a string',
+        'boolean': true,
+        'null': null,
+        'geoPoint': new GeoPoint(0.1, 0.2),
+        'timestamp': refTimestamp,
+        'date': Timestamp.fromDate(refDate),
+        'bytes': Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0])),
+        'documentReference': doc(firestore, 'foo', 'bar'),
+        'vectorValue': vector([1, 2, 3]),
+        'vectorValue2': vector([1, 2, 3]),
+        'map': {
+          'number': 1,
+          'string': 'a string',
+          'boolean': true,
+          'null': null,
+          'geoPoint': new GeoPoint(0.1, 0.2),
+          'timestamp': refTimestamp,
+          'date': Timestamp.fromDate(refDate),
+          'uint8Array': Bytes.fromUint8Array(
+            new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0])
+          ),
+          'documentReference': doc(firestore, 'foo', 'bar'),
+          'vectorValue': vector([1, 2, 3]),
+          'map': {
+            'number': 2,
+            'string': 'b string'
+          },
+          'array': [1, 'c string']
+        },
+        'array': [
+          1,
+          'a string',
+          true,
+          null,
+          new GeoPoint(0.1, 0.2),
+          refTimestamp,
+          Timestamp.fromDate(refDate),
+          Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0])),
+          doc(firestore, 'foo', 'bar'),
+          vector([1, 2, 3]),
+          {
+            'number': 2,
+            'string': 'b string'
+          }
+        ]
+      });
+    });
+
+    it.only('throws on undefined in a map', async () => {
+      expect(() => {
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(
+            map({
+              'number': 1,
+              'undefined': array([undefined])
+            }).as('foo')
+          );
+      }).to.throw(
+        'Function constant() called with invalid data. Unsupported field value: undefined'
+      );
+    });
+
+    it.only('throws on undefined in an array', async () => {
+      expect(() => {
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(array([1, undefined]).as('foo'));
+      }).to.throw(
+        'Function constant() called with invalid data. Unsupported field value: undefined'
+      );
+    });
+
+    it('converts arrays and plain objects to functionValues if the customer intent is unspecified', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(
+            'title',
+            'author',
+            'genre',
+            'rating',
+            'published',
+            'tags',
+            'awards'
+          )
+          .addFields(
+            array([
+              1,
+              2,
+              field('genre'),
+              multiply('rating', 10),
+              [field('title')],
+              {
+                published: field('published')
+              }
+            ]).as('metadataArray'),
+            map({
+              genre: field('genre'),
+              rating: multiply('rating', 10),
+              nestedArray: [field('title')],
+              nestedMap: {
+                published: field('published')
+              }
+            }).as('metadata')
+          )
+          .where(
+            and(
+              eq('metadataArray', [
+                1,
+                2,
+                field('genre'),
+                multiply('rating', 10),
+                [field('title')],
+                {
+                  published: field('published')
+                }
+              ]),
+              eq('metadata', {
+                genre: field('genre'),
+                rating: multiply('rating', 10),
+                nestedArray: [field('title')],
+                nestedMap: {
+                  published: field('published')
+                }
+              })
+            )
+          )
+      );
+
+      expect(snapshot.results.length).to.equal(1);
+
+      expectResults(snapshot, {
+        title: 'The Lord of the Rings',
+        author: 'J.R.R. Tolkien',
+        genre: 'Fantasy',
+        published: 1954,
+        rating: 4.7,
+        tags: ['adventure', 'magic', 'epic'],
+        awards: { hugo: false, nebula: false },
+        metadataArray: [
+          1,
+          2,
+          'Fantasy',
+          47,
+          ['The Lord of the Rings'],
+          {
+            published: 1954
+          }
+        ],
+        metadata: {
+          genre: 'Fantasy',
+          rating: 47,
+          nestedArray: ['The Lord of the Rings'],
+          nestedMap: {
+            published: 1954
+          }
+        }
+      });
+    });
+  });
+
   describe('stages', () => {
     describe('aggregate stage', () => {
       it('supports aggregate', async () => {
@@ -734,18 +827,20 @@ apiDescribe.only('Pipelines', persistence => {
         );
       });
 
-      it('returns min and max accumulations', async () => {
+      it('returns min, max, count, and countAll accumulations', async () => {
         const snapshot = await execute(
           firestore
             .pipeline()
             .collection(randomCol.path)
             .aggregate(
+              count('cost').as('booksWithCost'),
               countAll().as('count'),
-              field('rating').maximum().as('maxRating'),
-              field('published').minimum().as('minPublished')
+              maximum('rating').as('maxRating'),
+              minimum('published').as('minPublished')
             )
         );
         expectResults(snapshot, {
+          booksWithCost: 1,
           count: 10,
           maxRating: 4.7,
           minPublished: 1813
@@ -926,7 +1021,7 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     describe('where stage', () => {
-      it('where with and', async () => {
+      it('where with and (2 conditions)', async () => {
         const snapshot = await execute(
           firestore
             .pipeline()
@@ -934,12 +1029,26 @@ apiDescribe.only('Pipelines', persistence => {
             .where(
               and(
                 gt('rating', 4.5),
-                eq('genre', 'Science Fiction'),
-                lte('published', 1965)
+                eqAny('genre', ['Science Fiction', 'Romance', 'Fantasy'])
               )
             )
         );
-        expectResults(snapshot, 'book10');
+        expectResults(snapshot, 'book10', 'book4');
+      });
+      it('where with and (3 conditions)', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(
+              and(
+                gt('rating', 4.5),
+                eqAny('genre', ['Science Fiction', 'Romance', 'Fantasy']),
+                lt('published', 1965)
+              )
+            )
+        );
+        expectResults(snapshot, 'book4');
       });
       it('where with or', async () => {
         const snapshot = await execute(
@@ -1631,6 +1740,22 @@ apiDescribe.only('Pipelines', persistence => {
       );
     });
 
+    it('testStrContains', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(strContains('title', "'s"))
+          .select('title')
+          .sort(field('title').ascending())
+      );
+      expectResults(
+        snapshot,
+        { title: "The Handmaid's Tale" },
+        { title: "The Hitchhiker's Guide to the Galaxy" }
+      );
+    });
+
     it('testLength', async () => {
       const snapshot = await execute(
         firestore
@@ -1707,7 +1832,8 @@ apiDescribe.only('Pipelines', persistence => {
             field('rating').multiply(10).as('ratingTimesTen'),
             field('rating').divide(2).as('ratingDividedByTwo'),
             multiply('rating', 10, 2).as('ratingTimes20'),
-            add('rating', 1, 2).as('ratingPlus3')
+            add('rating', 1, 2).as('ratingPlus3'),
+            mod('rating', 2).as('ratingMod2')
           )
           .limit(1)
       );
@@ -1717,7 +1843,8 @@ apiDescribe.only('Pipelines', persistence => {
         ratingTimesTen: 42,
         ratingDividedByTwo: 2.1,
         ratingTimes20: 84,
-        ratingPlus3: 7.2
+        ratingPlus3: 7.2,
+        ratingMod2: 0.2
       });
     });
 
@@ -1785,7 +1912,9 @@ apiDescribe.only('Pipelines', persistence => {
             ),
             isAbsent('foo').as('isAbsent'),
             isNotNull('title').as('titleIsNotNull'),
-            isNotNan('cost').as('costIsNotNan')
+            isNotNan('cost').as('costIsNotNan'),
+            exists('fooBarBaz').as('fooBarBazExists'),
+            field('title').as('titleExists')
           )
       );
       expectResults(snapshot, {
@@ -1795,7 +1924,9 @@ apiDescribe.only('Pipelines', persistence => {
         ifError: 'was error',
         isAbsent: true,
         titleIsNotNull: true,
-        costIsNotNan: false
+        costIsNotNan: false,
+        fooBarBazExists: false,
+        titleExists: true
       });
 
       snapshot = await execute(
@@ -1908,6 +2039,19 @@ apiDescribe.only('Pipelines', persistence => {
         dotProductDistance: 0.13,
         euclideanDistance: 0.806225774829855,
         manhattanDistance: 1.1
+      });
+    });
+
+    it('testVectorLength', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(vectorLength(constantVector([1, 2, 3])).as('vectorLength'))
+      );
+      expectResults(snapshot, {
+        vectorLength: 3
       });
     });
 
@@ -2051,7 +2195,7 @@ apiDescribe.only('Pipelines', persistence => {
       });
     });
 
-    describe.skip('not implemented in backend', () => {
+    describe('not implemented in backend', () => {
       it('supports Bit_and', async () => {
         const snapshot = await execute(
           firestore
@@ -2063,394 +2207,405 @@ apiDescribe.only('Pipelines', persistence => {
         expectResults(snapshot, {
           result: 4
         });
-        it('supports Bit_and', async () => {
-          const snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .limit(1)
-              .select(constant(5).bitAnd(12).as('result'))
-          );
-          expectResults(snapshot, {
-            result: 4
-          });
-        });
-
-        it('supports Bit_or', async () => {
-          let snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .limit(1)
-              .select(bitOr(constant(5), 12).as('result'))
-          );
-          expectResults(snapshot, {
-            result: 13
-          });
-          snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .limit(1)
-              .select(constant(5).bitOr(12).as('result'))
-          );
-          expectResults(snapshot, {
-            result: 13
-          });
-        });
-
-        it('supports Bit_xor', async () => {
-          let snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .limit(1)
-              .select(bitXor(constant(5), 12).as('result'))
-          );
-          expectResults(snapshot, {
-            result: 9
-          });
-          snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .limit(1)
-              .select(constant(5).bitXor(12).as('result'))
-          );
-          expectResults(snapshot, {
-            result: 9
-          });
-        });
-
-        it('supports Bit_not', async () => {
-          let snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .limit(1)
-              .select(
-                bitNot(constant(Bytes.fromUint8Array(Uint8Array.of(0xfd)))).as(
-                  'result'
-                )
-              )
-          );
-          expectResults(snapshot, {
-            result: Bytes.fromUint8Array(Uint8Array.of(0x02))
-          });
-          snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .limit(1)
-              .select(
-                constant(Bytes.fromUint8Array(Uint8Array.of(0xfd)))
-                  .bitNot()
-                  .as('result')
-              )
-          );
-          expectResults(snapshot, {
-            result: Bytes.fromUint8Array(Uint8Array.of(0x02))
-          });
-        });
-
-        it('supports Bit_left_shift', async () => {
-          let snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .limit(1)
-              .select(
-                bitLeftShift(
-                  constant(Bytes.fromUint8Array(Uint8Array.of(0x02))),
-                  2
-                ).as('result')
-              )
-          );
-          expectResults(snapshot, {
-            result: Bytes.fromUint8Array(Uint8Array.of(0x04))
-          });
-          snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .limit(1)
-              .select(
-                constant(Bytes.fromUint8Array(Uint8Array.of(0x02)))
-                  .bitLeftShift(2)
-                  .as('result')
-              )
-          );
-          expectResults(snapshot, {
-            result: Bytes.fromUint8Array(Uint8Array.of(0x04))
-          });
-        });
-
-        it('supports Bit_right_shift', async () => {
-          let snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .limit(1)
-              .select(
-                bitRightShift(
-                  constant(Bytes.fromUint8Array(Uint8Array.of(0x02))),
-                  2
-                ).as('result')
-              )
-          );
-          expectResults(snapshot, {
-            result: Bytes.fromUint8Array(Uint8Array.of(0x01))
-          });
-          snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .limit(1)
-              .select(
-                constant(Bytes.fromUint8Array(Uint8Array.of(0x02)))
-                  .bitRightShift(2)
-                  .as('result')
-              )
-          );
-          expectResults(snapshot, {
-            result: Bytes.fromUint8Array(Uint8Array.of(0x01))
-          });
-        });
-
-        it('supports Document_id', async () => {
-          let snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .sort(field('rating').descending())
-              .limit(1)
-              .select(documentId(field('__path__')).as('docId'))
-          );
-          expectResults(snapshot, {
-            docId: 'book4'
-          });
-          snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .sort(field('rating').descending())
-              .limit(1)
-              .select(field('__path__').documentId().as('docId'))
-          );
-          expectResults(snapshot, {
-            docId: 'book4'
-          });
-        });
-
-        it('supports Substr', async () => {
-          let snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .sort(field('rating').descending())
-              .limit(1)
-              .select(substr('title', 9, 2).as('of'))
-          );
-          expectResults(snapshot, {
-            of: 'of'
-          });
-          snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .sort(field('rating').descending())
-              .limit(1)
-              .select(field('title').substr(9, 2).as('of'))
-          );
-          expectResults(snapshot, {
-            of: 'of'
-          });
-        });
-
-        it('supports Substr without length', async () => {
-          let snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .sort(field('rating').descending())
-              .limit(1)
-              .select(substr('title', 9).as('of'))
-          );
-          expectResults(snapshot, {
-            of: 'of the Rings'
-          });
-          snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .sort(field('rating').descending())
-              .limit(1)
-              .select(field('title').substr(9).as('of'))
-          );
-          expectResults(snapshot, {
-            of: 'of the Rings'
-          });
-        });
-
-        it('arrayConcat works', async () => {
-          const snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .select(
-                field('tags')
-                  .arrayConcat(['newTag1', 'newTag2'], field('tags'), [null])
-                  .as('modifiedTags')
-              )
-              .limit(1)
-          );
-          expectResults(snapshot, {
-            modifiedTags: [
-              'comedy',
-              'space',
-              'adventure',
-              'newTag1',
-              'newTag2',
-              'comedy',
-              'space',
-              'adventure',
-              null
-            ]
-          });
-        });
-
-        it('testToLowercase', async () => {
-          const snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .select(field('title').toLower().as('lowercaseTitle'))
-              .limit(1)
-          );
-          expectResults(snapshot, {
-            lowercaseTitle: "the hitchhiker's guide to the galaxy"
-          });
-        });
-
-        it('testToUppercase', async () => {
-          const snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .select(field('author').toUpper().as('uppercaseAuthor'))
-              .limit(1)
-          );
-          expectResults(snapshot, { uppercaseAuthor: 'DOUGLAS ADAMS' });
-        });
-
-        it('testTrim', async () => {
-          const snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .addFields(
-                constant(" The Hitchhiker's Guide to the Galaxy ").as(
-                  'spacedTitle'
-                )
-              )
-              .select(
-                field('spacedTitle').trim().as('trimmedTitle'),
-                field('spacedTitle')
-              )
-              .limit(1)
-          );
-          expectResults(snapshot, {
-            spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
-            trimmedTitle: "The Hitchhiker's Guide to the Galaxy"
-          });
-        });
       });
 
-      it('supports Rand', async () => {
+      it('supports Bit_and', async () => {
         const snapshot = await execute(
           firestore
             .pipeline()
             .collection(randomCol.path)
-            .limit(10)
-            .select(rand().as('result'))
-        );
-        expect(snapshot.results.length).to.equal(10);
-        snapshot.results.forEach(d => {
-          expect(d.get('result')).to.be.lt(1);
-          expect(d.get('result')).to.be.gte(0);
-        });
-      });
-
-      it('supports array', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .sort(field('rating').descending())
             .limit(1)
-            .select(array([1, 2, 3, 4]).as('metadata'))
+            .select(constant(5).bitAnd(12).as('result'))
         );
-        expect(snapshot.results.length).to.equal(1);
         expectResults(snapshot, {
-          metadata: [1, 2, 3, 4]
+          result: 4
         });
       });
 
-      it('evaluates expression in array', async () => {
-        const snapshot = await execute(
+      it('supports Bit_or', async () => {
+        let snapshot = await execute(
           firestore
             .pipeline()
             .collection(randomCol.path)
-            .sort(field('rating').descending())
+            .limit(1)
+            .select(bitOr(constant(5), 12).as('result'))
+        );
+        expectResults(snapshot, {
+          result: 13
+        });
+        snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .select(constant(5).bitOr(12).as('result'))
+        );
+        expectResults(snapshot, {
+          result: 13
+        });
+      });
+
+      it('supports Bit_xor', async () => {
+        let snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .select(bitXor(constant(5), 12).as('result'))
+        );
+        expectResults(snapshot, {
+          result: 9
+        });
+        snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .select(constant(5).bitXor(12).as('result'))
+        );
+        expectResults(snapshot, {
+          result: 9
+        });
+      });
+
+      it('supports Bit_not', async () => {
+        let snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
             .limit(1)
             .select(
-              array([1, 2, field('genre'), multiply('rating', 10)]).as(
-                'metadata'
+              bitNot(constant(Bytes.fromUint8Array(Uint8Array.of(0xfd)))).as(
+                'result'
               )
             )
         );
-        expect(snapshot.results.length).to.equal(1);
         expectResults(snapshot, {
-          metadata: [1, 2, 'Fantasy', 47]
+          result: Bytes.fromUint8Array(Uint8Array.of(0x02))
+        });
+        snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .select(
+              constant(Bytes.fromUint8Array(Uint8Array.of(0xfd)))
+                .bitNot()
+                .as('result')
+            )
+        );
+        expectResults(snapshot, {
+          result: Bytes.fromUint8Array(Uint8Array.of(0x02))
         });
       });
 
-      it('supports arrayOffset', async () => {
+      it('supports Bit_left_shift', async () => {
+        let snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .select(
+              bitLeftShift(
+                constant(Bytes.fromUint8Array(Uint8Array.of(0x02))),
+                2
+              ).as('result')
+            )
+        );
+        expectResults(snapshot, {
+          result: Bytes.fromUint8Array(Uint8Array.of(0x04))
+        });
+        snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .select(
+              constant(Bytes.fromUint8Array(Uint8Array.of(0x02)))
+                .bitLeftShift(2)
+                .as('result')
+            )
+        );
+        expectResults(snapshot, {
+          result: Bytes.fromUint8Array(Uint8Array.of(0x04))
+        });
+      });
+
+      it('supports Bit_right_shift', async () => {
+        let snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .select(
+              bitRightShift(
+                constant(Bytes.fromUint8Array(Uint8Array.of(0x02))),
+                2
+              ).as('result')
+            )
+        );
+        expectResults(snapshot, {
+          result: Bytes.fromUint8Array(Uint8Array.of(0x01))
+        });
+        snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .select(
+              constant(Bytes.fromUint8Array(Uint8Array.of(0x02)))
+                .bitRightShift(2)
+                .as('result')
+            )
+        );
+        expectResults(snapshot, {
+          result: Bytes.fromUint8Array(Uint8Array.of(0x01))
+        });
+      });
+
+      it('supports Document_id', async () => {
         let snapshot = await execute(
           firestore
             .pipeline()
             .collection(randomCol.path)
             .sort(field('rating').descending())
-            .limit(3)
-            .select(arrayOffset('tags', 0).as('firstTag'))
+            .limit(1)
+            .select(documentId(field('__path__')).as('docId'))
         );
-        const expectedResults = [
-          {
-            firstTag: 'adventure'
-          },
-          {
-            firstTag: 'politics'
-          },
-          {
-            firstTag: 'classic'
-          }
-        ];
-        expectResults(snapshot, ...expectedResults);
-
+        expectResults(snapshot, {
+          docId: 'book4'
+        });
         snapshot = await execute(
           firestore
             .pipeline()
             .collection(randomCol.path)
             .sort(field('rating').descending())
-            .limit(3)
-            .select(field('tags').arrayOffset(0).as('firstTag'))
+            .limit(1)
+            .select(field('__path__').documentId().as('docId'))
         );
-        expectResults(snapshot, ...expectedResults);
+        expectResults(snapshot, {
+          docId: 'book4'
+        });
+      });
+
+      it('supports Substr', async () => {
+        let snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(field('rating').descending())
+            .limit(1)
+            .select(substr('title', 9, 2).as('of'))
+        );
+        expectResults(snapshot, {
+          of: 'of'
+        });
+        snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(field('rating').descending())
+            .limit(1)
+            .select(field('title').substr(9, 2).as('of'))
+        );
+        expectResults(snapshot, {
+          of: 'of'
+        });
+      });
+
+      it('supports Substr without length', async () => {
+        let snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(field('rating').descending())
+            .limit(1)
+            .select(substr('title', 9).as('of'))
+        );
+        expectResults(snapshot, {
+          of: 'of the Rings'
+        });
+        snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(field('rating').descending())
+            .limit(1)
+            .select(field('title').substr(9).as('of'))
+        );
+        expectResults(snapshot, {
+          of: 'of the Rings'
+        });
+      });
+
+      it('arrayConcat works', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select(
+              arrayConcat('tags', ['newTag1', 'newTag2'], field('tags'), [
+                null
+              ]).as('modifiedTags')
+            )
+            .limit(1)
+        );
+        expectResults(snapshot, {
+          modifiedTags: [
+            'comedy',
+            'space',
+            'adventure',
+            'newTag1',
+            'newTag2',
+            'comedy',
+            'space',
+            'adventure',
+            null
+          ]
+        });
+      });
+
+      it('testToLowercase', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select(field('title').toLower().as('lowercaseTitle'))
+            .limit(1)
+        );
+        expectResults(snapshot, {
+          lowercaseTitle: "the hitchhiker's guide to the galaxy"
+        });
+      });
+
+      it('testToUppercase', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select(field('author').toUpper().as('uppercaseAuthor'))
+            .limit(1)
+        );
+        expectResults(snapshot, { uppercaseAuthor: 'DOUGLAS ADAMS' });
+      });
+
+      it('testTrim', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .addFields(
+              constant(" The Hitchhiker's Guide to the Galaxy ").as(
+                'spacedTitle'
+              )
+            )
+            .select(
+              field('spacedTitle').trim().as('trimmedTitle'),
+              field('spacedTitle')
+            )
+            .limit(1)
+        );
+        expectResults(snapshot, {
+          spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
+          trimmedTitle: "The Hitchhiker's Guide to the Galaxy"
+        });
+      });
+
+      it('test reverse', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(eq('title', '1984'))
+            .limit(1)
+            .select(reverse('title').as('reverseTitle'))
+        );
+        expectResults(snapshot, { title: '4891' });
       });
     });
 
+    it('supports Rand', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(10)
+          .select(rand().as('result'))
+      );
+      expect(snapshot.results.length).to.equal(10);
+      snapshot.results.forEach(d => {
+        expect(d.get('result')).to.be.lt(1);
+        expect(d.get('result')).to.be.gte(0);
+      });
+    });
+
+    it('supports array', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(array([1, 2, 3, 4]).as('metadata'))
+      );
+      expect(snapshot.results.length).to.equal(1);
+      expectResults(snapshot, {
+        metadata: [1, 2, 3, 4]
+      });
+    });
+
+    it('evaluates expression in array', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(
+            array([1, 2, field('genre'), multiply('rating', 10)]).as('metadata')
+          )
+      );
+      expect(snapshot.results.length).to.equal(1);
+      expectResults(snapshot, {
+        metadata: [1, 2, 'Fantasy', 47]
+      });
+    });
+
+    it('supports arrayOffset', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(arrayOffset('tags', 0).as('firstTag'))
+      );
+      const expectedResults = [
+        {
+          firstTag: 'adventure'
+        },
+        {
+          firstTag: 'politics'
+        },
+        {
+          firstTag: 'classic'
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(field('tags').arrayOffset(0).as('firstTag'))
+      );
+      expectResults(snapshot, ...expectedResults);
+    });
+
     // TODO: current_context tests with are failing because of b/395937453
-    it.skip('supports currentContext', async () => {
+    it('supports currentContext', async () => {
       const snapshot = await execute(
         firestore
           .pipeline()
@@ -2557,6 +2712,81 @@ apiDescribe.only('Pipelines', persistence => {
       );
       expectResults(snapshot, {
         awards: { nebula: false, hugo: false, fakeAward: true }
+      });
+    });
+
+    it('supports timestamp conversions', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(
+            unixSecondsToTimestamp(constant(1741380235)).as(
+              'unixSecondsToTimestamp'
+            ),
+            unixMillisToTimestamp(constant(1741380235123)).as(
+              'unixMillisToTimestamp'
+            ),
+            unixMicrosToTimestamp(constant(1741380235123456)).as(
+              'unixMicrosToTimestamp'
+            ),
+            timestampToUnixSeconds(
+              constant(new Timestamp(1741380235, 123456789))
+            ).as('timestampToUnixSeconds'),
+            timestampToUnixMicros(
+              constant(new Timestamp(1741380235, 123456789))
+            ).as('timestampToUnixMicros'),
+            timestampToUnixMillis(
+              constant(new Timestamp(1741380235, 123456789))
+            ).as('timestampToUnixMillis')
+          )
+      );
+      expectResults(snapshot, {
+        unixMicrosToTimestamp: new Timestamp(1741380235, 123456000),
+        unixMillisToTimestamp: new Timestamp(1741380235, 123000000),
+        unixSecondsToTimestamp: new Timestamp(1741380235, 0),
+        timestampToUnixSeconds: 1741380235,
+        timestampToUnixMicros: 1741380235123456,
+        timestampToUnixMillis: 1741380235123
+      });
+    });
+
+    it('supports timestamp math', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(constant(new Timestamp(1741380235, 0)).as('timestamp'))
+          .select(
+            timestampAdd('timestamp', 'day', 10).as('plus10days'),
+            timestampAdd('timestamp', 'hour', 10).as('plus10hours'),
+            timestampAdd('timestamp', 'minute', 10).as('plus10minutes'),
+            timestampAdd('timestamp', 'second', 10).as('plus10seconds'),
+            timestampAdd('timestamp', 'microsecond', 10).as('plus10micros'),
+            timestampAdd('timestamp', 'millisecond', 10).as('plus10millis'),
+            timestampSub('timestamp', 'day', 10).as('minus10days'),
+            timestampSub('timestamp', 'hour', 10).as('minus10hours'),
+            timestampSub('timestamp', 'minute', 10).as('minus10minutes'),
+            timestampSub('timestamp', 'second', 10).as('minus10seconds'),
+            timestampSub('timestamp', 'microsecond', 10).as('minus10micros'),
+            timestampSub('timestamp', 'millisecond', 10).as('minus10millis')
+          )
+      );
+      expectResults(snapshot, {
+        plus10days: new Timestamp(1742244235, 0),
+        plus10hours: new Timestamp(1741416235, 0),
+        plus10minutes: new Timestamp(1741380835, 0),
+        plus10seconds: new Timestamp(1741380245, 0),
+        plus10micros: new Timestamp(1741380235, 10000),
+        plus10millis: new Timestamp(1741380235, 10000000),
+        minus10days: new Timestamp(1740516235, 0),
+        minus10hours: new Timestamp(1741344235, 0),
+        minus10minutes: new Timestamp(1741379635, 0),
+        minus10seconds: new Timestamp(1741380225, 0),
+        minus10micros: new Timestamp(1741380234, 999990000),
+        minus10millis: new Timestamp(1741380234, 990000000)
       });
     });
   });
@@ -2700,6 +2930,23 @@ apiDescribe.only('Pipelines', persistence => {
           rating: 4.5
         }
       );
+    });
+  });
+
+  describe('console support', () => {
+    it('supports internal serialization to proto', async () => {
+      const pipeline = firestore
+        .pipeline()
+        .collection('books')
+        .where(eq('awards.hugo', true))
+        .select(
+          'title',
+          field('nestedField.level.1'),
+          mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
+        );
+
+      const proto = _internalPipelineToExecutePipelineRequestProto(pipeline);
+      expect(proto).not.to.be.null;
     });
   });
 });

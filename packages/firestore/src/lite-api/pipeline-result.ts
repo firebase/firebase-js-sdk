@@ -103,7 +103,7 @@ export class PipelineResult<AppModelType = DocumentData> {
    *
    * @param userDataWriter The serializer used to encode/decode protobuf.
    * @param ref The reference to the document.
-   * @param _fieldsProto The fields of the Firestore `Document` Protobuf backing
+   * @param fields The fields of the Firestore `Document` Protobuf backing
    * this document (or undefined if the document does not exist).
    * @param readTime The time when this result was read  (or undefined if
    * the document exists only locally).
