@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,22 @@
  * limitations under the License.
  */
 
-export {
-  increment,
-  arrayRemove,
-  arrayUnion,
-  serverTimestamp,
-  deleteField,
-  vector,
-  int32,
-  regex,
-  bsonBinaryData,
-  bsonObjectId,
-  bsonTimestamp,
-  minKey,
-  maxKey
-} from '../lite-api/field_value_impl';
+/**
+ * Represent a "Min Key" type in Firestore documents.
+ *
+ * @class MinKey
+ */
+export class MinKey {
+  private static MIN_KEY_VALUE_INSTANCE: MinKey | null = null;
+  /** A type string to uniquely identify instances of this class. */
+  readonly type = 'MinKey';
+
+  private constructor() {}
+
+  static instance(): MinKey {
+    if (!MinKey.MIN_KEY_VALUE_INSTANCE) {
+      MinKey.MIN_KEY_VALUE_INSTANCE = new MinKey();
+    }
+    return MinKey.MIN_KEY_VALUE_INSTANCE;
+  }
+}

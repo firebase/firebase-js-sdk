@@ -52,7 +52,16 @@ import {
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Target, targetEquals, TargetImpl } from '../../../src/core/target';
-import { vector } from '../../../src/lite-api/field_value_impl';
+import {
+  bsonBinaryData,
+  bsonObjectId,
+  bsonTimestamp,
+  int32,
+  maxKey,
+  minKey,
+  regex,
+  vector
+} from '../../../src/lite-api/field_value_impl';
 import { parseQueryValue } from '../../../src/lite-api/user_data_reader';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { FieldMask } from '../../../src/model/field_mask';
@@ -563,6 +572,57 @@ export function serializerTest(
           value: original,
           valueType: 'mapValue',
           jsonValue: expectedJson.mapValue
+        });
+      });
+
+      it('converts BSON types in mapValue', () => {
+        const examples = [
+          bsonObjectId('foo'),
+          bsonTimestamp(1, 2),
+          minKey(),
+          maxKey(),
+          regex('a', 'b'),
+          int32(1)
+        ];
+
+        for (const example of examples) {
+          expect(userDataWriter.convertValue(wrap(example))).to.deep.equal(
+            example
+          );
+
+          verifyFieldValueRoundTrip({
+            value: example,
+            valueType: 'mapValue',
+            jsonValue: wrap(example).mapValue
+          });
+        }
+
+        // BsonBinaryData will be serialized differently Proto3Json VS. regular Protobuf format
+        const bsonBinary = bsonBinaryData(1, new Uint8Array([1, 2, 3]));
+        const expectedJson: api.Value = {
+          mapValue: {
+            fields: {
+              '__binary__': {
+                'bytesValue': 'AQECAw=='
+              }
+            }
+          }
+        };
+
+        const expectedProtoJson: api.Value = {
+          mapValue: {
+            fields: {
+              '__binary__': {
+                'bytesValue': new Uint8Array([1, 1, 2, 3])
+              }
+            }
+          }
+        };
+        verifyFieldValueRoundTrip({
+          value: bsonBinary,
+          valueType: 'mapValue',
+          jsonValue: expectedJson.mapValue,
+          protoJsValue: expectedProtoJson.mapValue
         });
       });
     });

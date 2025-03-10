@@ -173,10 +173,31 @@ export {
   deleteField,
   increment,
   serverTimestamp,
-  vector
+  vector,
+  int32,
+  regex,
+  bsonBinaryData,
+  bsonObjectId,
+  bsonTimestamp,
+  minKey,
+  maxKey
 } from './api/field_value_impl';
 
 export { VectorValue } from './lite-api/vector_value';
+
+export { Int32Value } from './lite-api/int32_value';
+
+export { RegexValue } from './lite-api/regex_value';
+
+export { BsonBinaryData } from './lite-api/bson_binary_data';
+
+export { BsonObjectId } from './lite-api/bson_object_Id';
+
+export { BsonTimestampValue } from './lite-api/bson_timestamp_value';
+
+export { MinKey } from './lite-api/min_key';
+
+export { MaxKey } from './lite-api/max_key';
 
 export { LogLevelString as LogLevel, setLogLevel } from './util/log';
 

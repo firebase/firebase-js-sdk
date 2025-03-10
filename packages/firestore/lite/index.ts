@@ -128,7 +128,14 @@ export {
   arrayUnion,
   serverTimestamp,
   deleteField,
-  vector
+  vector,
+  int32,
+  regex,
+  bsonBinaryData,
+  bsonObjectId,
+  bsonTimestamp,
+  minKey,
+  maxKey
 } from '../src/lite-api/field_value_impl';
 
 export {
@@ -140,6 +147,20 @@ export {
 } from '../src/lite-api/snapshot';
 
 export { VectorValue } from '../src/lite-api/vector_value';
+
+export { Int32Value } from '../src/lite-api/int32_value';
+
+export { RegexValue } from '../src/lite-api/regex_value';
+
+export { BsonBinaryData } from '../src/lite-api/bson_binary_data';
+
+export { BsonObjectId } from '../src/lite-api/bson_object_Id';
+
+export { BsonTimestampValue } from '../src/lite-api/bson_timestamp_value';
+
+export { MinKey } from '../src/lite-api/min_key';
+
+export { MaxKey } from '../src/lite-api/max_key';
 
 export { WriteBatch, writeBatch } from '../src/lite-api/write_batch';
 

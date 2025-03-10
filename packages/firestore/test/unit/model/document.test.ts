@@ -18,6 +18,15 @@
 import { expect } from 'chai';
 
 import {
+  bsonBinaryData,
+  bsonObjectId,
+  bsonTimestamp,
+  int32,
+  maxKey,
+  minKey,
+  regex
+} from '../../../src/lite-api/field_value_impl';
+import {
   doc,
   expectEqual,
   expectNotEqual,
@@ -38,6 +47,34 @@ describe('Document', () => {
       wrap({
         desc: 'Discuss all the project related stuff',
         owner: 'Jonny'
+      })
+    );
+    expect(value).not.to.equal(data);
+    expect(document.hasLocalMutations).to.equal(false);
+  });
+
+  it('can be constructed with bson types', () => {
+    const data = {
+      objectId: bsonObjectId('foo'),
+      binary: bsonBinaryData(1, new Uint8Array([1, 2, 3])),
+      timestamp: bsonTimestamp(1, 2),
+      min: minKey(),
+      max: maxKey(),
+      regex: regex('a', 'b'),
+      int32: int32(1)
+    };
+    const document = doc('rooms/Eros', 1, data);
+
+    const value = document.data;
+    expect(value.value).to.deep.equal(
+      wrap({
+        objectId: bsonObjectId('foo'),
+        binary: bsonBinaryData(1, new Uint8Array([1, 2, 3])),
+        timestamp: bsonTimestamp(1, 2),
+        min: minKey(),
+        max: maxKey(),
+        regex: regex('a', 'b'),
+        int32: int32(1)
       })
     );
     expect(value).not.to.equal(data);

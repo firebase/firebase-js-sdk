@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,21 @@
  * limitations under the License.
  */
 
-export {
-  increment,
-  arrayRemove,
-  arrayUnion,
-  serverTimestamp,
-  deleteField,
-  vector,
-  int32,
-  regex,
-  bsonBinaryData,
-  bsonObjectId,
-  bsonTimestamp,
-  minKey,
-  maxKey
-} from '../lite-api/field_value_impl';
+/**
+ * Represents a regular expression type in Firestore documents.
+ *
+ * @class RegexValue
+ */
+export class RegexValue {
+  constructor(readonly pattern: string, readonly options: string) {}
+
+  /**
+   * Returns true if this `RegexValue` is equal to the provided one.
+   *
+   * @param other - The `RegexValue` to compare against.
+   * @return 'true' if this `RegexValue` is equal to the provided one.
+   */
+  isEqual(other: RegexValue): boolean {
+    return this.pattern === other.pattern && this.options === other.options;
+  }
+}

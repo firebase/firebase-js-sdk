@@ -19,7 +19,23 @@ import { expect } from 'chai';
 
 import { GeoPoint, Timestamp } from '../../../src';
 import { DatabaseId } from '../../../src/core/database_info';
-import { vector } from '../../../src/lite-api/field_value_impl';
+import { BsonBinaryData } from '../../../src/lite-api/bson_binary_data';
+import { BsonObjectId } from '../../../src/lite-api/bson_object_Id';
+import { BsonTimestampValue } from '../../../src/lite-api/bson_timestamp_value';
+import {
+  vector,
+  regex,
+  bsonTimestamp,
+  int32,
+  bsonBinaryData,
+  bsonObjectId,
+  minKey,
+  maxKey
+} from '../../../src/lite-api/field_value_impl';
+import { Int32Value } from '../../../src/lite-api/int32_value';
+import { MaxKey } from '../../../src/lite-api/max_key';
+import { MinKey } from '../../../src/lite-api/min_key';
+import { RegexValue } from '../../../src/lite-api/regex_value';
 import { serverTimestamp } from '../../../src/model/server_timestamps';
 import {
   canonicalId,
@@ -31,7 +47,7 @@ import {
   valuesGetLowerBound,
   valuesGetUpperBound,
   TYPE_KEY,
-  VECTOR_VALUE_SENTINEL,
+  RESERVED_VECTOR_KEY,
   VECTOR_MAP_VECTORS_KEY
 } from '../../../src/model/values';
 import * as api from '../../../src/protos/firestore_proto_api';
@@ -55,7 +71,14 @@ describe('Values', () => {
     const values: api.Value[][] = [
       [wrap(true), wrap(true)],
       [wrap(false), wrap(false)],
-      [wrap(null), wrap(null)],
+      // MinKeys are all equal, and sort the same as null.
+      [
+        wrap(null),
+        wrap(null),
+        wrap(minKey()),
+        wrap(minKey()),
+        wrap(MinKey.instance())
+      ],
       [wrap(0 / 0), wrap(Number.NaN), wrap(NaN)],
       // -0.0 and 0.0 order the same but are not considered equal.
       [wrap(-0.0)],
@@ -92,7 +115,21 @@ describe('Values', () => {
       [wrap({ bar: 1, foo: 1 })],
       [wrap({ foo: 1 })],
       [wrap(vector([]))],
-      [wrap(vector([1, 2.3, -4.0]))]
+      [wrap(vector([1, 2.3, -4.0]))],
+      [wrap(regex('^foo', 'i')), wrap(new RegexValue('^foo', 'i'))],
+      [wrap(bsonTimestamp(57, 4)), wrap(new BsonTimestampValue(57, 4))],
+      [
+        wrap(bsonBinaryData(128, Uint8Array.from([7, 8, 9]))),
+        wrap(new BsonBinaryData(128, Uint8Array.from([7, 8, 9]))),
+        wrap(bsonBinaryData(128, Buffer.from([7, 8, 9]))),
+        wrap(new BsonBinaryData(128, Buffer.from([7, 8, 9])))
+      ],
+      [
+        wrap(bsonObjectId('123456789012')),
+        wrap(new BsonObjectId('123456789012'))
+      ],
+      [wrap(int32(255)), wrap(new Int32Value(255))],
+      [wrap(maxKey()), wrap(maxKey()), wrap(MaxKey.instance())]
     ];
     expectEqualitySets(values, (v1, v2) => valueEquals(v1, v2));
   });
@@ -129,7 +166,7 @@ describe('Values', () => {
   it('orders types correctly', () => {
     const groups = [
       // null first
-      [wrap(null)],
+      [wrap(null), wrap(minKey())],
 
       // booleans
       [wrap(false)],
@@ -141,15 +178,24 @@ describe('Values', () => {
       [wrap(-Number.MAX_VALUE)],
       [wrap(Number.MIN_SAFE_INTEGER - 1)],
       [wrap(Number.MIN_SAFE_INTEGER)],
+      // 64-bit and 32-bit integers order together numerically.
+      [{ integerValue: -2147483648 }, wrap(int32(-2147483648))],
       [wrap(-1.1)],
-      // Integers and Doubles order the same.
-      [{ integerValue: -1 }, { doubleValue: -1 }],
+      // Integers, Int32Values and Doubles order the same.
+      [{ integerValue: -1 }, { doubleValue: -1 }, wrap(int32(-1))],
       [wrap(-Number.MIN_VALUE)],
       // zeros all compare the same.
-      [{ integerValue: 0 }, { doubleValue: 0 }, { doubleValue: -0 }],
+      [
+        { integerValue: 0 },
+        { doubleValue: 0 },
+        { doubleValue: -0 },
+        wrap(int32(0))
+      ],
       [wrap(Number.MIN_VALUE)],
-      [{ integerValue: 1 }, { doubleValue: 1 }],
+      [{ integerValue: 1 }, { doubleValue: 1.0 }, wrap(int32(1))],
       [wrap(1.1)],
+      [wrap(int32(2))],
+      [wrap(int32(2147483647))],
       [wrap(Number.MAX_SAFE_INTEGER)],
       [wrap(Number.MAX_SAFE_INTEGER + 1)],
       [wrap(Infinity)],
@@ -163,6 +209,11 @@ describe('Values', () => {
         { timestampValue: '2020-04-05T14:30:01.000000Z' },
         { timestampValue: '2020-04-05T14:30:01.000000000Z' }
       ],
+
+      // request timestamp
+      [wrap(bsonTimestamp(123, 4))],
+      [wrap(bsonTimestamp(123, 5))],
+      [wrap(bsonTimestamp(124, 0))],
 
       // server timestamps come after all concrete timestamps.
       [serverTimestamp(Timestamp.fromDate(date1), null)],
@@ -187,6 +238,13 @@ describe('Values', () => {
       [wrap(blob(0, 1, 2, 4, 3))],
       [wrap(blob(255))],
 
+      [
+        wrap(bsonBinaryData(5, Buffer.from([1, 2, 3]))),
+        wrap(bsonBinaryData(5, new Uint8Array([1, 2, 3])))
+      ],
+      [wrap(bsonBinaryData(7, Buffer.from([1])))],
+      [wrap(bsonBinaryData(7, new Uint8Array([2])))],
+
       // reference values
       [refValue(dbId('p1', 'd1'), key('c1/doc1'))],
       [refValue(dbId('p1', 'd1'), key('c1/doc2'))],
@@ -194,6 +252,13 @@ describe('Values', () => {
       [refValue(dbId('p1', 'd1'), key('c2/doc1'))],
       [refValue(dbId('p1', 'd2'), key('c1/doc1'))],
       [refValue(dbId('p2', 'd1'), key('c1/doc1'))],
+
+      // ObjectId
+      [wrap(bsonObjectId('foo')), wrap(bsonObjectId('foo'))],
+      // TODO(Mila/BSON): uncomment after string sort bug is fixed
+      // [wrap(bsonObjectId('Ḟoo'))], // with latin capital letter f with dot above
+      // [wrap(bsonObjectId('foo\u0301'))], // with combining acute accent
+      [wrap(bsonObjectId('xyz'))],
 
       // geo points
       [wrap(new GeoPoint(-90, -180))],
@@ -208,6 +273,12 @@ describe('Values', () => {
       [wrap(new GeoPoint(90, -180))],
       [wrap(new GeoPoint(90, 0))],
       [wrap(new GeoPoint(90, 180))],
+
+      // regular expressions
+      [wrap(regex('a', 'bar1'))],
+      [wrap(regex('foo', 'bar1'))],
+      [wrap(regex('foo', 'bar2'))],
+      [wrap(regex('go', 'bar1'))],
 
       // arrays
       [wrap([])],
@@ -227,7 +298,10 @@ describe('Values', () => {
       [wrap({ bar: 0, foo: 1 })],
       [wrap({ foo: 1 })],
       [wrap({ foo: 2 })],
-      [wrap({ foo: '0' })]
+      [wrap({ foo: '0' })],
+
+      // MaxKey
+      [wrap(maxKey())]
     ];
 
     expectCorrectComparisonGroups(
@@ -331,7 +405,31 @@ describe('Values', () => {
       {
         expectedByteSize: 49,
         elements: [wrap(vector([1, 2])), wrap(vector([-100, 20000098.123445]))]
-      }
+      },
+      {
+        expectedByteSize: 27,
+        elements: [wrap(regex('a', 'b')), wrap(regex('c', 'd'))]
+      },
+      {
+        expectedByteSize: 13,
+        elements: [wrap(bsonObjectId('foo')), wrap(bsonObjectId('bar'))]
+      },
+      {
+        expectedByteSize: 53,
+        elements: [wrap(bsonTimestamp(1, 2)), wrap(bsonTimestamp(3, 4))]
+      },
+      {
+        expectedByteSize: 8,
+        elements: [wrap(int32(1)), wrap(int32(2147483647))]
+      },
+      {
+        expectedByteSize: 16,
+        elements: [
+          wrap(bsonBinaryData(1, new Uint8Array([127, 128]))),
+          wrap(bsonBinaryData(128, new Uint8Array([1, 2])))
+        ]
+      },
+      { expectedByteSize: 11, elements: [wrap(minKey()), wrap(maxKey())] }
     ];
 
     for (const group of equalityGroups) {
@@ -361,7 +459,13 @@ describe('Values', () => {
       [wrap({ a: 'a', b: 'b' }), wrap({ a: 'a', bc: 'b' })],
       [wrap({ a: 'a', b: 'b' }), wrap({ a: 'a', b: 'b', c: 'c' })],
       [wrap({ a: 'a', b: 'b' }), wrap({ a: 'a', b: 'b', c: 'c' })],
-      [wrap(vector([2, 3])), wrap(vector([1, 2, 3]))]
+      [wrap(vector([2, 3])), wrap(vector([1, 2, 3]))],
+      [wrap(regex('a', 'b')), wrap(regex('cc', 'dd'))],
+      [wrap(bsonObjectId('foo')), wrap(bsonObjectId('foobar'))],
+      [
+        wrap(bsonBinaryData(128, new Uint8Array([127, 128]))),
+        wrap(bsonBinaryData(1, new Uint8Array([1, 2, 3])))
+      ]
     ];
 
     for (const group of relativeGroups) {
@@ -376,9 +480,14 @@ describe('Values', () => {
   });
 
   it('computes lower bound', () => {
+    // TODO(Mila/BSON):add cases for bson types
     const groups = [
-      // null first
-      [valuesGetLowerBound({ nullValue: 'NULL_VALUE' }), wrap(null)],
+      // null and minKey first
+      [
+        valuesGetLowerBound({ nullValue: 'NULL_VALUE' }),
+        wrap(null),
+        wrap(minKey())
+      ],
 
       // booleans
       [valuesGetLowerBound({ booleanValue: true }), wrap(false)],
@@ -420,7 +529,7 @@ describe('Values', () => {
         valuesGetLowerBound({
           mapValue: {
             fields: {
-              [TYPE_KEY]: { stringValue: VECTOR_VALUE_SENTINEL },
+              [TYPE_KEY]: { stringValue: RESERVED_VECTOR_KEY },
               [VECTOR_MAP_VECTORS_KEY]: {
                 arrayValue: {
                   values: [{ doubleValue: 1 }]
@@ -433,7 +542,10 @@ describe('Values', () => {
       ],
 
       // objects
-      [valuesGetLowerBound({ mapValue: {} }), wrap({})]
+      [valuesGetLowerBound({ mapValue: {} }), wrap({})],
+
+      // MaxKey
+      [wrap(maxKey())]
     ];
 
     expectCorrectComparisonGroups(
@@ -445,6 +557,7 @@ describe('Values', () => {
   });
 
   it('computes upper bound', () => {
+    // TODO(Mila/BSON):add cases for bson types
     const groups = [
       // null first
       [wrap(null)],
@@ -526,6 +639,19 @@ describe('Values', () => {
     expect(
       canonicalId(wrap({ 'a': ['b', { 'c': new GeoPoint(30, 60) }] }))
     ).to.equal('{a:[b,{c:geo(30,60)}]}');
+    expect(canonicalId(wrap(regex('a', 'b')))).to.equal(
+      '{__regex__:{options:b,pattern:a}}'
+    );
+    expect(canonicalId(wrap(bsonObjectId('foo')))).to.equal('{__oid__:foo}');
+    expect(canonicalId(wrap(bsonTimestamp(1, 2)))).to.equal(
+      '{__request_timestamp__:{increment:2,seconds:1}}'
+    );
+    expect(canonicalId(wrap(int32(1)))).to.equal('{__int__:1}');
+    expect(
+      canonicalId(wrap(bsonBinaryData(1, new Uint8Array([1, 2, 3]))))
+    ).to.equal('{__binary__:{subType:1,data:AQID}}');
+    expect(canonicalId(wrap(minKey()))).to.equal('{__min__:null}');
+    expect(canonicalId(wrap(maxKey()))).to.equal('{__max__:null}');
   });
 
   it('canonical IDs ignore sort order', () => {

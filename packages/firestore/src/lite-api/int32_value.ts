@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,21 @@
  * limitations under the License.
  */
 
-export {
-  increment,
-  arrayRemove,
-  arrayUnion,
-  serverTimestamp,
-  deleteField,
-  vector,
-  int32,
-  regex,
-  bsonBinaryData,
-  bsonObjectId,
-  bsonTimestamp,
-  minKey,
-  maxKey
-} from '../lite-api/field_value_impl';
+/**
+ * Represents a 32-bit integer type in Firestore documents.
+ *
+ * @class Int32Value
+ */
+export class Int32Value {
+  constructor(readonly value: number) {}
+
+  /**
+   * Returns true if this `Int32Value` is equal to the provided one.
+   *
+   * @param other - The `Int32Value` to compare against.
+   * @return 'true' if this `Int32Value` is equal to the provided one.
+   */
+  isEqual(other: Int32Value): boolean {
+    return this.value === other.value;
+  }
+}

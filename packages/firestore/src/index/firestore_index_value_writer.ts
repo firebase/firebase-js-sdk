@@ -124,6 +124,7 @@ export class FirestoreIndexValueWriter {
       encoder.writeNumber(geoPoint.latitude || 0);
       encoder.writeNumber(geoPoint.longitude || 0);
     } else if ('mapValue' in indexValue) {
+      // TODO(Mila/BSON): add bson types for indexing
       if (isMaxValue(indexValue)) {
         this.writeValueTypeLabel(encoder, Number.MAX_SAFE_INTEGER);
       } else if (isVectorValue(indexValue)) {

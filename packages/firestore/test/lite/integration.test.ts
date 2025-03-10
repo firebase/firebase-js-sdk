@@ -40,8 +40,15 @@ import { FieldValue } from '../../src/lite-api/field_value';
 import {
   arrayRemove,
   arrayUnion,
+  bsonBinaryData,
+  bsonObjectId,
+  bsonTimestamp,
   deleteField,
   increment,
+  int32,
+  maxKey,
+  minKey,
+  regex,
   serverTimestamp,
   vector
 } from '../../src/lite-api/field_value_impl';
@@ -2957,6 +2964,47 @@ describe('Vectors', () => {
       expect(snap1.get('vector1').isEqual(vector([1, 2, 3.99]))).to.be.true;
       expect(snap1.get('vector2').isEqual(vector([0, 0, 0]))).to.be.true;
       expect(snap1.get('vector3').isEqual(vector([-1, -200, -999]))).to.be.true;
+    });
+  });
+});
+
+// eslint-disable-next-line no-restricted-properties
+describe.skip('BSON types', () => {
+  // TODO(Mila/BSON): enable this test once prod supports bson
+  it('can be read and written using the lite SDK', async () => {
+    return withTestCollection(async coll => {
+      const ref = await addDoc(coll, {
+        objectId: bsonObjectId('507f191e810c19729de860ea'),
+        int32: int32(1),
+        min: minKey(),
+        max: maxKey(),
+        regex: regex('^foo', 'i')
+      });
+
+      await setDoc(
+        ref,
+        {
+          binary: bsonBinaryData(1, new Uint8Array([1, 2, 3])),
+          timestamp: bsonTimestamp(1, 2),
+          int32: int32(2)
+        },
+        { merge: true }
+      );
+
+      const snap1 = await getDoc(ref);
+      expect(
+        snap1.get('objectId').isEqual(bsonObjectId('507f191e810c19729de860ea'))
+      ).to.be.true;
+      expect(snap1.get('int32').isEqual(int32(2))).to.be.true;
+      expect(snap1.get('min') === minKey()).to.be.true;
+      expect(snap1.get('max') === maxKey()).to.be.true;
+      expect(
+        snap1
+          .get('binary')
+          .isEqual(bsonBinaryData(1, new Uint8Array([1, 2, 3])))
+      ).to.be.true;
+      expect(snap1.get('timestamp').isEqual(bsonTimestamp(1, 2))).to.be.true;
+      expect(snap1.get('regex').isEqual(regex('^foo', 'i'))).to.be.true;
     });
   });
 });

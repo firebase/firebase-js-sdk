@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,21 @@
  * limitations under the License.
  */
 
-export {
-  increment,
-  arrayRemove,
-  arrayUnion,
-  serverTimestamp,
-  deleteField,
-  vector,
-  int32,
-  regex,
-  bsonBinaryData,
-  bsonObjectId,
-  bsonTimestamp,
-  minKey,
-  maxKey
-} from '../lite-api/field_value_impl';
+/**
+ * Represents a BSON ObjectId type in Firestore documents.
+ *
+ * @class BsonObjectId
+ */
+export class BsonObjectId {
+  constructor(readonly value: string) {}
+
+  /**
+   * Returns true if this `BsonObjectId` is equal to the provided one.
+   *
+   * @param other - The `BsonObjectId` to compare against.
+   * @return 'true' if this `BsonObjectId` is equal to the provided one.
+   */
+  isEqual(other: BsonObjectId): boolean {
+    return this.value === other.value;
+  }
+}

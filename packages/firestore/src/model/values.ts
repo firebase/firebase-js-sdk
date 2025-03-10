@@ -35,28 +35,54 @@ import {
   normalizeNumber,
   normalizeTimestamp
 } from './normalize';
-import {
-  getLocalWriteTime,
-  getPreviousValue,
-  isServerTimestamp
-} from './server_timestamps';
+import { getLocalWriteTime, getPreviousValue } from './server_timestamps';
 import { TypeOrder } from './type_order';
 
 export const TYPE_KEY = '__type__';
-const MAX_VALUE_TYPE = '__max__';
-export const MAX_VALUE: Value = {
+
+export const RESERVED_VECTOR_KEY = '__vector__';
+export const VECTOR_MAP_VECTORS_KEY = 'value';
+
+const RESERVED_SERVER_TIMESTAMP_KEY = 'server_timestamp';
+
+export const RESERVED_MIN_KEY = '__min__';
+export const RESERVED_MAX_KEY = '__max__';
+
+export const RESERVED_REGEX_KEY = '__regex__';
+export const RESERVED_REGEX_PATTERN_KEY = 'pattern';
+export const RESERVED_REGEX_OPTIONS_KEY = 'options';
+
+export const RESERVED_BSON_OBJECT_ID_KEY = '__oid__';
+
+export const RESERVED_INT32_KEY = '__int__';
+
+export const RESERVED_BSON_TIMESTAMP_KEY = '__request_timestamp__';
+export const RESERVED_BSON_TIMESTAMP_SECONDS_KEY = 'seconds';
+export const RESERVED_BSON_TIMESTAMP_INCREMENT_KEY = 'increment';
+
+export const RESERVED_BSON_BINARY_KEY = '__binary__';
+
+export const INTERNAL_MIN_VALUE: Value = {
+  nullValue: 'NULL_VALUE'
+};
+
+export const INTERNAL_MAX_VALUE: Value = {
   mapValue: {
     fields: {
-      '__type__': { stringValue: MAX_VALUE_TYPE }
+      '__type__': { stringValue: RESERVED_MAX_KEY }
     }
   }
 };
 
-export const VECTOR_VALUE_SENTINEL = '__vector__';
-export const VECTOR_MAP_VECTORS_KEY = 'value';
-
-export const MIN_VALUE: Value = {
-  nullValue: 'NULL_VALUE'
+export const MIN_VECTOR_VALUE = {
+  mapValue: {
+    fields: {
+      [TYPE_KEY]: { stringValue: RESERVED_VECTOR_KEY },
+      [VECTOR_MAP_VECTORS_KEY]: {
+        arrayValue: {}
+      }
+    }
+  }
 };
 
 /** Extracts the backend's type order for the provided value. */
@@ -80,14 +106,31 @@ export function typeOrder(value: Value): TypeOrder {
   } else if ('arrayValue' in value) {
     return TypeOrder.ArrayValue;
   } else if ('mapValue' in value) {
-    if (isServerTimestamp(value)) {
-      return TypeOrder.ServerTimestampValue;
-    } else if (isMaxValue(value)) {
-      return TypeOrder.MaxValue;
-    } else if (isVectorValue(value)) {
-      return TypeOrder.VectorValue;
+    const valueType = detectSpecialMapType(value);
+    switch (valueType) {
+      case 'serverTimestampValue':
+        return TypeOrder.ServerTimestampValue;
+      case 'maxValue':
+        return TypeOrder.MaxValue;
+      case 'vectorValue':
+        return TypeOrder.VectorValue;
+      case 'regexValue':
+        return TypeOrder.RegexValue;
+      case 'bsonObjectIdValue':
+        return TypeOrder.BsonObjectIdValue;
+      case 'int32Value':
+        return TypeOrder.NumberValue;
+      case 'bsonTimestampValue':
+        return TypeOrder.BsonTimestampValue;
+      case 'bsonBinaryValue':
+        return TypeOrder.BsonBinaryValue;
+      case 'minKeyValue':
+        return TypeOrder.MinKeyValue;
+      case 'maxKeyValue':
+        return TypeOrder.MaxKeyValue;
+      default:
+        return TypeOrder.ObjectValue;
     }
-    return TypeOrder.ObjectValue;
   } else {
     return fail('Invalid value type: ' + JSON.stringify(value));
   }
@@ -107,6 +150,11 @@ export function valueEquals(left: Value, right: Value): boolean {
 
   switch (leftType) {
     case TypeOrder.NullValue:
+    case TypeOrder.MaxValue:
+    // MaxKeys are all equal.
+    case TypeOrder.MaxKeyValue:
+    // MinKeys are all equal.
+    case TypeOrder.MinKeyValue:
       return true;
     case TypeOrder.BooleanValue:
       return left.booleanValue === right.booleanValue;
@@ -133,8 +181,14 @@ export function valueEquals(left: Value, right: Value): boolean {
     case TypeOrder.VectorValue:
     case TypeOrder.ObjectValue:
       return objectEquals(left, right);
-    case TypeOrder.MaxValue:
-      return true;
+    case TypeOrder.BsonBinaryValue:
+      return compareBsonBinaryData(left, right) === 0;
+    case TypeOrder.BsonTimestampValue:
+      return compareBsonTimestamps(left, right) === 0;
+    case TypeOrder.RegexValue:
+      return compareRegex(left, right) === 0;
+    case TypeOrder.BsonObjectIdValue:
+      return compareBsonObjectIds(left, right) === 0;
     default:
       return fail('Unexpected value type: ' + JSON.stringify(left));
   }
@@ -174,10 +228,12 @@ function blobEquals(left: Value, right: Value): boolean {
 }
 
 export function numberEquals(left: Value, right: Value): boolean {
-  if ('integerValue' in left && 'integerValue' in right) {
-    return (
-      normalizeNumber(left.integerValue) === normalizeNumber(right.integerValue)
-    );
+  if (
+    ('integerValue' in left && 'integerValue' in right) ||
+    (detectSpecialMapType(left) === 'int32Value' &&
+      detectSpecialMapType(right) === 'int32Value')
+  ) {
+    return extractNumber(left) === extractNumber(right);
   } else if ('doubleValue' in left && 'doubleValue' in right) {
     const n1 = normalizeNumber(left.doubleValue!);
     const n2 = normalizeNumber(right.doubleValue!);
@@ -237,6 +293,8 @@ export function valueCompare(left: Value, right: Value): number {
 
   switch (leftType) {
     case TypeOrder.NullValue:
+    case TypeOrder.MinKeyValue:
+    case TypeOrder.MaxKeyValue:
     case TypeOrder.MaxValue:
       return 0;
     case TypeOrder.BooleanValue:
@@ -264,14 +322,33 @@ export function valueCompare(left: Value, right: Value): number {
       return compareVectors(left.mapValue!, right.mapValue!);
     case TypeOrder.ObjectValue:
       return compareMaps(left.mapValue!, right.mapValue!);
+    case TypeOrder.BsonTimestampValue:
+      return compareBsonTimestamps(left, right);
+    case TypeOrder.BsonBinaryValue:
+      return compareBsonBinaryData(left, right);
+    case TypeOrder.RegexValue:
+      return compareRegex(left, right);
+    case TypeOrder.BsonObjectIdValue:
+      return compareBsonObjectIds(left, right);
+
     default:
       throw fail('Invalid value type: ' + leftType);
   }
 }
 
+export function extractNumber(value: Value): number {
+  let numberValue;
+  if (detectSpecialMapType(value) === 'int32Value') {
+    numberValue = value.mapValue!.fields![RESERVED_INT32_KEY].integerValue!;
+  } else {
+    numberValue = value.integerValue || value.doubleValue;
+  }
+  return normalizeNumber(numberValue);
+}
+
 function compareNumbers(left: Value, right: Value): number {
-  const leftNumber = normalizeNumber(left.integerValue || left.doubleValue);
-  const rightNumber = normalizeNumber(right.integerValue || right.doubleValue);
+  const leftNumber = extractNumber(left);
+  const rightNumber = extractNumber(right);
 
   if (leftNumber < rightNumber) {
     return -1;
@@ -379,11 +456,14 @@ function compareVectors(left: MapValue, right: MapValue): number {
 }
 
 function compareMaps(left: MapValue, right: MapValue): number {
-  if (left === MAX_VALUE.mapValue && right === MAX_VALUE.mapValue) {
+  if (
+    left === INTERNAL_MAX_VALUE.mapValue &&
+    right === INTERNAL_MAX_VALUE.mapValue
+  ) {
     return 0;
-  } else if (left === MAX_VALUE.mapValue) {
+  } else if (left === INTERNAL_MAX_VALUE.mapValue) {
     return 1;
-  } else if (right === MAX_VALUE.mapValue) {
+  } else if (right === INTERNAL_MAX_VALUE.mapValue) {
     return -1;
   }
 
@@ -411,6 +491,80 @@ function compareMaps(left: MapValue, right: MapValue): number {
   }
 
   return primitiveComparator(leftKeys.length, rightKeys.length);
+}
+
+function compareBsonTimestamps(left: Value, right: Value): number {
+  const leftSecondField =
+    left.mapValue!.fields?.[RESERVED_BSON_TIMESTAMP_KEY].mapValue?.fields?.[
+      RESERVED_BSON_TIMESTAMP_SECONDS_KEY
+    ];
+  const rightSecondField =
+    right.mapValue!.fields?.[RESERVED_BSON_TIMESTAMP_KEY].mapValue?.fields?.[
+      RESERVED_BSON_TIMESTAMP_SECONDS_KEY
+    ];
+
+  const leftIncrementField =
+    left.mapValue!.fields?.[RESERVED_BSON_TIMESTAMP_KEY].mapValue?.fields?.[
+      RESERVED_BSON_TIMESTAMP_INCREMENT_KEY
+    ];
+  const rightIncrementField =
+    right.mapValue!.fields?.[RESERVED_BSON_TIMESTAMP_KEY].mapValue?.fields?.[
+      RESERVED_BSON_TIMESTAMP_INCREMENT_KEY
+    ];
+
+  const secondsDiff = compareNumbers(leftSecondField!, rightSecondField!);
+  return secondsDiff !== 0
+    ? secondsDiff
+    : compareNumbers(leftIncrementField!, rightIncrementField!);
+}
+
+function compareBsonBinaryData(left: Value, right: Value): number {
+  const leftBytes =
+    left.mapValue!.fields?.[RESERVED_BSON_BINARY_KEY]?.bytesValue;
+  const rightBytes =
+    right.mapValue!.fields?.[RESERVED_BSON_BINARY_KEY]?.bytesValue;
+  if (!rightBytes || !leftBytes) {
+    throw new Error('Received incorrect bytesValue for BsonBinaryData');
+  }
+  return compareBlobs(leftBytes, rightBytes);
+}
+
+function compareRegex(left: Value, right: Value): number {
+  const leftFields = left.mapValue!.fields;
+  const leftPattern =
+    leftFields?.[RESERVED_REGEX_KEY]?.mapValue?.fields?.[
+      RESERVED_REGEX_PATTERN_KEY
+    ]?.stringValue ?? '';
+  const leftOptions =
+    leftFields?.[RESERVED_REGEX_KEY]?.mapValue?.fields?.[
+      RESERVED_REGEX_OPTIONS_KEY
+    ]?.stringValue ?? '';
+
+  const rightFields = right.mapValue!.fields;
+  const rightPattern =
+    rightFields?.[RESERVED_REGEX_KEY]?.mapValue?.fields?.[
+      RESERVED_REGEX_PATTERN_KEY
+    ]?.stringValue ?? '';
+  const rightOptions =
+    rightFields?.[RESERVED_REGEX_KEY]?.mapValue?.fields?.[
+      RESERVED_REGEX_OPTIONS_KEY
+    ]?.stringValue ?? '';
+
+  // First order by patterns, and then options.
+  const patternDiff = primitiveComparator(leftPattern, rightPattern);
+  return patternDiff !== 0
+    ? patternDiff
+    : primitiveComparator(leftOptions, rightOptions);
+}
+
+function compareBsonObjectIds(left: Value, right: Value): number {
+  const leftOid =
+    left.mapValue!.fields?.[RESERVED_BSON_OBJECT_ID_KEY]?.stringValue ?? '';
+  const rightOid =
+    right.mapValue!.fields?.[RESERVED_BSON_OBJECT_ID_KEY]?.stringValue ?? '';
+
+  // TODO(Mila/BSON): use compareUtf8Strings once the bug fix is merged.
+  return primitiveComparator(leftOid, rightOid);
 }
 
 /**
@@ -443,6 +597,10 @@ function canonifyValue(value: Value): string {
   } else if ('arrayValue' in value) {
     return canonifyArray(value.arrayValue!);
   } else if ('mapValue' in value) {
+    // BsonBinaryValue contains an array of bytes, and needs to extract `subtype` and `data` from it before canonifying.
+    if (detectSpecialMapType(value) === 'bsonBinaryValue') {
+      return canonifyBsonBinaryData(value.mapValue!);
+    }
     return canonifyMap(value.mapValue!);
   } else {
     return fail('Invalid value type: ' + JSON.stringify(value));
@@ -464,6 +622,19 @@ function canonifyGeoPoint(geoPoint: LatLng): string {
 
 function canonifyReference(referenceValue: string): string {
   return DocumentKey.fromName(referenceValue).toString();
+}
+
+function canonifyBsonBinaryData(mapValue: MapValue): string {
+  const fields = mapValue!.fields?.[RESERVED_BSON_BINARY_KEY];
+  const subtypeAndData = fields?.bytesValue;
+  if (!subtypeAndData) {
+    throw new Error('Received incorrect bytesValue for BsonBinaryData');
+  }
+  // Normalize the bytesValue to Uint8Array before extracting subtype and data.
+  const bytes = normalizeByteString(subtypeAndData).toUint8Array();
+  return `{__binary__:{subType:${bytes.at(0)},data:${canonifyByteString(
+    bytes.slice(1)
+  )}}}`;
 }
 
 function canonifyMap(mapValue: MapValue): string {
@@ -508,10 +679,16 @@ function canonifyArray(arrayValue: ArrayValue): string {
 export function estimateByteSize(value: Value): number {
   switch (typeOrder(value)) {
     case TypeOrder.NullValue:
+      // MinKeyValue and NullValue has same TypeOrder number, but MinKeyValue is encoded as MapValue
+      // and its size should be estimated differently.
+      if ('mapValue' in value) {
+        return estimateMapByteSize(value.mapValue!);
+      }
       return 4;
     case TypeOrder.BooleanValue:
       return 4;
     case TypeOrder.NumberValue:
+      // TODO(Mila/BSON): return 16 if the value is 128 decimal value
       return 8;
     case TypeOrder.TimestampValue:
       // Timestamps are made up of two distinct numbers (seconds + nanoseconds)
@@ -535,6 +712,11 @@ export function estimateByteSize(value: Value): number {
       return estimateArrayByteSize(value.arrayValue!);
     case TypeOrder.VectorValue:
     case TypeOrder.ObjectValue:
+    case TypeOrder.RegexValue:
+    case TypeOrder.BsonObjectIdValue:
+    case TypeOrder.BsonBinaryValue:
+    case TypeOrder.BsonTimestampValue:
+    case TypeOrder.MaxKeyValue:
       return estimateMapByteSize(value.mapValue!);
     default:
       throw fail('Invalid value type: ' + JSON.stringify(value));
@@ -619,10 +801,67 @@ export function isMapValue(
   return !!value && 'mapValue' in value;
 }
 
-/** Returns true if `value` is a VetorValue. */
+/** Returns true if `value` is a VectorValue. */
 export function isVectorValue(value: ProtoValue | null): boolean {
-  const type = (value?.mapValue?.fields || {})[TYPE_KEY]?.stringValue;
-  return type === VECTOR_VALUE_SENTINEL;
+  return !!value && detectSpecialMapType(value) === 'vectorValue';
+}
+
+/** Returns true if the `Value` represents the canonical {@link #INTERNAL_MAX_VALUE} . */
+export function isMaxValue(value: Value): boolean {
+  return detectSpecialMapType(value) === 'maxValue';
+}
+
+function detectSpecialMapType(value: Value): string {
+  if (!value || !value.mapValue || !value.mapValue.fields) {
+    return ''; // Not a special map type
+  }
+
+  const fields = value.mapValue.fields;
+
+  // Check for type-based mappings
+  const type = fields[TYPE_KEY]?.stringValue;
+  if (type) {
+    const typeMap: Record<string, string> = {
+      [RESERVED_VECTOR_KEY]: 'vectorValue',
+      [RESERVED_MAX_KEY]: 'maxValue',
+      [RESERVED_SERVER_TIMESTAMP_KEY]: 'serverTimestampValue'
+    };
+    if (typeMap[type]) {
+      return typeMap[type];
+    }
+  }
+
+  // Check for BSON-related mappings
+  const bsonMap: Record<string, string> = {
+    [RESERVED_REGEX_KEY]: 'regexValue',
+    [RESERVED_BSON_OBJECT_ID_KEY]: 'bsonObjectIdValue',
+    [RESERVED_INT32_KEY]: 'int32Value',
+    [RESERVED_BSON_TIMESTAMP_KEY]: 'bsonTimestampValue',
+    [RESERVED_BSON_BINARY_KEY]: 'bsonBinaryValue',
+    [RESERVED_MIN_KEY]: 'minKeyValue',
+    [RESERVED_MAX_KEY]: 'maxKeyValue'
+  };
+
+  for (const key in bsonMap) {
+    if (fields[key]) {
+      return bsonMap[key];
+    }
+  }
+
+  return '';
+}
+
+export function isBsonType(value: Value): boolean {
+  const bsonTypes = new Set([
+    'regexValue',
+    'bsonObjectIdValue',
+    'int32Value',
+    'bsonTimestampValue',
+    'bsonBinaryValue',
+    'minKeyValue',
+    'maxKeyValue'
+  ]);
+  return bsonTypes.has(detectSpecialMapType(value));
 }
 
 /** Creates a deep copy of `source`. */
@@ -652,29 +891,10 @@ export function deepClone(source: Value): Value {
   }
 }
 
-/** Returns true if the Value represents the canonical {@link #MAX_VALUE} . */
-export function isMaxValue(value: Value): boolean {
-  return (
-    (((value.mapValue || {}).fields || {})['__type__'] || {}).stringValue ===
-    MAX_VALUE_TYPE
-  );
-}
-
-export const MIN_VECTOR_VALUE = {
-  mapValue: {
-    fields: {
-      [TYPE_KEY]: { stringValue: VECTOR_VALUE_SENTINEL },
-      [VECTOR_MAP_VECTORS_KEY]: {
-        arrayValue: {}
-      }
-    }
-  }
-};
-
 /** Returns the lowest value for the given value type (inclusive). */
 export function valuesGetLowerBound(value: Value): Value {
   if ('nullValue' in value) {
-    return MIN_VALUE;
+    return INTERNAL_MIN_VALUE;
   } else if ('booleanValue' in value) {
     return { booleanValue: false };
   } else if ('integerValue' in value || 'doubleValue' in value) {
@@ -692,6 +912,7 @@ export function valuesGetLowerBound(value: Value): Value {
   } else if ('arrayValue' in value) {
     return { arrayValue: {} };
   } else if ('mapValue' in value) {
+    // TODO(Mila/BSON): add lower bound for bson types for indexing
     if (isVectorValue(value)) {
       return MIN_VECTOR_VALUE;
     }
@@ -722,10 +943,11 @@ export function valuesGetUpperBound(value: Value): Value {
   } else if ('arrayValue' in value) {
     return MIN_VECTOR_VALUE;
   } else if ('mapValue' in value) {
+    // TODO(Mila/BSON): add upper bound for bson types for indexing
     if (isVectorValue(value)) {
       return { mapValue: {} };
     }
-    return MAX_VALUE;
+    return INTERNAL_MAX_VALUE;
   } else {
     return fail('Invalid value type: ' + JSON.stringify(value));
   }

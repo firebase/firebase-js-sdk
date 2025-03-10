@@ -20,6 +20,7 @@ import { Deferred } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
+import { AutoId } from '../../../src/util/misc';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
   addDoc,
@@ -67,7 +68,15 @@ import {
   FirestoreError,
   QuerySnapshot,
   vector,
-  getDocsFromServer
+  getDocsFromServer,
+  bsonBinaryData,
+  bsonObjectId,
+  bsonTimestamp,
+  int32,
+  maxKey,
+  minKey,
+  regex,
+  or
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -2422,6 +2431,435 @@ apiDescribe('Database', persistence => {
           }
         );
       });
+    });
+  });
+
+  describe('BSON types', () => {
+    // TODO(Mila/BSON): simplify the test setup once prod support BSON
+    const NIGHTLY_PROJECT_ID = 'firestore-sdk-nightly';
+    const settings = {
+      ...DEFAULT_SETTINGS,
+      host: 'test-firestore.sandbox.googleapis.com'
+    };
+
+    it('can write and read BSON types', async () => {
+      return withTestDbsSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        1,
+        async dbs => {
+          const coll = collection(dbs[0], AutoId.newId());
+
+          const docRef = await addDoc(coll, {
+            binary: bsonBinaryData(1, new Uint8Array([1, 2, 3])),
+            objectId: bsonObjectId('507f191e810c19729de860ea'),
+            int32: int32(1),
+            min: minKey(),
+            max: maxKey(),
+            regex: regex('^foo', 'i')
+          });
+
+          await setDoc(
+            docRef,
+            {
+              binary: bsonBinaryData(1, new Uint8Array([1, 2, 3])),
+              timestamp: bsonTimestamp(1, 2),
+              int32: int32(2)
+            },
+            { merge: true }
+          );
+
+          const snapshot = await getDoc(docRef);
+          expect(
+            snapshot
+              .get('objectId')
+              .isEqual(bsonObjectId('507f191e810c19729de860ea'))
+          ).to.be.true;
+          expect(snapshot.get('int32').isEqual(int32(2))).to.be.true;
+          expect(snapshot.get('min') === minKey()).to.be.true;
+          expect(snapshot.get('max') === maxKey()).to.be.true;
+          expect(
+            snapshot
+              .get('binary')
+              .isEqual(bsonBinaryData(1, new Uint8Array([1, 2, 3])))
+          ).to.be.true;
+          expect(snapshot.get('timestamp').isEqual(bsonTimestamp(1, 2))).to.be
+            .true;
+          expect(snapshot.get('regex').isEqual(regex('^foo', 'i'))).to.be.true;
+        }
+      );
+    });
+
+    it('can filter and order objectIds', async () => {
+      const testDocs = {
+        a: { key: bsonObjectId('507f191e810c19729de860ea') },
+        b: { key: bsonObjectId('507f191e810c19729de860eb') },
+        c: { key: bsonObjectId('507f191e810c19729de860ec') }
+      };
+
+      return withTestDbsSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        1,
+        async dbs => {
+          const coll = collection(dbs[0], AutoId.newId());
+          await addDoc(coll, testDocs['a']);
+          await addDoc(coll, testDocs['b']);
+          await addDoc(coll, testDocs['c']);
+
+          let orderedQuery = query(
+            coll,
+            where('key', '>', bsonObjectId('507f191e810c19729de860ea')),
+            orderBy('key', 'desc')
+          );
+
+          let snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['c'],
+            testDocs['b']
+          ]);
+
+          orderedQuery = query(
+            coll,
+            where('key', 'in', [
+              bsonObjectId('507f191e810c19729de860ea'),
+              bsonObjectId('507f191e810c19729de860eb')
+            ]),
+            orderBy('key', 'desc')
+          );
+
+          snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['b'],
+            testDocs['a']
+          ]);
+        }
+      );
+    });
+
+    it('can filter and order Int32 values', async () => {
+      const testDocs = {
+        a: { key: int32(-1) },
+        b: { key: int32(1) },
+        c: { key: int32(2) }
+      };
+      return withTestDbsSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        1,
+        async dbs => {
+          const coll = collection(dbs[0], AutoId.newId());
+          await addDoc(coll, testDocs['a']);
+          await addDoc(coll, testDocs['b']);
+          await addDoc(coll, testDocs['c']);
+
+          let orderedQuery = query(
+            coll,
+            where('key', '>=', int32(1)),
+            orderBy('key', 'desc')
+          );
+
+          let snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['c'],
+            testDocs['b']
+          ]);
+
+          orderedQuery = query(
+            coll,
+            where('key', 'not-in', [int32(1)]),
+            orderBy('key', 'desc')
+          );
+
+          snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['c'],
+            testDocs['a']
+          ]);
+        }
+      );
+    });
+
+    it('can filter and order Timestamp values', async () => {
+      const testDocs = {
+        a: { key: bsonTimestamp(1, 1) },
+        b: { key: bsonTimestamp(1, 2) },
+        c: { key: bsonTimestamp(2, 1) }
+      };
+      return withTestDbsSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        1,
+        async dbs => {
+          const coll = collection(dbs[0], AutoId.newId());
+          await addDoc(coll, testDocs['a']);
+          await addDoc(coll, testDocs['b']);
+          await addDoc(coll, testDocs['c']);
+
+          let orderedQuery = query(
+            coll,
+            where('key', '>', bsonTimestamp(1, 1)),
+            orderBy('key', 'desc')
+          );
+
+          let snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['c'],
+            testDocs['b']
+          ]);
+
+          orderedQuery = query(
+            coll,
+            where('key', '!=', bsonTimestamp(1, 1)),
+            orderBy('key', 'desc')
+          );
+
+          snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['c'],
+            testDocs['b']
+          ]);
+        }
+      );
+    });
+
+    it('can filter and order Binary values', async () => {
+      const testDocs = {
+        a: { key: bsonBinaryData(1, new Uint8Array([1, 2, 3])) },
+        b: { key: bsonBinaryData(1, new Uint8Array([1, 2, 4])) },
+        c: { key: bsonBinaryData(2, new Uint8Array([1, 2, 3])) }
+      };
+      return withTestDbsSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        1,
+        async dbs => {
+          const coll = collection(dbs[0], AutoId.newId());
+          await addDoc(coll, testDocs['a']);
+          await addDoc(coll, testDocs['b']);
+          await addDoc(coll, testDocs['c']);
+
+          let orderedQuery = query(
+            coll,
+            where('key', '>', bsonBinaryData(1, new Uint8Array([1, 2, 3]))),
+            orderBy('key', 'desc')
+          );
+
+          let snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['c'],
+            testDocs['b']
+          ]);
+
+          orderedQuery = query(
+            coll,
+            where('key', '>=', bsonBinaryData(1, new Uint8Array([1, 2, 3]))),
+            where('key', '<', bsonBinaryData(2, new Uint8Array([1, 2, 3]))),
+            orderBy('key', 'desc')
+          );
+
+          snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['b'],
+            testDocs['a']
+          ]);
+        }
+      );
+    });
+
+    it('can filter and order Regex values', async () => {
+      const testDocs = {
+        a: { key: regex('^bar', 'i') },
+        b: { key: regex('^bar', 'x') },
+        c: { key: regex('^baz', 'i') }
+      };
+      return withTestDbsSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        1,
+        async dbs => {
+          const coll = collection(dbs[0], AutoId.newId());
+          await addDoc(coll, testDocs['a']);
+          await addDoc(coll, testDocs['b']);
+          await addDoc(coll, testDocs['c']);
+
+          const orderedQuery = query(
+            coll,
+            or(
+              where('key', '>', regex('^bar', 'x')),
+              where('key', '!=', regex('^bar', 'x'))
+            ),
+            orderBy('key', 'desc')
+          );
+
+          const snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['c'],
+            testDocs['a']
+          ]);
+        }
+      );
+    });
+
+    it('can filter and order minKey values', async () => {
+      const testDocs = {
+        a: { key: minKey() },
+        b: { key: minKey() },
+        c: { key: maxKey() }
+      };
+      return withTestDbsSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        1,
+        async dbs => {
+          const coll = collection(dbs[0], AutoId.newId());
+          await addDoc(coll, testDocs['a']);
+          await addDoc(coll, testDocs['b']);
+          await addDoc(coll, testDocs['c']);
+
+          const orderedQuery = query(
+            coll,
+            where('key', '==', minKey()),
+            orderBy('key', 'desc') // minKeys are equal, would sort by documentId as secondary order
+          );
+          const snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['b'],
+            testDocs['a']
+          ]);
+        }
+      );
+    });
+
+    it('can filter and order maxKey values', async () => {
+      const testDocs = {
+        a: { key: minKey() },
+        b: { key: maxKey() },
+        c: { key: maxKey() }
+      };
+      return withTestDbsSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        1,
+        async dbs => {
+          const coll = collection(dbs[0], AutoId.newId());
+          await addDoc(coll, testDocs['a']);
+          await addDoc(coll, testDocs['b']);
+          await addDoc(coll, testDocs['c']);
+
+          const orderedQuery = query(
+            coll,
+            where('key', '==', maxKey()),
+            orderBy('key', 'desc') // maxKeys are equal, would sort by documentId as secondary order
+          );
+          const snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['c'],
+            testDocs['b']
+          ]);
+        }
+      );
+    });
+
+    it('can listen to documents with bson types', async () => {
+      const testDocs = {
+        a: { key: maxKey() },
+        b: { key: minKey() },
+        c: { key: bsonTimestamp(1, 2) },
+        d: { key: bsonObjectId('507f191e810c19729de860ea') },
+        e: { key: bsonBinaryData(1, new Uint8Array([1, 2, 3])) },
+        f: { key: regex('^foo', 'i') }
+      };
+      return withTestDbsSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        1,
+        async dbs => {
+          const coll = collection(dbs[0], AutoId.newId());
+          await addDoc(coll, testDocs['a']);
+          await addDoc(coll, testDocs['b']);
+          await addDoc(coll, testDocs['c']);
+          await addDoc(coll, testDocs['d']);
+          await addDoc(coll, testDocs['e']);
+          await addDoc(coll, testDocs['f']);
+
+          const orderedQuery = query(coll, orderBy('key', 'asc'));
+
+          const storeEvent = new EventsAccumulator<QuerySnapshot>();
+          const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+
+          let listenSnapshot = await storeEvent.awaitEvent();
+          expect(toDataArray(listenSnapshot)).to.deep.equal([
+            testDocs['b'],
+            testDocs['c'],
+            testDocs['e'],
+            testDocs['d'],
+            testDocs['f'],
+            testDocs['a']
+          ]);
+
+          const newData = { key: int32(2) };
+          await setDoc(doc(coll, 'g'), newData);
+          listenSnapshot = await storeEvent.awaitEvent();
+          expect(toDataArray(listenSnapshot)).to.deep.equal([
+            testDocs['b'],
+            newData,
+            testDocs['c'],
+            testDocs['e'],
+            testDocs['d'],
+            testDocs['f'],
+            testDocs['a']
+          ]);
+
+          unsubscribe();
+        }
+      );
+    });
+
+    // TODO(Mila/BSON): Skip the runTransaction tests against nightly when running on browsers. remove when it is supported by prod
+    // eslint-disable-next-line no-restricted-properties
+    it.skip('can run transactions on documents with bson types', async () => {
+      const testDocs = {
+        a: { key: bsonTimestamp(1, 2) },
+        b: { key: regex('^foo', 'i') },
+        c: { key: bsonBinaryData(1, new Uint8Array([1, 2, 3])) }
+      };
+      return withTestDbsSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        1,
+        async dbs => {
+          const coll = collection(dbs[0], AutoId.newId());
+          const docA = await addDoc(coll, testDocs['a']);
+          const docB = await addDoc(coll, { key: 'place holder' });
+          const docC = await addDoc(coll, testDocs['c']);
+
+          await runTransaction(dbs[0], async transaction => {
+            const docSnapshot = await transaction.get(docA);
+            expect(docSnapshot.data()).to.deep.equal(testDocs['a']);
+            transaction.set(docB, testDocs['b']);
+            transaction.delete(docC);
+          });
+
+          const orderedQuery = query(coll, orderBy('key', 'asc'));
+          const snapshot = await getDocs(orderedQuery);
+
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['a'],
+            testDocs['b']
+          ]);
+        }
+      );
     });
   });
 });

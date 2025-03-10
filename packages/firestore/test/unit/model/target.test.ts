@@ -31,8 +31,8 @@ import {
 import { IndexKind } from '../../../src/model/field_index';
 import {
   canonicalId,
-  MAX_VALUE,
-  MIN_VALUE,
+  INTERNAL_MAX_VALUE,
+  INTERNAL_MIN_VALUE,
   valueEquals
 } from '../../../src/model/values';
 import {
@@ -207,11 +207,11 @@ describe('Target Bounds', () => {
     const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
 
     const lowerBound = targetGetLowerBound(target, index);
-    expect(lowerBound?.position[0]).to.equal(MIN_VALUE);
+    expect(lowerBound?.position[0]).to.equal(INTERNAL_MIN_VALUE);
     expect(lowerBound?.inclusive).to.be.true;
 
     const upperBound = targetGetUpperBound(target, index);
-    expect(upperBound?.position[0]).to.equal(MAX_VALUE);
+    expect(upperBound?.position[0]).to.equal(INTERNAL_MAX_VALUE);
     expect(upperBound?.inclusive).to.be.true;
   });
 
@@ -241,7 +241,7 @@ describe('Target Bounds', () => {
     verifyBound(lowerBound, true, 'bar');
 
     const upperBound = targetGetUpperBound(target, index);
-    expect(upperBound?.position[0]).to.equal(MAX_VALUE);
+    expect(upperBound?.position[0]).to.equal(INTERNAL_MAX_VALUE);
     expect(upperBound?.inclusive).to.be.true;
   });
 
@@ -337,7 +337,7 @@ describe('Target Bounds', () => {
     const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
 
     const lowerBound = targetGetLowerBound(target, index);
-    expect(lowerBound?.position[0]).to.equal(MIN_VALUE);
+    expect(lowerBound?.position[0]).to.equal(INTERNAL_MIN_VALUE);
     expect(lowerBound?.inclusive).to.be.true;
 
     const upperBound = targetGetUpperBound(target, index);

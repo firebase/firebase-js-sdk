@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,22 @@
  * limitations under the License.
  */
 
-export {
-  increment,
-  arrayRemove,
-  arrayUnion,
-  serverTimestamp,
-  deleteField,
-  vector,
-  int32,
-  regex,
-  bsonBinaryData,
-  bsonObjectId,
-  bsonTimestamp,
-  minKey,
-  maxKey
-} from '../lite-api/field_value_impl';
+/**
+ * Represent a "Max Key" type in Firestore documents.
+ *
+ * @class MaxKey
+ */
+export class MaxKey {
+  private static MAX_KEY_VALUE_INSTANCE: MaxKey | null = null;
+  /** A type string to uniquely identify instances of this class. */
+  readonly type = 'MaxKey';
+
+  private constructor() {}
+
+  static instance(): MaxKey {
+    if (!MaxKey.MAX_KEY_VALUE_INSTANCE) {
+      MaxKey.MAX_KEY_VALUE_INSTANCE = new MaxKey();
+    }
+    return MaxKey.MAX_KEY_VALUE_INSTANCE;
+  }
+}
