@@ -28,6 +28,8 @@ import {
   INTERNAL_MAX_VALUE,
   INTERNAL_MIN_VALUE,
   lowerBoundCompare,
+  MAX_KEY_VALUE,
+  MIN_KEY_VALUE,
   upperBoundCompare,
   valuesGetLowerBound,
   valuesGetUpperBound
@@ -387,7 +389,7 @@ function targetGetAscendingBound(
         break;
       case Operator.NOT_EQUAL:
       case Operator.NOT_IN:
-        filterValue = INTERNAL_MIN_VALUE;
+        filterValue = MIN_KEY_VALUE;
         break;
       default:
       // Remaining filters cannot be used as lower bounds.
@@ -462,7 +464,7 @@ function targetGetDescendingBound(
         break;
       case Operator.NOT_EQUAL:
       case Operator.NOT_IN:
-        filterValue = INTERNAL_MAX_VALUE;
+        filterValue = MAX_KEY_VALUE;
         break;
       default:
       // Remaining filters cannot be used as upper bounds.

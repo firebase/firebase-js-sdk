@@ -44,7 +44,9 @@ import {
   Query,
   getDocsFromServer,
   getDocsFromCache,
-  _AutoId
+  _AutoId,
+  disableNetwork,
+  enableNetwork
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -445,9 +447,26 @@ export function withTestCollectionSettings<T>(
   docs: { [key: string]: DocumentData },
   fn: (collection: CollectionReference, db: Firestore) => Promise<T>
 ): Promise<T> {
-  const collectionId = _AutoId.newId();
-  return batchCommitDocsToCollection(
+  return withTestProjectIdAndCollectionSettings(
     persistence,
+    DEFAULT_PROJECT_ID,
+    settings,
+    docs,
+    fn
+  );
+}
+
+export function withTestProjectIdAndCollectionSettings<T>(
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
+  projectId: string,
+  settings: PrivateSettings,
+  docs: { [key: string]: DocumentData },
+  fn: (collection: CollectionReference, db: Firestore) => Promise<T>
+): Promise<T> {
+  const collectionId = _AutoId.newId();
+  return batchCommitDocsToCollectionWithSettings(
+    persistence,
+    projectId,
     settings,
     docs,
     collectionId,
@@ -462,9 +481,27 @@ export function batchCommitDocsToCollection<T>(
   collectionId: string,
   fn: (collection: CollectionReference, db: Firestore) => Promise<T>
 ): Promise<T> {
-  return withTestDbsSettings(
+  return batchCommitDocsToCollectionWithSettings(
     persistence,
     DEFAULT_PROJECT_ID,
+    settings,
+    docs,
+    collectionId,
+    fn
+  );
+}
+
+export function batchCommitDocsToCollectionWithSettings<T>(
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
+  projectId: string,
+  settings: PrivateSettings,
+  docs: { [key: string]: DocumentData },
+  collectionId: string,
+  fn: (collection: CollectionReference, db: Firestore) => Promise<T>
+): Promise<T> {
+  return withTestDbsSettings(
+    persistence,
+    projectId,
     settings,
     2,
     ([testDb, setupDb]) => {
@@ -556,4 +593,35 @@ export async function checkOnlineAndOfflineResultsMatch(
 
   const docsFromCache = await getDocsFromCache(query);
   expect(toIds(docsFromServer)).to.deep.equal(toIds(docsFromCache));
+}
+
+/**
+ * Checks that documents fetched from the server and stored in the cache can be
+ * successfully retrieved from the cache and matches the expected documents.
+ *
+ * This function performs the following steps:
+ * 1. Fetch documents from the server for provided query and populate the cache.
+ * 2. Disables the network connection to simulate offline mode.
+ * 3. Retrieves the documents from the cache using the same query.
+ * 4. Compares the cached documents with the expected documents.
+ *
+ * @param query The query to check.
+ * @param db The Firestore database instance.
+ * @param expectedDocs Optional ordered list of document data that are expected to be retrieved from the cache.
+ */
+export async function checkCacheRoundTrip(
+  query: Query,
+  db: Firestore,
+  expectedDocs: DocumentData[]
+): Promise<void> {
+  await getDocsFromServer(query);
+
+  await disableNetwork(db);
+  const docsFromCache = await getDocsFromCache(query);
+
+  if (expectedDocs.length !== 0) {
+    expect(expectedDocs).to.deep.equal(toDataArray(docsFromCache));
+  }
+
+  await enableNetwork(db);
 }

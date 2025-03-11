@@ -21,7 +21,6 @@ import {
   LatLng,
   MapValue,
   Timestamp,
-  Value as ProtoValue,
   Value
 } from '../protos/firestore_proto_api';
 import { fail } from '../util/assert';
@@ -74,7 +73,7 @@ export const INTERNAL_MAX_VALUE: Value = {
   }
 };
 
-export const MIN_VECTOR_VALUE = {
+export const MIN_VECTOR_VALUE: Value = {
   mapValue: {
     fields: {
       [TYPE_KEY]: { stringValue: RESERVED_VECTOR_KEY },
@@ -84,6 +83,96 @@ export const MIN_VECTOR_VALUE = {
     }
   }
 };
+
+export const MIN_KEY_VALUE: Value = {
+  mapValue: {
+    fields: {
+      [RESERVED_MIN_KEY]: {
+        nullValue: 'NULL_VALUE'
+      }
+    }
+  }
+};
+
+export const MAX_KEY_VALUE: Value = {
+  mapValue: {
+    fields: {
+      [RESERVED_MAX_KEY]: {
+        nullValue: 'NULL_VALUE'
+      }
+    }
+  }
+};
+
+export const MIN_BSON_OBJECT_ID_VALUE: Value = {
+  mapValue: {
+    fields: {
+      [RESERVED_BSON_OBJECT_ID_KEY]: {
+        stringValue: ''
+      }
+    }
+  }
+};
+
+export const MIN_BSON_TIMESTAMP_VALUE: Value = {
+  mapValue: {
+    fields: {
+      [RESERVED_BSON_TIMESTAMP_KEY]: {
+        mapValue: {
+          fields: {
+            // Both seconds and increment are 32 bit unsigned integers
+            [RESERVED_BSON_TIMESTAMP_SECONDS_KEY]: {
+              integerValue: 0
+            },
+            [RESERVED_BSON_TIMESTAMP_INCREMENT_KEY]: {
+              integerValue: 0
+            }
+          }
+        }
+      }
+    }
+  }
+};
+
+export const MIN_REGEX_VALUE: Value = {
+  mapValue: {
+    fields: {
+      [RESERVED_REGEX_KEY]: {
+        mapValue: {
+          fields: {
+            [RESERVED_REGEX_PATTERN_KEY]: { stringValue: '' },
+            [RESERVED_REGEX_OPTIONS_KEY]: { stringValue: '' }
+          }
+        }
+      }
+    }
+  }
+};
+
+export const MIN_BSON_BINARY_VALUE: Value = {
+  mapValue: {
+    fields: {
+      [RESERVED_BSON_BINARY_KEY]: {
+        // bsonBinaryValue should have at least one byte as subtype
+        bytesValue: Uint8Array.from([0])
+      }
+    }
+  }
+};
+
+export enum SpecialMapValueType {
+  REGEX = 'regexValue',
+  BSON_OBJECT_ID = 'bsonObjectIdValue',
+  INT32 = 'int32Value',
+  BSON_TIMESTAMP = 'bsonTimestampValue',
+  BSON_BINARY = 'bsonBinaryValue',
+  MIN_KEY = 'minKeyValue',
+  MAX_KEY = 'maxKeyValue',
+  INTERNAL_MAX = 'maxValue',
+  VECTOR = 'vectorValue',
+  SERVER_TIMESTAMP = 'serverTimestampValue',
+  REGULAR_MAP = 'regularMapValue'
+}
 
 /** Extracts the backend's type order for the provided value. */
 export function typeOrder(value: Value): TypeOrder {
@@ -108,25 +197,25 @@ export function typeOrder(value: Value): TypeOrder {
   } else if ('mapValue' in value) {
     const valueType = detectSpecialMapType(value);
     switch (valueType) {
-      case 'serverTimestampValue':
+      case SpecialMapValueType.SERVER_TIMESTAMP:
         return TypeOrder.ServerTimestampValue;
-      case 'maxValue':
+      case SpecialMapValueType.INTERNAL_MAX:
         return TypeOrder.MaxValue;
-      case 'vectorValue':
+      case SpecialMapValueType.VECTOR:
         return TypeOrder.VectorValue;
-      case 'regexValue':
+      case SpecialMapValueType.REGEX:
         return TypeOrder.RegexValue;
-      case 'bsonObjectIdValue':
+      case SpecialMapValueType.BSON_OBJECT_ID:
         return TypeOrder.BsonObjectIdValue;
-      case 'int32Value':
+      case SpecialMapValueType.INT32:
         return TypeOrder.NumberValue;
-      case 'bsonTimestampValue':
+      case SpecialMapValueType.BSON_TIMESTAMP:
         return TypeOrder.BsonTimestampValue;
-      case 'bsonBinaryValue':
+      case SpecialMapValueType.BSON_BINARY:
         return TypeOrder.BsonBinaryValue;
-      case 'minKeyValue':
+      case SpecialMapValueType.MIN_KEY:
         return TypeOrder.MinKeyValue;
-      case 'maxKeyValue':
+      case SpecialMapValueType.MAX_KEY:
         return TypeOrder.MaxKeyValue;
       default:
         return TypeOrder.ObjectValue;
@@ -230,8 +319,8 @@ function blobEquals(left: Value, right: Value): boolean {
 export function numberEquals(left: Value, right: Value): boolean {
   if (
     ('integerValue' in left && 'integerValue' in right) ||
-    (detectSpecialMapType(left) === 'int32Value' &&
-      detectSpecialMapType(right) === 'int32Value')
+    (detectSpecialMapType(left) === SpecialMapValueType.INT32 &&
+      detectSpecialMapType(right) === SpecialMapValueType.INT32)
   ) {
     return extractNumber(left) === extractNumber(right);
   } else if ('doubleValue' in left && 'doubleValue' in right) {
@@ -338,7 +427,7 @@ export function valueCompare(left: Value, right: Value): number {
 
 export function extractNumber(value: Value): number {
   let numberValue;
-  if (detectSpecialMapType(value) === 'int32Value') {
+  if (detectSpecialMapType(value) === SpecialMapValueType.INT32) {
     numberValue = value.mapValue!.fields![RESERVED_INT32_KEY].integerValue!;
   } else {
     numberValue = value.integerValue || value.doubleValue;
@@ -598,7 +687,7 @@ function canonifyValue(value: Value): string {
     return canonifyArray(value.arrayValue!);
   } else if ('mapValue' in value) {
     // BsonBinaryValue contains an array of bytes, and needs to extract `subtype` and `data` from it before canonifying.
-    if (detectSpecialMapType(value) === 'bsonBinaryValue') {
+    if (detectSpecialMapType(value) === SpecialMapValueType.BSON_BINARY) {
       return canonifyBsonBinaryData(value.mapValue!);
     }
     return canonifyMap(value.mapValue!);
@@ -679,11 +768,6 @@ function canonifyArray(arrayValue: ArrayValue): string {
 export function estimateByteSize(value: Value): number {
   switch (typeOrder(value)) {
     case TypeOrder.NullValue:
-      // MinKeyValue and NullValue has same TypeOrder number, but MinKeyValue is encoded as MapValue
-      // and its size should be estimated differently.
-      if ('mapValue' in value) {
-        return estimateMapByteSize(value.mapValue!);
-      }
       return 4;
     case TypeOrder.BooleanValue:
       return 4;
@@ -716,6 +800,7 @@ export function estimateByteSize(value: Value): number {
     case TypeOrder.BsonObjectIdValue:
     case TypeOrder.BsonBinaryValue:
     case TypeOrder.BsonTimestampValue:
+    case TypeOrder.MinKeyValue:
     case TypeOrder.MaxKeyValue:
       return estimateMapByteSize(value.mapValue!);
     default:
@@ -801,19 +886,9 @@ export function isMapValue(
   return !!value && 'mapValue' in value;
 }
 
-/** Returns true if `value` is a VectorValue. */
-export function isVectorValue(value: ProtoValue | null): boolean {
-  return !!value && detectSpecialMapType(value) === 'vectorValue';
-}
-
-/** Returns true if the `Value` represents the canonical {@link #INTERNAL_MAX_VALUE} . */
-export function isMaxValue(value: Value): boolean {
-  return detectSpecialMapType(value) === 'maxValue';
-}
-
-function detectSpecialMapType(value: Value): string {
+export function detectSpecialMapType(value: Value): SpecialMapValueType {
   if (!value || !value.mapValue || !value.mapValue.fields) {
-    return ''; // Not a special map type
+    return SpecialMapValueType.REGULAR_MAP; // Not a special map type
   }
 
   const fields = value.mapValue.fields;
@@ -821,10 +896,10 @@ function detectSpecialMapType(value: Value): string {
   // Check for type-based mappings
   const type = fields[TYPE_KEY]?.stringValue;
   if (type) {
-    const typeMap: Record<string, string> = {
-      [RESERVED_VECTOR_KEY]: 'vectorValue',
-      [RESERVED_MAX_KEY]: 'maxValue',
-      [RESERVED_SERVER_TIMESTAMP_KEY]: 'serverTimestampValue'
+    const typeMap: Record<string, SpecialMapValueType> = {
+      [RESERVED_VECTOR_KEY]: SpecialMapValueType.VECTOR,
+      [RESERVED_MAX_KEY]: SpecialMapValueType.INTERNAL_MAX,
+      [RESERVED_SERVER_TIMESTAMP_KEY]: SpecialMapValueType.SERVER_TIMESTAMP
     };
     if (typeMap[type]) {
       return typeMap[type];
@@ -832,14 +907,14 @@ function detectSpecialMapType(value: Value): string {
   }
 
   // Check for BSON-related mappings
-  const bsonMap: Record<string, string> = {
-    [RESERVED_REGEX_KEY]: 'regexValue',
-    [RESERVED_BSON_OBJECT_ID_KEY]: 'bsonObjectIdValue',
-    [RESERVED_INT32_KEY]: 'int32Value',
-    [RESERVED_BSON_TIMESTAMP_KEY]: 'bsonTimestampValue',
-    [RESERVED_BSON_BINARY_KEY]: 'bsonBinaryValue',
-    [RESERVED_MIN_KEY]: 'minKeyValue',
-    [RESERVED_MAX_KEY]: 'maxKeyValue'
+  const bsonMap: Record<string, SpecialMapValueType> = {
+    [RESERVED_REGEX_KEY]: SpecialMapValueType.REGEX,
+    [RESERVED_BSON_OBJECT_ID_KEY]: SpecialMapValueType.BSON_OBJECT_ID,
+    [RESERVED_INT32_KEY]: SpecialMapValueType.INT32,
+    [RESERVED_BSON_TIMESTAMP_KEY]: SpecialMapValueType.BSON_TIMESTAMP,
+    [RESERVED_BSON_BINARY_KEY]: SpecialMapValueType.BSON_BINARY,
+    [RESERVED_MIN_KEY]: SpecialMapValueType.MIN_KEY,
+    [RESERVED_MAX_KEY]: SpecialMapValueType.MAX_KEY
   };
 
   for (const key in bsonMap) {
@@ -848,18 +923,18 @@ function detectSpecialMapType(value: Value): string {
     }
   }
 
-  return '';
+  return SpecialMapValueType.REGULAR_MAP;
 }
 
 export function isBsonType(value: Value): boolean {
   const bsonTypes = new Set([
-    'regexValue',
-    'bsonObjectIdValue',
-    'int32Value',
-    'bsonTimestampValue',
-    'bsonBinaryValue',
-    'minKeyValue',
-    'maxKeyValue'
+    SpecialMapValueType.REGEX,
+    SpecialMapValueType.BSON_OBJECT_ID,
+    SpecialMapValueType.INT32,
+    SpecialMapValueType.BSON_TIMESTAMP,
+    SpecialMapValueType.BSON_BINARY,
+    SpecialMapValueType.MIN_KEY,
+    SpecialMapValueType.MAX_KEY
   ]);
   return bsonTypes.has(detectSpecialMapType(value));
 }
@@ -912,9 +987,24 @@ export function valuesGetLowerBound(value: Value): Value {
   } else if ('arrayValue' in value) {
     return { arrayValue: {} };
   } else if ('mapValue' in value) {
-    // TODO(Mila/BSON): add lower bound for bson types for indexing
-    if (isVectorValue(value)) {
+    const type = detectSpecialMapType(value);
+    if (type === SpecialMapValueType.VECTOR) {
       return MIN_VECTOR_VALUE;
+    } else if (type === SpecialMapValueType.BSON_OBJECT_ID) {
+      return MIN_BSON_OBJECT_ID_VALUE;
+    } else if (type === SpecialMapValueType.BSON_TIMESTAMP) {
+      return MIN_BSON_TIMESTAMP_VALUE;
+    } else if (type === SpecialMapValueType.BSON_BINARY) {
+      return MIN_BSON_BINARY_VALUE;
+    } else if (type === SpecialMapValueType.REGEX) {
+      return MIN_REGEX_VALUE;
+    } else if (type === SpecialMapValueType.INT32) {
+      // int32Value is treated the same as integerValue and doubleValue
+      return { doubleValue: NaN };
+    } else if (type === SpecialMapValueType.MIN_KEY) {
+      return MIN_KEY_VALUE;
+    } else if (type === SpecialMapValueType.MAX_KEY) {
+      return MAX_KEY_VALUE;
     }
     return { mapValue: {} };
   } else {
@@ -925,29 +1015,44 @@ export function valuesGetLowerBound(value: Value): Value {
 /** Returns the largest value for the given value type (exclusive). */
 export function valuesGetUpperBound(value: Value): Value {
   if ('nullValue' in value) {
-    return { booleanValue: false };
+    return MIN_KEY_VALUE;
   } else if ('booleanValue' in value) {
     return { doubleValue: NaN };
   } else if ('integerValue' in value || 'doubleValue' in value) {
     return { timestampValue: { seconds: Number.MIN_SAFE_INTEGER } };
   } else if ('timestampValue' in value) {
-    return { stringValue: '' };
+    return MIN_BSON_TIMESTAMP_VALUE;
   } else if ('stringValue' in value) {
     return { bytesValue: '' };
   } else if ('bytesValue' in value) {
-    return refValue(DatabaseId.empty(), DocumentKey.empty());
+    return MIN_BSON_BINARY_VALUE;
   } else if ('referenceValue' in value) {
-    return { geoPointValue: { latitude: -90, longitude: -180 } };
+    return MIN_BSON_OBJECT_ID_VALUE;
   } else if ('geoPointValue' in value) {
-    return { arrayValue: {} };
+    return MIN_REGEX_VALUE;
   } else if ('arrayValue' in value) {
     return MIN_VECTOR_VALUE;
   } else if ('mapValue' in value) {
-    // TODO(Mila/BSON): add upper bound for bson types for indexing
-    if (isVectorValue(value)) {
+    const type = detectSpecialMapType(value);
+    if (type === SpecialMapValueType.VECTOR) {
       return { mapValue: {} };
+    } else if (type === SpecialMapValueType.BSON_OBJECT_ID) {
+      return { geoPointValue: { latitude: -90, longitude: -180 } };
+    } else if (type === SpecialMapValueType.BSON_TIMESTAMP) {
+      return { stringValue: '' };
+    } else if (type === SpecialMapValueType.BSON_BINARY) {
+      return refValue(DatabaseId.empty(), DocumentKey.empty());
+    } else if (type === SpecialMapValueType.REGEX) {
+      return { arrayValue: {} };
+    } else if (type === SpecialMapValueType.INT32) {
+      // int32Value is treated the same as integerValue and doubleValue
+      return { timestampValue: { seconds: Number.MIN_SAFE_INTEGER } };
+    } else if (type === SpecialMapValueType.MIN_KEY) {
+      return { booleanValue: false };
+    } else if (type === SpecialMapValueType.MAX_KEY) {
+      return INTERNAL_MAX_VALUE;
     }
-    return INTERNAL_MAX_VALUE;
+    return MAX_KEY_VALUE;
   } else {
     return fail('Invalid value type: ' + JSON.stringify(value));
   }

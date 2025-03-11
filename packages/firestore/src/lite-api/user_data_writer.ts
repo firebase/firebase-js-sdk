@@ -83,9 +83,6 @@ export abstract class AbstractUserDataWriter {
   ): unknown {
     switch (typeOrder(value)) {
       case TypeOrder.NullValue:
-        if ('mapValue' in value) {
-          return minKey();
-        }
         return null;
       case TypeOrder.BooleanValue:
         return value.booleanValue!;
@@ -122,6 +119,8 @@ export abstract class AbstractUserDataWriter {
         return this.convertToBsonTimestampValue(value.mapValue!);
       case TypeOrder.MaxKeyValue:
         return maxKey();
+      case TypeOrder.MinKeyValue:
+        return minKey();
       default:
         throw fail('Invalid value type: ' + JSON.stringify(value));
     }

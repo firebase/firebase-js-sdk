@@ -17,7 +17,6 @@
 
 import { expect } from 'chai';
 
-import { AutoId } from '../../../src/util/misc';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
@@ -52,6 +51,7 @@ import {
 } from '../util/firebase_export';
 import {
   apiDescribe,
+  withTestProjectIdAndCollectionSettings,
   withTestDb,
   withTestDbsSettings,
   withTestDoc
@@ -384,13 +384,13 @@ apiDescribe('Firestore', persistence => {
   });
 
   it('invalid 32-bit integer gets rejected', async () => {
-    return withTestDbsSettings(
+    return withTestProjectIdAndCollectionSettings(
       persistence,
       NIGHTLY_PROJECT_ID,
       settings,
-      1,
-      async dbs => {
-        const docRef = doc(dbs[0], 'test-collection/test-doc');
+      {},
+      async coll => {
+        const docRef = doc(coll, 'test-doc');
         let errorMessage;
         try {
           await setDoc(docRef, { key: int32(2147483648) });
@@ -414,13 +414,13 @@ apiDescribe('Firestore', persistence => {
   });
 
   it('invalid BSON timestamp gets rejected', async () => {
-    return withTestDbsSettings(
+    return withTestProjectIdAndCollectionSettings(
       persistence,
       NIGHTLY_PROJECT_ID,
       settings,
-      1,
-      async dbs => {
-        const docRef = doc(dbs[0], 'test-collection/test-doc');
+      {},
+      async coll => {
+        const docRef = doc(coll, 'test-doc');
         let errorMessage;
         try {
           // BSON timestamp larger than 32-bit integer gets rejected
@@ -446,13 +446,13 @@ apiDescribe('Firestore', persistence => {
   });
 
   it('invalid regex value gets rejected', async () => {
-    return withTestDbsSettings(
+    return withTestProjectIdAndCollectionSettings(
       persistence,
       NIGHTLY_PROJECT_ID,
       settings,
-      1,
-      async dbs => {
-        const docRef = doc(dbs[0], 'test-collection/test-doc');
+      {},
+      async coll => {
+        const docRef = doc(coll, 'test-doc');
         let errorMessage;
         try {
           await setDoc(docRef, { key: regex('foo', 'a') });
@@ -467,13 +467,13 @@ apiDescribe('Firestore', persistence => {
   });
 
   it('invalid bsonObjectId value gets rejected', async () => {
-    return withTestDbsSettings(
+    return withTestProjectIdAndCollectionSettings(
       persistence,
       NIGHTLY_PROJECT_ID,
       settings,
-      1,
-      async dbs => {
-        const docRef = doc(dbs[0], 'test-collection/test-doc');
+      {},
+      async coll => {
+        const docRef = doc(coll, 'test-doc');
 
         let errorMessage;
         try {
@@ -490,13 +490,13 @@ apiDescribe('Firestore', persistence => {
   });
 
   it('invalid bsonBinaryData value gets rejected', async () => {
-    return withTestDbsSettings(
+    return withTestProjectIdAndCollectionSettings(
       persistence,
       NIGHTLY_PROJECT_ID,
       settings,
-      1,
-      async dbs => {
-        const docRef = doc(dbs[0], 'test-collection/test-doc');
+      {},
+      async coll => {
+        const docRef = doc(coll, 'test-doc');
         let errorMessage;
         try {
           await setDoc(docRef, {
@@ -537,18 +537,13 @@ apiDescribe('Firestore', persistence => {
       maxValue: { key: maxKey() }
     };
 
-    return withTestDbsSettings(
+    return withTestProjectIdAndCollectionSettings(
       persistence,
       NIGHTLY_PROJECT_ID,
       settings,
-      1,
-      async dbs => {
-        const coll = collection(dbs[0], AutoId.newId());
-        for (const key of Object.keys(testDocs)) {
-          await setDoc(doc(coll, key), testDocs[key]);
-        }
-
-        // TODO(Mila/BSON): replace after prod supports bson
+      testDocs,
+      async coll => {
+        // TODO(Mila/BSON): remove after prod supports bson
         const docRef = doc(coll, 'doc');
         await setDoc(doc(coll, 'referenceValue'), { key: docRef });
 

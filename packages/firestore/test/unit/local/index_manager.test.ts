@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 
+import { Bytes, GeoPoint } from '../../../src/';
 import { User } from '../../../src/auth/user';
 import { FieldFilter } from '../../../src/core/filter';
 import {
@@ -30,7 +31,16 @@ import {
   queryWithLimit,
   queryWithStartAt
 } from '../../../src/core/query';
-import { vector } from '../../../src/lite-api/field_value_impl';
+import {
+  bsonBinaryData,
+  bsonObjectId,
+  bsonTimestamp,
+  int32,
+  maxKey,
+  minKey,
+  regex,
+  vector
+} from '../../../src/lite-api/field_value_impl';
 import { Timestamp } from '../../../src/lite-api/timestamp';
 import {
   displayNameForIndexType,
@@ -71,6 +81,7 @@ import {
   orFilter,
   path,
   query,
+  ref,
   version,
   wrap
 } from '../../util/helpers';
@@ -325,6 +336,14 @@ describe('IndexedDbIndexManager', async () => {
     );
     await addDoc('coll/doc1', { 'exists': 1 });
     await addDoc('coll/doc2', {});
+  });
+
+  it('adds string', async () => {
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['exists', IndexKind.ASCENDING]] })
+    );
+    await addDoc('coll/doc1', { 'exists': 'a' });
+    await addDoc('coll/doc2', { 'exists': 'b' });
   });
 
   it('applies orderBy', async () => {
@@ -1854,6 +1873,592 @@ describe('IndexedDbIndexManager', async () => {
     await indexManager.deleteAllFieldIndexes();
     await validateIsNoneIndex(query1);
     await validateIsNoneIndex(query2);
+  });
+
+  describe('BSON type indexing', () => {
+    it('can index BSON ObjectId fields', async () => {
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['key', IndexKind.ASCENDING]] })
+      );
+
+      await addDoc('coll/doc1', {
+        key: bsonObjectId('507f191e810c19729de860ea')
+      });
+      await addDoc('coll/doc2', {
+        key: bsonObjectId('507f191e810c19729de860eb')
+      });
+      await addDoc('coll/doc3', {
+        key: bsonObjectId('507f191e810c19729de860ec')
+      });
+
+      const fieldIndexes = await indexManager.getFieldIndexes('coll');
+      expect(fieldIndexes).to.have.length(1);
+
+      let q = queryWithAddedOrderBy(query('coll'), orderBy('key'));
+      await verifyResults(q, 'coll/doc1', 'coll/doc2', 'coll/doc3');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '==', bsonObjectId('507f191e810c19729de860ea'))
+      );
+      await verifyResults(q, 'coll/doc1');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '!=', bsonObjectId('507f191e810c19729de860ea'))
+      );
+      await verifyResults(q, 'coll/doc2', 'coll/doc3');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '>=', bsonObjectId('507f191e810c19729de860eb'))
+      );
+      await verifyResults(q, 'coll/doc2', 'coll/doc3');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '<=', bsonObjectId('507f191e810c19729de860eb'))
+      );
+      await verifyResults(q, 'coll/doc1', 'coll/doc2');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '>', bsonObjectId('507f191e810c19729de860eb'))
+      );
+      await verifyResults(q, 'coll/doc3');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '<', bsonObjectId('507f191e810c19729de860eb'))
+      );
+      await verifyResults(q, 'coll/doc1');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '>', bsonObjectId('507f191e810c19729de860ec'))
+      );
+      await verifyResults(q);
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '<', bsonObjectId('507f191e810c19729de860ea'))
+      );
+      await verifyResults(q);
+    });
+
+    it('can index BSON Binary Data fields', async () => {
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['key', IndexKind.ASCENDING]] })
+      );
+      await addDoc('coll/doc1', {
+        key: bsonBinaryData(1, new Uint8Array([1, 2, 3]))
+      });
+      await addDoc('coll/doc2', {
+        key: bsonBinaryData(1, new Uint8Array([1, 2, 4]))
+      });
+      await addDoc('coll/doc3', {
+        key: bsonBinaryData(1, new Uint8Array([2, 1, 2]))
+      });
+
+      const fieldIndexes = await indexManager.getFieldIndexes('coll');
+      expect(fieldIndexes).to.have.length(1);
+
+      let q = queryWithAddedOrderBy(query('coll'), orderBy('key'));
+      await verifyResults(q, 'coll/doc1', 'coll/doc2', 'coll/doc3');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '==', bsonBinaryData(1, new Uint8Array([1, 2, 3])))
+      );
+      await verifyResults(q, 'coll/doc1');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '!=', bsonBinaryData(1, new Uint8Array([1, 2, 3])))
+      );
+      await verifyResults(q, 'coll/doc2', 'coll/doc3');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '>=', bsonBinaryData(1, new Uint8Array([1, 2, 4])))
+      );
+      await verifyResults(q, 'coll/doc2', 'coll/doc3');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '<=', bsonBinaryData(1, new Uint8Array([1, 2, 4])))
+      );
+      await verifyResults(q, 'coll/doc1', 'coll/doc2');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '>', bsonBinaryData(1, new Uint8Array([1, 2, 4])))
+      );
+      await verifyResults(q, 'coll/doc3');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '<', bsonBinaryData(1, new Uint8Array([1, 2, 4])))
+      );
+      await verifyResults(q, 'coll/doc1');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '>', bsonBinaryData(1, new Uint8Array([2, 1, 2])))
+      );
+      await verifyResults(q);
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '<', bsonBinaryData(1, new Uint8Array([1, 2, 3])))
+      );
+      await verifyResults(q);
+    });
+
+    it('can index BSON Timestamp fields', async () => {
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['key', IndexKind.ASCENDING]] })
+      );
+      await addDoc('coll/doc1', {
+        key: bsonTimestamp(1, 1)
+      });
+      await addDoc('coll/doc2', {
+        key: bsonTimestamp(1, 2)
+      });
+      await addDoc('coll/doc3', {
+        key: bsonTimestamp(2, 1)
+      });
+
+      const fieldIndexes = await indexManager.getFieldIndexes('coll');
+      expect(fieldIndexes).to.have.length(1);
+
+      let q = queryWithAddedOrderBy(query('coll'), orderBy('key'));
+      await verifyResults(q, 'coll/doc1', 'coll/doc2', 'coll/doc3');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '==', bsonTimestamp(1, 1))
+      );
+      await verifyResults(q, 'coll/doc1');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '!=', bsonTimestamp(1, 1))
+      );
+      await verifyResults(q, 'coll/doc2', 'coll/doc3');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '>=', bsonTimestamp(1, 2))
+      );
+      await verifyResults(q, 'coll/doc2', 'coll/doc3');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '<=', bsonTimestamp(1, 2))
+      );
+      await verifyResults(q, 'coll/doc1', 'coll/doc2');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '>', bsonTimestamp(1, 2))
+      );
+      await verifyResults(q, 'coll/doc3');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '<', bsonTimestamp(1, 2))
+      );
+      await verifyResults(q, 'coll/doc1');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '>', bsonTimestamp(2, 1))
+      );
+      await verifyResults(q);
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '<', bsonTimestamp(1, 1))
+      );
+      await verifyResults(q);
+    });
+
+    it('can index Int32 fields', async () => {
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['key', IndexKind.ASCENDING]] })
+      );
+      await addDoc('coll/doc1', {
+        key: int32(1)
+      });
+      await addDoc('coll/doc2', {
+        key: int32(2)
+      });
+      await addDoc('coll/doc3', {
+        key: int32(3)
+      });
+      const fieldIndexes = await indexManager.getFieldIndexes('coll');
+      expect(fieldIndexes).to.have.length(1);
+
+      let q = queryWithAddedOrderBy(query('coll'), orderBy('key'));
+      await verifyResults(q, 'coll/doc1', 'coll/doc2', 'coll/doc3');
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '==', int32(1)));
+      await verifyResults(q, 'coll/doc1');
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '!=', int32(1)));
+      await verifyResults(q, 'coll/doc2', 'coll/doc3');
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '>=', int32(2)));
+      await verifyResults(q, 'coll/doc2', 'coll/doc3');
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '<=', int32(2)));
+      await verifyResults(q, 'coll/doc1', 'coll/doc2');
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '>', int32(2)));
+      await verifyResults(q, 'coll/doc3');
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '<', int32(2)));
+      await verifyResults(q, 'coll/doc1');
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '>', int32(3)));
+      await verifyResults(q);
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '<', int32(1)));
+      await verifyResults(q);
+    });
+
+    it('can index regex fields', async () => {
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['key', IndexKind.ASCENDING]] })
+      );
+      await addDoc('coll/doc1', {
+        key: regex('a', 'i')
+      });
+      await addDoc('coll/doc2', {
+        key: regex('a', 'm')
+      });
+      await addDoc('coll/doc3', {
+        key: regex('b', 'i')
+      });
+      const fieldIndexes = await indexManager.getFieldIndexes('coll');
+      expect(fieldIndexes).to.have.length(1);
+      let q = queryWithAddedOrderBy(query('coll'), orderBy('key'));
+      await verifyResults(q, 'coll/doc1', 'coll/doc2', 'coll/doc3');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '==', regex('a', 'i'))
+      );
+      await verifyResults(q, 'coll/doc1');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '!=', regex('a', 'i'))
+      );
+      await verifyResults(q, 'coll/doc2', 'coll/doc3');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '>=', regex('a', 'm'))
+      );
+      await verifyResults(q, 'coll/doc2', 'coll/doc3');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '<=', regex('a', 'm'))
+      );
+      await verifyResults(q, 'coll/doc1', 'coll/doc2');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '>', regex('a', 'm'))
+      );
+      await verifyResults(q, 'coll/doc3');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '<', regex('a', 'm'))
+      );
+      await verifyResults(q, 'coll/doc1');
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '>', regex('b', 'i'))
+      );
+      await verifyResults(q);
+
+      q = queryWithAddedFilter(
+        query('coll'),
+        filter('key', '<', regex('a', 'i'))
+      );
+      await verifyResults(q);
+    });
+
+    it('can index minKey fields', async () => {
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['key', IndexKind.ASCENDING]] })
+      );
+      await addDoc('coll/doc1', {
+        key: minKey()
+      });
+      await addDoc('coll/doc2', {
+        key: minKey()
+      });
+      await addDoc('coll/doc3', {
+        key: null
+      });
+      await addDoc('coll/doc4', {
+        key: 1
+      });
+      await addDoc('coll/doc5', {
+        key: maxKey()
+      });
+
+      const fieldIndexes = await indexManager.getFieldIndexes('coll');
+      expect(fieldIndexes).to.have.length(1);
+
+      let q = queryWithAddedOrderBy(query('coll'), orderBy('key'));
+      await verifyResults(
+        q,
+        'coll/doc3',
+        'coll/doc1',
+        'coll/doc2',
+        'coll/doc4',
+        'coll/doc5'
+      );
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '==', minKey()));
+      await verifyResults(q, 'coll/doc1', 'coll/doc2');
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '!=', minKey()));
+      await verifyResults(q, 'coll/doc4', 'coll/doc5');
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '>=', minKey()));
+      await verifyResults(q, 'coll/doc1', 'coll/doc2');
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '<=', minKey()));
+      await verifyResults(q, 'coll/doc1', 'coll/doc2');
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '>', minKey()));
+      await verifyResults(q);
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '<', minKey()));
+      await verifyResults(q);
+    });
+
+    it('can index maxKey fields', async () => {
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['key', IndexKind.ASCENDING]] })
+      );
+      await addDoc('coll/doc1', {
+        key: minKey()
+      });
+      await addDoc('coll/doc2', {
+        key: 1
+      });
+      await addDoc('coll/doc3', {
+        key: maxKey()
+      });
+      await addDoc('coll/doc4', {
+        key: maxKey()
+      });
+      await addDoc('coll/doc5', {
+        key: null
+      });
+
+      const fieldIndexes = await indexManager.getFieldIndexes('coll');
+      expect(fieldIndexes).to.have.length(1);
+
+      let q = queryWithAddedOrderBy(query('coll'), orderBy('key'));
+      await verifyResults(
+        q,
+        'coll/doc5',
+        'coll/doc1',
+        'coll/doc2',
+        'coll/doc3',
+        'coll/doc4'
+      );
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '==', maxKey()));
+      await verifyResults(q, 'coll/doc3', 'coll/doc4');
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '!=', maxKey()));
+      await verifyResults(q, 'coll/doc1', 'coll/doc2');
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '>=', maxKey()));
+      await verifyResults(q, 'coll/doc3', 'coll/doc4');
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '<=', maxKey()));
+      await verifyResults(q, 'coll/doc3', 'coll/doc4');
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '>', maxKey()));
+      await verifyResults(q);
+
+      q = queryWithAddedFilter(query('coll'), filter('key', '<', maxKey()));
+      await verifyResults(q);
+    });
+
+    it('can index fields of BSON types together', async () => {
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['key', IndexKind.DESCENDING]] })
+      );
+      await addDoc('coll/doc1', {
+        key: minKey()
+      });
+
+      await addDoc('coll/doc2', {
+        key: int32(2)
+      });
+      await addDoc('coll/doc3', {
+        key: int32(1)
+      });
+
+      await addDoc('coll/doc4', {
+        key: bsonTimestamp(1, 2)
+      });
+      await addDoc('coll/doc5', {
+        key: bsonTimestamp(1, 1)
+      });
+
+      await addDoc('coll/doc6', {
+        key: bsonBinaryData(1, new Uint8Array([1, 2, 4]))
+      });
+      await addDoc('coll/doc7', {
+        key: bsonBinaryData(1, new Uint8Array([1, 2, 3]))
+      });
+      await addDoc('coll/doc8', {
+        key: bsonObjectId('507f191e810c19729de860eb')
+      });
+      await addDoc('coll/doc9', {
+        key: bsonObjectId('507f191e810c19729de860ea')
+      });
+
+      await addDoc('coll/doc10', {
+        key: regex('a', 'm')
+      });
+      await addDoc('coll/doc11', {
+        key: regex('a', 'i')
+      });
+
+      await addDoc('coll/doc12', {
+        key: maxKey()
+      });
+
+      const fieldIndexes = await indexManager.getFieldIndexes('coll');
+      expect(fieldIndexes).to.have.length(1);
+
+      const q = queryWithAddedOrderBy(query('coll'), orderBy('key', 'desc'));
+      await verifyResults(
+        q,
+        'coll/doc12',
+        'coll/doc10',
+        'coll/doc11',
+        'coll/doc8',
+        'coll/doc9',
+        'coll/doc6',
+        'coll/doc7',
+        'coll/doc4',
+        'coll/doc5',
+        'coll/doc2',
+        'coll/doc3',
+        'coll/doc1'
+      );
+    });
+  });
+
+  it('can index fields of all types together', async () => {
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['key', IndexKind.DESCENDING]] })
+    );
+    await addDoc('coll/a', {
+      key: null
+    });
+    await addDoc('coll/b', {
+      key: minKey()
+    });
+    await addDoc('coll/c', {
+      key: true
+    });
+    await addDoc('coll/d', {
+      key: NaN
+    });
+    await addDoc('coll/e', {
+      key: int32(1)
+    });
+    await addDoc('coll/f', {
+      key: 2.0
+    });
+    await addDoc('coll/g', {
+      key: 3
+    });
+    await addDoc('coll/h', {
+      key: new Timestamp(100, 123456000)
+    });
+    await addDoc('coll/i', {
+      key: bsonTimestamp(1, 2)
+    });
+    await addDoc('coll/j', {
+      key: 'string'
+    });
+    await addDoc('coll/k', {
+      key: Bytes.fromUint8Array(new Uint8Array([0, 1, 255])) as Bytes
+    });
+    await addDoc('coll/l', {
+      key: bsonBinaryData(1, new Uint8Array([1, 2, 3]))
+    });
+    await addDoc('coll/m', {
+      key: ref('coll/doc')
+    });
+    await addDoc('coll/n', {
+      key: bsonObjectId('507f191e810c19729de860ea')
+    });
+    await addDoc('coll/o', {
+      key: new GeoPoint(0, 1)
+    });
+    await addDoc('coll/p', {
+      key: regex('^foo', 'i')
+    });
+    await addDoc('coll/q', {
+      key: [1, 2]
+    });
+    await addDoc('coll/r', {
+      key: vector([1, 2])
+    });
+    await addDoc('coll/s', {
+      key: { a: 1 }
+    });
+    await addDoc('coll/t', {
+      key: maxKey()
+    });
+
+    const fieldIndexes = await indexManager.getFieldIndexes('coll');
+    expect(fieldIndexes).to.have.length(1);
+
+    const q = queryWithAddedOrderBy(query('coll'), orderBy('key', 'desc'));
+    await verifyResults(
+      q,
+      'coll/t',
+      'coll/s',
+      'coll/r',
+      'coll/q',
+      'coll/p',
+      'coll/o',
+      'coll/n',
+      'coll/m',
+      'coll/l',
+      'coll/k',
+      'coll/j',
+      'coll/i',
+      'coll/h',
+      'coll/g',
+      'coll/f',
+      'coll/e',
+      'coll/d',
+      'coll/c',
+      'coll/b',
+      'coll/a'
+    );
   });
 
   async function validateIsPartialIndex(query: Query): Promise<void> {

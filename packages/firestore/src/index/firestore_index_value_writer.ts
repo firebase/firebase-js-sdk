@@ -22,9 +22,16 @@ import {
   normalizeTimestamp
 } from '../model/normalize';
 import {
-  isVectorValue,
   VECTOR_MAP_VECTORS_KEY,
-  isMaxValue
+  detectSpecialMapType,
+  RESERVED_BSON_TIMESTAMP_KEY,
+  RESERVED_REGEX_KEY,
+  RESERVED_BSON_OBJECT_ID_KEY,
+  RESERVED_BSON_BINARY_KEY,
+  SpecialMapValueType,
+  RESERVED_REGEX_PATTERN_KEY,
+  RESERVED_REGEX_OPTIONS_KEY,
+  RESERVED_INT32_KEY
 } from '../model/values';
 import { ArrayValue, MapValue, Value } from '../protos/firestore_proto_api';
 import { fail } from '../util/assert';
@@ -32,22 +39,28 @@ import { isNegativeZero } from '../util/types';
 
 import { DirectionalIndexByteEncoder } from './directional_index_byte_encoder';
 
-// Note: This code is copied from the backend. Code that is not used by
-// Firestore was removed.
+// Note: This file is copied from the backend. Code that is not used by
+// Firestore was removed. Code that has different behavior was modified.
 
 const INDEX_TYPE_NULL = 5;
+const INDEX_TYPE_MIN_KEY = 7;
 const INDEX_TYPE_BOOLEAN = 10;
 const INDEX_TYPE_NAN = 13;
 const INDEX_TYPE_NUMBER = 15;
 const INDEX_TYPE_TIMESTAMP = 20;
+const INDEX_TYPE_BSON_TIMESTAMP = 22;
 const INDEX_TYPE_STRING = 25;
 const INDEX_TYPE_BLOB = 30;
+const INDEX_TYPE_BSON_BINARY = 31;
 const INDEX_TYPE_REFERENCE = 37;
+const INDEX_TYPE_BSON_OBJECT_ID = 43;
 const INDEX_TYPE_GEOPOINT = 45;
+const INDEX_TYPE_REGEX = 47;
 const INDEX_TYPE_ARRAY = 50;
 const INDEX_TYPE_VECTOR = 53;
 const INDEX_TYPE_MAP = 55;
 const INDEX_TYPE_REFERENCE_SEGMENT = 60;
+const INDEX_TYPE_MAX_VALUE = 999;
 
 // A terminator that indicates that a truncatable value was not truncated.
 // This must be smaller than all other type labels.
@@ -124,11 +137,30 @@ export class FirestoreIndexValueWriter {
       encoder.writeNumber(geoPoint.latitude || 0);
       encoder.writeNumber(geoPoint.longitude || 0);
     } else if ('mapValue' in indexValue) {
-      // TODO(Mila/BSON): add bson types for indexing
-      if (isMaxValue(indexValue)) {
+      const type = detectSpecialMapType(indexValue);
+      if (type === SpecialMapValueType.INTERNAL_MAX) {
         this.writeValueTypeLabel(encoder, Number.MAX_SAFE_INTEGER);
-      } else if (isVectorValue(indexValue)) {
+      } else if (type === SpecialMapValueType.VECTOR) {
         this.writeIndexVector(indexValue.mapValue!, encoder);
+      } else if (type === SpecialMapValueType.MAX_KEY) {
+        this.writeValueTypeLabel(encoder, INDEX_TYPE_MAX_VALUE);
+      } else if (type === SpecialMapValueType.MIN_KEY) {
+        this.writeValueTypeLabel(encoder, INDEX_TYPE_MIN_KEY);
+      } else if (type === SpecialMapValueType.BSON_BINARY) {
+        this.writeIndexBsonBinaryData(indexValue.mapValue!, encoder);
+      } else if (type === SpecialMapValueType.REGEX) {
+        this.writeIndexRegex(indexValue.mapValue!, encoder);
+      } else if (type === SpecialMapValueType.BSON_TIMESTAMP) {
+        this.writeIndexBsonTimestamp(indexValue.mapValue!, encoder);
+      } else if (type === SpecialMapValueType.BSON_OBJECT_ID) {
+        this.writeIndexBsonObjectId(indexValue.mapValue!, encoder);
+      } else if (type === SpecialMapValueType.INT32) {
+        this.writeValueTypeLabel(encoder, INDEX_TYPE_NUMBER);
+        encoder.writeNumber(
+          normalizeNumber(
+            indexValue.mapValue!.fields![RESERVED_INT32_KEY]!.integerValue!
+          )
+        );
       } else {
         this.writeIndexMap(indexValue.mapValue!, encoder);
         this.writeTruncationMarker(encoder);
@@ -202,7 +234,10 @@ export class FirestoreIndexValueWriter {
     encoder: DirectionalIndexByteEncoder
   ): void {
     this.writeValueTypeLabel(encoder, INDEX_TYPE_REFERENCE);
-    const path = DocumentKey.fromName(referenceValue).path;
+    const segments: string[] = referenceValue
+      .split('/')
+      .filter(segment => segment.length > 0);
+    const path = DocumentKey.fromSegments(segments.slice(5)).path;
     path.forEach(segment => {
       this.writeValueTypeLabel(encoder, INDEX_TYPE_REFERENCE_SEGMENT);
       this.writeUnlabeledIndexString(segment, encoder);
@@ -221,5 +256,56 @@ export class FirestoreIndexValueWriter {
     // used to terminate all variable length values (which are strings, bytes,
     // references, arrays and maps).
     encoder.writeNumber(NOT_TRUNCATED);
+  }
+
+  private writeIndexBsonTimestamp(
+    mapValue: MapValue,
+    encoder: DirectionalIndexByteEncoder
+  ): void {
+    this.writeValueTypeLabel(encoder, INDEX_TYPE_BSON_TIMESTAMP);
+    const fields = mapValue.fields || {};
+    if (fields) {
+      // The JS SDK encodes BSON timestamps differently than the backend.
+      // This is due to the limitation of `number` in JS which handles up to 53-bit precision.
+      this.writeIndexMap(
+        fields[RESERVED_BSON_TIMESTAMP_KEY].mapValue!,
+        encoder
+      );
+    }
+  }
+
+  private writeIndexBsonObjectId(
+    mapValue: MapValue,
+    encoder: DirectionalIndexByteEncoder
+  ): void {
+    this.writeValueTypeLabel(encoder, INDEX_TYPE_BSON_OBJECT_ID);
+    const fields = mapValue.fields || {};
+    const oid = fields[RESERVED_BSON_OBJECT_ID_KEY]?.stringValue || '';
+    encoder.writeBytes(normalizeByteString(oid));
+  }
+
+  private writeIndexBsonBinaryData(
+    mapValue: MapValue,
+    encoder: DirectionalIndexByteEncoder
+  ): void {
+    this.writeValueTypeLabel(encoder, INDEX_TYPE_BSON_BINARY);
+    const fields = mapValue.fields || {};
+    const binary = fields[RESERVED_BSON_BINARY_KEY]?.bytesValue || '';
+    encoder.writeBytes(normalizeByteString(binary));
+    this.writeTruncationMarker(encoder);
+  }
+
+  private writeIndexRegex(
+    mapValue: MapValue,
+    encoder: DirectionalIndexByteEncoder
+  ): void {
+    this.writeValueTypeLabel(encoder, INDEX_TYPE_REGEX);
+    const fields = mapValue.fields || {};
+    const regex = fields[RESERVED_REGEX_KEY]?.mapValue?.fields || {};
+    if (regex) {
+      encoder.writeString(regex[RESERVED_REGEX_PATTERN_KEY]?.stringValue || '');
+      encoder.writeString(regex[RESERVED_REGEX_OPTIONS_KEY]?.stringValue || '');
+    }
+    this.writeTruncationMarker(encoder);
   }
 }

@@ -48,7 +48,14 @@ import {
   valuesGetUpperBound,
   TYPE_KEY,
   RESERVED_VECTOR_KEY,
-  VECTOR_MAP_VECTORS_KEY
+  VECTOR_MAP_VECTORS_KEY,
+  MIN_BSON_TIMESTAMP_VALUE,
+  MIN_VECTOR_VALUE,
+  RESERVED_INT32_KEY,
+  MIN_BSON_BINARY_VALUE,
+  MIN_KEY_VALUE,
+  MIN_REGEX_VALUE,
+  MIN_BSON_OBJECT_ID_VALUE
 } from '../../../src/model/values';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { primitiveComparator } from '../../../src/util/misc';
@@ -71,14 +78,8 @@ describe('Values', () => {
     const values: api.Value[][] = [
       [wrap(true), wrap(true)],
       [wrap(false), wrap(false)],
-      // MinKeys are all equal, and sort the same as null.
-      [
-        wrap(null),
-        wrap(null),
-        wrap(minKey()),
-        wrap(minKey()),
-        wrap(MinKey.instance())
-      ],
+      [wrap(null), wrap(null)],
+      [wrap(minKey()), wrap(minKey()), wrap(MinKey.instance())],
       [wrap(0 / 0), wrap(Number.NaN), wrap(NaN)],
       // -0.0 and 0.0 order the same but are not considered equal.
       [wrap(-0.0)],
@@ -166,7 +167,10 @@ describe('Values', () => {
   it('orders types correctly', () => {
     const groups = [
       // null first
-      [wrap(null), wrap(minKey())],
+      [wrap(null)],
+
+      // MinKey is after null
+      [wrap(minKey())],
 
       // booleans
       [wrap(false)],
@@ -480,21 +484,25 @@ describe('Values', () => {
   });
 
   it('computes lower bound', () => {
-    // TODO(Mila/BSON):add cases for bson types
     const groups = [
-      // null and minKey first
-      [
-        valuesGetLowerBound({ nullValue: 'NULL_VALUE' }),
-        wrap(null),
-        wrap(minKey())
-      ],
+      // lower bound of null is null
+      [valuesGetLowerBound({ nullValue: 'NULL_VALUE' }), wrap(null)],
+
+      // lower bound of MinKey is MinKey
+      [valuesGetLowerBound(MIN_KEY_VALUE), wrap(minKey())],
 
       // booleans
       [valuesGetLowerBound({ booleanValue: true }), wrap(false)],
       [wrap(true)],
 
       // numbers
-      [valuesGetLowerBound({ doubleValue: 0 }), wrap(NaN)],
+      [
+        valuesGetLowerBound({ doubleValue: 0 }),
+        valuesGetLowerBound({
+          mapValue: { fields: { [RESERVED_INT32_KEY]: { integerValue: 0 } } }
+        }),
+        wrap(NaN)
+      ],
       [wrap(Number.NEGATIVE_INFINITY)],
       [wrap(Number.MIN_VALUE)],
 
@@ -502,9 +510,30 @@ describe('Values', () => {
       [valuesGetLowerBound({ timestampValue: {} })],
       [wrap(date1)],
 
+      // bson timestamps
+      [
+        valuesGetLowerBound(wrap(bsonTimestamp(4294967295, 4294967295))),
+        MIN_BSON_TIMESTAMP_VALUE,
+        wrap(bsonTimestamp(0, 0))
+      ],
+      [wrap(bsonTimestamp(1, 1))],
+
       // strings
-      [valuesGetLowerBound({ stringValue: '' }), wrap('')],
+      [valuesGetLowerBound({ stringValue: 'Z' }), wrap('')],
       [wrap('\u0000')],
+
+      // blobs
+      [valuesGetLowerBound({ bytesValue: 'Z' }), wrap(blob())],
+      [wrap(blob(0))],
+
+      // bson binary data
+      [
+        valuesGetLowerBound(
+          wrap(bsonBinaryData(128, new Uint8Array([128, 128])))
+        ),
+        MIN_BSON_BINARY_VALUE
+      ],
+      [wrap(bsonBinaryData(0, new Uint8Array([0])))],
 
       // resource names
       [
@@ -513,12 +542,28 @@ describe('Values', () => {
       ],
       [refValue(DatabaseId.empty(), key('a/a'))],
 
+      // bson object ids
+      [
+        valuesGetLowerBound(wrap(bsonObjectId('ZZZ'))),
+        wrap(bsonObjectId('')),
+        MIN_BSON_OBJECT_ID_VALUE
+      ],
+      [wrap(bsonObjectId('a'))],
+
       // geo points
       [
         valuesGetLowerBound({ geoPointValue: {} }),
         wrap(new GeoPoint(-90, -180))
       ],
       [wrap(new GeoPoint(-90, 0))],
+
+      // regular expressions
+      [
+        valuesGetLowerBound(wrap(regex('ZZZ', 'i'))),
+        wrap(regex('', '')),
+        MIN_REGEX_VALUE
+      ],
+      [wrap(regex('a', 'i'))],
 
       // arrays
       [valuesGetLowerBound({ arrayValue: {} }), wrap([])],
@@ -557,17 +602,22 @@ describe('Values', () => {
   });
 
   it('computes upper bound', () => {
-    // TODO(Mila/BSON):add cases for bson types
     const groups = [
       // null first
       [wrap(null)],
-      [valuesGetUpperBound({ nullValue: 'NULL_VALUE' })],
+
+      // upper value of null is MinKey
+      [valuesGetUpperBound({ nullValue: 'NULL_VALUE' }), wrap(minKey())],
+
+      // upper value of MinKey is boolean `false`
+      [valuesGetUpperBound(MIN_KEY_VALUE), wrap(false)],
 
       // booleans
       [wrap(true)],
       [valuesGetUpperBound({ booleanValue: false })],
 
       // numbers
+      [wrap(int32(2147483647))], //largest int32 value
       [wrap(Number.MAX_SAFE_INTEGER)],
       [wrap(Number.POSITIVE_INFINITY)],
       [valuesGetUpperBound({ doubleValue: NaN })],
@@ -575,6 +625,10 @@ describe('Values', () => {
       // dates
       [wrap(date1)],
       [valuesGetUpperBound({ timestampValue: {} })],
+
+      // bson timestamps
+      [wrap(bsonTimestamp(4294967295, 4294967295))], // largest bson timestamp value
+      [valuesGetUpperBound(MIN_BSON_TIMESTAMP_VALUE)],
 
       // strings
       [wrap('\u0000')],
@@ -584,20 +638,39 @@ describe('Values', () => {
       [wrap(blob(255))],
       [valuesGetUpperBound({ bytesValue: '' })],
 
+      // bson binary data
+      [wrap(bsonBinaryData(128, new Uint8Array([255, 255, 255])))],
+      [valuesGetUpperBound(MIN_BSON_BINARY_VALUE)],
+
       // resource names
       [refValue(dbId('', ''), key('a/a'))],
       [valuesGetUpperBound({ referenceValue: '' })],
+
+      // bson object ids
+      [wrap(bsonObjectId('foo'))],
+      [valuesGetUpperBound(MIN_BSON_OBJECT_ID_VALUE)],
 
       // geo points
       [wrap(new GeoPoint(90, 180))],
       [valuesGetUpperBound({ geoPointValue: {} })],
 
+      // regular expressions
+      [wrap(regex('a', 'i'))],
+      [valuesGetUpperBound(MIN_REGEX_VALUE)],
+
       // arrays
       [wrap([false])],
       [valuesGetUpperBound({ arrayValue: {} })],
 
+      // vectors
+      [wrap(vector([1, 2, 3]))],
+      [valuesGetUpperBound(MIN_VECTOR_VALUE)],
+
       // objects
-      [wrap({ 'a': 'b' })]
+      [wrap({ 'a': 'b' })],
+
+      // MaxKey
+      [wrap(maxKey())]
     ];
 
     expectCorrectComparisonGroups(

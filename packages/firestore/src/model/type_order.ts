@@ -27,24 +27,25 @@ export const enum TypeOrder {
   // server timestamps and `MAX_VALUE` inside the SDK.
   // NULL and MIN_KEY sort the same.
   NullValue = 0,
-  MinKeyValue = 0,
-  BooleanValue = 1,
-  NumberValue = 2,
-  TimestampValue = 3,
-  // TODO(Mila/BSON): which should come first considering indexes?
-  BsonTimestampValue = 4,
-  ServerTimestampValue = 5,
-  StringValue = 6,
-  BlobValue = 7,
-  BsonBinaryValue = 8,
-  RefValue = 9,
-  BsonObjectIdValue = 10,
-  GeoPointValue = 11,
-  RegexValue = 12,
-  ArrayValue = 13,
-  VectorValue = 14,
-  ObjectValue = 15,
-  // TODO(Mila/BSON):should MaxKeyValue and MaxValue combined? how would this affect indexes?
-  MaxKeyValue = 16,
+  MinKeyValue = 1,
+  BooleanValue = 2,
+  // Note: all numbers (32-bit int, 64-bit int, 64-bit double, 128-bit decimal,
+  // etc.) are sorted together numerically. The `numberEquals` function
+  // distinguishes between different number types and compares them accordingly.
+  NumberValue = 3,
+  TimestampValue = 4,
+  BsonTimestampValue = 5,
+  ServerTimestampValue = 6,
+  StringValue = 7,
+  BlobValue = 8,
+  BsonBinaryValue = 9,
+  RefValue = 10,
+  BsonObjectIdValue = 11,
+  GeoPointValue = 12,
+  RegexValue = 13,
+  ArrayValue = 14,
+  VectorValue = 15,
+  ObjectValue = 16,
+  MaxKeyValue = 17,
   MaxValue = 9007199254740991 // Number.MAX_SAFE_INTEGER
 }
