@@ -33,7 +33,7 @@ import {
   DocumentKeySet,
   DocumentMap
 } from '../model/collections';
-import { Document } from '../model/document';
+import { Document, MutableDocument } from '../model/document';
 import {
   IndexOffset,
   INITIAL_LARGEST_BATCH_ID,
@@ -50,6 +50,18 @@ import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { QueryContext } from './query_context';
 import { getAndroidVersion } from './simple_db';
+import {
+  isPipeline,
+  pipelineHasRanges,
+  QueryOrPipeline,
+  stringifyQueryOrPipeline
+} from '../core/pipeline-util';
+import * as querystring from 'node:querystring';
+import {
+  pipelineMatches,
+  pipelineMatchesAllDocuments
+} from '../core/pipeline_run';
+import { compareByKey } from '../model/document_comparator';
 
 const DEFAULT_INDEX_AUTO_CREATION_MIN_COLLECTION_SIZE = 100;
 
@@ -140,7 +152,7 @@ export class QueryEngine {
   /** Returns all local documents matching the specified query. */
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
-    query: Query,
+    query: QueryOrPipeline,
     lastLimboFreeSnapshotVersion: SnapshotVersion,
     remoteKeys: DocumentKeySet
   ): PersistencePromise<DocumentMap> {
@@ -192,10 +204,14 @@ export class QueryEngine {
 
   createCacheIndexes(
     transaction: PersistenceTransaction,
-    query: Query,
+    query: QueryOrPipeline,
     context: QueryContext,
     resultSize: number
   ): PersistencePromise<void> {
+    if (isPipeline(query)) {
+      return PersistencePromise.resolve();
+    }
+
     if (context.documentReadCount < this.indexAutoCreationMinCollectionSize) {
       if (getLogLevel() <= LogLevel.DEBUG) {
         logDebug(
@@ -251,8 +267,14 @@ export class QueryEngine {
    */
   private performQueryUsingIndex(
     transaction: PersistenceTransaction,
-    query: Query
+    queryOrPipeline: QueryOrPipeline
   ): PersistencePromise<DocumentMap | null> {
+    if (isPipeline(queryOrPipeline)) {
+      return PersistencePromise.resolve<DocumentMap | null>(null);
+    }
+
+    let query: Query = queryOrPipeline;
+
     if (queryMatchesAllDocuments(query)) {
       // Queries that match all documents don't benefit from using
       // key-based lookups. It is more efficient to scan all documents in a
@@ -323,7 +345,7 @@ export class QueryEngine {
                     return this.appendRemainingResults(
                       transaction,
                       previousResults,
-                      query,
+                      query as Query,
                       offset
                     ) as PersistencePromise<DocumentMap | null>;
                   });
@@ -338,11 +360,15 @@ export class QueryEngine {
    */
   private performQueryUsingRemoteKeys(
     transaction: PersistenceTransaction,
-    query: Query,
+    query: QueryOrPipeline,
     remoteKeys: DocumentKeySet,
     lastLimboFreeSnapshotVersion: SnapshotVersion
   ): PersistencePromise<DocumentMap | null> {
-    if (queryMatchesAllDocuments(query)) {
+    if (
+      isPipeline(query)
+        ? pipelineMatchesAllDocuments(query)
+        : queryMatchesAllDocuments(query)
+    ) {
       // Queries that match all documents don't benefit from using
       // key-based lookups. It is more efficient to scan all documents in a
       // collection, rather than to perform individual lookups.
@@ -375,7 +401,7 @@ export class QueryEngine {
             'QueryEngine',
             'Re-using previous result from %s to execute query: %s',
             lastLimboFreeSnapshotVersion.toString(),
-            stringifyQuery(query)
+            stringifyQueryOrPipeline(query)
           );
         }
 
@@ -396,14 +422,25 @@ export class QueryEngine {
 
   /** Applies the query filter and sorting to the provided documents.  */
   private applyQuery(
-    query: Query,
+    query: QueryOrPipeline,
     documents: DocumentMap
   ): SortedSet<Document> {
-    // Sort the documents and re-apply the query filter since previously
-    // matching documents do not necessarily still match the query.
-    let queryResults = new SortedSet<Document>(newQueryComparator(query));
+    let queryResults: SortedSet<Document>;
+    let matcher: (doc: Document) => boolean;
+    if (isPipeline(query)) {
+      // TODO(pipeline): the order here does not actually matter, not until we implement
+      // refill logic for pipelines as well.
+      queryResults = new SortedSet<Document>(compareByKey);
+      matcher = doc => pipelineMatches(query, doc as MutableDocument);
+    } else {
+      // Sort the documents and re-apply the query filter since previously
+      // matching documents do not necessarily still match the query.
+      queryResults = new SortedSet<Document>(newQueryComparator(query));
+      matcher = doc => queryMatches(query, doc);
+    }
+
     documents.forEach((_, maybeDoc) => {
-      if (queryMatches(query, maybeDoc)) {
+      if (matcher(maybeDoc)) {
         queryResults = queryResults.add(maybeDoc);
       }
     });
@@ -423,11 +460,17 @@ export class QueryEngine {
    * query was last synchronized.
    */
   private needsRefill(
-    query: Query,
+    query: QueryOrPipeline,
     sortedPreviousResults: SortedSet<Document>,
     remoteKeys: DocumentKeySet,
     limboFreeSnapshotVersion: SnapshotVersion
   ): boolean {
+    // TODO(pipeline): For pipelines it is simple for now, we refill for all limit/offset.
+    // we should implement a similar approach for query at some point.
+    if (isPipeline(query)) {
+      return pipelineHasRanges(query);
+    }
+
     if (query.limit === null) {
       // Queries without limits do not need to be refilled.
       return false;
@@ -463,14 +506,14 @@ export class QueryEngine {
 
   private executeFullCollectionScan(
     transaction: PersistenceTransaction,
-    query: Query,
+    query: QueryOrPipeline,
     context: QueryContext
   ): PersistencePromise<DocumentMap> {
     if (getLogLevel() <= LogLevel.DEBUG) {
       logDebug(
         'QueryEngine',
         'Using full collection scan to execute query:',
-        stringifyQuery(query)
+        stringifyQueryOrPipeline(query)
       );
     }
 
@@ -489,7 +532,7 @@ export class QueryEngine {
   private appendRemainingResults(
     transaction: PersistenceTransaction,
     indexedResults: Iterable<Document>,
-    query: Query,
+    query: QueryOrPipeline,
     offset: IndexOffset
   ): PersistencePromise<DocumentMap> {
     // Retrieve all results for documents that were updated since the offset.

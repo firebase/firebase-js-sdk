@@ -23,7 +23,7 @@ import {
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
-import { Pipeline } from '../lite-api/pipeline';
+import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreConfigureFieldIndexes,
@@ -102,6 +102,10 @@ import { TransactionOptions } from './transaction_options';
 import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
+import { Unsubscribe } from '../api/reference_impl';
+import { RealtimePipelineSnapshot } from '../api/snapshot';
+import { QueryOrPipeline, toCorePipeline } from './pipeline-util';
+import { RealtimePipeline } from '../api/realtime_pipeline';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -450,7 +454,7 @@ export function firestoreClientWaitForPendingWrites(
 
 export function firestoreClientListen(
   client: FirestoreClient,
-  query: Query,
+  query: QueryOrPipeline,
   options: ListenOptions,
   observer: Partial<Observer<ViewSnapshot>>
 ): () => void {
@@ -514,7 +518,7 @@ export function firestoreClientGetDocumentsFromLocalCache(
 
 export function firestoreClientGetDocumentsViaSnapshotListener(
   client: FirestoreClient,
-  query: Query,
+  query: Query | RealtimePipeline,
   options: GetOptions = {}
 ): Promise<ViewSnapshot> {
   const deferred = new Deferred<ViewSnapshot>();
@@ -557,7 +561,7 @@ export function firestoreClientRunAggregateQuery(
 
 export function firestoreClientExecutePipeline(
   client: FirestoreClient,
-  pipeline: Pipeline
+  pipeline: LitePipeline
 ): Promise<PipelineStreamElement[]> {
   const deferred = new Deferred<PipelineStreamElement[]>();
 
@@ -773,7 +777,7 @@ async function executeQueryFromCache(
 function executeQueryViaSnapshotListener(
   eventManager: EventManager,
   asyncQueue: AsyncQueue,
-  query: Query,
+  query: Query | RealtimePipeline,
   options: GetOptions,
   result: Deferred<ViewSnapshot>
 ): Promise<void> {
@@ -803,10 +807,16 @@ function executeQueryViaSnapshotListener(
     error: e => result.reject(e)
   });
 
-  const listener = new QueryListener(query, wrappedObserver, {
-    includeMetadataChanges: true,
-    waitForSyncWhenOnline: true
-  });
+  const listener =
+    query instanceof RealtimePipeline
+      ? new QueryListener(toCorePipeline(query), wrappedObserver, {
+          includeMetadataChanges: true,
+          waitForSyncWhenOnline: true
+        })
+      : new QueryListener(query, wrappedObserver, {
+          includeMetadataChanges: true,
+          waitForSyncWhenOnline: true
+        });
   return eventManagerListen(eventManager, listener);
 }
 

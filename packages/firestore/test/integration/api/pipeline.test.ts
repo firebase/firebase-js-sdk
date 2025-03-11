@@ -18,7 +18,7 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { Bytes, vector } from '../../../src/api';
+import { Bytes, getDocs, vector } from '../../../src/api';
 import { GeoPoint } from '../../../src/lite-api/geo_point';
 import { Timestamp } from '../../../src/lite-api/timestamp';
 import { addEqualityMatcher } from '../../util/equality_matcher';
@@ -83,6 +83,7 @@ import {
 } from '../util/firebase_export';
 import {
   apiDescribe,
+  MemoryLruPersistenceMode,
   PERSISTENCE_MODE_UNSPECIFIED,
   withTestCollection
 } from '../util/helpers';
@@ -91,7 +92,7 @@ use(chaiAsPromised);
 
 setLogLevel('debug');
 
-apiDescribe.only('Pipelines', persistence => {
+apiDescribe('Pipelines', persistence => {
   addEqualityMatcher();
 
   describe('books tests', () => {
@@ -110,17 +111,17 @@ apiDescribe.only('Pipelines', persistence => {
       return randomCol;
     }
 
-    function expectResults<AppModelType>(
-      result: Array<PipelineResult<AppModelType>>,
+    function expectResults(
+      result: Array<PipelineResult>,
       ...docs: string[]
     ): void;
-    function expectResults<AppModelType>(
-      result: Array<PipelineResult<AppModelType>>,
+    function expectResults(
+      result: Array<PipelineResult>,
       ...data: DocumentData[]
     ): void;
 
     function expectResults<AppModelType>(
-      result: Array<PipelineResult<AppModelType>>,
+      result: Array<PipelineResult>,
       ...data: DocumentData[] | string[]
     ): void {
       expect(result.length).to.equal(data.length);
@@ -904,10 +905,10 @@ apiDescribe.only('Pipelines', persistence => {
       it('testChecks', async () => {
         const results = await randomCol
           .pipeline()
-          .where(not(Field.of('rating').isNaN()))
+          .where(not(Field.of('rating').isNan()))
           .select(
             Field.of('rating').eq(null).as('ratingIsNull'),
-            not(Field.of('rating').isNaN()).as('ratingIsNotNaN')
+            not(Field.of('rating').isNan()).as('ratingIsNotNaN')
           )
           .limit(1)
           .execute();
@@ -1232,7 +1233,7 @@ apiDescribe.only('Pipelines', persistence => {
   // with some additional test cases added for more complete coverage.
   describe('Query to Pipeline', () => {
     function verifyResults(
-      actual: Array<PipelineResult<DocumentData>>,
+      actual: Array<PipelineResult>,
       ...expected: DocumentData[]
     ): void {
       expect(actual.length).to.equal(expected.length);

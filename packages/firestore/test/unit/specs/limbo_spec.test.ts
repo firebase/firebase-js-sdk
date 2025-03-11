@@ -555,7 +555,10 @@ describeSpec('Limbo Documents:', [], () => {
 
   specTest(
     'LimitToLast query from secondary results in no expected limbo doc',
-    ['multi-client'],
+    // TODO(pipeline): limitToLast across tabs is not working because convertedFromPipeline
+    // is not saved in cache, and is lost across tabs. We need to update targetCache to
+    // account for this.
+    ['multi-client', 'no-pipeline-conversion'],
     () => {
       const limitToLast = queryWithLimit(
         query('collection', orderBy('val', 'desc')),

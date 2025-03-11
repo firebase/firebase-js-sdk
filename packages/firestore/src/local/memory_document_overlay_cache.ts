@@ -64,6 +64,19 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
     }).next(() => result);
   }
 
+  getAllOverlays(
+    transaction: PersistenceTransaction,
+    sinceBatchId: number
+  ): PersistencePromise<OverlayMap> {
+    let overlays = newOverlayMap();
+    this.overlays.forEach((key, overlay) => {
+      if (overlay.largestBatchId > sinceBatchId) {
+        overlays.set(key, overlay);
+      }
+    });
+    return PersistencePromise.resolve(overlays);
+  }
+
   saveOverlays(
     transaction: PersistenceTransaction,
     largestBatchId: number,

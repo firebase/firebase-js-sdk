@@ -27,6 +27,11 @@ import { addEqualityMatcher } from '../../util/equality_matcher';
 
 import { SpecBuilder } from './spec_builder';
 import { SpecStep } from './spec_test_runner';
+import {
+  pipelineEq,
+  queryOrPipelineEqual
+} from '../../../src/core/pipeline-util';
+import { Pipeline } from '../../../lite/pipelines/pipelines';
 
 // Disables all other tests; useful for debugging. Multiple tests can have
 // this tag and they'll all be run (but all others won't).
@@ -41,6 +46,7 @@ export const MULTI_CLIENT_TAG = 'multi-client';
 const EAGER_GC_TAG = 'eager-gc';
 const DURABLE_PERSISTENCE_TAG = 'durable-persistence';
 const BENCHMARK_TAG = 'benchmark';
+const SKIP_PIPELINE_CONVERSION = 'no-pipeline-conversion';
 const KNOWN_TAGS = [
   BENCHMARK_TAG,
   EXCLUSIVE_TAG,
@@ -49,7 +55,8 @@ const KNOWN_TAGS = [
   NO_ANDROID_TAG,
   NO_IOS_TAG,
   EAGER_GC_TAG,
-  DURABLE_PERSISTENCE_TAG
+  DURABLE_PERSISTENCE_TAG,
+  SKIP_PIPELINE_CONVERSION
 ];
 
 // TODO(mrschmidt): Make this configurable with mocha options.
@@ -88,7 +95,8 @@ export function setSpecJSONHandler(writer: (json: string) => void): void {
 /** Gets the test runner based on the specified tags. */
 function getTestRunner(
   tags: string[],
-  persistenceEnabled: boolean
+  persistenceEnabled: boolean,
+  convertToPipeline: boolean
 ): ExclusiveTestFunction | PendingTestFunction {
   if (tags.indexOf(NO_WEB_TAG) >= 0) {
     // eslint-disable-next-line no-restricted-properties
@@ -108,6 +116,9 @@ function getTestRunner(
     // eslint-disable-next-line no-restricted-properties
     return it.skip;
   } else if (tags.indexOf(BENCHMARK_TAG) >= 0 && !RUN_BENCHMARK_TESTS) {
+    // eslint-disable-next-line no-restricted-properties
+    return it.skip;
+  } else if (convertToPipeline && tags.indexOf(SKIP_PIPELINE_CONVERSION) >= 0) {
     // eslint-disable-next-line no-restricted-properties
     return it.skip;
   } else if (tags.indexOf(EXCLUSIVE_TAG) >= 0) {
@@ -176,23 +187,32 @@ export function specTest(
       ? [true, false]
       : [false];
     for (const usePersistence of persistenceModes) {
-      const runner = getTestRunner(tags, usePersistence);
-      const timeout = getTestTimeout(tags);
-      const mode = usePersistence ? '(Persistence)' : '(Memory)';
-      const fullName = `${mode} ${name}`;
-      const queuedTest = runner(fullName, async () => {
-        const spec = builder();
-        const start = Date.now();
-        await spec.runAsTest(fullName, tags, usePersistence);
-        const end = Date.now();
-        if (tags.indexOf(BENCHMARK_TAG) >= 0) {
-          // eslint-disable-next-line no-console
-          console.log(`Runtime: ${end - start} ms.`);
-        }
-      });
+      const convertToPipelines = [false, true];
+      for (const convertToPipeline of convertToPipelines) {
+        const runner = getTestRunner(tags, usePersistence, convertToPipeline);
+        const timeout = getTestTimeout(tags);
+        const mode = usePersistence ? '(Persistence)' : '(Memory)';
+        const queryMode = convertToPipeline ? '(Pipeline)' : '(Query)';
+        const fullName = `${mode} ${queryMode} ${name}`;
+        const queuedTest = runner(fullName, async () => {
+          const spec = builder();
+          const start = Date.now();
+          await spec.runAsTest(
+            fullName,
+            tags,
+            usePersistence,
+            convertToPipeline
+          );
+          const end = Date.now();
+          if (tags.indexOf(BENCHMARK_TAG) >= 0) {
+            // eslint-disable-next-line no-console
+            console.log(`Runtime: ${end - start} ms.`);
+          }
+        });
 
-      if (timeout !== undefined) {
-        queuedTest.timeout(timeout);
+        if (timeout !== undefined) {
+          queuedTest.timeout(timeout);
+        }
       }
     }
   } else {
@@ -242,7 +262,8 @@ export function describeSpec(
     describe(name, () => {
       addEqualityMatcher(
         { equalsFn: targetEquals, forType: TargetImpl },
-        { equalsFn: queryEquals, forType: QueryImpl }
+        { equalsFn: queryEquals, forType: QueryImpl },
+        { equalsFn: pipelineEq, forType: Pipeline }
       );
       return builder();
     });

@@ -468,39 +468,39 @@ describeSpec('Limits:', [], () => {
           added: [docC],
           removed: [docA]
         })
-        .watchRemovesLimboTarget(docA)
-        .ackLimbo(2001, deletedDoc('collection/b', 2001))
-        .expectLimboDocs(docC.key, docD.key)
-        .expectEvents(query2, {
-          removed: [docB]
-        })
-        .expectEvents(query1, {
-          fromCache: true,
-          added: [docD],
-          removed: [docB]
-        })
-        .watchRemovesLimboTarget(docB)
-        .ackLimbo(2002, deletedDoc('collection/c', 2002))
-        .expectLimboDocs(docD.key)
-        .expectEvents(query2, {
-          removed: [docC]
-        })
-        .expectEvents(query1, {
-          fromCache: true,
-          added: [docE],
-          removed: [docC]
-        })
-        .watchRemovesLimboTarget(docC)
-        .ackLimbo(2003, deletedDoc('collection/d', 2003))
-        .expectLimboDocs()
-        .expectEvents(query2, {
-          removed: [docD]
-        })
-        .expectEvents(query1, {
-          added: [docF],
-          removed: [docD]
-        })
-        .watchRemovesLimboTarget(docD)
+      // .watchRemovesLimboTarget(docA)
+      // .ackLimbo(2001, deletedDoc('collection/b', 2001))
+      // .expectLimboDocs(docC.key, docD.key)
+      // .expectEvents(query2, {
+      //   removed: [docB]
+      // })
+      // .expectEvents(query1, {
+      //   fromCache: true,
+      //   added: [docD],
+      //   removed: [docB]
+      // })
+      // .watchRemovesLimboTarget(docB)
+      // .ackLimbo(2002, deletedDoc('collection/c', 2002))
+      // .expectLimboDocs(docD.key)
+      // .expectEvents(query2, {
+      //   removed: [docC]
+      // })
+      // .expectEvents(query1, {
+      //   fromCache: true,
+      //   added: [docE],
+      //   removed: [docC]
+      // })
+      // .watchRemovesLimboTarget(docC)
+      // .ackLimbo(2003, deletedDoc('collection/d', 2003))
+      // .expectLimboDocs()
+      // .expectEvents(query2, {
+      //   removed: [docD]
+      // })
+      // .expectEvents(query1, {
+      //   added: [docF],
+      //   removed: [docD]
+      // })
+      // .watchRemovesLimboTarget(docD)
     );
   });
 

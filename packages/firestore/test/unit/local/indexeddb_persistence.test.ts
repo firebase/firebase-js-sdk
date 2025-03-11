@@ -21,7 +21,7 @@ import { Context } from 'mocha';
 
 import { queryToTarget } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { canonifyTarget } from '../../../src/core/target';
+import { canonifyTarget, Target } from '../../../src/core/target';
 import {
   decodeResourcePath,
   encodeResourcePath
@@ -124,6 +124,7 @@ import {
   TEST_PERSISTENCE_PREFIX,
   TEST_SERIALIZER
 } from './persistence_test_helpers';
+import { canonifyTargetOrPipeline } from '../../../src/core/pipeline-util';
 
 use(chaiAsPromised);
 
@@ -910,8 +911,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         txn => {
           const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTargetStore);
           return targetsStore.iterate((key, value) => {
-            const targetData = fromDbTarget(value).target;
-            const expectedCanonicalId = canonifyTarget(targetData);
+            const targetData = fromDbTarget(TEST_SERIALIZER, value).target;
+            const expectedCanonicalId = canonifyTargetOrPipeline(targetData);
 
             const actualCanonicalId = value.canonicalId;
             expect(actualCanonicalId).to.equal(expectedCanonicalId);

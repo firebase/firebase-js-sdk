@@ -25,6 +25,7 @@ import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
+import { MutableDocument } from '../model/document';
 
 export class Pipeline extends LitePipeline {
   /**
