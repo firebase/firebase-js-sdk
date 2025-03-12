@@ -15,122 +15,119 @@
  * limitations under the License.
  */
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
+import { Bytes } from '../../src/lite-api/bytes';
 import {
-  AggregateFunction,
-  ascending,
-  BooleanExpr,
-  constantVector,
-  FunctionExpr,
-  timestampAdd,
-  timestampToUnixMicros,
-  timestampToUnixMillis,
-  timestampToUnixSeconds,
-  unixMicrosToTimestamp,
-  unixMillisToTimestamp,
-  vectorLength
-} from '../../../src/lite-api/expressions';
-import { PipelineSnapshot } from '../../../src/lite-api/pipeline-result';
-import { addEqualityMatcher } from '../../util/equality_matcher';
-import { Deferred } from '../../util/promise';
-import {
-  GeoPoint,
-  Timestamp,
-  Bytes,
-  getFirestore,
-  terminate,
-  vector,
-  CollectionReference,
-  doc,
-  DocumentData,
   Firestore,
-  setDoc,
-  setLogLevel,
-  collection,
-  documentId as documentIdFieldPath,
-  writeBatch,
-  addDoc
-} from '../util/firebase_export';
-import { apiDescribe, withTestCollection } from '../util/helpers';
+  getFirestore,
+  terminate
+} from '../../src/lite-api/database';
 import {
-  array,
-  mod,
-  descending,
-  isNan,
-  map,
-  execute,
-  add,
-  unixSecondsToTimestamp,
+  field,
   and,
-  arrayContains,
-  arrayContainsAny,
-  count,
-  avg,
-  cosineDistance,
-  countAll,
-  dotProduct,
-  endsWith,
-  eq,
-  reverse,
-  euclideanDistance,
-  gt,
-  like,
-  lt,
-  strContains,
-  lte,
-  arrayConcat,
-  mapGet,
-  neq,
-  or,
-  regexContains,
-  regexMatch,
-  startsWith,
-  subtract,
-  cond,
-  eqAny,
-  logicalMaximum,
-  notEqAny,
-  multiply,
-  countIf,
-  bitAnd,
-  bitOr,
-  bitXor,
-  bitNot,
-  exists,
-  bitLeftShift,
-  bitRightShift,
-  rand,
+  array,
   arrayOffset,
-  minimum,
-  maximum,
-  currentContext,
-  isError,
+  constant,
+  add,
+  subtract,
+  multiply,
+  avg,
+  bitAnd,
+  substr,
+  constantVector,
+  bitLeftShift,
+  bitNot,
+  count,
+  mapMerge,
+  mapRemove,
+  bitOr,
   ifError,
   isAbsent,
-  isNull,
-  isNotNull,
+  isError,
+  or,
+  rand,
+  bitRightShift,
+  bitXor,
   isNotNan,
-  timestampSub,
-  mapRemove,
-  mapMerge,
-  documentId,
-  substr,
   manhattanDistance,
-  logicalMinimum,
+  map,
+  isNotNull,
+  isNull,
+  mod,
+  documentId,
+  eq,
+  neq,
+  lt,
+  countIf,
+  currentContext,
+  lte,
+  gt,
+  arrayConcat,
+  arrayContains,
+  arrayContainsAny,
+  eqAny,
+  notEqAny,
   xor,
-  field,
-  constant,
-  _internalPipelineToExecutePipelineRequestProto,
-  FindNearestOptions
-} from '../util/pipeline_export';
+  cond,
+  logicalMaximum,
+  logicalMinimum,
+  exists,
+  isNan,
+  reverse,
+  like,
+  regexContains,
+  regexMatch,
+  strContains,
+  startsWith,
+  endsWith,
+  mapGet,
+  countAll,
+  minimum,
+  maximum,
+  cosineDistance,
+  dotProduct,
+  euclideanDistance,
+  vectorLength,
+  unixMicrosToTimestamp,
+  timestampToUnixMicros,
+  unixMillisToTimestamp,
+  timestampToUnixMillis,
+  unixSecondsToTimestamp,
+  timestampToUnixSeconds,
+  timestampAdd,
+  timestampSub,
+  ascending,
+  descending,
+  FunctionExpr,
+  BooleanExpr,
+  AggregateFunction
+} from '../../src/lite-api/expressions';
+import { documentId as documentIdFieldPath } from '../../src/lite-api/field_path';
+import { vector } from '../../src/lite-api/field_value_impl';
+import { GeoPoint } from '../../src/lite-api/geo_point';
+import { PipelineSnapshot } from '../../src/lite-api/pipeline-result';
+import { execute } from '../../src/lite-api/pipeline_impl';
+import {
+  DocumentData,
+  CollectionReference,
+  collection,
+  doc
+} from '../../src/lite-api/reference';
+import { addDoc, setDoc } from '../../src/lite-api/reference_impl';
+import { FindNearestOptions } from '../../src/lite-api/stage';
+import { Timestamp } from '../../src/lite-api/timestamp';
+import { writeBatch } from '../../src/lite-api/write_batch';
+import { addEqualityMatcher } from '../util/equality_matcher';
+import { Deferred } from '../util/promise';
+
+import { withTestCollection } from './helpers';
 
 use(chaiAsPromised);
 
-setLogLevel('debug');
-
-apiDescribe.only('Pipelines', persistence => {
+describe('Firestore Pipelines', () => {
   addEqualityMatcher();
 
   let firestore: Firestore;
@@ -297,18 +294,14 @@ apiDescribe.only('Pipelines', persistence => {
   beforeEach(async () => {
     const setupDeferred = new Deferred<void>();
     testDeferred = new Deferred<void>();
-    withTestCollectionPromise = withTestCollection(
-      persistence,
-      {},
-      async (collectionRef, firestoreInstance) => {
-        randomCol = collectionRef;
-        firestore = firestoreInstance;
-        await setupBookDocs();
-        setupDeferred.resolve();
+    withTestCollectionPromise = withTestCollection(async collectionRef => {
+      randomCol = collectionRef;
+      firestore = collectionRef.firestore;
+      await setupBookDocs();
+      setupDeferred.resolve();
 
-        return testDeferred?.promise;
-      }
-    );
+      return testDeferred?.promise;
+    });
 
     await setupDeferred.promise;
   });
@@ -2930,23 +2923,6 @@ apiDescribe.only('Pipelines', persistence => {
           rating: 4.5
         }
       );
-    });
-  });
-
-  describe('console support', () => {
-    it('supports internal serialization to proto', async () => {
-      const pipeline = firestore
-        .pipeline()
-        .collection('books')
-        .where(eq('awards.hugo', true))
-        .select(
-          'title',
-          field('nestedField.level.1'),
-          mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
-        );
-
-      const proto = _internalPipelineToExecutePipelineRequestProto(pipeline);
-      expect(proto).not.to.be.null;
     });
   });
 });
