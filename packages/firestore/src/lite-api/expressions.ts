@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { ParseContext } from '../api/parse_context';
 import {
   DOCUMENT_KEY_NAME,
   FieldPath as InternalFieldPath
@@ -67,15 +68,19 @@ export type ExprType =
  * @param value
  */
 function valueToDefaultExpr(value: unknown): Expr {
+  let result: Expr | undefined;
   if (value instanceof Expr) {
     return value;
   } else if (isPlainObject(value)) {
-    return map(value as Record<string, unknown>);
+    result = map(value as Record<string, unknown>);
   } else if (value instanceof Array) {
-    return array(value);
+    result = array(value);
   } else {
-    return new Constant(value);
+    result = new Constant(value);
   }
+
+  result._createdFromLiteral = true;
+  return result;
 }
 
 /**
@@ -90,7 +95,9 @@ function vectorToExpr(value: VectorValue | number[] | Expr): Expr {
   if (value instanceof Expr) {
     return value;
   } else {
-    return constantVector(value);
+    const result = constantVector(value);
+    result._createdFromLiteral = true;
+    return result;
   }
 }
 
@@ -106,7 +113,9 @@ function vectorToExpr(value: VectorValue | number[] | Expr): Expr {
  */
 function fieldOfOrExpr(value: unknown): Expr {
   if (isString(value)) {
-    return field(value);
+    const result = field(value);
+    result._createdFromLiteral = true;
+    return result;
   } else {
     return valueToDefaultExpr(value);
   }
@@ -132,6 +141,14 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   abstract readonly exprType: ExprType;
 
   /**
+   * @internal
+   * @private
+   * Indicates if this expression was created from a literal value passed
+   * by the caller.
+   */
+  _createdFromLiteral: boolean = false;
+
+  /**
    * @private
    * @internal
    */
@@ -142,7 +159,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @private
    * @internal
    */
-  abstract _readUserData(dataReader: UserDataReader): void;
+  abstract _readUserData(
+    dataReader: UserDataReader,
+    context?: ParseContext
+  ): void;
 
   /**
    * Creates an expression that adds this expression to another expression.
@@ -2027,6 +2047,14 @@ export interface Selectable {
 export class AggregateFunction implements ProtoValueSerializable, UserData {
   exprType: ExprType = 'AggregateFunction';
 
+  /**
+   * @internal
+   * @private
+   * Indicates if this expression was created from a literal value passed
+   * by the caller.
+   */
+  _createdFromLiteral: boolean = false;
+
   constructor(private name: string, private params: Expr[]) {}
 
   /**
@@ -2066,9 +2094,13 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
    * @private
    * @internal
    */
-  _readUserData(dataReader: UserDataReader): void {
+  _readUserData(dataReader: UserDataReader, context?: ParseContext): void {
+    context =
+      this._createdFromLiteral && context
+        ? context
+        : dataReader.createContext(UserDataSource.Argument, this.name);
     this.params.forEach(expr => {
-      return expr._readUserData(dataReader);
+      return expr._readUserData(dataReader, context);
     });
   }
 }
@@ -2082,11 +2114,23 @@ export class AggregateWithAlias implements UserData {
   constructor(readonly aggregate: AggregateFunction, readonly alias: string) {}
 
   /**
+   * @internal
+   * @private
+   * Indicates if this expression was created from a literal value passed
+   * by the caller.
+   */
+  _createdFromLiteral: boolean = false;
+
+  /**
    * @private
    * @internal
    */
-  _readUserData(dataReader: UserDataReader): void {
-    this.aggregate._readUserData(dataReader);
+  _readUserData(dataReader: UserDataReader, context?: ParseContext): void {
+    context =
+      this._createdFromLiteral && context
+        ? context
+        : dataReader.createContext(UserDataSource.Argument, 'as');
+    this.aggregate._readUserData(dataReader, context);
   }
 }
 
@@ -2097,14 +2141,26 @@ export class ExprWithAlias implements Selectable, UserData {
   exprType: ExprType = 'ExprWithAlias';
   selectable = true as const;
 
+  /**
+   * @internal
+   * @private
+   * Indicates if this expression was created from a literal value passed
+   * by the caller.
+   */
+  _createdFromLiteral: boolean = false;
+
   constructor(readonly expr: Expr, readonly alias: string) {}
 
   /**
    * @private
    * @internal
    */
-  _readUserData(dataReader: UserDataReader): void {
-    this.expr._readUserData(dataReader);
+  _readUserData(dataReader: UserDataReader, context?: ParseContext): void {
+    context =
+      this._createdFromLiteral && context
+        ? context
+        : dataReader.createContext(UserDataSource.Argument, 'as');
+    this.expr._readUserData(dataReader, context);
   }
 }
 
@@ -2288,11 +2344,11 @@ export class Constant extends Expr {
    * @private
    * @internal
    */
-  _readUserData(dataReader: UserDataReader): void {
-    const context = dataReader.createContext(
-      UserDataSource.Argument,
-      'constant'
-    );
+  _readUserData(dataReader: UserDataReader, context?: ParseContext): void {
+    context =
+      this._createdFromLiteral && context
+        ? context
+        : dataReader.createContext(UserDataSource.Argument, 'constant');
 
     if (isFirestoreValue(this._protoValue)) {
       return;
@@ -2427,9 +2483,14 @@ export class MapValue extends Expr {
 
   exprType: ExprType = 'Constant';
 
-  _readUserData(dataReader: UserDataReader): void {
+  _readUserData(dataReader: UserDataReader, context?: ParseContext): void {
+    context =
+      this._createdFromLiteral && context
+        ? context
+        : dataReader.createContext(UserDataSource.Argument, '_map');
+
     this.plainObject.forEach(expr => {
-      expr._readUserData(dataReader);
+      expr._readUserData(dataReader, context);
     });
   }
 
@@ -2471,9 +2532,13 @@ export class FunctionExpr extends Expr {
    * @private
    * @internal
    */
-  _readUserData(dataReader: UserDataReader): void {
+  _readUserData(dataReader: UserDataReader, context?: ParseContext): void {
+    context =
+      this._createdFromLiteral && context
+        ? context
+        : dataReader.createContext(UserDataSource.Argument, this.name);
     this.params.forEach(expr => {
-      return expr._readUserData(dataReader);
+      return expr._readUserData(dataReader, context);
     });
   }
 }
@@ -6919,6 +6984,14 @@ export class Ordering implements ProtoValueSerializable, UserData {
   ) {}
 
   /**
+   * @internal
+   * @private
+   * Indicates if this expression was created from a literal value passed
+   * by the caller.
+   */
+  _createdFromLiteral: boolean = false;
+
+  /**
    * @private
    * @internal
    */
@@ -6937,7 +7010,11 @@ export class Ordering implements ProtoValueSerializable, UserData {
    * @private
    * @internal
    */
-  _readUserData(dataReader: UserDataReader): void {
+  _readUserData(dataReader: UserDataReader, context?: ParseContext): void {
+    context =
+      this._createdFromLiteral && context
+        ? context
+        : dataReader.createContext(UserDataSource.Argument, 'constant');
     this.expr._readUserData(dataReader);
   }
 

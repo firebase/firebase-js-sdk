@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { ParseContext } from '../api/parse_context';
 import { Aggregate } from '../core/aggregate';
 import { Bound } from '../core/bound';
 import { DatabaseId } from '../core/database_info';
@@ -1451,7 +1452,7 @@ export function isProtoValueSerializable(
 }
 
 export interface UserData {
-  _readUserData(dataReader: UserDataReader): void;
+  _readUserData(dataReader: UserDataReader, context?: ParseContext): void;
 }
 
 export function toMapValue(
