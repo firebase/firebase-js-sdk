@@ -19,7 +19,7 @@ import { PipelineSource, Pipeline } from '../../dist/lite/pipelines';
 // Augument the Firestore class with the pipeline() method.
 // This is stripped from dist/lite/pipelines.d.ts during the build
 // so it needs to be re-added here.
-declare module '@firebase/firestore' {
+declare module '@firebase/firestore/lite' {
   interface Firestore {
     pipeline(): PipelineSource<Pipeline>;
   }
