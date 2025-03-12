@@ -23,7 +23,9 @@ export interface UsageMetadata
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [candidatesTokenCount](./vertexai.usagemetadata.md#usagemetadatacandidatestokencount) | number |  |
+|  [candidatesTokensDetails](./vertexai.usagemetadata.md#usagemetadatacandidatestokensdetails) | [ModalityTokenCount](./vertexai.modalitytokencount.md#modalitytokencount_interface)<!-- -->\[\] |  |
 |  [promptTokenCount](./vertexai.usagemetadata.md#usagemetadataprompttokencount) | number |  |
+|  [promptTokensDetails](./vertexai.usagemetadata.md#usagemetadataprompttokensdetails) | [ModalityTokenCount](./vertexai.modalitytokencount.md#modalitytokencount_interface)<!-- -->\[\] |  |
 |  [totalTokenCount](./vertexai.usagemetadata.md#usagemetadatatotaltokencount) | number |  |
 
 ## UsageMetadata.candidatesTokenCount
@@ -34,12 +36,28 @@ export interface UsageMetadata
 candidatesTokenCount: number;
 ```
 
+## UsageMetadata.candidatesTokensDetails
+
+<b>Signature:</b>
+
+```typescript
+candidatesTokensDetails?: ModalityTokenCount[];
+```
+
 ## UsageMetadata.promptTokenCount
 
 <b>Signature:</b>
 
 ```typescript
 promptTokenCount: number;
+```
+
+## UsageMetadata.promptTokensDetails
+
+<b>Signature:</b>
+
+```typescript
+promptTokensDetails?: ModalityTokenCount[];
 ```
 
 ## UsageMetadata.totalTokenCount

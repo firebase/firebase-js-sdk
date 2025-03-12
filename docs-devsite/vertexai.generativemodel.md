@@ -15,8 +15,9 @@ Class for generative model APIs.
 <b>Signature:</b>
 
 ```typescript
-export declare class GenerativeModel 
+export declare class GenerativeModel extends VertexAIModel 
 ```
+<b>Extends:</b> [VertexAIModel](./vertexai.vertexaimodel.md#vertexaimodel_class)
 
 ## Constructors
 
@@ -29,7 +30,6 @@ export declare class GenerativeModel
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [generationConfig](./vertexai.generativemodel.md#generativemodelgenerationconfig) |  | [GenerationConfig](./vertexai.generationconfig.md#generationconfig_interface) |  |
-|  [model](./vertexai.generativemodel.md#generativemodelmodel) |  | string |  |
 |  [requestOptions](./vertexai.generativemodel.md#generativemodelrequestoptions) |  | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) |  |
 |  [safetySettings](./vertexai.generativemodel.md#generativemodelsafetysettings) |  | [SafetySetting](./vertexai.safetysetting.md#safetysetting_interface)<!-- -->\[\] |  |
 |  [systemInstruction](./vertexai.generativemodel.md#generativemodelsysteminstruction) |  | [Content](./vertexai.content.md#content_interface) |  |
@@ -69,14 +69,6 @@ constructor(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: Reque
 
 ```typescript
 generationConfig: GenerationConfig;
-```
-
-## GenerativeModel.model
-
-<b>Signature:</b>
-
-```typescript
-model: string;
 ```
 
 ## GenerativeModel.requestOptions

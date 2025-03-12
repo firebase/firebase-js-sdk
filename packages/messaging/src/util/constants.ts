@@ -36,6 +36,7 @@ export const MAX_NUMBER_OF_EVENTS_PER_LOG_REQUEST = 1000;
 export const MAX_RETRIES = 3;
 export const LOG_INTERVAL_IN_MS = 86400000; //24 hour
 export const DEFAULT_BACKOFF_TIME_MS = 5000;
+export const DEFAULT_REGISTRATION_TIMEOUT = 10000;
 
 // FCM log source name registered at Firelog: 'FCM_CLIENT_EVENT_LOGGING'. It uniquely identifies
 // FCM's logging configuration.

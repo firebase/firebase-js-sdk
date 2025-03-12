@@ -15,8 +15,11 @@
  * limitations under the License.
  */
 
+import { Integer } from '@firebase/webchannel-wrapper/bloom-blob';
+
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
+import { compareUtf8Strings, primitiveComparator } from '../util/misc';
 
 export const DOCUMENT_KEY_NAME = '__name__';
 
@@ -163,28 +166,53 @@ abstract class BasePath<B extends BasePath<B>> {
     return this.segments.slice(this.offset, this.limit());
   }
 
+  /**
+   * Compare 2 paths segment by segment, prioritizing numeric IDs
+   * (e.g., "__id123__") in numeric ascending order, followed by string
+   * segments in lexicographical order.
+   */
   static comparator<T extends BasePath<T>>(
     p1: BasePath<T>,
     p2: BasePath<T>
   ): number {
     const len = Math.min(p1.length, p2.length);
     for (let i = 0; i < len; i++) {
-      const left = p1.get(i);
-      const right = p2.get(i);
-      if (left < right) {
-        return -1;
-      }
-      if (left > right) {
-        return 1;
+      const comparison = BasePath.compareSegments(p1.get(i), p2.get(i));
+      if (comparison !== 0) {
+        return comparison;
       }
     }
-    if (p1.length < p2.length) {
+    return primitiveComparator(p1.length, p2.length);
+  }
+
+  private static compareSegments(lhs: string, rhs: string): number {
+    const isLhsNumeric = BasePath.isNumericId(lhs);
+    const isRhsNumeric = BasePath.isNumericId(rhs);
+
+    if (isLhsNumeric && !isRhsNumeric) {
+      // Only lhs is numeric
       return -1;
-    }
-    if (p1.length > p2.length) {
+    } else if (!isLhsNumeric && isRhsNumeric) {
+      // Only rhs is numeric
       return 1;
+    } else if (isLhsNumeric && isRhsNumeric) {
+      // both numeric
+      return BasePath.extractNumericId(lhs).compare(
+        BasePath.extractNumericId(rhs)
+      );
+    } else {
+      // both non-numeric
+      return compareUtf8Strings(lhs, rhs);
     }
-    return 0;
+  }
+
+  // Checks if a segment is a numeric ID (starts with "__id" and ends with "__").
+  private static isNumericId(segment: string): boolean {
+    return segment.startsWith('__id') && segment.endsWith('__');
+  }
+
+  private static extractNumericId(segment: string): Integer {
+    return Integer.fromString(segment.substring(4, segment.length - 2));
   }
 }
 

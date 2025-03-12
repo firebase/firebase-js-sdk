@@ -79,7 +79,8 @@ import {
   withTestDocAndInitialData,
   withNamedTestDbsOrSkipUnlessUsingEmulator,
   toDataArray,
-  checkOnlineAndOfflineResultsMatch
+  checkOnlineAndOfflineResultsMatch,
+  toIds
 } from '../util/helpers';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
 
@@ -2244,5 +2245,422 @@ apiDescribe('Database', persistence => {
         expect(doc.data()).to.deep.equal(initialData);
       });
     });
+  });
+
+  describe('sort documents by DocumentId', () => {
+    it('snapshot listener sorts query by DocumentId same way as get query', async () => {
+      const testDocs = {
+        'A': { a: 1 },
+        'a': { a: 1 },
+        'Aa': { a: 1 },
+        '7': { a: 1 },
+        '12': { a: 1 },
+        '__id7__': { a: 1 },
+        '__id12__': { a: 1 },
+        '__id-2__': { a: 1 },
+        '_id1__': { a: 1 },
+        '__id1_': { a: 1 },
+        '__id': { a: 1 },
+        // largest long numbers
+        '__id9223372036854775807__': { a: 1 },
+        '__id9223372036854775806__': { a: 1 },
+        // smallest long numbers
+        '__id-9223372036854775808__': { a: 1 },
+        '__id-9223372036854775807__': { a: 1 }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const orderedQuery = query(collectionRef, orderBy(documentId()));
+        const expectedDocs = [
+          '__id-9223372036854775808__',
+          '__id-9223372036854775807__',
+          '__id-2__',
+          '__id7__',
+          '__id12__',
+          '__id9223372036854775806__',
+          '__id9223372036854775807__',
+          '12',
+          '7',
+          'A',
+          'Aa',
+          '__id',
+          '__id1_',
+          '_id1__',
+          'a'
+        ];
+
+        const getSnapshot = await getDocsFromServer(orderedQuery);
+        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(expectedDocs);
+
+        unsubscribe();
+      });
+    });
+
+    it('snapshot listener sorts filtered query by DocumentId same way as get query', async () => {
+      const testDocs = {
+        'A': { a: 1 },
+        'a': { a: 1 },
+        'Aa': { a: 1 },
+        '7': { a: 1 },
+        '12': { a: 1 },
+        '__id7__': { a: 1 },
+        '__id12__': { a: 1 },
+        '__id-2__': { a: 1 },
+        '_id1__': { a: 1 },
+        '__id1_': { a: 1 },
+        '__id': { a: 1 },
+        // largest long numbers
+        '__id9223372036854775807__': { a: 1 },
+        '__id9223372036854775806__': { a: 1 },
+        // smallest long numbers
+        '__id-9223372036854775808__': { a: 1 },
+        '__id-9223372036854775807__': { a: 1 }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const filteredQuery = query(
+          collectionRef,
+          orderBy(documentId()),
+          where(documentId(), '>', '__id7__'),
+          where(documentId(), '<=', 'Aa')
+        );
+        const expectedDocs = [
+          '__id12__',
+          '__id9223372036854775806__',
+          '__id9223372036854775807__',
+          '12',
+          '7',
+          'A',
+          'Aa'
+        ];
+
+        const getSnapshot = await getDocsFromServer(filteredQuery);
+        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(filteredQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(expectedDocs);
+        unsubscribe();
+      });
+    });
+
+    // eslint-disable-next-line no-restricted-properties
+    (persistence.gc === 'lru' ? describe : describe.skip)('offline', () => {
+      it('SDK orders query the same way online and offline', async () => {
+        const testDocs = {
+          'A': { a: 1 },
+          'a': { a: 1 },
+          'Aa': { a: 1 },
+          '7': { a: 1 },
+          '12': { a: 1 },
+          '__id7__': { a: 1 },
+          '__id12__': { a: 1 },
+          '__id-2__': { a: 1 },
+          '_id1__': { a: 1 },
+          '__id1_': { a: 1 },
+          '__id': { a: 1 },
+          // largest long numbers
+          '__id9223372036854775807__': { a: 1 },
+          '__id9223372036854775806__': { a: 1 },
+          // smallest long numbers
+          '__id-9223372036854775808__': { a: 1 },
+          '__id-9223372036854775807__': { a: 1 }
+        };
+
+        return withTestCollection(
+          persistence,
+          testDocs,
+          async collectionRef => {
+            const orderedQuery = query(collectionRef, orderBy(documentId()));
+            let expectedDocs = [
+              '__id-9223372036854775808__',
+              '__id-9223372036854775807__',
+              '__id-2__',
+              '__id7__',
+              '__id12__',
+              '__id9223372036854775806__',
+              '__id9223372036854775807__',
+              '12',
+              '7',
+              'A',
+              'Aa',
+              '__id',
+              '__id1_',
+              '_id1__',
+              'a'
+            ];
+            await checkOnlineAndOfflineResultsMatch(
+              orderedQuery,
+              ...expectedDocs
+            );
+
+            const filteredQuery = query(
+              collectionRef,
+              orderBy(documentId()),
+              where(documentId(), '>', '__id7__'),
+              where(documentId(), '<=', 'Aa')
+            );
+            expectedDocs = [
+              '__id12__',
+              '__id9223372036854775806__',
+              '__id9223372036854775807__',
+              '12',
+              '7',
+              'A',
+              'Aa'
+            ];
+            await checkOnlineAndOfflineResultsMatch(
+              filteredQuery,
+              ...expectedDocs
+            );
+          }
+        );
+      });
+    });
+  });
+
+  describe('Sort unicode strings', () => {
+    const expectedDocs = [
+      'b',
+      'a',
+      'h',
+      'i',
+      'c',
+      'f',
+      'e',
+      'd',
+      'g',
+      'k',
+      'j'
+    ];
+    it('snapshot listener sorts unicode strings the same as server', async () => {
+      const testDocs = {
+        'a': { value: 'Łukasiewicz' },
+        'b': { value: 'Sierpiński' },
+        'c': { value: '岩澤' },
+        'd': { value: '🄟' },
+        'e': { value: 'Ｐ' },
+        'f': { value: '︒' },
+        'g': { value: '🐵' },
+        'h': { value: '你好' },
+        'i': { value: '你顥' },
+        'j': { value: '😁' },
+        'k': { value: '😀' }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const orderedQuery = query(collectionRef, orderBy('value'));
+
+        const getSnapshot = await getDocsFromServer(orderedQuery);
+        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+
+        unsubscribe();
+
+        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+      });
+    });
+
+    it('snapshot listener sorts unicode strings in array the same  as server', async () => {
+      const testDocs = {
+        'a': { value: ['Łukasiewicz'] },
+        'b': { value: ['Sierpiński'] },
+        'c': { value: ['岩澤'] },
+        'd': { value: ['🄟'] },
+        'e': { value: ['Ｐ'] },
+        'f': { value: ['︒'] },
+        'g': { value: ['🐵'] },
+        'h': { value: ['你好'] },
+        'i': { value: ['你顥'] },
+        'j': { value: ['😁'] },
+        'k': { value: ['😀'] }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const orderedQuery = query(collectionRef, orderBy('value'));
+
+        const getSnapshot = await getDocsFromServer(orderedQuery);
+        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+
+        unsubscribe();
+
+        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+      });
+    });
+
+    it('snapshot listener sorts unicode strings in map the same as server', async () => {
+      const testDocs = {
+        'a': { value: { foo: 'Łukasiewicz' } },
+        'b': { value: { foo: 'Sierpiński' } },
+        'c': { value: { foo: '岩澤' } },
+        'd': { value: { foo: '🄟' } },
+        'e': { value: { foo: 'Ｐ' } },
+        'f': { value: { foo: '︒' } },
+        'g': { value: { foo: '🐵' } },
+        'h': { value: { foo: '你好' } },
+        'i': { value: { foo: '你顥' } },
+        'j': { value: { foo: '😁' } },
+        'k': { value: { foo: '😀' } }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const orderedQuery = query(collectionRef, orderBy('value'));
+
+        const getSnapshot = await getDocsFromServer(orderedQuery);
+        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+
+        unsubscribe();
+
+        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+      });
+    });
+
+    it('snapshot listener sorts unicode strings in map key the same as server', async () => {
+      const testDocs = {
+        'a': { value: { 'Łukasiewicz': true } },
+        'b': { value: { 'Sierpiński': true } },
+        'c': { value: { '岩澤': true } },
+        'd': { value: { '🄟': true } },
+        'e': { value: { 'Ｐ': true } },
+        'f': { value: { '︒': true } },
+        'g': { value: { '🐵': true } },
+        'h': { value: { '你好': true } },
+        'i': { value: { '你顥': true } },
+        'j': { value: { '😁': true } },
+        'k': { value: { '😀': true } }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const orderedQuery = query(collectionRef, orderBy('value'));
+
+        const getSnapshot = await getDocsFromServer(orderedQuery);
+        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+
+        unsubscribe();
+
+        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+      });
+    });
+
+    it('snapshot listener sorts unicode strings in document key the same as server', async () => {
+      const testDocs = {
+        'Łukasiewicz': { value: true },
+        'Sierpiński': { value: true },
+        '岩澤': { value: true },
+        '🄟': { value: true },
+        'Ｐ': { value: true },
+        '︒': { value: true },
+        '🐵': { value: true },
+        '你好': { value: true },
+        '你顥': { value: true },
+        '😁': { value: true },
+        '😀': { value: true }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const orderedQuery = query(collectionRef, orderBy(documentId()));
+
+        const getSnapshot = await getDocsFromServer(orderedQuery);
+        const expectedDocs = [
+          'Sierpiński',
+          'Łukasiewicz',
+          '你好',
+          '你顥',
+          '岩澤',
+          '︒',
+          'Ｐ',
+          '🄟',
+          '🐵',
+          '😀',
+          '😁'
+        ];
+        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+
+        unsubscribe();
+
+        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+      });
+    });
+
+    // eslint-disable-next-line no-restricted-properties
+    (persistence.storage === 'indexeddb' ? it.skip : it)(
+      'snapshot listener sorts unicode strings in document key the same as server with persistence',
+      async () => {
+        const testDocs = {
+          'Łukasiewicz': { value: true },
+          'Sierpiński': { value: true },
+          '岩澤': { value: true },
+          '🄟': { value: true },
+          'Ｐ': { value: true },
+          '︒': { value: true },
+          '🐵': { value: true },
+          '你好': { value: true },
+          '你顥': { value: true },
+          '😁': { value: true },
+          '😀': { value: true }
+        };
+
+        return withTestCollection(
+          persistence,
+          testDocs,
+          async collectionRef => {
+            const orderedQuery = query(collectionRef, orderBy('value'));
+
+            const getSnapshot = await getDocsFromServer(orderedQuery);
+            expect(toIds(getSnapshot)).to.deep.equal([
+              'Sierpiński',
+              'Łukasiewicz',
+              '你好',
+              '你顥',
+              '岩澤',
+              '︒',
+              'Ｐ',
+              '🄟',
+              '🐵',
+              '😀',
+              '😁'
+            ]);
+
+            const storeEvent = new EventsAccumulator<QuerySnapshot>();
+            const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+            const watchSnapshot = await storeEvent.awaitEvent();
+            // TODO: IndexedDB sorts string lexicographically, and misses the document with ID '🄟','🐵'
+            expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+
+            unsubscribe();
+          }
+        );
+      }
+    );
   });
 });

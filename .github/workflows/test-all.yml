@@ -23,8 +23,8 @@ env:
   # the behavior to use the new URLs.
   CHROMEDRIVER_CDNURL: https://googlechromelabs.github.io/
   CHROMEDRIVER_CDNBINARIESURL: https://storage.googleapis.com/chrome-for-testing-public
-  CHROME_VALIDATED_VERSION: linux-120.0.6099.71
-  CHROME_VERSION_MISMATCH_MESSAGE: "The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
+  CHROME_VALIDATED_VERSION: linux-132.0.6834.110
+  CHROME_VERSION_MISMATCH_MESSAGE: "The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass, or rollback the installed Chrome version if tests fail."
   artifactRetentionDays: 14
   # Bump Node memory limit
   NODE_OPTIONS: "--max_old_space_size=4096"
@@ -39,9 +39,9 @@ jobs:
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
     - name: Test setup and yarn install
@@ -57,7 +57,7 @@ jobs:
         gzip build.tar
     - name: Upload build archive
       if: ${{ !cancelled() }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
           name: build.tar.gz
           path: build.tar.gz
@@ -74,13 +74,13 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - name: Download build archive
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
     - name: Set up Node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
     - name: Test setup and yarn install
@@ -117,21 +117,17 @@ jobs:
         npx @puppeteer/browsers install chrome@stable
         chromeVersionString=$(ls chrome)
         if [ "$CHROME_VALIDATED_VERSION" != "$chromeVersionString" ]; then
-        echo "::warning ::The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
+        echo "::warning ::${CHROME_VERSION_MISMATCH_MESSAGE}"
         echo "::warning ::Previously validated version: ${CHROME_VALIDATED_VERSION} vs. Installed version: $chromeVersionString"
-        echo "CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE" >> "$GITHUB_ENV"
         fi
-    - name: Test Evn TEMP
-      run: |
-        echo $CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE
     - name: Download build archive
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
     - name: Set up Node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
     - name: Test setup and yarn install
@@ -165,13 +161,13 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - name: Download build archive
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
     - name: Set up Node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
     - name: Test setup and yarn install
@@ -209,13 +205,13 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - name: Download build archive
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
     - name: Set up Node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
     - run: cp config/ci.config.json config/project.json

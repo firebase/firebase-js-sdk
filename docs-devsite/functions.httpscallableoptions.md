@@ -22,12 +22,12 @@ export interface HttpsCallableOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [limitedUseAppCheckTokens](./functions.httpscallableoptions.md#httpscallableoptionslimiteduseappchecktokens) | boolean | If set to true, uses limited-use App Check token for callable function requests from this instance of [Functions](./functions.functions.md#functions_interface)<!-- -->. You must use limited-use tokens to call functions with replay protection enabled. By default, this is false. |
+|  [limitedUseAppCheckTokens](./functions.httpscallableoptions.md#httpscallableoptionslimiteduseappchecktokens) | boolean | If set to true, uses a limited-use App Check token for callable function requests from this instance of [Functions](./functions.functions.md#functions_interface)<!-- -->. You must use limited-use tokens to call functions with replay protection enabled. By default, this is false. |
 |  [timeout](./functions.httpscallableoptions.md#httpscallableoptionstimeout) | number | Time in milliseconds after which to cancel if there is no response. Default is 70000. |
 
 ## HttpsCallableOptions.limitedUseAppCheckTokens
 
-If set to true, uses limited-use App Check token for callable function requests from this instance of [Functions](./functions.functions.md#functions_interface)<!-- -->. You must use limited-use tokens to call functions with replay protection enabled. By default, this is false.
+If set to true, uses a limited-use App Check token for callable function requests from this instance of [Functions](./functions.functions.md#functions_interface)<!-- -->. You must use limited-use tokens to call functions with replay protection enabled. By default, this is false.
 
 <b>Signature:</b>
 
