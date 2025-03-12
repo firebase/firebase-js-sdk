@@ -16,15 +16,25 @@
  */
 
 import typescriptPlugin from 'rollup-plugin-typescript2';
+import replacePlugin from '@rollup/plugin-replace';
 import typescript from 'typescript';
 import pkg from './package.json';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+const deps = [
+  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
+  './postinstall'
+];
 
 const buildPlugins = [typescriptPlugin({ typescript })];
+
+function replaceSrcPostinstallWith(path) {
+  return replacePlugin({
+    './src/postinstall': `'${path}'`,
+    delimiters: ["'", "'"],
+    preventAssignment: true
+  });
+}
 
 const browserBuilds = [
   {
@@ -34,7 +44,7 @@ const browserBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: buildPlugins,
+    plugins: [...buildPlugins, replaceSrcPostinstallWith('./postinstall.mjs')],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
@@ -44,7 +54,7 @@ const browserBuilds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: buildPlugins,
+    plugins: [...buildPlugins, replaceSrcPostinstallWith('./postinstall.js')],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
@@ -57,7 +67,7 @@ const nodeBuilds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: buildPlugins,
+    plugins: [...buildPlugins, replaceSrcPostinstallWith('./postinstall.js')],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
@@ -67,9 +77,32 @@ const nodeBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [...buildPlugins, emitModulePackageFile()],
+    plugins: [
+      ...buildPlugins,
+      emitModulePackageFile(),
+      replaceSrcPostinstallWith('../postinstall.mjs')
+    ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
 
-export default [...browserBuilds, ...nodeBuilds];
+const autoinitBuild = [
+  {
+    input: './src/postinstall.ts',
+    output: {
+      file: './dist/postinstall.js',
+      format: 'cjs'
+    },
+    plugins: buildPlugins
+  },
+  {
+    input: './src/postinstall.ts',
+    output: {
+      file: './dist/postinstall.mjs',
+      format: 'es'
+    },
+    plugins: buildPlugins
+  }
+];
+
+export default [...browserBuilds, ...nodeBuilds, ...autoinitBuild];

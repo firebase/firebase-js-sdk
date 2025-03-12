@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-check-compat",
-  "version": "0.3.16",
+  "version": "0.3.19",
   "description": "A compat App Check package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -34,21 +34,21 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/app-check": "0.8.9",
-    "@firebase/app-check-types": "0.5.2",
-    "@firebase/logger": "0.4.3",
-    "@firebase/util": "1.10.1",
-    "@firebase/component": "0.6.10",
+    "@firebase/app-check": "0.8.12",
+    "@firebase/app-check-types": "0.5.3",
+    "@firebase/logger": "0.4.4",
+    "@firebase/util": "1.11.0",
+    "@firebase/component": "0.6.13",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app-compat": "0.2.45",
-    "rollup": "2.79.1",
+    "@firebase/app-compat": "0.2.51",
+    "rollup": "2.79.2",
     "@rollup/plugin-commonjs": "21.1.0",
-    "@rollup/plugin-json": "4.1.0",
-    "@rollup/plugin-node-resolve": "13.3.0",
-    "rollup-plugin-typescript2": "0.31.2",
+    "@rollup/plugin-json": "6.1.0",
+    "@rollup/plugin-node-resolve": "16.0.0",
+    "rollup-plugin-typescript2": "0.36.0",
     "typescript": "5.5.4"
   },
   "repository": {

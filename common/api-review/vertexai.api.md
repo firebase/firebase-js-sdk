@@ -28,9 +28,9 @@ export interface BaseParams {
 
 // @public
 export enum BlockReason {
-    // (undocumented)
+    BLOCKLIST = "BLOCKLIST",
     OTHER = "OTHER",
-    // (undocumented)
+    PROHIBITED_CONTENT = "PROHIBITED_CONTENT",
     SAFETY = "SAFETY"
 }
 
@@ -88,10 +88,14 @@ export interface Content {
 export interface CountTokensRequest {
     // (undocumented)
     contents: Content[];
+    generationConfig?: GenerationConfig;
+    systemInstruction?: string | Part | Content;
+    tools?: Tool[];
 }
 
 // @public
 export interface CountTokensResponse {
+    promptTokensDetails?: ModalityTokenCount[];
     totalBillableCharacters?: number;
     totalTokens: number;
 }
@@ -157,15 +161,14 @@ export interface FileDataPart {
 
 // @public
 export enum FinishReason {
-    // (undocumented)
+    BLOCKLIST = "BLOCKLIST",
+    MALFORMED_FUNCTION_CALL = "MALFORMED_FUNCTION_CALL",
     MAX_TOKENS = "MAX_TOKENS",
-    // (undocumented)
     OTHER = "OTHER",
-    // (undocumented)
+    PROHIBITED_CONTENT = "PROHIBITED_CONTENT",
     RECITATION = "RECITATION",
-    // (undocumented)
     SAFETY = "SAFETY",
-    // (undocumented)
+    SPII = "SPII",
     STOP = "STOP"
 }
 
@@ -187,11 +190,8 @@ export interface FunctionCallingConfig {
 
 // @public (undocumented)
 export enum FunctionCallingMode {
-    // (undocumented)
     ANY = "ANY",
-    // (undocumented)
     AUTO = "AUTO",
-    // (undocumented)
     NONE = "NONE"
 }
 
@@ -323,15 +323,13 @@ export interface GenerativeContentBlob {
 }
 
 // @public
-export class GenerativeModel {
+export class GenerativeModel extends VertexAIModel {
     constructor(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
     // (undocumented)
     generationConfig: GenerationConfig;
-    // (undocumented)
-    model: string;
     // (undocumented)
     requestOptions?: RequestOptions;
     // (undocumented)
@@ -347,6 +345,9 @@ export class GenerativeModel {
 
 // @public
 export function getGenerativeModel(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
+
+// @beta
+export function getImagenModel(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
 
 // @public
 export function getVertexAI(app?: FirebaseApp, options?: VertexAIOptions): VertexAI;
@@ -375,21 +376,15 @@ export interface GroundingMetadata {
 
 // @public (undocumented)
 export enum HarmBlockMethod {
-    // (undocumented)
     PROBABILITY = "PROBABILITY",
-    // (undocumented)
     SEVERITY = "SEVERITY"
 }
 
 // @public
 export enum HarmBlockThreshold {
-    // (undocumented)
     BLOCK_LOW_AND_ABOVE = "BLOCK_LOW_AND_ABOVE",
-    // (undocumented)
     BLOCK_MEDIUM_AND_ABOVE = "BLOCK_MEDIUM_AND_ABOVE",
-    // (undocumented)
     BLOCK_NONE = "BLOCK_NONE",
-    // (undocumented)
     BLOCK_ONLY_HIGH = "BLOCK_ONLY_HIGH"
 }
 
@@ -407,26 +402,102 @@ export enum HarmCategory {
 
 // @public
 export enum HarmProbability {
-    // (undocumented)
     HIGH = "HIGH",
-    // (undocumented)
     LOW = "LOW",
-    // (undocumented)
     MEDIUM = "MEDIUM",
-    // (undocumented)
     NEGLIGIBLE = "NEGLIGIBLE"
 }
 
 // @public
 export enum HarmSeverity {
-    // (undocumented)
     HARM_SEVERITY_HIGH = "HARM_SEVERITY_HIGH",
-    // (undocumented)
     HARM_SEVERITY_LOW = "HARM_SEVERITY_LOW",
-    // (undocumented)
     HARM_SEVERITY_MEDIUM = "HARM_SEVERITY_MEDIUM",
-    // (undocumented)
     HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE"
+}
+
+// @beta
+export enum ImagenAspectRatio {
+    LANDSCAPE_16x9 = "16:9",
+    LANDSCAPE_3x4 = "3:4",
+    PORTRAIT_4x3 = "4:3",
+    PORTRAIT_9x16 = "9:16",
+    SQUARE = "1:1"
+}
+
+// @public
+export interface ImagenGCSImage {
+    gcsURI: string;
+    mimeType: string;
+}
+
+// @beta
+export interface ImagenGenerationConfig {
+    addWatermark?: boolean;
+    aspectRatio?: ImagenAspectRatio;
+    imageFormat?: ImagenImageFormat;
+    negativePrompt?: string;
+    numberOfImages?: number;
+}
+
+// @beta
+export interface ImagenGenerationResponse<T extends ImagenInlineImage | ImagenGCSImage> {
+    filteredReason?: string;
+    images: T[];
+}
+
+// @beta
+export class ImagenImageFormat {
+    compressionQuality?: number;
+    static jpeg(compressionQuality?: number): ImagenImageFormat;
+    mimeType: string;
+    static png(): ImagenImageFormat;
+}
+
+// @beta
+export interface ImagenInlineImage {
+    bytesBase64Encoded: string;
+    mimeType: string;
+}
+
+// @beta
+export class ImagenModel extends VertexAIModel {
+    constructor(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
+    generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
+    // @internal
+    generateImagesGCS(prompt: string, gcsURI: string): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
+    generationConfig?: ImagenGenerationConfig;
+    // (undocumented)
+    requestOptions?: RequestOptions | undefined;
+    safetySettings?: ImagenSafetySettings;
+}
+
+// @beta
+export interface ImagenModelParams {
+    generationConfig?: ImagenGenerationConfig;
+    model: string;
+    safetySettings?: ImagenSafetySettings;
+}
+
+// @beta
+export enum ImagenPersonFilterLevel {
+    ALLOW_ADULT = "allow_adult",
+    ALLOW_ALL = "allow_all",
+    BLOCK_ALL = "dont_allow"
+}
+
+// @beta
+export enum ImagenSafetyFilterLevel {
+    BLOCK_LOW_AND_ABOVE = "block_low_and_above",
+    BLOCK_MEDIUM_AND_ABOVE = "block_medium_and_above",
+    BLOCK_NONE = "block_none",
+    BLOCK_ONLY_HIGH = "block_only_high"
+}
+
+// @beta
+export interface ImagenSafetySettings {
+    personFilterLevel?: ImagenPersonFilterLevel;
+    safetyFilterLevel?: ImagenSafetyFilterLevel;
 }
 
 // @public
@@ -445,6 +516,22 @@ export interface InlineDataPart {
 // @public
 export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
+}
+
+// @public
+export enum Modality {
+    AUDIO = "AUDIO",
+    DOCUMENT = "DOCUMENT",
+    IMAGE = "IMAGE",
+    MODALITY_UNSPECIFIED = "MODALITY_UNSPECIFIED",
+    TEXT = "TEXT",
+    VIDEO = "VIDEO"
+}
+
+// @public
+export interface ModalityTokenCount {
+    modality: Modality;
+    tokenCount: number;
 }
 
 // @public
@@ -682,7 +769,11 @@ export interface UsageMetadata {
     // (undocumented)
     candidatesTokenCount: number;
     // (undocumented)
+    candidatesTokensDetails?: ModalityTokenCount[];
+    // (undocumented)
     promptTokenCount: number;
+    // (undocumented)
+    promptTokensDetails?: ModalityTokenCount[];
     // (undocumented)
     totalTokenCount: number;
 }
@@ -716,6 +807,16 @@ export const enum VertexAIErrorCode {
     PARSE_FAILED = "parse-failed",
     REQUEST_ERROR = "request-error",
     RESPONSE_ERROR = "response-error"
+}
+
+// @public
+export abstract class VertexAIModel {
+    // @internal
+    protected constructor(vertexAI: VertexAI, modelName: string);
+    // @internal (undocumented)
+    protected _apiSettings: ApiSettings;
+    readonly model: string;
+    static normalizeModelName(modelName: string): string;
 }
 
 // @public

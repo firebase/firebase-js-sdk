@@ -1,5 +1,37 @@
 # @firebase/remote-config-compat
 
+## 0.2.13
+
+### Patch Changes
+
+- Updated dependencies [[`70e08cf`](https://github.com/firebase/firebase-js-sdk/commit/70e08cf95b5c43d3b98382a6f68fbd3c3555e31f), [`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5)]:
+  - @firebase/remote-config@0.6.0
+  - @firebase/util@1.11.0
+  - @firebase/component@0.6.13
+
+## 0.2.12
+
+### Patch Changes
+
+- Updated dependencies [[`25a6204c1`](https://github.com/firebase/firebase-js-sdk/commit/25a6204c1531b6c772e5368d12b2411ae1d21bbc), [`7bf2aec63`](https://github.com/firebase/firebase-js-sdk/commit/7bf2aec6328b06c9c7dda91354630c0d59f2b411)]:
+  - @firebase/util@1.10.3
+  - @firebase/remote-config-types@0.4.0
+  - @firebase/remote-config@0.5.0
+  - @firebase/component@0.6.12
+
+## 0.2.11
+
+### Patch Changes
+
+- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
+
+- Updated dependencies [[`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1)]:
+  - @firebase/component@0.6.11
+  - @firebase/logger@0.4.4
+  - @firebase/remote-config@0.4.11
+  - @firebase/remote-config-types@0.3.3
+  - @firebase/util@1.10.2
+
 ## 0.2.10
 
 ### Patch Changes

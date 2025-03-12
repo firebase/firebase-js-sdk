@@ -18,26 +18,21 @@
 import { platform } from 'os';
 import { Emulator } from './emulator';
 
-const DATABASE_EMULATOR_VERSION = '1.3.7';
+const DATACONNECT_EMULATOR_VERSION = '1.7.5';
 
 export class DataConnectEmulator extends Emulator {
-  //   namespace: string;
-
-  constructor(port = 3628) {
+  constructor(port = 9399) {
     const os = platform();
     let urlString = '';
     switch (os) {
       case 'darwin':
-        urlString =
-          'https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-macos-v1.3.7?alt=media&token=2cf32435-d479-4929-b963-a97ae1ac3f0b';
+        urlString = `https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-macos-v${DATACONNECT_EMULATOR_VERSION}?alt=media`;
         break;
       case 'linux':
-        urlString =
-          'https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-linux-v1.3.7?alt=media&token=fd33b4fc-2e27-4874-893a-2d1f0ecbf116';
+        urlString = `https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-linux-v${DATACONNECT_EMULATOR_VERSION}?alt=media`;
         break;
       case 'win32':
-        urlString =
-          'https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-windows-v1.3.7?alt=media&token=bd6e60b0-50b4-46db-aa6c-5fcc6e991f39';
+        urlString = `https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-windows-v${DATACONNECT_EMULATOR_VERSION}?alt=media`;
         break;
       default:
         throw new Error(
@@ -45,7 +40,7 @@ export class DataConnectEmulator extends Emulator {
         );
     }
     super(
-      `cli-v${DATABASE_EMULATOR_VERSION}`,
+      `cli-v${DATACONNECT_EMULATOR_VERSION}`,
       // Use locked version of emulator for test to be deterministic.
       // The latest version can be found from database emulator doc:
       // https://firebase.google.com/docs/database/security/test-rules-emulator
@@ -53,5 +48,14 @@ export class DataConnectEmulator extends Emulator {
       port
     );
     this.isDataConnect = true;
+  }
+  async setUp(): Promise<void> {
+    await super.setUp();
+    await fetch(`http://localhost:${this.port}/emulator/configure`, {
+      method: 'POST',
+      body: JSON.stringify({
+        'use_dummy': true
+      })
+    });
   }
 }

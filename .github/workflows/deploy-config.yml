@@ -36,7 +36,7 @@ jobs:
         # This makes Actions fetch all Git history so run-changed script can diff properly.
         fetch-depth: 0
     - name: Set up node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
     - name: Yarn install
