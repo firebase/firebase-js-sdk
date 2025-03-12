@@ -139,9 +139,6 @@ export async function getToken(
       if ((e as FirebaseError).code === `appCheck/${AppCheckError.THROTTLED}`) {
         // Warn if throttled, but do not treat it as an error.
         logger.warn((e as FirebaseError).message);
-      } else {
-        // `getToken()` should never throw, but logging error text to console will aid debugging.
-        logger.error(e);
       }
       // Return dummy token and error
       return makeDummyTokenResult(e as FirebaseError);
@@ -170,9 +167,6 @@ export async function getToken(
     if ((e as FirebaseError).code === `appCheck/${AppCheckError.THROTTLED}`) {
       // Warn if throttled, but do not treat it as an error.
       logger.warn((e as FirebaseError).message);
-    } else {
-      // `getToken()` should never throw, but logging error text to console will aid debugging.
-      logger.error(e);
     }
     // Always save error to be added to dummy token.
     error = e as FirebaseError;
