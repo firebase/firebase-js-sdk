@@ -7,30 +7,10 @@
 import { FirebaseApp } from '@firebase/app';
 
 // @beta
-export interface Accumulator extends Expr {
-    // (undocumented)
-    accumulator: true;
-}
+export function add(first: Expr, second: Expr | unknown, ...others: Array<Expr | unknown>): FunctionExpr;
 
 // @beta
-export type AccumulatorTarget = ExprWithAlias<Accumulator>;
-
-// @beta (undocumented)
-export class Add extends FirestoreFunction {
-    constructor(left: Expr, right: Expr);
-    }
-
-// @beta
-export function add(left: Expr, right: Expr): Add;
-
-// @beta
-export function add(left: Expr, right: any): Add;
-
-// @beta
-export function add(left: string, right: Expr): Add;
-
-// @beta
-export function add(left: string, right: any): Add;
+export function add(fieldName: string, second: Expr | unknown, ...others: Array<Expr | unknown>): FunctionExpr;
 
 // @beta (undocumented)
 export class AddFields implements Stage {
@@ -41,150 +21,190 @@ export class AddFields implements Stage {
 
 // @beta (undocumented)
 export class Aggregate implements Stage {
-    constructor(accumulators: Map<string, Accumulator>, groups: Map<string, Expr>);
+    constructor(accumulators: Map<string, AggregateFunction>, groups: Map<string, Expr>);
     // (undocumented)
     name: string;
 }
 
-// @beta (undocumented)
-export class And extends FirestoreFunction implements FilterCondition {
-    constructor(conditions: FilterCondition[]);
+// @beta
+export class AggregateFunction {
+    constructor(name: string, params: Expr[]);
+    as(name: string): AggregateWithAlias;
     // (undocumented)
-    filterable: true;
+    exprType: ExprType;
+    }
+
+// @beta
+export class AggregateWithAlias {
+    constructor(aggregate: AggregateFunction, alias: string);
+    // (undocumented)
+    readonly aggregate: AggregateFunction;
+    // (undocumented)
+    readonly alias: string;
 }
 
 // @beta
-export function andFunction(left: FilterCondition, ...right: FilterCondition[]): And;
-
-// @beta (undocumented)
-export class ArrayConcat extends FirestoreFunction {
-    constructor(array: Expr, elements: Expr[]);
-    }
+export function and(first: BooleanExpr, second: BooleanExpr, ...more: BooleanExpr[]): BooleanExpr;
 
 // @beta
-export function arrayConcat(array: Expr, elements: Expr[]): ArrayConcat;
+export function array(elements: unknown[]): FunctionExpr;
 
 // @beta
-export function arrayConcat(array: Expr, elements: any[]): ArrayConcat;
+export function arrayConcat(firstArray: Expr, secondArray: Expr | unknown[], ...otherArrays: Array<Expr | unknown[]>): FunctionExpr;
 
 // @beta
-export function arrayConcat(array: string, elements: Expr[]): ArrayConcat;
+export function arrayConcat(firstArrayField: string, secondArray: Expr | unknown[], ...otherArrays: Array<Expr | unknown[]>): FunctionExpr;
 
 // @beta
-export function arrayConcat(array: string, elements: any[]): ArrayConcat;
-
-// @beta (undocumented)
-export class ArrayContains extends FirestoreFunction implements FilterCondition {
-    constructor(array: Expr, element: Expr);
-    // (undocumented)
-    filterable: true;
-}
+export function arrayContains(array: Expr, element: Expr): FunctionExpr;
 
 // @beta
-export function arrayContains(array: Expr, element: Expr): ArrayContains;
+export function arrayContains(array: Expr, element: unknown): FunctionExpr;
 
 // @beta
-export function arrayContains(array: Expr, element: any): ArrayContains;
+export function arrayContains(fieldName: string, element: Expr): FunctionExpr;
 
 // @beta
-export function arrayContains(array: string, element: Expr): ArrayContains;
+export function arrayContains(fieldName: string, element: unknown): BooleanExpr;
 
 // @beta
-export function arrayContains(array: string, element: any): ArrayContains;
-
-// @beta (undocumented)
-export class ArrayContainsAll extends FirestoreFunction implements FilterCondition {
-    constructor(array: Expr, values: Expr[]);
-    // (undocumented)
-    filterable: true;
-    }
+export function arrayContainsAll(array: Expr, values: Array<Expr | unknown>): BooleanExpr;
 
 // @beta
-export function arrayContainsAll(array: Expr, values: Expr[]): ArrayContainsAll;
+export function arrayContainsAll(fieldName: string, values: Array<Expr | unknown>): BooleanExpr;
 
 // @beta
-export function arrayContainsAll(array: Expr, values: any[]): ArrayContainsAll;
+export function arrayContainsAll(array: Expr, arrayExpression: Expr): BooleanExpr;
 
 // @beta
-export function arrayContainsAll(array: string, values: Expr[]): ArrayContainsAll;
+export function arrayContainsAll(fieldName: string, arrayExpression: Expr): BooleanExpr;
 
 // @beta
-export function arrayContainsAll(array: string, values: any[]): ArrayContainsAll;
-
-// @beta (undocumented)
-export class ArrayContainsAny extends FirestoreFunction implements FilterCondition {
-    constructor(array: Expr, values: Expr[]);
-    // (undocumented)
-    filterable: true;
-    }
+export function arrayContainsAny(array: Expr, values: Array<Expr | unknown>): BooleanExpr;
 
 // @beta
-export function arrayContainsAny(array: Expr, values: Expr[]): ArrayContainsAny;
+export function arrayContainsAny(fieldName: string, values: Array<Expr | unknown>): BooleanExpr;
 
 // @beta
-export function arrayContainsAny(array: Expr, values: any[]): ArrayContainsAny;
+export function arrayContainsAny(array: Expr, values: Expr): BooleanExpr;
 
 // @beta
-export function arrayContainsAny(array: string, values: Expr[]): ArrayContainsAny;
+export function arrayContainsAny(fieldName: string, values: Expr): BooleanExpr;
 
 // @beta
-export function arrayContainsAny(array: string, values: any[]): ArrayContainsAny;
-
-// @beta (undocumented)
-export class ArrayElement extends FirestoreFunction {
-    constructor();
-}
-
-// @beta (undocumented)
-export class ArrayLength extends FirestoreFunction {
-    constructor(array: Expr);
-    }
+export function arrayLength(array: Expr): FunctionExpr;
 
 // @beta
-export function arrayLength(array: Expr): ArrayLength;
+export function arrayOffset(arrayField: string, offset: number): FunctionExpr;
 
-// @beta (undocumented)
-export class ArrayReverse extends FirestoreFunction {
-    constructor(array: Expr);
-    }
+// @beta
+export function arrayOffset(arrayField: string, offsetExpr: Expr): FunctionExpr;
+
+// @beta
+export function arrayOffset(arrayExpression: Expr, offset: number): FunctionExpr;
+
+// @beta
+export function arrayOffset(arrayExpression: Expr, offsetExpr: Expr): FunctionExpr;
 
 // @beta
 export function ascending(expr: Expr): Ordering;
 
-// @beta (undocumented)
-export class Avg extends FirestoreFunction implements Accumulator {
-    constructor(value: Expr, distinct: boolean);
+// @beta
+export function ascending(fieldName: string): Ordering;
+
+// @beta
+export function avg(expression: Expr): AggregateFunction;
+
+// @beta
+export function avg(fieldName: string): AggregateFunction;
+
+// Warning: (ae-forgotten-export) The symbol "Bytes" needs to be exported by the entry point pipelines.d.ts
+//
+// @beta
+export function bitAnd(field: string, otherBits: number | Bytes): FunctionExpr;
+
+// @beta
+export function bitAnd(field: string, bitsExpression: Expr): FunctionExpr;
+
+// @beta
+export function bitAnd(bitsExpression: Expr, otherBits: number | Bytes): FunctionExpr;
+
+// @beta
+export function bitAnd(bitsExpression: Expr, otherBitsExpression: Expr): FunctionExpr;
+
+// @beta
+export function bitLeftShift(field: string, y: number): FunctionExpr;
+
+// @beta
+export function bitLeftShift(field: string, numberExpr: Expr): FunctionExpr;
+
+// @beta
+export function bitLeftShift(xValue: Expr, y: number): FunctionExpr;
+
+// @beta
+export function bitLeftShift(xValue: Expr, numberExpr: Expr): FunctionExpr;
+
+// @beta
+export function bitNot(field: string): FunctionExpr;
+
+// @beta
+export function bitNot(bitsValueExpression: Expr): FunctionExpr;
+
+// @beta
+export function bitOr(field: string, otherBits: number | Bytes): FunctionExpr;
+
+// @beta
+export function bitOr(field: string, bitsExpression: Expr): FunctionExpr;
+
+// @beta
+export function bitOr(bitsExpression: Expr, otherBits: number | Bytes): FunctionExpr;
+
+// @beta
+export function bitOr(bitsExpression: Expr, otherBitsExpression: Expr): FunctionExpr;
+
+// @beta
+export function bitRightShift(field: string, y: number): FunctionExpr;
+
+// @beta
+export function bitRightShift(field: string, numberExpr: Expr): FunctionExpr;
+
+// @beta
+export function bitRightShift(xValue: Expr, y: number): FunctionExpr;
+
+// @beta
+export function bitRightShift(xValue: Expr, numberExpr: Expr): FunctionExpr;
+
+// @beta
+export function bitXor(field: string, otherBits: number | Bytes): FunctionExpr;
+
+// @beta
+export function bitXor(field: string, bitsExpression: Expr): FunctionExpr;
+
+// @beta
+export function bitXor(bitsExpression: Expr, otherBits: number | Bytes): FunctionExpr;
+
+// @beta
+export function bitXor(bitsExpression: Expr, otherBitsExpression: Expr): FunctionExpr;
+
+// @beta
+export class BooleanExpr extends FunctionExpr {
+    countIf(): AggregateFunction;
     // (undocumented)
-    accumulator: true;
-    }
+    filterable: true;
+    not(): BooleanExpr;
+}
 
 // @beta
-export function avgFunction(value: Expr): Avg;
+export function byteLength(expr: Expr): FunctionExpr;
 
 // @beta
-export function avgFunction(value: string): Avg;
-
-// @beta (undocumented)
-export class ByteLength extends FirestoreFunction {
-    constructor(value: Expr);
-    }
+export function byteLength(fieldName: string): FunctionExpr;
 
 // @beta
-export function byteLength(expr: Expr): ByteLength;
+export function charLength(fieldName: string): FunctionExpr;
 
 // @beta
-export function byteLength(field: string): ByteLength;
-
-// @beta (undocumented)
-export class CharLength extends FirestoreFunction {
-    constructor(value: Expr);
-    }
-
-// @beta
-export function charLength(field: string): CharLength;
-
-// @beta
-export function charLength(expr: Expr): CharLength;
+export function charLength(stringExpression: Expr): FunctionExpr;
 
 // @beta (undocumented)
 export class CollectionGroupSource implements Stage {
@@ -200,80 +220,97 @@ export class CollectionSource implements Stage {
     name: string;
 }
 
-// @beta (undocumented)
-export class Cond extends FirestoreFunction {
-    constructor(condition: FilterCondition, thenExpr: Expr, elseExpr: Expr);
-    // (undocumented)
-    filterable: true;
-    }
-
 // @beta
-export function cond(condition: FilterCondition, thenExpr: Expr, elseExpr: Expr): Cond;
+export function cond(condition: BooleanExpr, thenExpr: Expr, elseExpr: Expr): FunctionExpr;
 
 // @beta
 export class Constant extends Expr {
     // (undocumented)
-    exprType: ExprType;
-    static of(value: number): Constant;
-    static of(value: string): Constant;
-    static of(value: boolean): Constant;
-    static of(value: null): Constant;
-    static of(value: undefined): Constant;
-    // Warning: (ae-forgotten-export) The symbol "GeoPoint" needs to be exported by the entry point pipelines.d.ts
-    static of(value: GeoPoint): Constant;
-    // Warning: (ae-forgotten-export) The symbol "Timestamp" needs to be exported by the entry point pipelines.d.ts
-    static of(value: Timestamp): Constant;
-    static of(value: Date): Constant;
-    static of(value: Uint8Array): Constant;
-    // Warning: (ae-forgotten-export) The symbol "DocumentReference" needs to be exported by the entry point pipelines.d.ts
-    static of(value: DocumentReference): Constant;
-    static of(value: any[]): Constant;
-    static of(value: Map<string, any>): Constant;
-    // Warning: (ae-forgotten-export) The symbol "VectorValue" needs to be exported by the entry point pipelines.d.ts
-    static of(value: VectorValue): Constant;
-    static vector(value: number[] | VectorValue): Constant;
-}
-
-// @beta (undocumented)
-export class CosineDistance extends FirestoreFunction {
-    constructor(vector1: Expr, vector2: Expr);
+    readonly exprType: ExprType;
     }
 
-// @beta
-export function cosineDistance(expr: string, other: number[]): CosineDistance;
-
-// @beta
-export function cosineDistance(expr: string, other: VectorValue): CosineDistance;
-
-// @beta
-export function cosineDistance(expr: string, other: Expr): CosineDistance;
-
-// @beta
-export function cosineDistance(expr: Expr, other: number[]): CosineDistance;
-
-// @beta
-export function cosineDistance(expr: Expr, other: VectorValue): CosineDistance;
-
-// @beta
-export function cosineDistance(expr: Expr, other: Expr): CosineDistance;
-
-// @beta (undocumented)
-export class Count extends FirestoreFunction implements Accumulator {
-    constructor(value: Expr | undefined, distinct: boolean);
-    // (undocumented)
-    accumulator: true;
-    }
-
-// @beta
-export function countAll(): Count;
-
-// @beta
-export function countFunction(value: Expr): Count;
-
-// Warning: (ae-incompatible-release-tags) The symbol "countFunction" is marked as @public, but its signature references "Count" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Constant" which is marked as @beta
 //
 // @public
-export function countFunction(value: string): Count;
+export function constant(value: number): Constant;
+
+// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Constant" which is marked as @beta
+//
+// @public
+export function constant(value: string): Constant;
+
+// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Constant" which is marked as @beta
+//
+// @public
+export function constant(value: boolean): Constant;
+
+// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Constant" which is marked as @beta
+//
+// @public
+export function constant(value: null): Constant;
+
+// Warning: (ae-forgotten-export) The symbol "GeoPoint" needs to be exported by the entry point pipelines.d.ts
+// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Constant" which is marked as @beta
+//
+// @public
+export function constant(value: GeoPoint): Constant;
+
+// Warning: (ae-forgotten-export) The symbol "Timestamp" needs to be exported by the entry point pipelines.d.ts
+// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Constant" which is marked as @beta
+//
+// @public
+export function constant(value: Timestamp): Constant;
+
+// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Constant" which is marked as @beta
+//
+// @public
+export function constant(value: Date): Constant;
+
+// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Constant" which is marked as @beta
+//
+// @public
+export function constant(value: Bytes): Constant;
+
+// Warning: (ae-forgotten-export) The symbol "DocumentReference" needs to be exported by the entry point pipelines.d.ts
+// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Constant" which is marked as @beta
+//
+// @public
+export function constant(value: DocumentReference): Constant;
+
+// Warning: (ae-forgotten-export) The symbol "VectorValue" needs to be exported by the entry point pipelines.d.ts
+// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Constant" which is marked as @beta
+//
+// @public
+export function constant(value: VectorValue): Constant;
+
+// @beta
+export function cosineDistance(fieldName: string, vector: number[] | VectorValue): FunctionExpr;
+
+// @beta
+export function cosineDistance(fieldName: string, vectorExpression: Expr): FunctionExpr;
+
+// @beta
+export function cosineDistance(vectorExpression: Expr, vector: number[] | Expr): FunctionExpr;
+
+// @beta
+export function cosineDistance(vectorExpression: Expr, otherVectorExpression: Expr): FunctionExpr;
+
+// @beta
+export function count(expression: Expr): AggregateFunction;
+
+// Warning: (ae-incompatible-release-tags) The symbol "count" is marked as @public, but its signature references "AggregateFunction" which is marked as @beta
+//
+// @public
+export function count(fieldName: string): AggregateFunction;
+
+// @beta
+export function countAll(): AggregateFunction;
+
+// @beta
+export function countIf(booleanExpr: BooleanExpr): AggregateFunction;
+
+// @beta
+export function currentContext(): FunctionExpr;
 
 // @beta (undocumented)
 export class DatabaseSource implements Stage {
@@ -284,6 +321,9 @@ export class DatabaseSource implements Stage {
 // @beta
 export function descending(expr: Expr): Ordering;
 
+// @beta
+export function descending(fieldName: string): Ordering;
+
 // @beta (undocumented)
 export class Distinct implements Stage {
     constructor(groups: Map<string, Expr>);
@@ -291,22 +331,23 @@ export class Distinct implements Stage {
     name: string;
 }
 
-// @beta (undocumented)
-export class Divide extends FirestoreFunction {
-    constructor(left: Expr, right: Expr);
-    }
+// @beta
+export function divide(left: Expr, right: Expr): FunctionExpr;
 
 // @beta
-export function divide(left: Expr, right: Expr): Divide;
+export function divide(expression: Expr, value: unknown): FunctionExpr;
 
 // @beta
-export function divide(left: Expr, right: any): Divide;
+export function divide(fieldName: string, expressions: Expr): FunctionExpr;
 
 // @beta
-export function divide(left: string, right: Expr): Divide;
+export function divide(fieldName: string, value: unknown): FunctionExpr;
 
 // @beta
-export function divide(left: string, right: any): Divide;
+export function documentId(documentPath: string | DocumentReference): FunctionExpr;
+
+// @beta
+export function documentId(documentPathExpr: Expr): FunctionExpr;
 
 // @beta (undocumented)
 export class DocumentsSource implements Stage {
@@ -314,239 +355,320 @@ export class DocumentsSource implements Stage {
     // (undocumented)
     name: string;
     // (undocumented)
-    static of(refs: DocumentReference[]): DocumentsSource;
-}
-
-// @beta (undocumented)
-export class DotProduct extends FirestoreFunction {
-    constructor(vector1: Expr, vector2: Expr);
-    }
-
-// @beta
-export function dotProduct(expr: string, other: number[]): DotProduct;
-
-// @beta
-export function dotProduct(expr: string, other: VectorValue): DotProduct;
-
-// @beta
-export function dotProduct(expr: string, other: Expr): DotProduct;
-
-// @beta
-export function dotProduct(expr: Expr, other: number[]): DotProduct;
-
-// @beta
-export function dotProduct(expr: Expr, other: VectorValue): DotProduct;
-
-// @beta
-export function dotProduct(expr: Expr, other: Expr): DotProduct;
-
-// @beta (undocumented)
-export class EndsWith extends FirestoreFunction implements FilterCondition {
-    constructor(expr: Expr, suffix: Expr);
-    // (undocumented)
-    filterable: true;
-    }
-
-// @beta
-export function endsWith(expr: string, suffix: string): EndsWith;
-
-// @beta
-export function endsWith(expr: string, suffix: Expr): EndsWith;
-
-// @beta
-export function endsWith(expr: Expr, suffix: string): EndsWith;
-
-// @beta
-export function endsWith(expr: Expr, suffix: Expr): EndsWith;
-
-// @beta (undocumented)
-export class Eq extends FirestoreFunction implements FilterCondition {
-    constructor(left: Expr, right: Expr);
-    // (undocumented)
-    filterable: true;
-    }
-
-// @beta
-export function eq(left: Expr, right: Expr): Eq;
-
-// @beta
-export function eq(left: Expr, right: any): Eq;
-
-// @beta
-export function eq(left: string, right: Expr): Eq;
-
-// @beta
-export function eq(left: string, right: any): Eq;
-
-// @beta (undocumented)
-export class EqAny extends FirestoreFunction implements FilterCondition {
-    constructor(left: Expr, others: Expr[]);
-    // (undocumented)
-    filterable: true;
-    }
-
-// @beta
-export function eqAny(element: Expr, others: Expr[]): EqAny;
-
-// @beta
-export function eqAny(element: Expr, others: any[]): EqAny;
-
-// @beta
-export function eqAny(element: string, others: Expr[]): EqAny;
-
-// @beta
-export function eqAny(element: string, others: any[]): EqAny;
-
-// @beta (undocumented)
-export class EuclideanDistance extends FirestoreFunction {
-    constructor(vector1: Expr, vector2: Expr);
-    }
-
-// @beta
-export function euclideanDistance(expr: string, other: number[]): EuclideanDistance;
-
-// @beta
-export function euclideanDistance(expr: string, other: VectorValue): EuclideanDistance;
-
-// @beta
-export function euclideanDistance(expr: string, other: Expr): EuclideanDistance;
-
-// @beta
-export function euclideanDistance(expr: Expr, other: number[]): EuclideanDistance;
-
-// @beta
-export function euclideanDistance(expr: Expr, other: VectorValue): EuclideanDistance;
-
-// @beta
-export function euclideanDistance(expr: Expr, other: Expr): EuclideanDistance;
-
-// Warning: (ae-incompatible-release-tags) The symbol "execute" is marked as @public, but its signature references "PipelineResult" which is marked as @beta
-//
-// @public (undocumented)
-export function execute(pipeline: Pipeline): Promise<PipelineResult[]>;
-
-// @beta (undocumented)
-export class Exists extends FirestoreFunction implements FilterCondition {
-    constructor(expr: Expr);
-    // (undocumented)
-    filterable: true;
+    static of(refs: Array<string | DocumentReference>): DocumentsSource;
 }
 
 // @beta
-export function exists(value: Expr): Exists;
+export function dotProduct(fieldName: string, vector: number[] | VectorValue): FunctionExpr;
 
 // @beta
-export function exists(field: string): Exists;
+export function dotProduct(fieldName: string, vectorExpression: Expr): FunctionExpr;
+
+// @beta
+export function dotProduct(vectorExpression: Expr, vector: number[] | VectorValue): FunctionExpr;
+
+// @beta
+export function dotProduct(vectorExpression: Expr, otherVectorExpression: Expr): FunctionExpr;
+
+// @beta
+export function endsWith(fieldName: string, suffix: string): BooleanExpr;
+
+// @beta
+export function endsWith(fieldName: string, suffix: Expr): BooleanExpr;
+
+// @beta
+export function endsWith(stringExpression: Expr, suffix: string): BooleanExpr;
+
+// @beta
+export function endsWith(stringExpression: Expr, suffix: Expr): BooleanExpr;
+
+// @beta
+export function eq(left: Expr, right: Expr): BooleanExpr;
+
+// @beta
+export function eq(expression: Expr, value: unknown): BooleanExpr;
+
+// @beta
+export function eq(fieldName: string, expression: Expr): BooleanExpr;
+
+// @beta
+export function eq(fieldName: string, value: unknown): BooleanExpr;
+
+// @beta
+export function eqAny(expression: Expr, values: Array<Expr | unknown>): BooleanExpr;
+
+// @beta
+export function eqAny(expression: Expr, arrayExpression: Expr): BooleanExpr;
+
+// @beta
+export function eqAny(fieldName: string, values: Array<Expr | unknown>): BooleanExpr;
+
+// @beta
+export function eqAny(fieldName: string, arrayExpression: Expr): BooleanExpr;
+
+// @beta
+export function euclideanDistance(fieldName: string, vector: number[] | VectorValue): FunctionExpr;
+
+// @beta
+export function euclideanDistance(fieldName: string, vectorExpression: Expr): FunctionExpr;
+
+// @beta
+export function euclideanDistance(vectorExpression: Expr, vector: number[] | VectorValue): FunctionExpr;
+
+// @beta
+export function euclideanDistance(vectorExpression: Expr, otherVectorExpression: Expr): FunctionExpr;
+
+// @public
+export function execute(pipeline: Pipeline): Promise<PipelineSnapshot>;
+
+// @beta
+export function exists(value: Expr): BooleanExpr;
+
+// @beta
+export function exists(fieldName: string): BooleanExpr;
 
 // @beta
 export abstract class Expr {
-    add(other: Expr): Add;
-    add(other: any): Add;
-    arrayConcat(...arrays: Expr[]): ArrayConcat;
-    arrayConcat(...arrays: any[][]): ArrayConcat;
-    arrayContains(element: Expr): ArrayContains;
-    arrayContains(element: any): ArrayContains;
-    arrayContainsAll(...values: Expr[]): ArrayContainsAll;
-    arrayContainsAll(...values: any[]): ArrayContainsAll;
-    arrayContainsAny(...values: Expr[]): ArrayContainsAny;
-    arrayContainsAny(...values: any[]): ArrayContainsAny;
-    arrayLength(): ArrayLength;
-    as(name: string): ExprWithAlias<this>;
+    add(second: Expr | unknown, ...others: Array<Expr | unknown>): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    arrayConcat(secondArray: Expr | unknown[], ...otherArrays: Array<Expr | unknown[]>): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    arrayContains(expression: Expr): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    arrayContains(value: unknown): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    arrayContainsAll(values: Array<Expr | unknown>): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    arrayContainsAll(arrayExpression: Expr): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    arrayContainsAny(values: Array<Expr | unknown>): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    arrayContainsAny(arrayExpression: Expr): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    arrayLength(): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    arrayOffset(offset: number): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    arrayOffset(offsetExpr: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    as(name: string): ExprWithAlias;
+    /* Excluded from this release type: _readUserData */
     ascending(): Ordering;
-    avg(): Avg;
-    byteLength(): ByteLength;
-    charLength(): CharLength;
-    cosineDistance(other: Expr): CosineDistance;
-    cosineDistance(other: VectorValue): CosineDistance;
-    cosineDistance(other: number[]): CosineDistance;
-    count(): Count;
+    /* Excluded from this release type: _readUserData */
+    avg(): AggregateFunction;
+    /* Excluded from this release type: _readUserData */
+    bitAnd(otherBits: number | Bytes): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    bitAnd(bitsExpression: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    bitLeftShift(y: number): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    bitLeftShift(numberExpr: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    bitNot(): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    bitOr(otherBits: number | Bytes): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    bitOr(bitsExpression: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    bitRightShift(y: number): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    bitRightShift(numberExpr: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    bitXor(otherBits: number | Bytes): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    bitXor(bitsExpression: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    byteLength(): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    charLength(): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    cosineDistance(vectorExpression: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    cosineDistance(vector: VectorValue | number[]): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    count(): AggregateFunction;
+    /* Excluded from this release type: _readUserData */
     descending(): Ordering;
-    divide(other: Expr): Divide;
-    divide(other: any): Divide;
-    dotProduct(other: Expr): DotProduct;
-    dotProduct(other: VectorValue): DotProduct;
-    dotProduct(other: number[]): DotProduct;
-    endsWith(suffix: string): EndsWith;
-    endsWith(suffix: Expr): EndsWith;
-    eq(other: Expr): Eq;
-    eq(other: any): Eq;
-    eqAny(...others: Expr[]): EqAny;
-    eqAny(...others: any[]): EqAny;
-    euclideanDistance(other: Expr): EuclideanDistance;
-    euclideanDistance(other: VectorValue): EuclideanDistance;
-    euclideanDistance(other: number[]): EuclideanDistance;
-    exists(): Exists;
+    /* Excluded from this release type: _readUserData */
+    divide(other: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    divide(other: unknown): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    documentId(): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    dotProduct(vectorExpression: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    dotProduct(vector: VectorValue | number[]): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    endsWith(suffix: string): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    endsWith(suffix: Expr): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    eq(expression: Expr): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    eq(value: unknown): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    eqAny(values: Array<Expr | unknown>): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    eqAny(arrayExpression: Expr): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    euclideanDistance(vectorExpression: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    euclideanDistance(vector: VectorValue | number[]): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    exists(): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
     // (undocumented)
-    abstract exprType: ExprType;
-    gt(other: Expr): Gt;
-    gt(other: any): Gt;
-    gte(other: Expr): Gte;
-    gte(other: any): Gte;
-    isNaN(): IsNan;
-    like(pattern: string): Like;
-    like(pattern: Expr): Like;
-    logicalMaximum(other: Expr): LogicalMaximum;
-    logicalMaximum(other: any): LogicalMaximum;
-    logicalMinimum(other: Expr): LogicalMinimum;
-    logicalMinimum(other: any): LogicalMinimum;
-    lt(other: Expr): Lt;
-    lt(other: any): Lt;
-    lte(other: Expr): Lte;
-    lte(other: any): Lte;
-    mapGet(subfield: string): MapGet;
-    maximum(): Maximum;
-    minimum(): Minimum;
-    mod(other: Expr): Mod;
-    mod(other: any): Mod;
-    multiply(other: Expr): Multiply;
-    multiply(other: any): Multiply;
-    neq(other: Expr): Neq;
-    neq(other: any): Neq;
-    notEqAny(...others: Expr[]): NotEqAny;
-    notEqAny(...others: any[]): NotEqAny;
-    regexContains(pattern: string): RegexContains;
-    regexContains(pattern: Expr): RegexContains;
-    regexMatch(pattern: string): RegexMatch;
-    regexMatch(pattern: Expr): RegexMatch;
-    replaceAll(find: string, replace: string): ReplaceAll;
-    replaceAll(find: Expr, replace: Expr): ReplaceAll;
-    replaceFirst(find: string, replace: string): ReplaceFirst;
-    replaceFirst(find: Expr, replace: Expr): ReplaceFirst;
-    reverse(): Reverse;
-    startsWith(prefix: string): StartsWith;
-    startsWith(prefix: Expr): StartsWith;
-    strConcat(...elements: Array<string | Expr>): StrConcat;
-    strContains(substring: string): StrContains;
-    strContains(expr: Expr): StrContains;
-    subtract(other: Expr): Subtract;
-    subtract(other: any): Subtract;
-    sum(): Sum;
-    timestampAdd(unit: Expr, amount: Expr): TimestampAdd;
-    timestampAdd(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampAdd;
-    timestampSub(unit: Expr, amount: Expr): TimestampSub;
-    timestampSub(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampSub;
-    timestampToUnixMicros(): TimestampToUnixMicros;
-    timestampToUnixMillis(): TimestampToUnixMillis;
-    timestampToUnixSeconds(): TimestampToUnixSeconds;
-    toLower(): ToLower;
-    toUpper(): ToUpper;
-    trim(): Trim;
-    unixMicrosToTimestamp(): UnixMicrosToTimestamp;
-    unixMillisToTimestamp(): UnixMillisToTimestamp;
-    unixSecondsToTimestamp(): UnixSecondsToTimestamp;
-    vectorLength(): VectorLength;
+    abstract readonly exprType: ExprType;
+    /* Excluded from this release type: _readUserData */
+    gt(expression: Expr): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    gt(value: unknown): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    gte(expression: Expr): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    gte(value: unknown): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    ifError(catchExpr: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    ifError(catchValue: unknown): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    isAbsent(): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    isError(): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    isNan(): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    isNotNan(): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    isNotNull(): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    isNull(): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    like(pattern: string): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    like(pattern: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    logicalMaximum(second: Expr | unknown, ...others: Array<Expr | unknown>): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    logicalMinimum(second: Expr | unknown, ...others: Array<Expr | unknown>): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    lt(experession: Expr): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    lt(value: unknown): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    lte(expression: Expr): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    lte(value: unknown): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    manhattanDistance(vector: VectorValue | number[]): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    manhattanDistance(vectorExpression: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    mapGet(subfield: string): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    mapMerge(secondMap: Record<string, unknown> | Expr, ...otherMaps: Array<Record<string, unknown> | Expr>): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    mapRemove(key: string): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    mapRemove(keyExpr: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    maximum(): AggregateFunction;
+    /* Excluded from this release type: _readUserData */
+    minimum(): AggregateFunction;
+    /* Excluded from this release type: _readUserData */
+    mod(expression: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    mod(value: unknown): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    multiply(second: Expr | unknown, ...others: Array<Expr | unknown>): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    neq(expression: Expr): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    neq(value: unknown): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    notEqAny(values: Array<Expr | unknown>): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    notEqAny(arrayExpression: Expr): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    regexContains(pattern: string): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    regexContains(pattern: Expr): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    regexMatch(pattern: string): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    regexMatch(pattern: Expr): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    replaceAll(find: string, replace: string): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    replaceAll(find: Expr, replace: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    replaceFirst(find: string, replace: string): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    replaceFirst(find: Expr, replace: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    reverse(): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    startsWith(prefix: string): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    startsWith(prefix: Expr): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    strConcat(secondString: Expr | string, ...otherStrings: Array<Expr | string>): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    strContains(substring: string): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    strContains(expr: Expr): BooleanExpr;
+    /* Excluded from this release type: _readUserData */
+    substr(position: number, length?: number): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    substr(position: Expr, length?: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    subtract(other: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    subtract(other: unknown): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    sum(): AggregateFunction;
+    /* Excluded from this release type: _readUserData */
+    timestampAdd(unit: Expr, amount: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    timestampAdd(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    timestampSub(unit: Expr, amount: Expr): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    timestampSub(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    timestampToUnixMicros(): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    timestampToUnixMillis(): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    timestampToUnixSeconds(): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    toLower(): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    toUpper(): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    trim(): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    unixMicrosToTimestamp(): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    unixMillisToTimestamp(): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    unixSecondsToTimestamp(): FunctionExpr;
+    /* Excluded from this release type: _readUserData */
+    vectorLength(): FunctionExpr;
 }
 
 // @beta
-export type ExprType = 'Field' | 'Constant' | 'Function' | 'ListOfExprs' | 'ExprWithAlias';
+export type ExprType = 'Field' | 'Constant' | 'Function' | 'AggregateFunction' | 'ListOfExprs' | 'ExprWithAlias';
 
 // @beta (undocumented)
-export class ExprWithAlias<T extends Expr> extends Expr implements Selectable {
-    constructor(expr: T, alias: string);
+export class ExprWithAlias implements Selectable {
+    constructor(expr: Expr, alias: string);
     // (undocumented)
     readonly alias: string;
     // (undocumented)
-    readonly expr: T;
+    readonly expr: Expr;
     // (undocumented)
     exprType: ExprType;
     // (undocumented)
@@ -556,39 +678,27 @@ export class ExprWithAlias<T extends Expr> extends Expr implements Selectable {
 // @beta
 export class Field extends Expr implements Selectable {
     // (undocumented)
-    exprType: ExprType;
+    get alias(): string;
+    // (undocumented)
+    get expr(): Expr;
+    // (undocumented)
+    readonly exprType: ExprType;
     // (undocumented)
     fieldName(): string;
-    static of(name: string): Field;
-    // Warning: (ae-forgotten-export) The symbol "FieldPath" needs to be exported by the entry point pipelines.d.ts
-    //
-    // (undocumented)
-    static of(path: FieldPath): Field;
-    // (undocumented)
-    static of(pipeline: Pipeline, name: string): Field;
     // (undocumented)
     selectable: true;
 }
 
-// @beta (undocumented)
-export class Fields extends Expr implements Selectable {
-    // (undocumented)
-    exprType: ExprType;
-    // (undocumented)
-    fieldList(): Field[];
-    // (undocumented)
-    static of(name: string, ...others: string[]): Fields;
-    // (undocumented)
-    static ofAll(): Fields;
-    // (undocumented)
-    selectable: true;
-}
+// Warning: (ae-incompatible-release-tags) The symbol "field" is marked as @public, but its signature references "Field" which is marked as @beta
+//
+// @public
+export function field(name: string): Field;
 
-// @beta
-export interface FilterCondition extends Expr {
-    // (undocumented)
-    filterable: true;
-}
+// Warning: (ae-forgotten-export) The symbol "FieldPath" needs to be exported by the entry point pipelines.d.ts
+// Warning: (ae-incompatible-release-tags) The symbol "field" is marked as @public, but its signature references "Field" which is marked as @beta
+//
+// @public (undocumented)
+export function field(path: FieldPath): Field;
 
 // @beta (undocumented)
 export class FindNearest implements Stage {
@@ -603,7 +713,7 @@ export interface FindNearestOptions {
     // (undocumented)
     distanceMeasure: 'euclidean' | 'cosine' | 'dot_product';
     // (undocumented)
-    field: Field;
+    field: Field | string;
     // (undocumented)
     limit?: number;
     // (undocumented)
@@ -611,91 +721,92 @@ export interface FindNearestOptions {
 }
 
 // @beta
-export class FirestoreFunction extends Expr {
+export class FunctionExpr extends Expr {
     constructor(name: string, params: Expr[]);
     // (undocumented)
-    exprType: ExprType;
+    readonly exprType: ExprType;
     }
-
-// @beta
-export function genericFunction(name: string, params: Expr[]): FirestoreFunction;
 
 // @beta (undocumented)
 export class GenericStage implements Stage {
-    constructor(name: string, params: unknown[]);
     // (undocumented)
     name: string;
-}
-
-// @beta (undocumented)
-export class Gt extends FirestoreFunction implements FilterCondition {
-    constructor(left: Expr, right: Expr);
-    // (undocumented)
-    filterable: true;
     }
 
 // @beta
-export function gt(left: Expr, right: Expr): Gt;
+export function gt(left: Expr, right: Expr): BooleanExpr;
 
 // @beta
-export function gt(left: Expr, right: any): Gt;
+export function gt(expression: Expr, value: unknown): BooleanExpr;
 
 // @beta
-export function gt(left: string, right: Expr): Gt;
+export function gt(fieldName: string, expression: Expr): BooleanExpr;
 
 // @beta
-export function gt(left: string, right: any): Gt;
-
-// @beta (undocumented)
-export class Gte extends FirestoreFunction implements FilterCondition {
-    constructor(left: Expr, right: Expr);
-    // (undocumented)
-    filterable: true;
-    }
+export function gt(fieldName: string, value: unknown): BooleanExpr;
 
 // @beta
-export function gte(left: Expr, right: Expr): Gte;
+export function gte(left: Expr, right: Expr): BooleanExpr;
 
 // @beta
-export function gte(left: Expr, right: any): Gte;
+export function gte(expression: Expr, value: unknown): BooleanExpr;
 
 // @beta
-export function gte(left: string, right: Expr): Gte;
+export function gte(fieldName: string, value: Expr): BooleanExpr;
 
 // @beta
-export function gte(left: string, right: any): Gte;
-
-// @beta (undocumented)
-export class IsNan extends FirestoreFunction implements FilterCondition {
-    constructor(expr: Expr);
-    // (undocumented)
-    filterable: true;
-}
+export function gte(fieldName: string, value: unknown): BooleanExpr;
 
 // @beta
-export function isNan(value: Expr): IsNan;
+export function ifError(tryExpr: Expr, catchExpr: Expr): FunctionExpr;
 
 // @beta
-export function isNan(value: string): IsNan;
-
-// @beta (undocumented)
-export class Like extends FirestoreFunction implements FilterCondition {
-    constructor(expr: Expr, pattern: Expr);
-    // (undocumented)
-    filterable: true;
-    }
+export function ifError(tryExpr: Expr, catchValue: unknown): FunctionExpr;
 
 // @beta
-export function like(left: string, pattern: string): Like;
+export function isAbsent(value: Expr): BooleanExpr;
 
 // @beta
-export function like(left: string, pattern: Expr): Like;
+export function isAbsent(field: string): BooleanExpr;
 
 // @beta
-export function like(left: Expr, pattern: string): Like;
+export function isError(value: Expr): BooleanExpr;
 
 // @beta
-export function like(left: Expr, pattern: Expr): Like;
+export function isNan(value: Expr): BooleanExpr;
+
+// @beta
+export function isNan(fieldName: string): BooleanExpr;
+
+// @beta
+export function isNotNan(value: Expr): BooleanExpr;
+
+// @beta
+export function isNotNan(value: string): BooleanExpr;
+
+// @beta
+export function isNotNull(value: Expr): BooleanExpr;
+
+// @beta
+export function isNotNull(value: string): BooleanExpr;
+
+// @beta
+export function isNull(value: Expr): BooleanExpr;
+
+// @beta
+export function isNull(value: string): BooleanExpr;
+
+// @beta
+export function like(fieldName: string, pattern: string): BooleanExpr;
+
+// @beta
+export function like(fieldName: string, pattern: Expr): BooleanExpr;
+
+// @beta
+export function like(stringExpression: Expr, pattern: string): BooleanExpr;
+
+// @beta
+export function like(stringExpression: Expr, pattern: Expr): BooleanExpr;
 
 // @beta (undocumented)
 export class Limit implements Stage {
@@ -708,199 +819,140 @@ export class Limit implements Stage {
     name: string;
 }
 
-// @beta (undocumented)
-export class LogicalMaximum extends FirestoreFunction {
-    constructor(left: Expr, right: Expr);
-    }
+// @beta
+export function logicalMaximum(first: Expr, second: Expr | unknown, ...others: Array<Expr | unknown>): FunctionExpr;
 
 // @beta
-export function logicalMaximum(left: Expr, right: Expr): LogicalMaximum;
+export function logicalMaximum(fieldName: string, second: Expr | unknown, ...others: Array<Expr | unknown>): FunctionExpr;
 
 // @beta
-export function logicalMaximum(left: Expr, right: any): LogicalMaximum;
+export function logicalMinimum(first: Expr, second: Expr | unknown, ...others: Array<Expr | unknown>): FunctionExpr;
 
 // @beta
-export function logicalMaximum(left: string, right: Expr): LogicalMaximum;
+export function logicalMinimum(fieldName: string, second: Expr | unknown, ...others: Array<Expr | unknown>): FunctionExpr;
 
 // @beta
-export function logicalMaximum(left: string, right: any): LogicalMaximum;
-
-// @beta (undocumented)
-export class LogicalMinimum extends FirestoreFunction {
-    constructor(left: Expr, right: Expr);
-    }
+export function lt(left: Expr, right: Expr): BooleanExpr;
 
 // @beta
-export function logicalMinimum(left: Expr, right: Expr): LogicalMinimum;
+export function lt(expression: Expr, value: unknown): BooleanExpr;
 
 // @beta
-export function logicalMinimum(left: Expr, right: any): LogicalMinimum;
+export function lt(fieldName: string, expression: Expr): BooleanExpr;
 
 // @beta
-export function logicalMinimum(left: string, right: Expr): LogicalMinimum;
+export function lt(fieldName: string, value: unknown): BooleanExpr;
 
 // @beta
-export function logicalMinimum(left: string, right: any): LogicalMinimum;
-
-// @beta (undocumented)
-export class Lt extends FirestoreFunction implements FilterCondition {
-    constructor(left: Expr, right: Expr);
-    // (undocumented)
-    filterable: true;
-    }
+export function lte(left: Expr, right: Expr): BooleanExpr;
 
 // @beta
-export function lt(left: Expr, right: Expr): Lt;
-
-// @beta
-export function lt(left: Expr, right: any): Lt;
-
-// @beta
-export function lt(left: string, right: Expr): Lt;
-
-// @beta
-export function lt(left: string, right: any): Lt;
-
-// @beta (undocumented)
-export class Lte extends FirestoreFunction implements FilterCondition {
-    constructor(left: Expr, right: Expr);
-    // (undocumented)
-    filterable: true;
-    }
-
-// @beta
-export function lte(left: Expr, right: Expr): Lte;
-
-// @beta
-export function lte(left: Expr, right: any): Lte;
+export function lte(expression: Expr, value: unknown): BooleanExpr;
 
 // Warning: (ae-incompatible-release-tags) The symbol "lte" is marked as @public, but its signature references "Expr" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "lte" is marked as @public, but its signature references "Lte" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "lte" is marked as @public, but its signature references "BooleanExpr" which is marked as @beta
 //
 // @public
-export function lte(left: string, right: Expr): Lte;
+export function lte(fieldName: string, expression: Expr): BooleanExpr;
 
 // @beta
-export function lte(left: string, right: any): Lte;
-
-// @beta (undocumented)
-export class MapGet extends FirestoreFunction {
-    constructor(map: Expr, name: string);
-}
+export function lte(fieldName: string, value: unknown): BooleanExpr;
 
 // @beta
-export function mapGet(mapField: string, subField: string): MapGet;
+export function manhattanDistance(fieldName: string, vector: number[] | VectorValue): FunctionExpr;
 
 // @beta
-export function mapGet(mapExpr: Expr, subField: string): MapGet;
-
-// @beta (undocumented)
-export class Maximum extends FirestoreFunction implements Accumulator {
-    constructor(value: Expr, distinct: boolean);
-    // (undocumented)
-    accumulator: true;
-    }
+export function manhattanDistance(fieldName: string, vectorExpression: Expr): FunctionExpr;
 
 // @beta
-export function maximum(value: Expr): Maximum;
+export function manhattanDistance(vectorExpression: Expr, vector: number[] | VectorValue): FunctionExpr;
 
 // @beta
-export function maximum(value: string): Maximum;
-
-// @beta (undocumented)
-export class Minimum extends FirestoreFunction implements Accumulator {
-    constructor(value: Expr, distinct: boolean);
-    // (undocumented)
-    accumulator: true;
-    }
+export function manhattanDistance(vectorExpression: Expr, otherVectorExpression: Expr): FunctionExpr;
 
 // @beta
-export function minimum(value: Expr): Minimum;
+export function map(elements: Record<string, unknown>): FunctionExpr;
 
 // @beta
-export function minimum(value: string): Minimum;
-
-// @beta (undocumented)
-export class Mod extends FirestoreFunction {
-    constructor(left: Expr, right: Expr);
-    }
+export function mapGet(fieldName: string, subField: string): FunctionExpr;
 
 // @beta
-export function mod(left: Expr, right: Expr): Mod;
+export function mapGet(mapExpression: Expr, subField: string): FunctionExpr;
 
 // @beta
-export function mod(left: Expr, right: any): Mod;
+export function mapMerge(mapField: string, secondMap: Record<string, unknown> | Expr, ...otherMaps: Array<Record<string, unknown> | Expr>): FunctionExpr;
 
 // @beta
-export function mod(left: string, right: Expr): Mod;
+export function mapMerge(firstMap: Record<string, unknown> | Expr, secondMap: Record<string, unknown> | Expr, ...otherMaps: Array<Record<string, unknown> | Expr>): FunctionExpr;
 
 // @beta
-export function mod(left: string, right: any): Mod;
-
-// @beta (undocumented)
-export class Multiply extends FirestoreFunction {
-    constructor(left: Expr, right: Expr);
-    }
+export function mapRemove(mapField: string, key: string): FunctionExpr;
 
 // @beta
-export function multiply(left: Expr, right: Expr): Multiply;
+export function mapRemove(mapExpr: Expr, key: string): FunctionExpr;
 
 // @beta
-export function multiply(left: Expr, right: any): Multiply;
+export function mapRemove(mapField: string, keyExpr: Expr): FunctionExpr;
 
 // @beta
-export function multiply(left: string, right: Expr): Multiply;
+export function mapRemove(mapExpr: Expr, keyExpr: Expr): FunctionExpr;
 
 // @beta
-export function multiply(left: string, right: any): Multiply;
-
-// @beta (undocumented)
-export class Neq extends FirestoreFunction implements FilterCondition {
-    constructor(left: Expr, right: Expr);
-    // (undocumented)
-    filterable: true;
-    }
+export function maximum(expression: Expr): AggregateFunction;
 
 // @beta
-export function neq(left: Expr, right: Expr): Neq;
+export function maximum(fieldName: string): AggregateFunction;
 
 // @beta
-export function neq(left: Expr, right: any): Neq;
+export function minimum(expression: Expr): AggregateFunction;
 
 // @beta
-export function neq(left: string, right: Expr): Neq;
+export function minimum(fieldName: string): AggregateFunction;
 
 // @beta
-export function neq(left: string, right: any): Neq;
-
-// @beta (undocumented)
-export class Not extends FirestoreFunction implements FilterCondition {
-    constructor(expr: Expr);
-    // (undocumented)
-    filterable: true;
-}
+export function mod(left: Expr, right: Expr): FunctionExpr;
 
 // @beta
-export function not(filter: FilterCondition): Not;
-
-// @beta (undocumented)
-export class NotEqAny extends FirestoreFunction implements FilterCondition {
-    constructor(left: Expr, others: Expr[]);
-    // (undocumented)
-    filterable: true;
-    }
+export function mod(expression: Expr, value: unknown): FunctionExpr;
 
 // @beta
-export function notEqAny(element: Expr, others: Expr[]): NotEqAny;
+export function mod(fieldName: string, expression: Expr): FunctionExpr;
 
 // @beta
-export function notEqAny(element: Expr, others: any[]): NotEqAny;
+export function mod(fieldName: string, value: unknown): FunctionExpr;
 
 // @beta
-export function notEqAny(element: string, others: Expr[]): NotEqAny;
+export function multiply(first: Expr, second: Expr | unknown, ...others: Array<Expr | unknown>): FunctionExpr;
 
 // @beta
-export function notEqAny(element: string, others: any[]): NotEqAny;
+export function multiply(fieldName: string, second: Expr | unknown, ...others: Array<Expr | unknown>): FunctionExpr;
+
+// @beta
+export function neq(left: Expr, right: Expr): BooleanExpr;
+
+// @beta
+export function neq(expression: Expr, value: unknown): BooleanExpr;
+
+// @beta
+export function neq(fieldName: string, expression: Expr): BooleanExpr;
+
+// @beta
+export function neq(fieldName: string, value: unknown): BooleanExpr;
+
+// @beta
+export function not(booleanExpr: BooleanExpr): BooleanExpr;
+
+// @beta
+export function notEqAny(element: Expr, values: Array<Expr | unknown>): BooleanExpr;
+
+// @beta
+export function notEqAny(fieldName: string, values: Array<Expr | unknown>): BooleanExpr;
+
+// @beta
+export function notEqAny(element: Expr, arrayExpression: Expr): BooleanExpr;
+
+// @beta
+export function notEqAny(fieldName: string, arrayExpression: Expr): BooleanExpr;
 
 // @beta (undocumented)
 export class Offset implements Stage {
@@ -909,12 +961,8 @@ export class Offset implements Stage {
     name: string;
     }
 
-// @beta (undocumented)
-export class Or extends FirestoreFunction implements FilterCondition {
-    constructor(conditions: FilterCondition[]);
-    // (undocumented)
-    filterable: true;
-}
+// @beta
+export function or(first: BooleanExpr, second: BooleanExpr, ...more: BooleanExpr[]): BooleanExpr;
 
 // @beta
 export class Ordering {
@@ -925,55 +973,45 @@ export class Ordering {
     readonly expr: Expr;
 }
 
-// @beta
-export function orFunction(left: FilterCondition, ...right: FilterCondition[]): Or;
-
 // @public (undocumented)
 export class Pipeline {
-    /* Excluded from this release type: newPipeline */
     // Warning: (ae-incompatible-release-tags) The symbol "addFields" is marked as @public, but its signature references "Selectable" which is marked as @beta
-    addFields(...fields: Selectable[]): Pipeline;
-    // Warning: (ae-incompatible-release-tags) The symbol "aggregate" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
-    aggregate(...accumulators: AccumulatorTarget[]): Pipeline;
-    aggregate(options: { accumulators: AccumulatorTarget[]; groups?: Array<string | Selectable>; }): Pipeline;
+    addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
+    // Warning: (ae-incompatible-release-tags) The symbol "aggregate" is marked as @public, but its signature references "AggregateWithAlias" which is marked as @beta
+    aggregate(accumulator: AggregateWithAlias, ...additionalAccumulators: AggregateWithAlias[]): Pipeline;
+    aggregate(options: { accumulators: AggregateWithAlias[]; groups?: Array<string | Selectable>; }): Pipeline;
     // Warning: (ae-incompatible-release-tags) The symbol "distinct" is marked as @public, but its signature references "Selectable" which is marked as @beta
-    distinct(...groups: Array<string | Selectable>): Pipeline;
-    // Warning: (ae-incompatible-release-tags) The symbol "execute" is marked as @public, but its signature references "PipelineResult" which is marked as @beta
-    execute(): Promise<PipelineResult[]>;
+    distinct(group: string | Selectable, ...additionalGroups: Array<string | Selectable>): Pipeline;
     // Warning: (ae-incompatible-release-tags) The symbol "findNearest" is marked as @public, but its signature references "FindNearestOptions" which is marked as @beta
     //
     // (undocumented)
     findNearest(options: FindNearestOptions): Pipeline;
-    genericStage(name: string, params: any[]): Pipeline;
+    genericStage(name: string, params: unknown[]): Pipeline;
     limit(limit: number): Pipeline;
     offset(offset: number): Pipeline;
     readUserData: any;
+    // Warning: (ae-incompatible-release-tags) The symbol "removeFields" is marked as @public, but its signature references "Field" which is marked as @beta
+    removeFields(fieldValue: Field | string, ...additionalFields: Array<Field | string>): Pipeline;
+    // Warning: (ae-incompatible-release-tags) The symbol "replaceWith" is marked as @public, but its signature references "Field" which is marked as @beta
+    replaceWith(fieldValue: Field | string): Pipeline;
+    sample(documents: number): Pipeline;
+    sample(options: { percentage: number; } | { documents: number; }): Pipeline;
     // Warning: (ae-incompatible-release-tags) The symbol "select" is marked as @public, but its signature references "Selectable" which is marked as @beta
-    select(...selections: Array<Selectable | string>): Pipeline;
+    select(selection: Selectable | string, ...additionalSelections: Array<Selectable | string>): Pipeline;
     // (undocumented)
     selectablesToMap: any;
     // Warning: (ae-incompatible-release-tags) The symbol "sort" is marked as @public, but its signature references "Ordering" which is marked as @beta
-    sort(...orderings: Ordering[]): Pipeline;
-    // (undocumented)
-    sort(options: { orderings: Ordering[]; }): Pipeline;
+    sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
     // (undocumented)
     stages: any;
+    union(other: Pipeline): Pipeline;
+    // Warning: (ae-incompatible-release-tags) The symbol "unnest" is marked as @public, but its signature references "Selectable" which is marked as @beta
+    unnest(selectable: Selectable, indexField?: string): Pipeline;
     // (undocumented)
     userDataReader: any;
-    // Warning: (ae-incompatible-release-tags) The symbol "where" is marked as @public, but its signature references "FilterCondition" which is marked as @beta
-    where(condition: FilterCondition): Pipeline;
+    // Warning: (ae-incompatible-release-tags) The symbol "where" is marked as @public, but its signature references "BooleanExpr" which is marked as @beta
+    where(condition: BooleanExpr): Pipeline;
 }
-
-// Warning: (ae-forgotten-export) The symbol "Firestore" needs to be exported by the entry point pipelines.d.ts
-// Warning: (ae-incompatible-release-tags) The symbol "pipeline" is marked as @public, but its signature references "PipelineSource" which is marked as @beta
-//
-// @public
-export function pipeline(firestore: Firestore): PipelineSource<Pipeline>;
-
-// Warning: (ae-forgotten-export) The symbol "Query" needs to be exported by the entry point pipelines.d.ts
-//
-// @public
-export function pipeline(query: Query): Pipeline;
 
 // Warning: (ae-forgotten-export) The symbol "DocumentData" needs to be exported by the entry point pipelines.d.ts
 //
@@ -984,103 +1022,93 @@ export class PipelineResult<AppModelType = DocumentData> {
     /* Excluded from this release type: __constructor */
     get createTime(): Timestamp | undefined;
     data(): AppModelType | undefined;
-    get executionTime(): Timestamp;
-    get(fieldPath: string | FieldPath): any;
+    get(fieldPath: string | FieldPath | Field): any;
     get id(): string | undefined;
     get ref(): DocumentReference | undefined;
     get updateTime(): Timestamp | undefined;
 }
 
-// @beta
-export class PipelineSource<PipelineType> {
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
-    // (undocumented)
-    collection(collectionPath: string): PipelineType;
-    // (undocumented)
-    collectionGroup(collectionId: string): PipelineType;
-    // (undocumented)
-    database(): PipelineType;
-    // (undocumented)
-    documents(docs: DocumentReference[]): PipelineType;
+// @public (undocumented)
+export class PipelineSnapshot {
+    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "PipelineResult" which is marked as @beta
+    constructor(pipeline: Pipeline, results: PipelineResult[], executionTime?: Timestamp);
+    get executionTime(): Timestamp;
+    get pipeline(): Pipeline;
+    // Warning: (ae-incompatible-release-tags) The symbol "results" is marked as @public, but its signature references "PipelineResult" which is marked as @beta
+    get results(): PipelineResult[];
 }
 
-// @beta (undocumented)
-export class RegexContains extends FirestoreFunction implements FilterCondition {
-    constructor(expr: Expr, pattern: Expr);
-    // (undocumented)
-    filterable: true;
-    }
+// @beta
+export class PipelineSource<PipelineType> {
+    collection(collectionPath: string): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
+    // Warning: (ae-forgotten-export) The symbol "Query" needs to be exported by the entry point pipelines.d.ts
+    collection(collectionReference: Query): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
+    collectionGroup(collectionId: string): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
+    createFrom(query: Query): Pipeline;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
+    database(): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
+    documents(docs: Array<string | DocumentReference>): PipelineType;
+}
 
 // @beta
-export function regexContains(left: string, pattern: string): RegexContains;
+export function rand(): FunctionExpr;
 
 // @beta
-export function regexContains(left: string, pattern: Expr): RegexContains;
+export function regexContains(fieldName: string, pattern: string): BooleanExpr;
 
 // @beta
-export function regexContains(left: Expr, pattern: string): RegexContains;
+export function regexContains(fieldName: string, pattern: Expr): BooleanExpr;
 
 // @beta
-export function regexContains(left: Expr, pattern: Expr): RegexContains;
-
-// @beta (undocumented)
-export class RegexMatch extends FirestoreFunction implements FilterCondition {
-    constructor(expr: Expr, pattern: Expr);
-    // (undocumented)
-    filterable: true;
-    }
+export function regexContains(stringExpression: Expr, pattern: string): BooleanExpr;
 
 // @beta
-export function regexMatch(left: string, pattern: string): RegexMatch;
+export function regexContains(stringExpression: Expr, pattern: Expr): BooleanExpr;
 
 // @beta
-export function regexMatch(left: string, pattern: Expr): RegexMatch;
+export function regexMatch(fieldName: string, pattern: string): BooleanExpr;
 
 // @beta
-export function regexMatch(left: Expr, pattern: string): RegexMatch;
+export function regexMatch(fieldName: string, pattern: Expr): BooleanExpr;
 
 // @beta
-export function regexMatch(left: Expr, pattern: Expr): RegexMatch;
-
-// @beta (undocumented)
-export class ReplaceAll extends FirestoreFunction {
-    constructor(value: Expr, find: Expr, replace: Expr);
-    }
+export function regexMatch(stringExpression: Expr, pattern: string): BooleanExpr;
 
 // @beta
-export function replaceAll(value: Expr, find: string, replace: string): ReplaceAll;
+export function regexMatch(stringExpression: Expr, pattern: Expr): BooleanExpr;
 
 // @beta
-export function replaceAll(value: Expr, find: Expr, replace: Expr): ReplaceAll;
+export function replaceAll(value: Expr, find: string, replace: string): FunctionExpr;
 
 // @beta
-export function replaceAll(field: string, find: string, replace: string): ReplaceAll;
-
-// @beta (undocumented)
-export class ReplaceFirst extends FirestoreFunction {
-    constructor(value: Expr, find: Expr, replace: Expr);
-    }
+export function replaceAll(value: Expr, find: Expr, replace: Expr): FunctionExpr;
 
 // @beta
-export function replaceFirst(value: Expr, find: string, replace: string): ReplaceFirst;
+export function replaceAll(fieldName: string, find: string, replace: string): FunctionExpr;
 
 // @beta
-export function replaceFirst(value: Expr, find: Expr, replace: Expr): ReplaceFirst;
+export function replaceFirst(value: Expr, find: string, replace: string): FunctionExpr;
 
 // @beta
-export function replaceFirst(field: string, find: string, replace: string): ReplaceFirst;
-
-// @beta (undocumented)
-export class Reverse extends FirestoreFunction {
-    constructor(value: Expr);
-    }
+export function replaceFirst(value: Expr, find: Expr, replace: Expr): FunctionExpr;
 
 // @beta
-export function reverse(expr: Expr): Reverse;
+export function replaceFirst(fieldName: string, find: string, replace: string): FunctionExpr;
 
 // @beta
-export function reverse(field: string): Reverse;
+export function reverse(stringExpression: Expr): FunctionExpr;
+
+// @beta
+export function reverse(field: string): FunctionExpr;
 
 // @beta (undocumented)
 export class Select implements Stage {
@@ -1090,7 +1118,11 @@ export class Select implements Stage {
     }
 
 // @beta
-export interface Selectable extends Expr {
+export interface Selectable {
+    // (undocumented)
+    readonly alias: string;
+    // (undocumented)
+    readonly expr: Expr;
     // (undocumented)
     selectable: true;
 }
@@ -1108,246 +1140,159 @@ export interface Stage {
     name: string;
 }
 
-// @beta (undocumented)
-export class StartsWith extends FirestoreFunction implements FilterCondition {
-    constructor(expr: Expr, prefix: Expr);
-    // (undocumented)
-    filterable: true;
-    }
+// @beta
+export function startsWith(fieldName: string, prefix: string): BooleanExpr;
 
 // @beta
-export function startsWith(expr: string, prefix: string): StartsWith;
+export function startsWith(fieldName: string, prefix: Expr): BooleanExpr;
 
 // @beta
-export function startsWith(expr: string, prefix: Expr): StartsWith;
+export function startsWith(stringExpression: Expr, prefix: string): BooleanExpr;
 
 // @beta
-export function startsWith(expr: Expr, prefix: string): StartsWith;
+export function startsWith(stringExpression: Expr, prefix: Expr): BooleanExpr;
 
 // @beta
-export function startsWith(expr: Expr, prefix: Expr): StartsWith;
-
-// @beta (undocumented)
-export class StrConcat extends FirestoreFunction {
-    constructor(first: Expr, rest: Expr[]);
-    }
+export function strConcat(fieldName: string, secondString: Expr | string, ...otherStrings: Array<Expr | string>): FunctionExpr;
 
 // @beta
-export function strConcat(first: string, ...elements: Array<Expr | string>): StrConcat;
+export function strConcat(firstString: Expr, secondString: Expr | string, ...otherStrings: Array<Expr | string>): FunctionExpr;
 
 // @beta
-export function strConcat(first: Expr, ...elements: Array<Expr | string>): StrConcat;
-
-// @beta (undocumented)
-export class StrContains extends FirestoreFunction implements FilterCondition {
-    constructor(expr: Expr, substring: Expr);
-    // (undocumented)
-    filterable: true;
-    }
+export function strContains(fieldName: string, substring: string): BooleanExpr;
 
 // @beta
-export function strContains(left: string, substring: string): StrContains;
+export function strContains(fieldName: string, substring: Expr): BooleanExpr;
 
 // @beta
-export function strContains(left: string, substring: Expr): StrContains;
+export function strContains(stringExpression: Expr, substring: string): BooleanExpr;
 
 // @beta
-export function strContains(left: Expr, substring: string): StrContains;
+export function strContains(stringExpression: Expr, substring: Expr): BooleanExpr;
 
 // @beta
-export function strContains(left: Expr, substring: Expr): StrContains;
-
-// @beta (undocumented)
-export class Subtract extends FirestoreFunction {
-    constructor(left: Expr, right: Expr);
-    }
+export function substr(field: string, position: number, length?: number): FunctionExpr;
 
 // @beta
-export function subtract(left: Expr, right: Expr): Subtract;
+export function substr(input: Expr, position: number, length?: number): FunctionExpr;
 
 // @beta
-export function subtract(left: Expr, right: any): Subtract;
+export function substr(field: string, position: Expr, length?: Expr): FunctionExpr;
 
 // @beta
-export function subtract(left: string, right: Expr): Subtract;
+export function substr(input: Expr, position: Expr, length?: Expr): FunctionExpr;
 
 // @beta
-export function subtract(left: string, right: any): Subtract;
-
-// @beta (undocumented)
-export class Sum extends FirestoreFunction implements Accumulator {
-    constructor(value: Expr, distinct: boolean);
-    // (undocumented)
-    accumulator: true;
-    }
+export function subtract(left: Expr, right: Expr): FunctionExpr;
 
 // @beta
-export function sumFunction(value: Expr): Sum;
+export function subtract(expression: Expr, value: unknown): FunctionExpr;
 
 // @beta
-export function sumFunction(value: string): Sum;
-
-// @beta (undocumented)
-export class TimestampAdd extends FirestoreFunction {
-    constructor(timestamp: Expr, unit: Expr, amount: Expr);
-    }
+export function subtract(fieldName: string, expression: Expr): FunctionExpr;
 
 // @beta
-export function timestampAdd(timestamp: Expr, unit: Expr, amount: Expr): TimestampAdd;
+export function subtract(fieldName: string, value: unknown): FunctionExpr;
 
 // @beta
-export function timestampAdd(timestamp: Expr, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampAdd;
+export function sum(expression: Expr): AggregateFunction;
 
 // @beta
-export function timestampAdd(field: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampAdd;
-
-// @beta (undocumented)
-export class TimestampSub extends FirestoreFunction {
-    constructor(timestamp: Expr, unit: Expr, amount: Expr);
-    }
+export function sum(fieldName: string): AggregateFunction;
 
 // @beta
-export function timestampSub(timestamp: Expr, unit: Expr, amount: Expr): TimestampSub;
+export function timestampAdd(timestamp: Expr, unit: Expr, amount: Expr): FunctionExpr;
 
 // @beta
-export function timestampSub(timestamp: Expr, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampSub;
+export function timestampAdd(timestamp: Expr, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpr;
 
 // @beta
-export function timestampSub(field: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampSub;
-
-// @beta (undocumented)
-export class TimestampToUnixMicros extends FirestoreFunction {
-    constructor(input: Expr);
-    }
+export function timestampAdd(fieldName: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpr;
 
 // @beta
-export function timestampToUnixMicros(expr: Expr): TimestampToUnixMicros;
+export function timestampSub(timestamp: Expr, unit: Expr, amount: Expr): FunctionExpr;
 
 // @beta
-export function timestampToUnixMicros(field: string): TimestampToUnixMicros;
-
-// @beta (undocumented)
-export class TimestampToUnixMillis extends FirestoreFunction {
-    constructor(input: Expr);
-    }
+export function timestampSub(timestamp: Expr, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpr;
 
 // @beta
-export function timestampToUnixMillis(expr: Expr): TimestampToUnixMillis;
+export function timestampSub(fieldName: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpr;
 
 // @beta
-export function timestampToUnixMillis(field: string): TimestampToUnixMillis;
-
-// @beta (undocumented)
-export class TimestampToUnixSeconds extends FirestoreFunction {
-    constructor(input: Expr);
-    }
+export function timestampToUnixMicros(expr: Expr): FunctionExpr;
 
 // @beta
-export function timestampToUnixSeconds(expr: Expr): TimestampToUnixSeconds;
+export function timestampToUnixMicros(fieldName: string): FunctionExpr;
 
 // @beta
-export function timestampToUnixSeconds(field: string): TimestampToUnixSeconds;
-
-// @beta (undocumented)
-export class ToLower extends FirestoreFunction {
-    constructor(expr: Expr);
-    }
+export function timestampToUnixMillis(expr: Expr): FunctionExpr;
 
 // @beta
-export function toLower(expr: string): ToLower;
+export function timestampToUnixMillis(fieldName: string): FunctionExpr;
 
 // @beta
-export function toLower(expr: Expr): ToLower;
-
-// @beta (undocumented)
-export class ToUpper extends FirestoreFunction {
-    constructor(expr: Expr);
-    }
+export function timestampToUnixSeconds(expr: Expr): FunctionExpr;
 
 // @beta
-export function toUpper(expr: string): ToUpper;
+export function timestampToUnixSeconds(fieldName: string): FunctionExpr;
 
 // @beta
-export function toUpper(expr: Expr): ToUpper;
-
-// @beta (undocumented)
-export class Trim extends FirestoreFunction {
-    constructor(expr: Expr);
-    }
+export function toLower(fieldName: string): FunctionExpr;
 
 // @beta
-export function trim(expr: string): Trim;
+export function toLower(stringExpression: Expr): FunctionExpr;
 
 // @beta
-export function trim(expr: Expr): Trim;
-
-// @beta (undocumented)
-export class UnixMicrosToTimestamp extends FirestoreFunction {
-    constructor(input: Expr);
-    }
+export function toUpper(fieldName: string): FunctionExpr;
 
 // @beta
-export function unixMicrosToTimestamp(expr: Expr): UnixMicrosToTimestamp;
+export function toUpper(stringExpression: Expr): FunctionExpr;
 
 // @beta
-export function unixMicrosToTimestamp(field: string): UnixMicrosToTimestamp;
-
-// @beta (undocumented)
-export class UnixMillisToTimestamp extends FirestoreFunction {
-    constructor(input: Expr);
-    }
+export function trim(fieldName: string): FunctionExpr;
 
 // @beta
-export function unixMillisToTimestamp(expr: Expr): UnixMillisToTimestamp;
+export function trim(stringExpression: Expr): FunctionExpr;
 
 // @beta
-export function unixMillisToTimestamp(field: string): UnixMillisToTimestamp;
-
-// @beta (undocumented)
-export class UnixSecondsToTimestamp extends FirestoreFunction {
-    constructor(input: Expr);
-    }
+export function unixMicrosToTimestamp(expr: Expr): FunctionExpr;
 
 // @beta
-export function unixSecondsToTimestamp(expr: Expr): UnixSecondsToTimestamp;
+export function unixMicrosToTimestamp(fieldName: string): FunctionExpr;
 
 // @beta
-export function unixSecondsToTimestamp(field: string): UnixSecondsToTimestamp;
-
-// @beta (undocumented)
-export class VectorLength extends FirestoreFunction {
-    constructor(value: Expr);
-    }
+export function unixMillisToTimestamp(expr: Expr): FunctionExpr;
 
 // @beta
-export function vectorLength(expr: Expr): VectorLength;
+export function unixMillisToTimestamp(fieldName: string): FunctionExpr;
 
 // @beta
-export function vectorLength(field: string): VectorLength;
+export function unixSecondsToTimestamp(expr: Expr): FunctionExpr;
+
+// @beta
+export function unixSecondsToTimestamp(fieldName: string): FunctionExpr;
+
+// @beta
+export function vectorLength(vectorExpression: Expr): FunctionExpr;
+
+// @beta
+export function vectorLength(fieldName: string): FunctionExpr;
 
 // @beta (undocumented)
 export class Where implements Stage {
-    constructor(condition: FilterCondition);
+    constructor(condition: BooleanExpr);
     // (undocumented)
     name: string;
 }
 
-// @beta (undocumented)
-export class Xor extends FirestoreFunction implements FilterCondition {
-    constructor(conditions: FilterCondition[]);
-    // (undocumented)
-    filterable: true;
-}
-
 // @beta
-export function xor(left: FilterCondition, ...right: FilterCondition[]): Xor;
+export function xor(first: BooleanExpr, second: BooleanExpr, ...additionalConditions: BooleanExpr[]): BooleanExpr;
 
 
 // Warnings were encountered during analysis:
 //
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:3983:26 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:3983:61 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:4010:21 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:4552:26 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AggregateWithAlias" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:4552:62 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
 
 // (No @packageDocumentation comment for this package)
 
