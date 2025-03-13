@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
  */
 
 import { Persistence } from '../../model/public_types';
+import type { CookieChangeEvent } from 'cookie-store';
+
+const POLLING_INTERVAL_MS = 1_000;
 
 import {
   PersistenceInternal,
@@ -24,15 +27,26 @@ import {
   StorageEventListener
 } from '../../core/persistence';
 
+const getDocumentCookie = (name: string): string | null => {
+  const escapedName = name.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&');
+  const matcher = RegExp(`${escapedName}=([^;]+)`);
+  return document.cookie.match(matcher)?.[1] ?? null;
+};
+
 export class CookiePersistence implements PersistenceInternal {
   static type: 'COOKIE' = 'COOKIE';
   readonly type = PersistenceType.COOKIE;
-  listeners: Map<StorageEventListener, (e: any) => void> = new Map();
+  cookieStoreListeners: Map<
+    StorageEventListener,
+    (event: CookieChangeEvent) => void
+  > = new Map();
+  cookiePollingIntervals: Map<StorageEventListener, NodeJS.Timeout> = new Map();
 
   async _isAvailable(): Promise<boolean> {
-    return navigator.hasOwnProperty('cookieEnabled') ?
-      navigator.cookieEnabled :
-      true;
+    if (typeof navigator === 'undefined' || typeof document === 'undefined') {
+      return false;
+    }
+    return navigator.cookieEnabled ?? true;
   }
 
   async _set(_key: string, _value: PersistenceValue): Promise<void> {
@@ -40,42 +54,89 @@ export class CookiePersistence implements PersistenceInternal {
   }
 
   async _get<T extends PersistenceValue>(key: string): Promise<T | null> {
-    const cookie = await (window as any).cookieStore.get(key);
-    return cookie?.value;
+    if (!this._isAvailable()) {
+      return null;
+    }
+    if (window.cookieStore) {
+      const cookie = await window.cookieStore.get(key);
+      return cookie?.value as T;
+    } else {
+      return getDocumentCookie(key) as T;
+    }
   }
 
   async _remove(key: string): Promise<void> {
-    const cookie = await (window as any).cookieStore.get(key);
-    if (!cookie) {
+    if (!this._isAvailable()) {
       return;
     }
-    await (window as any).cookieStore.set({ ...cookie, value: "" });
+    if (window.cookieStore) {
+      const cookie = await window.cookieStore.get(key);
+      if (!cookie) {
+        return;
+      }
+      await window.cookieStore.delete(cookie);
+    } else {
+      // TODO how do I get the cookie properties?
+      document.cookie = `${key}=;Max-Age=34560000;Partitioned;Secure;SameSite=Strict;Path=/`;
+    }
     await fetch(`/__cookies__`, { method: 'DELETE' }).catch(() => undefined);
   }
 
-  _addListener(_key: string, _listener: StorageEventListener): void {
-    // TODO fallback to polling if cookieStore is not available
-    const cb = (event: any) => {
-      const cookie = event.changed.find((change: any) => change.name === _key);
-      if (cookie) {
-        _listener(cookie.value);
-      }
-    };
-    this.listeners.set(_listener, cb);
-    (window as any).cookieStore.addEventListener('change', cb);
-  }
-
-  _removeListener(_key: string, _listener: StorageEventListener): void {
-    const cb = this.listeners.get(_listener);
-    if (!cb) {
+  _addListener(key: string, listener: StorageEventListener): void {
+    if (!this._isAvailable()) {
       return;
     }
-    (window as any).cookieStore.removeEventListener('change', cb);
+    if (window.cookieStore) {
+      const cb = (event: CookieChangeEvent): void => {
+        const changedCookie = event.changed.find(change => change.name === key);
+        if (changedCookie) {
+          listener(changedCookie.value as PersistenceValue);
+        }
+        const deletedCookie = event.deleted.find(change => change.name === key);
+        if (deletedCookie) {
+          listener(null);
+        }
+      };
+      this.cookieStoreListeners.set(listener, cb);
+      window.cookieStore.addEventListener('change', cb as EventListener);
+    } else {
+      let lastValue = getDocumentCookie(key);
+      const interval = setInterval(() => {
+        const currentValue = getDocumentCookie(key);
+        if (currentValue !== lastValue) {
+          listener(currentValue as PersistenceValue | null);
+          lastValue = currentValue;
+        }
+      }, POLLING_INTERVAL_MS);
+      this.cookiePollingIntervals.set(listener, interval);
+    }
+  }
+
+  // TODO can we tidy this logic up into a single unsubscribe function? () => void;
+  _removeListener(_key: string, listener: StorageEventListener): void {
+    if (!this._isAvailable()) {
+      return;
+    }
+    if (window.cookieStore) {
+      const cb = this.cookieStoreListeners.get(listener);
+      if (!cb) {
+        return;
+      }
+      window.cookieStore.removeEventListener('change', cb as EventListener);
+      this.cookieStoreListeners.delete(listener);
+    } else {
+      const interval = this.cookiePollingIntervals.get(listener);
+      if (!interval) {
+        return;
+      }
+      clearInterval(interval);
+      this.cookiePollingIntervals.delete(listener);
+    }
   }
 }
 
 /**
- * An implementation of {@link Persistence} of type 'NONE'.
+ * An implementation of {@link Persistence} of type 'COOKIE'.
  *
  * @public
  */

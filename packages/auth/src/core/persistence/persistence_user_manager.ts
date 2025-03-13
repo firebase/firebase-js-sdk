@@ -75,11 +75,7 @@ export class PersistenceUserManager {
     }
     if (typeof blob === 'string') {
       const response = await getAccountInfo(this.auth, { idToken: blob });
-      return await UserImpl._fromGetAccountInfoResponse(
-        this.auth,
-        response,
-        blob
-      );
+      return UserImpl._fromGetAccountInfoResponse(this.auth, response, blob);
     }
     return UserImpl._fromJSON(this.auth, blob);
   }

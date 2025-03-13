@@ -44,8 +44,6 @@ export class UserCredentialImpl
     this.operationType = params.operationType;
   }
 
-  // TODO(jamesdaniels) fetch the user credential from the cookie and response returned from the
-  //                    proxy endpoint
   static async _fromIdTokenResponse(
     auth: AuthInternal,
     operationType: OperationType,
