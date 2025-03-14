@@ -18,18 +18,18 @@
 /**
  * Represents a BSON Timestamp type in Firestore documents.
  *
- * @class BsonTimestampValue
+ * @class BsonTimestamp
  */
-export class BsonTimestampValue {
+export class BsonTimestamp {
   constructor(readonly seconds: number, readonly increment: number) {}
 
   /**
-   * Returns true if this `BsonTimestampValue` is equal to the provided one.
+   * Returns true if this `BsonTimestamp` is equal to the provided one.
    *
-   * @param other -  The `BsonTimestampValue` to compare against.
-   * @return 'true' if this `BsonTimestampValue` is equal to the provided one.
+   * @param other -  The `BsonTimestamp` to compare against.
+   * @return 'true' if this `BsonTimestamp` is equal to the provided one.
    */
-  isEqual(other: BsonTimestampValue): boolean {
+  isEqual(other: BsonTimestamp): boolean {
     return this.seconds === other.seconds && this.increment === other.increment;
   }
 }

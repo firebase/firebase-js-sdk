@@ -156,7 +156,7 @@ export { BsonBinaryData } from '../src/lite-api/bson_binary_data';
 
 export { BsonObjectId } from '../src/lite-api/bson_object_Id';
 
-export { BsonTimestampValue } from '../src/lite-api/bson_timestamp_value';
+export { BsonTimestamp } from '../src/lite-api/bson_timestamp_value';
 
 export { MinKey } from '../src/lite-api/min_key';
 

@@ -21,7 +21,7 @@ import { GeoPoint, Timestamp } from '../../../src';
 import { DatabaseId } from '../../../src/core/database_info';
 import { BsonBinaryData } from '../../../src/lite-api/bson_binary_data';
 import { BsonObjectId } from '../../../src/lite-api/bson_object_Id';
-import { BsonTimestampValue } from '../../../src/lite-api/bson_timestamp_value';
+import { BsonTimestamp } from '../../../src/lite-api/bson_timestamp_value';
 import {
   vector,
   regex,
@@ -118,7 +118,7 @@ describe('Values', () => {
       [wrap(vector([]))],
       [wrap(vector([1, 2.3, -4.0]))],
       [wrap(regex('^foo', 'i')), wrap(new RegexValue('^foo', 'i'))],
-      [wrap(bsonTimestamp(57, 4)), wrap(new BsonTimestampValue(57, 4))],
+      [wrap(bsonTimestamp(57, 4)), wrap(new BsonTimestamp(57, 4))],
       [
         wrap(bsonBinaryData(128, Uint8Array.from([7, 8, 9]))),
         wrap(new BsonBinaryData(128, Uint8Array.from([7, 8, 9]))),

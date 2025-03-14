@@ -17,7 +17,7 @@
 
 import { BsonBinaryData } from './bson_binary_data';
 import { BsonObjectId } from './bson_object_Id';
-import { BsonTimestampValue } from './bson_timestamp_value';
+import { BsonTimestamp } from './bson_timestamp_value';
 import { FieldValue } from './field_value';
 import { Int32Value } from './int32_value';
 import { MaxKey } from './max_key';
@@ -167,18 +167,18 @@ export function bsonObjectId(value: string): BsonObjectId {
 }
 
 /**
- * Creates a new `BsonTimestampValue` constructed with the given seconds and increment.
+ * Creates a new `BsonTimestamp` constructed with the given seconds and increment.
  *
  * @param seconds - The underlying unsigned 32-bit integer for seconds.
  * @param seconds - The underlying unsigned 32-bit integer for increment.
  *
- * @returns A new `BsonTimestampValue` constructed with the given seconds and increment.
+ * @returns A new `BsonTimestamp` constructed with the given seconds and increment.
  */
 export function bsonTimestamp(
   seconds: number,
   increment: number
-): BsonTimestampValue {
-  return new BsonTimestampValue(seconds, increment);
+): BsonTimestamp {
+  return new BsonTimestamp(seconds, increment);
 }
 
 /**

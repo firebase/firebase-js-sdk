@@ -77,7 +77,7 @@ import { Dict, forEach, isEmpty } from '../util/obj';
 
 import { BsonBinaryData } from './bson_binary_data';
 import { BsonObjectId } from './bson_object_Id';
-import { BsonTimestampValue } from './bson_timestamp_value';
+import { BsonTimestamp } from './bson_timestamp_value';
 import { Bytes } from './bytes';
 import { Firestore } from './database';
 import { FieldPath } from './field_path';
@@ -934,7 +934,7 @@ function parseScalarValue(
     return parseBsonObjectId(value);
   } else if (value instanceof Int32Value) {
     return parseInt32Value(value);
-  } else if (value instanceof BsonTimestampValue) {
+  } else if (value instanceof BsonTimestamp) {
     return parseBsonTimestamp(value);
   } else if (value instanceof BsonBinaryData) {
     return parseBsonBinaryData(context.serializer, value);
@@ -1043,7 +1043,7 @@ export function parseInt32Value(value: Int32Value): ProtoValue {
   return { mapValue };
 }
 
-export function parseBsonTimestamp(value: BsonTimestampValue): ProtoValue {
+export function parseBsonTimestamp(value: BsonTimestamp): ProtoValue {
   const mapValue: ProtoMapValue = {
     fields: {
       [RESERVED_BSON_TIMESTAMP_KEY]: {
@@ -1105,7 +1105,7 @@ function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof Int32Value) &&
     !(input instanceof RegexValue) &&
     !(input instanceof BsonObjectId) &&
-    !(input instanceof BsonTimestampValue) &&
+    !(input instanceof BsonTimestamp) &&
     !(input instanceof BsonBinaryData)
   );
 }

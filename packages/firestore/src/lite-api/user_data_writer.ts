@@ -60,7 +60,7 @@ import { forEach } from '../util/obj';
 
 import { BsonBinaryData } from './bson_binary_data';
 import { BsonObjectId } from './bson_object_Id';
-import { BsonTimestampValue } from './bson_timestamp_value';
+import { BsonTimestamp } from './bson_timestamp_value';
 import { maxKey, minKey } from './field_value_impl';
 import { GeoPoint } from './geo_point';
 import { Int32Value } from './int32_value';
@@ -112,11 +112,11 @@ export abstract class AbstractUserDataWriter {
       case TypeOrder.RegexValue:
         return this.convertToRegexValue(value.mapValue!);
       case TypeOrder.BsonObjectIdValue:
-        return this.convertToBsonObjectIdValue(value.mapValue!);
+        return this.convertToBsonObjectId(value.mapValue!);
       case TypeOrder.BsonBinaryValue:
-        return this.convertToBsonBinaryValue(value.mapValue!);
+        return this.convertToBsonBinaryData(value.mapValue!);
       case TypeOrder.BsonTimestampValue:
-        return this.convertToBsonTimestampValue(value.mapValue!);
+        return this.convertToBsonTimestamp(value.mapValue!);
       case TypeOrder.MaxKeyValue:
         return maxKey();
       case TypeOrder.MinKeyValue:
@@ -160,13 +160,13 @@ export abstract class AbstractUserDataWriter {
     return new VectorValue(values);
   }
 
-  private convertToBsonObjectIdValue(mapValue: ProtoMapValue): BsonObjectId {
+  private convertToBsonObjectId(mapValue: ProtoMapValue): BsonObjectId {
     const oid =
       mapValue!.fields?.[RESERVED_BSON_OBJECT_ID_KEY]?.stringValue ?? '';
     return new BsonObjectId(oid);
   }
 
-  private convertToBsonBinaryValue(mapValue: ProtoMapValue): BsonBinaryData {
+  private convertToBsonBinaryData(mapValue: ProtoMapValue): BsonBinaryData {
     const fields = mapValue!.fields?.[RESERVED_BSON_BINARY_KEY];
     const subtypeAndData = fields?.bytesValue;
     if (!subtypeAndData) {
@@ -182,9 +182,7 @@ export abstract class AbstractUserDataWriter {
     return new BsonBinaryData(Number(subtype), data);
   }
 
-  private convertToBsonTimestampValue(
-    mapValue: ProtoMapValue
-  ): BsonTimestampValue {
+  private convertToBsonTimestamp(mapValue: ProtoMapValue): BsonTimestamp {
     const fields = mapValue!.fields?.[RESERVED_BSON_TIMESTAMP_KEY];
     const seconds = Number(
       fields?.mapValue?.fields?.[RESERVED_BSON_TIMESTAMP_SECONDS_KEY]
@@ -194,7 +192,7 @@ export abstract class AbstractUserDataWriter {
       fields?.mapValue?.fields?.[RESERVED_BSON_TIMESTAMP_INCREMENT_KEY]
         ?.integerValue
     );
-    return new BsonTimestampValue(seconds, increment);
+    return new BsonTimestamp(seconds, increment);
   }
 
   private convertToRegexValue(mapValue: ProtoMapValue): RegexValue {
