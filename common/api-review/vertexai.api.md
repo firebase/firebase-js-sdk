@@ -28,9 +28,9 @@ export interface BaseParams {
 
 // @public
 export enum BlockReason {
-    // (undocumented)
+    BLOCKLIST = "BLOCKLIST",
     OTHER = "OTHER",
-    // (undocumented)
+    PROHIBITED_CONTENT = "PROHIBITED_CONTENT",
     SAFETY = "SAFETY"
 }
 
@@ -88,6 +88,9 @@ export interface Content {
 export interface CountTokensRequest {
     // (undocumented)
     contents: Content[];
+    generationConfig?: GenerationConfig;
+    systemInstruction?: string | Part | Content;
+    tools?: Tool[];
 }
 
 // @public
@@ -158,15 +161,14 @@ export interface FileDataPart {
 
 // @public
 export enum FinishReason {
-    // (undocumented)
+    BLOCKLIST = "BLOCKLIST",
+    MALFORMED_FUNCTION_CALL = "MALFORMED_FUNCTION_CALL",
     MAX_TOKENS = "MAX_TOKENS",
-    // (undocumented)
     OTHER = "OTHER",
-    // (undocumented)
+    PROHIBITED_CONTENT = "PROHIBITED_CONTENT",
     RECITATION = "RECITATION",
-    // (undocumented)
     SAFETY = "SAFETY",
-    // (undocumented)
+    SPII = "SPII",
     STOP = "STOP"
 }
 
@@ -188,11 +190,8 @@ export interface FunctionCallingConfig {
 
 // @public (undocumented)
 export enum FunctionCallingMode {
-    // (undocumented)
     ANY = "ANY",
-    // (undocumented)
     AUTO = "AUTO",
-    // (undocumented)
     NONE = "NONE"
 }
 
@@ -377,21 +376,15 @@ export interface GroundingMetadata {
 
 // @public (undocumented)
 export enum HarmBlockMethod {
-    // (undocumented)
     PROBABILITY = "PROBABILITY",
-    // (undocumented)
     SEVERITY = "SEVERITY"
 }
 
 // @public
 export enum HarmBlockThreshold {
-    // (undocumented)
     BLOCK_LOW_AND_ABOVE = "BLOCK_LOW_AND_ABOVE",
-    // (undocumented)
     BLOCK_MEDIUM_AND_ABOVE = "BLOCK_MEDIUM_AND_ABOVE",
-    // (undocumented)
     BLOCK_NONE = "BLOCK_NONE",
-    // (undocumented)
     BLOCK_ONLY_HIGH = "BLOCK_ONLY_HIGH"
 }
 
@@ -409,25 +402,17 @@ export enum HarmCategory {
 
 // @public
 export enum HarmProbability {
-    // (undocumented)
     HIGH = "HIGH",
-    // (undocumented)
     LOW = "LOW",
-    // (undocumented)
     MEDIUM = "MEDIUM",
-    // (undocumented)
     NEGLIGIBLE = "NEGLIGIBLE"
 }
 
 // @public
 export enum HarmSeverity {
-    // (undocumented)
     HARM_SEVERITY_HIGH = "HARM_SEVERITY_HIGH",
-    // (undocumented)
     HARM_SEVERITY_LOW = "HARM_SEVERITY_LOW",
-    // (undocumented)
     HARM_SEVERITY_MEDIUM = "HARM_SEVERITY_MEDIUM",
-    // (undocumented)
     HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE"
 }
 
