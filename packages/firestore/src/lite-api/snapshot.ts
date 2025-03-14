@@ -38,6 +38,7 @@ import {
   UntypedFirestoreDataConverter
 } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
+import { Timestamp } from '../lite-api/timestamp';
 
 /**
  * Converter used by `withConverter()` to transform user objects of type
@@ -327,6 +328,18 @@ export class DocumentSnapshot<
       this._converter,
       this._key
     );
+  }
+
+  get createTime(): Timestamp | undefined {
+    return this._document?.createTime.toTimestamp();
+  }
+
+  get updateTime(): Timestamp | undefined {
+    return this._document?.updateTime.toTimestamp();
+  }
+
+  get readTime(): Timestamp | undefined {
+    return this._document?.readTime.toTimestamp();
   }
 
   /**
