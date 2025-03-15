@@ -220,7 +220,7 @@ export class BundleBuilder {
 
     const metadata: ProtoBundleMetadata = {
       id: this.bundleId,
-      createTime: this.latestReadTime.toProto().timestampValue,
+      createTime: this.latestReadTime,
       version: BUNDLE_VERSION,
       totalDocuments: this.documents.size,
       totalBytes: bundleBuffer.length,

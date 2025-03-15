@@ -334,10 +334,6 @@ export class DocumentSnapshot<
     return this._document?.createTime.toTimestamp();
   }
 
-  get updateTime(): Timestamp | undefined {
-    return this._document?.updateTime.toTimestamp();
-  }
-
   get readTime(): Timestamp | undefined {
     return this._document?.readTime.toTimestamp();
   }

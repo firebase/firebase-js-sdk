@@ -16,6 +16,7 @@
  */
 
 import { FieldPath } from '../lite-api/field_path';
+import { Timestamp } from '../lite-api/timestamp';
 
 /**
  * Options to allow argument omission.
