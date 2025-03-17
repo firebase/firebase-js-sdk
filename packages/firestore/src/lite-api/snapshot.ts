@@ -17,6 +17,7 @@
 
 import { Compat, getModularInstance } from '@firebase/util';
 
+import { Timestamp } from '../lite-api/timestamp';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath as InternalFieldPath } from '../model/path';
@@ -38,7 +39,6 @@ import {
   UntypedFirestoreDataConverter
 } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
-import { Timestamp } from '../lite-api/timestamp';
 
 /**
  * Converter used by `withConverter()` to transform user objects of type

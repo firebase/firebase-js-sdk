@@ -17,7 +17,6 @@
 
 
 import {
-  BundleElement,
   BundleMetadata
 } from '../protos/firestore_bundle_proto';
 import { JsonProtoSerializer } from '../remote/serializer';

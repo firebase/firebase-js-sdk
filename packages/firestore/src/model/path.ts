@@ -22,17 +22,6 @@ import { Code, FirestoreError } from '../util/error';
 
 export const DOCUMENT_KEY_NAME = '__name__';
 
-/*!
- * A regular expression to verify an absolute Resource Path in Firestore. It
- * extracts the project ID, the database name and the relative resource path
- * if available.
- *
- * @type {RegExp}
- */
-const RESOURCE_PATH_RE =
-  // Note: [\s\S] matches all characters including newlines.
-  /^projects\/([^/]*)\/databases\/([^/]*)(?:\/documents\/)?([\s\S]*)$/;
-
 /**
  * Path represents an ordered sequence of string segments.
  */
