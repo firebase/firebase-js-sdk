@@ -23,7 +23,7 @@ import {
   BundledDocumentMetadata as ProtoBundledDocumentMetadata,
   NamedQuery as ProtoNamedQuery,
 } from '../protos/firestore_bundle_proto';
-
+import { Firestore } from '../api/database';
 import { DocumentSnapshot } from '../lite-api/snapshot';
 import { QuerySnapshot } from '../lite-api/snapshot';
 import { Timestamp } from '../lite-api/timestamp';
@@ -34,8 +34,6 @@ import {
   toDocument,
   toName,
   toQueryTarget,
-  toTimestamp,
-  toVersion,
 } from '../../src/remote/serializer';
 
 import {
@@ -66,10 +64,14 @@ export class BundleBuilder {
   // The latest read time among all bundled documents and queries.
   private latestReadTime = new Timestamp(0, 0);
 
-  constructor(readonly bundleId: string) {}
+  private databaseId: DatabaseId;
 
-  add(databaseId: DatabaseId, documentSnapshot: DocumentSnapshot): BundleBuilder;
-  add(databaseId: DatabaseId, queryName: string, querySnapshot: QuerySnapshot): BundleBuilder;
+  constructor(private firestore: Firestore, readonly bundleId: string) {
+    this.databaseId = firestore._databaseId;
+  }
+  
+  add(documentSnapshot: DocumentSnapshot): BundleBuilder;
+  add(queryName: string, querySnapshot: QuerySnapshot): BundleBuilder;
 
   /**
    * Adds a Firestore document snapshot or query snapshot to the bundle.
@@ -92,7 +94,6 @@ export class BundleBuilder {
    * ```
    */
   add(
-    databaseId: DatabaseId,
     documentOrName: DocumentSnapshot | string,
     querySnapshot?: QuerySnapshot
   ): BundleBuilder {
@@ -102,17 +103,17 @@ export class BundleBuilder {
     validateMaxNumberOfArguments('BundleBuilder.add', arguments, 2);
     if (arguments.length === 1) {
       validateDocumentSnapshot('documentOrName', documentOrName);
-      this.addBundledDocument(databaseId, documentOrName as DocumentSnapshot);
+      this.addBundledDocument(documentOrName as DocumentSnapshot);
     } else {
       validateString('documentOrName', documentOrName);
       validateQuerySnapshot('querySnapshot', querySnapshot);
-      this.addNamedQuery(databaseId, documentOrName as string, querySnapshot!);
+      this.addNamedQuery(documentOrName as string, querySnapshot!);
     }
     return this;
   }
   
-  private addBundledDocument(databaseId: DatabaseId, snap: DocumentSnapshot, queryName?: string): void {
-    // TODO:  is this a valid shortcut out?
+  private addBundledDocument(snap: DocumentSnapshot, queryName?: string): void {
+    // TODO:  is this a valid shortcircuit?
     if(!snap._document || !snap._document.isValidDocument()) {
       return;
     }
@@ -126,7 +127,10 @@ export class BundleBuilder {
         (!snapReadTime && !originalDocument.metadata.readTime) ||
         (snapReadTime && originalDocument.metadata.readTime! < snapReadTime)
     ) {
-      const serializer = new JsonProtoSerializer(databaseId, /*useProto3Json=*/ false);
+
+      // TODO: Should I create on serializer for the bundler instance, or just created one adhoc
+      // like this?
+      const serializer = new JsonProtoSerializer(this.databaseId, /*useProto3Json=*/ false);
       
       this.documents.set(snap.ref.path, {
         document: snap._document.isFoundDocument() ? toDocument(serializer, mutableCopy) : undefined,
@@ -151,16 +155,16 @@ export class BundleBuilder {
     }
   }
 
-  private addNamedQuery(databaseId: DatabaseId, name: string, querySnap: QuerySnapshot): void {
+  private addNamedQuery(name: string, querySnap: QuerySnapshot): void {
     if (this.namedQueries.has(name)) {
       throw new Error(`Query name conflict: ${name} has already been added.`);
     }
 
-    const serializer = new JsonProtoSerializer(databaseId, /*useProto3Json=*/ false);
+    const serializer = new JsonProtoSerializer(this.databaseId, /*useProto3Json=*/ false);
     const queryTarget = toQueryTarget(serializer, queryToTarget(querySnap.query._query));
 
     for (const snap of querySnap.docs) {
-      this.addBundledDocument(databaseId, snap, name);
+      this.addBundledDocument(snap, name);
       const readTime = snap.readTime;
       if (readTime && readTime > this.latestReadTime) {
         this.latestReadTime = readTime;
