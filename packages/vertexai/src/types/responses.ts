@@ -160,6 +160,7 @@ export interface GroundingMetadata {
 }
 
 /**
+ * @deprecated
  * @public
  */
 export interface GroundingAttribution {
