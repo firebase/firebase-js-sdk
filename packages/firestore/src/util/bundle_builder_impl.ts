@@ -15,39 +15,29 @@
  * limitations under the License.
  */
 
-
-import { Document } from '../protos/firestore_proto_api';
-import {
-  BundleElement as ProtoBundleElement,
-  BundleMetadata as ProtoBundleMetadata,
-  BundledDocumentMetadata as ProtoBundledDocumentMetadata,
-  NamedQuery as ProtoNamedQuery,
-} from '../protos/firestore_bundle_proto';
-import { Firestore } from '../api/database';
-import { DocumentSnapshot } from '../lite-api/snapshot';
-import { QuerySnapshot } from '../lite-api/snapshot';
-import { Timestamp } from '../lite-api/timestamp';
 import { queryToTarget } from '../../src/core/query';
-
 import {
   JsonProtoSerializer,
   toDocument,
   toName,
   toQueryTarget,
 } from '../../src/remote/serializer';
+import { Firestore } from '../api/database';
+import { DatabaseId } from '../core/database_info';
+import { DocumentSnapshot, QuerySnapshot } from '../lite-api/snapshot';
+import { Timestamp } from '../lite-api/timestamp';
+import {
+  BundleElement as ProtoBundleElement,
+  BundleMetadata as ProtoBundleMetadata,
+  BundledDocumentMetadata as ProtoBundledDocumentMetadata,
+  NamedQuery as ProtoNamedQuery,
+} from '../protos/firestore_bundle_proto';
+import { Document } from '../protos/firestore_proto_api';
 
 import {
   invalidArgumentMessage,
-  validateMaxNumberOfArguments,
-  validateMinNumberOfArguments,
   validateString,
 } from './bundle_builder_validation_utils';
-import { DatabaseId } from '../core/database_info';
-
-
-
-//import api = google.firestore.v1;
-
 
 const BUNDLE_VERSION = 1;
 
@@ -97,10 +87,9 @@ export class BundleBuilder {
     documentOrName: DocumentSnapshot | string,
     querySnapshot?: QuerySnapshot
   ): BundleBuilder {
-    // eslint-disable-next-line prefer-rest-params
-    validateMinNumberOfArguments('BundleBuilder.add', arguments, 1);
-    // eslint-disable-next-line prefer-rest-params
-    validateMaxNumberOfArguments('BundleBuilder.add', arguments, 2);
+    if (arguments.length < 1 || arguments.length > 2) {
+      throw new Error( 'Function BundleBuilder.add() requires 1 or 2 arguments.');
+    }
     if (arguments.length === 1) {
       validateDocumentSnapshot('documentOrName', documentOrName);
       this.addBundledDocument(documentOrName as DocumentSnapshot);
@@ -162,14 +151,29 @@ export class BundleBuilder {
 
     const serializer = new JsonProtoSerializer(this.databaseId, /*useProto3Json=*/ false);
     const queryTarget = toQueryTarget(serializer, queryToTarget(querySnap.query._query));
-
+    
+    // TODO: if we can't resolve the query's readTime then can we set it to the latest
+    // of the document collection?
+    let latestReadTime = new Timestamp(0, 0);
     for (const snap of querySnap.docs) {
-      this.addBundledDocument(snap, name);
       const readTime = snap.readTime;
-      if (readTime && readTime > this.latestReadTime) {
-        this.latestReadTime = readTime;
+      if (readTime && readTime > latestReadTime) {
+        latestReadTime = readTime;
       }
+      this.addBundledDocument(snap, name);
     }
+
+    const bundledQuery = {
+      parent: queryTarget.parent.canonicalString(),
+      structuredQuery: queryTarget.queryTarget.structuredQuery,
+      limitType: null
+    };
+    
+    this.namedQueries.set(name, {
+      name,
+      bundledQuery,
+      readTime: latestReadTime
+    });
   }
 
   /**
@@ -184,7 +188,8 @@ export class BundleBuilder {
     // Convert to a valid proto message object then take its JSON representation.
     // This take cares of stuff like converting internal byte array fields
     // to Base64 encodings.
-    // We lazy-load the Proto file to reduce cold-start times.
+    
+    // TODO: This fails. BundleElement doesn't have a toJSON method.
     const message = require('../protos/firestore_v1_proto_api')
       .firestore.BundleElement.fromObject(bundleElement)
       .toJSON();
