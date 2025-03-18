@@ -1,5 +1,11 @@
 # @firebase/app-check
 
+## 0.8.13
+
+### Patch Changes
+
+- [`95b4fc6`](https://github.com/firebase/firebase-js-sdk/commit/95b4fc69d8e85991e6da20e4bf68d54d4e6741d6) [#8842](https://github.com/firebase/firebase-js-sdk/pull/8842) (fixes [#8822](https://github.com/firebase/firebase-js-sdk/issues/8822)) - Improve error handling in AppCheck. The publicly-exported `getToken()` will now throw `internalError` strings it was previously ignoring.
+
 ## 0.8.12
 
 ### Patch Changes
