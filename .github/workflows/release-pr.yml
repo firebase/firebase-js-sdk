@@ -26,6 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
+      contents: write
     if: ${{ !startsWith(github.event.head_commit.message, 'Version Packages (#') }}
     steps:
       - name: Checkout Repo
