@@ -60,9 +60,6 @@ export class BundleBuilder {
     this.databaseId = firestore._databaseId;
   }
   
-  add(documentSnapshot: DocumentSnapshot): BundleBuilder;
-  add(queryName: string, querySnapshot: QuerySnapshot): BundleBuilder;
-
   /**
    * Adds a Firestore document snapshot or query snapshot to the bundle.
    * Both the documents data and the query read time will be included in the bundle.
@@ -168,7 +165,7 @@ export class BundleBuilder {
       structuredQuery: queryTarget.queryTarget.structuredQuery,
       limitType: null
     };
-    
+
     this.namedQueries.set(name, {
       name,
       bundledQuery,

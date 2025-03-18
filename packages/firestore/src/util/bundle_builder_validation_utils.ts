@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { FieldPath } from '../lite-api/field_path';
-import { Timestamp } from '../lite-api/timestamp';
 
 /**
  * Validates that 'value' is a string.
@@ -52,18 +50,6 @@ export function invalidArgumentMessage(
 }
 
 /**
- * Formats the given word as plural conditionally given the preceding number.
- *
- * @private
- * @internal
- * @param num The number to use for formatting.
- * @param str The string to format.
- */
-function formatPlural(num: number, str: string): string {
-  return `${num} ${str}` + (num === 1 ? '' : 's');
-}
-
-/**
  * Creates a descriptive name for the provided argument name or index.
  *
  * @private
@@ -75,50 +61,4 @@ function formatArgumentName(arg: string | number): string {
   return typeof arg === 'string'
     ? `Value for argument "${arg}"`
     : `Element at index ${arg}`;
-}
-
-/**
- * Verifies that 'args' has at least 'minSize' elements.
- *
- * @private
- * @internal
- * @param funcName The function name to use in the error message.
- * @param args The array (or array-like structure) to verify.
- * @param minSize The minimum number of elements to enforce.
- * @throws if the expectation is not met.
- */
-export function validateMinNumberOfArguments(
-  funcName: string,
-  args: IArguments | unknown[],
-  minSize: number
-): void {
-  if (args.length < minSize) {
-    throw new Error(
-      `Function "${funcName}()" requires at least ` +
-        `${formatPlural(minSize, 'argument')}.`
-    );
-  }
-}
-
-/**
- * Verifies that 'args' has at most 'maxSize' elements.
- *
- * @private
- * @internal
- * @param funcName The function name to use in the error message.
- * @param args The array (or array-like structure) to verify.
- * @param maxSize The maximum number of elements to enforce.
- * @throws if the expectation is not met.
- */
-export function validateMaxNumberOfArguments(
-  funcName: string,
-  args: IArguments,
-  maxSize: number
-): void {
-  if (args.length > maxSize) {
-    throw new Error(
-      `Function "${funcName}()" accepts at most ` +
-        `${formatPlural(maxSize, 'argument')}.`
-    );
-  }
 }
