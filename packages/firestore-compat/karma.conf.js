@@ -57,5 +57,3 @@ function getTestFiles(argv) {
   const integrationTests = 'test/bootstrap.ts';
   return [integrationTests];
 }
-
-module.exports.files = getTestFiles(argv);

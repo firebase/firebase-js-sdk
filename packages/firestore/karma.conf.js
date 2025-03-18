@@ -83,5 +83,3 @@ function getTestBrowsers(argv) {
   }
   return browsers;
 }
-
-module.exports.files = getTestFiles(argv);

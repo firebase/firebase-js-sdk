@@ -93,5 +93,3 @@ function getClientConfig(argv) {
     authEmulatorHost: process.env.FIREBASE_AUTH_EMULATOR_HOST
   };
 }
-
-module.exports.files = getTestFiles(argv);

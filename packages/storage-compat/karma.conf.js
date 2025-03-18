@@ -42,5 +42,3 @@ function getTestFiles(argv) {
     return [...unitTestFiles, ...integrationTestFiles];
   }
 }
-
-module.exports.files = getTestFiles(argv);
