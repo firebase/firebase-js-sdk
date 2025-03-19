@@ -38,7 +38,7 @@ describe('Count Tokens', () => {
       safetySettings
     });
 
-    let response = await model.countTokens('Why is the sky blue?');
+    const response = await model.countTokens('Why is the sky blue?');
 
     expect(response.totalTokens).to.equal(6);
     expect(response.totalBillableCharacters).to.equal(16);
