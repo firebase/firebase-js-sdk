@@ -126,10 +126,6 @@ describe('request methods', () => {
       const headers = await getHeaders(fakeUrl);
       expect(headers.get('x-goog-api-key')).to.equal('key');
     });
-    it('adds app id if automatedDataCollectionEnabled is undefined', async () => {
-      const headers = await getHeaders(fakeUrl);
-      expect(headers.get('X-Firebase-AppId')).to.equal('my-appid');
-    });
     it('adds app id if automatedDataCollectionEnabled is true', async () => {
       const fakeApiSettings: ApiSettings = {
         apiKey: 'key',
@@ -148,7 +144,11 @@ describe('request methods', () => {
         {}
       );
       const headers = await getHeaders(fakeUrl);
-      expect(headers.get('X-Firebase-AppId')).to.equal('my-appid');
+      expect(headers.get('X-Firebase-Appid')).to.equal('my-appid');
+    });
+    it('does not add app id if automatedDataCollectionEnabled is undefined', async () => {
+      const headers = await getHeaders(fakeUrl);
+      expect(headers.get('X-Firebase-Appid')).to.be.null;
     });
     it('does not add app id if automatedDataCollectionEnabled is false', async () => {
       const fakeApiSettings: ApiSettings = {
@@ -168,7 +168,7 @@ describe('request methods', () => {
         {}
       );
       const headers = await getHeaders(fakeUrl);
-      expect(headers.get('X-Firebase-AppId')).to.be.null;
+      expect(headers.get('X-Firebase-Appid')).to.be.null;
     });
     it('adds app check token if it exists', async () => {
       const headers = await getHeaders(fakeUrl);
