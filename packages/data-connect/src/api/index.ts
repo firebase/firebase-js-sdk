@@ -25,7 +25,7 @@ export { validateArgs } from '../util/validateArgs';
 
 export { DataConnectError, DataConnectOperationError } from '../core/error';
 
-export type {
+export {
   DataConnectErrorCode,
   DataConnectOperationResponse,
   DataConnectOperationErrorInfo
