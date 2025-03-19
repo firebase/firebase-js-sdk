@@ -104,3 +104,6 @@ mocks-lookup.ts
 
 # temp changeset output
 changeset-temp.json
+
+# Vertex AI integration test Firebase project config
+packages/vertexai/integration/firebase-config.ts

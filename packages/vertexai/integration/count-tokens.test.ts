@@ -1,11 +1,12 @@
 import { expect } from "chai";
 import { Modality, getGenerativeModel, getVertexAI } from "../src";
-import { MODEL_NAME, generationConfig, systemInstruction, safetySettings, config } from "./constants";
+import { MODEL_NAME, generationConfig, systemInstruction, safetySettings, } from "./constants";
 import { initializeApp } from "@firebase/app";
+import { FIREBASE_CONFIG } from "./firebase-config";
 
 describe('Count Tokens', () => {
 
-  before(() => initializeApp(config))
+  before(() => initializeApp(FIREBASE_CONFIG))
 
   it('CountTokens text', async () => {
     const vertexAI = getVertexAI(); 
@@ -28,4 +29,10 @@ describe('Count Tokens', () => {
     expect(response.promptTokensDetails![0].modality).to.equal(Modality.TEXT);
     expect(response.promptTokensDetails![0].tokenCount).to.equal(6);
   });
+  // TODO (dlarocque): Test countTokens() with the following:
+  // - inline data
+  // - public storage reference
+  // - private storage reference (testing auth integration)
+  // - count tokens
+  // - JSON schema
 });

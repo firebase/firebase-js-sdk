@@ -60,7 +60,7 @@ const config = {
   preprocessors: {
     'test/**/*.ts': ['webpack', 'sourcemap'],
     'src/**/*.test.ts': ['webpack', 'sourcemap'],
-    'integration/**/*.test.ts': ['webpack', 'sourcemap']
+    'integration/**/*.ts': ['webpack', 'sourcemap']
   },
 
   mime: { 'text/x-typescript': ['ts', 'tsx'] },

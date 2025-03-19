@@ -18,6 +18,11 @@
 const karmaBase = require('../../config/karma.base');
 const { argv } = require('yargs');
 
+// Validate that required environment variables are defined
+if (!process.env.VERTEXAI_INTEGRATION_FIREBASE_CONFIG_JSON) {
+  throw new Error('VERTEXAI_INTEGRATION_FIREBASE_CONFIG_JSON is not defined in env. Set this env variable to be the JSON of a Firebase project config to run the integration tests with.')
+}
+
 module.exports = function (config) {
   const karmaConfig = {
     ...karmaBase,
@@ -25,7 +30,7 @@ module.exports = function (config) {
     // files to load into karma
     files: (() => {
       if (argv.integration) {
-        return ['integration/**/*.test.ts'];
+        return ['integration/**'];
       } else {
         return ['src/**/*.test.ts'];
       }
@@ -34,7 +39,10 @@ module.exports = function (config) {
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha']
+
   };
+
+  config.client.args.push(process.env.VERTEXAI_INTEGRATION_FIREBASE_CONFIG_JSON);
 
   config.set(karmaConfig);
 };
