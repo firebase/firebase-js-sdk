@@ -34,6 +34,11 @@ module.exports = function (config) {
   const karmaConfig = {
     ...karmaBase,
 
+    preprocessors: {
+      ...karmaBase.preprocessors,
+      'integration/**/*.ts': ['webpack', 'sourcemap']
+    },
+
     // files to load into karma
     files: (() => {
       if (argv.integration) {
