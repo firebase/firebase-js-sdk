@@ -42,10 +42,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.10.0
-      - uses: 'google-github-actions/auth@v0'
+      # This commit represents v0.8.3
+      - uses: 'google-github-actions/auth@c4799db'
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
-      - uses: google-github-actions/setup-gcloud@v2
+      # This commit represents v2.1.4
+      - uses: google-github-actions/setup-gcloud@77e7a55
       - run: yarn install
       - run: yarn build
       - name: Run health-metrics/binary-size test
@@ -59,10 +61,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.10.0
-      - uses: 'google-github-actions/auth@v0'
+        # This commit represents v0.8.3
+      - uses: 'google-github-actions/auth@c4799db'
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
-      - uses: google-github-actions/setup-gcloud@v2
+      # This commit represents v2.1.4
+      - uses: google-github-actions/setup-gcloud@77e7a55
       - run: yarn install
       - run: yarn build
       - name: Run health-metrics/modular-exports-binary-size test

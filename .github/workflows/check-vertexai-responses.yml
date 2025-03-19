@@ -35,14 +35,16 @@ jobs:
           echo "latest_tag=$LATEST" >> $GITHUB_ENV
         working-directory: packages/vertexai/test-utils/vertexai-sdk-test-data
       - name: Find comment from previous run if exists
-        uses: peter-evans/find-comment@v3
+        # This commit represents v3.1.0
+        uses: peter-evans/find-comment@3eae4d3
         id: fc
         with:
           issue-number: ${{github.event.number}}
           body-includes: Vertex AI Mock Responses Check
       - name: Comment on PR if newer version is available
         if: ${{env.cloned_tag != env.latest_tag && !steps.fc.outputs.comment-id}}
-        uses: peter-evans/create-or-update-comment@v4
+        # This commit represents v4.0.0
+        uses: peter-evans/create-or-update-comment@71345be
         with:
           issue-number: ${{github.event.number}}
           body: >

@@ -23,11 +23,14 @@ jobs:
     name: Release Diffing
     runs-on: ubuntu-latest
     steps:
-      - uses: 'google-github-actions/auth@v0'
+      # This commit represents v0.8.3
+      - uses: 'google-github-actions/auth@c4799db'
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
-      - uses: google-github-actions/setup-gcloud@v2
-      - uses: FirebaseExtended/github-actions/health-metrics/release-diffing@master
+      # This commit represents v2.1.4
+      - uses: google-github-actions/setup-gcloud@77e7a55
+      # This commit represents v1.4
+      - uses: FirebaseExtended/github-actions/health-metrics/release-diffing@41c787c
         with:
           repo: ${{ github.repository }}
           ref: ${{ github.ref }}
