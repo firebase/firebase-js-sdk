@@ -1,6 +1,4 @@
-import { initializeApp } from "@firebase/app";
-import { Content, GenerationConfig, HarmBlockMethod, HarmBlockThreshold, HarmCategory, Modality, SafetySetting, getGenerativeModel, getVertexAI } from "../src";
-import { expect } from "chai";
+import { Content, GenerationConfig, HarmBlockMethod, HarmBlockThreshold, HarmCategory, SafetySetting } from "../src";
 
 // TODO (dlarocque): Use seperate Firebase config specifically for Vertex AI
 // TODO (dlarocque): Load this from environment variables, so we can set the config as a 
@@ -16,17 +14,17 @@ export const config = {
   measurementId: "G-1VL38N8YFE"
 };
 
-initializeApp(config);
-const MODEL_NAME = 'gemini-1.5-pro'; 
+export const MODEL_NAME = 'gemini-1.5-pro'; 
 
-let generationConfig: GenerationConfig = {
+/// TODO (dlarocque): Fix the naming on these.
+export const generationConfig: GenerationConfig = {
   temperature: 0,
   topP: 0,
   topK: 1,
   responseMimeType: 'text/plain'
 }
 
-let safetySettings: SafetySetting[] = [
+export const safetySettings: SafetySetting[] = [
   {
     category: HarmCategory.HARM_CATEGORY_HARASSMENT,
     threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
@@ -47,7 +45,7 @@ let safetySettings: SafetySetting[] = [
   },
 ];
 
-let systemInstruction: Content = {
+export const systemInstruction: Content = {
   role: 'system',
   parts: [
     {
@@ -55,27 +53,3 @@ let systemInstruction: Content = {
     }
   ]
 };
-
-describe('VertexAIService', () => {
-  it('CountTokens text', async () => {
-    const vertexAI = getVertexAI(); 
-    const model = getGenerativeModel(
-      vertexAI, 
-      {
-        model: MODEL_NAME, 
-        generationConfig,
-        systemInstruction,
-        safetySettings
-      }
-    );
-
-    let response = await model.countTokens('Why is the sky blue?');
-
-    expect(response.totalTokens).to.equal(6);
-    expect(response.totalBillableCharacters).to.equal(16);
-    expect(response.promptTokensDetails).to.not.be.null;
-    expect(response.promptTokensDetails!.length).to.equal(1);
-    expect(response.promptTokensDetails![0].modality).to.equal(Modality.TEXT);
-    expect(response.promptTokensDetails![0].tokenCount).to.equal(6);
-  });
-});
