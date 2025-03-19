@@ -17,10 +17,13 @@
 
 const karmaBase = require('../../config/karma.base');
 const { argv } = require('yargs');
+const { existsSync } = require('fs');
 
-// Validate that required environment variables are defined
-if (!process.env.VERTEXAI_INTEGRATION_FIREBASE_CONFIG_JSON) {
-  throw new Error('VERTEXAI_INTEGRATION_FIREBASE_CONFIG_JSON is not defined in env. Set this env variable to be the JSON of a Firebase project config to run the integration tests with.')
+// Validate that the file that defines the Firebase config to be used in the integration tests exists.
+if (argv.integration) {
+  if (!existsSync('integration/firebase-config.ts')) {
+    throw new Error(`integration/firebase-config.ts does not exist. This file must contain a Firebase config for a project with Vertex AI enabled.`)
+  }
 }
 
 module.exports = function (config) {
