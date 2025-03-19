@@ -34,7 +34,7 @@ jobs:
         # This makes Actions fetch all Git history so run-changed script can diff properly.
         fetch-depth: 0
     # This commit represents v0.8.3
-    - uses: 'google-github-actions/auth@c4799db'
+    - uses: 'google-github-actions/auth@c4799db9111fba4461e9f9da8732e5057b394f72'
       if: ${{ fromJSON(env.run_terraform_steps) }}
       with:
         credentials_json: '${{ secrets.JSSDK_ACTIONS_SA_KEY }}'
@@ -43,7 +43,7 @@ jobs:
     - name: Setup Terraform
       if: ${{ fromJSON(env.run_terraform_steps) }}
       # This commit represents v3.1.2
-      uses: hashicorp/setup-terraform@b9cd54a
+      uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
     - name: Terraform Init
       if: ${{ fromJSON(env.run_terraform_steps) }}
       run: |

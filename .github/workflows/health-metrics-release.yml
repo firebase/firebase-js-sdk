@@ -24,13 +24,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # This commit represents v0.8.3
-      - uses: 'google-github-actions/auth@c4799db'
+      - uses: 'google-github-actions/auth@c4799db9111fba4461e9f9da8732e5057b394f72'
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
       # This commit represents v2.1.4
-      - uses: google-github-actions/setup-gcloud@77e7a55
+      - uses: google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a
       # This commit represents v1.4
-      - uses: FirebaseExtended/github-actions/health-metrics/release-diffing@41c787c
+      - uses: FirebaseExtended/github-actions/health-metrics/release-diffing@41c787c37157e4c5932b951e531c041efa5bb7a4
         with:
           repo: ${{ github.repository }}
           ref: ${{ github.ref }}

@@ -58,7 +58,7 @@ jobs:
       run: echo "${{steps.check-changeset.outputs.BLOCKING_FAILURE}}"
     - name: Find Comment
       # This commit represents v3.1.0
-      uses: peter-evans/find-comment@3eae4d3
+      uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e
       id: fc
       with:
         issue-number: ${{github.event.number}}
@@ -66,7 +66,7 @@ jobs:
     - name: Create comment (missing packages)
       if: ${{!steps.fc.outputs.comment-id && steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
       # This commit represents v4.0.0
-      uses: peter-evans/create-or-update-comment@71345be
+      uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043
       with:
         issue-number: ${{github.event.number}}
         body: |
@@ -75,7 +75,7 @@ jobs:
     - name: Update comment (missing packages)
       if: ${{steps.fc.outputs.comment-id && steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
       # This commit represents v4.0.0
-      uses: peter-evans/create-or-update-comment@71345be
+      uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043
       with:
         comment-id: ${{steps.fc.outputs.comment-id}}
         edit-mode: replace
@@ -85,7 +85,7 @@ jobs:
     - name: Update comment (no missing packages)
       if: ${{steps.fc.outputs.comment-id && !steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
       # This commit represents v4.0.0
-      uses: peter-evans/create-or-update-comment@71345be
+      uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043
       with:
         comment-id: ${{steps.fc.outputs.comment-id}}
         edit-mode: replace
