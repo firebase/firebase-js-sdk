@@ -27,7 +27,7 @@ const { join } = require('path');
 
 const mockResponseDir = join(
   __dirname,
-  'vertexai-sdk-test-data/mock-responses'
+  'vertexai-sdk-test-data/mock-responses/vertexai'
 );
 
 async function main(): Promise<void> {
