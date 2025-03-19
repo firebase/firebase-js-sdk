@@ -44,22 +44,13 @@ export class DataConnectError extends FirebaseError {
   readonly name: string = 'DataConnectError';
 
   /** @hideconstructor */
-  constructor(
-    /**
-     * The backend error code associated with this error.
-     */
-    readonly code: DataConnectErrorCode,
-    /**
-     * A custom error description.
-     */
-    message: string
-  ) {
+  constructor(code: Code, message: string) {
     super(code, message);
 
     // Ensure the instanceof operator works as expected on subclasses of Error.
     // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#custom_error_types
     // and https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
-    Object.setPrototypeOf(this, new.target.prototype);
+    Object.setPrototypeOf(this, DataConnectError.prototype);
   }
 
   /** @internal */
@@ -78,13 +69,8 @@ export class DataConnectOperationError extends DataConnectError {
 
   /** @hideconstructor */
   constructor(message: string, response: DataConnectOperationResponse) {
-    super('partial-error', message);
+    super(Code.PARTIAL_ERROR, message);
     this.response = response;
-
-    // Ensure the instanceof operator works as expected on subclasses of Error.
-    // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#custom_error_types
-    // and https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
-    Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 
