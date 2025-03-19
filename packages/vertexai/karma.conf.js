@@ -19,6 +19,8 @@ const karmaBase = require('../../config/karma.base');
 const { argv } = require('yargs');
 const { existsSync } = require('fs');
 
+const files = [`src/**/*.test.ts`];
+
 // Validate that the file that defines the Firebase config to be used in the integration tests exists.
 if (argv.integration) {
   if (!existsSync('integration/firebase-config.ts')) {
@@ -42,10 +44,9 @@ module.exports = function (config) {
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha']
-
   };
-
-  config.client.args.push(process.env.VERTEXAI_INTEGRATION_FIREBASE_CONFIG_JSON);
 
   config.set(karmaConfig);
 };
+
+module.exports.files = files;
