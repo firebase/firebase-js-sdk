@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 /**
  * Validates that 'value' is a string.
  *
@@ -25,10 +24,7 @@
  * @param value The input to validate.
  * @param options Options that specify whether the string can be omitted.
  */
-export function validateString(
-  arg: string | number,
-  value: unknown
-): void {
+export function validateString(arg: string | number, value: unknown): void {
   if (typeof value !== 'string') {
     throw new Error(invalidArgumentMessage(arg, 'string'));
   }

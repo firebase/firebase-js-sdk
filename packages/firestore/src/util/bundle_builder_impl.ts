@@ -15,43 +15,38 @@
  * limitations under the License.
  */
 
-import {queryToTarget} from '../../src/core/query';
+import { queryToTarget } from '../../src/core/query';
 import {
   JsonProtoSerializer,
-  toDocument,
   toName,
   toQueryTarget,
-  toTimestamp,
+  toTimestamp
 } from '../../src/remote/serializer';
-import {Firestore} from '../api/database';
-import {DatabaseId} from '../core/database_info';
-import {DocumentSnapshot, QuerySnapshot} from '../lite-api/snapshot';
-import {Timestamp} from '../lite-api/timestamp';
+import { encoder } from '../../test/unit/util/bundle_data';
+import { Firestore } from '../api/database';
+import { ExpUserDataWriter } from '../api/reference_impl';
+import { DatabaseId } from '../core/database_info';
+import { DocumentSnapshot, QuerySnapshot } from '../lite-api/snapshot';
+import { Timestamp } from '../lite-api/timestamp';
+import {
+  parseObject,
+  UserDataReader,
+  UserDataSource
+} from '../lite-api/user_data_reader';
+import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
+import { MutableDocument } from '../model/document';
 import {
   BundledDocumentMetadata as ProtoBundledDocumentMetadata,
   BundleElement as ProtoBundleElement,
   BundleMetadata as ProtoBundleMetadata,
-  NamedQuery as ProtoNamedQuery,
+  NamedQuery as ProtoNamedQuery
 } from '../protos/firestore_bundle_proto';
 import {
   Document as ProtoDocument,
   Document
 } from '../protos/firestore_proto_api';
 
-import {
-  invalidArgumentMessage,
-  validateString,
-} from './bundle_builder_validation_utils';
-import {encoder} from "../../test/unit/util/bundle_data";
-import {
-  parseData, parseObject,
-  UserDataReader,
-  UserDataSource
-} from "../lite-api/user_data_reader";
-import {AbstractUserDataWriter} from "../lite-api/user_data_writer";
-import {ExpUserDataWriter} from "../api/reference_impl";
-import {MutableDocument} from "../model/document";
-import {debugAssert} from "./assert";
+import { debugAssert } from './assert';
 
 const BUNDLE_VERSION = 1;
 
@@ -59,7 +54,6 @@ const BUNDLE_VERSION = 1;
  * Builds a Firestore data bundle with results from the given document and query snapshots.
  */
 export class BundleBuilder {
-
   // Resulting documents for the bundle, keyed by full document path.
   private documents: Map<string, BundledDocument> = new Map();
   // Named queries saved in the bundle, keyed by query name.
@@ -79,10 +73,17 @@ export class BundleBuilder {
 
     // useProto3Json is true because the objects will be serialized to JSON string
     // before being written to the bundle buffer.
-    this.serializer = new JsonProtoSerializer(this.databaseId, /*useProto3Json=*/ true);
+    this.serializer = new JsonProtoSerializer(
+      this.databaseId,
+      /*useProto3Json=*/ true
+    );
 
     this.userDataWriter = new ExpUserDataWriter(firestore);
-    this.userDataReader = new UserDataReader(this.databaseId, true, this.serializer);
+    this.userDataReader = new UserDataReader(
+      this.databaseId,
+      true,
+      this.serializer
+    );
   }
 
   /**
@@ -110,7 +111,9 @@ export class BundleBuilder {
     querySnapshot?: QuerySnapshot
   ): BundleBuilder {
     if (arguments.length < 1 || arguments.length > 2) {
-      throw new Error( 'Function BundleBuilder.add() requires 1 or 2 arguments.');
+      throw new Error(
+        'Function BundleBuilder.add() requires 1 or 2 arguments.'
+      );
     }
     if (arguments.length === 1) {
       validateDocumentSnapshot('documentOrName', documentOrName);
@@ -123,9 +126,7 @@ export class BundleBuilder {
     return this;
   }
 
-  toBundleDocument(
-    document: MutableDocument
-  ): ProtoDocument {
+  toBundleDocument(document: MutableDocument): ProtoDocument {
     // TODO handle documents that have mutations
     debugAssert(
       !document.hasLocalMutations,
@@ -136,23 +137,35 @@ export class BundleBuilder {
     // to Proto3 JSON objects. This is the same approach used in
     // bundling in the nodejs-firestore SDK. It may not be the most
     // performant approach.
-    const documentData = this.userDataWriter.convertObjectMap(document.data.value.mapValue.fields, 'previous');
+    const documentData = this.userDataWriter.convertObjectMap(
+      document.data.value.mapValue.fields,
+      'previous'
+    );
     // a parse context is typically used for validating and parsing user data, but in this
     // case we are using it internally to convert DocumentData to Proto3 JSON
-    const context = this.userDataReader.createContext(UserDataSource.ArrayArgument, 'internal toBundledDocument');
+    const context = this.userDataReader.createContext(
+      UserDataSource.ArrayArgument,
+      'internal toBundledDocument'
+    );
     const proto3Fields = parseObject(documentData, context);
 
     return {
       name: toName(this.serializer, document.key),
       fields: proto3Fields.mapValue.fields,
       updateTime: toTimestamp(this.serializer, document.version.toTimestamp()),
-      createTime: toTimestamp(this.serializer, document.createTime.toTimestamp())
+      createTime: toTimestamp(
+        this.serializer,
+        document.createTime.toTimestamp()
+      )
     };
   }
 
   private addBundledDocument(snap: DocumentSnapshot, queryName?: string): void {
-    // TODO:  is this a valid shortcircuit?
-    if(!snap._document || !snap._document.isValidDocument()) {
+    if (
+      !snap._document ||
+      !snap._document.isValidDocument() ||
+      !snap._document.isFoundDocument()
+    ) {
       return;
     }
     const originalDocument = this.documents.get(snap.ref.path);
@@ -161,18 +174,20 @@ export class BundleBuilder {
 
     // Update with document built from `snap` because it is newer.
     const snapReadTime = snap.readTime;
-    if ( !originalDocument ||
-        (!snapReadTime && !originalDocument.metadata.readTime) ||
-        (snapReadTime && originalDocument.metadata.readTime! < snapReadTime)
+    if (
+      !originalDocument ||
+      (!snapReadTime && !originalDocument.metadata.readTime) ||
+      (snapReadTime && originalDocument.metadata.readTime! < snapReadTime)
     ) {
-
       this.documents.set(snap.ref.path, {
-        document: snap._document.isFoundDocument() ? this.toBundleDocument(mutableCopy) : undefined,
+        document: this.toBundleDocument(mutableCopy),
         metadata: {
           name: toName(this.serializer, mutableCopy.key),
-          readTime: !!snapReadTime ? toTimestamp(this.serializer, snapReadTime) : undefined,
-          exists: snap.exists(),
-        },
+          readTime: !!snapReadTime
+            ? toTimestamp(this.serializer, snapReadTime)
+            : undefined,
+          exists: snap.exists()
+        }
       });
     }
 
@@ -183,20 +198,21 @@ export class BundleBuilder {
       newDocument.metadata.queries!.push(queryName);
     }
 
-    const readTime = snap.readTime;
-    if (readTime && readTime > this.latestReadTime) {
-      this.latestReadTime = readTime;
+    if (snapReadTime && snapReadTime > this.latestReadTime) {
+      this.latestReadTime = snapReadTime;
     }
   }
 
+  // TODO: remove this since we're not planning to serialize named queries.
   private addNamedQuery(name: string, querySnap: QuerySnapshot): void {
     if (this.namedQueries.has(name)) {
       throw new Error(`Query name conflict: ${name} has already been added.`);
     }
-    const queryTarget = toQueryTarget(this.serializer, queryToTarget(querySnap.query._query));
+    const queryTarget = toQueryTarget(
+      this.serializer,
+      queryToTarget(querySnap.query._query)
+    );
 
-    // TODO: if we can't resolve the query's readTime then can we set it to the latest
-    // of the document collection?
     let latestReadTime = new Timestamp(0, 0);
     for (const snap of querySnap.docs) {
       const readTime = snap.readTime;
@@ -226,9 +242,7 @@ export class BundleBuilder {
    * @internal
    * @param bundleElement A ProtoBundleElement that is expected to be Proto3 JSON compatible.
    */
-  private lengthPrefixedString(
-    bundleElement: ProtoBundleElement
-  ): string {
+  private lengthPrefixedString(bundleElement: ProtoBundleElement): string {
     const str = JSON.stringify(bundleElement);
     // TODO: it's not ideal to have to re-encode all of these strings multiple times
     //       It may be more performant to return a UInt8Array that is concatenated to other
@@ -242,18 +256,18 @@ export class BundleBuilder {
     let bundleString = '';
 
     for (const namedQuery of this.namedQueries.values()) {
-      bundleString += this.lengthPrefixedString({namedQuery});
+      bundleString += this.lengthPrefixedString({ namedQuery });
     }
 
     for (const bundledDocument of this.documents.values()) {
       const documentMetadata: ProtoBundledDocumentMetadata =
         bundledDocument.metadata;
 
-      bundleString += this.lengthPrefixedString({documentMetadata});
+      bundleString += this.lengthPrefixedString({ documentMetadata });
       // Write to the bundle if document exists.
       const document = bundledDocument.document;
       if (document) {
-        bundleString += this.lengthPrefixedString({document});
+        bundleString += this.lengthPrefixedString({ document });
       }
     }
 
@@ -263,10 +277,10 @@ export class BundleBuilder {
       version: BUNDLE_VERSION,
       totalDocuments: this.documents.size,
       // TODO: it's not ideal to have to re-encode all of these strings multiple times
-      totalBytes: encoder.encode(bundleString).length,
+      totalBytes: encoder.encode(bundleString).length
     };
     // Prepends the metadata element to the bundleBuffer: `bundleBuffer` is the second argument to `Buffer.concat`.
-    bundleString = this.lengthPrefixedString({metadata}) + bundleString;
+    bundleString = this.lengthPrefixedString({ metadata }) + bundleString;
 
     // TODO: it's not ideal to have to re-encode all of these strings multiple times
     //       the implementation in nodejs-firestore concatenates Buffers instead of
@@ -313,4 +327,48 @@ function validateQuerySnapshot(arg: string | number, value: unknown): void {
   if (!(value instanceof QuerySnapshot)) {
     throw new Error(invalidArgumentMessage(arg, 'QuerySnapshot'));
   }
+}
+
+/**
+ * Validates that 'value' is a string.
+ *
+ * @private
+ * @internal
+ * @param arg The argument name or argument index (for varargs methods).
+ * @param value The input to validate.
+ * @param options Options that specify whether the string can be omitted.
+ */
+export function validateString(arg: string | number, value: unknown): void {
+  if (typeof value !== 'string') {
+    throw new Error(invalidArgumentMessage(arg, 'string'));
+  }
+}
+
+/**
+ * Generates an error message to use with invalid arguments.
+ *
+ * @private
+ * @internal
+ * @param arg The argument name or argument index (for varargs methods).
+ * @param expectedType The expected input type.
+ */
+export function invalidArgumentMessage(
+  arg: string | number,
+  expectedType: string
+): string {
+  return `${formatArgumentName(arg)} is not a valid ${expectedType}.`;
+}
+
+/**
+ * Creates a descriptive name for the provided argument name or index.
+ *
+ * @private
+ * @internal
+ * @param arg The argument name or argument index (for varargs methods).
+ * @return Either the argument name or its index description.
+ */
+function formatArgumentName(arg: string | number): string {
+  return typeof arg === 'string'
+    ? `Value for argument "${arg}"`
+    : `Element at index ${arg}`;
 }
