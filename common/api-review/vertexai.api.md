@@ -352,7 +352,7 @@ export function getImagenModel(vertexAI: VertexAI, modelParams: ImagenModelParam
 // @public
 export function getVertexAI(app?: FirebaseApp, options?: VertexAIOptions): VertexAI;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export interface GroundingAttribution {
     // (undocumented)
     confidenceScore?: number;
@@ -366,7 +366,7 @@ export interface GroundingAttribution {
 
 // @public
 export interface GroundingMetadata {
-    // (undocumented)
+    // @deprecated (undocumented)
     groundingAttributions: GroundingAttribution[];
     // (undocumented)
     retrievalQueries?: string[];

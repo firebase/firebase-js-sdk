@@ -10,6 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # GroundingAttribution interface
+> Warning: This API is now obsolete.
+> 
+> 
 
 <b>Signature:</b>
 
