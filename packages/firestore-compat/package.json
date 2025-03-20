@@ -61,7 +61,7 @@
     "rollup-plugin-typescript2": "0.36.0",
     "@rollup/plugin-node-resolve": "16.0.0",
     "ts-node": "10.9.2",
-    "typescript": "5.5.4"
+    "typescript": "5.8.2"
   },
   "license": "Apache-2.0",
   "typings": "dist/src/index.d.ts",

@@ -24,6 +24,6 @@
     "@firebase/logger": "0.2.6"
   },
   "devDependencies": {
-    "typescript": "5.5.4"
+    "typescript": "5.8.2"
   }
 }
