@@ -19,7 +19,7 @@ import {
   Code,
   DataConnectError,
   DataConnectOperationError,
-  DataConnectOperationResponse
+  DataConnectOperationFailureResponse
 } from '../core/error';
 import { SDK_VERSION } from '../core/version';
 import { logDebug, logError } from '../logger';
@@ -113,7 +113,7 @@ export function dcFetch<T, U>(
     .then(res => {
       if (res.errors && res.errors.length) {
         const stringified = JSON.stringify(res.errors);
-        const response: DataConnectOperationResponse = {
+        const response: DataConnectOperationFailureResponse = {
           errors: res.errors,
           data: res.data
         };

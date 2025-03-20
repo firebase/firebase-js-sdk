@@ -65,16 +65,16 @@ export class DataConnectOperationError extends DataConnectError {
   readonly name: string = 'DataConnectOperationError';
 
   /** The response received from the backend. */
-  readonly response: DataConnectOperationResponse;
+  readonly response: DataConnectOperationFailureResponse;
 
   /** @hideconstructor */
-  constructor(message: string, response: DataConnectOperationResponse) {
+  constructor(message: string, response: DataConnectOperationFailureResponse) {
     super(Code.PARTIAL_ERROR, message);
     this.response = response;
   }
 }
 
-export interface DataConnectOperationResponse {
+export interface DataConnectOperationFailureResponse {
   // The "data" provided by the backend in the response message.
   //
   // Will be `undefined` if no "data" was provided in the response message.
@@ -84,12 +84,12 @@ export interface DataConnectOperationResponse {
   readonly data?: Record<string, unknown> | null;
 
   // The list of errors provided by the backend in the response message.
-  readonly errors: DataConnectOperationErrorInfo[];
+  readonly errors: DataConnectOperationFailureResponseErrorInfo[];
 }
 
 // Information about the error, as provided in the response from the backend.
 // See https://spec.graphql.org/draft/#sec-Errors
-export interface DataConnectOperationErrorInfo {
+export interface DataConnectOperationFailureResponseErrorInfo {
   // The error message.
   readonly message: string;
 

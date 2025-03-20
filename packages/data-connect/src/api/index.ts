@@ -26,6 +26,6 @@ export {
   DataConnectErrorCode,
   DataConnectError,
   DataConnectOperationError,
-  DataConnectOperationResponse,
-  DataConnectOperationErrorInfo
+  DataConnectOperationFailureResponse,
+  DataConnectOperationFailureResponseErrorInfo
 } from '../core/error';
