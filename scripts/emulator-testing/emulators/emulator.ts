@@ -146,6 +146,7 @@ export abstract class Emulator {
       if (this.isDataConnect) {
         const dataConnectConfigDir = this.findDataConnectConfigDir();
         promise = spawn(this.binaryPath, [
+          '--logtostderr',
           '--v=2',
           'dev',
           `--listen=127.0.0.1:${this.port},[::1]:${this.port}`,
@@ -153,6 +154,9 @@ export abstract class Emulator {
         ]);
         promise.childProcess.stdout?.on('data', console.log);
         promise.childProcess.stderr?.on('data', res =>
+          console.log(res.toString())
+        );
+        promise.childProcess.stderr?.on('error', res =>
           console.log(res.toString())
         );
       } else {
@@ -174,7 +178,6 @@ export abstract class Emulator {
       promise.catch(reject);
       this.emulator = promise.childProcess;
 
-      console.log(`Waiting for emulator to start up ...`);
       // NOTE: Normally the emulator starts up within a few seconds.
       // However, our sdk test suite launches tests from 20+ packages in parallel, which slows
       // down the startup substantially. In such case for the emulator to start, it can take
