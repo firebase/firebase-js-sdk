@@ -62,23 +62,23 @@ export type DataConnectErrorCode = 'other' | 'already-initialized' | 'not-initia
 // @public
 export class DataConnectOperationError extends DataConnectError {
     /* Excluded from this release type: name */
-    readonly response: DataConnectOperationResponse;
+    readonly response: DataConnectOperationFailureResponse;
 }
 
 // @public (undocumented)
-export interface DataConnectOperationErrorInfo {
+export interface DataConnectOperationFailureResponse {
+    // (undocumented)
+    readonly data?: Record<string, unknown> | null;
+    // (undocumented)
+    readonly errors: DataConnectOperationFailureResponseErrorInfo[];
+}
+
+// @public (undocumented)
+export interface DataConnectOperationFailureResponseErrorInfo {
     // (undocumented)
     readonly message: string;
     // (undocumented)
     readonly path: Array<string | number>;
-}
-
-// @public (undocumented)
-export interface DataConnectOperationResponse {
-    // (undocumented)
-    readonly data?: Record<string, unknown> | null;
-    // (undocumented)
-    readonly errors: DataConnectOperationErrorInfo[];
 }
 
 // @public
