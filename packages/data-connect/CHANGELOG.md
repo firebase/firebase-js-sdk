@@ -1,5 +1,11 @@
 ## Unreleased
 
+## 0.3.2
+
+### Patch Changes
+
+- [`43d6b67`](https://github.com/firebase/firebase-js-sdk/commit/43d6b6735f8b1d20dbe33793b57adb221efde95d) [#8820](https://github.com/firebase/firebase-js-sdk/pull/8820) - Update requests to point to v1 backend endpoints instead of v1beta
+
 ## 0.3.1
 
 ### Patch Changes
