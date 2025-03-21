@@ -1,0 +1,34 @@
+name: Test Integration
+
+on:
+  schedule:
+    # Run every day at midnight UTC
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+env:
+  NODE_OPTIONS: "--max_old_space_size=4096"
+
+jobs: 
+  test-vertexai:
+    name: Run Vertex AI Integration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # This makes Actions fetch all Git history so run-changed script can diff properly.
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.10.0
+      - name: Install Chrome stable
+        run: |
+          sudo apt-get update
+          sudo apt-get install google-chrome-stable
+      - run: yarn
+      - name: Write Firebase Config for Integration
+      - run: echo "export const FIREBASE_CONFIG = '$(echo ${{secrets.VERTEXAI_INTEGRATION_FIREBASE_CONFIG }} | jq -r .)'" > packages/vertexai/integration/firebase-config.ts
+      - run: yarn build:changed core
+      - name: Run tests on changed packages
+        run: xvfb-run yarn test:changed core
