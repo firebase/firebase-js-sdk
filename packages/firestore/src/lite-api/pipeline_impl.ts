@@ -36,11 +36,12 @@ declare module './database' {
 /**
  * Executes this pipeline and returns a Promise to represent the asynchronous operation.
  *
- * <p>The returned Promise can be used to track the progress of the pipeline execution
+ * The returned Promise can be used to track the progress of the pipeline execution
  * and retrieve the results (or handle any errors) asynchronously.
  *
- * <p>The pipeline results are returned as a list of {@link PipelineResult} objects. Each {@link
- * PipelineResult} typically represents a single key/value map that has passed through all the
+ * The pipeline results are returned as a {@link PipelineSnapshot} that contains
+ * a list of {@link PipelineResult} objects. Each {@link PipelineResult} typically
+ * represents a single key/value map that has passed through all the
  * stages of the pipeline, however this might differ depending on the stages involved in the
  * pipeline. For example:
  *
@@ -56,9 +57,11 @@ declare module './database' {
  * <p>Example:
  *
  * ```typescript
- * const futureResults = await execute(firestore.pipeline().collection("books")
+ * const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
  *     .where(gt(field("rating"), 4.5))
  *     .select("title", "author", "rating"));
+ *
+ * const results: PipelineResults = snapshot.results;
  * ```
  *
  * @param pipeline The pipeline to execute.

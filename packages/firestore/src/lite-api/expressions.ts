@@ -111,7 +111,7 @@ function vectorToExpr(value: VectorValue | number[] | Expr): Expr {
  * @internal
  * @param value
  */
-function fieldOfOrExpr(value: unknown): Expr {
+function fieldOrExpression(value: unknown): Expr {
   if (isString(value)) {
     const result = field(value);
     result._createdFromLiteral = true;
@@ -208,8 +208,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The constant value to subtract.
    * @return A new `Expr` representing the subtraction operation.
    */
-  subtract(other: unknown): FunctionExpr;
-  subtract(other: unknown): FunctionExpr {
+  subtract(other: number): FunctionExpr;
+  subtract(other: number | Expr): FunctionExpr {
     return new FunctionExpr('subtract', [this, valueToDefaultExpr(other)]);
   }
 
@@ -226,8 +226,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `Expr` representing the multiplication operation.
    */
   multiply(
-    second: Expr | unknown,
-    ...others: Array<Expr | unknown>
+    second: Expr | number,
+    ...others: Array<Expr | number>
   ): FunctionExpr {
     return new FunctionExpr('multiply', [
       this,
@@ -260,8 +260,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param other The constant value to divide by.
    * @return A new `Expr` representing the division operation.
    */
-  divide(other: unknown): FunctionExpr;
-  divide(other: unknown): FunctionExpr {
+  divide(other: number): FunctionExpr;
+  divide(other: number | Expr): FunctionExpr {
     return new FunctionExpr('divide', [this, valueToDefaultExpr(other)]);
   }
 
@@ -289,8 +289,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param value The constant value to divide by.
    * @return A new `Expr` representing the modulo operation.
    */
-  mod(value: unknown): FunctionExpr;
-  mod(other: unknown): FunctionExpr {
+  mod(value: number): FunctionExpr;
+  mod(other: number | Expr): FunctionExpr {
     return new FunctionExpr('mod', [this, valueToDefaultExpr(other)]);
   }
 
@@ -2641,12 +2641,10 @@ export function bitAnd(
   otherBitsExpression: Expr
 ): FunctionExpr;
 export function bitAnd(
-  fieldOrExpression: string | Expr,
+  bits: string | Expr,
   bitsOrExpression: number | Expr | Bytes
 ): FunctionExpr {
-  return fieldOfOrExpr(fieldOrExpression).bitAnd(
-    valueToDefaultExpr(bitsOrExpression)
-  );
+  return fieldOrExpression(bits).bitAnd(valueToDefaultExpr(bitsOrExpression));
 }
 
 /**
@@ -2716,12 +2714,10 @@ export function bitOr(
   otherBitsExpression: Expr
 ): FunctionExpr;
 export function bitOr(
-  fieldOrExpression: string | Expr,
+  bits: string | Expr,
   bitsOrExpression: number | Expr | Bytes
 ): FunctionExpr {
-  return fieldOfOrExpr(fieldOrExpression).bitOr(
-    valueToDefaultExpr(bitsOrExpression)
-  );
+  return fieldOrExpression(bits).bitOr(valueToDefaultExpr(bitsOrExpression));
 }
 
 /**
@@ -2791,12 +2787,10 @@ export function bitXor(
   otherBitsExpression: Expr
 ): FunctionExpr;
 export function bitXor(
-  fieldOrExpression: string | Expr,
+  bits: string | Expr,
   bitsOrExpression: number | Expr | Bytes
 ): FunctionExpr {
-  return fieldOfOrExpr(fieldOrExpression).bitXor(
-    valueToDefaultExpr(bitsOrExpression)
-  );
+  return fieldOrExpression(bits).bitXor(valueToDefaultExpr(bitsOrExpression));
 }
 
 /**
@@ -2828,7 +2822,7 @@ export function bitNot(field: string): FunctionExpr;
  */
 export function bitNot(bitsValueExpression: Expr): FunctionExpr;
 export function bitNot(bits: string | Expr): FunctionExpr {
-  return fieldOfOrExpr(bits).bitNot();
+  return fieldOrExpression(bits).bitNot();
 }
 
 /**
@@ -2895,7 +2889,7 @@ export function bitLeftShift(
   xValue: string | Expr,
   numberExpr: number | Expr
 ): FunctionExpr {
-  return fieldOfOrExpr(xValue).bitLeftShift(valueToDefaultExpr(numberExpr));
+  return fieldOrExpression(xValue).bitLeftShift(valueToDefaultExpr(numberExpr));
 }
 
 /**
@@ -2962,7 +2956,9 @@ export function bitRightShift(
   xValue: string | Expr,
   numberExpr: number | Expr
 ): FunctionExpr {
-  return fieldOfOrExpr(xValue).bitRightShift(valueToDefaultExpr(numberExpr));
+  return fieldOrExpression(xValue).bitRightShift(
+    valueToDefaultExpr(numberExpr)
+  );
 }
 
 /**
@@ -3044,7 +3040,7 @@ export function arrayOffset(
   array: Expr | string,
   offset: Expr | number
 ): FunctionExpr {
-  return fieldOfOrExpr(array).arrayOffset(valueToDefaultExpr(offset));
+  return fieldOrExpression(array).arrayOffset(valueToDefaultExpr(offset));
 }
 
 /**
@@ -3147,7 +3143,7 @@ export function isAbsent(value: Expr): BooleanExpr;
  */
 export function isAbsent(field: string): BooleanExpr;
 export function isAbsent(value: Expr | string): BooleanExpr {
-  return fieldOfOrExpr(value).isAbsent();
+  return fieldOrExpression(value).isAbsent();
 }
 
 /**
@@ -3180,7 +3176,7 @@ export function isNull(value: Expr): BooleanExpr;
  */
 export function isNull(value: string): BooleanExpr;
 export function isNull(value: Expr | string): BooleanExpr {
-  return fieldOfOrExpr(value).isNull();
+  return fieldOrExpression(value).isNull();
 }
 
 /**
@@ -3213,7 +3209,7 @@ export function isNotNull(value: Expr): BooleanExpr;
  */
 export function isNotNull(value: string): BooleanExpr;
 export function isNotNull(value: Expr | string): BooleanExpr {
-  return fieldOfOrExpr(value).isNotNull();
+  return fieldOrExpression(value).isNotNull();
 }
 
 /**
@@ -3246,7 +3242,7 @@ export function isNotNan(value: Expr): BooleanExpr;
  */
 export function isNotNan(value: string): BooleanExpr;
 export function isNotNan(value: Expr | string): BooleanExpr {
-  return fieldOfOrExpr(value).isNotNan();
+  return fieldOrExpression(value).isNotNan();
 }
 
 /**
@@ -3310,7 +3306,7 @@ export function mapRemove(
   mapExpr: Expr | string,
   stringExpr: Expr | string
 ): FunctionExpr {
-  return fieldOfOrExpr(mapExpr).mapRemove(valueToDefaultExpr(stringExpr));
+  return fieldOrExpression(mapExpr).mapRemove(valueToDefaultExpr(stringExpr));
 }
 
 /**
@@ -3366,7 +3362,7 @@ export function mapMerge(
 ): FunctionExpr {
   const secondMapExpr = valueToDefaultExpr(secondMap);
   const otherMapExprs = otherMaps.map(valueToDefaultExpr);
-  return fieldOfOrExpr(firstMap).mapMerge(secondMapExpr, ...otherMapExprs);
+  return fieldOrExpression(firstMap).mapMerge(secondMapExpr, ...otherMapExprs);
 }
 
 /**
@@ -3472,7 +3468,7 @@ export function substr(
   position: Expr | number,
   length?: Expr | number
 ): FunctionExpr {
-  const fieldExpr = fieldOfOrExpr(field);
+  const fieldExpr = fieldOrExpression(field);
   const positionExpr = valueToDefaultExpr(position);
   const lengthExpr =
     length === undefined ? undefined : valueToDefaultExpr(length);
@@ -3526,7 +3522,7 @@ export function add(
   second: Expr | unknown,
   ...others: Array<Expr | unknown>
 ): FunctionExpr {
-  return fieldOfOrExpr(first).add(
+  return fieldOrExpression(first).add(
     valueToDefaultExpr(second),
     ...others.map(value => valueToDefaultExpr(value))
   );
@@ -3651,7 +3647,7 @@ export function multiply(
   second: Expr | unknown,
   ...others: Array<Expr | unknown>
 ): FunctionExpr {
-  return fieldOfOrExpr(first).multiply(
+  return fieldOrExpression(first).multiply(
     valueToDefaultExpr(second),
     ...others.map(valueToDefaultExpr)
   );
@@ -4330,8 +4326,8 @@ export function arrayConcat(
   ...otherArrays: Array<Expr | unknown[]>
 ): FunctionExpr {
   const exprValues = otherArrays.map(element => valueToDefaultExpr(element));
-  return fieldOfOrExpr(firstArray).arrayConcat(
-    fieldOfOrExpr(secondArray),
+  return fieldOrExpression(firstArray).arrayConcat(
+    fieldOrExpression(secondArray),
     ...exprValues
   );
 }
@@ -4403,7 +4399,7 @@ export function arrayContains(
   array: Expr | string,
   element: unknown
 ): BooleanExpr {
-  const arrayExpr = fieldOfOrExpr(array);
+  const arrayExpr = fieldOrExpression(array);
   const elementExpr = valueToDefaultExpr(element);
   return arrayExpr.arrayContains(elementExpr);
 }
@@ -4488,7 +4484,7 @@ export function arrayContainsAny(
   values: unknown[] | Expr
 ): BooleanExpr {
   // @ts-ignore implementation accepts both types
-  return fieldOfOrExpr(array).arrayContainsAny(values);
+  return fieldOrExpression(array).arrayContainsAny(values);
 }
 
 /**
@@ -4573,7 +4569,7 @@ export function arrayContainsAll(
   values: unknown[] | Expr
 ): BooleanExpr {
   // @ts-ignore implementation accepts both types
-  return fieldOfOrExpr(array).arrayContainsAll(values);
+  return fieldOrExpression(array).arrayContainsAll(values);
 }
 
 /**
@@ -4606,7 +4602,7 @@ export function arrayLength(fieldName: string): FunctionExpr;
  */
 export function arrayLength(array: Expr): FunctionExpr;
 export function arrayLength(array: Expr | string): FunctionExpr {
-  return fieldOfOrExpr(array).arrayLength();
+  return fieldOrExpression(array).arrayLength();
 }
 
 /**
@@ -4686,7 +4682,7 @@ export function eqAny(
   values: unknown[] | Expr
 ): BooleanExpr {
   // @ts-ignore implementation accepts both types
-  return fieldOfOrExpr(element).eqAny(values);
+  return fieldOrExpression(element).eqAny(values);
 }
 
 /**
@@ -4767,7 +4763,7 @@ export function notEqAny(
   values: unknown[] | Expr
 ): BooleanExpr {
   // @ts-ignore implementation accepts both types
-  return fieldOfOrExpr(element).notEqAny(values);
+  return fieldOrExpression(element).notEqAny(values);
 }
 
 /**
@@ -4890,7 +4886,7 @@ export function logicalMaximum(
   second: Expr | unknown,
   ...others: Array<Expr | unknown>
 ): FunctionExpr {
-  return fieldOfOrExpr(first).logicalMaximum(
+  return fieldOrExpression(first).logicalMaximum(
     valueToDefaultExpr(second),
     ...others.map(value => valueToDefaultExpr(value))
   );
@@ -4948,7 +4944,7 @@ export function logicalMinimum(
   second: Expr | unknown,
   ...others: Array<Expr | unknown>
 ): FunctionExpr {
-  return fieldOfOrExpr(first).logicalMinimum(
+  return fieldOrExpression(first).logicalMinimum(
     valueToDefaultExpr(second),
     ...others.map(value => valueToDefaultExpr(value))
   );
@@ -4984,7 +4980,7 @@ export function exists(value: Expr): BooleanExpr;
  */
 export function exists(fieldName: string): BooleanExpr;
 export function exists(valueOrField: Expr | string): BooleanExpr {
-  return fieldOfOrExpr(valueOrField).exists();
+  return fieldOrExpression(valueOrField).exists();
 }
 
 /**
@@ -5017,7 +5013,7 @@ export function isNan(value: Expr): BooleanExpr;
  */
 export function isNan(fieldName: string): BooleanExpr;
 export function isNan(value: Expr | string): BooleanExpr {
-  return fieldOfOrExpr(value).isNan();
+  return fieldOrExpression(value).isNan();
 }
 
 /**
@@ -5050,7 +5046,7 @@ export function reverse(stringExpression: Expr): FunctionExpr;
  */
 export function reverse(field: string): FunctionExpr;
 export function reverse(expr: Expr | string): FunctionExpr {
-  return fieldOfOrExpr(expr).reverse();
+  return fieldOrExpression(expr).reverse();
 }
 
 /**
@@ -5121,7 +5117,7 @@ export function replaceFirst(
   find: Expr | string,
   replace: Expr | string
 ): FunctionExpr {
-  const normalizedValue = fieldOfOrExpr(value);
+  const normalizedValue = fieldOrExpression(value);
   const normalizedFind = valueToDefaultExpr(find);
   const normalizedReplace = valueToDefaultExpr(replace);
   return normalizedValue.replaceFirst(normalizedFind, normalizedReplace);
@@ -5195,7 +5191,7 @@ export function replaceAll(
   find: Expr | string,
   replace: Expr | string
 ): FunctionExpr {
-  const normalizedValue = fieldOfOrExpr(value);
+  const normalizedValue = fieldOrExpression(value);
   const normalizedFind = valueToDefaultExpr(find);
   const normalizedReplace = valueToDefaultExpr(replace);
   return normalizedValue.replaceAll(normalizedFind, normalizedReplace);
@@ -5231,7 +5227,7 @@ export function byteLength(expr: Expr): FunctionExpr;
  */
 export function byteLength(fieldName: string): FunctionExpr;
 export function byteLength(expr: Expr | string): FunctionExpr {
-  const normalizedExpr = fieldOfOrExpr(expr);
+  const normalizedExpr = fieldOrExpression(expr);
   return normalizedExpr.byteLength();
 }
 
@@ -5265,7 +5261,7 @@ export function charLength(fieldName: string): FunctionExpr;
  */
 export function charLength(stringExpression: Expr): FunctionExpr;
 export function charLength(value: Expr | string): FunctionExpr {
-  const valueExpr = fieldOfOrExpr(value);
+  const valueExpr = fieldOrExpression(value);
   return valueExpr.charLength();
 }
 
@@ -5338,7 +5334,7 @@ export function like(
   left: Expr | string,
   pattern: Expr | string
 ): FunctionExpr {
-  const leftExpr = fieldOfOrExpr(left);
+  const leftExpr = fieldOrExpression(left);
   const patternExpr = valueToDefaultExpr(pattern);
   return leftExpr.like(patternExpr);
 }
@@ -5420,7 +5416,7 @@ export function regexContains(
   left: Expr | string,
   pattern: Expr | string
 ): BooleanExpr {
-  const leftExpr = fieldOfOrExpr(left);
+  const leftExpr = fieldOrExpression(left);
   const patternExpr = valueToDefaultExpr(pattern);
   return leftExpr.regexContains(patternExpr);
 }
@@ -5497,7 +5493,7 @@ export function regexMatch(
   left: Expr | string,
   pattern: Expr | string
 ): BooleanExpr {
-  const leftExpr = fieldOfOrExpr(left);
+  const leftExpr = fieldOrExpression(left);
   const patternExpr = valueToDefaultExpr(pattern);
   return leftExpr.regexMatch(patternExpr);
 }
@@ -5575,7 +5571,7 @@ export function strContains(
   left: Expr | string,
   substring: Expr | string
 ): BooleanExpr {
-  const leftExpr = fieldOfOrExpr(left);
+  const leftExpr = fieldOrExpression(left);
   const substringExpr = valueToDefaultExpr(substring);
   return leftExpr.strContains(substringExpr);
 }
@@ -5647,7 +5643,7 @@ export function startsWith(
   expr: Expr | string,
   prefix: Expr | string
 ): BooleanExpr {
-  return fieldOfOrExpr(expr).startsWith(valueToDefaultExpr(prefix));
+  return fieldOrExpression(expr).startsWith(valueToDefaultExpr(prefix));
 }
 
 /**
@@ -5717,7 +5713,7 @@ export function endsWith(
   expr: Expr | string,
   suffix: Expr | string
 ): BooleanExpr {
-  return fieldOfOrExpr(expr).endsWith(valueToDefaultExpr(suffix));
+  return fieldOrExpression(expr).endsWith(valueToDefaultExpr(suffix));
 }
 
 /**
@@ -5750,7 +5746,7 @@ export function toLower(fieldName: string): FunctionExpr;
  */
 export function toLower(stringExpression: Expr): FunctionExpr;
 export function toLower(expr: Expr | string): FunctionExpr {
-  return fieldOfOrExpr(expr).toLower();
+  return fieldOrExpression(expr).toLower();
 }
 
 /**
@@ -5783,7 +5779,7 @@ export function toUpper(fieldName: string): FunctionExpr;
  */
 export function toUpper(stringExpression: Expr): FunctionExpr;
 export function toUpper(expr: Expr | string): FunctionExpr {
-  return fieldOfOrExpr(expr).toUpper();
+  return fieldOrExpression(expr).toUpper();
 }
 
 /**
@@ -5816,7 +5812,7 @@ export function trim(fieldName: string): FunctionExpr;
  */
 export function trim(stringExpression: Expr): FunctionExpr;
 export function trim(expr: Expr | string): FunctionExpr {
-  return fieldOfOrExpr(expr).trim();
+  return fieldOrExpression(expr).trim();
 }
 
 /**
@@ -5864,7 +5860,7 @@ export function strConcat(
   second: string | Expr,
   ...elements: Array<string | Expr>
 ): FunctionExpr {
-  return fieldOfOrExpr(first).strConcat(
+  return fieldOrExpression(first).strConcat(
     valueToDefaultExpr(second),
     ...elements.map(valueToDefaultExpr)
   );
@@ -5905,7 +5901,7 @@ export function mapGet(
   fieldOrExpr: string | Expr,
   subField: string
 ): FunctionExpr {
-  return fieldOfOrExpr(fieldOrExpr).mapGet(subField);
+  return fieldOrExpression(fieldOrExpr).mapGet(subField);
 }
 
 /**
@@ -5953,7 +5949,7 @@ export function count(expression: Expr): AggregateFunction;
  */
 export function count(fieldName: string): AggregateFunction;
 export function count(value: Expr | string): AggregateFunction {
-  return fieldOfOrExpr(value).count();
+  return fieldOrExpression(value).count();
 }
 
 /**
@@ -5988,7 +5984,7 @@ export function sum(expression: Expr): AggregateFunction;
  */
 export function sum(fieldName: string): AggregateFunction;
 export function sum(value: Expr | string): AggregateFunction {
-  return fieldOfOrExpr(value).sum();
+  return fieldOrExpression(value).sum();
 }
 
 /**
@@ -6023,7 +6019,7 @@ export function avg(expression: Expr): AggregateFunction;
  */
 export function avg(fieldName: string): AggregateFunction;
 export function avg(value: Expr | string): AggregateFunction {
-  return fieldOfOrExpr(value).avg();
+  return fieldOrExpression(value).avg();
 }
 
 /**
@@ -6057,7 +6053,7 @@ export function minimum(expression: Expr): AggregateFunction;
  */
 export function minimum(fieldName: string): AggregateFunction;
 export function minimum(value: Expr | string): AggregateFunction {
-  return fieldOfOrExpr(value).minimum();
+  return fieldOrExpression(value).minimum();
 }
 
 /**
@@ -6091,7 +6087,7 @@ export function maximum(expression: Expr): AggregateFunction;
  */
 export function maximum(fieldName: string): AggregateFunction;
 export function maximum(value: Expr | string): AggregateFunction {
-  return fieldOfOrExpr(value).maximum();
+  return fieldOrExpression(value).maximum();
 }
 
 /**
@@ -6173,7 +6169,7 @@ export function cosineDistance(
   expr: Expr | string,
   other: Expr | number[] | VectorValue
 ): FunctionExpr {
-  const expr1 = fieldOfOrExpr(expr);
+  const expr1 = fieldOrExpression(expr);
   const expr2 = vectorToExpr(other);
   return expr1.cosineDistance(expr2);
 }
@@ -6257,7 +6253,7 @@ export function dotProduct(
   expr: Expr | string,
   other: Expr | number[] | VectorValue
 ): FunctionExpr {
-  const expr1 = fieldOfOrExpr(expr);
+  const expr1 = fieldOrExpression(expr);
   const expr2 = vectorToExpr(other);
   return expr1.dotProduct(expr2);
 }
@@ -6342,7 +6338,7 @@ export function euclideanDistance(
   expr: Expr | string,
   other: Expr | number[] | VectorValue
 ): FunctionExpr {
-  const expr1 = fieldOfOrExpr(expr);
+  const expr1 = fieldOrExpression(expr);
   const expr2 = vectorToExpr(other);
   return expr1.euclideanDistance(expr2);
 }
@@ -6377,7 +6373,7 @@ export function vectorLength(vectorExpression: Expr): FunctionExpr;
  */
 export function vectorLength(fieldName: string): FunctionExpr;
 export function vectorLength(expr: Expr | string): FunctionExpr {
-  return fieldOfOrExpr(expr).vectorLength();
+  return fieldOrExpression(expr).vectorLength();
 }
 
 /**
@@ -6412,7 +6408,7 @@ export function unixMicrosToTimestamp(expr: Expr): FunctionExpr;
  */
 export function unixMicrosToTimestamp(fieldName: string): FunctionExpr;
 export function unixMicrosToTimestamp(expr: Expr | string): FunctionExpr {
-  return fieldOfOrExpr(expr).unixMicrosToTimestamp();
+  return fieldOrExpression(expr).unixMicrosToTimestamp();
 }
 
 /**
@@ -6445,7 +6441,7 @@ export function timestampToUnixMicros(expr: Expr): FunctionExpr;
  */
 export function timestampToUnixMicros(fieldName: string): FunctionExpr;
 export function timestampToUnixMicros(expr: Expr | string): FunctionExpr {
-  return fieldOfOrExpr(expr).timestampToUnixMicros();
+  return fieldOrExpression(expr).timestampToUnixMicros();
 }
 
 /**
@@ -6480,7 +6476,7 @@ export function unixMillisToTimestamp(expr: Expr): FunctionExpr;
  */
 export function unixMillisToTimestamp(fieldName: string): FunctionExpr;
 export function unixMillisToTimestamp(expr: Expr | string): FunctionExpr {
-  const normalizedExpr = fieldOfOrExpr(expr);
+  const normalizedExpr = fieldOrExpression(expr);
   return normalizedExpr.unixMillisToTimestamp();
 }
 
@@ -6514,7 +6510,7 @@ export function timestampToUnixMillis(expr: Expr): FunctionExpr;
  */
 export function timestampToUnixMillis(fieldName: string): FunctionExpr;
 export function timestampToUnixMillis(expr: Expr | string): FunctionExpr {
-  const normalizedExpr = fieldOfOrExpr(expr);
+  const normalizedExpr = fieldOrExpression(expr);
   return normalizedExpr.timestampToUnixMillis();
 }
 
@@ -6550,7 +6546,7 @@ export function unixSecondsToTimestamp(expr: Expr): FunctionExpr;
  */
 export function unixSecondsToTimestamp(fieldName: string): FunctionExpr;
 export function unixSecondsToTimestamp(expr: Expr | string): FunctionExpr {
-  const normalizedExpr = fieldOfOrExpr(expr);
+  const normalizedExpr = fieldOrExpression(expr);
   return normalizedExpr.unixSecondsToTimestamp();
 }
 
@@ -6584,7 +6580,7 @@ export function timestampToUnixSeconds(expr: Expr): FunctionExpr;
  */
 export function timestampToUnixSeconds(fieldName: string): FunctionExpr;
 export function timestampToUnixSeconds(expr: Expr | string): FunctionExpr {
-  const normalizedExpr = fieldOfOrExpr(expr);
+  const normalizedExpr = fieldOrExpression(expr);
   return normalizedExpr.timestampToUnixSeconds();
 }
 
@@ -6662,7 +6658,7 @@ export function timestampAdd(
     | 'day',
   amount: Expr | number
 ): FunctionExpr {
-  const normalizedTimestamp = fieldOfOrExpr(timestamp);
+  const normalizedTimestamp = fieldOrExpression(timestamp);
   const normalizedUnit = valueToDefaultExpr(unit);
   const normalizedAmount = valueToDefaultExpr(amount);
   return normalizedTimestamp.timestampAdd(normalizedUnit, normalizedAmount);
@@ -6742,7 +6738,7 @@ export function timestampSub(
     | 'day',
   amount: Expr | number
 ): FunctionExpr {
-  const normalizedTimestamp = fieldOfOrExpr(timestamp);
+  const normalizedTimestamp = fieldOrExpression(timestamp);
   const normalizedUnit = valueToDefaultExpr(unit);
   const normalizedAmount = valueToDefaultExpr(amount);
   return normalizedTimestamp.timestampSub(normalizedUnit, normalizedAmount);
@@ -6828,7 +6824,7 @@ export function ascending(expr: Expr): Ordering;
  */
 export function ascending(fieldName: string): Ordering;
 export function ascending(field: Expr | string): Ordering {
-  return new Ordering(fieldOfOrExpr(field), 'ascending');
+  return new Ordering(fieldOrExpression(field), 'ascending');
 }
 
 /**
@@ -6863,7 +6859,7 @@ export function descending(expr: Expr): Ordering;
  */
 export function descending(fieldName: string): Ordering;
 export function descending(field: Expr | string): Ordering {
-  return new Ordering(fieldOfOrExpr(field), 'descending');
+  return new Ordering(fieldOrExpression(field), 'descending');
 }
 
 /**
