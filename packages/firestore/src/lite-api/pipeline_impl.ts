@@ -15,11 +15,14 @@
  * limitations under the License.
  */
 
+import { invokeExecutePipeline } from '../remote/datastore';
+
+import { getDatastore } from './components';
 import { Firestore } from './database';
 import { Pipeline } from './pipeline';
-import { PipelineResult } from './pipeline-result';
+import { PipelineResult, PipelineSnapshot } from './pipeline-result';
 import { PipelineSource } from './pipeline-source';
-import { Query } from './reference';
+import { DocumentReference } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
 import { Stage } from './stage';
 import { newUserDataReader } from './user_data_reader';
@@ -30,67 +33,74 @@ declare module './database' {
   }
 }
 
-declare module './reference' {
-  interface Query {
-    pipeline(): Pipeline;
-  }
-}
-
 /**
- * Modular API for console experimentation.
- * @param pipeline Execute this pipeline.
- * @beta
+ * Executes this pipeline and returns a Promise to represent the asynchronous operation.
+ *
+ * The returned Promise can be used to track the progress of the pipeline execution
+ * and retrieve the results (or handle any errors) asynchronously.
+ *
+ * The pipeline results are returned as a {@link PipelineSnapshot} that contains
+ * a list of {@link PipelineResult} objects. Each {@link PipelineResult} typically
+ * represents a single key/value map that has passed through all the
+ * stages of the pipeline, however this might differ depending on the stages involved in the
+ * pipeline. For example:
+ *
+ * <ul>
+ *   <li>If there are no stages or only transformation stages, each {@link PipelineResult}
+ *       represents a single document.</li>
+ *   <li>If there is an aggregation, only a single {@link PipelineResult} is returned,
+ *       representing the aggregated results over the entire dataset .</li>
+ *   <li>If there is an aggregation stage with grouping, each {@link PipelineResult} represents a
+ *       distinct group and its associated aggregated values.</li>
+ * </ul>
+ *
+ * <p>Example:
+ *
+ * ```typescript
+ * const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
+ *     .where(gt(field("rating"), 4.5))
+ *     .select("title", "author", "rating"));
+ *
+ * const results: PipelineResults = snapshot.results;
+ * ```
+ *
+ * @param pipeline The pipeline to execute.
+ * @return A Promise representing the asynchronous pipeline execution.
  */
-export function execute(pipeline: Pipeline): Promise<PipelineResult[]> {
-  return pipeline.execute();
-}
+export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
+  const datastore = getDatastore(pipeline._db);
+  return invokeExecutePipeline(datastore, pipeline).then(result => {
+    // Get the execution time from the first result.
+    // firestoreClientExecutePipeline returns at least one PipelineStreamElement
+    // even if the returned document set is empty.
+    const executionTime =
+      result.length > 0 ? result[0].executionTime?.toTimestamp() : undefined;
 
-/**
- * Experimental Modular API for console testing.
- * @param firestore
- */
-export function pipeline(firestore: Firestore): PipelineSource<Pipeline>;
+    const docs = result
+      // Currently ignore any response from ExecutePipeline that does
+      // not contain any document data in the `fields` property.
+      .filter(element => !!element.fields)
+      .map(
+        element =>
+          new PipelineResult(
+            pipeline._userDataWriter,
+            element.key?.path
+              ? new DocumentReference(pipeline._db, null, element.key)
+              : undefined,
+            element.fields,
+            element.createTime?.toTimestamp(),
+            element.updateTime?.toTimestamp()
+          )
+      );
 
-/**
- * Experimental Modular API for console testing.
- * @param query
- */
-export function pipeline(query: Query): Pipeline;
-
-export function pipeline(
-  firestoreOrQuery: Firestore | Query
-): PipelineSource<Pipeline> | Pipeline {
-  if (firestoreOrQuery instanceof Firestore) {
-    const db = firestoreOrQuery;
-    const userDataWriter = new LiteUserDataWriter(db);
-    const userDataReader = newUserDataReader(db);
-    return new PipelineSource<Pipeline>((stages: Stage[]) => {
-      return new Pipeline(db, userDataReader, userDataWriter, stages);
-    });
-  } else {
-    let pipeline;
-    const query = firestoreOrQuery;
-    if (query._query.collectionGroup) {
-      pipeline = query.firestore
-        .pipeline()
-        .collectionGroup(query._query.collectionGroup);
-    } else {
-      pipeline = query.firestore
-        .pipeline()
-        .collection(query._query.path.canonicalString());
-    }
-
-    // TODO(pipeline) convert existing query filters, limits, etc into
-    // pipeline stages
-
-    return pipeline;
-  }
+    return new PipelineSnapshot(pipeline, docs, executionTime);
+  });
 }
 
 Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
-  return pipeline(this);
-};
-
-Query.prototype.pipeline = function (): Pipeline {
-  return pipeline(this);
+  const userDataWriter = new LiteUserDataWriter(this);
+  const userDataReader = newUserDataReader(this);
+  return new PipelineSource<Pipeline>(this._databaseId, (stages: Stage[]) => {
+    return new Pipeline(this, userDataReader, userDataWriter, stages);
+  });
 };

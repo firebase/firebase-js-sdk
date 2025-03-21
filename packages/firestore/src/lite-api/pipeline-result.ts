@@ -18,11 +18,57 @@
 import { ObjectValue } from '../model/object_value';
 import { isOptionalEqual } from '../util/misc';
 
+import { Field } from './expressions';
 import { FieldPath } from './field_path';
+import { Pipeline } from './pipeline';
 import { DocumentData, DocumentReference, refEqual } from './reference';
 import { fieldPathFromArgument } from './snapshot';
 import { Timestamp } from './timestamp';
 import { AbstractUserDataWriter } from './user_data_writer';
+
+export class PipelineSnapshot {
+  private readonly _pipeline: Pipeline;
+  private readonly _executionTime: Timestamp | undefined;
+  private readonly _results: PipelineResult[];
+  constructor(
+    pipeline: Pipeline,
+    results: PipelineResult[],
+    executionTime?: Timestamp
+  ) {
+    this._pipeline = pipeline;
+    this._executionTime = executionTime;
+    this._results = results;
+  }
+
+  /**
+   * The Pipeline on which you called `execute()` in order to get this
+   * `PipelineSnapshot`.
+   */
+  get pipeline(): Pipeline {
+    return this._pipeline;
+  }
+
+  /** An array of all the results in the `PipelineSnapshot`. */
+  get results(): PipelineResult[] {
+    return this._results;
+  }
+
+  /**
+   * The time at which the pipeline producing this result is executed.
+   *
+   * @type {Timestamp}
+   * @readonly
+   *
+   */
+  get executionTime(): Timestamp {
+    if (this._executionTime === undefined) {
+      throw new Error(
+        "'executionTime' is expected to exist, but it is undefined"
+      );
+    }
+    return this._executionTime;
+  }
+}
 
 /**
  * @beta
@@ -36,7 +82,6 @@ import { AbstractUserDataWriter } from './user_data_writer';
 export class PipelineResult<AppModelType = DocumentData> {
   private readonly _userDataWriter: AbstractUserDataWriter;
 
-  private readonly _executionTime: Timestamp | undefined;
   private readonly _createTime: Timestamp | undefined;
   private readonly _updateTime: Timestamp | undefined;
 
@@ -58,7 +103,7 @@ export class PipelineResult<AppModelType = DocumentData> {
    *
    * @param userDataWriter The serializer used to encode/decode protobuf.
    * @param ref The reference to the document.
-   * @param _fieldsProto The fields of the Firestore `Document` Protobuf backing
+   * @param fields The fields of the Firestore `Document` Protobuf backing
    * this document (or undefined if the document does not exist).
    * @param readTime The time when this result was read  (or undefined if
    * the document exists only locally).
@@ -69,13 +114,11 @@ export class PipelineResult<AppModelType = DocumentData> {
     userDataWriter: AbstractUserDataWriter,
     ref?: DocumentReference,
     fields?: ObjectValue,
-    executionTime?: Timestamp,
     createTime?: Timestamp,
     updateTime?: Timestamp
   ) {
     this._ref = ref;
     this._userDataWriter = userDataWriter;
-    this._executionTime = executionTime;
     this._createTime = createTime;
     this._updateTime = updateTime;
     this._fields = fields;
@@ -121,22 +164,6 @@ export class PipelineResult<AppModelType = DocumentData> {
   }
 
   /**
-   * The time at which the pipeline producing this result is executed.
-   *
-   * @type {Timestamp}
-   * @readonly
-   *
-   */
-  get executionTime(): Timestamp {
-    if (this._executionTime === undefined) {
-      throw new Error(
-        "'executionTime' is expected to exist, but it is undefined"
-      );
-    }
-    return this._executionTime;
-  }
-
-  /**
    * Retrieves all fields in the result as an object. Returns 'undefined' if
    * the document doesn't exist.
    *
@@ -166,7 +193,7 @@ export class PipelineResult<AppModelType = DocumentData> {
   /**
    * Retrieves the field specified by `field`.
    *
-   * @param {string|FieldPath} field The field path
+   * @param {string|FieldPath|Field} field The field path
    * (e.g. 'foo' or 'foo.bar') to a specific field.
    * @returns {*} The data at the specified field location or undefined if no
    * such field exists.
@@ -184,7 +211,7 @@ export class PipelineResult<AppModelType = DocumentData> {
   // We deliberately use `any` in the external API to not impose type-checking
   // on end users.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  get(fieldPath: string | FieldPath): any {
+  get(fieldPath: string | FieldPath | Field): any {
     if (this._fields === undefined) {
       return undefined;
     }
