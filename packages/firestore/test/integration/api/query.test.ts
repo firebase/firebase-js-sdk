@@ -54,7 +54,8 @@ import {
   writeBatch,
   CollectionReference,
   WriteBatch,
-  Firestore
+  Firestore,
+  getDocsFromServer
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -66,7 +67,8 @@ import {
   withRetry,
   withTestCollection,
   withTestDb,
-  checkOnlineAndOfflineResultsMatch
+  checkOnlineAndOfflineResultsMatch,
+  toIds
 } from '../util/helpers';
 import { USE_EMULATOR } from '../util/settings';
 import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
@@ -2261,6 +2263,35 @@ apiDescribe('Queries', persistence => {
         expect(fieldValue).to.deep.equal(bigString);
       }
     );
+  });
+
+  it('snapshot listener sorts cross type numbers same way as server', async () => {
+    const testDocs = {
+      'longMin': { value: '-9223372036854775808' },
+      'longMax': { value: '9223372036854775807' },
+      'NaN': { value: NaN },
+      'maxSafeInteger': { value: Number.MAX_SAFE_INTEGER },
+      'minSafeInteger': { value: Number.MIN_SAFE_INTEGER },
+      'maxValue': { value: Number.MAX_VALUE },
+      'negativeMaxValue': { value: -Number.MAX_VALUE },
+      'minValue': { value: Number.MIN_VALUE },
+      'negativeMinValue': { value: -Number.MIN_VALUE },
+      'negativeInfinity': { value: -Infinity },
+      'positiveInfinity': { value: Infinity }
+    };
+
+    return withTestCollection(persistence, testDocs, async collectionRef => {
+      const orderedQuery = query(collectionRef, orderBy('value'));
+
+      const getSnapshot = await getDocsFromServer(orderedQuery);
+
+      const storeEvent = new EventsAccumulator<QuerySnapshot>();
+      const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+      const watchSnapshot = await storeEvent.awaitEvent();
+      expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+
+      unsubscribe();
+    });
   });
 });
 
