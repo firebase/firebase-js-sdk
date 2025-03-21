@@ -464,7 +464,7 @@ export class Unnest implements Stage {
  * @beta
  */
 export class Replace implements Stage {
-  name = 'replace';
+  name = 'replace_with';
 
   constructor(
     private field: Field,

@@ -107,7 +107,6 @@ export {
   bitXor,
   divide,
   isNotNan,
-  manhattanDistance,
   map,
   isNotNull,
   isNull,

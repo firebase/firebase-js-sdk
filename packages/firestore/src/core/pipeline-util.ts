@@ -65,9 +65,9 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
       }
     } else if (isNullValue(f.value)) {
       if (f.op === Operator.EQUAL) {
-        return and(fieldValue.exists(), fieldValue.eq(null));
+        return and(fieldValue.exists(), fieldValue.isNull());
       } else {
-        return and(fieldValue.exists(), fieldValue.neq(null));
+        return and(fieldValue.exists(), fieldValue.isNotNull());
       }
     } else {
       // Comparison filters
@@ -113,7 +113,7 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
             Constant._fromProto(val)
           );
           if (!values) {
-            return fieldValue.exists();
+            return and(fieldValue.exists(), fieldValue.eqAny([]));
           } else if (values.length === 1) {
             return and(fieldValue.exists(), fieldValue.eq(values[0]));
           } else {
@@ -131,7 +131,7 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
             Constant._fromProto(val)
           );
           if (!values) {
-            return fieldValue.exists();
+            return and(fieldValue.exists(), fieldValue.notEqAny([]));
           } else if (values.length === 1) {
             return and(fieldValue.exists(), fieldValue.neq(values[0]));
           } else {
@@ -215,13 +215,13 @@ export function toPipeline(query: Query, db: Firestore): Pipeline {
       // cursors
       if (query.startAt !== null) {
         pipeline = pipeline.where(
-          whereConditionsFromCursor(query.startAt, orderings, 'before')
+          whereConditionsFromCursor(query.startAt, orderings, 'after')
         );
       }
 
       if (query.endAt !== null) {
         pipeline = pipeline.where(
-          whereConditionsFromCursor(query.endAt, orderings, 'after')
+          whereConditionsFromCursor(query.endAt, orderings, 'before')
         );
       }
 
@@ -265,7 +265,7 @@ function whereConditionsFromCursor(
     const conditions: BooleanExpr[] = cursorSubset.map((cursor, index) => {
       if (index < cursorSubset.length - 1) {
         return eq(orderings[index].expr as Field, cursor);
-      } else if (bound.inclusive && i === orderings.length) {
+      } else if (bound.inclusive && i === orderings.length - 1) {
         return filterInclusiveFunc(orderings[index].expr as Field, cursor);
       } else {
         return filterFunc(orderings[index].expr as Field, cursor);

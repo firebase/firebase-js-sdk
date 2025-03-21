@@ -52,7 +52,6 @@ import {
   bitRightShift,
   bitXor,
   isNotNan,
-  manhattanDistance,
   map,
   isNotNull,
   isNull,
@@ -1991,9 +1990,6 @@ describe('Firestore Pipelines', () => {
             ),
             euclideanDistance(constantVector(sourceVector), targetVector).as(
               'euclideanDistance'
-            ),
-            manhattanDistance(constantVector(sourceVector), targetVector).as(
-              'manhattanDistance'
             )
           )
           .limit(1)
@@ -2002,8 +1998,7 @@ describe('Firestore Pipelines', () => {
       expectResults(snapshot, {
         cosineDistance: 0.02560880430538015,
         dotProductDistance: 0.13,
-        euclideanDistance: 0.806225774829855,
-        manhattanDistance: 1.1
+        euclideanDistance: 0.806225774829855
       });
 
       snapshot = await execute(
@@ -2019,10 +2014,7 @@ describe('Firestore Pipelines', () => {
               .as('dotProductDistance'),
             constantVector(sourceVector)
               .euclideanDistance(targetVector)
-              .as('euclideanDistance'),
-            constantVector(sourceVector)
-              .manhattanDistance(targetVector)
-              .as('manhattanDistance')
+              .as('euclideanDistance')
           )
           .limit(1)
       );
@@ -2030,8 +2022,7 @@ describe('Firestore Pipelines', () => {
       expectResults(snapshot, {
         cosineDistance: 0.02560880430538015,
         dotProductDistance: 0.13,
-        euclideanDistance: 0.806225774829855,
-        manhattanDistance: 1.1
+        euclideanDistance: 0.806225774829855
       });
     });
 
@@ -2870,7 +2861,7 @@ describe('Firestore Pipelines', () => {
     it('supports pagination with offsets', async () => {
       await addBooks(randomCol);
 
-      const secondFilterField = '__path__';
+      const secondFilterField = '__name__';
 
       const pipeline = firestore
         .pipeline()

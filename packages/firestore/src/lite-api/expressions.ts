@@ -1208,7 +1208,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
     ...others: Array<Expr | unknown>
   ): FunctionExpr {
     const values = [second, ...others];
-    return new FunctionExpr('logical_min', [
+    return new FunctionExpr('logical_minimum', [
       this,
       ...values.map(valueToDefaultExpr)
     ]);
@@ -1312,39 +1312,6 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   euclideanDistance(vector: VectorValue | number[]): FunctionExpr;
   euclideanDistance(other: Expr | VectorValue | number[]): FunctionExpr {
     return new FunctionExpr('euclidean_distance', [this, vectorToExpr(other)]);
-  }
-
-  /**
-   * @beta
-   *
-   * Calculates the Manhattan distance between the result of this expression and another VectorValue.
-   *
-   * ```typescript
-   * // Calculate the Manhattan distance between the 'location' field and a target location
-   * field("location").manhattanDistance(new VectorValue([37.7749, -122.4194]));
-   * ```
-   *
-   * @param vector The other vector (as a VectorValue) to compare against.
-   * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
-   */
-  manhattanDistance(vector: VectorValue | number[]): FunctionExpr;
-
-  /**
-   * @beta
-   *
-   * Calculates the Manhattan distance between two vector expressions.
-   *
-   * ```typescript
-   * // Calculate the Manhattan distance between two vector fields: 'pointA' and 'pointB'
-   * field("pointA").manhattanDistance(field("pointB"));
-   * ```
-   *
-   * @param vectorExpression The other vector (represented as an Expr) to compare against.
-   * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
-   */
-  manhattanDistance(vectorExpression: Expr): FunctionExpr;
-  manhattanDistance(other: Expr | number[] | VectorValue): FunctionExpr {
-    return new FunctionExpr('manhattan_distance', [this, vectorToExpr(other)]);
   }
 
   /**
@@ -2281,8 +2248,6 @@ export function field(nameOrPath: string | FieldPath): Field {
       return new Field(documentIdFieldPath()._internalPath);
     }
     return new Field(fieldPathFromArgument('of', nameOrPath));
-  } else if (documentIdFieldPath().isEqual(nameOrPath)) {
-    return new Field(documentIdFieldPath()._internalPath);
   } else {
     return new Field(nameOrPath._internalPath);
   }
@@ -4614,6 +4579,21 @@ export function arrayContainsAll(
 /**
  * @beta
  *
+ * Creates an expression that calculates the length of an array in a specified field.
+ *
+ * ```typescript
+ * // Get the number of items in field 'cart'
+ * arrayLength('cart');
+ * ```
+ *
+ * @param fieldName The name of the field containing an array to calculate the length of.
+ * @return A new {@code Expr} representing the length of the array.
+ */
+export function arrayLength(fieldName: string): FunctionExpr;
+
+/**
+ * @beta
+ *
  * Creates an expression that calculates the length of an array expression.
  *
  * ```typescript
@@ -4624,8 +4604,9 @@ export function arrayContainsAll(
  * @param array The array expression to calculate the length of.
  * @return A new {@code Expr} representing the length of the array.
  */
-export function arrayLength(array: Expr): FunctionExpr {
-  return array.arrayLength();
+export function arrayLength(array: Expr): FunctionExpr;
+export function arrayLength(array: Expr | string): FunctionExpr {
+  return fieldOfOrExpr(array).arrayLength();
 }
 
 /**
@@ -5883,7 +5864,7 @@ export function strConcat(
   second: string | Expr,
   ...elements: Array<string | Expr>
 ): FunctionExpr {
-  return valueToDefaultExpr(first).strConcat(
+  return fieldOfOrExpr(first).strConcat(
     valueToDefaultExpr(second),
     ...elements.map(valueToDefaultExpr)
   );
@@ -6364,91 +6345,6 @@ export function euclideanDistance(
   const expr1 = fieldOfOrExpr(expr);
   const expr2 = vectorToExpr(other);
   return expr1.euclideanDistance(expr2);
-}
-
-/**
- * @beta
- *
- * Calculates the Manhattan distance between a field's vector value and a double array.
- *
- * ```typescript
- * // Calculate the Manhattan distance between the 'location' field and a target location
- * manhattanDistance("location", [37.7749, -122.4194]);
- * ```
- *
- * @param fieldName The name of the field containing the first vector.
- * @param vector The other vector (as an array of doubles or VectorValue) to compare against.
- * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
- */
-export function manhattanDistance(
-  fieldName: string,
-  vector: number[] | VectorValue
-): FunctionExpr;
-
-/**
- * @beta
- *
- * Calculates the Manhattan distance between a field's vector value and a vector expression.
- *
- * ```typescript
- * // Calculate the Manhattan distance between two vector fields: 'pointA' and 'pointB'
- * manhattanDistance("pointA", field("pointB"));
- * ```
- *
- * @param fieldName The name of the field containing the first vector.
- * @param vectorExpression The other vector (represented as an Expr) to compare against.
- * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
- */
-export function manhattanDistance(
-  fieldName: string,
-  vectorExpression: Expr
-): FunctionExpr;
-
-/**
- * @beta
- *
- * Calculates the Manhattan distance between a vector expression and a double array.
- *
- * ```typescript
- * // Calculate the Manhattan distance between the 'location' field and a target location
- *
- * manhattanDistance(field("location"), [37.7749, -122.4194]);
- * ```
- *
- * @param vectorExpression The first vector (represented as an Expr) to compare against.
- * @param vector The other vector (as an array of doubles or VectorValue) to compare against.
- * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
- */
-export function manhattanDistance(
-  vectorExpression: Expr,
-  vector: number[] | VectorValue
-): FunctionExpr;
-
-/**
- * @beta
- *
- * Calculates the Manhattan distance between two vector expressions.
- *
- * ```typescript
- * // Calculate the Manhattan distance between two vector fields: 'pointA' and 'pointB'
- * manhattanDistance(field("pointA"), field("pointB"));
- * ```
- *
- * @param vectorExpression The first vector (represented as an Expr) to compare against.
- * @param otherVectorExpression The other vector (represented as an Expr) to compare against.
- * @return A new {@code Expr} representing the Manhattan distance between the two vectors.
- */
-export function manhattanDistance(
-  vectorExpression: Expr,
-  otherVectorExpression: Expr
-): FunctionExpr;
-export function manhattanDistance(
-  fieldOrExpr: Expr | string,
-  other: Expr | number[] | VectorValue
-): FunctionExpr {
-  const expr1 = fieldOfOrExpr(fieldOrExpr);
-  const expr2 = vectorToExpr(other);
-  return expr1.manhattanDistance(expr2);
 }
 
 /**

@@ -17,7 +17,11 @@
 
 export { PipelineSource } from './lite-api/pipeline-source';
 
-export { PipelineResult, PipelineSnapshot } from './lite-api/pipeline-result';
+export {
+  PipelineResult,
+  PipelineSnapshot,
+  pipelineResultEqual
+} from './lite-api/pipeline-result';
 
 export { Pipeline } from './api/pipeline';
 
@@ -130,7 +134,6 @@ export {
   mapMerge,
   documentId,
   substr,
-  manhattanDistance,
   Expr,
   ExprWithAlias,
   Field,

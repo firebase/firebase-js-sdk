@@ -557,3 +557,10 @@ export async function checkOnlineAndOfflineResultsMatch(
   const docsFromCache = await getDocsFromCache(query);
   expect(toIds(docsFromServer)).to.deep.equal(toIds(docsFromCache));
 }
+
+export function itIf(
+  condition: boolean | 'only'
+): Mocha.TestFunction | Mocha.PendingTestFunction {
+  // eslint-disable-next-line no-restricted-properties
+  return condition === 'only' ? it.only : condition ? it : it.skip;
+}

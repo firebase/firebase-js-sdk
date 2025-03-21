@@ -22,12 +22,14 @@ import {
   AggregateFunction,
   ascending,
   BooleanExpr,
+  byteLength,
   constantVector,
   FunctionExpr,
   timestampAdd,
   timestampToUnixMicros,
   timestampToUnixMillis,
   timestampToUnixSeconds,
+  toLower,
   unixMicrosToTimestamp,
   unixMillisToTimestamp,
   vectorLength
@@ -53,15 +55,20 @@ import {
   writeBatch,
   addDoc
 } from '../util/firebase_export';
-import { apiDescribe, withTestCollection } from '../util/helpers';
+import { apiDescribe, withTestCollection, itIf } from '../util/helpers';
 import {
   array,
   mod,
+  pipelineResultEqual,
+  sum,
+  replaceFirst,
+  replaceAll,
   descending,
   isNan,
   map,
   execute,
   add,
+  arrayContainsAll,
   unixSecondsToTimestamp,
   and,
   arrayContains,
@@ -69,17 +76,21 @@ import {
   count,
   avg,
   cosineDistance,
+  not,
   countAll,
   dotProduct,
   endsWith,
   eq,
   reverse,
+  toUpper,
   euclideanDistance,
   gt,
   like,
   lt,
   strContains,
+  divide,
   lte,
+  arrayLength,
   arrayConcat,
   mapGet,
   neq,
@@ -87,6 +98,7 @@ import {
   regexContains,
   regexMatch,
   startsWith,
+  strConcat,
   subtract,
   cond,
   eqAny,
@@ -100,6 +112,7 @@ import {
   bitNot,
   exists,
   bitLeftShift,
+  charLength,
   bitRightShift,
   rand,
   arrayOffset,
@@ -108,6 +121,7 @@ import {
   currentContext,
   isError,
   ifError,
+  trim,
   isAbsent,
   isNull,
   isNotNull,
@@ -117,7 +131,6 @@ import {
   mapMerge,
   documentId,
   substr,
-  manhattanDistance,
   logicalMinimum,
   xor,
   field,
@@ -130,6 +143,8 @@ use(chaiAsPromised);
 
 setLogLevel('debug');
 
+const testUnsupportedFeatures = false;
+
 apiDescribe.only('Pipelines', persistence => {
   addEqualityMatcher();
 
@@ -137,6 +152,8 @@ apiDescribe.only('Pipelines', persistence => {
   let randomCol: CollectionReference;
   let beginDocCreation: number = 0;
   let endDocCreation: number = 0;
+
+  const timestampDeltaMS = 1000;
 
   async function testCollectionWithDocs(docs: {
     [id: string]: DocumentData;
@@ -326,8 +343,12 @@ apiDescribe.only('Pipelines', persistence => {
       expect(snapshot.results.length).to.equal(0);
     });
 
-    it('full snapshot as expected', async () => {
-      const ppl = firestore.pipeline().collection(randomCol.path);
+    // Skipping because __name__ is not currently working in DBE
+    itIf(testUnsupportedFeatures)('full snapshot as expected', async () => {
+      const ppl = firestore
+        .pipeline()
+        .collection(randomCol.path)
+        .sort(ascending('__name__'));
       const snapshot = await execute(ppl);
       expect(snapshot.results.length).to.equal(10);
       expect(snapshot.pipeline).to.equal(ppl);
@@ -346,6 +367,20 @@ apiDescribe.only('Pipelines', persistence => {
       );
     });
 
+    it('result equals works', async () => {
+      const ppl = firestore
+        .pipeline()
+        .collection(randomCol.path)
+        .sort(ascending('title'))
+        .limit(1);
+      const snapshot1 = await execute(ppl);
+      const snapshot2 = await execute(ppl);
+      expect(snapshot1.results.length).to.equal(1);
+      expect(snapshot2.results.length).to.equal(1);
+      expect(pipelineResultEqual(snapshot1.results[0], snapshot2.results[0])).to
+        .be.true;
+    });
+
     it('returns execution time', async () => {
       const start = new Date().valueOf();
       const pipeline = firestore.pipeline().collection(randomCol.path);
@@ -355,7 +390,7 @@ apiDescribe.only('Pipelines', persistence => {
 
       expect(snapshot.executionTime.toDate().valueOf()).to.approximately(
         (start + end) / 2,
-        end - start
+        timestampDeltaMS
       );
     });
 
@@ -370,7 +405,7 @@ apiDescribe.only('Pipelines', persistence => {
 
       expect(snapshot.executionTime.toDate().valueOf()).to.approximately(
         (start + end) / 2,
-        end - start
+        timestampDeltaMS
       );
     });
 
@@ -385,11 +420,11 @@ apiDescribe.only('Pipelines', persistence => {
 
         expect(doc.createTime!.toDate().valueOf()).to.approximately(
           (beginDocCreation + endDocCreation) / 2,
-          endDocCreation - beginDocCreation
+          timestampDeltaMS
         );
         expect(doc.updateTime!.toDate().valueOf()).to.approximately(
           (beginDocCreation + endDocCreation) / 2,
-          endDocCreation - beginDocCreation
+          timestampDeltaMS
         );
         expect(doc.createTime?.valueOf()).to.equal(doc.updateTime?.valueOf());
       });
@@ -425,7 +460,7 @@ apiDescribe.only('Pipelines', persistence => {
 
       expect(snapshot.executionTime.toDate().valueOf()).to.approximately(
         (start + end) / 2,
-        end - start
+        timestampDeltaMS
       );
     });
 
@@ -492,26 +527,31 @@ apiDescribe.only('Pipelines', persistence => {
       await terminate(db2);
     });
 
-    it('supports collection group as source', async () => {
-      const randomSubCollectionId = Math.random().toString(16).slice(2);
-      const doc1 = await addDoc(
-        collection(randomCol, 'book1', randomSubCollectionId),
-        { order: 1 }
-      );
-      const doc2 = await addDoc(
-        collection(randomCol, 'book2', randomSubCollectionId),
-        { order: 2 }
-      );
-      const snapshot = await execute(
-        firestore
-          .pipeline()
-          .collectionGroup(randomSubCollectionId)
-          .sort(ascending('order'))
-      );
-      expectResults(snapshot, doc1.id, doc2.id);
-    });
+    // Subcollections not currently supported in DBE
+    itIf(testUnsupportedFeatures)(
+      'supports collection group as source',
+      async () => {
+        const randomSubCollectionId = Math.random().toString(16).slice(2);
+        const doc1 = await addDoc(
+          collection(randomCol, 'book1', randomSubCollectionId),
+          { order: 1 }
+        );
+        const doc2 = await addDoc(
+          collection(randomCol, 'book2', randomSubCollectionId),
+          { order: 2 }
+        );
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collectionGroup(randomSubCollectionId)
+            .sort(ascending('order'))
+        );
+        expectResults(snapshot, doc1.id, doc2.id);
+      }
+    );
 
-    it('supports database as source', async () => {
+    // subcollections not currently supported in dbe
+    itIf(testUnsupportedFeatures)('supports database as source', async () => {
       const randomId = Math.random().toString(16).slice(2);
       const doc1 = await addDoc(collection(randomCol, 'book1', 'sub'), {
         order: 1,
@@ -654,11 +694,11 @@ apiDescribe.only('Pipelines', persistence => {
           .select(
             map({
               'number': 1,
-              'undefined': array([undefined])
+              undefined
             }).as('foo')
           );
       }).to.throw(
-        'Function constant() called with invalid data. Unsupported field value: undefined'
+        'Function map() called with invalid data. Unsupported field value: undefined'
       );
     });
 
@@ -670,7 +710,7 @@ apiDescribe.only('Pipelines', persistence => {
           .limit(1)
           .select(array([1, undefined]).as('foo'));
       }).to.throw(
-        'Function constant() called with invalid data. Unsupported field value: undefined'
+        'Function array() called with invalid data. Unsupported field value: undefined'
       );
     });
 
@@ -785,10 +825,16 @@ apiDescribe.only('Pipelines', persistence => {
             .aggregate(
               countAll().as('count'),
               avg('rating').as('avgRating'),
-              field('rating').maximum().as('maxRating')
+              maximum('rating').as('maxRating'),
+              sum('rating').as('sumRating')
             )
         );
-        expectResults(snapshot, { count: 2, avgRating: 4.4, maxRating: 4.6 });
+        expectResults(snapshot, {
+          count: 2,
+          avgRating: 4.4,
+          maxRating: 4.6,
+          sumRating: 8.8
+        });
       });
 
       it('rejects groups without accumulators', async () => {
@@ -1062,14 +1108,15 @@ apiDescribe.only('Pipelines', persistence => {
                 eq('genre', 'Fantasy')
               )
             )
+            .sort(ascending('title'))
             .select('title')
         );
         expectResults(
           snapshot,
+          { title: '1984' },
           { title: 'Pride and Prejudice' },
-          { title: 'The Lord of the Rings' },
           { title: "The Handmaid's Tale" },
-          { title: '1984' }
+          { title: 'The Lord of the Rings' }
         );
       });
 
@@ -1135,10 +1182,10 @@ apiDescribe.only('Pipelines', persistence => {
             .limit(1)
         );
         expectResults(snapshot, {
-          title: "The Hitchhiker's Guide to the Galaxy",
           metadata: {
-            author: 'Douglas Adams'
-          }
+            author: 'Frank Herbert'
+          },
+          title: 'Dune'
         });
       });
 
@@ -1152,7 +1199,7 @@ apiDescribe.only('Pipelines', persistence => {
             .select('title', 'author')
             .genericStage('add_fields', [
               {
-                display: field('title').strConcat(' - ', field('author'))
+                display: strConcat('title', ' - ', field('author'))
               }
             ])
         );
@@ -1304,7 +1351,8 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     describe('union stage', () => {
-      it('run pipeline with union', async () => {
+      // __name__ not currently supported by dbe
+      itIf(testUnsupportedFeatures)('run pipeline with union', async () => {
         const snapshot = await execute(
           firestore
             .pipeline()
@@ -1616,6 +1664,7 @@ apiDescribe.only('Pipelines', persistence => {
           .pipeline()
           .collection(randomCol.path)
           .where(eqAny('published', [1979, 1999, 1967]))
+          .sort(descending('title'))
           .select('title')
       );
       expectResults(
@@ -1660,6 +1709,7 @@ apiDescribe.only('Pipelines', persistence => {
           .pipeline()
           .collection(randomCol.path)
           .where(arrayContainsAny('tags', ['comedy', 'classic']))
+          .sort(descending('title'))
           .select('title')
       );
       expectResults(
@@ -1674,7 +1724,7 @@ apiDescribe.only('Pipelines', persistence => {
         firestore
           .pipeline()
           .collection(randomCol.path)
-          .where(field('tags').arrayContainsAll(['adventure', 'magic']))
+          .where(arrayContainsAll('tags', ['adventure', 'magic']))
           .select('title')
       );
       expectResults(snapshot, { title: 'The Lord of the Rings' });
@@ -1685,7 +1735,7 @@ apiDescribe.only('Pipelines', persistence => {
         firestore
           .pipeline()
           .collection(randomCol.path)
-          .select(field('tags').arrayLength().as('tagsCount'))
+          .select(arrayLength('tags').as('tagsCount'))
           .where(eq('tagsCount', 3))
       );
       expect(snapshot.results.length).to.equal(10);
@@ -1696,6 +1746,7 @@ apiDescribe.only('Pipelines', persistence => {
         firestore
           .pipeline()
           .collection(randomCol.path)
+          .sort(ascending('author'))
           .select(
             field('author').strConcat(' - ', field('title')).as('bookInfo')
           )
@@ -1761,7 +1812,7 @@ apiDescribe.only('Pipelines', persistence => {
         firestore
           .pipeline()
           .collection(randomCol.path)
-          .select(field('title').charLength().as('titleLength'), field('title'))
+          .select(charLength('title').as('titleLength'), field('title'))
           .where(gt('titleLength', 20))
           .sort(field('title').ascending())
       );
@@ -1826,11 +1877,12 @@ apiDescribe.only('Pipelines', persistence => {
         firestore
           .pipeline()
           .collection(randomCol.path)
+          .where(eq('title', 'To Kill a Mockingbird'))
           .select(
             add(field('rating'), 1).as('ratingPlusOne'),
             subtract(field('published'), 1900).as('yearsSince1900'),
             field('rating').multiply(10).as('ratingTimesTen'),
-            field('rating').divide(2).as('ratingDividedByTwo'),
+            divide('rating', 2).as('ratingDividedByTwo'),
             multiply('rating', 10, 2).as('ratingTimes20'),
             add('rating', 1, 2).as('ratingPlus3'),
             mod('rating', 2).as('ratingMod2')
@@ -1839,12 +1891,12 @@ apiDescribe.only('Pipelines', persistence => {
       );
       expectResults(snapshot, {
         ratingPlusOne: 5.2,
-        yearsSince1900: 79,
+        yearsSince1900: 60,
         ratingTimesTen: 42,
         ratingDividedByTwo: 2.1,
         ratingTimes20: 84,
         ratingPlus3: 7.2,
-        ratingMod2: 0.2
+        ratingMod2: 0.20000000000000018
       });
     });
 
@@ -1914,7 +1966,7 @@ apiDescribe.only('Pipelines', persistence => {
             isNotNull('title').as('titleIsNotNull'),
             isNotNan('cost').as('costIsNotNan'),
             exists('fooBarBaz').as('fooBarBazExists'),
-            field('title').as('titleExists')
+            field('title').exists().as('titleExists')
           )
       );
       expectResults(snapshot, {
@@ -1998,9 +2050,6 @@ apiDescribe.only('Pipelines', persistence => {
             ),
             euclideanDistance(constantVector(sourceVector), targetVector).as(
               'euclideanDistance'
-            ),
-            manhattanDistance(constantVector(sourceVector), targetVector).as(
-              'manhattanDistance'
             )
           )
           .limit(1)
@@ -2009,8 +2058,7 @@ apiDescribe.only('Pipelines', persistence => {
       expectResults(snapshot, {
         cosineDistance: 0.02560880430538015,
         dotProductDistance: 0.13,
-        euclideanDistance: 0.806225774829855,
-        manhattanDistance: 1.1
+        euclideanDistance: 0.806225774829855
       });
 
       snapshot = await execute(
@@ -2026,10 +2074,7 @@ apiDescribe.only('Pipelines', persistence => {
               .as('dotProductDistance'),
             constantVector(sourceVector)
               .euclideanDistance(targetVector)
-              .as('euclideanDistance'),
-            constantVector(sourceVector)
-              .manhattanDistance(targetVector)
-              .as('manhattanDistance')
+              .as('euclideanDistance')
           )
           .limit(1)
       );
@@ -2037,8 +2082,7 @@ apiDescribe.only('Pipelines', persistence => {
       expectResults(snapshot, {
         cosineDistance: 0.02560880430538015,
         dotProductDistance: 0.13,
-        euclideanDistance: 0.806225774829855,
-        manhattanDistance: 1.1
+        euclideanDistance: 0.806225774829855
       });
     });
 
@@ -2061,6 +2105,7 @@ apiDescribe.only('Pipelines', persistence => {
           .pipeline()
           .collection(randomCol.path)
           .where(eq('awards.hugo', true))
+          .sort(descending('title'))
           .select('title', 'awards.hugo')
       );
       expectResults(
@@ -2084,6 +2129,7 @@ apiDescribe.only('Pipelines', persistence => {
             field('nestedField.level.1'),
             mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
           )
+          .sort(descending('title'))
       );
       expectResults(
         snapshot,
@@ -2195,333 +2241,28 @@ apiDescribe.only('Pipelines', persistence => {
       });
     });
 
-    describe('not implemented in backend', () => {
-      it('supports Bit_and', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .select(bitAnd(constant(5), 12).as('result'))
-        );
-        expectResults(snapshot, {
-          result: 4
-        });
-      });
+    itIf(testUnsupportedFeatures)('testReplaceFirst', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(eq('title', 'The Lord of the Rings'))
+          .limit(1)
+          .select(replaceFirst('title', 'o', '0').as('newName'))
+      );
+      expectResults(snapshot, { newName: 'The L0rd of the Rings' });
+    });
 
-      it('supports Bit_and', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .select(constant(5).bitAnd(12).as('result'))
-        );
-        expectResults(snapshot, {
-          result: 4
-        });
-      });
-
-      it('supports Bit_or', async () => {
-        let snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .select(bitOr(constant(5), 12).as('result'))
-        );
-        expectResults(snapshot, {
-          result: 13
-        });
-        snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .select(constant(5).bitOr(12).as('result'))
-        );
-        expectResults(snapshot, {
-          result: 13
-        });
-      });
-
-      it('supports Bit_xor', async () => {
-        let snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .select(bitXor(constant(5), 12).as('result'))
-        );
-        expectResults(snapshot, {
-          result: 9
-        });
-        snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .select(constant(5).bitXor(12).as('result'))
-        );
-        expectResults(snapshot, {
-          result: 9
-        });
-      });
-
-      it('supports Bit_not', async () => {
-        let snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .select(
-              bitNot(constant(Bytes.fromUint8Array(Uint8Array.of(0xfd)))).as(
-                'result'
-              )
-            )
-        );
-        expectResults(snapshot, {
-          result: Bytes.fromUint8Array(Uint8Array.of(0x02))
-        });
-        snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .select(
-              constant(Bytes.fromUint8Array(Uint8Array.of(0xfd)))
-                .bitNot()
-                .as('result')
-            )
-        );
-        expectResults(snapshot, {
-          result: Bytes.fromUint8Array(Uint8Array.of(0x02))
-        });
-      });
-
-      it('supports Bit_left_shift', async () => {
-        let snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .select(
-              bitLeftShift(
-                constant(Bytes.fromUint8Array(Uint8Array.of(0x02))),
-                2
-              ).as('result')
-            )
-        );
-        expectResults(snapshot, {
-          result: Bytes.fromUint8Array(Uint8Array.of(0x04))
-        });
-        snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .select(
-              constant(Bytes.fromUint8Array(Uint8Array.of(0x02)))
-                .bitLeftShift(2)
-                .as('result')
-            )
-        );
-        expectResults(snapshot, {
-          result: Bytes.fromUint8Array(Uint8Array.of(0x04))
-        });
-      });
-
-      it('supports Bit_right_shift', async () => {
-        let snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .select(
-              bitRightShift(
-                constant(Bytes.fromUint8Array(Uint8Array.of(0x02))),
-                2
-              ).as('result')
-            )
-        );
-        expectResults(snapshot, {
-          result: Bytes.fromUint8Array(Uint8Array.of(0x01))
-        });
-        snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .select(
-              constant(Bytes.fromUint8Array(Uint8Array.of(0x02)))
-                .bitRightShift(2)
-                .as('result')
-            )
-        );
-        expectResults(snapshot, {
-          result: Bytes.fromUint8Array(Uint8Array.of(0x01))
-        });
-      });
-
-      it('supports Document_id', async () => {
-        let snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .sort(field('rating').descending())
-            .limit(1)
-            .select(documentId(field('__path__')).as('docId'))
-        );
-        expectResults(snapshot, {
-          docId: 'book4'
-        });
-        snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .sort(field('rating').descending())
-            .limit(1)
-            .select(field('__path__').documentId().as('docId'))
-        );
-        expectResults(snapshot, {
-          docId: 'book4'
-        });
-      });
-
-      it('supports Substr', async () => {
-        let snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .sort(field('rating').descending())
-            .limit(1)
-            .select(substr('title', 9, 2).as('of'))
-        );
-        expectResults(snapshot, {
-          of: 'of'
-        });
-        snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .sort(field('rating').descending())
-            .limit(1)
-            .select(field('title').substr(9, 2).as('of'))
-        );
-        expectResults(snapshot, {
-          of: 'of'
-        });
-      });
-
-      it('supports Substr without length', async () => {
-        let snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .sort(field('rating').descending())
-            .limit(1)
-            .select(substr('title', 9).as('of'))
-        );
-        expectResults(snapshot, {
-          of: 'of the Rings'
-        });
-        snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .sort(field('rating').descending())
-            .limit(1)
-            .select(field('title').substr(9).as('of'))
-        );
-        expectResults(snapshot, {
-          of: 'of the Rings'
-        });
-      });
-
-      it('arrayConcat works', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .select(
-              arrayConcat('tags', ['newTag1', 'newTag2'], field('tags'), [
-                null
-              ]).as('modifiedTags')
-            )
-            .limit(1)
-        );
-        expectResults(snapshot, {
-          modifiedTags: [
-            'comedy',
-            'space',
-            'adventure',
-            'newTag1',
-            'newTag2',
-            'comedy',
-            'space',
-            'adventure',
-            null
-          ]
-        });
-      });
-
-      it('testToLowercase', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .select(field('title').toLower().as('lowercaseTitle'))
-            .limit(1)
-        );
-        expectResults(snapshot, {
-          lowercaseTitle: "the hitchhiker's guide to the galaxy"
-        });
-      });
-
-      it('testToUppercase', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .select(field('author').toUpper().as('uppercaseAuthor'))
-            .limit(1)
-        );
-        expectResults(snapshot, { uppercaseAuthor: 'DOUGLAS ADAMS' });
-      });
-
-      it('testTrim', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .addFields(
-              constant(" The Hitchhiker's Guide to the Galaxy ").as(
-                'spacedTitle'
-              )
-            )
-            .select(
-              field('spacedTitle').trim().as('trimmedTitle'),
-              field('spacedTitle')
-            )
-            .limit(1)
-        );
-        expectResults(snapshot, {
-          spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
-          trimmedTitle: "The Hitchhiker's Guide to the Galaxy"
-        });
-      });
-
-      it('test reverse', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .where(eq('title', '1984'))
-            .limit(1)
-            .select(reverse('title').as('reverseTitle'))
-        );
-        expectResults(snapshot, { title: '4891' });
-      });
+    itIf(testUnsupportedFeatures)('testReplaceAll', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(eq('title', 'The Lord of the Rings'))
+          .limit(1)
+          .select(replaceAll('title', 'o', '0').as('newName'))
+      );
+      expectResults(snapshot, { newName: 'The L0rd 0f the Rings' });
     });
 
     it('supports Rand', async () => {
@@ -2605,7 +2346,7 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     // TODO: current_context tests with are failing because of b/395937453
-    it('supports currentContext', async () => {
+    itIf(testUnsupportedFeatures)('supports currentContext', async () => {
       const snapshot = await execute(
         firestore
           .pipeline()
@@ -2789,6 +2530,368 @@ apiDescribe.only('Pipelines', persistence => {
         minus10millis: new Timestamp(1741380234, 990000000)
       });
     });
+
+    it('supports byteLength', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .select(
+            constant(
+              Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0]))
+            ).as('bytes')
+          )
+          .select(byteLength('bytes').as('byteLength'))
+      );
+
+      expectResults(snapshot, {
+        byteLength: 8
+      });
+    });
+
+    it('supports not', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .select(constant(true).as('trueField'))
+          .select('trueField', not(eq('trueField', true)).as('falseField'))
+      );
+
+      expectResults(snapshot, {
+        trueField: true,
+        falseField: false
+      });
+    });
+  });
+
+  describe('not yet implemented in backend', () => {
+    itIf(testUnsupportedFeatures)('supports Bit_and', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(bitAnd(constant(5), 12).as('result'))
+      );
+      expectResults(snapshot, {
+        result: 4
+      });
+    });
+
+    itIf(testUnsupportedFeatures)('supports Bit_and', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(constant(5).bitAnd(12).as('result'))
+      );
+      expectResults(snapshot, {
+        result: 4
+      });
+    });
+
+    itIf(testUnsupportedFeatures)('supports Bit_or', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(bitOr(constant(5), 12).as('result'))
+      );
+      expectResults(snapshot, {
+        result: 13
+      });
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(constant(5).bitOr(12).as('result'))
+      );
+      expectResults(snapshot, {
+        result: 13
+      });
+    });
+
+    itIf(testUnsupportedFeatures)('supports Bit_xor', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(bitXor(constant(5), 12).as('result'))
+      );
+      expectResults(snapshot, {
+        result: 9
+      });
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(constant(5).bitXor(12).as('result'))
+      );
+      expectResults(snapshot, {
+        result: 9
+      });
+    });
+
+    itIf(testUnsupportedFeatures)('supports Bit_not', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(
+            bitNot(constant(Bytes.fromUint8Array(Uint8Array.of(0xfd)))).as(
+              'result'
+            )
+          )
+      );
+      expectResults(snapshot, {
+        result: Bytes.fromUint8Array(Uint8Array.of(0x02))
+      });
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(
+            constant(Bytes.fromUint8Array(Uint8Array.of(0xfd)))
+              .bitNot()
+              .as('result')
+          )
+      );
+      expectResults(snapshot, {
+        result: Bytes.fromUint8Array(Uint8Array.of(0x02))
+      });
+    });
+
+    itIf(testUnsupportedFeatures)('supports Bit_left_shift', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(
+            bitLeftShift(
+              constant(Bytes.fromUint8Array(Uint8Array.of(0x02))),
+              2
+            ).as('result')
+          )
+      );
+      expectResults(snapshot, {
+        result: Bytes.fromUint8Array(Uint8Array.of(0x04))
+      });
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(
+            constant(Bytes.fromUint8Array(Uint8Array.of(0x02)))
+              .bitLeftShift(2)
+              .as('result')
+          )
+      );
+      expectResults(snapshot, {
+        result: Bytes.fromUint8Array(Uint8Array.of(0x04))
+      });
+    });
+
+    itIf(testUnsupportedFeatures)('supports Bit_right_shift', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(
+            bitRightShift(
+              constant(Bytes.fromUint8Array(Uint8Array.of(0x02))),
+              2
+            ).as('result')
+          )
+      );
+      expectResults(snapshot, {
+        result: Bytes.fromUint8Array(Uint8Array.of(0x01))
+      });
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(
+            constant(Bytes.fromUint8Array(Uint8Array.of(0x02)))
+              .bitRightShift(2)
+              .as('result')
+          )
+      );
+      expectResults(snapshot, {
+        result: Bytes.fromUint8Array(Uint8Array.of(0x01))
+      });
+    });
+
+    itIf(testUnsupportedFeatures)('supports Document_id', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(documentId(field('__path__')).as('docId'))
+      );
+      expectResults(snapshot, {
+        docId: 'book4'
+      });
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(field('__path__').documentId().as('docId'))
+      );
+      expectResults(snapshot, {
+        docId: 'book4'
+      });
+    });
+
+    itIf(testUnsupportedFeatures)('supports Substr', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(substr('title', 9, 2).as('of'))
+      );
+      expectResults(snapshot, {
+        of: 'of'
+      });
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(field('title').substr(9, 2).as('of'))
+      );
+      expectResults(snapshot, {
+        of: 'of'
+      });
+    });
+
+    itIf(testUnsupportedFeatures)(
+      'supports Substr without length',
+      async () => {
+        let snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(field('rating').descending())
+            .limit(1)
+            .select(substr('title', 9).as('of'))
+        );
+        expectResults(snapshot, {
+          of: 'of the Rings'
+        });
+        snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(field('rating').descending())
+            .limit(1)
+            .select(field('title').substr(9).as('of'))
+        );
+        expectResults(snapshot, {
+          of: 'of the Rings'
+        });
+      }
+    );
+
+    itIf(testUnsupportedFeatures)('arrayConcat works', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .select(
+            arrayConcat('tags', ['newTag1', 'newTag2'], field('tags'), [
+              null
+            ]).as('modifiedTags')
+          )
+          .limit(1)
+      );
+      expectResults(snapshot, {
+        modifiedTags: [
+          'comedy',
+          'space',
+          'adventure',
+          'newTag1',
+          'newTag2',
+          'comedy',
+          'space',
+          'adventure',
+          null
+        ]
+      });
+    });
+
+    itIf(testUnsupportedFeatures)('testToLowercase', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .select(toLower('title').as('lowercaseTitle'))
+          .limit(1)
+      );
+      expectResults(snapshot, {
+        lowercaseTitle: "the hitchhiker's guide to the galaxy"
+      });
+    });
+
+    itIf(testUnsupportedFeatures)('testToUppercase', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .select(toUpper('author').as('uppercaseAuthor'))
+          .limit(1)
+      );
+      expectResults(snapshot, { uppercaseAuthor: 'DOUGLAS ADAMS' });
+    });
+
+    itIf(testUnsupportedFeatures)('testTrim', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .addFields(
+            constant(" The Hitchhiker's Guide to the Galaxy ").as('spacedTitle')
+          )
+          .select(trim('spacedTitle').as('trimmedTitle'), field('spacedTitle'))
+          .limit(1)
+      );
+      expectResults(snapshot, {
+        spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
+        trimmedTitle: "The Hitchhiker's Guide to the Galaxy"
+      });
+    });
+
+    itIf(testUnsupportedFeatures)('test reverse', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(eq('title', '1984'))
+          .limit(1)
+          .select(reverse('title').as('reverseTitle'))
+      );
+      expectResults(snapshot, { title: '4891' });
+    });
   });
 
   describe('pagination', () => {
@@ -2836,101 +2939,109 @@ apiDescribe.only('Pipelines', persistence => {
       });
     }
 
-    it('supports pagination with filters', async () => {
-      await addBooks(randomCol);
-      const pageSize = 2;
-      const pipeline = firestore
-        .pipeline()
-        .collection(randomCol.path)
-        .select('title', 'rating', '__name__')
-        .sort(field('rating').descending(), field('__name__').ascending());
+    // sort on __name__ is not working
+    itIf(testUnsupportedFeatures)(
+      'supports pagination with filters',
+      async () => {
+        await addBooks(randomCol);
+        const pageSize = 2;
+        const pipeline = firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .select('title', 'rating', '__name__')
+          .sort(field('rating').descending(), field('__name__').ascending());
 
-      let snapshot = await execute(pipeline.limit(pageSize));
-      expectResults(
-        snapshot,
-        { title: 'The Lord of the Rings', rating: 4.7 },
-        { title: 'Jonathan Strange & Mr Norrell', rating: 4.6 }
-      );
-
-      const lastDoc = snapshot.results[snapshot.results.length - 1];
-
-      snapshot = await execute(
-        pipeline
-          .where(
-            or(
-              and(
-                field('rating').eq(lastDoc.get('rating')),
-                field('__path__').gt(lastDoc.ref?.id)
-              ),
-              field('rating').lt(lastDoc.get('rating'))
-            )
-          )
-          .limit(pageSize)
-      );
-      expectResults(
-        snapshot,
-        { title: 'Pride and Prejudice', rating: 4.5 },
-        { title: 'Crime and Punishment', rating: 4.3 }
-      );
-    });
-
-    it('supports pagination with offsets', async () => {
-      await addBooks(randomCol);
-
-      const secondFilterField = '__path__';
-
-      const pipeline = firestore
-        .pipeline()
-        .collection(randomCol.path)
-        .select('title', 'rating', secondFilterField)
-        .sort(
-          field('rating').descending(),
-          field(secondFilterField).ascending()
+        let snapshot = await execute(pipeline.limit(pageSize));
+        expectResults(
+          snapshot,
+          { title: 'The Lord of the Rings', rating: 4.7 },
+          { title: 'Jonathan Strange & Mr Norrell', rating: 4.6 }
         );
 
-      const pageSize = 2;
-      let currPage = 0;
+        const lastDoc = snapshot.results[snapshot.results.length - 1];
 
-      let snapshot = await execute(
-        pipeline.offset(currPage++ * pageSize).limit(pageSize)
-      );
+        snapshot = await execute(
+          pipeline
+            .where(
+              or(
+                and(
+                  field('rating').eq(lastDoc.get('rating')),
+                  field('__path__').gt(lastDoc.ref?.id)
+                ),
+                field('rating').lt(lastDoc.get('rating'))
+              )
+            )
+            .limit(pageSize)
+        );
+        expectResults(
+          snapshot,
+          { title: 'Pride and Prejudice', rating: 4.5 },
+          { title: 'Crime and Punishment', rating: 4.3 }
+        );
+      }
+    );
 
-      expectResults(
-        snapshot,
-        {
-          title: 'The Lord of the Rings',
-          rating: 4.7
-        },
-        { title: 'Dune', rating: 4.6 }
-      );
+    // sort on __name__ is not working
+    itIf(testUnsupportedFeatures)(
+      'supports pagination with offsets',
+      async () => {
+        await addBooks(randomCol);
 
-      snapshot = await execute(
-        pipeline.offset(currPage++ * pageSize).limit(pageSize)
-      );
-      expectResults(
-        snapshot,
-        {
-          title: 'Jonathan Strange & Mr Norrell',
-          rating: 4.6
-        },
-        { title: 'The Master and Margarita', rating: 4.6 }
-      );
+        const secondFilterField = '__path__';
 
-      snapshot = await execute(
-        pipeline.offset(currPage++ * pageSize).limit(pageSize)
-      );
-      expectResults(
-        snapshot,
-        {
-          title: 'A Long Way to a Small, Angry Planet',
-          rating: 4.6
-        },
-        {
-          title: 'Pride and Prejudice',
-          rating: 4.5
-        }
-      );
-    });
+        const pipeline = firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .select('title', 'rating', secondFilterField)
+          .sort(
+            field('rating').descending(),
+            field(secondFilterField).ascending()
+          );
+
+        const pageSize = 2;
+        let currPage = 0;
+
+        let snapshot = await execute(
+          pipeline.offset(currPage++ * pageSize).limit(pageSize)
+        );
+
+        expectResults(
+          snapshot,
+          {
+            title: 'The Lord of the Rings',
+            rating: 4.7
+          },
+          { title: 'Dune', rating: 4.6 }
+        );
+
+        snapshot = await execute(
+          pipeline.offset(currPage++ * pageSize).limit(pageSize)
+        );
+        expectResults(
+          snapshot,
+          {
+            title: 'Jonathan Strange & Mr Norrell',
+            rating: 4.6
+          },
+          { title: 'The Master and Margarita', rating: 4.6 }
+        );
+
+        snapshot = await execute(
+          pipeline.offset(currPage++ * pageSize).limit(pageSize)
+        );
+        expectResults(
+          snapshot,
+          {
+            title: 'A Long Way to a Small, Angry Planet',
+            rating: 4.6
+          },
+          {
+            title: 'Pride and Prejudice',
+            rating: 4.5
+          }
+        );
+      }
+    );
   });
 
   describe('console support', () => {

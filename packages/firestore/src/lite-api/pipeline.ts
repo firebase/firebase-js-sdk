@@ -812,10 +812,9 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
       if (typeof selectable === 'string') {
         result.set(selectable as string, field(selectable));
       } else if (selectable instanceof Field) {
-        result.set((selectable as Field).fieldName(), selectable);
+        result.set(selectable.alias, selectable.expr);
       } else if (selectable instanceof ExprWithAlias) {
-        const expr = selectable as ExprWithAlias;
-        result.set(expr.alias, expr.expr);
+        result.set(selectable.alias, selectable.expr);
       }
     }
     return result;
