@@ -178,6 +178,7 @@ export abstract class Emulator {
       promise.catch(reject);
       this.emulator = promise.childProcess;
 
+      console.log(`Waiting for emulator to start up ...`);
       // NOTE: Normally the emulator starts up within a few seconds.
       // However, our sdk test suite launches tests from 20+ packages in parallel, which slows
       // down the startup substantially. In such case for the emulator to start, it can take
