@@ -599,7 +599,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // }
    *
    * // Emit parents as document.
-   * firestore.pipeline().collection('people').replaceWith(field('parents'));
+   * firestore.pipeline().collection('people').replaceWith('parents');
    *
    * // Output
    * // {
@@ -608,12 +608,50 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // }
    * ```
    *
-   * @param fieldValue The {@link Field} field containing the nested map.
+   * @param fieldName The {@link Field} field containing the nested map.
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
    */
-  replaceWith(fieldValue: Field | string): Pipeline {
-    const fieldExpr =
-      typeof fieldValue === 'string' ? field(fieldValue) : fieldValue;
+  replaceWith(fieldName: string): Pipeline;
+
+  /**
+   * Fully overwrites all fields in a document with those coming from a map.
+   *
+   * <p>This stage allows you to emit a map value as a document. Each key of the map becomes a field
+   * on the document that contains the corresponding value.
+   *
+   * <p>Example:
+   *
+   * ```typescript
+   * // Input.
+   * // {
+   * //  'name': 'John Doe Jr.',
+   * //  'parents': {
+   * //    'father': 'John Doe Sr.',
+   * //    'mother': 'Jane Doe'
+   * //   }
+   * // }
+   *
+   * // Emit parents as document.
+   * firestore.pipeline().collection('people').replaceWith(map({
+   *   foo: 'bar',
+   *   info: {
+   *     name: field('name')
+   *   }
+   * }));
+   *
+   * // Output
+   * // {
+   * //  'father': 'John Doe Sr.',
+   * //  'mother': 'Jane Doe'
+   * // }
+   * ```
+   *
+   * @param expr An {@link Expr} that when returned evaluates to a map.
+   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   */
+  replaceWith(expr: Expr): Pipeline;
+  replaceWith(value: Expr | string): Pipeline {
+    const fieldExpr = typeof value === 'string' ? field(value) : value;
     this.readUserData('replaceWith', fieldExpr);
     return this._addStage(new Replace(fieldExpr, 'full_replace'));
   }

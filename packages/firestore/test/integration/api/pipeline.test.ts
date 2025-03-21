@@ -1297,8 +1297,8 @@ apiDescribe.only('Pipelines', persistence => {
       });
     });
 
-    describe('replace stage', () => {
-      it('run pipleine with replace', async () => {
+    describe('replaceWith stage', () => {
+      it('run pipeline with replaceWith field name', async () => {
         const snapshot = await execute(
           firestore
             .pipeline()
@@ -1310,6 +1310,27 @@ apiDescribe.only('Pipelines', persistence => {
           hugo: true,
           nebula: false,
           others: { unknown: { year: 1980 } }
+        });
+      });
+
+      it('run pipeline with replaceWith Expr result', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(eq('title', "The Hitchhiker's Guide to the Galaxy"))
+            .replaceWith(
+              map({
+                foo: 'bar',
+                baz: {
+                  title: field('title')
+                }
+              })
+            )
+        );
+        expectResults(snapshot, {
+          foo: 'bar',
+          baz: { title: "The Hitchhiker's Guide to the Galaxy" }
         });
       });
     });

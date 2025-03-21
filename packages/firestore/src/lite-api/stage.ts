@@ -467,7 +467,7 @@ export class Replace implements Stage {
   name = 'replace_with';
 
   constructor(
-    private field: Field,
+    private field: Expr,
     private mode:
       | 'full_replace'
       | 'merge_prefer_nest'
