@@ -29,7 +29,7 @@ jobs:
           sudo apt-get install google-chrome-stable
       - run: yarn
       - name: Write Firebase Config for Integration
-      - run: echo "export const FIREBASE_CONFIG = '$(echo ${{secrets.VERTEXAI_INTEGRATION_FIREBASE_CONFIG }} | jq -r .)'" > packages/vertexai/integration/firebase-config.ts
+        run: echo "export const FIREBASE_CONFIG = '$(echo ${{secrets.VERTEXAI_INTEGRATION_FIREBASE_CONFIG }} | jq -r .)'" > packages/vertexai/integration/firebase-config.ts
       - run: yarn build:changed core
       - name: Run tests on changed packages
         run: xvfb-run yarn test:changed core
