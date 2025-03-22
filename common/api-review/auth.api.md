@@ -297,6 +297,9 @@ export function connectAuthEmulator(auth: Auth, url: string, options?: {
 }): void;
 
 // @public
+export const cookiePersistence: Persistence;
+
+// @public
 export function createUserWithEmailAndPassword(auth: Auth, email: string, password: string): Promise<UserCredential>;
 
 // @public
@@ -596,7 +599,7 @@ export interface PasswordValidationStatus {
 
 // @public
 export interface Persistence {
-    readonly type: 'SESSION' | 'LOCAL' | 'NONE';
+    readonly type: 'SESSION' | 'LOCAL' | 'NONE' | 'COOKIE';
 }
 
 // @public

@@ -81,6 +81,7 @@ class FailClass {
 
 export const browserLocalPersistence = inMemoryPersistence;
 export const browserSessionPersistence = inMemoryPersistence;
+export const cookiePersistence = inMemoryPersistence;
 export const indexedDBLocalPersistence = inMemoryPersistence;
 export const browserPopupRedirectResolver = NOT_AVAILABLE_ERROR;
 export const PhoneAuthProvider = FailClass;
