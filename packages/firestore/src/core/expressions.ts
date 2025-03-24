@@ -19,72 +19,9 @@ import {
 } from '../protos/firestore_proto_api';
 import { EvaluationContext, PipelineInputOutput } from './pipeline_run';
 import {
-  And,
-  Add,
-  Subtract,
-  Mod,
-  Multiply,
-  Divide,
-  Eq,
-  Neq,
-  Lt,
-  Lte,
-  Gt,
-  Gte,
-  ArrayConcat,
-  ArrayReverse,
-  ArrayContains,
-  ArrayContainsAll,
-  ArrayContainsAny,
-  ArrayLength,
-  ArrayElement,
-  EqAny,
-  NotEqAny,
-  IsNan,
-  Exists,
-  Not,
-  Or,
-  Xor,
-  Cond,
-  LogicalMaximum,
-  LogicalMinimum,
-  Reverse,
-  ReplaceFirst,
-  ReplaceAll,
-  CharLength,
-  ByteLength,
-  Like,
-  RegexContains,
-  RegexMatch,
-  StrContains,
-  StartsWith,
-  EndsWith,
-  ToLower,
-  ToUpper,
-  Trim,
-  StrConcat,
-  MapGet,
-  Count,
-  Sum,
-  Avg,
-  Minimum,
-  Maximum,
-  CosineDistance,
-  DotProduct,
-  EuclideanDistance,
-  VectorLength,
-  UnixMicrosToTimestamp,
-  TimestampToUnixMicros,
-  UnixMillisToTimestamp,
-  TimestampToUnixMillis,
-  UnixSecondsToTimestamp,
-  TimestampToUnixSeconds,
-  TimestampAdd,
-  TimestampSub,
   Field,
   Constant,
-  FilterCondition,
-  IsNull
+  BooleanExpr, Expr, FunctionExpr
 } from '../lite-api/expressions';
 import {
   CREATE_TIME_NAME,
@@ -128,7 +65,7 @@ export interface EvaluableExpr {
   ): Value | undefined;
 }
 
-export function toEvaluable<T>(expr: T): EvaluableExpr {
+export function toEvaluable<T extends Expr>(expr: T): EvaluableExpr {
   if (expr instanceof Field) {
     return new CoreField(expr);
   } else if (expr instanceof Constant) {
@@ -742,7 +679,7 @@ export class CoreXor implements EvaluableExpr {
 }
 
 export class CoreEqAny implements EvaluableExpr {
-  constructor(private expr: EqAny) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,

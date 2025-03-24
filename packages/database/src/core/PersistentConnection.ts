@@ -797,8 +797,10 @@ export class PersistentConnection extends ServerActions {
         this.lastConnectionEstablishedTime_ = null;
       }
 
-      const timeSinceLastConnectAttempt =
-        new Date().getTime() - this.lastConnectionAttemptTime_;
+      const timeSinceLastConnectAttempt = Math.max(
+        0,
+        new Date().getTime() - this.lastConnectionAttemptTime_
+      );
       let reconnectDelay = Math.max(
         0,
         this.reconnectDelay_ - timeSinceLastConnectAttempt

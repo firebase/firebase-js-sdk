@@ -1,5 +1,43 @@
 # @firebase/remote-config
 
+## 0.6.0
+
+### Minor Changes
+
+- [`70e08cf`](https://github.com/firebase/firebase-js-sdk/commit/70e08cf95b5c43d3b98382a6f68fbd3c3555e31f) [#8699](https://github.com/firebase/firebase-js-sdk/pull/8699) - Adds support for initial state hydration (from SSR contexts)
+
+### Patch Changes
+
+- Updated dependencies [[`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5)]:
+  - @firebase/util@1.11.0
+  - @firebase/installations@0.6.13
+  - @firebase/component@0.6.13
+
+## 0.5.0
+
+### Minor Changes
+
+- [`7bf2aec63`](https://github.com/firebase/firebase-js-sdk/commit/7bf2aec6328b06c9c7dda91354630c0d59f2b411) [#8602](https://github.com/firebase/firebase-js-sdk/pull/8602) - Added support for custom signal targeting in Remote Config. Use `setCustomSignals` API for setting custom signals and use them to build custom targeting conditions in Remote Config.
+
+### Patch Changes
+
+- Updated dependencies [[`25a6204c1`](https://github.com/firebase/firebase-js-sdk/commit/25a6204c1531b6c772e5368d12b2411ae1d21bbc)]:
+  - @firebase/util@1.10.3
+  - @firebase/component@0.6.12
+  - @firebase/installations@0.6.12
+
+## 0.4.11
+
+### Patch Changes
+
+- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
+
+- Updated dependencies [[`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1)]:
+  - @firebase/component@0.6.11
+  - @firebase/installations@0.6.11
+  - @firebase/logger@0.4.4
+  - @firebase/util@1.10.2
+
 ## 0.4.10
 
 ### Patch Changes

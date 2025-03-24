@@ -16,14 +16,12 @@ import {
   Expr,
   ExprWithAlias,
   Field,
-  Fields,
-  FilterCondition,
+  BooleanExpr,
   Ordering,
   Selectable
 } from '../lite-api/expressions';
 import {
   isReadableUserData,
-  Pipeline,
   ReadableUserData
 } from '../lite-api/pipeline';
 
@@ -102,7 +100,7 @@ export class RealtimePipeline {
     return new RealtimePipeline(db, userDataReader, userDataWriter, stages);
   }
 
-  where(condition: FilterCondition & Expr): RealtimePipeline {
+  where(condition: BooleanExpr): RealtimePipeline {
     const copy = this.stages.map(s => s);
     this.readUserData('where', condition);
     copy.push(new Where(condition));

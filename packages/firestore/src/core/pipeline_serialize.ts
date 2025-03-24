@@ -18,11 +18,10 @@ import {
 } from '../protos/firestore_proto_api';
 import { fieldPathFromArgument } from '../lite-api/user_data_reader';
 import {
+  BooleanExpr,
   Constant,
   Expr,
-  Field,
-  FilterCondition,
-  FirestoreFunction,
+  Field, FunctionExpr,
   Ordering
 } from '../lite-api/expressions';
 import {
@@ -95,7 +94,7 @@ export function stageFromProto(protoStage: ProtoStage): Stage {
     }
     case 'where': {
       return new Where(
-        exprFromProto(protoStage.args![0]) as Expr & FilterCondition
+        exprFromProto(protoStage.args![0]) as BooleanExpr
       );
     }
     case 'limit': {
@@ -126,7 +125,7 @@ export function exprFromProto(value: ProtoValue): Expr {
   }
 }
 
-function functionFromProto(value: ProtoValue): FirestoreFunction {
+function functionFromProto(value: ProtoValue): FunctionExpr {
   switch (value.functionValue!.name) {
     case 'add': {
       return CoreAdd.fromProtoToApiObj(value.functionValue!);

@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { FetchStatus } from '@firebase/remote-config-types';
-import { FirebaseRemoteConfigObject } from '../client/remote_config_fetch_client';
+import { FetchStatus, CustomSignals } from '@firebase/remote-config-types';
+import { FirebaseRemoteConfigObject } from '../public_types';
 import { Storage } from './storage';
 
 /**
@@ -31,6 +31,7 @@ export class StorageCache {
   private lastFetchStatus?: FetchStatus;
   private lastSuccessfulFetchTimestampMillis?: number;
   private activeConfig?: FirebaseRemoteConfigObject;
+  private customSignals?: CustomSignals;
 
   /**
    * Memory-only getters
@@ -47,6 +48,10 @@ export class StorageCache {
     return this.activeConfig;
   }
 
+  getCustomSignals(): CustomSignals | undefined {
+    return this.customSignals;
+  }
+
   /**
    * Read-ahead getter
    */
@@ -55,6 +60,7 @@ export class StorageCache {
     const lastSuccessfulFetchTimestampMillisPromise =
       this.storage.getLastSuccessfulFetchTimestampMillis();
     const activeConfigPromise = this.storage.getActiveConfig();
+    const customSignalsPromise = this.storage.getCustomSignals();
 
     // Note:
     // 1. we consistently check for undefined to avoid clobbering defined values
@@ -78,6 +84,11 @@ export class StorageCache {
     if (activeConfig) {
       this.activeConfig = activeConfig;
     }
+
+    const customSignals = await customSignalsPromise;
+    if (customSignals) {
+      this.customSignals = customSignals;
+    }
   }
 
   /**
@@ -98,5 +109,9 @@ export class StorageCache {
   setActiveConfig(activeConfig: FirebaseRemoteConfigObject): Promise<void> {
     this.activeConfig = activeConfig;
     return this.storage.setActiveConfig(activeConfig);
+  }
+
+  async setCustomSignals(customSignals: CustomSignals): Promise<void> {
+    this.customSignals = await this.storage.setCustomSignals(customSignals);
   }
 }

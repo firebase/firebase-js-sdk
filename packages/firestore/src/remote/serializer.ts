@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { ParseContext } from '../api/parse_context';
 import { Aggregate } from '../core/aggregate';
 import { Bound } from '../core/bound';
 import { DatabaseId } from '../core/database_info';
@@ -99,7 +100,8 @@ import {
   WriteResult as ProtoWriteResult,
   Value as ProtoValue,
   MapValue as ProtoMapValue,
-  ExecutePipelineResponse as ProtoExecutePipelineResponse
+  ExecutePipelineResponse as ProtoExecutePipelineResponse,
+  Pipeline
 } from '../protos/firestore_proto_api';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
@@ -1471,8 +1473,24 @@ export interface ProtoSerializable<ProtoType> {
   _toProto(serializer: JsonProtoSerializer): ProtoType;
 }
 
+export interface ProtoValueSerializable extends ProtoSerializable<ProtoValue> {
+  // Supports runtime identification of the ProtoSerializable<ProtoValue> type.
+  _protoValueType: 'ProtoValue';
+}
+
+export function isProtoValueSerializable(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  value: any
+): value is ProtoValueSerializable {
+  return (
+    !!value &&
+    typeof value._toProto === 'function' &&
+    value._protoValueType === 'ProtoValue'
+  );
+}
+
 export interface UserData {
-  _readUserData(dataReader: UserDataReader): void;
+  _readUserData(dataReader: UserDataReader, context?: ParseContext): void;
 }
 
 export function toMapValue(
@@ -1502,6 +1520,10 @@ export function toBooleanValue(value: boolean): ProtoValue {
 
 export function toStringValue(value: string): ProtoValue {
   return { stringValue: value };
+}
+
+export function toPipelineValue(value: Pipeline): ProtoValue {
+  return { pipelineValue: value };
 }
 
 export function dateToTimestampValue(

@@ -59,7 +59,8 @@ import {
   toQueryTarget,
   toResourcePath,
   toRunAggregationQueryRequest,
-  fromPipelineResponse
+  fromPipelineResponse,
+  getEncodedDatabaseId
 } from './serializer';
 
 /**
@@ -244,7 +245,12 @@ export async function invokeExecutePipeline(
   pipeline: Pipeline
 ): Promise<PipelineStreamElement[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  const executePipelineRequest = pipeline._toProto(datastoreImpl.serializer);
+  const executePipelineRequest: ProtoExecutePipelineRequest = {
+    database: getEncodedDatabaseId(datastoreImpl.serializer),
+    structuredPipeline: {
+      pipeline: pipeline._toProto(datastoreImpl.serializer)
+    }
+  };
 
   const response = await datastoreImpl.invokeStreamingRPC<
     ProtoExecutePipelineRequest,

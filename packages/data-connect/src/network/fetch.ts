@@ -19,32 +19,48 @@ import { Code, DataConnectError } from '../core/error';
 import { SDK_VERSION } from '../core/version';
 import { logDebug, logError } from '../logger';
 
+import { CallerSdkType, CallerSdkTypeEnum } from './transport';
+
 let connectFetch: typeof fetch | null = globalThis.fetch;
 export function initializeFetch(fetchImpl: typeof fetch): void {
   connectFetch = fetchImpl;
 }
-function getGoogApiClientValue(_isUsingGen: boolean): string {
+function getGoogApiClientValue(
+  _isUsingGen: boolean,
+  _callerSdkType: CallerSdkType
+): string {
   let str = 'gl-js/ fire/' + SDK_VERSION;
-  if (_isUsingGen) {
+  if (
+    _callerSdkType !== CallerSdkTypeEnum.Base &&
+    _callerSdkType !== CallerSdkTypeEnum.Generated
+  ) {
+    str += ' js/' + _callerSdkType.toLowerCase();
+  } else if (_isUsingGen || _callerSdkType === CallerSdkTypeEnum.Generated) {
     str += ' js/gen';
   }
   return str;
 }
+export interface DataConnectFetchBody<T> {
+  name: string;
+  operationName: string;
+  variables: T;
+}
 export function dcFetch<T, U>(
   url: string,
-  body: U,
+  body: DataConnectFetchBody<U>,
   { signal }: AbortController,
   appId: string | null,
   accessToken: string | null,
   appCheckToken: string | null,
-  _isUsingGen: boolean
+  _isUsingGen: boolean,
+  _callerSdkType: CallerSdkType
 ): Promise<{ data: T; errors: Error[] }> {
   if (!connectFetch) {
     throw new DataConnectError(Code.OTHER, 'No Fetch Implementation detected!');
   }
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    'X-Goog-Api-Client': getGoogApiClientValue(_isUsingGen)
+    'X-Goog-Api-Client': getGoogApiClientValue(_isUsingGen, _callerSdkType)
   };
   if (accessToken) {
     headers['X-Firebase-Auth-Token'] = accessToken;
@@ -95,7 +111,7 @@ export function dcFetch<T, U>(
         logError('DataConnect error while performing request: ' + stringified);
         throw new DataConnectError(Code.OTHER, stringified);
       }
-      return res as { data: T; errors: Error[] };
+      return res;
     });
 }
 interface MessageObject {

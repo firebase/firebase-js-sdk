@@ -1,5 +1,23 @@
 # @firebase/util
 
+## 1.11.0
+
+### Minor Changes
+
+- [`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5) [#8483](https://github.com/firebase/firebase-js-sdk/pull/8483) - Add support for the `FIREBASE_WEBAPP_CONFIG` environment variable at install time.
+
+## 1.10.3
+
+### Patch Changes
+
+- [`25a6204c1`](https://github.com/firebase/firebase-js-sdk/commit/25a6204c1531b6c772e5368d12b2411ae1d21bbc) [#8600](https://github.com/firebase/firebase-js-sdk/pull/8600) (fixes [#6462](https://github.com/firebase/firebase-js-sdk/issues/6462)) - Generate UUIDs with `crypto.randomUUID()` instead of custom uuidv4 function that uses `Math.random()`.
+
+## 1.10.2
+
+### Patch Changes
+
+- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
+
 ## 1.10.1
 
 ### Patch Changes

@@ -25,17 +25,20 @@ import {
   JsonProtoSerializer,
   ProtoSerializable,
   toMapValue,
+  toPipelineValue,
   toStringValue
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
 
 import {
-  Accumulator,
+  AggregateFunction,
   Expr,
   Field,
-  FilterCondition,
-  Ordering
+  BooleanExpr,
+  Ordering,
+  field
 } from './expressions';
+import { Pipeline } from './pipeline';
 import { DocumentReference } from './reference';
 import { VectorValue } from './vector_value';
 
@@ -69,11 +72,31 @@ export class AddFields implements Stage {
 /**
  * @beta
  */
+export class RemoveFields implements Stage {
+  name = 'remove_fields';
+
+  constructor(private fields: Field[]) {}
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      name: this.name,
+      args: this.fields.map(f => f._toProto(serializer))
+    };
+  }
+}
+
+/**
+ * @beta
+ */
 export class Aggregate implements Stage {
   name = 'aggregate';
 
   constructor(
-    readonly accumulators: Map<string, Accumulator>,
+    readonly accumulators: Map<string, AggregateFunction>,
     readonly groups: Map<string, Expr>
   ) {}
 
@@ -181,8 +204,16 @@ export class DocumentsSource implements Stage {
 
   constructor(readonly docPaths: string[]) {}
 
-  static of(refs: DocumentReference[]): DocumentsSource {
-    return new DocumentsSource(refs.map(ref => '/' + ref.path));
+  static of(refs: Array<string | DocumentReference>): DocumentsSource {
+    return new DocumentsSource(
+      refs.map(ref =>
+        ref instanceof DocumentReference
+          ? '/' + ref.path
+          : ref.startsWith('/')
+          ? ref
+          : '/' + ref
+      )
+    );
   }
 
   /**
@@ -205,7 +236,7 @@ export class DocumentsSource implements Stage {
 export class Where implements Stage {
   name = 'where';
 
-  constructor(readonly condition: FilterCondition) {}
+  constructor(readonly condition: BooleanExpr) {}
 
   /**
    * @internal
@@ -223,7 +254,7 @@ export class Where implements Stage {
  * @beta
  */
 export interface FindNearestOptions {
-  field: Field;
+  field: Field | string;
   vectorValue: VectorValue | number[];
   distanceMeasure: 'euclidean' | 'cosine' | 'dot_product';
   limit?: number;
@@ -267,9 +298,7 @@ export class FindNearest implements Stage {
 
     if (this._distanceField) {
       // eslint-disable-next-line camelcase
-      options.distance_field = Field.of(this._distanceField)._toProto(
-        serializer
-      );
+      options.distance_field = field(this._distanceField)._toProto(serializer);
     }
 
     return {
@@ -375,15 +404,105 @@ export class Sort implements Stage {
 /**
  * @beta
  */
+export class Sample implements Stage {
+  name = 'sample';
+
+  constructor(private limit: number, private mode: string) {}
+
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      name: this.name,
+      args: [toNumber(serializer, this.limit)!, toStringValue(this.mode)!]
+    };
+  }
+}
+
+/**
+ * @beta
+ */
+export class Union implements Stage {
+  name = 'union';
+
+  constructor(private _other: Pipeline) {}
+
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      name: this.name,
+      args: [toPipelineValue(this._other._toProto(serializer))]
+    };
+  }
+}
+
+/**
+ * @beta
+ */
+export class Unnest implements Stage {
+  name = 'unnest';
+  constructor(
+    private expr: Expr,
+    private alias: Field,
+    private indexField?: string
+  ) {}
+
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    const stageProto: ProtoStage = {
+      name: this.name,
+      args: [this.expr._toProto(serializer), this.alias._toProto(serializer)]
+    };
+
+    if (this.indexField) {
+      stageProto.options = {
+        indexField: toStringValue(this.indexField)
+      };
+    }
+
+    return stageProto;
+  }
+}
+
+/**
+ * @beta
+ */
+export class Replace implements Stage {
+  name = 'replace_with';
+
+  constructor(
+    private field: Expr,
+    private mode:
+      | 'full_replace'
+      | 'merge_prefer_nest'
+      | 'merge_prefer_parent' = 'full_replace'
+  ) {}
+
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      name: this.name,
+      args: [this.field._toProto(serializer), toStringValue(this.mode)]
+    };
+  }
+}
+
+/**
+ * @beta
+ */
 export class GenericStage implements Stage {
-  constructor(public name: string, params: unknown[]) {}
+  /**
+   * @private
+   * @internal
+   */
+  constructor(
+    public name: string,
+    private params: Array<AggregateFunction | Expr>
+  ) {}
 
   /**
    * @internal
    * @private
    */
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
-    // TODO support generic stage
-    return {};
+    return {
+      name: this.name,
+      args: this.params.map(o => o._toProto(serializer))
+    };
   }
 }

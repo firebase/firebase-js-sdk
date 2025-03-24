@@ -15,24 +15,21 @@
  * limitations under the License.
  */
 
+import { Firestore } from '../lite-api/database';
 import {
-  And,
-  andFunction,
   Constant,
-  eq,
   Expr,
   Field,
-  FilterCondition,
-  FirestoreFunction,
-  gt,
-  gte,
-  ListOfExprs,
-  lt,
-  lte,
-  not,
-  Or,
+  BooleanExpr,
+  and,
+  or,
   Ordering,
-  orFunction
+  lt,
+  gt,
+  lte,
+  gte,
+  eq,
+  field, FunctionExpr, ListOfExprs
 } from '../lite-api/expressions';
 import { Pipeline } from '../lite-api/pipeline';
 import {
@@ -40,17 +37,7 @@ import {
   isNullValue,
   VECTOR_MAP_VECTORS_KEY
 } from '../model/values';
-import {
-  ArrayValue as ProtoArrayValue,
-  Function as ProtoFunction,
-  LatLng as ProtoLatLng,
-  MapValue as ProtoMapValue,
-  Pipeline as ProtoPipeline,
-  Timestamp as ProtoTimestamp,
-  Value as ProtoValue
-} from '../protos/firestore_proto_api';
 import { debugAssert, fail } from '../util/assert';
-import { isPlainObject } from '../util/input_validation';
 
 import {
   CompositeFilter as CompositeFilterInternal,
@@ -98,7 +85,6 @@ import {
   ResourcePath,
   UPDATE_TIME_NAME
 } from '../model/path';
-import { Firestore } from '../api/database';
 import { doc } from '../lite-api/reference';
 import { Direction } from './order_by';
 import { CorePipeline } from './pipeline_run';
@@ -107,80 +93,89 @@ import { RealtimePipeline } from '../api/realtime_pipeline';
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
-export function toPipelineFilterCondition(f: FilterInternal): FilterCondition {
+export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
   if (f instanceof FieldFilterInternal) {
-    const field = Field.of(f.field.toString());
+    const fieldValue = field(f.field.toString());
     if (isNanValue(f.value)) {
       if (f.op === Operator.EQUAL) {
-        return andFunction(field.exists(), field.isNan());
+        return and(fieldValue.exists(), fieldValue.isNan());
       } else {
-        return andFunction(field.exists(), not(field.isNan()));
+        return and(fieldValue.exists(), fieldValue.isNotNan());
       }
     } else if (isNullValue(f.value)) {
       if (f.op === Operator.EQUAL) {
-        return andFunction(field.exists(), field.isNull());
+        return and(fieldValue.exists(), fieldValue.isNull());
       } else {
-        return andFunction(field.exists(), not(field.isNull()));
+        return and(fieldValue.exists(), fieldValue.isNotNull());
       }
     } else {
       // Comparison filters
       const value = f.value;
       switch (f.op) {
         case Operator.LESS_THAN:
-          return andFunction(
-            field.exists(),
-            field.lt(Constant._fromProto(value))
+          return and(
+            fieldValue.exists(),
+            fieldValue.lt(Constant._fromProto(value))
           );
         case Operator.LESS_THAN_OR_EQUAL:
-          return andFunction(
-            field.exists(),
-            field.lte(Constant._fromProto(value))
+          return and(
+            fieldValue.exists(),
+            fieldValue.lte(Constant._fromProto(value))
           );
         case Operator.GREATER_THAN:
-          return andFunction(
-            field.exists(),
-            field.gt(Constant._fromProto(value))
+          return and(
+            fieldValue.exists(),
+            fieldValue.gt(Constant._fromProto(value))
           );
         case Operator.GREATER_THAN_OR_EQUAL:
-          return andFunction(
-            field.exists(),
-            field.gte(Constant._fromProto(value))
+          return and(
+            fieldValue.exists(),
+            fieldValue.gte(Constant._fromProto(value))
           );
         case Operator.EQUAL:
-          return andFunction(
-            field.exists(),
-            field.eq(Constant._fromProto(value))
+          return and(
+            fieldValue.exists(),
+            fieldValue.eq(Constant._fromProto(value))
           );
         case Operator.NOT_EQUAL:
-          return andFunction(
-            field.exists(),
-            field.neq(Constant._fromProto(value))
+          return and(
+            fieldValue.exists(),
+            fieldValue.neq(Constant._fromProto(value))
           );
         case Operator.ARRAY_CONTAINS:
-          return andFunction(
-            field.exists(),
-            field.arrayContains(Constant._fromProto(value))
+          return and(
+            fieldValue.exists(),
+            fieldValue.arrayContains(Constant._fromProto(value))
           );
         case Operator.IN: {
           const values = value?.arrayValue?.values?.map((val: any) =>
             Constant._fromProto(val)
           );
-          return andFunction(field.exists(), field.eqAny(...values!));
+          if (!values) {
+            return and(fieldValue.exists(), fieldValue.eqAny([]));
+          } else if (values.length === 1) {
+            return and(fieldValue.exists(), fieldValue.eq(values[0]));
+          } else {
+            return and(fieldValue.exists(), fieldValue.eqAny(values));
+          }
         }
         case Operator.ARRAY_CONTAINS_ANY: {
           const values = value?.arrayValue?.values?.map((val: any) =>
             Constant._fromProto(val)
           );
-          return andFunction(
-            field.exists(),
-            field.arrayContainsAny(...values!)
-          );
+          return and(fieldValue.exists(), fieldValue.arrayContainsAny(values!));
         }
         case Operator.NOT_IN: {
           const values = value?.arrayValue?.values?.map((val: any) =>
             Constant._fromProto(val)
           );
-          return andFunction(field.exists(), not(field.eqAny(...values!)));
+          if (!values) {
+            return and(fieldValue.exists(), fieldValue.notEqAny([]));
+          } else if (values.length === 1) {
+            return and(fieldValue.exists(), fieldValue.neq(values[0]));
+          } else {
+            return and(fieldValue.exists(), fieldValue.notEqAny(values));
+          }
         }
         default:
           fail('Unexpected operator');
@@ -189,16 +184,12 @@ export function toPipelineFilterCondition(f: FilterInternal): FilterCondition {
   } else if (f instanceof CompositeFilterInternal) {
     switch (f.op) {
       case CompositeOperator.AND: {
-        const conditions = f
-          .getFilters()
-          .map(f => toPipelineFilterCondition(f));
-        return andFunction(conditions[0], ...conditions.slice(1));
+        const conditions = f.getFilters().map(f => toPipelineBooleanExpr(f));
+        return and(conditions[0], conditions[1], ...conditions.slice(2));
       }
       case CompositeOperator.OR: {
-        const conditions = f
-          .getFilters()
-          .map(f => toPipelineFilterCondition(f));
-        return orFunction(conditions[0], ...conditions.slice(1));
+        const conditions = f.getFilters().map(f => toPipelineBooleanExpr(f));
+        return or(conditions[0], conditions[1], ...conditions.slice(2));
       }
       default:
         fail('Unexpected operator');
@@ -230,17 +221,21 @@ export function toPipeline(query: Query, db: Firestore): Pipeline {
 
   // filters
   for (const filter of query.filters) {
-    pipeline = pipeline.where(toPipelineFilterCondition(filter));
+    pipeline = pipeline.where(toPipelineBooleanExpr(filter));
   }
 
   // orders
   const orders = queryNormalizedOrderBy(query);
   const existsConditions = orders.map(order =>
-    Field.of(order.field.canonicalString()).exists()
+    field(order.field.canonicalString()).exists()
   );
   if (existsConditions.length > 1) {
     pipeline = pipeline.where(
-      andFunction(existsConditions[0], ...existsConditions.slice(1))
+      and(
+        existsConditions[0],
+        existsConditions[1],
+        ...existsConditions.slice(2)
+      )
     );
   } else {
     pipeline = pipeline.where(existsConditions[0]);
@@ -248,42 +243,45 @@ export function toPipeline(query: Query, db: Firestore): Pipeline {
 
   const orderings = orders.map(order =>
     order.dir === Direction.ASCENDING
-      ? Field.of(order.field.canonicalString()).ascending()
-      : Field.of(order.field.canonicalString()).descending()
+      ? field(order.field.canonicalString()).ascending()
+      : field(order.field.canonicalString()).descending()
   );
 
-  if (query.limitType === LimitType.Last) {
-    pipeline = pipeline.sort(...reverseOrderings(orderings));
-    // cursors
-    if (query.startAt !== null) {
-      pipeline = pipeline.where(
-        whereConditionsFromCursor(query.startAt, orderings, 'before')
-      );
-    }
+  if (orderings.length > 0) {
+    if (query.limitType === LimitType.Last) {
+      const actualOrderings = reverseOrderings(orderings);
+      pipeline = pipeline.sort(actualOrderings[0], ...actualOrderings.slice(1));
+      // cursors
+      if (query.startAt !== null) {
+        pipeline = pipeline.where(
+          whereConditionsFromCursor(query.startAt, orderings, 'after')
+        );
+      }
 
-    if (query.endAt !== null) {
-      pipeline = pipeline.where(
-        whereConditionsFromCursor(query.endAt, orderings, 'after')
-      );
-    }
+      if (query.endAt !== null) {
+        pipeline = pipeline.where(
+          whereConditionsFromCursor(query.endAt, orderings, 'before')
+        );
+      }
 
-    pipeline = pipeline._limit(query.limit!, true);
-    pipeline = pipeline.sort(...orderings);
-  } else {
-    pipeline = pipeline.sort(...orderings);
-    if (query.startAt !== null) {
-      pipeline = pipeline.where(
-        whereConditionsFromCursor(query.startAt, orderings, 'after')
-      );
-    }
-    if (query.endAt !== null) {
-      pipeline = pipeline.where(
-        whereConditionsFromCursor(query.endAt, orderings, 'before')
-      );
-    }
+      pipeline = pipeline._limit(query.limit!, true);
+      pipeline = pipeline.sort(orderings[0], ...orderings.slice(1));
+    } else {
+      pipeline = pipeline.sort(orderings[0], ...orderings.slice(1));
+      if (query.startAt !== null) {
+        pipeline = pipeline.where(
+          whereConditionsFromCursor(query.startAt, orderings, 'after')
+        );
+      }
+      if (query.endAt !== null) {
+        pipeline = pipeline.where(
+          whereConditionsFromCursor(query.endAt, orderings, 'before')
+        );
+      }
 
-    if (query.limit !== null) {
-      pipeline = pipeline.limit(query.limit);
+      if (query.limit !== null) {
+        pipeline = pipeline.limit(query.limit);
+      }
     }
   }
 
@@ -294,19 +292,19 @@ function whereConditionsFromCursor(
   bound: Bound,
   orderings: Ordering[],
   position: 'before' | 'after'
-): FilterCondition {
+): BooleanExpr {
   const cursors = bound.position.map(value => Constant._fromProto(value));
   const filterFunc = position === 'before' ? lt : gt;
   const filterInclusiveFunc = position === 'before' ? lte : gte;
 
-  const orConditions = [];
+  const orConditions: BooleanExpr[] = [];
   for (let i = 1; i <= orderings.length; i++) {
     const cursorSubset = cursors.slice(0, i);
 
-    const conditions = cursorSubset.map((cursor, index) => {
+    const conditions: BooleanExpr[] = cursorSubset.map((cursor, index) => {
       if (index < cursorSubset.length - 1) {
         return eq(orderings[index].expr as Field, cursor);
-      } else if (!!bound.inclusive && i === orderings.length) {
+      } else if (bound.inclusive && i === orderings.length - 1) {
         return filterInclusiveFunc(orderings[index].expr as Field, cursor);
       } else {
         return filterFunc(orderings[index].expr as Field, cursor);
@@ -316,14 +314,16 @@ function whereConditionsFromCursor(
     if (conditions.length === 1) {
       orConditions.push(conditions[0]);
     } else {
-      orConditions.push(new And(conditions));
+      orConditions.push(
+        and(conditions[0], conditions[1], ...conditions.slice(2))
+      );
     }
   }
 
   if (orConditions.length === 1) {
     return orConditions[0];
   } else {
-    return new Or(orConditions);
+    return or(orConditions[0], orConditions[1], ...orConditions.slice(2));
   }
 }
 
@@ -335,7 +335,7 @@ export function canonifyExpr(expr: Expr): string {
     // TODO(pipeline): use better alternatives than JSON.stringify
     return `cst(${JSON.stringify(expr.value)})`;
   }
-  if (expr instanceof FirestoreFunction) {
+  if (expr instanceof FunctionExpr) {
     return `fn(${expr.name},[${expr.params.map(canonifyExpr).join(',')}])`;
   }
   if (expr instanceof ListOfExprs) {
@@ -618,14 +618,14 @@ function rewriteStages(stages: Stage[]): Stage[] {
         newStages.push(stage);
       } else {
         const copy = stage.orders.map(o => o);
-        copy.push(Field.of(DOCUMENT_KEY_NAME).ascending());
+        copy.push(field(DOCUMENT_KEY_NAME).ascending());
         newStages.push(new Sort(copy));
       }
     }
     // For stages whose semantics depend on ordering
     else if (stage instanceof Limit) {
       if (!hasOrder) {
-        newStages.push(new Sort([Field.of(DOCUMENT_KEY_NAME).ascending()]));
+        newStages.push(new Sort([field(DOCUMENT_KEY_NAME).ascending()]));
         hasOrder = true;
       }
       newStages.push(stage);
@@ -643,7 +643,7 @@ function rewriteStages(stages: Stage[]): Stage[] {
   }
 
   if (!hasOrder) {
-    newStages.push(new Sort([Field.of(DOCUMENT_KEY_NAME).ascending()]));
+    newStages.push(new Sort([field(DOCUMENT_KEY_NAME).ascending()]));
   }
 
   return newStages;
@@ -651,9 +651,9 @@ function rewriteStages(stages: Stage[]): Stage[] {
 
 function addSystemFields(fields: Map<string, Expr>): Map<string, Expr> {
   const newFields = new Map<string, Expr>(fields);
-  newFields.set(DOCUMENT_KEY_NAME, Field.of(DOCUMENT_KEY_NAME));
-  newFields.set(CREATE_TIME_NAME, Field.of(CREATE_TIME_NAME));
-  newFields.set(UPDATE_TIME_NAME, Field.of(UPDATE_TIME_NAME));
+  newFields.set(DOCUMENT_KEY_NAME, field(DOCUMENT_KEY_NAME));
+  newFields.set(CREATE_TIME_NAME, field(CREATE_TIME_NAME));
+  newFields.set(UPDATE_TIME_NAME, field(UPDATE_TIME_NAME));
   return newFields;
 }
 

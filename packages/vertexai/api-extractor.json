@@ -5,6 +5,6 @@
     "dtsRollup": {
         "enabled": true,
         "untrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>.d.ts",
-        "publicTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>-public.d.ts"
+        "betaTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>-public.d.ts"
     }
 }

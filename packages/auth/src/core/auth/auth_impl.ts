@@ -845,6 +845,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   async _getAppCheckToken(): Promise<string | undefined> {
+    if (_isFirebaseServerApp(this.app) && this.app.settings.appCheckToken) {
+      return this.app.settings.appCheckToken;
+    }
     const appCheckTokenResult = await this.appCheckServiceProvider
       .getImmediate({ optional: true })
       ?.getToken();
