@@ -18,47 +18,23 @@ import chaiAsPromised from 'chai-as-promised';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
 import {
-  add,
-  andFunction,
-  arrayContains,
-  arrayContainsAny,
   CollectionReference,
-  Constant,
-  cosineDistance,
-  countAll,
   doc,
   DocumentData,
-  dotProduct,
-  endsWith,
-  eq,
-  euclideanDistance,
-  Field,
   Firestore,
-  gt,
-  like,
   limitToLast,
-  lt,
-  lte,
-  mapGet,
-  neq,
-  not,
   onSnapshot,
   orderBy,
-  orFunction,
-  PipelineResult,
   query,
   QuerySnapshot,
-  regexContains,
-  regexMatch,
   setDoc,
   setLogLevel,
-  startsWith,
-  strConcat,
-  subtract,
   updateDoc
 } from '../util/firebase_export';
 import { apiDescribe, toDataArray, withTestCollection } from '../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
+import { PipelineResult } from '../../../src/lite-api/pipeline-result';
+import { eq, field } from '../../../src/lite-api/expressions';
 import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
 import { _onRealtimePipelineSnapshot } from '../../../src/api/pipeline_impl';
 
@@ -335,8 +311,8 @@ apiDescribe('Pipelines', persistence => {
         .realtimePipeline()
         .collection(randomCol.path)
         // "Frank Herbert" "Douglas Adams" "George Orwell"
-        .where(Field.of('author').charLength().eq(13))
-        .sort(Field.of('rating').descending())
+        .where(field('author').charLength().eq(13))
+        .sort(field('rating').descending())
         .limit(1),
       storeEvent.storeEvent
     );

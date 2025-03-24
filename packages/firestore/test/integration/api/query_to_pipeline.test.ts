@@ -59,7 +59,7 @@ const testUnsupportedFeatures = false;
 
 // This is the Query integration tests from the lite API (no cache support)
 // with some additional test cases added for more complete coverage.
-apiDescribe.only('Query to Pipeline', persistence => {
+apiDescribe('Query to Pipeline', persistence => {
   addEqualityMatcher();
 
   function verifyResults(

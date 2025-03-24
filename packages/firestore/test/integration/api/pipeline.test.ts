@@ -145,7 +145,7 @@ setLogLevel('debug');
 
 const testUnsupportedFeatures = false;
 
-apiDescribe.only('Pipelines', persistence => {
+apiDescribe('Pipelines', persistence => {
   addEqualityMatcher();
 
   let firestore: Firestore;

@@ -38,7 +38,7 @@ import {
   Stage,
   Where
 } from '../lite-api/stage';
-import { Exists, Field, Ordering } from '../lite-api/expressions';
+import { Field, Ordering } from '../lite-api/expressions';
 
 export class CorePipeline {
   constructor(
@@ -90,9 +90,9 @@ export function pipelineMatchesAllDocuments(pipeline: CorePipeline): boolean {
     }
     if (stage instanceof Where) {
       if (
-        stage.condition instanceof Exists &&
-        stage.condition.expr instanceof Field &&
-        stage.condition.expr.fieldName() === DOCUMENT_KEY_NAME
+        stage.condition.name === 'exists' &&
+        stage.condition.params[0] instanceof Field &&
+        stage.condition.params[0].fieldName() === DOCUMENT_KEY_NAME
       ) {
         continue;
       }

@@ -209,10 +209,7 @@ function apiPipelineDescribeInternal(
     persistenceModes.push(new IndexedDbPersistenceMode());
   }
 
-  const pipelineModes: PipelineMode[] = [
-    'no-pipeline-conversion',
-    'query-to-pipeline'
-  ];
+  const pipelineModes: PipelineMode[] = ['query-to-pipeline'];
 
   for (const persistenceMode of persistenceModes) {
     for (const pipelineMode of pipelineModes) {

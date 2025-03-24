@@ -29,7 +29,10 @@ import {
   lte,
   gte,
   eq,
-  field, FunctionExpr, ListOfExprs
+  field,
+  FunctionExpr,
+  ListOfExprs,
+  AggregateFunction
 } from '../lite-api/expressions';
 import { Pipeline } from '../lite-api/pipeline';
 import {
@@ -335,7 +338,7 @@ export function canonifyExpr(expr: Expr): string {
     // TODO(pipeline): use better alternatives than JSON.stringify
     return `cst(${JSON.stringify(expr.value)})`;
   }
-  if (expr instanceof FunctionExpr) {
+  if (expr instanceof FunctionExpr || expr instanceof AggregateFunction) {
     return `fn(${expr.name},[${expr.params.map(canonifyExpr).join(',')}])`;
   }
   if (expr instanceof ListOfExprs) {

@@ -5,10 +5,12 @@ import {
   toCorePipeline
 } from '../../src/core/pipeline-util';
 import {
-  CorePipeline,
   PipelineInputOutput,
   runPipeline as runCorePipeline
 } from '../../src/core/pipeline_run';
+import { Constant } from '../../src/lite-api/expressions';
+import { newUserDataReader } from '../../src/lite-api/user_data_reader';
+import { newTestFirestore } from './api_helpers';
 
 export function canonifyPipeline(p: LitePipeline): string {
   return canonifyCorePipeline(toCorePipeline(p));
@@ -23,4 +25,18 @@ export function runPipeline(
   inputs: PipelineInputOutput[]
 ): PipelineInputOutput[] {
   return runCorePipeline(toCorePipeline(p), inputs);
+}
+
+const db = newTestFirestore();
+
+export function constantArray(values: unknown[]): Constant {
+  const result = new Constant(values);
+  result._readUserData(newUserDataReader(db));
+  return result;
+}
+
+export function constantMap(values: Record<string, unknown>): Constant {
+  const result = new Constant(values);
+  result._readUserData(newUserDataReader(db));
+  return result;
 }

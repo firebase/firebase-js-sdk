@@ -32,9 +32,11 @@ import {
   notEqAny,
   arrayContainsAny,
   add,
+  constant,
+  field,
   not,
   divide,
-  FilterCondition,
+  BooleanExpr,
   exists,
   regexMatch,
   eqAny,
@@ -47,16 +49,19 @@ import { doc } from '../../util/helpers';
 import { newTestFirestore } from '../../util/api_helpers';
 import {
   canonifyPipeline,
+  constantArray,
+  constantMap,
   pipelineEq,
   runPipeline
 } from '../../util/pipelines';
 import {
   CREATE_TIME_NAME,
   DOCUMENT_KEY_NAME,
+  FieldPath,
   UPDATE_TIME_NAME
 } from '../../../src/model/path';
 import { MutableDocument } from '../../../src/model/document';
-import { andFunction, orFunction } from '../../../src/api_pipelines';
+import { and, or } from '../../../src/api_pipelines';
 import { isNull } from '../../../src/lite-api/expressions';
 
 const db = newTestFirestore();
@@ -75,7 +80,7 @@ describe('Pipeline Canonify', () => {
       .collection('test')
       .where(eq(`foo`, 42))
       .limit(10)
-      .sort(Field.of('bar').descending());
+      .sort(field('bar').descending());
 
     expect(canonifyPipeline(p)).to.equal(
       'collection(/test)|where(fn(eq,[fld(foo),cst(42)]))|sort(fld(__name__)ascending)|limit(10)|sort(fld(bar)descending,fld(__name__)ascending)'
@@ -86,7 +91,7 @@ describe('Pipeline Canonify', () => {
     const p = db
       .pipeline()
       .collection('test')
-      .addFields(Field.of('existingField'), Constant.of(10).as('val'));
+      .addFields(field('existingField'), constant(10).as('val'));
 
     expect(canonifyPipeline(p)).to.equal(
       'collection(/test)|add_fields(__create_time__=fld(__create_time__),__name__=fld(__name__),__update_time__=fld(__update_time__),existingField=fld(existingField),val=cst(10))|sort(fld(__name__)ascending)'
@@ -98,7 +103,7 @@ describe('Pipeline Canonify', () => {
       .pipeline()
       .collection('test')
       .aggregate({
-        accumulators: [Field.of('value').sum().as('totalValue')],
+        accumulators: [field('value').sum().as('totalValue')],
         groups: ['category']
       });
 
@@ -116,7 +121,7 @@ describe('Pipeline Canonify', () => {
   });
 
   it('works as expected for select stage', () => {
-    const p = db.pipeline().collection('test').select('name', Field.of('age'));
+    const p = db.pipeline().collection('test').select('name', field('age'));
 
     expect(canonifyPipeline(p)).to.equal(
       'collection(/test)|select(__create_time__=fld(__create_time__),__name__=fld(__name__),__update_time__=fld(__update_time__),age=fld(age),name=fld(name))|sort(fld(__name__)ascending)'
@@ -136,7 +141,7 @@ describe('Pipeline Canonify', () => {
       .pipeline()
       .collection('test')
       .findNearest({
-        field: Field.of('location'),
+        field: field('location'),
         vectorValue: [1, 2, 3],
         distanceMeasure: 'cosine',
         limit: 10,
@@ -180,7 +185,7 @@ describe('Pipeline Canonify', () => {
     const p = db
       .pipeline()
       .collection('foo')
-      .where(Field.of('bar').eqAny('a', 'b'));
+      .where(field('bar').eqAny(['a', 'b']));
 
     expect(canonifyPipeline(p)).to.equal(
       'collection(/foo)|where(fn(eq_any,[fld(bar),list([cst("a"),cst("b")])]))|sort(fld(__name__)ascending)'
@@ -208,7 +213,7 @@ describe('pipelineEq', () => {
     const p2 = db
       .pipeline()
       .collection('test')
-      .where(eq(Field.of(`bar`), 42));
+      .where(eq(field(`bar`), 42));
 
     expect(pipelineEq(p1, p2)).to.be.false;
   });
@@ -304,7 +309,7 @@ describe('runPipeline()', () => {
           db
             .pipeline()
             .collectionGroup('games')
-            .sort(Field.of('order').ascending()),
+            .sort(field('order').ascending()),
           [doc1, doc2, doc3, doc4, doc5, doc6, doc7]
         )
       ).to.deep.equal([doc1, doc2, doc3, doc4, doc5, doc6]);
@@ -322,7 +327,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collectionGroup('games')
-        .sort(Field.of(DOCUMENT_KEY_NAME).ascending());
+        .sort(field(DOCUMENT_KEY_NAME).ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7])
@@ -341,7 +346,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collectionGroup('games')
-        .sort(Field.of(DOCUMENT_KEY_NAME).ascending());
+        .sort(field(DOCUMENT_KEY_NAME).ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7])
@@ -356,7 +361,7 @@ describe('runPipeline()', () => {
     //
     //   const pipeline = db.pipeline()
     //     .collectionGroup('users')
-    //     .where(eq(collectionId(field('DOCUMENT_KEY_NAME')), Constant.of('users')));
+    //     .where(eq(collectionId(field('DOCUMENT_KEY_NAME')), constant('users')));
     //
     //   expect(
     //     runPipeline(pipeline, [doc1, doc2, doc3])
@@ -370,7 +375,7 @@ describe('runPipeline()', () => {
     //
     //   const pipeline = db.pipeline()
     //     .collectionGroup('users')
-    //     .where(eq(collectionId(field('DOCUMENT_KEY_NAME')), Constant.of('users')));
+    //     .where(eq(collectionId(field('DOCUMENT_KEY_NAME')), constant('users')));
     //
     //   expect(
     //     runPipeline(pipeline, [doc1, doc2, doc3])
@@ -384,7 +389,7 @@ describe('runPipeline()', () => {
     //
     //   const pipeline = db.pipeline()
     //     .collectionGroup('users')
-    //     .where(eq(collectionId(field('DOCUMENT_KEY_NAME')), Constant.of('games')));
+    //     .where(eq(collectionId(field('DOCUMENT_KEY_NAME')), constant('games')));
     //
     //   expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
     // });
@@ -396,7 +401,7 @@ describe('runPipeline()', () => {
     //
     //   const pipeline = db.pipeline()
     //     .collectionGroup('users')
-    //     .where(eq(collectionId(field('DOCUMENT_KEY_NAME')), Constant.of('games')));
+    //     .where(eq(collectionId(field('DOCUMENT_KEY_NAME')), constant('games')));
     //
     //   expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
     // });
@@ -410,7 +415,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collectionGroup('users')
-        .where(eqAny(Field.of('score'), [Constant.of(90), Constant.of(97)]));
+        .where(eqAny(field('score'), [constant(90), constant(97)]));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
         doc1,
@@ -427,7 +432,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collectionGroup('users')
-        .where(Field.of('score').gt(Constant.of(80)));
+        .where(field('score').gt(constant(80)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
         doc1,
@@ -443,7 +448,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collectionGroup('users')
-        .where(Field.of('score').neq(Constant.of(50)));
+        .where(field('score').neq(constant(50)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
         doc1,
@@ -468,7 +473,9 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collectionGroup('users')
-        .where(arrayContains(Field.of('rounds'), Constant.of('round3')));
+        .where(
+          arrayContains(field('rounds'), constant('round3')) as BooleanExpr
+        );
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
         doc1,
@@ -484,7 +491,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collectionGroup('users')
-        .sort(Field.of('score').descending());
+        .sort(field('score').descending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc3, doc1, doc2]
@@ -499,7 +506,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collectionGroup('users')
-        .sort(Field.of('score').descending());
+        .sort(field('score').descending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc1, doc2, doc3]
@@ -514,7 +521,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collectionGroup('users')
-        .sort(Field.of(DOCUMENT_KEY_NAME).ascending());
+        .sort(field(DOCUMENT_KEY_NAME).ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc2, doc1, doc3]
@@ -529,7 +536,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collectionGroup('users')
-        .sort(Field.of(DOCUMENT_KEY_NAME).ascending())
+        .sort(field(DOCUMENT_KEY_NAME).ascending())
         .limit(2);
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
@@ -545,7 +552,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collectionGroup('users')
-        .sort(Field.of(DOCUMENT_KEY_NAME).ascending())
+        .sort(field(DOCUMENT_KEY_NAME).ascending())
         .offset(1);
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
@@ -694,7 +701,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(eqAny(Field.of('score'), [Constant.of(90), Constant.of(97)]));
+        .where(eqAny(field('score'), [constant(90), constant(97)]));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
         doc1,
@@ -709,7 +716,7 @@ describe('runPipeline()', () => {
     //   const doc3 = doc('users/charlie', 1000, { score: 97, rank: 2 });
     //
     //   const pipeline = db.pipeline().collection('/users').where(
-    //     eq(collectionId(field('DOCUMENT_KEY_NAME')), Constant.of('users'))
+    //     eq(collectionId(field('DOCUMENT_KEY_NAME')), constant('users'))
     //   );
     //
     //   expect(
@@ -723,7 +730,7 @@ describe('runPipeline()', () => {
     //   const doc3 = doc('users/charlie', 1000, { score: 97, rank: 2 });
     //
     //   const pipeline = db.pipeline().collection('/users').where(
-    //     eq(collectionId(field('DOCUMENT_KEY_NAME')), Constant.of('users'))
+    //     eq(collectionId(field('DOCUMENT_KEY_NAME')), constant('users'))
     //   );
     //
     //   expect(
@@ -737,7 +744,7 @@ describe('runPipeline()', () => {
     //   const doc3 = doc('users/charlie', 1000, { score: 97, rank: 2 });
     //
     //   const pipeline = db.pipeline().collection('/users').where(
-    //     eq(collectionId(field('DOCUMENT_KEY_NAME')), Constant.of('games'))
+    //     eq(collectionId(field('DOCUMENT_KEY_NAME')), constant('games'))
     //   );
     //
     //   expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
@@ -749,7 +756,7 @@ describe('runPipeline()', () => {
     //   const doc3 = doc('users/charlie', 1000, { score: 97, rank: 2 });
     //
     //   const pipeline = db.pipeline().collection('/users').where(
-    //     eq(collectionId(field('DOCUMENT_KEY_NAME')), Constant.of('games'))
+    //     eq(collectionId(field('DOCUMENT_KEY_NAME')), constant('games'))
     //   );
     //
     //   expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
@@ -764,7 +771,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(eqAny(Field.of('score'), [Constant.of(90), Constant.of(97)]));
+        .where(eqAny(field('score'), [constant(90), constant(97)]));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
         doc1,
@@ -781,7 +788,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(gt(Field.of('score'), Constant.of(80)));
+        .where(gt(field('score'), constant(80)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
         doc1,
@@ -797,7 +804,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(neq(Field.of('score'), Constant.of(50)));
+        .where(neq(field('score'), constant(50)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
         doc1,
@@ -822,7 +829,9 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(arrayContains(Field.of('rounds'), Constant.of('round3')));
+        .where(
+          arrayContains(field('rounds'), constant('round3')) as BooleanExpr
+        );
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
         doc1,
@@ -838,7 +847,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .sort(Field.of('score').descending());
+        .sort(field('score').descending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc3, doc1, doc2]
@@ -853,7 +862,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .sort(Field.of(DOCUMENT_KEY_NAME).ascending());
+        .sort(field(DOCUMENT_KEY_NAME).ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc2, doc1, doc3]
@@ -868,7 +877,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .sort(Field.of(DOCUMENT_KEY_NAME).ascending())
+        .sort(field(DOCUMENT_KEY_NAME).ascending())
         .limit(2);
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
@@ -886,7 +895,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users/bob/games')
-        .sort(Field.of(DOCUMENT_KEY_NAME).ascending());
+        .sort(field(DOCUMENT_KEY_NAME).ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -903,7 +912,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users/bob/games')
-        .sort(Field.of(DOCUMENT_KEY_NAME).descending());
+        .sort(field(DOCUMENT_KEY_NAME).descending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -944,7 +953,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(eq(Field.of(DOCUMENT_KEY_NAME), Constant.of(docRef(db, 'b/2'))));
+        .where(eq(field(DOCUMENT_KEY_NAME), constant(docRef(db, 'b/2'))));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc2]);
     });
@@ -1023,7 +1032,7 @@ describe('runPipeline()', () => {
 
       expect(
         runPipeline(
-          db.pipeline().documents(keys).sort(Field.of('v').ascending()),
+          db.pipeline().documents(keys).sort(field('v').ascending()),
           docs
         )
       ).to.deep.equal(docs);
@@ -1062,7 +1071,7 @@ describe('runPipeline()', () => {
               docRef(db, '/b/2'),
               docRef(db, '/c/1')
             ])
-            .sort(Field.of(DOCUMENT_KEY_NAME).ascending()),
+            .sort(field(DOCUMENT_KEY_NAME).ascending()),
           [doc1, doc2, doc3]
         )
       ).to.deep.equal([doc3, doc2, doc1]);
@@ -1080,7 +1089,7 @@ describe('runPipeline()', () => {
           docRef(db, '/users/alice'),
           docRef(db, '/users/charlie')
         ])
-        .sort(Field.of(DOCUMENT_KEY_NAME).ascending());
+        .sort(field(DOCUMENT_KEY_NAME).ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc2, doc1, doc3]
@@ -1099,7 +1108,7 @@ describe('runPipeline()', () => {
           docRef(db, '/users/alice'),
           docRef(db, '/users/charlie')
         ])
-        .sort(Field.of(DOCUMENT_KEY_NAME).descending());
+        .sort(field(DOCUMENT_KEY_NAME).descending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc3, doc1, doc2]
@@ -1118,7 +1127,7 @@ describe('runPipeline()', () => {
           docRef(db, '/users/alice'),
           docRef(db, '/users/charlie')
         ])
-        .sort(Field.of(DOCUMENT_KEY_NAME).ascending());
+        .sort(field(DOCUMENT_KEY_NAME).ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc2, doc1, doc3]
@@ -1137,7 +1146,7 @@ describe('runPipeline()', () => {
           docRef(db, '/users/alice'),
           docRef(db, '/users/charlie')
         ])
-        .sort(Field.of(DOCUMENT_KEY_NAME).descending());
+        .sort(field(DOCUMENT_KEY_NAME).descending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc3, doc1, doc2]
@@ -1156,7 +1165,7 @@ describe('runPipeline()', () => {
           docRef(db, '/users/alice'),
           docRef(db, '/users/charlie')
         ])
-        .sort(Field.of(DOCUMENT_KEY_NAME).ascending())
+        .sort(field(DOCUMENT_KEY_NAME).ascending())
         .limit(2);
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
@@ -1201,9 +1210,9 @@ describe('runPipeline()', () => {
       let pipeline = db
         .pipeline()
         .collection(`/${COLLECTION_ID}`)
-        .where(eq(Constant.of(1), 1));
+        .where(eq(constant(1), 1));
       for (let i = 1; i <= numOfFields; i++) {
-        pipeline = pipeline.where(gt(Field.of(`field_${i}`), Constant.of(0)));
+        pipeline = pipeline.where(gt(field(`field_${i}`), constant(0)));
       }
 
       expect(runPipeline(pipeline, documents)).to.have.deep.members(documents);
@@ -1223,8 +1232,8 @@ describe('runPipeline()', () => {
         .collection(`/${COLLECTION_ID}`)
         .where(
           eqAny(
-            Field.of('field_1'),
-            Array.from({ length: 3000 }, (_, i) => Constant.of(i + 1))
+            field('field_1'),
+            Array.from({ length: 3000 }, (_, i) => constant(i + 1))
           )
         );
 
@@ -1251,8 +1260,8 @@ describe('runPipeline()', () => {
       for (let i = 1; i <= numOfFields; i++) {
         conditions.push(
           eqAny(
-            Field.of(`field_${i}`),
-            Array.from({ length: 3000 }, (_, j) => Constant.of(j + 1))
+            field(`field_${i}`),
+            Array.from({ length: 3000 }, (_, j) => constant(j + 1))
           )
         );
       }
@@ -1260,7 +1269,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection(`/${COLLECTION_ID}`)
-        .where(andFunction(conditions[0], ...conditions.slice(1)));
+        .where(and(conditions[0], conditions[1], ...conditions.slice(2)));
 
       expect(runPipeline(pipeline, documents)).to.have.deep.members(
         documents.slice(0, -1)
@@ -1282,8 +1291,8 @@ describe('runPipeline()', () => {
         .collection(`/${COLLECTION_ID}`)
         .where(
           notEqAny(
-            Field.of('field_1'),
-            Array.from({ length: 3000 }, (_, i) => Constant.of(i + 1))
+            field('field_1'),
+            Array.from({ length: 3000 }, (_, i) => constant(i + 1))
           )
         );
 
@@ -1309,8 +1318,8 @@ describe('runPipeline()', () => {
       for (let i = 1; i <= numOfFields; i++) {
         conditions.push(
           notEqAny(
-            Field.of(`field_${i}`),
-            Array.from({ length: 3000 }, (_, j) => Constant.of(j + 1))
+            field(`field_${i}`),
+            Array.from({ length: 3000 }, (_, j) => constant(j + 1))
           )
         );
       }
@@ -1318,7 +1327,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection(`/${COLLECTION_ID}`)
-        .where(orFunction(conditions[0], ...conditions.slice(1)));
+        .where(or(conditions[0], conditions[1], ...conditions.slice(2)));
 
       expect(runPipeline(pipeline, documents)).to.have.deep.members([doc1]);
     });
@@ -1337,8 +1346,8 @@ describe('runPipeline()', () => {
         .collection(`/${COLLECTION_ID}`)
         .where(
           arrayContainsAny(
-            Field.of('field_1'),
-            Array.from({ length: 3000 }, (_, i) => Constant.of(i + 1))
+            field('field_1'),
+            Array.from({ length: 3000 }, (_, i) => constant(i + 1))
           )
         );
 
@@ -1363,8 +1372,8 @@ describe('runPipeline()', () => {
       for (let i = 1; i <= numOfFields; i++) {
         conditions.push(
           arrayContainsAny(
-            Field.of(`field_${i}`),
-            Array.from({ length: 3000 }, (_, j) => Constant.of(j + 1))
+            field(`field_${i}`),
+            Array.from({ length: 3000 }, (_, j) => constant(j + 1))
           )
         );
       }
@@ -1372,7 +1381,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection(`/${COLLECTION_ID}`)
-        .where(orFunction(conditions[0], ...conditions.slice(1)));
+        .where(or(conditions[0], conditions[1], ...conditions.slice(2)));
 
       expect(runPipeline(pipeline, documents)).to.have.deep.members(
         documents.slice(0, -1)
@@ -1387,15 +1396,15 @@ describe('runPipeline()', () => {
       // sort(field_1, field_2...)
       const sortFields = [];
       for (let i = 1; i <= numOfFields; i++) {
-        sortFields.push(Field.of('field_' + i).ascending());
+        sortFields.push(field('field_' + i).ascending());
       }
       // add __name__ as the last field in sort.
-      sortFields.push(Field.of('__name__').ascending());
+      sortFields.push(field('__name__').ascending());
 
       const pipeline = db
         .pipeline()
         .collection('/' + COLLECTION_ID)
-        .sort(...sortFields);
+        .sort(sortFields[0], ...sortFields.slice(1));
 
       expect(runPipeline(pipeline, documents)).to.have.deep.members(documents);
     });
@@ -1406,15 +1415,15 @@ describe('runPipeline()', () => {
       const documents = seedDatabase(numOfDocuments, numOfFields, () => 0);
 
       const depth = 31;
-      let addFunc = add(Field.of('field_1'), Constant.of(1));
+      let addFunc = add(field('field_1'), constant(1));
       for (let i = 1; i < depth; i++) {
-        addFunc = add(addFunc, Constant.of(1));
+        addFunc = add(addFunc, constant(1));
       }
 
       const pipeline = db
         .pipeline()
         .collection(`/${COLLECTION_ID}`)
-        .where(gt(addFunc, Constant.of(0)));
+        .where(gt(addFunc, constant(0)));
 
       expect(runPipeline(pipeline, documents)).to.have.deep.members(documents);
     });
@@ -1431,15 +1440,13 @@ describe('runPipeline()', () => {
 
       const orConditions = [];
       for (let i = 1; i <= numOfFields; i++) {
-        orConditions.push(
-          lte(Field.of(`field_${i}`), Constant.of(valueCounter))
-        );
+        orConditions.push(lte(field(`field_${i}`), constant(valueCounter)));
       }
 
       const pipeline = db
         .pipeline()
         .collection(`/${COLLECTION_ID}`)
-        .where(orFunction(orConditions[0], ...orConditions.slice(1)));
+        .where(or(orConditions[0], orConditions[1], ...orConditions.slice(2)));
 
       expect(runPipeline(pipeline, documents)).to.have.deep.members(documents);
     });
@@ -1457,9 +1464,9 @@ describe('runPipeline()', () => {
       const andConditions1 = [];
       const andConditions2 = [];
       for (let i = 1; i <= numOfFields; i++) {
-        andConditions1.push(gt(Field.of(`field_${i}`), Constant.of(0)));
+        andConditions1.push(gt(field(`field_${i}`), constant(0)));
         andConditions2.push(
-          lt(Field.of(`field_${i}`), Constant.of(Number.MAX_SAFE_INTEGER))
+          lt(field(`field_${i}`), constant(Number.MAX_SAFE_INTEGER))
         );
       }
 
@@ -1467,9 +1474,17 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection(`/${COLLECTION_ID}`)
         .where(
-          orFunction(
-            andFunction(andConditions1[0], ...andConditions1.slice(1)),
-            andFunction(andConditions2[0], ...andConditions2.slice(1))
+          or(
+            and(
+              andConditions1[0],
+              andConditions1[1],
+              ...andConditions1.slice(2)
+            ),
+            and(
+              andConditions2[0],
+              andConditions2[1],
+              ...andConditions2.slice(2)
+            )
           )
         );
 
@@ -1489,12 +1504,12 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          eqAny(Field.of('name'), [
-            Constant.of('alice'),
-            Constant.of('bob'),
-            Constant.of('charlie'),
-            Constant.of('diane'),
-            Constant.of('eric')
+          eqAny(field('name'), [
+            constant('alice'),
+            constant('bob'),
+            constant('charlie'),
+            constant('diane'),
+            constant('eric')
           ])
         );
 
@@ -1514,15 +1529,15 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            eqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('bob'),
-              Constant.of('charlie'),
-              Constant.of('diane'),
-              Constant.of('eric')
+          and(
+            eqAny(field('name'), [
+              constant('alice'),
+              constant('bob'),
+              constant('charlie'),
+              constant('diane'),
+              constant('eric')
             ]),
-            eqAny(Field.of('age'), [Constant.of(10), Constant.of(25)])
+            eqAny(field('age'), [constant(10), constant(25)])
           )
         );
 
@@ -1542,15 +1557,15 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          eqAny(Field.of('name'), [
-            Constant.of('alice'),
-            Constant.of('bob'),
-            Constant.of('charlie'),
-            Constant.of('diane'),
-            Constant.of('eric')
+          eqAny(field('name'), [
+            constant('alice'),
+            constant('bob'),
+            constant('charlie'),
+            constant('diane'),
+            constant('eric')
           ])
         )
-        .where(eqAny(Field.of('age'), [Constant.of(10), Constant.of(25)]));
+        .where(eqAny(field('age'), [constant(10), constant(25)]));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -1568,9 +1583,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          orFunction(
-            eqAny(Field.of('name'), [Constant.of('alice'), Constant.of('bob')]),
-            eqAny(Field.of('age'), [Constant.of(10), Constant.of(25)])
+          or(
+            eqAny(field('name'), [constant('alice'), constant('bob')]),
+            eqAny(field('age'), [constant(10), constant(25)])
           )
         );
 
@@ -1593,11 +1608,11 @@ describe('runPipeline()', () => {
         .pipeline()
         .collectionGroup('users')
         .where(
-          eqAny(Field.of('name'), [
-            Constant.of('alice'),
-            Constant.of('bob'),
-            Constant.of('diane'),
-            Constant.of('eric')
+          eqAny(field('name'), [
+            constant('alice'),
+            constant('bob'),
+            constant('diane'),
+            constant('eric')
           ])
         );
 
@@ -1617,14 +1632,14 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          eqAny(Field.of('name'), [
-            Constant.of('alice'),
-            Constant.of('bob'),
-            Constant.of('diane'),
-            Constant.of('eric')
+          eqAny(field('name'), [
+            constant('alice'),
+            constant('bob'),
+            constant('diane'),
+            constant('eric')
           ])
         )
-        .sort(Field.of('age').ascending());
+        .sort(field('age').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -1642,14 +1657,14 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          eqAny(Field.of('name'), [
-            Constant.of('alice'),
-            Constant.of('bob'),
-            Constant.of('diane'),
-            Constant.of('eric')
+          eqAny(field('name'), [
+            constant('alice'),
+            constant('bob'),
+            constant('diane'),
+            constant('eric')
           ])
         )
-        .sort(Field.of('name').ascending());
+        .sort(field('name').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -1667,18 +1682,18 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            eqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('bob'),
-              Constant.of('charlie'),
-              Constant.of('diane'),
-              Constant.of('eric')
+          and(
+            eqAny(field('name'), [
+              constant('alice'),
+              constant('bob'),
+              constant('charlie'),
+              constant('diane'),
+              constant('eric')
             ]),
-            eq(Field.of('age'), Constant.of(10))
+            eq(field('age'), constant(10))
           )
         )
-        .sort(Field.of('name').ascending());
+        .sort(field('name').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -1696,13 +1711,13 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            eqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('diane'),
-              Constant.of('eric')
+          and(
+            eqAny(field('name'), [
+              constant('alice'),
+              constant('diane'),
+              constant('eric')
             ]),
-            eq(Field.of('name'), Constant.of('eric'))
+            eq(field('name'), constant('eric'))
           )
         );
 
@@ -1720,9 +1735,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            eqAny(Field.of('name'), [Constant.of('alice'), Constant.of('bob')]),
-            eq(Field.of('name'), Constant.of('other'))
+          and(
+            eqAny(field('name'), [constant('alice'), constant('bob')]),
+            eq(field('name'), constant('other'))
           )
         );
 
@@ -1740,15 +1755,15 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            eqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('bob'),
-              Constant.of('charlie'),
-              Constant.of('diane')
+          and(
+            eqAny(field('name'), [
+              constant('alice'),
+              constant('bob'),
+              constant('charlie'),
+              constant('diane')
             ]),
-            gt(Field.of('age'), Constant.of(10)),
-            lt(Field.of('age'), Constant.of(100))
+            gt(field('age'), constant(10)),
+            lt(field('age'), constant(100))
           )
         );
 
@@ -1768,15 +1783,15 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            eqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('bob'),
-              Constant.of('charlie'),
-              Constant.of('diane')
+          and(
+            eqAny(field('name'), [
+              constant('alice'),
+              constant('bob'),
+              constant('charlie'),
+              constant('diane')
             ]),
-            gte(Field.of('age'), Constant.of(10)),
-            lte(Field.of('age'), Constant.of(100))
+            gte(field('age'), constant(10)),
+            lte(field('age'), constant(100))
           )
         );
 
@@ -1796,18 +1811,18 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            eqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('bob'),
-              Constant.of('charlie'),
-              Constant.of('diane')
+          and(
+            eqAny(field('name'), [
+              constant('alice'),
+              constant('bob'),
+              constant('charlie'),
+              constant('diane')
             ]),
-            gt(Field.of('age'), Constant.of(10)),
-            lt(Field.of('age'), Constant.of(100))
+            gt(field('age'), constant(10)),
+            lt(field('age'), constant(100))
           )
         )
-        .sort(Field.of('age').ascending());
+        .sort(field('age').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -1825,14 +1840,14 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            eqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('bob'),
-              Constant.of('charlie'),
-              Constant.of('diane')
+          and(
+            eqAny(field('name'), [
+              constant('alice'),
+              constant('bob'),
+              constant('charlie'),
+              constant('diane')
             ]),
-            neq(Field.of('age'), Constant.of(100))
+            neq(field('age'), constant(100))
           )
         );
 
@@ -1852,14 +1867,14 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          eqAny(Field.of('name'), [
-            Constant.of('alice'),
-            Constant.of('bob'),
-            Constant.of('charlie'),
-            Constant.of('diane')
+          eqAny(field('name'), [
+            constant('alice'),
+            constant('bob'),
+            constant('charlie'),
+            constant('diane')
           ])
         )
-        .sort(Field.of('name').ascending());
+        .sort(field('name').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -1874,8 +1889,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(eqAny(Field.of('age'), [Constant.of(10)]))
-        .sort(Field.of('age').ascending());
+        .where(eqAny(field('age'), [constant(10)]))
+        .sort(field('age').ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc2, doc3]
@@ -1893,18 +1908,18 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            eqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('bob'),
-              Constant.of('charlie'),
-              Constant.of('diane'),
-              Constant.of('eric')
+          and(
+            eqAny(field('name'), [
+              constant('alice'),
+              constant('bob'),
+              constant('charlie'),
+              constant('diane'),
+              constant('eric')
             ]),
-            eq(Field.of('age'), Constant.of(10))
+            eq(field('age'), constant(10))
           )
         )
-        .sort(Field.of('name').ascending());
+        .sort(field('name').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -1922,18 +1937,18 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            eqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('bob'),
-              Constant.of('charlie'),
-              Constant.of('diane'),
-              Constant.of('eric')
+          and(
+            eqAny(field('name'), [
+              constant('alice'),
+              constant('bob'),
+              constant('charlie'),
+              constant('diane'),
+              constant('eric')
             ]),
-            eq(Field.of('age'), Constant.of(10))
+            eq(field('age'), constant(10))
           )
         )
-        .sort(Field.of('age').ascending());
+        .sort(field('age').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -1951,13 +1966,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            eqAny(Field.of('age'), [
-              Constant.of(10),
-              Constant.of(25),
-              Constant.of(100)
-            ]),
-            gt(Field.of('age'), Constant.of(20))
+          and(
+            eqAny(field('age'), [constant(10), constant(25), constant(100)]),
+            gt(field('age'), constant(20))
           )
         );
 
@@ -1977,17 +1988,17 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            eqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('bob'),
-              Constant.of('charlie'),
-              Constant.of('diane')
+          and(
+            eqAny(field('name'), [
+              constant('alice'),
+              constant('bob'),
+              constant('charlie'),
+              constant('diane')
             ]),
-            gt(Field.of('age'), Constant.of(20))
+            gt(field('age'), constant(20))
           )
         )
-        .sort(Field.of('age').ascending());
+        .sort(field('age').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -2002,9 +2013,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(
-          eqAny(Field.of('name'), [Constant.of(null), Constant.of('alice')])
-        );
+        .where(eqAny(field('name'), [constant(null), constant('alice')]));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
         doc1,
@@ -2020,7 +2029,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(arrayContains(Field.of('field'), Constant.of(null)));
+        .where(arrayContains(field('field'), constant(null)) as BooleanExpr);
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
         doc1,
@@ -2037,10 +2046,7 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          arrayContainsAny(Field.of('field'), [
-            Constant.of(null),
-            Constant.of('foo')
-          ])
+          arrayContainsAny(field('field'), [constant(null), constant('foo')])
         );
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
@@ -2058,7 +2064,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(eqAny(Field.of('age'), [Constant.of(null)]));
+        .where(eqAny(field('age'), [constant(null)]));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
     });
@@ -2073,9 +2079,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(
-          arrayContainsAny(Field.of('groups'), [Constant.of(1), Constant.of(5)])
-        );
+        .where(arrayContainsAny(field('groups'), [constant(1), constant(5)]));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -2113,15 +2117,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            arrayContainsAny(Field.of('groups'), [
-              Constant.of(1),
-              Constant.of(5)
-            ]),
-            arrayContainsAny(Field.of('records'), [
-              Constant.of('a'),
-              Constant.of('e')
-            ])
+          and(
+            arrayContainsAny(field('groups'), [constant(1), constant(5)]),
+            arrayContainsAny(field('records'), [constant('a'), constant('e')])
           )
         );
 
@@ -2141,12 +2139,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            arrayContainsAny(Field.of('groups'), [
-              Constant.of(1),
-              Constant.of(5)
-            ]),
-            lt(Field.of('groups'), Constant.of([3, 4, 5]))
+          and(
+            arrayContainsAny(field('groups'), [constant(1), constant(5)]),
+            lt(field('groups'), constantArray([3, 4, 5]))
           )
         );
 
@@ -2166,12 +2161,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            arrayContainsAny(Field.of('groups'), [
-              Constant.of(1),
-              Constant.of(5)
-            ]),
-            eqAny(Field.of('name'), [Constant.of('alice'), Constant.of('bob')])
+          and(
+            arrayContainsAny(field('groups'), [constant(1), constant(5)]),
+            eqAny(field('name'), [constant('alice'), constant('bob')])
           )
         );
 
@@ -2190,10 +2182,7 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          orFunction(
-            eq(Field.of('name'), Constant.of('bob')),
-            eq(Field.of('age'), Constant.of(10))
-          )
+          or(eq(field('name'), constant('bob')), eq(field('age'), constant(10)))
         );
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
@@ -2212,11 +2201,11 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          orFunction(
-            eq(Field.of('name'), Constant.of('bob')),
-            eq(Field.of('name'), Constant.of('diane')),
-            eq(Field.of('age'), Constant.of(25)),
-            eq(Field.of('age'), Constant.of(100))
+          or(
+            eq(field('name'), constant('bob')),
+            eq(field('name'), constant('diane')),
+            eq(field('age'), constant(25)),
+            eq(field('age'), constant(100))
           )
         );
 
@@ -2237,15 +2226,12 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          orFunction(
-            eq(Field.of('name'), Constant.of('bob')),
-            eq(Field.of('age'), Constant.of(10))
-          )
+          or(eq(field('name'), constant('bob')), eq(field('age'), constant(10)))
         )
         .where(
-          orFunction(
-            eq(Field.of('name'), Constant.of('diane')),
-            eq(Field.of('age'), Constant.of(100))
+          or(
+            eq(field('name'), constant('diane')),
+            eq(field('age'), constant(100))
           )
         );
 
@@ -2264,14 +2250,14 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          orFunction(
-            andFunction(
-              eq(Field.of('name'), Constant.of('bob')),
-              eq(Field.of('age'), Constant.of(25))
+          or(
+            and(
+              eq(field('name'), constant('bob')),
+              eq(field('age'), constant(25))
             ),
-            andFunction(
-              eq(Field.of('name'), Constant.of('diane')),
-              eq(Field.of('age'), Constant.of(10))
+            and(
+              eq(field('name'), constant('diane')),
+              eq(field('age'), constant(10))
             )
           )
         );
@@ -2292,12 +2278,12 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            orFunction(
-              eq(Field.of('name'), Constant.of('bob')),
-              eq(Field.of('age'), Constant.of(10))
+          and(
+            or(
+              eq(field('name'), constant('bob')),
+              eq(field('age'), constant(10))
             ),
-            lt(Field.of('age'), Constant.of(80))
+            lt(field('age'), constant(80))
           )
         );
 
@@ -2317,14 +2303,14 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            orFunction(
-              eq(Field.of('name'), Constant.of('bob')),
-              eq(Field.of('age'), Constant.of(10))
+          and(
+            or(
+              eq(field('name'), constant('bob')),
+              eq(field('age'), constant(10))
             ),
-            orFunction(
-              eq(Field.of('name'), Constant.of('diane')),
-              eq(Field.of('age'), Constant.of(100))
+            or(
+              eq(field('name'), constant('diane')),
+              eq(field('age'), constant(100))
             )
           )
         );
@@ -2344,14 +2330,14 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          orFunction(
-            orFunction(
-              eq(Field.of('name'), Constant.of('bob')),
-              eq(Field.of('age'), Constant.of(10))
+          or(
+            or(
+              eq(field('name'), constant('bob')),
+              eq(field('age'), constant(10))
             ),
-            orFunction(
-              eq(Field.of('name'), Constant.of('diane')),
-              eq(Field.of('age'), Constant.of(100))
+            or(
+              eq(field('name'), constant('diane')),
+              eq(field('age'), constant(100))
             )
           )
         );
@@ -2373,12 +2359,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          orFunction(
-            eq(Field.of('name'), Constant.of('bob')),
-            andFunction(
-              eq(Field.of('age'), Constant.of(10)),
-              gt(Field.of('age'), Constant.of(20))
-            )
+          or(
+            eq(field('name'), constant('bob')),
+            and(eq(field('age'), constant(10)), gt(field('age'), constant(20)))
           )
         );
 
@@ -2397,12 +2380,12 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          orFunction(
-            eq(Field.of('name'), Constant.of('diane')),
-            gt(Field.of('age'), Constant.of(20))
+          or(
+            eq(field('name'), constant('diane')),
+            gt(field('age'), constant(20))
           )
         )
-        .sort(Field.of('age').ascending());
+        .sort(field('age').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4])
@@ -2419,12 +2402,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          orFunction(
-            lt(Field.of('age'), Constant.of(20)),
-            gt(Field.of('age'), Constant.of(50))
-          )
+          or(lt(field('age'), constant(20)), gt(field('age'), constant(50)))
         )
-        .sort(Field.of('age').ascending());
+        .sort(field('age').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4])
@@ -2441,12 +2421,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          orFunction(
-            lt(Field.of('age'), Constant.of(20)),
-            gt(Field.of('age'), Constant.of(50))
-          )
+          or(lt(field('age'), constant(20)), gt(field('age'), constant(50)))
         )
-        .sort(Field.of('name').ascending());
+        .sort(field('name').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4])
@@ -2476,15 +2453,12 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          orFunction(
-            lt(Field.of('age'), Constant.of(80)),
-            gt(Field.of('height'), Constant.of(160))
-          )
+          or(lt(field('age'), constant(80)), gt(field('height'), constant(160)))
         )
         .sort(
-          Field.of('age').ascending(),
-          Field.of('height').descending(),
-          Field.of('name').ascending()
+          field('age').ascending(),
+          field('height').descending(),
+          field('name').ascending()
         );
 
       expect(
@@ -2502,12 +2476,12 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          orFunction(
-            eq(Field.of('name'), Constant.of('diane')),
-            gt(Field.of('age'), Constant.of(20))
+          or(
+            eq(field('name'), constant('diane')),
+            gt(field('age'), constant(20))
           )
         )
-        .sort(Field.of('age').ascending());
+        .sort(field('age').ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.have.members([
         doc3,
@@ -2527,12 +2501,12 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          orFunction(
-            eq(Field.of('name'), Constant.of('diane')),
-            gt(Field.of('age'), Constant.of(20))
+          or(
+            eq(field('name'), constant('diane')),
+            gt(field('age'), constant(20))
           )
         )
-        .sort(Field.of('age').ascending())
+        .sort(field('age').ascending())
         .limit(2);
 
       expect(
@@ -2552,9 +2526,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(
-          orFunction(eq(Field.of('a'), Constant.of(1)), isNull(Field.of('a')))
-        );
+        .where(or(eq(field('a'), constant(1)), isNull(field('a'))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])
@@ -2572,9 +2544,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(
-          orFunction(eq(Field.of('b'), Constant.of(1)), isNull(Field.of('a')))
-        );
+        .where(or(eq(field('b'), constant(1)), isNull(field('a'))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])
@@ -2592,12 +2562,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(
-          orFunction(
-            gt(Field.of('a'), Constant.of(1)),
-            not(isNull(Field.of('a')))
-          )
-        );
+        .where(or(gt(field('a'), constant(1)), not(isNull(field('a')))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])
@@ -2615,12 +2580,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(
-          orFunction(
-            eq(Field.of('b'), Constant.of(1)),
-            not(isNull(Field.of('a')))
-          )
-        );
+        .where(or(eq(field('b'), constant(1)), not(isNull(field('a')))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])
@@ -2635,7 +2595,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(orFunction(isNull(Field.of('a')), isNan(Field.of('a'))));
+        .where(or(isNull(field('a')), isNan(field('a'))));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
         doc1,
@@ -2654,7 +2614,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(orFunction(isNull(Field.of('a')), isNan(Field.of('b'))));
+        .where(or(isNull(field('a')), isNan(field('b'))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])
@@ -2671,9 +2631,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(
-          notEqAny(Field.of('name'), [Constant.of('alice'), Constant.of('bob')])
-        );
+        .where(notEqAny(field('name'), [constant('alice'), constant('bob')]));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -2691,12 +2649,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            notEqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('bob')
-            ]),
-            notEqAny(Field.of('age'), [Constant.of(10), Constant.of(25)])
+          and(
+            notEqAny(field('name'), [constant('alice'), constant('bob')]),
+            notEqAny(field('age'), [constant(10), constant(25)])
           )
         );
 
@@ -2716,12 +2671,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          orFunction(
-            notEqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('bob')
-            ]),
-            notEqAny(Field.of('age'), [Constant.of(10), Constant.of(25)])
+          or(
+            notEqAny(field('name'), [constant('alice'), constant('bob')]),
+            notEqAny(field('age'), [constant(10), constant(25)])
           )
         );
 
@@ -2744,10 +2696,10 @@ describe('runPipeline()', () => {
         .pipeline()
         .collectionGroup('users')
         .where(
-          notEqAny(Field.of('name'), [
-            Constant.of('alice'),
-            Constant.of('bob'),
-            Constant.of('diane')
+          notEqAny(field('name'), [
+            constant('alice'),
+            constant('bob'),
+            constant('diane')
           ])
         );
 
@@ -2766,13 +2718,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(
-          notEqAny(Field.of('name'), [
-            Constant.of('alice'),
-            Constant.of('diane')
-          ])
-        )
-        .sort(Field.of('age').ascending());
+        .where(notEqAny(field('name'), [constant('alice'), constant('diane')]))
+        .sort(field('age').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -2790,12 +2737,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            notEqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('bob')
-            ]),
-            eq(Field.of('age'), Constant.of(10))
+          and(
+            notEqAny(field('name'), [constant('alice'), constant('bob')]),
+            eq(field('age'), constant(10))
           )
         );
 
@@ -2815,12 +2759,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            notEqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('diane')
-            ]),
-            eq(Field.of('name'), Constant.of('eric'))
+          and(
+            notEqAny(field('name'), [constant('alice'), constant('diane')]),
+            eq(field('name'), constant('eric'))
           )
         );
 
@@ -2840,13 +2781,10 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            notEqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('charlie')
-            ]),
-            gt(Field.of('age'), Constant.of(10)),
-            lt(Field.of('age'), Constant.of(100))
+          and(
+            notEqAny(field('name'), [constant('alice'), constant('charlie')]),
+            gt(field('age'), constant(10)),
+            lt(field('age'), constant(100))
           )
         );
 
@@ -2866,14 +2804,14 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            notEqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('bob'),
-              Constant.of('eric')
+          and(
+            notEqAny(field('name'), [
+              constant('alice'),
+              constant('bob'),
+              constant('eric')
             ]),
-            gte(Field.of('age'), Constant.of(10)),
-            lte(Field.of('age'), Constant.of(100))
+            gte(field('age'), constant(10)),
+            lte(field('age'), constant(100))
           )
         );
 
@@ -2893,16 +2831,13 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            notEqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('diane')
-            ]),
-            gt(Field.of('age'), Constant.of(10)),
-            lte(Field.of('age'), Constant.of(100))
+          and(
+            notEqAny(field('name'), [constant('alice'), constant('diane')]),
+            gt(field('age'), constant(10)),
+            lte(field('age'), constant(100))
           )
         )
-        .sort(Field.of('age').ascending());
+        .sort(field('age').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -2920,12 +2855,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            notEqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('bob')
-            ]),
-            neq(Field.of('age'), Constant.of(100))
+          and(
+            notEqAny(field('name'), [constant('alice'), constant('bob')]),
+            neq(field('age'), constant(100))
           )
         );
 
@@ -2944,10 +2876,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(
-          notEqAny(Field.of('name'), [Constant.of('alice'), Constant.of('bob')])
-        )
-        .sort(Field.of('name').ascending());
+        .where(notEqAny(field('name'), [constant('alice'), constant('bob')]))
+        .sort(field('name').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -2962,8 +2892,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(notEqAny(Field.of('age'), [Constant.of(100)]))
-        .sort(Field.of('age').ascending());
+        .where(notEqAny(field('age'), [constant(100)]))
+        .sort(field('age').ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.members([
         doc2,
@@ -2982,15 +2912,12 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            notEqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('bob')
-            ]),
-            eq(Field.of('age'), Constant.of(10))
+          and(
+            notEqAny(field('name'), [constant('alice'), constant('bob')]),
+            eq(field('age'), constant(10))
           )
         )
-        .sort(Field.of('name').ascending());
+        .sort(field('name').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -3008,15 +2935,12 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            notEqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('bob')
-            ]),
-            eq(Field.of('age'), Constant.of(10))
+          and(
+            notEqAny(field('name'), [constant('alice'), constant('bob')]),
+            eq(field('age'), constant(10))
           )
         )
-        .sort(Field.of('age').ascending());
+        .sort(field('age').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -3034,12 +2958,12 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            notEqAny(Field.of('age'), [Constant.of(10), Constant.of(100)]),
-            gt(Field.of('age'), Constant.of(20))
+          and(
+            notEqAny(field('age'), [constant(10), constant(100)]),
+            gt(field('age'), constant(20))
           )
         )
-        .sort(Field.of('age').ascending());
+        .sort(field('age').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -3057,15 +2981,12 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            notEqAny(Field.of('name'), [
-              Constant.of('alice'),
-              Constant.of('diane')
-            ]),
-            gt(Field.of('age'), Constant.of(20))
+          and(
+            notEqAny(field('name'), [constant('alice'), constant('diane')]),
+            gt(field('age'), constant(20))
           )
         )
-        .sort(Field.of('age').ascending());
+        .sort(field('age').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -3095,19 +3016,19 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          orFunction(
-            eq(Field.of('name'), Constant.of('alice')),
-            eq(Field.of('name'), Constant.of('bob')),
-            eq(Field.of('name'), Constant.of('charlie')),
-            eq(Field.of('name'), Constant.of('diane')),
-            eq(Field.of('age'), Constant.of(10)),
-            eq(Field.of('age'), Constant.of(25)),
-            eq(Field.of('age'), Constant.of(40)),
-            eq(Field.of('age'), Constant.of(100)),
-            eq(Field.of('height'), Constant.of(150)),
-            eq(Field.of('height'), Constant.of(160)),
-            eq(Field.of('height'), Constant.of(170)),
-            eq(Field.of('height'), Constant.of(180))
+          or(
+            eq(field('name'), constant('alice')),
+            eq(field('name'), constant('bob')),
+            eq(field('name'), constant('charlie')),
+            eq(field('name'), constant('diane')),
+            eq(field('age'), constant(10)),
+            eq(field('age'), constant(25)),
+            eq(field('age'), constant(40)),
+            eq(field('age'), constant(100)),
+            eq(field('height'), constant(150)),
+            eq(field('height'), constant(160)),
+            eq(field('height'), constant(170)),
+            eq(field('height'), constant(180))
           )
         );
 
@@ -3125,11 +3046,11 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          eqAny(Field.of('score'), [
-            Constant.of(50),
-            Constant.of(97),
-            Constant.of(97),
-            Constant.of(97)
+          eqAny(field('score'), [
+            constant(50),
+            constant(97),
+            constant(97),
+            constant(97)
           ])
         );
 
@@ -3148,11 +3069,7 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          notEqAny(Field.of('score'), [
-            Constant.of(50),
-            Constant.of(50),
-            Constant.of(true)
-          ])
+          notEqAny(field('score'), [constant(50), constant(50), constant(true)])
         );
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
@@ -3170,11 +3087,11 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          arrayContainsAny(Field.of('scores'), [
-            Constant.of(1),
-            Constant.of(2),
-            Constant.of(2),
-            Constant.of(2)
+          arrayContainsAny(field('scores'), [
+            constant(1),
+            constant(2),
+            constant(2),
+            constant(2)
           ])
         );
 
@@ -3189,12 +3106,12 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          arrayContainsAny(Field.of('scores'), [
-            Constant.of(1),
-            Constant.of(2),
-            Constant.of(2),
-            Constant.of(2),
-            Constant.of(3)
+          arrayContainsAny(field('scores'), [
+            constant(1),
+            constant(2),
+            constant(2),
+            constant(2),
+            constant(3)
           ])
         );
 
@@ -3215,11 +3132,7 @@ describe('runPipeline()', () => {
         .pipeline()
         .database()
         .where(
-          orFunction(
-            eq(Field.of('a'), true),
-            eq(Field.of('b'), true),
-            eq(Field.of('c'), true)
-          )
+          or(eq(field('a'), true), eq(field('b'), true), eq(field('c'), true))
         );
 
       expect(
@@ -3240,11 +3153,7 @@ describe('runPipeline()', () => {
         .pipeline()
         .database()
         .where(
-          andFunction(
-            eq(Field.of('a'), true),
-            eq(Field.of('b'), true),
-            eq(Field.of('c'), true)
-          )
+          and(eq(field('a'), true), eq(field('b'), true), eq(field('c'), true))
         );
 
       expect(
@@ -3266,9 +3175,9 @@ describe('runPipeline()', () => {
         .database()
         .where(
           xor(
-            Field.of('a') as unknown as FilterCondition,
-            Field.of('b') as unknown as FilterCondition,
-            Field.of('c') as unknown as FilterCondition
+            field('a') as unknown as BooleanExpr,
+            field('b') as unknown as BooleanExpr,
+            field('c') as unknown as BooleanExpr
           )
         );
 
@@ -3285,7 +3194,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(not(Field.of('a') as unknown as FilterCondition));
+        .where(new BooleanExpr('not', [field('a')]));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
     });
@@ -3298,9 +3207,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(
-          eq(divide(Constant.of('100'), Constant.of('50')), Constant.of(2))
-        );
+        .where(eq(divide(constant('100'), constant('50')), constant(2)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
     });
@@ -3315,7 +3222,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(gt(Field.of('score'), Constant.of(90)));
+        .where(gt(field('score'), constant(90)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc3]);
     });
@@ -3328,7 +3235,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(gte(Field.of('score'), Constant.of(90)));
+        .where(gte(field('score'), constant(90)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
         doc1,
@@ -3344,7 +3251,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(lt(Field.of('score'), Constant.of(90)));
+        .where(lt(field('score'), constant(90)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc2]);
     });
@@ -3357,7 +3264,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(lte(Field.of('score'), Constant.of(90)));
+        .where(lte(field('score'), constant(90)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
         doc2,
@@ -3373,7 +3280,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(neq(Field.of('score'), Constant.of(90)));
+        .where(neq(field('score'), constant(90)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
         doc2,
@@ -3394,7 +3301,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(neq(Field.of('score'), Constant.of(90)));
+        .where(neq(field('score'), constant(90)));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8])
@@ -3414,7 +3321,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(gt(Field.of('score'), Constant.of(42)));
+        .where(gt(field('score'), constant(42)));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8])
@@ -3434,7 +3341,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(not(gt(Field.of('score'), Constant.of(90))));
+        .where(not(gt(field('score'), constant(90))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8])
@@ -3450,10 +3357,7 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            eq(Field.of('rank'), Constant.of(2)),
-            gt(Field.of('score'), Constant.of(80))
-          )
+          and(eq(field('rank'), constant(2)), gt(field('score'), constant(80)))
         );
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
@@ -3468,9 +3372,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            eq(Field.of('score'), Constant.of(90)),
-            gt(Field.of('score'), Constant.of(80))
+          and(
+            eq(field('score'), constant(90)),
+            gt(field('score'), constant(80))
           )
         );
 
@@ -3485,8 +3389,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(gte(Field.of('score'), Constant.of(90)))
-        .sort(Field.of('score').ascending());
+        .where(gte(field('score'), constant(90)))
+        .sort(field('score').ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc1, doc3]
@@ -3501,8 +3405,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(gte(Field.of('score'), Constant.of(90)))
-        .sort(Field.of('rank').ascending());
+        .where(gte(field('score'), constant(90)))
+        .sort(field('rank').ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc3, doc1]
@@ -3518,10 +3422,7 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          orFunction(
-            gt(Field.of('score'), Constant.of(90)),
-            lt(Field.of('score'), Constant.of(60))
-          )
+          or(gt(field('score'), constant(90)), lt(field('score'), constant(60)))
         );
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
@@ -3539,10 +3440,7 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          orFunction(
-            gt(Field.of('score'), Constant.of(80)),
-            lt(Field.of('rank'), Constant.of(2))
-          )
+          or(gt(field('score'), constant(80)), lt(field('rank'), constant(2)))
         );
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
@@ -3560,13 +3458,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            gt(Field.of('score'), Constant.of(80)),
-            eqAny(Field.of('score'), [
-              Constant.of(50),
-              Constant.of(80),
-              Constant.of(97)
-            ])
+          and(
+            gt(field('score'), constant(80)),
+            eqAny(field('score'), [constant(50), constant(80), constant(97)])
           )
         );
 
@@ -3582,13 +3476,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            lt(Field.of('rank'), Constant.of(3)),
-            eqAny(Field.of('score'), [
-              Constant.of(50),
-              Constant.of(80),
-              Constant.of(97)
-            ])
+          and(
+            lt(field('rank'), constant(3)),
+            eqAny(field('score'), [constant(50), constant(80), constant(97)])
           )
         );
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc3]);
@@ -3604,9 +3494,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            gt(Field.of('score'), Constant.of(80)),
-            notEqAny(Field.of('score'), [Constant.of(90), Constant.of(95)])
+          and(
+            gt(field('score'), constant(80)),
+            notEqAny(field('score'), [constant(90), constant(95)])
           )
         );
 
@@ -3631,10 +3521,10 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          notEqAny(Field.of('score'), [
-            Constant.of('foo'),
-            Constant.of(90),
-            Constant.of(false)
+          notEqAny(field('score'), [
+            constant('foo'),
+            constant(90),
+            constant(false)
           ])
         );
 
@@ -3663,9 +3553,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            lt(Field.of('rank'), Constant.of(3)),
-            notEqAny(Field.of('score'), [Constant.of(90), Constant.of(95)])
+          and(
+            lt(field('rank'), constant(3)),
+            notEqAny(field('score'), [constant(90), constant(95)])
           )
         );
 
@@ -3682,12 +3572,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            eq(Field.of('rank'), Constant.of(2)),
-            gt(Field.of('score'), Constant.of(80))
-          )
+          and(eq(field('rank'), constant(2)), gt(field('score'), constant(80)))
         )
-        .sort(Field.of('rank').ascending(), Field.of('score').ascending());
+        .sort(field('rank').ascending(), field('score').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4])
@@ -3704,16 +3591,12 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            eqAny(Field.of('rank'), [
-              Constant.of(2),
-              Constant.of(3),
-              Constant.of(4)
-            ]),
-            gt(Field.of('score'), Constant.of(80))
+          and(
+            eqAny(field('rank'), [constant(2), constant(3), constant(4)]),
+            gt(field('score'), constant(80))
           )
         )
-        .sort(Field.of('rank').ascending(), Field.of('score').ascending());
+        .sort(field('rank').ascending(), field('score').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4])
@@ -3738,9 +3621,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            lte(Field.of('scores'), Constant.of([90, 90, 90])),
-            gt(Field.of('rounds'), Constant.of([1, 2]))
+          and(
+            lte(field('scores'), constantArray([90, 90, 90])),
+            gt(field('rounds'), constantArray([1, 2]))
           )
         );
 
@@ -3765,9 +3648,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            lte(Field.of('scores'), Constant.of([90, 90, 90])),
-            arrayContains(Field.of('rounds'), Constant.of(3))
+          and(
+            lte(field('scores'), constantArray([90, 90, 90])),
+            arrayContains(field('rounds'), constant(3)) as BooleanExpr
           )
         );
 
@@ -3783,8 +3666,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(gt(Field.of('score'), Constant.of(80)))
-        .sort(Field.of('rank').ascending())
+        .where(gt(field('score'), constant(80)))
+        .sort(field('rank').ascending())
         .limit(2);
 
       expect(
@@ -3801,8 +3684,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(gt(Field.of('score'), Constant.of(80)))
-        .sort(Field.of('rank').ascending())
+        .where(gt(field('score'), constant(80)))
+        .sort(field('rank').ascending())
         .offset(1);
 
       expect(
@@ -3819,9 +3702,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            gt(Field.of('score'), Constant.of(90)),
-            lt(Field.of('score'), Constant.of(100))
+          and(
+            gt(field('score'), constant(90)),
+            lt(field('score'), constant(100))
           )
         );
 
@@ -3837,10 +3720,7 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            gt(Field.of('score'), Constant.of(90)),
-            lt(Field.of('rank'), Constant.of(2))
-          )
+          and(gt(field('score'), constant(90)), lt(field('rank'), constant(2)))
         );
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc3]);
@@ -3855,10 +3735,7 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            gt(Field.of('score'), Constant.of(80)),
-            lt(Field.of('rank'), Constant.of(3))
-          )
+          and(gt(field('score'), constant(80)), lt(field('rank'), constant(3)))
         );
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
@@ -3876,10 +3753,7 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            gt(Field.of('score'), Constant.of(40)),
-            lt(Field.of('rank'), Constant.of(4))
-          )
+          and(gt(field('score'), constant(40)), lt(field('rank'), constant(4)))
         );
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
@@ -3898,10 +3772,7 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            lt(Field.of('score'), Constant.of(90)),
-            gt(Field.of('rank'), Constant.of(3))
-          )
+          and(lt(field('score'), constant(90)), gt(field('rank'), constant(3)))
         );
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
@@ -3917,11 +3788,11 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            gt(Field.of('rank'), Constant.of(0)),
-            lt(Field.of('rank'), Constant.of(4)),
-            gt(Field.of('score'), Constant.of(80)),
-            lt(Field.of('score'), Constant.of(95))
+          and(
+            gt(field('rank'), constant(0)),
+            lt(field('rank'), constant(4)),
+            gt(field('score'), constant(80)),
+            lt(field('score'), constant(95))
           )
         );
 
@@ -3939,12 +3810,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            lt(Field.of('rank'), Constant.of(3)),
-            gt(Field.of('score'), Constant.of(80))
-          )
+          and(lt(field('rank'), constant(3)), gt(field('score'), constant(80)))
         )
-        .sort(Field.of('rank').ascending());
+        .sort(field('rank').ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc3, doc1]
@@ -3960,12 +3828,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            lt(Field.of('rank'), Constant.of(3)),
-            gt(Field.of('score'), Constant.of(80))
-          )
+          and(lt(field('rank'), constant(3)), gt(field('score'), constant(80)))
         )
-        .sort(Field.of('rank').descending());
+        .sort(field('rank').descending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc1, doc3]
@@ -3981,12 +3846,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            lt(Field.of('rank'), Constant.of(3)),
-            gt(Field.of('score'), Constant.of(80))
-          )
+          and(lt(field('rank'), constant(3)), gt(field('score'), constant(80)))
         )
-        .sort(Field.of('rank').ascending(), Field.of('score').ascending());
+        .sort(field('rank').ascending(), field('score').ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc3, doc1]
@@ -4002,12 +3864,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            lt(Field.of('rank'), Constant.of(3)),
-            gt(Field.of('score'), Constant.of(80))
-          )
+          and(lt(field('rank'), constant(3)), gt(field('score'), constant(80)))
         )
-        .sort(Field.of('rank').descending(), Field.of('score').descending());
+        .sort(field('rank').descending(), field('score').descending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc1, doc3]
@@ -4023,12 +3882,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .collection('/users')
         .where(
-          andFunction(
-            lt(Field.of('rank'), Constant.of(3)),
-            gt(Field.of('score'), Constant.of(80))
-          )
+          and(lt(field('rank'), constant(3)), gt(field('score'), constant(80)))
         )
-        .sort(Field.of('score').descending(), Field.of('rank').descending());
+        .sort(field('score').descending(), field('rank').descending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc3, doc1]
@@ -4057,7 +3913,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(eq(Field.of('a.b.c.d.e.f.g.h.i.j.k'), Constant.of(42)));
+        .where(eq(field('a.b.c.d.e.f.g.h.i.j.k'), constant(42)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
     });
@@ -4082,8 +3938,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(gte(Field.of('a.b.c.d.e.f.g.h.i.j.k'), Constant.of(0)))
-        .sort(Field.of(DOCUMENT_KEY_NAME).ascending());
+        .where(gte(field('a.b.c.d.e.f.g.h.i.j.k'), constant(0)))
+        .sort(field(DOCUMENT_KEY_NAME).ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
         doc1,
@@ -4106,7 +3962,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(eq(Field.of('address.street'), Constant.of('76')));
+        .where(eq(field('address.street'), constant('76')));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
         doc2
@@ -4128,8 +3984,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(eq(Field.of('address.city'), Constant.of('San Francisco')))
-        .where(gt(Field.of('address.zip'), Constant.of(90000)));
+        .where(eq(field('address.city'), constant('San Francisco')))
+        .where(gt(field('address.zip'), constant(90000)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
         doc1
@@ -4153,11 +4009,11 @@ describe('runPipeline()', () => {
         .collection('/users')
         .where(
           eq(
-            Field.of('address'),
-            Constant.of({ city: 'San Francisco', state: 'CA', zip: 94105 })
+            field('address'),
+            constantMap({ city: 'San Francisco', state: 'CA', zip: 94105 })
           )
         )
-        .where(gt(Field.of('address.zip'), Constant.of(90000)));
+        .where(gt(field('address.zip'), constant(90000)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
         doc1
@@ -4182,8 +4038,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(eq(Field.of('address.city'), Constant.of('San Francisco')))
-        .where(gt(Field.of('address.zip'), Constant.of(90000)));
+        .where(eq(field('address.city'), constant('San Francisco')))
+        .where(gt(field('address.zip'), constant(90000)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
         doc1
@@ -4203,8 +4059,8 @@ describe('runPipeline()', () => {
     //   const doc4 = doc('users/d', 1000, {});
     //
     //   const pipeline = db.pipeline().collection('/users')
-    //     .where(eq(Field.of('address'), Constant.of({ city: 'San Francisco', state: 'CA', zip: 94105 })))
-    //     .where(gt(Field.of('address.zip'), Constant.of(90000)));
+    //     .where(eq(field('address'), constant({ city: 'San Francisco', state: 'CA', zip: 94105 })))
+    //     .where(gt(field('address.zip'), constant(90000)));
     //
     //   expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([doc1]);
     // });
@@ -4222,8 +4078,8 @@ describe('runPipeline()', () => {
     //   const doc4 = doc('users/d', 1000, {});
     //
     //   const pipeline = db.pipeline().collection('/users')
-    //     .where(eq(Field.of('address'), Constant.of({ city: 'San Francisco', state: 'CA', zip: 94105 })))
-    //     .where(gt(Field.of('address.zip'), Constant.of(90000)));
+    //     .where(eq(field('address'), constant({ city: 'San Francisco', state: 'CA', zip: 94105 })))
+    //     .where(gt(field('address.zip'), constant(90000)));
     //
     //   expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([doc1]);
     // });
@@ -4243,7 +4099,7 @@ describe('runPipeline()', () => {
       const pipeline1 = db
         .pipeline()
         .collection('/users')
-        .where(gt(Field.of('address.zip'), Constant.of(90000)));
+        .where(gt(field('address.zip'), constant(90000)));
       expect(runPipeline(pipeline1, [doc1, doc2, doc3, doc4])).to.deep.equal([
         doc1,
         doc3
@@ -4252,7 +4108,7 @@ describe('runPipeline()', () => {
       const pipeline2 = db
         .pipeline()
         .collection('/users')
-        .where(lt(Field.of('address.zip'), Constant.of(90000)));
+        .where(lt(field('address.zip'), constant(90000)));
       expect(runPipeline(pipeline2, [doc1, doc2, doc3, doc4])).to.deep.equal([
         doc2
       ]);
@@ -4260,13 +4116,13 @@ describe('runPipeline()', () => {
       const pipeline3 = db
         .pipeline()
         .collection('/users')
-        .where(lt(Field.of('address.zip'), Constant.of(0)));
+        .where(lt(field('address.zip'), constant(0)));
       expect(runPipeline(pipeline3, [doc1, doc2, doc3, doc4])).to.be.empty;
 
       const pipeline4 = db
         .pipeline()
         .collection('/users')
-        .where(neq(Field.of('address.zip'), Constant.of(10011)));
+        .where(neq(field('address.zip'), constant(10011)));
       expect(runPipeline(pipeline4, [doc1, doc2, doc3, doc4])).to.deep.equal([
         doc1,
         doc3
@@ -4288,7 +4144,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(exists(Field.of('address.street')));
+        .where(exists(field('address.street')));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
         doc2
@@ -4310,7 +4166,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(not(exists(Field.of('address.street'))));
+        .where(not(exists(field('address.street'))));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
         doc1,
@@ -4338,7 +4194,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(Field.of('address.street').isNull());
+        .where(field('address.street').isNull());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
     });
@@ -4362,7 +4218,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(not(Field.of('address.street').isNull()));
+        .where(not(field('address.street').isNull()));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
         doc2,
@@ -4390,8 +4246,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(exists(Field.of('address.street')))
-        .sort(Field.of('address.street').ascending());
+        .where(exists(field('address.street')))
+        .sort(field('address.street').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4])
@@ -4418,7 +4274,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .sort(Field.of('address.street').ascending());
+        .sort(field('address.street').ascending());
 
       const results = runPipeline(pipeline, [doc1, doc2, doc3, doc4]);
       expect(results).to.have.lengthOf(4);
@@ -4434,7 +4290,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(eq(Field.of('address.city'), Constant.of('San Francisco')));
+        .where(eq(field('address.city'), constant('San Francisco')));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc2]);
     });
@@ -4447,7 +4303,13 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(eq(Field.of('`address.city`'), Constant.of('San Francisco')));
+        // TODO(pipeline): Replace below with field('`address.city`') once we support it.
+        .where(
+          eq(
+            new Field(new FieldPath(['address.city'])),
+            constant('San Francisco')
+          )
+        );
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
     });
@@ -4461,10 +4323,7 @@ describe('runPipeline()', () => {
       const doc4 = doc('users/d', 1000, { score: NaN });
       const doc5 = doc('users/e', 1000, { bar: 42 });
 
-      const pipeline = db
-        .pipeline()
-        .database()
-        .where(Field.of('score').isNull());
+      const pipeline = db.pipeline().database().where(field('score').isNull());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -4481,7 +4340,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(not(isNull(Field.of('score'))));
+        .where(not(isNull(field('score'))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -4497,12 +4356,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(
-          andFunction(
-            Field.of('score').isNull(),
-            not(Field.of('score').isNull())
-          )
-        );
+        .where(and(field('score').isNull(), not(field('score').isNull())));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.be.empty;
     });
@@ -4514,7 +4368,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(eq(Field.of('score'), Constant.of(null)));
+        .where(eq(field('score'), constant(null)));
 
       expect(runPipeline(pipeline, [doc1, doc2])).to.deep.equal([doc1]);
     });
@@ -4528,7 +4382,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(eq(Field.of('score'), Field.of('rank')));
+        .where(eq(field('score'), field('rank')));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
         doc1
@@ -4542,7 +4396,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(eq(Field.of('score.bonus'), Constant.of(null)));
+        .where(eq(field('score.bonus'), constant(null)));
 
       expect(runPipeline(pipeline, [doc1, doc2])).to.deep.equal([doc1]);
     });
@@ -4555,9 +4409,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .database()
         .where(
-          andFunction(
-            eq(Field.of('score.bonus'), Constant.of(null)),
-            eq(Field.of('rank'), Constant.of(null))
+          and(
+            eq(field('score.bonus'), constant(null)),
+            eq(field('rank'), constant(null))
           )
         );
 
@@ -4572,9 +4426,9 @@ describe('runPipeline()', () => {
         .pipeline()
         .database()
         .where(
-          andFunction(
-            eq(Field.of('score'), Constant.of(42)),
-            eq(Field.of('rank'), Constant.of(null))
+          and(
+            eq(field('score'), constant(42)),
+            eq(field('rank'), constant(null))
           )
         );
 
@@ -4589,7 +4443,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(eqAny(Field.of('score'), [Constant.of(null)]));
+        .where(eqAny(field('score'), [constant(null)]));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
     });
@@ -4601,7 +4455,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(neq(Field.of('score'), Constant.of(null)));
+        .where(neq(field('score'), constant(null)));
 
       expect(runPipeline(pipeline, [doc1, doc2])).to.deep.equal([doc2]);
     });
@@ -4613,7 +4467,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(neq(Field.of('score'), Field.of('rank')));
+        .where(neq(field('score'), field('rank')));
 
       expect(runPipeline(pipeline, [doc1, doc2])).to.deep.equal([doc2]);
     });
@@ -4625,7 +4479,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(notEqAny(Field.of('score'), [Constant.of(null)]));
+        .where(notEqAny(field('score'), [constant(null)]));
 
       expect(runPipeline(pipeline, [doc1, doc2])).to.deep.equal([doc2]);
     });
@@ -4638,7 +4492,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(gt(Field.of('score'), Constant.of(null)));
+        .where(gt(field('score'), constant(null)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
     });
@@ -4651,7 +4505,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(gte(Field.of('score'), Constant.of(null)));
+        .where(gte(field('score'), constant(null)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
     });
@@ -4664,7 +4518,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(lt(Field.of('score'), Constant.of(null)));
+        .where(lt(field('score'), constant(null)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
     });
@@ -4677,7 +4531,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(lte(Field.of('score'), Constant.of(null)));
+        .where(lte(field('score'), constant(null)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
     });
@@ -4694,7 +4548,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(eq(Field.of('score'), Constant.of(-0.0)));
+        .where(eq(field('score'), constant(-0.0)));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -4711,7 +4565,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(eq(Field.of('score'), Constant.of(-0)));
+        .where(eq(field('score'), constant(-0)));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -4728,7 +4582,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(eq(Field.of('score'), Constant.of(0.0)));
+        .where(eq(field('score'), constant(0.0)));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -4745,7 +4599,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(eq(Field.of('score'), Constant.of(0)));
+        .where(eq(field('score'), constant(0)));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -4760,7 +4614,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(eq(Field.of('age'), Constant.of(NaN)));
+        .where(eq(field('age'), constant(NaN)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
     });
@@ -4773,7 +4627,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(lt(Field.of('age'), Constant.of(NaN)));
+        .where(lt(field('age'), constant(NaN)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
     });
@@ -4786,7 +4640,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(lte(Field.of('age'), Constant.of(NaN)));
+        .where(lte(field('age'), constant(NaN)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
     });
@@ -4799,7 +4653,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(gte(Field.of('age'), Constant.of(NaN)));
+        .where(gte(field('age'), constant(NaN)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
     });
@@ -4812,7 +4666,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(gt(Field.of('age'), Constant.of(NaN)));
+        .where(gt(field('age'), constant(NaN)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
     });
@@ -4825,7 +4679,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(neq(Field.of('age'), Constant.of(NaN)));
+        .where(neq(field('age'), constant(NaN)));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
         doc1,
@@ -4842,9 +4696,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(
-          eqAny(Field.of('name'), [Constant.of(NaN), Constant.of('alice')])
-        );
+        .where(eqAny(field('name'), [constant(NaN), constant('alice')]));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
     });
@@ -4857,7 +4709,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(eqAny(Field.of('age'), [Constant.of(NaN)]));
+        .where(eqAny(field('age'), [constant(NaN)]));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
     });
@@ -4870,7 +4722,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(arrayContains(Field.of('age'), Constant.of(NaN)));
+        .where(arrayContains(field('age'), constant(NaN)) as BooleanExpr);
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
     });
@@ -4884,10 +4736,7 @@ describe('runPipeline()', () => {
         .pipeline()
         .database()
         .where(
-          arrayContainsAny(Field.of('field'), [
-            Constant.of(NaN),
-            Constant.of('foo')
-          ])
+          arrayContainsAny(field('field'), [constant(NaN), constant('foo')])
         );
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc3]);
@@ -4901,7 +4750,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(notEqAny(Field.of('age'), [Constant.of(NaN), Constant.of(42)]));
+        .where(notEqAny(field('age'), [constant(NaN), constant(42)]));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
         doc2,
@@ -4917,7 +4766,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(notEqAny(Field.of('age'), [Constant.of(NaN)]));
+        .where(notEqAny(field('age'), [constant(NaN)]));
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
         doc1,
@@ -4933,7 +4782,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(eq(Field.of('foo'), Constant.of([NaN])));
+        .where(eq(field('foo'), constantArray([NaN])));
 
       expect(runPipeline(pipeline, [doc1, doc2])).to.be.empty;
     });
@@ -4942,7 +4791,7 @@ describe('runPipeline()', () => {
     //   const doc1 = doc('k/a', 1000, { foo: { a: NaN } });
     //   const doc2 = doc('k/b', 1000, { foo: { a: 42 } });
     //
-    //   const pipeline = db.pipeline().database().where(eq(Field.of('foo'), Constant.of({ a: NaN })));
+    //   const pipeline = db.pipeline().database().where(eq(field('foo'), constant({ a: NaN })));
     //
     //   expect(runPipeline(pipeline, [doc1, doc2])).to.be.empty;
     // });
@@ -5171,7 +5020,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .sort(Field.of('age').ascending());
+        .sort(field('age').ascending());
 
       expect(runPipeline(pipeline, [])).to.be.empty;
     });
@@ -5180,7 +5029,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .sort(Field.of('age').descending());
+        .sort(field('age').descending());
 
       expect(runPipeline(pipeline, [])).to.be.empty;
     });
@@ -5191,7 +5040,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .sort(Field.of('age').ascending());
+        .sort(field('age').ascending());
 
       expect(runPipeline(pipeline, [doc1])).to.deep.equal([doc1]);
     });
@@ -5202,8 +5051,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(exists(Field.of('age')))
-        .sort(Field.of('age').ascending());
+        .where(exists(field('age')))
+        .sort(field('age').ascending());
 
       expect(runPipeline(pipeline, [doc1])).to.deep.equal([doc1]);
     });
@@ -5214,8 +5063,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(not(exists(Field.of('age'))))
-        .sort(Field.of('age').ascending());
+        .where(not(exists(field('age'))))
+        .sort(field('age').ascending());
 
       expect(runPipeline(pipeline, [doc1])).to.be.empty;
     });
@@ -5226,8 +5075,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(eq(Field.of('age'), Constant.of(10)))
-        .sort(Field.of('age').ascending());
+        .where(eq(field('age'), constant(10)))
+        .sort(field('age').ascending());
 
       expect(runPipeline(pipeline, [doc1])).to.deep.equal([doc1]);
     });
@@ -5238,7 +5087,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .sort(Field.of('age').descending());
+        .sort(field('age').descending());
 
       expect(runPipeline(pipeline, [doc1])).to.deep.equal([doc1]);
     });
@@ -5249,8 +5098,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(exists(Field.of('age')))
-        .sort(Field.of('age').descending());
+        .where(exists(field('age')))
+        .sort(field('age').descending());
 
       expect(runPipeline(pipeline, [doc1])).to.deep.equal([doc1]);
     });
@@ -5261,8 +5110,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(eq(Field.of('age'), Constant.of(10)))
-        .sort(Field.of('age').descending());
+        .where(eq(field('age'), constant(10)))
+        .sort(field('age').descending());
 
       expect(runPipeline(pipeline, [doc1])).to.deep.equal([doc1]);
     });
@@ -5277,7 +5126,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .sort(Field.of('age').descending());
+        .sort(field('age').descending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -5294,8 +5143,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(exists(Field.of('age')))
-        .sort(Field.of('age').descending());
+        .where(exists(field('age')))
+        .sort(field('age').descending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -5312,8 +5161,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(gt(Field.of('age'), Constant.of(0)))
-        .sort(Field.of('age').descending());
+        .where(gt(field('age'), constant(0)))
+        .sort(field('age').descending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -5330,7 +5179,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .sort(Field.of('age').descending(), Field.of('name').ascending());
+        .sort(field('age').descending(), field('name').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -5347,9 +5196,9 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(exists(Field.of('age')))
-        .where(exists(Field.of('name')))
-        .sort(Field.of('age').descending(), Field.of('name').ascending());
+        .where(exists(field('age')))
+        .where(exists(field('name')))
+        .sort(field('age').descending(), field('name').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -5366,9 +5215,9 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(not(exists(Field.of('age'))))
-        .where(not(exists(Field.of('name'))))
-        .sort(Field.of('age').descending(), Field.of('name').ascending());
+        .where(not(exists(field('age'))))
+        .where(not(exists(field('name'))))
+        .sort(field('age').descending(), field('name').ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.contain(
         doc4
@@ -5391,9 +5240,9 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(eq(Field.of('age'), Field.of('age')))
-        .where(regexMatch(Field.of('name'), Constant.of('.*')))
-        .sort(Field.of('age').descending(), Field.of('name').ascending());
+        .where(eq(field('age'), field('age')))
+        .where(regexMatch(field('name'), constant('.*')))
+        .sort(field('age').descending(), field('name').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -5410,8 +5259,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(exists(Field.of('name')))
-        .sort(Field.of('age').descending(), Field.of('name').ascending());
+        .where(exists(field('name')))
+        .sort(field('age').descending(), field('name').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -5428,8 +5277,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(not(exists(Field.of('name'))))
-        .sort(Field.of('age').descending(), Field.of('name').descending());
+        .where(not(exists(field('name'))))
+        .sort(field('age').descending(), field('name').descending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -5446,8 +5295,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(not(exists(Field.of('name'))))
-        .sort(Field.of('name').descending(), Field.of('age').descending());
+        .where(not(exists(field('name'))))
+        .sort(field('name').descending(), field('age').descending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -5464,8 +5313,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(regexMatch(Field.of('name'), Constant.of('.*')))
-        .sort(Field.of('age').descending(), Field.of('name').ascending());
+        .where(regexMatch(field('name'), constant('.*')))
+        .sort(field('age').descending(), field('name').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -5482,7 +5331,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .sort(Field.of('not_age').descending());
+        .sort(field('not_age').descending());
 
       // Any order is acceptable.
       expect(
@@ -5500,8 +5349,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(exists(Field.of('not_age')))
-        .sort(Field.of('not_age').descending());
+        .where(exists(field('not_age')))
+        .sort(field('not_age').descending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.be.empty;
     });
@@ -5516,7 +5365,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .sort(Field.of('age').ascending());
+        .sort(field('age').ascending());
 
       // Any order is acceptable.
       expect(
@@ -5534,8 +5383,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(exists(Field.of('age')))
-        .sort(Field.of('age').ascending());
+        .where(exists(field('age')))
+        .sort(field('age').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -5552,8 +5401,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(not(exists(Field.of('age'))))
-        .sort(Field.of('age').ascending());
+        .where(not(exists(field('age'))))
+        .sort(field('age').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -5570,7 +5419,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .sort(Field.of('age').ascending())
+        .sort(field('age').ascending())
         .limit(2);
 
       expect(
@@ -5588,8 +5437,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(exists(Field.of('age')))
-        .sort(Field.of('age').ascending())
+        .where(exists(field('age')))
+        .sort(field('age').ascending())
         .limit(2);
 
       expect(
@@ -5607,8 +5456,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(not(exists(Field.of('age'))))
-        .sort(Field.of('age').ascending())
+        .where(not(exists(field('age'))))
+        .sort(field('age').ascending())
         .limit(2);
 
       expect(
@@ -5626,7 +5475,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .sort(Field.of('age').ascending())
+        .sort(field('age').ascending())
         .limit(0);
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.be.empty;
@@ -5643,7 +5492,7 @@ describe('runPipeline()', () => {
         .pipeline()
         .collectionGroup('users')
         .limit(1)
-        .sort(Field.of('age').ascending());
+        .sort(field('age').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -5660,9 +5509,9 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collectionGroup('users')
-        .where(exists(Field.of('age')))
+        .where(exists(field('age')))
         .limit(1)
-        .sort(Field.of('age').ascending());
+        .sort(field('age').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -5679,9 +5528,9 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collectionGroup('users')
-        .where(not(exists(Field.of('age'))))
+        .where(not(exists(field('age'))))
         .limit(1)
-        .sort(Field.of('age').ascending());
+        .sort(field('age').ascending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -5699,8 +5548,8 @@ describe('runPipeline()', () => {
         .pipeline()
         .collectionGroup('users')
         .limit(2)
-        .where(not(exists(Field.of('age'))))
-        .sort(Field.of('age').ascending());
+        .where(not(exists(field('age'))))
+        .sort(field('age').ascending());
 
       // The right sematics would accept [], [doc4], [doc5], [doc4, doc5] [doc5, doc4].
       // We only test the first possibility here because of the implied order limit
@@ -5719,7 +5568,7 @@ describe('runPipeline()', () => {
         .pipeline()
         .collectionGroup('users')
         .limit(0)
-        .sort(Field.of('age').ascending());
+        .sort(field('age').ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.be.empty;
     });
@@ -5734,7 +5583,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collectionGroup('users')
-        .sort(add(Field.of('age'), Constant.of(10)).descending());
+        .sort(add(field('age'), constant(10)).descending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -5751,8 +5600,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collectionGroup('users')
-        .where(exists(Field.of('age')))
-        .sort(add(Field.of('age'), Constant.of(10)).descending());
+        .where(exists(field('age')))
+        .sort(add(field('age'), constant(10)).descending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -5769,8 +5618,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collectionGroup('users')
-        .where(not(exists(Field.of('age'))))
-        .sort(add(Field.of('age'), Constant.of(10)).descending());
+        .where(not(exists(field('age'))))
+        .sort(add(field('age'), constant(10)).descending());
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -5785,9 +5634,9 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(exists(Field.of(DOCUMENT_KEY_NAME)))
-        .sort(Field.of(DOCUMENT_KEY_NAME).ascending())
-        .sort(Field.of('age').ascending());
+        .where(exists(field(DOCUMENT_KEY_NAME)))
+        .sort(field(DOCUMENT_KEY_NAME).ascending())
+        .sort(field('age').ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc2, doc1, doc3]
@@ -5802,9 +5651,9 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(exists(Field.of(DOCUMENT_KEY_NAME)))
-        .sort(Field.of('age').ascending())
-        .sort(Field.of(DOCUMENT_KEY_NAME).ascending());
+        .where(exists(field(DOCUMENT_KEY_NAME)))
+        .sort(field('age').ascending())
+        .sort(field(DOCUMENT_KEY_NAME).ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc1, doc2, doc3]
@@ -5819,9 +5668,9 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(exists(Field.of(DOCUMENT_KEY_NAME)))
-        .sort(Field.of(DOCUMENT_KEY_NAME).ascending())
-        .sort(Field.of('age').ascending());
+        .where(exists(field(DOCUMENT_KEY_NAME)))
+        .sort(field(DOCUMENT_KEY_NAME).ascending())
+        .sort(field('age').ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc2, doc1, doc3]
@@ -5836,9 +5685,9 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(exists(Field.of(DOCUMENT_KEY_NAME)))
-        .sort(Field.of('age').ascending())
-        .sort(Field.of(DOCUMENT_KEY_NAME).ascending());
+        .where(exists(field(DOCUMENT_KEY_NAME)))
+        .sort(field('age').ascending())
+        .sort(field(DOCUMENT_KEY_NAME).ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc1, doc2, doc3]
@@ -5855,7 +5704,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/🐵')
-        .sort(Field.of('`Ł`').ascending());
+        .sort(field('Ł').ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc1, doc2, doc3]
@@ -5865,7 +5714,7 @@ describe('runPipeline()', () => {
     // TODO(pipeline): SDK's surrogates ordering has always been incompatible with
     // backends, which comes from ICU4J. We need to replicate the semantics of that.
     // Skipping below tests until then.
-    it.skip('unicodeSurrogates', () => {
+    it('unicodeSurrogates', () => {
       const doc1 = doc('users/a', 1000, { str: '🄟' });
       const doc2 = doc('users/b', 1000, { str: 'Ｐ' });
       const doc3 = doc('users/c', 1000, { str: '︒' });
@@ -5874,12 +5723,12 @@ describe('runPipeline()', () => {
         .pipeline()
         .database()
         .where(
-          andFunction(
-            lte(Field.of('str'), Constant.of('🄟')),
-            gte(Field.of('str'), Constant.of('Ｐ'))
+          and(
+            lte(field('str'), constant('🄟')),
+            gte(field('str'), constant('Ｐ'))
           )
         )
-        .sort(Field.of('str').ascending());
+        .sort(field('str').ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc2, doc1]
@@ -5891,10 +5740,7 @@ describe('runPipeline()', () => {
       const doc2 = doc('users/b', 1000, { foo: ['Ｐ'] });
       const doc3 = doc('users/c', 1000, { foo: ['︒'] });
 
-      const pipeline = db
-        .pipeline()
-        .database()
-        .sort(Field.of('foo').ascending());
+      const pipeline = db.pipeline().database().sort(field('foo').ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc3, doc2, doc1]
@@ -5906,10 +5752,7 @@ describe('runPipeline()', () => {
       const doc2 = doc('users/b', 1000, { map: { '🄟': true, '︒': true } });
       const doc3 = doc('users/c', 1000, { map: { 'Ｐ': true, '︒': true } });
 
-      const pipeline = db
-        .pipeline()
-        .database()
-        .sort(Field.of('map').ascending());
+      const pipeline = db.pipeline().database().sort(field('map').ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc1, doc3, doc2]
@@ -5921,10 +5764,7 @@ describe('runPipeline()', () => {
       const doc2 = doc('users/b', 1000, { map: { foo: '🄟' } });
       const doc3 = doc('users/c', 1000, { map: { foo: 'Ｐ' } });
 
-      const pipeline = db
-        .pipeline()
-        .database()
-        .sort(Field.of('map').ascending());
+      const pipeline = db.pipeline().database().sort(field('map').ascending());
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.have.ordered.members(
         [doc1, doc3, doc2]
@@ -5939,7 +5779,7 @@ describe('runPipeline()', () => {
           db
             .pipeline()
             .database()
-            .where(gte(Field.of('age'), Constant.of(10))),
+            .where(gte(field('age'), constant(10))),
           []
         )
       ).to.be.empty;
@@ -5956,10 +5796,7 @@ describe('runPipeline()', () => {
         .pipeline()
         .database()
         .where(
-          andFunction(
-            gte(Field.of('age'), Constant.of(10)),
-            gte(Field.of('age'), Constant.of(20))
-          )
+          and(gte(field('age'), constant(10)), gte(field('age'), constant(20)))
         );
 
       expect(
@@ -5975,11 +5812,11 @@ describe('runPipeline()', () => {
       const pipeline1 = db
         .pipeline()
         .database()
-        .where(eq(Field.of('age'), Constant.of(25)));
+        .where(eq(field('age'), constant(25)));
       const pipeline2 = db
         .pipeline()
         .database()
-        .where(eq(Constant.of(25), Field.of('age')));
+        .where(eq(constant(25), field('age')));
 
       const result1 = runPipeline(pipeline1, [doc1, doc2, doc3]);
       const result2 = runPipeline(pipeline2, [doc1, doc2, doc3]);
@@ -5997,19 +5834,13 @@ describe('runPipeline()', () => {
         .pipeline()
         .database()
         .where(
-          andFunction(
-            gt(Field.of('age'), Constant.of(10)),
-            lt(Field.of('age'), Constant.of(70))
-          )
+          and(gt(field('age'), constant(10)), lt(field('age'), constant(70)))
         );
       const pipeline2 = db
         .pipeline()
         .database()
         .where(
-          andFunction(
-            lt(Field.of('age'), Constant.of(70)),
-            gt(Field.of('age'), Constant.of(10))
-          )
+          and(lt(field('age'), constant(70)), gt(field('age'), constant(10)))
         );
 
       const result1 = runPipeline(pipeline1, [doc1, doc2, doc3]);
@@ -6028,19 +5859,13 @@ describe('runPipeline()', () => {
         .pipeline()
         .database()
         .where(
-          orFunction(
-            lt(Field.of('age'), Constant.of(10)),
-            gt(Field.of('age'), Constant.of(80))
-          )
+          or(lt(field('age'), constant(10)), gt(field('age'), constant(80)))
         );
       const pipeline2 = db
         .pipeline()
         .database()
         .where(
-          orFunction(
-            gt(Field.of('age'), Constant.of(80)),
-            lt(Field.of('age'), Constant.of(10))
-          )
+          or(gt(field('age'), constant(80)), lt(field('age'), constant(10)))
         );
 
       const result1 = runPipeline(pipeline1, [doc1, doc2, doc3]);
@@ -6059,18 +5884,18 @@ describe('runPipeline()', () => {
         .pipeline()
         .database()
         .where(
-          eqAny(Field.of('name'), [
-            Constant.of('alice'),
-            Constant.of('matthew'),
-            Constant.of('joe')
+          eqAny(field('name'), [
+            constant('alice'),
+            constant('matthew'),
+            constant('joe')
           ])
         );
       const pipeline2 = db
         .pipeline()
         .database()
         .where(
-          arrayContainsAny(Constant.of(['alice', 'matthew', 'joe']), [
-            Field.of('name')
+          arrayContainsAny(constantArray(['alice', 'matthew', 'joe']), [
+            field('name')
           ])
         );
 
@@ -6091,8 +5916,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(gte(Field.of('age'), Constant.of(10)))
-        .where(gte(Field.of('age'), Constant.of(20)));
+        .where(gte(field('age'), constant(10)))
+        .where(gte(field('age'), constant(20)));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -6109,8 +5934,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(eq(Field.of('age'), Constant.of(75)))
-        .where(eq(Field.of('height'), Constant.of(55)));
+        .where(eq(field('age'), constant(75)))
+        .where(eq(field('height'), constant(55)));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -6127,8 +5952,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(gt(Field.of('age'), Constant.of(50)))
-        .where(lt(Field.of('height'), Constant.of(75)));
+        .where(gt(field('age'), constant(50)))
+        .where(lt(field('height'), constant(75)));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -6145,8 +5970,8 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(like(Field.of('first'), Constant.of('%a%')))
-        .where(like(Field.of('last'), Constant.of('%er')));
+        .where(like(field('first'), constant('%a%')))
+        .where(like(field('last'), constant('%er')));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -6188,9 +6013,9 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .collection('/users')
-        .where(eq(Field.of('age'), Constant.of(75)))
-        .where(gt(Field.of('height'), Constant.of(45)))
-        .where(like(Field.of('last'), Constant.of('%er')));
+        .where(eq(field('age'), constant(75)))
+        .where(gt(field('height'), constant(45)))
+        .where(like(field('last'), constant('%er')));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -6207,7 +6032,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(exists(Field.of('name')));
+        .where(exists(field('name')));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -6224,7 +6049,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(not(exists(Field.of('name'))));
+        .where(not(exists(field('name'))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -6241,7 +6066,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(not(not(exists(Field.of('name')))));
+        .where(not(not(exists(field('name')))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -6258,7 +6083,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(andFunction(exists(Field.of('name')), exists(Field.of('age'))));
+        .where(and(exists(field('name')), exists(field('age'))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -6275,7 +6100,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(orFunction(exists(Field.of('name')), exists(Field.of('age'))));
+        .where(or(exists(field('name')), exists(field('age'))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -6292,9 +6117,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(
-          not(andFunction(exists(Field.of('name')), exists(Field.of('age'))))
-        );
+        .where(not(and(exists(field('name')), exists(field('age')))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -6311,9 +6134,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(
-          not(orFunction(exists(Field.of('name')), exists(Field.of('age'))))
-        );
+        .where(not(or(exists(field('name')), exists(field('age')))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -6330,7 +6151,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(not(xor(exists(Field.of('name')), exists(Field.of('age')))));
+        .where(not(xor(exists(field('name')), exists(field('age')))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -6347,12 +6168,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(
-          andFunction(
-            not(exists(Field.of('name'))),
-            not(exists(Field.of('age')))
-          )
-        );
+        .where(and(not(exists(field('name'))), not(exists(field('age')))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -6369,12 +6185,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(
-          orFunction(
-            not(exists(Field.of('name'))),
-            not(exists(Field.of('age')))
-          )
-        );
+        .where(or(not(exists(field('name'))), not(exists(field('age')))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -6391,9 +6202,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(
-          xor(not(exists(Field.of('name'))), not(exists(Field.of('age'))))
-        );
+        .where(xor(not(exists(field('name'))), not(exists(field('age')))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -6410,9 +6219,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(
-          andFunction(not(exists(Field.of('name'))), exists(Field.of('age')))
-        );
+        .where(and(not(exists(field('name'))), exists(field('age'))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -6429,9 +6236,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(
-          orFunction(not(exists(Field.of('name'))), exists(Field.of('age')))
-        );
+        .where(or(not(exists(field('name'))), exists(field('age'))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -6448,7 +6253,7 @@ describe('runPipeline()', () => {
       const pipeline = db
         .pipeline()
         .database()
-        .where(xor(not(exists(Field.of('name'))), exists(Field.of('age'))));
+        .where(xor(not(exists(field('name'))), exists(field('age'))));
 
       expect(
         runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])
@@ -6464,10 +6269,7 @@ describe('runPipeline()', () => {
         .pipeline()
         .database()
         .where(
-          divide(
-            Constant.of('100'),
-            Constant.of('50')
-          ) as unknown as FilterCondition
+          divide(constant('100'), constant('50')) as unknown as BooleanExpr
         );
 
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
@@ -6478,19 +6280,19 @@ describe('runPipeline()', () => {
       const doc2 = doc('users/b', 1000, { a: 1, b: 2 });
       const doc3 = doc('users/c', 1000, { a: 2, b: 2 });
 
-      const equalityArgument1 = eq(Field.of('a'), Constant.of(1));
-      const equalityArgument2 = eq(Field.of('b'), Constant.of(2));
+      const equalityArgument1 = eq(field('a'), constant(1));
+      const equalityArgument2 = eq(field('b'), constant(2));
 
       let pipeline = db
         .pipeline()
         .database()
-        .where(andFunction(equalityArgument1, equalityArgument2));
+        .where(and(equalityArgument1, equalityArgument2));
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc2]);
 
       pipeline = db
         .pipeline()
         .database()
-        .where(andFunction(equalityArgument2, equalityArgument1));
+        .where(and(equalityArgument2, equalityArgument1));
       expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc2]);
 
       pipeline = db

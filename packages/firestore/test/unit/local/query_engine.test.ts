@@ -87,7 +87,7 @@ import {
 import { newTestFirestore } from '../../util/api_helpers';
 import { Pipeline } from '../../../src/lite-api/pipeline';
 import { CorePipeline } from '../../../src/core/pipeline_run';
-import { ascending, Field } from '../../../lite/pipelines/pipelines';
+import { ascending, field } from '../../../lite/pipelines/pipelines';
 
 const TEST_TARGET_ID = 1;
 
@@ -793,23 +793,23 @@ function genericQueryEngineTest(
       const query1 = db
         .pipeline()
         .database()
-        .sort(ascending(Field.of('__name__')));
+        .sort(ascending(field('__name__')));
       const result1 = await expectFullCollectionQuery(() =>
         runQuery(toCorePipeline(query1), MISSING_LAST_LIMBO_FREE_SNAPSHOT)
       );
       verifyResult(result1, [doc1, doc2, doc3, doc4, doc5, doc6]);
 
       const query2 = query1
-        .where(Field.of('a').gte(2))
-        .sort(Field.of('__name__').descending());
+        .where(field('a').gte(2))
+        .sort(field('__name__').descending());
       const result2 = await expectFullCollectionQuery(() =>
         runQuery(toCorePipeline(query2), MISSING_LAST_LIMBO_FREE_SNAPSHOT)
       );
       verifyResult(result2, [doc6, doc3]);
 
       const query3 = query1
-        .where(Field.of('b').lte(2))
-        .sort(Field.of('a').descending());
+        .where(field('b').lte(2))
+        .sort(field('a').descending());
       const result3 = await expectFullCollectionQuery(() =>
         runQuery(toCorePipeline(query3), MISSING_LAST_LIMBO_FREE_SNAPSHOT)
       );
@@ -828,23 +828,23 @@ function genericQueryEngineTest(
       const query1 = db
         .pipeline()
         .collection('coll')
-        .sort(ascending(Field.of('__name__')));
+        .sort(ascending(field('__name__')));
       const result1 = await expectFullCollectionQuery(() =>
         runQuery(toCorePipeline(query1), MISSING_LAST_LIMBO_FREE_SNAPSHOT)
       );
       verifyResult(result1, [doc1, doc2, doc3, doc4, doc5, doc6]);
 
       const query2 = query1
-        .where(Field.of('a').gte(2))
-        .sort(Field.of('__name__').descending());
+        .where(field('a').gte(2))
+        .sort(field('__name__').descending());
       const result2 = await expectFullCollectionQuery(() =>
         runQuery(toCorePipeline(query2), MISSING_LAST_LIMBO_FREE_SNAPSHOT)
       );
       verifyResult(result2, [doc6, doc3]);
 
       const query3 = query1
-        .where(Field.of('b').lte(2))
-        .sort(Field.of('a').descending());
+        .where(field('b').lte(2))
+        .sort(field('a').descending());
       const result3 = await expectFullCollectionQuery(() =>
         runQuery(toCorePipeline(query3), MISSING_LAST_LIMBO_FREE_SNAPSHOT)
       );
@@ -863,23 +863,23 @@ function genericQueryEngineTest(
       const query1 = db
         .pipeline()
         .collectionGroup('group')
-        .sort(ascending(Field.of('__name__')));
+        .sort(ascending(field('__name__')));
       const result1 = await expectFullCollectionQuery(() =>
         runQuery(toCorePipeline(query1), MISSING_LAST_LIMBO_FREE_SNAPSHOT)
       );
       verifyResult(result1, [doc1, doc2, doc4, doc5, doc6]);
 
       const query2 = query1
-        .where(Field.of('a').gte(2))
-        .sort(Field.of('__name__').descending());
+        .where(field('a').gte(2))
+        .sort(field('__name__').descending());
       const result2 = await expectFullCollectionQuery(() =>
         runQuery(toCorePipeline(query2), MISSING_LAST_LIMBO_FREE_SNAPSHOT)
       );
       verifyResult(result2, [doc6]);
 
       const query3 = query1
-        .where(Field.of('b').lte(2))
-        .sort(Field.of('a').descending());
+        .where(field('b').lte(2))
+        .sort(field('a').descending());
       const result3 = await expectFullCollectionQuery(() =>
         runQuery(toCorePipeline(query3), MISSING_LAST_LIMBO_FREE_SNAPSHOT)
       );

@@ -98,6 +98,7 @@ export function execute(pipeline: LitePipeline): Promise<PipelineSnapshot> {
               ? new DocumentReference(firestore, null, element.key)
               : undefined,
             element.fields,
+            element.executionTime?.toTimestamp(),
             element.createTime?.toTimestamp(),
             element.updateTime?.toTimestamp()
           )
@@ -121,14 +122,17 @@ Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
 
 Firestore.prototype.realtimePipeline =
   function (): PipelineSource<RealtimePipeline> {
-    return new PipelineSource<RealtimePipeline>(this._databaseId, (stages: Stage[]) => {
-      return new RealtimePipeline(
-        this,
-        newUserDataReader(this),
-        new ExpUserDataWriter(this),
-        stages
-      );
-    });
+    return new PipelineSource<RealtimePipeline>(
+      this._databaseId,
+      (stages: Stage[]) => {
+        return new RealtimePipeline(
+          this,
+          newUserDataReader(this),
+          new ExpUserDataWriter(this),
+          stages
+        );
+      }
+    );
   };
 
 /**

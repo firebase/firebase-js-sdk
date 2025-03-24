@@ -21,7 +21,12 @@ import { EvaluationContext, PipelineInputOutput } from './pipeline_run';
 import {
   Field,
   Constant,
-  BooleanExpr, Expr, FunctionExpr
+  BooleanExpr,
+  Expr,
+  FunctionExpr,
+  AggregateFunction,
+  ListOfExprs,
+  isNan
 } from '../lite-api/expressions';
 import {
   CREATE_TIME_NAME,
@@ -57,6 +62,7 @@ import { toName, toTimestamp, toVersion } from '../remote/serializer';
 import { exprFromProto } from './pipeline_serialize';
 import { isNegativeZero } from '../util/types';
 import { logWarn } from '../util/log';
+import { hardAssert } from '../util/assert';
 
 export interface EvaluableExpr {
   evaluate(
@@ -70,135 +76,147 @@ export function toEvaluable<T extends Expr>(expr: T): EvaluableExpr {
     return new CoreField(expr);
   } else if (expr instanceof Constant) {
     return new CoreConstant(expr);
-  } else if (expr instanceof Add) {
-    return new CoreAdd(expr);
-  } else if (expr instanceof Subtract) {
-    return new CoreSubtract(expr);
-  } else if (expr instanceof Multiply) {
-    return new CoreMultiply(expr);
-  } else if (expr instanceof Divide) {
-    return new CoreDivide(expr);
-  } else if (expr instanceof Mod) {
-    return new CoreMod(expr);
-  } else if (expr instanceof And) {
-    return new CoreAnd(expr);
-  } else if (expr instanceof Eq) {
-    return new CoreEq(expr);
-  } else if (expr instanceof Neq) {
-    return new CoreNeq(expr);
-  } else if (expr instanceof Lt) {
-    return new CoreLt(expr);
-  } else if (expr instanceof Lte) {
-    return new CoreLte(expr);
-  } else if (expr instanceof Gt) {
-    return new CoreGt(expr);
-  } else if (expr instanceof Gte) {
-    return new CoreGte(expr);
-  } else if (expr instanceof ArrayConcat) {
-    return new CoreArrayConcat(expr);
-  } else if (expr instanceof ArrayReverse) {
-    return new CoreArrayReverse(expr);
-  } else if (expr instanceof ArrayContains) {
-    return new CoreArrayContains(expr);
-  } else if (expr instanceof ArrayContainsAll) {
-    return new CoreArrayContainsAll(expr);
-  } else if (expr instanceof ArrayContainsAny) {
-    return new CoreArrayContainsAny(expr);
-  } else if (expr instanceof ArrayLength) {
-    return new CoreArrayLength(expr);
-  } else if (expr instanceof ArrayElement) {
-    return new CoreArrayElement(expr);
-  } else if (expr instanceof EqAny) {
-    return new CoreEqAny(expr);
-  } else if (expr instanceof NotEqAny) {
-    return new CoreNotEqAny(expr);
-  } else if (expr instanceof IsNan) {
-    return new CoreIsNan(expr);
-  } else if (expr instanceof IsNull) {
-    return new CoreIsNull(expr);
-  } else if (expr instanceof Exists) {
-    return new CoreExists(expr);
-  } else if (expr instanceof Not) {
-    return new CoreNot(expr);
-  } else if (expr instanceof Or) {
-    return new CoreOr(expr);
-  } else if (expr instanceof Xor) {
-    return new CoreXor(expr);
-  } else if (expr instanceof Cond) {
-    return new CoreCond(expr);
-  } else if (expr instanceof LogicalMaximum) {
-    return new CoreLogicalMaximum(expr);
-  } else if (expr instanceof LogicalMinimum) {
-    return new CoreLogicalMinimum(expr);
-  } else if (expr instanceof Reverse) {
-    return new CoreReverse(expr);
-  } else if (expr instanceof ReplaceFirst) {
-    return new CoreReplaceFirst(expr);
-  } else if (expr instanceof ReplaceAll) {
-    return new CoreReplaceAll(expr);
-  } else if (expr instanceof CharLength) {
-    return new CoreCharLength(expr);
-  } else if (expr instanceof ByteLength) {
-    return new CoreByteLength(expr);
-  } else if (expr instanceof Like) {
-    return new CoreLike(expr);
-  } else if (expr instanceof RegexContains) {
-    return new CoreRegexContains(expr);
-  } else if (expr instanceof RegexMatch) {
-    return new CoreRegexMatch(expr);
-  } else if (expr instanceof StrContains) {
-    return new CoreStrContains(expr);
-  } else if (expr instanceof StartsWith) {
-    return new CoreStartsWith(expr);
-  } else if (expr instanceof EndsWith) {
-    return new CoreEndsWith(expr);
-  } else if (expr instanceof ToLower) {
-    return new CoreToLower(expr);
-  } else if (expr instanceof ToUpper) {
-    return new CoreToUpper(expr);
-  } else if (expr instanceof Trim) {
-    return new CoreTrim(expr);
-  } else if (expr instanceof StrConcat) {
-    return new CoreStrConcat(expr);
-  } else if (expr instanceof MapGet) {
-    return new CoreMapGet(expr);
-  } else if (expr instanceof Count) {
-    return new CoreCount(expr);
-  } else if (expr instanceof Sum) {
-    return new CoreSum(expr);
-  } else if (expr instanceof Avg) {
-    return new CoreAvg(expr);
-  } else if (expr instanceof Minimum) {
-    return new CoreMinimum(expr);
-  } else if (expr instanceof Maximum) {
-    return new CoreMaximum(expr);
-  } else if (expr instanceof CosineDistance) {
-    return new CoreCosineDistance(expr);
-  } else if (expr instanceof DotProduct) {
-    return new CoreDotProduct(expr);
-  } else if (expr instanceof EuclideanDistance) {
-    return new CoreEuclideanDistance(expr);
-  } else if (expr instanceof VectorLength) {
-    return new CoreVectorLength(expr);
-  } else if (expr instanceof UnixMicrosToTimestamp) {
-    return new CoreUnixMicrosToTimestamp(expr);
-  } else if (expr instanceof TimestampToUnixMicros) {
-    return new CoreTimestampToUnixMicros(expr);
-  } else if (expr instanceof UnixMillisToTimestamp) {
-    return new CoreUnixMillisToTimestamp(expr);
-  } else if (expr instanceof TimestampToUnixMillis) {
-    return new CoreTimestampToUnixMillis(expr);
-  } else if (expr instanceof UnixSecondsToTimestamp) {
-    return new CoreUnixSecondsToTimestamp(expr);
-  } else if (expr instanceof TimestampToUnixSeconds) {
-    return new CoreTimestampToUnixSeconds(expr);
-  } else if (expr instanceof TimestampAdd) {
-    return new CoreTimestampAdd(expr);
-  } else if (expr instanceof TimestampSub) {
-    return new CoreTimestampSub(expr);
+  } else if (expr instanceof ListOfExprs) {
+    return new CoreListOfExprs(expr);
+  } else if (expr.exprType === 'Function') {
+    let functionExpr = expr as unknown as FunctionExpr;
+    if (functionExpr.name === 'add') {
+      return new CoreAdd(functionExpr);
+    } else if (functionExpr.name === 'subtract') {
+      return new CoreSubtract(functionExpr);
+    } else if (functionExpr.name === 'multiply') {
+      return new CoreMultiply(functionExpr);
+    } else if (functionExpr.name === 'divide') {
+      return new CoreDivide(functionExpr);
+    } else if (functionExpr.name === 'mod') {
+      return new CoreMod(functionExpr);
+    } else if (functionExpr.name === 'and') {
+      return new CoreAnd(functionExpr);
+    } else if (functionExpr.name === 'eq') {
+      return new CoreEq(functionExpr);
+    } else if (functionExpr.name === 'neq') {
+      return new CoreNeq(functionExpr);
+    } else if (functionExpr.name === 'lt') {
+      return new CoreLt(functionExpr);
+    } else if (functionExpr.name === 'lte') {
+      return new CoreLte(functionExpr);
+    } else if (functionExpr.name === 'gt') {
+      return new CoreGt(functionExpr);
+    } else if (functionExpr.name === 'gte') {
+      return new CoreGte(functionExpr);
+    } else if (functionExpr.name === 'array_concat') {
+      return new CoreArrayConcat(functionExpr);
+    } else if (functionExpr.name === 'array_reverse') {
+      return new CoreArrayReverse(functionExpr);
+    } else if (functionExpr.name === 'array_contains') {
+      return new CoreArrayContains(functionExpr);
+    } else if (functionExpr.name === 'array_contains_all') {
+      return new CoreArrayContainsAll(functionExpr);
+    } else if (functionExpr.name === 'array_contains_any') {
+      return new CoreArrayContainsAny(functionExpr);
+    } else if (functionExpr.name === 'array_length') {
+      return new CoreArrayLength(functionExpr);
+    } else if (functionExpr.name === 'array_element') {
+      return new CoreArrayElement(functionExpr);
+    } else if (functionExpr.name === 'eq_any') {
+      return new CoreEqAny(functionExpr);
+    } else if (functionExpr.name === 'not_eq_any') {
+      return new CoreNotEqAny(functionExpr);
+    } else if (functionExpr.name === 'is_nan') {
+      return new CoreIsNan(functionExpr);
+    } else if (functionExpr.name === 'is_not_nan') {
+      return new CoreIsNotNan(functionExpr);
+    } else if (functionExpr.name === 'is_null') {
+      return new CoreIsNull(functionExpr);
+    } else if (functionExpr.name === 'is_not_null') {
+      return new CoreIsNotNull(functionExpr);
+    } else if (functionExpr.name === 'exists') {
+      return new CoreExists(functionExpr);
+    } else if (functionExpr.name === 'not') {
+      return new CoreNot(functionExpr);
+    } else if (functionExpr.name === 'or') {
+      return new CoreOr(functionExpr);
+    } else if (functionExpr.name === 'xor') {
+      return new CoreXor(functionExpr);
+    } else if (functionExpr.name === 'cond') {
+      return new CoreCond(functionExpr);
+    } else if (functionExpr.name === 'logical_maximum') {
+      return new CoreLogicalMaximum(functionExpr);
+    } else if (functionExpr.name === 'logical_minimum') {
+      return new CoreLogicalMinimum(functionExpr);
+    } else if (functionExpr.name === 'array_reverse') {
+      return new CoreReverse(functionExpr);
+    } else if (functionExpr.name === 'replace_first') {
+      return new CoreReplaceFirst(functionExpr);
+    } else if (functionExpr.name === 'replace_all') {
+      return new CoreReplaceAll(functionExpr);
+    } else if (functionExpr.name === 'char_length') {
+      return new CoreCharLength(functionExpr);
+    } else if (functionExpr.name === 'byte_length') {
+      return new CoreByteLength(functionExpr);
+    } else if (functionExpr.name === 'like') {
+      return new CoreLike(functionExpr);
+    } else if (functionExpr.name === 'regex_contains') {
+      return new CoreRegexContains(functionExpr);
+    } else if (functionExpr.name === 'regex_match') {
+      return new CoreRegexMatch(functionExpr);
+    } else if (functionExpr.name === 'str_contains') {
+      return new CoreStrContains(functionExpr);
+    } else if (functionExpr.name === 'starts_with') {
+      return new CoreStartsWith(functionExpr);
+    } else if (functionExpr.name === 'ends_with') {
+      return new CoreEndsWith(functionExpr);
+    } else if (functionExpr.name === 'to_lower') {
+      return new CoreToLower(functionExpr);
+    } else if (functionExpr.name === 'to_upper') {
+      return new CoreToUpper(functionExpr);
+    } else if (functionExpr.name === 'trim') {
+      return new CoreTrim(functionExpr);
+    } else if (functionExpr.name === 'str_concat') {
+      return new CoreStrConcat(functionExpr);
+    } else if (functionExpr.name === 'map_get') {
+      return new CoreMapGet(functionExpr);
+    } else if (functionExpr.name === 'cosine_distance') {
+      return new CoreCosineDistance(functionExpr);
+    } else if (functionExpr.name === 'dot_product') {
+      return new CoreDotProduct(functionExpr);
+    } else if (functionExpr.name === 'euclidean_distance') {
+      return new CoreEuclideanDistance(functionExpr);
+    } else if (functionExpr.name === 'vector_length') {
+      return new CoreVectorLength(functionExpr);
+    } else if (functionExpr.name === 'unix_micros_to_timestamp') {
+      return new CoreUnixMicrosToTimestamp(functionExpr);
+    } else if (functionExpr.name === 'timestamp_to_unix_micros') {
+      return new CoreTimestampToUnixMicros(functionExpr);
+    } else if (functionExpr.name === 'unix_millis_to_timestamp') {
+      return new CoreUnixMillisToTimestamp(functionExpr);
+    } else if (functionExpr.name === 'timestamp_to_unix_millis') {
+      return new CoreTimestampToUnixMillis(functionExpr);
+    } else if (functionExpr.name === 'unix_seconds_to_timestamp') {
+      return new CoreUnixSecondsToTimestamp(functionExpr);
+    } else if (functionExpr.name === 'timestamp_to_unix_seconds') {
+      return new CoreTimestampToUnixSeconds(functionExpr);
+    } else if (functionExpr.name === 'timestamp_add') {
+      return new CoreTimestampAdd(functionExpr);
+    } else if (functionExpr.name === 'timestamp_sub') {
+      return new CoreTimestampSub(functionExpr);
+    }
+  } else if (expr.exprType === 'AggregateFunction') {
+    let functionExpr = expr as unknown as AggregateFunction;
+    if (functionExpr.name === 'count') {
+      return new CoreCount(functionExpr);
+    } else if (functionExpr.name === 'sum') {
+      return new CoreSum(functionExpr);
+    } else if (functionExpr.name === 'avg') {
+      return new CoreAvg(functionExpr);
+    } else if (functionExpr.name === 'minimum') {
+      return new CoreMinimum(functionExpr);
+    } else if (functionExpr.name === 'maximum') {
+      return new CoreMaximum(functionExpr);
+    }
   }
 
-  throw new Error(`Unknown Expr type: ${expr}`);
+  throw new Error(`Unknown Expr : ${expr}`);
 }
 
 export class CoreField implements EvaluableExpr {
@@ -238,6 +256,24 @@ export class CoreConstant implements EvaluableExpr {
   }
 }
 
+export class CoreListOfExprs implements EvaluableExpr {
+  constructor(private expr: ListOfExprs) {}
+
+  evaluate(
+    context: EvaluationContext,
+    input: PipelineInputOutput
+  ): Value | undefined {
+    const results = this.expr.exprs.map(expr =>
+      toEvaluable(expr).evaluate(context, input)
+    );
+    if (results.some(value => value === undefined)) {
+      return undefined;
+    }
+
+    return { arrayValue: { values: results as Value[] } };
+  }
+}
+
 function asDouble(
   protoNumber:
     | { doubleValue: number | string }
@@ -256,25 +292,8 @@ function asBigInt(protoNumber: { integerValue: number | string }): bigint {
 export const LongMaxValue = BigInt('0x7fffffffffffffff');
 export const LongMinValue = -BigInt('0x8000000000000000');
 
-abstract class BigIntOrDoubleArithmetics<
-  T extends Add | Subtract | Multiply | Divide | Mod
-> implements EvaluableExpr
-{
-  protected constructor(protected expr: T) {}
-
-  getLeft(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    return toEvaluable(this.expr.left).evaluate(context, input);
-  }
-
-  getRight(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    return toEvaluable(this.expr.right).evaluate(context, input);
-  }
+abstract class BigIntOrDoubleArithmetics implements EvaluableExpr {
+  protected constructor(protected expr: FunctionExpr) {}
 
   abstract bigIntArith(
     left: { integerValue: number | string },
@@ -303,8 +322,26 @@ abstract class BigIntOrDoubleArithmetics<
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const left = this.getLeft(context, input);
-    const right = this.getRight(context, input);
+    hardAssert(
+      this.expr.params.length >= 2,
+      'Arithmetics should have at least 2 params'
+    );
+    const left = toEvaluable(this.expr.params[0]).evaluate(context, input);
+    const right = toEvaluable(this.expr.params[1]).evaluate(context, input);
+    let result = this.applyArithmetics(left, right);
+
+    for (const expr of this.expr.params.slice(2)) {
+      const evaluated = toEvaluable(expr).evaluate(context, input);
+      result = this.applyArithmetics(result, evaluated);
+    }
+
+    return result;
+  }
+
+  applyArithmetics(
+    left: Value | undefined,
+    right: Value | undefined
+  ): Value | undefined {
     if (left === undefined || right === undefined) {
       return undefined;
     }
@@ -347,8 +384,8 @@ function valueEquals(left: Value, right: Value): boolean {
   });
 }
 
-export class CoreAdd extends BigIntOrDoubleArithmetics<Add> {
-  constructor(protected expr: Add) {
+export class CoreAdd extends BigIntOrDoubleArithmetics {
+  constructor(expr: FunctionExpr) {
     super(expr);
   }
 
@@ -379,17 +416,10 @@ export class CoreAdd extends BigIntOrDoubleArithmetics<Add> {
     | undefined {
     return { doubleValue: asDouble(left) + asDouble(right) };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): Add {
-    return new Add(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
-  }
 }
 
-export class CoreSubtract extends BigIntOrDoubleArithmetics<Subtract> {
-  constructor(protected expr: Subtract) {
+export class CoreSubtract extends BigIntOrDoubleArithmetics {
+  constructor(protected expr: FunctionExpr) {
     super(expr);
   }
 
@@ -420,17 +450,10 @@ export class CoreSubtract extends BigIntOrDoubleArithmetics<Subtract> {
     | undefined {
     return { doubleValue: asDouble(left) - asDouble(right) };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): Subtract {
-    return new Subtract(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
-  }
 }
 
-export class CoreMultiply extends BigIntOrDoubleArithmetics<Multiply> {
-  constructor(protected expr: Multiply) {
+export class CoreMultiply extends BigIntOrDoubleArithmetics {
+  constructor(protected expr: FunctionExpr) {
     super(expr);
   }
 
@@ -461,17 +484,10 @@ export class CoreMultiply extends BigIntOrDoubleArithmetics<Multiply> {
     | undefined {
     return { doubleValue: asDouble(left) * asDouble(right) };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): Multiply {
-    return new Multiply(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
-  }
 }
 
-export class CoreDivide extends BigIntOrDoubleArithmetics<Divide> {
-  constructor(protected expr: Divide) {
+export class CoreDivide extends BigIntOrDoubleArithmetics {
+  constructor(protected expr: FunctionExpr) {
     super(expr);
   }
 
@@ -517,17 +533,10 @@ export class CoreDivide extends BigIntOrDoubleArithmetics<Divide> {
     }
     return { doubleValue: asDouble(left) / rightValue };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): Divide {
-    return new Divide(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
-  }
 }
 
-export class CoreMod extends BigIntOrDoubleArithmetics<Mod> {
-  constructor(protected expr: Mod) {
+export class CoreMod extends BigIntOrDoubleArithmetics {
+  constructor(protected expr: FunctionExpr) {
     super(expr);
   }
 
@@ -567,24 +576,17 @@ export class CoreMod extends BigIntOrDoubleArithmetics<Mod> {
 
     return { doubleValue: asDouble(left) % rightValue };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): Mod {
-    return new Mod(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
-  }
 }
 
 export class CoreAnd implements EvaluableExpr {
-  constructor(private expr: And) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
     let isError = false;
-    for (const param of this.expr.conditions) {
+    for (const param of this.expr.params) {
       const result = toEvaluable(param).evaluate(context, input);
       if (result === undefined || !isBoolean(result)) {
         isError = true;
@@ -597,41 +599,37 @@ export class CoreAnd implements EvaluableExpr {
     }
     return isError ? undefined : { booleanValue: true };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): And {
-    return new And(value.args!.map(exprFromProto) as FilterCondition[]);
-  }
 }
 
 export class CoreNot implements EvaluableExpr {
-  constructor(private expr: Not) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const result = toEvaluable(this.expr.expr).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 1,
+      'not() function should have exactly 1 param'
+    );
+    const result = toEvaluable(this.expr.params[0]).evaluate(context, input);
     if (result === undefined || !isBoolean(result)) {
       return undefined;
     }
 
     return { booleanValue: !result.booleanValue };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): Not {
-    return new Not(exprFromProto(value.args![0]));
-  }
 }
 
 export class CoreOr implements EvaluableExpr {
-  constructor(private expr: Or) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
     let isError = false;
-    for (const param of this.expr.conditions) {
+    for (const param of this.expr.params) {
       const result = toEvaluable(param).evaluate(context, input);
       if (result === undefined || !isBoolean(result)) {
         isError = true;
@@ -644,21 +642,17 @@ export class CoreOr implements EvaluableExpr {
     }
     return isError ? undefined : { booleanValue: false };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): Or {
-    return new Or(value.args!.map(exprFromProto) as FilterCondition[]);
-  }
 }
 
 export class CoreXor implements EvaluableExpr {
-  constructor(private expr: Xor) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
     let result = false;
-    for (const param of this.expr.conditions) {
+    for (const param of this.expr.params) {
       const evaluated = toEvaluable(param).evaluate(context, input);
       if (evaluated === undefined || !isBoolean(evaluated)) {
         return undefined;
@@ -672,10 +666,6 @@ export class CoreXor implements EvaluableExpr {
   static xor(a: boolean, b: boolean): boolean {
     return (a || b) && !(a && b);
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): Xor {
-    return new Xor(value.args!.map(exprFromProto) as FilterCondition[]);
-  }
 }
 
 export class CoreEqAny implements EvaluableExpr {
@@ -685,17 +675,21 @@ export class CoreEqAny implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const searchValue = toEvaluable(this.expr.left).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 2,
+      'eq_any() function should have exactly 2 params'
+    );
+    const searchExpr = this.expr.params[0];
+    const searchValue = toEvaluable(searchExpr).evaluate(context, input);
     if (searchValue === undefined) {
       return undefined;
     }
 
-    const candidates = this.expr.others.map(candidate =>
-      toEvaluable(candidate).evaluate(context, input)
-    );
+    const arrayExpr = this.expr.params[1];
+    const arrayValue = toEvaluable(arrayExpr).evaluate(context, input);
 
-    let hasError = false;
-    for (const candidate of candidates) {
+    let hasError = arrayValue === undefined;
+    for (const candidate of arrayValue?.arrayValue?.values ?? []) {
       if (candidate === undefined) {
         hasError = true;
         continue;
@@ -708,46 +702,36 @@ export class CoreEqAny implements EvaluableExpr {
 
     return hasError ? undefined : FALSE_VALUE;
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): EqAny {
-    return new EqAny(
-      exprFromProto(value.args![0]),
-      value.args!.slice(1).map(exprFromProto)
-    );
-  }
 }
 
 export class CoreNotEqAny implements EvaluableExpr {
-  constructor(private expr: NotEqAny) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const inverse = new CoreEqAny(new EqAny(this.expr.left, this.expr.others));
+    const inverse = new CoreEqAny(new FunctionExpr('eq_any', this.expr.params));
     const result = inverse.evaluate(context, input);
     if (result === undefined) {
       return undefined;
     }
     return { booleanValue: !result.booleanValue };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): EqAny {
-    return new EqAny(
-      exprFromProto(value.args![0]),
-      value.args!.slice(1).map(exprFromProto)
-    );
-  }
 }
 
 export class CoreIsNan implements EvaluableExpr {
-  constructor(private expr: IsNan) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 1,
+      'is_nan() function should have exactly 1 param'
+    );
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
     if (evaluated === undefined) {
       return undefined;
     }
@@ -762,82 +746,122 @@ export class CoreIsNan implements EvaluableExpr {
       )
     };
   }
+}
 
-  static fromProtoToApiObj(value: ProtoFunction): IsNan {
-    return new IsNan(exprFromProto(value.args![0]));
+export class CoreIsNotNan implements EvaluableExpr {
+  constructor(private expr: FunctionExpr) {}
+
+  evaluate(
+    context: EvaluationContext,
+    input: PipelineInputOutput
+  ): Value | undefined {
+    hardAssert(
+      this.expr.params.length === 1,
+      'is_not_nan() function should have exactly 1 param'
+    );
+
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
+    if (evaluated === undefined) {
+      return undefined;
+    }
+
+    if (!isNumber(evaluated)) {
+      return undefined;
+    }
+
+    return {
+      booleanValue: !isNaN(
+        asDouble(evaluated as { doubleValue: number | string })
+      )
+    };
   }
 }
 
 export class CoreIsNull implements EvaluableExpr {
-  constructor(private expr: IsNull) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 1,
+      'is_null() function should have exactly 1 param'
+    );
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
     return {
       booleanValue: evaluated === undefined ? false : isNullValue(evaluated)
     };
   }
+}
 
-  static fromProtoToApiObj(value: ProtoFunction): IsNan {
-    return new IsNan(exprFromProto(value.args![0]));
+export class CoreIsNotNull implements EvaluableExpr {
+  constructor(private expr: FunctionExpr) {}
+
+  evaluate(
+    context: EvaluationContext,
+    input: PipelineInputOutput
+  ): Value | undefined {
+    hardAssert(
+      this.expr.params.length === 1,
+      'is_not_null() function should have exactly 1 param'
+    );
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
+    // Check if the value exists and is not the explicit null value.
+    return {
+      booleanValue: evaluated !== undefined && !isNullValue(evaluated)
+    };
   }
 }
 
 export class CoreExists implements EvaluableExpr {
-  constructor(private expr: Exists) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 1,
+      'exists() function should have exactly 1 param'
+    );
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
     return evaluated === undefined ? FALSE_VALUE : TRUE_VALUE;
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): Exists {
-    return new Exists(exprFromProto(value.args![0]));
   }
 }
 
 export class CoreCond implements EvaluableExpr {
-  constructor(private expr: Cond) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.condition).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 3,
+      'cond() function should have exactly 3 param'
+    );
+
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
 
     if (isBoolean(evaluated) && evaluated.booleanValue) {
-      return toEvaluable(this.expr.thenExpr).evaluate(context, input);
+      return toEvaluable(this.expr.params[1]).evaluate(context, input);
     }
 
-    return toEvaluable(this.expr.elseExpr).evaluate(context, input);
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): Cond {
-    return new Cond(
-      exprFromProto(value.args![0]) as FilterCondition,
-      exprFromProto(value.args![1]),
-      exprFromProto(value.args![2])
-    );
+    return toEvaluable(this.expr.params[2]).evaluate(context, input);
   }
 }
 
 export class CoreLogicalMaximum implements EvaluableExpr {
-  constructor(private expr: LogicalMaximum) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const values = [
-      toEvaluable(this.expr.left).evaluate(context, input),
-      toEvaluable(this.expr.right).evaluate(context, input)
-    ];
+    const values = this.expr.params.map(param =>
+      toEvaluable(param).evaluate(context, input)
+    );
 
     let result: Value | undefined;
 
@@ -855,26 +879,18 @@ export class CoreLogicalMaximum implements EvaluableExpr {
 
     return result ?? MIN_VALUE;
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): LogicalMaximum {
-    return new LogicalMaximum(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
-  }
 }
 
 export class CoreLogicalMinimum implements EvaluableExpr {
-  constructor(private expr: LogicalMinimum) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const values = [
-      toEvaluable(this.expr.left).evaluate(context, input),
-      toEvaluable(this.expr.right).evaluate(context, input)
-    ];
+    const values = this.expr.params.map(param =>
+      toEvaluable(param).evaluate(context, input)
+    );
 
     let result: Value | undefined;
 
@@ -892,19 +908,10 @@ export class CoreLogicalMinimum implements EvaluableExpr {
 
     return result ?? MIN_VALUE;
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): LogicalMinimum {
-    return new LogicalMinimum(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
-  }
 }
 
-abstract class ComparisonBase<T extends Eq | Neq | Lt | Lte | Gt | Gte>
-  implements EvaluableExpr
-{
-  protected constructor(protected expr: T) {}
+abstract class ComparisonBase implements EvaluableExpr {
+  protected constructor(protected expr: FunctionExpr) {}
 
   abstract trueCase(left: Value, right: Value): boolean;
 
@@ -912,8 +919,13 @@ abstract class ComparisonBase<T extends Eq | Neq | Lt | Lte | Gt | Gte>
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const left = toEvaluable(this.expr.left).evaluate(context, input);
-    const right = toEvaluable(this.expr.right).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 2,
+      `${this.expr.name}() function should have exactly 2 params`
+    );
+
+    const left = toEvaluable(this.expr.params[0]).evaluate(context, input);
+    const right = toEvaluable(this.expr.params[1]).evaluate(context, input);
     if (left === undefined || right === undefined) {
       return undefined;
     }
@@ -921,39 +933,28 @@ abstract class ComparisonBase<T extends Eq | Neq | Lt | Lte | Gt | Gte>
   }
 }
 
-export class CoreEq extends ComparisonBase<Eq> {
-  constructor(protected expr: Eq) {
+export class CoreEq extends ComparisonBase {
+  constructor(protected expr: FunctionExpr) {
     super(expr);
   }
 
   trueCase(left: Value, right: Value): boolean {
     return valueEquals(left, right);
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): Eq {
-    return new Eq(exprFromProto(value.args![0]), exprFromProto(value.args![1]));
-  }
 }
 
-export class CoreNeq extends ComparisonBase<Neq> {
-  constructor(protected expr: Neq) {
+export class CoreNeq extends ComparisonBase {
+  constructor(protected expr: FunctionExpr) {
     super(expr);
   }
 
   trueCase(left: Value, right: Value): boolean {
     return !valueEquals(left, right);
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): Neq {
-    return new Neq(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
-  }
 }
 
-export class CoreLt extends ComparisonBase<Lt> {
-  constructor(protected expr: Lt) {
+export class CoreLt extends ComparisonBase {
+  constructor(protected expr: FunctionExpr) {
     super(expr);
   }
 
@@ -966,14 +967,10 @@ export class CoreLt extends ComparisonBase<Lt> {
     }
     return valueCompare(left, right) < 0;
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): Lt {
-    return new Lt(exprFromProto(value.args![0]), exprFromProto(value.args![1]));
-  }
 }
 
-export class CoreLte extends ComparisonBase<Lte> {
-  constructor(protected expr: Lte) {
+export class CoreLte extends ComparisonBase {
+  constructor(protected expr: FunctionExpr) {
     super(expr);
   }
 
@@ -990,17 +987,10 @@ export class CoreLte extends ComparisonBase<Lte> {
 
     return valueCompare(left, right) < 0;
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): Lte {
-    return new Lte(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
-  }
 }
 
-export class CoreGt extends ComparisonBase<Gt> {
-  constructor(protected expr: Gt) {
+export class CoreGt extends ComparisonBase {
+  constructor(protected expr: FunctionExpr) {
     super(expr);
   }
 
@@ -1014,14 +1004,10 @@ export class CoreGt extends ComparisonBase<Gt> {
 
     return valueCompare(left, right) > 0;
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): Gt {
-    return new Gt(exprFromProto(value.args![0]), exprFromProto(value.args![1]));
-  }
 }
 
-export class CoreGte extends ComparisonBase<Gte> {
-  constructor(protected expr: Gte) {
+export class CoreGte extends ComparisonBase {
+  constructor(protected expr: FunctionExpr) {
     super(expr);
   }
 
@@ -1037,18 +1023,11 @@ export class CoreGte extends ComparisonBase<Gte> {
     }
 
     return valueCompare(left, right) > 0;
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): Gte {
-    return new Gte(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
   }
 }
 
 export class CoreArrayConcat implements EvaluableExpr {
-  constructor(private expr: ArrayConcat) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
@@ -1056,23 +1035,20 @@ export class CoreArrayConcat implements EvaluableExpr {
   ): Value | undefined {
     throw new Error('Unimplemented');
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): ArrayConcat {
-    return new ArrayConcat(
-      exprFromProto(value.args![0]),
-      value.args!.slice(1).map(exprFromProto)
-    );
-  }
 }
 
 export class CoreArrayReverse implements EvaluableExpr {
-  constructor(private expr: ArrayReverse) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.array).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 1,
+      'array_reverse() function should have exactly one parameter'
+    );
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
     if (
       evaluated === undefined ||
       !Array.isArray(evaluated.arrayValue?.values)
@@ -1082,25 +1058,26 @@ export class CoreArrayReverse implements EvaluableExpr {
 
     return { arrayValue: { values: evaluated.arrayValue?.values.reverse() } };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): ArrayReverse {
-    return new ArrayReverse(exprFromProto(value.args![0]));
-  }
 }
 
 export class CoreArrayContains implements EvaluableExpr {
-  constructor(private expr: ArrayContains) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.array).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 2,
+      'array_contains() function should have exactly two parameters'
+    );
+
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
     if (evaluated === undefined || !isArray(evaluated)) {
       return undefined;
     }
 
-    const element = toEvaluable(this.expr.element).evaluate(context, input);
+    const element = toEvaluable(this.expr.params[1]).evaluate(context, input);
     if (evaluated === undefined || element === undefined) {
       return undefined;
     }
@@ -1109,32 +1086,31 @@ export class CoreArrayContains implements EvaluableExpr {
       ? TRUE_VALUE
       : FALSE_VALUE;
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): ArrayContains {
-    return new ArrayContains(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
-  }
 }
 
 export class CoreArrayContainsAll implements EvaluableExpr {
-  constructor(private expr: ArrayContainsAll) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.array).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 2,
+      'array_contains_all() function should have exactly two parameters'
+    );
+
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
     if (evaluated === undefined || !isArray(evaluated)) {
       return undefined;
     }
 
-    const elements = this.expr.values.map(val =>
-      toEvaluable(val).evaluate(context, input)
-    );
+    const elements = toEvaluable(this.expr.params[1]).evaluate(context, input);
+    if (evaluated === undefined || !isArray(evaluated)) {
+      return undefined;
+    }
 
-    for (const element of elements) {
+    for (const element of elements?.arrayValue?.values ?? []) {
       let found = false;
       for (const val of evaluated.arrayValue.values ?? []) {
         if (element !== undefined && valueEquals(val, element!)) {
@@ -1150,32 +1126,37 @@ export class CoreArrayContainsAll implements EvaluableExpr {
 
     return TRUE_VALUE;
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): ArrayContainsAll {
-    return new ArrayContainsAll(
-      exprFromProto(value.args![0]),
-      value.args!.slice(1).map(exprFromProto)
-    );
-  }
 }
 
 export class CoreArrayContainsAny implements EvaluableExpr {
-  constructor(private expr: ArrayContainsAny) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluatedExpr = toEvaluable(this.expr.array).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 2,
+      'array_contains_any() function should have exactly two parameters'
+    );
+
+    const evaluatedExpr = toEvaluable(this.expr.params[0]).evaluate(
+      context,
+      input
+    );
     if (evaluatedExpr === undefined || !isArray(evaluatedExpr)) {
       return undefined;
     }
 
-    const candidates = this.expr.values.map(val =>
-      toEvaluable(val).evaluate(context, input)
+    const candidates = toEvaluable(this.expr.params[1]).evaluate(
+      context,
+      input
     );
+    if (candidates === undefined || !isArray(candidates)) {
+      return undefined;
+    }
 
-    for (const element of candidates) {
+    for (const element of candidates.arrayValue.values ?? []) {
       for (const val of evaluatedExpr.arrayValue.values ?? []) {
         if (element === undefined) {
           return undefined;
@@ -1188,58 +1169,51 @@ export class CoreArrayContainsAny implements EvaluableExpr {
 
     return FALSE_VALUE;
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): ArrayContainsAny {
-    return new ArrayContainsAny(
-      exprFromProto(value.args![0]),
-      value.args!.slice(1).map(exprFromProto)
-    );
-  }
 }
 
 export class CoreArrayLength implements EvaluableExpr {
-  constructor(private expr: ArrayLength) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.array).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 1,
+      'array_length() function should have exactly one parameter'
+    );
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
     if (evaluated === undefined || !isArray(evaluated)) {
       return undefined;
     }
 
     return { integerValue: `${evaluated.arrayValue.values?.length ?? 0}` };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): ArrayLength {
-    return new ArrayLength(exprFromProto(value.args![0]));
-  }
 }
 
 export class CoreArrayElement implements EvaluableExpr {
-  constructor(private expr: ArrayElement) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): ArrayElement {
     throw new Error('Unimplemented');
   }
 }
 
 export class CoreReverse implements EvaluableExpr {
-  constructor(private expr: Reverse) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.value).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 1,
+      'reverse() function should have exactly one parameter'
+    );
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
     if (evaluated === undefined) {
       return undefined;
     }
@@ -1250,38 +1224,26 @@ export class CoreReverse implements EvaluableExpr {
 
     return { stringValue: evaluated.stringValue.split('').reverse().join('') };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): Reverse {
-    return new Reverse(exprFromProto(value.args![0]));
-  }
 }
 
 export class CoreReplaceFirst implements EvaluableExpr {
-  constructor(private expr: ReplaceFirst) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): ReplaceFirst {
     throw new Error('Unimplemented');
   }
 }
 
 export class CoreReplaceAll implements EvaluableExpr {
-  constructor(private expr: ReplaceAll) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): ReplaceAll {
     throw new Error('Unimplemented');
   }
 }
@@ -1308,13 +1270,17 @@ function getUnicodePointCount(str: string) {
 }
 
 export class CoreCharLength implements EvaluableExpr {
-  constructor(private expr: CharLength) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.value).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 1,
+      'char_length() function should have exactly one parameter'
+    );
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
 
     if (evaluated === undefined) {
       return undefined;
@@ -1327,10 +1293,6 @@ export class CoreCharLength implements EvaluableExpr {
     } else {
       return undefined;
     }
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): CharLength {
-    return new CharLength(exprFromProto(value.args![0]));
   }
 }
 
@@ -1377,13 +1339,17 @@ function getUtf8ByteLength(str: string) {
 }
 
 export class CoreByteLength implements EvaluableExpr {
-  constructor(private expr: ByteLength) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.value).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 1,
+      'byte_length() function should have exactly one parameter'
+    );
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
 
     if (evaluated === undefined) {
       return undefined;
@@ -1404,10 +1370,6 @@ export class CoreByteLength implements EvaluableExpr {
     } else {
       return undefined;
     }
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): ByteLength {
-    return new ByteLength(exprFromProto(value.args![0]));
   }
 }
 
@@ -1449,18 +1411,23 @@ function likeToRegex(like: string): string {
 }
 
 export class CoreLike implements EvaluableExpr {
-  constructor(private expr: Like) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 2,
+      'like() function should have exactly two parameters'
+    );
+
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
     if (evaluated === undefined || !isString(evaluated)) {
       return undefined;
     }
 
-    const pattern = toEvaluable(this.expr.pattern).evaluate(context, input);
+    const pattern = toEvaluable(this.expr.params[1]).evaluate(context, input);
     if (pattern === undefined || !isString(pattern)) {
       return undefined;
     }
@@ -1472,28 +1439,26 @@ export class CoreLike implements EvaluableExpr {
       )
     };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): Like {
-    return new Like(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
-  }
 }
 
 export class CoreRegexContains implements EvaluableExpr {
-  constructor(private expr: RegexContains) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 2,
+      'regex_contains() function should have exactly two parameters'
+    );
+
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
     if (evaluated === undefined || !isString(evaluated)) {
       return undefined;
     }
 
-    const pattern = toEvaluable(this.expr.pattern).evaluate(context, input);
+    const pattern = toEvaluable(this.expr.params[1]).evaluate(context, input);
     if (pattern === undefined || !isString(pattern)) {
       return undefined;
     }
@@ -1510,28 +1475,26 @@ export class CoreRegexContains implements EvaluableExpr {
       return undefined;
     }
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): RegexContains {
-    return new RegexContains(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
-  }
 }
 
 export class CoreRegexMatch implements EvaluableExpr {
-  constructor(private expr: RegexMatch) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 2,
+      'regex_match() function should have exactly two parameters'
+    );
+
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
     if (evaluated === undefined || !isString(evaluated)) {
       return undefined;
     }
 
-    const pattern = toEvaluable(this.expr.pattern).evaluate(context, input);
+    const pattern = toEvaluable(this.expr.params[1]).evaluate(context, input);
     if (pattern === undefined || !isString(pattern)) {
       return undefined;
     }
@@ -1550,28 +1513,26 @@ export class CoreRegexMatch implements EvaluableExpr {
       return undefined;
     }
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): RegexMatch {
-    return new RegexMatch(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
-  }
 }
 
 export class CoreStrContains implements EvaluableExpr {
-  constructor(private expr: StrContains) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 2,
+      'str_contains() function should have exactly two parameters'
+    );
+
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
     if (evaluated === undefined || !isString(evaluated)) {
       return undefined;
     }
 
-    const substring = toEvaluable(this.expr.substring).evaluate(context, input);
+    const substring = toEvaluable(this.expr.params[1]).evaluate(context, input);
     if (substring === undefined || !isString(substring)) {
       return undefined;
     }
@@ -1580,28 +1541,26 @@ export class CoreStrContains implements EvaluableExpr {
       booleanValue: evaluated.stringValue.includes(substring.stringValue)
     };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): StrContains {
-    return new StrContains(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
-  }
 }
 
 export class CoreStartsWith implements EvaluableExpr {
-  constructor(private expr: StartsWith) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 2,
+      'starts_with() function should have exactly two parameters'
+    );
+
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
     if (evaluated === undefined || !isString(evaluated)) {
       return undefined;
     }
 
-    const prefix = toEvaluable(this.expr.prefix).evaluate(context, input);
+    const prefix = toEvaluable(this.expr.params[1]).evaluate(context, input);
     if (prefix === undefined || !isString(prefix)) {
       return undefined;
     }
@@ -1610,112 +1569,105 @@ export class CoreStartsWith implements EvaluableExpr {
       booleanValue: evaluated.stringValue.startsWith(prefix.stringValue)
     };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): StartsWith {
-    return new StartsWith(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
-  }
 }
 
 export class CoreEndsWith implements EvaluableExpr {
-  constructor(private expr: EndsWith) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 2,
+      'ends_with() function should have exactly two parameters'
+    );
+
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
     if (evaluated === undefined || !isString(evaluated)) {
       return undefined;
     }
 
-    const suffix = toEvaluable(this.expr.suffix).evaluate(context, input);
+    const suffix = toEvaluable(this.expr.params[1]).evaluate(context, input);
     if (suffix === undefined || !isString(suffix)) {
       return undefined;
     }
 
     return { booleanValue: evaluated.stringValue.endsWith(suffix.stringValue) };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): EndsWith {
-    return new EndsWith(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
-  }
 }
 
 export class CoreToLower implements EvaluableExpr {
-  constructor(private expr: ToLower) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 1,
+      'to_lower() function should have exactly one parameter'
+    );
+
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
     if (evaluated === undefined || !isString(evaluated)) {
       return undefined;
     }
 
     return { stringValue: evaluated.stringValue.toLowerCase() };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): ToLower {
-    return new ToLower(exprFromProto(value.args![0]));
-  }
 }
 
 export class CoreToUpper implements EvaluableExpr {
-  constructor(private expr: ToUpper) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 1,
+      'to_upper() function should have exactly one parameter'
+    );
+
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
     if (evaluated === undefined || !isString(evaluated)) {
       return undefined;
     }
 
     return { stringValue: evaluated.stringValue.toUpperCase() };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): ToUpper {
-    return new ToUpper(exprFromProto(value.args![0]));
-  }
 }
 
 export class CoreTrim implements EvaluableExpr {
-  constructor(private expr: Trim) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 1,
+      'trim() function should have exactly one parameter'
+    );
+
+    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
     if (evaluated === undefined || !isString(evaluated)) {
       return undefined;
     }
 
     return { stringValue: evaluated.stringValue.trim() };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): Trim {
-    return new Trim(exprFromProto(value.args![0]));
-  }
 }
 
 export class CoreStrConcat implements EvaluableExpr {
-  constructor(private expr: StrConcat) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const exprs = [this.expr.first, ...this.expr.rest];
-    const evaluated = exprs.map(val =>
+    const evaluated = this.expr.params.map(val =>
       toEvaluable(val).evaluate(context, input)
     );
     if (evaluated.some(val => val === undefined || !isString(val))) {
@@ -1724,100 +1676,83 @@ export class CoreStrConcat implements EvaluableExpr {
 
     return { stringValue: evaluated.map(val => val!.stringValue).join('') };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): StrConcat {
-    return new StrConcat(
-      exprFromProto(value.args![0]),
-      value.args!.slice(1).map(exprFromProto)
-    );
-  }
 }
 
 export class CoreMapGet implements EvaluableExpr {
-  constructor(private expr: MapGet) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const evaluatedMap = toEvaluable(this.expr.map).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 2,
+      'map_get() function should have exactly two parameters'
+    );
+
+    const evaluatedMap = toEvaluable(this.expr.params[0]).evaluate(
+      context,
+      input
+    );
     if (evaluatedMap === undefined || !isMapValue(evaluatedMap)) {
       return undefined;
     }
 
-    return evaluatedMap.mapValue.fields?.[this.expr.subfield];
-  }
+    const subfield = toEvaluable(this.expr.params[1]).evaluate(context, input);
+    if (subfield === undefined || !isString(subfield)) {
+      return undefined;
+    }
 
-  static fromProtoToApiObj(value: ProtoFunction): MapGet {
-    return new MapGet(
-      exprFromProto(value.args![0]),
-      value.args![1].stringValue!
-    );
+    return evaluatedMap.mapValue.fields?.[subfield.stringValue];
   }
 }
 
 export class CoreCount implements EvaluableExpr {
-  constructor(private expr: Count) {}
+  constructor(private expr: AggregateFunction) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): Count {
     throw new Error('Unimplemented');
   }
 }
 
 export class CoreSum implements EvaluableExpr {
-  constructor(private expr: Sum) {}
+  constructor(private expr: AggregateFunction) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): Sum {
     throw new Error('Unimplemented');
   }
 }
 
 export class CoreAvg implements EvaluableExpr {
-  constructor(private expr: Avg) {}
+  constructor(private expr: AggregateFunction) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): Avg {
     throw new Error('Unimplemented');
   }
 }
 
 export class CoreMinimum implements EvaluableExpr {
-  constructor(private expr: Minimum) {}
+  constructor(private expr: AggregateFunction) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): Minimum {
     throw new Error('Unimplemented');
   }
 }
 
 export class CoreMaximum implements EvaluableExpr {
-  constructor(private expr: Maximum) {}
+  constructor(private expr: AggregateFunction) {}
 
   evaluate(
     context: EvaluationContext,
@@ -1825,17 +1760,10 @@ export class CoreMaximum implements EvaluableExpr {
   ): Value | undefined {
     throw new Error('Unimplemented');
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): Maximum {
-    throw new Error('Unimplemented');
-  }
 }
 
-abstract class DistanceBase<
-  T extends CosineDistance | DotProduct | EuclideanDistance
-> implements EvaluableExpr
-{
-  protected constructor(private expr: T) {}
+abstract class DistanceBase implements EvaluableExpr {
+  protected constructor(private expr: FunctionExpr) {}
 
   abstract calculateDistance(
     vec1: ArrayValue | undefined,
@@ -1846,12 +1774,17 @@ abstract class DistanceBase<
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const vector1 = toEvaluable(this.expr.vector1).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 2,
+      `${this.expr.name}() function should have exactly 2 params`
+    );
+
+    const vector1 = toEvaluable(this.expr.params[0]).evaluate(context, input);
     if (vector1 === undefined || !isVectorValue(vector1)) {
       return undefined;
     }
 
-    const vector2 = toEvaluable(this.expr.vector2).evaluate(context, input);
+    const vector2 = toEvaluable(this.expr.params[1]).evaluate(context, input);
     if (vector2 === undefined || !isVectorValue(vector2)) {
       return undefined;
     }
@@ -1875,8 +1808,8 @@ abstract class DistanceBase<
   }
 }
 
-export class CoreCosineDistance extends DistanceBase<CosineDistance> {
-  constructor(expr: CosineDistance) {
+export class CoreCosineDistance extends DistanceBase {
+  constructor(expr: FunctionExpr) {
     super(expr);
   }
 
@@ -1902,17 +1835,10 @@ export class CoreCosineDistance extends DistanceBase<CosineDistance> {
 
     return 1 - dotProduct / magnitude;
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): CosineDistance {
-    return new CosineDistance(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
-  }
 }
 
-export class CoreDotProduct extends DistanceBase<DotProduct> {
-  constructor(expr: DotProduct) {
+export class CoreDotProduct extends DistanceBase {
+  constructor(expr: FunctionExpr) {
     super(expr);
   }
 
@@ -1930,17 +1856,10 @@ export class CoreDotProduct extends DistanceBase<DotProduct> {
 
     return dotProduct;
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): DotProduct {
-    return new DotProduct(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
-  }
 }
 
-export class CoreEuclideanDistance extends DistanceBase<EuclideanDistance> {
-  constructor(expr: EuclideanDistance) {
+export class CoreEuclideanDistance extends DistanceBase {
+  constructor(expr: FunctionExpr) {
     super(expr);
   }
 
@@ -1959,23 +1878,21 @@ export class CoreEuclideanDistance extends DistanceBase<EuclideanDistance> {
 
     return Math.sqrt(euclideanDistance);
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): EuclideanDistance {
-    return new EuclideanDistance(
-      exprFromProto(value.args![0]),
-      exprFromProto(value.args![1])
-    );
-  }
 }
 
 export class CoreVectorLength implements EvaluableExpr {
-  constructor(private expr: VectorLength) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    const vector = toEvaluable(this.expr.value).evaluate(context, input);
+    hardAssert(
+      this.expr.params.length === 1,
+      'vector_length() function should have exactly one parameter'
+    );
+
+    const vector = toEvaluable(this.expr.params[0]).evaluate(context, input);
     if (vector === undefined || !isVectorValue(vector)) {
       return undefined;
     }
@@ -1984,128 +1901,92 @@ export class CoreVectorLength implements EvaluableExpr {
 
     return { integerValue: vectorValue?.values?.length ?? 0 };
   }
-
-  static fromProtoToApiObj(value: ProtoFunction): VectorLength {
-    return new VectorLength(exprFromProto(value.args![0]));
-  }
 }
 
 export class CoreUnixMicrosToTimestamp implements EvaluableExpr {
-  constructor(private expr: UnixMicrosToTimestamp) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): UnixMicrosToTimestamp {
     throw new Error('Unimplemented');
   }
 }
 
 export class CoreTimestampToUnixMicros implements EvaluableExpr {
-  constructor(private expr: TimestampToUnixMicros) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): TimestampToUnixMicros {
     throw new Error('Unimplemented');
   }
 }
 
 export class CoreUnixMillisToTimestamp implements EvaluableExpr {
-  constructor(private expr: UnixMillisToTimestamp) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): UnixMillisToTimestamp {
     throw new Error('Unimplemented');
   }
 }
 
 export class CoreTimestampToUnixMillis implements EvaluableExpr {
-  constructor(private expr: TimestampToUnixMillis) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): TimestampToUnixMillis {
     throw new Error('Unimplemented');
   }
 }
 
 export class CoreUnixSecondsToTimestamp implements EvaluableExpr {
-  constructor(private expr: UnixSecondsToTimestamp) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): UnixSecondsToTimestamp {
     throw new Error('Unimplemented');
   }
 }
 
 export class CoreTimestampToUnixSeconds implements EvaluableExpr {
-  constructor(private expr: TimestampToUnixSeconds) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): TimestampToUnixSeconds {
     throw new Error('Unimplemented');
   }
 }
 
 export class CoreTimestampAdd implements EvaluableExpr {
-  constructor(private expr: TimestampAdd) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): TimestampAdd {
     throw new Error('Unimplemented');
   }
 }
 
 export class CoreTimestampSub implements EvaluableExpr {
-  constructor(private expr: TimestampSub) {}
+  constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-
-  static fromProtoToApiObj(value: ProtoFunction): TimestampSub {
     throw new Error('Unimplemented');
   }
 }
