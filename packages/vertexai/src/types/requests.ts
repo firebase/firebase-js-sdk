@@ -221,7 +221,16 @@ export interface FunctionCallingConfig {
  * @public
  */
 export interface HybridParams {
+  /**
+   * Optional. Specifies on-device or on-cloud inference. Defaults to prefer on-device.
+   */
   mode?: InferenceMode;
+  /**
+   * Optional. Specifies advanced params for on-device inference
+   */
   onDeviceParams?: AILanguageModelCreateOptionsWithSystemPrompt;
+  /**
+   * Optional. Specifies advanced params for on-cloud inference.
+   */
   onCloudParams?: ModelParams;
 }
