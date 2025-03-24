@@ -80,8 +80,6 @@ import {
   RealtimePipelineSnapshot,
   ResultChange
 } from '../../../src/api/snapshot';
-import { firestore } from '../../util/api_helpers';
-import { realtimePipeline } from '../../../src/api/pipeline_impl';
 
 function getDocs(
   pipelineMode: PipelineMode,
@@ -89,7 +87,9 @@ function getDocs(
 ) {
   if (pipelineMode === 'query-to-pipeline') {
     if (queryOrPipeline instanceof Query) {
-      const ppl = queryOrPipeline.pipeline();
+      const ppl = queryOrPipeline.firestore
+        .pipeline()
+        .createFrom(queryOrPipeline);
       return getDocsProd(
         new RealtimePipeline(
           ppl._db,
@@ -132,7 +132,9 @@ function onSnapshot(
       };
   if (pipelineMode === 'query-to-pipeline') {
     if (queryOrPipeline instanceof Query) {
-      const ppl = queryOrPipeline.pipeline();
+      const ppl = queryOrPipeline.firestore
+        .pipeline()
+        .createFrom(queryOrPipeline);
       return onSnapshotProd(
         new RealtimePipeline(
           ppl._db,
@@ -1514,7 +1516,7 @@ apiPipelineDescribe('Queries', (persistence, pipelineMode) => {
     });
   });
 
-  it('can use filter with nested field', () => {
+  it.only('can use filter with nested field', () => {
     // Reproduces https://github.com/firebase/firebase-js-sdk/issues/2204
     const testDocs = {
       a: {},

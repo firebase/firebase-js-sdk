@@ -2023,7 +2023,7 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
    */
   _createdFromLiteral: boolean = false;
 
-  constructor(private name: string, private params: Expr[]) {}
+  constructor(readonly name: string, readonly params: Expr[]) {}
 
   /**
    * Assigns an alias to this AggregateFunction. The alias specifies the name that
@@ -2317,7 +2317,7 @@ export class Constant extends Expr {
     if (isFirestoreValue(this._protoValue)) {
       return;
     } else {
-      this._protoValue = parseData(this.value, context)!;
+      this._protoValue = parseData(this.value, context, this.options)!;
     }
   }
 
@@ -2336,7 +2336,10 @@ export class Constant extends Expr {
  * @param value The number value.
  * @return A new `Constant` instance.
  */
-export function constant(value: number): Constant;
+export function constant(
+  value: number,
+  options?: { preferIntegers: boolean }
+): Constant;
 
 /**
  * Creates a `Constant` instance for a string value.
@@ -2420,8 +2423,11 @@ export function constant(value: ProtoValue): Constant;
  */
 export function constant(value: VectorValue): Constant;
 
-export function constant(value: unknown): Constant {
-  return new Constant(value);
+export function constant(
+  value: unknown,
+  options?: { preferIntegers: boolean }
+): Constant {
+  return new Constant(value, options);
 }
 
 /**

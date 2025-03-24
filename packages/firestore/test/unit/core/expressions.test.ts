@@ -26,16 +26,17 @@ import {
 
 import { doc } from '../../util/helpers';
 import {
+  add,
+  and,
   arrayContains,
   arrayContainsAll,
   arrayContainsAny,
   arrayLength,
+  BooleanExpr,
   byteLength,
-  add,
-  andFunction,
-  arrayReverse,
   charLength,
   cond,
+  constant,
   Constant,
   cosineDistance,
   divide,
@@ -44,10 +45,8 @@ import {
   eq,
   eqAny,
   euclideanDistance,
-  Field,
-  FilterCondition,
-  FirestoreFunction,
   Expr,
+  field,
   gt,
   gte,
   isNan,
@@ -61,18 +60,18 @@ import {
   multiply,
   neq,
   not,
+  or,
   regexContains,
   regexMatch,
   startsWith,
   strConcat,
   strContains,
   subtract,
-  orFunction,
-  xor,
-  vectorLength
+  vectorLength,
+  xor
 } from '../../../src/lite-api/expressions';
 import { newTestFirestore } from '../../util/api_helpers';
-import { canonifyPipeline } from '../../util/pipelines';
+import { constantArray, constantMap } from '../../util/pipelines';
 import { newUserDataReader } from '../../../src/lite-api/user_data_reader';
 import {
   FALSE_VALUE,
@@ -80,15 +79,15 @@ import {
   typeOrder,
   valueEquals
 } from '../../../src/model/values';
-import { LongMaxValue, toEvaluable } from '../../../src/core/expressions';
+import { toEvaluable } from '../../../src/core/expressions';
 import { Value } from '../../../src/protos/firestore_proto_api';
 import { canonifyExpr } from '../../../src/core/pipeline-util';
 import { JsonObject, ObjectValue } from '../../../src/model/object_value';
 
 const db = newTestFirestore();
 const ERROR_VALUE = undefined;
-const falseExpr = Constant.of(1).eq(2);
-const trueExpr = Constant.of(1).eq(1);
+const falseExpr = constant(1).eq(2);
+const trueExpr = constant(1).eq(1);
 
 function isTypeComparable(left: Constant, right: Constant): boolean {
   left._readUserData(newUserDataReader(db));
@@ -98,114 +97,114 @@ function isTypeComparable(left: Constant, right: Constant): boolean {
 }
 
 class ComparisonValueTestData {
-  static BOOLEAN_VALUES = [Constant.of(false), Constant.of(true)];
+  static BOOLEAN_VALUES = [constant(false), constant(true)];
 
   static NUMERIC_VALUES = [
-    Constant.of(Number.NEGATIVE_INFINITY),
-    Constant.of(-Number.MAX_VALUE),
-    Constant.of(Number.MIN_SAFE_INTEGER),
-    Constant.of(-9007199254740990),
-    Constant.of(-1),
-    Constant.of(-0.5),
-    Constant.of(-Number.MIN_VALUE),
-    Constant.of(0),
-    Constant.of(Number.MIN_VALUE),
-    Constant.of(0.5),
-    Constant.of(1),
-    Constant.of(42),
-    Constant.of(9007199254740990),
-    Constant.of(Number.MAX_SAFE_INTEGER),
-    Constant.of(Number.MAX_VALUE),
-    Constant.of(Number.POSITIVE_INFINITY)
+    constant(Number.NEGATIVE_INFINITY),
+    constant(-Number.MAX_VALUE),
+    constant(Number.MIN_SAFE_INTEGER),
+    constant(-9007199254740990),
+    constant(-1),
+    constant(-0.5),
+    constant(-Number.MIN_VALUE),
+    constant(0),
+    constant(Number.MIN_VALUE),
+    constant(0.5),
+    constant(1),
+    constant(42),
+    constant(9007199254740990),
+    constant(Number.MAX_SAFE_INTEGER),
+    constant(Number.MAX_VALUE),
+    constant(Number.POSITIVE_INFINITY)
   ];
 
   static TIMESTAMP_VALUES = [
-    Constant.of(new Timestamp(-42, 0)), // -42 seconds from epoch
-    Constant.of(new Timestamp(-42, 42000)), // -42 seconds + 42 milliseconds (42000 microseconds) from epoch
-    Constant.of(new Timestamp(0, 0)), // Epoch
-    Constant.of(new Timestamp(0, 42000)), // 42 milliseconds from epoch
-    Constant.of(new Timestamp(42, 0)), // 42 seconds from epoch
-    Constant.of(new Timestamp(42, 42000)) // 42 seconds + 42 milliseconds from epoch
+    constant(new Timestamp(-42, 0)), // -42 seconds from epoch
+    constant(new Timestamp(-42, 42000)), // -42 seconds + 42 milliseconds (42000 microseconds) from epoch
+    constant(new Timestamp(0, 0)), // Epoch
+    constant(new Timestamp(0, 42000)), // 42 milliseconds from epoch
+    constant(new Timestamp(42, 0)), // 42 seconds from epoch
+    constant(new Timestamp(42, 42000)) // 42 seconds + 42 milliseconds from epoch
   ];
 
   static STRING_VALUES = [
-    Constant.of(''),
-    Constant.of('abcdefgh'),
-    Constant.of('fouxdufafa'.repeat(200)),
-    Constant.of('santé'),
-    Constant.of('santé et bonheur')
+    constant(''),
+    constant('abcdefgh'),
+    constant('fouxdufafa'.repeat(200)),
+    constant('santé'),
+    constant('santé et bonheur')
   ];
 
   static BYTE_VALUES = [
-    Constant.of(Bytes.fromUint8Array(new Uint8Array([]))), // Empty byte array
-    Constant.of(Bytes.fromUint8Array(new Uint8Array([0, 2, 56, 42]))),
-    Constant.of(Bytes.fromUint8Array(new Uint8Array([2, 26]))),
-    Constant.of(Bytes.fromUint8Array(new Uint8Array([2, 26, 31]))),
-    Constant.of(
+    constant(Bytes.fromUint8Array(new Uint8Array([]))), // Empty byte array
+    constant(Bytes.fromUint8Array(new Uint8Array([0, 2, 56, 42]))),
+    constant(Bytes.fromUint8Array(new Uint8Array([2, 26]))),
+    constant(Bytes.fromUint8Array(new Uint8Array([2, 26, 31]))),
+    constant(
       Bytes.fromUint8Array(new TextEncoder().encode('fouxdufafa'.repeat(200)))
     ) // Encode string to Uint8Array
   ];
 
   static ENTITY_REF_VALUES = [
-    Constant.of(docRef(db, 'foo', 'bar')),
-    Constant.of(docRef(db, 'foo', 'bar', 'qux/a')),
-    Constant.of(docRef(db, 'foo', 'bar', 'qux', 'bleh')),
-    Constant.of(docRef(db, 'foo', 'bar', 'qux', 'hi')),
-    Constant.of(docRef(db, 'foo', 'bar', 'tonk/a')),
-    Constant.of(docRef(db, 'foo', 'baz'))
+    constant(docRef(db, 'foo', 'bar')),
+    constant(docRef(db, 'foo', 'bar', 'qux/a')),
+    constant(docRef(db, 'foo', 'bar', 'qux', 'bleh')),
+    constant(docRef(db, 'foo', 'bar', 'qux', 'hi')),
+    constant(docRef(db, 'foo', 'bar', 'tonk/a')),
+    constant(docRef(db, 'foo', 'baz'))
   ];
 
   static GEO_VALUES = [
-    Constant.of(new GeoPoint(-87.0, -92.0)),
-    Constant.of(new GeoPoint(-87.0, 0.0)),
-    Constant.of(new GeoPoint(-87.0, 42.0)),
-    Constant.of(new GeoPoint(0.0, -92.0)),
-    Constant.of(new GeoPoint(0.0, 0.0)),
-    Constant.of(new GeoPoint(0.0, 42.0)),
-    Constant.of(new GeoPoint(42.0, -92.0)),
-    Constant.of(new GeoPoint(42.0, 0.0)),
-    Constant.of(new GeoPoint(42.0, 42.0))
+    constant(new GeoPoint(-87.0, -92.0)),
+    constant(new GeoPoint(-87.0, 0.0)),
+    constant(new GeoPoint(-87.0, 42.0)),
+    constant(new GeoPoint(0.0, -92.0)),
+    constant(new GeoPoint(0.0, 0.0)),
+    constant(new GeoPoint(0.0, 42.0)),
+    constant(new GeoPoint(42.0, -92.0)),
+    constant(new GeoPoint(42.0, 0.0)),
+    constant(new GeoPoint(42.0, 42.0))
   ];
 
   static ARRAY_VALUES = [
-    Constant.of([]),
-    Constant.of([null]),
-    Constant.of([null, NaN]),
-    Constant.of([null, 1]),
-    Constant.of([true, 15]),
-    Constant.of([true, 15, null]),
-    Constant.of([NaN]),
-    Constant.of([NaN, 'foo']),
-    Constant.of([1, 2]),
-    Constant.of([new Timestamp(12, 0)]),
-    Constant.of(['foo']),
-    Constant.of(['foo', 'bar']),
-    Constant.of([new GeoPoint(0, 0)]),
-    Constant.of([{}])
+    constantArray([]),
+    constantArray([null]),
+    constantArray([null, NaN]),
+    constantArray([null, 1]),
+    constantArray([true, 15]),
+    constantArray([true, 15, null]),
+    constantArray([NaN]),
+    constantArray([NaN, 'foo']),
+    constantArray([1, 2]),
+    constantArray([new Timestamp(12, 0)]),
+    constantArray(['foo']),
+    constantArray(['foo', 'bar']),
+    constantArray([new GeoPoint(0, 0)]),
+    constantArray([{}])
   ];
 
   static VECTOR_VALUES = [
-    Constant.of(new VectorValue([42.0])),
-    Constant.of(new VectorValue([21.2, 3.14])),
-    Constant.of(new VectorValue([Number.NEGATIVE_INFINITY, 10.0, 1.0])),
-    Constant.of(new VectorValue([-Number.MAX_VALUE, 9.0, 1.0])),
-    Constant.of(new VectorValue([-Number.MIN_VALUE, 7.0, 1.0])),
-    Constant.of(new VectorValue([-Number.MIN_VALUE, 8.0, 1.0])),
-    Constant.of(new VectorValue([0.0, 5.0, 1.0])),
-    Constant.of(new VectorValue([0.0, 6.0, 1.0])),
-    Constant.of(new VectorValue([Number.MIN_VALUE, 3.0, 1.0])),
-    Constant.of(new VectorValue([Number.MIN_VALUE, 4.0, 1.0])),
-    Constant.of(new VectorValue([Number.MAX_VALUE, 2.0, 1.0])),
-    Constant.of(new VectorValue([Number.POSITIVE_INFINITY, 1.0, 1.0]))
+    constant(new VectorValue([42.0])),
+    constant(new VectorValue([21.2, 3.14])),
+    constant(new VectorValue([Number.NEGATIVE_INFINITY, 10.0, 1.0])),
+    constant(new VectorValue([-Number.MAX_VALUE, 9.0, 1.0])),
+    constant(new VectorValue([-Number.MIN_VALUE, 7.0, 1.0])),
+    constant(new VectorValue([-Number.MIN_VALUE, 8.0, 1.0])),
+    constant(new VectorValue([0.0, 5.0, 1.0])),
+    constant(new VectorValue([0.0, 6.0, 1.0])),
+    constant(new VectorValue([Number.MIN_VALUE, 3.0, 1.0])),
+    constant(new VectorValue([Number.MIN_VALUE, 4.0, 1.0])),
+    constant(new VectorValue([Number.MAX_VALUE, 2.0, 1.0])),
+    constant(new VectorValue([Number.POSITIVE_INFINITY, 1.0, 1.0]))
   ];
 
   static MAP_VALUES = [
-    Constant.of({}),
-    Constant.of({ ABA: 'qux' } as any),
-    Constant.of({ aba: 'hello' } as any),
-    Constant.of({ aba: 'hello', foo: true } as any),
-    Constant.of({ aba: 'qux' } as any),
-    Constant.of({ foo: 'aaa' } as any)
+    constantMap({}),
+    constantMap({ ABA: 'qux' }),
+    constantMap({ aba: 'hello' }),
+    constantMap({ aba: 'hello', foo: true }),
+    constantMap({ aba: 'qux' }),
+    constantMap({ foo: 'aaa' })
   ];
 
   // Concatenation of values (implementation depends on your testing framework)
@@ -230,28 +229,28 @@ class ComparisonValueTestData {
     );
 
     return results.concat([
-      { left: Constant.of(-42), right: Constant.of(-42.0) },
-      { left: Constant.of(-42.0), right: Constant.of(-42) },
-      { left: Constant.of(42), right: Constant.of(42.0) },
-      { left: Constant.of(42.0), right: Constant.of(42) },
+      { left: constant(-42), right: constant(-42.0) },
+      { left: constant(-42.0), right: constant(-42) },
+      { left: constant(42), right: constant(42.0) },
+      { left: constant(42.0), right: constant(42) },
 
-      { left: Constant.of(0), right: Constant.of(-0) },
-      { left: Constant.of(-0), right: Constant.of(0) },
+      { left: constant(0), right: constant(-0) },
+      { left: constant(-0), right: constant(0) },
 
-      { left: Constant.of(0), right: Constant.of(0.0) },
-      { left: Constant.of(0.0), right: Constant.of(0) },
+      { left: constant(0), right: constant(0.0) },
+      { left: constant(0.0), right: constant(0) },
 
-      { left: Constant.of(0), right: Constant.of(-0.0) },
-      { left: Constant.of(-0.0), right: Constant.of(0) },
+      { left: constant(0), right: constant(-0.0) },
+      { left: constant(-0.0), right: constant(0) },
 
-      { left: Constant.of(-0), right: Constant.of(0.0) },
-      { left: Constant.of(0.0), right: Constant.of(-0) },
+      { left: constant(-0), right: constant(0.0) },
+      { left: constant(0.0), right: constant(-0) },
 
-      { left: Constant.of(-0), right: Constant.of(-0.0) },
-      { left: Constant.of(-0.0), right: Constant.of(-0) },
+      { left: constant(-0), right: constant(-0.0) },
+      { left: constant(-0.0), right: constant(-0) },
 
-      { left: Constant.of(0.0), right: Constant.of(-0.0) },
-      { left: Constant.of(-0.0), right: Constant.of(0.0) }
+      { left: constant(0.0), right: constant(-0.0) },
+      { left: constant(-0.0), right: constant(0.0) }
     ]);
   }
 
@@ -343,11 +342,11 @@ function evaluate(
 }
 
 function errorExpr(): Expr {
-  return Field.of('not-an-array').arrayLength();
+  return field('not-an-array').arrayLength();
 }
 
-function errorFilterCondition(): FilterCondition {
-  return Field.of('not-an-array').gt(0);
+function errorFilterCondition(): BooleanExpr {
+  return field('not-an-array').gt(0);
 }
 
 describe('Comparison Expressions', () => {
@@ -382,60 +381,59 @@ describe('Comparison Expressions', () => {
     it('null_any_returnsFalse', () => {
       ComparisonValueTestData.ALL_SUPPORTED_COMPARABLE_VALUES.forEach(v => {
         expect(
-          evaluate(eq(Constant.of(null), v)),
+          evaluate(eq(constant(null), v)),
           `eq(null, ${canonifyExpr(v)})`
         ).to.be.deep.equal(FALSE_VALUE);
         expect(
-          evaluate(eq(v, Constant.of(null))),
+          evaluate(eq(v, constant(null))),
           `eq(${canonifyExpr(v)}, null)`
         ).to.be.deep.equal(FALSE_VALUE);
       });
     });
 
     it('null_null_returnsTrue', () => {
-      expect(
-        evaluate(eq(Constant.of(null), Constant.of(null)))
-      ).to.be.deep.equal(TRUE_VALUE);
+      expect(evaluate(eq(constant(null), constant(null)))).to.be.deep.equal(
+        TRUE_VALUE
+      );
     });
 
     it('Null and missing evaluates to undefined (error)', () => {
-      expect(evaluate(eq(Constant.of(null), Field.of('not-exist')))).to.be
-        .undefined;
+      expect(evaluate(eq(constant(null), field('not-exist')))).to.be.undefined;
     });
 
     it('nullInArray_equality', () => {
+      expect(evaluate(eq(constantArray([null]), constant(1)))).to.be.deep.equal(
+        FALSE_VALUE
+      );
       expect(
-        evaluate(eq(Constant.of([null]), Constant.of(1)))
+        evaluate(eq(constantArray([null]), constant('1')))
       ).to.be.deep.equal(FALSE_VALUE);
       expect(
-        evaluate(eq(Constant.of([null]), Constant.of('1')))
+        evaluate(eq(constantArray([null]), constant(null)))
       ).to.be.deep.equal(FALSE_VALUE);
       expect(
-        evaluate(eq(Constant.of([null]), Constant.of(null)))
+        evaluate(eq(constantArray([null]), constant(NaN)))
       ).to.be.deep.equal(FALSE_VALUE);
       expect(
-        evaluate(eq(Constant.of([null]), Constant.of(NaN)))
+        evaluate(eq(constantArray([null]), constantArray([])))
       ).to.be.deep.equal(FALSE_VALUE);
       expect(
-        evaluate(eq(Constant.of([null]), Constant.of([])))
+        evaluate(eq(constantArray([null]), constantArray([NaN])))
       ).to.be.deep.equal(FALSE_VALUE);
       expect(
-        evaluate(eq(Constant.of([null]), Constant.of([NaN])))
-      ).to.be.deep.equal(FALSE_VALUE);
-      expect(
-        evaluate(eq(Constant.of([null]), Constant.of([null])))
+        evaluate(eq(constantArray([null]), constantArray([null])))
       ).to.be.deep.equal(TRUE_VALUE);
     });
 
     it('nullInMap_equality_returnsTrue', () => {
       expect(
-        evaluate(eq(Constant.of({ foo: null }), Constant.of({ foo: null })))
+        evaluate(eq(constantMap({ foo: null }), constantMap({ foo: null })))
       ).to.be.deep.equal(TRUE_VALUE);
     });
 
     it('null_missingInMap_equality_returnsFalse', () => {
       expect(
-        evaluate(eq(Constant.of({ foo: null }), Constant.of({})))
+        evaluate(eq(constantMap({ foo: null }), constant({})))
       ).to.be.deep.equal(FALSE_VALUE);
     });
 
@@ -443,20 +441,20 @@ describe('Comparison Expressions', () => {
       it('nan_number_returnsFalse', () => {
         ComparisonValueTestData.NUMERIC_VALUES.forEach(v => {
           expect(
-            evaluate(eq(Constant.of(NaN), v)),
+            evaluate(eq(constant(NaN), v)),
             `eq(NaN, ${canonifyExpr(v)})`
           ).to.be.deep.equal(FALSE_VALUE);
           expect(
-            evaluate(eq(v, Constant.of(NaN))),
+            evaluate(eq(v, constant(NaN))),
             `eq(${canonifyExpr(v)}, NaN)`
           ).to.be.deep.equal(FALSE_VALUE);
         });
       });
 
       it('nan_nan_returnsFalse', () => {
-        expect(
-          evaluate(eq(Constant.of(NaN), Constant.of(NaN)))
-        ).to.be.deep.equal(FALSE_VALUE);
+        expect(evaluate(eq(constant(NaN), constant(NaN)))).to.be.deep.equal(
+          FALSE_VALUE
+        );
       });
 
       it('nan_otherType_returnsFalse', () => {
@@ -464,11 +462,11 @@ describe('Comparison Expressions', () => {
           // Exclude numeric values as they are already tested above
           if (!ComparisonValueTestData.NUMERIC_VALUES.includes(v)) {
             expect(
-              evaluate(eq(Constant.of(NaN), v)),
+              evaluate(eq(constant(NaN), v)),
               `eq(NaN, ${canonifyExpr(v)})`
             ).to.be.deep.equal(FALSE_VALUE);
             expect(
-              evaluate(eq(v, Constant.of(NaN))),
+              evaluate(eq(v, constant(NaN))),
               `eq(${canonifyExpr(v)}, NaN)`
             ).to.be.deep.equal(FALSE_VALUE);
           }
@@ -477,13 +475,13 @@ describe('Comparison Expressions', () => {
 
       it('nanInArray_equality_returnsFalse', () => {
         expect(
-          evaluate(eq(Constant.of([NaN]), Constant.of([NaN])))
+          evaluate(eq(constantArray([NaN]), constantArray([NaN])))
         ).to.be.deep.equal(FALSE_VALUE);
       });
 
       it('nanInMap_equality_returnsFalse', () => {
         expect(
-          evaluate(eq(Constant.of({ foo: NaN }), Constant.of({ foo: NaN })))
+          evaluate(eq(constantMap({ foo: NaN }), constantMap({ foo: NaN })))
         ).to.be.deep.equal(FALSE_VALUE);
       });
     }); // end describe NaN tests
@@ -491,7 +489,7 @@ describe('Comparison Expressions', () => {
     describe('Array tests', () => {
       it('array_ambiguousNumerics', () => {
         expect(
-          evaluate(eq(Constant.of([1]), Constant.of([1.0])))
+          evaluate(eq(constantArray([1]), constantArray([1.0])))
         ).to.be.deep.equal(TRUE_VALUE);
       });
     });
@@ -501,8 +499,8 @@ describe('Comparison Expressions', () => {
         expect(
           evaluate(
             eq(
-              Constant.of({ foo: 1, bar: 42.0 }),
-              Constant.of({ bar: 42, foo: 1.0 })
+              constantMap({ foo: 1, bar: 42.0 }),
+              constantMap({ bar: 42, foo: 1.0 })
             )
           )
         ).to.be.deep.equal(TRUE_VALUE);
@@ -524,7 +522,7 @@ describe('Comparison Expressions', () => {
       });
 
       it('error_null_returnsError', () => {
-        expect(evaluate(eq(errorExpr(), Constant.of(null)))).to.be.deep.equal(
+        expect(evaluate(eq(errorExpr(), constant(null)))).to.be.deep.equal(
           ERROR_VALUE
         );
       });
@@ -562,51 +560,50 @@ describe('Comparison Expressions', () => {
     it('null_any_returnsFalse', () => {
       ComparisonValueTestData.ALL_SUPPORTED_COMPARABLE_VALUES.forEach(v => {
         expect(
-          evaluate(gte(Constant.of(null), v)),
+          evaluate(gte(constant(null), v)),
           `gte(null, ${canonifyExpr(v)})`
         ).to.be.deep.equal(FALSE_VALUE);
         expect(
-          evaluate(gte(v, Constant.of(null))),
+          evaluate(gte(v, constant(null))),
           `gte(${canonifyExpr(v)}, null)`
         ).to.be.deep.equal(FALSE_VALUE);
       });
     });
 
     it('null_null_returnsTrue', () => {
-      expect(
-        evaluate(gte(Constant.of(null), Constant.of(null)))
-      ).to.be.deep.equal(TRUE_VALUE);
+      expect(evaluate(gte(constant(null), constant(null)))).to.be.deep.equal(
+        TRUE_VALUE
+      );
     });
 
     it('nan_number_returnsFalse', () => {
       ComparisonValueTestData.NUMERIC_VALUES.forEach(v => {
         expect(
-          evaluate(gte(Constant.of(NaN), v)),
+          evaluate(gte(constant(NaN), v)),
           `gte(NaN, ${canonifyExpr(v)})`
         ).to.be.deep.equal(FALSE_VALUE);
         expect(
-          evaluate(gte(v, Constant.of(NaN))),
+          evaluate(gte(v, constant(NaN))),
           `gte(${canonifyExpr(v)}, NaN)`
         ).to.be.deep.equal(FALSE_VALUE);
       });
     });
 
     it('nan_nan_returnsFalse', () => {
-      expect(
-        evaluate(gte(Constant.of(NaN), Constant.of(NaN)))
-      ).to.be.deep.equal(FALSE_VALUE);
+      expect(evaluate(gte(constant(NaN), constant(NaN)))).to.be.deep.equal(
+        FALSE_VALUE
+      );
     });
 
     it('nanInArray_returnsFalse', () => {
       expect(
-        evaluate(gte(Constant.of([NaN]), Constant.of([NaN])))
+        evaluate(gte(constantArray([NaN]), constantArray([NaN])))
       ).to.be.deep.equal(FALSE_VALUE);
     });
 
     it('referenceFieldNotFound_returnsError', () => {
       // Adapt as needed for references
-      expect(evaluate(gte(Field.of('not-exist'), Constant.of(1)))).to.be
-        .undefined; // Or appropriate error handling
+      expect(evaluate(gte(field('not-exist'), constant(1)))).to.be.undefined; // Or appropriate error handling
     });
   }); // end describe('gte')
 
@@ -650,45 +647,44 @@ describe('Comparison Expressions', () => {
     it('null_any_returnsFalse', () => {
       ComparisonValueTestData.ALL_SUPPORTED_COMPARABLE_VALUES.forEach(v => {
         expect(
-          evaluate(gt(Constant.of(null), v)),
+          evaluate(gt(constant(null), v)),
           `gt(null, ${canonifyExpr(v)})`
         ).to.be.deep.equal(FALSE_VALUE);
         expect(
-          evaluate(gt(v, Constant.of(null))),
+          evaluate(gt(v, constant(null))),
           `gt(${canonifyExpr(v)}, null)`
         ).to.be.deep.equal(FALSE_VALUE);
       });
     });
 
     it('null_null_returnsFalse', () => {
-      expect(
-        evaluate(gt(Constant.of(null), Constant.of(null)))
-      ).to.be.deep.equal(FALSE_VALUE);
+      expect(evaluate(gt(constant(null), constant(null)))).to.be.deep.equal(
+        FALSE_VALUE
+      );
     });
 
     it('nan_number_returnsFalse', () => {
       ComparisonValueTestData.NUMERIC_VALUES.forEach(v => {
-        expect(evaluate(gt(Constant.of(NaN), v))).to.be.deep.equal(FALSE_VALUE);
-        expect(evaluate(gt(v, Constant.of(NaN)))).to.be.deep.equal(FALSE_VALUE);
+        expect(evaluate(gt(constant(NaN), v))).to.be.deep.equal(FALSE_VALUE);
+        expect(evaluate(gt(v, constant(NaN)))).to.be.deep.equal(FALSE_VALUE);
       });
     });
 
     it('nan_nan_returnsFalse', () => {
-      expect(evaluate(gt(Constant.of(NaN), Constant.of(NaN)))).to.be.deep.equal(
+      expect(evaluate(gt(constant(NaN), constant(NaN)))).to.be.deep.equal(
         FALSE_VALUE
       );
     });
 
     it('nanInArray_returnsFalse', () => {
       expect(
-        evaluate(gt(Constant.of([NaN]), Constant.of([NaN])))
+        evaluate(gt(constantArray([NaN]), constantArray([NaN])))
       ).to.be.deep.equal(FALSE_VALUE);
     });
 
     it('referenceFieldNotFound_returnsError', () => {
       // Adapt as needed for references
-      expect(evaluate(gt(Field.of('not-exist'), Constant.of(1)))).to.be
-        .undefined; // Or appropriate error handling
+      expect(evaluate(gt(field('not-exist'), constant(1)))).to.be.undefined; // Or appropriate error handling
     });
   }); // end describe('gt')
 
@@ -723,49 +719,44 @@ describe('Comparison Expressions', () => {
     it('null_any_returnsFalse', () => {
       ComparisonValueTestData.ALL_SUPPORTED_COMPARABLE_VALUES.forEach(v => {
         expect(
-          evaluate(lte(Constant.of(null), v)),
+          evaluate(lte(constant(null), v)),
           `lte(null, ${canonifyExpr(v)})`
         ).to.be.deep.equal(FALSE_VALUE);
         expect(
-          evaluate(lte(v, Constant.of(null))),
+          evaluate(lte(v, constant(null))),
           `lte(${canonifyExpr(v)}, null)`
         ).to.be.deep.equal(FALSE_VALUE);
       });
     });
 
     it('null_null_returnsTrue', () => {
-      expect(
-        evaluate(lte(Constant.of(null), Constant.of(null)))
-      ).to.be.deep.equal(TRUE_VALUE);
+      expect(evaluate(lte(constant(null), constant(null)))).to.be.deep.equal(
+        TRUE_VALUE
+      );
     });
 
     it('nan_number_returnsFalse', () => {
       ComparisonValueTestData.NUMERIC_VALUES.forEach(v => {
-        expect(evaluate(lte(Constant.of(NaN), v))).to.be.deep.equal(
-          FALSE_VALUE
-        );
-        expect(evaluate(lte(v, Constant.of(NaN)))).to.be.deep.equal(
-          FALSE_VALUE
-        );
+        expect(evaluate(lte(constant(NaN), v))).to.be.deep.equal(FALSE_VALUE);
+        expect(evaluate(lte(v, constant(NaN)))).to.be.deep.equal(FALSE_VALUE);
       });
     });
 
     it('nan_nan_returnsFalse', () => {
-      expect(
-        evaluate(lte(Constant.of(NaN), Constant.of(NaN)))
-      ).to.be.deep.equal(FALSE_VALUE);
+      expect(evaluate(lte(constant(NaN), constant(NaN)))).to.be.deep.equal(
+        FALSE_VALUE
+      );
     });
 
     it('nanInArray_returnsFalse', () => {
       expect(
-        evaluate(lte(Constant.of([NaN]), Constant.of([NaN])))
+        evaluate(lte(constantArray([NaN]), constantArray([NaN])))
       ).to.be.deep.equal(FALSE_VALUE);
     });
 
     it('referenceFieldNotFound_returnsError', () => {
       // Adapt as needed for references
-      expect(evaluate(lte(Field.of('not-exist'), Constant.of(1)))).to.be
-        .undefined; // Or appropriate error handling
+      expect(evaluate(lte(field('not-exist'), constant(1)))).to.be.undefined; // Or appropriate error handling
     });
   }); // end describe('lte')
 
@@ -809,45 +800,44 @@ describe('Comparison Expressions', () => {
     it('null_any_returnsFalse', () => {
       ComparisonValueTestData.ALL_SUPPORTED_COMPARABLE_VALUES.forEach(v => {
         expect(
-          evaluate(lt(Constant.of(null), v)),
+          evaluate(lt(constant(null), v)),
           `lt(null, ${canonifyExpr(v)})`
         ).to.be.deep.equal(FALSE_VALUE);
         expect(
-          evaluate(lt(v, Constant.of(null))),
+          evaluate(lt(v, constant(null))),
           `lt(${canonifyExpr(v)}, null)`
         ).to.be.deep.equal(FALSE_VALUE);
       });
     });
 
     it('null_null_returnsFalse', () => {
-      expect(
-        evaluate(lt(Constant.of(null), Constant.of(null)))
-      ).to.be.deep.equal(FALSE_VALUE);
+      expect(evaluate(lt(constant(null), constant(null)))).to.be.deep.equal(
+        FALSE_VALUE
+      );
     });
 
     it('nan_number_returnsFalse', () => {
       ComparisonValueTestData.NUMERIC_VALUES.forEach(v => {
-        expect(evaluate(lt(Constant.of(NaN), v))).to.be.deep.equal(FALSE_VALUE);
-        expect(evaluate(lt(v, Constant.of(NaN)))).to.be.deep.equal(FALSE_VALUE);
+        expect(evaluate(lt(constant(NaN), v))).to.be.deep.equal(FALSE_VALUE);
+        expect(evaluate(lt(v, constant(NaN)))).to.be.deep.equal(FALSE_VALUE);
       });
     });
 
     it('nan_nan_returnsFalse', () => {
-      expect(evaluate(lt(Constant.of(NaN), Constant.of(NaN)))).to.be.deep.equal(
+      expect(evaluate(lt(constant(NaN), constant(NaN)))).to.be.deep.equal(
         FALSE_VALUE
       );
     });
 
     it('nanInArray_returnsFalse', () => {
       expect(
-        evaluate(lt(Constant.of([NaN]), Constant.of([NaN])))
+        evaluate(lt(constantArray([NaN]), constantArray([NaN])))
       ).to.be.deep.equal(FALSE_VALUE);
     });
 
     it('referenceFieldNotFound_returnsError', () => {
       // Adapt as needed for references
-      expect(evaluate(lt(Field.of('not-exist'), Constant.of(1)))).to.be
-        .undefined; // Or appropriate error handling
+      expect(evaluate(lt(field('not-exist'), constant(1)))).to.be.undefined; // Or appropriate error handling
     });
   }); // end describe('lt')
 
@@ -880,42 +870,42 @@ describe('Comparison Expressions', () => {
     });
 
     it('null_any_returnsTrue', () => {
+      expect(evaluate(neq(constant(null), constant(42)))).to.be.deep.equal(
+        TRUE_VALUE
+      );
       expect(
-        evaluate(neq(Constant.of(null), Constant.of(42)))
+        evaluate(neq(constant(null), constant('matang')))
       ).to.be.deep.equal(TRUE_VALUE);
-      expect(
-        evaluate(neq(Constant.of(null), Constant.of('matang')))
-      ).to.be.deep.equal(TRUE_VALUE);
-      expect(
-        evaluate(neq(Constant.of(null), Constant.of(true)))
-      ).to.be.deep.equal(TRUE_VALUE);
+      expect(evaluate(neq(constant(null), constant(true)))).to.be.deep.equal(
+        TRUE_VALUE
+      );
     });
 
     it('null_null_returnsFalse', () => {
-      expect(
-        evaluate(neq(Constant.of(null), Constant.of(null)))
-      ).to.be.deep.equal(FALSE_VALUE);
+      expect(evaluate(neq(constant(null), constant(null)))).to.be.deep.equal(
+        FALSE_VALUE
+      );
     });
 
     it('nan_number_returnsTrue', () => {
       ComparisonValueTestData.NUMERIC_VALUES.forEach(v => {
-        expect(evaluate(neq(Constant.of(NaN), v))).to.be.deep.equal(TRUE_VALUE);
-        expect(evaluate(neq(v, Constant.of(NaN)))).to.be.deep.equal(TRUE_VALUE);
+        expect(evaluate(neq(constant(NaN), v))).to.be.deep.equal(TRUE_VALUE);
+        expect(evaluate(neq(v, constant(NaN)))).to.be.deep.equal(TRUE_VALUE);
       });
     });
 
     it('nan_nan_returnsTrue', () => {
-      expect(
-        evaluate(neq(Constant.of(NaN), Constant.of(NaN)))
-      ).to.be.deep.equal(TRUE_VALUE);
+      expect(evaluate(neq(constant(NaN), constant(NaN)))).to.be.deep.equal(
+        TRUE_VALUE
+      );
     });
 
     it('map_ambiguousNumerics', () => {
       expect(
         evaluate(
           neq(
-            Constant.of({ foo: 1, bar: 42.0 }),
-            Constant.of({ foo: 1.0, bar: 42 })
+            constantMap({ foo: 1, bar: 42.0 }),
+            constantMap({ foo: 1.0, bar: 42 })
           )
         )
       ).to.be.deep.equal(FALSE_VALUE);
@@ -923,13 +913,12 @@ describe('Comparison Expressions', () => {
 
     it('array_ambiguousNumerics', () => {
       expect(
-        evaluate(neq(Constant.of([1]), Constant.of([1.0])))
+        evaluate(neq(constantArray([1]), constantArray([1.0])))
       ).to.be.deep.equal(FALSE_VALUE);
     });
 
     it('referenceFieldNotFound_returnsError', () => {
-      expect(evaluate(neq(Field.of('not-exist'), Constant.of(1)))).to.be
-        .undefined; // Or appropriate error handling
+      expect(evaluate(neq(field('not-exist'), constant(1)))).to.be.undefined; // Or appropriate error handling
     });
   }); // end describe('neq')
 });
@@ -959,61 +948,57 @@ describe('Expressions', () => {
     describe('add', () => {
       it('basic_add_numerics', () => {
         expectEqual(
-          evaluate(add(Constant.of(1), Constant.of(2))),
-          Constant.of(3),
+          evaluate(add(constant(1), constant(2))),
+          constant(3),
           `add(1, 2)`
         );
         expectEqual(
-          evaluate(add(Constant.of(1), Constant.of(2.5))),
-          Constant.of(3.5),
+          evaluate(add(constant(1), constant(2.5))),
+          constant(3.5),
           `add(1, 2.5)`
         );
         expectEqual(
-          evaluate(add(Constant.of(1.0), Constant.of(2))),
-          Constant.of(3.0),
+          evaluate(add(constant(1.0), constant(2))),
+          constant(3.0),
           `add(1.0, 2)`
         );
         expectEqual(
-          evaluate(add(Constant.of(1.0), Constant.of(2.0))),
-          Constant.of(3.0),
+          evaluate(add(constant(1.0), constant(2.0))),
+          constant(3.0),
           `add(1.0, 2.0)`
         );
       });
 
       it('basic_add_nonNumerics', () => {
-        expect(evaluate(add(Constant.of(1), Constant.of('1')))).to.be.undefined;
-        expect(evaluate(add(Constant.of('1'), Constant.of(1.0)))).to.be
-          .undefined;
-        expect(evaluate(add(Constant.of('1'), Constant.of('1')))).to.be
-          .undefined;
+        expect(evaluate(add(constant(1), constant('1')))).to.be.undefined;
+        expect(evaluate(add(constant('1'), constant(1.0)))).to.be.undefined;
+        expect(evaluate(add(constant('1'), constant('1')))).to.be.undefined;
       });
 
       it('doubleLongAddition_overflow', () => {
         expectEqual(
-          evaluate(add(Constant.of(9223372036854775807), Constant.of(1.0))),
-          Constant.of(9.223372036854776e18),
+          evaluate(add(constant(9223372036854775807), constant(1.0))),
+          constant(9.223372036854776e18),
           `add(Long.MAX_VALUE, 1.0)`
         );
         expectEqual(
-          evaluate(add(Constant.of(9223372036854775807.0), Constant.of(100))),
-          Constant.of(9.223372036854776e18),
+          evaluate(add(constant(9223372036854775807.0), constant(100))),
+          constant(9.223372036854776e18),
           `add(Long.MAX_VALUE as double, 100)`
         );
       });
 
       it('doubleAddition_overflow', () => {
         expectEqual(
-          evaluate(
-            add(Constant.of(Number.MAX_VALUE), Constant.of(Number.MAX_VALUE))
-          ),
-          Constant.of(Number.POSITIVE_INFINITY),
+          evaluate(add(constant(Number.MAX_VALUE), constant(Number.MAX_VALUE))),
+          constant(Number.POSITIVE_INFINITY),
           `add(Number.MAX_VALUE, Number.MAX_VALUE)`
         );
         expectEqual(
           evaluate(
-            add(Constant.of(-Number.MAX_VALUE), Constant.of(-Number.MAX_VALUE))
+            add(constant(-Number.MAX_VALUE), constant(-Number.MAX_VALUE))
           ),
-          Constant.of(Number.NEGATIVE_INFINITY),
+          constant(Number.NEGATIVE_INFINITY),
           `add(-Number.MAX_VALUE, -Number.MAX_VALUE)`
         );
       });
@@ -1022,11 +1007,11 @@ describe('Expressions', () => {
         expectEqual(
           evaluate(
             add(
-              Constant.of(Number.POSITIVE_INFINITY),
-              Constant.of(Number.NEGATIVE_INFINITY)
+              constant(Number.POSITIVE_INFINITY),
+              constant(Number.NEGATIVE_INFINITY)
             )
           ),
-          Constant.of(NaN),
+          constant(NaN),
           `add(Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY)`
         );
       });
@@ -1037,24 +1022,24 @@ describe('Expressions', () => {
         expect(
           evaluate(
             add(
-              Constant.of(0x7fffffffffffffff, { preferIntegers: true }),
-              Constant.of(1)
+              constant(0x7fffffffffffffff, { preferIntegers: true }),
+              constant(1)
             )
           )
         ).to.be.undefined;
         expect(
           evaluate(
             add(
-              Constant.of(0x8000000000000000, { preferIntegers: true }),
-              Constant.of(-1)
+              constant(0x8000000000000000, { preferIntegers: true }),
+              constant(-1)
             )
           )
         ).to.be.undefined;
         expect(
           evaluate(
             add(
-              Constant.of(1),
-              Constant.of(0x7fffffffffffffff, { preferIntegers: true })
+              constant(1),
+              constant(0x7fffffffffffffff, { preferIntegers: true })
             )
           )
         ).to.be.undefined;
@@ -1062,65 +1047,61 @@ describe('Expressions', () => {
 
       it('nan_number_returnNaN', () => {
         expectEqual(
-          evaluate(add(Constant.of(1), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(add(constant(1), constant(NaN))),
+          constant(NaN),
           `add(1, NaN)`
         );
         expectEqual(
-          evaluate(add(Constant.of(1.0), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(add(constant(1.0), constant(NaN))),
+          constant(NaN),
           `add(1.0, NaN)`
         );
         expectEqual(
-          evaluate(add(Constant.of(Number.MAX_SAFE_INTEGER), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(add(constant(Number.MAX_SAFE_INTEGER), constant(NaN))),
+          constant(NaN),
           `add(Number.MAX_SAFE_INTEGER, NaN)`
         );
         expectEqual(
-          evaluate(add(Constant.of(Number.MIN_SAFE_INTEGER), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(add(constant(Number.MIN_SAFE_INTEGER), constant(NaN))),
+          constant(NaN),
           `add(Number.MIN_SAFE_INTEGER, NaN)`
         );
         expectEqual(
-          evaluate(add(Constant.of(Number.MAX_VALUE), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(add(constant(Number.MAX_VALUE), constant(NaN))),
+          constant(NaN),
           `add(Number.MAX_VALUE, NaN)`
         );
         expectEqual(
-          evaluate(add(Constant.of(Number.MIN_VALUE), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(add(constant(Number.MIN_VALUE), constant(NaN))),
+          constant(NaN),
           `add(Number.MIN_VALUE, NaN)`
         );
         expectEqual(
-          evaluate(
-            add(Constant.of(Number.POSITIVE_INFINITY), Constant.of(NaN))
-          ),
-          Constant.of(NaN),
+          evaluate(add(constant(Number.POSITIVE_INFINITY), constant(NaN))),
+          constant(NaN),
           `add(Number.POSITIVE_INFINITY, NaN)`
         );
         expectEqual(
-          evaluate(
-            add(Constant.of(Number.NEGATIVE_INFINITY), Constant.of(NaN))
-          ),
-          Constant.of(NaN),
+          evaluate(add(constant(Number.NEGATIVE_INFINITY), constant(NaN))),
+          constant(NaN),
           `add(Number.NEGATIVE_INFINITY, NaN)`
         );
       });
 
       it('nan_notNumberType_returnError', () => {
-        expect(evaluate(add(Constant.of(NaN), Constant.of('hello world')))).to
-          .be.undefined;
+        expect(evaluate(add(constant(NaN), constant('hello world')))).to.be
+          .undefined;
       });
 
       it('multiArgument', () => {
         expectEqual(
-          evaluate(add(add(Constant.of(1), Constant.of(2)), Constant.of(3))),
-          Constant.of(6),
+          evaluate(add(add(constant(1), constant(2)), constant(3))),
+          constant(6),
           `add(add(1, 2), 3)`
         );
         expectEqual(
-          evaluate(add(add(Constant.of(1.0), Constant.of(2)), Constant.of(3))),
-          Constant.of(6.0),
+          evaluate(add(add(constant(1.0), constant(2)), constant(3))),
+          constant(6.0),
           `add(add(1.0, 2), 3)`
         );
       });
@@ -1129,46 +1110,45 @@ describe('Expressions', () => {
     describe('subtract', () => {
       it('basic_subtract_numerics', () => {
         expectEqual(
-          evaluate(subtract(Constant.of(1), Constant.of(2))),
-          Constant.of(-1),
+          evaluate(subtract(constant(1), constant(2))),
+          constant(-1),
           `subtract(1, 2)`
         );
         expectEqual(
-          evaluate(subtract(Constant.of(1), Constant.of(2.5))),
-          Constant.of(-1.5),
+          evaluate(subtract(constant(1), constant(2.5))),
+          constant(-1.5),
           `subtract(1, 2.5)`
         );
         expectEqual(
-          evaluate(subtract(Constant.of(1.0), Constant.of(2))),
-          Constant.of(-1.0),
+          evaluate(subtract(constant(1.0), constant(2))),
+          constant(-1.0),
           `subtract(1.0, 2)`
         );
         expectEqual(
-          evaluate(subtract(Constant.of(1.0), Constant.of(2.0))),
-          Constant.of(-1.0),
+          evaluate(subtract(constant(1.0), constant(2.0))),
+          constant(-1.0),
           `subtract(1.0, 2.0)`
         );
       });
 
       it('basic_subtract_nonNumerics', () => {
-        expect(evaluate(subtract(Constant.of(1), Constant.of('1')))).to.be
+        expect(evaluate(subtract(constant(1), constant('1')))).to.be.undefined;
+        expect(evaluate(subtract(constant('1'), constant(1.0)))).to.be
           .undefined;
-        expect(evaluate(subtract(Constant.of('1'), Constant.of(1.0)))).to.be
-          .undefined;
-        expect(evaluate(subtract(Constant.of('1'), Constant.of('1')))).to.be
+        expect(evaluate(subtract(constant('1'), constant('1')))).to.be
           .undefined;
       });
 
       // TODO(pipeline): Overflow behavior is different in Javascript than backend.
       it.skip('doubleLongSubtraction_overflow', () => {
         expectEqual(
-          evaluate(subtract(Constant.of(0x8000000000000000), Constant.of(1.0))),
-          Constant.of(-9.223372036854776e18),
+          evaluate(subtract(constant(0x8000000000000000), constant(1.0))),
+          constant(-9.223372036854776e18),
           `subtract(Long.MIN_VALUE, 1.0)`
         );
         expectEqual(
-          evaluate(subtract(Constant.of(0x8000000000000000), Constant.of(100))),
-          Constant.of(-9.223372036854776e18),
+          evaluate(subtract(constant(0x8000000000000000), constant(100))),
+          constant(-9.223372036854776e18),
           `subtract(Long.MIN_VALUE, 100)`
         );
       });
@@ -1176,22 +1156,16 @@ describe('Expressions', () => {
       it('doubleSubtraction_overflow', () => {
         expectEqual(
           evaluate(
-            subtract(
-              Constant.of(-Number.MAX_VALUE),
-              Constant.of(Number.MAX_VALUE)
-            )
+            subtract(constant(-Number.MAX_VALUE), constant(Number.MAX_VALUE))
           ),
-          Constant.of(Number.NEGATIVE_INFINITY),
+          constant(Number.NEGATIVE_INFINITY),
           `subtract(-Number.MAX_VALUE, Number.MAX_VALUE)`
         );
         expectEqual(
           evaluate(
-            subtract(
-              Constant.of(Number.MAX_VALUE),
-              Constant.of(-Number.MAX_VALUE)
-            )
+            subtract(constant(Number.MAX_VALUE), constant(-Number.MAX_VALUE))
           ),
-          Constant.of(Number.POSITIVE_INFINITY),
+          constant(Number.POSITIVE_INFINITY),
           `subtract(Number.MAX_VALUE, -Number.MAX_VALUE)`
         );
       });
@@ -1200,16 +1174,16 @@ describe('Expressions', () => {
         expect(
           evaluate(
             subtract(
-              Constant.of(0x8000000000000000, { preferIntegers: true }),
-              Constant.of(1)
+              constant(0x8000000000000000, { preferIntegers: true }),
+              constant(1)
             )
           )
         ).to.be.undefined;
         expect(
           evaluate(
             subtract(
-              Constant.of(0x8000000000000000, { preferIntegers: true }),
-              Constant.of(-1)
+              constant(0x8000000000000000, { preferIntegers: true }),
+              constant(-1)
             )
           )
         ).to.be.undefined;
@@ -1217,92 +1191,76 @@ describe('Expressions', () => {
 
       it('nan_number_returnNaN', () => {
         expectEqual(
-          evaluate(subtract(Constant.of(1), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(subtract(constant(1), constant(NaN))),
+          constant(NaN),
           `subtract(1, NaN)`
         );
         expectEqual(
-          evaluate(subtract(Constant.of(1.0), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(subtract(constant(1.0), constant(NaN))),
+          constant(NaN),
           `subtract(1.0, NaN)`
         );
         expectEqual(
-          evaluate(
-            subtract(Constant.of(Number.MAX_SAFE_INTEGER), Constant.of(NaN))
-          ),
-          Constant.of(NaN),
+          evaluate(subtract(constant(Number.MAX_SAFE_INTEGER), constant(NaN))),
+          constant(NaN),
           `subtract(Number.MAX_SAFE_INTEGER, NaN)`
         );
         expectEqual(
-          evaluate(
-            subtract(Constant.of(Number.MIN_SAFE_INTEGER), Constant.of(NaN))
-          ),
-          Constant.of(NaN),
+          evaluate(subtract(constant(Number.MIN_SAFE_INTEGER), constant(NaN))),
+          constant(NaN),
           `subtract(Number.MIN_SAFE_INTEGER, NaN)`
         );
         expectEqual(
-          evaluate(subtract(Constant.of(Number.MAX_VALUE), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(subtract(constant(Number.MAX_VALUE), constant(NaN))),
+          constant(NaN),
           `subtract(Number.MAX_VALUE, NaN)`
         );
         expectEqual(
-          evaluate(subtract(Constant.of(Number.MIN_VALUE), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(subtract(constant(Number.MIN_VALUE), constant(NaN))),
+          constant(NaN),
           `subtract(Number.MIN_VALUE, NaN)`
         );
         expectEqual(
-          evaluate(
-            subtract(Constant.of(Number.POSITIVE_INFINITY), Constant.of(NaN))
-          ),
-          Constant.of(NaN),
+          evaluate(subtract(constant(Number.POSITIVE_INFINITY), constant(NaN))),
+          constant(NaN),
           `subtract(Number.POSITIVE_INFINITY, NaN)`
         );
         expectEqual(
-          evaluate(
-            subtract(Constant.of(Number.NEGATIVE_INFINITY), Constant.of(NaN))
-          ),
-          Constant.of(NaN),
+          evaluate(subtract(constant(Number.NEGATIVE_INFINITY), constant(NaN))),
+          constant(NaN),
           `subtract(Number.NEGATIVE_INFINITY, NaN)`
         );
       });
 
       it('nan_notNumberType_returnError', () => {
-        expect(evaluate(subtract(Constant.of(NaN), Constant.of('hello world'))))
-          .to.be.undefined;
+        expect(evaluate(subtract(constant(NaN), constant('hello world')))).to.be
+          .undefined;
       });
 
       it('positiveInfinity', () => {
         expectEqual(
-          evaluate(
-            subtract(Constant.of(Number.POSITIVE_INFINITY), Constant.of(1))
-          ),
-          Constant.of(Number.POSITIVE_INFINITY),
+          evaluate(subtract(constant(Number.POSITIVE_INFINITY), constant(1))),
+          constant(Number.POSITIVE_INFINITY),
           `subtract(Number.POSITIVE_INFINITY, 1)`
         );
 
         expectEqual(
-          evaluate(
-            subtract(Constant.of(1), Constant.of(Number.POSITIVE_INFINITY))
-          ),
-          Constant.of(Number.NEGATIVE_INFINITY),
+          evaluate(subtract(constant(1), constant(Number.POSITIVE_INFINITY))),
+          constant(Number.NEGATIVE_INFINITY),
           `subtract(1, Number.POSITIVE_INFINITY)`
         );
       });
 
       it('negativeInfinity', () => {
         expectEqual(
-          evaluate(
-            subtract(Constant.of(Number.NEGATIVE_INFINITY), Constant.of(1))
-          ),
-          Constant.of(Number.NEGATIVE_INFINITY),
+          evaluate(subtract(constant(Number.NEGATIVE_INFINITY), constant(1))),
+          constant(Number.NEGATIVE_INFINITY),
           `subtract(Number.NEGATIVE_INFINITY, 1)`
         );
 
         expectEqual(
-          evaluate(
-            subtract(Constant.of(1), Constant.of(Number.NEGATIVE_INFINITY))
-          ),
-          Constant.of(Number.POSITIVE_INFINITY),
+          evaluate(subtract(constant(1), constant(Number.NEGATIVE_INFINITY))),
+          constant(Number.POSITIVE_INFINITY),
           `subtract(1, Number.NEGATIVE_INFINITY)`
         );
       });
@@ -1311,22 +1269,22 @@ describe('Expressions', () => {
         expectEqual(
           evaluate(
             subtract(
-              Constant.of(Number.POSITIVE_INFINITY),
-              Constant.of(Number.NEGATIVE_INFINITY)
+              constant(Number.POSITIVE_INFINITY),
+              constant(Number.NEGATIVE_INFINITY)
             )
           ),
-          Constant.of(Number.POSITIVE_INFINITY),
+          constant(Number.POSITIVE_INFINITY),
           `subtract(Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY)`
         );
 
         expectEqual(
           evaluate(
             subtract(
-              Constant.of(Number.NEGATIVE_INFINITY),
-              Constant.of(Number.POSITIVE_INFINITY)
+              constant(Number.NEGATIVE_INFINITY),
+              constant(Number.POSITIVE_INFINITY)
             )
           ),
-          Constant.of(Number.NEGATIVE_INFINITY),
+          constant(Number.NEGATIVE_INFINITY),
           `subtract(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)`
         );
       });
@@ -1335,49 +1293,44 @@ describe('Expressions', () => {
     describe('multiply', () => {
       it('basic_multiply_numerics', () => {
         expectEqual(
-          evaluate(multiply(Constant.of(1), Constant.of(2))),
-          Constant.of(2),
+          evaluate(multiply(constant(1), constant(2))),
+          constant(2),
           `multiply(1, 2)`
         );
         expectEqual(
-          evaluate(multiply(Constant.of(3), Constant.of(2.5))),
-          Constant.of(7.5),
+          evaluate(multiply(constant(3), constant(2.5))),
+          constant(7.5),
           `multiply(3, 2.5)`
         );
         expectEqual(
-          evaluate(multiply(Constant.of(1.0), Constant.of(2))),
-          Constant.of(2.0),
+          evaluate(multiply(constant(1.0), constant(2))),
+          constant(2.0),
           `multiply(1.0, 2)`
         );
         expectEqual(
-          evaluate(multiply(Constant.of(1.32), Constant.of(2.0))),
-          Constant.of(2.64),
+          evaluate(multiply(constant(1.32), constant(2.0))),
+          constant(2.64),
           `multiply(1.32, 2.0)`
         );
       });
 
       it('basic_multiply_nonNumerics', () => {
-        expect(evaluate(multiply(Constant.of(1), Constant.of('1')))).to.be
+        expect(evaluate(multiply(constant(1), constant('1')))).to.be.undefined;
+        expect(evaluate(multiply(constant('1'), constant(1.0)))).to.be
           .undefined;
-        expect(evaluate(multiply(Constant.of('1'), Constant.of(1.0)))).to.be
-          .undefined;
-        expect(evaluate(multiply(Constant.of('1'), Constant.of('1')))).to.be
+        expect(evaluate(multiply(constant('1'), constant('1')))).to.be
           .undefined;
       });
 
       it('doubleLongMultiplication_overflow', () => {
         expectEqual(
-          evaluate(
-            multiply(Constant.of(9223372036854775807), Constant.of(100.0))
-          ),
-          Constant.of(922337203685477600000),
+          evaluate(multiply(constant(9223372036854775807), constant(100.0))),
+          constant(922337203685477600000),
           `multiply(Long.MAX_VALUE, 100.0)`
         );
         expectEqual(
-          evaluate(
-            multiply(Constant.of(9223372036854775807), Constant.of(100))
-          ),
-          Constant.of(922337203685477600000),
+          evaluate(multiply(constant(9223372036854775807), constant(100))),
+          constant(922337203685477600000),
           `multiply(Long.MAX_VALUE, 100)`
         );
       });
@@ -1385,22 +1338,16 @@ describe('Expressions', () => {
       it('doubleMultiplication_overflow', () => {
         expectEqual(
           evaluate(
-            multiply(
-              Constant.of(Number.MAX_VALUE),
-              Constant.of(Number.MAX_VALUE)
-            )
+            multiply(constant(Number.MAX_VALUE), constant(Number.MAX_VALUE))
           ),
-          Constant.of(Number.POSITIVE_INFINITY),
+          constant(Number.POSITIVE_INFINITY),
           `multiply(Number.MAX_VALUE, Number.MAX_VALUE)`
         );
         expectEqual(
           evaluate(
-            multiply(
-              Constant.of(-Number.MAX_VALUE),
-              Constant.of(Number.MAX_VALUE)
-            )
+            multiply(constant(-Number.MAX_VALUE), constant(Number.MAX_VALUE))
           ),
-          Constant.of(Number.NEGATIVE_INFINITY),
+          constant(Number.NEGATIVE_INFINITY),
           `multiply(-Number.MAX_VALUE, Number.MAX_VALUE)`
         );
       });
@@ -1409,32 +1356,32 @@ describe('Expressions', () => {
         expect(
           evaluate(
             multiply(
-              Constant.of(9223372036854775807, { preferIntegers: true }),
-              Constant.of(10)
+              constant(9223372036854775807, { preferIntegers: true }),
+              constant(10)
             )
           )
         ).to.be.undefined;
         expect(
           evaluate(
             multiply(
-              Constant.of(0x8000000000000000, { preferIntegers: true }),
-              Constant.of(10)
+              constant(0x8000000000000000, { preferIntegers: true }),
+              constant(10)
             )
           )
         ).to.be.undefined;
         expect(
           evaluate(
             multiply(
-              Constant.of(-10),
-              Constant.of(9223372036854775807, { preferIntegers: true })
+              constant(-10),
+              constant(9223372036854775807, { preferIntegers: true })
             )
           )
         ).to.be.undefined;
         expect(
           evaluate(
             multiply(
-              Constant.of(-10),
-              Constant.of(0x8000000000000000, { preferIntegers: true })
+              constant(-10),
+              constant(0x8000000000000000, { preferIntegers: true })
             )
           )
         ).to.be.undefined;
@@ -1442,92 +1389,76 @@ describe('Expressions', () => {
 
       it('nan_number_returnNaN', () => {
         expectEqual(
-          evaluate(multiply(Constant.of(1), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(multiply(constant(1), constant(NaN))),
+          constant(NaN),
           `multiply(1, NaN)`
         );
         expectEqual(
-          evaluate(multiply(Constant.of(1.0), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(multiply(constant(1.0), constant(NaN))),
+          constant(NaN),
           `multiply(1.0, NaN)`
         );
         expectEqual(
-          evaluate(
-            multiply(Constant.of(Number.MAX_SAFE_INTEGER), Constant.of(NaN))
-          ),
-          Constant.of(NaN),
+          evaluate(multiply(constant(Number.MAX_SAFE_INTEGER), constant(NaN))),
+          constant(NaN),
           `multiply(Number.MAX_SAFE_INTEGER, NaN)`
         );
         expectEqual(
-          evaluate(
-            multiply(Constant.of(Number.MIN_SAFE_INTEGER), Constant.of(NaN))
-          ),
-          Constant.of(NaN),
+          evaluate(multiply(constant(Number.MIN_SAFE_INTEGER), constant(NaN))),
+          constant(NaN),
           `multiply(Number.MIN_SAFE_INTEGER, NaN)`
         );
         expectEqual(
-          evaluate(multiply(Constant.of(Number.MAX_VALUE), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(multiply(constant(Number.MAX_VALUE), constant(NaN))),
+          constant(NaN),
           `multiply(Number.MAX_VALUE, NaN)`
         );
         expectEqual(
-          evaluate(multiply(Constant.of(Number.MIN_VALUE), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(multiply(constant(Number.MIN_VALUE), constant(NaN))),
+          constant(NaN),
           `multiply(Number.MIN_VALUE, NaN)`
         );
         expectEqual(
-          evaluate(
-            multiply(Constant.of(Number.POSITIVE_INFINITY), Constant.of(NaN))
-          ),
-          Constant.of(NaN),
+          evaluate(multiply(constant(Number.POSITIVE_INFINITY), constant(NaN))),
+          constant(NaN),
           `multiply(Number.POSITIVE_INFINITY, NaN)`
         );
         expectEqual(
-          evaluate(
-            multiply(Constant.of(Number.NEGATIVE_INFINITY), Constant.of(NaN))
-          ),
-          Constant.of(NaN),
+          evaluate(multiply(constant(Number.NEGATIVE_INFINITY), constant(NaN))),
+          constant(NaN),
           `multiply(Number.NEGATIVE_INFINITY, NaN)`
         );
       });
 
       it('nan_notNumberType_returnError', () => {
-        expect(evaluate(multiply(Constant.of(NaN), Constant.of('hello world'))))
-          .to.be.undefined;
+        expect(evaluate(multiply(constant(NaN), constant('hello world')))).to.be
+          .undefined;
       });
 
       it('positiveInfinity', () => {
         expectEqual(
-          evaluate(
-            multiply(Constant.of(Number.POSITIVE_INFINITY), Constant.of(1))
-          ),
-          Constant.of(Number.POSITIVE_INFINITY),
+          evaluate(multiply(constant(Number.POSITIVE_INFINITY), constant(1))),
+          constant(Number.POSITIVE_INFINITY),
           `multiply(Number.POSITIVE_INFINITY, 1)`
         );
 
         expectEqual(
-          evaluate(
-            multiply(Constant.of(1), Constant.of(Number.POSITIVE_INFINITY))
-          ),
-          Constant.of(Number.POSITIVE_INFINITY),
+          evaluate(multiply(constant(1), constant(Number.POSITIVE_INFINITY))),
+          constant(Number.POSITIVE_INFINITY),
           `multiply(1, Number.POSITIVE_INFINITY)`
         );
       });
 
       it('negativeInfinity', () => {
         expectEqual(
-          evaluate(
-            multiply(Constant.of(Number.NEGATIVE_INFINITY), Constant.of(1))
-          ),
-          Constant.of(Number.NEGATIVE_INFINITY),
+          evaluate(multiply(constant(Number.NEGATIVE_INFINITY), constant(1))),
+          constant(Number.NEGATIVE_INFINITY),
           `multiply(Number.NEGATIVE_INFINITY, 1)`
         );
 
         expectEqual(
-          evaluate(
-            multiply(Constant.of(1), Constant.of(Number.NEGATIVE_INFINITY))
-          ),
-          Constant.of(Number.NEGATIVE_INFINITY),
+          evaluate(multiply(constant(1), constant(Number.NEGATIVE_INFINITY))),
+          constant(Number.NEGATIVE_INFINITY),
           `multiply(1, Number.NEGATIVE_INFINITY)`
         );
       });
@@ -1536,39 +1467,35 @@ describe('Expressions', () => {
         expectEqual(
           evaluate(
             multiply(
-              Constant.of(Number.POSITIVE_INFINITY),
-              Constant.of(Number.NEGATIVE_INFINITY)
+              constant(Number.POSITIVE_INFINITY),
+              constant(Number.NEGATIVE_INFINITY)
             )
           ),
-          Constant.of(Number.NEGATIVE_INFINITY),
+          constant(Number.NEGATIVE_INFINITY),
           `multiply(Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY)`
         );
 
         expectEqual(
           evaluate(
             multiply(
-              Constant.of(Number.NEGATIVE_INFINITY),
-              Constant.of(Number.POSITIVE_INFINITY)
+              constant(Number.NEGATIVE_INFINITY),
+              constant(Number.POSITIVE_INFINITY)
             )
           ),
-          Constant.of(Number.NEGATIVE_INFINITY),
+          constant(Number.NEGATIVE_INFINITY),
           `multiply(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)`
         );
       });
 
       it('multiArgument', () => {
         expectEqual(
-          evaluate(
-            multiply(multiply(Constant.of(1), Constant.of(2)), Constant.of(3))
-          ),
-          Constant.of(6),
+          evaluate(multiply(multiply(constant(1), constant(2)), constant(3))),
+          constant(6),
           `multiply(multiply(1, 2, 3))`
         );
         expectEqual(
-          evaluate(
-            multiply(Constant.of(1.0), multiply(Constant.of(2), Constant.of(3)))
-          ),
-          Constant.of(6.0),
+          evaluate(multiply(constant(1.0), multiply(constant(2), constant(3)))),
+          constant(6.0),
           `multiply(1.0, multiply(2, 3))`
         );
       });
@@ -1577,73 +1504,66 @@ describe('Expressions', () => {
     describe('divide', () => {
       it('basic_divide_numerics', () => {
         expectEqual(
-          evaluate(divide(Constant.of(10), Constant.of(2))),
-          Constant.of(5),
+          evaluate(divide(constant(10), constant(2))),
+          constant(5),
           `divide(10, 2)`
         );
         expectEqual(
-          evaluate(divide(Constant.of(10), Constant.of(2.0))),
-          Constant.of(5.0),
+          evaluate(divide(constant(10), constant(2.0))),
+          constant(5.0),
           `divide(10, 2.0)`
         );
         // TODO(pipeline): Constant.of is problematic here.
         // expectEqual(
-        //   evaluate(divide(Constant.of(10.0), Constant.of(3))),
-        //   Constant.of(10.0 / 3),
+        //   evaluate(divide(constant(10.0), constant(3))),
+        //   constant(10.0 / 3),
         //   `divide(10.0, 3)`
         // );
         // expectEqual(
-        //   evaluate(divide(Constant.of(10.0), Constant.of(7.0))),
-        //   Constant.of(10.0 / 7.0),
+        //   evaluate(divide(constant(10.0), constant(7.0))),
+        //   constant(10.0 / 7.0),
         //   `divide(10.0, 7.0)`
         // );
       });
 
       it('basic_divide_nonNumerics', () => {
-        expect(evaluate(divide(Constant.of(1), Constant.of('1')))).to.be
-          .undefined;
-        expect(evaluate(divide(Constant.of('1'), Constant.of(1.0)))).to.be
-          .undefined;
-        expect(evaluate(divide(Constant.of('1'), Constant.of('1')))).to.be
-          .undefined;
+        expect(evaluate(divide(constant(1), constant('1')))).to.be.undefined;
+        expect(evaluate(divide(constant('1'), constant(1.0)))).to.be.undefined;
+        expect(evaluate(divide(constant('1'), constant('1')))).to.be.undefined;
       });
 
       it('long_division', () => {
         expectEqual(
-          evaluate(divide(Constant.of(10), Constant.of(3))),
-          Constant.of(3), // Integer division in JavaScript
+          evaluate(divide(constant(10), constant(3))),
+          constant(3), // Integer division in JavaScript
           `divide(10, 3)`
         );
         expectEqual(
-          evaluate(divide(Constant.of(-10), Constant.of(3))),
-          Constant.of(-3), // Integer division in JavaScript
+          evaluate(divide(constant(-10), constant(3))),
+          constant(-3), // Integer division in JavaScript
           `divide(-10, 3)`
         );
         expectEqual(
-          evaluate(divide(Constant.of(10), Constant.of(-3))),
-          Constant.of(-3), // Integer division in JavaScript
+          evaluate(divide(constant(10), constant(-3))),
+          constant(-3), // Integer division in JavaScript
           `divide(10, -3)`
         );
         expectEqual(
-          evaluate(divide(Constant.of(-10), Constant.of(-3))),
-          Constant.of(3), // Integer division in JavaScript
+          evaluate(divide(constant(-10), constant(-3))),
+          constant(3), // Integer division in JavaScript
           `divide(-10, -3)`
         );
       });
 
       it('doubleLongDivision_overflow', () => {
         expectEqual(
-          evaluate(
-            divide(Constant.of(Number.MAX_SAFE_INTEGER), Constant.of(0.1))
-          ),
-          Constant.of(90071992547409910), // Note: JS limitation, see explanation below
+          evaluate(divide(constant(Number.MAX_SAFE_INTEGER), constant(0.1))),
+          constant(90071992547409910), // Note: JS limitation, see explanation below
           `divide(Number.MAX_SAFE_INTEGER, 0.1)`
         );
         expectEqual(
-          evaluate(
-            divide(Constant.of(Number.MAX_SAFE_INTEGER), Constant.of(0.1))
-          ),
-          Constant.of(90071992547409910), // Note: JS limitation, see explanation below
+          evaluate(divide(constant(Number.MAX_SAFE_INTEGER), constant(0.1))),
+          constant(90071992547409910), // Note: JS limitation, see explanation below
           `divide(Number.MAX_SAFE_INTEGER, 0.1)`
         );
       });
@@ -1651,178 +1571,154 @@ describe('Expressions', () => {
       it('doubleDivision_overflow', () => {
         expectEqual(
           evaluate(
-            divide(Constant.of(Number.MAX_VALUE), Constant.of(Number.MIN_VALUE))
+            divide(constant(Number.MAX_VALUE), constant(Number.MIN_VALUE))
           ),
-          Constant.of(Number.POSITIVE_INFINITY),
+          constant(Number.POSITIVE_INFINITY),
           `divide(Number.MAX_VALUE, Number.MIN_VALUE)`
         );
         expectEqual(
           evaluate(
-            divide(
-              Constant.of(-Number.MAX_VALUE),
-              Constant.of(Number.MIN_VALUE)
-            )
+            divide(constant(-Number.MAX_VALUE), constant(Number.MIN_VALUE))
           ),
-          Constant.of(Number.NEGATIVE_INFINITY),
+          constant(Number.NEGATIVE_INFINITY),
           `divide(-Number.MAX_VALUE, Number.MIN_VALUE)`
         );
       });
 
       it('divideByZero', () => {
-        expect(evaluate(divide(Constant.of(1), Constant.of(0)))).to.be
-          .undefined; // Or your error handling
+        expect(evaluate(divide(constant(1), constant(0)))).to.be.undefined; // Or your error handling
         expectEqual(
-          evaluate(divide(Constant.of(1.1), Constant.of(0.0))),
-          Constant.of(Number.POSITIVE_INFINITY),
+          evaluate(divide(constant(1.1), constant(0.0))),
+          constant(Number.POSITIVE_INFINITY),
           `divide(1, 0.0)`
         );
         expectEqual(
-          evaluate(divide(Constant.of(1.1), Constant.of(-0.0))),
-          Constant.of(Number.NEGATIVE_INFINITY),
+          evaluate(divide(constant(1.1), constant(-0.0))),
+          constant(Number.NEGATIVE_INFINITY),
           `divide(1, -0.0)`
         );
       });
 
       it('nan_number_returnNaN', () => {
         expectEqual(
-          evaluate(divide(Constant.of(1), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(divide(constant(1), constant(NaN))),
+          constant(NaN),
           `divide(1, NaN)`
         );
         expectEqual(
-          evaluate(divide(Constant.of(NaN), Constant.of(1))),
-          Constant.of(NaN),
+          evaluate(divide(constant(NaN), constant(1))),
+          constant(NaN),
           `divide(NaN, 1)`
         );
 
         expectEqual(
-          evaluate(divide(Constant.of(1.0), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(divide(constant(1.0), constant(NaN))),
+          constant(NaN),
           `divide(1.0, NaN)`
         );
         expectEqual(
-          evaluate(divide(Constant.of(NaN), Constant.of(1.0))),
-          Constant.of(NaN),
+          evaluate(divide(constant(NaN), constant(1.0))),
+          constant(NaN),
           `divide(NaN, 1.0)`
         );
 
         expectEqual(
-          evaluate(
-            divide(Constant.of(Number.MAX_SAFE_INTEGER), Constant.of(NaN))
-          ),
-          Constant.of(NaN),
+          evaluate(divide(constant(Number.MAX_SAFE_INTEGER), constant(NaN))),
+          constant(NaN),
           `divide(Number.MAX_SAFE_INTEGER, NaN)`
         );
         expectEqual(
-          evaluate(
-            divide(Constant.of(NaN), Constant.of(Number.MAX_SAFE_INTEGER))
-          ),
-          Constant.of(NaN),
+          evaluate(divide(constant(NaN), constant(Number.MAX_SAFE_INTEGER))),
+          constant(NaN),
           `divide(NaN, Number.MAX_SAFE_INTEGER)`
         );
 
         expectEqual(
-          evaluate(
-            divide(Constant.of(Number.MIN_SAFE_INTEGER), Constant.of(NaN))
-          ),
-          Constant.of(NaN),
+          evaluate(divide(constant(Number.MIN_SAFE_INTEGER), constant(NaN))),
+          constant(NaN),
           `divide(Number.MIN_SAFE_INTEGER, NaN)`
         );
         expectEqual(
-          evaluate(
-            divide(Constant.of(NaN), Constant.of(Number.MIN_SAFE_INTEGER))
-          ),
-          Constant.of(NaN),
+          evaluate(divide(constant(NaN), constant(Number.MIN_SAFE_INTEGER))),
+          constant(NaN),
           `divide(NaN, Number.MIN_SAFE_INTEGER)`
         );
 
         expectEqual(
-          evaluate(divide(Constant.of(Number.MAX_VALUE), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(divide(constant(Number.MAX_VALUE), constant(NaN))),
+          constant(NaN),
           `divide(Number.MAX_VALUE, NaN)`
         );
         expectEqual(
-          evaluate(divide(Constant.of(NaN), Constant.of(Number.MAX_VALUE))),
-          Constant.of(NaN),
+          evaluate(divide(constant(NaN), constant(Number.MAX_VALUE))),
+          constant(NaN),
           `divide(NaN, Number.MAX_VALUE)`
         );
 
         expectEqual(
-          evaluate(divide(Constant.of(Number.MIN_VALUE), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(divide(constant(Number.MIN_VALUE), constant(NaN))),
+          constant(NaN),
           `divide(Number.MIN_VALUE, NaN)`
         );
         expectEqual(
-          evaluate(divide(Constant.of(NaN), Constant.of(Number.MIN_VALUE))),
-          Constant.of(NaN),
+          evaluate(divide(constant(NaN), constant(Number.MIN_VALUE))),
+          constant(NaN),
           `divide(NaN, Number.MIN_VALUE)`
         );
 
         expectEqual(
-          evaluate(
-            divide(Constant.of(Number.POSITIVE_INFINITY), Constant.of(NaN))
-          ),
-          Constant.of(NaN),
+          evaluate(divide(constant(Number.POSITIVE_INFINITY), constant(NaN))),
+          constant(NaN),
           `divide(Number.POSITIVE_INFINITY, NaN)`
         );
         expectEqual(
-          evaluate(divide(Constant.of(NaN), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(divide(constant(NaN), constant(NaN))),
+          constant(NaN),
           `divide(NaN, NaN)`
         );
 
         expectEqual(
-          evaluate(
-            divide(Constant.of(Number.NEGATIVE_INFINITY), Constant.of(NaN))
-          ),
-          Constant.of(NaN),
+          evaluate(divide(constant(Number.NEGATIVE_INFINITY), constant(NaN))),
+          constant(NaN),
           `divide(Number.NEGATIVE_INFINITY, NaN)`
         );
         expectEqual(
-          evaluate(
-            divide(Constant.of(NaN), Constant.of(Number.NEGATIVE_INFINITY))
-          ),
-          Constant.of(NaN),
+          evaluate(divide(constant(NaN), constant(Number.NEGATIVE_INFINITY))),
+          constant(NaN),
           `divide(NaN, Number.NEGATIVE_INFINITY)`
         );
       });
 
       it('nan_notNumberType_returnError', () => {
-        expect(evaluate(divide(Constant.of(NaN), Constant.of('hello world'))))
-          .to.be.undefined;
+        expect(evaluate(divide(constant(NaN), constant('hello world')))).to.be
+          .undefined;
       });
 
       it('positiveInfinity', () => {
         expectEqual(
-          evaluate(
-            divide(Constant.of(Number.POSITIVE_INFINITY), Constant.of(1))
-          ),
-          Constant.of(Number.POSITIVE_INFINITY),
+          evaluate(divide(constant(Number.POSITIVE_INFINITY), constant(1))),
+          constant(Number.POSITIVE_INFINITY),
           `divide(Number.POSITIVE_INFINITY, 1)`
         );
         // TODO(pipeline): Constant.of is problematic here.
         // expectEqual(
         //   evaluate(
-        //     divide(Constant.of(1), Constant.of(Number.POSITIVE_INFINITY))
+        //     divide(constant(1), constant(Number.POSITIVE_INFINITY))
         //   ),
-        //   Constant.of(0.0),
+        //   constant(0.0),
         //   `divide(1, Number.POSITIVE_INFINITY)`
         // );
       });
 
       it('negativeInfinity', () => {
         expectEqual(
-          evaluate(
-            divide(Constant.of(Number.NEGATIVE_INFINITY), Constant.of(1))
-          ),
-          Constant.of(Number.NEGATIVE_INFINITY),
+          evaluate(divide(constant(Number.NEGATIVE_INFINITY), constant(1))),
+          constant(Number.NEGATIVE_INFINITY),
           `divide(Number.NEGATIVE_INFINITY, 1)`
         );
         expectEqual(
-          evaluate(
-            divide(Constant.of(1), Constant.of(Number.NEGATIVE_INFINITY))
-          ),
-          Constant.of(-0.0),
+          evaluate(divide(constant(1), constant(Number.NEGATIVE_INFINITY))),
+          constant(-0.0),
           `divide(1, Number.NEGATIVE_INFINITY)`
         );
       });
@@ -1831,21 +1727,21 @@ describe('Expressions', () => {
         expectEqual(
           evaluate(
             divide(
-              Constant.of(Number.POSITIVE_INFINITY),
-              Constant.of(Number.NEGATIVE_INFINITY)
+              constant(Number.POSITIVE_INFINITY),
+              constant(Number.NEGATIVE_INFINITY)
             )
           ),
-          Constant.of(NaN),
+          constant(NaN),
           `divide(Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY)`
         );
         expectEqual(
           evaluate(
             divide(
-              Constant.of(Number.NEGATIVE_INFINITY),
-              Constant.of(Number.POSITIVE_INFINITY)
+              constant(Number.NEGATIVE_INFINITY),
+              constant(Number.POSITIVE_INFINITY)
             )
           ),
-          Constant.of(NaN),
+          constant(NaN),
           `divide(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)`
         );
       });
@@ -1853,298 +1749,269 @@ describe('Expressions', () => {
 
     describe('mod', () => {
       it('divisorZero_throwsError', () => {
-        expect(evaluate(mod(Constant.of(42), Constant.of(0)))).to.be.undefined;
-        expect(evaluate(mod(Constant.of(42), Constant.of(-0)))).to.be.undefined;
+        expect(evaluate(mod(constant(42), constant(0)))).to.be.undefined;
+        expect(evaluate(mod(constant(42), constant(-0)))).to.be.undefined;
 
-        expect(evaluate(mod(Constant.of(42), Constant.of(0.0)))).to.be
-          .undefined;
-        expect(evaluate(mod(Constant.of(42), Constant.of(-0.0)))).to.be
-          .undefined;
+        expect(evaluate(mod(constant(42), constant(0.0)))).to.be.undefined;
+        expect(evaluate(mod(constant(42), constant(-0.0)))).to.be.undefined;
       });
 
       it('dividendZero_returnsZero', () => {
         expectEqual(
-          evaluate(mod(Constant.of(0), Constant.of(42))),
-          Constant.of(0),
+          evaluate(mod(constant(0), constant(42))),
+          constant(0),
           `mod(0, 42)`
         );
         expectEqual(
-          evaluate(mod(Constant.of(-0), Constant.of(42))),
-          Constant.of(0),
+          evaluate(mod(constant(-0), constant(42))),
+          constant(0),
           `mod(-0, 42)`
         );
 
         expectEqual(
-          evaluate(mod(Constant.of(0.0), Constant.of(42))),
-          Constant.of(0.0),
+          evaluate(mod(constant(0.0), constant(42))),
+          constant(0.0),
           `mod(0.0, 42)`
         );
         expectEqual(
-          evaluate(mod(Constant.of(-0.0), Constant.of(42))),
-          Constant.of(-0.0),
+          evaluate(mod(constant(-0.0), constant(42))),
+          constant(-0.0),
           `mod(-0.0, 42)`
         );
       });
 
       it('long_positive_positive', () => {
         expectEqual(
-          evaluate(mod(Constant.of(10), Constant.of(3))),
-          Constant.of(1),
+          evaluate(mod(constant(10), constant(3))),
+          constant(1),
           `mod(10, 3)`
         );
       });
 
       it('long_negative_negative', () => {
         expectEqual(
-          evaluate(mod(Constant.of(-10), Constant.of(-3))),
-          Constant.of(-1),
+          evaluate(mod(constant(-10), constant(-3))),
+          constant(-1),
           `mod(-10, -3)`
         );
       });
 
       it('long_positive_negative', () => {
         expectEqual(
-          evaluate(mod(Constant.of(10), Constant.of(-3))),
-          Constant.of(1),
+          evaluate(mod(constant(10), constant(-3))),
+          constant(1),
           `mod(10, -3)`
         );
       });
 
       it('long_negative_positive', () => {
         expectEqual(
-          evaluate(mod(Constant.of(-10), Constant.of(3))),
-          Constant.of(-1),
+          evaluate(mod(constant(-10), constant(3))),
+          constant(-1),
           `mod(-10, 3)`
         );
       });
 
       it('double_positive_positive', () => {
         expect(
-          evaluate(mod(Constant.of(10.5), Constant.of(3.0)))?.doubleValue
+          evaluate(mod(constant(10.5), constant(3.0)))?.doubleValue
         ).to.be.closeTo(1.5, 1e-6);
       });
 
       it('double_negative_negative', () => {
         expect(
-          evaluate(mod(Constant.of(-7.3), Constant.of(-1.8)))?.doubleValue
+          evaluate(mod(constant(-7.3), constant(-1.8)))?.doubleValue
         ).to.be.closeTo(-0.1, 1e-6);
       });
 
       it('double_positive_negative', () => {
         expect(
-          evaluate(mod(Constant.of(9.8), Constant.of(-2.5)))?.doubleValue
+          evaluate(mod(constant(9.8), constant(-2.5)))?.doubleValue
         ).to.be.closeTo(2.3, 1e-6);
       });
 
       it('double_negative_positive', () => {
         expect(
-          evaluate(mod(Constant.of(-7.5), Constant.of(2.3)))?.doubleValue
+          evaluate(mod(constant(-7.5), constant(2.3)))?.doubleValue
         ).to.be.closeTo(-0.6, 1e-6);
       });
 
       it('long_perfectlyDivisible', () => {
         expectEqual(
-          evaluate(mod(Constant.of(10), Constant.of(5))),
-          Constant.of(0),
+          evaluate(mod(constant(10), constant(5))),
+          constant(0),
           `mod(10, 5)`
         );
         expectEqual(
-          evaluate(mod(Constant.of(-10), Constant.of(5))),
-          Constant.of(0),
+          evaluate(mod(constant(-10), constant(5))),
+          constant(0),
           `mod(-10, 5)`
         );
         expectEqual(
-          evaluate(mod(Constant.of(10), Constant.of(-5))),
-          Constant.of(0),
+          evaluate(mod(constant(10), constant(-5))),
+          constant(0),
           `mod(10, -5)`
         );
         expectEqual(
-          evaluate(mod(Constant.of(-10), Constant.of(-5))),
-          Constant.of(0),
+          evaluate(mod(constant(-10), constant(-5))),
+          constant(0),
           `mod(-10, -5)`
         );
       });
 
       it('double_perfectlyDivisible', () => {
         expectEqual(
-          evaluate(mod(Constant.of(10), Constant.of(2.5))),
-          Constant.of(0.0),
+          evaluate(mod(constant(10), constant(2.5))),
+          constant(0.0),
           `mod(10, 2.5)`
         );
         expectEqual(
-          evaluate(mod(Constant.of(10), Constant.of(-2.5))),
-          Constant.of(0.0),
+          evaluate(mod(constant(10), constant(-2.5))),
+          constant(0.0),
           `mod(10, -2.5)`
         );
         expectEqual(
-          evaluate(mod(Constant.of(-10), Constant.of(2.5))),
-          Constant.of(-0.0),
+          evaluate(mod(constant(-10), constant(2.5))),
+          constant(-0.0),
           `mod(-10, 2.5)`
         );
         expectEqual(
-          evaluate(mod(Constant.of(-10), Constant.of(-2.5))),
-          Constant.of(-0.0),
+          evaluate(mod(constant(-10), constant(-2.5))),
+          constant(-0.0),
           `mod(-10, -2.5)`
         );
       });
 
       it('nonNumerics_returnError', () => {
-        expect(evaluate(mod(Constant.of(10), Constant.of('1')))).to.be
-          .undefined;
-        expect(evaluate(mod(Constant.of('1'), Constant.of(10)))).to.be
-          .undefined;
-        expect(evaluate(mod(Constant.of('1'), Constant.of('1')))).to.be
-          .undefined;
+        expect(evaluate(mod(constant(10), constant('1')))).to.be.undefined;
+        expect(evaluate(mod(constant('1'), constant(10)))).to.be.undefined;
+        expect(evaluate(mod(constant('1'), constant('1')))).to.be.undefined;
       });
 
       it('nan_number_returnNaN', () => {
         expectEqual(
-          evaluate(mod(Constant.of(1), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(mod(constant(1), constant(NaN))),
+          constant(NaN),
           `mod(1, NaN)`
         );
         expectEqual(
-          evaluate(mod(Constant.of(1.0), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(mod(constant(1.0), constant(NaN))),
+          constant(NaN),
           `mod(1.0, NaN)`
         );
         expectEqual(
-          evaluate(mod(Constant.of(Number.MAX_SAFE_INTEGER), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(mod(constant(Number.MAX_SAFE_INTEGER), constant(NaN))),
+          constant(NaN),
           `mod(Number.MAX_SAFE_INTEGER, NaN)`
         );
         expectEqual(
-          evaluate(mod(Constant.of(Number.MIN_SAFE_INTEGER), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(mod(constant(Number.MIN_SAFE_INTEGER), constant(NaN))),
+          constant(NaN),
           `mod(Number.MIN_SAFE_INTEGER, NaN)`
         );
         expectEqual(
-          evaluate(mod(Constant.of(Number.MAX_VALUE), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(mod(constant(Number.MAX_VALUE), constant(NaN))),
+          constant(NaN),
           `mod(Number.MAX_VALUE, NaN)`
         );
         expectEqual(
-          evaluate(mod(Constant.of(Number.MIN_VALUE), Constant.of(NaN))),
-          Constant.of(NaN),
+          evaluate(mod(constant(Number.MIN_VALUE), constant(NaN))),
+          constant(NaN),
           `mod(Number.MIN_VALUE, NaN)`
         );
         expectEqual(
-          evaluate(
-            mod(Constant.of(Number.POSITIVE_INFINITY), Constant.of(NaN))
-          ),
-          Constant.of(NaN),
+          evaluate(mod(constant(Number.POSITIVE_INFINITY), constant(NaN))),
+          constant(NaN),
           `mod(Number.POSITIVE_INFINITY, NaN)`
         );
         expectEqual(
-          evaluate(
-            mod(Constant.of(Number.NEGATIVE_INFINITY), Constant.of(NaN))
-          ),
-          Constant.of(NaN),
+          evaluate(mod(constant(Number.NEGATIVE_INFINITY), constant(NaN))),
+          constant(NaN),
           `mod(Number.NEGATIVE_INFINITY, NaN)`
         );
       });
 
       it('nan_notNumberType_returnError', () => {
-        expect(evaluate(mod(Constant.of(NaN), Constant.of('hello world')))).to
-          .be.undefined;
+        expect(evaluate(mod(constant(NaN), constant('hello world')))).to.be
+          .undefined;
       });
 
       it('number_posInfinity_returnSelf', () => {
         expectEqual(
-          evaluate(mod(Constant.of(1), Constant.of(Number.POSITIVE_INFINITY))),
-          Constant.of(1.0),
+          evaluate(mod(constant(1), constant(Number.POSITIVE_INFINITY))),
+          constant(1.0),
           `mod(1, Number.POSITIVE_INFINITY)`
         );
         expectEqual(
           evaluate(
-            mod(
-              Constant.of(42.123456789),
-              Constant.of(Number.POSITIVE_INFINITY)
-            )
+            mod(constant(42.123456789), constant(Number.POSITIVE_INFINITY))
           ),
-          Constant.of(42.123456789),
+          constant(42.123456789),
           `mod(42.123456789, Number.POSITIVE_INFINITY)`
         );
         expectEqual(
-          evaluate(
-            mod(Constant.of(-99.9), Constant.of(Number.POSITIVE_INFINITY))
-          ),
-          Constant.of(-99.9),
+          evaluate(mod(constant(-99.9), constant(Number.POSITIVE_INFINITY))),
+          constant(-99.9),
           `mod(-99.9, Number.POSITIVE_INFINITY)`
         );
       });
 
       it('posInfinity_number_returnNaN', () => {
         expectEqual(
-          evaluate(mod(Constant.of(Number.POSITIVE_INFINITY), Constant.of(1))),
-          Constant.of(NaN),
+          evaluate(mod(constant(Number.POSITIVE_INFINITY), constant(1))),
+          constant(NaN),
           `mod(Number.POSITIVE_INFINITY, 1)`
         );
         expectEqual(
           evaluate(
-            mod(
-              Constant.of(Number.POSITIVE_INFINITY),
-              Constant.of(42.123456789)
-            )
+            mod(constant(Number.POSITIVE_INFINITY), constant(42.123456789))
           ),
-          Constant.of(NaN),
+          constant(NaN),
           `mod(Number.POSITIVE_INFINITY, 42.123456789)`
         );
         expectEqual(
-          evaluate(
-            mod(Constant.of(Number.POSITIVE_INFINITY), Constant.of(-99.9))
-          ),
-          Constant.of(NaN),
+          evaluate(mod(constant(Number.POSITIVE_INFINITY), constant(-99.9))),
+          constant(NaN),
           `mod(Number.POSITIVE_INFINITY, -99.9)`
         );
       });
 
       it('number_negInfinity_returnSelf', () => {
         expectEqual(
-          evaluate(mod(Constant.of(1), Constant.of(Number.NEGATIVE_INFINITY))),
-          Constant.of(1.0),
+          evaluate(mod(constant(1), constant(Number.NEGATIVE_INFINITY))),
+          constant(1.0),
           `mod(1, Number.NEGATIVE_INFINITY)`
         );
         expectEqual(
           evaluate(
-            mod(
-              Constant.of(42.123456789),
-              Constant.of(Number.NEGATIVE_INFINITY)
-            )
+            mod(constant(42.123456789), constant(Number.NEGATIVE_INFINITY))
           ),
-          Constant.of(42.123456789),
+          constant(42.123456789),
           `mod(42.123456789, Number.NEGATIVE_INFINITY)`
         );
         expectEqual(
-          evaluate(
-            mod(Constant.of(-99.9), Constant.of(Number.NEGATIVE_INFINITY))
-          ),
-          Constant.of(-99.9),
+          evaluate(mod(constant(-99.9), constant(Number.NEGATIVE_INFINITY))),
+          constant(-99.9),
           `mod(-99.9, Number.NEGATIVE_INFINITY)`
         );
       });
 
       it('negInfinity_number_returnNaN', () => {
         expectEqual(
-          evaluate(mod(Constant.of(Number.NEGATIVE_INFINITY), Constant.of(1))),
-          Constant.of(NaN),
+          evaluate(mod(constant(Number.NEGATIVE_INFINITY), constant(1))),
+          constant(NaN),
           `mod(Number.NEGATIVE_INFINITY, 1)`
         );
         expectEqual(
           evaluate(
-            mod(
-              Constant.of(Number.NEGATIVE_INFINITY),
-              Constant.of(42.123456789)
-            )
+            mod(constant(Number.NEGATIVE_INFINITY), constant(42.123456789))
           ),
-          Constant.of(NaN),
+          constant(NaN),
           `mod(Number.NEGATIVE_INFINITY, 42.123456789)`
         );
         expectEqual(
-          evaluate(
-            mod(Constant.of(Number.NEGATIVE_INFINITY), Constant.of(-99.9))
-          ),
-          Constant.of(NaN),
+          evaluate(mod(constant(Number.NEGATIVE_INFINITY), constant(-99.9))),
+          constant(NaN),
           `mod(Number.NEGATIVE_INFINITY, -99.9)`
         );
       });
@@ -2153,11 +2020,11 @@ describe('Expressions', () => {
         expectEqual(
           evaluate(
             mod(
-              Constant.of(Number.POSITIVE_INFINITY),
-              Constant.of(Number.NEGATIVE_INFINITY)
+              constant(Number.POSITIVE_INFINITY),
+              constant(Number.NEGATIVE_INFINITY)
             )
           ),
-          Constant.of(NaN),
+          constant(NaN),
           `mod(Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY)`
         );
       });
@@ -2170,7 +2037,7 @@ describe('Expressions', () => {
         expect(
           evaluate(
             arrayContainsAll(
-              Constant.of([
+              constantArray([
                 '1',
                 42,
                 true,
@@ -2179,7 +2046,7 @@ describe('Expressions', () => {
                 'in',
                 'array'
               ]),
-              [Constant.of('1'), Constant.of(42), Constant.of(true)]
+              [constant('1'), constant(42), constant(true)]
             )
           )
         ).to.deep.equal(TRUE_VALUE);
@@ -2188,9 +2055,9 @@ describe('Expressions', () => {
       it('doesNotContainAll', () => {
         expect(
           evaluate(
-            arrayContainsAll(Constant.of(['1', 42, true]), [
-              Constant.of('1'),
-              Constant.of(99)
+            arrayContainsAll(constantArray(['1', 42, true]), [
+              constant('1'),
+              constant(99)
             ])
           )
         ).to.deep.equal(FALSE_VALUE);
@@ -2200,8 +2067,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             arrayContainsAll(
-              Constant.of([42, true, 'additional', 'values', 'in', 'array']),
-              [Constant.of(42.0), Constant.of(true)]
+              constantArray([42, true, 'additional', 'values', 'in', 'array']),
+              [constant(42.0), constant(true)]
             )
           )
         ).to.deep.equal(TRUE_VALUE);
@@ -2210,9 +2077,9 @@ describe('Expressions', () => {
       it('arrayToSearch_isEmpty', () => {
         expect(
           evaluate(
-            arrayContainsAll(Constant.of([]), [
-              Constant.of(42.0),
-              Constant.of(true)
+            arrayContainsAll(constantArray([]), [
+              constant(42.0),
+              constant(true)
             ])
           )
         ).to.deep.equal(FALSE_VALUE);
@@ -2220,14 +2087,14 @@ describe('Expressions', () => {
 
       it('searchValue_isEmpty', () => {
         expect(
-          evaluate(arrayContainsAll(Constant.of([42.0, true]), []))
+          evaluate(arrayContainsAll(constantArray([42.0, true]), []))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('searchValue_isNaN', () => {
         expect(
           evaluate(
-            arrayContainsAll(Constant.of([NaN, 42.0]), [Constant.of(NaN)])
+            arrayContainsAll(constantArray([NaN, 42.0]), [constant(NaN)])
           )
         ).to.deep.equal(FALSE_VALUE);
       });
@@ -2235,17 +2102,17 @@ describe('Expressions', () => {
       it('searchValue_hasDuplicates', () => {
         expect(
           evaluate(
-            arrayContainsAll(Constant.of([true, 'hi']), [
-              Constant.of(true),
-              Constant.of(true),
-              Constant.of(true)
+            arrayContainsAll(constantArray([true, 'hi']), [
+              constant(true),
+              constant(true),
+              constant(true)
             ])
           )
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('arrayToSearch_isEmpty_searchValue_isEmpty', () => {
-        expect(evaluate(arrayContainsAll(Constant.of([]), []))).to.deep.equal(
+        expect(evaluate(arrayContainsAll(constantArray([]), []))).to.deep.equal(
           TRUE_VALUE
         );
       });
@@ -2255,8 +2122,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             arrayContainsAll(
-              Constant.of(elements),
-              elements.map(e => Constant.of(e))
+              constantArray(elements),
+              elements.map(e => constant(e))
             )
           )
         ).to.deep.equal(TRUE_VALUE);
@@ -2264,8 +2131,8 @@ describe('Expressions', () => {
     });
 
     describe('arrayContainsAny', () => {
-      const ARRAY_TO_SEARCH = Constant.of([42, 'matang', true]);
-      const SEARCH_VALUES = [Constant.of('matang'), Constant.of(false)];
+      const ARRAY_TO_SEARCH = constantArray([42, 'matang', true]);
+      const SEARCH_VALUES = [constant('matang'), constant(false)];
 
       it('valueFoundInArray', () => {
         expect(
@@ -2276,10 +2143,7 @@ describe('Expressions', () => {
       it('equivalentNumerics', () => {
         expect(
           evaluate(
-            arrayContainsAny(ARRAY_TO_SEARCH, [
-              Constant.of(42.0),
-              Constant.of(2)
-            ])
+            arrayContainsAny(ARRAY_TO_SEARCH, [constant(42.0), constant(2)])
           )
         ).to.deep.equal(TRUE_VALUE);
       });
@@ -2287,10 +2151,7 @@ describe('Expressions', () => {
       it('valuesNotFoundInArray', () => {
         expect(
           evaluate(
-            arrayContainsAny(ARRAY_TO_SEARCH, [
-              Constant.of(99),
-              Constant.of('false')
-            ])
+            arrayContainsAny(ARRAY_TO_SEARCH, [constant(99), constant('false')])
           )
         ).to.deep.equal(FALSE_VALUE);
       });
@@ -2301,12 +2162,12 @@ describe('Expressions', () => {
         expect(
           evaluate(
             arrayContainsAny(
-              Constant.of([
+              constantArray([
                 [1, 2, 3],
                 [4, 5, 6],
                 [7, 8, 9]
               ]),
-              [Constant.of([1, 2, 3]), Constant.of([4, 5, 6])]
+              [constantArray([1, 2, 3]), constantArray([4, 5, 6])]
             )
           )
         ).to.deep.equal(TRUE_VALUE);
@@ -2315,64 +2176,62 @@ describe('Expressions', () => {
       it('search_isNull', () => {
         expect(
           evaluate(
-            arrayContainsAny(Constant.of([null, 1, 'matang', true]), [
-              Constant.of(null)
+            arrayContainsAny(constantArray([null, 1, 'matang', true]), [
+              constant(null)
             ])
           )
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('array_isNotArrayType_returnsError', () => {
-        expect(evaluate(arrayContainsAny(Constant.of('matang'), SEARCH_VALUES)))
-          .to.be.undefined;
+        expect(evaluate(arrayContainsAny(constant('matang'), SEARCH_VALUES))).to
+          .be.undefined;
       });
 
       it('search_isNotArrayType_returnsError', () => {
         expect(
-          evaluate(
-            arrayContainsAny(Constant.of('values'), [Constant.of('values')])
-          )
+          evaluate(arrayContainsAny(constant('values'), [constant('values')]))
         ).to.be.undefined;
       });
 
       it('array_notFound_returnsError', () => {
-        expect(evaluate(arrayContainsAny(Field.of('not-exist'), SEARCH_VALUES)))
-          .to.be.undefined;
+        expect(evaluate(arrayContainsAny(field('not-exist'), SEARCH_VALUES))).to
+          .be.undefined;
       });
 
       it('searchNotFound_returnsError', () => {
         expect(
-          evaluate(arrayContainsAny(ARRAY_TO_SEARCH, [Field.of('not-exist')]))
+          evaluate(arrayContainsAny(ARRAY_TO_SEARCH, [field('not-exist')]))
         ).to.be.undefined;
       });
     }); // end describe('arrayContainsAny')
 
     describe('arrayContains', () => {
-      const ARRAY_TO_SEARCH = Constant.of([42, 'matang', true]);
+      const ARRAY_TO_SEARCH = constantArray([42, 'matang', true]);
 
       it('valueFoundInArray', () => {
         expect(
           evaluate(
-            arrayContains(Constant.of(['hello', 'world']), Constant.of('hello'))
+            arrayContains(constantArray(['hello', 'world']), constant('hello'))
           )
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('valueNotFoundInArray', () => {
         expect(
-          evaluate(arrayContains(ARRAY_TO_SEARCH, Constant.of(4)))
+          evaluate(arrayContains(ARRAY_TO_SEARCH, constant(4)))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('notArrayContainsFunction_valueNotFoundInArray', () => {
-        const child = arrayContains(ARRAY_TO_SEARCH, Constant.of(4));
-        const f = not(child);
+        const child = arrayContains(ARRAY_TO_SEARCH, constant(4));
+        const f = not(child as BooleanExpr);
         expect(evaluate(f)).to.deep.equal(TRUE_VALUE);
       });
 
       it('equivalentNumerics', () => {
         expect(
-          evaluate(arrayContains(ARRAY_TO_SEARCH, Constant.of(42.0)))
+          evaluate(arrayContains(ARRAY_TO_SEARCH, constant(42.0)))
         ).to.deep.equal(TRUE_VALUE);
       });
 
@@ -2382,12 +2241,12 @@ describe('Expressions', () => {
         expect(
           evaluate(
             arrayContains(
-              Constant.of([
+              constantArray([
                 [1, 2, 3],
                 [4, 5, 6],
                 [7, 8, 9]
               ]),
-              Constant.of([1, 2, 3])
+              constantArray([1, 2, 3])
             )
           )
         ).to.deep.equal(TRUE_VALUE);
@@ -2397,8 +2256,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             arrayContains(
-              Constant.of([null, 1, 'matang', true]),
-              Constant.of(null)
+              constantArray([null, 1, 'matang', true]),
+              constant(null)
             )
           )
         ).to.deep.equal(TRUE_VALUE);
@@ -2406,7 +2265,7 @@ describe('Expressions', () => {
 
       it('searchValue_isNull_emptyValuesArray_returnsFalse', () => {
         expect(
-          evaluate(arrayContains(Constant.of([]), Constant.of(null)))
+          evaluate(arrayContains(constantArray([]), constant(null)))
         ).to.deep.equal(FALSE_VALUE);
       });
 
@@ -2414,8 +2273,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             arrayContains(
-              Constant.of([123, { foo: 123 }, { bar: 42 }, { foo: 42 }]),
-              Constant.of({ foo: 42 })
+              constantArray([123, { foo: 123 }, { bar: 42 }, { foo: 42 }]),
+              constantMap({ foo: 42 })
             )
           )
         ).to.deep.equal(TRUE_VALUE);
@@ -2423,272 +2282,198 @@ describe('Expressions', () => {
 
       it('searchValue_isNaN', () => {
         expect(
-          evaluate(arrayContains(Constant.of([NaN, 'foo']), Constant.of(NaN)))
+          evaluate(arrayContains(constantArray([NaN, 'foo']), constant(NaN)))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('arrayToSearch_isNotArrayType_returnsError', () => {
-        expect(
-          evaluate(arrayContains(Constant.of('matang'), Constant.of('values')))
-        ).to.be.undefined;
+        expect(evaluate(arrayContains(constant('matang'), constant('values'))))
+          .to.be.undefined;
       });
 
       it('arrayToSearch_notFound_returnsError', () => {
-        expect(
-          evaluate(arrayContains(Field.of('not-exist'), Constant.of('matang')))
-        ).to.be.undefined;
+        expect(evaluate(arrayContains(field('not-exist'), constant('matang'))))
+          .to.be.undefined;
       });
 
       it('arrayToSearch_isEmpty_returnsFalse', () => {
         expect(
-          evaluate(arrayContains(Constant.of([]), Constant.of('matang')))
+          evaluate(arrayContains(constantArray([]), constant('matang')))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('searchValue_reference_notFound_returnsError', () => {
-        expect(evaluate(arrayContains(ARRAY_TO_SEARCH, Field.of('not-exist'))))
-          .to.be.undefined;
+        expect(evaluate(arrayContains(ARRAY_TO_SEARCH, field('not-exist')))).to
+          .be.undefined;
       });
     }); // end describe('arrayContains')
 
     describe('arrayLength', () => {
       it('length', () => {
         expectEqual(
-          evaluate(arrayLength(Constant.of(['1', 42, true]))),
-          Constant.of(3),
+          evaluate(arrayLength(constantArray(['1', 42, true]))),
+          constant(3),
           `arrayLength(['1', 42, true])`
         );
       });
 
       it('emptyArray', () => {
         expectEqual(
-          evaluate(arrayLength(Constant.of([]))),
-          Constant.of(0),
+          evaluate(arrayLength(constantArray([]))),
+          constant(0),
           `arrayLength([])`
         );
       });
 
       it('arrayWithDuplicateElements', () => {
         expectEqual(
-          evaluate(arrayLength(Constant.of([true, true]))),
-          Constant.of(2),
+          evaluate(arrayLength(constantArray([true, true]))),
+          constant(2),
           `arrayLength([true, true])`
         );
       });
 
       it('notArrayType_returnsError', () => {
-        expect(evaluate(arrayLength(Constant.of(new VectorValue([0.0, 1.0])))))
-          .to.be.undefined; // Assuming double[] is not considered an array
-        expect(evaluate(arrayLength(Constant.of('notAnArray')))).to.be
-          .undefined;
+        expect(evaluate(arrayLength(constant(new VectorValue([0.0, 1.0]))))).to
+          .be.undefined; // Assuming double[] is not considered an array
+        expect(evaluate(arrayLength(constant('notAnArray')))).to.be.undefined;
       });
     }); // end describe('arrayLength')
-
-    describe('arrayReverse', () => {
-      it('emptyArray', () => {
-        expectEqual(
-          evaluate(arrayReverse(Constant.of([]))),
-          Constant.of([]),
-          `arrayReverse([])`
-        );
-      });
-
-      it('oneElement', () => {
-        expectEqual(
-          evaluate(arrayReverse(Constant.of([42]))),
-          Constant.of([42]),
-          `arrayReverse([42])`
-        );
-      });
-
-      it('duplicateElements', () => {
-        expectEqual(
-          evaluate(arrayReverse(Constant.of([1, 2, 2, 3]))),
-          Constant.of([3, 2, 2, 1]),
-          `arrayReverse([1, 2, 2, 3])`
-        );
-      });
-
-      it('array_reverse', () => {
-        const input = ['1', 42, true];
-        expectEqual(
-          evaluate(arrayReverse(Constant.of(input))),
-          Constant.of(input.slice().reverse()),
-          `arrayReverse(['1', 42, true])`
-        );
-      });
-
-      it('largeArray', () => {
-        const input = Array.from({ length: 500 }, (_, i) => i + 1);
-        expectEqual(
-          evaluate(arrayReverse(Constant.of(input))),
-          Constant.of(input.slice().reverse()),
-          `arrayReverse(largeArray)`
-        );
-      });
-
-      it('notArrayType_returnsError', () => {
-        expect(evaluate(arrayReverse(Constant.of({})))).to.be.undefined; // Assuming empty map is not an array
-      });
-    }); // end describe('arrayReverse')
   });
 
   describe('Field expression', () => {
     it('can get field', () => {
-      expect(evaluate(Field.of('exists'))?.booleanValue).to.be.true;
+      expect(evaluate(field('exists'))?.booleanValue).to.be.true;
     });
 
     it('error if not found', () => {
-      expect(evaluate(Field.of('not-exists'))).to.be.undefined;
+      expect(evaluate(field('not-exists'))).to.be.undefined;
     });
   });
 
   describe('Logical Functions', () => {
     describe('and', () => {
       it('false_false_isFalse', () => {
-        expect(evaluate(andFunction(falseExpr, falseExpr))).to.deep.equal(
-          FALSE_VALUE
-        );
+        expect(evaluate(and(falseExpr, falseExpr))).to.deep.equal(FALSE_VALUE);
       });
 
       it('false_error_isFalse', () => {
-        expect(
-          evaluate(andFunction(falseExpr, errorFilterCondition()))
-        ).to.deep.equal(FALSE_VALUE);
+        expect(evaluate(and(falseExpr, errorFilterCondition()))).to.deep.equal(
+          FALSE_VALUE
+        );
       });
 
       it('false_true_isFalse', () => {
-        expect(evaluate(andFunction(falseExpr, trueExpr))).to.deep.equal(
-          FALSE_VALUE
-        );
+        expect(evaluate(and(falseExpr, trueExpr))).to.deep.equal(FALSE_VALUE);
       });
 
       it('error_false_isFalse', () => {
-        expect(
-          evaluate(andFunction(errorFilterCondition(), falseExpr))
-        ).to.deep.equal(FALSE_VALUE);
-      });
-
-      it('error_error_isError', () => {
-        expect(
-          evaluate(andFunction(errorFilterCondition(), errorFilterCondition()))
-        ).to.be.undefined;
-      });
-
-      it('error_true_isError', () => {
-        expect(evaluate(andFunction(errorFilterCondition(), trueExpr))).to.be
-          .undefined;
-      });
-
-      it('true_false_isFalse', () => {
-        expect(evaluate(andFunction(trueExpr, falseExpr))).to.deep.equal(
+        expect(evaluate(and(errorFilterCondition(), falseExpr))).to.deep.equal(
           FALSE_VALUE
         );
       });
 
+      it('error_error_isError', () => {
+        expect(evaluate(and(errorFilterCondition(), errorFilterCondition()))).to
+          .be.undefined;
+      });
+
+      it('error_true_isError', () => {
+        expect(evaluate(and(errorFilterCondition(), trueExpr))).to.be.undefined;
+      });
+
+      it('true_false_isFalse', () => {
+        expect(evaluate(and(trueExpr, falseExpr))).to.deep.equal(FALSE_VALUE);
+      });
+
       it('true_error_isError', () => {
-        expect(evaluate(andFunction(trueExpr, errorFilterCondition()))).to.be
-          .undefined;
+        expect(evaluate(and(trueExpr, errorFilterCondition()))).to.be.undefined;
       });
 
       it('true_true_isTrue', () => {
-        expect(evaluate(andFunction(trueExpr, trueExpr))).to.deep.equal(
-          TRUE_VALUE
-        );
+        expect(evaluate(and(trueExpr, trueExpr))).to.deep.equal(TRUE_VALUE);
       });
 
       it('false_false_false_isFalse', () => {
-        expect(
-          evaluate(andFunction(falseExpr, falseExpr, falseExpr))
-        ).to.deep.equal(FALSE_VALUE);
+        expect(evaluate(and(falseExpr, falseExpr, falseExpr))).to.deep.equal(
+          FALSE_VALUE
+        );
       });
 
       it('false_false_error_isFalse', () => {
         expect(
-          evaluate(andFunction(falseExpr, falseExpr, errorFilterCondition()))
+          evaluate(and(falseExpr, falseExpr, errorFilterCondition()))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('false_false_true_isFalse', () => {
-        expect(
-          evaluate(andFunction(falseExpr, falseExpr, trueExpr))
-        ).to.deep.equal(FALSE_VALUE);
+        expect(evaluate(and(falseExpr, falseExpr, trueExpr))).to.deep.equal(
+          FALSE_VALUE
+        );
       });
 
       it('false_error_false_isFalse', () => {
         expect(
-          evaluate(andFunction(falseExpr, errorFilterCondition(), falseExpr))
+          evaluate(and(falseExpr, errorFilterCondition(), falseExpr))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('false_error_error_isFalse', () => {
         expect(
           evaluate(
-            andFunction(
-              falseExpr,
-              errorFilterCondition(),
-              errorFilterCondition()
-            )
+            and(falseExpr, errorFilterCondition(), errorFilterCondition())
           )
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('false_error_true_isFalse', () => {
         expect(
-          evaluate(andFunction(falseExpr, errorFilterCondition(), trueExpr))
+          evaluate(and(falseExpr, errorFilterCondition(), trueExpr))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('false_true_false_isFalse', () => {
-        expect(
-          evaluate(andFunction(falseExpr, trueExpr, falseExpr))
-        ).to.deep.equal(FALSE_VALUE);
+        expect(evaluate(and(falseExpr, trueExpr, falseExpr))).to.deep.equal(
+          FALSE_VALUE
+        );
       });
 
       it('false_true_error_isFalse', () => {
         expect(
-          evaluate(andFunction(falseExpr, trueExpr, errorFilterCondition()))
+          evaluate(and(falseExpr, trueExpr, errorFilterCondition()))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('false_true_true_isFalse', () => {
-        expect(
-          evaluate(andFunction(falseExpr, trueExpr, trueExpr))
-        ).to.deep.equal(FALSE_VALUE);
+        expect(evaluate(and(falseExpr, trueExpr, trueExpr))).to.deep.equal(
+          FALSE_VALUE
+        );
       });
 
       it('error_false_false_isFalse', () => {
         expect(
-          evaluate(andFunction(errorFilterCondition(), falseExpr, falseExpr))
+          evaluate(and(errorFilterCondition(), falseExpr, falseExpr))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('error_false_error_isFalse', () => {
         expect(
           evaluate(
-            andFunction(
-              errorFilterCondition(),
-              falseExpr,
-              errorFilterCondition()
-            )
+            and(errorFilterCondition(), falseExpr, errorFilterCondition())
           )
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('error_false_true_isFalse', () => {
         expect(
-          evaluate(andFunction(errorFilterCondition(), falseExpr, trueExpr))
+          evaluate(and(errorFilterCondition(), falseExpr, trueExpr))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('error_error_false_isFalse', () => {
         expect(
           evaluate(
-            andFunction(
-              errorFilterCondition(),
-              errorFilterCondition(),
-              falseExpr
-            )
+            and(errorFilterCondition(), errorFilterCondition(), falseExpr)
           )
         ).to.deep.equal(FALSE_VALUE);
       });
@@ -2696,7 +2481,7 @@ describe('Expressions', () => {
       it('error_error_error_isError', () => {
         expect(
           evaluate(
-            andFunction(
+            and(
               errorFilterCondition(),
               errorFilterCondition(),
               errorFilterCondition()
@@ -2708,120 +2493,105 @@ describe('Expressions', () => {
       it('error_error_true_isError', () => {
         expect(
           evaluate(
-            andFunction(
-              errorFilterCondition(),
-              errorFilterCondition(),
-              trueExpr
-            )
+            and(errorFilterCondition(), errorFilterCondition(), trueExpr)
           )
         ).to.be.undefined;
       });
 
       it('error_true_false_isFalse', () => {
         expect(
-          evaluate(andFunction(errorFilterCondition(), trueExpr, falseExpr))
+          evaluate(and(errorFilterCondition(), trueExpr, falseExpr))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('error_true_error_isError', () => {
         expect(
           evaluate(
-            andFunction(
-              errorFilterCondition(),
-              trueExpr,
-              errorFilterCondition()
-            )
+            and(errorFilterCondition(), trueExpr, errorFilterCondition())
           )
         ).to.be.undefined;
       });
 
       it('error_true_true_isError', () => {
-        expect(
-          evaluate(andFunction(errorFilterCondition(), trueExpr, trueExpr))
-        ).to.be.undefined;
+        expect(evaluate(and(errorFilterCondition(), trueExpr, trueExpr))).to.be
+          .undefined;
       });
 
       it('true_false_false_isFalse', () => {
-        expect(
-          evaluate(andFunction(trueExpr, falseExpr, falseExpr))
-        ).to.deep.equal(FALSE_VALUE);
+        expect(evaluate(and(trueExpr, falseExpr, falseExpr))).to.deep.equal(
+          FALSE_VALUE
+        );
       });
 
       it('true_false_error_isFalse', () => {
         expect(
-          evaluate(andFunction(trueExpr, falseExpr, errorFilterCondition()))
+          evaluate(and(trueExpr, falseExpr, errorFilterCondition()))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('true_false_true_isFalse', () => {
-        expect(
-          evaluate(andFunction(trueExpr, falseExpr, trueExpr))
-        ).to.deep.equal(FALSE_VALUE);
+        expect(evaluate(and(trueExpr, falseExpr, trueExpr))).to.deep.equal(
+          FALSE_VALUE
+        );
       });
 
       it('true_error_false_isFalse', () => {
         expect(
-          evaluate(andFunction(trueExpr, errorFilterCondition(), falseExpr))
+          evaluate(and(trueExpr, errorFilterCondition(), falseExpr))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('true_error_error_isError', () => {
         expect(
           evaluate(
-            andFunction(
-              trueExpr,
-              errorFilterCondition(),
-              errorFilterCondition()
-            )
+            and(trueExpr, errorFilterCondition(), errorFilterCondition())
           )
         ).to.be.undefined;
       });
 
       it('true_error_true_isError', () => {
-        expect(
-          evaluate(andFunction(trueExpr, errorFilterCondition(), trueExpr))
-        ).to.be.undefined;
+        expect(evaluate(and(trueExpr, errorFilterCondition(), trueExpr))).to.be
+          .undefined;
       });
 
       it('true_true_false_isFalse', () => {
-        expect(
-          evaluate(andFunction(trueExpr, trueExpr, falseExpr))
-        ).to.deep.equal(FALSE_VALUE);
+        expect(evaluate(and(trueExpr, trueExpr, falseExpr))).to.deep.equal(
+          FALSE_VALUE
+        );
       });
 
       it('true_true_error_isError', () => {
-        expect(
-          evaluate(andFunction(trueExpr, trueExpr, errorFilterCondition()))
-        ).to.be.undefined;
+        expect(evaluate(and(trueExpr, trueExpr, errorFilterCondition()))).to.be
+          .undefined;
       });
 
       it('true_true_true_isTrue', () => {
-        expect(
-          evaluate(andFunction(trueExpr, trueExpr, trueExpr))
-        ).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(and(trueExpr, trueExpr, trueExpr))).to.deep.equal(
+          TRUE_VALUE
+        );
       });
 
       it('nested_and', () => {
-        const child = andFunction(trueExpr, falseExpr);
-        const f = andFunction(child, trueExpr);
+        const child = and(trueExpr, falseExpr);
+        const f = and(child, trueExpr);
         expect(evaluate(f)).to.deep.equal(FALSE_VALUE);
       });
 
       it('multipleArguments', () => {
-        expect(
-          evaluate(andFunction(trueExpr, trueExpr, trueExpr))
-        ).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(and(trueExpr, trueExpr, trueExpr))).to.deep.equal(
+          TRUE_VALUE
+        );
       });
     }); // end describe('and')
 
     describe('cond', () => {
       it('trueCondition_returnsTrueCase', () => {
-        const func = cond(trueExpr, Constant.of('true case'), errorExpr());
+        const func = cond(trueExpr, constant('true case'), errorExpr());
         expect(evaluate(func)?.stringValue).to.deep.equal('true case');
       });
 
       it('falseCondition_returnsFalseCase', () => {
-        const func = cond(falseExpr, errorExpr(), Constant.of('false case'));
+        const func = cond(falseExpr, errorExpr(), constant('false case'));
         expect(evaluate(func)?.stringValue).to.deep.equal('false case');
       });
 
@@ -2829,7 +2599,7 @@ describe('Expressions', () => {
         const func = cond(
           errorFilterCondition(),
           errorExpr(),
-          Constant.of('false')
+          constant('false')
         );
         expect(evaluate(func)?.stringValue).to.deep.equal('false');
       });
@@ -2839,10 +2609,7 @@ describe('Expressions', () => {
       it('valueFoundInArray', () => {
         expect(
           evaluate(
-            eqAny(Constant.of('hello'), [
-              Constant.of('hello'),
-              Constant.of('world')
-            ])
+            eqAny(constant('hello'), [constant('hello'), constant('world')])
           )
         ).to.deep.equal(TRUE_VALUE);
       });
@@ -2850,20 +2617,20 @@ describe('Expressions', () => {
       it('valueNotFoundInArray', () => {
         expect(
           evaluate(
-            eqAny(Constant.of(4), [
-              Constant.of(42),
-              Constant.of('matang'),
-              Constant.of(true)
+            eqAny(constant(4), [
+              constant(42),
+              constant('matang'),
+              constant(true)
             ])
           )
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('notEqAnyFunction_valueNotFoundInArray', () => {
-        const child = eqAny(Constant.of(4), [
-          Constant.of(42),
-          Constant.of('matang'),
-          Constant.of(true)
+        const child = eqAny(constant(4), [
+          constant(42),
+          constant('matang'),
+          constant(true)
         ]);
         const f = not(child);
         expect(evaluate(f)).to.deep.equal(TRUE_VALUE);
@@ -2872,19 +2639,19 @@ describe('Expressions', () => {
       it('equivalentNumerics', () => {
         expect(
           evaluate(
-            eqAny(Constant.of(42), [
-              Constant.of(42.0),
-              Constant.of('matang'),
-              Constant.of(true)
+            eqAny(constant(42), [
+              constant(42.0),
+              constant('matang'),
+              constant(true)
             ])
           )
         ).to.deep.equal(TRUE_VALUE);
         expect(
           evaluate(
-            eqAny(Constant.of(42.0), [
-              Constant.of(42),
-              Constant.of('matang'),
-              Constant.of(true)
+            eqAny(constant(42.0), [
+              constant(42),
+              constant('matang'),
+              constant(true)
             ])
           )
         ).to.deep.equal(TRUE_VALUE);
@@ -2893,31 +2660,31 @@ describe('Expressions', () => {
       it('bothInputTypeIsArray', () => {
         expect(
           evaluate(
-            eqAny(Constant.of([1, 2, 3]), [
-              Constant.of([1, 2, 3]),
-              Constant.of([4, 5, 6]),
-              Constant.of([7, 8, 9])
+            eqAny(constantArray([1, 2, 3]), [
+              constantArray([1, 2, 3]),
+              constantArray([4, 5, 6]),
+              constantArray([7, 8, 9])
             ])
           )
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('array_notFound_returnsError', () => {
-        expect(evaluate(eqAny(Constant.of('matang'), [Field.of('not-exist')])))
-          .to.be.undefined;
+        expect(evaluate(eqAny(constant('matang'), [field('not-exist')]))).to.be
+          .undefined;
       });
 
       it('array_isEmpty_returnsFalse', () => {
-        expect(evaluate(eqAny(Constant.of(42), []))).to.deep.equal(FALSE_VALUE);
+        expect(evaluate(eqAny(constant(42), []))).to.deep.equal(FALSE_VALUE);
       });
 
       it('search_reference_notFound_returnsError', () => {
         expect(
           evaluate(
-            eqAny(Field.of('not-exist'), [
-              Constant.of(42),
-              Constant.of('matang'),
-              Constant.of(true)
+            eqAny(field('not-exist'), [
+              constant(42),
+              constant('matang'),
+              constant(true)
             ])
           )
         ).to.be.undefined;
@@ -2926,52 +2693,48 @@ describe('Expressions', () => {
       it('search_isNull', () => {
         expect(
           evaluate(
-            eqAny(Constant.of(null), [
-              Constant.of(null),
-              Constant.of(1),
-              Constant.of('matang'),
-              Constant.of(true)
+            eqAny(constant(null), [
+              constant(null),
+              constant(1),
+              constant('matang'),
+              constant(true)
             ])
           )
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('search_isNull_emptyValuesArray_returnsFalse', () => {
-        expect(evaluate(eqAny(Constant.of(null), []))).to.deep.equal(
-          FALSE_VALUE
-        );
+        expect(evaluate(eqAny(constant(null), []))).to.deep.equal(FALSE_VALUE);
       });
 
       it('search_isNaN', () => {
         expect(
           evaluate(
-            eqAny(Constant.of(NaN), [
-              Constant.of(NaN),
-              Constant.of(42),
-              Constant.of(3.14)
-            ])
+            eqAny(constant(NaN), [constant(NaN), constant(42), constant(3.14)])
           )
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('search_isEmpty_array_isEmpty', () => {
-        expect(evaluate(eqAny(Constant.of([]), []))).to.deep.equal(FALSE_VALUE);
+        expect(evaluate(eqAny(constantArray([]), []))).to.deep.equal(
+          FALSE_VALUE
+        );
       });
 
       it('search_isEmpty_array_containsEmptyArray_returnsTrue', () => {
         expect(
-          evaluate(eqAny(Constant.of([]), [Constant.of([])]))
+          evaluate(eqAny(constantArray([]), [constantArray([])]))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('search_isMap', () => {
         expect(
           evaluate(
-            eqAny(Constant.of({ foo: 42 }), [
-              Constant.of(123),
-              Constant.of({ foo: 123 }),
-              Constant.of({ bar: 42 }),
-              Constant.of({ foo: 42 })
+            eqAny(constantMap({ foo: 42 }), [
+              constant(123),
+              constantMap({ foo: 123 }),
+              constantMap({ bar: 42 }),
+              constantMap({ foo: 42 })
             ])
           )
         ).to.deep.equal(TRUE_VALUE);
@@ -2980,41 +2743,39 @@ describe('Expressions', () => {
 
     describe('isNaN', () => {
       it('nan_returnsTrue', () => {
-        expect(evaluate(isNan(Constant.of(NaN)))).to.deep.equal(TRUE_VALUE);
-        expect(evaluate(isNan(Field.of('nanValue')))).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(isNan(constant(NaN)))).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(isNan(field('nanValue')))).to.deep.equal(TRUE_VALUE);
       });
 
       it('notNan_returnsFalse', () => {
-        expect(evaluate(isNan(Constant.of(42.0)))).to.deep.equal(FALSE_VALUE);
-        expect(evaluate(isNan(Constant.of(42)))).to.deep.equal(FALSE_VALUE);
+        expect(evaluate(isNan(constant(42.0)))).to.deep.equal(FALSE_VALUE);
+        expect(evaluate(isNan(constant(42)))).to.deep.equal(FALSE_VALUE);
       });
 
       it('isNotNan', () => {
-        expect(evaluate(not(isNan(Constant.of(42.0))))).to.deep.equal(
-          TRUE_VALUE
-        );
-        expect(evaluate(not(isNan(Constant.of(42))))).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(not(isNan(constant(42.0))))).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(not(isNan(constant(42))))).to.deep.equal(TRUE_VALUE);
       });
 
       it('otherNanRepresentations_returnsTrue', () => {
         const v1 = NaN; // In JS, any operation with NaN results in NaN
         expect(Number.isNaN(v1)).to.be.true;
-        expect(evaluate(isNan(Constant.of(v1)))).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(isNan(constant(v1)))).to.deep.equal(TRUE_VALUE);
 
         expect(
           evaluate(
             isNan(
               add(
-                Constant.of(Number.POSITIVE_INFINITY),
-                Constant.of(Number.NEGATIVE_INFINITY)
+                constant(Number.POSITIVE_INFINITY),
+                constant(Number.NEGATIVE_INFINITY)
               )
             )
           )
         ).to.deep.equal(TRUE_VALUE);
 
-        expect(
-          evaluate(isNan(add(Constant.of(NaN), Constant.of(1))))
-        ).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(isNan(add(constant(NaN), constant(1))))).to.deep.equal(
+          TRUE_VALUE
+        );
       });
 
       it('error_returnsError', () => {
@@ -3022,12 +2783,12 @@ describe('Expressions', () => {
       });
 
       it('null_returnsError', () => {
-        expect(evaluate(isNan(Constant.of(null)))).to.be.undefined;
+        expect(evaluate(isNan(constant(null)))).to.be.undefined;
       });
 
       it('nonNumeric_returnsError', () => {
-        expect(evaluate(isNan(Constant.of(true)))).to.be.undefined;
-        expect(evaluate(isNan(Constant.of('abc')))).to.be.undefined;
+        expect(evaluate(isNan(constant(true)))).to.be.undefined;
+        expect(evaluate(isNan(constant('abc')))).to.be.undefined;
       });
     }); // end describe('isNaN')
 
@@ -3036,11 +2797,11 @@ describe('Expressions', () => {
         expectEqual(
           evaluate(
             logicalMaximum(
-              Constant.of(1),
-              logicalMaximum(Constant.of(2.0), Constant.of(3))
+              constant(1),
+              logicalMaximum(constant(2.0), constant(3))
             )
           ),
-          Constant.of(3),
+          constant(3),
           `logicalMaximum(1, logicalMaximum(2.0, 3))`
         );
       });
@@ -3049,11 +2810,11 @@ describe('Expressions', () => {
         expectEqual(
           evaluate(
             logicalMaximum(
-              logicalMaximum(Constant.of('a'), Constant.of('b')),
-              Constant.of('c')
+              logicalMaximum(constant('a'), constant('b')),
+              constant('c')
             )
           ),
-          Constant.of('c'),
+          constant('c'),
           `logicalMaximum(logicalMaximum('a', 'b'), 'c')`
         );
       });
@@ -3062,51 +2823,51 @@ describe('Expressions', () => {
         expectEqual(
           evaluate(
             logicalMaximum(
-              Constant.of(1),
-              logicalMaximum(Constant.of('1'), Constant.of(0))
+              constant(1),
+              logicalMaximum(constant('1'), constant(0))
             )
           ),
-          Constant.of('1'),
+          constant('1'),
           `logicalMaximum(1, logicalMaximum('1', 0))`
         );
       });
 
       it('onlyNullAndError_returnsNull', () => {
         expectEqual(
-          evaluate(logicalMaximum(Constant.of(null), ERROR_VALUE)),
-          Constant.of(null),
+          evaluate(logicalMaximum(constant(null), errorExpr())),
+          constant(null),
           `logicalMaximum(null, ERROR_VALUE)`
         );
       });
 
       it('nanAndNumbers', () => {
         expectEqual(
-          evaluate(logicalMaximum(Constant.of(NaN), Constant.of(0))),
-          Constant.of(0),
+          evaluate(logicalMaximum(constant(NaN), constant(0))),
+          constant(0),
           `logicalMaximum(NaN, 0)`
         );
       });
 
       it('errorInput_skip', () => {
         expectEqual(
-          evaluate(logicalMaximum(errorExpr(), Constant.of(1))),
-          Constant.of(1),
+          evaluate(logicalMaximum(errorExpr(), constant(1))),
+          constant(1),
           `logicalMaximum(ERROR_VALUE, 1)`
         );
       });
 
       it('nullInput_skip', () => {
         expectEqual(
-          evaluate(logicalMaximum(Constant.of(null), Constant.of(1))),
-          Constant.of(1),
+          evaluate(logicalMaximum(constant(null), constant(1))),
+          constant(1),
           `logicalMaximum(null, 1)`
         );
       });
 
       it('equivalent_numerics', () => {
         expectEqual(
-          evaluate(logicalMaximum(Constant.of(1), Constant.of(1.0))),
-          Constant.of(1),
+          evaluate(logicalMaximum(constant(1), constant(1.0))),
+          constant(1),
           `logicalMaximum(1, 1.0)`
         );
       });
@@ -3117,11 +2878,11 @@ describe('Expressions', () => {
         expectEqual(
           evaluate(
             logicalMinimum(
-              Constant.of(1),
-              logicalMinimum(Constant.of(2.0), Constant.of(3))
+              constant(1),
+              logicalMinimum(constant(2.0), constant(3))
             )
           ),
-          Constant.of(1),
+          constant(1),
           `logicalMinimum(1, logicalMinimum(2.0, 3))`
         );
       });
@@ -3130,11 +2891,11 @@ describe('Expressions', () => {
         expectEqual(
           evaluate(
             logicalMinimum(
-              logicalMinimum(Constant.of('a'), Constant.of('b')),
-              Constant.of('c')
+              logicalMinimum(constant('a'), constant('b')),
+              constant('c')
             )
           ),
-          Constant.of('a'),
+          constant('a'),
           `logicalMinimum(logicalMinimum('a', 'b'), 'c')`
         );
       });
@@ -3143,51 +2904,51 @@ describe('Expressions', () => {
         expectEqual(
           evaluate(
             logicalMinimum(
-              Constant.of(1),
-              logicalMinimum(Constant.of('1'), Constant.of(0))
+              constant(1),
+              logicalMinimum(constant('1'), constant(0))
             )
           ),
-          Constant.of(0),
+          constant(0),
           `logicalMinimum(1, logicalMinimum('1', 0))`
         );
       });
 
       it('onlyNullAndError_returnsNull', () => {
         expectEqual(
-          evaluate(logicalMinimum(Constant.of(null), ERROR_VALUE)),
-          Constant.of(null),
+          evaluate(logicalMinimum(constant(null), errorExpr())),
+          constant(null),
           `logicalMinimum(null, ERROR_VALUE)`
         );
       });
 
       it('nanAndNumbers', () => {
         expectEqual(
-          evaluate(logicalMinimum(Constant.of(NaN), Constant.of(0))),
-          Constant.of(NaN),
+          evaluate(logicalMinimum(constant(NaN), constant(0))),
+          constant(NaN),
           `logicalMinimum(NaN, 0)`
         );
       });
 
       it('errorInput_skip', () => {
         expectEqual(
-          evaluate(logicalMinimum(errorExpr(), Constant.of(1))),
-          Constant.of(1),
+          evaluate(logicalMinimum(errorExpr(), constant(1))),
+          constant(1),
           `logicalMinimum(ERROR_VALUE, 1)`
         );
       });
 
       it('nullInput_skip', () => {
         expectEqual(
-          evaluate(logicalMinimum(Constant.of(null), Constant.of(1))),
-          Constant.of(1),
+          evaluate(logicalMinimum(constant(null), constant(1))),
+          constant(1),
           `logicalMinimum(null, 1)`
         );
       });
 
       it('equivalent_numerics', () => {
         expectEqual(
-          evaluate(logicalMinimum(Constant.of(1), Constant.of(1.0))),
-          Constant.of(1),
+          evaluate(logicalMinimum(constant(1), constant(1.0))),
+          constant(1),
           `logicalMinimum(1, 1.0)`
         );
       });
@@ -3195,159 +2956,133 @@ describe('Expressions', () => {
 
     describe('not', () => {
       it('true_to_false', () => {
-        expect(evaluate(not(Constant.of(1).eq(1)))).to.deep.equal(FALSE_VALUE);
+        expect(evaluate(not(constant(1).eq(1)))).to.deep.equal(FALSE_VALUE);
       });
 
       it('false_to_true', () => {
-        expect(evaluate(not(Constant.of(1).neq(1)))).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(not(constant(1).neq(1)))).to.deep.equal(TRUE_VALUE);
       });
     }); // end describe('not')
 
     describe('or', () => {
       it('false_false_isFalse', () => {
-        expect(evaluate(orFunction(falseExpr, falseExpr))).to.deep.equal(
+        expect(evaluate(or(falseExpr, falseExpr))).to.deep.equal(FALSE_VALUE);
+      });
+
+      it('false_error_isError', () => {
+        expect(evaluate(or(falseExpr, errorFilterCondition()))).to.be.undefined;
+      });
+
+      it('false_true_isTrue', () => {
+        expect(evaluate(or(falseExpr, trueExpr))).to.deep.equal(TRUE_VALUE);
+      });
+
+      it('error_false_isError', () => {
+        expect(evaluate(or(errorFilterCondition(), falseExpr))).to.be.undefined;
+      });
+
+      it('error_error_isError', () => {
+        expect(evaluate(or(errorFilterCondition(), errorFilterCondition()))).to
+          .be.undefined;
+      });
+
+      it('error_true_isTrue', () => {
+        expect(evaluate(or(errorFilterCondition(), trueExpr))).to.deep.equal(
+          TRUE_VALUE
+        );
+      });
+
+      it('true_false_isTrue', () => {
+        expect(evaluate(or(trueExpr, falseExpr))).to.deep.equal(TRUE_VALUE);
+      });
+
+      it('true_error_isTrue', () => {
+        expect(evaluate(or(trueExpr, errorFilterCondition()))).to.deep.equal(
+          TRUE_VALUE
+        );
+      });
+
+      it('true_true_isTrue', () => {
+        expect(evaluate(or(trueExpr, trueExpr))).to.deep.equal(TRUE_VALUE);
+      });
+
+      it('false_false_false_isFalse', () => {
+        expect(evaluate(or(falseExpr, falseExpr, falseExpr))).to.deep.equal(
           FALSE_VALUE
         );
       });
 
-      it('false_error_isError', () => {
-        expect(evaluate(orFunction(falseExpr, errorFilterCondition()))).to.be
-          .undefined;
-      });
-
-      it('false_true_isTrue', () => {
-        expect(evaluate(orFunction(falseExpr, trueExpr))).to.deep.equal(
-          TRUE_VALUE
-        );
-      });
-
-      it('error_false_isError', () => {
-        expect(evaluate(orFunction(errorFilterCondition(), falseExpr))).to.be
-          .undefined;
-      });
-
-      it('error_error_isError', () => {
-        expect(
-          evaluate(orFunction(errorFilterCondition(), errorFilterCondition()))
-        ).to.be.undefined;
-      });
-
-      it('error_true_isTrue', () => {
-        expect(
-          evaluate(orFunction(errorFilterCondition(), trueExpr))
-        ).to.deep.equal(TRUE_VALUE);
-      });
-
-      it('true_false_isTrue', () => {
-        expect(evaluate(orFunction(trueExpr, falseExpr))).to.deep.equal(
-          TRUE_VALUE
-        );
-      });
-
-      it('true_error_isTrue', () => {
-        expect(
-          evaluate(orFunction(trueExpr, errorFilterCondition()))
-        ).to.deep.equal(TRUE_VALUE);
-      });
-
-      it('true_true_isTrue', () => {
-        expect(evaluate(orFunction(trueExpr, trueExpr))).to.deep.equal(
-          TRUE_VALUE
-        );
-      });
-
-      it('false_false_false_isFalse', () => {
-        expect(
-          evaluate(orFunction(falseExpr, falseExpr, falseExpr))
-        ).to.deep.equal(FALSE_VALUE);
-      });
-
       it('false_false_error_isError', () => {
-        expect(
-          evaluate(orFunction(falseExpr, falseExpr, errorFilterCondition()))
-        ).to.be.undefined;
+        expect(evaluate(or(falseExpr, falseExpr, errorFilterCondition()))).to.be
+          .undefined;
       });
 
       it('false_false_true_isTrue', () => {
-        expect(
-          evaluate(orFunction(falseExpr, falseExpr, trueExpr))
-        ).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(or(falseExpr, falseExpr, trueExpr))).to.deep.equal(
+          TRUE_VALUE
+        );
       });
 
       it('false_error_false_isError', () => {
-        expect(
-          evaluate(orFunction(falseExpr, errorFilterCondition(), falseExpr))
-        ).to.be.undefined;
+        expect(evaluate(or(falseExpr, errorFilterCondition(), falseExpr))).to.be
+          .undefined;
       });
 
       it('false_error_error_isError', () => {
         expect(
           evaluate(
-            orFunction(
-              falseExpr,
-              errorFilterCondition(),
-              errorFilterCondition()
-            )
+            or(falseExpr, errorFilterCondition(), errorFilterCondition())
           )
         ).to.be.undefined;
       });
 
       it('false_error_true_isTrue', () => {
         expect(
-          evaluate(orFunction(falseExpr, errorFilterCondition(), trueExpr))
+          evaluate(or(falseExpr, errorFilterCondition(), trueExpr))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('false_true_false_isTrue', () => {
-        expect(
-          evaluate(orFunction(falseExpr, trueExpr, falseExpr))
-        ).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(or(falseExpr, trueExpr, falseExpr))).to.deep.equal(
+          TRUE_VALUE
+        );
       });
 
       it('false_true_error_isTrue', () => {
         expect(
-          evaluate(orFunction(falseExpr, trueExpr, errorFilterCondition()))
+          evaluate(or(falseExpr, trueExpr, errorFilterCondition()))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('false_true_true_isTrue', () => {
-        expect(
-          evaluate(orFunction(falseExpr, trueExpr, trueExpr))
-        ).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(or(falseExpr, trueExpr, trueExpr))).to.deep.equal(
+          TRUE_VALUE
+        );
       });
 
       it('error_false_false_isError', () => {
-        expect(
-          evaluate(orFunction(errorFilterCondition(), falseExpr, falseExpr))
-        ).to.be.undefined;
+        expect(evaluate(or(errorFilterCondition(), falseExpr, falseExpr))).to.be
+          .undefined;
       });
 
       it('error_false_error_isError', () => {
         expect(
           evaluate(
-            orFunction(
-              errorFilterCondition(),
-              falseExpr,
-              errorFilterCondition()
-            )
+            or(errorFilterCondition(), falseExpr, errorFilterCondition())
           )
         ).to.be.undefined;
       });
 
       it('error_false_true_isTrue', () => {
         expect(
-          evaluate(orFunction(errorFilterCondition(), falseExpr, trueExpr))
+          evaluate(or(errorFilterCondition(), falseExpr, trueExpr))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('error_error_false_isError', () => {
         expect(
           evaluate(
-            orFunction(
-              errorFilterCondition(),
-              errorFilterCondition(),
-              falseExpr
-            )
+            or(errorFilterCondition(), errorFilterCondition(), falseExpr)
           )
         ).to.be.undefined;
       });
@@ -3355,7 +3090,7 @@ describe('Expressions', () => {
       it('error_error_error_isError', () => {
         expect(
           evaluate(
-            orFunction(
+            or(
               errorFilterCondition(),
               errorFilterCondition(),
               errorFilterCondition()
@@ -3366,98 +3101,92 @@ describe('Expressions', () => {
 
       it('error_error_true_isTrue', () => {
         expect(
-          evaluate(
-            orFunction(errorFilterCondition(), errorFilterCondition(), trueExpr)
-          )
+          evaluate(or(errorFilterCondition(), errorFilterCondition(), trueExpr))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('error_true_false_isTrue', () => {
         expect(
-          evaluate(orFunction(errorFilterCondition(), trueExpr, falseExpr))
+          evaluate(or(errorFilterCondition(), trueExpr, falseExpr))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('error_true_error_isTrue', () => {
         expect(
-          evaluate(
-            orFunction(errorFilterCondition(), trueExpr, errorFilterCondition())
-          )
+          evaluate(or(errorFilterCondition(), trueExpr, errorFilterCondition()))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('error_true_true_isTrue', () => {
         expect(
-          evaluate(orFunction(errorFilterCondition(), trueExpr, trueExpr))
+          evaluate(or(errorFilterCondition(), trueExpr, trueExpr))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('true_false_false_isTrue', () => {
-        expect(
-          evaluate(orFunction(trueExpr, falseExpr, falseExpr))
-        ).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(or(trueExpr, falseExpr, falseExpr))).to.deep.equal(
+          TRUE_VALUE
+        );
       });
 
       it('true_false_error_isTrue', () => {
         expect(
-          evaluate(orFunction(trueExpr, falseExpr, errorFilterCondition()))
+          evaluate(or(trueExpr, falseExpr, errorFilterCondition()))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('true_false_true_isTrue', () => {
-        expect(
-          evaluate(orFunction(trueExpr, falseExpr, trueExpr))
-        ).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(or(trueExpr, falseExpr, trueExpr))).to.deep.equal(
+          TRUE_VALUE
+        );
       });
 
       it('true_error_false_isTrue', () => {
         expect(
-          evaluate(orFunction(trueExpr, errorFilterCondition(), falseExpr))
+          evaluate(or(trueExpr, errorFilterCondition(), falseExpr))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('true_error_error_isTrue', () => {
         expect(
-          evaluate(
-            orFunction(trueExpr, errorFilterCondition(), errorFilterCondition())
-          )
+          evaluate(or(trueExpr, errorFilterCondition(), errorFilterCondition()))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('true_error_true_isTrue', () => {
         expect(
-          evaluate(orFunction(trueExpr, errorFilterCondition(), trueExpr))
+          evaluate(or(trueExpr, errorFilterCondition(), trueExpr))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('true_true_false_isTrue', () => {
-        expect(
-          evaluate(orFunction(trueExpr, trueExpr, falseExpr))
-        ).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(or(trueExpr, trueExpr, falseExpr))).to.deep.equal(
+          TRUE_VALUE
+        );
       });
 
       it('true_true_error_isTrue', () => {
         expect(
-          evaluate(orFunction(trueExpr, trueExpr, errorFilterCondition()))
+          evaluate(or(trueExpr, trueExpr, errorFilterCondition()))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('true_true_true_isTrue', () => {
-        expect(
-          evaluate(orFunction(trueExpr, trueExpr, trueExpr))
-        ).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(or(trueExpr, trueExpr, trueExpr))).to.deep.equal(
+          TRUE_VALUE
+        );
       });
 
       it('nested_or', () => {
-        const child = orFunction(trueExpr, falseExpr);
-        const f = orFunction(child, falseExpr);
+        const child = or(trueExpr, falseExpr);
+        const f = or(child, falseExpr);
         expect(evaluate(f)).to.deep.equal(TRUE_VALUE);
       });
 
       it('multipleArguments', () => {
-        expect(
-          evaluate(orFunction(trueExpr, falseExpr, trueExpr))
-        ).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(or(trueExpr, falseExpr, trueExpr))).to.deep.equal(
+          TRUE_VALUE
+        );
       });
     }); // end describe('or')
 
@@ -3687,27 +3416,27 @@ describe('Expressions', () => {
     describe('mapGet', () => {
       it('get_existingKey_returnsValue', () => {
         const map = { a: 1, b: 2, c: 3 };
-        expectEqual(evaluate(mapGet(Constant.of(map), 'b')), Constant.of(2));
+        expectEqual(evaluate(mapGet(constantMap(map), 'b')), constant(2));
       });
 
       it('get_missingKey_returnsUnset', () => {
         const map = { a: 1, b: 2, c: 3 };
-        expect(evaluate(mapGet(Constant.of(map), 'd'))).to.be.undefined;
+        expect(evaluate(mapGet(constantMap(map), 'd'))).to.be.undefined;
       });
 
       it('get_emptyMap_returnsUnset', () => {
         const map = {};
-        expect(evaluate(mapGet(Constant.of(map), 'd'))).to.be.undefined;
+        expect(evaluate(mapGet(constantMap(map), 'd'))).to.be.undefined;
       });
 
       it('get_wrongMapType_returnsError', () => {
         const map = 'not a map';
-        expect(evaluate(mapGet(Constant.of(map), 'd'))).to.be.undefined;
+        expect(evaluate(mapGet(constant(map), 'd'))).to.be.undefined;
       });
 
       // it('get_wrongKeyType_returnsError', () => {
       //   const map = {a: 1, b: 2, c: 3};
-      //   expect(evaluate(mapGet(Constant.of(map), Constant.of(42)))).to.be.undefined;
+      //   expect(evaluate(mapGet(constant(map), constant(42)))).to.be.undefined;
       // });
     }); // end describe('mapGet')
   });
@@ -3715,205 +3444,180 @@ describe('Expressions', () => {
   describe('String Functions', () => {
     describe('byteLength', () => {
       it('emptyString', () => {
-        expectEqual(evaluate(byteLength(Constant.of(''))), Constant.of(0));
+        expectEqual(evaluate(byteLength(constant(''))), constant(0));
       });
 
       it('emptyByte', () => {
         expectEqual(
           evaluate(
-            byteLength(Constant.of(Bytes.fromUint8Array(new Uint8Array())))
+            byteLength(constant(Bytes.fromUint8Array(new Uint8Array())))
           ),
-          Constant.of(0)
+          constant(0)
         );
       });
 
       it('nonStringOrBytes_returnsError', () => {
-        expect(evaluate(byteLength(Constant.of(123)))).to.be.undefined;
+        expect(evaluate(byteLength(constant(123)))).to.be.undefined;
       });
 
       it('highSurrogateOnly', () => {
         const s = '\uD83C'; // high surrogate, missing low surrogate
-        expect(evaluate(byteLength(Constant.of(s)))).to.be.undefined;
+        expect(evaluate(byteLength(constant(s)))).to.be.undefined;
       });
 
       it('lowSurrogateOnly', () => {
         const s = '\uDF53'; // low surrogate, missing high surrogate
-        expect(evaluate(byteLength(Constant.of(s)))).to.be.undefined;
+        expect(evaluate(byteLength(constant(s)))).to.be.undefined;
       });
 
       it('lowAndHighSurrogate_swapped', () => {
         const s = '\uDF53\uD83C'; // swapped high with low, invalid sequence
-        expect(evaluate(byteLength(Constant.of(s)))).to.be.undefined;
+        expect(evaluate(byteLength(constant(s)))).to.be.undefined;
       });
 
       it('ascii', () => {
-        expectEqual(evaluate(byteLength(Constant.of('abc'))), Constant.of(3));
-        expectEqual(evaluate(byteLength(Constant.of('1234'))), Constant.of(4));
-        expectEqual(
-          evaluate(byteLength(Constant.of('abc123!@'))),
-          Constant.of(8)
-        );
+        expectEqual(evaluate(byteLength(constant('abc'))), constant(3));
+        expectEqual(evaluate(byteLength(constant('1234'))), constant(4));
+        expectEqual(evaluate(byteLength(constant('abc123!@'))), constant(8));
       });
 
       it('largeString', () => {
         expectEqual(
-          evaluate(byteLength(Constant.of('a'.repeat(1500)))),
-          Constant.of(1500)
+          evaluate(byteLength(constant('a'.repeat(1500)))),
+          constant(1500)
         );
         expectEqual(
-          evaluate(byteLength(Constant.of('ab'.repeat(1500)))),
-          Constant.of(3000)
+          evaluate(byteLength(constant('ab'.repeat(1500)))),
+          constant(3000)
         );
       });
 
       it('twoBytes_perCharacter', () => {
-        expectEqual(
-          evaluate(byteLength(Constant.of('éçñöü'))),
-          Constant.of(10)
-        );
+        expectEqual(evaluate(byteLength(constant('éçñöü'))), constant(10));
         expectEqual(
           evaluate(
             byteLength(
-              Constant.of(
-                Bytes.fromUint8Array(new TextEncoder().encode('éçñöü'))
-              )
+              constant(Bytes.fromUint8Array(new TextEncoder().encode('éçñöü')))
             )
           ),
-          Constant.of(10)
+          constant(10)
         );
       });
 
       it('threeBytes_perCharacter', () => {
-        expectEqual(
-          evaluate(byteLength(Constant.of('你好世界'))),
-          Constant.of(12)
-        );
+        expectEqual(evaluate(byteLength(constant('你好世界'))), constant(12));
         expectEqual(
           evaluate(
             byteLength(
-              Constant.of(
+              constant(
                 Bytes.fromUint8Array(new TextEncoder().encode('你好世界'))
               )
             )
           ),
-          Constant.of(12)
+          constant(12)
         );
       });
 
       it('fourBytes_perCharacter', () => {
-        expectEqual(evaluate(byteLength(Constant.of('🀘🂡'))), Constant.of(8));
+        expectEqual(evaluate(byteLength(constant('🀘🂡'))), constant(8));
         expectEqual(
           evaluate(
             byteLength(
-              Constant.of(Bytes.fromUint8Array(new TextEncoder().encode('🀘🂡')))
+              constant(Bytes.fromUint8Array(new TextEncoder().encode('🀘🂡')))
             )
           ),
-          Constant.of(8)
+          constant(8)
         );
       });
 
       it('mixOfDifferentEncodedLengths', () => {
-        expectEqual(
-          evaluate(byteLength(Constant.of('aé好🂡'))),
-          Constant.of(10)
-        );
+        expectEqual(evaluate(byteLength(constant('aé好🂡'))), constant(10));
         expectEqual(
           evaluate(
             byteLength(
-              Constant.of(
-                Bytes.fromUint8Array(new TextEncoder().encode('aé好🂡'))
-              )
+              constant(Bytes.fromUint8Array(new TextEncoder().encode('aé好🂡')))
             )
           ),
-          Constant.of(10)
+          constant(10)
         );
       });
     }); // end describe('byteLength')
 
     describe('charLength', () => {
       it('emptyString', () => {
-        expectEqual(evaluate(charLength(Constant.of(''))), Constant.of(0));
+        expectEqual(evaluate(charLength(constant(''))), constant(0));
       });
 
       it('bytesType_returnsError', () => {
         expect(
           evaluate(
             charLength(
-              Constant.of(Bytes.fromUint8Array(new TextEncoder().encode('abc')))
+              constant(Bytes.fromUint8Array(new TextEncoder().encode('abc')))
             )
           )
         ).to.be.undefined;
       });
 
       it('baseCase_bmp', () => {
-        expectEqual(evaluate(charLength(Constant.of('abc'))), Constant.of(3));
-        expectEqual(evaluate(charLength(Constant.of('1234'))), Constant.of(4));
+        expectEqual(evaluate(charLength(constant('abc'))), constant(3));
+        expectEqual(evaluate(charLength(constant('1234'))), constant(4));
+        expectEqual(evaluate(charLength(constant('abc123!@'))), constant(8));
+        expectEqual(evaluate(charLength(constant('你好世界'))), constant(4));
+        expectEqual(evaluate(charLength(constant('cafétéria'))), constant(9));
+        expectEqual(evaluate(charLength(constant('абвгд'))), constant(5));
         expectEqual(
-          evaluate(charLength(Constant.of('abc123!@'))),
-          Constant.of(8)
+          evaluate(charLength(constant('¡Hola! ¿Cómo estás?'))),
+          constant(19)
         );
-        expectEqual(
-          evaluate(charLength(Constant.of('你好世界'))),
-          Constant.of(4)
-        );
-        expectEqual(
-          evaluate(charLength(Constant.of('cafétéria'))),
-          Constant.of(9)
-        );
-        expectEqual(evaluate(charLength(Constant.of('абвгд'))), Constant.of(5));
-        expectEqual(
-          evaluate(charLength(Constant.of('¡Hola! ¿Cómo estás?'))),
-          Constant.of(19)
-        );
-        expectEqual(evaluate(charLength(Constant.of('☺'))), Constant.of(1));
+        expectEqual(evaluate(charLength(constant('☺'))), constant(1));
       });
 
       it('spaces', () => {
-        expectEqual(evaluate(charLength(Constant.of(''))), Constant.of(0));
-        expectEqual(evaluate(charLength(Constant.of(' '))), Constant.of(1));
-        expectEqual(evaluate(charLength(Constant.of('  '))), Constant.of(2));
-        expectEqual(evaluate(charLength(Constant.of('a b'))), Constant.of(3));
+        expectEqual(evaluate(charLength(constant(''))), constant(0));
+        expectEqual(evaluate(charLength(constant(' '))), constant(1));
+        expectEqual(evaluate(charLength(constant('  '))), constant(2));
+        expectEqual(evaluate(charLength(constant('a b'))), constant(3));
       });
 
       it('specialCharacters', () => {
-        expectEqual(evaluate(charLength(Constant.of('\n'))), Constant.of(1));
-        expectEqual(evaluate(charLength(Constant.of('\t'))), Constant.of(1));
-        expectEqual(evaluate(charLength(Constant.of('\\'))), Constant.of(1));
+        expectEqual(evaluate(charLength(constant('\n'))), constant(1));
+        expectEqual(evaluate(charLength(constant('\t'))), constant(1));
+        expectEqual(evaluate(charLength(constant('\\'))), constant(1));
       });
 
       it('bmp_smp_mix', () => {
         const s = 'Hello\uD83D\uDE0A'; // Hello followed by emoji
-        expectEqual(evaluate(charLength(Constant.of(s))), Constant.of(6));
+        expectEqual(evaluate(charLength(constant(s))), constant(6));
       });
 
       it('smp', () => {
         const s = '\uD83C\uDF53\uD83C\uDF51'; // a strawberry and peach emoji
-        expectEqual(evaluate(charLength(Constant.of(s))), Constant.of(2));
+        expectEqual(evaluate(charLength(constant(s))), constant(2));
       });
 
       it('highSurrogateOnly', () => {
         const s = '\uD83C'; // high surrogate, missing low surrogate
-        expectEqual(evaluate(charLength(Constant.of(s))), Constant.of(1));
+        expectEqual(evaluate(charLength(constant(s))), constant(1));
       });
 
       it('lowSurrogateOnly', () => {
         const s = '\uDF53'; // low surrogate, missing high surrogate
-        expectEqual(evaluate(charLength(Constant.of(s))), Constant.of(1));
+        expectEqual(evaluate(charLength(constant(s))), constant(1));
       });
 
       it('lowAndHighSurrogate_swapped', () => {
         const s = '\uDF53\uD83C'; // swapped high with low, invalid sequence
-        expectEqual(evaluate(charLength(Constant.of(s))), Constant.of(2));
+        expectEqual(evaluate(charLength(constant(s))), constant(2));
       });
 
       it('largeString', () => {
         expectEqual(
-          evaluate(charLength(Constant.of('a'.repeat(1500)))),
-          Constant.of(1500)
+          evaluate(charLength(constant('a'.repeat(1500)))),
+          constant(1500)
         );
         expectEqual(
-          evaluate(charLength(Constant.of('ab'.repeat(1500)))),
-          Constant.of(3000)
+          evaluate(charLength(constant('ab'.repeat(1500)))),
+          constant(3000)
         );
       });
     }); // end describe('charLength')
@@ -3921,144 +3625,133 @@ describe('Expressions', () => {
     describe('concat', () => {
       it('multipleStringChildren_returnsCombination', () => {
         expectEqual(
-          evaluate(
-            strConcat(Constant.of('foo'), Constant.of(' '), Constant.of('bar'))
-          ),
-          Constant.of('foo bar'),
+          evaluate(strConcat(constant('foo'), constant(' '), constant('bar'))),
+          constant('foo bar'),
           `strConcat('foo', ' ', 'bar')`
         );
       });
 
       it('multipleNonStringChildren_returnsError', () => {
         expect(
-          evaluate(
-            strConcat(Constant.of('foo'), Constant.of(42), Constant.of('bar'))
-          )
+          evaluate(strConcat(constant('foo'), constant(42), constant('bar')))
         ).to.be.undefined;
       });
 
       it('multipleCalls', () => {
-        const func = strConcat(
-          Constant.of('foo'),
-          Constant.of(' '),
-          Constant.of('bar')
-        );
-        expectEqual(evaluate(func), Constant.of('foo bar'), 'First call');
-        expectEqual(evaluate(func), Constant.of('foo bar'), 'Second call');
-        expectEqual(evaluate(func), Constant.of('foo bar'), 'Third call');
+        const func = strConcat(constant('foo'), constant(' '), constant('bar'));
+        expectEqual(evaluate(func), constant('foo bar'), 'First call');
+        expectEqual(evaluate(func), constant('foo bar'), 'Second call');
+        expectEqual(evaluate(func), constant('foo bar'), 'Third call');
       });
 
       it('largeNumberOfInputs', () => {
         const args = [];
         for (let i = 0; i < 500; i++) {
-          args.push(Constant.of('a'));
+          args.push(constant('a'));
         }
         expectEqual(
-          evaluate(strConcat(args[0], ...args.slice(1))),
-          Constant.of('a'.repeat(500))
+          evaluate(strConcat(args[0], args[1], ...args.slice(2))),
+          constant('a'.repeat(500))
         );
       });
 
       it('largeStrings', () => {
         const func = strConcat(
-          Constant.of('a'.repeat(500)),
-          Constant.of('b'.repeat(500)),
-          Constant.of('c'.repeat(500))
+          constant('a'.repeat(500)),
+          constant('b'.repeat(500)),
+          constant('c'.repeat(500))
         );
         expectEqual(
           evaluate(func),
-          Constant.of('a'.repeat(500) + 'b'.repeat(500) + 'c'.repeat(500))
+          constant('a'.repeat(500) + 'b'.repeat(500) + 'c'.repeat(500))
         );
       });
     }); // end describe('concat')
 
     describe('endsWith', () => {
       it('get_nonStringValue_isError', () => {
-        expect(evaluate(endsWith(Constant.of(42), Constant.of('search')))).to.be
+        expect(evaluate(endsWith(constant(42), constant('search')))).to.be
           .undefined;
       });
 
       it('get_nonStringSuffix_isError', () => {
-        expect(evaluate(endsWith(Constant.of('search'), Constant.of(42)))).to.be
+        expect(evaluate(endsWith(constant('search'), constant(42)))).to.be
           .undefined;
       });
 
       it('get_emptyInputs_returnsTrue', () => {
-        expect(
-          evaluate(endsWith(Constant.of(''), Constant.of('')))
-        ).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(endsWith(constant(''), constant('')))).to.deep.equal(
+          TRUE_VALUE
+        );
       });
 
       it('get_emptyValue_returnsFalse', () => {
-        expect(
-          evaluate(endsWith(Constant.of(''), Constant.of('v')))
-        ).to.deep.equal(FALSE_VALUE);
+        expect(evaluate(endsWith(constant(''), constant('v')))).to.deep.equal(
+          FALSE_VALUE
+        );
       });
 
       it('get_emptySuffix_returnsTrue', () => {
         expect(
-          evaluate(endsWith(Constant.of('value'), Constant.of('')))
+          evaluate(endsWith(constant('value'), constant('')))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('get_returnsTrue', () => {
         expect(
-          evaluate(endsWith(Constant.of('search'), Constant.of('rch')))
+          evaluate(endsWith(constant('search'), constant('rch')))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('get_returnsFalse', () => {
         expect(
-          evaluate(endsWith(Constant.of('search'), Constant.of('rcH')))
+          evaluate(endsWith(constant('search'), constant('rcH')))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('get_largeSuffix_returnsFalse', () => {
         expect(
-          evaluate(
-            endsWith(Constant.of('val'), Constant.of('a very long suffix'))
-          )
+          evaluate(endsWith(constant('val'), constant('a very long suffix')))
         ).to.deep.equal(FALSE_VALUE);
       });
     }); // end describe('endsWith')
 
     describe('like', () => {
       it('get_nonStringLike_isError', () => {
-        expect(evaluate(like(Constant.of(42), Constant.of('search')))).to.be
+        expect(evaluate(like(constant(42), constant('search')))).to.be
           .undefined;
       });
 
       it('get_nonStringValue_isError', () => {
-        expect(evaluate(like(Constant.of('ear'), Constant.of(42)))).to.be
-          .undefined;
+        expect(evaluate(like(constant('ear'), constant(42)))).to.be.undefined;
       });
 
       it('get_staticLike', () => {
-        const func = like(Constant.of('yummy food'), Constant.of('%food'));
+        const func = like(constant('yummy food'), constant('%food'));
         expect(evaluate(func)).to.deep.equal(TRUE_VALUE);
         expect(evaluate(func)).to.deep.equal(TRUE_VALUE);
         expect(evaluate(func)).to.deep.equal(TRUE_VALUE);
       });
 
       it('get_emptySearchString', () => {
-        const func = like(Constant.of(''), Constant.of('%hi%'));
+        const func = like(constant(''), constant('%hi%'));
         expect(evaluate(func)).to.deep.equal(FALSE_VALUE);
       });
 
       it('get_emptyLike', () => {
-        const func = like(Constant.of('yummy food'), Constant.of(''));
+        const func = like(constant('yummy food'), constant(''));
         expect(evaluate(func)).to.deep.equal(FALSE_VALUE);
       });
 
       it('get_escapedLike', () => {
-        const func = like(Constant.of('yummy food??'), Constant.of('%food??'));
+        const func = like(constant('yummy food??'), constant('%food??'));
         expect(evaluate(func)).to.deep.equal(TRUE_VALUE);
         expect(evaluate(func)).to.deep.equal(TRUE_VALUE);
         expect(evaluate(func)).to.deep.equal(TRUE_VALUE);
       });
 
       it('get_dynamicLike', () => {
-        const func = like(Constant.of('yummy food'), Field.of('regex'));
+        const func = like(constant('yummy food'), field('regex'));
         expect(evaluate(func, { regex: 'yummy%' })).to.deep.equal(TRUE_VALUE);
         expect(evaluate(func, { regex: 'food%' })).to.deep.equal(FALSE_VALUE);
         expect(evaluate(func, { regex: 'yummy_food' })).to.deep.equal(
@@ -4069,30 +3762,24 @@ describe('Expressions', () => {
 
     describe('regexContains', () => {
       it('get_nonStringRegex_isError', () => {
-        expect(evaluate(regexContains(Constant.of(42), Constant.of('search'))))
-          .to.be.undefined;
+        expect(evaluate(regexContains(constant(42), constant('search')))).to.be
+          .undefined;
       });
 
       it('get_nonStringValue_isError', () => {
-        expect(evaluate(regexContains(Constant.of('ear'), Constant.of(42)))).to
-          .be.undefined;
+        expect(evaluate(regexContains(constant('ear'), constant(42)))).to.be
+          .undefined;
       });
 
       it('get_invalidRegex_isError', () => {
-        const func = regexContains(
-          Constant.of('abcabc'),
-          Constant.of('(abc)\\1')
-        );
+        const func = regexContains(constant('abcabc'), constant('(abc)\\1'));
         expect(evaluate(func)).to.be.undefined;
         expect(evaluate(func)).to.be.undefined;
         expect(evaluate(func)).to.be.undefined;
       });
 
       it('get_staticRegex', () => {
-        const func = regexContains(
-          Constant.of('yummy food'),
-          Constant.of('.*oo.*')
-        );
+        const func = regexContains(constant('yummy food'), constant('.*oo.*'));
         expect(evaluate(func)).to.deep.equal(TRUE_VALUE);
         expect(evaluate(func)).to.deep.equal(TRUE_VALUE);
         expect(evaluate(func)).to.deep.equal(TRUE_VALUE);
@@ -4100,25 +3787,22 @@ describe('Expressions', () => {
 
       it('get_subString_literal', () => {
         const func = regexContains(
-          Constant.of('yummy good food'),
-          Constant.of('good')
+          constant('yummy good food'),
+          constant('good')
         );
         expect(evaluate(func)).to.deep.equal(TRUE_VALUE);
       });
 
       it('get_subString_regex', () => {
         const func = regexContains(
-          Constant.of('yummy good food'),
-          Constant.of('go*d')
+          constant('yummy good food'),
+          constant('go*d')
         );
         expect(evaluate(func)).to.deep.equal(TRUE_VALUE);
       });
 
       it('get_dynamicRegex', () => {
-        const func = regexContains(
-          Constant.of('yummy food'),
-          Field.of('regex')
-        );
+        const func = regexContains(constant('yummy food'), field('regex'));
         expect(evaluate(func, { regex: '^yummy.*' })).to.deep.equal(TRUE_VALUE);
         expect(evaluate(func, { regex: 'fooood$' })).to.deep.equal(FALSE_VALUE);
         expect(evaluate(func, { regex: '.*' })).to.deep.equal(TRUE_VALUE);
@@ -4127,50 +3811,41 @@ describe('Expressions', () => {
 
     describe('regexMatch', () => {
       it('get_nonStringRegex_isError', () => {
-        expect(evaluate(regexMatch(Constant.of(42), Constant.of('search')))).to
-          .be.undefined;
+        expect(evaluate(regexMatch(constant(42), constant('search')))).to.be
+          .undefined;
       });
 
       it('get_nonStringValue_isError', () => {
-        expect(evaluate(regexMatch(Constant.of('ear'), Constant.of(42)))).to.be
+        expect(evaluate(regexMatch(constant('ear'), constant(42)))).to.be
           .undefined;
       });
 
       it('get_invalidRegex_isError', () => {
-        const func = regexMatch(Constant.of('abcabc'), Constant.of('(abc)\\1'));
+        const func = regexMatch(constant('abcabc'), constant('(abc)\\1'));
         expect(evaluate(func)).to.be.undefined;
         expect(evaluate(func)).to.be.undefined;
         expect(evaluate(func)).to.be.undefined;
       });
 
       it('get_staticRegex', () => {
-        const func = regexMatch(
-          Constant.of('yummy food'),
-          Constant.of('.*oo.*')
-        );
+        const func = regexMatch(constant('yummy food'), constant('.*oo.*'));
         expect(evaluate(func)).to.deep.equal(TRUE_VALUE);
         expect(evaluate(func)).to.deep.equal(TRUE_VALUE);
         expect(evaluate(func)).to.deep.equal(TRUE_VALUE);
       });
 
       it('get_subString_literal', () => {
-        const func = regexMatch(
-          Constant.of('yummy good food'),
-          Constant.of('good')
-        );
+        const func = regexMatch(constant('yummy good food'), constant('good'));
         expect(evaluate(func)).to.deep.equal(FALSE_VALUE);
       });
 
       it('get_subString_regex', () => {
-        const func = regexMatch(
-          Constant.of('yummy good food'),
-          Constant.of('go*d')
-        );
+        const func = regexMatch(constant('yummy good food'), constant('go*d'));
         expect(evaluate(func)).to.deep.equal(FALSE_VALUE);
       });
 
       it('get_dynamicRegex', () => {
-        const func = regexMatch(Constant.of('yummy food'), Field.of('regex'));
+        const func = regexMatch(constant('yummy food'), field('regex'));
         expect(evaluate(func, { regex: '^yummy.*' })).to.deep.equal(TRUE_VALUE);
         expect(evaluate(func, { regex: 'fooood$' })).to.deep.equal(FALSE_VALUE);
         expect(evaluate(func, { regex: '.*' })).to.deep.equal(TRUE_VALUE);
@@ -4179,99 +3854,96 @@ describe('Expressions', () => {
 
     describe('startsWith', () => {
       it('get_nonStringValue_isError', () => {
-        expect(evaluate(startsWith(Constant.of(42), Constant.of('search')))).to
-          .be.undefined;
+        expect(evaluate(startsWith(constant(42), constant('search')))).to.be
+          .undefined;
       });
 
       it('get_nonStringPrefix_isError', () => {
-        expect(evaluate(startsWith(Constant.of('search'), Constant.of(42)))).to
-          .be.undefined;
+        expect(evaluate(startsWith(constant('search'), constant(42)))).to.be
+          .undefined;
       });
 
       it('get_emptyInputs_returnsTrue', () => {
-        expect(
-          evaluate(startsWith(Constant.of(''), Constant.of('')))
-        ).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(startsWith(constant(''), constant('')))).to.deep.equal(
+          TRUE_VALUE
+        );
       });
 
       it('get_emptyValue_returnsFalse', () => {
-        expect(
-          evaluate(startsWith(Constant.of(''), Constant.of('v')))
-        ).to.deep.equal(FALSE_VALUE);
+        expect(evaluate(startsWith(constant(''), constant('v')))).to.deep.equal(
+          FALSE_VALUE
+        );
       });
 
       it('get_emptyPrefix_returnsTrue', () => {
         expect(
-          evaluate(startsWith(Constant.of('value'), Constant.of('')))
+          evaluate(startsWith(constant('value'), constant('')))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('get_returnsTrue', () => {
         expect(
-          evaluate(startsWith(Constant.of('search'), Constant.of('sea')))
+          evaluate(startsWith(constant('search'), constant('sea')))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('get_returnsFalse', () => {
         expect(
-          evaluate(startsWith(Constant.of('search'), Constant.of('Sea')))
+          evaluate(startsWith(constant('search'), constant('Sea')))
         ).to.deep.equal(FALSE_VALUE);
       });
 
       it('get_largePrefix_returnsFalse', () => {
         expect(
-          evaluate(
-            startsWith(Constant.of('val'), Constant.of('a very long prefix'))
-          )
+          evaluate(startsWith(constant('val'), constant('a very long prefix')))
         ).to.deep.equal(FALSE_VALUE);
       });
     }); // end describe('startsWith')
 
     describe('strContains', () => {
       it('value_nonString_isError', () => {
-        expect(evaluate(strContains(Constant.of(42), Constant.of('value')))).to
-          .be.undefined;
+        expect(evaluate(strContains(constant(42), constant('value')))).to.be
+          .undefined;
       });
 
       it('subString_nonString_isError', () => {
-        expect(
-          evaluate(strContains(Constant.of('search space'), Constant.of(42)))
-        ).to.be.undefined;
+        expect(evaluate(strContains(constant('search space'), constant(42)))).to
+          .be.undefined;
       });
 
       it('execute_true', () => {
         expect(
-          evaluate(strContains(Constant.of('abc'), Constant.of('c')))
+          evaluate(strContains(constant('abc'), constant('c')))
         ).to.deep.equal(TRUE_VALUE);
         expect(
-          evaluate(strContains(Constant.of('abc'), Constant.of('bc')))
+          evaluate(strContains(constant('abc'), constant('bc')))
         ).to.deep.equal(TRUE_VALUE);
         expect(
-          evaluate(strContains(Constant.of('abc'), Constant.of('abc')))
+          evaluate(strContains(constant('abc'), constant('abc')))
         ).to.deep.equal(TRUE_VALUE);
         expect(
-          evaluate(strContains(Constant.of('abc'), Constant.of('')))
+          evaluate(strContains(constant('abc'), constant('')))
         ).to.deep.equal(TRUE_VALUE);
+        expect(evaluate(strContains(constant(''), constant('')))).to.deep.equal(
+          TRUE_VALUE
+        );
         expect(
-          evaluate(strContains(Constant.of(''), Constant.of('')))
-        ).to.deep.equal(TRUE_VALUE);
-        expect(
-          evaluate(strContains(Constant.of('☃☃☃'), Constant.of('☃')))
+          evaluate(strContains(constant('☃☃☃'), constant('☃')))
         ).to.deep.equal(TRUE_VALUE);
       });
 
       it('execute_false', () => {
         expect(
-          evaluate(strContains(Constant.of('abc'), Constant.of('abcd')))
+          evaluate(strContains(constant('abc'), constant('abcd')))
         ).to.deep.equal(FALSE_VALUE);
         expect(
-          evaluate(strContains(Constant.of('abc'), Constant.of('d')))
+          evaluate(strContains(constant('abc'), constant('d')))
         ).to.deep.equal(FALSE_VALUE);
         expect(
-          evaluate(strContains(Constant.of(''), Constant.of('a')))
+          evaluate(strContains(constant(''), constant('a')))
         ).to.deep.equal(FALSE_VALUE);
         expect(
-          evaluate(strContains(Constant.of(''), Constant.of('abcde')))
+          evaluate(strContains(constant(''), constant('abcde')))
         ).to.deep.equal(FALSE_VALUE);
       });
     }); // end describe('strContains')
@@ -4283,8 +3955,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             cosineDistance(
-              Constant.of(new VectorValue([0.0, 1.0])),
-              Constant.of(new VectorValue([5.0, 100.0]))
+              constant(new VectorValue([0.0, 1.0])),
+              constant(new VectorValue([5.0, 100.0]))
             )
           )?.doubleValue
         ).to.be.closeTo(0.0012476611221553524, 1e-10); // Use closeTo for floating-point comparison
@@ -4294,8 +3966,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             cosineDistance(
-              Constant.of(new VectorValue([0.0, 0.0])),
-              Constant.of(new VectorValue([5.0, 100.0]))
+              constant(new VectorValue([0.0, 0.0])),
+              constant(new VectorValue([5.0, 100.0]))
             )
           )
         ).to.be.undefined;
@@ -4305,8 +3977,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             cosineDistance(
-              Constant.of(new VectorValue([])),
-              Constant.of(new VectorValue([]))
+              constant(new VectorValue([])),
+              constant(new VectorValue([]))
             )
           )
         ).to.be.undefined;
@@ -4316,8 +3988,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             cosineDistance(
-              Constant.of(new VectorValue([1.0])),
-              Constant.of(new VectorValue([2.0, 3.0]))
+              constant(new VectorValue([1.0])),
+              constant(new VectorValue([2.0, 3.0]))
             )
           )
         ).to.be.undefined;
@@ -4327,8 +3999,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             cosineDistance(
-              Constant.of(new VectorValue([1.0, 2.0])),
-              Constant.of([3.0, 4.0])
+              constant(new VectorValue([1.0, 2.0])),
+              constantArray([3.0, 4.0])
             )
           )
         ).to.be.undefined;
@@ -4340,8 +4012,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             dotProduct(
-              Constant.of(new VectorValue([2.0, 1.0])),
-              Constant.of(new VectorValue([1.0, 5.0]))
+              constant(new VectorValue([2.0, 1.0])),
+              constant(new VectorValue([1.0, 5.0]))
             )
           )!.doubleValue
         ).to.equal(7.0);
@@ -4351,8 +4023,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             dotProduct(
-              Constant.of(new VectorValue([1.0, 0.0])),
-              Constant.of(new VectorValue([0.0, 5.0]))
+              constant(new VectorValue([1.0, 0.0])),
+              constant(new VectorValue([0.0, 5.0]))
             )
           )?.doubleValue
         ).to.deep.equal(0.0);
@@ -4362,8 +4034,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             dotProduct(
-              Constant.of(new VectorValue([0.0, 0.0])),
-              Constant.of(new VectorValue([5.0, 100.0]))
+              constant(new VectorValue([0.0, 0.0])),
+              constant(new VectorValue([5.0, 100.0]))
             )
           )?.doubleValue
         ).to.equal(0.0);
@@ -4373,8 +4045,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             dotProduct(
-              Constant.of(new VectorValue([])),
-              Constant.of(new VectorValue([]))
+              constant(new VectorValue([])),
+              constant(new VectorValue([]))
             )
           )?.doubleValue
         ).to.equal(0.0);
@@ -4384,8 +4056,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             dotProduct(
-              Constant.of(new VectorValue([1.0])),
-              Constant.of(new VectorValue([2.0, 3.0]))
+              constant(new VectorValue([1.0])),
+              constant(new VectorValue([2.0, 3.0]))
             )
           )
         ).to.be.undefined;
@@ -4395,8 +4067,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             dotProduct(
-              Constant.of(new VectorValue([1.0, 2.0])),
-              Constant.of([3.0, 4.0])
+              constant(new VectorValue([1.0, 2.0])),
+              constantArray([3.0, 4.0])
             )
           )
         ).to.be.undefined;
@@ -4408,8 +4080,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             euclideanDistance(
-              Constant.of(new VectorValue([0.0, 0.0])),
-              Constant.of(new VectorValue([3.0, 4.0]))
+              constant(new VectorValue([0.0, 0.0])),
+              constant(new VectorValue([3.0, 4.0]))
             )
           )?.doubleValue
         ).to.equal(5.0);
@@ -4419,8 +4091,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             euclideanDistance(
-              Constant.of(new VectorValue([0.0, 0.0])),
-              Constant.of(new VectorValue([0.0, 0.0]))
+              constant(new VectorValue([0.0, 0.0])),
+              constant(new VectorValue([0.0, 0.0]))
             )
           )?.doubleValue
         ).to.equal(0.0);
@@ -4430,8 +4102,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             euclideanDistance(
-              Constant.of(new VectorValue([])),
-              Constant.of(new VectorValue([]))
+              constant(new VectorValue([])),
+              constant(new VectorValue([]))
             )
           )?.doubleValue
         ).to.equal(0.0);
@@ -4441,8 +4113,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             euclideanDistance(
-              Constant.of(new VectorValue([1.0])),
-              Constant.of(new VectorValue([2.0, 3.0]))
+              constant(new VectorValue([1.0])),
+              constant(new VectorValue([2.0, 3.0]))
             )
           )
         ).to.be.undefined;
@@ -4452,8 +4124,8 @@ describe('Expressions', () => {
         expect(
           evaluate(
             euclideanDistance(
-              Constant.of(new VectorValue([1.0, 2.0])),
-              Constant.of([3.0, 4.0])
+              constant(new VectorValue([1.0, 2.0])),
+              constantArray([3.0, 4.0])
             )
           )
         ).to.be.undefined;
@@ -4463,29 +4135,28 @@ describe('Expressions', () => {
     describe('vectorLength', () => {
       it('length', () => {
         expectEqual(
-          evaluate(vectorLength(Constant.of(new VectorValue([0.0, 1.0])))),
-          Constant.of(2)
+          evaluate(vectorLength(constant(new VectorValue([0.0, 1.0])))),
+          constant(2)
         );
       });
 
       it('emptyVector', () => {
         expectEqual(
-          evaluate(vectorLength(Constant.of(new VectorValue([])))),
-          Constant.of(0)
+          evaluate(vectorLength(constant(new VectorValue([])))),
+          constant(0)
         );
       });
 
       it('zeroVector', () => {
         expectEqual(
-          evaluate(vectorLength(Constant.of(new VectorValue([0.0])))),
-          Constant.of(1)
+          evaluate(vectorLength(constant(new VectorValue([0.0])))),
+          constant(1)
         );
       });
 
       it('notVectorType_returnsError', () => {
-        expect(evaluate(vectorLength(Constant.of([1])))).to.be.undefined;
-        expect(evaluate(vectorLength(Constant.of('notAnArray')))).to.be
-          .undefined;
+        expect(evaluate(vectorLength(constantArray([1])))).to.be.undefined;
+        expect(evaluate(vectorLength(constant('notAnArray')))).to.be.undefined;
       });
     }); // end describe('vectorLength')
   }); // end describe('Vector Functions')

@@ -20,10 +20,7 @@ import {
   Ordering,
   Selectable
 } from '../lite-api/expressions';
-import {
-  isReadableUserData,
-  ReadableUserData
-} from '../lite-api/pipeline';
+import { isReadableUserData, ReadableUserData } from '../lite-api/pipeline';
 
 /**
  * Base-class implementation
