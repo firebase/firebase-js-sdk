@@ -246,7 +246,10 @@ export enum Modality {
  * @public
  */
 export enum InferenceMode {
+  // Specifies the SDK should use on-device if possible, or fall back to on-cloud.
   PREFER_ON_DEVICE = 'PREFER_ON_DEVICE',
+  // Specifies the SDK must use on-device or throw.
   ONLY_ON_DEVICE = 'ONLY_ON_DEVICE',
+  // Specifies the SDK must use on-cloud.
   ONLY_ON_CLOUD = 'ONLY_ON_CLOUD'
 }
