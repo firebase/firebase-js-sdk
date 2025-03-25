@@ -18,11 +18,13 @@
 import {
   JsonProtoSerializer,
   toName,
+  toQueryTarget,
   toTimestamp
 } from '../../src/remote/serializer';
 import { encoder } from '../../test/unit/util/bundle_data';
 import { Firestore } from '../api/database';
 import { DatabaseId } from '../core/database_info';
+import { Query, queryToTarget } from '../core/query';
 import { DocumentData } from '../lite-api/reference';
 import { Timestamp } from '../lite-api/timestamp';
 import {
@@ -103,7 +105,10 @@ export class BundleBuilder {
     };
   }
 
-  addBundleDocument(docBundleData: DocumentBundleData): void {
+  addBundleDocument(
+    docBundleData: DocumentBundleData,
+    queryName?: string
+  ): void {
     const originalDocument = this.documents.get(docBundleData.documentPath);
     const originalQueries = originalDocument?.metadata.queries;
 
@@ -127,32 +132,32 @@ export class BundleBuilder {
     }
 
     // Update `queries` to include both original and `queryName`.
-    const newDocument = this.documents.get(docBundleData.documentPath)!;
-    newDocument.metadata.queries = originalQueries || [];
-    if (docBundleData.queryName) {
-      newDocument.metadata.queries!.push(docBundleData.queryName);
+    if (queryName) {
+      const newDocument = this.documents.get(docBundleData.documentPath)!;
+      newDocument.metadata.queries = originalQueries || [];
+      if (queryName) {
+        newDocument.metadata.queries!.push(queryName);
+      }
     }
     if (readTime && readTime > this.latestReadTime) {
       this.latestReadTime = readTime;
     }
   }
 
-  /*private addNamedQuery(name: string, querySnap: QuerySnapshot): void {
+  addBundleQuery(query: Query, docBundleDataArray: DocumentBundleData[]): void {
+    const queryTarget = toQueryTarget(this.serializer, queryToTarget(query));
+    const name = queryTarget.parent.canonicalString();
+
     if (this.namedQueries.has(name)) {
       throw new Error(`Query name conflict: ${name} has already been added.`);
     }
-    const queryTarget = toQueryTarget(
-      this.serializer,
-      queryToTarget(querySnap.query._query)
-    );
 
     let latestReadTime = new Timestamp(0, 0);
-    for (const snap of querySnap.docs) {
-      const readTime = snap.readTime;
-      if (readTime && readTime > latestReadTime) {
-        latestReadTime = readTime;
+    for (const docBundleData of docBundleDataArray) {
+      this.addBundleDocument(docBundleData, name);
+      if (docBundleData.readTime && docBundleData.readTime > latestReadTime) {
+        latestReadTime = docBundleData.readTime;
       }
-      this.addBundledDocument(snap, name);
     }
 
     const bundledQuery = {
@@ -166,7 +171,7 @@ export class BundleBuilder {
       bundledQuery,
       readTime: toTimestamp(this.serializer, latestReadTime)
     });
-  } */
+  }
 
   /**
    * Converts a IBundleElement to a Buffer whose content is the length prefixed JSON representation
@@ -234,7 +239,6 @@ export interface DocumentBundleData {
   readonly createdTime: Timestamp;
   readonly readTime?: Timestamp;
   readonly versionTime: Timestamp;
-  readonly queryName?: string;
 }
 
 /**

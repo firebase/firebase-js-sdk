@@ -38,6 +38,7 @@ import { DocumentKey } from '../model/document_key';
 import { debugAssert, fail } from '../util/assert';
 import { BundleBuilder, DocumentBundleData } from '../util/bundle_builder_impl';
 import { Code, FirestoreError } from '../util/error';
+import { AutoId } from '../util/misc';
 
 import { Firestore } from './database';
 import { SnapshotListenOptions } from './reference_impl';
@@ -507,13 +508,23 @@ export class DocumentSnapshot<
       return { bundle: '' };
     }
 
-    const builder: BundleBuilder = new BundleBuilder(this._firestore, 'abc123');
+    const builder: BundleBuilder = new BundleBuilder(
+      this._firestore,
+      AutoId.newId()
+    );
     const documentData = this._userDataWriter.convertObjectMap(
       this._document.data.value.mapValue.fields,
       'previous'
     );
 
-    builder.addBundleDocument(DocumentToDocumentBundleData(this._firestore, this.ref.path, documentData, this._document));
+    builder.addBundleDocument(
+      DocumentToDocumentBundleData(
+        this._firestore,
+        this.ref.path,
+        documentData,
+        this._document
+      )
+    );
     return {
       bundle: builder.build()
     };
@@ -659,7 +670,7 @@ export class QuerySnapshot<
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'To include metadata changes with your document changes, you must ' +
-        'also pass { includeMetadataChanges:true } to onSnapshot().'
+          'also pass { includeMetadataChanges:true } to onSnapshot().'
       );
     }
 
@@ -672,6 +683,35 @@ export class QuerySnapshot<
     }
 
     return this._cachedChanges;
+  }
+
+  toJSON(): object {
+    const builder: BundleBuilder = new BundleBuilder(
+      this._firestore,
+      AutoId.newId()
+    );
+    const docBundleDataArray: DocumentBundleData[] = [];
+    const docArray = this.docs;
+    docArray.forEach(doc => {
+      if (doc._document === null) {
+        return;
+      }
+      const documentData = this._userDataWriter.convertObjectMap(
+        doc._document.data.value.mapValue.fields,
+        'previous'
+      );
+      docBundleDataArray.push(
+        DocumentToDocumentBundleData(
+          this._firestore,
+          doc.ref.path,
+          documentData,
+          doc._document
+        )
+      );
+    });
+
+    builder.addBundleQuery(this.query._query, docBundleDataArray);
+    return { bundle: builder.build() };
   }
 }
 
@@ -695,10 +735,10 @@ export function changesFromSnapshot<
       );
       debugAssert(
         !lastDoc ||
-        newQueryComparator(querySnapshot._snapshot.query)(
-          lastDoc,
-          change.doc
-        ) < 0,
+          newQueryComparator(querySnapshot._snapshot.query)(
+            lastDoc,
+            change.doc
+          ) < 0,
         'Got added events in wrong order'
       );
       const doc = new QueryDocumentSnapshot<AppModelType, DbModelType>(
@@ -813,7 +853,12 @@ export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(
   return false;
 }
 
-function DocumentToDocumentBundleData(firestore: Firestore, path: string, documentData: DocumentData, document: Document): DocumentBundleData {
+function DocumentToDocumentBundleData(
+  firestore: Firestore,
+  path: string,
+  documentData: DocumentData,
+  document: Document
+): DocumentBundleData {
   return {
     documentData,
     documentKey: document.mutableCopy().key,

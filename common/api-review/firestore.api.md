@@ -616,6 +616,8 @@ export class QuerySnapshot<AppModelType = DocumentData, DbModelType extends Docu
     readonly metadata: SnapshotMetadata;
     readonly query: Query<AppModelType, DbModelType>;
     get size(): number;
+    // (undocumented)
+    toJSON(): object;
 }
 
 // @public
