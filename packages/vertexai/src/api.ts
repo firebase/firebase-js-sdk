@@ -30,6 +30,7 @@ import {
 } from './types';
 import { VertexAIError } from './errors';
 import { VertexAIModel, GenerativeModel, ImagenModel } from './models';
+import { ChromeAdapter } from './methods/chrome-adapter';
 
 export { ChatSession } from './methods/chat-session';
 export * from './requests/schema-builder';
@@ -91,7 +92,15 @@ export function getGenerativeModel(
       `Must provide a model name. Example: getGenerativeModel({ model: 'my-model-name' })`
     );
   }
-  return new GenerativeModel(vertexAI, inCloudParams, requestOptions);
+  return new GenerativeModel(
+    vertexAI,
+    inCloudParams,
+    new ChromeAdapter(
+      hybridParams.mode,
+      hybridParams.onDeviceParams
+    ),
+    requestOptions
+  );
 }
 
 /**
