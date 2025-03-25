@@ -1,5 +1,13 @@
 # @firebase/vertexai
 
+## 1.2.0
+
+### Minor Changes
+
+- [`25985ac`](https://github.com/firebase/firebase-js-sdk/commit/25985ac3c3a797160e2dc3a2a28aba9f63fe6dfd) [#8827](https://github.com/firebase/firebase-js-sdk/pull/8827) - Add `systemInstruction`, `tools`, and `generationConfig` to `CountTokensRequest`.
+
+- [`058afa2`](https://github.com/firebase/firebase-js-sdk/commit/058afa280c8e9a72e27f3b1fbdb2921012dc65d3) [#8741](https://github.com/firebase/firebase-js-sdk/pull/8741) - Added missing `BlockReason` and `FinishReason` enum values.
+
 ## 1.1.0
 
 ### Minor Changes
