@@ -138,7 +138,6 @@ export class CookiePersistence implements PersistenceInternal {
  * An implementation of {@link Persistence} of type 'COOKIE', for use in applications leveraging
  * server-side rendering and middleware.
  *
- * @public
  * @beta
  */
 export const cookiePersistence: Persistence = CookiePersistence;
