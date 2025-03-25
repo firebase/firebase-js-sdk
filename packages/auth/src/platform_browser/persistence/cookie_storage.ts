@@ -33,16 +33,15 @@ const getDocumentCookie = (name: string): string | null => {
   return document.cookie.match(matcher)?.[1] ?? null;
 };
 
+const getCookieName = (key:string): string => key;
+
 export class CookiePersistence implements PersistenceInternal {
   static type: 'COOKIE' = 'COOKIE';
   readonly type = PersistenceType.COOKIE;
-  cookieStoreListeners: Map<
-    StorageEventListener,
-    (event: CookieChangeEvent) => void
-  > = new Map();
-  cookiePollingIntervals: Map<StorageEventListener, NodeJS.Timeout> = new Map();
+  listenerUnsubscribes: Map<StorageEventListener, () => void> = new Map();
 
   async _isAvailable(): Promise<boolean> {
+    // TODO isSecureContext
     if (typeof navigator === 'undefined' || typeof document === 'undefined') {
       return false;
     }
@@ -57,27 +56,28 @@ export class CookiePersistence implements PersistenceInternal {
     if (!this._isAvailable()) {
       return null;
     }
+    const name = getCookieName(key);
     if (window.cookieStore) {
-      const cookie = await window.cookieStore.get(key);
+      const cookie = await window.cookieStore.get(name);
       return cookie?.value as T;
-    } else {
-      return getDocumentCookie(key) as T;
     }
+    return getDocumentCookie(name) as T;
   }
 
   async _remove(key: string): Promise<void> {
     if (!this._isAvailable()) {
       return;
     }
+    const name = getCookieName(key);
     if (window.cookieStore) {
-      const cookie = await window.cookieStore.get(key);
+      const cookie = await window.cookieStore.get(name);
       if (!cookie) {
         return;
       }
       await window.cookieStore.delete(cookie);
     } else {
       // TODO how do I get the cookie properties?
-      document.cookie = `${key}=;Max-Age=34560000;Partitioned;Secure;SameSite=Strict;Path=/`;
+      document.cookie = `${name}=;Max-Age=34560000;Partitioned;Secure;SameSite=Strict;Path=/`;
     }
     await fetch(`/__cookies__`, { method: 'DELETE' }).catch(() => undefined);
   }
@@ -86,52 +86,42 @@ export class CookiePersistence implements PersistenceInternal {
     if (!this._isAvailable()) {
       return;
     }
+    const name = getCookieName(key);
     if (window.cookieStore) {
-      const cb = (event: CookieChangeEvent): void => {
-        const changedCookie = event.changed.find(change => change.name === key);
+      const cb = ((event: CookieChangeEvent): void => {
+        const changedCookie = event.changed.find(change => change.name === name);
         if (changedCookie) {
           listener(changedCookie.value as PersistenceValue);
         }
-        const deletedCookie = event.deleted.find(change => change.name === key);
+        const deletedCookie = event.deleted.find(change => change.name === name);
         if (deletedCookie) {
           listener(null);
         }
-      };
-      this.cookieStoreListeners.set(listener, cb);
-      window.cookieStore.addEventListener('change', cb as EventListener);
-    } else {
-      let lastValue = getDocumentCookie(key);
-      const interval = setInterval(() => {
-        const currentValue = getDocumentCookie(key);
-        if (currentValue !== lastValue) {
-          listener(currentValue as PersistenceValue | null);
-          lastValue = currentValue;
-        }
-      }, POLLING_INTERVAL_MS);
-      this.cookiePollingIntervals.set(listener, interval);
+      }) as EventListener;
+      const unsubscribe = () => window.cookieStore.removeEventListener('change', cb);
+      this.listenerUnsubscribes.set(listener, unsubscribe);
+      return window.cookieStore.addEventListener('change', cb as EventListener);
     }
+    let lastValue = getDocumentCookie(name);
+    const interval = setInterval(() => {
+      const currentValue = getDocumentCookie(name);
+      if (currentValue !== lastValue) {
+        listener(currentValue as PersistenceValue | null);
+        lastValue = currentValue;
+      }
+    }, POLLING_INTERVAL_MS);
+    const unsubscribe = () => clearInterval(interval);
+    this.listenerUnsubscribes.set(listener, unsubscribe);
   }
 
   // TODO can we tidy this logic up into a single unsubscribe function? () => void;
   _removeListener(_key: string, listener: StorageEventListener): void {
-    if (!this._isAvailable()) {
+    const unsubscribe = this.listenerUnsubscribes.get(listener);
+    if (!unsubscribe) {
       return;
     }
-    if (window.cookieStore) {
-      const cb = this.cookieStoreListeners.get(listener);
-      if (!cb) {
-        return;
-      }
-      window.cookieStore.removeEventListener('change', cb as EventListener);
-      this.cookieStoreListeners.delete(listener);
-    } else {
-      const interval = this.cookiePollingIntervals.get(listener);
-      if (!interval) {
-        return;
-      }
-      clearInterval(interval);
-      this.cookiePollingIntervals.delete(listener);
-    }
+    unsubscribe();
+    this.listenerUnsubscribes.delete(listener);
   }
 }
 
