@@ -802,6 +802,7 @@ export const enum VertexAIErrorCode {
     INVALID_CONTENT = "invalid-content",
     INVALID_SCHEMA = "invalid-schema",
     NO_API_KEY = "no-api-key",
+    NO_APP_ID = "no-app-id",
     NO_MODEL = "no-model",
     NO_PROJECT_ID = "no-project-id",
     PARSE_FAILED = "parse-failed",
