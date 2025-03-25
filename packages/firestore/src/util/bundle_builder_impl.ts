@@ -15,26 +15,22 @@
  * limitations under the License.
  */
 
-import { queryToTarget } from '../../src/core/query';
 import {
   JsonProtoSerializer,
   toName,
-  toQueryTarget,
   toTimestamp
 } from '../../src/remote/serializer';
 import { encoder } from '../../test/unit/util/bundle_data';
 import { Firestore } from '../api/database';
-import { ExpUserDataWriter } from '../api/reference_impl';
 import { DatabaseId } from '../core/database_info';
-import { DocumentSnapshot, QuerySnapshot } from '../lite-api/snapshot';
+import { DocumentData } from '../lite-api/reference';
 import { Timestamp } from '../lite-api/timestamp';
 import {
   parseObject,
   UserDataReader,
   UserDataSource
 } from '../lite-api/user_data_reader';
-import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
-import { MutableDocument } from '../model/document';
+import { DocumentKey } from '../model/document_key';
 import {
   BundledDocumentMetadata as ProtoBundledDocumentMetadata,
   BundleElement as ProtoBundleElement,
@@ -66,7 +62,6 @@ export class BundleBuilder {
 
   private readonly serializer: JsonProtoSerializer;
   private readonly userDataReader: UserDataReader;
-  private readonly userDataWriter: AbstractUserDataWriter;
 
   constructor(private firestore: Firestore, readonly bundleId: string) {
     this.databaseId = firestore._databaseId;
@@ -78,7 +73,6 @@ export class BundleBuilder {
       /*useProto3Json=*/ true
     );
 
-    this.userDataWriter = new ExpUserDataWriter(firestore);
     this.userDataReader = new UserDataReader(
       this.databaseId,
       true,
@@ -86,125 +80,64 @@ export class BundleBuilder {
     );
   }
 
-  /**
-   * Adds a Firestore document snapshot or query snapshot to the bundle.
-   * Both the documents data and the query read time will be included in the bundle.
-   *
-   * @param {DocumentSnapshot | string} documentOrName A document snapshot to add or a name of a query.
-   * @param {Query=} querySnapshot A query snapshot to add to the bundle, if provided.
-   * @returns {BundleBuilder} This instance.
-   *
-   * @example
-   * ```
-   * const bundle = firestore.bundle('data-bundle');
-   * const docSnapshot = await firestore.doc('abc/123').get();
-   * const querySnapshot = await firestore.collection('coll').get();
-   *
-   * const bundleBuffer = bundle.add(docSnapshot) // Add a document
-   *                            .add('coll-query', querySnapshot) // Add a named query.
-   *                            .build()
-   * // Save `bundleBuffer` to CDN or stream it to clients.
-   * ```
-   */
-  add(
-    documentOrName: DocumentSnapshot | string,
-    querySnapshot?: QuerySnapshot
-  ): BundleBuilder {
-    if (arguments.length < 1 || arguments.length > 2) {
-      throw new Error(
-        'Function BundleBuilder.add() requires 1 or 2 arguments.'
-      );
-    }
-    if (arguments.length === 1) {
-      validateDocumentSnapshot('documentOrName', documentOrName);
-      this.addBundledDocument(documentOrName as DocumentSnapshot);
-    } else {
-      validateString('documentOrName', documentOrName);
-      validateQuerySnapshot('querySnapshot', querySnapshot);
-      this.addNamedQuery(documentOrName as string, querySnapshot!);
-    }
-    return this;
-  }
-
-  toBundleDocument(document: MutableDocument): ProtoDocument {
+  toBundleDocument(docBundleData: DocumentBundleData): ProtoDocument {
     // TODO handle documents that have mutations
     debugAssert(
-      !document.hasLocalMutations,
+      !docBundleData.documentData.hasLocalMutations,
       "Can't serialize documents with mutations."
     );
 
-    // Convert document fields proto to DocumentData and then back
-    // to Proto3 JSON objects. This is the same approach used in
-    // bundling in the nodejs-firestore SDK. It may not be the most
-    // performant approach.
-    const documentData = this.userDataWriter.convertObjectMap(
-      document.data.value.mapValue.fields,
-      'previous'
-    );
     // a parse context is typically used for validating and parsing user data, but in this
     // case we are using it internally to convert DocumentData to Proto3 JSON
     const context = this.userDataReader.createContext(
       UserDataSource.ArrayArgument,
       'internal toBundledDocument'
     );
-    const proto3Fields = parseObject(documentData, context);
+    const proto3Fields = parseObject(docBundleData.documentData, context);
 
     return {
-      name: toName(this.serializer, document.key),
+      name: toName(this.serializer, docBundleData.documentKey),
       fields: proto3Fields.mapValue.fields,
-      updateTime: toTimestamp(this.serializer, document.version.toTimestamp()),
-      createTime: toTimestamp(
-        this.serializer,
-        document.createTime.toTimestamp()
-      )
+      updateTime: toTimestamp(this.serializer, docBundleData.versionTime),
+      createTime: toTimestamp(this.serializer, docBundleData.createdTime)
     };
   }
 
-  private addBundledDocument(snap: DocumentSnapshot, queryName?: string): void {
-    if (
-      !snap._document ||
-      !snap._document.isValidDocument() ||
-      !snap._document.isFoundDocument()
-    ) {
-      return;
-    }
-    const originalDocument = this.documents.get(snap.ref.path);
+  addBundleDocument(docBundleData: DocumentBundleData): void {
+    const originalDocument = this.documents.get(docBundleData.documentPath);
     const originalQueries = originalDocument?.metadata.queries;
-    const mutableCopy = snap._document.mutableCopy();
 
+    const readTime = docBundleData.readTime;
     // Update with document built from `snap` because it is newer.
-    const snapReadTime = snap.readTime;
     if (
       !originalDocument ||
-      (!snapReadTime && !originalDocument.metadata.readTime) ||
-      (snapReadTime && originalDocument.metadata.readTime! < snapReadTime)
+      (!readTime && !originalDocument.metadata.readTime) ||
+      (readTime && originalDocument.metadata.readTime! < readTime)
     ) {
-      this.documents.set(snap.ref.path, {
-        document: this.toBundleDocument(mutableCopy),
+      this.documents.set(docBundleData.documentPath, {
+        document: this.toBundleDocument(docBundleData),
         metadata: {
-          name: toName(this.serializer, mutableCopy.key),
-          readTime: !!snapReadTime
-            ? toTimestamp(this.serializer, snapReadTime)
+          name: toName(this.serializer, docBundleData.documentKey),
+          readTime: !!readTime
+            ? toTimestamp(this.serializer, readTime)
             : undefined,
-          exists: snap.exists()
+          exists: docBundleData.documentExists
         }
       });
     }
 
     // Update `queries` to include both original and `queryName`.
-    const newDocument = this.documents.get(snap.ref.path)!;
+    const newDocument = this.documents.get(docBundleData.documentPath)!;
     newDocument.metadata.queries = originalQueries || [];
-    if (queryName) {
-      newDocument.metadata.queries!.push(queryName);
+    if (docBundleData.queryName) {
+      newDocument.metadata.queries!.push(docBundleData.queryName);
     }
-
-    if (snapReadTime && snapReadTime > this.latestReadTime) {
-      this.latestReadTime = snapReadTime;
+    if (readTime && readTime > this.latestReadTime) {
+      this.latestReadTime = readTime;
     }
   }
 
-  // TODO: remove this since we're not planning to serialize named queries.
-  private addNamedQuery(name: string, querySnap: QuerySnapshot): void {
+  /*private addNamedQuery(name: string, querySnap: QuerySnapshot): void {
     if (this.namedQueries.has(name)) {
       throw new Error(`Query name conflict: ${name} has already been added.`);
     }
@@ -233,7 +166,7 @@ export class BundleBuilder {
       bundledQuery,
       readTime: toTimestamp(this.serializer, latestReadTime)
     });
-  }
+  } */
 
   /**
    * Converts a IBundleElement to a Buffer whose content is the length prefixed JSON representation
@@ -252,7 +185,7 @@ export class BundleBuilder {
     return `${l}${str}`;
   }
 
-  build(): Uint8Array {
+  build(): string {
     let bundleString = '';
 
     for (const namedQuery of this.namedQueries.values()) {
@@ -282,11 +215,26 @@ export class BundleBuilder {
     // Prepends the metadata element to the bundleBuffer: `bundleBuffer` is the second argument to `Buffer.concat`.
     bundleString = this.lengthPrefixedString({ metadata }) + bundleString;
 
-    // TODO: it's not ideal to have to re-encode all of these strings multiple times
-    //       the implementation in nodejs-firestore concatenates Buffers instead of
-    //       concatenating strings.
-    return encoder.encode(bundleString);
+    return bundleString;
   }
+}
+
+/**
+ * Interface for an object that contains data required to bundle a DocumentSnapshot.
+ * Accessing the methods of DocumentSnapshot directly to retreivew this data in this
+ * implementation would create a circular dependency.
+ *
+ * @internal
+ */
+export interface DocumentBundleData {
+  readonly documentData: DocumentData;
+  readonly documentKey: DocumentKey;
+  readonly documentPath: string;
+  readonly documentExists: boolean;
+  readonly createdTime: Timestamp;
+  readonly readTime?: Timestamp;
+  readonly versionTime: Timestamp;
+  readonly queryName?: string;
 }
 
 /**
@@ -299,34 +247,6 @@ class BundledDocument {
     readonly metadata: ProtoBundledDocumentMetadata,
     readonly document?: Document
   ) {}
-}
-
-/**
- * Validates that 'value' is DocumentSnapshot.
- *
- * @private
- * @internal
- * @param arg The argument name or argument index (for varargs methods).
- * @param value The input to validate.
- */
-function validateDocumentSnapshot(arg: string | number, value: unknown): void {
-  if (!(value instanceof DocumentSnapshot)) {
-    throw new Error(invalidArgumentMessage(arg, 'DocumentSnapshot'));
-  }
-}
-
-/**
- * Validates that 'value' is QuerySnapshot.
- *
- * @private
- * @internal
- * @param arg The argument name or argument index (for varargs methods).
- * @param value The input to validate.
- */
-function validateQuerySnapshot(arg: string | number, value: unknown): void {
-  if (!(value instanceof QuerySnapshot)) {
-    throw new Error(invalidArgumentMessage(arg, 'QuerySnapshot'));
-  }
 }
 
 /**

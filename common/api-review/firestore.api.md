@@ -182,6 +182,8 @@ export class DocumentSnapshot<AppModelType = DocumentData, DbModelType extends D
     // (undocumented)
     get readTime(): Timestamp;
     get ref(): DocumentReference<AppModelType, DbModelType>;
+    // (undocumented)
+    toJSON(): object;
 }
 
 export { EmulatorMockTokenOptions }

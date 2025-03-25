@@ -36,6 +36,7 @@ import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { debugAssert, fail } from '../util/assert';
+import { BundleBuilder, DocumentBundleData } from '../util/bundle_builder_impl';
 import { Code, FirestoreError } from '../util/error';
 
 import { Firestore } from './database';
@@ -496,6 +497,27 @@ export class DocumentSnapshot<
     }
     return undefined;
   }
+
+  toJSON(): object {
+    if (
+      !this._document ||
+      !this._document.isValidDocument() ||
+      !this._document.isFoundDocument()
+    ) {
+      return { bundle: '' };
+    }
+
+    const builder: BundleBuilder = new BundleBuilder(this._firestore, 'abc123');
+    const documentData = this._userDataWriter.convertObjectMap(
+      this._document.data.value.mapValue.fields,
+      'previous'
+    );
+
+    builder.addBundleDocument(DocumentToDocumentBundleData(this._firestore, this.ref.path, documentData, this._document));
+    return {
+      bundle: builder.build()
+    };
+  }
 }
 
 /**
@@ -637,7 +659,7 @@ export class QuerySnapshot<
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'To include metadata changes with your document changes, you must ' +
-          'also pass { includeMetadataChanges:true } to onSnapshot().'
+        'also pass { includeMetadataChanges:true } to onSnapshot().'
       );
     }
 
@@ -673,10 +695,10 @@ export function changesFromSnapshot<
       );
       debugAssert(
         !lastDoc ||
-          newQueryComparator(querySnapshot._snapshot.query)(
-            lastDoc,
-            change.doc
-          ) < 0,
+        newQueryComparator(querySnapshot._snapshot.query)(
+          lastDoc,
+          change.doc
+        ) < 0,
         'Got added events in wrong order'
       );
       const doc = new QueryDocumentSnapshot<AppModelType, DbModelType>(
@@ -789,4 +811,16 @@ export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(
   }
 
   return false;
+}
+
+function DocumentToDocumentBundleData(firestore: Firestore, path: string, documentData: DocumentData, document: Document): DocumentBundleData {
+  return {
+    documentData,
+    documentKey: document.mutableCopy().key,
+    documentPath: path,
+    documentExists: true,
+    createdTime: document.createTime.toTimestamp(),
+    readTime: document.readTime.toTimestamp(),
+    versionTime: document.version.toTimestamp()
+  };
 }
