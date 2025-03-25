@@ -74,13 +74,13 @@ export const enum Endpoint {
   REVOKE_TOKEN = '/v2/accounts:revokeToken'
 }
 
-const CookieAuthProxiedEndpoints: Array<string> = [
+const CookieAuthProxiedEndpoints: string[] = [
   Endpoint.SIGN_IN_WITH_CUSTOM_TOKEN,
   Endpoint.SIGN_IN_WITH_EMAIL_LINK,
   Endpoint.SIGN_IN_WITH_IDP,
   Endpoint.SIGN_IN_WITH_PASSWORD,
   Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
-  Endpoint.TOKEN,
+  Endpoint.TOKEN
 ];
 
 export const enum RecaptchaClientType {
@@ -281,7 +281,7 @@ export function _getFinalTarget(
     : `${auth.config.apiScheme}://${base}`;
 
   // TODO get the exchange URL from the persistence method
-  //      don't use startsWith v1/accounts...
+  //      this solves the window test
   if (
     authInternal._getPersistence() === PersistenceType.COOKIE &&
     CookieAuthProxiedEndpoints.includes(path)

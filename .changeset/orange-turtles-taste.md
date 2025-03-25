@@ -1,4 +1,5 @@
 ---
+'firebase': minor
 '@firebase/auth': minor
 ---
 
