@@ -14,7 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ImagenModelParams, ModelParams, VertexAIErrorCode } from './types';
+import {
+  ImagenModelParams,
+  ModelParams,
+  VertexAIErrorCode
+} from './types';
 import { VertexAIError } from './errors';
 import { ImagenModel, getGenerativeModel, getImagenModel } from './api';
 import { expect } from 'chai';
