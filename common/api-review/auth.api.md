@@ -296,7 +296,7 @@ export function connectAuthEmulator(auth: Auth, url: string, options?: {
     disableWarnings: boolean;
 }): void;
 
-// @public
+// @beta
 export const cookiePersistence: Persistence;
 
 // @public
