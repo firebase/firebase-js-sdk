@@ -27,13 +27,18 @@ import {
   StorageEventListener
 } from '../../core/persistence';
 
-const getDocumentCookie = (name: string): string | null => {
+function getDocumentCookie(name: string): string | null {
   const escapedName = name.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&');
   const matcher = RegExp(`${escapedName}=([^;]+)`);
   return document.cookie.match(matcher)?.[1] ?? null;
-};
+}
 
-const getCookieName = (key:string): string => key;
+function getCookieName(key: string): string {
+  // TODO at least remove apikey from the cookie name
+  //      good to prefix with __Host- or __Secure- too
+  //      we may want to produce a public API to be able to get the idToken cookie name
+  return key;
+}
 
 export class CookiePersistence implements PersistenceInternal {
   static type: 'COOKIE' = 'COOKIE';
@@ -68,6 +73,7 @@ export class CookiePersistence implements PersistenceInternal {
     if (!this._isAvailable()) {
       return;
     }
+    // TODO migrate to a third cookie for logout
     const name = getCookieName(key);
     if (window.cookieStore) {
       const cookie = await window.cookieStore.get(name);
@@ -76,7 +82,6 @@ export class CookiePersistence implements PersistenceInternal {
       }
       await window.cookieStore.delete(cookie);
     } else {
-      // TODO how do I get the cookie properties?
       document.cookie = `${name}=;Max-Age=34560000;Partitioned;Secure;SameSite=Strict;Path=/`;
     }
     await fetch(`/__cookies__`, { method: 'DELETE' }).catch(() => undefined);
@@ -89,16 +94,21 @@ export class CookiePersistence implements PersistenceInternal {
     const name = getCookieName(key);
     if (window.cookieStore) {
       const cb = ((event: CookieChangeEvent): void => {
-        const changedCookie = event.changed.find(change => change.name === name);
+        const changedCookie = event.changed.find(
+          change => change.name === name
+        );
         if (changedCookie) {
           listener(changedCookie.value as PersistenceValue);
         }
-        const deletedCookie = event.deleted.find(change => change.name === name);
+        const deletedCookie = event.deleted.find(
+          change => change.name === name
+        );
         if (deletedCookie) {
           listener(null);
         }
       }) as EventListener;
-      const unsubscribe = () => window.cookieStore.removeEventListener('change', cb);
+      const unsubscribe = (): void =>
+        window.cookieStore.removeEventListener('change', cb);
       this.listenerUnsubscribes.set(listener, unsubscribe);
       return window.cookieStore.addEventListener('change', cb as EventListener);
     }
@@ -110,11 +120,10 @@ export class CookiePersistence implements PersistenceInternal {
         lastValue = currentValue;
       }
     }, POLLING_INTERVAL_MS);
-    const unsubscribe = () => clearInterval(interval);
+    const unsubscribe = (): void => clearInterval(interval);
     this.listenerUnsubscribes.set(listener, unsubscribe);
   }
 
-  // TODO can we tidy this logic up into a single unsubscribe function? () => void;
   _removeListener(_key: string, listener: StorageEventListener): void {
     const unsubscribe = this.listenerUnsubscribes.get(listener);
     if (!unsubscribe) {
@@ -126,8 +135,10 @@ export class CookiePersistence implements PersistenceInternal {
 }
 
 /**
- * An implementation of {@link Persistence} of type 'COOKIE'.
+ * An implementation of {@link Persistence} of type 'COOKIE', for use in applications leveraging
+ * server-side rendering and middleware.
  *
  * @public
+ * @beta
  */
 export const cookiePersistence: Persistence = CookiePersistence;

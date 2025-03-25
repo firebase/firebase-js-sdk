@@ -153,6 +153,7 @@ Firebase Authentication
 |  [browserLocalPersistence](./auth.md#browserlocalpersistence) | An implementation of [Persistence](./auth.persistence.md#persistence_interface) of type <code>LOCAL</code> using <code>localStorage</code> for the underlying storage. |
 |  [browserPopupRedirectResolver](./auth.md#browserpopupredirectresolver) | An implementation of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) suitable for browser based applications. |
 |  [browserSessionPersistence](./auth.md#browsersessionpersistence) | An implementation of [Persistence](./auth.persistence.md#persistence_interface) of <code>SESSION</code> using <code>sessionStorage</code> for the underlying storage. |
+|  [cookiePersistence](./auth.md#cookiepersistence) | An implementation of [Persistence](./auth.persistence.md#persistence_interface) of type 'COOKIE', for use in applications leveraging server-side rendering and middleware. |
 |  [cordovaPopupRedirectResolver](./auth.md#cordovapopupredirectresolver) | An implementation of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) suitable for Cordova based applications. |
 |  [debugErrorMap](./auth.md#debugerrormap) | A verbose error map with detailed descriptions for most error codes.<!-- -->See discussion at [AuthErrorMap](./auth.autherrormap.md#autherrormap_interface) |
 |  [FactorId](./auth.md#factorid) | An enum of factors that may be used for multifactor authentication. |
@@ -1990,6 +1991,16 @@ An implementation of [Persistence](./auth.persistence.md#persistence_interface) 
 
 ```typescript
 browserSessionPersistence: Persistence
+```
+
+## cookiePersistence
+
+An implementation of [Persistence](./auth.persistence.md#persistence_interface) of type 'COOKIE', for use in applications leveraging server-side rendering and middleware.
+
+<b>Signature:</b>
+
+```typescript
+cookiePersistence: Persistence
 ```
 
 ## cordovaPopupRedirectResolver

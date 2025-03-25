@@ -22,14 +22,14 @@ export interface Persistence
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [type](./auth.persistence.md#persistencetype) | 'SESSION' \| 'LOCAL' \| 'NONE' | Type of Persistence. - 'SESSION' is used for temporary persistence such as <code>sessionStorage</code>. - 'LOCAL' is used for long term persistence such as <code>localStorage</code> or <code>IndexedDB</code>. - 'NONE' is used for in-memory, or no persistence. |
+|  [type](./auth.persistence.md#persistencetype) | 'SESSION' \| 'LOCAL' \| 'NONE' \| 'COOKIE' | Type of Persistence. - 'SESSION' is used for temporary persistence such as <code>sessionStorage</code>. - 'LOCAL' is used for long term persistence such as <code>localStorage</code> or <code>IndexedDB</code>. - 'NONE' is used for in-memory, or no persistence. - 'COOKIE' is used for cookies, useful for server-side rendering. |
 
 ## Persistence.type
 
-Type of Persistence. - 'SESSION' is used for temporary persistence such as `sessionStorage`<!-- -->. - 'LOCAL' is used for long term persistence such as `localStorage` or `IndexedDB`<!-- -->. - 'NONE' is used for in-memory, or no persistence.
+Type of Persistence. - 'SESSION' is used for temporary persistence such as `sessionStorage`<!-- -->. - 'LOCAL' is used for long term persistence such as `localStorage` or `IndexedDB`<!-- -->. - 'NONE' is used for in-memory, or no persistence. - 'COOKIE' is used for cookies, useful for server-side rendering.
 
 <b>Signature:</b>
 
 ```typescript
-readonly type: 'SESSION' | 'LOCAL' | 'NONE';
+readonly type: 'SESSION' | 'LOCAL' | 'NONE' | 'COOKIE';
 ```
