@@ -74,7 +74,10 @@ export class PersistenceUserManager {
       return null;
     }
     if (typeof blob === 'string') {
-      const response = await getAccountInfo(this.auth, { idToken: blob });
+      const response = await getAccountInfo(this.auth, { idToken: blob }).catch(() => undefined);
+      if (!response) {
+        return null;
+      }
       return UserImpl._fromGetAccountInfoResponse(this.auth, response, blob);
     }
     return UserImpl._fromJSON(this.auth, blob);
@@ -154,7 +157,10 @@ export class PersistenceUserManager {
         if (blob) {
           let user: UserInternal;
           if (typeof blob === 'string') {
-            const response = await getAccountInfo(auth, { idToken: blob });
+            const response = await getAccountInfo(auth, { idToken: blob }).catch(() => undefined);
+            if (!response) {
+              break;
+            }
             user = await UserImpl._fromGetAccountInfoResponse(
               auth,
               response,

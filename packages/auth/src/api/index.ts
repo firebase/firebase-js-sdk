@@ -74,6 +74,15 @@ export const enum Endpoint {
   REVOKE_TOKEN = '/v2/accounts:revokeToken'
 }
 
+const CookieAuthProxiedEndpoints: Array<string> = [
+  Endpoint.SIGN_IN_WITH_CUSTOM_TOKEN,
+  Endpoint.SIGN_IN_WITH_EMAIL_LINK,
+  Endpoint.SIGN_IN_WITH_IDP,
+  Endpoint.SIGN_IN_WITH_PASSWORD,
+  Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+  Endpoint.TOKEN,
+];
+
 export const enum RecaptchaClientType {
   WEB = 'CLIENT_TYPE_WEB',
   ANDROID = 'CLIENT_TYPE_ANDROID',
@@ -266,15 +275,16 @@ export function _getFinalTarget(
 ): string {
   const base = `${host}${path}?${query}`;
 
-  const finalTarget = (auth as AuthInternal).config.emulator
+  const authInternal = auth as AuthInternal;
+  const finalTarget = authInternal.config.emulator
     ? _emulatorUrl(auth.config as ConfigInternal, base)
     : `${auth.config.apiScheme}://${base}`;
 
   // TODO get the exchange URL from the persistence method
   //      don't use startsWith v1/accounts...
   if (
-    (auth as AuthInternal)._getPersistence() === PersistenceType.COOKIE &&
-    (path.startsWith('/v1/accounts:signIn') || path === Endpoint.TOKEN)
+    authInternal._getPersistence() === PersistenceType.COOKIE &&
+    CookieAuthProxiedEndpoints.includes(path)
   ) {
     const params = new URLSearchParams({ finalTarget });
     return `${window.location.origin}/__cookies__?${params.toString()}`;
