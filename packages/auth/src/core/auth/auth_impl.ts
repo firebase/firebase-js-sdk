@@ -524,8 +524,12 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     }
   }
 
-  _getPersistence(): string {
+  _getPersistenceType(): string {
     return this.assertedPersistence.persistence.type;
+  }
+
+  _getPersistence(): PersistenceInternal {
+    return this.assertedPersistence.persistence;
   }
 
   _updateErrorMap(errorMap: AuthErrorMap): void {

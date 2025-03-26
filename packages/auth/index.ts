@@ -43,7 +43,7 @@ export * from './src';
 
 // persistence
 import { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
-import { cookiePersistence } from './src/platform_browser/persistence/cookie_storage';
+import { browserCookiePersistence } from './src/platform_browser/persistence/cookie_storage';
 import { browserSessionPersistence } from './src/platform_browser/persistence/session_storage';
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 
@@ -84,7 +84,7 @@ import { getAuth } from './src/platform_browser';
 
 export {
   browserLocalPersistence,
-  cookiePersistence,
+  browserCookiePersistence,
   browserSessionPersistence,
   indexedDBLocalPersistence,
   PhoneAuthProvider,

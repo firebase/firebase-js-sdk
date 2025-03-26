@@ -150,10 +150,10 @@ Firebase Authentication
 |  --- | --- |
 |  [ActionCodeOperation](./auth.md#actioncodeoperation) | An enumeration of the possible email action types. |
 |  [AuthErrorCodes](./auth.md#autherrorcodes) | A map of potential <code>Auth</code> error codes, for easier comparison with errors thrown by the SDK. |
+|  [browserCookiePersistence](./auth.md#browsercookiepersistence) | <b><i>(Public Preview)</i></b> An implementation of [Persistence](./auth.persistence.md#persistence_interface) of type 'COOKIE', for use on the client-side in applications leveraging hybrid rendering and middleware. \* |
 |  [browserLocalPersistence](./auth.md#browserlocalpersistence) | An implementation of [Persistence](./auth.persistence.md#persistence_interface) of type <code>LOCAL</code> using <code>localStorage</code> for the underlying storage. |
 |  [browserPopupRedirectResolver](./auth.md#browserpopupredirectresolver) | An implementation of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) suitable for browser based applications. |
 |  [browserSessionPersistence](./auth.md#browsersessionpersistence) | An implementation of [Persistence](./auth.persistence.md#persistence_interface) of <code>SESSION</code> using <code>sessionStorage</code> for the underlying storage. |
-|  [cookiePersistence](./auth.md#cookiepersistence) | <b><i>(Public Preview)</i></b> An implementation of [Persistence](./auth.persistence.md#persistence_interface) of type 'COOKIE', for use in applications leveraging server-side rendering and middleware. |
 |  [cordovaPopupRedirectResolver](./auth.md#cordovapopupredirectresolver) | An implementation of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) suitable for Cordova based applications. |
 |  [debugErrorMap](./auth.md#debugerrormap) | A verbose error map with detailed descriptions for most error codes.<!-- -->See discussion at [AuthErrorMap](./auth.autherrormap.md#autherrormap_interface) |
 |  [FactorId](./auth.md#factorid) | An enum of factors that may be used for multifactor authentication. |
@@ -1961,6 +1961,21 @@ AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY: {
 }
 ```
 
+## browserCookiePersistence
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+An implementation of [Persistence](./auth.persistence.md#persistence_interface) of type 'COOKIE', for use on the client-side in applications leveraging hybrid rendering and middleware. \*
+
+This persistence method requires companion middleware to function, such as that provided by  for NextJS.
+
+<b>Signature:</b>
+
+```typescript
+browserCookiePersistence: Persistence
+```
+
 ## browserLocalPersistence
 
 An implementation of [Persistence](./auth.persistence.md#persistence_interface) of type `LOCAL` using `localStorage` for the underlying storage.
@@ -1991,19 +2006,6 @@ An implementation of [Persistence](./auth.persistence.md#persistence_interface) 
 
 ```typescript
 browserSessionPersistence: Persistence
-```
-
-## cookiePersistence
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-An implementation of [Persistence](./auth.persistence.md#persistence_interface) of type 'COOKIE', for use in applications leveraging server-side rendering and middleware.
-
-<b>Signature:</b>
-
-```typescript
-cookiePersistence: Persistence
 ```
 
 ## cordovaPopupRedirectResolver

@@ -258,6 +258,9 @@ export interface AuthSettings {
 // @public
 export function beforeAuthStateChanged(auth: Auth, callback: (user: User | null) => void | Promise<void>, onAbort?: () => void): Unsubscribe;
 
+// @beta
+export const browserCookiePersistence: Persistence;
+
 // @public
 export const browserLocalPersistence: Persistence;
 
@@ -295,9 +298,6 @@ export function confirmPasswordReset(auth: Auth, oobCode: string, newPassword: s
 export function connectAuthEmulator(auth: Auth, url: string, options?: {
     disableWarnings: boolean;
 }): void;
-
-// @beta
-export const cookiePersistence: Persistence;
 
 // @public
 export function createUserWithEmailAndPassword(auth: Auth, email: string, password: string): Promise<UserCredential>;

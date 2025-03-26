@@ -45,6 +45,14 @@ export class CookiePersistence implements PersistenceInternal {
   readonly type = PersistenceType.COOKIE;
   listenerUnsubscribes: Map<StorageEventListener, () => void> = new Map();
 
+  // TODO define hostname in the constructor
+  _getFinalTarget(originalUrl: string): URL|string {
+    if (typeof window === undefined) {
+      return originalUrl;
+    }
+    return new URL(`${window.location.origin}/__cookies__`);
+  }
+
   async _isAvailable(): Promise<boolean> {
     // TODO isSecureContext
     if (typeof navigator === 'undefined' || typeof document === 'undefined') {
@@ -135,9 +143,12 @@ export class CookiePersistence implements PersistenceInternal {
 }
 
 /**
- * An implementation of {@link Persistence} of type 'COOKIE', for use in applications leveraging
- * server-side rendering and middleware.
- *
+ * An implementation of {@link Persistence} of type 'COOKIE', for use on the client-side in
+ * applications leveraging hybrid rendering and middleware.
+ *  *
+ * @remarks This persistence method requires companion middleware to function, such as that provided
+ * by {@link https://firebaseopensource.com/projects/firebaseextended/reactfire/ ReactFire} for
+ * NextJS.
  * @beta
  */
-export const cookiePersistence: Persistence = CookiePersistence;
+export const browserCookiePersistence: Persistence = CookiePersistence;

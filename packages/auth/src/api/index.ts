@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseError, isCloudflareWorker, querystring } from '@firebase/util';
+import { FirebaseError, getModularInstance, isCloudflareWorker, querystring } from '@firebase/util';
 
 import { AuthErrorCode, NamedErrorParams } from '../core/errors';
 import {
@@ -32,6 +32,7 @@ import { IdTokenResponse, TaggedWithTokenResponse } from '../model/id_token';
 import { IdTokenMfaResponse } from './authentication/mfa';
 import { SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
 import { PersistenceType } from '../core/persistence';
+import { CookiePersistence } from '../platform_browser/persistence/cookie_storage';
 
 export const enum HttpMethod {
   POST = 'POST',
@@ -280,14 +281,15 @@ export function _getFinalTarget(
     ? _emulatorUrl(auth.config as ConfigInternal, base)
     : `${auth.config.apiScheme}://${base}`;
 
-  // TODO get the exchange URL from the persistence method
-  //      this solves the window test
+  // Cookie auth works by MiTMing the signIn and token endpoints from the developer's backend,
+  // saving the idToken and refreshToken into cookies, and then redacting the refreshToken
+  // from the response
   if (
-    authInternal._getPersistence() === PersistenceType.COOKIE &&
+    authInternal._getPersistenceType() === PersistenceType.COOKIE &&
     CookieAuthProxiedEndpoints.includes(path)
   ) {
-    const params = new URLSearchParams({ finalTarget });
-    return `${window.location.origin}/__cookies__?${params.toString()}`;
+    const cookiePersistence = authInternal._getPersistence() as CookiePersistence;
+    return cookiePersistence._getFinalTarget(finalTarget).toString();
   }
 
   return finalTarget;
