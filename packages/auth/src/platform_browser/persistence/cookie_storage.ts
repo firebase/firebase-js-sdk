@@ -143,7 +143,7 @@ export class CookiePersistence implements PersistenceInternal {
 }
 
 /**
- * An implementation of {@link Persistence} of type 'COOKIE', for use on the client-side in
+ * An implementation of {@link Persistence} of type `COOKIE`, for use on the client-side in
  * applications leveraging hybrid rendering and middleware.
  * 
  * @remarks This persistence method requires companion middleware to function, such as that provided
