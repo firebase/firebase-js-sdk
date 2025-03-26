@@ -18,16 +18,12 @@
 import { Firestore } from '../lite-api/database';
 import {
   Constant,
-  Field,
   BooleanExpr,
   and,
   or,
   Ordering,
   lt,
   gt,
-  lte,
-  gte,
-  eq,
   field
 } from '../lite-api/expressions';
 import { Pipeline } from '../lite-api/pipeline';
@@ -254,36 +250,35 @@ function whereConditionsFromCursor(
   orderings: Ordering[],
   position: 'before' | 'after'
 ): BooleanExpr {
-  const cursors = bound.position.map(value => Constant._fromProto(value));
+  // The filterFunc is either greater than or less than
   const filterFunc = position === 'before' ? lt : gt;
-  const filterInclusiveFunc = position === 'before' ? lte : gte;
+  const cursors = bound.position.map(value => Constant._fromProto(value));
+  const size = cursors.length;
 
-  const orConditions: BooleanExpr[] = [];
-  for (let i = 1; i <= orderings.length; i++) {
-    const cursorSubset = cursors.slice(0, i);
+  let field = orderings[size-1].expr;
+  let value = cursors[size-1];
 
-    const conditions: BooleanExpr[] = cursorSubset.map((cursor, index) => {
-      if (index < cursorSubset.length - 1) {
-        return eq(orderings[index].expr as Field, cursor);
-      } else if (bound.inclusive && i === orderings.length - 1) {
-        return filterInclusiveFunc(orderings[index].expr as Field, cursor);
-      } else {
-        return filterFunc(orderings[index].expr as Field, cursor);
-      }
-    });
-
-    if (conditions.length === 1) {
-      orConditions.push(conditions[0]);
-    } else {
-      orConditions.push(
-        and(conditions[0], conditions[1], ...conditions.slice(2))
-      );
-    }
+  // Add condition for last bound
+  let condition: BooleanExpr = filterFunc(field, value);
+  if (bound.inclusive) {
+    // When the cursor bound is inclusive, then the last bound
+    // can be equal to the value, otherwise it's not equal
+    condition = or(condition, field.eq(value));
   }
 
-  if (orConditions.length === 1) {
-    return orConditions[0];
-  } else {
-    return or(orConditions[0], orConditions[1], ...orConditions.slice(2));
+  // Iterate backwards over the remaining bounds, adding
+  // a condition for each one
+  for (let i = size - 2; i >= 0; i--) {
+    field = orderings[i].expr;
+    value = cursors[i];
+
+    // For each field in the orderings, the condition is either
+    // a) lt|gt the cursor value,
+    // b) or equal the cursor value and lt|gt the cursor values for other fields
+    condition = or(
+      filterFunc(field, value),
+      and(field.eq(value), condition));
   }
+
+  return condition;
 }
