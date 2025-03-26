@@ -140,7 +140,7 @@
     "rollup": "2.79.2",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-typescript2": "0.36.0",
-    "selenium-webdriver": "4.28.1",
+    "selenium-webdriver": "4.30.0",
     "totp-generator": "0.0.14",
     "typescript": "5.5.4"
   },
