@@ -46,7 +46,7 @@ export class CookiePersistence implements PersistenceInternal {
   listenerUnsubscribes: Map<StorageEventListener, () => void> = new Map();
 
   // TODO define hostname in the constructor
-  _getFinalTarget(originalUrl: string): URL|string {
+  _getFinalTarget(originalUrl: string): URL | string {
     if (typeof window === undefined) {
       return originalUrl;
     }
@@ -145,7 +145,7 @@ export class CookiePersistence implements PersistenceInternal {
 /**
  * An implementation of {@link Persistence} of type `COOKIE`, for use on the client-side in
  * applications leveraging hybrid rendering and middleware.
- * 
+ *
  * @remarks This persistence method requires companion middleware to function, such as that provided
  * by {@link https://firebaseopensource.com/projects/firebaseextended/reactfire/ | ReactFire} for
  * NextJS.

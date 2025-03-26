@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { FirebaseError, getModularInstance, isCloudflareWorker, querystring } from '@firebase/util';
+import {
+  FirebaseError,
+  isCloudflareWorker,
+  querystring
+} from '@firebase/util';
 
 import { AuthErrorCode, NamedErrorParams } from '../core/errors';
 import {
@@ -288,7 +292,8 @@ export function _getFinalTarget(
     authInternal._getPersistenceType() === PersistenceType.COOKIE &&
     CookieAuthProxiedEndpoints.includes(path)
   ) {
-    const cookiePersistence = authInternal._getPersistence() as CookiePersistence;
+    const cookiePersistence =
+      authInternal._getPersistence() as CookiePersistence;
     return cookiePersistence._getFinalTarget(finalTarget).toString();
   }
 
