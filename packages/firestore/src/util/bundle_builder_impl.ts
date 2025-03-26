@@ -43,6 +43,7 @@ import {
   Document as ProtoDocument,
   Document
 } from '../protos/firestore_proto_api';
+import { AutoId } from '../util/misc';
 
 import { debugAssert } from './assert';
 
@@ -82,7 +83,9 @@ export class BundleBuilder {
     );
   }
 
-  toBundleDocument(docBundleData: DocumentBundleData): ProtoDocument {
+  private toBundleDocument(
+    docBundleData: DocumentSnapshotBundleData
+  ): ProtoDocument {
     // TODO handle documents that have mutations
     debugAssert(
       !docBundleData.documentData.hasLocalMutations,
@@ -105,8 +108,16 @@ export class BundleBuilder {
     };
   }
 
+  /**
+   * Adds data from a DocumentSnapshot to the bundle.
+   * @internal
+   * @param docBundleData A DocumentSnapshotBundleData containing information from the
+   * DocumentSnapshot. Note we cannot accept a DocumentSnapshot directly due to a circular
+   * dependency error.
+   * @param queryName The name of the QuerySnapshot if this document is part of a Query.
+   */
   addBundleDocument(
-    docBundleData: DocumentBundleData,
+    docBundleData: DocumentSnapshotBundleData,
     queryName?: string
   ): void {
     const originalDocument = this.documents.get(docBundleData.documentPath);
@@ -130,7 +141,6 @@ export class BundleBuilder {
         }
       });
     }
-
     // Update `queries` to include both original and `queryName`.
     if (queryName) {
       const newDocument = this.documents.get(docBundleData.documentPath)!;
@@ -144,28 +154,33 @@ export class BundleBuilder {
     }
   }
 
-  addBundleQuery(query: Query, docBundleDataArray: DocumentBundleData[]): void {
-    const queryTarget = toQueryTarget(this.serializer, queryToTarget(query));
-    const name = queryTarget.parent.canonicalString();
-
+  /**
+   * Adds data from a QuerySnapshot to the bundle.
+   * @internal
+   * @param docBundleData A QuerySnapshotBundleData containing information from the
+   * QuerySnapshot. Note we cannot accept a QuerySnapshot directly due to a circular
+   * dependency error.
+   */
+  addBundleQuery(queryBundleData: QuerySnapshotBundleData): void {
+    const name = AutoId.newId();
     if (this.namedQueries.has(name)) {
       throw new Error(`Query name conflict: ${name} has already been added.`);
     }
-
     let latestReadTime = new Timestamp(0, 0);
-    for (const docBundleData of docBundleDataArray) {
+    for (const docBundleData of queryBundleData.docBundleDataArray) {
       this.addBundleDocument(docBundleData, name);
       if (docBundleData.readTime && docBundleData.readTime > latestReadTime) {
         latestReadTime = docBundleData.readTime;
       }
     }
-
+    const queryTarget = toQueryTarget(
+      this.serializer,
+      queryToTarget(queryBundleData.query)
+    );
     const bundledQuery = {
-      parent: queryTarget.parent.canonicalString(),
-      structuredQuery: queryTarget.queryTarget.structuredQuery,
-      limitType: null
+      parent: queryBundleData.parent,
+      structuredQuery: queryTarget.queryTarget.structuredQuery
     };
-
     this.namedQueries.set(name, {
       name,
       bundledQuery,
@@ -226,19 +241,26 @@ export class BundleBuilder {
 
 /**
  * Interface for an object that contains data required to bundle a DocumentSnapshot.
- * Accessing the methods of DocumentSnapshot directly to retreivew this data in this
- * implementation would create a circular dependency.
- *
  * @internal
  */
-export interface DocumentBundleData {
-  readonly documentData: DocumentData;
-  readonly documentKey: DocumentKey;
-  readonly documentPath: string;
-  readonly documentExists: boolean;
-  readonly createdTime: Timestamp;
-  readonly readTime?: Timestamp;
-  readonly versionTime: Timestamp;
+export interface DocumentSnapshotBundleData {
+  documentData: DocumentData;
+  documentKey: DocumentKey;
+  documentPath: string;
+  documentExists: boolean;
+  createdTime: Timestamp;
+  readTime?: Timestamp;
+  versionTime: Timestamp;
+}
+
+/**
+ * Interface for an object that contains data required to bundle a QuerySnapshot.
+ * @internal
+ */
+export interface QuerySnapshotBundleData {
+  query: Query;
+  parent: string;
+  docBundleDataArray: DocumentSnapshotBundleData[];
 }
 
 /**
@@ -251,48 +273,4 @@ class BundledDocument {
     readonly metadata: ProtoBundledDocumentMetadata,
     readonly document?: Document
   ) {}
-}
-
-/**
- * Validates that 'value' is a string.
- *
- * @private
- * @internal
- * @param arg The argument name or argument index (for varargs methods).
- * @param value The input to validate.
- * @param options Options that specify whether the string can be omitted.
- */
-export function validateString(arg: string | number, value: unknown): void {
-  if (typeof value !== 'string') {
-    throw new Error(invalidArgumentMessage(arg, 'string'));
-  }
-}
-
-/**
- * Generates an error message to use with invalid arguments.
- *
- * @private
- * @internal
- * @param arg The argument name or argument index (for varargs methods).
- * @param expectedType The expected input type.
- */
-export function invalidArgumentMessage(
-  arg: string | number,
-  expectedType: string
-): string {
-  return `${formatArgumentName(arg)} is not a valid ${expectedType}.`;
-}
-
-/**
- * Creates a descriptive name for the provided argument name or index.
- *
- * @private
- * @internal
- * @param arg The argument name or argument index (for varargs methods).
- * @return Either the argument name or its index description.
- */
-function formatArgumentName(arg: string | number): string {
-  return typeof arg === 'string'
-    ? `Value for argument "${arg}"`
-    : `Element at index ${arg}`;
 }

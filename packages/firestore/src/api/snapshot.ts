@@ -36,7 +36,11 @@ import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { debugAssert, fail } from '../util/assert';
-import { BundleBuilder, DocumentBundleData } from '../util/bundle_builder_impl';
+import {
+  BundleBuilder,
+  DocumentSnapshotBundleData,
+  QuerySnapshotBundleData
+} from '../util/bundle_builder_impl';
 import { Code, FirestoreError } from '../util/error';
 import { AutoId } from '../util/misc';
 
@@ -500,34 +504,26 @@ export class DocumentSnapshot<
   }
 
   toJSON(): object {
+    const document = this._document;
     if (
-      !this._document ||
-      !this._document.isValidDocument() ||
-      !this._document.isFoundDocument()
+      !document ||
+      !document.isValidDocument() ||
+      !document.isFoundDocument()
     ) {
       return { bundle: '' };
     }
-
     const builder: BundleBuilder = new BundleBuilder(
       this._firestore,
       AutoId.newId()
     );
     const documentData = this._userDataWriter.convertObjectMap(
-      this._document.data.value.mapValue.fields,
+      document.data.value.mapValue.fields,
       'previous'
     );
-
     builder.addBundleDocument(
-      DocumentToDocumentBundleData(
-        this._firestore,
-        this.ref.path,
-        documentData,
-        this._document
-      )
+      ToDocumentSnapshotBundleData(this.ref.path, documentData, document)
     );
-    return {
-      bundle: builder.build()
-    };
+    return { bundle: builder.build() };
   }
 }
 
@@ -690,7 +686,10 @@ export class QuerySnapshot<
       this._firestore,
       AutoId.newId()
     );
-    const docBundleDataArray: DocumentBundleData[] = [];
+    const databaseId = this._firestore._databaseId.database;
+    const projectId = this._firestore._databaseId.projectId;
+    const parent = `projects/${projectId}/databases/${databaseId}/documents`;
+    const docBundleDataArray: DocumentSnapshotBundleData[] = [];
     const docArray = this.docs;
     docArray.forEach(doc => {
       if (doc._document === null) {
@@ -701,16 +700,15 @@ export class QuerySnapshot<
         'previous'
       );
       docBundleDataArray.push(
-        DocumentToDocumentBundleData(
-          this._firestore,
-          doc.ref.path,
-          documentData,
-          doc._document
-        )
+        ToDocumentSnapshotBundleData(doc.ref.path, documentData, doc._document)
       );
     });
-
-    builder.addBundleQuery(this.query._query, docBundleDataArray);
+    const bundleData: QuerySnapshotBundleData = {
+      query: this.query._query,
+      parent,
+      docBundleDataArray
+    };
+    builder.addBundleQuery(bundleData);
     return { bundle: builder.build() };
   }
 }
@@ -853,12 +851,12 @@ export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(
   return false;
 }
 
-function DocumentToDocumentBundleData(
-  firestore: Firestore,
+// Formats Document data for bundling a DocumentSnapshot.
+function ToDocumentSnapshotBundleData(
   path: string,
   documentData: DocumentData,
   document: Document
-): DocumentBundleData {
+): DocumentSnapshotBundleData {
   return {
     documentData,
     documentKey: document.mutableCopy().key,
