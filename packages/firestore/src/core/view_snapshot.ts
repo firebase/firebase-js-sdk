@@ -22,7 +22,6 @@ import { DocumentSet } from '../model/document_set';
 import { fail } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 
-import { Query, queryEquals } from './query';
 import { QueryOrPipeline, queryOrPipelineEqual } from './pipeline-util';
 
 export const enum ChangeType {

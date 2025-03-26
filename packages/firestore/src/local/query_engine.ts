@@ -18,6 +18,16 @@
 import { getUA, isSafari } from '@firebase/util';
 
 import {
+  isPipeline,
+  pipelineHasRanges,
+  QueryOrPipeline,
+  stringifyQueryOrPipeline
+} from '../core/pipeline-util';
+import {
+  pipelineMatches,
+  pipelineMatchesAllDocuments
+} from '../core/pipeline_run';
+import {
   LimitType,
   newQueryComparator,
   Query,
@@ -34,6 +44,7 @@ import {
   DocumentMap
 } from '../model/collections';
 import { Document, MutableDocument } from '../model/document';
+import { compareByKey } from '../model/document_comparator';
 import {
   IndexOffset,
   INITIAL_LARGEST_BATCH_ID,
@@ -50,18 +61,6 @@ import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { QueryContext } from './query_context';
 import { getAndroidVersion } from './simple_db';
-import {
-  isPipeline,
-  pipelineHasRanges,
-  QueryOrPipeline,
-  stringifyQueryOrPipeline
-} from '../core/pipeline-util';
-import * as querystring from 'node:querystring';
-import {
-  pipelineMatches,
-  pipelineMatchesAllDocuments
-} from '../core/pipeline_run';
-import { compareByKey } from '../model/document_comparator';
 
 const DEFAULT_INDEX_AUTO_CREATION_MIN_COLLECTION_SIZE = 100;
 

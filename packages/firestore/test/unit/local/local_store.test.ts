@@ -22,6 +22,11 @@ import { User } from '../../../src/auth/user';
 import { BundledDocuments, NamedQuery } from '../../../src/core/bundle';
 import { BundleConverterImpl } from '../../../src/core/bundle_impl';
 import {
+  TargetOrPipeline,
+  toCorePipeline,
+  toPipeline
+} from '../../../src/core/pipeline-util';
+import {
   LimitType,
   Query,
   queryEquals,
@@ -29,7 +34,6 @@ import {
   queryWithLimit
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { Target } from '../../../src/core/target';
 import { BatchId, TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalStore } from '../../../src/local/local_store';
@@ -89,6 +93,7 @@ import {
 import { debugAssert } from '../../../src/util/assert';
 import { ByteString } from '../../../src/util/byte_string';
 import { BATCHID_UNKNOWN } from '../../../src/util/types';
+import { newTestFirestore } from '../../util/api_helpers';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   bundledDocuments,
@@ -122,12 +127,6 @@ import {
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
-import {
-  TargetOrPipeline,
-  toCorePipeline,
-  toPipeline
-} from '../../../src/core/pipeline-util';
-import { newTestFirestore } from '../../util/api_helpers';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;

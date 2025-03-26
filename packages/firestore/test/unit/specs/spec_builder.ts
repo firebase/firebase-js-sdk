@@ -23,18 +23,23 @@ import {
 } from '../../../src/core/event_manager';
 import { FieldFilter, Filter } from '../../../src/core/filter';
 import {
+  canonifyTargetOrPipeline,
+  isPipeline,
+  pipelineEq,
+  QueryOrPipeline,
+  TargetOrPipeline,
+  targetOrPipelineEqual,
+  toCorePipeline,
+  toPipeline
+} from '../../../src/core/pipeline-util';
+import { CorePipeline } from '../../../src/core/pipeline_run';
+import {
   LimitType,
   newQueryForPath,
   Query,
   queryEquals,
   queryToTarget
 } from '../../../src/core/query';
-import {
-  canonifyTarget,
-  Target,
-  targetEquals,
-  targetIsPipelineTarget
-} from '../../../src/core/target';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
 import { TargetPurpose } from '../../../src/local/target_data';
@@ -73,19 +78,6 @@ import {
   SpecWriteAck,
   SpecWriteFailure
 } from './spec_test_runner';
-import {
-  canonifyPipeline,
-  canonifyTargetOrPipeline,
-  isPipeline,
-  pipelineEq,
-  QueryOrPipeline,
-  queryOrPipelineEqual,
-  TargetOrPipeline,
-  targetOrPipelineEqual,
-  toCorePipeline,
-  toPipeline
-} from '../../../src/core/pipeline-util';
-import { CorePipeline } from '../../../src/core/pipeline_run';
 
 const userDataWriter = new ExpUserDataWriter(firestore());
 
@@ -97,7 +89,7 @@ export interface LimboMap {
 
 export interface ActiveTargetSpec {
   queries: Array<SpecQuery | CorePipeline>;
-  pipelines: Array<CorePipeline>;
+  pipelines: CorePipeline[];
   targetPurpose?: TargetPurpose;
   resumeToken?: string;
   readTime?: TestSnapshotVersion;

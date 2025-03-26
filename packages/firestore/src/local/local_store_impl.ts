@@ -18,18 +18,21 @@
 import { User } from '../auth/user';
 import { BundleConverter, BundledDocuments, NamedQuery } from '../core/bundle';
 import {
+  canonifyTargetOrPipeline,
+  getPipelineDocuments,
+  isPipeline,
+  QueryOrPipeline,
+  TargetOrPipeline,
+  targetOrPipelineEqual
+} from '../core/pipeline-util';
+import { CorePipeline } from '../core/pipeline_run';
+import {
   newQueryForPath,
-  Query,
   queryCollectionGroup,
   queryToTarget
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import {
-  canonifyTarget,
-  Target,
-  targetEquals,
-  targetIsPipelineTarget
-} from '../core/target';
+import { Target } from '../core/target';
 import { BatchId, TargetId } from '../core/types';
 import { Timestamp } from '../lite-api/timestamp';
 import {
@@ -95,17 +98,6 @@ import { ClientId } from './shared_client_state';
 import { isIndexedDbTransactionError } from './simple_db';
 import { TargetCache } from './target_cache';
 import { TargetData, TargetPurpose } from './target_data';
-import { Pipeline } from '../lite-api/pipeline';
-
-import {
-  canonifyTargetOrPipeline,
-  getPipelineDocuments,
-  isPipeline,
-  QueryOrPipeline,
-  TargetOrPipeline,
-  targetOrPipelineEqual
-} from '../core/pipeline-util';
-import { CorePipeline } from '../core/pipeline_run';
 
 export const LOG_TAG = 'LocalStore';
 

@@ -36,7 +36,6 @@ import { TestBundleBuilder } from '../util/bundle_data';
 
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
-import { setLogLevel } from '../../../src';
 
 interface TestBundleDocument {
   key: DocumentKey;

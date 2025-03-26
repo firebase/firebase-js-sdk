@@ -16,6 +16,17 @@
  */
 
 import {
+  asCollectionPipelineAtPath,
+  canonifyPipeline,
+  getPipelineCollection,
+  getPipelineCollectionGroup,
+  getPipelineDocuments,
+  getPipelineSourceType,
+  isPipeline,
+  QueryOrPipeline
+} from '../core/pipeline-util';
+import { CorePipeline, pipelineMatches } from '../core/pipeline_run';
+import {
   asCollectionQueryAtPath,
   isCollectionGroupQuery,
   isDocumentQuery,
@@ -51,6 +62,7 @@ import {
 import { Overlay } from '../model/overlay';
 import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
+import { FirestoreError } from '../util/error';
 import { SortedMap } from '../util/sorted_map';
 
 import { DocumentOverlayCache } from './document_overlay_cache';
@@ -62,20 +74,6 @@ import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { QueryContext } from './query_context';
 import { RemoteDocumentCache } from './remote_document_cache';
-import {
-  asCollectionPipelineAtPath,
-  canonifyPipeline,
-  getPipelineCollection,
-  getPipelineCollectionGroup,
-  getPipelineDocuments,
-  getPipelineSourceType,
-  isPipeline,
-  QueryOrPipeline
-} from '../core/pipeline-util';
-import { Pipeline } from '../lite-api/pipeline';
-import { FirestoreError } from '../util/error';
-import { CorePipeline, pipelineMatches } from '../core/pipeline_run';
-import { SortedSet } from '../util/sorted_set';
 
 /**
  * A readonly view of the local state of all documents we're tracking (i.e. we

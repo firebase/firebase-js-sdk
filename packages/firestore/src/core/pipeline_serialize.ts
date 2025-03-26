@@ -13,11 +13,6 @@
 // limitations under the License.
 
 import {
-  Value as ProtoValue,
-  Stage as ProtoStage
-} from '../protos/firestore_proto_api';
-import { fieldPathFromArgument } from '../lite-api/user_data_reader';
-import {
   BooleanExpr,
   Constant,
   Expr,
@@ -25,47 +20,6 @@ import {
   FunctionExpr,
   Ordering
 } from '../lite-api/expressions';
-import {
-  CoreAdd,
-  CoreAnd,
-  CoreArrayConcat,
-  CoreArrayContains,
-  CoreArrayContainsAll,
-  CoreArrayContainsAny,
-  CoreArrayReverse,
-  CoreAvg,
-  CoreByteLength,
-  CoreCharLength,
-  CoreCount,
-  CoreDivide,
-  CoreEndsWith,
-  CoreEq,
-  CoreExists,
-  CoreCond,
-  CoreIsNan,
-  CoreLike,
-  CoreLogicalMaximum,
-  CoreLogicalMinimum,
-  CoreMapGet,
-  CoreMod,
-  CoreMultiply,
-  CoreNot,
-  CoreOr,
-  CoreRegexContains,
-  CoreRegexMatch,
-  CoreReplaceAll,
-  CoreReplaceFirst,
-  CoreReverse,
-  CoreStartsWith,
-  CoreStrConcat,
-  CoreStrContains,
-  CoreSubtract,
-  CoreSum,
-  CoreToLower,
-  CoreToUpper,
-  CoreTrim,
-  CoreXor
-} from './expressions';
 import {
   CollectionGroupSource,
   CollectionSource,
@@ -76,6 +30,11 @@ import {
   Stage,
   Where
 } from '../lite-api/stage';
+import { fieldPathFromArgument } from '../lite-api/user_data_reader';
+import {
+  Value as ProtoValue,
+  Stage as ProtoStage
+} from '../protos/firestore_proto_api';
 
 export function stageFromProto(protoStage: ProtoStage): Stage {
   switch (protoStage.name) {

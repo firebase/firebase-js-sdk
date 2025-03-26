@@ -16,24 +16,26 @@
  */
 
 import { Pipeline } from '../api/pipeline';
-import { firestoreClientExecutePipeline } from '../core/firestore_client';
+import {
+  firestoreClientExecutePipeline,
+  firestoreClientListen
+} from '../core/firestore_client';
+import { toCorePipeline } from '../core/pipeline-util';
+import { ViewSnapshot } from '../core/view_snapshot';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult, PipelineSnapshot } from '../lite-api/pipeline-result';
 import { PipelineSource } from '../lite-api/pipeline-source';
-import { Sort, Stage } from '../lite-api/stage';
+import { Stage } from '../lite-api/stage';
 import { newUserDataReader } from '../lite-api/user_data_reader';
+import { FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
-import { DocumentReference } from './reference';
-import { ExpUserDataWriter } from './user_data_writer';
-import { RealtimePipelineSnapshot } from './snapshot';
-import { FirestoreError } from '../util/error';
-import { Unsubscribe } from './reference_impl';
-import { firestoreClientListen } from '../core/firestore_client';
-import { ViewSnapshot } from '../core/view_snapshot';
-import { toCorePipeline } from '../core/pipeline-util';
 import { RealtimePipeline } from './realtime_pipeline';
+import { DocumentReference } from './reference';
+import { Unsubscribe } from './reference_impl';
+import { RealtimePipelineSnapshot } from './snapshot';
+import { ExpUserDataWriter } from './user_data_writer';
 
 declare module './database' {
   interface Firestore {
@@ -149,8 +151,8 @@ export function _onRealtimePipelineSnapshot(
     next: (snapshot: ViewSnapshot) => {
       next(new RealtimePipelineSnapshot(pipeline, snapshot));
     },
-    error: error,
-    complete: complete
+    error,
+    complete
   };
   // TODO(pipeline) hook up options
   return firestoreClientListen(client, toCorePipeline(pipeline), {}, observer);

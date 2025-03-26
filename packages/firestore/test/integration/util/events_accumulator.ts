@@ -17,10 +17,10 @@
 
 import { expect } from 'chai';
 
+import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
 import { Deferred } from '../../util/promise';
 
 import { DocumentSnapshot, QuerySnapshot } from './firebase_export';
-import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
 
 /**
  * A helper object that can accumulate an arbitrary amount of events and resolve

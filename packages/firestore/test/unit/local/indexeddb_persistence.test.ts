@@ -19,9 +19,9 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { Context } from 'mocha';
 
+import { canonifyTargetOrPipeline } from '../../../src/core/pipeline-util';
 import { queryToTarget } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { canonifyTarget, Target } from '../../../src/core/target';
 import {
   decodeResourcePath,
   encodeResourcePath
@@ -124,7 +124,6 @@ import {
   TEST_PERSISTENCE_PREFIX,
   TEST_SERIALIZER
 } from './persistence_test_helpers';
-import { canonifyTargetOrPipeline } from '../../../src/core/pipeline-util';
 
 use(chaiAsPromised);
 

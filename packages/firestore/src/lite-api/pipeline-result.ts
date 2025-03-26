@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
+import { RealtimePipeline } from '../api/realtime_pipeline';
+import { SnapshotMetadata } from '../api/snapshot';
+import { Document } from '../model/document';
 import { ObjectValue } from '../model/object_value';
 import { isOptionalEqual } from '../util/misc';
 
 import { Field } from './expressions';
 import { FieldPath } from './field_path';
+import { Pipeline } from './pipeline';
 import { DocumentData, DocumentReference, refEqual } from './reference';
 import { fieldPathFromArgument } from './snapshot';
 import { Timestamp } from './timestamp';
 import { AbstractUserDataWriter } from './user_data_writer';
-import { Document } from '../model/document';
-import { Pipeline } from './pipeline';
-import { RealtimePipeline } from '../api/realtime_pipeline';
-import { SnapshotMetadata } from '../api/snapshot';
 
 export class PipelineSnapshot {
   private readonly _pipeline: Pipeline;

@@ -22,6 +22,7 @@ import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
+import { RealtimePipeline } from '../api/realtime_pipeline';
 import { User } from '../auth/user';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { LocalStore } from '../local/local_store';
@@ -86,6 +87,7 @@ import {
   QueryListener,
   removeSnapshotsInSyncListener
 } from './event_manager';
+import { QueryOrPipeline, toCorePipeline } from './pipeline-util';
 import { newQueryForPath, Query } from './query';
 import { SyncEngine } from './sync_engine';
 import {
@@ -102,10 +104,6 @@ import { TransactionOptions } from './transaction_options';
 import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import { Unsubscribe } from '../api/reference_impl';
-import { RealtimePipelineSnapshot } from '../api/snapshot';
-import { QueryOrPipeline, toCorePipeline } from './pipeline-util';
-import { RealtimePipeline } from '../api/realtime_pipeline';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;

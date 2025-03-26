@@ -12,25 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  ArrayValue,
-  Value,
-  Function as ProtoFunction
-} from '../protos/firestore_proto_api';
-import { EvaluationContext, PipelineInputOutput } from './pipeline_run';
+import { RE2JS } from 're2js';
+
 import {
   Field,
   Constant,
-  BooleanExpr,
   Expr,
   FunctionExpr,
   AggregateFunction,
   ListOfExprs
 } from '../lite-api/expressions';
+import { Timestamp } from '../lite-api/timestamp';
 import {
   CREATE_TIME_NAME,
   DOCUMENT_KEY_NAME,
-  FieldPath,
   UPDATE_TIME_NAME
 } from '../model/path';
 import {
@@ -46,22 +41,25 @@ import {
   isNullValue,
   isNumber,
   isString,
+  isTimestampValue,
   isVectorValue,
-  MAX_VALUE,
   MIN_VALUE,
   TRUE_VALUE,
   typeOrder,
   valueCompare,
-  valueEquals as valueEqualsWithOptions,
-  VECTOR_MAP_VECTORS_KEY
+  valueEquals as valueEqualsWithOptions
 } from '../model/values';
-
-import { RE2JS } from 're2js';
-import { toName, toTimestamp, toVersion } from '../remote/serializer';
-import { exprFromProto } from './pipeline_serialize';
-import { isNegativeZero } from '../util/types';
-import { logWarn } from '../util/log';
+import {
+  ArrayValue,
+  Value,
+  Timestamp as ProtoTimestamp
+} from '../protos/firestore_proto_api';
+import { fromTimestamp, toName, toVersion } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
+import { logWarn } from '../util/log';
+import { isNegativeZero } from '../util/types';
+
+import { EvaluationContext, PipelineInputOutput } from './pipeline_run';
 
 export interface EvaluableExpr {
   evaluate(
@@ -78,7 +76,7 @@ export function toEvaluable<T extends Expr>(expr: T): EvaluableExpr {
   } else if (expr instanceof ListOfExprs) {
     return new CoreListOfExprs(expr);
   } else if (expr.exprType === 'Function') {
-    let functionExpr = expr as unknown as FunctionExpr;
+    const functionExpr = expr as unknown as FunctionExpr;
     if (functionExpr.name === 'add') {
       return new CoreAdd(functionExpr);
     } else if (functionExpr.name === 'subtract') {
@@ -197,7 +195,7 @@ export function toEvaluable<T extends Expr>(expr: T): EvaluableExpr {
       return new CoreTimestampSub(functionExpr);
     }
   } else if (expr.exprType === 'AggregateFunction') {
-    let functionExpr = expr as unknown as AggregateFunction;
+    const functionExpr = expr as unknown as AggregateFunction;
     if (functionExpr.name === 'count') {
       return new CoreCount(functionExpr);
     } else if (functionExpr.name === 'sum') {
@@ -1850,90 +1848,346 @@ export class CoreVectorLength implements EvaluableExpr {
   }
 }
 
-export class CoreUnixMicrosToTimestamp implements EvaluableExpr {
+// 0001-01-01T00:00:00Z
+const TIMESTAMP_MIN_SECONDS: bigint = BigInt(-62135596800);
+// 9999-12-31T23:59:59Z - but the max timestamp has 999,999,999 nanoseconds
+const TIMESTAMP_MAX_SECONDS: bigint = BigInt(253402300799);
+
+const MILLISECONDS_PER_SECOND: bigint = BigInt(1000);
+const MICROSECONDS_PER_SECOND: bigint = BigInt(1000000);
+
+// 0001-01-01T00:00:00.000Z
+const TIMESTAMP_MIN_MILLISECONDS: bigint =
+  TIMESTAMP_MIN_SECONDS * MILLISECONDS_PER_SECOND;
+// 9999-12-31T23:59:59.999Z - but the max timestamp has 999,999,999 nanoseconds
+const TIMESTAMP_MAX_MILLISECONDS: bigint =
+  TIMESTAMP_MAX_SECONDS * MILLISECONDS_PER_SECOND +
+  (MILLISECONDS_PER_SECOND - BigInt(1));
+
+// 0001-01-01T00:00:00.000000Z
+const TIMESTAMP_MIN_MICROSECONDS: bigint =
+  TIMESTAMP_MIN_SECONDS * MICROSECONDS_PER_SECOND;
+// 9999-12-31T23:59:59.999999Z - but the max timestamp has 999,999,999 nanoseconds
+const TIMESTAMP_MAX_MICROSECONDS: bigint =
+  TIMESTAMP_MAX_SECONDS * MICROSECONDS_PER_SECOND +
+  (MICROSECONDS_PER_SECOND - BigInt(1));
+
+function isMicrosInBounds(micros: bigint): boolean {
+  return (
+    micros >= TIMESTAMP_MIN_MICROSECONDS && micros <= TIMESTAMP_MAX_MICROSECONDS
+  );
+}
+
+function isMillisInBounds(millis: bigint): boolean {
+  return (
+    millis >= TIMESTAMP_MIN_MILLISECONDS && millis <= TIMESTAMP_MAX_MILLISECONDS
+  );
+}
+
+function isSecondsInBounds(seconds: bigint): boolean {
+  return seconds >= TIMESTAMP_MIN_SECONDS && seconds <= TIMESTAMP_MAX_SECONDS;
+}
+
+function isTimestampInBounds(seconds: number, nanos: number) {
+  if (seconds < TIMESTAMP_MIN_SECONDS || seconds > TIMESTAMP_MAX_SECONDS) {
+    return false;
+  }
+
+  if (nanos < 0 || nanos >= MICROSECONDS_PER_SECOND * BigInt(1000)) {
+    return false;
+  }
+
+  return true;
+}
+
+function timestampToMicros(timestamp: Timestamp): bigint {
+  return (
+    BigInt(timestamp.seconds) * MICROSECONDS_PER_SECOND +
+    BigInt(timestamp.nanoseconds) / BigInt(1000)
+  );
+}
+
+abstract class UnixToTimestamp implements EvaluableExpr {
   constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    hardAssert(
+      this.expr.params.length === 1,
+      `${this.expr.name}() function should have exactly one parameter`
+    );
+
+    const value = toEvaluable(this.expr.params[0]).evaluate(context, input);
+    if (isNullValue(value)) {
+      return MIN_VALUE;
+    }
+    if (value === undefined || !isInteger(value)) {
+      return undefined;
+    }
+
+    return this.toTimestamp(BigInt(value.integerValue));
+  }
+
+  abstract toTimestamp(value: bigint): Value | undefined;
+}
+
+export class CoreUnixMicrosToTimestamp extends UnixToTimestamp {
+  constructor(expr: FunctionExpr) {
+    super(expr);
+  }
+
+  toTimestamp(value: bigint): Value | undefined {
+    if (!isMicrosInBounds(value)) {
+      return undefined;
+    }
+
+    const seconds = Number(value / MICROSECONDS_PER_SECOND);
+    const nanos = Number((value % MICROSECONDS_PER_SECOND) * BigInt(1000));
+    return { timestampValue: { seconds, nanos } };
   }
 }
 
-export class CoreTimestampToUnixMicros implements EvaluableExpr {
-  constructor(private expr: FunctionExpr) {}
+export class CoreUnixMillisToTimestamp extends UnixToTimestamp {
+  constructor(expr: FunctionExpr) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
+  toTimestamp(value: bigint): Value | undefined {
+    if (!isMillisInBounds(value)) {
+      return undefined;
+    }
+
+    const seconds = Number(value / MILLISECONDS_PER_SECOND);
+    const nanos = Number(
+      (value % MILLISECONDS_PER_SECOND) * BigInt(1000 * 1000)
+    );
+
+    return { timestampValue: { seconds, nanos } };
   }
 }
 
-export class CoreUnixMillisToTimestamp implements EvaluableExpr {
-  constructor(private expr: FunctionExpr) {}
+export class CoreUnixSecondsToTimestamp extends UnixToTimestamp {
+  constructor(expr: FunctionExpr) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
+  toTimestamp(value: bigint): Value | undefined {
+    if (!isSecondsInBounds(value)) {
+      return undefined;
+    }
+
+    const seconds = Number(value);
+    return { timestampValue: { seconds, nanos: 0 } };
   }
 }
 
-export class CoreTimestampToUnixMillis implements EvaluableExpr {
+abstract class TimestampToUnix implements EvaluableExpr {
   constructor(private expr: FunctionExpr) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    hardAssert(
+      this.expr.params.length === 1,
+      `${this.expr.name}() function should have exactly one parameter`
+    );
+
+    const value = toEvaluable(this.expr.params[0]).evaluate(context, input);
+    if (isNullValue(value)) {
+      return MIN_VALUE;
+    }
+    if (value === undefined || !isTimestampValue(value)) {
+      return undefined;
+    }
+    const timestamp = fromTimestamp(value.timestampValue!);
+    if (!isTimestampInBounds(timestamp.seconds, timestamp.nanoseconds)) {
+      return undefined;
+    }
+
+    return this.toUnix(timestamp);
+  }
+
+  abstract toUnix(value: Timestamp): Value | undefined;
+}
+
+export class CoreTimestampToUnixMicros extends TimestampToUnix {
+  constructor(expr: FunctionExpr) {
+    super(expr);
+  }
+
+  toUnix(timestamp: Timestamp): Value | undefined {
+    return { integerValue: `${timestampToMicros(timestamp).toString()}` };
   }
 }
 
-export class CoreUnixSecondsToTimestamp implements EvaluableExpr {
-  constructor(private expr: FunctionExpr) {}
+export class CoreTimestampToUnixMillis extends TimestampToUnix {
+  constructor(expr: FunctionExpr) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
+  toUnix(timestamp: Timestamp): Value | undefined {
+    const micros = timestampToMicros(timestamp);
+    const millis = micros / BigInt(1000);
+    const submillis = micros % BigInt(1000);
+    if (millis > BigInt(0) || submillis === BigInt(0)) {
+      return { integerValue: millis.toString() };
+    } else {
+      return { integerValue: (millis - BigInt(1)).toString() };
+    }
   }
 }
 
-export class CoreTimestampToUnixSeconds implements EvaluableExpr {
-  constructor(private expr: FunctionExpr) {}
+export class CoreTimestampToUnixSeconds extends TimestampToUnix {
+  constructor(expr: FunctionExpr) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
+  toUnix(timestamp: Timestamp): Value | undefined {
+    const micros = timestampToMicros(timestamp);
+    const seconds = micros / BigInt(1000 * 1000);
+    const subseconds = micros % BigInt(1000 * 1000);
+    if (seconds > BigInt(0) || subseconds === BigInt(0)) {
+      return { integerValue: seconds.toString() };
+    } else {
+      return { integerValue: (seconds - BigInt(1)).toString() };
+    }
   }
 }
 
-export class CoreTimestampAdd implements EvaluableExpr {
-  constructor(private expr: FunctionExpr) {}
-
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
+type TimeUnit =
+  | 'microsecond'
+  | 'millisecond'
+  | 'second'
+  | 'minute'
+  | 'hour'
+  | 'day';
+function asTimeUnit(unit?: string): TimeUnit | undefined {
+  switch (unit) {
+    case 'microsecond':
+      return 'microsecond';
+    case 'millisecond':
+      return 'millisecond';
+    case 'second':
+      return 'second';
+    case 'minute':
+      return 'minute';
+    case 'hour':
+      return 'hour';
+    case 'day':
+      return 'day';
+    default:
+      return undefined;
   }
 }
 
-export class CoreTimestampSub implements EvaluableExpr {
+abstract class TimestampArithmetic implements EvaluableExpr {
   constructor(private expr: FunctionExpr) {}
-
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    hardAssert(
+      this.expr.params.length === 3,
+      `${this.expr.name}() function should have exactly 3 parameters`
+    );
+
+    const timestamp = toEvaluable(this.expr.params[0]).evaluate(context, input);
+    if (isNullValue(timestamp)) {
+      return MIN_VALUE;
+    }
+    if (timestamp === undefined || !isTimestampValue(timestamp)) {
+      return undefined;
+    }
+
+    const unit = toEvaluable(this.expr.params[1]).evaluate(context, input);
+    if (isNullValue(unit)) {
+      return MIN_VALUE;
+    }
+    if (unit === undefined || !isString(unit)) {
+      return undefined;
+    }
+    const timeUnit = asTimeUnit(unit.stringValue);
+    if (timeUnit === undefined) {
+      return undefined;
+    }
+
+    const amountValue = toEvaluable(this.expr.params[2]).evaluate(
+      context,
+      input
+    );
+    if (isNullValue(amountValue)) {
+      return MIN_VALUE;
+    }
+    if (amountValue === undefined || !isInteger(amountValue)) {
+      return undefined;
+    }
+
+    const amount = amountValue.integerValue;
+    let microsToOperate: bigint;
+    switch (timeUnit) {
+      case 'microsecond':
+        microsToOperate = BigInt(amount);
+        break;
+      case 'millisecond':
+        microsToOperate = BigInt(amount) * BigInt(1000);
+        break;
+      case 'second':
+        microsToOperate = BigInt(amount) * BigInt(1000000);
+        break;
+      case 'minute':
+        microsToOperate = BigInt(amount) * BigInt(60000000);
+        break;
+      case 'hour':
+        microsToOperate = BigInt(amount) * BigInt(3600000000);
+        break;
+      case 'day':
+        microsToOperate = BigInt(amount) * BigInt(86400000000);
+        break;
+      default:
+        return undefined;
+    }
+
+    const newMicros = this.newMicros(
+      timestamp.timestampValue!,
+      microsToOperate
+    );
+
+    if (!isMicrosInBounds(newMicros)) {
+      return undefined;
+    }
+
+    const newSeconds = Number(newMicros / BigInt(1000000));
+    const newNanos = Number((newMicros % BigInt(1000000)) * BigInt(1000));
+    return { timestampValue: { seconds: newSeconds, nanos: newNanos } };
+  }
+
+  abstract newMicros(
+    timestamp: ProtoTimestamp,
+    microsToOperation: bigint
+  ): bigint;
+}
+
+export class CoreTimestampAdd extends TimestampArithmetic {
+  constructor(expr: FunctionExpr) {
+    super(expr);
+  }
+
+  newMicros(protoTimestamp: ProtoTimestamp, microsToAdd: bigint): bigint {
+    const timestamp = fromTimestamp(protoTimestamp);
+    return timestampToMicros(timestamp) + microsToAdd;
+  }
+}
+
+export class CoreTimestampSub extends TimestampArithmetic {
+  constructor(expr: FunctionExpr) {
+    super(expr);
+  }
+
+  newMicros(protoTimestamp: ProtoTimestamp, microsToSub: bigint): bigint {
+    const timestamp = fromTimestamp(protoTimestamp);
+    return timestampToMicros(timestamp) - microsToSub;
   }
 }

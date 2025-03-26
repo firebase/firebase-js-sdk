@@ -34,7 +34,8 @@ import {
   firestoreClientListen,
   firestoreClientWrite
 } from '../core/firestore_client';
-import { newQueryForPath, Query as InternalQuery } from '../core/query';
+import { QueryOrPipeline, toCorePipeline } from '../core/pipeline-util';
+import { newQueryForPath } from '../core/query';
 import { ViewSnapshot } from '../core/view_snapshot';
 import { FieldPath } from '../lite-api/field_path';
 import { validateHasExplicitOrderByForLimitToLast } from '../lite-api/query';
@@ -63,6 +64,7 @@ import { FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
+import { RealtimePipeline } from './realtime_pipeline';
 import {
   DocumentSnapshot,
   QuerySnapshot,
@@ -70,8 +72,6 @@ import {
   SnapshotMetadata
 } from './snapshot';
 import { ExpUserDataWriter } from './user_data_writer';
-import { RealtimePipeline } from './realtime_pipeline';
-import { QueryOrPipeline, toCorePipeline } from '../core/pipeline-util';
 
 /**
  * An options object that can be passed to {@link (onSnapshot:1)} and {@link

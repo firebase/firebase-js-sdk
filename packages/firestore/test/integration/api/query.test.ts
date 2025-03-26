@@ -17,6 +17,11 @@
 
 import { expect } from 'chai';
 
+import { RealtimePipeline } from '../../../src/api/realtime_pipeline';
+import {
+  RealtimePipelineSnapshot,
+  ResultChange
+} from '../../../src/api/snapshot';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
 import { EventsAccumulator } from '../util/events_accumulator';
@@ -75,11 +80,6 @@ import {
 } from '../util/helpers';
 import { USE_EMULATOR } from '../util/settings';
 import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
-import { RealtimePipeline } from '../../../src/api/realtime_pipeline';
-import {
-  RealtimePipelineSnapshot,
-  ResultChange
-} from '../../../src/api/snapshot';
 
 function getDocs(
   pipelineMode: PipelineMode,

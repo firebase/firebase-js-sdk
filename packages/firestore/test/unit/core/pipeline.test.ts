@@ -16,11 +16,9 @@
  */
 
 import { expect } from 'chai';
-import { doc as docRef } from '../../../src';
 
 import {
   eq,
-  Constant,
   Field,
   gt,
   gte,
@@ -43,10 +41,13 @@ import {
   xor,
   arrayContains
 } from '../../../lite/pipelines/pipelines';
-
-import { doc } from '../../util/helpers';
-
+import { doc as docRef } from '../../../src';
+import { and, or } from '../../../src/api_pipelines';
+import { isNull } from '../../../src/lite-api/expressions';
+import { MutableDocument } from '../../../src/model/document';
+import { DOCUMENT_KEY_NAME, FieldPath } from '../../../src/model/path';
 import { newTestFirestore } from '../../util/api_helpers';
+import { doc } from '../../util/helpers';
 import {
   canonifyPipeline,
   constantArray,
@@ -54,15 +55,6 @@ import {
   pipelineEq,
   runPipeline
 } from '../../util/pipelines';
-import {
-  CREATE_TIME_NAME,
-  DOCUMENT_KEY_NAME,
-  FieldPath,
-  UPDATE_TIME_NAME
-} from '../../../src/model/path';
-import { MutableDocument } from '../../../src/model/document';
-import { and, or } from '../../../src/api_pipelines';
-import { isNull } from '../../../src/lite-api/expressions';
 
 const db = newTestFirestore();
 describe('Pipeline Canonify', () => {

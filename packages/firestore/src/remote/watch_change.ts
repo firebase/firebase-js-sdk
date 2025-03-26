@@ -16,6 +16,13 @@
  */
 
 import { DatabaseId } from '../core/database_info';
+import {
+  getPipelineDocuments,
+  getPipelineFlavor,
+  getPipelineSourceType,
+  TargetOrPipeline
+} from '../core/pipeline-util';
+import { CorePipeline } from '../core/pipeline_run';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { targetIsDocumentTarget, targetIsPipelineTarget } from '../core/target';
 import { TargetId } from '../core/types';
@@ -29,6 +36,7 @@ import {
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { normalizeByteString } from '../model/normalize';
+import { ResourcePath } from '../model/path';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { Base64DecodeError } from '../util/base64_decode_error';
 import { ByteString } from '../util/byte_string';
@@ -45,16 +53,6 @@ import {
 import { BloomFilter, BloomFilterError } from './bloom_filter';
 import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
-import {
-  getPipelineDocuments,
-  getPipelineFlavor,
-  getPipelineSourceType,
-  isPipeline,
-  TargetOrPipeline
-} from '../core/pipeline-util';
-import { Pipeline } from '../lite-api/pipeline';
-import { ResourcePath } from '../model/path';
-import { CorePipeline } from '../core/pipeline_run';
 
 /**
  * Internal representation of the watcher API protocol buffers.

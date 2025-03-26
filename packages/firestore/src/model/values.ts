@@ -670,6 +670,13 @@ export function isNanValue(
   return !!value && 'doubleValue' in value && isNaN(Number(value.doubleValue));
 }
 
+/** Returns true if `value` is Timestamp. */
+export function isTimestampValue(
+  value?: Value | null
+): value is { timestampValue: Timestamp } {
+  return !!value && 'timestampValue' in value && !!value.timestampValue;
+}
+
 /** Returns true if `value` is a MapValue. */
 export function isMapValue(
   value?: Value | null

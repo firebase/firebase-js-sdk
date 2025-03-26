@@ -28,6 +28,8 @@ import {
   Operator
 } from '../core/filter';
 import { Direction, OrderBy } from '../core/order_by';
+import { CorePipeline } from '../core/pipeline_run';
+import { stageFromProto } from '../core/pipeline_serialize';
 import {
   LimitType,
   newQuery,
@@ -118,8 +120,6 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { stageFromProto } from '../core/pipeline_serialize';
-import { CorePipeline } from '../core/pipeline_run';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: ProtoOrderDirection } = {};

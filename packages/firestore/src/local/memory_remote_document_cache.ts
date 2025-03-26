@@ -15,7 +15,13 @@
  * limitations under the License.
  */
 
-import { Query, queryMatches } from '../core/query';
+import {
+  getPipelineCollection,
+  isPipeline,
+  QueryOrPipeline
+} from '../core/pipeline-util';
+import { pipelineMatches } from '../core/pipeline_run';
+import { queryMatches } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
@@ -30,6 +36,7 @@ import {
   indexOffsetComparator,
   newIndexOffsetFromDocument
 } from '../model/field_index';
+import { ResourcePath } from '../model/path';
 import { debugAssert, fail } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 
@@ -38,13 +45,6 @@ import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
-import {
-  getPipelineCollection,
-  isPipeline,
-  QueryOrPipeline
-} from '../core/pipeline-util';
-import { ResourcePath } from '../model/path';
-import { pipelineMatches } from '../core/pipeline_run';
 
 export type DocumentSizer = (doc: Document) => number;
 

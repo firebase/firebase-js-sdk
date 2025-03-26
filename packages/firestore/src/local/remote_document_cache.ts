@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
+import { QueryOrPipeline } from '../core/pipeline-util';
 import {
   DocumentKeySet,
   MutableDocumentMap,
@@ -30,7 +30,6 @@ import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { QueryContext } from './query_context';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
-import { QueryOrPipeline } from '../core/pipeline-util';
 
 /**
  * Represents cached documents received from the remote backend.
