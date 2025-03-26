@@ -16,7 +16,6 @@
  */
 
 import { TypedSchema } from '../requests/schema-builder';
-import { AILanguageModelCreateOptionsWithSystemPrompt } from './ai';
 import { Content, Part } from './content';
 import {
   FunctionCallingMode,
