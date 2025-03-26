@@ -225,7 +225,7 @@ export interface HybridParams {
    */
   mode?: InferenceMode;
   /**
-   * Optional. Specifies advanced params for on-device inference
+   * Optional. Specifies advanced params for on-device inference.
    */
   onDeviceParams?: AILanguageModelCreateOptionsWithSystemPrompt;
   /**

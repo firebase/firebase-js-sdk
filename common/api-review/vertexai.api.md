@@ -504,17 +504,13 @@ export interface ImagenSafetySettings {
 export interface HybridParams {
     mode?: InferenceMode;
     onCloudParams?: ModelParams;
-    // Warning: (ae-forgotten-export) The symbol "AILanguageModelCreateOptionsWithSystemPrompt" needs to be exported by the entry point index.d.ts
     onDeviceParams?: AILanguageModelCreateOptionsWithSystemPrompt;
 }
 
 // @public
 export enum InferenceMode {
-    // (undocumented)
     ONLY_ON_CLOUD = "ONLY_ON_CLOUD",
-    // (undocumented)
     ONLY_ON_DEVICE = "ONLY_ON_DEVICE",
-    // (undocumented)
     PREFER_ON_DEVICE = "PREFER_ON_DEVICE"
 }
 
