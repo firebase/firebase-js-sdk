@@ -44,10 +44,6 @@ import {
   forEachNumber
 } from '../../util/helpers';
 import { TEST_DATABASE_ID } from '../local/persistence_test_helpers';
-import { CorePipeline } from '../../../src/core/pipeline_run';
-import { newTestFirestore } from '../../util/api_helpers';
-
-import { toCorePipeline } from '../../../src/core/pipeline-util';
 
 interface TargetMap {
   [targetId: string]: TargetData;

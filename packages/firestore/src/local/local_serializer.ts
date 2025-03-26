@@ -17,14 +17,13 @@
 
 import { Timestamp } from '../api/timestamp';
 import { BundleMetadata, NamedQuery } from '../core/bundle';
+import {
+  canonifyTargetOrPipeline,
+  TargetOrPipeline
+} from '../core/pipeline-util';
 import { LimitType, Query, queryWithLimit } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import {
-  canonifyTarget,
-  Target,
-  targetIsDocumentTarget,
-  targetIsPipelineTarget
-} from '../core/target';
+import { targetIsDocumentTarget, targetIsPipelineTarget } from '../core/target';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
@@ -81,11 +80,6 @@ import {
 } from './indexeddb_schema';
 import { DbDocumentOverlayKey, DbTimestampKey } from './indexeddb_sentinels';
 import { TargetData, TargetPurpose } from './target_data';
-import { Pipeline } from '../lite-api/pipeline';
-import {
-  canonifyTargetOrPipeline,
-  TargetOrPipeline
-} from '../core/pipeline-util';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {

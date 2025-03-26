@@ -15,8 +15,12 @@
  * limitations under the License.
  */
 
+import {
+  canonifyTargetOrPipeline,
+  TargetOrPipeline,
+  targetOrPipelineEqual
+} from '../core/pipeline-util';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { TargetIdGenerator } from '../core/target_id_generator';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
@@ -31,11 +35,6 @@ import { PersistenceTransaction } from './persistence_transaction';
 import { ReferenceSet } from './reference_set';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
-import {
-  canonifyTargetOrPipeline,
-  TargetOrPipeline,
-  targetOrPipelineEqual
-} from '../core/pipeline-util';
 
 export class MemoryTargetCache implements TargetCache {
   /**

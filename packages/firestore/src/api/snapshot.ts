@@ -15,9 +15,12 @@
  * limitations under the License.
  */
 
+import { isPipeline } from '../core/pipeline-util';
+import { CorePipeline, newPipelineComparator } from '../core/pipeline_run';
 import { newQueryComparator } from '../core/query';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { FieldPath } from '../lite-api/field_path';
+import { PipelineResult, toPipelineResult } from '../lite-api/pipeline-result';
 import {
   DocumentData,
   DocumentReference,
@@ -40,12 +43,8 @@ import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 
 import { Firestore } from './database';
-import { SnapshotListenOptions } from './reference_impl';
-import { Pipeline } from '../lite-api/pipeline';
-import { PipelineResult, toPipelineResult } from '../lite-api/pipeline-result';
-import { isPipeline, toCorePipeline } from '../core/pipeline-util';
-import { CorePipeline, newPipelineComparator } from '../core/pipeline_run';
 import { RealtimePipeline } from './realtime_pipeline';
+import { SnapshotListenOptions } from './reference_impl';
 
 /**
  * Converter used by `withConverter()` to transform user objects of type
@@ -822,7 +821,7 @@ export interface ResultChange {
 export function resultChangesFromSnapshot(
   querySnapshot: RealtimePipelineSnapshot,
   includeMetadataChanges: boolean
-): Array<ResultChange> {
+): ResultChange[] {
   if (querySnapshot._snapshot.oldDocs.isEmpty()) {
     // Special case the first snapshot because index calculation is easy and
     // fast
@@ -913,7 +912,7 @@ export class RealtimePipelineSnapshot {
    */
   readonly metadata: SnapshotMetadata;
 
-  private _cachedChanges?: Array<ResultChange>;
+  private _cachedChanges?: ResultChange[];
   private _cachedChangesIncludeMetadataChanges?: boolean;
 
   /** @hideconstructor */
@@ -926,8 +925,8 @@ export class RealtimePipelineSnapshot {
   }
 
   /** An array of all the documents in the `QuerySnapshot`. */
-  get results(): Array<PipelineResult> {
-    const result: Array<PipelineResult> = [];
+  get results(): PipelineResult[] {
+    const result: PipelineResult[] = [];
     this._snapshot.docs.forEach(doc =>
       result.push(toPipelineResult(doc, this.pipeline))
     );
@@ -938,7 +937,7 @@ export class RealtimePipelineSnapshot {
     return this._snapshot.docs.size;
   }
 
-  resultChanges(options: SnapshotListenOptions = {}): Array<ResultChange> {
+  resultChanges(options: SnapshotListenOptions = {}): ResultChange[] {
     const includeMetadataChanges = !!options.includeMetadataChanges;
 
     if (includeMetadataChanges && this._snapshot.excludesMetadataChanges) {

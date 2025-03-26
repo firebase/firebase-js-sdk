@@ -89,19 +89,25 @@ import {
 } from './event_manager';
 import { ListenSequence } from './listen_sequence';
 import {
-  canonifyQuery,
+  canonifyQueryOrPipeline,
+  getPipelineCollectionId,
+  getPipelineSourceType,
+  isPipeline,
+  QueryOrPipeline,
+  queryOrPipelineEqual,
+  stringifyQueryOrPipeline,
+  TargetOrPipeline
+} from './pipeline-util';
+import {
   LimitType,
   newQuery,
   newQueryForPath,
-  Query,
-  queryEquals,
   queryCollectionGroup,
-  queryToTarget,
-  stringifyQuery
+  queryToTarget
 } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { SyncEngine } from './sync_engine';
-import { Target, targetIsPipelineTarget } from './target';
+import { targetIsPipelineTarget } from './target';
 import { TargetIdGenerator } from './target_id_generator';
 import {
   BatchId,
@@ -118,17 +124,6 @@ import {
   ViewChange
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import {
-  canonifyQueryOrPipeline,
-  getPipelineCollection,
-  getPipelineCollectionId,
-  getPipelineSourceType,
-  isPipeline,
-  QueryOrPipeline,
-  queryOrPipelineEqual,
-  stringifyQueryOrPipeline,
-  TargetOrPipeline
-} from './pipeline-util';
 
 const LOG_TAG = 'SyncEngine';
 

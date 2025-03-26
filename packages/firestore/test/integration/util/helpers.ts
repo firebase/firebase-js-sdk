@@ -18,6 +18,8 @@
 import { isIndexedDBAvailable } from '@firebase/util';
 import { expect } from 'chai';
 
+import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
+
 import {
   clearIndexedDbPersistence,
   collection,
@@ -53,7 +55,6 @@ import {
   TARGET_DB_ID,
   USE_EMULATOR
 } from './settings';
-import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
 
 /* eslint-disable no-restricted-globals */
 

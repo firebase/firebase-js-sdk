@@ -27,6 +27,12 @@ import { DocumentSet } from '../model/document_set';
 import { TargetChange } from '../remote/remote_event';
 import { debugAssert, fail } from '../util/assert';
 
+import { isPipeline, QueryOrPipeline } from './pipeline-util';
+import {
+  getLastEffectiveLimit,
+  newPipelineComparator,
+  queryOrPipelineMatches
+} from './pipeline_run';
 import { LimitType, newQueryComparator } from './query';
 import { OnlineState } from './types';
 import {
@@ -35,13 +41,6 @@ import {
   SyncState,
   ViewSnapshot
 } from './view_snapshot';
-
-import { isPipeline, QueryOrPipeline } from './pipeline-util';
-import {
-  getLastEffectiveLimit,
-  newPipelineComparator,
-  queryOrPipelineMatches
-} from './pipeline_run';
 
 export type LimboDocumentChange = AddedLimboDocument | RemovedLimboDocument;
 export class AddedLimboDocument {

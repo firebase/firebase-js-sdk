@@ -1,26 +1,14 @@
+import { Firestore } from '../lite-api/database';
+import { BooleanExpr, Ordering } from '../lite-api/expressions';
+import { isReadableUserData, ReadableUserData } from '../lite-api/pipeline';
+import { Limit, Sort, Stage, Where } from '../lite-api/stage';
+import { UserDataReader } from '../lite-api/user_data_reader';
+import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 import {
-  getEncodedDatabaseId,
-  JsonProtoSerializer,
-  ProtoSerializable
-} from '../remote/serializer';
-import {
-  ExecutePipelineRequest,
   Stage as ProtoStage,
   StructuredPipeline
 } from '../protos/firestore_proto_api';
-import { Firestore } from '../lite-api/database';
-import { UserDataReader } from '../lite-api/user_data_reader';
-import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
-import { Limit, Sort, Stage, Where } from '../lite-api/stage';
-import {
-  Expr,
-  ExprWithAlias,
-  Field,
-  BooleanExpr,
-  Ordering,
-  Selectable
-} from '../lite-api/expressions';
-import { isReadableUserData, ReadableUserData } from '../lite-api/pipeline';
+import { JsonProtoSerializer } from '../remote/serializer';
 
 /**
  * Base-class implementation

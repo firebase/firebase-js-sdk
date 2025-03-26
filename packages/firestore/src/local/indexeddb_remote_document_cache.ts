@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { Query, queryMatches } from '../core/query';
+import {
+  getPipelineCollection,
+  isPipeline,
+  QueryOrPipeline
+} from '../core/pipeline-util';
+import { queryOrPipelineMatches } from '../core/pipeline_run';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
@@ -59,12 +64,6 @@ import { QueryContext } from './query_context';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { SimpleDbStore } from './simple_db';
-import {
-  getPipelineCollection,
-  isPipeline,
-  QueryOrPipeline
-} from '../core/pipeline-util';
-import { queryOrPipelineMatches } from '../core/pipeline_run';
 
 export interface DocumentSizeEntry {
   document: MutableDocument;

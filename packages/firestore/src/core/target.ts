@@ -52,7 +52,6 @@ import {
   orderByEquals,
   stringifyOrderBy
 } from './order_by';
-import { Pipeline } from '../lite-api/pipeline';
 import { TargetOrPipeline } from './pipeline-util';
 import { CorePipeline } from './pipeline_run';
 

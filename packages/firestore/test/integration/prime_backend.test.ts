@@ -15,14 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
-import { EventsAccumulator } from './util/events_accumulator';
-import {
-  DocumentSnapshot,
-  onSnapshot,
-  runTransaction
-} from './util/firebase_export';
 import { MemoryEagerPersistenceMode, withTestDoc } from './util/helpers';
 
 // Firestore databases can be subject to a ~30s "cold start" delay if they have not been used

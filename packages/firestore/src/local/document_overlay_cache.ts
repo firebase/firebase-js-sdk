@@ -22,7 +22,6 @@ import { ResourcePath } from '../model/path';
 
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
-import { SortedMap } from '../util/sorted_map';
 
 /**
  * Provides methods to read and write document overlays.

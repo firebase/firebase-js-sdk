@@ -15,28 +15,23 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
+import { _onRealtimePipelineSnapshot } from '../../../src/api/pipeline_impl';
+import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
+import { eq, field } from '../../../src/lite-api/expressions';
+import { PipelineResult } from '../../../src/lite-api/pipeline-result';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
+import { EventsAccumulator } from '../util/events_accumulator';
 import {
   CollectionReference,
   doc,
   DocumentData,
   Firestore,
-  limitToLast,
-  onSnapshot,
-  orderBy,
-  query,
-  QuerySnapshot,
   setDoc,
   setLogLevel,
   updateDoc
 } from '../util/firebase_export';
 import { apiDescribe, toDataArray, withTestCollection } from '../util/helpers';
-import { EventsAccumulator } from '../util/events_accumulator';
-import { PipelineResult } from '../../../src/lite-api/pipeline-result';
-import { eq, field } from '../../../src/lite-api/expressions';
-import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
-import { _onRealtimePipelineSnapshot } from '../../../src/api/pipeline_impl';
 
 use(chaiAsPromised);
 
@@ -57,17 +52,14 @@ apiDescribe('Pipelines', persistence => {
     return randomCol;
   }
 
+  function expectResults(result: PipelineResult[], ...docs: string[]): void;
   function expectResults(
-    result: Array<PipelineResult>,
-    ...docs: string[]
-  ): void;
-  function expectResults(
-    result: Array<PipelineResult>,
+    result: PipelineResult[],
     ...data: DocumentData[]
   ): void;
 
   function expectResults(
-    result: Array<PipelineResult>,
+    result: PipelineResult[],
     ...data: DocumentData[] | string[]
   ): void {
     expect(result.length).to.equal(data.length);

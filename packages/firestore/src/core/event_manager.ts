@@ -21,9 +21,6 @@ import { Code, FirestoreError } from '../util/error';
 import { EventHandler } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 
-import { Query, stringifyQuery } from './query';
-import { OnlineState } from './types';
-import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
 import {
   canonifyPipeline,
   canonifyQueryOrPipeline,
@@ -31,6 +28,9 @@ import {
   QueryOrPipeline,
   queryOrPipelineEqual
 } from './pipeline-util';
+import { Query, stringifyQuery } from './query';
+import { OnlineState } from './types';
+import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being

@@ -13,20 +13,7 @@
 // limitations under the License.
 
 import { FirestoreError } from '../api';
-import { Document, MutableDocument } from '../model/document';
-import {
-  MIN_VALUE,
-  TRUE_VALUE,
-  valueCompare,
-  valueEquals
-} from '../model/values';
-import { toEvaluable } from './expressions';
-import { UserDataReader } from '../lite-api/user_data_reader';
-import { Query, queryMatches, queryMatchesAllDocuments } from './query';
-import { isPipeline, QueryOrPipeline } from './pipeline-util';
-import { DOCUMENT_KEY_NAME } from '../model/path';
-import { JsonProtoSerializer } from '../remote/serializer';
-import { Code } from '../util/error';
+import { Field, Ordering } from '../lite-api/expressions';
 import {
   CollectionGroupSource,
   CollectionSource,
@@ -38,7 +25,20 @@ import {
   Stage,
   Where
 } from '../lite-api/stage';
-import { Field, Ordering } from '../lite-api/expressions';
+import { Document, MutableDocument } from '../model/document';
+import { DOCUMENT_KEY_NAME } from '../model/path';
+import {
+  MIN_VALUE,
+  TRUE_VALUE,
+  valueCompare,
+  valueEquals
+} from '../model/values';
+import { JsonProtoSerializer } from '../remote/serializer';
+import { Code } from '../util/error';
+
+import { toEvaluable } from './expressions';
+import { isPipeline, QueryOrPipeline } from './pipeline-util';
+import { queryMatches } from './query';
 
 export class CorePipeline {
   constructor(
@@ -55,8 +55,8 @@ export interface EvaluationContext {
 
 export function runPipeline(
   pipeline: CorePipeline,
-  input: Array<PipelineInputOutput>
-): Array<PipelineInputOutput> {
+  input: PipelineInputOutput[]
+): PipelineInputOutput[] {
   let current = input;
   for (const stage of pipeline.stages) {
     current = evaluate({ serializer: pipeline.serializer }, stage, current);
@@ -106,8 +106,8 @@ export function pipelineMatchesAllDocuments(pipeline: CorePipeline): boolean {
 function evaluate(
   context: EvaluationContext,
   stage: Stage,
-  input: Array<PipelineInputOutput>
-): Array<PipelineInputOutput> {
+  input: PipelineInputOutput[]
+): PipelineInputOutput[] {
   if (stage instanceof CollectionSource) {
     return evaluateCollection(context, stage, input);
   } else if (stage instanceof Where) {
@@ -142,8 +142,8 @@ function evaluate(
 function evaluateWhere(
   context: EvaluationContext,
   where: Where,
-  input: Array<PipelineInputOutput>
-): Array<PipelineInputOutput> {
+  input: PipelineInputOutput[]
+): PipelineInputOutput[] {
   return input.filter(value => {
     const result = toEvaluable(where.condition).evaluate(context, value);
     return result === undefined ? false : valueEquals(result, TRUE_VALUE);
@@ -153,24 +153,24 @@ function evaluateWhere(
 function evaluateLimit(
   context: EvaluationContext,
   stage: Limit,
-  input: Array<PipelineInputOutput>
-): Array<PipelineInputOutput> {
+  input: PipelineInputOutput[]
+): PipelineInputOutput[] {
   return input.slice(0, stage.limit);
 }
 
 function evaluateOffset(
   context: EvaluationContext,
   stage: Offset,
-  input: Array<PipelineInputOutput>
-): Array<PipelineInputOutput> {
+  input: PipelineInputOutput[]
+): PipelineInputOutput[] {
   return input.slice(stage.offset);
 }
 
 function evaluateSort(
   context: EvaluationContext,
   stage: Sort,
-  input: Array<PipelineInputOutput>
-): Array<PipelineInputOutput> {
+  input: PipelineInputOutput[]
+): PipelineInputOutput[] {
   return input.sort((left, right): number => {
     // Evaluate expressions in stage.orderings against left and right, and use them to compare
     // the documents
@@ -195,8 +195,8 @@ function evaluateSort(
 function evaluateCollection(
   _: EvaluationContext,
   coll: CollectionSource,
-  inputs: Array<PipelineInputOutput>
-): Array<PipelineInputOutput> {
+  inputs: PipelineInputOutput[]
+): PipelineInputOutput[] {
   return inputs.filter(input => {
     return (
       input.isFoundDocument() &&
@@ -209,8 +209,8 @@ function evaluateCollection(
 function evaluateCollectionGroup(
   context: EvaluationContext,
   stage: CollectionGroupSource,
-  input: Array<PipelineInputOutput>
-): Array<PipelineInputOutput> {
+  input: PipelineInputOutput[]
+): PipelineInputOutput[] {
   // return those records in input whose collection id is stage.collectionId
   return input.filter(input => {
     return (
@@ -223,16 +223,16 @@ function evaluateCollectionGroup(
 function evaluateDatabase(
   context: EvaluationContext,
   stage: DatabaseSource,
-  input: Array<PipelineInputOutput>
-): Array<PipelineInputOutput> {
+  input: PipelineInputOutput[]
+): PipelineInputOutput[] {
   return input.filter(input => input.isFoundDocument());
 }
 
 function evaluateDocuments(
   context: EvaluationContext,
   stage: DocumentsSource,
-  input: Array<PipelineInputOutput>
-): Array<PipelineInputOutput> {
+  input: PipelineInputOutput[]
+): PipelineInputOutput[] {
   if (stage.docPaths.length === 0) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,

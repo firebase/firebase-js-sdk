@@ -31,7 +31,6 @@ import {
   OverlayMap
 } from '../../../src/model/collections';
 import { MutationType } from '../../../src/model/mutation';
-import { doc, key, keys } from '../../util/helpers';
 
 /**
  * A test-only query engine that forwards all API calls and exposes the number

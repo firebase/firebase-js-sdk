@@ -25,7 +25,7 @@ import {
   MultiTabOfflineComponentProvider
 } from '../../../src/core/component_provider';
 import { Observer } from '../../../src/core/event_manager';
-import { Query } from '../../../src/core/query';
+import { QueryOrPipeline } from '../../../src/core/pipeline-util';
 import { ViewSnapshot } from '../../../src/core/view_snapshot';
 import {
   indexedDbStoragePrefix,
@@ -67,7 +67,6 @@ import { WindowLike } from '../../../src/util/types';
 import { FakeDocument } from '../../util/test_platform';
 
 import { PersistenceAction } from './spec_test_runner';
-import { QueryOrPipeline } from '../../../src/core/pipeline-util';
 
 /**
  * A test-only MemoryPersistence implementation that is able to inject

@@ -15,12 +15,10 @@
  * limitations under the License.
  */
 
+import { TargetOrPipeline } from '../core/pipeline-util';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Target } from '../core/target';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { ByteString } from '../util/byte_string';
-import { Pipeline } from '../lite-api/pipeline';
-import { TargetOrPipeline } from '../core/pipeline-util';
 
 /** An enumeration of the different purposes we have for targets. */
 export const enum TargetPurpose {

@@ -45,7 +45,6 @@ import {
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { SimpleDbStore } from './simple_db';
-import { SortedMap } from '../util/sorted_map';
 
 /**
  * Implementation of DocumentOverlayCache using IndexedDb.
@@ -100,7 +99,7 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     transaction: PersistenceTransaction,
     sinceBatchId: number
   ): PersistencePromise<OverlayMap> {
-    let overlays = newOverlayMap();
+    const overlays = newOverlayMap();
     // TODO(pipeline): should we create an index for this? But how often people really expect
     // querying entire database to be fast?
     return documentOverlayStore(transaction)

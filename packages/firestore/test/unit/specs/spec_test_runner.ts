@@ -42,6 +42,16 @@ import {
   removeSnapshotsInSyncListener
 } from '../../../src/core/event_manager';
 import {
+  canonifyPipeline,
+  canonifyQueryOrPipeline,
+  QueryOrPipeline,
+  queryOrPipelineEqual,
+  TargetOrPipeline,
+  toCorePipeline,
+  toPipeline
+} from '../../../src/core/pipeline-util';
+import { CorePipeline } from '../../../src/core/pipeline_run';
+import {
   canonifyQuery,
   LimitType,
   newQueryForCollectionGroup,
@@ -64,6 +74,7 @@ import {
   triggerRemoteStoreListen,
   triggerRemoteStoreUnlisten
 } from '../../../src/core/sync_engine_impl';
+import { targetIsPipelineTarget } from '../../../src/core/target';
 import { TargetId } from '../../../src/core/types';
 import {
   ChangeType,
@@ -137,6 +148,7 @@ import { primitiveComparator } from '../../../src/util/misc';
 import { forEach, objectSize } from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
+import { newTestFirestore } from '../../util/api_helpers';
 import {
   byteStringFromString,
   deletedDoc,
@@ -181,18 +193,6 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
-import {
-  canonifyPipeline,
-  canonifyQueryOrPipeline,
-  QueryOrPipeline,
-  queryOrPipelineEqual,
-  TargetOrPipeline,
-  toCorePipeline,
-  toPipeline
-} from '../../../src/core/pipeline-util';
-import { newTestFirestore } from '../../util/api_helpers';
-import { targetIsPipelineTarget } from '../../../src/core/target';
-import { CorePipeline } from '../../../src/core/pipeline_run';
 
 use(chaiExclude);
 

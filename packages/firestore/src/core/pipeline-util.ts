@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { RealtimePipeline } from '../api/realtime_pipeline';
 import { Firestore } from '../lite-api/database';
 import {
   Constant,
@@ -34,21 +35,8 @@ import {
   ListOfExprs,
   AggregateFunction
 } from '../lite-api/expressions';
-import { Pipeline } from '../lite-api/pipeline';
-import {
-  isNanValue,
-  isNullValue,
-  VECTOR_MAP_VECTORS_KEY
-} from '../model/values';
-import { debugAssert, fail } from '../util/assert';
-
-import {
-  CompositeFilter as CompositeFilterInternal,
-  CompositeOperator,
-  FieldFilter as FieldFilterInternal,
-  Filter as FilterInternal,
-  Operator
-} from './filter';
+import { Pipeline, Pipeline as ApiPipeline } from '../lite-api/pipeline';
+import { doc } from '../lite-api/reference';
 import {
   AddFields,
   Aggregate,
@@ -65,7 +53,29 @@ import {
   Stage,
   Where
 } from '../lite-api/stage';
-import { Pipeline as ApiPipeline } from '../lite-api/pipeline';
+import {
+  CREATE_TIME_NAME,
+  DOCUMENT_KEY_NAME,
+  ResourcePath,
+  UPDATE_TIME_NAME
+} from '../model/path';
+import {
+  isNanValue,
+  isNullValue,
+  VECTOR_MAP_VECTORS_KEY
+} from '../model/values';
+import { debugAssert, fail } from '../util/assert';
+
+import { Bound } from './bound';
+import {
+  CompositeFilter as CompositeFilterInternal,
+  CompositeOperator,
+  FieldFilter as FieldFilterInternal,
+  Filter as FilterInternal,
+  Operator
+} from './filter';
+import { Direction } from './order_by';
+import { CorePipeline } from './pipeline_run';
 import {
   canonifyQuery,
   isCollectionGroupQuery,
@@ -82,17 +92,6 @@ import {
   targetEquals,
   targetIsPipelineTarget
 } from './target';
-import {
-  CREATE_TIME_NAME,
-  DOCUMENT_KEY_NAME,
-  ResourcePath,
-  UPDATE_TIME_NAME
-} from '../model/path';
-import { doc } from '../lite-api/reference';
-import { Direction } from './order_by';
-import { CorePipeline } from './pipeline_run';
-import { Bound } from './bound';
-import { RealtimePipeline } from '../api/realtime_pipeline';
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 

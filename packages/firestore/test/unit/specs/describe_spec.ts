@@ -18,6 +18,8 @@
 import stringify from 'json-stable-stringify';
 import { ExclusiveTestFunction, PendingTestFunction } from 'mocha';
 
+import { Pipeline } from '../../../lite/pipelines/pipelines';
+import { pipelineEq } from '../../../src/core/pipeline-util';
 import { queryEquals, QueryImpl } from '../../../src/core/query';
 import { targetEquals, TargetImpl } from '../../../src/core/target';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
@@ -27,11 +29,6 @@ import { addEqualityMatcher } from '../../util/equality_matcher';
 
 import { SpecBuilder } from './spec_builder';
 import { SpecStep } from './spec_test_runner';
-import {
-  pipelineEq,
-  queryOrPipelineEqual
-} from '../../../src/core/pipeline-util';
-import { Pipeline } from '../../../lite/pipelines/pipelines';
 
 // Disables all other tests; useful for debugging. Multiple tests can have
 // this tag and they'll all be run (but all others won't).

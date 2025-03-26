@@ -66,6 +66,7 @@ import { Dict, forEach, isEmpty } from '../util/obj';
 
 import { Bytes } from './bytes';
 import { Firestore } from './database';
+import { Constant } from './expressions';
 import { FieldPath } from './field_path';
 import { FieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
@@ -76,7 +77,6 @@ import {
 } from './reference';
 import { Timestamp } from './timestamp';
 import { VectorValue } from './vector_value';
-import { Constant } from './expressions';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 

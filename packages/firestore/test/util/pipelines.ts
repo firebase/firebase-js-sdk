@@ -1,4 +1,3 @@
-import { Pipeline as LitePipeline } from '../../src/lite-api/pipeline';
 import {
   canonifyPipeline as canonifyCorePipeline,
   pipelineEq as corePipelineEq,
@@ -9,7 +8,9 @@ import {
   runPipeline as runCorePipeline
 } from '../../src/core/pipeline_run';
 import { Constant } from '../../src/lite-api/expressions';
+import { Pipeline as LitePipeline } from '../../src/lite-api/pipeline';
 import { newUserDataReader } from '../../src/lite-api/user_data_reader';
+
 import { newTestFirestore } from './api_helpers';
 
 export function canonifyPipeline(p: LitePipeline): string {

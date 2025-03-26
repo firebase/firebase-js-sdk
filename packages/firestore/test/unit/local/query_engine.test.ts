@@ -17,11 +17,17 @@
 
 import { expect } from 'chai';
 
+import { ascending, field } from '../../../lite/pipelines/pipelines';
 import { Timestamp } from '../../../src';
 import { User } from '../../../src/auth/user';
 import {
+  isPipeline,
+  QueryOrPipeline,
+  toCorePipeline,
+  toPipeline
+} from '../../../src/core/pipeline-util';
+import {
   LimitType,
-  Query,
   queryToTarget,
   queryWithAddedFilter,
   queryWithAddedOrderBy,
@@ -61,6 +67,7 @@ import {
 } from '../../../src/model/field_index';
 import { Mutation } from '../../../src/model/mutation';
 import { debugAssert } from '../../../src/util/assert';
+import { newTestFirestore } from '../../util/api_helpers';
 import {
   andFilter,
   deleteMutation,
@@ -78,16 +85,6 @@ import {
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
-import {
-  isPipeline,
-  QueryOrPipeline,
-  toCorePipeline,
-  toPipeline
-} from '../../../src/core/pipeline-util';
-import { newTestFirestore } from '../../util/api_helpers';
-import { Pipeline } from '../../../src/lite-api/pipeline';
-import { CorePipeline } from '../../../src/core/pipeline_run';
-import { ascending, field } from '../../../lite/pipelines/pipelines';
 
 const TEST_TARGET_ID = 1;
 
