@@ -19,7 +19,7 @@ import { getUA, isIndexedDBAvailable } from '@firebase/util';
 
 import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug, logError } from '../util/log';
+import { logDebug, logError, logWarn } from '../util/log';
 import { Deferred } from '../util/promise';
 
 import { PersistencePromise } from './persistence_promise';
@@ -359,6 +359,26 @@ export class SimpleDb {
             });
         };
       });
+
+      this.db.addEventListener(
+        'close',
+        () => {
+          // Null out this.db if the IndexedDb database connection is closed
+          // unexpectedly, as opposed to being closed via a call to this.close()
+          // (see dpjg74s26h). Such an unexpected close could occur, for
+          // example, by a user explicitly clearing the storage for a website in
+          // a browser.
+          if (this.db) {
+            this.db = undefined;
+            logWarn(
+              LOG_TAG,
+              'Database unexpectedly closed, ' +
+                'possibly due to browser data being cleared for this web site'
+            );
+          }
+        },
+        { passive: true }
+      );
     }
 
     if (this.versionchangelistener) {
@@ -453,10 +473,11 @@ export class SimpleDb {
   }
 
   close(): void {
-    if (this.db) {
-      this.db.close();
-    }
+    // Set this.db=undefined before calling this.db.close() so that the "close"
+    // event listener (see dpjg74s26h) won't log a spurious warning message.
+    const db = this.db;
     this.db = undefined;
+    db?.close();
   }
 }
 
