@@ -344,7 +344,7 @@ export class GenerativeModel extends VertexAIModel {
 }
 
 // @public
-export function getGenerativeModel(vertexAI: VertexAI, onCloudOrHybridParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
+export function getGenerativeModel(vertexAI: VertexAI, modelParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 
 // @beta
 export function getImagenModel(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
@@ -414,6 +414,13 @@ export enum HarmSeverity {
     HARM_SEVERITY_LOW = "HARM_SEVERITY_LOW",
     HARM_SEVERITY_MEDIUM = "HARM_SEVERITY_MEDIUM",
     HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE"
+}
+
+// @public
+export interface HybridParams {
+    mode?: InferenceMode;
+    onCloudParams?: ModelParams;
+    onDeviceParams?: AILanguageModelCreateOptionsWithSystemPrompt;
 }
 
 // @beta
@@ -498,13 +505,6 @@ export enum ImagenSafetyFilterLevel {
 export interface ImagenSafetySettings {
     personFilterLevel?: ImagenPersonFilterLevel;
     safetyFilterLevel?: ImagenSafetyFilterLevel;
-}
-
-// @public
-export interface HybridParams {
-    mode?: InferenceMode;
-    onCloudParams?: ModelParams;
-    onDeviceParams?: AILanguageModelCreateOptionsWithSystemPrompt;
 }
 
 // @public
