@@ -1966,7 +1966,7 @@ AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY: {
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-An implementation of [Persistence](./auth.persistence.md#persistence_interface) of type 'COOKIE', for use on the client-side in applications leveraging hybrid rendering and middleware.
+An implementation of [Persistence](./auth.persistence.md#persistence_interface) of type `COOKIE`<!-- -->, for use on the client-side in applications leveraging hybrid rendering and middleware.
 
 This persistence method requires companion middleware to function, such as that provided by [ReactFire](https://firebaseopensource.com/projects/firebaseextended/reactfire/) for NextJS.
 
