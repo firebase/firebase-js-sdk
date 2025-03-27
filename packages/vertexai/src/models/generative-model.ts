@@ -43,6 +43,7 @@ import {
 } from '../requests/request-helpers';
 import { VertexAI } from '../public-types';
 import { VertexAIModel } from './vertexai-model';
+import { ChromeAdapter } from '../methods/chrome-adapter';
 
 /**
  * Class for generative model APIs.
@@ -59,6 +60,7 @@ export class GenerativeModel extends VertexAIModel {
   constructor(
     vertexAI: VertexAI,
     modelParams: ModelParams,
+    private chromeAdapter: ChromeAdapter,
     requestOptions?: RequestOptions
   ) {
     super(vertexAI, modelParams.model);
@@ -91,6 +93,7 @@ export class GenerativeModel extends VertexAIModel {
         systemInstruction: this.systemInstruction,
         ...formattedParams
       },
+      this.chromeAdapter,
       this.requestOptions
     );
   }
@@ -128,6 +131,7 @@ export class GenerativeModel extends VertexAIModel {
     return new ChatSession(
       this._apiSettings,
       this.model,
+      this.chromeAdapter,
       {
         tools: this.tools,
         toolConfig: this.toolConfig,

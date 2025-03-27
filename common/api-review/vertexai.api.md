@@ -42,7 +42,8 @@ export class BooleanSchema extends Schema {
 // @public
 export class ChatSession {
     // Warning: (ae-forgotten-export) The symbol "ApiSettings" needs to be exported by the entry point index.d.ts
-    constructor(apiSettings: ApiSettings, model: string, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
+    // Warning: (ae-forgotten-export) The symbol "ChromeAdapter" needs to be exported by the entry point index.d.ts
+    constructor(apiSettings: ApiSettings, model: string, chromeAdapter: ChromeAdapter, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
@@ -324,7 +325,7 @@ export interface GenerativeContentBlob {
 
 // @public
 export class GenerativeModel extends VertexAIModel {
-    constructor(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions);
+    constructor(vertexAI: VertexAI, modelParams: ModelParams, chromeAdapter: ChromeAdapter, requestOptions?: RequestOptions);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
