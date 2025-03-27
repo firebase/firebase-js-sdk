@@ -53,7 +53,7 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.2.52",
+    "@firebase/app-compat": "0.2.53",
     "@types/eslint": "7.29.0",
     "rollup": "2.79.2",
     "rollup-plugin-sourcemaps": "0.6.3",
