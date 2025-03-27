@@ -178,7 +178,7 @@ export async function _performApiRequest<T, V>(
     }
 
     return FetchProvider.fetch()(
-      _getFinalTarget(auth, auth.config.apiHost, path, query),
+      await _getFinalTarget(auth, auth.config.apiHost, path, query),
       fetchArgs
     );
   });
@@ -268,12 +268,12 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
   return serverResponse as V;
 }
 
-export function _getFinalTarget(
+export async function _getFinalTarget(
   auth: Auth,
   host: string,
   path: string,
   query: string
-): string {
+): Promise<string> {
   const base = `${host}${path}?${query}`;
 
   const authInternal = auth as AuthInternal;
@@ -284,13 +284,15 @@ export function _getFinalTarget(
   // Cookie auth works by MiTMing the signIn and token endpoints from the developer's backend,
   // saving the idToken and refreshToken into cookies, and then redacting the refreshToken
   // from the response
-  if (
-    authInternal._getPersistenceType() === PersistenceType.COOKIE &&
-    CookieAuthProxiedEndpoints.includes(path)
-  ) {
-    const cookiePersistence =
-      authInternal._getPersistence() as CookiePersistence;
-    return cookiePersistence._getFinalTarget(finalTarget).toString();
+  if (CookieAuthProxiedEndpoints.includes(path)) {
+    // Persistence manager is async, we need to await it. We can't just wait for auth initialized
+    // here since auth initialization calls this function.
+    await authInternal._persistenceManagerAvailable;
+    if (authInternal._getPersistenceType() === PersistenceType.COOKIE) {
+      const cookiePersistence =
+        authInternal._getPersistence() as CookiePersistence;
+      return cookiePersistence._getFinalTarget(finalTarget).toString();
+    }
   }
 
   return finalTarget;

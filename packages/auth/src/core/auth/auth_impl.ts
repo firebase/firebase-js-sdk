@@ -120,6 +120,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   _tenantRecaptchaConfigs: Record<string, RecaptchaConfig> = {};
   _projectPasswordPolicy: PasswordPolicyInternal | null = null;
   _tenantPasswordPolicies: Record<string, PasswordPolicyInternal> = {};
+  _resolvePersistenceManagerAvailable:
+    | ((value: void | PromiseLike<void>) => void)
+    | undefined = undefined;
+  _persistenceManagerAvailable: Promise<void>;
   readonly name: string;
 
   // Tracks the last notified UID for state change listeners to prevent
@@ -139,6 +143,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   ) {
     this.name = app.name;
     this.clientVersion = config.sdkClientVersion;
+    // TODO(jamesdaniels) explore less hacky way to do this, cookie authentication needs
+    // persistenceMananger to be available. see _getFinalTarget for more context
+    this._persistenceManagerAvailable = new Promise<void>(
+      resolve => (this._resolvePersistenceManagerAvailable = resolve)
+    );
   }
 
   _initializeWithPersistence(
@@ -160,6 +169,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         this,
         persistenceHierarchy
       );
+      this._resolvePersistenceManagerAvailable?.();
 
       if (this._deleted) {
         return;
