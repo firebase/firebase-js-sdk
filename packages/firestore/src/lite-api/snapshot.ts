@@ -330,14 +330,6 @@ export class DocumentSnapshot<
     );
   }
 
-  get createTime(): Timestamp | undefined {
-    return this._document?.createTime.toTimestamp();
-  }
-
-  get readTime(): Timestamp | undefined {
-    return this._document?.readTime.toTimestamp();
-  }
-
   /**
    * Signals whether or not the document at the snapshot's location exists.
    *

@@ -146,14 +146,10 @@ export class DocumentReference<AppModelType = DocumentData, DbModelType extends 
 // @public
 export class DocumentSnapshot<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> {
     protected constructor();
-    // (undocumented)
-    get createTime(): Timestamp | undefined;
     data(): AppModelType | undefined;
     exists(): this is QueryDocumentSnapshot<AppModelType, DbModelType>;
     get(fieldPath: string | FieldPath): any;
     get id(): string;
-    // (undocumented)
-    get readTime(): Timestamp | undefined;
     get ref(): DocumentReference<AppModelType, DbModelType>;
 }
 
