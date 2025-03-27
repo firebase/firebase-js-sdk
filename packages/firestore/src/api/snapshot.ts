@@ -521,7 +521,7 @@ export class DocumentSnapshot<
       'previous'
     );
     builder.addBundleDocument(
-      ToDocumentSnapshotBundleData(this.ref.path, documentData, document)
+      documentToDocumentSnapshotBundleData(this.ref.path, documentData, document)
     );
     return { bundle: builder.build() };
   }
@@ -700,7 +700,7 @@ export class QuerySnapshot<
         'previous'
       );
       docBundleDataArray.push(
-        ToDocumentSnapshotBundleData(doc.ref.path, documentData, doc._document)
+        documentToDocumentSnapshotBundleData(doc.ref.path, documentData, doc._document)
       );
     });
     const bundleData: QuerySnapshotBundleData = {
@@ -852,7 +852,7 @@ export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(
 }
 
 // Formats Document data for bundling a DocumentSnapshot.
-function ToDocumentSnapshotBundleData(
+function documentToDocumentSnapshotBundleData(
   path: string,
   documentData: DocumentData,
   document: Document
