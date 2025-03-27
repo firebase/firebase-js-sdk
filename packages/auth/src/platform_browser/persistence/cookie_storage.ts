@@ -27,12 +27,14 @@ import {
   StorageEventListener
 } from '../../core/persistence';
 
+// Pull a cookie value from document.cookie
 function getDocumentCookie(name: string): string | null {
   const escapedName = name.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&');
   const matcher = RegExp(`${escapedName}=([^;]+)`);
   return document.cookie.match(matcher)?.[1] ?? null;
 }
 
+// Produce a sanitized cookie name from the persistence key
 function getCookieName(key: string): string {
   // __HOST- doesn't work in localhost https://issues.chromium.org/issues/40196122 but it has
   // desirable security properties, so lets use a different cookie name while in dev-mode.
@@ -46,6 +48,7 @@ export class CookiePersistence implements PersistenceInternal {
   readonly type = PersistenceType.COOKIE;
   listenerUnsubscribes: Map<StorageEventListener, () => void> = new Map();
 
+  // used to get the URL to the backend to proxy to
   _getFinalTarget(originalUrl: string): URL | string {
     if (typeof window === undefined) {
       return originalUrl;
@@ -55,6 +58,9 @@ export class CookiePersistence implements PersistenceInternal {
     return url;
   }
 
+  // To be a usable persistence method in a chain browserCookiePersistence ensures that
+  // prerequisites have been met, namely that we're in a secureContext, navigator and document are
+  // available and cookies are enabled. Not all UAs support these method, so fallback accordingly.
   async _isAvailable(): Promise<boolean> {
     if (typeof isSecureContext === 'boolean' && !isSecureContext) {
       return false;
@@ -65,10 +71,12 @@ export class CookiePersistence implements PersistenceInternal {
     return navigator.cookieEnabled ?? true;
   }
 
+  // Set should be a noop as we expect middleware to handle this
   async _set(_key: string, _value: PersistenceValue): Promise<void> {
     return;
   }
 
+  // Attempt to get the cookie from cookieStore, fallback to document.cookie
   async _get<T extends PersistenceValue>(key: string): Promise<T | null> {
     if (!this._isAvailable()) {
       return null;
@@ -81,6 +89,7 @@ export class CookiePersistence implements PersistenceInternal {
     return getDocumentCookie(name) as T;
   }
 
+  // Log out by overriding the idToken with a sentinel value of ""
   async _remove(key: string): Promise<void> {
     if (!this._isAvailable()) {
       return;
@@ -97,6 +106,7 @@ export class CookiePersistence implements PersistenceInternal {
     await fetch(`/__cookies__`, { method: 'DELETE' }).catch(() => undefined);
   }
 
+  // Listen for cookie changes, both cookieStore and fallback to polling document.cookie
   _addListener(key: string, listener: StorageEventListener): void {
     if (!this._isAvailable()) {
       return;
