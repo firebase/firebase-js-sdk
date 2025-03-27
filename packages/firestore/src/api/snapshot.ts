@@ -521,7 +521,11 @@ export class DocumentSnapshot<
       'previous'
     );
     builder.addBundleDocument(
-      documentToDocumentSnapshotBundleData(this.ref.path, documentData, document)
+      documentToDocumentSnapshotBundleData(
+        this.ref.path,
+        documentData,
+        document
+      )
     );
     return { bundle: builder.build() };
   }
@@ -700,7 +704,11 @@ export class QuerySnapshot<
         'previous'
       );
       docBundleDataArray.push(
-        documentToDocumentSnapshotBundleData(doc.ref.path, documentData, doc._document)
+        documentToDocumentSnapshotBundleData(
+          doc.ref.path,
+          documentData,
+          doc._document
+        )
       );
     });
     const bundleData: QuerySnapshotBundleData = {

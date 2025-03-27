@@ -17,7 +17,6 @@
 
 import { Compat, getModularInstance } from '@firebase/util';
 
-import { Timestamp } from '../lite-api/timestamp';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath as InternalFieldPath } from '../model/path';

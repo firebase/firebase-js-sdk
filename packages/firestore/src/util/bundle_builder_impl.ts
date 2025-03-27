@@ -61,8 +61,10 @@ export class BundleBuilder {
   // The latest read time among all bundled documents and queries.
   private latestReadTime = new Timestamp(0, 0);
 
+  // Database identifier which is part of the serialized bundle.
   private databaseId: DatabaseId;
 
+  // Tools to convert public data types into their serialized form.
   private readonly serializer: JsonProtoSerializer;
   private readonly userDataReader: UserDataReader;
 
@@ -81,31 +83,6 @@ export class BundleBuilder {
       true,
       this.serializer
     );
-  }
-
-  private toBundleDocument(
-    docBundleData: DocumentSnapshotBundleData
-  ): ProtoDocument {
-    // TODO handle documents that have mutations
-    debugAssert(
-      !docBundleData.documentData.hasLocalMutations,
-      "Can't serialize documents with mutations."
-    );
-
-    // a parse context is typically used for validating and parsing user data, but in this
-    // case we are using it internally to convert DocumentData to Proto3 JSON
-    const context = this.userDataReader.createContext(
-      UserDataSource.ArrayArgument,
-      'internal toBundledDocument'
-    );
-    const proto3Fields = parseObject(docBundleData.documentData, context);
-
-    return {
-      name: toName(this.serializer, docBundleData.documentKey),
-      fields: proto3Fields.mapValue.fields,
-      updateTime: toTimestamp(this.serializer, docBundleData.versionTime),
-      createTime: toTimestamp(this.serializer, docBundleData.createdTime)
-    };
   }
 
   /**
@@ -189,6 +166,38 @@ export class BundleBuilder {
   }
 
   /**
+   * Convert data from a DocumentSnapshot into the serialized form within a bundle.
+   * @private
+   * @internal
+   * @param docBundleData a DocumentSnapshotBundleData containing the data required to
+   * serialize a document.
+   */
+  private toBundleDocument(
+    docBundleData: DocumentSnapshotBundleData
+  ): ProtoDocument {
+    // TODO handle documents that have mutations
+    debugAssert(
+      !docBundleData.documentData.hasLocalMutations,
+      "Can't serialize documents with mutations."
+    );
+
+    // a parse context is typically used for validating and parsing user data, but in this
+    // case we are using it internally to convert DocumentData to Proto3 JSON
+    const context = this.userDataReader.createContext(
+      UserDataSource.ArrayArgument,
+      'internal toBundledDocument'
+    );
+    const proto3Fields = parseObject(docBundleData.documentData, context);
+
+    return {
+      name: toName(this.serializer, docBundleData.documentKey),
+      fields: proto3Fields.mapValue.fields,
+      updateTime: toTimestamp(this.serializer, docBundleData.versionTime),
+      createTime: toTimestamp(this.serializer, docBundleData.createdTime)
+    };
+  }
+
+  /**
    * Converts a IBundleElement to a Buffer whose content is the length prefixed JSON representation
    * of the element.
    * @private
@@ -205,6 +214,11 @@ export class BundleBuilder {
     return `${l}${str}`;
   }
 
+  /**
+   * Construct a serialized string containing document and query information that has previously
+   * been added to the BundleBuilder through the addBundleDocument and addBundleQuery methods.
+   * @internal
+   */
   build(): string {
     let bundleString = '';
 

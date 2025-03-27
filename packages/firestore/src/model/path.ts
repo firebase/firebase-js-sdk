@@ -26,7 +26,7 @@ export const DOCUMENT_KEY_NAME = '__name__';
  * Path represents an ordered sequence of string segments.
  */
 abstract class BasePath<B extends BasePath<B>> {
-  protected segments: string[];
+  private segments: string[];
   private offset: number;
   private len: number;
 
