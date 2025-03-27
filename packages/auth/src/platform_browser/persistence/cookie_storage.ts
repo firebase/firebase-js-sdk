@@ -56,7 +56,7 @@ export class CookiePersistence implements PersistenceInternal {
   }
 
   async _isAvailable(): Promise<boolean> {
-    if (typeof isSecureContext === "boolean" && !isSecureContext) {
+    if (typeof isSecureContext === 'boolean' && !isSecureContext) {
       return false;
     }
     if (typeof navigator === 'undefined' || typeof document === 'undefined') {

@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  FirebaseError,
-  isCloudflareWorker,
-  querystring
-} from '@firebase/util';
+import { FirebaseError, isCloudflareWorker, querystring } from '@firebase/util';
 
 import { AuthErrorCode, NamedErrorParams } from '../core/errors';
 import {
