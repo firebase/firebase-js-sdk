@@ -1,5 +1,11 @@
 ## Unreleased
 
+## 0.3.3
+
+### Patch Changes
+
+- [`edb4001`](https://github.com/firebase/firebase-js-sdk/commit/edb40010bb480806b26f48601b65f4257ffed2df) [#8821](https://github.com/firebase/firebase-js-sdk/pull/8821) - Expose partial errors to the user.
+
 ## 0.3.2
 
 ### Patch Changes
