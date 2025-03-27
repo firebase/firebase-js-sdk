@@ -34,10 +34,11 @@ function getDocumentCookie(name: string): string | null {
 }
 
 function getCookieName(key: string): string {
-  // TODO at least remove apikey from the cookie name
-  //      good to prefix with __Host- or __Secure- too
-  //      we may want to produce a public API to be able to get the idToken cookie name
-  return key;
+  // __HOST- doesn't work in localhost https://issues.chromium.org/issues/40196122 but it has
+  // desirable security properties, so lets use a different cookie name while in dev-mode.
+  // Already checked isSecureContext in _isAvailable, so if it's http we're hitting local.
+  const isDevMode = window.location.protocol === 'http:';
+  return `${isDevMode ? '__dev_' : '__HOST-'}FIREBASE_${key.split(':')[3]}`;
 }
 
 export class CookiePersistence implements PersistenceInternal {
@@ -45,16 +46,19 @@ export class CookiePersistence implements PersistenceInternal {
   readonly type = PersistenceType.COOKIE;
   listenerUnsubscribes: Map<StorageEventListener, () => void> = new Map();
 
-  // TODO define hostname in the constructor
   _getFinalTarget(originalUrl: string): URL | string {
     if (typeof window === undefined) {
       return originalUrl;
     }
-    return new URL(`${window.location.origin}/__cookies__`);
+    const url = new URL(`${window.location.origin}/__cookies__`);
+    url.searchParams.set('finalTarget', originalUrl);
+    return url;
   }
 
   async _isAvailable(): Promise<boolean> {
-    // TODO isSecureContext
+    if (typeof isSecureContext === "boolean" && !isSecureContext) {
+      return false;
+    }
     if (typeof navigator === 'undefined' || typeof document === 'undefined') {
       return false;
     }
@@ -81,17 +85,15 @@ export class CookiePersistence implements PersistenceInternal {
     if (!this._isAvailable()) {
       return;
     }
-    // TODO migrate to a third cookie for logout
-    const name = getCookieName(key);
-    if (window.cookieStore) {
-      const cookie = await window.cookieStore.get(name);
-      if (!cookie) {
-        return;
-      }
-      await window.cookieStore.delete(cookie);
-    } else {
-      document.cookie = `${name}=;Max-Age=34560000;Partitioned;Secure;SameSite=Strict;Path=/`;
+    // To make sure we don't hit signout over and over again, only do this operation if we need to
+    // with the logout sentinel value of "" this can cause race conditions. Unnecessary set-cookie
+    // headers will reduce CDN hit rates too.
+    const existingValue = await this._get(key);
+    if (!existingValue) {
+      return;
     }
+    const name = getCookieName(key);
+    document.cookie = `${name}=;Max-Age=34560000;Partitioned;Secure;SameSite=Strict;Path=/;Priority=High`;
     await fetch(`/__cookies__`, { method: 'DELETE' }).catch(() => undefined);
   }
 
