@@ -258,6 +258,9 @@ export interface AuthSettings {
 // @public
 export function beforeAuthStateChanged(auth: Auth, callback: (user: User | null) => void | Promise<void>, onAbort?: () => void): Unsubscribe;
 
+// @beta
+export const browserCookiePersistence: Persistence;
+
 // @public
 export const browserLocalPersistence: Persistence;
 
@@ -596,7 +599,7 @@ export interface PasswordValidationStatus {
 
 // @public
 export interface Persistence {
-    readonly type: 'SESSION' | 'LOCAL' | 'NONE';
+    readonly type: 'SESSION' | 'LOCAL' | 'NONE' | 'COOKIE';
 }
 
 // @public

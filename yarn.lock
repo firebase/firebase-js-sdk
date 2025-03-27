@@ -5875,6 +5875,11 @@ cookie-signature@1.0.6:
   resolved "https://registry.npmjs.org/cookie-signature/-/cookie-signature-1.0.6.tgz#e303a882b342cc3ee8ca513a79999734dab3ae2c"
   integrity sha512-QADzlaHc8icV8I7vbaJXJwod9HWYp8uCqf1xa4OfNu1T7JVxQIrUgOWtHdNDtPiywmFbiS12VjotIXLrKM3orQ==
 
+cookie-store@4.0.0-next.4:
+  version "4.0.0-next.4"
+  resolved "https://registry.npmjs.org/cookie-store/-/cookie-store-4.0.0-next.4.tgz#8b13981bfd93e10e30694e9816928f8c478a326b"
+  integrity sha512-RVcIK13cCiAa+rsxAbFhrIThn1eBcgt9WTyLq539zMafDnhdGb6u/O5JdMTC3/pcJVqqHJmctiWxAYPpwT/fxw==
+
 cookie@0.6.0:
   version "0.6.0"
   resolved "https://registry.npmjs.org/cookie/-/cookie-0.6.0.tgz#2798b04b071b0ecbff0dbb62a505a8efa4e19051"
