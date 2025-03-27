@@ -76,22 +76,22 @@ export function getGenerativeModel(
 ): GenerativeModel {
   // Uses the existence of HybridParams.mode to clarify the type of the modelParams input.
   const hybridParams = modelParams as HybridParams;
-  let onCloudParams: ModelParams;
+  let inCloudParams: ModelParams;
   if (hybridParams.mode) {
-    onCloudParams = hybridParams.onCloudParams || {
+    inCloudParams = hybridParams.inCloudParams || {
       model: 'gemini-2.0-flash-lite'
     };
   } else {
-    onCloudParams = modelParams as ModelParams;
+    inCloudParams = modelParams as ModelParams;
   }
 
-  if (!onCloudParams.model) {
+  if (!inCloudParams.model) {
     throw new VertexAIError(
       VertexAIErrorCode.NO_MODEL,
       `Must provide a model name. Example: getGenerativeModel({ model: 'my-model-name' })`
     );
   }
-  return new GenerativeModel(vertexAI, onCloudParams, requestOptions);
+  return new GenerativeModel(vertexAI, inCloudParams, requestOptions);
 }
 
 /**

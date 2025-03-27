@@ -242,12 +242,12 @@ export enum Modality {
 }
 
 /**
- * Determines whether inference happens on-device or on-cloud.
+ * Determines whether inference happens on-device or in-cloud.
  * @public
  */
 export enum InferenceMode {
   /**
-   * Uses the on-device model if available, or falls back to the on-cloud model.
+   * Uses the on-device model if available, or falls back to the in-cloud model.
    */
   PREFER_ON_DEVICE = 'PREFER_ON_DEVICE',
 
@@ -257,7 +257,7 @@ export enum InferenceMode {
   ONLY_ON_DEVICE = 'ONLY_ON_DEVICE',
 
   /**
-   * Exclusively uses the on-cloud model.
+   * Exclusively uses the in-cloud model.
    */
-  ONLY_ON_CLOUD = 'ONLY_ON_CLOUD'
+  ONLY_IN_CLOUD = 'ONLY_IN_CLOUD'
 }

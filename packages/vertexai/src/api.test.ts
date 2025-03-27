@@ -108,8 +108,8 @@ describe('Top level API', () => {
   });
   it('getGenerativeModel with HybridParams sets the model', () => {
     const genModel = getGenerativeModel(fakeVertexAI, {
-      mode: InferenceMode.ONLY_ON_CLOUD,
-      onCloudParams: { model: 'my-model' }
+      mode: InferenceMode.ONLY_IN_CLOUD,
+      inCloudParams: { model: 'my-model' }
     });
     expect(genModel.model).to.equal('publishers/google/models/my-model');
   });
