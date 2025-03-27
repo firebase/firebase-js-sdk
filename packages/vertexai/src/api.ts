@@ -71,18 +71,18 @@ export function getVertexAI(
  */
 export function getGenerativeModel(
   vertexAI: VertexAI,
-  onCloudOrHybridParams: ModelParams | HybridParams,
+  modelParams: ModelParams | HybridParams,
   requestOptions?: RequestOptions
 ): GenerativeModel {
-  // Disambiguates onCloudOrHybridParams input.
-  const hybridParams = onCloudOrHybridParams as HybridParams;
+  // Uses the existence of HybridParams.mode to clarify the type of the modelParams input.
+  const hybridParams = modelParams as HybridParams;
   let onCloudParams: ModelParams;
   if (hybridParams.mode) {
     onCloudParams = hybridParams.onCloudParams || {
       model: 'gemini-2.0-flash-lite'
     };
   } else {
-    onCloudParams = onCloudOrHybridParams as ModelParams;
+    onCloudParams = modelParams as ModelParams;
   }
 
   if (!onCloudParams.model) {
