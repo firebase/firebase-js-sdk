@@ -37,7 +37,7 @@ import {
 import { keys } from '../../util/helpers';
 
 describe('Bundle', () => {
-  it('loadBundle silently exits with an empty bundle string)', async () => {
+  it('loadBundle does not throw with an empty bundle string)', async () => {
     const db = newTestFirestore();
     expect(async () => {
       await loadBundle(db, '');
