@@ -520,7 +520,7 @@ export class DocumentSnapshot<
       document.data.value.mapValue.fields,
       'previous'
     );
-    if (documentData.hasPendingWrites) {
+    if (this.metadata.hasPendingWrites) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'DocumentSnapshot.toJSON attempted to serialize a document with pending writes. ' +
@@ -710,7 +710,7 @@ export class QuerySnapshot<
         doc._document.data.value.mapValue.fields,
         'previous'
       );
-      if (documentData.hasPendingWrites) {
+      if (this.metadata.hasPendingWrites) {
         throw new FirestoreError(
           Code.FAILED_PRECONDITION,
           'QuerySnapshot.toJSON attempted to serialize a document with pending writes. ' +
