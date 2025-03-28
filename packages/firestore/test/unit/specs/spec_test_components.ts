@@ -25,7 +25,7 @@ import {
   MultiTabOfflineComponentProvider
 } from '../../../src/core/component_provider';
 import { Observer } from '../../../src/core/event_manager';
-import { Query } from '../../../src/core/query';
+import { QueryOrPipeline } from '../../../src/core/pipeline-util';
 import { ViewSnapshot } from '../../../src/core/view_snapshot';
 import {
   indexedDbStoragePrefix,
@@ -442,7 +442,7 @@ export class MockConnection implements Connection {
  */
 export class EventAggregator implements Observer<ViewSnapshot> {
   constructor(
-    private query: Query,
+    private query: QueryOrPipeline,
     private pushEvent: (e: QueryEvent) => void
   ) {}
 
@@ -488,7 +488,7 @@ export class SharedWriteTracker {
  * or an error for the given query.
  */
 export interface QueryEvent {
-  query: Query;
+  query: QueryOrPipeline;
   view?: ViewSnapshot;
   error?: FirestoreError;
 }

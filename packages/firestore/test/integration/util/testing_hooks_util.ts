@@ -29,16 +29,16 @@ import {
  * @return the captured existence filter mismatches and the result of awaiting
  * the given callback.
  */
-export async function captureExistenceFilterMismatches<T>(
-  callback: () => Promise<T>
-): Promise<[ExistenceFilterMismatchInfo[], T]> {
+export async function captureExistenceFilterMismatches<T, S>(
+  callback: () => Promise<T> | Promise<S>
+): Promise<[ExistenceFilterMismatchInfo[], T | S]> {
   const results: ExistenceFilterMismatchInfo[] = [];
 
   const unregister = TestingHooks.onExistenceFilterMismatch(info =>
     results.push(createExistenceFilterMismatchInfoFrom(info))
   );
 
-  let callbackResult: T;
+  let callbackResult: T | S;
   try {
     callbackResult = await callback();
   } finally {
