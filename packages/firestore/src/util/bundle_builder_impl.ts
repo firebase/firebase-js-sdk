@@ -128,9 +128,7 @@ export class BundleBuilder {
     if (queryName) {
       const newDocument = this.documents.get(docBundleData.documentPath)!;
       newDocument.metadata.queries = originalQueries || [];
-      if (queryName) {
-        newDocument.metadata.queries!.push(queryName);
-      }
+      newDocument.metadata.queries!.push(queryName);
     }
   }
 
