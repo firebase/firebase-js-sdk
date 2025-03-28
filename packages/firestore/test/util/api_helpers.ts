@@ -79,8 +79,12 @@ export function documentReference(path: string): DocumentReference {
 export function documentSnapshot(
   path: string,
   data: JsonObject<unknown> | null,
-  fromCache: boolean
+  fromCache: boolean,
+  hasPendingWrites?: boolean
 ): DocumentSnapshot {
+  if (hasPendingWrites === undefined) {
+    hasPendingWrites = false;
+  }
   const db = firestore();
   const userDataWriter = new ExpUserDataWriter(db);
   if (data) {
@@ -89,7 +93,7 @@ export function documentSnapshot(
       userDataWriter,
       key(path),
       doc(path, 1, data),
-      new SnapshotMetadata(/* hasPendingWrites= */ false, fromCache),
+      new SnapshotMetadata(hasPendingWrites, fromCache),
       /* converter= */ null
     );
   } else {
@@ -98,7 +102,7 @@ export function documentSnapshot(
       userDataWriter,
       key(path),
       null,
-      new SnapshotMetadata(/* hasPendingWrites= */ false, fromCache),
+      new SnapshotMetadata(hasPendingWrites, fromCache),
       /* converter= */ null
     );
   }

@@ -178,6 +178,8 @@ export class DocumentSnapshot<AppModelType = DocumentData, DbModelType extends D
     get id(): string;
     readonly metadata: SnapshotMetadata;
     get ref(): DocumentReference<AppModelType, DbModelType>;
+    // (undocumented)
+    toJSON(): object;
 }
 
 export { EmulatorMockTokenOptions }
@@ -610,6 +612,8 @@ export class QuerySnapshot<AppModelType = DocumentData, DbModelType extends Docu
     readonly metadata: SnapshotMetadata;
     readonly query: Query<AppModelType, DbModelType>;
     get size(): number;
+    // (undocumented)
+    toJSON(): object;
 }
 
 // @public
