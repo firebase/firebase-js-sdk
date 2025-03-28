@@ -42,6 +42,7 @@ import {
   QuerySnapshotBundleData
 } from '../util/bundle_builder_impl';
 import { Code, FirestoreError } from '../util/error';
+import { logWarn } from '../util/log';
 import { AutoId } from '../util/misc';
 
 import { Firestore } from './database';
@@ -520,6 +521,11 @@ export class DocumentSnapshot<
       document.data.value.mapValue.fields,
       'previous'
     );
+    if (documentData.hasPendingWrites) {
+      logWarn(
+        'DocumentSnapshot.toJSON serialized a document with pending writes. The pending writes will not be serialized.'
+      );
+    }
     builder.addBundleDocument(
       documentToDocumentSnapshotBundleData(
         this.ref.path,
@@ -703,6 +709,11 @@ export class QuerySnapshot<
         doc._document.data.value.mapValue.fields,
         'previous'
       );
+      if (documentData.hasPendingWrites) {
+        logWarn(
+          'QuerySnapshot.toJSON serialized a document with pending writes. The pending writes will not be serialized.'
+        );
+      }
       docBundleDataArray.push(
         documentToDocumentSnapshotBundleData(
           doc.ref.path,

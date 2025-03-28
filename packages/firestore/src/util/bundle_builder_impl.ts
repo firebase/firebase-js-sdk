@@ -107,7 +107,9 @@ export class BundleBuilder {
       : null;
 
     const neitherHasReadTime: boolean = !docReadTime && origDocReadTime == null;
-    const docIsNewer: boolean = docReadTime !== undefined && (origDocReadTime == null || origDocReadTime < docReadTime);
+    const docIsNewer: boolean =
+      docReadTime !== undefined &&
+      (origDocReadTime == null || origDocReadTime < docReadTime);
     if (neitherHasReadTime || docIsNewer) {
       // Store document.
       this.documents.set(docBundleData.documentPath, {
@@ -120,7 +122,7 @@ export class BundleBuilder {
           exists: docBundleData.documentExists
         }
       });
-    } 
+    }
     if (docReadTime && docReadTime > this.latestReadTime) {
       this.latestReadTime = docReadTime;
     }
@@ -176,12 +178,6 @@ export class BundleBuilder {
   private toBundleDocument(
     docBundleData: DocumentSnapshotBundleData
   ): ProtoDocument {
-    // TODO handle documents that have mutations
-    debugAssert(
-      !docBundleData.documentData.hasLocalMutations,
-      "Can't serialize documents with mutations."
-    );
-
     // a parse context is typically used for validating and parsing user data, but in this
     // case we are using it internally to convert DocumentData to Proto3 JSON
     const context = this.userDataReader.createContext(
