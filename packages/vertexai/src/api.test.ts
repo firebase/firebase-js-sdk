@@ -14,7 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ImagenModelParams, ModelParams, VertexAIErrorCode } from './types';
+import {
+  ImagenModelParams,
+  InferenceMode,
+  ModelParams,
+  VertexAIErrorCode
+} from './types';
 import { VertexAIError } from './errors';
 import { ImagenModel, getGenerativeModel, getImagenModel } from './api';
 import { expect } from 'chai';
@@ -99,6 +104,21 @@ describe('Top level API', () => {
   it('getGenerativeModel gets a GenerativeModel', () => {
     const genModel = getGenerativeModel(fakeVertexAI, { model: 'my-model' });
     expect(genModel).to.be.an.instanceOf(GenerativeModel);
+    expect(genModel.model).to.equal('publishers/google/models/my-model');
+  });
+  it('getGenerativeModel with HybridParams sets a default model', () => {
+    const genModel = getGenerativeModel(fakeVertexAI, {
+      mode: InferenceMode.ONLY_ON_DEVICE
+    });
+    expect(genModel.model).to.equal(
+      `publishers/google/models/${GenerativeModel.DEFAULT_HYBRID_IN_CLOUD_MODEL}`
+    );
+  });
+  it('getGenerativeModel with HybridParams honors a model override', () => {
+    const genModel = getGenerativeModel(fakeVertexAI, {
+      mode: InferenceMode.ONLY_IN_CLOUD,
+      inCloudParams: { model: 'my-model' }
+    });
     expect(genModel.model).to.equal('publishers/google/models/my-model');
   });
   it('getImagenModel throws if no model is provided', () => {

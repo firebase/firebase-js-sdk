@@ -49,6 +49,10 @@ import { VertexAIModel } from './vertexai-model';
  * @public
  */
 export class GenerativeModel extends VertexAIModel {
+  /**
+   * Defines the name of the default in-cloud model to use for hybrid inference.
+   */
+  static DEFAULT_HYBRID_IN_CLOUD_MODEL = 'gemini-2.0-flash-lite';
   generationConfig: GenerationConfig;
   safetySettings: SafetySetting[];
   requestOptions?: RequestOptions;
