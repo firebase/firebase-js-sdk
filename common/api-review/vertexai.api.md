@@ -326,6 +326,7 @@ export interface GenerativeContentBlob {
 export class GenerativeModel extends VertexAIModel {
     constructor(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
+    static DEFAULT_HYBRID_IN_CLOUD_MODEL: string;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
     // (undocumented)
@@ -418,13 +419,9 @@ export enum HarmSeverity {
 
 // @public
 export interface HybridParams {
-    // (undocumented)
-    mode?: InferenceMode;
-    // (undocumented)
-    onCloudParams?: ModelParams;
+    inCloudParams?: ModelParams;
+    mode: InferenceMode;
     // Warning: (ae-forgotten-export) The symbol "LanguageModelCreateOptions" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
     onDeviceParams?: LanguageModelCreateOptions;
 }
 
@@ -514,11 +511,8 @@ export interface ImagenSafetySettings {
 
 // @public
 export enum InferenceMode {
-    // (undocumented)
-    ONLY_ON_CLOUD = "ONLY_ON_CLOUD",
-    // (undocumented)
+    ONLY_IN_CLOUD = "ONLY_IN_CLOUD",
     ONLY_ON_DEVICE = "ONLY_ON_DEVICE",
-    // (undocumented)
     PREFER_ON_DEVICE = "PREFER_ON_DEVICE"
 }
 

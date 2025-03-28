@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # HybridParams interface
-Configures on-device and on-cloud inference.
+Toggles hybrid inference.
 
 <b>Signature:</b>
 
@@ -22,27 +22,33 @@ export interface HybridParams
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [mode](./vertexai.hybridparams.md#hybridparamsmode) | [InferenceMode](./vertexai.md#inferencemode) |  |
-|  [onCloudParams](./vertexai.hybridparams.md#hybridparamsoncloudparams) | [ModelParams](./vertexai.modelparams.md#modelparams_interface) |  |
-|  [onDeviceParams](./vertexai.hybridparams.md#hybridparamsondeviceparams) | LanguageModelCreateOptions |  |
+|  [inCloudParams](./vertexai.hybridparams.md#hybridparamsincloudparams) | [ModelParams](./vertexai.modelparams.md#modelparams_interface) | Optional. Specifies advanced params for in-cloud inference. |
+|  [mode](./vertexai.hybridparams.md#hybridparamsmode) | [InferenceMode](./vertexai.md#inferencemode) | Specifies on-device or in-cloud inference. Defaults to prefer on-device. |
+|  [onDeviceParams](./vertexai.hybridparams.md#hybridparamsondeviceparams) | LanguageModelCreateOptions | Optional. Specifies advanced params for on-device inference. |
+
+## HybridParams.inCloudParams
+
+Optional. Specifies advanced params for in-cloud inference.
+
+<b>Signature:</b>
+
+```typescript
+inCloudParams?: ModelParams;
+```
 
 ## HybridParams.mode
 
-<b>Signature:</b>
-
-```typescript
-mode?: InferenceMode;
-```
-
-## HybridParams.onCloudParams
+Specifies on-device or in-cloud inference. Defaults to prefer on-device.
 
 <b>Signature:</b>
 
 ```typescript
-onCloudParams?: ModelParams;
+mode: InferenceMode;
 ```
 
 ## HybridParams.onDeviceParams
+
+Optional. Specifies advanced params for on-device inference.
 
 <b>Signature:</b>
 
