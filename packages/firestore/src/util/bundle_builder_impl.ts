@@ -105,7 +105,9 @@ export class BundleBuilder {
       : null;
 
     const neitherHasReadTime: boolean = !docReadTime && origDocReadTime == null;
-    const docIsNewer: boolean = docReadTime !== undefined && (origDocReadTime == null || origDocReadTime < docReadTime);
+    const docIsNewer: boolean =
+      docReadTime !== undefined &&
+      (origDocReadTime == null || origDocReadTime < docReadTime);
     if (neitherHasReadTime || docIsNewer) {
       // Store document.
       this.documents.set(docBundleData.documentPath, {
@@ -118,7 +120,7 @@ export class BundleBuilder {
           exists: docBundleData.documentExists
         }
       });
-    } 
+    }
     if (docReadTime && docReadTime > this.latestReadTime) {
       this.latestReadTime = docReadTime;
     }
