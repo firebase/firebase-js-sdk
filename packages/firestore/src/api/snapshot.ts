@@ -42,7 +42,6 @@ import {
   QuerySnapshotBundleData
 } from '../util/bundle_builder_impl';
 import { Code, FirestoreError } from '../util/error';
-import { logWarn } from '../util/log';
 import { AutoId } from '../util/misc';
 
 import { Firestore } from './database';
@@ -522,8 +521,10 @@ export class DocumentSnapshot<
       'previous'
     );
     if (documentData.hasPendingWrites) {
-      logWarn(
-        'DocumentSnapshot.toJSON serialized a document with pending writes. The pending writes will not be serialized.'
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'DocumentSnapshot.toJSON attempted to serialize a document with pending writes. ' +
+          'Await `waitForPendingWrites()` before invoking `toJSON()`.'
       );
     }
     builder.addBundleDocument(
@@ -710,8 +711,10 @@ export class QuerySnapshot<
         'previous'
       );
       if (documentData.hasPendingWrites) {
-        logWarn(
-          'QuerySnapshot.toJSON serialized a document with pending writes. The pending writes will not be serialized.'
+        throw new FirestoreError(
+          Code.FAILED_PRECONDITION,
+          'QuerySnapshot.toJSON attempted to serialize a document with pending writes. ' +
+            'Await `waitForPendingWrites()` before invoking `toJSON()`.'
         );
       }
       docBundleDataArray.push(

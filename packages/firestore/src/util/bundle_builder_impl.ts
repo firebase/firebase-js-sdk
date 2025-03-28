@@ -46,8 +46,6 @@ import {
 } from '../protos/firestore_proto_api';
 import { AutoId } from '../util/misc';
 
-import { debugAssert } from './assert';
-
 const BUNDLE_VERSION = 1;
 
 /**
@@ -107,9 +105,7 @@ export class BundleBuilder {
       : null;
 
     const neitherHasReadTime: boolean = !docReadTime && origDocReadTime == null;
-    const docIsNewer: boolean =
-      docReadTime !== undefined &&
-      (origDocReadTime == null || origDocReadTime < docReadTime);
+    const docIsNewer: boolean = docReadTime !== undefined && (origDocReadTime == null || origDocReadTime < docReadTime);
     if (neitherHasReadTime || docIsNewer) {
       // Store document.
       this.documents.set(docBundleData.documentPath, {
@@ -122,7 +118,7 @@ export class BundleBuilder {
           exists: docBundleData.documentExists
         }
       });
-    }
+    } 
     if (docReadTime && docReadTime > this.latestReadTime) {
       this.latestReadTime = docReadTime;
     }
