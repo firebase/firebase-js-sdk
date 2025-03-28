@@ -79,7 +79,7 @@ export function getGenerativeModel(
   let inCloudParams: ModelParams;
   if (hybridParams.mode) {
     inCloudParams = hybridParams.inCloudParams || {
-      model: 'gemini-2.0-flash-lite'
+      model: GenerativeModel.DEFAULT_HYBRID_IN_CLOUD_MODEL
     };
   } else {
     inCloudParams = modelParams as ModelParams;

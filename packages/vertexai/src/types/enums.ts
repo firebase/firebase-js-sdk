@@ -243,7 +243,6 @@ export enum Modality {
 
 /**
  * Determines whether inference happens on-device or in-cloud.
- * @public
  */
 export enum InferenceMode {
   /**
