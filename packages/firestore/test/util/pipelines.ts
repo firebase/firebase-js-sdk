@@ -12,6 +12,8 @@ import { Pipeline as LitePipeline } from '../../src/lite-api/pipeline';
 import { newUserDataReader } from '../../src/lite-api/user_data_reader';
 
 import { newTestFirestore } from './api_helpers';
+import { RealtimePipeline } from '../../src/api/realtime_pipeline';
+import { Stage } from '../../src/lite-api/stage';
 
 export function canonifyPipeline(p: LitePipeline): string {
   return canonifyCorePipeline(toCorePipeline(p));
@@ -40,4 +42,9 @@ export function constantMap(values: Record<string, unknown>): Constant {
   const result = new Constant(values);
   result._readUserData(newUserDataReader(db));
   return result;
+}
+
+export function pipelineFromStages(stages: Stage[]): RealtimePipeline {
+  const db = newTestFirestore();
+  return db.realtimePipeline()._createPipeline(stages);
 }

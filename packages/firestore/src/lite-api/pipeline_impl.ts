@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { RealtimePipeline } from '../api/realtime_pipeline';
 import { invokeExecutePipeline } from '../remote/datastore';
 
 import { getDatastore } from './components';
@@ -30,6 +31,7 @@ import { newUserDataReader } from './user_data_reader';
 declare module './database' {
   interface Firestore {
     pipeline(): PipelineSource<Pipeline>;
+    realtimePipeline(): PipelineSource<RealtimePipeline>;
   }
 }
 

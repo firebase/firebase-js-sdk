@@ -15,11 +15,19 @@
  * limitations under the License.
  */
 
-import { Pipeline } from '../api/pipeline';
+// Re-adding necessary imports that were removed previously
+import {
+  CompleteFn,
+  ErrorFn,
+  isPartialObserver,
+  NextFn,
+  PartialObserver
+} from '../api/observer';
 import {
   firestoreClientExecutePipeline,
   firestoreClientListen
 } from '../core/firestore_client';
+import { ListenerDataSource } from '../core/event_manager';
 import { toCorePipeline } from '../core/pipeline-util';
 import { ViewSnapshot } from '../core/view_snapshot';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
@@ -31,9 +39,10 @@ import { FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
+import { Pipeline } from './pipeline'; // Keep this specific Pipeline import if needed alongside LitePipeline
 import { RealtimePipeline } from './realtime_pipeline';
 import { DocumentReference } from './reference';
-import { Unsubscribe } from './reference_impl';
+import { SnapshotListenOptions, Unsubscribe } from './reference_impl';
 import { RealtimePipelineSnapshot } from './snapshot';
 import { ExpUserDataWriter } from './user_data_writer';
 
@@ -143,18 +152,91 @@ Firestore.prototype.realtimePipeline =
  */
 export function _onRealtimePipelineSnapshot(
   pipeline: RealtimePipeline,
-  next: (snapshot: RealtimePipelineSnapshot) => void,
-  error?: (error: FirestoreError) => void,
-  complete?: () => void
+  observer: {
+    next?: (snapshot: RealtimePipelineSnapshot) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }
+): Unsubscribe;
+/**
+ * @internal
+ * @private
+ */
+export function _onRealtimePipelineSnapshot(
+  pipeline: RealtimePipeline,
+  options: SnapshotListenOptions,
+  observer: {
+    next?: (snapshot: RealtimePipelineSnapshot) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }
+): Unsubscribe;
+/**
+ * @internal
+ * @private
+ */
+export function _onRealtimePipelineSnapshot(
+  pipeline: RealtimePipeline,
+  onNext: (snapshot: RealtimePipelineSnapshot) => void,
+  onError?: (error: FirestoreError) => void,
+  onComplete?: () => void
+): Unsubscribe;
+/**
+ * @internal
+ * @private
+ */
+export function _onRealtimePipelineSnapshot(
+  pipeline: RealtimePipeline,
+  options: SnapshotListenOptions,
+  onNext: (snapshot: RealtimePipelineSnapshot) => void,
+  onError?: (error: FirestoreError) => void,
+  onComplete?: () => void
+): Unsubscribe;
+export function _onRealtimePipelineSnapshot(
+  pipeline: RealtimePipeline,
+  ...args: unknown[]
 ): Unsubscribe {
+  let options: SnapshotListenOptions = {
+    includeMetadataChanges: false,
+    source: 'default'
+  };
+  let currArg = 0;
+  if (typeof args[currArg] === 'object' && !isPartialObserver(args[currArg])) {
+    options = args[currArg] as SnapshotListenOptions;
+    currArg++;
+  }
+
+  const internalOptions = {
+    includeMetadataChanges: options.includeMetadataChanges,
+    source: options.source as ListenerDataSource
+  };
+
+  let userObserver: PartialObserver<RealtimePipelineSnapshot>;
+  if (isPartialObserver(args[currArg])) {
+    userObserver = args[currArg] as PartialObserver<RealtimePipelineSnapshot>;
+  } else {
+    userObserver = {
+      next: args[currArg] as NextFn<RealtimePipelineSnapshot>,
+      error: args[currArg + 1] as ErrorFn,
+      complete: args[currArg + 2] as CompleteFn
+    };
+  }
+
   const client = ensureFirestoreConfigured(pipeline._db as Firestore);
   const observer = {
     next: (snapshot: ViewSnapshot) => {
-      next(new RealtimePipelineSnapshot(pipeline, snapshot));
+      if (userObserver.next) {
+        userObserver.next(new RealtimePipelineSnapshot(pipeline, snapshot));
+      }
     },
-    error,
-    complete
+    error: userObserver.error,
+    complete: userObserver.complete
   };
-  // TODO(pipeline) hook up options
-  return firestoreClientListen(client, toCorePipeline(pipeline), {}, observer);
+
+  return firestoreClientListen(
+    client,
+    toCorePipeline(pipeline),
+    internalOptions, // Pass parsed options here
+    observer
+  );
 }

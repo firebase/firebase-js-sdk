@@ -18,7 +18,9 @@
 import { isIndexedDBAvailable } from '@firebase/util';
 import { expect } from 'chai';
 
-import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
+import { RealtimePipelineSnapshot } from '../../../src/api/snapshot'; // Keep this if needed elsewhere, or remove if only used for the listener attempt
+import { PipelineResult } from '../../../src/lite-api/pipeline-result'; // Added import
+import { Deferred } from '../../util/promise'; // Added import
 
 import {
   clearIndexedDbPersistence,
@@ -55,6 +57,7 @@ import {
   TARGET_DB_ID,
   USE_EMULATOR
 } from './settings';
+import { _onRealtimePipelineSnapshot } from '../../../src/api/pipeline_impl';
 
 /* eslint-disable no-restricted-globals */
 
@@ -618,6 +621,10 @@ export async function checkOnlineAndOfflineResultsMatch(
   query: Query,
   ...expectedDocs: string[]
 ): Promise<void> {
+  // NOTE: We need to first do docsFromServer before we do docsFromCache. This is because
+  // the test doc setup is done in a different test app, with different persistence key,
+  // the current app instance cannot see the local test data. docsFromServer will first
+  // populate the local cache. Same goes for checkOnlineAndOfflineResultsMatchWithPipelineMode.
   const docsFromServer = await getDocsFromServer(query);
 
   if (expectedDocs.length !== 0) {
@@ -626,6 +633,50 @@ export async function checkOnlineAndOfflineResultsMatch(
 
   const docsFromCache = await getDocsFromCache(query);
   expect(toIds(docsFromServer)).to.deep.equal(toIds(docsFromCache));
+}
+
+export async function checkOnlineAndOfflineResultsMatchWithPipelineMode(
+  pipelineMode: PipelineMode,
+  query: Query,
+  ...expectedDocs: string[]
+): Promise<void> {
+  if (pipelineMode === 'no-pipeline-conversion') {
+    await checkOnlineAndOfflineResultsMatch(query, ...expectedDocs);
+  } else {
+    // pipelineMode === 'query-to-pipeline'
+    const pipeline = query.firestore.realtimePipeline().createFrom(query);
+    const deferred = new Deferred<RealtimePipelineSnapshot>();
+    const unsub = _onRealtimePipelineSnapshot(
+      pipeline,
+      { includeMetadataChanges: true },
+      snapshot => {
+        if (snapshot.metadata.fromCache === false) {
+          deferred.resolve(snapshot);
+          unsub();
+        }
+      }
+    );
+
+    const snapshot = await deferred.promise;
+    const idsFromServer = snapshot.results.map((r: PipelineResult) => r.id);
+
+    if (expectedDocs.length !== 0) {
+      expect(expectedDocs).to.deep.equal(idsFromServer);
+    }
+
+    const cacheDeferred = new Deferred<RealtimePipelineSnapshot>();
+    const cacheUnsub = _onRealtimePipelineSnapshot(
+      pipeline,
+      { includeMetadataChanges: true, source: 'cache' },
+      snapshot => {
+        cacheDeferred.resolve(snapshot);
+        cacheUnsub();
+      }
+    );
+    const cacheSnapshot = await cacheDeferred.promise;
+    const idsFromCache = cacheSnapshot.results.map((r: PipelineResult) => r.id);
+    expect(idsFromServer).to.deep.equal(idsFromCache);
+  }
 }
 
 export function itIf(

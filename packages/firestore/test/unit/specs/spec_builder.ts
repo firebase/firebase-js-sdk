@@ -30,7 +30,7 @@ import {
   TargetOrPipeline,
   targetOrPipelineEqual,
   toCorePipeline,
-  toPipeline
+  toPipelineStages
 } from '../../../src/core/pipeline-util';
 import { CorePipeline } from '../../../src/core/pipeline_run';
 import {
@@ -78,6 +78,7 @@ import {
   SpecWriteAck,
   SpecWriteFailure
 } from './spec_test_runner';
+import { pipelineFromStages } from '../../util/pipelines';
 
 const userDataWriter = new ExpUserDataWriter(firestore());
 
@@ -1004,7 +1005,9 @@ export class SpecBuilder {
       query: isPipeline(query) ? query : SpecBuilder.queryToSpec(query),
       pipeline: isPipeline(query)
         ? query
-        : toCorePipeline(toPipeline(query, newTestFirestore())),
+        : toCorePipeline(
+            pipelineFromStages(toPipelineStages(query, newTestFirestore()))
+          ),
       added: events.added && events.added.map(SpecBuilder.docToSpec),
       modified: events.modified && events.modified.map(SpecBuilder.docToSpec),
       removed: events.removed && events.removed.map(SpecBuilder.docToSpec),
@@ -1258,7 +1261,11 @@ export class SpecBuilder {
           pipelines: [
             isPipeline(query)
               ? query
-              : toCorePipeline(toPipeline(query, newTestFirestore())),
+              : toCorePipeline(
+                  pipelineFromStages(
+                    toPipelineStages(query, newTestFirestore())
+                  )
+                ),
             ...activePipelines
           ],
           targetPurpose,
@@ -1271,7 +1278,11 @@ export class SpecBuilder {
           pipelines: [
             isPipeline(query)
               ? query
-              : toCorePipeline(toPipeline(query, newTestFirestore())),
+              : toCorePipeline(
+                  pipelineFromStages(
+                    toPipelineStages(query, newTestFirestore())
+                  )
+                ),
             ...activePipelines
           ],
           targetPurpose,
@@ -1285,7 +1296,9 @@ export class SpecBuilder {
         pipelines: [
           isPipeline(query)
             ? query
-            : toCorePipeline(toPipeline(query, newTestFirestore()))
+            : toCorePipeline(
+                pipelineFromStages(toPipelineStages(query, newTestFirestore()))
+              )
         ],
         targetPurpose,
         resumeToken: resume.resumeToken || '',
@@ -1303,7 +1316,11 @@ export class SpecBuilder {
     } else if (!isPipeline(query) && spec instanceof CorePipeline) {
       return pipelineEq(
         spec as CorePipeline,
-        toCorePipeline(toPipeline(query as Query, newTestFirestore()))
+        toCorePipeline(
+          pipelineFromStages(
+            toPipelineStages(query as Query, newTestFirestore())
+          )
+        )
       );
     } else {
       return queryEquals(parseQuery(spec as SpecQuery), query as Query);

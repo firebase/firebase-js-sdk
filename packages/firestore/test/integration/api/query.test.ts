@@ -75,12 +75,13 @@ import {
   withRetry,
   withTestCollection,
   withTestDb,
-  checkOnlineAndOfflineResultsMatch,
   apiPipelineDescribe,
-  PipelineMode
+  PipelineMode,
+  checkOnlineAndOfflineResultsMatchWithPipelineMode
 } from '../util/helpers';
 import { USE_EMULATOR } from '../util/settings';
 import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
+import { pipelineFromStages } from '../../util/pipelines';
 
 function getDocs(
   pipelineMode: PipelineMode,
@@ -1563,7 +1564,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
 
       return withTestCollection(persistence, testDocs, async coll => {
         // a == 1
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(coll, where('a', '==', 1)),
           'doc1',
           'doc4',
@@ -1571,40 +1573,46 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
         );
 
         // Implicit AND: a == 1 && b == 3
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(coll, where('a', '==', 1), where('b', '==', 3)),
           'doc4'
         );
 
         // explicit AND: a == 1 && b == 3
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(coll, and(where('a', '==', 1), where('b', '==', 3))),
           'doc4'
         );
 
         // a == 1, limit 2
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(coll, where('a', '==', 1), limit(2)),
           'doc1',
           'doc4'
         );
 
         // explicit OR: a == 1 || b == 1 with limit 2
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(coll, or(where('a', '==', 1), where('b', '==', 1)), limit(2)),
           'doc1',
           'doc2'
         );
 
         // only limit 2
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(coll, limit(2)),
           'doc1',
           'doc2'
         );
 
         // limit 2 and order by b desc
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(coll, limit(2), orderBy('b', 'desc')),
           'doc4',
           'doc3'
@@ -1623,7 +1631,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
 
       return withTestCollection(persistence, testDocs, async coll => {
         // Two equalities: a==1 || b==1.
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(coll, or(where('a', '==', 1), where('b', '==', 1))),
           'doc1',
           'doc2',
@@ -1632,7 +1641,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
         );
 
         // (a==1 && b==0) || (a==3 && b==2)
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(
             coll,
             or(
@@ -1645,7 +1655,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
         );
 
         // a==1 && (b==0 || b==3).
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(
             coll,
             and(
@@ -1658,7 +1669,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
         );
 
         // (a==2 || b==2) && (a==3 || b==3)
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(
             coll,
             and(
@@ -1670,7 +1682,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
         );
 
         // Test with limits without orderBy (the __name__ ordering is the tie breaker).
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(coll, or(where('a', '==', 2), where('b', '==', 1)), limit(1)),
           'doc2'
         );
@@ -1689,7 +1702,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
 
       return withTestCollection(persistence, testDocs, async coll => {
         // a==2 || b in [2,3]
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(coll, or(where('a', '==', 2), where('b', 'in', [2, 3]))),
           'doc3',
           'doc4',
@@ -1710,7 +1724,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
 
       return withTestCollection(persistence, testDocs, async coll => {
         // a==2 || b array-contains 7
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(coll, or(where('a', '==', 2), where('b', 'array-contains', 7))),
           'doc3',
           'doc4',
@@ -1718,7 +1733,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
         );
 
         // a==2 || b array-contains-any [0, 3]
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(
             coll,
             or(where('a', '==', 2), where('b', 'array-contains-any', [0, 3]))
@@ -1741,7 +1757,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
       };
 
       return withTestCollection(persistence, testDocs, async coll => {
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(
             coll,
             or(
@@ -1755,7 +1772,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
           'doc6'
         );
 
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(
             coll,
             and(
@@ -1766,7 +1784,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
           'doc3'
         );
 
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(
             coll,
             or(
@@ -1779,7 +1798,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
           'doc4'
         );
 
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(
             coll,
             and(
@@ -1804,7 +1824,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
       };
 
       return withTestCollection(persistence, testDocs, async coll => {
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(
             coll,
             or(where('a', 'in', [2, 3]), where('b', 'array-contains', 3))
@@ -1814,7 +1835,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
           'doc6'
         );
 
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(
             coll,
             and(where('a', 'in', [2, 3]), where('b', 'array-contains', 7))
@@ -1822,7 +1844,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
           'doc3'
         );
 
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(
             coll,
             or(
@@ -1835,7 +1858,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
           'doc6'
         );
 
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(
             coll,
             and(
@@ -1859,14 +1883,16 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
       };
 
       return withTestCollection(persistence, testDocs, async coll => {
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(coll, where('a', '==', 1), orderBy('a')),
           'doc1',
           'doc4',
           'doc5'
         );
 
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(coll, where('a', 'in', [2, 3]), orderBy('a')),
           'doc6',
           'doc3'
@@ -1886,7 +1912,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
 
       return withTestCollection(persistence, testDocs, async coll => {
         // Two IN operations on different fields with disjunction.
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(coll, or(where('a', 'in', [2, 3]), where('b', 'in', [0, 2]))),
           'doc1',
           'doc3',
@@ -1894,14 +1921,16 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
         );
 
         // Two IN operations on different fields with conjunction.
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(coll, and(where('a', 'in', [2, 3]), where('b', 'in', [0, 2]))),
           'doc3'
         );
 
         // Two IN operations on the same field.
         // a IN [1,2,3] && a IN [0,1,4] should result in "a==1".
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(
             coll,
             and(where('a', 'in', [1, 2, 3]), where('a', 'in', [0, 1, 4]))
@@ -1913,7 +1942,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
 
         // a IN [2,3] && a IN [0,1,4] is never true and so the result should be an
         // empty set.
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(
             coll,
             and(where('a', 'in', [2, 3]), where('a', 'in', [0, 1, 4]))
@@ -1921,14 +1951,16 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
         );
 
         // a IN [0,3] || a IN [0,2] should union them (similar to: a IN [0,2,3]).
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(coll, or(where('a', 'in', [0, 3]), where('a', 'in', [0, 2]))),
           'doc3',
           'doc6'
         );
 
         // Nested composite filter on the same field.
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(
             coll,
             and(
@@ -1943,7 +1975,8 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
         );
 
         // Nested composite filter on the different fields.
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           query(
             coll,
             and(

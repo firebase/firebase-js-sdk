@@ -24,7 +24,7 @@ import { BundleConverterImpl } from '../../../src/core/bundle_impl';
 import {
   TargetOrPipeline,
   toCorePipeline,
-  toPipeline
+  toPipelineStages
 } from '../../../src/core/pipeline-util';
 import {
   LimitType,
@@ -127,6 +127,7 @@ import {
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
+import { pipelineFromStages } from '../../util/pipelines';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;
@@ -295,7 +296,9 @@ class LocalStoreTester {
   afterAllocatingQuery(query: Query): LocalStoreTester {
     if (this.options.convertToPipeline) {
       return this.afterAllocatingTarget(
-        toCorePipeline(toPipeline(query, newTestFirestore()))
+        toCorePipeline(
+          pipelineFromStages(toPipelineStages(query, newTestFirestore()))
+        )
       );
     }
     return this.afterAllocatingTarget(queryToTarget(query));
@@ -332,7 +335,9 @@ class LocalStoreTester {
       prodLocalStoreExecuteQuery(
         this.localStore,
         this.options.convertToPipeline
-          ? toCorePipeline(toPipeline(query, newTestFirestore()))
+          ? toCorePipeline(
+              pipelineFromStages(toPipelineStages(query, newTestFirestore()))
+            )
           : query,
         /* usePreviousResults= */ true
       ).then(({ documents }) => {
@@ -730,7 +735,9 @@ function genericLocalStoreTests(
     return prodLocalStoreExecuteQuery(
       localStore,
       options.convertToPipeline
-        ? toCorePipeline(toPipeline(query, newTestFirestore()))
+        ? toCorePipeline(
+            pipelineFromStages(toPipelineStages(query, newTestFirestore()))
+          )
         : query,
       false
     );
@@ -2519,7 +2526,9 @@ function genericLocalStoreTests(
     async () => {
       const query1 = query('foo', filter('matches', '==', true));
       const target = options.convertToPipeline
-        ? toCorePipeline(toPipeline(query1, newTestFirestore()))
+        ? toCorePipeline(
+            pipelineFromStages(toPipelineStages(query1, newTestFirestore()))
+          )
         : queryToTarget(query1);
       const targetId = 2;
 

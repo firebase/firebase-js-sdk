@@ -48,7 +48,7 @@ import {
   queryOrPipelineEqual,
   TargetOrPipeline,
   toCorePipeline,
-  toPipeline
+  toPipelineStages
 } from '../../../src/core/pipeline-util';
 import { CorePipeline } from '../../../src/core/pipeline_run';
 import {
@@ -193,6 +193,7 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
+import { pipelineFromStages } from '../../util/pipelines';
 
 use(chaiExclude);
 
@@ -503,7 +504,11 @@ abstract class TestRunner {
       querySpec instanceof CorePipeline
         ? querySpec
         : this.convertToPipeline
-        ? toCorePipeline(toPipeline(parseQuery(querySpec), newTestFirestore()))
+        ? toCorePipeline(
+            pipelineFromStages(
+              toPipelineStages(parseQuery(querySpec), newTestFirestore())
+            )
+          )
         : parseQuery(querySpec);
 
     const aggregator = new EventAggregator(query, e => {
@@ -561,7 +566,11 @@ abstract class TestRunner {
       querySpec instanceof CorePipeline
         ? querySpec
         : this.convertToPipeline
-        ? toCorePipeline(toPipeline(parseQuery(querySpec), newTestFirestore()))
+        ? toCorePipeline(
+            pipelineFromStages(
+              toPipelineStages(parseQuery(querySpec), newTestFirestore())
+            )
+          )
         : parseQuery(querySpec);
     const eventEmitter = this.queryListeners.get(query);
     debugAssert(!!eventEmitter, 'There must be a query to unlisten too!');

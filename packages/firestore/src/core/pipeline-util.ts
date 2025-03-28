@@ -211,7 +211,7 @@ function reverseOrderings(orderings: Ordering[]): Ordering[] {
   );
 }
 
-export function toPipeline(query: Query, db: Firestore): Pipeline {
+export function toPipelineStages(query: Query, db: Firestore): Stage[] {
   let pipeline: Pipeline;
   if (isCollectionGroupQuery(query)) {
     pipeline = db.pipeline().collectionGroup(query.collectionGroup!);
@@ -287,7 +287,7 @@ export function toPipeline(query: Query, db: Firestore): Pipeline {
     }
   }
 
-  return pipeline;
+  return pipeline.stages;
 }
 
 function whereConditionsFromCursor(

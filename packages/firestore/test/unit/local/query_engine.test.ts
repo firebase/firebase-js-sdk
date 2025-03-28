@@ -24,7 +24,7 @@ import {
   isPipeline,
   QueryOrPipeline,
   toCorePipeline,
-  toPipeline
+  toPipelineStages
 } from '../../../src/core/pipeline-util';
 import {
   LimitType,
@@ -85,6 +85,7 @@ import {
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
+import { pipelineFromStages } from '../../util/pipelines';
 
 const TEST_TARGET_ID = 1;
 
@@ -267,7 +268,9 @@ function genericQueryEngineTest(
 
     let query = queryOrPipeline;
     if (options.convertToPipeline && !isPipeline(queryOrPipeline)) {
-      query = toCorePipeline(toPipeline(queryOrPipeline, db));
+      query = toCorePipeline(
+        pipelineFromStages(toPipelineStages(queryOrPipeline, db))
+      );
     }
 
     // NOTE: Use a `readwrite` transaction (instead of `readonly`) so that
