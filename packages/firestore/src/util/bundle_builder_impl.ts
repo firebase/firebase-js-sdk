@@ -17,6 +17,7 @@
 
 import {
   JsonProtoSerializer,
+  fromTimestamp,
   toName,
   toQueryTarget,
   toTimestamp
@@ -99,24 +100,29 @@ export class BundleBuilder {
   ): void {
     const originalDocument = this.documents.get(docBundleData.documentPath);
     const originalQueries = originalDocument?.metadata.queries;
+    const docReadTime: Timestamp | undefined = docBundleData.readTime;
+    const origDocReadTime: Timestamp | null = !!originalDocument?.metadata
+      .readTime
+      ? fromTimestamp(originalDocument.metadata.readTime)
+      : null;
 
-    const readTime = docBundleData.readTime;
-    // Update with document built from `snap` because it is newer.
-    if (
-      !originalDocument ||
-      (!readTime && !originalDocument.metadata.readTime) ||
-      (readTime && originalDocument.metadata.readTime! < readTime)
-    ) {
+    const neitherHasReadTime: boolean = !docReadTime && origDocReadTime == null;
+    const docIsNewer: boolean = docReadTime !== undefined && (origDocReadTime == null || origDocReadTime < docReadTime);
+    if (neitherHasReadTime || docIsNewer) {
+      // Store document.
       this.documents.set(docBundleData.documentPath, {
         document: this.toBundleDocument(docBundleData),
         metadata: {
           name: toName(this.serializer, docBundleData.documentKey),
-          readTime: !!readTime
-            ? toTimestamp(this.serializer, readTime)
+          readTime: !!docReadTime
+            ? toTimestamp(this.serializer, docReadTime) // Convert Timestamp to proto format.
             : undefined,
           exists: docBundleData.documentExists
         }
       });
+    } 
+    if (docReadTime && docReadTime > this.latestReadTime) {
+      this.latestReadTime = docReadTime;
     }
     // Update `queries` to include both original and `queryName`.
     if (queryName) {
@@ -125,9 +131,6 @@ export class BundleBuilder {
       if (queryName) {
         newDocument.metadata.queries!.push(queryName);
       }
-    }
-    if (readTime && readTime > this.latestReadTime) {
-      this.latestReadTime = readTime;
     }
   }
 

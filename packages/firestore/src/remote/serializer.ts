@@ -226,7 +226,10 @@ export function toTimestamp(
   }
 }
 
-function fromTimestamp(date: ProtoTimestamp): Timestamp {
+/**
+ * Returns a Timestamp type given timestamp from a protobuf.
+ */
+export function fromTimestamp(date: ProtoTimestamp): Timestamp {
   const timestamp = normalizeTimestamp(date);
   return new Timestamp(timestamp.seconds, timestamp.nanos);
 }
