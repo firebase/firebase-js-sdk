@@ -523,8 +523,8 @@ export class DocumentSnapshot<
     if (this.metadata.hasPendingWrites) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
-        'DocumentSnapshot.toJSON attempted to serialize a document with pending writes. ' +
-          'Await `waitForPendingWrites()` before invoking `toJSON()`.'
+        'DocumentSnapshot.toJSON() attempted to serialize a document with pending writes. ' +
+          'Await waitForPendingWrites() before invoking toJSON().'
       );
     }
     builder.addBundleDocument(
@@ -713,8 +713,8 @@ export class QuerySnapshot<
       if (this.metadata.hasPendingWrites) {
         throw new FirestoreError(
           Code.FAILED_PRECONDITION,
-          'QuerySnapshot.toJSON attempted to serialize a document with pending writes. ' +
-            'Await `waitForPendingWrites()` before invoking `toJSON()`.'
+          'QuerySnapshot.toJSON() attempted to serialize a document with pending writes. ' +
+            'Await waitForPendingWrites() before invoking toJSON().'
         );
       }
       docBundleDataArray.push(
