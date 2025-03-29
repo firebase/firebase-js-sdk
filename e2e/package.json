@@ -17,12 +17,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "firebase": "11.3.0"
+    "firebase": "11.5.0"
   },
   "devDependencies": {
-    "@babel/core": "7.26.8",
-    "@babel/preset-env": "7.26.8",
-    "@babel/preset-typescript": "7.26.0",
+    "@babel/core": "7.26.10",
+    "@babel/preset-env": "7.26.9",
+    "@babel/preset-typescript": "7.27.0",
     "@types/jest": "29.5.14",
     "babel-jest": "29.7.0",
     "babel-loader": "8.4.1",
@@ -32,7 +32,7 @@
     "typescript": "5.5.4",
     "webpack": "5.98.0",
     "webpack-cli": "5.1.4",
-    "webpack-dev-server": "5.2.0"
+    "webpack-dev-server": "5.2.1"
   },
   "engines": {
     "node": ">=18.0.0"

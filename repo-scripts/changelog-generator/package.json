@@ -19,7 +19,7 @@
   "dependencies": {
     "@changesets/types": "6.1.0",
     "@changesets/get-github-info": "0.6.0",
-    "@types/node": "18.19.83"
+    "@types/node": "18.19.84"
   },
   "license": "Apache-2.0",
   "devDependencies": {
