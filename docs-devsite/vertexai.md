@@ -414,6 +414,7 @@ export declare enum HarmSeverity
 |  HARM\_SEVERITY\_LOW | <code>&quot;HARM_SEVERITY_LOW&quot;</code> | Low level of harm severity. |
 |  HARM\_SEVERITY\_MEDIUM | <code>&quot;HARM_SEVERITY_MEDIUM&quot;</code> | Medium level of harm severity. |
 |  HARM\_SEVERITY\_NEGLIGIBLE | <code>&quot;HARM_SEVERITY_NEGLIGIBLE&quot;</code> | Negligible level of harm severity. |
+|  HARM\_SEVERITY\_UNSPECIFIED | <code>&quot;HARM_SEVERITY_UNSPECIFIED&quot;</code> | Unspecified level of harm severity. |
 
 ## ImagenAspectRatio
 

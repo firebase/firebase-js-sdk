@@ -104,6 +104,10 @@ export enum HarmProbability {
  */
 export enum HarmSeverity {
   /**
+   * Unspecified level of harm severity.
+   */
+  HARM_SEVERITY_UNSPECIFIED = 'HARM_SEVERITY_UNSPECIFIED',
+  /**
    * Negligible level of harm severity.
    */
   HARM_SEVERITY_NEGLIGIBLE = 'HARM_SEVERITY_NEGLIGIBLE',
