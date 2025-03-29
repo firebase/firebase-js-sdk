@@ -37,7 +37,7 @@
     "rollup-plugin-typescript2": "0.36.0",
     "terser": "5.37.0",
     "tmp": "0.2.3",
-    "typescript": "5.5.4",
+    "typescript": "5.8.2",
     "webpack": "5.98.0",
     "webpack-virtual-modules": "0.6.2",
     "yargs": "17.7.2"
