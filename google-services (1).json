@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "1049906149317",
+    "firebase_url": "https://gtm-kqqwvx2-zgi2z-default-rtdb.firebaseio.com",
+    "project_id": "gtm-kqqwvx2-zgi2z",
+    "storage_bucket": "gtm-kqqwvx2-zgi2z.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1049906149317:android:d1b29301d8f00e08357dac",
+        "android_client_info": {
+          "package_name": "com.spreaker.custom.prod.app_55655"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1049906149317-tnnupc5gafqf1m2jt1er4gmjreu82ipk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.spreaker.custom.prod.app_55655",
+            "certificate_hash": "0168bd5a337e92b8368c2c91292daea274dbf0aa"
+          }
+        },
+        {
+          "client_id": "100634572390641416800",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzDwEjHZ90NZZg2WrQuLsEjasxcbQ7x9I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "100634572390641416800",
+              "client_type": 3
+            }
+          ]
+        }
+      },
+      "admob_app_id": "ca-app-pub-3433177470770424~3226106510"
+    }
+  ],
+  "configuration_version": "1"
+}
