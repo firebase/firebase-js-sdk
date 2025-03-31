@@ -70,7 +70,7 @@ describe('ImagenModel', () => {
           value.includes(`"sampleCount":1`)
         );
       }),
-      undefined
+      {}
     );
     restore();
   });
@@ -129,7 +129,7 @@ describe('ImagenModel', () => {
           )
         );
       }),
-      undefined
+      {}
     );
     restore();
   });
