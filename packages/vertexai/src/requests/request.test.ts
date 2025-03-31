@@ -32,6 +32,7 @@ use(chaiAsPromised);
 const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
+  appId: 'my-appid',
   location: 'us-central1'
 };
 
@@ -103,6 +104,7 @@ describe('request methods', () => {
     const fakeApiSettings: ApiSettings = {
       apiKey: 'key',
       project: 'myproject',
+      appId: 'my-appid',
       location: 'moon',
       getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
       getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
@@ -124,6 +126,50 @@ describe('request methods', () => {
       const headers = await getHeaders(fakeUrl);
       expect(headers.get('x-goog-api-key')).to.equal('key');
     });
+    it('adds app id if automatedDataCollectionEnabled is true', async () => {
+      const fakeApiSettings: ApiSettings = {
+        apiKey: 'key',
+        project: 'myproject',
+        appId: 'my-appid',
+        location: 'moon',
+        automaticDataCollectionEnabled: true,
+        getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
+        getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
+      };
+      const fakeUrl = new RequestUrl(
+        'models/model-name',
+        Task.GENERATE_CONTENT,
+        fakeApiSettings,
+        true,
+        {}
+      );
+      const headers = await getHeaders(fakeUrl);
+      expect(headers.get('X-Firebase-Appid')).to.equal('my-appid');
+    });
+    it('does not add app id if automatedDataCollectionEnabled is undefined', async () => {
+      const headers = await getHeaders(fakeUrl);
+      expect(headers.get('X-Firebase-Appid')).to.be.null;
+    });
+    it('does not add app id if automatedDataCollectionEnabled is false', async () => {
+      const fakeApiSettings: ApiSettings = {
+        apiKey: 'key',
+        project: 'myproject',
+        appId: 'my-appid',
+        location: 'moon',
+        automaticDataCollectionEnabled: false,
+        getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
+        getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
+      };
+      const fakeUrl = new RequestUrl(
+        'models/model-name',
+        Task.GENERATE_CONTENT,
+        fakeApiSettings,
+        true,
+        {}
+      );
+      const headers = await getHeaders(fakeUrl);
+      expect(headers.get('X-Firebase-Appid')).to.be.null;
+    });
     it('adds app check token if it exists', async () => {
       const headers = await getHeaders(fakeUrl);
       expect(headers.get('X-Firebase-AppCheck')).to.equal('appchecktoken');
@@ -135,6 +181,7 @@ describe('request methods', () => {
         {
           apiKey: 'key',
           project: 'myproject',
+          appId: 'my-appid',
           location: 'moon'
         },
         true,
@@ -167,6 +214,7 @@ describe('request methods', () => {
         {
           apiKey: 'key',
           project: 'myproject',
+          appId: 'my-appid',
           location: 'moon',
           getAppCheckToken: () =>
             Promise.resolve({ token: 'dummytoken', error: Error('oops') })
@@ -193,6 +241,7 @@ describe('request methods', () => {
         {
           apiKey: 'key',
           project: 'myproject',
+          appId: 'my-appid',
           location: 'moon'
         },
         true,

@@ -60,7 +60,8 @@ export function formatDummyToken(
  */
 export async function getToken(
   appCheck: AppCheckService,
-  forceRefresh = false
+  forceRefresh = false,
+  shouldLogErrors = false
 ): Promise<AppCheckTokenResult> {
   const app = appCheck.app;
   ensureActivated(app);
@@ -136,11 +137,14 @@ export async function getToken(
       state.token = tokenFromDebugExchange;
       return { token: tokenFromDebugExchange.token };
     } catch (e) {
-      if ((e as FirebaseError).code === `appCheck/${AppCheckError.THROTTLED}`) {
+      if (
+        (e as FirebaseError).code === `appCheck/${AppCheckError.THROTTLED}` ||
+        (e as FirebaseError).code ===
+          `appCheck/${AppCheckError.INITIAL_THROTTLE}`
+      ) {
         // Warn if throttled, but do not treat it as an error.
         logger.warn((e as FirebaseError).message);
-      } else {
-        // `getToken()` should never throw, but logging error text to console will aid debugging.
+      } else if (shouldLogErrors) {
         logger.error(e);
       }
       // Return dummy token and error
@@ -167,11 +171,13 @@ export async function getToken(
     }
     token = await getStateReference(app).exchangeTokenPromise;
   } catch (e) {
-    if ((e as FirebaseError).code === `appCheck/${AppCheckError.THROTTLED}`) {
+    if (
+      (e as FirebaseError).code === `appCheck/${AppCheckError.THROTTLED}` ||
+      (e as FirebaseError).code === `appCheck/${AppCheckError.INITIAL_THROTTLE}`
+    ) {
       // Warn if throttled, but do not treat it as an error.
       logger.warn((e as FirebaseError).message);
-    } else {
-      // `getToken()` should never throw, but logging error text to console will aid debugging.
+    } else if (shouldLogErrors) {
       logger.error(e);
     }
     // Always save error to be added to dummy token.

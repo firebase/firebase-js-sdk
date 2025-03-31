@@ -33,6 +33,7 @@ import { UserInternal } from './user';
 import { ClientPlatform } from '../core/util/version';
 import { RecaptchaConfig } from '../platform_browser/recaptcha/recaptcha';
 import { PasswordPolicyInternal } from './password_policy';
+import { PersistenceInternal } from '../core/persistence';
 
 export type AppName = string;
 export type ApiKey = string;
@@ -71,6 +72,7 @@ export interface AuthInternal extends Auth {
   _canInitEmulator: boolean;
   _isInitialized: boolean;
   _initializationPromise: Promise<void> | null;
+  _persistenceManagerAvailable: Promise<void>;
   _updateCurrentUser(user: UserInternal | null): Promise<void>;
 
   _onStorageEvent(): void;
@@ -86,7 +88,8 @@ export interface AuthInternal extends Auth {
   _key(): string;
   _startProactiveRefresh(): void;
   _stopProactiveRefresh(): void;
-  _getPersistence(): string;
+  _getPersistenceType(): string;
+  _getPersistence(): PersistenceInternal;
   _getRecaptchaConfig(): RecaptchaConfig | null;
   _getPasswordPolicyInternal(): PasswordPolicyInternal | null;
   _updatePasswordPolicy(): Promise<void>;

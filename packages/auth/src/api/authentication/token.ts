@@ -74,7 +74,7 @@ export async function requestStsToken(
           'refresh_token': refreshToken
         }).slice(1);
         const { tokenApiHost, apiKey } = auth.config;
-        const url = _getFinalTarget(
+        const url = await _getFinalTarget(
           auth,
           tokenApiHost,
           Endpoint.TOKEN,

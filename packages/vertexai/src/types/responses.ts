@@ -153,10 +153,14 @@ export interface Citation {
 export interface GroundingMetadata {
   webSearchQueries?: string[];
   retrievalQueries?: string[];
+  /**
+   * @deprecated
+   */
   groundingAttributions: GroundingAttribution[];
 }
 
 /**
+ * @deprecated
  * @public
  */
 export interface GroundingAttribution {

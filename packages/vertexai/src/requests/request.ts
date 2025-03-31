@@ -84,6 +84,9 @@ export async function getHeaders(url: RequestUrl): Promise<Headers> {
   headers.append('Content-Type', 'application/json');
   headers.append('x-goog-api-client', getClientHeaders());
   headers.append('x-goog-api-key', url.apiSettings.apiKey);
+  if (url.apiSettings.automaticDataCollectionEnabled) {
+    headers.append('X-Firebase-Appid', url.apiSettings.appId);
+  }
   if (url.apiSettings.getAppCheckToken) {
     const appCheckToken = await url.apiSettings.getAppCheckToken();
     if (appCheckToken) {
