@@ -1,5 +1,13 @@
 # @firebase/vertexai
 
+## 1.2.1
+
+### Patch Changes
+
+- [`648de84`](https://github.com/firebase/firebase-js-sdk/commit/648de84b05c827d33d6b22aceb6eff01208ebdf0) [#8809](https://github.com/firebase/firebase-js-sdk/pull/8809) - Throw an error when initializing models if `appId` is not defined in the given `VertexAI` instance.
+
+- [`faaeb48`](https://github.com/firebase/firebase-js-sdk/commit/faaeb48e0c9dfddd014e5fb52088d39c895e9874) [#8832](https://github.com/firebase/firebase-js-sdk/pull/8832) - Label `GroundingAttribution` as deprecated.
+
 ## 1.2.0
 
 ### Minor Changes
