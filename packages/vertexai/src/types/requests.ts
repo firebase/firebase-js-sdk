@@ -155,6 +155,43 @@ export interface RequestOptions {
 }
 
 /**
+ * Options that can be provided per-request.
+ * Extends the base {@link RequestOptions} (like `timeout` and `baseUrl`)
+ * with request-specific controls like cancellation via `AbortSignal`.
+ *
+ * Options specified here will override any default {@link RequestOptions}
+ * configured on a model (e.g. {@link GenerativeModel}).
+ *
+ * @public
+ */
+export interface SingleRequestOptions extends RequestOptions {
+  /**
+   * An `AbortSignal` instance that allows cancelling ongoing requests (like `generateContent` or
+   * `generateImages`).
+   *
+   * If provided, calling `abort()` on the corresponding `AbortController`
+   * will attempt to cancel the underlying HTTP request. An `AbortError` will be thrown
+   * if cancellation is successful.
+   *
+   * Note that this will not cancel the request in the backend, so billing will
+   * still be applied despite cancellation.
+   *
+   * @example
+   * ```javascript
+   * const controller = new AbortController();
+   * const model = getGenerativeModel({
+   *   // ...
+   * });
+   *
+   * // To cancel request:
+   * controller.abort();
+   * ```
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal
+   */
+  signal?: AbortSignal;
+}
+
+/**
  * Defines a tool that model can call to access external knowledge.
  * @public
  */

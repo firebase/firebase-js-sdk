@@ -15,14 +15,18 @@
  * limitations under the License.
  */
 import { use, expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 import { GenerativeModel } from './generative-model';
 import { FunctionCallingMode, VertexAI } from '../public-types';
 import * as request from '../requests/request';
 import { match, restore, stub } from 'sinon';
 import { getMockResponse } from '../../test-utils/mock-response';
 import sinonChai from 'sinon-chai';
+import * as generateContentMethods from '../methods/generate-content';
+import * as countTokens from '../methods/count-tokens';
 
 use(sinonChai);
+use(chaiAsPromised);
 
 const fakeVertexAI: VertexAI = {
   app: {
@@ -38,6 +42,9 @@ const fakeVertexAI: VertexAI = {
 };
 
 describe('GenerativeModel', () => {
+  afterEach(() => {
+    restore();
+  });
   it('passes params through to generateContent', async () => {
     const genModel = new GenerativeModel(fakeVertexAI, {
       model: 'my-model',
@@ -164,6 +171,62 @@ describe('GenerativeModel', () => {
       {}
     );
     restore();
+  });
+  it('generateContent singleRequestOptions overrides requestOptions', async () => {
+    const generateContentStub = stub(
+      generateContentMethods,
+      'generateContent'
+    ).rejects('generateContent failed'); // not important
+    const requestOptions = {
+      timeout: 1000
+    };
+    const singleRequestOptions = {
+      timeout: 2000
+    };
+    const genModel = new GenerativeModel(
+      fakeVertexAI,
+      { model: 'my-model' },
+      requestOptions
+    );
+    await expect(genModel.generateContent('hello', singleRequestOptions)).to.be
+      .rejected;
+    expect(generateContentStub).to.be.calledWith(
+      match.any,
+      match.any,
+      match.any,
+      match({
+        timeout: singleRequestOptions.timeout
+      })
+    );
+  });
+  it('generateContent singleRequestOptions is merged with requestOptions', async () => {
+    const generateContentStub = stub(
+      generateContentMethods,
+      'generateContent'
+    ).rejects('generateContent failed'); // not important
+    const abortController = new AbortController();
+    const requestOptions = {
+      timeout: 1000
+    };
+    const singleRequestOptions = {
+      signal: abortController.signal
+    };
+    const genModel = new GenerativeModel(
+      fakeVertexAI,
+      { model: 'my-model' },
+      requestOptions
+    );
+    await expect(genModel.generateContent('hello', singleRequestOptions)).to.be
+      .rejected;
+    expect(generateContentStub).to.be.calledWith(
+      match.any,
+      match.any,
+      match.any,
+      match({
+        timeout: requestOptions.timeout,
+        signal: singleRequestOptions.signal
+      })
+    );
   });
   it('passes params through to chat.sendMessage', async () => {
     const genModel = new GenerativeModel(fakeVertexAI, {
@@ -313,5 +376,58 @@ describe('GenerativeModel', () => {
       })
     );
     restore();
+  });
+  it('countTokens singleRequestOptions overrides requestOptions', async () => {
+    const countTokensStub = stub(countTokens, 'countTokens').rejects(
+      'countTokens failed'
+    );
+    const requestOptions = {
+      timeout: 1000
+    };
+    const singleRequestOptions = {
+      timeout: 2000
+    };
+    const genModel = new GenerativeModel(
+      fakeVertexAI,
+      { model: 'my-model' },
+      requestOptions
+    );
+    await expect(genModel.countTokens('hello', singleRequestOptions)).to.be.rejected;
+    expect(countTokensStub).to.be.calledWith(
+      match.any,
+      match.any,
+      match.any,
+      match({
+        timeout: singleRequestOptions.timeout
+      })
+    );
+  });
+  it('countTokens singleRequestOptions is merged with requestOptions', async () => {
+    const countTokensStub = stub(countTokens, 'countTokens').rejects(
+      'countTokens failed'
+    );
+    const abortController = new AbortController();
+    const requestOptions = {
+      timeout: 1000
+    };
+    const singleRequestOptions = {
+      signal: abortController.signal
+    };
+    const genModel = new GenerativeModel(
+      fakeVertexAI,
+      { model: 'my-model' },
+      requestOptions
+    );
+    await expect(genModel.countTokens('hello', singleRequestOptions)).to.be
+      .rejected;
+    expect(countTokensStub).to.be.calledWith(
+      match.any,
+      match.any,
+      match.any,
+      match({
+        timeout: requestOptions.timeout,
+        signal: singleRequestOptions.signal
+      })
+    );
   });
 });

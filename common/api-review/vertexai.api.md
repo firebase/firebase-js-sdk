@@ -50,8 +50,8 @@ export class ChatSession {
     params?: StartChatParams | undefined;
     // (undocumented)
     requestOptions?: RequestOptions | undefined;
-    sendMessage(request: string | Array<string | Part>): Promise<GenerateContentResult>;
-    sendMessageStream(request: string | Array<string | Part>): Promise<GenerateContentStreamResult>;
+    sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     }
 
 // @public
@@ -328,9 +328,9 @@ export interface GenerativeContentBlob {
 // @public
 export class GenerativeModel extends VertexAIModel {
     constructor(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions);
-    countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
-    generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
-    generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
+    countTokens(request: CountTokensRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<CountTokensResponse>;
+    generateContent(request: GenerateContentRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    generateContentStream(request: GenerateContentRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     // (undocumented)
     generationConfig: GenerationConfig;
     // (undocumented)
@@ -466,9 +466,9 @@ export interface ImagenInlineImage {
 // @beta
 export class ImagenModel extends VertexAIModel {
     constructor(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
-    generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
+    generateImages(prompt: string, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
     // @internal
-    generateImagesGCS(prompt: string, gcsURI: string): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
+    generateImagesGCS(prompt: string, gcsURI: string, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
     generationConfig?: ImagenGenerationConfig;
     // (undocumented)
     requestOptions?: RequestOptions | undefined;
@@ -729,6 +729,11 @@ export interface Segment {
     partIndex: number;
     // (undocumented)
     startIndex: number;
+}
+
+// @public
+export interface SingleRequestOptions extends RequestOptions {
+    signal?: AbortSignal;
 }
 
 // @public

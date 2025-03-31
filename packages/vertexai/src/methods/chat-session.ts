@@ -22,6 +22,7 @@ import {
   GenerateContentStreamResult,
   Part,
   RequestOptions,
+  SingleRequestOptions,
   StartChatParams
 } from '../types';
 import { formatNewContent } from '../requests/request-helpers';
@@ -75,7 +76,8 @@ export class ChatSession {
    * {@link GenerateContentResult}
    */
   async sendMessage(
-    request: string | Array<string | Part>
+    request: string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentResult> {
     await this._sendPromise;
     const newContent = formatNewContent(request);
@@ -95,7 +97,11 @@ export class ChatSession {
           this._apiSettings,
           this.model,
           generateContentRequest,
-          this.requestOptions
+          // Merge requestOptions
+          {
+            ...this.requestOptions,
+            ...singleRequestOptions
+          }
         )
       )
       .then(result => {
@@ -130,7 +136,8 @@ export class ChatSession {
    * and a response promise.
    */
   async sendMessageStream(
-    request: string | Array<string | Part>
+    request: string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentStreamResult> {
     await this._sendPromise;
     const newContent = formatNewContent(request);
@@ -146,7 +153,11 @@ export class ChatSession {
       this._apiSettings,
       this.model,
       generateContentRequest,
-      this.requestOptions
+      // Merge requestOptions
+      {
+        ...this.requestOptions,
+        ...singleRequestOptions
+      }
     );
 
     // Add onto the chain.
