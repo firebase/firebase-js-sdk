@@ -31,6 +31,8 @@ import { AuthInternal, ConfigInternal } from '../model/auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from '../model/id_token';
 import { IdTokenMfaResponse } from './authentication/mfa';
 import { SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
+import { PersistenceType } from '../core/persistence';
+import { CookiePersistence } from '../platform_browser/persistence/cookie_storage';
 
 export const enum HttpMethod {
   POST = 'POST',
@@ -72,6 +74,15 @@ export const enum Endpoint {
   TOKEN = '/v1/token',
   REVOKE_TOKEN = '/v2/accounts:revokeToken'
 }
+
+const CookieAuthProxiedEndpoints: string[] = [
+  Endpoint.SIGN_IN_WITH_CUSTOM_TOKEN,
+  Endpoint.SIGN_IN_WITH_EMAIL_LINK,
+  Endpoint.SIGN_IN_WITH_IDP,
+  Endpoint.SIGN_IN_WITH_PASSWORD,
+  Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+  Endpoint.TOKEN
+];
 
 export const enum RecaptchaClientType {
   WEB = 'CLIENT_TYPE_WEB',
@@ -167,7 +178,7 @@ export async function _performApiRequest<T, V>(
     }
 
     return FetchProvider.fetch()(
-      _getFinalTarget(auth, auth.config.apiHost, path, query),
+      await _getFinalTarget(auth, auth.config.apiHost, path, query),
       fetchArgs
     );
   });
@@ -257,19 +268,34 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
   return serverResponse as V;
 }
 
-export function _getFinalTarget(
+export async function _getFinalTarget(
   auth: Auth,
   host: string,
   path: string,
   query: string
-): string {
+): Promise<string> {
   const base = `${host}${path}?${query}`;
 
-  if (!(auth as AuthInternal).config.emulator) {
-    return `${auth.config.apiScheme}://${base}`;
+  const authInternal = auth as AuthInternal;
+  const finalTarget = authInternal.config.emulator
+    ? _emulatorUrl(auth.config as ConfigInternal, base)
+    : `${auth.config.apiScheme}://${base}`;
+
+  // Cookie auth works by MiTMing the signIn and token endpoints from the developer's backend,
+  // saving the idToken and refreshToken into cookies, and then redacting the refreshToken
+  // from the response
+  if (CookieAuthProxiedEndpoints.includes(path)) {
+    // Persistence manager is async, we need to await it. We can't just wait for auth initialized
+    // here since auth initialization calls this function.
+    await authInternal._persistenceManagerAvailable;
+    if (authInternal._getPersistenceType() === PersistenceType.COOKIE) {
+      const cookiePersistence =
+        authInternal._getPersistence() as CookiePersistence;
+      return cookiePersistence._getFinalTarget(finalTarget).toString();
+    }
   }
 
-  return _emulatorUrl(auth.config as ConfigInternal, base);
+  return finalTarget;
 }
 
 export function _parseEnforcementState(

@@ -28,6 +28,10 @@ export interface GroundingMetadata
 
 ## GroundingMetadata.groundingAttributions
 
+> Warning: This API is now obsolete.
+> 
+> 
+
 <b>Signature:</b>
 
 ```typescript
