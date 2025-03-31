@@ -588,6 +588,8 @@ toc:
     path: /docs/reference/js/vertexai.schemashared.md
   - title: Segment
     path: /docs/reference/js/vertexai.segment.md
+  - title: SingleRequestOptions
+    path: /docs/reference/js/vertexai.singlerequestoptions.md
   - title: StartChatParams
     path: /docs/reference/js/vertexai.startchatparams.md
   - title: StringSchema
