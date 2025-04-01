@@ -505,12 +505,16 @@ export class DocumentSnapshot<
 
   toJSON(): object {
     const document = this._document;
+    const result : any = { };
+    result['bundle'] = '';
+    result['source'] = 'DocumentSnapshot';
+    
     if (
       !document ||
       !document.isValidDocument() ||
       !document.isFoundDocument()
     ) {
-      return { bundle: '' };
+      return result;
     }
     const builder: BundleBuilder = new BundleBuilder(
       this._firestore,
@@ -534,7 +538,8 @@ export class DocumentSnapshot<
         document
       )
     );
-    return { bundle: builder.build() };
+    result['bundle'] = builder.build();
+    return result;
   }
 }
 
@@ -693,6 +698,8 @@ export class QuerySnapshot<
   }
 
   toJSON(): object {
+    const result : any = { };
+    result['source'] = 'QuerySnapshot';
     const builder: BundleBuilder = new BundleBuilder(
       this._firestore,
       AutoId.newId()
@@ -731,7 +738,8 @@ export class QuerySnapshot<
       docBundleDataArray
     };
     builder.addBundleQuery(bundleData);
-    return { bundle: builder.build() };
+    result['bundle'] = builder.build();
+    return result;
   }
 }
 
