@@ -21,10 +21,15 @@ import {
   LatLng,
   MapValue,
   Timestamp,
+  Value as ProtoValue,
   Value
 } from '../protos/firestore_proto_api';
 import { fail } from '../util/assert';
-import { arrayEquals, primitiveComparator } from '../util/misc';
+import {
+  arrayEquals,
+  compareUtf8Strings,
+  primitiveComparator
+} from '../util/misc';
 import { forEach, objectSize } from '../util/obj';
 import { isNegativeZero } from '../util/types';
 
@@ -41,6 +46,7 @@ import {
 } from './server_timestamps';
 import { TypeOrder } from './type_order';
 
+export const TYPE_KEY = '__type__';
 const MAX_VALUE_TYPE = '__max__';
 export const MAX_VALUE: Value = {
   mapValue: {
@@ -49,6 +55,9 @@ export const MAX_VALUE: Value = {
     }
   }
 };
+
+export const VECTOR_VALUE_SENTINEL = '__vector__';
+export const VECTOR_MAP_VECTORS_KEY = 'value';
 
 export const MIN_VALUE: Value = {
   nullValue: 'NULL_VALUE'
@@ -79,6 +88,8 @@ export function typeOrder(value: Value): TypeOrder {
       return TypeOrder.ServerTimestampValue;
     } else if (isMaxValue(value)) {
       return TypeOrder.MaxValue;
+    } else if (isVectorValue(value)) {
+      return TypeOrder.VectorValue;
     }
     return TypeOrder.ObjectValue;
   } else {
@@ -123,6 +134,7 @@ export function valueEquals(left: Value, right: Value): boolean {
         right.arrayValue!.values || [],
         valueEquals
       );
+    case TypeOrder.VectorValue:
     case TypeOrder.ObjectValue:
       return objectEquals(left, right);
     case TypeOrder.MaxValue:
@@ -243,7 +255,7 @@ export function valueCompare(left: Value, right: Value): number {
         getLocalWriteTime(right)
       );
     case TypeOrder.StringValue:
-      return primitiveComparator(left.stringValue!, right.stringValue!);
+      return compareUtf8Strings(left.stringValue!, right.stringValue!);
     case TypeOrder.BlobValue:
       return compareBlobs(left.bytesValue!, right.bytesValue!);
     case TypeOrder.RefValue:
@@ -252,6 +264,8 @@ export function valueCompare(left: Value, right: Value): number {
       return compareGeoPoints(left.geoPointValue!, right.geoPointValue!);
     case TypeOrder.ArrayValue:
       return compareArrays(left.arrayValue!, right.arrayValue!);
+    case TypeOrder.VectorValue:
+      return compareVectors(left.mapValue!, right.mapValue!);
     case TypeOrder.ObjectValue:
       return compareMaps(left.mapValue!, right.mapValue!);
     default:
@@ -349,6 +363,25 @@ function compareArrays(left: ArrayValue, right: ArrayValue): number {
   return primitiveComparator(leftArray.length, rightArray.length);
 }
 
+function compareVectors(left: MapValue, right: MapValue): number {
+  const leftMap = left.fields || {};
+  const rightMap = right.fields || {};
+
+  // The vector is a map, but only vector value is compared.
+  const leftArrayValue = leftMap[VECTOR_MAP_VECTORS_KEY]?.arrayValue;
+  const rightArrayValue = rightMap[VECTOR_MAP_VECTORS_KEY]?.arrayValue;
+
+  const lengthCompare = primitiveComparator(
+    leftArrayValue?.values?.length || 0,
+    rightArrayValue?.values?.length || 0
+  );
+  if (lengthCompare !== 0) {
+    return lengthCompare;
+  }
+
+  return compareArrays(leftArrayValue!, rightArrayValue!);
+}
+
 function compareMaps(left: MapValue, right: MapValue): number {
   if (left === MAX_VALUE.mapValue && right === MAX_VALUE.mapValue) {
     return 0;
@@ -371,7 +404,7 @@ function compareMaps(left: MapValue, right: MapValue): number {
   rightKeys.sort();
 
   for (let i = 0; i < leftKeys.length && i < rightKeys.length; ++i) {
-    const keyCompare = primitiveComparator(leftKeys[i], rightKeys[i]);
+    const keyCompare = compareUtf8Strings(leftKeys[i], rightKeys[i]);
     if (keyCompare !== 0) {
       return keyCompare;
     }
@@ -504,6 +537,7 @@ export function estimateByteSize(value: Value): number {
       return 16;
     case TypeOrder.ArrayValue:
       return estimateArrayByteSize(value.arrayValue!);
+    case TypeOrder.VectorValue:
     case TypeOrder.ObjectValue:
       return estimateMapByteSize(value.mapValue!);
     default:
@@ -589,6 +623,12 @@ export function isMapValue(
   return !!value && 'mapValue' in value;
 }
 
+/** Returns true if `value` is a VetorValue. */
+export function isVectorValue(value: ProtoValue | null): boolean {
+  const type = (value?.mapValue?.fields || {})[TYPE_KEY]?.stringValue;
+  return type === VECTOR_VALUE_SENTINEL;
+}
+
 /** Creates a deep copy of `source`. */
 export function deepClone(source: Value): Value {
   if (source.geoPointValue) {
@@ -624,6 +664,17 @@ export function isMaxValue(value: Value): boolean {
   );
 }
 
+export const MIN_VECTOR_VALUE = {
+  mapValue: {
+    fields: {
+      [TYPE_KEY]: { stringValue: VECTOR_VALUE_SENTINEL },
+      [VECTOR_MAP_VECTORS_KEY]: {
+        arrayValue: {}
+      }
+    }
+  }
+};
+
 /** Returns the lowest value for the given value type (inclusive). */
 export function valuesGetLowerBound(value: Value): Value {
   if ('nullValue' in value) {
@@ -645,6 +696,9 @@ export function valuesGetLowerBound(value: Value): Value {
   } else if ('arrayValue' in value) {
     return { arrayValue: {} };
   } else if ('mapValue' in value) {
+    if (isVectorValue(value)) {
+      return MIN_VECTOR_VALUE;
+    }
     return { mapValue: {} };
   } else {
     return fail('Invalid value type', { value });
@@ -670,8 +724,11 @@ export function valuesGetUpperBound(value: Value): Value {
   } else if ('geoPointValue' in value) {
     return { arrayValue: {} };
   } else if ('arrayValue' in value) {
-    return { mapValue: {} };
+    return MIN_VECTOR_VALUE;
   } else if ('mapValue' in value) {
+    if (isVectorValue(value)) {
+      return { mapValue: {} };
+    }
     return MAX_VALUE;
   } else {
     return fail('Invalid value type', { value });

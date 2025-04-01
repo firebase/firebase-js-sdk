@@ -49,8 +49,8 @@ import {
   signInWithCredential,
   signInWithCustomToken,
   signInWithEmailAndPassword,
+  signInWithEmailLink,
   TotpMultiFactorGenerator,
-  TotpSecret,
   unlink,
   updateEmail,
   updatePassword,
@@ -903,7 +903,7 @@ async function onStartEnrollWithTotpMultiFactor() {
     console.log(
       'Finalize sign in by ' + totpSecret.enrollmentCompletionDeadline
     );
-    // display the numbr of seconds left to enroll.
+    // display the number of seconds left to enroll.
     $('p.totp-deadline').show();
     totpDeadlineId = setInterval(function () {
       var deadline = new Date(totpSecret.enrollmentCompletionDeadline);
@@ -995,6 +995,7 @@ function getActionCodeSettings() {
   const installApp = $('input[name=install-app]:checked').val() === 'Yes';
   const handleCodeInApp =
     $('input[name=handle-in-app]:checked').val() === 'Yes';
+  const hostingLinkDomain = $('#hostingLinkDomain').val();
   if (url || apn || ibi) {
     actionCodeSettings['url'] = url;
     if (apn) {
@@ -1010,6 +1011,9 @@ function getActionCodeSettings() {
       };
     }
     actionCodeSettings['handleCodeInApp'] = handleCodeInApp;
+    if (hostingLinkDomain) {
+      actionCodeSettings['linkDomain'] = hostingLinkDomain;
+    }
   }
   return actionCodeSettings;
 }
@@ -1020,6 +1024,7 @@ function onActionCodeSettingsReset() {
   $('#apn').val('');
   $('#amv').val('');
   $('#ibi').val('');
+  $('#hostingLinkDomain').val('');
 }
 
 /**
@@ -2320,7 +2325,7 @@ function initApp() {
   // reCAPTCHA from being re-rendered (default behavior on enter).
   $('#link-reauth-phone-verification-code').keypress(e => {
     if (e.which === 13) {
-      // User first option option as default.
+      // User first option as default.
       onUpdateConfirmPhoneVerification();
       e.preventDefault();
     }

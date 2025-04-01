@@ -203,7 +203,7 @@ Starts a phone number authentication flow by sending a verification code to the 
 <b>Signature:</b>
 
 ```typescript
-verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: ApplicationVerifier): Promise<string>;
+verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier?: ApplicationVerifier): Promise<string>;
 ```
 
 #### Parameters
@@ -211,13 +211,13 @@ verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  phoneOptions | [PhoneInfoOptions](./auth.md#phoneinfooptions) \| string |  |
-|  applicationVerifier | [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) | For abuse prevention, this method also requires a [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->. This SDK includes a reCAPTCHA-based implementation, [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class)<!-- -->. |
+|  applicationVerifier | [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) | An [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->, which prevents requests from unauthorized clients. This SDK includes an implementation based on reCAPTCHA v2, [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class)<!-- -->. If you've enabled reCAPTCHA Enterprise bot protection in Enforce mode, this parameter is optional; in all other configurations, the parameter is required. |
 
 <b>Returns:</b>
 
 Promise&lt;string&gt;
 
-A Promise for a verification ID that can be passed to [PhoneAuthProvider.credential()](./auth.phoneauthprovider.md#phoneauthprovidercredential) to identify this flow..
+A Promise for a verification ID that can be passed to [PhoneAuthProvider.credential()](./auth.phoneauthprovider.md#phoneauthprovidercredential) to identify this flow.
 
 ### Example 1
 

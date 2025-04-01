@@ -1,25 +1,23 @@
 {
   "name": "@firebase/functions-compat",
-  "version": "0.3.11",
+  "version": "0.3.20",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "main": "dist/index.node.cjs.js",
-  "browser": "dist/index.esm2017.js",
-  "module": "dist/index.esm2017.js",
-  "esm5": "dist/index.esm5.js",
+  "main": "dist/index.cjs.js",
+  "browser": "dist/esm/index.esm2017.js",
+  "module": "dist/esm/index.esm2017.js",
   "exports": {
     ".": {
       "types": "./dist/src/index.d.ts",
       "node": {
-        "import": "./dist/node-esm/index.node.esm.js",
-        "require": "./dist/index.node.cjs.js"
+        "require": "./dist/index.cjs.js",
+        "import": "./dist/esm/index.esm2017.js"
       },
-      "esm5": "./dist/index.esm5.js",
       "browser": {
         "require": "./dist/index.cjs.js",
-        "import": "./dist/index.esm2017.js"
+        "import": "./dist/esm/index.esm2017.js"
       },
-      "default": "./dist/index.esm2017.js"
+      "default": "./dist/esm/index.esm2017.js"
     },
     "./package.json": "./package.json"
   },
@@ -31,11 +29,11 @@
     "@firebase/app-compat": "0.x"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.2.35",
-    "rollup": "2.79.1",
-    "@rollup/plugin-json": "4.1.0",
-    "rollup-plugin-typescript2": "0.31.2",
-    "typescript": "4.7.4"
+    "@firebase/app-compat": "0.2.53",
+    "rollup": "2.79.2",
+    "@rollup/plugin-json": "6.1.0",
+    "rollup-plugin-typescript2": "0.36.0",
+    "typescript": "5.5.4"
   },
   "repository": {
     "directory": "packages/functions-compat",
@@ -55,19 +53,19 @@
     "test": "run-p --npm-path npm lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:all": "run-p --npm-path npm test:browser test:node",
-    "test:browser": "karma start --single-run",
+    "test:browser": "karma start",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
-    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/{,!(browser)/**/}*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
+    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/{,!(browser)/**/}*.test.ts' --config ../../config/mocharc.node.js",
     "test:emulator": "env FIREBASE_FUNCTIONS_HOST=http://localhost FIREBASE_FUNCTIONS_PORT=5005 run-p --npm-path npm test:node",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../functions/dist/functions-public.d.ts -o dist/src/index.d.ts -a -r Functions:types.FirebaseFunctions -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/functions"
   },
   "typings": "dist/src/index.d.ts",
   "dependencies": {
-    "@firebase/component": "0.6.7",
-    "@firebase/functions": "0.11.5",
-    "@firebase/functions-types": "0.6.2",
-    "@firebase/util": "1.9.6",
+    "@firebase/component": "0.6.13",
+    "@firebase/functions": "0.12.3",
+    "@firebase/functions-types": "0.6.3",
+    "@firebase/util": "1.11.0",
     "tslib": "^2.1.0"
   },
   "nyc": {
@@ -75,5 +73,8 @@
       ".ts"
     ],
     "reportDir": "./coverage/node"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

@@ -42,17 +42,13 @@ import {
   formatSystemInstruction
 } from '../requests/request-helpers';
 import { VertexAI } from '../public-types';
-import { ERROR_FACTORY, VertexError } from '../errors';
-import { ApiSettings } from '../types/internal';
-import { VertexAIService } from '../service';
+import { VertexAIModel } from './vertexai-model';
 
 /**
  * Class for generative model APIs.
  * @public
  */
-export class GenerativeModel {
-  private _apiSettings: ApiSettings;
-  model: string;
+export class GenerativeModel extends VertexAIModel {
   generationConfig: GenerationConfig;
   safetySettings: SafetySetting[];
   requestOptions?: RequestOptions;
@@ -65,38 +61,7 @@ export class GenerativeModel {
     modelParams: ModelParams,
     requestOptions?: RequestOptions
   ) {
-    if (!vertexAI.app?.options?.apiKey) {
-      throw ERROR_FACTORY.create(VertexError.NO_API_KEY);
-    } else if (!vertexAI.app?.options?.projectId) {
-      throw ERROR_FACTORY.create(VertexError.NO_PROJECT_ID);
-    } else {
-      this._apiSettings = {
-        apiKey: vertexAI.app.options.apiKey,
-        project: vertexAI.app.options.projectId,
-        location: vertexAI.location
-      };
-      if ((vertexAI as VertexAIService).appCheck) {
-        this._apiSettings.getAppCheckToken = () =>
-          (vertexAI as VertexAIService).appCheck!.getToken();
-      }
-
-      if ((vertexAI as VertexAIService).auth) {
-        this._apiSettings.getAuthToken = () =>
-          (vertexAI as VertexAIService).auth!.getToken();
-      }
-    }
-    if (modelParams.model.includes('/')) {
-      if (modelParams.model.startsWith('models/')) {
-        // Add "publishers/google" if the user is only passing in 'models/model-name'.
-        this.model = `publishers/google/${modelParams.model}`;
-      } else {
-        // Any other custom format (e.g. tuned models) must be passed in correctly.
-        this.model = modelParams.model;
-      }
-    } else {
-      // If path is not included, assume it's a non-tuned model.
-      this.model = `publishers/google/models/${modelParams.model}`;
-    }
+    super(vertexAI, modelParams.model);
     this.generationConfig = modelParams.generationConfig || {};
     this.safetySettings = modelParams.safetySettings || [];
     this.tools = modelParams.tools;
@@ -109,7 +74,7 @@ export class GenerativeModel {
 
   /**
    * Makes a single non-streaming call to the model
-   * and returns an object containing a single {@link GenerateContentResponse}.
+   * and returns an object containing a single <code>{@link GenerateContentResponse}</code>.
    */
   async generateContent(
     request: GenerateContentRequest | string | Array<string | Part>
@@ -156,7 +121,7 @@ export class GenerativeModel {
   }
 
   /**
-   * Gets a new {@link ChatSession} instance which can be used for
+   * Gets a new <code>{@link ChatSession}</code> instance which can be used for
    * multi-turn chats.
    */
   startChat(startChatParams?: StartChatParams): ChatSession {

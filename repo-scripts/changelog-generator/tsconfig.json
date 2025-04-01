@@ -9,6 +9,6 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "target": "es5"
+    "target": "es2017"
   }
 }

@@ -16,38 +16,27 @@
  */
 
 import typescriptPlugin from 'rollup-plugin-typescript2';
+import replacePlugin from '@rollup/plugin-replace';
 import typescript from 'typescript';
 import pkg from './package.json';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
-
-const es5BuildPlugins = [
-  typescriptPlugin({
-    typescript
-  })
+const deps = [
+  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
+  './postinstall'
 ];
 
-const es2017BuildPlugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    }
-  })
-];
+const buildPlugins = [typescriptPlugin({ typescript })];
+
+function replaceSrcPostinstallWith(path) {
+  return replacePlugin({
+    './src/postinstall': `'${path}'`,
+    delimiters: ["'", "'"],
+    preventAssignment: true
+  });
+}
 
 const browserBuilds = [
-  {
-    input: 'index.ts',
-    output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],
-    plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
   {
     input: 'index.ts',
     output: {
@@ -55,7 +44,7 @@ const browserBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: es2017BuildPlugins,
+    plugins: [...buildPlugins, replaceSrcPostinstallWith('./postinstall.mjs')],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
@@ -65,7 +54,7 @@ const browserBuilds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: es2017BuildPlugins,
+    plugins: [...buildPlugins, replaceSrcPostinstallWith('./postinstall.js')],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
@@ -73,18 +62,47 @@ const browserBuilds = [
 const nodeBuilds = [
   {
     input: 'index.node.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-    plugins: es5BuildPlugins,
+    output: {
+      file: pkg.main,
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: [...buildPlugins, replaceSrcPostinstallWith('./postinstall.js')],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
     input: 'index.node.ts',
-    output: [
-      { file: pkg.exports['.'].node.import, format: 'es', sourcemap: true }
+    output: {
+      file: pkg.exports['.'].node.import,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      ...buildPlugins,
+      emitModulePackageFile(),
+      replaceSrcPostinstallWith('../postinstall.mjs')
     ],
-    plugins: [...es2017BuildPlugins, emitModulePackageFile()],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
 
-export default [...browserBuilds, ...nodeBuilds];
+const autoinitBuild = [
+  {
+    input: './src/postinstall.ts',
+    output: {
+      file: './dist/postinstall.js',
+      format: 'cjs'
+    },
+    plugins: buildPlugins
+  },
+  {
+    input: './src/postinstall.ts',
+    output: {
+      file: './dist/postinstall.mjs',
+      format: 'es'
+    },
+    plugins: buildPlugins
+  }
+];
+
+export default [...browserBuilds, ...nodeBuilds, ...autoinitBuild];

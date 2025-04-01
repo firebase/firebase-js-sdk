@@ -158,6 +158,7 @@ export class SimpleDbTransaction {
  */
 export class SimpleDb {
   private db?: IDBDatabase;
+  private lastClosedDbVersion: number | null = null;
   private versionchangelistener?: (event: IDBVersionChangeEvent) => void;
 
   /** Deletes the specified database. */
@@ -200,7 +201,7 @@ export class SimpleDb {
     const iOSVersion = SimpleDb.getIOSVersion(ua);
     const isUnsupportedIOS = 0 < iOSVersion && iOSVersion < 10;
 
-    // Android browser: Disable for userse running version < 4.5.
+    // Android browser: Disable for users running version < 4.5.
     const androidVersion = getAndroidVersion(ua);
     const isUnsupportedAndroid = 0 < androidVersion && androidVersion < 4.5;
 
@@ -344,6 +345,24 @@ export class SimpleDb {
             event.oldVersion
           );
           const db = (event.target as IDBOpenDBRequest).result;
+          if (
+            this.lastClosedDbVersion !== null &&
+            this.lastClosedDbVersion !== event.oldVersion
+          ) {
+            // This thrown error will get passed to the `onerror` callback
+            // registered above, and will then be propagated correctly.
+            throw new Error(
+              `refusing to open IndexedDB database due to potential ` +
+                `corruption of the IndexedDB database data; this corruption ` +
+                `could be caused by clicking the "clear site data" button in ` +
+                `a web browser; try reloading the web page to re-initialize ` +
+                `the IndexedDB database: ` +
+                `lastClosedDbVersion=${this.lastClosedDbVersion}, ` +
+                `event.oldVersion=${event.oldVersion}, ` +
+                `event.newVersion=${event.newVersion}, ` +
+                `db.version=${db.version}`
+            );
+          }
           this.schemaConverter
             .createOrUpgrade(
               db,
@@ -359,11 +378,21 @@ export class SimpleDb {
             });
         };
       });
+
+      this.db.addEventListener(
+        'close',
+        event => {
+          const db = event.target as IDBDatabase;
+          this.lastClosedDbVersion = db.version;
+        },
+        { passive: true }
+      );
     }
 
     if (this.versionchangelistener) {
       this.db.onversionchange = event => this.versionchangelistener!(event);
     }
+
     return this.db;
   }
 
@@ -531,7 +560,7 @@ export interface IterateOptions {
   /** Index to iterate over (else primary keys will be iterated) */
   index?: string;
 
-  /** IndxedDB Range to iterate over (else entire store will be iterated) */
+  /** IndexedDB Range to iterate over (else entire store will be iterated) */
   range?: IDBKeyRange;
 
   /** If true, values aren't read while iterating. */

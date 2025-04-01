@@ -22,7 +22,7 @@ import sourcemaps from 'rollup-plugin-sourcemaps';
 import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import { uglify } from 'rollup-plugin-uglify';
-import { terser } from 'rollup-plugin-terser';
+import terser from '@rollup/plugin-terser';
 import json from '@rollup/plugin-json';
 import pkg from '../package.json';
 import compatPkg from './package.json';
@@ -284,43 +284,16 @@ const completeBuilds = [
     },
     plugins: [
       sourcemaps(),
-      resolveModule({
-        exportConditions: ['liteesm5', 'esm5']
-      }),
-      typescriptPluginCDN,
-      json(),
-      commonjs(),
-      uglify(uglifyOptions)
-    ]
-  },
-  /**
-   * Performance script Build in ES2017
-   */
-  {
-    input: `${__dirname}/index.perf.ts`,
-    output: {
-      file: 'firebase-performance-standalone-compat.es2017.js',
-      format: 'umd',
-      sourcemap: true,
-      name: GLOBAL_NAME
-    },
-    plugins: [
-      sourcemaps(),
-      resolveModule({
-        exportConditions: ['lite']
-      }),
+      resolveModule({ exportConditions: ['lite'] }),
       rollupTypescriptPlugin({
         typescript,
         tsconfigOverride: {
           compilerOptions: {
-            target: 'es2017',
             declaration: false
           }
         }
       }),
-      json({
-        preferConst: true
-      }),
+      json({ preferConst: true }),
       commonjs(),
       terser()
     ]

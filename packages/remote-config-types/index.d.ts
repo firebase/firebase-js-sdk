@@ -117,7 +117,7 @@ export interface Value {
   /**
    * Gets the value as a boolean.
    *
-   * The following values (case insensitive) are interpreted as true:
+   * The following values (case-insensitive) are interpreted as true:
    * "1", "true", "t", "yes", "y", "on". Other values are interpreted as false.
    */
   asBoolean(): boolean;
@@ -172,6 +172,19 @@ export type FetchStatus = 'no-fetch-yet' | 'success' | 'failure' | 'throttle';
  * Defines levels of Remote Config logging.
  */
 export type LogLevel = 'debug' | 'error' | 'silent';
+
+/**
+ * Defines the type for representing custom signals and their values.
+ *
+ * <p>The values in CustomSignals must be one of the following types:
+ *
+ * <ul>
+ *   <li><code>string</code>
+ *   <li><code>number</code>
+ *   <li><code>null</code>
+ * </ul>
+ */
+export type CustomSignals = { [key: string]: string | number | null };
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

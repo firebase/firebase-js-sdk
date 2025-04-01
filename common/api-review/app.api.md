@@ -78,9 +78,9 @@ export interface FirebaseServerApp extends FirebaseApp {
 }
 
 // @public
-export interface FirebaseServerAppSettings extends FirebaseAppSettings {
+export interface FirebaseServerAppSettings extends Omit<FirebaseAppSettings, 'name'> {
+    appCheckToken?: string;
     authIdToken?: string;
-    name?: undefined;
     releaseOnDeref?: object;
 }
 
@@ -116,7 +116,7 @@ export function initializeServerApp(options: FirebaseOptions | FirebaseApp, conf
 export function _isFirebaseApp(obj: FirebaseApp | FirebaseOptions): obj is FirebaseApp;
 
 // @internal (undocumented)
-export function _isFirebaseServerApp(obj: FirebaseApp | FirebaseServerApp): obj is FirebaseServerApp;
+export function _isFirebaseServerApp(obj: FirebaseApp | FirebaseServerApp | null | undefined): obj is FirebaseServerApp;
 
 // @public
 export function onLog(logCallback: LogCallback | null, options?: LogOptions): void;

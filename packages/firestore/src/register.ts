@@ -47,6 +47,7 @@ export function registerFirestore(
             container.getProvider('auth-internal')
           ),
           new FirebaseAppCheckTokenProvider(
+            app,
             container.getProvider('app-check-internal')
           ),
           databaseIdFromApp(app, databaseId),
@@ -60,6 +61,6 @@ export function registerFirestore(
     ).setMultipleInstances(true)
   );
   registerVersion(name, version, variant);
-  // BUILD_TARGET will be replaced by values like esm5, esm2017, cjs5, etc during the compilation
+  // BUILD_TARGET will be replaced by values like esm2017, cjs2017, etc during the compilation
   registerVersion(name, version, '__BUILD_TARGET__');
 }

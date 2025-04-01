@@ -21,7 +21,6 @@ import {
 } from './impl/discovery';
 import { fixHostname, makeUrl } from './impl/url';
 import { HostAndPort } from './public_types';
-import fetch from 'node-fetch';
 
 /**
  * Run a setup function with background Cloud Functions triggers disabled. This can be used to
@@ -72,7 +71,7 @@ export async function withFunctionTriggersDisabled<TResult>(
   if (!hub) {
     throw new Error(
       'Please specify the Emulator Hub host and port via arguments or set the environment ' +
-        `varible ${EMULATOR_HOST_ENV_VARS.hub}!`
+        `variable ${EMULATOR_HOST_ENV_VARS.hub}!`
     );
   }
 

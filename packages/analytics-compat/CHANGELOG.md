@@ -1,5 +1,78 @@
 # @firebase/analytics-compat
 
+## 0.2.18
+
+### Patch Changes
+
+- Updated dependencies [[`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5)]:
+  - @firebase/util@1.11.0
+  - @firebase/analytics@0.10.12
+  - @firebase/component@0.6.13
+
+## 0.2.17
+
+### Patch Changes
+
+- Updated dependencies [[`25a6204c1`](https://github.com/firebase/firebase-js-sdk/commit/25a6204c1531b6c772e5368d12b2411ae1d21bbc)]:
+  - @firebase/util@1.10.3
+  - @firebase/analytics@0.10.11
+  - @firebase/component@0.6.12
+
+## 0.2.16
+
+### Patch Changes
+
+- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
+
+- Updated dependencies [[`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1)]:
+  - @firebase/analytics@0.10.10
+  - @firebase/analytics-types@0.8.3
+  - @firebase/component@0.6.11
+  - @firebase/util@1.10.2
+
+## 0.2.15
+
+### Patch Changes
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Remove ES5 bundles. The minimum required ES version is now ES2017.
+
+- Updated dependencies [[`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702)]:
+  - @firebase/analytics@0.10.9
+  - @firebase/component@0.6.10
+  - @firebase/util@1.10.1
+
+## 0.2.14
+
+### Patch Changes
+
+- Updated dependencies [[`16d62d4fa`](https://github.com/firebase/firebase-js-sdk/commit/16d62d4fa16faddb8cb676c0af3f29b8a5824741)]:
+  - @firebase/util@1.10.0
+  - @firebase/analytics@0.10.8
+  - @firebase/component@0.6.9
+
+## 0.2.13
+
+### Patch Changes
+
+- Updated dependencies [[`a9f844066`](https://github.com/firebase/firebase-js-sdk/commit/a9f844066045d8567ae143bae77d184ac227690d)]:
+  - @firebase/analytics@0.10.7
+
+## 0.2.12
+
+### Patch Changes
+
+- Updated dependencies [[`f58d48cd4`](https://github.com/firebase/firebase-js-sdk/commit/f58d48cd42c9f09eab4d8b2a606af360528917f8)]:
+  - @firebase/analytics@0.10.6
+
+## 0.2.11
+
+### Patch Changes
+
+- Updated dependencies [[`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558)]:
+  - @firebase/util@1.9.7
+  - @firebase/analytics@0.10.5
+  - @firebase/component@0.6.8
+
 ## 0.2.10
 
 ### Patch Changes

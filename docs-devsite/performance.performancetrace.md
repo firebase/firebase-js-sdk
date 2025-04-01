@@ -173,7 +173,7 @@ record(startTime: number, duration: number, options?: {
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  startTime | number | trace start time since epoch in millisec. |
-|  duration | number | The duraction of the trace in millisec. |
+|  duration | number | The duration of the trace in millisec. |
 |  options | { metrics?: { \[key: string\]: number; }; attributes?: { \[key: string\]: string; }; } | An object which can optionally hold maps of custom metrics and custom attributes. |
 
 <b>Returns:</b>

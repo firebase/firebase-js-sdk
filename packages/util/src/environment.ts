@@ -19,6 +19,11 @@ import { CONSTANTS } from './constants';
 import { getDefaults } from './defaults';
 
 /**
+ * Type placeholder for `WorkerGlobalScope` from `webworker`
+ */
+declare class WorkerGlobalScope {}
+
+/**
  * Returns navigator.userAgent string or '' if it's not defined.
  * @return user agent string
  */
@@ -74,10 +79,34 @@ export function isNode(): boolean {
 }
 
 /**
- * Detect Browser Environment
+ * Detect Browser Environment.
+ * Note: This will return true for certain test frameworks that are incompletely
+ * mimicking a browser, and should not lead to assuming all browser APIs are
+ * available.
  */
 export function isBrowser(): boolean {
-  return typeof self === 'object' && self.self === self;
+  return typeof window !== 'undefined' || isWebWorker();
+}
+
+/**
+ * Detect Web Worker context.
+ */
+export function isWebWorker(): boolean {
+  return (
+    typeof WorkerGlobalScope !== 'undefined' &&
+    typeof self !== 'undefined' &&
+    self instanceof WorkerGlobalScope
+  );
+}
+
+/**
+ * Detect Cloudflare Worker context.
+ */
+export function isCloudflareWorker(): boolean {
+  return (
+    typeof navigator !== 'undefined' &&
+    navigator.userAgent === 'Cloudflare-Workers'
+  );
 }
 
 /**

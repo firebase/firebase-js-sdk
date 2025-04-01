@@ -15,8 +15,14 @@
  * limitations under the License.
  */
 
-import { Content, GenerateContentRequest, Part } from '../types';
-import { ERROR_FACTORY, VertexError } from '../errors';
+import {
+  Content,
+  GenerateContentRequest,
+  Part,
+  VertexAIErrorCode
+} from '../types';
+import { VertexAIError } from '../errors';
+import { ImagenGenerationParams, PredictRequestBody } from '../types/internal';
 
 export function formatSystemInstruction(
   input?: string | Part | Content
@@ -81,16 +87,17 @@ function assignRoleToPartsAndValidateSendMessageRequest(
   }
 
   if (hasUserContent && hasFunctionContent) {
-    throw ERROR_FACTORY.create(VertexError.INVALID_CONTENT, {
-      message:
-        'Within a single message, FunctionResponse cannot be mixed with other type of part in the request for sending chat message.'
-    });
+    throw new VertexAIError(
+      VertexAIErrorCode.INVALID_CONTENT,
+      'Within a single message, FunctionResponse cannot be mixed with other type of Part in the request for sending chat message.'
+    );
   }
 
   if (!hasUserContent && !hasFunctionContent) {
-    throw ERROR_FACTORY.create(VertexError.INVALID_CONTENT, {
-      message: 'No content is provided for sending chat message.'
-    });
+    throw new VertexAIError(
+      VertexAIErrorCode.INVALID_CONTENT,
+      'No Content is provided for sending chat message.'
+    );
   }
 
   if (hasUserContent) {
@@ -117,4 +124,45 @@ export function formatGenerateContentInput(
     );
   }
   return formattedRequest;
+}
+
+/**
+ * Convert the user-defined parameters in <code>{@link ImagenGenerationParams}</code> to the format
+ * that is expected from the REST API.
+ *
+ * @internal
+ */
+export function createPredictRequestBody(
+  prompt: string,
+  {
+    gcsURI,
+    imageFormat,
+    addWatermark,
+    numberOfImages = 1,
+    negativePrompt,
+    aspectRatio,
+    safetyFilterLevel,
+    personFilterLevel
+  }: ImagenGenerationParams
+): PredictRequestBody {
+  // Properties that are undefined will be omitted from the JSON string that is sent in the request.
+  const body: PredictRequestBody = {
+    instances: [
+      {
+        prompt
+      }
+    ],
+    parameters: {
+      storageUri: gcsURI,
+      negativePrompt,
+      sampleCount: numberOfImages,
+      aspectRatio,
+      outputOptions: imageFormat,
+      addWatermark,
+      safetyFilterLevel,
+      personGeneration: personFilterLevel,
+      includeRaiReason: true
+    }
+  };
+  return body;
 }

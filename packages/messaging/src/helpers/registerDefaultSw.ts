@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { DEFAULT_SW_PATH, DEFAULT_SW_SCOPE } from '../util/constants';
+import {
+  DEFAULT_REGISTRATION_TIMEOUT,
+  DEFAULT_SW_PATH,
+  DEFAULT_SW_SCOPE
+} from '../util/constants';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
 import { MessagingService } from '../messaging-service';
@@ -39,9 +43,51 @@ export async function registerDefaultSw(
     messaging.swRegistration.update().catch(() => {
       /* it is non blocking and we don't care if it failed */
     });
+    await waitForRegistrationActive(messaging.swRegistration);
   } catch (e) {
     throw ERROR_FACTORY.create(ErrorCode.FAILED_DEFAULT_REGISTRATION, {
       browserErrorMessage: (e as Error)?.message
     });
   }
+}
+
+/**
+ * Waits for registration to become active. MDN documentation claims that
+ * a service worker registration should be ready to use after awaiting
+ * navigator.serviceWorker.register() but that doesn't seem to be the case in
+ * practice, causing the SDK to throw errors when calling
+ * swRegistration.pushManager.subscribe() too soon after register(). The only
+ * solution seems to be waiting for the service worker registration `state`
+ * to become "active".
+ */
+async function waitForRegistrationActive(
+  registration: ServiceWorkerRegistration
+): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const rejectTimeout = setTimeout(
+      () =>
+        reject(
+          new Error(
+            `Service worker not registered after ${DEFAULT_REGISTRATION_TIMEOUT} ms`
+          )
+        ),
+      DEFAULT_REGISTRATION_TIMEOUT
+    );
+    const incomingSw = registration.installing || registration.waiting;
+    if (registration.active) {
+      clearTimeout(rejectTimeout);
+      resolve();
+    } else if (incomingSw) {
+      incomingSw.onstatechange = ev => {
+        if ((ev.target as ServiceWorker)?.state === 'activated') {
+          incomingSw.onstatechange = null;
+          clearTimeout(rejectTimeout);
+          resolve();
+        }
+      };
+    } else {
+      clearTimeout(rejectTimeout);
+      reject(new Error('No incoming service worker found.'));
+    }
+  });
 }

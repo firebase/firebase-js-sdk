@@ -36,13 +36,14 @@ export {
 // Core functionality shared by all clients
 export * from './src';
 
-// Additional DOM dependend functionality; we need to import and then
+// Additional DOM dependent functionality; we need to import and then
 // export separately so that the rollup alias will work (for aliasing these
 // imports in node environments to no-ops and errors... see
 // src/platform_node/index.ts).
 
 // persistence
 import { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
+import { browserCookiePersistence } from './src/platform_browser/persistence/cookie_storage';
 import { browserSessionPersistence } from './src/platform_browser/persistence/session_storage';
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 
@@ -83,6 +84,7 @@ import { getAuth } from './src/platform_browser';
 
 export {
   browserLocalPersistence,
+  browserCookiePersistence,
   browserSessionPersistence,
   indexedDBLocalPersistence,
   PhoneAuthProvider,

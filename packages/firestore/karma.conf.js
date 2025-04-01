@@ -21,7 +21,6 @@ const { argv } = require('yargs');
 module.exports = function (config) {
   const karmaConfig = {
     ...karmaBase,
-    browsers: getTestBrowsers(argv),
     // files to load into karma
     files: getTestFiles(argv),
 
@@ -62,26 +61,18 @@ module.exports = function (config) {
  */
 function getTestFiles(argv) {
   const unitTests = 'test/unit/bootstrap.ts';
-  const legcayIntegrationTests = 'test/integration/bootstrap.ts';
+  const legacyIntegrationTests = 'test/integration/bootstrap.ts';
   const liteIntegrationTests = 'test/lite/bootstrap.ts';
   if (argv.unit) {
     return [unitTests];
   } else if (argv.integration) {
-    return [legcayIntegrationTests];
+    return [legacyIntegrationTests];
   } else if (argv.lite) {
     process.env.TEST_PLATFORM = 'browser_lite';
     return [liteIntegrationTests];
   } else {
-    return [unitTests, legcayIntegrationTests];
+    return [unitTests, legacyIntegrationTests];
   }
-}
-
-function getTestBrowsers(argv) {
-  let browsers = ['ChromeHeadless'];
-  if (process.env?.BROWSERS && argv.unit) {
-    browsers = process.env?.BROWSERS?.split(',');
-  }
-  return browsers;
 }
 
 module.exports.files = getTestFiles(argv);

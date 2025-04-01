@@ -15,20 +15,23 @@
  * limitations under the License.
  */
 
-import { RequestOptions } from '../types';
-import { ERROR_FACTORY, VertexError } from '../errors';
+import { ErrorDetails, RequestOptions, VertexAIErrorCode } from '../types';
+import { VertexAIError } from '../errors';
 import { ApiSettings } from '../types/internal';
 import {
   DEFAULT_API_VERSION,
   DEFAULT_BASE_URL,
+  DEFAULT_FETCH_TIMEOUT_MS,
   LANGUAGE_TAG,
   PACKAGE_VERSION
 } from '../constants';
+import { logger } from '../logger';
 
 export enum Task {
   GENERATE_CONTENT = 'generateContent',
   STREAM_GENERATE_CONTENT = 'streamGenerateContent',
-  COUNT_TOKENS = 'countTokens'
+  COUNT_TOKENS = 'countTokens',
+  PREDICT = 'predict'
 }
 
 export class RequestUrl {
@@ -81,10 +84,18 @@ export async function getHeaders(url: RequestUrl): Promise<Headers> {
   headers.append('Content-Type', 'application/json');
   headers.append('x-goog-api-client', getClientHeaders());
   headers.append('x-goog-api-key', url.apiSettings.apiKey);
+  if (url.apiSettings.automaticDataCollectionEnabled) {
+    headers.append('X-Firebase-Appid', url.apiSettings.appId);
+  }
   if (url.apiSettings.getAppCheckToken) {
     const appCheckToken = await url.apiSettings.getAppCheckToken();
-    if (appCheckToken && !appCheckToken.error) {
+    if (appCheckToken) {
       headers.append('X-Firebase-AppCheck', appCheckToken.token);
+      if (appCheckToken.error) {
+        logger.warn(
+          `Unable to obtain a valid App Check token: ${appCheckToken.error.message}`
+        );
+      }
     }
   }
 
@@ -110,7 +121,6 @@ export async function constructRequest(
   return {
     url: url.toString(),
     fetchOptions: {
-      ...buildFetchOptions(requestOptions),
       method: 'POST',
       headers: await getHeaders(url),
       body
@@ -128,6 +138,7 @@ export async function makeRequest(
 ): Promise<Response> {
   const url = new RequestUrl(model, task, apiSettings, stream, requestOptions);
   let response;
+  let fetchTimeoutId: string | number | NodeJS.Timeout | undefined;
   try {
     const request = await constructRequest(
       model,
@@ -137,44 +148,87 @@ export async function makeRequest(
       body,
       requestOptions
     );
+    // Timeout is 180s by default
+    const timeoutMillis =
+      requestOptions?.timeout != null && requestOptions.timeout >= 0
+        ? requestOptions.timeout
+        : DEFAULT_FETCH_TIMEOUT_MS;
+    const abortController = new AbortController();
+    fetchTimeoutId = setTimeout(() => abortController.abort(), timeoutMillis);
+    request.fetchOptions.signal = abortController.signal;
+
     response = await fetch(request.url, request.fetchOptions);
     if (!response.ok) {
       let message = '';
+      let errorDetails;
       try {
         const json = await response.json();
         message = json.error.message;
         if (json.error.details) {
           message += ` ${JSON.stringify(json.error.details)}`;
+          errorDetails = json.error.details;
         }
       } catch (e) {
         // ignored
       }
-      throw new Error(`[${response.status} ${response.statusText}] ${message}`);
+      if (
+        response.status === 403 &&
+        errorDetails.some(
+          (detail: ErrorDetails) => detail.reason === 'SERVICE_DISABLED'
+        ) &&
+        errorDetails.some((detail: ErrorDetails) =>
+          (
+            detail.links as Array<Record<string, string>>
+          )?.[0]?.description.includes(
+            'Google developers console API activation'
+          )
+        )
+      ) {
+        throw new VertexAIError(
+          VertexAIErrorCode.API_NOT_ENABLED,
+          `The Vertex AI in Firebase SDK requires the Vertex AI in Firebase ` +
+            `API ('firebasevertexai.googleapis.com') to be enabled in your ` +
+            `Firebase project. Enable this API by visiting the Firebase Console ` +
+            `at https://console.firebase.google.com/project/${url.apiSettings.project}/genai/ ` +
+            `and clicking "Get started". If you enabled this API recently, ` +
+            `wait a few minutes for the action to propagate to our systems and ` +
+            `then retry.`,
+          {
+            status: response.status,
+            statusText: response.statusText,
+            errorDetails
+          }
+        );
+      }
+      throw new VertexAIError(
+        VertexAIErrorCode.FETCH_ERROR,
+        `Error fetching from ${url}: [${response.status} ${response.statusText}] ${message}`,
+        {
+          status: response.status,
+          statusText: response.statusText,
+          errorDetails
+        }
+      );
     }
-  } catch (caughtError) {
-    const e = caughtError as Error;
-    const err = ERROR_FACTORY.create(VertexError.FETCH_ERROR, {
-      url: url.toString(),
-      message: e.message
-    });
-    err.stack = e.stack;
+  } catch (e) {
+    let err = e as Error;
+    if (
+      (e as VertexAIError).code !== VertexAIErrorCode.FETCH_ERROR &&
+      (e as VertexAIError).code !== VertexAIErrorCode.API_NOT_ENABLED &&
+      e instanceof Error
+    ) {
+      err = new VertexAIError(
+        VertexAIErrorCode.ERROR,
+        `Error fetching from ${url.toString()}: ${e.message}`
+      );
+      err.stack = e.stack;
+    }
+
     throw err;
+  } finally {
+    if (fetchTimeoutId) {
+      clearTimeout(fetchTimeoutId);
+    }
   }
   return response;
-}
-
-/**
- * Generates the request options to be passed to the fetch API.
- * @param requestOptions - The user-defined request options.
- * @returns The generated request options.
- */
-function buildFetchOptions(requestOptions?: RequestOptions): RequestInit {
-  const fetchOptions = {} as RequestInit;
-  if (requestOptions?.timeout && requestOptions?.timeout >= 0) {
-    const abortController = new AbortController();
-    const signal = abortController.signal;
-    setTimeout(() => abortController.abort(), requestOptions.timeout);
-    fetchOptions.signal = signal;
-  }
-  return fetchOptions;
 }

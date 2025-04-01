@@ -16,12 +16,15 @@
  */
 
 import { expect, use } from 'chai';
-import { restore, stub } from 'sinon';
+import { match, restore, stub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import { RequestUrl, Task, getHeaders, makeRequest } from './request';
 import { ApiSettings } from '../types/internal';
 import { DEFAULT_API_VERSION } from '../constants';
+import { VertexAIErrorCode } from '../types';
+import { VertexAIError } from '../errors';
+import { getMockResponse } from '../../test-utils/mock-response';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -29,6 +32,7 @@ use(chaiAsPromised);
 const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
+  appId: 'my-appid',
   location: 'us-central1'
 };
 
@@ -100,6 +104,7 @@ describe('request methods', () => {
     const fakeApiSettings: ApiSettings = {
       apiKey: 'key',
       project: 'myproject',
+      appId: 'my-appid',
       location: 'moon',
       getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
       getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
@@ -121,6 +126,50 @@ describe('request methods', () => {
       const headers = await getHeaders(fakeUrl);
       expect(headers.get('x-goog-api-key')).to.equal('key');
     });
+    it('adds app id if automatedDataCollectionEnabled is true', async () => {
+      const fakeApiSettings: ApiSettings = {
+        apiKey: 'key',
+        project: 'myproject',
+        appId: 'my-appid',
+        location: 'moon',
+        automaticDataCollectionEnabled: true,
+        getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
+        getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
+      };
+      const fakeUrl = new RequestUrl(
+        'models/model-name',
+        Task.GENERATE_CONTENT,
+        fakeApiSettings,
+        true,
+        {}
+      );
+      const headers = await getHeaders(fakeUrl);
+      expect(headers.get('X-Firebase-Appid')).to.equal('my-appid');
+    });
+    it('does not add app id if automatedDataCollectionEnabled is undefined', async () => {
+      const headers = await getHeaders(fakeUrl);
+      expect(headers.get('X-Firebase-Appid')).to.be.null;
+    });
+    it('does not add app id if automatedDataCollectionEnabled is false', async () => {
+      const fakeApiSettings: ApiSettings = {
+        apiKey: 'key',
+        project: 'myproject',
+        appId: 'my-appid',
+        location: 'moon',
+        automaticDataCollectionEnabled: false,
+        getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
+        getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
+      };
+      const fakeUrl = new RequestUrl(
+        'models/model-name',
+        Task.GENERATE_CONTENT,
+        fakeApiSettings,
+        true,
+        {}
+      );
+      const headers = await getHeaders(fakeUrl);
+      expect(headers.get('X-Firebase-Appid')).to.be.null;
+    });
     it('adds app check token if it exists', async () => {
       const headers = await getHeaders(fakeUrl);
       expect(headers.get('X-Firebase-AppCheck')).to.equal('appchecktoken');
@@ -132,6 +181,7 @@ describe('request methods', () => {
         {
           apiKey: 'key',
           project: 'myproject',
+          appId: 'my-appid',
           location: 'moon'
         },
         true,
@@ -164,15 +214,21 @@ describe('request methods', () => {
         {
           apiKey: 'key',
           project: 'myproject',
+          appId: 'my-appid',
           location: 'moon',
           getAppCheckToken: () =>
-            Promise.resolve({ token: 'token', error: Error('oops') })
+            Promise.resolve({ token: 'dummytoken', error: Error('oops') })
         },
         true,
         {}
       );
+      const warnStub = stub(console, 'warn');
       const headers = await getHeaders(fakeUrl);
-      expect(headers.has('X-Firebase-AppCheck')).to.be.false;
+      expect(headers.get('X-Firebase-AppCheck')).to.equal('dummytoken');
+      expect(warnStub).to.be.calledWith(
+        match(/vertexai/),
+        match(/App Check.*oops/)
+      );
     });
     it('adds auth token if it exists', async () => {
       const headers = await getHeaders(fakeUrl);
@@ -185,6 +241,7 @@ describe('request methods', () => {
         {
           apiKey: 'key',
           project: 'myproject',
+          appId: 'my-appid',
           location: 'moon'
         },
         true,
@@ -233,18 +290,28 @@ describe('request methods', () => {
         statusText: 'AbortError'
       } as Response);
 
-      await expect(
-        makeRequest(
+      try {
+        await makeRequest(
           'models/model-name',
           Task.GENERATE_CONTENT,
           fakeApiSettings,
           false,
           '',
           {
-            timeout: 0
+            timeout: 180000
           }
-        )
-      ).to.be.rejectedWith('500 AbortError');
+        );
+      } catch (e) {
+        expect((e as VertexAIError).code).to.equal(
+          VertexAIErrorCode.FETCH_ERROR
+        );
+        expect((e as VertexAIError).customErrorData?.status).to.equal(500);
+        expect((e as VertexAIError).customErrorData?.statusText).to.equal(
+          'AbortError'
+        );
+        expect((e as VertexAIError).message).to.include('500 AbortError');
+      }
+
       expect(fetchStub).to.be.calledOnce;
     });
     it('Network error, no response.json()', async () => {
@@ -253,15 +320,24 @@ describe('request methods', () => {
         status: 500,
         statusText: 'Server Error'
       } as Response);
-      await expect(
-        makeRequest(
+      try {
+        await makeRequest(
           'models/model-name',
           Task.GENERATE_CONTENT,
           fakeApiSettings,
           false,
           ''
-        )
-      ).to.be.rejectedWith(/500 Server Error/);
+        );
+      } catch (e) {
+        expect((e as VertexAIError).code).to.equal(
+          VertexAIErrorCode.FETCH_ERROR
+        );
+        expect((e as VertexAIError).customErrorData?.status).to.equal(500);
+        expect((e as VertexAIError).customErrorData?.statusText).to.equal(
+          'Server Error'
+        );
+        expect((e as VertexAIError).message).to.include('500 Server Error');
+      }
       expect(fetchStub).to.be.calledOnce;
     });
     it('Network error, includes response.json()', async () => {
@@ -271,15 +347,25 @@ describe('request methods', () => {
         statusText: 'Server Error',
         json: () => Promise.resolve({ error: { message: 'extra info' } })
       } as Response);
-      await expect(
-        makeRequest(
+      try {
+        await makeRequest(
           'models/model-name',
           Task.GENERATE_CONTENT,
           fakeApiSettings,
           false,
           ''
-        )
-      ).to.be.rejectedWith(/500 Server Error.*extra info/);
+        );
+      } catch (e) {
+        expect((e as VertexAIError).code).to.equal(
+          VertexAIErrorCode.FETCH_ERROR
+        );
+        expect((e as VertexAIError).customErrorData?.status).to.equal(500);
+        expect((e as VertexAIError).customErrorData?.statusText).to.equal(
+          'Server Error'
+        );
+        expect((e as VertexAIError).message).to.include('500 Server Error');
+        expect((e as VertexAIError).message).to.include('extra info');
+      }
       expect(fetchStub).to.be.calledOnce;
     });
     it('Network error, includes response.json() and details', async () => {
@@ -301,18 +387,53 @@ describe('request methods', () => {
             }
           })
       } as Response);
-      await expect(
-        makeRequest(
+      try {
+        await makeRequest(
           'models/model-name',
           Task.GENERATE_CONTENT,
           fakeApiSettings,
           false,
           ''
-        )
-      ).to.be.rejectedWith(
-        /500 Server Error.*extra info.*generic::invalid_argument/
-      );
+        );
+      } catch (e) {
+        expect((e as VertexAIError).code).to.equal(
+          VertexAIErrorCode.FETCH_ERROR
+        );
+        expect((e as VertexAIError).customErrorData?.status).to.equal(500);
+        expect((e as VertexAIError).customErrorData?.statusText).to.equal(
+          'Server Error'
+        );
+        expect((e as VertexAIError).message).to.include('500 Server Error');
+        expect((e as VertexAIError).message).to.include('extra info');
+        expect((e as VertexAIError).message).to.include(
+          'generic::invalid_argument'
+        );
+      }
       expect(fetchStub).to.be.calledOnce;
     });
+  });
+  it('Network error, API not enabled', async () => {
+    const mockResponse = getMockResponse(
+      'unary-failure-firebasevertexai-api-not-enabled.json'
+    );
+    const fetchStub = stub(globalThis, 'fetch').resolves(
+      mockResponse as Response
+    );
+    try {
+      await makeRequest(
+        'models/model-name',
+        Task.GENERATE_CONTENT,
+        fakeApiSettings,
+        false,
+        ''
+      );
+    } catch (e) {
+      expect((e as VertexAIError).code).to.equal(
+        VertexAIErrorCode.API_NOT_ENABLED
+      );
+      expect((e as VertexAIError).message).to.include('my-project');
+      expect((e as VertexAIError).message).to.include('googleapis.com');
+    }
+    expect(fetchStub).to.be.calledOnce;
   });
 });

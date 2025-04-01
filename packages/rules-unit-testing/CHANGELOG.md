@@ -1,5 +1,28 @@
 # @firebase/rules-unit-testing
 
+## 4.0.1
+
+### Patch Changes
+
+- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
+
+## 4.0.0
+
+### Patch Changes
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Remove ES5 bundles. The minimum required ES version is now ES2017.
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Removed dependency on undici and node-fetch in our node bundles, replacing them with the native fetch implementation.
+
+- Updated dependencies [[`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702), [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702), [`b942e9e6e`](https://github.com/firebase/firebase-js-sdk/commit/b942e9e6e22d184d21f3e452cd35122592a3a372)]:
+  - firebase@11.0.0
+
+## 3.0.4
+
+### Patch Changes
+
+- [`d752e8096`](https://github.com/firebase/firebase-js-sdk/commit/d752e809657cea68e6562b24d3f15e60c32ce079) [#8298](https://github.com/firebase/firebase-js-sdk/pull/8298) - Upgrade firebase-admin to 11.11.1
+
 ## 3.0.3
 
 ### Patch Changes

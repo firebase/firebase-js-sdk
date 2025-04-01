@@ -68,6 +68,8 @@ import {
   DbDocumentOverlayCollectionPathOverlayIndexPath,
   DbDocumentOverlayKeyPath,
   DbDocumentOverlayStore,
+  DbGlobalsKeyPath,
+  DbGlobalsStore,
   DbIndexConfigurationCollectionGroupIndex,
   DbIndexConfigurationCollectionGroupIndexPath,
   DbIndexConfigurationKeyPath,
@@ -267,6 +269,12 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
           const indexEntryStore = txn.objectStore(DbIndexEntryStore);
           indexEntryStore.clear();
         });
+    }
+
+    if (fromVersion < 17 && toVersion >= 17) {
+      p = p.next(() => {
+        createGlobalsStore(db);
+      });
     }
 
     return p;
@@ -747,6 +755,12 @@ function createDocumentOverlayStore(db: IDBDatabase): void {
     DbDocumentOverlayCollectionGroupOverlayIndexPath,
     { unique: false }
   );
+}
+
+function createGlobalsStore(db: IDBDatabase): void {
+  db.createObjectStore(DbGlobalsStore, {
+    keyPath: DbGlobalsKeyPath
+  });
 }
 
 function extractKey(remoteDoc: DbRemoteDocumentLegacy): DocumentKey {

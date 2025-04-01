@@ -1,5 +1,56 @@
 # @firebase/database-types
 
+## 1.0.10
+
+### Patch Changes
+
+- [`113c965`](https://github.com/firebase/firebase-js-sdk/commit/113c965a34d9d7219d236f1b2cb62029e0f80fda) [#8800](https://github.com/firebase/firebase-js-sdk/pull/8800) - Added non-null parent properties to ThenableReference
+
+## 1.0.9
+
+### Patch Changes
+
+- Updated dependencies [[`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5)]:
+  - @firebase/util@1.11.0
+
+## 1.0.8
+
+### Patch Changes
+
+- Updated dependencies [[`25a6204c1`](https://github.com/firebase/firebase-js-sdk/commit/25a6204c1531b6c772e5368d12b2411ae1d21bbc)]:
+  - @firebase/util@1.10.3
+
+## 1.0.7
+
+### Patch Changes
+
+- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
+
+- Updated dependencies [[`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1)]:
+  - @firebase/app-types@0.9.3
+  - @firebase/util@1.10.2
+
+## 1.0.6
+
+### Patch Changes
+
+- Updated dependencies [[`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702)]:
+  - @firebase/util@1.10.1
+
+## 1.0.5
+
+### Patch Changes
+
+- Updated dependencies [[`16d62d4fa`](https://github.com/firebase/firebase-js-sdk/commit/16d62d4fa16faddb8cb676c0af3f29b8a5824741)]:
+  - @firebase/util@1.10.0
+
+## 1.0.4
+
+### Patch Changes
+
+- Updated dependencies [[`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558)]:
+  - @firebase/util@1.9.7
+
 ## 1.0.3
 
 ### Patch Changes

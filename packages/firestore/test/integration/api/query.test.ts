@@ -446,7 +446,7 @@ apiDescribe('Queries', persistence => {
 
   // TODO(b/295872012): This test is skipped due to the flakiness around the
   // checks of hasPendingWrites.
-  // We should investigate if this is an acutal bug.
+  // We should investigate if this is an actual bug.
   // eslint-disable-next-line no-restricted-properties
   it.skip('can listen for the same query with different options', () => {
     const testDocs = { a: { v: 'a' }, b: { v: 'b' } };
@@ -2217,6 +2217,51 @@ apiDescribe('Queries', persistence => {
       });
     }
   ).timeout('90s');
+
+  it('can query large documents with multi-byte character strings', () => {
+    function randomMultiByteCharString(length: number): string {
+      const charCodes: number[] = [];
+
+      for (let i = 0; i < length; i++) {
+        charCodes.push(randInt(1, 65535));
+      }
+
+      return String.fromCharCode(...charCodes);
+    }
+
+    function randInt(min: number, max: number): number {
+      const scale = max - min + 1;
+      return Math.floor(Math.random() * scale);
+    }
+
+    let bigString = randomMultiByteCharString(10000);
+
+    // Encode and decode `bigString` to/from UTF-8 to
+    // ensure that any transformations applied during
+    // UTF-8 encoding are applied equally to the expected
+    // and actual results.
+    const textEncoder = new TextEncoder();
+    const textDecoder = new TextDecoder();
+    bigString = textDecoder.decode(textEncoder.encode(bigString));
+
+    const doc = {
+      field: bigString
+    };
+
+    expect(bigString).to.deep.equal(bigString);
+
+    return withTestCollection(
+      persistence,
+      { 1: doc },
+      async collectionReference => {
+        const querySnap = await getDocs(collectionReference);
+        expect(querySnap.size).to.equal(1);
+
+        const fieldValue = querySnap.docs[0].get('field');
+        expect(fieldValue).to.deep.equal(bigString);
+      }
+    );
+  });
 });
 
 apiDescribe('Hanging query issue - #7652', persistence => {

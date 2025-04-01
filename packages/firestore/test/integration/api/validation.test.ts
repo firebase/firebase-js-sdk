@@ -64,7 +64,9 @@ import {
 import {
   ALT_PROJECT_ID,
   DEFAULT_PROJECT_ID,
-  TARGET_DB_ID
+  TARGET_DB_ID,
+  USE_EMULATOR,
+  getEmulatorPort
 } from '../util/settings';
 
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
@@ -179,7 +181,19 @@ apiDescribe('Validation:', persistence => {
 
     validationIt(
       persistence,
-      'disallows calling connectFirestoreEmulator() after use',
+      'connectFirestoreEmulator() can set mockUserToken object',
+      () => {
+        const db = newTestFirestore(newTestApp('test-project'));
+        // Verify that this doesn't throw.
+        connectFirestoreEmulator(db, '127.0.0.1', 9000, {
+          mockUserToken: { sub: 'foo' }
+        });
+      }
+    );
+
+    validationIt(
+      persistence,
+      'disallows calling connectFirestoreEmulator() for first time after use',
       async db => {
         const errorMsg =
           'Firestore has already been started and its settings can no longer be changed.';
@@ -193,13 +207,33 @@ apiDescribe('Validation:', persistence => {
 
     validationIt(
       persistence,
-      'connectFirestoreEmulator() can set mockUserToken object',
-      () => {
-        const db = newTestFirestore(newTestApp('test-project'));
-        // Verify that this doesn't throw.
-        connectFirestoreEmulator(db, '127.0.0.1', 9000, {
-          mockUserToken: { sub: 'foo' }
-        });
+      'allows calling connectFirestoreEmulator() after use with same config',
+      async db => {
+        if (USE_EMULATOR) {
+          const port = getEmulatorPort();
+          connectFirestoreEmulator(db, '127.0.0.1', port);
+          await setDoc(doc(db, 'foo/bar'), {});
+          expect(() =>
+            connectFirestoreEmulator(db, '127.0.0.1', port)
+          ).to.not.throw();
+        }
+      }
+    );
+
+    validationIt(
+      persistence,
+      'disallows calling connectFirestoreEmulator() after use with different config',
+      async db => {
+        if (USE_EMULATOR) {
+          const errorMsg =
+            'Firestore has already been started and its settings can no longer be changed.';
+          const port = getEmulatorPort();
+          connectFirestoreEmulator(db, '127.0.0.1', port);
+          await setDoc(doc(db, 'foo/bar'), {});
+          expect(() =>
+            connectFirestoreEmulator(db, '127.0.0.1', port + 1)
+          ).to.throw(errorMsg);
+        }
       }
     );
 
@@ -234,10 +268,12 @@ apiDescribe('Validation:', persistence => {
     validationIt(
       persistence,
       'disallows calling enableIndexedDbPersistence() after use',
-      db => {
-        //doc(db, 'foo/bar');
+      async db => {
+        await getDoc(doc(db, 'foo/bar'));
         expect(() => enableIndexedDbPersistence(db)).to.throw(
-          'SDK cache is already specified.'
+          'Firestore has already been started and persistence can no ' +
+            'longer be enabled. You can only enable persistence before ' +
+            'calling any other methods on a Firestore object.'
         );
       }
     );

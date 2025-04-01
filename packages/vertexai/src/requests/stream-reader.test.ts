@@ -33,8 +33,10 @@ import {
   GenerateContentResponse,
   HarmCategory,
   HarmProbability,
-  SafetyRating
+  SafetyRating,
+  VertexAIErrorCode
 } from '../types';
+import { VertexAIError } from '../errors';
 
 use(sinonChai);
 
@@ -173,7 +175,9 @@ describe('processStream', () => {
     }
   });
   it('unknown enum - should ignore', async () => {
-    const fakeResponse = getMockResponseStreaming('streaming-unknown-enum.txt');
+    const fakeResponse = getMockResponseStreaming(
+      'streaming-success-unknown-safety-enum.txt'
+    );
     const result = processStream(fakeResponse as Response);
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.include('Cats');
@@ -208,7 +212,7 @@ describe('processStream', () => {
     expect(aggregatedResponse.text()).to.include('Quantum mechanics is');
     expect(
       aggregatedResponse.candidates?.[0].citationMetadata?.citations.length
-    ).to.equal(2);
+    ).to.equal(3);
     let foundCitationMetadata = false;
     for await (const response of result.stream) {
       expect(response.text()).to.not.be.empty;
@@ -217,6 +221,23 @@ describe('processStream', () => {
       }
     }
     expect(foundCitationMetadata).to.be.true;
+  });
+  it('removes empty text parts', async () => {
+    const fakeResponse = getMockResponseStreaming(
+      'streaming-success-empty-text-part.txt'
+    );
+    const result = processStream(fakeResponse as Response);
+    const aggregatedResponse = await result.response;
+    expect(aggregatedResponse.text()).to.equal('1');
+    expect(aggregatedResponse.candidates?.length).to.equal(1);
+    expect(aggregatedResponse.candidates?.[0].content.parts.length).to.equal(1);
+
+    // The chunk with the empty text part will still go through the stream
+    let numChunks = 0;
+    for await (const _ of result.stream) {
+      numChunks++;
+    }
+    expect(numChunks).to.equal(2);
   });
 });
 
@@ -400,5 +421,50 @@ describe('aggregateResponses', () => {
         response.candidates?.[0].citationMetadata?.citations[1].startIndex
       ).to.equal(150);
     });
+  });
+
+  it('throws if a part has no properties', () => {
+    const responsesToAggregate: GenerateContentResponse[] = [
+      {
+        candidates: [
+          {
+            index: 0,
+            content: {
+              role: 'user',
+              parts: [{} as any] // Empty
+            },
+            finishReason: FinishReason.STOP,
+            finishMessage: 'something',
+            safetyRatings: [
+              {
+                category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+                probability: HarmProbability.NEGLIGIBLE
+              } as SafetyRating
+            ]
+          }
+        ],
+        promptFeedback: {
+          blockReason: BlockReason.SAFETY,
+          safetyRatings: [
+            {
+              category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+              probability: HarmProbability.LOW
+            } as SafetyRating
+          ]
+        }
+      }
+    ];
+
+    try {
+      aggregateResponses(responsesToAggregate);
+    } catch (e) {
+      expect((e as VertexAIError).code).includes(
+        VertexAIErrorCode.INVALID_CONTENT
+      );
+      expect((e as VertexAIError).message).to.include(
+        'Part should have at least one property, but there are none. This is likely caused ' +
+          'by a malformed response from the backend.'
+      );
+    }
   });
 });

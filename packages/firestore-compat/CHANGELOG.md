@@ -1,5 +1,117 @@
 # @firebase/firestore-compat
 
+## 0.3.45
+
+### Patch Changes
+
+- Updated dependencies [[`feb2c9d`](https://github.com/firebase/firebase-js-sdk/commit/feb2c9dfa29c9dff01c1272e56f6258176dc6b3a)]:
+  - @firebase/firestore@4.7.10
+
+## 0.3.44
+
+### Patch Changes
+
+- Updated dependencies [[`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5)]:
+  - @firebase/util@1.11.0
+  - @firebase/firestore@4.7.9
+  - @firebase/component@0.6.13
+
+## 0.3.43
+
+### Patch Changes
+
+- Updated dependencies [[`3418ef8`](https://github.com/firebase/firebase-js-sdk/commit/3418ef8078ef2f8a7218e9a702cb42671f078b7d)]:
+  - @firebase/firestore@4.7.8
+
+## 0.3.42
+
+### Patch Changes
+
+- Updated dependencies [[`97d48c7`](https://github.com/firebase/firebase-js-sdk/commit/97d48c7650e2d4273b7f94c8964dfcb44113952a), [`721e5a7`](https://github.com/firebase/firebase-js-sdk/commit/721e5a7e97db5d2136c8338e2522dd07dbc3a29e)]:
+  - @firebase/firestore@4.7.7
+
+## 0.3.41
+
+### Patch Changes
+
+- Updated dependencies [[`25a6204c1`](https://github.com/firebase/firebase-js-sdk/commit/25a6204c1531b6c772e5368d12b2411ae1d21bbc)]:
+  - @firebase/util@1.10.3
+  - @firebase/component@0.6.12
+  - @firebase/firestore@4.7.6
+
+## 0.3.40
+
+### Patch Changes
+
+- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
+
+- Updated dependencies [[`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1), [`0f5714ba5`](https://github.com/firebase/firebase-js-sdk/commit/0f5714ba5baab119a73355c0fd86db5a44cd3d20)]:
+  - @firebase/component@0.6.11
+  - @firebase/firestore@4.7.5
+  - @firebase/firestore-types@3.0.3
+  - @firebase/util@1.10.2
+
+## 0.3.39
+
+### Patch Changes
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Remove ES5 bundles. The minimum required ES version is now ES2017.
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Removed dependency on undici and node-fetch in our node bundles, replacing them with the native fetch implementation.
+
+- Updated dependencies [[`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702), [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702)]:
+  - @firebase/component@0.6.10
+  - @firebase/firestore@4.7.4
+  - @firebase/util@1.10.1
+
+## 0.3.38
+
+### Patch Changes
+
+- Updated dependencies [[`ff0475c41`](https://github.com/firebase/firebase-js-sdk/commit/ff0475c41bfdac19872934f68b7f4e2651fd9a63), [`47b091324`](https://github.com/firebase/firebase-js-sdk/commit/47b09132463d6a038b441d4623c24ca61e56505d)]:
+  - @firebase/firestore@4.7.3
+
+## 0.3.37
+
+### Patch Changes
+
+- Updated dependencies [[`16d62d4fa`](https://github.com/firebase/firebase-js-sdk/commit/16d62d4fa16faddb8cb676c0af3f29b8a5824741), [`629919ea7`](https://github.com/firebase/firebase-js-sdk/commit/629919ea760e35b7d880a099edf7f42b5bcbae4b)]:
+  - @firebase/util@1.10.0
+  - @firebase/firestore@4.7.2
+  - @firebase/component@0.6.9
+
+## 0.3.36
+
+### Patch Changes
+
+- Updated dependencies [[`62348e116`](https://github.com/firebase/firebase-js-sdk/commit/62348e116c795d19c5ca58729c250805240ce345)]:
+  - @firebase/firestore@4.7.1
+
+## 0.3.35
+
+### Patch Changes
+
+- Updated dependencies [[`e6b852562`](https://github.com/firebase/firebase-js-sdk/commit/e6b852562bfe57dd02ae59ee2dce9966b5498b01)]:
+  - @firebase/firestore@4.7.0
+
+## 0.3.34
+
+### Patch Changes
+
+- [`025f2a103`](https://github.com/firebase/firebase-js-sdk/commit/025f2a1037582da7d1afeb7a4d143cb7a154ec9d) [#8280](https://github.com/firebase/firebase-js-sdk/pull/8280) (fixes [#8279](https://github.com/firebase/firebase-js-sdk/issues/8279)) - Fixed typos in documentation and some internal variables and parameters.
+
+- Updated dependencies [[`025f2a103`](https://github.com/firebase/firebase-js-sdk/commit/025f2a1037582da7d1afeb7a4d143cb7a154ec9d)]:
+  - @firebase/firestore@4.6.5
+
+## 0.3.33
+
+### Patch Changes
+
+- Updated dependencies [[`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558), [`ecadbe380`](https://github.com/firebase/firebase-js-sdk/commit/ecadbe380ca1b7e2eeada45b82e53d47e05ec9b3)]:
+  - @firebase/util@1.9.7
+  - @firebase/firestore@4.6.4
+  - @firebase/component@0.6.8
+
 ## 0.3.32
 
 ### Patch Changes

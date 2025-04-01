@@ -1,549 +1,612 @@
 toc:
-  - title: firebase
-    path: /docs/reference/js/index
-  - title: analytics
-    path: /docs/reference/js/analytics.md
-    section:
-      - title: Analytics
-        path: /docs/reference/js/analytics.analytics.md
-      - title: AnalyticsCallOptions
-        path: /docs/reference/js/analytics.analyticscalloptions.md
-      - title: AnalyticsSettings
-        path: /docs/reference/js/analytics.analyticssettings.md
-      - title: ConsentSettings
-        path: /docs/reference/js/analytics.consentsettings.md
-      - title: ControlParams
-        path: /docs/reference/js/analytics.controlparams.md
-      - title: CustomParams
-        path: /docs/reference/js/analytics.customparams.md
-      - title: EventParams
-        path: /docs/reference/js/analytics.eventparams.md
-      - title: GtagConfigParams
-        path: /docs/reference/js/analytics.gtagconfigparams.md
-      - title: Item
-        path: /docs/reference/js/analytics.item.md
-      - title: Promotion
-        path: /docs/reference/js/analytics.promotion.md
-      - title: SettingsOptions
-        path: /docs/reference/js/analytics.settingsoptions.md
-  - title: app
-    path: /docs/reference/js/app.md
-    section:
-      - title: FirebaseApp
-        path: /docs/reference/js/app.firebaseapp.md
-      - title: FirebaseAppSettings
-        path: /docs/reference/js/app.firebaseappsettings.md
-      - title: FirebaseOptions
-        path: /docs/reference/js/app.firebaseoptions.md
-      - title: FirebaseServerApp
-        path: /docs/reference/js/app.firebaseserverapp.md
-      - title: FirebaseServerAppSettings
-        path: /docs/reference/js/app.firebaseserverappsettings.md
-  - title: app-check
-    path: /docs/reference/js/app-check.md
-    section:
-      - title: AppCheck
-        path: /docs/reference/js/app-check.appcheck.md
-      - title: AppCheckOptions
-        path: /docs/reference/js/app-check.appcheckoptions.md
-      - title: AppCheckToken
-        path: /docs/reference/js/app-check.appchecktoken.md
-      - title: AppCheckTokenResult
-        path: /docs/reference/js/app-check.appchecktokenresult.md
-      - title: CustomProvider
-        path: /docs/reference/js/app-check.customprovider.md
-      - title: CustomProviderOptions
-        path: /docs/reference/js/app-check.customprovideroptions.md
-      - title: ReCaptchaEnterpriseProvider
-        path: /docs/reference/js/app-check.recaptchaenterpriseprovider.md
-      - title: ReCaptchaV3Provider
-        path: /docs/reference/js/app-check.recaptchav3provider.md
-  - title: auth
-    path: /docs/reference/js/auth.md
-    section:
-      - title: ActionCodeInfo
-        path: /docs/reference/js/auth.actioncodeinfo.md
-      - title: ActionCodeSettings
-        path: /docs/reference/js/auth.actioncodesettings.md
-      - title: ActionCodeURL
-        path: /docs/reference/js/auth.actioncodeurl.md
-      - title: AdditionalUserInfo
-        path: /docs/reference/js/auth.additionaluserinfo.md
-      - title: ApplicationVerifier
-        path: /docs/reference/js/auth.applicationverifier.md
-      - title: Auth
-        path: /docs/reference/js/auth.auth.md
-      - title: AuthCredential
-        path: /docs/reference/js/auth.authcredential.md
-      - title: AuthError
-        path: /docs/reference/js/auth.autherror.md
-      - title: AuthErrorMap
-        path: /docs/reference/js/auth.autherrormap.md
-      - title: AuthProvider
-        path: /docs/reference/js/auth.authprovider.md
-      - title: AuthSettings
-        path: /docs/reference/js/auth.authsettings.md
-      - title: Config
-        path: /docs/reference/js/auth.config.md
-      - title: ConfirmationResult
-        path: /docs/reference/js/auth.confirmationresult.md
-      - title: Dependencies
-        path: /docs/reference/js/auth.dependencies.md
-      - title: EmailAuthCredential
-        path: /docs/reference/js/auth.emailauthcredential.md
-      - title: EmailAuthProvider
-        path: /docs/reference/js/auth.emailauthprovider.md
-      - title: EmulatorConfig
-        path: /docs/reference/js/auth.emulatorconfig.md
-      - title: FacebookAuthProvider
-        path: /docs/reference/js/auth.facebookauthprovider.md
-      - title: GithubAuthProvider
-        path: /docs/reference/js/auth.githubauthprovider.md
-      - title: GoogleAuthProvider
-        path: /docs/reference/js/auth.googleauthprovider.md
-      - title: IdTokenResult
-        path: /docs/reference/js/auth.idtokenresult.md
-      - title: MultiFactorAssertion
-        path: /docs/reference/js/auth.multifactorassertion.md
-      - title: MultiFactorError
-        path: /docs/reference/js/auth.multifactorerror.md
-      - title: MultiFactorInfo
-        path: /docs/reference/js/auth.multifactorinfo.md
-      - title: MultiFactorResolver
-        path: /docs/reference/js/auth.multifactorresolver.md
-      - title: MultiFactorSession
-        path: /docs/reference/js/auth.multifactorsession.md
-      - title: MultiFactorUser
-        path: /docs/reference/js/auth.multifactoruser.md
-      - title: OAuthCredential
-        path: /docs/reference/js/auth.oauthcredential.md
-      - title: OAuthCredentialOptions
-        path: /docs/reference/js/auth.oauthcredentialoptions.md
-      - title: OAuthProvider
-        path: /docs/reference/js/auth.oauthprovider.md
-      - title: ParsedToken
-        path: /docs/reference/js/auth.parsedtoken.md
-      - title: PasswordPolicy
-        path: /docs/reference/js/auth.passwordpolicy.md
-      - title: PasswordValidationStatus
-        path: /docs/reference/js/auth.passwordvalidationstatus.md
-      - title: Persistence
-        path: /docs/reference/js/auth.persistence.md
-      - title: PhoneAuthCredential
-        path: /docs/reference/js/auth.phoneauthcredential.md
-      - title: PhoneAuthProvider
-        path: /docs/reference/js/auth.phoneauthprovider.md
-      - title: PhoneMultiFactorAssertion
-        path: /docs/reference/js/auth.phonemultifactorassertion.md
-      - title: PhoneMultiFactorEnrollInfoOptions
-        path: /docs/reference/js/auth.phonemultifactorenrollinfooptions.md
-      - title: PhoneMultiFactorGenerator
-        path: /docs/reference/js/auth.phonemultifactorgenerator.md
-      - title: PhoneMultiFactorInfo
-        path: /docs/reference/js/auth.phonemultifactorinfo.md
-      - title: PhoneMultiFactorSignInInfoOptions
-        path: /docs/reference/js/auth.phonemultifactorsignininfooptions.md
-      - title: PhoneSingleFactorInfoOptions
-        path: /docs/reference/js/auth.phonesinglefactorinfooptions.md
-      - title: PopupRedirectResolver
-        path: /docs/reference/js/auth.popupredirectresolver.md
-      - title: ReactNativeAsyncStorage
-        path: /docs/reference/js/auth.reactnativeasyncstorage.md
-      - title: RecaptchaParameters
-        path: /docs/reference/js/auth.recaptchaparameters.md
-      - title: RecaptchaVerifier
-        path: /docs/reference/js/auth.recaptchaverifier.md
-      - title: SAMLAuthProvider
-        path: /docs/reference/js/auth.samlauthprovider.md
-      - title: TotpMultiFactorAssertion
-        path: /docs/reference/js/auth.totpmultifactorassertion.md
-      - title: TotpMultiFactorGenerator
-        path: /docs/reference/js/auth.totpmultifactorgenerator.md
-      - title: TotpMultiFactorInfo
-        path: /docs/reference/js/auth.totpmultifactorinfo.md
-      - title: TotpSecret
-        path: /docs/reference/js/auth.totpsecret.md
-      - title: TwitterAuthProvider
-        path: /docs/reference/js/auth.twitterauthprovider.md
-      - title: User
-        path: /docs/reference/js/auth.user.md
-      - title: UserCredential
-        path: /docs/reference/js/auth.usercredential.md
-      - title: UserInfo
-        path: /docs/reference/js/auth.userinfo.md
-      - title: UserMetadata
-        path: /docs/reference/js/auth.usermetadata.md
-  - title: database
-    path: /docs/reference/js/database.md
-    section:
-      - title: Database
-        path: /docs/reference/js/database.database.md
-      - title: DatabaseReference
-        path: /docs/reference/js/database.databasereference.md
-      - title: DataSnapshot
-        path: /docs/reference/js/database.datasnapshot.md
-      - title: IteratedDataSnapshot
-        path: /docs/reference/js/database.iterateddatasnapshot.md
-      - title: ListenOptions
-        path: /docs/reference/js/database.listenoptions.md
-      - title: OnDisconnect
-        path: /docs/reference/js/database.ondisconnect.md
-      - title: Query
-        path: /docs/reference/js/database.query.md
-      - title: QueryConstraint
-        path: /docs/reference/js/database.queryconstraint.md
-      - title: ThenableReference
-        path: /docs/reference/js/database.thenablereference.md
-      - title: TransactionOptions
-        path: /docs/reference/js/database.transactionoptions.md
-      - title: TransactionResult
-        path: /docs/reference/js/database.transactionresult.md
-  - title: firestore
-    path: /docs/reference/js/firestore_.md
-    section:
-      - title: AggregateField
-        path: /docs/reference/js/firestore_.aggregatefield.md
-      - title: AggregateQuerySnapshot
-        path: /docs/reference/js/firestore_.aggregatequerysnapshot.md
-      - title: AggregateSpec
-        path: /docs/reference/js/firestore_.aggregatespec.md
-      - title: Bytes
-        path: /docs/reference/js/firestore_.bytes.md
-      - title: CollectionReference
-        path: /docs/reference/js/firestore_.collectionreference.md
-      - title: DocumentChange
-        path: /docs/reference/js/firestore_.documentchange.md
-      - title: DocumentData
-        path: /docs/reference/js/firestore_.documentdata.md
-      - title: DocumentReference
-        path: /docs/reference/js/firestore_.documentreference.md
-      - title: DocumentSnapshot
-        path: /docs/reference/js/firestore_.documentsnapshot.md
-      - title: ExperimentalLongPollingOptions
-        path: /docs/reference/js/firestore_.experimentallongpollingoptions.md
-      - title: FieldPath
-        path: /docs/reference/js/firestore_.fieldpath.md
-      - title: FieldValue
-        path: /docs/reference/js/firestore_.fieldvalue.md
-      - title: Firestore
-        path: /docs/reference/js/firestore_.firestore.md
-      - title: FirestoreDataConverter
-        path: /docs/reference/js/firestore_.firestoredataconverter.md
-      - title: FirestoreError
-        path: /docs/reference/js/firestore_.firestoreerror.md
-      - title: FirestoreSettings
-        path: /docs/reference/js/firestore_.firestoresettings.md
-      - title: GeoPoint
-        path: /docs/reference/js/firestore_.geopoint.md
-      - title: Index
-        path: /docs/reference/js/firestore_.index.md
-      - title: IndexConfiguration
-        path: /docs/reference/js/firestore_.indexconfiguration.md
-      - title: IndexField
-        path: /docs/reference/js/firestore_.indexfield.md
-      - title: LoadBundleTask
-        path: /docs/reference/js/firestore_.loadbundletask.md
-      - title: LoadBundleTaskProgress
-        path: /docs/reference/js/firestore_.loadbundletaskprogress.md
-      - title: MemoryCacheSettings
-        path: /docs/reference/js/firestore_.memorycachesettings.md
-      - title: MemoryEagerGarbageCollector
-        path: /docs/reference/js/firestore_.memoryeagergarbagecollector.md
-      - title: MemoryLocalCache
-        path: /docs/reference/js/firestore_.memorylocalcache.md
-      - title: MemoryLruGarbageCollector
-        path: /docs/reference/js/firestore_.memorylrugarbagecollector.md
-      - title: PersistenceSettings
-        path: /docs/reference/js/firestore_.persistencesettings.md
-      - title: PersistentCacheIndexManager
-        path: /docs/reference/js/firestore_.persistentcacheindexmanager.md
-      - title: PersistentCacheSettings
-        path: /docs/reference/js/firestore_.persistentcachesettings.md
-      - title: PersistentLocalCache
-        path: /docs/reference/js/firestore_.persistentlocalcache.md
-      - title: PersistentMultipleTabManager
-        path: /docs/reference/js/firestore_.persistentmultipletabmanager.md
-      - title: PersistentSingleTabManager
-        path: /docs/reference/js/firestore_.persistentsingletabmanager.md
-      - title: PersistentSingleTabManagerSettings
-        path: /docs/reference/js/firestore_.persistentsingletabmanagersettings.md
-      - title: Query
-        path: /docs/reference/js/firestore_.query.md
-      - title: QueryCompositeFilterConstraint
-        path: /docs/reference/js/firestore_.querycompositefilterconstraint.md
-      - title: QueryConstraint
-        path: /docs/reference/js/firestore_.queryconstraint.md
-      - title: QueryDocumentSnapshot
-        path: /docs/reference/js/firestore_.querydocumentsnapshot.md
-      - title: QueryEndAtConstraint
-        path: /docs/reference/js/firestore_.queryendatconstraint.md
-      - title: QueryFieldFilterConstraint
-        path: /docs/reference/js/firestore_.queryfieldfilterconstraint.md
-      - title: QueryLimitConstraint
-        path: /docs/reference/js/firestore_.querylimitconstraint.md
-      - title: QueryOrderByConstraint
-        path: /docs/reference/js/firestore_.queryorderbyconstraint.md
-      - title: QuerySnapshot
-        path: /docs/reference/js/firestore_.querysnapshot.md
-      - title: QueryStartAtConstraint
-        path: /docs/reference/js/firestore_.querystartatconstraint.md
-      - title: SnapshotListenOptions
-        path: /docs/reference/js/firestore_.snapshotlistenoptions.md
-      - title: SnapshotMetadata
-        path: /docs/reference/js/firestore_.snapshotmetadata.md
-      - title: SnapshotOptions
-        path: /docs/reference/js/firestore_.snapshotoptions.md
-      - title: Timestamp
-        path: /docs/reference/js/firestore_.timestamp.md
-      - title: Transaction
-        path: /docs/reference/js/firestore_.transaction.md
-      - title: TransactionOptions
-        path: /docs/reference/js/firestore_.transactionoptions.md
-      - title: Unsubscribe
-        path: /docs/reference/js/firestore_.unsubscribe.md
-      - title: WriteBatch
-        path: /docs/reference/js/firestore_.writebatch.md
-  - title: firestore/lite
-    path: /docs/reference/js/firestore_lite.md
-    section:
-      - title: AggregateField
-        path: /docs/reference/js/firestore_lite.aggregatefield.md
-      - title: AggregateQuerySnapshot
-        path: /docs/reference/js/firestore_lite.aggregatequerysnapshot.md
-      - title: AggregateSpec
-        path: /docs/reference/js/firestore_lite.aggregatespec.md
-      - title: Bytes
-        path: /docs/reference/js/firestore_lite.bytes.md
-      - title: CollectionReference
-        path: /docs/reference/js/firestore_lite.collectionreference.md
-      - title: DocumentData
-        path: /docs/reference/js/firestore_lite.documentdata.md
-      - title: DocumentReference
-        path: /docs/reference/js/firestore_lite.documentreference.md
-      - title: DocumentSnapshot
-        path: /docs/reference/js/firestore_lite.documentsnapshot.md
-      - title: FieldPath
-        path: /docs/reference/js/firestore_lite.fieldpath.md
-      - title: FieldValue
-        path: /docs/reference/js/firestore_lite.fieldvalue.md
-      - title: Firestore
-        path: /docs/reference/js/firestore_lite.firestore.md
-      - title: FirestoreDataConverter
-        path: /docs/reference/js/firestore_lite.firestoredataconverter.md
-      - title: FirestoreError
-        path: /docs/reference/js/firestore_lite.firestoreerror.md
-      - title: GeoPoint
-        path: /docs/reference/js/firestore_lite.geopoint.md
-      - title: Query
-        path: /docs/reference/js/firestore_lite.query.md
-      - title: QueryCompositeFilterConstraint
-        path: /docs/reference/js/firestore_lite.querycompositefilterconstraint.md
-      - title: QueryConstraint
-        path: /docs/reference/js/firestore_lite.queryconstraint.md
-      - title: QueryDocumentSnapshot
-        path: /docs/reference/js/firestore_lite.querydocumentsnapshot.md
-      - title: QueryEndAtConstraint
-        path: /docs/reference/js/firestore_lite.queryendatconstraint.md
-      - title: QueryFieldFilterConstraint
-        path: /docs/reference/js/firestore_lite.queryfieldfilterconstraint.md
-      - title: QueryLimitConstraint
-        path: /docs/reference/js/firestore_lite.querylimitconstraint.md
-      - title: QueryOrderByConstraint
-        path: /docs/reference/js/firestore_lite.queryorderbyconstraint.md
-      - title: QuerySnapshot
-        path: /docs/reference/js/firestore_lite.querysnapshot.md
-      - title: QueryStartAtConstraint
-        path: /docs/reference/js/firestore_lite.querystartatconstraint.md
-      - title: Settings
-        path: /docs/reference/js/firestore_lite.settings.md
-      - title: Timestamp
-        path: /docs/reference/js/firestore_lite.timestamp.md
-      - title: Transaction
-        path: /docs/reference/js/firestore_lite.transaction.md
-      - title: TransactionOptions
-        path: /docs/reference/js/firestore_lite.transactionoptions.md
-      - title: WriteBatch
-        path: /docs/reference/js/firestore_lite.writebatch.md
-  - title: functions
-    path: /docs/reference/js/functions.md
-    section:
-      - title: Functions
-        path: /docs/reference/js/functions.functions.md
-      - title: FunctionsError
-        path: /docs/reference/js/functions.functionserror.md
-      - title: HttpsCallableOptions
-        path: /docs/reference/js/functions.httpscallableoptions.md
-      - title: HttpsCallableResult
-        path: /docs/reference/js/functions.httpscallableresult.md
-  - title: installations
-    path: /docs/reference/js/installations.md
-    section:
-      - title: Installations
-        path: /docs/reference/js/installations.installations.md
-  - title: messaging
-    path: /docs/reference/js/messaging_.md
-    section:
-      - title: FcmOptions
-        path: /docs/reference/js/messaging_.fcmoptions.md
-      - title: GetTokenOptions
-        path: /docs/reference/js/messaging_.gettokenoptions.md
-      - title: MessagePayload
-        path: /docs/reference/js/messaging_.messagepayload.md
-      - title: Messaging
-        path: /docs/reference/js/messaging_.messaging.md
-      - title: NotificationPayload
-        path: /docs/reference/js/messaging_.notificationpayload.md
-  - title: messaging/sw
-    path: /docs/reference/js/messaging_sw.md
-    section:
-      - title: FcmOptions
-        path: /docs/reference/js/messaging_sw.fcmoptions.md
-      - title: GetTokenOptions
-        path: /docs/reference/js/messaging_sw.gettokenoptions.md
-      - title: MessagePayload
-        path: /docs/reference/js/messaging_sw.messagepayload.md
-      - title: Messaging
-        path: /docs/reference/js/messaging_sw.messaging.md
-      - title: NotificationPayload
-        path: /docs/reference/js/messaging_sw.notificationpayload.md
-  - title: performance
-    path: /docs/reference/js/performance.md
-    section:
-      - title: FirebasePerformance
-        path: /docs/reference/js/performance.firebaseperformance.md
-      - title: PerformanceSettings
-        path: /docs/reference/js/performance.performancesettings.md
-      - title: PerformanceTrace
-        path: /docs/reference/js/performance.performancetrace.md
-  - title: remote-config
-    path: /docs/reference/js/remote-config.md
-    section:
-      - title: RemoteConfig
-        path: /docs/reference/js/remote-config.remoteconfig.md
-      - title: RemoteConfigSettings
-        path: /docs/reference/js/remote-config.remoteconfigsettings.md
-      - title: Value
-        path: /docs/reference/js/remote-config.value.md
-  - title: storage
-    path: /docs/reference/js/storage.md
-    section:
-      - title: FirebaseStorage
-        path: /docs/reference/js/storage.firebasestorage.md
-      - title: FullMetadata
-        path: /docs/reference/js/storage.fullmetadata.md
-      - title: ListOptions
-        path: /docs/reference/js/storage.listoptions.md
-      - title: ListResult
-        path: /docs/reference/js/storage.listresult.md
-      - title: SettableMetadata
-        path: /docs/reference/js/storage.settablemetadata.md
-      - title: StorageError
-        path: /docs/reference/js/storage.storageerror.md
-      - title: StorageObserver
-        path: /docs/reference/js/storage.storageobserver.md
-      - title: StorageReference
-        path: /docs/reference/js/storage.storagereference.md
-      - title: UploadMetadata
-        path: /docs/reference/js/storage.uploadmetadata.md
-      - title: UploadResult
-        path: /docs/reference/js/storage.uploadresult.md
-      - title: UploadTask
-        path: /docs/reference/js/storage.uploadtask.md
-      - title: UploadTaskSnapshot
-        path: /docs/reference/js/storage.uploadtasksnapshot.md
-  - title: vertexai-preview
-    path: /docs/reference/js/vertexai-preview.md
-    section:
-      - title: BaseParams
-        path: /docs/reference/js/vertexai-preview.baseparams.md
-      - title: ChatSession
-        path: /docs/reference/js/vertexai-preview.chatsession.md
-      - title: Citation
-        path: /docs/reference/js/vertexai-preview.citation.md
-      - title: CitationMetadata
-        path: /docs/reference/js/vertexai-preview.citationmetadata.md
-      - title: Content
-        path: /docs/reference/js/vertexai-preview.content.md
-      - title: CountTokensRequest
-        path: /docs/reference/js/vertexai-preview.counttokensrequest.md
-      - title: CountTokensResponse
-        path: /docs/reference/js/vertexai-preview.counttokensresponse.md
-      - title: Date_2
-        path: /docs/reference/js/vertexai-preview.date_2.md
-      - title: EnhancedGenerateContentResponse
-        path: /docs/reference/js/vertexai-preview.enhancedgeneratecontentresponse.md
-      - title: FileData
-        path: /docs/reference/js/vertexai-preview.filedata.md
-      - title: FileDataPart
-        path: /docs/reference/js/vertexai-preview.filedatapart.md
-      - title: FunctionCall
-        path: /docs/reference/js/vertexai-preview.functioncall.md
-      - title: FunctionCallingConfig
-        path: /docs/reference/js/vertexai-preview.functioncallingconfig.md
-      - title: FunctionCallPart
-        path: /docs/reference/js/vertexai-preview.functioncallpart.md
-      - title: FunctionDeclaration
-        path: /docs/reference/js/vertexai-preview.functiondeclaration.md
-      - title: FunctionDeclarationSchema
-        path: /docs/reference/js/vertexai-preview.functiondeclarationschema.md
-      - title: FunctionDeclarationSchemaProperty
-        path: >-
-          /docs/reference/js/vertexai-preview.functiondeclarationschemaproperty.md
-      - title: FunctionDeclarationsTool
-        path: /docs/reference/js/vertexai-preview.functiondeclarationstool.md
-      - title: FunctionResponse
-        path: /docs/reference/js/vertexai-preview.functionresponse.md
-      - title: FunctionResponsePart
-        path: /docs/reference/js/vertexai-preview.functionresponsepart.md
-      - title: GenerateContentCandidate
-        path: /docs/reference/js/vertexai-preview.generatecontentcandidate.md
-      - title: GenerateContentRequest
-        path: /docs/reference/js/vertexai-preview.generatecontentrequest.md
-      - title: GenerateContentResponse
-        path: /docs/reference/js/vertexai-preview.generatecontentresponse.md
-      - title: GenerateContentResult
-        path: /docs/reference/js/vertexai-preview.generatecontentresult.md
-      - title: GenerateContentStreamResult
-        path: /docs/reference/js/vertexai-preview.generatecontentstreamresult.md
-      - title: GenerationConfig
-        path: /docs/reference/js/vertexai-preview.generationconfig.md
-      - title: GenerativeContentBlob
-        path: /docs/reference/js/vertexai-preview.generativecontentblob.md
-      - title: GenerativeModel
-        path: /docs/reference/js/vertexai-preview.generativemodel.md
-      - title: GroundingAttribution
-        path: /docs/reference/js/vertexai-preview.groundingattribution.md
-      - title: GroundingMetadata
-        path: /docs/reference/js/vertexai-preview.groundingmetadata.md
-      - title: InlineDataPart
-        path: /docs/reference/js/vertexai-preview.inlinedatapart.md
-      - title: ModelParams
-        path: /docs/reference/js/vertexai-preview.modelparams.md
-      - title: PromptFeedback
-        path: /docs/reference/js/vertexai-preview.promptfeedback.md
-      - title: RequestOptions
-        path: /docs/reference/js/vertexai-preview.requestoptions.md
-      - title: RetrievedContextAttribution
-        path: /docs/reference/js/vertexai-preview.retrievedcontextattribution.md
-      - title: SafetyRating
-        path: /docs/reference/js/vertexai-preview.safetyrating.md
-      - title: SafetySetting
-        path: /docs/reference/js/vertexai-preview.safetysetting.md
-      - title: Segment
-        path: /docs/reference/js/vertexai-preview.segment.md
-      - title: StartChatParams
-        path: /docs/reference/js/vertexai-preview.startchatparams.md
-      - title: TextPart
-        path: /docs/reference/js/vertexai-preview.textpart.md
-      - title: ToolConfig
-        path: /docs/reference/js/vertexai-preview.toolconfig.md
-      - title: UsageMetadata
-        path: /docs/reference/js/vertexai-preview.usagemetadata.md
-      - title: VertexAI
-        path: /docs/reference/js/vertexai-preview.vertexai.md
-      - title: VertexAIOptions
-        path: /docs/reference/js/vertexai-preview.vertexaioptions.md
-      - title: VideoMetadata
-        path: /docs/reference/js/vertexai-preview.videometadata.md
-      - title: WebAttribution
-        path: /docs/reference/js/vertexai-preview.webattribution.md
+- title: firebase
+  path: /docs/reference/js/index
+- title: analytics
+  path: /docs/reference/js/analytics.md
+  section:
+  - title: Analytics
+    path: /docs/reference/js/analytics.analytics.md
+  - title: AnalyticsCallOptions
+    path: /docs/reference/js/analytics.analyticscalloptions.md
+  - title: AnalyticsSettings
+    path: /docs/reference/js/analytics.analyticssettings.md
+  - title: ConsentSettings
+    path: /docs/reference/js/analytics.consentsettings.md
+  - title: ControlParams
+    path: /docs/reference/js/analytics.controlparams.md
+  - title: CustomParams
+    path: /docs/reference/js/analytics.customparams.md
+  - title: EventParams
+    path: /docs/reference/js/analytics.eventparams.md
+  - title: GtagConfigParams
+    path: /docs/reference/js/analytics.gtagconfigparams.md
+  - title: Item
+    path: /docs/reference/js/analytics.item.md
+  - title: Promotion
+    path: /docs/reference/js/analytics.promotion.md
+  - title: SettingsOptions
+    path: /docs/reference/js/analytics.settingsoptions.md
+- title: app
+  path: /docs/reference/js/app.md
+  section:
+  - title: FirebaseApp
+    path: /docs/reference/js/app.firebaseapp.md
+  - title: FirebaseAppSettings
+    path: /docs/reference/js/app.firebaseappsettings.md
+  - title: FirebaseOptions
+    path: /docs/reference/js/app.firebaseoptions.md
+  - title: FirebaseServerApp
+    path: /docs/reference/js/app.firebaseserverapp.md
+  - title: FirebaseServerAppSettings
+    path: /docs/reference/js/app.firebaseserverappsettings.md
+- title: app-check
+  path: /docs/reference/js/app-check.md
+  section:
+  - title: AppCheck
+    path: /docs/reference/js/app-check.appcheck.md
+  - title: AppCheckOptions
+    path: /docs/reference/js/app-check.appcheckoptions.md
+  - title: AppCheckToken
+    path: /docs/reference/js/app-check.appchecktoken.md
+  - title: AppCheckTokenResult
+    path: /docs/reference/js/app-check.appchecktokenresult.md
+  - title: CustomProvider
+    path: /docs/reference/js/app-check.customprovider.md
+  - title: CustomProviderOptions
+    path: /docs/reference/js/app-check.customprovideroptions.md
+  - title: ReCaptchaEnterpriseProvider
+    path: /docs/reference/js/app-check.recaptchaenterpriseprovider.md
+  - title: ReCaptchaV3Provider
+    path: /docs/reference/js/app-check.recaptchav3provider.md
+- title: auth
+  path: /docs/reference/js/auth.md
+  section:
+  - title: ActionCodeInfo
+    path: /docs/reference/js/auth.actioncodeinfo.md
+  - title: ActionCodeSettings
+    path: /docs/reference/js/auth.actioncodesettings.md
+  - title: ActionCodeURL
+    path: /docs/reference/js/auth.actioncodeurl.md
+  - title: AdditionalUserInfo
+    path: /docs/reference/js/auth.additionaluserinfo.md
+  - title: ApplicationVerifier
+    path: /docs/reference/js/auth.applicationverifier.md
+  - title: Auth
+    path: /docs/reference/js/auth.auth.md
+  - title: AuthCredential
+    path: /docs/reference/js/auth.authcredential.md
+  - title: AuthError
+    path: /docs/reference/js/auth.autherror.md
+  - title: AuthErrorMap
+    path: /docs/reference/js/auth.autherrormap.md
+  - title: AuthProvider
+    path: /docs/reference/js/auth.authprovider.md
+  - title: AuthSettings
+    path: /docs/reference/js/auth.authsettings.md
+  - title: Config
+    path: /docs/reference/js/auth.config.md
+  - title: ConfirmationResult
+    path: /docs/reference/js/auth.confirmationresult.md
+  - title: Dependencies
+    path: /docs/reference/js/auth.dependencies.md
+  - title: EmailAuthCredential
+    path: /docs/reference/js/auth.emailauthcredential.md
+  - title: EmailAuthProvider
+    path: /docs/reference/js/auth.emailauthprovider.md
+  - title: EmulatorConfig
+    path: /docs/reference/js/auth.emulatorconfig.md
+  - title: FacebookAuthProvider
+    path: /docs/reference/js/auth.facebookauthprovider.md
+  - title: GithubAuthProvider
+    path: /docs/reference/js/auth.githubauthprovider.md
+  - title: GoogleAuthProvider
+    path: /docs/reference/js/auth.googleauthprovider.md
+  - title: IdTokenResult
+    path: /docs/reference/js/auth.idtokenresult.md
+  - title: MultiFactorAssertion
+    path: /docs/reference/js/auth.multifactorassertion.md
+  - title: MultiFactorError
+    path: /docs/reference/js/auth.multifactorerror.md
+  - title: MultiFactorInfo
+    path: /docs/reference/js/auth.multifactorinfo.md
+  - title: MultiFactorResolver
+    path: /docs/reference/js/auth.multifactorresolver.md
+  - title: MultiFactorSession
+    path: /docs/reference/js/auth.multifactorsession.md
+  - title: MultiFactorUser
+    path: /docs/reference/js/auth.multifactoruser.md
+  - title: OAuthCredential
+    path: /docs/reference/js/auth.oauthcredential.md
+  - title: OAuthCredentialOptions
+    path: /docs/reference/js/auth.oauthcredentialoptions.md
+  - title: OAuthProvider
+    path: /docs/reference/js/auth.oauthprovider.md
+  - title: ParsedToken
+    path: /docs/reference/js/auth.parsedtoken.md
+  - title: PasswordPolicy
+    path: /docs/reference/js/auth.passwordpolicy.md
+  - title: PasswordValidationStatus
+    path: /docs/reference/js/auth.passwordvalidationstatus.md
+  - title: Persistence
+    path: /docs/reference/js/auth.persistence.md
+  - title: PhoneAuthCredential
+    path: /docs/reference/js/auth.phoneauthcredential.md
+  - title: PhoneAuthProvider
+    path: /docs/reference/js/auth.phoneauthprovider.md
+  - title: PhoneMultiFactorAssertion
+    path: /docs/reference/js/auth.phonemultifactorassertion.md
+  - title: PhoneMultiFactorEnrollInfoOptions
+    path: /docs/reference/js/auth.phonemultifactorenrollinfooptions.md
+  - title: PhoneMultiFactorGenerator
+    path: /docs/reference/js/auth.phonemultifactorgenerator.md
+  - title: PhoneMultiFactorInfo
+    path: /docs/reference/js/auth.phonemultifactorinfo.md
+  - title: PhoneMultiFactorSignInInfoOptions
+    path: /docs/reference/js/auth.phonemultifactorsignininfooptions.md
+  - title: PhoneSingleFactorInfoOptions
+    path: /docs/reference/js/auth.phonesinglefactorinfooptions.md
+  - title: PopupRedirectResolver
+    path: /docs/reference/js/auth.popupredirectresolver.md
+  - title: ReactNativeAsyncStorage
+    path: /docs/reference/js/auth.reactnativeasyncstorage.md
+  - title: RecaptchaParameters
+    path: /docs/reference/js/auth.recaptchaparameters.md
+  - title: RecaptchaVerifier
+    path: /docs/reference/js/auth.recaptchaverifier.md
+  - title: SAMLAuthProvider
+    path: /docs/reference/js/auth.samlauthprovider.md
+  - title: TotpMultiFactorAssertion
+    path: /docs/reference/js/auth.totpmultifactorassertion.md
+  - title: TotpMultiFactorGenerator
+    path: /docs/reference/js/auth.totpmultifactorgenerator.md
+  - title: TotpMultiFactorInfo
+    path: /docs/reference/js/auth.totpmultifactorinfo.md
+  - title: TotpSecret
+    path: /docs/reference/js/auth.totpsecret.md
+  - title: TwitterAuthProvider
+    path: /docs/reference/js/auth.twitterauthprovider.md
+  - title: User
+    path: /docs/reference/js/auth.user.md
+  - title: UserCredential
+    path: /docs/reference/js/auth.usercredential.md
+  - title: UserInfo
+    path: /docs/reference/js/auth.userinfo.md
+  - title: UserMetadata
+    path: /docs/reference/js/auth.usermetadata.md
+- title: database
+  path: /docs/reference/js/database.md
+  section:
+  - title: Database
+    path: /docs/reference/js/database.database.md
+  - title: DatabaseReference
+    path: /docs/reference/js/database.databasereference.md
+  - title: DataSnapshot
+    path: /docs/reference/js/database.datasnapshot.md
+  - title: IteratedDataSnapshot
+    path: /docs/reference/js/database.iterateddatasnapshot.md
+  - title: ListenOptions
+    path: /docs/reference/js/database.listenoptions.md
+  - title: OnDisconnect
+    path: /docs/reference/js/database.ondisconnect.md
+  - title: Query
+    path: /docs/reference/js/database.query.md
+  - title: QueryConstraint
+    path: /docs/reference/js/database.queryconstraint.md
+  - title: ThenableReference
+    path: /docs/reference/js/database.thenablereference.md
+  - title: TransactionOptions
+    path: /docs/reference/js/database.transactionoptions.md
+  - title: TransactionResult
+    path: /docs/reference/js/database.transactionresult.md
+- title: firestore
+  path: /docs/reference/js/firestore_.md
+  section:
+  - title: AggregateField
+    path: /docs/reference/js/firestore_.aggregatefield.md
+  - title: AggregateQuerySnapshot
+    path: /docs/reference/js/firestore_.aggregatequerysnapshot.md
+  - title: AggregateSpec
+    path: /docs/reference/js/firestore_.aggregatespec.md
+  - title: Bytes
+    path: /docs/reference/js/firestore_.bytes.md
+  - title: CollectionReference
+    path: /docs/reference/js/firestore_.collectionreference.md
+  - title: DocumentChange
+    path: /docs/reference/js/firestore_.documentchange.md
+  - title: DocumentData
+    path: /docs/reference/js/firestore_.documentdata.md
+  - title: DocumentReference
+    path: /docs/reference/js/firestore_.documentreference.md
+  - title: DocumentSnapshot
+    path: /docs/reference/js/firestore_.documentsnapshot.md
+  - title: ExperimentalLongPollingOptions
+    path: /docs/reference/js/firestore_.experimentallongpollingoptions.md
+  - title: FieldPath
+    path: /docs/reference/js/firestore_.fieldpath.md
+  - title: FieldValue
+    path: /docs/reference/js/firestore_.fieldvalue.md
+  - title: Firestore
+    path: /docs/reference/js/firestore_.firestore.md
+  - title: FirestoreDataConverter
+    path: /docs/reference/js/firestore_.firestoredataconverter.md
+  - title: FirestoreError
+    path: /docs/reference/js/firestore_.firestoreerror.md
+  - title: FirestoreSettings
+    path: /docs/reference/js/firestore_.firestoresettings.md
+  - title: GeoPoint
+    path: /docs/reference/js/firestore_.geopoint.md
+  - title: Index
+    path: /docs/reference/js/firestore_.index.md
+  - title: IndexConfiguration
+    path: /docs/reference/js/firestore_.indexconfiguration.md
+  - title: IndexField
+    path: /docs/reference/js/firestore_.indexfield.md
+  - title: LoadBundleTask
+    path: /docs/reference/js/firestore_.loadbundletask.md
+  - title: LoadBundleTaskProgress
+    path: /docs/reference/js/firestore_.loadbundletaskprogress.md
+  - title: MemoryCacheSettings
+    path: /docs/reference/js/firestore_.memorycachesettings.md
+  - title: MemoryEagerGarbageCollector
+    path: /docs/reference/js/firestore_.memoryeagergarbagecollector.md
+  - title: MemoryLocalCache
+    path: /docs/reference/js/firestore_.memorylocalcache.md
+  - title: MemoryLruGarbageCollector
+    path: /docs/reference/js/firestore_.memorylrugarbagecollector.md
+  - title: PersistenceSettings
+    path: /docs/reference/js/firestore_.persistencesettings.md
+  - title: PersistentCacheIndexManager
+    path: /docs/reference/js/firestore_.persistentcacheindexmanager.md
+  - title: PersistentCacheSettings
+    path: /docs/reference/js/firestore_.persistentcachesettings.md
+  - title: PersistentLocalCache
+    path: /docs/reference/js/firestore_.persistentlocalcache.md
+  - title: PersistentMultipleTabManager
+    path: /docs/reference/js/firestore_.persistentmultipletabmanager.md
+  - title: PersistentSingleTabManager
+    path: /docs/reference/js/firestore_.persistentsingletabmanager.md
+  - title: PersistentSingleTabManagerSettings
+    path: /docs/reference/js/firestore_.persistentsingletabmanagersettings.md
+  - title: Query
+    path: /docs/reference/js/firestore_.query.md
+  - title: QueryCompositeFilterConstraint
+    path: /docs/reference/js/firestore_.querycompositefilterconstraint.md
+  - title: QueryConstraint
+    path: /docs/reference/js/firestore_.queryconstraint.md
+  - title: QueryDocumentSnapshot
+    path: /docs/reference/js/firestore_.querydocumentsnapshot.md
+  - title: QueryEndAtConstraint
+    path: /docs/reference/js/firestore_.queryendatconstraint.md
+  - title: QueryFieldFilterConstraint
+    path: /docs/reference/js/firestore_.queryfieldfilterconstraint.md
+  - title: QueryLimitConstraint
+    path: /docs/reference/js/firestore_.querylimitconstraint.md
+  - title: QueryOrderByConstraint
+    path: /docs/reference/js/firestore_.queryorderbyconstraint.md
+  - title: QuerySnapshot
+    path: /docs/reference/js/firestore_.querysnapshot.md
+  - title: QueryStartAtConstraint
+    path: /docs/reference/js/firestore_.querystartatconstraint.md
+  - title: SnapshotListenOptions
+    path: /docs/reference/js/firestore_.snapshotlistenoptions.md
+  - title: SnapshotMetadata
+    path: /docs/reference/js/firestore_.snapshotmetadata.md
+  - title: SnapshotOptions
+    path: /docs/reference/js/firestore_.snapshotoptions.md
+  - title: Timestamp
+    path: /docs/reference/js/firestore_.timestamp.md
+  - title: Transaction
+    path: /docs/reference/js/firestore_.transaction.md
+  - title: TransactionOptions
+    path: /docs/reference/js/firestore_.transactionoptions.md
+  - title: Unsubscribe
+    path: /docs/reference/js/firestore_.unsubscribe.md
+  - title: VectorValue
+    path: /docs/reference/js/firestore_.vectorvalue.md
+  - title: WriteBatch
+    path: /docs/reference/js/firestore_.writebatch.md
+- title: firestore/lite
+  path: /docs/reference/js/firestore_lite.md
+  section:
+  - title: AggregateField
+    path: /docs/reference/js/firestore_lite.aggregatefield.md
+  - title: AggregateQuerySnapshot
+    path: /docs/reference/js/firestore_lite.aggregatequerysnapshot.md
+  - title: AggregateSpec
+    path: /docs/reference/js/firestore_lite.aggregatespec.md
+  - title: Bytes
+    path: /docs/reference/js/firestore_lite.bytes.md
+  - title: CollectionReference
+    path: /docs/reference/js/firestore_lite.collectionreference.md
+  - title: DocumentData
+    path: /docs/reference/js/firestore_lite.documentdata.md
+  - title: DocumentReference
+    path: /docs/reference/js/firestore_lite.documentreference.md
+  - title: DocumentSnapshot
+    path: /docs/reference/js/firestore_lite.documentsnapshot.md
+  - title: FieldPath
+    path: /docs/reference/js/firestore_lite.fieldpath.md
+  - title: FieldValue
+    path: /docs/reference/js/firestore_lite.fieldvalue.md
+  - title: Firestore
+    path: /docs/reference/js/firestore_lite.firestore.md
+  - title: FirestoreDataConverter
+    path: /docs/reference/js/firestore_lite.firestoredataconverter.md
+  - title: FirestoreError
+    path: /docs/reference/js/firestore_lite.firestoreerror.md
+  - title: GeoPoint
+    path: /docs/reference/js/firestore_lite.geopoint.md
+  - title: Query
+    path: /docs/reference/js/firestore_lite.query.md
+  - title: QueryCompositeFilterConstraint
+    path: /docs/reference/js/firestore_lite.querycompositefilterconstraint.md
+  - title: QueryConstraint
+    path: /docs/reference/js/firestore_lite.queryconstraint.md
+  - title: QueryDocumentSnapshot
+    path: /docs/reference/js/firestore_lite.querydocumentsnapshot.md
+  - title: QueryEndAtConstraint
+    path: /docs/reference/js/firestore_lite.queryendatconstraint.md
+  - title: QueryFieldFilterConstraint
+    path: /docs/reference/js/firestore_lite.queryfieldfilterconstraint.md
+  - title: QueryLimitConstraint
+    path: /docs/reference/js/firestore_lite.querylimitconstraint.md
+  - title: QueryOrderByConstraint
+    path: /docs/reference/js/firestore_lite.queryorderbyconstraint.md
+  - title: QuerySnapshot
+    path: /docs/reference/js/firestore_lite.querysnapshot.md
+  - title: QueryStartAtConstraint
+    path: /docs/reference/js/firestore_lite.querystartatconstraint.md
+  - title: Settings
+    path: /docs/reference/js/firestore_lite.settings.md
+  - title: Timestamp
+    path: /docs/reference/js/firestore_lite.timestamp.md
+  - title: Transaction
+    path: /docs/reference/js/firestore_lite.transaction.md
+  - title: TransactionOptions
+    path: /docs/reference/js/firestore_lite.transactionoptions.md
+  - title: VectorValue
+    path: /docs/reference/js/firestore_lite.vectorvalue.md
+  - title: WriteBatch
+    path: /docs/reference/js/firestore_lite.writebatch.md
+- title: functions
+  path: /docs/reference/js/functions.md
+  section:
+  - title: Functions
+    path: /docs/reference/js/functions.functions.md
+  - title: FunctionsError
+    path: /docs/reference/js/functions.functionserror.md
+  - title: HttpsCallable
+    path: /docs/reference/js/functions.httpscallable.md
+  - title: HttpsCallableOptions
+    path: /docs/reference/js/functions.httpscallableoptions.md
+  - title: HttpsCallableResult
+    path: /docs/reference/js/functions.httpscallableresult.md
+  - title: HttpsCallableStreamOptions
+    path: /docs/reference/js/functions.httpscallablestreamoptions.md
+  - title: HttpsCallableStreamResult
+    path: /docs/reference/js/functions.httpscallablestreamresult.md
+- title: installations
+  path: /docs/reference/js/installations.md
+  section:
+  - title: Installations
+    path: /docs/reference/js/installations.installations.md
+- title: messaging
+  path: /docs/reference/js/messaging_.md
+  section:
+  - title: FcmOptions
+    path: /docs/reference/js/messaging_.fcmoptions.md
+  - title: GetTokenOptions
+    path: /docs/reference/js/messaging_.gettokenoptions.md
+  - title: MessagePayload
+    path: /docs/reference/js/messaging_.messagepayload.md
+  - title: Messaging
+    path: /docs/reference/js/messaging_.messaging.md
+  - title: NotificationPayload
+    path: /docs/reference/js/messaging_.notificationpayload.md
+- title: messaging/sw
+  path: /docs/reference/js/messaging_sw.md
+  section:
+  - title: FcmOptions
+    path: /docs/reference/js/messaging_sw.fcmoptions.md
+  - title: GetTokenOptions
+    path: /docs/reference/js/messaging_sw.gettokenoptions.md
+  - title: MessagePayload
+    path: /docs/reference/js/messaging_sw.messagepayload.md
+  - title: Messaging
+    path: /docs/reference/js/messaging_sw.messaging.md
+  - title: NotificationPayload
+    path: /docs/reference/js/messaging_sw.notificationpayload.md
+- title: performance
+  path: /docs/reference/js/performance.md
+  section:
+  - title: FirebasePerformance
+    path: /docs/reference/js/performance.firebaseperformance.md
+  - title: PerformanceSettings
+    path: /docs/reference/js/performance.performancesettings.md
+  - title: PerformanceTrace
+    path: /docs/reference/js/performance.performancetrace.md
+- title: remote-config
+  path: /docs/reference/js/remote-config.md
+  section:
+  - title: CustomSignals
+    path: /docs/reference/js/remote-config.customsignals.md
+  - title: FetchResponse
+    path: /docs/reference/js/remote-config.fetchresponse.md
+  - title: FirebaseRemoteConfigObject
+    path: /docs/reference/js/remote-config.firebaseremoteconfigobject.md
+  - title: RemoteConfig
+    path: /docs/reference/js/remote-config.remoteconfig.md
+  - title: RemoteConfigOptions
+    path: /docs/reference/js/remote-config.remoteconfigoptions.md
+  - title: RemoteConfigSettings
+    path: /docs/reference/js/remote-config.remoteconfigsettings.md
+  - title: Value
+    path: /docs/reference/js/remote-config.value.md
+- title: storage
+  path: /docs/reference/js/storage.md
+  section:
+  - title: FirebaseStorage
+    path: /docs/reference/js/storage.firebasestorage.md
+  - title: FullMetadata
+    path: /docs/reference/js/storage.fullmetadata.md
+  - title: ListOptions
+    path: /docs/reference/js/storage.listoptions.md
+  - title: ListResult
+    path: /docs/reference/js/storage.listresult.md
+  - title: SettableMetadata
+    path: /docs/reference/js/storage.settablemetadata.md
+  - title: StorageError
+    path: /docs/reference/js/storage.storageerror.md
+  - title: StorageObserver
+    path: /docs/reference/js/storage.storageobserver.md
+  - title: StorageReference
+    path: /docs/reference/js/storage.storagereference.md
+  - title: UploadMetadata
+    path: /docs/reference/js/storage.uploadmetadata.md
+  - title: UploadResult
+    path: /docs/reference/js/storage.uploadresult.md
+  - title: UploadTask
+    path: /docs/reference/js/storage.uploadtask.md
+  - title: UploadTaskSnapshot
+    path: /docs/reference/js/storage.uploadtasksnapshot.md
+- title: vertexai
+  path: /docs/reference/js/vertexai.md
+  section:
+  - title: ArraySchema
+    path: /docs/reference/js/vertexai.arrayschema.md
+  - title: BaseParams
+    path: /docs/reference/js/vertexai.baseparams.md
+  - title: BooleanSchema
+    path: /docs/reference/js/vertexai.booleanschema.md
+  - title: ChatSession
+    path: /docs/reference/js/vertexai.chatsession.md
+  - title: Citation
+    path: /docs/reference/js/vertexai.citation.md
+  - title: CitationMetadata
+    path: /docs/reference/js/vertexai.citationmetadata.md
+  - title: Content
+    path: /docs/reference/js/vertexai.content.md
+  - title: CountTokensRequest
+    path: /docs/reference/js/vertexai.counttokensrequest.md
+  - title: CountTokensResponse
+    path: /docs/reference/js/vertexai.counttokensresponse.md
+  - title: CustomErrorData
+    path: /docs/reference/js/vertexai.customerrordata.md
+  - title: Date_2
+    path: /docs/reference/js/vertexai.date_2.md
+  - title: EnhancedGenerateContentResponse
+    path: /docs/reference/js/vertexai.enhancedgeneratecontentresponse.md
+  - title: ErrorDetails
+    path: /docs/reference/js/vertexai.errordetails.md
+  - title: FileData
+    path: /docs/reference/js/vertexai.filedata.md
+  - title: FileDataPart
+    path: /docs/reference/js/vertexai.filedatapart.md
+  - title: FunctionCall
+    path: /docs/reference/js/vertexai.functioncall.md
+  - title: FunctionCallingConfig
+    path: /docs/reference/js/vertexai.functioncallingconfig.md
+  - title: FunctionCallPart
+    path: /docs/reference/js/vertexai.functioncallpart.md
+  - title: FunctionDeclaration
+    path: /docs/reference/js/vertexai.functiondeclaration.md
+  - title: FunctionDeclarationsTool
+    path: /docs/reference/js/vertexai.functiondeclarationstool.md
+  - title: FunctionResponse
+    path: /docs/reference/js/vertexai.functionresponse.md
+  - title: FunctionResponsePart
+    path: /docs/reference/js/vertexai.functionresponsepart.md
+  - title: GenerateContentCandidate
+    path: /docs/reference/js/vertexai.generatecontentcandidate.md
+  - title: GenerateContentRequest
+    path: /docs/reference/js/vertexai.generatecontentrequest.md
+  - title: GenerateContentResponse
+    path: /docs/reference/js/vertexai.generatecontentresponse.md
+  - title: GenerateContentResult
+    path: /docs/reference/js/vertexai.generatecontentresult.md
+  - title: GenerateContentStreamResult
+    path: /docs/reference/js/vertexai.generatecontentstreamresult.md
+  - title: GenerationConfig
+    path: /docs/reference/js/vertexai.generationconfig.md
+  - title: GenerativeContentBlob
+    path: /docs/reference/js/vertexai.generativecontentblob.md
+  - title: GenerativeModel
+    path: /docs/reference/js/vertexai.generativemodel.md
+  - title: GroundingAttribution
+    path: /docs/reference/js/vertexai.groundingattribution.md
+  - title: GroundingMetadata
+    path: /docs/reference/js/vertexai.groundingmetadata.md
+  - title: ImagenGCSImage
+    path: /docs/reference/js/vertexai.imagengcsimage.md
+  - title: ImagenGenerationConfig
+    path: /docs/reference/js/vertexai.imagengenerationconfig.md
+  - title: ImagenGenerationResponse
+    path: /docs/reference/js/vertexai.imagengenerationresponse.md
+  - title: ImagenImageFormat
+    path: /docs/reference/js/vertexai.imagenimageformat.md
+  - title: ImagenInlineImage
+    path: /docs/reference/js/vertexai.imageninlineimage.md
+  - title: ImagenModel
+    path: /docs/reference/js/vertexai.imagenmodel.md
+  - title: ImagenModelParams
+    path: /docs/reference/js/vertexai.imagenmodelparams.md
+  - title: ImagenSafetySettings
+    path: /docs/reference/js/vertexai.imagensafetysettings.md
+  - title: InlineDataPart
+    path: /docs/reference/js/vertexai.inlinedatapart.md
+  - title: IntegerSchema
+    path: /docs/reference/js/vertexai.integerschema.md
+  - title: ModalityTokenCount
+    path: /docs/reference/js/vertexai.modalitytokencount.md
+  - title: ModelParams
+    path: /docs/reference/js/vertexai.modelparams.md
+  - title: NumberSchema
+    path: /docs/reference/js/vertexai.numberschema.md
+  - title: ObjectSchema
+    path: /docs/reference/js/vertexai.objectschema.md
+  - title: ObjectSchemaInterface
+    path: /docs/reference/js/vertexai.objectschemainterface.md
+  - title: PromptFeedback
+    path: /docs/reference/js/vertexai.promptfeedback.md
+  - title: RequestOptions
+    path: /docs/reference/js/vertexai.requestoptions.md
+  - title: RetrievedContextAttribution
+    path: /docs/reference/js/vertexai.retrievedcontextattribution.md
+  - title: SafetyRating
+    path: /docs/reference/js/vertexai.safetyrating.md
+  - title: SafetySetting
+    path: /docs/reference/js/vertexai.safetysetting.md
+  - title: Schema
+    path: /docs/reference/js/vertexai.schema.md
+  - title: SchemaInterface
+    path: /docs/reference/js/vertexai.schemainterface.md
+  - title: SchemaParams
+    path: /docs/reference/js/vertexai.schemaparams.md
+  - title: SchemaRequest
+    path: /docs/reference/js/vertexai.schemarequest.md
+  - title: SchemaShared
+    path: /docs/reference/js/vertexai.schemashared.md
+  - title: Segment
+    path: /docs/reference/js/vertexai.segment.md
+  - title: StartChatParams
+    path: /docs/reference/js/vertexai.startchatparams.md
+  - title: StringSchema
+    path: /docs/reference/js/vertexai.stringschema.md
+  - title: TextPart
+    path: /docs/reference/js/vertexai.textpart.md
+  - title: ToolConfig
+    path: /docs/reference/js/vertexai.toolconfig.md
+  - title: UsageMetadata
+    path: /docs/reference/js/vertexai.usagemetadata.md
+  - title: VertexAI
+    path: /docs/reference/js/vertexai.vertexai.md
+  - title: VertexAIError
+    path: /docs/reference/js/vertexai.vertexaierror.md
+  - title: VertexAIModel
+    path: /docs/reference/js/vertexai.vertexaimodel.md
+  - title: VertexAIOptions
+    path: /docs/reference/js/vertexai.vertexaioptions.md
+  - title: VideoMetadata
+    path: /docs/reference/js/vertexai.videometadata.md
+  - title: WebAttribution
+    path: /docs/reference/js/vertexai.webattribution.md

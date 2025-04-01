@@ -1,25 +1,13 @@
 /**
- * @license
- * Copyright 2021 Google LLC
+ * Cloud Firestore
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * @packageDocumentation
  */
 import { DocumentData as DocumentData_2 } from '@firebase/firestore-types';
+import { EmulatorMockTokenOptions } from '@firebase/util';
 import { FirebaseApp } from '@firebase/app';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { _FirebaseService } from '@firebase/app';
+import { FirebaseError } from '@firebase/util';
 import { LogLevelString as LogLevel } from '@firebase/logger';
-import { Provider } from '@firebase/component';
 import { SetOptions as SetOptions_2 } from '@firebase/firestore-types';
 /**
  * Add a new document to specified `CollectionReference` with the given data,
@@ -27,17 +15,133 @@ import { SetOptions as SetOptions_2 } from '@firebase/firestore-types';
  *
  * @param reference - A reference to the collection to add this document to.
  * @param data - An Object containing the data for the new document.
- * @returns A Promise resolved with a `DocumentReference` pointing to the
+ * @returns A `Promise` resolved with a `DocumentReference` pointing to the
  * newly created document after it has been written to the backend (Note that it
  * won't resolve while you're offline).
  */
-export declare function addDoc<T>(
-  reference: CollectionReference<T>,
-  data: T
-): Promise<DocumentReference<T>>;
+export declare function addDoc<AppModelType, DbModelType extends DocumentData>(
+  reference: CollectionReference<AppModelType, DbModelType>,
+  data: WithFieldValue<AppModelType>
+): Promise<DocumentReference<AppModelType, DbModelType>>;
+/**
+ * Returns a new map where every key is prefixed with the outer key appended
+ * to a dot.
+ */
+export declare type AddPrefixToKeys<
+  Prefix extends string,
+  T extends Record<string, unknown>
+> = {
+  [K in keyof T & string as `${Prefix}.${K}`]+?: string extends K ? any : T[K];
+};
+/**
+ * Represents an aggregation that can be performed by Firestore.
+ */
+export declare class AggregateField<T> {
+  /** A type string to uniquely identify instances of this class. */
+  readonly type = 'AggregateField';
+  /** Indicates the aggregation operation of this AggregateField. */
+  readonly aggregateType: AggregateType;
+}
+/**
+ * Compares two 'AggregateField` instances for equality.
+ *
+ * @param left Compare this AggregateField to the `right`.
+ * @param right Compare this AggregateField to the `left`.
+ */
+export declare function aggregateFieldEqual(
+  left: AggregateField<unknown>,
+  right: AggregateField<unknown>
+): boolean;
+/**
+ * The union of all `AggregateField` types that are supported by Firestore.
+ */
+export declare type AggregateFieldType =
+  | ReturnType<typeof sum>
+  | ReturnType<typeof average>
+  | ReturnType<typeof count>;
+/**
+ * The results of executing an aggregation query.
+ */
+export declare class AggregateQuerySnapshot<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> {
+  /** A type string to uniquely identify instances of this class. */
+  readonly type = 'AggregateQuerySnapshot';
+  /**
+   * The underlying query over which the aggregations recorded in this
+   * `AggregateQuerySnapshot` were performed.
+   */
+  readonly query: Query<AppModelType, DbModelType>;
+  private constructor();
+  /**
+   * Returns the results of the aggregations performed over the underlying
+   * query.
+   *
+   * The keys of the returned object will be the same as those of the
+   * `AggregateSpec` object specified to the aggregation method, and the values
+   * will be the corresponding aggregation result.
+   *
+   * @returns The results of the aggregations performed over the underlying
+   * query.
+   */
+  data(): AggregateSpecData<AggregateSpecType>;
+}
+/**
+ * Compares two `AggregateQuerySnapshot` instances for equality.
+ *
+ * Two `AggregateQuerySnapshot` instances are considered "equal" if they have
+ * underlying queries that compare equal, and the same data.
+ *
+ * @param left - The first `AggregateQuerySnapshot` to compare.
+ * @param right - The second `AggregateQuerySnapshot` to compare.
+ *
+ * @returns `true` if the objects are "equal", as defined above, or `false`
+ * otherwise.
+ */
+export declare function aggregateQuerySnapshotEqual<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  left: AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>,
+  right: AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>
+): boolean;
+/**
+ * Specifies a set of aggregations and their aliases.
+ */
+export declare interface AggregateSpec {
+  [field: string]: AggregateFieldType;
+}
+/**
+ * A type whose keys are taken from an `AggregateSpec`, and whose values are the
+ * result of the aggregation performed by the corresponding `AggregateField`
+ * from the input `AggregateSpec`.
+ */
+export declare type AggregateSpecData<T extends AggregateSpec> = {
+  [P in keyof T]: T[P] extends AggregateField<infer U> ? U : never;
+};
+/**
+ * Union type representing the aggregate type to be performed.
+ */
+export declare type AggregateType = 'count' | 'avg' | 'sum';
+/**
+ * Creates a new {@link QueryCompositeFilterConstraint} that is a conjunction of
+ * the given filter constraints. A conjunction filter includes a document if it
+ * satisfies all of the given filters.
+ *
+ * @param queryConstraints - Optional. The list of
+ * {@link QueryFilterConstraint}s to perform a conjunction for. These must be
+ * created with calls to {@link where}, {@link or}, or {@link and}.
+ * @returns The newly created {@link QueryCompositeFilterConstraint}.
+ */
+export declare function and(
+  ...queryConstraints: QueryFilterConstraint[]
+): QueryCompositeFilterConstraint;
 /**
  * Returns a special value that can be used with {@link (setDoc:1)} or {@link
- * updateDoc} that tells the server to remove the given elements from any
+ * updateDoc:1} that tells the server to remove the given elements from any
  * array value that already exists on the server. All instances of each element
  * specified will be removed from the array. If the field being modified is not
  * already an array it will be overwritten with an empty array.
@@ -48,8 +152,8 @@ export declare function addDoc<T>(
  */
 export declare function arrayRemove(...elements: unknown[]): FieldValue;
 /**
- * Returns a special value that can be used with {@link setDoc} or {@link
- * updateDoc} that tells the server to union the given elements with any array
+ * Returns a special value that can be used with {@link @firebase/firestore/lite#(setDoc:1)} or {@link
+ * @firebase/firestore/lite#(updateDoc:1)} that tells the server to union the given elements with any array
  * value that already exists on the server. Each specified element that doesn't
  * already exist in the array will be added to the end. If the field being
  * modified is not already an array it will be overwritten with an array
@@ -60,6 +164,16 @@ export declare function arrayRemove(...elements: unknown[]): FieldValue;
  * `updateDoc()`.
  */
 export declare function arrayUnion(...elements: unknown[]): FieldValue;
+/* Excluded from this release type: AuthTokenFactory */
+/* Excluded from this release type: _AutoId */
+/**
+ * Create an AggregateField object that can be used to compute the average of
+ * a specified field over a range of documents in the result set of a query.
+ * @param field Specifies the field to average across the result set.
+ */
+export declare function average(
+  field: string | FieldPath
+): AggregateField<number | null>;
 /**
  * An immutable object representing an array of bytes.
  */
@@ -104,20 +218,37 @@ export declare class Bytes {
    */
   isEqual(other: Bytes): boolean;
 }
+/* Excluded from this release type: _ByteString */
 /**
  * Constant used to indicate the LRU garbage collection should be disabled.
  * Set this value as the `cacheSizeBytes` on the settings passed to the
- * `Firestore` instance.
+ * {@link Firestore} instance.
  */
 export declare const CACHE_SIZE_UNLIMITED = -1;
+/**
+ * Helper for calculating the nested fields for a given type T1. This is needed
+ * to distribute union types such as `undefined | {...}` (happens for optional
+ * props) or `{a: A} | {b: B}`.
+ *
+ * In this use case, `V` is used to distribute the union types of `T[K]` on
+ * `Record`, since `T[K]` is evaluated as an expression and not distributed.
+ *
+ * See https://www.typescriptlang.org/docs/handbook/advanced-types.html#distributive-conditional-types
+ */
+export declare type ChildUpdateFields<K extends string, V> = V extends Record<
+  string,
+  unknown
+>
+  ? AddPrefixToKeys<K, UpdateData<V>>
+  : never;
 /**
  * Clears the persistent storage. This includes pending writes and cached
  * documents.
  *
- * Must be called while the `Firestore` instance is not started (after the app is
+ * Must be called while the {@link Firestore} instance is not started (after the app is
  * terminated or when the app is first initialized). On startup, this function
  * must be called before other functions (other than {@link
- * initializeFirestore} or {@link getFirestore})). If the `Firestore`
+ * initializeFirestore} or {@link (getFirestore:1)})). If the {@link Firestore}
  * instance is still running, the promise will be rejected with the error code
  * of `failed-precondition`.
  *
@@ -128,18 +259,18 @@ export declare const CACHE_SIZE_UNLIMITED = -1;
  * to the disclosure of cached data in between user sessions, we strongly
  * recommend not enabling persistence at all.
  *
- * @param firestore - The `Firestore` instance to clear persistence for.
- * @returns A promise that is resolved when the persistent storage is
+ * @param firestore - The {@link Firestore} instance to clear persistence for.
+ * @returns A `Promise` that is resolved when the persistent storage is
  * cleared. Otherwise, the promise is rejected with an error.
  */
 export declare function clearIndexedDbPersistence(
-  firestore: FirebaseFirestore
+  firestore: Firestore
 ): Promise<void>;
 /**
  * Gets a `CollectionReference` instance that refers to the collection at
  * the specified absolute path.
  *
- * @param firestore - A reference to the root Firestore instance.
+ * @param firestore - A reference to the root `Firestore` instance.
  * @param path - A slash-separated path to a collection.
  * @param pathSegments - Additional path segments to apply relative to the first
  * argument.
@@ -148,13 +279,13 @@ export declare function clearIndexedDbPersistence(
  * @returns The `CollectionReference` instance.
  */
 export declare function collection(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   path: string,
   ...pathSegments: string[]
-): CollectionReference<DocumentData>;
+): CollectionReference<DocumentData, DocumentData>;
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
- * `reference` at the the specified relative path.
+ * `reference` at the specified relative path.
  *
  * @param reference - A reference to a collection.
  * @param path - A slash-separated path to a collection.
@@ -164,14 +295,17 @@ export declare function collection(
  * to a collection.
  * @returns The `CollectionReference` instance.
  */
-export declare function collection(
-  reference: CollectionReference<unknown>,
+export declare function collection<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  reference: CollectionReference<AppModelType, DbModelType>,
   path: string,
   ...pathSegments: string[]
-): CollectionReference<DocumentData>;
+): CollectionReference<DocumentData, DocumentData>;
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
- * `reference` at the the specified relative path.
+ * `reference` at the specified relative path.
  *
  * @param reference - A reference to a Firestore document.
  * @param path - A slash-separated path to a collection.
@@ -181,32 +315,38 @@ export declare function collection(
  * to a collection.
  * @returns The `CollectionReference` instance.
  */
-export declare function collection(
-  reference: DocumentReference,
+export declare function collection<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  reference: DocumentReference<AppModelType, DbModelType>,
   path: string,
   ...pathSegments: string[]
-): CollectionReference<DocumentData>;
+): CollectionReference<DocumentData, DocumentData>;
 /**
  * Creates and returns a new `Query` instance that includes all documents in the
  * database that are contained in a collection or subcollection with the
  * given `collectionId`.
  *
- * @param firestore - A reference to the root Firestore instance.
+ * @param firestore - A reference to the root `Firestore` instance.
  * @param collectionId - Identifies the collections to query over. Every
  * collection or subcollection with this ID as the last segment of its path
  * will be included. Cannot contain a slash.
  * @returns The created `Query`.
  */
 export declare function collectionGroup(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   collectionId: string
-): Query<DocumentData>;
+): Query<DocumentData, DocumentData>;
 /**
  * A `CollectionReference` object can be used for adding documents, getting
- * document references, and querying for documents (using {@link query}).
+ * document references, and querying for documents (using {@link (query:1)}).
  */
-export declare class CollectionReference<T = DocumentData> extends Query<T> {
-  readonly firestore: FirebaseFirestore;
+export declare class CollectionReference<
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> extends Query<AppModelType, DbModelType> {
+  /** The type of this Firestore reference. */
   readonly type = 'collection';
   private constructor();
   /** The collection's identifier. */
@@ -220,20 +360,69 @@ export declare class CollectionReference<T = DocumentData> extends Query<T> {
    * A reference to the containing `DocumentReference` if this is a
    * subcollection. If this isn't a subcollection, the reference is null.
    */
-  get parent(): DocumentReference<DocumentData> | null;
+  get parent(): DocumentReference<DocumentData, DocumentData> | null;
   /**
-   * Applies a custom data converter to this CollectionReference, allowing you
+   * Applies a custom data converter to this `CollectionReference`, allowing you
    * to use your own custom model objects with Firestore. When you call {@link
    * addDoc} with the returned `CollectionReference` instance, the provided
-   * converter will convert between Firestore data and your custom type `U`.
+   * converter will convert between Firestore data of type `NewDbModelType` and
+   * your custom type `NewAppModelType`.
    *
    * @param converter - Converts objects to and from Firestore.
-   * @returns A `CollectionReference<U>` that uses the provided converter.
+   * @returns A `CollectionReference` that uses the provided converter.
    */
-  withConverter<U>(
-    converter: FirestoreDataConverter<U>
-  ): CollectionReference<U>;
+  withConverter<
+    NewAppModelType,
+    NewDbModelType extends DocumentData = DocumentData
+  >(
+    converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>
+  ): CollectionReference<NewAppModelType, NewDbModelType>;
+  /**
+   * Removes the current converter.
+   *
+   * @param converter - `null` removes the current converter.
+   * @returns A `CollectionReference<DocumentData, DocumentData>` that does not
+   * use a converter.
+   */
+  withConverter(
+    converter: null
+  ): CollectionReference<DocumentData, DocumentData>;
 }
+/**
+ * Modify this instance to communicate with the Cloud Firestore emulator.
+ *
+ * Note: This must be called before this instance has been used to do any
+ * operations.
+ *
+ * @param firestore - The `Firestore` instance to configure to connect to the
+ * emulator.
+ * @param host - the emulator host (ex: localhost).
+ * @param port - the emulator port (ex: 9000).
+ * @param options.mockUserToken - the mock auth token to use for unit testing
+ * Security Rules.
+ */
+export declare function connectFirestoreEmulator(
+  firestore: Firestore,
+  host: string,
+  port: number,
+  options?: {
+    mockUserToken?: EmulatorMockTokenOptions | string;
+  }
+): void;
+/**
+ * Create an AggregateField object that can be used to compute the count of
+ * documents in the result set of a query.
+ */
+export declare function count(): AggregateField<number>;
+/**
+ * Removes all persistent cache indexes.
+ *
+ * Please note this function will also deletes indexes generated by
+ * `setIndexConfiguration()`, which is deprecated.
+ */
+export declare function deleteAllPersistentCacheIndexes(
+  indexManager: PersistentCacheIndexManager
+): void;
 /**
  * Deletes the document referred to by the specified `DocumentReference`.
  *
@@ -241,12 +430,13 @@ export declare class CollectionReference<T = DocumentData> extends Query<T> {
  * @returns A Promise resolved once the document has been successfully
  * deleted from the backend (note that it won't resolve while you're offline).
  */
-export declare function deleteDoc(
-  reference: DocumentReference<unknown>
-): Promise<void>;
+export declare function deleteDoc<
+  AppModelType,
+  DbModelType extends DocumentData
+>(reference: DocumentReference<AppModelType, DbModelType>): Promise<void>;
 /**
- * Returns a sentinel for use with {@link updateDoc} or
- * {@link setDoc} with `{merge: true}` to mark a field for deletion.
+ * Returns a sentinel for use with {@link @firebase/firestore/lite#(updateDoc:1)} or
+ * {@link @firebase/firestore/lite#(setDoc:1)} with `{merge: true}` to mark a field for deletion.
  */
 export declare function deleteField(): FieldValue;
 /**
@@ -255,16 +445,22 @@ export declare function deleteField(): FieldValue;
  * `getDoc()` or `getDocs()` calls will return results from cache, and any write
  * operations will be queued until the network is restored.
  *
- * @returns A promise that is resolved once the network has been disabled.
+ * @returns A `Promise` that is resolved once the network has been disabled.
  */
-export declare function disableNetwork(
-  firestore: FirebaseFirestore
-): Promise<void>;
+export declare function disableNetwork(firestore: Firestore): Promise<void>;
+/**
+ * Stops creating persistent cache indexes automatically for local query
+ * execution. The indexes which have been created by calling
+ * `enablePersistentCacheIndexAutoCreation()` still take effect.
+ */
+export declare function disablePersistentCacheIndexAutoCreation(
+  indexManager: PersistentCacheIndexManager
+): void;
 /**
  * Gets a `DocumentReference` instance that refers to the document at the
- * specified abosulute path.
+ * specified absolute path.
  *
- * @param firestore - A reference to the root Firestore instance.
+ * @param firestore - A reference to the root `Firestore` instance.
  * @param path - A slash-separated path to a document.
  * @param pathSegments - Additional path segments that will be applied relative
  * to the first argument.
@@ -273,10 +469,10 @@ export declare function disableNetwork(
  * @returns The `DocumentReference` instance.
  */
 export declare function doc(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   path: string,
   ...pathSegments: string[]
-): DocumentReference<DocumentData>;
+): DocumentReference<DocumentData, DocumentData>;
 /**
  * Gets a `DocumentReference` instance that refers to a document within
  * `reference` at the specified relative path. If no path is specified, an
@@ -285,18 +481,18 @@ export declare function doc(
  *
  * @param reference - A reference to a collection.
  * @param path - A slash-separated path to a document. Has to be omitted to use
- * auto-genrated IDs.
+ * auto-generated IDs.
  * @param pathSegments - Additional path segments that will be applied relative
  * to the first argument.
  * @throws If the final path has an odd number of segments and does not point to
  * a document.
  * @returns The `DocumentReference` instance.
  */
-export declare function doc<T>(
-  reference: CollectionReference<T>,
+export declare function doc<AppModelType, DbModelType extends DocumentData>(
+  reference: CollectionReference<AppModelType, DbModelType>,
   path?: string,
   ...pathSegments: string[]
-): DocumentReference<T>;
+): DocumentReference<AppModelType, DbModelType>;
 /**
  * Gets a `DocumentReference` instance that refers to a document within
  * `reference` at the specified relative path.
@@ -309,20 +505,23 @@ export declare function doc<T>(
  * a document.
  * @returns The `DocumentReference` instance.
  */
-export declare function doc(
-  reference: DocumentReference<unknown>,
+export declare function doc<AppModelType, DbModelType extends DocumentData>(
+  reference: DocumentReference<AppModelType, DbModelType>,
   path: string,
   ...pathSegments: string[]
-): DocumentReference<DocumentData>;
+): DocumentReference<DocumentData, DocumentData>;
 /**
  * A `DocumentChange` represents a change to the documents matching a query.
  * It contains the document affected and the type of change that occurred.
  */
-export declare interface DocumentChange<T = DocumentData> {
+export declare interface DocumentChange<
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> {
   /** The type of change ('added', 'modified', or 'removed'). */
   readonly type: DocumentChangeType;
   /** The document affected by this change. */
-  readonly doc: QueryDocumentSnapshot<T>;
+  readonly doc: QueryDocumentSnapshot<AppModelType, DbModelType>;
   /**
    * The index of the changed document in the result set immediately prior to
    * this `DocumentChange` (i.e. supposing that all prior `DocumentChange` objects
@@ -342,10 +541,11 @@ export declare interface DocumentChange<T = DocumentData> {
  */
 export declare type DocumentChangeType = 'added' | 'removed' | 'modified';
 /**
- * Document data (for use with {@link setDoc}) consists of fields mapped to
+ * Document data (for use with {@link @firebase/firestore/lite#(setDoc:1)}) consists of fields mapped to
  * values.
  */
 export declare interface DocumentData {
+  /** A mapping between a field and its value. */
   [field: string]: any;
 }
 /**
@@ -358,14 +558,21 @@ export declare function documentId(): FieldPath;
  * and can be used to write, read, or listen to the location. The document at
  * the referenced location may or may not exist.
  */
-export declare class DocumentReference<T = DocumentData> {
+export declare class DocumentReference<
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> {
+  /**
+   * If provided, the `FirestoreDataConverter` associated with this instance.
+   */
+  readonly converter: FirestoreDataConverter<AppModelType, DbModelType> | null;
   /** The type of this Firestore reference. */
   readonly type = 'document';
   /**
-   * The {@link FirebaseFirestore} the document is in.
+   * The {@link Firestore} instance the document is in.
    * This is useful for performing transactions, for example.
    */
-  readonly firestore: FirebaseFirestore;
+  readonly firestore: Firestore;
   private constructor();
   /**
    * The document's identifier within its collection.
@@ -379,18 +586,31 @@ export declare class DocumentReference<T = DocumentData> {
   /**
    * The collection this `DocumentReference` belongs to.
    */
-  get parent(): CollectionReference<T>;
+  get parent(): CollectionReference<AppModelType, DbModelType>;
   /**
    * Applies a custom data converter to this `DocumentReference`, allowing you
    * to use your own custom model objects with Firestore. When you call {@link
-   * setDoc}, {@link getDoc}, etc. with the returned `DocumentReference`
-   * instance, the provided converter will convert between Firestore data and
-   * your custom type `U`.
+   * @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#getDoc}, etc. with the returned `DocumentReference`
+   * instance, the provided converter will convert between Firestore data of
+   * type `NewDbModelType` and your custom type `NewAppModelType`.
    *
    * @param converter - Converts objects to and from Firestore.
-   * @returns A `DocumentReference<U>` that uses the provided converter.
+   * @returns A `DocumentReference` that uses the provided converter.
    */
-  withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
+  withConverter<
+    NewAppModelType,
+    NewDbModelType extends DocumentData = DocumentData
+  >(
+    converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>
+  ): DocumentReference<NewAppModelType, NewDbModelType>;
+  /**
+   * Removes the current converter.
+   *
+   * @param converter - `null` removes the current converter.
+   * @returns A `DocumentReference<DocumentData, DocumentData>` that does not
+   * use a converter.
+   */
+  withConverter(converter: null): DocumentReference<DocumentData, DocumentData>;
 }
 /**
  * A `DocumentSnapshot` contains data read from a document in your Firestore
@@ -401,7 +621,10 @@ export declare class DocumentReference<T = DocumentData> {
  * access will return 'undefined'. You can use the `exists()` method to
  * explicitly verify a document's existence.
  */
-export declare class DocumentSnapshot<T = DocumentData> {
+export declare class DocumentSnapshot<
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> {
   /**
    *  Metadata about the `DocumentSnapshot`, including information about its
    *  source and local modifications.
@@ -409,15 +632,14 @@ export declare class DocumentSnapshot<T = DocumentData> {
   readonly metadata: SnapshotMetadata;
   protected constructor();
   /**
-   * Property of the `DocumentSnapshot` that signals whether or not the data
-   * exists. True if the document exists.
+   * Returns whether or not the data exists. True if the document exists.
    */
-  exists(): this is QueryDocumentSnapshot<T>;
+  exists(): this is QueryDocumentSnapshot<AppModelType, DbModelType>;
   /**
    * Retrieves all fields in the document as an `Object`. Returns `undefined` if
    * the document doesn't exist.
    *
-   * By default, `FieldValue.serverTimestamp()` values that have not yet been
+   * By default, `serverTimestamp()` values that have not yet been
    * set to their final value will be returned as `null`. You can override
    * this by passing an options object.
    *
@@ -427,12 +649,12 @@ export declare class DocumentSnapshot<T = DocumentData> {
    * @returns An `Object` containing all fields in the document or `undefined` if
    * the document doesn't exist.
    */
-  data(options?: SnapshotOptions): T | undefined;
+  data(options?: SnapshotOptions): AppModelType | undefined;
   /**
    * Retrieves the field specified by `fieldPath`. Returns `undefined` if the
    * document or field doesn't exist.
    *
-   * By default, a `FieldValue.serverTimestamp()` that has not yet been set to
+   * By default, a `serverTimestamp()` that has not yet been set to
    * its final value will be returned as `null`. You can override this by
    * passing an options object.
    *
@@ -452,33 +674,42 @@ export declare class DocumentSnapshot<T = DocumentData> {
   /**
    * The `DocumentReference` for the document included in the `DocumentSnapshot`.
    */
-  get ref(): DocumentReference<T>;
+  get ref(): DocumentReference<AppModelType, DbModelType>;
 }
+/* Excluded from this release type: _EmptyAppCheckTokenProvider */
+/* Excluded from this release type: _EmptyAuthCredentialsProvider */
+export { EmulatorMockTokenOptions };
 /**
  * Attempts to enable persistent storage, if possible.
  *
- * Must be called before any other functions (other than
- * {@link initializeFirestore}, {@link getFirestore} or
- * {@link clearIndexedDbPersistence}.
- *
- * If this fails, `enableIndexedDbPersistence()` will reject the promise it
- * returns. Note that even after this failure, the `Firestore` instance will
- * remain usable, however offline persistence will be disabled.
- *
- * There are several reasons why this can fail, which can be identified by
- * the `code` on the error.
+ * On failure, `enableIndexedDbPersistence()` will reject the promise or
+ * throw an exception. There are several reasons why this can fail, which can be
+ * identified by the `code` on the error.
  *
  *   * failed-precondition: The app is already open in another browser tab.
- *   * unimplemented: The browser is incompatible with the offline
- *     persistence implementation.
+ *   * unimplemented: The browser is incompatible with the offline persistence
+ *     implementation.
  *
- * @param firestore - The `Firestore` instance to enable persistence for.
+ * Note that even after a failure, the {@link Firestore} instance will remain
+ * usable, however offline persistence will be disabled.
+ *
+ * Note: `enableIndexedDbPersistence()` must be called before any other functions
+ * (other than {@link initializeFirestore}, {@link (getFirestore:1)} or
+ * {@link clearIndexedDbPersistence}.
+ *
+ * Persistence cannot be used in a Node.js environment.
+ *
+ * @param firestore - The {@link Firestore} instance to enable persistence for.
  * @param persistenceSettings - Optional settings object to configure
  * persistence.
- * @returns A promise that represents successfully enabling persistent storage.
+ * @returns A `Promise` that represents successfully enabling persistent storage.
+ * @deprecated This function will be removed in a future major release. Instead, set
+ * `FirestoreSettings.localCache` to an instance of `PersistentLocalCache` to
+ * turn on IndexedDb cache. Calling this function when `FirestoreSettings.localCache`
+ * is already specified will throw an exception.
  */
 export declare function enableIndexedDbPersistence(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   persistenceSettings?: PersistenceSettings
 ): Promise<void>;
 /**
@@ -487,78 +718,140 @@ export declare function enableIndexedDbPersistence(
  * shared execution of queries and latency-compensated local document updates
  * across all connected instances.
  *
- * If this fails, `enableMultiTabIndexedDbPersistence()` will reject the promise
- * it returns. Note that even after this failure, the `Firestore` instance will
- * remain usable, however offline persistence will be disabled.
- *
- * There are several reasons why this can fail, which can be identified by
- * the `code` on the error.
+ * On failure, `enableMultiTabIndexedDbPersistence()` will reject the promise or
+ * throw an exception. There are several reasons why this can fail, which can be
+ * identified by the `code` on the error.
  *
  *   * failed-precondition: The app is already open in another browser tab and
  *     multi-tab is not enabled.
- *   * unimplemented: The browser is incompatible with the offline
- *     persistence implementation.
+ *   * unimplemented: The browser is incompatible with the offline persistence
+ *     implementation.
  *
- * @param firestore - The `Firestore` instance to enable persistence for.
- * @returns A promise that represents successfully enabling persistent
+ * Note that even after a failure, the {@link Firestore} instance will remain
+ * usable, however offline persistence will be disabled.
+ *
+ * @param firestore - The {@link Firestore} instance to enable persistence for.
+ * @returns A `Promise` that represents successfully enabling persistent
  * storage.
+ * @deprecated This function will be removed in a future major release. Instead, set
+ * `FirestoreSettings.localCache` to an instance of `PersistentLocalCache` to
+ * turn on indexeddb cache. Calling this function when `FirestoreSettings.localCache`
+ * is already specified will throw an exception.
  */
 export declare function enableMultiTabIndexedDbPersistence(
-  firestore: FirebaseFirestore
+  firestore: Firestore
 ): Promise<void>;
 /**
- * Re-enables use of the network for this Firestore instance after a prior
+ * Re-enables use of the network for this {@link Firestore} instance after a prior
  * call to {@link disableNetwork}.
  *
- * @returns A promise that is resolved once the network has been enabled.
+ * @returns A `Promise` that is resolved once the network has been enabled.
  */
-export declare function enableNetwork(
-  firestore: FirebaseFirestore
-): Promise<void>;
+export declare function enableNetwork(firestore: Firestore): Promise<void>;
 /**
- * Creates a `QueryConstraint` that modifies the result set to end at the
- * provided document (inclusive). The end position is relative to the order of
- * the query. The document must contain all of the fields provided in the
+ * Enables the SDK to create persistent cache indexes automatically for local
+ * query execution when the SDK believes cache indexes can help improve
+ * performance.
+ *
+ * This feature is disabled by default.
+ */
+export declare function enablePersistentCacheIndexAutoCreation(
+  indexManager: PersistentCacheIndexManager
+): void;
+/**
+ * Creates a {@link QueryEndAtConstraint} that modifies the result set to end at
+ * the provided document (inclusive). The end position is relative to the order
+ * of the query. The document must contain all of the fields provided in the
  * orderBy of the query.
  *
  * @param snapshot - The snapshot of the document to end at.
- * @returns A `QueryConstraint` to pass to `query()`
+ * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
-export declare function endAt(
-  snapshot: DocumentSnapshot<unknown>
-): QueryConstraint;
+export declare function endAt<AppModelType, DbModelType extends DocumentData>(
+  snapshot: DocumentSnapshot<AppModelType, DbModelType>
+): QueryEndAtConstraint;
 /**
- * Creates a `QueryConstraint` that modifies the result set to end at the
- * provided fields relative to the order of the query. The order of the field
+ * Creates a {@link QueryEndAtConstraint} that modifies the result set to end at
+ * the provided fields relative to the order of the query. The order of the field
  * values must match the order of the order by clauses of the query.
  *
  * @param fieldValues - The field values to end this query at, in order
  * of the query's order by.
- * @returns A `QueryConstraint` to pass to `query()`
+ * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
-export declare function endAt(...fieldValues: unknown[]): QueryConstraint;
+export declare function endAt(...fieldValues: unknown[]): QueryEndAtConstraint;
 /**
- * Creates a `QueryConstraint` that modifies the result set to end before the
- * provided document (exclusive). The end position is relative to the order of
- * the query. The document must contain all of the fields provided in the
- * orderBy of the query.
+ * Creates a {@link QueryEndAtConstraint} that modifies the result set to end
+ * before the provided document (exclusive). The end position is relative to the
+ * order of the query. The document must contain all of the fields provided in
+ * the orderBy of the query.
  *
  * @param snapshot - The snapshot of the document to end before.
- * @returns A `QueryConstraint` to pass to `query()`
+ * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
-export declare function endBefore(
-  snapshot: DocumentSnapshot<unknown>
-): QueryConstraint;
+export declare function endBefore<
+  AppModelType,
+  DbModelType extends DocumentData
+>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryEndAtConstraint;
 /**
- * Creates a `QueryConstraint` that modifies the result set to end before the
- * provided fields relative to the order of the query. The order of the field
- * values must match the order of the order by clauses of the query.
+ * Creates a {@link QueryEndAtConstraint} that modifies the result set to end
+ * before the provided fields relative to the order of the query. The order of
+ * the field values must match the order of the order by clauses of the query.
  *
  * @param fieldValues - The field values to end this query before, in order
  * of the query's order by.
- * @returns A `QueryConstraint` to pass to `query()`
+ * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
-export declare function endBefore(...fieldValues: unknown[]): QueryConstraint;
+export declare function endBefore(
+  ...fieldValues: unknown[]
+): QueryEndAtConstraint;
+/* Excluded from this release type: executeWrite */
+/**
+ * @license
+ * Copyright 2023 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/**
+ * Options that configure the SDK’s underlying network transport (WebChannel)
+ * when long-polling is used.
+ *
+ * Note: This interface is "experimental" and is subject to change.
+ *
+ * See `FirestoreSettings.experimentalAutoDetectLongPolling`,
+ * `FirestoreSettings.experimentalForceLongPolling`, and
+ * `FirestoreSettings.experimentalLongPollingOptions`.
+ */
+export declare interface ExperimentalLongPollingOptions {
+  /**
+   * The desired maximum timeout interval, in seconds, to complete a
+   * long-polling GET response. Valid values are between 5 and 30, inclusive.
+   * Floating point values are allowed and will be rounded to the nearest
+   * millisecond.
+   *
+   * By default, when long-polling is used the "hanging GET" request sent by
+   * the client times out after 30 seconds. To request a different timeout
+   * from the server, set this setting with the desired timeout.
+   *
+   * Changing the default timeout may be useful, for example, if the buffering
+   * proxy that necessitated enabling long-polling in the first place has a
+   * shorter timeout for hanging GET requests, in which case setting the
+   * long-polling timeout to a shorter value, such as 25 seconds, may fix
+   * prematurely-closed hanging GET requests.
+   * For example, see https://github.com/firebase/firebase-js-sdk/issues/6987.
+   */
+  timeoutSeconds?: number;
+}
 /**
  * A `FieldPath` refers to a field in a document. The path may consist of a
  * single field name (referring to a top-level field in the document), or a
@@ -569,7 +862,7 @@ export declare function endBefore(...fieldValues: unknown[]): QueryConstraint;
  */
 export declare class FieldPath {
   /**
-   * Creates a FieldPath from the provided field names. If more than one field
+   * Creates a `FieldPath` from the provided field names. If more than one field
    * name is provided, the path will point to a nested field in a document.
    *
    * @param fieldNames - A list of field names.
@@ -588,119 +881,286 @@ export declare class FieldPath {
  * or `update()`.
  */
 export declare abstract class FieldValue {
-  /**
-   * @param _methodName - The public API endpoint that returns this class.
-   */
-  constructor(_methodName: string);
+  private constructor();
+  /** Compares `FieldValue`s for equality. */
   abstract isEqual(other: FieldValue): boolean;
 }
+/* Excluded from this release type: _FirebaseService */
 /**
  * The Cloud Firestore service interface.
  *
- * Do not call this constructor directly. Instead, use {@link getFirestore}.
+ * Do not call this constructor directly. Instead, use {@link (getFirestore:1)}.
  */
-export declare class FirebaseFirestore {
+export declare class Firestore {
+  /**
+   * Whether it's a {@link Firestore} or Firestore Lite instance.
+   */
+  type: 'firestore-lite' | 'firestore';
   private constructor();
   /**
-   * The {@link FirebaseApp} associated with this `Firestore` service
+   * The {@link @firebase/app#FirebaseApp} associated with this `Firestore` service
    * instance.
    */
   get app(): FirebaseApp;
+  /**
+   * Returns a JSON-serializable representation of this `Firestore` instance.
+   */
   toJSON(): object;
 }
 /**
- * Converter used by `withConverter()` to transform user objects of type `T`
- * into Firestore data.
+ * Converter used by `withConverter()` to transform user objects of type
+ * `AppModelType` into Firestore data of type `DbModelType`.
  *
  * Using the converter allows you to specify generic type arguments when
  * storing and retrieving objects from Firestore.
  *
+ * In this context, an "AppModel" is a class that is used in an application to
+ * package together related information and functionality. Such a class could,
+ * for example, have properties with complex, nested data types, properties used
+ * for memoization, properties of types not supported by Firestore (such as
+ * `symbol` and `bigint`), and helper functions that perform compound
+ * operations. Such classes are not suitable and/or possible to store into a
+ * Firestore database. Instead, instances of such classes need to be converted
+ * to "plain old JavaScript objects" (POJOs) with exclusively primitive
+ * properties, potentially nested inside other POJOs or arrays of POJOs. In this
+ * context, this type is referred to as the "DbModel" and would be an object
+ * suitable for persisting into Firestore. For convenience, applications can
+ * implement `FirestoreDataConverter` and register the converter with Firestore
+ * objects, such as `DocumentReference` or `Query`, to automatically convert
+ * `AppModel` to `DbModel` when storing into Firestore, and convert `DbModel`
+ * to `AppModel` when retrieving from Firestore.
+ *
  * @example
+ *
+ * Simple Example
+ *
  * ```typescript
- * class Post {
- *   constructor(readonly title: string, readonly author: string) {}
- *
- *   toString(): string {
- *     return this.title + ', by ' + this.author;
- *   }
- * }
- *
- * const postConverter = {
- *   toFirestore(post: Post): firebase.firestore.DocumentData {
- *     return {title: post.title, author: post.author};
- *   },
- *   fromFirestore(
- *     snapshot: firebase.firestore.QueryDocumentSnapshot,
- *     options: firebase.firestore.SnapshotOptions
- *   ): Post {
- *     const data = snapshot.data(options)!;
- *     return new Post(data.title, data.author);
- *   }
+ * const numberConverter = {
+ *     toFirestore(value: WithFieldValue<number>) {
+ *         return { value };
+ *     },
+ *     fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions) {
+ *         return snapshot.data(options).value as number;
+ *     }
  * };
  *
- * const postSnap = await firebase.firestore()
- *   .collection('posts')
- *   .withConverter(postConverter)
- *   .doc().get();
- * const post = postSnap.data();
- * if (post !== undefined) {
- *   post.title; // string
- *   post.toString(); // Should be defined
- *   post.someNonExistentProperty; // TS error
+ * async function simpleDemo(db: Firestore): Promise<void> {
+ *     const documentRef = doc(db, 'values/value123').withConverter(numberConverter);
+ *
+ *     // converters are used with `setDoc`, `addDoc`, and `getDoc`
+ *     await setDoc(documentRef, 42);
+ *     const snapshot1 = await getDoc(documentRef);
+ *     assertEqual(snapshot1.data(), 42);
+ *
+ *     // converters are not used when writing data with `updateDoc`
+ *     await updateDoc(documentRef, { value: 999 });
+ *     const snapshot2 = await getDoc(documentRef);
+ *     assertEqual(snapshot2.data(), 999);
+ * }
+ * ```
+ *
+ * Advanced Example
+ *
+ * ```typescript
+ * // The Post class is a model that is used by our application.
+ * // This class may have properties and methods that are specific
+ * // to our application execution, which do not need to be persisted
+ * // to Firestore.
+ * class Post {
+ *     constructor(
+ *         readonly title: string,
+ *         readonly author: string,
+ *         readonly lastUpdatedMillis: number
+ *     ) {}
+ *     toString(): string {
+ *         return `${this.title} by ${this.author}`;
+ *     }
+ * }
+ *
+ * // The PostDbModel represents how we want our posts to be stored
+ * // in Firestore. This DbModel has different properties (`ttl`,
+ * // `aut`, and `lut`) from the Post class we use in our application.
+ * interface PostDbModel {
+ *     ttl: string;
+ *     aut: { firstName: string; lastName: string };
+ *     lut: Timestamp;
+ * }
+ *
+ * // The `PostConverter` implements `FirestoreDataConverter` and specifies
+ * // how the Firestore SDK can convert `Post` objects to `PostDbModel`
+ * // objects and vice versa.
+ * class PostConverter implements FirestoreDataConverter<Post, PostDbModel> {
+ *     toFirestore(post: WithFieldValue<Post>): WithFieldValue<PostDbModel> {
+ *         return {
+ *             ttl: post.title,
+ *             aut: this._autFromAuthor(post.author),
+ *             lut: this._lutFromLastUpdatedMillis(post.lastUpdatedMillis)
+ *         };
+ *     }
+ *
+ *     fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): Post {
+ *         const data = snapshot.data(options) as PostDbModel;
+ *         const author = `${data.aut.firstName} ${data.aut.lastName}`;
+ *         return new Post(data.ttl, author, data.lut.toMillis());
+ *     }
+ *
+ *     _autFromAuthor(
+ *         author: string | FieldValue
+ *     ): { firstName: string; lastName: string } | FieldValue {
+ *         if (typeof author !== 'string') {
+ *             // `author` is a FieldValue, so just return it.
+ *             return author;
+ *         }
+ *         const [firstName, lastName] = author.split(' ');
+ *         return {firstName, lastName};
+ *     }
+ *
+ *     _lutFromLastUpdatedMillis(
+ *         lastUpdatedMillis: number | FieldValue
+ *     ): Timestamp | FieldValue {
+ *         if (typeof lastUpdatedMillis !== 'number') {
+ *             // `lastUpdatedMillis` must be a FieldValue, so just return it.
+ *             return lastUpdatedMillis;
+ *         }
+ *         return Timestamp.fromMillis(lastUpdatedMillis);
+ *     }
+ * }
+ *
+ * async function advancedDemo(db: Firestore): Promise<void> {
+ *     // Create a `DocumentReference` with a `FirestoreDataConverter`.
+ *     const documentRef = doc(db, 'posts/post123').withConverter(new PostConverter());
+ *
+ *     // The `data` argument specified to `setDoc()` is type checked by the
+ *     // TypeScript compiler to be compatible with `Post`. Since the `data`
+ *     // argument is typed as `WithFieldValue<Post>` rather than just `Post`,
+ *     // this allows properties of the `data` argument to also be special
+ *     // Firestore values that perform server-side mutations, such as
+ *     // `arrayRemove()`, `deleteField()`, and `serverTimestamp()`.
+ *     await setDoc(documentRef, {
+ *         title: 'My Life',
+ *         author: 'Foo Bar',
+ *         lastUpdatedMillis: serverTimestamp()
+ *     });
+ *
+ *     // The TypeScript compiler will fail to compile if the `data` argument to
+ *     // `setDoc()` is _not_ compatible with `WithFieldValue<Post>`. This
+ *     // type checking prevents the caller from specifying objects with incorrect
+ *     // properties or property values.
+ *     // @ts-expect-error "Argument of type { ttl: string; } is not assignable
+ *     // to parameter of type WithFieldValue<Post>"
+ *     await setDoc(documentRef, { ttl: 'The Title' });
+ *
+ *     // When retrieving a document with `getDoc()` the `DocumentSnapshot`
+ *     // object's `data()` method returns a `Post`, rather than a generic object,
+ *     // which would have been returned if the `DocumentReference` did _not_ have a
+ *     // `FirestoreDataConverter` attached to it.
+ *     const snapshot1: DocumentSnapshot<Post> = await getDoc(documentRef);
+ *     const post1: Post = snapshot1.data()!;
+ *     if (post1) {
+ *         assertEqual(post1.title, 'My Life');
+ *         assertEqual(post1.author, 'Foo Bar');
+ *     }
+ *
+ *     // The `data` argument specified to `updateDoc()` is type checked by the
+ *     // TypeScript compiler to be compatible with `PostDbModel`. Note that
+ *     // unlike `setDoc()`, whose `data` argument must be compatible with `Post`,
+ *     // the `data` argument to `updateDoc()` must be compatible with
+ *     // `PostDbModel`. Similar to `setDoc()`, since the `data` argument is typed
+ *     // as `WithFieldValue<PostDbModel>` rather than just `PostDbModel`, this
+ *     // allows properties of the `data` argument to also be those special
+ *     // Firestore values, like `arrayRemove()`, `deleteField()`, and
+ *     // `serverTimestamp()`.
+ *     await updateDoc(documentRef, {
+ *         'aut.firstName': 'NewFirstName',
+ *         lut: serverTimestamp()
+ *     });
+ *
+ *     // The TypeScript compiler will fail to compile if the `data` argument to
+ *     // `updateDoc()` is _not_ compatible with `WithFieldValue<PostDbModel>`.
+ *     // This type checking prevents the caller from specifying objects with
+ *     // incorrect properties or property values.
+ *     // @ts-expect-error "Argument of type { title: string; } is not assignable
+ *     // to parameter of type WithFieldValue<PostDbModel>"
+ *     await updateDoc(documentRef, { title: 'New Title' });
+ *     const snapshot2: DocumentSnapshot<Post> = await getDoc(documentRef);
+ *     const post2: Post = snapshot2.data()!;
+ *     if (post2) {
+ *         assertEqual(post2.title, 'My Life');
+ *         assertEqual(post2.author, 'NewFirstName Bar');
+ *     }
  * }
  * ```
  */
-export declare interface FirestoreDataConverter<T> {
+export declare interface FirestoreDataConverter<
+  AppModelType,
+  DbModelType extends DocumentData = DocumentData
+> {
   /**
-   * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain JavaScript object (suitable for writing directly to the
-   * Firestore database). To use `set()` with `merge` and `mergeFields`,
-   * `toFirestore()` must be defined with `Partial<T>`.
+   * Called by the Firestore SDK to convert a custom model object of type
+   * `AppModelType` into a plain JavaScript object (suitable for writing
+   * directly to the Firestore database) of type `DbModelType`. To use `set()`
+   * with `merge` and `mergeFields`, `toFirestore()` must be defined with
+   * `PartialWithFieldValue<AppModelType>`.
+   *
+   * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as
+   * {@link (deleteField:1)} to be used as property values.
    */
-  toFirestore(modelObject: T): DocumentData;
+  toFirestore(
+    modelObject: WithFieldValue<AppModelType>
+  ): WithFieldValue<DbModelType>;
   /**
-   * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain JavaScript object (suitable for writing directly to the
-   * Firestore database). Used with {@link setData}, {@link WriteBatch#set}
-   * and {@link Transaction#set} with `merge:true` or `mergeFields`.
+   * Called by the Firestore SDK to convert a custom model object of type
+   * `AppModelType` into a plain JavaScript object (suitable for writing
+   * directly to the Firestore database) of type `DbModelType`. Used with
+   * {@link (setDoc:1)}, {@link (WriteBatch.set:1)} and
+   * {@link (Transaction.set:1)} with `merge:true` or `mergeFields`.
+   *
+   * The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow
+   * FieldValues such as {@link (arrayUnion:1)} to be used as property values.
+   * It also supports nested `Partial` by allowing nested fields to be
+   * omitted.
    */
-  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
+  toFirestore(
+    modelObject: PartialWithFieldValue<AppModelType>,
+    options: SetOptions
+  ): PartialWithFieldValue<DbModelType>;
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of
-   * type T. You can access your data by calling: `snapshot.data(options)`.
+   * type `AppModelType`. You can access your data by calling:
+   * `snapshot.data(options)`.
+   *
+   * Generally, the data returned from `snapshot.data()` can be cast to
+   * `DbModelType`; however, this is not guaranteed because Firestore does not
+   * enforce a schema on the database. For example, writes from a previous
+   * version of the application or writes from another client that did not use a
+   * type converter could have written data with different properties and/or
+   * property types. The implementation will need to choose whether to
+   * gracefully recover from non-conforming data or throw an error.
+   *
+   * To override this method, see {@link (FirestoreDataConverter.fromFirestore:1)}.
    *
    * @param snapshot - A `QueryDocumentSnapshot` containing your data and metadata.
    * @param options - The `SnapshotOptions` from the initial call to `data()`.
    */
   fromFirestore(
-    snapshot: QueryDocumentSnapshot<DocumentData>,
+    snapshot: QueryDocumentSnapshot<DocumentData, DocumentData>,
     options?: SnapshotOptions
-  ): T;
+  ): AppModelType;
 }
 /** An error returned by a Firestore operation. */
-export declare class FirestoreError extends Error {
+export declare class FirestoreError extends FirebaseError {
+  /**
+   * The backend error code associated with this error.
+   */
   readonly code: FirestoreErrorCode;
+  /**
+   * A custom error description.
+   */
   readonly message: string;
-  readonly name: string;
+  /** The stack of the error. */
   readonly stack?: string;
   private constructor();
 }
-/**
- * @license
- * Copyright 2017 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 /**
  * The set of Firestore status codes. The codes are the same at the ones
  * exposed by gRPC here:
@@ -758,6 +1218,100 @@ export declare type FirestoreErrorCode =
   | 'data-loss'
   | 'unauthenticated';
 /**
+ * Union type from all supported SDK cache layer.
+ */
+export declare type FirestoreLocalCache =
+  | MemoryLocalCache
+  | PersistentLocalCache;
+/**
+ * Specifies custom configurations for your Cloud Firestore instance.
+ * You must set these before invoking any other methods.
+ */
+export declare interface FirestoreSettings {
+  /**
+   * NOTE: This field will be deprecated in a future major release. Use `cache` field
+   * instead to specify cache size, and other cache configurations.
+   *
+   * An approximate cache size threshold for the on-disk data. If the cache
+   * grows beyond this size, Firestore will start removing data that hasn't been
+   * recently used. The size is not a guarantee that the cache will stay below
+   * that size, only that if the cache exceeds the given size, cleanup will be
+   * attempted.
+   *
+   * The default value is 40 MB. The threshold must be set to at least 1 MB, and
+   * can be set to `CACHE_SIZE_UNLIMITED` to disable garbage collection.
+   */
+  cacheSizeBytes?: number;
+  /**
+   * Specifies the cache used by the SDK. Available options are `MemoryLocalCache`
+   * and `PersistentLocalCache`, each with different configuration options.
+   *
+   * When unspecified, `MemoryLocalCache` will be used by default.
+   *
+   * NOTE: setting this field and `cacheSizeBytes` at the same time will throw
+   * exception during SDK initialization. Instead, using the configuration in
+   * the `FirestoreLocalCache` object to specify the cache size.
+   */
+  localCache?: FirestoreLocalCache;
+  /**
+   * Forces the SDK’s underlying network transport (WebChannel) to use
+   * long-polling. Each response from the backend will be closed immediately
+   * after the backend sends data (by default responses are kept open in
+   * case the backend has more data to send). This avoids incompatibility
+   * issues with certain proxies, antivirus software, etc. that incorrectly
+   * buffer traffic indefinitely. Use of this option will cause some
+   * performance degradation though.
+   *
+   * This setting cannot be used with `experimentalAutoDetectLongPolling` and
+   * may be removed in a future release. If you find yourself using it to
+   * work around a specific network reliability issue, please tell us about
+   * it in https://github.com/firebase/firebase-js-sdk/issues/1674.
+   *
+   * This setting cannot be used in a Node.js environment.
+   */
+  experimentalForceLongPolling?: boolean;
+  /**
+   * Configures the SDK's underlying transport (WebChannel) to automatically
+   * detect if long-polling should be used. This is very similar to
+   * `experimentalForceLongPolling`, but only uses long-polling if required.
+   *
+   * After having had a default value of `false` since its inception in 2019,
+   * the default value of this setting was changed in May 2023 to `true` in
+   * v9.22.0 of the Firebase JavaScript SDK. That is, auto-detection of long
+   * polling is now enabled by default. To disable it, set this setting to
+   * `false`, and please open a GitHub issue to share the problems that
+   * motivated you disabling long-polling auto-detection.
+   *
+   * This setting cannot be used in a Node.js environment.
+   */
+  experimentalAutoDetectLongPolling?: boolean;
+  /**
+   * Options that configure the SDK’s underlying network transport (WebChannel)
+   * when long-polling is used.
+   *
+   * These options are only used if `experimentalForceLongPolling` is true or if
+   * `experimentalAutoDetectLongPolling` is true and the auto-detection
+   * determined that long-polling was needed. Otherwise, these options have no
+   * effect.
+   */
+  experimentalLongPollingOptions?: ExperimentalLongPollingOptions;
+  /**
+   * The hostname to connect to.
+   */
+  host?: string;
+  /**
+   * Whether to use SSL when connecting.
+   */
+  ssl?: boolean;
+  /**
+   * Whether to skip nested properties that are set to `undefined` during
+   * object serialization. If set to `true`, these properties are skipped
+   * and not written to Firestore. If set to `false` or omitted, the SDK
+   * throws an exception when it encounters properties of type `undefined`.
+   */
+  ignoreUndefinedProperties?: boolean;
+}
+/**
  * @license
  * Copyright 2017 Google LLC
  *
@@ -803,11 +1357,90 @@ export declare class GeoPoint {
    * @returns true if this `GeoPoint` is equal to the provided one.
    */
   isEqual(other: GeoPoint): boolean;
+  /** Returns a JSON-serializable representation of this GeoPoint. */
   toJSON(): {
     latitude: number;
     longitude: number;
   };
 }
+/**
+ * Calculates the specified aggregations over the documents in the result
+ * set of the given query without actually downloading the documents.
+ *
+ * Using this function to perform aggregations is efficient because only the
+ * final aggregation values, not the documents' data, are downloaded. This
+ * function can perform aggregations of the documents in cases where the result
+ * set is prohibitively large to download entirely (thousands of documents).
+ *
+ * The result received from the server is presented, unaltered, without
+ * considering any local state. That is, documents in the local cache are not
+ * taken into consideration, neither are local modifications not yet
+ * synchronized with the server. Previously-downloaded results, if any, are not
+ * used. Every invocation of this function necessarily involves a round trip to
+ * the server.
+ *
+ * @param query The query whose result set is aggregated over.
+ * @param aggregateSpec An `AggregateSpec` object that specifies the aggregates
+ * to perform over the result set. The AggregateSpec specifies aliases for each
+ * aggregate, which can be used to retrieve the aggregate result.
+ * @example
+ * ```typescript
+ * const aggregateSnapshot = await getAggregateFromServer(query, {
+ *   countOfDocs: count(),
+ *   totalHours: sum('hours'),
+ *   averageScore: average('score')
+ * });
+ *
+ * const countOfDocs: number = aggregateSnapshot.data().countOfDocs;
+ * const totalHours: number = aggregateSnapshot.data().totalHours;
+ * const averageScore: number | null = aggregateSnapshot.data().averageScore;
+ * ```
+ */
+export declare function getAggregateFromServer<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: Query<AppModelType, DbModelType>,
+  aggregateSpec: AggregateSpecType
+): Promise<
+  AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>
+>;
+/**
+ * Calculates the number of documents in the result set of the given query
+ * without actually downloading the documents.
+ *
+ * Using this function to count the documents is efficient because only the
+ * final count, not the documents' data, is downloaded. This function can
+ * count the documents in cases where the result set is prohibitively large to
+ * download entirely (thousands of documents).
+ *
+ * The result received from the server is presented, unaltered, without
+ * considering any local state. That is, documents in the local cache are not
+ * taken into consideration, neither are local modifications not yet
+ * synchronized with the server. Previously-downloaded results, if any, are not
+ * used. Every invocation of this function necessarily involves a round trip to
+ * the server.
+ *
+ * @param query The query whose result set size is calculated.
+ * @returns A Promise that will be resolved with the count; the count can be
+ * retrieved from `snapshot.data().count`, where `snapshot` is the
+ * `AggregateQuerySnapshot` to which the returned Promise resolves.
+ */
+export declare function getCountFromServer<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: Query<AppModelType, DbModelType>
+): Promise<
+  AggregateQuerySnapshot<
+    {
+      count: AggregateField<number>;
+    },
+    AppModelType,
+    DbModelType
+  >
+>;
 /**
  * Reads the document referred to by this `DocumentReference`.
  *
@@ -820,29 +1453,35 @@ export declare class GeoPoint {
  * @returns A Promise resolved with a `DocumentSnapshot` containing the
  * current document contents.
  */
-export declare function getDoc<T>(
-  reference: DocumentReference<T>
-): Promise<DocumentSnapshot<T>>;
+export declare function getDoc<AppModelType, DbModelType extends DocumentData>(
+  reference: DocumentReference<AppModelType, DbModelType>
+): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
 /**
  * Reads the document referred to by this `DocumentReference` from cache.
  * Returns an error if the document is not currently cached.
  *
- * @returns A Promise resolved with a `DocumentSnapshot` containing the
+ * @returns A `Promise` resolved with a `DocumentSnapshot` containing the
  * current document contents.
  */
-export declare function getDocFromCache<T>(
-  reference: DocumentReference<T>
-): Promise<DocumentSnapshot<T>>;
+export declare function getDocFromCache<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  reference: DocumentReference<AppModelType, DbModelType>
+): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
 /**
  * Reads the document referred to by this `DocumentReference` from the server.
  * Returns an error if the network is not available.
  *
- * @returns A Promise resolved with a `DocumentSnapshot` containing the
+ * @returns A `Promise` resolved with a `DocumentSnapshot` containing the
  * current document contents.
  */
-export declare function getDocFromServer<T>(
-  reference: DocumentReference<T>
-): Promise<DocumentSnapshot<T>>;
+export declare function getDocFromServer<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  reference: DocumentReference<AppModelType, DbModelType>
+): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
 /**
  * Executes the query and returns the results as a `QuerySnapshot`.
  *
@@ -851,40 +1490,92 @@ export declare function getDocFromServer<T>(
  * you are offline and the server cannot be reached. To specify this behavior,
  * invoke {@link getDocsFromCache} or {@link getDocsFromServer}.
  *
- * @returns A Promise that will be resolved with the results of the query.
+ * @returns A `Promise` that will be resolved with the results of the query.
  */
-export declare function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export declare function getDocs<AppModelType, DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>
+): Promise<QuerySnapshot<AppModelType, DbModelType>>;
 /**
  * Executes the query and returns the results as a `QuerySnapshot` from cache.
- * Returns an error if the document is not currently cached.
+ * Returns an empty result set if no documents matching the query are currently
+ * cached.
  *
- * @returns A Promise that will be resolved with the results of the query.
+ * @returns A `Promise` that will be resolved with the results of the query.
  */
-export declare function getDocsFromCache<T>(
-  query: Query<T>
-): Promise<QuerySnapshot<T>>;
+export declare function getDocsFromCache<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: Query<AppModelType, DbModelType>
+): Promise<QuerySnapshot<AppModelType, DbModelType>>;
 /**
  * Executes the query and returns the results as a `QuerySnapshot` from the
  * server. Returns an error if the network is not available.
  *
- * @returns A Promise that will be resolved with the results of the query.
+ * @returns A `Promise` that will be resolved with the results of the query.
  */
-export declare function getDocsFromServer<T>(
-  query: Query<T>
-): Promise<QuerySnapshot<T>>;
+export declare function getDocsFromServer<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: Query<AppModelType, DbModelType>
+): Promise<QuerySnapshot<AppModelType, DbModelType>>;
 /**
- * Returns the existing instance of Firestore that is associated with the
- * provided {@link FirebaseApp}. If no instance exists, initializes a new
+ * Returns the existing default {@link Firestore} instance that is associated with the
+ * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
- * @param app - The {@link FirebaseApp} instance that the returned Firestore
- * instance is associated with.
- * @returns The `Firestore` instance of the provided app.
+ * @returns The default {@link Firestore} instance of the default app.
  */
-export declare function getFirestore(app: FirebaseApp): FirebaseFirestore;
+export declare function getFirestore(): Firestore;
 /**
- * Returns a special value that can be used with {@link setDoc} or {@link
- * updateDoc} that tells the server to increment the field's current value by
+ * Returns the existing default {@link Firestore} instance that is associated with the
+ * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
+ * instance with default settings.
+ *
+ * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned {@link Firestore}
+ * instance is associated with.
+ * @returns The default {@link Firestore} instance of the provided app.
+ */
+export declare function getFirestore(app: FirebaseApp): Firestore;
+/**
+ * Returns the existing named {@link Firestore} instance that is associated with the
+ * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
+ * instance with default settings.
+ *
+ * @param databaseId - The name of the database.
+ * @returns The named {@link Firestore} instance of the default app.
+ * @beta
+ */
+export declare function getFirestore(databaseId: string): Firestore;
+/**
+ * Returns the existing named {@link Firestore} instance that is associated with the
+ * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
+ * instance with default settings.
+ *
+ * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned {@link Firestore}
+ * instance is associated with.
+ * @param databaseId - The name of the database.
+ * @returns The named {@link Firestore} instance of the provided app.
+ * @beta
+ */
+export declare function getFirestore(
+  app: FirebaseApp,
+  databaseId: string
+): Firestore;
+/**
+ * Returns the PersistentCache Index Manager used by the given `Firestore`
+ * object.
+ *
+ * @return The `PersistentCacheIndexManager` instance, or `null` if local
+ * persistent storage is not in use.
+ */
+export declare function getPersistentCacheIndexManager(
+  firestore: Firestore
+): PersistentCacheIndexManager | null;
+/**
+ * Returns a special value that can be used with {@link @firebase/firestore/lite#(setDoc:1)} or {@link
+ * @firebase/firestore/lite#(updateDoc:1)} that tells the server to increment the field's current value by
  * the given value.
  *
  * If either the operand or the current field value uses floating point
@@ -903,50 +1594,122 @@ export declare function getFirestore(app: FirebaseApp): FirebaseFirestore;
  */
 export declare function increment(n: number): FieldValue;
 /**
- * Initializes a new instance of Cloud Firestore with the provided settings.
- * Can only be called before any other function, including
- * {@link getFirestore}. If the custom settings are empty, this function is
- * equivalent to calling {@link getFirestore}.
+ * The SDK definition of a Firestore index.
  *
- * @param app - The {@link FirebaseApp} with which the `Firestore` instance will
+ * @deprecated Instead of creating cache indexes manually, consider using
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
+ * create cache indexes for queries running locally.
+ *
+ * @beta
+ */
+export declare interface Index {
+  /** The ID of the collection to index. */
+  readonly collectionGroup: string;
+  /** A list of fields to index. */
+  readonly fields?: IndexField[];
+  [key: string]: unknown;
+}
+/**
+ * A list of Firestore indexes to speed up local query execution.
+ *
+ * See {@link https://firebase.google.com/docs/reference/firestore/indexes/#json_format | JSON Format}
+ * for a description of the format of the index definition.
+ *
+ * @deprecated Instead of creating cache indexes manually, consider using
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
+ * create cache indexes for queries running locally.
+ *
+ * @beta
+ */
+export declare interface IndexConfiguration {
+  /** A list of all Firestore indexes. */
+  readonly indexes?: Index[];
+  [key: string]: unknown;
+}
+/**
+ * A single field element in an index configuration.
+ *
+ * @deprecated Instead of creating cache indexes manually, consider using
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
+ * create cache indexes for queries running locally.
+ *
+ * @beta
+ */
+export declare interface IndexField {
+  /** The field path to index. */
+  readonly fieldPath: string;
+  /**
+   * What type of array index to create. Set to `CONTAINS` for `array-contains`
+   * and `array-contains-any` indexes.
+   *
+   * Only one of `arrayConfig` or `order` should be set;
+   */
+  readonly arrayConfig?: 'CONTAINS';
+  /**
+   * What type of array index to create. Set to `ASCENDING` or 'DESCENDING` for
+   * `==`, `!=`, `<=`, `<=`, `in` and `not-in` filters.
+   *
+   * Only one of `arrayConfig` or `order` should be set.
+   */
+  readonly order?: 'ASCENDING' | 'DESCENDING';
+  [key: string]: unknown;
+}
+/**
+ * Initializes a new instance of {@link Firestore} with the provided settings.
+ * Can only be called before any other function, including
+ * {@link (getFirestore:1)}. If the custom settings are empty, this function is
+ * equivalent to calling {@link (getFirestore:1)}.
+ *
+ * @param app - The {@link @firebase/app#FirebaseApp} with which the {@link Firestore} instance will
  * be associated.
- * @param settings - A settings object to configure the `Firestore` instance.
- * @returns A newly initialized `Firestore` instance.
+ * @param settings - A settings object to configure the {@link Firestore} instance.
+ * @param databaseId - The name of the database.
+ * @returns A newly initialized {@link Firestore} instance.
  */
 export declare function initializeFirestore(
   app: FirebaseApp,
-  settings: Settings
-): FirebaseFirestore;
+  settings: FirestoreSettings,
+  databaseId?: string
+): Firestore;
 /**
- * Creates a `QueryConstraint` that only returns the first matching documents.
+ * Creates a {@link QueryLimitConstraint} that only returns the first matching
+ * documents.
  *
  * @param limit - The maximum number of items to return.
- * @returns The created `Query`.
+ * @returns The created {@link QueryLimitConstraint}.
  */
-export declare function limit(limit: number): QueryConstraint;
+export declare function limit(limit: number): QueryLimitConstraint;
 /**
- * Creates a `QueryConstraint` that only returns the last matching documents.
+ * Creates a {@link QueryLimitConstraint} that only returns the last matching
+ * documents.
  *
  * You must specify at least one `orderBy` clause for `limitToLast` queries,
  * otherwise an exception will be thrown during execution.
  *
  * @param limit - The maximum number of items to return.
- * @returns The created `Query`.
+ * @returns The created {@link QueryLimitConstraint}.
  */
-export declare function limitToLast(limit: number): QueryConstraint;
+export declare function limitToLast(limit: number): QueryLimitConstraint;
+/**
+ * Describe the source a query listens to.
+ *
+ * Set to `default` to listen to both cache and server changes. Set to `cache`
+ * to listen to changes in cache only.
+ */
+export declare type ListenSource = 'default' | 'cache';
 /**
  * Loads a Firestore bundle into the local cache.
  *
- * @param firestore - The `Firestore` instance to load bundles for for.
- * @param bundleData - An object representing the bundle to be loaded. Valid objects are
- *   `ArrayBuffer`, `ReadableStream<Uint8Array>` or `string`.
+ * @param firestore - The {@link Firestore} instance to load bundles for.
+ * @param bundleData - An object representing the bundle to be loaded. Valid
+ * objects are `ArrayBuffer`, `ReadableStream<Uint8Array>` or `string`.
  *
- * @return
- *   A `LoadBundleTask` object, which notifies callers with progress updates, and completion
- *   or error events. It can be used as a `Promise<LoadBundleTaskProgress>`.
+ * @returns A `LoadBundleTask` object, which notifies callers with progress
+ * updates, and completion or error events. It can be used as a
+ * `Promise<LoadBundleTaskProgress>`.
  */
 export declare function loadBundle(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   bundleData: ReadableStream<Uint8Array> | ArrayBuffer | string
 ): LoadBundleTask;
 /**
@@ -1008,17 +1771,111 @@ export declare interface LoadBundleTaskProgress {
 }
 export { LogLevel };
 /**
- * Reads a Firestore `Query` from local cache, identified by the given name.
+ * An settings object to configure an `MemoryLocalCache` instance.
+ */
+export declare type MemoryCacheSettings = {
+  /**
+   * The garbage collector to use, for the memory cache layer.
+   * A `MemoryEagerGarbageCollector` is used when this is undefined.
+   */
+  garbageCollector?: MemoryGarbageCollector;
+};
+/**
+ * A garbage collector deletes documents whenever they are not part of any
+ * active queries, and have no local mutations attached to them.
+ *
+ * This collector tries to ensure lowest memory footprints from the SDK,
+ * at the risk of documents not being cached for offline queries or for
+ * direct queries to the cache.
+ *
+ * Use factory function {@link memoryEagerGarbageCollector()} to create an
+ * instance of this collector.
+ */
+export declare type MemoryEagerGarbageCollector = {
+  kind: 'memoryEager';
+};
+/**
+ * Creates an instance of `MemoryEagerGarbageCollector`. This is also the
+ * default garbage collector unless it is explicitly specified otherwise.
+ */
+export declare function memoryEagerGarbageCollector(): MemoryEagerGarbageCollector;
+/**
+ * Union type from all support garbage collectors for memory local cache.
+ */
+export declare type MemoryGarbageCollector =
+  | MemoryEagerGarbageCollector
+  | MemoryLruGarbageCollector;
+/**
+ * Provides an in-memory cache to the SDK. This is the default cache unless explicitly
+ * configured otherwise.
+ *
+ * To use, create an instance using the factory function {@link memoryLocalCache()}, then
+ * set the instance to `FirestoreSettings.cache` and call `initializeFirestore` using
+ * the settings object.
+ */
+export declare type MemoryLocalCache = {
+  kind: 'memory';
+};
+/**
+ * Creates an instance of `MemoryLocalCache`. The instance can be set to
+ * `FirestoreSettings.cache` to tell the SDK which cache layer to use.
+ */
+export declare function memoryLocalCache(
+  settings?: MemoryCacheSettings
+): MemoryLocalCache;
+/**
+ * A garbage collector deletes Least-Recently-Used documents in multiple
+ * batches.
+ *
+ * This collector is configured with a target size, and will only perform
+ * collection when the cached documents exceed the target size. It avoids
+ * querying backend repeated for the same query or document, at the risk
+ * of having a larger memory footprint.
+ *
+ * Use factory function {@link memoryLruGarbageCollector()} to create a
+ * instance of this collector.
+ */
+export declare type MemoryLruGarbageCollector = {
+  kind: 'memoryLru';
+};
+/**
+ * Creates an instance of `MemoryLruGarbageCollector`.
+ *
+ * A target size can be specified as part of the setting parameter. The
+ * collector will start deleting documents once the cache size exceeds
+ * the given size. The default cache size is 40MB (40 * 1024 * 1024 bytes).
+ */
+export declare function memoryLruGarbageCollector(settings?: {
+  cacheSizeBytes?: number;
+}): MemoryLruGarbageCollector;
+/**
+ * Reads a Firestore {@link Query} from local cache, identified by the given
+ * name.
  *
  * The named queries are packaged  into bundles on the server side (along
- * with resulting documents), and loaded to local cache using `loadBundle`. Once in local
- * cache, use this method to extract a `Query` by name.
+ * with resulting documents), and loaded to local cache using `loadBundle`. Once
+ * in local cache, use this method to extract a {@link Query} by name.
+ *
+ * @param firestore - The {@link Firestore} instance to read the query from.
+ * @param name - The name of the query.
+ * @returns A `Promise` that is resolved with the Query or `null`.
  */
 export declare function namedQuery(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   name: string
 ): Promise<Query | null>;
 /**
+ * For each field (e.g. 'bar'), find all nested keys (e.g. {'bar.baz': T1,
+ * 'bar.qux': T2}). Intersect them together to make a single map containing
+ * all possible keys that are all marked as optional
+ */
+export declare type NestedUpdateFields<T extends Record<string, unknown>> =
+  UnionToIntersection<
+    {
+      [K in keyof T & string]: ChildUpdateFields<K, T[K]>;
+    }[keyof T & string]
+  >;
+/**
  * Attaches a listener for `DocumentSnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
  * object with `next` and `error` callbacks.
@@ -1031,10 +1888,13 @@ export declare function namedQuery(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export declare function onSnapshot<T>(
-  reference: DocumentReference<T>,
+export declare function onSnapshot<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  reference: DocumentReference<AppModelType, DbModelType>,
   observer: {
-    next?: (snapshot: DocumentSnapshot<T>) => void;
+    next?: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
@@ -1053,11 +1913,14 @@ export declare function onSnapshot<T>(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export declare function onSnapshot<T>(
-  reference: DocumentReference<T>,
+export declare function onSnapshot<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  reference: DocumentReference<AppModelType, DbModelType>,
   options: SnapshotListenOptions,
   observer: {
-    next?: (snapshot: DocumentSnapshot<T>) => void;
+    next?: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
@@ -1080,9 +1943,12 @@ export declare function onSnapshot<T>(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export declare function onSnapshot<T>(
-  reference: DocumentReference<T>,
-  onNext: (snapshot: DocumentSnapshot<T>) => void,
+export declare function onSnapshot<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  reference: DocumentReference<AppModelType, DbModelType>,
+  onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
@@ -1105,10 +1971,13 @@ export declare function onSnapshot<T>(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export declare function onSnapshot<T>(
-  reference: DocumentReference<T>,
+export declare function onSnapshot<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  reference: DocumentReference<AppModelType, DbModelType>,
   options: SnapshotListenOptions,
-  onNext: (snapshot: DocumentSnapshot<T>) => void,
+  onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
@@ -1126,10 +1995,13 @@ export declare function onSnapshot<T>(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export declare function onSnapshot<T>(
-  query: Query<T>,
+export declare function onSnapshot<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: Query<AppModelType, DbModelType>,
   observer: {
-    next?: (snapshot: QuerySnapshot<T>) => void;
+    next?: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
@@ -1149,11 +2021,14 @@ export declare function onSnapshot<T>(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export declare function onSnapshot<T>(
-  query: Query<T>,
+export declare function onSnapshot<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: Query<AppModelType, DbModelType>,
   options: SnapshotListenOptions,
   observer: {
-    next?: (snapshot: QuerySnapshot<T>) => void;
+    next?: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
@@ -1177,9 +2052,12 @@ export declare function onSnapshot<T>(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export declare function onSnapshot<T>(
-  query: Query<T>,
-  onNext: (snapshot: QuerySnapshot<T>) => void,
+export declare function onSnapshot<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: Query<AppModelType, DbModelType>,
+  onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
@@ -1203,10 +2081,13 @@ export declare function onSnapshot<T>(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export declare function onSnapshot<T>(
-  query: Query<T>,
+export declare function onSnapshot<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: Query<AppModelType, DbModelType>,
   options: SnapshotListenOptions,
-  onNext: (snapshot: QuerySnapshot<T>) => void,
+  onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
@@ -1226,7 +2107,7 @@ export declare function onSnapshot<T>(
  * listener.
  */
 export declare function onSnapshotsInSync(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   observer: {
     next?: (value: void) => void;
     error?: (error: FirestoreError) => void;
@@ -1240,87 +2121,283 @@ export declare function onSnapshotsInSync(
  *
  * NOTE: The snapshots-in-sync event only indicates that listeners are in sync
  * with each other, but does not relate to whether those snapshots are in sync
- * with the server. Use SnapshotMetadata in the individual listeners to
+ * with the server. Use `SnapshotMetadata` in the individual listeners to
  * determine if a snapshot is from the cache or the server.
  *
- * @param firestore - The instance of Firestore for synchronizing snapshots.
+ * @param firestore - The `Firestore` instance for synchronizing snapshots.
  * @param onSync - A callback to be called every time all snapshot listeners are
  * in sync with each other.
  * @returns An unsubscribe function that can be called to cancel the snapshot
  * listener.
  */
 export declare function onSnapshotsInSync(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   onSync: () => void
 ): Unsubscribe;
 /**
- * Creates a `QueryConstraint` that sorts the query result by the
+ * Creates a new {@link QueryCompositeFilterConstraint} that is a disjunction of
+ * the given filter constraints. A disjunction filter includes a document if it
+ * satisfies any of the given filters.
+ *
+ * @param queryConstraints - Optional. The list of
+ * {@link QueryFilterConstraint}s to perform a disjunction for. These must be
+ * created with calls to {@link where}, {@link or}, or {@link and}.
+ * @returns The newly created {@link QueryCompositeFilterConstraint}.
+ */
+export declare function or(
+  ...queryConstraints: QueryFilterConstraint[]
+): QueryCompositeFilterConstraint;
+/**
+ * Creates a {@link QueryOrderByConstraint} that sorts the query result by the
  * specified field, optionally in descending order instead of ascending.
+ *
+ * Note: Documents that do not contain the specified field will not be present
+ * in the query result.
  *
  * @param fieldPath - The field to sort by.
  * @param directionStr - Optional direction to sort by ('asc' or 'desc'). If
  * not specified, order will be ascending.
- * @returns The created `Query`.
+ * @returns The created {@link QueryOrderByConstraint}.
  */
 export declare function orderBy(
   fieldPath: string | FieldPath,
   directionStr?: OrderByDirection
-): QueryConstraint;
+): QueryOrderByConstraint;
 /**
  * The direction of a {@link orderBy} clause is specified as 'desc' or 'asc'
  * (descending or ascending).
  */
 export declare type OrderByDirection = 'desc' | 'asc';
+/**
+ * Similar to TypeScript's `Partial<T>`, but allows nested fields to be
+ * omitted and FieldValues to be passed in as property values.
+ */
+export declare type PartialWithFieldValue<T> =
+  | Partial<T>
+  | (T extends Primitive
+      ? T
+      : T extends {}
+      ? {
+          [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue;
+        }
+      : never);
+/**
+ * Settings that can be passed to `enableIndexedDbPersistence()` to configure
+ * Firestore persistence.
+ *
+ * Persistence cannot be used in a Node.js environment.
+ */
 export declare interface PersistenceSettings {
+  /**
+   * Whether to force enable persistence for the client. This cannot be used
+   * with multi-tab synchronization and is primarily intended for use with Web
+   * Workers. Setting this to `true` will enable persistence, but cause other
+   * tabs using persistence to fail.
+   */
   forceOwnership?: boolean;
 }
 /**
- * A `Query` refers to a Query which you can read or listen to. You can also
+ * A `PersistentCacheIndexManager` for configuring persistent cache indexes used
+ * for local query execution.
+ *
+ * To use, call `getPersistentCacheIndexManager()` to get an instance.
+ */
+export declare class PersistentCacheIndexManager {
+  /** A type string to uniquely identify instances of this class. */
+  readonly type: 'PersistentCacheIndexManager';
+  private constructor();
+}
+/**
+ * An settings object to configure an `PersistentLocalCache` instance.
+ *
+ * Persistent cache cannot be used in a Node.js environment.
+ */
+export declare type PersistentCacheSettings = {
+  /**
+   * An approximate cache size threshold for the on-disk data. If the cache
+   * grows beyond this size, Firestore will start removing data that hasn't been
+   * recently used. The SDK does not guarantee that the cache will stay below
+   * that size, only that if the cache exceeds the given size, cleanup will be
+   * attempted.
+   *
+   * The default value is 40 MB. The threshold must be set to at least 1 MB, and
+   * can be set to `CACHE_SIZE_UNLIMITED` to disable garbage collection.
+   */
+  cacheSizeBytes?: number;
+  /**
+   * Specifies how multiple tabs/windows will be managed by the SDK.
+   */
+  tabManager?: PersistentTabManager;
+};
+/**
+ * Provides a persistent cache backed by IndexedDb to the SDK.
+ *
+ * To use, create an instance using the factory function {@link persistentLocalCache()}, then
+ * set the instance to `FirestoreSettings.cache` and call `initializeFirestore` using
+ * the settings object.
+ */
+export declare type PersistentLocalCache = {
+  kind: 'persistent';
+};
+/**
+ * Creates an instance of `PersistentLocalCache`. The instance can be set to
+ * `FirestoreSettings.cache` to tell the SDK which cache layer to use.
+ *
+ * Persistent cache cannot be used in a Node.js environment.
+ */
+export declare function persistentLocalCache(
+  settings?: PersistentCacheSettings
+): PersistentLocalCache;
+/**
+ * A tab manager supporting multiple tabs. SDK will synchronize queries and
+ * mutations done across all tabs using the SDK.
+ */
+export declare type PersistentMultipleTabManager = {
+  kind: 'PersistentMultipleTab';
+};
+/**
+ * Creates an instance of `PersistentMultipleTabManager`.
+ */
+export declare function persistentMultipleTabManager(): PersistentMultipleTabManager;
+/**
+ * A tab manager supporting only one tab, no synchronization will be
+ * performed across tabs.
+ */
+export declare type PersistentSingleTabManager = {
+  kind: 'persistentSingleTab';
+};
+/**
+ * Creates an instance of `PersistentSingleTabManager`.
+ *
+ * @param settings Configures the created tab manager.
+ */
+export declare function persistentSingleTabManager(
+  settings: PersistentSingleTabManagerSettings | undefined
+): PersistentSingleTabManager;
+/**
+ * Type to configure an `PersistentSingleTabManager` instance.
+ */
+export declare type PersistentSingleTabManagerSettings = {
+  /**
+   * Whether to force-enable persistent (IndexedDB) cache for the client. This
+   * cannot be used with multi-tab synchronization and is primarily intended for
+   * use with Web Workers. Setting this to `true` will enable IndexedDB, but cause
+   * other tabs using IndexedDB cache to fail.
+   */
+  forceOwnership?: boolean;
+};
+/**
+ * A union of all available tab managers.
+ */
+export declare type PersistentTabManager =
+  | PersistentSingleTabManager
+  | PersistentMultipleTabManager;
+/**
+ * These types primarily exist to support the `UpdateData`,
+ * `WithFieldValue`, and `PartialWithFieldValue` types and are not consumed
+ * directly by the end developer.
+ */
+/** Primitive types. */
+export declare type Primitive = string | number | boolean | undefined | null;
+/**
+ * A `Query` refers to a query which you can read or listen to. You can also
  * construct refined `Query` objects by adding filters and ordering.
  */
-export declare class Query<T = DocumentData> {
+export declare class Query<
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> {
+  /**
+   * If provided, the `FirestoreDataConverter` associated with this instance.
+   */
+  readonly converter: FirestoreDataConverter<AppModelType, DbModelType> | null;
   /** The type of this Firestore reference. */
   readonly type: 'query' | 'collection';
   /**
-   * The `FirebaseFirestore` for the Firestore database (useful for performing
+   * The `Firestore` instance for the Firestore database (useful for performing
    * transactions, etc.).
    */
-  readonly firestore: FirebaseFirestore;
+  readonly firestore: Firestore;
   protected constructor();
+  /**
+   * Removes the current converter.
+   *
+   * @param converter - `null` removes the current converter.
+   * @returns A `Query<DocumentData, DocumentData>` that does not use a
+   * converter.
+   */
+  withConverter(converter: null): Query<DocumentData, DocumentData>;
   /**
    * Applies a custom data converter to this query, allowing you to use your own
    * custom model objects with Firestore. When you call {@link getDocs} with
    * the returned query, the provided converter will convert between Firestore
-   * data and your custom type `U`.
+   * data of type `NewDbModelType` and your custom type `NewAppModelType`.
    *
    * @param converter - Converts objects to and from Firestore.
-   * @returns A `Query<U>` that uses the provided converter.
+   * @returns A `Query` that uses the provided converter.
    */
-  withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
+  withConverter<
+    NewAppModelType,
+    NewDbModelType extends DocumentData = DocumentData
+  >(
+    converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>
+  ): Query<NewAppModelType, NewDbModelType>;
 }
 /**
- * Creates a new immutable instance of `query` that is extended to also include
- * additional query constraints.
+ * Creates a new immutable instance of {@link Query} that is extended to also
+ * include additional query constraints.
  *
- * @param query - The query instance to use as a base for the new constraints.
- * @param queryConstraints - The list of `QueryConstraint`s to apply.
+ * @param query - The {@link Query} instance to use as a base for the new
+ * constraints.
+ * @param compositeFilter - The {@link QueryCompositeFilterConstraint} to
+ * apply. Create {@link QueryCompositeFilterConstraint} using {@link and} or
+ * {@link or}.
+ * @param queryConstraints - Additional {@link QueryNonFilterConstraint}s to
+ * apply (e.g. {@link orderBy}, {@link limit}).
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
  */
-export declare function query<T>(
-  query: Query<T>,
+export declare function query<AppModelType, DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
+  compositeFilter: QueryCompositeFilterConstraint,
+  ...queryConstraints: QueryNonFilterConstraint[]
+): Query<AppModelType, DbModelType>;
+/**
+ * Creates a new immutable instance of {@link Query} that is extended to also
+ * include additional query constraints.
+ *
+ * @param query - The {@link Query} instance to use as a base for the new
+ * constraints.
+ * @param queryConstraints - The list of {@link QueryConstraint}s to apply.
+ * @throws if any of the provided query constraints cannot be combined with the
+ * existing or new constraints.
+ */
+export declare function query<AppModelType, DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
   ...queryConstraints: QueryConstraint[]
-): Query<T>;
+): Query<AppModelType, DbModelType>;
+/**
+ * A `QueryCompositeFilterConstraint` is used to narrow the set of documents
+ * returned by a Firestore query by performing the logical OR or AND of multiple
+ * {@link QueryFieldFilterConstraint}s or {@link QueryCompositeFilterConstraint}s.
+ * `QueryCompositeFilterConstraint`s are created by invoking {@link or} or
+ * {@link and} and can then be passed to {@link (query:1)} to create a new query
+ * instance that also contains the `QueryCompositeFilterConstraint`.
+ */
+export declare class QueryCompositeFilterConstraint {
+  /** The type of this query constraint */
+  readonly type: 'or' | 'and';
+}
 /**
  * A `QueryConstraint` is used to narrow the set of documents returned by a
  * Firestore query. `QueryConstraint`s are created by invoking {@link where},
- * {@link orderBy}, {@link startAt}, {@link startAfter}, {@link
- * endBefore}, {@link endAt}, {@link limit} or {@link limitToLast} and
- * can then be passed to {@link query} to create a new query instance that
+ * {@link orderBy}, {@link (startAt:1)}, {@link (startAfter:1)}, {@link
+ * (endBefore:1)}, {@link (endAt:1)}, {@link limit}, {@link limitToLast} and
+ * can then be passed to {@link (query:1)} to create a new query instance that
  * also contains this `QueryConstraint`.
  */
 export declare abstract class QueryConstraint {
-  /** The type of this query constraints */
+  /** The type of this query constraint */
   abstract readonly type: QueryConstraintType;
 }
 /** Describes the different query constraints available in this SDK. */
@@ -1345,12 +2422,13 @@ export declare type QueryConstraintType =
  * 'undefined'.
  */
 export declare class QueryDocumentSnapshot<
-  T = DocumentData
-> extends DocumentSnapshot<T> {
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> extends DocumentSnapshot<AppModelType, DbModelType> {
   /**
    * Retrieves all fields in the document as an `Object`.
    *
-   * By default, `FieldValue.serverTimestamp()` values that have not yet been
+   * By default, `serverTimestamp()` values that have not yet been
    * set to their final value will be returned as `null`. You can override
    * this by passing an options object.
    *
@@ -1360,7 +2438,18 @@ export declare class QueryDocumentSnapshot<
    * have not yet been set to their final value).
    * @returns An `Object` containing all fields in the document.
    */
-  data(options?: SnapshotOptions): T;
+  data(options?: SnapshotOptions): AppModelType;
+}
+/**
+ * A `QueryEndAtConstraint` is used to exclude documents from the end of a
+ * result set returned by a Firestore query.
+ * `QueryEndAtConstraint`s are created by invoking {@link (endAt:1)} or
+ * {@link (endBefore:1)} and can then be passed to {@link (query:1)} to create a new
+ * query instance that also contains this `QueryEndAtConstraint`.
+ */
+export declare class QueryEndAtConstraint extends QueryConstraint {
+  /** The type of this query constraint */
+  readonly type: 'endBefore' | 'endAt';
 }
 /**
  * Returns true if the provided queries point to the same collection and apply
@@ -1371,7 +2460,69 @@ export declare class QueryDocumentSnapshot<
  * @returns true if the references point to the same location in the same
  * Firestore database.
  */
-export declare function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
+export declare function queryEqual<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  left: Query<AppModelType, DbModelType>,
+  right: Query<AppModelType, DbModelType>
+): boolean;
+/**
+ * A `QueryFieldFilterConstraint` is used to narrow the set of documents returned by
+ * a Firestore query by filtering on one or more document fields.
+ * `QueryFieldFilterConstraint`s are created by invoking {@link where} and can then
+ * be passed to {@link (query:1)} to create a new query instance that also contains
+ * this `QueryFieldFilterConstraint`.
+ */
+export declare class QueryFieldFilterConstraint extends QueryConstraint {
+  /** The type of this query constraint */
+  readonly type = 'where';
+}
+/**
+ * `QueryFilterConstraint` is a helper union type that represents
+ * {@link QueryFieldFilterConstraint} and {@link QueryCompositeFilterConstraint}.
+ */
+export declare type QueryFilterConstraint =
+  | QueryFieldFilterConstraint
+  | QueryCompositeFilterConstraint;
+/**
+ * A `QueryLimitConstraint` is used to limit the number of documents returned by
+ * a Firestore query.
+ * `QueryLimitConstraint`s are created by invoking {@link limit} or
+ * {@link limitToLast} and can then be passed to {@link (query:1)} to create a new
+ * query instance that also contains this `QueryLimitConstraint`.
+ */
+export declare class QueryLimitConstraint extends QueryConstraint {
+  /** The type of this query constraint */
+  readonly type: 'limit' | 'limitToLast';
+}
+/**
+ * `QueryNonFilterConstraint` is a helper union type that represents
+ * QueryConstraints which are used to narrow or order the set of documents,
+ * but that do not explicitly filter on a document field.
+ * `QueryNonFilterConstraint`s are created by invoking {@link orderBy},
+ * {@link (startAt:1)}, {@link (startAfter:1)}, {@link (endBefore:1)}, {@link (endAt:1)},
+ * {@link limit} or {@link limitToLast} and can then be passed to {@link (query:1)}
+ * to create a new query instance that also contains the `QueryConstraint`.
+ */
+export declare type QueryNonFilterConstraint =
+  | QueryOrderByConstraint
+  | QueryLimitConstraint
+  | QueryStartAtConstraint
+  | QueryEndAtConstraint;
+/**
+ * A `QueryOrderByConstraint` is used to sort the set of documents returned by a
+ * Firestore query. `QueryOrderByConstraint`s are created by invoking
+ * {@link orderBy} and can then be passed to {@link (query:1)} to create a new query
+ * instance that also contains this `QueryOrderByConstraint`.
+ *
+ * Note: Documents that do not contain the orderBy field will not be present in
+ * the query result.
+ */
+export declare class QueryOrderByConstraint extends QueryConstraint {
+  /** The type of this query constraint */
+  readonly type = 'orderBy';
+}
 /**
  * A `QuerySnapshot` contains zero or more `DocumentSnapshot` objects
  * representing the results of a query. The documents can be accessed as an
@@ -1379,7 +2530,10 @@ export declare function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
  * number of documents can be determined via the `empty` and `size`
  * properties.
  */
-export declare class QuerySnapshot<T = DocumentData> {
+export declare class QuerySnapshot<
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> {
   /**
    * Metadata about this snapshot, concerning its source and if it has local
    * modifications.
@@ -1389,10 +2543,10 @@ export declare class QuerySnapshot<T = DocumentData> {
    * The query on which you called `get` or `onSnapshot` in order to get this
    * `QuerySnapshot`.
    */
-  readonly query: Query<T>;
+  readonly query: Query<AppModelType, DbModelType>;
   private constructor();
   /** An array of all the documents in the `QuerySnapshot`. */
-  get docs(): Array<QueryDocumentSnapshot<T>>;
+  get docs(): Array<QueryDocumentSnapshot<AppModelType, DbModelType>>;
   /** The number of documents in the `QuerySnapshot`. */
   get size(): number;
   /** True if there are no documents in the `QuerySnapshot`. */
@@ -1405,7 +2559,9 @@ export declare class QuerySnapshot<T = DocumentData> {
    * @param thisArg - The `this` binding for the callback.
    */
   forEach(
-    callback: (result: QueryDocumentSnapshot<T>) => void,
+    callback: (
+      result: QueryDocumentSnapshot<AppModelType, DbModelType>
+    ) => void,
     thisArg?: unknown
   ): void;
   /**
@@ -1417,7 +2573,20 @@ export declare class QuerySnapshot<T = DocumentData> {
    * changes (i.e. only `DocumentSnapshot.metadata` changed) should trigger
    * snapshot events.
    */
-  docChanges(options?: SnapshotListenOptions): Array<DocumentChange<T>>;
+  docChanges(
+    options?: SnapshotListenOptions
+  ): Array<DocumentChange<AppModelType, DbModelType>>;
+}
+/**
+ * A `QueryStartAtConstraint` is used to exclude documents from the start of a
+ * result set returned by a Firestore query.
+ * `QueryStartAtConstraint`s are created by invoking {@link (startAt:1)} or
+ * {@link (startAfter:1)} and can then be passed to {@link (query:1)} to create a
+ * new query instance that also contains this `QueryStartAtConstraint`.
+ */
+export declare class QueryStartAtConstraint extends QueryConstraint {
+  /** The type of this query constraint */
+  readonly type: 'startAt' | 'startAfter';
 }
 /**
  * Returns true if the provided references are equal.
@@ -1427,10 +2596,18 @@ export declare class QuerySnapshot<T = DocumentData> {
  * @returns true if the references point to the same location in the same
  * Firestore database.
  */
-export declare function refEqual<T>(
-  left: DocumentReference<T> | CollectionReference<T>,
-  right: DocumentReference<T> | CollectionReference<T>
+export declare function refEqual<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  left:
+    | DocumentReference<AppModelType, DbModelType>
+    | CollectionReference<AppModelType, DbModelType>,
+  right:
+    | DocumentReference<AppModelType, DbModelType>
+    | CollectionReference<AppModelType, DbModelType>
 ): boolean;
+/* Excluded from this release type: _ResourcePath */
 /**
  * Executes the given `updateFunction` and then attempts to commit the changes
  * applied within the transaction. If any document read within the transaction
@@ -1443,17 +2620,20 @@ export declare function refEqual<T>(
  * transaction against.
  * @param updateFunction - The function to execute within the transaction
  * context.
+ * @param options - An options object to configure maximum number of attempts to
+ * commit.
  * @returns If the transaction completed successfully or was explicitly aborted
  * (the `updateFunction` returned a failed promise), the promise returned by the
  * `updateFunction `is returned here. Otherwise, if the transaction failed, a
  * rejected promise with the corresponding failure error is returned.
  */
 export declare function runTransaction<T>(
-  firestore: FirebaseFirestore,
-  updateFunction: (transaction: Transaction) => Promise<T>
+  firestore: Firestore,
+  updateFunction: (transaction: Transaction) => Promise<T>,
+  options?: TransactionOptions
 ): Promise<T>;
 /**
- * Returns a sentinel used with {@link setDoc} or {@link updateDoc} to
+ * Returns a sentinel used with {@link @firebase/firestore/lite#(setDoc:1)} or {@link @firebase/firestore/lite#(updateDoc:1)} to
  * include a server-generated timestamp in the written data.
  */
 export declare function serverTimestamp(): FieldValue;
@@ -1463,12 +2643,12 @@ export declare function serverTimestamp(): FieldValue;
  *
  * @param reference - A reference to the document to write.
  * @param data - A map of the fields and values for the document.
- * @returns A Promise resolved once the data has been successfully written
+ * @returns A `Promise` resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
-export declare function setDoc<T>(
-  reference: DocumentReference<T>,
-  data: T
+export declare function setDoc<AppModelType, DbModelType extends DocumentData>(
+  reference: DocumentReference<AppModelType, DbModelType>,
+  data: WithFieldValue<AppModelType>
 ): Promise<void>;
 /**
  * Writes to the document referred to by the specified `DocumentReference`. If
@@ -1481,10 +2661,74 @@ export declare function setDoc<T>(
  * @returns A Promise resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
-export declare function setDoc<T>(
-  reference: DocumentReference<T>,
-  data: Partial<T>,
+export declare function setDoc<AppModelType, DbModelType extends DocumentData>(
+  reference: DocumentReference<AppModelType, DbModelType>,
+  data: PartialWithFieldValue<AppModelType>,
   options: SetOptions
+): Promise<void>;
+/**
+ * Configures indexing for local query execution. Any previous index
+ * configuration is overridden. The `Promise` resolves once the index
+ * configuration has been persisted.
+ *
+ * The index entries themselves are created asynchronously. You can continue to
+ * use queries that require indexing even if the indices are not yet available.
+ * Query execution will automatically start using the index once the index
+ * entries have been written.
+ *
+ * Indexes are only supported with IndexedDb persistence. If IndexedDb is not
+ * enabled, any index configuration is ignored.
+ *
+ * @param firestore - The {@link Firestore} instance to configure indexes for.
+ * @param configuration -The index definition.
+ * @throws FirestoreError if the JSON format is invalid.
+ * @returns A `Promise` that resolves once all indices are successfully
+ * configured.
+ *
+ * @deprecated Instead of creating cache indexes manually, consider using
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
+ * create cache indexes for queries running locally.
+ *
+ * @beta
+ */
+export declare function setIndexConfiguration(
+  firestore: Firestore,
+  configuration: IndexConfiguration
+): Promise<void>;
+/**
+ * Configures indexing for local query execution. Any previous index
+ * configuration is overridden. The `Promise` resolves once the index
+ * configuration has been persisted.
+ *
+ * The index entries themselves are created asynchronously. You can continue to
+ * use queries that require indexing even if the indices are not yet available.
+ * Query execution will automatically start using the index once the index
+ * entries have been written.
+ *
+ * Indexes are only supported with IndexedDb persistence. Invoke either
+ * `enableIndexedDbPersistence()` or `enableMultiTabIndexedDbPersistence()`
+ * before setting an index configuration. If IndexedDb is not enabled, any
+ * index configuration is ignored.
+ *
+ * The method accepts the JSON format exported by the Firebase CLI (`firebase
+ * firestore:indexes`). If the JSON format is invalid, this method throws an
+ * error.
+ *
+ * @param firestore - The {@link Firestore} instance to configure indexes for.
+ * @param json -The JSON format exported by the Firebase CLI.
+ * @throws FirestoreError if the JSON format is invalid.
+ * @returns A `Promise` that resolves once all indices are successfully
+ * configured.
+ *
+ * @deprecated Instead of creating cache indexes manually, consider using
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
+ * create cache indexes for queries running locally.
+ *
+ * @beta
+ */
+export declare function setIndexConfiguration(
+  firestore: Firestore,
+  json: string
 ): Promise<void>;
 /**
  * Sets the verbosity of Cloud Firestore logs (debug, error, or silent).
@@ -1501,17 +2745,19 @@ export declare function setDoc<T>(
  */
 export declare function setLogLevel(logLevel: LogLevel): void;
 /**
- * An options object that configures the behavior of {@link setDoc}, {@link
- * WriteBatch#set} and {@link Transaction#set} calls. These calls can be
+ * An options object that configures the behavior of {@link @firebase/firestore/lite#(setDoc:1)}, {@link
+ * @firebase/firestore/lite#(WriteBatch.set:1)} and {@link @firebase/firestore/lite#(Transaction.set:1)} calls. These calls can be
  * configured to perform granular merges instead of overwriting the target
  * documents in their entirety by providing a `SetOptions` with `merge: true`.
  *
  * @param merge - Changes the behavior of a `setDoc()` call to only replace the
  * values specified in its data argument. Fields omitted from the `setDoc()`
- * call remain untouched.
+ * call remain untouched. If your input sets any field to an empty map, all
+ * nested fields are overwritten.
  * @param mergeFields - Changes the behavior of `setDoc()` calls to only replace
  * the specified field paths. Any field path that is not specified is ignored
- * and remains untouched.
+ * and remains untouched. If your input sets any field to an empty map, all
+ * nested fields are overwritten.
  */
 export declare type SetOptions =
   | {
@@ -1520,14 +2766,6 @@ export declare type SetOptions =
   | {
       readonly mergeFields?: Array<string | FieldPath>;
     };
-export declare interface Settings {
-  cacheSizeBytes?: number;
-  host?: string;
-  ssl?: boolean;
-  ignoreUndefinedProperties?: boolean;
-  experimentalForceLongPolling?: boolean;
-  experimentalAutoDetectLongPolling?: boolean;
-}
 /**
  * Returns true if the provided snapshots are equal.
  *
@@ -1535,13 +2773,20 @@ export declare interface Settings {
  * @param right - A snapshot to compare.
  * @returns true if the snapshots are equal.
  */
-export declare function snapshotEqual<T>(
-  left: DocumentSnapshot<T> | QuerySnapshot<T>,
-  right: DocumentSnapshot<T> | QuerySnapshot<T>
+export declare function snapshotEqual<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  left:
+    | DocumentSnapshot<AppModelType, DbModelType>
+    | QuerySnapshot<AppModelType, DbModelType>,
+  right:
+    | DocumentSnapshot<AppModelType, DbModelType>
+    | QuerySnapshot<AppModelType, DbModelType>
 ): boolean;
 /**
- * An options object that can be passed to {@link onSnapshot} and {@link
- * QuerySnapshot#docChanges} to control which types of changes to include in the
+ * An options object that can be passed to {@link (onSnapshot:1)} and {@link
+ * QuerySnapshot.docChanges} to control which types of changes to include in the
  * result set.
  */
 export declare interface SnapshotListenOptions {
@@ -1550,6 +2795,11 @@ export declare interface SnapshotListenOptions {
    * changed. Default is false.
    */
   readonly includeMetadataChanges?: boolean;
+  /**
+   * Set the source the query listens to. Default to "default", which
+   * listens to both cache and server.
+   */
+  readonly source?: ListenSource;
 }
 /**
  * Metadata about a snapshot, describing the state of the snapshot.
@@ -1604,49 +2854,62 @@ export declare interface SnapshotOptions {
   readonly serverTimestamps?: 'estimate' | 'previous' | 'none';
 }
 /**
- * Creates a `QueryConstraint` that modifies the result set to start after the
- * provided document (exclusive). The starting position is relative to the order
- * of the query. The document must contain all of the fields provided in the
- * orderBy of the query.
+ * Creates a {@link QueryStartAtConstraint} that modifies the result set to
+ * start after the provided document (exclusive). The starting position is
+ * relative to the order of the query. The document must contain all of the
+ * fields provided in the orderBy of the query.
  *
  * @param snapshot - The snapshot of the document to start after.
- * @returns A `QueryConstraint` to pass to `query()`
+ * @returns A {@link QueryStartAtConstraint} to pass to `query()`
  */
-export declare function startAfter(
-  snapshot: DocumentSnapshot<unknown>
-): QueryConstraint;
+export declare function startAfter<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  snapshot: DocumentSnapshot<AppModelType, DbModelType>
+): QueryStartAtConstraint;
 /**
- * Creates a `QueryConstraint` that modifies the result set to start after the
- * provided fields relative to the order of the query. The order of the field
- * values must match the order of the order by clauses of the query.
+ * Creates a {@link QueryStartAtConstraint} that modifies the result set to
+ * start after the provided fields relative to the order of the query. The order
+ * of the field values must match the order of the order by clauses of the query.
  *
  * @param fieldValues - The field values to start this query after, in order
  * of the query's order by.
- * @returns A `QueryConstraint` to pass to `query()`
+ * @returns A {@link QueryStartAtConstraint} to pass to `query()`
  */
-export declare function startAfter(...fieldValues: unknown[]): QueryConstraint;
+export declare function startAfter(
+  ...fieldValues: unknown[]
+): QueryStartAtConstraint;
 /**
- * Creates a `QueryConstraint` that modifies the result set to start at the
- * provided document (inclusive). The starting position is relative to the order
- * of the query. The document must contain all of the fields provided in the
- * `orderBy` of this query.
+ * Creates a {@link QueryStartAtConstraint} that modifies the result set to
+ * start at the provided document (inclusive). The starting position is relative
+ * to the order of the query. The document must contain all of the fields
+ * provided in the `orderBy` of this query.
  *
  * @param snapshot - The snapshot of the document to start at.
- * @returns A `QueryConstraint` to pass to `query()`.
+ * @returns A {@link QueryStartAtConstraint} to pass to `query()`.
  */
-export declare function startAt(
-  snapshot: DocumentSnapshot<unknown>
-): QueryConstraint;
+export declare function startAt<AppModelType, DbModelType extends DocumentData>(
+  snapshot: DocumentSnapshot<AppModelType, DbModelType>
+): QueryStartAtConstraint;
 /**
- * Creates a `QueryConstraint` that modifies the result set to start at the
- * provided fields relative to the order of the query. The order of the field
- * values must match the order of the order by clauses of the query.
+ * Creates a {@link QueryStartAtConstraint} that modifies the result set to
+ * start at the provided fields relative to the order of the query. The order of
+ * the field values must match the order of the order by clauses of the query.
  *
  * @param fieldValues - The field values to start this query at, in order
  * of the query's order by.
- * @returns A `QueryConstraint` to pass to `query()`.
+ * @returns A {@link QueryStartAtConstraint} to pass to `query()`.
  */
-export declare function startAt(...fieldValues: unknown[]): QueryConstraint;
+export declare function startAt(
+  ...fieldValues: unknown[]
+): QueryStartAtConstraint;
+/**
+ * Create an AggregateField object that can be used to compute the sum of
+ * a specified field over a range of documents in the result set of a query.
+ * @param field Specifies the field to sum across the result set.
+ */
+export declare function sum(field: string | FieldPath): AggregateField<number>;
 /**
  * Represents the state of bundle loading tasks.
  *
@@ -1655,13 +2918,13 @@ export declare function startAt(...fieldValues: unknown[]): QueryConstraint;
  */
 export declare type TaskState = 'Error' | 'Running' | 'Success';
 /**
- * Terminates the provided Firestore instance.
+ * Terminates the provided {@link Firestore} instance.
  *
  * After calling `terminate()` only the `clearIndexedDbPersistence()` function
  * may be used. Any other function will throw a `FirestoreError`.
  *
  * To restart after termination, create a new instance of FirebaseFirestore with
- * {@link getFirestore}.
+ * {@link (getFirestore:1)}.
  *
  * Termination does not cancel any pending writes, and any promises that are
  * awaiting a response from the server will not be resolved. If you have
@@ -1673,10 +2936,10 @@ export declare type TaskState = 'Error' | 'Running' | 'Success';
  * of its resources or in combination with `clearIndexedDbPersistence()` to
  * ensure that all local state is destroyed between test runs.
  *
- * @returns A promise that is resolved when the instance has been successfully
+ * @returns A `Promise` that is resolved when the instance has been successfully
  * terminated.
  */
-export declare function terminate(firestore: FirebaseFirestore): Promise<void>;
+export declare function terminate(firestore: Firestore): Promise<void>;
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -1708,7 +2971,13 @@ export declare function terminate(firestore: FirebaseFirestore): Promise<void>;
  * {@link https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto | Timestamp definition}.
  */
 export declare class Timestamp {
+  /**
+   * The number of seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z.
+   */
   readonly seconds: number;
+  /**
+   * The fractions of a second at nanosecond resolution.*
+   */
   readonly nanoseconds: number;
   /**
    * Creates a new timestamp with the current date, with millisecond precision.
@@ -1744,10 +3013,20 @@ export declare class Timestamp {
    *     non-negative nanoseconds values that count forward in time. Must be
    *     from 0 to 999,999,999 inclusive.
    */
-  constructor(seconds: number, nanoseconds: number);
+  constructor(
+    /**
+     * The number of seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z.
+     */
+    seconds: number,
+    /**
+     * The fractions of a second at nanosecond resolution.*
+     */
+    nanoseconds: number
+  );
   /**
-   * Converts a `Timestamp` to a JavaScript `Date` object. This conversion causes
-   * a loss of precision since `Date` objects only support millisecond precision.
+   * Converts a `Timestamp` to a JavaScript `Date` object. This conversion
+   * causes a loss of precision since `Date` objects only support millisecond
+   * precision.
    *
    * @returns JavaScript `Date` object representing the same point in time as
    *     this `Timestamp`, with millisecond precision.
@@ -1768,14 +3047,16 @@ export declare class Timestamp {
    * @returns true if this `Timestamp` is equal to the provided one.
    */
   isEqual(other: Timestamp): boolean;
+  /** Returns a textual representation of this `Timestamp`. */
   toString(): string;
+  /** Returns a JSON-serializable representation of this `Timestamp`. */
   toJSON(): {
     seconds: number;
     nanoseconds: number;
   };
   /**
-   * Converts this object to a primitive string, which allows Timestamp objects to be compared
-   * using the `>`, `<=`, `>=` and `>` operators.
+   * Converts this object to a primitive string, which allows `Timestamp` objects
+   * to be compared using the `>`, `<=`, `>=` and `>` operators.
    */
   valueOf(): string;
 }
@@ -1794,16 +3075,22 @@ export declare class Transaction {
    * @param documentRef - A reference to the document to be read.
    * @returns A `DocumentSnapshot` with the read data.
    */
-  get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
+  get<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>
+  ): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
   /**
    * Writes to the document referred to by the provided {@link
    * DocumentReference}. If the document does not exist yet, it will be created.
    *
    * @param documentRef - A reference to the document to be set.
    * @param data - An object of the fields and values for the document.
+   * @throws Error - If the provided input is not a valid Firestore document.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
-  set<T>(documentRef: DocumentReference<T>, data: T): this;
+  set<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: WithFieldValue<AppModelType>
+  ): this;
   /**
    * Writes to the document referred to by the provided {@link
    * DocumentReference}. If the document does not exist yet, it will be created.
@@ -1813,25 +3100,30 @@ export declare class Transaction {
    * @param documentRef - A reference to the document to be set.
    * @param data - An object of the fields and values for the document.
    * @param options - An object to configure the set behavior.
+   * @throws Error - If the provided input is not a valid Firestore document.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: Partial<T>,
+  set<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: PartialWithFieldValue<AppModelType>,
     options: SetOptions
   ): this;
   /**
-     * Updates fields in the document referred to by the provided {@link
-     * DocumentReference}. The update will fail if applied to a document that does
-     * not exist.
-     * 
-     * @param documentRef - A reference to the document to be updated.
-     * @param data - An object containing the fields and values with which to
-update the document. Fields can contain dots to reference nested fields
-within the document.
-     * @returns This `Transaction` instance. Used for chaining method calls.
-     */
-  update(documentRef: DocumentReference<unknown>, data: UpdateData): this;
+   * Updates fields in the document referred to by the provided {@link
+   * DocumentReference}. The update will fail if applied to a document that does
+   * not exist.
+   *
+   * @param documentRef - A reference to the document to be updated.
+   * @param data - An object containing the fields and values with which to
+   * update the document. Fields can contain dots to reference nested fields
+   * within the document.
+   * @throws Error - If the provided input is not valid Firestore data.
+   * @returns This `Transaction` instance. Used for chaining method calls.
+   */
+  update<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: UpdateData<DbModelType>
+  ): this;
   /**
    * Updates fields in the document referred to by the provided {@link
    * DocumentReference}. The update will fail if applied to a document that does
@@ -1844,10 +3136,11 @@ within the document.
    * @param field - The first field to update.
    * @param value - The first value.
    * @param moreFieldsAndValues - Additional key/value pairs.
+   * @throws Error - If the provided input is not valid Firestore data.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
-  update(
-    documentRef: DocumentReference<unknown>,
+  update<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
     field: string | FieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
@@ -1858,19 +3151,68 @@ within the document.
    * @param documentRef - A reference to the document to be deleted.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
-  delete(documentRef: DocumentReference<unknown>): this;
+  delete<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>
+  ): this;
 }
+/**
+ * @license
+ * Copyright 2022 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/**
+ * Options to customize transaction behavior.
+ */
+export declare interface TransactionOptions {
+  /** Maximum number of attempts to commit, after which transaction fails. Default is 5. */
+  readonly maxAttempts?: number;
+}
+/**
+ * Given a union type `U = T1 | T2 | ...`, returns an intersected type
+ * `(T1 & T2 & ...)`.
+ *
+ * Uses distributive conditional types and inference from conditional types.
+ * This works because multiple candidates for the same type variable in
+ * contra-variant positions causes an intersection type to be inferred.
+ * https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-inference-in-conditional-types
+ * https://stackoverflow.com/questions/50374908/transform-union-type-to-intersection-type
+ */
+export declare type UnionToIntersection<U> = (
+  U extends unknown ? (k: U) => void : never
+) extends (k: infer I) => void
+  ? I
+  : never;
+/**
+ * A function returned by `onSnapshot()` that removes the listener when invoked.
+ */
 export declare interface Unsubscribe {
+  /** Removes the listener when invoked. */
   (): void;
 }
 /**
- * Update data (for use with {@link updateDoc}) consists of field paths (e.g.
- * 'foo' or 'foo.baz') mapped to values. Fields that contain dots reference
- * nested fields within the document.
+ * Update data (for use with {@link (updateDoc:1)}) that consists of field paths
+ * (e.g. 'foo' or 'foo.baz') mapped to values. Fields that contain dots
+ * reference nested fields within the document. FieldValues can be passed in
+ * as property values.
  */
-export declare interface UpdateData {
-  [fieldPath: string]: any;
-}
+export declare type UpdateData<T> = T extends Primitive
+  ? T
+  : T extends {}
+  ? {
+      [K in keyof T]?: UpdateData<T[K]> | FieldValue;
+    } & NestedUpdateFields<T>
+  : Partial<T>;
 /**
  * Updates fields in the document referred to by the specified
  * `DocumentReference`. The update will fail if applied to a document that does
@@ -1880,12 +3222,15 @@ export declare interface UpdateData {
  * @param data - An object containing the fields and values with which to
  * update the document. Fields can contain dots to reference nested fields
  * within the document.
- * @returns A Promise resolved once the data has been successfully written
+ * @returns A `Promise` resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
-export declare function updateDoc(
-  reference: DocumentReference<unknown>,
-  data: UpdateData
+export declare function updateDoc<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  reference: DocumentReference<AppModelType, DbModelType>,
+  data: UpdateData<DbModelType>
 ): Promise<void>;
 /**
  * Updates fields in the document referred to by the specified
@@ -1899,66 +3244,94 @@ export declare function updateDoc(
  * @param field - The first field to update.
  * @param value - The first value.
  * @param moreFieldsAndValues - Additional key value pairs.
- * @returns A Promise resolved once the data has been successfully written
+ * @returns A `Promise` resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
-export declare function updateDoc(
-  reference: DocumentReference<unknown>,
+export declare function updateDoc<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  reference: DocumentReference<AppModelType, DbModelType>,
   field: string | FieldPath,
   value: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void>;
 /**
- * Modify this instance to communicate with the Cloud Firestore emulator.
+ * Creates a new `VectorValue` constructed with a copy of the given array of numbers.
  *
- * Note: This must be called before this instance has been used to do any
- * operations.
+ * @param values - Create a `VectorValue` instance with a copy of this array of numbers.
  *
- * @param firestore - The Firestore instance to configure to connect to the
- * emulator.
- * @param host - the emulator host (ex: localhost).
- * @param port - the emulator port (ex: 9000).
+ * @returns A new `VectorValue` constructed with a copy of the given array of numbers.
  */
-export declare function useFirestoreEmulator(
-  firestore: FirebaseFirestore,
-  host: string,
-  port: number
-): void;
+export declare function vector(values?: number[]): VectorValue;
+/**
+ * @license
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/**
+ * Represents a vector type in Firestore documents.
+ * Create an instance with {@link FieldValue.vector}.
+ *
+ * @class VectorValue
+ */
+export declare class VectorValue {
+  /* Excluded from this release type: __constructor */
+  /**
+   * Returns a copy of the raw number array form of the vector.
+   */
+  toArray(): number[];
+  /**
+   * Returns `true` if the two VectorValue has the same raw number arrays, returns `false` otherwise.
+   */
+  isEqual(other: VectorValue): boolean;
+}
 /**
  * Waits until all currently pending writes for the active user have been
  * acknowledged by the backend.
  *
- * The returned Promise resolves immediately if there are no outstanding writes.
- * Otherwise, the Promise waits for all previously issued writes (including
+ * The returned promise resolves immediately if there are no outstanding writes.
+ * Otherwise, the promise waits for all previously issued writes (including
  * those written in a previous app session), but it does not wait for writes
  * that were added after the function is called. If you want to wait for
  * additional writes, call `waitForPendingWrites()` again.
  *
- * Any outstanding `waitForPendingWrites()` Promises are rejected during user
+ * Any outstanding `waitForPendingWrites()` promises are rejected during user
  * changes.
  *
- * @returns A Promise which resolves when all currently pending writes have been
+ * @returns A `Promise` which resolves when all currently pending writes have been
  * acknowledged by the backend.
  */
 export declare function waitForPendingWrites(
-  firestore: FirebaseFirestore
+  firestore: Firestore
 ): Promise<void>;
 /**
- * Creates a `QueryConstraint` that enforces that documents must contain the
- * specified field and that the value should satisfy the relation constraint
- * provided.
+ * Creates a {@link QueryFieldFilterConstraint} that enforces that documents
+ * must contain the specified field and that the value should satisfy the
+ * relation constraint provided.
  *
  * @param fieldPath - The path to compare
  * @param opStr - The operation string (e.g "&lt;", "&lt;=", "==", "&lt;",
  *   "&lt;=", "!=").
  * @param value - The value for comparison
- * @returns The created `Query`.
+ * @returns The created {@link QueryFieldFilterConstraint}.
  */
 export declare function where(
   fieldPath: string | FieldPath,
   opStr: WhereFilterOp,
   value: unknown
-): QueryConstraint;
+): QueryFieldFilterConstraint;
 /**
  * Filter conditions in a {@link where} clause are specified using the
  * strings '&lt;', '&lt;=', '==', '!=', '&gt;=', '&gt;', 'array-contains', 'in',
@@ -1976,11 +3349,24 @@ export declare type WhereFilterOp =
   | 'array-contains-any'
   | 'not-in';
 /**
+ * Allows FieldValues to be passed in as a property value while maintaining
+ * type safety.
+ */
+export declare type WithFieldValue<T> =
+  | T
+  | (T extends Primitive
+      ? T
+      : T extends {}
+      ? {
+          [K in keyof T]: WithFieldValue<T[K]> | FieldValue;
+        }
+      : never);
+/**
  * A write batch, used to perform multiple writes as a single atomic unit.
  *
  * A `WriteBatch` object can be acquired by calling {@link writeBatch}. It
  * provides methods for adding writes to the write batch. None of the writes
- * will be committed (or visible locally) until {@link WriteBatch#commit} is
+ * will be committed (or visible locally) until {@link WriteBatch.commit} is
  * called.
  */
 export declare class WriteBatch {
@@ -1993,7 +3379,10 @@ export declare class WriteBatch {
    * @param data - An object of the fields and values for the document.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
-  set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
+  set<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: WithFieldValue<AppModelType>
+  ): WriteBatch;
   /**
    * Writes to the document referred to by the provided {@link
    * DocumentReference}. If the document does not exist yet, it will be created.
@@ -2003,11 +3392,12 @@ export declare class WriteBatch {
    * @param documentRef - A reference to the document to be set.
    * @param data - An object of the fields and values for the document.
    * @param options - An object to configure the set behavior.
+   * @throws Error - If the provided input is not a valid Firestore document.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: Partial<T>,
+  set<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: PartialWithFieldValue<AppModelType>,
     options: SetOptions
   ): WriteBatch;
   /**
@@ -2019,9 +3409,13 @@ export declare class WriteBatch {
    * @param data - An object containing the fields and values with which to
    * update the document. Fields can contain dots to reference nested fields
    * within the document.
+   * @throws Error - If the provided input is not valid Firestore data.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
-  update(documentRef: DocumentReference<unknown>, data: UpdateData): WriteBatch;
+  update<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: UpdateData<DbModelType>
+  ): WriteBatch;
   /**
    * Updates fields in the document referred to by this {@link
    * DocumentReference}. The update will fail if applied to a document that does
@@ -2034,10 +3428,11 @@ export declare class WriteBatch {
    * @param field - The first field to update.
    * @param value - The first value.
    * @param moreFieldsAndValues - Additional key value pairs.
+   * @throws Error - If the provided input is not valid Firestore data.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
-  update(
-    documentRef: DocumentReference<unknown>,
+  update<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
     field: string | FieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
@@ -2048,16 +3443,18 @@ export declare class WriteBatch {
    * @param documentRef - A reference to the document to be deleted.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
-  delete(documentRef: DocumentReference<unknown>): WriteBatch;
+  delete<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>
+  ): WriteBatch;
   /**
    * Commits all of the writes in this write batch as a single atomic unit.
    *
    * The result of these writes will only be reflected in document reads that
-   * occur after the returned Promise resolves. If the client is offline, the
+   * occur after the returned promise resolves. If the client is offline, the
    * write fails. If you would like to see local modifications or buffer writes
    * until the client is online, use the full Firestore SDK.
    *
-   * @returns A Promise resolved once all of the writes in the batch have been
+   * @returns A `Promise` resolved once all of the writes in the batch have been
    * successfully written to the backend as an atomic unit (note that it won't
    * resolve while you're offline).
    */
@@ -2065,14 +3462,14 @@ export declare class WriteBatch {
 }
 /**
  * Creates a write batch, used for performing multiple writes as a single
- * atomic operation. The maximum number of writes allowed in a single WriteBatch
+ * atomic operation. The maximum number of writes allowed in a single {@link WriteBatch}
  * is 500.
  *
  * Unlike transactions, write batches are persisted offline and therefore are
  * preferable when you don't need to condition your writes on read data.
  *
- * @returns A `WriteBatch` that can be used to atomically execute multiple
+ * @returns A {@link WriteBatch} that can be used to atomically execute multiple
  * writes.
  */
-export declare function writeBatch(firestore: FirebaseFirestore): WriteBatch;
+export declare function writeBatch(firestore: Firestore): WriteBatch;
 export {};

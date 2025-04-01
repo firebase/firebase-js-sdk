@@ -74,7 +74,7 @@ describe('createSubscribe', () => {
         }
       });
     });
-    // Subscription before value emitted should be recieved.
+    // Subscription before value emitted should be received.
     subscribe({
       next(_value) {
         done();

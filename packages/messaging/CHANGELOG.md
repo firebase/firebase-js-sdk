@@ -1,5 +1,76 @@
 # @firebase/messaging
 
+## 0.12.17
+
+### Patch Changes
+
+- Updated dependencies [[`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5)]:
+  - @firebase/util@1.11.0
+  - @firebase/installations@0.6.13
+  - @firebase/component@0.6.13
+
+## 0.12.16
+
+### Patch Changes
+
+- Updated dependencies [[`25a6204c1`](https://github.com/firebase/firebase-js-sdk/commit/25a6204c1531b6c772e5368d12b2411ae1d21bbc)]:
+  - @firebase/util@1.10.3
+  - @firebase/component@0.6.12
+  - @firebase/installations@0.6.12
+
+## 0.12.15
+
+### Patch Changes
+
+- [`1294e64c8`](https://github.com/firebase/firebase-js-sdk/commit/1294e64c813b6dbfb64f8dc24d90ec69a66f71ae) [#8661](https://github.com/firebase/firebase-js-sdk/pull/8661) (fixes [#7784](https://github.com/firebase/firebase-js-sdk/issues/7784)) - Fix an issue where PushManager.subscribe() is called too soon after registering the default service worker.
+
+## 0.12.14
+
+### Patch Changes
+
+- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
+
+- Updated dependencies [[`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1)]:
+  - @firebase/component@0.6.11
+  - @firebase/installations@0.6.11
+  - @firebase/messaging-interop-types@0.2.3
+  - @firebase/util@1.10.2
+
+## 0.12.13
+
+### Patch Changes
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Remove ES5 bundles. The minimum required ES version is now ES2017.
+
+- Updated dependencies [[`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702)]:
+  - @firebase/installations@0.6.10
+  - @firebase/component@0.6.10
+  - @firebase/util@1.10.1
+
+## 0.12.12
+
+### Patch Changes
+
+- [`d6fa58854`](https://github.com/firebase/firebase-js-sdk/commit/d6fa58854e3cc976eab150154e2786043bc5e563) [#8534](https://github.com/firebase/firebase-js-sdk/pull/8534) - The logging endpoint has been updated to ensure proper logging of WebPush entries. This resolves an issue where BigQuery logs were missing WebPush data. The payload structure has also been updated in alignment with the latest logging requirements as specified in go/firelog.
+
+## 0.12.11
+
+### Patch Changes
+
+- Updated dependencies [[`16d62d4fa`](https://github.com/firebase/firebase-js-sdk/commit/16d62d4fa16faddb8cb676c0af3f29b8a5824741)]:
+  - @firebase/util@1.10.0
+  - @firebase/component@0.6.9
+  - @firebase/installations@0.6.9
+
+## 0.12.10
+
+### Patch Changes
+
+- Updated dependencies [[`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558)]:
+  - @firebase/util@1.9.7
+  - @firebase/component@0.6.8
+  - @firebase/installations@0.6.8
+
 ## 0.12.9
 
 ### Patch Changes

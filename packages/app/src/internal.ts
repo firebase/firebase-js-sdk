@@ -168,8 +168,11 @@ export function _isFirebaseApp(
  * @internal
  */
 export function _isFirebaseServerApp(
-  obj: FirebaseApp | FirebaseServerApp
+  obj: FirebaseApp | FirebaseServerApp | null | undefined
 ): obj is FirebaseServerApp {
+  if (obj === null || obj === undefined) {
+    return false;
+  }
   return (obj as FirebaseServerApp).settings !== undefined;
 }
 

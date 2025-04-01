@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseError, querystring } from '@firebase/util';
+import { FirebaseError, isCloudflareWorker, querystring } from '@firebase/util';
 
 import { AuthErrorCode, NamedErrorParams } from '../core/errors';
 import {
@@ -31,6 +31,8 @@ import { AuthInternal, ConfigInternal } from '../model/auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from '../model/id_token';
 import { IdTokenMfaResponse } from './authentication/mfa';
 import { SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
+import { PersistenceType } from '../core/persistence';
+import { CookiePersistence } from '../platform_browser/persistence/cookie_storage';
 
 export const enum HttpMethod {
   POST = 'POST',
@@ -73,6 +75,15 @@ export const enum Endpoint {
   REVOKE_TOKEN = '/v2/accounts:revokeToken'
 }
 
+const CookieAuthProxiedEndpoints: string[] = [
+  Endpoint.SIGN_IN_WITH_CUSTOM_TOKEN,
+  Endpoint.SIGN_IN_WITH_EMAIL_LINK,
+  Endpoint.SIGN_IN_WITH_IDP,
+  Endpoint.SIGN_IN_WITH_PASSWORD,
+  Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+  Endpoint.TOKEN
+];
+
 export const enum RecaptchaClientType {
   WEB = 'CLIENT_TYPE_WEB',
   ANDROID = 'CLIENT_TYPE_ANDROID',
@@ -86,7 +97,10 @@ export const enum RecaptchaVersion {
 export const enum RecaptchaActionName {
   SIGN_IN_WITH_PASSWORD = 'signInWithPassword',
   GET_OOB_CODE = 'getOobCode',
-  SIGN_UP_PASSWORD = 'signUpPassword'
+  SIGN_UP_PASSWORD = 'signUpPassword',
+  SEND_VERIFICATION_CODE = 'sendVerificationCode',
+  MFA_SMS_ENROLLMENT = 'mfaSmsEnrollment',
+  MFA_SMS_SIGNIN = 'mfaSmsSignIn'
 }
 
 export const enum EnforcementState {
@@ -97,8 +111,9 @@ export const enum EnforcementState {
 }
 
 // Providers that have reCAPTCHA Enterprise support.
-export const enum RecaptchaProvider {
-  EMAIL_PASSWORD_PROVIDER = 'EMAIL_PASSWORD_PROVIDER'
+export const enum RecaptchaAuthProvider {
+  EMAIL_PASSWORD_PROVIDER = 'EMAIL_PASSWORD_PROVIDER',
+  PHONE_PROVIDER = 'PHONE_PROVIDER'
 }
 
 export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);
@@ -148,14 +163,23 @@ export async function _performApiRequest<T, V>(
       headers[HttpHeader.X_FIREBASE_LOCALE] = auth.languageCode;
     }
 
+    const fetchArgs: RequestInit = {
+      method,
+      headers,
+      ...body
+    };
+
+    /* Security-conscious server-side frameworks tend to have built in mitigations for referrer
+       problems". See the Cloudflare GitHub issue #487: Error: The 'referrerPolicy' field on
+       'RequestInitializerDict' is not implemented."
+       https://github.com/cloudflare/next-on-pages/issues/487 */
+    if (!isCloudflareWorker()) {
+      fetchArgs.referrerPolicy = 'no-referrer';
+    }
+
     return FetchProvider.fetch()(
-      _getFinalTarget(auth, auth.config.apiHost, path, query),
-      {
-        method,
-        headers,
-        referrerPolicy: 'no-referrer',
-        ...body
-      }
+      await _getFinalTarget(auth, auth.config.apiHost, path, query),
+      fetchArgs
     );
   });
 }
@@ -228,35 +252,50 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
   request?: T,
   customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
-  const serverResponse = (await _performApiRequest<T, V | IdTokenMfaResponse>(
+  const serverResponse = await _performApiRequest<T, V | IdTokenMfaResponse>(
     auth,
     method,
     path,
     request,
     customErrorMap
-  )) as V;
+  );
   if ('mfaPendingCredential' in serverResponse) {
     _fail(auth, AuthErrorCode.MFA_REQUIRED, {
       _serverResponse: serverResponse
     });
   }
 
-  return serverResponse;
+  return serverResponse as V;
 }
 
-export function _getFinalTarget(
+export async function _getFinalTarget(
   auth: Auth,
   host: string,
   path: string,
   query: string
-): string {
+): Promise<string> {
   const base = `${host}${path}?${query}`;
 
-  if (!(auth as AuthInternal).config.emulator) {
-    return `${auth.config.apiScheme}://${base}`;
+  const authInternal = auth as AuthInternal;
+  const finalTarget = authInternal.config.emulator
+    ? _emulatorUrl(auth.config as ConfigInternal, base)
+    : `${auth.config.apiScheme}://${base}`;
+
+  // Cookie auth works by MiTMing the signIn and token endpoints from the developer's backend,
+  // saving the idToken and refreshToken into cookies, and then redacting the refreshToken
+  // from the response
+  if (CookieAuthProxiedEndpoints.includes(path)) {
+    // Persistence manager is async, we need to await it. We can't just wait for auth initialized
+    // here since auth initialization calls this function.
+    await authInternal._persistenceManagerAvailable;
+    if (authInternal._getPersistenceType() === PersistenceType.COOKIE) {
+      const cookiePersistence =
+        authInternal._getPersistence() as CookiePersistence;
+      return cookiePersistence._getFinalTarget(finalTarget).toString();
+    }
   }
 
-  return _emulatorUrl(auth.config as ConfigInternal, base);
+  return finalTarget;
 }
 
 export function _parseEnforcementState(

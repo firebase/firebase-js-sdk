@@ -20,19 +20,19 @@ import { FirebaseApp } from '@firebase/app';
 export * from './types';
 
 /**
- * An instance of the Vertex AI for Firebase SDK.
+ * An instance of the Vertex AI in Firebase SDK.
  * @public
  */
 export interface VertexAI {
   /**
-   * The {@link @firebase/app#FirebaseApp} this {@link VertexAI} instance is associated with.
+   * The {@link @firebase/app#FirebaseApp} this <code>{@link VertexAI}</code> instance is associated with.
    */
   app: FirebaseApp;
   location: string;
 }
 
 /**
- * Options when initializing the Vertex AI for Firebase SDK.
+ * Options when initializing the Vertex AI in Firebase SDK.
  * @public
  */
 export interface VertexAIOptions {

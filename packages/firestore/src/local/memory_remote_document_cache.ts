@@ -47,6 +47,11 @@ interface MemoryRemoteDocumentCacheEntry {
   size: number;
 }
 
+/**
+ * The smallest value representable by a 64-bit signed integer (long).
+ */
+const MIN_LONG_VALUE = '-9223372036854775808';
+
 type DocumentEntryMap = SortedMap<DocumentKey, MemoryRemoteDocumentCacheEntry>;
 function documentEntryMap(): DocumentEntryMap {
   return new SortedMap<DocumentKey, MemoryRemoteDocumentCacheEntry>(
@@ -171,7 +176,12 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     // Documents are ordered by key, so we can use a prefix scan to narrow down
     // the documents we need to match the query against.
     const collectionPath = query.path;
-    const prefix = new DocumentKey(collectionPath.child(''));
+    // Document keys are ordered first by numeric value ("__id<Long>__"),
+    // then lexicographically by string value. Start the iterator at the minimum
+    // possible Document key value.
+    const prefix = new DocumentKey(
+      collectionPath.child('__id' + MIN_LONG_VALUE + '__')
+    );
     const iterator = this.docs.getIteratorFrom(prefix);
     while (iterator.hasNext()) {
       const {
@@ -205,7 +215,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     transaction: PersistenceTransaction,
     collectionGroup: string,
     offset: IndexOffset,
-    limti: number
+    limit: number
   ): PersistencePromise<MutableDocumentMap> {
     // This method should only be called from the IndexBackfiller if persistence
     // is enabled.

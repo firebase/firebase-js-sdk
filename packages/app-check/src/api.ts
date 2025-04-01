@@ -187,9 +187,11 @@ export function setTokenAutoRefreshEnabled(
   state.isTokenAutoRefreshEnabled = isTokenAutoRefreshEnabled;
 }
 /**
- * Get the current App Check token. Attaches to the most recent
- * in-flight request if one is present. Returns null if no token
- * is present and no token requests are in-flight.
+ * Get the current App Check token. If `forceRefresh` is false, this function first
+ * checks for a valid token in memory, then local persistence (IndexedDB).
+ * If not found, or if `forceRefresh` is true, it makes a request to the
+ * App Check endpoint for a fresh token. That request attaches
+ * to the most recent in-flight request if one is present.
  *
  * @param appCheckInstance - The App Check service instance.
  * @param forceRefresh - If true, will always try to fetch a fresh token.
@@ -206,6 +208,9 @@ export async function getToken(
   );
   if (result.error) {
     throw result.error;
+  }
+  if (result.internalError) {
+    throw result.internalError;
   }
   return { token: result.token };
 }

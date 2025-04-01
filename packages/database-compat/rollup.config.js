@@ -34,22 +34,9 @@ function onWarn(warning, defaultWarn) {
   defaultWarn(warning);
 }
 
-const es5BuildPlugins = [
+const buildPlugins = [
   typescriptPlugin({
     typescript,
-    abortOnError: false
-  }),
-  json()
-];
-
-const es2017BuildPlugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    },
     abortOnError: false
   }),
   json({ preferConst: true })
@@ -68,7 +55,7 @@ const esmBuilds = [
         sourcemap: true
       }
     ],
-    plugins: [...es2017BuildPlugins, emitModulePackageFile()],
+    plugins: [...buildPlugins, emitModulePackageFile()],
     treeshake: {
       moduleSideEffects: false
     },
@@ -76,24 +63,8 @@ const esmBuilds = [
     onwarn: onWarn
   },
   /**
-   * Browser Builds
+   * Browser Build
    */
-  {
-    input: 'src/index.ts',
-    output: [
-      {
-        file: pkg.esm5,
-        format: 'es',
-        sourcemap: true
-      }
-    ],
-    plugins: es5BuildPlugins,
-    treeshake: {
-      moduleSideEffects: false
-    },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    onwarn: onWarn
-  },
   {
     input: 'src/index.ts',
     output: [
@@ -103,7 +74,7 @@ const esmBuilds = [
         sourcemap: true
       }
     ],
-    plugins: es2017BuildPlugins,
+    plugins: buildPlugins,
     treeshake: {
       moduleSideEffects: false
     },
@@ -125,7 +96,7 @@ const cjsBuilds = [
         sourcemap: true
       }
     ],
-    plugins: es5BuildPlugins,
+    plugins: buildPlugins,
     treeshake: {
       moduleSideEffects: false
     },
@@ -146,7 +117,7 @@ const cjsBuilds = [
       }
     ],
     plugins: [
-      ...es5BuildPlugins,
+      ...buildPlugins,
       resolveModule({
         exportConditions: ['standalone'],
         preferBuiltins: true

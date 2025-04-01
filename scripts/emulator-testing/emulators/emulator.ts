@@ -16,12 +16,15 @@
  */
 
 // @ts-ignore
-import { spawn } from 'child-process-promise';
+import {
+  ChildProcessPromise,
+  spawn,
+  SpawnPromiseResult
+} from 'child-process-promise';
 import { ChildProcess } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import fetch from 'node-fetch';
 // @ts-ignore
 import * as tmp from 'tmp';
 
@@ -31,6 +34,8 @@ export abstract class Emulator {
 
   cacheDirectory: string;
   cacheBinaryPath: string;
+
+  isDataConnect = false;
 
   constructor(
     private binaryName: string,
@@ -51,37 +56,85 @@ export abstract class Emulator {
     return new Promise<void>((resolve, reject) => {
       tmp.dir((err: Error | null, dir: string) => {
         if (err) reject(err);
-
         console.log(`Created temporary directory at [${dir}].`);
         const filepath: string = path.resolve(dir, this.binaryName);
-        const writeStream: fs.WriteStream = fs.createWriteStream(filepath);
-
+        const writer = fs.createWriteStream(filepath);
         console.log(`Downloading emulator from [${this.binaryUrl}] ...`);
-        fetch(this.binaryUrl).then(resp => {
-          resp.body
-            .pipe(writeStream)
-            .on('finish', () => {
-              console.log(`Saved emulator binary file to [${filepath}].`);
-              // Change emulator binary file permission to 'rwxr-xr-x'.
-              // The execute permission is required for it to be able to start
-              // with 'java -jar'.
-              fs.chmod(filepath, 0o755, err => {
-                if (err) reject(err);
-                console.log(
-                  `Changed emulator file permissions to 'rwxr-xr-x'.`
-                );
-                this.binaryPath = filepath;
+        // Map the DOM's fetch Reader to node's streaming file system
+        // operations. We will need to access class members `binaryPath` and `copyToCache` after the
+        // download completes. It's a compilation error to pass `this` into the named function
+        // `readChunk`, so the download operation is wrapped in a promise that we wait upon.
+        const downloadPromise = new Promise<void>(
+          (downloadComplete, downloadFailed) => {
+            fetch(this.binaryUrl)
+              .then(resp => {
+                if (resp.status !== 200 || resp.body === null) {
+                  console.log('Download of emulator failed: ', resp.statusText);
+                  downloadFailed();
+                } else {
+                  const reader = resp.body.getReader();
+                  reader.read().then(function readChunk({ done, value }): any {
+                    if (done) {
+                      console.log('Emulator download is done.');
+                      writer.close(err => {
+                        if (err) {
+                          downloadFailed(
+                            `Failed to close the downloaded emulator file: ${err}`
+                          );
+                        }
 
-                if (this.copyToCache()) {
-                  console.log(`Cached emulator at ${this.cacheBinaryPath}`);
+                        console.log('Closed downloaded emulator file.');
+                        downloadComplete();
+                      });
+                    } else {
+                      writer.write(value);
+                      return reader.read().then(readChunk);
+                    }
+                  });
                 }
-                resolve();
+              })
+              .catch(e => {
+                console.log(`Download of emulator failed: ${e}`);
+                downloadFailed();
               });
-            })
-            .on('error', reject);
-        });
+          }
+        );
+
+        downloadPromise.then(
+          () => {
+            // Change emulator binary file permission to 'rwxr-xr-x'.
+            // The execute permission is required for it to be able to start
+            // with 'java -jar'.
+            fs.chmod(filepath, 0o755, err => {
+              if (err) reject(err);
+              console.log(`Changed emulator file permissions to 'rwxr-xr-x'.`);
+              this.binaryPath = filepath;
+              if (this.copyToCache()) {
+                console.log(`Cached emulator at ${this.cacheBinaryPath}`);
+              }
+              resolve();
+            });
+          },
+          () => {
+            reject();
+          }
+        );
       });
     });
+  }
+
+  findDataConnectConfigDir() {
+    let path = './';
+    const files = fs.readdirSync(path);
+    if (files.includes('dataconnect')) {
+      return path + 'dataconnect';
+    }
+    if (files.includes('test')) {
+      return path + 'test/dataconnect';
+    }
+    throw new Error(
+      'Max Depth Exceeded. Please run from the data-connect/test folder'
+    );
   }
 
   setUp(): Promise<void> {
@@ -89,19 +142,39 @@ export abstract class Emulator {
       if (!this.binaryPath) {
         throw new Error('You must call download() before setUp()');
       }
-      const promise = spawn(
-        'java',
-        [
-          '-jar',
-          path.basename(this.binaryPath),
-          '--port',
-          this.port.toString()
-        ],
-        {
-          cwd: path.dirname(this.binaryPath),
-          stdio: 'inherit'
-        }
-      );
+      let promise: ChildProcessPromise<SpawnPromiseResult>;
+      if (this.isDataConnect) {
+        const dataConnectConfigDir = this.findDataConnectConfigDir();
+        promise = spawn(this.binaryPath, [
+          '--logtostderr',
+          '--v=2',
+          'dev',
+          `--listen=127.0.0.1:${this.port},[::1]:${this.port}`,
+          `--config_dir=${dataConnectConfigDir}`
+        ]);
+        promise.childProcess.stdout?.on('data', console.log);
+        promise.childProcess.stderr?.on('data', res =>
+          console.log(res.toString())
+        );
+        promise.childProcess.stderr?.on('error', res =>
+          console.log(res.toString())
+        );
+      } else {
+        promise = spawn(
+          'java',
+          [
+            '-jar',
+            path.basename(this.binaryPath),
+            '--port',
+            this.port.toString()
+          ],
+          {
+            cwd: path.dirname(this.binaryPath),
+            stdio: 'inherit'
+          }
+        );
+      }
+
       promise.catch(reject);
       this.emulator = promise.childProcess;
 

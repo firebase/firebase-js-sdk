@@ -27,7 +27,6 @@ import {
   EventTarget,
   StatEvent,
   Event,
-  FetchXmlHttpFactory,
   Stat
 } from '@firebase/webchannel-wrapper/webchannel-blob';
 
@@ -210,7 +209,7 @@ export class WebChannelConnection extends RestConnection {
     }
 
     if (this.useFetchStreams) {
-      request.xmlHttpFactory = new FetchXmlHttpFactory({});
+      request.useFetchStreams = true;
     }
 
     this.modifyHeadersForRequest(
@@ -361,7 +360,7 @@ export class WebChannelConnection extends RestConnection {
           // Use any because msgData.error is not typed.
           const msgDataOrError: WebChannelError | object = msgData;
           const error =
-            msgDataOrError.error ||
+            (msgDataOrError as WebChannelError)?.error ||
             (msgDataOrError as WebChannelError[])[0]?.error;
           if (error) {
             logDebug(

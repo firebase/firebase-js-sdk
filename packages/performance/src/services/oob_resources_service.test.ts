@@ -18,6 +18,7 @@
 import {
   spy,
   stub,
+  restore as sinonRestore,
   SinonSpy,
   SinonStub,
   useFakeTimers,
@@ -26,13 +27,23 @@ import {
 import { expect } from 'chai';
 import { Api, setupApi, EntryType } from './api_service';
 import * as iidService from './iid_service';
-import { setupOobResources } from './oob_resources_service';
+import { setupOobResources, resetForUnitTests } from './oob_resources_service';
 import { Trace } from '../resources/trace';
 import '../../test/setup';
 import { PerformanceController } from '../controllers/perf';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseInstallations } from '@firebase/installations-types';
+import { WebVitalMetrics } from '../resources/web_vitals';
+import {
+  CLSAttribution,
+  CLSMetricWithAttribution,
+  INPAttribution,
+  INPMetricWithAttribution,
+  LCPAttribution,
+  LCPMetricWithAttribution
+} from 'web-vitals/attribution';
 
+// eslint-disable-next-line no-restricted-properties
 describe('Firebase Performance > oob_resources_service', () => {
   const MOCK_ID = 'idasdfsffe';
 
@@ -82,23 +93,36 @@ describe('Firebase Performance > oob_resources_service', () => {
 
   let getIidStub: SinonStub<[], string | undefined>;
   let apiGetInstanceSpy: SinonSpy<[], Api>;
+  let eventListenerSpy: SinonSpy<
+    [
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | AddEventListenerOptions | undefined
+    ],
+    void
+  >;
   let getEntriesByTypeStub: SinonStub<[EntryType], PerformanceEntry[]>;
   let setupObserverStub: SinonStub<
     [EntryType, (entry: PerformanceEntry) => void],
     void
   >;
-  let createOobTraceStub: SinonStub<
+  let createOobTraceSpy: SinonSpy<
     [
       PerformanceController,
       PerformanceNavigationTiming[],
       PerformanceEntry[],
+      WebVitalMetrics,
       (number | undefined)?
     ],
     void
   >;
   let clock: SinonFakeTimers;
+  let lcpSpy: SinonSpy<[(m: LCPMetricWithAttribution) => void], void>;
+  let inpSpy: SinonSpy<[(m: INPMetricWithAttribution) => void], void>;
+  let clsSpy: SinonSpy<[(m: CLSMetricWithAttribution) => void], void>;
 
-  setupApi(self);
+  const mockWindow = { ...self };
+  setupApi(mockWindow);
 
   const fakeFirebaseConfig = {
     apiKey: 'api-key',
@@ -120,9 +144,22 @@ describe('Firebase Performance > oob_resources_service', () => {
     fakeInstallations
   );
 
+  function callEventListener(name: string): void {
+    for (let i = eventListenerSpy.callCount; i > 0; i--) {
+      const [eventName, eventFn] = eventListenerSpy.getCall(i - 1).args;
+      if (eventName === name) {
+        if (typeof eventFn === 'function') {
+          eventFn(new CustomEvent(name));
+        }
+      }
+    }
+  }
+
   beforeEach(() => {
+    resetForUnitTests();
     getIidStub = stub(iidService, 'getIid');
-    apiGetInstanceSpy = spy(Api, 'getInstance');
+    eventListenerSpy = spy(mockWindow.document, 'addEventListener');
+
     clock = useFakeTimers();
     getEntriesByTypeStub = stub(Api.prototype, 'getEntriesByType').callsFake(
       entry => {
@@ -133,11 +170,20 @@ describe('Firebase Performance > oob_resources_service', () => {
       }
     );
     setupObserverStub = stub(Api.prototype, 'setupObserver');
-    createOobTraceStub = stub(Trace, 'createOobTrace');
+    createOobTraceSpy = spy(Trace, 'createOobTrace');
+    const api = Api.getInstance();
+    lcpSpy = spy(api, 'onLCP');
+    inpSpy = spy(api, 'onINP');
+    clsSpy = spy(api, 'onCLS');
+    apiGetInstanceSpy = spy(Api, 'getInstance');
   });
 
   afterEach(() => {
     clock.restore();
+    sinonRestore();
+    const api = Api.getInstance();
+    //@ts-ignore Assignment to read-only property.
+    api.onFirstInputDelay = undefined;
   });
 
   describe('setupOobResources', () => {
@@ -158,36 +204,51 @@ describe('Firebase Performance > oob_resources_service', () => {
       expect(setupObserverStub).to.be.calledWith('resource');
     });
 
-    it('sets up page load trace collection', () => {
+    it('does not create page load trace before hidden', () => {
       getIidStub.returns(MOCK_ID);
       setupOobResources(performanceController);
       clock.tick(1);
 
       expect(apiGetInstanceSpy).to.be.called;
-      expect(getEntriesByTypeStub).to.be.calledWith('navigation');
-      expect(getEntriesByTypeStub).to.be.calledWith('paint');
-      expect(createOobTraceStub).to.be.calledWithExactly(
-        performanceController,
-        [NAVIGATION_PERFORMANCE_ENTRY],
-        [PAINT_PERFORMANCE_ENTRY]
-      );
+      expect(createOobTraceSpy).not.to.be.called;
     });
 
-    it('waits for first input delay if polyfill is available', () => {
+    it('creates page load trace after hidden', () => {
       getIidStub.returns(MOCK_ID);
-      const api = Api.getInstance();
-      //@ts-ignore Assignment to read-only property.
-      api.onFirstInputDelay = stub();
       setupOobResources(performanceController);
       clock.tick(1);
 
-      expect(api.onFirstInputDelay).to.be.called;
-      expect(createOobTraceStub).not.to.be.called;
-      clock.tick(5000);
-      expect(createOobTraceStub).to.be.calledWithExactly(
+      stub(mockWindow.document, 'visibilityState').value('hidden');
+      callEventListener('visibilitychange');
+      clock.tick(1);
+
+      expect(getEntriesByTypeStub).to.be.calledWith('navigation');
+      expect(getEntriesByTypeStub).to.be.calledWith('paint');
+      expect(createOobTraceSpy).to.be.calledWithExactly(
         performanceController,
         [NAVIGATION_PERFORMANCE_ENTRY],
-        [PAINT_PERFORMANCE_ENTRY]
+        [PAINT_PERFORMANCE_ENTRY],
+        {},
+        undefined
+      );
+    });
+
+    it('creates page load trace after pagehide', () => {
+      getIidStub.returns(MOCK_ID);
+      setupOobResources(performanceController);
+      clock.tick(1);
+
+      callEventListener('pagehide');
+      clock.tick(1);
+
+      expect(getEntriesByTypeStub).to.be.calledWith('navigation');
+      expect(getEntriesByTypeStub).to.be.calledWith('paint');
+      expect(createOobTraceSpy).to.be.calledWithExactly(
+        performanceController,
+        [NAVIGATION_PERFORMANCE_ENTRY],
+        [PAINT_PERFORMANCE_ENTRY],
+        {},
+        undefined
       );
     });
 
@@ -195,7 +256,7 @@ describe('Firebase Performance > oob_resources_service', () => {
       getIidStub.returns(MOCK_ID);
       const api = Api.getInstance();
       const FIRST_INPUT_DELAY = 123;
-      // Underscore is to avoid compiler comlaining about variable being declared but not used.
+      // Underscore is to avoid compiler complaining about variable being declared but not used.
       type FirstInputDelayCallback = (firstInputDelay: number) => void;
       let firstInputDelayCallback: FirstInputDelayCallback = (): void => {};
       //@ts-ignore Assignment to read-only property.
@@ -206,10 +267,16 @@ describe('Firebase Performance > oob_resources_service', () => {
       clock.tick(1);
       firstInputDelayCallback(FIRST_INPUT_DELAY);
 
-      expect(createOobTraceStub).to.be.calledWithExactly(
+      // Force the page load event to be sent
+      stub(mockWindow.document, 'visibilityState').value('hidden');
+      callEventListener('visibilitychange');
+      clock.tick(1);
+
+      expect(createOobTraceSpy).to.be.calledWithExactly(
         performanceController,
         [NAVIGATION_PERFORMANCE_ENTRY],
         [PAINT_PERFORMANCE_ENTRY],
+        {},
         FIRST_INPUT_DELAY
       );
     });
@@ -222,6 +289,128 @@ describe('Firebase Performance > oob_resources_service', () => {
       expect(apiGetInstanceSpy).to.be.called;
       expect(getEntriesByTypeStub).to.be.calledWith('measure');
       expect(setupObserverStub).to.be.calledWith('measure');
+    });
+
+    it('sends LCP metrics with attribution', () => {
+      getIidStub.returns(MOCK_ID);
+      setupOobResources(performanceController);
+      clock.tick(1);
+
+      lcpSpy.getCall(-1).args[0]({
+        value: 12.34,
+        attribution: {
+          element: 'some-element'
+        } as LCPAttribution
+      } as LCPMetricWithAttribution);
+
+      // Force the page load event to be sent
+      stub(mockWindow.document, 'visibilityState').value('hidden');
+      callEventListener('visibilitychange');
+      clock.tick(1);
+
+      expect(createOobTraceSpy).to.be.calledWithExactly(
+        performanceController,
+        [NAVIGATION_PERFORMANCE_ENTRY],
+        [PAINT_PERFORMANCE_ENTRY],
+        {
+          lcp: { value: 12.34, elementAttribution: 'some-element' }
+        },
+        undefined
+      );
+    });
+
+    it('sends INP metrics with attribution', () => {
+      getIidStub.returns(MOCK_ID);
+      setupOobResources(performanceController);
+      clock.tick(1);
+
+      inpSpy.getCall(-1).args[0]({
+        value: 0.198,
+        attribution: {
+          interactionTarget: 'another-element'
+        } as INPAttribution
+      } as INPMetricWithAttribution);
+
+      // Force the page load event to be sent
+      stub(mockWindow.document, 'visibilityState').value('hidden');
+      callEventListener('visibilitychange');
+      clock.tick(1);
+
+      expect(createOobTraceSpy).to.be.calledWithExactly(
+        performanceController,
+        [NAVIGATION_PERFORMANCE_ENTRY],
+        [PAINT_PERFORMANCE_ENTRY],
+        {
+          inp: { value: 0.198, elementAttribution: 'another-element' }
+        },
+        undefined
+      );
+    });
+
+    it('sends CLS metrics with attribution', () => {
+      getIidStub.returns(MOCK_ID);
+      setupOobResources(performanceController);
+      clock.tick(1);
+
+      clsSpy.getCall(-1).args[0]({
+        value: 0.3,
+        // eslint-disable-next-line
+        attribution: {
+          largestShiftTarget: 'large-shift-element'
+        } as CLSAttribution
+      } as CLSMetricWithAttribution);
+
+      // Force the page load event to be sent
+      stub(mockWindow.document, 'visibilityState').value('hidden');
+      callEventListener('visibilitychange');
+      clock.tick(1);
+
+      expect(createOobTraceSpy).to.be.calledWithExactly(
+        performanceController,
+        [NAVIGATION_PERFORMANCE_ENTRY],
+        [PAINT_PERFORMANCE_ENTRY],
+        {
+          cls: { value: 0.3, elementAttribution: 'large-shift-element' }
+        },
+        undefined
+      );
+    });
+
+    it('sends all core web vitals metrics', () => {
+      getIidStub.returns(MOCK_ID);
+      setupOobResources(performanceController);
+      clock.tick(1);
+
+      lcpSpy.getCall(-1).args[0]({
+        value: 5.91,
+        attribution: { element: 'an-element' } as LCPAttribution
+      } as LCPMetricWithAttribution);
+      inpSpy.getCall(-1).args[0]({
+        value: 0.1
+      } as INPMetricWithAttribution);
+      clsSpy.getCall(-1).args[0]({
+        value: 0.3,
+        attribution: {
+          largestShiftTarget: 'large-shift-element'
+        } as CLSAttribution
+      } as CLSMetricWithAttribution);
+
+      // Force the page load event to be sent
+      stub(mockWindow.document, 'visibilityState').value('hidden');
+      callEventListener('visibilitychange');
+      clock.tick(1);
+
+      expect(createOobTraceSpy).to.be.calledWithExactly(
+        performanceController,
+        [NAVIGATION_PERFORMANCE_ENTRY],
+        [PAINT_PERFORMANCE_ENTRY],
+        {
+          lcp: { value: 5.91, elementAttribution: 'an-element' },
+          inp: { value: 0.1, elementAttribution: undefined },
+          cls: { value: 0.3, elementAttribution: 'large-shift-element' }
+        },
+        undefined
+      );
     });
   });
 });

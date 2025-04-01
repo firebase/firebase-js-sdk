@@ -24,6 +24,7 @@ import {
 } from '@firebase/app';
 import {
   createMockUserToken,
+  deepEqual,
   EmulatorMockTokenOptions,
   getDefaultEmulatorHostnameAndPort
 } from '@firebase/util';
@@ -71,10 +72,15 @@ export class Firestore implements FirestoreService {
 
   private _settings = new FirestoreSettingsImpl({});
   private _settingsFrozen = false;
+  private _emulatorOptions: {
+    mockUserToken?: EmulatorMockTokenOptions | string;
+  } = {};
 
   // A task that is assigned when the terminate() is invoked and resolved when
-  // all components have shut down.
-  private _terminateTask?: Promise<void>;
+  // all components have shut down. Otherwise, Firestore is not terminated,
+  // which can mean either the FirestoreClient is in the process of starting,
+  // or restarting.
+  private _terminateTask: Promise<void> | 'notTerminated' = 'notTerminated';
 
   /** @hideconstructor */
   constructor(
@@ -104,7 +110,7 @@ export class Firestore implements FirestoreService {
   }
 
   get _terminated(): boolean {
-    return this._terminateTask !== undefined;
+    return this._terminateTask !== 'notTerminated';
   }
 
   _setSettings(settings: PrivateSettings): void {
@@ -117,6 +123,8 @@ export class Firestore implements FirestoreService {
       );
     }
     this._settings = new FirestoreSettingsImpl(settings);
+    this._emulatorOptions = settings.emulatorOptions || {};
+
     if (settings.credentials !== undefined) {
       this._authCredentials = makeAuthCredentialsProvider(settings.credentials);
     }
@@ -126,16 +134,33 @@ export class Firestore implements FirestoreService {
     return this._settings;
   }
 
+  _getEmulatorOptions(): { mockUserToken?: EmulatorMockTokenOptions | string } {
+    return this._emulatorOptions;
+  }
+
   _freezeSettings(): FirestoreSettingsImpl {
     this._settingsFrozen = true;
     return this._settings;
   }
 
   _delete(): Promise<void> {
-    if (!this._terminateTask) {
+    // The `_terminateTask` must be assigned future that completes when
+    // terminate is complete. The existence of this future puts SDK in state
+    // that will not accept further API interaction.
+    if (this._terminateTask === 'notTerminated') {
       this._terminateTask = this._terminate();
     }
     return this._terminateTask;
+  }
+
+  async _restart(): Promise<void> {
+    // The `_terminateTask` must equal 'notTerminated' after restart to
+    // signal that client is in a state that accepts API calls.
+    if (this._terminateTask === 'notTerminated') {
+      await this._terminate();
+    } else {
+      this._terminateTask = 'notTerminated';
+    }
   }
 
   /** Returns a JSON-serializable representation of this `Firestore` instance. */
@@ -301,20 +326,30 @@ export function connectFirestoreEmulator(
 ): void {
   firestore = cast(firestore, Firestore);
   const settings = firestore._getSettings();
+  const existingConfig = {
+    ...settings,
+    emulatorOptions: firestore._getEmulatorOptions()
+  };
   const newHostSetting = `${host}:${port}`;
-
   if (settings.host !== DEFAULT_HOST && settings.host !== newHostSetting) {
     logWarn(
       'Host has been set in both settings() and connectFirestoreEmulator(), emulator host ' +
         'will be used.'
     );
   }
-
-  firestore._setSettings({
+  const newConfig = {
     ...settings,
     host: newHostSetting,
-    ssl: false
-  });
+    ssl: false,
+    emulatorOptions: options
+  };
+  // No-op if the new configuration matches the current configuration. This supports SSR
+  // enviornments which might call `connectFirestoreEmulator` multiple times as a standard practice.
+  if (deepEqual(newConfig, existingConfig)) {
+    return;
+  }
+
+  firestore._setSettings(newConfig);
 
   if (options.mockUserToken) {
     let token: string;

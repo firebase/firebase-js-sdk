@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /** Network headers */
 export type Headers = Record<string, string>;
 
@@ -23,7 +22,7 @@ export type ConnectionType =
   | string
   | ArrayBuffer
   | Blob
-  | NodeJS.ReadableStream;
+  | ReadableStream<Uint8Array>;
 
 /**
  * A lightweight wrapper around XMLHttpRequest with a
@@ -68,7 +67,7 @@ export interface Connection<T extends ConnectionType> {
 }
 
 /**
- * Error codes for requests made by the the XhrIo wrapper.
+ * Error codes for requests made by the XhrIo wrapper.
  */
 export enum ErrorCode {
   NO_ERROR = 0,

@@ -30,6 +30,7 @@ use(chaiAsPromised);
 const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
+  appId: 'my-appid',
   location: 'us-central1'
 };
 
@@ -87,7 +88,7 @@ describe('ChatSession', () => {
         match.any
       );
       await clock.runAllAsync();
-      expect(consoleStub.args[0][0].toString()).to.include(
+      expect(consoleStub.args[0][1].toString()).to.include(
         // Firefox has different wording when a property is undefined
         'undefined'
       );

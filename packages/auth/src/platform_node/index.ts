@@ -28,18 +28,9 @@ import { AuthImpl } from '../core/auth/auth_impl';
 
 import { FetchProvider } from '../core/util/fetch_provider';
 import { getDefaultEmulatorHost } from '@firebase/util';
-import {
-  fetch as undiciFetch,
-  Headers as undiciHeaders,
-  Response as undiciResponse
-} from 'undici';
 
 // Initialize the fetch polyfill, the types are slightly off so just cast and hope for the best
-FetchProvider.initialize(
-  undiciFetch as unknown as typeof fetch,
-  undiciHeaders as unknown as typeof Headers,
-  undiciResponse as unknown as typeof Response
-);
+FetchProvider.initialize(fetch, Headers, Response);
 
 // First, we set up the various platform-specific features for Node (register
 // the version and declare the Node getAuth function)
@@ -90,6 +81,7 @@ class FailClass {
 
 export const browserLocalPersistence = inMemoryPersistence;
 export const browserSessionPersistence = inMemoryPersistence;
+export const browserCookiePersistence = inMemoryPersistence;
 export const indexedDBLocalPersistence = inMemoryPersistence;
 export const browserPopupRedirectResolver = NOT_AVAILABLE_ERROR;
 export const PhoneAuthProvider = FailClass;

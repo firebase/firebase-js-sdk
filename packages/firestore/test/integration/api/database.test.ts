@@ -63,7 +63,11 @@ import {
   FieldPath,
   newTestFirestore,
   SnapshotOptions,
-  newTestApp
+  newTestApp,
+  FirestoreError,
+  QuerySnapshot,
+  vector,
+  getDocsFromServer
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -73,7 +77,10 @@ import {
   withTestDbs,
   withTestDoc,
   withTestDocAndInitialData,
-  withNamedTestDbsOrSkipUnlessUsingEmulator
+  withNamedTestDbsOrSkipUnlessUsingEmulator,
+  toDataArray,
+  checkOnlineAndOfflineResultsMatch,
+  toIds
 } from '../util/helpers';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
 
@@ -576,6 +583,229 @@ apiDescribe('Database', persistence => {
     });
   });
 
+  describe('vector embeddings', () => {
+    it('can write and read vector embeddings', async () => {
+      return withTestCollection(persistence, {}, async coll => {
+        const ref = await addDoc(coll, {
+          vector0: vector([0.0]),
+          vector1: vector([1, 2, 3.99])
+        });
+        await setDoc(ref, {
+          vector0: vector([0.0]),
+          vector1: vector([1, 2, 3.99]),
+          vector2: vector([0, 0, 0])
+        });
+        await updateDoc(ref, {
+          vector3: vector([-1, -200, -999])
+        });
+
+        const snap1 = await getDoc(ref);
+        expect(snap1.get('vector0').isEqual(vector([0.0]))).to.be.true;
+        expect(snap1.get('vector1').isEqual(vector([1, 2, 3.99]))).to.be.true;
+        expect(snap1.get('vector2').isEqual(vector([0, 0, 0]))).to.be.true;
+        expect(snap1.get('vector3').isEqual(vector([-1, -200, -999]))).to.be
+          .true;
+      });
+    });
+
+    it('can listen to documents with vectors', async () => {
+      return withTestCollection(persistence, {}, async randomCol => {
+        const ref = doc(randomCol);
+        const initialDeferred = new Deferred<void>();
+        const createDeferred = new Deferred<void>();
+        const setDeferred = new Deferred<void>();
+        const updateDeferred = new Deferred<void>();
+        const deleteDeferred = new Deferred<void>();
+
+        const expected = [
+          initialDeferred,
+          createDeferred,
+          setDeferred,
+          updateDeferred,
+          deleteDeferred
+        ];
+        let idx = 0;
+        let document: DocumentSnapshot | null = null;
+
+        const q = query(randomCol, where('purpose', '==', 'vector tests'));
+        const unlisten = onSnapshot(q, (snap: QuerySnapshot<DocumentData>) => {
+          expected[idx].resolve();
+          idx += 1;
+          if (snap.docs.length > 0) {
+            document = snap.docs[0];
+          } else {
+            document = null;
+          }
+        });
+
+        await initialDeferred.promise;
+        expect(document).to.be.null;
+
+        await setDoc(ref, {
+          purpose: 'vector tests',
+          vector0: vector([0.0]),
+          vector1: vector([1, 2, 3.99])
+        });
+
+        await createDeferred.promise;
+        expect(document).to.be.not.null;
+        expect(document!.get('vector0').isEqual(vector([0.0]))).to.be.true;
+        expect(document!.get('vector1').isEqual(vector([1, 2, 3.99]))).to.be
+          .true;
+
+        await setDoc(ref, {
+          purpose: 'vector tests',
+          vector0: vector([0.0]),
+          vector1: vector([1, 2, 3.99]),
+          vector2: vector([0, 0, 0])
+        });
+        await setDeferred.promise;
+        expect(document).to.be.not.null;
+        expect(document!.get('vector0').isEqual(vector([0.0]))).to.be.true;
+        expect(document!.get('vector1').isEqual(vector([1, 2, 3.99]))).to.be
+          .true;
+        expect(document!.get('vector2').isEqual(vector([0, 0, 0]))).to.be.true;
+
+        await updateDoc(ref, {
+          vector3: vector([-1, -200, -999])
+        });
+        await updateDeferred.promise;
+        expect(document).to.be.not.null;
+        expect(document!.get('vector0').isEqual(vector([0.0]))).to.be.true;
+        expect(document!.get('vector1').isEqual(vector([1, 2, 3.99]))).to.be
+          .true;
+        expect(document!.get('vector2').isEqual(vector([0, 0, 0]))).to.be.true;
+        expect(document!.get('vector3').isEqual(vector([-1, -200, -999]))).to.be
+          .true;
+
+        await deleteDoc(ref);
+        await deleteDeferred.promise;
+        expect(document).to.be.null;
+
+        unlisten();
+      });
+    });
+
+    it('SDK orders vector field same way as backend', async () => {
+      // Test data in the order that we expect the backend to sort it.
+      const docsInOrder = [
+        { embedding: [1, 2, 3, 4, 5, 6] },
+        { embedding: [100] },
+        { embedding: vector([Number.NEGATIVE_INFINITY]) },
+        { embedding: vector([-100]) },
+        { embedding: vector([100]) },
+        { embedding: vector([Number.POSITIVE_INFINITY]) },
+        { embedding: vector([1, 2]) },
+        { embedding: vector([2, 2]) },
+        { embedding: vector([1, 2, 3]) },
+        { embedding: vector([1, 2, 3, 4]) },
+        { embedding: vector([1, 2, 3, 4, 5]) },
+        { embedding: vector([1, 2, 100, 4, 4]) },
+        { embedding: vector([100, 2, 3, 4, 5]) },
+        { embedding: { HELLO: 'WORLD' } },
+        { embedding: { hello: 'world' } }
+      ];
+
+      const docs = docsInOrder.reduce((obj, doc) => {
+        obj[Math.random().toString()] = doc;
+        return obj;
+      }, {} as { [i: string]: DocumentData });
+
+      return withTestCollection(persistence, docs, async randomCol => {
+        // We validate that the SDK orders the vector field the same way as the backend
+        // by comparing the sort order of vector fields from getDocsFromServer and
+        // onSnapshot. onSnapshot will return sort order of the SDK,
+        // and getDocsFromServer will return sort order of the backend.
+
+        const orderedQuery = query(randomCol, orderBy('embedding'));
+        const gotInitialSnapshot = new Deferred<QuerySnapshot>();
+
+        const unsubscribe = onSnapshot(
+          orderedQuery,
+          snapshot => {
+            gotInitialSnapshot.resolve(snapshot);
+          },
+          err => {
+            gotInitialSnapshot.reject!(err);
+          }
+        );
+
+        const watchSnapshot = await gotInitialSnapshot.promise;
+        unsubscribe();
+
+        const getSnapshot = await getDocsFromServer(orderedQuery);
+
+        // Compare the snapshot (including sort order) of a snapshot
+        // from Query.onSnapshot() to an actual snapshot from Query.get()
+        expect(toDataArray(watchSnapshot)).to.deep.equal(
+          toDataArray(getSnapshot)
+        );
+
+        // Compare the snapshot (including sort order) of a snapshot
+        // from Query.onSnapshot() to the expected sort order from
+        // the backend.
+        expect(toDataArray(watchSnapshot)).to.deep.equal(docsInOrder);
+      });
+    });
+
+    // eslint-disable-next-line no-restricted-properties
+    (persistence.gc === 'lru' ? describe : describe.skip)('From Cache', () => {
+      it('SDK orders vector field the same way online and offline', async () => {
+        // Test data in the order that we expect the SDK to sort it.
+        const docsInOrder = [
+          { embedding: [1, 2, 3, 4, 5, 6] },
+          { embedding: [100] },
+          { embedding: vector([Number.NEGATIVE_INFINITY]) },
+          { embedding: vector([-100]) },
+          { embedding: vector([100]) },
+          { embedding: vector([Number.POSITIVE_INFINITY]) },
+          { embedding: vector([1, 2]) },
+          { embedding: vector([2, 2]) },
+          { embedding: vector([1, 2, 3]) },
+          { embedding: vector([1, 2, 3, 4]) },
+          { embedding: vector([1, 2, 3, 4, 5]) },
+          { embedding: vector([1, 2, 100, 4, 4]) },
+          { embedding: vector([100, 2, 3, 4, 5]) },
+          { embedding: { HELLO: 'WORLD' } },
+          { embedding: { hello: 'world' } }
+        ];
+
+        const documentIds: string[] = [];
+        const docs = docsInOrder.reduce((obj, doc, index) => {
+          const documentId = index.toString();
+          documentIds.push(documentId);
+          obj[documentId] = doc;
+          return obj;
+        }, {} as { [i: string]: DocumentData });
+
+        return withTestCollection(persistence, docs, async randomCol => {
+          const orderedQuery = query(randomCol, orderBy('embedding'));
+          await checkOnlineAndOfflineResultsMatch(orderedQuery, ...documentIds);
+
+          const orderedQueryLessThan = query(
+            randomCol,
+            orderBy('embedding'),
+            where('embedding', '<', vector([1, 2, 100, 4, 4]))
+          );
+          await checkOnlineAndOfflineResultsMatch(
+            orderedQueryLessThan,
+            ...documentIds.slice(2, 11)
+          );
+
+          const orderedQueryGreaterThan = query(
+            randomCol,
+            orderBy('embedding'),
+            where('embedding', '>', vector([1, 2, 100, 4, 4]))
+          );
+          await checkOnlineAndOfflineResultsMatch(
+            orderedQueryGreaterThan,
+            ...documentIds.slice(12, 13)
+          );
+        });
+      });
+    });
+  });
+
   describe('documents: ', () => {
     const invalidDocValues = [undefined, null, 0, 'foo', ['a'], new Date()];
     for (const val of invalidDocValues) {
@@ -855,7 +1085,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  it('DocumentSnapshot events for non existent document', () => {
+  it('DocumentSnapshot events for nonexistent document', () => {
     return withTestCollection(persistence, {}, col => {
       const docA = doc(col);
       const storeEvent = new EventsAccumulator<DocumentSnapshot>();
@@ -1442,6 +1672,42 @@ apiDescribe('Database', persistence => {
     });
   });
 
+  it('can query after firestore restart', async () => {
+    return withTestDoc(persistence, async (docRef, firestore) => {
+      const deferred: Deferred<FirestoreError> = new Deferred();
+      const unsubscribe = onSnapshot(docRef, snapshot => {}, deferred.resolve);
+
+      await firestore._restart();
+
+      await expect(deferred.promise)
+        .to.eventually.haveOwnProperty('message')
+        .equal('Firestore shutting down');
+
+      // Call should proceed without error.
+      unsubscribe();
+
+      await setDoc(docRef, { foo: 'bar' });
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.data()).to.deep.equal({ foo: 'bar' });
+    });
+  });
+
+  it('query listener throws error on termination', async () => {
+    return withTestDoc(persistence, async (docRef, firestore) => {
+      const deferred: Deferred<FirestoreError> = new Deferred();
+      const unsubscribe = onSnapshot(docRef, snapshot => {}, deferred.resolve);
+
+      await terminate(firestore);
+
+      await expect(deferred.promise)
+        .to.eventually.haveOwnProperty('message')
+        .equal('Firestore shutting down');
+
+      // Call should proceed without error.
+      unsubscribe();
+    });
+  });
+
   it('can wait for pending writes', async () => {
     await withTestDoc(persistence, async (docRef, firestore) => {
       // Prevent pending writes receiving acknowledgement.
@@ -1966,5 +2232,435 @@ apiDescribe('Database', persistence => {
         expect(doc.data()).to.deep.equal(initialData);
       });
     });
+  });
+
+  it('Lru GC is enabled by default.', () => {
+    const initialData = { key: 'value' };
+    return withTestDb(persistence, async db => {
+      const docRef = doc(collection(db, 'test-collection'));
+      await setDoc(docRef, initialData);
+      return getDocFromCache(docRef).then(doc => {
+        expect(doc.exists()).to.be.true;
+        expect(doc.metadata.fromCache).to.be.true;
+        expect(doc.data()).to.deep.equal(initialData);
+      });
+    });
+  });
+
+  describe('sort documents by DocumentId', () => {
+    it('snapshot listener sorts query by DocumentId same way as get query', async () => {
+      const testDocs = {
+        'A': { a: 1 },
+        'a': { a: 1 },
+        'Aa': { a: 1 },
+        '7': { a: 1 },
+        '12': { a: 1 },
+        '__id7__': { a: 1 },
+        '__id12__': { a: 1 },
+        '__id-2__': { a: 1 },
+        '_id1__': { a: 1 },
+        '__id1_': { a: 1 },
+        '__id': { a: 1 },
+        // largest long numbers
+        '__id9223372036854775807__': { a: 1 },
+        '__id9223372036854775806__': { a: 1 },
+        // smallest long numbers
+        '__id-9223372036854775808__': { a: 1 },
+        '__id-9223372036854775807__': { a: 1 }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const orderedQuery = query(collectionRef, orderBy(documentId()));
+        const expectedDocs = [
+          '__id-9223372036854775808__',
+          '__id-9223372036854775807__',
+          '__id-2__',
+          '__id7__',
+          '__id12__',
+          '__id9223372036854775806__',
+          '__id9223372036854775807__',
+          '12',
+          '7',
+          'A',
+          'Aa',
+          '__id',
+          '__id1_',
+          '_id1__',
+          'a'
+        ];
+
+        const getSnapshot = await getDocsFromServer(orderedQuery);
+        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(expectedDocs);
+
+        unsubscribe();
+      });
+    });
+
+    it('snapshot listener sorts filtered query by DocumentId same way as get query', async () => {
+      const testDocs = {
+        'A': { a: 1 },
+        'a': { a: 1 },
+        'Aa': { a: 1 },
+        '7': { a: 1 },
+        '12': { a: 1 },
+        '__id7__': { a: 1 },
+        '__id12__': { a: 1 },
+        '__id-2__': { a: 1 },
+        '_id1__': { a: 1 },
+        '__id1_': { a: 1 },
+        '__id': { a: 1 },
+        // largest long numbers
+        '__id9223372036854775807__': { a: 1 },
+        '__id9223372036854775806__': { a: 1 },
+        // smallest long numbers
+        '__id-9223372036854775808__': { a: 1 },
+        '__id-9223372036854775807__': { a: 1 }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const filteredQuery = query(
+          collectionRef,
+          orderBy(documentId()),
+          where(documentId(), '>', '__id7__'),
+          where(documentId(), '<=', 'Aa')
+        );
+        const expectedDocs = [
+          '__id12__',
+          '__id9223372036854775806__',
+          '__id9223372036854775807__',
+          '12',
+          '7',
+          'A',
+          'Aa'
+        ];
+
+        const getSnapshot = await getDocsFromServer(filteredQuery);
+        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(filteredQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(expectedDocs);
+        unsubscribe();
+      });
+    });
+
+    // eslint-disable-next-line no-restricted-properties
+    (persistence.gc === 'lru' ? describe : describe.skip)('offline', () => {
+      it('SDK orders query the same way online and offline', async () => {
+        const testDocs = {
+          'A': { a: 1 },
+          'a': { a: 1 },
+          'Aa': { a: 1 },
+          '7': { a: 1 },
+          '12': { a: 1 },
+          '__id7__': { a: 1 },
+          '__id12__': { a: 1 },
+          '__id-2__': { a: 1 },
+          '_id1__': { a: 1 },
+          '__id1_': { a: 1 },
+          '__id': { a: 1 },
+          // largest long numbers
+          '__id9223372036854775807__': { a: 1 },
+          '__id9223372036854775806__': { a: 1 },
+          // smallest long numbers
+          '__id-9223372036854775808__': { a: 1 },
+          '__id-9223372036854775807__': { a: 1 }
+        };
+
+        return withTestCollection(
+          persistence,
+          testDocs,
+          async collectionRef => {
+            const orderedQuery = query(collectionRef, orderBy(documentId()));
+            let expectedDocs = [
+              '__id-9223372036854775808__',
+              '__id-9223372036854775807__',
+              '__id-2__',
+              '__id7__',
+              '__id12__',
+              '__id9223372036854775806__',
+              '__id9223372036854775807__',
+              '12',
+              '7',
+              'A',
+              'Aa',
+              '__id',
+              '__id1_',
+              '_id1__',
+              'a'
+            ];
+            await checkOnlineAndOfflineResultsMatch(
+              orderedQuery,
+              ...expectedDocs
+            );
+
+            const filteredQuery = query(
+              collectionRef,
+              orderBy(documentId()),
+              where(documentId(), '>', '__id7__'),
+              where(documentId(), '<=', 'Aa')
+            );
+            expectedDocs = [
+              '__id12__',
+              '__id9223372036854775806__',
+              '__id9223372036854775807__',
+              '12',
+              '7',
+              'A',
+              'Aa'
+            ];
+            await checkOnlineAndOfflineResultsMatch(
+              filteredQuery,
+              ...expectedDocs
+            );
+          }
+        );
+      });
+    });
+  });
+
+  describe('Sort unicode strings', () => {
+    const expectedDocs = [
+      'b',
+      'a',
+      'h',
+      'i',
+      'c',
+      'f',
+      'e',
+      'd',
+      'g',
+      'k',
+      'j'
+    ];
+    it('snapshot listener sorts unicode strings the same as server', async () => {
+      const testDocs = {
+        'a': { value: 'Łukasiewicz' },
+        'b': { value: 'Sierpiński' },
+        'c': { value: '岩澤' },
+        'd': { value: '🄟' },
+        'e': { value: 'Ｐ' },
+        'f': { value: '︒' },
+        'g': { value: '🐵' },
+        'h': { value: '你好' },
+        'i': { value: '你顥' },
+        'j': { value: '😁' },
+        'k': { value: '😀' }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const orderedQuery = query(collectionRef, orderBy('value'));
+
+        const getSnapshot = await getDocsFromServer(orderedQuery);
+        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+
+        unsubscribe();
+
+        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+      });
+    });
+
+    it('snapshot listener sorts unicode strings in array the same  as server', async () => {
+      const testDocs = {
+        'a': { value: ['Łukasiewicz'] },
+        'b': { value: ['Sierpiński'] },
+        'c': { value: ['岩澤'] },
+        'd': { value: ['🄟'] },
+        'e': { value: ['Ｐ'] },
+        'f': { value: ['︒'] },
+        'g': { value: ['🐵'] },
+        'h': { value: ['你好'] },
+        'i': { value: ['你顥'] },
+        'j': { value: ['😁'] },
+        'k': { value: ['😀'] }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const orderedQuery = query(collectionRef, orderBy('value'));
+
+        const getSnapshot = await getDocsFromServer(orderedQuery);
+        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+
+        unsubscribe();
+
+        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+      });
+    });
+
+    it('snapshot listener sorts unicode strings in map the same as server', async () => {
+      const testDocs = {
+        'a': { value: { foo: 'Łukasiewicz' } },
+        'b': { value: { foo: 'Sierpiński' } },
+        'c': { value: { foo: '岩澤' } },
+        'd': { value: { foo: '🄟' } },
+        'e': { value: { foo: 'Ｐ' } },
+        'f': { value: { foo: '︒' } },
+        'g': { value: { foo: '🐵' } },
+        'h': { value: { foo: '你好' } },
+        'i': { value: { foo: '你顥' } },
+        'j': { value: { foo: '😁' } },
+        'k': { value: { foo: '😀' } }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const orderedQuery = query(collectionRef, orderBy('value'));
+
+        const getSnapshot = await getDocsFromServer(orderedQuery);
+        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+
+        unsubscribe();
+
+        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+      });
+    });
+
+    it('snapshot listener sorts unicode strings in map key the same as server', async () => {
+      const testDocs = {
+        'a': { value: { 'Łukasiewicz': true } },
+        'b': { value: { 'Sierpiński': true } },
+        'c': { value: { '岩澤': true } },
+        'd': { value: { '🄟': true } },
+        'e': { value: { 'Ｐ': true } },
+        'f': { value: { '︒': true } },
+        'g': { value: { '🐵': true } },
+        'h': { value: { '你好': true } },
+        'i': { value: { '你顥': true } },
+        'j': { value: { '😁': true } },
+        'k': { value: { '😀': true } }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const orderedQuery = query(collectionRef, orderBy('value'));
+
+        const getSnapshot = await getDocsFromServer(orderedQuery);
+        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+
+        unsubscribe();
+
+        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+      });
+    });
+
+    it('snapshot listener sorts unicode strings in document key the same as server', async () => {
+      const testDocs = {
+        'Łukasiewicz': { value: true },
+        'Sierpiński': { value: true },
+        '岩澤': { value: true },
+        '🄟': { value: true },
+        'Ｐ': { value: true },
+        '︒': { value: true },
+        '🐵': { value: true },
+        '你好': { value: true },
+        '你顥': { value: true },
+        '😁': { value: true },
+        '😀': { value: true }
+      };
+
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const orderedQuery = query(collectionRef, orderBy(documentId()));
+
+        const getSnapshot = await getDocsFromServer(orderedQuery);
+        const expectedDocs = [
+          'Sierpiński',
+          'Łukasiewicz',
+          '你好',
+          '你顥',
+          '岩澤',
+          '︒',
+          'Ｐ',
+          '🄟',
+          '🐵',
+          '😀',
+          '😁'
+        ];
+        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+
+        unsubscribe();
+
+        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+      });
+    });
+
+    // eslint-disable-next-line no-restricted-properties
+    (persistence.storage === 'indexeddb' ? it.skip : it)(
+      'snapshot listener sorts unicode strings in document key the same as server with persistence',
+      async () => {
+        const testDocs = {
+          'Łukasiewicz': { value: true },
+          'Sierpiński': { value: true },
+          '岩澤': { value: true },
+          '🄟': { value: true },
+          'Ｐ': { value: true },
+          '︒': { value: true },
+          '🐵': { value: true },
+          '你好': { value: true },
+          '你顥': { value: true },
+          '😁': { value: true },
+          '😀': { value: true }
+        };
+
+        return withTestCollection(
+          persistence,
+          testDocs,
+          async collectionRef => {
+            const orderedQuery = query(collectionRef, orderBy('value'));
+
+            const getSnapshot = await getDocsFromServer(orderedQuery);
+            expect(toIds(getSnapshot)).to.deep.equal([
+              'Sierpiński',
+              'Łukasiewicz',
+              '你好',
+              '你顥',
+              '岩澤',
+              '︒',
+              'Ｐ',
+              '🄟',
+              '🐵',
+              '😀',
+              '😁'
+            ]);
+
+            const storeEvent = new EventsAccumulator<QuerySnapshot>();
+            const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+            const watchSnapshot = await storeEvent.awaitEvent();
+            // TODO: IndexedDB sorts string lexicographically, and misses the document with ID '🄟','🐵'
+            expect(toIds(watchSnapshot)).to.deep.equal(toIds(getSnapshot));
+
+            unsubscribe();
+          }
+        );
+      }
+    );
   });
 });

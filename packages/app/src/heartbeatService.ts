@@ -33,10 +33,10 @@ import {
   HeartbeatStorage,
   SingleDateHeartbeat
 } from './types';
+import { logger } from './logger';
 
 const MAX_HEADER_BYTES = 1024;
-// 30 days
-const STORED_HEARTBEAT_RETENTION_MAX_MILLIS = 30 * 24 * 60 * 60 * 1000;
+export const MAX_NUM_STORED_HEARTBEATS = 30;
 
 export class HeartbeatServiceImpl implements HeartbeatService {
   /**
@@ -59,7 +59,7 @@ export class HeartbeatServiceImpl implements HeartbeatService {
   /**
    * the initialization promise for populating heartbeatCache.
    * If getHeartbeatsHeader() is called before the promise resolves
-   * (hearbeatsCache == null), it should wait for this promise
+   * (heartbeatsCache == null), it should wait for this promise
    * Leave public for easier testing.
    */
   _heartbeatsCachePromise: Promise<HeartbeatsInIndexedDB>;
@@ -80,43 +80,51 @@ export class HeartbeatServiceImpl implements HeartbeatService {
    * already logged, subsequent calls to this function in the same day will be ignored.
    */
   async triggerHeartbeat(): Promise<void> {
-    const platformLogger = this.container
-      .getProvider('platform-logger')
-      .getImmediate();
+    try {
+      const platformLogger = this.container
+        .getProvider('platform-logger')
+        .getImmediate();
 
-    // This is the "Firebase user agent" string from the platform logger
-    // service, not the browser user agent.
-    const agent = platformLogger.getPlatformInfoString();
-    const date = getUTCDateString();
-    if (this._heartbeatsCache?.heartbeats == null) {
-      this._heartbeatsCache = await this._heartbeatsCachePromise;
-      // If we failed to construct a heartbeats cache, then return immediately.
+      // This is the "Firebase user agent" string from the platform logger
+      // service, not the browser user agent.
+      const agent = platformLogger.getPlatformInfoString();
+      const date = getUTCDateString();
       if (this._heartbeatsCache?.heartbeats == null) {
+        this._heartbeatsCache = await this._heartbeatsCachePromise;
+        // If we failed to construct a heartbeats cache, then return immediately.
+        if (this._heartbeatsCache?.heartbeats == null) {
+          return;
+        }
+      }
+      // Do not store a heartbeat if one is already stored for this day
+      // or if a header has already been sent today.
+      if (
+        this._heartbeatsCache.lastSentHeartbeatDate === date ||
+        this._heartbeatsCache.heartbeats.some(
+          singleDateHeartbeat => singleDateHeartbeat.date === date
+        )
+      ) {
         return;
+      } else {
+        // There is no entry for this date. Create one.
+        this._heartbeatsCache.heartbeats.push({ date, agent });
+
+        // If the number of stored heartbeats exceeds the maximum number of stored heartbeats, remove the heartbeat with the earliest date.
+        // Since this is executed each time a heartbeat is pushed, the limit can only be exceeded by one, so only one needs to be removed.
+        if (
+          this._heartbeatsCache.heartbeats.length > MAX_NUM_STORED_HEARTBEATS
+        ) {
+          const earliestHeartbeatIdx = getEarliestHeartbeatIdx(
+            this._heartbeatsCache.heartbeats
+          );
+          this._heartbeatsCache.heartbeats.splice(earliestHeartbeatIdx, 1);
+        }
       }
+
+      return this._storage.overwrite(this._heartbeatsCache);
+    } catch (e) {
+      logger.warn(e);
     }
-    // Do not store a heartbeat if one is already stored for this day
-    // or if a header has already been sent today.
-    if (
-      this._heartbeatsCache.lastSentHeartbeatDate === date ||
-      this._heartbeatsCache.heartbeats.some(
-        singleDateHeartbeat => singleDateHeartbeat.date === date
-      )
-    ) {
-      return;
-    } else {
-      // There is no entry for this date. Create one.
-      this._heartbeatsCache.heartbeats.push({ date, agent });
-    }
-    // Remove entries older than 30 days.
-    this._heartbeatsCache.heartbeats = this._heartbeatsCache.heartbeats.filter(
-      singleDateHeartbeat => {
-        const hbTimestamp = new Date(singleDateHeartbeat.date).valueOf();
-        const now = Date.now();
-        return now - hbTimestamp <= STORED_HEARTBEAT_RETENTION_MAX_MILLIS;
-      }
-    );
-    return this._storage.overwrite(this._heartbeatsCache);
   }
 
   /**
@@ -127,39 +135,44 @@ export class HeartbeatServiceImpl implements HeartbeatService {
    * returns an empty string.
    */
   async getHeartbeatsHeader(): Promise<string> {
-    if (this._heartbeatsCache === null) {
-      await this._heartbeatsCachePromise;
-    }
-    // If it's still null or the array is empty, there is no data to send.
-    if (
-      this._heartbeatsCache?.heartbeats == null ||
-      this._heartbeatsCache.heartbeats.length === 0
-    ) {
+    try {
+      if (this._heartbeatsCache === null) {
+        await this._heartbeatsCachePromise;
+      }
+      // If it's still null or the array is empty, there is no data to send.
+      if (
+        this._heartbeatsCache?.heartbeats == null ||
+        this._heartbeatsCache.heartbeats.length === 0
+      ) {
+        return '';
+      }
+      const date = getUTCDateString();
+      // Extract as many heartbeats from the cache as will fit under the size limit.
+      const { heartbeatsToSend, unsentEntries } = extractHeartbeatsForHeader(
+        this._heartbeatsCache.heartbeats
+      );
+      const headerString = base64urlEncodeWithoutPadding(
+        JSON.stringify({ version: 2, heartbeats: heartbeatsToSend })
+      );
+      // Store last sent date to prevent another being logged/sent for the same day.
+      this._heartbeatsCache.lastSentHeartbeatDate = date;
+      if (unsentEntries.length > 0) {
+        // Store any unsent entries if they exist.
+        this._heartbeatsCache.heartbeats = unsentEntries;
+        // This seems more likely than emptying the array (below) to lead to some odd state
+        // since the cache isn't empty and this will be called again on the next request,
+        // and is probably safest if we await it.
+        await this._storage.overwrite(this._heartbeatsCache);
+      } else {
+        this._heartbeatsCache.heartbeats = [];
+        // Do not wait for this, to reduce latency.
+        void this._storage.overwrite(this._heartbeatsCache);
+      }
+      return headerString;
+    } catch (e) {
+      logger.warn(e);
       return '';
     }
-    const date = getUTCDateString();
-    // Extract as many heartbeats from the cache as will fit under the size limit.
-    const { heartbeatsToSend, unsentEntries } = extractHeartbeatsForHeader(
-      this._heartbeatsCache.heartbeats
-    );
-    const headerString = base64urlEncodeWithoutPadding(
-      JSON.stringify({ version: 2, heartbeats: heartbeatsToSend })
-    );
-    // Store last sent date to prevent another being logged/sent for the same day.
-    this._heartbeatsCache.lastSentHeartbeatDate = date;
-    if (unsentEntries.length > 0) {
-      // Store any unsent entries if they exist.
-      this._heartbeatsCache.heartbeats = unsentEntries;
-      // This seems more likely than emptying the array (below) to lead to some odd state
-      // since the cache isn't empty and this will be called again on the next request,
-      // and is probably safest if we await it.
-      await this._storage.overwrite(this._heartbeatsCache);
-    } else {
-      this._heartbeatsCache.heartbeats = [];
-      // Do not wait for this, to reduce latency.
-      void this._storage.overwrite(this._heartbeatsCache);
-    }
-    return headerString;
   }
 }
 
@@ -293,4 +306,28 @@ export function countBytes(heartbeatsCache: HeartbeatsByUserAgent[]): number {
     // heartbeatsCache wrapper properties
     JSON.stringify({ version: 2, heartbeats: heartbeatsCache })
   ).length;
+}
+
+/**
+ * Returns the index of the heartbeat with the earliest date.
+ * If the heartbeats array is empty, -1 is returned.
+ */
+export function getEarliestHeartbeatIdx(
+  heartbeats: SingleDateHeartbeat[]
+): number {
+  if (heartbeats.length === 0) {
+    return -1;
+  }
+
+  let earliestHeartbeatIdx = 0;
+  let earliestHeartbeatDate = heartbeats[0].date;
+
+  for (let i = 1; i < heartbeats.length; i++) {
+    if (heartbeats[i].date < earliestHeartbeatDate) {
+      earliestHeartbeatDate = heartbeats[i].date;
+      earliestHeartbeatIdx = i;
+    }
+  }
+
+  return earliestHeartbeatIdx;
 }

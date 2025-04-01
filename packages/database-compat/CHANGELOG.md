@@ -1,5 +1,105 @@
 # @firebase/database-compat
 
+## 2.0.5
+
+### Patch Changes
+
+- [`113c965`](https://github.com/firebase/firebase-js-sdk/commit/113c965a34d9d7219d236f1b2cb62029e0f80fda) [#8800](https://github.com/firebase/firebase-js-sdk/pull/8800) - Added non-null parent properties to ThenableReference
+
+- Updated dependencies [[`113c965`](https://github.com/firebase/firebase-js-sdk/commit/113c965a34d9d7219d236f1b2cb62029e0f80fda)]:
+  - @firebase/database-types@1.0.10
+  - @firebase/database@1.0.14
+
+## 2.0.4
+
+### Patch Changes
+
+- [`b3e68ca`](https://github.com/firebase/firebase-js-sdk/commit/b3e68ca410d9b984736780098330bd6b8ee2e997) [#8769](https://github.com/firebase/firebase-js-sdk/pull/8769) - Fixed: invoking `connectDatabaseEmulator` multiple times with the same parameters will no longer
+  cause an error. Fixes [GitHub Issue #6824](https://github.com/firebase/firebase-js-sdk/issues/6824).
+- Updated dependencies [[`b3e68ca`](https://github.com/firebase/firebase-js-sdk/commit/b3e68ca410d9b984736780098330bd6b8ee2e997), [`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5)]:
+  - @firebase/database@1.0.13
+  - @firebase/util@1.11.0
+  - @firebase/component@0.6.13
+  - @firebase/database-types@1.0.9
+
+## 2.0.3
+
+### Patch Changes
+
+- Updated dependencies [[`01f36ea`](https://github.com/firebase/firebase-js-sdk/commit/01f36ea41011fdd6ec77e4b1a799193bef58aa91), [`97d48c7`](https://github.com/firebase/firebase-js-sdk/commit/97d48c7650e2d4273b7f94c8964dfcb44113952a)]:
+  - @firebase/database@1.0.12
+
+## 2.0.2
+
+### Patch Changes
+
+- Updated dependencies [[`25a6204c1`](https://github.com/firebase/firebase-js-sdk/commit/25a6204c1531b6c772e5368d12b2411ae1d21bbc)]:
+  - @firebase/util@1.10.3
+  - @firebase/component@0.6.12
+  - @firebase/database@1.0.11
+  - @firebase/database-types@1.0.8
+
+## 2.0.1
+
+### Patch Changes
+
+- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
+
+- Updated dependencies [[`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1)]:
+  - @firebase/component@0.6.11
+  - @firebase/database@1.0.10
+  - @firebase/database-types@1.0.7
+  - @firebase/logger@0.4.4
+  - @firebase/util@1.10.2
+
+## 2.0.0
+
+### Major Changes
+
+- [`0f5a9aad0`](https://github.com/firebase/firebase-js-sdk/commit/0f5a9aad0936af4c2df50d083db73306ebe069bc) [#8586](https://github.com/firebase/firebase-js-sdk/pull/8586) - Set required version of Node to >=18.
+
+## 1.0.9
+
+### Patch Changes
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Remove ES5 bundles. The minimum required ES version is now ES2017.
+
+- Updated dependencies [[`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702)]:
+  - @firebase/component@0.6.10
+  - @firebase/database@1.0.9
+  - @firebase/logger@0.4.3
+  - @firebase/util@1.10.1
+  - @firebase/database-types@1.0.6
+
+## 1.0.8
+
+### Patch Changes
+
+- Updated dependencies [[`16d62d4fa`](https://github.com/firebase/firebase-js-sdk/commit/16d62d4fa16faddb8cb676c0af3f29b8a5824741)]:
+  - @firebase/util@1.10.0
+  - @firebase/component@0.6.9
+  - @firebase/database@1.0.8
+  - @firebase/database-types@1.0.5
+
+## 1.0.7
+
+### Patch Changes
+
+- [`025f2a103`](https://github.com/firebase/firebase-js-sdk/commit/025f2a1037582da7d1afeb7a4d143cb7a154ec9d) [#8280](https://github.com/firebase/firebase-js-sdk/pull/8280) (fixes [#8279](https://github.com/firebase/firebase-js-sdk/issues/8279)) - Fixed typos in documentation and some internal variables and parameters.
+
+- Updated dependencies [[`025f2a103`](https://github.com/firebase/firebase-js-sdk/commit/025f2a1037582da7d1afeb7a4d143cb7a154ec9d)]:
+  - @firebase/database@1.0.7
+
+## 1.0.6
+
+### Patch Changes
+
+- Updated dependencies [[`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558)]:
+  - @firebase/util@1.9.7
+  - @firebase/component@0.6.8
+  - @firebase/database@1.0.6
+  - @firebase/database-types@1.0.4
+
 ## 1.0.5
 
 ### Patch Changes

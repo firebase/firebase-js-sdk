@@ -1,17 +1,15 @@
 {
   "name": "@firebase/app-check-compat",
-  "version": "0.3.11",
+  "version": "0.3.20",
   "description": "A compat App Check package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "browser": "dist/esm/index.esm2017.js",
   "module": "dist/esm/index.esm2017.js",
-  "esm5": "dist/esm/index.esm.js",
   "exports": {
     ".": {
       "types": "./dist/src/index.d.ts",
       "require": "./dist/index.cjs.js",
-      "esm5": "./dist/esm/index.esm.js",
       "default": "./dist/esm/index.esm2017.js"
     },
     "./package.json": "./package.json"
@@ -28,7 +26,7 @@
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
-    "test:browser": "karma start --single-run --nocache",
+    "test:browser": "karma start --nocache",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../app-check/dist/app-check-public.d.ts -o dist/src/index.d.ts -a -r AppCheck:FirebaseAppCheck -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/app-check"
   },
@@ -36,22 +34,22 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/app-check": "0.8.4",
-    "@firebase/app-check-types": "0.5.2",
-    "@firebase/logger": "0.4.2",
-    "@firebase/util": "1.9.6",
-    "@firebase/component": "0.6.7",
+    "@firebase/app-check": "0.8.13",
+    "@firebase/app-check-types": "0.5.3",
+    "@firebase/logger": "0.4.4",
+    "@firebase/util": "1.11.0",
+    "@firebase/component": "0.6.13",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app-compat": "0.2.35",
-    "rollup": "2.79.1",
+    "@firebase/app-compat": "0.2.53",
+    "rollup": "2.79.2",
     "@rollup/plugin-commonjs": "21.1.0",
-    "@rollup/plugin-json": "4.1.0",
-    "@rollup/plugin-node-resolve": "13.3.0",
-    "rollup-plugin-typescript2": "0.31.2",
-    "typescript": "4.7.4"
+    "@rollup/plugin-json": "6.1.0",
+    "@rollup/plugin-node-resolve": "16.0.0",
+    "rollup-plugin-typescript2": "0.36.0",
+    "typescript": "5.5.4"
   },
   "repository": {
     "directory": "packages/app-check",
@@ -67,5 +65,8 @@
       ".ts"
     ],
     "reportDir": "./coverage/node"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

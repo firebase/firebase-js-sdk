@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-types",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "description": "@firebase/app Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -24,6 +24,6 @@
     "@firebase/logger": "0.2.6"
   },
   "devDependencies": {
-    "typescript": "4.7.4"
+    "typescript": "5.5.4"
   }
 }

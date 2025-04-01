@@ -1,5 +1,41 @@
 # @firebase/util
 
+## 1.11.0
+
+### Minor Changes
+
+- [`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5) [#8483](https://github.com/firebase/firebase-js-sdk/pull/8483) - Add support for the `FIREBASE_WEBAPP_CONFIG` environment variable at install time.
+
+## 1.10.3
+
+### Patch Changes
+
+- [`25a6204c1`](https://github.com/firebase/firebase-js-sdk/commit/25a6204c1531b6c772e5368d12b2411ae1d21bbc) [#8600](https://github.com/firebase/firebase-js-sdk/pull/8600) (fixes [#6462](https://github.com/firebase/firebase-js-sdk/issues/6462)) - Generate UUIDs with `crypto.randomUUID()` instead of custom uuidv4 function that uses `Math.random()`.
+
+## 1.10.2
+
+### Patch Changes
+
+- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
+
+## 1.10.1
+
+### Patch Changes
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Remove ES5 bundles. The minimum required ES version is now ES2017.
+
+## 1.10.0
+
+### Minor Changes
+
+- [`16d62d4fa`](https://github.com/firebase/firebase-js-sdk/commit/16d62d4fa16faddb8cb676c0af3f29b8a5824741) [#8393](https://github.com/firebase/firebase-js-sdk/pull/8393) - Suppress the use of the `fetch` parameter `referrerPolicy` within Auth for `fetch` requests originating from Cloudflare Workers. Clouldflare Worker environments do not support this parameter and throw when it's used.
+
+## 1.9.7
+
+### Patch Changes
+
+- [`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558) [#8315](https://github.com/firebase/firebase-js-sdk/pull/8315) (fixes [#8299](https://github.com/firebase/firebase-js-sdk/issues/8299)) - fix: browser detection (detect either window or web worker)
+
 ## 1.9.6
 
 ### Patch Changes
@@ -150,7 +186,7 @@
 
 ### Patch Changes
 
-- [`b835b4cba`](https://github.com/firebase/firebase-js-sdk/commit/b835b4cbabc4b7b180ae38b908c49205ce31a422) [#5506](https://github.com/firebase/firebase-js-sdk/pull/5506) - areCookiesEnabled could encounter runtime errors in certain enviornments
+- [`b835b4cba`](https://github.com/firebase/firebase-js-sdk/commit/b835b4cbabc4b7b180ae38b908c49205ce31a422) [#5506](https://github.com/firebase/firebase-js-sdk/pull/5506) - areCookiesEnabled could encounter runtime errors in certain environments
 
 ## 1.3.0
 

@@ -115,7 +115,7 @@ review.
 * Make your changes in a new git branch:
 
   ```shell
-  git checkout -b my-fix-branch master
+  git checkout -b my-fix-branch main
   ```
 
 * Create your change, **including appropriate test cases**. Changes with tests are more likely to be
@@ -144,7 +144,7 @@ entries to the `.gitignore`).
     git push origin my-fix-branch
     ```
 
-* In GitHub, create a pull request against the `firebase-js-sdk:master` branch.
+* In GitHub, create a pull request against the `firebase-js-sdk:main` branch.
 * Add changeset. See [Adding changeset to PR](#adding-changeset-to-pr).
 * All pull requests must be reviewed by a member of the Firebase JS SDK team, who will merge it
 when/if they feel it is good to go.
@@ -206,7 +206,7 @@ Reference docs for the Firebase [JS SDK](https://firebase.google.com/docs/refere
 [Typedoc](https://typedoc.org/).
 
 Typedoc generates this documentation from the main
-[firebase index.d.ts type definition file](packages/firebase/index.d.ts).  Any updates to
+[firebase index.d.ts type definition file](packages/firebase/compat/index.d.ts).  Any updates to
 documentation should be made in that file.
 
 If any pages are added or removed by your change (by adding or removing a class or interface), the

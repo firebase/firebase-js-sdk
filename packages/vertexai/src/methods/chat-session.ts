@@ -29,6 +29,7 @@ import { formatBlockErrorMessage } from '../requests/response-helpers';
 import { validateChatHistory } from './chat-session-helpers';
 import { generateContent, generateContentStream } from './generate-content';
 import { ApiSettings } from '../types/internal';
+import { logger } from '../logger';
 
 /**
  * Do not log a message for this error.
@@ -61,8 +62,8 @@ export class ChatSession {
 
   /**
    * Gets the chat history so far. Blocked prompts are not added to history.
-   * Blocked candidates are not added to history, nor are the prompts that
-   * generated them.
+   * Neither blocked candidates nor the prompts that generated them are added
+   * to history.
    */
   async getHistory(): Promise<Content[]> {
     await this._sendPromise;
@@ -71,7 +72,7 @@ export class ChatSession {
 
   /**
    * Sends a chat message and receives a non-streaming
-   * {@link GenerateContentResult}
+   * <code>{@link GenerateContentResult}</code>
    */
   async sendMessage(
     request: string | Array<string | Part>
@@ -112,7 +113,7 @@ export class ChatSession {
         } else {
           const blockErrorMessage = formatBlockErrorMessage(result.response);
           if (blockErrorMessage) {
-            console.warn(
+            logger.warn(
               `sendMessage() was unsuccessful. ${blockErrorMessage}. Inspect response object for details.`
             );
           }
@@ -125,7 +126,7 @@ export class ChatSession {
 
   /**
    * Sends a chat message and receives the response as a
-   * {@link GenerateContentStreamResult} containing an iterable stream
+   * <code>{@link GenerateContentStreamResult}</code> containing an iterable stream
    * and a response promise.
    */
   async sendMessageStream(
@@ -169,7 +170,7 @@ export class ChatSession {
         } else {
           const blockErrorMessage = formatBlockErrorMessage(response);
           if (blockErrorMessage) {
-            console.warn(
+            logger.warn(
               `sendMessageStream() was unsuccessful. ${blockErrorMessage}. Inspect response object for details.`
             );
           }
@@ -182,7 +183,7 @@ export class ChatSession {
         if (e.message !== SILENT_ERROR) {
           // Users do not have access to _sendPromise to catch errors
           // downstream from streamPromise, so they should not throw.
-          console.error(e);
+          logger.error(e);
         }
       });
     return streamPromise;

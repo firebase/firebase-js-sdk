@@ -1,12 +1,12 @@
 {
   "name": "@firebase/rules-unit-testing",
-  "version": "3.0.3",
+  "version": "4.0.1",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./dist/rules-unit-testing/index.d.ts",
       "node": {
         "import": "./dist/esm/index.esm.js",
         "require": "./dist/index.cjs.js"
@@ -20,7 +20,7 @@
     "./package.json": "./package.json"
   },
   "engines": {
-    "node": ">=10.10.0"
+    "node": ">=18.0.0"
   },
   "files": [
     "dist"
@@ -39,23 +39,19 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "rollup": "2.79.1",
-    "rollup-plugin-typescript2": "0.31.2"
+    "rollup": "2.79.2",
+    "rollup-plugin-typescript2": "0.36.0"
   },
   "peerDependencies": {
-    "firebase": "^10.0.0"
+    "firebase": "^11.0.0"
   },
   "repository": {
     "directory": "packages/rules-unit-testing",
     "type": "git",
     "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
-  "typings": "dist/index.d.ts",
+  "typings": "dist/rules-unit-testing/index.d.ts",
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
-  },
-  "dependencies": {
-    "node-fetch": "2.6.7",
-    "@types/node-fetch": "2.6.4"
   }
 }

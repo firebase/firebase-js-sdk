@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import { FirebaseApp } from '@firebase/app';
-import { FirebaseError } from '@firebase/util';
 
 /**
  * An `HttpsCallableResult` wraps a single result from a function call.
@@ -29,13 +28,33 @@ export interface HttpsCallableResult<ResponseData = unknown> {
 }
 
 /**
- * A reference to a "callable" HTTP trigger in Google Cloud Functions.
+ * An `HttpsCallableStreamResult` wraps a single streaming result from a function call.
+ * @public
+ */
+export interface HttpsCallableStreamResult<
+  ResponseData = unknown,
+  StreamData = unknown
+> {
+  readonly data: Promise<ResponseData>;
+  readonly stream: AsyncIterable<StreamData>;
+}
+
+/**
+ * A reference to a "callable" HTTP trigger in Cloud Functions.
  * @param data - Data to be passed to callable function.
  * @public
  */
-export type HttpsCallable<RequestData = unknown, ResponseData = unknown> = (
-  data?: RequestData | null
-) => Promise<HttpsCallableResult<ResponseData>>;
+export interface HttpsCallable<
+  RequestData = unknown,
+  ResponseData = unknown,
+  StreamData = unknown
+> {
+  (data?: RequestData | null): Promise<HttpsCallableResult<ResponseData>>;
+  stream: (
+    data?: RequestData | null,
+    options?: HttpsCallableStreamOptions
+  ) => Promise<HttpsCallableStreamResult<ResponseData, StreamData>>;
+}
 
 /**
  * An interface for metadata about how calls should be executed.
@@ -48,7 +67,25 @@ export interface HttpsCallableOptions {
    */
   timeout?: number;
   /**
-   * If set to true, uses limited-use App Check token for callable function requests from this
+   * If set to true, uses a limited-use App Check token for callable function requests from this
+   * instance of {@link Functions}. You must use limited-use tokens to call functions with
+   * replay protection enabled. By default, this is false.
+   */
+  limitedUseAppCheckTokens?: boolean;
+}
+
+/**
+ * An interface for metadata about how a stream call should be executed.
+ * @public
+ */
+export interface HttpsCallableStreamOptions {
+  /**
+   * An `AbortSignal` that can be used to cancel the streaming response. When the signal is aborted,
+   * the underlying HTTP connection will be terminated.
+   */
+  signal?: AbortSignal;
+  /**
+   * If set to true, uses a limited-use App Check token for callable function requests from this
    * instance of {@link Functions}. You must use limited-use tokens to call functions with
    * replay protection enabled. By default, this is false.
    */
@@ -143,23 +180,6 @@ export type FunctionsErrorCodeCore =
  * @public
  */
 export type FunctionsErrorCode = `functions/${FunctionsErrorCodeCore}`;
-
-/**
- * An error returned by the Firebase Functions client SDK.
- * @public
- */
-export interface FunctionsError extends FirebaseError {
-  /**
-   * A standard error code that will be returned to the client. This also
-   * determines the HTTP status code of the response, as defined in code.proto.
-   */
-  readonly code: FunctionsErrorCode;
-
-  /**
-   * Extra data to be converted to JSON and included in the error response.
-   */
-  readonly details?: unknown;
-}
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

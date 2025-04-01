@@ -17,7 +17,7 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 |  Function | Description |
 |  --- | --- |
 |  <b>function(app, ...)</b> |
-|  [getRemoteConfig(app)](./remote-config.md#getremoteconfig_cf608e1) |  |
+|  [getRemoteConfig(app, options)](./remote-config.md#getremoteconfig_61d368f) |  |
 |  <b>function(remoteConfig, ...)</b> |
 |  [activate(remoteConfig)](./remote-config.md#activate_722a192) | Makes the last fetched config available to the getters. |
 |  [ensureInitialized(remoteConfig)](./remote-config.md#ensureinitialized_722a192) | Ensures the last activated config are available to the getters. |
@@ -28,6 +28,7 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 |  [getNumber(remoteConfig, key)](./remote-config.md#getnumber_476c09f) | Gets the value for the given key as a number.<!-- -->Convenience method for calling <code>remoteConfig.getValue(key).asNumber()</code>. |
 |  [getString(remoteConfig, key)](./remote-config.md#getstring_476c09f) | Gets the value for the given key as a string. Convenience method for calling <code>remoteConfig.getValue(key).asString()</code>. |
 |  [getValue(remoteConfig, key)](./remote-config.md#getvalue_476c09f) | Gets the [Value](./remote-config.value.md#value_interface) for the given key. |
+|  [setCustomSignals(remoteConfig, customSignals)](./remote-config.md#setcustomsignals_aeeb95e) | Sets the custom signals for the app instance. |
 |  [setLogLevel(remoteConfig, logLevel)](./remote-config.md#setloglevel_039a45b) | Defines the log level to use. |
 |  <b>function()</b> |
 |  [isSupported()](./remote-config.md#issupported) | This method provides two different checks:<!-- -->1. Check if IndexedDB exists in the browser environment. 2. Check if the current browser context allows IndexedDB <code>open()</code> calls. |
@@ -36,7 +37,11 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 
 |  Interface | Description |
 |  --- | --- |
+|  [CustomSignals](./remote-config.customsignals.md#customsignals_interface) | Defines the type for representing custom signals and their values.<p>The values in CustomSignals must be one of the following types:<ul> <li><code>string</code> <li><code>number</code> <li><code>null</code> </ul> |
+|  [FetchResponse](./remote-config.fetchresponse.md#fetchresponse_interface) | Defines a successful response (200 or 304).<p>Modeled after the native <code>Response</code> interface, but simplified for Remote Config's use case. |
+|  [FirebaseRemoteConfigObject](./remote-config.firebaseremoteconfigobject.md#firebaseremoteconfigobject_interface) | Defines a self-descriptive reference for config key-value pairs. |
 |  [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) | The Firebase Remote Config service interface. |
+|  [RemoteConfigOptions](./remote-config.remoteconfigoptions.md#remoteconfigoptions_interface) | Options for Remote Config initialization. |
 |  [RemoteConfigSettings](./remote-config.remoteconfigsettings.md#remoteconfigsettings_interface) | Defines configuration options for the Remote Config SDK. |
 |  [Value](./remote-config.value.md#value_interface) | Wraps a value with metadata and type-safe getters. |
 
@@ -50,12 +55,12 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 
 ## function(app, ...)
 
-### getRemoteConfig(app) {:#getremoteconfig_cf608e1}
+### getRemoteConfig(app, options) {:#getremoteconfig_61d368f}
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getRemoteConfig(app?: FirebaseApp): RemoteConfig;
+export declare function getRemoteConfig(app?: FirebaseApp, options?: RemoteConfigOptions): RemoteConfig;
 ```
 
 #### Parameters
@@ -63,6 +68,7 @@ export declare function getRemoteConfig(app?: FirebaseApp): RemoteConfig;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance. |
+|  options | [RemoteConfigOptions](./remote-config.remoteconfigoptions.md#remoteconfigoptions_interface) | Optional. The [RemoteConfigOptions](./remote-config.remoteconfigoptions.md#remoteconfigoptions_interface) with which to instantiate the Remote Config instance. |
 
 <b>Returns:</b>
 
@@ -276,6 +282,27 @@ export declare function getValue(remoteConfig: RemoteConfig, key: string): Value
 
 The value for the given key.
 
+### setCustomSignals(remoteConfig, customSignals) {:#setcustomsignals_aeeb95e}
+
+Sets the custom signals for the app instance.
+
+<b>Signature:</b>
+
+```typescript
+export declare function setCustomSignals(remoteConfig: RemoteConfig, customSignals: CustomSignals): Promise<void>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) | The [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) instance. |
+|  customSignals | [CustomSignals](./remote-config.customsignals.md#customsignals_interface) | Map (key, value) of the custom signals to be set for the app instance. If a key already exists, the value is overwritten. Setting the value of a custom signal to null unsets the signal. The signals will be persisted locally on the client. |
+
+<b>Returns:</b>
+
+Promise&lt;void&gt;
+
 ### setLogLevel(remoteConfig, logLevel) {:#setloglevel_039a45b}
 
 Defines the log level to use.
@@ -325,7 +352,7 @@ Summarizes the outcome of the last attempt to fetch config from the Firebase Rem
 <b>Signature:</b>
 
 ```typescript
-export declare type FetchStatus = 'no-fetch-yet' | 'success' | 'failure' | 'throttle';
+export type FetchStatus = 'no-fetch-yet' | 'success' | 'failure' | 'throttle';
 ```
 
 ## LogLevel
@@ -335,7 +362,7 @@ Defines levels of Remote Config logging.
 <b>Signature:</b>
 
 ```typescript
-export declare type LogLevel = 'debug' | 'error' | 'silent';
+export type LogLevel = 'debug' | 'error' | 'silent';
 ```
 
 ## ValueSource
@@ -347,5 +374,5 @@ Indicates the source of a value.
 <b>Signature:</b>
 
 ```typescript
-export declare type ValueSource = 'static' | 'default' | 'remote';
+export type ValueSource = 'static' | 'default' | 'remote';
 ```

@@ -568,7 +568,10 @@ export function onDisconnect(ref: DatabaseReference): OnDisconnect {
 
 export interface ThenableReferenceImpl
   extends ReferenceImpl,
-    Pick<Promise<ReferenceImpl>, 'then' | 'catch'> {}
+    Pick<Promise<ReferenceImpl>, 'then' | 'catch'> {
+  key: string;
+  parent: ReferenceImpl;
+}
 
 /**
  * Generates a new child location using a unique key and returns its
@@ -609,7 +612,7 @@ export function push(
   // then() and catch() methods and is used as the return value of push(). The
   // second remains a regular Reference and is used as the fulfilled value of
   // the first ThennableReference.
-  const thennablePushRef: Partial<ThenableReferenceImpl> = child(
+  const thenablePushRef: Partial<ThenableReferenceImpl> = child(
     parent,
     name
   ) as ReferenceImpl;
@@ -622,9 +625,9 @@ export function push(
     promise = Promise.resolve(pushRef);
   }
 
-  thennablePushRef.then = promise.then.bind(promise);
-  thennablePushRef.catch = promise.then.bind(promise, undefined);
-  return thennablePushRef as ThenableReferenceImpl;
+  thenablePushRef.then = promise.then.bind(promise);
+  thenablePushRef.catch = promise.then.bind(promise, undefined);
+  return thenablePushRef as ThenableReferenceImpl;
 }
 
 /**

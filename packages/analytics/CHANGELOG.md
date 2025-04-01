@@ -1,5 +1,77 @@
 # @firebase/analytics
 
+## 0.10.12
+
+### Patch Changes
+
+- Updated dependencies [[`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5)]:
+  - @firebase/util@1.11.0
+  - @firebase/installations@0.6.13
+  - @firebase/component@0.6.13
+
+## 0.10.11
+
+### Patch Changes
+
+- Updated dependencies [[`25a6204c1`](https://github.com/firebase/firebase-js-sdk/commit/25a6204c1531b6c772e5368d12b2411ae1d21bbc)]:
+  - @firebase/util@1.10.3
+  - @firebase/component@0.6.12
+  - @firebase/installations@0.6.12
+
+## 0.10.10
+
+### Patch Changes
+
+- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
+
+- Updated dependencies [[`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1)]:
+  - @firebase/component@0.6.11
+  - @firebase/installations@0.6.11
+  - @firebase/logger@0.4.4
+  - @firebase/util@1.10.2
+
+## 0.10.9
+
+### Patch Changes
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Remove ES5 bundles. The minimum required ES version is now ES2017.
+
+- Updated dependencies [[`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702)]:
+  - @firebase/installations@0.6.10
+  - @firebase/component@0.6.10
+  - @firebase/logger@0.4.3
+  - @firebase/util@1.10.1
+
+## 0.10.8
+
+### Patch Changes
+
+- Updated dependencies [[`16d62d4fa`](https://github.com/firebase/firebase-js-sdk/commit/16d62d4fa16faddb8cb676c0af3f29b8a5824741)]:
+  - @firebase/util@1.10.0
+  - @firebase/component@0.6.9
+  - @firebase/installations@0.6.9
+
+## 0.10.7
+
+### Patch Changes
+
+- [`a9f844066`](https://github.com/firebase/firebase-js-sdk/commit/a9f844066045d8567ae143bae77d184ac227690d) [#8395](https://github.com/firebase/firebase-js-sdk/pull/8395) - Revert introduction of safevalues to prevent issues from arising in Browser CommonJS environments due to ES5 incompatibility. For more information, see [GitHub PR #8395](https://github.com/firebase/firebase-js-sdk/pull/8395)
+
+## 0.10.6
+
+### Patch Changes
+
+- [`f58d48cd4`](https://github.com/firebase/firebase-js-sdk/commit/f58d48cd42c9f09eab4d8b2a606af360528917f8) [#8301](https://github.com/firebase/firebase-js-sdk/pull/8301) - Begin using [safevalues](https://github.com/google/safevalues) to sanitize HTML vulnerable to XSS.
+
+## 0.10.5
+
+### Patch Changes
+
+- Updated dependencies [[`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558)]:
+  - @firebase/util@1.9.7
+  - @firebase/component@0.6.8
+  - @firebase/installations@0.6.8
+
 ## 0.10.4
 
 ### Patch Changes

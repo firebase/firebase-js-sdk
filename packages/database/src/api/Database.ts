@@ -27,6 +27,7 @@ import { Provider } from '@firebase/component';
 import {
   getModularInstance,
   createMockUserToken,
+  deepEqual,
   EmulatorMockTokenOptions,
   getDefaultEmulatorHostnameAndPort
 } from '@firebase/util';
@@ -38,7 +39,7 @@ import {
   FirebaseAuthTokenProvider
 } from '../core/AuthTokenProvider';
 import { Repo, repoInterrupt, repoResume, repoStart } from '../core/Repo';
-import { RepoInfo } from '../core/RepoInfo';
+import { RepoInfo, RepoInfoEmulatorOptions } from '../core/RepoInfo';
 import { parseRepoInfo } from '../core/util/libs/parser';
 import { newEmptyPath, pathIsEmpty } from '../core/util/Path';
 import {
@@ -84,19 +85,20 @@ let useRestClient = false;
  */
 function repoManagerApplyEmulatorSettings(
   repo: Repo,
-  host: string,
-  port: number,
+  hostAndPort: string,
+  emulatorOptions: RepoInfoEmulatorOptions,
   tokenProvider?: AuthTokenProvider
 ): void {
   repo.repoInfo_ = new RepoInfo(
-    `${host}:${port}`,
+    hostAndPort,
     /* secure= */ false,
     repo.repoInfo_.namespace,
     repo.repoInfo_.webSocketOnly,
     repo.repoInfo_.nodeAdmin,
     repo.repoInfo_.persistenceKey,
     repo.repoInfo_.includeNamespaceInQueryParams,
-    /*isUsingEmulator=*/ true
+    /*isUsingEmulator=*/ true,
+    emulatorOptions
   );
 
   if (tokenProvider) {
@@ -164,7 +166,7 @@ export function repoManagerDatabaseFromApp(
     repoInfo,
     app,
     authTokenProvider,
-    new AppCheckTokenProvider(app.name, appCheckProvider)
+    new AppCheckTokenProvider(app, appCheckProvider)
   );
   return new Database(repo, app);
 }
@@ -303,10 +305,9 @@ export function forceLongPolling() {
 }
 
 /**
- * Returns the instance of the Realtime Database SDK that is associated
- * with the provided {@link @firebase/app#FirebaseApp}. Initializes a new instance with
- * with default settings if no instance exists or if the existing instance uses
- * a custom database URL.
+ * Returns the instance of the Realtime Database SDK that is associated with the provided
+ * {@link @firebase/app#FirebaseApp}. Initializes a new instance with default settings if
+ * no instance exists or if the existing instance uses a custom database URL.
  *
  * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned Realtime
  * Database instance is associated with.
@@ -351,13 +352,22 @@ export function connectDatabaseEmulator(
 ): void {
   db = getModularInstance(db);
   db._checkNotDeleted('useEmulator');
+  const hostAndPort = `${host}:${port}`;
+  const repo = db._repoInternal;
   if (db._instanceStarted) {
+    // If the instance has already been started, then silenty fail if this function is called again
+    // with the same parameters. If the parameters differ then assert.
+    if (
+      hostAndPort === db._repoInternal.repoInfo_.host &&
+      deepEqual(options, repo.repoInfo_.emulatorOptions)
+    ) {
+      return;
+    }
     fatal(
-      'Cannot call useEmulator() after instance has already been initialized.'
+      'connectDatabaseEmulator() cannot initialize or alter the emulator configuration after the database instance has started.'
     );
   }
 
-  const repo = db._repoInternal;
   let tokenProvider: EmulatorTokenProvider | undefined = undefined;
   if (repo.repoInfo_.nodeAdmin) {
     if (options.mockUserToken) {
@@ -375,7 +385,7 @@ export function connectDatabaseEmulator(
   }
 
   // Modify the repo to apply emulator settings
-  repoManagerApplyEmulatorSettings(repo, host, port, tokenProvider);
+  repoManagerApplyEmulatorSettings(repo, hostAndPort, options, tokenProvider);
 }
 
 /**

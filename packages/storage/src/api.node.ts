@@ -58,7 +58,7 @@ export function getBlob(
 export function getStream(
   ref: StorageReference,
   maxDownloadSizeBytes?: number
-): NodeJS.ReadableStream {
+): ReadableStream {
   ref = getModularInstance(ref);
   return getStreamInternal(ref as Reference, maxDownloadSizeBytes);
 }

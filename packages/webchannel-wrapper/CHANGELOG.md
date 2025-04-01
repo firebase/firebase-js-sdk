@@ -1,5 +1,23 @@
 # @firebase/webchannel-wrapper
 
+## 1.0.3
+
+### Patch Changes
+
+- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
+
+## 1.0.2
+
+### Patch Changes
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Remove ES5 bundles. The minimum required ES version is now ES2017.
+
+## 1.0.1
+
+### Patch Changes
+
+- [`b09a267ba`](https://github.com/firebase/firebase-js-sdk/commit/b09a267ba8c59d15865173844e73a92588342f61) [#8331](https://github.com/firebase/firebase-js-sdk/pull/8331) - fix: Fix a typo in the webchannel-wrapper's package.json that affected ems5 exports.
+
 ## 1.0.0
 
 ### Major Changes

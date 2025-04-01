@@ -15,14 +15,24 @@
  * limitations under the License.
  */
 
-import { Api } from './api_service';
-import { Trace } from '../resources/trace';
-import { createNetworkRequestEntry } from '../resources/network_request';
-import { TRACE_MEASURE_PREFIX } from '../constants';
-import { getIid } from './iid_service';
-import { PerformanceController } from '../controllers/perf';
+import {
+  CLSMetricWithAttribution,
+  INPMetricWithAttribution,
+  LCPMetricWithAttribution
+} from 'web-vitals/attribution';
 
-const FID_WAIT_TIME_MS = 5000;
+import { TRACE_MEASURE_PREFIX } from '../constants';
+import { PerformanceController } from '../controllers/perf';
+import { createNetworkRequestEntry } from '../resources/network_request';
+import { Trace } from '../resources/trace';
+import { WebVitalMetrics } from '../resources/web_vitals';
+
+import { Api } from './api_service';
+import { getIid } from './iid_service';
+
+let webVitalMetrics: WebVitalMetrics = {};
+let sentPageLoadTrace: boolean = false;
+let firstInputDelay: number | undefined;
 
 export function setupOobResources(
   performanceController: PerformanceController
@@ -31,8 +41,9 @@ export function setupOobResources(
   if (!getIid()) {
     return;
   }
-  // The load event might not have fired yet, and that means performance navigation timing
-  // object has a duration of 0. The setup should run after all current tasks in js queue.
+  // The load event might not have fired yet, and that means performance
+  // navigation timing object has a duration of 0. The setup should run after
+  // all current tasks in js queue.
   setTimeout(() => setupOobTraces(performanceController), 0);
   setTimeout(() => setupNetworkRequests(performanceController), 0);
   setTimeout(() => setupUserTimingTraces(performanceController), 0);
@@ -53,41 +64,46 @@ function setupNetworkRequests(
 
 function setupOobTraces(performanceController: PerformanceController): void {
   const api = Api.getInstance();
-  const navigationTimings = api.getEntriesByType(
-    'navigation'
-  ) as PerformanceNavigationTiming[];
-  const paintTimings = api.getEntriesByType('paint');
-  // If First Input Desly polyfill is added to the page, report the fid value.
-  // https://github.com/GoogleChromeLabs/first-input-delay
-  if (api.onFirstInputDelay) {
-    // If the fid call back is not called for certain time, continue without it.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let timeoutId: any = setTimeout(() => {
-      Trace.createOobTrace(
-        performanceController,
-        navigationTimings,
-        paintTimings
-      );
-      timeoutId = undefined;
-    }, FID_WAIT_TIME_MS);
-    api.onFirstInputDelay((fid: number) => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-        Trace.createOobTrace(
-          performanceController,
-          navigationTimings,
-          paintTimings,
-          fid
-        );
-      }
-    });
+  // Better support for Safari
+  if ('onpagehide' in window) {
+    api.document.addEventListener('pagehide', () =>
+      sendOobTrace(performanceController)
+    );
   } else {
-    Trace.createOobTrace(
-      performanceController,
-      navigationTimings,
-      paintTimings
+    api.document.addEventListener('unload', () =>
+      sendOobTrace(performanceController)
     );
   }
+  api.document.addEventListener('visibilitychange', () => {
+    if (api.document.visibilityState === 'hidden') {
+      sendOobTrace(performanceController);
+    }
+  });
+
+  if (api.onFirstInputDelay) {
+    api.onFirstInputDelay((fid: number) => {
+      firstInputDelay = fid;
+    });
+  }
+
+  api.onLCP((metric: LCPMetricWithAttribution) => {
+    webVitalMetrics.lcp = {
+      value: metric.value,
+      elementAttribution: metric.attribution?.element
+    };
+  });
+  api.onCLS((metric: CLSMetricWithAttribution) => {
+    webVitalMetrics.cls = {
+      value: metric.value,
+      elementAttribution: metric.attribution?.largestShiftTarget
+    };
+  });
+  api.onINP((metric: INPMetricWithAttribution) => {
+    webVitalMetrics.inp = {
+      value: metric.value,
+      elementAttribution: metric.attribution?.interactionTarget
+    };
+  });
 }
 
 function setupUserTimingTraces(
@@ -110,7 +126,8 @@ function createUserTimingTrace(
   measure: PerformanceEntry
 ): void {
   const measureName = measure.name;
-  // Do not create a trace, if the user timing marks and measures are created by the sdk itself.
+  // Do not create a trace, if the user timing marks and measures are created by
+  // the sdk itself.
   if (
     measureName.substring(0, TRACE_MEASURE_PREFIX.length) ===
     TRACE_MEASURE_PREFIX
@@ -118,4 +135,37 @@ function createUserTimingTrace(
     return;
   }
   Trace.createUserTimingTrace(performanceController, measureName);
+}
+
+function sendOobTrace(performanceController: PerformanceController): void {
+  if (!sentPageLoadTrace) {
+    sentPageLoadTrace = true;
+    const api = Api.getInstance();
+    const navigationTimings = api.getEntriesByType(
+      'navigation'
+    ) as PerformanceNavigationTiming[];
+    const paintTimings = api.getEntriesByType('paint');
+
+    // On page unload web vitals may be updated so queue the oob trace creation
+    // so that these updates have time to be included.
+    setTimeout(() => {
+      Trace.createOobTrace(
+        performanceController,
+        navigationTimings,
+        paintTimings,
+        webVitalMetrics,
+        firstInputDelay
+      );
+    }, 0);
+  }
+}
+
+/**
+ * This service will only export the page load trace once. This function allows
+ * resetting it for unit tests
+ */
+export function resetForUnitTests(): void {
+  sentPageLoadTrace = false;
+  firstInputDelay = undefined;
+  webVitalMetrics = {};
 }

@@ -18,8 +18,10 @@ export interface Functions {
 }
 
 // @public
-export interface FunctionsError extends FirebaseError {
-    readonly code: FunctionsErrorCode;
+export class FunctionsError extends FirebaseError {
+    constructor(
+    code: FunctionsErrorCodeCore, message?: string,
+    details?: unknown);
     readonly details?: unknown;
 }
 
@@ -33,13 +35,18 @@ export type FunctionsErrorCodeCore = 'ok' | 'cancelled' | 'unknown' | 'invalid-a
 export function getFunctions(app?: FirebaseApp, regionOrCustomDomain?: string): Functions;
 
 // @public
-export type HttpsCallable<RequestData = unknown, ResponseData = unknown> = (data?: RequestData | null) => Promise<HttpsCallableResult<ResponseData>>;
+export interface HttpsCallable<RequestData = unknown, ResponseData = unknown, StreamData = unknown> {
+    // (undocumented)
+    (data?: RequestData | null): Promise<HttpsCallableResult<ResponseData>>;
+    // (undocumented)
+    stream: (data?: RequestData | null, options?: HttpsCallableStreamOptions) => Promise<HttpsCallableStreamResult<ResponseData, StreamData>>;
+}
 
 // @public
-export function httpsCallable<RequestData = unknown, ResponseData = unknown>(functionsInstance: Functions, name: string, options?: HttpsCallableOptions): HttpsCallable<RequestData, ResponseData>;
+export function httpsCallable<RequestData = unknown, ResponseData = unknown, StreamData = unknown>(functionsInstance: Functions, name: string, options?: HttpsCallableOptions): HttpsCallable<RequestData, ResponseData, StreamData>;
 
 // @public
-export function httpsCallableFromURL<RequestData = unknown, ResponseData = unknown>(functionsInstance: Functions, url: string, options?: HttpsCallableOptions): HttpsCallable<RequestData, ResponseData>;
+export function httpsCallableFromURL<RequestData = unknown, ResponseData = unknown, StreamData = unknown>(functionsInstance: Functions, url: string, options?: HttpsCallableOptions): HttpsCallable<RequestData, ResponseData, StreamData>;
 
 // @public
 export interface HttpsCallableOptions {
@@ -50,6 +57,20 @@ export interface HttpsCallableOptions {
 // @public
 export interface HttpsCallableResult<ResponseData = unknown> {
     readonly data: ResponseData;
+}
+
+// @public
+export interface HttpsCallableStreamOptions {
+    limitedUseAppCheckTokens?: boolean;
+    signal?: AbortSignal;
+}
+
+// @public
+export interface HttpsCallableStreamResult<ResponseData = unknown, StreamData = unknown> {
+    // (undocumented)
+    readonly data: Promise<ResponseData>;
+    // (undocumented)
+    readonly stream: AsyncIterable<StreamData>;
 }
 
 

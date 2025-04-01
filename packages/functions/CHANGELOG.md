@@ -1,5 +1,88 @@
 # @firebase/functions
 
+## 0.12.3
+
+### Patch Changes
+
+- Updated dependencies [[`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5)]:
+  - @firebase/util@1.11.0
+  - @firebase/component@0.6.13
+
+## 0.12.2
+
+### Patch Changes
+
+- [`97d48c7`](https://github.com/firebase/firebase-js-sdk/commit/97d48c7650e2d4273b7f94c8964dfcb44113952a) [#8651](https://github.com/firebase/firebase-js-sdk/pull/8651) - `FirebaseServerApp` can now be initalized with an App Check token instead of invoking the App Check
+  `getToken` method. This should unblock the use of App Check enforced products in SSR environments
+  where the App Check SDK cannot be initialized.
+
+## 0.12.1
+
+### Patch Changes
+
+- Updated dependencies [[`25a6204c1`](https://github.com/firebase/firebase-js-sdk/commit/25a6204c1531b6c772e5368d12b2411ae1d21bbc)]:
+  - @firebase/util@1.10.3
+  - @firebase/component@0.6.12
+
+## 0.12.0
+
+### Minor Changes
+
+- [`f05509e8c`](https://github.com/firebase/firebase-js-sdk/commit/f05509e8c526ce44656389ab9997a6e5ee957a3d) [#8609](https://github.com/firebase/firebase-js-sdk/pull/8609) - Add `.stream()` api for callable functions for consuming streaming responses.
+
+## 0.11.10
+
+### Patch Changes
+
+- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
+
+- Updated dependencies [[`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1)]:
+  - @firebase/app-check-interop-types@0.3.3
+  - @firebase/auth-interop-types@0.2.4
+  - @firebase/component@0.6.11
+  - @firebase/messaging-interop-types@0.2.3
+  - @firebase/util@1.10.2
+
+## 0.11.9
+
+### Patch Changes
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Remove ES5 bundles. The minimum required ES version is now ES2017.
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Removed dependency on undici and node-fetch in our node bundles, replacing them with the native fetch implementation.
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Remove node bundle from the functions SDK as the node-specific fetch code has been removed in favor of using native fetch throughout the SDK.
+
+- [`a2146910c`](https://github.com/firebase/firebase-js-sdk/commit/a2146910ccb0efd1e0dc4496c328358d5afdea61) [#8546](https://github.com/firebase/firebase-js-sdk/pull/8546) (fixes [#8511](https://github.com/firebase/firebase-js-sdk/issues/8511)) - Make the `FunctionsError` class publicly exported.
+
+- Updated dependencies [[`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702)]:
+  - @firebase/component@0.6.10
+  - @firebase/util@1.10.1
+
+## 0.11.8
+
+### Patch Changes
+
+- Updated dependencies [[`16d62d4fa`](https://github.com/firebase/firebase-js-sdk/commit/16d62d4fa16faddb8cb676c0af3f29b8a5824741)]:
+  - @firebase/util@1.10.0
+  - @firebase/component@0.6.9
+
+## 0.11.7
+
+### Patch Changes
+
+- [`2ee2a90ae`](https://github.com/firebase/firebase-js-sdk/commit/2ee2a90aebcf75a0df467c47a5f731b07ce69070) [#8441](https://github.com/firebase/firebase-js-sdk/pull/8441) (fixes [#8440](https://github.com/firebase/firebase-js-sdk/issues/8440)) - Allow a custom path in Firebase functions custom domain
+
+- [`62348e116`](https://github.com/firebase/firebase-js-sdk/commit/62348e116c795d19c5ca58729c250805240ce345) [#8432](https://github.com/firebase/firebase-js-sdk/pull/8432) (fixes [#8431](https://github.com/firebase/firebase-js-sdk/issues/8431)) - Update undici dependency to 6.19.7 due to a memory leak in older versions.
+
+## 0.11.6
+
+### Patch Changes
+
+- Updated dependencies [[`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558)]:
+  - @firebase/util@1.9.7
+  - @firebase/component@0.6.8
+
 ## 0.11.5
 
 ### Patch Changes
@@ -376,7 +459,7 @@
 
 ### Patch Changes
 
-- [`5c1a83ed7`](https://github.com/firebase/firebase-js-sdk/commit/5c1a83ed70bae979322bd8751c0885d683ce4bf3) [#4595](https://github.com/firebase/firebase-js-sdk/pull/4595) - Component facotry now takes an options object. And added `Provider.initialize()` that can be used to pass an options object to the component factory.
+- [`5c1a83ed7`](https://github.com/firebase/firebase-js-sdk/commit/5c1a83ed70bae979322bd8751c0885d683ce4bf3) [#4595](https://github.com/firebase/firebase-js-sdk/pull/4595) - Component factory now takes an options object. And added `Provider.initialize()` that can be used to pass an options object to the component factory.
 
 - Updated dependencies [[`5c1a83ed7`](https://github.com/firebase/firebase-js-sdk/commit/5c1a83ed70bae979322bd8751c0885d683ce4bf3)]:
   - @firebase/component@0.3.0

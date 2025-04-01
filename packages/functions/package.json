@@ -1,25 +1,23 @@
 {
   "name": "@firebase/functions",
-  "version": "0.11.5",
+  "version": "0.12.3",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "main": "dist/index.node.cjs.js",
-  "browser": "dist/index.esm2017.js",
-  "module": "dist/index.esm2017.js",
-  "esm5": "dist/index.esm.js",
+  "main": "dist/index.cjs.js",
+  "browser": "dist/esm/index.esm2017.js",
+  "module": "dist/esm/index.esm2017.js",
   "exports": {
     ".": {
       "types": "./dist/functions-public.d.ts",
       "node": {
-        "import": "./dist/esm-node/index.node.esm.js",
-        "require": "./dist/index.node.cjs.js"
+        "import": "./dist/esm/index.esm2017.js",
+        "require": "./dist/index.cjs.js"
       },
-      "esm5": "./dist/index.esm.js",
       "browser": {
         "require": "./dist/index.cjs.js",
-        "import": "./dist/index.esm2017.js"
+        "import": "./dist/esm/index.esm2017.js"
       },
-      "default": "./dist/index.esm2017.js"
+      "default": "./dist/esm/index.esm2017.js"
     },
     "./package.json": "./package.json"
   },
@@ -36,10 +34,10 @@
     "test": "run-p --npm-path npm lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:all": "run-p --npm-path npm test:browser test:node",
-    "test:browser": "karma start --single-run",
+    "test:browser": "karma start",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
-    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/{,!(browser)/**/}*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
-    "test:emulator": "env FIREBASE_FUNCTIONS_EMULATOR_ORIGIN=http://localhost:5005 run-p --npm-path npm test:node",
+    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/{,!(browser)/**/}*.test.ts' --file src/index.ts --config ../../config/mocharc.node.js",
+    "test:emulator": "env FIREBASE_FUNCTIONS_EMULATOR_ORIGIN=http://127.0.0.1:5005 run-p --npm-path npm test:node",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "api-extractor run --local --verbose",
     "doc": "api-documenter markdown --input temp --output docs",
@@ -51,11 +49,11 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.10.5",
-    "rollup": "2.79.1",
-    "@rollup/plugin-json": "4.1.0",
-    "rollup-plugin-typescript2": "0.31.2",
-    "typescript": "4.7.4"
+    "@firebase/app": "0.11.4",
+    "rollup": "2.79.2",
+    "@rollup/plugin-json": "6.1.0",
+    "rollup-plugin-typescript2": "0.36.0",
+    "typescript": "5.5.4"
   },
   "repository": {
     "directory": "packages/functions",
@@ -67,12 +65,11 @@
   },
   "typings": "dist/src/index.d.ts",
   "dependencies": {
-    "@firebase/component": "0.6.7",
-    "@firebase/messaging-interop-types": "0.2.2",
-    "@firebase/auth-interop-types": "0.2.3",
-    "@firebase/app-check-interop-types": "0.3.2",
-    "@firebase/util": "1.9.6",
-    "undici": "5.28.4",
+    "@firebase/component": "0.6.13",
+    "@firebase/messaging-interop-types": "0.2.3",
+    "@firebase/auth-interop-types": "0.2.4",
+    "@firebase/app-check-interop-types": "0.3.3",
+    "@firebase/util": "1.11.0",
     "tslib": "^2.1.0"
   },
   "nyc": {
@@ -80,5 +77,8 @@
       ".ts"
     ],
     "reportDir": "./coverage/node"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

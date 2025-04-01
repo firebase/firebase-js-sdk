@@ -20,9 +20,35 @@ import {
   FinishReason,
   FunctionCall,
   GenerateContentCandidate,
-  GenerateContentResponse
+  GenerateContentResponse,
+  ImagenGCSImage,
+  ImagenInlineImage,
+  VertexAIErrorCode
 } from '../types';
-import { ERROR_FACTORY, VertexError } from '../errors';
+import { VertexAIError } from '../errors';
+import { logger } from '../logger';
+import { ImagenResponseInternal } from '../types/internal';
+
+/**
+ * Creates an EnhancedGenerateContentResponse object that has helper functions and
+ * other modifications that improve usability.
+ */
+export function createEnhancedContentResponse(
+  response: GenerateContentResponse
+): EnhancedGenerateContentResponse {
+  /**
+   * The Vertex AI backend omits default values.
+   * This causes the `index` property to be omitted from the first candidate in the
+   * response, since it has index 0, and 0 is a default value.
+   * See: https://github.com/firebase/firebase-js-sdk/issues/8566
+   */
+  if (response.candidates && !response.candidates[0].hasOwnProperty('index')) {
+    response.candidates[0].index = 0;
+  }
+
+  const responseWithHelpers = addHelpers(response);
+  return responseWithHelpers;
+}
 
 /**
  * Adds convenience helper methods to a response object, including stream
@@ -34,50 +60,64 @@ export function addHelpers(
   (response as EnhancedGenerateContentResponse).text = () => {
     if (response.candidates && response.candidates.length > 0) {
       if (response.candidates.length > 1) {
-        console.warn(
+        logger.warn(
           `This response had ${response.candidates.length} ` +
             `candidates. Returning text from the first candidate only. ` +
             `Access response.candidates directly to use the other candidates.`
         );
       }
       if (hadBadFinishReason(response.candidates[0])) {
-        throw ERROR_FACTORY.create(VertexError.RESPONSE_ERROR, {
-          message: `${formatBlockErrorMessage(response)}`,
-          response
-        });
+        throw new VertexAIError(
+          VertexAIErrorCode.RESPONSE_ERROR,
+          `Response error: ${formatBlockErrorMessage(
+            response
+          )}. Response body stored in error.response`,
+          {
+            response
+          }
+        );
       }
       return getText(response);
     } else if (response.promptFeedback) {
-      throw ERROR_FACTORY.create(VertexError.RESPONSE_ERROR, {
-        message: `Text not available. ${formatBlockErrorMessage(response)}`,
-        response
-      });
+      throw new VertexAIError(
+        VertexAIErrorCode.RESPONSE_ERROR,
+        `Text not available. ${formatBlockErrorMessage(response)}`,
+        {
+          response
+        }
+      );
     }
     return '';
   };
   (response as EnhancedGenerateContentResponse).functionCalls = () => {
     if (response.candidates && response.candidates.length > 0) {
       if (response.candidates.length > 1) {
-        console.warn(
+        logger.warn(
           `This response had ${response.candidates.length} ` +
             `candidates. Returning function calls from the first candidate only. ` +
             `Access response.candidates directly to use the other candidates.`
         );
       }
       if (hadBadFinishReason(response.candidates[0])) {
-        throw ERROR_FACTORY.create(VertexError.RESPONSE_ERROR, {
-          message: `${formatBlockErrorMessage(response)}`,
-          response
-        });
+        throw new VertexAIError(
+          VertexAIErrorCode.RESPONSE_ERROR,
+          `Response error: ${formatBlockErrorMessage(
+            response
+          )}. Response body stored in error.response`,
+          {
+            response
+          }
+        );
       }
       return getFunctionCalls(response);
     } else if (response.promptFeedback) {
-      throw ERROR_FACTORY.create(VertexError.RESPONSE_ERROR, {
-        message: `Function call not available. ${formatBlockErrorMessage(
+      throw new VertexAIError(
+        VertexAIErrorCode.RESPONSE_ERROR,
+        `Function call not available. ${formatBlockErrorMessage(response)}`,
+        {
           response
-        )}`,
-        response
-      });
+        }
+      );
     }
     return undefined;
   };
@@ -104,7 +144,7 @@ export function getText(response: GenerateContentResponse): string {
 }
 
 /**
- * Returns {@link FunctionCall}s associated with first candidate.
+ * Returns <code>{@link FunctionCall}</code>s associated with first candidate.
  */
 export function getFunctionCalls(
   response: GenerateContentResponse
@@ -158,4 +198,53 @@ export function formatBlockErrorMessage(
     }
   }
   return message;
+}
+
+/**
+ * Convert a generic successful fetch response body to an Imagen response object
+ * that can be returned to the user. This converts the REST APIs response format to our
+ * APIs representation of a response.
+ *
+ * @internal
+ */
+export async function handlePredictResponse<
+  T extends ImagenInlineImage | ImagenGCSImage
+>(response: Response): Promise<{ images: T[]; filteredReason?: string }> {
+  const responseJson: ImagenResponseInternal = await response.json();
+
+  const images: T[] = [];
+  let filteredReason: string | undefined = undefined;
+
+  // The backend should always send a non-empty array of predictions if the response was successful.
+  if (!responseJson.predictions || responseJson.predictions?.length === 0) {
+    throw new VertexAIError(
+      VertexAIErrorCode.RESPONSE_ERROR,
+      'No predictions or filtered reason received from Vertex AI. Please report this issue with the full error details at https://github.com/firebase/firebase-js-sdk/issues.'
+    );
+  }
+
+  for (const prediction of responseJson.predictions) {
+    if (prediction.raiFilteredReason) {
+      filteredReason = prediction.raiFilteredReason;
+    } else if (prediction.mimeType && prediction.bytesBase64Encoded) {
+      images.push({
+        mimeType: prediction.mimeType,
+        bytesBase64Encoded: prediction.bytesBase64Encoded
+      } as T);
+    } else if (prediction.mimeType && prediction.gcsUri) {
+      images.push({
+        mimeType: prediction.mimeType,
+        gcsURI: prediction.gcsUri
+      } as T);
+    } else {
+      throw new VertexAIError(
+        VertexAIErrorCode.RESPONSE_ERROR,
+        `Predictions array in response has missing properties. Response: ${JSON.stringify(
+          responseJson
+        )}`
+      );
+    }
+  }
+
+  return { images, filteredReason };
 }

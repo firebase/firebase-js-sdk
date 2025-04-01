@@ -1,5 +1,146 @@
 # @firebase/app
 
+## 0.11.4
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.11.3
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.11.2
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+- Updated dependencies [[`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5)]:
+  - @firebase/util@1.11.0
+  - @firebase/component@0.6.13
+
+## 0.11.1
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.11.0
+
+### Minor Changes
+
+- [`97d48c7`](https://github.com/firebase/firebase-js-sdk/commit/97d48c7650e2d4273b7f94c8964dfcb44113952a) [#8651](https://github.com/firebase/firebase-js-sdk/pull/8651) - `FirebaseServerApp` can now be initalized with an App Check token instead of invoking the App Check
+  `getToken` method. This should unblock the use of App Check enforced products in SSR environments
+  where the App Check SDK cannot be initialized.
+
+### Patch Changes
+
+- [`dafae52`](https://github.com/firebase/firebase-js-sdk/commit/dafae52afda0b653a763b071960ee87010a63aa1) [#8724](https://github.com/firebase/firebase-js-sdk/pull/8724) - Discard the earliest heartbeat once a limit of 30 heartbeats in storage has been hit.
+
+## 0.10.18
+
+### Patch Changes
+
+- Updated dependencies [[`25a6204c1`](https://github.com/firebase/firebase-js-sdk/commit/25a6204c1531b6c772e5368d12b2411ae1d21bbc)]:
+  - @firebase/util@1.10.3
+  - @firebase/component@0.6.12
+
+## 0.10.17
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.10.16
+
+### Patch Changes
+
+- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
+
+- Updated dependencies [[`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1)]:
+  - @firebase/component@0.6.11
+  - @firebase/logger@0.4.4
+  - @firebase/util@1.10.2
+
+## 0.10.15
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.10.14
+
+### Patch Changes
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Remove ES5 bundles. The minimum required ES version is now ES2017.
+
+- Updated dependencies [[`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702)]:
+  - @firebase/component@0.6.10
+  - @firebase/logger@0.4.3
+  - @firebase/util@1.10.1
+
+## 0.10.13
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.10.12
+
+### Patch Changes
+
+- [`beaa4dffb`](https://github.com/firebase/firebase-js-sdk/commit/beaa4dffb7f48cb12ccc6c1d1b7cdc9c3605fc04) [#8480](https://github.com/firebase/firebase-js-sdk/pull/8480) - Included Data Connect product.
+
+## 0.10.11
+
+### Patch Changes
+
+- Updated dependencies [[`16d62d4fa`](https://github.com/firebase/firebase-js-sdk/commit/16d62d4fa16faddb8cb676c0af3f29b8a5824741)]:
+  - @firebase/util@1.10.0
+  - @firebase/component@0.6.9
+
+## 0.10.10
+
+### Patch Changes
+
+- [`05c34c91e`](https://github.com/firebase/firebase-js-sdk/commit/05c34c91e61deb1c148ff1bc99333fc50e9e371f) [#8437](https://github.com/firebase/firebase-js-sdk/pull/8437) - Removed an unnecessary console.log statement.
+
+## 0.10.9
+
+### Patch Changes
+
+- [`6d6ce8100`](https://github.com/firebase/firebase-js-sdk/commit/6d6ce8100fd1443a40cd1ebd68ad980cab55fb10) [#8425](https://github.com/firebase/firebase-js-sdk/pull/8425) (fixes [#8407](https://github.com/firebase/firebase-js-sdk/issues/8407)) - Prevent heartbeats methods from throwing - warn instead.
+
+## 0.10.8
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.10.7
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.10.6
+
+### Patch Changes
+
+- [`ed1c99379`](https://github.com/firebase/firebase-js-sdk/commit/ed1c993796cf7d7544b9f9ac8ffde71a13324aaf) [#8335](https://github.com/firebase/firebase-js-sdk/pull/8335) - Guard the use of `FinalizationRegistry` in `FirebaseServerApp` initialization based on the availability of `FinalizationRegistry` in the runtime.
+
+- [`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558) [#8315](https://github.com/firebase/firebase-js-sdk/pull/8315) (fixes [#8299](https://github.com/firebase/firebase-js-sdk/issues/8299)) - fix: server app should initialize in web workers
+
+- [`f01806221`](https://github.com/firebase/firebase-js-sdk/commit/f01806221bcf1edb4356c5901ee65ba322851981) [#8341](https://github.com/firebase/firebase-js-sdk/pull/8341) - The `FirebaseServerAppSettings.name` field inherited from `FirebaseAppSettings` is now omitted
+  instead of overloading the value as `undefined`. This fixes a TypeScript compilation error. For more
+  information, see [GitHub Issue #8336](https://github.com/firebase/firebase-js-sdk/issues/8336).
+- Updated dependencies [[`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558)]:
+  - @firebase/util@1.9.7
+  - @firebase/component@0.6.8
+
 ## 0.10.5
 
 ### Patch Changes

@@ -264,6 +264,11 @@ export function isBrowser(): boolean;
 // @public (undocumented)
 export function isBrowserExtension(): boolean;
 
+// Warning: (ae-missing-release-tag) "isCloudflareWorker" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export function isCloudflareWorker(): boolean;
+
 // Warning: (ae-missing-release-tag) "isElectron" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -328,6 +333,11 @@ export const isValidFormat: (token: string) => boolean;
 //
 // @public
 export const isValidTimestamp: (token: string) => boolean;
+
+// Warning: (ae-missing-release-tag) "isWebWorker" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export function isWebWorker(): boolean;
 
 // Warning: (ae-missing-release-tag) "jsonEval" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -465,9 +475,6 @@ export interface Subscribe<T> {
 //
 // @public (undocumented)
 export type Unsubscribe = () => void;
-
-// @public
-export const uuidv4: () => string;
 
 // Warning: (ae-missing-release-tag) "validateArgCount" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

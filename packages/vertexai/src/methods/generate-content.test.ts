@@ -37,6 +37,7 @@ use(chaiAsPromised);
 const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
+  appId: 'my-appid',
   location: 'us-central1'
 };
 
@@ -70,7 +71,7 @@ describe('generateContent()', () => {
       'model',
       fakeRequestParams
     );
-    expect(result.response.text()).to.include('Helena');
+    expect(result.response.text()).to.include('Mountain View, California');
     expect(makeRequestStub).to.be.calledWith(
       'model',
       Task.GENERATE_CONTENT,
@@ -102,6 +103,40 @@ describe('generateContent()', () => {
       match.any
     );
   });
+  it('long response with token details', async () => {
+    const mockResponse = getMockResponse(
+      'unary-success-basic-response-long-usage-metadata.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    const result = await generateContent(
+      fakeApiSettings,
+      'model',
+      fakeRequestParams
+    );
+    expect(result.response.usageMetadata?.totalTokenCount).to.equal(1913);
+    expect(result.response.usageMetadata?.candidatesTokenCount).to.equal(76);
+    expect(
+      result.response.usageMetadata?.promptTokensDetails?.[0].modality
+    ).to.equal('IMAGE');
+    expect(
+      result.response.usageMetadata?.promptTokensDetails?.[0].tokenCount
+    ).to.equal(1806);
+    expect(
+      result.response.usageMetadata?.candidatesTokensDetails?.[0].modality
+    ).to.equal('TEXT');
+    expect(
+      result.response.usageMetadata?.candidatesTokensDetails?.[0].tokenCount
+    ).to.equal(76);
+    expect(makeRequestStub).to.be.calledWith(
+      'model',
+      Task.GENERATE_CONTENT,
+      fakeApiSettings,
+      false,
+      match.any
+    );
+  });
   it('citations', async () => {
     const mockResponse = getMockResponse('unary-success-citations.json');
     const makeRequestStub = stub(request, 'makeRequest').resolves(
@@ -112,10 +147,12 @@ describe('generateContent()', () => {
       'model',
       fakeRequestParams
     );
-    expect(result.response.text()).to.include('Quantum mechanics is');
+    expect(result.response.text()).to.include(
+      'Some information cited from an external source'
+    );
     expect(
       result.response.candidates?.[0].citationMetadata?.citations.length
-    ).to.equal(1);
+    ).to.equal(3);
     expect(makeRequestStub).to.be.calledWith(
       'model',
       Task.GENERATE_CONTENT,
@@ -186,7 +223,9 @@ describe('generateContent()', () => {
     );
   });
   it('unknown enum - should ignore', async () => {
-    const mockResponse = getMockResponse('unary-unknown-enum.json');
+    const mockResponse = getMockResponse(
+      'unary-success-unknown-enum-safety-ratings.json'
+    );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
       mockResponse as Response
     );
@@ -195,7 +234,7 @@ describe('generateContent()', () => {
       'model',
       fakeRequestParams
     );
-    expect(result.response.text()).to.include('30 minutes of brewing');
+    expect(result.response.text()).to.include('Some text');
     expect(makeRequestStub).to.be.calledWith(
       'model',
       Task.GENERATE_CONTENT,
@@ -214,6 +253,22 @@ describe('generateContent()', () => {
     await expect(
       generateContent(fakeApiSettings, 'model', fakeRequestParams)
     ).to.be.rejectedWith(/400.*invalid argument/);
+    expect(mockFetch).to.be.called;
+  });
+  it('api not enabled (403)', async () => {
+    const mockResponse = getMockResponse(
+      'unary-failure-firebasevertexai-api-not-enabled.json'
+    );
+    const mockFetch = stub(globalThis, 'fetch').resolves({
+      ok: false,
+      status: 403,
+      json: mockResponse.json
+    } as Response);
+    await expect(
+      generateContent(fakeApiSettings, 'model', fakeRequestParams)
+    ).to.be.rejectedWith(
+      /firebasevertexai\.googleapis[\s\S]*my-project[\s\S]*api-not-enabled/
+    );
     expect(mockFetch).to.be.called;
   });
 });

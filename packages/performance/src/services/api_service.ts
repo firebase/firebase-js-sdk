@@ -18,6 +18,14 @@
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
 import { isIndexedDBAvailable, areCookiesEnabled } from '@firebase/util';
 import { consoleLogger } from '../utils/console_logger';
+import {
+  CLSMetricWithAttribution,
+  INPMetricWithAttribution,
+  LCPMetricWithAttribution,
+  onCLS as vitalsOnCLS,
+  onINP as vitalsOnINP,
+  onLCP as vitalsOnLCP
+} from 'web-vitals/attribution';
 
 declare global {
   interface Window {
@@ -43,10 +51,13 @@ export type EntryType =
  */
 export class Api {
   private readonly performance: Performance;
-  /** PreformanceObserver constructor function. */
+  /** PerformanceObserver constructor function. */
   private readonly PerformanceObserver: typeof PerformanceObserver;
   private readonly windowLocation: Location;
   readonly onFirstInputDelay?: (fn: (fid: number) => void) => void;
+  readonly onLCP: (fn: (metric: LCPMetricWithAttribution) => void) => void;
+  readonly onINP: (fn: (metric: INPMetricWithAttribution) => void) => void;
+  readonly onCLS: (fn: (metric: CLSMetricWithAttribution) => void) => void;
   readonly localStorage?: Storage;
   readonly document: Document;
   readonly navigator: Navigator;
@@ -68,6 +79,9 @@ export class Api {
     if (window.perfMetrics && window.perfMetrics.onFirstInputDelay) {
       this.onFirstInputDelay = window.perfMetrics.onFirstInputDelay;
     }
+    this.onLCP = vitalsOnLCP;
+    this.onINP = vitalsOnINP;
+    this.onCLS = vitalsOnCLS;
   }
 
   getUrl(): string {

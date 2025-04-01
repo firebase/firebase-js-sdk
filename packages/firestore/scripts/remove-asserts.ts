@@ -15,15 +15,10 @@
  * limitations under the License.
  */
 
-import { createHash } from 'crypto';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
-
 import * as ts from 'typescript';
 
 // Location of file that includes the asserts
 const ASSERT_LOCATION = 'packages/firestore/src/util/assert.ts';
-const ERROR_CODE_LOCATION = '../dist/error_codes.json';
 
 export function removeAsserts(
   program: ts.Program
@@ -71,7 +66,7 @@ class RemoveAsserts {
           const method = declaration.name!.text;
 
           if (method === 'debugAssert') {
-            updatedNode = ts.createOmittedExpression();
+            updatedNode = ts.factory.createOmittedExpression();
           } else if ((method === 'hardAssert') || (method === 'fail')) {
             const messageIndex = (method === 'hardAssert') ? 1 : 0;
             if ((node.arguments.length > messageIndex) && (node.arguments[messageIndex].kind === ts.SyntaxKind.StringLiteral)) {
@@ -100,7 +95,7 @@ class RemoveAsserts {
               const newArguments = [...node.arguments];
               newArguments[messageIndex] = ts.factory.createNumericLiteral(-1);
               // Remove the log message but keep the assertion
-              updatedNode = ts.createCall(
+              updatedNode = ts.factory.createCallExpression(
                 declaration.name!,
                 /*typeArgs*/ undefined,
                 newArguments
@@ -163,14 +158,3 @@ class RemoveAsserts {
     }
     return JSON.parse(readFileSync(path, 'utf-8'));
   }
-
-  static saveErrorCodes(errorCodes: Record<string, Error>): void {
-    const path = join(module.path, ERROR_CODE_LOCATION);
-    writeFileSync(path, JSON.stringify(errorCodes, undefined, 4), {encoding: "utf-8", });
-  }
-}
-
-interface Error {
-  id: number,
-  message: string
-};

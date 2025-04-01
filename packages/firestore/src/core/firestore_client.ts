@@ -64,6 +64,7 @@ import { Aggregate } from './aggregate';
 import { NamedQuery } from './bundle';
 import {
   ComponentConfiguration,
+  LruGcMemoryOfflineComponentProvider,
   MemoryOfflineComponentProvider,
   OfflineComponentProvider,
   OnlineComponentProvider
@@ -120,7 +121,6 @@ export class FirestoreClient {
   ) => Promise<void> = () => Promise.resolve();
   _uninitializedComponentsProvider?: {
     _offline: OfflineComponentProvider;
-    _offlineKind: 'memory' | 'persistent';
     _online: OnlineComponentProvider;
   };
 
@@ -139,8 +139,13 @@ export class FirestoreClient {
      * an async I/O to complete).
      */
     public asyncQueue: AsyncQueue,
-    private databaseInfo: DatabaseInfo
+    private databaseInfo: DatabaseInfo,
+    componentProvider?: {
+      _offline: OfflineComponentProvider;
+      _online: OnlineComponentProvider;
+    }
   ) {
+    this._uninitializedComponentsProvider = componentProvider;
     this.authCredentials.start(asyncQueue, async user => {
       logDebug(LOG_TAG, 'Received user=', user.uid);
       await this.authCredentialListener(user);
@@ -172,19 +177,6 @@ export class FirestoreClient {
     listener: (appCheckToken: string, user: User) => Promise<void>
   ): void {
     this.appCheckCredentialListener = listener;
-  }
-
-  /**
-   * Checks that the client has not been terminated. Ensures that other methods on //
-   * this class cannot be called after the client is terminated. //
-   */
-  verifyNotTerminated(): void {
-    if (this.asyncQueue.isShuttingDown) {
-      throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        'The client has already been terminated.'
-      );
-    }
   }
 
   terminate(): Promise<void> {
@@ -253,11 +245,11 @@ export async function setOnlineComponentProvider(
 ): Promise<void> {
   client.asyncQueue.verifyOperationInProgress();
 
-  const offlineComponentProvider = await ensureOfflineComponents(client);
+  const offlineComponents = await ensureOfflineComponents(client);
 
   logDebug(LOG_TAG, 'Initializing OnlineComponentProvider');
   await onlineComponentProvider.initialize(
-    offlineComponentProvider,
+    offlineComponents,
     client.configuration
   );
   // The CredentialChangeListener of the online component provider takes
@@ -339,7 +331,7 @@ async function ensureOfflineComponents(
       logDebug(LOG_TAG, 'Using default OfflineComponentProvider');
       await setOfflineComponentProvider(
         client,
-        new MemoryOfflineComponentProvider()
+        new LruGcMemoryOfflineComponentProvider(undefined)
       );
     }
   }
@@ -665,8 +657,9 @@ function readDocumentViaSnapshotListener(
 ): Promise<void> {
   const wrappedObserver = new AsyncObserver({
     next: (snap: ViewSnapshot) => {
-      // Remove query first before passing event to user to avoid
+      // Mute and remove query first before passing event to user to avoid
       // user actions affecting the now stale query.
+      wrappedObserver.mute();
       asyncQueue.enqueueAndForget(() =>
         eventManagerUnlisten(eventManager, listener)
       );
@@ -763,8 +756,9 @@ function executeQueryViaSnapshotListener(
 ): Promise<void> {
   const wrappedObserver = new AsyncObserver<ViewSnapshot>({
     next: snapshot => {
-      // Remove query first before passing event to user to avoid
+      // Mute and remove query first before passing event to user to avoid
       // user actions affecting the now stale query.
+      wrappedObserver.mute();
       asyncQueue.enqueueAndForget(() =>
         eventManagerUnlisten(eventManager, listener)
       );

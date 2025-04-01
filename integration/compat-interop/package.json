@@ -3,27 +3,30 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "test": "karma start --single-run",
+    "test": "karma start",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
     "test:debug": "karma start --browsers Chrome --auto-watch"
   },
   "dependencies": {
-    "@firebase/app": "0.10.5",
-    "@firebase/app-compat": "0.2.35",
-    "@firebase/analytics": "0.10.4",
-    "@firebase/analytics-compat": "0.2.10",
-    "@firebase/auth": "1.7.4",
-    "@firebase/auth-compat": "0.5.9",
-    "@firebase/functions": "0.11.5",
-    "@firebase/functions-compat": "0.3.11",
-    "@firebase/messaging": "0.12.9",
-    "@firebase/messaging-compat": "0.2.9",
-    "@firebase/performance": "0.6.7",
-    "@firebase/performance-compat": "0.2.7",
-    "@firebase/remote-config": "0.4.7",
-    "@firebase/remote-config-compat": "0.2.7"
+    "@firebase/app": "0.11.4",
+    "@firebase/app-compat": "0.2.53",
+    "@firebase/analytics": "0.10.12",
+    "@firebase/analytics-compat": "0.2.18",
+    "@firebase/auth": "1.10.0",
+    "@firebase/auth-compat": "0.5.20",
+    "@firebase/functions": "0.12.3",
+    "@firebase/functions-compat": "0.3.20",
+    "@firebase/messaging": "0.12.17",
+    "@firebase/messaging-compat": "0.2.17",
+    "@firebase/performance": "0.7.2",
+    "@firebase/performance-compat": "0.2.15",
+    "@firebase/remote-config": "0.6.0",
+    "@firebase/remote-config-compat": "0.2.13"
   },
   "devDependencies": {
-    "typescript": "4.7.4"
+    "typescript": "5.5.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

@@ -1,5 +1,155 @@
 # @firebase/app-compat
 
+## 0.2.53
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.11.4
+
+## 0.2.52
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.11.3
+
+## 0.2.51
+
+### Patch Changes
+
+- Updated dependencies [[`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5)]:
+  - @firebase/app@0.11.2
+  - @firebase/util@1.11.0
+  - @firebase/component@0.6.13
+
+## 0.2.50
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.11.1
+
+## 0.2.49
+
+### Patch Changes
+
+- Updated dependencies [[`97d48c7`](https://github.com/firebase/firebase-js-sdk/commit/97d48c7650e2d4273b7f94c8964dfcb44113952a), [`dafae52`](https://github.com/firebase/firebase-js-sdk/commit/dafae52afda0b653a763b071960ee87010a63aa1)]:
+  - @firebase/app@0.11.0
+
+## 0.2.48
+
+### Patch Changes
+
+- Updated dependencies [[`25a6204c1`](https://github.com/firebase/firebase-js-sdk/commit/25a6204c1531b6c772e5368d12b2411ae1d21bbc)]:
+  - @firebase/util@1.10.3
+  - @firebase/app@0.10.18
+  - @firebase/component@0.6.12
+
+## 0.2.47
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.10.17
+
+## 0.2.46
+
+### Patch Changes
+
+- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
+
+- Updated dependencies [[`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1)]:
+  - @firebase/app@0.10.16
+  - @firebase/component@0.6.11
+  - @firebase/logger@0.4.4
+  - @firebase/util@1.10.2
+
+## 0.2.45
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.10.15
+
+## 0.2.44
+
+### Patch Changes
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Remove ES5 bundles. The minimum required ES version is now ES2017.
+
+- Updated dependencies [[`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702)]:
+  - @firebase/component@0.6.10
+  - @firebase/logger@0.4.3
+  - @firebase/util@1.10.1
+  - @firebase/app@0.10.14
+
+## 0.2.43
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.10.13
+
+## 0.2.42
+
+### Patch Changes
+
+- Updated dependencies [[`beaa4dffb`](https://github.com/firebase/firebase-js-sdk/commit/beaa4dffb7f48cb12ccc6c1d1b7cdc9c3605fc04)]:
+  - @firebase/app@0.10.12
+
+## 0.2.41
+
+### Patch Changes
+
+- Updated dependencies [[`16d62d4fa`](https://github.com/firebase/firebase-js-sdk/commit/16d62d4fa16faddb8cb676c0af3f29b8a5824741)]:
+  - @firebase/util@1.10.0
+  - @firebase/app@0.10.11
+  - @firebase/component@0.6.9
+
+## 0.2.40
+
+### Patch Changes
+
+- Updated dependencies [[`05c34c91e`](https://github.com/firebase/firebase-js-sdk/commit/05c34c91e61deb1c148ff1bc99333fc50e9e371f)]:
+  - @firebase/app@0.10.10
+
+## 0.2.39
+
+### Patch Changes
+
+- [`16015723b`](https://github.com/firebase/firebase-js-sdk/commit/16015723b1aee46eec4b79e044aeb9dd582370cc) [#8414](https://github.com/firebase/firebase-js-sdk/pull/8414) (fixes [#8409](https://github.com/firebase/firebase-js-sdk/issues/8409)) - Updated how app-compat checks the global scope.
+
+- Updated dependencies [[`6d6ce8100`](https://github.com/firebase/firebase-js-sdk/commit/6d6ce8100fd1443a40cd1ebd68ad980cab55fb10)]:
+  - @firebase/app@0.10.9
+
+## 0.2.38
+
+### Patch Changes
+
+- [`025f2a103`](https://github.com/firebase/firebase-js-sdk/commit/025f2a1037582da7d1afeb7a4d143cb7a154ec9d) [#8280](https://github.com/firebase/firebase-js-sdk/pull/8280) (fixes [#8279](https://github.com/firebase/firebase-js-sdk/issues/8279)) - Fixed typos in documentation and some internal variables and parameters.
+
+- [`b9244a517`](https://github.com/firebase/firebase-js-sdk/commit/b9244a5171a7e0f3abae37e56d274605dd95d64b) [#8378](https://github.com/firebase/firebase-js-sdk/pull/8378) (fixes [#8365](https://github.com/firebase/firebase-js-sdk/issues/8365)) - Properly handle the case in app-compat checks where `window` exists but `self` does not. (This occurs in Ionic Stencil's Jest preset.)
+
+- Updated dependencies []:
+  - @firebase/app@0.10.8
+
+## 0.2.37
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.10.7
+
+## 0.2.36
+
+### Patch Changes
+
+- Updated dependencies [[`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558), [`ed1c99379`](https://github.com/firebase/firebase-js-sdk/commit/ed1c993796cf7d7544b9f9ac8ffde71a13324aaf), [`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558), [`f01806221`](https://github.com/firebase/firebase-js-sdk/commit/f01806221bcf1edb4356c5901ee65ba322851981)]:
+  - @firebase/util@1.9.7
+  - @firebase/app@0.10.6
+  - @firebase/component@0.6.8
+
 ## 0.2.35
 
 ### Patch Changes

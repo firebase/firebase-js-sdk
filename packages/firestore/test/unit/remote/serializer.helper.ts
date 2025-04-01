@@ -52,6 +52,7 @@ import {
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Target, targetEquals, TargetImpl } from '../../../src/core/target';
+import { vector } from '../../../src/lite-api/field_value_impl';
 import { parseQueryValue } from '../../../src/lite-api/user_data_reader';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { FieldMask } from '../../../src/model/field_mask';
@@ -535,6 +536,35 @@ export function serializerTest(
             'projects/test-project/databases/(default)/documents/docs/1'
         });
       });
+
+      it('converts VectorValue', () => {
+        const original = vector([1, 2, 3]);
+        const objValue = wrap(original);
+        expect(userDataWriter.convertValue(objValue)).to.deep.equal(original);
+
+        const expectedJson: api.Value = {
+          mapValue: {
+            fields: {
+              '__type__': { stringValue: '__vector__' },
+              value: {
+                arrayValue: {
+                  values: [
+                    { doubleValue: 1 },
+                    { doubleValue: 2 },
+                    { doubleValue: 3 }
+                  ]
+                }
+              }
+            }
+          }
+        };
+
+        verifyFieldValueRoundTrip({
+          value: original,
+          valueType: 'mapValue',
+          jsonValue: expectedJson.mapValue
+        });
+      });
     });
 
     describe('toKey', () => {
@@ -816,7 +846,7 @@ export function serializerTest(
       expect(fromDocument(s, serialized, undefined).isEqual(d)).to.equal(true);
     });
 
-    describe('to/from UnaryOrieldFilter', () => {
+    describe('to/from UnaryOrFieldFilter', () => {
       addEqualityMatcher({ equalsFn: filterEquals, forType: FieldFilter });
 
       it('makes dotted-property names', () => {

@@ -175,7 +175,8 @@ export interface FirebaseAppSettings {
  *
  * Configuration options given to {@link (initializeServerApp:1) | initializeServerApp()}
  */
-export interface FirebaseServerAppSettings extends FirebaseAppSettings {
+export interface FirebaseServerAppSettings
+  extends Omit<FirebaseAppSettings, 'name'> {
   /**
    * An optional Auth ID token used to resume a signed in user session from a client
    * runtime environment.
@@ -184,9 +185,11 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
    * causes an automatic attempt to sign in the user that the `authIdToken` represents. The token
    * needs to have been recently minted for this operation to succeed.
    *
-   * If the token fails local verification, or if the Auth service has failed to validate it when
-   * the Auth SDK is initialized, then a warning is logged to the console and the Auth SDK will not
-   * sign in a user on initialization.
+   * If the token fails local verification due to expiration or parsing errors, then a console error
+   * is logged at the time of initialization of the `FirebaseServerApp` instance.
+   *
+   * If the Auth service has failed to validate the token when the Auth SDK is initialized, then an
+   * warning is logged to the console and the Auth SDK will not sign in a user on initialization.
    *
    * If a user is successfully signed in, then the Auth instance's `onAuthStateChanged` callback
    * is invoked with the `User` object as per standard Auth flows. However, `User` objects
@@ -194,6 +197,15 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
    * operations fail.
    */
   authIdToken?: string;
+
+  /**
+   * An optional App Check token. If provided, the Firebase SDKs that use App Check will utilize
+   * this App Check token in place of requiring an instance of App Check to be initialized.
+   *
+   * If the token fails local verification due to expiration or parsing errors, then a console error
+   * is logged at the time of initialization of the `FirebaseServerApp` instance.
+   */
+  appCheckToken?: string;
 
   /**
    * An optional object. If provided, the Firebase SDK uses a `FinalizationRegistry`
@@ -215,13 +227,6 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
    * initialization.
    */
   releaseOnDeref?: object;
-
-  /**
-   * There is no `getApp()` operation for `FirebaseServerApp`, so the name is not relevant for
-   * applications. However, it may be used internally, and is declared here so that
-   * `FirebaseServerApp` conforms to the `FirebaseApp` interface.
-   */
-  name?: undefined;
 }
 
 /**

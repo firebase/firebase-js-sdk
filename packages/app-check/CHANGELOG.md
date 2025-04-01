@@ -1,5 +1,81 @@
 # @firebase/app-check
 
+## 0.8.13
+
+### Patch Changes
+
+- [`95b4fc6`](https://github.com/firebase/firebase-js-sdk/commit/95b4fc69d8e85991e6da20e4bf68d54d4e6741d6) [#8842](https://github.com/firebase/firebase-js-sdk/pull/8842) (fixes [#8822](https://github.com/firebase/firebase-js-sdk/issues/8822)) - Improve error handling in AppCheck. The publicly-exported `getToken()` will now throw `internalError` strings it was previously ignoring.
+
+## 0.8.12
+
+### Patch Changes
+
+- [`f681482`](https://github.com/firebase/firebase-js-sdk/commit/f68148253349b8e80fc649386fede51339266a3c) [#8792](https://github.com/firebase/firebase-js-sdk/pull/8792) - Fixed a bug that caused an error to be thrown when the debug exchange failed.
+
+- Updated dependencies [[`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5)]:
+  - @firebase/util@1.11.0
+  - @firebase/component@0.6.13
+
+## 0.8.11
+
+### Patch Changes
+
+- [`25a6204c1`](https://github.com/firebase/firebase-js-sdk/commit/25a6204c1531b6c772e5368d12b2411ae1d21bbc) [#8600](https://github.com/firebase/firebase-js-sdk/pull/8600) (fixes [#6462](https://github.com/firebase/firebase-js-sdk/issues/6462)) - Generate UUIDs with `crypto.randomUUID()` instead of custom uuidv4 function that uses `Math.random()`.
+
+- Updated dependencies [[`25a6204c1`](https://github.com/firebase/firebase-js-sdk/commit/25a6204c1531b6c772e5368d12b2411ae1d21bbc)]:
+  - @firebase/util@1.10.3
+  - @firebase/component@0.6.12
+
+## 0.8.10
+
+### Patch Changes
+
+- [`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1) [#8604](https://github.com/firebase/firebase-js-sdk/pull/8604) - Upgrade to TypeScript 5.5.4
+
+- Updated dependencies [[`b80711925`](https://github.com/firebase/firebase-js-sdk/commit/b807119252dacf46b0122344c2b6dfc503cecde1)]:
+  - @firebase/component@0.6.11
+  - @firebase/logger@0.4.4
+  - @firebase/util@1.10.2
+
+## 0.8.9
+
+### Patch Changes
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Remove ES5 bundles. The minimum required ES version is now ES2017.
+
+- Updated dependencies [[`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702)]:
+  - @firebase/component@0.6.10
+  - @firebase/logger@0.4.3
+  - @firebase/util@1.10.1
+
+## 0.8.8
+
+### Patch Changes
+
+- Updated dependencies [[`16d62d4fa`](https://github.com/firebase/firebase-js-sdk/commit/16d62d4fa16faddb8cb676c0af3f29b8a5824741)]:
+  - @firebase/util@1.10.0
+  - @firebase/component@0.6.9
+
+## 0.8.7
+
+### Patch Changes
+
+- [`a9f844066`](https://github.com/firebase/firebase-js-sdk/commit/a9f844066045d8567ae143bae77d184ac227690d) [#8395](https://github.com/firebase/firebase-js-sdk/pull/8395) - Revert introduction of safevalues to prevent issues from arising in Browser CommonJS environments due to ES5 incompatibility. For more information, see [GitHub PR #8395](https://github.com/firebase/firebase-js-sdk/pull/8395)
+
+## 0.8.6
+
+### Patch Changes
+
+- [`f58d48cd4`](https://github.com/firebase/firebase-js-sdk/commit/f58d48cd42c9f09eab4d8b2a606af360528917f8) [#8301](https://github.com/firebase/firebase-js-sdk/pull/8301) - Begin using [safevalues](https://github.com/google/safevalues) to sanitize HTML vulnerable to XSS.
+
+## 0.8.5
+
+### Patch Changes
+
+- Updated dependencies [[`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558)]:
+  - @firebase/util@1.9.7
+  - @firebase/component@0.6.8
+
 ## 0.8.4
 
 ### Patch Changes

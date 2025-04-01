@@ -471,7 +471,7 @@ describe('UpdateData - v9', () => {
 
     describe('given nested objects with index properties', () => {
       it('supports object replacement at each layer (with partial)', () => {
-        // This unexpectidly fails in v9 when the object has index signature nested
+        // This unexpectedly fails in v9 when the object has index signature nested
         // two layers deep (e.g. layer.indexed.[name]).
         const _: UpdateData<MyV10ServerType> = {
           indexed: {
@@ -600,7 +600,7 @@ describe('FirestoreTypeConverter', () => {
       stringProperty: string;
       numberProperty: number;
     }
-    const converter = {
+    const converter: FirestoreDataConverter<MyModelType> = {
       toFirestore(
         modelObject: PartialWithFieldValue<MyModelType>,
         options?: SetOptions

@@ -74,7 +74,7 @@ export function isPermanentError(code: Code): boolean {
     case Code.ALREADY_EXISTS:
     case Code.PERMISSION_DENIED:
     case Code.FAILED_PRECONDITION:
-    // Aborted might be retried in some scenarios, but that is dependant on
+    // Aborted might be retried in some scenarios, but that is dependent on
     // the context and should handled individually by the calling code.
     // See https://cloud.google.com/apis/design/errors.
     case Code.ABORTED:
