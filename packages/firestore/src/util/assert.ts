@@ -28,16 +28,37 @@ import { logError } from './log';
  * let futureVar = fail('not implemented yet');
  */
 export function fail(
-  failure: string | number,
-  context: unknown = undefined
+  code: number,
+  message: string,
+  context?: Record<string, unknown>
+): never;
+
+export function fail(code: number, context?: Record<string, unknown>): never;
+
+export function fail(
+  code: number,
+  messageOrContext?: string | Record<string, unknown>,
+  context?: Record<string, unknown>
 ): never {
-  _fail(failure, context);
+  let message = 'Unexpected state';
+  if (typeof messageOrContext === 'string') {
+    message = messageOrContext;
+  } else {
+    context = messageOrContext;
+  }
+  _fail(code, message, context);
 }
 
-function _fail(failure: string | number, context: unknown = undefined): never {
+function _fail(
+  code: number,
+  failure: string,
+  context?: Record<string, unknown>
+): never {
   // Log the failure in addition to throw an exception, just in case the
   // exception is swallowed.
-  let message = `FIRESTORE (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ${failure}`;
+  let message = `FIRESTORE (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ${failure} (CODE: ${code.toString(
+    16
+  )})`;
   if (context !== undefined) {
     try {
       const stringContext = JSON.stringify(context);
@@ -62,11 +83,32 @@ function _fail(failure: string | number, context: unknown = undefined): never {
  */
 export function hardAssert(
   assertion: boolean,
-  message: string | number,
-  context?: unknown
+  code: number,
+  message: string,
+  context?: Record<string, unknown>
+): asserts assertion;
+
+export function hardAssert(
+  assertion: boolean,
+  code: number,
+  context?: Record<string, unknown>
+): asserts assertion;
+
+export function hardAssert(
+  assertion: boolean,
+  code: number,
+  messageOrContext?: string | Record<string, unknown>,
+  context?: Record<string, unknown>
 ): asserts assertion {
+  let message = 'Unexpected state';
+  if (typeof messageOrContext === 'string') {
+    message = messageOrContext;
+  } else {
+    context = messageOrContext;
+  }
+
   if (!assertion) {
-    _fail(message, context);
+    _fail(code, message, context);
   }
 }
 
@@ -85,7 +127,7 @@ export function debugAssert(
   message: string
 ): asserts assertion {
   if (!assertion) {
-    fail(message);
+    fail(0xdeb06a55e7, message);
   }
 }
 

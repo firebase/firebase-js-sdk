@@ -105,7 +105,11 @@ export class IndexedDbMutationQueue implements MutationQueue {
     // In particular, are there any reserved characters? are empty ids allowed?
     // For the moment store these together in the same mutations table assuming
     // that empty userIDs aren't allowed.
-    hardAssert(user.uid !== '', 'UserID must not be an empty string.');
+    hardAssert(
+      user.uid !== '',
+      0xfb8340e4,
+      'UserID must not be an empty string.'
+    );
     const userId = user.isAuthenticated() ? user.uid! : '';
     return new IndexedDbMutationQueue(
       userId,
@@ -154,6 +158,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     return mutationStore.add({} as any).next(batchId => {
       hardAssert(
         typeof batchId === 'number',
+        0xbf7b47b3,
         'Auto-generated key is not a number'
       );
 
@@ -206,6 +211,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
         if (dbBatch) {
           hardAssert(
             dbBatch.userId === this.userId,
+            0x00307f8d,
             `Unexpected user for mutation batch`,
             {
               userId: dbBatch.userId,
@@ -261,6 +267,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
           if (dbBatch.userId === this.userId) {
             hardAssert(
               dbBatch.batchId >= nextBatchId,
+              0xb9a4d5e0,
               'Should have found mutation after `nextBatchId`',
               { nextBatchId }
             );
@@ -341,6 +348,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
           .next(mutation => {
             if (!mutation) {
               throw fail(
+                0xf028f0ab,
                 'Dangling document-mutation reference found: `indexKey` which points to `batchId`',
                 {
                   indexKey,
@@ -350,6 +358,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
             }
             hardAssert(
               mutation.userId === this.userId,
+              0x2907d360,
               `Unexpected user for mutation batch`,
               {
                 userId: mutation.userId,
@@ -478,6 +487,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
           .next(mutation => {
             if (mutation === null) {
               throw fail(
+                0x89caa3d9,
                 'Dangling document-mutation reference found, which points to `batchId`',
                 {
                   batchId
@@ -486,6 +496,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
             }
             hardAssert(
               mutation.userId === this.userId,
+              0x2614151a,
               `Unexpected user for mutation batch`,
               { userId: mutation.userId, batchId }
             );
@@ -561,6 +572,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
         .next(() => {
           hardAssert(
             danglingMutationReferences.length === 0,
+            0xdd9079e3,
             'Document leak -- detected dangling mutation references when queue is empty.',
             {
               danglingKeys: danglingMutationReferences.map(p =>

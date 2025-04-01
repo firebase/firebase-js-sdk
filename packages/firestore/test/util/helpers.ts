@@ -867,11 +867,13 @@ export function expectEqual(left: any, right: any, message?: string): void {
   message = message || '';
   if (typeof left.isEqual !== 'function') {
     return fail(
+      0x800468bf,
       JSON.stringify(left) + ' does not support isEqual (left) ' + message
     );
   }
   if (typeof right.isEqual !== 'function') {
     return fail(
+      0xebc9184f,
       JSON.stringify(right) + ' does not support isEqual (right) ' + message
     );
   }

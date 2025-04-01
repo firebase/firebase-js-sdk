@@ -219,7 +219,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
   ): PersistencePromise<MutableDocumentMap> {
     // This method should only be called from the IndexBackfiller if persistence
     // is enabled.
-    fail('getAllFromCollectionGroup() is not supported.');
+    fail(0x251c6adf, 'getAllFromCollectionGroup() is not supported.');
   }
 
   forEachDocumentKey(

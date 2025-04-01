@@ -197,6 +197,7 @@ export class LruGcMemoryOfflineComponentProvider extends MemoryOfflineComponentP
   ): Scheduler | null {
     hardAssert(
       this.persistence.referenceDelegate instanceof MemoryLruDelegate,
+      0xb7434c0f,
       'referenceDelegate is expected to be an instance of MemoryLruDelegate.'
     );
 

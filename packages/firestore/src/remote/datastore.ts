@@ -228,7 +228,12 @@ export async function invokeBatchGetDocumentsRpc(
   const result: Document[] = [];
   keys.forEach(key => {
     const doc = docs.get(key.toString());
-    hardAssert(!!doc, 'Missing entity in write response for `key`', { key });
+    hardAssert(
+      !!doc,
+      0xd7c263c4,
+      'Missing entity in write response for `key`',
+      { key }
+    );
     result.push(doc);
   });
   return result;
@@ -290,6 +295,7 @@ export async function invokeRunAggregationQueryRpc(
 
   hardAssert(
     filteredResult.length === 1,
+    0xfcd7682f,
     'Aggregation fields are missing from result.'
   );
   debugAssert(

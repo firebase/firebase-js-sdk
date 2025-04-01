@@ -124,7 +124,7 @@ export class Transaction {
       // Represent a deleted doc using SnapshotVersion.min().
       docVersion = SnapshotVersion.min();
     } else {
-      throw fail('Document in a transaction was a ', {
+      throw fail(0xc542d4e0, 'Document in a transaction was a ', {
         documentName: doc.constructor.name
       });
     }

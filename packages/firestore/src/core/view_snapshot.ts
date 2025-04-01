@@ -117,10 +117,14 @@ export class DocumentChangeSet {
       // Removed->Modified
       // Metadata->Added
       // Removed->Metadata
-      fail('unsupported combination of changes: `change` after `oldChange`', {
-        change,
-        oldChange
-      });
+      fail(
+        0xf76d356d,
+        'unsupported combination of changes: `change` after `oldChange`',
+        {
+          change,
+          oldChange
+        }
+      );
     }
   }
 

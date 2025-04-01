@@ -89,7 +89,7 @@ export abstract class AbstractUserDataWriter {
       case TypeOrder.VectorValue:
         return this.convertVectorValue(value.mapValue!);
       default:
-        throw fail('Invalid value type', {
+        throw fail(0xf2a2c883, 'Invalid value type', {
           value
         });
     }
@@ -175,6 +175,7 @@ export abstract class AbstractUserDataWriter {
     const resourcePath = ResourcePath.fromString(name);
     hardAssert(
       isValidResourceName(resourcePath),
+      0x25d8ba3b,
       'ReferenceValue is not valid',
       { name }
     );

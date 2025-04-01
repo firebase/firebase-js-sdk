@@ -326,6 +326,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
               (dbBatch: DbMutationBatch) => {
                 hardAssert(
                   dbBatch.userId === queue.userId,
+                  0x48daa634,
                   `Cannot process batch from unexpected user`,
                   { batchId: dbBatch.batchId }
                 );
@@ -773,6 +774,6 @@ function extractKey(remoteDoc: DbRemoteDocumentLegacy): DocumentKey {
   } else if (remoteDoc.unknownDocument) {
     return DocumentKey.fromSegments(remoteDoc.unknownDocument.path);
   } else {
-    return fail('Unexpected DbRemoteDocument');
+    return fail(0x8faf1dd8, 'Unexpected DbRemoteDocument');
   }
 }
