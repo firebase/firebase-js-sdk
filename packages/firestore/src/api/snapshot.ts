@@ -36,7 +36,13 @@ import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { debugAssert, fail } from '../util/assert';
+import {
+  BundleBuilder,
+  DocumentSnapshotBundleData,
+  QuerySnapshotBundleData
+} from '../util/bundle_builder_impl';
 import { Code, FirestoreError } from '../util/error';
+import { AutoId } from '../util/misc';
 
 import { Firestore } from './database';
 import { SnapshotListenOptions } from './reference_impl';
@@ -496,6 +502,46 @@ export class DocumentSnapshot<
     }
     return undefined;
   }
+
+  toJSON(): object {
+    const document = this._document;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result: any = {};
+    result['bundle'] = '';
+    result['source'] = 'DocumentSnapshot';
+
+    if (
+      !document ||
+      !document.isValidDocument() ||
+      !document.isFoundDocument()
+    ) {
+      return result;
+    }
+    const builder: BundleBuilder = new BundleBuilder(
+      this._firestore,
+      AutoId.newId()
+    );
+    const documentData = this._userDataWriter.convertObjectMap(
+      document.data.value.mapValue.fields,
+      'previous'
+    );
+    if (this.metadata.hasPendingWrites) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'DocumentSnapshot.toJSON() attempted to serialize a document with pending writes. ' +
+          'Await waitForPendingWrites() before invoking toJSON().'
+      );
+    }
+    builder.addBundleDocument(
+      documentToDocumentSnapshotBundleData(
+        this.ref.path,
+        documentData,
+        document
+      )
+    );
+    result['bundle'] = builder.build();
+    return result;
+  }
 }
 
 /**
@@ -651,6 +697,52 @@ export class QuerySnapshot<
 
     return this._cachedChanges;
   }
+
+  toJSON(): object {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result: any = {};
+    result['source'] = 'QuerySnapshot';
+    const builder: BundleBuilder = new BundleBuilder(
+      this._firestore,
+      AutoId.newId()
+    );
+    const databaseId = this._firestore._databaseId.database;
+    const projectId = this._firestore._databaseId.projectId;
+    const parent = `projects/${projectId}/databases/${databaseId}/documents`;
+    const docBundleDataArray: DocumentSnapshotBundleData[] = [];
+    const docArray = this.docs;
+    docArray.forEach(doc => {
+      if (doc._document === null) {
+        return;
+      }
+      const documentData = this._userDataWriter.convertObjectMap(
+        doc._document.data.value.mapValue.fields,
+        'previous'
+      );
+      if (this.metadata.hasPendingWrites) {
+        throw new FirestoreError(
+          Code.FAILED_PRECONDITION,
+          'QuerySnapshot.toJSON() attempted to serialize a document with pending writes. ' +
+            'Await waitForPendingWrites() before invoking toJSON().'
+        );
+      }
+      docBundleDataArray.push(
+        documentToDocumentSnapshotBundleData(
+          doc.ref.path,
+          documentData,
+          doc._document
+        )
+      );
+    });
+    const bundleData: QuerySnapshotBundleData = {
+      query: this.query._query,
+      parent,
+      docBundleDataArray
+    };
+    builder.addBundleQuery(bundleData);
+    result['bundle'] = builder.build();
+    return result;
+  }
 }
 
 /** Calculates the array of `DocumentChange`s for a given `ViewSnapshot`. */
@@ -789,4 +881,21 @@ export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(
   }
 
   return false;
+}
+
+// Formats Document data for bundling a DocumentSnapshot.
+function documentToDocumentSnapshotBundleData(
+  path: string,
+  documentData: DocumentData,
+  document: Document
+): DocumentSnapshotBundleData {
+  return {
+    documentData,
+    documentKey: document.mutableCopy().key,
+    documentPath: path,
+    documentExists: true,
+    createdTime: document.createTime.toTimestamp(),
+    readTime: document.readTime.toTimestamp(),
+    versionTime: document.version.toTimestamp()
+  };
 }
