@@ -2,5 +2,5 @@ connectorId: "tests"
 authMode: "PUBLIC" 
 generate:
   javascriptSdk:
-    outputDir: "./gen/web"
+    outputDir: "../../gen/web"
     package: "@test-app/tests"

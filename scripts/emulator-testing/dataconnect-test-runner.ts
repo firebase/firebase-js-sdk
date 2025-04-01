@@ -18,6 +18,7 @@
 import { DataConnectEmulator } from './emulators/dataconnect-emulator';
 import { spawn } from 'child-process-promise';
 import * as path from 'path';
+const useGenSDK = process.env.FIREBASE_GEN_SDK;
 function runTest(port: number) {
   console.log(
     'path: ' + path.resolve(__dirname, '../../packages/data-connect')
@@ -29,7 +30,7 @@ function runTest(port: number) {
     }),
     stdio: 'inherit' as const
   };
-  return spawn('yarn', ['test:all'], options);
+  return spawn('yarn', ['test:' + (useGenSDK ? 'gensdk' : 'all')], options);
 }
 async function run(): Promise<void> {
   const emulator = new DataConnectEmulator();
