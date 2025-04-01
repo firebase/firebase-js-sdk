@@ -22,7 +22,7 @@ This class provides methods for generating images using the Imagen model.
 ```typescript
 export declare class ImagenModel extends GenAIModel 
 ```
-<b>Extends:</b> GenAIModel
+<b>Extends:</b> [GenAIModel](./vertexai.genaimodel.md#genaimodel_class)
 
 ## Constructors
 
