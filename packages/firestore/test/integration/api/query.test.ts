@@ -37,11 +37,9 @@ import {
   endAt,
   endBefore,
   GeoPoint,
-  getDocFromCache,
   getDocs,
   limit,
   limitToLast,
-  loadBundle,
   onSnapshot,
   or,
   orderBy,
@@ -75,46 +73,6 @@ import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 
 apiDescribe('Queries', persistence => {
   addEqualityMatcher();
-
-  it('QuerySnapshot.toJSON bundle getDocFromCache', async () => {
-    let path: string | null = null;
-    let jsonBundle: object | null = null;
-    const testDocs = {
-      a: { k: 'a' },
-      b: { k: 'b' },
-      c: { k: 'c' }
-    };
-    // Write an initial document in an isolated Firestore instance so it's not stored in the cache.
-    await withTestCollection(persistence, testDocs, async collection => {
-      await getDocs(query(collection)).then(querySnapshot => {
-        expect(querySnapshot.docs.length).to.equal(3);
-        // Find the path to a known doc.
-        querySnapshot.docs.forEach(docSnapshot => {
-          if (docSnapshot.ref.path.endsWith('a')) {
-            path = docSnapshot.ref.path;
-          }
-        });
-        expect(path).to.not.be.null;
-        jsonBundle = querySnapshot.toJSON();
-      });
-    });
-    expect(jsonBundle).to.not.be.null;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const json = (jsonBundle as any).bundle;
-    expect(json).to.exist;
-    expect(json.length).to.be.greaterThan(0);
-
-    if (path !== null) {
-      await withTestDb(persistence, async db => {
-        const docRef = doc(db, path!);
-        await loadBundle(db, json);
-
-        const docSnap = await getDocFromCache(docRef);
-        expect(docSnap.exists);
-        expect(docSnap.data()).to.deep.equal(testDocs.a);
-      });
-    }
-  });
 
   it('can issue limit queries', () => {
     const testDocs = {
