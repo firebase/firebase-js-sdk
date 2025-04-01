@@ -21,7 +21,8 @@ import {
   FunctionExpr,
   AggregateFunction,
   ListOfExprs,
-  isNan
+  isNan,
+  isError
 } from '../lite-api/expressions';
 import { Timestamp } from '../lite-api/timestamp';
 import {
@@ -44,6 +45,7 @@ import {
   isString,
   isTimestampValue,
   isVectorValue,
+  MAX_VALUE,
   MIN_VALUE,
   TRUE_VALUE,
   typeOrder,
@@ -53,7 +55,9 @@ import {
 import {
   ArrayValue,
   Value,
-  Timestamp as ProtoTimestamp
+  Timestamp as ProtoTimestamp,
+  LatLng,
+  MapValue
 } from '../protos/firestore_proto_api';
 import { fromTimestamp, toName, toVersion } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
@@ -61,12 +65,95 @@ import { logWarn } from '../util/log';
 import { isNegativeZero } from '../util/types';
 
 import { EvaluationContext, PipelineInputOutput } from './pipeline_run';
+import { objectSize } from '../util/obj';
+
+export type EvaluateResultType =
+  | 'ERROR'
+  | 'UNSET'
+  | 'NULL'
+  | 'BOOLEAN'
+  | 'INT'
+  | 'DOUBLE'
+  | 'TIMESTAMP'
+  | 'STRING'
+  | 'BYTES'
+  | 'REFERENCE'
+  | 'GEO_POINT'
+  | 'ARRAY'
+  | 'MAP'
+  | 'FIELD_REFERENCE'
+  | 'VECTOR';
+
+export class EvaluateResult {
+  private constructor(
+    readonly type: EvaluateResultType,
+    readonly value?: Value
+  ) {}
+
+  static newError(): EvaluateResult {
+    return new EvaluateResult('ERROR', undefined);
+  }
+
+  static newUnset(): EvaluateResult {
+    return new EvaluateResult('UNSET', undefined);
+  }
+
+  static newNull(): EvaluateResult {
+    return new EvaluateResult('NULL', MIN_VALUE);
+  }
+
+  static newValue(value: Value): EvaluateResult {
+    if (isNullValue(value)) {
+      return new EvaluateResult('NULL', MIN_VALUE);
+    } else if (isBoolean(value)) {
+      return new EvaluateResult('BOOLEAN', value);
+    } else if (isInteger(value)) {
+      return new EvaluateResult('INT', value);
+    } else if (isDouble(value)) {
+      return new EvaluateResult('DOUBLE', value);
+    } else if (isTimestampValue(value)) {
+      return new EvaluateResult('TIMESTAMP', value);
+    } else if (isString(value)) {
+      return new EvaluateResult('STRING', value);
+    } else if (isBytes(value)) {
+      return new EvaluateResult('BYTES', value);
+    } else if (value.referenceValue) {
+      return new EvaluateResult('REFERENCE', value);
+    } else if (value.geoPointValue) {
+      return new EvaluateResult('GEO_POINT', value);
+    } else if (isArray(value)) {
+      return new EvaluateResult('ARRAY', value);
+    } else if (isVectorValue(value)) {
+      // vector value must be before map value
+      return new EvaluateResult('VECTOR', value);
+    } else if (isMapValue(value)) {
+      return new EvaluateResult('MAP', value);
+    } else {
+      return new EvaluateResult('ERROR', undefined);
+    }
+  }
+
+  isErrorOrUnset(): boolean {
+    return this.type === 'ERROR' || this.type === 'UNSET';
+  }
+
+  isNull(): boolean {
+    return this.type === 'NULL';
+  }
+}
+
+export function valueOrUndefined(value: EvaluateResult): Value | undefined {
+  if (value.isErrorOrUnset()) {
+    return undefined;
+  }
+  return value.value!;
+}
 
 export interface EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined;
+  ): EvaluateResult;
 }
 
 export function toEvaluable<T extends Expr>(expr: T): EvaluableExpr {
@@ -142,7 +229,7 @@ export function toEvaluable<T extends Expr>(expr: T): EvaluableExpr {
       return new CoreLogicalMaximum(functionExpr);
     } else if (functionExpr.name === 'logical_minimum') {
       return new CoreLogicalMinimum(functionExpr);
-    } else if (functionExpr.name === 'array_reverse') {
+    } else if (functionExpr.name === 'reverse') {
       return new CoreReverse(functionExpr);
     } else if (functionExpr.name === 'replace_first') {
       return new CoreReplaceFirst(functionExpr);
@@ -223,23 +310,29 @@ export class CoreField implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     if (this.expr.fieldName() === DOCUMENT_KEY_NAME) {
-      return {
+      return EvaluateResult.newValue({
         referenceValue: toName(context.serializer, input.key)
-      };
+      });
     }
     if (this.expr.fieldName() === UPDATE_TIME_NAME) {
-      return {
+      return EvaluateResult.newValue({
         timestampValue: toVersion(context.serializer, input.version)
-      };
+      });
     }
     if (this.expr.fieldName() === CREATE_TIME_NAME) {
-      return {
+      return EvaluateResult.newValue({
         timestampValue: toVersion(context.serializer, input.createTime)
-      };
+      });
     }
-    return input.data.field(this.expr.fieldPath) ?? undefined;
+    // Return 'UNSET' if the field doesn't exist, otherwise the Value.
+    const result = input.data.field(this.expr.fieldPath);
+    if (!!result) {
+      return EvaluateResult.newValue(result);
+    } else {
+      return EvaluateResult.newUnset();
+    }
   }
 }
 
@@ -249,8 +342,8 @@ export class CoreConstant implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
-    return this.expr._getValue();
+  ): EvaluateResult {
+    return EvaluateResult.newValue(this.expr._getValue());
   }
 }
 
@@ -260,15 +353,18 @@ export class CoreListOfExprs implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
-    const results = this.expr.exprs.map(expr =>
+  ): EvaluateResult {
+    const results: EvaluateResult[] = this.expr.exprs.map(expr =>
       toEvaluable(expr).evaluate(context, input)
     );
-    if (results.some(value => value === undefined)) {
-      return undefined;
+    // If any sub-expression resulted in error or was unset, the list evaluation fails.
+    if (results.some(value => value.isErrorOrUnset())) {
+      return EvaluateResult.newError();
     }
 
-    return { arrayValue: { values: results as Value[] } };
+    return EvaluateResult.newValue({
+      arrayValue: { values: results.map(value => value.value!) }
+    });
   }
 }
 
@@ -319,7 +415,7 @@ abstract class BigIntOrDoubleArithmetics implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length >= 2,
       'Arithmetics should have at least 2 params'
@@ -337,41 +433,137 @@ abstract class BigIntOrDoubleArithmetics implements EvaluableExpr {
   }
 
   applyArithmetics(
-    left: Value | undefined,
-    right: Value | undefined
-  ): Value | undefined {
-    if (left === undefined || right === undefined) {
-      return undefined;
+    left: EvaluateResult,
+    right: EvaluateResult
+  ): EvaluateResult {
+    // If any operand is error or unset, the result is error.
+    if (left.isErrorOrUnset() || right.isErrorOrUnset()) {
+      return EvaluateResult.newError();
+    }
+    if (left.isNull() || right.isNull()) {
+      return EvaluateResult.newNull();
     }
 
+    // Type check: Both must be numbers (integer or double).
+    // We know left and right are Value here due to the check above.
+    const leftVal = left.value;
+    const rightVal = right.value;
     if (
-      (!isDouble(left) && !isInteger(left)) ||
-      (!isDouble(right) && !isInteger(right))
+      (!isDouble(leftVal) && !isInteger(leftVal)) ||
+      (!isDouble(rightVal) && !isInteger(rightVal))
     ) {
-      return undefined;
+      return EvaluateResult.newError(); // Type error
     }
 
-    if (isDouble(left) || isDouble(right)) {
-      return this.doubleArith(left, right);
+    // Perform arithmetic based on types.
+    if (isDouble(leftVal) || isDouble(rightVal)) {
+      const result = this.doubleArith(leftVal, rightVal);
+      if (!result) {
+        return EvaluateResult.newError();
+      }
+      return EvaluateResult.newValue(result);
     }
 
-    if (isInteger(left) && isInteger(right)) {
-      const result = this.bigIntArith(left, right);
+    if (isInteger(leftVal) && isInteger(rightVal)) {
+      // Pass the narrowed Value types
+      const result = this.bigIntArith(leftVal, rightVal);
       if (result === undefined) {
-        return undefined;
+        return EvaluateResult.newError(); // Specific arithmetic error (e.g., divide by zero for integers)
       }
 
       if (typeof result === 'number') {
-        return { doubleValue: result };
+        // Result was double (e.g., integer divide by zero)
+        return EvaluateResult.newValue({ doubleValue: result });
       }
-      // Check for overflow
+      // Check for BigInt overflow
       else if (result < LongMinValue || result > LongMaxValue) {
-        return undefined; // Simulate overflow error
+        return EvaluateResult.newError(); // Simulate overflow error
       } else {
-        return { integerValue: `${result}` };
+        return EvaluateResult.newValue({ integerValue: `${result}` });
+      }
+    }
+    // Should not be reached due to initial type checks
+    return EvaluateResult.newError();
+  }
+}
+
+type Equality = 'NULL' | 'EQ' | 'NOT_EQ';
+function strictValueEquals(left: Value, right: Value): Equality {
+  if (isNullValue(left) || isNullValue(right)) {
+    return 'NULL';
+  }
+
+  if (isArray(left) && isArray(right)) {
+    return strictArrayValueEquals(left.arrayValue, right.arrayValue);
+  }
+  if (
+    (isVectorValue(left) && isVectorValue(right)) ||
+    (isMapValue(left) && isMapValue(right))
+  ) {
+    return strictObjectValueEquals(left.mapValue!, right.mapValue!);
+  }
+
+  return valueEquals(left, right) ? 'EQ' : 'NOT_EQ';
+}
+
+function strictArrayValueEquals(left: ArrayValue, right: ArrayValue): Equality {
+  if (left.values?.length !== right.values?.length) {
+    return 'NOT_EQ';
+  }
+
+  let foundNull = false;
+  for (let index = 0; index < (left.values?.length ?? 0); index++) {
+    const leftValue = left.values![index];
+    const rightValue = right.values![index];
+    switch (strictValueEquals(leftValue, rightValue)) {
+      case 'NOT_EQ': {
+        return 'NOT_EQ';
+      }
+      case 'NULL': {
+        foundNull = true;
+        break;
       }
     }
   }
+
+  if (foundNull) {
+    return 'NULL';
+  }
+
+  return 'EQ';
+}
+
+function strictObjectValueEquals(left: MapValue, right: MapValue): Equality {
+  const leftMap = left.fields || {};
+  const rightMap = right.fields || {};
+
+  if (objectSize(leftMap) !== objectSize(rightMap)) {
+    return 'NOT_EQ';
+  }
+
+  let foundNull = false;
+  for (const key in leftMap) {
+    if (leftMap.hasOwnProperty(key)) {
+      if (rightMap[key] === undefined) {
+        return 'NOT_EQ';
+      }
+
+      switch (strictValueEquals(leftMap[key], rightMap[key])) {
+        case 'NOT_EQ': {
+          return 'NOT_EQ';
+        }
+        case 'NULL': {
+          foundNull = true;
+        }
+      }
+    }
+  }
+
+  if (foundNull) {
+    return 'NULL';
+  }
+
+  return 'EQ';
 }
 
 function valueEquals(left: Value, right: Value): boolean {
@@ -497,10 +689,7 @@ export class CoreDivide extends BigIntOrDoubleArithmetics {
   ): bigint | number | undefined {
     const rightValue = asBigInt(right);
     if (rightValue === BigInt(0)) {
-      return undefined;
-      // return isNegativeZero(asDouble(right))
-      //       ? Number.NEGATIVE_INFINITY
-      //       : Number.POSITIVE_INFINITY;
+      return undefined; // Integer division by zero is an error
     }
     return asBigInt(left) / rightValue;
   }
@@ -523,6 +712,7 @@ export class CoreDivide extends BigIntOrDoubleArithmetics {
     | undefined {
     const rightValue = asDouble(right);
     if (rightValue === 0) {
+      // Double division by zero results in Infinity
       return {
         doubleValue: isNegativeZero(rightValue)
           ? Number.NEGATIVE_INFINITY
@@ -546,7 +736,7 @@ export class CoreMod extends BigIntOrDoubleArithmetics {
   ): bigint | undefined {
     const rightValue = asBigInt(right);
     if (rightValue === BigInt(0)) {
-      return undefined;
+      return undefined; // Modulo by zero is an error
     }
     return asBigInt(left) % rightValue;
   }
@@ -569,7 +759,7 @@ export class CoreMod extends BigIntOrDoubleArithmetics {
     | undefined {
     const rightValue = asDouble(right);
     if (rightValue === 0) {
-      return undefined;
+      return undefined; // Modulo by zero is an error
     }
 
     return { doubleValue: asDouble(left) % rightValue };
@@ -582,20 +772,36 @@ export class CoreAnd implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
-    let isError = false;
+  ): EvaluateResult {
+    let hasError = false;
+    let hasNull = false;
     for (const param of this.expr.params) {
       const result = toEvaluable(param).evaluate(context, input);
-      if (result === undefined || !isBoolean(result)) {
-        isError = true;
-        continue;
-      }
-
-      if (isBoolean(result) && !result.booleanValue) {
-        return { booleanValue: false };
+      switch (result.type) {
+        case 'BOOLEAN': {
+          if (!result.value?.booleanValue) {
+            return EvaluateResult.newValue(FALSE_VALUE);
+          }
+          break;
+        }
+        case 'NULL': {
+          hasNull = true;
+          break;
+        }
+        default: {
+          hasError = true;
+        }
       }
     }
-    return isError ? undefined : { booleanValue: true };
+
+    if (hasError) {
+      return EvaluateResult.newError();
+    }
+    if (hasNull) {
+      return EvaluateResult.newNull();
+    }
+
+    return EvaluateResult.newValue(TRUE_VALUE);
   }
 }
 
@@ -605,17 +811,24 @@ export class CoreNot implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 1,
       'not() function should have exactly 1 param'
     );
     const result = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (result === undefined || !isBoolean(result)) {
-      return undefined;
+    switch (result.type) {
+      case 'BOOLEAN': {
+        return EvaluateResult.newValue({
+          booleanValue: !result.value?.booleanValue
+        });
+      }
+      case 'NULL': {
+        return EvaluateResult.newNull();
+      }
+      default:
+        return EvaluateResult.newError();
     }
-
-    return { booleanValue: !result.booleanValue };
   }
 }
 
@@ -625,20 +838,36 @@ export class CoreOr implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
-    let isError = false;
+  ): EvaluateResult {
+    let hasError = false;
+    let hasNull = false;
     for (const param of this.expr.params) {
       const result = toEvaluable(param).evaluate(context, input);
-      if (result === undefined || !isBoolean(result)) {
-        isError = true;
-        continue;
-      }
-
-      if (isBoolean(result) && result.booleanValue) {
-        return { booleanValue: true };
+      switch (result.type) {
+        case 'BOOLEAN': {
+          if (result.value?.booleanValue) {
+            return EvaluateResult.newValue(TRUE_VALUE);
+          }
+          break;
+        }
+        case 'NULL': {
+          hasNull = true;
+          break;
+        }
+        default: {
+          hasError = true;
+        }
       }
     }
-    return isError ? undefined : { booleanValue: false };
+
+    if (hasError) {
+      return EvaluateResult.newError();
+    }
+    if (hasNull) {
+      return EvaluateResult.newNull();
+    }
+
+    return EvaluateResult.newValue(FALSE_VALUE);
   }
 }
 
@@ -648,19 +877,35 @@ export class CoreXor implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     let result = false;
+    let hasNull = false;
     for (const param of this.expr.params) {
       const evaluated = toEvaluable(param).evaluate(context, input);
-      if (evaluated === undefined || !isBoolean(evaluated)) {
-        return undefined;
+      switch (evaluated.type) {
+        case 'BOOLEAN': {
+          result = CoreXor.xor(result, !!evaluated.value?.booleanValue);
+          break;
+        }
+        case 'NULL': {
+          hasNull = true;
+          break;
+        }
+        default: {
+          return EvaluateResult.newError();
+        }
       }
-
-      result = CoreXor.xor(result, evaluated.booleanValue);
     }
-    return { booleanValue: result };
+
+    if (hasNull) {
+      return EvaluateResult.newNull();
+    }
+    return EvaluateResult.newValue({ booleanValue: result });
   }
 
+  // XOR(a, b) is equivalent to (a OR b) AND NOT(a AND b)
+  // It is required to evaluate all arguments to ensure that the correct error semantics are
+  // applied.
   static xor(a: boolean, b: boolean): boolean {
     return (a || b) && !(a && b);
   }
@@ -672,33 +917,60 @@ export class CoreEqAny implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 2,
       'eq_any() function should have exactly 2 params'
     );
+
+    let foundNull = false;
     const searchExpr = this.expr.params[0];
     const searchValue = toEvaluable(searchExpr).evaluate(context, input);
-    if (searchValue === undefined) {
-      return undefined;
+    switch (searchValue.type) {
+      case 'NULL': {
+        foundNull = true;
+        break;
+      }
+      case 'ERROR':
+        return EvaluateResult.newError();
+      case 'UNSET':
+        return EvaluateResult.newError();
     }
 
     const arrayExpr = this.expr.params[1];
     const arrayValue = toEvaluable(arrayExpr).evaluate(context, input);
-
-    let hasError = arrayValue === undefined;
-    for (const candidate of arrayValue?.arrayValue?.values ?? []) {
-      if (candidate === undefined) {
-        hasError = true;
-        continue;
+    switch (arrayValue.type) {
+      case 'ARRAY':
+        break;
+      case 'NULL': {
+        foundNull = true;
+        break;
       }
+      default:
+        return EvaluateResult.newError();
+    }
 
-      if (valueEquals(searchValue, candidate)) {
-        return TRUE_VALUE;
+    if (foundNull) {
+      return EvaluateResult.newNull();
+    }
+
+    for (const candidate of arrayValue.value?.arrayValue?.values ?? []) {
+      switch (strictValueEquals(searchValue.value!, candidate)) {
+        case 'EQ':
+          return EvaluateResult.newValue(TRUE_VALUE);
+        case 'NOT_EQ': {
+          break;
+        }
+        case 'NULL':
+          foundNull = true;
       }
     }
 
-    return hasError ? undefined : FALSE_VALUE;
+    if (foundNull) {
+      return EvaluateResult.newNull();
+    }
+
+    return EvaluateResult.newValue(FALSE_VALUE);
   }
 }
 
@@ -708,13 +980,11 @@ export class CoreNotEqAny implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
-    const inverse = new CoreEqAny(new FunctionExpr('eq_any', this.expr.params));
-    const result = inverse.evaluate(context, input);
-    if (result === undefined) {
-      return undefined;
-    }
-    return { booleanValue: !result.booleanValue };
+  ): EvaluateResult {
+    const equivalent = new CoreNot(
+      new FunctionExpr('not', [new FunctionExpr('eq_any', this.expr.params)])
+    );
+    return equivalent.evaluate(context, input);
   }
 }
 
@@ -724,25 +994,26 @@ export class CoreIsNan implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 1,
       'is_nan() function should have exactly 1 param'
     );
     const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (evaluated === undefined) {
-      return undefined;
+    switch (evaluated.type) {
+      case 'INT':
+        return EvaluateResult.newValue(FALSE_VALUE);
+      case 'DOUBLE':
+        return EvaluateResult.newValue({
+          booleanValue: isNaN(
+            asDouble(evaluated.value as { doubleValue: number | string })
+          )
+        });
+      case 'NULL':
+        return EvaluateResult.newNull();
+      default:
+        return EvaluateResult.newError();
     }
-
-    if (!isNumber(evaluated)) {
-      return undefined;
-    }
-
-    return {
-      booleanValue: isNaN(
-        asDouble(evaluated as { doubleValue: number | string })
-      )
-    };
   }
 }
 
@@ -752,26 +1023,16 @@ export class CoreIsNotNan implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 1,
       'is_not_nan() function should have exactly 1 param'
     );
 
-    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (evaluated === undefined) {
-      return undefined;
-    }
-
-    if (!isNumber(evaluated)) {
-      return undefined;
-    }
-
-    return {
-      booleanValue: !isNaN(
-        asDouble(evaluated as { doubleValue: number | string })
-      )
-    };
+    const equivalent = new CoreNot(
+      new FunctionExpr('not', [new FunctionExpr('is_nan', this.expr.params)])
+    );
+    return equivalent.evaluate(context, input);
   }
 }
 
@@ -781,15 +1042,22 @@ export class CoreIsNull implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 1,
       'is_null() function should have exactly 1 param'
     );
     const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    return {
-      booleanValue: evaluated === undefined ? false : isNullValue(evaluated)
-    };
+    switch (evaluated.type) {
+      case 'NULL':
+        return EvaluateResult.newValue(TRUE_VALUE);
+      case 'UNSET':
+        return EvaluateResult.newError();
+      case 'ERROR':
+        return EvaluateResult.newError();
+      default:
+        return EvaluateResult.newValue(FALSE_VALUE);
+    }
   }
 }
 
@@ -799,16 +1067,15 @@ export class CoreIsNotNull implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 1,
       'is_not_null() function should have exactly 1 param'
     );
-    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    // Check if the value exists and is not the explicit null value.
-    return {
-      booleanValue: evaluated !== undefined && !isNullValue(evaluated)
-    };
+    const equivalent = new CoreNot(
+      new FunctionExpr('not', [new FunctionExpr('is_null', this.expr.params)])
+    );
+    return equivalent.evaluate(context, input);
   }
 }
 
@@ -818,13 +1085,20 @@ export class CoreExists implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 1,
       'exists() function should have exactly 1 param'
     );
     const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    return evaluated === undefined ? FALSE_VALUE : TRUE_VALUE;
+    switch (evaluated.type) {
+      case 'ERROR':
+        return EvaluateResult.newError();
+      case 'UNSET':
+        return EvaluateResult.newValue(FALSE_VALUE);
+      default:
+        return EvaluateResult.newValue(TRUE_VALUE);
+    }
   }
 }
 
@@ -834,19 +1108,27 @@ export class CoreCond implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 3,
       'cond() function should have exactly 3 param'
     );
 
-    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-
-    if (isBoolean(evaluated) && evaluated.booleanValue) {
-      return toEvaluable(this.expr.params[1]).evaluate(context, input);
+    const condition = toEvaluable(this.expr.params[0]).evaluate(context, input);
+    switch (condition.type) {
+      case 'BOOLEAN': {
+        if (condition.value?.booleanValue) {
+          return toEvaluable(this.expr.params[1]).evaluate(context, input);
+        } else {
+          return toEvaluable(this.expr.params[2]).evaluate(context, input);
+        }
+      }
+      case 'NULL': {
+        return toEvaluable(this.expr.params[2]).evaluate(context, input);
+      }
+      default:
+        return EvaluateResult.newError();
     }
-
-    return toEvaluable(this.expr.params[2]).evaluate(context, input);
   }
 }
 
@@ -856,26 +1138,33 @@ export class CoreLogicalMaximum implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
-    const values = this.expr.params.map(param =>
+  ): EvaluateResult {
+    const results = this.expr.params.map(param =>
       toEvaluable(param).evaluate(context, input)
     );
 
-    let result: Value | undefined;
+    let maxValue: EvaluateResult | undefined;
 
-    for (const value of values) {
-      if (value === undefined || valueEquals(value, MIN_VALUE)) {
-        continue;
-      }
-
-      if (result === undefined) {
-        result = value;
-      } else {
-        result = valueCompare(value, result) > 0 ? value : result;
+    for (const result of results) {
+      switch (result.type) {
+        case 'ERROR':
+        case 'UNSET':
+        case 'NULL':
+          continue;
+        default: {
+          if (maxValue === undefined) {
+            maxValue = result;
+          } else {
+            maxValue =
+              valueCompare(result.value!, maxValue.value!) > 0
+                ? result
+                : maxValue;
+          }
+        }
       }
     }
 
-    return result ?? MIN_VALUE;
+    return maxValue === undefined ? EvaluateResult.newNull() : maxValue;
   }
 }
 
@@ -885,49 +1174,73 @@ export class CoreLogicalMinimum implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
-    const values = this.expr.params.map(param =>
+  ): EvaluateResult {
+    const results = this.expr.params.map(param =>
       toEvaluable(param).evaluate(context, input)
     );
+    let minValue: EvaluateResult | undefined;
 
-    let result: Value | undefined;
-
-    for (const value of values) {
-      if (value === undefined || valueEquals(value, MIN_VALUE)) {
-        continue;
-      }
-
-      if (result === undefined) {
-        result = value;
-      } else {
-        result = valueCompare(value, result) < 0 ? value : result;
+    for (const result of results) {
+      switch (result.type) {
+        case 'ERROR':
+        case 'UNSET':
+        case 'NULL':
+          continue;
+        default: {
+          if (minValue === undefined) {
+            minValue = result;
+          } else {
+            minValue =
+              valueCompare(result.value!, minValue.value!) < 0
+                ? result
+                : minValue;
+          }
+        }
       }
     }
 
-    return result ?? MIN_VALUE;
+    return minValue === undefined ? EvaluateResult.newNull() : minValue;
   }
 }
 
 abstract class ComparisonBase implements EvaluableExpr {
   protected constructor(protected expr: FunctionExpr) {}
 
-  abstract trueCase(left: Value, right: Value): boolean;
+  abstract compareToResult(
+    left: EvaluateResult,
+    right: EvaluateResult
+  ): EvaluateResult;
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 2,
       `${this.expr.name}() function should have exactly 2 params`
     );
 
     const left = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    const right = toEvaluable(this.expr.params[1]).evaluate(context, input);
-    if (left === undefined || right === undefined) {
-      return undefined;
+    switch (left.type) {
+      case 'ERROR':
+        return EvaluateResult.newError();
+      case 'UNSET':
+        return EvaluateResult.newError();
     }
-    return this.trueCase(left, right) ? TRUE_VALUE : FALSE_VALUE;
+
+    const right = toEvaluable(this.expr.params[1]).evaluate(context, input);
+    switch (right.type) {
+      case 'ERROR':
+        return EvaluateResult.newError();
+      case 'UNSET':
+        return EvaluateResult.newError();
+    }
+
+    if (left.isNull() || right.isNull()) {
+      return EvaluateResult.newNull();
+    }
+
+    return this.compareToResult(left, right);
   }
 }
 
@@ -936,8 +1249,22 @@ export class CoreEq extends ComparisonBase {
     super(expr);
   }
 
-  trueCase(left: Value, right: Value): boolean {
-    return valueEquals(left, right);
+  compareToResult(left: EvaluateResult, right: EvaluateResult): EvaluateResult {
+    if (typeOrder(left.value!) !== typeOrder(right.value!)) {
+      return EvaluateResult.newValue(FALSE_VALUE);
+    }
+    if (isNanValue(left.value) || isNanValue(right.value)) {
+      return EvaluateResult.newValue(FALSE_VALUE);
+    }
+
+    switch (strictValueEquals(left.value!, right.value!)) {
+      case 'EQ':
+        return EvaluateResult.newValue(TRUE_VALUE);
+      case 'NOT_EQ':
+        return EvaluateResult.newValue(FALSE_VALUE);
+      case 'NULL':
+        return EvaluateResult.newNull();
+    }
   }
 }
 
@@ -946,8 +1273,15 @@ export class CoreNeq extends ComparisonBase {
     super(expr);
   }
 
-  trueCase(left: Value, right: Value): boolean {
-    return !valueEquals(left, right);
+  compareToResult(left: EvaluateResult, right: EvaluateResult): EvaluateResult {
+    switch (strictValueEquals(left.value!, right.value!)) {
+      case 'EQ':
+        return EvaluateResult.newValue(FALSE_VALUE);
+      case 'NOT_EQ':
+        return EvaluateResult.newValue(TRUE_VALUE);
+      case 'NULL':
+        return EvaluateResult.newNull();
+    }
   }
 }
 
@@ -956,14 +1290,16 @@ export class CoreLt extends ComparisonBase {
     super(expr);
   }
 
-  trueCase(left: Value, right: Value): boolean {
-    if (typeOrder(left) !== typeOrder(right)) {
-      return false;
+  compareToResult(left: EvaluateResult, right: EvaluateResult): EvaluateResult {
+    if (typeOrder(left.value!) !== typeOrder(right.value!)) {
+      return EvaluateResult.newValue(FALSE_VALUE);
     }
-    if (isNanValue(left) || isNanValue(right)) {
-      return false;
+    if (isNanValue(left.value) || isNanValue(right.value)) {
+      return EvaluateResult.newValue(FALSE_VALUE);
     }
-    return valueCompare(left, right) < 0;
+    return EvaluateResult.newValue({
+      booleanValue: valueCompare(left.value!, right.value!) < 0
+    });
   }
 }
 
@@ -972,18 +1308,21 @@ export class CoreLte extends ComparisonBase {
     super(expr);
   }
 
-  trueCase(left: Value, right: Value): boolean {
-    if (typeOrder(left) !== typeOrder(right)) {
-      return false;
+  compareToResult(left: EvaluateResult, right: EvaluateResult): EvaluateResult {
+    if (typeOrder(left.value!) !== typeOrder(right.value!)) {
+      return EvaluateResult.newValue(FALSE_VALUE);
     }
-    if (isNanValue(left) || isNanValue(right)) {
-      return false;
-    }
-    if (valueEquals(left, right)) {
-      return true;
+    if (isNanValue(left.value!) || isNanValue(right.value!)) {
+      return EvaluateResult.newValue(FALSE_VALUE);
     }
 
-    return valueCompare(left, right) < 0;
+    if (strictValueEquals(left.value!, right.value!) === 'EQ') {
+      return EvaluateResult.newValue(TRUE_VALUE);
+    }
+
+    return EvaluateResult.newValue({
+      booleanValue: valueCompare(left.value!, right.value!) < 0
+    });
   }
 }
 
@@ -992,15 +1331,16 @@ export class CoreGt extends ComparisonBase {
     super(expr);
   }
 
-  trueCase(left: Value, right: Value): boolean {
-    if (typeOrder(left) !== typeOrder(right)) {
-      return false;
+  compareToResult(left: EvaluateResult, right: EvaluateResult): EvaluateResult {
+    if (typeOrder(left.value!) !== typeOrder(right.value!)) {
+      return EvaluateResult.newValue(FALSE_VALUE);
     }
-    if (isNanValue(left) || isNanValue(right)) {
-      return false;
+    if (isNanValue(left.value) || isNanValue(right.value)) {
+      return EvaluateResult.newValue(FALSE_VALUE);
     }
-
-    return valueCompare(left, right) > 0;
+    return EvaluateResult.newValue({
+      booleanValue: valueCompare(left.value!, right.value!) > 0
+    });
   }
 }
 
@@ -1009,18 +1349,21 @@ export class CoreGte extends ComparisonBase {
     super(expr);
   }
 
-  trueCase(left: Value, right: Value): boolean {
-    if (typeOrder(left) !== typeOrder(right)) {
-      return false;
+  compareToResult(left: EvaluateResult, right: EvaluateResult): EvaluateResult {
+    if (typeOrder(left.value!) !== typeOrder(right.value!)) {
+      return EvaluateResult.newValue(FALSE_VALUE);
     }
-    if (isNanValue(left) || isNanValue(right)) {
-      return false;
-    }
-    if (valueEquals(left, right)) {
-      return true;
+    if (isNanValue(left.value!) || isNanValue(right.value!)) {
+      return EvaluateResult.newValue(FALSE_VALUE);
     }
 
-    return valueCompare(left, right) > 0;
+    if (strictValueEquals(left.value!, right.value!) === 'EQ') {
+      return EvaluateResult.newValue(TRUE_VALUE);
+    }
+
+    return EvaluateResult.newValue({
+      booleanValue: valueCompare(left.value!, right.value!) > 0
+    });
   }
 }
 
@@ -1030,7 +1373,7 @@ export class CoreArrayConcat implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     throw new Error('Unimplemented');
   }
 }
@@ -1041,20 +1384,24 @@ export class CoreArrayReverse implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 1,
       'array_reverse() function should have exactly one parameter'
     );
     const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (
-      evaluated === undefined ||
-      !Array.isArray(evaluated.arrayValue?.values)
-    ) {
-      return undefined;
+    switch (evaluated.type) {
+      case 'NULL':
+        return EvaluateResult.newNull();
+      case 'ARRAY': {
+        const values = evaluated.value!.arrayValue?.values ?? [];
+        return EvaluateResult.newValue({
+          arrayValue: { values: [...values].reverse() }
+        });
+      }
+      default:
+        return EvaluateResult.newError();
     }
-
-    return { arrayValue: { values: evaluated.arrayValue?.values.reverse() } };
   }
 }
 
@@ -1064,25 +1411,14 @@ export class CoreArrayContains implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 2,
       'array_contains() function should have exactly two parameters'
     );
-
-    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (evaluated === undefined || !isArray(evaluated)) {
-      return undefined;
-    }
-
-    const element = toEvaluable(this.expr.params[1]).evaluate(context, input);
-    if (evaluated === undefined || element === undefined) {
-      return undefined;
-    }
-
-    return evaluated.arrayValue.values?.some(val => valueEquals(val, element!))
-      ? TRUE_VALUE
-      : FALSE_VALUE;
+    return new CoreEqAny(
+      new FunctionExpr('eq_any', [this.expr.params[1], this.expr.params[0]])
+    ).evaluate(context, input);
   }
 }
 
@@ -1092,37 +1428,95 @@ export class CoreArrayContainsAll implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 2,
       'array_contains_all() function should have exactly two parameters'
     );
 
-    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (evaluated === undefined || !isArray(evaluated)) {
-      return undefined;
+    let foundNull = false;
+    const arrayToSearch = toEvaluable(this.expr.params[0]).evaluate(
+      context,
+      input
+    );
+    switch (arrayToSearch.type) {
+      case 'ARRAY': {
+        break;
+      }
+      case 'NULL': {
+        foundNull = true;
+        break;
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
 
-    const elements = toEvaluable(this.expr.params[1]).evaluate(context, input);
-    if (evaluated === undefined || !isArray(evaluated)) {
-      return undefined;
+    const elementsToFind = toEvaluable(this.expr.params[1]).evaluate(
+      context,
+      input
+    );
+    switch (elementsToFind.type) {
+      case 'ARRAY': {
+        break;
+      }
+      case 'NULL': {
+        foundNull = true;
+        break;
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
 
-    for (const element of elements?.arrayValue?.values ?? []) {
+    if (foundNull) {
+      return EvaluateResult.newNull();
+    }
+
+    const searchValues = elementsToFind.value?.arrayValue?.values ?? [];
+    const arrayValues = arrayToSearch.value?.arrayValue?.values ?? [];
+    let foundNullAtLeastOnce = false;
+    for (const search of searchValues) {
       let found = false;
-      for (const val of evaluated.arrayValue.values ?? []) {
-        if (element !== undefined && valueEquals(val, element!)) {
-          found = true;
+      foundNull = false;
+      for (const value of arrayValues) {
+        switch (strictValueEquals(search, value)) {
+          case 'EQ': {
+            found = true;
+            break;
+          }
+          case 'NOT_EQ': {
+            break;
+          }
+          case 'NULL': {
+            foundNull = true;
+            foundNullAtLeastOnce = true;
+          }
+        }
+
+        if (found) {
+          // short circuit
           break;
         }
       }
 
-      if (!found) {
-        return FALSE_VALUE;
+      if (found) {
+        // true case - do nothing, we found a match, make sure all other values are also found
+      } else {
+        // false case - we didn't find a match, short circuit
+        if (!foundNull) {
+          return EvaluateResult.newValue(FALSE_VALUE);
+        }
+
+        // null case - do nothing, we found at least one null value, keep going
       }
     }
 
-    return TRUE_VALUE;
+    if (foundNullAtLeastOnce) {
+      return EvaluateResult.newNull();
+    }
+
+    return EvaluateResult.newValue(TRUE_VALUE);
   }
 }
 
@@ -1132,40 +1526,74 @@ export class CoreArrayContainsAny implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 2,
       'array_contains_any() function should have exactly two parameters'
     );
 
-    const evaluatedExpr = toEvaluable(this.expr.params[0]).evaluate(
+    let foundNull = false;
+    const arrayToSearch = toEvaluable(this.expr.params[0]).evaluate(
       context,
       input
     );
-    if (evaluatedExpr === undefined || !isArray(evaluatedExpr)) {
-      return undefined;
+    switch (arrayToSearch.type) {
+      case 'ARRAY': {
+        break;
+      }
+      case 'NULL': {
+        foundNull = true;
+        break;
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
 
-    const candidates = toEvaluable(this.expr.params[1]).evaluate(
+    const elementsToFind = toEvaluable(this.expr.params[1]).evaluate(
       context,
       input
     );
-    if (candidates === undefined || !isArray(candidates)) {
-      return undefined;
+    switch (elementsToFind.type) {
+      case 'ARRAY': {
+        break;
+      }
+      case 'NULL': {
+        foundNull = true;
+        break;
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
 
-    for (const element of candidates.arrayValue.values ?? []) {
-      for (const val of evaluatedExpr.arrayValue.values ?? []) {
-        if (element === undefined) {
-          return undefined;
-        }
-        if (valueEquals(val, element!)) {
-          return TRUE_VALUE;
+    if (foundNull) {
+      return EvaluateResult.newNull();
+    }
+
+    const searchValues = elementsToFind.value?.arrayValue?.values ?? [];
+    const arrayValues = arrayToSearch.value?.arrayValue?.values ?? [];
+
+    for (const value of arrayValues) {
+      for (const search of searchValues) {
+        switch (strictValueEquals(value, search)) {
+          case 'EQ': {
+            return EvaluateResult.newValue(TRUE_VALUE);
+          }
+          case 'NOT_EQ': {
+            break;
+          }
+          case 'NULL':
+            foundNull = true;
         }
       }
     }
 
-    return FALSE_VALUE;
+    if (foundNull) {
+      return EvaluateResult.newNull();
+    }
+
+    return EvaluateResult.newValue(FALSE_VALUE);
   }
 }
 
@@ -1175,17 +1603,24 @@ export class CoreArrayLength implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 1,
       'array_length() function should have exactly one parameter'
     );
     const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (evaluated === undefined || !isArray(evaluated)) {
-      return undefined;
+    switch (evaluated.type) {
+      case 'NULL':
+        return EvaluateResult.newNull();
+      case 'ARRAY': {
+        return EvaluateResult.newValue({
+          integerValue: `${evaluated.value?.arrayValue?.values?.length ?? 0}`
+        });
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
-
-    return { integerValue: `${evaluated.arrayValue.values?.length ?? 0}` };
   }
 }
 
@@ -1195,7 +1630,7 @@ export class CoreArrayElement implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     throw new Error('Unimplemented');
   }
 }
@@ -1206,21 +1641,27 @@ export class CoreReverse implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 1,
       'reverse() function should have exactly one parameter'
     );
     const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (evaluated === undefined) {
-      return undefined;
+    switch (evaluated.type) {
+      case 'NULL':
+        return EvaluateResult.newNull();
+      case 'STRING': {
+        return EvaluateResult.newValue({
+          stringValue: evaluated.value?.stringValue
+            ?.split('')
+            .reverse()
+            .join('')
+        });
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
-
-    if (!isString(evaluated)) {
-      return undefined;
-    }
-
-    return { stringValue: evaluated.stringValue.split('').reverse().join('') };
   }
 }
 
@@ -1230,7 +1671,7 @@ export class CoreReplaceFirst implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     throw new Error('Unimplemented');
   }
 }
@@ -1241,7 +1682,7 @@ export class CoreReplaceAll implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     throw new Error('Unimplemented');
   }
 }
@@ -1252,16 +1693,43 @@ function getUnicodePointCount(str: string) {
     const codePoint = str.codePointAt(i);
 
     if (codePoint === undefined) {
-      return undefined;
+      return undefined; // Should not happen with valid JS strings
     }
 
-    if (codePoint <= 0xdfff) {
+    // BMP character (including lone surrogates, which count as 1)
+    if (codePoint <= 0xffff) {
+      // Check specifically for lone surrogates which are invalid UTF-16 sequences
+      if (codePoint >= 0xd800 && codePoint <= 0xdfff) {
+        // High surrogate: check if followed by low surrogate
+        if (codePoint <= 0xdbff) {
+          const nextCodePoint = str.codePointAt(i + 1);
+          if (
+            nextCodePoint === undefined ||
+            !(nextCodePoint >= 0xdc00 && nextCodePoint <= 0xdfff)
+          ) {
+            // Lone high surrogate - treat as one character for length, but invalid for byte length
+            count += 1;
+          } else {
+            // Valid surrogate pair (counts as one character)
+            count += 1;
+            i++; // Skip the low surrogate
+          }
+        } else {
+          // Lone low surrogate - treat as one character
+          count += 1;
+        }
+      } else {
+        // Regular BMP character
+        count += 1;
+      }
+    }
+    // Astral plane character (SMP) - should have been handled by surrogate pair check
+    // This case might be redundant if surrogate logic is correct, but kept for clarity
+    else if (codePoint <= 0x10ffff) {
       count += 1;
-    } else if (codePoint <= 0x10ffff) {
-      count += 1;
-      i++;
+      i++; // Code points > 0xFFFF take two JS string indices
     } else {
-      return undefined; // Invalid code point (should not normally happen)
+      return undefined; // Invalid code point
     }
   }
   return count;
@@ -1273,23 +1741,25 @@ export class CoreCharLength implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 1,
       'char_length() function should have exactly one parameter'
     );
     const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-
-    if (evaluated === undefined) {
-      return undefined;
-    }
-
-    if (isString(evaluated)) {
-      return { integerValue: getUnicodePointCount(evaluated.stringValue) };
-    } else if (isNullValue(evaluated)) {
-      return MIN_VALUE;
-    } else {
-      return undefined;
+    switch (evaluated.type) {
+      case 'NULL':
+        return EvaluateResult.newNull();
+      case 'STRING': {
+        const length = getUnicodePointCount(evaluated.value!.stringValue!);
+        // If counting failed (e.g., invalid sequence), return error
+        return length === undefined
+          ? EvaluateResult.newError()
+          : EvaluateResult.newValue({ integerValue: length });
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
   }
 }
@@ -1342,32 +1812,88 @@ export class CoreByteLength implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 1,
       'byte_length() function should have exactly one parameter'
     );
     const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
+    switch (evaluated.type) {
+      case 'BYTES': {
+        return EvaluateResult.newValue({
+          integerValue: evaluated.value?.bytesValue?.length
+        });
+      }
+      case 'STRING': {
+        // return the number of bytes in the string
+        const result = getUtf8ByteLength(evaluated.value?.stringValue!);
+        return result === undefined
+          ? EvaluateResult.newError()
+          : EvaluateResult.newValue({
+              integerValue: result
+            });
+      }
+      case 'NULL': {
+        return EvaluateResult.newNull();
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
+    }
+  }
+}
 
-    if (evaluated === undefined) {
-      return undefined;
+abstract class StringSearchFunctionBase implements EvaluableExpr {
+  protected constructor(readonly expr: FunctionExpr) {}
+
+  abstract performSearch(value: string, search: string): EvaluateResult;
+
+  evaluate(
+    context: EvaluationContext,
+    input: PipelineInputOutput
+  ): EvaluateResult {
+    hardAssert(
+      this.expr.params.length === 2,
+      `${this.expr.name}() function should have exactly two parameters`
+    );
+
+    let foundNull = false;
+    const value = toEvaluable(this.expr.params[0]).evaluate(context, input);
+    switch (value.type) {
+      case 'STRING': {
+        break;
+      }
+      case 'NULL': {
+        foundNull = true;
+        break;
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
 
-    if (isString(evaluated)) {
-      // return the number of bytes in the string
-      const result = getUtf8ByteLength(evaluated.stringValue);
-      return result === undefined
-        ? result
-        : {
-            integerValue: result
-          };
-    } else if (isBytes(evaluated)) {
-      return { integerValue: evaluated.bytesValue.length };
-    } else if (isNullValue(evaluated)) {
-      return MIN_VALUE;
-    } else {
-      return undefined;
+    const pattern = toEvaluable(this.expr.params[1]).evaluate(context, input);
+    switch (pattern.type) {
+      case 'STRING': {
+        break;
+      }
+      case 'NULL': {
+        foundNull = true;
+        break;
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
+
+    if (foundNull) {
+      return EvaluateResult.newNull();
+    }
+
+    return this.performSearch(
+      value.value?.stringValue!,
+      pattern.value?.stringValue!
+    );
   }
 }
 
@@ -1382,9 +1908,8 @@ function likeToRegex(like: string): string {
       case '%':
         result += '.*';
         break;
-      case '\\':
-        result += '\\\\';
-        break;
+      // Escape regex special characters
+      case '\\': // Need to escape backslash itself
       case '.':
       case '*':
       case '?':
@@ -1405,193 +1930,96 @@ function likeToRegex(like: string): string {
         break;
     }
   }
-  return result;
+  // Anchor the regex to match the entire string
+  return '^' + result + '$';
 }
 
-export class CoreLike implements EvaluableExpr {
-  constructor(private expr: FunctionExpr) {}
+export class CoreLike extends StringSearchFunctionBase {
+  constructor(expr: FunctionExpr) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    hardAssert(
-      this.expr.params.length === 2,
-      'like() function should have exactly two parameters'
-    );
-
-    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (evaluated === undefined || !isString(evaluated)) {
-      return undefined;
+  performSearch(value: string, search: string): EvaluateResult {
+    try {
+      const regexPattern = likeToRegex(search);
+      const regex = RE2JS.compile(regexPattern);
+      return EvaluateResult.newValue({ booleanValue: regex.matches(value) });
+    } catch (e) {
+      logWarn(
+        `Invalid LIKE pattern converted to regex: ${search}, returning error. Error: ${e}`
+      );
+      return EvaluateResult.newError();
     }
-
-    const pattern = toEvaluable(this.expr.params[1]).evaluate(context, input);
-    if (pattern === undefined || !isString(pattern)) {
-      return undefined;
-    }
-
-    return {
-      booleanValue: RE2JS.matches(
-        likeToRegex(pattern.stringValue),
-        evaluated.stringValue
-      )
-    };
   }
 }
 
-export class CoreRegexContains implements EvaluableExpr {
-  constructor(private expr: FunctionExpr) {}
+export class CoreRegexContains extends StringSearchFunctionBase {
+  constructor(expr: FunctionExpr) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    hardAssert(
-      this.expr.params.length === 2,
-      'regex_contains() function should have exactly two parameters'
-    );
-
-    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (evaluated === undefined || !isString(evaluated)) {
-      return undefined;
-    }
-
-    const pattern = toEvaluable(this.expr.params[1]).evaluate(context, input);
-    if (pattern === undefined || !isString(pattern)) {
-      return undefined;
-    }
-
+  performSearch(value: string, search: string): EvaluateResult {
     try {
-      const regex = RE2JS.compile(pattern.stringValue);
-      return {
-        booleanValue: regex.matcher(evaluated.stringValue).find()
-      };
+      const regex = RE2JS.compile(search);
+      return EvaluateResult.newValue({
+        booleanValue: regex.matcher(value).find()
+      });
     } catch (RE2JSError) {
       logWarn(
-        `Invalid regex pattern found: ${pattern.stringValue}, returning error`
+        `Invalid regex pattern found in regex_contains: ${search}, returning error`
       );
-      return undefined;
+      return EvaluateResult.newError();
     }
   }
 }
 
-export class CoreRegexMatch implements EvaluableExpr {
-  constructor(private expr: FunctionExpr) {}
+export class CoreRegexMatch extends StringSearchFunctionBase {
+  constructor(expr: FunctionExpr) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    hardAssert(
-      this.expr.params.length === 2,
-      'regex_match() function should have exactly two parameters'
-    );
-
-    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (evaluated === undefined || !isString(evaluated)) {
-      return undefined;
-    }
-
-    const pattern = toEvaluable(this.expr.params[1]).evaluate(context, input);
-    if (pattern === undefined || !isString(pattern)) {
-      return undefined;
-    }
-
+  performSearch(value: string, search: string): EvaluateResult {
     try {
-      const regex = RE2JS.compile(pattern.stringValue);
-      return {
-        booleanValue: RE2JS.compile(pattern.stringValue).matches(
-          evaluated.stringValue
-        )
-      };
+      // Use matches() for full string match semantics
+      return EvaluateResult.newValue({
+        booleanValue: RE2JS.compile(search).matches(value)
+      });
     } catch (RE2JSError) {
       logWarn(
-        `Invalid regex pattern found: ${pattern.stringValue}, returning error`
+        `Invalid regex pattern found in regex_match: ${search}, returning error`
       );
-      return undefined;
+      return EvaluateResult.newError();
     }
   }
 }
 
-export class CoreStrContains implements EvaluableExpr {
-  constructor(private expr: FunctionExpr) {}
+export class CoreStrContains extends StringSearchFunctionBase {
+  constructor(expr: FunctionExpr) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    hardAssert(
-      this.expr.params.length === 2,
-      'str_contains() function should have exactly two parameters'
-    );
-
-    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (evaluated === undefined || !isString(evaluated)) {
-      return undefined;
-    }
-
-    const substring = toEvaluable(this.expr.params[1]).evaluate(context, input);
-    if (substring === undefined || !isString(substring)) {
-      return undefined;
-    }
-
-    return {
-      booleanValue: evaluated.stringValue.includes(substring.stringValue)
-    };
+  performSearch(value: string, search: string): EvaluateResult {
+    return EvaluateResult.newValue({ booleanValue: value.includes(search) });
   }
 }
 
-export class CoreStartsWith implements EvaluableExpr {
-  constructor(private expr: FunctionExpr) {}
+export class CoreStartsWith extends StringSearchFunctionBase {
+  constructor(expr: FunctionExpr) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    hardAssert(
-      this.expr.params.length === 2,
-      'starts_with() function should have exactly two parameters'
-    );
-
-    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (evaluated === undefined || !isString(evaluated)) {
-      return undefined;
-    }
-
-    const prefix = toEvaluable(this.expr.params[1]).evaluate(context, input);
-    if (prefix === undefined || !isString(prefix)) {
-      return undefined;
-    }
-
-    return {
-      booleanValue: evaluated.stringValue.startsWith(prefix.stringValue)
-    };
+  performSearch(value: string, search: string): EvaluateResult {
+    return EvaluateResult.newValue({ booleanValue: value.startsWith(search) });
   }
 }
 
-export class CoreEndsWith implements EvaluableExpr {
-  constructor(private expr: FunctionExpr) {}
+export class CoreEndsWith extends StringSearchFunctionBase {
+  constructor(expr: FunctionExpr) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    hardAssert(
-      this.expr.params.length === 2,
-      'ends_with() function should have exactly two parameters'
-    );
-
-    const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (evaluated === undefined || !isString(evaluated)) {
-      return undefined;
-    }
-
-    const suffix = toEvaluable(this.expr.params[1]).evaluate(context, input);
-    if (suffix === undefined || !isString(suffix)) {
-      return undefined;
-    }
-
-    return { booleanValue: evaluated.stringValue.endsWith(suffix.stringValue) };
+  performSearch(value: string, search: string): EvaluateResult {
+    return EvaluateResult.newValue({ booleanValue: value.endsWith(search) });
   }
 }
 
@@ -1601,18 +2029,26 @@ export class CoreToLower implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 1,
       'to_lower() function should have exactly one parameter'
     );
 
     const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (evaluated === undefined || !isString(evaluated)) {
-      return undefined;
+    switch (evaluated.type) {
+      case 'STRING': {
+        return EvaluateResult.newValue({
+          stringValue: evaluated.value?.stringValue?.toLowerCase()
+        });
+      }
+      case 'NULL': {
+        return EvaluateResult.newNull();
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
-
-    return { stringValue: evaluated.stringValue.toLowerCase() };
   }
 }
 
@@ -1622,18 +2058,26 @@ export class CoreToUpper implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 1,
       'to_upper() function should have exactly one parameter'
     );
 
     const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (evaluated === undefined || !isString(evaluated)) {
-      return undefined;
+    switch (evaluated.type) {
+      case 'STRING': {
+        return EvaluateResult.newValue({
+          stringValue: evaluated.value?.stringValue?.toUpperCase()
+        });
+      }
+      case 'NULL': {
+        return EvaluateResult.newNull();
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
-
-    return { stringValue: evaluated.stringValue.toUpperCase() };
   }
 }
 
@@ -1643,18 +2087,26 @@ export class CoreTrim implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 1,
       'trim() function should have exactly one parameter'
     );
 
     const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (evaluated === undefined || !isString(evaluated)) {
-      return undefined;
+    switch (evaluated.type) {
+      case 'STRING': {
+        return EvaluateResult.newValue({
+          stringValue: evaluated.value?.stringValue?.trim()
+        });
+      }
+      case 'NULL': {
+        return EvaluateResult.newNull();
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
-
-    return { stringValue: evaluated.stringValue.trim() };
   }
 }
 
@@ -1664,15 +2116,33 @@ export class CoreStrConcat implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     const evaluated = this.expr.params.map(val =>
       toEvaluable(val).evaluate(context, input)
     );
-    if (evaluated.some(val => val === undefined || !isString(val))) {
-      return undefined;
+    // If any part is error or unset, or not a string (and not null), result is error
+    // If any part is null, result is null
+    let resultString = '';
+    let hasNull = false;
+    for (const val of evaluated) {
+      switch (val.type) {
+        case 'STRING': {
+          resultString += val.value!.stringValue;
+          break;
+        }
+        case 'NULL': {
+          hasNull = true;
+          break;
+        }
+        default: {
+          return EvaluateResult.newError();
+        }
+      }
     }
-
-    return { stringValue: evaluated.map(val => val!.stringValue).join('') };
+    if (hasNull) {
+      return EvaluateResult.newNull();
+    }
+    return EvaluateResult.newValue({ stringValue: resultString });
   }
 }
 
@@ -1682,7 +2152,7 @@ export class CoreMapGet implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 2,
       'map_get() function should have exactly two parameters'
@@ -1692,27 +2162,46 @@ export class CoreMapGet implements EvaluableExpr {
       context,
       input
     );
-    if (evaluatedMap === undefined || !isMapValue(evaluatedMap)) {
-      return undefined;
+    switch (evaluatedMap.type) {
+      case 'UNSET': {
+        return EvaluateResult.newUnset();
+      }
+      case 'MAP': {
+        break;
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
 
     const subfield = toEvaluable(this.expr.params[1]).evaluate(context, input);
-    if (subfield === undefined || !isString(subfield)) {
-      return undefined;
+    switch (subfield.type) {
+      case 'STRING': {
+        break;
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
 
-    return evaluatedMap.mapValue.fields?.[subfield.stringValue];
+    const value =
+      evaluatedMap.value?.mapValue?.fields?.[subfield.value?.stringValue!];
+    return value === undefined
+      ? EvaluateResult.newUnset()
+      : EvaluateResult.newValue(value);
   }
 }
 
+// Aggregate functions are handled differently during pipeline execution
+// Their evaluate methods here might not be directly called in the same way.
 export class CoreCount implements EvaluableExpr {
   constructor(private expr: AggregateFunction) {}
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
+  ): EvaluateResult {
+    throw new Error('Aggregate evaluate() should not be called directly');
   }
 }
 
@@ -1722,8 +2211,8 @@ export class CoreSum implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
+  ): EvaluateResult {
+    throw new Error('Aggregate evaluate() should not be called directly');
   }
 }
 
@@ -1733,8 +2222,8 @@ export class CoreAvg implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
+  ): EvaluateResult {
+    throw new Error('Aggregate evaluate() should not be called directly');
   }
 }
 
@@ -1744,8 +2233,8 @@ export class CoreMinimum implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
+  ): EvaluateResult {
+    throw new Error('Aggregate evaluate() should not be called directly');
   }
 }
 
@@ -1755,8 +2244,8 @@ export class CoreMaximum implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
+  ): EvaluateResult {
+    throw new Error('Aggregate evaluate() should not be called directly');
   }
 }
 
@@ -1771,38 +2260,64 @@ abstract class DistanceBase implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 2,
       `${this.expr.name}() function should have exactly 2 params`
     );
 
+    let hasNull = false;
     const vector1 = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (vector1 === undefined || !isVectorValue(vector1)) {
-      return undefined;
+    switch (vector1.type) {
+      case 'VECTOR': {
+        break;
+      }
+      case 'NULL': {
+        hasNull = true;
+        break;
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
 
     const vector2 = toEvaluable(this.expr.params[1]).evaluate(context, input);
-    if (vector2 === undefined || !isVectorValue(vector2)) {
-      return undefined;
+    switch (vector2.type) {
+      case 'VECTOR': {
+        break;
+      }
+      case 'NULL': {
+        hasNull = true;
+        break;
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
 
-    const vectorValue1 = getVectorValue(vector1);
-    const vectorValue2 = getVectorValue(vector2);
+    if (hasNull) {
+      return EvaluateResult.newNull();
+    }
+
+    const vectorValue1 = getVectorValue(vector1.value!);
+    const vectorValue2 = getVectorValue(vector2.value!);
+
+    // Mismatched lengths or undefined vectors result in error
     if (
       vectorValue1 === undefined ||
       vectorValue2 === undefined ||
       vectorValue1.values?.length !== vectorValue2.values?.length
     ) {
-      return undefined;
+      return EvaluateResult.newError();
     }
 
     const distance = this.calculateDistance(vectorValue1, vectorValue2);
+    // NaN or undefined distance calculation results in error
     if (distance === undefined || isNaN(distance)) {
-      return undefined;
+      return EvaluateResult.newError();
     }
 
-    return { doubleValue: distance };
+    return EvaluateResult.newValue({ doubleValue: distance });
   }
 }
 
@@ -1815,23 +2330,31 @@ export class CoreCosineDistance extends DistanceBase {
     vec1: ArrayValue | undefined,
     vec2: ArrayValue | undefined
   ): number | undefined {
-    // calculate cosine distance between vectorValue1.values and vectorValue2.values
+    const values1 = vec1?.values ?? [];
+    const values2 = vec2?.values ?? [];
+    if (values1.length === 0) return undefined; // Distance undefined for empty vectors
+
     let dotProduct = 0;
     let magnitude1 = 0;
     let magnitude2 = 0;
-    for (let i = 0; i < (vec1?.values || []).length; i++) {
-      dotProduct +=
-        Number(vec1?.values![i].doubleValue) *
-        Number(vec2?.values![i].doubleValue);
-      magnitude1 += Math.pow(Number(vec1?.values![i].doubleValue), 2);
-      magnitude2 += Math.pow(Number(vec2?.values![i].doubleValue), 2);
+    for (let i = 0; i < values1.length; i++) {
+      // Error if any element is not a number
+      if (!isNumber(values1[i]) || !isNumber(values2[i])) return undefined;
+      const val1 = asDouble(values1[i] as { doubleValue: number | string });
+      const val2 = asDouble(values2[i] as { doubleValue: number | string });
+      dotProduct += val1 * val2;
+      magnitude1 += val1 * val1;
+      magnitude2 += val2 * val2;
     }
     const magnitude = Math.sqrt(magnitude1) * Math.sqrt(magnitude2);
+    // Distance undefined if either vector has zero magnitude
     if (magnitude === 0) {
       return undefined;
     }
 
-    return 1 - dotProduct / magnitude;
+    // Clamp cosine similarity to [-1, 1] due to potential floating point inaccuracies
+    const cosineSimilarity = Math.max(-1, Math.min(1, dotProduct / magnitude));
+    return 1 - cosineSimilarity;
   }
 }
 
@@ -1843,13 +2366,18 @@ export class CoreDotProduct extends DistanceBase {
   calculateDistance(
     vec1: ArrayValue | undefined,
     vec2: ArrayValue | undefined
-  ): number {
-    // calculate dotproduct between vectorValue1.values and vectorValue2.values
+  ): number | undefined {
+    const values1 = vec1?.values ?? [];
+    const values2 = vec2?.values ?? [];
+    if (values1.length === 0) return 0.0; // Dot product of empty vectors is 0
+
     let dotProduct = 0;
-    for (let i = 0; i < (vec1?.values || []).length; i++) {
-      dotProduct +=
-        Number(vec1?.values![i].doubleValue) *
-        Number(vec2?.values![i].doubleValue);
+    for (let i = 0; i < values1.length; i++) {
+      // Error if any element is not a number
+      if (!isNumber(values1[i]) || !isNumber(values2[i])) return undefined;
+      const val1 = asDouble(values1[i] as { doubleValue: number | string });
+      const val2 = asDouble(values2[i] as { doubleValue: number | string });
+      dotProduct += val1 * val2;
     }
 
     return dotProduct;
@@ -1864,17 +2392,21 @@ export class CoreEuclideanDistance extends DistanceBase {
   calculateDistance(
     vec1: ArrayValue | undefined,
     vec2: ArrayValue | undefined
-  ): number {
-    let euclideanDistance = 0;
-    for (let i = 0; i < (vec1?.values || []).length; i++) {
-      euclideanDistance += Math.pow(
-        Number(vec1?.values![i].doubleValue) -
-          Number(vec2?.values![i].doubleValue),
-        2
-      );
+  ): number | undefined {
+    const values1 = vec1?.values ?? [];
+    const values2 = vec2?.values ?? [];
+    if (values1.length === 0) return 0.0; // Distance between empty vectors is 0
+
+    let euclideanDistanceSq = 0;
+    for (let i = 0; i < values1.length; i++) {
+      // Error if any element is not a number
+      if (!isNumber(values1[i]) || !isNumber(values2[i])) return undefined;
+      const val1 = asDouble(values1[i] as { doubleValue: number | string });
+      const val2 = asDouble(values2[i] as { doubleValue: number | string });
+      euclideanDistanceSq += Math.pow(val1 - val2, 2);
     }
 
-    return Math.sqrt(euclideanDistance);
+    return Math.sqrt(euclideanDistanceSq);
   }
 }
 
@@ -1884,20 +2416,27 @@ export class CoreVectorLength implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 1,
       'vector_length() function should have exactly one parameter'
     );
 
     const vector = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (vector === undefined || !isVectorValue(vector)) {
-      return undefined;
+    switch (vector.type) {
+      case 'VECTOR': {
+        const vectorValue = getVectorValue(vector.value!);
+        return EvaluateResult.newValue({
+          integerValue: vectorValue?.values?.length ?? 0
+        });
+      }
+      case 'NULL': {
+        return EvaluateResult.newNull();
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
-
-    const vectorValue = getVectorValue(vector);
-
-    return { integerValue: vectorValue?.values?.length ?? 0 };
   }
 }
 
@@ -1914,16 +2453,14 @@ const TIMESTAMP_MIN_MILLISECONDS: bigint =
   TIMESTAMP_MIN_SECONDS * MILLISECONDS_PER_SECOND;
 // 9999-12-31T23:59:59.999Z - but the max timestamp has 999,999,999 nanoseconds
 const TIMESTAMP_MAX_MILLISECONDS: bigint =
-  TIMESTAMP_MAX_SECONDS * MILLISECONDS_PER_SECOND +
-  (MILLISECONDS_PER_SECOND - BigInt(1));
+  TIMESTAMP_MAX_SECONDS * MILLISECONDS_PER_SECOND + BigInt(999); // Max sub-second millis
 
 // 0001-01-01T00:00:00.000000Z
 const TIMESTAMP_MIN_MICROSECONDS: bigint =
   TIMESTAMP_MIN_SECONDS * MICROSECONDS_PER_SECOND;
 // 9999-12-31T23:59:59.999999Z - but the max timestamp has 999,999,999 nanoseconds
 const TIMESTAMP_MAX_MICROSECONDS: bigint =
-  TIMESTAMP_MAX_SECONDS * MICROSECONDS_PER_SECOND +
-  (MICROSECONDS_PER_SECOND - BigInt(1));
+  TIMESTAMP_MAX_SECONDS * MICROSECONDS_PER_SECOND + BigInt(999999); // Max sub-second micros
 
 function isMicrosInBounds(micros: bigint): boolean {
   return (
@@ -1942,13 +2479,17 @@ function isSecondsInBounds(seconds: bigint): boolean {
 }
 
 function isTimestampInBounds(seconds: number, nanos: number) {
-  if (seconds < TIMESTAMP_MIN_SECONDS || seconds > TIMESTAMP_MAX_SECONDS) {
+  const sBig = BigInt(seconds);
+  if (sBig < TIMESTAMP_MIN_SECONDS || sBig > TIMESTAMP_MAX_SECONDS) {
     return false;
   }
-
-  if (nanos < 0 || nanos >= MICROSECONDS_PER_SECOND * BigInt(1000)) {
+  // Nanos must be non-negative and less than 1 second
+  if (nanos < 0 || nanos >= 1_000_000_000) {
     return false;
   }
+  // Additional check for min/max boundaries
+  if (sBig === TIMESTAMP_MIN_SECONDS && nanos !== 0) return false; // Min timestamp has 0 nanos
+  if (sBig === TIMESTAMP_MAX_SECONDS && nanos > 999_999_999) return false; // Max timestamp allows up to 999_999_999 nanos
 
   return true;
 }
@@ -1956,7 +2497,8 @@ function isTimestampInBounds(seconds: number, nanos: number) {
 function timestampToMicros(timestamp: Timestamp): bigint {
   return (
     BigInt(timestamp.seconds) * MICROSECONDS_PER_SECOND +
-    BigInt(timestamp.nanoseconds) / BigInt(1000)
+    // Integer division truncates towards zero
+    BigInt(Math.trunc(timestamp.nanoseconds / 1000))
   );
 }
 
@@ -1966,24 +2508,27 @@ abstract class UnixToTimestamp implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 1,
       `${this.expr.name}() function should have exactly one parameter`
     );
 
     const value = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (isNullValue(value)) {
-      return MIN_VALUE;
+    switch (value.type) {
+      case 'INT': {
+        return this.toTimestamp(BigInt(value.value!.integerValue!));
+      }
+      case 'NULL': {
+        return EvaluateResult.newNull();
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
-    if (value === undefined || !isInteger(value)) {
-      return undefined;
-    }
-
-    return this.toTimestamp(BigInt(value.integerValue));
   }
 
-  abstract toTimestamp(value: bigint): Value | undefined;
+  abstract toTimestamp(value: bigint): EvaluateResult;
 }
 
 export class CoreUnixMicrosToTimestamp extends UnixToTimestamp {
@@ -1991,14 +2536,14 @@ export class CoreUnixMicrosToTimestamp extends UnixToTimestamp {
     super(expr);
   }
 
-  toTimestamp(value: bigint): Value | undefined {
+  toTimestamp(value: bigint): EvaluateResult {
     if (!isMicrosInBounds(value)) {
-      return undefined;
+      return EvaluateResult.newError();
     }
 
     const seconds = Number(value / MICROSECONDS_PER_SECOND);
     const nanos = Number((value % MICROSECONDS_PER_SECOND) * BigInt(1000));
-    return { timestampValue: { seconds, nanos } };
+    return EvaluateResult.newValue({ timestampValue: { seconds, nanos } });
   }
 }
 
@@ -2007,9 +2552,9 @@ export class CoreUnixMillisToTimestamp extends UnixToTimestamp {
     super(expr);
   }
 
-  toTimestamp(value: bigint): Value | undefined {
+  toTimestamp(value: bigint): EvaluateResult {
     if (!isMillisInBounds(value)) {
-      return undefined;
+      return EvaluateResult.newError();
     }
 
     const seconds = Number(value / MILLISECONDS_PER_SECOND);
@@ -2017,7 +2562,7 @@ export class CoreUnixMillisToTimestamp extends UnixToTimestamp {
       (value % MILLISECONDS_PER_SECOND) * BigInt(1000 * 1000)
     );
 
-    return { timestampValue: { seconds, nanos } };
+    return EvaluateResult.newValue({ timestampValue: { seconds, nanos } });
   }
 }
 
@@ -2026,13 +2571,13 @@ export class CoreUnixSecondsToTimestamp extends UnixToTimestamp {
     super(expr);
   }
 
-  toTimestamp(value: bigint): Value | undefined {
+  toTimestamp(value: bigint): EvaluateResult {
     if (!isSecondsInBounds(value)) {
-      return undefined;
+      return EvaluateResult.newError();
     }
 
     const seconds = Number(value);
-    return { timestampValue: { seconds, nanos: 0 } };
+    return EvaluateResult.newValue({ timestampValue: { seconds, nanos: 0 } });
   }
 }
 
@@ -2042,28 +2587,35 @@ abstract class TimestampToUnix implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 1,
       `${this.expr.name}() function should have exactly one parameter`
     );
 
     const value = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (isNullValue(value)) {
-      return MIN_VALUE;
+    switch (value.type) {
+      case 'TIMESTAMP': {
+        break;
+      }
+      case 'NULL': {
+        return EvaluateResult.newNull();
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
-    if (value === undefined || !isTimestampValue(value)) {
-      return undefined;
-    }
-    const timestamp = fromTimestamp(value.timestampValue!);
+
+    const timestamp = fromTimestamp(value.value!.timestampValue!);
+    // Check if the input timestamp is within valid bounds
     if (!isTimestampInBounds(timestamp.seconds, timestamp.nanoseconds)) {
-      return undefined;
+      return EvaluateResult.newError();
     }
 
     return this.toUnix(timestamp);
   }
 
-  abstract toUnix(value: Timestamp): Value | undefined;
+  abstract toUnix(value: Timestamp): EvaluateResult;
 }
 
 export class CoreTimestampToUnixMicros extends TimestampToUnix {
@@ -2071,8 +2623,13 @@ export class CoreTimestampToUnixMicros extends TimestampToUnix {
     super(expr);
   }
 
-  toUnix(timestamp: Timestamp): Value | undefined {
-    return { integerValue: `${timestampToMicros(timestamp).toString()}` };
+  toUnix(timestamp: Timestamp): EvaluateResult {
+    const micros = timestampToMicros(timestamp);
+    // Check if the resulting micros are within representable bounds
+    if (!isMicrosInBounds(micros)) {
+      return EvaluateResult.newError();
+    }
+    return EvaluateResult.newValue({ integerValue: `${micros.toString()}` });
   }
 }
 
@@ -2081,14 +2638,17 @@ export class CoreTimestampToUnixMillis extends TimestampToUnix {
     super(expr);
   }
 
-  toUnix(timestamp: Timestamp): Value | undefined {
+  toUnix(timestamp: Timestamp): EvaluateResult {
     const micros = timestampToMicros(timestamp);
+    // Perform division, truncating towards zero (default JS BigInt division)
     const millis = micros / BigInt(1000);
     const submillis = micros % BigInt(1000);
     if (millis > BigInt(0) || submillis === BigInt(0)) {
-      return { integerValue: millis.toString() };
+      return EvaluateResult.newValue({ integerValue: millis.toString() });
     } else {
-      return { integerValue: (millis - BigInt(1)).toString() };
+      return EvaluateResult.newValue({
+        integerValue: (millis - BigInt(1)).toString()
+      });
     }
   }
 }
@@ -2098,15 +2658,14 @@ export class CoreTimestampToUnixSeconds extends TimestampToUnix {
     super(expr);
   }
 
-  toUnix(timestamp: Timestamp): Value | undefined {
-    const micros = timestampToMicros(timestamp);
-    const seconds = micros / BigInt(1000 * 1000);
-    const subseconds = micros % BigInt(1000 * 1000);
-    if (seconds > BigInt(0) || subseconds === BigInt(0)) {
-      return { integerValue: seconds.toString() };
-    } else {
-      return { integerValue: (seconds - BigInt(1)).toString() };
+  toUnix(timestamp: Timestamp): EvaluateResult {
+    // Seconds are directly available
+    const seconds = BigInt(timestamp.seconds);
+    // Check if the resulting seconds are within representable bounds
+    if (!isSecondsInBounds(seconds)) {
+      return EvaluateResult.newError();
     }
+    return EvaluateResult.newValue({ integerValue: seconds.toString() });
   }
 }
 
@@ -2141,86 +2700,163 @@ abstract class TimestampArithmetic implements EvaluableExpr {
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
-  ): Value | undefined {
+  ): EvaluateResult {
     hardAssert(
       this.expr.params.length === 3,
       `${this.expr.name}() function should have exactly 3 parameters`
     );
 
-    const timestamp = toEvaluable(this.expr.params[0]).evaluate(context, input);
-    if (isNullValue(timestamp)) {
-      return MIN_VALUE;
-    }
-    if (timestamp === undefined || !isTimestampValue(timestamp)) {
-      return undefined;
-    }
-
-    const unit = toEvaluable(this.expr.params[1]).evaluate(context, input);
-    if (isNullValue(unit)) {
-      return MIN_VALUE;
-    }
-    if (unit === undefined || !isString(unit)) {
-      return undefined;
-    }
-    const timeUnit = asTimeUnit(unit.stringValue);
-    if (timeUnit === undefined) {
-      return undefined;
-    }
-
-    const amountValue = toEvaluable(this.expr.params[2]).evaluate(
+    let foundNull = false;
+    const timestampVal = toEvaluable(this.expr.params[0]).evaluate(
       context,
       input
     );
-    if (isNullValue(amountValue)) {
-      return MIN_VALUE;
-    }
-    if (amountValue === undefined || !isInteger(amountValue)) {
-      return undefined;
+    switch (timestampVal.type) {
+      case 'TIMESTAMP': {
+        break;
+      }
+      case 'NULL': {
+        foundNull = true;
+        break;
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
     }
 
-    const amount = amountValue.integerValue;
+    const unitVal = toEvaluable(this.expr.params[1]).evaluate(context, input);
+    let timeUnit: TimeUnit | undefined;
+    switch (unitVal.type) {
+      case 'STRING': {
+        timeUnit = asTimeUnit(unitVal.value!.stringValue);
+        if (timeUnit === undefined) {
+          return EvaluateResult.newError();
+        }
+        break;
+      }
+      case 'NULL': {
+        foundNull = true;
+        break;
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
+    }
+
+    const amountVal = toEvaluable(this.expr.params[2]).evaluate(context, input);
+    switch (amountVal.type) {
+      case 'INT': {
+        break;
+      }
+      case 'NULL': {
+        foundNull = true;
+        break;
+      }
+      default: {
+        return EvaluateResult.newError();
+      }
+    }
+
+    if (foundNull) {
+      return EvaluateResult.newNull();
+    }
+
+    const amount = BigInt(amountVal.value!.integerValue!);
     let microsToOperate: bigint;
-    switch (timeUnit) {
-      case 'microsecond':
-        microsToOperate = BigInt(amount);
-        break;
-      case 'millisecond':
-        microsToOperate = BigInt(amount) * BigInt(1000);
-        break;
-      case 'second':
-        microsToOperate = BigInt(amount) * BigInt(1000000);
-        break;
-      case 'minute':
-        microsToOperate = BigInt(amount) * BigInt(60000000);
-        break;
-      case 'hour':
-        microsToOperate = BigInt(amount) * BigInt(3600000000);
-        break;
-      case 'day':
-        microsToOperate = BigInt(amount) * BigInt(86400000000);
-        break;
-      default:
-        return undefined;
+    try {
+      switch (timeUnit) {
+        case 'microsecond':
+          microsToOperate = amount;
+          break;
+        case 'millisecond':
+          microsToOperate = amount * BigInt(1000);
+          break;
+        case 'second':
+          microsToOperate = amount * BigInt(1000000);
+          break;
+        case 'minute':
+          microsToOperate = amount * BigInt(60000000);
+          break;
+        case 'hour':
+          microsToOperate = amount * BigInt(3600000000);
+          break;
+        case 'day':
+          microsToOperate = amount * BigInt(86400000000);
+          break;
+        default:
+          return EvaluateResult.newError();
+      }
+      // Check for potential overflow during multiplication
+      if (
+        timeUnit !== 'microsecond' &&
+        amount !== BigInt(0) &&
+        microsToOperate / amount !== BigInt(this.getMultiplier(timeUnit))
+      ) {
+        return EvaluateResult.newError();
+      }
+    } catch (e) {
+      // Catch potential BigInt errors (though unlikely with isInteger check)
+      logWarn(`Error during timestamp arithmetic: ${e}`);
+      return EvaluateResult.newError();
     }
 
-    const newMicros = this.newMicros(
-      timestamp.timestampValue!,
-      microsToOperate
-    );
+    const initialTimestamp = fromTimestamp(timestampVal.value!.timestampValue!);
+    // Check initial timestamp bounds
+    if (
+      !isTimestampInBounds(
+        initialTimestamp.seconds,
+        initialTimestamp.nanoseconds
+      )
+    ) {
+      return EvaluateResult.newError();
+    }
 
+    const initialMicros = timestampToMicros(initialTimestamp);
+    const newMicros = this.newMicros(initialMicros, microsToOperate);
+
+    // Check final microsecond bounds
     if (!isMicrosInBounds(newMicros)) {
-      return undefined;
+      return EvaluateResult.newError();
     }
 
-    const newSeconds = Number(newMicros / BigInt(1000000));
-    const newNanos = Number((newMicros % BigInt(1000000)) * BigInt(1000));
-    return { timestampValue: { seconds: newSeconds, nanos: newNanos } };
+    // Convert back to seconds and nanos
+    const newSeconds = Number(newMicros / MICROSECONDS_PER_SECOND);
+    const nanosRemainder = newMicros % MICROSECONDS_PER_SECOND;
+    const newNanos = Number(
+      (nanosRemainder < 0
+        ? nanosRemainder + MICROSECONDS_PER_SECOND
+        : nanosRemainder) * BigInt(1000)
+    );
+    const adjustedSeconds = nanosRemainder < 0 ? newSeconds - 1 : newSeconds;
+
+    // Final check on calculated timestamp bounds
+    if (!isTimestampInBounds(adjustedSeconds, newNanos)) {
+      return EvaluateResult.newError();
+    }
+
+    return EvaluateResult.newValue({
+      timestampValue: { seconds: adjustedSeconds, nanos: newNanos }
+    });
   }
 
-  abstract newMicros(
-    timestamp: ProtoTimestamp,
-    microsToOperation: bigint
-  ): bigint;
+  private getMultiplier(unit: TimeUnit): number {
+    switch (unit) {
+      case 'millisecond':
+        return 1000;
+      case 'second':
+        return 1000000;
+      case 'minute':
+        return 60000000;
+      case 'hour':
+        return 3600000000;
+      case 'day':
+        return 86400000000;
+      default:
+        return 1; // microsecond
+    }
+  }
+
+  abstract newMicros(initialMicros: bigint, microsToOperation: bigint): bigint;
 }
 
 export class CoreTimestampAdd extends TimestampArithmetic {
@@ -2228,9 +2864,8 @@ export class CoreTimestampAdd extends TimestampArithmetic {
     super(expr);
   }
 
-  newMicros(protoTimestamp: ProtoTimestamp, microsToAdd: bigint): bigint {
-    const timestamp = fromTimestamp(protoTimestamp);
-    return timestampToMicros(timestamp) + microsToAdd;
+  newMicros(initialMicros: bigint, microsToAdd: bigint): bigint {
+    return initialMicros + microsToAdd;
   }
 }
 
@@ -2239,8 +2874,7 @@ export class CoreTimestampSub extends TimestampArithmetic {
     super(expr);
   }
 
-  newMicros(protoTimestamp: ProtoTimestamp, microsToSub: bigint): bigint {
-    const timestamp = fromTimestamp(protoTimestamp);
-    return timestampToMicros(timestamp) - microsToSub;
+  newMicros(initialMicros: bigint, microsToSub: bigint): bigint {
+    return initialMicros - microsToSub;
   }
 }

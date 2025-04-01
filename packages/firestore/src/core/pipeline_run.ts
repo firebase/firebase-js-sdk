@@ -36,7 +36,7 @@ import {
 import { JsonProtoSerializer } from '../remote/serializer';
 import { Code } from '../util/error';
 
-import { toEvaluable } from './expressions';
+import { toEvaluable, valueOrUndefined } from './expressions';
 import { isPipeline, QueryOrPipeline } from './pipeline-util';
 import { queryMatches } from './query';
 
@@ -145,7 +145,9 @@ function evaluateWhere(
   input: PipelineInputOutput[]
 ): PipelineInputOutput[] {
   return input.filter(value => {
-    const result = toEvaluable(where.condition).evaluate(context, value);
+    const result = valueOrUndefined(
+      toEvaluable(where.condition).evaluate(context, value)
+    );
     return result === undefined ? false : valueEquals(result, TRUE_VALUE);
   });
 }
@@ -175,8 +177,12 @@ function evaluateSort(
     // Evaluate expressions in stage.orderings against left and right, and use them to compare
     // the documents
     for (const ordering of stage.orders) {
-      const leftValue = toEvaluable(ordering.expr).evaluate(context, left);
-      const rightValue = toEvaluable(ordering.expr).evaluate(context, right);
+      const leftValue = valueOrUndefined(
+        toEvaluable(ordering.expr).evaluate(context, left)
+      );
+      const rightValue = valueOrUndefined(
+        toEvaluable(ordering.expr).evaluate(context, right)
+      );
 
       const comparison = valueCompare(
         leftValue ?? MIN_VALUE,
@@ -263,13 +269,17 @@ export function newPipelineComparator(
   const orderings = lastEffectiveSort(pipeline);
   return (d1: Document, d2: Document): number => {
     for (const ordering of orderings) {
-      const leftValue = toEvaluable(ordering.expr).evaluate(
-        { serializer: pipeline.serializer },
-        d1 as MutableDocument
+      const leftValue = valueOrUndefined(
+        toEvaluable(ordering.expr).evaluate(
+          { serializer: pipeline.serializer },
+          d1 as MutableDocument
+        )
       );
-      const rightValue = toEvaluable(ordering.expr).evaluate(
-        { serializer: pipeline.serializer },
-        d2 as MutableDocument
+      const rightValue = valueOrUndefined(
+        toEvaluable(ordering.expr).evaluate(
+          { serializer: pipeline.serializer },
+          d2 as MutableDocument
+        )
       );
       const comparison = valueCompare(
         leftValue || MIN_VALUE,

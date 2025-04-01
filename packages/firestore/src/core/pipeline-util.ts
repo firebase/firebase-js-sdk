@@ -36,7 +36,7 @@ import {
   AggregateFunction
 } from '../lite-api/expressions';
 import { Pipeline, Pipeline as ApiPipeline } from '../lite-api/pipeline';
-import { doc } from '../lite-api/reference';
+import { doc, DocumentReference } from '../lite-api/reference';
 import {
   AddFields,
   Aggregate,
@@ -92,6 +92,7 @@ import {
   targetEquals,
   targetIsPipelineTarget
 } from './target';
+import { VectorValue } from '../api';
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
@@ -329,13 +330,29 @@ function whereConditionsFromCursor(
   }
 }
 
+function canonifyConstantValue(value: unknown): string {
+  if (value === null) {
+    return 'null';
+  } else if (typeof value === 'number') {
+    return value.toString();
+  } else if (typeof value === 'string') {
+    return `"${value}"`;
+  } else if (value instanceof DocumentReference) {
+    return `ref(${value.path})`;
+  } else if (value instanceof VectorValue) {
+    return `vec(${JSON.stringify(value)})`;
+  }
+  {
+    return JSON.stringify(value);
+  }
+}
+
 export function canonifyExpr(expr: Expr): string {
   if (expr instanceof Field) {
     return `fld(${expr.fieldName()})`;
   }
   if (expr instanceof Constant) {
-    // TODO(pipeline): use better alternatives than JSON.stringify
-    return `cst(${JSON.stringify(expr.value)})`;
+    return `cst(${canonifyConstantValue(expr.value)})`;
   }
   if (expr instanceof FunctionExpr || expr instanceof AggregateFunction) {
     return `fn(${expr.name},[${expr.params.map(canonifyExpr).join(',')}])`;
