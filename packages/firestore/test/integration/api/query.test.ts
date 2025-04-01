@@ -101,7 +101,6 @@ apiDescribe('Queries', persistence => {
     expect(jsonBundle).to.not.be.null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const json = (jsonBundle as any).bundle;
-    console.log("DEDB checking if json exists");
     expect(json).to.exist;
     expect(json.length).to.be.greaterThan(0);
 
@@ -110,7 +109,6 @@ apiDescribe('Queries', persistence => {
         const docRef = doc(db, path!);
         await loadBundle(db, json);
         const docSnap = await getDocFromCache(docRef);
-        console.log("DEDB checking if docSnap exists");
         expect(docSnap.exists);
         expect(docSnap.data()).to.deep.equal(testDocs.a);
       });

@@ -505,10 +505,11 @@ export class DocumentSnapshot<
 
   toJSON(): object {
     const document = this._document;
-    const result : any = { };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result: any = {};
     result['bundle'] = '';
     result['source'] = 'DocumentSnapshot';
-    
+
     if (
       !document ||
       !document.isValidDocument() ||
@@ -698,7 +699,8 @@ export class QuerySnapshot<
   }
 
   toJSON(): object {
-    const result : any = { };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result: any = {};
     result['source'] = 'QuerySnapshot';
     const builder: BundleBuilder = new BundleBuilder(
       this._firestore,
