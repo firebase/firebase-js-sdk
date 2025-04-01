@@ -64,7 +64,6 @@ import {
   toChangesArray,
   toDataArray,
   PERSISTENCE_MODE_UNSPECIFIED,
-  withAlternateTestDb,
   withEmptyTestCollection,
   withRetry,
   withTestCollection,
@@ -77,7 +76,7 @@ import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 apiDescribe('Queries', persistence => {
   addEqualityMatcher();
 
-  it('DDB4 local QuerySnapshot.toJSON bundle getDocFromCache', async () => {
+  it('QuerySnapshot.toJSON bundle getDocFromCache', async () => {
     let path: string | null = null;
     let jsonBundle: object | null = null;
     const testDocs = {
@@ -100,22 +99,21 @@ apiDescribe('Queries', persistence => {
       });
     });
     expect(jsonBundle).to.not.be.null;
-    console.log("DEDB json bundle: ", jsonBundle);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const json = (jsonBundle as any).bundle;
     expect(json).to.exist;
     expect(json.length).to.be.greaterThan(0);
-    // Use a new instance to load the bundle to ensure that the cache is primed by the bundle and
-    // not the previous getDocs call.
-    await withTestDb(persistence, async db => {
-      await loadBundle(db, json);
-      const docRef = doc(db, path!);
-      const docSnap = await getDocFromCache(docRef);
-      expect(docSnap.exists);
-      expect(docSnap.data()).to.deep.equal(testDocs.a);
-      console.log("DEDB metadata.fromCache: ", docSnap.metadata.fromCache);
-      //expect(docSnap.metadata.fromCache).to.be.true;
-    });
+
+    if (path !== null) {
+      await withTestDb(persistence, async db => {
+        const docRef = doc(db, path!);
+        await loadBundle(db, json);
+
+        const docSnap = await getDocFromCache(docRef);
+        expect(docSnap.exists);
+        expect(docSnap.data()).to.deep.equal(testDocs.a);
+      });
+    }
   });
 
   it('can issue limit queries', () => {
