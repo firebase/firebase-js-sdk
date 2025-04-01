@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { getUA, isIndexedDBAvailable } from '@firebase/util';
+import { getGlobal, getUA, isIndexedDBAvailable } from '@firebase/util';
 
 import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
@@ -24,7 +24,7 @@ import { Deferred } from '../util/promise';
 
 import { PersistencePromise } from './persistence_promise';
 
-// References to `window` are guarded by SimpleDb.isAvailable()
+// References to `indexedDB` are guarded by SimpleDb.isAvailable() and getGlobal()
 /* eslint-disable no-restricted-globals */
 
 const LOG_TAG = 'SimpleDb';
@@ -164,7 +164,10 @@ export class SimpleDb {
   /** Deletes the specified database. */
   static delete(name: string): Promise<void> {
     logDebug(LOG_TAG, 'Removing database:', name);
-    return wrapRequest<void>(window.indexedDB.deleteDatabase(name)).toPromise();
+    const globals = getGlobal();
+    return wrapRequest<void>(
+      globals.indexedDB.deleteDatabase(name)
+    ).toPromise();
   }
 
   /** Returns true if IndexedDB is available in the current environment. */
