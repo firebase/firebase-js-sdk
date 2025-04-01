@@ -64,6 +64,7 @@ import {
   toChangesArray,
   toDataArray,
   PERSISTENCE_MODE_UNSPECIFIED,
+  withAlternateTestDb,
   withEmptyTestCollection,
   withRetry,
   withTestCollection,
@@ -76,7 +77,7 @@ import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 apiDescribe('Queries', persistence => {
   addEqualityMatcher();
 
-  it('QuerySnapshot.toJSON bundle getDocFromCache', async () => {
+  it('DDB4 local QuerySnapshot.toJSON bundle getDocFromCache', async () => {
     let path: string | null = null;
     let jsonBundle: object | null = null;
     const testDocs = {
@@ -99,6 +100,7 @@ apiDescribe('Queries', persistence => {
       });
     });
     expect(jsonBundle).to.not.be.null;
+    console.log("DEDB json bundle: ", jsonBundle);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const json = (jsonBundle as any).bundle;
     expect(json).to.exist;
@@ -111,6 +113,8 @@ apiDescribe('Queries', persistence => {
       const docSnap = await getDocFromCache(docRef);
       expect(docSnap.exists);
       expect(docSnap.data()).to.deep.equal(testDocs.a);
+      console.log("DEDB metadata.fromCache: ", docSnap.metadata.fromCache);
+      //expect(docSnap.metadata.fromCache).to.be.true;
     });
   });
 
