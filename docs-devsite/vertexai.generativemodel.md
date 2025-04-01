@@ -17,7 +17,7 @@ Class for generative model APIs.
 ```typescript
 export declare class GenerativeModel extends GenAIModel 
 ```
-<b>Extends:</b> GenAIModel
+<b>Extends:</b> [GenAIModel](./vertexai.genaimodel.md#genaimodel_class)
 
 ## Constructors
 
