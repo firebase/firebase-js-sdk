@@ -71,13 +71,14 @@ const FIREBASE_DATA_CONNECT_EMULATOR_HOST_VAR =
  * @internal
  */
 export function parseOptions(fullHost: string): TransportOptions {
-  if (fullHost.startsWith('http://') || fullHost.startsWith('https://')) {
-    const [protocol, host] = fullHost.split('://');
+  const trimmedHost = fullHost.trim();
+  if (trimmedHost.startsWith('http://') || trimmedHost.startsWith('https://')) {
+    const [protocol, host] = trimmedHost.split('://');
     const isSecure = protocol === 'https';
     return { host, sslEnabled: isSecure };
   }
   return {
-    host: fullHost,
+    host: trimmedHost,
     sslEnabled: false
   };
 }
