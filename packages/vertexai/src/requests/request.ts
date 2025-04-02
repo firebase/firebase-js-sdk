@@ -27,6 +27,7 @@ import {
   PACKAGE_VERSION
 } from '../constants';
 import { logger } from '../logger';
+import { BackendType } from '../public-types';
 
 export enum Task {
   GENERATE_CONTENT = 'generateContent',
@@ -47,7 +48,7 @@ export class RequestUrl {
     // TODO: allow user-set option if that feature becomes available
     const apiVersion = DEFAULT_API_VERSION;
     let url = `${this.getBaseUrl()}/${apiVersion}`;
-    if (this.apiSettings.backend.backendType === 'GOOGLE_AI') {
+    if (this.apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
       url += `/${this.model}:${this.task}`;
     } else {
       url += `/projects/${this.apiSettings.project}/locations/${this.apiSettings.location}/${this.model}:${this.task}`;
@@ -59,7 +60,7 @@ export class RequestUrl {
   }
 
   private getBaseUrl(): string {
-    return this.apiSettings.backend.backendType === 'GOOGLE_AI'
+    return this.apiSettings.backend.backendType === BackendType.GOOGLE_AI
       ? this.requestOptions?.baseUrl || DEVELOPER_API_BASE_URL
       : this.requestOptions?.baseUrl || DEFAULT_BASE_URL;
   }

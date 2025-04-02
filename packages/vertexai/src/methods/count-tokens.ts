@@ -23,6 +23,7 @@ import {
 import { Task, makeRequest } from '../requests/request';
 import { ApiSettings } from '../types/internal';
 import * as GoogleAIMapper from '../googleAIMappers'; // FIXME: (code smell) Is there a better way to namespace this?
+import { BackendType } from '../public-types';
 
 export async function countTokens(
   apiSettings: ApiSettings,
@@ -31,7 +32,7 @@ export async function countTokens(
   requestOptions?: RequestOptions
 ): Promise<CountTokensResponse> {
   let body: string = '';
-  if (apiSettings.backend.backendType === 'GOOGLE_AI') {
+  if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
     const mappedParams = GoogleAIMapper.mapCountTokensRequest(
       params,
     );
