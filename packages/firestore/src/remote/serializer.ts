@@ -257,7 +257,7 @@ export function fromBytes(
   if (serializer.useProto3Json) {
     hardAssert(
       value === undefined || typeof value === 'string',
-      0xe30bd3f9,
+      0xe30b,
       'value must be undefined or a string when using proto3 Json'
     );
     return ByteString.fromBase64String(value ? value : '');
@@ -270,7 +270,7 @@ export function fromBytes(
         // does not indicate that it extends Uint8Array.
         value instanceof Buffer ||
         value instanceof Uint8Array,
-      0x3f413022,
+      0x3f41,
       'value must be undefined, Buffer, or Uint8Array'
     );
     return ByteString.fromUint8Array(value ? value : new Uint8Array());
@@ -285,11 +285,7 @@ export function toVersion(
 }
 
 export function fromVersion(version: ProtoTimestamp): SnapshotVersion {
-  hardAssert(
-    !!version,
-    0xc050aaa5,
-    "Trying to deserialize version that isn't set"
-  );
+  hardAssert(!!version, 0xc050, "Trying to deserialize version that isn't set");
   return SnapshotVersion.fromTimestamp(fromTimestamp(version));
 }
 
@@ -312,7 +308,7 @@ function fromResourceName(name: string): ResourcePath {
   const resource = ResourcePath.fromString(name);
   hardAssert(
     isValidResourceName(resource),
-    0x27ce4509,
+    0x27ce,
     'Tried to deserialize invalid key',
     { key: resource.toString() }
   );
@@ -397,7 +393,7 @@ function extractLocalPathFromResourceName(
 ): ResourcePath {
   hardAssert(
     resourceName.length > 4 && resourceName.get(4) === 'documents',
-    0x71a31a15,
+    0x71a3,
     'tried to deserialize invalid key',
     { key: resourceName.toString() }
   );
@@ -464,7 +460,7 @@ function fromFound(
 ): MutableDocument {
   hardAssert(
     !!doc.found,
-    0xaa33452b,
+    0xaa33,
     'Tried to deserialize a found document from a missing document.'
   );
   assertPresent(doc.found.name, 'doc.found.name');
@@ -484,12 +480,12 @@ function fromMissing(
 ): MutableDocument {
   hardAssert(
     !!result.missing,
-    0x0f36533f,
+    0x0f36,
     'Tried to deserialize a missing document from a found document.'
   );
   hardAssert(
     !!result.readTime,
-    0x5995dd5b,
+    0x5995,
     'Tried to deserialize a missing document without a read time.'
   );
   const key = fromName(serializer, result.missing);
@@ -506,7 +502,7 @@ export function fromBatchGetDocumentsResponse(
   } else if ('missing' in result) {
     return fromMissing(serializer, result);
   }
-  return fail(0x1c42f830, 'invalid batch get response', { result });
+  return fail(0x1c42, 'invalid batch get response', { result });
 }
 
 export function fromWatchChange(
@@ -591,7 +587,7 @@ export function fromWatchChange(
     const targetId = filter.targetId;
     watchChange = new ExistenceFilterChange(targetId, existenceFilter);
   } else {
-    return fail(0x2d517680, 'Unknown change type', { change });
+    return fail(0x2d51, 'Unknown change type', { change });
   }
   return watchChange;
 }
@@ -610,7 +606,7 @@ function fromWatchTargetChangeState(
   } else if (state === 'RESET') {
     return WatchTargetChangeState.Reset;
   } else {
-    return fail(0x9991fe4b, 'Got unexpected TargetChange.state', { state });
+    return fail(0x9991, 'Got unexpected TargetChange.state', { state });
   }
 }
 
@@ -654,7 +650,7 @@ export function toMutation(
       verify: toName(serializer, mutation.key)
     };
   } else {
-    return fail(0x40d7d046, 'Unknown mutation type', {
+    return fail(0x40d7, 'Unknown mutation type', {
       mutationType: mutation.type
     });
   }
@@ -712,7 +708,7 @@ export function fromMutation(
     const key = fromName(serializer, proto.verify);
     return new VerifyMutation(key, precondition);
   } else {
-    return fail(0x05b7ce18, 'unknown mutation proto', { proto });
+    return fail(0x05b7, 'unknown mutation proto', { proto });
   }
 }
 
@@ -728,7 +724,7 @@ function toPrecondition(
   } else if (precondition.exists !== undefined) {
     return { exists: precondition.exists };
   } else {
-    return fail(0x6b69d5ca, 'Unknown precondition');
+    return fail(0x6b69, 'Unknown precondition');
   }
 }
 
@@ -770,7 +766,7 @@ export function fromWriteResults(
   if (protos && protos.length > 0) {
     hardAssert(
       commitTime !== undefined,
-      0x38116ed6,
+      0x3811,
       'Received a write result without a commit time'
     );
     return protos.map(proto => fromWriteResult(proto, commitTime));
@@ -809,7 +805,7 @@ function toFieldTransform(
       increment: transform.operand
     };
   } else {
-    throw fail(0x51c28e85, 'Unknown transform', {
+    throw fail(0x51c2, 'Unknown transform', {
       transform: fieldTransform.transform
     });
   }
@@ -823,7 +819,7 @@ function fromFieldTransform(
   if ('setToServerValue' in proto) {
     hardAssert(
       proto.setToServerValue === 'REQUEST_TIME',
-      0x40f61500,
+      0x40f6,
       'Unknown server value transform proto',
       { proto }
     );
@@ -840,7 +836,7 @@ function fromFieldTransform(
       proto.increment!
     );
   } else {
-    fail(0x40c8ed17, 'Unknown transform proto', { proto });
+    fail(0x40c8, 'Unknown transform proto', { proto });
   }
   const fieldPath = FieldPath.fromServerFormat(proto.fieldPath!);
   return new FieldTransform(fieldPath, transform!);
@@ -859,7 +855,7 @@ export function fromDocumentsTarget(
   const count = documentsTarget.documents!.length;
   hardAssert(
     count === 1,
-    0x07ae6b67,
+    0x07ae,
     'DocumentsTarget contained other than 1 document',
     {
       count
@@ -993,7 +989,7 @@ export function convertQueryTargetToQuery(target: ProtoQueryTarget): Query {
   if (fromCount > 0) {
     hardAssert(
       fromCount === 1,
-      0xfe266d2c,
+      0xfe26,
       'StructuredQuery.from with more than one collection is not supported.'
     );
     const from = query.from![0];
@@ -1070,7 +1066,7 @@ export function toLabel(purpose: TargetPurpose): string | null {
     case TargetPurpose.LimboResolution:
       return 'limbo-document';
     default:
-      return fail(0x713b26a6, 'Unrecognized query purpose', { purpose });
+      return fail(0x713b, 'Unrecognized query purpose', { purpose });
   }
 }
 
@@ -1141,7 +1137,7 @@ function fromFilter(filter: ProtoFilter): Filter {
   } else if (filter.compositeFilter !== undefined) {
     return fromCompositeFilter(filter);
   } else {
-    return fail(0x759192f9, 'Unknown filter', { filter });
+    return fail(0x7591, 'Unknown filter', { filter });
   }
 }
 
@@ -1235,9 +1231,9 @@ export function fromOperatorName(op: ProtoFieldFilterOp): Operator {
     case 'ARRAY_CONTAINS_ANY':
       return Operator.ARRAY_CONTAINS_ANY;
     case 'OPERATOR_UNSPECIFIED':
-      return fail(0xe2fede39, 'Unspecified operator');
+      return fail(0xe2fe, 'Unspecified operator');
     default:
-      return fail(0xc54ab3b3, 'Unknown operator');
+      return fail(0xc54a, 'Unknown operator');
   }
 }
 
@@ -1250,7 +1246,7 @@ export function fromCompositeOperatorName(
     case 'OR':
       return CompositeOperator.OR;
     default:
-      return fail(0x040233ad, 'Unknown operator');
+      return fail(0x0402, 'Unknown operator');
   }
 }
 
@@ -1286,7 +1282,7 @@ export function toFilter(filter: Filter): ProtoFilter {
   } else if (filter instanceof CompositeFilter) {
     return toCompositeFilter(filter);
   } else {
-    return fail(0xd65d3916, 'Unrecognized filter type', { filter });
+    return fail(0xd65d, 'Unrecognized filter type', { filter });
   }
 }
 
@@ -1371,9 +1367,9 @@ export function fromUnaryFilter(filter: ProtoFilter): Filter {
         nullValue: 'NULL_VALUE'
       });
     case 'OPERATOR_UNSPECIFIED':
-      return fail(0xef814a9b, 'Unspecified filter');
+      return fail(0xef81, 'Unspecified filter');
     default:
-      return fail(0xed365cf0, 'Unknown filter');
+      return fail(0xed36, 'Unknown filter');
   }
 }
 

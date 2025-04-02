@@ -21,35 +21,35 @@ import { fail, hardAssert } from '../../../src/util/assert';
 
 describe('hardAssert', () => {
   it('includes the error code as hex', () => {
-    expect(() => hardAssert(false, 0x12345678, 'a message here')).to.throw(
+    expect(() => hardAssert(false, 0x1234, 'a message here')).to.throw(
       '12345678'
     );
   });
 
   it('includes the context', () => {
     expect(() =>
-      hardAssert(false, 0x12345678, 'a message here', { foo: 'bar baz' })
+      hardAssert(false, 0x1234, 'a message here', { foo: 'bar baz' })
     ).to.throw('bar baz');
   });
 
   it('includes the message', () => {
     expect(() =>
-      hardAssert(false, 0x12345678, 'a message here', { foo: 'bar baz' })
+      hardAssert(false, 0x1234, 'a message here', { foo: 'bar baz' })
     ).to.throw('a message here');
   });
 
   describe('without message', () => {
     it('includes the error code as hex', () => {
-      expect(() => hardAssert(false, 0x12345678)).to.throw('12345678');
+      expect(() => hardAssert(false, 0x1234)).to.throw('12345678');
     });
 
     it('includes the context', () => {
-      expect(() => hardAssert(false, 0x12345678, { foo: 'bar baz' })).to.throw(
+      expect(() => hardAssert(false, 0x1234, { foo: 'bar baz' })).to.throw(
         'bar baz'
       );
     });
     it('includes a default message', () => {
-      expect(() => hardAssert(false, 0x12345678, { foo: 'bar baz' })).to.throw(
+      expect(() => hardAssert(false, 0x1234, { foo: 'bar baz' })).to.throw(
         'Unexpected state'
       );
     });
@@ -58,31 +58,31 @@ describe('hardAssert', () => {
 
 describe('fail', () => {
   it('includes the error code as hex', () => {
-    expect(() => fail(0x12345678, 'a message here')).to.throw('12345678');
+    expect(() => fail(0x1234, 'a message here')).to.throw('12345678');
   });
 
   it('includes the context', () => {
-    expect(() =>
-      fail(0x12345678, 'a message here', { foo: 'bar baz' })
-    ).to.throw('bar baz');
+    expect(() => fail(0x1234, 'a message here', { foo: 'bar baz' })).to.throw(
+      'bar baz'
+    );
   });
 
   it('includes the message', () => {
-    expect(() =>
-      fail(0x12345678, 'a message here', { foo: 'bar baz' })
-    ).to.throw('a message here');
+    expect(() => fail(0x1234, 'a message here', { foo: 'bar baz' })).to.throw(
+      'a message here'
+    );
   });
 
   describe('without message', () => {
     it('includes the error code as hex', () => {
-      expect(() => fail(0x12345678)).to.throw('12345678');
+      expect(() => fail(0x1234)).to.throw('12345678');
     });
 
     it('includes the context', () => {
-      expect(() => fail(0x12345678, { foo: 'bar baz' })).to.throw('bar baz');
+      expect(() => fail(0x1234, { foo: 'bar baz' })).to.throw('bar baz');
     });
     it('includes a default message', () => {
-      expect(() => fail(0x12345678, { foo: 'bar baz' })).to.throw(
+      expect(() => fail(0x1234, { foo: 'bar baz' })).to.throw(
         'Unexpected state'
       );
     });

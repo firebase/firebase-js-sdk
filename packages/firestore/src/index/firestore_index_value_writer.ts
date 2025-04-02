@@ -136,7 +136,7 @@ export class FirestoreIndexValueWriter {
       this.writeIndexArray(indexValue.arrayValue!, encoder);
       this.writeTruncationMarker(encoder);
     } else {
-      fail(0x4a4e16fa, 'unknown index value type', { indexValue });
+      fail(0x4a4e, 'unknown index value type', { indexValue });
     }
   }
 

@@ -247,7 +247,7 @@ describe('AsyncQueue', () => {
     const deferred = new Deferred<void>();
     queue.enqueueRetryable(async () => {
       deferred.resolve();
-      throw fail(0x1576712c, 'Simulated test failure');
+      throw fail(0x1576, 'Simulated test failure');
     });
     await deferred.promise;
     await expect(

@@ -236,7 +236,7 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
   private get orphanedDocuments(): Set<string> {
     if (!this._orphanedDocuments) {
       throw fail(
-        0xee44dcb1,
+        0xee44,
         'orphanedDocuments is only valid during a transaction.'
       );
     } else {

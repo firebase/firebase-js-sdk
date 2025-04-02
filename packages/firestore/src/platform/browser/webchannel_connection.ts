@@ -142,7 +142,7 @@ export class WebChannelConnection extends RestConnection {
               break;
             default:
               fail(
-                0x235fa5fa,
+                0x235f,
                 'RPC failed with unanticipated webchannel error. Giving up.',
                 {
                   rpcName,
@@ -355,7 +355,7 @@ export class WebChannelConnection extends RestConnection {
           const msgData = msg.data[0];
           hardAssert(
             !!msgData,
-            0x3fddb347,
+            0x3fdd,
             'Got a webchannel message without data.'
           );
           // TODO(b/35143891): There is a bug in One Platform that caused errors

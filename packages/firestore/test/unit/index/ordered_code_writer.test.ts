@@ -250,7 +250,7 @@ function getBytes(val: unknown): { asc: Uint8Array; desc: Uint8Array } {
   } else {
     hardAssert(
       val instanceof Uint8Array,
-      0xa10f7758,
+      0xa10f,
       'val is not instance of Uint8Array',
       {
         val

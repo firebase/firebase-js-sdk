@@ -398,7 +398,7 @@ export function compareDocumentsByField(
     return valueCompare(v1, v2);
   } else {
     return fail(
-      0xa786ed58,
+      0xa786,
       "Trying to compare documents on fields that don't exist"
     );
   }

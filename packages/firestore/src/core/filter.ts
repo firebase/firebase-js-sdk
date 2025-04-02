@@ -168,7 +168,7 @@ export class FieldFilter extends Filter {
       case Operator.GREATER_THAN_OR_EQUAL:
         return comparison >= 0;
       default:
-        return fail(0xb8a2aab3, 'Unknown FieldFilter operator', {
+        return fail(0xb8a2, 'Unknown FieldFilter operator', {
           operator: this.op
         });
     }
@@ -317,7 +317,7 @@ export function filterEquals(f1: Filter, f2: Filter): boolean {
   } else if (f1 instanceof CompositeFilter) {
     return compositeFilterEquals(f1, f2);
   } else {
-    fail(0x4befcb45, 'Only FieldFilters and CompositeFilters can be compared');
+    fail(0x4bef, 'Only FieldFilters and CompositeFilters can be compared');
   }
 }
 

@@ -579,7 +579,7 @@ export async function syncEngineApplyRemoteEvent(
             targetChange.modifiedDocuments.size +
             targetChange.removedDocuments.size <=
             1,
-          0x5858a197,
+          0x5858,
           'Limbo resolution for single document contains multiple changes.'
         );
         if (targetChange.addedDocuments.size > 0) {
@@ -587,13 +587,13 @@ export async function syncEngineApplyRemoteEvent(
         } else if (targetChange.modifiedDocuments.size > 0) {
           hardAssert(
             limboResolution.receivedDocument,
-            0x390f2c8b,
+            0x390f,
             'Received change for limbo target document without add.'
           );
         } else if (targetChange.removedDocuments.size > 0) {
           hardAssert(
             limboResolution.receivedDocument,
-            0xa4f3c30e,
+            0xa4f3,
             'Received remove for limbo target document without add.'
           );
           limboResolution.receivedDocument = false;
@@ -997,7 +997,7 @@ function updateTrackedLimbos(
         removeLimboTarget(syncEngineImpl, limboChange.key);
       }
     } else {
-      fail(0x4d4e3850, 'Unknown limbo change', { limboChange });
+      fail(0x4d4f, 'Unknown limbo change', { limboChange });
     }
   }
 }
@@ -1320,7 +1320,7 @@ export async function syncEngineApplyBatchState(
       batchId
     );
   } else {
-    fail(0x1a4018ac, `Unknown batchState`, { batchState });
+    fail(0x1a40, `Unknown batchState`, { batchState });
   }
 
   await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, documents);
@@ -1563,7 +1563,7 @@ export async function syncEngineApplyTargetState(
         break;
       }
       default:
-        fail(0xfa9b528f, 'Unexpected target state', state);
+        fail(0xfa9b, 'Unexpected target state', state);
     }
   }
 }

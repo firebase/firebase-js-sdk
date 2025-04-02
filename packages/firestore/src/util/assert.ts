@@ -127,7 +127,7 @@ export function debugAssert(
   message: string
 ): asserts assertion {
   if (!assertion) {
-    fail(0xdeb06a55e7, message);
+    fail(0xdeb0e7, message);
   }
 }
 

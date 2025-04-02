@@ -674,7 +674,7 @@ export class SpecBuilder {
     } else if (doc.isNoDocument()) {
       // Don't send any updates
     } else {
-      fail(0xd71cf527, 'Unknown parameter', { doc });
+      fail(0xd71c, 'Unknown parameter', { doc });
     }
     this.watchCurrents(query, 'resume-token-' + version);
     this.watchSnapshots(version);
@@ -1149,7 +1149,7 @@ export class SpecBuilder {
             userDataWriter.convertValue(filter.value)
           ] as SpecQueryFilter;
         } else {
-          return fail(0x0e51d502, 'Unknown filter', { filter });
+          return fail(0x0e51, 'Unknown filter', { filter });
         }
       });
     }
@@ -1211,7 +1211,7 @@ export class SpecBuilder {
   ): void {
     if (!(resume?.resumeToken || resume?.readTime) && resume?.expectedCount) {
       fail(
-        0xc9a16b57,
+        0xc9a1,
         'Expected count is present without a resume token or read time.'
       );
     }
@@ -1277,7 +1277,7 @@ export class SpecBuilder {
       // TODO(dimond): add support for query for doc and limbo doc at the same
       // time?
       fail(
-        0x6e178880,
+        0x6e17,
         'Found both query and limbo doc with target ID, not supported yet'
       );
     }

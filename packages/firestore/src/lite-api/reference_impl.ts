@@ -135,7 +135,7 @@ export function getDoc<AppModelType, DbModelType extends DocumentData>(
     result => {
       hardAssert(
         result.length === 1,
-        0x3d02d4f4,
+        0x3d02,
         'Expected a single document result'
       );
       const document = result[0];
