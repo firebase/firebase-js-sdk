@@ -21,9 +21,7 @@ import { fail, hardAssert } from '../../../src/util/assert';
 
 describe('hardAssert', () => {
   it('includes the error code as hex', () => {
-    expect(() => hardAssert(false, 0x1234, 'a message here')).to.throw(
-      '12345678'
-    );
+    expect(() => hardAssert(false, 0x1234, 'a message here')).to.throw('1234');
   });
 
   it('includes the context', () => {
@@ -40,7 +38,7 @@ describe('hardAssert', () => {
 
   describe('without message', () => {
     it('includes the error code as hex', () => {
-      expect(() => hardAssert(false, 0x1234)).to.throw('12345678');
+      expect(() => hardAssert(false, 0x1234)).to.throw('1234');
     });
 
     it('includes the context', () => {
@@ -58,7 +56,7 @@ describe('hardAssert', () => {
 
 describe('fail', () => {
   it('includes the error code as hex', () => {
-    expect(() => fail(0x1234, 'a message here')).to.throw('12345678');
+    expect(() => fail(0x1234, 'a message here')).to.throw('1234');
   });
 
   it('includes the context', () => {
@@ -75,7 +73,7 @@ describe('fail', () => {
 
   describe('without message', () => {
     it('includes the error code as hex', () => {
-      expect(() => fail(0x1234)).to.throw('12345678');
+      expect(() => fail(0x1234)).to.throw('1234');
     });
 
     it('includes the context', () => {
