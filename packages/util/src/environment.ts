@@ -173,6 +173,12 @@ export function isSafari(): boolean {
   );
 }
 
+export function isChrome(): boolean {
+  return (
+    !isNode() && !!navigator.userAgent && navigator.userAgent.includes('Chrome')
+  );
+}
+
 /**
  * This method checks if indexedDB is supported by current browser/service worker context
  * @return true if indexedDB is supported by current browser/service worker context
