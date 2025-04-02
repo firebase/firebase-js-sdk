@@ -20,7 +20,15 @@ import { Provider } from '@firebase/component';
 import { getModularInstance } from '@firebase/util';
 import { DEFAULT_LOCATION, GENAI_TYPE } from './constants';
 import { GenAIService } from './service';
-import { BackendType, GenAI, GenAIOptions, GoogleAIBackend, VertexAI, VertexAIBackend, VertexAIOptions } from './public-types';
+import {
+  BackendType,
+  GenAI,
+  GenAIOptions,
+  GoogleAIBackend,
+  VertexAI,
+  VertexAIBackend,
+  VertexAIOptions
+} from './public-types';
 import {
   ImagenModelParams,
   ModelParams,
@@ -38,7 +46,7 @@ export { GenAIModel, GenerativeModel, ImagenModel, GenAIError };
 
 // Temporary aliases from new 'GenAI' names to the original 'VertexAI' names.
 // These will be removed in v12 of the SDK.
-export { 
+export {
   GenAIModel as VertexAIModel,
   GenAIError as VertexAIError,
   GenAIErrorCode as VertexAIErrorCode
@@ -54,7 +62,7 @@ declare module '@firebase/component' {
  * Returns a <code>{@link VertexAI}</code> instance for the given app.
  *
  * @public
- * 
+ *
  * @param app - The {@link @firebase/app#FirebaseApp} to use.
  */
 export function getVertexAI(
@@ -67,7 +75,7 @@ export function getVertexAI(
 
   const identifier = encodeInstanceIdentifier({
     backendType: BackendType.VERTEX_AI,
-    location: options?.location ?? ""
+    location: options?.location ?? ''
   });
   return genAIProvider.getImmediate({
     identifier
@@ -75,7 +83,7 @@ export function getVertexAI(
 }
 
 /**
- * Returns a <code>{@link VertexAI}</code> instance for the given app that has the Developer
+ * Returns a <code>{@link GenAI}</code> instance for the given app that has the Developer
  * API enabled.
  *
  * @public
@@ -90,9 +98,7 @@ export function getGenAI(
   // Dependencies
   const genAIProvider: Provider<'genAI'> = _getProvider(app, GENAI_TYPE);
 
-  const identifier = encodeInstanceIdentifier(
-    options.backend
-  );
+  const identifier = encodeInstanceIdentifier(options.backend);
   return genAIProvider.getImmediate({
     identifier
   });
@@ -111,7 +117,7 @@ export function vertexAIBackend(location?: string): VertexAIBackend {
     backendType: BackendType.VERTEX_AI,
     location: location ?? DEFAULT_LOCATION
   };
-  
+
   return backend;
 }
 

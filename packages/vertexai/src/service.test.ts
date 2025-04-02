@@ -14,8 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { vertexAIBackend } from './api';
 import { DEFAULT_LOCATION } from './constants';
-import { VertexAIService } from './service';
+import { GenAIService } from './service';
 import { expect } from 'chai';
 
 const fakeApp = {
@@ -27,18 +28,19 @@ const fakeApp = {
   }
 };
 
-describe('VertexAIService', () => {
+describe('GenAIService', () => {
+  // TODO (dlarocque): move some of these tests to helpers.test.ts
   it('uses default location if not specified', () => {
-    const vertexAI = new VertexAIService(fakeApp);
-    expect(vertexAI.location).to.equal(DEFAULT_LOCATION);
+    const genAI = new GenAIService(fakeApp, vertexAIBackend());
+    expect(genAI.location).to.equal(DEFAULT_LOCATION);
   });
   it('uses custom location if specified', () => {
-    const vertexAI = new VertexAIService(
+    const genAI = new GenAIService(
       fakeApp,
+      vertexAIBackend('somewhere'),
       /* authProvider */ undefined,
       /* appCheckProvider */ undefined,
-      { location: 'somewhere' }
     );
-    expect(vertexAI.location).to.equal('somewhere');
+    expect(genAI.location).to.equal('somewhere');
   });
 });

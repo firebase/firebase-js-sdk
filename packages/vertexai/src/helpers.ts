@@ -24,22 +24,27 @@ import { GenAIErrorCode } from './types';
  * @internal
  */
 export function encodeInstanceIdentifier(
-  instanceIdentifier: InstanceIdentifier,
+  instanceIdentifier: InstanceIdentifier
 ): string {
-  switch(instanceIdentifier.backendType) {
+  switch (instanceIdentifier.backendType) {
     case BackendType.VERTEX_AI:
       return `genai/vertexai/${location || DEFAULT_LOCATION}`;
     case BackendType.GOOGLE_AI:
-      return 'genai/googleai'
+      return 'genai/googleai';
     default:
-      throw new GenAIError(GenAIErrorCode.ERROR, `An internal error occured: Unknown Backend ${instanceIdentifier}. Please submit an issue at https://github.com/firebase/firebase-js-sdk.`)
+      throw new GenAIError(
+        GenAIErrorCode.ERROR,
+        `An internal error occured: Unknown Backend ${instanceIdentifier}. Please submit an issue at https://github.com/firebase/firebase-js-sdk.`
+      );
   }
 }
 
 /**
  * @internal
  */
-export function decodeInstanceIdentifier(instanceIdentifier: string): InstanceIdentifier {
+export function decodeInstanceIdentifier(
+  instanceIdentifier: string
+): InstanceIdentifier {
   const identifierParts = instanceIdentifier.split('/');
   const backend = identifierParts[1];
   switch (backend) {
@@ -51,7 +56,7 @@ export function decodeInstanceIdentifier(instanceIdentifier: string): InstanceId
       };
     case 'googleai':
       return {
-        backendType: BackendType.GOOGLE_AI,
+        backendType: BackendType.GOOGLE_AI
       };
     default:
       throw new GenAIError(

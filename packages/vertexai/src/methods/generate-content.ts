@@ -34,7 +34,7 @@ export async function generateContentStream(
   params: GenerateContentRequest,
   requestOptions?: RequestOptions
 ): Promise<GenerateContentStreamResult> {
-  if (apiSettings.backend.backendType === "GOOGLE_AI") {
+  if (apiSettings.backend.backendType === 'GOOGLE_AI') {
     params = DeveloperAPIMapper.mapGenerateContentRequest(params);
   }
   const response = await makeRequest(
@@ -54,7 +54,7 @@ export async function generateContent(
   params: GenerateContentRequest,
   requestOptions?: RequestOptions
 ): Promise<GenerateContentResult> {
-  if (apiSettings.backend.backendType === "GOOGLE_AI") {
+  if (apiSettings.backend.backendType === 'GOOGLE_AI') {
     params = DeveloperAPIMapper.mapGenerateContentRequest(params);
   }
   const response = await makeRequest(
@@ -82,7 +82,7 @@ async function handleGenerateContentResponse(
   apiSettings: ApiSettings
 ): Promise<GenerateContentResponse> {
   const responseJson = await response.json();
-  if (apiSettings.backend.backendType === "GOOGLE_AI") {
+  if (apiSettings.backend.backendType === 'GOOGLE_AI') {
     return DeveloperAPIMapper.mapGenerateContentResponse(responseJson);
   } else {
     return responseJson;

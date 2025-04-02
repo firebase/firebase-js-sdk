@@ -16,12 +16,12 @@
  */
 import { ImagenModelParams, ModelParams, GenAIErrorCode } from './types';
 import { GenAIError } from './errors';
-import { ImagenModel, getGenerativeModel, getImagenModel } from './api';
+import { ImagenModel, getGenerativeModel, getImagenModel, vertexAIBackend } from './api';
 import { expect } from 'chai';
-import { VertexAI } from './public-types';
+import { GenAI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
 
-const fakeVertexAI: VertexAI = {
+const fakeGenAI: GenAI = {
   app: {
     name: 'DEFAULT',
     automaticDataCollectionEnabled: true,
@@ -31,13 +31,14 @@ const fakeVertexAI: VertexAI = {
       appId: 'my-appid'
     }
   },
+  backend: vertexAIBackend('us-central1'),
   location: 'us-central1'
 };
 
 describe('Top level API', () => {
   it('getGenerativeModel throws if no model is provided', () => {
     try {
-      getGenerativeModel(fakeVertexAI, {} as ModelParams);
+      getGenerativeModel(fakeGenAI, {} as ModelParams);
     } catch (e) {
       expect((e as GenAIError).code).includes(GenAIErrorCode.NO_MODEL);
       expect((e as GenAIError).message).includes(
@@ -48,9 +49,9 @@ describe('Top level API', () => {
   });
   it('getGenerativeModel throws if no apiKey is provided', () => {
     const fakeVertexNoApiKey = {
-      ...fakeVertexAI,
+      ...fakeGenAI,
       app: { options: { projectId: 'my-project', appId: 'my-appid' } }
-    } as VertexAI;
+    } as GenAI;
     try {
       getGenerativeModel(fakeVertexNoApiKey, { model: 'my-model' });
     } catch (e) {
@@ -64,15 +65,13 @@ describe('Top level API', () => {
   });
   it('getGenerativeModel throws if no projectId is provided', () => {
     const fakeVertexNoProject = {
-      ...fakeVertexAI,
+      ...fakeGenAI,
       app: { options: { apiKey: 'my-key', appId: 'my-appid' } }
-    } as VertexAI;
+    } as GenAI;
     try {
       getGenerativeModel(fakeVertexNoProject, { model: 'my-model' });
     } catch (e) {
-      expect((e as GenAIError).code).includes(
-        GenAIErrorCode.NO_PROJECT_ID
-      );
+      expect((e as GenAIError).code).includes(GenAIErrorCode.NO_PROJECT_ID);
       expect((e as GenAIError).message).equals(
         `VertexAI: The "projectId" field is empty in the local` +
           ` Firebase config. Firebase VertexAI requires this field ` +
@@ -82,28 +81,28 @@ describe('Top level API', () => {
   });
   it('getGenerativeModel throws if no appId is provided', () => {
     const fakeVertexNoProject = {
-      ...fakeVertexAI,
+      ...fakeGenAI,
       app: { options: { apiKey: 'my-key', projectId: 'my-projectid' } }
-    } as VertexAI;
+    } as GenAI;
     try {
       getGenerativeModel(fakeVertexNoProject, { model: 'my-model' });
     } catch (e) {
-      expect((e as VertexAIError).code).includes(VertexAIErrorCode.NO_APP_ID);
-      expect((e as VertexAIError).message).equals(
+      expect((e as GenAIError).code).includes(GenAIErrorCode.NO_APP_ID);
+      expect((e as GenAIError).message).equals(
         `VertexAI: The "appId" field is empty in the local` +
           ` Firebase config. Firebase VertexAI requires this field ` +
-          `to contain a valid app ID. (vertexAI/${VertexAIErrorCode.NO_APP_ID})`
+          `to contain a valid app ID. (vertexAI/${GenAIErrorCode.NO_APP_ID})`
       );
     }
   });
   it('getGenerativeModel gets a GenerativeModel', () => {
-    const genModel = getGenerativeModel(fakeVertexAI, { model: 'my-model' });
+    const genModel = getGenerativeModel(fakeGenAI, { model: 'my-model' });
     expect(genModel).to.be.an.instanceOf(GenerativeModel);
     expect(genModel.model).to.equal('publishers/google/models/my-model');
   });
   it('getImagenModel throws if no model is provided', () => {
     try {
-      getImagenModel(fakeVertexAI, {} as ImagenModelParams);
+      getImagenModel(fakeGenAI, {} as ImagenModelParams);
     } catch (e) {
       expect((e as GenAIError).code).includes(GenAIErrorCode.NO_MODEL);
       expect((e as GenAIError).message).includes(
@@ -114,9 +113,9 @@ describe('Top level API', () => {
   });
   it('getImagenModel throws if no apiKey is provided', () => {
     const fakeVertexNoApiKey = {
-      ...fakeVertexAI,
+      ...fakeGenAI,
       app: { options: { projectId: 'my-project', appId: 'my-appid' } }
-    } as VertexAI;
+    } as GenAI;
     try {
       getImagenModel(fakeVertexNoApiKey, { model: 'my-model' });
     } catch (e) {
@@ -130,15 +129,13 @@ describe('Top level API', () => {
   });
   it('getImagenModel throws if no projectId is provided', () => {
     const fakeVertexNoProject = {
-      ...fakeVertexAI,
+      ...fakeGenAI,
       app: { options: { apiKey: 'my-key', appId: 'my-appid' } }
-    } as VertexAI;
+    } as GenAI;
     try {
       getImagenModel(fakeVertexNoProject, { model: 'my-model' });
     } catch (e) {
-      expect((e as GenAIError).code).includes(
-        GenAIErrorCode.NO_PROJECT_ID
-      );
+      expect((e as GenAIError).code).includes(GenAIErrorCode.NO_PROJECT_ID);
       expect((e as GenAIError).message).equals(
         `VertexAI: The "projectId" field is empty in the local` +
           ` Firebase config. Firebase VertexAI requires this field ` +
@@ -148,22 +145,22 @@ describe('Top level API', () => {
   });
   it('getImagenModel throws if no appId is provided', () => {
     const fakeVertexNoProject = {
-      ...fakeVertexAI,
+      ...fakeGenAI,
       app: { options: { apiKey: 'my-key', projectId: 'my-project' } }
-    } as VertexAI;
+    } as GenAI;
     try {
       getImagenModel(fakeVertexNoProject, { model: 'my-model' });
     } catch (e) {
-      expect((e as VertexAIError).code).includes(VertexAIErrorCode.NO_APP_ID);
-      expect((e as VertexAIError).message).equals(
+      expect((e as GenAIError).code).includes(GenAIErrorCode.NO_APP_ID);
+      expect((e as GenAIError).message).equals(
         `VertexAI: The "appId" field is empty in the local` +
           ` Firebase config. Firebase VertexAI requires this field ` +
-          `to contain a valid app ID. (vertexAI/${VertexAIErrorCode.NO_APP_ID})`
+          `to contain a valid app ID. (vertexAI/${GenAIErrorCode.NO_APP_ID})`
       );
     }
   });
   it('getImagenModel gets an ImagenModel', () => {
-    const genModel = getImagenModel(fakeVertexAI, { model: 'my-model' });
+    const genModel = getImagenModel(fakeGenAI, { model: 'my-model' });
     expect(genModel).to.be.an.instanceOf(ImagenModel);
     expect(genModel.model).to.equal('publishers/google/models/my-model');
   });

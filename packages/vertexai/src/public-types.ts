@@ -47,24 +47,23 @@ export interface GenAI {
   location: string;
 }
 
-
 export type Backend = GoogleAIBackend | VertexAIBackend;
 
 export type GoogleAIBackend = {
   backendType: typeof BackendType.GOOGLE_AI;
-}
+};
 
 export type VertexAIBackend = {
   backendType: typeof BackendType.VERTEX_AI;
   location: string;
-}
+};
 
 export const BackendType = {
-  VERTEX_AI: "VERTEX_AI",
-  GOOGLE_AI: "GOOGLE_AI"
+  VERTEX_AI: 'VERTEX_AI',
+  GOOGLE_AI: 'GOOGLE_AI'
 } as const;
 
-export type BackendType = typeof BackendType[keyof typeof BackendType];
+export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 
 export interface GenAIOptions {
   backend: Backend;

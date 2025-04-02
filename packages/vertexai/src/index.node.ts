@@ -41,19 +41,16 @@ function registerGenAI(): void {
 
         let instanceIdentifier: InstanceIdentifier;
         if (options.instanceIdentifier) {
-          instanceIdentifier = decodeInstanceIdentifier(options.instanceIdentifier);
+          instanceIdentifier = decodeInstanceIdentifier(
+            options.instanceIdentifier
+          );
         } else {
           instanceIdentifier = DEFAULT_INSTANCE_IDENTIFER;
         }
 
         const backend = instanceIdentifier;
 
-        return new GenAIService(
-          app,
-          backend,
-          auth,
-          appCheckProvider,
-        );
+        return new GenAIService(app, backend, auth, appCheckProvider);
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)

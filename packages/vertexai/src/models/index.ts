@@ -15,6 +15,6 @@
  * limitations under the License.
  */
 
-export * from './vertexai-model';
+export * from './genai-model';
 export * from './generative-model';
 export * from './imagen-model';

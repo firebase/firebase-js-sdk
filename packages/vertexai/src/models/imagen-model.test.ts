@@ -20,7 +20,7 @@ import {
   ImagenAspectRatio,
   ImagenPersonFilterLevel,
   ImagenSafetyFilterLevel,
-  VertexAI,
+  GenAI,
   GenAIErrorCode
 } from '../public-types';
 import * as request from '../requests/request';
@@ -28,10 +28,11 @@ import sinonChai from 'sinon-chai';
 import { GenAIError } from '../errors';
 import { getMockResponse } from '../../test-utils/mock-response';
 import { match, restore, stub } from 'sinon';
+import { vertexAIBackend } from '../api';
 
 use(sinonChai);
 
-const fakeVertexAI: VertexAI = {
+const fakeGenAI: GenAI = {
   app: {
     name: 'DEFAULT',
     automaticDataCollectionEnabled: true,
@@ -41,6 +42,7 @@ const fakeVertexAI: VertexAI = {
       appId: 'my-appid'
     }
   },
+  backend: vertexAIBackend('us-central1'),
   location: 'us-central1'
 };
 
@@ -53,7 +55,7 @@ describe('ImagenModel', () => {
       mockResponse as Response
     );
 
-    const imagenModel = new ImagenModel(fakeVertexAI, {
+    const imagenModel = new ImagenModel(fakeGenAI, {
       model: 'my-model'
     });
     const prompt = 'A photorealistic image of a toy boat at sea.';
@@ -74,7 +76,7 @@ describe('ImagenModel', () => {
     restore();
   });
   it('generateImages makes a request to predict with generation config and safety settings', async () => {
-    const imagenModel = new ImagenModel(fakeVertexAI, {
+    const imagenModel = new ImagenModel(fakeGenAI, {
       model: 'my-model',
       generationConfig: {
         negativePrompt: 'do not hallucinate',
@@ -143,7 +145,7 @@ describe('ImagenModel', () => {
       json: mockResponse.json
     } as Response);
 
-    const imagenModel = new ImagenModel(fakeVertexAI, {
+    const imagenModel = new ImagenModel(fakeGenAI, {
       model: 'my-model'
     });
     try {
