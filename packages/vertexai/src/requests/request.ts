@@ -180,7 +180,7 @@ export async function makeRequest(
       );
     }
 
-    const externalAbortListener = () => {
+    const externalAbortListener = (): void => {
       logger.debug(`Aborting request to ${url} due to external abort signal.`);
       internalAbortController.abort(externalSignal.reason);
     };
