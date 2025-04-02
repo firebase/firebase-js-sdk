@@ -70,7 +70,7 @@ describe('Data Connect Test', () => {
     expect(parsedHost.host).to.eq('localhost:8080');
     expect(parsedHost.sslEnabled).to.be.false;
   });
-it('should parse env var correctly with https://', async () => {
+  it('should parse env var correctly with https://', async () => {
     const parsedHost = parseOptions('https://localhost');
     expect(parsedHost.host).to.eq('localhost');
     expect(parsedHost.sslEnabled).to.be.true;

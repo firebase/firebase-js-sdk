@@ -238,7 +238,7 @@ export function connectDataConnectEmulator(
   port?: number,
   sslEnabled = false
 ): void {
-  const hostWithPort = port ?  `${host}:${port}` : host;
+  const hostWithPort = port ? `${host}:${port}` : host;
   dc.enableEmulator({ host: hostWithPort, sslEnabled });
 }
 
