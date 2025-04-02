@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { VertexAI } from '../public-types';
+import { GenAI, VertexAI } from '../public-types';
 import { Task, makeRequest } from '../requests/request';
 import { createPredictRequestBody } from '../requests/request-helpers';
 import { handlePredictResponse } from '../requests/response-helpers';
@@ -38,7 +38,7 @@ import { GenAIModel } from './genai-model';
  * @example
  * ```javascript
  * const imagen = new ImagenModel(
- *   vertexAI,
+ *   genAI,
  *   {
  *     model: 'imagen-3.0-generate-002'
  *   }
@@ -65,7 +65,7 @@ export class ImagenModel extends GenAIModel {
   /**
    * Constructs a new instance of the <code>{@link ImagenModel}</code> class.
    *
-   * @param vertexAI - An instance of the Vertex AI in Firebase SDK.
+   * @param genAI - A {@link GenAI} instance.
    * @param modelParams - Parameters to use when making requests to Imagen.
    * @param requestOptions - Additional options to use when making requests.
    *
@@ -73,12 +73,12 @@ export class ImagenModel extends GenAIModel {
    * Firebase config.
    */
   constructor(
-    vertexAI: VertexAI,
+    genAI: GenAI,
     modelParams: ImagenModelParams,
     public requestOptions?: RequestOptions
   ) {
     const { model, generationConfig, safetySettings } = modelParams;
-    super(vertexAI, model);
+    super(genAI, model);
     this.generationConfig = generationConfig;
     this.safetySettings = safetySettings;
   }

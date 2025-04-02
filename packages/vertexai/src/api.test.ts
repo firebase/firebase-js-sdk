@@ -16,7 +16,12 @@
  */
 import { ImagenModelParams, ModelParams, GenAIErrorCode } from './types';
 import { GenAIError } from './errors';
-import { ImagenModel, getGenerativeModel, getImagenModel, vertexAIBackend } from './api';
+import {
+  ImagenModel,
+  getGenerativeModel,
+  getImagenModel,
+  vertexAIBackend
+} from './api';
 import { expect } from 'chai';
 import { GenAI } from './public-types';
 import { GenerativeModel } from './models/generative-model';

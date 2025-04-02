@@ -16,10 +16,7 @@
  */
 import { expect } from 'chai';
 import { GENAI_TYPE } from './constants';
-import {
-  encodeInstanceIdentifier,
-  decodeInstanceIdentifier
-} from './helpers';
+import { encodeInstanceIdentifier, decodeInstanceIdentifier } from './helpers';
 import { GenAIError } from './errors';
 import { BackendType, InstanceIdentifier } from './public-types';
 import { GenAIErrorCode } from './types';
@@ -39,7 +36,7 @@ describe('Identifier Encoding/Decoding', () => {
     it('should encode Vertex AI identifier using empty location', () => {
       const identifier: InstanceIdentifier = {
         backendType: BackendType.VERTEX_AI,
-        location: ""
+        location: ''
       };
       const expected = `${GENAI_TYPE}/vertexai/`;
       expect(encodeInstanceIdentifier(identifier)).to.equal(expected);
@@ -82,20 +79,22 @@ describe('Identifier Encoding/Decoding', () => {
       expect(decodeInstanceIdentifier(encoded)).to.deep.equal(expected);
     });
 
-     it('should throw an error if Vertex AI identifier string without explicit location part', () => {
-       const encoded = `${GENAI_TYPE}/vertexai`;
-       expect(() => decodeInstanceIdentifier(encoded)).to.throw(GenAIError);
+    it('should throw an error if Vertex AI identifier string without explicit location part', () => {
+      const encoded = `${GENAI_TYPE}/vertexai`;
+      expect(() => decodeInstanceIdentifier(encoded)).to.throw(GenAIError);
 
-       try {
-         decodeInstanceIdentifier(encoded);
-         expect.fail('Expected encodeInstanceIdentifier to throw');
-       } catch (e) {
-         expect(e).to.be.instanceOf(GenAIError);
-         const error = e as GenAIError;
-         expect(error.message).to.contain(`Invalid instance identifier, unknown location`);
-         expect(error.code).to.equal(GenAIErrorCode.ERROR);
-       }
-     });
+      try {
+        decodeInstanceIdentifier(encoded);
+        expect.fail('Expected encodeInstanceIdentifier to throw');
+      } catch (e) {
+        expect(e).to.be.instanceOf(GenAIError);
+        const error = e as GenAIError;
+        expect(error.message).to.contain(
+          `Invalid instance identifier, unknown location`
+        );
+        expect(error.code).to.equal(GenAIErrorCode.ERROR);
+      }
+    });
 
     it('should decode Google AI identifier', () => {
       const encoded = `${GENAI_TYPE}/googleai`;
@@ -128,13 +127,13 @@ describe('Identifier Encoding/Decoding', () => {
       );
     });
 
-     it('should throw GenAIError for malformed identifier string (incorrect prefix)', () => {
-       const encoded = 'firebase/vertexai/location';
-        // This will also hit the default case in the switch statement
-       expect(() => decodeInstanceIdentifier(encoded)).to.throw(
-         GenAIError,
-         `Invalid instance identifier, unknown prefix 'firebase'`
-       );
-     });
+    it('should throw GenAIError for malformed identifier string (incorrect prefix)', () => {
+      const encoded = 'firebase/vertexai/location';
+      // This will also hit the default case in the switch statement
+      expect(() => decodeInstanceIdentifier(encoded)).to.throw(
+        GenAIError,
+        `Invalid instance identifier, unknown prefix 'firebase'`
+      );
+    });
   });
 });

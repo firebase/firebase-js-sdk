@@ -90,7 +90,7 @@ async function* generateResponseSequence(
     }
 
     const enhancedResponse =
-      apiSettings.backend.backendType === BackendType.GOOGLE_AI 
+      apiSettings.backend.backendType === BackendType.GOOGLE_AI
         ? createEnhancedContentResponse(
             GoogleAIMapper.mapGenerateContentResponse(
               value as GoogleAIGenerateContentResponse

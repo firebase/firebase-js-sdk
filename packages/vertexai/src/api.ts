@@ -45,7 +45,7 @@ export { ImagenImageFormat } from './requests/imagen-image-format';
 export { GenAIModel, GenerativeModel, ImagenModel, GenAIError };
 
 // Temporary aliases from new 'GenAI' names to the original 'VertexAI' names.
-// These will be removed in v12 of the SDK.
+// TODO (v12): Remove these
 export {
   GenAIModel as VertexAIModel,
   GenAIError as VertexAIError,
@@ -146,7 +146,7 @@ export function getGenerativeModel(
  *
  * Only Imagen 3 models (named `imagen-3.0-*`) are supported.
  *
- * @param genAI - An instance of the Vertex AI in Firebase SDK.
+ * @param genAI - A {@link GenAI} instance.
  * @param modelParams - Parameters to use when making Imagen requests.
  * @param requestOptions - Additional options to use when making requests.
  *

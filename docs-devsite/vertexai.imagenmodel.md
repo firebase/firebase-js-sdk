@@ -28,7 +28,7 @@ export declare class ImagenModel extends GenAIModel
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(vertexAI, modelParams, requestOptions)](./vertexai.imagenmodel.md#imagenmodelconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the <code>[ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)</code> class. |
+|  [(constructor)(genAI, modelParams, requestOptions)](./vertexai.imagenmodel.md#imagenmodelconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the <code>[ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)</code> class. |
 
 ## Properties
 
@@ -54,14 +54,14 @@ Constructs a new instance of the <code>[ImagenModel](./vertexai.imagenmodel.md#i
 <b>Signature:</b>
 
 ```typescript
-constructor(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
+constructor(genAI: GenAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  vertexAI | [VertexAI](./vertexai.md#vertexai) | An instance of the Vertex AI in Firebase SDK. |
+|  genAI | [GenAI](./vertexai.genai.md#genai_interface) | A [GenAI](./vertexai.genai.md#genai_interface) instance. |
 |  modelParams | [ImagenModelParams](./vertexai.imagenmodelparams.md#imagenmodelparams_interface) | Parameters to use when making requests to Imagen. |
 |  requestOptions | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) \| undefined | Additional options to use when making requests. |
 
@@ -142,7 +142,7 @@ If the request to generate images fails. This happens if the prompt is blocked.
 
 ```javascript
 const imagen = new ImagenModel(
-  vertexAI,
+  genAI,
   {
     model: 'imagen-3.0-generate-002'
   }

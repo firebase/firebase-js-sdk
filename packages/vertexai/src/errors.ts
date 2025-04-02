@@ -26,7 +26,7 @@ import { VERTEX_TYPE } from './constants';
  */
 export class GenAIError extends FirebaseError {
   /**
-   * Constructs a new instance of the `VertexAIError` class.
+   * Constructs a new instance of the `GenAIError` class.
    *
    * @param code - The error code from <code>{@link GenAIErrorCode}</code>.
    * @param message - A human-readable message describing the error.
@@ -54,7 +54,7 @@ export class GenAIError extends FirebaseError {
       Error.captureStackTrace(this, GenAIError);
     }
 
-    // Allows instanceof VertexAIError in ES5/ES6
+    // Allows instanceof GenAIError in ES5/ES6
     // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
     // TODO(dlarocque): Replace this with `new.target`: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
     //                   which we can now use since we no longer target ES5.

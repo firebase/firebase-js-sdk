@@ -10,14 +10,13 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # vertexai package
-The Vertex AI in Firebase Web SDK.
 
 ## Functions
 
 |  Function | Description |
 |  --- | --- |
 |  <b>function(app, ...)</b> |
-|  [getGenAI(app, options)](./vertexai.md#getgenai_65c48ee) | Returns a <code>[VertexAI](./vertexai.md#vertexai)</code> instance for the given app that has the Developer API enabled. |
+|  [getGenAI(app, options)](./vertexai.md#getgenai_65c48ee) | Returns a <code>[GenAI](./vertexai.genai.md#genai_interface)</code> instance for the given app that has the Developer API enabled. |
 |  [getVertexAI(app, options)](./vertexai.md#getvertexai_04094cf) | Returns a <code>[VertexAI](./vertexai.md#vertexai)</code> instance for the given app. |
 |  <b>function()</b> |
 |  [googleAIBackend()](./vertexai.md#googleaibackend) |  |
@@ -152,7 +151,7 @@ The Vertex AI in Firebase Web SDK.
 
 ### getGenAI(app, options) {:#getgenai_65c48ee}
 
-Returns a <code>[VertexAI](./vertexai.md#vertexai)</code> instance for the given app that has the Developer API enabled.
+Returns a <code>[GenAI](./vertexai.genai.md#genai_interface)</code> instance for the given app that has the Developer API enabled.
 
 <b>Signature:</b>
 
@@ -248,7 +247,7 @@ export declare function getImagenModel(genAI: GenAI, modelParams: ImagenModelPar
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  genAI | [GenAI](./vertexai.genai.md#genai_interface) | An instance of the Vertex AI in Firebase SDK. |
+|  genAI | [GenAI](./vertexai.genai.md#genai_interface) | A [GenAI](./vertexai.genai.md#genai_interface) instance. |
 |  modelParams | [ImagenModelParams](./vertexai.imagenmodelparams.md#imagenmodelparams_interface) | Parameters to use when making Imagen requests. |
 |  requestOptions | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) | Additional options to use when making requests. |
 
@@ -314,7 +313,7 @@ export type Backend = GoogleAIBackend | VertexAIBackend;
 <b>Signature:</b>
 
 ```typescript
-export type BackendType = typeof BackendType[keyof typeof BackendType];
+export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 ```
 
 ## GoogleAIBackend

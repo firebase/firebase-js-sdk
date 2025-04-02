@@ -44,7 +44,7 @@ export abstract class GenAIModel {
    * This constructor should only be called from subclasses that provide
    * a model API.
    *
-   * @param genAI - An instance of the Vertex AI in Firebase SDK.
+   * @param genAI - A {@link GenAI} instance.
    * @param modelName - The name of the model being used. It can be in one of the following formats:
    * - `my-model` (short name, will resolve to `publishers/google/models/my-model`)
    * - `models/my-model` (will resolve to `publishers/google/models/my-model`)

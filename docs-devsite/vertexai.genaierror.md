@@ -23,7 +23,7 @@ export declare class GenAIError extends FirebaseError
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(code, message, customErrorData)](./vertexai.genaierror.md#genaierrorconstructor) |  | Constructs a new instance of the <code>VertexAIError</code> class. |
+|  [(constructor)(code, message, customErrorData)](./vertexai.genaierror.md#genaierrorconstructor) |  | Constructs a new instance of the <code>GenAIError</code> class. |
 
 ## Properties
 
@@ -34,7 +34,7 @@ export declare class GenAIError extends FirebaseError
 
 ## GenAIError.(constructor)
 
-Constructs a new instance of the `VertexAIError` class.
+Constructs a new instance of the `GenAIError` class.
 
 <b>Signature:</b>
 

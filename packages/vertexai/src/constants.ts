@@ -18,6 +18,7 @@
 import { version } from '../package.json';
 import { BackendType, InstanceIdentifier } from './public-types';
 
+// TODO (v12): Remove this
 export const VERTEX_TYPE = 'vertexAI';
 
 export const GENAI_TYPE = 'genAI';
