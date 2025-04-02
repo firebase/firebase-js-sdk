@@ -75,4 +75,11 @@ describe('Data Connect Test', () => {
     expect(parsedHost.host).to.eq('localhost');
     expect(parsedHost.sslEnabled).to.be.true;
   });
+  it('should parse ipv6 addresses correctly', async () => {
+    const host = '2001:0db8:85a3:0000:0000:8a2e:0370:7334';
+    const parsedHost = parseOptions(host);
+    expect(parsedHost.host).to.eq(host);
+    expect(parsedHost.sslEnabled).to.be.false;
+  });
 });
+
