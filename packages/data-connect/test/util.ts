@@ -34,7 +34,7 @@ export function getConnectionConfig(): ConnectorConfig {
   return {
     connector: CONNECTOR_NAME,
     location: LOCATION_NAME,
-    service: SERVICE_NAME
+    serviceId: SERVICE_NAME
   };
 }
 

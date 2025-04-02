@@ -60,7 +60,7 @@ describe('Transport Options', () => {
     const dc = getDataConnect(app, {
       connector: 'c',
       location: 'l',
-      service: 's'
+      serviceId: 's'
     });
     expect(() => connectDataConnectEmulator(dc, 'h', 80, false)).to.not.throw();
     queryRef(dc, 'query');
@@ -72,7 +72,7 @@ describe('Transport Options', () => {
     const dc = getDataConnect(app, {
       connector: 'c',
       location: 'l',
-      service: 's'
+      serviceId: 's'
     });
     expect(() => connectDataConnectEmulator(dc, 'h', 80, false)).to.not.throw();
     queryRef(dc, 'query');

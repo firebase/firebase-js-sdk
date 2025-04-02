@@ -164,7 +164,7 @@ describe('DataConnect Tests', async () => {
     const fakeInstance = getDataConnect({
       connector: 'wrong',
       location: 'wrong',
-      service: 'wrong'
+      serviceId: 'wrong'
     });
     connectDataConnectEmulator(fakeInstance, 'localhost', 3512);
     const taskListQuery = queryRef<PostListResponse>(fakeInstance, 'ListPosts');

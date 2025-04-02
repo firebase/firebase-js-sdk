@@ -33,7 +33,7 @@ const options: DataConnectOptions = {
   connector: 'c',
   location: 'l',
   projectId: 'p',
-  service: 's'
+  serviceId: 's'
 };
 const INITIAL_TOKEN = 'initial token';
 class FakeAuthProvider implements AuthTokenProvider {

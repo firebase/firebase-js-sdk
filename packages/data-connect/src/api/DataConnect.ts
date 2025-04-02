@@ -43,14 +43,21 @@ import { RESTTransport } from '../network/transport/rest';
 
 import { MutationManager } from './Mutation';
 
+export type ServiceConfig = {
+  service: string;
+  serviceId?: string;
+} | {
+  serviceId: string;
+  service?: string;
+};
+
 /**
  * Connector Config for calling Data Connect backend.
  */
-export interface ConnectorConfig {
+export type ConnectorConfig = ServiceConfig  & {
   location: string;
   connector: string;
-  service: string;
-}
+};
 
 /**
  * Options to connect to emulator
@@ -80,9 +87,9 @@ export function parseOptions(fullHost: string): TransportOptions {
 /**
  * DataConnectOptions including project id
  */
-export interface DataConnectOptions extends ConnectorConfig {
+export type DataConnectOptions = ConnectorConfig & {
   projectId: string;
-}
+};
 
 /**
  * Class representing Firebase Data Connect
@@ -299,7 +306,7 @@ export function getDataConnect(
  * @internal
  */
 export function validateDCOptions(dcOptions: ConnectorConfig): boolean {
-  const fields = ['connector', 'location', 'service'];
+  const fields = ['connector', 'location'];
   if (!dcOptions) {
     throw new DataConnectError(Code.INVALID_ARGUMENT, 'DC Option Required');
   }
@@ -308,6 +315,9 @@ export function validateDCOptions(dcOptions: ConnectorConfig): boolean {
       throw new DataConnectError(Code.INVALID_ARGUMENT, `${field} Required`);
     }
   });
+  if(dcOptions['service'] === undefined && dcOptions['serviceId'] === undefined) {
+    throw new DataConnectError(Code.INVALID_ARGUMENT, "serviceId Required");
+  }
   return true;
 }
 

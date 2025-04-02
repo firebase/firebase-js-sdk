@@ -43,7 +43,7 @@ describe('User Agent Tests', () => {
   beforeEach(() => {
     initializeFetch(fakeFetchImpl);
     app = initializeApp({ projectId: 'p' }, 'abc'); // TODO(mtewani): Replace with util function
-    dc = getDataConnect(app, { connector: 'c', location: 'l', service: 's' });
+    dc = getDataConnect(app, { connector: 'c', location: 'l', serviceId: 's' });
   });
   afterEach(async () => {
     await dc._delete();

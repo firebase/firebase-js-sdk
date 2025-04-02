@@ -55,14 +55,14 @@ export class RESTTransport implements DataConnectTransport {
       }
       this._host = transportOptions.host;
     }
-    const { location, projectId: project, connector, service } = options;
+    const { location, projectId: project, connector } = options;
     if (location) {
       this._location = location;
     }
     if (project) {
       this._project = project;
     }
-    this._serviceName = service;
+    this._serviceName = options.serviceId || options.service;
     if (!connector) {
       throw new DataConnectError(
         Code.INVALID_ARGUMENT,
@@ -86,7 +86,7 @@ export class RESTTransport implements DataConnectTransport {
         connector: this._connectorName,
         location: this._location,
         projectId: this._project,
-        service: this._serviceName
+        serviceId: this._serviceName
       },
       { host: this._host, sslEnabled: this._secure, port: this._port }
     );

@@ -43,7 +43,7 @@ describe('GMPID Tests', () => {
   beforeEach(() => {
     initializeFetch(fakeFetchImpl);
     app = initializeApp({ projectId: 'p', appId: APPID }, 'fdsasdf'); // TODO(mtewani): Replace with util function
-    dc = getDataConnect(app, { connector: 'c', location: 'l', service: 's' });
+    dc = getDataConnect(app, { connector: 'c', location: 'l', serviceId: 's' });
   });
   afterEach(async () => {
     await dc._delete();
@@ -66,7 +66,7 @@ describe('GMPID Tests', () => {
     const dc2 = getDataConnect(app2, {
       connector: 'c',
       location: 'l',
-      service: 's'
+      serviceId: 's'
     });
     // @ts-ignore
     await executeQuery(queryRef(dc2, '')).catch(() => {});
