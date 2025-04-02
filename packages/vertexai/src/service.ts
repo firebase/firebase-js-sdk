@@ -27,51 +27,26 @@ import {
   FirebaseAuthInternalName
 } from '@firebase/auth-interop-types';
 
-/*
-export class VertexAIService implements VertexAI, _FirebaseService {
-  auth: FirebaseAuthInternal | null;
-  appCheck: FirebaseAppCheckInternal | null;
-  location: string;
-
-  constructor(
-    public app: FirebaseApp,
-    authProvider?: Provider<FirebaseAuthInternalName>,
-    appCheckProvider?: Provider<AppCheckInternalComponentName>,
-    public options?: VertexAIOptions
-  ) {
-    const appCheck = appCheckProvider?.getImmediate({ optional: true });
-    const auth = authProvider?.getImmediate({ optional: true });
-    this.auth = auth || null;
-    this.appCheck = appCheck || null;
-    this.location = this.options?.location || DEFAULT_LOCATION;
-  }
-
-  _delete(): Promise<void> {
-    return Promise.resolve();
-  }
-}
-*/
-
 export class GenAIService implements GenAI, _FirebaseService {
   auth: FirebaseAuthInternal | null;
   appCheck: FirebaseAppCheckInternal | null;
-  location: string;
+  location: string; // This is here for backwards-compatibility
 
   constructor(
     public app: FirebaseApp,
     public backend: Backend,
     authProvider?: Provider<FirebaseAuthInternalName>,
-    appCheckProvider?: Provider<AppCheckInternalComponentName>,
+    appCheckProvider?: Provider<AppCheckInternalComponentName>
   ) {
     const appCheck = appCheckProvider?.getImmediate({ optional: true });
     const auth = authProvider?.getImmediate({ optional: true });
     this.auth = auth || null;
     this.appCheck = appCheck || null;
-    
-    if (backend.backendType === "VERTEX_AI") {
+
+    if (backend.backendType === 'VERTEX_AI') {
       this.location = backend.location;
     } else {
-      this.location = "";
+      this.location = '';
     }
   }
 

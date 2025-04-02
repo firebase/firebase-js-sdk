@@ -28,7 +28,7 @@ import {
   ImagenGenerationResponse,
   ImagenSafetySettings
 } from '../types';
-import { GenAIModel } from './vertexai-model';
+import { GenAIModel } from './genai-model';
 
 /**
  * Class for Imagen model APIs.

@@ -30,6 +30,7 @@ import {
 } from '../types';
 import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
+import { vertexAIBackend } from '../api';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -38,7 +39,8 @@ const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'us-central1'
+  location: 'us-central1',
+  backend: vertexAIBackend()
 };
 
 const fakeRequestParams: GenerateContentRequest = {

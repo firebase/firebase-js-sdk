@@ -42,7 +42,7 @@ import {
   formatSystemInstruction
 } from '../requests/request-helpers';
 import { GenAI } from '../public-types';
-import { GenAIModel } from './vertexai-model';
+import { GenAIModel } from './genai-model';
 
 /**
  * Class for generative model APIs.

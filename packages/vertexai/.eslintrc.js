@@ -30,6 +30,7 @@ module.exports = {
       {
         'packageDir': [path.resolve(__dirname, '../../'), __dirname]
       }
-    ]
+    ],
+    '@typescript-eslint/consistent-type-definitions': 0
   }
 };

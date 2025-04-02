@@ -15,13 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  Content,
-  POSSIBLE_ROLES,
-  Part,
-  Role,
-  GenAIErrorCode
-} from '../types';
+import { Content, POSSIBLE_ROLES, Part, Role, GenAIErrorCode } from '../types';
 import { GenAIError } from '../errors';
 
 // https://ai.google.dev/api/rest/v1beta/Content#part

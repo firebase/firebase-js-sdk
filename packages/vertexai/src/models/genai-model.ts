@@ -82,10 +82,7 @@ export abstract class GenAIModel {
         backend: genAI.backend
       };
 
-      if (
-        _isFirebaseServerApp(genAI.app) &&
-        genAI.app.settings.appCheckToken
-      ) {
+      if (_isFirebaseServerApp(genAI.app) && genAI.app.settings.appCheckToken) {
         const token = genAI.app.settings.appCheckToken;
         this._apiSettings.getAppCheckToken = () => {
           return Promise.resolve({ token });
@@ -116,7 +113,7 @@ export abstract class GenAIModel {
     modelName: string,
     backendType: BackendType
   ): string {
-    if (backendType === "GOOGLE_AI") {
+    if (backendType === 'GOOGLE_AI') {
       return GenAIModel.normalizeDeveloperApiModelName(modelName);
     } else {
       return GenAIModel.normalizeVertexAIModelName(modelName);

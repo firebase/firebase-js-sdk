@@ -37,6 +37,16 @@ import {
   GenAIErrorCode
 } from '../types';
 import { GenAIError } from '../errors';
+import { ApiSettings } from '../types/internal';
+import { vertexAIBackend } from '../api';
+
+const fakeApiSettings: ApiSettings = {
+  apiKey: 'key',
+  project: 'my-project',
+  appId: 'my-appid',
+  location: 'us-central1',
+  backend: vertexAIBackend()
+};
 
 use(sinonChai);
 
@@ -74,7 +84,7 @@ describe('processStream', () => {
     const fakeResponse = getMockResponseStreaming(
       'streaming-success-basic-reply-short.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     for await (const response of result.stream) {
       expect(response.text()).to.not.be.empty;
     }
@@ -85,7 +95,7 @@ describe('processStream', () => {
     const fakeResponse = getMockResponseStreaming(
       'streaming-success-basic-reply-long.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     for await (const response of result.stream) {
       expect(response.text()).to.not.be.empty;
     }
@@ -98,7 +108,7 @@ describe('processStream', () => {
       'streaming-success-basic-reply-long.txt',
       1e6
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     for await (const response of result.stream) {
       expect(response.text()).to.not.be.empty;
     }
@@ -108,7 +118,7 @@ describe('processStream', () => {
   });
   it('streaming response - utf8', async () => {
     const fakeResponse = getMockResponseStreaming('streaming-success-utf8.txt');
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     for await (const response of result.stream) {
       expect(response.text()).to.not.be.empty;
     }
@@ -120,7 +130,7 @@ describe('processStream', () => {
     const fakeResponse = getMockResponseStreaming(
       'streaming-success-function-call-short.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     for await (const response of result.stream) {
       expect(response.text()).to.be.empty;
       expect(response.functionCalls()).to.be.deep.equal([
@@ -143,7 +153,7 @@ describe('processStream', () => {
     const fakeResponse = getMockResponseStreaming(
       'streaming-failure-finish-reason-safety.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.candidates?.[0].finishReason).to.equal('SAFETY');
     expect(aggregatedResponse.text).to.throw('SAFETY');
@@ -155,7 +165,7 @@ describe('processStream', () => {
     const fakeResponse = getMockResponseStreaming(
       'streaming-failure-prompt-blocked-safety.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text).to.throw('SAFETY');
     expect(aggregatedResponse.promptFeedback?.blockReason).to.equal('SAFETY');
@@ -167,7 +177,7 @@ describe('processStream', () => {
     const fakeResponse = getMockResponseStreaming(
       'streaming-failure-empty-content.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.equal('');
     for await (const response of result.stream) {
@@ -178,7 +188,7 @@ describe('processStream', () => {
     const fakeResponse = getMockResponseStreaming(
       'streaming-success-unknown-safety-enum.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.include('Cats');
     for await (const response of result.stream) {
@@ -189,7 +199,7 @@ describe('processStream', () => {
     const fakeResponse = getMockResponseStreaming(
       'streaming-failure-recitation-no-content.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text).to.throw('RECITATION');
     expect(aggregatedResponse.candidates?.[0].content.parts[0].text).to.include(
@@ -207,7 +217,7 @@ describe('processStream', () => {
     const fakeResponse = getMockResponseStreaming(
       'streaming-success-citations.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.include('Quantum mechanics is');
     expect(
@@ -226,7 +236,7 @@ describe('processStream', () => {
     const fakeResponse = getMockResponseStreaming(
       'streaming-success-empty-text-part.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.equal('1');
     expect(aggregatedResponse.candidates?.length).to.equal(1);
@@ -458,9 +468,7 @@ describe('aggregateResponses', () => {
     try {
       aggregateResponses(responsesToAggregate);
     } catch (e) {
-      expect((e as GenAIError).code).includes(
-        GenAIErrorCode.INVALID_CONTENT
-      );
+      expect((e as GenAIError).code).includes(GenAIErrorCode.INVALID_CONTENT);
       expect((e as GenAIError).message).to.include(
         'Part should have at least one property, but there are none. This is likely caused ' +
           'by a malformed response from the backend.'

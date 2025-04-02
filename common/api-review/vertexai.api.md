@@ -28,7 +28,7 @@ export const BackendType: {
 };
 
 // @public (undocumented)
-export type BackendType = typeof BackendType[keyof typeof BackendType];
+export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 
 // @public
 export interface BaseParams {
@@ -900,5 +900,7 @@ export interface WebAttribution {
     uri: string;
 }
 
+
+// (No @packageDocumentation comment for this package)
 
 ```

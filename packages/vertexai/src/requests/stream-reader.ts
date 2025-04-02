@@ -65,7 +65,7 @@ async function getResponsePromise(
     const { done, value } = await reader.read();
     if (done) {
       let generateContentResponse = aggregateResponses(allResponses);
-      if (apiSettings.backend.backendType === "GOOGLE_AI") {
+      if (apiSettings.backend.backendType === 'GOOGLE_AI') {
         generateContentResponse = DeveloperAPIMapper.mapGenerateContentResponse(
           generateContentResponse as DeveloperAPIGenerateContentResponse
         );
@@ -88,13 +88,14 @@ async function* generateResponseSequence(
       break;
     }
 
-    const enhancedResponse = apiSettings.backend.backendType === "GOOGLE_AI"
-      ? createEnhancedContentResponse(
-          DeveloperAPIMapper.mapGenerateContentResponse(
-            value as DeveloperAPIGenerateContentResponse
+    const enhancedResponse =
+      apiSettings.backend.backendType === 'GOOGLE_AI'
+        ? createEnhancedContentResponse(
+            DeveloperAPIMapper.mapGenerateContentResponse(
+              value as DeveloperAPIGenerateContentResponse
+            )
           )
-        )
-      : createEnhancedContentResponse(value);
+        : createEnhancedContentResponse(value);
     yield enhancedResponse;
   }
 }

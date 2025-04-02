@@ -110,7 +110,6 @@ export function mapGenerateContentResponse(
  */
 export function mapCountTokensRequest(
   countTokensRequest: CountTokensRequest,
-  model: string
 ): DeveloperAPICountTokensRequest {
   const mappedCountTokensRequest: DeveloperAPICountTokensRequest = {
     generateContentRequest: {

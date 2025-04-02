@@ -23,8 +23,8 @@ export const VERTEX_TYPE = 'vertexAI';
 export const GENAI_TYPE = 'genAI';
 
 export const DEFAULT_INSTANCE_IDENTIFER: InstanceIdentifier = {
-  backendType: BackendType.GOOGLE_AI,
-}
+  backendType: BackendType.GOOGLE_AI
+};
 
 export const DEFAULT_LOCATION = 'us-central1';
 

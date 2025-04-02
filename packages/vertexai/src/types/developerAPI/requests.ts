@@ -25,5 +25,5 @@ export interface DeveloperAPICountTokensRequest {
     systemInstruction?: string | Part | Content;
     tools?: Tool[];
     generationConfig?: GenerationConfig;
-  }
+  };
 }

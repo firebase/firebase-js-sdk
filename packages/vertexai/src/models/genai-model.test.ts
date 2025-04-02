@@ -15,24 +15,25 @@
  * limitations under the License.
  */
 import { use, expect } from 'chai';
-import { VertexAI, GenAIErrorCode } from '../public-types';
+import { GenAI, GenAIErrorCode } from '../public-types';
 import sinonChai from 'sinon-chai';
-import { GenAIModel } from './vertexai-model';
+import { GenAIModel } from './genai-model';
 import { GenAIError } from '../errors';
+import { vertexAIBackend } from '../api';
 
 use(sinonChai);
 
 /**
- * A class that extends VertexAIModel that allows us to test the protected constructor.
+ * A class that extends GenAIModel that allows us to test the protected constructor.
  */
 class TestModel extends GenAIModel {
   /* eslint-disable @typescript-eslint/no-useless-constructor */
-  constructor(vertexAI: VertexAI, modelName: string) {
-    super(vertexAI, modelName);
+  constructor(genAI: GenAI, modelName: string) {
+    super(genAI, modelName);
   }
 }
 
-const fakeVertexAI: VertexAI = {
+const fakeGenAI: GenAI = {
   app: {
     name: 'DEFAULT',
     automaticDataCollectionEnabled: true,
@@ -42,31 +43,32 @@ const fakeVertexAI: VertexAI = {
       appId: 'my-appid'
     }
   },
+  backend: vertexAIBackend('us-central1'),
   location: 'us-central1'
 };
 
-describe('VertexAIModel', () => {
+describe('GenAIModel', () => {
   it('handles plain model name', () => {
-    const testModel = new TestModel(fakeVertexAI, 'my-model');
+    const testModel = new TestModel(fakeGenAI, 'my-model');
     expect(testModel.model).to.equal('publishers/google/models/my-model');
   });
   it('handles models/ prefixed model name', () => {
-    const testModel = new TestModel(fakeVertexAI, 'models/my-model');
+    const testModel = new TestModel(fakeGenAI, 'models/my-model');
     expect(testModel.model).to.equal('publishers/google/models/my-model');
   });
   it('handles full model name', () => {
     const testModel = new TestModel(
-      fakeVertexAI,
+      fakeGenAI,
       'publishers/google/models/my-model'
     );
     expect(testModel.model).to.equal('publishers/google/models/my-model');
   });
   it('handles prefixed tuned model name', () => {
-    const testModel = new TestModel(fakeVertexAI, 'tunedModels/my-model');
+    const testModel = new TestModel(fakeGenAI, 'tunedModels/my-model');
     expect(testModel.model).to.equal('tunedModels/my-model');
   });
   it('throws if not passed an api key', () => {
-    const fakeVertexAI: VertexAI = {
+    const fakeGenAI: GenAI = {
       app: {
         name: 'DEFAULT',
         automaticDataCollectionEnabled: true,
@@ -74,16 +76,17 @@ describe('VertexAIModel', () => {
           projectId: 'my-project'
         }
       },
+      backend: vertexAIBackend('us-central1'),
       location: 'us-central1'
     };
     try {
-      new TestModel(fakeVertexAI, 'my-model');
+      new TestModel(fakeGenAI, 'my-model');
     } catch (e) {
       expect((e as GenAIError).code).to.equal(GenAIErrorCode.NO_API_KEY);
     }
   });
   it('throws if not passed a project ID', () => {
-    const fakeVertexAI: VertexAI = {
+    const fakeGenAI: GenAI = {
       app: {
         name: 'DEFAULT',
         automaticDataCollectionEnabled: true,
@@ -91,18 +94,17 @@ describe('VertexAIModel', () => {
           apiKey: 'key'
         }
       },
+      backend: vertexAIBackend('us-central1'),
       location: 'us-central1'
     };
     try {
-      new TestModel(fakeVertexAI, 'my-model');
+      new TestModel(fakeGenAI, 'my-model');
     } catch (e) {
-      expect((e as GenAIError).code).to.equal(
-        GenAIErrorCode.NO_PROJECT_ID
-      );
+      expect((e as GenAIError).code).to.equal(GenAIErrorCode.NO_PROJECT_ID);
     }
   });
   it('throws if not passed an app ID', () => {
-    const fakeVertexAI: VertexAI = {
+    const fakeGenAI: GenAI = {
       app: {
         name: 'DEFAULT',
         automaticDataCollectionEnabled: true,
@@ -111,12 +113,13 @@ describe('VertexAIModel', () => {
           projectId: 'my-project'
         }
       },
+      backend: vertexAIBackend('us-central1'),
       location: 'us-central1'
     };
     try {
-      new TestModel(fakeVertexAI, 'my-model');
+      new TestModel(fakeGenAI, 'my-model');
     } catch (e) {
-      expect((e as VertexAIError).code).to.equal(VertexAIErrorCode.NO_APP_ID);
+      expect((e as GenAIError).code).to.equal(GenAIErrorCode.NO_APP_ID);
     }
   });
 });
