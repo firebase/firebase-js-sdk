@@ -29,10 +29,12 @@ describe('Transport Options', () => {
   it('should return false if transport options are not equal', () => {
     const transportOptions1: TransportOptions = {
       host: 'h',
+      port: 1,
       sslEnabled: false
     };
     const transportOptions2: TransportOptions = {
       host: 'h2',
+      port: 2,
       sslEnabled: false
     };
     expect(
@@ -42,9 +44,11 @@ describe('Transport Options', () => {
   it('should return true if transport options are equal', () => {
     const transportOptions1: TransportOptions = {
       host: 'h',
+      port: 1,
       sslEnabled: false
     };
     const transportOptions2: TransportOptions = {
+      port: 1,
       host: 'h',
       sslEnabled: false
     };
