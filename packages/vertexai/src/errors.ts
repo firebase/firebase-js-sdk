@@ -38,8 +38,8 @@ export class GenAIError extends FirebaseError {
     readonly customErrorData?: CustomErrorData
   ) {
     // Match error format used by FirebaseError from ErrorFactory
-    const service = VERTEX_TYPE;
-    const serviceName = 'VertexAI'; // TODO: Rename to GenAI on breaking release.
+    const service = VERTEX_TYPE; // TODO (v12): Rename to GENAI_TYPE
+    const serviceName = 'VertexAI'; // TODO (v12): Rename to GenAI on breaking release.
     const fullCode = `${service}/${code}`;
     const fullMessage = `${serviceName}: ${message} (${fullCode})`;
     super(code, fullMessage);

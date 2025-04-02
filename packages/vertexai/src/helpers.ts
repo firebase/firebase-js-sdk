@@ -15,12 +15,16 @@
  * limitations under the License.
  */
 
-import { DEFAULT_LOCATION } from './constants';
+import { GENAI_TYPE } from './constants';
 import { GenAIError } from './errors';
 import { BackendType, InstanceIdentifier } from './public-types';
 import { GenAIErrorCode } from './types';
 
 /**
+ * Encodes an {@link InstanceIdentifier} into a string.
+ * 
+ * This string is used to identify unique {@link GenAI} instances by backend type.
+ * 
  * @internal
  */
 export function encodeInstanceIdentifier(
@@ -28,28 +32,36 @@ export function encodeInstanceIdentifier(
 ): string {
   switch (instanceIdentifier.backendType) {
     case BackendType.VERTEX_AI:
-      return `genai/vertexai/${location || DEFAULT_LOCATION}`;
+      return `${GENAI_TYPE}/vertexai/${instanceIdentifier.location}`;
     case BackendType.GOOGLE_AI:
-      return 'genai/googleai';
+      return `${GENAI_TYPE}/googleai`;
     default:
       throw new GenAIError(
         GenAIErrorCode.ERROR,
-        `An internal error occured: Unknown Backend ${instanceIdentifier}. Please submit an issue at https://github.com/firebase/firebase-js-sdk.`
+        `Unknown backend '${instanceIdentifier}'`
       );
   }
 }
 
 /**
+ * Decodes an instance identifier string into an {@link InstanceIdentifier}.
+ * 
  * @internal
  */
 export function decodeInstanceIdentifier(
   instanceIdentifier: string
 ): InstanceIdentifier {
   const identifierParts = instanceIdentifier.split('/');
+  if (identifierParts[0] !== GENAI_TYPE) {
+    throw new GenAIError(GenAIErrorCode.ERROR, `Invalid instance identifier, unknown prefix '${identifierParts[0]}'`);
+  }
   const backend = identifierParts[1];
   switch (backend) {
     case 'vertexai':
-      const location: string | undefined = identifierParts[1]; // The location may not be a part of the instance identifier
+      const location: string | undefined = identifierParts[2];
+      if (!location) {
+        throw new GenAIError(GenAIErrorCode.ERROR, `Invalid instance identifier, unknown location '${instanceIdentifier}'`);
+      }
       return {
         backendType: BackendType.VERTEX_AI,
         location
@@ -61,7 +73,7 @@ export function decodeInstanceIdentifier(
     default:
       throw new GenAIError(
         GenAIErrorCode.ERROR,
-        `An internal error occured: Invalid instance identifier: ${instanceIdentifier}. Please submit an issue at https://github.com/firebase/firebase-js-sdk`
+        `Invalid instance identifier string: '${instanceIdentifier}'`
       );
   }
 }

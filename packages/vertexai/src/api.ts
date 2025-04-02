@@ -75,7 +75,7 @@ export function getVertexAI(
 
   const identifier = encodeInstanceIdentifier({
     backendType: BackendType.VERTEX_AI,
-    location: options?.location ?? ''
+    location: options?.location ?? DEFAULT_LOCATION
   });
   return genAIProvider.getImmediate({
     identifier
