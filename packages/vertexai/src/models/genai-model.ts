@@ -122,6 +122,7 @@ export abstract class GenAIModel {
 
   private static normalizeDeveloperApiModelName(modelName: string): string {
     return `models/${modelName}`;
+    // TODO (dlarocque): rename this to be projects/project-id/models/model-name
   }
 
   private static normalizeVertexAIModelName(modelName: string): string {

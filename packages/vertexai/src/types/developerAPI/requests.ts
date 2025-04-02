@@ -20,7 +20,7 @@ import { GenerationConfig, Tool } from '../requests';
 
 export interface DeveloperAPICountTokensRequest {
   generateContentRequest: {
-    // model: string;
+    // model: string; // models/model-name
     contents: Content[];
     systemInstruction?: string | Part | Content;
     tools?: Tool[];

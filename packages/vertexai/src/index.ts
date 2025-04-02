@@ -9,7 +9,7 @@ import { GENAI_TYPE } from './constants';
 import { Component, ComponentType } from '@firebase/component';
 import { name, version } from '../package.json';
 import { decodeInstanceIdentifier } from './helpers';
-import { GenAIError, VertexAIError } from './api';
+import { GenAIError } from './api';
 import { GenAIErrorCode } from './types';
 
 declare global {
