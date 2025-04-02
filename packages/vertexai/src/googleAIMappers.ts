@@ -109,7 +109,7 @@ export function mapGenerateContentResponse(
  * @returns A {@link CountTokensRequest} that conforms to the Google AI format.
  */
 export function mapCountTokensRequest(
-  countTokensRequest: CountTokensRequest,
+  countTokensRequest: CountTokensRequest
 ): GoogleAICountTokensRequest {
   const mappedCountTokensRequest: GoogleAICountTokensRequest = {
     generateContentRequest: {

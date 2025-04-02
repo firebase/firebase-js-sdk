@@ -39,7 +39,7 @@ describe('GenAIService', () => {
       fakeApp,
       vertexAIBackend('somewhere'),
       /* authProvider */ undefined,
-      /* appCheckProvider */ undefined,
+      /* appCheckProvider */ undefined
     );
     expect(genAI.location).to.equal('somewhere');
   });

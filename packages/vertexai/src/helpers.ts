@@ -22,9 +22,9 @@ import { GenAIErrorCode } from './types';
 
 /**
  * Encodes an {@link InstanceIdentifier} into a string.
- * 
+ *
  * This string is used to identify unique {@link GenAI} instances by backend type.
- * 
+ *
  * @internal
  */
 export function encodeInstanceIdentifier(
@@ -45,7 +45,7 @@ export function encodeInstanceIdentifier(
 
 /**
  * Decodes an instance identifier string into an {@link InstanceIdentifier}.
- * 
+ *
  * @internal
  */
 export function decodeInstanceIdentifier(
@@ -53,14 +53,20 @@ export function decodeInstanceIdentifier(
 ): InstanceIdentifier {
   const identifierParts = instanceIdentifier.split('/');
   if (identifierParts[0] !== GENAI_TYPE) {
-    throw new GenAIError(GenAIErrorCode.ERROR, `Invalid instance identifier, unknown prefix '${identifierParts[0]}'`);
+    throw new GenAIError(
+      GenAIErrorCode.ERROR,
+      `Invalid instance identifier, unknown prefix '${identifierParts[0]}'`
+    );
   }
   const backend = identifierParts[1];
   switch (backend) {
     case 'vertexai':
       const location: string | undefined = identifierParts[2];
       if (!location) {
-        throw new GenAIError(GenAIErrorCode.ERROR, `Invalid instance identifier, unknown location '${instanceIdentifier}'`);
+        throw new GenAIError(
+          GenAIErrorCode.ERROR,
+          `Invalid instance identifier, unknown location '${instanceIdentifier}'`
+        );
       }
       return {
         backendType: BackendType.VERTEX_AI,

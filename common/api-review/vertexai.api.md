@@ -550,7 +550,7 @@ export interface ImagenInlineImage {
 
 // @beta
 export class ImagenModel extends GenAIModel {
-    constructor(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
+    constructor(genAI: GenAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
     generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
     // @internal
     generateImagesGCS(prompt: string, gcsURI: string): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
