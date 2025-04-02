@@ -57,6 +57,7 @@ export interface ConnectorConfig {
  */
 export interface TransportOptions {
   host: string;
+  port?: number;
   sslEnabled?: boolean;
 }
 
@@ -185,6 +186,7 @@ export class DataConnect {
     if (this._transportOptions) {
       this._transport.useEmulator(
         this._transportOptions.host,
+        this._transportOptions.port,
         this._transportOptions.sslEnabled
       );
     }

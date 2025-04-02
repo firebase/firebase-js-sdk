@@ -51,7 +51,7 @@ export interface DataConnectTransport {
     queryName: string,
     body?: U
   ): Promise<{ data: T; errors: Error[] }>;
-  useEmulator(host: string, sslEnabled?: boolean): void;
+  useEmulator(host: string, port: number, sslEnabled?: boolean): void;
   onTokenChanged: (token: string | null) => void;
   _setCallerSdkType(callerSdkType: CallerSdkType): void;
 }

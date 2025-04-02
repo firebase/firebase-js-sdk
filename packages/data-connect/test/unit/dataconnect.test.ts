@@ -82,4 +82,3 @@ describe('Data Connect Test', () => {
     expect(parsedHost.sslEnabled).to.be.false;
   });
 });
-

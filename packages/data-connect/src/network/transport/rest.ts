@@ -27,6 +27,7 @@ import { CallerSdkType, CallerSdkTypeEnum, DataConnectTransport } from '.';
 
 export class RESTTransport implements DataConnectTransport {
   private _host = '';
+  private _port: number | undefined;
   private _location = 'l';
   private _connectorName = '';
   private _secure = true;
@@ -46,6 +47,9 @@ export class RESTTransport implements DataConnectTransport {
     private _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base
   ) {
     if (transportOptions) {
+      if (typeof transportOptions.port === 'number') {
+        this._port = transportOptions.port;
+      }
       if (typeof transportOptions.sslEnabled !== 'undefined') {
         this._secure = transportOptions.sslEnabled;
       }
@@ -84,11 +88,14 @@ export class RESTTransport implements DataConnectTransport {
         projectId: this._project,
         service: this._serviceName
       },
-      { host: this._host, sslEnabled: this._secure }
+      { host: this._host, sslEnabled: this._secure, port: this._port }
     );
   }
-  useEmulator(host: string, isSecure?: boolean): void {
+  useEmulator(host: string, port?: number, isSecure?: boolean): void {
     this._host = host;
+    if (typeof port === 'number') {
+      this._port = port;
+    }
     if (typeof isSecure !== 'undefined') {
       this._secure = isSecure;
     }
