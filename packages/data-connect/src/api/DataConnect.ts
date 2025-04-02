@@ -58,7 +58,6 @@ export interface ConnectorConfig {
 export interface TransportOptions {
   host: string;
   sslEnabled?: boolean;
-  port?: number;
 }
 
 const FIREBASE_DATA_CONNECT_EMULATOR_HOST_VAR =
@@ -71,11 +70,15 @@ const FIREBASE_DATA_CONNECT_EMULATOR_HOST_VAR =
  * @internal
  */
 export function parseOptions(fullHost: string): TransportOptions {
-  const [protocol, hostName] = fullHost.split('://');
-  const isSecure = protocol === 'https';
-  const [host, portAsString] = hostName.split(':');
-  const port = Number(portAsString);
-  return { host, port, sslEnabled: isSecure };
+  if (fullHost.startsWith('http://') || fullHost.startsWith('https://')) {
+    const [protocol, host] = fullHost.split('://');
+    const isSecure = protocol === 'https';
+    return { host, sslEnabled: isSecure };
+  }
+  return {
+    host: fullHost,
+    sslEnabled: false
+  };
 }
 /**
  * DataConnectOptions including project id
@@ -182,7 +185,6 @@ export class DataConnect {
     if (this._transportOptions) {
       this._transport.useEmulator(
         this._transportOptions.host,
-        this._transportOptions.port,
         this._transportOptions.sslEnabled
       );
     }
@@ -219,7 +221,6 @@ export function areTransportOptionsEqual(
 ): boolean {
   return (
     transportOptions1.host === transportOptions2.host &&
-    transportOptions1.port === transportOptions2.port &&
     transportOptions1.sslEnabled === transportOptions2.sslEnabled
   );
 }
@@ -237,7 +238,8 @@ export function connectDataConnectEmulator(
   port?: number,
   sslEnabled = false
 ): void {
-  dc.enableEmulator({ host, port, sslEnabled });
+  const hostWithPort = port ?  `${host}:${port}` : host;
+  dc.enableEmulator({ host: hostWithPort, sslEnabled });
 }
 
 /**

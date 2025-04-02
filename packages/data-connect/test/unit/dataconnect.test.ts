@@ -18,7 +18,7 @@
 import { deleteApp, initializeApp } from '@firebase/app';
 import { expect } from 'chai';
 
-import { getDataConnect } from '../../src';
+import { getDataConnect, parseOptions } from '../../src';
 
 describe('Data Connect Test', () => {
   beforeEach(() => {});
@@ -59,5 +59,23 @@ describe('Data Connect Test', () => {
     });
     expect(dc.app.options.projectId).to.eq(projectId);
     await deleteApp(customApp);
+  });
+  it('should parse env var correctly with http://', async () => {
+    const parsedHost = parseOptions('http://localhost');
+    expect(parsedHost.host).to.eq('localhost');
+    expect(parsedHost.port).to.be.undefined;
+    expect(parsedHost.sslEnabled).to.be.false;
+  });
+  it('should parse env var correctly with port', async () => {
+    const parsedHost = parseOptions('localhost:8080');
+    expect(parsedHost.host).to.eq('localhost');
+    expect(parsedHost.port).to.eq(8080);
+    expect(parsedHost.sslEnabled).to.be.false;
+  });
+it('should parse env var correctly with https://', async () => {
+    const parsedHost = parseOptions('https://localhost');
+    expect(parsedHost.host).to.eq('localhost');
+    expect(parsedHost.port).to.be.undefined;
+    expect(parsedHost.sslEnabled).to.be.true;
   });
 });
