@@ -58,7 +58,12 @@ import {
   onValue,
   off
 } from 'firebase/database';
-import { getGenerativeModel, getVertexAI, VertexAI } from 'firebase/vertexai';
+import {
+  getGenerativeModel,
+  getVertexAI,
+  InferenceMode,
+  VertexAI
+} from 'firebase/vertexai';
 import { getDataConnect, DataConnect } from 'firebase/data-connect';
 
 /**
@@ -332,6 +337,17 @@ function callDataConnect(app) {
   console.log('[DATACONNECT] initialized');
 }
 
+async function callVertex(app) {
+  console.log('[VERTEX] start');
+  const vertex = getVertexAI(app);
+  const model = getGenerativeModel(vertex, {
+    mode: InferenceMode.PREFER_ON_DEVICE
+  });
+  const result = await model.generateContent("What is Roko's Basalisk?");
+  console.log(result.response.text());
+  console.log('[VERTEX] initialized');
+}
+
 /**
  * Run smoke tests for all products.
  * Comment out any products you want to ignore.
@@ -353,6 +369,7 @@ async function main() {
   await callVertexAI(app);
   callDataConnect(app);
   await authLogout(app);
+  await callVertex(app);
   console.log('DONE');
 }
 
