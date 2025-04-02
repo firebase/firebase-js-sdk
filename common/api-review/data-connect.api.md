@@ -259,8 +259,6 @@ export interface TransportOptions {
     // (undocumented)
     host: string;
     // (undocumented)
-    port?: number;
-    // (undocumented)
     sslEnabled?: boolean;
 }
 
