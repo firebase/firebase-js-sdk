@@ -26,6 +26,7 @@ export interface HybridParams
 |  [mode](./vertexai.hybridparams.md#hybridparamsmode) | [InferenceMode](./vertexai.md#inferencemode) | Specifies on-device or in-cloud inference. Defaults to prefer on-device. |
 |  [onDeviceParams](./vertexai.hybridparams.md#hybridparamsondeviceparams) | LanguageModelCreateOptions | Optional. Specifies advanced params for on-device inference. |
 
+
 ## HybridParams.inCloudParams
 
 Optional. Specifies advanced params for in-cloud inference.
