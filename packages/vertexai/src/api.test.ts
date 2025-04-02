@@ -16,7 +16,6 @@
  */
 import {
   ImagenModelParams,
-  InferenceMode,
   ModelParams,
   VertexAIErrorCode
 } from './types';
@@ -108,7 +107,7 @@ describe('Top level API', () => {
   });
   it('getGenerativeModel with HybridParams sets a default model', () => {
     const genModel = getGenerativeModel(fakeVertexAI, {
-      mode: InferenceMode.ONLY_ON_DEVICE
+      mode: 'only_on_device'
     });
     expect(genModel.model).to.equal(
       `publishers/google/models/${GenerativeModel.DEFAULT_HYBRID_IN_CLOUD_MODEL}`
@@ -116,7 +115,7 @@ describe('Top level API', () => {
   });
   it('getGenerativeModel with HybridParams honors a model override', () => {
     const genModel = getGenerativeModel(fakeVertexAI, {
-      mode: InferenceMode.ONLY_IN_CLOUD,
+      mode: 'only_in_cloud',
       inCloudParams: { model: 'my-model' }
     });
     expect(genModel.model).to.equal('publishers/google/models/my-model');
