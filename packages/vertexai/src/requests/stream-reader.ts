@@ -28,6 +28,7 @@ import { createEnhancedContentResponse } from './response-helpers';
 import * as GoogleAIMapper from '../googleAIMappers';
 import { GoogleAIGenerateContentResponse } from '../types/googleAI';
 import { ApiSettings } from '../types/internal';
+import { BackendType } from '../public-types';
 
 const responseLineRE = /^data\: (.*)(?:\n\n|\r\r|\r\n\r\n)/;
 
@@ -65,7 +66,7 @@ async function getResponsePromise(
     const { done, value } = await reader.read();
     if (done) {
       let generateContentResponse = aggregateResponses(allResponses);
-      if (apiSettings.backend.backendType === 'GOOGLE_AI') {
+      if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
         generateContentResponse = GoogleAIMapper.mapGenerateContentResponse(
           generateContentResponse as GoogleAIGenerateContentResponse
         );
@@ -89,7 +90,7 @@ async function* generateResponseSequence(
     }
 
     const enhancedResponse =
-      apiSettings.backend.backendType === 'GOOGLE_AI'
+      apiSettings.backend.backendType === BackendType.GOOGLE_AI 
         ? createEnhancedContentResponse(
             GoogleAIMapper.mapGenerateContentResponse(
               value as GoogleAIGenerateContentResponse

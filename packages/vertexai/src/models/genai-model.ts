@@ -113,7 +113,7 @@ export abstract class GenAIModel {
     modelName: string,
     backendType: BackendType
   ): string {
-    if (backendType === 'GOOGLE_AI') {
+    if (backendType === BackendType.GOOGLE_AI) {
       return GenAIModel.normalizeGoogleAIModelName(modelName);
     } else {
       return GenAIModel.normalizeVertexAIModelName(modelName);
