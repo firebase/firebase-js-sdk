@@ -81,4 +81,10 @@ describe('Data Connect Test', () => {
     expect(parsedHost.host).to.eq(host);
     expect(parsedHost.sslEnabled).to.be.false;
   });
+  it('should throw for non-http protocols', async () => {
+    const host = 'ftp://localhost';
+    expect(() => parseOptions(host)).to.throw(
+      "Protocol ftp is not supported. Use 'http' or 'https' instead."
+    );
+  });
 });

@@ -72,8 +72,14 @@ const FIREBASE_DATA_CONNECT_EMULATOR_HOST_VAR =
  */
 export function parseOptions(fullHost: string): TransportOptions {
   const trimmedHost = fullHost.trim();
-  if (trimmedHost.startsWith('http://') || trimmedHost.startsWith('https://')) {
+  if (fullHost.includes('://')) {
     const [protocol, host] = trimmedHost.split('://');
+    if (protocol !== 'http' && protocol !== 'https') {
+      throw new DataConnectError(
+        Code.INVALID_ARGUMENT,
+        `Protocol ${protocol} is not supported. Use 'http' or 'https' instead.`
+      );
+    }
     const isSecure = protocol === 'https';
     return { host, sslEnabled: isSecure };
   }
