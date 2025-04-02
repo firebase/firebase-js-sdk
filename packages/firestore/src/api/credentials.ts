@@ -261,7 +261,7 @@ export class FirebaseAuthCredentialsProvider
   ): void {
     hardAssert(
       this.tokenListener === undefined,
-      0xa539,
+      0xa540,
       'Token listener already added'
     );
     let lastTokenId = this.tokenCounter;
