@@ -43,7 +43,7 @@ export enum SchemaType {
  */
 export interface SchemaShared<T> {
   /** Optional. The format of the property.
-   * When using the Developer API, this must be either `'enum'` or `'date-time'`.
+   * When using Google AI, this must be either `'enum'` or `'date-time'`.
    */
   format?: string;
   /** Optional. The description of the property. */

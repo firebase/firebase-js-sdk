@@ -108,7 +108,7 @@ export interface ModalityTokenCount {
 export interface PromptFeedback {
   blockReason?: BlockReason;
   safetyRatings: SafetyRating[];
-  blockReasonMessage?: string; // This will always be undefined when using the Developer API.
+  blockReasonMessage?: string; // This will always be undefined when using Google AI.
 }
 
 /**
@@ -142,8 +142,8 @@ export interface Citation {
   endIndex?: number;
   uri?: string;
   license?: string;
-  title?: string; // This will always be undefined when using the Developer API.
-  publicationDate?: Date; // This will always be undefined when using the Developer API.
+  title?: string; // This will always be undefined when using Google AI.
+  publicationDate?: Date; // This will always be undefined when using Google AI.
 }
 
 /**
@@ -231,7 +231,7 @@ export interface CountTokensResponse {
    * The total number of billable characters counted across all instances
    * from the request.
    */
-  totalBillableCharacters?: number; // This will always be undefined when using the Developer API.
+  totalBillableCharacters?: number; // This will always be undefined when using Google AI.
   /**
    * The breakdown, by modality, of how many tokens are consumed by the prompt.
    */

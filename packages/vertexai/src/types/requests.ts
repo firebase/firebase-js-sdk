@@ -64,7 +64,7 @@ export interface SafetySetting {
   category: HarmCategory;
   threshold: HarmBlockThreshold;
   /**
-   * This property is unsupported in the Developer API. A {@link VertexAIError} will be thrown if it's used.
+   * This property is unsupported in Google AI. A {@link GenAIError} will be thrown if it's used.
    */
   method?: HarmBlockMethod;
 }

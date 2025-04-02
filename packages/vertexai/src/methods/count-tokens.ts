@@ -22,7 +22,7 @@ import {
 } from '../types';
 import { Task, makeRequest } from '../requests/request';
 import { ApiSettings } from '../types/internal';
-import * as DeveloperAPIMapper from '../developerAPI'; // FIXME: (code smell) Is there a better way to namespace this?
+import * as GoogleAIMapper from '../googleAIMappers'; // FIXME: (code smell) Is there a better way to namespace this?
 
 export async function countTokens(
   apiSettings: ApiSettings,
@@ -32,7 +32,7 @@ export async function countTokens(
 ): Promise<CountTokensResponse> {
   let body: string = '';
   if (apiSettings.backend.backendType === 'GOOGLE_AI') {
-    const mappedParams = DeveloperAPIMapper.mapCountTokensRequest(
+    const mappedParams = GoogleAIMapper.mapCountTokensRequest(
       params,
     );
     body = JSON.stringify(mappedParams);

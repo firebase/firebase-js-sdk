@@ -114,13 +114,13 @@ export abstract class GenAIModel {
     backendType: BackendType
   ): string {
     if (backendType === 'GOOGLE_AI') {
-      return GenAIModel.normalizeDeveloperApiModelName(modelName);
+      return GenAIModel.normalizeGoogleAIModelName(modelName);
     } else {
       return GenAIModel.normalizeVertexAIModelName(modelName);
     }
   }
 
-  private static normalizeDeveloperApiModelName(modelName: string): string {
+  private static normalizeGoogleAIModelName(modelName: string): string {
     return `models/${modelName}`;
     // TODO (dlarocque): rename this to be projects/project-id/models/model-name
   }
