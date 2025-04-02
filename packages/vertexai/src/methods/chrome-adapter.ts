@@ -1,7 +1,29 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { isChrome } from '@firebase/util';
 import {
+  Content,
   EnhancedGenerateContentResponse,
   GenerateContentRequest,
-  InferenceMode
+  InferenceMode,
+  Part,
+  Role,
+  TextPart
 } from '../types';
 import { AI, AILanguageModelCreateOptionsWithSystemPrompt } from '../types/ai';
 
@@ -10,22 +32,175 @@ import { AI, AILanguageModelCreateOptionsWithSystemPrompt } from '../types/ai';
  * and encapsulates logic for detecting when on-device is possible.
  */
 export class ChromeAdapter {
+  downloadPromise: Promise<AILanguageModel> | undefined;
+  oldSession: AILanguageModel | undefined;
   constructor(
     private aiProvider?: AI,
     private mode?: InferenceMode,
     private onDeviceParams?: AILanguageModelCreateOptionsWithSystemPrompt
   ) {}
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  /**
+   * Convenience method to check if a given request can be made on-device.
+   * Encapsulates a few concerns: 1) the mode, 2) API existence, 3) prompt formatting, and
+   * 4) model availability, including triggering download if necessary.
+   * Pros: caller needn't be concerned with details of on-device availability. Cons: this method
+   * spans a few concerns and splits request validation from usage. If instance variables weren't
+   * already part of the API, we could consider a better separation of concerns.
+   */
   async isAvailable(request: GenerateContentRequest): Promise<boolean> {
-    return false;
+    // Returns false if we should only use in-cloud inference.
+    if (this.mode === InferenceMode.ONLY_ON_CLOUD) {
+      return false;
+    }
+    // Returns false if the on-device inference API is undefined.
+    const isLanguageModelAvailable =
+      isChrome() && this.aiProvider && this.aiProvider.languageModel;
+    if (!isLanguageModelAvailable) {
+      return false;
+    }
+    // Returns false if the request can't be run on-device.
+    if (!ChromeAdapter._isOnDeviceRequest(request)) {
+      return false;
+    }
+    switch (await this.availability()) {
+      case 'readily':
+        // Returns true only if a model is immediately available.
+        return true;
+      case 'after-download':
+        // Triggers async model download.
+        this.download();
+      case 'no':
+      default:
+        return false;
+    }
   }
   async generateContentOnDevice(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GenerateContentRequest
   ): Promise<EnhancedGenerateContentResponse> {
+    const initialPrompts = ChromeAdapter.toInitialPrompts(request.contents);
+    // Assumes validation asserted there is at least one initial prompt.
+    const prompt = initialPrompts.pop()!;
+    const systemPrompt = ChromeAdapter.toSystemPrompt(
+      request.systemInstruction
+    );
+    const session = await this.session({
+      initialPrompts,
+      systemPrompt
+    });
+    const result = await session.prompt(prompt.content);
     return {
-      text: () => '',
+      text: () => result,
       functionCalls: () => undefined
     };
+  }
+  // Visible for testing
+  static _isOnDeviceRequest(request: GenerateContentRequest): boolean {
+    if (request.systemInstruction) {
+      const systemContent = request.systemInstruction as Content;
+      // Returns false if the role can't be represented on-device.
+      if (systemContent.role && systemContent.role === 'function') {
+        return false;
+      }
+
+      // Returns false if the system prompt is multi-part.
+      if (systemContent.parts && systemContent.parts.length > 1) {
+        return false;
+      }
+
+      // Returns false if the system prompt isn't text.
+      const systemText = request.systemInstruction as TextPart;
+      if (!systemText.text) {
+        return false;
+      }
+    }
+
+    // Returns false if the prompt is empty.
+    if (request.contents.length === 0) {
+      return false;
+    }
+
+    // Applies the same checks as above, but for each content item.
+    for (const content of request.contents) {
+      if (content.role === 'function') {
+        return false;
+      }
+
+      if (content.parts.length > 1) {
+        return false;
+      }
+
+      if (!content.parts[0].text) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+  private async availability(): Promise<AICapabilityAvailability | undefined> {
+    return this.aiProvider?.languageModel
+      .capabilities()
+      .then((c: AILanguageModelCapabilities) => c.available);
+  }
+  private download(): void {
+    if (this.downloadPromise) {
+      return;
+    }
+    this.downloadPromise = this.aiProvider?.languageModel
+      .create(this.onDeviceParams)
+      .then((model: AILanguageModel) => {
+        delete this.downloadPromise;
+        return model;
+      });
+    return;
+  }
+  private static toSystemPrompt(
+    prompt: string | Content | Part | undefined
+  ): string | undefined {
+    if (!prompt) {
+      return undefined;
+    }
+
+    if (typeof prompt === 'string') {
+      return prompt;
+    }
+
+    const systemContent = prompt as Content;
+    if (
+      systemContent.parts &&
+      systemContent.parts[0] &&
+      systemContent.parts[0].text
+    ) {
+      return systemContent.parts[0].text;
+    }
+
+    const systemPart = prompt as Part;
+    if (systemPart.text) {
+      return systemPart.text;
+    }
+
+    return undefined;
+  }
+  private static toOnDeviceRole(role: Role): AILanguageModelPromptRole {
+    return role === 'model' ? 'assistant' : 'user';
+  }
+  private static toInitialPrompts(
+    contents: Content[]
+  ): AILanguageModelPrompt[] {
+    return contents.map(c => ({
+      role: ChromeAdapter.toOnDeviceRole(c.role),
+      // Assumes contents have been verified to contain only a single TextPart.
+      content: c.parts[0].text!
+    }));
+  }
+  private async session(
+    opts: AILanguageModelCreateOptionsWithSystemPrompt
+  ): Promise<AILanguageModel> {
+    const newSession = await this.aiProvider!.languageModel.create(opts);
+    if (this.oldSession) {
+      this.oldSession.destroy();
+    }
+    // Holds session reference, so model isn't unloaded from memory.
+    this.oldSession = newSession;
+    return newSession;
   }
 }
