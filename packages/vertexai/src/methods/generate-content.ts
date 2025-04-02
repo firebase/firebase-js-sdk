@@ -26,7 +26,7 @@ import { Task, makeRequest } from '../requests/request';
 import { createEnhancedContentResponse } from '../requests/response-helpers';
 import { processStream } from '../requests/stream-reader';
 import { ApiSettings } from '../types/internal';
-import * as DeveloperAPIMapper from '../developerAPI'; // FIXME: (code smell) Is there a better way to namespace this?
+import * as GoogleAIMapper from '../googleAIMappers'; // FIXME: (code smell) Is there a better way to namespace this?
 
 export async function generateContentStream(
   apiSettings: ApiSettings,
@@ -35,7 +35,7 @@ export async function generateContentStream(
   requestOptions?: RequestOptions
 ): Promise<GenerateContentStreamResult> {
   if (apiSettings.backend.backendType === 'GOOGLE_AI') {
-    params = DeveloperAPIMapper.mapGenerateContentRequest(params);
+    params = GoogleAIMapper.mapGenerateContentRequest(params);
   }
   const response = await makeRequest(
     model,
@@ -55,7 +55,7 @@ export async function generateContent(
   requestOptions?: RequestOptions
 ): Promise<GenerateContentResult> {
   if (apiSettings.backend.backendType === 'GOOGLE_AI') {
-    params = DeveloperAPIMapper.mapGenerateContentRequest(params);
+    params = GoogleAIMapper.mapGenerateContentRequest(params);
   }
   const response = await makeRequest(
     model,
@@ -83,7 +83,7 @@ async function handleGenerateContentResponse(
 ): Promise<GenerateContentResponse> {
   const responseJson = await response.json();
   if (apiSettings.backend.backendType === 'GOOGLE_AI') {
-    return DeveloperAPIMapper.mapGenerateContentResponse(responseJson);
+    return GoogleAIMapper.mapGenerateContentResponse(responseJson);
   } else {
     return responseJson;
   }
