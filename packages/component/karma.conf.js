@@ -32,5 +32,3 @@ module.exports = function (config) {
     frameworks: ['mocha']
   });
 };
-
-module.exports.files = files;
