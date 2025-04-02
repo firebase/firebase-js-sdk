@@ -36,6 +36,16 @@ Optional. Specifies advanced params for in-cloud inference.
 inCloudParams?: ModelParams;
 ```
 
+## HybridParams.inCloudParams
+
+Optional. Specifies advanced params for in-cloud inference.
+
+<b>Signature:</b>
+
+```typescript
+inCloudParams?: ModelParams;
+```
+
 ## HybridParams.mode
 
 Specifies on-device or in-cloud inference. Defaults to prefer on-device.
