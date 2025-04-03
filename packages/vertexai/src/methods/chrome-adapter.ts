@@ -3,7 +3,6 @@ import {
   GenerateContentRequest,
   InferenceMode
 } from '../types';
-import { AI, AILanguageModelCreateOptionsWithSystemPrompt } from '../types/ai';
 
 /**
  * Defines an inference "backend" that uses Chrome's on-device model,
