@@ -70,6 +70,8 @@ jobs:
     name: (bulk) Node.js and Browser (Chrome) Tests
     needs: build
     runs-on: ubuntu-latest
+    env:
+      PROJECT_CONFIG: ${{ secrets.TEST_PROJECT_CONFIG }}
     steps:
     # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
@@ -87,7 +89,7 @@ jobs:
         node-version: 22.10.0
     - name: Test setup and yarn install
       run: |
-        cp config/ci.config.json config/project.json
+        echo $PROJECT_CONFIG > config/project.json
         yarn
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
@@ -134,7 +136,7 @@ jobs:
         node-version: 22.10.0
     - name: Test setup and yarn install
       run: |
-        cp config/ci.config.json config/project.json
+        echo $PROJECT_CONFIG > config/project.json
         yarn
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
@@ -174,7 +176,7 @@ jobs:
         node-version: 22.10.0
     - name: Test setup and yarn install
       run: |
-        cp config/ci.config.json config/project.json
+        echo $PROJECT_CONFIG > config/project.json
         yarn
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
@@ -215,7 +217,7 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
-    - run: cp config/ci.config.json config/project.json
+    - run: echo $PROJECT_CONFIG > config/project.json
     - run: yarn
     - run: yarn build:${{ matrix.persistence }}
       working-directory: integration/firestore

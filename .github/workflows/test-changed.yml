@@ -19,6 +19,7 @@ on: pull_request
 env:
   # Bump Node memory limit
   NODE_OPTIONS: "--max_old_space_size=4096"
+  PROJECT_CONFIG: ${{ secrets.TEST_PROJECT_CONFIG }}
 
 jobs:
   test-chrome:
@@ -41,7 +42,7 @@ jobs:
           sudo apt-get install google-chrome-stable
       - name: Test setup and yarn install
         run: |
-          cp config/ci.config.json config/project.json
+          echo $PROJECT_CONFIG > config/project.json
           yarn
       - name: build
         run: yarn build:changed core
@@ -65,7 +66,7 @@ jobs:
         run: npx @puppeteer/browsers install firefox@stable
       - name: Test setup and yarn install
         run: |
-          cp config/ci.config.json config/project.json
+          echo $PROJECT_CONFIG > config/project.json
           yarn
       - name: build
         run: yarn build:changed core
@@ -90,7 +91,7 @@ jobs:
           node-version: 22.10.0
       - name: Test setup and yarn install
         run: |
-          cp config/ci.config.json config/project.json
+          echo $PROJECT_CONFIG > config/project.json
           yarn
           npx playwright install webkit
       - name: build

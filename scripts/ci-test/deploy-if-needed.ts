@@ -34,6 +34,8 @@ interface DeployOptions {
 let config: { projectId: string };
 if (process.env.PROJECT_CONFIG) {
   config = JSON.parse(process.env.PROJECT_CONFIG);
+  // FIXME
+  console.log(config);
 }
 
 /**
