@@ -105,7 +105,9 @@ export abstract class BaseAction extends CommandLineAction {
 
     const addFileNameSuffix: boolean = this._fileNameSuffixParameter.value;
 
-    for (const filename of FileSystem.readFolder(inputFolder)) {
+    for (const file of FileSystem.readFolderItems(inputFolder)) {
+      if (!file.isFile()) continue;
+      const filename = file.name;
       if (filename.match(/\.api\.json$/i)) {
         console.log(`Reading ${filename}`);
         const filenamePath: string = path.join(inputFolder, filename);
