@@ -68,10 +68,18 @@ export abstract class VertexAIModel {
         VertexAIErrorCode.NO_PROJECT_ID,
         `The "projectId" field is empty in the local Firebase config. Firebase VertexAI requires this field to contain a valid project ID.`
       );
+    } else if (!vertexAI.app?.options?.appId) {
+      throw new VertexAIError(
+        VertexAIErrorCode.NO_APP_ID,
+        `The "appId" field is empty in the local Firebase config. Firebase VertexAI requires this field to contain a valid app ID.`
+      );
     } else {
       this._apiSettings = {
         apiKey: vertexAI.app.options.apiKey,
         project: vertexAI.app.options.projectId,
+        appId: vertexAI.app.options.appId,
+        automaticDataCollectionEnabled:
+          vertexAI.app.automaticDataCollectionEnabled,
         location: vertexAI.location
       };
 

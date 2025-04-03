@@ -1,5 +1,49 @@
 # firebase
 
+## 11.6.0
+
+### Minor Changes
+
+- [`fb5d422`](https://github.com/firebase/firebase-js-sdk/commit/fb5d4227571e06df128048abf87cbb1da2ace1bc) [#8839](https://github.com/firebase/firebase-js-sdk/pull/8839) - Adding `Persistence.COOKIE` a new persistence method backed by cookies. The
+  `browserCookiePersistence` implementation is designed to be used in conjunction with middleware that
+  ensures both your front and backend authentication state remains synchronized.
+
+### Patch Changes
+
+- Updated dependencies [[`fb5d422`](https://github.com/firebase/firebase-js-sdk/commit/fb5d4227571e06df128048abf87cbb1da2ace1bc), [`648de84`](https://github.com/firebase/firebase-js-sdk/commit/648de84b05c827d33d6b22aceb6eff01208ebdf0), [`edb4001`](https://github.com/firebase/firebase-js-sdk/commit/edb40010bb480806b26f48601b65f4257ffed2df), [`faaeb48`](https://github.com/firebase/firebase-js-sdk/commit/faaeb48e0c9dfddd014e5fb52088d39c895e9874)]:
+  - @firebase/app@0.11.4
+  - @firebase/auth@1.10.0
+  - @firebase/vertexai@1.2.1
+  - @firebase/data-connect@0.3.3
+  - @firebase/app-compat@0.2.53
+  - @firebase/auth-compat@0.5.20
+
+## 11.5.0
+
+### Minor Changes
+
+- [`058afa2`](https://github.com/firebase/firebase-js-sdk/commit/058afa280c8e9a72e27f3b1fbdb2921012dc65d3) [#8741](https://github.com/firebase/firebase-js-sdk/pull/8741) - Added missing `BlockReason` and `FinishReason` enum values.
+
+### Patch Changes
+
+- [`5611175`](https://github.com/firebase/firebase-js-sdk/commit/5611175975deb8d39eb1387a7ef083120f12c8b5) [#8814](https://github.com/firebase/firebase-js-sdk/pull/8814) (fixes [#8813](https://github.com/firebase/firebase-js-sdk/issues/8813)) - Modify the retry mechanism to stop when remaining tries is less than or equal to zero, improving the robustness of the retry handling.
+
+- [`feb2c9d`](https://github.com/firebase/firebase-js-sdk/commit/feb2c9dfa29c9dff01c1272e56f6258176dc6b3a) [#8787](https://github.com/firebase/firebase-js-sdk/pull/8787) - Use lazy encoding in UTF-8 encoded byte comparison for strings.
+
+- Updated dependencies [[`25985ac`](https://github.com/firebase/firebase-js-sdk/commit/25985ac3c3a797160e2dc3a2a28aba9f63fe6dfd), [`5611175`](https://github.com/firebase/firebase-js-sdk/commit/5611175975deb8d39eb1387a7ef083120f12c8b5), [`95b4fc6`](https://github.com/firebase/firebase-js-sdk/commit/95b4fc69d8e85991e6da20e4bf68d54d4e6741d6), [`feb2c9d`](https://github.com/firebase/firebase-js-sdk/commit/feb2c9dfa29c9dff01c1272e56f6258176dc6b3a), [`113c965`](https://github.com/firebase/firebase-js-sdk/commit/113c965a34d9d7219d236f1b2cb62029e0f80fda), [`058afa2`](https://github.com/firebase/firebase-js-sdk/commit/058afa280c8e9a72e27f3b1fbdb2921012dc65d3), [`43d6b67`](https://github.com/firebase/firebase-js-sdk/commit/43d6b6735f8b1d20dbe33793b57adb221efde95d)]:
+  - @firebase/app@0.11.3
+  - @firebase/vertexai@1.2.0
+  - @firebase/performance@0.7.2
+  - @firebase/app-check@0.8.13
+  - @firebase/firestore@4.7.10
+  - @firebase/database-compat@2.0.5
+  - @firebase/database@1.0.14
+  - @firebase/data-connect@0.3.2
+  - @firebase/app-compat@0.2.52
+  - @firebase/performance-compat@0.2.15
+  - @firebase/app-check-compat@0.3.20
+  - @firebase/firestore-compat@0.3.45
+
 ## 11.4.0
 
 ### Minor Changes
