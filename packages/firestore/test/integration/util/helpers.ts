@@ -21,8 +21,8 @@ import { expect } from 'chai';
 import { RealtimePipelineSnapshot } from '../../../src/api/snapshot'; // Keep this if needed elsewhere, or remove if only used for the listener attempt
 import { PipelineResult } from '../../../src/lite-api/pipeline-result'; // Added import
 import { Deferred } from '../../util/promise'; // Added import
-
 import {
+  _AutoId,
   clearIndexedDbPersistence,
   collection,
   CollectionReference,
@@ -30,25 +30,27 @@ import {
   DocumentData,
   DocumentReference,
   Firestore,
-  MemoryLocalCache,
+  getDocs as getDocsProd,
+  getDocsFromCache,
+  getDocsFromServer,
   memoryEagerGarbageCollector,
+  MemoryLocalCache,
   memoryLocalCache,
   memoryLruGarbageCollector,
   newTestApp,
   newTestFirestore,
+  onSnapshot as onSnapshotProd,
   PersistentLocalCache,
   persistentLocalCache,
   PrivateSettings,
+  Query,
   QuerySnapshot,
   setDoc,
   SnapshotListenOptions,
   terminate,
+  Unsubscribe,
   WriteBatch,
-  writeBatch,
-  Query,
-  getDocsFromServer,
-  getDocsFromCache,
-  _AutoId
+  writeBatch
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -58,6 +60,7 @@ import {
   USE_EMULATOR
 } from './settings';
 import { _onRealtimePipelineSnapshot } from '../../../src/api/pipeline_impl';
+import { RealtimePipeline } from '../../../src/api/realtime_pipeline';
 
 /* eslint-disable no-restricted-globals */
 
@@ -684,4 +687,76 @@ export function itIf(
 ): Mocha.TestFunction | Mocha.PendingTestFunction {
   // eslint-disable-next-line no-restricted-properties
   return condition === 'only' ? it.only : condition ? it : it.skip;
+}
+
+export function getDocs(
+  pipelineMode: PipelineMode,
+  queryOrPipeline: Query | RealtimePipeline
+) {
+  if (pipelineMode === 'query-to-pipeline') {
+    if (queryOrPipeline instanceof Query) {
+      const ppl = queryOrPipeline.firestore
+        .pipeline()
+        .createFrom(queryOrPipeline);
+      return getDocsProd(
+        new RealtimePipeline(
+          ppl._db,
+          ppl.userDataReader,
+          ppl._userDataWriter,
+          ppl.stages
+        )
+      );
+    } else {
+      return getDocsProd(queryOrPipeline);
+    }
+  }
+
+  return getDocsProd(queryOrPipeline as Query);
+}
+
+export function onSnapshot(
+  pipelineMode: PipelineMode,
+  queryOrPipeline: Query | RealtimePipeline,
+  observer: unknown
+): Unsubscribe;
+export function onSnapshot(
+  pipelineMode: PipelineMode,
+  queryOrPipeline: Query | RealtimePipeline,
+  options: unknown,
+  observer: unknown
+): Unsubscribe;
+export function onSnapshot(
+  pipelineMode: PipelineMode,
+  queryOrPipeline: Query | RealtimePipeline,
+  optionsOrObserver: unknown,
+  observer?: unknown
+): Unsubscribe {
+  const obs = observer || optionsOrObserver;
+  const options = observer
+    ? optionsOrObserver
+    : {
+        includeMetadataChanges: false,
+        source: 'default'
+      };
+  if (pipelineMode === 'query-to-pipeline') {
+    if (queryOrPipeline instanceof Query) {
+      const ppl = queryOrPipeline.firestore
+        .pipeline()
+        .createFrom(queryOrPipeline);
+      return onSnapshotProd(
+        new RealtimePipeline(
+          ppl._db,
+          ppl.userDataReader,
+          ppl._userDataWriter,
+          ppl.stages
+        ),
+        options as any,
+        obs as any
+      );
+    } else {
+      return onSnapshotProd(queryOrPipeline, options as any, obs as any);
+    }
+  }
+
+  return onSnapshotProd(queryOrPipeline as Query, options as any, obs as any);
 }

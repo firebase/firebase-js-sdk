@@ -16,8 +16,6 @@
  */
 
 import { expect } from 'chai';
-
-import { RealtimePipeline } from '../../../src/api/realtime_pipeline';
 import {
   RealtimePipelineSnapshot,
   ResultChange
@@ -31,6 +29,7 @@ import {
   Bytes,
   collection,
   collectionGroup,
+  CollectionReference,
   deleteDoc,
   disableNetwork,
   doc,
@@ -41,6 +40,7 @@ import {
   enableNetwork,
   endAt,
   endBefore,
+  Firestore,
   GeoPoint,
   getDocs as getDocsProd,
   limit,
@@ -51,109 +51,32 @@ import {
   query,
   QuerySnapshot,
   setDoc,
+  setLogLevel,
   startAfter,
   startAt,
   Timestamp,
   updateDoc,
   where,
   writeBatch,
-  CollectionReference,
-  WriteBatch,
-  Firestore,
-  Query,
-  Unsubscribe,
-  setLogLevel,
-  getDocsFromCache
+  WriteBatch
 } from '../util/firebase_export';
 import {
   apiDescribe,
+  apiPipelineDescribe,
+  checkOnlineAndOfflineResultsMatchWithPipelineMode,
+  getDocs,
+  onSnapshot,
+  PERSISTENCE_MODE_UNSPECIFIED,
   RetryError,
   toChangesArray,
   toDataArray,
-  PERSISTENCE_MODE_UNSPECIFIED,
   withEmptyTestCollection,
   withRetry,
   withTestCollection,
-  withTestDb,
-  apiPipelineDescribe,
-  PipelineMode,
-  checkOnlineAndOfflineResultsMatchWithPipelineMode
+  withTestDb
 } from '../util/helpers';
 import { USE_EMULATOR } from '../util/settings';
 import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
-import { pipelineFromStages } from '../../util/pipelines';
-
-function getDocs(
-  pipelineMode: PipelineMode,
-  queryOrPipeline: Query | RealtimePipeline
-) {
-  if (pipelineMode === 'query-to-pipeline') {
-    if (queryOrPipeline instanceof Query) {
-      const ppl = queryOrPipeline.firestore
-        .pipeline()
-        .createFrom(queryOrPipeline);
-      return getDocsProd(
-        new RealtimePipeline(
-          ppl._db,
-          ppl.userDataReader,
-          ppl._userDataWriter,
-          ppl.stages
-        )
-      );
-    } else {
-      return getDocsProd(queryOrPipeline);
-    }
-  }
-
-  return getDocsProd(queryOrPipeline as Query);
-}
-
-function onSnapshot(
-  pipelineMode: PipelineMode,
-  queryOrPipeline: Query | RealtimePipeline,
-  observer: unknown
-): Unsubscribe;
-function onSnapshot(
-  pipelineMode: PipelineMode,
-  queryOrPipeline: Query | RealtimePipeline,
-  options: unknown,
-  observer: unknown
-): Unsubscribe;
-function onSnapshot(
-  pipelineMode: PipelineMode,
-  queryOrPipeline: Query | RealtimePipeline,
-  optionsOrObserver: unknown,
-  observer?: unknown
-): Unsubscribe {
-  const obs = observer || optionsOrObserver;
-  const options = observer
-    ? optionsOrObserver
-    : {
-        includeMetadataChanges: false,
-        source: 'default'
-      };
-  if (pipelineMode === 'query-to-pipeline') {
-    if (queryOrPipeline instanceof Query) {
-      const ppl = queryOrPipeline.firestore
-        .pipeline()
-        .createFrom(queryOrPipeline);
-      return onSnapshotProd(
-        new RealtimePipeline(
-          ppl._db,
-          ppl.userDataReader,
-          ppl._userDataWriter,
-          ppl.stages
-        ),
-        options as any,
-        obs as any
-      );
-    } else {
-      return onSnapshotProd(queryOrPipeline, options as any, obs as any);
-    }
-  }
-
-  return onSnapshotProd(queryOrPipeline as Query, options as any, obs as any);
-}
 
 function results(outputs: RealtimePipelineSnapshot | QuerySnapshot) {
   if (outputs instanceof RealtimePipelineSnapshot) {
