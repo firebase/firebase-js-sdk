@@ -21,8 +21,7 @@ import {
   FunctionCallingMode,
   HarmBlockMethod,
   HarmBlockThreshold,
-  HarmCategory,
-  InferenceMode
+  HarmCategory
 } from './enums';
 import { ObjectSchemaInterface, SchemaRequest } from './schema';
 
@@ -216,20 +215,26 @@ export interface FunctionCallingConfig {
 }
 
 /**
- * Configures on-device and on-cloud inference.
- * @public
+ * Toggles hybrid inference.
  */
 export interface HybridParams {
   /**
-   * Optional. Specifies on-device or on-cloud inference. Defaults to prefer on-device.
+   * Specifies on-device or in-cloud inference. Defaults to prefer on-device.
    */
-  mode?: InferenceMode;
+  mode: InferenceMode;
   /**
    * Optional. Specifies advanced params for on-device inference.
    */
   onDeviceParams?: AILanguageModelCreateOptionsWithSystemPrompt;
   /**
-   * Optional. Specifies advanced params for on-cloud inference.
+   * Optional. Specifies advanced params for in-cloud inference.
    */
-  onCloudParams?: ModelParams;
+  inCloudParams?: ModelParams;
 }
+/**
+ * Determines whether inference happens on-device or in-cloud.
+ */
+export type InferenceMode =
+  | 'prefer_on_device'
+  | 'only_on_device'
+  | 'only_in_cloud';

@@ -327,6 +327,7 @@ export interface GenerativeContentBlob {
 export class GenerativeModel extends VertexAIModel {
     constructor(vertexAI: VertexAI, modelParams: ModelParams, chromeAdapter: ChromeAdapter, requestOptions?: RequestOptions);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
+    static DEFAULT_HYBRID_IN_CLOUD_MODEL: string;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
     // (undocumented)
@@ -419,8 +420,8 @@ export enum HarmSeverity {
 
 // @public
 export interface HybridParams {
-    mode?: InferenceMode;
-    onCloudParams?: ModelParams;
+    inCloudParams?: ModelParams;
+    mode: InferenceMode;
     onDeviceParams?: AILanguageModelCreateOptionsWithSystemPrompt;
 }
 
@@ -509,11 +510,7 @@ export interface ImagenSafetySettings {
 }
 
 // @public
-export enum InferenceMode {
-    ONLY_ON_CLOUD = "ONLY_ON_CLOUD",
-    ONLY_ON_DEVICE = "ONLY_ON_DEVICE",
-    PREFER_ON_DEVICE = "PREFER_ON_DEVICE"
-}
+export type InferenceMode = 'prefer_on_device' | 'only_on_device' | 'only_in_cloud';
 
 // @public
 export interface InlineDataPart {
