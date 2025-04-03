@@ -92,7 +92,7 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
           Number((e as FirebaseError).customData?.httpStatus),
           this._throttleData
         );
-        throw ERROR_FACTORY.create(AppCheckError.THROTTLED, {
+        throw ERROR_FACTORY.create(AppCheckError.INITIAL_THROTTLE, {
           time: getDurationString(
             this._throttleData.allowRequestsAfter - Date.now()
           ),
@@ -185,7 +185,7 @@ export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
           Number((e as FirebaseError).customData?.httpStatus),
           this._throttleData
         );
-        throw ERROR_FACTORY.create(AppCheckError.THROTTLED, {
+        throw ERROR_FACTORY.create(AppCheckError.INITIAL_THROTTLE, {
           time: getDurationString(
             this._throttleData.allowRequestsAfter - Date.now()
           ),

@@ -509,17 +509,17 @@ describe('api/_performApiRequest', () => {
   });
 
   context('_getFinalTarget', () => {
-    it('works properly with a non-emulated environment', () => {
-      expect(_getFinalTarget(auth, 'host', '/path', 'query=test')).to.eq(
+    it('works properly with a non-emulated environment', async () => {
+      expect(await _getFinalTarget(auth, 'host', '/path', 'query=test')).to.eq(
         'mock://host/path?query=test'
       );
     });
 
-    it('works properly with an emulated environment', () => {
+    it('works properly with an emulated environment', async () => {
       (auth.config as ConfigInternal).emulator = {
         url: 'http://localhost:5000/'
       };
-      expect(_getFinalTarget(auth, 'host', '/path', 'query=test')).to.eq(
+      expect(await _getFinalTarget(auth, 'host', '/path', 'query=test')).to.eq(
         'http://localhost:5000/host/path?query=test'
       );
     });

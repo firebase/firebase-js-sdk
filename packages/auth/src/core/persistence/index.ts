@@ -19,7 +19,8 @@ import { Persistence } from '../../model/public_types';
 export const enum PersistenceType {
   SESSION = 'SESSION',
   LOCAL = 'LOCAL',
-  NONE = 'NONE'
+  NONE = 'NONE',
+  COOKIE = 'COOKIE'
 }
 
 export type PersistedBlob = Record<string, unknown>;

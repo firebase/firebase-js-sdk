@@ -85,6 +85,40 @@ describe('fetch', () => {
       )
     ).to.eventually.be.rejectedWith(JSON.stringify(json));
   });
+  it('should throw a stringified message when the server responds with an error without a message property in the body', async () => {
+    const json = {
+      'data': { 'abc': 'def' },
+      'errors': [
+        {
+          'message':
+            'SQL query error: pq: duplicate key value violates unique constraint movie_pkey',
+          'locations': [],
+          'path': ['the_matrix'],
+          'extensions': null
+        }
+      ]
+    };
+    mockFetch(json, false);
+    await expect(
+      dcFetch(
+        'http://localhost',
+        {
+          name: 'n',
+          operationName: 'n',
+          variables: {}
+        },
+        {} as AbortController,
+        null,
+        null,
+        null,
+        false,
+        CallerSdkTypeEnum.Base
+      )
+    ).to.eventually.be.rejected.then(error => {
+      expect(error.response.data).to.eq(json.data);
+      expect(error.response.errors).to.eq(json.errors);
+    });
+  });
   it('should assign different values to custom headers based on the _callerSdkType argument (_isUsingGen is false)', async () => {
     const json = {
       code: 200,
