@@ -37,6 +37,7 @@ jobs:
     # Download and Install IBM Cloud CLI
     - name: Install IBM Cloud CLI
       run: |
+        set -eo pipefail
         curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
         ibmcloud --version
         ibmcloud config --check-version=false
