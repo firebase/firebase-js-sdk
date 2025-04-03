@@ -25,7 +25,6 @@ import {
   Role,
   TextPart
 } from '../types';
-import { AI, AILanguageModelCreateOptionsWithSystemPrompt } from '../types/ai';
 
 /**
  * Defines an inference "backend" that uses Chrome's on-device model,
@@ -49,7 +48,7 @@ export class ChromeAdapter {
    */
   async isAvailable(request: GenerateContentRequest): Promise<boolean> {
     // Returns false if we should only use in-cloud inference.
-    if (this.mode === InferenceMode.ONLY_ON_CLOUD) {
+    if (this.mode === 'only_in_cloud') {
       return false;
     }
     // Returns false if the on-device inference API is undefined.

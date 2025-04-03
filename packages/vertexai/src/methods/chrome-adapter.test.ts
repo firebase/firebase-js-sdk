@@ -19,7 +19,6 @@ import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ChromeAdapter } from './chrome-adapter';
-import { InferenceMode } from '../types';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -51,10 +50,7 @@ describe('ChromeAdapter', () => {
             } as AILanguageModelCapabilities)
         }
       } as AI;
-      const adapter = new ChromeAdapter(
-        aiProvider,
-        InferenceMode.PREFER_ON_DEVICE
-      );
+      const adapter = new ChromeAdapter(aiProvider, 'prefer_on_device');
       expect(
         await adapter.isAvailable({
           contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
