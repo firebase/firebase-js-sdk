@@ -346,6 +346,12 @@ export class GenerativeModel extends VertexAIModel {
 // @public
 export function getGenerativeModel(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
 
+// Warning: (ae-forgotten-export) The symbol "LocalModelParams" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "HybridModel" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export function getHybridModel(params?: LocalModelParams): HybridModel;
+
 // @beta
 export function getImagenModel(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
 

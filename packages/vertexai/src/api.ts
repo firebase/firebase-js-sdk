@@ -29,6 +29,11 @@ import {
 } from './types';
 import { VertexAIError } from './errors';
 import { VertexAIModel, GenerativeModel, ImagenModel } from './models';
+import {
+  HybridModel,
+  LocalModelParams,
+  LocalModel
+} from './models/hybrid-model';
 
 export { ChatSession } from './methods/chat-session';
 export * from './requests/schema-builder';
@@ -80,6 +85,10 @@ export function getGenerativeModel(
     );
   }
   return new GenerativeModel(vertexAI, modelParams, requestOptions);
+}
+
+export function getHybridModel(params: LocalModelParams = {}): HybridModel {
+  return new HybridModel(new LocalModel(window.ai), params.fallback);
 }
 
 /**
