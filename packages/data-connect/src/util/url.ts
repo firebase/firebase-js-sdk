@@ -23,7 +23,13 @@ export function urlBuilder(
   projectConfig: DataConnectOptions,
   transportOptions: TransportOptions
 ): string {
-  const { connector, location, projectId: project, service, serviceId } = projectConfig;
+  const {
+    connector,
+    location,
+    projectId: project,
+    service,
+    serviceId
+  } = projectConfig;
   const { host, sslEnabled, port } = transportOptions;
   const protocol = sslEnabled ? 'https' : 'http';
   const realHost = host || `firebasedataconnect.googleapis.com`;
@@ -37,7 +43,9 @@ export function urlBuilder(
       'Incorrect type for port passed in!'
     );
   }
-  return `${baseUrl}/v1/projects/${project}/locations/${location}/services/${service || serviceId}/connectors/${connector}`;
+  return `${baseUrl}/v1/projects/${project}/locations/${location}/services/${
+    service || serviceId
+  }/connectors/${connector}`;
 }
 export function addToken(url: string, apiKey?: string): string {
   if (!apiKey) {

@@ -43,18 +43,20 @@ import { RESTTransport } from '../network/transport/rest';
 
 import { MutationManager } from './Mutation';
 
-export type ServiceConfig = {
-  service: string;
-  serviceId?: string;
-} | {
-  serviceId: string;
-  service?: string;
-};
+export type ServiceConfig =
+  | {
+      service: string;
+      serviceId?: string;
+    }
+  | {
+      serviceId: string;
+      service?: string;
+    };
 
 /**
  * Connector Config for calling Data Connect backend.
  */
-export type ConnectorConfig = ServiceConfig  & {
+export type ConnectorConfig = ServiceConfig & {
   location: string;
   connector: string;
 };
@@ -315,8 +317,11 @@ export function validateDCOptions(dcOptions: ConnectorConfig): boolean {
       throw new DataConnectError(Code.INVALID_ARGUMENT, `${field} Required`);
     }
   });
-  if(dcOptions['service'] === undefined && dcOptions['serviceId'] === undefined) {
-    throw new DataConnectError(Code.INVALID_ARGUMENT, "serviceId Required");
+  if (
+    dcOptions['service'] === undefined &&
+    dcOptions['serviceId'] === undefined
+  ) {
+    throw new DataConnectError(Code.INVALID_ARGUMENT, 'serviceId Required');
   }
   return true;
 }
