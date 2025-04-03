@@ -58,7 +58,12 @@ import {
   onValue,
   off
 } from 'firebase/database';
-import { getGenerativeModel, getVertexAI, InferenceMode, VertexAI } from 'firebase/vertexai';
+import {
+  getGenerativeModel,
+  getVertexAI,
+  InferenceMode,
+  VertexAI
+} from 'firebase/vertexai';
 import { getDataConnect, DataConnect } from 'firebase/data-connect';
 
 /**
@@ -334,10 +339,12 @@ function callDataConnect(app) {
 
 async function callVertex(app) {
   console.log('[VERTEX] start');
-  const vertex = getVertexAI(app)
-  const model = getGenerativeModel(vertex, {mode: InferenceMode.PREFER_ON_DEVICE})
-  const result = await model.generateContent("What is Roko's Basalisk?")
-  console.log(result.response.text())
+  const vertex = getVertexAI(app);
+  const model = getGenerativeModel(vertex, {
+    mode: InferenceMode.PREFER_ON_DEVICE
+  });
+  const result = await model.generateContent("What is Roko's Basalisk?");
+  console.log(result.response.text());
   console.log('[VERTEX] initialized');
 }
 
