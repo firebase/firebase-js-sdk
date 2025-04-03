@@ -111,11 +111,7 @@ describe('Top level API', () => {
   });
   it('getGenerativeModel with HybridParams honors a model override', () => {
     const genModel = getGenerativeModel(fakeVertexAI, {
-<<<<<<< HEAD
       mode: 'prefer_on_device',
-=======
-      mode: 'only_in_cloud',
->>>>>>> 814a1dc95 (Use type for inference mode and update docs)
       inCloudParams: { model: 'my-model' }
     });
     expect(genModel.model).to.equal('publishers/google/models/my-model');
