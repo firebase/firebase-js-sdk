@@ -236,7 +236,7 @@ export class AsyncQueueImpl implements AsyncQueue {
 
   private verifyNotFailed(): void {
     if (this.failure) {
-      fail(0xb815, 'AsyncQueue is already failed', {
+      fail(20, 'AsyncQueue is already failed', {
         messageOrStack: getMessageOrStack(this.failure)
       });
     }

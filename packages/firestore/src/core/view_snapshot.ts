@@ -118,7 +118,7 @@ export class DocumentChangeSet {
       // Metadata->Added
       // Removed->Metadata
       fail(
-        0xf76d,
+        7,
         'unsupported combination of changes: `change` after `oldChange`',
         {
           change,

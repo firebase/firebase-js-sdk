@@ -133,11 +133,7 @@ export function getDoc<AppModelType, DbModelType extends DocumentData>(
 
   return invokeBatchGetDocumentsRpc(datastore, [reference._key]).then(
     result => {
-      hardAssert(
-        result.length === 1,
-        0x3d02,
-        'Expected a single document result'
-      );
+      hardAssert(result.length === 1, 1, 'Expected a single document result');
       const document = result[0];
       return new DocumentSnapshot<AppModelType, DbModelType>(
         reference.firestore,

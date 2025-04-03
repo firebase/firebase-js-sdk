@@ -207,7 +207,7 @@ export class LiteAuthCredentialsProvider implements CredentialsProvider<User> {
       if (tokenData) {
         hardAssert(
           typeof tokenData.accessToken === 'string',
-          0xa539,
+          92,
           'Invalid tokenData returned from getToken()',
           { tokenData }
         );
@@ -261,7 +261,7 @@ export class FirebaseAuthCredentialsProvider
   ): void {
     hardAssert(
       this.tokenListener === undefined,
-      0xa540,
+      93,
       'Token listener already added'
     );
     let lastTokenId = this.tokenCounter;
@@ -360,7 +360,7 @@ export class FirebaseAuthCredentialsProvider
         if (tokenData) {
           hardAssert(
             typeof tokenData.accessToken === 'string',
-            0x7c5d,
+            94,
             'Invalid tokenData returned from getToken()',
             { tokenData }
           );
@@ -391,7 +391,7 @@ export class FirebaseAuthCredentialsProvider
     const currentUid = this.auth && this.auth.getUid();
     hardAssert(
       currentUid === null || typeof currentUid === 'string',
-      0x0807,
+      95,
       'Received invalid UID',
       { currentUid }
     );
@@ -520,7 +520,7 @@ export class FirebaseAppCheckTokenProvider
   ): void {
     hardAssert(
       this.tokenListener === undefined,
-      0x0db8,
+      96,
       'Token listener already added'
     );
 
@@ -596,7 +596,7 @@ export class FirebaseAppCheckTokenProvider
       if (tokenResult) {
         hardAssert(
           typeof tokenResult.token === 'string',
-          0xae0e,
+          97,
           'Invalid tokenResult returned from getToken()',
           { tokenResult }
         );
@@ -669,7 +669,7 @@ export class LiteAppCheckTokenProvider implements CredentialsProvider<string> {
       if (tokenResult) {
         hardAssert(
           typeof tokenResult.token === 'string',
-          0x0d8e,
+          98,
           'Invalid tokenResult returned from getToken()',
           { tokenResult }
         );

@@ -111,7 +111,7 @@ export class TargetIndexMatcher {
   servedByIndex(index: FieldIndex): boolean {
     hardAssert(
       index.collectionGroup === this.collectionId,
-      0xc07f,
+      78,
       'Collection IDs do not match'
     );
 
