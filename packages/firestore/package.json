@@ -27,7 +27,7 @@
     "test:lite:browser": "karma start --lite",
     "test:lite:browser:nameddb": "karma start --lite --databaseId=test-db",
     "test:lite:browser:debug": "karma start --browsers=Chrome --lite --auto-watch",
-    "test": "run-s --npm-path npm lint error-code:check test:all",
+    "test": "run-s --npm-path npm lint assertion-id:check test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all:ci",
     "test:all:ci": "run-s --npm-path npm test:browser test:travis test:lite:browser test:browser:prod:nameddb test:lite:browser:nameddb",
     "test:all": "run-p --npm-path npm test:browser test:lite:browser test:travis test:minified test:browser:prod:nameddb test:lite:browser:nameddb",
@@ -53,10 +53,10 @@
     "api-report": "run-s --npm-path npm api-report:main api-report:lite && yarn api-report:api-json",
     "doc": "api-documenter markdown --input temp --output docs",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/index.d.ts",
-    "error-code:check": "ts-node scripts/error-code-tool.js --dir=src --check",
-    "error-code:generate": "ts-node scripts/error-code-tool.js --dir=src --new",
-    "error-code:list": "ts-node scripts/error-code-tool.js --dir=src --list",
-    "error-code:find": "ts-node scripts/error-code-tool.js --dir=src --find"
+    "assertion-id:check": "ts-node scripts/assertion-id-tool.ts --dir=src --check",
+    "assertion-id:generate": "ts-node scripts/assertion-id-tool.ts --dir=src --new",
+    "assertion-id:list": "ts-node scripts/assertion-id-tool.ts --dir=src --list",
+    "assertion-id:find": "ts-node scripts/assertion-id-tool.ts --dir=src --find"
   },
   "exports": {
     ".": {

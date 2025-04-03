@@ -27,8 +27,8 @@ import { logError } from './log';
  * @example
  * let futureVar = fail('not implemented yet');
  *
- * @param code generate a new unique value with `yarn error-code:generate`
- * Search for an existing value using `yarn error-code:find X`
+ * @param code generate a new unique value with `yarn assertion-id:generate`
+ * Search for an existing value using `yarn assertion-id:find X`
  */
 export function fail(
   code: number,
@@ -44,13 +44,13 @@ export function fail(
  * @example
  * let futureVar = fail('not implemented yet');
  *
- * @param code generate a new unique value with `yarn error-code:generate`
- * Search for an existing value using `yarn error-code:find X`
+ * @param id generate a new unique value with `yarn assertion-id:generate`
+ * Search for an existing value using `yarn assertion-id:find X`
  */
-export function fail(code: number, context?: Record<string, unknown>): never;
+export function fail(id: number, context?: Record<string, unknown>): never;
 
 export function fail(
-  code: number,
+  id: number,
   messageOrContext?: string | Record<string, unknown>,
   context?: Record<string, unknown>
 ): never {
@@ -60,17 +60,17 @@ export function fail(
   } else {
     context = messageOrContext;
   }
-  _fail(code, message, context);
+  _fail(id, message, context);
 }
 
 function _fail(
-  code: number,
+  id: number,
   failure: string,
   context?: Record<string, unknown>
 ): never {
   // Log the failure in addition to throw an exception, just in case the
   // exception is swallowed.
-  let message = `FIRESTORE (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ${failure} (CODE: ${code.toString(
+  let message = `FIRESTORE (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ${failure} (ID: ${id.toString(
     16
   )})`;
   if (context !== undefined) {
@@ -95,12 +95,12 @@ function _fail(
  *
  * Messages are stripped in production builds.
  *
- * @param code generate a new unique value with `yarn error-code:generate`.
- * Search for an existing value using `yarn error-code:find X`
+ * @param id generate a new unique value with `yarn assertion-idgenerate`.
+ * Search for an existing value using `yarn assertion-id:find X`
  */
 export function hardAssert(
   assertion: boolean,
-  code: number,
+  id: number,
   message: string,
   context?: Record<string, unknown>
 ): asserts assertion;
@@ -111,18 +111,18 @@ export function hardAssert(
  *
  * Messages are stripped in production builds.
  *
- * @param code generate a new unique value with `yarn error-code:generate`.
- * Search for an existing value using `yarn error-code:find X`
+ * @param id generate a new unique value with `yarn assertion-id:generate`.
+ * Search for an existing value using `yarn assertion-id:find X`
  */
 export function hardAssert(
   assertion: boolean,
-  code: number,
+  id: number,
   context?: Record<string, unknown>
 ): asserts assertion;
 
 export function hardAssert(
   assertion: boolean,
-  code: number,
+  id: number,
   messageOrContext?: string | Record<string, unknown>,
   context?: Record<string, unknown>
 ): asserts assertion {
@@ -134,7 +134,7 @@ export function hardAssert(
   }
 
   if (!assertion) {
-    _fail(code, message, context);
+    _fail(id, message, context);
   }
 }
 

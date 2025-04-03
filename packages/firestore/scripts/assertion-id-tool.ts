@@ -44,7 +44,7 @@ interface CallSiteInfo {
   character: number;
   argumentsText: string[]; // Added to store argument text
   errorMessage: string | undefined;
-  errorCode: number;
+  assertionId: number;
 }
 
 /**
@@ -77,7 +77,6 @@ function getTsFilesRecursive(dirPath: string): string[] {
     }
   } catch (error: any) {
     console.error(`Error reading directory ${dirPath}: ${error.message}`);
-    // Optionally, re-throw or handle differently
   }
   return tsFiles;
 }
@@ -116,12 +115,6 @@ function findFunctionCalls(filePaths: string[]): CallSiteInfo[] {
           if (ts.isIdentifier(expression)) {
             functionName = expression.text;
           }
-          // Check if the call is to a property access (e.g., utils.fail(), this.hardAssert())
-          else if (ts.isPropertyAccessExpression(expression)) {
-            // We only care about the final property name being called
-            functionName = expression.name.text;
-          }
-          // Add checks for other forms if needed
 
           // If we found a function name, and it's one we're looking for
           if (functionName && targetFunctionNames.has(functionName)) {
@@ -134,7 +127,7 @@ function findFunctionCalls(filePaths: string[]): CallSiteInfo[] {
             // --- Extract Arguments ---
             const argsText: string[] = [];
             let errorMessage: string | undefined;
-            let errorCode: number | undefined;
+            let assertionId: number | undefined;
             if (node.arguments && node.arguments.length > 0) {
               node.arguments.forEach((arg: ts.Expression) => {
                 // Get the source text of the argument node
@@ -144,7 +137,7 @@ function findFunctionCalls(filePaths: string[]): CallSiteInfo[] {
                   errorMessage = arg.getText(sourceFile);
                 }
                 else if (ts.isNumericLiteral(arg)) {
-                  errorCode = parseInt(arg.getText(sourceFile), 10);
+                  assertionId = parseInt(arg.getText(sourceFile), 10);
                 }
               });
             }
@@ -158,7 +151,7 @@ function findFunctionCalls(filePaths: string[]): CallSiteInfo[] {
               character: character + 1,
               argumentsText: argsText, // Store the extracted arguments,
               errorMessage,
-              errorCode: errorCode ?? -1
+              assertionId: assertionId ?? -1
             });
           }
         }
@@ -183,26 +176,26 @@ function findFunctionCalls(filePaths: string[]): CallSiteInfo[] {
 
 function handleList(occurrences: CallSiteInfo[]): void {
   if (occurrences.length === 0) {
-    log("No error codes found.");
+    log("No assertion ids found.");
     return;
   }
 
-  occurrences.sort((a, b) => a.errorCode - b.errorCode).forEach((call) => {
+  occurrences.sort((a, b) => a.assertionId - b.assertionId).forEach((call) => {
     console.log(
-      `CODE: ${call.errorCode}; MESSAGE: ${call.errorMessage}; SOURCE: '${call.functionName}' call at ${path.relative(process.cwd(), call.fileName)}:${call.line}:${call.character}`
+      `ID: ${call.assertionId}; MESSAGE: ${call.errorMessage}; SOURCE: '${call.functionName}' call at ${path.relative(process.cwd(), call.fileName)}:${call.line}:${call.character}`
     );
   });
 
 }
 
-function handleFind(occurrences: CallSiteInfo[], targetCode: string | number): void {
+function handleFind(occurrences: CallSiteInfo[], targetId: string | number): void {
   // Normalize target code for comparison if necessary (e.g., string vs number)
-  const target = typeof targetCode === 'number' ? targetCode : targetCode.toString();
+  const target = typeof targetId === 'number' ? targetId : targetId.toString();
 
-  const foundLocations = occurrences.filter(o => String(o.errorCode) === String(target)); // Compare as strings
+  const foundLocations = occurrences.filter(o => String(o.assertionId) === String(target)); // Compare as strings
 
   if (foundLocations.length === 0) {
-    log(`Error code "${targetCode}" not found.`);
+    log(`Assertion id "${targetId}" not found.`);
     process.exit(1);
   }
 
@@ -211,25 +204,25 @@ function handleFind(occurrences: CallSiteInfo[], targetCode: string | number): v
 
 function handleCheck(occurrences: CallSiteInfo[]): void {
   if (occurrences.length === 0) {
-    log("No error codes found to check for duplicates.");
+    log("No assertion ids found to check for duplicates.");
     return;
   }
-  const codeCounts: { [code: string]: CallSiteInfo[] } = {};
+  const idCounts: { [id: string]: CallSiteInfo[] } = {};
 
   occurrences.forEach(occ => {
-    const codeStr = String(occ.errorCode); // Use string representation as key
-    if (!codeCounts[codeStr]) {
-      codeCounts[codeStr] = [];
+    const codeStr = String(occ.assertionId); // Use string representation as key
+    if (!idCounts[codeStr]) {
+      idCounts[codeStr] = [];
     }
-    codeCounts[codeStr].push(occ);
+    idCounts[codeStr].push(occ);
   });
 
   let duplicatesFound = false;
-  log("Checking for duplicate error code usage:");
-  Object.entries(codeCounts).forEach(([code, locations]) => {
+  log("Checking for duplicate assertion id usage:");
+  Object.entries(idCounts).forEach(([code, locations]) => {
     if (locations.length > 1) {
       duplicatesFound = true;
-      console.error(`\nDuplicate error code "${code}" found at ${locations.length} locations:`);
+      console.error(`\nDuplicate assertion id "${code}" found at ${locations.length} locations:`);
       locations.forEach(loc => {
         const relativePath = path.relative(process.cwd(), loc.fileName);
         console.error(`- ${relativePath}:${loc.line}:${loc.character}`);
@@ -238,7 +231,7 @@ function handleCheck(occurrences: CallSiteInfo[]): void {
   });
 
   if (!duplicatesFound) {
-    log("No duplicate error codes found.");
+    log("No duplicate assertion ids found.");
   }
   else {
     process.exit(1);
@@ -250,8 +243,8 @@ function handleNew(occurrences: CallSiteInfo[]): void {
   let maxCode = 0;
 
   occurrences.forEach(occ => {
-    if (occ.errorCode > maxCode) {
-      maxCode = occ.errorCode;
+    if (occ.assertionId > maxCode) {
+      maxCode = occ.assertionId;
     }
   });
 
@@ -281,23 +274,23 @@ async function main(): Promise<void> {
     })
     .option("find", {
       alias: "F",
-      describe: "Find locations of a specific {errorCode}",
+      describe: "Find locations of a specific {assertionId}",
       type: "string",
       nargs: 1,
     })
     .option("list", {
       alias: "L",
-      describe: "List all unique error codes found (default action)",
+      describe: "List all unique assertion ids found (default action)",
       type: "boolean",
     })
     .option("new", {
       alias: "N",
-      describe: "Suggest a new error code based on existing ones",
+      describe: "Suggest a new assertion id based on existing ones",
       type: "boolean",
     })
     .option("check", {
       alias: "C",
-      describe: "Check for duplicate usage of error codes",
+      describe: "Check for duplicate usage of assertion ids",
       type: "boolean",
     })
     .check((argv) => {
@@ -338,10 +331,10 @@ async function main(): Promise<void> {
     log("No relevant .ts or .tsx files found.");
     process.exit(0);
   }
-  log(`Found ${filesToScan.length} files. Analyzing for error codes...`);
+  log(`Found ${filesToScan.length} files. Analyzing for assertion ids...`);
 
   const allOccurrences = findFunctionCalls(filesToScan);
-  log(`Scan complete. Found ${allOccurrences.length} potential error code occurrences.`);
+  log(`Scan complete. Found ${allOccurrences.length} potential assertion id occurrences.`);
 
   // Determine action based on flags
   if (argv['find']) {
