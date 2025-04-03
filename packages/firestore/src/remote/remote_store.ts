@@ -126,6 +126,10 @@ class RemoteStoreImpl implements RemoteStore {
    */
   writePipeline: MutationBatch[] = [];
 
+  sentWrites = new WeakSet<MutationBatch>();
+
+  writeTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
   /**
    * A mapping of watched targets that the client cares about tracking and the
    * user has explicitly called a 'listen' for this target.
@@ -734,10 +738,23 @@ function addToWritePipeline(
   );
   remoteStoreImpl.writePipeline.push(batch);
 
-  const writeStream = ensureWriteStream(remoteStoreImpl);
-  if (writeStream.isOpen() && writeStream.handshakeComplete) {
-    writeStream.writeMutations(batch.mutations);
+  if (remoteStoreImpl.writeTimeoutId !== null) {
+    return;
   }
+
+  remoteStoreImpl.writeTimeoutId = setTimeout(() => {
+    remoteStoreImpl.writeTimeoutId = null;
+    const writeStream = ensureWriteStream(remoteStoreImpl);
+    if (writeStream.isOpen() && writeStream.handshakeComplete) {
+      for (const curBatch of remoteStoreImpl.writePipeline) {
+        if (remoteStoreImpl.sentWrites.has(curBatch)) {
+          continue;
+        }
+        writeStream.writeMutations(curBatch.mutations);
+        remoteStoreImpl.sentWrites.add(curBatch);
+      }
+    }
+  }, 200);
 }
 
 function shouldStartWriteStream(remoteStoreImpl: RemoteStoreImpl): boolean {
@@ -769,6 +786,7 @@ async function onWriteHandshakeComplete(
   // Send the write pipeline now that the stream is established.
   for (const batch of remoteStoreImpl.writePipeline) {
     writeStream.writeMutations(batch.mutations);
+    remoteStoreImpl.sentWrites.add(batch);
   }
 }
 
