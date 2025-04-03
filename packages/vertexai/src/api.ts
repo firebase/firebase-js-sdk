@@ -32,7 +32,8 @@ import { VertexAIModel, GenerativeModel, ImagenModel } from './models';
 import {
   HybridModel,
   LocalModelParams,
-  LocalModel
+  LocalModel,
+  GenerativeModelMethods
 } from './models/hybrid-model';
 
 export { ChatSession } from './methods/chat-session';
@@ -87,7 +88,7 @@ export function getGenerativeModel(
   return new GenerativeModel(vertexAI, modelParams, requestOptions);
 }
 
-export function getHybridModel(params: LocalModelParams = {}): HybridModel {
+export function getHybridModel(params: LocalModelParams = {}): GenerativeModelMethods {
   return new HybridModel(new LocalModel(window.ai), params.fallback);
 }
 

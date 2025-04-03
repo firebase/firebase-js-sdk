@@ -25,9 +25,11 @@ type HybridPart = Part & LocalPart;
 type HybridContent = Content & LocalContent;
 type HybridGenerateContentRequest = GenerateContentRequest &
   LocalGenerateContentRequest;
-const r = {} as HybridGenerateContentRequest;
-r.contents.map((c: Content & LocalContent) => c.role);
-// TODO: consider other names
+interface ChatSessionMethods {
+  sendMessage(request: string): Promise<GenerateContentResult>;
+}
+// Abstracts GenerativeModel functionality from Cloud-specific configuration.
+// TODO: consider other names for this interface
 export interface GenerativeModelMethods {
   generateContent(
     request: HybridGenerateContentRequest | string | Array<string | HybridPart>
@@ -35,7 +37,7 @@ export interface GenerativeModelMethods {
   generateContentStream(
     request: HybridGenerateContentRequest | string | Array<string | HybridPart>
   ): Promise<GenerateContentStreamResult>;
-  startChat(): ChatSession;
+  startChat(): ChatSessionMethods;
   countTokens(
     request: HybridGenerateContentRequest | string | Array<string | HybridPart>
   ): Promise<CountTokensResponse>;
@@ -90,43 +92,44 @@ export class LocalModel implements GenerativeModelMethods {
     }
     return 'user';
   }
+  // Transforms hybrid input to Chrome input, normalized to the type expected
+  // by initialPrompts.
   static toAILanguageModelPromptArray(
     request: HybridGenerateContentRequest | string | Array<string | HybridPart>
   ): AILanguageModelPrompt[] {
-    return [{ role: 'user', content: '' }];
-    // const hybridGenerateContentRequest =
-    //   request as HybridGenerateContentRequest;
-    // if (hybridGenerateContentRequest.contents) {
-    //   return hybridGenerateContentRequest.contents.map((c: HybridContent) => {
-    //     const role = LocalModel.toAILanguageModelPromptRole(c.role);
-    //     const content = c.parts.map(p => p.text).join();
-    //     return {
-    //       role,
-    //       content
-    //     };
-    //   });
-    // }
-    // if (typeof request === 'string') {
-    //   return [
-    //     {
-    //       role: 'user',
-    //       content: request
-    //     }
-    //   ];
-    // }
-    // const arrayRequest = request as Array<string | HybridPart>;
-    // return arrayRequest.map(part => {
-    //   if (typeof part === 'string') {
-    //     return {
-    //       role: 'user',
-    //       content: part
-    //     };
-    //   }
-    //   return {
-    //     role: 'user',
-    //     content: part.text
-    //   };
-    // });
+    const hybridGenerateContentRequest =
+      request as HybridGenerateContentRequest;
+    if (hybridGenerateContentRequest.contents) {
+      return hybridGenerateContentRequest.contents.map((c: HybridContent) => {
+        const role = LocalModel.toAILanguageModelPromptRole(c.role);
+        const content = c.parts.map(p => p.text).join();
+        return {
+          role,
+          content
+        };
+      });
+    }
+    if (typeof request === 'string') {
+      return [
+        {
+          role: 'user',
+          content: request
+        }
+      ];
+    }
+    const arrayRequest = request as Array<string | HybridPart>;
+    return arrayRequest.map(part => {
+      if (typeof part === 'string') {
+        return {
+          role: 'user',
+          content: part
+        };
+      }
+      return {
+        role: 'user',
+        content: part.text
+      };
+    });
   }
   async session(
     opts: AILanguageModelCreateOptionsWithSystemPrompt = {}
@@ -140,10 +143,14 @@ export class LocalModel implements GenerativeModelMethods {
     return newSession;
   }
 }
-interface ChatSessionMethods {
-  sendMessage(request: string): Promise<GenerateContentResult>;
-}
 export class HybridChatSession implements ChatSessionMethods {
+  constructor(
+    private localModel: LocalModel,
+    // BLOCKER: a local chat session depends on the history from a
+    // GenerativeModel instance (Chrome doesn't expose a history getter,
+    // so if we can only fallback if we have store history independently.)
+    private remoteModel: GenerativeModel
+  ) {}
   sendMessage(request: string): Promise<GenerateContentResult> {
     throw new Error('Method not implemented.');
   }
@@ -156,11 +163,11 @@ export class HybridModel implements GenerativeModelMethods {
   async generateContent(
     request: HybridGenerateContentRequest
   ): Promise<GenerateContentResult> {
-    // if (await this.localModel.isSupported()) {
-    //   return this.localModel.generateContent(request);
-    // } else if (this.remoteModel) {
-    //   return this.remoteModel.generateContent(request);
-    // }
+    if (await this.localModel.isSupported()) {
+      return this.localModel.generateContent(request);
+    } else if (this.remoteModel) {
+      return this.remoteModel.generateContent(request);
+    }
     throw new Error('TODO: throw Vertex error');
   }
   async generateContentStream(
@@ -173,8 +180,8 @@ export class HybridModel implements GenerativeModelMethods {
     }
     throw new Error('TODO: throw Vertex error');
   }
-  startChat(): ChatSession {
-    throw new Error('Method not implemented.');
+  startChat(): ChatSessionMethods {
+    return new HybridChatSession();
   }
   countTokens(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

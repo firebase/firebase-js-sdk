@@ -312,9 +312,9 @@ function callPerformance(app) {
  */
 async function callVertexAI(app) {
   console.log('[VERTEXAI] start');
-  // const model = getHybridModel()
-  // const result = await model.generateContent("hi")
-  // console.log(`[VERTEXAI] counted tokens: ${result}`);
+  const model = getHybridModel()
+  const result = await model.generateContent("hi")
+  console.log(`[VERTEXAI] result: ${result.response.text()}`);
 }
 
 /**
