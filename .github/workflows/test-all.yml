@@ -48,7 +48,7 @@ jobs:
       env:
         PROJECT_CONFIG: ${{ secrets.TEST_PROJECT_CONFIG }}
       run: |
-        echo "$PROJECT_CONFIG > config/project.json"
+        echo "$PROJECT_CONFIG" > config/project.json
         yarn
     - name: yarn build
       run: yarn build
