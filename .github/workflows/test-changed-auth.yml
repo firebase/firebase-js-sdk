@@ -61,8 +61,10 @@ jobs:
         with:
           node-version: 22.10.0
       - name: Test setup and yarn install
+        env:
+          PROJECT_CONFIG: ${{ secrets.TEST_PROJECT_CONFIG }}
         run: |
-          cp config/ci.config.json config/project.json
+          echo "$PROJECT_CONFIG > config/project.json"
           yarn
       - name: build
         run: yarn build:changed auth
@@ -86,8 +88,10 @@ jobs:
         with:
           node-version: 22.10.0
       - name: Test setup and yarn install
+        env:
+          PROJECT_CONFIG: ${{ secrets.TEST_PROJECT_CONFIG }}
         run: |
-          cp config/ci.config.json config/project.json
+          echo "$PROJECT_CONFIG > config/project.json"
           yarn
       - name: build
         run: yarn build:changed auth
@@ -110,8 +114,10 @@ jobs:
         with:
           node-version: 22.10.0
       - name: Test setup and yarn install
+        env:
+          PROJECT_CONFIG: ${{ secrets.TEST_PROJECT_CONFIG }}
         run: |
-          cp config/ci.config.json config/project.json
+          echo "$PROJECT_CONFIG > config/project.json"
           yarn
           npx playwright install webkit
       - name: build
