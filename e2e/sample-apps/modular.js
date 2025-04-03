@@ -58,7 +58,16 @@ import {
   onValue,
   off
 } from 'firebase/database';
+<<<<<<< HEAD
 import { getGenerativeModel, getVertexAI } from 'firebase/vertexai';
+=======
+import {
+  getGenerativeModel,
+  getVertexAI,
+  InferenceMode,
+  VertexAI
+} from 'firebase/vertexai';
+>>>>>>> 3f02db006 (Run yarn format)
 import { getDataConnect, DataConnect } from 'firebase/data-connect';
 
 /**
