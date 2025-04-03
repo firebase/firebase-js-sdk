@@ -26,6 +26,9 @@ import { logError } from './log';
  * Returns `never` and can be used in expressions:
  * @example
  * let futureVar = fail('not implemented yet');
+ *
+ * @param code generate a new unique value with `yarn error-code:generate`
+ * Search for an existing value using `yarn error-code:find X`
  */
 export function fail(
   code: number,
@@ -33,6 +36,17 @@ export function fail(
   context?: Record<string, unknown>
 ): never;
 
+/**
+ * Unconditionally fails, throwing an Error with the given message.
+ * Messages are stripped in production builds.
+ *
+ * Returns `never` and can be used in expressions:
+ * @example
+ * let futureVar = fail('not implemented yet');
+ *
+ * @param code generate a new unique value with `yarn error-code:generate`
+ * Search for an existing value using `yarn error-code:find X`
+ */
 export function fail(code: number, context?: Record<string, unknown>): never;
 
 export function fail(
@@ -80,6 +94,9 @@ function _fail(
  * given message if it did.
  *
  * Messages are stripped in production builds.
+ *
+ * @param code generate a new unique value with `yarn error-code:generate`.
+ * Search for an existing value using `yarn error-code:find X`
  */
 export function hardAssert(
   assertion: boolean,
@@ -88,6 +105,15 @@ export function hardAssert(
   context?: Record<string, unknown>
 ): asserts assertion;
 
+/**
+ * Fails if the given assertion condition is false, throwing an Error with the
+ * given message if it did.
+ *
+ * Messages are stripped in production builds.
+ *
+ * @param code generate a new unique value with `yarn error-code:generate`.
+ * Search for an existing value using `yarn error-code:find X`
+ */
 export function hardAssert(
   assertion: boolean,
   code: number,
