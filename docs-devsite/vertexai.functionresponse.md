@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FunctionResponse interface
-The result output from a <code>[FunctionCall](./vertexai.functioncall.md#functioncall_interface)</code> that contains a string representing the [FunctionDeclaration.name](./vertexai.functiondeclaration.md#functiondeclarationname) and a structured JSON object containing any output from the function is used as context to the model. This should contain the result of a <code>[FunctionCall](./vertexai.functioncall.md#functioncall_interface)</code> made based on model prediction.
+The result output from a [FunctionCall](./vertexai.functioncall.md#functioncall_interface) that contains a string representing the [FunctionDeclaration.name](./vertexai.functiondeclaration.md#functiondeclarationname) and a structured JSON object containing any output from the function is used as context to the model. This should contain the result of a [FunctionCall](./vertexai.functioncall.md#functioncall_interface) made based on model prediction.
 
 <b>Signature:</b>
 

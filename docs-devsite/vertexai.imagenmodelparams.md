@@ -13,7 +13,7 @@ https://github.com/firebase/firebase-js-sdk
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Parameters for configuring an <code>[ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)</code>.
+Parameters for configuring an [ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)<!-- -->.
 
 <b>Signature:</b>
 
