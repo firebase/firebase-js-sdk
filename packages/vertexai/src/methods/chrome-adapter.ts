@@ -31,10 +31,12 @@ import {
  * and encapsulates logic for detecting when on-device is possible.
  */
 export class ChromeAdapter {
-  downloadPromise: Promise<AILanguageModel> | undefined;
-  oldSession: AILanguageModel | undefined;
+  private isDownloading = false;
+  private downloadPromise: Promise<AILanguageModel | void> | undefined;
+  private oldSession: AILanguageModel | undefined;
   constructor(
     private aiProvider?: AI,
+    // TODO: mode can be required now.
     private mode?: InferenceMode,
     private onDeviceParams?: AILanguageModelCreateOptionsWithSystemPrompt
   ) {}
@@ -141,16 +143,15 @@ export class ChromeAdapter {
       .then((c: AILanguageModelCapabilities) => c.available);
   }
   private download(): void {
-    if (this.downloadPromise) {
+    if (this.isDownloading) {
       return;
     }
+    this.isDownloading = true;
     this.downloadPromise = this.aiProvider?.languageModel
       .create(this.onDeviceParams)
-      .then((model: AILanguageModel) => {
-        delete this.downloadPromise;
-        return model;
+      .then(() => {
+        this.isDownloading = false;
       });
-    return;
   }
   private static toSystemPrompt(
     prompt: string | Content | Part | undefined

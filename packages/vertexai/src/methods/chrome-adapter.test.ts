@@ -19,6 +19,7 @@ import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ChromeAdapter } from './chrome-adapter';
+import { stub } from 'sinon';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -41,13 +42,13 @@ describe('ChromeAdapter', () => {
     });
   });
   describe('isAvailable', () => {
-    it('returns true if a model is available', async () => {
+    it('returns true if model is readily available', async () => {
       const aiProvider = {
         languageModel: {
           capabilities: () =>
             Promise.resolve({
               available: 'readily'
-            } as AILanguageModelCapabilities)
+            })
         }
       } as AI;
       const adapter = new ChromeAdapter(aiProvider, 'prefer_on_device');
@@ -56,6 +57,95 @@ describe('ChromeAdapter', () => {
           contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
         })
       ).to.be.true;
+    });
+    it('returns false and triggers download when model is available after download', async () => {
+      const aiProvider = {
+        languageModel: {
+          capabilities: () =>
+            Promise.resolve({
+              available: 'after-download'
+            }),
+          create: () => Promise.resolve({})
+        }
+      } as AI;
+      const createStub = stub(aiProvider.languageModel, 'create').resolves(
+        {} as AILanguageModel
+      );
+      const adapter = new ChromeAdapter(aiProvider, 'prefer_on_device');
+      expect(
+        await adapter.isAvailable({
+          contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+        })
+      ).to.be.false;
+      expect(createStub).to.have.been.calledOnce;
+    });
+    it('avoids redundant downloads', async () => {
+      const aiProvider = {
+        languageModel: {
+          capabilities: () =>
+            Promise.resolve({
+              available: 'after-download'
+            }),
+          create: () => {}
+        }
+      } as AI;
+      const downloadPromise = new Promise<AILanguageModel>(() => {
+        /* never resolves */
+      });
+      const createStub = stub(aiProvider.languageModel, 'create').returns(
+        downloadPromise
+      );
+      const adapter = new ChromeAdapter(aiProvider);
+      await adapter.isAvailable({
+        contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+      });
+      await adapter.isAvailable({
+        contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+      });
+      expect(createStub).to.have.been.calledOnce;
+    });
+    it('clears state when download completes', async () => {
+      const aiProvider = {
+        languageModel: {
+          capabilities: () =>
+            Promise.resolve({
+              available: 'after-download'
+            }),
+          create: () => {}
+        }
+      } as AI;
+      let resolveDownload;
+      const downloadPromise = new Promise<AILanguageModel>(resolveCallback => {
+        resolveDownload = resolveCallback;
+      });
+      const createStub = stub(aiProvider.languageModel, 'create').returns(
+        downloadPromise
+      );
+      const adapter = new ChromeAdapter(aiProvider);
+      await adapter.isAvailable({
+        contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+      });
+      resolveDownload!();
+      await adapter.isAvailable({
+        contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+      });
+      expect(createStub).to.have.been.calledTwice;
+    });
+    it('returns false when model is never available', async () => {
+      const aiProvider = {
+        languageModel: {
+          capabilities: () =>
+            Promise.resolve({
+              available: 'no'
+            })
+        }
+      } as AI;
+      const adapter = new ChromeAdapter(aiProvider, 'prefer_on_device');
+      expect(
+        await adapter.isAvailable({
+          contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+        })
+      ).to.be.false;
     });
   });
 });
