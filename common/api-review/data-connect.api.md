@@ -7,6 +7,7 @@
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { FirebaseError } from '@firebase/util';
 import { LogLevelString } from '@firebase/logger';
 import { Provider } from '@firebase/component';
 
@@ -21,6 +22,20 @@ export const CallerSdkTypeEnum: {
     readonly GeneratedReact: "GeneratedReact";
     readonly TanstackAngularCore: "TanstackAngularCore";
     readonly GeneratedAngular: "GeneratedAngular";
+};
+
+// @public (undocumented)
+export type Code = DataConnectErrorCode;
+
+// @public (undocumented)
+export const Code: {
+    OTHER: DataConnectErrorCode;
+    ALREADY_INITIALIZED: DataConnectErrorCode;
+    NOT_INITIALIZED: DataConnectErrorCode;
+    NOT_SUPPORTED: DataConnectErrorCode;
+    INVALID_ARGUMENT: DataConnectErrorCode;
+    PARTIAL_ERROR: DataConnectErrorCode;
+    UNAUTHORIZED: DataConnectErrorCode;
 };
 
 // @public
@@ -51,20 +66,19 @@ export class DataConnect {
     setInitialized(): void;
 }
 
+// @public
+export class DataConnectError extends FirebaseError {
+    /* Excluded from this release type: name */
+    constructor(code: Code, message: string);
+}
+
 // @public (undocumented)
 export type DataConnectErrorCode = 'other' | 'already-initialized' | 'not-initialized' | 'not-supported' | 'invalid-argument' | 'partial-error' | 'unauthorized';
 
 // @public
-export class DataConnectOperationError {
+export class DataConnectOperationError extends DataConnectError {
     /* Excluded from this release type: name */
-    code: string;
-    customData?: Record<string, unknown>;
-    // (undocumented)
-    message: string;
-    name: string;
     readonly response: DataConnectOperationFailureResponse;
-    // (undocumented)
-    stack?: string;
 }
 
 // @public (undocumented)
@@ -98,7 +112,7 @@ export interface DataConnectResult<Data, Variables> extends OpResult<Data> {
 // @public
 export interface DataConnectSubscription<Data, Variables> {
     // (undocumented)
-    errCallback?: (e?: DataConnectOperationError) => void;
+    errCallback?: (e?: DataConnectError) => void;
     // (undocumented)
     unsubscribe: () => void;
     // (undocumented)
@@ -149,7 +163,7 @@ export interface MutationResult<Data, Variables> extends DataConnectResult<Data,
 export type OnCompleteSubscription = () => void;
 
 // @public
-export type OnErrorSubscription = (err?: DataConnectOperationError) => void;
+export type OnErrorSubscription = (err?: DataConnectError) => void;
 
 // @public
 export type OnResultSubscription<Data, Variables> = (res: QueryResult<Data, Variables>) => void;
