@@ -23,6 +23,7 @@ import { FieldPath as InternalFieldPath } from '../model/path';
 import { arrayEquals } from '../util/misc';
 
 import { Firestore } from './database';
+import { Field } from './expressions';
 import { FieldPath } from './field_path';
 import {
   DocumentData,
@@ -515,12 +516,14 @@ export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(
  */
 export function fieldPathFromArgument(
   methodName: string,
-  arg: string | FieldPath | Compat<FieldPath>
+  arg: string | FieldPath | Compat<FieldPath> | Field
 ): InternalFieldPath {
   if (typeof arg === 'string') {
     return fieldPathFromDotSeparatedString(methodName, arg);
   } else if (arg instanceof FieldPath) {
     return arg._internalPath;
+  } else if (arg instanceof Field) {
+    return fieldPathFromDotSeparatedString(methodName, arg.fieldName());
   } else {
     return arg._delegate._internalPath;
   }

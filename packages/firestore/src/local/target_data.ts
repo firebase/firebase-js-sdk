@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
+import { TargetOrPipeline } from '../core/pipeline-util';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Target } from '../core/target';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { ByteString } from '../util/byte_string';
 
@@ -47,7 +47,7 @@ export const enum TargetPurpose {
 export class TargetData {
   constructor(
     /** The target being listened to. */
-    readonly target: Target,
+    readonly target: TargetOrPipeline,
     /**
      * The target ID to which the target corresponds; Assigned by the
      * LocalStore for user listens and by the SyncEngine for limbo watches.
