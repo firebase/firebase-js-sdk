@@ -44,13 +44,31 @@ export * from './requests/schema-builder';
 export { ImagenImageFormat } from './requests/imagen-image-format';
 export { GenAIModel, GenerativeModel, ImagenModel, GenAIError };
 
-// Temporary aliases from new 'GenAI' names to the original 'VertexAI' names.
-// TODO (v12): Remove these
-export {
-  GenAIModel as VertexAIModel,
-  GenAIError as VertexAIError,
-  GenAIErrorCode as VertexAIErrorCode
-};
+export { GenAIErrorCode as VertexAIErrorCode };
+
+/**
+ * Base class for Vertex AI in Firebase model APIs.
+ * 
+ * This is an alias that exists to maintain backwards-compatibility. This will be removed in 
+ * version 12 of the Firebase JS SDK.
+ * 
+ * For more information, refer to the documentation for the new <code>{@link GenAIModel}</code>.
+ * 
+ * @public
+ */
+export const VertexAIModel = GenAIModel;
+
+/**
+ * Error class for the Vertex AI in Firebase SDK.
+ * 
+ * This is an alias that exists to maintain backwards-compatibility. This will be removed in 
+ * version 12 of the Firebase JS SDK.
+ * 
+ * For more information, refer to the documentation for the new <code>{@link GenAIError}</code>.
+ * 
+ * @public
+ */
+export const VertexAIError = GenAIError;
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -83,12 +101,32 @@ export function getVertexAI(
 }
 
 /**
- * Returns a <code>{@link GenAI}</code> instance for the given app that has the Developer
- * API enabled.
+ * Returns the default {@link GenAI} instance that is associated with the provided
+ * {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new instance with the
+ * default settings.
+ * 
+ * @example
+ * ```javascript
+ * const genAI = getGenAI(app);
+ * ```
+ * 
+ * @example
+ * ```javascript
+ * // Get a GenAI instance configured to use Vertex AI.
+ * const genAI = getGenAI(app, { backend: vertexAIBackend() }); 
+ * ```
+ * 
+ * @example
+ * ```javascript
+ * // Get a GenAI instance configured to use Google AI.
+ * const genAI = getGenAI(app, { backend: vertexAIBackend() }); 
+ * ```
  *
+ * @param app - The <code>{@link @firebase/app#FirebaseApp}</code> to use.
+ * @param options - <code>{@link GenAIOptions}</code> that configure the GenAI instance.
+ * @returns The default <code>{@link GenAI}</code> instance for the given <code>{@link @firebase/app#FirebaseApp}</code>.
+ * 
  * @public
- *
- * @param app - The {@link @firebase/app#FirebaseApp} to use.
  */
 export function getGenAI(
   app: FirebaseApp = getApp(),
@@ -104,6 +142,13 @@ export function getGenAI(
   });
 }
 
+/**
+ * Creates a <code>{@link Backend}</code> instance configured to use Google AI. 
+ * 
+ * @returns A <code>{@link GoogleAIBackend}</code> object.
+ * 
+ * @public
+ */
 export function googleAIBackend(): GoogleAIBackend {
   const backend: GoogleAIBackend = {
     backendType: BackendType.GOOGLE_AI
@@ -112,6 +157,16 @@ export function googleAIBackend(): GoogleAIBackend {
   return backend;
 }
 
+/**
+ * Creates a <code>{@link Backend}</code> instance configured to use Vertex AI.
+ * 
+ * @param location - The region identifier, defaulting to `us-central1`;
+ * see {@link https://firebase.google.com/docs/vertex-ai/locations?platform=ios#available-locations | Vertex AI locations}
+ * for a list of supported locations.
+ * @returns A <code>{@link VertexAIBackend}</code> object.
+ * 
+ * @public
+ */
 export function vertexAIBackend(location?: string): VertexAIBackend {
   const backend: VertexAIBackend = {
     backendType: BackendType.VERTEX_AI,

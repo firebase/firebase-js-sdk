@@ -34,3 +34,5 @@ export interface ApiSettings {
   getAuthToken?: () => Promise<FirebaseAuthTokenData | null>;
   getAppCheckToken?: () => Promise<AppCheckTokenResult>;
 }
+
+export type InstanceIdentifier = Backend;

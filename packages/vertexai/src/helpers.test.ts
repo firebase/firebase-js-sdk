@@ -18,7 +18,8 @@ import { expect } from 'chai';
 import { GENAI_TYPE } from './constants';
 import { encodeInstanceIdentifier, decodeInstanceIdentifier } from './helpers';
 import { GenAIError } from './errors';
-import { BackendType, InstanceIdentifier } from './public-types';
+import { BackendType } from './public-types';
+import { InstanceIdentifier } from './types/internal';
 import { GenAIErrorCode } from './types';
 
 describe('Identifier Encoding/Decoding', () => {

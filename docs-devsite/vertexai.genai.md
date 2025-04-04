@@ -12,6 +12,8 @@ https://github.com/firebase/firebase-js-sdk
 # GenAI interface
 An instance of the Firebase GenAI SDK.
 
+Do not create this instance directly. Instead, use <code>[getGenAI()](./vertexai.md#getgenai_65c48ee)</code>.
+
 <b>Signature:</b>
 
 ```typescript
@@ -23,8 +25,8 @@ export interface GenAI
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [app](./vertexai.genai.md#genaiapp) | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) this <code>[GenAI](./vertexai.genai.md#genai_interface)</code> instance is associated with. |
-|  [backend](./vertexai.genai.md#genaibackend) | [Backend](./vertexai.md#backend) |  |
-|  [location](./vertexai.genai.md#genailocation) | string |  |
+|  [backend](./vertexai.genai.md#genaibackend) | [Backend](./vertexai.md#backend) | A <code>[Backend](./vertexai.md#backend)</code> instance that specifies the backend configuration. |
+|  [location](./vertexai.genai.md#genailocation) | string | The location configured for this GenAI service instance, relevant for Vertex AI backends. |
 
 ## GenAI.app
 
@@ -38,6 +40,8 @@ app: FirebaseApp;
 
 ## GenAI.backend
 
+A <code>[Backend](./vertexai.md#backend)</code> instance that specifies the backend configuration.
+
 <b>Signature:</b>
 
 ```typescript
@@ -50,6 +54,8 @@ backend: Backend;
 > 
 > This is here to maintain backwards-compatibility. Use `GenAI.backend.location` instead.
 > 
+
+The location configured for this GenAI service instance, relevant for Vertex AI backends.
 
 <b>Signature:</b>
 

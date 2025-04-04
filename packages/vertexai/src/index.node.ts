@@ -26,7 +26,7 @@ import { GenAIService } from './service';
 import { DEFAULT_INSTANCE_IDENTIFER, GENAI_TYPE } from './constants';
 import { Component, ComponentType } from '@firebase/component';
 import { name, version } from '../package.json';
-import { InstanceIdentifier } from './public-types';
+import { InstanceIdentifier } from './types/internal';
 import { decodeInstanceIdentifier } from './helpers';
 
 function registerGenAI(): void {

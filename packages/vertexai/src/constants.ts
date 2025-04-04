@@ -16,7 +16,8 @@
  */
 
 import { version } from '../package.json';
-import { BackendType, InstanceIdentifier } from './public-types';
+import { BackendType } from './public-types';
+import { InstanceIdentifier } from './types/internal';
 
 // TODO (v12): Remove this
 export const VERTEX_TYPE = 'vertexAI';

@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # GenAIOptions interface
+Options interface for initializing the GenAI service using <code>[getGenAI()](./vertexai.md#getgenai_65c48ee)</code>.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,9 +22,11 @@ export interface GenAIOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [backend](./vertexai.genaioptions.md#genaioptionsbackend) | [Backend](./vertexai.md#backend) |  |
+|  [backend](./vertexai.genaioptions.md#genaioptionsbackend) | [Backend](./vertexai.md#backend) | The backend configuration to use for the GenAI service instance. Use <code>[googleAIBackend()](./vertexai.md#googleaibackend)</code> or <code>[vertexAIBackend()](./vertexai.md#vertexaibackend_d0a4534)</code> to create this configuration. |
 
 ## GenAIOptions.backend
+
+The backend configuration to use for the GenAI service instance. Use <code>[googleAIBackend()](./vertexai.md#googleaibackend)</code> or <code>[vertexAIBackend()](./vertexai.md#vertexaibackend_d0a4534)</code> to create this configuration.
 
 <b>Signature:</b>
 

@@ -18,16 +18,16 @@ export class ArraySchema extends Schema {
     toJSON(): SchemaRequest;
 }
 
-// @public (undocumented)
+// @public
 export type Backend = GoogleAIBackend | VertexAIBackend;
 
-// @public (undocumented)
+// @public
 export const BackendType: {
     readonly VERTEX_AI: "VERTEX_AI";
     readonly GOOGLE_AI: "GOOGLE_AI";
 };
 
-// @public (undocumented)
+// @public
 export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 
 // @public
@@ -254,24 +254,19 @@ export interface FunctionResponsePart {
 // @public
 export interface GenAI {
     app: FirebaseApp;
-    // (undocumented)
     backend: Backend;
-    // @deprecated (undocumented)
+    // @deprecated
     location: string;
 }
 
 // @public
-class GenAIError extends FirebaseError {
+export class GenAIError extends FirebaseError {
     constructor(code: GenAIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
     // (undocumented)
     readonly code: GenAIErrorCode;
     // (undocumented)
     readonly customErrorData?: CustomErrorData | undefined;
 }
-
-export { GenAIError }
-
-export { GenAIError as VertexAIError }
 
 // @public
 const enum GenAIErrorCode {
@@ -295,7 +290,7 @@ export { GenAIErrorCode }
 export { GenAIErrorCode as VertexAIErrorCode }
 
 // @public
-abstract class GenAIModel {
+export abstract class GenAIModel {
     // @internal
     protected constructor(genAI: GenAI, modelName: string);
     // @internal (undocumented)
@@ -305,13 +300,8 @@ abstract class GenAIModel {
     static normalizeModelName(modelName: string, backendType: BackendType): string;
     }
 
-export { GenAIModel }
-
-export { GenAIModel as VertexAIModel }
-
-// @public (undocumented)
+// @public
 export interface GenAIOptions {
-    // (undocumented)
     backend: Backend;
 }
 
@@ -431,12 +421,12 @@ export function getImagenModel(genAI: GenAI, modelParams: ImagenModelParams, req
 // @public
 export function getVertexAI(app?: FirebaseApp, options?: VertexAIOptions): VertexAI;
 
-// @public (undocumented)
+// @public
 export type GoogleAIBackend = {
     backendType: typeof BackendType.GOOGLE_AI;
 };
 
-// @public (undocumented)
+// @public
 export function googleAIBackend(): GoogleAIBackend;
 
 // @public @deprecated (undocumented)
@@ -600,9 +590,6 @@ export interface InlineDataPart {
     text?: never;
     videoMetadata?: VideoMetadata;
 }
-
-// @public (undocumented)
-export type InstanceIdentifier = Backend;
 
 // @public
 export class IntegerSchema extends Schema {
@@ -871,14 +858,20 @@ export interface UsageMetadata {
 // @public (undocumented)
 export type VertexAI = GenAI;
 
-// @public (undocumented)
+// @public
 export type VertexAIBackend = {
     backendType: typeof BackendType.VERTEX_AI;
     location: string;
 };
 
-// @public (undocumented)
+// @public
 export function vertexAIBackend(location?: string): VertexAIBackend;
+
+// @public
+export const VertexAIError: typeof GenAIError;
+
+// @public
+export const VertexAIModel: typeof GenAIModel;
 
 // @public
 export interface VertexAIOptions {
