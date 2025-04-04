@@ -20,6 +20,7 @@ import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ChromeAdapter } from './chrome-adapter';
 import { Availability, LanguageModel } from '../types/language-model';
+import { stub } from 'sinon';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -55,6 +56,82 @@ describe('ChromeAdapter', () => {
           contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
         })
       ).to.be.true;
+    });
+    it('returns false and triggers download when model is available after download', async () => {
+      const languageModelProvider = {
+        availability: () => Promise.resolve(Availability.downloadable),
+        create: () => Promise.resolve({})
+      } as LanguageModel;
+      const createStub = stub(languageModelProvider, 'create').resolves(
+        {} as LanguageModel
+      );
+      const adapter = new ChromeAdapter(
+        languageModelProvider,
+        'prefer_on_device'
+      );
+      expect(
+        await adapter.isAvailable({
+          contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+        })
+      ).to.be.false;
+      expect(createStub).to.have.been.calledOnce;
+    });
+    it('avoids redundant downloads', async () => {
+      const languageModelProvider = {
+        availability: () => Promise.resolve(Availability.downloadable),
+        create: () => Promise.resolve({})
+      } as LanguageModel;
+      const downloadPromise = new Promise<LanguageModel>(() => {
+        /* never resolves */
+      });
+      const createStub = stub(languageModelProvider, 'create').returns(
+        downloadPromise
+      );
+      const adapter = new ChromeAdapter(languageModelProvider);
+      await adapter.isAvailable({
+        contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+      });
+      await adapter.isAvailable({
+        contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+      });
+      expect(createStub).to.have.been.calledOnce;
+    });
+    it('clears state when download completes', async () => {
+      const languageModelProvider = {
+        availability: () => Promise.resolve(Availability.downloadable),
+        create: () => Promise.resolve({})
+      } as LanguageModel;
+      let resolveDownload;
+      const downloadPromise = new Promise<LanguageModel>(resolveCallback => {
+        resolveDownload = resolveCallback;
+      });
+      const createStub = stub(languageModelProvider, 'create').returns(
+        downloadPromise
+      );
+      const adapter = new ChromeAdapter(languageModelProvider);
+      await adapter.isAvailable({
+        contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+      });
+      resolveDownload!();
+      await adapter.isAvailable({
+        contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+      });
+      expect(createStub).to.have.been.calledTwice;
+    });
+    it('returns false when model is never available', async () => {
+      const languageModelProvider = {
+        availability: () => Promise.resolve(Availability.unavailable),
+        create: () => Promise.resolve({})
+      } as LanguageModel;
+      const adapter = new ChromeAdapter(
+        languageModelProvider,
+        'prefer_on_device'
+      );
+      expect(
+        await adapter.isAvailable({
+          contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+        })
+      ).to.be.false;
     });
   });
 });

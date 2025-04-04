@@ -37,8 +37,9 @@ import { isChrome } from '@firebase/util';
  * and encapsulates logic for detecting when on-device is possible.
  */
 export class ChromeAdapter {
-  downloadPromise: Promise<LanguageModel> | undefined;
-  oldSession: LanguageModel | undefined;
+  private isDownloading = false;
+  private downloadPromise: Promise<LanguageModel | void> | undefined;
+  private oldSession: LanguageModel | undefined;
   constructor(
     private languageModelProvider?: LanguageModel,
     private mode?: InferenceMode,
@@ -152,16 +153,15 @@ export class ChromeAdapter {
     return true;
   }
   private download(): void {
-    if (this.downloadPromise) {
+    if (this.isDownloading) {
       return;
     }
+    this.isDownloading = true;
     this.downloadPromise = this.languageModelProvider
       ?.create(this.onDeviceParams)
-      .then((model: LanguageModel) => {
-        delete this.downloadPromise;
-        return model;
+      .then(() => {
+        this.isDownloading = false;
       });
-    return;
   }
   private static toSystemPrompt(
     prompt: string | Content | Part | undefined
