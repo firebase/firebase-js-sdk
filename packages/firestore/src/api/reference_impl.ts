@@ -17,6 +17,7 @@
 
 import { getModularInstance } from '@firebase/util';
 
+import { loadBundle, namedQuery } from '../api/database';
 import {
   CompleteFn,
   ErrorFn,
@@ -59,14 +60,20 @@ import {
   parseUpdateVarargs
 } from '../lite-api/user_data_reader';
 import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
+import { DocumentKey } from '../model/document_key';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { debugAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
-import { FirestoreError } from '../util/error';
+import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
-import { DocumentSnapshot, QuerySnapshot, SnapshotMetadata } from './snapshot';
+import {
+  DocumentSnapshot,
+  FirestoreDataConverter,
+  QuerySnapshot,
+  SnapshotMetadata
+} from './snapshot';
 
 /**
  * An options object that can be passed to {@link (onSnapshot:1)} and {@link
@@ -674,91 +681,258 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
+/// Bundle version
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
+  db: Firestore,
+  json: { bundle: string; bundleName: string; bundleSource: string },
+  onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void,
+  converter?: FirestoreDataConverter<DbModelType>
+): Unsubscribe;
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   reference:
     | Query<AppModelType, DbModelType>
-    | DocumentReference<AppModelType, DbModelType>,
+    | DocumentReference<AppModelType, DbModelType>
+    | Firestore,
   ...args: unknown[]
 ): Unsubscribe {
-  reference = getModularInstance(reference);
-
-  let options: SnapshotListenOptions = {
-    includeMetadataChanges: false,
-    source: 'default'
-  };
-  let currArg = 0;
-  if (typeof args[currArg] === 'object' && !isPartialObserver(args[currArg])) {
-    options = args[currArg] as SnapshotListenOptions;
-    currArg++;
-  }
-
-  const internalOptions = {
-    includeMetadataChanges: options.includeMetadataChanges,
-    source: options.source as ListenerDataSource
-  };
-
-  if (isPartialObserver(args[currArg])) {
-    const userObserver = args[currArg] as PartialObserver<
-      QuerySnapshot<AppModelType, DbModelType>
-    >;
-    args[currArg] = userObserver.next?.bind(userObserver);
-    args[currArg + 1] = userObserver.error?.bind(userObserver);
-    args[currArg + 2] = userObserver.complete?.bind(userObserver);
-  }
-
-  let observer: PartialObserver<ViewSnapshot>;
-  let firestore: Firestore;
-  let internalQuery: InternalQuery;
-
-  if (reference instanceof DocumentReference) {
-    firestore = cast(reference.firestore, Firestore);
-    internalQuery = newQueryForPath(reference._key.path);
-
-    observer = {
-      next: snapshot => {
-        if (args[currArg]) {
-          (
-            args[currArg] as NextFn<DocumentSnapshot<AppModelType, DbModelType>>
-          )(
-            convertToDocSnapshot(
-              firestore,
-              reference as DocumentReference<AppModelType, DbModelType>,
-              snapshot
-            )
-          );
-        }
-      },
-      error: args[currArg + 1] as ErrorFn,
-      complete: args[currArg + 2] as CompleteFn
+  if (reference instanceof Firestore) {
+    // onSnapshot for a QuerySnapshot or DocumentSnapshot bundle.
+    const db = getModularInstance(reference);
+    const json = args[0] as {
+      bundle: string;
+      bundleName: string;
+      bundleSource: string;
     };
+    const onError = args[2] as (error: FirestoreError) => void | undefined;
+    const onCompletion = args[3] as () => void | undefined;
+    const converter = args[4] as
+      | FirestoreDataConverter<DbModelType>
+      | undefined;
+
+    if (json.bundleSource === 'QuerySnapshot') {
+      const onNext = args[1] as (
+        snapshot: QuerySnapshot<AppModelType, DbModelType>
+      ) => void;
+      const converter = args[4] as
+        | FirestoreDataConverter<DbModelType>
+        | undefined;
+      return onSnapshotQuerySnapshotBundle(
+        db,
+        json,
+        onNext,
+        onError,
+        onCompletion,
+        converter
+      );
+    } else if (json.bundleSource === 'DocumentSnapshot') {
+      const onNext = args[1] as (
+        snapshot: DocumentSnapshot<AppModelType, DbModelType>
+      ) => void;
+      return onSnapshotDocumentSnapshotBundle(
+        db,
+        json,
+        onNext,
+        onError,
+        onCompletion,
+        converter
+      );
+    } else {
+      const e = new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `unsupported bundle source: ${json.bundleSource}`
+      );
+      if (onError) {
+        onError(e);
+      } else {
+        throw e;
+      }
+      return () => {};
+    }
   } else {
-    const query = cast<Query<AppModelType, DbModelType>>(reference, Query);
-    firestore = cast(query.firestore, Firestore);
-    internalQuery = query._query;
-    const userDataWriter = new ExpUserDataWriter(firestore);
+    // onSnapshot for Query or Document.
+    reference = getModularInstance(reference);
+    let options: SnapshotListenOptions = {
+      includeMetadataChanges: false,
+      source: 'default'
+    };
+    let currArg = 0;
+    if (
+      typeof args[currArg] === 'object' &&
+      !isPartialObserver(args[currArg])
+    ) {
+      options = args[currArg] as SnapshotListenOptions;
+      currArg++;
+    }
 
-    observer = {
-      next: snapshot => {
-        if (args[currArg]) {
-          (args[currArg] as NextFn<QuerySnapshot<AppModelType, DbModelType>>)(
-            new QuerySnapshot(firestore, userDataWriter, query, snapshot)
-          );
-        }
-      },
-      error: args[currArg + 1] as ErrorFn,
-      complete: args[currArg + 2] as CompleteFn
+    const internalOptions = {
+      includeMetadataChanges: options.includeMetadataChanges,
+      source: options.source as ListenerDataSource
     };
 
-    validateHasExplicitOrderByForLimitToLast(reference._query);
-  }
+    if (isPartialObserver(args[currArg])) {
+      const userObserver = args[currArg] as PartialObserver<
+        QuerySnapshot<AppModelType, DbModelType>
+      >;
+      args[currArg] = userObserver.next?.bind(userObserver);
+      args[currArg + 1] = userObserver.error?.bind(userObserver);
+      args[currArg + 2] = userObserver.complete?.bind(userObserver);
+    }
 
-  const client = ensureFirestoreConfigured(firestore);
-  return firestoreClientListen(
-    client,
-    internalQuery,
-    internalOptions,
-    observer
-  );
+    let observer: PartialObserver<ViewSnapshot>;
+    let firestore: Firestore;
+    let internalQuery: InternalQuery;
+
+    if (reference instanceof DocumentReference) {
+      firestore = cast(reference.firestore, Firestore);
+      internalQuery = newQueryForPath(reference._key.path);
+
+      observer = {
+        next: snapshot => {
+          if (args[currArg]) {
+            (
+              args[currArg] as NextFn<
+                DocumentSnapshot<AppModelType, DbModelType>
+              >
+            )(
+              convertToDocSnapshot(
+                firestore,
+                reference as DocumentReference<AppModelType, DbModelType>,
+                snapshot
+              )
+            );
+          }
+        },
+        error: args[currArg + 1] as ErrorFn,
+        complete: args[currArg + 2] as CompleteFn
+      };
+    } else {
+      const query = cast<Query<AppModelType, DbModelType>>(reference, Query);
+      firestore = cast(query.firestore, Firestore);
+      internalQuery = query._query;
+      const userDataWriter = new ExpUserDataWriter(firestore);
+
+      observer = {
+        next: snapshot => {
+          if (args[currArg]) {
+            (args[currArg] as NextFn<QuerySnapshot<AppModelType, DbModelType>>)(
+              new QuerySnapshot(firestore, userDataWriter, query, snapshot)
+            );
+          }
+        },
+        error: args[currArg + 1] as ErrorFn,
+        complete: args[currArg + 2] as CompleteFn
+      };
+
+      validateHasExplicitOrderByForLimitToLast(reference._query);
+    }
+
+    const client = ensureFirestoreConfigured(firestore);
+    return firestoreClientListen(
+      client,
+      internalQuery,
+      internalOptions,
+      observer
+    );
+  }
+}
+
+function onSnapshotDocumentSnapshotBundle<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  db: Firestore,
+  json: { bundle: string; bundleName: string; bundleSource: string },
+  onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void,
+  converter?: FirestoreDataConverter<DbModelType>
+): Unsubscribe {
+  let unsubscribed: boolean = false;
+  let internalUnsubscribe: Unsubscribe | undefined;
+  const bundle = json.bundle;
+  const loadTask = loadBundle(db, bundle);
+  loadTask
+    .then(() => {
+      const key = DocumentKey.fromPath(json.bundleName);
+      const docConverter = converter ? converter : null;
+      const docReference = new DocumentReference(db, docConverter, key);
+      const observer = {
+        next: onNext,
+        error: onError,
+        complete: onCompletion
+      };
+      internalUnsubscribe = onSnapshot(
+        docReference as DocumentReference<AppModelType, DbModelType>,
+        observer
+      );
+    })
+    .catch(e => {
+      if (onError) {
+        onError(e);
+      } else {
+        throw e;
+      }
+    });
+  return () => {
+    if (unsubscribed) {
+      return;
+    }
+    unsubscribed = true;
+    if (internalUnsubscribe) {
+      internalUnsubscribe();
+    }
+  };
+}
+
+function onSnapshotQuerySnapshotBundle<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  db: Firestore,
+  json: { bundle: string; bundleName: string; bundleSource: string },
+  onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void,
+  converter?: FirestoreDataConverter<DbModelType>
+): Unsubscribe {
+  let unsubscribed: boolean = false;
+  let internalUnsubscribe: Unsubscribe | undefined;
+  const bundle = json.bundle;
+  const loadTask = loadBundle(db, bundle);
+  loadTask
+    .then(() => namedQuery(db, json.bundleName))
+    .then(query => {
+      if (query && !unsubscribed) {
+        const realQuery: Query = (query as Query)!;
+        if (converter) {
+          realQuery.withConverter(converter);
+        }
+        internalUnsubscribe = onSnapshot(
+          query as Query<AppModelType, DbModelType>,
+          onNext,
+          onError,
+          onCompletion
+        );
+      }
+    })
+    .catch(e => {
+      if (onError) {
+        onError(e);
+      } else {
+        throw e;
+      }
+    });
+  return () => {
+    if (unsubscribed) {
+      return;
+    }
+    unsubscribed = true;
+    if (internalUnsubscribe) {
+      internalUnsubscribe();
+    }
+  };
 }
 
 // TODO(firestorexp): Make sure these overloads are tested via the Firestore
