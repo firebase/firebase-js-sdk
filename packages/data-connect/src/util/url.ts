@@ -16,27 +16,16 @@
  */
 
 import { DataConnectOptions, TransportOptions } from '../api/DataConnect';
-import { Code, DataConnectError } from '../core/error';
-import { logError } from '../logger';
 
 export function urlBuilder(
   projectConfig: DataConnectOptions,
   transportOptions: TransportOptions
 ): string {
   const { connector, location, projectId: project, service } = projectConfig;
-  const { host, sslEnabled, port } = transportOptions;
+  const { host, sslEnabled } = transportOptions;
   const protocol = sslEnabled ? 'https' : 'http';
   const realHost = host || `firebasedataconnect.googleapis.com`;
-  let baseUrl = `${protocol}://${realHost}`;
-  if (typeof port === 'number') {
-    baseUrl += `:${port}`;
-  } else if (typeof port !== 'undefined') {
-    logError('Port type is of an invalid type');
-    throw new DataConnectError(
-      Code.INVALID_ARGUMENT,
-      'Incorrect type for port passed in!'
-    );
-  }
+  const baseUrl = `${protocol}://${realHost}`;
   return `${baseUrl}/v1/projects/${project}/locations/${location}/services/${service}/connectors/${connector}`;
 }
 export function addToken(url: string, apiKey?: string): string {

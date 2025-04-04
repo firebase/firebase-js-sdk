@@ -57,8 +57,8 @@ export interface ConnectorConfig {
  */
 export interface TransportOptions {
   host: string;
-  sslEnabled?: boolean;
   port?: number;
+  sslEnabled?: boolean;
 }
 
 const FIREBASE_DATA_CONNECT_EMULATOR_HOST_VAR =
@@ -71,11 +71,22 @@ const FIREBASE_DATA_CONNECT_EMULATOR_HOST_VAR =
  * @internal
  */
 export function parseOptions(fullHost: string): TransportOptions {
-  const [protocol, hostName] = fullHost.split('://');
-  const isSecure = protocol === 'https';
-  const [host, portAsString] = hostName.split(':');
-  const port = Number(portAsString);
-  return { host, port, sslEnabled: isSecure };
+  const trimmedHost = fullHost.trim();
+  if (fullHost.includes('://')) {
+    const [protocol, host] = trimmedHost.split('://');
+    if (protocol !== 'http' && protocol !== 'https') {
+      throw new DataConnectError(
+        Code.INVALID_ARGUMENT,
+        `Protocol ${protocol} is not supported. Use 'http' or 'https' instead.`
+      );
+    }
+    const isSecure = protocol === 'https';
+    return { host, sslEnabled: isSecure };
+  }
+  return {
+    host: trimmedHost,
+    sslEnabled: false
+  };
 }
 /**
  * DataConnectOptions including project id
@@ -237,7 +248,8 @@ export function connectDataConnectEmulator(
   port?: number,
   sslEnabled = false
 ): void {
-  dc.enableEmulator({ host, port, sslEnabled });
+  const hostWithPort = port ? `${host}:${port}` : host;
+  dc.enableEmulator({ host: hostWithPort, sslEnabled });
 }
 
 /**

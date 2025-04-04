@@ -221,9 +221,6 @@ export class QueryManager {
 
     return newR;
   }
-  enableEmulator(host: string, port: number): void {
-    this.transport.useEmulator(host, port);
-  }
 }
 function compareDates(str1: string, str2: string): boolean {
   const date1 = new Date(str1);
