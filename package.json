@@ -47,7 +47,7 @@
     "size-report": "ts-node-script scripts/size_report/report_binary_size.ts",
     "modular-export-size-report": "ts-node-script scripts/size_report/report_modular_export_binary_size.ts",
     "api-report": "lerna run --scope @firebase/* api-report",
-    "xpostinstall": "patch-package && yarn --cwd repo-scripts/changelog-generator build",
+    "postinstall": "patch-package && yarn --cwd repo-scripts/changelog-generator build",
     "sa": "ts-node-script repo-scripts/size-analysis/cli.ts",
     "api-documenter-devsite": "ts-node-script repo-scripts/api-documenter/src/start.ts",
     "format": "ts-node ./scripts/format/format.ts"
