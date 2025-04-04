@@ -140,13 +140,12 @@ export class BundleBuilder {
    * dependency error.
    */
   addBundleQuery(queryBundleData: QuerySnapshotBundleData): void {
-    const name = AutoId.newId();
-    if (this.namedQueries.has(name)) {
+    if (this.namedQueries.has(queryBundleData.name)) {
       throw new Error(`Query name conflict: ${name} has already been added.`);
     }
     let latestReadTime = new Timestamp(0, 0);
     for (const docBundleData of queryBundleData.docBundleDataArray) {
-      this.addBundleDocument(docBundleData, name);
+      this.addBundleDocument(docBundleData, queryBundleData.name);
       if (docBundleData.readTime && docBundleData.readTime > latestReadTime) {
         latestReadTime = docBundleData.readTime;
       }
@@ -159,8 +158,8 @@ export class BundleBuilder {
       parent: queryBundleData.parent,
       structuredQuery: queryTarget.queryTarget.structuredQuery
     };
-    this.namedQueries.set(name, {
-      name,
+    this.namedQueries.set(queryBundleData.name, {
+      name: queryBundleData.name,
       bundledQuery,
       readTime: toTimestamp(this.serializer, latestReadTime)
     });
@@ -267,6 +266,7 @@ export interface DocumentSnapshotBundleData {
  * @internal
  */
 export interface QuerySnapshotBundleData {
+  name: string;
   query: Query;
   parent: string;
   docBundleDataArray: DocumentSnapshotBundleData[];

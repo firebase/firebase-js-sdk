@@ -66,7 +66,8 @@ import { FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
-import { DocumentSnapshot, QuerySnapshot, SnapshotMetadata } from './snapshot';
+import { DocumentSnapshot, FirestoreDataConverter, QuerySnapshot, SnapshotMetadata } from './snapshot';
+import { loadBundle, namedQuery } from '../api/database';
 
 /**
  * An options object that can be passed to {@link (onSnapshot:1)} and {@link
@@ -680,6 +681,7 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
     | DocumentReference<AppModelType, DbModelType>,
   ...args: unknown[]
 ): Unsubscribe {
+  console.log("DEDB Real onSnapshot");
   reference = getModularInstance(reference);
 
   let options: SnapshotListenOptions = {
@@ -732,6 +734,7 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
       complete: args[currArg + 2] as CompleteFn
     };
   } else {
+    console.log("DEDB real onSnapshot query");
     const query = cast<Query<AppModelType, DbModelType>>(reference, Query);
     firestore = cast(query.firestore, Firestore);
     internalQuery = query._query;
@@ -739,6 +742,7 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
 
     observer = {
       next: snapshot => {
+        console.log("DEDB onSnapshot  callback next invoked");
         if (args[currArg]) {
           (args[currArg] as NextFn<QuerySnapshot<AppModelType, DbModelType>>)(
             new QuerySnapshot(firestore, userDataWriter, query, snapshot)
@@ -759,6 +763,60 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
     internalOptions,
     observer
   );
+}
+
+export function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(
+  db: Firestore,
+  json: { bundle: string, bundleName: string, bundleSource: string },
+  onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void,
+  converter?: FirestoreDataConverter<DbModelType>
+): Unsubscribe {
+  let unsubscribed: boolean = false;
+  let internalUnsubscribe: Unsubscribe | undefined;
+  const bundle = json.bundle;
+
+  console.log("DEDB bundle: ", json);
+  console.log("DEDB bundle Type: ", json.bundleSource);
+
+  const loadTask = loadBundle(db, bundle);
+  if (json.bundleSource == 'QuerySnapshot') {
+    loadTask
+      .then(() => namedQuery(db, json.bundleName))
+      .then((query) => {
+        console.log("DEDB load Bundle task built query!");
+        console.log("DEDB query: ", query);
+        console.log("DEDB unsubscribed: ", unsubscribed)
+        if (query && !unsubscribed) {
+          let realQuery: Query = (query as Query)!;
+
+          if (converter) {
+            realQuery.withConverter(converter);
+          }
+          console.log("DEDB invoking real on Snapshot");
+          internalUnsubscribe = onSnapshot(
+            query as Query<AppModelType, DbModelType>,
+            onNext,
+            onError,
+            onCompletion);
+        }
+      });
+  } else {
+    // doc type
+  }
+
+  return () => {
+    if (unsubscribed) {
+      return;
+    }
+
+    unsubscribed = true;
+
+    if (internalUnsubscribe) {
+      internalUnsubscribe();
+    }
+  }
 }
 
 // TODO(firestorexp): Make sure these overloads are tested via the Firestore
@@ -816,8 +874,8 @@ export function onSnapshotsInSync(
   const observer = isPartialObserver(arg)
     ? (arg as PartialObserver<void>)
     : {
-        next: arg as () => void
-      };
+      next: arg as () => void
+    };
 
   return firestoreClientAddSnapshotsInSyncListener(client, observer);
 }

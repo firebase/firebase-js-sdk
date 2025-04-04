@@ -160,6 +160,7 @@ export {
   getDocsFromCache,
   getDocsFromServer,
   onSnapshot,
+  onSnapshotBundle,
   onSnapshotsInSync,
   setDoc,
   updateDoc

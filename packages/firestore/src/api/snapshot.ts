@@ -701,10 +701,12 @@ export class QuerySnapshot<
   toJSON(): object {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = {};
-    result['source'] = 'QuerySnapshot';
+    result['bundleSource'] = 'QuerySnapshot';
+    result['bundleName'] = AutoId.newId();
+
     const builder: BundleBuilder = new BundleBuilder(
       this._firestore,
-      AutoId.newId()
+      result['bundleName']
     );
     const databaseId = this._firestore._databaseId.database;
     const projectId = this._firestore._databaseId.projectId;
@@ -735,6 +737,7 @@ export class QuerySnapshot<
       );
     });
     const bundleData: QuerySnapshotBundleData = {
+      name: result['bundleName'],
       query: this.query._query,
       parent,
       docBundleDataArray
