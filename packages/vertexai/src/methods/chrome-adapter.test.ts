@@ -20,28 +20,130 @@ import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ChromeAdapter } from './chrome-adapter';
 import { stub } from 'sinon';
+import * as util from '@firebase/util';
 
 use(sinonChai);
 use(chaiAsPromised);
 
 describe('ChromeAdapter', () => {
-  describe('isOnDeviceRequest', () => {
-    it('returns true for simple text part', async () => {
+  describe('isAvailable', () => {
+    it('returns false if mode is only cloud', async () => {
+      const adapter = new ChromeAdapter(undefined, 'only_in_cloud');
       expect(
-        ChromeAdapter._isOnDeviceRequest({
-          contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
-        })
-      ).to.be.true;
-    });
-    it('returns false if contents empty', async () => {
-      expect(
-        ChromeAdapter._isOnDeviceRequest({
+        await adapter.isAvailable({
           contents: []
         })
       ).to.be.false;
     });
-  });
-  describe('isAvailable', () => {
+    it('returns false if browser is not Chrome', async () => {
+      const chromeStub = stub(util, 'isChrome').returns(false);
+      const adapter = new ChromeAdapter(undefined, 'prefer_on_device');
+      expect(
+        await adapter.isAvailable({
+          contents: []
+        })
+      ).to.be.false;
+      chromeStub.restore();
+    });
+    it('returns false if AI API is undefined', async () => {
+      const adapter = new ChromeAdapter(undefined, 'prefer_on_device');
+      expect(
+        await adapter.isAvailable({
+          contents: []
+        })
+      ).to.be.false;
+    });
+    it('returns false if LanguageModel API is undefined', async () => {
+      const adapter = new ChromeAdapter({} as AI, 'prefer_on_device');
+      expect(
+        await adapter.isAvailable({
+          contents: []
+        })
+      ).to.be.false;
+    });
+    it('returns false if request contents empty', async () => {
+      const adapter = new ChromeAdapter({} as AI, 'prefer_on_device');
+      expect(
+        await adapter.isAvailable({
+          contents: []
+        })
+      ).to.be.false;
+    });
+    it('returns false if request content has function role', async () => {
+      const adapter = new ChromeAdapter({} as AI, 'prefer_on_device');
+      expect(
+        await adapter.isAvailable({
+          contents: [
+            {
+              role: 'function',
+              parts: []
+            }
+          ]
+        })
+      ).to.be.false;
+    });
+    it('returns false if request content has multiple parts', async () => {
+      const adapter = new ChromeAdapter({} as AI, 'prefer_on_device');
+      expect(
+        await adapter.isAvailable({
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: 'a' }, { text: 'b' }]
+            }
+          ]
+        })
+      ).to.be.false;
+    });
+    it('returns false if request content has non-text part', async () => {
+      const adapter = new ChromeAdapter({} as AI, 'prefer_on_device');
+      expect(
+        await adapter.isAvailable({
+          contents: [
+            {
+              role: 'user',
+              parts: [{ inlineData: { mimeType: 'a', data: 'b' } }]
+            }
+          ]
+        })
+      ).to.be.false;
+    });
+    it('returns false if request system instruction has function role', async () => {
+      const adapter = new ChromeAdapter({} as AI, 'prefer_on_device');
+      expect(
+        await adapter.isAvailable({
+          contents: [],
+          systemInstruction: {
+            role: 'function',
+            parts: []
+          }
+        })
+      ).to.be.false;
+    });
+    it('returns false if request system instruction has multiple parts', async () => {
+      const adapter = new ChromeAdapter({} as AI, 'prefer_on_device');
+      expect(
+        await adapter.isAvailable({
+          contents: [],
+          systemInstruction: {
+            role: 'function',
+            parts: [{ text: 'a' }, { text: 'b' }]
+          }
+        })
+      ).to.be.false;
+    });
+    it('returns false if request system instruction has non-text part', async () => {
+      const adapter = new ChromeAdapter({} as AI, 'prefer_on_device');
+      expect(
+        await adapter.isAvailable({
+          contents: [],
+          systemInstruction: {
+            role: 'function',
+            parts: [{ inlineData: { mimeType: 'a', data: 'b' } }]
+          }
+        })
+      ).to.be.false;
+    });
     it('returns true if model is readily available', async () => {
       const aiProvider = {
         languageModel: {

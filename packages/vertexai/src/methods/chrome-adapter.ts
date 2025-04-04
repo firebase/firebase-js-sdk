@@ -60,7 +60,7 @@ export class ChromeAdapter {
       return false;
     }
     // Returns false if the request can't be run on-device.
-    if (!ChromeAdapter._isOnDeviceRequest(request)) {
+    if (!ChromeAdapter.isOnDeviceRequest(request)) {
       return false;
     }
     switch (await this.availability()) {
@@ -94,27 +94,7 @@ export class ChromeAdapter {
       functionCalls: () => undefined
     };
   }
-  // Visible for testing
-  static _isOnDeviceRequest(request: GenerateContentRequest): boolean {
-    if (request.systemInstruction) {
-      const systemContent = request.systemInstruction as Content;
-      // Returns false if the role can't be represented on-device.
-      if (systemContent.role && systemContent.role === 'function') {
-        return false;
-      }
-
-      // Returns false if the system prompt is multi-part.
-      if (systemContent.parts && systemContent.parts.length > 1) {
-        return false;
-      }
-
-      // Returns false if the system prompt isn't text.
-      const systemText = request.systemInstruction as TextPart;
-      if (!systemText.text) {
-        return false;
-      }
-    }
-
+  private static isOnDeviceRequest(request: GenerateContentRequest): boolean {
     // Returns false if the prompt is empty.
     if (request.contents.length === 0) {
       return false;
@@ -131,6 +111,25 @@ export class ChromeAdapter {
       }
 
       if (!content.parts[0].text) {
+        return false;
+      }
+    }
+
+    if (request.systemInstruction) {
+      const systemContent = request.systemInstruction as Content;
+      // Returns false if the role can't be represented on-device.
+      if (systemContent.role && systemContent.role === 'function') {
+        return false;
+      }
+
+      // Returns false if the system prompt is multi-part.
+      if (systemContent.parts && systemContent.parts.length > 1) {
+        return false;
+      }
+
+      // Returns false if the system prompt isn't text.
+      const systemText = request.systemInstruction as TextPart;
+      if (!systemText.text) {
         return false;
       }
     }
