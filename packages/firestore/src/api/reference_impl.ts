@@ -698,24 +698,60 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   ...args: unknown[]
 ): Unsubscribe {
   if (reference instanceof Firestore) {
-    // onSnapshot for a bundle
+    // onSnapshot for a QuerySnapshot or DocumentSnapshot bundle.
     const db = getModularInstance(reference);
     const json = args[0] as {
       bundle: string;
       bundleName: string;
       bundleSource: string;
     };
-    const onNext = args[1] as (
-      snapshot: QuerySnapshot<AppModelType, DbModelType>
-    ) => void;
     const onError = args[2] as (error: FirestoreError) => void | undefined;
     const onCompletion = args[3] as () => void | undefined;
     const converter = args[4] as
       | FirestoreDataConverter<DbModelType>
       | undefined;
-    return onSnapshotBundle(db, json, onNext, onError, onCompletion, converter);
+
+    if (json.bundleSource === 'QuerySnapshot') {
+      const onNext = args[1] as (
+        snapshot: QuerySnapshot<AppModelType, DbModelType>
+      ) => void;
+      const converter = args[4] as
+        | FirestoreDataConverter<DbModelType>
+        | undefined;
+      return onSnapshotQuerySnapshotBundle(
+        db,
+        json,
+        onNext,
+        onError,
+        onCompletion,
+        converter
+      );
+    } else if (json.bundleSource === 'DocumentSnapshot') {
+      const onNext = args[1] as (
+        snapshot: DocumentSnapshot<AppModelType, DbModelType>
+      ) => void;
+      return onSnapshotDocumentSnapshotBundle(
+        db,
+        json,
+        onNext,
+        onError,
+        onCompletion,
+        converter
+      );
+    } else {
+      const e = new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `unsupported bundle source: ${json.bundleSource}`
+      );
+      if (onError) {
+        onError(e);
+      } else {
+        throw e;
+      }
+      return () => {};
+    }
   } else {
-    // onSnapshot for QuerySnapshot or DocumentSnapshot
+    // onSnapshot for Query or Document.
     reference = getModularInstance(reference);
     let options: SnapshotListenOptions = {
       includeMetadataChanges: false,
@@ -802,7 +838,58 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   }
 }
 
-function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(
+function onSnapshotDocumentSnapshotBundle<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  db: Firestore,
+  json: { bundle: string; bundleName: string; bundleSource: string },
+  onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void,
+  converter?: FirestoreDataConverter<DbModelType>
+): Unsubscribe {
+  let unsubscribed: boolean = false;
+  let internalUnsubscribe: Unsubscribe | undefined;
+  const bundle = json.bundle;
+  const loadTask = loadBundle(db, bundle);
+  loadTask
+    .then(() => {
+      const key = DocumentKey.fromPath(json.bundleName);
+      const docConverter = converter ? converter : null;
+      const docReference = new DocumentReference(db, docConverter, key);
+      const observer = {
+        next: onNext,
+        error: onError,
+        complete: onCompletion
+      };
+      internalUnsubscribe = onSnapshot(
+        docReference as DocumentReference<AppModelType, DbModelType>,
+        observer
+      );
+    })
+    .catch(e => {
+      if (onError) {
+        onError(e);
+      } else {
+        throw e;
+      }
+    });
+  return () => {
+    if (unsubscribed) {
+      return;
+    }
+    unsubscribed = true;
+    if (internalUnsubscribe) {
+      internalUnsubscribe();
+    }
+  };
+}
+
+function onSnapshotQuerySnapshotBundle<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
   db: Firestore,
   json: { bundle: string; bundleName: string; bundleSource: string },
   onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
@@ -814,61 +901,29 @@ function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(
   let internalUnsubscribe: Unsubscribe | undefined;
   const bundle = json.bundle;
   const loadTask = loadBundle(db, bundle);
-  if (json.bundleSource === 'QuerySnapshot') {
-    loadTask
-      .then(() => namedQuery(db, json.bundleName))
-      .then(query => {
-        if (query && !unsubscribed) {
-          const realQuery: Query = (query as Query)!;
-          if (converter) {
-            realQuery.withConverter(converter);
-          }
-          internalUnsubscribe = onSnapshot(
-            query as Query<AppModelType, DbModelType>,
-            onNext,
-            onError,
-            onCompletion
-          );
+  loadTask
+    .then(() => namedQuery(db, json.bundleName))
+    .then(query => {
+      if (query && !unsubscribed) {
+        const realQuery: Query = (query as Query)!;
+        if (converter) {
+          realQuery.withConverter(converter);
         }
-      })
-      .catch(e => {
-        if (onError) {
-          onError(e);
-        } else {
-          throw e;
-        }
-      });
-  } else if (json.bundleSource === 'DocumentSnapshot') {
-    loadTask
-      .then(() => {
-        const key = DocumentKey.fromPath(json.bundleName);
-        const docConverter = converter ? converter : null;
-        const docReference = new DocumentReference(db, docConverter, key);
         internalUnsubscribe = onSnapshot(
-          docReference as DocumentReference<AppModelType, DbModelType>,
+          query as Query<AppModelType, DbModelType>,
           onNext,
           onError,
           onCompletion
         );
-      })
-      .catch(e => {
-        if (onError) {
-          onError(e);
-        } else {
-          throw e;
-        }
-      });
-  } else {
-    const error = new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `unsupported bundle source: ${json.bundleSource}`
-    );
-    if (onError) {
-      onError(error);
-    } else {
-      throw error;
-    }
-  }
+      }
+    })
+    .catch(e => {
+      if (onError) {
+        onError(e);
+      } else {
+        throw e;
+      }
+    });
   return () => {
     if (unsubscribed) {
       return;
