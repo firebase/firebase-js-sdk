@@ -16,16 +16,19 @@
  */
 
 import {
-  asCollectionPipelineAtPath,
-  canonifyPipeline,
+  CorePipeline,
   getPipelineCollection,
   getPipelineCollectionGroup,
   getPipelineDocuments,
-  getPipelineSourceType,
+  getPipelineSourceType
+} from '../core/pipeline';
+import {
+  asCollectionPipelineAtPath,
+  canonifyPipeline,
   isPipeline,
   QueryOrPipeline
 } from '../core/pipeline-util';
-import { CorePipeline, pipelineMatches } from '../core/pipeline_run';
+import { pipelineMatches } from '../core/pipeline_run';
 import {
   asCollectionQueryAtPath,
   isCollectionGroupQuery,

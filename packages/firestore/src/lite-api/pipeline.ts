@@ -121,6 +121,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   /**
    * @internal
    * @private
+   * @hideconstructor
    * @param _db
    * @param userDataReader
    * @param _userDataWriter
@@ -132,6 +133,10 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
      * @private
      */
     public _db: Firestore,
+    /**
+     * @internal
+     * @private
+     */
     readonly userDataReader: UserDataReader,
     /**
      * @internal

@@ -37,15 +37,9 @@ import { JsonProtoSerializer } from '../remote/serializer';
 import { Code } from '../util/error';
 
 import { toEvaluable } from './expressions';
+import { CorePipeline } from './pipeline';
 import { isPipeline, QueryOrPipeline } from './pipeline-util';
 import { queryMatches } from './query';
-
-export class CorePipeline {
-  constructor(
-    readonly serializer: JsonProtoSerializer,
-    readonly stages: Stage[]
-  ) {}
-}
 
 export type PipelineInputOutput = MutableDocument;
 

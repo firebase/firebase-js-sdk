@@ -17,6 +17,7 @@
 
 import { Timestamp } from '../api/timestamp';
 import { BundleMetadata, NamedQuery } from '../core/bundle';
+import { CorePipeline } from '../core/pipeline';
 import {
   canonifyTargetOrPipeline,
   TargetOrPipeline
@@ -24,6 +25,25 @@ import {
 import { LimitType, Query, queryWithLimit } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { targetIsDocumentTarget, targetIsPipelineTarget } from '../core/target';
+import {
+  BooleanExpr,
+  Constant,
+  Expr,
+  Field,
+  FunctionExpr,
+  Ordering
+} from '../lite-api/expressions';
+import {
+  CollectionGroupSource,
+  CollectionSource,
+  DatabaseSource,
+  DocumentsSource,
+  Limit,
+  Sort,
+  Stage,
+  Where
+} from '../lite-api/stage';
+import { fieldPathFromArgument } from '../lite-api/user_data_reader';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
@@ -42,14 +62,16 @@ import {
 } from '../protos/firestore_bundle_proto';
 import {
   DocumentsTarget as PublicDocumentsTarget,
-  PipelineQueryTarget as PublicPipelineQueryTarget
+  PipelineQueryTarget as ProtoPipelineQueryTarget,
+  PipelineQueryTarget as PublicPipelineQueryTarget,
+  Stage as ProtoStage,
+  Value as ProtoValue
 } from '../protos/firestore_proto_api';
 import {
   convertQueryTargetToQuery,
   fromDocument,
   fromDocumentsTarget,
   fromMutation,
-  fromPipelineTarget,
   fromQueryTarget,
   fromVersion,
   JsonProtoSerializer,
@@ -59,7 +81,7 @@ import {
   toPipelineTarget,
   toQueryTarget
 } from '../remote/serializer';
-import { debugAssert, fail } from '../util/assert';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 
 import {
@@ -514,4 +536,83 @@ export function toDbIndexState(
     documentKey: encodeResourcePath(offset.documentKey.path),
     largestBatchId: offset.largestBatchId
   };
+}
+
+export function fromPipelineTarget(
+  target: ProtoPipelineQueryTarget,
+  serializer: JsonProtoSerializer
+): CorePipeline {
+  const pipeline = target.structuredPipeline;
+  hardAssert(
+    (pipeline?.pipeline?.stages ?? []).length > 0,
+    'Deserializing pipeline without any stages.'
+  );
+
+  const stages = pipeline?.pipeline?.stages!.map(stageFromProto);
+
+  return new CorePipeline(serializer, stages!);
+}
+
+function stageFromProto(protoStage: ProtoStage): Stage {
+  switch (protoStage.name) {
+    case 'collection': {
+      return new CollectionSource(protoStage.args![0].referenceValue!);
+    }
+    case 'collection_group': {
+      return new CollectionGroupSource(protoStage.args![1].stringValue!);
+    }
+    case 'database': {
+      return new DatabaseSource();
+    }
+    case 'documents': {
+      return new DocumentsSource(
+        protoStage.args!.map(arg => arg.referenceValue!)
+      );
+    }
+    case 'where': {
+      return new Where(exprFromProto(protoStage.args![0]) as BooleanExpr);
+    }
+    case 'limit': {
+      const limitValue =
+        protoStage.args![0].integerValue ?? protoStage.args![0].doubleValue!;
+      return new Limit(
+        typeof limitValue === 'number' ? limitValue : Number(limitValue)
+      );
+    }
+    case 'sort': {
+      return new Sort(protoStage.args!.map(arg => orderingFromProto(arg)));
+    }
+    default: {
+      throw new Error(`Stage type: ${protoStage.name} not supported.`);
+    }
+  }
+}
+
+function exprFromProto(value: ProtoValue): Expr {
+  if (!!value.fieldReferenceValue) {
+    return new Field(
+      fieldPathFromArgument('_exprFromProto', value.fieldReferenceValue)
+    );
+  } else if (!!value.functionValue) {
+    return functionFromProto(value);
+  } else {
+    return Constant._fromProto(value);
+  }
+}
+
+function functionFromProto(value: ProtoValue): FunctionExpr {
+  // TODO(pipeline): When aggregation is supported, we need to return AggregateFunction for the functions
+  // with aggregate names (sum, count, etc).
+  return new FunctionExpr(
+    value.functionValue!.name!,
+    value.functionValue!.args?.map(exprFromProto) || []
+  );
+}
+
+function orderingFromProto(value: ProtoValue): Ordering {
+  const fields = value.mapValue?.fields!;
+  return new Ordering(
+    exprFromProto(fields.expression),
+    fields.direction?.stringValue! as 'ascending' | 'descending'
+  );
 }

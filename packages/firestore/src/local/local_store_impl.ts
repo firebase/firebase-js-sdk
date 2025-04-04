@@ -17,15 +17,14 @@
 
 import { User } from '../auth/user';
 import { BundleConverter, BundledDocuments, NamedQuery } from '../core/bundle';
+import { CorePipeline, getPipelineDocuments } from '../core/pipeline';
 import {
   canonifyTargetOrPipeline,
-  getPipelineDocuments,
   isPipeline,
   QueryOrPipeline,
   TargetOrPipeline,
   targetOrPipelineEqual
 } from '../core/pipeline-util';
-import { CorePipeline } from '../core/pipeline_run';
 import {
   newQueryForPath,
   queryCollectionGroup,

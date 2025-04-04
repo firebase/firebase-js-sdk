@@ -16,13 +16,8 @@
  */
 
 import { DatabaseId } from '../core/database_info';
-import {
-  getPipelineDocuments,
-  getPipelineFlavor,
-  getPipelineSourceType,
-  TargetOrPipeline
-} from '../core/pipeline-util';
-import { CorePipeline } from '../core/pipeline_run';
+import type { CorePipeline } from '../core/pipeline';
+import type { TargetOrPipeline } from '../core/pipeline-util';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { targetIsDocumentTarget, targetIsPipelineTarget } from '../core/target';
 import { TargetId } from '../core/types';
@@ -417,8 +412,8 @@ export class WatchChangeAggregator {
   isSingleDocumentTarget(target: TargetOrPipeline): boolean {
     if (targetIsPipelineTarget(target)) {
       return (
-        getPipelineSourceType(target) === 'documents' &&
-        getPipelineDocuments(target)?.length === 1
+        target.getPipelineSourceType() === 'documents' &&
+        target.getPipelineDocuments()?.length === 1
       );
     }
 
@@ -482,7 +477,7 @@ export class WatchChangeAggregator {
           // queries.
           const key = new DocumentKey(
             targetIsPipelineTarget(target)
-              ? ResourcePath.fromString(getPipelineDocuments(target)![0])
+              ? ResourcePath.fromString(target.getPipelineDocuments()![0])
               : target.path
           );
           this.removeDocumentFromTarget(
@@ -626,7 +621,7 @@ export class WatchChangeAggregator {
           // remove this special logic.
           const path = targetIsPipelineTarget(targetData.target)
             ? ResourcePath.fromString(
-                getPipelineDocuments(targetData.target)![0]
+                targetData.target.getPipelineDocuments()![0]
               )
             : targetData.target.path;
           const key = new DocumentKey(path);
@@ -725,9 +720,9 @@ export class WatchChangeAggregator {
       targetIsPipelineTarget(
         this.targetDataForActiveTarget(targetId)!.target
       ) &&
-      getPipelineFlavor(
+      (
         this.targetDataForActiveTarget(targetId)!.target as CorePipeline
-      ) !== 'exact'
+      ).getPipelineFlavor() !== 'exact'
     ) {
       this.pendingAugmentedDocumentUpdates =
         this.pendingAugmentedDocumentUpdates.insert(document.key, document);
@@ -794,9 +789,9 @@ export class WatchChangeAggregator {
         targetIsPipelineTarget(
           this.targetDataForActiveTarget(targetId)!.target
         ) &&
-        getPipelineFlavor(
+        (
           this.targetDataForActiveTarget(targetId)!.target as CorePipeline
-        ) !== 'exact'
+        ).getPipelineFlavor() !== 'exact'
       ) {
         this.pendingAugmentedDocumentUpdates =
           this.pendingAugmentedDocumentUpdates.insert(key, updatedDocument);

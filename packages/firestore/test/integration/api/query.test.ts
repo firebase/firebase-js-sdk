@@ -78,6 +78,10 @@ import {
   apiPipelineDescribe,
   PipelineMode
 } from '../util/helpers';
+import {
+  onSnapshot as onPipelineSnapshot,
+  execute
+} from '../util/pipeline_export';
 import { USE_EMULATOR } from '../util/settings';
 import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 
@@ -90,7 +94,7 @@ function getDocs(
       const ppl = queryOrPipeline.firestore
         .pipeline()
         .createFrom(queryOrPipeline);
-      return getDocsProd(
+      return execute(
         new RealtimePipeline(
           ppl._db,
           ppl.userDataReader,
@@ -99,7 +103,7 @@ function getDocs(
         )
       );
     } else {
-      return getDocsProd(queryOrPipeline);
+      return execute(queryOrPipeline);
     }
   }
 
@@ -135,7 +139,7 @@ function onSnapshot(
       const ppl = queryOrPipeline.firestore
         .pipeline()
         .createFrom(queryOrPipeline);
-      return onSnapshotProd(
+      return onPipelineSnapshot(
         new RealtimePipeline(
           ppl._db,
           ppl.userDataReader,
@@ -146,7 +150,7 @@ function onSnapshot(
         obs as any
       );
     } else {
-      return onSnapshotProd(queryOrPipeline, options as any, obs as any);
+      return onPipelineSnapshot(queryOrPipeline, options as any, obs as any);
     }
   }
 

@@ -28,8 +28,7 @@ import {
   Operator
 } from '../core/filter';
 import { Direction, OrderBy } from '../core/order_by';
-import { CorePipeline } from '../core/pipeline_run';
-import { stageFromProto } from '../core/pipeline_serialize';
+import { CorePipeline } from '../core/pipeline';
 import {
   LimitType,
   newQuery,
@@ -1094,21 +1093,6 @@ export function toLabel(purpose: TargetPurpose): string | null {
     default:
       return fail('Unrecognized query purpose: ' + purpose);
   }
-}
-
-export function fromPipelineTarget(
-  target: ProtoPipelineQueryTarget,
-  serializer: JsonProtoSerializer
-): CorePipeline {
-  const pipeline = target.structuredPipeline;
-  hardAssert(
-    (pipeline?.pipeline?.stages ?? []).length > 0,
-    'Deserializing pipeline without any stages.'
-  );
-
-  const stages = pipeline?.pipeline?.stages!.map(stageFromProto);
-
-  return new CorePipeline(serializer, stages!);
 }
 
 export function toPipelineTarget(

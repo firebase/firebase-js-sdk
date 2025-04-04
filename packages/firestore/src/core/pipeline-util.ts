@@ -64,7 +64,7 @@ import {
   isNullValue,
   VECTOR_MAP_VECTORS_KEY
 } from '../model/values';
-import { debugAssert, fail } from '../util/assert';
+import { fail } from '../util/assert';
 
 import { Bound } from './bound';
 import {
@@ -75,7 +75,7 @@ import {
   Operator
 } from './filter';
 import { Direction } from './order_by';
-import { CorePipeline } from './pipeline_run';
+import { CorePipeline } from './pipeline';
 import {
   canonifyQuery,
   isCollectionGroupQuery,
@@ -431,78 +431,11 @@ export function pipelineEq(left: CorePipeline, right: CorePipeline): boolean {
 
 export type PipelineFlavor = 'exact' | 'augmented' | 'keyless';
 
-export function getPipelineFlavor(p: CorePipeline): PipelineFlavor {
-  let flavor: PipelineFlavor = 'exact';
-  p.stages.forEach((stage, index) => {
-    if (stage.name === Distinct.name || stage.name === Aggregate.name) {
-      flavor = 'keyless';
-    }
-    if (stage.name === Select.name && flavor === 'exact') {
-      flavor = 'augmented';
-    }
-    // TODO(pipeline): verify the last stage is addFields, and it is added by the SDK.
-    if (
-      stage.name === AddFields.name &&
-      index < p.stages.length - 1 &&
-      flavor === 'exact'
-    ) {
-      flavor = 'augmented';
-    }
-  });
-
-  return flavor;
-}
-
 export type PipelineSourceType =
   | 'collection'
   | 'collection_group'
   | 'database'
   | 'documents';
-
-export function getPipelineSourceType(
-  p: CorePipeline
-): PipelineSourceType | 'unknown' {
-  debugAssert(p.stages.length > 0, 'Pipeline must have at least one stage');
-  const source = p.stages[0];
-
-  if (
-    source instanceof CollectionSource ||
-    source instanceof CollectionGroupSource ||
-    source instanceof DatabaseSource ||
-    source instanceof DocumentsSource
-  ) {
-    return source.name as PipelineSourceType;
-  }
-
-  return 'unknown';
-}
-
-export function getPipelineCollection(p: CorePipeline): string | undefined {
-  if (getPipelineSourceType(p) === 'collection') {
-    return (p.stages[0] as CollectionSource).collectionPath;
-  }
-  return undefined;
-}
-
-export function getPipelineCollectionGroup(
-  p: CorePipeline
-): string | undefined {
-  if (getPipelineSourceType(p) === 'collection_group') {
-    return (p.stages[0] as CollectionGroupSource).collectionId;
-  }
-  return undefined;
-}
-
-export function getPipelineCollectionId(p: CorePipeline): string | undefined {
-  switch (getPipelineSourceType(p)) {
-    case 'collection':
-      return ResourcePath.fromString(getPipelineCollection(p)!).lastSegment();
-    case 'collection_group':
-      return getPipelineCollectionGroup(p);
-    default:
-      return undefined;
-  }
-}
 
 export function asCollectionPipelineAtPath(
   pipeline: CorePipeline,
@@ -517,13 +450,6 @@ export function asCollectionPipelineAtPath(
   });
 
   return new CorePipeline(pipeline.serializer, newStages);
-}
-
-export function getPipelineDocuments(p: CorePipeline): string[] | undefined {
-  if (getPipelineSourceType(p) === 'documents') {
-    return (p.stages[0] as DocumentsSource).docPaths;
-  }
-  return undefined;
 }
 
 export type QueryOrPipeline = Query | CorePipeline;

@@ -41,6 +41,7 @@ import {
   QueryListener,
   removeSnapshotsInSyncListener
 } from '../../../src/core/event_manager';
+import { CorePipeline } from '../../../src/core/pipeline';
 import {
   canonifyPipeline,
   canonifyQueryOrPipeline,
@@ -50,7 +51,6 @@ import {
   toCorePipeline,
   toPipeline
 } from '../../../src/core/pipeline-util';
-import { CorePipeline } from '../../../src/core/pipeline_run';
 import {
   canonifyQuery,
   LimitType,

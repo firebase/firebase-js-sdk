@@ -88,10 +88,9 @@ import {
   eventManagerOnWatchError
 } from './event_manager';
 import { ListenSequence } from './listen_sequence';
+import { getPipelineCollectionId, getPipelineSourceType } from './pipeline';
 import {
   canonifyQueryOrPipeline,
-  getPipelineCollectionId,
-  getPipelineSourceType,
   isPipeline,
   QueryOrPipeline,
   queryOrPipelineEqual,

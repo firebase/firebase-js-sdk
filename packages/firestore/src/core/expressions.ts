@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { RE2JS } from 're2js';
+import { RE2JS as re2js } from 're2js';
 
 import {
   Field,
@@ -234,7 +234,7 @@ export class CoreField implements EvaluableExpr {
         timestampValue: toVersion(context.serializer, input.createTime)
       };
     }
-    return input.data.field(this.expr.fieldPath) ?? undefined;
+    return input.data.field(this.expr._fieldPath) ?? undefined;
   }
 }
 
@@ -1378,7 +1378,7 @@ export class CoreLike implements EvaluableExpr {
     }
 
     return {
-      booleanValue: RE2JS.matches(
+      booleanValue: re2js.matches(
         likeToRegex(pattern.stringValue),
         evaluated.stringValue
       )
@@ -1409,7 +1409,7 @@ export class CoreRegexContains implements EvaluableExpr {
     }
 
     try {
-      const regex = RE2JS.compile(pattern.stringValue);
+      const regex = re2js.compile(pattern.stringValue);
       return {
         booleanValue: regex.matcher(evaluated.stringValue).find()
       };
@@ -1445,11 +1445,11 @@ export class CoreRegexMatch implements EvaluableExpr {
     }
 
     try {
-      const regex = RE2JS.compile(pattern.stringValue);
+      const regex = re2js.compile(pattern.stringValue);
       return {
-        booleanValue: RE2JS.compile(pattern.stringValue).matches(
-          evaluated.stringValue
-        )
+        booleanValue: re2js
+          .compile(pattern.stringValue)
+          .matches(evaluated.stringValue)
       };
     } catch (RE2JSError) {
       logWarn(

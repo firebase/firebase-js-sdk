@@ -30,6 +30,10 @@ export class RealtimePipeline {
      * @private
      */
     public _db: Firestore,
+    /**
+     * @internal
+     * @private
+     */
     readonly userDataReader: UserDataReader,
     /**
      * @internal
@@ -46,6 +50,7 @@ export class RealtimePipeline {
    * @param expressionMap
    * @return the expressionMap argument.
    * @private
+   * @internal
    */
   protected readUserData<
     T extends
@@ -73,9 +78,8 @@ export class RealtimePipeline {
    * @param userDataWriter
    * @param stages
    * @param converter
-   * @protected
    */
-  protected newPipeline(
+  newPipeline(
     db: Firestore,
     userDataReader: UserDataReader,
     userDataWriter: AbstractUserDataWriter,
