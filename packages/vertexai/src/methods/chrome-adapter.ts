@@ -27,8 +27,9 @@ import {
   Availability,
   LanguageModel,
   LanguageModelCreateOptions,
+  LanguageModelMessage,
   LanguageModelMessageRole,
-  LanguageModelMessageShorthand
+  LanguageModelMessageContent
 } from '../types/language-model';
 import { isChrome } from '@firebase/util';
 
@@ -85,17 +86,13 @@ export class ChromeAdapter {
   async generateContentOnDevice(
     request: GenerateContentRequest
   ): Promise<Response> {
-    const initialPrompts = ChromeAdapter.toInitialPrompts(request.contents);
-    // Assumes validation asserted there is at least one initial prompt.
-    const prompt = initialPrompts.pop()!;
-    const systemPrompt = ChromeAdapter.toSystemPrompt(
-      request.systemInstruction
+    const session = await this.session(
+      // TODO: normalize on-device params during construction.
+      this.onDeviceParams || {}
     );
-    const session = await this.session({
-      initialPrompts,
-      systemPrompt
-    });
-    const text = await session.prompt(prompt.content);
+    const messages = ChromeAdapter.toLanguageModelMessages(request.contents);
+    const text = await session.prompt(messages);
+    console.log(text);
     return {
       json: () =>
         Promise.resolve({
@@ -162,44 +159,29 @@ export class ChromeAdapter {
         this.isDownloading = false;
       });
   }
-  private static toSystemPrompt(
-    prompt: string | Content | Part | undefined
-  ): string | undefined {
-    if (!prompt) {
-      return undefined;
-    }
-
-    if (typeof prompt === 'string') {
-      return prompt;
-    }
-
-    const systemContent = prompt as Content;
-    if (
-      systemContent.parts &&
-      systemContent.parts[0] &&
-      systemContent.parts[0].text
-    ) {
-      return systemContent.parts[0].text;
-    }
-
-    const systemPart = prompt as Part;
-    if (systemPart.text) {
-      return systemPart.text;
-    }
-
-    return undefined;
-  }
   private static toOnDeviceRole(role: Role): LanguageModelMessageRole {
     return role === 'model' ? 'assistant' : 'user';
   }
-  private static toInitialPrompts(
+  private static toLanguageModelMessages(
     contents: Content[]
-  ): LanguageModelMessageShorthand[] {
+  ): LanguageModelMessage[] {
     return contents.map(c => ({
       role: ChromeAdapter.toOnDeviceRole(c.role),
-      // Assumes contents have been verified to contain only a single TextPart.
-      content: c.parts[0].text!
+      content: c.parts.map(ChromeAdapter.toLanguageModelMessageContent)
     }));
+  }
+  private static toLanguageModelMessageContent(
+    part: Part
+  ): LanguageModelMessageContent {
+    if (part.text) {
+      return {
+        type: 'text',
+        content: part.text
+      };
+    }
+    // Assumes contents have been verified to contain only a single TextPart.
+    // TODO: support other input types
+    throw new Error('Not yet implemented');
   }
   private async session(
     opts: LanguageModelCreateOptions

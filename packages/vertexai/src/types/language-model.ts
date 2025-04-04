@@ -56,22 +56,22 @@ interface LanguageModelExpectedInput {
   type: LanguageModelMessageType;
   languages?: string[];
 }
-type LanguageModelPrompt =
+export type LanguageModelPrompt =
   | LanguageModelMessage[]
   | LanguageModelMessageShorthand[]
   | string;
 type LanguageModelInitialPrompts =
   | LanguageModelMessage[]
   | LanguageModelMessageShorthand[];
-interface LanguageModelMessage {
+export interface LanguageModelMessage {
   role: LanguageModelMessageRole;
   content: LanguageModelMessageContent[];
 }
-export interface LanguageModelMessageShorthand {
+interface LanguageModelMessageShorthand {
   role: LanguageModelMessageRole;
   content: string;
 }
-interface LanguageModelMessageContent {
+export interface LanguageModelMessageContent {
   type: LanguageModelMessageType;
   content: LanguageModelMessageContentValue;
 }
