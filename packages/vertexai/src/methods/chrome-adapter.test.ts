@@ -173,13 +173,18 @@ describe('ChromeAdapter', () => {
       const createStub = stub(aiProvider.languageModel, 'create').resolves(
         {} as AILanguageModel
       );
-      const adapter = new ChromeAdapter(aiProvider, 'prefer_on_device');
+      const onDeviceParams = {} as AILanguageModelCreateOptionsWithSystemPrompt;
+      const adapter = new ChromeAdapter(
+        aiProvider,
+        'prefer_on_device',
+        onDeviceParams
+      );
       expect(
         await adapter.isAvailable({
           contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
         })
       ).to.be.false;
-      expect(createStub).to.have.been.calledOnce;
+      expect(createStub).to.have.been.calledOnceWith(onDeviceParams);
     });
     it('avoids redundant downloads', async () => {
       const aiProvider = {
@@ -248,6 +253,69 @@ describe('ChromeAdapter', () => {
           contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
         })
       ).to.be.false;
+    });
+  });
+  describe('generateContentOnDevice', () => {
+    it('Extracts and concats initial prompts', async () => {
+      const aiProvider = {
+        languageModel: {
+          create: () => Promise.resolve({})
+        }
+      } as AI;
+      const factoryStub = stub(aiProvider.languageModel, 'create').resolves({
+        prompt: s => Promise.resolve(s)
+      } as AILanguageModel);
+      const text = ['first', 'second', 'third'];
+      const onDeviceParams = {
+        initialPrompts: [{ role: 'user', content: text[0] }]
+      } as AILanguageModelCreateOptionsWithSystemPrompt;
+      const adapter = new ChromeAdapter(
+        aiProvider,
+        'prefer_on_device',
+        onDeviceParams
+      );
+      const response = await adapter.generateContentOnDevice({
+        contents: [
+          { role: 'model', parts: [{ text: text[1] }] },
+          { role: 'user', parts: [{ text: text[2] }] }
+        ]
+      });
+      expect(factoryStub).to.have.been.calledOnceWith({
+        initialPrompts: [
+          { role: 'user', content: text[0] },
+          // Asserts tail is passed as initial prompts, and
+          // role is normalized from model to assistant.
+          { role: 'assistant', content: text[1] }
+        ]
+      });
+      expect(response.text()).to.equal(text[2]);
+    });
+    it('Extracts system prompt', async () => {
+      const aiProvider = {
+        languageModel: {
+          create: () => Promise.resolve({})
+        }
+      } as AI;
+      const factoryStub = stub(aiProvider.languageModel, 'create').resolves({
+        prompt: s => Promise.resolve(s)
+      } as AILanguageModel);
+      const onDeviceParams = {
+        systemPrompt: 'be yourself'
+      } as AILanguageModelCreateOptionsWithSystemPrompt;
+      const adapter = new ChromeAdapter(
+        aiProvider,
+        'prefer_on_device',
+        onDeviceParams
+      );
+      const text = 'hi';
+      const response = await adapter.generateContentOnDevice({
+        contents: [{ role: 'user', parts: [{ text }] }]
+      });
+      expect(factoryStub).to.have.been.calledOnceWith({
+        initialPrompts: [],
+        systemPrompt: onDeviceParams.systemPrompt
+      });
+      expect(response.text()).to.equal(text);
     });
   });
 });

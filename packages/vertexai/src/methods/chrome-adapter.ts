@@ -21,7 +21,6 @@ import {
   EnhancedGenerateContentResponse,
   GenerateContentRequest,
   InferenceMode,
-  Part,
   Role,
   TextPart
 } from '../types';
@@ -78,16 +77,13 @@ export class ChromeAdapter {
   async generateContentOnDevice(
     request: GenerateContentRequest
   ): Promise<EnhancedGenerateContentResponse> {
-    const initialPrompts = ChromeAdapter.toInitialPrompts(request.contents);
+    const createOptions = this.onDeviceParams || {};
+    createOptions.initialPrompts ??= [];
+    const extractedInitialPrompts = ChromeAdapter.toInitialPrompts(request.contents);
     // Assumes validation asserted there is at least one initial prompt.
-    const prompt = initialPrompts.pop()!;
-    const systemPrompt = ChromeAdapter.toSystemPrompt(
-      request.systemInstruction
-    );
-    const session = await this.session({
-      initialPrompts,
-      systemPrompt
-    });
+    const prompt = extractedInitialPrompts.pop()!;
+    createOptions.initialPrompts.push(...extractedInitialPrompts);
+    const session = await this.session(createOptions);
     const result = await session.prompt(prompt.content);
     return {
       text: () => result,
@@ -152,33 +148,6 @@ export class ChromeAdapter {
         this.isDownloading = false;
       });
   }
-  private static toSystemPrompt(
-    prompt: string | Content | Part | undefined
-  ): string | undefined {
-    if (!prompt) {
-      return undefined;
-    }
-
-    if (typeof prompt === 'string') {
-      return prompt;
-    }
-
-    const systemContent = prompt as Content;
-    if (
-      systemContent.parts &&
-      systemContent.parts[0] &&
-      systemContent.parts[0].text
-    ) {
-      return systemContent.parts[0].text;
-    }
-
-    const systemPart = prompt as Part;
-    if (systemPart.text) {
-      return systemPart.text;
-    }
-
-    return undefined;
-  }
   private static toOnDeviceRole(role: Role): AILanguageModelPromptRole {
     return role === 'model' ? 'assistant' : 'user';
   }
@@ -192,9 +161,9 @@ export class ChromeAdapter {
     }));
   }
   private async session(
-    opts: AILanguageModelCreateOptionsWithSystemPrompt
+    options: AILanguageModelCreateOptionsWithSystemPrompt
   ): Promise<AILanguageModel> {
-    const newSession = await this.aiProvider!.languageModel.create(opts);
+    const newSession = await this.aiProvider!.languageModel.create(options);
     if (this.oldSession) {
       this.oldSession.destroy();
     }
