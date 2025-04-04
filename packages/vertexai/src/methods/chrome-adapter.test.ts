@@ -19,9 +19,14 @@ import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ChromeAdapter } from './chrome-adapter';
-import { Availability, LanguageModel } from '../types/language-model';
+import {
+  Availability,
+  LanguageModel,
+  LanguageModelCreateOptions
+} from '../types/language-model';
 import { stub } from 'sinon';
 import * as util from '@firebase/util';
+import { GenerateContentRequest } from '../types';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -191,16 +196,18 @@ describe('ChromeAdapter', () => {
       const createStub = stub(languageModelProvider, 'create').resolves(
         {} as LanguageModel
       );
+      const onDeviceParams = {} as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
-        'prefer_on_device'
+        'prefer_on_device',
+        onDeviceParams
       );
       expect(
         await adapter.isAvailable({
           contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
         })
       ).to.be.false;
-      expect(createStub).to.have.been.calledOnce;
+      expect(createStub).to.have.been.calledOnceWith(onDeviceParams);
     });
     it('avoids redundant downloads', async () => {
       const languageModelProvider = {
@@ -258,6 +265,57 @@ describe('ChromeAdapter', () => {
           contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
         })
       ).to.be.false;
+    });
+  });
+  describe('generateContentOnDevice', () => {
+    it('generates content', async () => {
+      const languageModelProvider = {
+        create: () => Promise.resolve({})
+      } as LanguageModel;
+      const languageModel = {
+        prompt: i => Promise.resolve(i)
+      } as LanguageModel;
+      const createStub = stub(languageModelProvider, 'create').resolves(
+        languageModel
+      );
+      const promptOutput = 'hi';
+      const promptStub = stub(languageModel, 'prompt').resolves(promptOutput);
+      const onDeviceParams = {
+        systemPrompt: 'be yourself'
+      } as LanguageModelCreateOptions;
+      const adapter = new ChromeAdapter(
+        languageModelProvider,
+        'prefer_on_device',
+        onDeviceParams
+      );
+      const request = {
+        contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
+      } as GenerateContentRequest;
+      const response = await adapter.generateContentOnDevice(request);
+      // Asserts initialization params are proxied.
+      expect(createStub).to.have.been.calledOnceWith(onDeviceParams);
+      // Asserts Vertex input type is mapped to Chrome type.
+      expect(promptStub).to.have.been.calledOnceWith([
+        {
+          role: request.contents[0].role,
+          content: [
+            {
+              type: 'text',
+              content: request.contents[0].parts[0].text
+            }
+          ]
+        }
+      ]);
+      // Asserts expected output.
+      expect(await response.json()).to.deep.equal({
+        candidates: [
+          {
+            content: {
+              parts: [{ text: promptOutput }]
+            }
+          }
+        ]
+      });
     });
   });
 });
