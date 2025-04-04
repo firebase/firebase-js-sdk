@@ -81,6 +81,12 @@ describe('Data Connect Test', () => {
     expect(parsedHost.host).to.eq(host);
     expect(parsedHost.sslEnabled).to.be.false;
   });
+  it('should parse ipv6 localhost addresses correctly', async () => {
+    const host = '[::1]:8080';
+    const parsedHost = parseOptions(host);
+    expect(parsedHost.host).to.eq(host);
+    expect(parsedHost.sslEnabled).to.be.false;
+  });
   it('should throw for non-http protocols', async () => {
     const host = 'ftp://localhost';
     expect(() => parseOptions(host)).to.throw(
