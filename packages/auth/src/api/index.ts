@@ -76,11 +76,13 @@ export const enum Endpoint {
 }
 
 const CookieAuthProxiedEndpoints: string[] = [
+  Endpoint.FINALIZE_MFA_SIGN_IN,
   Endpoint.SIGN_IN_WITH_CUSTOM_TOKEN,
   Endpoint.SIGN_IN_WITH_EMAIL_LINK,
   Endpoint.SIGN_IN_WITH_IDP,
   Endpoint.SIGN_IN_WITH_PASSWORD,
   Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+  Endpoint.SIGN_UP,
   Endpoint.TOKEN
 ];
 
@@ -291,7 +293,7 @@ export async function _getFinalTarget(
     if (authInternal._getPersistenceType() === PersistenceType.COOKIE) {
       const cookiePersistence =
         authInternal._getPersistence() as CookiePersistence;
-      return cookiePersistence._getFinalTarget(finalTarget).toString();
+      return cookiePersistence._getFinalTarget(auth, finalTarget).toString();
     }
   }
 
