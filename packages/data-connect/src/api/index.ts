@@ -24,7 +24,6 @@ export { setLogLevel } from '../logger';
 export { validateArgs } from '../util/validateArgs';
 export {
   DataConnectErrorCode,
-  DataConnectError,
   DataConnectOperationError,
   DataConnectOperationFailureResponse,
   DataConnectOperationFailureResponseErrorInfo

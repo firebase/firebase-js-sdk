@@ -7,7 +7,6 @@
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { FirebaseError } from '@firebase/util';
 import { LogLevelString } from '@firebase/logger';
 import { Provider } from '@firebase/component';
 
@@ -52,17 +51,20 @@ export class DataConnect {
     setInitialized(): void;
 }
 
-// @public
-export class DataConnectError extends FirebaseError {
-    }
-
 // @public (undocumented)
 export type DataConnectErrorCode = 'other' | 'already-initialized' | 'not-initialized' | 'not-supported' | 'invalid-argument' | 'partial-error' | 'unauthorized';
 
 // @public
-export class DataConnectOperationError extends DataConnectError {
+export class DataConnectOperationError {
     /* Excluded from this release type: name */
+    code: string;
+    customData?: Record<string, unknown>;
+    // (undocumented)
+    message: string;
+    name: string;
     readonly response: DataConnectOperationFailureResponse;
+    // (undocumented)
+    stack?: string;
 }
 
 // @public (undocumented)
@@ -96,7 +98,7 @@ export interface DataConnectResult<Data, Variables> extends OpResult<Data> {
 // @public
 export interface DataConnectSubscription<Data, Variables> {
     // (undocumented)
-    errCallback?: (e?: DataConnectError) => void;
+    errCallback?: (e?: DataConnectOperationError) => void;
     // (undocumented)
     unsubscribe: () => void;
     // (undocumented)
@@ -147,7 +149,7 @@ export interface MutationResult<Data, Variables> extends DataConnectResult<Data,
 export type OnCompleteSubscription = () => void;
 
 // @public
-export type OnErrorSubscription = (err?: DataConnectError) => void;
+export type OnErrorSubscription = (err?: DataConnectOperationError) => void;
 
 // @public
 export type OnResultSubscription<Data, Variables> = (res: QueryResult<Data, Variables>) => void;
