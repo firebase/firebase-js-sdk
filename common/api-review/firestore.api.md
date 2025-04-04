@@ -462,6 +462,13 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(query
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, options: SnapshotListenOptions, onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
 
 // @public (undocumented)
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(db: Firestore, json: {
+    bundle: string;
+    bundleName: string;
+    bundleSource: string;
+}, onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public (undocumented)
 export function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(db: Firestore, json: {
     bundle: string;
     bundleName: string;

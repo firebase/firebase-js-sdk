@@ -44,7 +44,6 @@ import {
   Document as ProtoDocument,
   Document
 } from '../protos/firestore_proto_api';
-import { AutoId } from '../util/misc';
 
 const BUNDLE_VERSION = 1;
 
