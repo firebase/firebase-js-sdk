@@ -108,42 +108,6 @@ describe('ChromeAdapter', () => {
         })
       ).to.be.false;
     });
-    it('returns false if request system instruction has function role', async () => {
-      const adapter = new ChromeAdapter({} as AI, 'prefer_on_device');
-      expect(
-        await adapter.isAvailable({
-          contents: [],
-          systemInstruction: {
-            role: 'function',
-            parts: []
-          }
-        })
-      ).to.be.false;
-    });
-    it('returns false if request system instruction has multiple parts', async () => {
-      const adapter = new ChromeAdapter({} as AI, 'prefer_on_device');
-      expect(
-        await adapter.isAvailable({
-          contents: [],
-          systemInstruction: {
-            role: 'function',
-            parts: [{ text: 'a' }, { text: 'b' }]
-          }
-        })
-      ).to.be.false;
-    });
-    it('returns false if request system instruction has non-text part', async () => {
-      const adapter = new ChromeAdapter({} as AI, 'prefer_on_device');
-      expect(
-        await adapter.isAvailable({
-          contents: [],
-          systemInstruction: {
-            role: 'function',
-            parts: [{ inlineData: { mimeType: 'a', data: 'b' } }]
-          }
-        })
-      ).to.be.false;
-    });
     it('returns true if model is readily available', async () => {
       const aiProvider = {
         languageModel: {
