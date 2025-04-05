@@ -34,7 +34,7 @@ jobs:
     - name: Set up Node (20)
       uses: actions/setup-node@v4
       with:
-        node-version: 22.10.0
+        node-version: 22.14.0
     - name: Yarn install
       run: yarn
     - name: Deploy canary

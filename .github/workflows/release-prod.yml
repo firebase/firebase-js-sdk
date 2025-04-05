@@ -35,7 +35,7 @@ jobs:
     - name: Set up node (20)
       uses: actions/setup-node@v4
       with:
-        node-version: 22.10.0
+        node-version: 22.14.0
     - name: Checkout release branch (with history)
       uses: actions/checkout@v4
       with:
