@@ -30,6 +30,7 @@ import { debugAssert } from '../util/assert';
 import { PipelineFlavor, PipelineSourceType } from './pipeline-util';
 
 export class CorePipeline {
+  isCorePipeline = true;
   constructor(
     readonly serializer: JsonProtoSerializer,
     readonly stages: Stage[]

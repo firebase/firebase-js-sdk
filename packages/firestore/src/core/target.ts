@@ -221,11 +221,12 @@ export function targetIsPipelineTarget(
   target: TargetOrPipeline
 ): target is CorePipeline {
   // Workaround for circular dependency
-  return target.constructor.name === 'CorePipeline';
+  return !!(target as CorePipeline).isCorePipeline;
 }
 
 export function targetIsDocumentTarget(target: Target): boolean {
   return (
+    !!target.path &&
     DocumentKey.isDocumentKey(target.path) &&
     target.collectionGroup === null &&
     target.filters.length === 0
