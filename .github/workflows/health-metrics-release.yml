@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # This commit represents v0.8.3
-      - uses: 'google-github-actions/auth@c4799db9111fba4461e9f9da8732e5057b394f72'
+      - uses: 'google-github-actions/auth@71f986410dfbc7added4569d411d040a91dc6935'
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
       # This commit represents v2.1.4
