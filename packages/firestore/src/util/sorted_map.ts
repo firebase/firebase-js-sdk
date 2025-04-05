@@ -511,14 +511,20 @@ export class LLRBNode<K, V> {
   // leaves is equal on both sides.  This function verifies that or asserts.
   protected check(): number {
     if (this.isRed() && this.left.isRed()) {
-      throw fail('Red node has red child(' + this.key + ',' + this.value + ')');
+      throw fail(22, 'Red node has red child', {
+        key: this.key,
+        value: this.value
+      });
     }
     if (this.right.isRed()) {
-      throw fail('Right child of (' + this.key + ',' + this.value + ') is red');
+      throw fail(23, 'Right child of (`key`, `value`) is red', {
+        key: this.key,
+        value: this.value
+      });
     }
     const blackDepth = (this.left as LLRBNode<K, V>).check();
     if (blackDepth !== (this.right as LLRBNode<K, V>).check()) {
-      throw fail('Black depths differ');
+      throw fail(24, 'Black depths differ');
     } else {
       return blackDepth + (this.isRed() ? 0 : 1);
     }
@@ -528,19 +534,19 @@ export class LLRBNode<K, V> {
 // Represents an empty node (a leaf node in the Red-Black Tree).
 export class LLRBEmptyNode<K, V> {
   get key(): never {
-    throw fail('LLRBEmptyNode has no key.');
+    throw fail(25, 'LLRBEmptyNode has no key.');
   }
   get value(): never {
-    throw fail('LLRBEmptyNode has no value.');
+    throw fail(26, 'LLRBEmptyNode has no value.');
   }
   get color(): never {
-    throw fail('LLRBEmptyNode has no color.');
+    throw fail(27, 'LLRBEmptyNode has no color.');
   }
   get left(): never {
-    throw fail('LLRBEmptyNode has no left child.');
+    throw fail(28, 'LLRBEmptyNode has no left child.');
   }
   get right(): never {
-    throw fail('LLRBEmptyNode has no right child.');
+    throw fail(29, 'LLRBEmptyNode has no right child.');
   }
   size = 0;
 

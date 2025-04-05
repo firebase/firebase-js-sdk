@@ -101,7 +101,7 @@ export function fromDbRemoteDocument(
     const version = fromDbTimestamp(remoteDoc.unknownDocument.version);
     doc = MutableDocument.newUnknownDocument(key, version);
   } else {
-    return fail('Unexpected DbRemoteDocument');
+    return fail(45, 'Unexpected DbRemoteDocument');
   }
 
   if (remoteDoc.readTime) {
@@ -138,7 +138,7 @@ export function toDbRemoteDocument(
       version: toDbTimestamp(document.version)
     };
   } else {
-    return fail('Unexpected Document ' + document);
+    return fail(46, 'Unexpected Document', { document });
   }
   return remoteDoc;
 }

@@ -142,12 +142,14 @@ export class WebChannelConnection extends RestConnection {
               break;
             default:
               fail(
-                `RPC '${rpcName}' ${streamId} ` +
-                  'failed with unanticipated webchannel error: ' +
-                  xhr.getLastErrorCode() +
-                  ': ' +
-                  xhr.getLastError() +
-                  ', giving up.'
+                41,
+                'RPC failed with unanticipated webchannel error. Giving up.',
+                {
+                  rpcName,
+                  streamId,
+                  lastErrorCode: xhr.getLastErrorCode(),
+                  lastError: xhr.getLastError()
+                }
               );
           }
         } finally {
@@ -351,7 +353,7 @@ export class WebChannelConnection extends RestConnection {
       msg => {
         if (!closed) {
           const msgData = msg.data[0];
-          hardAssert(!!msgData, 'Got a webchannel message without data.');
+          hardAssert(!!msgData, 42, 'Got a webchannel message without data.');
           // TODO(b/35143891): There is a bug in One Platform that caused errors
           // (and only errors) to be wrapped in an extra array. To be forward
           // compatible with the bug we need to check either condition. The latter

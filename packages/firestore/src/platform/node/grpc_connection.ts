@@ -48,6 +48,7 @@ function createMetadata(
 ): grpc.Metadata {
   hardAssert(
     authToken === null || authToken.type === 'OAuth',
+    43,
     'If provided, token must be OAuth'
   );
   const metadata = new grpc.Metadata();

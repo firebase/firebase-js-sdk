@@ -44,6 +44,7 @@ import { hardAssert } from './assert';
 export function computeInExpansion(filter: Filter): Filter {
   hardAssert(
     filter instanceof FieldFilter || filter instanceof CompositeFilter,
+    31,
     'Only field filters and composite filters are accepted.'
   );
 
@@ -90,6 +91,7 @@ export function getDnfTerms(filter: CompositeFilter): Filter[] {
 
   hardAssert(
     isDisjunctiveNormalForm(result),
+    32,
     'computeDistributedNormalForm did not result in disjunctive normal form'
   );
 
@@ -157,6 +159,7 @@ function isDisjunctionOfFieldFiltersAndFlatConjunctions(
 export function computeDistributedNormalForm(filter: Filter): Filter {
   hardAssert(
     filter instanceof FieldFilter || filter instanceof CompositeFilter,
+    33,
     'Only field filters and composite filters are accepted.'
   );
 
@@ -182,14 +185,17 @@ export function computeDistributedNormalForm(filter: Filter): Filter {
 
   hardAssert(
     newFilter instanceof CompositeFilter,
+    34,
     'field filters are already in DNF form'
   );
   hardAssert(
     compositeFilterIsConjunction(newFilter),
+    35,
     'Disjunction of filters all of which are already in DNF form is itself in DNF form.'
   );
   hardAssert(
     newFilter.filters.length > 1,
+    36,
     'Single-filter composite filters are already in DNF form.'
   );
 
@@ -201,10 +207,12 @@ export function computeDistributedNormalForm(filter: Filter): Filter {
 export function applyDistribution(lhs: Filter, rhs: Filter): Filter {
   hardAssert(
     lhs instanceof FieldFilter || lhs instanceof CompositeFilter,
+    37,
     'Only field filters and composite filters are accepted.'
   );
   hardAssert(
     rhs instanceof FieldFilter || rhs instanceof CompositeFilter,
+    38,
     'Only field filters and composite filters are accepted.'
   );
 
@@ -245,6 +253,7 @@ function applyDistributionCompositeFilters(
 ): Filter {
   hardAssert(
     lhs.filters.length > 0 && rhs.filters.length > 0,
+    39,
     'Found an empty composite filter'
   );
 
@@ -306,6 +315,7 @@ function applyDistributionFieldAndCompositeFilters(
 export function applyAssociation(filter: Filter): Filter {
   hardAssert(
     filter instanceof FieldFilter || filter instanceof CompositeFilter,
+    40,
     'Only field filters and composite filters are accepted.'
   );
 

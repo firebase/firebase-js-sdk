@@ -26,12 +26,61 @@ import { logError } from './log';
  * Returns `never` and can be used in expressions:
  * @example
  * let futureVar = fail('not implemented yet');
+ *
+ * @param code generate a new unique value with `yarn error-code:generate`
+ * Search for an existing value using `yarn error-code:find X`
  */
-export function fail(failure: string = 'Unexpected state'): never {
+export function fail(
+  code: number,
+  message: string,
+  context?: Record<string, unknown>
+): never;
+
+/**
+ * Unconditionally fails, throwing an Error with the given message.
+ * Messages are stripped in production builds.
+ *
+ * Returns `never` and can be used in expressions:
+ * @example
+ * let futureVar = fail('not implemented yet');
+ *
+ * @param code generate a new unique value with `yarn error-code:generate`
+ * Search for an existing value using `yarn error-code:find X`
+ */
+export function fail(code: number, context?: Record<string, unknown>): never;
+
+export function fail(
+  code: number,
+  messageOrContext?: string | Record<string, unknown>,
+  context?: Record<string, unknown>
+): never {
+  let message = 'Unexpected state';
+  if (typeof messageOrContext === 'string') {
+    message = messageOrContext;
+  } else {
+    context = messageOrContext;
+  }
+  _fail(code, message, context);
+}
+
+function _fail(
+  code: number,
+  failure: string,
+  context?: Record<string, unknown>
+): never {
   // Log the failure in addition to throw an exception, just in case the
   // exception is swallowed.
-  const message =
-    `FIRESTORE (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ` + failure;
+  let message = `FIRESTORE (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ${failure} (CODE: ${code.toString(
+    16
+  )})`;
+  if (context !== undefined) {
+    try {
+      const stringContext = JSON.stringify(context);
+      message += ' CONTEXT: ' + stringContext;
+    } catch (e) {
+      message += ' CONTEXT: ' + context;
+    }
+  }
   logError(message);
 
   // NOTE: We don't use FirestoreError here because these are internal failures
@@ -45,13 +94,47 @@ export function fail(failure: string = 'Unexpected state'): never {
  * given message if it did.
  *
  * Messages are stripped in production builds.
+ *
+ * @param code generate a new unique value with `yarn error-code:generate`.
+ * Search for an existing value using `yarn error-code:find X`
  */
 export function hardAssert(
   assertion: boolean,
-  message?: string
+  code: number,
+  message: string,
+  context?: Record<string, unknown>
+): asserts assertion;
+
+/**
+ * Fails if the given assertion condition is false, throwing an Error with the
+ * given message if it did.
+ *
+ * Messages are stripped in production builds.
+ *
+ * @param code generate a new unique value with `yarn error-code:generate`.
+ * Search for an existing value using `yarn error-code:find X`
+ */
+export function hardAssert(
+  assertion: boolean,
+  code: number,
+  context?: Record<string, unknown>
+): asserts assertion;
+
+export function hardAssert(
+  assertion: boolean,
+  code: number,
+  messageOrContext?: string | Record<string, unknown>,
+  context?: Record<string, unknown>
 ): asserts assertion {
+  let message = 'Unexpected state';
+  if (typeof messageOrContext === 'string') {
+    message = messageOrContext;
+  } else {
+    context = messageOrContext;
+  }
+
   if (!assertion) {
-    fail(message);
+    _fail(code, message, context);
   }
 }
 
@@ -70,7 +153,7 @@ export function debugAssert(
   message: string
 ): asserts assertion {
   if (!assertion) {
-    fail(message);
+    fail(21, message);
   }
 }
 
