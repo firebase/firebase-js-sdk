@@ -31,7 +31,7 @@ jobs:
       - name: Setup Node.js 20.x
         uses: actions/setup-node@master
         with:
-          node-version: 22.10.0
+          node-version: 22.14.0
 
       - name: Get PR number and send to tracker.
         run: node scripts/ci/log-changesets.js
