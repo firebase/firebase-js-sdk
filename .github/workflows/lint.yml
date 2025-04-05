@@ -31,3 +31,5 @@ jobs:
       run: yarn
     - name: yarn lint
       run: yarn lint
+    - name: yarn trusted-type-check
+      run: yarn trusted-type-check
