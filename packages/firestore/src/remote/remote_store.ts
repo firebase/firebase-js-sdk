@@ -79,7 +79,7 @@ const enum OfflineCause {
 
 export interface WritePipelineEntry {
   mutationBatch: MutationBatch;
-  sent: boolean;
+  writeRequestSent: boolean;
 }
 
 /**
@@ -132,12 +132,16 @@ class RemoteStoreImpl implements RemoteStore {
   writePipeline: WritePipelineEntry[] = [];
 
   /**
-   * The operation that is enqueued to send writes from the `writePipeline` that
-   * have not yet been sent. The delay is used to enable batching of writes,
-   * reducing the overall number of HTTP requests that need to be made to the
-   * backend.
+   * The operation that is enqueued to send unsent write requests enqueued in
+   * the write pipeline.
+   *
+   * If the `sendWriteRequestsDelayMs` argument specified to the constructor is
+   * `null` then this property will _never_ be set to a non-null value;
+   * otherwise, it will be set to a non-null value when such an operation is
+   * enqueued in the AsyncQueue, and will be set back to `null` once that
+   * operation has completed or been cancelled.
    */
-  sendWritesOperation: DelayedOperation<void> | null = null;
+  sendWriteRequestsOperation: DelayedOperation<void> | null = null;
 
   /**
    * A mapping of watched targets that the client cares about tracking and the
@@ -181,8 +185,21 @@ class RemoteStoreImpl implements RemoteStore {
     readonly datastore: Datastore,
     readonly asyncQueue: AsyncQueue,
     onlineStateHandler: (onlineState: OnlineState) => void,
-    connectivityMonitor: ConnectivityMonitor
+    connectivityMonitor: ConnectivityMonitor,
+    readonly sendWriteRequestsDelayMs: number | null
   ) {
+    if (sendWriteRequestsDelayMs !== null) {
+      debugAssert(
+        Number.isInteger(sendWriteRequestsDelayMs),
+        `invalid sendWriteRequestsDelayMs: ${sendWriteRequestsDelayMs} ` +
+          '(must be an integer, not a fractional amount)'
+      );
+      debugAssert(
+        sendWriteRequestsDelayMs > 0,
+        `invalid sendWriteRequestsDelayMs: ${sendWriteRequestsDelayMs} ` +
+          '(must be greater than zero)'
+      );
+    }
     this.connectivityMonitor = connectivityMonitor;
     this.connectivityMonitor.addCallback((_: NetworkStatus) => {
       asyncQueue.enqueueAndForget(async () => {
@@ -211,14 +228,16 @@ export function newRemoteStore(
   datastore: Datastore,
   asyncQueue: AsyncQueue,
   onlineStateHandler: (onlineState: OnlineState) => void,
-  connectivityMonitor: ConnectivityMonitor
+  connectivityMonitor: ConnectivityMonitor,
+  sendWriteRequestsDelayMs: number | null
 ): RemoteStore {
   return new RemoteStoreImpl(
     localStore,
     datastore,
     asyncQueue,
     onlineStateHandler,
-    connectivityMonitor
+    connectivityMonitor,
+    sendWriteRequestsDelayMs
   );
 }
 
@@ -747,31 +766,40 @@ function addToWritePipeline(
   );
   remoteStoreImpl.writePipeline.push({
     mutationBatch: batch,
-    sent: false
+    writeRequestSent: false
   });
 
-  if (remoteStoreImpl.sendWritesOperation !== null) {
-    return;
-  }
-
-  remoteStoreImpl.sendWritesOperation =
-    remoteStoreImpl.asyncQueue.enqueueAfterDelay(
-      TimerId.WriteStreamSendDelay,
-      200,
-      () => {
-        remoteStoreImpl.sendWritesOperation = null;
-        const writeStream = ensureWriteStream(remoteStoreImpl);
-        if (writeStream.isOpen() && writeStream.handshakeComplete) {
-          for (const pipelineEntry of remoteStoreImpl.writePipeline) {
-            if (!pipelineEntry.sent) {
-              writeStream.writeMutations(pipelineEntry.mutationBatch.mutations);
-              pipelineEntry.sent = true;
-            }
-          }
+  if (
+    remoteStoreImpl.sendWriteRequestsDelayMs === null ||
+    !canAddToWritePipeline(remoteStoreImpl)
+  ) {
+    remoteStoreImpl.sendWriteRequestsOperation?.cancel();
+    remoteStoreImpl.sendWriteRequestsOperation = null;
+    sendWriteRequestsFromPipeline(remoteStoreImpl);
+  } else if (remoteStoreImpl.sendWriteRequestsOperation === null) {
+    remoteStoreImpl.sendWriteRequestsOperation =
+      remoteStoreImpl.asyncQueue.enqueueAfterDelay(
+        TimerId.RemoteStoreSendWriteRequests,
+        remoteStoreImpl.sendWriteRequestsDelayMs,
+        () => {
+          remoteStoreImpl.sendWriteRequestsOperation = null;
+          sendWriteRequestsFromPipeline(remoteStoreImpl);
+          return Promise.resolve();
         }
-        return Promise.resolve();
+      );
+  }
+}
+
+function sendWriteRequestsFromPipeline(remoteStoreImpl: RemoteStoreImpl): void {
+  const writeStream = ensureWriteStream(remoteStoreImpl);
+  if (writeStream.isOpen() && writeStream.handshakeComplete) {
+    for (const pipelineEntry of remoteStoreImpl.writePipeline) {
+      if (!pipelineEntry.writeRequestSent) {
+        writeStream.writeMutations(pipelineEntry.mutationBatch.mutations);
+        pipelineEntry.writeRequestSent = true;
       }
-    );
+    }
+  }
 }
 
 function shouldStartWriteStream(remoteStoreImpl: RemoteStoreImpl): boolean {
@@ -803,7 +831,7 @@ async function onWriteHandshakeComplete(
   // Send the write pipeline now that the stream is established.
   for (const pipelineEntry of remoteStoreImpl.writePipeline) {
     writeStream.writeMutations(pipelineEntry.mutationBatch.mutations);
-    pipelineEntry.sent = true;
+    pipelineEntry.writeRequestSent = true;
   }
 }
 
