@@ -32,7 +32,7 @@ export function normalizeTimestamp(date: Timestamp): {
   seconds: number;
   nanos: number;
 } {
-  hardAssert(!!date, 81, 'Cannot normalize null or undefined timestamp.');
+  hardAssert(!!date, 0x986a, 'Cannot normalize null or undefined timestamp.');
 
   // The json interface (for the browser) will return an iso timestamp string,
   // while the proto js library (for node) will return a
@@ -44,7 +44,7 @@ export function normalizeTimestamp(date: Timestamp): {
     // Parse the nanos right out of the string.
     let nanos = 0;
     const fraction = ISO_TIMESTAMP_REG_EXP.exec(date);
-    hardAssert(!!fraction, 82, 'invalid timestamp', {
+    hardAssert(!!fraction, 0xb5de, 'invalid timestamp', {
       timestamp: date
     });
     if (fraction[1]) {

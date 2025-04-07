@@ -219,7 +219,7 @@ export class MutationBatchResult {
   ): MutationBatchResult {
     hardAssert(
       batch.mutations.length === results.length,
-      80,
+      0xe5da,
       'Mutations sent must equal results received',
       {
         mutationsSent: batch.mutations.length,

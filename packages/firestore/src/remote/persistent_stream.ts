@@ -809,7 +809,7 @@ export class PersistentWriteStream extends PersistentStream<
     // Always capture the last stream token.
     hardAssert(
       !!responseProto.streamToken,
-      134,
+      0x7a5a,
       'Got a write handshake response without a stream token'
     );
     this.lastStreamToken = responseProto.streamToken;
@@ -817,7 +817,7 @@ export class PersistentWriteStream extends PersistentStream<
     // The first response is always the handshake response
     hardAssert(
       !responseProto.writeResults || responseProto.writeResults.length === 0,
-      135,
+      0xda08,
       'Got mutation results for handshake'
     );
     return this.listener!.onHandshakeComplete();
@@ -827,7 +827,7 @@ export class PersistentWriteStream extends PersistentStream<
     // Always capture the last stream token.
     hardAssert(
       !!responseProto.streamToken,
-      136,
+      0x3186,
       'Got a write response without a stream token'
     );
     this.lastStreamToken = responseProto.streamToken;

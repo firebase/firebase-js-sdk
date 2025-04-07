@@ -35,7 +35,7 @@ abstract class BasePath<B extends BasePath<B>> {
     if (offset === undefined) {
       offset = 0;
     } else if (offset > segments.length) {
-      fail(76, 'offset out of range', {
+      fail(0x027d, 'offset out of range', {
         offset,
         range: segments.length
       });
@@ -44,7 +44,7 @@ abstract class BasePath<B extends BasePath<B>> {
     if (length === undefined) {
       length = segments.length - offset;
     } else if (length > segments.length - offset) {
-      fail(77, 'length out of range', {
+      fail(0x06d2, 'length out of range', {
         length,
         range: segments.length - offset
       });

@@ -94,7 +94,7 @@ export class Transaction {
     const userDataWriter = new LiteUserDataWriter(this._firestore);
     return this._transaction.lookup([ref._key]).then(docs => {
       if (!docs || docs.length !== 1) {
-        return fail(2, 'Mismatch in docs returned from document lookup.');
+        return fail(0x5de9, 'Mismatch in docs returned from document lookup.');
       }
       const doc = docs[0];
       if (doc.isFoundDocument()) {
@@ -114,9 +114,13 @@ export class Transaction {
           ref.converter
         );
       } else {
-        throw fail(3, 'BatchGetDocumentsRequest returned unexpected document', {
-          doc
-        });
+        throw fail(
+          0x4801,
+          'BatchGetDocumentsRequest returned unexpected document',
+          {
+            doc
+          }
+        );
       }
     });
   }

@@ -153,7 +153,7 @@ export function debugAssert(
   message: string
 ): asserts assertion {
   if (!assertion) {
-    fail(21, message);
+    fail(0xdeb6, message);
   }
 }
 

@@ -175,7 +175,7 @@ function isWrite(dataSource: UserDataSource): boolean {
     case UserDataSource.ArrayArgument:
       return false;
     default:
-      throw fail(6, 'Unexpected case for UserDataSource', {
+      throw fail(0x9c4b, 'Unexpected case for UserDataSource', {
         dataSource
       });
   }

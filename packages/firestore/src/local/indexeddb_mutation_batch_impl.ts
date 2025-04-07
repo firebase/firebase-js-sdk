@@ -64,7 +64,7 @@ export function removeMutationBatch(
     removePromise.next(() => {
       hardAssert(
         numDeleted === 1,
-        55,
+        0xb7de,
         'Dangling document-mutation reference found: Missing batch',
         { batchId: batch.batchId }
       );
@@ -101,7 +101,7 @@ export function dbDocumentSize(
   } else if (doc.noDocument) {
     value = doc.noDocument;
   } else {
-    throw fail(56, 'Unknown remote document type');
+    throw fail(0x398b, 'Unknown remote document type');
   }
   return JSON.stringify(value).length;
 }
