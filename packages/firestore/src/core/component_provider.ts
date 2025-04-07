@@ -85,6 +85,7 @@ export interface ComponentConfiguration {
   clientId: ClientId;
   initialUser: User;
   maxConcurrentLimboResolutions: number;
+  sendWriteRequestsDelayMs: number | null;
 }
 
 export interface OfflineComponentProviderFactory {
@@ -485,7 +486,8 @@ export class OnlineComponentProvider {
           onlineState,
           OnlineStateSource.RemoteStore
         ),
-      newConnectivityMonitor()
+      newConnectivityMonitor(),
+      cfg.sendWriteRequestsDelayMs
     );
   }
 

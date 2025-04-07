@@ -25,6 +25,11 @@ import {
   longPollingOptionsEqual
 } from '../api/long_polling_options';
 import {
+  ExperimentalOptions,
+  cloneExperimentalOptions,
+  experimentalOptionsEqual
+} from '../api/experimental_options';
+import {
   LRU_COLLECTION_DISABLED,
   LRU_DEFAULT_CACHE_SIZE_BYTES
 } from '../local/lru_garbage_collector';
@@ -49,6 +54,8 @@ const MAX_LONG_POLLING_TIMEOUT_SECONDS = 30;
 
 // Whether long-polling auto-detected is enabled by default.
 const DEFAULT_AUTO_DETECT_LONG_POLLING = true;
+
+const MAX_SEND_WRITE_REQUEST_DELAY_MS = 2000;
 
 /**
  * Specifies custom configurations for your Cloud Firestore instance.
@@ -83,6 +90,7 @@ export interface PrivateSettings extends FirestoreSettings {
   experimentalLongPollingOptions?: ExperimentalLongPollingOptions;
   useFetchStreams?: boolean;
   emulatorOptions?: { mockUserToken?: EmulatorMockTokenOptions | string };
+  experimentalOptions?: ExperimentalOptions;
 
   localCache?: FirestoreLocalCache;
 }
@@ -111,6 +119,7 @@ export class FirestoreSettingsImpl {
 
   readonly useFetchStreams: boolean;
   readonly localCache?: FirestoreLocalCache;
+  readonly experimentalOptions: ExperimentalOptions;
 
   // Can be a google-auth-library or gapi client.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -178,6 +187,11 @@ export class FirestoreSettingsImpl {
     validateLongPollingOptions(this.experimentalLongPollingOptions);
 
     this.useFetchStreams = !!settings.useFetchStreams;
+
+    this.experimentalOptions = cloneExperimentalOptions(
+      settings.experimentalOptions ?? {}
+    );
+    validateExperimentalOptions(this.experimentalOptions);
   }
 
   isEqual(other: FirestoreSettingsImpl): boolean {
@@ -195,7 +209,11 @@ export class FirestoreSettingsImpl {
         other.experimentalLongPollingOptions
       ) &&
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties &&
-      this.useFetchStreams === other.useFetchStreams
+      this.useFetchStreams === other.useFetchStreams &&
+      experimentalOptionsEqual(
+        this.experimentalOptions,
+        other.experimentalOptions
+      )
     );
   }
 }
@@ -223,6 +241,29 @@ function validateLongPollingOptions(
         Code.INVALID_ARGUMENT,
         `invalid long polling timeout: ${options.timeoutSeconds} ` +
           `(maximum allowed value is ${MAX_LONG_POLLING_TIMEOUT_SECONDS})`
+      );
+    }
+  }
+}
+
+function validateExperimentalOptions(options: ExperimentalOptions): void {
+  if (options.sendWriteRequestsDelayMs !== undefined) {
+    if (isNaN(options.sendWriteRequestsDelayMs)) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `invalid sendWriteRequestsDelayMs: ` +
+          `${options.sendWriteRequestsDelayMs} (must not be NaN)`
+      );
+    }
+    if (
+      options.sendWriteRequestsDelayMs <= 0 ||
+      options.sendWriteRequestsDelayMs > MAX_SEND_WRITE_REQUEST_DELAY_MS
+    ) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `invalid sendWriteRequestsDelayMs: ` +
+          `${options.sendWriteRequestsDelayMs} (must be greater than zero ` +
+          `and less than or equal to ${MAX_SEND_WRITE_REQUEST_DELAY_MS})`
       );
     }
   }

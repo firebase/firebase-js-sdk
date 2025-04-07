@@ -259,6 +259,7 @@ abstract class TestRunner {
   private useEagerGCForMemory: boolean;
   private numClients: number;
   private maxConcurrentLimboResolutions?: number;
+  private sendWriteRequestsDelayMs?: number;
   private databaseInfo: DatabaseInfo;
 
   protected user = User.UNAUTHENTICATED;
@@ -299,6 +300,7 @@ abstract class TestRunner {
     this.useEagerGCForMemory = config.useEagerGCForMemory;
     this.numClients = config.numClients;
     this.maxConcurrentLimboResolutions = config.maxConcurrentLimboResolutions;
+    this.sendWriteRequestsDelayMs = config.sendWriteRequestsDelayMs;
     this.expectedActiveLimboDocs = [];
     this.expectedEnqueuedLimboDocs = [];
     this.expectedActiveTargets = new Map<TargetId, ActiveTargetSpec>();
@@ -316,8 +318,9 @@ abstract class TestRunner {
       clientId: this.clientId,
       initialUser: this.user,
       maxConcurrentLimboResolutions:
-        this.maxConcurrentLimboResolutions ?? Number.MAX_SAFE_INTEGER
-    };
+        this.maxConcurrentLimboResolutions ?? Number.MAX_SAFE_INTEGER,
+      sendWriteRequestsDelayMs: this.sendWriteRequestsDelayMs ?? null
+    } satisfies ComponentConfiguration;
 
     this.connection = new MockConnection(this.queue);
 
@@ -1408,6 +1411,12 @@ export interface SpecConfig {
    * default value.
    */
   maxConcurrentLimboResolutions?: number;
+
+  /**
+   * The maximum number amount of time, in milliseconds, to delay sending
+   * write requests to the backend in the remote store.
+   */
+  sendWriteRequestsDelayMs?: number;
 }
 
 /**
