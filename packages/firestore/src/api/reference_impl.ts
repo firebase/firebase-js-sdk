@@ -650,7 +650,7 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
  */
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   query: Query<AppModelType, DbModelType>,
-  onNext?: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
+  onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
@@ -810,7 +810,7 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   ...args: unknown[]
 ): Unsubscribe {
   if (reference instanceof Firestore) {
-    return onSnapshotBundle(reference as Firestore, args);
+    return onSnapshotBundle(reference as Firestore, ...args);
   }
 
   // onSnapshot for Query or Document.
@@ -821,8 +821,7 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   };
   let currArg = 0;
   if (typeof args[currArg] === 'object' && !isPartialObserver(args[currArg])) {
-    options = args[currArg] as SnapshotListenOptions;
-    currArg++;
+    options = args[currArg++] as SnapshotListenOptions;
   }
 
   const internalOptions = {
@@ -869,7 +868,6 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
     firestore = cast(query.firestore, Firestore);
     internalQuery = query._query;
     const userDataWriter = new ExpUserDataWriter(firestore);
-
     observer = {
       next: snapshot => {
         if (args[currArg]) {
@@ -1012,75 +1010,68 @@ function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(
     options = args[curArg++] as SnapshotListenOptions;
   }
 
-  let error: undefined | ((error: FirestoreError) => void) = undefined;
-  let complete: undefined | (() => void) = undefined;
-
   if (json.bundleSource === 'QuerySnapshot') {
-    let next:
-      | undefined
-      | ((snapshot: QuerySnapshot<AppModelType, DbModelType>) => void);
     if (typeof args[curArg] === 'object' && isPartialObserver(args[1])) {
-      const userObserver = args[curArg] as PartialObserver<
+      const userObserver = args[curArg++] as PartialObserver<
         QuerySnapshot<AppModelType, DbModelType>
       >;
-      next = userObserver.next?.bind(userObserver);
-      error = userObserver.error?.bind(userObserver);
-      complete = userObserver.complete?.bind(userObserver);
-      curArg++;
+      return onSnapshotQuerySnapshotBundle(
+        db,
+        json,
+        options,
+        {
+          next: userObserver.next!,
+          error: userObserver.error,
+          complete: userObserver.complete
+        },
+        args[curArg] as FirestoreDataConverter<DbModelType>
+      );
     } else {
-      next = args[curArg++] as (
-        snapshot: QuerySnapshot<AppModelType, DbModelType>
-      ) => void;
-      error = args[curArg++] as (error: FirestoreError) => void;
-      complete = args[curArg++] as () => void;
+      return onSnapshotQuerySnapshotBundle(
+        db,
+        json,
+        options,
+        {
+          next: args[curArg++] as (
+            snapshot: QuerySnapshot<AppModelType, DbModelType>
+          ) => void,
+          error: args[curArg++] as (error: FirestoreError) => void,
+          complete: args[curArg++] as () => void
+        },
+        args[curArg] as FirestoreDataConverter<DbModelType>
+      );
     }
-    const converter = args[curArg] as
-      | FirestoreDataConverter<DbModelType>
-      | undefined;
-    return onSnapshotQuerySnapshotBundle(
-      db,
-      json,
-      options,
-      {
-        next: next!,
-        error,
-        complete
-      },
-      converter
-    );
   } else if (json.bundleSource === 'DocumentSnapshot') {
-    let next:
-      | undefined
-      | ((snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void);
     if (typeof args[curArg] === 'object' && isPartialObserver(args[1])) {
-      const userObserver = args[curArg] as PartialObserver<
+      const userObserver = args[curArg++] as PartialObserver<
         DocumentSnapshot<AppModelType, DbModelType>
       >;
-      next = userObserver.next?.bind(userObserver);
-      error = userObserver.error?.bind(userObserver);
-      complete = userObserver.complete?.bind(userObserver);
-      curArg++;
+      return onSnapshotDocumentSnapshotBundle(
+        db,
+        json,
+        options,
+        {
+          next: userObserver.next!,
+          error: userObserver.error,
+          complete: userObserver.complete
+        },
+        args[curArg] as FirestoreDataConverter<DbModelType>
+      );
     } else {
-      next = args[curArg++] as (
-        snapshot: DocumentSnapshot<AppModelType, DbModelType>
-      ) => void;
-      error = args[curArg++] as (error: FirestoreError) => void;
-      complete = args[curArg++] as () => void;
+      return onSnapshotDocumentSnapshotBundle(
+        db,
+        json,
+        options,
+        {
+          next: args[curArg++] as (
+            snapshot: DocumentSnapshot<AppModelType, DbModelType>
+          ) => void,
+          error: args[curArg++] as (error: FirestoreError) => void,
+          complete: args[curArg++] as () => void
+        },
+        args[curArg] as FirestoreDataConverter<DbModelType>
+      );
     }
-    const converter = args[curArg] as
-      | FirestoreDataConverter<DbModelType>
-      | undefined;
-    return onSnapshotDocumentSnapshotBundle(
-      db,
-      json,
-      options,
-      {
-        next: next!,
-        error,
-        complete
-      },
-      converter
-    );
   } else {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
