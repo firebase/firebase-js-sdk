@@ -48,24 +48,24 @@ export { GenAIErrorCode as VertexAIErrorCode };
 
 /**
  * Base class for Vertex AI in Firebase model APIs.
- * 
- * This is an alias that exists to maintain backwards-compatibility. This will be removed in 
+ *
+ * This is an alias that exists to maintain backwards-compatibility. This will be removed in
  * version 12 of the Firebase JS SDK.
- * 
+ *
  * For more information, refer to the documentation for the new <code>{@link GenAIModel}</code>.
- * 
+ *
  * @public
  */
 export const VertexAIModel = GenAIModel;
 
 /**
  * Error class for the Vertex AI in Firebase SDK.
- * 
- * This is an alias that exists to maintain backwards-compatibility. This will be removed in 
+ *
+ * This is an alias that exists to maintain backwards-compatibility. This will be removed in
  * version 12 of the Firebase JS SDK.
- * 
+ *
  * For more information, refer to the documentation for the new <code>{@link GenAIError}</code>.
- * 
+ *
  * @public
  */
 export const VertexAIError = GenAIError;
@@ -104,28 +104,28 @@ export function getVertexAI(
  * Returns the default {@link GenAI} instance that is associated with the provided
  * {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new instance with the
  * default settings.
- * 
+ *
  * @example
  * ```javascript
  * const genAI = getGenAI(app);
  * ```
- * 
+ *
  * @example
  * ```javascript
  * // Get a GenAI instance configured to use Vertex AI.
- * const genAI = getGenAI(app, { backend: vertexAIBackend() }); 
+ * const genAI = getGenAI(app, { backend: vertexAIBackend() });
  * ```
- * 
+ *
  * @example
  * ```javascript
  * // Get a GenAI instance configured to use Google AI.
- * const genAI = getGenAI(app, { backend: vertexAIBackend() }); 
+ * const genAI = getGenAI(app, { backend: vertexAIBackend() });
  * ```
  *
  * @param app - The <code>{@link @firebase/app#FirebaseApp}</code> to use.
  * @param options - <code>{@link GenAIOptions}</code> that configure the GenAI instance.
  * @returns The default <code>{@link GenAI}</code> instance for the given <code>{@link @firebase/app#FirebaseApp}</code>.
- * 
+ *
  * @public
  */
 export function getGenAI(
@@ -143,10 +143,10 @@ export function getGenAI(
 }
 
 /**
- * Creates a <code>{@link Backend}</code> instance configured to use Google AI. 
- * 
+ * Creates a <code>{@link Backend}</code> instance configured to use Google AI.
+ *
  * @returns A <code>{@link GoogleAIBackend}</code> object.
- * 
+ *
  * @public
  */
 export function googleAIBackend(): GoogleAIBackend {
@@ -159,12 +159,12 @@ export function googleAIBackend(): GoogleAIBackend {
 
 /**
  * Creates a <code>{@link Backend}</code> instance configured to use Vertex AI.
- * 
+ *
  * @param location - The region identifier, defaulting to `us-central1`;
  * see {@link https://firebase.google.com/docs/vertex-ai/locations?platform=ios#available-locations | Vertex AI locations}
  * for a list of supported locations.
  * @returns A <code>{@link VertexAIBackend}</code> object.
- * 
+ *
  * @public
  */
 export function vertexAIBackend(location?: string): VertexAIBackend {
