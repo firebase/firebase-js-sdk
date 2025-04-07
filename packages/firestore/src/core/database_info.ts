@@ -38,6 +38,8 @@ export class DatabaseInfo {
    * @param longPollingOptions Options that configure long-polling.
    * @param useFetchStreams Whether to use the Fetch API instead of
    * XMLHTTPRequest
+   * @param sendWriteRequestsDelayMs The delay, in milliseconds, to use before
+   * sending write requests over the wire in remote store.
    */
   constructor(
     readonly databaseId: DatabaseId,
@@ -48,7 +50,8 @@ export class DatabaseInfo {
     readonly forceLongPolling: boolean,
     readonly autoDetectLongPolling: boolean,
     readonly longPollingOptions: ExperimentalLongPollingOptions,
-    readonly useFetchStreams: boolean
+    readonly useFetchStreams: boolean,
+    readonly sendWriteRequestsDelayMs: number | null
   ) {}
 }
 

@@ -283,7 +283,8 @@ abstract class TestRunner {
       /*forceLongPolling=*/ false,
       /*autoDetectLongPolling=*/ false,
       /*longPollingOptions=*/ {},
-      /*useFetchStreams=*/ false
+      /*useFetchStreams=*/ false,
+      config.sendWriteRequestsDelayMs ?? null
     );
 
     // TODO(mrschmidt): During client startup in `firestore_client`, we block
@@ -300,7 +301,6 @@ abstract class TestRunner {
     this.useEagerGCForMemory = config.useEagerGCForMemory;
     this.numClients = config.numClients;
     this.maxConcurrentLimboResolutions = config.maxConcurrentLimboResolutions;
-    this.sendWriteRequestsDelayMs = config.sendWriteRequestsDelayMs;
     this.expectedActiveLimboDocs = [];
     this.expectedEnqueuedLimboDocs = [];
     this.expectedActiveTargets = new Map<TargetId, ActiveTargetSpec>();
@@ -318,8 +318,7 @@ abstract class TestRunner {
       clientId: this.clientId,
       initialUser: this.user,
       maxConcurrentLimboResolutions:
-        this.maxConcurrentLimboResolutions ?? Number.MAX_SAFE_INTEGER,
-      sendWriteRequestsDelayMs: this.sendWriteRequestsDelayMs ?? null
+        this.maxConcurrentLimboResolutions ?? Number.MAX_SAFE_INTEGER
     } satisfies ComponentConfiguration;
 
     this.connection = new MockConnection(this.queue);

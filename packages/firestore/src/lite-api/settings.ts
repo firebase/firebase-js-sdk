@@ -90,7 +90,7 @@ export interface PrivateSettings extends FirestoreSettings {
   experimentalLongPollingOptions?: ExperimentalLongPollingOptions;
   useFetchStreams?: boolean;
   emulatorOptions?: { mockUserToken?: EmulatorMockTokenOptions | string };
-  experimentalOptions?: ExperimentalOptions;
+  experimental?: ExperimentalOptions;
 
   localCache?: FirestoreLocalCache;
 }
@@ -119,7 +119,7 @@ export class FirestoreSettingsImpl {
 
   readonly useFetchStreams: boolean;
   readonly localCache?: FirestoreLocalCache;
-  readonly experimentalOptions: ExperimentalOptions;
+  readonly experimental: ExperimentalOptions;
 
   // Can be a google-auth-library or gapi client.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -188,10 +188,8 @@ export class FirestoreSettingsImpl {
 
     this.useFetchStreams = !!settings.useFetchStreams;
 
-    this.experimentalOptions = cloneExperimentalOptions(
-      settings.experimentalOptions ?? {}
-    );
-    validateExperimentalOptions(this.experimentalOptions);
+    this.experimental = cloneExperimentalOptions(settings.experimental ?? {});
+    validateExperimentalOptions(this.experimental);
   }
 
   isEqual(other: FirestoreSettingsImpl): boolean {
@@ -210,10 +208,7 @@ export class FirestoreSettingsImpl {
       ) &&
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties &&
       this.useFetchStreams === other.useFetchStreams &&
-      experimentalOptionsEqual(
-        this.experimentalOptions,
-        other.experimentalOptions
-      )
+      experimentalOptionsEqual(this.experimental, other.experimental)
     );
   }
 }

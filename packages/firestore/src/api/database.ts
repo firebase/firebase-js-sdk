@@ -310,7 +310,6 @@ export function configureFirestore(firestore: Firestore): void {
     firestore._appCheckCredentials,
     firestore._queue,
     databaseInfo,
-    settings.experimentalOptions.sendWriteRequestsDelayMs ?? null,
     firestore._componentsProvider &&
       buildComponentProvider(firestore._componentsProvider)
   );

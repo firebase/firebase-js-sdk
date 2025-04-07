@@ -140,7 +140,6 @@ export class FirestoreClient {
      */
     public asyncQueue: AsyncQueue,
     private databaseInfo: DatabaseInfo,
-    private sendWriteRequestsDelayMs: number | null,
     componentProvider?: {
       _offline: OfflineComponentProvider;
       _online: OnlineComponentProvider;
@@ -166,8 +165,7 @@ export class FirestoreClient {
       authCredentials: this.authCredentials,
       appCheckCredentials: this.appCheckCredentials,
       initialUser: this.user,
-      maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS,
-      sendWriteRequestsDelayMs: this.sendWriteRequestsDelayMs
+      maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS
     };
   }
 
