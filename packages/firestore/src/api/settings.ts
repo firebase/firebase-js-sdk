@@ -18,8 +18,8 @@
 import { FirestoreSettings as LiteSettings } from '../lite-api/settings';
 
 import { FirestoreLocalCache } from './cache_config';
-import { ExperimentalLongPollingOptions } from './long_polling_options';
 import { ExperimentalOptions } from './experimental_options';
+import { ExperimentalLongPollingOptions } from './long_polling_options';
 
 export { DEFAULT_HOST } from '../lite-api/settings';
 

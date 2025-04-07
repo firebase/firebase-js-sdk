@@ -20,15 +20,15 @@ import { EmulatorMockTokenOptions } from '@firebase/util';
 import { FirestoreLocalCache } from '../api/cache_config';
 import { CredentialsSettings } from '../api/credentials';
 import {
-  ExperimentalLongPollingOptions,
-  cloneLongPollingOptions,
-  longPollingOptionsEqual
-} from '../api/long_polling_options';
-import {
   ExperimentalOptions,
   cloneExperimentalOptions,
   experimentalOptionsEqual
 } from '../api/experimental_options';
+import {
+  ExperimentalLongPollingOptions,
+  cloneLongPollingOptions,
+  longPollingOptionsEqual
+} from '../api/long_polling_options';
 import {
   LRU_COLLECTION_DISABLED,
   LRU_DEFAULT_CACHE_SIZE_BYTES
