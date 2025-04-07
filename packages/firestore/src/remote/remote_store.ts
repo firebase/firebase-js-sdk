@@ -764,7 +764,14 @@ function addToWritePipeline(
     writeRequestSent: false
   });
 
-  if (remoteStoreImpl.sendWriteRequestsDelayMs === null) {
+  const writePipelineContainsOnlyUnsentWriteRequests =
+    remoteStoreImpl.writePipeline.every(entry => !entry.writeRequestSent);
+
+  if (
+    remoteStoreImpl.sendWriteRequestsDelayMs === null ||
+    (!canAddToWritePipeline(remoteStoreImpl) &&
+      writePipelineContainsOnlyUnsentWriteRequests)
+  ) {
     remoteStoreImpl.sendWriteRequestsOperation?.cancel();
     remoteStoreImpl.sendWriteRequestsOperation = null;
     sendWriteRequestsFromPipeline(remoteStoreImpl);

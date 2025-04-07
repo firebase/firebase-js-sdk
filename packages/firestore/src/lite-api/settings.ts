@@ -55,7 +55,9 @@ const MAX_LONG_POLLING_TIMEOUT_SECONDS = 30;
 // Whether long-polling auto-detected is enabled by default.
 const DEFAULT_AUTO_DETECT_LONG_POLLING = true;
 
-const MAX_SEND_WRITE_REQUEST_DELAY_MS = 2000;
+// Set some maximum value for `sendWriteRequestsDelayMs` to avoid it being set
+// to a value so large that it appears that write requests are never being sent.
+const MAX_SEND_WRITE_REQUEST_DELAY_MS = 10000;
 
 /**
  * Specifies custom configurations for your Cloud Firestore instance.

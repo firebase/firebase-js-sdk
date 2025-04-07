@@ -38,8 +38,8 @@ export interface ExperimentalOptions {
    * _could_ greatly reduce the number of distinct HTTP requests that are used.
    *
    * The value must be an integer value strictly greater than zero and less than
-   * or equal to 2000 (2 seconds). A value of `200` is a good starting point to
-   * minimize write latency yet still enable a some amount of batching.
+   * or equal to 10000 (10 seconds). A value of `200` is a good starting point
+   * to minimize write latency yet still enable some amount of batching.
    *
    * See https://github.com/firebase/firebase-js-sdk/issues/5971 for rationale
    * and background information that motivated this option.
