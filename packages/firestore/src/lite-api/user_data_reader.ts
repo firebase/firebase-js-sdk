@@ -712,7 +712,7 @@ export function parseData(
   input = getModularInstance(input);
 
   // Workaround for circular dependency
-  if ((input as Constant).exprType === 'Constant') {
+  if ((input as Constant)?.exprType === 'Constant') {
     return (input as Constant)._getValue();
   }
 

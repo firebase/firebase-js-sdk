@@ -59,8 +59,8 @@ import {
   TARGET_DB_ID,
   USE_EMULATOR
 } from './settings';
-import { _onRealtimePipelineSnapshot } from '../../../src/api/pipeline_impl';
 import { RealtimePipeline } from '../../../src/api/realtime_pipeline';
+import { onPipelineSnapshot } from '../../../src/api/reference_impl';
 
 /* eslint-disable no-restricted-globals */
 
@@ -647,9 +647,11 @@ export async function checkOnlineAndOfflineResultsMatchWithPipelineMode(
     await checkOnlineAndOfflineResultsMatch(query, ...expectedDocs);
   } else {
     // pipelineMode === 'query-to-pipeline'
-    const pipeline = query.firestore.realtimePipeline().createFrom(query);
+    const pipeline = (query.firestore as Firestore)
+      .realtimePipeline()
+      .createFrom(query);
     const deferred = new Deferred<RealtimePipelineSnapshot>();
-    const unsub = _onRealtimePipelineSnapshot(
+    const unsub = onPipelineSnapshot(
       pipeline,
       { includeMetadataChanges: true },
       snapshot => {
@@ -668,7 +670,7 @@ export async function checkOnlineAndOfflineResultsMatchWithPipelineMode(
     }
 
     const cacheDeferred = new Deferred<RealtimePipelineSnapshot>();
-    const cacheUnsub = _onRealtimePipelineSnapshot(
+    const cacheUnsub = onPipelineSnapshot(
       pipeline,
       { includeMetadataChanges: true, source: 'cache' },
       snapshot => {
@@ -689,6 +691,22 @@ export function itIf(
   return condition === 'only' ? it.only : condition ? it : it.skip;
 }
 
+function getDocsFromPipeline(
+  pipeline: RealtimePipeline
+): Promise<RealtimePipelineSnapshot> {
+  const deferred = new Deferred<RealtimePipelineSnapshot>();
+  const unsub = onSnapshot(
+    'query-to-pipeline',
+    pipeline,
+    (snapshot: RealtimePipelineSnapshot) => {
+      deferred.resolve(snapshot);
+      unsub();
+    }
+  );
+
+  return deferred.promise;
+}
+
 export function getDocs(
   pipelineMode: PipelineMode,
   queryOrPipeline: Query | RealtimePipeline
@@ -698,7 +716,7 @@ export function getDocs(
       const ppl = queryOrPipeline.firestore
         .pipeline()
         .createFrom(queryOrPipeline);
-      return getDocsProd(
+      return getDocsFromPipeline(
         new RealtimePipeline(
           ppl._db,
           ppl.userDataReader,
@@ -707,7 +725,7 @@ export function getDocs(
         )
       );
     } else {
-      return getDocsProd(queryOrPipeline);
+      return getDocsFromPipeline(queryOrPipeline);
     }
   }
 
@@ -743,7 +761,7 @@ export function onSnapshot(
       const ppl = queryOrPipeline.firestore
         .pipeline()
         .createFrom(queryOrPipeline);
-      return onSnapshotProd(
+      return onPipelineSnapshot(
         new RealtimePipeline(
           ppl._db,
           ppl.userDataReader,
@@ -754,7 +772,7 @@ export function onSnapshot(
         obs as any
       );
     } else {
-      return onSnapshotProd(queryOrPipeline, options as any, obs as any);
+      return onPipelineSnapshot(queryOrPipeline, options as any, obs as any);
     }
   }
 

@@ -16,7 +16,6 @@
  */
 
 import { RealtimePipeline } from '../api/realtime_pipeline';
-import { RealtimePipeline } from '../api/realtime_pipeline';
 import { Firestore } from '../lite-api/database';
 import {
   Constant,
@@ -37,7 +36,7 @@ import {
   AggregateFunction
 } from '../lite-api/expressions';
 import { Pipeline, Pipeline as ApiPipeline } from '../lite-api/pipeline';
-import { doc } from '../lite-api/reference';
+import { doc, DocumentReference } from '../lite-api/reference';
 import {
   AddFields,
   Aggregate,

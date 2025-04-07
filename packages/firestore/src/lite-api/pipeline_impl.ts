@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { RealtimePipeline } from '../api/realtime_pipeline';
 import { invokeExecutePipeline } from '../remote/datastore';
 
 import { getDatastore } from './components';
@@ -27,9 +26,6 @@ import { DocumentReference } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
 import { Stage } from './stage';
 import { newUserDataReader } from './user_data_reader';
-
-// TODO should not  be in lite
-import { RealtimePipeline} from "../api/realtime_pipeline";
 
 declare module './database' {
   interface Firestore {

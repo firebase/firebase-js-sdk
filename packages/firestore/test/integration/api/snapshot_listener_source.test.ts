@@ -24,6 +24,7 @@ import {
   doc,
   DocumentSnapshot,
   enableNetwork,
+  Firestore,
   getDoc,
   limit,
   limitToLast,
@@ -91,7 +92,9 @@ apiPipelineDescribe.only(
                   new EventsAccumulator<RealtimePipelineSnapshot>();
                 const unsubscribe = onSnapshot(
                   pipelineMode,
-                  docRef.firestore.realtimePipeline().documents([docRef]),
+                  (docRef.firestore as Firestore)
+                    .realtimePipeline()
+                    .documents([docRef]),
                   { source: 'cache' },
                   storeEvent.storeEvent
                 );

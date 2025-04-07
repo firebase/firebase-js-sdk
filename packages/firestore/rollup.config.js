@@ -55,7 +55,7 @@ const browserPlugins = [
     abortOnError: true,
     transformers: [util.removeAssertAndPrefixInternalTransformer]
   }),
-  json({ preferConst: true }),
+  json({ preferConst: true })
   //terser(util.manglePrivatePropertiesOptions)
 ];
 

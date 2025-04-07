@@ -22,7 +22,6 @@ import { newQueryComparator } from '../core/query';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { FieldPath } from '../lite-api/field_path';
 import { PipelineResult, toPipelineResult } from '../lite-api/pipeline-result';
-import { PipelineResult, toPipelineResult } from '../lite-api/pipeline-result';
 import {
   DocumentData,
   DocumentReference,

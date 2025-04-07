@@ -130,7 +130,7 @@ exports.removeAssertTransformer = removeAssertTransformer;
  */
 const removeAssertAndPrefixInternalTransformer = service => ({
   before: [
-    removeAsserts(service.getProgram()),
+    removeAsserts(service.getProgram())
     // renameInternals(service.getProgram(), {
     //   publicIdentifiers,
     //   prefix: '__PRIVATE_'

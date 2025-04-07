@@ -77,10 +77,7 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
-import {
-  onSnapshot as onPipelineSnapshot,
-  execute
-} from '../util/pipeline_export';
+import { onSnapshot as onPipelineSnapshot } from '../util/pipeline_export';
 import { USE_EMULATOR } from '../util/settings';
 import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 
@@ -1458,7 +1455,7 @@ apiPipelineDescribe.only('Queries', (persistence, pipelineMode) => {
     });
   });
 
-  it.only('can use filter with nested field', () => {
+  it('can use filter with nested field', () => {
     // Reproduces https://github.com/firebase/firebase-js-sdk/issues/2204
     const testDocs = {
       a: {},

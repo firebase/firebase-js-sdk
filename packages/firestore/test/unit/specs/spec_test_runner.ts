@@ -49,7 +49,7 @@ import {
   queryOrPipelineEqual,
   TargetOrPipeline,
   toCorePipeline,
-  toPipeline
+  toPipelineStages
 } from '../../../src/core/pipeline-util';
 import {
   canonifyQuery,
