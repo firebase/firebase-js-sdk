@@ -212,6 +212,11 @@ export interface ExperimentalLongPollingOptions {
 }
 
 // @public
+export interface ExperimentalOptions {
+    sendWriteRequestsDelayMs?: number;
+}
+
+// @public
 export class FieldPath {
     constructor(...fieldNames: string[]);
     isEqual(other: FieldPath): boolean;
@@ -252,6 +257,7 @@ export type FirestoreLocalCache = MemoryLocalCache | PersistentLocalCache;
 // @public
 export interface FirestoreSettings {
     cacheSizeBytes?: number;
+    experimental?: ExperimentalOptions;
     experimentalAutoDetectLongPolling?: boolean;
     experimentalForceLongPolling?: boolean;
     experimentalLongPollingOptions?: ExperimentalLongPollingOptions;
