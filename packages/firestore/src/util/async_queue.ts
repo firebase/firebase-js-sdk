@@ -48,6 +48,7 @@ export const enum TimerId {
   ListenStreamConnectionBackoff = 'listen_stream_connection_backoff',
   WriteStreamIdle = 'write_stream_idle',
   WriteStreamConnectionBackoff = 'write_stream_connection_backoff',
+  WriteStreamSendDelay = 'write_stream_send_delay',
   HealthCheckTimeout = 'health_check_timeout',
 
   /**
