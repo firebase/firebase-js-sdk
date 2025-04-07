@@ -283,6 +283,8 @@ export async function remoteStoreShutdown(
 ): Promise<void> {
   const remoteStoreImpl = debugCast(remoteStore, RemoteStoreImpl);
   logDebug(LOG_TAG, 'RemoteStore shutting down.');
+  remoteStoreImpl.sendWriteRequestsOperation?.cancel();
+  remoteStoreImpl.sendWriteRequestsOperation = null;
   remoteStoreImpl.offlineCauses.add(OfflineCause.Shutdown);
   await disableNetworkInternal(remoteStoreImpl);
   remoteStoreImpl.connectivityMonitor.shutdown();
