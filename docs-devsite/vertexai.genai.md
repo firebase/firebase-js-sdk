@@ -52,7 +52,7 @@ backend: Backend;
 
 > Warning: This API is now obsolete.
 > 
-> This is here to maintain backwards-compatibility. Use `GenAI.backend.location` instead.
+> use `GenAI.backend.location` instead.
 > 
 
 The location configured for this GenAI service instance, relevant for Vertex AI backends.

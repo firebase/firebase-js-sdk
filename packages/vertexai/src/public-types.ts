@@ -19,10 +19,18 @@ import { FirebaseApp } from '@firebase/app';
 
 export * from './types';
 
+/**
+ * An instance of the Vertex AI in Firebase SDK.
+ * 
+ * For more information, refer to the documentation for the new {@link GenAI}.
+ * 
+ * @public
+ */
 export type VertexAI = GenAI;
 
 /**
  * Options when initializing the Vertex AI in Firebase SDK.
+ * 
  * @public
  */
 export interface VertexAIOptions {
@@ -48,7 +56,7 @@ export interface GenAI {
   /**
    * The location configured for this GenAI service instance, relevant for Vertex AI backends.
    *
-   * @deprecated This is here to maintain backwards-compatibility. Use `GenAI.backend.location` instead.
+   * @deprecated use `GenAI.backend.location` instead.
    */
   location: string;
 }

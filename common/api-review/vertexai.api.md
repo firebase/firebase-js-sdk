@@ -855,7 +855,7 @@ export interface UsageMetadata {
     totalTokenCount: number;
 }
 
-// @public (undocumented)
+// @public
 export type VertexAI = GenAI;
 
 // @public

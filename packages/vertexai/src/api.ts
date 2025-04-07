@@ -49,10 +49,7 @@ export { GenAIErrorCode as VertexAIErrorCode };
 /**
  * Base class for Vertex AI in Firebase model APIs.
  *
- * This is an alias that exists to maintain backwards-compatibility. This will be removed in
- * version 12 of the Firebase JS SDK.
- *
- * For more information, refer to the documentation for the new <code>{@link GenAIModel}</code>.
+ * For more information, refer to the documentation for the new {@link GenAIModel}.
  *
  * @public
  */
@@ -60,9 +57,6 @@ export const VertexAIModel = GenAIModel;
 
 /**
  * Error class for the Vertex AI in Firebase SDK.
- *
- * This is an alias that exists to maintain backwards-compatibility. This will be removed in
- * version 12 of the Firebase JS SDK.
  *
  * For more information, refer to the documentation for the new <code>{@link GenAIError}</code>.
  *

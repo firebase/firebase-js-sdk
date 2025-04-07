@@ -131,8 +131,8 @@ https://github.com/firebase/firebase-js-sdk
 |  --- | --- |
 |  [BackendType](./vertexai.md#backendtype) | An enum-like object containing constants that represent the supported backends for the Firebase GenAI SDK.<!-- -->These values are assigned to the <code>backendType</code> property within the specific backend configuration objects ([GoogleAIBackend](./vertexai.md#googleaibackend) or [VertexAIBackend](./vertexai.md#vertexaibackend)<!-- -->) to identify which service to target. |
 |  [POSSIBLE\_ROLES](./vertexai.md#possible_roles) | Possible roles. |
-|  [VertexAIError](./vertexai.md#vertexaierror) | Error class for the Vertex AI in Firebase SDK.<!-- -->This is an alias that exists to maintain backwards-compatibility. This will be removed in version 12 of the Firebase JS SDK.<!-- -->For more information, refer to the documentation for the new <code>[GenAIError](./vertexai.genaierror.md#genaierror_class)</code>. |
-|  [VertexAIModel](./vertexai.md#vertexaimodel) | Base class for Vertex AI in Firebase model APIs.<!-- -->This is an alias that exists to maintain backwards-compatibility. This will be removed in version 12 of the Firebase JS SDK.<!-- -->For more information, refer to the documentation for the new <code>[GenAIModel](./vertexai.genaimodel.md#genaimodel_class)</code>. |
+|  [VertexAIError](./vertexai.md#vertexaierror) | Error class for the Vertex AI in Firebase SDK.<!-- -->For more information, refer to the documentation for the new <code>[GenAIError](./vertexai.genaierror.md#genaierror_class)</code>. |
+|  [VertexAIModel](./vertexai.md#vertexaimodel) | Base class for Vertex AI in Firebase model APIs.<!-- -->For more information, refer to the documentation for the new [GenAIModel](./vertexai.genaimodel.md#genaimodel_class)<!-- -->. |
 
 ## Type Aliases
 
@@ -145,7 +145,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [Role](./vertexai.md#role) | Role is the producer of the content. |
 |  [Tool](./vertexai.md#tool) | Defines a tool that model can call to access external knowledge. |
 |  [TypedSchema](./vertexai.md#typedschema) | A type that includes all specific Schema types. |
-|  [VertexAI](./vertexai.md#vertexai) |  |
+|  [VertexAI](./vertexai.md#vertexai) | An instance of the Vertex AI in Firebase SDK.<!-- -->For more information, refer to the documentation for the new [GenAI](./vertexai.genai.md#genai_interface)<!-- -->. |
 |  [VertexAIBackend](./vertexai.md#vertexaibackend) | Represents the configuration object for the Vertex AI backend. Use this with [GenAIOptions](./vertexai.genaioptions.md#genaioptions_interface) when initializing the server with [getGenAI()](./vertexai.md#getgenai_65c48ee)<!-- -->. Create an instance using the [vertexAIBackend()](./vertexai.md#vertexaibackend_d0a4534) function. |
 
 ## function(app, ...)
@@ -345,8 +345,6 @@ POSSIBLE_ROLES: readonly ["user", "model", "function", "system"]
 
 Error class for the Vertex AI in Firebase SDK.
 
-This is an alias that exists to maintain backwards-compatibility. This will be removed in version 12 of the Firebase JS SDK.
-
 For more information, refer to the documentation for the new <code>[GenAIError](./vertexai.genaierror.md#genaierror_class)</code>.
 
 <b>Signature:</b>
@@ -359,9 +357,7 @@ VertexAIError: typeof GenAIError
 
 Base class for Vertex AI in Firebase model APIs.
 
-This is an alias that exists to maintain backwards-compatibility. This will be removed in version 12 of the Firebase JS SDK.
-
-For more information, refer to the documentation for the new <code>[GenAIModel](./vertexai.genaimodel.md#genaimodel_class)</code>.
+For more information, refer to the documentation for the new [GenAIModel](./vertexai.genaimodel.md#genaimodel_class)<!-- -->.
 
 <b>Signature:</b>
 
@@ -444,6 +440,10 @@ export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanS
 ```
 
 ## VertexAI
+
+An instance of the Vertex AI in Firebase SDK.
+
+For more information, refer to the documentation for the new [GenAI](./vertexai.genai.md#genai_interface)<!-- -->.
 
 <b>Signature:</b>
 
