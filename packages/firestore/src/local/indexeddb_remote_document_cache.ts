@@ -15,11 +15,8 @@
  * limitations under the License.
  */
 
-import {
-  getPipelineCollection,
-  isPipeline,
-  QueryOrPipeline
-} from '../core/pipeline-util';
+import { getPipelineCollection } from '../core/pipeline';
+import { isPipeline, QueryOrPipeline } from '../core/pipeline-util';
 import { queryOrPipelineMatches } from '../core/pipeline_run';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {

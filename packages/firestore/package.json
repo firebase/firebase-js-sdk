@@ -119,7 +119,8 @@
   "license": "Apache-2.0",
   "files": [
     "dist",
-    "lite/package.json"
+    "lite",
+    "pipelines"
   ],
   "dependencies": {
     "@firebase/component": "0.6.13",
@@ -165,7 +166,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "types": "dist/index.d.ts",
+  "types": "dist/firestore/src/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"

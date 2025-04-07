@@ -102,6 +102,7 @@ export class PipelineResult {
   readonly _fields: ObjectValue | undefined;
 
   /**
+   * @hideconstructor
    * @private
    * @internal
    *
@@ -131,6 +132,14 @@ export class PipelineResult {
     this._fields = fields;
   }
 
+  /**
+   * @private
+   * @internal
+   * @param userDataWriter
+   * @param doc
+   * @param ref
+   * @param metadata
+   */
   static fromDocument(
     userDataWriter: AbstractUserDataWriter,
     doc: Document,

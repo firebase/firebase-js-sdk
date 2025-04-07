@@ -15,11 +15,13 @@
  * limitations under the License.
  */
 
+import { CorePipeline } from '../core/pipeline';
 import { isPipeline } from '../core/pipeline-util';
-import { CorePipeline, newPipelineComparator } from '../core/pipeline_run';
+import { newPipelineComparator } from '../core/pipeline_run';
 import { newQueryComparator } from '../core/query';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { FieldPath } from '../lite-api/field_path';
+import { PipelineResult, toPipelineResult } from '../lite-api/pipeline-result';
 import { PipelineResult, toPipelineResult } from '../lite-api/pipeline-result';
 import {
   DocumentData,

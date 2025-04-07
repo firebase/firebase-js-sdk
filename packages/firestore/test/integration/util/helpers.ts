@@ -18,7 +18,7 @@
 import { isIndexedDBAvailable } from '@firebase/util';
 import { expect } from 'chai';
 
-import { RealtimePipelineSnapshot } from '../../../src/api/snapshot'; // Keep this if needed elsewhere, or remove if only used for the listener attempt
+import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
 import { PipelineResult } from '../../../src/lite-api/pipeline-result'; // Added import
 import { Deferred } from '../../util/promise'; // Added import
 import {

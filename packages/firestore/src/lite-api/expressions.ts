@@ -2190,14 +2190,14 @@ export class Field extends Expr implements Selectable {
    * @private
    */
   constructor(
-    readonly fieldPath: InternalFieldPath,
+    readonly _fieldPath: InternalFieldPath,
     private pipeline: Pipeline | null = null
   ) {
     super();
   }
 
   fieldName(): string {
-    return this.fieldPath.canonicalString();
+    return this._fieldPath.canonicalString();
   }
 
   get alias(): string {
@@ -2214,7 +2214,7 @@ export class Field extends Expr implements Selectable {
    */
   _toProto(serializer: JsonProtoSerializer): ProtoValue {
     return {
-      fieldReferenceValue: this.fieldPath.canonicalString()
+      fieldReferenceValue: this._fieldPath.canonicalString()
     };
   }
 

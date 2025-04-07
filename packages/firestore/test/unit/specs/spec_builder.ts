@@ -22,6 +22,7 @@ import {
   ListenerDataSource as Source
 } from '../../../src/core/event_manager';
 import { FieldFilter, Filter } from '../../../src/core/filter';
+import { CorePipeline } from '../../../src/core/pipeline';
 import {
   canonifyTargetOrPipeline,
   isPipeline,
@@ -30,9 +31,8 @@ import {
   TargetOrPipeline,
   targetOrPipelineEqual,
   toCorePipeline,
-  toPipelineStages
+  toPipeline
 } from '../../../src/core/pipeline-util';
-import { CorePipeline } from '../../../src/core/pipeline_run';
 import {
   LimitType,
   newQueryForPath,

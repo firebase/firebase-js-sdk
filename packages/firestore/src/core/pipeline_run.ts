@@ -39,13 +39,7 @@ import { Code } from '../util/error';
 import { toEvaluable, valueOrUndefined } from './expressions';
 import { isPipeline, QueryOrPipeline } from './pipeline-util';
 import { queryMatches } from './query';
-
-export class CorePipeline {
-  constructor(
-    readonly serializer: JsonProtoSerializer,
-    readonly stages: Stage[]
-  ) {}
-}
+import { CorePipeline } from './pipeline';
 
 export type PipelineInputOutput = MutableDocument;
 

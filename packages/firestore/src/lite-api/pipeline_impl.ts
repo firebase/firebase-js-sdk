@@ -28,10 +28,12 @@ import { LiteUserDataWriter } from './reference_impl';
 import { Stage } from './stage';
 import { newUserDataReader } from './user_data_reader';
 
+// TODO should not  be in lite
+import { RealtimePipeline} from "../api/realtime_pipeline";
+
 declare module './database' {
   interface Firestore {
     pipeline(): PipelineSource<Pipeline>;
-    realtimePipeline(): PipelineSource<RealtimePipeline>;
   }
 }
 

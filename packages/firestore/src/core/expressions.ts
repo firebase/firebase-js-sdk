@@ -45,7 +45,6 @@ import {
   isString,
   isTimestampValue,
   isVectorValue,
-  MAX_VALUE,
   MIN_VALUE,
   TRUE_VALUE,
   typeOrder,
@@ -338,6 +337,38 @@ export class CoreField implements EvaluableExpr {
 
 export class CoreConstant implements EvaluableExpr {
   constructor(private expr: Constant) {}
+
+  evaluate(
+    context: EvaluationContext,
+    input: PipelineInputOutput
+  ): EvaluateResult {
+    return EvaluateResult.newValue(this.expr._getValue());
+  }
+}
+
+export class CoreListOfExprs implements EvaluableExpr {
+  constructor(private expr: ListOfExprs) {}
+
+  evaluate(
+    context: EvaluationContext,
+    input: PipelineInputOutput
+  ): EvaluateResult {
+    const results: EvaluateResult[] = this.expr.exprs.map(expr =>
+      toEvaluable(expr).evaluate(context, input)
+    );
+    // If any sub-expression resulted in error or was unset, the list evaluation fails.
+    if (results.some(value => value.isErrorOrUnset())) {
+      return EvaluateResult.newError();
+    }
+
+    return EvaluateResult.newValue({
+      arrayValue: { values: results.map(value => value.value!) }
+    });
+  }
+}
+
+export class CoreListOfExprs implements EvaluableExpr {
+  constructor(private expr: ListOfExprs) {}
 
   evaluate(
     context: EvaluationContext,
@@ -2545,6 +2576,8 @@ export class CoreUnixMicrosToTimestamp extends UnixToTimestamp {
     const nanos = Number((value % MICROSECONDS_PER_SECOND) * BigInt(1000));
     return EvaluateResult.newValue({ timestampValue: { seconds, nanos } });
   }
+
+  abstract toTimestamp(value: bigint): Value | undefined;
 }
 
 export class CoreUnixMillisToTimestamp extends UnixToTimestamp {
