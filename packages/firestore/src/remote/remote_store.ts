@@ -190,11 +190,6 @@ class RemoteStoreImpl implements RemoteStore {
   ) {
     if (sendWriteRequestsDelayMs !== null) {
       debugAssert(
-        Number.isInteger(sendWriteRequestsDelayMs),
-        `invalid sendWriteRequestsDelayMs: ${sendWriteRequestsDelayMs} ` +
-          '(must be an integer, not a fractional amount)'
-      );
-      debugAssert(
         sendWriteRequestsDelayMs > 0,
         `invalid sendWriteRequestsDelayMs: ${sendWriteRequestsDelayMs} ` +
           '(must be greater than zero)'
@@ -769,10 +764,7 @@ function addToWritePipeline(
     writeRequestSent: false
   });
 
-  if (
-    remoteStoreImpl.sendWriteRequestsDelayMs === null ||
-    !canAddToWritePipeline(remoteStoreImpl)
-  ) {
+  if (remoteStoreImpl.sendWriteRequestsDelayMs === null) {
     remoteStoreImpl.sendWriteRequestsOperation?.cancel();
     remoteStoreImpl.sendWriteRequestsOperation = null;
     sendWriteRequestsFromPipeline(remoteStoreImpl);

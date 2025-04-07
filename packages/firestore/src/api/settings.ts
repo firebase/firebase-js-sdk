@@ -19,6 +19,7 @@ import { FirestoreSettings as LiteSettings } from '../lite-api/settings';
 
 import { FirestoreLocalCache } from './cache_config';
 import { ExperimentalLongPollingOptions } from './long_polling_options';
+import { ExperimentalOptions } from './experimental_options';
 
 export { DEFAULT_HOST } from '../lite-api/settings';
 
@@ -114,4 +115,10 @@ export interface FirestoreSettings extends LiteSettings {
    * effect.
    */
   experimentalLongPollingOptions?: ExperimentalLongPollingOptions;
+
+  /**
+   * Options that are "experimental", meaning that their semantics are subject
+   * to change at any time without notice, up to and including complete removal.
+   */
+  experimental?: ExperimentalOptions;
 }

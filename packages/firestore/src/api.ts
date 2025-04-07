@@ -84,6 +84,7 @@ export {
 export { FirestoreSettings, PersistenceSettings } from './api/settings';
 export type { PrivateSettings } from './lite-api/settings';
 export { ExperimentalLongPollingOptions } from './api/long_polling_options';
+export { ExperimentalOptions } from './api/experimental_options';
 
 export {
   DocumentChange,

@@ -54,6 +54,7 @@ export function registerFirestore(
           app
         );
         settings = { useFetchStreams, ...settings };
+        console.trace('zzyzx registerFirestore() settings:', settings);
         firestoreInstance._setSettings(settings);
         return firestoreInstance;
       },

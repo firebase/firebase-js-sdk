@@ -190,6 +190,12 @@ export class FirestoreSettingsImpl {
 
     this.experimental = cloneExperimentalOptions(settings.experimental ?? {});
     validateExperimentalOptions(this.experimental);
+    console.trace(
+      'zzyzx settings.experimental:',
+      settings.experimental,
+      ' this.experimental:',
+      this.experimental
+    );
   }
 
   isEqual(other: FirestoreSettingsImpl): boolean {
