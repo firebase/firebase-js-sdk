@@ -78,7 +78,9 @@ export class ChromeAdapter {
   ): Promise<EnhancedGenerateContentResponse> {
     const createOptions = this.onDeviceParams || {};
     createOptions.initialPrompts ??= [];
-    const extractedInitialPrompts = ChromeAdapter.toInitialPrompts(request.contents);
+    const extractedInitialPrompts = ChromeAdapter.toInitialPrompts(
+      request.contents
+    );
     // Assumes validation asserted there is at least one initial prompt.
     const prompt = extractedInitialPrompts.pop()!;
     createOptions.initialPrompts.push(...extractedInitialPrompts);
@@ -88,6 +90,46 @@ export class ChromeAdapter {
       text: () => result,
       functionCalls: () => undefined
     };
+  }
+  async generateContentStreamOnDevice(
+    request: GenerateContentRequest
+  ): Promise<Response> {
+    const createOptions = this.onDeviceParams || {};
+    createOptions.initialPrompts ??= [];
+    const extractedInitialPrompts = ChromeAdapter.toInitialPrompts(
+      request.contents
+    );
+    // Assumes validation asserted there is at least one initial prompt.
+    const prompt = extractedInitialPrompts.pop()!;
+    createOptions.initialPrompts.push(...extractedInitialPrompts);
+    const session = await this.session(createOptions);
+    const stream = await session.promptStreaming(prompt.content);
+    return ChromeAdapter.toStreamResponse(stream);
+  }
+  // Formats string stream returned by Chrome as SSE returned by Vertex.
+  private static async toStreamResponse(
+    stream: ReadableStream<string>
+  ): Promise<Response> {
+    const encoder = new TextEncoder();
+    return {
+      body: stream.pipeThrough(
+        new TransformStream({
+          transform(chunk, controller) {
+            const json = JSON.stringify({
+              candidates: [
+                {
+                  content: {
+                    role: 'model',
+                    parts: [{ text: chunk }]
+                  }
+                }
+              ]
+            });
+            controller.enqueue(encoder.encode(`data: ${json}\n\n`));
+          }
+        })
+      )
+    } as Response;
   }
   private static isOnDeviceRequest(request: GenerateContentRequest): boolean {
     // Returns false if the prompt is empty.

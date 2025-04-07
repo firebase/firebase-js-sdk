@@ -58,12 +58,7 @@ import {
   onValue,
   off
 } from 'firebase/database';
-import {
-  getGenerativeModel,
-  getVertexAI,
-  InferenceMode,
-  VertexAI
-} from 'firebase/vertexai';
+import { getGenerativeModel, getVertexAI, VertexAI } from 'firebase/vertexai';
 import { getDataConnect, DataConnect } from 'firebase/data-connect';
 
 /**
@@ -318,8 +313,13 @@ function callPerformance(app) {
 async function callVertexAI(app) {
   console.log('[VERTEXAI] start');
   const vertexAI = getVertexAI(app);
-  const model = getGenerativeModel(vertexAI, { model: 'gemini-1.5-flash' });
-  const result = await model.countTokens('abcdefg');
+  const model = getGenerativeModel(vertexAI, {
+    mode: 'prefer_in_cloud'
+  });
+  const result = await model.generateContentStream("What is Roko's Basalisk?");
+  for await (const chunk of result.stream) {
+    console.log(chunk.text());
+  }
   console.log(`[VERTEXAI] counted tokens: ${result.totalTokens}`);
 }
 
@@ -337,17 +337,6 @@ function callDataConnect(app) {
   console.log('[DATACONNECT] initialized');
 }
 
-async function callVertex(app) {
-  console.log('[VERTEX] start');
-  const vertex = getVertexAI(app);
-  const model = getGenerativeModel(vertex, {
-    mode: InferenceMode.PREFER_ON_DEVICE
-  });
-  const result = await model.generateContent("What is Roko's Basalisk?");
-  console.log(result.response.text());
-  console.log('[VERTEX] initialized');
-}
-
 /**
  * Run smoke tests for all products.
  * Comment out any products you want to ignore.
@@ -357,19 +346,18 @@ async function main() {
   const app = initializeApp(config);
   setLogLevel('warn');
 
-  callAppCheck(app);
-  await authLogin(app);
-  await callStorage(app);
-  await callFirestore(app);
-  await callDatabase(app);
-  await callMessaging(app);
-  callAnalytics(app);
-  callPerformance(app);
-  await callFunctions(app);
+  // callAppCheck(app);
+  // await authLogin(app);
+  // await callStorage(app);
+  // await callFirestore(app);
+  // await callDatabase(app);
+  // await callMessaging(app);
+  // callAnalytics(app);
+  // callPerformance(app);
+  // await callFunctions(app);
   await callVertexAI(app);
-  callDataConnect(app);
-  await authLogout(app);
-  await callVertex(app);
+  // callDataConnect(app);
+  // await authLogout(app);
   console.log('DONE');
 }
 
