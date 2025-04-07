@@ -44,6 +44,8 @@ If set to `true`<!-- -->, an invisible SynthID watermark is embedded in generate
 
 For Imagen 3 models, the default value is `true`<!-- -->; see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen"><code>addWatermark</code></a> documentation for more details.
 
+In Google AI, the default value is true, and it cannot be turned off.
+
 <b>Signature:</b>
 
 ```typescript

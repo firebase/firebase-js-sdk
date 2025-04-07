@@ -33,7 +33,7 @@ export async function countTokens(
 ): Promise<CountTokensResponse> {
   let body: string = '';
   if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
-    const mappedParams = GoogleAIMapper.mapCountTokensRequest(params);
+    const mappedParams = GoogleAIMapper.mapCountTokensRequest(params, model);
     body = JSON.stringify(mappedParams);
   } else {
     body = JSON.stringify(params);

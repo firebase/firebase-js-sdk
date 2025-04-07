@@ -20,7 +20,7 @@ import { GenerationConfig, Tool } from '../requests';
 
 export interface GoogleAICountTokensRequest {
   generateContentRequest: {
-    // model: string; // models/model-name
+    model: string; // 'models/model-name'
     contents: Content[];
     systemInstruction?: string | Part | Content;
     tools?: Tool[];
