@@ -22,7 +22,6 @@ import {
   DEFAULT_API_VERSION,
   DEFAULT_BASE_URL,
   DEFAULT_FETCH_TIMEOUT_MS,
-  DEVELOPER_API_BASE_URL,
   LANGUAGE_TAG,
   PACKAGE_VERSION
 } from '../constants';
@@ -45,35 +44,35 @@ export class RequestUrl {
     public requestOptions?: RequestOptions
   ) {}
   toString(): string {
-    // TODO: allow user-set option if that feature becomes available
-    const apiVersion = DEFAULT_API_VERSION;
-    let url = `${this.getBaseUrl()}/${apiVersion}`;
+    const url = new URL(this.baseUrl); // Throws if the URL is invalid
+    url.pathname = `/${this.apiVersion}/${this.modelPath}:${this.task}`;
+    url.search = this.queryParams.toString();
+    return url.toString();
+  }
+
+  private get baseUrl(): string {
+    return this.requestOptions?.baseUrl || DEFAULT_BASE_URL;
+  }
+
+  private get apiVersion(): string {
+    return DEFAULT_API_VERSION; // TODO: allow user-set options if that feature becomes available
+  }
+
+  private get modelPath(): string {
     if (this.apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
-      url += `/${this.model}:${this.task}`;
+      return `projects/${this.apiSettings.project}/${this.model}`;
     } else {
-      url += `/projects/${this.apiSettings.project}/locations/${this.apiSettings.location}/${this.model}:${this.task}`;
+      return `projects/${this.apiSettings.project}/locations/${this.apiSettings.backend.location}/${this.model}`;
     }
+  }
+
+  private get queryParams(): URLSearchParams {
+    const params = new URLSearchParams();
     if (this.stream) {
-      url += '?alt=sse';
+      params.set('alt', 'sse');
     }
-    return url;
-  }
 
-  private getBaseUrl(): string {
-    return this.apiSettings.backend.backendType === BackendType.GOOGLE_AI
-      ? this.requestOptions?.baseUrl || DEVELOPER_API_BASE_URL
-      : this.requestOptions?.baseUrl || DEFAULT_BASE_URL;
-  }
-
-  /**
-   * If the model needs to be passed to the backend, it needs to
-   * include project and location path.
-   */
-  get fullModelString(): string {
-    let modelString = `projects/${this.apiSettings.project}`;
-    modelString += `/locations/${this.apiSettings.location}`;
-    modelString += `/${this.model}`;
-    return modelString;
+    return params;
   }
 }
 

@@ -32,9 +32,6 @@ export const DEFAULT_LOCATION = 'us-central1';
 
 export const DEFAULT_BASE_URL = 'https://firebasevertexai.googleapis.com';
 
-export const DEVELOPER_API_BASE_URL =
-  'https://generativelanguage.googleapis.com';
-
 export const DEFAULT_API_VERSION = 'v1beta';
 
 export const PACKAGE_VERSION = version;

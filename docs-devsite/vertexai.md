@@ -16,7 +16,7 @@ https://github.com/firebase/firebase-js-sdk
 |  Function | Description |
 |  --- | --- |
 |  <b>function(app, ...)</b> |
-|  [getGenAI(app, options)](./vertexai.md#getgenai_65c48ee) | Returns the default  instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings. |
+|  [getGenAI(app, options)](./vertexai.md#getgenai_65c48ee) | Returns the default [GenAI](./vertexai.genai.md#genai_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings. |
 |  [getVertexAI(app, options)](./vertexai.md#getvertexai_04094cf) | Returns a <code>[VertexAI](./vertexai.md#vertexai)</code> instance for the given app. |
 |  <b>function()</b> |
 |  [googleAIBackend()](./vertexai.md#googleaibackend) | Creates a <code>[Backend](./vertexai.md#backend)</code> instance configured to use Google AI. |
@@ -86,8 +86,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [FunctionDeclarationsTool](./vertexai.functiondeclarationstool.md#functiondeclarationstool_interface) | A <code>FunctionDeclarationsTool</code> is a piece of code that enables the system to interact with external systems to perform an action, or set of actions, outside of knowledge and scope of the model. |
 |  [FunctionResponse](./vertexai.functionresponse.md#functionresponse_interface) | The result output from a <code>[FunctionCall](./vertexai.functioncall.md#functioncall_interface)</code> that contains a string representing the [FunctionDeclaration.name](./vertexai.functiondeclaration.md#functiondeclarationname) and a structured JSON object containing any output from the function is used as context to the model. This should contain the result of a <code>[FunctionCall](./vertexai.functioncall.md#functioncall_interface)</code> made based on model prediction. |
 |  [FunctionResponsePart](./vertexai.functionresponsepart.md#functionresponsepart_interface) | Content part interface if the part represents <code>[FunctionResponse](./vertexai.functionresponse.md#functionresponse_interface)</code>. |
-|  [GenAI](./vertexai.genai.md#genai_interface) | An instance of the Firebase GenAI SDK.<!-- -->Do not create this instance directly. Instead, use <code>[getGenAI()](./vertexai.md#getgenai_65c48ee)</code>. |
-|  [GenAIOptions](./vertexai.genaioptions.md#genaioptions_interface) | Options interface for initializing the GenAI service using <code>[getGenAI()](./vertexai.md#getgenai_65c48ee)</code>. |
+|  [GenAI](./vertexai.genai.md#genai_interface) | An instance of the Firebase GenAI SDK.<!-- -->Do not create this instance directly. Instead, use [getGenAI()](./vertexai.md#getgenai_65c48ee)<!-- -->. |
+|  [GenAIOptions](./vertexai.genaioptions.md#genaioptions_interface) | Options interface for initializing the GenAI service using [getGenAI()](./vertexai.md#getgenai_65c48ee)<!-- -->. |
 |  [GenerateContentCandidate](./vertexai.generatecontentcandidate.md#generatecontentcandidate_interface) | A candidate returned as part of a <code>[GenerateContentResponse](./vertexai.generatecontentresponse.md#generatecontentresponse_interface)</code>. |
 |  [GenerateContentRequest](./vertexai.generatecontentrequest.md#generatecontentrequest_interface) | Request sent through [GenerativeModel.generateContent()](./vertexai.generativemodel.md#generativemodelgeneratecontent) |
 |  [GenerateContentResponse](./vertexai.generatecontentresponse.md#generatecontentresponse_interface) | Individual response from [GenerativeModel.generateContent()](./vertexai.generativemodel.md#generativemodelgeneratecontent) and [GenerativeModel.generateContentStream()](./vertexai.generativemodel.md#generativemodelgeneratecontentstream)<!-- -->. <code>generateContentStream()</code> will return one in each chunk until the stream is done. |
@@ -129,7 +129,7 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Variable | Description |
 |  --- | --- |
-|  [BackendType](./vertexai.md#backendtype) | An enum-like object containing constants that represent the supported backends for the Firebase GenAI SDK.<!-- -->These values are assigned to the <code>backendType</code> property within the specific backend configuration objects (<code>[GoogleAIBackend](./vertexai.md#googleaibackend)</code> or <code>[VertexAIBackend](./vertexai.md#vertexaibackend)</code>) to identify which service to target. |
+|  [BackendType](./vertexai.md#backendtype) | An enum-like object containing constants that represent the supported backends for the Firebase GenAI SDK.<!-- -->These values are assigned to the <code>backendType</code> property within the specific backend configuration objects ([GoogleAIBackend](./vertexai.md#googleaibackend) or [VertexAIBackend](./vertexai.md#vertexaibackend)<!-- -->) to identify which service to target. |
 |  [POSSIBLE\_ROLES](./vertexai.md#possible_roles) | Possible roles. |
 |  [VertexAIError](./vertexai.md#vertexaierror) | Error class for the Vertex AI in Firebase SDK.<!-- -->This is an alias that exists to maintain backwards-compatibility. This will be removed in version 12 of the Firebase JS SDK.<!-- -->For more information, refer to the documentation for the new <code>[GenAIError](./vertexai.genaierror.md#genaierror_class)</code>. |
 |  [VertexAIModel](./vertexai.md#vertexaimodel) | Base class for Vertex AI in Firebase model APIs.<!-- -->This is an alias that exists to maintain backwards-compatibility. This will be removed in version 12 of the Firebase JS SDK.<!-- -->For more information, refer to the documentation for the new <code>[GenAIModel](./vertexai.genaimodel.md#genaimodel_class)</code>. |
@@ -138,21 +138,21 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Type Alias | Description |
 |  --- | --- |
-|  [Backend](./vertexai.md#backend) | Union type representing the backend configuration for the GenAI service. This can be either a <code>[GoogleAIBackend](./vertexai.md#googleaibackend)</code> or a <code>[VertexAIBackend](./vertexai.md#vertexaibackend)</code> configuration object.<!-- -->Create instances using <code>[googleAIBackend()](./vertexai.md#googleaibackend)</code> or <code>[vertexAIBackend()](./vertexai.md#vertexaibackend_d0a4534)</code>. |
-|  [BackendType](./vertexai.md#backendtype) | Type alias representing one of the valid string values defined in the <code></code> object. It can be either <code>'VERTEX_AI'</code> or <code>'GOOGLE_AI'</code>. |
-|  [GoogleAIBackend](./vertexai.md#googleaibackend) | Represents the configuration object for the Google AI backend. Use this with <code>[GenAIOptions](./vertexai.genaioptions.md#genaioptions_interface)</code> when initializing the service with <code>[getGenAI()](./vertexai.md#getgenai_65c48ee)</code>. Create an instance using <code>[googleAIBackend()](./vertexai.md#googleaibackend)</code>. |
+|  [Backend](./vertexai.md#backend) | Union type representing the backend configuration for the GenAI service. This can be either a [GoogleAIBackend](./vertexai.md#googleaibackend) or a [VertexAIBackend](./vertexai.md#vertexaibackend) configuration object.<!-- -->Create instances using [googleAIBackend()](./vertexai.md#googleaibackend) or [vertexAIBackend()](./vertexai.md#vertexaibackend_d0a4534)<!-- -->. |
+|  [BackendType](./vertexai.md#backendtype) | Type alias representing one of the valid string values defined in the  object. It can be either <code>'VERTEX_AI'</code> or <code>'GOOGLE_AI'</code>. |
+|  [GoogleAIBackend](./vertexai.md#googleaibackend) | Represents the configuration object for the Google AI backend. Use this with [GenAIOptions](./vertexai.genaioptions.md#genaioptions_interface) when initializing the service with [getGenAI()](./vertexai.md#getgenai_65c48ee)<!-- -->. Create an instance using [googleAIBackend()](./vertexai.md#googleaibackend)<!-- -->. |
 |  [Part](./vertexai.md#part) | Content part - includes text, image/video, or function call/response part types. |
 |  [Role](./vertexai.md#role) | Role is the producer of the content. |
 |  [Tool](./vertexai.md#tool) | Defines a tool that model can call to access external knowledge. |
 |  [TypedSchema](./vertexai.md#typedschema) | A type that includes all specific Schema types. |
 |  [VertexAI](./vertexai.md#vertexai) |  |
-|  [VertexAIBackend](./vertexai.md#vertexaibackend) | Represents the configuration object for the Vertex AI backend. Use this with <code>[GenAIOptions](./vertexai.genaioptions.md#genaioptions_interface)</code> when initializing the server with <code>[getGenAI()](./vertexai.md#getgenai_65c48ee)</code>. Create an instance using the <code>[vertexAIBackend()](./vertexai.md#vertexaibackend_d0a4534)</code> function. |
+|  [VertexAIBackend](./vertexai.md#vertexaibackend) | Represents the configuration object for the Vertex AI backend. Use this with [GenAIOptions](./vertexai.genaioptions.md#genaioptions_interface) when initializing the server with [getGenAI()](./vertexai.md#getgenai_65c48ee)<!-- -->. Create an instance using the [vertexAIBackend()](./vertexai.md#vertexaibackend_d0a4534) function. |
 
 ## function(app, ...)
 
 ### getGenAI(app, options) {:#getgenai_65c48ee}
 
-Returns the default  instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings.
+Returns the default [GenAI](./vertexai.genai.md#genai_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings.
 
 <b>Signature:</b>
 
@@ -320,7 +320,7 @@ A <code>[VertexAIBackend](./vertexai.md#vertexaibackend)</code> object.
 
 An enum-like object containing constants that represent the supported backends for the Firebase GenAI SDK.
 
-These values are assigned to the `backendType` property within the specific backend configuration objects (<code>[GoogleAIBackend](./vertexai.md#googleaibackend)</code> or <code>[VertexAIBackend](./vertexai.md#vertexaibackend)</code>) to identify which service to target.
+These values are assigned to the `backendType` property within the specific backend configuration objects ([GoogleAIBackend](./vertexai.md#googleaibackend) or [VertexAIBackend](./vertexai.md#vertexaibackend)<!-- -->) to identify which service to target.
 
 <b>Signature:</b>
 
@@ -371,9 +371,9 @@ VertexAIModel: typeof GenAIModel
 
 ## Backend
 
-Union type representing the backend configuration for the GenAI service. This can be either a <code>[GoogleAIBackend](./vertexai.md#googleaibackend)</code> or a <code>[VertexAIBackend](./vertexai.md#vertexaibackend)</code> configuration object.
+Union type representing the backend configuration for the GenAI service. This can be either a [GoogleAIBackend](./vertexai.md#googleaibackend) or a [VertexAIBackend](./vertexai.md#vertexaibackend) configuration object.
 
-Create instances using <code>[googleAIBackend()](./vertexai.md#googleaibackend)</code> or <code>[vertexAIBackend()](./vertexai.md#vertexaibackend_d0a4534)</code>.
+Create instances using [googleAIBackend()](./vertexai.md#googleaibackend) or [vertexAIBackend()](./vertexai.md#vertexaibackend_d0a4534)<!-- -->.
 
 <b>Signature:</b>
 
@@ -383,7 +383,7 @@ export type Backend = GoogleAIBackend | VertexAIBackend;
 
 ## BackendType
 
-Type alias representing one of the valid string values defined in the <code></code> object. It can be either `'VERTEX_AI'` or `'GOOGLE_AI'`<!-- -->.
+Type alias representing one of the valid string values defined in the  object. It can be either `'VERTEX_AI'` or `'GOOGLE_AI'`<!-- -->.
 
 <b>Signature:</b>
 
@@ -393,7 +393,7 @@ export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 
 ## GoogleAIBackend
 
-Represents the configuration object for the Google AI backend. Use this with <code>[GenAIOptions](./vertexai.genaioptions.md#genaioptions_interface)</code> when initializing the service with <code>[getGenAI()](./vertexai.md#getgenai_65c48ee)</code>. Create an instance using <code>[googleAIBackend()](./vertexai.md#googleaibackend)</code>.
+Represents the configuration object for the Google AI backend. Use this with [GenAIOptions](./vertexai.genaioptions.md#genaioptions_interface) when initializing the service with [getGenAI()](./vertexai.md#getgenai_65c48ee)<!-- -->. Create an instance using [googleAIBackend()](./vertexai.md#googleaibackend)<!-- -->.
 
 <b>Signature:</b>
 
@@ -453,7 +453,7 @@ export type VertexAI = GenAI;
 
 ## VertexAIBackend
 
-Represents the configuration object for the Vertex AI backend. Use this with <code>[GenAIOptions](./vertexai.genaioptions.md#genaioptions_interface)</code> when initializing the server with <code>[getGenAI()](./vertexai.md#getgenai_65c48ee)</code>. Create an instance using the <code>[vertexAIBackend()](./vertexai.md#vertexaibackend_d0a4534)</code> function.
+Represents the configuration object for the Vertex AI backend. Use this with [GenAIOptions](./vertexai.genaioptions.md#genaioptions_interface) when initializing the server with [getGenAI()](./vertexai.md#getgenai_65c48ee)<!-- -->. Create an instance using the [vertexAIBackend()](./vertexai.md#vertexaibackend_d0a4534) function.
 
 <b>Signature:</b>
 

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { GenAI, VertexAI } from '../public-types';
+import { GenAI } from '../public-types';
 import { Task, makeRequest } from '../requests/request';
 import { createPredictRequestBody } from '../requests/request-helpers';
 import { handlePredictResponse } from '../requests/response-helpers';
