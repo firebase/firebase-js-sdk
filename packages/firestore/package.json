@@ -54,7 +54,7 @@
     "doc": "api-documenter markdown --input temp --output docs",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/index.d.ts",
     "assertion-id:check": "ts-node scripts/assertion-id-tool.ts --dir=src --check",
-    "assertion-id:generate": "ts-node scripts/assertion-id-tool.ts --dir=src --new",
+    "assertion-id:new": "ts-node scripts/assertion-id-tool.ts --dir=src --new",
     "assertion-id:list": "ts-node scripts/assertion-id-tool.ts --dir=src --list",
     "assertion-id:find": "ts-node scripts/assertion-id-tool.ts --dir=src --find"
   },

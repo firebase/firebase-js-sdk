@@ -19,6 +19,7 @@
 /* eslint-disable no-console */
 
 import * as fs from "fs";
+import {getRandomValues} from 'node:crypto';
 import * as path from "path";
 
 import * as ts from "typescript";
@@ -44,7 +45,7 @@ interface CallSiteInfo {
   character: number;
   argumentsText: string[]; // Added to store argument text
   errorMessage: string | undefined;
-  assertionId: number;
+  assertionId: string;
 }
 
 /**
@@ -127,7 +128,7 @@ function findFunctionCalls(filePaths: string[]): CallSiteInfo[] {
             // --- Extract Arguments ---
             const argsText: string[] = [];
             let errorMessage: string | undefined;
-            let assertionId: number | undefined;
+            let assertionId: string | undefined;
             if (node.arguments && node.arguments.length > 0) {
               node.arguments.forEach((arg: ts.Expression) => {
                 // Get the source text of the argument node
@@ -137,7 +138,7 @@ function findFunctionCalls(filePaths: string[]): CallSiteInfo[] {
                   errorMessage = arg.getText(sourceFile);
                 }
                 else if (ts.isNumericLiteral(arg)) {
-                  assertionId = parseInt(arg.getText(sourceFile), 10);
+                  assertionId = arg.getText(sourceFile);
                 }
               });
             }
@@ -151,7 +152,7 @@ function findFunctionCalls(filePaths: string[]): CallSiteInfo[] {
               character: character + 1,
               argumentsText: argsText, // Store the extracted arguments,
               errorMessage,
-              assertionId: assertionId ?? -1
+              assertionId: assertionId ?? "INVALID",
             });
           }
         }
@@ -180,19 +181,20 @@ function handleList(occurrences: CallSiteInfo[]): void {
     return;
   }
 
-  occurrences.sort((a, b) => a.assertionId - b.assertionId).forEach((call) => {
+  occurrences.sort((a, b) => a.assertionId.localeCompare(b.assertionId)).forEach((call) => {
     console.log(
       `ID: ${call.assertionId}; MESSAGE: ${call.errorMessage}; SOURCE: '${call.functionName}' call at ${path.relative(process.cwd(), call.fileName)}:${call.line}:${call.character}`
     );
   });
+}
 
+function find(occurrences: CallSiteInfo[], targetId: string | number): CallSiteInfo[] {
+  const target = typeof targetId === 'number' ? targetId.toString(16) : targetId;
+  return occurrences.filter(o => String(o.assertionId) === String(target));
 }
 
 function handleFind(occurrences: CallSiteInfo[], targetId: string | number): void {
-  // Normalize target code for comparison if necessary (e.g., string vs number)
-  const target = typeof targetId === 'number' ? targetId : targetId.toString();
-
-  const foundLocations = occurrences.filter(o => String(o.assertionId) === String(target)); // Compare as strings
+  const foundLocations = find(occurrences, targetId);
 
   if (foundLocations.length === 0) {
     log(`Assertion id "${targetId}" not found.`);
@@ -210,11 +212,20 @@ function handleCheck(occurrences: CallSiteInfo[]): void {
   const idCounts: { [id: string]: CallSiteInfo[] } = {};
 
   occurrences.forEach(occ => {
+    // Count ID occurrences
     const codeStr = String(occ.assertionId); // Use string representation as key
     if (!idCounts[codeStr]) {
       idCounts[codeStr] = [];
     }
     idCounts[codeStr].push(occ);
+
+    // validate formats
+    if (!/^0x[0-9a-f]{4}$/.test(occ.assertionId)) {
+      console.error(`Invalid assertion ID '${occ.assertionId}'. Must match /^0x[0-9a-f]{4}$/`);
+
+      const relativePath = path.relative(process.cwd(), occ.fileName);
+      console.error(`- at '${relativePath}:${occ.line}:${occ.character}`);
+    }
   });
 
   let duplicatesFound = false;
@@ -238,22 +249,23 @@ function handleCheck(occurrences: CallSiteInfo[]): void {
   }
 }
 
+function randomId(): string {
+  const randomBytes = new Uint8Array(2);
+  getRandomValues(randomBytes);
+
+  return '0x' + Array.from(randomBytes)
+    .map(byte => byte.toString(16).padStart(2, '0'))
+    .join('');
+}
+
 function handleNew(occurrences: CallSiteInfo[]): void {
-  // --- Simple Numeric Scheme: Find max numeric code and add 1 ---
-  let maxCode = 0;
+  let newCode: string = randomId();
 
-  occurrences.forEach(occ => {
-    if (occ.assertionId > maxCode) {
-      maxCode = occ.assertionId;
-    }
-  });
-
-  if (occurrences.length === 0) {
-    log("0");
-    return;
+  // If we find this code already is used, regenerate it.
+  while (find(occurrences, newCode).length > 0) {
+    newCode = randomId();
   }
 
-  const newCode = maxCode + 1;
   console.log(newCode);
 }
 
