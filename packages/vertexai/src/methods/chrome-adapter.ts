@@ -118,6 +118,46 @@ export class ChromeAdapter {
   }
 
   /**
+   * Generates a stream of content.
+   */
+  async generateContentStreamOnDevice(
+    request: GenerateContentRequest
+  ): Promise<Response> {
+    const session = await this.createSession(
+      // TODO: normalize on-device params during construction.
+      this.onDeviceParams || {}
+    );
+    const messages = ChromeAdapter.toLanguageModelMessages(request.contents);
+    const stream = await session.promptStreaming(messages);
+    return ChromeAdapter.toStreamResponse(stream);
+  }
+  // Formats string stream returned by Chrome as SSE returned by Vertex.
+  private static async toStreamResponse(
+    stream: ReadableStream<string>
+  ): Promise<Response> {
+    const encoder = new TextEncoder();
+    return {
+      body: stream.pipeThrough(
+        new TransformStream({
+          transform(chunk, controller) {
+            const json = JSON.stringify({
+              candidates: [
+                {
+                  content: {
+                    role: 'model',
+                    parts: [{ text: chunk }]
+                  }
+                }
+              ]
+            });
+            controller.enqueue(encoder.encode(`data: ${json}\n\n`));
+          }
+        })
+      )
+    } as Response;
+  }
+
+  /**
    * Asserts inference for the given request can be performed by an on-device model.
    */
   private static isOnDeviceRequest(request: GenerateContentRequest): boolean {

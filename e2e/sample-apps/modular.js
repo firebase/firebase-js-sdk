@@ -58,16 +58,7 @@ import {
   onValue,
   off
 } from 'firebase/database';
-<<<<<<< HEAD
 import { getGenerativeModel, getVertexAI } from 'firebase/vertexai';
-=======
-import {
-  getGenerativeModel,
-  getVertexAI,
-  InferenceMode,
-  VertexAI
-} from 'firebase/vertexai';
->>>>>>> 3f02db006 (Run yarn format)
 import { getDataConnect, DataConnect } from 'firebase/data-connect';
 
 /**
@@ -322,8 +313,13 @@ function callPerformance(app) {
 async function callVertexAI(app) {
   console.log('[VERTEXAI] start');
   const vertexAI = getVertexAI(app);
-  const model = getGenerativeModel(vertexAI, { model: 'gemini-1.5-flash' });
-  const result = await model.countTokens('abcdefg');
+  const model = getGenerativeModel(vertexAI, {
+    mode: 'prefer_in_cloud'
+  });
+  const result = await model.generateContentStream("What is Roko's Basalisk?");
+  for await (const chunk of result.stream) {
+    console.log(chunk.text());
+  }
   console.log(`[VERTEXAI] counted tokens: ${result.totalTokens}`);
 }
 
@@ -339,15 +335,6 @@ function callDataConnect(app) {
     service: 'service'
   });
   console.log('[DATACONNECT] initialized');
-}
-
-async function callVertex(app) {
-  console.log('[VERTEX] start');
-  const vertex = getVertexAI(app);
-  const model = getGenerativeModel(vertex, { mode: 'prefer_on_device' });
-  const result = await model.generateContent("What is Roko's Basalisk?");
-  console.log(result.response.text());
-  console.log('[VERTEX] initialized');
 }
 
 /**
@@ -371,7 +358,6 @@ async function main() {
   await callVertexAI(app);
   callDataConnect(app);
   await authLogout(app);
-  await callVertex(app);
   console.log('DONE');
 }
 
