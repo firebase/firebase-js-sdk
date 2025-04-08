@@ -20,7 +20,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.11.2",
+    "@firebase/app": "0.11.4",
     "@firebase/logger": "0.4.4",
     "@firebase/util": "1.11.0",
     "@rollup/plugin-commonjs": "21.1.0",
@@ -38,7 +38,7 @@
     "terser": "5.37.0",
     "tmp": "0.2.3",
     "typescript": "5.5.4",
-    "webpack": "5.97.1",
+    "webpack": "5.98.0",
     "webpack-virtual-modules": "0.6.2",
     "yargs": "17.7.2"
   },

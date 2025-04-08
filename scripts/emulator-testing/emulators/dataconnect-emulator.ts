@@ -18,7 +18,7 @@
 import { platform } from 'os';
 import { Emulator } from './emulator';
 
-const DATACONNECT_EMULATOR_VERSION = '1.7.5';
+const DATACONNECT_EMULATOR_VERSION = '1.9.2';
 
 export class DataConnectEmulator extends Emulator {
   constructor(port = 9399) {

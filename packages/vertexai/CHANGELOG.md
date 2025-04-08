@@ -1,5 +1,21 @@
 # @firebase/vertexai
 
+## 1.2.1
+
+### Patch Changes
+
+- [`648de84`](https://github.com/firebase/firebase-js-sdk/commit/648de84b05c827d33d6b22aceb6eff01208ebdf0) [#8809](https://github.com/firebase/firebase-js-sdk/pull/8809) - Throw an error when initializing models if `appId` is not defined in the given `VertexAI` instance.
+
+- [`faaeb48`](https://github.com/firebase/firebase-js-sdk/commit/faaeb48e0c9dfddd014e5fb52088d39c895e9874) [#8832](https://github.com/firebase/firebase-js-sdk/pull/8832) - Label `GroundingAttribution` as deprecated.
+
+## 1.2.0
+
+### Minor Changes
+
+- [`25985ac`](https://github.com/firebase/firebase-js-sdk/commit/25985ac3c3a797160e2dc3a2a28aba9f63fe6dfd) [#8827](https://github.com/firebase/firebase-js-sdk/pull/8827) - Add `systemInstruction`, `tools`, and `generationConfig` to `CountTokensRequest`.
+
+- [`058afa2`](https://github.com/firebase/firebase-js-sdk/commit/058afa280c8e9a72e27f3b1fbdb2921012dc65d3) [#8741](https://github.com/firebase/firebase-js-sdk/pull/8741) - Added missing `BlockReason` and `FinishReason` enum values.
+
 ## 1.1.0
 
 ### Minor Changes
