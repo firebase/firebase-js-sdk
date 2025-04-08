@@ -29,11 +29,12 @@ import { browserLocalPersistence } from './persistence/local_storage';
 import { browserSessionPersistence } from './persistence/session_storage';
 import { indexedDBLocalPersistence } from './persistence/indexed_db';
 import { browserPopupRedirectResolver } from './popup_redirect';
-import { Auth, User } from '../model/public_types';
-import { getDefaultEmulatorHost, getExperimentalSetting } from '@firebase/util';
+import { Auth, Dependencies, RegionData, User } from '../model/public_types';
+import { deepEqual, getDefaultEmulatorHost, getExperimentalSetting } from '@firebase/util';
 import { _setExternalJSProvider } from './load_js';
-import { _createError } from '../core/util/assert';
+import { _createError, _fail } from '../core/util/assert';
 import { AuthErrorCode } from '../core/errors';
+import { AuthImpl } from '../core/auth/auth_impl';
 
 const DEFAULT_ID_TOKEN_MAX_AGE = 5 * 60;
 const authIdTokenMaxAge =
@@ -73,10 +74,22 @@ const mintCookieFactory = (url: string) => async (user: User | null) => {
  *
  * @public
  */
-export function getAuth(app: FirebaseApp = getApp()): Auth {
+export function getAuth(app: FirebaseApp = getApp(), regionData?: RegionData): Auth {
   const provider = _getProvider(app, 'auth');
 
   if (provider.isInitialized()) {
+    const auth = provider.getImmediate() as AuthImpl;
+    // Extract previously used regionData from initialization
+    const initialOptions = provider.getOptions() as Dependencies;
+
+    const previousRegionData = initialOptions?.regionData ?? {};
+    const currentRegionData = regionData ?? {};
+    if (deepEqual(previousRegionData, currentRegionData)) {
+      return auth;
+    } else {
+      _fail(auth, AuthErrorCode.ALREADY_INITIALIZED);
+    }
+
     return provider.getImmediate();
   }
 
@@ -86,7 +99,8 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
       indexedDBLocalPersistence,
       browserLocalPersistence,
       browserSessionPersistence
-    ]
+    ],
+    regionData
   });
 
   const authTokenSyncPath = getExperimentalSetting('authTokenSyncURL');
@@ -111,6 +125,8 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
   if (authEmulatorHost) {
     connectAuthEmulator(auth, `http://${authEmulatorHost}`);
   }
+  console.log("here");
+  console.log(auth.config.apiHost);
 
   return auth;
 }

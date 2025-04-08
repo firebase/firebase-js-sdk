@@ -30,6 +30,7 @@ import {
   NextOrObserver,
   Persistence,
   PopupRedirectResolver,
+  RegionData,
   User,
   UserCredential,
   CompleteFn,
@@ -91,7 +92,8 @@ interface AsyncAction {
 export const enum DefaultConfig {
   TOKEN_API_HOST = 'securetoken.googleapis.com',
   API_HOST = 'identitytoolkit.googleapis.com',
-  API_SCHEME = 'https'
+  API_SCHEME = 'https',
+  REGIONAL_API_HOST = 'identityplatform.googleapis.com'
 }
 
 export class AuthImpl implements AuthInternal, _FirebaseService {
@@ -125,6 +127,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     | undefined = undefined;
   _persistenceManagerAvailable: Promise<void>;
   readonly name: string;
+  readonly regionData: RegionData;
 
   // Tracks the last notified UID for state change listeners to prevent
   // repeated calls to the callbacks. Undefined means it's never been
@@ -139,7 +142,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     public readonly app: FirebaseApp,
     private readonly heartbeatServiceProvider: Provider<'heartbeat'>,
     private readonly appCheckServiceProvider: Provider<AppCheckInternalComponentName>,
-    public readonly config: ConfigInternal
+    public readonly config: ConfigInternal,
+    regionData?: RegionData
   ) {
     this.name = app.name;
     this.clientVersion = config.sdkClientVersion;
@@ -148,6 +152,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     this._persistenceManagerAvailable = new Promise<void>(
       resolve => (this._resolvePersistenceManagerAvailable = resolve)
     );
+    this.regionData = regionData ?? {};
   }
 
   _initializeWithPersistence(

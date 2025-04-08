@@ -1260,6 +1260,12 @@ export interface Dependencies {
    * Which {@link AuthErrorMap} to use.
    */
   errorMap?: AuthErrorMap;
+  regionData?: RegionData
+}
+
+export interface RegionData {
+  location?: string;
+  tenantId?: string;
 }
 
 /**
