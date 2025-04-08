@@ -508,7 +508,8 @@ export class DocumentSnapshot<
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = {};
     result['bundle'] = '';
-    result['source'] = 'DocumentSnapshot';
+    result['bundleSource'] = 'DocumentSnapshot';
+    result['bundleName'] = this._key.toString();
 
     if (
       !document ||
