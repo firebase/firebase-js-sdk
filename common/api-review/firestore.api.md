@@ -179,7 +179,11 @@ export class DocumentSnapshot<AppModelType = DocumentData, DbModelType extends D
     readonly metadata: SnapshotMetadata;
     get ref(): DocumentReference<AppModelType, DbModelType>;
     // (undocumented)
-    toJSON(): object;
+    toJSON(): {
+        bundle: string;
+        bundleSource: string;
+        bundleName: string;
+    };
 }
 
 export { EmulatorMockTokenOptions }
@@ -473,7 +477,21 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(fires
     bundle: string;
     bundleName: string;
     bundleSource: string;
+}, onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, json: {
+    bundle: string;
+    bundleName: string;
+    bundleSource: string;
 }, options: SnapshotListenOptions, onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, json: {
+    bundle: string;
+    bundleName: string;
+    bundleSource: string;
+}, options: SnapshotListenOptions, onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
 
 // @public
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, json: {
@@ -491,8 +509,30 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(fires
     bundle: string;
     bundleName: string;
     bundleSource: string;
+}, observer: {
+    next: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+}, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, json: {
+    bundle: string;
+    bundleName: string;
+    bundleSource: string;
 }, options: SnapshotListenOptions, observer: {
     next: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+}, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, json: {
+    bundle: string;
+    bundleName: string;
+    bundleSource: string;
+}, options: SnapshotListenOptions, observer: {
+    next: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
 }, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
@@ -649,7 +689,11 @@ export class QuerySnapshot<AppModelType = DocumentData, DbModelType extends Docu
     readonly query: Query<AppModelType, DbModelType>;
     get size(): number;
     // (undocumented)
-    toJSON(): object;
+    toJSON(): {
+        bundle: string;
+        bundleSource: string;
+        bundleName: string;
+    };
 }
 
 // @public

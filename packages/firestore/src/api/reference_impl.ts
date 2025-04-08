@@ -490,12 +490,11 @@ export interface Unsubscribe {
 // integration tests
 
 /**
- * Attaches a listener for `DocumentSnapshot` events. You may either pass
- * individual `onNext` and `onError` callbacks or pass a single observer
- * object with `next` and `error` callbacks.
+ * Attaches a listener for `DocumentSnapshot` events. You may either pass individual `onNext` and
+ * `onError` callbacks or pass a single observer object with `next` and `error` callbacks.
  *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
  *
  * @param reference - A reference to the document to listen to.
  * @param observer - A single object containing `next` and `error` callbacks.
@@ -511,12 +510,11 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   }
 ): Unsubscribe;
 /**
- * Attaches a listener for `DocumentSnapshot` events. You may either pass
- * individual `onNext` and `onError` callbacks or pass a single observer
- * object with `next` and `error` callbacks.
+ * Attaches a listener for `DocumentSnapshot` events. You may either pass individual `onNext` and
+ * `onError` callbacks or pass a single observer object with `next` and `error` callbacks.
  *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
  *
  * @param reference - A reference to the document to listen to.
  * @param options - Options controlling the listen behavior.
@@ -534,22 +532,18 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   }
 ): Unsubscribe;
 /**
- * Attaches a listener for `DocumentSnapshot` events. You may either pass
- * individual `onNext` and `onError` callbacks or pass a single observer
- * object with `next` and `error` callbacks.
+ * Attaches a listener for `DocumentSnapshot` events. You may either pass individual `onNext` and
+ * `onError` callbacks or pass a single observer object with `next` and `error` callbacks.
  *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
  *
  * @param reference - A reference to the document to listen to.
- * @param onNext - A callback to be called every time a new `DocumentSnapshot`
- * is available.
- * @param onError - A callback to be called if the listen fails or is
- * cancelled. No further callbacks will occur.
- * @param onCompletion - Can be provided, but will not be called since streams are
- * never ending.
- * @returns An unsubscribe function that can be called to cancel
- * the snapshot listener.
+ * @param onNext - A callback to be called every time a new `DocumentSnapshot` is available.
+ * @param onError - A callback to be called if the listen fails or is cancelled. No further
+ * callbacks will occur.
+ * @param onCompletion - Can be provided, but will not be called since streams are never ending.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
  */
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   reference: DocumentReference<AppModelType, DbModelType>,
@@ -558,23 +552,19 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   onCompletion?: () => void
 ): Unsubscribe;
 /**
- * Attaches a listener for `DocumentSnapshot` events. You may either pass
- * individual `onNext` and `onError` callbacks or pass a single observer
- * object with `next` and `error` callbacks.
+ * Attaches a listener for `DocumentSnapshot` events. You may either pass individual `onNext` and
+ * `onError` callbacks or pass a single observer object with `next` and `error` callbacks.
  *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
  *
  * @param reference - A reference to the document to listen to.
  * @param options - Options controlling the listen behavior.
- * @param onNext - A callback to be called every time a new `DocumentSnapshot`
- * is available.
- * @param onError - A callback to be called if the listen fails or is
- * cancelled. No further callbacks will occur.
- * @param onCompletion - Can be provided, but will not be called since streams are
- * never ending.
- * @returns An unsubscribe function that can be called to cancel
- * the snapshot listener.
+ * @param onNext - A callback to be called every time a new `DocumentSnapshot` is available.
+ * @param onError - A callback to be called if the listen fails or is cancelled. No further
+ * callbacks will occur.
+ * @param onCompletion - Can be provided, but will not be called since streams are never ending.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
  */
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   reference: DocumentReference<AppModelType, DbModelType>,
@@ -584,18 +574,16 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   onCompletion?: () => void
 ): Unsubscribe;
 /**
- * Attaches a listener for `QuerySnapshot` events. You may either pass
- * individual `onNext` and `onError` callbacks or pass a single observer
- * object with `next` and `error` callbacks. The listener can be cancelled by
- * calling the function that is returned when `onSnapshot` is called.
+ * Attaches a listener for `QuerySnapshot` events. You may either pass individual `onNext` and
+ * `onError` callbacks or pass a single observer object with `next` and `error` callbacks. The
+ * listener can be cancelled by calling the function that is returned when `onSnapshot` is called.
  *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
  *
  * @param query - The query to listen to.
  * @param observer - A single object containing `next` and `error` callbacks.
- * @returns An unsubscribe function that can be called to cancel
- * the snapshot listener.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
  */
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   query: Query<AppModelType, DbModelType>,
@@ -606,19 +594,17 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   }
 ): Unsubscribe;
 /**
- * Attaches a listener for `QuerySnapshot` events. You may either pass
- * individual `onNext` and `onError` callbacks or pass a single observer
- * object with `next` and `error` callbacks. The listener can be cancelled by
- * calling the function that is returned when `onSnapshot` is called.
+ * Attaches a listener for `QuerySnapshot` events. You may either pass individual `onNext` and
+ * `onError` callbacks or pass a single observer object with `next` and `error` callbacks. The
+ * listener can be cancelled by calling the function that is returned when `onSnapshot` is called.
  *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
  *
  * @param query - The query to listen to.
  * @param options - Options controlling the listen behavior.
  * @param observer - A single object containing `next` and `error` callbacks.
- * @returns An unsubscribe function that can be called to cancel
- * the snapshot listener.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
  */
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   query: Query<AppModelType, DbModelType>,
@@ -630,23 +616,19 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   }
 ): Unsubscribe;
 /**
- * Attaches a listener for `QuerySnapshot` events. You may either pass
- * individual `onNext` and `onError` callbacks or pass a single observer
- * object with `next` and `error` callbacks. The listener can be cancelled by
- * calling the function that is returned when `onSnapshot` is called.
+ * Attaches a listener for `QuerySnapshot` events. You may either pass individual `onNext` and
+ * `onError` callbacks or pass a single observer object with `next` and `error` callbacks. The
+ * listener can be cancelled by calling the function that is returned when `onSnapshot` is called.
  *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
  *
  * @param query - The query to listen to.
- * @param onNext - A callback to be called every time a new `QuerySnapshot`
- * is available.
- * @param onCompletion - Can be provided, but will not be called since streams are
- * never ending.
- * @param onError - A callback to be called if the listen fails or is
- * cancelled. No further callbacks will occur.
- * @returns An unsubscribe function that can be called to cancel
- * the snapshot listener.
+ * @param onNext - A callback to be called every time a new `QuerySnapshot` is available.
+ * @param onCompletion - Can be provided, but will not be called since streams are never ending.
+ * @param onError - A callback to be called if the listen fails or is cancelled. No further
+ * callbacks will occur.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
  */
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   query: Query<AppModelType, DbModelType>,
@@ -655,24 +637,20 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   onCompletion?: () => void
 ): Unsubscribe;
 /**
- * Attaches a listener for `QuerySnapshot` events. You may either pass
- * individual `onNext` and `onError` callbacks or pass a single observer
- * object with `next` and `error` callbacks. The listener can be cancelled by
- * calling the function that is returned when `onSnapshot` is called.
+ * Attaches a listener for `QuerySnapshot` events. You may either pass individual `onNext` and
+ * `onError` callbacks or pass a single observer object with `next` and `error` callbacks. The
+ * listener can be cancelled by calling the function that is returned when `onSnapshot` is called.
  *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
  *
  * @param query - The query to listen to.
  * @param options - Options controlling the listen behavior.
- * @param onNext - A callback to be called every time a new `QuerySnapshot`
- * is available.
- * @param onCompletion - Can be provided, but will not be called since streams are
- * never ending.
- * @param onError - A callback to be called if the listen fails or is
- * cancelled. No further callbacks will occur.
- * @returns An unsubscribe function that can be called to cancel
- * the snapshot listener.
+ * @param onNext - A callback to be called every time a new `QuerySnapshot` is available.
+ * @param onCompletion - Can be provided, but will not be called since streams are never ending.
+ * @param onError - A callback to be called if the listen fails or is cancelled. No further
+ * callbacks will occur.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
  */
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   query: Query<AppModelType, DbModelType>,
@@ -683,22 +661,105 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
 ): Unsubscribe;
 
 /**
- * Attaches a listener for `QuerySnapshot` events based on QuerySnapshot data generated by invoking
+ * Attaches a listener for `QuerySnapshot` events based on data generated by invoking
  * {@link QuerySnapshot.toJSON} You may either pass individual `onNext` and `onError` callbacks or
  * pass a single observer object with `next` and `error` callbacks. The listener can be cancelled by
  * calling the function that is returned when `onSnapshot` is called.
  *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
  *
  * @param firestore - The {@link Firestore} instance to enable persistence for.
  * @param json - A JSON object generated by invoking {@link QuerySnapshot.toJSON}.
- * @param onNext - A callback to be called every time a new `QuerySnapshot`
- * is available.
- * @param onError - A callback to be called if the listen fails or is
- * cancelled. No further callbacks will occur.
+ * @param onNext - A callback to be called every time a new `QuerySnapshot` is available.
+ * @param onError - A callback to be called if the listen fails or is cancelled. No further
+ * callbacks will occur.
+ * @param onCompletion - Can be provided, but will not be called since streams are never ending.
+ * @param converter - An optional object that converts objects from Firestore before the onNext
+ * listener is invoked.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
+ */
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
+  firestore: Firestore,
+  json: { bundle: string; bundleName: string; bundleSource: string },
+  onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void,
+  converter?: FirestoreDataConverter<DbModelType>
+): Unsubscribe;
+/**
+ * Attaches a listener for `DocumentSnapshot` events based on data generated by invoking
+ * {@link DocumentSnapshot.toJSON} You may either pass individual `onNext` and `onError` callbacks or
+ * pass a single observer object with `next` and `error` callbacks. The listener can be cancelled by
+ * calling the function that is returned when `onSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
+ *
+ * @param firestore - The {@link Firestore} instance to enable persistence for.
+ * @param json - A JSON object generated by invoking {@link DocumentSnapshot.toJSON}.
+ * @param onNext - A callback to be called every time a new `DocumentSnapshot` is available.
+ * @param onError - A callback to be called if the listen fails or is cancelled. No fruther
+ * callbacks will occur.
  * @param onCompletion - Can be provided, but will not be called since streams are
  * never ending.
+ * @param converter - An optional object that converts objects from Firestore before the onNext
+ * listener is invoked.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
+ */
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
+  firestore: Firestore,
+  json: { bundle: string; bundleName: string; bundleSource: string },
+  onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void,
+  converter?: FirestoreDataConverter<DbModelType>
+): Unsubscribe;
+/**
+ * Attaches a listener for `QuerySnapshot` events based on data generated by invoking
+ * {@link QuerySnapshot.toJSON} You may either pass individual `onNext` and `onError` callbacks or
+ * pass a single observer object with `next` and `error` callbacks. The listener can be cancelled by
+ * calling the function that is returned when `onSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
+ *
+ * @param firestore - The {@link Firestore} instance to enable persistence for.
+ * @param json - A JSON object generated by invoking {@link QuerySnapshot.toJSON}.
+ * @param options - Options controlling the listen behavior.
+ * @param onNext - A callback to be called every time a new `QuerySnapshot` is available.
+ * @param onError - A callback to be called if the listen fails or is cancelled. No further
+ * callbacks will occur.
+ * @param onCompletion - Can be provided, but will not be called since streams are never ending.
+ * @param converter - An optional object that converts objects from Firestore before the onNext
+ * listener is invoked.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
+ */
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
+  firestore: Firestore,
+  json: { bundle: string; bundleName: string; bundleSource: string },
+  options: SnapshotListenOptions,
+  onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void,
+  converter?: FirestoreDataConverter<DbModelType>
+): Unsubscribe;
+/**
+ * Attaches a listener for `DocumentSnapshot` events based on data generated by invoking
+ * {@link DocumentSnapshot.toJSON} You may either pass individual `onNext` and `onError` callbacks
+ * or pass a single observer object with `next` and `error` callbacks. The listener can be cancelled
+ * by calling the function that is returned when `onSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
+ *
+ * @param firestore - The {@link Firestore} instance to enable persistence for.
+ * @param json - A JSON object generated by invoking {@link DocumentSnapshot.toJSON}.
+ * @param options - Options controlling the listen behavior.
+ * @param onNext - A callback to be called every time a new `DocumentSnapshot` is available.
+ * @param onError - A callback to be called if the listen fails or is cancelled. No further
+ * callbacks will occur.
+ * @param onCompletion - Can be provided, but will not be called since streams are never ending.
  * @param converter - An optional object that converts objects from Firestore before the onNext
  * listener is invoked.
  * @returns An unsubscribe function that can be called to cancel
@@ -707,7 +768,8 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   firestore: Firestore,
   json: { bundle: string; bundleName: string; bundleSource: string },
-  onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
+  options: SnapshotListenOptions,
+  onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void,
   converter?: FirestoreDataConverter<DbModelType>
@@ -719,41 +781,8 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
  * pass a single observer object with `next` and `error` callbacks. The listener can be cancelled by
  * calling the function that is returned when `onSnapshot` is called.
  *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
- *
- * @param firestore - The {@link Firestore} instance to enable persistence for.
- * @param json - A JSON object generated by invoking {@link QuerySnapshot.toJSON}.
- * @param options - Options controlling the listen behavior.
- * @param onNext - A callback to be called every time a new `QuerySnapshot`
- * is available.
- * @param onError - A callback to be called if the listen fails or is
- * cancelled. No further callbacks will occur.
- * @param onCompletion - Can be provided, but will not be called since streams are
- * never ending.
- * @param converter - An optional object that converts objects from Firestore before the onNext
- * listener is invoked.
- * @returns An unsubscribe function that can be called to cancel
- * the snapshot listener.
- */
-export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
-  firestore: Firestore,
-  json: { bundle: string; bundleName: string; bundleSource: string },
-  options: SnapshotListenOptions,
-  onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
-  onError?: (error: FirestoreError) => void,
-  onCompletion?: () => void,
-  converter?: FirestoreDataConverter<DbModelType>
-): Unsubscribe;
-
-/**
- * Attaches a listener for `QuerySnapshot` events based on QuerySnapshot data generated by invoking
- * {@link QuerySnapshot.toJSON} You may either pass individual `onNext` and `onError` callbacks or
- * pass a single observer object with `next` and `error` callbacks. The listener can be cancelled by
- * calling the function that is returned when `onSnapshot` is called.
- *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
  *
  * @param firestore - The {@link Firestore} instance to enable persistence for.
  * @param json - A JSON object generated by invoking {@link QuerySnapshot.toJSON}.
@@ -774,13 +803,40 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   converter?: FirestoreDataConverter<DbModelType>
 ): Unsubscribe;
 /**
+ * Attaches a listener for `DocumentSnapshot` events based on data generated by invoking
+ * {@link DocumentSnapshot.toJSON} You may either pass individual `onNext` and `onError` callbacks
+ * or pass a single observer object with `next` and `error` callbacks. The listener can be cancelled
+ * by calling the function that is returned when `onSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
+ *
+ * @param firestore - The {@link Firestore} instance to enable persistence for.
+ * @param json - A JSON object generated by invoking {@link DocumentSnapshot.toJSON}.
+ * @param observer - A single object containing `next` and `error` callbacks.
+ * @param converter - An optional object that converts objects from Firestore before the onNext
+ * listener is invoked.
+ * @returns An unsubscribe function that can be called to cancel
+ * the snapshot listener.
+ */
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
+  firestore: Firestore,
+  json: { bundle: string; bundleName: string; bundleSource: string },
+  observer: {
+    next: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  },
+  converter?: FirestoreDataConverter<DbModelType>
+): Unsubscribe;
+/**
  * Attaches a listener for `QuerySnapshot` events based on QuerySnapshot data generated by invoking
  * {@link QuerySnapshot.toJSON} You may either pass individual `onNext` and `onError` callbacks or
  * pass a single observer object with `next` and `error` callbacks. The listener can be cancelled by
  * calling the function that is returned when `onSnapshot` is called.
  *
- * NOTE: Although an `onCompletion` callback can be provided, it will
- * never be called because the snapshot stream is never-ending.
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
  *
  * @param firestore - The {@link Firestore} instance to enable persistence for.
  * @param json - A JSON object generated by invoking {@link QuerySnapshot.toJSON}.
@@ -797,6 +853,34 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   options: SnapshotListenOptions,
   observer: {
     next: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  },
+  converter?: FirestoreDataConverter<DbModelType>
+): Unsubscribe;
+/**
+ * Attaches a listener for `DocumentSnapshot` events based on QuerySnapshot data generated by
+ * invoking {@link DocumentSnapshot.toJSON} You may either pass individual `onNext` and `onError`
+ * callbacks or pass a single observer object with `next` and `error` callbacks. The listener can be
+ * cancelled by calling the function that is returned when `onSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will never be called because the
+ * snapshot stream is never-ending.
+ *
+ * @param firestore - The {@link Firestore} instance to enable persistence for.
+ * @param json - A JSON object generated by invoking {@link DocumentSnapshot.toJSON}.
+ * @param options - Options controlling the listen behavior.
+ * @param observer - A single object containing `next` and `error` callbacks.
+ * @param converter - An optional object that converts objects from Firestore before the onNext
+ * listener is invoked.
+ * @returns An unsubscribe function that can be called to cancel the snapshot listener.
+ */
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
+  firestore: Firestore,
+  json: { bundle: string; bundleName: string; bundleSource: string },
+  options: SnapshotListenOptions,
+  observer: {
+    next: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
   },
