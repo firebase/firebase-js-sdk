@@ -91,7 +91,6 @@ export class ChromeAdapter {
     );
     const messages = ChromeAdapter.toLanguageModelMessages(request.contents);
     const text = await session.prompt(messages);
-    console.log(text);
     return {
       json: () =>
         Promise.resolve({
