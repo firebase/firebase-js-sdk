@@ -16,12 +16,7 @@
  */
 
 import { isChrome } from '@firebase/util';
-import {
-  Content,
-  GenerateContentRequest,
-  InferenceMode,
-  Role
-} from '../types';
+import { Content, GenerateContentRequest, InferenceMode, Role } from '../types';
 
 /**
  * Defines an inference "backend" that uses Chrome's on-device model,
