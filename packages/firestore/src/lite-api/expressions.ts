@@ -3045,16 +3045,6 @@ export function arrayOffset(
 
 /**
  * @beta
- * Creates an Expr that returns a map of all values in the current expression context.
- *
- * @return A new {@code Expr} representing the 'current_context' function.
- */
-export function currentContext(): FunctionExpr {
-  return new FunctionExpr('current_context', []);
-}
-
-/**
- * @beta
  *
  * Creates an expression that checks if a given expression produces an error.
  *

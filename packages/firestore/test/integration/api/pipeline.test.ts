@@ -144,7 +144,7 @@ use(chaiAsPromised);
 
 setLogLevel('debug');
 
-const testUnsupportedFeatures = false;
+const testUnsupportedFeatures: boolean | 'only' = false;
 const timestampDeltaMS = 1000;
 
 apiDescribe('Pipelines', persistence => {
@@ -343,8 +343,7 @@ apiDescribe('Pipelines', persistence => {
       expect(snapshot.results.length).to.equal(0);
     });
 
-    // Skipping because __name__ is not currently working in DBE
-    itIf(testUnsupportedFeatures)('full snapshot as expected', async () => {
+    it('full snapshot as expected', async () => {
       const ppl = firestore
         .pipeline()
         .collection(randomCol.path)
@@ -1372,8 +1371,7 @@ apiDescribe('Pipelines', persistence => {
     });
 
     describe('union stage', () => {
-      // __name__ not currently supported by dbe
-      itIf(testUnsupportedFeatures)('run pipeline with union', async () => {
+      it('run pipeline with union', async () => {
         const snapshot = await execute(
           firestore
             .pipeline()
@@ -2364,21 +2362,6 @@ apiDescribe('Pipelines', persistence => {
           .select(field('tags').arrayOffset(0).as('firstTag'))
       );
       expectResults(snapshot, ...expectedResults);
-    });
-
-    // TODO: current_context tests with are failing because of b/395937453
-    itIf(testUnsupportedFeatures)('supports currentContext', async () => {
-      const snapshot = await execute(
-        firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .sort(field('rating').descending())
-          .limit(1)
-          .select(currentContext().as('currentContext'))
-      );
-      expectResults(snapshot, {
-        currentContext: 'TODO'
-      });
     });
 
     it('supports map', async () => {

@@ -55,7 +55,7 @@ use(chaiAsPromised);
 
 setLogLevel('debug');
 
-const testUnsupportedFeatures = false;
+const testUnsupportedFeatures: boolean | 'only' = false;
 
 // This is the Query integration tests from the lite API (no cache support)
 // with some additional test cases added for more complete coverage.
@@ -247,9 +247,7 @@ apiDescribe('Query to Pipeline', persistence => {
     );
   });
 
-  // sort on __name__ is not working
-  itIf(testUnsupportedFeatures)(
-    'supports startAfter (with DocumentSnapshot)',
+  it('supports startAfter (with DocumentSnapshot)',
     () => {
       return withTestCollection(
         PERSISTENCE_MODE_UNSPECIFIED,
@@ -317,9 +315,7 @@ apiDescribe('Query to Pipeline', persistence => {
     }
   );
 
-  // sort on __name__ is not working
-  itIf(testUnsupportedFeatures)(
-    'supports startAt (with DocumentSnapshot)',
+  it('supports startAt (with DocumentSnapshot)',
     () => {
       return withTestCollection(
         PERSISTENCE_MODE_UNSPECIFIED,
@@ -719,8 +715,7 @@ apiDescribe('Query to Pipeline', persistence => {
     );
   });
 
-  // sorting on name required
-  itIf(testUnsupportedFeatures)('supports array contains any', () => {
+  it('supports array contains any', () => {
     return withTestCollection(
       PERSISTENCE_MODE_UNSPECIFIED,
       {
