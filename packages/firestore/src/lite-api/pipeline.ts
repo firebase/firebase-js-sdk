@@ -63,11 +63,14 @@ import {
 } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
 
-interface ReadableUserData {
+/**
+ * @private
+ */
+export interface ReadableUserData {
   _readUserData(dataReader: UserDataReader): void;
 }
 
-function isReadableUserData(value: unknown): value is ReadableUserData {
+export function isReadableUserData(value: unknown): value is ReadableUserData {
   return typeof (value as ReadableUserData)._readUserData === 'function';
 }
 
@@ -118,6 +121,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   /**
    * @internal
    * @private
+   * @hideconstructor
    * @param _db
    * @param userDataReader
    * @param _userDataWriter
@@ -129,13 +133,17 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
      * @private
      */
     public _db: Firestore,
-    private userDataReader: UserDataReader,
+    /**
+     * @internal
+     * @private
+     */
+    readonly userDataReader: UserDataReader,
     /**
      * @internal
      * @private
      */
     public _userDataWriter: AbstractUserDataWriter,
-    private stages: Stage[]
+    readonly stages: Stage[]
   ) {}
 
   /**

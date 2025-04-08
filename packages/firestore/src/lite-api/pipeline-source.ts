@@ -16,7 +16,7 @@
  */
 
 import { DatabaseId } from '../core/database_info';
-import { toPipeline } from '../core/pipeline-util';
+import { toPipelineStages } from '../core/pipeline-util';
 import { FirestoreError, Code } from '../util/error';
 
 import { Pipeline } from './pipeline';
@@ -114,8 +114,10 @@ export class PipelineSource<PipelineType> {
    *
    * @throws {@FirestoreError} Thrown if any of the provided DocumentReferences target a different project or database than the pipeline.
    */
-  createFrom(query: Query): Pipeline {
-    return toPipeline(query._query, query.firestore);
+  createFrom(query: Query): PipelineType {
+    return this._createPipeline(
+      toPipelineStages(query._query, query.firestore)
+    );
   }
 
   _validateReference(reference: CollectionReference | DocumentReference): void {
