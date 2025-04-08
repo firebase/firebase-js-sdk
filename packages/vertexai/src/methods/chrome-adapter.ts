@@ -103,17 +103,23 @@ export class ChromeAdapter {
     );
     const messages = ChromeAdapter.toLanguageModelMessages(request.contents);
     const text = await session.prompt(messages);
+    return ChromeAdapter.toResponse(text);
+  }
+
+  /**
+   * Formats string returned by Chrome as a {@link Response} returned by Vertex.
+   */
+  private static toResponse(text: string): Response {
     return {
-      json: () =>
-        Promise.resolve({
-          candidates: [
-            {
-              content: {
-                parts: [{ text }]
-              }
+      json: async () => ({
+        candidates: [
+          {
+            content: {
+              parts: [{ text }]
             }
-          ]
-        })
+          }
+        ]
+      })
     } as Response;
   }
 
@@ -131,7 +137,10 @@ export class ChromeAdapter {
     const stream = await session.promptStreaming(messages);
     return ChromeAdapter.toStreamResponse(stream);
   }
-  // Formats string stream returned by Chrome as SSE returned by Vertex.
+
+  /**
+   * Formats string stream returned by Chrome as SSE returned by Vertex.
+   */
   private static async toStreamResponse(
     stream: ReadableStream<string>
   ): Promise<Response> {
