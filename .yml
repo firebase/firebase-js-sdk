@@ -4,7 +4,7 @@
     # Set always-auth in npmrc.
     always-auth: # optional, default is false
     # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0.
-    node-version: # optional
+    node-version: '14.x' # optional
     # File containing the version Spec of the version to use.  Examples: package.json, .nvmrc, .node-version, .tool-versions.
     node-version-file: # optional
     # Target architecture for Node to use. Examples: x86, x64. Will use system architecture by default.
