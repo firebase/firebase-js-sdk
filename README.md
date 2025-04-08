@@ -1,18 +1,11 @@
-[![Test Modified Packages](https://github.com/nodoubtz/firebase-js-sdk/actions/workflows/test-changed.yml/badge.svg)](https://github.com/nodoubtz/firebase-js-sdk/actions/workflows/test-changed.yml)
+The README file for the `nodoubtz/firebase-js-sdk` repository is already quite comprehensive. Here is the updated README with some minor improvements for better clarity and structure:
 
-[![Test Firestore](https://github.com/nodoubtz/firebase-js-sdk/actions/workflows/test-changed-firestore.yml/badge.svg)](https://github.com/nodoubtz/firebase-js-sdk/actions/workflows/test-changed-firestore.yml)
-
-The README file for the `nodoubtz/firebase-js-sdk` repository is already quite comprehensive. Below is the updated README with some minor improvements for better clarity and structure:
-
----
-
+````markdown
 # Firebase JavaScript SDK
 
-<!-- BADGES -->
 ![Build Status](https://img.shields.io/github/actions/workflow/status/firebase/firebase-js-sdk/test-all.yml)
 [![Version](https://img.shields.io/npm/v/firebase.svg?label=version)](https://www.npmjs.com/package/firebase)
 [![Coverage Status](https://coveralls.io/repos/github/firebase/firebase-js-sdk/badge.svg?branch=main)](https://coveralls.io/github/firebase/firebase-js-sdk?branch=main)
-<!-- END BADGES -->
 
 The Firebase JavaScript SDK implements the client-side libraries used by applications using Firebase services. This SDK is distributed via:
 
@@ -212,10 +205,13 @@ See [Contributing](./CONTRIBUTING.md) for more information on contributing to th
 
 ### Big Thanks
 
-Cross-browser Testing Platform and Open Source <3 Provided by [Sauce Labs][homepage].
+Cross-browser Testing Platform and Open Source ❤️ Provided by [Sauce Labs][homepage].
 
 [homepage]: https://saucelabs.com
 
 ---
 
 This updated README includes all the necessary information for getting started, development, testing, and contributing to the Firebase JavaScript SDK. If you have any additional changes or specific sections you'd like to add, please let me know!
+````
+
+You can view the updated README [here](https://github.com/nodoubtz/firebase-js-sdk/blob/main/README.md).
