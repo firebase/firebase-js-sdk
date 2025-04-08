@@ -1,0 +1,9 @@
+FileInputStream serviceAccount =
+new FileInputStream("path/to/serviceAccountKey.json");
+
+FirebaseOptions options = new FirebaseOptions.Builder()
+  .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+  .setDatabaseUrl("https://gtm-kqqwvx2-zgi2z-default-rtdb.firebaseio.com")
+  .build();
+
+FirebaseApp.initializeApp(options);
