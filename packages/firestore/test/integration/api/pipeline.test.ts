@@ -2943,7 +2943,7 @@ apiDescribe('Pipelines', persistence => {
       });
     }
 
-    // sort on __name__ is not working
+    // sort on __name__ is not working, see b/409358591
     itIf(testUnsupportedFeatures)(
       'supports pagination with filters',
       async () => {
@@ -2985,7 +2985,7 @@ apiDescribe('Pipelines', persistence => {
       }
     );
 
-    // sort on __name__ is not working
+    // sort on __name__ is not working, see b/409358591
     itIf(testUnsupportedFeatures)(
       'supports pagination with offsets',
       async () => {
