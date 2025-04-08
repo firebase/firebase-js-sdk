@@ -18,7 +18,6 @@
 import { isChrome } from '@firebase/util';
 import {
   Content,
-  EnhancedGenerateContentResponse,
   GenerateContentRequest,
   InferenceMode,
   Role
@@ -75,7 +74,7 @@ export class ChromeAdapter {
   }
   async generateContentOnDevice(
     request: GenerateContentRequest
-  ): Promise<EnhancedGenerateContentResponse> {
+  ): Promise<Response> {
     const createOptions = this.onDeviceParams || {};
     createOptions.initialPrompts ??= [];
     const extractedInitialPrompts = ChromeAdapter.toInitialPrompts(
@@ -86,10 +85,20 @@ export class ChromeAdapter {
     createOptions.initialPrompts.push(...extractedInitialPrompts);
     const session = await this.session(createOptions);
     const result = await session.prompt(prompt.content);
+    return ChromeAdapter.toResponse(result);
+  }
+  private static toResponse(text: string): Response {
     return {
-      text: () => result,
-      functionCalls: () => undefined
-    };
+      json: async () => ({
+        candidates: [
+          {
+            content: {
+              parts: [{ text }]
+            }
+          }
+        ]
+      })
+    } as Response;
   }
   async generateContentStreamOnDevice(
     request: GenerateContentRequest

@@ -291,24 +291,23 @@ describe('generateContent()', () => {
     expect(mockFetch).to.be.called;
   });
   it('on-device', async () => {
-    const expectedText = 'hi';
     const chromeAdapter = new ChromeAdapter();
     const mockIsAvailable = stub(chromeAdapter, 'isAvailable').resolves(true);
-    const mockGenerateContent = stub(
+    const mockResponse = getMockResponse(
+      'unary-success-basic-reply-short.json'
+    );
+    const makeRequestStub = stub(
       chromeAdapter,
       'generateContentOnDevice'
-    ).resolves({
-      text: () => expectedText,
-      functionCalls: () => undefined
-    });
+    ).resolves(mockResponse as Response);
     const result = await generateContent(
       fakeApiSettings,
       'model',
       fakeRequestParams,
       chromeAdapter
     );
-    expect(result.response.text()).to.equal(expectedText);
+    expect(result.response.text()).to.include('Mountain View, California');
     expect(mockIsAvailable).to.be.called;
-    expect(mockGenerateContent).to.be.calledWith(fakeRequestParams);
+    expect(makeRequestStub).to.be.calledWith(fakeRequestParams);
   });
 });

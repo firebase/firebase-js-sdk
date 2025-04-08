@@ -252,7 +252,15 @@ describe('ChromeAdapter', () => {
           { role: 'assistant', content: text[1] }
         ]
       });
-      expect(response.text()).to.equal(text[2]);
+      expect(await response.json()).to.deep.equal({
+        candidates: [
+          {
+            content: {
+              parts: [{ text: text[2] }]
+            }
+          }
+        ]
+      });
     });
     it('Extracts system prompt', async () => {
       const aiProvider = {
@@ -279,7 +287,15 @@ describe('ChromeAdapter', () => {
         initialPrompts: [],
         systemPrompt: onDeviceParams.systemPrompt
       });
-      expect(response.text()).to.equal(text);
+      expect(await response.json()).to.deep.equal({
+        candidates: [
+          {
+            content: {
+              parts: [{ text }]
+            }
+          }
+        ]
+      });
     });
   });
 });
