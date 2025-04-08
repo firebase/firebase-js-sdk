@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
+import { TargetOrPipeline } from '../core/pipeline-util';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Target } from '../core/target';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
@@ -130,7 +130,7 @@ export interface TargetCache {
    */
   getTargetData(
     transaction: PersistenceTransaction,
-    target: Target
+    target: TargetOrPipeline
   ): PersistencePromise<TargetData | null>;
 
   /**
