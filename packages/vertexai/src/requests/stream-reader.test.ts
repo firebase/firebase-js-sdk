@@ -72,6 +72,7 @@ describe('processStream', () => {
   });
   it('streaming response - short', async () => {
     const fakeResponse = getMockResponseStreaming(
+      'vertexAI',
       'streaming-success-basic-reply-short.txt'
     );
     const result = processStream(fakeResponse as Response);
@@ -83,6 +84,7 @@ describe('processStream', () => {
   });
   it('streaming response - long', async () => {
     const fakeResponse = getMockResponseStreaming(
+      'vertexAI',
       'streaming-success-basic-reply-long.txt'
     );
     const result = processStream(fakeResponse as Response);
@@ -95,6 +97,7 @@ describe('processStream', () => {
   });
   it('streaming response - long - big chunk', async () => {
     const fakeResponse = getMockResponseStreaming(
+      'vertexAI',
       'streaming-success-basic-reply-long.txt',
       1e6
     );
@@ -107,7 +110,10 @@ describe('processStream', () => {
     expect(aggregatedResponse.text()).to.include('to their owners.');
   });
   it('streaming response - utf8', async () => {
-    const fakeResponse = getMockResponseStreaming('streaming-success-utf8.txt');
+    const fakeResponse = getMockResponseStreaming(
+      'vertexAI',
+      'streaming-success-utf8.txt'
+    );
     const result = processStream(fakeResponse as Response);
     for await (const response of result.stream) {
       expect(response.text()).to.not.be.empty;
@@ -118,6 +124,7 @@ describe('processStream', () => {
   });
   it('streaming response - functioncall', async () => {
     const fakeResponse = getMockResponseStreaming(
+      'vertexAI',
       'streaming-success-function-call-short.txt'
     );
     const result = processStream(fakeResponse as Response);
@@ -141,6 +148,7 @@ describe('processStream', () => {
   });
   it('candidate had finishReason', async () => {
     const fakeResponse = getMockResponseStreaming(
+      'vertexAI',
       'streaming-failure-finish-reason-safety.txt'
     );
     const result = processStream(fakeResponse as Response);
@@ -153,6 +161,7 @@ describe('processStream', () => {
   });
   it('prompt was blocked', async () => {
     const fakeResponse = getMockResponseStreaming(
+      'vertexAI',
       'streaming-failure-prompt-blocked-safety.txt'
     );
     const result = processStream(fakeResponse as Response);
@@ -165,6 +174,7 @@ describe('processStream', () => {
   });
   it('empty content', async () => {
     const fakeResponse = getMockResponseStreaming(
+      'vertexAI',
       'streaming-failure-empty-content.txt'
     );
     const result = processStream(fakeResponse as Response);
@@ -176,6 +186,7 @@ describe('processStream', () => {
   });
   it('unknown enum - should ignore', async () => {
     const fakeResponse = getMockResponseStreaming(
+      'vertexAI',
       'streaming-success-unknown-safety-enum.txt'
     );
     const result = processStream(fakeResponse as Response);
@@ -187,6 +198,7 @@ describe('processStream', () => {
   });
   it('recitation ending with a missing content field', async () => {
     const fakeResponse = getMockResponseStreaming(
+      'vertexAI',
       'streaming-failure-recitation-no-content.txt'
     );
     const result = processStream(fakeResponse as Response);
@@ -205,6 +217,7 @@ describe('processStream', () => {
   });
   it('handles citations', async () => {
     const fakeResponse = getMockResponseStreaming(
+      'vertexAI',
       'streaming-success-citations.txt'
     );
     const result = processStream(fakeResponse as Response);
@@ -224,6 +237,7 @@ describe('processStream', () => {
   });
   it('removes empty text parts', async () => {
     const fakeResponse = getMockResponseStreaming(
+      'vertexAI',
       'streaming-success-empty-text-part.txt'
     );
     const result = processStream(fakeResponse as Response);
