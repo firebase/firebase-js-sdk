@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  EnhancedGenerateContentResponse,
-  GenerateContentRequest,
-  InferenceMode
-} from '../types';
+import { GenerateContentRequest, InferenceMode } from '../types';
 
 /**
  * Defines an inference "backend" that uses Chrome's on-device model,
@@ -38,10 +34,18 @@ export class ChromeAdapter {
   async generateContentOnDevice(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     request: GenerateContentRequest
-  ): Promise<EnhancedGenerateContentResponse> {
+  ): Promise<Response> {
     return {
-      text: () => '',
-      functionCalls: () => undefined
-    };
+      json: () =>
+        Promise.resolve({
+          candidates: [
+            {
+              content: {
+                parts: [{ text: '' }]
+              }
+            }
+          ]
+        })
+    } as Response;
   }
 }
