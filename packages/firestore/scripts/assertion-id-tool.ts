@@ -64,7 +64,6 @@ function getTsFilesRecursive(dirPath: string): string[] {
       if (entry.isDirectory()) {
         // Ignore node_modules for performance and relevance
         if (entry.name === 'node_modules') {
-          // log(`Skipping node_modules directory: ${fullPath}`);
           continue;
         }
         // Recursively scan subdirectories
@@ -78,10 +77,10 @@ function getTsFilesRecursive(dirPath: string): string[] {
     }
   } catch (error: any) {
     console.error(`Error reading directory ${dirPath}: ${error.message}`);
+    throw error;
   }
   return tsFiles;
 }
-
 
 /**
  * Analyzes TypeScript source files to find calls to specific functions.
@@ -92,86 +91,78 @@ function findFunctionCalls(filePaths: string[]): CallSiteInfo[] {
   const foundCalls: CallSiteInfo[] = [];
 
   for (const filePath of filePaths) {
-    try {
-      // Read the file content
-      const sourceText = fs.readFileSync(filePath, "utf8");
+    // Read the file content
+    const sourceText = fs.readFileSync(filePath, 'utf8');
 
-      // Create the SourceFile AST node
-      const sourceFile = ts.createSourceFile(
-        path.basename(filePath), // Use basename for AST node name
-        sourceText,
-        ts.ScriptTarget.ESNext, // Or your project's target
-        true, // Set parent pointers
-        ts.ScriptKind.Unknown // Detect TS vs TSX automatically
-      );
+    // Create the SourceFile AST node
+    const sourceFile = ts.createSourceFile(
+      path.basename(filePath), // Use basename for AST node name
+      sourceText,
+      ts.ScriptTarget.ESNext,
+      true, // Set parent pointers
+      ts.ScriptKind.Unknown // Detect TS vs TSX automatically
+    );
 
-      // Define the visitor function
-      const visit = (node: ts.Node) :void => {
-        // Check if the node is a CallExpression (e.g., myFunction(...))
-        if (ts.isCallExpression(node)) {
-          let functionName: string | null = null;
-          const expression = node.expression;
+    // Define the visitor function
+    const visit = (node: ts.Node): void => {
+      // Check if the node is a CallExpression (e.g., myFunction(...))
+      if (ts.isCallExpression(node)) {
+        let functionName: string | null = null;
+        const expression = node.expression;
 
-          // Check if the call is directly to an identifier (e.g., fail())
-          if (ts.isIdentifier(expression)) {
-            functionName = expression.text;
-          }
-
-          // If we found a function name, and it's one we're looking for
-          if (functionName && targetFunctionNames.has(functionName)) {
-            // Get line and character number
-            const { line, character } = ts.getLineAndCharacterOfPosition(
-              sourceFile,
-              node.getStart() // Get start position of the call expression
-            );
-
-            // --- Extract Arguments ---
-            const argsText: string[] = [];
-            let errorMessage: string | undefined;
-            let assertionId: string | undefined;
-            if (node.arguments && node.arguments.length > 0) {
-              node.arguments.forEach((arg: ts.Expression) => {
-                // Get the source text of the argument node
-                argsText.push(arg.getText(sourceFile));
-
-                if (ts.isStringLiteral(arg)) {
-                  errorMessage = arg.getText(sourceFile);
-                }
-                else if (ts.isNumericLiteral(arg)) {
-                  assertionId = arg.getText(sourceFile);
-                }
-              });
-            }
-            // --- End Extract Arguments ---
-
-            // Store the information (add 1 to line/char for 1-based indexing)
-            foundCalls.push({
-              fileName: filePath, // Store the full path
-              functionName,
-              line: line + 1,
-              character: character + 1,
-              argumentsText: argsText, // Store the extracted arguments,
-              errorMessage,
-              assertionId: assertionId ?? "INVALID",
-            });
-          }
+        // Check if the call is directly to an identifier (e.g., fail())
+        if (ts.isIdentifier(expression)) {
+          functionName = expression.text;
         }
 
-        // Continue traversing down the AST
-        ts.forEachChild(node, visit);
-      };
+        // If we found a function name, and it's one we're looking for
+        if (functionName && targetFunctionNames.has(functionName)) {
+          // Get line and character number
+          const { line, character } = ts.getLineAndCharacterOfPosition(
+            sourceFile,
+            node.getStart() // Get start position of the call expression
+          );
 
-      // Start traversal from the root SourceFile node
-      visit(sourceFile);
+          // --- Extract Arguments ---
+          const argsText: string[] = [];
+          let errorMessage: string | undefined;
+          let assertionId: string | undefined;
+          if (node.arguments && node.arguments.length > 0) {
+            node.arguments.forEach((arg: ts.Expression) => {
+              // Get the source text of the argument node
+              argsText.push(arg.getText(sourceFile));
 
-    } catch (error: any) {
-      console.error(`Error processing file ${filePath}: ${error.message}`);
-    }
+              if (ts.isStringLiteral(arg)) {
+                errorMessage = arg.getText(sourceFile);
+              } else if (ts.isNumericLiteral(arg)) {
+                assertionId = arg.getText(sourceFile);
+              }
+            });
+          }
+
+          // Store the information (add 1 to line/char for 1-based indexing)
+          foundCalls.push({
+            fileName: filePath, // Store the full path
+            functionName,
+            line: line + 1,
+            character: character + 1,
+            argumentsText: argsText, // Store the extracted arguments,
+            errorMessage,
+            assertionId: assertionId ?? 'INVALID'
+          });
+        }
+      }
+
+      // Continue traversing down the AST
+      ts.forEachChild(node, visit);
+    };
+
+    // Start traversal from the root SourceFile node
+    visit(sourceFile);
   } // End loop through filePaths
 
   return foundCalls;
 }
-
 
 // --- Action Handlers ---
 
@@ -362,11 +353,4 @@ async function main(): Promise<void> {
 }
 
 // Run the main function
-main().catch(error => {
-  console.error("\nAn unexpected error occurred:");
-  console.error(error);
-  process.exit(1);
-});
-
-
-
+main();
