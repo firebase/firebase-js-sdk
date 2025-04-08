@@ -2,4 +2,4 @@
 "@firebase/firestore": patch
 ---
 
-Adding error codes and error context to internal assertion messages.
+Add assertion IDs and optional context objects that will be included in production log statements for fail and hardAsserts
