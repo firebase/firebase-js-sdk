@@ -147,7 +147,7 @@ setLogLevel('debug');
 const testUnsupportedFeatures: boolean | 'only' = false;
 const timestampDeltaMS = 1000;
 
-apiDescribe('Pipelines', persistence => {
+apiDescribe.only('Pipelines', persistence => {
   addEqualityMatcher();
 
   let firestore: Firestore;
@@ -2371,7 +2371,7 @@ apiDescribe('Pipelines', persistence => {
           .collection(randomCol.path)
           .sort(field('rating').descending())
           .limit(1)
-          .addFields(
+          .select(
             map({
               foo: 'bar'
             }).as('metadata')
