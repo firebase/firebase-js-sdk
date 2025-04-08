@@ -18,13 +18,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 
-import * as fs from "fs";
-import {getRandomValues} from 'node:crypto';
-import * as path from "path";
+import * as fs from 'fs';
+import { getRandomValues } from 'node:crypto';
+import * as path from 'path';
 
-import * as ts from "typescript";
-import yargs from "yargs";
-import { hideBin } from "yargs/helpers";
+import * as ts from 'typescript';
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
 
 let isVerbose: boolean = false;
 
@@ -35,7 +35,7 @@ function log(message: any): void {
 }
 
 // Define the names of the functions we are looking for
-const targetFunctionNames: Set<string> = new Set(["fail", "hardAssert"]);
+const targetFunctionNames: Set<string> = new Set(['fail', 'hardAssert']);
 
 // Interface to store information about found call sites
 interface CallSiteInfo {
@@ -68,9 +68,9 @@ function getTsFilesRecursive(dirPath: string): string[] {
         }
         // Recursively scan subdirectories
         tsFiles = tsFiles.concat(getTsFilesRecursive(fullPath));
-      } else if (entry.isFile() && (entry.name.endsWith(".ts"))) {
+      } else if (entry.isFile() && entry.name.endsWith('.ts')) {
         // Exclude declaration files (.d.ts) as they usually don't contain implementation
-        if (!entry.name.endsWith(".d.ts")) {
+        if (!entry.name.endsWith('.d.ts')) {
           tsFiles.push(fullPath);
         }
       }
@@ -168,23 +168,36 @@ function findFunctionCalls(filePaths: string[]): CallSiteInfo[] {
 
 function handleList(occurrences: CallSiteInfo[]): void {
   if (occurrences.length === 0) {
-    log("No assertion ids found.");
+    log('No assertion ids found.');
     return;
   }
 
-  occurrences.sort((a, b) => a.assertionId.localeCompare(b.assertionId)).forEach((call) => {
-    console.log(
-      `ID: ${call.assertionId}; MESSAGE: ${call.errorMessage}; SOURCE: '${call.functionName}' call at ${path.relative(process.cwd(), call.fileName)}:${call.line}:${call.character}`
-    );
-  });
+  occurrences
+    .sort((a, b) => a.assertionId.localeCompare(b.assertionId))
+    .forEach(call => {
+      console.log(
+        `ID: ${call.assertionId}; MESSAGE: ${call.errorMessage}; SOURCE: '${
+          call.functionName
+        }' call at ${path.relative(process.cwd(), call.fileName)}:${
+          call.line
+        }:${call.character}`
+      );
+    });
 }
 
-function find(occurrences: CallSiteInfo[], targetId: string | number): CallSiteInfo[] {
-  const target = typeof targetId === 'number' ? targetId.toString(16) : targetId;
+function find(
+  occurrences: CallSiteInfo[],
+  targetId: string | number
+): CallSiteInfo[] {
+  const target =
+    typeof targetId === 'number' ? targetId.toString(16) : targetId;
   return occurrences.filter(o => String(o.assertionId) === String(target));
 }
 
-function handleFind(occurrences: CallSiteInfo[], targetId: string | number): void {
+function handleFind(
+  occurrences: CallSiteInfo[],
+  targetId: string | number
+): void {
   const foundLocations = find(occurrences, targetId);
 
   if (foundLocations.length === 0) {
@@ -197,7 +210,7 @@ function handleFind(occurrences: CallSiteInfo[], targetId: string | number): voi
 
 function handleCheck(occurrences: CallSiteInfo[]): void {
   if (occurrences.length === 0) {
-    log("No assertion ids found to check for duplicates.");
+    log('No assertion ids found to check for duplicates.');
     return;
   }
   const idCounts: { [id: string]: CallSiteInfo[] } = {};
@@ -212,7 +225,9 @@ function handleCheck(occurrences: CallSiteInfo[]): void {
 
     // validate formats
     if (!/^0x[0-9a-f]{4}$/.test(occ.assertionId)) {
-      console.error(`Invalid assertion ID '${occ.assertionId}'. Must match /^0x[0-9a-f]{4}$/`);
+      console.error(
+        `Invalid assertion ID '${occ.assertionId}'. Must match /^0x[0-9a-f]{4}$/`
+      );
 
       const relativePath = path.relative(process.cwd(), occ.fileName);
       console.error(`- at '${relativePath}:${occ.line}:${occ.character}`);
@@ -220,11 +235,13 @@ function handleCheck(occurrences: CallSiteInfo[]): void {
   });
 
   let duplicatesFound = false;
-  log("Checking for duplicate assertion id usage:");
+  log('Checking for duplicate assertion id usage:');
   Object.entries(idCounts).forEach(([code, locations]) => {
     if (locations.length > 1) {
       duplicatesFound = true;
-      console.error(`\nDuplicate assertion id "${code}" found at ${locations.length} locations:`);
+      console.error(
+        `\nDuplicate assertion id "${code}" found at ${locations.length} locations:`
+      );
       locations.forEach(loc => {
         const relativePath = path.relative(process.cwd(), loc.fileName);
         console.error(`- ${relativePath}:${loc.line}:${loc.character}`);
@@ -233,9 +250,8 @@ function handleCheck(occurrences: CallSiteInfo[]): void {
   });
 
   if (!duplicatesFound) {
-    log("No duplicate assertion ids found.");
-  }
-  else {
+    log('No duplicate assertion ids found.');
+  } else {
     process.exit(1);
   }
 }
@@ -244,9 +260,12 @@ function randomId(): string {
   const randomBytes = new Uint8Array(2);
   getRandomValues(randomBytes);
 
-  return '0x' + Array.from(randomBytes)
-    .map(byte => byte.toString(16).padStart(2, '0'))
-    .join('');
+  return (
+    '0x' +
+    Array.from(randomBytes)
+      .map(byte => byte.toString(16).padStart(2, '0'))
+      .join('')
+  );
 }
 
 function handleNew(occurrences: CallSiteInfo[]): void {
@@ -263,44 +282,44 @@ function handleNew(occurrences: CallSiteInfo[]): void {
 // --- Main Execution ---
 async function main(): Promise<void> {
   const argv = yargs(hideBin(process.argv))
-    .usage("Usage: $0 [options]")
-    .option("dir", {
+    .usage('Usage: $0 [options]')
+    .option('dir', {
       alias: 'D',
-      describe: "Directory to scan recursively for TS files",
-      type: "string",
-      demandOption: true,
+      describe: 'Directory to scan recursively for TS files',
+      type: 'string',
+      demandOption: true
     })
-    .option("verbose", {
-      alias: "V",
-      describe: "verbose",
-      type: "boolean",
+    .option('verbose', {
+      alias: 'V',
+      describe: 'verbose',
+      type: 'boolean'
     })
-    .option("find", {
-      alias: "F",
-      describe: "Find locations of a specific {assertionId}",
-      type: "string",
-      nargs: 1,
+    .option('find', {
+      alias: 'F',
+      describe: 'Find locations of a specific {assertionId}',
+      type: 'string',
+      nargs: 1
     })
-    .option("list", {
-      alias: "L",
-      describe: "List all unique assertion ids found (default action)",
-      type: "boolean",
+    .option('list', {
+      alias: 'L',
+      describe: 'List all unique assertion ids found (default action)',
+      type: 'boolean'
     })
-    .option("new", {
-      alias: "N",
-      describe: "Suggest a new assertion id based on existing ones",
-      type: "boolean",
+    .option('new', {
+      alias: 'N',
+      describe: 'Suggest a new assertion id based on existing ones',
+      type: 'boolean'
     })
-    .option("check", {
-      alias: "C",
-      describe: "Check for duplicate usage of assertion ids",
-      type: "boolean",
+    .option('check', {
+      alias: 'C',
+      describe: 'Check for duplicate usage of assertion ids',
+      type: 'boolean'
     })
-    .check((argv) => {
+    .check(argv => {
       // Enforce mutual exclusivity among options *within* the scan command
       const options = [argv.F, argv.L, argv.N, argv.C].filter(Boolean).length;
       if (options > 1) {
-        throw new Error("Options -F, -L, -N, -C are mutually exclusive.");
+        throw new Error('Options -F, -L, -N, -C are mutually exclusive.');
       }
       return true;
     })
@@ -319,11 +338,15 @@ async function main(): Promise<void> {
   try {
     const stats = fs.statSync(targetDirectory);
     if (!stats.isDirectory()) {
-      console.error(`Error: Provided path is not a directory: ${targetDirectory}`);
+      console.error(
+        `Error: Provided path is not a directory: ${targetDirectory}`
+      );
       process.exit(1);
     }
   } catch (error: any) {
-    console.error(`Error accessing directory ${targetDirectory}: ${error.message}`);
+    console.error(
+      `Error accessing directory ${targetDirectory}: ${error.message}`
+    );
     process.exit(1);
   }
 
@@ -331,13 +354,15 @@ async function main(): Promise<void> {
   const filesToScan = getTsFilesRecursive(targetDirectory);
 
   if (filesToScan.length === 0) {
-    log("No relevant .ts or .tsx files found.");
+    log('No relevant .ts or .tsx files found.');
     process.exit(0);
   }
   log(`Found ${filesToScan.length} files. Analyzing for assertion ids...`);
 
   const allOccurrences = findFunctionCalls(filesToScan);
-  log(`Scan complete. Found ${allOccurrences.length} potential assertion id occurrences.`);
+  log(
+    `Scan complete. Found ${allOccurrences.length} potential assertion id occurrences.`
+  );
 
   // Determine action based on flags
   if (argv['find']) {

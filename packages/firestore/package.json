@@ -20,7 +20,7 @@
     "dev": "rollup -c -w",
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "prettier": "prettier --write '*.js' '@(lite|src|test)/**/*.ts' 'test/unit/remote/bloom_filter_golden_test_data/*.json'",
+    "prettier": "prettier --write '*.js' '@(lite|src|test|scripts)/**/*.ts' 'test/unit/remote/bloom_filter_golden_test_data/*.json'",
     "test:lite": "ts-node ./scripts/run-tests.ts --emulator --platform node_lite --main=lite/index.ts 'test/lite/**/*.test.ts'",
     "test:lite:prod": "ts-node ./scripts/run-tests.ts --platform node_lite --main=lite/index.ts 'test/lite/**/*.test.ts'",
     "test:lite:prod:nameddb": "ts-node ./scripts/run-tests.ts --platform node_lite --databaseId=test-db --main=lite/index.ts 'test/lite/**/*.test.ts'",
