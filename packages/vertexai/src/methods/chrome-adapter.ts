@@ -105,27 +105,6 @@ export class ChromeAdapter {
     const text = await session.prompt(messages);
     return ChromeAdapter.toResponse(text);
   }
-
-  /**
-   * Formats string returned by Chrome as a {@link Response} returned by Vertex.
-   */
-  private static toResponse(text: string): Response {
-    return {
-      json: async () => ({
-        candidates: [
-          {
-            content: {
-              parts: [{ text }]
-            }
-          }
-        ]
-      })
-    } as Response;
-  }
-
-  /**
-   * Generates a stream of content.
-   */
   async generateContentStreamOnDevice(
     request: GenerateContentRequest
   ): Promise<Response> {
@@ -137,38 +116,6 @@ export class ChromeAdapter {
     const stream = await session.promptStreaming(messages);
     return ChromeAdapter.toStreamResponse(stream);
   }
-
-  /**
-   * Formats string stream returned by Chrome as SSE returned by Vertex.
-   */
-  private static async toStreamResponse(
-    stream: ReadableStream<string>
-  ): Promise<Response> {
-    const encoder = new TextEncoder();
-    return {
-      body: stream.pipeThrough(
-        new TransformStream({
-          transform(chunk, controller) {
-            const json = JSON.stringify({
-              candidates: [
-                {
-                  content: {
-                    role: 'model',
-                    parts: [{ text: chunk }]
-                  }
-                }
-              ]
-            });
-            controller.enqueue(encoder.encode(`data: ${json}\n\n`));
-          }
-        })
-      )
-    } as Response;
-  }
-
-  /**
-   * Asserts inference for the given request can be performed by an on-device model.
-   */
   private static isOnDeviceRequest(request: GenerateContentRequest): boolean {
     // Returns false if the prompt is empty.
     if (request.contents.length === 0) {
@@ -272,5 +219,48 @@ export class ChromeAdapter {
     // Holds session reference, so model isn't unloaded from memory.
     this.oldSession = newSession;
     return newSession;
+  }
+
+  /**
+   * Formats string returned by Chrome as a {@link Response} returned by Vertex.
+   */
+  private static toResponse(text: string): Response {
+    return {
+      json: async () => ({
+        candidates: [
+          {
+            content: {
+              parts: [{ text }]
+            }
+          }
+        ]
+      })
+    } as Response;
+  }
+
+  /**
+   * Formats string stream returned by Chrome as SSE returned by Vertex.
+   */
+  private static toStreamResponse(stream: ReadableStream<string>): Response {
+    const encoder = new TextEncoder();
+    return {
+      body: stream.pipeThrough(
+        new TransformStream({
+          transform(chunk, controller) {
+            const json = JSON.stringify({
+              candidates: [
+                {
+                  content: {
+                    role: 'model',
+                    parts: [{ text: chunk }]
+                  }
+                }
+              ]
+            });
+            controller.enqueue(encoder.encode(`data: ${json}\n\n`));
+          }
+        })
+      )
+    } as Response;
   }
 }
