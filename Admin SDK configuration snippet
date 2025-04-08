@@ -1,0 +1,8 @@
+var admin = require("firebase-admin");
+
+var serviceAccount = require("path/to/serviceAccountKey.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://gtm-kqqwvx2-zgi2z-default-rtdb.firebaseio.com"
+});
