@@ -58,7 +58,7 @@ export const VertexAIModel = GenAIModel;
 /**
  * Error class for the Vertex AI in Firebase SDK.
  *
- * For more information, refer to the documentation for the new <code>{@link GenAIError}</code>.
+ * For more information, refer to the documentation for the new {@link GenAIError}.
  *
  * @public
  */
@@ -116,9 +116,9 @@ export function getVertexAI(
  * const genAI = getGenAI(app, { backend: vertexAIBackend() });
  * ```
  *
- * @param app - The <code>{@link @firebase/app#FirebaseApp}</code> to use.
- * @param options - <code>{@link GenAIOptions}</code> that configure the GenAI instance.
- * @returns The default <code>{@link GenAI}</code> instance for the given <code>{@link @firebase/app#FirebaseApp}</code>.
+ * @param app - The {@link @firebase/app#FirebaseApp} to use.
+ * @param options - {@link GenAIOptions} that configure the GenAI instance.
+ * @returns The default {@link GenAI} instance for the given {@link @firebase/app#FirebaseApp}.
  *
  * @public
  */
@@ -137,9 +137,9 @@ export function getGenAI(
 }
 
 /**
- * Creates a <code>{@link Backend}</code> instance configured to use Google AI.
+ * Creates a {@link Backend} instance configured to use Google AI.
  *
- * @returns A <code>{@link GoogleAIBackend}</code> object.
+ * @returns A {@link GoogleAIBackend} object.
  *
  * @public
  */
@@ -152,12 +152,12 @@ export function googleAIBackend(): GoogleAIBackend {
 }
 
 /**
- * Creates a <code>{@link Backend}</code> instance configured to use Vertex AI.
+ * Creates a {@link Backend} instance configured to use Vertex AI.
  *
  * @param location - The region identifier, defaulting to `us-central1`;
  * see {@link https://firebase.google.com/docs/vertex-ai/locations?platform=ios#available-locations | Vertex AI locations}
  * for a list of supported locations.
- * @returns A <code>{@link VertexAIBackend}</code> object.
+ * @returns A {@link VertexAIBackend} object.
  *
  * @public
  */
@@ -171,7 +171,7 @@ export function vertexAIBackend(location?: string): VertexAIBackend {
 }
 
 /**
- * Returns a <code>{@link GenerativeModel}</code> class with methods for inference
+ * Returns a <code>{@link GenerativeModel} class with methods for inference
  * and other functionality.
  *
  * @public
