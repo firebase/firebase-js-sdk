@@ -35,7 +35,7 @@ import { apiDescribe, toDataArray, withTestCollection } from '../util/helpers';
 
 use(chaiAsPromised);
 
-apiDescribe('Pipelines', persistence => {
+apiDescribe('RealtimePipelines', persistence => {
   addEqualityMatcher();
   let firestore: Firestore;
   let randomCol: CollectionReference;

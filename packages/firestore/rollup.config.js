@@ -55,8 +55,8 @@ const browserPlugins = [
     abortOnError: true,
     transformers: [util.removeAssertAndPrefixInternalTransformer]
   }),
-  json({ preferConst: true }),
-  terser(util.manglePrivatePropertiesOptions)
+  json({ preferConst: true })
+  //terser(util.manglePrivatePropertiesOptions)
 ];
 
 // TODO - update the implementation to match all content in the declare module block.
