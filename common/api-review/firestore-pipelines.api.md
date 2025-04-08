@@ -199,7 +199,9 @@ export function charLength(stringExpression: Expression): FunctionExpression;
 // @beta (undocumented)
 export class CollectionGroupSource extends Stage {
     constructor(collectionId: string, options: StageOptions);
-    }
+    // (undocumented)
+    readonly collectionId: string;
+}
 
 // @public
 export type CollectionGroupStageOptions = StageOptions & {
@@ -247,7 +249,9 @@ export function conditional(condition: BooleanExpression, thenExpr: Expression, 
 // Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Expression" which is marked as @beta
 //
 // @public
-export function constant(value: number): Expression;
+export function constant(value: number, options?: {
+    preferIntegers: boolean;
+}): Expression;
 
 // Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Expression" which is marked as @beta
 //
@@ -1154,8 +1158,10 @@ export class Pipeline {
     sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
     // (undocumented)
     sort(options: SortStageOptions): Pipeline;
+    // Warning: (ae-incompatible-release-tags) The symbol "stages" is marked as @public, but its signature references "Stage" which is marked as @beta
+    //
     // (undocumented)
-    stages: any;
+    stages: Stage[];
     union(other: Pipeline): Pipeline;
     // (undocumented)
     union(options: UnionStageOptions): Pipeline;
@@ -1163,8 +1169,6 @@ export class Pipeline {
     unnest(selectable: Selectable, indexField?: string): Pipeline;
     // (undocumented)
     unnest(options: UnnestStageOptions): Pipeline;
-    // (undocumented)
-    userDataReader: any;
     // Warning: (ae-incompatible-release-tags) The symbol "where" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
     where(condition: BooleanExpression): Pipeline;
     // (undocumented)
@@ -1180,18 +1184,42 @@ export interface PipelineExecuteOptions {
     };
 }
 
-// Warning: (ae-forgotten-export) The symbol "DocumentData" needs to be exported by the entry point pipelines.d.ts
-//
 // @beta
-export class PipelineResult<AppModelType = DocumentData> {
+export class PipelineResult {
+    get createTime(): Timestamp | undefined;
     /* Excluded from this release type: _ref */
     /* Excluded from this release type: _fields */
     /* Excluded from this release type: __constructor */
-    get createTime(): Timestamp | undefined;
-    data(): AppModelType;
+    /* Excluded from this release type: fromDocument */
+    // Warning: (ae-forgotten-export) The symbol "DocumentData" needs to be exported by the entry point pipelines.d.ts
+    data(): DocumentData | undefined;
+    /* Excluded from this release type: _ref */
+    /* Excluded from this release type: _fields */
+    /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: fromDocument */
     get(fieldPath: string | FieldPath | Field): any;
+    /* Excluded from this release type: _ref */
+    /* Excluded from this release type: _fields */
+    /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: fromDocument */
     get id(): string | undefined;
+    /* Excluded from this release type: _ref */
+    /* Excluded from this release type: _fields */
+    /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: fromDocument */
+    // Warning: (ae-forgotten-export) The symbol "SnapshotMetadata" needs to be exported by the entry point pipelines.d.ts
+    //
+    // (undocumented)
+    readonly metadata?: SnapshotMetadata | undefined;
+    /* Excluded from this release type: _ref */
+    /* Excluded from this release type: _fields */
+    /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: fromDocument */
     get ref(): DocumentReference | undefined;
+    /* Excluded from this release type: _ref */
+    /* Excluded from this release type: _fields */
+    /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: fromDocument */
     get updateTime(): Timestamp | undefined;
 }
 
@@ -1215,7 +1243,7 @@ export class PipelineSource<PipelineType> {
     collection(options: CollectionStageOptions): PipelineType;
     collectionGroup(collectionId: string): PipelineType;
     collectionGroup(options: CollectionGroupStageOptions): PipelineType;
-    createFrom(query: Query): Pipeline;
+    createFrom(query: Query): PipelineType;
     database(): PipelineType;
     database(options: DatabaseStageOptions): PipelineType;
     documents(docs: Array<string | DocumentReference>): PipelineType;
@@ -1337,7 +1365,9 @@ export type SelectStageOptions = StageOptions & {
 // @beta (undocumented)
 export class Sort extends Stage {
     constructor(orderings: Ordering[], options: StageOptions);
-    }
+    // (undocumented)
+    readonly orderings: Ordering[];
+}
 
 // @public
 export type SortStageOptions = StageOptions & {
@@ -1535,7 +1565,9 @@ export function vectorLength(fieldName: string): FunctionExpression;
 // @beta (undocumented)
 export class Where extends Stage {
     constructor(condition: BooleanExpression, options: StageOptions);
-    }
+    // (undocumented)
+    readonly condition: BooleanExpression;
+}
 
 // @public
 export type WhereStageOptions = StageOptions & {
@@ -1548,19 +1580,19 @@ export function xor(first: BooleanExpression, second: BooleanExpression, ...addi
 
 // Warnings were encountered during analysis:
 //
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:73:5 - (ae-incompatible-release-tags) The symbol "fields" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:118:5 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AliasedAggregate" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:123:5 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:785:5 - (ae-forgotten-export) The symbol "Query" needs to be exported by the entry point pipelines.d.ts
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:1100:5 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:3160:5 - (ae-incompatible-release-tags) The symbol "field" is marked as @public, but its signature references "Field" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:5041:59 - (ae-incompatible-release-tags) The symbol "__index" is marked as @public, but its signature references "Expression" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:5447:5 - (ae-incompatible-release-tags) The symbol "fields" is marked as @public, but its signature references "Field" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:5457:5 - (ae-incompatible-release-tags) The symbol "map" is marked as @public, but its signature references "Expression" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:5584:5 - (ae-incompatible-release-tags) The symbol "selections" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:5601:5 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:6337:5 - (ae-incompatible-release-tags) The symbol "selectable" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:6386:5 - (ae-incompatible-release-tags) The symbol "condition" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
+// /Users/wuandy/projects/firebase-clients/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:73:5 - (ae-incompatible-release-tags) The symbol "fields" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/wuandy/projects/firebase-clients/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:118:5 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AliasedAggregate" which is marked as @beta
+// /Users/wuandy/projects/firebase-clients/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:123:5 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/wuandy/projects/firebase-clients/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:785:5 - (ae-forgotten-export) The symbol "Query" needs to be exported by the entry point pipelines.d.ts
+// /Users/wuandy/projects/firebase-clients/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:1102:5 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/wuandy/projects/firebase-clients/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:3162:5 - (ae-incompatible-release-tags) The symbol "field" is marked as @public, but its signature references "Field" which is marked as @beta
+// /Users/wuandy/projects/firebase-clients/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:5042:59 - (ae-incompatible-release-tags) The symbol "__index" is marked as @public, but its signature references "Expression" which is marked as @beta
+// /Users/wuandy/projects/firebase-clients/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:5450:5 - (ae-incompatible-release-tags) The symbol "fields" is marked as @public, but its signature references "Field" which is marked as @beta
+// /Users/wuandy/projects/firebase-clients/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:5460:5 - (ae-incompatible-release-tags) The symbol "map" is marked as @public, but its signature references "Expression" which is marked as @beta
+// /Users/wuandy/projects/firebase-clients/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:5587:5 - (ae-incompatible-release-tags) The symbol "selections" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/wuandy/projects/firebase-clients/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:5604:5 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
+// /Users/wuandy/projects/firebase-clients/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:6340:5 - (ae-incompatible-release-tags) The symbol "selectable" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/wuandy/projects/firebase-clients/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:6389:5 - (ae-incompatible-release-tags) The symbol "condition" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
 
 // (No @packageDocumentation comment for this package)
 

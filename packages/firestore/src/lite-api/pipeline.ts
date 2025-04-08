@@ -87,6 +87,18 @@ import {
 } from './stage_options';
 import { UserDataReader, UserDataSource } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
+import { ParseContext } from '../api/parse_context';
+
+/**
+ * @private
+ */
+export interface ReadableUserData {
+  _readUserData(context: ParseContext): void;
+}
+
+export function isReadableUserData(value: unknown): value is ReadableUserData {
+  return typeof (value as ReadableUserData)._readUserData === 'function';
+}
 
 /**
  * @beta
@@ -131,6 +143,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   /**
    * @internal
    * @private
+   * @hideconstructor
    * @param _db
    * @param userDataReader
    * @param _userDataWriter
@@ -142,13 +155,17 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
      * @private
      */
     public _db: Firestore,
-    private userDataReader: UserDataReader,
+    /**
+     * @internal
+     * @private
+     */
+    readonly userDataReader: UserDataReader,
     /**
      * @internal
      * @private
      */
     public _userDataWriter: AbstractUserDataWriter,
-    private stages: Stage[]
+    readonly stages: Stage[]
   ) {}
 
   /**

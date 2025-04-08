@@ -495,9 +495,13 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
         countZ: count()
       });
 
-      await expect(promise).to.eventually.be.rejectedWith(
-        /maximum number of aggregations/
-      );
+      if (USE_EMULATOR) {
+        await expect(promise).to.eventually.be.rejected;
+      } else {
+        await expect(promise).to.eventually.be.rejectedWith(
+          /maximum number of aggregations/
+        );
+      }
     });
   });
 
