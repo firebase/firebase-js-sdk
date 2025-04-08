@@ -255,8 +255,8 @@ function whereConditionsFromCursor(
   const cursors = bound.position.map(value => Constant._fromProto(value));
   const size = cursors.length;
 
-  let field = orderings[size-1].expr;
-  let value = cursors[size-1];
+  let field = orderings[size - 1].expr;
+  let value = cursors[size - 1];
 
   // Add condition for last bound
   let condition: BooleanExpr = filterFunc(field, value);
@@ -275,9 +275,7 @@ function whereConditionsFromCursor(
     // For each field in the orderings, the condition is either
     // a) lt|gt the cursor value,
     // b) or equal the cursor value and lt|gt the cursor values for other fields
-    condition = or(
-      filterFunc(field, value),
-      and(field.eq(value), condition));
+    condition = or(filterFunc(field, value), and(field.eq(value), condition));
   }
 
   return condition;

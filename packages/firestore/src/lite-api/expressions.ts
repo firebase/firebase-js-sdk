@@ -2247,7 +2247,7 @@ export function field(nameOrPath: string | FieldPath): Field {
     if (DOCUMENT_KEY_NAME === nameOrPath) {
       return new Field(documentIdFieldPath()._internalPath);
     }
-    return new Field(fieldPathFromArgument('of', nameOrPath));
+    return new Field(fieldPathFromArgument('field', nameOrPath));
   } else {
     return new Field(nameOrPath._internalPath);
   }

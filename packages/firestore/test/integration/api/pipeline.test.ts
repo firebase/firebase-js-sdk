@@ -53,7 +53,8 @@ import {
   collection,
   documentId as documentIdFieldPath,
   writeBatch,
-  addDoc
+  addDoc,
+  increment
 } from '../util/firebase_export';
 import { apiDescribe, withTestCollection, itIf } from '../util/helpers';
 import {
@@ -144,16 +145,15 @@ use(chaiAsPromised);
 setLogLevel('debug');
 
 const testUnsupportedFeatures = false;
+const timestampDeltaMS = 1000;
 
-apiDescribe.only('Pipelines', persistence => {
+apiDescribe('Pipelines', persistence => {
   addEqualityMatcher();
 
   let firestore: Firestore;
   let randomCol: CollectionReference;
   let beginDocCreation: number = 0;
   let endDocCreation: number = 0;
-
-  const timestampDeltaMS = 1000;
 
   async function testCollectionWithDocs(docs: {
     [id: string]: DocumentData;
@@ -2388,7 +2388,7 @@ apiDescribe.only('Pipelines', persistence => {
           .collection(randomCol.path)
           .sort(field('rating').descending())
           .limit(1)
-          .select(
+          .addFields(
             map({
               foo: 'bar'
             }).as('metadata')
