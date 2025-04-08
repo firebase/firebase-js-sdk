@@ -31,11 +31,12 @@ import { EmailAuthProvider } from '../providers/email';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import {
   _assert,
+  _errorWithCustomMessage,
   _serverAppCurrentUserOperationNotSupportedError
 } from '../util/assert';
 import { _setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
-import { _castAuth } from '../auth/auth_impl';
+import { _castAuth, DefaultConfig } from '../auth/auth_impl';
 import { AuthErrorCode } from '../errors';
 import { getModularInstance } from '@firebase/util';
 import { OperationType } from '../../model/enums';
@@ -352,6 +353,15 @@ export function signInWithEmailAndPassword(
       _serverAppCurrentUserOperationNotSupportedError(auth)
     );
   }
+
+  if (auth.config.apiHost !== DefaultConfig.API_HOST) {
+		return Promise.reject(_errorWithCustomMessage(
+      auth,
+      AuthErrorCode.OPERATION_NOT_ALLOWED,
+      "The method is not implemented in Regionalized Auth"
+    ));
+  }
+
   return signInWithCredential(
     getModularInstance(auth),
     EmailAuthProvider.credential(email, password)
