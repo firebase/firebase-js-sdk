@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-import { Query, queryMatches } from '../core/query';
+import { getPipelineCollection } from '../core/pipeline';
+import { isPipeline, QueryOrPipeline } from '../core/pipeline-util';
+import { pipelineMatches } from '../core/pipeline_run';
+import { queryMatches } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
@@ -30,6 +33,7 @@ import {
   indexOffsetComparator,
   newIndexOffsetFromDocument
 } from '../model/field_index';
+import { ResourcePath } from '../model/path';
 import { debugAssert, fail } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 
@@ -165,17 +169,42 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     return PersistencePromise.resolve(results);
   }
 
+  getAllEntries(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<MutableDocumentMap> {
+    let results = mutableDocumentMap();
+    this.docs.forEach((k, entry) => {
+      results = results.insert(k, entry.document as MutableDocument);
+    });
+
+    return PersistencePromise.resolve(results);
+  }
+
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
-    query: Query,
+    query: QueryOrPipeline,
     offset: IndexOffset,
     mutatedDocs: OverlayMap
   ): PersistencePromise<MutableDocumentMap> {
-    let results = mutableDocumentMap();
-
     // Documents are ordered by key, so we can use a prefix scan to narrow down
     // the documents we need to match the query against.
-    const collectionPath = query.path;
+    let collectionPath: ResourcePath;
+    let matcher: (doc: Document) => Boolean;
+    if (isPipeline(query)) {
+      // Documents are ordered by key, so we can use a prefix scan to narrow down
+      // the documents we need to match the query against.
+      collectionPath = ResourcePath.fromString(getPipelineCollection(query)!);
+      matcher = (doc: Document) =>
+        pipelineMatches(query, doc as MutableDocument);
+    } else {
+      // Documents are ordered by key, so we can use a prefix scan to narrow down
+      // the documents we need to match the query against.
+      collectionPath = query.path;
+      matcher = (doc: Document) => queryMatches(query, doc);
+    }
+
+    let results = mutableDocumentMap();
+
     // Document keys are ordered first by numeric value ("__id<Long>__"),
     // then lexicographically by string value. Start the iterator at the minimum
     // possible Document key value.
@@ -201,7 +230,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
         // The document sorts before the offset.
         continue;
       }
-      if (!mutatedDocs.has(document.key) && !queryMatches(query, document)) {
+      if (!mutatedDocs.has(document.key) && !matcher(document)) {
         // The document cannot possibly match the query.
         continue;
       }

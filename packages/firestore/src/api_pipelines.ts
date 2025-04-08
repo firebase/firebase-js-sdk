@@ -23,7 +23,16 @@ export {
   pipelineResultEqual
 } from './lite-api/pipeline-result';
 
+export { RealtimePipelineSnapshot } from './api/snapshot';
+
 export { Pipeline } from './api/pipeline';
+
+export { RealtimePipeline } from './api/realtime_pipeline';
+
+// Rename here because we want the exported name to be onSnapshot
+// internally the name has to be onPipelineSnapshot to avoid
+// name collisions.
+import { onPipelineSnapshot as onSnapshot } from './api/reference_impl';
 
 export { execute } from './api/pipeline_impl';
 
@@ -151,3 +160,5 @@ export type {
 } from './lite-api/expressions';
 
 export { _internalPipelineToExecutePipelineRequestProto } from './remote/internal_serializer';
+
+export { onSnapshot };

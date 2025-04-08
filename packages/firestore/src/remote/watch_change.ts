@@ -16,8 +16,10 @@
  */
 
 import { DatabaseId } from '../core/database_info';
+import type { CorePipeline } from '../core/pipeline';
+import type { TargetOrPipeline } from '../core/pipeline-util';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { targetIsDocumentTarget } from '../core/target';
+import { targetIsDocumentTarget, targetIsPipelineTarget } from '../core/target';
 import { TargetId } from '../core/types';
 import { ChangeType } from '../core/view_snapshot';
 import { TargetData, TargetPurpose } from '../local/target_data';
@@ -29,6 +31,7 @@ import {
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { normalizeByteString } from '../model/normalize';
+import { ResourcePath } from '../model/path';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { Base64DecodeError } from '../util/base64_decode_error';
 import { ByteString } from '../util/byte_string';
@@ -293,6 +296,9 @@ export class WatchChangeAggregator {
   private pendingDocumentUpdates = mutableDocumentMap();
   private pendingDocumentUpdatesByTarget = documentTargetMap();
 
+  /** Keeps track of the augmented documents to update since the last raised snapshot. */
+  private pendingAugmentedDocumentUpdates = mutableDocumentMap();
+
   /** A mapping of document keys to their set of target IDs. */
   private pendingDocumentTargetMapping = documentTargetMap();
 
@@ -403,6 +409,17 @@ export class WatchChangeAggregator {
     }
   }
 
+  isSingleDocumentTarget(target: TargetOrPipeline): boolean {
+    if (targetIsPipelineTarget(target)) {
+      return (
+        target.getPipelineSourceType() === 'documents' &&
+        target.getPipelineDocuments()?.length === 1
+      );
+    }
+
+    return targetIsDocumentTarget(target);
+  }
+
   /**
    * Handles existence filters and synthesizes deletes for filter mismatches.
    * Targets that are invalidated by filter mismatches are added to
@@ -415,27 +432,7 @@ export class WatchChangeAggregator {
     const targetData = this.targetDataForActiveTarget(targetId);
     if (targetData) {
       const target = targetData.target;
-      if (targetIsDocumentTarget(target)) {
-        if (expectedCount === 0) {
-          // The existence filter told us the document does not exist. We deduce
-          // that this document does not exist and apply a deleted document to
-          // our updates. Without applying this deleted document there might be
-          // another query that will raise this document as part of a snapshot
-          // until it is resolved, essentially exposing inconsistency between
-          // queries.
-          const key = new DocumentKey(target.path);
-          this.removeDocumentFromTarget(
-            targetId,
-            key,
-            MutableDocument.newNoDocument(key, SnapshotVersion.min())
-          );
-        } else {
-          hardAssert(
-            expectedCount === 1,
-            'Single document existence filter with count: ' + expectedCount
-          );
-        }
-      } else {
+      if (!this.isSingleDocumentTarget(target)) {
         const currentSize = this.getCurrentDocumentCountForTarget(targetId);
         // Existence filter mismatch. Mark the documents as being in limbo, and
         // raise a snapshot with `isFromCache:true`.
@@ -468,6 +465,30 @@ export class WatchChangeAggregator {
               bloomFilter,
               status
             )
+          );
+        }
+      } else {
+        if (expectedCount === 0) {
+          // The existence filter told us the document does not exist. We deduce
+          // that this document does not exist and apply a deleted document to
+          // our updates. Without applying this deleted document there might be
+          // another query that will raise this document as part of a snapshot
+          // until it is resolved, essentially exposing inconsistency between
+          // queries.
+          const key = new DocumentKey(
+            targetIsPipelineTarget(target)
+              ? ResourcePath.fromString(target.getPipelineDocuments()![0])
+              : target.path
+          );
+          this.removeDocumentFromTarget(
+            targetId,
+            key,
+            MutableDocument.newNoDocument(key, SnapshotVersion.min())
+          );
+        } else {
+          hardAssert(
+            expectedCount === 1,
+            'Single document existence filter with count: ' + expectedCount
           );
         }
       }
@@ -585,7 +606,10 @@ export class WatchChangeAggregator {
     this.targetStates.forEach((targetState, targetId) => {
       const targetData = this.targetDataForActiveTarget(targetId);
       if (targetData) {
-        if (targetState.current && targetIsDocumentTarget(targetData.target)) {
+        if (
+          targetState.current &&
+          this.isSingleDocumentTarget(targetData.target)
+        ) {
           // Document queries for document that don't exist can produce an empty
           // result set. To update our local cache, we synthesize a document
           // delete if we have not previously received the document for this
@@ -595,7 +619,12 @@ export class WatchChangeAggregator {
           // TODO(dimond): Ideally we would have an explicit lookup target
           // instead resulting in an explicit delete message and we could
           // remove this special logic.
-          const key = new DocumentKey(targetData.target.path);
+          const path = targetIsPipelineTarget(targetData.target)
+            ? ResourcePath.fromString(
+                targetData.target.getPipelineDocuments()![0]
+              )
+            : targetData.target.path;
+          const key = new DocumentKey(path);
           if (
             !this.ensureDocumentUpdateByTarget(key).has(targetId) &&
             !this.targetContainsDocument(targetId, key)
@@ -646,17 +675,22 @@ export class WatchChangeAggregator {
     this.pendingDocumentUpdates.forEach((_, doc) =>
       doc.setReadTime(snapshotVersion)
     );
+    this.pendingAugmentedDocumentUpdates.forEach((_, doc) =>
+      doc.setReadTime(snapshotVersion)
+    );
 
     const remoteEvent = new RemoteEvent(
       snapshotVersion,
       targetChanges,
       this.pendingTargetResets,
       this.pendingDocumentUpdates,
+      this.pendingAugmentedDocumentUpdates,
       resolvedLimboDocuments
     );
 
     this.pendingDocumentUpdates = mutableDocumentMap();
     this.pendingDocumentUpdatesByTarget = documentTargetMap();
+    this.pendingAugmentedDocumentUpdates = mutableDocumentMap();
     this.pendingDocumentTargetMapping = documentTargetMap();
     this.pendingTargetResets = new SortedMap<TargetId, TargetPurpose>(
       primitiveComparator
@@ -682,10 +716,22 @@ export class WatchChangeAggregator {
     const targetState = this.ensureTargetState(targetId);
     targetState.addDocumentChange(document.key, changeType);
 
-    this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
-      document.key,
-      document
-    );
+    if (
+      targetIsPipelineTarget(
+        this.targetDataForActiveTarget(targetId)!.target
+      ) &&
+      (
+        this.targetDataForActiveTarget(targetId)!.target as CorePipeline
+      ).getPipelineFlavor() !== 'exact'
+    ) {
+      this.pendingAugmentedDocumentUpdates =
+        this.pendingAugmentedDocumentUpdates.insert(document.key, document);
+    } else {
+      this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
+        document.key,
+        document
+      );
+    }
 
     this.pendingDocumentUpdatesByTarget =
       this.pendingDocumentUpdatesByTarget.insert(
@@ -739,10 +785,22 @@ export class WatchChangeAggregator {
       );
 
     if (updatedDocument) {
-      this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
-        key,
-        updatedDocument
-      );
+      if (
+        targetIsPipelineTarget(
+          this.targetDataForActiveTarget(targetId)!.target
+        ) &&
+        (
+          this.targetDataForActiveTarget(targetId)!.target as CorePipeline
+        ).getPipelineFlavor() !== 'exact'
+      ) {
+        this.pendingAugmentedDocumentUpdates =
+          this.pendingAugmentedDocumentUpdates.insert(key, updatedDocument);
+      } else {
+        this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
+          key,
+          updatedDocument
+        );
+      }
     }
   }
 
