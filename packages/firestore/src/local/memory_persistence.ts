@@ -298,7 +298,7 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
     const changeBuffer = cache.newChangeBuffer();
     return PersistencePromise.forEach(
       this.orphanedDocuments,
-      (path: string) => {
+      (path: string): PersistencePromise<void> => {
         const key = DocumentKey.fromPath(path);
         return this.isReferenced(txn, key).next(isReferenced => {
           if (!isReferenced) {

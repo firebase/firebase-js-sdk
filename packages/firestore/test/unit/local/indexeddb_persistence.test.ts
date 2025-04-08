@@ -19,9 +19,9 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { Context } from 'mocha';
 
+import { canonifyTargetOrPipeline } from '../../../src/core/pipeline-util';
 import { queryToTarget } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { canonifyTarget } from '../../../src/core/target';
 import {
   decodeResourcePath,
   encodeResourcePath
@@ -910,8 +910,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         txn => {
           const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTargetStore);
           return targetsStore.iterate((key, value) => {
-            const targetData = fromDbTarget(value).target;
-            const expectedCanonicalId = canonifyTarget(targetData);
+            const targetData = fromDbTarget(TEST_SERIALIZER, value).target;
+            const expectedCanonicalId = canonifyTargetOrPipeline(targetData);
 
             const actualCanonicalId = value.canonicalId;
             expect(actualCanonicalId).to.equal(expectedCanonicalId);
