@@ -18,7 +18,6 @@
 import { isChrome } from '@firebase/util';
 import {
   Content,
-  EnhancedGenerateContentResponse,
   GenerateContentRequest,
   InferenceMode,
   Role
@@ -75,19 +74,31 @@ export class ChromeAdapter {
   }
   async generateContentOnDevice(
     request: GenerateContentRequest
-  ): Promise<EnhancedGenerateContentResponse> {
+  ): Promise<Response> {
     const createOptions = this.onDeviceParams || {};
     createOptions.initialPrompts ??= [];
-    const extractedInitialPrompts = ChromeAdapter.toInitialPrompts(request.contents);
+    const extractedInitialPrompts = ChromeAdapter.toInitialPrompts(
+      request.contents
+    );
     // Assumes validation asserted there is at least one initial prompt.
     const prompt = extractedInitialPrompts.pop()!;
     createOptions.initialPrompts.push(...extractedInitialPrompts);
     const session = await this.session(createOptions);
     const result = await session.prompt(prompt.content);
+    return ChromeAdapter.toResponse(result);
+  }
+  private static toResponse(text: string): Response {
     return {
-      text: () => result,
-      functionCalls: () => undefined
-    };
+      json: async () => ({
+        candidates: [
+          {
+            content: {
+              parts: [{ text }]
+            }
+          }
+        ]
+      })
+    } as Response;
   }
   private static isOnDeviceRequest(request: GenerateContentRequest): boolean {
     // Returns false if the prompt is empty.

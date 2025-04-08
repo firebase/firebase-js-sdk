@@ -16,7 +16,6 @@
  */
 
 import {
-  EnhancedGenerateContentResponse,
   GenerateContentRequest,
   GenerateContentResponse,
   GenerateContentResult,
@@ -51,8 +50,8 @@ async function generateContentOnCloud(
   model: string,
   params: GenerateContentRequest,
   requestOptions?: RequestOptions
-): Promise<EnhancedGenerateContentResponse> {
-  const response = await makeRequest(
+): Promise<Response> {
+  return makeRequest(
     model,
     Task.GENERATE_CONTENT,
     apiSettings,
@@ -60,9 +59,6 @@ async function generateContentOnCloud(
     JSON.stringify(params),
     requestOptions
   );
-  const responseJson: GenerateContentResponse = await response.json();
-  const enhancedResponse = createEnhancedContentResponse(responseJson);
-  return enhancedResponse;
 }
 
 export async function generateContent(
@@ -72,17 +68,19 @@ export async function generateContent(
   chromeAdapter: ChromeAdapter,
   requestOptions?: RequestOptions
 ): Promise<GenerateContentResult> {
-  let enhancedResponse;
+  let response;
   if (await chromeAdapter.isAvailable(params)) {
-    enhancedResponse = await chromeAdapter.generateContentOnDevice(params);
+    response = await chromeAdapter.generateContentOnDevice(params);
   } else {
-    enhancedResponse = await generateContentOnCloud(
+    response = await generateContentOnCloud(
       apiSettings,
       model,
       params,
       requestOptions
     );
   }
+  const responseJson: GenerateContentResponse = await response.json();
+  const enhancedResponse = createEnhancedContentResponse(responseJson);
   return {
     response: enhancedResponse
   };
