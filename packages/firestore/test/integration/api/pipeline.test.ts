@@ -41,7 +41,7 @@ import {
   DocumentReference,
   deleteDoc
 } from '../util/firebase_export';
-import { apiDescribe, withTestCollection } from '../util/helpers';
+import { apiDescribe, itIf, withTestCollection } from '../util/helpers';
 import {
   array,
   mod,
@@ -151,6 +151,7 @@ use(chaiAsPromised);
 setLogLevel('debug');
 
 const timestampDeltaMS = 1000;
+const testUnsupportedFeatures = false;
 
 apiDescribe.skipClassic('Pipelines', persistence => {
   addEqualityMatcher();
@@ -159,6 +160,8 @@ apiDescribe.skipClassic('Pipelines', persistence => {
   let randomCol: CollectionReference;
   let beginDocCreation: number = 0;
   let endDocCreation: number = 0;
+
+  const timestampDeltaMS = 1000;
 
   async function testCollectionWithDocs(docs: {
     [id: string]: DocumentData;
@@ -377,7 +380,8 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       expect(snapshot.results.length).to.equal(0);
     });
 
-    it('full snapshot as expected', async () => {
+    // Skipping because __name__ is not currently working in DBE
+    itIf(testUnsupportedFeatures)('full snapshot as expected', async () => {
       const ppl = firestore
         .pipeline()
         .collection(randomCol.path)
@@ -1808,7 +1812,8 @@ apiDescribe.skipClassic('Pipelines', persistence => {
     });
 
     describe('union stage', () => {
-      it('run pipeline with union', async () => {
+      // __name__ not currently supported by dbe
+      itIf(testUnsupportedFeatures)('run pipeline with union', async () => {
         const snapshot = await execute(
           firestore
             .pipeline()
@@ -3002,6 +3007,21 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .select(field('tags').arrayGet(0).as('firstTag'))
       );
       expectResults(snapshot, ...expectedResults);
+    });
+
+    // TODO: current_context tests with are failing because of b/395937453
+    itIf(testUnsupportedFeatures)('supports currentContext', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+        //.select(currentContext().as('currentContext'))
+      );
+      expectResults(snapshot, {
+        currentContext: 'TODO'
+      });
     });
 
     it('supports map', async () => {

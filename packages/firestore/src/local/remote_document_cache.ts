@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
+import { QueryOrPipeline } from '../core/pipeline-util';
 import {
   DocumentKeySet,
   MutableDocumentMap,
@@ -66,6 +66,10 @@ export interface RemoteDocumentCache {
     documentKeys: DocumentKeySet
   ): PersistencePromise<MutableDocumentMap>;
 
+  getAllEntries(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<MutableDocumentMap>;
+
   /**
    * Returns the documents matching the given query
    *
@@ -77,7 +81,7 @@ export interface RemoteDocumentCache {
    */
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
-    query: Query,
+    query: QueryOrPipeline,
     offset: IndexOffset,
     mutatedDocs: OverlayMap,
     context?: QueryContext

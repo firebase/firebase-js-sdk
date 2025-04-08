@@ -9,9 +9,16 @@ import {
 } from '../../src/core/pipeline_run';
 import { Constant } from '../../src/lite-api/expressions';
 import { Pipeline as LitePipeline } from '../../src/lite-api/pipeline';
-import { UserDataSource } from '../../src/lite-api/user_data_reader';
+import {
+  newUserDataReader,
+  UserDataSource
+} from '../../src/lite-api/user_data_reader';
 import { testUserDataReader } from './helpers';
-import { newTestFirestore } from './api_helpers';
+import { firestore, newTestFirestore } from './api_helpers';
+import { Stage } from '../../src/lite-api/stage';
+import { Pipeline } from '../../src/api/pipeline';
+import { RealtimePipeline } from '../../src/api/realtime_pipeline';
+import { ExpUserDataWriter } from '../../src/api/user_data_writer';
 
 export function canonifyPipeline(p: LitePipeline): string {
   return canonifyCorePipeline(toCorePipeline(p));
@@ -50,4 +57,14 @@ export function constantMap(values: Record<string, unknown>): Constant {
     )
   );
   return constant;
+}
+
+export function pipelineFromStages(stages: Stage[]): RealtimePipeline {
+  const db = firestore();
+  return new RealtimePipeline(
+    db,
+    newUserDataReader(db),
+    new ExpUserDataWriter(db),
+    stages
+  );
 }

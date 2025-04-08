@@ -20,7 +20,11 @@ import { expect } from 'chai';
 
 import { describe } from '../../util/mocha_extensions';
 
+import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
+import { PipelineResult } from '../../../src/lite-api/pipeline-result'; // Added import
+import { Deferred } from '../../util/promise'; // Added import
 import {
+  _AutoId,
   clearIndexedDbPersistence,
   collection,
   CollectionReference,
@@ -28,25 +32,27 @@ import {
   DocumentData,
   DocumentReference,
   Firestore,
-  MemoryLocalCache,
+  getDocs as getDocsProd,
+  getDocsFromCache,
+  getDocsFromServer,
   memoryEagerGarbageCollector,
+  MemoryLocalCache,
   memoryLocalCache,
   memoryLruGarbageCollector,
   newTestApp,
   newTestFirestore,
+  onSnapshot as onSnapshotProd,
   PersistentLocalCache,
   persistentLocalCache,
   PrivateSettings,
+  Query,
   QuerySnapshot,
   setDoc,
   SnapshotListenOptions,
   terminate,
+  Unsubscribe,
   WriteBatch,
-  writeBatch,
-  Query,
-  getDocsFromServer,
-  getDocsFromCache,
-  _AutoId
+  writeBatch
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -55,6 +61,8 @@ import {
   TARGET_DB_ID,
   USE_EMULATOR
 } from './settings';
+import { RealtimePipeline } from '../../../src/api/realtime_pipeline';
+import { onPipelineSnapshot } from '../../../src/api/reference_impl';
 
 /* eslint-disable no-restricted-globals */
 
@@ -174,6 +182,8 @@ export function isPersistenceAvailable(): boolean {
   );
 }
 
+export type PipelineMode = 'no-pipeline-conversion' | 'query-to-pipeline';
+
 /**
  * A wrapper around Mocha's describe method that allows for it to be run with
  * persistence both disabled and enabled (if the browser is supported).
@@ -198,6 +208,35 @@ function apiDescribeInternal(
       // its properties, and affect all subsequent test suites.
       testSuite(Object.freeze(persistenceMode))
     );
+  }
+}
+
+function apiPipelineDescribeInternal(
+  describeFn:
+    | Mocha.PendingSuiteFunction
+    | Mocha.SuiteFunction
+    | Mocha.ExclusiveSuiteFunction,
+  message: string,
+  testSuite: (persistence: PersistenceMode, pipelineMode: PipelineMode) => void
+): void {
+  const persistenceModes: PersistenceMode[] = [new MemoryLruPersistenceMode()];
+  if (isPersistenceAvailable()) {
+    persistenceModes.push(new IndexedDbPersistenceMode());
+  }
+
+  const pipelineModes: PipelineMode[] = ['query-to-pipeline'];
+
+  for (const persistenceMode of persistenceModes) {
+    for (const pipelineMode of pipelineModes) {
+      describeFn(
+        `(Persistence=${persistenceMode.name} Pipeline=${pipelineMode}) ${message}`,
+        () =>
+          // Freeze the properties of the `PersistenceMode` object specified to the
+          // test suite so that it cannot (accidentally or intentionally) change
+          // its properties, and affect all subsequent test suites.
+          testSuite(Object.freeze(persistenceMode), pipelineMode)
+      );
+    }
   }
 }
 
@@ -232,17 +271,57 @@ apiDescribe.skipEmulator = apiDescribeInternal.bind(
   describe.skipEmulator
 );
 
+type ApiPipelineSuiteFunction = (
+  message: string,
+  testSuite: (persistence: PersistenceMode, pipelineMode: PipelineMode) => void
+) => void;
+interface ApiPipelineDescribe {
+  (
+    message: string,
+    testSuite: (
+      persistence: PersistenceMode,
+      pipelineMode: PipelineMode
+    ) => void
+  ): void;
+  skip: ApiPipelineSuiteFunction;
+  only: ApiPipelineSuiteFunction;
+}
+
+export const apiPipelineDescribe = apiPipelineDescribeInternal.bind(
+  null,
+  describe
+) as ApiPipelineDescribe;
+// eslint-disable-next-line no-restricted-properties
+apiPipelineDescribe.skip = apiPipelineDescribeInternal.bind(
+  null,
+  describe.skip
+);
+// eslint-disable-next-line no-restricted-properties
+apiPipelineDescribe.only = apiPipelineDescribeInternal.bind(
+  null,
+  describe.only
+);
+
 /** Converts the documents in a QuerySnapshot to an array with the data of each document. */
-export function toDataArray(docSet: QuerySnapshot): DocumentData[] {
-  return docSet.docs.map(d => d.data());
+export function toDataArray(
+  docSet: QuerySnapshot | RealtimePipelineSnapshot
+): DocumentData[] {
+  if (docSet instanceof QuerySnapshot) {
+    return docSet.docs.map(d => d.data());
+  } else {
+    return docSet.results.map(d => d.data()!);
+  }
 }
 
 /** Converts the changes in a QuerySnapshot to an array with the data of each document. */
 export function toChangesArray(
-  docSet: QuerySnapshot,
+  docSet: QuerySnapshot | RealtimePipelineSnapshot,
   options?: SnapshotListenOptions
 ): DocumentData[] {
-  return docSet.docChanges(options).map(d => d.doc.data());
+  if (docSet instanceof QuerySnapshot) {
+    return docSet.docChanges(options).map(d => d.doc.data());
+  }
+  return docSet.resultChanges(options).map(d => d.result.data()!);
 }
 
 export function toDataMap(docSet: QuerySnapshot): {
@@ -596,4 +675,149 @@ export async function checkOnlineAndOfflineResultsMatch(
   if (expectedDocs.length !== 0) {
     expect(expectedDocs).to.deep.equal(toIds(docsFromServer));
   }
+}
+
+export async function checkOnlineAndOfflineResultsMatchWithPipelineMode(
+  pipelineMode: PipelineMode,
+  coll: CollectionReference,
+  query: Query,
+  ...expectedDocs: string[]
+): Promise<void> {
+  if (pipelineMode === 'no-pipeline-conversion') {
+    await checkOnlineAndOfflineResultsMatch(coll, query, ...expectedDocs);
+  } else {
+    // pipelineMode === 'query-to-pipeline'
+    const pipeline = (query.firestore as Firestore)
+      .realtimePipeline()
+      .createFrom(query);
+    const deferred = new Deferred<RealtimePipelineSnapshot>();
+    const unsub = onPipelineSnapshot(
+      pipeline,
+      { includeMetadataChanges: true },
+      snapshot => {
+        if (snapshot.metadata.fromCache === false) {
+          deferred.resolve(snapshot);
+          unsub();
+        }
+      }
+    );
+
+    const snapshot = await deferred.promise;
+    const idsFromServer = snapshot.results.map((r: PipelineResult) => r.id);
+
+    if (expectedDocs.length !== 0) {
+      expect(expectedDocs).to.deep.equal(idsFromServer);
+    }
+
+    const cacheDeferred = new Deferred<RealtimePipelineSnapshot>();
+    const cacheUnsub = onPipelineSnapshot(
+      pipeline,
+      { includeMetadataChanges: true, source: 'cache' },
+      snapshot => {
+        cacheDeferred.resolve(snapshot);
+        cacheUnsub();
+      }
+    );
+    const cacheSnapshot = await cacheDeferred.promise;
+    const idsFromCache = cacheSnapshot.results.map((r: PipelineResult) => r.id);
+    expect(idsFromServer).to.deep.equal(idsFromCache);
+  }
+}
+
+export function itIf(
+  condition: boolean | 'only'
+):
+  | Mocha.TestFunction
+  | Mocha.PendingTestFunction
+  | Mocha.ExclusiveTestFunction {
+  // eslint-disable-next-line no-restricted-properties
+  return condition === 'only' ? it.only : condition ? it : it.skip;
+}
+
+function getDocsFromPipeline(
+  pipeline: RealtimePipeline
+): Promise<RealtimePipelineSnapshot> {
+  const deferred = new Deferred<RealtimePipelineSnapshot>();
+  const unsub = onSnapshot(
+    'query-to-pipeline',
+    pipeline,
+    (snapshot: RealtimePipelineSnapshot) => {
+      deferred.resolve(snapshot);
+      unsub();
+    }
+  );
+
+  return deferred.promise;
+}
+
+export function getDocs(
+  pipelineMode: PipelineMode,
+  queryOrPipeline: Query | RealtimePipeline
+) {
+  if (pipelineMode === 'query-to-pipeline') {
+    if (queryOrPipeline instanceof Query) {
+      const ppl = queryOrPipeline.firestore
+        .pipeline()
+        .createFrom(queryOrPipeline);
+      return getDocsFromPipeline(
+        new RealtimePipeline(
+          ppl._db,
+          ppl.userDataReader,
+          ppl._userDataWriter,
+          ppl.stages
+        )
+      );
+    } else {
+      return getDocsFromPipeline(queryOrPipeline);
+    }
+  }
+
+  return getDocsProd(queryOrPipeline as Query);
+}
+
+export function onSnapshot(
+  pipelineMode: PipelineMode,
+  queryOrPipeline: Query | RealtimePipeline,
+  observer: unknown
+): Unsubscribe;
+export function onSnapshot(
+  pipelineMode: PipelineMode,
+  queryOrPipeline: Query | RealtimePipeline,
+  options: unknown,
+  observer: unknown
+): Unsubscribe;
+export function onSnapshot(
+  pipelineMode: PipelineMode,
+  queryOrPipeline: Query | RealtimePipeline,
+  optionsOrObserver: unknown,
+  observer?: unknown
+): Unsubscribe {
+  const obs = observer || optionsOrObserver;
+  const options = observer
+    ? optionsOrObserver
+    : {
+        includeMetadataChanges: false,
+        source: 'default'
+      };
+  if (pipelineMode === 'query-to-pipeline') {
+    if (queryOrPipeline instanceof Query) {
+      const ppl = queryOrPipeline.firestore
+        .pipeline()
+        .createFrom(queryOrPipeline);
+      return onPipelineSnapshot(
+        new RealtimePipeline(
+          ppl._db,
+          ppl.userDataReader,
+          ppl._userDataWriter,
+          ppl.stages
+        ),
+        options as any,
+        obs as any
+      );
+    } else {
+      return onPipelineSnapshot(queryOrPipeline, options as any, obs as any);
+    }
+  }
+
+  return onSnapshotProd(queryOrPipeline as Query, options as any, obs as any);
 }
