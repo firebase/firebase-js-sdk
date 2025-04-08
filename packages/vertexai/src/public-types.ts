@@ -21,16 +21,16 @@ export * from './types';
 
 /**
  * An instance of the Vertex AI in Firebase SDK.
- * 
+ *
  * For more information, refer to the documentation for the new {@link GenAI}.
- * 
+ *
  * @public
  */
 export type VertexAI = GenAI;
 
 /**
  * Options when initializing the Vertex AI in Firebase SDK.
- * 
+ *
  * @public
  */
 export interface VertexAIOptions {

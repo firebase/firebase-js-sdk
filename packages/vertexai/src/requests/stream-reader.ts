@@ -89,14 +89,17 @@ async function* generateResponseSequence(
       break;
     }
 
-    const enhancedResponse =
-      apiSettings.backend.backendType === BackendType.GOOGLE_AI
-        ? createEnhancedContentResponse(
-            GoogleAIMapper.mapGenerateContentResponse(
-              value as GoogleAIGenerateContentResponse
-            )
-          )
-        : createEnhancedContentResponse(value);
+    let enhancedResponse: EnhancedGenerateContentResponse;
+    if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
+      enhancedResponse = createEnhancedContentResponse(
+        GoogleAIMapper.mapGenerateContentResponse(
+          value as GoogleAIGenerateContentResponse
+        )
+      );
+    } else {
+      enhancedResponse = createEnhancedContentResponse(value);
+    }
+
     yield enhancedResponse;
   }
 }

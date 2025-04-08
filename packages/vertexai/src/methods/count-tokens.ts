@@ -22,7 +22,7 @@ import {
 } from '../types';
 import { Task, makeRequest } from '../requests/request';
 import { ApiSettings } from '../types/internal';
-import * as GoogleAIMapper from '../googleAIMappers'; // FIXME: (code smell) Is there a better way to namespace this?
+import * as GoogleAIMapper from '../googleAIMappers';
 import { BackendType } from '../public-types';
 
 export async function countTokens(
