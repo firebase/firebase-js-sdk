@@ -36,6 +36,7 @@ import { Bytes } from './bytes';
 import { documentId as documentIdFieldPath, FieldPath } from './field_path';
 import { vector } from './field_value_impl';
 import { GeoPoint } from './geo_point';
+import { Pipeline } from './pipeline';
 import { DocumentReference } from './reference';
 import { Timestamp } from './timestamp';
 import { fieldPathFromArgument, parseData, UserData } from './user_data_reader';
@@ -2519,13 +2520,14 @@ export class AliasedExpression implements Selectable, UserData {
 }
 
 /**
+ * @private
  * @internal
  */
-class ListOfExprs extends Expression implements UserData {
+export class ListOfExprs extends Expression implements UserData {
   expressionType: ExpressionType = 'ListOfExpressions';
 
   constructor(
-    private exprs: Expression[],
+    readonly exprs: Expression[],
     readonly _methodName: string | undefined
   ) {
     super();
@@ -2577,11 +2579,9 @@ export class Field extends Expression implements Selectable {
   /**
    * @internal
    * @private
-   * @hideconstructor
-   * @param fieldPath
    */
   constructor(
-    private fieldPath: InternalFieldPath,
+    readonly fieldPath: InternalFieldPath,
     readonly _methodName: string | undefined
   ) {
     super();
@@ -2675,14 +2675,13 @@ export class Constant extends Expression {
   private _protoValue?: ProtoValue;
 
   /**
-   * @private
    * @internal
    * @hideconstructor
-   * @param value The value of the constant.
    */
   constructor(
-    private value: unknown,
-    readonly _methodName: string | undefined
+    readonly value: unknown,
+    readonly _methodName: string | undefined,
+    private options?: { preferIntegers: boolean }
   ) {
     super();
   }
@@ -2721,8 +2720,17 @@ export class Constant extends Expression {
     if (isFirestoreValue(this._protoValue)) {
       return;
     } else {
-      this._protoValue = parseData(this.value, context)!;
+      this._protoValue = parseData(this.value, context, this.options)!;
     }
+  }
+
+  _getValue(): ProtoValue {
+    hardAssert(
+      this._protoValue !== undefined,
+      0x7a8f,
+      'Value of this constant has not been serialized to proto value'
+    );
+    return this._protoValue;
   }
 }
 
@@ -2733,7 +2741,10 @@ export class Constant extends Expression {
  * @param value The number value.
  * @return A new `Constant` instance.
  */
-export function constant(value: number): Expression;
+export function constant(
+  value: number,
+  options?: { preferIntegers: boolean }
+): Expression;
 
 /**
  * @beta
@@ -2826,8 +2837,11 @@ export function constant(value: ProtoValue): Expression;
  */
 export function constant(value: VectorValue): Expression;
 
-export function constant(value: unknown): Expression | BooleanExpression {
-  return _constant(value, 'constant');
+export function constant(
+  value: unknown,
+  options?: { preferIntegers: boolean }
+): Expression | BooleanExpression {
+  return _constant(value, 'constant', options);
 }
 
 /**
@@ -2838,12 +2852,13 @@ export function constant(value: unknown): Expression | BooleanExpression {
  */
 export function _constant(
   value: unknown,
-  methodName: string | undefined
+  methodName: string | undefined,
+  options?: { preferIntegers: boolean }
 ): Constant | BooleanExpression {
   if (typeof value === 'boolean') {
     return new BooleanConstant(value, methodName);
   } else {
-    return new Constant(value, methodName);
+    return new Constant(value, methodName, options);
   }
 }
 
@@ -2895,8 +2910,8 @@ export class FunctionExpression extends Expression {
     _methodName: string | undefined
   );
   constructor(
-    private name: string,
-    private params: Expression[],
+    readonly name: string,
+    readonly params: Expression[],
     readonly _methodName?: string
   ) {
     super();
@@ -3021,7 +3036,7 @@ export class BooleanExpression extends FunctionExpression {
  * we override methods with those of an internally kept Constant value.
  */
 export class BooleanConstant extends BooleanExpression {
-  private readonly _internalConstant: Constant;
+  readonly _internalConstant: Constant;
 
   constructor(value: boolean, readonly _methodName?: string) {
     super('', []);
@@ -3043,6 +3058,14 @@ export class BooleanConstant extends BooleanExpression {
    */
   _readUserData(context: ParseContext): void {
     return this._internalConstant._readUserData(context);
+  }
+
+  /**
+   * @private
+   * @internal
+   */
+  _getValue(): ProtoValue {
+    return this._internalConstant._getValue();
   }
 }
 

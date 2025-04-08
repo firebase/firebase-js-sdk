@@ -1001,6 +1001,8 @@ export class Pipeline {
     sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
     // (undocumented)
     sort(options: SortStageOptions): Pipeline;
+    // Warning: (ae-incompatible-release-tags) The symbol "stages" is marked as @public, but its signature references "Stage" which is marked as @beta
+    //
     // (undocumented)
     stages: any;
     // (undocumented)
@@ -1013,8 +1015,6 @@ export class Pipeline {
     unnest(selectable: Selectable, indexField?: string): Pipeline;
     // (undocumented)
     unnest(options: UnnestStageOptions): Pipeline;
-    // (undocumented)
-    userDataReader: any;
     // Warning: (ae-incompatible-release-tags) The symbol "where" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
     //
     // (undocumented)
@@ -1032,18 +1032,42 @@ export interface PipelineExecuteOptions {
     };
 }
 
-// Warning: (ae-forgotten-export) The symbol "DocumentData" needs to be exported by the entry point pipelines.d.ts
-//
 // @beta
-export class PipelineResult<AppModelType = DocumentData> {
+export class PipelineResult {
+    get createTime(): Timestamp | undefined;
     /* Excluded from this release type: _ref */
     /* Excluded from this release type: _fields */
     /* Excluded from this release type: __constructor */
-    get createTime(): Timestamp | undefined;
-    data(): AppModelType;
+    /* Excluded from this release type: fromDocument */
+    // Warning: (ae-forgotten-export) The symbol "DocumentData" needs to be exported by the entry point pipelines.d.ts
+    data(): DocumentData | undefined;
+    /* Excluded from this release type: _ref */
+    /* Excluded from this release type: _fields */
+    /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: fromDocument */
     get(fieldPath: string | FieldPath | Field): any;
+    /* Excluded from this release type: _ref */
+    /* Excluded from this release type: _fields */
+    /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: fromDocument */
     get id(): string | undefined;
+    /* Excluded from this release type: _ref */
+    /* Excluded from this release type: _fields */
+    /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: fromDocument */
+    // Warning: (ae-forgotten-export) The symbol "SnapshotMetadata" needs to be exported by the entry point pipelines.d.ts
+    //
+    // (undocumented)
+    readonly metadata?: SnapshotMetadata | undefined;
+    /* Excluded from this release type: _ref */
+    /* Excluded from this release type: _fields */
+    /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: fromDocument */
     get ref(): DocumentReference | undefined;
+    /* Excluded from this release type: _ref */
+    /* Excluded from this release type: _fields */
+    /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: fromDocument */
     get updateTime(): Timestamp | undefined;
 }
 
@@ -1065,7 +1089,7 @@ export class PipelineSource<PipelineType> {
     collection(options: CollectionStageOptions): PipelineType;
     collectionGroup(collectionId: string): PipelineType;
     collectionGroup(options: CollectionGroupStageOptions): PipelineType;
-    createFrom(query: Query): Pipeline;
+    createFrom(query: Query): PipelineType;
     database(): PipelineType;
     database(options: DatabaseStageOptions): PipelineType;
     documents(docs: Array<string | DocumentReference>): PipelineType;

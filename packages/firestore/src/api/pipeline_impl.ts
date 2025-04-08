@@ -140,10 +140,10 @@ export function execute(
           element =>
             new PipelineResult(
               pipeline._userDataWriter,
-              element.fields!,
               element.key?.path
                 ? new DocumentReference(firestore, null, element.key)
                 : undefined,
+              element.fields,
               element.createTime?.toTimestamp(),
               element.updateTime?.toTimestamp()
             )

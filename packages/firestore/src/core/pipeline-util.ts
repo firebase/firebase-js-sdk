@@ -15,20 +15,56 @@
  * limitations under the License.
  */
 
+import { RealtimePipeline } from '../api/realtime_pipeline';
 import { Firestore } from '../lite-api/database';
 import {
   Constant,
+  Expression,
+  Field,
   BooleanExpression,
   and,
   or,
   Ordering,
   lessThan,
   greaterThan,
-  field
+  lessThanOrEqual,
+  greaterThanOrEqual,
+  equal,
+  field,
+  FunctionExpression,
+  ListOfExprs,
+  AggregateFunction
 } from '../lite-api/expressions';
-import { Pipeline } from '../lite-api/pipeline';
-import { doc } from '../lite-api/reference';
-import { fail } from '../util/assert';
+import { Pipeline, Pipeline as ApiPipeline } from '../lite-api/pipeline';
+import { doc, DocumentReference } from '../lite-api/reference';
+import {
+  AddFields,
+  Aggregate,
+  CollectionGroupSource,
+  CollectionSource,
+  DatabaseSource,
+  Distinct,
+  DocumentsSource,
+  FindNearest,
+  Limit,
+  Offset,
+  Select,
+  Sort,
+  Stage,
+  Where
+} from '../lite-api/stage';
+import {
+  CREATE_TIME_NAME,
+  DOCUMENT_KEY_NAME,
+  ResourcePath,
+  UPDATE_TIME_NAME
+} from '../model/path';
+import {
+  isNanValue,
+  isNullValue,
+  VECTOR_MAP_VECTORS_KEY
+} from '../model/values';
+import { debugAssert, fail } from '../util/assert';
 
 import { Bound } from './bound';
 import {
@@ -39,13 +75,24 @@ import {
   Operator
 } from './filter';
 import { Direction } from './order_by';
+import { CorePipeline } from './pipeline';
 import {
+  canonifyQuery,
   isCollectionGroupQuery,
   isDocumentQuery,
   LimitType,
   Query,
-  queryNormalizedOrderBy
+  queryEquals,
+  queryNormalizedOrderBy,
+  stringifyQuery
 } from './query';
+import {
+  canonifyTarget,
+  Target,
+  targetEquals,
+  targetIsPipelineTarget
+} from './target';
+import { VectorValue } from '../api';
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
@@ -152,7 +199,7 @@ function reverseOrderings(orderings: Ordering[]): Ordering[] {
   );
 }
 
-export function toPipeline(query: Query, db: Firestore): Pipeline {
+export function toPipelineStages(query: Query, db: Firestore): Stage[] {
   let pipeline: Pipeline;
   if (isCollectionGroupQuery(query)) {
     pipeline = db.pipeline().collectionGroup(query.collectionGroup!);
@@ -228,7 +275,7 @@ export function toPipeline(query: Query, db: Firestore): Pipeline {
     }
   }
 
-  return pipeline;
+  return pipeline.stages;
 }
 
 function whereConditionsFromCursor(
@@ -268,4 +315,251 @@ function whereConditionsFromCursor(
   }
 
   return condition;
+}
+
+function canonifyConstantValue(value: unknown): string {
+  if (value === null) {
+    return 'null';
+  } else if (typeof value === 'number') {
+    return value.toString();
+  } else if (typeof value === 'string') {
+    return `"${value}"`;
+  } else if (value instanceof DocumentReference) {
+    return `ref(${value.path})`;
+  } else if (value instanceof VectorValue) {
+    return `vec(${JSON.stringify(value)})`;
+  }
+  {
+    return JSON.stringify(value);
+  }
+}
+
+export function canonifyExpr(expr: Expression): string {
+  if (expr instanceof Field) {
+    return `fld(${expr.fieldName})`;
+  }
+  if (expr instanceof Constant) {
+    return `cst(${canonifyConstantValue(expr.value)})`;
+  }
+  if (expr instanceof FunctionExpression) {
+    return `fn(${expr.name},[${expr.params.map(canonifyExpr).join(',')}])`;
+  }
+  if (expr instanceof ListOfExprs) {
+    return `list([${expr.exprs.map(canonifyExpr).join(',')}])`;
+  }
+  throw new Error(`Unrecognized expr ${JSON.stringify(expr, null, 2)}`);
+}
+
+function canonifySortOrderings(orders: Ordering[]): string {
+  return orders.map(o => `${canonifyExpr(o.expr)}${o.direction}`).join(',');
+}
+
+function canonifyStage(stage: Stage): string {
+  if (stage instanceof AddFields) {
+    return `${stage._name}(${canonifyExprMap(stage.fields)})`;
+  }
+  if (stage instanceof Aggregate) {
+    let result = `${stage._name}(${canonifyExprMap(
+      stage.accumulators as unknown as Map<string, Expression>
+    )})`;
+    if (stage.groups.size > 0) {
+      result = result + `grouping(${canonifyExprMap(stage.groups)})`;
+    }
+    return result;
+  }
+  if (stage instanceof Distinct) {
+    return `${stage._name}(${canonifyExprMap(stage.groups)})`;
+  }
+  if (stage instanceof CollectionSource) {
+    return `${stage._name}(${stage.formattedCollectionPath})`;
+  }
+  if (stage instanceof CollectionGroupSource) {
+    return `${stage._name}(${stage.collectionId})`;
+  }
+  if (stage instanceof DatabaseSource) {
+    return `${stage._name}()`;
+  }
+  if (stage instanceof DocumentsSource) {
+    return `${stage._name}(${stage.formattedPaths.sort()})`;
+  }
+  if (stage instanceof Where) {
+    return `${stage._name}(${canonifyExpr(stage.condition)})`;
+  }
+  if (stage instanceof Limit) {
+    return `${stage._name}(${stage.limit})`;
+  }
+  if (stage instanceof Sort) {
+    return `${stage._name}(${canonifySortOrderings(stage.orderings)})`;
+  }
+
+  throw new Error(`Unrecognized stage ${stage._name}`);
+}
+
+function canonifyExprMap(map: Map<string, Expression>): string {
+  const sortedEntries = Array.from(map.entries()).sort();
+  return `${sortedEntries
+    .map(([key, val]) => `${key}=${canonifyExpr(val)}`)
+    .join(',')}`;
+}
+
+export function canonifyPipeline(p: CorePipeline): string;
+export function canonifyPipeline(p: CorePipeline): string {
+  return p.stages.map(s => canonifyStage(s)).join('|');
+}
+
+// TODO(pipeline): do a proper implementation for eq.
+export function pipelineEq(left: CorePipeline, right: CorePipeline): boolean {
+  return canonifyPipeline(left) === canonifyPipeline(right);
+}
+
+export type PipelineFlavor = 'exact' | 'augmented' | 'keyless';
+
+export type PipelineSourceType =
+  | 'collection'
+  | 'collection_group'
+  | 'database'
+  | 'documents';
+
+export function asCollectionPipelineAtPath(
+  pipeline: CorePipeline,
+  path: ResourcePath
+): CorePipeline {
+  const newStages = pipeline.stages.map(s => {
+    if (s instanceof CollectionGroupSource) {
+      return new CollectionSource(path.canonicalString(), {});
+    }
+
+    return s;
+  });
+
+  return new CorePipeline(pipeline.serializer, newStages);
+}
+
+export type QueryOrPipeline = Query | CorePipeline;
+
+export function isPipeline(q: QueryOrPipeline): q is CorePipeline {
+  return q instanceof CorePipeline;
+}
+
+export function stringifyQueryOrPipeline(q: QueryOrPipeline): string {
+  if (isPipeline(q)) {
+    return canonifyPipeline(q);
+  }
+
+  return stringifyQuery(q);
+}
+
+export function canonifyQueryOrPipeline(q: QueryOrPipeline): string {
+  if (isPipeline(q)) {
+    return canonifyPipeline(q);
+  }
+
+  return canonifyQuery(q);
+}
+
+export function queryOrPipelineEqual(
+  left: QueryOrPipeline,
+  right: QueryOrPipeline
+): boolean {
+  if (left instanceof CorePipeline && right instanceof CorePipeline) {
+    return pipelineEq(left, right);
+  }
+  if (
+    (left instanceof CorePipeline && !(right instanceof CorePipeline)) ||
+    (!(left instanceof CorePipeline) && right instanceof CorePipeline)
+  ) {
+    return false;
+  }
+
+  return queryEquals(left as Query, right as Query);
+}
+
+export type TargetOrPipeline = Target | CorePipeline;
+
+export function canonifyTargetOrPipeline(q: TargetOrPipeline): string {
+  if (targetIsPipelineTarget(q)) {
+    return canonifyPipeline(q);
+  }
+
+  return canonifyTarget(q as Target);
+}
+
+export function targetOrPipelineEqual(
+  left: TargetOrPipeline,
+  right: TargetOrPipeline
+): boolean {
+  if (left instanceof CorePipeline && right instanceof CorePipeline) {
+    return pipelineEq(left, right);
+  }
+  if (
+    (left instanceof CorePipeline && !(right instanceof CorePipeline)) ||
+    (!(left instanceof CorePipeline) && right instanceof CorePipeline)
+  ) {
+    return false;
+  }
+
+  return targetEquals(left as Target, right as Target);
+}
+
+export function pipelineHasRanges(pipeline: CorePipeline): boolean {
+  return pipeline.stages.some(
+    stage => stage instanceof Limit || stage instanceof Offset
+  );
+}
+
+function rewriteStages(stages: Stage[]): Stage[] {
+  let hasOrder = false;
+  const newStages: Stage[] = [];
+  for (const stage of stages) {
+    // For stages that provide ordering semantics
+    if (stage instanceof Sort) {
+      hasOrder = true;
+      // Ensure we have a stable ordering
+      if (
+        stage.orderings.some(
+          order =>
+            order.expr instanceof Field &&
+            order.expr.fieldName === DOCUMENT_KEY_NAME
+        )
+      ) {
+        newStages.push(stage);
+      } else {
+        const copy = stage.orderings.map(o => o);
+        copy.push(field(DOCUMENT_KEY_NAME).ascending());
+        newStages.push(new Sort(copy, {}));
+      }
+    }
+    // For stages whose semantics depend on ordering
+    else if (stage instanceof Limit) {
+      if (!hasOrder) {
+        newStages.push(new Sort([field(DOCUMENT_KEY_NAME).ascending()], {}));
+        hasOrder = true;
+      }
+      newStages.push(stage);
+    } else {
+      newStages.push(stage);
+    }
+  }
+
+  if (!hasOrder) {
+    newStages.push(new Sort([field(DOCUMENT_KEY_NAME).ascending()], {}));
+  }
+
+  return newStages;
+}
+
+function addSystemFields(
+  fields: Map<string, Expression>
+): Map<string, Expression> {
+  const newFields = new Map<string, Expression>(fields);
+  newFields.set(DOCUMENT_KEY_NAME, field(DOCUMENT_KEY_NAME));
+  newFields.set(CREATE_TIME_NAME, field(CREATE_TIME_NAME));
+  newFields.set(UPDATE_TIME_NAME, field(UPDATE_TIME_NAME));
+  return newFields;
+}
+
+export function toCorePipeline(
+  p: ApiPipeline | RealtimePipeline
+): CorePipeline {
+  return new CorePipeline(p.userDataReader.serializer, rewriteStages(p.stages));
 }

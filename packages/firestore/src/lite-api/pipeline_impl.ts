@@ -117,10 +117,10 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
         element =>
           new PipelineResult(
             pipeline._userDataWriter,
-            element.fields!,
             element.key?.path
               ? new DocumentReference(pipeline._db, null, element.key)
               : undefined,
+            element.fields,
             element.createTime?.toTimestamp(),
             element.updateTime?.toTimestamp()
           )
