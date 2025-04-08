@@ -45,7 +45,9 @@ export type {
   QueryDocumentSnapshot,
   Primitive,
   FieldValue,
-  Bytes
+  Bytes,
+  // TODO this should not be part of lite
+  SnapshotMetadata
 } from '../index';
 
 export { PipelineSource } from '../../src/lite-api/pipeline-source';
