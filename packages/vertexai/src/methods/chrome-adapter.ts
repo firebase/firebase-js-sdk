@@ -87,19 +87,6 @@ export class ChromeAdapter {
     const result = await session.prompt(prompt.content);
     return ChromeAdapter.toResponse(result);
   }
-  private static toResponse(text: string): Response {
-    return {
-      json: async () => ({
-        candidates: [
-          {
-            content: {
-              parts: [{ text }]
-            }
-          }
-        ]
-      })
-    } as Response;
-  }
   async generateContentStreamOnDevice(
     request: GenerateContentRequest
   ): Promise<Response> {
@@ -114,31 +101,6 @@ export class ChromeAdapter {
     const session = await this.session(createOptions);
     const stream = await session.promptStreaming(prompt.content);
     return ChromeAdapter.toStreamResponse(stream);
-  }
-  // Formats string stream returned by Chrome as SSE returned by Vertex.
-  private static async toStreamResponse(
-    stream: ReadableStream<string>
-  ): Promise<Response> {
-    const encoder = new TextEncoder();
-    return {
-      body: stream.pipeThrough(
-        new TransformStream({
-          transform(chunk, controller) {
-            const json = JSON.stringify({
-              candidates: [
-                {
-                  content: {
-                    role: 'model',
-                    parts: [{ text: chunk }]
-                  }
-                }
-              ]
-            });
-            controller.enqueue(encoder.encode(`data: ${json}\n\n`));
-          }
-        })
-      )
-    } as Response;
   }
   private static isOnDeviceRequest(request: GenerateContentRequest): boolean {
     // Returns false if the prompt is empty.
@@ -201,5 +163,42 @@ export class ChromeAdapter {
     // Holds session reference, so model isn't unloaded from memory.
     this.oldSession = newSession;
     return newSession;
+  }
+  private static toResponse(text: string): Response {
+    return {
+      json: async () => ({
+        candidates: [
+          {
+            content: {
+              parts: [{ text }]
+            }
+          }
+        ]
+      })
+    } as Response;
+  }
+  private static toStreamResponse(
+    stream: ReadableStream<string>
+  ): Response {
+    const encoder = new TextEncoder();
+    return {
+      body: stream.pipeThrough(
+        new TransformStream({
+          transform(chunk, controller) {
+            const json = JSON.stringify({
+              candidates: [
+                {
+                  content: {
+                    role: 'model',
+                    parts: [{ text: chunk }]
+                  }
+                }
+              ]
+            });
+            controller.enqueue(encoder.encode(`data: ${json}\n\n`));
+          }
+        })
+      )
+    } as Response;
   }
 }
