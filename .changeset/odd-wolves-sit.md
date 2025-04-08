@@ -2,4 +2,4 @@
 "@firebase/firestore": patch
 ---
 
-Adding error codes and error context to internal assertion messages.
+Add unique IDs and state information into fatal error messages instead of the generic "unexpected state" message.
