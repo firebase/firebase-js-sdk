@@ -1,3 +1,5 @@
+[![Test Firestore](https://github.com/nodoubtz/firebase-js-sdk/actions/workflows/test-changed-firestore.yml/badge.svg)](https://github.com/nodoubtz/firebase-js-sdk/actions/workflows/test-changed-firestore.yml)
+
 The README file for the `nodoubtz/firebase-js-sdk` repository is already quite comprehensive. Below is the updated README with some minor improvements for better clarity and structure:
 
 ---
