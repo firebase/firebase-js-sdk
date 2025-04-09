@@ -1186,15 +1186,84 @@ apiDescribe('Database', persistence => {
     });
   });
 
+  it('Listen can be called multiple times', () => {
+    return withTestCollection(persistence, {}, coll => {
+      const docA = doc(coll);
+      const deferred1 = new Deferred<void>();
+      const deferred2 = new Deferred<void>();
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      setDoc(docA, { foo: 'bar' }).then(() => {
+        onSnapshot(docA, () => {
+          deferred1.resolve();
+          onSnapshot(docA, () => deferred2.resolve());
+        });
+      });
+      return Promise.all([deferred1.promise, deferred2.promise]).then(() => {});
+    });
+  });
+
   it('DocumentSnapshot events for snapshot created by a bundle', function (done) {
     this.timeout(SNAPSHOT_TEST_TIMEOUT);
-    withTestDoc(persistence, async (docRef, db) => {
-      const secondUpdateFound = new Deferred();
-      let count = 0;
+    void withTestDoc(persistence, async (docRef, db) => {
+      const updateFound = new Deferred();
       await setDoc(docRef, { a: 0 });
       await waitForPendingWrites(db);
       const docSnap = await getDoc(docRef);
       expect(docSnap.data()).to.deep.equal({ a: 0 });
+      const unlisten = onSnapshot(
+        db,
+        docSnap.toJSON(),
+        (doc: DocumentSnapshot) => {
+          if (doc) {
+            expect(doc.data()).to.deep.equal({ a: 0 });
+            updateFound.resolve();
+          }
+        }
+      );
+      await updateFound.promise;
+      unlisten();
+      done();
+    });
+  });
+  it('DocumentSnapshot updated doc events in snapshot created by a bundle', function (done) {
+    this.timeout(SNAPSHOT_TEST_TIMEOUT);
+    void withTestDoc(persistence, async (docRef, db) => {
+      const secondUpdateFound = new Deferred();
+      await setDoc(docRef, { a: 0 });
+      await waitForPendingWrites(db);
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.data()).to.deep.equal({ a: 0 });
+      let count = 0;
+      const unlisten = onSnapshot(
+        db,
+        docSnap.toJSON(),
+        (doc: DocumentSnapshot) => {
+          if (doc) {
+            count++;
+            if (count === 1) {
+              expect(doc.data()).to.deep.equal({ a: 1 });
+              secondUpdateFound.resolve();
+            }
+          }
+        }
+      );
+      await setDoc(docRef, { a: 1 });
+      await secondUpdateFound.promise;
+      expect(count).to.equal(1);
+      unlisten();
+      done();
+    });
+  });
+
+  it('DocumentSnapshot multiple events for snapshot created by a bundle', function (done) {
+    this.timeout(SNAPSHOT_TEST_TIMEOUT);
+    void withTestDoc(persistence, async (docRef, db) => {
+      const secondUpdateFound = new Deferred();
+      await setDoc(docRef, { a: 0 });
+      await waitForPendingWrites(db);
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.data()).to.deep.equal({ a: 0 });
+      let count = 0;
       const unlisten = onSnapshot(
         db,
         docSnap.toJSON(),
@@ -1211,29 +1280,12 @@ apiDescribe('Database', persistence => {
         }
       );
       await setDoc(docRef, { a: 1 }).then(() => {
-        setDoc(docRef, { b: 1 });
+        void setDoc(docRef, { b: 1 });
       });
       await secondUpdateFound.promise;
-      console.error('DEDB done!');
       expect(count).to.equal(2);
       unlisten();
       done();
-    });
-  });
-
-  it('Listen can be called multiple times', () => {
-    return withTestCollection(persistence, {}, coll => {
-      const docA = doc(coll);
-      const deferred1 = new Deferred<void>();
-      const deferred2 = new Deferred<void>();
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      setDoc(docA, { foo: 'bar' }).then(() => {
-        onSnapshot(docA, () => {
-          deferred1.resolve();
-          onSnapshot(docA, () => deferred2.resolve());
-        });
-      });
-      return Promise.all([deferred1.promise, deferred2.promise]).then(() => {});
     });
   });
 
