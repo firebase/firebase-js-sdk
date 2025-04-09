@@ -1365,7 +1365,7 @@ apiDescribe('Database', persistence => {
           if (count === 0) {
             expect(docs[0].data()).to.deep.equal({ foo: true });
             expect(docs[1].data()).to.deep.equal({ bar: false });
-          } else {
+          } else if(count === 1) {
             expect(docs[0].data()).to.deep.equal({ foo: true });
             expect(docs[1].data()).to.deep.equal({ bar: true });
             updateFound.resolve();
