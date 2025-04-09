@@ -141,6 +141,7 @@ export class FieldFilter extends Filter {
     if (this.op === Operator.NOT_EQUAL) {
       return (
         other !== null &&
+        other.nullValue === undefined &&
         this.matchesComparison(valueCompare(other!, this.value))
       );
     }
@@ -495,7 +496,11 @@ export class NotInFilter extends FieldFilter {
       return false;
     }
     const other = doc.data.field(this.field);
-    return other !== null && !arrayValueContains(this.value.arrayValue!, other);
+    return (
+      other !== null &&
+      other.nullValue === undefined &&
+      !arrayValueContains(this.value.arrayValue!, other)
+    );
   }
 }
 
