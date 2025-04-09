@@ -69,7 +69,7 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
         const appCheckServiceProvider =
           container.getProvider<'app-check-internal'>('app-check-internal');
         const { apiKey, authDomain } = app.options;
-        const regionData = deps?.regionData ?? { location: '', tenantId: '' };
+        const locationData = deps?.locationData ?? { location: '', tenantId: '' };
         console.log("inside register auth new component");
         _assert(
           apiKey && !apiKey.includes(':'),
@@ -81,7 +81,7 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
           apiKey,
           authDomain,
           clientPlatform,
-          apiHost: regionData.location ? DefaultConfig.REGIONAL_API_HOST : DefaultConfig.API_HOST,
+          apiHost: locationData.location ? DefaultConfig.REGIONAL_API_HOST : DefaultConfig.API_HOST,
           tokenApiHost: DefaultConfig.TOKEN_API_HOST,
           apiScheme: DefaultConfig.API_SCHEME,
           sdkClientVersion: _getClientVersion(clientPlatform)
@@ -92,7 +92,7 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
           heartbeatServiceProvider,
           appCheckServiceProvider,
           config,
-          regionData
+          locationData
         );
         _initializeAuthInstance(authInstance, deps);
 

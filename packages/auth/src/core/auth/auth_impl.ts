@@ -30,7 +30,7 @@ import {
   NextOrObserver,
   Persistence,
   PopupRedirectResolver,
-  RegionData,
+  LocationData,
   User,
   UserCredential,
   CompleteFn,
@@ -127,7 +127,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     | undefined = undefined;
   _persistenceManagerAvailable: Promise<void>;
   readonly name: string;
-  readonly regionData: RegionData;
+  readonly locationData: LocationData;
 
   // Tracks the last notified UID for state change listeners to prevent
   // repeated calls to the callbacks. Undefined means it's never been
@@ -143,7 +143,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     private readonly heartbeatServiceProvider: Provider<'heartbeat'>,
     private readonly appCheckServiceProvider: Provider<AppCheckInternalComponentName>,
     public readonly config: ConfigInternal,
-    regionData?: RegionData
+    locationData?: LocationData
   ) {
     this.name = app.name;
     this.clientVersion = config.sdkClientVersion;
@@ -152,7 +152,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     this._persistenceManagerAvailable = new Promise<void>(
       resolve => (this._resolvePersistenceManagerAvailable = resolve)
     );
-    this.regionData = regionData ?? {};
+    this.locationData = locationData ?? {};
   }
 
   _initializeWithPersistence(
