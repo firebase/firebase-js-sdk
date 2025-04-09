@@ -38,7 +38,7 @@ const mockDirs: Record<BackendName, string> = {
  * Generates a JS file that exports maps from filenames to JSON mock responses (as strings)
  * for each backend.
  *
- * This allows tests that run in a browser to access the mock responses without having to 
+ * This allows tests that run in a browser to access the mock responses without having to
  * read from local disk and requiring 'fs'.
  */
 function generateMockLookupFile(): void {
