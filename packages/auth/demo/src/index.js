@@ -2046,7 +2046,17 @@ function onApplyAuthSettingsChange() {
 function initApp() {
   log('Initializing app...');
   app = initializeApp(config);
-  auth = getAuth(app);
+  const locationData = {location: 'us', tenantId: 'tenant-1'}
+  auth = initializeAuth(app, {
+    persistence: inMemoryPersistence,
+    popupRedirectResolver: browserPopupRedirectResolver,
+    locationData: locationData
+  });
+  // Returns already initialized instance of auth i.e. auth with LocationData.
+  // auth = getAuth(app);
+  console.log("here demo");
+  console.log(auth);
+  console.log(auth.config.apiHost);
   if (USE_AUTH_EMULATOR) {
     connectAuthEmulator(auth, AUTH_EMULATOR_URL);
   }
@@ -2060,8 +2070,12 @@ function initApp() {
   );
   tempAuth = initializeAuth(tempApp, {
     persistence: inMemoryPersistence,
-    popupRedirectResolver: browserPopupRedirectResolver
+    popupRedirectResolver: browserPopupRedirectResolver,
+    locationData: locationData
   });
+  console.log("here demo tempAuth");
+  console.log(tempAuth);
+  console.log(tempAuth.config.apiHost);
   if (USE_AUTH_EMULATOR) {
     connectAuthEmulator(tempAuth, AUTH_EMULATOR_URL);
   }
