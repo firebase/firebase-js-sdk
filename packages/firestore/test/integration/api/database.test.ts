@@ -1225,6 +1225,7 @@ apiDescribe('Database', persistence => {
       done();
     });
   });
+
   it('DocumentSnapshot updated doc events in snapshot created by a bundle', function (done) {
     this.timeout(SNAPSHOT_TEST_TIMEOUT);
     void withTestDoc(persistence, async (docRef, db) => {
@@ -1286,6 +1287,136 @@ apiDescribe('Database', persistence => {
       expect(count).to.equal(2);
       unlisten();
       done();
+    });
+  });
+
+  it('Querysnapshot events for snapshot created by a bundle', function (done) {
+    this.timeout(SNAPSHOT_TEST_TIMEOUT);
+    const testDocs = {
+      a: { foo: 1 },
+      b: { bar: 2 }
+    };
+    void withTestCollection(persistence, testDocs, async (coll, db) => {
+      const q = query(coll, orderBy(documentId()));
+      const querySnap = await getDocs(q);
+      const json = querySnap.toJSON();
+      const gotInitialSnapshot = new Deferred<void>();
+      const unlisten = onSnapshot(db, json, (querySnap: QuerySnapshot) => {
+        const docs = querySnap.docs;
+        expect(docs).to.not.be.null;
+        if (docs) {
+          expect(querySnap.docs.length).equals(2);
+          expect(docs[0].data()).to.deep.equal({ foo: 1 });
+          expect(docs[1].data()).to.deep.equal({ bar: 2 });
+        }
+        gotInitialSnapshot.resolve();
+      });
+      await gotInitialSnapshot.promise;
+      unlisten();
+      done();
+    });
+  });
+
+  it('QuerySnapshot updated doc events in snapshot created by a bundle', function (done) {
+    this.timeout(SNAPSHOT_TEST_TIMEOUT);
+    const testDocs = {
+      a: { foo: 1 },
+      b: { bar: 2 }
+    };
+    void withTestCollection(persistence, testDocs, async (coll, db) => {
+      const q = query(coll, orderBy(documentId()));
+      const querySnap = await getDocs(q);
+      const json = querySnap.toJSON();
+      const updateFound = new Deferred<void>();
+      let count = 0;
+      const unlisten = onSnapshot(db, json, (querySnap: QuerySnapshot) => {
+        count++;
+        const docs = querySnap.docs;
+        expect(docs).to.not.be.null;
+        if (docs) {
+          expect(docs[0].data()).to.deep.equal({ foo: 0 });
+          updateFound.resolve();
+        }
+      });
+      await setDoc(querySnap.docs[0].ref, { foo: 0 });
+      await updateFound.promise;
+      expect(count).to.equal(1);
+      unlisten();
+      done();
+    });
+  });
+
+  it('QuerySnapshot multiple events for snapshot created by a bundle', function (done) {
+    this.timeout(SNAPSHOT_TEST_TIMEOUT);
+    const testDocs = {
+      a: { foo: false },
+      b: { bar: false }
+    };
+    void withTestCollection(persistence, testDocs, async (coll, db) => {
+      const q = query(coll, orderBy(documentId()));
+      const querySnap = await getDocs(q);
+      const json = querySnap.toJSON();
+      const updateFound = new Deferred<void>();
+      let count = 0;
+      const unlisten = onSnapshot(db, json, (querySnap: QuerySnapshot) => {
+        const docs = querySnap.docs;
+        expect(docs).to.not.be.null;
+        if (docs) {
+          if (count === 0) {
+            expect(docs[0].data()).to.deep.equal({ foo: true });
+            expect(docs[1].data()).to.deep.equal({ bar: false });
+          } else {
+            expect(docs[0].data()).to.deep.equal({ foo: true });
+            expect(docs[1].data()).to.deep.equal({ bar: true });
+            updateFound.resolve();
+          }
+          count++;
+        }
+      });
+      await setDoc(querySnap.docs[0].ref, { foo: true });
+      await setDoc(querySnap.docs[1].ref, { bar: true });
+      await updateFound.promise;
+      expect(count).to.equal(2);
+      unlisten();
+      done();
+    });
+  });
+
+  //////////////////
+  it('onSnapshotsInSync fires after listeners are in sync', () => {
+    const testDocs = {
+      a: { foo: 1 }
+    };
+    return withTestCollection(persistence, testDocs, async (coll, db) => {
+      let events: string[] = [];
+      const gotInitialSnapshot = new Deferred<void>();
+      const docA = doc(coll, 'a');
+
+      onSnapshot(docA, snap => {
+        events.push('doc');
+        gotInitialSnapshot.resolve();
+      });
+      await gotInitialSnapshot.promise;
+      events = [];
+
+      const done = new Deferred<void>();
+      onSnapshotsInSync(db, () => {
+        events.push('snapshots-in-sync');
+        if (events.length === 3) {
+          // We should have an initial snapshots-in-sync event, then a snapshot
+          // event for set(), then another event to indicate we're in sync
+          // again.
+          expect(events).to.deep.equal([
+            'snapshots-in-sync',
+            'doc',
+            'snapshots-in-sync'
+          ]);
+          done.resolve();
+        }
+      });
+
+      await setDoc(docA, { foo: 3 });
+      await done.promise;
     });
   });
 
