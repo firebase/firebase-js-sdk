@@ -86,6 +86,8 @@ import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
 
 use(chaiAsPromised);
 
+const SNAPSHOT_TEST_TIMEOUT = 5000;
+
 apiDescribe('Database', persistence => {
   it('can set a document', () => {
     return withTestDoc(persistence, docRef => {
@@ -1181,6 +1183,41 @@ apiDescribe('Database', persistence => {
           expect(snap.metadata.hasPendingWrites).to.be.false;
         })
         .then(() => storeEvent.assertNoAdditionalEvents());
+    });
+  });
+
+  it('DocumentSnapshot events for snapshot created by a bundle', function (done) {
+    this.timeout(SNAPSHOT_TEST_TIMEOUT);
+    withTestDoc(persistence, async (docRef, db) => {
+      const secondUpdateFound = new Deferred();
+      let count = 0;
+      await setDoc(docRef, { a: 0 });
+      await waitForPendingWrites(db);
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.data()).to.deep.equal({ a: 0 });
+      const unlisten = onSnapshot(
+        db,
+        docSnap.toJSON(),
+        (doc: DocumentSnapshot) => {
+          if (doc) {
+            count++;
+            if (count === 1) {
+              expect(doc.data()).to.deep.equal({ a: 1 });
+            } else {
+              expect(doc.data()).to.deep.equal({ b: 1 });
+              secondUpdateFound.resolve();
+            }
+          }
+        }
+      );
+      await setDoc(docRef, { a: 1 }).then(() => {
+        setDoc(docRef, { b: 1 });
+      });
+      await secondUpdateFound.promise;
+      console.error('DEDB done!');
+      expect(count).to.equal(2);
+      unlisten();
+      done();
     });
   });
 
