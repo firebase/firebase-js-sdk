@@ -102,6 +102,7 @@ import { TransactionOptions } from './transaction_options';
 import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
+import { StructuredPipeline } from './structured_pipeline';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -557,7 +558,7 @@ export function firestoreClientRunAggregateQuery(
 
 export function firestoreClientExecutePipeline(
   client: FirestoreClient,
-  pipeline: Pipeline
+  pipeline: StructuredPipeline
 ): Promise<PipelineStreamElement[]> {
   const deferred = new Deferred<PipelineStreamElement[]>();
 

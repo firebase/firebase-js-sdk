@@ -21,12 +21,23 @@ import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult, PipelineSnapshot } from '../lite-api/pipeline-result';
 import { PipelineSource } from '../lite-api/pipeline-source';
 import { Stage } from '../lite-api/stage';
-import { newUserDataReader } from '../lite-api/user_data_reader';
+import {
+  newUserDataReader,
+  parseData,
+  UserDataReader,
+  UserDataSource
+} from '../lite-api/user_data_reader';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
 import { DocumentReference } from './reference';
 import { ExpUserDataWriter } from './user_data_writer';
+import { PipelineOptions } from '../lite-api/pipeline_settings';
+import {
+  StructuredPipeline,
+  StructuredPipelineOptions
+} from '../core/structured_pipeline';
+import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
 
 declare module './database' {
   interface Firestore {
@@ -68,35 +79,68 @@ declare module './database' {
  * @param pipeline The pipeline to execute.
  * @return A Promise representing the asynchronous pipeline execution.
  */
-export function execute(pipeline: LitePipeline): Promise<PipelineSnapshot> {
+export function execute(pipeline: LitePipeline): Promise<PipelineSnapshot>;
+export function execute(options: PipelineOptions): Promise<PipelineSnapshot>;
+export function execute(
+  pipelineOrOptions: LitePipeline | PipelineOptions
+): Promise<PipelineSnapshot> {
+  let pipeline: LitePipeline =
+    pipelineOrOptions instanceof LitePipeline
+      ? pipelineOrOptions
+      : pipelineOrOptions.pipeline;
+  let options: StructuredPipelineOptions = !(
+    pipelineOrOptions instanceof LitePipeline
+  )
+    ? pipelineOrOptions
+    : {};
+  let genericOptions: { [name: string]: unknown } =
+    (pipelineOrOptions as PipelineOptions).genericOptions ?? {};
+
   const firestore = cast(pipeline._db, Firestore);
   const client = ensureFirestoreConfigured(firestore);
-  return firestoreClientExecutePipeline(client, pipeline).then(result => {
-    // Get the execution time from the first result.
-    // firestoreClientExecutePipeline returns at least one PipelineStreamElement
-    // even if the returned document set is empty.
-    const executionTime =
-      result.length > 0 ? result[0].executionTime?.toTimestamp() : undefined;
 
-    const docs = result
-      // Currently ignore any response from ExecutePipeline that does
-      // not contain any document data in the `fields` property.
-      .filter(element => !!element.fields)
-      .map(
-        element =>
-          new PipelineResult(
-            pipeline._userDataWriter,
-            element.key?.path
-              ? new DocumentReference(firestore, null, element.key)
-              : undefined,
-            element.fields,
-            element.createTime?.toTimestamp(),
-            element.updateTime?.toTimestamp()
-          )
-      );
+  const udr = new UserDataReader(
+    firestore._databaseId,
+    /* ignoreUndefinedProperties */ true
+  );
+  const context = udr.createContext(UserDataSource.Argument, 'execute');
+  const optionsOverride: ApiClientObjectMap<Value> =
+    parseData(genericOptions, context)?.mapValue?.fields ?? {};
 
-    return new PipelineSnapshot(pipeline, docs, executionTime);
-  });
+  let structuredPipeline: StructuredPipeline = new StructuredPipeline(
+    pipeline,
+    options,
+    optionsOverride
+  );
+
+  return firestoreClientExecutePipeline(client, structuredPipeline).then(
+    result => {
+      // Get the execution time from the first result.
+      // firestoreClientExecutePipeline returns at least one PipelineStreamElement
+      // even if the returned document set is empty.
+      const executionTime =
+        result.length > 0 ? result[0].executionTime?.toTimestamp() : undefined;
+
+      const docs = result
+        // Currently ignore any response from ExecutePipeline that does
+        // not contain any document data in the `fields` property.
+        .filter(element => !!element.fields)
+        .map(
+          element =>
+            new PipelineResult(
+              pipeline._userDataWriter,
+              element.key?.path
+                ? new DocumentReference(firestore, null, element.key)
+                : undefined,
+              element.fields,
+              element.createTime?.toTimestamp(),
+              element.updateTime?.toTimestamp()
+            )
+        );
+
+      return new PipelineSnapshot(pipeline, docs, executionTime);
+    }
+  );
 }
 
 // Augment the Firestore class with the pipeline() factory method
