@@ -1362,6 +1362,7 @@ apiDescribe('Database', persistence => {
         const docs = querySnap.docs;
         expect(docs).to.not.be.null;
         if (docs) {
+          console.error("DEDB count: ", count, " bar: ", docs[1].data())
           if (count === 0) {
             expect(docs[0].data()).to.deep.equal({ foo: true });
             expect(docs[1].data()).to.deep.equal({ bar: false });
