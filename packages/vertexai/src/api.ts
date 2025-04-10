@@ -28,7 +28,13 @@ import {
   VertexAIErrorCode
 } from './types';
 import { VertexAIError } from './errors';
-import { VertexAIModel, GenerativeModel, ImagenModel } from './models';
+import {
+  VertexAIModel,
+  GenerativeModel,
+  ImagenModel,
+  HybridModel,
+  LocalModel
+} from './models';
 
 export { ChatSession } from './methods/chat-session';
 export * from './requests/schema-builder';
@@ -108,4 +114,15 @@ export function getImagenModel(
     );
   }
   return new ImagenModel(vertexAI, modelParams, requestOptions);
+}
+
+export function getLocalModel(aiProvider: AI = window.ai): LocalModel {
+  return new LocalModel(aiProvider);
+}
+
+export function getHybridModel(
+  remoteModel: GenerativeModel,
+  localModel: LocalModel
+): HybridModel {
+  return new HybridModel(remoteModel, localModel);
 }

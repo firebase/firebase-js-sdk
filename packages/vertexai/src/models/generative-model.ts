@@ -148,3 +148,74 @@ export class GenerativeModel extends VertexAIModel {
     return countTokens(this._apiSettings, this.model, formattedParams);
   }
 }
+
+interface ChatMethods {
+  sendMessage(
+    request: string | Array<string | Part>
+  ): Promise<GenerateContentResult>;
+}
+class HybridChat implements ChatMethods {
+  constructor(
+    private remoteModel: GenerativeModel,
+    private localModel: LocalModel
+  ) {}
+  async sendMessage(
+    request: string | Array<string | Part>
+  ): Promise<GenerateContentResult> {
+    if (await this.localModel.isSupported(request)) {
+      return this.localModel.generateContent(request);
+    }
+    return this.remoteModel.generateContent(request);
+  }
+}
+interface GenModelMethods {
+  generateContent(
+    request: GenerateContentRequest | string | Array<string | Part>
+  ): Promise<GenerateContentResult>;
+}
+/**
+ * Normalizes Chrome API, if available, to Vertex API
+ */
+export class LocalModel implements GenModelMethods {
+  constructor(private aiProvider?: AI) {}
+  async generateContent(
+    request: GenerateContentRequest | string | Array<string | Part>
+  ): Promise<GenerateContentResult> {
+    const session = await this.session();
+    if (typeof request !== 'string') {
+      throw new Error('unsupported request format');
+    }
+    const result = await session.prompt(request);
+    return {
+      response: {
+        text: () => result,
+        functionCalls: () => undefined
+      }
+    } as GenerateContentResult;
+  }
+  async isSupported(
+    request: string | Array<string | Part> | GenerateContentRequest
+  ): Promise<boolean> {
+    return typeof request === 'string';
+  }
+  private async session(): Promise<AILanguageModel> {
+    return this.aiProvider!.languageModel.create();
+  }
+}
+export class HybridModel implements GenModelMethods {
+  constructor(
+    private remoteModel: GenerativeModel,
+    private localModel: LocalModel
+  ) {}
+  async generateContent(
+    request: GenerateContentRequest | string | Array<string | Part>
+  ): Promise<GenerateContentResult> {
+    if (await this.localModel.isSupported(request)) {
+      return this.localModel.generateContent(request);
+    }
+    return this.remoteModel.generateContent(request);
+  }
+  startChat(): HybridChat {
+    return new HybridChat(this.remoteModel, this.localModel);
+  }
+}

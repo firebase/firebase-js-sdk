@@ -16,7 +16,13 @@
  */
 import { ImagenModelParams, ModelParams, VertexAIErrorCode } from './types';
 import { VertexAIError } from './errors';
-import { ImagenModel, getGenerativeModel, getImagenModel } from './api';
+import {
+  ImagenModel,
+  getGenerativeModel,
+  getHybridModel,
+  getImagenModel,
+  getLocalModel
+} from './api';
 import { expect } from 'chai';
 import { VertexAI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
@@ -166,5 +172,39 @@ describe('Top level API', () => {
     const genModel = getImagenModel(fakeVertexAI, { model: 'my-model' });
     expect(genModel).to.be.an.instanceOf(ImagenModel);
     expect(genModel.model).to.equal('publishers/google/models/my-model');
+  });
+  it('getLocalModel', async () => {
+    const languageModel = {
+      prompt: (s: string) => Promise.resolve(s)
+    } as AILanguageModel;
+    const aiProvider = {
+      languageModel: {
+        create: () => Promise.resolve(languageModel)
+      }
+    } as AI;
+    const model = getLocalModel(aiProvider);
+    const expectedText = 'hello';
+    const response = await model.generateContent(expectedText);
+    expect(response.response.text()).to.equal(expectedText);
+  });
+  it('getHybridModel', async () => {
+    const languageModel = {
+      prompt: (s: string) => Promise.resolve(s)
+    } as AILanguageModel;
+    const aiProvider = {
+      languageModel: {
+        create: () => Promise.resolve(languageModel)
+      }
+    } as AI;
+    const model = getHybridModel(
+      getGenerativeModel(fakeVertexAI, {
+        model: 'my-model'
+      }),
+      getLocalModel(aiProvider)
+    );
+    const chat = model.startChat();
+    const expectedText = 'hello';
+    const response = await chat.sendMessage(expectedText);
+    expect(response.response.text()).to.equal(expectedText);
   });
 });
