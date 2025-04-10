@@ -1198,7 +1198,7 @@ apiDescribe('Database', persistence => {
           onSnapshot(docA, () => deferred2.resolve());
         });
       });
-      return Promise.all([deferred1.promise, deferred2.promise]).then(() => {});
+      return Promise.all([deferred1.promise, deferred2.promise]).then(() => { });
     });
   });
 
@@ -1349,35 +1349,35 @@ apiDescribe('Database', persistence => {
   it('QuerySnapshot multiple events for snapshot created by a bundle', function (done) {
     this.timeout(SNAPSHOT_TEST_TIMEOUT);
     const testDocs = {
-      a: { foo: false },
-      b: { bar: false }
+      a: { foo: 0 },
     };
     void withTestCollection(persistence, testDocs, async (coll, db) => {
       const q = query(coll, orderBy(documentId()));
       const querySnap = await getDocs(q);
       const json = querySnap.toJSON();
-      const updateFound = new Deferred<void>();
+      const firstUpdateFound = new Deferred<void>();
+      const secondUpdateFound = new Deferred<void>();
+      const docRef = querySnap.docs[0].ref;
       let count = 0;
       const unlisten = onSnapshot(db, json, (querySnap: QuerySnapshot) => {
         const docs = querySnap.docs;
         expect(docs).to.not.be.null;
         if (docs) {
-          console.error("DEDB count: ", count, " bar: ", docs[1].data())
-          if (count === 0) {
-            expect(docs[0].data()).to.deep.equal({ foo: true });
-            expect(docs[1].data()).to.deep.equal({ bar: false });
-          } else if(count === 1) {
-            expect(docs[0].data()).to.deep.equal({ foo: true });
-            expect(docs[1].data()).to.deep.equal({ bar: true });
-            updateFound.resolve();
-          }
+          expect(docs[0]).to.exist;
           count++;
+          if (docs[0] !== undefined && count === 1) {
+            expect(docs[0].data()).to.deep.equal({ foo: 1 });
+            firstUpdateFound.resolve();
+          } else if (docs[0] !== undefined && count === 2) {
+            expect(docs[0].data()).to.deep.equal({ foo: 2 });
+            secondUpdateFound.resolve();
+          }
         }
       });
-      await setDoc(querySnap.docs[0].ref, { foo: true });
-      await waitForPendingWrites(db);
-      await setDoc(querySnap.docs[1].ref, { bar: true });
-      await updateFound.promise;
+      await setDoc(docRef, { foo: 1 });
+      await firstUpdateFound.promise;
+      await setDoc(docRef, { foo: 2 });
+      await secondUpdateFound.promise;
       expect(count).to.equal(2);
       unlisten();
       done();
@@ -1421,7 +1421,7 @@ apiDescribe('Database', persistence => {
         const queryForRejection = collection(db, 'a/__badpath__/b');
         onSnapshot(
           queryForRejection,
-          () => {},
+          () => { },
           (err: Error) => {
             expect(err.name).to.exist;
             expect(err.message).to.exist;
@@ -1438,13 +1438,13 @@ apiDescribe('Database', persistence => {
         const queryForRejection = collection(db, 'a/__badpath__/b');
         onSnapshot(
           queryForRejection,
-          () => {},
+          () => { },
           (err: Error) => {
             expect(err.name).to.exist;
             expect(err.message).to.exist;
             onSnapshot(
               queryForRejection,
-              () => {},
+              () => { },
               (err2: Error) => {
                 expect(err2.name).to.exist;
                 expect(err2.message).to.exist;
@@ -1859,7 +1859,7 @@ apiDescribe('Database', persistence => {
   it('can query after firestore restart', async () => {
     return withTestDoc(persistence, async (docRef, firestore) => {
       const deferred: Deferred<FirestoreError> = new Deferred();
-      const unsubscribe = onSnapshot(docRef, snapshot => {}, deferred.resolve);
+      const unsubscribe = onSnapshot(docRef, snapshot => { }, deferred.resolve);
 
       await firestore._restart();
 
@@ -1879,7 +1879,7 @@ apiDescribe('Database', persistence => {
   it('query listener throws error on termination', async () => {
     return withTestDoc(persistence, async (docRef, firestore) => {
       const deferred: Deferred<FirestoreError> = new Deferred();
-      const unsubscribe = onSnapshot(docRef, snapshot => {}, deferred.resolve);
+      const unsubscribe = onSnapshot(docRef, snapshot => { }, deferred.resolve);
 
       await terminate(firestore);
 
@@ -1926,7 +1926,7 @@ apiDescribe('Database', persistence => {
         readonly title: string,
         readonly author: string,
         readonly ref: DocumentReference | null = null
-      ) {}
+      ) { }
       byline(): string {
         return this.title + ', by ' + this.author;
       }
@@ -2056,8 +2056,8 @@ apiDescribe('Database', persistence => {
           batch.set(ref, { title: 'olive' }, { merge: true })
         ).to.throw(
           'Function WriteBatch.set() called with invalid ' +
-            'data (via `toFirestore()`). Unsupported field value: undefined ' +
-            '(found in field author in document posts/some-post)'
+          'data (via `toFirestore()`). Unsupported field value: undefined ' +
+          '(found in field author in document posts/some-post)'
         );
       });
     });
