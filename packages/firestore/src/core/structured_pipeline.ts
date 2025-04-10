@@ -15,16 +15,15 @@
  * limitations under the License.
  */
 
+import { ObjectValue } from '../model/object_value';
+import { FieldPath } from '../model/path';
 import {
   StructuredPipeline as StructuredPipelineProto,
   Pipeline as PipelineProto,
   ApiClientObjectMap,
   Value
 } from '../protos/firestore_proto_api';
-
 import { JsonProtoSerializer, ProtoSerializable } from '../remote/serializer';
-import { ObjectValue } from '../model/object_value';
-import { FieldPath } from '../model/path';
 import { mapToArray } from '../util/obj';
 
 export interface StructuredPipelineOptions {
@@ -47,7 +46,7 @@ export class StructuredPipeline
   _getKnownOptions(): ObjectValue {
     const options: ObjectValue = ObjectValue.empty();
 
-    /** SERIALIZE KNOWN OPTIONS **/
+    // SERIALIZE KNOWN OPTIONS
     if (typeof this.options.indexMode === 'string') {
       options.set(FieldPath.fromServerFormat('index_mode'), {
         stringValue: this.options.indexMode
@@ -60,7 +59,7 @@ export class StructuredPipeline
   private getOptionsProto(): ApiClientObjectMap<Value> {
     const options: ObjectValue = this._getKnownOptions();
 
-    /** APPLY OPTIONS OVERRIDES **/
+    // APPLY OPTIONS OVERRIDES
     const optionsMap = new Map(
       mapToArray(this.optionsOverride, (value, key) => [
         FieldPath.fromServerFormat(key),

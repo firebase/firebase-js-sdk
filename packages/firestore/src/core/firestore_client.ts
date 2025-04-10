@@ -23,7 +23,6 @@ import {
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
-import { Pipeline } from '../lite-api/pipeline';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreConfigureFieldIndexes,
@@ -87,6 +86,7 @@ import {
   removeSnapshotsInSyncListener
 } from './event_manager';
 import { newQueryForPath, Query } from './query';
+import { StructuredPipeline } from './structured_pipeline';
 import { SyncEngine } from './sync_engine';
 import {
   syncEngineListen,
@@ -102,7 +102,6 @@ import { TransactionOptions } from './transaction_options';
 import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import { StructuredPipeline } from './structured_pipeline';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;

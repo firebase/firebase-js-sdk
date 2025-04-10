@@ -17,9 +17,14 @@
 
 import { Pipeline } from '../api/pipeline';
 import { firestoreClientExecutePipeline } from '../core/firestore_client';
+import {
+  StructuredPipeline,
+  StructuredPipelineOptions
+} from '../core/structured_pipeline';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult, PipelineSnapshot } from '../lite-api/pipeline-result';
 import { PipelineSource } from '../lite-api/pipeline-source';
+import { PipelineOptions } from '../lite-api/pipeline_settings';
 import { Stage } from '../lite-api/stage';
 import {
   newUserDataReader,
@@ -27,17 +32,12 @@ import {
   UserDataReader,
   UserDataSource
 } from '../lite-api/user_data_reader';
+import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
 import { DocumentReference } from './reference';
 import { ExpUserDataWriter } from './user_data_writer';
-import { PipelineOptions } from '../lite-api/pipeline_settings';
-import {
-  StructuredPipeline,
-  StructuredPipelineOptions
-} from '../core/structured_pipeline';
-import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
 
 declare module './database' {
   interface Firestore {
@@ -84,16 +84,16 @@ export function execute(options: PipelineOptions): Promise<PipelineSnapshot>;
 export function execute(
   pipelineOrOptions: LitePipeline | PipelineOptions
 ): Promise<PipelineSnapshot> {
-  let pipeline: LitePipeline =
+  const pipeline: LitePipeline =
     pipelineOrOptions instanceof LitePipeline
       ? pipelineOrOptions
       : pipelineOrOptions.pipeline;
-  let options: StructuredPipelineOptions = !(
+  const options: StructuredPipelineOptions = !(
     pipelineOrOptions instanceof LitePipeline
   )
     ? pipelineOrOptions
     : {};
-  let genericOptions: { [name: string]: unknown } =
+  const genericOptions: { [name: string]: unknown } =
     (pipelineOrOptions as PipelineOptions).genericOptions ?? {};
 
   const firestore = cast(pipeline._db, Firestore);
@@ -107,7 +107,7 @@ export function execute(
   const optionsOverride: ApiClientObjectMap<Value> =
     parseData(genericOptions, context)?.mapValue?.fields ?? {};
 
-  let structuredPipeline: StructuredPipeline = new StructuredPipeline(
+  const structuredPipeline: StructuredPipeline = new StructuredPipeline(
     pipeline,
     options,
     optionsOverride
