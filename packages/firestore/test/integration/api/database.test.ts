@@ -1374,6 +1374,7 @@ apiDescribe('Database', persistence => {
         }
       });
       await setDoc(querySnap.docs[0].ref, { foo: true });
+      await waitForPendingWrites(db);
       await setDoc(querySnap.docs[1].ref, { bar: true });
       await updateFound.promise;
       expect(count).to.equal(2);
