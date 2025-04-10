@@ -1198,7 +1198,7 @@ apiDescribe('Database', persistence => {
           onSnapshot(docA, () => deferred2.resolve());
         });
       });
-      return Promise.all([deferred1.promise, deferred2.promise]).then(() => { });
+      return Promise.all([deferred1.promise, deferred2.promise]).then(() => {});
     });
   });
 
@@ -1349,7 +1349,7 @@ apiDescribe('Database', persistence => {
   it('QuerySnapshot multiple events for snapshot created by a bundle', function (done) {
     this.timeout(SNAPSHOT_TEST_TIMEOUT);
     const testDocs = {
-      a: { foo: 0 },
+      a: { foo: 0 }
     };
     void withTestCollection(persistence, testDocs, async (coll, db) => {
       const q = query(coll, orderBy(documentId()));
@@ -1421,7 +1421,7 @@ apiDescribe('Database', persistence => {
         const queryForRejection = collection(db, 'a/__badpath__/b');
         onSnapshot(
           queryForRejection,
-          () => { },
+          () => {},
           (err: Error) => {
             expect(err.name).to.exist;
             expect(err.message).to.exist;
@@ -1438,13 +1438,13 @@ apiDescribe('Database', persistence => {
         const queryForRejection = collection(db, 'a/__badpath__/b');
         onSnapshot(
           queryForRejection,
-          () => { },
+          () => {},
           (err: Error) => {
             expect(err.name).to.exist;
             expect(err.message).to.exist;
             onSnapshot(
               queryForRejection,
-              () => { },
+              () => {},
               (err2: Error) => {
                 expect(err2.name).to.exist;
                 expect(err2.message).to.exist;
@@ -1859,7 +1859,7 @@ apiDescribe('Database', persistence => {
   it('can query after firestore restart', async () => {
     return withTestDoc(persistence, async (docRef, firestore) => {
       const deferred: Deferred<FirestoreError> = new Deferred();
-      const unsubscribe = onSnapshot(docRef, snapshot => { }, deferred.resolve);
+      const unsubscribe = onSnapshot(docRef, snapshot => {}, deferred.resolve);
 
       await firestore._restart();
 
@@ -1879,7 +1879,7 @@ apiDescribe('Database', persistence => {
   it('query listener throws error on termination', async () => {
     return withTestDoc(persistence, async (docRef, firestore) => {
       const deferred: Deferred<FirestoreError> = new Deferred();
-      const unsubscribe = onSnapshot(docRef, snapshot => { }, deferred.resolve);
+      const unsubscribe = onSnapshot(docRef, snapshot => {}, deferred.resolve);
 
       await terminate(firestore);
 
@@ -1926,7 +1926,7 @@ apiDescribe('Database', persistence => {
         readonly title: string,
         readonly author: string,
         readonly ref: DocumentReference | null = null
-      ) { }
+      ) {}
       byline(): string {
         return this.title + ', by ' + this.author;
       }
@@ -2056,8 +2056,8 @@ apiDescribe('Database', persistence => {
           batch.set(ref, { title: 'olive' }, { merge: true })
         ).to.throw(
           'Function WriteBatch.set() called with invalid ' +
-          'data (via `toFirestore()`). Unsupported field value: undefined ' +
-          '(found in field author in document posts/some-post)'
+            'data (via `toFirestore()`). Unsupported field value: undefined ' +
+            '(found in field author in document posts/some-post)'
         );
       });
     });
