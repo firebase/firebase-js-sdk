@@ -1793,6 +1793,19 @@ apiDescribe('Queries', persistence => {
           'g',
           'h'
         );
+
+        testQuery = query(coll, where('zip', '!=', null));
+        await checkOnlineAndOfflineResultsMatch(
+          testQuery,
+          'a',
+          'b',
+          'c',
+          'd',
+          'e',
+          'f',
+          'g',
+          'h'
+        );
       });
     });
 
