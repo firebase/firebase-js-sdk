@@ -150,9 +150,13 @@ The data at the specified field location or undefined if no such field exists in
 <b>Signature:</b>
 
 ```typescript
-toJSON(): object;
+toJSON(): {
+        bundle: string;
+        bundleSource: string;
+        bundleName: string;
+    };
 ```
 <b>Returns:</b>
 
-object
+{ bundle: string; bundleSource: string; bundleName: string; }
 
