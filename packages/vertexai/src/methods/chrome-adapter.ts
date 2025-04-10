@@ -18,6 +18,7 @@
 import { isChrome } from '@firebase/util';
 import {
   Content,
+  CountTokensRequest,
   GenerateContentRequest,
   InferenceMode,
   Role
@@ -101,6 +102,18 @@ export class ChromeAdapter {
     const session = await this.session(createOptions);
     const stream = await session.promptStreaming(prompt.content);
     return ChromeAdapter.toStreamResponse(stream);
+  }
+  async countTokens(request: CountTokensRequest): Promise<Response> {
+    const options = this.onDeviceParams || {};
+    const prompts = ChromeAdapter.toInitialPrompts(request.contents);
+    const session = await this.session(options);
+    const tokenCount = await session.countPromptTokens(prompts);
+    return {
+      json: async () => ({
+        totalTokens: tokenCount,
+        totalBillableCharacters: 0,
+      })
+    } as Response;
   }
   private static isOnDeviceRequest(request: GenerateContentRequest): boolean {
     // Returns false if the prompt is empty.

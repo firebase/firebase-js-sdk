@@ -154,6 +154,6 @@ export class GenerativeModel extends VertexAIModel {
     request: CountTokensRequest | string | Array<string | Part>
   ): Promise<CountTokensResponse> {
     const formattedParams = formatGenerateContentInput(request);
-    return countTokens(this._apiSettings, this.model, formattedParams);
+    return countTokens(this._apiSettings, this.model, formattedParams, this.chromeAdapter);
   }
 }

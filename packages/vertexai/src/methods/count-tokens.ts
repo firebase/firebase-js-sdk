@@ -22,8 +22,9 @@ import {
 } from '../types';
 import { Task, makeRequest } from '../requests/request';
 import { ApiSettings } from '../types/internal';
+import { ChromeAdapter } from './chrome-adapter';
 
-export async function countTokens(
+export async function countTokensOnCloud(
   apiSettings: ApiSettings,
   model: string,
   params: CountTokensRequest,
@@ -38,4 +39,18 @@ export async function countTokens(
     requestOptions
   );
   return response.json();
+}
+
+export async function countTokens(
+  apiSettings: ApiSettings,
+  model: string,
+  params: CountTokensRequest,
+  chromeAdapter: ChromeAdapter,
+  requestOptions?: RequestOptions
+): Promise<CountTokensResponse> {
+  if (await chromeAdapter.isAvailable(params)) {
+    return (await chromeAdapter.countTokens(params)).json();
+  } else {
+    return countTokensOnCloud(apiSettings, model, params, requestOptions);
+  }
 }

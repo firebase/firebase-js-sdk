@@ -25,6 +25,7 @@ import { countTokens } from './count-tokens';
 import { CountTokensRequest } from '../types';
 import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
+import { ChromeAdapter } from './chrome-adapter';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -52,7 +53,8 @@ describe('countTokens()', () => {
     const result = await countTokens(
       fakeApiSettings,
       'model',
-      fakeRequestParams
+      fakeRequestParams,
+      new ChromeAdapter()
     );
     expect(result.totalTokens).to.equal(6);
     expect(result.totalBillableCharacters).to.equal(16);
@@ -77,7 +79,8 @@ describe('countTokens()', () => {
     const result = await countTokens(
       fakeApiSettings,
       'model',
-      fakeRequestParams
+      fakeRequestParams,
+      new ChromeAdapter()
     );
     expect(result.totalTokens).to.equal(1837);
     expect(result.totalBillableCharacters).to.equal(117);
@@ -104,7 +107,8 @@ describe('countTokens()', () => {
     const result = await countTokens(
       fakeApiSettings,
       'model',
-      fakeRequestParams
+      fakeRequestParams,
+      new ChromeAdapter()
     );
     expect(result.totalTokens).to.equal(258);
     expect(result).to.not.have.property('totalBillableCharacters');
@@ -127,7 +131,7 @@ describe('countTokens()', () => {
       json: mockResponse.json
     } as Response);
     await expect(
-      countTokens(fakeApiSettings, 'model', fakeRequestParams)
+      countTokens(fakeApiSettings, 'model', fakeRequestParams, new ChromeAdapter())
     ).to.be.rejectedWith(/404.*not found/);
     expect(mockFetch).to.be.called;
   });
