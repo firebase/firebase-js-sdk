@@ -1182,13 +1182,14 @@ function onSnapshotDocumentSnapshotBundle<
 ): Unsubscribe {
   let unsubscribed: boolean = false;
   let internalUnsubscribe: Unsubscribe | undefined;
-  const bundle = json.bundle;
-  const loadTask = loadBundle(db, bundle);
+  const loadTask = loadBundle(db, json.bundle);
   loadTask
     .then(() => {
-      const key = DocumentKey.fromPath(json.bundleName);
-      const docConverter = converter ? converter : null;
-      const docReference = new DocumentReference(db, docConverter, key);
+      const docReference = new DocumentReference(
+        db,
+        converter ? converter : null,
+        DocumentKey.fromPath(json.bundleName)
+      );
       if (options !== undefined) {
         internalUnsubscribe = onSnapshot(
           docReference as DocumentReference<AppModelType, DbModelType>,
@@ -1205,9 +1206,8 @@ function onSnapshotDocumentSnapshotBundle<
     .catch(e => {
       if (observer.error) {
         observer.error(e);
-      } else {
-        throw e;
       }
+      return () => {};
     });
   return () => {
     if (unsubscribed) {
@@ -1238,8 +1238,7 @@ function onSnapshotQuerySnapshotBundle<
 ): Unsubscribe {
   let unsubscribed: boolean = false;
   let internalUnsubscribe: Unsubscribe | undefined;
-  const bundle = json.bundle;
-  const loadTask = loadBundle(db, bundle);
+  const loadTask = loadBundle(db, json.bundle);
   loadTask
     .then(() => namedQuery(db, json.bundleName))
     .then(query => {
@@ -1265,9 +1264,8 @@ function onSnapshotQuerySnapshotBundle<
     .catch(e => {
       if (observer.error) {
         observer.error(e);
-      } else {
-        throw e;
       }
+      return () => {};
     });
   return () => {
     if (unsubscribed) {

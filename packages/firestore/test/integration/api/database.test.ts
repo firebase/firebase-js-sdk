@@ -1198,190 +1198,143 @@ apiDescribe('Database', persistence => {
           onSnapshot(docA, () => deferred2.resolve());
         });
       });
-      return Promise.all([deferred1.promise, deferred2.promise]).then(() => {});
+      return Promise.all([deferred1.promise, deferred2.promise]).then(() => { });
     });
   });
 
-  it('DocumentSnapshot events for snapshot created by a bundle', function (done) {
-    this.timeout(SNAPSHOT_TEST_TIMEOUT);
-    void withTestDoc(persistence, async (docRef, db) => {
-      const updateFound = new Deferred();
-      await setDoc(docRef, { a: 0 });
-      await waitForPendingWrites(db);
-      const docSnap = await getDoc(docRef);
-      expect(docSnap.data()).to.deep.equal({ a: 0 });
-      const unlisten = onSnapshot(
-        db,
-        docSnap.toJSON(),
-        (doc: DocumentSnapshot) => {
-          if (doc) {
-            expect(doc.data()).to.deep.equal({ a: 0 });
-            updateFound.resolve();
-          }
-        }
-      );
-      await updateFound.promise;
-      unlisten();
-      done();
-    });
+  it('DocumentSnapshot events for snapshot created by a bundle', async () => {
+    const initialData = { a: 0 };
+    const finalData = { a: 1 };
+    await withTestDocAndInitialData(
+      persistence,
+      initialData,
+      async (docRef, db) => {
+        const doc = await getDoc(docRef);
+        const accumulator = new EventsAccumulator<DocumentSnapshot>();
+        const unsubscribe = onSnapshot(
+          db,
+          doc.toJSON(),
+          accumulator.storeEvent
+        );
+        await accumulator
+          .awaitEvent()
+          .then(snap => {
+            expect(snap.exists()).to.be.true;
+            expect(snap.data()).to.deep.equal(initialData);
+          })
+          .then(() => setDoc(docRef, finalData))
+          .then(() => accumulator.awaitEvent())
+          .then(snap => {
+            expect(snap.exists()).to.be.true;
+            expect(snap.data()).to.deep.equal(finalData);
+          });
+        unsubscribe();
+      }
+    );
   });
 
-  it('DocumentSnapshot updated doc events in snapshot created by a bundle', function (done) {
-    this.timeout(SNAPSHOT_TEST_TIMEOUT);
-    void withTestDoc(persistence, async (docRef, db) => {
-      const secondUpdateFound = new Deferred();
-      await setDoc(docRef, { a: 0 });
-      await waitForPendingWrites(db);
-      const docSnap = await getDoc(docRef);
-      expect(docSnap.data()).to.deep.equal({ a: 0 });
-      let count = 0;
-      const unlisten = onSnapshot(
-        db,
-        docSnap.toJSON(),
-        (doc: DocumentSnapshot) => {
-          if (doc) {
-            count++;
-            if (count === 1) {
-              expect(doc.data()).to.deep.equal({ a: 1 });
-              secondUpdateFound.resolve();
-            }
-          }
-        }
-      );
-      await setDoc(docRef, { a: 1 });
-      await secondUpdateFound.promise;
-      expect(count).to.equal(1);
-      unlisten();
-      done();
-    });
+  it('DocumentSnapshot updated doc events in snapshot created by a bundle', async () => {
+    const initialData = { a: 0 };
+    const finalData = { a: 1 };
+    await withTestDocAndInitialData(
+      persistence,
+      initialData,
+      async (docRef, db) => {
+        const doc = await getDoc(docRef);
+        const accumulator = new EventsAccumulator<DocumentSnapshot>();
+        const unsubscribe = onSnapshot(
+          db,
+          doc.toJSON(),
+          accumulator.storeEvent
+        );
+        await accumulator
+          .awaitEvent()
+          .then(snap => {
+            expect(snap.exists()).to.be.true;
+            expect(snap.data()).to.deep.equal(initialData);
+          })
+          .then(() => setDoc(docRef, finalData))
+          .then(() => accumulator.awaitEvent())
+          .then(snap => {
+            expect(snap.exists()).to.be.true;
+            expect(snap.data()).to.deep.equal(finalData);
+          });
+        unsubscribe();
+      }
+    );
   });
 
-  it('DocumentSnapshot multiple events for snapshot created by a bundle', function (done) {
-    this.timeout(SNAPSHOT_TEST_TIMEOUT);
-    void withTestDoc(persistence, async (docRef, db) => {
-      const secondUpdateFound = new Deferred();
-      await setDoc(docRef, { a: 0 });
-      await waitForPendingWrites(db);
-      const docSnap = await getDoc(docRef);
-      expect(docSnap.data()).to.deep.equal({ a: 0 });
-      let count = 0;
-      const unlisten = onSnapshot(
-        db,
-        docSnap.toJSON(),
-        (doc: DocumentSnapshot) => {
-          if (doc) {
-            count++;
-            if (count === 1) {
-              expect(doc.data()).to.deep.equal({ a: 1 });
-            } else {
-              expect(doc.data()).to.deep.equal({ b: 1 });
-              secondUpdateFound.resolve();
-            }
-          }
-        }
-      );
-      await setDoc(docRef, { a: 1 }).then(() => {
-        void setDoc(docRef, { b: 1 });
-      });
-      await secondUpdateFound.promise;
-      expect(count).to.equal(2);
-      unlisten();
-      done();
-    });
-  });
-
-  it('Querysnapshot events for snapshot created by a bundle', function (done) {
-    this.timeout(SNAPSHOT_TEST_TIMEOUT);
+  it('Querysnapshot events for snapshot created by a bundle', async () => {
     const testDocs = {
       a: { foo: 1 },
       b: { bar: 2 }
     };
-    void withTestCollection(persistence, testDocs, async (coll, db) => {
+    await withTestCollection(persistence, testDocs, async (coll, db) => {
       const q = query(coll, orderBy(documentId()));
       const querySnap = await getDocs(q);
       const json = querySnap.toJSON();
-      const gotInitialSnapshot = new Deferred<void>();
-      const unlisten = onSnapshot(db, json, (querySnap: QuerySnapshot) => {
-        const docs = querySnap.docs;
-        expect(docs).to.not.be.null;
-        if (docs) {
-          expect(querySnap.docs.length).equals(2);
-          expect(docs[0].data()).to.deep.equal({ foo: 1 });
-          expect(docs[1].data()).to.deep.equal({ bar: 2 });
-        }
-        gotInitialSnapshot.resolve();
-      });
-      await gotInitialSnapshot.promise;
-      unlisten();
-      done();
-    });
+      const accumulator = new EventsAccumulator<QuerySnapshot>();
+      const unsubscribe = onSnapshot(
+        db,
+        json,
+        accumulator.storeEvent
+      );
+      await accumulator
+        .awaitEvent()
+        .then(snap => {
+          const docs = snap.docs;
+          expect(docs).not.to.be.null;
+          console.error("DEDB lenght: ", docs.length);
+          console.error("Doc0 data: ", docs[0].data());
+          console.error("Doc1 data: ", docs[1].data());
+          expect(docs.length).to.equal(2);
+          expect(docs[0].data()).to.deep.equal(testDocs.a);
+          expect(docs[1].data()).to.deep.equal(testDocs.b);
+        })
+      unsubscribe();
+    }
+    );
   });
 
-  it('QuerySnapshot updated doc events in snapshot created by a bundle', function (done) {
-    this.timeout(SNAPSHOT_TEST_TIMEOUT);
+  it('QuerySnapshot updated doc events in snapshot created by a bundle', async () => {
     const testDocs = {
       a: { foo: 1 },
       b: { bar: 2 }
     };
-    void withTestCollection(persistence, testDocs, async (coll, db) => {
+    await withTestCollection(persistence, testDocs, async (coll, db) => {
       const q = query(coll, orderBy(documentId()));
       const querySnap = await getDocs(q);
+      const refForDocA = querySnap.docs[0].ref;
       const json = querySnap.toJSON();
-      const updateFound = new Deferred<void>();
-      let count = 0;
-      const unlisten = onSnapshot(db, json, (querySnap: QuerySnapshot) => {
-        count++;
-        const docs = querySnap.docs;
-        expect(docs).to.not.be.null;
-        if (docs) {
-          expect(docs[0].data()).to.deep.equal({ foo: 0 });
-          updateFound.resolve();
-        }
-      });
-      await setDoc(querySnap.docs[0].ref, { foo: 0 });
-      await updateFound.promise;
-      expect(count).to.equal(1);
-      unlisten();
-      done();
-    });
-  });
-
-  it('QuerySnapshot multiple events for snapshot created by a bundle', function (done) {
-    this.timeout(SNAPSHOT_TEST_TIMEOUT);
-    const testDocs = {
-      a: { foo: 0 }
-    };
-    void withTestCollection(persistence, testDocs, async (coll, db) => {
-      const q = query(coll, orderBy(documentId()));
-      const querySnap = await getDocs(q);
-      const json = querySnap.toJSON();
-      const firstUpdateFound = new Deferred<void>();
-      const secondUpdateFound = new Deferred<void>();
-      const docRef = querySnap.docs[0].ref;
-      let count = 0;
-      const unlisten = onSnapshot(db, json, (querySnap: QuerySnapshot) => {
-        const docs = querySnap.docs;
-        expect(docs).to.not.be.null;
-        if (docs) {
-          expect(docs[0]).to.exist;
-          count++;
-          if (docs[0] !== undefined && count === 1) {
-            expect(docs[0].data()).to.deep.equal({ foo: 1 });
-            firstUpdateFound.resolve();
-          } else if (docs[0] !== undefined && count === 2) {
-            expect(docs[0].data()).to.deep.equal({ foo: 2 });
-            secondUpdateFound.resolve();
-          }
-        }
-      });
-      await setDoc(docRef, { foo: 1 });
-      await firstUpdateFound.promise;
-      await setDoc(docRef, { foo: 2 });
-      await secondUpdateFound.promise;
-      expect(count).to.equal(2);
-      unlisten();
-      done();
-    });
+      const accumulator = new EventsAccumulator<QuerySnapshot>();
+      const unsubscribe = onSnapshot(
+        db,
+        json,
+        accumulator.storeEvent
+      );
+      await accumulator
+        .awaitEvent()
+        .then(snap => {
+          const docs = snap.docs;
+          console.error("DEDB: docs: ", docs);
+          expect(docs).not.to.be.null;
+          expect(docs.length).to.equal(2);
+          expect(docs[0].data()).to.deep.equal(testDocs.a);
+          expect(docs[1].data()).to.deep.equal(testDocs.b);
+        })
+        .then(() => setDoc(refForDocA, {foo: 0}))
+        .then(() => accumulator.awaitEvent())
+        .then(snap => {
+          const docs = snap.docs;
+          console.error("DEDB: docs: ", docs);
+          expect(docs).not.to.be.null;
+          expect(docs.length).to.equal(2);
+          expect(docs[0].data()).to.deep.equal({foo: 0});
+          expect(docs[1].data()).to.deep.equal(testDocs.b);
+        });
+      unsubscribe();
+    }
+    );
   });
 
   it('Metadata only changes are not fired when no options provided', () => {
@@ -1421,7 +1374,7 @@ apiDescribe('Database', persistence => {
         const queryForRejection = collection(db, 'a/__badpath__/b');
         onSnapshot(
           queryForRejection,
-          () => {},
+          () => { },
           (err: Error) => {
             expect(err.name).to.exist;
             expect(err.message).to.exist;
@@ -1438,13 +1391,13 @@ apiDescribe('Database', persistence => {
         const queryForRejection = collection(db, 'a/__badpath__/b');
         onSnapshot(
           queryForRejection,
-          () => {},
+          () => { },
           (err: Error) => {
             expect(err.name).to.exist;
             expect(err.message).to.exist;
             onSnapshot(
               queryForRejection,
-              () => {},
+              () => { },
               (err2: Error) => {
                 expect(err2.name).to.exist;
                 expect(err2.message).to.exist;
@@ -1859,7 +1812,7 @@ apiDescribe('Database', persistence => {
   it('can query after firestore restart', async () => {
     return withTestDoc(persistence, async (docRef, firestore) => {
       const deferred: Deferred<FirestoreError> = new Deferred();
-      const unsubscribe = onSnapshot(docRef, snapshot => {}, deferred.resolve);
+      const unsubscribe = onSnapshot(docRef, snapshot => { }, deferred.resolve);
 
       await firestore._restart();
 
@@ -1879,7 +1832,7 @@ apiDescribe('Database', persistence => {
   it('query listener throws error on termination', async () => {
     return withTestDoc(persistence, async (docRef, firestore) => {
       const deferred: Deferred<FirestoreError> = new Deferred();
-      const unsubscribe = onSnapshot(docRef, snapshot => {}, deferred.resolve);
+      const unsubscribe = onSnapshot(docRef, snapshot => { }, deferred.resolve);
 
       await terminate(firestore);
 
@@ -1926,7 +1879,7 @@ apiDescribe('Database', persistence => {
         readonly title: string,
         readonly author: string,
         readonly ref: DocumentReference | null = null
-      ) {}
+      ) { }
       byline(): string {
         return this.title + ', by ' + this.author;
       }
@@ -2056,8 +2009,8 @@ apiDescribe('Database', persistence => {
           batch.set(ref, { title: 'olive' }, { merge: true })
         ).to.throw(
           'Function WriteBatch.set() called with invalid ' +
-            'data (via `toFirestore()`). Unsupported field value: undefined ' +
-            '(found in field author in document posts/some-post)'
+          'data (via `toFirestore()`). Unsupported field value: undefined ' +
+          '(found in field author in document posts/some-post)'
         );
       });
     });
