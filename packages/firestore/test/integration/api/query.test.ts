@@ -1751,6 +1751,100 @@ apiDescribe('Queries', persistence => {
         );
       });
     });
+
+    it('sdk uses != filter same as backend', async () => {
+      const testDocs = {
+        a: { zip: Number.NaN },
+        b: { zip: 91102 },
+        c: { zip: 98101 },
+        d: { zip: '98101' },
+        e: { zip: [98101] },
+        f: { zip: [98101, 98102] },
+        g: { zip: ['98101', { zip: 98101 }] },
+        h: { zip: { code: 500 } },
+        i: { zip: null },
+        j: { code: 500 }
+      };
+
+      await withTestCollection(persistence, testDocs, async coll => {
+        // populate cache with all documents first to ensure getDocsFromCache() scans all docs
+        await getDocs(coll);
+
+        let testQuery = query(coll, where('zip', '!=', 98101));
+        await checkOnlineAndOfflineResultsMatch(
+          testQuery,
+          'a',
+          'b',
+          'd',
+          'e',
+          'f',
+          'g',
+          'h'
+        );
+
+        testQuery = query(coll, where('zip', '!=', Number.NaN));
+        await checkOnlineAndOfflineResultsMatch(
+          testQuery,
+          'b',
+          'c',
+          'd',
+          'e',
+          'f',
+          'g',
+          'h'
+        );
+
+        testQuery = query(coll, where('zip', '!=', null));
+        await checkOnlineAndOfflineResultsMatch(
+          testQuery,
+          'a',
+          'b',
+          'c',
+          'd',
+          'e',
+          'f',
+          'g',
+          'h'
+        );
+      });
+    });
+
+    it('sdk uses not-in filter same as backend', async () => {
+      const testDocs = {
+        a: { zip: Number.NaN },
+        b: { zip: 91102 },
+        c: { zip: 98101 },
+        d: { zip: '98101' },
+        e: { zip: [98101] },
+        f: { zip: [98101, 98102] },
+        g: { zip: ['98101', { zip: 98101 }] },
+        h: { zip: { code: 500 } },
+        i: { zip: null },
+        j: { code: 500 }
+      };
+
+      await withTestCollection(persistence, testDocs, async coll => {
+        // populate cache with all documents first to ensure getDocsFromCache() scans all docs
+        await getDocs(coll);
+
+        let testQuery = query(
+          coll,
+          where('zip', 'not-in', [98101, 98103, [98101, 98102]])
+        );
+        await checkOnlineAndOfflineResultsMatch(
+          testQuery,
+          'a',
+          'b',
+          'd',
+          'e',
+          'g',
+          'h'
+        );
+
+        testQuery = query(coll, where('zip', 'not-in', [null]));
+        await checkOnlineAndOfflineResultsMatch(testQuery);
+      });
+    });
   });
 
   // Reproduces https://github.com/firebase/firebase-js-sdk/issues/5873
