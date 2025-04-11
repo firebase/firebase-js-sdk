@@ -148,8 +148,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * The added fields are defined using {@link Selectable}s, which can be:
    *
    * - {@link Field}: References an existing document field.
-   * - {@link Function}: Performs a calculation using functions like `add`, `multiply` with
-   *   assigned aliases using {@link Expr#as}.
+   * - {@link Expr}: Either a literal value (see {@link Constant}) or a computed value
+   *   (see {@FunctionExpr}) with an assigned alias using {@link Expr#as}.
    *
    * Example:
    *
@@ -353,22 +353,21 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     return this._addStage(new Limit(limit, convertedFromLimitToLast));
   }
 
+
   /**
-   * Returns a set of distinct {@link Expr} values from the inputs to this stage.
+   * Returns a set of distinct values from the inputs to this stage.
    *
-   * <p>This stage run through the results from previous stages to include only results with unique
-   * combinations of {@link Expr} values ({@link Field}, {@link Function}, etc.).
+   * This stage runs through the results from previous stages to include only results with
+   * unique combinations of {@link Expr} values ({@link Field}, {@link Function}, etc).
    *
-   * <p>The parameters to this stage are defined using {@link Selectable} expressions or {@code string}s:
+   * The parameters to this stage are defined using {@link Selectable} expressions or strings:
    *
-   * <ul>
-   *   <li>{@code string}: Name of an existing field</li>
-   *   <li>{@link Field}: References an existing document field.</li>
-   *   <li>{@link Function}: Represents the result of a function with an assigned alias name using
-   *       {@link Expr#as}</li>
-   * </ul>
+   * - {@code string}: Name of an existing field
+   * - {@link Field}: References an existing document field.
+   * - {@link ExprWithAlias}: Represents the result of a function with an assigned alias name
+   *   using {@link Expr#as}.
    *
-   * <p>Example:
+   * Example:
    *
    * ```typescript
    * // Get a list of unique author names in uppercase and genre combinations.
@@ -377,8 +376,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *     .select("authorName");
    * ```
    *
-   * @param group The first {@link Selectable} expression to consider when determining distinct
-   *     value combinations or strings representing field names.
+   * @param group The {@link Selectable} expression or field name to consider when determining
+   *     distinct value combinations.
    * @param additionalGroups Optional additional {@link Selectable} expressions to consider when determining distinct
    *     value combinations or strings representing field names.
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
@@ -416,9 +415,9 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param accumulator The first {@link AggregateWithAlias}, wrapping an {@link AggregateFunction}
-   *     and provide a name for the accumulated results.
+   *     and providing a name for the accumulated results.
    * @param additionalAccumulators Optional additional {@link AggregateWithAlias}, each wrapping an {@link AggregateFunction}
-   *     and provide a name for the accumulated results.
+   *     and providing a name for the accumulated results.
    * @return A new Pipeline object with this stage appended to the stage list.
    */
   aggregate(
@@ -734,11 +733,10 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   }
 
   /**
-   * Produces a document for each element in array found in previous stage document.
+   * Produces a document for each element in an input array.
    *
    * For each previous stage document, this stage will emit zero or more augmented documents. The
-   * input array found in the previous stage document field specified by the `selectable` parameter,
-   * will emit an augmented document for each input array element. The input array element will
+   * input array specified by the `selectable` parameter, will emit an augmented document for each input array element. The input array element will
    * augment the previous stage document by setting the `alias` field  with the array element value.
    *
    * When `selectable` evaluates to a non-array value (ex: number, null, absent), then the stage becomes a no-op for

@@ -53,8 +53,7 @@ import {
   collection,
   documentId as documentIdFieldPath,
   writeBatch,
-  addDoc,
-  increment
+  addDoc
 } from '../util/firebase_export';
 import { apiDescribe, withTestCollection, itIf } from '../util/helpers';
 import {
@@ -119,7 +118,6 @@ import {
   arrayOffset,
   minimum,
   maximum,
-  currentContext,
   isError,
   ifError,
   trim,
