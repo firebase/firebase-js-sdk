@@ -17,14 +17,30 @@
 
 import { User } from '../auth/user';
 import { BundleConverter, BundledDocuments, NamedQuery } from '../core/bundle';
+import { CorePipeline, getPipelineDocuments } from '../core/pipeline';
+import {
+  canonifyTargetOrPipeline,
+  isPipeline,
+  QueryOrPipeline,
+  TargetOrPipeline,
+  targetOrPipelineEqual
+} from '../core/pipeline-util';
+import {
+  canonifyTargetOrPipeline,
+  getPipelineDocuments,
+  isPipeline,
+  QueryOrPipeline,
+  TargetOrPipeline,
+  targetOrPipelineEqual
+} from '../core/pipeline-util';
+import { CorePipeline } from '../core/pipeline_run';
 import {
   newQueryForPath,
-  Query,
   queryCollectionGroup,
   queryToTarget
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { canonifyTarget, Target, targetEquals } from '../core/target';
+import { Target } from '../core/target';
 import { BatchId, TargetId } from '../core/types';
 import { Timestamp } from '../lite-api/timestamp';
 import {
@@ -170,9 +186,9 @@ class LocalStoreImpl implements LocalStore {
 
   /** Maps a target to its targetID. */
   // TODO(wuandy): Evaluate if TargetId can be part of Target.
-  targetIdByTarget = new ObjectMap<Target, TargetId>(
-    t => canonifyTarget(t),
-    targetEquals
+  targetIdByTarget = new ObjectMap<TargetOrPipeline, TargetId>(
+    t => canonifyTargetOrPipeline(t),
+    targetOrPipelineEqual
   );
 
   /**
@@ -935,9 +951,10 @@ export function localStoreReadDocument(
  */
 export function localStoreAllocateTarget(
   localStore: LocalStore,
-  target: Target
+  target: TargetOrPipeline
 ): Promise<TargetData> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+
   return localStoreImpl.persistence
     .runTransaction('Allocate target', 'readwrite', txn => {
       let targetData: TargetData;
@@ -997,7 +1014,7 @@ export function localStoreAllocateTarget(
 export function localStoreGetTargetData(
   localStore: LocalStore,
   transaction: PersistenceTransaction,
-  target: Target
+  target: TargetOrPipeline
 ): PersistencePromise<TargetData | null> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const targetId = localStoreImpl.targetIdByTarget.get(target);
@@ -1025,6 +1042,7 @@ export async function localStoreReleaseTarget(
 ): Promise<void> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const targetData = localStoreImpl.targetDataByTarget.get(targetId);
+
   debugAssert(
     targetData !== null,
     `Tried to release nonexistent target: ${targetId}`
@@ -1063,6 +1081,7 @@ export async function localStoreReleaseTarget(
 
   localStoreImpl.targetDataByTarget =
     localStoreImpl.targetDataByTarget.remove(targetId);
+  // TODO(pipeline): This needs to handle pipeline properly.
   localStoreImpl.targetIdByTarget.delete(targetData!.target);
 }
 
@@ -1076,7 +1095,7 @@ export async function localStoreReleaseTarget(
  */
 export function localStoreExecuteQuery(
   localStore: LocalStore,
-  query: Query,
+  query: QueryOrPipeline,
   usePreviousResults: boolean
 ): Promise<QueryResult> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
@@ -1087,7 +1106,11 @@ export function localStoreExecuteQuery(
     'Execute query',
     'readwrite', // Use readwrite instead of readonly so indexes can be created
     txn => {
-      return localStoreGetTargetData(localStoreImpl, txn, queryToTarget(query))
+      return localStoreGetTargetData(
+        localStoreImpl,
+        txn,
+        isPipeline(query) ? query : queryToTarget(query)
+      )
         .next(targetData => {
           if (targetData) {
             lastLimboFreeSnapshotVersion =
@@ -1110,11 +1133,14 @@ export function localStoreExecuteQuery(
           )
         )
         .next(documents => {
-          setMaxReadTime(
-            localStoreImpl,
-            queryCollectionGroup(query),
-            documents
-          );
+          // TODO(pipeline): this needs to be adapted to support pipelines as well
+          if (!isPipeline(query)) {
+            setMaxReadTime(
+              localStoreImpl,
+              queryCollectionGroup(query),
+              documents
+            );
+          }
           return { documents, remoteKeys };
         });
     }
@@ -1212,7 +1238,7 @@ export function localStoreGetActiveClients(
 export function localStoreGetCachedTarget(
   localStore: LocalStore,
   targetId: TargetId
-): Promise<Target | null> {
+): Promise<TargetOrPipeline | null> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const targetCacheImpl = debugCast(
     localStoreImpl.targetCache,
@@ -1220,7 +1246,7 @@ export function localStoreGetCachedTarget(
   );
   const cachedTargetData = localStoreImpl.targetDataByTarget.get(targetId);
   if (cachedTargetData) {
-    return Promise.resolve(cachedTargetData.target);
+    return Promise.resolve(cachedTargetData.target ?? null);
   } else {
     return localStoreImpl.persistence.runTransaction(
       'Get target data',
@@ -1228,10 +1254,28 @@ export function localStoreGetCachedTarget(
       txn => {
         return targetCacheImpl
           .getTargetDataForTarget(txn, targetId)
-          .next(targetData => (targetData ? targetData.target : null));
+          .next(targetData => targetData?.target ?? null);
       }
     );
   }
+}
+
+// PORTING NOTE: Multi-Tab only.
+export function localStoreGetDocuments(
+  localStore: LocalStore,
+  pipeline: CorePipeline
+): Promise<DocumentMap> {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+
+  const keys = getPipelineDocuments(pipeline)!;
+  const keySet = documentKeySet(...keys.map(k => DocumentKey.fromPath(k)));
+  return localStoreImpl.persistence
+    .runTransaction('Get documents for pipeline', 'readonly', txn =>
+      localStoreImpl.remoteDocuments.getEntries(txn, keySet)
+    )
+    .then(changedDocs => {
+      return changedDocs;
+    });
 }
 
 /**

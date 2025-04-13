@@ -28,7 +28,7 @@ import {
   serverTimestamp,
   Timestamp
 } from '../../../src';
-import { ExpUserDataWriter } from '../../../src/api/reference_impl';
+import { ExpUserDataWriter } from '../../../src/api/user_data_writer';
 import { DatabaseId } from '../../../src/core/database_info';
 import {
   ArrayContainsAnyFilter,

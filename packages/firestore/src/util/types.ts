@@ -51,6 +51,10 @@ export function isSafeInteger(value: unknown): boolean {
   );
 }
 
+export function isString(value: unknown): value is string {
+  return typeof value === 'string';
+}
+
 /** The subset of the browser's Window interface used by the SDK. */
 export interface WindowLike {
   readonly localStorage: Storage;

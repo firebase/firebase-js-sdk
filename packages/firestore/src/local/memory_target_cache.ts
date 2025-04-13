@@ -15,8 +15,12 @@
  * limitations under the License.
  */
 
+import {
+  canonifyTargetOrPipeline,
+  TargetOrPipeline,
+  targetOrPipelineEqual
+} from '../core/pipeline-util';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { TargetIdGenerator } from '../core/target_id_generator';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
@@ -36,9 +40,9 @@ export class MemoryTargetCache implements TargetCache {
   /**
    * Maps a target to the data about that target
    */
-  private targets = new ObjectMap<Target, TargetData>(
-    t => canonifyTarget(t),
-    targetEquals
+  private targets = new ObjectMap<TargetOrPipeline, TargetData>(
+    t => canonifyTargetOrPipeline(t),
+    targetOrPipelineEqual
   );
 
   /** The last received snapshot version. */
@@ -182,7 +186,7 @@ export class MemoryTargetCache implements TargetCache {
 
   getTargetData(
     transaction: PersistenceTransaction,
-    target: Target
+    target: TargetOrPipeline
   ): PersistencePromise<TargetData | null> {
     const targetData = this.targets.get(target) || null;
     return PersistencePromise.resolve(targetData);

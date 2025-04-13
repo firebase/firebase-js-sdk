@@ -32,7 +32,7 @@ import {
   EmptyAppCheckTokenProvider,
   EmptyAuthCredentialsProvider
 } from '../../src/api/credentials';
-import { ExpUserDataWriter } from '../../src/api/reference_impl';
+import { ExpUserDataWriter } from '../../src/api/user_data_writer';
 import { DatabaseId } from '../../src/core/database_info';
 import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
 import {
@@ -56,11 +56,14 @@ export function firestore(): Firestore {
   return FIRESTORE;
 }
 
-export function newTestFirestore(projectId = 'new-project'): Firestore {
+export function newTestFirestore(
+  projectId = 'new-project',
+  databaseId: string | undefined = undefined
+): Firestore {
   return new Firestore(
     new EmptyAuthCredentialsProvider(),
     new EmptyAppCheckTokenProvider(),
-    new DatabaseId(projectId)
+    new DatabaseId(databaseId ?? projectId)
   );
 }
 

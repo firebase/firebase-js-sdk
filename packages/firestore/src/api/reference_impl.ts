@@ -34,9 +34,9 @@ import {
   firestoreClientListen,
   firestoreClientWrite
 } from '../core/firestore_client';
-import { newQueryForPath, Query as InternalQuery } from '../core/query';
+import { QueryOrPipeline, toCorePipeline } from '../core/pipeline-util';
+import { newQueryForPath } from '../core/query';
 import { ViewSnapshot } from '../core/view_snapshot';
-import { Bytes } from '../lite-api/bytes';
 import { FieldPath } from '../lite-api/field_path';
 import { validateHasExplicitOrderByForLimitToLast } from '../lite-api/query';
 import {
@@ -58,15 +58,20 @@ import {
   parseUpdateData,
   parseUpdateVarargs
 } from '../lite-api/user_data_reader';
-import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { debugAssert } from '../util/assert';
-import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
-import { DocumentSnapshot, QuerySnapshot, SnapshotMetadata } from './snapshot';
+import { RealtimePipeline } from './realtime_pipeline';
+import {
+  DocumentSnapshot,
+  QuerySnapshot,
+  RealtimePipelineSnapshot,
+  SnapshotMetadata
+} from './snapshot';
+import { ExpUserDataWriter } from './user_data_writer';
 
 /**
  * An options object that can be passed to {@link (onSnapshot:1)} and {@link
@@ -121,21 +126,6 @@ export function getDoc<AppModelType, DbModelType extends DocumentData>(
     client,
     reference._key
   ).then(snapshot => convertToDocSnapshot(firestore, reference, snapshot));
-}
-
-export class ExpUserDataWriter extends AbstractUserDataWriter {
-  constructor(protected firestore: Firestore) {
-    super();
-  }
-
-  protected convertBytes(bytes: ByteString): Bytes {
-    return new Bytes(bytes);
-  }
-
-  protected convertReference(name: string): DocumentReference {
-    const key = this.convertDocumentKey(name, this.firestore._databaseId);
-    return new DocumentReference(this.firestore, /* converter= */ null, key);
-  }
 }
 
 /**
@@ -209,6 +199,10 @@ export function getDocFromServer<
  */
 export function getDocs<AppModelType, DbModelType extends DocumentData>(
   query: Query<AppModelType, DbModelType>
+): Promise<QuerySnapshot<AppModelType, DbModelType>>;
+
+export function getDocs<AppModelType, DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>
 ): Promise<QuerySnapshot<AppModelType, DbModelType>> {
   query = cast<Query<AppModelType, DbModelType>>(query, Query);
   const firestore = cast(query.firestore, Firestore);
@@ -224,7 +218,7 @@ export function getDocs<AppModelType, DbModelType extends DocumentData>(
       new QuerySnapshot<AppModelType, DbModelType>(
         firestore,
         userDataWriter,
-        query,
+        query as Query<AppModelType, DbModelType>,
         snapshot
       )
   );
@@ -674,6 +668,7 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
+
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   reference:
     | Query<AppModelType, DbModelType>
@@ -708,7 +703,7 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
 
   let observer: PartialObserver<ViewSnapshot>;
   let firestore: Firestore;
-  let internalQuery: InternalQuery;
+  let internalQuery: QueryOrPipeline;
 
   if (reference instanceof DocumentReference) {
     firestore = cast(reference.firestore, Firestore);
@@ -751,6 +746,106 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
 
     validateHasExplicitOrderByForLimitToLast(reference._query);
   }
+
+  const client = ensureFirestoreConfigured(firestore);
+  return firestoreClientListen(
+    client,
+    internalQuery,
+    internalOptions,
+    observer
+  );
+}
+
+export function onPipelineSnapshot<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: RealtimePipeline,
+  observer: {
+    next?: (snapshot: RealtimePipelineSnapshot) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }
+): Unsubscribe;
+export function onPipelineSnapshot<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: RealtimePipeline,
+  options: SnapshotListenOptions,
+  observer: {
+    next?: (snapshot: RealtimePipelineSnapshot) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }
+): Unsubscribe;
+export function onPipelineSnapshot<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: RealtimePipeline,
+  onNext: (snapshot: RealtimePipelineSnapshot) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void
+): Unsubscribe;
+export function onPipelineSnapshot<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: RealtimePipeline,
+  options: SnapshotListenOptions,
+  onNext: (snapshot: RealtimePipelineSnapshot) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void
+): Unsubscribe;
+export function onPipelineSnapshot<
+  AppModelType,
+  DbModelType extends DocumentData
+>(reference: RealtimePipeline, ...args: unknown[]): Unsubscribe {
+  reference = getModularInstance(reference);
+
+  let options: SnapshotListenOptions = {
+    includeMetadataChanges: false,
+    source: 'default'
+  };
+  let currArg = 0;
+  if (typeof args[currArg] === 'object' && !isPartialObserver(args[currArg])) {
+    options = args[currArg] as SnapshotListenOptions;
+    currArg++;
+  }
+
+  const internalOptions = {
+    includeMetadataChanges: options.includeMetadataChanges,
+    source: options.source as ListenerDataSource
+  };
+
+  if (isPartialObserver(args[currArg])) {
+    const userObserver = args[currArg] as PartialObserver<
+      QuerySnapshot<AppModelType, DbModelType>
+    >;
+    args[currArg] = userObserver.next?.bind(userObserver);
+    args[currArg + 1] = userObserver.error?.bind(userObserver);
+    args[currArg + 2] = userObserver.complete?.bind(userObserver);
+  }
+
+  let observer: PartialObserver<ViewSnapshot>;
+  let firestore: Firestore;
+  let internalQuery: QueryOrPipeline;
+
+  // RealtimePipeline
+  firestore = cast(reference._db, Firestore);
+  internalQuery = toCorePipeline(reference);
+  observer = {
+    next: snapshot => {
+      if (args[currArg]) {
+        (args[currArg] as NextFn<RealtimePipelineSnapshot>)(
+          new RealtimePipelineSnapshot(reference as RealtimePipeline, snapshot)
+        );
+      }
+    },
+    error: args[currArg + 1] as ErrorFn,
+    complete: args[currArg + 2] as CompleteFn
+  };
 
   const client = ensureFirestoreConfigured(firestore);
   return firestoreClientListen(

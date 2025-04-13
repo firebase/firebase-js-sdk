@@ -15,8 +15,12 @@
  * limitations under the License.
  */
 
+import {
+  canonifyTargetOrPipeline,
+  TargetOrPipeline,
+  targetOrPipelineEqual
+} from '../core/pipeline-util';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { TargetIdGenerator } from '../core/target_id_generator';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { Timestamp } from '../lite-api/timestamp';
@@ -165,7 +169,7 @@ export class IndexedDbTargetCache implements TargetCache {
     const promises: Array<PersistencePromise<void>> = [];
     return targetsStore(txn)
       .iterate((key, value) => {
-        const targetData = fromDbTarget(value);
+        const targetData = fromDbTarget(this.serializer, value);
         if (
           targetData.sequenceNumber <= upperBound &&
           activeTargetIds.get(targetData.targetId) === null
@@ -186,7 +190,7 @@ export class IndexedDbTargetCache implements TargetCache {
     f: (q: TargetData) => void
   ): PersistencePromise<void> {
     return targetsStore(txn).iterate((key, value) => {
-      const targetData = fromDbTarget(value);
+      const targetData = fromDbTarget(this.serializer, value);
       f(targetData);
     });
   }
@@ -250,12 +254,12 @@ export class IndexedDbTargetCache implements TargetCache {
 
   getTargetData(
     transaction: PersistenceTransaction,
-    target: Target
+    target: TargetOrPipeline
   ): PersistencePromise<TargetData | null> {
     // Iterating by the canonicalId may yield more than one result because
     // canonicalId values are not required to be unique per target. This query
     // depends on the queryTargets index to be efficient.
-    const canonicalId = canonifyTarget(target);
+    const canonicalId = canonifyTargetOrPipeline(target);
     const range = IDBKeyRange.bound(
       [canonicalId, Number.NEGATIVE_INFINITY],
       [canonicalId, Number.POSITIVE_INFINITY]
@@ -265,10 +269,10 @@ export class IndexedDbTargetCache implements TargetCache {
       .iterate(
         { range, index: DbTargetQueryTargetsIndexName },
         (key, value, control) => {
-          const found = fromDbTarget(value);
+          const found = fromDbTarget(this.serializer, value);
           // After finding a potential match, check that the target is
           // actually equal to the requested target.
-          if (targetEquals(target, found.target)) {
+          if (targetOrPipelineEqual(target, found.target)) {
             result = found;
             control.done();
           }
@@ -395,7 +399,7 @@ export class IndexedDbTargetCache implements TargetCache {
       .get(targetId)
       .next(found => {
         if (found) {
-          return fromDbTarget(found);
+          return fromDbTarget(this.serializer, found);
         } else {
           return null;
         }

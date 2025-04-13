@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
+import { TargetOrPipeline } from '../../../src/core/pipeline-util';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { Target } from '../../../src/core/target';
 import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
 import { Persistence } from '../../../src/local/persistence';
 import { TargetCache } from '../../../src/local/target_cache';
@@ -71,7 +71,7 @@ export class TestTargetCache {
     );
   }
 
-  getTargetData(target: Target): Promise<TargetData | null> {
+  getTargetData(target: TargetOrPipeline): Promise<TargetData | null> {
     return this.persistence.runTransaction('getTargetData', 'readonly', txn => {
       return this.cache.getTargetData(txn, target);
     });

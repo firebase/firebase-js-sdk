@@ -22,6 +22,8 @@ import { Code, FirestoreError } from '../util/error';
 import { compareUtf8Strings, primitiveComparator } from '../util/misc';
 
 export const DOCUMENT_KEY_NAME = '__name__';
+export const UPDATE_TIME_NAME = '__update_time__';
+export const CREATE_TIME_NAME = '__create_time__';
 
 /**
  * Path represents an ordered sequence of string segments.
@@ -241,6 +243,10 @@ export class ResourcePath extends BasePath<ResourcePath> {
 
   toString(): string {
     return this.canonicalString();
+  }
+
+  toStringWithLeadingSlash(): string {
+    return `/${this.canonicalString()}`;
   }
 
   /**

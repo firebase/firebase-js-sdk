@@ -15,11 +15,17 @@
  * limitations under the License.
  */
 
+import { CorePipeline } from '../core/pipeline';
+import { isPipeline } from '../core/pipeline-util';
+import { newPipelineComparator } from '../core/pipeline_run';
 import { newQueryComparator } from '../core/query';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { FieldPath } from '../lite-api/field_path';
+import { PipelineResult, toPipelineResult } from '../lite-api/pipeline-result';
+import { PipelineResult, toPipelineResult } from '../lite-api/pipeline-result';
 import {
   DocumentData,
+  DocumentReference,
   PartialWithFieldValue,
   Query,
   queryEqual,
@@ -39,6 +45,7 @@ import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 
 import { Firestore } from './database';
+import { RealtimePipeline } from './realtime_pipeline';
 import { SnapshotListenOptions } from './reference_impl';
 
 /**
@@ -671,12 +678,11 @@ export function changesFromSnapshot<
         change.type === ChangeType.Added,
         'Invalid event type for first snapshot'
       );
+      const comparator = isPipeline(querySnapshot._snapshot.query)
+        ? newPipelineComparator(querySnapshot._snapshot.query)
+        : newQueryComparator(querySnapshot.query._query);
       debugAssert(
-        !lastDoc ||
-          newQueryComparator(querySnapshot._snapshot.query)(
-            lastDoc,
-            change.doc
-          ) < 0,
+        !lastDoc || comparator(lastDoc, change.doc) < 0,
         'Got added events in wrong order'
       );
       const doc = new QueryDocumentSnapshot<AppModelType, DbModelType>(
@@ -789,4 +795,172 @@ export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(
   }
 
   return false;
+}
+
+export interface ResultChange {
+  /** The type of change ('added', 'modified', or 'removed'). */
+  readonly type: DocumentChangeType;
+
+  /** The document affected by this change. */
+  readonly result: PipelineResult;
+
+  /**
+   * The index of the changed document in the result set immediately prior to
+   * this `DocumentChange` (i.e. supposing that all prior `DocumentChange` objects
+   * have been applied). Is `-1` for 'added' events.
+   */
+  readonly oldIndex: number;
+
+  /**
+   * The index of the changed document in the result set immediately after
+   * this `DocumentChange` (i.e. supposing that all prior `DocumentChange`
+   * objects and the current `DocumentChange` object have been applied).
+   * Is -1 for 'removed' events.
+   */
+  readonly newIndex: number;
+}
+
+export function resultChangesFromSnapshot(
+  querySnapshot: RealtimePipelineSnapshot,
+  includeMetadataChanges: boolean
+): ResultChange[] {
+  if (querySnapshot._snapshot.oldDocs.isEmpty()) {
+    // Special case the first snapshot because index calculation is easy and
+    // fast
+    let lastDoc: Document;
+    let index = 0;
+    return querySnapshot._snapshot.docChanges.map(change => {
+      debugAssert(
+        change.type === ChangeType.Added,
+        'Invalid event type for first snapshot'
+      );
+      const comparator = newPipelineComparator(
+        querySnapshot._snapshot.query as CorePipeline
+      );
+      debugAssert(
+        !lastDoc || comparator(lastDoc, change.doc) < 0,
+        'Got added events in wrong order'
+      );
+      const doc = PipelineResult.fromDocument(
+        querySnapshot.pipeline._userDataWriter,
+        change.doc,
+        new DocumentReference(querySnapshot.pipeline._db, null, change.doc.key),
+        new SnapshotMetadata(
+          querySnapshot._snapshot.mutatedKeys.has(change.doc.key),
+          querySnapshot._snapshot.fromCache
+        )
+      );
+      lastDoc = change.doc;
+      return {
+        type: 'added' as DocumentChangeType,
+        result: doc,
+        oldIndex: -1,
+        newIndex: index++
+      };
+    });
+  } else {
+    // A `DocumentSet` that is updated incrementally as changes are applied to use
+    // to lookup the index of a document.
+    let indexTracker = querySnapshot._snapshot.oldDocs;
+    return querySnapshot._snapshot.docChanges
+      .filter(
+        change => includeMetadataChanges || change.type !== ChangeType.Metadata
+      )
+      .map(change => {
+        const doc = PipelineResult.fromDocument(
+          querySnapshot.pipeline._userDataWriter,
+          change.doc,
+          new DocumentReference(
+            querySnapshot.pipeline._db,
+            null,
+            change.doc.key
+          ),
+          new SnapshotMetadata(
+            querySnapshot._snapshot.mutatedKeys.has(change.doc.key),
+            querySnapshot._snapshot.fromCache
+          )
+        );
+        let oldIndex = -1;
+        let newIndex = -1;
+        if (change.type !== ChangeType.Added) {
+          oldIndex = indexTracker.indexOf(change.doc.key);
+          debugAssert(oldIndex >= 0, 'Index for document not found');
+          indexTracker = indexTracker.delete(change.doc.key);
+        }
+        if (change.type !== ChangeType.Removed) {
+          indexTracker = indexTracker.add(change.doc);
+          newIndex = indexTracker.indexOf(change.doc.key);
+        }
+        return {
+          type: resultChangeType(change.type),
+          result: doc,
+          oldIndex,
+          newIndex
+        };
+      });
+  }
+}
+
+export class RealtimePipelineSnapshot {
+  /**
+   * The query on which you called `get` or `onSnapshot` in order to get this
+   * `QuerySnapshot`.
+   */
+  readonly pipeline: RealtimePipeline;
+
+  /**
+   * Metadata about this snapshot, concerning its source and if it has local
+   * modifications.
+   */
+  readonly metadata: SnapshotMetadata;
+
+  private _cachedChanges?: ResultChange[];
+  private _cachedChangesIncludeMetadataChanges?: boolean;
+
+  /** @hideconstructor */
+  constructor(pipeline: RealtimePipeline, readonly _snapshot: ViewSnapshot) {
+    this.metadata = new SnapshotMetadata(
+      _snapshot.hasPendingWrites,
+      _snapshot.fromCache
+    );
+    this.pipeline = pipeline;
+  }
+
+  /** An array of all the documents in the `QuerySnapshot`. */
+  get results(): PipelineResult[] {
+    const result: PipelineResult[] = [];
+    this._snapshot.docs.forEach(doc =>
+      result.push(toPipelineResult(doc, this.pipeline))
+    );
+    return result;
+  }
+
+  get size(): number {
+    return this._snapshot.docs.size;
+  }
+
+  resultChanges(options: SnapshotListenOptions = {}): ResultChange[] {
+    const includeMetadataChanges = !!options.includeMetadataChanges;
+
+    if (includeMetadataChanges && this._snapshot.excludesMetadataChanges) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'To include metadata changes with your document changes, you must ' +
+          'also pass { includeMetadataChanges:true } to onSnapshot().'
+      );
+    }
+
+    if (
+      !this._cachedChanges ||
+      this._cachedChangesIncludeMetadataChanges !== includeMetadataChanges
+    ) {
+      this._cachedChanges = resultChangesFromSnapshot(
+        this,
+        includeMetadataChanges
+      );
+      this._cachedChangesIncludeMetadataChanges = includeMetadataChanges;
+    }
+
+    return this._cachedChanges;
+  }
 }

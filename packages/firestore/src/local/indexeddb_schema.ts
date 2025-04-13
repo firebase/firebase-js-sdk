@@ -22,6 +22,7 @@ import {
   Document as ProtoDocument,
   DocumentsTarget as ProtoDocumentsTarget,
   QueryTarget as ProtoQueryTarget,
+  PipelineQueryTarget as ProtoPipelineQueryTarget,
   Write as ProtoWrite
 } from '../protos/firestore_proto_api';
 
@@ -253,7 +254,10 @@ export interface DbRemoteDocumentGlobal {
  * IndexedDb. We use the proto definitions for these two kinds of queries in
  * order to avoid writing extra serialization logic.
  */
-export type DbQuery = ProtoQueryTarget | ProtoDocumentsTarget;
+export type DbQuery =
+  | ProtoQueryTarget
+  | ProtoDocumentsTarget
+  | ProtoPipelineQueryTarget;
 
 /**
  * An object to be stored in the 'targets' store in IndexedDb.

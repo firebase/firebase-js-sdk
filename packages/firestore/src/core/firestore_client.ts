@@ -22,7 +22,9 @@ import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
+import { RealtimePipeline } from '../api/realtime_pipeline';
 import { User } from '../auth/user';
+import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreConfigureFieldIndexes,
@@ -38,11 +40,16 @@ import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldIndex } from '../model/field_index';
 import { Mutation } from '../model/mutation';
+import { PipelineStreamElement } from '../model/pipeline_stream_element';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { newSerializer } from '../platform/serializer';
 import { newTextEncoder } from '../platform/text_serializer';
 import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
-import { Datastore, invokeRunAggregationQueryRpc } from '../remote/datastore';
+import {
+  Datastore,
+  invokeExecutePipeline,
+  invokeRunAggregationQueryRpc
+} from '../remote/datastore';
 import {
   RemoteStore,
   remoteStoreDisableNetwork,
@@ -80,6 +87,7 @@ import {
   QueryListener,
   removeSnapshotsInSyncListener
 } from './event_manager';
+import { QueryOrPipeline, toCorePipeline } from './pipeline-util';
 import { newQueryForPath, Query } from './query';
 import { SyncEngine } from './sync_engine';
 import {
@@ -444,7 +452,7 @@ export function firestoreClientWaitForPendingWrites(
 
 export function firestoreClientListen(
   client: FirestoreClient,
-  query: Query,
+  query: QueryOrPipeline,
   options: ListenOptions,
   observer: Partial<Observer<ViewSnapshot>>
 ): () => void {
@@ -508,7 +516,7 @@ export function firestoreClientGetDocumentsFromLocalCache(
 
 export function firestoreClientGetDocumentsViaSnapshotListener(
   client: FirestoreClient,
-  query: Query,
+  query: Query | RealtimePipeline,
   options: GetOptions = {}
 ): Promise<ViewSnapshot> {
   const deferred = new Deferred<ViewSnapshot>();
@@ -542,6 +550,23 @@ export function firestoreClientRunAggregateQuery(
       deferred.resolve(
         invokeRunAggregationQueryRpc(datastore, query, aggregates)
       );
+    } catch (e) {
+      deferred.reject(e as Error);
+    }
+  });
+  return deferred.promise;
+}
+
+export function firestoreClientExecutePipeline(
+  client: FirestoreClient,
+  pipeline: LitePipeline
+): Promise<PipelineStreamElement[]> {
+  const deferred = new Deferred<PipelineStreamElement[]>();
+
+  client.asyncQueue.enqueueAndForget(async () => {
+    try {
+      const datastore = await getDatastore(client);
+      deferred.resolve(invokeExecutePipeline(datastore, pipeline));
     } catch (e) {
       deferred.reject(e as Error);
     }
@@ -750,7 +775,7 @@ async function executeQueryFromCache(
 function executeQueryViaSnapshotListener(
   eventManager: EventManager,
   asyncQueue: AsyncQueue,
-  query: Query,
+  query: Query | RealtimePipeline,
   options: GetOptions,
   result: Deferred<ViewSnapshot>
 ): Promise<void> {
@@ -780,10 +805,16 @@ function executeQueryViaSnapshotListener(
     error: e => result.reject(e)
   });
 
-  const listener = new QueryListener(query, wrappedObserver, {
-    includeMetadataChanges: true,
-    waitForSyncWhenOnline: true
-  });
+  const listener =
+    query instanceof RealtimePipeline
+      ? new QueryListener(toCorePipeline(query), wrappedObserver, {
+          includeMetadataChanges: true,
+          waitForSyncWhenOnline: true
+        })
+      : new QueryListener(query, wrappedObserver, {
+          includeMetadataChanges: true,
+          waitForSyncWhenOnline: true
+        });
   return eventManagerListen(eventManager, listener);
 }
 
