@@ -299,50 +299,6 @@ describe('ChromeAdapter', () => {
     });
   });
   describe('countTokens', () => {
-    it('Extracts initial prompts and counts tokens', async () => {
-      const aiProvider = {
-        languageModel: {
-          create: () => Promise.resolve({})
-        }
-      } as AI;
-      const expectedCount = 10;
-      const countPromptTokensStub = stub().resolves(expectedCount);
-      const factoryStub = stub(aiProvider.languageModel, 'create').resolves({
-        countPromptTokens: countPromptTokensStub
-      } as unknown as AILanguageModel);
-      const text = ['first', 'second', 'third'];
-      const onDeviceParams = {
-        initialPrompts: [{ role: 'user', content: text[0] }]
-      } as AILanguageModelCreateOptionsWithSystemPrompt;
-      const adapter = new ChromeAdapter(
-        aiProvider,
-        'prefer_on_device',
-        onDeviceParams
-      );
-      const response = await adapter.countTokens({
-        contents: [
-          { role: 'model', parts: [{ text: text[1] }] },
-          { role: 'user', parts: [{ text: text[2] }] }
-        ]
-      });
-      expect(factoryStub).to.have.been.calledOnceWith({
-        initialPrompts: [
-          { role: 'user', content: text[0] },
-          // Asserts tail is passed as initial prompts, and
-          // role is normalized from model to assistant.
-          { role: 'assistant', content: text[1] }
-        ]
-      });
-      expect(countPromptTokensStub).to.have.been.calledOnceWith({
-        role: 'user',
-        content: text[2]
-      });
-      expect(await response.json()).to.deep.equal({
-        totalTokens: expectedCount
-      });
-    });
-  });
-  describe('countTokens', () => {
     it('With no initial prompts', async () => {
       const aiProvider = {
         languageModel: {
