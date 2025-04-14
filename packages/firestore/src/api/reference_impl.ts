@@ -1096,18 +1096,20 @@ function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(
   const db = getModularInstance(reference);
   let curArg = 0;
   console.error("DEDB json args: ", args[curArg] as object);
-  const snapshotJson = normalizeSnapshotJsonFields(args[curArg++] as object);
+  const snapshotJson = normalizeSnapshotJsonFields(args[curArg] as object);
   console.error("DEDB parsed snapshotJson: ", snapshotJson);
+  console.error("DEDB parsed bundleSource: ", snapshotJson.bundleSource);
   if (snapshotJson.error) {
     throw new FirestoreError(Code.INVALID_ARGUMENT, snapshotJson.error);
   }
+  curArg++;
   let options: SnapshotListenOptions | undefined = undefined;
   if (typeof args[curArg] === 'object' && !isPartialObserver(args[curArg])) {
     options = args[curArg++] as SnapshotListenOptions;
   }
 
   if (snapshotJson.bundleSource === "QuerySnapshot") {
-    console.error("DEDB QuerySnapshot");
+    console.error("DEDB QuerySnapshot, snapshotJson.bundleSource: ", snapshotJson.bundleSource);
     let observer: {
       next: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
       error?: (error: FirestoreError) => void;
@@ -1139,7 +1141,7 @@ function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(
       args[curArg] as FirestoreDataConverter<DbModelType>
     );
   } else if (snapshotJson.bundleSource === "DocumentSnapshot") {
-    console.error("DEDB DocumentSnapshot");
+    console.error("DEDB DocumentSnapshot snapshotJson.bundleSource", snapshotJson.bundleSource);
     let observer: {
       next: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
       error?: (error: FirestoreError) => void;
@@ -1171,7 +1173,7 @@ function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(
       args[curArg] as FirestoreDataConverter<DbModelType>
     );
   } else {
-    console.error("DEDB other, bundlesource : ", snapshotJson.bundleSource);
+    console.error("DEDB other, bundleSource : ", snapshotJson.bundleSource);
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
       `unsupported bundle source: ${snapshotJson.bundleSource}`
