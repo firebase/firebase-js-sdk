@@ -1106,7 +1106,8 @@ function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(
     options = args[curArg++] as SnapshotListenOptions;
   }
 
-  if (snapshotJson.bundleSource === 'QuerySnapshot') {
+  if (snapshotJson.bundleSource === "QuerySnapshot") {
+    console.error("DEDB QuerySnapshot");
     let observer: {
       next: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
       error?: (error: FirestoreError) => void;
@@ -1137,7 +1138,8 @@ function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(
       observer!,
       args[curArg] as FirestoreDataConverter<DbModelType>
     );
-  } else if (snapshotJson.bundleSource === 'DocumentSnapshot') {
+  } else if (snapshotJson.bundleSource === "DocumentSnapshot") {
+    console.error("DEDB DocumentSnapshot");
     let observer: {
       next: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
       error?: (error: FirestoreError) => void;
@@ -1169,6 +1171,7 @@ function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(
       args[curArg] as FirestoreDataConverter<DbModelType>
     );
   } else {
+    console.error("DEDB other, bundlesource : ", snapshotJson.bundleSource);
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
       `unsupported bundle source: ${snapshotJson.bundleSource}`
