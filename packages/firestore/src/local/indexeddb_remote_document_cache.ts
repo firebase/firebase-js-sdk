@@ -381,7 +381,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     return documentGlobalStore(txn)
       .get(DbRemoteDocumentGlobalKey)
       .next(metadata => {
-        hardAssert(!!metadata, 'Missing document cache metadata');
+        hardAssert(!!metadata, 0x4e35, 'Missing document cache metadata');
         return metadata!;
       });
   }
