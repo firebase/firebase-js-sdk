@@ -342,4 +342,83 @@ describe('ChromeAdapter', () => {
       });
     });
   });
+  describe('countTokens', () => {
+    it('With no initial prompts', async () => {
+      const aiProvider = {
+        languageModel: {
+          create: () => Promise.resolve({})
+        }
+      } as AI;
+      const inputText = "first";
+      const expectedCount = 10;
+      const countPromptTokensStub = stub().resolves(expectedCount);
+      const factoryStub = stub(aiProvider.languageModel, 'create').resolves({
+        countPromptTokens: countPromptTokensStub
+      } as unknown as AILanguageModel);
+      const adapter = new ChromeAdapter(
+        aiProvider,
+        'prefer_on_device',
+      );
+      const response = await adapter.countTokens({
+        contents: [
+          { role: 'user', parts: [{ text: inputText }] }
+        ]
+      });
+      expect(factoryStub).to.have.been.calledOnceWith({
+        // initialPrompts must be empty
+        initialPrompts: []
+      });
+      // validate count tokens gets called with the last entry from the input
+      expect(countPromptTokensStub).to.have.been.calledOnceWith({
+        role: 'user',
+        content: inputText
+      });
+      expect(await response.json()).to.deep.equal({
+        totalTokens: expectedCount
+      });
+    });
+    it('Extracts initial prompts and then does counts tokens', async () => {
+      const aiProvider = {
+        languageModel: {
+          create: () => Promise.resolve({})
+        }
+      } as AI;
+      const expectedCount = 10;
+      const countPromptTokensStub = stub().resolves(expectedCount);
+      const factoryStub = stub(aiProvider.languageModel, 'create').resolves({
+        countPromptTokens: countPromptTokensStub
+      } as unknown as AILanguageModel);
+      const text = ['first', 'second', 'third'];
+      const onDeviceParams = {
+        initialPrompts: [{ role: 'user', content: text[0] }]
+      } as AILanguageModelCreateOptionsWithSystemPrompt;
+      const adapter = new ChromeAdapter(
+        aiProvider,
+        'prefer_on_device',
+        onDeviceParams
+      );
+      const response = await adapter.countTokens({
+        contents: [
+          { role: 'model', parts: [{ text: text[1] }] },
+          { role: 'user', parts: [{ text: text[2] }] }
+        ]
+      });
+      expect(factoryStub).to.have.been.calledOnceWith({
+        initialPrompts: [
+          { role: 'user', content: text[0] },
+          // Asserts tail is passed as initial prompts, and
+          // role is normalized from model to assistant.
+          { role: 'assistant', content: text[1] }
+        ]
+      });
+      // validate count tokens gets called with the last entry from the input
+      expect(countPromptTokensStub).to.have.been.calledOnceWith({
+        role: 'user',
+        content: text[2]
+      });
+      expect(await response.json()).to.deep.equal({
+        totalTokens: expectedCount
+      });
+    });
+  });
 });
