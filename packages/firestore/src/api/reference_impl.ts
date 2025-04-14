@@ -1225,8 +1225,10 @@ function normalizeSnapshotJsonFields(snapshotJson: object): {
       result.error = `snapshotJson field '${key}' cannot be an empty string.`;
       break;
     }
+    console.error("DEDB setting key: \"" + key + "\"  value: \"" + value + "\"");
     result[key as keyof typeof result] = value;
   }
+  console.error("DEDB returning result.bundleSource: ", result.bundleSource, " result.error: ", result.error);
   return result;
 }
 
