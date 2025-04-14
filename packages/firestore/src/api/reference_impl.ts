@@ -1095,7 +1095,9 @@ function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(
 ): Unsubscribe {
   const db = getModularInstance(reference);
   let curArg = 0;
+  console.error("DEDB json args: ", args[curArg] as object);
   const snapshotJson = normalizeSnapshotJsonFields(args[curArg++] as object);
+  console.error("DEDB parsed snapshotJson: ", snapshotJson);
   if (snapshotJson.error) {
     throw new FirestoreError(Code.INVALID_ARGUMENT, snapshotJson.error);
   }
