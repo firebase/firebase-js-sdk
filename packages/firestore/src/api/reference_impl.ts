@@ -1110,7 +1110,7 @@ function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(
       error?: (error: FirestoreError) => void;
       complete?: () => void;
     } | null = null;
-    if (typeof args[curArg] === 'object' && isPartialObserver(args[1])) {)
+    if (typeof args[curArg] === 'object' && isPartialObserver(args[1])) {
       const userObserver = args[curArg++] as PartialObserver<
         QuerySnapshot<AppModelType, DbModelType>
       >;
