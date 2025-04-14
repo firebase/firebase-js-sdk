@@ -1226,7 +1226,13 @@ function normalizeSnapshotJsonFields(snapshotJson: object): {
       break;
     }
     console.error("DEDB setting key: \"" + key + "\"  value: \"" + value + "\"");
-    result[key as keyof typeof result] = value;
+    if (key === 'bundle') {
+      result.bundle = value; // No assertion needed, TS knows 'bundle' is a key
+    } else if (key === 'bundleName') {
+      result.bundleName = value; // No assertion needed
+    } else if (key === 'bundleSource') {
+      result.bundleSource = value; // No assertion needed
+    }
   }
   console.error("DEDB returning result.bundleSource: ", result.bundleSource, " result.error: ", result.error);
   return result;
