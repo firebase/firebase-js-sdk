@@ -132,13 +132,9 @@ void
 <b>Signature:</b>
 
 ```typescript
-toJSON(): {
-        bundle: string;
-        bundleSource: string;
-        bundleName: string;
-    };
+toJSON(): object;
 ```
 <b>Returns:</b>
 
-{ bundle: string; bundleSource: string; bundleName: string; }
+object
 

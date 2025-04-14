@@ -1292,59 +1292,53 @@ apiDescribe('Database', persistence => {
   });
 
   it('DocumentSnapshot error events for snapshot created by a bundle', async () => {
-    const initialData = { a: 0 };
-    await withTestDocAndInitialData(
-      persistence,
-      initialData,
-      async (docRef, db) => {
-        const doc = await getDoc(docRef);
-        const json = doc.toJSON();
-        json.bundle = 'BadData';
-        const deferred = new Deferred();
-        const unsubscribe = onSnapshot(
-          db,
-          json,
-          ds => {
-            expect(ds).to.not.exist;
-            deferred.resolve();
-          },
-          err => {
-            expect(err.name).to.exist;
-            expect(err.message).to.exist;
-            deferred.resolve();
-          }
-        );
-        await deferred.promise;
-        unsubscribe();
-      }
-    );
+    return withTestDb(persistence, async db => {
+      const json = {
+        bundle: 'BadData',
+        bundleName: 'bundleName',
+        bundleSource: 'DocumentSnapshot'
+      };
+      const deferred = new Deferred();
+      const unsubscribe = onSnapshot(
+        db,
+        json,
+        ds => {
+          expect(ds).to.not.exist;
+          deferred.resolve();
+        },
+        err => {
+          expect(err.name).to.exist;
+          expect(err.message).to.exist;
+          deferred.resolve();
+        }
+      );
+      await deferred.promise;
+      unsubscribe();
+    });
   });
 
   it('DocumentSnapshot observer error events for snapshot created by a bundle', async () => {
-    const initialData = { a: 0 };
-    await withTestDocAndInitialData(
-      persistence,
-      initialData,
-      async (docRef, db) => {
-        const doc = await getDoc(docRef);
-        const json = doc.toJSON();
-        json.bundle = 'BadData';
-        const deferred = new Deferred();
-        const unsubscribe = onSnapshot(db, json, {
-          next: ds => {
-            expect(ds).to.not.exist;
-            deferred.resolve();
-          },
-          error: err => {
-            expect(err.name).to.exist;
-            expect(err.message).to.exist;
-            deferred.resolve();
-          }
-        });
-        await deferred.promise;
-        unsubscribe();
-      }
-    );
+    return withTestDb(persistence, async db => {
+      const json = {
+        bundle: 'BadData',
+        bundleName: 'bundleName',
+        bundleSource: 'QuerySnapshot'
+      };
+      const deferred = new Deferred();
+      const unsubscribe = onSnapshot(db, json, {
+        next: ds => {
+          expect(ds).to.not.exist;
+          deferred.resolve();
+        },
+        error: err => {
+          expect(err.name).to.exist;
+          expect(err.message).to.exist;
+          deferred.resolve();
+        }
+      });
+      await deferred.promise;
+      unsubscribe();
+    });
   });
 
   it('Querysnapshot events for snapshot created by a bundle', async () => {
@@ -1392,15 +1386,13 @@ apiDescribe('Database', persistence => {
   });
 
   it('QuerySnapshot error events for snapshot created by a bundle', async () => {
-    const testDocs = {
-      a: { foo: 1 },
-      b: { bar: 2 }
-    };
-    await withTestCollection(persistence, testDocs, async (coll, db) => {
-      const querySnap = await getDocs(query(coll, orderBy(documentId())));
+    return withTestDb(persistence, async db => {
+      const json = {
+        bundle: 'BadData',
+        bundleName: 'bundleName',
+        bundleSource: 'QuerySnapshot'
+      };
       const deferred = new Deferred();
-      const json = querySnap.toJSON();
-      json.bundle = 'BadData';
       const unsubscribe = onSnapshot(
         db,
         json,
@@ -1420,15 +1412,13 @@ apiDescribe('Database', persistence => {
   });
 
   it('QuerySnapshot observer error events for snapshot created by a bundle', async () => {
-    const testDocs = {
-      a: { foo: 1 },
-      b: { bar: 2 }
-    };
-    await withTestCollection(persistence, testDocs, async (coll, db) => {
-      const querySnap = await getDocs(query(coll, orderBy(documentId())));
+    return withTestDb(persistence, async db => {
+      const json = {
+        bundle: 'BadData',
+        bundleName: 'bundleName',
+        bundleSource: 'QuerySnapshot'
+      };
       const deferred = new Deferred();
-      const json = querySnap.toJSON();
-      json.bundle = 'BadData';
       const unsubscribe = onSnapshot(db, json, {
         next: qs => {
           expect(qs).to.not.exist;

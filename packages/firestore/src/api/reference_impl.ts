@@ -681,7 +681,7 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
  */
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   firestore: Firestore,
-  snapshotJson: { bundle: string; bundleName: string; bundleSource: string },
+  snapshotJson: object,
   onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void,
@@ -709,7 +709,7 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
  */
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   firestore: Firestore,
-  snapshotJson: { bundle: string; bundleName: string; bundleSource: string },
+  snapshotJson: object,
   onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void,
@@ -737,7 +737,7 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
  */
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   firestore: Firestore,
-  snapshotJson: { bundle: string; bundleName: string; bundleSource: string },
+  snapshotJson: object,
   options: SnapshotListenOptions,
   onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
   onError?: (error: FirestoreError) => void,
@@ -767,7 +767,7 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
  */
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   firestore: Firestore,
-  snapshotJson: { bundle: string; bundleName: string; bundleSource: string },
+  snapshotJson: object,
   options: SnapshotListenOptions,
   onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void,
   onError?: (error: FirestoreError) => void,
@@ -794,7 +794,7 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
  */
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   firestore: Firestore,
-  snapshotJson: { bundle: string; bundleName: string; bundleSource: string },
+  snapshotJson: object,
   observer: {
     next: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
@@ -821,7 +821,7 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
  */
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   firestore: Firestore,
-  snapshotJson: { bundle: string; bundleName: string; bundleSource: string },
+  snapshotJson: object,
   observer: {
     next: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
@@ -849,7 +849,7 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
  */
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   firestore: Firestore,
-  snapshotJson: { bundle: string; bundleName: string; bundleSource: string },
+  snapshotJson: object,
   options: SnapshotListenOptions,
   observer: {
     next: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
@@ -877,7 +877,7 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
  */
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   firestore: Firestore,
-  snapshotJson: { bundle: string; bundleName: string; bundleSource: string },
+  snapshotJson: object,
   options: SnapshotListenOptions,
   observer: {
     next: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
@@ -1095,24 +1095,22 @@ function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(
 ): Unsubscribe {
   const db = getModularInstance(reference);
   let curArg = 0;
-  const json = args[curArg++] as {
-    bundle: string;
-    bundleName: string;
-    bundleSource: string;
-  };
-
+  const snapshotJson = normalizeSnapshotJsonFields(args[curArg++] as object);
+  if (snapshotJson.error) {
+    throw new FirestoreError(Code.INVALID_ARGUMENT, snapshotJson.error);
+  }
   let options: SnapshotListenOptions | undefined = undefined;
   if (typeof args[curArg] === 'object' && !isPartialObserver(args[curArg])) {
     options = args[curArg++] as SnapshotListenOptions;
   }
 
-  if (json.bundleSource === 'QuerySnapshot') {
+  if (snapshotJson.bundleSource === 'QuerySnapshot') {
     let observer: {
       next: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
       error?: (error: FirestoreError) => void;
       complete?: () => void;
     } | null = null;
-    if (typeof args[curArg] === 'object' && isPartialObserver(args[1])) {
+    if (typeof args[curArg] === 'object' && isPartialObserver(args[1])) {)
       const userObserver = args[curArg++] as PartialObserver<
         QuerySnapshot<AppModelType, DbModelType>
       >;
@@ -1132,12 +1130,12 @@ function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(
     }
     return onSnapshotQuerySnapshotBundle(
       db,
-      json,
+      snapshotJson,
       options,
       observer!,
       args[curArg] as FirestoreDataConverter<DbModelType>
     );
-  } else if (json.bundleSource === 'DocumentSnapshot') {
+  } else if (snapshotJson.bundleSource === 'DocumentSnapshot') {
     let observer: {
       next: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
       error?: (error: FirestoreError) => void;
@@ -1163,7 +1161,7 @@ function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(
     }
     return onSnapshotDocumentSnapshotBundle(
       db,
-      json,
+      snapshotJson,
       options,
       observer!,
       args[curArg] as FirestoreDataConverter<DbModelType>
@@ -1171,9 +1169,58 @@ function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(
   } else {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      `unsupported bundle source: ${json.bundleSource}`
+      `unsupported bundle source: ${snapshotJson.bundleSource}`
     );
   }
+}
+
+/**
+ * Ensures the data required to construct an {@link onSnapshot} listener exist in a `snapshotJson`
+ * object that originates from {@link DocumentSnapshot.toJSON} or {@link Querysnapshot.toJSON}. The
+ * data is normalized into a typed object.
+ *
+ * @param snapshotJson - The JSON object that the app provided to {@link onSnapshot}.
+ * @returns A normalized object that contains all of the required bundle JSON fields. If
+ * {@link snapshotJson} doesn't contain the required fields, or if the fields exist as empty
+ * strings, then the {@link snapshotJson.error} field will be a non empty string.
+ *
+ * @internal
+ */
+function normalizeSnapshotJsonFields(snapshotJson: object): {
+  bundle: string;
+  bundleName: string;
+  bundleSource: string;
+  error?: string;
+} {
+  const result: {
+    bundle: string;
+    bundleName: string;
+    bundleSource: string;
+    error?: string;
+  } = {
+    bundle: '',
+    bundleName: '',
+    bundleSource: ''
+  };
+  const requiredKeys = ['bundle', 'bundleName', 'bundleSource'];
+  for (const key of requiredKeys) {
+    if (!(key in snapshotJson)) {
+      result.error = `snapshotJson missing required field: ${key}`;
+      break;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const value = (snapshotJson as any)[key];
+    if (typeof value !== 'string') {
+      result.error = `snapshotJson field '${key}' must be a string.`;
+      break;
+    }
+    if (value.length === 0) {
+      result.error = `snapshotJson field '${key}' cannot be an empty string.`;
+      break;
+    }
+    result[key as keyof typeof result] = value;
+  }
+  return result;
 }
 
 /**

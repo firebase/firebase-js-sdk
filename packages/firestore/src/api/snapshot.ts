@@ -503,7 +503,7 @@ export class DocumentSnapshot<
     return undefined;
   }
 
-  toJSON(): { bundle: string; bundleSource: string; bundleName: string } {
+  toJSON(): object {
     const document = this._document;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = {};
@@ -699,7 +699,7 @@ export class QuerySnapshot<
     return this._cachedChanges;
   }
 
-  toJSON(): { bundle: string; bundleSource: string; bundleName: string } {
+  toJSON(): object {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = {};
     result['bundleSource'] = 'QuerySnapshot';
