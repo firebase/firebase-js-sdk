@@ -105,13 +105,15 @@ export class ChromeAdapter {
   }
   async countTokens(request: CountTokensRequest): Promise<Response> {
     const options = this.onDeviceParams || {};
-    const prompts = ChromeAdapter.toInitialPrompts(request.contents);
+    options.initialPrompts ??= [];
+    const extractedInitialPrompts = ChromeAdapter.toInitialPrompts(request.contents);
+    const currentPrompt = extractedInitialPrompts.pop()!;
+    options.initialPrompts.push(...extractedInitialPrompts);
     const session = await this.session(options);
-    const tokenCount = await session.countPromptTokens(prompts);
+    const tokenCount = await session.countPromptTokens(currentPrompt);
     return {
       json: async () => ({
         totalTokens: tokenCount,
-        totalBillableCharacters: 0,
       })
     } as Response;
   }
