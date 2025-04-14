@@ -1,6 +1,6 @@
 {
   "name": "@firebase/vertexai",
-  "version": "1.2.1",
+  "version": "1.2.0",
   "description": "A Firebase SDK for VertexAI",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "engines": {
@@ -57,7 +57,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.11.4",
+    "@firebase/app": "0.11.3",
     "@rollup/plugin-json": "6.1.0",
     "@types/dom-chromium-ai": "0.0.6",
     "rollup": "2.79.2",
