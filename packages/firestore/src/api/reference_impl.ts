@@ -1095,21 +1095,16 @@ function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(
 ): Unsubscribe {
   const db = getModularInstance(reference);
   let curArg = 0;
-  console.error("DEDB json args: ", args[curArg] as object);
-  const snapshotJson = normalizeSnapshotJsonFields(args[curArg] as object);
-  console.error("DEDB parsed snapshotJson: ", snapshotJson);
-  console.error("DEDB parsed bundleSource: ", snapshotJson.bundleSource);
+  const snapshotJson = normalizeSnapshotJsonFields(args[curArg++] as object);
   if (snapshotJson.error) {
     throw new FirestoreError(Code.INVALID_ARGUMENT, snapshotJson.error);
   }
-  curArg++;
   let options: SnapshotListenOptions | undefined = undefined;
   if (typeof args[curArg] === 'object' && !isPartialObserver(args[curArg])) {
     options = args[curArg++] as SnapshotListenOptions;
   }
 
-  if (snapshotJson.bundleSource === "QuerySnapshot") {
-    console.error("DEDB QuerySnapshot, snapshotJson.bundleSource: ", snapshotJson.bundleSource);
+  if (snapshotJson.bundleSource === 'QuerySnapshot') {
     let observer: {
       next: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
       error?: (error: FirestoreError) => void;
@@ -1140,8 +1135,7 @@ function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(
       observer!,
       args[curArg] as FirestoreDataConverter<DbModelType>
     );
-  } else if (snapshotJson.bundleSource === "DocumentSnapshot") {
-    console.error("DEDB DocumentSnapshot snapshotJson.bundleSource", snapshotJson.bundleSource);
+  } else if (snapshotJson.bundleSource === 'DocumentSnapshot') {
     let observer: {
       next: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
       error?: (error: FirestoreError) => void;
@@ -1173,7 +1167,6 @@ function onSnapshotBundle<AppModelType, DbModelType extends DocumentData>(
       args[curArg] as FirestoreDataConverter<DbModelType>
     );
   } else {
-    console.error("DEDB other, bundleSource : ", snapshotJson.bundleSource);
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
       `unsupported bundle source: ${snapshotJson.bundleSource}`
@@ -1225,16 +1218,14 @@ function normalizeSnapshotJsonFields(snapshotJson: object): {
       result.error = `snapshotJson field '${key}' cannot be an empty string.`;
       break;
     }
-    console.error("DEDB setting key: \"" + key + "\"  value: \"" + value + "\"");
     if (key === 'bundle') {
-      result.bundle = value; // No assertion needed, TS knows 'bundle' is a key
+      result.bundle = value;
     } else if (key === 'bundleName') {
-      result.bundleName = value; // No assertion needed
+      result.bundleName = value;
     } else if (key === 'bundleSource') {
-      result.bundleSource = value; // No assertion needed
+      result.bundleSource = value;
     }
   }
-  console.error("DEDB returning result.bundleSource: ", result.bundleSource, " result.error: ", result.error);
   return result;
 }
 
