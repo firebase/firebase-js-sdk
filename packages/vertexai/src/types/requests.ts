@@ -24,6 +24,7 @@ import {
   HarmCategory
 } from './enums';
 import { ObjectSchemaInterface, SchemaRequest } from './schema';
+import {LanguageModelCreateOptions} from '../types/language-model';
 
 /**
  * Base parameters for a number of methods.
@@ -225,7 +226,7 @@ export interface HybridParams {
   /**
    * Optional. Specifies advanced params for on-device inference.
    */
-  onDeviceParams?: AILanguageModelCreateOptionsWithSystemPrompt;
+  onDeviceParams?: LanguageModelCreateOptions;
   /**
    * Optional. Specifies advanced params for in-cloud inference.
    */
