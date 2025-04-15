@@ -22,21 +22,35 @@
  */
 
 import { registerVersion, _registerComponent } from '@firebase/app';
-import { VertexAIService } from './service';
-import { VERTEX_TYPE } from './constants';
+import { GenAIService } from './service';
+import { DEFAULT_INSTANCE_IDENTIFER, GENAI_TYPE } from './constants';
 import { Component, ComponentType } from '@firebase/component';
 import { name, version } from '../package.json';
+import { InstanceIdentifier } from './types/internal';
+import { decodeInstanceIdentifier } from './helpers';
 
-function registerVertex(): void {
+function registerGenAI(): void {
   _registerComponent(
     new Component(
-      VERTEX_TYPE,
-      (container, { instanceIdentifier: location }) => {
+      GENAI_TYPE,
+      (container, options) => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const auth = container.getProvider('auth-internal');
         const appCheckProvider = container.getProvider('app-check-internal');
-        return new VertexAIService(app, auth, appCheckProvider, { location });
+
+        let instanceIdentifier: InstanceIdentifier;
+        if (options.instanceIdentifier) {
+          instanceIdentifier = decodeInstanceIdentifier(
+            options.instanceIdentifier
+          );
+        } else {
+          instanceIdentifier = DEFAULT_INSTANCE_IDENTIFER;
+        }
+
+        const backend = instanceIdentifier;
+
+        return new GenAIService(app, backend, auth, appCheckProvider);
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)
@@ -47,7 +61,7 @@ function registerVertex(): void {
   registerVersion(name, version, '__BUILD_TARGET__');
 }
 
-registerVertex();
+registerGenAI();
 
 export * from './api';
 export * from './public-types';

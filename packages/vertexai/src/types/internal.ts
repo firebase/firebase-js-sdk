@@ -17,6 +17,7 @@
 
 import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
+import { Backend } from '../public-types';
 
 export * from './imagen/internal';
 
@@ -24,8 +25,14 @@ export interface ApiSettings {
   apiKey: string;
   project: string;
   appId: string;
-  location: string;
   automaticDataCollectionEnabled?: boolean;
+  /**
+   * @deprecated
+   */
+  location: string;
+  backend: Backend;
   getAuthToken?: () => Promise<FirebaseAuthTokenData | null>;
   getAppCheckToken?: () => Promise<AppCheckTokenResult>;
 }
+
+export type InstanceIdentifier = Backend;

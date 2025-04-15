@@ -18,7 +18,7 @@
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 import { Schema } from './schema-builder';
-import { VertexAIErrorCode } from '../types';
+import { GenAIErrorCode } from '../types';
 
 use(sinonChai);
 
@@ -243,7 +243,7 @@ describe('Schema builder', () => {
       },
       optionalProperties: ['cat']
     });
-    expect(() => schema.toJSON()).to.throw(VertexAIErrorCode.INVALID_SCHEMA);
+    expect(() => schema.toJSON()).to.throw(GenAIErrorCode.INVALID_SCHEMA);
   });
 });
 

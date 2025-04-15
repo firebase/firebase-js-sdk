@@ -16,7 +16,7 @@
  */
 
 import { expect, use } from 'chai';
-import { match, restore, stub } from 'sinon';
+import Sinon, { match, restore, stub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import { getMockResponse } from '../../test-utils/mock-response';
@@ -25,6 +25,8 @@ import { countTokens } from './count-tokens';
 import { CountTokensRequest } from '../types';
 import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
+import { googleAIBackend, vertexAIBackend } from '../api';
+import { mapCountTokensRequest } from '../googleAIMappers';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -33,7 +35,16 @@ const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'us-central1'
+  location: 'us-central1',
+  backend: vertexAIBackend()
+};
+
+const fakeGoogleAIApiSettings: ApiSettings = {
+  apiKey: 'key',
+  project: 'my-project',
+  appId: 'my-appid',
+  location: 'us-central1',
+  backend: googleAIBackend()
 };
 
 const fakeRequestParams: CountTokensRequest = {
@@ -138,5 +149,31 @@ describe('countTokens()', () => {
       countTokens(fakeApiSettings, 'model', fakeRequestParams)
     ).to.be.rejectedWith(/404.*not found/);
     expect(mockFetch).to.be.called;
+  });
+  describe('googleAI', () => {
+    let makeRequestStub: Sinon.SinonStub;
+
+    beforeEach(() => {
+      makeRequestStub = stub(request, 'makeRequest');
+    });
+
+    afterEach(() => {
+      restore();
+    });
+
+    it('maps request to GoogleAI format', async () => {
+      makeRequestStub.resolves({ ok: true, json: () => {} } as Response); // Unused
+
+      await countTokens(fakeGoogleAIApiSettings, 'model', fakeRequestParams);
+
+      expect(makeRequestStub).to.be.calledWith(
+        'model',
+        Task.COUNT_TOKENS,
+        fakeGoogleAIApiSettings,
+        false,
+        JSON.stringify(mapCountTokensRequest(fakeRequestParams, 'model')),
+        undefined
+      );
+    });
   });
 });

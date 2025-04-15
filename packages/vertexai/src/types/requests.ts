@@ -63,6 +63,11 @@ export interface GenerateContentRequest extends BaseParams {
 export interface SafetySetting {
   category: HarmCategory;
   threshold: HarmBlockThreshold;
+  /**
+   * This property is not supported in Google AI.
+   * If this is a property on a {@link GenerateContentRequest} to be sent, a {@link GenAIError}
+   * will be thrown.
+   */
   method?: HarmBlockMethod;
 }
 

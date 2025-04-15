@@ -15,6 +15,15 @@
  * limitations under the License.
  */
 
-export * from './genai-model';
-export * from './generative-model';
-export * from './imagen-model';
+import { Content, Part } from '../content';
+import { GenerationConfig, Tool } from '../requests';
+
+export interface GoogleAICountTokensRequest {
+  generateContentRequest: {
+    model: string; // 'models/model-name'
+    contents: Content[];
+    systemInstruction?: string | Part | Content;
+    tools?: Tool[];
+    generationConfig?: GenerationConfig;
+  };
+}

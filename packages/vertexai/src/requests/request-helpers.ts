@@ -19,9 +19,9 @@ import {
   Content,
   GenerateContentRequest,
   Part,
-  VertexAIErrorCode
+  GenAIErrorCode
 } from '../types';
-import { VertexAIError } from '../errors';
+import { GenAIError } from '../errors';
 import { ImagenGenerationParams, PredictRequestBody } from '../types/internal';
 
 export function formatSystemInstruction(
@@ -87,15 +87,15 @@ function assignRoleToPartsAndValidateSendMessageRequest(
   }
 
   if (hasUserContent && hasFunctionContent) {
-    throw new VertexAIError(
-      VertexAIErrorCode.INVALID_CONTENT,
+    throw new GenAIError(
+      GenAIErrorCode.INVALID_CONTENT,
       'Within a single message, FunctionResponse cannot be mixed with other type of Part in the request for sending chat message.'
     );
   }
 
   if (!hasUserContent && !hasFunctionContent) {
-    throw new VertexAIError(
-      VertexAIErrorCode.INVALID_CONTENT,
+    throw new GenAIError(
+      GenAIErrorCode.INVALID_CONTENT,
       'No Content is provided for sending chat message.'
     );
   }

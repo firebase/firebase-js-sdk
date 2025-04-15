@@ -516,6 +516,14 @@ toc:
     path: /docs/reference/js/vertexai.functionresponse.md
   - title: FunctionResponsePart
     path: /docs/reference/js/vertexai.functionresponsepart.md
+  - title: GenAI
+    path: /docs/reference/js/vertexai.genai.md
+  - title: GenAIError
+    path: /docs/reference/js/vertexai.genaierror.md
+  - title: GenAIModel
+    path: /docs/reference/js/vertexai.genaimodel.md
+  - title: GenAIOptions
+    path: /docs/reference/js/vertexai.genaioptions.md
   - title: GenerateContentCandidate
     path: /docs/reference/js/vertexai.generatecontentcandidate.md
   - title: GenerateContentRequest
@@ -598,12 +606,6 @@ toc:
     path: /docs/reference/js/vertexai.toolconfig.md
   - title: UsageMetadata
     path: /docs/reference/js/vertexai.usagemetadata.md
-  - title: VertexAI
-    path: /docs/reference/js/vertexai.vertexai.md
-  - title: VertexAIError
-    path: /docs/reference/js/vertexai.vertexaierror.md
-  - title: VertexAIModel
-    path: /docs/reference/js/vertexai.vertexaimodel.md
   - title: VertexAIOptions
     path: /docs/reference/js/vertexai.vertexaioptions.md
   - title: VideoMetadata

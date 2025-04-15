@@ -72,6 +72,9 @@ export function getMockResponse(
   filename: string
 ): Partial<Response> {
   const mocksLookup = mockSetMaps[backendName];
+  if (backendName === 'googleAI') {
+    console.log(Object.keys(mocksLookup));
+  }
   if (!(filename in mocksLookup)) {
     throw Error(`${backendName} mock response file '${filename}' not found.`);
   }

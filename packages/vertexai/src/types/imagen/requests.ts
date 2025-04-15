@@ -88,6 +88,9 @@ export interface ImagenGenerationConfig {
    *
    * For Imagen 3 models, the default value is `true`; see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen">addWatermark</a>
    * documentation for more details.
+   *
+   * @remarks
+   * In Google AI, the default value is true, and it cannot be turned off.
    */
   addWatermark?: boolean;
 }

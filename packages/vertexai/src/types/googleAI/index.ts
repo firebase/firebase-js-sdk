@@ -15,6 +15,5 @@
  * limitations under the License.
  */
 
-export * from './genai-model';
-export * from './generative-model';
-export * from './imagen-model';
+export * from './requests';
+export * from './responses';
