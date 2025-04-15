@@ -462,6 +462,46 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(query
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, options: SnapshotListenOptions, onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
 
 // @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, options: SnapshotListenOptions, onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, options: SnapshotListenOptions, onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, observer: {
+    next: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+}, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, observer: {
+    next: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+}, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, options: SnapshotListenOptions, observer: {
+    next: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+}, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, options: SnapshotListenOptions, observer: {
+    next: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+}, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
 export function onSnapshotsInSync(firestore: Firestore, observer: {
     next?: (value: void) => void;
     error?: (error: FirestoreError) => void;
