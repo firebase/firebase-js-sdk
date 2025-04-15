@@ -52,7 +52,6 @@
     "@firebase/component": "0.6.13",
     "@firebase/logger": "0.4.4",
     "@firebase/util": "1.11.0",
-    "@types/dom-chromium-ai": "0.0.6",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
