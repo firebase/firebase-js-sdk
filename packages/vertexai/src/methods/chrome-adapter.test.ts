@@ -307,10 +307,12 @@ describe('ChromeAdapter', () => {
       } as AI;
       const inputText = "first";
       const expectedCount = 10;
-      const countPromptTokensStub = stub().resolves(expectedCount);
-      const factoryStub = stub(aiProvider.languageModel, 'create').resolves({
-        countPromptTokens: countPromptTokensStub
-      } as unknown as AILanguageModel);
+      const model = {
+        countPromptTokens: _s => Promise.resolve(123),
+      } as AILanguageModel;
+      // overrides impl with stub method
+      const countPromptTokensStub = stub(model, 'countPromptTokens').resolves(expectedCount);
+      const factoryStub = stub(aiProvider.languageModel, 'create').resolves(model);
       const adapter = new ChromeAdapter(
         aiProvider,
         'prefer_on_device',
@@ -340,10 +342,12 @@ describe('ChromeAdapter', () => {
         }
       } as AI;
       const expectedCount = 10;
-      const countPromptTokensStub = stub().resolves(expectedCount);
-      const factoryStub = stub(aiProvider.languageModel, 'create').resolves({
-        countPromptTokens: countPromptTokensStub
-      } as unknown as AILanguageModel);
+      const model = {
+        countPromptTokens: _s => Promise.resolve(123),
+      } as AILanguageModel;
+      // overrides impl with stub method
+      const countPromptTokensStub = stub(model, 'countPromptTokens').resolves(expectedCount);
+      const factoryStub = stub(aiProvider.languageModel, 'create').resolves(model);
       const text = ['first', 'second', 'third'];
       const onDeviceParams = {
         initialPrompts: [{ role: 'user', content: text[0] }]
