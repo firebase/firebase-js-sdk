@@ -91,4 +91,38 @@ export class Bytes {
   isEqual(other: Bytes): boolean {
     return this._byteString.isEqual(other._byteString);
   }
+
+  /** Returns a JSON-serializable representation of this `Bytes` instance. */
+  toJSON(): object {
+    return {
+      type: 'firestore/bytes/1.0',
+      data: this.toBase64()
+    };
+  }
+  /** Builds a `Bytes` instance from a JSON serialized version of `Bytes`. */
+  static fromJSON(json: object): Bytes {
+    const requiredFields = ['type', 'data'];
+    let error: string | undefined = undefined;
+    let data: string = '';
+    for (const key of requiredFields) {
+      if (!(key in json)) {
+        error = `json missing required field: ${key}`;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const value = (json as any)[key];
+      if (typeof value !== 'string') {
+        error = `json field '${key}' must be a string.`;
+        break;
+      } else if (key === 'type' && value !== 'firestore/bytes/1.0') {
+        error = "Expected 'type' field to equal 'firestore/bytes/1.0'";
+        break;
+      } else if (key === 'data') {
+        data = value;
+      }
+    }
+    if (error) {
+      throw new FirestoreError(Code.INVALID_ARGUMENT, error);
+    }
+    return Bytes.fromBase64String(data);
+  }
 }

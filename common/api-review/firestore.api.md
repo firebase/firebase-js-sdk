@@ -68,9 +68,11 @@ export function average(field: string | FieldPath): AggregateField<number | null
 // @public
 export class Bytes {
     static fromBase64String(base64: string): Bytes;
+    static fromJSON(json: object): Bytes;
     static fromUint8Array(array: Uint8Array): Bytes;
     isEqual(other: Bytes): boolean;
     toBase64(): string;
+    toJSON(): object;
     toString(): string;
     toUint8Array(): Uint8Array;
 }
