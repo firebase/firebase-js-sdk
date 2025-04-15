@@ -16,6 +16,7 @@
  */
 
 import { isPrimitiveArrayEqual } from '../util/array';
+import { Code, FirestoreError } from '../util/error';
 
 /**
  * Represents a vector type in Firestore documents.
@@ -47,5 +48,50 @@ export class VectorValue {
    */
   isEqual(other: VectorValue): boolean {
     return isPrimitiveArrayEqual(this._values, other._values);
+  }
+
+  /** Returns a JSON-serializable representation of this `VectorValue` instance. */
+  toJSON(): object {
+    return {
+      type: 'firestore/vectorValue/1.0',
+      data: this._values
+    };
+  }
+  /** Builds a `Bytes` instance from a JSON serialized version of `Bytes`. */
+  static fromJSON(json: object): VectorValue {
+    const requiredFields = ['type', 'data'];
+    let error: string | undefined = undefined;
+    let data: number[] = [];
+    for (const key of requiredFields) {
+      if (!(key in json)) {
+        error = `json missing required field: ${key}`;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const value = (json as any)[key];
+      if (key === 'type') {
+        if (typeof value !== 'string') {
+          error = `json field 'type' must be a string.`;
+          break;
+        } else if (value !== 'firestore/vectorValue/1.0') {
+          error = "Expected 'type' field to equal 'firestore/vectorValue/1.0'";
+          break;
+        }
+      } else {
+        // First, confirm it's actually an array
+        if (
+          Array.isArray(value) &&
+          value.every(element => typeof element === 'number')
+        ) {
+          data = value;
+        } else {
+          error = "Expected 'data' field to be a number array";
+          break;
+        }
+      }
+    }
+    if (error) {
+      throw new FirestoreError(Code.INVALID_ARGUMENT, error);
+    }
+    return new VectorValue(data);
   }
 }

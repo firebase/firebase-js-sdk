@@ -24,8 +24,30 @@ export declare class VectorValue
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
+|  [fromJSON(json)](./firestore_.vectorvalue.md#vectorvaluefromjson) | <code>static</code> | Builds a <code>Bytes</code> instance from a JSON serialized version of <code>Bytes</code>. |
 |  [isEqual(other)](./firestore_.vectorvalue.md#vectorvalueisequal) |  | Returns <code>true</code> if the two <code>VectorValue</code> values have the same raw number arrays, returns <code>false</code> otherwise. |
 |  [toArray()](./firestore_.vectorvalue.md#vectorvaluetoarray) |  | Returns a copy of the raw number array form of the vector. |
+|  [toJSON()](./firestore_.vectorvalue.md#vectorvaluetojson) |  | Returns a JSON-serializable representation of this <code>VectorValue</code> instance. |
+
+## VectorValue.fromJSON()
+
+Builds a `Bytes` instance from a JSON serialized version of `Bytes`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+static fromJSON(json: object): VectorValue;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  json | object |  |
+
+<b>Returns:</b>
+
+[VectorValue](./firestore_.vectorvalue.md#vectorvalue_class)
 
 ## VectorValue.isEqual()
 
@@ -59,4 +81,17 @@ toArray(): number[];
 <b>Returns:</b>
 
 number\[\]
+
+## VectorValue.toJSON()
+
+Returns a JSON-serializable representation of this `VectorValue` instance.
+
+<b>Signature:</b>
+
+```typescript
+toJSON(): object;
+```
+<b>Returns:</b>
+
+object
 

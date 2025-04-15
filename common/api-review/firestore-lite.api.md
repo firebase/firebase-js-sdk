@@ -468,8 +468,10 @@ export function vector(values?: number[]): VectorValue;
 // @public
 export class VectorValue {
     /* Excluded from this release type: __constructor */
+    static fromJSON(json: object): VectorValue;
     isEqual(other: VectorValue): boolean;
     toArray(): number[];
+    toJSON(): object;
 }
 
 // @public

@@ -55,11 +55,24 @@ describe('Bytes', () => {
     expectEqual(blob(1, 2, 3), blob(1, 2, 3));
     expectNotEqual(blob(1, 2, 3), blob(4, 5, 6));
   });
-  
+
   it('fromJSON reconstructs the value from toJSON', () => {
-    const bytes  = Bytes.fromUint8Array(new Uint8Array([0, 1, 2, 3, 4, 5]));
-    expect(() => { Bytes.fromJSON(bytes.toJSON())} ).to.not.throw;
+    const bytes = Bytes.fromUint8Array(new Uint8Array([0, 1, 2, 3, 4, 5]));
+    expect(() => {
+      Bytes.fromJSON(bytes.toJSON());
+    }).to.not.throw;
     expect(Bytes.fromJSON(bytes.toJSON()).isEqual(bytes)).to.be.true;
+  });
+
+  it('fromJSON parameter order does not matter', () => {
+    const type = 'firestore/bytes/1.0';
+    const data = 'AA==';
+    expect(() => {
+      Bytes.fromJSON({ data, type });
+    }).to.not.throw;
+    expect(() => {
+      Bytes.fromJSON({ type, data });
+    }).to.not.throw;
   });
 
   it('toJSON -> fromJSON bytes comparison', () => {
@@ -74,12 +87,20 @@ describe('Bytes', () => {
         expect(actualUint8Array[i]).to.equal(expectedUint8Array[i]);
       }
     });
-  })
+  });
 
   it('fromJSON misisng fields throws', () => {
-    expect(() => {Bytes.fromJSON({type: 'firestore/bytes/1.0' /* missing data */})}).to.throw;
-    expect(() => {Bytes.fromJSON({data: 'AA==' /* missing type */})}).to.throw;
-    expect(() => {Bytes.fromJSON({type: 1, data: 'AA==' })}).to.throw;
-    expect(() => {Bytes.fromJSON({type: 'firestore/bytes/1.0', data: 1 })}).to.throw;
+    expect(() => {
+      Bytes.fromJSON({ type: 'firestore/bytes/1.0' /* missing data */ });
+    }).to.throw;
+    expect(() => {
+      Bytes.fromJSON({ data: 'AA==' /* missing type */ });
+    }).to.throw;
+    expect(() => {
+      Bytes.fromJSON({ type: 1, data: 'AA==' });
+    }).to.throw;
+    expect(() => {
+      Bytes.fromJSON({ type: 'firestore/bytes/1.0', data: 1 });
+    }).to.throw;
   });
 });
