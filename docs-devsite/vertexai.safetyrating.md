@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # SafetyRating interface
-A safety rating associated with a <code>[GenerateContentCandidate](./vertexai.generatecontentcandidate.md#generatecontentcandidate_interface)</code>
+A safety rating associated with a [GenerateContentCandidate](./vertexai.generatecontentcandidate.md#generatecontentcandidate_interface)
 
 <b>Signature:</b>
 

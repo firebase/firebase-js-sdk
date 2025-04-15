@@ -24,7 +24,7 @@ export interface ImagenInlineImage {
   /**
    * The MIME type of the image; either `"image/png"` or `"image/jpeg"`.
    *
-   * To request a different format, set the `imageFormat` property in your <code>{@link ImagenGenerationConfig}</code>.
+   * To request a different format, set the `imageFormat` property in your {@link ImagenGenerationConfig}.
    */
   mimeType: string;
   /**
@@ -42,7 +42,7 @@ export interface ImagenGCSImage {
   /**
    * The MIME type of the image; either `"image/png"` or `"image/jpeg"`.
    *
-   * To request a different format, set the `imageFormat` property in your <code>{@link ImagenGenerationConfig}</code>.
+   * To request a different format, set the `imageFormat` property in your {@link ImagenGenerationConfig}.
    */
   mimeType: string;
   /**
@@ -72,9 +72,9 @@ export interface ImagenGenerationResponse<
    * The reason that images were filtered out. This property will only be defined if one
    * or more images were filtered.
    *
-   * Images may be filtered out due to the <code>{@link ImagenSafetyFilterLevel}</code>,
-   * <code>{@link ImagenPersonFilterLevel}</code>, or filtering included in the model.
-   * The filter levels may be adjusted in your <code>{@link ImagenSafetySettings}</code>.
+   * Images may be filtered out due to the {@link ImagenSafetyFilterLevel},
+   * {@link ImagenPersonFilterLevel}, or filtering included in the model.
+   * The filter levels may be adjusted in your {@link ImagenSafetySettings}.
    *
    * See the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen | Responsible AI and usage guidelines for Imagen}
    * for more details.

@@ -23,7 +23,7 @@ export interface CustomErrorData
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [errorDetails](./vertexai.customerrordata.md#customerrordataerrordetails) | [ErrorDetails](./vertexai.errordetails.md#errordetails_interface)<!-- -->\[\] | Optional additional details about the error. |
-|  [response](./vertexai.customerrordata.md#customerrordataresponse) | [GenerateContentResponse](./vertexai.generatecontentresponse.md#generatecontentresponse_interface) | Response from a <code>[GenerateContentRequest](./vertexai.generatecontentrequest.md#generatecontentrequest_interface)</code> |
+|  [response](./vertexai.customerrordata.md#customerrordataresponse) | [GenerateContentResponse](./vertexai.generatecontentresponse.md#generatecontentresponse_interface) | Response from a [GenerateContentRequest](./vertexai.generatecontentrequest.md#generatecontentrequest_interface) |
 |  [status](./vertexai.customerrordata.md#customerrordatastatus) | number | HTTP status code of the error response. |
 |  [statusText](./vertexai.customerrordata.md#customerrordatastatustext) | string | HTTP status text of the error response. |
 
@@ -39,7 +39,7 @@ errorDetails?: ErrorDetails[];
 
 ## CustomErrorData.response
 
-Response from a <code>[GenerateContentRequest](./vertexai.generatecontentrequest.md#generatecontentrequest_interface)</code>
+Response from a [GenerateContentRequest](./vertexai.generatecontentrequest.md#generatecontentrequest_interface)
 
 <b>Signature:</b>
 
