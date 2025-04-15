@@ -16,7 +16,7 @@ export interface LanguageModelParams {
 export interface LanguageModelCreateCoreOptions {
     topK?: number;
     temperature?: number;
-    expectedInputs?: Array<LanguageModelExpectedInput>;
+    expectedInputs?: LanguageModelExpectedInput[];
 }
 export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptions {
     signal?: AbortSignal;
@@ -25,18 +25,17 @@ export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptio
     initialPrompts?: LanguageModelInitialPrompts;
 }
 export interface LanguageModelPromptOptions {
-    responseJSONSchema?: any;
     signal?: AbortSignal;
 }
 export interface LanguageModelExpectedInput {
     type: LanguageModelMessageType;
-    languages?: Array<string>;
+    languages?: string[];
 }
-export type LanguageModelPrompt = Array<LanguageModelMessage> | Array<LanguageModelMessageShorthand> | string;
-export type LanguageModelInitialPrompts = Array<LanguageModelMessage> | Array<LanguageModelMessageShorthand>;
+export type LanguageModelPrompt = LanguageModelMessage[] | LanguageModelMessageShorthand[] | string;
+export type LanguageModelInitialPrompts = LanguageModelMessage[] | LanguageModelMessageShorthand[];
 export interface LanguageModelMessage {
     role: LanguageModelMessageRole;
-    content: Array<LanguageModelMessageContent>;
+    content: LanguageModelMessageContent[];
 }
 export interface LanguageModelMessageShorthand {
     role: LanguageModelMessageRole;
