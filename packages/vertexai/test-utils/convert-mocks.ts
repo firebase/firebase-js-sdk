@@ -30,8 +30,7 @@ type BackendName = 'vertexAI' | 'googleAI';
 
 const mockDirs: Record<BackendName, string> = {
   vertexAI: join(MOCK_RESPONSES_DIR_PATH, 'vertexai'),
-  // Note: the dirname is developerapi is legacy. It should be updated to googleai.
-  googleAI: join(MOCK_RESPONSES_DIR_PATH, 'developerapi')
+  googleAI: join(MOCK_RESPONSES_DIR_PATH, 'googleai')
 };
 
 /**
