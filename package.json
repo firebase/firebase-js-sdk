@@ -56,11 +56,16 @@
     "type": "git",
     "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
-  "workspaces": [
-    "packages/*",
-    "integration/*",
-    "repo-scripts/*"
-  ],
+  "workspaces": {
+    "packages": [
+      "packages/*",
+      "integration/*",
+      "repo-scripts/*"
+    ],
+    "nohoist": [
+      "**/vertexai/@types/dom-chromium-ai"
+    ]
+  },
   "devDependencies": {
     "@babel/core": "7.26.8",
     "@babel/plugin-transform-modules-commonjs": "7.26.3",

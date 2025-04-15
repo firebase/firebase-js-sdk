@@ -23,6 +23,7 @@ import { VertexAIService } from './service';
 import { VertexAI, VertexAIOptions } from './public-types';
 import {
   ImagenModelParams,
+  HybridParams,
   ModelParams,
   RequestOptions,
   VertexAIErrorCode
@@ -70,16 +71,27 @@ export function getVertexAI(
  */
 export function getGenerativeModel(
   vertexAI: VertexAI,
-  modelParams: ModelParams,
+  modelParams: ModelParams | HybridParams,
   requestOptions?: RequestOptions
 ): GenerativeModel {
-  if (!modelParams.model) {
+  // Uses the existence of HybridParams.mode to clarify the type of the modelParams input.
+  const hybridParams = modelParams as HybridParams;
+  let inCloudParams: ModelParams;
+  if (hybridParams.mode) {
+    inCloudParams = hybridParams.inCloudParams || {
+      model: GenerativeModel.DEFAULT_HYBRID_IN_CLOUD_MODEL
+    };
+  } else {
+    inCloudParams = modelParams as ModelParams;
+  }
+
+  if (!inCloudParams.model) {
     throw new VertexAIError(
       VertexAIErrorCode.NO_MODEL,
       `Must provide a model name. Example: getGenerativeModel({ model: 'my-model-name' })`
     );
   }
-  return new GenerativeModel(vertexAI, modelParams, requestOptions);
+  return new GenerativeModel(vertexAI, inCloudParams, requestOptions);
 }
 
 /**
