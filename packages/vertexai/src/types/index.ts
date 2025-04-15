@@ -17,7 +17,6 @@
 
 export * from './content';
 export * from './enums';
-export * from './language-model';
 export * from './requests';
 export * from './responses';
 export * from './error';
