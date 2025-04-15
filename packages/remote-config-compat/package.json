@@ -50,7 +50,7 @@
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.36.0",
     "typescript": "5.5.4",
-    "@firebase/app-compat": "0.2.52"
+    "@firebase/app-compat": "0.2.53"
   },
   "repository": {
     "directory": "packages/remote-config-compat",

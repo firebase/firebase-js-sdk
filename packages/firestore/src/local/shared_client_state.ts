@@ -1085,7 +1085,9 @@ function fromWebStorageSequenceNumber(
       const parsed = JSON.parse(seqString);
       hardAssert(
         typeof parsed === 'number',
-        'Found non-numeric sequence number'
+        0x77ac,
+        'Found non-numeric sequence number',
+        { seqString }
       );
       sequenceNumber = parsed;
     } catch (e) {

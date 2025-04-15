@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2024 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { mocksLookup } from './mocks-lookup';
+import { vertexAIMocksLookup, googleAIMocksLookup } from './mocks-lookup';
+
+const mockSetMaps: Record<BackendName, Record<string, string>> = {
+  'vertexAI': vertexAIMocksLookup,
+  'googleAI': googleAIMocksLookup
+};
 
 /**
  * Mock native Response.body
@@ -45,25 +50,33 @@ export function getChunkedStream(
 
   return stream;
 }
+
 export function getMockResponseStreaming(
+  backendName: BackendName,
   filename: string,
   chunkLength: number = 20
 ): Partial<Response> {
-  if (!(filename in mocksLookup)) {
-    throw Error(`Mock response file '${filename}' not found.`);
+  const mocksMap = mockSetMaps[backendName];
+  if (!(filename in mocksMap)) {
+    throw Error(`${backendName} mock response file '${filename}' not found.`);
   }
-  const fullText = mocksLookup[filename];
+  const fullText = mocksMap[filename];
 
   return {
     body: getChunkedStream(fullText, chunkLength)
   };
 }
 
-export function getMockResponse(filename: string): Partial<Response> {
+export function getMockResponse(
+  backendName: BackendName,
+  filename: string
+): Partial<Response> {
+  const mocksLookup = mockSetMaps[backendName];
   if (!(filename in mocksLookup)) {
-    throw Error(`Mock response file '${filename}' not found.`);
+    throw Error(`${backendName} mock response file '${filename}' not found.`);
   }
   const fullText = mocksLookup[filename];
+
   return {
     ok: true,
     json: () => Promise.resolve(JSON.parse(fullText))

@@ -31,6 +31,7 @@
     "packages/util/dist/src/emulator.d.ts",
     "packages/util/dist/src/environment.d.ts",
     "packages/util/dist/src/compat.d.ts",
+    "packages/util/dist/src/global.d.ts",
     "packages/util/dist/src/obj.d.ts",
     "packages/firestore/src/protos/firestore_bundle_proto.ts",
     "packages/firestore/src/protos/firestore_proto_api.ts",
