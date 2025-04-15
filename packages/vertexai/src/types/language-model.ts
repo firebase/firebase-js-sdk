@@ -38,12 +38,6 @@ enum Availability {
   'downloading',
   'available'
 }
-interface LanguageModelParams {
-  readonly defaultTopK: number;
-  readonly maxTopK: number;
-  readonly defaultTemperature: number;
-  readonly maxTemperature: number;
-}
 interface LanguageModelCreateCoreOptions {
   topK?: number;
   temperature?: number;
@@ -79,11 +73,6 @@ interface LanguageModelMessageShorthand {
 interface LanguageModelMessageContent {
   type: LanguageModelMessageType;
   content: LanguageModelMessageContentValue;
-}
-interface LanguageModelPromptDict {
-  role?: LanguageModelMessageRole;
-  type?: LanguageModelMessageType;
-  content: LanguageModelMessageContent;
 }
 type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 type LanguageModelMessageType = 'text' | 'image' | 'audio';
