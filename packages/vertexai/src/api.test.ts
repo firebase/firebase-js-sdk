@@ -106,6 +106,21 @@ describe('Top level API', () => {
     expect(genModel).to.be.an.instanceOf(GenerativeModel);
     expect(genModel.model).to.equal('publishers/google/models/my-model');
   });
+  it('getGenerativeModel with HybridParams sets a default model', () => {
+    const genModel = getGenerativeModel(fakeVertexAI, {
+      mode: InferenceMode.ONLY_ON_DEVICE
+    });
+    expect(genModel.model).to.equal(
+      `publishers/google/models/${GenerativeModel.DEFAULT_HYBRID_IN_CLOUD_MODEL}`
+    );
+  });
+  it('getGenerativeModel with HybridParams honors a model override', () => {
+    const genModel = getGenerativeModel(fakeVertexAI, {
+      mode: InferenceMode.ONLY_IN_CLOUD,
+      inCloudParams: { model: 'my-model' }
+    });
+    expect(genModel.model).to.equal('publishers/google/models/my-model');
+  });
   it('getImagenModel throws if no model is provided', () => {
     try {
       getImagenModel(fakeVertexAI, {} as ImagenModelParams);
@@ -116,13 +131,6 @@ describe('Top level API', () => {
           `getImagenModel({ model: 'my-model-name' }) (vertexAI/${VertexAIErrorCode.NO_MODEL})`
       );
     }
-  });
-  it('getGenerativeModel with HybridParams sets the model', () => {
-    const genModel = getGenerativeModel(fakeVertexAI, {
-      mode: InferenceMode.ONLY_ON_CLOUD,
-      onCloudParams: { model: 'my-model' }
-    });
-    expect(genModel.model).to.equal('publishers/google/models/my-model');
   });
   it('getImagenModel throws if no apiKey is provided', () => {
     const fakeVertexNoApiKey = {
