@@ -16,7 +16,10 @@
  */
 
 import { GenerateContentRequest, InferenceMode } from '../types';
-import { LanguageModelCreateOptions } from '../types/language-model';
+import {
+  LanguageModel,
+  LanguageModelCreateOptions
+} from '../types/language-model';
 
 /**
  * Defines an inference "backend" that uses Chrome's on-device model,
@@ -24,6 +27,7 @@ import { LanguageModelCreateOptions } from '../types/language-model';
  */
 export class ChromeAdapter {
   constructor(
+    private languageModelProvider?: LanguageModel,
     private mode?: InferenceMode,
     private onDeviceParams?: LanguageModelCreateOptions
   ) {}
