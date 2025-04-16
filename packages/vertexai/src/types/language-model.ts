@@ -38,12 +38,13 @@ enum Availability {
   'downloading',
   'available'
 }
-interface LanguageModelCreateCoreOptions {
+export interface LanguageModelCreateCoreOptions {
   topK?: number;
   temperature?: number;
   expectedInputs?: LanguageModelExpectedInput[];
 }
-interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptions {
+export interface LanguageModelCreateOptions
+  extends LanguageModelCreateCoreOptions {
   signal?: AbortSignal;
   systemPrompt?: string;
   initialPrompts?: LanguageModelInitialPrompts;

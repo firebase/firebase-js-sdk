@@ -344,7 +344,7 @@ export class GenerativeModel extends VertexAIModel {
 }
 
 // @public
-export function getGenerativeModel(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
+export function getGenerativeModel(vertexAI: VertexAI, onCloudOrHybridParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 
 // @beta
 export function getImagenModel(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
@@ -414,6 +414,18 @@ export enum HarmSeverity {
     HARM_SEVERITY_LOW = "HARM_SEVERITY_LOW",
     HARM_SEVERITY_MEDIUM = "HARM_SEVERITY_MEDIUM",
     HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE"
+}
+
+// @public
+export interface HybridParams {
+    // (undocumented)
+    mode?: InferenceMode;
+    // (undocumented)
+    onCloudParams?: ModelParams;
+    // Warning: (ae-forgotten-export) The symbol "LanguageModelCreateOptions" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    onDeviceParams?: LanguageModelCreateOptions;
 }
 
 // @beta
@@ -498,6 +510,16 @@ export enum ImagenSafetyFilterLevel {
 export interface ImagenSafetySettings {
     personFilterLevel?: ImagenPersonFilterLevel;
     safetyFilterLevel?: ImagenSafetyFilterLevel;
+}
+
+// @public
+export enum InferenceMode {
+    // (undocumented)
+    ONLY_ON_CLOUD = "ONLY_ON_CLOUD",
+    // (undocumented)
+    ONLY_ON_DEVICE = "ONLY_ON_DEVICE",
+    // (undocumented)
+    PREFER_ON_DEVICE = "PREFER_ON_DEVICE"
 }
 
 // @public
