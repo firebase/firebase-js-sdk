@@ -55,7 +55,6 @@ The Vertex AI in Firebase Web SDK.
 |  [ImagenAspectRatio](./vertexai.md#imagenaspectratio) | <b><i>(Public Preview)</i></b> Aspect ratios for Imagen images.<!-- -->To specify an aspect ratio for generated images, set the <code>aspectRatio</code> property in your [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.<!-- -->See the the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details and examples of the supported aspect ratios. |
 |  [ImagenPersonFilterLevel](./vertexai.md#imagenpersonfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details. |
 |  [ImagenSafetyFilterLevel](./vertexai.md#imagensafetyfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
-|  [InferenceMode](./vertexai.md#inferencemode) | Determines whether inference happens on-device or in-cloud. |
 |  [Modality](./vertexai.md#modality) | Content part modality. |
 |  [SchemaType](./vertexai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
 |  [VertexAIErrorCode](./vertexai.md#vertexaierrorcode) | Standardized error codes that [VertexAIError](./vertexai.vertexaierror.md#vertexaierror_class) can have. |
@@ -132,6 +131,7 @@ The Vertex AI in Firebase Web SDK.
 
 |  Type Alias | Description |
 |  --- | --- |
+|  [InferenceMode](./vertexai.md#inferencemode) | Determines whether inference happens on-device or in-cloud. |
 |  [Part](./vertexai.md#part) | Content part - includes text, image/video, or function call/response part types. |
 |  [Role](./vertexai.md#role) | Role is the producer of the content. |
 |  [Tool](./vertexai.md#tool) | Defines a tool that model can call to access external knowledge. |
@@ -223,6 +223,16 @@ Possible roles.
 
 ```typescript
 POSSIBLE_ROLES: readonly ["user", "model", "function", "system"]
+```
+
+## InferenceMode
+
+Determines whether inference happens on-device or in-cloud.
+
+<b>Signature:</b>
+
+```typescript
+export type InferenceMode = 'prefer_on_device' | 'only_on_device' | 'only_in_cloud';
 ```
 
 ## Part
@@ -490,24 +500,6 @@ export declare enum ImagenSafetyFilterLevel
 |  BLOCK\_MEDIUM\_AND\_ABOVE | <code>&quot;block_medium_and_above&quot;</code> | <b><i>(Public Preview)</i></b> Blocks some sensitive prompts and responses. |
 |  BLOCK\_NONE | <code>&quot;block_none&quot;</code> | <b><i>(Public Preview)</i></b> The least aggressive filtering level; blocks very few sensitive prompts and responses.<!-- -->Access to this feature is restricted and may require your case to be reviewed and approved by Cloud support. |
 |  BLOCK\_ONLY\_HIGH | <code>&quot;block_only_high&quot;</code> | <b><i>(Public Preview)</i></b> Blocks few sensitive prompts and responses. |
-
-## InferenceMode
-
-Determines whether inference happens on-device or in-cloud.
-
-<b>Signature:</b>
-
-```typescript
-export declare enum InferenceMode 
-```
-
-## Enumeration Members
-
-|  Member | Value | Description |
-|  --- | --- | --- |
-|  ONLY\_IN\_CLOUD | <code>&quot;ONLY_IN_CLOUD&quot;</code> | Exclusively uses the in-cloud model. |
-|  ONLY\_ON\_DEVICE | <code>&quot;ONLY_ON_DEVICE&quot;</code> | Exclusively uses the on-device model. Throws if one is not available. |
-|  PREFER\_ON\_DEVICE | <code>&quot;PREFER_ON_DEVICE&quot;</code> | Uses the on-device model if available, or falls back to the in-cloud model. |
 
 ## Modality
 

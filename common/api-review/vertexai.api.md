@@ -510,11 +510,7 @@ export interface ImagenSafetySettings {
 }
 
 // @public
-export enum InferenceMode {
-    ONLY_IN_CLOUD = "ONLY_IN_CLOUD",
-    ONLY_ON_DEVICE = "ONLY_ON_DEVICE",
-    PREFER_ON_DEVICE = "PREFER_ON_DEVICE"
-}
+export type InferenceMode = 'prefer_on_device' | 'only_on_device' | 'only_in_cloud';
 
 // @public
 export interface InlineDataPart {
