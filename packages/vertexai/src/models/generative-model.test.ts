@@ -21,6 +21,7 @@ import * as request from '../requests/request';
 import { match, restore, stub } from 'sinon';
 import { getMockResponse } from '../../test-utils/mock-response';
 import sinonChai from 'sinon-chai';
+import { ChromeAdapter } from '../methods/chrome-adapter';
 
 use(sinonChai);
 
@@ -39,21 +40,27 @@ const fakeVertexAI: VertexAI = {
 
 describe('GenerativeModel', () => {
   it('passes params through to generateContent', async () => {
-    const genModel = new GenerativeModel(fakeVertexAI, {
-      model: 'my-model',
-      tools: [
-        {
-          functionDeclarations: [
-            {
-              name: 'myfunc',
-              description: 'mydesc'
-            }
-          ]
-        }
-      ],
-      toolConfig: { functionCallingConfig: { mode: FunctionCallingMode.NONE } },
-      systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
-    });
+    const genModel = new GenerativeModel(
+      fakeVertexAI,
+      {
+        model: 'my-model',
+        tools: [
+          {
+            functionDeclarations: [
+              {
+                name: 'myfunc',
+                description: 'mydesc'
+              }
+            ]
+          }
+        ],
+        toolConfig: {
+          functionCallingConfig: { mode: FunctionCallingMode.NONE }
+        },
+        systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
+      },
+      new ChromeAdapter()
+    );
     expect(genModel.tools?.length).to.equal(1);
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
       FunctionCallingMode.NONE
@@ -84,10 +91,14 @@ describe('GenerativeModel', () => {
     restore();
   });
   it('passes text-only systemInstruction through to generateContent', async () => {
-    const genModel = new GenerativeModel(fakeVertexAI, {
-      model: 'my-model',
-      systemInstruction: 'be friendly'
-    });
+    const genModel = new GenerativeModel(
+      fakeVertexAI,
+      {
+        model: 'my-model',
+        systemInstruction: 'be friendly'
+      },
+      new ChromeAdapter()
+    );
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
     const mockResponse = getMockResponse(
       'vertexAI',
@@ -110,21 +121,27 @@ describe('GenerativeModel', () => {
     restore();
   });
   it('generateContent overrides model values', async () => {
-    const genModel = new GenerativeModel(fakeVertexAI, {
-      model: 'my-model',
-      tools: [
-        {
-          functionDeclarations: [
-            {
-              name: 'myfunc',
-              description: 'mydesc'
-            }
-          ]
-        }
-      ],
-      toolConfig: { functionCallingConfig: { mode: FunctionCallingMode.NONE } },
-      systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
-    });
+    const genModel = new GenerativeModel(
+      fakeVertexAI,
+      {
+        model: 'my-model',
+        tools: [
+          {
+            functionDeclarations: [
+              {
+                name: 'myfunc',
+                description: 'mydesc'
+              }
+            ]
+          }
+        ],
+        toolConfig: {
+          functionCallingConfig: { mode: FunctionCallingMode.NONE }
+        },
+        systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
+      },
+      new ChromeAdapter()
+    );
     expect(genModel.tools?.length).to.equal(1);
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
       FunctionCallingMode.NONE
@@ -166,14 +183,20 @@ describe('GenerativeModel', () => {
     restore();
   });
   it('passes params through to chat.sendMessage', async () => {
-    const genModel = new GenerativeModel(fakeVertexAI, {
-      model: 'my-model',
-      tools: [
-        { functionDeclarations: [{ name: 'myfunc', description: 'mydesc' }] }
-      ],
-      toolConfig: { functionCallingConfig: { mode: FunctionCallingMode.NONE } },
-      systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
-    });
+    const genModel = new GenerativeModel(
+      fakeVertexAI,
+      {
+        model: 'my-model',
+        tools: [
+          { functionDeclarations: [{ name: 'myfunc', description: 'mydesc' }] }
+        ],
+        toolConfig: {
+          functionCallingConfig: { mode: FunctionCallingMode.NONE }
+        },
+        systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
+      },
+      new ChromeAdapter()
+    );
     expect(genModel.tools?.length).to.equal(1);
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
       FunctionCallingMode.NONE
@@ -204,10 +227,14 @@ describe('GenerativeModel', () => {
     restore();
   });
   it('passes text-only systemInstruction through to chat.sendMessage', async () => {
-    const genModel = new GenerativeModel(fakeVertexAI, {
-      model: 'my-model',
-      systemInstruction: 'be friendly'
-    });
+    const genModel = new GenerativeModel(
+      fakeVertexAI,
+      {
+        model: 'my-model',
+        systemInstruction: 'be friendly'
+      },
+      new ChromeAdapter()
+    );
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
     const mockResponse = getMockResponse(
       'vertexAI',
@@ -230,14 +257,20 @@ describe('GenerativeModel', () => {
     restore();
   });
   it('startChat overrides model values', async () => {
-    const genModel = new GenerativeModel(fakeVertexAI, {
-      model: 'my-model',
-      tools: [
-        { functionDeclarations: [{ name: 'myfunc', description: 'mydesc' }] }
-      ],
-      toolConfig: { functionCallingConfig: { mode: FunctionCallingMode.NONE } },
-      systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
-    });
+    const genModel = new GenerativeModel(
+      fakeVertexAI,
+      {
+        model: 'my-model',
+        tools: [
+          { functionDeclarations: [{ name: 'myfunc', description: 'mydesc' }] }
+        ],
+        toolConfig: {
+          functionCallingConfig: { mode: FunctionCallingMode.NONE }
+        },
+        systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
+      },
+      new ChromeAdapter()
+    );
     expect(genModel.tools?.length).to.equal(1);
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
       FunctionCallingMode.NONE
@@ -282,7 +315,11 @@ describe('GenerativeModel', () => {
     restore();
   });
   it('calls countTokens', async () => {
-    const genModel = new GenerativeModel(fakeVertexAI, { model: 'my-model' });
+    const genModel = new GenerativeModel(
+      fakeVertexAI,
+      { model: 'my-model' },
+      new ChromeAdapter()
+    );
     const mockResponse = getMockResponse(
       'vertexAI',
       'unary-success-total-tokens.json'
