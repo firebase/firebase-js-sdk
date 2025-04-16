@@ -312,6 +312,7 @@ describe('generateContent()', () => {
     const chromeAdapter = new ChromeAdapter();
     const isAvailableStub = stub(chromeAdapter, 'isAvailable').resolves(true);
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-success-basic-reply-short.json'
     );
     const generateContentStub = stub(
