@@ -31,6 +31,7 @@ import {
 import { VertexAIError } from './errors';
 import { VertexAIModel, GenerativeModel, ImagenModel } from './models';
 import { ChromeAdapter } from './methods/chrome-adapter';
+import { LanguageModel } from './types/language-model';
 
 export { ChatSession } from './methods/chat-session';
 export * from './requests/schema-builder';
@@ -95,7 +96,11 @@ export function getGenerativeModel(
   return new GenerativeModel(
     vertexAI,
     inCloudParams,
-    new ChromeAdapter(hybridParams.mode, hybridParams.onDeviceParams),
+    new ChromeAdapter(
+      window.LanguageModel as LanguageModel,
+      hybridParams.mode,
+      hybridParams.onDeviceParams
+    ),
     requestOptions
   );
 }
