@@ -19,7 +19,7 @@ The Vertex AI in Firebase Web SDK.
 |  <b>function(app, ...)</b> |
 |  [getVertexAI(app, options)](./vertexai.md#getvertexai_04094cf) | Returns a [VertexAI](./vertexai.vertexai.md#vertexai_interface) instance for the given app. |
 |  <b>function(vertexAI, ...)</b> |
-|  [getGenerativeModel(vertexAI, onCloudOrHybridParams, requestOptions)](./vertexai.md#getgenerativemodel_202434f) | Returns a [GenerativeModel](./vertexai.generativemodel.md#generativemodel_class) class with methods for inference and other functionality. |
+|  [getGenerativeModel(vertexAI, modelParams, requestOptions)](./vertexai.md#getgenerativemodel_8dbc150) | Returns a [GenerativeModel](./vertexai.generativemodel.md#generativemodel_class) class with methods for inference and other functionality. |
 |  [getImagenModel(vertexAI, modelParams, requestOptions)](./vertexai.md#getimagenmodel_812c375) | <b><i>(Public Preview)</i></b> Returns an [ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class) class with methods for using Imagen.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported. |
 
 ## Classes
@@ -101,10 +101,10 @@ The Vertex AI in Firebase Web SDK.
 |  [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) | <b><i>(Public Preview)</i></b> Settings for controlling the aggressiveness of filtering out sensitive content.<!-- -->See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details. |
 |  [InlineDataPart](./vertexai.inlinedatapart.md#inlinedatapart_interface) | Content part interface if the part represents an image. |
 |  [ModalityTokenCount](./vertexai.modalitytokencount.md#modalitytokencount_interface) | Represents token counting info for a single modality. |
-|  [ModelParams](./vertexai.modelparams.md#modelparams_interface) | Params passed to [getGenerativeModel()](./vertexai.md#getgenerativemodel_202434f)<!-- -->. |
+|  [ModelParams](./vertexai.modelparams.md#modelparams_interface) | Params passed to [getGenerativeModel()](./vertexai.md#getgenerativemodel_8dbc150)<!-- -->. |
 |  [ObjectSchemaInterface](./vertexai.objectschemainterface.md#objectschemainterface_interface) | Interface for [ObjectSchema](./vertexai.objectschema.md#objectschema_class) class. |
 |  [PromptFeedback](./vertexai.promptfeedback.md#promptfeedback_interface) | If the prompt was blocked, this will be populated with <code>blockReason</code> and the relevant <code>safetyRatings</code>. |
-|  [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) | Params passed to [getGenerativeModel()](./vertexai.md#getgenerativemodel_202434f)<!-- -->. |
+|  [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) | Params passed to [getGenerativeModel()](./vertexai.md#getgenerativemodel_8dbc150)<!-- -->. |
 |  [RetrievedContextAttribution](./vertexai.retrievedcontextattribution.md#retrievedcontextattribution_interface) |  |
 |  [SafetyRating](./vertexai.safetyrating.md#safetyrating_interface) | A safety rating associated with a [GenerateContentCandidate](./vertexai.generatecontentcandidate.md#generatecontentcandidate_interface) |
 |  [SafetySetting](./vertexai.safetysetting.md#safetysetting_interface) | Safety setting that can be sent as part of request parameters. |
@@ -162,14 +162,14 @@ export declare function getVertexAI(app?: FirebaseApp, options?: VertexAIOptions
 
 ## function(vertexAI, ...)
 
-### getGenerativeModel(vertexAI, onCloudOrHybridParams, requestOptions) {:#getgenerativemodel_202434f}
+### getGenerativeModel(vertexAI, modelParams, requestOptions) {:#getgenerativemodel_8dbc150}
 
 Returns a [GenerativeModel](./vertexai.generativemodel.md#generativemodel_class) class with methods for inference and other functionality.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getGenerativeModel(vertexAI: VertexAI, onCloudOrHybridParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
+export declare function getGenerativeModel(vertexAI: VertexAI, modelParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 ```
 
 #### Parameters
@@ -177,7 +177,7 @@ export declare function getGenerativeModel(vertexAI: VertexAI, onCloudOrHybridPa
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  vertexAI | [VertexAI](./vertexai.vertexai.md#vertexai_interface) |  |
-|  onCloudOrHybridParams | [ModelParams](./vertexai.modelparams.md#modelparams_interface) \| [HybridParams](./vertexai.hybridparams.md#hybridparams_interface) |  |
+|  modelParams | [ModelParams](./vertexai.modelparams.md#modelparams_interface) \| [HybridParams](./vertexai.hybridparams.md#hybridparams_interface) |  |
 |  requestOptions | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) |  |
 
 <b>Returns:</b>

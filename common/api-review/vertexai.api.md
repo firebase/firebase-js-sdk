@@ -344,7 +344,7 @@ export class GenerativeModel extends VertexAIModel {
 }
 
 // @public
-export function getGenerativeModel(vertexAI: VertexAI, onCloudOrHybridParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
+export function getGenerativeModel(vertexAI: VertexAI, modelParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 
 // @beta
 export function getImagenModel(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;

@@ -14,7 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ImagenModelParams, ModelParams, VertexAIErrorCode } from './types';
+import {
+  ImagenModelParams,
+  InferenceMode,
+  ModelParams,
+  VertexAIErrorCode
+} from './types';
 import { VertexAIError } from './errors';
 import { ImagenModel, getGenerativeModel, getImagenModel } from './api';
 import { expect } from 'chai';
@@ -111,6 +116,13 @@ describe('Top level API', () => {
           `getImagenModel({ model: 'my-model-name' }) (vertexAI/${VertexAIErrorCode.NO_MODEL})`
       );
     }
+  });
+  it('getGenerativeModel with HybridParams sets the model', () => {
+    const genModel = getGenerativeModel(fakeVertexAI, {
+      mode: InferenceMode.ONLY_ON_CLOUD,
+      onCloudParams: { model: 'my-model' }
+    });
+    expect(genModel.model).to.equal('publishers/google/models/my-model');
   });
   it('getImagenModel throws if no apiKey is provided', () => {
     const fakeVertexNoApiKey = {
