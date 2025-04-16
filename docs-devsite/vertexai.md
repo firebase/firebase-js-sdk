@@ -19,8 +19,8 @@ The Vertex AI in Firebase Web SDK.
 |  <b>function(app, ...)</b> |
 |  [getVertexAI(app, options)](./vertexai.md#getvertexai_04094cf) | Returns a [VertexAI](./vertexai.vertexai.md#vertexai_interface) instance for the given app. |
 |  <b>function(vertexAI, ...)</b> |
-|  [getGenerativeModel(vertexAI, modelParams, requestOptions)](./vertexai.md#getgenerativemodel_8dbc150) | Returns a <code>[GenerativeModel](./vertexai.generativemodel.md#generativemodel_class)</code> class with methods for inference and other functionality. |
-|  [getImagenModel(vertexAI, modelParams, requestOptions)](./vertexai.md#getimagenmodel_812c375) | <b><i>(Public Preview)</i></b> Returns an <code>[ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)</code> class with methods for using Imagen.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported. |
+|  [getGenerativeModel(vertexAI, modelParams, requestOptions)](./vertexai.md#getgenerativemodel_8dbc150) | Returns a [GenerativeModel](./vertexai.generativemodel.md#generativemodel_class) class with methods for inference and other functionality. |
+|  [getImagenModel(vertexAI, modelParams, requestOptions)](./vertexai.md#getimagenmodel_812c375) | <b><i>(Public Preview)</i></b> Returns an [ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class) class with methods for using Imagen.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported. |
 
 ## Classes
 
@@ -100,10 +100,10 @@ The Vertex AI in Firebase Web SDK.
 |  [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) | <b><i>(Public Preview)</i></b> Settings for controlling the aggressiveness of filtering out sensitive content.<!-- -->See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details. |
 |  [InlineDataPart](./vertexai.inlinedatapart.md#inlinedatapart_interface) | Content part interface if the part represents an image. |
 |  [ModalityTokenCount](./vertexai.modalitytokencount.md#modalitytokencount_interface) | Represents token counting info for a single modality. |
-|  [ModelParams](./vertexai.modelparams.md#modelparams_interface) | Params passed to <code>[getGenerativeModel()](./vertexai.md#getgenerativemodel_8dbc150)</code>. |
-|  [ObjectSchemaInterface](./vertexai.objectschemainterface.md#objectschemainterface_interface) | Interface for <code>[ObjectSchema](./vertexai.objectschema.md#objectschema_class)</code> class. |
+|  [ModelParams](./vertexai.modelparams.md#modelparams_interface) | Params passed to [getGenerativeModel()](./vertexai.md#getgenerativemodel_8dbc150)<!-- -->. |
+|  [ObjectSchemaInterface](./vertexai.objectschemainterface.md#objectschemainterface_interface) | Interface for [ObjectSchema](./vertexai.objectschema.md#objectschema_class) class. |
 |  [PromptFeedback](./vertexai.promptfeedback.md#promptfeedback_interface) | If the prompt was blocked, this will be populated with <code>blockReason</code> and the relevant <code>safetyRatings</code>. |
-|  [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) | Params passed to <code>[getGenerativeModel()](./vertexai.md#getgenerativemodel_8dbc150)</code>. |
+|  [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) | Params passed to [getGenerativeModel()](./vertexai.md#getgenerativemodel_8dbc150)<!-- -->. |
 |  [RetrievedContextAttribution](./vertexai.retrievedcontextattribution.md#retrievedcontextattribution_interface) |  |
 |  [SafetyRating](./vertexai.safetyrating.md#safetyrating_interface) | A safety rating associated with a [GenerateContentCandidate](./vertexai.generatecontentcandidate.md#generatecontentcandidate_interface) |
 |  [SafetySetting](./vertexai.safetysetting.md#safetysetting_interface) | Safety setting that can be sent as part of request parameters. |

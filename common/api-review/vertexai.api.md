@@ -421,7 +421,8 @@ export enum HarmSeverity {
 export interface HybridParams {
     inCloudParams?: ModelParams;
     mode: InferenceMode;
-    onDeviceParams?: AILanguageModelCreateOptionsWithSystemPrompt;
+    // Warning: (ae-forgotten-export) The symbol "LanguageModelCreateOptions" needs to be exported by the entry point index.d.ts
+    onDeviceParams?: LanguageModelCreateOptions;
 }
 
 // @beta
