@@ -137,9 +137,11 @@ export function documentId(): FieldPath;
 export class DocumentReference<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> {
     readonly converter: FirestoreDataConverter<AppModelType, DbModelType> | null;
     readonly firestore: Firestore;
+    static fromJSON<NewAppModelType = DocumentData, NewDbModelType extends DocumentData = DocumentData>(firestore: Firestore, json: object, converter?: FirestoreDataConverter<NewAppModelType, NewDbModelType>): DocumentReference<NewAppModelType, NewDbModelType>;
     get id(): string;
     get parent(): CollectionReference<AppModelType, DbModelType>;
     get path(): string;
+    toJSON(): object;
     readonly type = "document";
     withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): DocumentReference<NewAppModelType, NewDbModelType>;
     withConverter(converter: null): DocumentReference<DocumentData, DocumentData>;

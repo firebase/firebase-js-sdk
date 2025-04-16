@@ -33,6 +33,8 @@ export declare class DocumentReference<AppModelType = DocumentData, DbModelType 
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
+|  [fromJSON(firestore, json, converter)](./firestore_lite.documentreference.md#documentreferencefromjson) | <code>static</code> | Builds a <code>DocumentReference</code> instance from a JSON serialized version of <code>DocumentReference</code>. |
+|  [toJSON()](./firestore_lite.documentreference.md#documentreferencetojson) |  | Returns a JSON-serializable representation of this DocumentReference. |
 |  [withConverter(converter)](./firestore_lite.documentreference.md#documentreferencewithconverter) |  | Applies a custom data converter to this <code>DocumentReference</code>, allowing you to use your own custom model objects with Firestore. When you call [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->, [getDoc()](./firestore_lite.md#getdoc_4569087)<!-- -->, etc. with the returned <code>DocumentReference</code> instance, the provided converter will convert between Firestore data of type <code>NewDbModelType</code> and your custom type <code>NewAppModelType</code>. |
 |  [withConverter(converter)](./firestore_lite.documentreference.md#documentreferencewithconverter) |  | Removes the current converter. |
 
@@ -95,6 +97,41 @@ The type of this Firestore reference.
 ```typescript
 readonly type = "document";
 ```
+
+## DocumentReference.fromJSON()
+
+Builds a `DocumentReference` instance from a JSON serialized version of `DocumentReference`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+static fromJSON<NewAppModelType = DocumentData, NewDbModelType extends DocumentData = DocumentData>(firestore: Firestore, json: object, converter?: FirestoreDataConverter<NewAppModelType, NewDbModelType>): DocumentReference<NewAppModelType, NewDbModelType>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  firestore | [Firestore](./firestore_lite.firestore.md#firestore_class) |  |
+|  json | object |  |
+|  converter | [FirestoreDataConverter](./firestore_lite.firestoredataconverter.md#firestoredataconverter_interface)<!-- -->&lt;NewAppModelType, NewDbModelType&gt; |  |
+
+<b>Returns:</b>
+
+[DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->&lt;NewAppModelType, NewDbModelType&gt;
+
+## DocumentReference.toJSON()
+
+Returns a JSON-serializable representation of this DocumentReference.
+
+<b>Signature:</b>
+
+```typescript
+toJSON(): object;
+```
+<b>Returns:</b>
+
+object
 
 ## DocumentReference.withConverter()
 

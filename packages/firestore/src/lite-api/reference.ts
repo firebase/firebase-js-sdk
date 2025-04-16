@@ -278,6 +278,61 @@ export class DocumentReference<
       this._key
     );
   }
+
+  /** Returns a JSON-serializable representation of this DocumentReference. */
+  toJSON(): object {
+    return {
+      type: 'firestore/documentReference/1.0',
+      referencePath: this._key.toString()
+    };
+  }
+
+  /** Builds a `DocumentReference` instance from a JSON serialized version of `DocumentReference`. */
+  static fromJSON<
+    NewAppModelType = DocumentData,
+    NewDbModelType extends DocumentData = DocumentData
+  >(
+    firestore: Firestore,
+    json: object,
+    converter?: FirestoreDataConverter<NewAppModelType, NewDbModelType>
+  ): DocumentReference<NewAppModelType, NewDbModelType> {
+    const requiredFields = ['type', 'referencePath'];
+    let error: string | undefined = undefined;
+    let path: string = '';
+    for (const key of requiredFields) {
+      if (!(key in json)) {
+        error = `json missing required field: ${key}`;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const value = (json as any)[key];
+      if (key === 'type') {
+        if (typeof value !== 'string') {
+          error = `json field 'type' must be a string.`;
+          break;
+        } else if (value !== 'firestore/documentReference/1.0') {
+          error =
+            "Expected 'type' field to equal 'firestore/documentReference/1.0'";
+          break;
+        }
+      } else if (key === 'referencePath') {
+        if (typeof value !== 'string') {
+          error = `json field 'referencePath' must be a string.`;
+          break;
+        }
+        path = value;
+      }
+    }
+    if (error) {
+      throw new FirestoreError(Code.INVALID_ARGUMENT, error);
+    }
+    const resourcePath = ResourcePath.fromString(path);
+    const documentKey = new DocumentKey(resourcePath);
+    return new DocumentReference<NewAppModelType, NewDbModelType>(
+      firestore,
+      converter ? converter : null,
+      documentKey
+    );
+  }
 }
 
 /**
