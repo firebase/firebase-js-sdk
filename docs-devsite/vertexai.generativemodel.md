@@ -23,7 +23,7 @@ export declare class GenerativeModel extends VertexAIModel
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(vertexAI, modelParams, requestOptions)](./vertexai.generativemodel.md#generativemodelconstructor) |  | Constructs a new instance of the <code>GenerativeModel</code> class |
+|  [(constructor)(vertexAI, modelParams, chromeAdapter, requestOptions)](./vertexai.generativemodel.md#generativemodelconstructor) |  | Constructs a new instance of the <code>GenerativeModel</code> class |
 
 ## Properties
 
@@ -53,7 +53,7 @@ Constructs a new instance of the `GenerativeModel` class
 <b>Signature:</b>
 
 ```typescript
-constructor(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions);
+constructor(vertexAI: VertexAI, modelParams: ModelParams, chromeAdapter: ChromeAdapter, requestOptions?: RequestOptions);
 ```
 
 #### Parameters
@@ -62,6 +62,7 @@ constructor(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: Reque
 |  --- | --- | --- |
 |  vertexAI | [VertexAI](./vertexai.vertexai.md#vertexai_interface) |  |
 |  modelParams | [ModelParams](./vertexai.modelparams.md#modelparams_interface) |  |
+|  chromeAdapter | ChromeAdapter |  |
 |  requestOptions | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) |  |
 
 ## GenerativeModel.DEFAULT\_HYBRID\_IN\_CLOUD\_MODEL
