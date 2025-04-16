@@ -240,3 +240,13 @@ export enum Modality {
    */
   DOCUMENT = 'DOCUMENT'
 }
+
+/**
+ * Determines whether inference happens on-device or on-cloud.
+ * @public
+ */
+export enum InferenceMode {
+  PREFER_ON_DEVICE = 'PREFER_ON_DEVICE',
+  ONLY_ON_DEVICE = 'ONLY_ON_DEVICE',
+  ONLY_ON_CLOUD = 'ONLY_ON_CLOUD'
+}
