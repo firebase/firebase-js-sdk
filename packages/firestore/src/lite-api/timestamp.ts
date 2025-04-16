@@ -175,8 +175,52 @@ export class Timestamp {
   }
 
   /** Returns a JSON-serializable representation of this `Timestamp`. */
-  toJSON(): { seconds: number; nanoseconds: number } {
-    return { seconds: this.seconds, nanoseconds: this.nanoseconds };
+  toJSON(): { seconds: number; nanoseconds: number; type: string } {
+    return {
+      seconds: this.seconds,
+      nanoseconds: this.nanoseconds,
+      type: 'firestore/timestamp/1.0'
+    };
+  }
+
+  /** Builds a `Timestamp` instance from a JSON serialized version of `Bytes`. */
+  static fromJSON(json: object): Timestamp {
+    const requiredFields = ['type', 'seconds', 'nanoseconds'];
+    let error: string | undefined = undefined;
+    let seconds: number = 0;
+    let nanoseconds: number = 0;
+    for (const key of requiredFields) {
+      if (!(key in json)) {
+        error = `json missing required field: ${key}`;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const value = (json as any)[key];
+      if (key === 'type') {
+        if (typeof value !== 'string') {
+          error = `json field 'type' must be a string.`;
+          break;
+        } else if (value !== 'firestore/timestamp/1.0') {
+          error = "Expected 'type' field to equal 'firestore/timestamp/1.0'";
+          break;
+        }
+      } else if (key === 'seconds') {
+        if (typeof value !== 'number') {
+          error = `json field 'seconds' must be a number.`;
+          break;
+        }
+        seconds = value;
+      } else {
+        if (typeof value !== 'number') {
+          error = `json field 'nanoseconds' must be a number.`;
+          break;
+        }
+        nanoseconds = value;
+      }
+    }
+    if (error) {
+      throw new FirestoreError(Code.INVALID_ARGUMENT, error);
+    }
+    return new Timestamp(seconds, nanoseconds);
   }
 
   /**

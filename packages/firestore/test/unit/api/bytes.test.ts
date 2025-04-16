@@ -66,12 +66,12 @@ describe('Bytes', () => {
 
   it('fromJSON parameter order does not matter', () => {
     const type = 'firestore/bytes/1.0';
-    const data = 'AA==';
+    const bytes = 'AA==';
     expect(() => {
-      Bytes.fromJSON({ data, type });
+      Bytes.fromJSON({ bytes, type });
     }).to.not.throw;
     expect(() => {
-      Bytes.fromJSON({ type, data });
+      Bytes.fromJSON({ type, bytes });
     }).to.not.throw;
   });
 
@@ -91,16 +91,16 @@ describe('Bytes', () => {
 
   it('fromJSON misisng fields throws', () => {
     expect(() => {
-      Bytes.fromJSON({ type: 'firestore/bytes/1.0' /* missing data */ });
+      Bytes.fromJSON({ type: 'firestore/bytes/1.0' /* missing bytes data */ });
     }).to.throw;
     expect(() => {
-      Bytes.fromJSON({ data: 'AA==' /* missing type */ });
+      Bytes.fromJSON({ bytes: 'AA==' /* missing type */ });
     }).to.throw;
     expect(() => {
-      Bytes.fromJSON({ type: 1, data: 'AA==' });
+      Bytes.fromJSON({ type: 1, bytes: 'AA==' });
     }).to.throw;
     expect(() => {
-      Bytes.fromJSON({ type: 'firestore/bytes/1.0', data: 1 });
+      Bytes.fromJSON({ type: 'firestore/bytes/1.0', bytes: 1 });
     }).to.throw;
   });
 });

@@ -54,12 +54,12 @@ export class VectorValue {
   toJSON(): object {
     return {
       type: 'firestore/vectorValue/1.0',
-      data: this._values
+      vectorValues: this._values
     };
   }
   /** Builds a `Bytes` instance from a JSON serialized version of `Bytes`. */
   static fromJSON(json: object): VectorValue {
-    const requiredFields = ['type', 'data'];
+    const requiredFields = ['type', 'vectorValues'];
     let error: string | undefined = undefined;
     let data: number[] = [];
     for (const key of requiredFields) {
@@ -84,7 +84,7 @@ export class VectorValue {
         ) {
           data = value;
         } else {
-          error = "Expected 'data' field to be a number array";
+          error = "Expected 'vectorValues' field to be a number array";
           break;
         }
       }

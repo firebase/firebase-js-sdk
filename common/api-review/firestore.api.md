@@ -268,12 +268,14 @@ export interface FirestoreSettings {
 // @public
 export class GeoPoint {
     constructor(latitude: number, longitude: number);
+    static fromJSON(json: object): GeoPoint;
     isEqual(other: GeoPoint): boolean;
     get latitude(): number;
     get longitude(): number;
     toJSON(): {
         latitude: number;
         longitude: number;
+        type: string;
     };
 }
 
@@ -742,6 +744,7 @@ export class Timestamp {
     seconds: number,
     nanoseconds: number);
     static fromDate(date: Date): Timestamp;
+    static fromJSON(json: object): Timestamp;
     static fromMillis(milliseconds: number): Timestamp;
     isEqual(other: Timestamp): boolean;
     readonly nanoseconds: number;
@@ -751,6 +754,7 @@ export class Timestamp {
     toJSON(): {
         seconds: number;
         nanoseconds: number;
+        type: string;
     };
     toMillis(): number;
     toString(): string;

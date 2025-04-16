@@ -37,6 +37,7 @@ export declare class GeoPoint
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
+|  [fromJSON(json)](./firestore_.geopoint.md#geopointfromjson) | <code>static</code> | Builds a <code>Timestamp</code> instance from a JSON serialized version of <code>Bytes</code>. |
 |  [isEqual(other)](./firestore_.geopoint.md#geopointisequal) |  | Returns true if this <code>GeoPoint</code> is equal to the provided one. |
 |  [toJSON()](./firestore_.geopoint.md#geopointtojson) |  | Returns a JSON-serializable representation of this GeoPoint. |
 
@@ -77,6 +78,26 @@ The longitude of this `GeoPoint` instance.
 get longitude(): number;
 ```
 
+## GeoPoint.fromJSON()
+
+Builds a `Timestamp` instance from a JSON serialized version of `Bytes`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+static fromJSON(json: object): GeoPoint;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  json | object |  |
+
+<b>Returns:</b>
+
+[GeoPoint](./firestore_.geopoint.md#geopoint_class)
+
 ## GeoPoint.isEqual()
 
 Returns true if this `GeoPoint` is equal to the provided one.
@@ -109,9 +130,10 @@ Returns a JSON-serializable representation of this GeoPoint.
 toJSON(): {
         latitude: number;
         longitude: number;
+        type: string;
     };
 ```
 <b>Returns:</b>
 
-{ latitude: number; longitude: number; }
+{ latitude: number; longitude: number; type: string; }
 

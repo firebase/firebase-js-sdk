@@ -30,40 +30,44 @@ describe('VectorValue', () => {
 
   it('fromJSON parameter order does not matter', () => {
     const type = 'firestore/vectorValue/1.0';
-    const data = [1, 2, 3];
+    const vectorValues = [1, 2, 3];
+    const control = new VectorValue(vectorValues);
+
     expect(() => {
-      VectorValue.fromJSON({ data, type });
+      expect(VectorValue.fromJSON({ vectorValues, type }).isEqual(control)).to
+        .be.true;
     }).to.not.throw;
     expect(() => {
-      VectorValue.fromJSON({ type, data });
+      expect(VectorValue.fromJSON({ type, vectorValues }).isEqual(control)).to
+        .be.true;
     }).to.not.throw;
   });
 
   it('fromJSON empty array does not throw', () => {
     const type = 'firestore/vectorValue/1.0';
-    const data = [1, 2, 3];
+    const vectorValues = [1, 2, 3];
     expect(() => {
-      VectorValue.fromJSON({ type, data });
+      VectorValue.fromJSON({ type, vectorValues });
     }).to.not.throw;
   });
 
   it('fromJSON missing fields throws', () => {
     const type = 'firestore/vectorValue/1.0';
-    const data = [1, 2, 3];
+    const vectorValues = [1, 2, 3];
     expect(() => {
       VectorValue.fromJSON({ type /* missing data */ });
     }).to.throw;
     expect(() => {
-      VectorValue.fromJSON({ data /* missing type */ });
+      VectorValue.fromJSON({ vectorValues /* missing type */ });
     }).to.throw;
     expect(() => {
-      VectorValue.fromJSON({ type: 1, data });
+      VectorValue.fromJSON({ type: 1, vectorValues });
     }).to.throw;
     expect(() => {
-      VectorValue.fromJSON({ type: 'firestore/bytes/1.0', data });
+      VectorValue.fromJSON({ type: 'firestore/bytes/1.0', vectorValues });
     }).to.throw;
     expect(() => {
-      VectorValue.fromJSON({ type, data: 'not a number' });
+      VectorValue.fromJSON({ type, vectorValues: 'not a number' });
     });
   });
 });

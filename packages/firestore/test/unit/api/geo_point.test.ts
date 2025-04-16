@@ -105,15 +105,96 @@ describe('GeoPoint', () => {
   it('serializes to JSON', () => {
     expect(new GeoPoint(1, 2).toJSON()).to.deep.equal({
       latitude: 1,
-      longitude: 2
+      longitude: 2,
+      'type': 'firestore/geopoint/1.0'
     });
     expect(new GeoPoint(0, 0).toJSON()).to.deep.equal({
       latitude: 0,
-      longitude: 0
+      longitude: 0,
+      'type': 'firestore/geopoint/1.0'
     });
     expect(new GeoPoint(90, 180).toJSON()).to.deep.equal({
       latitude: 90,
-      longitude: 180
+      longitude: 180,
+      'type': 'firestore/geopoint/1.0'
     });
+  });
+  it('fromJSON does not throw', () => {
+    const geoPoint = new GeoPoint(1, 2);
+    expect(() => {
+      GeoPoint.fromJSON(geoPoint.toJSON());
+    }).to.not.throw;
+  });
+
+  it('fromJSON reconstructs seconds and nanoseconds', () => {
+    const geoPoint = new GeoPoint(1, 2);
+    const deserializedGeoPoint = GeoPoint.fromJSON(geoPoint.toJSON());
+    expect(deserializedGeoPoint).to.exist;
+    expect(geoPoint.latitude).to.equal(deserializedGeoPoint.latitude);
+    expect(geoPoint.longitude).to.equal(deserializedGeoPoint.longitude);
+  });
+
+  it('toJSON -> fromJSON timestamp comparison', () => {
+    const geoPoint = new GeoPoint(1, 2);
+    const deserializedGeoPoint = GeoPoint.fromJSON(geoPoint.toJSON());
+    expect(deserializedGeoPoint.isEqual(geoPoint)).to.be.true;
+  });
+
+  it('fromJSON parameter order does not matter', () => {
+    const type = 'firestore/geopoint/1.0';
+    const latitude = 90;
+    const longitude = 180;
+    const control = new GeoPoint(90, 180);
+    expect(() => {
+      expect(GeoPoint.fromJSON({ latitude, longitude, type }).isEqual(control))
+        .to.be.true;
+    }).to.not.throw;
+    expect(() => {
+      expect(GeoPoint.fromJSON({ longitude, type, latitude }).isEqual(control))
+        .to.be.true;
+    }).to.not.throw;
+    expect(() => {
+      expect(GeoPoint.fromJSON({ type, latitude, longitude }).isEqual(control))
+        .to.be.true;
+    }).to.not.throw;
+    expect(() => {
+      expect(GeoPoint.fromJSON({ latitude, type, longitude }).isEqual(control))
+        .to.be.true;
+    }).to.not.throw;
+  });
+
+  it('fromJSON missing fields throws', () => {
+    const type = 'firestore/geopoint/1.0';
+    const latitude = 90;
+    const longitude = 180;
+
+    expect(() => {
+      GeoPoint.fromJSON({ type, latitude });
+    }).to.throw;
+    expect(() => {
+      GeoPoint.fromJSON({ type, longitude });
+    }).to.throw;
+    expect(() => {
+      GeoPoint.fromJSON({ latitude, longitude });
+    }).to.throw;
+  });
+
+  it('fromJSON field errant field type throws', () => {
+    const type = 'firestore/geopoint/1.0';
+    const latitude = 90;
+    const longitude = 180;
+
+    expect(() => {
+      GeoPoint.fromJSON({ type, latitude, longitude: 'wrong' });
+    }).to.throw;
+    expect(() => {
+      GeoPoint.fromJSON({ type, longitude, latitude: 'wrong' });
+    }).to.throw;
+    expect(() => {
+      GeoPoint.fromJSON({ latitude, longitude, type: 1 });
+    }).to.throw;
+    expect(() => {
+      GeoPoint.fromJSON({ latitude, longitude, type: 'firestore/wrong/1.0' });
+    }).to.throw;
   });
 });
