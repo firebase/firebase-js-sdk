@@ -530,6 +530,8 @@ toc:
     path: /docs/reference/js/vertexai.groundingattribution.md
   - title: GroundingMetadata
     path: /docs/reference/js/vertexai.groundingmetadata.md
+  - title: HybridParams
+    path: /docs/reference/js/vertexai.hybridparams.md
   - title: ImagenGCSImage
     path: /docs/reference/js/vertexai.imagengcsimage.md
   - title: ImagenGenerationConfig

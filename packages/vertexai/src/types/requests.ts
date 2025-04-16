@@ -17,6 +17,7 @@
 
 import { TypedSchema } from '../requests/schema-builder';
 import { Content, Part } from './content';
+import { LanguageModelCreateOptions } from './language-model';
 import {
   FunctionCallingMode,
   HarmBlockMethod,
@@ -220,3 +221,29 @@ export interface FunctionCallingConfig {
   mode?: FunctionCallingMode;
   allowedFunctionNames?: string[];
 }
+
+/**
+ * Toggles hybrid inference.
+ */
+export interface HybridParams {
+  /**
+   * Specifies on-device or in-cloud inference. Defaults to prefer on-device.
+   */
+  mode: InferenceMode;
+  /**
+   * Optional. Specifies advanced params for on-device inference.
+   */
+  onDeviceParams?: LanguageModelCreateOptions;
+  /**
+   * Optional. Specifies advanced params for in-cloud inference.
+   */
+  inCloudParams?: ModelParams;
+}
+
+/**
+ * Determines whether inference happens on-device or in-cloud.
+ */
+export type InferenceMode =
+  | 'prefer_on_device'
+  | 'only_on_device'
+  | 'only_in_cloud';

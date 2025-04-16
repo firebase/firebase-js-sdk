@@ -23,12 +23,13 @@ export declare class GenerativeModel extends AIModel
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(ai, modelParams, requestOptions)](./vertexai.generativemodel.md#generativemodelconstructor) |  | Constructs a new instance of the <code>GenerativeModel</code> class |
+|  [(constructor)(ai, modelParams, chromeAdapter, requestOptions)](./vertexai.generativemodel.md#generativemodelconstructor) |  | Constructs a new instance of the <code>GenerativeModel</code> class |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
+|  [DEFAULT\_HYBRID\_IN\_CLOUD\_MODEL](./vertexai.generativemodel.md#generativemodeldefault_hybrid_in_cloud_model) | <code>static</code> | string | Defines the name of the default in-cloud model to use for hybrid inference. |
 |  [generationConfig](./vertexai.generativemodel.md#generativemodelgenerationconfig) |  | [GenerationConfig](./vertexai.generationconfig.md#generationconfig_interface) |  |
 |  [requestOptions](./vertexai.generativemodel.md#generativemodelrequestoptions) |  | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) |  |
 |  [safetySettings](./vertexai.generativemodel.md#generativemodelsafetysettings) |  | [SafetySetting](./vertexai.safetysetting.md#safetysetting_interface)<!-- -->\[\] |  |
@@ -52,7 +53,7 @@ Constructs a new instance of the `GenerativeModel` class
 <b>Signature:</b>
 
 ```typescript
-constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions);
+constructor(ai: AI, modelParams: ModelParams, chromeAdapter: ChromeAdapter, requestOptions?: RequestOptions);
 ```
 
 #### Parameters
@@ -61,7 +62,18 @@ constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions);
 |  --- | --- | --- |
 |  ai | [AI](./vertexai.ai.md#ai_interface) |  |
 |  modelParams | [ModelParams](./vertexai.modelparams.md#modelparams_interface) |  |
+|  chromeAdapter | ChromeAdapter |  |
 |  requestOptions | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) |  |
+
+## GenerativeModel.DEFAULT\_HYBRID\_IN\_CLOUD\_MODEL
+
+Defines the name of the default in-cloud model to use for hybrid inference.
+
+<b>Signature:</b>
+
+```typescript
+static DEFAULT_HYBRID_IN_CLOUD_MODEL: string;
+```
 
 ## GenerativeModel.generationConfig
 
