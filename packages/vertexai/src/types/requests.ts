@@ -24,7 +24,7 @@ import {
   HarmCategory
 } from './enums';
 import { ObjectSchemaInterface, SchemaRequest } from './schema';
-import {LanguageModelCreateOptions} from '../types/language-model';
+import { LanguageModelCreateOptions } from '../types/language-model';
 
 /**
  * Base parameters for a number of methods.

@@ -43,7 +43,8 @@ export interface LanguageModelCreateCoreOptions {
   temperature?: number;
   expectedInputs?: LanguageModelExpectedInput[];
 }
-export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptions {
+export interface LanguageModelCreateOptions
+  extends LanguageModelCreateCoreOptions {
   signal?: AbortSignal;
   systemPrompt?: string;
   initialPrompts?: LanguageModelInitialPrompts;
