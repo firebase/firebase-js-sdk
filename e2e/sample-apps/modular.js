@@ -58,7 +58,7 @@ import {
   onValue,
   off
 } from 'firebase/database';
-import { getGenerativeModel, getVertexAI, VertexAI } from 'firebase/vertexai';
+import { getGenerativeModel, getVertexAI } from 'firebase/vertexai';
 import { getDataConnect, DataConnect } from 'firebase/data-connect';
 
 /**
@@ -313,9 +313,15 @@ function callPerformance(app) {
 async function callVertexAI(app) {
   console.log('[VERTEXAI] start');
   const vertexAI = getVertexAI(app);
-  const model = getGenerativeModel(vertexAI, { model: 'gemini-1.5-flash' });
-  const result = await model.countTokens('abcdefg');
-  console.log(`[VERTEXAI] counted tokens: ${result.totalTokens}`);
+  const model = getGenerativeModel(vertexAI, {
+    mode: 'only_on_device'
+  });
+  const singleResult = await model.generateContent([
+    { text: 'describe the following:' },
+    { text: 'the mojave desert' }
+  ]);
+  console.log(`Generated text: ${singleResult.response.text()}`);
+  console.log(`[VERTEXAI] end`);
 }
 
 /**
@@ -341,18 +347,18 @@ async function main() {
   const app = initializeApp(config);
   setLogLevel('warn');
 
-  callAppCheck(app);
-  await authLogin(app);
-  await callStorage(app);
-  await callFirestore(app);
-  await callDatabase(app);
-  await callMessaging(app);
-  callAnalytics(app);
-  callPerformance(app);
-  await callFunctions(app);
+  // callAppCheck(app);
+  // await authLogin(app);
+  // await callStorage(app);
+  // await callFirestore(app);
+  // await callDatabase(app);
+  // await callMessaging(app);
+  // callAnalytics(app);
+  // callPerformance(app);
+  // await callFunctions(app);
   await callVertexAI(app);
-  callDataConnect(app);
-  await authLogout(app);
+  // callDataConnect(app);
+  // await authLogout(app);
   console.log('DONE');
 }
 
