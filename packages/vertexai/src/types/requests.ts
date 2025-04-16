@@ -17,11 +17,13 @@
 
 import { TypedSchema } from '../requests/schema-builder';
 import { Content, Part } from './content';
+import { LanguageModelCreateOptions } from './language-model';
 import {
   FunctionCallingMode,
   HarmBlockMethod,
   HarmBlockThreshold,
-  HarmCategory
+  HarmCategory,
+  InferenceMode
 } from './enums';
 import { ObjectSchemaInterface, SchemaRequest } from './schema';
 
@@ -212,4 +214,14 @@ export interface ToolConfig {
 export interface FunctionCallingConfig {
   mode?: FunctionCallingMode;
   allowedFunctionNames?: string[];
+}
+
+/**
+ * Configures on-device and on-cloud inference.
+ * @public
+ */
+export interface HybridParams {
+  mode?: InferenceMode;
+  onDeviceParams?: LanguageModelCreateOptions;
+  onCloudParams?: ModelParams;
 }
