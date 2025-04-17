@@ -18,6 +18,7 @@
 import { expect } from 'chai';
 
 import {
+  DocumentReference,
   connectFirestoreEmulator,
   loadBundle,
   refEqual,
@@ -70,6 +71,40 @@ describe('DocumentReference', () => {
 
   it('JSON.stringify() does not throw', () => {
     JSON.stringify(documentReference('foo/bar'));
+  });
+
+  it('toJSON() does not throw', () => {
+    expect(() => {
+      documentReference('foo/bar').toJSON();
+    }).to.not.throw;
+  });
+
+  it('toJSON() includes correct JSON fields', () => {
+    const docRef = documentReference('foo/bar');
+    const json = docRef.toJSON();
+    expect(json).to.deep.equal({
+      type: 'firestore/documentReference/1.0',
+      referencePath: 'foo/bar'
+    });
+  });
+
+  it('fromJSON() does not throw', () => {
+    const db = newTestFirestore();
+    const docRef = documentReference('foo/bar');
+    const json = docRef.toJSON();
+    expect(() => {
+      DocumentReference.fromJSON(db, json);
+    }).to.not.throw;
+  });
+
+  it('fromJSON() equals original docRef', () => {
+    const db = newTestFirestore();
+    const docRef = documentReference('foo/bar');
+    const json = docRef.toJSON();
+    const deserializedDocRef = DocumentReference.fromJSON(db, json);
+    expect(docRef.id).to.equal(deserializedDocRef.id);
+    expect(docRef.path).to.equal(deserializedDocRef.path);
+    expect(docRef.toJSON()).to.deep.equal(deserializedDocRef.toJSON());
   });
 });
 
