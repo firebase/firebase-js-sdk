@@ -25,7 +25,6 @@ import {
   LanguageModelCreateOptions
 } from '../types/language-model';
 import { stub } from 'sinon';
-import * as util from '@firebase/util';
 import { GenerateContentRequest } from '../types';
 
 use(sinonChai);
@@ -40,16 +39,6 @@ describe('ChromeAdapter', () => {
           contents: []
         })
       ).to.be.false;
-    });
-    it('returns false if browser is not Chrome', async () => {
-      const chromeStub = stub(util, 'isChrome').returns(false);
-      const adapter = new ChromeAdapter(undefined, 'prefer_on_device');
-      expect(
-        await adapter.isAvailable({
-          contents: []
-        })
-      ).to.be.false;
-      chromeStub.restore();
     });
     it('returns false if AI API is undefined', async () => {
       const adapter = new ChromeAdapter(undefined, 'prefer_on_device');
@@ -175,7 +164,6 @@ describe('ChromeAdapter', () => {
       ).to.be.false;
     });
     it('returns true if model is readily available', async () => {
-      const chromeStub = stub(util, 'isChrome').returns(true);
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.available)
       } as LanguageModel;
@@ -188,7 +176,6 @@ describe('ChromeAdapter', () => {
           contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
         })
       ).to.be.true;
-      chromeStub.restore();
     });
     it('returns false and triggers download when model is available after download', async () => {
       const languageModelProvider = {

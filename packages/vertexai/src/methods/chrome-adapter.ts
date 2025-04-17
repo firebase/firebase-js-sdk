@@ -30,7 +30,6 @@ import {
   LanguageModelMessageRole,
   LanguageModelMessageContent
 } from '../types/language-model';
-import { isChrome } from '@firebase/util';
 
 /**
  * Defines an inference "backend" that uses Chrome's on-device model,
@@ -64,10 +63,6 @@ export class ChromeAdapter {
   async isAvailable(request: GenerateContentRequest): Promise<boolean> {
     // Returns false if we should only use in-cloud inference.
     if (this.mode === 'only_in_cloud') {
-      return false;
-    }
-    // Returns false because only Chrome's experimental Prompt API is supported.
-    if (!isChrome()) {
       return false;
     }
     // Returns false if the on-device inference API is undefined.;
