@@ -175,6 +175,7 @@ describe('ChromeAdapter', () => {
       ).to.be.false;
     });
     it('returns true if model is readily available', async () => {
+      const chromeStub = stub(util, 'isChrome').returns(true);
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.available)
       } as LanguageModel;
@@ -187,6 +188,7 @@ describe('ChromeAdapter', () => {
           contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
         })
       ).to.be.true;
+      chromeStub.restore();
     });
     it('returns false and triggers download when model is available after download', async () => {
       const languageModelProvider = {
