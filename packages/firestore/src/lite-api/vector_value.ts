@@ -53,7 +53,7 @@ export class VectorValue {
   /** Returns a JSON-serializable representation of this `VectorValue` instance. */
   toJSON(): object {
     return {
-      type: 'firestore/vectorValue/1.0',
+      type: 'firestore/vectorvalue/1.0',
       vectorValues: this._values
     };
   }
@@ -72,8 +72,8 @@ export class VectorValue {
         if (typeof value !== 'string') {
           error = `json field 'type' must be a string.`;
           break;
-        } else if (value !== 'firestore/vectorValue/1.0') {
-          error = "Expected 'type' field to equal 'firestore/vectorValue/1.0'";
+        } else if (value !== 'firestore/vectorvalue/1.0') {
+          error = "Expected 'type' field to equal 'firestore/vectorvalue/1.0'";
           break;
         }
       } else {
