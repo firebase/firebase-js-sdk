@@ -23,7 +23,7 @@ import { getMockResponse } from '../../test-utils/mock-response';
 import * as request from '../requests/request';
 import { generateContent } from './generate-content';
 import {
-  GenAIErrorCode,
+  AIErrorCode,
   GenerateContentRequest,
   HarmBlockMethod,
   HarmBlockThreshold,
@@ -31,7 +31,7 @@ import {
 } from '../types';
 import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
-import { GenAIError, googleAIBackend, vertexAIBackend } from '../api';
+import { AIError, googleAIBackend, vertexAIBackend } from '../api';
 import { mapGenerateContentRequest } from '../googleAIMappers';
 
 use(sinonChai);
@@ -341,14 +341,14 @@ describe('generateContent()', () => {
         ]
       };
 
-      // Expect generateContent to throw a GenAIError that method is not supported.
+      // Expect generateContent to throw a AIError that method is not supported.
       await expect(
         generateContent(
           fakeGoogleAIApiSettings,
           'model',
           requestParamsWithMethod
         )
-      ).to.be.rejectedWith(GenAIError, GenAIErrorCode.UNSUPPORTED);
+      ).to.be.rejectedWith(AIError, AIErrorCode.UNSUPPORTED);
       expect(makeRequestStub).to.not.be.called;
     });
     it('maps request to GoogleAI format', async () => {

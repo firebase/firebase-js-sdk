@@ -17,8 +17,8 @@
 
 import { expect } from 'chai';
 import {
-  GenAIError,
-  GenAIModel,
+  AIError,
+  AIModel,
   GenerativeModel,
   VertexAIError,
   VertexAIErrorCode,
@@ -27,11 +27,11 @@ import {
   getImagenModel,
   vertexAIBackend
 } from './api';
-import { GenAI, VertexAI, GenAIErrorCode } from './public-types';
+import { AI, VertexAI, AIErrorCode } from './public-types';
 
 function assertAssignable<T, _U extends T>(): void {}
 
-const fakeGenAI: GenAI = {
+const fakeAI: AI = {
   app: {
     name: 'DEFAULT',
     automaticDataCollectionEnabled: true,
@@ -45,28 +45,28 @@ const fakeGenAI: GenAI = {
   location: 'us-central1'
 };
 
-const fakeVertexAI: VertexAI = fakeGenAI;
+const fakeVertexAI: VertexAI = fakeAI;
 
 describe('backwards-compatible types', () => {
-  it('GenAI is backwards compatible with VertexAI', () => {
-    assertAssignable<VertexAI, GenAI>();
+  it('AI is backwards compatible with VertexAI', () => {
+    assertAssignable<VertexAI, AI>();
   });
-  it('GenAIError is backwards compatible with VertexAIError', () => {
-    assertAssignable<typeof VertexAIError, typeof GenAIError>();
+  it('AIError is backwards compatible with VertexAIError', () => {
+    assertAssignable<typeof VertexAIError, typeof AIError>();
     const err = new VertexAIError(VertexAIErrorCode.ERROR, '');
-    expect(err).instanceOf(GenAIError);
+    expect(err).instanceOf(AIError);
     expect(err).instanceOf(VertexAIError);
   });
-  it('GenAIErrorCode is backwards compatible with VertexAIErrorCode', () => {
-    assertAssignable<VertexAIErrorCode, GenAIErrorCode>();
-    const errCode = GenAIErrorCode.ERROR;
+  it('AIErrorCode is backwards compatible with VertexAIErrorCode', () => {
+    assertAssignable<VertexAIErrorCode, AIErrorCode>();
+    const errCode = AIErrorCode.ERROR;
     expect(errCode).to.equal(VertexAIErrorCode.ERROR);
   });
-  it('GenAIModel is backwards compatible with VertexAIModel', () => {
-    assertAssignable<typeof VertexAIModel, typeof GenAIModel>();
+  it('AIModel is backwards compatible with VertexAIModel', () => {
+    assertAssignable<typeof VertexAIModel, typeof AIModel>();
 
-    const model = new GenerativeModel(fakeGenAI, { model: 'model-name' });
-    expect(model).to.be.instanceOf(GenAIModel);
+    const model = new GenerativeModel(fakeAI, { model: 'model-name' });
+    expect(model).to.be.instanceOf(AIModel);
     expect(model).to.be.instanceOf(VertexAIModel);
   });
 });
@@ -74,12 +74,12 @@ describe('backwards-compatible types', () => {
 describe('backward-compatible functions', () => {
   it('getGenerativeModel', () => {
     const model = getGenerativeModel(fakeVertexAI, { model: 'model-name' });
-    expect(model).to.be.instanceOf(GenAIModel);
+    expect(model).to.be.instanceOf(AIModel);
     expect(model).to.be.instanceOf(VertexAIModel);
   });
   it('getImagenModel', () => {
     const model = getImagenModel(fakeVertexAI, { model: 'model-name' });
-    expect(model).to.be.instanceOf(GenAIModel);
+    expect(model).to.be.instanceOf(AIModel);
     expect(model).to.be.instanceOf(VertexAIModel);
   });
 });

@@ -58,11 +58,11 @@ export interface CustomErrorData {
 }
 
 /**
- * Standardized error codes that {@link GenAIError} can have.
+ * Standardized error codes that {@link AIError} can have.
  *
  * @public
  */
-export const enum GenAIErrorCode {
+export const enum AIErrorCode {
   /** A generic error occurred. */
   ERROR = 'error',
 

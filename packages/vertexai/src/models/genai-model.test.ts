@@ -15,25 +15,25 @@
  * limitations under the License.
  */
 import { use, expect } from 'chai';
-import { GenAI, GenAIErrorCode } from '../public-types';
+import { AI, AIErrorCode } from '../public-types';
 import sinonChai from 'sinon-chai';
-import { GenAIModel } from './genai-model';
-import { GenAIError } from '../errors';
+import { AIModel } from './genai-model';
+import { AIError } from '../errors';
 import { vertexAIBackend } from '../api';
 
 use(sinonChai);
 
 /**
- * A class that extends GenAIModel that allows us to test the protected constructor.
+ * A class that extends AIModel that allows us to test the protected constructor.
  */
-class TestModel extends GenAIModel {
+class TestModel extends AIModel {
   /* eslint-disable @typescript-eslint/no-useless-constructor */
-  constructor(genAI: GenAI, modelName: string) {
-    super(genAI, modelName);
+  constructor(ai: AI, modelName: string) {
+    super(ai, modelName);
   }
 }
 
-const fakeGenAI: GenAI = {
+const fakeAI: AI = {
   app: {
     name: 'DEFAULT',
     automaticDataCollectionEnabled: true,
@@ -47,28 +47,28 @@ const fakeGenAI: GenAI = {
   location: 'us-central1'
 };
 
-describe('GenAIModel', () => {
+describe('AIModel', () => {
   it('handles plain model name', () => {
-    const testModel = new TestModel(fakeGenAI, 'my-model');
+    const testModel = new TestModel(fakeAI, 'my-model');
     expect(testModel.model).to.equal('publishers/google/models/my-model');
   });
   it('handles models/ prefixed model name', () => {
-    const testModel = new TestModel(fakeGenAI, 'models/my-model');
+    const testModel = new TestModel(fakeAI, 'models/my-model');
     expect(testModel.model).to.equal('publishers/google/models/my-model');
   });
   it('handles full model name', () => {
     const testModel = new TestModel(
-      fakeGenAI,
+      fakeAI,
       'publishers/google/models/my-model'
     );
     expect(testModel.model).to.equal('publishers/google/models/my-model');
   });
   it('handles prefixed tuned model name', () => {
-    const testModel = new TestModel(fakeGenAI, 'tunedModels/my-model');
+    const testModel = new TestModel(fakeAI, 'tunedModels/my-model');
     expect(testModel.model).to.equal('tunedModels/my-model');
   });
   it('throws if not passed an api key', () => {
-    const fakeGenAI: GenAI = {
+    const fakeAI: AI = {
       app: {
         name: 'DEFAULT',
         automaticDataCollectionEnabled: true,
@@ -80,13 +80,13 @@ describe('GenAIModel', () => {
       location: 'us-central1'
     };
     try {
-      new TestModel(fakeGenAI, 'my-model');
+      new TestModel(fakeAI, 'my-model');
     } catch (e) {
-      expect((e as GenAIError).code).to.equal(GenAIErrorCode.NO_API_KEY);
+      expect((e as AIError).code).to.equal(AIErrorCode.NO_API_KEY);
     }
   });
   it('throws if not passed a project ID', () => {
-    const fakeGenAI: GenAI = {
+    const fakeAI: AI = {
       app: {
         name: 'DEFAULT',
         automaticDataCollectionEnabled: true,
@@ -98,13 +98,13 @@ describe('GenAIModel', () => {
       location: 'us-central1'
     };
     try {
-      new TestModel(fakeGenAI, 'my-model');
+      new TestModel(fakeAI, 'my-model');
     } catch (e) {
-      expect((e as GenAIError).code).to.equal(GenAIErrorCode.NO_PROJECT_ID);
+      expect((e as AIError).code).to.equal(AIErrorCode.NO_PROJECT_ID);
     }
   });
   it('throws if not passed an app ID', () => {
-    const fakeGenAI: GenAI = {
+    const fakeAI: AI = {
       app: {
         name: 'DEFAULT',
         automaticDataCollectionEnabled: true,
@@ -117,9 +117,9 @@ describe('GenAIModel', () => {
       location: 'us-central1'
     };
     try {
-      new TestModel(fakeGenAI, 'my-model');
+      new TestModel(fakeAI, 'my-model');
     } catch (e) {
-      expect((e as GenAIError).code).to.equal(GenAIErrorCode.NO_APP_ID);
+      expect((e as AIError).code).to.equal(AIErrorCode.NO_APP_ID);
     }
   });
 });

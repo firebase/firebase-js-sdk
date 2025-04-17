@@ -1,5 +1,5 @@
 /**
- * The Vertex AI in Firebase Web SDK.
+ * The Firebase AI Web SDK.
  *
  * @packageDocumentation
  */
@@ -22,17 +22,17 @@
  */
 
 import { registerVersion, _registerComponent } from '@firebase/app';
-import { GenAIService } from './service';
-import { DEFAULT_INSTANCE_IDENTIFER, GENAI_TYPE } from './constants';
+import { AIService } from './service';
+import { DEFAULT_INSTANCE_IDENTIFIER, AI_TYPE } from './constants';
 import { Component, ComponentType } from '@firebase/component';
 import { name, version } from '../package.json';
 import { InstanceIdentifier } from './types/internal';
 import { decodeInstanceIdentifier } from './helpers';
 
-function registerGenAI(): void {
+function registerAI(): void {
   _registerComponent(
     new Component(
-      GENAI_TYPE,
+      AI_TYPE,
       (container, options) => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
@@ -45,12 +45,12 @@ function registerGenAI(): void {
             options.instanceIdentifier
           );
         } else {
-          instanceIdentifier = DEFAULT_INSTANCE_IDENTIFER;
+          instanceIdentifier = DEFAULT_INSTANCE_IDENTIFIER;
         }
 
         const backend = instanceIdentifier;
 
-        return new GenAIService(app, backend, auth, appCheckProvider);
+        return new AIService(app, backend, auth, appCheckProvider);
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)
@@ -61,7 +61,7 @@ function registerGenAI(): void {
   registerVersion(name, version, '__BUILD_TARGET__');
 }
 
-registerGenAI();
+registerAI();
 
 export * from './api';
 export * from './public-types';

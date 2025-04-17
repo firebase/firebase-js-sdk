@@ -23,7 +23,7 @@ export interface SafetySetting
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [category](./vertexai.safetysetting.md#safetysettingcategory) | [HarmCategory](./vertexai.md#harmcategory) |  |
-|  [method](./vertexai.safetysetting.md#safetysettingmethod) | [HarmBlockMethod](./vertexai.md#harmblockmethod) | This property is not supported in Google AI. If this is a property on a [GenerateContentRequest](./vertexai.generatecontentrequest.md#generatecontentrequest_interface) to be sent, a [GenAIError](./vertexai.genaierror.md#genaierror_class) will be thrown. |
+|  [method](./vertexai.safetysetting.md#safetysettingmethod) | [HarmBlockMethod](./vertexai.md#harmblockmethod) | This property is not supported in Google AI. If this is a property on a [GenerateContentRequest](./vertexai.generatecontentrequest.md#generatecontentrequest_interface) to be sent, an [AIError](./vertexai.aierror.md#aierror_class) will be thrown. |
 |  [threshold](./vertexai.safetysetting.md#safetysettingthreshold) | [HarmBlockThreshold](./vertexai.md#harmblockthreshold) |  |
 
 ## SafetySetting.category
@@ -36,7 +36,7 @@ category: HarmCategory;
 
 ## SafetySetting.method
 
-This property is not supported in Google AI. If this is a property on a [GenerateContentRequest](./vertexai.generatecontentrequest.md#generatecontentrequest_interface) to be sent, a [GenAIError](./vertexai.genaierror.md#genaierror_class) will be thrown.
+This property is not supported in Google AI. If this is a property on a [GenerateContentRequest](./vertexai.generatecontentrequest.md#generatecontentrequest_interface) to be sent, an [AIError](./vertexai.aierror.md#aierror_class) will be thrown.
 
 <b>Signature:</b>
 

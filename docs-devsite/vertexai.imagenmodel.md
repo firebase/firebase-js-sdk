@@ -20,15 +20,15 @@ This class provides methods for generating images using the Imagen model.
 <b>Signature:</b>
 
 ```typescript
-export declare class ImagenModel extends GenAIModel 
+export declare class ImagenModel extends AIModel 
 ```
-<b>Extends:</b> [GenAIModel](./vertexai.genaimodel.md#genaimodel_class)
+<b>Extends:</b> [AIModel](./vertexai.aimodel.md#aimodel_class)
 
 ## Constructors
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(genAI, modelParams, requestOptions)](./vertexai.imagenmodel.md#imagenmodelconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the [ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class) class. |
+|  [(constructor)(ai, modelParams, requestOptions)](./vertexai.imagenmodel.md#imagenmodelconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the [ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class) class. |
 
 ## Properties
 
@@ -54,14 +54,14 @@ Constructs a new instance of the [ImagenModel](./vertexai.imagenmodel.md#imagenm
 <b>Signature:</b>
 
 ```typescript
-constructor(genAI: GenAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
+constructor(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  genAI | [GenAI](./vertexai.genai.md#genai_interface) | A [GenAI](./vertexai.genai.md#genai_interface) instance. |
+|  ai | [AI](./vertexai.ai.md#ai_interface) | an [AI](./vertexai.ai.md#ai_interface) instance. |
 |  modelParams | [ImagenModelParams](./vertexai.imagenmodelparams.md#imagenmodelparams_interface) | Parameters to use when making requests to Imagen. |
 |  requestOptions | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) \| undefined | Additional options to use when making requests. |
 
@@ -142,7 +142,7 @@ If the request to generate images fails. This happens if the prompt is blocked.
 
 ```javascript
 const imagen = new ImagenModel(
-  genAI,
+  ai,
   {
     model: 'imagen-3.0-generate-002'
   }

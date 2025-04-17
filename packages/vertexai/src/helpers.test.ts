@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import { GENAI_TYPE } from './constants';
+import { AI_TYPE } from './constants';
 import { encodeInstanceIdentifier, decodeInstanceIdentifier } from './helpers';
-import { GenAIError } from './errors';
+import { AIError } from './errors';
 import { BackendType } from './public-types';
 import { InstanceIdentifier } from './types/internal';
-import { GenAIErrorCode } from './types';
+import { AIErrorCode } from './types';
 
 describe('Identifier Encoding/Decoding', () => {
   describe('encodeInstanceIdentifier', () => {
@@ -30,7 +30,7 @@ describe('Identifier Encoding/Decoding', () => {
         location: 'us-central1'
       };
       console.log(identifier);
-      const expected = `${GENAI_TYPE}/vertexai/us-central1`;
+      const expected = `${AI_TYPE}/vertexai/us-central1`;
       expect(encodeInstanceIdentifier(identifier)).to.equal(expected);
     });
 
@@ -39,7 +39,7 @@ describe('Identifier Encoding/Decoding', () => {
         backendType: BackendType.VERTEX_AI,
         location: ''
       };
-      const expected = `${GENAI_TYPE}/vertexai/`;
+      const expected = `${AI_TYPE}/vertexai/`;
       expect(encodeInstanceIdentifier(identifier)).to.equal(expected);
     });
 
@@ -47,32 +47,32 @@ describe('Identifier Encoding/Decoding', () => {
       const identifier: InstanceIdentifier = {
         backendType: BackendType.GOOGLE_AI
       };
-      const expected = `${GENAI_TYPE}/googleai`;
+      const expected = `${AI_TYPE}/googleai`;
       expect(encodeInstanceIdentifier(identifier)).to.equal(expected);
     });
 
-    it('should throw GenAIError for unknown backend type', () => {
+    it('should throw AIError for unknown backend type', () => {
       const identifier = {
         backendType: 'some-future-backend'
       } as any; // bypass type checking for the test
 
-      expect(() => encodeInstanceIdentifier(identifier)).to.throw(GenAIError);
+      expect(() => encodeInstanceIdentifier(identifier)).to.throw(AIError);
 
       try {
         encodeInstanceIdentifier(identifier);
         expect.fail('Expected encodeInstanceIdentifier to throw');
       } catch (e) {
-        expect(e).to.be.instanceOf(GenAIError);
-        const error = e as GenAIError;
+        expect(e).to.be.instanceOf(AIError);
+        const error = e as AIError;
         expect(error.message).to.contain(`Unknown backend`);
-        expect(error.code).to.equal(GenAIErrorCode.ERROR);
+        expect(error.code).to.equal(AIErrorCode.ERROR);
       }
     });
   });
 
   describe('decodeInstanceIdentifier', () => {
     it('should decode Vertex AI identifier with location', () => {
-      const encoded = `${GENAI_TYPE}/vertexai/europe-west1`;
+      const encoded = `${AI_TYPE}/vertexai/europe-west1`;
       const expected: InstanceIdentifier = {
         backendType: BackendType.VERTEX_AI,
         location: 'europe-west1'
@@ -81,58 +81,58 @@ describe('Identifier Encoding/Decoding', () => {
     });
 
     it('should throw an error if Vertex AI identifier string without explicit location part', () => {
-      const encoded = `${GENAI_TYPE}/vertexai`;
-      expect(() => decodeInstanceIdentifier(encoded)).to.throw(GenAIError);
+      const encoded = `${AI_TYPE}/vertexai`;
+      expect(() => decodeInstanceIdentifier(encoded)).to.throw(AIError);
 
       try {
         decodeInstanceIdentifier(encoded);
         expect.fail('Expected encodeInstanceIdentifier to throw');
       } catch (e) {
-        expect(e).to.be.instanceOf(GenAIError);
-        const error = e as GenAIError;
+        expect(e).to.be.instanceOf(AIError);
+        const error = e as AIError;
         expect(error.message).to.contain(
           `Invalid instance identifier, unknown location`
         );
-        expect(error.code).to.equal(GenAIErrorCode.ERROR);
+        expect(error.code).to.equal(AIErrorCode.ERROR);
       }
     });
 
     it('should decode Google AI identifier', () => {
-      const encoded = `${GENAI_TYPE}/googleai`;
+      const encoded = `${AI_TYPE}/googleai`;
       const expected: InstanceIdentifier = {
         backendType: BackendType.GOOGLE_AI
       };
       expect(decodeInstanceIdentifier(encoded)).to.deep.equal(expected);
     });
 
-    it('should throw GenAIError for invalid backend string', () => {
-      const encoded = `${GENAI_TYPE}/someotherbackend/location`;
+    it('should throw AIError for invalid backend string', () => {
+      const encoded = `${AI_TYPE}/someotherbackend/location`;
       expect(() => decodeInstanceIdentifier(encoded)).to.throw(
-        GenAIError,
+        AIError,
         `Invalid instance identifier string: '${encoded}'`
       );
       try {
         decodeInstanceIdentifier(encoded);
         expect.fail('Expected decodeInstanceIdentifier to throw');
       } catch (e) {
-        expect(e).to.be.instanceOf(GenAIError);
-        expect((e as GenAIError).code).to.equal(GenAIErrorCode.ERROR);
+        expect(e).to.be.instanceOf(AIError);
+        expect((e as AIError).code).to.equal(AIErrorCode.ERROR);
       }
     });
 
-    it('should throw GenAIError for malformed identifier string (too few parts)', () => {
-      const encoded = GENAI_TYPE;
+    it('should throw AIError for malformed identifier string (too few parts)', () => {
+      const encoded = AI_TYPE;
       expect(() => decodeInstanceIdentifier(encoded)).to.throw(
-        GenAIError,
+        AIError,
         `Invalid instance identifier string: '${encoded}'`
       );
     });
 
-    it('should throw GenAIError for malformed identifier string (incorrect prefix)', () => {
+    it('should throw AIError for malformed identifier string (incorrect prefix)', () => {
       const encoded = 'firebase/vertexai/location';
       // This will also hit the default case in the switch statement
       expect(() => decodeInstanceIdentifier(encoded)).to.throw(
-        GenAIError,
+        AIError,
         `Invalid instance identifier, unknown prefix 'firebase'`
       );
     });

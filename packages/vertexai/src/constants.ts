@@ -22,9 +22,9 @@ import { InstanceIdentifier } from './types/internal';
 // TODO (v12): Remove this
 export const VERTEX_TYPE = 'vertexAI';
 
-export const GENAI_TYPE = 'genAI';
+export const AI_TYPE = 'AI';
 
-export const DEFAULT_INSTANCE_IDENTIFER: InstanceIdentifier = {
+export const DEFAULT_INSTANCE_IDENTIFIER: InstanceIdentifier = {
   backendType: BackendType.GOOGLE_AI
 };
 

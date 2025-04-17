@@ -9,24 +9,24 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# GenAIModel class
-Base class for Vertex AI in Firebase model APIs.
+# AIModel class
+Base class for Firebase AI model APIs.
 
-The constructor for this class is marked as internal. Third-party code should not call the constructor directly or create subclasses that extend the `GenAIModel` class.
+The constructor for this class is marked as internal. Third-party code should not call the constructor directly or create subclasses that extend the `AIModel` class.
 
 <b>Signature:</b>
 
 ```typescript
-export declare abstract class GenAIModel 
+export declare abstract class AIModel 
 ```
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [model](./vertexai.genaimodel.md#genaimodelmodel) |  | string | The fully qualified model resource name to use for generating images (for example, <code>publishers/google/models/imagen-3.0-generate-002</code>). |
+|  [model](./vertexai.aimodel.md#aimodelmodel) |  | string | The fully qualified model resource name to use for generating images (for example, <code>publishers/google/models/imagen-3.0-generate-002</code>). |
 
-## GenAIModel.model
+## AIModel.model
 
 The fully qualified model resource name to use for generating images (for example, `publishers/google/models/imagen-3.0-generate-002`<!-- -->).
 

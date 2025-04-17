@@ -9,13 +9,13 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# GenAIError class
-Error class for the Vertex AI in Firebase SDK.
+# AIError class
+Error class for the Firebase AI SDK.
 
 <b>Signature:</b>
 
 ```typescript
-export declare class GenAIError extends FirebaseError 
+export declare class AIError extends FirebaseError 
 ```
 <b>Extends:</b> [FirebaseError](./util.firebaseerror.md#firebaseerror_class)
 
@@ -23,42 +23,42 @@ export declare class GenAIError extends FirebaseError
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(code, message, customErrorData)](./vertexai.genaierror.md#genaierrorconstructor) |  | Constructs a new instance of the <code>GenAIError</code> class. |
+|  [(constructor)(code, message, customErrorData)](./vertexai.aierror.md#aierrorconstructor) |  | Constructs a new instance of the <code>AIError</code> class. |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [code](./vertexai.genaierror.md#genaierrorcode) |  | [GenAIErrorCode](./vertexai.md#genaierrorcode) |  |
-|  [customErrorData](./vertexai.genaierror.md#genaierrorcustomerrordata) |  | [CustomErrorData](./vertexai.customerrordata.md#customerrordata_interface) \| undefined |  |
+|  [code](./vertexai.aierror.md#aierrorcode) |  | [AIErrorCode](./vertexai.md#aierrorcode) |  |
+|  [customErrorData](./vertexai.aierror.md#aierrorcustomerrordata) |  | [CustomErrorData](./vertexai.customerrordata.md#customerrordata_interface) \| undefined |  |
 
-## GenAIError.(constructor)
+## AIError.(constructor)
 
-Constructs a new instance of the `GenAIError` class.
+Constructs a new instance of the `AIError` class.
 
 <b>Signature:</b>
 
 ```typescript
-constructor(code: GenAIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
+constructor(code: AIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  code | [GenAIErrorCode](./vertexai.md#genaierrorcode) | The error code from [GenAIErrorCode](./vertexai.md#genaierrorcode)<!-- -->. |
+|  code | [AIErrorCode](./vertexai.md#aierrorcode) | The error code from [AIErrorCode](./vertexai.md#aierrorcode)<!-- -->. |
 |  message | string | A human-readable message describing the error. |
 |  customErrorData | [CustomErrorData](./vertexai.customerrordata.md#customerrordata_interface) \| undefined | Optional error data. |
 
-## GenAIError.code
+## AIError.code
 
 <b>Signature:</b>
 
 ```typescript
-readonly code: GenAIErrorCode;
+readonly code: AIErrorCode;
 ```
 
-## GenAIError.customErrorData
+## AIError.customErrorData
 
 <b>Signature:</b>
 

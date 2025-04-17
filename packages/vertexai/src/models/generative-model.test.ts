@@ -16,7 +16,7 @@
  */
 import { use, expect } from 'chai';
 import { GenerativeModel } from './generative-model';
-import { FunctionCallingMode, GenAI } from '../public-types';
+import { FunctionCallingMode, AI } from '../public-types';
 import * as request from '../requests/request';
 import { match, restore, stub } from 'sinon';
 import { getMockResponse } from '../../test-utils/mock-response';
@@ -25,7 +25,7 @@ import { vertexAIBackend } from '../api';
 
 use(sinonChai);
 
-const fakeGenAI: GenAI = {
+const fakeAI: AI = {
   app: {
     name: 'DEFAULT',
     automaticDataCollectionEnabled: true,
@@ -41,7 +41,7 @@ const fakeGenAI: GenAI = {
 
 describe('GenerativeModel', () => {
   it('passes params through to generateContent', async () => {
-    const genModel = new GenerativeModel(fakeGenAI, {
+    const genModel = new GenerativeModel(fakeAI, {
       model: 'my-model',
       tools: [
         {
@@ -86,7 +86,7 @@ describe('GenerativeModel', () => {
     restore();
   });
   it('passes text-only systemInstruction through to generateContent', async () => {
-    const genModel = new GenerativeModel(fakeGenAI, {
+    const genModel = new GenerativeModel(fakeAI, {
       model: 'my-model',
       systemInstruction: 'be friendly'
     });
@@ -112,7 +112,7 @@ describe('GenerativeModel', () => {
     restore();
   });
   it('generateContent overrides model values', async () => {
-    const genModel = new GenerativeModel(fakeGenAI, {
+    const genModel = new GenerativeModel(fakeAI, {
       model: 'my-model',
       tools: [
         {
@@ -168,7 +168,7 @@ describe('GenerativeModel', () => {
     restore();
   });
   it('passes params through to chat.sendMessage', async () => {
-    const genModel = new GenerativeModel(fakeGenAI, {
+    const genModel = new GenerativeModel(fakeAI, {
       model: 'my-model',
       tools: [
         { functionDeclarations: [{ name: 'myfunc', description: 'mydesc' }] }
@@ -206,7 +206,7 @@ describe('GenerativeModel', () => {
     restore();
   });
   it('passes text-only systemInstruction through to chat.sendMessage', async () => {
-    const genModel = new GenerativeModel(fakeGenAI, {
+    const genModel = new GenerativeModel(fakeAI, {
       model: 'my-model',
       systemInstruction: 'be friendly'
     });
@@ -232,7 +232,7 @@ describe('GenerativeModel', () => {
     restore();
   });
   it('startChat overrides model values', async () => {
-    const genModel = new GenerativeModel(fakeGenAI, {
+    const genModel = new GenerativeModel(fakeAI, {
       model: 'my-model',
       tools: [
         { functionDeclarations: [{ name: 'myfunc', description: 'mydesc' }] }
@@ -284,7 +284,7 @@ describe('GenerativeModel', () => {
     restore();
   });
   it('calls countTokens', async () => {
-    const genModel = new GenerativeModel(fakeGenAI, { model: 'my-model' });
+    const genModel = new GenerativeModel(fakeAI, { model: 'my-model' });
     const mockResponse = getMockResponse(
       'vertexAI',
       'unary-success-total-tokens.json'

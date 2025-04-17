@@ -36,7 +36,7 @@ import {
   HarmProbability,
   HarmSeverity,
   SafetyRating,
-  GenAIErrorCode,
+  AIErrorCode,
   FinishReason,
   PromptFeedback
 } from './types';
@@ -46,7 +46,7 @@ import {
   GoogleAICountTokensRequest
 } from './types/googleAI';
 import { logger } from './logger';
-import { GenAIError } from './errors';
+import { AIError } from './errors';
 import { getMockResponse } from '../test-utils/mock-response';
 
 use(sinonChai);
@@ -79,8 +79,8 @@ describe('Google AI Mappers', () => {
         ]
       };
       expect(() => mapGenerateContentRequest(request))
-        .to.throw(GenAIError, /SafetySetting.method is not supported/i)
-        .with.property('code', GenAIErrorCode.UNSUPPORTED);
+        .to.throw(AIError, /SafetySetting.method is not supported/i)
+        .with.property('code', AIErrorCode.UNSUPPORTED);
     });
 
     it('should warn and round topK if present', () => {
@@ -334,8 +334,8 @@ describe('Google AI Mappers', () => {
         }
       ];
       expect(() => mapGenerateContentCandidates(candidates))
-        .to.throw(GenAIError, /Part.videoMetadata is not supported/i)
-        .with.property('code', GenAIErrorCode.UNSUPPORTED);
+        .to.throw(AIError, /Part.videoMetadata is not supported/i)
+        .with.property('code', AIErrorCode.UNSUPPORTED);
     });
 
     it('should handle candidates without citation or safety ratings', () => {

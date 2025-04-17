@@ -34,9 +34,9 @@ import {
   HarmCategory,
   HarmProbability,
   SafetyRating,
-  GenAIErrorCode
+  AIErrorCode
 } from '../types';
-import { GenAIError } from '../errors';
+import { AIError } from '../errors';
 import { ApiSettings } from '../types/internal';
 import { vertexAIBackend } from '../api';
 
@@ -482,8 +482,8 @@ describe('aggregateResponses', () => {
     try {
       aggregateResponses(responsesToAggregate);
     } catch (e) {
-      expect((e as GenAIError).code).includes(GenAIErrorCode.INVALID_CONTENT);
-      expect((e as GenAIError).message).to.include(
+      expect((e as AIError).code).includes(AIErrorCode.INVALID_CONTENT);
+      expect((e as AIError).message).to.include(
         'Part should have at least one property, but there are none. This is likely caused ' +
           'by a malformed response from the backend.'
       );

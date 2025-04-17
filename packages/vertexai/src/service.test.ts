@@ -16,7 +16,7 @@
  */
 import { vertexAIBackend } from './api';
 import { DEFAULT_LOCATION } from './constants';
-import { GenAIService } from './service';
+import { AIService } from './service';
 import { expect } from 'chai';
 
 const fakeApp = {
@@ -28,19 +28,19 @@ const fakeApp = {
   }
 };
 
-describe('GenAIService', () => {
+describe('AIService', () => {
   // TODO (dlarocque): move some of these tests to helpers.test.ts
   it('uses default location if not specified', () => {
-    const genAI = new GenAIService(fakeApp, vertexAIBackend());
-    expect(genAI.location).to.equal(DEFAULT_LOCATION);
+    const ai = new AIService(fakeApp, vertexAIBackend());
+    expect(ai.location).to.equal(DEFAULT_LOCATION);
   });
   it('uses custom location if specified', () => {
-    const genAI = new GenAIService(
+    const ai = new AIService(
       fakeApp,
       vertexAIBackend('somewhere'),
       /* authProvider */ undefined,
       /* appCheckProvider */ undefined
     );
-    expect(genAI.location).to.equal('somewhere');
+    expect(ai.location).to.equal('somewhere');
   });
 });

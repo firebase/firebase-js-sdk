@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp, _FirebaseService } from '@firebase/app';
-import { Backend, GenAI } from './public-types';
+import { Backend, AI } from './public-types';
 import {
   AppCheckInternalComponentName,
   FirebaseAppCheckInternal
@@ -27,7 +27,7 @@ import {
   FirebaseAuthInternalName
 } from '@firebase/auth-interop-types';
 
-export class GenAIService implements GenAI, _FirebaseService {
+export class AIService implements AI, _FirebaseService {
   auth: FirebaseAuthInternal | null;
   appCheck: FirebaseAppCheckInternal | null;
   location: string; // This is here for backwards-compatibility

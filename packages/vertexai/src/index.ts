@@ -1,5 +1,5 @@
 /**
- * The Vertex AI in Firebase Web SDK.
+ * The Firebase AI Web SDK.
  *
  * @packageDocumentation
  */
@@ -22,13 +22,13 @@
  */
 
 import { registerVersion, _registerComponent } from '@firebase/app';
-import { GenAIService } from './service';
-import { GENAI_TYPE } from './constants';
+import { AIService } from './service';
+import { AI_TYPE } from './constants';
 import { Component, ComponentType } from '@firebase/component';
 import { name, version } from '../package.json';
 import { decodeInstanceIdentifier } from './helpers';
-import { GenAIError } from './api';
-import { GenAIErrorCode } from './types';
+import { AIError } from './api';
+import { AIErrorCode } from './types';
 
 declare global {
   interface Window {
@@ -36,15 +36,15 @@ declare global {
   }
 }
 
-function registerGenAI(): void {
+function registerAI(): void {
   _registerComponent(
     new Component(
-      GENAI_TYPE,
+      AI_TYPE,
       (container, { instanceIdentifier }) => {
         if (!instanceIdentifier) {
-          throw new GenAIError(
-            GenAIErrorCode.ERROR,
-            'GenAIService instance identifier is undefined.'
+          throw new AIError(
+            AIErrorCode.ERROR,
+            'AIService instance identifier is undefined.'
           );
         }
 
@@ -53,7 +53,7 @@ function registerGenAI(): void {
         const app = container.getProvider('app').getImmediate();
         const auth = container.getProvider('auth-internal');
         const appCheckProvider = container.getProvider('app-check-internal');
-        return new GenAIService(app, backend, auth, appCheckProvider);
+        return new AIService(app, backend, auth, appCheckProvider);
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)
@@ -64,7 +64,7 @@ function registerGenAI(): void {
   registerVersion(name, version, '__BUILD_TARGET__');
 }
 
-registerGenAI();
+registerAI();
 
 export * from './api';
 export * from './public-types';

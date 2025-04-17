@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
-import { GENAI_TYPE } from './constants';
-import { GenAIError } from './errors';
+import { AI_TYPE } from './constants';
+import { AIError } from './errors';
 import { BackendType } from './public-types';
 import { InstanceIdentifier } from './types/internal';
-import { GenAIErrorCode } from './types';
+import { AIErrorCode } from './types';
 
 /**
  * Encodes an {@link InstanceIdentifier} into a string.
  *
- * This string is used to identify unique {@link GenAI} instances by backend type.
+ * This string is used to identify unique {@link AI} instances by backend type.
  *
  * @internal
  */
@@ -33,12 +33,12 @@ export function encodeInstanceIdentifier(
 ): string {
   switch (instanceIdentifier.backendType) {
     case BackendType.VERTEX_AI:
-      return `${GENAI_TYPE}/vertexai/${instanceIdentifier.location}`;
+      return `${AI_TYPE}/vertexai/${instanceIdentifier.location}`;
     case BackendType.GOOGLE_AI:
-      return `${GENAI_TYPE}/googleai`;
+      return `${AI_TYPE}/googleai`;
     default:
-      throw new GenAIError(
-        GenAIErrorCode.ERROR,
+      throw new AIError(
+        AIErrorCode.ERROR,
         `Unknown backend '${instanceIdentifier}'`
       );
   }
@@ -53,9 +53,9 @@ export function decodeInstanceIdentifier(
   instanceIdentifier: string
 ): InstanceIdentifier {
   const identifierParts = instanceIdentifier.split('/');
-  if (identifierParts[0] !== GENAI_TYPE) {
-    throw new GenAIError(
-      GenAIErrorCode.ERROR,
+  if (identifierParts[0] !== AI_TYPE) {
+    throw new AIError(
+      AIErrorCode.ERROR,
       `Invalid instance identifier, unknown prefix '${identifierParts[0]}'`
     );
   }
@@ -64,8 +64,8 @@ export function decodeInstanceIdentifier(
     case 'vertexai':
       const location: string | undefined = identifierParts[2];
       if (!location) {
-        throw new GenAIError(
-          GenAIErrorCode.ERROR,
+        throw new AIError(
+          AIErrorCode.ERROR,
           `Invalid instance identifier, unknown location '${instanceIdentifier}'`
         );
       }
@@ -78,8 +78,8 @@ export function decodeInstanceIdentifier(
         backendType: BackendType.GOOGLE_AI
       };
     default:
-      throw new GenAIError(
-        GenAIErrorCode.ERROR,
+      throw new AIError(
+        AIErrorCode.ERROR,
         `Invalid instance identifier string: '${instanceIdentifier}'`
       );
   }

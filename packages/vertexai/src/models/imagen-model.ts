@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { GenAI } from '../public-types';
+import { AI } from '../public-types';
 import { Task, makeRequest } from '../requests/request';
 import { createPredictRequestBody } from '../requests/request-helpers';
 import { handlePredictResponse } from '../requests/response-helpers';
@@ -28,7 +28,7 @@ import {
   ImagenGenerationResponse,
   ImagenSafetySettings
 } from '../types';
-import { GenAIModel } from './genai-model';
+import { AIModel } from './genai-model';
 
 /**
  * Class for Imagen model APIs.
@@ -38,7 +38,7 @@ import { GenAIModel } from './genai-model';
  * @example
  * ```javascript
  * const imagen = new ImagenModel(
- *   genAI,
+ *   ai,
  *   {
  *     model: 'imagen-3.0-generate-002'
  *   }
@@ -52,7 +52,7 @@ import { GenAIModel } from './genai-model';
  *
  * @beta
  */
-export class ImagenModel extends GenAIModel {
+export class ImagenModel extends AIModel {
   /**
    * The Imagen generation configuration.
    */
@@ -65,7 +65,7 @@ export class ImagenModel extends GenAIModel {
   /**
    * Constructs a new instance of the {@link ImagenModel} class.
    *
-   * @param genAI - A {@link GenAI} instance.
+   * @param ai - an {@link AI} instance.
    * @param modelParams - Parameters to use when making requests to Imagen.
    * @param requestOptions - Additional options to use when making requests.
    *
@@ -73,12 +73,12 @@ export class ImagenModel extends GenAIModel {
    * Firebase config.
    */
   constructor(
-    genAI: GenAI,
+    ai: AI,
     modelParams: ImagenModelParams,
     public requestOptions?: RequestOptions
   ) {
     const { model, generationConfig, safetySettings } = modelParams;
-    super(genAI, model);
+    super(ai, model);
     this.generationConfig = generationConfig;
     this.safetySettings = safetySettings;
   }

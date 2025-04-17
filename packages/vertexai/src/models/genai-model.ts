@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
-import { GenAIError } from '../errors';
-import { GenAIErrorCode, GenAI, BackendType } from '../public-types';
-import { GenAIService } from '../service';
+import { AIError } from '../errors';
+import { AIErrorCode, AI, BackendType } from '../public-types';
+import { AIService } from '../service';
 import { ApiSettings } from '../types/internal';
 import { _isFirebaseServerApp } from '@firebase/app';
 
 /**
- * Base class for Vertex AI in Firebase model APIs.
+ * Base class for Firebase AI model APIs.
  *
  * @public
  */
-export abstract class GenAIModel {
+export abstract class AIModel {
   /**
    * The fully qualified model resource name to use for generating images
    * (for example, `publishers/google/models/imagen-3.0-generate-002`).
@@ -39,12 +39,12 @@ export abstract class GenAIModel {
   protected _apiSettings: ApiSettings;
 
   /**
-   * Constructs a new instance of the {@link GenAIModel} class.
+   * Constructs a new instance of the {@link AIModel} class.
    *
    * This constructor should only be called from subclasses that provide
    * a model API.
    *
-   * @param genAI - A {@link GenAI} instance.
+   * @param ai - an {@link AI} instance.
    * @param modelName - The name of the model being used. It can be in one of the following formats:
    * - `my-model` (short name, will resolve to `publishers/google/models/my-model`)
    * - `models/my-model` (will resolve to `publishers/google/models/my-model`)
@@ -55,49 +55,49 @@ export abstract class GenAIModel {
    *
    * @internal
    */
-  protected constructor(genAI: GenAI, modelName: string) {
-    if (!genAI.app?.options?.apiKey) {
-      throw new GenAIError(
-        GenAIErrorCode.NO_API_KEY,
-        `The "apiKey" field is empty in the local Firebase config. Firebase VertexAI requires this field to contain a valid API key.`
+  protected constructor(ai: AI, modelName: string) {
+    if (!ai.app?.options?.apiKey) {
+      throw new AIError(
+        AIErrorCode.NO_API_KEY,
+        `The "apiKey" field is empty in the local Firebase config. Firebase AI requires this field to contain a valid API key.`
       );
-    } else if (!genAI.app?.options?.projectId) {
-      throw new GenAIError(
-        GenAIErrorCode.NO_PROJECT_ID,
-        `The "projectId" field is empty in the local Firebase config. Firebase VertexAI requires this field to contain a valid project ID.`
+    } else if (!ai.app?.options?.projectId) {
+      throw new AIError(
+        AIErrorCode.NO_PROJECT_ID,
+        `The "projectId" field is empty in the local Firebase config. Firebase AI requires this field to contain a valid project ID.`
       );
-    } else if (!genAI.app?.options?.appId) {
-      throw new GenAIError(
-        GenAIErrorCode.NO_APP_ID,
-        `The "appId" field is empty in the local Firebase config. Firebase VertexAI requires this field to contain a valid app ID.`
+    } else if (!ai.app?.options?.appId) {
+      throw new AIError(
+        AIErrorCode.NO_APP_ID,
+        `The "appId" field is empty in the local Firebase config. Firebase AI requires this field to contain a valid app ID.`
       );
     } else {
       this._apiSettings = {
-        apiKey: genAI.app.options.apiKey,
-        project: genAI.app.options.projectId,
-        appId: genAI.app.options.appId,
+        apiKey: ai.app.options.apiKey,
+        project: ai.app.options.projectId,
+        appId: ai.app.options.appId,
         automaticDataCollectionEnabled:
-          genAI.app.automaticDataCollectionEnabled,
-        location: genAI.location,
-        backend: genAI.backend
+          ai.app.automaticDataCollectionEnabled,
+        location: ai.location,
+        backend: ai.backend
       };
 
-      if (_isFirebaseServerApp(genAI.app) && genAI.app.settings.appCheckToken) {
-        const token = genAI.app.settings.appCheckToken;
+      if (_isFirebaseServerApp(ai.app) && ai.app.settings.appCheckToken) {
+        const token = ai.app.settings.appCheckToken;
         this._apiSettings.getAppCheckToken = () => {
           return Promise.resolve({ token });
         };
-      } else if ((genAI as GenAIService).appCheck) {
+      } else if ((ai as AIService).appCheck) {
         this._apiSettings.getAppCheckToken = () =>
-          (genAI as GenAIService).appCheck!.getToken();
+          (ai as AIService).appCheck!.getToken();
       }
 
-      if ((genAI as GenAIService).auth) {
+      if ((ai as AIService).auth) {
         this._apiSettings.getAuthToken = () =>
-          (genAI as GenAIService).auth!.getToken();
+          (ai as AIService).auth!.getToken();
       }
 
-      this.model = GenAIModel.normalizeModelName(
+      this.model = AIModel.normalizeModelName(
         modelName,
         this._apiSettings.backend.backendType
       );
@@ -117,9 +117,9 @@ export abstract class GenAIModel {
     backendType: BackendType
   ): string {
     if (backendType === BackendType.GOOGLE_AI) {
-      return GenAIModel.normalizeGoogleAIModelName(modelName);
+      return AIModel.normalizeGoogleAIModelName(modelName);
     } else {
-      return GenAIModel.normalizeVertexAIModelName(modelName);
+      return AIModel.normalizeVertexAIModelName(modelName);
     }
   }
 

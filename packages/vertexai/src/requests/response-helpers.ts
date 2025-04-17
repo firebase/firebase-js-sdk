@@ -23,9 +23,9 @@ import {
   GenerateContentResponse,
   ImagenGCSImage,
   ImagenInlineImage,
-  GenAIErrorCode
+  AIErrorCode
 } from '../types';
-import { GenAIError } from '../errors';
+import { AIError } from '../errors';
 import { logger } from '../logger';
 import { ImagenResponseInternal } from '../types/internal';
 
@@ -67,8 +67,8 @@ export function addHelpers(
         );
       }
       if (hadBadFinishReason(response.candidates[0])) {
-        throw new GenAIError(
-          GenAIErrorCode.RESPONSE_ERROR,
+        throw new AIError(
+          AIErrorCode.RESPONSE_ERROR,
           `Response error: ${formatBlockErrorMessage(
             response
           )}. Response body stored in error.response`,
@@ -79,8 +79,8 @@ export function addHelpers(
       }
       return getText(response);
     } else if (response.promptFeedback) {
-      throw new GenAIError(
-        GenAIErrorCode.RESPONSE_ERROR,
+      throw new AIError(
+        AIErrorCode.RESPONSE_ERROR,
         `Text not available. ${formatBlockErrorMessage(response)}`,
         {
           response
@@ -99,8 +99,8 @@ export function addHelpers(
         );
       }
       if (hadBadFinishReason(response.candidates[0])) {
-        throw new GenAIError(
-          GenAIErrorCode.RESPONSE_ERROR,
+        throw new AIError(
+          AIErrorCode.RESPONSE_ERROR,
           `Response error: ${formatBlockErrorMessage(
             response
           )}. Response body stored in error.response`,
@@ -111,8 +111,8 @@ export function addHelpers(
       }
       return getFunctionCalls(response);
     } else if (response.promptFeedback) {
-      throw new GenAIError(
-        GenAIErrorCode.RESPONSE_ERROR,
+      throw new AIError(
+        AIErrorCode.RESPONSE_ERROR,
         `Function call not available. ${formatBlockErrorMessage(response)}`,
         {
           response
@@ -217,8 +217,8 @@ export async function handlePredictResponse<
 
   // The backend should always send a non-empty array of predictions if the response was successful.
   if (!responseJson.predictions || responseJson.predictions?.length === 0) {
-    throw new GenAIError(
-      GenAIErrorCode.RESPONSE_ERROR,
+    throw new AIError(
+      AIErrorCode.RESPONSE_ERROR,
       'No predictions or filtered reason received from Vertex AI. Please report this issue with the full error details at https://github.com/firebase/firebase-js-sdk/issues.'
     );
   }
@@ -237,8 +237,8 @@ export async function handlePredictResponse<
         gcsURI: prediction.gcsUri
       } as T);
     } else {
-      throw new GenAIError(
-        GenAIErrorCode.RESPONSE_ERROR,
+      throw new AIError(
+        AIErrorCode.RESPONSE_ERROR,
         `Predictions array in response has missing properties. Response: ${JSON.stringify(
           responseJson
         )}`

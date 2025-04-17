@@ -21,9 +21,9 @@ import {
   GenerateContentResponse,
   GenerateContentStreamResult,
   Part,
-  GenAIErrorCode
+  AIErrorCode
 } from '../types';
-import { GenAIError } from '../errors';
+import { AIError } from '../errors';
 import { createEnhancedContentResponse } from './response-helpers';
 import * as GoogleAIMapper from '../googleAIMappers';
 import { GoogleAIGenerateContentResponse } from '../types/googleAI';
@@ -122,8 +122,8 @@ export function getResponseStream<T>(
           if (done) {
             if (currentText.trim()) {
               controller.error(
-                new GenAIError(
-                  GenAIErrorCode.PARSE_FAILED,
+                new AIError(
+                  AIErrorCode.PARSE_FAILED,
                   'Failed to parse stream'
                 )
               );
@@ -141,8 +141,8 @@ export function getResponseStream<T>(
               parsedResponse = JSON.parse(match[1]);
             } catch (e) {
               controller.error(
-                new GenAIError(
-                  GenAIErrorCode.PARSE_FAILED,
+                new AIError(
+                  AIErrorCode.PARSE_FAILED,
                   `Error parsing JSON response: "${match[1]}`
                 )
               );
@@ -220,8 +220,8 @@ export function aggregateResponses(
               newPart.functionCall = part.functionCall;
             }
             if (Object.keys(newPart).length === 0) {
-              throw new GenAIError(
-                GenAIErrorCode.INVALID_CONTENT,
+              throw new AIError(
+                AIErrorCode.INVALID_CONTENT,
                 'Part should have at least one property, but there are none. This is likely caused ' +
                   'by a malformed response from the backend.'
               );

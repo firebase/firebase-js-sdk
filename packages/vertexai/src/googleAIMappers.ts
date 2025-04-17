@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { GenAIError } from './errors';
+import { AIError } from './errors';
 import { logger } from './logger';
 import {
   CitationMetadata,
@@ -27,7 +27,7 @@ import {
   InlineDataPart,
   PromptFeedback,
   SafetyRating,
-  GenAIErrorCode
+  AIErrorCode
 } from './types';
 import {
   GoogleAIGenerateContentResponse,
@@ -62,8 +62,8 @@ export function mapGenerateContentRequest(
 ): GenerateContentRequest {
   generateContentRequest.safetySettings?.forEach(safetySetting => {
     if (safetySetting.method) {
-      throw new GenAIError(
-        GenAIErrorCode.UNSUPPORTED,
+      throw new AIError(
+        AIErrorCode.UNSUPPORTED,
         'SafetySetting.method is not supported in the Google AI. Please remove this property.'
       );
     }
@@ -185,8 +185,8 @@ export function mapGenerateContentCandidates(
           part => (part as InlineDataPart)?.videoMetadata
         )
       ) {
-        throw new GenAIError(
-          GenAIErrorCode.UNSUPPORTED,
+        throw new AIError(
+          AIErrorCode.UNSUPPORTED,
           'Part.videoMetadata is not supported in Google AI. Please remove this property.'
         );
       }

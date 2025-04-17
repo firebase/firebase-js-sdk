@@ -472,6 +472,14 @@ toc:
 - title: vertexai
   path: /docs/reference/js/vertexai.md
   section:
+  - title: AI
+    path: /docs/reference/js/vertexai.ai.md
+  - title: AIError
+    path: /docs/reference/js/vertexai.aierror.md
+  - title: AIModel
+    path: /docs/reference/js/vertexai.aimodel.md
+  - title: AIOptions
+    path: /docs/reference/js/vertexai.aioptions.md
   - title: ArraySchema
     path: /docs/reference/js/vertexai.arrayschema.md
   - title: BaseParams
@@ -516,14 +524,6 @@ toc:
     path: /docs/reference/js/vertexai.functionresponse.md
   - title: FunctionResponsePart
     path: /docs/reference/js/vertexai.functionresponsepart.md
-  - title: GenAI
-    path: /docs/reference/js/vertexai.genai.md
-  - title: GenAIError
-    path: /docs/reference/js/vertexai.genaierror.md
-  - title: GenAIModel
-    path: /docs/reference/js/vertexai.genaimodel.md
-  - title: GenAIOptions
-    path: /docs/reference/js/vertexai.genaioptions.md
   - title: GenerateContentCandidate
     path: /docs/reference/js/vertexai.generatecontentcandidate.md
   - title: GenerateContentRequest

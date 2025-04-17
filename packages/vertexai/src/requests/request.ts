@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { ErrorDetails, RequestOptions, GenAIErrorCode } from '../types';
-import { GenAIError } from '../errors';
+import { ErrorDetails, RequestOptions, AIErrorCode } from '../types';
+import { AIError } from '../errors';
 import { ApiSettings } from '../types/internal';
 import {
   DEFAULT_API_VERSION,
@@ -191,9 +191,9 @@ export async function makeRequest(
           )
         )
       ) {
-        throw new GenAIError(
-          GenAIErrorCode.API_NOT_ENABLED,
-          `The Vertex AI in Firebase SDK requires the Vertex AI in Firebase ` +
+        throw new AIError(
+          AIErrorCode.API_NOT_ENABLED,
+          `The Firebase AI SDK requires the Firebase AI ` +
             `API ('firebasevertexai.googleapis.com') to be enabled in your ` +
             `Firebase project. Enable this API by visiting the Firebase Console ` +
             `at https://console.firebase.google.com/project/${url.apiSettings.project}/genai/ ` +
@@ -207,8 +207,8 @@ export async function makeRequest(
           }
         );
       }
-      throw new GenAIError(
-        GenAIErrorCode.FETCH_ERROR,
+      throw new AIError(
+        AIErrorCode.FETCH_ERROR,
         `Error fetching from ${url}: [${response.status} ${response.statusText}] ${message}`,
         {
           status: response.status,
@@ -220,12 +220,12 @@ export async function makeRequest(
   } catch (e) {
     let err = e as Error;
     if (
-      (e as GenAIError).code !== GenAIErrorCode.FETCH_ERROR &&
-      (e as GenAIError).code !== GenAIErrorCode.API_NOT_ENABLED &&
+      (e as AIError).code !== AIErrorCode.FETCH_ERROR &&
+      (e as AIError).code !== AIErrorCode.API_NOT_ENABLED &&
       e instanceof Error
     ) {
-      err = new GenAIError(
-        GenAIErrorCode.ERROR,
+      err = new AIError(
+        AIErrorCode.ERROR,
         `Error fetching from ${url.toString()}: ${e.message}`
       );
       err.stack = e.stack;

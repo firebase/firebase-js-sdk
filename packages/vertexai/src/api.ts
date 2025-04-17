@@ -18,12 +18,12 @@
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { getModularInstance } from '@firebase/util';
-import { DEFAULT_LOCATION, GENAI_TYPE } from './constants';
-import { GenAIService } from './service';
+import { DEFAULT_LOCATION, AI_TYPE } from './constants';
+import { AIService } from './service';
 import {
   BackendType,
-  GenAI,
-  GenAIOptions,
+  AI,
+  AIOptions,
   GoogleAIBackend,
   VertexAI,
   VertexAIBackend,
@@ -33,44 +33,46 @@ import {
   ImagenModelParams,
   ModelParams,
   RequestOptions,
-  GenAIErrorCode
+  AIErrorCode
 } from './types';
-import { GenAIError } from './errors';
-import { GenAIModel, GenerativeModel, ImagenModel } from './models';
+import { AIError } from './errors';
+import { AIModel, GenerativeModel, ImagenModel } from './models';
 import { encodeInstanceIdentifier } from './helpers';
 
 export { ChatSession } from './methods/chat-session';
 export * from './requests/schema-builder';
 export { ImagenImageFormat } from './requests/imagen-image-format';
-export { GenAIModel, GenerativeModel, ImagenModel, GenAIError };
+export { AIModel, GenerativeModel, ImagenModel, AIError };
 
-export { GenAIErrorCode as VertexAIErrorCode };
+export { AIErrorCode as VertexAIErrorCode };
 
 /**
- * Base class for Vertex AI in Firebase model APIs.
+ * Base class for Firebase AI model APIs.
  *
- * For more information, refer to the documentation for the new {@link GenAIModel}.
+ * For more information, refer to the documentation for the new {@link AIModel}.
  *
  * @public
  */
-export const VertexAIModel = GenAIModel;
+export const VertexAIModel = AIModel;
 
 /**
- * Error class for the Vertex AI in Firebase SDK.
+ * Error class for the Firebase AI SDK.
  *
- * For more information, refer to the documentation for the new {@link GenAIError}.
+ * For more information, refer to the documentation for the new {@link AIError}.
  *
  * @public
  */
-export const VertexAIError = GenAIError;
+export const VertexAIError = AIError;
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    [GENAI_TYPE]: GenAIService;
+    [AI_TYPE]: AIService;
   }
 }
 
 /**
+ * It is recommended to use the new {@link getAI | getAI()}.
+ * 
  * Returns a {@link VertexAI} instance for the given app.
  *
  * @public
@@ -83,55 +85,55 @@ export function getVertexAI(
 ): VertexAI {
   app = getModularInstance(app);
   // Dependencies
-  const genAIProvider: Provider<'genAI'> = _getProvider(app, GENAI_TYPE);
+  const AIProvider: Provider<'AI'> = _getProvider(app, AI_TYPE);
 
   const identifier = encodeInstanceIdentifier({
     backendType: BackendType.VERTEX_AI,
     location: options?.location ?? DEFAULT_LOCATION
   });
-  return genAIProvider.getImmediate({
+  return AIProvider.getImmediate({
     identifier
   });
 }
 
 /**
- * Returns the default {@link GenAI} instance that is associated with the provided
+ * Returns the default {@link AI} instance that is associated with the provided
  * {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new instance with the
  * default settings.
  *
  * @example
  * ```javascript
- * const genAI = getGenAI(app);
+ * const ai = getAI(app);
  * ```
  *
  * @example
  * ```javascript
- * // Get a GenAI instance configured to use Google AI.
- * const genAI = getGenAI(app, { backend: googleAIBackend() });
+ * // Get an AI instance configured to use Google AI.
+ * const ai = getAI(app, { backend: googleAIBackend() });
  * ```
  *
  * @example
  * ```javascript
- * // Get a GenAI instance configured to use Vertex AI.
- * const genAI = getGenAI(app, { backend: vertexAIBackend() });
+ * // Get an AI instance configured to use Vertex AI.
+ * const ai = getAI(app, { backend: vertexAIBackend() });
  * ```
  *
  * @param app - The {@link @firebase/app#FirebaseApp} to use.
- * @param options - {@link GenAIOptions} that configure the GenAI instance.
- * @returns The default {@link GenAI} instance for the given {@link @firebase/app#FirebaseApp}.
+ * @param options - {@link AIOptions} that configure the AI instance.
+ * @returns The default {@link AI} instance for the given {@link @firebase/app#FirebaseApp}.
  *
  * @public
  */
-export function getGenAI(
+export function getAI(
   app: FirebaseApp = getApp(),
-  options: GenAIOptions = { backend: googleAIBackend() }
-): GenAI {
+  options: AIOptions = { backend: googleAIBackend() }
+): AI {
   app = getModularInstance(app);
   // Dependencies
-  const genAIProvider: Provider<'genAI'> = _getProvider(app, GENAI_TYPE);
+  const AIProvider: Provider<'AI'> = _getProvider(app, AI_TYPE);
 
   const identifier = encodeInstanceIdentifier(options.backend);
-  return genAIProvider.getImmediate({
+  return AIProvider.getImmediate({
     identifier
   });
 }
@@ -177,17 +179,17 @@ export function vertexAIBackend(location?: string): VertexAIBackend {
  * @public
  */
 export function getGenerativeModel(
-  genAI: GenAI,
+  ai: AI,
   modelParams: ModelParams,
   requestOptions?: RequestOptions
 ): GenerativeModel {
   if (!modelParams.model) {
-    throw new GenAIError(
-      GenAIErrorCode.NO_MODEL,
+    throw new AIError(
+      AIErrorCode.NO_MODEL,
       `Must provide a model name. Example: getGenerativeModel({ model: 'my-model-name' })`
     );
   }
-  return new GenerativeModel(genAI, modelParams, requestOptions);
+  return new GenerativeModel(ai, modelParams, requestOptions);
 }
 
 /**
@@ -195,7 +197,7 @@ export function getGenerativeModel(
  *
  * Only Imagen 3 models (named `imagen-3.0-*`) are supported.
  *
- * @param genAI - A {@link GenAI} instance.
+ * @param ai - An {@link AI} instance.
  * @param modelParams - Parameters to use when making Imagen requests.
  * @param requestOptions - Additional options to use when making requests.
  *
@@ -205,15 +207,15 @@ export function getGenerativeModel(
  * @beta
  */
 export function getImagenModel(
-  genAI: GenAI,
+  ai: AI,
   modelParams: ImagenModelParams,
   requestOptions?: RequestOptions
 ): ImagenModel {
   if (!modelParams.model) {
-    throw new GenAIError(
-      GenAIErrorCode.NO_MODEL,
+    throw new AIError(
+      AIErrorCode.NO_MODEL,
       `Must provide a model name. Example: getImagenModel({ model: 'my-model-name' })`
     );
   }
-  return new ImagenModel(genAI, modelParams, requestOptions);
+  return new ImagenModel(ai, modelParams, requestOptions);
 }

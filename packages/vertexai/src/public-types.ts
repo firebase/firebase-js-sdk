@@ -20,16 +20,16 @@ import { FirebaseApp } from '@firebase/app';
 export * from './types';
 
 /**
- * An instance of the Vertex AI in Firebase SDK.
+ * An instance of the Firebase AI SDK.
  *
- * For more information, refer to the documentation for the new {@link GenAI}.
+ * For more information, refer to the documentation for the new {@link AI}.
  *
  * @public
  */
-export type VertexAI = GenAI;
+export type VertexAI = AI;
 
 /**
- * Options when initializing the Vertex AI in Firebase SDK.
+ * Options when initializing the Firebase AI SDK.
  *
  * @public
  */
@@ -38,15 +38,15 @@ export interface VertexAIOptions {
 }
 
 /**
- * An instance of the Firebase GenAI SDK.
+ * An instance of the Firebase AI SDK.
  *
- * Do not create this instance directly. Instead, use {@link getGenAI | getGenAI()}.
+ * Do not create this instance directly. Instead, use {@link getAI | getAI()}.
  *
  * @public
  */
-export interface GenAI {
+export interface AI {
   /**
-   * The {@link @firebase/app#FirebaseApp} this {@link GenAI} instance is associated with.
+   * The {@link @firebase/app#FirebaseApp} this {@link AI} instance is associated with.
    */
   app: FirebaseApp;
   /**
@@ -54,15 +54,15 @@ export interface GenAI {
    */
   backend: Backend;
   /**
-   * The location configured for this GenAI service instance, relevant for Vertex AI backends.
+   * The location configured for this AI service instance, relevant for Vertex AI backends.
    *
-   * @deprecated use `GenAI.backend.location` instead.
+   * @deprecated use `AI.backend.location` instead.
    */
   location: string;
 }
 
 /**
- * Union type representing the backend configuration for the GenAI service.
+ * Union type representing the backend configuration for the AI service.
  * This can be either a {@link GoogleAIBackend} or a
  * {@link VertexAIBackend} configuration object.
  *
@@ -75,8 +75,8 @@ export type Backend = GoogleAIBackend | VertexAIBackend;
 
 /**
  * Represents the configuration object for the Google AI backend.
- * Use this with {@link GenAIOptions} when initializing the service with
- * {@link getGenAI | getGenAI()}.
+ * Use this with {@link AIOptions} when initializing the service with
+ * {@link getAI | getAI()}.
  * Create an instance using {@link googleAIBackend | googleAIBackend()}.
  *
  * @public
@@ -90,8 +90,8 @@ export type GoogleAIBackend = {
 
 /**
  * Represents the configuration object for the Vertex AI backend.
- * Use this with {@link GenAIOptions} when initializing the server with
- * {@link getGenAI | getGenAI() }.
+ * Use this with {@link AIOptions} when initializing the server with
+ * {@link getAI | getAI() }.
  * Create an instance using {@link vertexAIBackend | vertexAIBackend() } function.
  *
  * @public
@@ -110,7 +110,7 @@ export type VertexAIBackend = {
 
 /**
  * An enum-like object containing constants that represent the supported backends
- * for the Firebase GenAI SDK.
+ * for the Firebase AI SDK.
  *
  * These values are assigned to the `backendType` property within the specific backend
  * configuration objects ({@link GoogleAIBackend} or {@link VertexAIBackend}) to identify
@@ -142,13 +142,13 @@ export const BackendType = {
 export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 
 /**
- * Options interface for initializing the GenAI service using {@link getGenAI | getGenAI()}.
+ * Options interface for initializing the AI service using {@link getAI | getAI()}.
  *
  * @public
  */
-export interface GenAIOptions {
+export interface AIOptions {
   /**
-   * The backend configuration to use for the GenAI service instance.
+   * The backend configuration to use for the AI service instance.
    * Use {@link googleAIBackend | googleAIBackend()} or
    * {@link vertexAIBackend | vertexAIBackend() } to create this configuration.
    */

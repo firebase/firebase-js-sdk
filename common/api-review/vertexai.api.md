@@ -10,6 +10,62 @@ import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
 
 // @public
+export interface AI {
+    app: FirebaseApp;
+    backend: Backend;
+    // @deprecated
+    location: string;
+}
+
+// @public
+export class AIError extends FirebaseError {
+    constructor(code: AIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
+    // (undocumented)
+    readonly code: AIErrorCode;
+    // (undocumented)
+    readonly customErrorData?: CustomErrorData | undefined;
+}
+
+// @public
+const enum AIErrorCode {
+    API_NOT_ENABLED = "api-not-enabled",
+    ERROR = "error",
+    FETCH_ERROR = "fetch-error",
+    INVALID_CONTENT = "invalid-content",
+    INVALID_SCHEMA = "invalid-schema",
+    NO_API_KEY = "no-api-key",
+    NO_APP_ID = "no-app-id",
+    NO_MODEL = "no-model",
+    NO_PROJECT_ID = "no-project-id",
+    PARSE_FAILED = "parse-failed",
+    REQUEST_ERROR = "request-error",
+    RESPONSE_ERROR = "response-error",
+    UNSUPPORTED = "unsupported"
+}
+
+export { AIErrorCode }
+
+export { AIErrorCode as VertexAIErrorCode }
+
+// @public
+export abstract class AIModel {
+    // @internal
+    protected constructor(ai: AI, modelName: string);
+    // Warning: (ae-forgotten-export) The symbol "ApiSettings" needs to be exported by the entry point index.d.ts
+    //
+    // @internal (undocumented)
+    protected _apiSettings: ApiSettings;
+    readonly model: string;
+    // @internal
+    static normalizeModelName(modelName: string, backendType: BackendType): string;
+    }
+
+// @public
+export interface AIOptions {
+    backend: Backend;
+}
+
+// @public
 export class ArraySchema extends Schema {
     constructor(schemaParams: SchemaParams, items: TypedSchema);
     // (undocumented)
@@ -53,7 +109,6 @@ export class BooleanSchema extends Schema {
 
 // @public
 export class ChatSession {
-    // Warning: (ae-forgotten-export) The symbol "ApiSettings" needs to be exported by the entry point index.d.ts
     constructor(apiSettings: ApiSettings, model: string, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     getHistory(): Promise<Content[]>;
     // (undocumented)
@@ -252,60 +307,6 @@ export interface FunctionResponsePart {
 }
 
 // @public
-export interface GenAI {
-    app: FirebaseApp;
-    backend: Backend;
-    // @deprecated
-    location: string;
-}
-
-// @public
-export class GenAIError extends FirebaseError {
-    constructor(code: GenAIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
-    // (undocumented)
-    readonly code: GenAIErrorCode;
-    // (undocumented)
-    readonly customErrorData?: CustomErrorData | undefined;
-}
-
-// @public
-const enum GenAIErrorCode {
-    API_NOT_ENABLED = "api-not-enabled",
-    ERROR = "error",
-    FETCH_ERROR = "fetch-error",
-    INVALID_CONTENT = "invalid-content",
-    INVALID_SCHEMA = "invalid-schema",
-    NO_API_KEY = "no-api-key",
-    NO_APP_ID = "no-app-id",
-    NO_MODEL = "no-model",
-    NO_PROJECT_ID = "no-project-id",
-    PARSE_FAILED = "parse-failed",
-    REQUEST_ERROR = "request-error",
-    RESPONSE_ERROR = "response-error",
-    UNSUPPORTED = "unsupported"
-}
-
-export { GenAIErrorCode }
-
-export { GenAIErrorCode as VertexAIErrorCode }
-
-// @public
-export abstract class GenAIModel {
-    // @internal
-    protected constructor(genAI: GenAI, modelName: string);
-    // @internal (undocumented)
-    protected _apiSettings: ApiSettings;
-    readonly model: string;
-    // @internal
-    static normalizeModelName(modelName: string, backendType: BackendType): string;
-    }
-
-// @public
-export interface GenAIOptions {
-    backend: Backend;
-}
-
-// @public
 export interface GenerateContentCandidate {
     // (undocumented)
     citationMetadata?: CitationMetadata;
@@ -389,8 +390,8 @@ export interface GenerativeContentBlob {
 }
 
 // @public
-export class GenerativeModel extends GenAIModel {
-    constructor(genAI: GenAI, modelParams: ModelParams, requestOptions?: RequestOptions);
+export class GenerativeModel extends AIModel {
+    constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
@@ -410,13 +411,13 @@ export class GenerativeModel extends GenAIModel {
 }
 
 // @public
-export function getGenAI(app?: FirebaseApp, options?: GenAIOptions): GenAI;
+export function getAI(app?: FirebaseApp, options?: AIOptions): AI;
 
 // @public
-export function getGenerativeModel(genAI: GenAI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
+export function getGenerativeModel(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
 
 // @beta
-export function getImagenModel(genAI: GenAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
+export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
 
 // @public
 export function getVertexAI(app?: FirebaseApp, options?: VertexAIOptions): VertexAI;
@@ -539,8 +540,8 @@ export interface ImagenInlineImage {
 }
 
 // @beta
-export class ImagenModel extends GenAIModel {
-    constructor(genAI: GenAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
+export class ImagenModel extends AIModel {
+    constructor(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
     generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
     // @internal
     generateImagesGCS(prompt: string, gcsURI: string): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
@@ -856,7 +857,7 @@ export interface UsageMetadata {
 }
 
 // @public
-export type VertexAI = GenAI;
+export type VertexAI = AI;
 
 // @public
 export type VertexAIBackend = {
@@ -868,10 +869,10 @@ export type VertexAIBackend = {
 export function vertexAIBackend(location?: string): VertexAIBackend;
 
 // @public
-export const VertexAIError: typeof GenAIError;
+export const VertexAIError: typeof AIError;
 
 // @public
-export const VertexAIModel: typeof GenAIModel;
+export const VertexAIModel: typeof AIModel;
 
 // @public
 export interface VertexAIOptions {
