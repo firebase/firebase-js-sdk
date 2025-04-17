@@ -45,13 +45,21 @@ export class ChromeAdapter {
     private mode?: InferenceMode,
     private onDeviceParams?: LanguageModelCreateOptions
   ) {}
+
   /**
-   * Convenience method to check if a given request can be made on-device.
-   * Encapsulates a few concerns: 1) the mode, 2) API existence, 3) prompt formatting, and
-   * 4) model availability, including triggering download if necessary.
-   * Pros: caller needn't be concerned with details of on-device availability. Cons: this method
-   * spans a few concerns and splits request validation from usage. If instance variables weren't
-   * already part of the API, we could consider a better separation of concerns.
+   * Checks if a given request can be made on-device.
+   *
+   * <ol>Encapsulates a few concerns:
+   *   <li>the mode</li>
+   *   <li>API existence</li>
+   *   <li>prompt formatting</li>
+   *   <li>model availability, including triggering download if necessary</li>
+   * </ol>
+   *
+   * <p>Pros: callers needn't be concerned with details of on-device availability.</p>
+   * <p>Cons: this method spans a few concerns and splits request validation from usage.
+   * If instance variables weren't already part of the API, we could consider a better
+   * separation of concerns.</p>
    */
   async isAvailable(request: GenerateContentRequest): Promise<boolean> {
     // Returns false if we should only use in-cloud inference.
@@ -82,10 +90,19 @@ export class ChromeAdapter {
         return false;
     }
   }
+
+  /**
+   * Generates content on device.
+   *
+   * <p>This is comparable to {@link GenerativeModel.generateContent} for generating content in
+   * Cloud.</p>
+   * @param request a standard Vertex {@link GenerateContentRequest}
+   * @returns {@link Response}, so we can reuse common response formatting.
+   */
   async generateContentOnDevice(
     request: GenerateContentRequest
   ): Promise<Response> {
-    const session = await this.session(
+    const session = await this.createSession(
       // TODO: normalize on-device params during construction.
       this.onDeviceParams || {}
     );
@@ -104,6 +121,10 @@ export class ChromeAdapter {
         })
     } as Response;
   }
+
+  /**
+   * Asserts inference for the given request can be performed by an on-device model.
+   */
   private static isOnDeviceRequest(request: GenerateContentRequest): boolean {
     // Returns false if the prompt is empty.
     if (request.contents.length === 0) {
@@ -127,6 +148,16 @@ export class ChromeAdapter {
 
     return true;
   }
+
+  /**
+   * Triggers the download of an on-device model.
+   *
+   * <p>Chrome only downloads models as needed. Chrome knows a model is needed when code calls
+   * LanguageModel.create.</p>
+   *
+   * <p>Since Chrome manages the download, the SDK can only avoid redundant download requests by
+   * tracking if a download has previously been requested.</p>
+   */
   private download(): void {
     if (this.isDownloading) {
       return;
@@ -138,9 +169,17 @@ export class ChromeAdapter {
         this.isDownloading = false;
       });
   }
+
+  /**
+   * Converts a Vertex role string to a Chrome role string.
+   */
   private static toOnDeviceRole(role: Role): LanguageModelMessageRole {
     return role === 'model' ? 'assistant' : 'user';
   }
+
+  /**
+   * Converts a Vertex Content object to a Chrome LanguageModelMessage object.
+   */
   private static toLanguageModelMessages(
     contents: Content[]
   ): LanguageModelMessage[] {
@@ -149,6 +188,10 @@ export class ChromeAdapter {
       content: c.parts.map(ChromeAdapter.toLanguageModelMessageContent)
     }));
   }
+
+  /**
+   * Converts a Vertex Part object to a Chrome LanguageModelMessageContent object.
+   */
   private static toLanguageModelMessageContent(
     part: Part
   ): LanguageModelMessageContent {
@@ -162,10 +205,23 @@ export class ChromeAdapter {
     // TODO: support other input types
     throw new Error('Not yet implemented');
   }
-  private async session(
-    opts: LanguageModelCreateOptions
+
+  /**
+   * Abstracts Chrome session creation.
+   *
+   * <p>Chrome uses a multi-turn session for all inference. Vertex uses single-turn for all
+   * inference. To map the Vertex API to Chrome's API, the SDK creates a new session for all
+   * inference.</p>
+   *
+   * <p>Chrome will remove a model from memory if it's no longer in use, so this method ensures a
+   * new session is created before an old session is destroyed.</p>
+   */
+  private async createSession(
+    // TODO: define a default value, since these are optional.
+    options: LanguageModelCreateOptions
   ): Promise<LanguageModel> {
-    const newSession = await this.languageModelProvider!.create(opts);
+    // TODO: could we use this.onDeviceParams instead of passing in options?
+    const newSession = await this.languageModelProvider!.create(options);
     if (this.oldSession) {
       this.oldSession.destroy();
     }
