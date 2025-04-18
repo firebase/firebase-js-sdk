@@ -308,6 +308,7 @@ describe('generateContent()', () => {
     );
     expect(mockFetch).to.be.called;
   });
+  // TODO: define a similar test for generateContentStream
   it('on-device', async () => {
     const chromeAdapter = new ChromeAdapter();
     const isAvailableStub = stub(chromeAdapter, 'isAvailable').resolves(true);
@@ -315,10 +316,9 @@ describe('generateContent()', () => {
       'vertexAI',
       'unary-success-basic-reply-short.json'
     );
-    const generateContentStub = stub(
-      chromeAdapter,
-      'generateContentOnDevice'
-    ).resolves(mockResponse as Response);
+    const generateContentStub = stub(chromeAdapter, 'generateContent').resolves(
+      mockResponse as Response
+    );
     const result = await generateContent(
       fakeApiSettings,
       'model',

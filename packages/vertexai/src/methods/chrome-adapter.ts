@@ -94,9 +94,7 @@ export class ChromeAdapter {
    * @param request a standard Vertex {@link GenerateContentRequest}
    * @returns {@link Response}, so we can reuse common response formatting.
    */
-  async generateContentOnDevice(
-    request: GenerateContentRequest
-  ): Promise<Response> {
+  async generateContent(request: GenerateContentRequest): Promise<Response> {
     const session = await this.createSession(
       // TODO: normalize on-device params during construction.
       this.onDeviceParams || {}
@@ -105,7 +103,7 @@ export class ChromeAdapter {
     const text = await session.prompt(messages);
     return ChromeAdapter.toResponse(text);
   }
-  async generateContentStreamOnDevice(
+  async generateContentStream(
     request: GenerateContentRequest
   ): Promise<Response> {
     const session = await this.createSession(

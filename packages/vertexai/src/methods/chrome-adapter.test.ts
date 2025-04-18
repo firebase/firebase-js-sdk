@@ -299,7 +299,7 @@ describe('ChromeAdapter', () => {
       const request = {
         contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
       } as GenerateContentRequest;
-      const response = await adapter.generateContentOnDevice(request);
+      const response = await adapter.generateContent(request);
       // Asserts initialization params are proxied.
       expect(createStub).to.have.been.calledOnceWith(onDeviceParams);
       // Asserts Vertex input type is mapped to Chrome type.
@@ -355,7 +355,7 @@ describe('ChromeAdapter', () => {
       const request = {
         contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
       } as GenerateContentRequest;
-      const response = await adapter.generateContentStreamOnDevice(request);
+      const response = await adapter.generateContentStream(request);
       expect(createStub).to.have.been.calledOnceWith(onDeviceParams);
       expect(promptStub).to.have.been.calledOnceWith([
         {

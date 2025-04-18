@@ -53,7 +53,7 @@ export async function generateContentStream(
 ): Promise<GenerateContentStreamResult> {
   let response;
   if (await chromeAdapter.isAvailable(params)) {
-    response = await chromeAdapter.generateContentStreamOnDevice(params);
+    response = await chromeAdapter.generateContentStream(params);
   } else {
     response = await generateContentStreamOnCloud(
       apiSettings,
@@ -90,7 +90,7 @@ export async function generateContent(
 ): Promise<GenerateContentResult> {
   let response;
   if (await chromeAdapter.isAvailable(params)) {
-    response = await chromeAdapter.generateContentOnDevice(params);
+    response = await chromeAdapter.generateContent(params);
   } else {
     response = await generateContentOnCloud(
       apiSettings,
