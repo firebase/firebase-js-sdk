@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FileDataPart interface
-Content part interface if the part represents <code>[FileData](./vertexai.filedata.md#filedata_interface)</code>
+Content part interface if the part represents [FileData](./vertexai.filedata.md#filedata_interface)
 
 <b>Signature:</b>
 

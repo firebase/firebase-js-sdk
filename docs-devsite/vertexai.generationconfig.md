@@ -27,7 +27,7 @@ export interface GenerationConfig
 |  [maxOutputTokens](./vertexai.generationconfig.md#generationconfigmaxoutputtokens) | number |  |
 |  [presencePenalty](./vertexai.generationconfig.md#generationconfigpresencepenalty) | number |  |
 |  [responseMimeType](./vertexai.generationconfig.md#generationconfigresponsemimetype) | string | Output response MIME type of the generated candidate text. Supported MIME types are <code>text/plain</code> (default, text output), <code>application/json</code> (JSON response in the candidates), and <code>text/x.enum</code>. |
-|  [responseSchema](./vertexai.generationconfig.md#generationconfigresponseschema) | [TypedSchema](./vertexai.md#typedschema) \| [SchemaRequest](./vertexai.schemarequest.md#schemarequest_interface) | Output response schema of the generated candidate text. This value can be a class generated with a <code>[Schema](./vertexai.schema.md#schema_class)</code> static method like <code>Schema.string()</code> or <code>Schema.object()</code> or it can be a plain JS object matching the <code>[SchemaRequest](./vertexai.schemarequest.md#schemarequest_interface)</code> interface. <br/>Note: This only applies when the specified <code>responseMIMEType</code> supports a schema; currently this is limited to <code>application/json</code> and <code>text/x.enum</code>. |
+|  [responseSchema](./vertexai.generationconfig.md#generationconfigresponseschema) | [TypedSchema](./vertexai.md#typedschema) \| [SchemaRequest](./vertexai.schemarequest.md#schemarequest_interface) | Output response schema of the generated candidate text. This value can be a class generated with a [Schema](./vertexai.schema.md#schema_class) static method like <code>Schema.string()</code> or <code>Schema.object()</code> or it can be a plain JS object matching the [SchemaRequest](./vertexai.schemarequest.md#schemarequest_interface) interface. <br/>Note: This only applies when the specified <code>responseMIMEType</code> supports a schema; currently this is limited to <code>application/json</code> and <code>text/x.enum</code>. |
 |  [stopSequences](./vertexai.generationconfig.md#generationconfigstopsequences) | string\[\] |  |
 |  [temperature](./vertexai.generationconfig.md#generationconfigtemperature) | number |  |
 |  [topK](./vertexai.generationconfig.md#generationconfigtopk) | number |  |
@@ -77,7 +77,7 @@ responseMimeType?: string;
 
 ## GenerationConfig.responseSchema
 
-Output response schema of the generated candidate text. This value can be a class generated with a <code>[Schema](./vertexai.schema.md#schema_class)</code> static method like `Schema.string()` or `Schema.object()` or it can be a plain JS object matching the <code>[SchemaRequest](./vertexai.schemarequest.md#schemarequest_interface)</code> interface. <br/>Note: This only applies when the specified `responseMIMEType` supports a schema; currently this is limited to `application/json` and `text/x.enum`<!-- -->.
+Output response schema of the generated candidate text. This value can be a class generated with a [Schema](./vertexai.schema.md#schema_class) static method like `Schema.string()` or `Schema.object()` or it can be a plain JS object matching the [SchemaRequest](./vertexai.schemarequest.md#schemarequest_interface) interface. <br/>Note: This only applies when the specified `responseMIMEType` supports a schema; currently this is limited to `application/json` and `text/x.enum`<!-- -->.
 
 <b>Signature:</b>
 

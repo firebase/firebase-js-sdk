@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FunctionCallPart interface
-Content part interface if the part represents a <code>[FunctionCall](./vertexai.functioncall.md#functioncall_interface)</code>.
+Content part interface if the part represents a [FunctionCall](./vertexai.functioncall.md#functioncall_interface)<!-- -->.
 
 <b>Signature:</b>
 

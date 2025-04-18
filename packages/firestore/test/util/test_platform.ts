@@ -64,7 +64,7 @@ export class FakeWindow implements WindowLike {
         // listeners.
         break;
       default:
-        fail(`MockWindow doesn't support events of type '${type}'`);
+        fail(0xe53d, `MockWindow doesn't support events of type '${type}'`);
     }
   }
 

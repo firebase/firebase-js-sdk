@@ -46,7 +46,7 @@ constructor(code: VertexAIErrorCode, message: string, customErrorData?: CustomEr
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  code | [VertexAIErrorCode](./vertexai.md#vertexaierrorcode) | The error code from <code>[VertexAIErrorCode](./vertexai.md#vertexaierrorcode)</code>. |
+|  code | [VertexAIErrorCode](./vertexai.md#vertexaierrorcode) | The error code from [VertexAIErrorCode](./vertexai.md#vertexaierrorcode)<!-- -->. |
 |  message | string | A human-readable message describing the error. |
 |  customErrorData | [CustomErrorData](./vertexai.customerrordata.md#customerrordata_interface) \| undefined | Optional error data. |
 

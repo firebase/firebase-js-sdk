@@ -37,7 +37,7 @@ export enum SchemaType {
 }
 
 /**
- * Basic <code>{@link Schema}</code> properties shared across several Schema-related
+ * Basic {@link Schema} properties shared across several Schema-related
  * types.
  * @public
  */
@@ -62,14 +62,14 @@ export interface SchemaShared<T> {
 }
 
 /**
- * Params passed to <code>{@link Schema}</code> static methods to create specific
- * <code>{@link Schema}</code> classes.
+ * Params passed to {@link Schema} static methods to create specific
+ * {@link Schema} classes.
  * @public
  */
 export interface SchemaParams extends SchemaShared<SchemaInterface> {}
 
 /**
- * Final format for <code>{@link Schema}</code> params passed to backend requests.
+ * Final format for {@link Schema} params passed to backend requests.
  * @public
  */
 export interface SchemaRequest extends SchemaShared<SchemaRequest> {
@@ -83,7 +83,7 @@ export interface SchemaRequest extends SchemaShared<SchemaRequest> {
 }
 
 /**
- * Interface for <code>{@link Schema}</code> class.
+ * Interface for {@link Schema} class.
  * @public
  */
 export interface SchemaInterface extends SchemaShared<SchemaInterface> {
@@ -95,7 +95,7 @@ export interface SchemaInterface extends SchemaShared<SchemaInterface> {
 }
 
 /**
- * Interface for <code>{@link ObjectSchema}</code> class.
+ * Interface for {@link ObjectSchema} class.
  * @public
  */
 export interface ObjectSchemaInterface extends SchemaInterface {

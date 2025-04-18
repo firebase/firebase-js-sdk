@@ -86,7 +86,7 @@ export class PersistencePromise<T> {
     catchFn?: RejectedHandler<R>
   ): PersistencePromise<R> {
     if (this.callbackAttached) {
-      fail('Called next() or catch() twice for PersistencePromise');
+      fail(0xe830, 'Called next() or catch() twice for PersistencePromise');
     }
     this.callbackAttached = true;
     if (this.isDone) {
