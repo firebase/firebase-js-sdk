@@ -100,7 +100,7 @@ The Vertex AI in Firebase Web SDK.
 |  [InlineDataPart](./vertexai.inlinedatapart.md#inlinedatapart_interface) | Content part interface if the part represents an image. |
 |  [ModalityTokenCount](./vertexai.modalitytokencount.md#modalitytokencount_interface) | Represents token counting info for a single modality. |
 |  [ModelParams](./vertexai.modelparams.md#modelparams_interface) | Params passed to [getGenerativeModel()](./vertexai.md#getgenerativemodel_e3037c9)<!-- -->. |
-|  [ObjectSchemaInterface](./vertexai.objectschemainterface.md#objectschemainterface_interface) | Interface for [ObjectSchema](./vertexai.objectschema.md#objectschema_class) class. |
+|  [ObjectSchemaRequest](./vertexai.objectschemarequest.md#objectschemarequest_interface) | Interface for JSON parameters in [SchemaType.OBJECT](./vertexai.md#schematypeobject_enummember) format when not using the [ObjectSchema](./vertexai.objectschema.md#objectschema_class) helper. |
 |  [PromptFeedback](./vertexai.promptfeedback.md#promptfeedback_interface) | If the prompt was blocked, this will be populated with <code>blockReason</code> and the relevant <code>safetyRatings</code>. |
 |  [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) | Params passed to [getGenerativeModel()](./vertexai.md#getgenerativemodel_e3037c9)<!-- -->. |
 |  [RetrievedContextAttribution](./vertexai.retrievedcontextattribution.md#retrievedcontextattribution_interface) |  |
