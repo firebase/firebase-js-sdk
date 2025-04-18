@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { TypedSchema } from '../requests/schema-builder';
+import { ObjectSchema, TypedSchema } from '../requests/schema-builder';
 import { Content, Part } from './content';
 import {
   FunctionCallingMode,
@@ -23,7 +23,7 @@ import {
   HarmBlockThreshold,
   HarmCategory
 } from './enums';
-import { ObjectSchemaInterface, SchemaRequest } from './schema';
+import { ObjectSchemaRequest, SchemaRequest } from './schema';
 
 /**
  * Base parameters for a number of methods.
@@ -175,7 +175,7 @@ export declare interface FunctionDeclaration {
    * format. Reflects the Open API 3.03 Parameter Object. Parameter names are
    * case-sensitive. For a function with no parameters, this can be left unset.
    */
-  parameters?: ObjectSchemaInterface;
+  parameters?: ObjectSchema | ObjectSchemaRequest;
 }
 
 /**
