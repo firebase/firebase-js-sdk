@@ -17,6 +17,7 @@
 
 import {
   Content,
+  CountTokensRequest,
   GenerateContentRequest,
   InferenceMode,
   Part,
@@ -114,6 +115,21 @@ export class ChromeAdapter {
             }
           ]
         })
+    } as Response;
+  }
+
+  async countTokens(request: CountTokensRequest): Promise<Response> {
+    // TODO: Check if the request contains an image, and if so, throw.
+    const session = await this.createSession(
+      // TODO: normalize on-device params during construction.
+      this.onDeviceParams || {}
+    );
+    const messages = ChromeAdapter.toLanguageModelMessages(request.contents);
+    const tokenCount = await session.measureInputUsage(messages);
+    return {
+      json: async () => ({
+        totalTokens: tokenCount
+      })
     } as Response;
   }
 
