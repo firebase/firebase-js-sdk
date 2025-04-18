@@ -339,7 +339,7 @@ async function ensureOfflineComponents(
   return client._offlineComponents!;
 }
 
-async function ensureOnlineComponents(
+export async function ensureOnlineComponents(
   client: FirestoreClient
 ): Promise<OnlineComponentProvider> {
   if (!client._onlineComponents) {
@@ -799,6 +799,16 @@ export function firestoreClientLoadBundle(
   });
 }
 
+export function firestoreClientLoadDodcumentSnapshotBundle(
+  client: FirestoreClient,
+  databaseId: DatabaseId,
+  data: string
+): object {
+  const reader = createBundleReader(data, newSerializer(databaseId));
+  const encodedContent: Uint8Array = newTextEncoder().encode(data);
+  return {};
+}
+
 export function firestoreClientGetNamedQuery(
   client: FirestoreClient,
   queryName: string
@@ -808,7 +818,7 @@ export function firestoreClientGetNamedQuery(
   );
 }
 
-function createBundleReader(
+export function createBundleReader(
   data: ReadableStream<Uint8Array> | ArrayBuffer | string,
   serializer: JsonProtoSerializer
 ): BundleReader {

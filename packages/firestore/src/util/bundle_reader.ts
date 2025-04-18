@@ -30,7 +30,11 @@ export class SizedBundleElement {
     public readonly payload: BundleElement,
     // How many bytes this element takes to store in the bundle.
     public readonly byteLength: number
-  ) {}
+  ) {
+    console.log('DEDB new sizedBundle element.');
+    console.log('payload: ', payload);
+    console.log('byteLength: ', byteLength);
+  }
 
   isBundleMetadata(): boolean {
     return 'metadata' in this.payload;

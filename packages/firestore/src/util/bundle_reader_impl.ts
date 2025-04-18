@@ -23,6 +23,91 @@ import { debugAssert } from './assert';
 import { BundleReader, SizedBundleElement } from './bundle_reader';
 import { Deferred } from './promise';
 
+class SyncBundleReaderImpl {
+  private metadata: BundleMetadata | null;
+  private elements: Array<SizedBundleElement>;
+  private cursor: number;
+  constructor(
+    /** The reader to read from underlying binary bundle data source. */
+    private bundleData: string,
+    readonly serializer: JsonProtoSerializer
+  ) {
+    this.metadata = null;
+    this.cursor = 0;
+    this.elements = new Array<SizedBundleElement>();
+  }
+
+  parse(): void {
+    let element = this.nextElement();
+    if (element && element.isBundleMetadata()) {
+      this.metadata = element as BundleMetadata;
+    } else {
+      throw new Error(`The first element of the bundle is not a metadata, it is
+         ${JSON.stringify(element?.payload)}`);
+    }
+  }
+
+  getMetadata(): BundleMetadata | null {
+    return this.metadata;
+  }
+
+  private nextElement(): SizedBundleElement | null {
+    if (this.cursor === this.bundleData.length) {
+      return null;
+    }
+
+    const length = this.readLength();
+    const jsonString = this.readJsonString(length);
+
+    return new SizedBundleElement(JSON.parse(jsonString), jsonString.length);
+  }
+
+  /**
+   * Reads from a specified position from the bundleData string, for a specified
+   * number of bytes.
+   *
+   * Returns a string parsed from the bundle.
+   */
+  private readJsonString(length: number): string {
+    if (this.cursor + length > this.bundleData.length) {
+      throw new Error('Reached the end of bundle when more is expected.');
+    }
+    const result = this.bundleData.slice(this.cursor, length);
+    this.cursor += length;
+    return result;
+  }
+
+  /** First index of '{' from the bundle starting at the optionally provided offset. */
+  private indexOfOpenBracket(offset?: number): number {
+    let buffer: string = this.bundleData;
+    if (offset) {
+      buffer = this.bundleData.substring(offset);
+    }
+    return buffer.indexOf('{');
+  }
+
+  /**
+   * Reads from the current cursor until the first '{', returns number value
+   *
+   * If reached end of the stream, or the value isn't a number, then throws.
+   */
+  private readLength(): number {
+    const startIndex = this.cursor;
+    let curIndex = this.cursor;
+    while (curIndex < this.bundleData.length) {
+      if (this.bundleData[curIndex] === '{') {
+        if (curIndex === startIndex) {
+          throw new Error('First character is a bracket and not a number');
+        }
+        this.cursor = curIndex;
+        return Number(this.bundleData.slice(startIndex, curIndex));
+      }
+      curIndex++;
+    }
+    throw new Error('Reached the end of bundle when more is expected.');
+  }
+}
+
 /**
  * A class representing a bundle.
  *
