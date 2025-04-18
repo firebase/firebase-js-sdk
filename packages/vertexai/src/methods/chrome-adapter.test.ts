@@ -30,6 +30,25 @@ import { GenerateContentRequest } from '../types';
 use(sinonChai);
 use(chaiAsPromised);
 
+/**
+ * Converts the ReadableStream from response.body to an array of strings.
+ */
+async function toStringArray(
+  stream: ReadableStream<Uint8Array>
+): Promise<string[]> {
+  const decoder = new TextDecoder();
+  const actual = [];
+  const reader = stream.getReader();
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+    actual.push(decoder.decode(value));
+  }
+  return actual;
+}
+
 describe('ChromeAdapter', () => {
   describe('isAvailable', () => {
     it('returns false if mode is only cloud', async () => {
@@ -305,6 +324,54 @@ describe('ChromeAdapter', () => {
           }
         ]
       });
+    });
+  });
+  describe('generateContentStreamOnDevice', () => {
+    it('generates content stream', async () => {
+      const languageModelProvider = {
+        create: () => Promise.resolve({})
+      } as LanguageModel;
+      const languageModel = {
+        promptStreaming: _i => new ReadableStream()
+      } as LanguageModel;
+      const createStub = stub(languageModelProvider, 'create').resolves(
+        languageModel
+      );
+      const part = 'hi';
+      const promptStub = stub(languageModel, 'promptStreaming').returns(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue([part]);
+            controller.close();
+          }
+        })
+      );
+      const onDeviceParams = {} as LanguageModelCreateOptions;
+      const adapter = new ChromeAdapter(
+        languageModelProvider,
+        'prefer_on_device',
+        onDeviceParams
+      );
+      const request = {
+        contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
+      } as GenerateContentRequest;
+      const response = await adapter.generateContentStreamOnDevice(request);
+      expect(createStub).to.have.been.calledOnceWith(onDeviceParams);
+      expect(promptStub).to.have.been.calledOnceWith([
+        {
+          role: request.contents[0].role,
+          content: [
+            {
+              type: 'text',
+              content: request.contents[0].parts[0].text
+            }
+          ]
+        }
+      ]);
+      const actual = await toStringArray(response.body!);
+      expect(actual).to.deep.equal([
+        `data: {"candidates":[{"content":{"role":"model","parts":[{"text":["${part}"]}]}}]}\n\n`
+      ]);
     });
   });
 });
