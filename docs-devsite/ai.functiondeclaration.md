@@ -53,5 +53,5 @@ Optional. Describes the parameters to this function in JSON Schema Object format
 <b>Signature:</b>
 
 ```typescript
-parameters?: ObjectSchemaInterface;
+parameters?: ObjectSchema | ObjectSchemaRequest;
 ```
