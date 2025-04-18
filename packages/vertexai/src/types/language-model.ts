@@ -32,7 +32,7 @@ export interface LanguageModel extends EventTarget {
   ): Promise<number>;
   destroy(): undefined;
 }
-enum Availability {
+export enum Availability {
   'unavailable',
   'downloadable',
   'downloading',
@@ -56,14 +56,14 @@ interface LanguageModelExpectedInput {
   type: LanguageModelMessageType;
   languages?: string[];
 }
-type LanguageModelPrompt =
+export type LanguageModelPrompt =
   | LanguageModelMessage[]
   | LanguageModelMessageShorthand[]
   | string;
 type LanguageModelInitialPrompts =
   | LanguageModelMessage[]
   | LanguageModelMessageShorthand[];
-interface LanguageModelMessage {
+export interface LanguageModelMessage {
   role: LanguageModelMessageRole;
   content: LanguageModelMessageContent[];
 }
@@ -71,11 +71,11 @@ interface LanguageModelMessageShorthand {
   role: LanguageModelMessageRole;
   content: string;
 }
-interface LanguageModelMessageContent {
+export interface LanguageModelMessageContent {
   type: LanguageModelMessageType;
   content: LanguageModelMessageContentValue;
 }
-type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
+export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 type LanguageModelMessageType = 'text' | 'image' | 'audio';
 type LanguageModelMessageContentValue =
   | ImageBitmapSource
