@@ -43,7 +43,7 @@ declare module '@firebase/component' {
 }
 
 /**
- * Returns a <code>{@link VertexAI}</code> instance for the given app.
+ * Returns a {@link VertexAI} instance for the given app.
  *
  * @public
  *
@@ -63,7 +63,7 @@ export function getVertexAI(
 }
 
 /**
- * Returns a <code>{@link GenerativeModel}</code> class with methods for inference
+ * Returns a {@link GenerativeModel} class with methods for inference
  * and other functionality.
  *
  * @public
@@ -83,7 +83,7 @@ export function getGenerativeModel(
 }
 
 /**
- * Returns an <code>{@link ImagenModel}</code> class with methods for using Imagen.
+ * Returns an {@link ImagenModel} class with methods for using Imagen.
  *
  * Only Imagen 3 models (named `imagen-3.0-*`) are supported.
  *

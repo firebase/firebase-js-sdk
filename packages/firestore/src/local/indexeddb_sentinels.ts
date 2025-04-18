@@ -450,6 +450,6 @@ export function getObjectStores(schemaVersion: number): string[] {
   } else if (schemaVersion === 11) {
     return V11_STORES;
   } else {
-    fail('Only schema version 11 and 12 and 13 are supported');
+    fail(0xeb55, 'Only schema version 11 and 12 and 13 are supported');
   }
 }

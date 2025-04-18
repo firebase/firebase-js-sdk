@@ -144,6 +144,7 @@ export class IndexedDbTargetCache implements TargetCache {
       .next(metadata => {
         hardAssert(
           metadata.targetCount > 0,
+          0x1f81,
           'Removing from an empty target cache'
         );
         metadata.targetCount -= 1;
@@ -197,7 +198,7 @@ export class IndexedDbTargetCache implements TargetCache {
     return globalTargetStore(transaction)
       .get(DbTargetGlobalKey)
       .next(metadata => {
-        hardAssert(metadata !== null, 'Missing metadata row.');
+        hardAssert(metadata !== null, 0x0b48, 'Missing metadata row.');
         return metadata;
       });
   }

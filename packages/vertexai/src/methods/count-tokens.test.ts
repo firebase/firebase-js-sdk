@@ -45,7 +45,10 @@ describe('countTokens()', () => {
     restore();
   });
   it('total tokens', async () => {
-    const mockResponse = getMockResponse('unary-success-total-tokens.json');
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-total-tokens.json'
+    );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
       mockResponse as Response
     );
@@ -69,6 +72,7 @@ describe('countTokens()', () => {
   });
   it('total tokens with modality details', async () => {
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-success-detailed-token-response.json'
     );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
@@ -96,6 +100,7 @@ describe('countTokens()', () => {
   });
   it('total tokens no billable characters', async () => {
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-success-no-billable-characters.json'
     );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
@@ -120,7 +125,10 @@ describe('countTokens()', () => {
     );
   });
   it('model not found', async () => {
-    const mockResponse = getMockResponse('unary-failure-model-not-found.json');
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-failure-model-not-found.json'
+    );
     const mockFetch = stub(globalThis, 'fetch').resolves({
       ok: false,
       status: 404,

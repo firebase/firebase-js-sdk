@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # SchemaParams interface
-Params passed to <code>[Schema](./vertexai.schema.md#schema_class)</code> static methods to create specific <code>[Schema](./vertexai.schema.md#schema_class)</code> classes.
+Params passed to [Schema](./vertexai.schema.md#schema_class) static methods to create specific [Schema](./vertexai.schema.md#schema_class) classes.
 
 <b>Signature:</b>
 

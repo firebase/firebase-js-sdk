@@ -257,6 +257,7 @@ describe('response-helpers methods', () => {
   describe('handlePredictResponse', () => {
     it('returns base64 images', async () => {
       const mockResponse = getMockResponse(
+        'vertexAI',
         'unary-success-generate-images-base64.json'
       ) as Response;
       const res = await handlePredictResponse<ImagenInlineImage>(mockResponse);
@@ -270,6 +271,7 @@ describe('response-helpers methods', () => {
   });
   it('returns GCS images', async () => {
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-success-generate-images-gcs.json'
     ) as Response;
     const res = await handlePredictResponse<ImagenGCSImage>(mockResponse);
@@ -284,6 +286,7 @@ describe('response-helpers methods', () => {
   });
   it('has filtered reason and no images if all images were filtered', async () => {
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-failure-generate-images-all-filtered.json'
     ) as Response;
     const res = await handlePredictResponse<ImagenInlineImage>(mockResponse);
@@ -294,6 +297,7 @@ describe('response-helpers methods', () => {
   });
   it('has filtered reason and no images if all base64 images were filtered', async () => {
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-failure-generate-images-base64-some-filtered.json'
     ) as Response;
     const res = await handlePredictResponse<ImagenInlineImage>(mockResponse);
@@ -308,6 +312,7 @@ describe('response-helpers methods', () => {
   });
   it('has filtered reason and no images if all GCS images were filtered', async () => {
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-failure-generate-images-gcs-some-filtered.json'
     ) as Response;
     const res = await handlePredictResponse<ImagenGCSImage>(mockResponse);

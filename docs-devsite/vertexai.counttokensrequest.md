@@ -25,7 +25,7 @@ export interface CountTokensRequest
 |  [contents](./vertexai.counttokensrequest.md#counttokensrequestcontents) | [Content](./vertexai.content.md#content_interface)<!-- -->\[\] |  |
 |  [generationConfig](./vertexai.counttokensrequest.md#counttokensrequestgenerationconfig) | [GenerationConfig](./vertexai.generationconfig.md#generationconfig_interface) | Configuration options that control how the model generates a response. |
 |  [systemInstruction](./vertexai.counttokensrequest.md#counttokensrequestsysteminstruction) | string \| [Part](./vertexai.md#part) \| [Content](./vertexai.content.md#content_interface) | Instructions that direct the model to behave a certain way. |
-|  [tools](./vertexai.counttokensrequest.md#counttokensrequesttools) | [Tool](./vertexai.md#tool)<!-- -->\[\] | <code>[Tool](./vertexai.md#tool)</code> configuration. |
+|  [tools](./vertexai.counttokensrequest.md#counttokensrequesttools) | [Tool](./vertexai.md#tool)<!-- -->\[\] | [Tool](./vertexai.md#tool) configuration. |
 
 ## CountTokensRequest.contents
 
@@ -57,7 +57,7 @@ systemInstruction?: string | Part | Content;
 
 ## CountTokensRequest.tools
 
-<code>[Tool](./vertexai.md#tool)</code> configuration.
+[Tool](./vertexai.md#tool) configuration.
 
 <b>Signature:</b>
 

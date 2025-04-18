@@ -50,7 +50,7 @@ export interface CustomErrorData {
   /** HTTP status text of the error response. */
   statusText?: string;
 
-  /** Response from a <code>{@link GenerateContentRequest}</code> */
+  /** Response from a {@link GenerateContentRequest} */
   response?: GenerateContentResponse;
 
   /** Optional additional details about the error. */
@@ -58,7 +58,7 @@ export interface CustomErrorData {
 }
 
 /**
- * Standardized error codes that <code>{@link VertexAIError}</code> can have.
+ * Standardized error codes that {@link VertexAIError} can have.
  *
  * @public
  */
