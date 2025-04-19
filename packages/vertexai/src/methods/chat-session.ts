@@ -149,6 +149,7 @@ export class ChatSession {
       this._apiSettings,
       this.model,
       generateContentRequest,
+      this.chromeAdapter,
       this.requestOptions
     );
 

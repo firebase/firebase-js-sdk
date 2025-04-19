@@ -123,6 +123,7 @@ export class GenerativeModel extends VertexAIModel {
         systemInstruction: this.systemInstruction,
         ...formattedParams
       },
+      this.chromeAdapter,
       this.requestOptions
     );
   }

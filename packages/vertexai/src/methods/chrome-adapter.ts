@@ -95,7 +95,25 @@ export class ChromeAdapter {
    * @param request a standard Vertex {@link GenerateContentRequest}
    * @returns {@link Response}, so we can reuse common response formatting.
    */
-  async generateContentOnDevice(
+  async generateContent(request: GenerateContentRequest): Promise<Response> {
+    const session = await this.createSession(
+      // TODO: normalize on-device params during construction.
+      this.onDeviceParams || {}
+    );
+    const messages = ChromeAdapter.toLanguageModelMessages(request.contents);
+    const text = await session.prompt(messages);
+    return ChromeAdapter.toResponse(text);
+  }
+
+  /**
+   * Generates content stream on device.
+   *
+   * <p>This is comparable to {@link GenerativeModel.generateContentStream} for generating content in
+   * Cloud.</p>
+   * @param request a standard Vertex {@link GenerateContentRequest}
+   * @returns {@link Response}, so we can reuse common response formatting.
+   */
+  async generateContentStream(
     request: GenerateContentRequest
   ): Promise<Response> {
     const session = await this.createSession(
@@ -103,19 +121,8 @@ export class ChromeAdapter {
       this.onDeviceParams || {}
     );
     const messages = ChromeAdapter.toLanguageModelMessages(request.contents);
-    const text = await session.prompt(messages);
-    return {
-      json: () =>
-        Promise.resolve({
-          candidates: [
-            {
-              content: {
-                parts: [{ text }]
-              }
-            }
-          ]
-        })
-    } as Response;
+    const stream = await session.promptStreaming(messages);
+    return ChromeAdapter.toStreamResponse(stream);
   }
 
   async countTokens(request: CountTokensRequest): Promise<Response> {
@@ -239,5 +246,48 @@ export class ChromeAdapter {
     // Holds session reference, so model isn't unloaded from memory.
     this.oldSession = newSession;
     return newSession;
+  }
+
+  /**
+   * Formats string returned by Chrome as a {@link Response} returned by Vertex.
+   */
+  private static toResponse(text: string): Response {
+    return {
+      json: async () => ({
+        candidates: [
+          {
+            content: {
+              parts: [{ text }]
+            }
+          }
+        ]
+      })
+    } as Response;
+  }
+
+  /**
+   * Formats string stream returned by Chrome as SSE returned by Vertex.
+   */
+  private static toStreamResponse(stream: ReadableStream<string>): Response {
+    const encoder = new TextEncoder();
+    return {
+      body: stream.pipeThrough(
+        new TransformStream({
+          transform(chunk, controller) {
+            const json = JSON.stringify({
+              candidates: [
+                {
+                  content: {
+                    role: 'model',
+                    parts: [{ text: chunk }]
+                  }
+                }
+              ]
+            });
+            controller.enqueue(encoder.encode(`data: ${json}\n\n`));
+          }
+        })
+      )
+    } as Response;
   }
 }
