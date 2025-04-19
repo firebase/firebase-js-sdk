@@ -17,6 +17,7 @@
 
 import {
   Content,
+  CountTokensRequest,
   GenerateContentRequest,
   InferenceMode,
   Part,
@@ -103,6 +104,15 @@ export class ChromeAdapter {
     const text = await session.prompt(messages);
     return ChromeAdapter.toResponse(text);
   }
+
+  /**
+   * Generates content stream on device.
+   *
+   * <p>This is comparable to {@link GenerativeModel.generateContentStream} for generating content in
+   * Cloud.</p>
+   * @param request a standard Vertex {@link GenerateContentRequest}
+   * @returns {@link Response}, so we can reuse common response formatting.
+   */
   async generateContentStream(
     request: GenerateContentRequest
   ): Promise<Response> {
@@ -114,6 +124,25 @@ export class ChromeAdapter {
     const stream = await session.promptStreaming(messages);
     return ChromeAdapter.toStreamResponse(stream);
   }
+
+  async countTokens(request: CountTokensRequest): Promise<Response> {
+    // TODO: Check if the request contains an image, and if so, throw.
+    const session = await this.createSession(
+      // TODO: normalize on-device params during construction.
+      this.onDeviceParams || {}
+    );
+    const messages = ChromeAdapter.toLanguageModelMessages(request.contents);
+    const tokenCount = await session.measureInputUsage(messages);
+    return {
+      json: async () => ({
+        totalTokens: tokenCount
+      })
+    } as Response;
+  }
+
+  /**
+   * Asserts inference for the given request can be performed by an on-device model.
+   */
   private static isOnDeviceRequest(request: GenerateContentRequest): boolean {
     // Returns false if the prompt is empty.
     if (request.contents.length === 0) {

@@ -326,6 +326,60 @@ describe('ChromeAdapter', () => {
       });
     });
   });
+  describe('countTokens', () => {
+    it('counts tokens from a singular input', async () => {
+      const inputText = 'first';
+      const expectedCount = 10;
+      const onDeviceParams = {
+        systemPrompt: 'be yourself'
+      } as LanguageModelCreateOptions;
+
+      // setting up stubs
+      const languageModelProvider = {
+        create: () => Promise.resolve({})
+      } as LanguageModel;
+      const languageModel = {
+        measureInputUsage: _i => Promise.resolve(123)
+      } as LanguageModel;
+      const createStub = stub(languageModelProvider, 'create').resolves(
+        languageModel
+      );
+
+      // overrides impl with stub method
+      const measureInputUsageStub = stub(
+        languageModel,
+        'measureInputUsage'
+      ).resolves(expectedCount);
+
+      const adapter = new ChromeAdapter(
+        languageModelProvider,
+        'prefer_on_device',
+        onDeviceParams
+      );
+
+      const countTokenRequest = {
+        contents: [{ role: 'user', parts: [{ text: inputText }] }]
+      } as GenerateContentRequest;
+      const response = await adapter.countTokens(countTokenRequest);
+      // Asserts initialization params are proxied.
+      expect(createStub).to.have.been.calledOnceWith(onDeviceParams);
+      // Asserts Vertex input type is mapped to Chrome type.
+      expect(measureInputUsageStub).to.have.been.calledOnceWith([
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              content: inputText
+            }
+          ]
+        }
+      ]);
+      expect(await response.json()).to.deep.equal({
+        totalTokens: expectedCount
+      });
+    });
+  });
   describe('generateContentStreamOnDevice', () => {
     it('generates content stream', async () => {
       const languageModelProvider = {
