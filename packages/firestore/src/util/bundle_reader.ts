@@ -31,9 +31,9 @@ export class SizedBundleElement {
     // How many bytes this element takes to store in the bundle.
     public readonly byteLength: number
   ) {
-    console.log('DEDB new sizedBundle element.');
-    console.log('payload: ', payload);
-    console.log('byteLength: ', byteLength);
+    console.log("DEDB new sizedBundle element.");
+    console.log("payload: ", payload);
+    console.log("byteLength: ", byteLength);
   }
 
   isBundleMetadata(): boolean {
@@ -68,4 +68,26 @@ export interface BundleReader {
    * have reached the end of the stream.
    */
   nextElement(): Promise<SizedBundleElement | null>;
+}
+
+/**
+ * A class representing a bundle.
+ *
+ * Takes a bundle stream or buffer, and presents abstractions to read bundled
+ * elements out of the underlying content.
+ */
+export interface BundleReaderSync {
+  serializer: JsonProtoSerializer;
+
+  /**
+   * Returns the metadata of the bundle.
+   */
+  getMetadata(): BundleMetadata;
+
+  /**
+   * Returns the next BundleElement (together with its byte size in the bundle)
+   * that has not been read from underlying ReadableStream. Returns null if we
+   * have reached the end of the stream.
+   */
+  getElements(): Array<SizedBundleElement>;
 }
