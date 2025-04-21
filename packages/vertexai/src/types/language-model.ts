@@ -33,10 +33,10 @@ export interface LanguageModel extends EventTarget {
   destroy(): undefined;
 }
 export enum Availability {
-  'unavailable',
-  'downloadable',
-  'downloading',
-  'available'
+  'unavailable' = 'unavailable',
+  'downloadable' = 'downloadable',
+  'downloading' = 'downloading',
+  'available' = 'available'
 }
 export interface LanguageModelCreateCoreOptions {
   topK?: number;
