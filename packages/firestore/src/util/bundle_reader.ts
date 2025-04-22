@@ -84,5 +84,5 @@ export interface BundleReaderSync {
    * Returns BundleElements parsed from the bundle. Returns an empty array if no bundle elements
    * exist.
    */
-  getElements(): Array<SizedBundleElement>;
+  getElements(): SizedBundleElement[];
 }

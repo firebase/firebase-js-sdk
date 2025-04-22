@@ -25,17 +25,16 @@ import { BundleReaderSync, SizedBundleElement } from './bundle_reader';
  */
 export class BundleReaderSyncImpl implements BundleReaderSync {
   private metadata: BundleMetadata;
-  private elements: Array<SizedBundleElement>;
+  private elements: SizedBundleElement[];
   private cursor: number;
   constructor(
     private bundleData: string,
     readonly serializer: JsonProtoSerializer
   ) {
     this.cursor = 0;
-    this.elements = new Array<SizedBundleElement>();
+    this.elements = [];
 
     let element = this.nextElement();
-    console.error('DEEDB Element (metadata): ', element);
     if (element && element.isBundleMetadata()) {
       this.metadata = element as BundleMetadata;
     } else {
@@ -46,11 +45,8 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
     do {
       element = this.nextElement();
       if (element !== null) {
-        console.error('DEDB parsed element: ', element);
         this.elements.push(element);
-      } else {
-        console.error('DEDB no more elements.');
-      }
+      } 
     } while (element !== null);
   }
 
@@ -60,7 +56,7 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
   }
 
   /* Returns the DocumentSnapshot or NamedQuery elements of the bundle. */
-  getElements(): Array<SizedBundleElement> {
+  getElements(): SizedBundleElement[] {
     return this.elements;
   }
 

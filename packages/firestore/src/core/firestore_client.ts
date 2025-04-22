@@ -98,8 +98,6 @@ import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
 
-import { ExpUserDataWriter } from '../api/reference_impl';
-
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
 

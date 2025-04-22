@@ -77,9 +77,12 @@ export class BundleConverterImpl implements BundleConverter {
     }
   }
 
-  toDocumentSnapshotData(docMetadata: BundledDocumentMetadata, bundledDoc: BundledDocument) : {
-    documentKey: DocumentKey,
-    mutableDoc: MutableDocument,
+  toDocumentSnapshotData(
+    docMetadata: BundledDocumentMetadata,
+    bundledDoc: BundledDocument
+  ): {
+    documentKey: DocumentKey;
+    mutableDoc: MutableDocument;
   } {
     const bundleConverter = new BundleConverterImpl(this.serializer);
     const documentKey = bundleConverter.toDocumentKey(docMetadata.name!);

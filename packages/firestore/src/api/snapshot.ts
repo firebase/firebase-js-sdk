@@ -28,6 +28,7 @@ import {
   SetOptions,
   WithFieldValue
 } from '../lite-api/reference';
+import { LiteUserDataWriter } from '../lite-api/reference_impl';
 import {
   DocumentSnapshot as LiteDocumentSnapshot,
   fieldPathFromArgument,
@@ -35,7 +36,6 @@ import {
 } from '../lite-api/snapshot';
 import { UntypedFirestoreDataConverter } from '../lite-api/user_data_reader';
 import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
-import { LiteUserDataWriter } from '../lite-api/reference_impl';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { newSerializer } from '../platform/serializer';
@@ -574,11 +574,8 @@ export class DocumentSnapshot<
         bundleString = value;
       }
     }
-    if(error) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        error
-      );
+    if (error) {
+      throw new FirestoreError(Code.INVALID_ARGUMENT, error);
     }
     const serializer = newSerializer(db._databaseId);
     const reader = createBundleReaderSync(bundleString, serializer);
