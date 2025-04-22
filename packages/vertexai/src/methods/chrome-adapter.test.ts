@@ -22,7 +22,8 @@ import { ChromeAdapter } from './chrome-adapter';
 import {
   Availability,
   LanguageModel,
-  LanguageModelCreateOptions
+  LanguageModelCreateOptions,
+  LanguageModelMessageContent
 } from '../types/language-model';
 import { stub } from 'sinon';
 import { GenerateContentRequest } from '../types';
@@ -281,7 +282,8 @@ describe('ChromeAdapter', () => {
         create: () => Promise.resolve({})
       } as LanguageModel;
       const languageModel = {
-        prompt: i => Promise.resolve(i)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        prompt: (p: LanguageModelMessageContent[]) => Promise.resolve('')
       } as LanguageModel;
       const createStub = stub(languageModelProvider, 'create').resolves(
         languageModel
@@ -305,13 +307,8 @@ describe('ChromeAdapter', () => {
       // Asserts Vertex input type is mapped to Chrome type.
       expect(promptStub).to.have.been.calledOnceWith([
         {
-          role: request.contents[0].role,
-          content: [
-            {
-              type: 'text',
-              content: request.contents[0].parts[0].text
-            }
-          ]
+          type: 'text',
+          content: request.contents[0].parts[0].text
         }
       ]);
       // Asserts expected output.
@@ -366,13 +363,8 @@ describe('ChromeAdapter', () => {
       // Asserts Vertex input type is mapped to Chrome type.
       expect(measureInputUsageStub).to.have.been.calledOnceWith([
         {
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              content: inputText
-            }
-          ]
+          type: 'text',
+          content: inputText
         }
       ]);
       expect(await response.json()).to.deep.equal({
@@ -380,7 +372,7 @@ describe('ChromeAdapter', () => {
       });
     });
   });
-  describe('generateContentStreamOnDevice', () => {
+  describe('generateContentStream', () => {
     it('generates content stream', async () => {
       const languageModelProvider = {
         create: () => Promise.resolve({})
@@ -413,13 +405,8 @@ describe('ChromeAdapter', () => {
       expect(createStub).to.have.been.calledOnceWith(onDeviceParams);
       expect(promptStub).to.have.been.calledOnceWith([
         {
-          role: request.contents[0].role,
-          content: [
-            {
-              type: 'text',
-              content: request.contents[0].parts[0].text
-            }
-          ]
+          type: 'text',
+          content: request.contents[0].parts[0].text
         }
       ]);
       const actual = await toStringArray(response.body!);
