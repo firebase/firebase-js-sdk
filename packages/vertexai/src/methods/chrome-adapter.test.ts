@@ -173,18 +173,19 @@ describe('ChromeAdapter', () => {
       const createStub = stub(languageModelProvider, 'create').resolves(
         {} as LanguageModel
       );
-      const onDeviceParams = {} as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
-        'prefer_on_device',
-        onDeviceParams
+        'prefer_on_device'
       );
+      const expectedOnDeviceParams = {
+        expectedInputs: [{ type: 'image' }]
+      } as LanguageModelCreateOptions;
       expect(
         await adapter.isAvailable({
           contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
         })
       ).to.be.false;
-      expect(createStub).to.have.been.calledOnceWith(onDeviceParams);
+      expect(createStub).to.have.been.calledOnceWith(expectedOnDeviceParams);
     });
     it('avoids redundant downloads', async () => {
       const languageModelProvider = {
@@ -261,6 +262,10 @@ describe('ChromeAdapter', () => {
       const onDeviceParams = {
         systemPrompt: 'be yourself'
       } as LanguageModelCreateOptions;
+      const expectedOnDeviceParams = {
+        systemPrompt: 'be yourself',
+        expectedInputs: [{ type: 'image' }]
+      } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
         'prefer_on_device',
@@ -271,7 +276,7 @@ describe('ChromeAdapter', () => {
       } as GenerateContentRequest;
       const response = await adapter.generateContent(request);
       // Asserts initialization params are proxied.
-      expect(createStub).to.have.been.calledOnceWith(onDeviceParams);
+      expect(createStub).to.have.been.calledOnceWith(expectedOnDeviceParams);
       // Asserts Vertex input type is mapped to Chrome type.
       expect(promptStub).to.have.been.calledOnceWith([
         {
@@ -306,6 +311,10 @@ describe('ChromeAdapter', () => {
       const onDeviceParams = {
         systemPrompt: 'be yourself'
       } as LanguageModelCreateOptions;
+      const expectedOnDeviceParams = {
+        systemPrompt: 'be yourself',
+        expectedInputs: [{ type: 'image' }]
+      } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
         'prefer_on_device',
@@ -329,7 +338,7 @@ describe('ChromeAdapter', () => {
       } as GenerateContentRequest;
       const response = await adapter.generateContent(request);
       // Asserts initialization params are proxied.
-      expect(createStub).to.have.been.calledOnceWith(onDeviceParams);
+      expect(createStub).to.have.been.calledOnceWith(expectedOnDeviceParams);
       // Asserts Vertex input type is mapped to Chrome type.
       expect(promptStub).to.have.been.calledOnceWith([
         {
@@ -360,6 +369,10 @@ describe('ChromeAdapter', () => {
       const onDeviceParams = {
         systemPrompt: 'be yourself'
       } as LanguageModelCreateOptions;
+      const expectedOnDeviceParams = {
+        systemPrompt: 'be yourself',
+        expectedInputs: [{ type: 'image' }]
+      } as LanguageModelCreateOptions;
 
       // setting up stubs
       const languageModelProvider = {
@@ -389,7 +402,7 @@ describe('ChromeAdapter', () => {
       } as GenerateContentRequest;
       const response = await adapter.countTokens(countTokenRequest);
       // Asserts initialization params are proxied.
-      expect(createStub).to.have.been.calledOnceWith(onDeviceParams);
+      expect(createStub).to.have.been.calledOnceWith(expectedOnDeviceParams);
       // Asserts Vertex input type is mapped to Chrome type.
       expect(measureInputUsageStub).to.have.been.calledOnceWith([
         {
@@ -423,6 +436,9 @@ describe('ChromeAdapter', () => {
         })
       );
       const onDeviceParams = {} as LanguageModelCreateOptions;
+      const expectedOnDeviceParams = {
+        expectedInputs: [{ type: 'image' }]
+      } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
         'prefer_on_device',
@@ -432,7 +448,7 @@ describe('ChromeAdapter', () => {
         contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
       } as GenerateContentRequest;
       const response = await adapter.generateContentStream(request);
-      expect(createStub).to.have.been.calledOnceWith(onDeviceParams);
+      expect(createStub).to.have.been.calledOnceWith(expectedOnDeviceParams);
       expect(promptStub).to.have.been.calledOnceWith([
         {
           type: 'text',
@@ -464,6 +480,9 @@ describe('ChromeAdapter', () => {
         })
       );
       const onDeviceParams = {} as LanguageModelCreateOptions;
+      const expectedOnDeviceParams = {
+        expectedInputs: [{ type: 'image' }]
+      } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
         'prefer_on_device',
@@ -486,7 +505,7 @@ describe('ChromeAdapter', () => {
         ]
       } as GenerateContentRequest;
       const response = await adapter.generateContentStream(request);
-      expect(createStub).to.have.been.calledOnceWith(onDeviceParams);
+      expect(createStub).to.have.been.calledOnceWith(expectedOnDeviceParams);
       expect(promptStub).to.have.been.calledOnceWith([
         {
           type: 'text',

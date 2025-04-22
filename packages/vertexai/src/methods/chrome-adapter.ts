@@ -162,10 +162,6 @@ export class ChromeAdapter {
       if (content.role === 'function') {
         return false;
       }
-
-      if (!content.parts[0].text) {
-        return false;
-      }
     }
 
     return true;
@@ -185,8 +181,10 @@ export class ChromeAdapter {
       return;
     }
     this.isDownloading = true;
+    const options = this.onDeviceParams || {};
+    ChromeAdapter.addImageTypeAsExpectedInput(options);
     this.downloadPromise = this.languageModelProvider
-      ?.create(this.onDeviceParams)
+      ?.create(options)
       .then(() => {
         this.isDownloading = false;
       });
@@ -204,7 +202,6 @@ export class ChromeAdapter {
         content: part.text
       };
     } else if (part.inlineData) {
-      // this is for the image type
       const formattedImageContent = await fetch(
         `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
       );
@@ -235,6 +232,7 @@ export class ChromeAdapter {
     options: LanguageModelCreateOptions
   ): Promise<LanguageModel> {
     // TODO: could we use this.onDeviceParams instead of passing in options?
+    ChromeAdapter.addImageTypeAsExpectedInput(options);
     const newSession = await this.languageModelProvider!.create(options);
     if (this.oldSession) {
       this.oldSession.destroy();
@@ -242,6 +240,13 @@ export class ChromeAdapter {
     // Holds session reference, so model isn't unloaded from memory.
     this.oldSession = newSession;
     return newSession;
+  }
+
+  private static addImageTypeAsExpectedInput(
+    options: LanguageModelCreateOptions
+  ): void {
+    options.expectedInputs = options.expectedInputs || [];
+    options.expectedInputs.push({ type: 'image' });
   }
 
   /**
