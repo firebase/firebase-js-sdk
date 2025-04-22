@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { VertexAIError } from '../errors';
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -26,7 +27,7 @@ import {
   LanguageModelMessageContent
 } from '../types/language-model';
 import { match, stub } from 'sinon';
-import { GenerateContentRequest } from '../types';
+import { GenerateContentRequest, VertexAIErrorCode } from '../types';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -363,17 +364,8 @@ describe('ChromeAdapter', () => {
     });
   });
   describe('countTokens', () => {
-    it('counts tokens from a singular input', async () => {
+    it('counts tokens is not yet available', async () => {
       const inputText = 'first';
-      const expectedCount = 10;
-      const onDeviceParams = {
-        systemPrompt: 'be yourself'
-      } as LanguageModelCreateOptions;
-      const expectedOnDeviceParams = {
-        systemPrompt: 'be yourself',
-        expectedInputs: [{ type: 'image' }]
-      } as LanguageModelCreateOptions;
-
       // setting up stubs
       const languageModelProvider = {
         create: () => Promise.resolve({})
@@ -385,34 +377,27 @@ describe('ChromeAdapter', () => {
         languageModel
       );
 
-      // overrides impl with stub method
-      const measureInputUsageStub = stub(
-        languageModel,
-        'measureInputUsage'
-      ).resolves(expectedCount);
-
       const adapter = new ChromeAdapter(
         languageModelProvider,
-        'prefer_on_device',
-        onDeviceParams
+        'prefer_on_device'
       );
 
       const countTokenRequest = {
         contents: [{ role: 'user', parts: [{ text: inputText }] }]
       } as GenerateContentRequest;
-      const response = await adapter.countTokens(countTokenRequest);
-      // Asserts initialization params are proxied.
-      expect(createStub).to.have.been.calledOnceWith(expectedOnDeviceParams);
-      // Asserts Vertex input type is mapped to Chrome type.
-      expect(measureInputUsageStub).to.have.been.calledOnceWith([
-        {
-          type: 'text',
-          content: inputText
-        }
-      ]);
-      expect(await response.json()).to.deep.equal({
-        totalTokens: expectedCount
-      });
+
+      try {
+        await adapter.countTokens(countTokenRequest);
+      } catch (e) {
+        // the call to countToken should be rejected with Error
+        expect((e as VertexAIError).code).to.equal(
+          VertexAIErrorCode.REQUEST_ERROR
+        );
+        expect((e as VertexAIError).message).includes('not yet available');
+      }
+
+      // Asserts that no language model was initialized
+      expect(createStub).not.called;
     });
   });
   describe('generateContentStream', () => {
