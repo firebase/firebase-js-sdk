@@ -27,6 +27,7 @@ import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 import {
+  BundledDocumentMetadata,
   BundleMetadata as ProtoBundleMetadata,
   NamedQuery as ProtoNamedQuery
 } from '../protos/firestore_bundle_proto';
@@ -74,6 +75,23 @@ export class BundleConverterImpl implements BundleConverter {
         this.toSnapshotVersion(bundledDoc.metadata.readTime!)
       );
     }
+  }
+
+  toDocumentSnapshotData(docMetadata: BundledDocumentMetadata, bundledDoc: BundledDocument) : {
+    documentKey: DocumentKey,
+    mutableDoc: MutableDocument,
+  } {
+    const bundleConverter = new BundleConverterImpl(this.serializer);
+    const documentKey = bundleConverter.toDocumentKey(docMetadata.name!);
+    const mutableDoc = bundleConverter.toMutableDocument(bundledDoc);
+    mutableDoc.setReadTime(
+      bundleConverter.toSnapshotVersion(docMetadata.readTime!)
+    );
+
+    return {
+      documentKey,
+      mutableDoc
+    };
   }
 
   toSnapshotVersion(time: ApiTimestamp): SnapshotVersion {

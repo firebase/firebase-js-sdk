@@ -53,8 +53,9 @@ import { JsonProtoSerializer } from '../remote/serializer';
 import { debugAssert } from '../util/assert';
 import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
-import { BundleReader } from '../util/bundle_reader';
+import { BundleReader, BundleReaderSync } from '../util/bundle_reader';
 import { newBundleReader } from '../util/bundle_reader_impl';
+import { newBundleReaderSync } from '../util/bundle_reader_sync_impl';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logWarn } from '../util/log';
 import { AutoId } from '../util/misc';
@@ -96,6 +97,8 @@ import { TransactionOptions } from './transaction_options';
 import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
+
+import { ExpUserDataWriter } from '../api/reference_impl';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -799,16 +802,6 @@ export function firestoreClientLoadBundle(
   });
 }
 
-export function firestoreClientLoadDodcumentSnapshotBundle(
-  client: FirestoreClient,
-  databaseId: DatabaseId,
-  data: string
-): object {
-  const reader = createBundleReader(data, newSerializer(databaseId));
-  const encodedContent: Uint8Array = newTextEncoder().encode(data);
-  return {};
-}
-
 export function firestoreClientGetNamedQuery(
   client: FirestoreClient,
   queryName: string
@@ -829,6 +822,13 @@ export function createBundleReader(
     content = data;
   }
   return newBundleReader(toByteStreamReader(content), serializer);
+}
+
+export function createBundleReaderSync(
+  bundleData: string,
+  serializer: JsonProtoSerializer
+): BundleReaderSync {
+  return newBundleReaderSync(bundleData, serializer);
 }
 
 export function firestoreClientSetIndexConfiguration(

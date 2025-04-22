@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { BundleConverterImpl } from '../core/bundle_impl';
+import { createBundleReaderSync } from '../core/firestore_client';
 import { newQueryComparator } from '../core/query';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { FieldPath } from '../lite-api/field_path';
@@ -33,8 +35,10 @@ import {
 } from '../lite-api/snapshot';
 import { UntypedFirestoreDataConverter } from '../lite-api/user_data_reader';
 import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
+import { LiteUserDataWriter } from '../lite-api/reference_impl';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { newSerializer } from '../platform/serializer';
 import { debugAssert, fail } from '../util/assert';
 import {
   BundleBuilder,
@@ -542,6 +546,88 @@ export class DocumentSnapshot<
     );
     result['bundle'] = builder.build();
     return result;
+  }
+
+  static fromJSON(db: Firestore, json: object): object {
+    const requiredFields = ['bundle', 'bundleName', 'bundleSource'];
+    let error: string | undefined = undefined;
+    let bundleString: string = '';
+    for (const key of requiredFields) {
+      if (!(key in json)) {
+        error = `json missing required field: ${key}`;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const value = (json as any)[key];
+      if (key === 'bundleSource') {
+        if (typeof value !== 'string') {
+          error = `json field 'bundleSource' must be a string.`;
+          break;
+        } else if (value !== 'DocumentSnapshot') {
+          error = "Expected 'bundleSource' field to equal 'DocumentSnapshot'";
+          break;
+        }
+      } else if (key === 'bundle') {
+        if (typeof value !== 'string') {
+          error = `json field 'bundle' must be a string.`;
+          break;
+        }
+        bundleString = value;
+      }
+    }
+    if(error) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        error
+      );
+    }
+    const serializer = newSerializer(db._databaseId);
+    const reader = createBundleReaderSync(bundleString, serializer);
+    const elements = reader.getElements();
+    if (elements.length === 0) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'No snapshat data was found in the bundle.'
+      );
+    }
+    if (
+      elements.length !== 2 ||
+      !elements[0].payload.documentMetadata ||
+      !elements[1].payload.document
+    ) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'DocumentSnapshot bundle data must contain one document metadata and then one document'
+      );
+    }
+    const docMetadata = elements[0].payload!.documentMetadata!;
+    const docData = elements[1].payload.document!;
+    if (docMetadata.name! !== docData.name) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'The document data is not related to the document metadata in the bundle'
+      );
+    }
+    const bundleConverter = new BundleConverterImpl(serializer);
+    const bundledDoc = {
+      metadata: docMetadata,
+      document: docData
+    };
+    const documentSnapshotData = bundleConverter.toDocumentSnapshotData(
+      docMetadata,
+      bundledDoc
+    );
+    const liteUserDataWriter = new LiteUserDataWriter(db);
+    return new DocumentSnapshot(
+      db,
+      liteUserDataWriter,
+      documentSnapshotData.documentKey,
+      documentSnapshotData.mutableDoc,
+      new SnapshotMetadata(
+        /* hasPendingWrites= */ false,
+        /* fromCache= */ false
+      ),
+      null
+    );
   }
 }
 
