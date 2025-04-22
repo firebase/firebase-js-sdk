@@ -15,11 +15,13 @@
  * limitations under the License.
  */
 
+import { VertexAIError } from '../errors';
 import {
   CountTokensRequest,
   GenerateContentRequest,
   InferenceMode,
-  Part
+  Part,
+  VertexAIErrorCode
 } from '../types';
 import {
   Availability,
@@ -129,23 +131,11 @@ export class ChromeAdapter {
     return ChromeAdapter.toStreamResponse(stream);
   }
 
-  async countTokens(request: CountTokensRequest): Promise<Response> {
-    // TODO: Check if the request contains an image, and if so, throw.
-    const session = await this.createSession(
-      // TODO: normalize on-device params during construction.
-      this.onDeviceParams || {}
+  async countTokens(_request: CountTokensRequest): Promise<Response> {
+    throw new VertexAIError(
+      VertexAIErrorCode.REQUEST_ERROR,
+      'Count Tokens is not yet available for on-device model.'
     );
-    // TODO: support multiple content objects when Chrome supports
-    // sequence<LanguageModelMessage>
-    const contents = await Promise.all(
-      request.contents[0].parts.map(ChromeAdapter.toLanguageModelMessageContent)
-    );
-    const tokenCount = await session.measureInputUsage(contents);
-    return {
-      json: async () => ({
-        totalTokens: tokenCount
-      })
-    } as Response;
   }
 
   /**
