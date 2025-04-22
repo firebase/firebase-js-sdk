@@ -60,29 +60,23 @@ export class ChromeAdapter {
    * separation of concerns.</p>
    */
   async isAvailable(request: GenerateContentRequest): Promise<boolean> {
-    // Returns false if we should only use in-cloud inference.
     if (this.mode === 'only_in_cloud') {
       return false;
     }
-    // Returns false if the on-device inference API is undefined.;
-    if (!this.languageModelProvider) {
-      return false;
+    console.log(this.languageModelProvider);
+    const availability = await this.languageModelProvider?.availability();
+    if (availability === Availability.downloadable) {
+      // Triggers async model download.
+      this.download();
     }
-    // Returns false if the request can't be run on-device.
-    if (!ChromeAdapter.isOnDeviceRequest(request)) {
-      return false;
+    if (this.mode === 'only_on_device') {
+      return true;
     }
-    const availability = await this.languageModelProvider.availability();
-    switch (availability) {
-      case Availability.available:
-        // Returns true only if a model is immediately available.
-        return true;
-      case Availability.downloadable:
-        // Triggers async download if model is downloadable.
-        this.download();
-      default:
-        return false;
-    }
+    // Applies prefer_on_device logic.
+    return (
+      availability === Availability.available &&
+      ChromeAdapter.isOnDeviceRequest(request)
+    );
   }
 
   /**
