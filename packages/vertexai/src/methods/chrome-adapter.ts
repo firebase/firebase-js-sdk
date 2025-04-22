@@ -16,19 +16,15 @@
  */
 
 import {
-  Content,
   CountTokensRequest,
   GenerateContentRequest,
   InferenceMode,
-  Part,
-  Role
+  Part
 } from '../types';
 import {
   Availability,
   LanguageModel,
   LanguageModelCreateOptions,
-  LanguageModelMessage,
-  LanguageModelMessageRole,
   LanguageModelMessageContent
 } from '../types/language-model';
 
@@ -100,8 +96,12 @@ export class ChromeAdapter {
       // TODO: normalize on-device params during construction.
       this.onDeviceParams || {}
     );
-    const messages = ChromeAdapter.toLanguageModelMessages(request.contents);
-    const text = await session.prompt(messages);
+    // TODO: support multiple content objects when Chrome supports
+    // sequence<LanguageModelMessage>
+    const contents = request.contents[0].parts.map(
+      ChromeAdapter.toLanguageModelMessageContent
+    );
+    const text = await session.prompt(contents);
     return ChromeAdapter.toResponse(text);
   }
 
@@ -120,8 +120,12 @@ export class ChromeAdapter {
       // TODO: normalize on-device params during construction.
       this.onDeviceParams || {}
     );
-    const messages = ChromeAdapter.toLanguageModelMessages(request.contents);
-    const stream = await session.promptStreaming(messages);
+    // TODO: support multiple content objects when Chrome supports
+    // sequence<LanguageModelMessage>
+    const contents = request.contents[0].parts.map(
+      ChromeAdapter.toLanguageModelMessageContent
+    );
+    const stream = await session.promptStreaming(contents);
     return ChromeAdapter.toStreamResponse(stream);
   }
 
@@ -131,8 +135,12 @@ export class ChromeAdapter {
       // TODO: normalize on-device params during construction.
       this.onDeviceParams || {}
     );
-    const messages = ChromeAdapter.toLanguageModelMessages(request.contents);
-    const tokenCount = await session.measureInputUsage(messages);
+    // TODO: support multiple content objects when Chrome supports
+    // sequence<LanguageModelMessage>
+    const contents = request.contents[0].parts.map(
+      ChromeAdapter.toLanguageModelMessageContent
+    );
+    const tokenCount = await session.measureInputUsage(contents);
     return {
       json: async () => ({
         totalTokens: tokenCount
@@ -152,10 +160,6 @@ export class ChromeAdapter {
     // Applies the same checks as above, but for each content item.
     for (const content of request.contents) {
       if (content.role === 'function') {
-        return false;
-      }
-
-      if (content.parts.length > 1) {
         return false;
       }
 
@@ -186,25 +190,6 @@ export class ChromeAdapter {
       .then(() => {
         this.isDownloading = false;
       });
-  }
-
-  /**
-   * Converts a Vertex role string to a Chrome role string.
-   */
-  private static toOnDeviceRole(role: Role): LanguageModelMessageRole {
-    return role === 'model' ? 'assistant' : 'user';
-  }
-
-  /**
-   * Converts a Vertex Content object to a Chrome LanguageModelMessage object.
-   */
-  private static toLanguageModelMessages(
-    contents: Content[]
-  ): LanguageModelMessage[] {
-    return contents.map(c => ({
-      role: ChromeAdapter.toOnDeviceRole(c.role),
-      content: c.parts.map(ChromeAdapter.toLanguageModelMessageContent)
-    }));
   }
 
   /**
