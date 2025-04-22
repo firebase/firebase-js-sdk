@@ -18,15 +18,9 @@
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { getModularInstance } from '@firebase/util';
-import { DEFAULT_LOCATION, AI_TYPE } from './constants';
+import { AI_TYPE } from './constants';
 import { AIService } from './service';
-import {
-  BackendType,
-  AI,
-  AIOptions,
-  VertexAI,
-  VertexAIOptions
-} from './public-types';
+import { AI, AIOptions, VertexAI, VertexAIOptions } from './public-types';
 import {
   ImagenModelParams,
   ModelParams,
@@ -42,6 +36,7 @@ export { ChatSession } from './methods/chat-session';
 export * from './requests/schema-builder';
 export { ImagenImageFormat } from './requests/imagen-image-format';
 export { AIModel, GenerativeModel, ImagenModel, AIError };
+export { Backend, VertexAIBackend, GoogleAIBackend } from './backend';
 
 export { AIErrorCode as VertexAIErrorCode };
 
@@ -86,10 +81,8 @@ export function getVertexAI(
   // Dependencies
   const AIProvider: Provider<'AI'> = _getProvider(app, AI_TYPE);
 
-  const identifier = encodeInstanceIdentifier({
-    backendType: BackendType.VERTEX_AI,
-    location: options?.location ?? DEFAULT_LOCATION
-  });
+  const backend = new VertexAIBackend(options?.location);
+  const identifier = encodeInstanceIdentifier(backend);
   return AIProvider.getImmediate({
     identifier
   });
@@ -131,22 +124,7 @@ export function getAI(
   // Dependencies
   const AIProvider: Provider<'AI'> = _getProvider(app, AI_TYPE);
 
-  let identifier: string;
-  if (options.backend instanceof GoogleAIBackend) {
-    identifier = encodeInstanceIdentifier({
-      backendType: BackendType.GOOGLE_AI
-    });
-  } else if (options.backend instanceof VertexAIBackend) {
-    identifier = encodeInstanceIdentifier({
-      backendType: BackendType.VERTEX_AI,
-      location: options.backend.location ?? DEFAULT_LOCATION
-    });
-  } else {
-    throw new AIError(
-      AIErrorCode.ERROR,
-      `Invalid backend type: ${options.backend.backendType}`
-    );
-  }
+  const identifier = encodeInstanceIdentifier(options.backend);
   return AIProvider.getImmediate({
     identifier
   });

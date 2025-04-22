@@ -66,7 +66,7 @@ export class RequestUrl {
     } else {
       throw new AIError(
         AIErrorCode.ERROR,
-        `Invalid backend: ${this.apiSettings.backend}`
+        `Invalid backend: ${JSON.stringify(this.apiSettings.backend)}`
       );
     }
   }

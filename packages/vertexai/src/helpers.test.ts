@@ -18,52 +18,39 @@ import { expect } from 'chai';
 import { AI_TYPE } from './constants';
 import { encodeInstanceIdentifier, decodeInstanceIdentifier } from './helpers';
 import { AIError } from './errors';
-import { BackendType } from './public-types';
-import { InstanceIdentifier } from './types/internal';
 import { AIErrorCode } from './types';
+import { GoogleAIBackend, VertexAIBackend } from './backend';
 
 describe('Identifier Encoding/Decoding', () => {
   describe('encodeInstanceIdentifier', () => {
     it('should encode Vertex AI identifier with a specific location', () => {
-      const identifier: InstanceIdentifier = {
-        backendType: BackendType.VERTEX_AI,
-        location: 'us-central1'
-      };
+      const backend = new VertexAIBackend('us-central1');
       const expected = `${AI_TYPE}/vertexai/us-central1`;
-      expect(encodeInstanceIdentifier(identifier)).to.equal(expected);
+      expect(encodeInstanceIdentifier(backend)).to.equal(expected);
     });
 
     it('should encode Vertex AI identifier using empty location', () => {
-      const identifier: InstanceIdentifier = {
-        backendType: BackendType.VERTEX_AI,
-        location: ''
-      };
+      const backend = new VertexAIBackend('');
       const expected = `${AI_TYPE}/vertexai/`;
-      expect(encodeInstanceIdentifier(identifier)).to.equal(expected);
+      expect(encodeInstanceIdentifier(backend)).to.equal(expected);
     });
 
     it('should encode Google AI identifier', () => {
-      const identifier: InstanceIdentifier = {
-        backendType: BackendType.GOOGLE_AI
-      };
+      const backend = new GoogleAIBackend();
       const expected = `${AI_TYPE}/googleai`;
-      expect(encodeInstanceIdentifier(identifier)).to.equal(expected);
+      expect(encodeInstanceIdentifier(backend)).to.equal(expected);
     });
 
     it('should throw AIError for unknown backend type', () => {
-      const identifier = {
-        backendType: 'some-future-backend'
-      } as any; // bypass type checking for the test
-
-      expect(() => encodeInstanceIdentifier(identifier)).to.throw(AIError);
+      expect(() => encodeInstanceIdentifier({} as any)).to.throw(AIError);
 
       try {
-        encodeInstanceIdentifier(identifier);
+        encodeInstanceIdentifier({} as any);
         expect.fail('Expected encodeInstanceIdentifier to throw');
       } catch (e) {
         expect(e).to.be.instanceOf(AIError);
         const error = e as AIError;
-        expect(error.message).to.contain(`Unknown backend`);
+        expect(error.message).to.contain('Invalid backend');
         expect(error.code).to.equal(AIErrorCode.ERROR);
       }
     });
@@ -72,11 +59,8 @@ describe('Identifier Encoding/Decoding', () => {
   describe('decodeInstanceIdentifier', () => {
     it('should decode Vertex AI identifier with location', () => {
       const encoded = `${AI_TYPE}/vertexai/europe-west1`;
-      const expected: InstanceIdentifier = {
-        backendType: BackendType.VERTEX_AI,
-        location: 'europe-west1'
-      };
-      expect(decodeInstanceIdentifier(encoded)).to.deep.equal(expected);
+      const backend = new VertexAIBackend('europe-west1');
+      expect(decodeInstanceIdentifier(encoded)).to.deep.equal(backend);
     });
 
     it('should throw an error if Vertex AI identifier string without explicit location part', () => {
@@ -98,10 +82,8 @@ describe('Identifier Encoding/Decoding', () => {
 
     it('should decode Google AI identifier', () => {
       const encoded = `${AI_TYPE}/googleai`;
-      const expected: InstanceIdentifier = {
-        backendType: BackendType.GOOGLE_AI
-      };
-      expect(decodeInstanceIdentifier(encoded)).to.deep.equal(expected);
+      const backend = new GoogleAIBackend();
+      expect(decodeInstanceIdentifier(encoded)).to.deep.equal(backend);
     });
 
     it('should throw AIError for invalid backend string', () => {

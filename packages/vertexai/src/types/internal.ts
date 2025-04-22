@@ -18,7 +18,6 @@
 import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { Backend } from '../backend';
-import { BackendType } from '../public-types';
 
 export * from './imagen/internal';
 
@@ -28,15 +27,10 @@ export interface ApiSettings {
   appId: string;
   automaticDataCollectionEnabled?: boolean;
   /**
-   * @deprecated
+   * @deprecated Use `backend.location` instead.
    */
   location: string;
   backend: Backend;
   getAuthToken?: () => Promise<FirebaseAuthTokenData | null>;
   getAppCheckToken?: () => Promise<AppCheckTokenResult>;
-}
-
-export interface InstanceIdentifier {
-  backendType: BackendType;
-  location?: string;
 }

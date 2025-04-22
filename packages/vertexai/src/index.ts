@@ -49,6 +49,7 @@ function registerAI(): void {
         }
 
         const backend = decodeInstanceIdentifier(instanceIdentifier);
+
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const auth = container.getProvider('auth-internal');

@@ -12,7 +12,6 @@ import { FirebaseError } from '@firebase/util';
 // @public
 export interface AI {
     app: FirebaseApp;
-    // Warning: (ae-forgotten-export) The symbol "Backend" needs to be exported by the entry point index.d.ts
     backend: Backend;
     // @deprecated
     location: string;
@@ -73,6 +72,12 @@ export class ArraySchema extends Schema {
     items: TypedSchema;
     // @internal (undocumented)
     toJSON(): SchemaRequest;
+}
+
+// @public
+export abstract class Backend {
+    protected constructor(type: BackendType);
+    readonly backendType: BackendType;
 }
 
 // @public
@@ -417,6 +422,11 @@ export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOp
 
 // @public
 export function getVertexAI(app?: FirebaseApp, options?: VertexAIOptions): VertexAI;
+
+// @public
+export class GoogleAIBackend extends Backend {
+    constructor();
+}
 
 // Warning: (ae-internal-missing-underscore) The name "GoogleAICitationMetadata" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -896,6 +906,12 @@ export interface UsageMetadata {
 
 // @public
 export type VertexAI = AI;
+
+// @public
+export class VertexAIBackend extends Backend {
+    constructor(location?: string);
+    readonly location: string;
+}
 
 // @public
 export const VertexAIError: typeof AIError;

@@ -23,33 +23,31 @@
 
 import { registerVersion, _registerComponent } from '@firebase/app';
 import { AIService } from './service';
-import { DEFAULT_INSTANCE_IDENTIFIER, AI_TYPE } from './constants';
+import { AI_TYPE } from './constants';
 import { Component, ComponentType } from '@firebase/component';
 import { name, version } from '../package.json';
-import { InstanceIdentifier } from './types/internal';
 import { decodeInstanceIdentifier } from './helpers';
+import { AIError } from './errors';
+import { AIErrorCode } from './public-types';
 
 function registerAI(): void {
   _registerComponent(
     new Component(
       AI_TYPE,
-      (container, options) => {
+      (container, { instanceIdentifier }) => {
+        if (!instanceIdentifier) {
+          throw new AIError(
+            AIErrorCode.ERROR,
+            'AIService instance identifier is undefined.'
+          );
+        }
+
+        const backend = decodeInstanceIdentifier(instanceIdentifier);
+
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const auth = container.getProvider('auth-internal');
         const appCheckProvider = container.getProvider('app-check-internal');
-
-        let instanceIdentifier: InstanceIdentifier;
-        if (options.instanceIdentifier) {
-          instanceIdentifier = decodeInstanceIdentifier(
-            options.instanceIdentifier
-          );
-        } else {
-          instanceIdentifier = DEFAULT_INSTANCE_IDENTIFIER;
-        }
-
-        const backend = instanceIdentifier;
-
         return new AIService(app, backend, auth, appCheckProvider);
       },
       ComponentType.PUBLIC

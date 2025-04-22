@@ -17,41 +17,34 @@
 
 import { AI_TYPE } from './constants';
 import { AIError } from './errors';
-import { BackendType } from './public-types';
-import { InstanceIdentifier } from './types/internal';
 import { AIErrorCode } from './types';
+import { Backend, GoogleAIBackend, VertexAIBackend } from './backend';
 
 /**
- * Encodes an {@link InstanceIdentifier} into a string.
- *
- * This string is used to identify unique {@link AI} instances by backend type.
+ * Encodes a {@link Backend} into a string that will be used to uniquely identify {@link AI}
+ * instances by backend type.
  *
  * @internal
  */
-export function encodeInstanceIdentifier(
-  instanceIdentifier: InstanceIdentifier
-): string {
-  switch (instanceIdentifier.backendType) {
-    case BackendType.VERTEX_AI:
-      return `${AI_TYPE}/vertexai/${instanceIdentifier.location}`;
-    case BackendType.GOOGLE_AI:
-      return `${AI_TYPE}/googleai`;
-    default:
-      throw new AIError(
-        AIErrorCode.ERROR,
-        `Unknown backend '${instanceIdentifier}'`
-      );
+export function encodeInstanceIdentifier(backend: Backend): string {
+  if (backend instanceof GoogleAIBackend) {
+    return `${AI_TYPE}/googleai`;
+  } else if (backend instanceof VertexAIBackend) {
+    return `${AI_TYPE}/vertexai/${backend.location}`;
+  } else {
+    throw new AIError(
+      AIErrorCode.ERROR,
+      `Invalid backend: ${JSON.stringify(backend.backendType)}`
+    );
   }
 }
 
 /**
- * Decodes an instance identifier string into an {@link InstanceIdentifier}.
+ * Decodes an instance identifier string into a {@link Backend}.
  *
  * @internal
  */
-export function decodeInstanceIdentifier(
-  instanceIdentifier: string
-): InstanceIdentifier {
+export function decodeInstanceIdentifier(instanceIdentifier: string): Backend {
   const identifierParts = instanceIdentifier.split('/');
   if (identifierParts[0] !== AI_TYPE) {
     throw new AIError(
@@ -59,8 +52,8 @@ export function decodeInstanceIdentifier(
       `Invalid instance identifier, unknown prefix '${identifierParts[0]}'`
     );
   }
-  const backend = identifierParts[1];
-  switch (backend) {
+  const backendType = identifierParts[1];
+  switch (backendType) {
     case 'vertexai':
       const location: string | undefined = identifierParts[2];
       if (!location) {
@@ -69,14 +62,9 @@ export function decodeInstanceIdentifier(
           `Invalid instance identifier, unknown location '${instanceIdentifier}'`
         );
       }
-      return {
-        backendType: BackendType.VERTEX_AI,
-        location
-      };
+      return new VertexAIBackend(location);
     case 'googleai':
-      return {
-        backendType: BackendType.GOOGLE_AI
-      };
+      return new GoogleAIBackend();
     default:
       throw new AIError(
         AIErrorCode.ERROR,
