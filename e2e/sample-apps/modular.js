@@ -316,20 +316,11 @@ async function callVertexAI(app) {
   const model = getGenerativeModel(vertexAI, {
     mode: 'prefer_on_device'
   });
-  const prompt = "What is Roko's Basalisk?";
   const singleResult = await model.generateContent([
     { text: 'describe the following:' },
     { text: 'the mojave desert' }
   ]);
   console.log(`Generated text: ${singleResult.response.text()}`);
-  // const streamResult = await model.generateContentStream(
-  //   prompt
-  // );
-  // for await (const chunk of streamResult.stream) {
-  //   console.log(chunk.text());
-  // }
-  // const countResult = await model.countTokens(prompt)
-  // console.log(`Count: ${countResult.totalTokens}`);
   console.log(`[VERTEXAI] end`);
 }
 
