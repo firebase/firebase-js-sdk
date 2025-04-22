@@ -317,7 +317,10 @@ async function callVertexAI(app) {
     mode: 'prefer_on_device'
   });
   const prompt = "What is Roko's Basalisk?";
-  const singleResult = await model.generateContent(prompt);
+  const singleResult = await model.generateContent([
+    { text: 'describe the following:' },
+    { text: 'the mojave desert' }
+  ]);
   console.log(`Generated text: ${singleResult.response.text()}`);
   // const streamResult = await model.generateContentStream(
   //   prompt
