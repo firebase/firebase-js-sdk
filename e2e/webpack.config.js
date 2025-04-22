@@ -88,7 +88,9 @@ module.exports = [
     stats: {
       colors: true
     },
-    devtool: 'source-map',
+    // Generates more granular source map to avoid collisions between
+    // getGenerativeModel and getAnalytics.
+    devtool: 'eval-source-map',
     devServer: {
       static: './build'
     }

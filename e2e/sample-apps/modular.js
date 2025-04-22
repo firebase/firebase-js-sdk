@@ -314,13 +314,20 @@ async function callVertexAI(app) {
   console.log('[VERTEXAI] start');
   const vertexAI = getVertexAI(app);
   const model = getGenerativeModel(vertexAI, {
-    mode: 'prefer_in_cloud'
+    mode: 'prefer_on_device'
   });
-  const result = await model.generateContentStream("What is Roko's Basalisk?");
-  for await (const chunk of result.stream) {
-    console.log(chunk.text());
-  }
-  console.log(`[VERTEXAI] counted tokens: ${result.totalTokens}`);
+  const prompt = "What is Roko's Basalisk?";
+  const singleResult = await model.generateContent(prompt);
+  console.log(`Generated text: ${singleResult.response.text()}`);
+  // const streamResult = await model.generateContentStream(
+  //   prompt
+  // );
+  // for await (const chunk of streamResult.stream) {
+  //   console.log(chunk.text());
+  // }
+  // const countResult = await model.countTokens(prompt)
+  // console.log(`Count: ${countResult.totalTokens}`);
+  console.log(`[VERTEXAI] end`);
 }
 
 /**
@@ -346,18 +353,18 @@ async function main() {
   const app = initializeApp(config);
   setLogLevel('warn');
 
-  callAppCheck(app);
-  await authLogin(app);
-  await callStorage(app);
-  await callFirestore(app);
-  await callDatabase(app);
-  await callMessaging(app);
-  callAnalytics(app);
-  callPerformance(app);
-  await callFunctions(app);
+  // callAppCheck(app);
+  // await authLogin(app);
+  // await callStorage(app);
+  // await callFirestore(app);
+  // await callDatabase(app);
+  // await callMessaging(app);
+  // callAnalytics(app);
+  // callPerformance(app);
+  // await callFunctions(app);
   await callVertexAI(app);
-  callDataConnect(app);
-  await authLogout(app);
+  // callDataConnect(app);
+  // await authLogout(app);
   console.log('DONE');
 }
 
