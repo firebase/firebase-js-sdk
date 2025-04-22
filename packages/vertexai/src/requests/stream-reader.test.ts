@@ -38,14 +38,14 @@ import {
 } from '../types';
 import { AIError } from '../errors';
 import { ApiSettings } from '../types/internal';
-import { vertexAIBackend } from '../api';
+import { VertexAIBackend } from '../backend';
 
 const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
   location: 'us-central1',
-  backend: vertexAIBackend()
+  backend: new VertexAIBackend()
 };
 
 use(sinonChai);

@@ -28,7 +28,7 @@ import sinonChai from 'sinon-chai';
 import { AIError } from '../errors';
 import { getMockResponse } from '../../test-utils/mock-response';
 import { match, restore, stub } from 'sinon';
-import { vertexAIBackend } from '../api';
+import { VertexAIBackend } from '../backend';
 
 use(sinonChai);
 
@@ -42,7 +42,7 @@ const fakeAI: AI = {
       appId: 'my-appid'
     }
   },
-  backend: vertexAIBackend('us-central1'),
+  backend: new VertexAIBackend('us-central1'),
   location: 'us-central1'
 };
 

@@ -174,7 +174,8 @@ module.exports = {
         }
       }
     ],
-    '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+    // We prefer using interfaces, but we need to use types for aliases like '
+    // '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
     '@typescript-eslint/explicit-member-accessibility': [
       'error',
       {

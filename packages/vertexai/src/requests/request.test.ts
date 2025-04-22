@@ -25,7 +25,7 @@ import { DEFAULT_API_VERSION } from '../constants';
 import { AIErrorCode } from '../types';
 import { AIError } from '../errors';
 import { getMockResponse } from '../../test-utils/mock-response';
-import { vertexAIBackend } from '../api';
+import { VertexAIBackend } from '../backend';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -35,7 +35,7 @@ const fakeApiSettings: ApiSettings = {
   project: 'my-project',
   appId: 'my-appid',
   location: 'us-central1',
-  backend: vertexAIBackend()
+  backend: new VertexAIBackend()
 };
 
 describe('request methods', () => {
@@ -108,7 +108,7 @@ describe('request methods', () => {
       project: 'myproject',
       appId: 'my-appid',
       location: 'moon',
-      backend: vertexAIBackend(),
+      backend: new VertexAIBackend(),
       getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
       getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
     };
@@ -135,7 +135,7 @@ describe('request methods', () => {
         project: 'myproject',
         appId: 'my-appid',
         location: 'moon',
-        backend: vertexAIBackend(),
+        backend: new VertexAIBackend(),
         automaticDataCollectionEnabled: true,
         getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
         getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
@@ -160,7 +160,7 @@ describe('request methods', () => {
         project: 'myproject',
         appId: 'my-appid',
         location: 'moon',
-        backend: vertexAIBackend(),
+        backend: new VertexAIBackend(),
         automaticDataCollectionEnabled: false,
         getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
         getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
@@ -188,7 +188,7 @@ describe('request methods', () => {
           project: 'myproject',
           appId: 'my-appid',
           location: 'moon',
-          backend: vertexAIBackend()
+          backend: new VertexAIBackend()
         },
         true,
         {}
@@ -222,7 +222,7 @@ describe('request methods', () => {
           project: 'myproject',
           appId: 'my-appid',
           location: 'moon',
-          backend: vertexAIBackend(),
+          backend: new VertexAIBackend(),
           getAppCheckToken: () =>
             Promise.resolve({ token: 'dummytoken', error: Error('oops') })
         },
@@ -250,7 +250,7 @@ describe('request methods', () => {
           project: 'myproject',
           appId: 'my-appid',
           location: 'moon',
-          backend: vertexAIBackend()
+          backend: new VertexAIBackend()
         },
         true,
         {}
@@ -405,9 +405,7 @@ describe('request methods', () => {
         );
         expect((e as AIError).message).to.include('500 Server Error');
         expect((e as AIError).message).to.include('extra info');
-        expect((e as AIError).message).to.include(
-          'generic::invalid_argument'
-        );
+        expect((e as AIError).message).to.include('generic::invalid_argument');
       }
       expect(fetchStub).to.be.calledOnce;
     });

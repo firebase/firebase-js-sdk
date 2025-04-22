@@ -76,8 +76,7 @@ export abstract class AIModel {
         apiKey: ai.app.options.apiKey,
         project: ai.app.options.projectId,
         appId: ai.app.options.appId,
-        automaticDataCollectionEnabled:
-          ai.app.automaticDataCollectionEnabled,
+        automaticDataCollectionEnabled: ai.app.automaticDataCollectionEnabled,
         location: ai.location,
         backend: ai.backend
       };

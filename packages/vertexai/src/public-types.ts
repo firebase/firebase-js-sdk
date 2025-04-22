@@ -16,6 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app';
+import { Backend } from './backend';
 
 export * from './types';
 
@@ -62,53 +63,6 @@ export interface AI {
 }
 
 /**
- * Union type representing the backend configuration for the AI service.
- * This can be either a {@link GoogleAIBackend} or a
- * {@link VertexAIBackend} configuration object.
- *
- * Create instances using {@link googleAIBackend | googleAIBackend() } or
- * {@link vertexAIBackend | vertexAIBackend() }.
- *
- * @public
- */
-export type Backend = GoogleAIBackend | VertexAIBackend;
-
-/**
- * Represents the configuration object for the Google AI backend.
- * Use this with {@link AIOptions} when initializing the service with
- * {@link getAI | getAI()}.
- * Create an instance using {@link googleAIBackend | googleAIBackend()}.
- *
- * @public
- */
-export type GoogleAIBackend = {
-  /**
-   * Specifies the backend type as Google AI.
-   */
-  backendType: typeof BackendType.GOOGLE_AI;
-};
-
-/**
- * Represents the configuration object for the Vertex AI backend.
- * Use this with {@link AIOptions} when initializing the server with
- * {@link getAI | getAI() }.
- * Create an instance using {@link vertexAIBackend | vertexAIBackend() } function.
- *
- * @public
- */
-export type VertexAIBackend = {
-  /**
-   * Specifies the backend type as Vertex AI.
-   */
-  backendType: typeof BackendType.VERTEX_AI;
-  /**
-   * The region identifier, defaulting to `us-central1`; see {@link https://firebase.google.com/docs/vertex-ai/locations?platform=ios#available-locations | Vertex AI locations}
-   * for a list of supported locations.
-   */
-  location: string;
-};
-
-/**
  * An enum-like object containing constants that represent the supported backends
  * for the Firebase AI SDK.
  *
@@ -149,8 +103,6 @@ export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 export interface AIOptions {
   /**
    * The backend configuration to use for the AI service instance.
-   * Use {@link googleAIBackend | googleAIBackend()} or
-   * {@link vertexAIBackend | vertexAIBackend() } to create this configuration.
    */
   backend: Backend;
 }

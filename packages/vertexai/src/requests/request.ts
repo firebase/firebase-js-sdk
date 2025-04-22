@@ -26,7 +26,7 @@ import {
   PACKAGE_VERSION
 } from '../constants';
 import { logger } from '../logger';
-import { BackendType } from '../public-types';
+import { GoogleAIBackend, VertexAIBackend } from '../backend';
 
 export enum Task {
   GENERATE_CONTENT = 'generateContent',
@@ -59,10 +59,15 @@ export class RequestUrl {
   }
 
   private get modelPath(): string {
-    if (this.apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
+    if (this.apiSettings.backend instanceof GoogleAIBackend) {
       return `projects/${this.apiSettings.project}/${this.model}`;
-    } else {
+    } else if (this.apiSettings.backend instanceof VertexAIBackend) {
       return `projects/${this.apiSettings.project}/locations/${this.apiSettings.backend.location}/${this.model}`;
+    } else {
+      throw new AIError(
+        AIErrorCode.ERROR,
+        `Invalid backend: ${this.apiSettings.backend}`
+      );
     }
   }
 

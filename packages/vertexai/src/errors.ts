@@ -16,7 +16,7 @@
  */
 
 import { FirebaseError } from '@firebase/util';
-import { AIErrorCode as AIErrorCode, CustomErrorData } from './types';
+import { AIErrorCode, CustomErrorData } from './types';
 import { VERTEX_TYPE } from './constants';
 
 /**

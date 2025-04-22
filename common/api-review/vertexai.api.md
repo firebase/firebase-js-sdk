@@ -12,6 +12,7 @@ import { FirebaseError } from '@firebase/util';
 // @public
 export interface AI {
     app: FirebaseApp;
+    // Warning: (ae-forgotten-export) The symbol "Backend" needs to be exported by the entry point index.d.ts
     backend: Backend;
     // @deprecated
     location: string;
@@ -73,9 +74,6 @@ export class ArraySchema extends Schema {
     // @internal (undocumented)
     toJSON(): SchemaRequest;
 }
-
-// @public
-export type Backend = GoogleAIBackend | VertexAIBackend;
 
 // @public
 export const BackendType: {
@@ -421,14 +419,6 @@ export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOp
 
 // @public
 export function getVertexAI(app?: FirebaseApp, options?: VertexAIOptions): VertexAI;
-
-// @public
-export type GoogleAIBackend = {
-    backendType: typeof BackendType.GOOGLE_AI;
-};
-
-// @public
-export function googleAIBackend(): GoogleAIBackend;
 
 // @public @deprecated (undocumented)
 export interface GroundingAttribution {
@@ -858,15 +848,6 @@ export interface UsageMetadata {
 
 // @public
 export type VertexAI = AI;
-
-// @public
-export type VertexAIBackend = {
-    backendType: typeof BackendType.VERTEX_AI;
-    location: string;
-};
-
-// @public
-export function vertexAIBackend(location?: string): VertexAIBackend;
 
 // @public
 export const VertexAIError: typeof AIError;

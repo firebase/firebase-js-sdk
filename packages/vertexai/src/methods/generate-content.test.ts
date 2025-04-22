@@ -31,8 +31,9 @@ import {
 } from '../types';
 import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
-import { AIError, googleAIBackend, vertexAIBackend } from '../api';
+import { AIError } from '../api';
 import { mapGenerateContentRequest } from '../googleAIMappers';
+import { GoogleAIBackend, VertexAIBackend } from '../backend';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -42,7 +43,7 @@ const fakeApiSettings: ApiSettings = {
   project: 'my-project',
   appId: 'my-appid',
   location: 'us-central1',
-  backend: vertexAIBackend()
+  backend: new VertexAIBackend()
 };
 
 const fakeGoogleAIApiSettings: ApiSettings = {
@@ -50,7 +51,7 @@ const fakeGoogleAIApiSettings: ApiSettings = {
   project: 'my-project',
   appId: 'my-appid',
   location: 'us-central1',
-  backend: googleAIBackend()
+  backend: new GoogleAIBackend()
 };
 
 const fakeRequestParams: GenerateContentRequest = {

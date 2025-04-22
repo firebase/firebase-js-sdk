@@ -122,10 +122,7 @@ export function getResponseStream<T>(
           if (done) {
             if (currentText.trim()) {
               controller.error(
-                new AIError(
-                  AIErrorCode.PARSE_FAILED,
-                  'Failed to parse stream'
-                )
+                new AIError(AIErrorCode.PARSE_FAILED, 'Failed to parse stream')
               );
               return;
             }

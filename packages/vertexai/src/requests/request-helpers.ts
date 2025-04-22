@@ -15,12 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  Content,
-  GenerateContentRequest,
-  Part,
-  AIErrorCode
-} from '../types';
+import { Content, GenerateContentRequest, Part, AIErrorCode } from '../types';
 import { AIError } from '../errors';
 import { ImagenGenerationParams, PredictRequestBody } from '../types/internal';
 

@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp, _FirebaseService } from '@firebase/app';
-import { Backend, AI } from './public-types';
+import { AI } from './public-types';
 import {
   AppCheckInternalComponentName,
   FirebaseAppCheckInternal
@@ -26,6 +26,7 @@ import {
   FirebaseAuthInternal,
   FirebaseAuthInternalName
 } from '@firebase/auth-interop-types';
+import { Backend, VertexAIBackend } from './backend';
 
 export class AIService implements AI, _FirebaseService {
   auth: FirebaseAuthInternal | null;
@@ -43,7 +44,7 @@ export class AIService implements AI, _FirebaseService {
     this.auth = auth || null;
     this.appCheck = appCheck || null;
 
-    if (backend.backendType === 'VERTEX_AI') {
+    if (backend instanceof VertexAIBackend) {
       this.location = backend.location;
     } else {
       this.location = '';

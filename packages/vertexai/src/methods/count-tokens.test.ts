@@ -25,8 +25,8 @@ import { countTokens } from './count-tokens';
 import { CountTokensRequest } from '../types';
 import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
-import { googleAIBackend, vertexAIBackend } from '../api';
 import { mapCountTokensRequest } from '../googleAIMappers';
+import { GoogleAIBackend, VertexAIBackend } from '../backend';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -36,15 +36,15 @@ const fakeApiSettings: ApiSettings = {
   project: 'my-project',
   appId: 'my-appid',
   location: 'us-central1',
-  backend: vertexAIBackend()
+  backend: new VertexAIBackend()
 };
 
 const fakeGoogleAIApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'us-central1',
-  backend: googleAIBackend()
+  location: '',
+  backend: new GoogleAIBackend()
 };
 
 const fakeRequestParams: CountTokensRequest = {

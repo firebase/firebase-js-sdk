@@ -23,7 +23,7 @@ import * as generateContentMethods from './generate-content';
 import { GenerateContentStreamResult } from '../types';
 import { ChatSession } from './chat-session';
 import { ApiSettings } from '../types/internal';
-import { vertexAIBackend } from '../api';
+import { VertexAIBackend } from '../backend';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -33,7 +33,7 @@ const fakeApiSettings: ApiSettings = {
   project: 'my-project',
   appId: 'my-appid',
   location: 'us-central1',
-  backend: vertexAIBackend()
+  backend: new VertexAIBackend()
 };
 
 describe('ChatSession', () => {

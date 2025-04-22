@@ -19,7 +19,7 @@ import { AI, AIErrorCode } from '../public-types';
 import sinonChai from 'sinon-chai';
 import { AIModel } from './genai-model';
 import { AIError } from '../errors';
-import { vertexAIBackend } from '../api';
+import { VertexAIBackend } from '../backend';
 
 use(sinonChai);
 
@@ -43,7 +43,7 @@ const fakeAI: AI = {
       appId: 'my-appid'
     }
   },
-  backend: vertexAIBackend('us-central1'),
+  backend: new VertexAIBackend('us-central1'),
   location: 'us-central1'
 };
 
@@ -76,7 +76,7 @@ describe('AIModel', () => {
           projectId: 'my-project'
         }
       },
-      backend: vertexAIBackend('us-central1'),
+      backend: new VertexAIBackend('us-central1'),
       location: 'us-central1'
     };
     try {
@@ -94,7 +94,7 @@ describe('AIModel', () => {
           apiKey: 'key'
         }
       },
-      backend: vertexAIBackend('us-central1'),
+      backend: new VertexAIBackend('us-central1'),
       location: 'us-central1'
     };
     try {
@@ -113,7 +113,7 @@ describe('AIModel', () => {
           projectId: 'my-project'
         }
       },
-      backend: vertexAIBackend('us-central1'),
+      backend: new VertexAIBackend('us-central1'),
       location: 'us-central1'
     };
     try {

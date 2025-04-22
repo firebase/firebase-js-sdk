@@ -24,10 +24,10 @@ import {
   VertexAIErrorCode,
   VertexAIModel,
   getGenerativeModel,
-  getImagenModel,
-  vertexAIBackend
+  getImagenModel
 } from './api';
 import { AI, VertexAI, AIErrorCode } from './public-types';
+import { VertexAIBackend } from './backend';
 
 function assertAssignable<T, _U extends T>(): void {}
 
@@ -41,7 +41,7 @@ const fakeAI: AI = {
       appId: 'app-id'
     }
   },
-  backend: vertexAIBackend('us-central1'),
+  backend: new VertexAIBackend('us-central1'),
   location: 'us-central1'
 };
 

@@ -17,7 +17,8 @@
 
 import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
-import { Backend } from '../public-types';
+import { Backend } from '../backend';
+import { BackendType } from '../public-types';
 
 export * from './imagen/internal';
 
@@ -35,4 +36,7 @@ export interface ApiSettings {
   getAppCheckToken?: () => Promise<AppCheckTokenResult>;
 }
 
-export type InstanceIdentifier = Backend;
+export interface InstanceIdentifier {
+  backendType: BackendType;
+  location?: string;
+}

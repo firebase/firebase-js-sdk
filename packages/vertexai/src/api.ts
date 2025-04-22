@@ -24,9 +24,7 @@ import {
   BackendType,
   AI,
   AIOptions,
-  GoogleAIBackend,
   VertexAI,
-  VertexAIBackend,
   VertexAIOptions
 } from './public-types';
 import {
@@ -38,6 +36,7 @@ import {
 import { AIError } from './errors';
 import { AIModel, GenerativeModel, ImagenModel } from './models';
 import { encodeInstanceIdentifier } from './helpers';
+import { GoogleAIBackend, VertexAIBackend } from './backend';
 
 export { ChatSession } from './methods/chat-session';
 export * from './requests/schema-builder';
@@ -72,7 +71,7 @@ declare module '@firebase/component' {
 
 /**
  * It is recommended to use the new {@link getAI | getAI()}.
- * 
+ *
  * Returns a {@link VertexAI} instance for the given app.
  *
  * @public
@@ -109,13 +108,13 @@ export function getVertexAI(
  * @example
  * ```javascript
  * // Get an AI instance configured to use Google AI.
- * const ai = getAI(app, { backend: googleAIBackend() });
+ * const ai = getAI(app, { backend: new GoogleAIBackend() });
  * ```
  *
  * @example
  * ```javascript
  * // Get an AI instance configured to use Vertex AI.
- * const ai = getAI(app, { backend: vertexAIBackend() });
+ * const ai = getAI(app, { backend: new VertexAIBackend() });
  * ```
  *
  * @param app - The {@link @firebase/app#FirebaseApp} to use.
@@ -126,50 +125,31 @@ export function getVertexAI(
  */
 export function getAI(
   app: FirebaseApp = getApp(),
-  options: AIOptions = { backend: googleAIBackend() }
+  options: AIOptions = { backend: new GoogleAIBackend() }
 ): AI {
   app = getModularInstance(app);
   // Dependencies
   const AIProvider: Provider<'AI'> = _getProvider(app, AI_TYPE);
 
-  const identifier = encodeInstanceIdentifier(options.backend);
+  let identifier: string;
+  if (options.backend instanceof GoogleAIBackend) {
+    identifier = encodeInstanceIdentifier({
+      backendType: BackendType.GOOGLE_AI
+    });
+  } else if (options.backend instanceof VertexAIBackend) {
+    identifier = encodeInstanceIdentifier({
+      backendType: BackendType.VERTEX_AI,
+      location: options.backend.location ?? DEFAULT_LOCATION
+    });
+  } else {
+    throw new AIError(
+      AIErrorCode.ERROR,
+      `Invalid backend type: ${options.backend.backendType}`
+    );
+  }
   return AIProvider.getImmediate({
     identifier
   });
-}
-
-/**
- * Creates a {@link Backend} instance configured to use Google AI.
- *
- * @returns A {@link GoogleAIBackend} object.
- *
- * @public
- */
-export function googleAIBackend(): GoogleAIBackend {
-  const backend: GoogleAIBackend = {
-    backendType: BackendType.GOOGLE_AI
-  };
-
-  return backend;
-}
-
-/**
- * Creates a {@link Backend} instance configured to use Vertex AI.
- *
- * @param location - The region identifier, defaulting to `us-central1`;
- * see {@link https://firebase.google.com/docs/vertex-ai/locations?platform=ios#available-locations | Vertex AI locations}
- * for a list of supported locations.
- * @returns A {@link VertexAIBackend} object.
- *
- * @public
- */
-export function vertexAIBackend(location?: string): VertexAIBackend {
-  const backend: VertexAIBackend = {
-    backendType: BackendType.VERTEX_AI,
-    location: location ?? DEFAULT_LOCATION
-  };
-
-  return backend;
 }
 
 /**

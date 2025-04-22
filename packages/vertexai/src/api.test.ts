@@ -16,17 +16,11 @@
  */
 import { ImagenModelParams, ModelParams, AIErrorCode } from './types';
 import { AIError } from './errors';
-import {
-  ImagenModel,
-  getGenerativeModel,
-  getImagenModel,
-  googleAIBackend,
-  vertexAIBackend
-} from './api';
+import { ImagenModel, getGenerativeModel, getImagenModel } from './api';
 import { expect } from 'chai';
-import { BackendType, AI } from './public-types';
+import { AI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
-import { DEFAULT_LOCATION } from './constants';
+import { VertexAIBackend } from './backend';
 
 const fakeAI: AI = {
   app: {
@@ -38,7 +32,7 @@ const fakeAI: AI = {
       appId: 'my-appid'
     }
   },
-  backend: vertexAIBackend('us-central1'),
+  backend: new VertexAIBackend('us-central1'),
   location: 'us-central1'
 };
 
@@ -170,29 +164,5 @@ describe('Top level API', () => {
     const genModel = getImagenModel(fakeAI, { model: 'my-model' });
     expect(genModel).to.be.an.instanceOf(ImagenModel);
     expect(genModel.model).to.equal('publishers/google/models/my-model');
-  });
-  it('googleAIBackend returns a backend with backendType GOOGLE_AI', () => {
-    const backend = googleAIBackend();
-    expect(backend.backendType).to.equal(BackendType.GOOGLE_AI);
-  });
-  it('vertexAIBackend returns a backend with backendType VERTEX_AI', () => {
-    const backend = vertexAIBackend();
-    expect(backend.backendType).to.equal(BackendType.VERTEX_AI);
-    expect(backend.location).to.equal(DEFAULT_LOCATION);
-  });
-  it('vertexAIBackend sets custom location', () => {
-    const backend = vertexAIBackend('test-location');
-    expect(backend.backendType).to.equal(BackendType.VERTEX_AI);
-    expect(backend.location).to.equal('test-location');
-  });
-  it('vertexAIBackend sets custom location even if empty string', () => {
-    const backend = vertexAIBackend('');
-    expect(backend.backendType).to.equal(BackendType.VERTEX_AI);
-    expect(backend.location).to.equal('');
-  });
-  it('vertexAIBackend uses default location if location is null', () => {
-    const backend = vertexAIBackend(null as any);
-    expect(backend.backendType).to.equal(BackendType.VERTEX_AI);
-    expect(backend.location).to.equal(DEFAULT_LOCATION);
   });
 });
