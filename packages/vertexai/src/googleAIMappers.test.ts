@@ -92,7 +92,7 @@ describe('Google AI Mappers', () => {
       };
       const mappedRequest = mapGenerateContentRequest(request);
       expect(loggerWarnStub).to.have.been.calledOnceWith(
-        'topK in GenerationConfig has been rounded to the nearest integer.'
+        'topK in GenerationConfig has been rounded to the nearest integer to match the format for Google AI requests.'
       );
       expect(mappedRequest.generationConfig?.topK).to.equal(16);
     });
@@ -133,11 +133,7 @@ describe('Google AI Mappers', () => {
       const googleAIMockResponse: GoogleAIGenerateContentResponse = await (
         getMockResponse('googleAI', 'unary-success-citations.txt') as Response
       ).json();
-      console.log(JSON.stringify(googleAIMockResponse));
       const mappedResponse = mapGenerateContentResponse(googleAIMockResponse);
-
-      console.log(JSON.stringify(googleAIMockResponse));
-      console.log(JSON.stringify(mappedResponse));
 
       expect(mappedResponse.candidates).to.exist;
       expect(mappedResponse.candidates?.[0].content.parts[0].text).to.contain(
@@ -242,16 +238,17 @@ describe('Google AI Mappers', () => {
 
     it('should map a minimal Vertex AI CountTokensRequest', () => {
       const vertexRequest: CountTokensRequest = {
-        contents: fakeContents
+        contents: fakeContents,
+        systemInstruction: { role: 'system', parts: [{ text: 'Be nice' }] },
+        generationConfig: { temperature: 0.8 }
       };
 
       const expectedGoogleAIRequest: GoogleAICountTokensRequest = {
         generateContentRequest: {
           model: fakeModel,
           contents: vertexRequest.contents,
-          systemInstruction: undefined,
-          tools: undefined,
-          generationConfig: undefined
+          systemInstruction: { role: 'system', parts: [{ text: 'Be nice' }] },
+          generationConfig: { temperature: 0.8 }
         }
       };
 

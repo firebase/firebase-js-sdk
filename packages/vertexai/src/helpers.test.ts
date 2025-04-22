@@ -29,7 +29,6 @@ describe('Identifier Encoding/Decoding', () => {
         backendType: BackendType.VERTEX_AI,
         location: 'us-central1'
       };
-      console.log(identifier);
       const expected = `${AI_TYPE}/vertexai/us-central1`;
       expect(encodeInstanceIdentifier(identifier)).to.equal(expected);
     });

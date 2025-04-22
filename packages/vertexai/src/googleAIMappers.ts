@@ -76,7 +76,7 @@ export function mapGenerateContentRequest(
 
     if (roundedTopK !== generateContentRequest.generationConfig.topK) {
       logger.warn(
-        'topK in GenerationConfig has been rounded to the nearest integer.'
+        'topK in GenerationConfig has been rounded to the nearest integer to match the format for Google AI requests.'
       );
       generateContentRequest.generationConfig.topK = roundedTopK;
     }
@@ -126,10 +126,7 @@ export function mapCountTokensRequest(
   const mappedCountTokensRequest: GoogleAICountTokensRequest = {
     generateContentRequest: {
       model,
-      contents: countTokensRequest.contents,
-      systemInstruction: countTokensRequest.systemInstruction,
-      tools: countTokensRequest.tools,
-      generationConfig: countTokensRequest.generationConfig
+      ...countTokensRequest
     }
   };
 
