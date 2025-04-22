@@ -63,10 +63,9 @@ export class ChromeAdapter {
     if (this.mode === 'only_in_cloud') {
       return false;
     }
-    console.log(this.languageModelProvider);
     const availability = await this.languageModelProvider?.availability();
     if (availability === Availability.downloadable) {
-      // Triggers async model download.
+      // Triggers async model download so it'll be available next time.
       this.download();
     }
     if (this.mode === 'only_on_device') {
