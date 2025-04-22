@@ -163,10 +163,6 @@ export class ChromeAdapter {
         return false;
       }
 
-      if (content.parts.length > 1) {
-        return false;
-      }
-
       if (!content.parts[0].text) {
         return false;
       }

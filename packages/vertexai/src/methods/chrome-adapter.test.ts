@@ -106,22 +106,6 @@ describe('ChromeAdapter', () => {
         })
       ).to.be.false;
     });
-    it('returns false if request content has multiple parts', async () => {
-      const adapter = new ChromeAdapter(
-        {} as LanguageModel,
-        'prefer_on_device'
-      );
-      expect(
-        await adapter.isAvailable({
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: 'a' }, { text: 'b' }]
-            }
-          ]
-        })
-      ).to.be.false;
-    });
     it('returns false if request content has non-text part', async () => {
       const adapter = new ChromeAdapter(
         {} as LanguageModel,
