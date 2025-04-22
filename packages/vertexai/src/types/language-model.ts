@@ -56,14 +56,12 @@ interface LanguageModelExpectedInput {
   type: LanguageModelMessageType;
   languages?: string[];
 }
-export type LanguageModelPrompt =
-  | LanguageModelMessage[]
-  | LanguageModelMessageShorthand[]
-  | string;
+// TODO: revert to type from Prompt API explainer once it's supported.
+export type LanguageModelPrompt = LanguageModelMessageContent[];
 type LanguageModelInitialPrompts =
   | LanguageModelMessage[]
   | LanguageModelMessageShorthand[];
-export interface LanguageModelMessage {
+interface LanguageModelMessage {
   role: LanguageModelMessageRole;
   content: LanguageModelMessageContent[];
 }
@@ -75,7 +73,7 @@ export interface LanguageModelMessageContent {
   type: LanguageModelMessageType;
   content: LanguageModelMessageContentValue;
 }
-export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
+type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 type LanguageModelMessageType = 'text' | 'image' | 'audio';
 type LanguageModelMessageContentValue =
   | ImageBitmapSource
