@@ -15,11 +15,13 @@
  * limitations under the License.
  */
 
+import { VertexAIError } from '../errors';
 import {
   CountTokensRequest,
   GenerateContentRequest,
   InferenceMode,
-  Part
+  Part,
+  VertexAIErrorCode
 } from '../types';
 import {
   Availability,
@@ -130,7 +132,18 @@ export class ChromeAdapter {
   }
 
   async countTokens(request: CountTokensRequest): Promise<Response> {
-    // TODO: Check if the request contains an image, and if so, throw.
+    // validated that no input is of image type. The current on-device
+    // implementation doesn't support image input for the `measureInputUsage` API.
+    for (const part of request.contents[0].parts) {
+      // console.log(part);
+      if (part.inlineData) {
+        throw new VertexAIError(
+          VertexAIErrorCode.INVALID_CONTENT,
+          'Support for image input is not yet available for the Count Tokens API when running on-device.'
+        );
+      }
+    }
+
     const session = await this.createSession(
       // TODO: normalize on-device params during construction.
       this.onDeviceParams || {}

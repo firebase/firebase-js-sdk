@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { VertexAIError } from '../errors';
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -26,7 +27,7 @@ import {
   LanguageModelMessageContent
 } from '../types/language-model';
 import { match, stub } from 'sinon';
-import { GenerateContentRequest } from '../types';
+import { GenerateContentRequest, VertexAIErrorCode } from '../types';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -413,6 +414,54 @@ describe('ChromeAdapter', () => {
       expect(await response.json()).to.deep.equal({
         totalTokens: expectedCount
       });
+    });
+    it('count tokens for image based input should throw', async () => {
+      // setting up stubs
+      const languageModelProvider = {
+        create: () => Promise.resolve({})
+      } as LanguageModel;
+      const languageModel = {
+        measureInputUsage: _i => Promise.resolve(123)
+      } as LanguageModel;
+      const createStub = stub(languageModelProvider, 'create').resolves(
+        languageModel
+      );
+
+      const countTokenRequestWithImagePart = {
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { text: 'test' },
+              {
+                inlineData: {
+                  data: sampleBase64EncodedImage,
+                  mimeType: 'image/jpeg'
+                }
+              }
+            ]
+          }
+        ]
+      } as GenerateContentRequest;
+
+      const adapter = new ChromeAdapter(
+        languageModelProvider,
+        'only_on_device'
+      );
+
+      try {
+        await adapter.countTokens(countTokenRequestWithImagePart);
+      } catch (e) {
+        // the call to countToken should be rejected with Error
+        expect((e as VertexAIError).code).to.equal(
+          VertexAIErrorCode.INVALID_CONTENT
+        );
+        expect((e as VertexAIError).message).includes('image input');
+      }
+
+      // Asserts that create stub was not called - error happens before this
+      // step is reached
+      expect(createStub).not.called;
     });
   });
   describe('generateContentStream', () => {
