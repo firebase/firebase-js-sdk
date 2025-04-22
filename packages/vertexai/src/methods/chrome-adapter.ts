@@ -98,8 +98,8 @@ export class ChromeAdapter {
     );
     // TODO: support multiple content objects when Chrome supports
     // sequence<LanguageModelMessage>
-    const contents = request.contents[0].parts.map(
-      ChromeAdapter.toLanguageModelMessageContent
+    const contents = await Promise.all(
+      request.contents[0].parts.map(ChromeAdapter.toLanguageModelMessageContent)
     );
     const text = await session.prompt(contents);
     return ChromeAdapter.toResponse(text);
@@ -122,8 +122,8 @@ export class ChromeAdapter {
     );
     // TODO: support multiple content objects when Chrome supports
     // sequence<LanguageModelMessage>
-    const contents = request.contents[0].parts.map(
-      ChromeAdapter.toLanguageModelMessageContent
+    const contents = await Promise.all(
+      request.contents[0].parts.map(ChromeAdapter.toLanguageModelMessageContent)
     );
     const stream = await session.promptStreaming(contents);
     return ChromeAdapter.toStreamResponse(stream);
@@ -137,8 +137,8 @@ export class ChromeAdapter {
     );
     // TODO: support multiple content objects when Chrome supports
     // sequence<LanguageModelMessage>
-    const contents = request.contents[0].parts.map(
-      ChromeAdapter.toLanguageModelMessageContent
+    const contents = await Promise.all(
+      request.contents[0].parts.map(ChromeAdapter.toLanguageModelMessageContent)
     );
     const tokenCount = await session.measureInputUsage(contents);
     return {
@@ -162,10 +162,6 @@ export class ChromeAdapter {
       if (content.role === 'function') {
         return false;
       }
-
-      if (!content.parts[0].text) {
-        return false;
-      }
     }
 
     return true;
@@ -185,8 +181,10 @@ export class ChromeAdapter {
       return;
     }
     this.isDownloading = true;
+    const options = this.onDeviceParams || {};
+    ChromeAdapter.addImageTypeAsExpectedInput(options);
     this.downloadPromise = this.languageModelProvider
-      ?.create(this.onDeviceParams)
+      ?.create(options)
       .then(() => {
         this.isDownloading = false;
       });
@@ -195,13 +193,23 @@ export class ChromeAdapter {
   /**
    * Converts a Vertex Part object to a Chrome LanguageModelMessageContent object.
    */
-  private static toLanguageModelMessageContent(
+  private static async toLanguageModelMessageContent(
     part: Part
-  ): LanguageModelMessageContent {
+  ): Promise<LanguageModelMessageContent> {
     if (part.text) {
       return {
         type: 'text',
         content: part.text
+      };
+    } else if (part.inlineData) {
+      const formattedImageContent = await fetch(
+        `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
+      );
+      const imageBlob = await formattedImageContent.blob();
+      const imageBitmap = await createImageBitmap(imageBlob);
+      return {
+        type: 'image',
+        content: imageBitmap
       };
     }
     // Assumes contents have been verified to contain only a single TextPart.
@@ -224,6 +232,7 @@ export class ChromeAdapter {
     options: LanguageModelCreateOptions
   ): Promise<LanguageModel> {
     // TODO: could we use this.onDeviceParams instead of passing in options?
+    ChromeAdapter.addImageTypeAsExpectedInput(options);
     const newSession = await this.languageModelProvider!.create(options);
     if (this.oldSession) {
       this.oldSession.destroy();
@@ -231,6 +240,13 @@ export class ChromeAdapter {
     // Holds session reference, so model isn't unloaded from memory.
     this.oldSession = newSession;
     return newSession;
+  }
+
+  private static addImageTypeAsExpectedInput(
+    options: LanguageModelCreateOptions
+  ): void {
+    options.expectedInputs = options.expectedInputs || [];
+    options.expectedInputs.push({ type: 'image' });
   }
 
   /**
