@@ -22,7 +22,7 @@ import {
 } from '../types';
 import { Task, makeRequest } from '../requests/request';
 import { ApiSettings } from '../types/internal';
-import * as GoogleAIMapper from '../googleAIMappers';
+import * as GoogleAIMapper from '../googleai-mappers';
 import { BackendType } from '../public-types';
 
 export async function countTokens(

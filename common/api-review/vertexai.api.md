@@ -125,11 +125,9 @@ export interface Citation {
     endIndex?: number;
     // (undocumented)
     license?: string;
-    // (undocumented)
     publicationDate?: Date_2;
     // (undocumented)
     startIndex?: number;
-    // (undocumented)
     title?: string;
     // (undocumented)
     uri?: string;
@@ -420,6 +418,60 @@ export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOp
 // @public
 export function getVertexAI(app?: FirebaseApp, options?: VertexAIOptions): VertexAI;
 
+// Warning: (ae-internal-missing-underscore) The name "GoogleAICitationMetadata" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface GoogleAICitationMetadata {
+    // (undocumented)
+    citationSources: Citation[];
+}
+
+// Warning: (ae-internal-missing-underscore) The name "GoogleAICountTokensRequest" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface GoogleAICountTokensRequest {
+    // (undocumented)
+    generateContentRequest: {
+        model: string;
+        contents: Content[];
+        systemInstruction?: string | Part | Content;
+        tools?: Tool[];
+        generationConfig?: GenerationConfig;
+    };
+}
+
+// Warning: (ae-internal-missing-underscore) The name "GoogleAIGenerateContentCandidate" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface GoogleAIGenerateContentCandidate {
+    // (undocumented)
+    citationMetadata?: GoogleAICitationMetadata;
+    // (undocumented)
+    content: Content;
+    // (undocumented)
+    finishMessage?: string;
+    // (undocumented)
+    finishReason?: FinishReason;
+    // (undocumented)
+    groundingMetadata?: GroundingMetadata;
+    // (undocumented)
+    index: number;
+    // (undocumented)
+    safetyRatings?: SafetyRating[];
+}
+
+// Warning: (ae-internal-missing-underscore) The name "GoogleAIGenerateContentResponse" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface GoogleAIGenerateContentResponse {
+    // (undocumented)
+    candidates?: GoogleAIGenerateContentCandidate[];
+    // (undocumented)
+    promptFeedback?: PromptFeedback;
+    // (undocumented)
+    usageMetadata?: UsageMetadata;
+}
+
 // @public @deprecated (undocumented)
 export interface GroundingAttribution {
     // (undocumented)
@@ -653,7 +705,6 @@ export const POSSIBLE_ROLES: readonly ["user", "model", "function", "system"];
 export interface PromptFeedback {
     // (undocumented)
     blockReason?: BlockReason;
-    // (undocumented)
     blockReasonMessage?: string;
     // (undocumented)
     safetyRatings: SafetyRating[];
@@ -684,11 +735,8 @@ export interface SafetyRating {
     category: HarmCategory;
     // (undocumented)
     probability: HarmProbability;
-    // (undocumented)
     probabilityScore: number;
-    // (undocumented)
     severity: HarmSeverity;
-    // (undocumented)
     severityScore: number;
 }
 

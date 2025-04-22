@@ -23,7 +23,7 @@ export * from './types';
 /**
  * An instance of the Firebase AI SDK.
  *
- * For more information, refer to the documentation for the new {@link AI}.
+ * For more information, refer to the documentation for the new {@link AI} interface.
  *
  * @public
  */

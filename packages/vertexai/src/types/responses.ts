@@ -108,7 +108,10 @@ export interface ModalityTokenCount {
 export interface PromptFeedback {
   blockReason?: BlockReason;
   safetyRatings: SafetyRating[];
-  blockReasonMessage?: string; // This will always be undefined when using Google AI.
+  /**
+   * This field is unsupported in Google AI.
+   */
+  blockReasonMessage?: string;
 }
 
 /**
@@ -142,8 +145,14 @@ export interface Citation {
   endIndex?: number;
   uri?: string;
   license?: string;
-  title?: string; // This will always be undefined when using Google AI.
-  publicationDate?: Date; // This will always be undefined when using Google AI.
+  /**
+   * This field is not supported in Google AI.
+   */
+  title?: string;
+  /**
+   * This field is not supported in Google AI.
+   */
+  publicationDate?: Date;
 }
 
 /**
@@ -212,10 +221,20 @@ export interface Date {
 export interface SafetyRating {
   category: HarmCategory;
   probability: HarmProbability;
+  /**
+   * This field is not supported in Google AI, so it will default to `HarmSeverity.UNSUPPORTED`
+   * when using Google AI.
+   */
   severity: HarmSeverity;
+  /**
+   * This field is not supported in Google AI, so it will default to 0 when using Google AI.
+   */
   probabilityScore: number;
+  /**
+   * This field is not supported in Google AI, so it will default to 0 when using Google AI.
+   */
   severityScore: number;
-  blocked: boolean; // FIXME: This is only included when it's true. Either set a default of false, or make this optional.
+  blocked: boolean;
 }
 
 /**
@@ -230,8 +249,10 @@ export interface CountTokensResponse {
   /**
    * The total number of billable characters counted across all instances
    * from the request.
+   * 
+   * This field is not supported in Google AI, so it will default to 0 when using Google AI.
    */
-  totalBillableCharacters?: number; // This will always be undefined when using Google AI.
+  totalBillableCharacters?: number;
   /**
    * The breakdown, by modality, of how many tokens are consumed by the prompt.
    */

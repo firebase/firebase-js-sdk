@@ -24,7 +24,7 @@ import {
   mapGenerateContentRequest,
   mapGenerateContentResponse,
   mapPromptFeedback
-} from './googleAIMappers';
+} from './googleai-mappers';
 import {
   BlockReason,
   Content,
@@ -44,7 +44,7 @@ import {
   GoogleAIGenerateContentResponse,
   GoogleAIGenerateContentCandidate,
   GoogleAICountTokensRequest
-} from './types/googleAI';
+} from './types/googleai';
 import { logger } from './logger';
 import { AIError } from './errors';
 import { getMockResponse } from '../test-utils/mock-response';
@@ -281,7 +281,7 @@ describe('Google AI Mappers', () => {
         .undefined; // Not in Google AI
     });
 
-    it('should add default safety rating properties and warn', () => {
+    it('should add default safety rating properties', () => {
       const candidates: GoogleAIGenerateContentCandidate[] = [
         {
           index: 0,
@@ -297,9 +297,6 @@ describe('Google AI Mappers', () => {
         }
       ];
       const mapped = mapGenerateContentCandidates(candidates);
-      expect(loggerWarnStub).to.have.been.calledOnceWith(
-        "Candidate safety rating properties 'severity', 'severityScore', and 'probabilityScore' are not included in responses from Google AI. Properties have been assigned to default values."
-      );
       expect(mapped[0].safetyRatings).to.exist;
       const safetyRating = mapped[0].safetyRatings?.[0] as SafetyRating; // Type assertion
       expect(safetyRating.severity).to.equal(
@@ -359,7 +356,7 @@ describe('Google AI Mappers', () => {
   });
 
   describe('mapPromptFeedback', () => {
-    it('should add default safety rating properties and warn', () => {
+    it('should add default safety rating properties', () => {
       const feedback: PromptFeedback = {
         blockReason: BlockReason.OTHER,
         safetyRatings: [
@@ -373,9 +370,6 @@ describe('Google AI Mappers', () => {
         // Missing blockReasonMessage
       };
       const mapped = mapPromptFeedback(feedback);
-      expect(loggerWarnStub).to.have.been.calledOnceWith(
-        "PromptFeedback safety ratings' properties severity, severityScore, and probabilityScore are not included in responses from Google AI. Properties have been assigned to default values."
-      );
       expect(mapped.safetyRatings).to.exist;
       const safetyRating = mapped.safetyRatings[0] as SafetyRating; // Type assertion
       expect(safetyRating.severity).to.equal(

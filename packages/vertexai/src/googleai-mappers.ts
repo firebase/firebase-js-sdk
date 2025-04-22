@@ -33,7 +33,7 @@ import {
   GoogleAIGenerateContentResponse,
   GoogleAIGenerateContentCandidate,
   GoogleAICountTokensRequest
-} from './types/googleAI';
+} from './types/googleai';
 
 /**
  * This SDK supports both Vertex AI and Google AI APIs.
@@ -159,17 +159,14 @@ export function mapGenerateContentCandidates(
         };
       }
 
-      // Assign missing candidate SafetyRatings properties to their defaults.
+      // Assign missing candidate SafetyRatings properties to their defaults if undefined.
       if (candidate.safetyRatings) {
-        logger.warn(
-          "Candidate safety rating properties 'severity', 'severityScore', and 'probabilityScore' are not included in responses from Google AI. Properties have been assigned to default values."
-        );
         mappedSafetyRatings = candidate.safetyRatings.map(safetyRating => {
           return {
             ...safetyRating,
-            severity: HarmSeverity.HARM_SEVERITY_UNSUPPORTED,
-            probabilityScore: 0,
-            severityScore: 0
+            severity: safetyRating.severity ?? HarmSeverity.HARM_SEVERITY_UNSUPPORTED,
+            probabilityScore: safetyRating.probabilityScore ?? 0,
+            severityScore: safetyRating.severityScore ?? 0
           };
         });
       }
@@ -207,21 +204,18 @@ export function mapGenerateContentCandidates(
 export function mapPromptFeedback(
   promptFeedback: PromptFeedback
 ): PromptFeedback {
-  // Assign missing PromptFeedback SafetyRatings properties to their defaults.
+  // Assign missing SafetyRating properties to their defaults if undefined.
   const mappedSafetyRatings: SafetyRating[] = [];
   promptFeedback.safetyRatings.forEach(safetyRating => {
     mappedSafetyRatings.push({
       category: safetyRating.category,
       probability: safetyRating.probability,
-      severity: HarmSeverity.HARM_SEVERITY_UNSUPPORTED,
-      probabilityScore: 0,
-      severityScore: 0,
+      severity: safetyRating.severity ?? HarmSeverity.HARM_SEVERITY_UNSUPPORTED,
+      probabilityScore: safetyRating.probabilityScore ?? 0,
+      severityScore: safetyRating.severityScore ?? 0,
       blocked: safetyRating.blocked
     });
   });
-  logger.warn(
-    "PromptFeedback safety ratings' properties severity, severityScore, and probabilityScore are not included in responses from Google AI. Properties have been assigned to default values."
-  );
 
   const mappedPromptFeedback: PromptFeedback = {
     blockReason: promptFeedback.blockReason,

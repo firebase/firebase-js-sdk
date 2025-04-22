@@ -32,7 +32,7 @@ import {
 import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
 import { AIError } from '../api';
-import { mapGenerateContentRequest } from '../googleAIMappers';
+import { mapGenerateContentRequest } from '../googleai-mappers';
 import { GoogleAIBackend, VertexAIBackend } from '../backend';
 
 use(sinonChai);

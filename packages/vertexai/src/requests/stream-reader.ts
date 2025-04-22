@@ -25,8 +25,8 @@ import {
 } from '../types';
 import { AIError } from '../errors';
 import { createEnhancedContentResponse } from './response-helpers';
-import * as GoogleAIMapper from '../googleAIMappers';
-import { GoogleAIGenerateContentResponse } from '../types/googleAI';
+import * as GoogleAIMapper from '../googleai-mappers';
+import { GoogleAIGenerateContentResponse } from '../types/googleai';
 import { ApiSettings } from '../types/internal';
 import { BackendType } from '../public-types';
 

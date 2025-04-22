@@ -25,7 +25,7 @@ import { countTokens } from './count-tokens';
 import { CountTokensRequest } from '../types';
 import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
-import { mapCountTokensRequest } from '../googleAIMappers';
+import { mapCountTokensRequest } from '../googleai-mappers';
 import { GoogleAIBackend, VertexAIBackend } from '../backend';
 
 use(sinonChai);

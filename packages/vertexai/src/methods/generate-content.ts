@@ -26,7 +26,7 @@ import { Task, makeRequest } from '../requests/request';
 import { createEnhancedContentResponse } from '../requests/response-helpers';
 import { processStream } from '../requests/stream-reader';
 import { ApiSettings } from '../types/internal';
-import * as GoogleAIMapper from '../googleAIMappers';
+import * as GoogleAIMapper from '../googleai-mappers';
 import { BackendType } from '../public-types';
 
 export async function generateContentStream(
@@ -66,7 +66,7 @@ export async function generateContent(
     JSON.stringify(params),
     requestOptions
   );
-  const generateContentResponse = await handleGenerateContentResponse(
+  const generateContentResponse = await processGenerateContentResponse(
     response,
     apiSettings
   );
@@ -78,7 +78,7 @@ export async function generateContent(
   };
 }
 
-async function handleGenerateContentResponse(
+async function processGenerateContentResponse(
   response: Response,
   apiSettings: ApiSettings
 ): Promise<GenerateContentResponse> {
