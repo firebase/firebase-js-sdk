@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # CitationMetadata interface
-Citation metadata that may be found on a <code>[GenerateContentCandidate](./vertexai.generatecontentcandidate.md#generatecontentcandidate_interface)</code>.
+Citation metadata that may be found on a [GenerateContentCandidate](./vertexai.generatecontentcandidate.md#generatecontentcandidate_interface)<!-- -->.
 
 <b>Signature:</b>
 
