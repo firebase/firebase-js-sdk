@@ -249,7 +249,7 @@ export interface CountTokensResponse {
   /**
    * The total number of billable characters counted across all instances
    * from the request.
-   * 
+   *
    * This field is not supported in Google AI, so it will default to 0 when using Google AI.
    */
   totalBillableCharacters?: number;

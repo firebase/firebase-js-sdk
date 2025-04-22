@@ -164,7 +164,8 @@ export function mapGenerateContentCandidates(
         mappedSafetyRatings = candidate.safetyRatings.map(safetyRating => {
           return {
             ...safetyRating,
-            severity: safetyRating.severity ?? HarmSeverity.HARM_SEVERITY_UNSUPPORTED,
+            severity:
+              safetyRating.severity ?? HarmSeverity.HARM_SEVERITY_UNSUPPORTED,
             probabilityScore: safetyRating.probabilityScore ?? 0,
             severityScore: safetyRating.severityScore ?? 0
           };
