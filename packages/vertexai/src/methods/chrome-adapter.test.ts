@@ -61,19 +61,8 @@ describe('ChromeAdapter', () => {
         })
       ).to.be.false;
     });
-    it('returns false if AI API is undefined', async () => {
-      const adapter = new ChromeAdapter(undefined, 'prefer_on_device');
-      expect(
-        await adapter.isAvailable({
-          contents: []
-        })
-      ).to.be.false;
-    });
     it('returns false if LanguageModel API is undefined', async () => {
-      const adapter = new ChromeAdapter(
-        {} as LanguageModel,
-        'prefer_on_device'
-      );
+      const adapter = new ChromeAdapter(undefined, 'prefer_on_device');
       expect(
         await adapter.isAvailable({
           contents: []
@@ -82,7 +71,9 @@ describe('ChromeAdapter', () => {
     });
     it('returns false if request contents empty', async () => {
       const adapter = new ChromeAdapter(
-        {} as LanguageModel,
+        {
+          availability: async () => Availability.available
+        } as LanguageModel,
         'prefer_on_device'
       );
       expect(
@@ -93,7 +84,9 @@ describe('ChromeAdapter', () => {
     });
     it('returns false if request content has function role', async () => {
       const adapter = new ChromeAdapter(
-        {} as LanguageModel,
+        {
+          availability: async () => Availability.available
+        } as LanguageModel,
         'prefer_on_device'
       );
       expect(
@@ -104,51 +97,6 @@ describe('ChromeAdapter', () => {
               parts: []
             }
           ]
-        })
-      ).to.be.false;
-    });
-    it('returns false if request system instruction has function role', async () => {
-      const adapter = new ChromeAdapter(
-        {} as LanguageModel,
-        'prefer_on_device'
-      );
-      expect(
-        await adapter.isAvailable({
-          contents: [],
-          systemInstruction: {
-            role: 'function',
-            parts: []
-          }
-        })
-      ).to.be.false;
-    });
-    it('returns false if request system instruction has multiple parts', async () => {
-      const adapter = new ChromeAdapter(
-        {} as LanguageModel,
-        'prefer_on_device'
-      );
-      expect(
-        await adapter.isAvailable({
-          contents: [],
-          systemInstruction: {
-            role: 'function',
-            parts: [{ text: 'a' }, { text: 'b' }]
-          }
-        })
-      ).to.be.false;
-    });
-    it('returns false if request system instruction has non-text part', async () => {
-      const adapter = new ChromeAdapter(
-        {} as LanguageModel,
-        'prefer_on_device'
-      );
-      expect(
-        await adapter.isAvailable({
-          contents: [],
-          systemInstruction: {
-            role: 'function',
-            parts: [{ inlineData: { mimeType: 'a', data: 'b' } }]
-          }
         })
       ).to.be.false;
     });
@@ -246,7 +194,20 @@ describe('ChromeAdapter', () => {
       ).to.be.false;
     });
   });
-  describe('generateContentOnDevice', () => {
+  describe('generateContent', () => {
+    it('throws if Chrome API is undefined', async () => {
+      const adapter = new ChromeAdapter(undefined, 'only_on_device');
+      await expect(
+        adapter.generateContent({
+          contents: []
+        })
+      )
+        .to.eventually.be.rejectedWith(
+          VertexAIError,
+          'Chrome AI requested for unsupported browser version.'
+        )
+        .and.have.property('code', VertexAIErrorCode.REQUEST_ERROR);
+    });
     it('generates content', async () => {
       const languageModelProvider = {
         create: () => Promise.resolve({})
