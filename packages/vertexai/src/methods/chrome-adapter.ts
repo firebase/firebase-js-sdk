@@ -63,14 +63,18 @@ export class ChromeAdapter {
     if (this.mode === 'only_in_cloud') {
       return false;
     }
+
     const availability = await this.languageModelProvider?.availability();
+
+    // Triggers async model download so it'll be available next time.
     if (availability === Availability.downloadable) {
-      // Triggers async model download so it'll be available next time.
       this.download();
     }
+
     if (this.mode === 'only_on_device') {
       return true;
     }
+
     // Applies prefer_on_device logic.
     return (
       availability === Availability.available &&
@@ -214,6 +218,12 @@ export class ChromeAdapter {
     // TODO: define a default value, since these are optional.
     options: LanguageModelCreateOptions
   ): Promise<LanguageModel> {
+    if (!this.languageModelProvider) {
+      throw new VertexAIError(
+        VertexAIErrorCode.REQUEST_ERROR,
+        'Chrome AI requested for unsupported browser version.'
+      );
+    }
     // TODO: could we use this.onDeviceParams instead of passing in options?
     ChromeAdapter.addImageTypeAsExpectedInput(options);
     const newSession = await this.languageModelProvider!.create(options);

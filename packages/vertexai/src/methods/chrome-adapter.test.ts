@@ -194,7 +194,20 @@ describe('ChromeAdapter', () => {
       ).to.be.false;
     });
   });
-  describe('generateContentOnDevice', () => {
+  describe('generateContent', () => {
+    it('throws if Chrome API is undefined', async () => {
+      const adapter = new ChromeAdapter(undefined, 'only_on_device');
+      await expect(
+        adapter.generateContent({
+          contents: []
+        })
+      )
+        .to.eventually.be.rejectedWith(
+          VertexAIError,
+          'Chrome AI requested for unsupported browser version.'
+        )
+        .and.have.property('code', VertexAIErrorCode.REQUEST_ERROR);
+    });
     it('generates content', async () => {
       const languageModelProvider = {
         create: () => Promise.resolve({})

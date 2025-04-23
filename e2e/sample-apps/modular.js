@@ -314,7 +314,7 @@ async function callVertexAI(app) {
   console.log('[VERTEXAI] start');
   const vertexAI = getVertexAI(app);
   const model = getGenerativeModel(vertexAI, {
-    mode: 'prefer_on_device'
+    mode: 'only_on_device'
   });
   const singleResult = await model.generateContent([
     { text: 'describe the following:' },
