@@ -23,7 +23,7 @@ export interface PromptFeedback
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [blockReason](./vertexai.promptfeedback.md#promptfeedbackblockreason) | [BlockReason](./vertexai.md#blockreason) |  |
-|  [blockReasonMessage](./vertexai.promptfeedback.md#promptfeedbackblockreasonmessage) | string |  |
+|  [blockReasonMessage](./vertexai.promptfeedback.md#promptfeedbackblockreasonmessage) | string | This field is not supported in Google AI. |
 |  [safetyRatings](./vertexai.promptfeedback.md#promptfeedbacksafetyratings) | [SafetyRating](./vertexai.safetyrating.md#safetyrating_interface)<!-- -->\[\] |  |
 
 ## PromptFeedback.blockReason
@@ -35,6 +35,8 @@ blockReason?: BlockReason;
 ```
 
 ## PromptFeedback.blockReasonMessage
+
+This field is not supported in Google AI.
 
 <b>Signature:</b>
 

@@ -64,9 +64,8 @@ export interface SafetySetting {
   category: HarmCategory;
   threshold: HarmBlockThreshold;
   /**
-   * This property is not supported in Google AI.
-   * If this is a property on a {@link GenerateContentRequest} to be sent, an {@link AIError}
-   * will be thrown.
+   * This property is not supported in Google AI. If this is a property on a
+   * {@link GenerateContentRequest} to be sent, an {@link AIError} will be thrown.
    */
   method?: HarmBlockMethod;
 }

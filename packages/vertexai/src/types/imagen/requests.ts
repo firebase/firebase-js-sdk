@@ -58,6 +58,8 @@ export interface ImagenGenerationConfig {
    * Support for negative prompts depends on the Imagen model.
    *
    * See the {@link http://firebase.google.com/docs/vertex-ai/model-parameters#imagen | documentation} for more details.
+   *
+   * This is no longer supported in Google AI in versions greater than `imagen-3.0-generate-002`.
    */
   negativePrompt?: string;
   /**
@@ -89,7 +91,6 @@ export interface ImagenGenerationConfig {
    * For Imagen 3 models, the default value is `true`; see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen">addWatermark</a>
    * documentation for more details.
    *
-   * @remarks
    * In Google AI, the default value is true, and it cannot be turned off.
    */
   addWatermark?: boolean;

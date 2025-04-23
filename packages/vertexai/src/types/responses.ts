@@ -109,7 +109,7 @@ export interface PromptFeedback {
   blockReason?: BlockReason;
   safetyRatings: SafetyRating[];
   /**
-   * This field is unsupported in Google AI.
+   * This field is not supported in Google AI.
    */
   blockReasonMessage?: string;
 }
