@@ -325,6 +325,11 @@ export function connectFirestoreEmulator(
   } = {}
 ): void {
   firestore = cast(firestore, Firestore);
+  let ssl = false;
+  if (/^https:\/\//.test(host)) {
+    ssl = true;
+    host = host.substring(8);
+  }
   const settings = firestore._getSettings();
   const existingConfig = {
     ...settings,
@@ -340,7 +345,7 @@ export function connectFirestoreEmulator(
   const newConfig = {
     ...settings,
     host: newHostSetting,
-    ssl: false,
+    ssl,
     emulatorOptions: options
   };
   // No-op if the new configuration matches the current configuration. This supports SSR
