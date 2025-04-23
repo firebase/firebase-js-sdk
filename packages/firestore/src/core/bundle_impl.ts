@@ -40,6 +40,7 @@ import {
 } from '../remote/serializer';
 import { debugAssert } from '../util/assert';
 import { SizedBundleElement } from '../util/bundle_reader';
+import { Code, FirestoreError } from '../util/error';
 
 import {
   BundleConverter,
@@ -53,7 +54,7 @@ import { SnapshotVersion } from './snapshot_version';
  * Helper to convert objects from bundles to model objects in the SDK.
  */
 export class BundleConverterImpl implements BundleConverter {
-  constructor(private readonly serializer: JsonProtoSerializer) {}
+  constructor(private readonly serializer: JsonProtoSerializer) { }
 
   toDocumentKey(name: string): DocumentKey {
     return fromName(this.serializer, name);
@@ -78,19 +79,26 @@ export class BundleConverterImpl implements BundleConverter {
   }
 
   toDocumentSnapshotData(
-    docMetadata: BundledDocumentMetadata,
-    bundledDoc: BundledDocument
-  ): {
-    documentKey: DocumentKey;
-    mutableDoc: MutableDocument;
-  } {
+    bundleElements: SizedBundleElement[]): {
+      documentKey: DocumentKey;
+      mutableDoc: MutableDocument;
+    } {
+    const metadata = bundleElements[0]?.payload?.documentMetadata!;
+    const document = bundleElements[1]?.payload?.document!;
+    let error : string | undefined = undefined;
+    if( !metadata || !document) {
+      error = 'DocumentSnapshot bundle data requires both document metadata and document data';      
+    } else if( metadata.name !== document.name ) {
+      error = 'DocumentSnapshot metadata is not related to the document in the bundle.';
+    }
+    if ( error ) {
+      throw new FirestoreError(Code.INVALID_ARGUMENT, error);
+    }   
     const bundleConverter = new BundleConverterImpl(this.serializer);
-    const documentKey = bundleConverter.toDocumentKey(docMetadata.name!);
-    const mutableDoc = bundleConverter.toMutableDocument(bundledDoc);
-    mutableDoc.setReadTime(
-      bundleConverter.toSnapshotVersion(docMetadata.readTime!)
-    );
-
+    const documentKey = bundleConverter.toDocumentKey(metadata.name!);
+    const mutableDoc = bundleConverter.toMutableDocument({
+      metadata, document
+    });
     return {
       documentKey,
       mutableDoc
@@ -155,8 +163,8 @@ export class BundleLoader {
     } else if (element.payload.document) {
       debugAssert(
         this.documents.length > 0 &&
-          this.documents[this.documents.length - 1].metadata.name ===
-            element.payload.document.name,
+        this.documents[this.documents.length - 1].metadata.name ===
+        element.payload.document.name,
         'The document being added does not match the stored metadata.'
       );
       this.documents[this.documents.length - 1].document =
@@ -200,7 +208,7 @@ export class BundleLoader {
   async complete(): Promise<BundleLoadResult> {
     debugAssert(
       this.documents[this.documents.length - 1]?.metadata.exists !== true ||
-        !!this.documents[this.documents.length - 1].document,
+      !!this.documents[this.documents.length - 1].document,
       'Bundled documents end with a document metadata element instead of a document.'
     );
     debugAssert(!!this.bundleMetadata.id, 'Bundle ID must be set.');

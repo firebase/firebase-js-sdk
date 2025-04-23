@@ -577,42 +577,25 @@ export class DocumentSnapshot<
     if (error) {
       throw new FirestoreError(Code.INVALID_ARGUMENT, error);
     }
+    // Parse the bundle data.
     const serializer = newSerializer(db._databaseId);
-    const reader = createBundleReaderSync(bundleString, serializer);
-    const elements = reader.getElements();
+    const elements = createBundleReaderSync(bundleString, serializer).getElements();
     if (elements.length === 0) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'No snapshat data was found in the bundle.'
-      );
+      error = 'No snapshat data was found in the bundle.';
     }
     if (
       elements.length !== 2 ||
       !elements[0].payload.documentMetadata ||
       !elements[1].payload.document
     ) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'DocumentSnapshot bundle data must contain one document metadata and then one document'
-      );
+      error = 'DocumentSnapshot bundle data must contain one document metadata and then one document.';
     }
-    const docMetadata = elements[0].payload!.documentMetadata!;
-    const docData = elements[1].payload.document!;
-    if (docMetadata.name! !== docData.name) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'The document data is not related to the document metadata in the bundle'
-      );
+    if (error) {
+      throw new FirestoreError(Code.INVALID_ARGUMENT, error);
     }
+    // convert bundle data into the types that the DocumentSnapshot constructore requires.
     const bundleConverter = new BundleConverterImpl(serializer);
-    const bundledDoc = {
-      metadata: docMetadata,
-      document: docData
-    };
-    const documentSnapshotData = bundleConverter.toDocumentSnapshotData(
-      docMetadata,
-      bundledDoc
-    );
+    const documentSnapshotData = bundleConverter.toDocumentSnapshotData(elements);
     const liteUserDataWriter = new LiteUserDataWriter(db);
     return new DocumentSnapshot(
       db,
@@ -623,7 +606,7 @@ export class DocumentSnapshot<
         /* hasPendingWrites= */ false,
         /* fromCache= */ false
       ),
-      null
+      /* converter= */ null
     );
   }
 }
