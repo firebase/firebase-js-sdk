@@ -4,5 +4,5 @@
     "outDir": "dist",
     "strict": false
   },
-  "exclude": ["dist/**/*", "test/**/*", "example-integration/**/*"]
+  "exclude": ["dist/**/*", "test/**/*"]
 }
