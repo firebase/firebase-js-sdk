@@ -46,7 +46,7 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
       element = this.nextElement();
       if (element !== null) {
         this.elements.push(element);
-      } 
+      }
     } while (element !== null);
   }
 

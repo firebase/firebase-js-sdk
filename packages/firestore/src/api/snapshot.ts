@@ -548,7 +548,14 @@ export class DocumentSnapshot<
     return result;
   }
 
-  static fromJSON(db: Firestore, json: object): object {
+  static fromJSON<
+    AppModelType,
+    DbModelType extends DocumentData = DocumentData
+  >(
+    db: Firestore,
+    json: object,
+    converter: FirestoreDataConverter<AppModelType, DbModelType>
+  ): DocumentSnapshot<AppModelType, DbModelType> {
     const requiredFields = ['bundle', 'bundleName', 'bundleSource'];
     let error: string | undefined = undefined;
     let bundleString: string = '';
@@ -579,7 +586,10 @@ export class DocumentSnapshot<
     }
     // Parse the bundle data.
     const serializer = newSerializer(db._databaseId);
-    const elements = createBundleReaderSync(bundleString, serializer).getElements();
+    const elements = createBundleReaderSync(
+      bundleString,
+      serializer
+    ).getElements();
     if (elements.length === 0) {
       error = 'No snapshat data was found in the bundle.';
     }
@@ -588,14 +598,16 @@ export class DocumentSnapshot<
       !elements[0].payload.documentMetadata ||
       !elements[1].payload.document
     ) {
-      error = 'DocumentSnapshot bundle data must contain one document metadata and then one document.';
+      error =
+        'DocumentSnapshot bundle data must contain one metadata and then one document.';
     }
     if (error) {
       throw new FirestoreError(Code.INVALID_ARGUMENT, error);
     }
     // convert bundle data into the types that the DocumentSnapshot constructore requires.
     const bundleConverter = new BundleConverterImpl(serializer);
-    const documentSnapshotData = bundleConverter.toDocumentSnapshotData(elements);
+    const documentSnapshotData =
+      bundleConverter.toDocumentSnapshotData(elements);
     const liteUserDataWriter = new LiteUserDataWriter(db);
     return new DocumentSnapshot(
       db,
@@ -606,7 +618,7 @@ export class DocumentSnapshot<
         /* hasPendingWrites= */ false,
         /* fromCache= */ false
       ),
-      /* converter= */ null
+      converter
     );
   }
 }

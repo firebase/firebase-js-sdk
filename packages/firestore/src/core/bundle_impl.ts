@@ -27,7 +27,6 @@ import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 import {
-  BundledDocumentMetadata,
   BundleMetadata as ProtoBundleMetadata,
   NamedQuery as ProtoNamedQuery
 } from '../protos/firestore_bundle_proto';
@@ -54,7 +53,7 @@ import { SnapshotVersion } from './snapshot_version';
  * Helper to convert objects from bundles to model objects in the SDK.
  */
 export class BundleConverterImpl implements BundleConverter {
-  constructor(private readonly serializer: JsonProtoSerializer) { }
+  constructor(private readonly serializer: JsonProtoSerializer) {}
 
   toDocumentKey(name: string): DocumentKey {
     return fromName(this.serializer, name);
@@ -78,26 +77,28 @@ export class BundleConverterImpl implements BundleConverter {
     }
   }
 
-  toDocumentSnapshotData(
-    bundleElements: SizedBundleElement[]): {
-      documentKey: DocumentKey;
-      mutableDoc: MutableDocument;
-    } {
+  toDocumentSnapshotData(bundleElements: SizedBundleElement[]): {
+    documentKey: DocumentKey;
+    mutableDoc: MutableDocument;
+  } {
     const metadata = bundleElements[0]?.payload?.documentMetadata!;
     const document = bundleElements[1]?.payload?.document!;
-    let error : string | undefined = undefined;
-    if( !metadata || !document) {
-      error = 'DocumentSnapshot bundle data requires both document metadata and document data';      
-    } else if( metadata.name !== document.name ) {
-      error = 'DocumentSnapshot metadata is not related to the document in the bundle.';
+    let error: string | undefined = undefined;
+    if (!metadata || !document) {
+      error =
+        'DocumentSnapshot bundle data requires both document metadata and document data';
+    } else if (metadata.name !== document.name) {
+      error =
+        'DocumentSnapshot metadata is not related to the document in the bundle.';
     }
-    if ( error ) {
+    if (error) {
       throw new FirestoreError(Code.INVALID_ARGUMENT, error);
-    }   
+    }
     const bundleConverter = new BundleConverterImpl(this.serializer);
     const documentKey = bundleConverter.toDocumentKey(metadata.name!);
     const mutableDoc = bundleConverter.toMutableDocument({
-      metadata, document
+      metadata,
+      document
     });
     return {
       documentKey,
@@ -163,8 +164,8 @@ export class BundleLoader {
     } else if (element.payload.document) {
       debugAssert(
         this.documents.length > 0 &&
-        this.documents[this.documents.length - 1].metadata.name ===
-        element.payload.document.name,
+          this.documents[this.documents.length - 1].metadata.name ===
+            element.payload.document.name,
         'The document being added does not match the stored metadata.'
       );
       this.documents[this.documents.length - 1].document =
@@ -208,7 +209,7 @@ export class BundleLoader {
   async complete(): Promise<BundleLoadResult> {
     debugAssert(
       this.documents[this.documents.length - 1]?.metadata.exists !== true ||
-      !!this.documents[this.documents.length - 1].document,
+        !!this.documents[this.documents.length - 1].document,
       'Bundled documents end with a document metadata element instead of a document.'
     );
     debugAssert(!!this.bundleMetadata.id, 'Bundle ID must be set.');

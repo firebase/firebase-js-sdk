@@ -175,7 +175,7 @@ export class DocumentSnapshot<AppModelType = DocumentData, DbModelType extends D
     data(options?: SnapshotOptions): AppModelType | undefined;
     exists(): this is QueryDocumentSnapshot<AppModelType, DbModelType>;
     // (undocumented)
-    static fromJSON(db: Firestore, json: object): object;
+    static fromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter: FirestoreDataConverter<AppModelType, DbModelType>): DocumentSnapshot<AppModelType, DbModelType>;
     get(fieldPath: string | FieldPath, options?: SnapshotOptions): any;
     get id(): string;
     readonly metadata: SnapshotMetadata;
