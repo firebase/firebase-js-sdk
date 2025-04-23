@@ -269,6 +269,11 @@ export function isBrowserExtension(): boolean;
 // @public
 export function isCloudflareWorker(): boolean;
 
+// Warning: (ae-missing-release-tag) "isCloudWorkstation" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function isCloudWorkstation(url: string): boolean;
+
 // Warning: (ae-missing-release-tag) "isElectron" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public

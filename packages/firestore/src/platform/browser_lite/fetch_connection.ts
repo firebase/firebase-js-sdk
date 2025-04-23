@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { isCloudWorkstation } from '@firebase/util';
 import { Token } from '../../api/credentials';
 import { Stream } from '../../remote/connection';
 import { RestConnection } from '../../remote/rest_connection';
@@ -44,11 +45,15 @@ export class FetchConnection extends RestConnection {
     let response: Response;
 
     try {
-      response = await fetch(url, {
+      const fetchArgs: RequestInit = {
         method: 'POST',
         headers,
         body: requestJson
-      });
+      };
+      if (isCloudWorkstation(url)) {
+        fetchArgs.credentials = 'include';
+      }
+      response = await fetch(url, fetchArgs);
     } catch (e) {
       const err = e as { status: number | undefined; statusText: string };
       throw new FirestoreError(

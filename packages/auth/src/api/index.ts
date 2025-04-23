@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { FirebaseError, isCloudflareWorker, querystring } from '@firebase/util';
+import {
+  FirebaseError,
+  isCloudflareWorker,
+  isCloudWorkstation,
+  querystring
+} from '@firebase/util';
 
 import { AuthErrorCode, NamedErrorParams } from '../core/errors';
 import {
@@ -33,6 +38,7 @@ import { IdTokenMfaResponse } from './authentication/mfa';
 import { SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
 import { PersistenceType } from '../core/persistence';
 import { CookiePersistence } from '../platform_browser/persistence/cookie_storage';
+import { FirebaseAuth } from '@firebase/auth-types';
 
 export const enum HttpMethod {
   POST = 'POST',
@@ -175,6 +181,10 @@ export async function _performApiRequest<T, V>(
        https://github.com/cloudflare/next-on-pages/issues/487 */
     if (!isCloudflareWorker()) {
       fetchArgs.referrerPolicy = 'no-referrer';
+    }
+
+    if (auth.emulatorConfig && isCloudWorkstation(auth.emulatorConfig.host)) {
+      fetchArgs.credentials = 'include';
     }
 
     return FetchProvider.fetch()(

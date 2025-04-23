@@ -46,6 +46,7 @@ import { Code, FirestoreError } from '../../util/error';
 import { logDebug, logWarn } from '../../util/log';
 import { Rejecter, Resolver } from '../../util/promise';
 import { StringMap } from '../../util/types';
+import { isCloudWorkstation } from '@firebase/util';
 
 const LOG_TAG = 'WebChannelConnection';
 
