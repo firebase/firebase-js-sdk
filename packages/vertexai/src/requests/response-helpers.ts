@@ -144,7 +144,7 @@ export function getText(response: GenerateContentResponse): string {
 }
 
 /**
- * Returns <code>{@link FunctionCall}</code>s associated with first candidate.
+ * Returns {@link FunctionCall}s associated with first candidate.
  */
 export function getFunctionCalls(
   response: GenerateContentResponse
