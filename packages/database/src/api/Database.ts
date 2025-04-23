@@ -89,9 +89,19 @@ function repoManagerApplyEmulatorSettings(
   emulatorOptions: RepoInfoEmulatorOptions,
   tokenProvider?: AuthTokenProvider
 ): void {
+  let ssl = false;
+  let finalHost = hostAndPort;
+  if (/^https:\/\//.test(finalHost)) {
+    ssl = true;
+    finalHost = finalHost.substring(8);
+  }
+  if (/^wss:\/\//.test(finalHost)) {
+    ssl = true;
+    finalHost = finalHost.substring(6);
+  }
   repo.repoInfo_ = new RepoInfo(
-    hostAndPort,
-    /* secure= */ false,
+    finalHost,
+    /* secure= */ ssl,
     repo.repoInfo_.namespace,
     repo.repoInfo_.webSocketOnly,
     repo.repoInfo_.nodeAdmin,
@@ -352,6 +362,7 @@ export function connectDatabaseEmulator(
 ): void {
   db = getModularInstance(db);
   db._checkNotDeleted('useEmulator');
+
   const hostAndPort = `${host}:${port}`;
   const repo = db._repoInternal;
   if (db._instanceStarted) {
