@@ -23,9 +23,11 @@ export declare class Bytes
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [fromBase64String(base64)](./firestore_lite.bytes.md#bytesfrombase64string) | <code>static</code> | Creates a new <code>Bytes</code> object from the given Base64 string, converting it to bytes. |
+|  [fromJSON(json)](./firestore_lite.bytes.md#bytesfromjson) | <code>static</code> | Builds a <code>Bytes</code> instance from a JSON serialized version of <code>Bytes</code>. |
 |  [fromUint8Array(array)](./firestore_lite.bytes.md#bytesfromuint8array) | <code>static</code> | Creates a new <code>Bytes</code> object from the given Uint8Array. |
 |  [isEqual(other)](./firestore_lite.bytes.md#bytesisequal) |  | Returns true if this <code>Bytes</code> object is equal to the provided one. |
 |  [toBase64()](./firestore_lite.bytes.md#bytestobase64) |  | Returns the underlying bytes as a Base64-encoded string. |
+|  [toJSON()](./firestore_lite.bytes.md#bytestojson) |  | Returns a JSON-serializable representation of this <code>Bytes</code> instance. |
 |  [toString()](./firestore_lite.bytes.md#bytestostring) |  | Returns a string representation of the <code>Bytes</code> object. |
 |  [toUint8Array()](./firestore_lite.bytes.md#bytestouint8array) |  | Returns the underlying bytes in a new <code>Uint8Array</code>. |
 
@@ -44,6 +46,26 @@ static fromBase64String(base64: string): Bytes;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  base64 | string | The Base64 string used to create the <code>Bytes</code> object. |
+
+<b>Returns:</b>
+
+[Bytes](./firestore_lite.bytes.md#bytes_class)
+
+## Bytes.fromJSON()
+
+Builds a `Bytes` instance from a JSON serialized version of `Bytes`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+static fromJSON(json: object): Bytes;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  json | object |  |
 
 <b>Returns:</b>
 
@@ -105,6 +127,19 @@ toBase64(): string;
 string
 
 The Base64-encoded string created from the `Bytes` object.
+
+## Bytes.toJSON()
+
+Returns a JSON-serializable representation of this `Bytes` instance.
+
+<b>Signature:</b>
+
+```typescript
+toJSON(): object;
+```
+<b>Returns:</b>
+
+object
 
 ## Bytes.toString()
 
