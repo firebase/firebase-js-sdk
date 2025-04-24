@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # SchemaShared interface
-Basic <code>[Schema](./vertexai.schema.md#schema_class)</code> properties shared across several Schema-related types.
+Basic [Schema](./vertexai.schema.md#schema_class) properties shared across several Schema-related types.
 
 <b>Signature:</b>
 

@@ -41,9 +41,9 @@ export declare class GenerativeModel extends VertexAIModel
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [countTokens(request)](./vertexai.generativemodel.md#generativemodelcounttokens) |  | Counts the tokens in the provided request. |
-|  [generateContent(request)](./vertexai.generativemodel.md#generativemodelgeneratecontent) |  | Makes a single non-streaming call to the model and returns an object containing a single <code>[GenerateContentResponse](./vertexai.generatecontentresponse.md#generatecontentresponse_interface)</code>. |
+|  [generateContent(request)](./vertexai.generativemodel.md#generativemodelgeneratecontent) |  | Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./vertexai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
 |  [generateContentStream(request)](./vertexai.generativemodel.md#generativemodelgeneratecontentstream) |  | Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
-|  [startChat(startChatParams)](./vertexai.generativemodel.md#generativemodelstartchat) |  | Gets a new <code>[ChatSession](./vertexai.chatsession.md#chatsession_class)</code> instance which can be used for multi-turn chats. |
+|  [startChat(startChatParams)](./vertexai.generativemodel.md#generativemodelstartchat) |  | Gets a new [ChatSession](./vertexai.chatsession.md#chatsession_class) instance which can be used for multi-turn chats. |
 
 ## GenerativeModel.(constructor)
 
@@ -133,7 +133,7 @@ Promise&lt;[CountTokensResponse](./vertexai.counttokensresponse.md#counttokensre
 
 ## GenerativeModel.generateContent()
 
-Makes a single non-streaming call to the model and returns an object containing a single <code>[GenerateContentResponse](./vertexai.generatecontentresponse.md#generatecontentresponse_interface)</code>.
+Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./vertexai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -173,7 +173,7 @@ Promise&lt;[GenerateContentStreamResult](./vertexai.generatecontentstreamresult.
 
 ## GenerativeModel.startChat()
 
-Gets a new <code>[ChatSession](./vertexai.chatsession.md#chatsession_class)</code> instance which can be used for multi-turn chats.
+Gets a new [ChatSession](./vertexai.chatsession.md#chatsession_class) instance which can be used for multi-turn chats.
 
 <b>Signature:</b>
 

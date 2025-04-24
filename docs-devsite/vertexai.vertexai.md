@@ -22,12 +22,12 @@ export interface VertexAI
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [app](./vertexai.vertexai.md#vertexaiapp) | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) this <code>[VertexAI](./vertexai.vertexai.md#vertexai_interface)</code> instance is associated with. |
+|  [app](./vertexai.vertexai.md#vertexaiapp) | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) this [VertexAI](./vertexai.vertexai.md#vertexai_interface) instance is associated with. |
 |  [location](./vertexai.vertexai.md#vertexailocation) | string |  |
 
 ## VertexAI.app
 
-The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) this <code>[VertexAI](./vertexai.vertexai.md#vertexai_interface)</code> instance is associated with.
+The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) this [VertexAI](./vertexai.vertexai.md#vertexai_interface) instance is associated with.
 
 <b>Signature:</b>
 

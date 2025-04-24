@@ -76,7 +76,7 @@ export interface GenerateContentResponse {
 }
 
 /**
- * Usage metadata about a <code>{@link GenerateContentResponse}</code>.
+ * Usage metadata about a {@link GenerateContentResponse}.
  *
  * @public
  */
@@ -112,7 +112,7 @@ export interface PromptFeedback {
 }
 
 /**
- * A candidate returned as part of a <code>{@link GenerateContentResponse}</code>.
+ * A candidate returned as part of a {@link GenerateContentResponse}.
  * @public
  */
 export interface GenerateContentCandidate {
@@ -126,7 +126,7 @@ export interface GenerateContentCandidate {
 }
 
 /**
- * Citation metadata that may be found on a <code>{@link GenerateContentCandidate}</code>.
+ * Citation metadata that may be found on a {@link GenerateContentCandidate}.
  * @public
  */
 export interface CitationMetadata {
@@ -206,7 +206,7 @@ export interface Date {
 }
 
 /**
- * A safety rating associated with a <code>{@link GenerateContentCandidate}</code>
+ * A safety rating associated with a {@link GenerateContentCandidate}
  * @public
  */
 export interface SafetyRating {

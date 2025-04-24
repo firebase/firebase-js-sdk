@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "4.7.10",
+  "version": "4.7.11",
   "engines": {
     "node": ">=18.0.0"
   },
@@ -20,14 +20,14 @@
     "dev": "rollup -c -w",
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "prettier": "prettier --write '*.js' '@(lite|src|test)/**/*.ts' 'test/unit/remote/bloom_filter_golden_test_data/*.json'",
+    "prettier": "prettier --write '*.js' '@(lite|src|test|scripts)/**/*.ts' 'test/unit/remote/bloom_filter_golden_test_data/*.json'",
     "test:lite": "ts-node ./scripts/run-tests.ts --emulator --platform node_lite --main=lite/index.ts 'test/lite/**/*.test.ts'",
     "test:lite:prod": "ts-node ./scripts/run-tests.ts --platform node_lite --main=lite/index.ts 'test/lite/**/*.test.ts'",
     "test:lite:prod:nameddb": "ts-node ./scripts/run-tests.ts --platform node_lite --databaseId=test-db --main=lite/index.ts 'test/lite/**/*.test.ts'",
     "test:lite:browser": "karma start --lite",
     "test:lite:browser:nameddb": "karma start --lite --databaseId=test-db",
     "test:lite:browser:debug": "karma start --browsers=Chrome --lite --auto-watch",
-    "test": "run-s --npm-path npm lint test:all",
+    "test": "run-s --npm-path npm lint assertion-id:check test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all:ci",
     "test:all:ci": "run-s --npm-path npm test:browser test:travis test:lite:browser test:browser:prod:nameddb test:lite:browser:nameddb",
     "test:all": "run-p --npm-path npm test:browser test:lite:browser test:travis test:minified test:browser:prod:nameddb test:lite:browser:nameddb",
@@ -52,7 +52,11 @@
     "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose",
     "api-report": "run-s --npm-path npm api-report:main api-report:lite && yarn api-report:api-json",
     "doc": "api-documenter markdown --input temp --output docs",
-    "typings:public": "node ../../scripts/build/use_typings.js ./dist/index.d.ts"
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/index.d.ts",
+    "assertion-id:check": "ts-node scripts/assertion-id-tool.ts --dir=src --check",
+    "assertion-id:new": "ts-node scripts/assertion-id-tool.ts --dir=src --new",
+    "assertion-id:list": "ts-node scripts/assertion-id-tool.ts --dir=src --list",
+    "assertion-id:find": "ts-node scripts/assertion-id-tool.ts --dir=src --find"
   },
   "exports": {
     ".": {
@@ -106,9 +110,9 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.11.4",
-    "@firebase/app-compat": "0.2.53",
-    "@firebase/auth": "1.10.0",
+    "@firebase/app": "0.11.5",
+    "@firebase/app-compat": "0.2.54",
+    "@firebase/auth": "1.10.1",
     "@rollup/plugin-alias": "5.1.1",
     "@rollup/plugin-json": "6.1.0",
     "@types/eslint": "7.29.0",
