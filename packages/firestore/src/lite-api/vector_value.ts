@@ -59,14 +59,25 @@ export class VectorValue {
     vectorValues: property('object')
   };
 
-  /** Returns a JSON-serializable representation of this `VectorValue` instance. */
+  /**
+   * Returns a JSON-serializable representation of this `VectorValue` instance.
+   *
+   * @returns a JSON representation of this object.
+   */
   toJSON(): object {
     return {
       type: VectorValue._jsonSchemaVersion,
       vectorValues: this._values
     };
   }
-  /** Builds a `Bytes` instance from a JSON serialized version of `Bytes`. */
+
+  /**
+   * Builds a `VectorValue` instance from a JSON object created by {@link VectorValue.toJSON}.
+   *
+   * @param json a JSON object represention of a `VectorValue` instance
+   * @returns an instance of {@link VectorValue} if the JSON object could be parsed. Throws a
+   * {@link FirestoreError} if an error occurs.
+   */
   static fromJSON(json: object): VectorValue {
     if (validateJSON(json, VectorValue._jsonSchema)) {
       if (

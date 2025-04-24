@@ -288,7 +288,11 @@ export class DocumentReference<
     referencePath: property('string')
   };
 
-  /** Returns a JSON-serializable representation of this DocumentReference. */
+  /**
+   * Returns a JSON-serializable representation of this `DocumentReference` instance.
+   *
+   * @returns a JSON representation of this object.
+   */
   toJSON(): object {
     return {
       type: DocumentReference._jsonSchemaVersion,
@@ -296,7 +300,14 @@ export class DocumentReference<
     };
   }
 
-  /** Builds a `DocumentReference` instance from a JSON serialized version of `DocumentReference`. */
+  /**
+   * Builds a `DocumentReference` instance from a JSON object created by
+   * {@link DocumentReference.toJSON}.
+   *
+   * @param json a JSON object represention of a `DocumentReference` instance
+   * @returns an instance of {@link DocumentReference} if the JSON object could be parsed. Throws a
+   * {@link FirestoreError} if an error occurs.
+   */
   static fromJSON<
     NewAppModelType = DocumentData,
     NewDbModelType extends DocumentData = DocumentData

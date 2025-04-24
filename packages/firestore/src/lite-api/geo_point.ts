@@ -100,7 +100,11 @@ export class GeoPoint {
     longitude: property('number')
   };
 
-  /** Returns a JSON-serializable representation of this GeoPoint. */
+  /**
+   * Returns a JSON-serializable representation of this `GeoPoint` instance.
+   *
+   * @returns a JSON representation of this object.
+   */
   toJSON(): { latitude: number; longitude: number; type: string } {
     return {
       latitude: this._lat,
@@ -109,7 +113,13 @@ export class GeoPoint {
     };
   }
 
-  /** Builds a `Timestamp` instance from a JSON serialized version of `Bytes`. */
+  /**
+   * Builds a `GeoPoint` instance from a JSON object created by {@link GeoPoint.toJSON}.
+   *
+   * @param json a JSON object represention of a `GeoPoint` instance
+   * @returns an instance of {@link GeoPoint} if the JSON object could be parsed. Throws a
+   * {@link FirestoreError} if an error occurs.
+   */
   static fromJSON(json: object): GeoPoint {
     if (validateJSON(json, GeoPoint._jsonSchema)) {
       return new GeoPoint(json.latitude, json.longitude);

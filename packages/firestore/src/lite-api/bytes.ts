@@ -101,7 +101,11 @@ export class Bytes {
     bytes: property('string')
   };
 
-  /** Returns a JSON-serializable representation of this `Bytes` instance. */
+  /**
+   * Returns a JSON-serializable representation of this `Bytes` instance.
+   *
+   * @returns a JSON representation of this object.
+   */
   toJSON(): object {
     return {
       type: Bytes._jsonSchemaVersion,
@@ -109,7 +113,13 @@ export class Bytes {
     };
   }
 
-  /** Builds a `Bytes` instance from a JSON serialized version of `Bytes`. */
+  /**
+   * Builds a `Byes` instance from a JSON object created by {@link Bytes.toJSON}.
+   *
+   * @param json a JSON object represention of a `Bytes` instance
+   * @returns an instance of {@link Bytes} if the JSON object could be parsed. Throws a
+   * {@link FirestoreError} if an error occurs.
+   */
   static fromJSON(json: object): Bytes {
     if (validateJSON(json, Bytes._jsonSchema)) {
       return Bytes.fromBase64String(json.bytes);
