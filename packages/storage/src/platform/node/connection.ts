@@ -50,7 +50,8 @@ abstract class FetchConnection<T extends ConnectionType>
     url: string,
     method: string,
     body?: NodeJS.ArrayBufferView | Blob | string,
-    headers?: Record<string, string>
+    headers?: Record<string, string>,
+    isUsingEmulator?: boolean
   ): Promise<void> {
     if (this.sent_) {
       throw internalError('cannot .send() more than once');
@@ -58,7 +59,13 @@ abstract class FetchConnection<T extends ConnectionType>
     this.sent_ = true;
 
     try {
-      const response = await newFetch(url, method, headers, body);
+      const response = await newFetch(
+        url,
+        method,
+        headers,
+        body,
+        isUsingEmulator
+      );
       this.headers_ = response.headers;
       this.statusCode_ = response.status;
       this.errorCode_ = ErrorCode.NO_ERROR;
@@ -183,14 +190,15 @@ function newFetch(
   url: string,
   method: string,
   headers?: Record<string, string>,
-  body?: NodeJS.ArrayBufferView | Blob | string
-) {
+  body?: NodeJS.ArrayBufferView | Blob | string,
+  isUsingEmulator?: boolean
+): Promise<Response> {
   const fetchArgs: RequestInit = {
     method,
     headers: headers || {},
     body: body as NodeJS.ArrayBufferView | string
   };
-  if (isCloudWorkstation(url)) {
+  if (isCloudWorkstation(url) && isUsingEmulator) {
     fetchArgs.credentials = 'include';
   }
   return fetch(url, fetchArgs);

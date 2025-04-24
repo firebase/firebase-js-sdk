@@ -43,7 +43,8 @@ export interface Connection<T extends ConnectionType> {
     url: string,
     method: string,
     body?: ArrayBufferView | Blob | string | null,
-    headers?: Headers
+    headers?: Headers,
+    isUsingEmulator?: boolean
   ): Promise<void>;
 
   getErrorCode(): ErrorCode;
