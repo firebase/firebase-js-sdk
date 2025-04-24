@@ -59,7 +59,8 @@ export function dcFetch<T, U>(
   accessToken: string | null,
   appCheckToken: string | null,
   _isUsingGen: boolean,
-  _callerSdkType: CallerSdkType
+  _callerSdkType: CallerSdkType,
+  _isUsingEmulator: boolean
 ): Promise<{ data: T; errors: Error[] }> {
   if (!connectFetch) {
     throw new DataConnectError(Code.OTHER, 'No Fetch Implementation detected!');
@@ -84,10 +85,9 @@ export function dcFetch<T, U>(
     headers,
     signal
   };
-  if (isCloudWorkstation(url)) {
+  if (isCloudWorkstation(url) && _isUsingEmulator) {
     fetchOptions.credentials = 'include';
   }
-  logDebug(`Making request out to ${url} with body: ${bodyStr}`);
 
   return connectFetch(url, fetchOptions)
     .catch(err => {
