@@ -24,14 +24,14 @@ export declare class VectorValue
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [fromJSON(json)](./firestore_.vectorvalue.md#vectorvaluefromjson) | <code>static</code> | Builds a <code>Bytes</code> instance from a JSON serialized version of <code>Bytes</code>. |
+|  [fromJSON(json)](./firestore_.vectorvalue.md#vectorvaluefromjson) | <code>static</code> | Builds a <code>VectorValue</code> instance from a JSON object created by [VectorValue.toJSON()](./firestore_.vectorvalue.md#vectorvaluetojson)<!-- -->. |
 |  [isEqual(other)](./firestore_.vectorvalue.md#vectorvalueisequal) |  | Returns <code>true</code> if the two <code>VectorValue</code> values have the same raw number arrays, returns <code>false</code> otherwise. |
 |  [toArray()](./firestore_.vectorvalue.md#vectorvaluetoarray) |  | Returns a copy of the raw number array form of the vector. |
 |  [toJSON()](./firestore_.vectorvalue.md#vectorvaluetojson) |  | Returns a JSON-serializable representation of this <code>VectorValue</code> instance. |
 
 ## VectorValue.fromJSON()
 
-Builds a `Bytes` instance from a JSON serialized version of `Bytes`<!-- -->.
+Builds a `VectorValue` instance from a JSON object created by [VectorValue.toJSON()](./firestore_.vectorvalue.md#vectorvaluetojson)<!-- -->.
 
 <b>Signature:</b>
 
@@ -43,11 +43,13 @@ static fromJSON(json: object): VectorValue;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  json | object |  |
+|  json | object | a JSON object represention of a <code>VectorValue</code> instance |
 
 <b>Returns:</b>
 
 [VectorValue](./firestore_.vectorvalue.md#vectorvalue_class)
+
+an instance of [VectorValue](./firestore_.vectorvalue.md#vectorvalue_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if an error occurs.
 
 ## VectorValue.isEqual()
 
@@ -94,4 +96,6 @@ toJSON(): object;
 <b>Returns:</b>
 
 object
+
+a JSON representation of this object.
 

@@ -23,7 +23,7 @@ export declare class Bytes
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [fromBase64String(base64)](./firestore_lite.bytes.md#bytesfrombase64string) | <code>static</code> | Creates a new <code>Bytes</code> object from the given Base64 string, converting it to bytes. |
-|  [fromJSON(json)](./firestore_lite.bytes.md#bytesfromjson) | <code>static</code> | Builds a <code>Bytes</code> instance from a JSON serialized version of <code>Bytes</code>. |
+|  [fromJSON(json)](./firestore_lite.bytes.md#bytesfromjson) | <code>static</code> | Builds a <code>Byes</code> instance from a JSON object created by [Bytes.toJSON()](./firestore_.bytes.md#bytestojson)<!-- -->. |
 |  [fromUint8Array(array)](./firestore_lite.bytes.md#bytesfromuint8array) | <code>static</code> | Creates a new <code>Bytes</code> object from the given Uint8Array. |
 |  [isEqual(other)](./firestore_lite.bytes.md#bytesisequal) |  | Returns true if this <code>Bytes</code> object is equal to the provided one. |
 |  [toBase64()](./firestore_lite.bytes.md#bytestobase64) |  | Returns the underlying bytes as a Base64-encoded string. |
@@ -53,7 +53,7 @@ static fromBase64String(base64: string): Bytes;
 
 ## Bytes.fromJSON()
 
-Builds a `Bytes` instance from a JSON serialized version of `Bytes`<!-- -->.
+Builds a `Byes` instance from a JSON object created by [Bytes.toJSON()](./firestore_.bytes.md#bytestojson)<!-- -->.
 
 <b>Signature:</b>
 
@@ -65,11 +65,13 @@ static fromJSON(json: object): Bytes;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  json | object |  |
+|  json | object | a JSON object represention of a <code>Bytes</code> instance |
 
 <b>Returns:</b>
 
 [Bytes](./firestore_lite.bytes.md#bytes_class)
+
+an instance of [Bytes](./firestore_.bytes.md#bytes_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if an error occurs.
 
 ## Bytes.fromUint8Array()
 
@@ -140,6 +142,8 @@ toJSON(): object;
 <b>Returns:</b>
 
 object
+
+a JSON representation of this object.
 
 ## Bytes.toString()
 
