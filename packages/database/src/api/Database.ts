@@ -90,17 +90,17 @@ function repoManagerApplyEmulatorSettings(
   tokenProvider?: AuthTokenProvider
 ): void {
   let ssl = false;
-  let finalHost = hostAndPort;
-  if (/^https:\/\//.test(finalHost)) {
+  let host = hostAndPort;
+  if (/^https:\/\//.test(host)) {
     ssl = true;
-    finalHost = finalHost.substring(8);
+    host = host.substring(8);
   }
-  if (/^wss:\/\//.test(finalHost)) {
+  if (/^wss:\/\//.test(host)) {
     ssl = true;
-    finalHost = finalHost.substring(6);
+    host = host.substring(6);
   }
   repo.repoInfo_ = new RepoInfo(
-    finalHost,
+    host,
     /* secure= */ ssl,
     repo.repoInfo_.namespace,
     repo.repoInfo_.webSocketOnly,
