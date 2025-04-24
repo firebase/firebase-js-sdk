@@ -16,6 +16,9 @@
  */
 
 import { Code, FirestoreError } from '../util/error';
+// API extractor fails importing 'property' unless we also explicitly import 'Property'.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-imports-ts
+import { Property, property, validateJSON } from '../util/json_validation';
 import { primitiveComparator } from '../util/misc';
 
 /**
@@ -90,52 +93,30 @@ export class GeoPoint {
     );
   }
 
+  static _jsonSchemaVersion: string = 'firestore/geoPoint/1.0';
+  static _jsonSchema = {
+    type: property('string', GeoPoint._jsonSchemaVersion),
+    latitude: property('number'),
+    longitude: property('number')
+  };
+
   /** Returns a JSON-serializable representation of this GeoPoint. */
   toJSON(): { latitude: number; longitude: number; type: string } {
     return {
       latitude: this._lat,
       longitude: this._long,
-      type: 'firestore/geopoint/1.0'
+      type: GeoPoint._jsonSchemaVersion
     };
   }
 
   /** Builds a `Timestamp` instance from a JSON serialized version of `Bytes`. */
   static fromJSON(json: object): GeoPoint {
-    const requiredFields = ['type', 'latitude', 'longitude'];
-    let error: string | undefined = undefined;
-    let lat: number = 0;
-    let long: number = 0;
-    for (const key of requiredFields) {
-      if (!(key in json)) {
-        error = `json missing required field: ${key}`;
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const value = (json as any)[key];
-      if (key === 'type') {
-        if (typeof value !== 'string') {
-          error = `json field 'type' must be a string.`;
-          break;
-        } else if (value !== 'firestore/geopoint/1.0') {
-          error = "Expected 'type' field to equal 'firestore/geopoint/1.0'";
-          break;
-        }
-      } else if (key === 'latitude') {
-        if (typeof value !== 'number') {
-          error = `json field 'latitude' must be a number.`;
-          break;
-        }
-        lat = value;
-      } else {
-        if (typeof value !== 'number') {
-          error = `json field 'longitude' must be a string.`;
-          break;
-        }
-        long = value;
-      }
+    if (validateJSON(json, GeoPoint._jsonSchema)) {
+      return new GeoPoint(json.latitude, json.longitude);
     }
-    if (error) {
-      throw new FirestoreError(Code.INVALID_ARGUMENT, error);
-    }
-    return new GeoPoint(lat, long);
+    throw new FirestoreError(
+      Code.INTERNAL,
+      'Unexpected error creating GeoPoint from JSON.'
+    );
   }
 }
