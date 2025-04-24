@@ -132,6 +132,13 @@ export class GenerativeModel extends AIModel {
         tools: this.tools,
         toolConfig: this.toolConfig,
         systemInstruction: this.systemInstruction,
+        generationConfig: this.generationConfig,
+        safetySettings: this.safetySettings,
+        /**
+         * Overrides params inherited from GenerativeModel with those explicitly set in the
+         * StartChatParams. For example, if startChatParams.generationConfig is set, it'll override
+         * this.generationConfig.
+         */
         ...startChatParams
       },
       this.requestOptions
