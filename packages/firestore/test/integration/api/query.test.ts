@@ -1804,6 +1804,7 @@ apiDescribe('Queries', persistence => {
 
         let testQuery = query(coll, where('zip', '!=', 98101));
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           testQuery,
           'a',
           'b',
@@ -1816,6 +1817,7 @@ apiDescribe('Queries', persistence => {
 
         testQuery = query(coll, where('zip', '!=', Number.NaN));
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           testQuery,
           'b',
           'c',
@@ -1828,6 +1830,7 @@ apiDescribe('Queries', persistence => {
 
         testQuery = query(coll, where('zip', '!=', null));
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           testQuery,
           'a',
           'b',
@@ -1864,6 +1867,7 @@ apiDescribe('Queries', persistence => {
           where('zip', 'not-in', [98101, 98103, [98101, 98102]])
         );
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           testQuery,
           'a',
           'b',
@@ -1874,7 +1878,7 @@ apiDescribe('Queries', persistence => {
         );
 
         testQuery = query(coll, where('zip', 'not-in', [null]));
-        await checkOnlineAndOfflineResultsMatch(testQuery);
+        await checkOnlineAndOfflineResultsMatch(coll, testQuery);
       });
     });
   });
