@@ -17,7 +17,9 @@
 
 import { ByteString } from '../util/byte_string';
 import { Code, FirestoreError } from '../util/error';
-import { JsonTypeDesc, Property, property, validateJSON } from '../util/json_validation';
+// API extractor fails importing property unless we also explicitly import Property.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-imports-ts
+import { Property, property, validateJSON } from '../util/json_validation';
 
 /**
  * An immutable object representing an array of bytes.
@@ -94,7 +96,7 @@ export class Bytes {
   }
 
   static _jsonSchemaVersion: string = 'firestore/bytes/1.0';
-  static _jsonSchema  = {
+  static _jsonSchema = {
     type: property('string', Bytes._jsonSchemaVersion),
     bytes: property('string')
   };

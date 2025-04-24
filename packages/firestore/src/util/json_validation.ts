@@ -19,36 +19,72 @@ import { isPlainObject } from '../util/input_validation';
 
 import { Code, FirestoreError } from './error';
 
-/** A list of data types Firestore objects may serialize in their toJSON implemenetations. */
-export type JsonTypeDesc = "string" | "number" | "boolean" | "null" | "undefined";
+/**
+ * A list of data types Firestore objects may serialize in their toJSON implemenetations.
+ * @private
+ * @internal
+ */
+export type JsonTypeDesc =
+  | 'string'
+  | 'number'
+  | 'boolean'
+  | 'null'
+  | 'undefined';
 
-/** An association of JsonTypeDesc values to their native types. */
-type TSType<T extends JsonTypeDesc> =
-  T extends "string" ? string :
-  T extends "number" ? number :
-  T extends "boolean" ? boolean :
-  T extends "null" ? null :
-  T extends "undefined" ? undefined :
-  never;
+/**
+ * An association of JsonTypeDesc values to their native types.
+ * @private
+ * @internal
+ */
+export type TSType<T extends JsonTypeDesc> = T extends 'string'
+  ? string
+  : T extends 'number'
+  ? number
+  : T extends 'boolean'
+  ? boolean
+  : T extends 'null'
+  ? null
+  : T extends 'undefined'
+  ? undefined
+  : never;
 
-/** The representation of a JSON object property name and its type value. */
+/**
+ * The representation of a JSON object property name and its type value.
+ * @private
+ * @internal
+ */
 export interface Property<T extends JsonTypeDesc> {
   value?: TSType<T>;
   typeString: JsonTypeDesc;
-};
+}
 
-/** A type Firestore data types may use to define the fields used in their JSON serialization. */
+/**
+ * A type Firestore data types may use to define the fields used in their JSON serialization.
+ * @private
+ * @internal
+ */
 export interface JsonSchema {
   [key: string]: Property<JsonTypeDesc>;
-};
+}
 
-/**  Associates the JSON property type to the native type and sets them to be Required. */
+/**
+ * Associates the JSON property type to the native type and sets them to be Required.
+ * @private
+ * @internal
+ */
 export type Json<T extends JsonSchema> = {
-  [K in keyof T]: Required<T[K]>['value']
+  [K in keyof T]: Required<T[K]>['value'];
 };
 
-/** Helper function to define a JSON schema {@link Property} */
-export function property<T extends JsonTypeDesc>(typeString: T, optionalValue?: TSType<T>): Property<T> {
+/**
+ * Helper function to define a JSON schema {@link Property}.
+ * @private
+ * @internal
+ */
+export function property<T extends JsonTypeDesc>(
+  typeString: T,
+  optionalValue?: TSType<T>
+): Property<T> {
   const result: Property<T> = {
     typeString
   };
@@ -56,33 +92,39 @@ export function property<T extends JsonTypeDesc>(typeString: T, optionalValue?: 
     result.value = optionalValue;
   }
   return result;
-};
+}
 
 /** Validates the JSON object based on the provided schema, and narrows the type to the provided
  * JSON schaem.
- * 
+ * @private
+ * @internal
+ *
  * @param json A JSON object to validate.
  * @param scheme a {@link JsonSchema} that defines the properties to validate.
  * @returns true if the JSON schema exists within the object. Throws a FirestoreError otherwise.
  */
-export function validateJSON<S extends JsonSchema>(json: object, schema: S): json is Json<S> {
+export function validateJSON<S extends JsonSchema>(
+  json: object,
+  schema: S
+): json is Json<S> {
   if (!isPlainObject(json)) {
-    throw new FirestoreError(Code.INVALID_ARGUMENT, "json must be an object");
+    throw new FirestoreError(Code.INVALID_ARGUMENT, 'json must be an object');
   }
   let error: string | undefined = undefined;
   for (const key in schema) {
     if (schema[key]) {
       const typeString = schema[key].typeString;
-      const value: { value: unknown } | undefined = ('value' in schema[key]) ? { value: schema[key].value } : undefined;
+      const value: { value: unknown } | undefined =
+        'value' in schema[key] ? { value: schema[key].value } : undefined;
       if (!(key in json)) {
         error = `json missing required field: ${key}`;
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const fieldValue = (json as any)[key];
-      if (typeString && ((typeof fieldValue) !== typeString)) {
+      if (typeString && typeof fieldValue !== typeString) {
         error = `json field '${key}' must be a ${typeString}.`;
         break;
-      } else if ((value !== undefined) && fieldValue !== value.value) {
+      } else if (value !== undefined && fieldValue !== value.value) {
         error = `Expected '${key}' field to equal '${value.value}'`;
         break;
       }
