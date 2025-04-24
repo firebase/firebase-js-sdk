@@ -22,11 +22,11 @@ export interface AIOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [backend](./vertexai.aioptions.md#aioptionsbackend) | [Backend](./vertexai.md#backend) | The backend configuration to use for the AI service instance. Use [googleAIBackend()](./vertexai.md#googleaibackend) or [vertexAIBackend()](./vertexai.md#vertexaibackend_d0a4534) to create this configuration. |
+|  [backend](./vertexai.aioptions.md#aioptionsbackend) | [Backend](./vertexai.backend.md#backend_class) | The backend configuration to use for the AI service instance. |
 
 ## AIOptions.backend
 
-The backend configuration to use for the AI service instance. Use [googleAIBackend()](./vertexai.md#googleaibackend) or [vertexAIBackend()](./vertexai.md#vertexaibackend_d0a4534) to create this configuration.
+The backend configuration to use for the AI service instance.
 
 <b>Signature:</b>
 

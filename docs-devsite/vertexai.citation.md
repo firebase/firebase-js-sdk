@@ -24,9 +24,9 @@ export interface Citation
 |  --- | --- | --- |
 |  [endIndex](./vertexai.citation.md#citationendindex) | number |  |
 |  [license](./vertexai.citation.md#citationlicense) | string |  |
-|  [publicationDate](./vertexai.citation.md#citationpublicationdate) | Date |  |
+|  [publicationDate](./vertexai.citation.md#citationpublicationdate) | Date | This field is not supported in Google AI. |
 |  [startIndex](./vertexai.citation.md#citationstartindex) | number |  |
-|  [title](./vertexai.citation.md#citationtitle) | string |  |
+|  [title](./vertexai.citation.md#citationtitle) | string | This field is not supported in Google AI. |
 |  [uri](./vertexai.citation.md#citationuri) | string |  |
 
 ## Citation.endIndex
@@ -47,6 +47,8 @@ license?: string;
 
 ## Citation.publicationDate
 
+This field is not supported in Google AI.
+
 <b>Signature:</b>
 
 ```typescript
@@ -62,6 +64,8 @@ startIndex?: number;
 ```
 
 ## Citation.title
+
+This field is not supported in Google AI.
 
 <b>Signature:</b>
 
