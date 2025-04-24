@@ -29,7 +29,7 @@ describe('VectorValue', () => {
   });
 
   it('fromJSON parameter order does not matter', () => {
-    const type = 'firestore/vectorvalue/1.0';
+    const type = VectorValue._jsonSchemaVersion;
     const vectorValues = [1, 2, 3];
     const control = new VectorValue(vectorValues);
 
@@ -44,7 +44,7 @@ describe('VectorValue', () => {
   });
 
   it('fromJSON empty array does not throw', () => {
-    const type = 'firestore/vectorvalue/1.0';
+    const type = VectorValue._jsonSchemaVersion;
     const vectorValues = [1, 2, 3];
     expect(() => {
       VectorValue.fromJSON({ type, vectorValues });
@@ -52,7 +52,7 @@ describe('VectorValue', () => {
   });
 
   it('fromJSON missing fields throws', () => {
-    const type = 'firestore/vectorvalue/1.0';
+    const type = VectorValue._jsonSchemaVersion;
     const vectorValues = [1, 2, 3];
     expect(() => {
       VectorValue.fromJSON({ type /* missing data */ });

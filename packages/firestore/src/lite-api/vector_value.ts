@@ -17,6 +17,9 @@
 
 import { isPrimitiveArrayEqual } from '../util/array';
 import { Code, FirestoreError } from '../util/error';
+// API extractor fails importing 'property' unless we also explicitly import 'Property'.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-imports-ts
+import { Property, property, validateJSON } from '../util/json_validation';
 
 /**
  * Represents a vector type in Firestore documents.
@@ -50,48 +53,36 @@ export class VectorValue {
     return isPrimitiveArrayEqual(this._values, other._values);
   }
 
+  static _jsonSchemaVersion: string = 'firestore/vectorValue/1.0';
+  static _jsonSchema = {
+    type: property('string', VectorValue._jsonSchemaVersion),
+    vectorValues: property('object')
+  };
+
   /** Returns a JSON-serializable representation of this `VectorValue` instance. */
   toJSON(): object {
     return {
-      type: 'firestore/vectorvalue/1.0',
+      type: VectorValue._jsonSchemaVersion,
       vectorValues: this._values
     };
   }
   /** Builds a `Bytes` instance from a JSON serialized version of `Bytes`. */
   static fromJSON(json: object): VectorValue {
-    const requiredFields = ['type', 'vectorValues'];
-    let error: string | undefined = undefined;
-    let data: number[] = [];
-    for (const key of requiredFields) {
-      if (!(key in json)) {
-        error = `json missing required field: ${key}`;
+    if (validateJSON(json, VectorValue._jsonSchema)) {
+      if (
+        Array.isArray(json.vectorValues) &&
+        json.vectorValues.every(element => typeof element === 'number')
+      ) {
+        return new VectorValue(json.vectorValues);
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const value = (json as any)[key];
-      if (key === 'type') {
-        if (typeof value !== 'string') {
-          error = `json field 'type' must be a string.`;
-          break;
-        } else if (value !== 'firestore/vectorvalue/1.0') {
-          error = "Expected 'type' field to equal 'firestore/vectorvalue/1.0'";
-          break;
-        }
-      } else {
-        // First, confirm it's actually an array
-        if (
-          Array.isArray(value) &&
-          value.every(element => typeof element === 'number')
-        ) {
-          data = value;
-        } else {
-          error = "Expected 'vectorValues' field to be a number array";
-          break;
-        }
-      }
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        "Expected 'vectorValues' field to be a number array"
+      );
     }
-    if (error) {
-      throw new FirestoreError(Code.INVALID_ARGUMENT, error);
-    }
-    return new VectorValue(data);
+    throw new FirestoreError(
+      Code.INTERNAL,
+      'Unexpected error creating Timestamp from JSON.'
+    );
   }
 }

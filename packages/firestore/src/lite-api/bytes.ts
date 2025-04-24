@@ -17,6 +17,9 @@
 
 import { ByteString } from '../util/byte_string';
 import { Code, FirestoreError } from '../util/error';
+// API extractor fails importing property unless we also explicitly import Property.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-imports-ts
+import { Property, property, validateJSON } from '../util/json_validation';
 
 /**
  * An immutable object representing an array of bytes.
@@ -92,39 +95,29 @@ export class Bytes {
     return this._byteString.isEqual(other._byteString);
   }
 
+
+  static _jsonSchemaVersion: string = 'firestore/bytes/1.0';
+  static _jsonSchema = {
+    type: property('string', Bytes._jsonSchemaVersion),
+    bytes: property('string')
+  };
+
   /** Returns a JSON-serializable representation of this `Bytes` instance. */
   toJSON(): object {
     return {
-      type: 'firestore/bytes/1.0',
+      type: Bytes._jsonSchemaVersion,
       bytes: this.toBase64()
     };
   }
 
   /** Builds a `Bytes` instance from a JSON serialized version of `Bytes`. */
   static fromJSON(json: object): Bytes {
-    const requiredFields = ['type', 'bytes'];
-    let error: string | undefined = undefined;
-    let bytesData: string = '';
-    for (const key of requiredFields) {
-      if (!(key in json)) {
-        error = `json missing required field: ${key}`;
-        break;
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const value = (json as any)[key];
-      if (typeof value !== 'string') {
-        error = `json field '${key}' must be a string.`;
-        break;
-      } else if (key === 'type' && value !== 'firestore/bytes/1.0') {
-        error = "Expected 'type' field to equal 'firestore/bytes/1.0'";
-        break;
-      } else if (key === 'bytes') {
-        bytesData = value;
-      }
+    if (validateJSON(json, Bytes._jsonSchema)) {
+      return Bytes.fromBase64String(json.bytes);
     }
-    if (error) {
-      throw new FirestoreError(Code.INVALID_ARGUMENT, error);
-    }
-    return Bytes.fromBase64String(bytesData);
+    throw new FirestoreError(
+      Code.INTERNAL,
+      'Unexpected error creating Bytes from JSON.'
+    );
   }
 }
