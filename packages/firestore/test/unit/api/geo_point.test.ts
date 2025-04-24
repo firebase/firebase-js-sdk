@@ -106,17 +106,17 @@ describe('GeoPoint', () => {
     expect(new GeoPoint(1, 2).toJSON()).to.deep.equal({
       latitude: 1,
       longitude: 2,
-      'type': 'firestore/geopoint/1.0'
+      'type': GeoPoint._jsonSchemaVersion
     });
     expect(new GeoPoint(0, 0).toJSON()).to.deep.equal({
       latitude: 0,
       longitude: 0,
-      'type': 'firestore/geopoint/1.0'
+      'type': GeoPoint._jsonSchemaVersion
     });
     expect(new GeoPoint(90, 180).toJSON()).to.deep.equal({
       latitude: 90,
       longitude: 180,
-      'type': 'firestore/geopoint/1.0'
+      'type': GeoPoint._jsonSchemaVersion
     });
   });
   it('fromJSON does not throw', () => {

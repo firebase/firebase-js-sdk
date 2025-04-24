@@ -62,7 +62,7 @@ export class VectorValue {
   /** Returns a JSON-serializable representation of this `VectorValue` instance. */
   toJSON(): object {
     return {
-      type: 'firestore/vectorvalue/1.0',
+      type: VectorValue._jsonSchemaVersion,
       vectorValues: this._values
     };
   }
