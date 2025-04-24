@@ -94,7 +94,8 @@ export function property<T extends JsonTypeDesc>(
   return result;
 }
 
-/** Validates the JSON object based on the provided schema, and narrows the type to the provided
+/** 
+ * Validates the JSON object based on the provided schema, and narrows the type to the provided
  * JSON schaem.
  * @private
  * @internal
