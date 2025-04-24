@@ -38,7 +38,6 @@ import { IdTokenMfaResponse } from './authentication/mfa';
 import { SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
 import { PersistenceType } from '../core/persistence';
 import { CookiePersistence } from '../platform_browser/persistence/cookie_storage';
-import { FirebaseAuth } from '@firebase/auth-types';
 
 export const enum HttpMethod {
   POST = 'POST',
