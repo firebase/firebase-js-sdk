@@ -570,10 +570,13 @@ export async function checkOnlineAndOfflineResultsMatch(
   // 4- This performs the query against the cache using remote keys.
   const docsFromCacheUsingRemoteKeys = await getDocsFromCache(query);
 
-  expect(toIds(docsFromServer)).to.deep.equal(toIds(docsFromCacheFullCollectionScan));
-  expect(toIds(docsFromServer)).to.deep.equal(toIds(docsFromCacheUsingRemoteKeys));
+  expect(toIds(docsFromServer)).to.deep.equal(
+    toIds(docsFromCacheFullCollectionScan)
+  );
+  expect(toIds(docsFromServer)).to.deep.equal(
+    toIds(docsFromCacheUsingRemoteKeys)
+  );
   if (expectedDocs.length !== 0) {
     expect(expectedDocs).to.deep.equal(toIds(docsFromServer));
   }
-
 }

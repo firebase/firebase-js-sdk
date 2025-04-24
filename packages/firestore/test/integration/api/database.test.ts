@@ -780,7 +780,11 @@ apiDescribe('Database', persistence => {
 
         return withTestCollection(persistence, docs, async randomCol => {
           const orderedQuery = query(randomCol, orderBy('embedding'));
-          await checkOnlineAndOfflineResultsMatch(randomCol, orderedQuery, ...documentIds);
+          await checkOnlineAndOfflineResultsMatch(
+            randomCol,
+            orderedQuery,
+            ...documentIds
+          );
 
           const orderedQueryLessThan = query(
             randomCol,
@@ -2419,7 +2423,7 @@ apiDescribe('Database', persistence => {
               'Aa'
             ];
             await checkOnlineAndOfflineResultsMatch(
-            collectionRef,
+              collectionRef,
               filteredQuery,
               ...expectedDocs
             );
@@ -2471,7 +2475,11 @@ apiDescribe('Database', persistence => {
 
         unsubscribe();
 
-        await checkOnlineAndOfflineResultsMatch(collectionRef, orderedQuery, ...expectedDocs);
+        await checkOnlineAndOfflineResultsMatch(
+          collectionRef,
+          orderedQuery,
+          ...expectedDocs
+        );
       });
     });
 
@@ -2503,7 +2511,11 @@ apiDescribe('Database', persistence => {
 
         unsubscribe();
 
-        await checkOnlineAndOfflineResultsMatch(collectionRef, orderedQuery, ...expectedDocs);
+        await checkOnlineAndOfflineResultsMatch(
+          collectionRef,
+          orderedQuery,
+          ...expectedDocs
+        );
       });
     });
 
@@ -2535,7 +2547,11 @@ apiDescribe('Database', persistence => {
 
         unsubscribe();
 
-        await checkOnlineAndOfflineResultsMatch(collectionRef, orderedQuery, ...expectedDocs);
+        await checkOnlineAndOfflineResultsMatch(
+          collectionRef,
+          orderedQuery,
+          ...expectedDocs
+        );
       });
     });
 
@@ -2567,7 +2583,11 @@ apiDescribe('Database', persistence => {
 
         unsubscribe();
 
-        await checkOnlineAndOfflineResultsMatch(collectionRef, orderedQuery, ...expectedDocs);
+        await checkOnlineAndOfflineResultsMatch(
+          collectionRef,
+          orderedQuery,
+          ...expectedDocs
+        );
       });
     });
 
@@ -2612,7 +2632,11 @@ apiDescribe('Database', persistence => {
 
         unsubscribe();
 
-        await checkOnlineAndOfflineResultsMatch(collectionRef, orderedQuery, ...expectedDocs);
+        await checkOnlineAndOfflineResultsMatch(
+          collectionRef,
+          orderedQuery,
+          ...expectedDocs
+        );
       });
     });
 
