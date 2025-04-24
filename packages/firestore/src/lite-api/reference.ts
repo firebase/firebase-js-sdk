@@ -33,6 +33,9 @@ import {
   validateNonEmptyArgument
 } from '../util/input_validation';
 import { AutoId } from '../util/misc';
+// API extractor fails importing property unless we also explicitly import Property.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-imports-ts
+import { Property, property, validateJSON } from '../util/json_validation';
 
 import { Firestore } from './database';
 import { FieldPath } from './field_path';
@@ -279,10 +282,16 @@ export class DocumentReference<
     );
   }
 
+  static _jsonSchemaVersion: string = 'firestore/documentReference/1.0';
+  static _jsonSchema = {
+    type: property('string', DocumentReference._jsonSchemaVersion),
+    referencePath: property('string')
+  };
+
   /** Returns a JSON-serializable representation of this DocumentReference. */
   toJSON(): object {
     return {
-      type: 'firestore/documentReference/1.0',
+      type: DocumentReference._jsonSchemaVersion,
       referencePath: this._key.toString()
     };
   }
@@ -296,42 +305,17 @@ export class DocumentReference<
     json: object,
     converter?: FirestoreDataConverter<NewAppModelType, NewDbModelType>
   ): DocumentReference<NewAppModelType, NewDbModelType> {
-    const requiredFields = ['type', 'referencePath'];
-    let error: string | undefined = undefined;
-    let path: string = '';
-    for (const key of requiredFields) {
-      if (!(key in json)) {
-        error = `json missing required field: ${key}`;
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const value = (json as any)[key];
-      if (key === 'type') {
-        if (typeof value !== 'string') {
-          error = `json field 'type' must be a string.`;
-          break;
-        } else if (value !== 'firestore/documentReference/1.0') {
-          error =
-            "Expected 'type' field to equal 'firestore/documentReference/1.0'";
-          break;
-        }
-      } else if (key === 'referencePath') {
-        if (typeof value !== 'string') {
-          error = `json field 'referencePath' must be a string.`;
-          break;
-        }
-        path = value;
-      }
+    if(validateJSON(json, DocumentReference._jsonSchema)) {
+      return new DocumentReference<NewAppModelType, NewDbModelType>(
+        firestore,
+        converter ? converter : null,
+        new DocumentKey(ResourcePath.fromString(json.referencePath))
+      );
     }
-    if (error) {
-      throw new FirestoreError(Code.INVALID_ARGUMENT, error);
-    }
-    const resourcePath = ResourcePath.fromString(path);
-    const documentKey = new DocumentKey(resourcePath);
-    return new DocumentReference<NewAppModelType, NewDbModelType>(
-      firestore,
-      converter ? converter : null,
-      documentKey
-    );
+    throw new FirestoreError(
+      Code.INTERNAL,
+      'Unexpected error creating Bytes from JSON.'
+    );  
   }
 }
 
