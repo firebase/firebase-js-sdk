@@ -122,16 +122,14 @@ describe('ChromeAdapter', () => {
       const createStub = stub(languageModelProvider, 'create').resolves(
         {} as LanguageModel
       );
-      const adapter = new ChromeAdapter(
-        languageModelProvider,
-        'prefer_on_device',
-        {
-          expectedInputs: [{ type: 'image' }]
-        }
-      );
       const expectedOnDeviceParams = {
         expectedInputs: [{ type: 'image' }]
       } as LanguageModelCreateOptions;
+      const adapter = new ChromeAdapter(
+        languageModelProvider,
+        'prefer_on_device',
+        expectedOnDeviceParams
+      );
       expect(
         await adapter.isAvailable({
           contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
