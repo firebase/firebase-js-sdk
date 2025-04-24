@@ -32,10 +32,10 @@ import {
   validateDocumentPath,
   validateNonEmptyArgument
 } from '../util/input_validation';
-import { AutoId } from '../util/misc';
 // API extractor fails importing property unless we also explicitly import Property.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-imports-ts
 import { Property, property, validateJSON } from '../util/json_validation';
+import { AutoId } from '../util/misc';
 
 import { Firestore } from './database';
 import { FieldPath } from './field_path';
@@ -305,7 +305,7 @@ export class DocumentReference<
     json: object,
     converter?: FirestoreDataConverter<NewAppModelType, NewDbModelType>
   ): DocumentReference<NewAppModelType, NewDbModelType> {
-    if(validateJSON(json, DocumentReference._jsonSchema)) {
+    if (validateJSON(json, DocumentReference._jsonSchema)) {
       return new DocumentReference<NewAppModelType, NewDbModelType>(
         firestore,
         converter ? converter : null,
@@ -315,7 +315,7 @@ export class DocumentReference<
     throw new FirestoreError(
       Code.INTERNAL,
       'Unexpected error creating Bytes from JSON.'
-    );  
+    );
   }
 }
 
