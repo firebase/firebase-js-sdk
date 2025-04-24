@@ -25,6 +25,7 @@ import { Code, FirestoreError } from './error';
  * @internal
  */
 export type JsonTypeDesc =
+  | 'object'
   | 'string'
   | 'number'
   | 'boolean'
@@ -36,7 +37,9 @@ export type JsonTypeDesc =
  * @private
  * @internal
  */
-export type TSType<T extends JsonTypeDesc> = T extends 'string'
+export type TSType<T extends JsonTypeDesc> = T extends 'object'
+  ? object
+  : T extends 'string'
   ? string
   : T extends 'number'
   ? number
@@ -94,7 +97,7 @@ export function property<T extends JsonTypeDesc>(
   return result;
 }
 
-/** 
+/**
  * Validates the JSON object based on the provided schema, and narrows the type to the provided
  * JSON schaem.
  * @private
