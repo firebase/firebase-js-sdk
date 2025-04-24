@@ -82,7 +82,7 @@ describe('ChromeAdapter', () => {
         })
       ).to.be.false;
     });
-    it('returns false if request content has function role', async () => {
+    it('returns false if request content has non-user role', async () => {
       const adapter = new ChromeAdapter(
         {
           availability: async () => Availability.available
@@ -93,7 +93,7 @@ describe('ChromeAdapter', () => {
         await adapter.isAvailable({
           contents: [
             {
-              role: 'function',
+              role: 'model',
               parts: []
             }
           ]
