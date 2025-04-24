@@ -124,7 +124,10 @@ describe('ChromeAdapter', () => {
       );
       const adapter = new ChromeAdapter(
         languageModelProvider,
-        'prefer_on_device'
+        'prefer_on_device',
+        {
+          expectedInputs: [{ type: 'image' }]
+        }
       );
       const expectedOnDeviceParams = {
         expectedInputs: [{ type: 'image' }]
@@ -221,9 +224,6 @@ describe('ChromeAdapter', () => {
       );
       const promptOutput = 'hi';
       const promptStub = stub(languageModel, 'prompt').resolves(promptOutput);
-      const onDeviceParams = {
-        systemPrompt: 'be yourself'
-      } as LanguageModelCreateOptions;
       const expectedOnDeviceParams = {
         systemPrompt: 'be yourself',
         expectedInputs: [{ type: 'image' }]
@@ -231,7 +231,7 @@ describe('ChromeAdapter', () => {
       const adapter = new ChromeAdapter(
         languageModelProvider,
         'prefer_on_device',
-        onDeviceParams
+        expectedOnDeviceParams
       );
       const request = {
         contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
@@ -270,9 +270,6 @@ describe('ChromeAdapter', () => {
       );
       const promptOutput = 'hi';
       const promptStub = stub(languageModel, 'prompt').resolves(promptOutput);
-      const onDeviceParams = {
-        systemPrompt: 'be yourself'
-      } as LanguageModelCreateOptions;
       const expectedOnDeviceParams = {
         systemPrompt: 'be yourself',
         expectedInputs: [{ type: 'image' }]
@@ -280,7 +277,7 @@ describe('ChromeAdapter', () => {
       const adapter = new ChromeAdapter(
         languageModelProvider,
         'prefer_on_device',
-        onDeviceParams
+        expectedOnDeviceParams
       );
       const request = {
         contents: [
@@ -379,14 +376,13 @@ describe('ChromeAdapter', () => {
           }
         })
       );
-      const onDeviceParams = {} as LanguageModelCreateOptions;
       const expectedOnDeviceParams = {
         expectedInputs: [{ type: 'image' }]
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
         'prefer_on_device',
-        onDeviceParams
+        expectedOnDeviceParams
       );
       const request = {
         contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
@@ -423,14 +419,13 @@ describe('ChromeAdapter', () => {
           }
         })
       );
-      const onDeviceParams = {} as LanguageModelCreateOptions;
       const expectedOnDeviceParams = {
         expectedInputs: [{ type: 'image' }]
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
         'prefer_on_device',
-        onDeviceParams
+        expectedOnDeviceParams
       );
       const request = {
         contents: [
