@@ -30,6 +30,7 @@
     "packages/util/dist/src/defaults.d.ts",
     "packages/util/dist/src/emulator.d.ts",
     "packages/util/dist/src/environment.d.ts",
+    "packages/util/dist/src/url.d.ts",
     "packages/util/dist/src/compat.d.ts",
     "packages/util/dist/src/global.d.ts",
     "packages/util/dist/src/obj.d.ts",
