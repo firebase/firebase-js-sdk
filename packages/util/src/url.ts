@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+/**
+ * Checks whether a host url is a cloud workstation.
+ */
 export function isCloudWorkstation(url: string): boolean {
   return url.endsWith('.cloudworkstations.dev');
 }
