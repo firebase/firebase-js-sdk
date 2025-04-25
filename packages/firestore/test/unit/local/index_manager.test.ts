@@ -2371,64 +2371,64 @@ describe('IndexedDbIndexManager', async () => {
     await indexManager.addFieldIndex(
       fieldIndex('coll', { fields: [['key', IndexKind.DESCENDING]] })
     );
-    await addDoc('coll/a', {
+    await addDoc('coll/doc1', {
       key: null
     });
-    await addDoc('coll/b', {
+    await addDoc('coll/doc2', {
       key: minKey()
     });
-    await addDoc('coll/c', {
+    await addDoc('coll/doc3', {
       key: true
     });
-    await addDoc('coll/d', {
+    await addDoc('coll/doc4', {
       key: NaN
     });
-    await addDoc('coll/e', {
+    await addDoc('coll/doc5', {
       key: int32(1)
     });
-    await addDoc('coll/f', {
+    await addDoc('coll/doc6', {
       key: 2.0
     });
-    await addDoc('coll/g', {
+    await addDoc('coll/doc7', {
       key: 3
     });
-    await addDoc('coll/h', {
+    await addDoc('coll/doc8', {
       key: new Timestamp(100, 123456000)
     });
-    await addDoc('coll/i', {
+    await addDoc('coll/doc9', {
       key: bsonTimestamp(1, 2)
     });
-    await addDoc('coll/j', {
+    await addDoc('coll/doc10', {
       key: 'string'
     });
-    await addDoc('coll/k', {
+    await addDoc('coll/doc11', {
       key: Bytes.fromUint8Array(new Uint8Array([0, 1, 255])) as Bytes
     });
-    await addDoc('coll/l', {
+    await addDoc('coll/doc12', {
       key: bsonBinaryData(1, new Uint8Array([1, 2, 3]))
     });
-    await addDoc('coll/m', {
+    await addDoc('coll/doc13', {
       key: ref('coll/doc')
     });
-    await addDoc('coll/n', {
+    await addDoc('coll/doc14', {
       key: bsonObjectId('507f191e810c19729de860ea')
     });
-    await addDoc('coll/o', {
+    await addDoc('coll/doc15', {
       key: new GeoPoint(0, 1)
     });
-    await addDoc('coll/p', {
+    await addDoc('coll/doc16', {
       key: regex('^foo', 'i')
     });
-    await addDoc('coll/q', {
+    await addDoc('coll/doc17', {
       key: [1, 2]
     });
-    await addDoc('coll/r', {
+    await addDoc('coll/doc18', {
       key: vector([1, 2])
     });
-    await addDoc('coll/s', {
+    await addDoc('coll/doc19', {
       key: { a: 1 }
     });
-    await addDoc('coll/t', {
+    await addDoc('coll/doc20', {
       key: maxKey()
     });
 
@@ -2438,26 +2438,26 @@ describe('IndexedDbIndexManager', async () => {
     const q = queryWithAddedOrderBy(query('coll'), orderBy('key', 'desc'));
     await verifyResults(
       q,
-      'coll/t',
-      'coll/s',
-      'coll/r',
-      'coll/q',
-      'coll/p',
-      'coll/o',
-      'coll/n',
-      'coll/m',
-      'coll/l',
-      'coll/k',
-      'coll/j',
-      'coll/i',
-      'coll/h',
-      'coll/g',
-      'coll/f',
-      'coll/e',
-      'coll/d',
-      'coll/c',
-      'coll/b',
-      'coll/a'
+      'coll/doc20',
+      'coll/doc19',
+      'coll/doc18',
+      'coll/doc17',
+      'coll/doc16',
+      'coll/doc15',
+      'coll/doc14',
+      'coll/doc13',
+      'coll/doc12',
+      'coll/doc11',
+      'coll/doc10',
+      'coll/doc9',
+      'coll/doc8',
+      'coll/doc7',
+      'coll/doc6',
+      'coll/doc5',
+      'coll/doc4',
+      'coll/doc3',
+      'coll/doc2',
+      'coll/doc1'
     );
   });
 

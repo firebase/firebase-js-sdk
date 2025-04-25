@@ -20,7 +20,6 @@ import { Deferred } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { AutoId } from '../../../src/util/misc';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
   addDoc,
@@ -93,7 +92,7 @@ import {
   checkOnlineAndOfflineResultsMatch,
   toIds,
   withTestProjectIdAndCollectionSettings,
-  checkCacheRoundTrip
+  assertSDKQueryResultsConsistentWithBackend
 } from '../util/helpers';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
 
@@ -2439,7 +2438,8 @@ apiDescribe('Database', persistence => {
   });
 
   describe('BSON types', () => {
-    // TODO(Mila/BSON): simplify the test setup once prod support BSON
+    // TODO(Mila/BSON): simplify the test setup once prod support BSON and
+    // remove the cache population after the test helper is updated
     const NIGHTLY_PROJECT_ID = 'firestore-sdk-nightly';
     const settings = {
       ...DEFAULT_SETTINGS,
@@ -2548,7 +2548,10 @@ apiDescribe('Database', persistence => {
         NIGHTLY_PROJECT_ID,
         settings,
         testDocs,
-        async (coll, db) => {
+        async coll => {
+          // Populate the cache with all docs first
+          await getDocs(coll);
+
           let orderedQuery = query(
             coll,
             where('key', '>', bsonObjectId('507f191e810c19729de860ea')),
@@ -2560,7 +2563,11 @@ apiDescribe('Database', persistence => {
             testDocs['c'],
             testDocs['b']
           ]);
-          await checkCacheRoundTrip(orderedQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
 
           orderedQuery = query(
             coll,
@@ -2576,7 +2583,11 @@ apiDescribe('Database', persistence => {
             testDocs['b'],
             testDocs['a']
           ]);
-          await checkCacheRoundTrip(orderedQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
         }
       );
     });
@@ -2592,7 +2603,10 @@ apiDescribe('Database', persistence => {
         NIGHTLY_PROJECT_ID,
         settings,
         testDocs,
-        async (coll, db) => {
+        async coll => {
+          // Populate the cache with all docs first
+          await getDocs(coll);
+
           let orderedQuery = query(
             coll,
             where('key', '>=', int32(1)),
@@ -2604,7 +2618,11 @@ apiDescribe('Database', persistence => {
             testDocs['c'],
             testDocs['b']
           ]);
-          await checkCacheRoundTrip(orderedQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
 
           orderedQuery = query(
             coll,
@@ -2617,7 +2635,11 @@ apiDescribe('Database', persistence => {
             testDocs['c'],
             testDocs['a']
           ]);
-          await checkCacheRoundTrip(orderedQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
         }
       );
     });
@@ -2633,7 +2655,10 @@ apiDescribe('Database', persistence => {
         NIGHTLY_PROJECT_ID,
         settings,
         testDocs,
-        async (coll, db) => {
+        async coll => {
+          // Populate the cache with all docs first
+          await getDocs(coll);
+
           let orderedQuery = query(
             coll,
             where('key', '>', bsonTimestamp(1, 1)),
@@ -2645,7 +2670,11 @@ apiDescribe('Database', persistence => {
             testDocs['c'],
             testDocs['b']
           ]);
-          await checkCacheRoundTrip(orderedQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
 
           orderedQuery = query(
             coll,
@@ -2658,7 +2687,11 @@ apiDescribe('Database', persistence => {
             testDocs['c'],
             testDocs['b']
           ]);
-          await checkCacheRoundTrip(orderedQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
         }
       );
     });
@@ -2674,7 +2707,10 @@ apiDescribe('Database', persistence => {
         NIGHTLY_PROJECT_ID,
         settings,
         testDocs,
-        async (coll, db) => {
+        async coll => {
+          // Populate the cache with all docs first
+          await getDocs(coll);
+
           let orderedQuery = query(
             coll,
             where('key', '>', bsonBinaryData(1, new Uint8Array([1, 2, 3]))),
@@ -2686,7 +2722,11 @@ apiDescribe('Database', persistence => {
             testDocs['c'],
             testDocs['b']
           ]);
-          await checkCacheRoundTrip(orderedQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
 
           orderedQuery = query(
             coll,
@@ -2700,7 +2740,11 @@ apiDescribe('Database', persistence => {
             testDocs['b'],
             testDocs['a']
           ]);
-          await checkCacheRoundTrip(orderedQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
         }
       );
     });
@@ -2716,7 +2760,10 @@ apiDescribe('Database', persistence => {
         NIGHTLY_PROJECT_ID,
         settings,
         testDocs,
-        async (coll, db) => {
+        async coll => {
+          // Populate the cache with all docs first
+          await getDocs(coll);
+
           const orderedQuery = query(
             coll,
             or(
@@ -2731,7 +2778,11 @@ apiDescribe('Database', persistence => {
             testDocs['c'],
             testDocs['a']
           ]);
-          await checkCacheRoundTrip(orderedQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
         }
       );
     });
@@ -2749,22 +2800,34 @@ apiDescribe('Database', persistence => {
         NIGHTLY_PROJECT_ID,
         settings,
         testDocs,
-        async (coll, db) => {
+        async coll => {
+          // Populate the cache with all docs first
+          await getDocs(coll);
+
           let filteredQuery = query(coll, where('key', '==', minKey()));
           let snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([
             testDocs['a'],
             testDocs['b']
           ]);
-          await checkCacheRoundTrip(filteredQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
 
-          filteredQuery = query(coll, where('key', '!=', minKey()));
-          snapshot = await getDocs(filteredQuery);
-          expect(toDataArray(snapshot)).to.deep.equal([
-            testDocs['d'],
-            testDocs['e']
-          ]);
-          await checkCacheRoundTrip(filteredQuery, db, toDataArray(snapshot));
+          // TODO(Mila/BSON): uncomment after the null inclusion bug
+          // filteredQuery = query(coll, where('key', '!=', minKey()));
+          // snapshot = await getDocs(filteredQuery);
+          // expect(toDataArray(snapshot)).to.deep.equal([
+          //   testDocs['d'],
+          //   testDocs['e']
+          // ]);
+          // await assertSDKQueryResultsConsistentWithBackend(
+          //   filteredQuery,
+          //   testDocs,
+          //   toIds(snapshot)
+          // );
 
           filteredQuery = query(coll, where('key', '>=', minKey()));
           snapshot = await getDocs(filteredQuery);
@@ -2772,7 +2835,11 @@ apiDescribe('Database', persistence => {
             testDocs['a'],
             testDocs['b']
           ]);
-          await checkCacheRoundTrip(filteredQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
 
           filteredQuery = query(coll, where('key', '<=', minKey()));
           snapshot = await getDocs(filteredQuery);
@@ -2780,22 +2847,38 @@ apiDescribe('Database', persistence => {
             testDocs['a'],
             testDocs['b']
           ]);
-          await checkCacheRoundTrip(filteredQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
 
           filteredQuery = query(coll, where('key', '>', minKey()));
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([]);
-          await checkCacheRoundTrip(filteredQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
 
           filteredQuery = query(coll, where('key', '<', minKey()));
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([]);
-          await checkCacheRoundTrip(filteredQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
 
           filteredQuery = query(coll, where('key', '<', 1));
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([]);
-          await checkCacheRoundTrip(filteredQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
         }
       );
     });
@@ -2813,22 +2896,34 @@ apiDescribe('Database', persistence => {
         NIGHTLY_PROJECT_ID,
         settings,
         testDocs,
-        async (coll, db) => {
+        async coll => {
+          // Populate the cache with all docs first
+          await getDocs(coll);
+
           let filteredQuery = query(coll, where('key', '==', maxKey()));
           let snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([
             testDocs['c'],
             testDocs['d']
           ]);
-          await checkCacheRoundTrip(filteredQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
 
-          filteredQuery = query(coll, where('key', '!=', maxKey()));
-          snapshot = await getDocs(filteredQuery);
-          expect(toDataArray(snapshot)).to.deep.equal([
-            testDocs['a'],
-            testDocs['b']
-          ]);
-          await checkCacheRoundTrip(filteredQuery, db, toDataArray(snapshot));
+          // TODO(Mila/BSON): uncomment after the null inclusion bug
+          // filteredQuery = query(coll, where('key', '!=', maxKey()));
+          // snapshot = await getDocs(filteredQuery);
+          // expect(toDataArray(snapshot)).to.deep.equal([
+          //   testDocs['a'],
+          //   testDocs['b']
+          // ]);
+          // await assertSDKQueryResultsConsistentWithBackend(
+          //   filteredQuery,
+          //   testDocs,
+          //   toIds(snapshot)
+          // );
 
           filteredQuery = query(coll, where('key', '>=', maxKey()));
           snapshot = await getDocs(filteredQuery);
@@ -2836,7 +2931,11 @@ apiDescribe('Database', persistence => {
             testDocs['c'],
             testDocs['d']
           ]);
-          await checkCacheRoundTrip(filteredQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
 
           filteredQuery = query(coll, where('key', '<=', maxKey()));
           snapshot = await getDocs(filteredQuery);
@@ -2844,22 +2943,38 @@ apiDescribe('Database', persistence => {
             testDocs['c'],
             testDocs['d']
           ]);
-          await checkCacheRoundTrip(filteredQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
 
           filteredQuery = query(coll, where('key', '>', maxKey()));
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([]);
-          await checkCacheRoundTrip(filteredQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
 
           filteredQuery = query(coll, where('key', '<', maxKey()));
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([]);
-          await checkCacheRoundTrip(filteredQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
 
           filteredQuery = query(coll, where('key', '>', 1));
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([]);
-          await checkCacheRoundTrip(filteredQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
         }
       );
     });
@@ -2878,14 +2993,21 @@ apiDescribe('Database', persistence => {
         NIGHTLY_PROJECT_ID,
         settings,
         testDocs,
-        async (coll, db) => {
+        async coll => {
+          // Populate the cache with all docs first
+          await getDocs(coll);
+
           let filteredQuery = query(coll, where('key', '==', null));
           let snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([
             testDocs['b'],
             testDocs['c']
           ]);
-          await checkCacheRoundTrip(filteredQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
 
           filteredQuery = query(coll, where('key', '!=', null));
           snapshot = await getDocs(filteredQuery);
@@ -2894,7 +3016,11 @@ apiDescribe('Database', persistence => {
             testDocs['d'],
             testDocs['e']
           ]);
-          await checkCacheRoundTrip(filteredQuery, db, toDataArray(snapshot));
+          await assertSDKQueryResultsConsistentWithBackend(
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
         }
       );
     });
@@ -2913,7 +3039,7 @@ apiDescribe('Database', persistence => {
         NIGHTLY_PROJECT_ID,
         settings,
         testDocs,
-        async (coll, db) => {
+        async coll => {
           const orderedQuery = query(coll, orderBy('key', 'asc'));
 
           const storeEvent = new EventsAccumulator<QuerySnapshot>();
@@ -2955,18 +3081,17 @@ apiDescribe('Database', persistence => {
         b: { key: regex('^foo', 'i') },
         c: { key: bsonBinaryData(1, new Uint8Array([1, 2, 3])) }
       };
-      return withTestDbsSettings(
+      return withTestProjectIdAndCollectionSettings(
         persistence,
         NIGHTLY_PROJECT_ID,
         settings,
-        1,
-        async dbs => {
-          const coll = collection(dbs[0], AutoId.newId());
+        {},
+        async (coll, db) => {
           const docA = await addDoc(coll, testDocs['a']);
           const docB = await addDoc(coll, { key: 'place holder' });
           const docC = await addDoc(coll, testDocs['c']);
 
-          await runTransaction(dbs[0], async transaction => {
+          await runTransaction(db, async transaction => {
             const docSnapshot = await transaction.get(docA);
             expect(docSnapshot.data()).to.deep.equal(testDocs['a']);
             transaction.set(docB, testDocs['b']);
@@ -3018,30 +3143,37 @@ apiDescribe('Database', persistence => {
             // TODO(Mila/BSON): remove after prod supports bson, and use `ref` helper function instead
             const docRef = doc(coll, 'doc');
             await setDoc(doc(coll, 'm'), { key: docRef });
+            testDocs['m'] = { key: docRef };
+
+            // Populate the cache with all docs first
+            await getDocs(coll);
 
             const orderedQuery = query(coll, orderBy('key', 'desc'));
-            await checkOnlineAndOfflineResultsMatch(
+            await assertSDKQueryResultsConsistentWithBackend(
               orderedQuery,
-              't',
-              's',
-              'r',
-              'q',
-              'p',
-              'o',
-              'n',
-              'm',
-              'l',
-              'k',
-              'j',
-              'i',
-              'h',
-              'g',
-              'f',
-              'e',
-              'd',
-              'c',
-              'b',
-              'a'
+              testDocs,
+              [
+                't',
+                's',
+                'r',
+                'q',
+                'p',
+                'o',
+                'n',
+                'm',
+                'l',
+                'k',
+                'j',
+                'i',
+                'h',
+                'g',
+                'f',
+                'e',
+                'd',
+                'c',
+                'b',
+                'a'
+              ]
             );
           }
         );
@@ -3076,28 +3208,34 @@ apiDescribe('Database', persistence => {
           settings,
           testDocs,
           async coll => {
+            // Populate the cache with all docs first
+            await getDocs(coll);
+
             const orderedQuery = query(coll, orderBy('key'));
-            await checkOnlineAndOfflineResultsMatch(
+            await assertSDKQueryResultsConsistentWithBackend(
               orderedQuery,
-              'r',
-              's',
-              'd',
-              'e',
-              'c',
-              'f',
-              'h',
-              'g',
-              'j',
-              'i',
-              'k',
-              'n',
-              'm',
-              'l',
-              'q',
-              'o',
-              'p',
-              'a',
-              'b'
+              testDocs,
+              [
+                'r',
+                's',
+                'd',
+                'e',
+                'c',
+                'f',
+                'h',
+                'g',
+                'j',
+                'i',
+                'k',
+                'n',
+                'm',
+                'l',
+                'q',
+                'o',
+                'p',
+                'a',
+                'b'
+              ]
             );
           }
         );

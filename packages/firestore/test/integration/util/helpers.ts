@@ -18,6 +18,7 @@
 import { isIndexedDBAvailable } from '@firebase/util';
 import { expect } from 'chai';
 
+import { EventsAccumulator } from './events_accumulator';
 import {
   clearIndexedDbPersistence,
   collection,
@@ -45,8 +46,7 @@ import {
   getDocsFromServer,
   getDocsFromCache,
   _AutoId,
-  disableNetwork,
-  enableNetwork
+  onSnapshot
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -596,32 +596,74 @@ export async function checkOnlineAndOfflineResultsMatch(
 }
 
 /**
- * Checks that documents fetched from the server and stored in the cache can be
- * successfully retrieved from the cache and matches the expected documents.
- *
- * This function performs the following steps:
- * 1. Fetch documents from the server for provided query and populate the cache.
- * 2. Disables the network connection to simulate offline mode.
- * 3. Retrieves the documents from the cache using the same query.
- * 4. Compares the cached documents with the expected documents.
- *
- * @param query The query to check.
- * @param db The Firestore database instance.
- * @param expectedDocs Optional ordered list of document data that are expected to be retrieved from the cache.
+ * Asserts that the given query produces the expected result for all of the
+ * following scenarios:
+ * 1. Performing the given query using source=server, compare with expected result and populate
+ * cache.
+ * 2. Performing the given query using source=cache, compare with server result and expected
+ * result.
+ * 3. Using a snapshot listener to raise snapshots from cache and server, compare them with
+ * expected result.
+ * @param {firebase.firestore.Query} query The query to test.
+ * @param {Object<string, Object<string, any>>} allData A map of document IDs to their data.
+ * @param {string[]} expectedDocIds An array of expected document IDs in the result.
+ * @returns {Promise<void>} A Promise that resolves when the assertions are complete.
  */
-export async function checkCacheRoundTrip(
+export async function assertSDKQueryResultsConsistentWithBackend(
   query: Query,
-  db: Firestore,
-  expectedDocs: DocumentData[]
+  allData: { [key: string]: DocumentData },
+  expectedDocIds: string[]
 ): Promise<void> {
-  await getDocsFromServer(query);
+  // Check the cache round trip first to make sure cache is properly populated, otherwise the
+  // snapshot listener below will return partial results from previous
+  // "assertSDKQueryResultsConsistentWithBackend" calls if it is called multiple times in one test
+  await checkOnlineAndOfflineResultsMatch(query, ...expectedDocIds);
 
-  await disableNetwork(db);
-  const docsFromCache = await getDocsFromCache(query);
-
-  if (expectedDocs.length !== 0) {
-    expect(expectedDocs).to.deep.equal(toDataArray(docsFromCache));
+  const eventAccumulator = new EventsAccumulator<QuerySnapshot>();
+  const unsubscribe = onSnapshot(
+    query,
+    { includeMetadataChanges: true },
+    eventAccumulator.storeEvent
+  );
+  let watchSnapshots;
+  try {
+    watchSnapshots = await eventAccumulator.awaitEvents(2);
+  } finally {
+    unsubscribe();
   }
 
-  await enableNetwork(db);
+  expect(watchSnapshots[0].metadata.fromCache).to.be.true;
+  verifySnapshot(watchSnapshots[0], allData, expectedDocIds);
+  expect(watchSnapshots[1].metadata.fromCache).to.be.false;
+  verifySnapshot(watchSnapshots[1], allData, expectedDocIds);
+}
+
+/**
+ * Verifies that a QuerySnapshot matches the expected data and document IDs.
+ * @param {firebase.firestore.QuerySnapshot} snapshot The QuerySnapshot to verify.
+ * @param {Object<string, Object<string, any>>} allData A map of document IDs to their data.
+ * @param {string[]} expectedDocIds An array of expected document IDs in the result.
+ */
+function verifySnapshot(
+  snapshot: QuerySnapshot,
+  allData: { [key: string]: DocumentData },
+  expectedDocIds: string[]
+): void {
+  const snapshotDocIds = toIds(snapshot);
+  expect(
+    expectedDocIds.length === snapshotDocIds.length,
+    `Did not get the same document size. Expected doc size: ${expectedDocIds.length}, Actual doc size: ${snapshotDocIds.length} `
+  ).to.be.true;
+
+  expect(
+    expectedDocIds.every((id, index) => id === snapshotDocIds[index]),
+    `Did not get the expected document IDs. Expected doc IDs: ${expectedDocIds}, Actual doc IDs: ${snapshotDocIds} `
+  ).to.be.true;
+
+  const actualDocs = toDataMap(snapshot);
+  for (const docId of expectedDocIds) {
+    const expectedDoc = allData[docId];
+    const actualDoc = actualDocs[docId];
+    expect(expectedDoc).to.deep.equal(actualDoc);
+  }
 }

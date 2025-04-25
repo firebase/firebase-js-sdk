@@ -88,17 +88,17 @@ export class BsonObjectId {
 export function bsonObjectId(value: string): BsonObjectId;
 
 // @public
-export function bsonTimestamp(seconds: number, increment: number): BsonTimestampValue;
-
-// @public
-export class BsonTimestampValue {
+export class BsonTimestamp {
     constructor(seconds: number, increment: number);
     // (undocumented)
     readonly increment: number;
-    isEqual(other: BsonTimestampValue): boolean;
+    isEqual(other: BsonTimestamp): boolean;
     // (undocumented)
     readonly seconds: number;
 }
+
+// @public
+export function bsonTimestamp(seconds: number, increment: number): BsonTimestamp;
 
 // @public
 export class Bytes {

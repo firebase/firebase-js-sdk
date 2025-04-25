@@ -722,7 +722,7 @@ describe('Values', () => {
     expect(canonicalId(wrap(int32(1)))).to.equal('{__int__:1}');
     expect(
       canonicalId(wrap(bsonBinaryData(1, new Uint8Array([1, 2, 3]))))
-    ).to.equal('{__binary__:{subType:1,data:AQID}}');
+    ).to.equal('{__binary__:AQECAw==}');
     expect(canonicalId(wrap(minKey()))).to.equal('{__min__:null}');
     expect(canonicalId(wrap(maxKey()))).to.equal('{__max__:null}');
   });
