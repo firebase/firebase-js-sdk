@@ -98,7 +98,13 @@ export abstract class RestConnection implements Connection {
     };
     this.modifyHeadersForRequest(headers, authToken, appCheckToken);
 
-    return this.performRPCRequest<Req, Resp>(rpcName, url, headers, req, this.databaseInfo.isUsingEmulator).then(
+    return this.performRPCRequest<Req, Resp>(
+      rpcName,
+      url,
+      headers,
+      req,
+      this.databaseInfo.isUsingEmulator
+    ).then(
       response => {
         logDebug(LOG_TAG, `Received RPC '${rpcName}' ${streamId}: `, response);
         return response;
