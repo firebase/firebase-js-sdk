@@ -29,18 +29,21 @@ import { Endpoint } from '../../api';
 import { UserInternal } from '../../model/user';
 import { _castAuth } from './auth_impl';
 import { connectAuthEmulator } from './emulator';
+import { FetchProvider } from '../util/fetch_provider';
 
 use(sinonChai);
 use(chaiAsPromised);
 
-describe('core/auth/emulator', () => {
+describe.only('core/auth/emulator', () => {
   let auth: TestAuth;
   let user: UserInternal;
   let normalEndpoint: fetch.Route;
   let emulatorEndpoint: fetch.Route;
+  let spy: sinon.SinonSpy;
 
   beforeEach(async () => {
     auth = await testAuth();
+    spy = sinon.spy(FetchProvider.fetch());
     user = testUser(_castAuth(auth), 'uid', 'email', true);
     fetch.setUp();
     normalEndpoint = mockEndpoint(Endpoint.DELETE_ACCOUNT, {});
@@ -93,8 +96,35 @@ describe('core/auth/emulator', () => {
         'auth/emulator-config-failed'
       );
     });
+    it.only('sends the proper value', async () => {
+      expect(() => connectAuthEmulator(auth, 'http://127.0.0.1:2020')).to.not
+        .throw;
+      await user.delete();
+      expect(spy).to.have.been.called;
+      expect(() => connectAuthEmulator(auth, 'http://127.0.0.1:2021')).to.throw(
+        FirebaseError,
+        'auth/emulator-config-failed'
+      );
+    });
 
     it('subsequent calls update the endpoint appropriately', async () => {
+      connectAuthEmulator(auth, 'http://127.0.0.1:2021');
+      expect(auth.emulatorConfig).to.eql({
+        protocol: 'http',
+        host: '127.0.0.1',
+        port: 2021,
+        options: { disableWarnings: false }
+      });
+      connectAuthEmulator(auth, 'http://127.0.0.1:2020');
+      expect(auth.emulatorConfig).to.eql({
+        protocol: 'http',
+        host: '127.0.0.1',
+        port: 2020,
+        options: { disableWarnings: false }
+      });
+    });
+
+  it('subsequent calls update the endpoint appropriately', async () => {
       connectAuthEmulator(auth, 'http://127.0.0.1:2021');
       expect(auth.emulatorConfig).to.eql({
         protocol: 'http',
