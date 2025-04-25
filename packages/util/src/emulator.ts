@@ -16,7 +16,6 @@
  */
 
 import { base64urlEncodeWithoutPadding } from './crypt';
-import { FirebaseApp } from '@firebase/app';
 
 // Firebase Auth tokens contain snake_case claims following the JWT standard / convention.
 /* eslint-disable camelcase */
