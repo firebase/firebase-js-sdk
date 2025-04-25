@@ -42,9 +42,7 @@ export class ChromeAdapter {
     private languageModelProvider?: LanguageModel,
     private mode?: InferenceMode,
     private onDeviceParams: LanguageModelCreateOptions = {}
-  ) {
-    this.addImageTypeAsExpectedInput();
-  }
+  ) {}
 
   /**
    * Checks if a given request can be made on-device.
@@ -236,11 +234,6 @@ export class ChromeAdapter {
     // Holds session reference, so model isn't unloaded from memory.
     this.oldSession = newSession;
     return newSession;
-  }
-
-  private addImageTypeAsExpectedInput(): void {
-    // Defaults to support image inputs for convenience.
-    this.onDeviceParams.expectedInputs ??= [{ type: 'image' }];
   }
 
   /**
