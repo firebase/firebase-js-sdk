@@ -124,7 +124,7 @@ describe.only('core/auth/emulator', () => {
       });
     });
 
-  it('subsequent calls update the endpoint appropriately', async () => {
+    it('subsequent calls update the endpoint appropriately', async () => {
       connectAuthEmulator(auth, 'http://127.0.0.1:2021');
       expect(auth.emulatorConfig).to.eql({
         protocol: 'http',

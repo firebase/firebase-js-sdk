@@ -19,7 +19,8 @@ import {
   FirebaseError,
   isCloudflareWorker,
   isCloudWorkstation,
-  querystring
+  querystring,
+  updateStatus
 } from '@firebase/util';
 
 import { AuthErrorCode, NamedErrorParams } from '../core/errors';
@@ -198,7 +199,16 @@ export async function _performFetchWithErrorHandling<V>(
   customErrorMap: Partial<ServerErrorMap<ServerError>>,
   fetchFn: () => Promise<Response>
 ): Promise<V> {
-  (auth as AuthInternal)._canInitEmulator = false;
+  const authInternal = auth as AuthInternal;
+  updateStatus(
+    {
+      name: 'Auth',
+      isRunningEmulator: authInternal.emulatorConfig !== undefined
+    },
+    authInternal.emulatorConfig!! &&
+      isCloudWorkstation(authInternal.emulatorConfig.host)
+  );
+  authInternal._canInitEmulator = false;
   const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
   try {
     const networkTimeout = new NetworkTimeout<Response>(auth);

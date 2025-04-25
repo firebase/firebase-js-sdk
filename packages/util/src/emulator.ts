@@ -16,6 +16,7 @@
  */
 
 import { base64urlEncodeWithoutPadding } from './crypt';
+import { FirebaseApp } from '@firebase/app';
 
 // Firebase Auth tokens contain snake_case claims following the JWT standard / convention.
 /* eslint-disable camelcase */
@@ -139,4 +140,65 @@ export function createMockUserToken(
     base64urlEncodeWithoutPadding(JSON.stringify(payload)),
     signature
   ].join('.');
+}
+
+function getOrCreate(id: string): { created: boolean; element: HTMLElement } {
+  let parentDiv = document.getElementById(id);
+  let created = false;
+  if (!parentDiv) {
+    parentDiv = document.createElement('div');
+    parentDiv.setAttribute('id', id);
+    created = true;
+  }
+  return { created, element: parentDiv };
+}
+
+export interface EmulatorStatus {
+  name: string;
+  isRunningEmulator: boolean;
+}
+export function updateStatus(
+  emulatorStatus: EmulatorStatus,
+  isCloudWorkstation: boolean
+) {
+  function setupDom() {
+    const parentDivId = `__firebase_status`;
+
+    let { element: parentDiv, created } = getOrCreate(parentDivId);
+
+    if (created) {
+      parentDiv.style.position = 'fixed';
+      parentDiv.style.bottom = '0px';
+      parentDiv.style.border = 'solid 1px';
+      parentDiv.style.width = '100%';
+      parentDiv.style.borderRadius = '10px';
+      parentDiv.style.padding = '.5em';
+      parentDiv.style.textAlign = 'center';
+      document.body.appendChild(parentDiv);
+    }
+
+    const { name, isRunningEmulator } = emulatorStatus;
+    const { element, created: productDivCreated } = getOrCreate(
+      `${parentDivId}_${name}`
+    );
+    // If in prod, and not using a cloud workstation, we should remove the node, as the banner can be distracting.
+    if (!isRunningEmulator && !isCloudWorkstation) {
+      element.remove();
+      return;
+    }
+    if (productDivCreated) {
+      parentDiv.appendChild(element);
+    }
+    element.style.color = isRunningEmulator ? 'green' : 'red';
+    element.innerHTML = `${name} is running in ${
+      isRunningEmulator ? 'emulator' : 'prod'
+    } mode`;
+  }
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', setupDom);
+    } else {
+      setupDom();
+    }
+  }
 }

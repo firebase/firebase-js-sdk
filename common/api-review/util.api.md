@@ -140,6 +140,16 @@ export type EmulatorMockTokenOptions = ({
     sub: string;
 }) & Partial<FirebaseIdToken>;
 
+// Warning: (ae-missing-release-tag) "EmulatorStatus" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export interface EmulatorStatus {
+    // (undocumented)
+    isRunningEmulator: boolean;
+    // (undocumented)
+    name: string;
+}
+
 // Warning: (ae-missing-release-tag) "ErrorData" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -480,6 +490,11 @@ export interface Subscribe<T> {
 //
 // @public (undocumented)
 export type Unsubscribe = () => void;
+
+// Warning: (ae-missing-release-tag) "updateStatus" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function updateStatus(emulatorStatus: EmulatorStatus, isCloudWorkstation: boolean): void;
 
 // Warning: (ae-missing-release-tag) "validateArgCount" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

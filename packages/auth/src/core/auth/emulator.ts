@@ -18,7 +18,7 @@ import { Auth } from '../../model/public_types';
 import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
 import { _castAuth } from './auth_impl';
-import { deepEqual } from '@firebase/util';
+import { deepEqual, isCloudWorkstation, updateStatus } from '@firebase/util';
 
 /**
  * Changes the {@link Auth} instance to communicate with the Firebase Auth Emulator, instead of production
@@ -98,7 +98,13 @@ export function connectAuthEmulator(
   authInternal.settings.appVerificationDisabledForTesting = true;
 
   if (!disableWarnings) {
-    emitEmulatorWarning();
+    updateStatus(
+      {
+        name: 'Auth',
+        isRunningEmulator: true
+      },
+      isCloudWorkstation(emulatorConfig.host)
+    );
   }
 }
 
@@ -136,40 +142,4 @@ function parsePort(portStr: string): number | null {
     return null;
   }
   return port;
-}
-
-function emitEmulatorWarning(): void {
-  function attachBanner(): void {
-    const el = document.createElement('p');
-    const sty = el.style;
-    el.innerText =
-      'Running in emulator mode. Do not use with production credentials.';
-    sty.position = 'fixed';
-    sty.width = '100%';
-    sty.backgroundColor = '#ffffff';
-    sty.border = '.1em solid #000000';
-    sty.color = '#b50000';
-    sty.bottom = '0px';
-    sty.left = '0px';
-    sty.margin = '0px';
-    sty.zIndex = '10000';
-    sty.textAlign = 'center';
-    el.classList.add('firebase-emulator-warning');
-    document.body.appendChild(el);
-  }
-
-  if (typeof console !== 'undefined' && typeof console.info === 'function') {
-    console.info(
-      'WARNING: You are using the Auth Emulator,' +
-        ' which is intended for local testing only.  Do not use with' +
-        ' production credentials.'
-    );
-  }
-  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-    if (document.readyState === 'loading') {
-      window.addEventListener('DOMContentLoaded', attachBanner);
-    } else {
-      attachBanner();
-    }
-  }
 }

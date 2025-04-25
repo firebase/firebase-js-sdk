@@ -26,7 +26,9 @@ import {
   createMockUserToken,
   deepEqual,
   EmulatorMockTokenOptions,
-  getDefaultEmulatorHostnameAndPort
+  getDefaultEmulatorHostnameAndPort,
+  isCloudWorkstation,
+  updateStatus
 } from '@firebase/util';
 
 import {
@@ -140,6 +142,13 @@ export class Firestore implements FirestoreService {
 
   _freezeSettings(): FirestoreSettingsImpl {
     this._settingsFrozen = true;
+    updateStatus(
+      {
+        name: 'Firestore',
+        isRunningEmulator: (this._settings as PrivateSettings).emulator!!
+      },
+      isCloudWorkstation(this._settings.host)
+    );
     return this._settings;
   }
 
@@ -297,6 +306,7 @@ export function getFirestore(
   if (!db._initialized) {
     const emulator = getDefaultEmulatorHostnameAndPort('firestore');
     if (emulator) {
+      console.log('emulator');
       connectFirestoreEmulator(db, ...emulator);
     }
   }
@@ -346,8 +356,10 @@ export function connectFirestoreEmulator(
     ...settings,
     host: newHostSetting,
     ssl,
-    emulatorOptions: options
+    emulatorOptions: options,
+    emulator: true
   };
+  console.log(newConfig);
   // No-op if the new configuration matches the current configuration. This supports SSR
   // enviornments which might call `connectFirestoreEmulator` multiple times as a standard practice.
   if (deepEqual(newConfig, existingConfig)) {
