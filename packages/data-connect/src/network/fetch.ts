@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { isCloudWorkstation } from '@firebase/util';
+
 import {
   Code,
   DataConnectError,
@@ -22,10 +24,9 @@ import {
   DataConnectOperationFailureResponse
 } from '../core/error';
 import { SDK_VERSION } from '../core/version';
-import { logDebug, logError } from '../logger';
+import { logError } from '../logger';
 
 import { CallerSdkType, CallerSdkTypeEnum } from './transport';
-import { isCloudWorkstation } from '@firebase/util';
 
 let connectFetch: typeof fetch | null = globalThis.fetch;
 export function initializeFetch(fetchImpl: typeof fetch): void {
