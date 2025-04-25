@@ -28,7 +28,7 @@ import { Datastore, newDatastore } from '../remote/datastore';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 
-import { FirestoreSettingsImpl } from './settings';
+import { FirestoreSettingsImpl, PrivateSettings } from './settings';
 
 export const LOG_TAG = 'ComponentProvider';
 
@@ -110,6 +110,7 @@ export function makeDatabaseInfo(
   persistenceKey: string,
   settings: FirestoreSettingsImpl
 ): DatabaseInfo {
+  const privateSettings = settings as PrivateSettings;
   return new DatabaseInfo(
     databaseId,
     appId,
@@ -119,6 +120,7 @@ export function makeDatabaseInfo(
     settings.experimentalForceLongPolling,
     settings.experimentalAutoDetectLongPolling,
     cloneLongPollingOptions(settings.experimentalLongPollingOptions),
-    settings.useFetchStreams
+    settings.useFetchStreams,
+    privateSettings.emulatorOptions !== undefined
   );
 }

@@ -98,7 +98,7 @@ export abstract class RestConnection implements Connection {
     };
     this.modifyHeadersForRequest(headers, authToken, appCheckToken);
 
-    return this.performRPCRequest<Req, Resp>(rpcName, url, headers, req).then(
+    return this.performRPCRequest<Req, Resp>(rpcName, url, headers, req, this.databaseInfo.isUsingEmulator).then(
       response => {
         logDebug(LOG_TAG, `Received RPC '${rpcName}' ${streamId}: `, response);
         return response;
@@ -179,7 +179,8 @@ export abstract class RestConnection implements Connection {
     rpcName: string,
     url: string,
     headers: StringMap,
-    body: Req
+    body: Req,
+    isUsingEmulator: boolean
   ): Promise<Resp>;
 
   private makeUrl(rpcName: string, path: string): string {
