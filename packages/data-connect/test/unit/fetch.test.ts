@@ -57,7 +57,8 @@ describe('fetch', () => {
         null,
         null,
         false,
-        CallerSdkTypeEnum.Base
+        CallerSdkTypeEnum.Base,
+        false
       )
     ).to.eventually.be.rejectedWith(message);
   });
@@ -81,7 +82,8 @@ describe('fetch', () => {
         null,
         null,
         false,
-        CallerSdkTypeEnum.Base
+        CallerSdkTypeEnum.Base,
+        false
       )
     ).to.eventually.be.rejectedWith(JSON.stringify(json));
   });
@@ -112,7 +114,8 @@ describe('fetch', () => {
         null,
         null,
         false,
-        CallerSdkTypeEnum.Base
+        CallerSdkTypeEnum.Base,
+        false
       )
     ).to.eventually.be.rejected.then(error => {
       expect(error.response.data).to.eq(json.data);
@@ -143,7 +146,8 @@ describe('fetch', () => {
           null,
           null,
           false, // _isUsingGen is false
-          callerSdkType as CallerSdkType
+          callerSdkType as CallerSdkType,
+          false
         );
 
         let expectedHeaderRegex: RegExp;
@@ -191,7 +195,8 @@ describe('fetch', () => {
           null,
           null,
           true, // _isUsingGen is true
-          callerSdkType as CallerSdkType
+          callerSdkType as CallerSdkType,
+          false
         );
 
         let expectedHeaderRegex: RegExp;
