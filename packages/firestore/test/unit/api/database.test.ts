@@ -564,6 +564,17 @@ describe('Settings', () => {
     expect(db._getEmulatorOptions()).to.equal(emulatorOptions);
   });
 
+  it('sets ssl to true if prefixed with https://', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    const emulatorOptions = { mockUserToken: 'test' };
+    connectFirestoreEmulator(db, 'https://127.0.0.1', 9000, emulatorOptions);
+
+    expect(db._getSettings().host).to.exist.and.to.equal('127.0.0.1:9000');
+    expect(db._getSettings().ssl).to.exist.and.to.be.true;
+    expect(db._getEmulatorOptions()).to.equal(emulatorOptions);
+  });
+
   it('prefers host from useEmulator to host from settings', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();

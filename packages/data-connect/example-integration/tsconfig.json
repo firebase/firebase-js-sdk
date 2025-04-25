@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+      "target": "ES5",
+      "module": "CommonJS",
+      "resolveJsonModule": true,
+      "sourceMap": true,
+      "noEmit": true,
+      "skipLibCheck": false
+    }
+  }

@@ -24,7 +24,7 @@ module.exports = {
     tsconfigRootDir: __dirname
   },
   plugins: ['import'],
-  ignorePatterns: ['compat/*'],
+  ignorePatterns: ['compat/*', 'example-integration/*'],
   rules: {
     'no-console': ['error', { allow: ['warn', 'error'] }],
     '@typescript-eslint/no-unused-vars': [
