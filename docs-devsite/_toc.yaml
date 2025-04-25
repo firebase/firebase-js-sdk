@@ -245,28 +245,10 @@ toc:
     path: /docs/reference/js/firestore_.loadbundletask.md
   - title: LoadBundleTaskProgress
     path: /docs/reference/js/firestore_.loadbundletaskprogress.md
-  - title: MemoryCacheSettings
-    path: /docs/reference/js/firestore_.memorycachesettings.md
-  - title: MemoryEagerGarbageCollector
-    path: /docs/reference/js/firestore_.memoryeagergarbagecollector.md
-  - title: MemoryLocalCache
-    path: /docs/reference/js/firestore_.memorylocalcache.md
-  - title: MemoryLruGarbageCollector
-    path: /docs/reference/js/firestore_.memorylrugarbagecollector.md
   - title: PersistenceSettings
     path: /docs/reference/js/firestore_.persistencesettings.md
   - title: PersistentCacheIndexManager
     path: /docs/reference/js/firestore_.persistentcacheindexmanager.md
-  - title: PersistentCacheSettings
-    path: /docs/reference/js/firestore_.persistentcachesettings.md
-  - title: PersistentLocalCache
-    path: /docs/reference/js/firestore_.persistentlocalcache.md
-  - title: PersistentMultipleTabManager
-    path: /docs/reference/js/firestore_.persistentmultipletabmanager.md
-  - title: PersistentSingleTabManager
-    path: /docs/reference/js/firestore_.persistentsingletabmanager.md
-  - title: PersistentSingleTabManagerSettings
-    path: /docs/reference/js/firestore_.persistentsingletabmanagersettings.md
   - title: Query
     path: /docs/reference/js/firestore_.query.md
   - title: QueryCompositeFilterConstraint
@@ -482,6 +464,8 @@ toc:
     path: /docs/reference/js/vertexai.aioptions.md
   - title: ArraySchema
     path: /docs/reference/js/vertexai.arrayschema.md
+  - title: Backend
+    path: /docs/reference/js/vertexai.backend.md
   - title: BaseParams
     path: /docs/reference/js/vertexai.baseparams.md
   - title: BooleanSchema
@@ -540,10 +524,14 @@ toc:
     path: /docs/reference/js/vertexai.generativecontentblob.md
   - title: GenerativeModel
     path: /docs/reference/js/vertexai.generativemodel.md
+  - title: GoogleAIBackend
+    path: /docs/reference/js/vertexai.googleaibackend.md
   - title: GroundingAttribution
     path: /docs/reference/js/vertexai.groundingattribution.md
   - title: GroundingMetadata
     path: /docs/reference/js/vertexai.groundingmetadata.md
+  - title: HybridParams
+    path: /docs/reference/js/vertexai.hybridparams.md
   - title: ImagenGCSImage
     path: /docs/reference/js/vertexai.imagengcsimage.md
   - title: ImagenGenerationConfig
@@ -606,6 +594,8 @@ toc:
     path: /docs/reference/js/vertexai.toolconfig.md
   - title: UsageMetadata
     path: /docs/reference/js/vertexai.usagemetadata.md
+  - title: VertexAIBackend
+    path: /docs/reference/js/vertexai.vertexaibackend.md
   - title: VertexAIOptions
     path: /docs/reference/js/vertexai.vertexaioptions.md
   - title: VideoMetadata

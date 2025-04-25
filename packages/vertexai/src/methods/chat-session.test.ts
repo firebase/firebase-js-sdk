@@ -24,6 +24,7 @@ import { GenerateContentStreamResult } from '../types';
 import { ChatSession } from './chat-session';
 import { ApiSettings } from '../types/internal';
 import { VertexAIBackend } from '../backend';
+import { ChromeAdapter } from './chrome-adapter';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -46,7 +47,11 @@ describe('ChatSession', () => {
         generateContentMethods,
         'generateContent'
       ).rejects('generateContent failed');
-      const chatSession = new ChatSession(fakeApiSettings, 'a-model');
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        new ChromeAdapter()
+      );
       await expect(chatSession.sendMessage('hello')).to.be.rejected;
       expect(generateContentStub).to.be.calledWith(
         fakeApiSettings,
@@ -63,7 +68,11 @@ describe('ChatSession', () => {
         generateContentMethods,
         'generateContentStream'
       ).rejects('generateContentStream failed');
-      const chatSession = new ChatSession(fakeApiSettings, 'a-model');
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        new ChromeAdapter()
+      );
       await expect(chatSession.sendMessageStream('hello')).to.be.rejected;
       expect(generateContentStreamStub).to.be.calledWith(
         fakeApiSettings,
@@ -82,7 +91,11 @@ describe('ChatSession', () => {
         generateContentMethods,
         'generateContentStream'
       ).resolves({} as unknown as GenerateContentStreamResult);
-      const chatSession = new ChatSession(fakeApiSettings, 'a-model');
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        new ChromeAdapter()
+      );
       await chatSession.sendMessageStream('hello');
       expect(generateContentStreamStub).to.be.calledWith(
         fakeApiSettings,

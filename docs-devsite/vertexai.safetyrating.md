@@ -25,9 +25,9 @@ export interface SafetyRating
 |  [blocked](./vertexai.safetyrating.md#safetyratingblocked) | boolean |  |
 |  [category](./vertexai.safetyrating.md#safetyratingcategory) | [HarmCategory](./vertexai.md#harmcategory) |  |
 |  [probability](./vertexai.safetyrating.md#safetyratingprobability) | [HarmProbability](./vertexai.md#harmprobability) |  |
-|  [probabilityScore](./vertexai.safetyrating.md#safetyratingprobabilityscore) | number |  |
-|  [severity](./vertexai.safetyrating.md#safetyratingseverity) | [HarmSeverity](./vertexai.md#harmseverity) |  |
-|  [severityScore](./vertexai.safetyrating.md#safetyratingseverityscore) | number |  |
+|  [probabilityScore](./vertexai.safetyrating.md#safetyratingprobabilityscore) | number | This field is not supported in Google AI, so it will default to 0 when using Google AI. |
+|  [severity](./vertexai.safetyrating.md#safetyratingseverity) | [HarmSeverity](./vertexai.md#harmseverity) | This field is not supported in Google AI, so it will default to <code>HarmSeverity.UNSUPPORTED</code> when using Google AI. |
+|  [severityScore](./vertexai.safetyrating.md#safetyratingseverityscore) | number | This field is not supported in Google AI, so it will default to 0 when using Google AI. |
 
 ## SafetyRating.blocked
 
@@ -55,6 +55,8 @@ probability: HarmProbability;
 
 ## SafetyRating.probabilityScore
 
+This field is not supported in Google AI, so it will default to 0 when using Google AI.
+
 <b>Signature:</b>
 
 ```typescript
@@ -63,6 +65,8 @@ probabilityScore: number;
 
 ## SafetyRating.severity
 
+This field is not supported in Google AI, so it will default to `HarmSeverity.UNSUPPORTED` when using Google AI.
+
 <b>Signature:</b>
 
 ```typescript
@@ -70,6 +74,8 @@ severity: HarmSeverity;
 ```
 
 ## SafetyRating.severityScore
+
+This field is not supported in Google AI, so it will default to 0 when using Google AI.
 
 <b>Signature:</b>
 
