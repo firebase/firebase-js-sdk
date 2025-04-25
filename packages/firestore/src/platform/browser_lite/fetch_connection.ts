@@ -16,6 +16,7 @@
  */
 
 import { isCloudWorkstation } from '@firebase/util';
+
 import { Token } from '../../api/credentials';
 import { Stream } from '../../remote/connection';
 import { RestConnection } from '../../remote/rest_connection';
