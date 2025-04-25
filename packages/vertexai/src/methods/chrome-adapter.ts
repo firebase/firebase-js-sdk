@@ -136,9 +136,10 @@ export class ChromeAdapter {
       return false;
     }
 
-    // Applies the same checks as above, but for each content item.
     for (const content of request.contents) {
-      if (content.role === 'function') {
+      // Returns false if the request contains multiple roles, eg a chat history.
+      // TODO: remove this guard once LanguageModelMessage is supported.
+      if (content.role !== 'user') {
         return false;
       }
     }
