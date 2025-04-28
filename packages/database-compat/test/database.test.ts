@@ -292,17 +292,9 @@ describe('Database Tests', () => {
     expect((db as any)._delegate._repo.repoInfo_.isUsingEmulator).to.be.false;
   });
 
-  it('uses ssl when useEmulator is called with https is specified', () => {
+  it('uses ssl when useEmulator is called with ssl specified', () => {
     const db = firebase.database();
-    db.useEmulator('https://localhost', 80);
-    expect((db as any)._delegate._repo.repoInfo_.isUsingEmulator).to.be.true;
-    expect((db as any)._delegate._repo.repoInfo_.host).to.equal('localhost:80');
-    expect((db as any)._delegate._repo.repoInfo_.secure).to.be.true;
-  });
-
-  it('uses ssl when useEmulator is called with wss is specified', () => {
-    const db = firebase.database();
-    db.useEmulator('wss://localhost', 80);
+    db.useEmulator('localhost', 80, { ssl: true });
     expect((db as any)._delegate._repo.repoInfo_.isUsingEmulator).to.be.true;
     expect((db as any)._delegate._repo.repoInfo_.host).to.equal('localhost:80');
     expect((db as any)._delegate._repo.repoInfo_.secure).to.be.true;
