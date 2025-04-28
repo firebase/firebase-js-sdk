@@ -92,7 +92,7 @@ export class StorageServiceCompat
     port: number,
     options: {
       mockUserToken?: EmulatorMockTokenOptions | string;
-      ssl?: boolean
+      ssl?: boolean;
     } = {}
   ): void {
     connectStorageEmulator(this._delegate, host, port, options);
