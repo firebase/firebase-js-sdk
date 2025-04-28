@@ -184,7 +184,7 @@ describe.only('core/auth/emulator', () => {
       );
     });
 
-    it('skips console info and has no banner if warnings disabled', () => {
+    it.only('skips console info and has no banner if warnings disabled', () => {
       sinon.stub(console, 'info');
       connectAuthEmulator(auth, 'http://127.0.0.1:2020', {
         disableWarnings: true

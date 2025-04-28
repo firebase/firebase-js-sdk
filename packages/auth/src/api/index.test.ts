@@ -74,7 +74,26 @@ describe('api/_performApiRequest', () => {
     });
     afterEach(mockFetch.tearDown);
 
-    it.only('should set the correct request, method and HTTP Headers', async () => {
+    it('should set the correct request, method and HTTP Headers', async () => {
+      const mock = mockEndpoint(Endpoint.SIGN_UP, serverResponse);
+      const response = await _performApiRequest<
+        typeof request,
+        typeof serverResponse
+      >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
+      expect(response).to.eql(serverResponse);
+      expect(mock.calls.length).to.eq(1);
+      expect(mock.calls[0].method).to.eq(HttpMethod.POST);
+      expect(mock.calls[0].request).to.eql(request);
+      expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+        'application/json'
+      );
+      expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+        'testSDK/0.0.0'
+      );
+      expect(mock.calls[0].fullRequest?.credentials).to.be.undefined;
+    });
+
+    it('should set credentials to "include" when using IDX and emulator', async () => {
       const mock = mockEndpoint(Endpoint.SIGN_UP, serverResponse);
       auth.emulatorConfig = {
         host: 'https://something.cloudworkstations.dev',
@@ -84,7 +103,7 @@ describe('api/_performApiRequest', () => {
           disableWarnings: false
         }
       };
-      const response = await _performApiRequest<
+      await _performApiRequest<
         typeof request,
         typeof serverResponse
       >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
