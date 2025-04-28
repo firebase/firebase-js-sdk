@@ -103,10 +103,12 @@ describe('api/_performApiRequest', () => {
           disableWarnings: false
         }
       };
-      await _performApiRequest<
-        typeof request,
-        typeof serverResponse
-      >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
+      await _performApiRequest<typeof request, typeof serverResponse>(
+        auth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
       expect(mock.calls[0].fullRequest?.credentials).to.eq('include');
     });
 
