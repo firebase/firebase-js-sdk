@@ -47,6 +47,14 @@ describe('Firebase Functions > Service', () => {
         'http://localhost:5005/my-project/us-central1/foo'
       );
     });
+    it('can use emulator with SSL', () => {
+      service = createTestService(app);
+      connectFunctionsEmulator(service, 'localhost', 5005, true);
+      assert.equal(
+        service._url('foo'),
+        'https://localhost:5005/my-project/us-central1/foo'
+      );
+    });
 
     it('correctly sets region', () => {
       service = createTestService(app, 'my-region');
