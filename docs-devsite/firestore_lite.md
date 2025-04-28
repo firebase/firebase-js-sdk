@@ -23,7 +23,7 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(firestore, ...)</b> |
 |  [collection(firestore, path, pathSegments)](./firestore_lite.md#collection_1eb4c23) | Gets a <code>CollectionReference</code> instance that refers to the collection at the specified absolute path. |
 |  [collectionGroup(firestore, collectionId)](./firestore_lite.md#collectiongroup_1838fc3) | Creates and returns a new <code>Query</code> instance that includes all documents in the database that are contained in a collection or subcollection with the given <code>collectionId</code>. |
-|  [connectFirestoreEmulator(firestore, host, port, options)](./firestore_lite.md#connectfirestoreemulator_7c247cd) | Modify this instance to communicate with the Cloud Firestore emulator.<!-- -->Note: This must be called before this instance has been used to do any operations. |
+|  [connectFirestoreEmulator(firestore, host, port, options)](./firestore_lite.md#connectfirestoreemulator_6c8868a) | Modify this instance to communicate with the Cloud Firestore emulator.<!-- -->Note: This must be called before this instance has been used to do any operations. |
 |  [doc(firestore, path, pathSegments)](./firestore_lite.md#doc_1eb4c23) | Gets a <code>DocumentReference</code> instance that refers to the document at the specified absolute path. |
 |  [runTransaction(firestore, updateFunction, options)](./firestore_lite.md#runtransaction_6f03ec4) | Executes the given <code>updateFunction</code> and then attempts to commit the changes applied within the transaction. If any document read within the transaction has changed, Cloud Firestore retries the <code>updateFunction</code>. If it fails to commit after 5 attempts, the transaction fails.<!-- -->The maximum number of writes allowed in a single transaction is 500. |
 |  [terminate(firestore)](./firestore_lite.md#terminate_231a8e0) | Terminates the provided <code>Firestore</code> instance.<!-- -->After calling <code>terminate()</code> only the <code>clearIndexedDbPersistence()</code> functions may be used. Any other function will throw a <code>FirestoreError</code>. Termination does not cancel any pending writes, and any promises that are awaiting a response from the server will not be resolved.<!-- -->To restart after termination, create a new instance of <code>Firestore</code> with [getFirestore()](./firestore_.md#getfirestore)<!-- -->.<!-- -->Note: Under normal circumstances, calling <code>terminate()</code> is not required. This function is useful only when you want to force this instance to release all of its resources or in combination with [clearIndexedDbPersistence()](./firestore_.md#clearindexeddbpersistence_231a8e0) to ensure that all local state is destroyed between test runs. |
@@ -308,7 +308,7 @@ export declare function collectionGroup(firestore: Firestore, collectionId: stri
 
 The created `Query`<!-- -->.
 
-### connectFirestoreEmulator(firestore, host, port, options) {:#connectfirestoreemulator_7c247cd}
+### connectFirestoreEmulator(firestore, host, port, options) {:#connectfirestoreemulator_6c8868a}
 
 Modify this instance to communicate with the Cloud Firestore emulator.
 
@@ -319,6 +319,7 @@ Note: This must be called before this instance has been used to do any operation
 ```typescript
 export declare function connectFirestoreEmulator(firestore: Firestore, host: string, port: number, options?: {
     mockUserToken?: EmulatorMockTokenOptions | string;
+    ssl?: boolean;
 }): void;
 ```
 
@@ -329,7 +330,7 @@ export declare function connectFirestoreEmulator(firestore: Firestore, host: str
 |  firestore | [Firestore](./firestore_lite.firestore.md#firestore_class) | The <code>Firestore</code> instance to configure to connect to the emulator. |
 |  host | string | the emulator host (ex: localhost). |
 |  port | number | the emulator port (ex: 9000). |
-|  options | { mockUserToken?: [EmulatorMockTokenOptions](./util.md#emulatormocktokenoptions) \| string; } |  |
+|  options | { mockUserToken?: [EmulatorMockTokenOptions](./util.md#emulatormocktokenoptions) \| string; ssl?: boolean; } |  |
 
 <b>Returns:</b>
 
