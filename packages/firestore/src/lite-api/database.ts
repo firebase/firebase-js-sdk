@@ -326,7 +326,7 @@ export function connectFirestoreEmulator(
   } = {}
 ): void {
   firestore = cast(firestore, Firestore);
-  let ssl = options.ssl ?? false;
+  const ssl = options.ssl ?? false;
   const settings = firestore._getSettings();
   const existingConfig = {
     ...settings,
