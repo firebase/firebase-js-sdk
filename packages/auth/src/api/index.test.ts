@@ -41,7 +41,7 @@ import {
 import { ServerError } from './errors';
 import { SDK_VERSION } from '@firebase/app';
 import { _getBrowserName } from '../core/util/browser';
-import { FetchProvider } from '../../internal';
+import { connectAuthEmulator, FetchProvider } from '../../internal';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -65,23 +65,30 @@ describe('api/_performApiRequest', () => {
 
   afterEach(() => {
     sinon.restore();
-  })
+  });
 
   context.only('with regular requests', () => {
-    
     beforeEach(() => {
       mockFetch.setUp();
       fetchSpy = sinon.spy(FetchProvider.fetch());
-    })
+    });
     afterEach(mockFetch.tearDown);
 
     it.only('should set the correct request, method and HTTP Headers', async () => {
       const mock = mockEndpoint(Endpoint.SIGN_UP, serverResponse);
+      auth.emulatorConfig = {
+        host: 'https://something.cloudworkstations.dev',
+        protocol: '',
+        port: 8,
+        options: {
+          disableWarnings: false
+        }
+      };
       const response = await _performApiRequest<
         typeof request,
         typeof serverResponse
       >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
-      expect(fetchSpy).to.have.been.called;
+      expect(mock.calls[0].fullRequest?.credentials).to.eq('include');
     });
 
     it('should set the device language if available', async () => {

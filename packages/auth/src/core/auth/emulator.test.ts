@@ -43,7 +43,6 @@ describe.only('core/auth/emulator', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
-    spy = sinon.spy(FetchProvider.fetch());
     user = testUser(_castAuth(auth), 'uid', 'email', true);
     fetch.setUp();
     normalEndpoint = mockEndpoint(Endpoint.DELETE_ACCOUNT, {});
@@ -96,16 +95,6 @@ describe.only('core/auth/emulator', () => {
         'auth/emulator-config-failed'
       );
     });
-    it.only('sends the proper value', async () => {
-      expect(() => connectAuthEmulator(auth, 'http://127.0.0.1:2020')).to.not
-        .throw;
-      await user.delete();
-      expect(spy).to.have.been.called;
-      expect(() => connectAuthEmulator(auth, 'http://127.0.0.1:2021')).to.throw(
-        FirebaseError,
-        'auth/emulator-config-failed'
-      );
-    });
 
     it('subsequent calls update the endpoint appropriately', async () => {
       connectAuthEmulator(auth, 'http://127.0.0.1:2021');
@@ -124,7 +113,7 @@ describe.only('core/auth/emulator', () => {
       });
     });
 
-  it('subsequent calls update the endpoint appropriately', async () => {
+    it('subsequent calls update the endpoint appropriately', async () => {
       connectAuthEmulator(auth, 'http://127.0.0.1:2021');
       expect(auth.emulatorConfig).to.eql({
         protocol: 'http',
