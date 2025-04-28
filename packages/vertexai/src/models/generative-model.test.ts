@@ -168,7 +168,7 @@ describe('GenerativeModel', () => {
     restore();
   });
   it('passes base model params through to ChatSession when there are no startChatParams', async () => {
-    const genModel = new GenerativeModel(fakeVertexAI, {
+    const genModel = new GenerativeModel(fakeAI, {
       model: 'my-model',
       generationConfig: {
         topK: 1
@@ -181,7 +181,7 @@ describe('GenerativeModel', () => {
     restore();
   });
   it('overrides base model params with startChatParams', () => {
-    const genModel = new GenerativeModel(fakeVertexAI, {
+    const genModel = new GenerativeModel(fakeAI, {
       model: 'my-model',
       generationConfig: {
         topK: 1
