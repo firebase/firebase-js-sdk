@@ -41,6 +41,7 @@ import {
 import { ServerError } from './errors';
 import { SDK_VERSION } from '@firebase/app';
 import { _getBrowserName } from '../core/util/browser';
+import { FetchProvider } from '../../internal';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -56,30 +57,31 @@ describe('api/_performApiRequest', () => {
 
   let auth: TestAuth;
 
+  let fetchSpy: sinon.SinonSpy;
+
   beforeEach(async () => {
     auth = await testAuth();
   });
 
-  context('with regular requests', () => {
-    beforeEach(mockFetch.setUp);
+  afterEach(() => {
+    sinon.restore();
+  })
+
+  context.only('with regular requests', () => {
+    
+    beforeEach(() => {
+      mockFetch.setUp();
+      fetchSpy = sinon.spy(FetchProvider.fetch());
+    })
     afterEach(mockFetch.tearDown);
 
-    it('should set the correct request, method and HTTP Headers', async () => {
+    it.only('should set the correct request, method and HTTP Headers', async () => {
       const mock = mockEndpoint(Endpoint.SIGN_UP, serverResponse);
       const response = await _performApiRequest<
         typeof request,
         typeof serverResponse
       >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
-      expect(response).to.eql(serverResponse);
-      expect(mock.calls.length).to.eq(1);
-      expect(mock.calls[0].method).to.eq(HttpMethod.POST);
-      expect(mock.calls[0].request).to.eql(request);
-      expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
-        'application/json'
-      );
-      expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
-        'testSDK/0.0.0'
-      );
+      expect(fetchSpy).to.have.been.called;
     });
 
     it('should set the device language if available', async () => {

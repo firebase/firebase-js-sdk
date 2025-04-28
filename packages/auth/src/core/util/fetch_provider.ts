@@ -37,7 +37,6 @@ export class FetchProvider {
   }
 
   static fetch(): typeof fetch {
-    console.log('fetch!');
     if (this.fetchImpl) {
       return this.fetchImpl;
     }
