@@ -24,6 +24,7 @@ import { each } from './util/util';
 
 export interface RepoInfoEmulatorOptions {
   mockUserToken?: string | EmulatorMockTokenOptions;
+  ssl?: boolean;
 }
 
 /**

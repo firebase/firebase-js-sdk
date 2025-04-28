@@ -322,14 +322,11 @@ export function connectFirestoreEmulator(
   port: number,
   options: {
     mockUserToken?: EmulatorMockTokenOptions | string;
+    ssl?: boolean;
   } = {}
 ): void {
   firestore = cast(firestore, Firestore);
-  let ssl = false;
-  if (/^https:\/\//.test(host)) {
-    ssl = true;
-    host = host.substring(8);
-  }
+  let ssl = options.ssl ?? false;
   const settings = firestore._getSettings();
   const existingConfig = {
     ...settings,
