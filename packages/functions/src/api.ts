@@ -74,12 +74,14 @@ export function getFunctions(
 export function connectFunctionsEmulator(
   functionsInstance: Functions,
   host: string,
-  port: number
+  port: number,
+  ssl?: boolean
 ): void {
   _connectFunctionsEmulator(
     getModularInstance<FunctionsService>(functionsInstance as FunctionsService),
     host,
-    port
+    port,
+    ssl
   );
 }
 

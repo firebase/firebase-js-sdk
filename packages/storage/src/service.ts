@@ -138,10 +138,11 @@ export function connectStorageEmulator(
   port: number,
   options: {
     mockUserToken?: EmulatorMockTokenOptions | string;
+    ssl?: boolean;
   } = {}
 ): void {
   storage.host = `${host}:${port}`;
-  storage._protocol = 'http';
+  storage._protocol = options.ssl ? 'http' : 'https';
   const { mockUserToken } = options;
   if (mockUserToken) {
     storage._overrideAuthToken =
