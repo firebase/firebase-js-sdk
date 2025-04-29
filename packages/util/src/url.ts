@@ -17,6 +17,7 @@
 
 /**
  * Checks whether host is a cloud workstation or not.
+ * @public
  */
 export function isCloudWorkstation(host: string): boolean {
   return host.endsWith('.cloudworkstations.dev');

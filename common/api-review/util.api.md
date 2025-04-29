@@ -269,8 +269,6 @@ export function isBrowserExtension(): boolean;
 // @public
 export function isCloudflareWorker(): boolean;
 
-// Warning: (ae-missing-release-tag) "isCloudWorkstation" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export function isCloudWorkstation(host: string): boolean;
 
