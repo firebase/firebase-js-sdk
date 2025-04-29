@@ -74,7 +74,7 @@ export function getFunctions(
 export function connectFunctionsEmulator(
   functionsInstance: Functions,
   host: string,
-  port: number,
+  port: number
 ): void {
   _connectFunctionsEmulator(
     getModularInstance<FunctionsService>(functionsInstance as FunctionsService),
