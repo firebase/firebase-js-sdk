@@ -252,7 +252,7 @@ GOOG4-RSA-SHA256`
       function newSend(connection: TestingConnection, url: string): void {
         // Expect emulator host to be in url of storage operations requests,
         // in this case getDownloadURL.
-        expect(url).to.match(/^https:\/\/test\.host\.org:1234.+/);
+        expect(url).to.match(/^https:\/\/test\.cloudworkstations\.dev:1234.+/);
         connection.abort();
         injectTestConnection(null);
         done();
@@ -264,7 +264,7 @@ GOOG4-RSA-SHA256`
         testShared.fakeAuthProvider,
         testShared.fakeAppCheckTokenProvider
       );
-      const workstationHost = 'test.cloudworkations.dev';
+      const workstationHost = 'test.cloudworkstations.dev';
       connectStorageEmulator(service, workstationHost, 1234);
       expect(service.host).to.equal(`${workstationHost}:1234`);
       expect(service._protocol).to.equal('https');
