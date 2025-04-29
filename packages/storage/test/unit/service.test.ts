@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
+import { expect, use } from 'chai';
+import * as sinon from 'sinon';
 import { TaskEvent } from '../../src/implementation/taskenums';
 import { Headers } from '../../src/implementation/connection';
 import {
@@ -34,19 +35,22 @@ import {
 import { Location } from '../../src/implementation/location';
 import { newTestConnection, TestingConnection } from './connection';
 import { injectTestConnection } from '../../src/platform/connection';
+import { newTextConnection } from '../../src/platform/node/connection';
+import sinonChai from 'sinon-chai';
 
 const fakeAppGs = testShared.makeFakeApp('gs://mybucket');
 const fakeAppGsEndingSlash = testShared.makeFakeApp('gs://mybucket/');
 const fakeAppInvalidGs = testShared.makeFakeApp('gs://mybucket/hello');
 const testLocation = new Location('bucket', 'object');
+use(sinonChai);
 
 function makeGsUrl(child: string = ''): string {
   return 'gs://' + testShared.bucket + '/' + child;
 }
 
 describe('Firebase Storage > Service', () => {
-  before(() => injectTestConnection(newTestConnection));
-  after(() => injectTestConnection(null));
+  // before(() => injectTestConnection(newTestConnection));
+  // after(() => injectTestConnection(null));
 
   describe('simple constructor', () => {
     const service = new FirebaseStorageImpl(
@@ -227,6 +231,13 @@ GOOG4-RSA-SHA256`
     });
   });
   describe('connectStorageEmulator(service, host, port, options)', () => {
+    let sandbox: sinon.SinonSandbox;
+    beforeEach(() => {
+      sandbox = sinon.createSandbox();
+    });
+    afterEach(() => {
+      sandbox.restore();
+    });
     it('sets emulator host correctly', done => {
       function newSend(connection: TestingConnection, url: string): void {
         // Expect emulator host to be in url of storage operations requests,
@@ -269,6 +280,25 @@ GOOG4-RSA-SHA256`
       expect(service.host).to.equal(`${workstationHost}:1234`);
       expect(service._protocol).to.equal('https');
       void getDownloadURL(ref(service, 'test.png'));
+    });
+    it('sets the credentials', () => {
+      const stub = sandbox.stub(globalThis, 'fetch').resolves();
+      const textConnection = newTextConnection();
+      textConnection.send(
+        'http://something.cloudworkstations.dev',
+        'POST',
+        undefined,
+        undefined,
+        true
+      );
+      expect(stub).to.have.been.called;
+      expect(stub).to.have.been.calledWithMatch(
+        'http://something.cloudworkstations.dev',
+        {
+          credentials: 'include'
+        }
+      );
+      stub.restore();
     });
     it('sets mock user token string if specified', done => {
       const mockUserToken = 'my-mock-user-token';

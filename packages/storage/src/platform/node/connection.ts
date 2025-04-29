@@ -157,7 +157,8 @@ export class FetchStreamConnection extends FetchConnection<
     url: string,
     method: string,
     body?: NodeJS.ArrayBufferView | Blob | string,
-    headers?: Record<string, string>
+    headers?: Record<string, string>,
+    isUsingEmulator?: boolean
   ): Promise<void> {
     if (this.sent_) {
       throw internalError('cannot .send() more than once');
@@ -165,7 +166,13 @@ export class FetchStreamConnection extends FetchConnection<
     this.sent_ = true;
 
     try {
-      const response = await newFetch(url, method, headers, body);
+      const response = await newFetch(
+        url,
+        method,
+        headers,
+        body,
+        isUsingEmulator
+      );
       this.headers_ = response.headers;
       this.statusCode_ = response.status;
       this.errorCode_ = ErrorCode.NO_ERROR;
