@@ -287,9 +287,9 @@ GOOG4-RSA-SHA256`
       textConnection.send(
         'http://something.cloudworkstations.dev',
         'POST',
+        true,
         undefined,
-        undefined,
-        true
+        undefined
       );
       expect(stub).to.have.been.called;
       expect(stub).to.have.been.calledWithMatch(

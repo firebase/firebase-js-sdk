@@ -25,7 +25,7 @@ describe('Connections', () => {
     const connection = new FetchBytesConnection();
 
     const fetchStub = stub(globalThis, 'fetch').rejects();
-    await connection.send('testurl', 'GET');
+    await connection.send('testurl', 'GET', false);
     expect(connection.getErrorCode()).to.equal(ErrorCode.NETWORK_ERROR);
     fetchStub.restore();
   });
