@@ -174,16 +174,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [IndexConfiguration](./firestore_.indexconfiguration.md#indexconfiguration_interface) | <b><i>(Public Preview)</i></b> A list of Firestore indexes to speed up local query execution.<!-- -->See [JSON Format](https://firebase.google.com/docs/reference/firestore/indexes/#json_format) for a description of the format of the index definition. |
 |  [IndexField](./firestore_.indexfield.md#indexfield_interface) | <b><i>(Public Preview)</i></b> A single field element in an index configuration. |
 |  [LoadBundleTaskProgress](./firestore_.loadbundletaskprogress.md#loadbundletaskprogress_interface) | Represents a progress update or a final state from loading bundles. |
-|  [MemoryCacheSettings](./firestore_.memorycachesettings.md#memorycachesettings_interface) | An settings object to configure an <code>MemoryLocalCache</code> instance. |
-|  [MemoryEagerGarbageCollector](./firestore_.memoryeagergarbagecollector.md#memoryeagergarbagecollector_interface) | A garbage collector deletes documents whenever they are not part of any active queries, and have no local mutations attached to them.<!-- -->This collector tries to ensure lowest memory footprints from the SDK, at the risk of documents not being cached for offline queries or for direct queries to the cache.<!-- -->Use factory function  to create an instance of this collector. |
-|  [MemoryLocalCache](./firestore_.memorylocalcache.md#memorylocalcache_interface) | Provides an in-memory cache to the SDK. This is the default cache unless explicitly configured otherwise.<!-- -->To use, create an instance using the factory function , then set the instance to <code>FirestoreSettings.cache</code> and call <code>initializeFirestore</code> using the settings object. |
-|  [MemoryLruGarbageCollector](./firestore_.memorylrugarbagecollector.md#memorylrugarbagecollector_interface) | A garbage collector deletes Least-Recently-Used documents in multiple batches.<!-- -->This collector is configured with a target size, and will only perform collection when the cached documents exceed the target size. It avoids querying backend repeated for the same query or document, at the risk of having a larger memory footprint.<!-- -->Use factory function  to create a instance of this collector. |
 |  [PersistenceSettings](./firestore_.persistencesettings.md#persistencesettings_interface) | Settings that can be passed to <code>enableIndexedDbPersistence()</code> to configure Firestore persistence.<!-- -->Persistence cannot be used in a Node.js environment. |
-|  [PersistentCacheSettings](./firestore_.persistentcachesettings.md#persistentcachesettings_interface) | An settings object to configure an <code>PersistentLocalCache</code> instance.<!-- -->Persistent cache cannot be used in a Node.js environment. |
-|  [PersistentLocalCache](./firestore_.persistentlocalcache.md#persistentlocalcache_interface) | Provides a persistent cache backed by IndexedDb to the SDK.<!-- -->To use, create an instance using the factory function , then set the instance to <code>FirestoreSettings.cache</code> and call <code>initializeFirestore</code> using the settings object. |
-|  [PersistentMultipleTabManager](./firestore_.persistentmultipletabmanager.md#persistentmultipletabmanager_interface) | A tab manager supporting multiple tabs. SDK will synchronize queries and mutations done across all tabs using the SDK. |
-|  [PersistentSingleTabManager](./firestore_.persistentsingletabmanager.md#persistentsingletabmanager_interface) | A tab manager supporting only one tab, no synchronization will be performed across tabs. |
-|  [PersistentSingleTabManagerSettings](./firestore_.persistentsingletabmanagersettings.md#persistentsingletabmanagersettings_interface) | Type to configure an <code>PersistentSingleTabManager</code> instance. |
 |  [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md#snapshotlistenoptions_interface) | An options object that can be passed to [onSnapshot()](./firestore_.md#onsnapshot_0312fd7) and [QuerySnapshot.docChanges()](./firestore_.querysnapshot.md#querysnapshotdocchanges) to control which types of changes to include in the result set. |
 |  [SnapshotOptions](./firestore_.snapshotoptions.md#snapshotoptions_interface) | Options that configure how data is retrieved from a <code>DocumentSnapshot</code> (for example the desired behavior for server timestamps that have not yet been set to their final value). |
 |  [TransactionOptions](./firestore_.transactionoptions.md#transactionoptions_interface) | Options to customize transaction behavior. |
@@ -208,10 +199,19 @@ https://github.com/firebase/firebase-js-sdk
 |  [FirestoreErrorCode](./firestore_.md#firestoreerrorcode) | The set of Firestore status codes. The codes are the same at the ones exposed by gRPC here: https://github.com/grpc/grpc/blob/master/doc/statuscodes.md<!-- -->Possible values: - 'cancelled': The operation was cancelled (typically by the caller). - 'unknown': Unknown error or an error from a different error domain. - 'invalid-argument': Client specified an invalid argument. Note that this differs from 'failed-precondition'. 'invalid-argument' indicates arguments that are problematic regardless of the state of the system (e.g. an invalid field name). - 'deadline-exceeded': Deadline expired before operation could complete. For operations that change the state of the system, this error may be returned even if the operation has completed successfully. For example, a successful response from a server could have been delayed long enough for the deadline to expire. - 'not-found': Some requested document was not found. - 'already-exists': Some document that we attempted to create already exists. - 'permission-denied': The caller does not have permission to execute the specified operation. - 'resource-exhausted': Some resource has been exhausted, perhaps a per-user quota, or perhaps the entire file system is out of space. - 'failed-precondition': Operation was rejected because the system is not in a state required for the operation's execution. - 'aborted': The operation was aborted, typically due to a concurrency issue like transaction aborts, etc. - 'out-of-range': Operation was attempted past the valid range. - 'unimplemented': Operation is not implemented or not supported/enabled. - 'internal': Internal errors. Means some invariants expected by underlying system has been broken. If you see one of these errors, something is very broken. - 'unavailable': The service is currently unavailable. This is most likely a transient condition and may be corrected by retrying with a backoff. - 'data-loss': Unrecoverable data loss or corruption. - 'unauthenticated': The request does not have valid authentication credentials for the operation. |
 |  [FirestoreLocalCache](./firestore_.md#firestorelocalcache) | Union type from all supported SDK cache layer. |
 |  [ListenSource](./firestore_.md#listensource) | Describe the source a query listens to.<!-- -->Set to <code>default</code> to listen to both cache and server changes. Set to <code>cache</code> to listen to changes in cache only. |
+|  [MemoryCacheSettings](./firestore_.md#memorycachesettings) | An settings object to configure an <code>MemoryLocalCache</code> instance. |
+|  [MemoryEagerGarbageCollector](./firestore_.md#memoryeagergarbagecollector) | A garbage collector deletes documents whenever they are not part of any active queries, and have no local mutations attached to them.<!-- -->This collector tries to ensure lowest memory footprints from the SDK, at the risk of documents not being cached for offline queries or for direct queries to the cache.<!-- -->Use factory function  to create an instance of this collector. |
 |  [MemoryGarbageCollector](./firestore_.md#memorygarbagecollector) | Union type from all support garbage collectors for memory local cache. |
+|  [MemoryLocalCache](./firestore_.md#memorylocalcache) | Provides an in-memory cache to the SDK. This is the default cache unless explicitly configured otherwise.<!-- -->To use, create an instance using the factory function , then set the instance to <code>FirestoreSettings.cache</code> and call <code>initializeFirestore</code> using the settings object. |
+|  [MemoryLruGarbageCollector](./firestore_.md#memorylrugarbagecollector) | A garbage collector deletes Least-Recently-Used documents in multiple batches.<!-- -->This collector is configured with a target size, and will only perform collection when the cached documents exceed the target size. It avoids querying backend repeated for the same query or document, at the risk of having a larger memory footprint.<!-- -->Use factory function  to create a instance of this collector. |
 |  [NestedUpdateFields](./firestore_.md#nestedupdatefields) | For each field (e.g. 'bar'), find all nested keys (e.g. {<!-- -->'bar.baz': T1, 'bar.qux': T2<!-- -->}<!-- -->). Intersect them together to make a single map containing all possible keys that are all marked as optional |
 |  [OrderByDirection](./firestore_.md#orderbydirection) | The direction of a [orderBy()](./firestore_.md#orderby_006d61f) clause is specified as 'desc' or 'asc' (descending or ascending). |
 |  [PartialWithFieldValue](./firestore_.md#partialwithfieldvalue) | Similar to TypeScript's <code>Partial&lt;T&gt;</code>, but allows nested fields to be omitted and FieldValues to be passed in as property values. |
+|  [PersistentCacheSettings](./firestore_.md#persistentcachesettings) | An settings object to configure an <code>PersistentLocalCache</code> instance.<!-- -->Persistent cache cannot be used in a Node.js environment. |
+|  [PersistentLocalCache](./firestore_.md#persistentlocalcache) | Provides a persistent cache backed by IndexedDb to the SDK.<!-- -->To use, create an instance using the factory function , then set the instance to <code>FirestoreSettings.cache</code> and call <code>initializeFirestore</code> using the settings object. |
+|  [PersistentMultipleTabManager](./firestore_.md#persistentmultipletabmanager) | A tab manager supporting multiple tabs. SDK will synchronize queries and mutations done across all tabs using the SDK. |
+|  [PersistentSingleTabManager](./firestore_.md#persistentsingletabmanager) | A tab manager supporting only one tab, no synchronization will be performed across tabs. |
+|  [PersistentSingleTabManagerSettings](./firestore_.md#persistentsingletabmanagersettings) | Type to configure an <code>PersistentSingleTabManager</code> instance. |
 |  [PersistentTabManager](./firestore_.md#persistenttabmanager) | A union of all available tab managers. |
 |  [Primitive](./firestore_.md#primitive) | Primitive types. |
 |  [QueryConstraintType](./firestore_.md#queryconstrainttype) | Describes the different query constraints available in this SDK. |
@@ -924,7 +924,7 @@ export declare function memoryEagerGarbageCollector(): MemoryEagerGarbageCollect
 ```
 <b>Returns:</b>
 
-[MemoryEagerGarbageCollector](./firestore_.memoryeagergarbagecollector.md#memoryeagergarbagecollector_interface)
+[MemoryEagerGarbageCollector](./firestore_.md#memoryeagergarbagecollector)
 
 ### persistentMultipleTabManager() {:#persistentmultipletabmanager}
 
@@ -937,7 +937,7 @@ export declare function persistentMultipleTabManager(): PersistentMultipleTabMan
 ```
 <b>Returns:</b>
 
-[PersistentMultipleTabManager](./firestore_.persistentmultipletabmanager.md#persistentmultipletabmanager_interface)
+[PersistentMultipleTabManager](./firestore_.md#persistentmultipletabmanager)
 
 ### serverTimestamp() {:#servertimestamp}
 
@@ -2293,11 +2293,11 @@ export declare function memoryLocalCache(settings?: MemoryCacheSettings): Memory
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  settings | [MemoryCacheSettings](./firestore_.memorycachesettings.md#memorycachesettings_interface) |  |
+|  settings | [MemoryCacheSettings](./firestore_.md#memorycachesettings) |  |
 
 <b>Returns:</b>
 
-[MemoryLocalCache](./firestore_.memorylocalcache.md#memorylocalcache_interface)
+[MemoryLocalCache](./firestore_.md#memorylocalcache)
 
 ### memoryLruGarbageCollector(settings) {:#memorylrugarbagecollector_5ee014c}
 
@@ -2321,7 +2321,7 @@ export declare function memoryLruGarbageCollector(settings?: {
 
 <b>Returns:</b>
 
-[MemoryLruGarbageCollector](./firestore_.memorylrugarbagecollector.md#memorylrugarbagecollector_interface)
+[MemoryLruGarbageCollector](./firestore_.md#memorylrugarbagecollector)
 
 ### persistentLocalCache(settings) {:#persistentlocalcache_d312f71}
 
@@ -2339,11 +2339,11 @@ export declare function persistentLocalCache(settings?: PersistentCacheSettings)
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  settings | [PersistentCacheSettings](./firestore_.persistentcachesettings.md#persistentcachesettings_interface) |  |
+|  settings | [PersistentCacheSettings](./firestore_.md#persistentcachesettings) |  |
 
 <b>Returns:</b>
 
-[PersistentLocalCache](./firestore_.persistentlocalcache.md#persistentlocalcache_interface)
+[PersistentLocalCache](./firestore_.md#persistentlocalcache)
 
 ### persistentSingleTabManager(settings) {:#persistentsingletabmanager_c99c68d}
 
@@ -2359,11 +2359,11 @@ export declare function persistentSingleTabManager(settings: PersistentSingleTab
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  settings | [PersistentSingleTabManagerSettings](./firestore_.persistentsingletabmanagersettings.md#persistentsingletabmanagersettings_interface) \| undefined | Configures the created tab manager. |
+|  settings | [PersistentSingleTabManagerSettings](./firestore_.md#persistentsingletabmanagersettings) \| undefined | Configures the created tab manager. |
 
 <b>Returns:</b>
 
-[PersistentSingleTabManager](./firestore_.persistentsingletabmanager.md#persistentsingletabmanager_interface)
+[PersistentSingleTabManager](./firestore_.md#persistentsingletabmanager)
 
 ## function(snapshot, ...)
 
@@ -2591,6 +2591,34 @@ Set to `default` to listen to both cache and server changes. Set to `cache` to l
 export declare type ListenSource = 'default' | 'cache';
 ```
 
+## MemoryCacheSettings
+
+An settings object to configure an `MemoryLocalCache` instance.
+
+<b>Signature:</b>
+
+```typescript
+export declare type MemoryCacheSettings = {
+    garbageCollector?: MemoryGarbageCollector;
+};
+```
+
+## MemoryEagerGarbageCollector
+
+A garbage collector deletes documents whenever they are not part of any active queries, and have no local mutations attached to them.
+
+This collector tries to ensure lowest memory footprints from the SDK, at the risk of documents not being cached for offline queries or for direct queries to the cache.
+
+Use factory function  to create an instance of this collector.
+
+<b>Signature:</b>
+
+```typescript
+export declare type MemoryEagerGarbageCollector = {
+    kind: 'memoryEager';
+};
+```
+
 ## MemoryGarbageCollector
 
 Union type from all support garbage collectors for memory local cache.
@@ -2599,6 +2627,36 @@ Union type from all support garbage collectors for memory local cache.
 
 ```typescript
 export declare type MemoryGarbageCollector = MemoryEagerGarbageCollector | MemoryLruGarbageCollector;
+```
+
+## MemoryLocalCache
+
+Provides an in-memory cache to the SDK. This is the default cache unless explicitly configured otherwise.
+
+To use, create an instance using the factory function , then set the instance to `FirestoreSettings.cache` and call `initializeFirestore` using the settings object.
+
+<b>Signature:</b>
+
+```typescript
+export declare type MemoryLocalCache = {
+    kind: 'memory';
+};
+```
+
+## MemoryLruGarbageCollector
+
+A garbage collector deletes Least-Recently-Used documents in multiple batches.
+
+This collector is configured with a target size, and will only perform collection when the cached documents exceed the target size. It avoids querying backend repeated for the same query or document, at the risk of having a larger memory footprint.
+
+Use factory function  to create a instance of this collector.
+
+<b>Signature:</b>
+
+```typescript
+export declare type MemoryLruGarbageCollector = {
+    kind: 'memoryLru';
+};
 ```
 
 ## NestedUpdateFields
@@ -2633,6 +2691,71 @@ Similar to TypeScript's `Partial<T>`<!-- -->, but allows nested fields to be omi
 export declare type PartialWithFieldValue<T> = Partial<T> | (T extends Primitive ? T : T extends {} ? {
     [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue;
 } : never);
+```
+
+## PersistentCacheSettings
+
+An settings object to configure an `PersistentLocalCache` instance.
+
+Persistent cache cannot be used in a Node.js environment.
+
+<b>Signature:</b>
+
+```typescript
+export declare type PersistentCacheSettings = {
+    cacheSizeBytes?: number;
+    tabManager?: PersistentTabManager;
+};
+```
+
+## PersistentLocalCache
+
+Provides a persistent cache backed by IndexedDb to the SDK.
+
+To use, create an instance using the factory function , then set the instance to `FirestoreSettings.cache` and call `initializeFirestore` using the settings object.
+
+<b>Signature:</b>
+
+```typescript
+export declare type PersistentLocalCache = {
+    kind: 'persistent';
+};
+```
+
+## PersistentMultipleTabManager
+
+A tab manager supporting multiple tabs. SDK will synchronize queries and mutations done across all tabs using the SDK.
+
+<b>Signature:</b>
+
+```typescript
+export declare type PersistentMultipleTabManager = {
+    kind: 'PersistentMultipleTab';
+};
+```
+
+## PersistentSingleTabManager
+
+A tab manager supporting only one tab, no synchronization will be performed across tabs.
+
+<b>Signature:</b>
+
+```typescript
+export declare type PersistentSingleTabManager = {
+    kind: 'persistentSingleTab';
+};
+```
+
+## PersistentSingleTabManagerSettings
+
+Type to configure an `PersistentSingleTabManager` instance.
+
+<b>Signature:</b>
+
+```typescript
+export declare type PersistentSingleTabManagerSettings = {
+    forceOwnership?: boolean;
+};
 ```
 
 ## PersistentTabManager

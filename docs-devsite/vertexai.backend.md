@@ -28,7 +28,7 @@ export declare abstract class Backend
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [backendType](./vertexai.backend.md#backendbackendtype) |  | [BackendType](./vertexai.md#backendtype) | Specifies the backend type (either 'GOOGLE\_AI' or 'VERTEX\_AI'). |
+|  [backendType](./vertexai.backend.md#backendbackendtype) |  | [BackendType](./vertexai.md#backendtype) | Specifies the backend type. |
 
 ## Backend.(constructor)
 
@@ -48,7 +48,7 @@ protected constructor(type: BackendType);
 
 ## Backend.backendType
 
-Specifies the backend type (either 'GOOGLE\_AI' or 'VERTEX\_AI').
+Specifies the backend type.
 
 <b>Signature:</b>
 

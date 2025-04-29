@@ -27,7 +27,7 @@ import { BackendType } from './public-types';
  */
 export abstract class Backend {
   /**
-   * Specifies the backend type (either 'GOOGLE_AI' or 'VERTEX_AI').
+   * Specifies the backend type.
    */
   readonly backendType: BackendType;
 
@@ -66,7 +66,7 @@ export class GoogleAIBackend extends Backend {
 export class VertexAIBackend extends Backend {
   /**
    * The region identifier.
-   * See {@link https://firebase.google.com/docs/vertex-ai/locations?platform=ios#available-locations | Vertex AI locations}
+   * See {@link https://firebase.google.com/docs/vertex-ai/locations?platform=web#available-locations | Vertex AI locations}
    * for a list of supported locations.
    */
   readonly location: string;
@@ -75,7 +75,7 @@ export class VertexAIBackend extends Backend {
    * Creates a configuration object for the Vertex AI backend.
    *
    * @param location - The region identifier, defaulting to `us-central1`;
-   * see {@link https://firebase.google.com/docs/vertex-ai/locations?platform=ios#available-locations | Vertex AI locations}
+   * see {@link https://firebase.google.com/docs/vertex-ai/locations?platform=web#available-locations | Vertex AI locations}
    * for a list of supported locations.
    */
   constructor(location: string = DEFAULT_LOCATION) {

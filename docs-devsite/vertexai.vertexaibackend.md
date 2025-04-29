@@ -29,7 +29,7 @@ export declare class VertexAIBackend extends Backend
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [location](./vertexai.vertexaibackend.md#vertexaibackendlocation) |  | string | The region identifier. See [Vertex AI locations](https://firebase.google.com/docs/vertex-ai/locations?platform=ios#available-locations) for a list of supported locations. |
+|  [location](./vertexai.vertexaibackend.md#vertexaibackendlocation) |  | string | The region identifier. See [Vertex AI locations](https://firebase.google.com/docs/vertex-ai/locations?platform=web#available-locations) for a list of supported locations. |
 
 ## VertexAIBackend.(constructor)
 
@@ -45,11 +45,11 @@ constructor(location?: string);
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  location | string | The region identifier, defaulting to <code>us-central1</code>; see [Vertex AI locations](https://firebase.google.com/docs/vertex-ai/locations?platform=ios#available-locations) for a list of supported locations. |
+|  location | string | The region identifier, defaulting to <code>us-central1</code>; see [Vertex AI locations](https://firebase.google.com/docs/vertex-ai/locations?platform=web#available-locations) for a list of supported locations. |
 
 ## VertexAIBackend.location
 
-The region identifier. See [Vertex AI locations](https://firebase.google.com/docs/vertex-ai/locations?platform=ios#available-locations) for a list of supported locations.
+The region identifier. See [Vertex AI locations](https://firebase.google.com/docs/vertex-ai/locations?platform=web#available-locations) for a list of supported locations.
 
 <b>Signature:</b>
 

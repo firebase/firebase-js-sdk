@@ -375,15 +375,14 @@ export interface LoadBundleTaskProgress {
 export { LogLevel }
 
 // @public
-export interface MemoryCacheSettings {
+export type MemoryCacheSettings = {
     garbageCollector?: MemoryGarbageCollector;
-}
+};
 
 // @public
-export interface MemoryEagerGarbageCollector {
-    // (undocumented)
+export type MemoryEagerGarbageCollector = {
     kind: 'memoryEager';
-}
+};
 
 // @public
 export function memoryEagerGarbageCollector(): MemoryEagerGarbageCollector;
@@ -392,19 +391,17 @@ export function memoryEagerGarbageCollector(): MemoryEagerGarbageCollector;
 export type MemoryGarbageCollector = MemoryEagerGarbageCollector | MemoryLruGarbageCollector;
 
 // @public
-export interface MemoryLocalCache {
-    // (undocumented)
+export type MemoryLocalCache = {
     kind: 'memory';
-}
+};
 
 // @public
 export function memoryLocalCache(settings?: MemoryCacheSettings): MemoryLocalCache;
 
 // @public
-export interface MemoryLruGarbageCollector {
-    // (undocumented)
+export type MemoryLruGarbageCollector = {
     kind: 'memoryLru';
-}
+};
 
 // @public
 export function memoryLruGarbageCollector(settings?: {
@@ -494,42 +491,39 @@ export class PersistentCacheIndexManager {
 }
 
 // @public
-export interface PersistentCacheSettings {
+export type PersistentCacheSettings = {
     cacheSizeBytes?: number;
     tabManager?: PersistentTabManager;
-}
+};
 
 // @public
-export interface PersistentLocalCache {
-    // (undocumented)
+export type PersistentLocalCache = {
     kind: 'persistent';
-}
+};
 
 // @public
 export function persistentLocalCache(settings?: PersistentCacheSettings): PersistentLocalCache;
 
 // @public
-export interface PersistentMultipleTabManager {
-    // (undocumented)
+export type PersistentMultipleTabManager = {
     kind: 'PersistentMultipleTab';
-}
+};
 
 // @public
 export function persistentMultipleTabManager(): PersistentMultipleTabManager;
 
 // @public
-export interface PersistentSingleTabManager {
-    // (undocumented)
+export type PersistentSingleTabManager = {
     kind: 'persistentSingleTab';
-}
+};
 
 // @public
 export function persistentSingleTabManager(settings: PersistentSingleTabManagerSettings | undefined): PersistentSingleTabManager;
 
 // @public
-export interface PersistentSingleTabManagerSettings {
+export type PersistentSingleTabManagerSettings = {
     forceOwnership?: boolean;
-}
+};
 
 // @public
 export type PersistentTabManager = PersistentSingleTabManager | PersistentMultipleTabManager;
