@@ -36,7 +36,7 @@ import {
  */
 export class ChromeAdapter {
   // Visible for testing
-  static SUPPORTED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+  static SUPPORTED_MIME_TYPES = ['image/jpeg', 'image/png'];
   private isDownloading = false;
   private downloadPromise: Promise<LanguageModel | void> | undefined;
   private oldSession: LanguageModel | undefined;
