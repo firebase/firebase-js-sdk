@@ -139,9 +139,34 @@ export class Firestore extends LiteFirestore {
  * @param app - The {@link @firebase/app#FirebaseApp} with which the {@link Firestore} instance will
  * be associated.
  * @param settings - A settings object to configure the {@link Firestore} instance.
+ * @returns A newly initialized {@link Firestore} instance.
+ * @deprecated This function assumes the database name is `(default)`. For new
+ * databases, the database name is specified during creation, and can no longer
+ * be assumed to be '(default)' by the SDK. Please use the function overload
+ * that accepts `databaseId`, {@link initializeFirestore:2}.
+ */
+export function initializeFirestore(
+  app: FirebaseApp,
+  settings: FirestoreSettings
+): Firestore;
+
+/**
+ * Initializes a new instance of {@link Firestore} with the provided settings.
+ * Can only be called before any other function, including
+ * {@link (getFirestore:1)}. If the custom settings are empty, this function is
+ * equivalent to calling {@link (getFirestore:1)}.
+ *
+ * @param app - The {@link @firebase/app#FirebaseApp} with which the {@link Firestore} instance will
+ * be associated.
+ * @param settings - A settings object to configure the {@link Firestore} instance.
  * @param databaseId - The name of the database.
  * @returns A newly initialized {@link Firestore} instance.
  */
+export function initializeFirestore(
+  app: FirebaseApp,
+  settings: FirestoreSettings,
+  databaseId: string
+): Firestore;
 export function initializeFirestore(
   app: FirebaseApp,
   settings: FirestoreSettings,
@@ -206,6 +231,11 @@ export function initializeFirestore(
  * instance with default settings.
  *
  * @returns The default {@link Firestore} instance of the default app.
+ *
+ * @deprecated This function assumes the database name is `(default)`. For new
+ * databases, the database name is specified during creation, and can no longer
+ * be assumed to be '(default)' by the SDK. Please use the function overload
+ * that accepts `databaseId`, {@link getFirestore:3}.
  */
 export function getFirestore(): Firestore;
 /**
@@ -216,6 +246,11 @@ export function getFirestore(): Firestore;
  * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned {@link Firestore}
  * instance is associated with.
  * @returns The default {@link Firestore} instance of the provided app.
+ *
+ * @deprecated This function assumes the database name is `(default)`. For new
+ * databases, the database name is specified during creation, and can no longer
+ * be assumed to be '(default)' by the SDK. Please use the function overload
+ * that accepts `databaseId`, {@link getFirestore:4}.
  */
 export function getFirestore(app: FirebaseApp): Firestore;
 /**
@@ -225,7 +260,6 @@ export function getFirestore(app: FirebaseApp): Firestore;
  *
  * @param databaseId - The name of the database.
  * @returns The named {@link Firestore} instance of the default app.
- * @beta
  */
 export function getFirestore(databaseId: string): Firestore;
 /**
@@ -237,7 +271,6 @@ export function getFirestore(databaseId: string): Firestore;
  * instance is associated with.
  * @param databaseId - The name of the database.
  * @returns The named {@link Firestore} instance of the provided app.
- * @beta
  */
 export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
 export function getFirestore(

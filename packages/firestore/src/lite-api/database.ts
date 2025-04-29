@@ -196,6 +196,10 @@ export class Firestore implements FirestoreService {
  * be associated.
  * @param settings - A settings object to configure the `Firestore` instance.
  * @returns A newly initialized `Firestore` instance.
+ * @deprecated This function assumes the database name is `(default)`. For new
+ * databases, the database name is specified during creation, and can no longer
+ * be assumed to be '(default)' by the SDK. Please use the function overload
+ * that accepts `databaseId`, {@link initializeFirestore:2}.
  */
 export function initializeFirestore(
   app: FirebaseApp,
@@ -217,7 +221,7 @@ export function initializeFirestore(
 export function initializeFirestore(
   app: FirebaseApp,
   settings: FirestoreSettings,
-  databaseId?: string
+  databaseId: string
 ): Firestore;
 export function initializeFirestore(
   app: FirebaseApp,
@@ -243,6 +247,11 @@ export function initializeFirestore(
 }
 
 /**
+ * @deprecated This function assumes the database name is `(default)`. For new
+ * databases, the database name is specified during creation, and can no longer
+ * be assumed to be '(default)' by the SDK. Please use the function overload
+ * that accepts `databaseId`, {@link getFirestore:3}.
+ *
  * Returns the existing default {@link Firestore} instance that is associated with the
  * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
@@ -251,6 +260,11 @@ export function initializeFirestore(
  */
 export function getFirestore(): Firestore;
 /**
+ * @deprecated This function assumes the database name is `(default)`. For new
+ * databases, the database name is specified during creation, and can no longer
+ * be assumed to be '(default)' by the SDK. Please use the function overload
+ * that accepts `databaseId`, {@link getFirestore:4}.
+ *
  * Returns the existing default {@link Firestore} instance that is associated with the
  * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
