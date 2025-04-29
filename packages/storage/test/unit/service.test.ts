@@ -48,8 +48,8 @@ function makeGsUrl(child: string = ''): string {
 }
 
 describe('Firebase Storage > Service', () => {
-  // before(() => injectTestConnection(newTestConnection));
-  // after(() => injectTestConnection(null));
+  before(() => injectTestConnection(newTestConnection));
+  after(() => injectTestConnection(null));
 
   describe('simple constructor', () => {
     const service = new FirebaseStorageImpl(
