@@ -24,6 +24,8 @@ export function isCloudWorkstation(host: string): boolean {
 }
 
 export async function testConnectionAlive(endpoint: string): Promise<boolean> {
-  const result = await fetch(endpoint);
+  const result = await fetch(endpoint, {
+    credentials: 'include'
+  });
   return result.ok;
 }
