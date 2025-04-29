@@ -4678,7 +4678,7 @@ export function eqAny(
 /**
  * @beta
  *
- * Creates an expression that checks if an expression is not equal to any of the provided values
+ * Creates an expression that checks if an expression is not equal to all the provided values
  * or expressions.
  *
  * ```typescript
@@ -4698,7 +4698,7 @@ export function notEqAny(
 /**
  * @beta
  *
- * Creates an expression that checks if a field's value is not equal to any of the provided values
+ * Creates an expression that checks if a field's value is not equal to all the provided values
  * or expressions.
  *
  * ```typescript
@@ -4718,7 +4718,7 @@ export function notEqAny(
 /**
  * @beta
  *
- * Creates an expression that checks if an expression is not equal to any of the provided values
+ * Creates an expression that checks if an expression is not equal to all the provided values
  * or expressions.
  *
  * ```typescript
@@ -4735,7 +4735,7 @@ export function notEqAny(element: Expr, arrayExpression: Expr): BooleanExpr;
 /**
  * @beta
  *
- * Creates an expression that checks if a field's value is not equal to any of the values in the evaluated expression.
+ * Creates an expression that checks if a field's value is not equal to all the values in the evaluated expression.
  *
  * ```typescript
  * // Check if the 'status' field is not equal to any value in the field 'rejectedStatuses'
