@@ -1,0 +1,4 @@
+- name: Authenticate to Google Cloud
+  uses: google-github-actions/auth@v1
+  with:
+    credentials_json: ${{ secrets.GCP_CREDENTIALS }}
