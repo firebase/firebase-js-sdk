@@ -98,18 +98,18 @@ module.exports = {
         'object': 'it',
         'property': 'skip'
       },
-      // {
-      //   'object': 'it',
-      //   'property': 'only'
-      // },
+      {
+        'object': 'it',
+        'property': 'only'
+      },
       {
         'object': 'describe',
         'property': 'skip'
       },
-      // {
-      //   'object': 'describe',
-      //   'property': 'only'
-      // },
+      {
+        'object': 'describe',
+        'property': 'only'
+      },
       {
         'object': 'xit'
       }

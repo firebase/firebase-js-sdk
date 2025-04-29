@@ -220,4 +220,30 @@ describe('fetch', () => {
       }
     }
   });
+  it('should call credentials include if using emulator on cloud workstation', async () => {
+    const json = {
+      code: 200,
+      message1: 'success'
+    };
+    const fakeFetchImpl = mockFetch(json, false);
+    await dcFetch(
+      'https://abc.cloudworkstations.dev',
+      {
+        name: 'n',
+        operationName: 'n',
+        variables: {}
+      },
+      {} as AbortController,
+      null,
+      null,
+      null,
+      true, // _isUsingGen is true
+      CallerSdkTypeEnum.Base,
+      true
+    );
+    expect(fakeFetchImpl).to.have.been.calledWithMatch(
+      'https://abc.cloudworkstations.dev',
+      { credentials: 'include' }
+    );
+  });
 });
