@@ -30,7 +30,7 @@ import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { MessagingInternalComponentName } from '@firebase/messaging-interop-types';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
-import { isCloudWorkstation, testConnectionAlive } from '@firebase/util';
+import { isCloudWorkstation, pingServer } from '@firebase/util';
 
 export const DEFAULT_REGION = 'us-central1';
 
@@ -180,7 +180,7 @@ export function connectFunctionsEmulator(
     useSsl ? 's' : ''
   }://${host}:${port}`;
   if (useSsl) {
-    void testConnectionAlive(functionsInstance.emulatorOrigin);
+    void pingServer(functionsInstance.emulatorOrigin);
   }
 }
 

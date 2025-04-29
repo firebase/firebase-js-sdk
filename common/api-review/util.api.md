@@ -398,6 +398,9 @@ export function ordinal(i: number): string;
 // @public (undocumented)
 export type PartialObserver<T> = Partial<Observer<T>>;
 
+// @public
+export function pingServer(endpoint: string): Promise<boolean>;
+
 // Warning: (ae-internal-missing-underscore) The name "promiseWithTimeout" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
@@ -473,11 +476,6 @@ export interface Subscribe<T> {
     // (undocumented)
     (observer: PartialObserver<T>): Unsubscribe;
 }
-
-// Warning: (ae-missing-release-tag) "testConnectionAlive" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-export function testConnectionAlive(endpoint: string): Promise<boolean>;
 
 // Warning: (ae-missing-release-tag) "Unsubscribe" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

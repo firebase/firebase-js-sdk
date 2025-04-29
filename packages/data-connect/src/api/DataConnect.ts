@@ -24,7 +24,7 @@ import {
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
-import { isCloudWorkstation, testConnectionAlive } from '@firebase/util';
+import { isCloudWorkstation, pingServer } from '@firebase/util';
 
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../core/error';
@@ -239,7 +239,7 @@ export function connectDataConnectEmulator(
   sslEnabled = false
 ): void {
   if (isCloudWorkstation(host)) {
-    void testConnectionAlive(`https://${host}${port ? `:${port}` : ''}`);
+    void pingServer(`https://${host}${port ? `:${port}` : ''}`);
   }
   dc.enableEmulator({ host, port, sslEnabled });
 }

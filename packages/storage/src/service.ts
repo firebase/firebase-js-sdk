@@ -46,7 +46,7 @@ import {
   createMockUserToken,
   EmulatorMockTokenOptions,
   isCloudWorkstation,
-  testConnectionAlive
+  pingServer
 } from '@firebase/util';
 import { Connection, ConnectionType } from './implementation/connection';
 
@@ -148,7 +148,7 @@ export function connectStorageEmulator(
   storage.host = `${host}:${port}`;
   const useSsl = isCloudWorkstation(host);
   if (useSsl) {
-    void testConnectionAlive(`https://${storage.host}`);
+    void pingServer(`https://${storage.host}`);
   }
   storage._isUsingEmulator = true;
   storage._protocol = useSsl ? 'https' : 'http';
