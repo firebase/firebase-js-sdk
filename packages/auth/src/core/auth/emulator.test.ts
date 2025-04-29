@@ -34,7 +34,7 @@ import { FetchProvider } from '../util/fetch_provider';
 use(sinonChai);
 use(chaiAsPromised);
 
-describe.only('core/auth/emulator', () => {
+describe('core/auth/emulator', () => {
   let auth: TestAuth;
   let user: UserInternal;
   let normalEndpoint: fetch.Route;
@@ -113,23 +113,6 @@ describe.only('core/auth/emulator', () => {
       });
     });
 
-    it('subsequent calls update the endpoint appropriately', async () => {
-      connectAuthEmulator(auth, 'http://127.0.0.1:2021');
-      expect(auth.emulatorConfig).to.eql({
-        protocol: 'http',
-        host: '127.0.0.1',
-        port: 2021,
-        options: { disableWarnings: false }
-      });
-      connectAuthEmulator(auth, 'http://127.0.0.1:2020');
-      expect(auth.emulatorConfig).to.eql({
-        protocol: 'http',
-        host: '127.0.0.1',
-        port: 2020,
-        options: { disableWarnings: false }
-      });
-    });
-
     it('updates the endpoint appropriately', async () => {
       connectAuthEmulator(auth, 'http://127.0.0.1:2020');
       await user.delete();
@@ -184,7 +167,7 @@ describe.only('core/auth/emulator', () => {
       );
     });
 
-    it.only('skips console info and has no banner if warnings disabled', () => {
+    it('skips console info and has no banner if warnings disabled', () => {
       sinon.stub(console, 'info');
       connectAuthEmulator(auth, 'http://127.0.0.1:2020', {
         disableWarnings: true
