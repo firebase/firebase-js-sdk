@@ -23,7 +23,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [clearIndexedDbPersistence(firestore)](./firestore_.md#clearindexeddbpersistence_231a8e0) | Clears the persistent storage. This includes pending writes and cached documents.<!-- -->Must be called while the [Firestore](./firestore_.firestore.md#firestore_class) instance is not started (after the app is terminated or when the app is first initialized). On startup, this function must be called before other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore_fc7d200) or [getFirestore()](./firestore_.md#getfirestore)<!-- -->)). If the [Firestore](./firestore_.firestore.md#firestore_class) instance is still running, the promise will be rejected with the error code of <code>failed-precondition</code>.<!-- -->Note: <code>clearIndexedDbPersistence()</code> is primarily intended to help write reliable tests that use Cloud Firestore. It uses an efficient mechanism for dropping existing data but does not attempt to securely overwrite or otherwise make cached data unrecoverable. For applications that are sensitive to the disclosure of cached data in between user sessions, we strongly recommend not enabling persistence at all. |
 |  [collection(firestore, path, pathSegments)](./firestore_.md#collection_1eb4c23) | Gets a <code>CollectionReference</code> instance that refers to the collection at the specified absolute path. |
 |  [collectionGroup(firestore, collectionId)](./firestore_.md#collectiongroup_1838fc3) | Creates and returns a new <code>Query</code> instance that includes all documents in the database that are contained in a collection or subcollection with the given <code>collectionId</code>. |
-|  [connectFirestoreEmulator(firestore, host, port, options)](./firestore_.md#connectfirestoreemulator_6c8868a) | Modify this instance to communicate with the Cloud Firestore emulator.<!-- -->Note: This must be called before this instance has been used to do any operations. |
+|  [connectFirestoreEmulator(firestore, host, port, options)](./firestore_.md#connectfirestoreemulator_7c247cd) | Modify this instance to communicate with the Cloud Firestore emulator.<!-- -->Note: This must be called before this instance has been used to do any operations. |
 |  [disableNetwork(firestore)](./firestore_.md#disablenetwork_231a8e0) | Disables network usage for this instance. It can be re-enabled via [enableNetwork()](./firestore_.md#enablenetwork_231a8e0)<!-- -->. While the network is disabled, any snapshot listeners, <code>getDoc()</code> or <code>getDocs()</code> calls will return results from cache, and any write operations will be queued until the network is restored. |
 |  [doc(firestore, path, pathSegments)](./firestore_.md#doc_1eb4c23) | Gets a <code>DocumentReference</code> instance that refers to the document at the specified absolute path. |
 |  [enableIndexedDbPersistence(firestore, persistenceSettings)](./firestore_.md#enableindexeddbpersistence_224174f) | Attempts to enable persistent storage, if possible.<!-- -->On failure, <code>enableIndexedDbPersistence()</code> will reject the promise or throw an exception. There are several reasons why this can fail, which can be identified by the <code>code</code> on the error.<!-- -->\* failed-precondition: The app is already open in another browser tab. \* unimplemented: The browser is incompatible with the offline persistence implementation.<!-- -->Note that even after a failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.<!-- -->Note: <code>enableIndexedDbPersistence()</code> must be called before any other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore_fc7d200)<!-- -->, [getFirestore()](./firestore_.md#getfirestore) or [clearIndexedDbPersistence()](./firestore_.md#clearindexeddbpersistence_231a8e0)<!-- -->.<!-- -->Persistence cannot be used in a Node.js environment. |
@@ -377,7 +377,7 @@ export declare function collectionGroup(firestore: Firestore, collectionId: stri
 
 The created `Query`<!-- -->.
 
-### connectFirestoreEmulator(firestore, host, port, options) {:#connectfirestoreemulator_6c8868a}
+### connectFirestoreEmulator(firestore, host, port, options) {:#connectfirestoreemulator_7c247cd}
 
 Modify this instance to communicate with the Cloud Firestore emulator.
 
@@ -388,7 +388,6 @@ Note: This must be called before this instance has been used to do any operation
 ```typescript
 export declare function connectFirestoreEmulator(firestore: Firestore, host: string, port: number, options?: {
     mockUserToken?: EmulatorMockTokenOptions | string;
-    ssl?: boolean;
 }): void;
 ```
 
@@ -399,7 +398,7 @@ export declare function connectFirestoreEmulator(firestore: Firestore, host: str
 |  firestore | [Firestore](./firestore_.firestore.md#firestore_class) | The <code>Firestore</code> instance to configure to connect to the emulator. |
 |  host | string | the emulator host (ex: localhost). |
 |  port | number | the emulator port (ex: 9000). |
-|  options | { mockUserToken?: [EmulatorMockTokenOptions](./util.md#emulatormocktokenoptions) \| string; ssl?: boolean; } |  |
+|  options | { mockUserToken?: [EmulatorMockTokenOptions](./util.md#emulatormocktokenoptions) \| string; } |  |
 
 <b>Returns:</b>
 

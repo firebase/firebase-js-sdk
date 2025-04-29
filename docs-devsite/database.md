@@ -19,7 +19,7 @@ Firebase Realtime Database
 |  <b>function(app, ...)</b> |
 |  [getDatabase(app, url)](./database.md#getdatabase_d9cea01) | Returns the instance of the Realtime Database SDK that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. Initializes a new instance with default settings if no instance exists or if the existing instance uses a custom database URL. |
 |  <b>function(db, ...)</b> |
-|  [connectDatabaseEmulator(db, host, port, options)](./database.md#connectdatabaseemulator_20a9664) | Modify the provided instance to communicate with the Realtime Database emulator.<p>Note: This method must be called before performing any other operation. |
+|  [connectDatabaseEmulator(db, host, port, options)](./database.md#connectdatabaseemulator_27b9e93) | Modify the provided instance to communicate with the Realtime Database emulator.<p>Note: This method must be called before performing any other operation. |
 |  [goOffline(db)](./database.md#gooffline_732b338) | Disconnects from the server (all Database operations will be completed offline).<!-- -->The client automatically maintains a persistent connection to the Database server, which will remain active indefinitely and reconnect when disconnected. However, the <code>goOffline()</code> and <code>goOnline()</code> methods may be used to control the client connection in cases where a persistent connection is undesirable.<!-- -->While offline, the client will no longer receive data updates from the Database. However, all Database operations performed locally will continue to immediately fire events, allowing your application to continue behaving normally. Additionally, each operation performed locally will automatically be queued and retried upon reconnection to the Database server.<!-- -->To reconnect to the Database and begin receiving remote events, see <code>goOnline()</code>. |
 |  [goOnline(db)](./database.md#goonline_732b338) | Reconnects to the server and synchronizes the offline Database state with the server state.<!-- -->This method should be used after disabling the active connection with <code>goOffline()</code>. Once reconnected, the client will transmit the proper data and fire the appropriate events so that your client "catches up" automatically. |
 |  [ref(db, path)](./database.md#ref_5f88fa2) | Returns a <code>Reference</code> representing the location in the Database corresponding to the provided path. If no path is provided, the <code>Reference</code> will point to the root of the Database. |
@@ -135,7 +135,7 @@ The `Database` instance of the provided app.
 
 ## function(db, ...)
 
-### connectDatabaseEmulator(db, host, port, options) {:#connectdatabaseemulator_20a9664}
+### connectDatabaseEmulator(db, host, port, options) {:#connectdatabaseemulator_27b9e93}
 
 Modify the provided instance to communicate with the Realtime Database emulator.
 
@@ -146,7 +146,6 @@ Modify the provided instance to communicate with the Realtime Database emulator.
 ```typescript
 export declare function connectDatabaseEmulator(db: Database, host: string, port: number, options?: {
     mockUserToken?: EmulatorMockTokenOptions | string;
-    ssl?: boolean;
 }): void;
 ```
 
@@ -157,7 +156,7 @@ export declare function connectDatabaseEmulator(db: Database, host: string, port
 |  db | [Database](./database.database.md#database_class) | The instance to modify. |
 |  host | string | The emulator host (ex: localhost) |
 |  port | number | The emulator port (ex: 8080) |
-|  options | { mockUserToken?: [EmulatorMockTokenOptions](./util.md#emulatormocktokenoptions) \| string; ssl?: boolean; } |  |
+|  options | { mockUserToken?: [EmulatorMockTokenOptions](./util.md#emulatormocktokenoptions) \| string; } |  |
 
 <b>Returns:</b>
 

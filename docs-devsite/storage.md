@@ -19,7 +19,7 @@ Cloud Storage for Firebase
 |  <b>function(app, ...)</b> |
 |  [getStorage(app, bucketUrl)](./storage.md#getstorage_25f3a57) | Gets a [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance for the given Firebase app. |
 |  <b>function(storage, ...)</b> |
-|  [connectStorageEmulator(storage, host, port, options)](./storage.md#connectstorageemulator_ac343b7) | Modify this [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance to communicate with the Cloud Storage emulator. |
+|  [connectStorageEmulator(storage, host, port, options)](./storage.md#connectstorageemulator_e9039de) | Modify this [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance to communicate with the Cloud Storage emulator. |
 |  [ref(storage, url)](./storage.md#ref_5672fc1) | Returns a [StorageReference](./storage.storagereference.md#storagereference_interface) for the given url. |
 |  <b>function(ref, ...)</b> |
 |  [deleteObject(ref)](./storage.md#deleteobject_30df0b2) | Deletes the object at this location. |
@@ -106,7 +106,7 @@ A [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) inst
 
 ## function(storage, ...)
 
-### connectStorageEmulator(storage, host, port, options) {:#connectstorageemulator_ac343b7}
+### connectStorageEmulator(storage, host, port, options) {:#connectstorageemulator_e9039de}
 
 Modify this [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance to communicate with the Cloud Storage emulator.
 
@@ -115,7 +115,6 @@ Modify this [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_inter
 ```typescript
 export declare function connectStorageEmulator(storage: FirebaseStorage, host: string, port: number, options?: {
     mockUserToken?: EmulatorMockTokenOptions | string;
-    ssl?: boolean;
 }): void;
 ```
 
@@ -126,7 +125,7 @@ export declare function connectStorageEmulator(storage: FirebaseStorage, host: s
 |  storage | [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) | The [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance |
 |  host | string | The emulator host (ex: localhost) |
 |  port | number | The emulator port (ex: 5001) |
-|  options | { mockUserToken?: [EmulatorMockTokenOptions](./util.md#emulatormocktokenoptions) \| string; ssl?: boolean; } | Emulator options. <code>options.mockUserToken</code> is the mock auth token to use for unit testing Security Rules. |
+|  options | { mockUserToken?: [EmulatorMockTokenOptions](./util.md#emulatormocktokenoptions) \| string; } | Emulator options. <code>options.mockUserToken</code> is the mock auth token to use for unit testing Security Rules. |
 
 <b>Returns:</b>
 

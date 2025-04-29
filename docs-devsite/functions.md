@@ -19,7 +19,7 @@ Cloud Functions for Firebase
 |  <b>function(app, ...)</b> |
 |  [getFunctions(app, regionOrCustomDomain)](./functions.md#getfunctions_60f2095) | Returns a [Functions](./functions.functions.md#functions_interface) instance for the given app. |
 |  <b>function(functionsInstance, ...)</b> |
-|  [connectFunctionsEmulator(functionsInstance, host, port, ssl)](./functions.md#connectfunctionsemulator_a989598) | Modify this instance to communicate with the Cloud Functions emulator.<!-- -->Note: this must be called before this instance has been used to do any operations. |
+|  [connectFunctionsEmulator(functionsInstance, host, port)](./functions.md#connectfunctionsemulator_505c08d) | Modify this instance to communicate with the Cloud Functions emulator.<!-- -->Note: this must be called before this instance has been used to do any operations. |
 |  [httpsCallable(functionsInstance, name, options)](./functions.md#httpscallable_1dd297c) | Returns a reference to the callable HTTPS trigger with the given name. |
 |  [httpsCallableFromURL(functionsInstance, url, options)](./functions.md#httpscallablefromurl_7af6987) | Returns a reference to the callable HTTPS trigger with the specified url. |
 
@@ -72,7 +72,7 @@ export declare function getFunctions(app?: FirebaseApp, regionOrCustomDomain?: s
 
 ## function(functionsInstance, ...)
 
-### connectFunctionsEmulator(functionsInstance, host, port, ssl) {:#connectfunctionsemulator_a989598}
+### connectFunctionsEmulator(functionsInstance, host, port) {:#connectfunctionsemulator_505c08d}
 
 Modify this instance to communicate with the Cloud Functions emulator.
 
@@ -81,7 +81,7 @@ Note: this must be called before this instance has been used to do any operation
 <b>Signature:</b>
 
 ```typescript
-export declare function connectFunctionsEmulator(functionsInstance: Functions, host: string, port: number, ssl?: boolean): void;
+export declare function connectFunctionsEmulator(functionsInstance: Functions, host: string, port: number): void;
 ```
 
 #### Parameters
@@ -91,7 +91,6 @@ export declare function connectFunctionsEmulator(functionsInstance: Functions, h
 |  functionsInstance | [Functions](./functions.functions.md#functions_interface) |  |
 |  host | string | The emulator host (ex: localhost) |
 |  port | number | The emulator port (ex: 5001) |
-|  ssl | boolean |  |
 
 <b>Returns:</b>
 
