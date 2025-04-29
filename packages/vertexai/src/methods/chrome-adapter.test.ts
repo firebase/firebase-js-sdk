@@ -52,6 +52,59 @@ async function toStringArray(
 }
 
 describe('ChromeAdapter', () => {
+  describe('constructor', () => {
+    it('sets image as expected input type by default', async () => {
+      const languageModelProvider = {
+        availability: () => Promise.resolve(Availability.available)
+      } as LanguageModel;
+      const availabilityStub = stub(
+        languageModelProvider,
+        'availability'
+      ).resolves(Availability.available);
+      const adapter = new ChromeAdapter(
+        languageModelProvider,
+        'prefer_on_device'
+      );
+      await adapter.isAvailable({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'hi' }]
+          }
+        ]
+      });
+      expect(availabilityStub).to.have.been.calledWith({
+        expectedInputs: [{ type: 'image' }]
+      });
+    });
+    it('honors explicitly set expected inputs', async () => {
+      const languageModelProvider = {
+        availability: () => Promise.resolve(Availability.available)
+      } as LanguageModel;
+      const availabilityStub = stub(
+        languageModelProvider,
+        'availability'
+      ).resolves(Availability.available);
+      const onDeviceParams = {
+        // Explicitly sets expected inputs.
+        expectedInputs: [{ type: 'text' }]
+      } as LanguageModelCreateOptions;
+      const adapter = new ChromeAdapter(
+        languageModelProvider,
+        'prefer_on_device',
+        onDeviceParams
+      );
+      await adapter.isAvailable({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'hi' }]
+          }
+        ]
+      });
+      expect(availabilityStub).to.have.been.calledWith(onDeviceParams);
+    });
+  });
   describe('isAvailable', () => {
     it('returns false if mode is only cloud', async () => {
       const adapter = new ChromeAdapter(undefined, 'only_in_cloud');
@@ -110,7 +163,15 @@ describe('ChromeAdapter', () => {
       );
       expect(
         await adapter.isAvailable({
-          contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                { text: 'describe this image' },
+                { inlineData: { mimeType: 'image/jpeg', data: 'asd' } }
+              ]
+            }
+          ]
         })
       ).to.be.true;
     });
