@@ -335,7 +335,7 @@ export function connectFirestoreEmulator(
   };
   const newHostSetting = `${host}:${port}`;
   if (useSsl) {
-    testConnectionAlive(`https://${newHostSetting}`);
+    void testConnectionAlive(`https://${newHostSetting}`);
   }
   if (settings.host !== DEFAULT_HOST && settings.host !== newHostSetting) {
     logWarn(

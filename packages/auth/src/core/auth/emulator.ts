@@ -107,7 +107,7 @@ export function connectAuthEmulator(
 
   if (isCloudWorkstation(host)) {
     // Workaround to get cookies in Firebase Studio
-    testConnectionAlive(`${protocol}//${host}:${port}`).then().catch();
+    void testConnectionAlive(`${protocol}//${host}:${port}`);
   }
 }
 

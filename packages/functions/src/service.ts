@@ -180,7 +180,7 @@ export function connectFunctionsEmulator(
     useSsl ? 's' : ''
   }://${host}:${port}`;
   if (useSsl) {
-    testConnectionAlive(functionsInstance.emulatorOrigin);
+    void testConnectionAlive(functionsInstance.emulatorOrigin);
   }
 }
 

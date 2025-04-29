@@ -24,6 +24,7 @@ import {
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import { isCloudWorkstation, testConnectionAlive } from '@firebase/util';
 
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../core/error';
@@ -42,7 +43,6 @@ import {
 import { RESTTransport } from '../network/transport/rest';
 
 import { MutationManager } from './Mutation';
-import { isCloudWorkstation, testConnectionAlive } from '@firebase/util';
 
 /**
  * Connector Config for calling Data Connect backend.
@@ -239,7 +239,7 @@ export function connectDataConnectEmulator(
   sslEnabled = false
 ): void {
   if (isCloudWorkstation(host)) {
-    testConnectionAlive(`https://${host}${port ? `:${port}` : ''}`);
+    void testConnectionAlive(`https://${host}${port ? `:${port}` : ''}`);
   }
   dc.enableEmulator({ host, port, sslEnabled });
 }
