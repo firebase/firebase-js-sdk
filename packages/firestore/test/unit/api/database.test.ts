@@ -568,7 +568,7 @@ describe('Settings', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
     const emulatorOptions = { mockUserToken: 'test' };
-    const workstationHost = 'abc.workstations.dev';
+    const workstationHost = 'abc.cloudworkstations.dev';
     connectFirestoreEmulator(db, workstationHost, 9000, emulatorOptions);
 
     expect(db._getSettings().host).to.exist.and.to.equal(
