@@ -8,7 +8,7 @@ import { FirebaseApp } from '@firebase/app';
 import { FirebaseError } from '@firebase/util';
 
 // @public
-export function connectFunctionsEmulator(functionsInstance: Functions, host: string, port: number, ssl?: boolean): void;
+export function connectFunctionsEmulator(functionsInstance: Functions, host: string, port: number): void;
 
 // @public
 export interface Functions {

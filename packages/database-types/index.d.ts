@@ -47,7 +47,6 @@ export interface Database {
     port: number,
     options?: {
       mockUserToken?: EmulatorMockTokenOptions | string;
-      ssl?: boolean;
     }
   ): void;
   goOffline(): void;
@@ -64,7 +63,6 @@ export class FirebaseDatabase implements Database {
     port: number,
     options?: {
       mockUserToken?: EmulatorMockTokenOptions | string;
-      ssl?: boolean;
     }
   ): void;
   goOffline(): void;

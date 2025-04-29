@@ -264,8 +264,9 @@ GOOG4-RSA-SHA256`
         testShared.fakeAuthProvider,
         testShared.fakeAppCheckTokenProvider
       );
-      connectStorageEmulator(service, 'test.host.org', 1234, { ssl: true });
-      expect(service.host).to.equal('test.host.org:1234');
+      const workstationHost = 'test.cloudworkations.dev';
+      connectStorageEmulator(service, workstationHost, 1234);
+      expect(service.host).to.equal(`${workstationHost}:1234`);
       expect(service._protocol).to.equal('https');
       void getDownloadURL(ref(service, 'test.png'));
     });

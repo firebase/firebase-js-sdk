@@ -30,6 +30,7 @@ import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { MessagingInternalComponentName } from '@firebase/messaging-interop-types';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
+import { isCloudWorkstation } from '@firebase/util';
 
 export const DEFAULT_REGION = 'us-central1';
 
@@ -172,10 +173,12 @@ export class FunctionsService implements _FirebaseService {
 export function connectFunctionsEmulator(
   functionsInstance: FunctionsService,
   host: string,
-  port: number,
-  ssl?: boolean
+  port: number
 ): void {
-  functionsInstance.emulatorOrigin = `http${ssl ? 's' : ''}://${host}:${port}`;
+  const useSsl = isCloudWorkstation(host);
+  functionsInstance.emulatorOrigin = `http${
+    useSsl ? 's' : ''
+  }://${host}:${port}`;
 }
 
 /**

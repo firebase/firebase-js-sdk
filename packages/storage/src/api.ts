@@ -359,7 +359,6 @@ export function connectStorageEmulator(
   port: number,
   options: {
     mockUserToken?: EmulatorMockTokenOptions | string;
-    ssl?: boolean;
   } = {}
 ): void {
   connectEmulatorInternal(storage as FirebaseStorageImpl, host, port, options);

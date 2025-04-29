@@ -19,7 +19,6 @@ import { Unsubscribe } from '@firebase/util';
 // @public
 export function connectStorageEmulator(storage: FirebaseStorage, host: string, port: number, options?: {
     mockUserToken?: EmulatorMockTokenOptions | string;
-    ssl?: boolean;
 }): void;
 
 // Warning: (ae-forgotten-export) The symbol "StringData" needs to be exported by the entry point index.d.ts

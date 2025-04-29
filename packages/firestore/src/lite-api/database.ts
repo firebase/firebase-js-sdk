@@ -26,7 +26,8 @@ import {
   createMockUserToken,
   deepEqual,
   EmulatorMockTokenOptions,
-  getDefaultEmulatorHostnameAndPort
+  getDefaultEmulatorHostnameAndPort,
+  isCloudWorkstation
 } from '@firebase/util';
 
 import {
@@ -322,11 +323,10 @@ export function connectFirestoreEmulator(
   port: number,
   options: {
     mockUserToken?: EmulatorMockTokenOptions | string;
-    ssl?: boolean;
   } = {}
 ): void {
   firestore = cast(firestore, Firestore);
-  const ssl = options.ssl ?? false;
+  const useSsl = isCloudWorkstation(host);
   const settings = firestore._getSettings();
   const existingConfig = {
     ...settings,
@@ -342,7 +342,7 @@ export function connectFirestoreEmulator(
   const newConfig = {
     ...settings,
     host: newHostSetting,
-    ssl,
+    ssl: useSsl,
     emulatorOptions: options
   };
   // No-op if the new configuration matches the current configuration. This supports SSR

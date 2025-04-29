@@ -49,10 +49,11 @@ describe('Firebase Functions > Service', () => {
     });
     it('can use emulator with SSL', () => {
       service = createTestService(app);
-      connectFunctionsEmulator(service, 'localhost', 5005, true);
+      const workstationHost = 'abc.cloudworkstations.dev';
+      connectFunctionsEmulator(service, workstationHost, 5005);
       assert.equal(
         service._url('foo'),
-        'https://localhost:5005/my-project/us-central1/foo'
+        `https://${workstationHost}:5005/my-project/us-central1/foo`
       );
     });
 
