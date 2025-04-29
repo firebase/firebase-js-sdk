@@ -4664,7 +4664,7 @@ export function eqAny(
  *
  * @param fieldName The field to compare.
  * @param arrayExpression An expression that evaluates to an array, whose elements to check for equality to the input field.
- * @return A new {@code Expr} representing the 'IN' comparison.
+ * @return A new {@code BooleanExpr} representing the 'IN' comparison.
  */
 export function eqAny(fieldName: string, arrayExpression: Expr): BooleanExpr;
 export function eqAny(
@@ -4688,7 +4688,7 @@ export function eqAny(
  *
  * @param element The expression to compare.
  * @param values The values to check against.
- * @return A new {@code Expr} representing the 'NOT IN' comparison.
+ * @return A new {@code BooleanExpr} representing the 'NOT IN' comparison.
  */
 export function notEqAny(
   element: Expr,
@@ -4708,7 +4708,7 @@ export function notEqAny(
  *
  * @param fieldName The field name to compare.
  * @param values The values to check against.
- * @return A new {@code Expr} representing the 'NOT IN' comparison.
+ * @return A new {@code BooleanExpr} representing the 'NOT IN' comparison.
  */
 export function notEqAny(
   fieldName: string,
@@ -4728,7 +4728,7 @@ export function notEqAny(
  *
  * @param element The expression to compare.
  * @param arrayExpression The values to check against.
- * @return A new {@code Expr} representing the 'NOT IN' comparison.
+ * @return A new {@code BooleanExpr} representing the 'NOT IN' comparison.
  */
 export function notEqAny(element: Expr, arrayExpression: Expr): BooleanExpr;
 
@@ -4744,7 +4744,7 @@ export function notEqAny(element: Expr, arrayExpression: Expr): BooleanExpr;
  *
  * @param fieldName The field name to compare.
  * @param arrayExpression The values to check against.
- * @return A new {@code Expr} representing the 'NOT IN' comparison.
+ * @return A new {@code BooleanExpr} representing the 'NOT IN' comparison.
  */
 export function notEqAny(fieldName: string, arrayExpression: Expr): BooleanExpr;
 
@@ -4773,7 +4773,7 @@ export function notEqAny(
  * @param first The first condition.
  * @param second The second condition.
  * @param additionalConditions Additional conditions to 'XOR' together.
- * @return A new {@code Expr} representing the logical 'XOR' operation.
+ * @return A new {@code BooleanExpr} representing the logical 'XOR' operation.
  */
 export function xor(
   first: BooleanExpr,
