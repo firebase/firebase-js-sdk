@@ -2134,7 +2134,7 @@ export class ExprWithAlias implements Selectable, UserData {
 /**
  * @internal
  */
-class ListOfExprs extends Expr {
+class ListOfExprs extends Expr implements UserData {
   exprType: ExprType = 'ListOfExprs';
 
   constructor(private exprs: Expr[]) {
@@ -2345,7 +2345,7 @@ export function constant(value: string): Constant;
  * @param value The boolean value.
  * @return A new `Constant` instance.
  */
-export function constant(value: boolean): Constant;
+export function constant(value: boolean): BooleanExpr;
 
 /**
  * Creates a `Constant` instance for a null value.

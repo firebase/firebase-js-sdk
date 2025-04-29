@@ -221,7 +221,7 @@ export function toPipeline(query: Query, db: Firestore): Pipeline {
         );
       }
 
-      pipeline = pipeline._limit(query.limit!, true);
+      pipeline = pipeline.limit(query.limit!, true);
       pipeline = pipeline.sort(orderings[0], ...orderings.slice(1));
     } else {
       pipeline = pipeline.sort(orderings[0], ...orderings.slice(1));

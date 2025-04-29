@@ -340,21 +340,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   }
 
   /**
-   * Internal use only.
-   * Helper to add a limit stage when converting from a Query.
-   *
-   * @internal
-   * @private
-   *
-   * @param limit
-   * @param convertedFromLimitToLast
-   */
-  _limit(limit: number, convertedFromLimitToLast: boolean): Pipeline {
-    return this._addStage(new Limit(limit, convertedFromLimitToLast));
-  }
-
-
-  /**
    * Returns a set of distinct values from the inputs to this stage.
    *
    * This stage runs through the results from previous stages to include only results with
@@ -552,31 +537,11 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @param additionalOrderings Optional additional {@link Ordering} instances specifying the additional sorting criteria.
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
    */
-  sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
-  sort(
-    optionsOrOrderings:
-      | Ordering
-      | {
-          orderings: Ordering[];
-        },
-    ...rest: Ordering[]
-  ): Pipeline {
-    // Option object
-    if (optionsOrOrderings && 'orderings' in optionsOrOrderings) {
-      return this._addStage(
-        new Sort(
-          this.readUserData(
-            'sort',
-            this.readUserData('sort', optionsOrOrderings.orderings)
-          )
-        )
-      );
-    } else {
-      // Ordering object
-      return this._addStage(
-        new Sort(this.readUserData('sort', [optionsOrOrderings, ...rest]))
-      );
-    }
+  sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline {
+    // Ordering object
+    return this._addStage(
+      new Sort(this.readUserData('sort', [ordering, ...additionalOrderings]))
+    );
   }
 
   /**

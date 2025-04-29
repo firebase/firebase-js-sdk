@@ -1139,6 +1139,18 @@ apiDescribe.only('Pipelines', persistence => {
           { title: "The Handmaid's Tale" }
         );
       });
+
+      it('where with boolean constant', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(constant(true))
+            .sort(ascending('__name__'))
+            .limit(2)
+        );
+        expectResults(snapshot, 'book1', 'book10');
+      });
     });
 
     describe('sort, offset, and limit stages', () => {

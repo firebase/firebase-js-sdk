@@ -122,7 +122,6 @@ export {
   rand,
   array,
   arrayOffset,
-  currentContext,
   isError,
   ifError,
   isAbsent,
