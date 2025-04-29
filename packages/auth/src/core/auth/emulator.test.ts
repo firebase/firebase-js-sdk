@@ -29,7 +29,6 @@ import { Endpoint } from '../../api';
 import { UserInternal } from '../../model/user';
 import { _castAuth } from './auth_impl';
 import { connectAuthEmulator } from './emulator';
-import { FetchProvider } from '../util/fetch_provider';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -39,7 +38,6 @@ describe('core/auth/emulator', () => {
   let user: UserInternal;
   let normalEndpoint: fetch.Route;
   let emulatorEndpoint: fetch.Route;
-  let spy: sinon.SinonSpy;
 
   beforeEach(async () => {
     auth = await testAuth();

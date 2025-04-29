@@ -41,7 +41,6 @@ import {
 import { ServerError } from './errors';
 import { SDK_VERSION } from '@firebase/app';
 import { _getBrowserName } from '../core/util/browser';
-import { FetchProvider } from '../../internal';
 
 use(sinonChai);
 use(chaiAsPromised);
