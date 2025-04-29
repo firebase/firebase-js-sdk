@@ -29,6 +29,7 @@ import {
   FinishReason,
   GenerateContentResponse,
   ImagenGCSImage,
+  InlineDataPart,
   ImagenInlineImage
 } from '../types';
 import { getMockResponse } from '../../test-utils/mock-response';
@@ -132,6 +133,44 @@ const fakeResponseMixed3: GenerateContentResponse = {
   ]
 };
 
+const inlineDataPart1: InlineDataPart = {
+  inlineData: {
+    mimeType: 'image/png',
+    data: 'base64encoded...'
+  }
+};
+
+const inlineDataPart2: InlineDataPart = {
+  inlineData: {
+    mimeType: 'image/jpeg',
+    data: 'anotherbase64...'
+  }
+};
+
+const fakeResponseInlineData: GenerateContentResponse = {
+  candidates: [
+    {
+      index: 0,
+      content: {
+        role: 'model',
+        parts: [inlineDataPart1, inlineDataPart2]
+      }
+    }
+  ]
+};
+
+const fakeResponseTextAndInlineData: GenerateContentResponse = {
+  candidates: [
+    {
+      index: 0,
+      content: {
+        role: 'model',
+        parts: [{ text: 'Describe this:' }, inlineDataPart1]
+      }
+    }
+  ]
+};
+
 const badFakeResponse: GenerateContentResponse = {
   promptFeedback: {
     blockReason: BlockReason.SAFETY,
@@ -148,6 +187,7 @@ describe('response-helpers methods', () => {
       const enhancedResponse = addHelpers(fakeResponseText);
       expect(enhancedResponse.text()).to.equal('Some text and some more text');
       expect(enhancedResponse.functionCalls()).to.be.undefined;
+      expect(enhancedResponse.inlineDataParts()).to.be.undefined;
     });
     it('good response functionCall', async () => {
       const enhancedResponse = addHelpers(fakeResponseFunctionCall);
@@ -155,6 +195,7 @@ describe('response-helpers methods', () => {
       expect(enhancedResponse.functionCalls()).to.deep.equal([
         functionCallPart1.functionCall
       ]);
+      expect(enhancedResponse.inlineDataParts()).to.be.undefined;
     });
     it('good response functionCalls', async () => {
       const enhancedResponse = addHelpers(fakeResponseFunctionCalls);
@@ -163,6 +204,7 @@ describe('response-helpers methods', () => {
         functionCallPart1.functionCall,
         functionCallPart2.functionCall
       ]);
+      expect(enhancedResponse.inlineDataParts()).to.be.undefined;
     });
     it('good response text/functionCall', async () => {
       const enhancedResponse = addHelpers(fakeResponseMixed1);
@@ -170,6 +212,7 @@ describe('response-helpers methods', () => {
         functionCallPart2.functionCall
       ]);
       expect(enhancedResponse.text()).to.equal('some text');
+      expect(enhancedResponse.inlineDataParts()).to.be.undefined;
     });
     it('good response functionCall/text', async () => {
       const enhancedResponse = addHelpers(fakeResponseMixed2);
@@ -177,6 +220,7 @@ describe('response-helpers methods', () => {
         functionCallPart1.functionCall
       ]);
       expect(enhancedResponse.text()).to.equal('some text');
+      expect(enhancedResponse.inlineDataParts()).to.be.undefined;
     });
     it('good response text/functionCall/text', async () => {
       const enhancedResponse = addHelpers(fakeResponseMixed3);
@@ -184,10 +228,30 @@ describe('response-helpers methods', () => {
         functionCallPart1.functionCall
       ]);
       expect(enhancedResponse.text()).to.equal('some text and more text');
+      expect(enhancedResponse.inlineDataParts()).to.be.undefined;
     });
     it('bad response safety', async () => {
       const enhancedResponse = addHelpers(badFakeResponse);
       expect(enhancedResponse.text).to.throw('SAFETY');
+      expect(enhancedResponse.functionCalls).to.throw('SAFETY');
+      expect(enhancedResponse.inlineDataParts).to.throw('SAFETY');
+    });
+    it('good response inlineData', async () => {
+      const enhancedResponse = addHelpers(fakeResponseInlineData);
+      expect(enhancedResponse.text()).to.equal('');
+      expect(enhancedResponse.functionCalls()).to.be.undefined;
+      expect(enhancedResponse.inlineDataParts()).to.deep.equal([
+        inlineDataPart1,
+        inlineDataPart2
+      ]);
+    });
+    it('good response text/inlineData', async () => {
+      const enhancedResponse = addHelpers(fakeResponseTextAndInlineData);
+      expect(enhancedResponse.text()).to.equal('Describe this:');
+      expect(enhancedResponse.functionCalls()).to.be.undefined;
+      expect(enhancedResponse.inlineDataParts()).to.deep.equal([
+        inlineDataPart1
+      ]);
     });
   });
   describe('getBlockString', () => {

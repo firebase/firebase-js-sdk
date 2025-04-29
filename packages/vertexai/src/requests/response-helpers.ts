@@ -23,6 +23,7 @@ import {
   GenerateContentResponse,
   ImagenGCSImage,
   ImagenInlineImage,
+  InlineDataPart,
   VertexAIErrorCode
 } from '../types';
 import { VertexAIError } from '../errors';
@@ -88,6 +89,38 @@ export function addHelpers(
       );
     }
     return '';
+  };
+  (response as EnhancedGenerateContentResponse).inlineDataParts = (): InlineDataPart[] | undefined => {
+    if (response.candidates && response.candidates.length > 0) {
+      if (response.candidates.length > 1) {
+        logger.warn(
+          `This response had ${response.candidates.length} ` +
+            `candidates. Returning data from the first candidate only. ` +
+            `Access response.candidates directly to use the other candidates.`
+        );
+      }
+      if (hadBadFinishReason(response.candidates[0])) {
+        throw new VertexAIError(
+          VertexAIErrorCode.RESPONSE_ERROR,
+          `Response error: ${formatBlockErrorMessage(
+            response
+          )}. Response body stored in error.response`,
+          {
+            response
+          }
+        );
+      }
+      return getInlineDataParts(response);
+    } else if (response.promptFeedback) {
+      throw new VertexAIError(
+        VertexAIErrorCode.RESPONSE_ERROR,
+        `Data not available. ${formatBlockErrorMessage(response)}`,
+        {
+          response
+        }
+      );
+    }
+    return undefined;
   };
   (response as EnhancedGenerateContentResponse).functionCalls = () => {
     if (response.candidates && response.candidates.length > 0) {
@@ -159,6 +192,31 @@ export function getFunctionCalls(
   }
   if (functionCalls.length > 0) {
     return functionCalls;
+  } else {
+    return undefined;
+  }
+}
+
+/**
+ * Returns {@link InlineDataPart}s in the first candidate if present.
+ *
+ * @internal
+ */
+export function getInlineDataParts(
+  response: GenerateContentResponse
+): InlineDataPart[] | undefined {
+  const data: InlineDataPart[] = [];
+
+  if (response.candidates?.[0].content?.parts) {
+    for (const part of response.candidates?.[0].content?.parts) {
+      if (part.inlineData) {
+        data.push(part);
+      }
+    }
+  }
+
+  if (data.length > 0) {
+    return data;
   } else {
     return undefined;
   }

@@ -24,6 +24,7 @@ export interface EnhancedGenerateContentResponse extends GenerateContentResponse
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [functionCalls](./vertexai.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponsefunctioncalls) | () =&gt; [FunctionCall](./vertexai.functioncall.md#functioncall_interface)<!-- -->\[\] \| undefined |  |
+|  [inlineData](./vertexai.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponseinlinedata) | () =&gt; [GenerativeContentBlob](./vertexai.generativecontentblob.md#generativecontentblob_interface)<!-- -->\[\] \| undefined | Aggregates and returns all [InlineDataPart](./vertexai.inlinedatapart.md#inlinedatapart_interface) from the [GenerateContentResponse](./vertexai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->'s first candidate. |
 |  [text](./vertexai.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponsetext) | () =&gt; string | Returns the text string from the response, if available. Throws if the prompt or candidate was blocked. |
 
 ## EnhancedGenerateContentResponse.functionCalls
@@ -32,6 +33,16 @@ export interface EnhancedGenerateContentResponse extends GenerateContentResponse
 
 ```typescript
 functionCalls: () => FunctionCall[] | undefined;
+```
+
+## EnhancedGenerateContentResponse.inlineData
+
+Aggregates and returns all [InlineDataPart](./vertexai.inlinedatapart.md#inlinedatapart_interface) from the [GenerateContentResponse](./vertexai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->'s first candidate.
+
+<b>Signature:</b>
+
+```typescript
+inlineData: () => GenerativeContentBlob[] | undefined;
 ```
 
 ## EnhancedGenerateContentResponse.text
