@@ -131,7 +131,7 @@ describe('Google AI Mappers', () => {
   describe('mapGenerateContentResponse', () => {
     it('should map a full Google AI response', async () => {
       const googleAIMockResponse: GoogleAIGenerateContentResponse = await (
-        getMockResponse('googleAI', 'unary-success-citations.txt') as Response
+        getMockResponse('googleAI', 'unary-success-citations.json') as Response
       ).json();
       const mappedResponse = mapGenerateContentResponse(googleAIMockResponse);
 
