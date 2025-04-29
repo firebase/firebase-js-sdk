@@ -41,7 +41,7 @@ import {
 import { ServerError } from './errors';
 import { SDK_VERSION } from '@firebase/app';
 import { _getBrowserName } from '../core/util/browser';
-import { connectAuthEmulator, FetchProvider } from '../../internal';
+import { FetchProvider } from '../../internal';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -57,8 +57,6 @@ describe('api/_performApiRequest', () => {
 
   let auth: TestAuth;
 
-  let fetchSpy: sinon.SinonSpy;
-
   beforeEach(async () => {
     auth = await testAuth();
   });
@@ -68,10 +66,7 @@ describe('api/_performApiRequest', () => {
   });
 
   context.only('with regular requests', () => {
-    beforeEach(() => {
-      mockFetch.setUp();
-      fetchSpy = sinon.spy(FetchProvider.fetch());
-    });
+    beforeEach(mockFetch.setUp);
     afterEach(mockFetch.tearDown);
 
     it('should set the correct request, method and HTTP Headers', async () => {
