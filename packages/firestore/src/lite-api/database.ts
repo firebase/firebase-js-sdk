@@ -27,7 +27,8 @@ import {
   deepEqual,
   EmulatorMockTokenOptions,
   getDefaultEmulatorHostnameAndPort,
-  isCloudWorkstation
+  isCloudWorkstation,
+  testConnectionAlive
 } from '@firebase/util';
 
 import {
@@ -333,6 +334,9 @@ export function connectFirestoreEmulator(
     emulatorOptions: firestore._getEmulatorOptions()
   };
   const newHostSetting = `${host}:${port}`;
+  if (useSsl) {
+    testConnectionAlive(`https://${newHostSetting}`);
+  }
   if (settings.host !== DEFAULT_HOST && settings.host !== newHostSetting) {
     logWarn(
       'Host has been set in both settings() and connectFirestoreEmulator(), emulator host ' +

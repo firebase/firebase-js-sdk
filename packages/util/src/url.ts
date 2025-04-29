@@ -22,3 +22,8 @@
 export function isCloudWorkstation(host: string): boolean {
   return host.endsWith('.cloudworkstations.dev');
 }
+
+export async function testConnectionAlive(endpoint: string): Promise<boolean> {
+  const result = await fetch(endpoint);
+  return result.ok;
+}

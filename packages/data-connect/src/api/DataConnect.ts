@@ -42,6 +42,7 @@ import {
 import { RESTTransport } from '../network/transport/rest';
 
 import { MutationManager } from './Mutation';
+import { isCloudWorkstation, testConnectionAlive } from '@firebase/util';
 
 /**
  * Connector Config for calling Data Connect backend.
@@ -237,6 +238,9 @@ export function connectDataConnectEmulator(
   port?: number,
   sslEnabled = false
 ): void {
+  if (isCloudWorkstation(host)) {
+    testConnectionAlive(`https://${host}${port ? `:${port}` : ''}`);
+  }
   dc.enableEmulator({ host, port, sslEnabled });
 }
 

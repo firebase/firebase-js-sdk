@@ -18,7 +18,11 @@ import { Auth } from '../../model/public_types';
 import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
 import { _castAuth } from './auth_impl';
-import { deepEqual } from '@firebase/util';
+import {
+  deepEqual,
+  isCloudWorkstation,
+  testConnectionAlive
+} from '@firebase/util';
 
 /**
  * Changes the {@link Auth} instance to communicate with the Firebase Auth Emulator, instead of production
@@ -99,6 +103,11 @@ export function connectAuthEmulator(
 
   if (!disableWarnings) {
     emitEmulatorWarning();
+  }
+
+  if (isCloudWorkstation(host)) {
+    // Workaround to get cookies in Firebase Studio
+    testConnectionAlive(`${protocol}//${host}:${port}`).then().catch();
   }
 }
 

@@ -474,6 +474,11 @@ export interface Subscribe<T> {
     (observer: PartialObserver<T>): Unsubscribe;
 }
 
+// Warning: (ae-missing-release-tag) "testConnectionAlive" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function testConnectionAlive(endpoint: string): Promise<boolean>;
+
 // Warning: (ae-missing-release-tag) "Unsubscribe" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
