@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { isCloudWorkstation } from '@firebase/util';
 import {
   Connection,
   ConnectionType,
@@ -57,11 +58,7 @@ abstract class FetchConnection<T extends ConnectionType>
     this.sent_ = true;
 
     try {
-      const response = await fetch(url, {
-        method,
-        headers: headers || {},
-        body: body as NodeJS.ArrayBufferView | string
-      });
+      const response = await newFetch(url, method, headers, body);
       this.headers_ = response.headers;
       this.statusCode_ = response.status;
       this.errorCode_ = ErrorCode.NO_ERROR;
@@ -161,11 +158,7 @@ export class FetchStreamConnection extends FetchConnection<
     this.sent_ = true;
 
     try {
-      const response = await fetch(url, {
-        method,
-        headers: headers || {},
-        body: body as NodeJS.ArrayBufferView | string
-      });
+      const response = await newFetch(url, method, headers, body);
       this.headers_ = response.headers;
       this.statusCode_ = response.status;
       this.errorCode_ = ErrorCode.NO_ERROR;
@@ -184,6 +177,23 @@ export class FetchStreamConnection extends FetchConnection<
     }
     return this.stream_;
   }
+}
+
+function newFetch(
+  url: string,
+  method: string,
+  headers?: Record<string, string>,
+  body?: NodeJS.ArrayBufferView | Blob | string
+) {
+  const fetchArgs: RequestInit = {
+    method,
+    headers: headers || {},
+    body: body as NodeJS.ArrayBufferView | string
+  };
+  if (isCloudWorkstation(url)) {
+    fetchArgs.credentials = 'include';
+  }
+  return fetch(url, fetchArgs);
 }
 
 export function newStreamConnection(): Connection<ReadableStream<Uint8Array>> {

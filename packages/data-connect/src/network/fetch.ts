@@ -25,6 +25,7 @@ import { SDK_VERSION } from '../core/version';
 import { logDebug, logError } from '../logger';
 
 import { CallerSdkType, CallerSdkTypeEnum } from './transport';
+import { isCloudWorkstation } from '@firebase/util';
 
 let connectFetch: typeof fetch | null = globalThis.fetch;
 export function initializeFetch(fetchImpl: typeof fetch): void {
@@ -77,14 +78,18 @@ export function dcFetch<T, U>(
     headers['X-Firebase-AppCheck'] = appCheckToken;
   }
   const bodyStr = JSON.stringify(body);
-  logDebug(`Making request out to ${url} with body: ${bodyStr}`);
-
-  return connectFetch(url, {
+  const fetchOptions: RequestInit = {
     body: bodyStr,
     method: 'POST',
     headers,
     signal
-  })
+  };
+  if (isCloudWorkstation(url)) {
+    fetchOptions.credentials = 'include';
+  }
+  logDebug(`Making request out to ${url} with body: ${bodyStr}`);
+
+  return connectFetch(url, fetchOptions)
     .catch(err => {
       throw new DataConnectError(
         Code.OTHER,

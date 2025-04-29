@@ -25,6 +25,7 @@ import { FirebaseApp } from '@firebase/app';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { Provider } from '@firebase/component';
 import { AppCheckTokenInternal } from './types';
+import { isCloudWorkstation } from '@firebase/util';
 
 /**
  * Response JSON returned from AppCheck server endpoint.
@@ -62,6 +63,9 @@ export async function exchangeToken(
     body: JSON.stringify(body),
     headers
   };
+  if (isCloudWorkstation(url)) {
+    options.credentials = 'include';
+  }
   let response;
   try {
     response = await fetch(url, options);
