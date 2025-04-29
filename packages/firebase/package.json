@@ -455,6 +455,7 @@
     "rollup-plugin-license": "3.5.3"
   },
   "components": [
+    "ai",
     "analytics",
     "app",
     "app-check",
