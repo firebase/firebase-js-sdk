@@ -72,6 +72,7 @@ export class Database implements FirebaseService, Compat<ModularDatabase> {
     port: number,
     options: {
       mockUserToken?: EmulatorMockTokenOptions;
+      ssl?: boolean;
     } = {}
   ): void {
     connectDatabaseEmulator(this._delegate, host, port, options);

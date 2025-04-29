@@ -109,6 +109,7 @@ export class CollectionReference<AppModelType = DocumentData, DbModelType extend
 // @public
 export function connectFirestoreEmulator(firestore: Firestore, host: string, port: number, options?: {
     mockUserToken?: EmulatorMockTokenOptions | string;
+    ssl?: boolean;
 }): void;
 
 // @public

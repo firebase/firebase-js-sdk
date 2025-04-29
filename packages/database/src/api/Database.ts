@@ -91,7 +91,7 @@ function repoManagerApplyEmulatorSettings(
 ): void {
   repo.repoInfo_ = new RepoInfo(
     hostAndPort,
-    /* secure= */ false,
+    /* secure= */ emulatorOptions?.ssl ?? false,
     repo.repoInfo_.namespace,
     repo.repoInfo_.webSocketOnly,
     repo.repoInfo_.nodeAdmin,
@@ -348,10 +348,12 @@ export function connectDatabaseEmulator(
   port: number,
   options: {
     mockUserToken?: EmulatorMockTokenOptions | string;
+    ssl?: boolean;
   } = {}
 ): void {
   db = getModularInstance(db);
   db._checkNotDeleted('useEmulator');
+
   const hostAndPort = `${host}:${port}`;
   const repo = db._repoInternal;
   if (db._instanceStarted) {

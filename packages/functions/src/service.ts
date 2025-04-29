@@ -172,9 +172,10 @@ export class FunctionsService implements _FirebaseService {
 export function connectFunctionsEmulator(
   functionsInstance: FunctionsService,
   host: string,
-  port: number
+  port: number,
+  ssl?: boolean
 ): void {
-  functionsInstance.emulatorOrigin = `http://${host}:${port}`;
+  functionsInstance.emulatorOrigin = `http${ssl ? 's' : ''}://${host}:${port}`;
 }
 
 /**
