@@ -29,7 +29,8 @@ import {
   createMockUserToken,
   deepEqual,
   EmulatorMockTokenOptions,
-  getDefaultEmulatorHostnameAndPort
+  getDefaultEmulatorHostnameAndPort,
+  isCloudWorkstation
 } from '@firebase/util';
 
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
@@ -89,9 +90,12 @@ function repoManagerApplyEmulatorSettings(
   emulatorOptions: RepoInfoEmulatorOptions,
   tokenProvider?: AuthTokenProvider
 ): void {
+  const portIndex = hostAndPort.lastIndexOf(':');
+  const host = hostAndPort.substring(0, portIndex);
+  const useSsl = isCloudWorkstation(host);
   repo.repoInfo_ = new RepoInfo(
     hostAndPort,
-    /* secure= */ false,
+    /* secure= */ useSsl,
     repo.repoInfo_.namespace,
     repo.repoInfo_.webSocketOnly,
     repo.repoInfo_.nodeAdmin,
@@ -352,6 +356,7 @@ export function connectDatabaseEmulator(
 ): void {
   db = getModularInstance(db);
   db._checkNotDeleted('useEmulator');
+
   const hostAndPort = `${host}:${port}`;
   const repo = db._repoInternal;
   if (db._instanceStarted) {
