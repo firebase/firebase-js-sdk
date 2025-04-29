@@ -45,7 +45,9 @@ export type {
   Primitive,
   FieldValue,
   SnapshotMetadata,
-  Bytes
+  Bytes,
+  SnapshotListenOptions,
+  Unsubscribe
 } from '../src/api';
 
 export * from '../src/api_pipelines';
