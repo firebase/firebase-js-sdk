@@ -91,7 +91,7 @@ function repoManagerApplyEmulatorSettings(
   tokenProvider?: AuthTokenProvider
 ): void {
   const portIndex = hostAndPort.lastIndexOf(':');
-  const host = hostAndPort.substring(portIndex);
+  const host = hostAndPort.substring(0, portIndex);
   const useSsl = isCloudWorkstation(host);
   repo.repoInfo_ = new RepoInfo(
     hostAndPort,

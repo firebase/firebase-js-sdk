@@ -294,9 +294,12 @@ describe('Database Tests', () => {
 
   it('uses ssl when useEmulator is called with ssl specified', () => {
     const db = firebase.database();
-    db.useEmulator('localhost', 80, { ssl: true });
+    const cloudWorkstation = 'abc.cloudworkstations.dev';
+    db.useEmulator(cloudWorkstation, 80);
     expect((db as any)._delegate._repo.repoInfo_.isUsingEmulator).to.be.true;
-    expect((db as any)._delegate._repo.repoInfo_.host).to.equal('localhost:80');
+    expect((db as any)._delegate._repo.repoInfo_.host).to.equal(
+      `${cloudWorkstation}:80`
+    );
     expect((db as any)._delegate._repo.repoInfo_.secure).to.be.true;
   });
 
