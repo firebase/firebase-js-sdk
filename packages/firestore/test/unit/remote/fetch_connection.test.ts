@@ -15,36 +15,22 @@
  * limitations under the License.
  */
 
-import * as sinon from 'sinon';
 import { expect, use } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import * as sinon from 'sinon';
+import sinonChai from 'sinon-chai';
+
 import { DatabaseId } from '../../../src/core/database_info';
 import { makeDatabaseInfo } from '../../../src/lite-api/components';
-import {
-  FirestoreSettingsImpl,
-  PrivateSettings
-} from '../../../src/lite-api/settings';
+import { FirestoreSettingsImpl } from '../../../src/lite-api/settings';
 import { ResourcePath } from '../../../src/model/path';
 import { FetchConnection } from '../../../src/platform/browser_lite/fetch_connection';
-import sinonChai from 'sinon-chai';
-import chaiAsPromised from 'chai-as-promised';
 
 use(sinonChai);
 use(chaiAsPromised);
 
 describe('Fetch Connection', () => {
   it('should pass in credentials if using emulator and cloud workstation', async () => {
-    const privateSettings: PrivateSettings = {
-      emulatorOptions: {},
-      host: 'abc.cloudworkstations.dev'
-    };
-    console.log(
-      makeDatabaseInfo(
-        DatabaseId.empty(),
-        '',
-        '',
-        new FirestoreSettingsImpl(privateSettings)
-      )
-    );
     const stub = sinon.stub(globalThis, 'fetch');
     stub.resolves({
       ok: true,
