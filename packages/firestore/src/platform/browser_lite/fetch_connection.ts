@@ -52,7 +52,7 @@ export class FetchConnection extends RestConnection {
         headers,
         body: requestJson
       };
-      if (isCloudWorkstation(url) && isUsingEmulator) {
+      if (isCloudWorkstation(new URL(url).host) && isUsingEmulator) {
         fetchArgs.credentials = 'include';
       }
       response = await fetch(url, fetchArgs);

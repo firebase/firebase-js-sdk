@@ -110,7 +110,6 @@ export function makeDatabaseInfo(
   persistenceKey: string,
   settings: FirestoreSettingsImpl
 ): DatabaseInfo {
-  const privateSettings = settings as PrivateSettings;
   return new DatabaseInfo(
     databaseId,
     appId,
@@ -121,6 +120,6 @@ export function makeDatabaseInfo(
     settings.experimentalAutoDetectLongPolling,
     cloneLongPollingOptions(settings.experimentalLongPollingOptions),
     settings.useFetchStreams,
-    privateSettings.emulatorOptions !== undefined
+    settings.isUsingEmulator
   );
 }

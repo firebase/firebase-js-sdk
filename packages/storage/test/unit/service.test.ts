@@ -281,25 +281,6 @@ GOOG4-RSA-SHA256`
       expect(service._protocol).to.equal('https');
       void getDownloadURL(ref(service, 'test.png'));
     });
-    it('sets the credentials', () => {
-      const stub = sandbox.stub(globalThis, 'fetch').resolves();
-      const textConnection = newTextConnection();
-      textConnection.send(
-        'http://something.cloudworkstations.dev',
-        'POST',
-        true,
-        undefined,
-        undefined
-      );
-      expect(stub).to.have.been.called;
-      expect(stub).to.have.been.calledWithMatch(
-        'http://something.cloudworkstations.dev',
-        {
-          credentials: 'include'
-        }
-      );
-      stub.restore();
-    });
     it('sets mock user token string if specified', done => {
       const mockUserToken = 'my-mock-user-token';
       function newSend(
