@@ -35,6 +35,8 @@ import {
  * and encapsulates logic for detecting when on-device is possible.
  */
 export class ChromeAdapter {
+  // Visible for testing
+  static SUPPORTED_MIME_TYPES = ['image/jpeg', 'image/png'];
   private isDownloading = false;
   private downloadPromise: Promise<LanguageModel | void> | undefined;
   private oldSession: LanguageModel | undefined;
@@ -42,7 +44,9 @@ export class ChromeAdapter {
     private languageModelProvider?: LanguageModel,
     private mode?: InferenceMode,
     private onDeviceParams: LanguageModelCreateOptions = {}
-  ) {}
+  ) {
+    this.addImageTypeAsExpectedInput();
+  }
 
   /**
    * Checks if a given request can be made on-device.
@@ -140,6 +144,18 @@ export class ChromeAdapter {
       if (content.role !== 'user') {
         return false;
       }
+
+      // Returns false if request contains an image with an unsupported mime type.
+      for (const part of content.parts) {
+        if (
+          part.inlineData &&
+          ChromeAdapter.SUPPORTED_MIME_TYPES.indexOf(
+            part.inlineData.mimeType
+          ) === -1
+        ) {
+          return false;
+        }
+      }
     }
 
     return true;
@@ -234,6 +250,11 @@ export class ChromeAdapter {
     // Holds session reference, so model isn't unloaded from memory.
     this.oldSession = newSession;
     return newSession;
+  }
+
+  private addImageTypeAsExpectedInput(): void {
+    // Defaults to support image inputs for convenience.
+    this.onDeviceParams.expectedInputs ??= [{ type: 'image' }];
   }
 
   /**
