@@ -35,6 +35,8 @@ import {
  * and encapsulates logic for detecting when on-device is possible.
  */
 export class ChromeAdapter {
+  // Visible for testing
+  static SUPPORTED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
   private isDownloading = false;
   private downloadPromise: Promise<LanguageModel | void> | undefined;
   private oldSession: LanguageModel | undefined;
@@ -141,6 +143,18 @@ export class ChromeAdapter {
       // TODO: remove this guard once LanguageModelMessage is supported.
       if (content.role !== 'user') {
         return false;
+      }
+
+      // Returns false if request contains an image with an unsupported mime type.
+      for (const part of content.parts) {
+        if (
+          part.inlineData &&
+          ChromeAdapter.SUPPORTED_MIME_TYPES.indexOf(
+            part.inlineData.mimeType
+          ) === -1
+        ) {
+          return false;
+        }
       }
     }
 

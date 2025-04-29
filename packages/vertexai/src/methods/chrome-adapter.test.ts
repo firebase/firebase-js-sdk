@@ -153,6 +153,33 @@ describe('ChromeAdapter', () => {
         })
       ).to.be.false;
     });
+    it('returns true if request has image with supported mime type', async () => {
+      const adapter = new ChromeAdapter(
+        {
+          availability: async () => Availability.available
+        } as LanguageModel,
+        'prefer_on_device'
+      );
+      for (const mimeType of ChromeAdapter.SUPPORTED_MIME_TYPES) {
+        expect(
+          await adapter.isAvailable({
+            contents: [
+              {
+                role: 'user',
+                parts: [
+                  {
+                    inlineData: {
+                      mimeType,
+                      data: ''
+                    }
+                  }
+                ]
+              }
+            ]
+          })
+        ).to.be.true;
+      }
+    });
     it('returns true if model is readily available', async () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.available)
