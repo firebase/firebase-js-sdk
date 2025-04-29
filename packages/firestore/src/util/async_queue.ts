@@ -81,7 +81,15 @@ export const enum TimerId {
   /**
    *  A timer used to periodically attempt index backfill.
    */
-  IndexBackfill = 'index_backfill'
+  IndexBackfill = 'index_backfill',
+
+  /**
+   * A timer used to send write requests for mutations to the write stream in
+   * the remote store. The timer is used when the remote store is configured to
+   * have a small delay before sending write requests to the backend so that
+   * multiple writes can be batched into a single HTTP request.
+   */
+  RemoteStoreSendWriteRequests = 'remote_store_send_write_requests'
 }
 
 /**

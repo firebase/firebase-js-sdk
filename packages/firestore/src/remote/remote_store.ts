@@ -28,7 +28,7 @@ import { TargetData } from '../local/target_data';
 import { MutationResult } from '../model/mutation';
 import { MutationBatch, MutationBatchResult } from '../model/mutation_batch';
 import { debugAssert, debugCast } from '../util/assert';
-import { AsyncQueue } from '../util/async_queue';
+import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
@@ -75,6 +75,11 @@ const enum OfflineCause {
   ConnectivityChange,
   /** The RemoteStore has been shut down. */
   Shutdown
+}
+
+export interface WritePipelineEntry {
+  mutationBatch: MutationBatch;
+  writeRequestSent: boolean;
 }
 
 /**
@@ -124,7 +129,19 @@ class RemoteStoreImpl implements RemoteStore {
    * purely based on order, and so we can just shift() writes from the front of
    * the writePipeline as we receive responses.
    */
-  writePipeline: MutationBatch[] = [];
+  writePipeline: WritePipelineEntry[] = [];
+
+  /**
+   * The operation that is enqueued to send unsent write requests enqueued in
+   * the write pipeline.
+   *
+   * If the `sendWriteRequestsDelayMs` argument specified to the constructor is
+   * `null` then this property will _never_ be set to a non-null value;
+   * otherwise, it will be set to a non-null value when such an operation is
+   * enqueued in the AsyncQueue, and will be set back to `null` once that
+   * operation has completed or been cancelled.
+   */
+  sendWriteRequestsOperation: DelayedOperation<void> | null = null;
 
   /**
    * A mapping of watched targets that the client cares about tracking and the
@@ -168,8 +185,16 @@ class RemoteStoreImpl implements RemoteStore {
     readonly datastore: Datastore,
     readonly asyncQueue: AsyncQueue,
     onlineStateHandler: (onlineState: OnlineState) => void,
-    connectivityMonitor: ConnectivityMonitor
+    connectivityMonitor: ConnectivityMonitor,
+    readonly sendWriteRequestsDelayMs: number | null
   ) {
+    if (sendWriteRequestsDelayMs !== null) {
+      debugAssert(
+        sendWriteRequestsDelayMs > 0,
+        `invalid sendWriteRequestsDelayMs: ${sendWriteRequestsDelayMs} ` +
+          '(must be greater than zero)'
+      );
+    }
     this.connectivityMonitor = connectivityMonitor;
     this.connectivityMonitor.addCallback((_: NetworkStatus) => {
       asyncQueue.enqueueAndForget(async () => {
@@ -198,14 +223,16 @@ export function newRemoteStore(
   datastore: Datastore,
   asyncQueue: AsyncQueue,
   onlineStateHandler: (onlineState: OnlineState) => void,
-  connectivityMonitor: ConnectivityMonitor
+  connectivityMonitor: ConnectivityMonitor,
+  sendWriteRequestsDelayMs: number | null
 ): RemoteStore {
   return new RemoteStoreImpl(
     localStore,
     datastore,
     asyncQueue,
     onlineStateHandler,
-    connectivityMonitor
+    connectivityMonitor,
+    sendWriteRequestsDelayMs
   );
 }
 
@@ -256,6 +283,8 @@ export async function remoteStoreShutdown(
 ): Promise<void> {
   const remoteStoreImpl = debugCast(remoteStore, RemoteStoreImpl);
   logDebug(LOG_TAG, 'RemoteStore shutting down.');
+  remoteStoreImpl.sendWriteRequestsOperation?.cancel();
+  remoteStoreImpl.sendWriteRequestsOperation = null;
   remoteStoreImpl.offlineCauses.add(OfflineCause.Shutdown);
   await disableNetworkInternal(remoteStoreImpl);
   remoteStoreImpl.connectivityMonitor.shutdown();
@@ -674,7 +703,7 @@ export async function fillWritePipeline(
   let lastBatchIdRetrieved =
     remoteStoreImpl.writePipeline.length > 0
       ? remoteStoreImpl.writePipeline[remoteStoreImpl.writePipeline.length - 1]
-          .batchId
+          .mutationBatch.batchId
       : BATCHID_UNKNOWN;
 
   while (canAddToWritePipeline(remoteStoreImpl)) {
@@ -732,11 +761,45 @@ function addToWritePipeline(
     canAddToWritePipeline(remoteStoreImpl),
     'addToWritePipeline called when pipeline is full'
   );
-  remoteStoreImpl.writePipeline.push(batch);
+  remoteStoreImpl.writePipeline.push({
+    mutationBatch: batch,
+    writeRequestSent: false
+  });
 
+  const writePipelineContainsOnlyUnsentWriteRequests =
+    remoteStoreImpl.writePipeline.every(entry => !entry.writeRequestSent);
+
+  if (
+    remoteStoreImpl.sendWriteRequestsDelayMs === null ||
+    (!canAddToWritePipeline(remoteStoreImpl) &&
+      writePipelineContainsOnlyUnsentWriteRequests)
+  ) {
+    remoteStoreImpl.sendWriteRequestsOperation?.cancel();
+    remoteStoreImpl.sendWriteRequestsOperation = null;
+    sendWriteRequestsFromPipeline(remoteStoreImpl);
+  } else if (remoteStoreImpl.sendWriteRequestsOperation === null) {
+    remoteStoreImpl.sendWriteRequestsOperation =
+      remoteStoreImpl.asyncQueue.enqueueAfterDelay(
+        TimerId.RemoteStoreSendWriteRequests,
+        remoteStoreImpl.sendWriteRequestsDelayMs,
+        () => {
+          remoteStoreImpl.sendWriteRequestsOperation = null;
+          sendWriteRequestsFromPipeline(remoteStoreImpl);
+          return Promise.resolve();
+        }
+      );
+  }
+}
+
+function sendWriteRequestsFromPipeline(remoteStoreImpl: RemoteStoreImpl): void {
   const writeStream = ensureWriteStream(remoteStoreImpl);
   if (writeStream.isOpen() && writeStream.handshakeComplete) {
-    writeStream.writeMutations(batch.mutations);
+    for (const pipelineEntry of remoteStoreImpl.writePipeline) {
+      if (!pipelineEntry.writeRequestSent) {
+        writeStream.writeMutations(pipelineEntry.mutationBatch.mutations);
+        pipelineEntry.writeRequestSent = true;
+      }
+    }
   }
 }
 
@@ -767,8 +830,9 @@ async function onWriteHandshakeComplete(
 ): Promise<void> {
   const writeStream = ensureWriteStream(remoteStoreImpl);
   // Send the write pipeline now that the stream is established.
-  for (const batch of remoteStoreImpl.writePipeline) {
-    writeStream.writeMutations(batch.mutations);
+  for (const pipelineEntry of remoteStoreImpl.writePipeline) {
+    writeStream.writeMutations(pipelineEntry.mutationBatch.mutations);
+    pipelineEntry.writeRequestSent = true;
   }
 }
 
@@ -783,8 +847,12 @@ async function onMutationResult(
     remoteStoreImpl.writePipeline.length > 0,
     'Got result for empty write pipeline'
   );
-  const batch = remoteStoreImpl.writePipeline.shift()!;
-  const success = MutationBatchResult.from(batch, commitVersion, results);
+  const pipelineEntry = remoteStoreImpl.writePipeline.shift()!;
+  const success = MutationBatchResult.from(
+    pipelineEntry.mutationBatch,
+    commitVersion,
+    results
+  );
 
   debugAssert(
     !!remoteStoreImpl.remoteSyncer.applySuccessfulWrite,
@@ -835,7 +903,7 @@ async function handleWriteError(
   if (isPermanentWriteError(error.code)) {
     // This was a permanent error, the request itself was the problem
     // so it's not going to succeed if we resend it.
-    const batch = remoteStoreImpl.writePipeline.shift()!;
+    const pipelineEntry = remoteStoreImpl.writePipeline.shift()!;
 
     // In this case it's also unlikely that the server itself is melting
     // down -- this was just a bad request so inhibit backoff on the next
@@ -847,7 +915,10 @@ async function handleWriteError(
       'rejectFailedWrite() not set'
     );
     await executeWithRecovery(remoteStoreImpl, () =>
-      remoteStoreImpl.remoteSyncer.rejectFailedWrite!(batch.batchId, error)
+      remoteStoreImpl.remoteSyncer.rejectFailedWrite!(
+        pipelineEntry.mutationBatch.batchId,
+        error
+      )
     );
 
     // It's possible that with the completion of this mutation

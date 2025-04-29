@@ -221,6 +221,8 @@ toc:
     path: /docs/reference/js/firestore_.documentsnapshot.md
   - title: ExperimentalLongPollingOptions
     path: /docs/reference/js/firestore_.experimentallongpollingoptions.md
+  - title: ExperimentalOptions
+    path: /docs/reference/js/firestore_.experimentaloptions.md
   - title: FieldPath
     path: /docs/reference/js/firestore_.fieldpath.md
   - title: FieldValue

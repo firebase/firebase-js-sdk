@@ -259,6 +259,7 @@ abstract class TestRunner {
   private useEagerGCForMemory: boolean;
   private numClients: number;
   private maxConcurrentLimboResolutions?: number;
+  private sendWriteRequestsDelayMs?: number;
   private databaseInfo: DatabaseInfo;
 
   protected user = User.UNAUTHENTICATED;
@@ -282,7 +283,8 @@ abstract class TestRunner {
       /*forceLongPolling=*/ false,
       /*autoDetectLongPolling=*/ false,
       /*longPollingOptions=*/ {},
-      /*useFetchStreams=*/ false
+      /*useFetchStreams=*/ false,
+      config.sendWriteRequestsDelayMs ?? null
     );
 
     // TODO(mrschmidt): During client startup in `firestore_client`, we block
@@ -317,7 +319,7 @@ abstract class TestRunner {
       initialUser: this.user,
       maxConcurrentLimboResolutions:
         this.maxConcurrentLimboResolutions ?? Number.MAX_SAFE_INTEGER
-    };
+    } satisfies ComponentConfiguration;
 
     this.connection = new MockConnection(this.queue);
 
@@ -1408,6 +1410,12 @@ export interface SpecConfig {
    * default value.
    */
   maxConcurrentLimboResolutions?: number;
+
+  /**
+   * The maximum number amount of time, in milliseconds, to delay sending
+   * write requests to the backend in the remote store.
+   */
+  sendWriteRequestsDelayMs?: number;
 }
 
 /**

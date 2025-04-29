@@ -486,7 +486,8 @@ export class OnlineComponentProvider {
           onlineState,
           OnlineStateSource.RemoteStore
         ),
-      newConnectivityMonitor()
+      newConnectivityMonitor(),
+      cfg.databaseInfo.sendWriteRequestsDelayMs
     );
   }
 

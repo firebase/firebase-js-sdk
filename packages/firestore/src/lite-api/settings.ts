@@ -20,6 +20,11 @@ import { EmulatorMockTokenOptions } from '@firebase/util';
 import { FirestoreLocalCache } from '../api/cache_config';
 import { CredentialsSettings } from '../api/credentials';
 import {
+  ExperimentalOptions,
+  cloneExperimentalOptions,
+  experimentalOptionsEqual
+} from '../api/experimental_options';
+import {
   ExperimentalLongPollingOptions,
   cloneLongPollingOptions,
   longPollingOptionsEqual
@@ -49,6 +54,10 @@ const MAX_LONG_POLLING_TIMEOUT_SECONDS = 30;
 
 // Whether long-polling auto-detected is enabled by default.
 const DEFAULT_AUTO_DETECT_LONG_POLLING = true;
+
+// Set some maximum value for `sendWriteRequestsDelayMs` to avoid it being set
+// to a value so large that it appears that write requests are never being sent.
+const MAX_SEND_WRITE_REQUEST_DELAY_MS = 10000;
 
 /**
  * Specifies custom configurations for your Cloud Firestore instance.
@@ -83,6 +92,7 @@ export interface PrivateSettings extends FirestoreSettings {
   experimentalLongPollingOptions?: ExperimentalLongPollingOptions;
   useFetchStreams?: boolean;
   emulatorOptions?: { mockUserToken?: EmulatorMockTokenOptions | string };
+  experimental?: ExperimentalOptions;
 
   localCache?: FirestoreLocalCache;
 }
@@ -111,6 +121,7 @@ export class FirestoreSettingsImpl {
 
   readonly useFetchStreams: boolean;
   readonly localCache?: FirestoreLocalCache;
+  readonly experimental: ExperimentalOptions;
 
   // Can be a google-auth-library or gapi client.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -178,6 +189,9 @@ export class FirestoreSettingsImpl {
     validateLongPollingOptions(this.experimentalLongPollingOptions);
 
     this.useFetchStreams = !!settings.useFetchStreams;
+
+    this.experimental = cloneExperimentalOptions(settings.experimental ?? {});
+    validateExperimentalOptions(this.experimental);
   }
 
   isEqual(other: FirestoreSettingsImpl): boolean {
@@ -195,7 +209,8 @@ export class FirestoreSettingsImpl {
         other.experimentalLongPollingOptions
       ) &&
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties &&
-      this.useFetchStreams === other.useFetchStreams
+      this.useFetchStreams === other.useFetchStreams &&
+      experimentalOptionsEqual(this.experimental, other.experimental)
     );
   }
 }
@@ -223,6 +238,29 @@ function validateLongPollingOptions(
         Code.INVALID_ARGUMENT,
         `invalid long polling timeout: ${options.timeoutSeconds} ` +
           `(maximum allowed value is ${MAX_LONG_POLLING_TIMEOUT_SECONDS})`
+      );
+    }
+  }
+}
+
+function validateExperimentalOptions(options: ExperimentalOptions): void {
+  if (options.sendWriteRequestsDelayMs !== undefined) {
+    if (isNaN(options.sendWriteRequestsDelayMs)) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `invalid sendWriteRequestsDelayMs: ` +
+          `${options.sendWriteRequestsDelayMs} (must not be NaN)`
+      );
+    }
+    if (
+      options.sendWriteRequestsDelayMs <= 0 ||
+      options.sendWriteRequestsDelayMs > MAX_SEND_WRITE_REQUEST_DELAY_MS
+    ) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `invalid sendWriteRequestsDelayMs: ` +
+          `${options.sendWriteRequestsDelayMs} (must be greater than zero ` +
+          `and less than or equal to ${MAX_SEND_WRITE_REQUEST_DELAY_MS})`
       );
     }
   }
