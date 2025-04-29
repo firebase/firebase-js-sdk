@@ -65,7 +65,7 @@ describe('api/_performApiRequest', () => {
     sinon.restore();
   });
 
-  context.only('with regular requests', () => {
+  context('with regular requests', () => {
     beforeEach(mockFetch.setUp);
     afterEach(mockFetch.tearDown);
 
