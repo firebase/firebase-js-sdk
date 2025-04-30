@@ -44,8 +44,7 @@ describe('Fetch Connection', () => {
         '',
         '',
         new FirestoreSettingsImpl({
-          host: 'abc.cloudworkstations.dev',
-          emulatorOptions: {}
+          host: 'abc.cloudworkstations.dev'
         })
       )
     );
