@@ -17,6 +17,7 @@
 
 import { LoadBundleTaskProgress } from '@firebase/firestore-types';
 
+import { fromBundledQuery } from '../local/local_serializer';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreApplyBundledDocuments,
@@ -105,32 +106,46 @@ export class BundleConverterImpl implements BundleConverter {
       mutableDoc
     };
   }
-
   toSnapshotVersion(time: ApiTimestamp): SnapshotVersion {
     return fromVersion(time);
   }
 }
 
 /**
- * A class to process the elements from a bundle, load them into local
+ * A class to process the elements from a bundle, and optionally load them into local
  * storage and provide progress update while loading.
  */
 export class BundleLoader {
   /** The current progress of loading */
   private progress: LoadBundleTaskProgress;
   /** Batched queries to be saved into storage */
-  private queries: ProtoNamedQuery[] = [];
+  private _queries: ProtoNamedQuery[] = [];
   /** Batched documents to be saved into storage */
-  private documents: BundledDocuments = [];
+  private _documents: BundledDocuments = [];
   /** The collection groups affected by this bundle. */
   private collectionGroups = new Set<string>();
 
   constructor(
     private bundleMetadata: ProtoBundleMetadata,
-    private localStore: LocalStore,
     private serializer: JsonProtoSerializer
   ) {
     this.progress = bundleInitialProgress(bundleMetadata);
+  }
+
+  /**
+   * Returns the named queries that have been parsed from the SizeBundleElements added by
+   * calling {@link adSizedElement}.
+   */
+  get queries(): ProtoNamedQuery[] {
+    return this._queries;
+  }
+
+  /**
+   * Returns the BundledDocuments that have been parsed from the SizeBundleElements added by
+   * calling {@link addSizedElement}.
+   */
+  get documents(): BundledDocuments {
+    return this._documents;
   }
 
   /**
@@ -147,9 +162,9 @@ export class BundleLoader {
     let documentsLoaded = this.progress.documentsLoaded;
 
     if (element.payload.namedQuery) {
-      this.queries.push(element.payload.namedQuery);
+      this._queries.push(element.payload.namedQuery);
     } else if (element.payload.documentMetadata) {
-      this.documents.push({ metadata: element.payload.documentMetadata });
+      this._documents.push({ metadata: element.payload.documentMetadata });
       if (!element.payload.documentMetadata.exists) {
         ++documentsLoaded;
       }
@@ -163,12 +178,12 @@ export class BundleLoader {
       this.collectionGroups.add(path.get(path.length - 2));
     } else if (element.payload.document) {
       debugAssert(
-        this.documents.length > 0 &&
-          this.documents[this.documents.length - 1].metadata.name ===
+        this._documents.length > 0 &&
+          this._documents[this._documents.length - 1].metadata.name ===
             element.payload.document.name,
         'The document being added does not match the stored metadata.'
       );
-      this.documents[this.documents.length - 1].document =
+      this._documents[this._documents.length - 1].document =
         element.payload.document;
       ++documentsLoaded;
     }
@@ -206,26 +221,28 @@ export class BundleLoader {
   /**
    * Update the progress to 'Success' and return the updated progress.
    */
-  async complete(): Promise<BundleLoadResult> {
+  async completeAndStoreAsync(
+    localStore: LocalStore
+  ): Promise<BundleLoadResult> {
     debugAssert(
-      this.documents[this.documents.length - 1]?.metadata.exists !== true ||
-        !!this.documents[this.documents.length - 1].document,
+      this._documents[this._documents.length - 1]?.metadata.exists !== true ||
+        !!this._documents[this._documents.length - 1].document,
       'Bundled documents end with a document metadata element instead of a document.'
     );
     debugAssert(!!this.bundleMetadata.id, 'Bundle ID must be set.');
 
     const changedDocs = await localStoreApplyBundledDocuments(
-      this.localStore,
+      localStore,
       new BundleConverterImpl(this.serializer),
-      this.documents,
+      this._documents,
       this.bundleMetadata.id!
     );
 
     const queryDocumentMap = this.getQueryDocumentMapping(this.documents);
 
-    for (const q of this.queries) {
+    for (const q of this._queries) {
       await localStoreSaveNamedQuery(
-        this.localStore,
+        localStore,
         q,
         queryDocumentMap.get(q.name!)
       );
