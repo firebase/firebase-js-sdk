@@ -16,6 +16,7 @@
  */
 
 import { isCloudWorkstation } from '@firebase/util';
+
 import { SDK_VERSION } from '../../src/core/version';
 import { Token } from '../api/credentials';
 import {
