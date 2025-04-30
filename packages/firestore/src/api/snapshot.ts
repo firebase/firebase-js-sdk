@@ -513,6 +513,14 @@ export class DocumentSnapshot<
     return undefined;
   }
 
+  static _jsonSchemaVersion: string = 'firestore/documentSnapshot/1.0';
+  static _jsonSchema = {
+    type: property('string', DocumentSnapshot._jsonSchemaVersion),
+    bundleSource: property('string', 'DocumentSnapshot'),
+    bundleName: property('string'),
+    bundle: property('string')
+  };
+
   /**
    * Returns a JSON-serializable representation of this `DocumentSnapshot` instance.
    *
@@ -522,6 +530,7 @@ export class DocumentSnapshot<
     const document = this._document;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = {};
+    result['type'] = DocumentSnapshot._jsonSchemaVersion;
     result['bundle'] = '';
     result['bundleSource'] = 'DocumentSnapshot';
     result['bundleName'] = this._key.toString();
@@ -577,68 +586,47 @@ export class DocumentSnapshot<
     json: object,
     converter: FirestoreDataConverter<AppModelType, DbModelType>
   ): DocumentSnapshot<AppModelType, DbModelType> {
-    const requiredFields = ['bundle', 'bundleName', 'bundleSource'];
-    let error: string | undefined = undefined;
-    let bundleString: string = '';
-    for (const key of requiredFields) {
-      if (!(key in json)) {
-        error = `json missing required field: ${key}`;
+    if (validateJSON(json, DocumentSnapshot._jsonSchema)) {
+      let error : string | undefined = undefined;
+      // Parse the bundle data.
+      const serializer = newSerializer(db._databaseId);
+      const elements = createBundleReaderSync(
+        json.bundle,
+        serializer
+      ).getElements();
+      if (elements.length === 0) {
+        error = 'No snapshat data was found in the bundle.';
+      } else if (
+        elements.length !== 2 ||
+        !elements[0].payload.documentMetadata ||
+        !elements[1].payload.document
+      ) {
+        error =
+          'DocumentSnapshot bundle data must contain one metadata and then one document.';
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const value = (json as any)[key];
-      if (key === 'bundleSource') {
-        if (typeof value !== 'string') {
-          error = `json field 'bundleSource' must be a string.`;
-          break;
-        } else if (value !== 'DocumentSnapshot') {
-          error = "Expected 'bundleSource' field to equal 'DocumentSnapshot'";
-          break;
-        }
-      } else if (key === 'bundle') {
-        if (typeof value !== 'string') {
-          error = `json field 'bundle' must be a string.`;
-          break;
-        }
-        bundleString = value;
+      if (error) {
+        throw new FirestoreError(Code.INVALID_ARGUMENT, error);
       }
+      // convert bundle data into the types that the DocumentSnapshot constructore requires.
+      const bundleConverter = new BundleConverterImpl(serializer);
+      const documentSnapshotData =
+        bundleConverter.toDocumentSnapshotData(elements);
+      const liteUserDataWriter = new LiteUserDataWriter(db);
+      return new DocumentSnapshot(
+        db,
+        liteUserDataWriter,
+        documentSnapshotData.documentKey,
+        documentSnapshotData.mutableDoc,
+        new SnapshotMetadata(
+          /* hasPendingWrites= */ false,
+          /* fromCache= */ false
+        ),
+        converter
+      );
     }
-    if (error) {
-      throw new FirestoreError(Code.INVALID_ARGUMENT, error);
-    }
-    // Parse the bundle data.
-    const serializer = newSerializer(db._databaseId);
-    const elements = createBundleReaderSync(
-      bundleString,
-      serializer
-    ).getElements();
-    if (elements.length === 0) {
-      error = 'No snapshat data was found in the bundle.';
-    } else if (
-      elements.length !== 2 ||
-      !elements[0].payload.documentMetadata ||
-      !elements[1].payload.document
-    ) {
-      error =
-        'DocumentSnapshot bundle data must contain one metadata and then one document.';
-    }
-    if (error) {
-      throw new FirestoreError(Code.INVALID_ARGUMENT, error);
-    }
-    // convert bundle data into the types that the DocumentSnapshot constructore requires.
-    const bundleConverter = new BundleConverterImpl(serializer);
-    const documentSnapshotData =
-      bundleConverter.toDocumentSnapshotData(elements);
-    const liteUserDataWriter = new LiteUserDataWriter(db);
-    return new DocumentSnapshot(
-      db,
-      liteUserDataWriter,
-      documentSnapshotData.documentKey,
-      documentSnapshotData.mutableDoc,
-      new SnapshotMetadata(
-        /* hasPendingWrites= */ false,
-        /* fromCache= */ false
-      ),
-      converter
+    throw new FirestoreError(
+      Code.INTERNAL,
+      'Unexpected error creating DocumentSnapshot from JSON.'
     );
   }
 }
@@ -800,7 +788,7 @@ export class QuerySnapshot<
   static _jsonSchemaVersion: string = 'firestore/querySnapshot/1.0';
   static _jsonSchema = {
     type: property('string', QuerySnapshot._jsonSchemaVersion),
-    bundleSource: property('string'),
+    bundleSource: property('string', 'QuerySnapshot'),
     bundleName: property('string'),
     bundle: property('string')
   };
@@ -877,9 +865,6 @@ export class QuerySnapshot<
     json: object
   ): QuerySnapshot<AppModelType, DbModelType> | null {
     if (validateJSON(json, QuerySnapshot._jsonSchema)) {
-      if (json.bundleSource !== 'QuerySnapshot') {
-        throw new FirestoreError(Code.INVALID_ARGUMENT, "Expected 'bundleSource' field to equal 'QuerySnapshot'");
-      }
       // Parse the bundle data.
       const serializer = newSerializer(db._databaseId);
       const bundleReader = createBundleReaderSync(json.bundle, serializer);
@@ -935,7 +920,6 @@ export class QuerySnapshot<
         viewSnapshot
       );
     }
-
     throw new FirestoreError(
       Code.INTERNAL,
       'Unexpected error creating QuerySnapshot from JSON.'
