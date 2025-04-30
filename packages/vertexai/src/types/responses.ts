@@ -63,7 +63,7 @@ export interface EnhancedGenerateContentResponse
    * Aggregates and returns all {@link InlineDataPart} from the {@link GenerateContentResponse}'s
    * first candidate.
    *
-   * @returns An array of {@link InlineDataPart} containing data from the response, if available.
+   * @returns An array of {@link InlineDataPart}s containing data from the response, if available.
    *
    * @throws If the prompt or candidate was blocked.
    */

@@ -124,7 +124,7 @@ export { Date_2 as Date }
 export interface EnhancedGenerateContentResponse extends GenerateContentResponse {
     // (undocumented)
     functionCalls: () => FunctionCall[] | undefined;
-    inlineData: () => GenerativeContentBlob[] | undefined;
+    inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
 }
 
