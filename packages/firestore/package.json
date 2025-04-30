@@ -118,7 +118,7 @@
     "@types/eslint": "7.29.0",
     "chai-exclude": "2.1.1",
     "json-stable-stringify": "1.2.1",
-    "protobufjs": "7.4.0",
+    "protobufjs": "7.5.0",
     "rollup": "2.79.2",
     "rollup-plugin-copy": "3.5.0",
     "rollup-plugin-copy-assets": "2.0.3",
