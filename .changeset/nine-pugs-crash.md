@@ -1,5 +1,4 @@
 ---
-"@firebase/app-check": patch
 "@firebase/auth": patch
 "@firebase/data-connect": patch
 "@firebase/database-compat": patch
