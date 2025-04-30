@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { isCloudWorkstation } from '@firebase/util';
-
 import { Token } from '../../api/credentials';
 import { Stream } from '../../remote/connection';
 import { RestConnection } from '../../remote/rest_connection';
@@ -41,7 +39,7 @@ export class FetchConnection extends RestConnection {
     url: string,
     headers: StringMap,
     body: Req,
-    isUsingEmulator: boolean
+    forwardCredentials: boolean
   ): Promise<Resp> {
     const requestJson = JSON.stringify(body);
     let response: Response;
@@ -52,7 +50,7 @@ export class FetchConnection extends RestConnection {
         headers,
         body: requestJson
       };
-      if (isCloudWorkstation(new URL(url).host) && isUsingEmulator) {
+      if (forwardCredentials) {
         fetchArgs.credentials = 'include';
       }
       response = await fetch(url, fetchArgs);
