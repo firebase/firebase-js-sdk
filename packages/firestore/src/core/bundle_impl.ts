@@ -17,7 +17,6 @@
 
 import { LoadBundleTaskProgress } from '@firebase/firestore-types';
 
-import { fromBundledQuery } from '../local/local_serializer';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreApplyBundledDocuments,

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { BundleConverterImpl } from '../core/bundle_impl';
+import { BundleConverterImpl, BundleLoader } from '../core/bundle_impl';
 import { createBundleReaderSync } from '../core/firestore_client';
 import { newQueryComparator } from '../core/query';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
@@ -36,9 +36,14 @@ import {
 } from '../lite-api/snapshot';
 import { UntypedFirestoreDataConverter } from '../lite-api/user_data_reader';
 import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
+import { fromBundledQuery } from '../local/local_serializer';
+import { documentKeySet } from '../model/collections';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { DocumentSet } from '../model/document_set';
+import { ResourcePath } from '../model/path';
 import { newSerializer } from '../platform/serializer';
+import { fromDocument } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
 import {
   BundleBuilder,
@@ -507,6 +512,11 @@ export class DocumentSnapshot<
     return undefined;
   }
 
+  /**
+   * Returns a JSON-serializable representation of this `DocumentSnapshot` instance.
+   *
+   * @returns a JSON representation of this object.
+   */
   toJSON(): object {
     const document = this._document;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -548,6 +558,16 @@ export class DocumentSnapshot<
     return result;
   }
 
+  /**
+   * Builds a `DocumentSnapshot` instance from a JSON object created by
+   * {@link DocumentSnapshot.toJSON}.
+   *
+   * @param firestore - The {@link Firestore} instance the snapshot should be loaded for.
+   * @param json - a JSON object represention of a `DocumentSnapshot` instance.
+   * @param converter - Converts objects to and from Firestore.
+   * @returns an instance of {@link DocumentSnapshot} if the JSON object could be
+   * parsed. Throws a {@link FirestoreError} if an error occurs.
+   */
   static fromJSON<
     AppModelType,
     DbModelType extends DocumentData = DocumentData
@@ -777,6 +797,11 @@ export class QuerySnapshot<
     return this._cachedChanges;
   }
 
+  /**
+   * Returns a JSON-serializable representation of this `QuerySnapshot` instance.
+   *
+   * @returns a JSON representation of this object.
+   */
   toJSON(): object {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = {};
@@ -824,6 +849,111 @@ export class QuerySnapshot<
     builder.addBundleQuery(bundleData);
     result['bundle'] = builder.build();
     return result;
+  }
+
+  /**
+   * Builds a `QuerySnapshot` instance from a JSON object created by
+   * {@link QuerySnapshot.toJSON}.
+   *
+   * @param firestore - The {@link Firestore} instance the snapshot should be loaded for.
+   * @param json - a JSON object represention of a `QuerySnapshot` instance.
+   * @returns an instance of {@link QuerySnapshot} if the JSON object could be
+   * parsed. Throws a {@link FirestoreError} if an error occurs.
+   */
+  static fromJSON<
+    AppModelType,
+    DbModelType extends DocumentData = DocumentData
+  >(
+    db: Firestore,
+    json: object
+  ): QuerySnapshot<AppModelType, DbModelType> | null {
+    const requiredFields = ['bundle', 'bundleName', 'bundleSource'];
+    let error: string | undefined = undefined;
+    let bundleString: string = '';
+    for (const key of requiredFields) {
+      if (!(key in json)) {
+        error = `json missing required field: ${key}`;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const value = (json as any)[key];
+      if (key === 'bundleSource') {
+        if (typeof value !== 'string') {
+          error = `json field 'bundleSource' must be a string.`;
+          break;
+        } else if (value !== 'QuerySnapshot') {
+          error = "Expected 'bundleSource' field to equal 'QuerySnapshot'";
+          break;
+        }
+      } else if (key === 'bundle') {
+        if (typeof value !== 'string') {
+          error = `json field 'bundle' must be a string.`;
+          break;
+        }
+        bundleString = value;
+      }
+    }
+    if (error) {
+      throw new FirestoreError(Code.INVALID_ARGUMENT, error);
+    }
+    // Parse the bundle data.
+    const serializer = newSerializer(db._databaseId);
+    const bundleReader = createBundleReaderSync(bundleString, serializer);
+    const bundleMetadata = bundleReader.getMetadata();
+    const elements = bundleReader.getElements();
+    if (elements.length === 0) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'No snapshat data was found in the bundle.'
+      );
+    }
+
+    const bundleLoader: BundleLoader = new BundleLoader(
+      bundleMetadata,
+      serializer
+    );
+    for (const element of elements) {
+      bundleLoader.addSizedElement(element);
+    }
+    const parsedNamedQueries = bundleLoader.queries;
+    if (parsedNamedQueries.length !== 1) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Snapshot data contained more than one named query.'
+      );
+    }
+
+    const query = fromBundledQuery(parsedNamedQueries[0].bundledQuery!);
+    // convert bundle data into the types that the DocumentSnapshot constructore requires.
+    const liteUserDataWriter = new LiteUserDataWriter(db);
+
+    const bundledDocuments = bundleLoader.documents;
+    const documentSet = new DocumentSet();
+    const documentKeys = documentKeySet();
+    for (const bundledDocumet of bundledDocuments) {
+      const document = fromDocument(serializer, bundledDocumet.document!);
+      documentSet.add(document);
+      const documentPath = ResourcePath.fromString(
+        bundledDocumet.metadata.name!
+      );
+      documentKeys.add(new DocumentKey(documentPath));
+    }
+
+    const viewSnapshot = ViewSnapshot.fromInitialDocuments(
+      query,
+      documentSet,
+      documentKeys,
+      false, // fromCache
+      false // hasCachedResults
+    );
+
+    const externalQuery = new Query<AppModelType, DbModelType>(db, null, query);
+
+    return new QuerySnapshot<AppModelType, DbModelType>(
+      db,
+      liteUserDataWriter,
+      externalQuery,
+      viewSnapshot
+    );
   }
 }
 

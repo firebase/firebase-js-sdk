@@ -651,6 +651,8 @@ export class QuerySnapshot<AppModelType = DocumentData, DbModelType extends Docu
     get docs(): Array<QueryDocumentSnapshot<AppModelType, DbModelType>>;
     get empty(): boolean;
     forEach(callback: (result: QueryDocumentSnapshot<AppModelType, DbModelType>) => void, thisArg?: unknown): void;
+    // (undocumented)
+    static fromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object): QuerySnapshot<AppModelType, DbModelType> | null;
     readonly metadata: SnapshotMetadata;
     readonly query: Query<AppModelType, DbModelType>;
     get size(): number;
