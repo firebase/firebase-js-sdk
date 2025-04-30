@@ -698,7 +698,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * Creates an expression that checks if a field exists in the document.
+   * Creates an expression that checks if this expression evaluates to a name of
+   * the field that exists.
    *
    * ```typescript
    * // Check if the document has a field named "phoneNumber"
@@ -3139,7 +3140,7 @@ export function isAbsent(value: Expr | string): BooleanExpr {
 /**
  * @beta
  *
- * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ * Creates an expression that checks if tbe result of an expression is null.
  *
  * ```typescript
  * // Check if the result of a calculation is NaN
@@ -3154,7 +3155,7 @@ export function isNull(value: Expr): BooleanExpr;
 /**
  * @beta
  *
- * Creates an expression that checks if a field's value evaluates to 'NaN' (Not a Number).
+ * Creates an expression that checks if tbe value of a field is null.
  *
  * ```typescript
  * // Check if the result of a calculation is NaN
@@ -4951,7 +4952,7 @@ export function logicalMinimum(
  * ```
  *
  * @param value An expression evaluates to the name of the field to check.
- * @return A new {@code Expr} representing the 'exists' check.
+ * @return A new {@code BooleanExpr} representing the 'exists' check.
  */
 export function exists(value: Expr): BooleanExpr;
 
@@ -4966,7 +4967,7 @@ export function exists(value: Expr): BooleanExpr;
  * ```
  *
  * @param fieldName The field name to check.
- * @return A new {@code Expr} representing the 'exists' check.
+ * @return A new {@code BooleanExpr} representing the 'exists' check.
  */
 export function exists(fieldName: string): BooleanExpr;
 export function exists(valueOrField: Expr | string): BooleanExpr {
@@ -4984,7 +4985,7 @@ export function exists(valueOrField: Expr | string): BooleanExpr {
  * ```
  *
  * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @return A new {@code BooleanExpr} representing the 'isNaN' check.
  */
 export function isNan(value: Expr): BooleanExpr;
 
@@ -4999,7 +5000,7 @@ export function isNan(value: Expr): BooleanExpr;
  * ```
  *
  * @param fieldName The name of the field to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @return A new {@code BooleanExpr} representing the 'isNaN' check.
  */
 export function isNan(fieldName: string): BooleanExpr;
 export function isNan(value: Expr | string): BooleanExpr {
@@ -5017,7 +5018,7 @@ export function isNan(value: Expr | string): BooleanExpr {
  * ```
  *
  * @param stringExpression An expression evaluating to a string value, which will be reversed.
- * @return A new {@code Expr} representing the reversed string.
+ * @return A new {@code BooleanExpr} representing the reversed string.
  */
 export function reverse(stringExpression: Expr): FunctionExpr;
 
