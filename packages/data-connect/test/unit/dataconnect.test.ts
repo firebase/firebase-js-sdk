@@ -18,7 +18,7 @@
 import { deleteApp, initializeApp } from '@firebase/app';
 import { expect } from 'chai';
 
-import { getDataConnect } from '../../src';
+import { getDataConnect, parseOptions } from '../../src';
 
 describe('Data Connect Test', () => {
   beforeEach(() => {});
@@ -59,5 +59,38 @@ describe('Data Connect Test', () => {
     });
     expect(dc.app.options.projectId).to.eq(projectId);
     await deleteApp(customApp);
+  });
+  it('should parse env var correctly with http://', async () => {
+    const parsedHost = parseOptions('http://localhost');
+    expect(parsedHost.host).to.eq('localhost');
+    expect(parsedHost.sslEnabled).to.be.false;
+  });
+  it('should parse env var correctly with port', async () => {
+    const parsedHost = parseOptions('localhost:8080');
+    expect(parsedHost.host).to.eq('localhost:8080');
+    expect(parsedHost.sslEnabled).to.be.false;
+  });
+  it('should parse env var correctly with https://', async () => {
+    const parsedHost = parseOptions('https://localhost');
+    expect(parsedHost.host).to.eq('localhost');
+    expect(parsedHost.sslEnabled).to.be.true;
+  });
+  it('should parse ipv6 addresses correctly', async () => {
+    const host = '2001:0db8:85a3:0000:0000:8a2e:0370:7334';
+    const parsedHost = parseOptions(host);
+    expect(parsedHost.host).to.eq(host);
+    expect(parsedHost.sslEnabled).to.be.false;
+  });
+  it('should parse ipv6 localhost addresses correctly', async () => {
+    const host = '[::1]:8080';
+    const parsedHost = parseOptions(host);
+    expect(parsedHost.host).to.eq(host);
+    expect(parsedHost.sslEnabled).to.be.false;
+  });
+  it('should throw for non-http protocols', async () => {
+    const host = 'ftp://localhost';
+    expect(() => parseOptions(host)).to.throw(
+      "Protocol ftp is not supported. Use 'http' or 'https' instead."
+    );
   });
 });
