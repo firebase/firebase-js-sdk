@@ -105,6 +105,7 @@ export class BundleConverterImpl implements BundleConverter {
       mutableDoc
     };
   }
+
   toSnapshotVersion(time: ApiTimestamp): SnapshotVersion {
     return fromVersion(time);
   }
