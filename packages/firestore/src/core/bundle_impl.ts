@@ -39,7 +39,6 @@ import {
 } from '../remote/serializer';
 import { debugAssert } from '../util/assert';
 import { SizedBundleElement } from '../util/bundle_reader';
-import { Code, FirestoreError } from '../util/error';
 
 import {
   BundleConverter,
@@ -75,35 +74,6 @@ export class BundleConverterImpl implements BundleConverter {
         this.toSnapshotVersion(bundledDoc.metadata.readTime!)
       );
     }
-  }
-
-  toDocumentSnapshotData(bundleElements: SizedBundleElement[]): {
-    documentKey: DocumentKey;
-    mutableDoc: MutableDocument;
-  } {
-    const metadata = bundleElements[0]?.payload?.documentMetadata!;
-    const document = bundleElements[1]?.payload?.document!;
-    let error: string | undefined = undefined;
-    if (!metadata || !document) {
-      error =
-        'DocumentSnapshot bundle data requires both document metadata and document data';
-    } else if (metadata.name !== document.name) {
-      error =
-        'DocumentSnapshot metadata is not related to the document in the bundle.';
-    }
-    if (error) {
-      throw new FirestoreError(Code.INVALID_ARGUMENT, error);
-    }
-    const bundleConverter = new BundleConverterImpl(this.serializer);
-    const documentKey = bundleConverter.toDocumentKey(metadata.name!);
-    const mutableDoc = bundleConverter.toMutableDocument({
-      metadata,
-      document
-    });
-    return {
-      documentKey,
-      mutableDoc
-    };
   }
 
   toSnapshotVersion(time: ApiTimestamp): SnapshotVersion {

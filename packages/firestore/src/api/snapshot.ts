@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { BundleConverterImpl, BundleLoader } from '../core/bundle_impl';
+import { BundleLoader } from '../core/bundle_impl';
 import { createBundleReaderSync } from '../core/firestore_client';
 import { newQueryComparator } from '../core/query';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
@@ -51,6 +51,8 @@ import {
   QuerySnapshotBundleData
 } from '../util/bundle_builder_impl';
 import { Code, FirestoreError } from '../util/error';
+// API extractor fails importing 'property' unless we also explicitly import 'Property'.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-imports-ts
 import { Property, property, validateJSON } from '../util/json_validation';
 import { AutoId } from '../util/misc';
 
@@ -554,7 +556,7 @@ export class DocumentSnapshot<
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'DocumentSnapshot.toJSON() attempted to serialize a document with pending writes. ' +
-        'Await waitForPendingWrites() before invoking toJSON().'
+          'Await waitForPendingWrites() before invoking toJSON().'
       );
     }
     builder.addBundleDocument(
@@ -587,36 +589,39 @@ export class DocumentSnapshot<
     converter: FirestoreDataConverter<AppModelType, DbModelType>
   ): DocumentSnapshot<AppModelType, DbModelType> {
     if (validateJSON(json, DocumentSnapshot._jsonSchema)) {
-      let error : string | undefined = undefined;
       // Parse the bundle data.
       const serializer = newSerializer(db._databaseId);
-      const elements = createBundleReaderSync(
-        json.bundle,
+      const bundleReader = createBundleReaderSync(json.bundle, serializer);
+      const elements = bundleReader.getElements();
+      const bundleLoader: BundleLoader = new BundleLoader(
+        bundleReader.getMetadata(),
         serializer
-      ).getElements();
-      if (elements.length === 0) {
-        error = 'No snapshat data was found in the bundle.';
-      } else if (
-        elements.length !== 2 ||
-        !elements[0].payload.documentMetadata ||
-        !elements[1].payload.document
-      ) {
-        error =
-          'DocumentSnapshot bundle data must contain one metadata and then one document.';
+      );
+      for (const element of elements) {
+        bundleLoader.addSizedElement(element);
       }
-      if (error) {
-        throw new FirestoreError(Code.INVALID_ARGUMENT, error);
+
+      // Ensure that we have the correct number of documents in the bundle.
+      const bundledDocuments = bundleLoader.documents;
+      if (bundledDocuments.length !== 1) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `Expected bundle data to contain 1 document, but it contains ${bundledDocuments.length} documents.`
+        );
       }
-      // convert bundle data into the types that the DocumentSnapshot constructore requires.
-      const bundleConverter = new BundleConverterImpl(serializer);
-      const documentSnapshotData =
-        bundleConverter.toDocumentSnapshotData(elements);
-      const liteUserDataWriter = new LiteUserDataWriter(db);
+
+      // Build out the internal document data.
+      const document = fromDocument(serializer, bundledDocuments[0].document!);
+      const documentKey = new DocumentKey(
+        ResourcePath.fromString(json.bundleName)
+      );
+
+      // Return the external facing DocumentSnapshot.
       return new DocumentSnapshot(
         db,
-        liteUserDataWriter,
-        documentSnapshotData.documentKey,
-        documentSnapshotData.mutableDoc,
+        new LiteUserDataWriter(db),
+        documentKey,
+        document,
         new SnapshotMetadata(
           /* hasPendingWrites= */ false,
           /* fromCache= */ false
@@ -770,7 +775,7 @@ export class QuerySnapshot<
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'To include metadata changes with your document changes, you must ' +
-        'also pass { includeMetadataChanges:true } to onSnapshot().'
+          'also pass { includeMetadataChanges:true } to onSnapshot().'
       );
     }
 
@@ -826,7 +831,7 @@ export class QuerySnapshot<
         throw new FirestoreError(
           Code.FAILED_PRECONDITION,
           'QuerySnapshot.toJSON() attempted to serialize a document with pending writes. ' +
-          'Await waitForPendingWrites() before invoking toJSON().'
+            'Await waitForPendingWrites() before invoking toJSON().'
         );
       }
       docBundleDataArray.push(
@@ -868,24 +873,24 @@ export class QuerySnapshot<
       // Parse the bundle data.
       const serializer = newSerializer(db._databaseId);
       const bundleReader = createBundleReaderSync(json.bundle, serializer);
+      const elements = bundleReader.getElements();
       const bundleLoader: BundleLoader = new BundleLoader(
         bundleReader.getMetadata(),
         serializer
       );
-      const elements = bundleReader.getElements();
       for (const element of elements) {
         bundleLoader.addSizedElement(element);
       }
-      const parsedNamedQueries = bundleLoader.queries;
-      if (parsedNamedQueries.length !== 1) {
+
+      if (bundleLoader.queries.length !== 1) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          `Snapshot data expected 1 query but found ${parsedNamedQueries.length} queries.`
+          `Snapshot data expected 1 query but found ${bundleLoader.queries.length} queries.`
         );
       }
 
       // Create an internal Query object from the named query in the budnle.
-      const query = fromBundledQuery(parsedNamedQueries[0].bundledQuery!);
+      const query = fromBundledQuery(bundleLoader.queries[0].bundledQuery!);
 
       // Construct the arrays of document data for the query.
       const bundledDocuments = bundleLoader.documents;
@@ -905,12 +910,16 @@ export class QuerySnapshot<
         query,
         documentSet,
         documentKeys,
-        /* fromCache= */ false, 
+        /* fromCache= */ false,
         /* hasCachedResults= */ false
       );
 
       // Create an external Query object, required to construct the QuerySnapshot.
-      const externalQuery = new Query<AppModelType, DbModelType>(db, null, query);
+      const externalQuery = new Query<AppModelType, DbModelType>(
+        db,
+        null,
+        query
+      );
 
       // Return a new QuerySnapshot with all of the collected data.
       return new QuerySnapshot<AppModelType, DbModelType>(
@@ -947,10 +956,10 @@ export function changesFromSnapshot<
       );
       debugAssert(
         !lastDoc ||
-        newQueryComparator(querySnapshot._snapshot.query)(
-          lastDoc,
-          change.doc
-        ) < 0,
+          newQueryComparator(querySnapshot._snapshot.query)(
+            lastDoc,
+            change.doc
+          ) < 0,
         'Got added events in wrong order'
       );
       const doc = new QueryDocumentSnapshot<AppModelType, DbModelType>(
