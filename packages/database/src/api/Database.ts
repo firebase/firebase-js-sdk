@@ -390,6 +390,7 @@ export function connectDatabaseEmulator(
     tokenProvider = new EmulatorTokenProvider(token);
   }
 
+  // Workaround to get cookies in Firebase Studio
   if (isCloudWorkstation(host)) {
     void pingServer(host);
   }

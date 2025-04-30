@@ -179,6 +179,7 @@ export function connectFunctionsEmulator(
   functionsInstance.emulatorOrigin = `http${
     useSsl ? 's' : ''
   }://${host}:${port}`;
+  // Workaround to get cookies in Firebase Studio
   if (useSsl) {
     void pingServer(functionsInstance.emulatorOrigin);
   }

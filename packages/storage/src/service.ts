@@ -147,6 +147,7 @@ export function connectStorageEmulator(
 ): void {
   storage.host = `${host}:${port}`;
   const useSsl = isCloudWorkstation(host);
+  // Workaround to get cookies in Firebase Studio
   if (useSsl) {
     void pingServer(`https://${storage.host}`);
   }

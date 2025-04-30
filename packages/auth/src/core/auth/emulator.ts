@@ -101,8 +101,8 @@ export function connectAuthEmulator(
     emitEmulatorWarning();
   }
 
+  // Workaround to get cookies in Firebase Studio
   if (isCloudWorkstation(host)) {
-    // Workaround to get cookies in Firebase Studio
     void pingServer(`${protocol}//${host}:${port}`);
   }
 }

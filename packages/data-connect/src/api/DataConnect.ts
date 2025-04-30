@@ -238,6 +238,7 @@ export function connectDataConnectEmulator(
   port?: number,
   sslEnabled = false
 ): void {
+  // Workaround to get cookies in Firebase Studio
   if (isCloudWorkstation(host)) {
     void pingServer(`https://${host}${port ? `:${port}` : ''}`);
   }
