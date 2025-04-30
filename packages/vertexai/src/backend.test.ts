@@ -38,10 +38,10 @@ describe('Backend', () => {
       expect(backend.backendType).to.equal(BackendType.VERTEX_AI);
       expect(backend.location).to.equal('test-location');
     });
-    it('sets custom location even if empty string', () => {
+    it('uses default location if location is empty string', () => {
       const backend = new VertexAIBackend('');
       expect(backend.backendType).to.equal(BackendType.VERTEX_AI);
-      expect(backend.location).to.equal('');
+      expect(backend.location).to.equal(DEFAULT_LOCATION);
     });
     it('uses default location if location is null', () => {
       const backend = new VertexAIBackend(null as any);

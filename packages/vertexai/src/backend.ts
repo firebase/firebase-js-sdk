@@ -80,7 +80,7 @@ export class VertexAIBackend extends Backend {
    */
   constructor(location: string = DEFAULT_LOCATION) {
     super(BackendType.VERTEX_AI);
-    if (location === null) {
+    if (!location) {
       this.location = DEFAULT_LOCATION;
     } else {
       this.location = location;

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import { AI_TYPE } from './constants';
+import { AI_TYPE, DEFAULT_LOCATION } from './constants';
 import { encodeInstanceIdentifier, decodeInstanceIdentifier } from './helpers';
 import { AIError } from './errors';
 import { AIErrorCode } from './types';
@@ -24,14 +24,14 @@ import { GoogleAIBackend, VertexAIBackend } from './backend';
 describe('Identifier Encoding/Decoding', () => {
   describe('encodeInstanceIdentifier', () => {
     it('should encode Vertex AI identifier with a specific location', () => {
-      const backend = new VertexAIBackend('us-central1');
-      const expected = `${AI_TYPE}/vertexai/us-central1`;
+      const backend = new VertexAIBackend('us-east1');
+      const expected = `${AI_TYPE}/vertexai/us-east1`;
       expect(encodeInstanceIdentifier(backend)).to.equal(expected);
     });
 
-    it('should encode Vertex AI identifier using empty location', () => {
+    it('should encode Vertex AI identifier using default location if location is empty string', () => {
       const backend = new VertexAIBackend('');
-      const expected = `${AI_TYPE}/vertexai/`;
+      const expected = `${AI_TYPE}/vertexai/${DEFAULT_LOCATION}`;
       expect(encodeInstanceIdentifier(backend)).to.equal(expected);
     });
 
