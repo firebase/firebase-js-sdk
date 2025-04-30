@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { isCloudWorkstation } from '@firebase/util';
 import {
   Connection,
   ConnectionType,
@@ -62,11 +63,15 @@ abstract class XhrConnection<T extends ConnectionType>
   send(
     url: string,
     method: string,
+    isUsingEmulator: boolean,
     body?: ArrayBufferView | Blob | string,
     headers?: Headers
   ): Promise<void> {
     if (this.sent_) {
       throw internalError('cannot .send() more than once');
+    }
+    if (isCloudWorkstation(url) && isUsingEmulator) {
+      this.xhr_.withCredentials = true;
     }
     this.sent_ = true;
     this.xhr_.open(method, url, true);

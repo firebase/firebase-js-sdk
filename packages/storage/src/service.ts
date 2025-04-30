@@ -146,6 +146,7 @@ export function connectStorageEmulator(
 ): void {
   storage.host = `${host}:${port}`;
   const useSsl = isCloudWorkstation(host);
+  storage._isUsingEmulator = true;
   storage._protocol = useSsl ? 'https' : 'http';
   const { mockUserToken } = options;
   if (mockUserToken) {
@@ -192,7 +193,8 @@ export class FirebaseStorageImpl implements FirebaseStorage {
      * @internal
      */
     readonly _url?: string,
-    readonly _firebaseVersion?: string
+    readonly _firebaseVersion?: string,
+    public _isUsingEmulator = false
   ) {
     this._maxOperationRetryTime = DEFAULT_MAX_OPERATION_RETRY_TIME;
     this._maxUploadRetryTime = DEFAULT_MAX_UPLOAD_RETRY_TIME;
@@ -325,7 +327,8 @@ export class FirebaseStorageImpl implements FirebaseStorage {
         appCheckToken,
         requestFactory,
         this._firebaseVersion,
-        retry
+        retry,
+        this._isUsingEmulator
       );
       this._requests.add(request);
       // Request removes itself from set when complete.
