@@ -33,6 +33,7 @@
     "packages/util/dist/src/compat.d.ts",
     "packages/util/dist/src/global.d.ts",
     "packages/util/dist/src/obj.d.ts",
+    "packages/util/dist/src/url.d.ts",
     "packages/firestore/src/protos/firestore_bundle_proto.ts",
     "packages/firestore/src/protos/firestore_proto_api.ts",
     "packages/firestore/src/util/error.ts",

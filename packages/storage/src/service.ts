@@ -42,7 +42,11 @@ import {
 } from './implementation/error';
 import { validateNumber } from './implementation/type';
 import { FirebaseStorage } from './public-types';
-import { createMockUserToken, EmulatorMockTokenOptions } from '@firebase/util';
+import {
+  createMockUserToken,
+  EmulatorMockTokenOptions,
+  isCloudWorkstation
+} from '@firebase/util';
 import { Connection, ConnectionType } from './implementation/connection';
 
 export function isUrl(path?: string): boolean {
@@ -141,7 +145,8 @@ export function connectStorageEmulator(
   } = {}
 ): void {
   storage.host = `${host}:${port}`;
-  storage._protocol = 'http';
+  const useSsl = isCloudWorkstation(host);
+  storage._protocol = useSsl ? 'https' : 'http';
   const { mockUserToken } = options;
   if (mockUserToken) {
     storage._overrideAuthToken =

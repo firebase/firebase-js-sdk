@@ -248,6 +248,28 @@ GOOG4-RSA-SHA256`
       expect(service._protocol).to.equal('http');
       void getDownloadURL(ref(service, 'test.png'));
     });
+    it('sets emulator host correctly with ssl', done => {
+      function newSend(connection: TestingConnection, url: string): void {
+        // Expect emulator host to be in url of storage operations requests,
+        // in this case getDownloadURL.
+        expect(url).to.match(/^https:\/\/test\.cloudworkstations\.dev:1234.+/);
+        connection.abort();
+        injectTestConnection(null);
+        done();
+      }
+
+      injectTestConnection(() => newTestConnection(newSend));
+      const service = new FirebaseStorageImpl(
+        testShared.fakeApp,
+        testShared.fakeAuthProvider,
+        testShared.fakeAppCheckTokenProvider
+      );
+      const workstationHost = 'test.cloudworkstations.dev';
+      connectStorageEmulator(service, workstationHost, 1234);
+      expect(service.host).to.equal(`${workstationHost}:1234`);
+      expect(service._protocol).to.equal('https');
+      void getDownloadURL(ref(service, 'test.png'));
+    });
     it('sets mock user token string if specified', done => {
       const mockUserToken = 'my-mock-user-token';
       function newSend(
