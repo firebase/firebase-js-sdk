@@ -101,8 +101,7 @@ export abstract class RestConnection implements Connection {
     this.modifyHeadersForRequest(headers, authToken, appCheckToken);
 
     const { host } = new URL(url);
-    const forwardCredentials =
-      isCloudWorkstation(host);
+    const forwardCredentials = isCloudWorkstation(host);
     return this.performRPCRequest<Req, Resp>(
       rpcName,
       url,
