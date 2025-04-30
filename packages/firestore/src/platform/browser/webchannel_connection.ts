@@ -72,7 +72,7 @@ export class WebChannelConnection extends RestConnection {
     url: string,
     headers: StringMap,
     body: Req,
-    _isUsingEmulator: boolean
+    _forwardCredentials: boolean
   ): Promise<Resp> {
     const streamId = generateUniqueDebugId();
     return new Promise((resolve: Resolver<Resp>, reject: Rejecter) => {

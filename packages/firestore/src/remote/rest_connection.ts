@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { isCloudWorkstation } from '@firebase/util';
 import { SDK_VERSION } from '../../src/core/version';
 import { Token } from '../api/credentials';
 import {
@@ -98,12 +99,15 @@ export abstract class RestConnection implements Connection {
     };
     this.modifyHeadersForRequest(headers, authToken, appCheckToken);
 
+    const { host } = new URL(url);
+    const forwardCredentials =
+      isCloudWorkstation(host) && this.databaseInfo.isUsingEmulator;
     return this.performRPCRequest<Req, Resp>(
       rpcName,
       url,
       headers,
       req,
-      this.databaseInfo.isUsingEmulator
+      forwardCredentials
     ).then(
       response => {
         logDebug(LOG_TAG, `Received RPC '${rpcName}' ${streamId}: `, response);
@@ -186,7 +190,7 @@ export abstract class RestConnection implements Connection {
     url: string,
     headers: StringMap,
     body: Req,
-    isUsingEmulator: boolean
+    _forwardCredentials: boolean
   ): Promise<Resp>;
 
   private makeUrl(rpcName: string, path: string): string {
