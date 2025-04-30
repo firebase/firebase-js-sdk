@@ -90,7 +90,9 @@ export function addHelpers(
     }
     return '';
   };
-  (response as EnhancedGenerateContentResponse).inlineDataParts = (): InlineDataPart[] | undefined => {
+  (response as EnhancedGenerateContentResponse).inlineDataParts = ():
+    | InlineDataPart[]
+    | undefined => {
     if (response.candidates && response.candidates.length > 0) {
       if (response.candidates.length > 1) {
         logger.warn(
