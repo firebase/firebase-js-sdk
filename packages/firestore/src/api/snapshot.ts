@@ -51,6 +51,7 @@ import {
   QuerySnapshotBundleData
 } from '../util/bundle_builder_impl';
 import { Code, FirestoreError } from '../util/error';
+import { Property, property, validateJSON } from '../util/json_validation';
 import { AutoId } from '../util/misc';
 
 import { Firestore } from './database';
@@ -544,7 +545,7 @@ export class DocumentSnapshot<
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'DocumentSnapshot.toJSON() attempted to serialize a document with pending writes. ' +
-          'Await waitForPendingWrites() before invoking toJSON().'
+        'Await waitForPendingWrites() before invoking toJSON().'
       );
     }
     builder.addBundleDocument(
@@ -612,8 +613,7 @@ export class DocumentSnapshot<
     ).getElements();
     if (elements.length === 0) {
       error = 'No snapshat data was found in the bundle.';
-    }
-    if (
+    } else if (
       elements.length !== 2 ||
       !elements[0].payload.documentMetadata ||
       !elements[1].payload.document
@@ -782,7 +782,7 @@ export class QuerySnapshot<
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'To include metadata changes with your document changes, you must ' +
-          'also pass { includeMetadataChanges:true } to onSnapshot().'
+        'also pass { includeMetadataChanges:true } to onSnapshot().'
       );
     }
 
@@ -797,6 +797,14 @@ export class QuerySnapshot<
     return this._cachedChanges;
   }
 
+  static _jsonSchemaVersion: string = 'firestore/querySnapshot/1.0';
+  static _jsonSchema = {
+    type: property('string', QuerySnapshot._jsonSchemaVersion),
+    bundleSource: property('string'),
+    bundleName: property('string'),
+    bundle: property('string')
+  };
+
   /**
    * Returns a JSON-serializable representation of this `QuerySnapshot` instance.
    *
@@ -805,6 +813,7 @@ export class QuerySnapshot<
   toJSON(): object {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = {};
+    result['type'] = QuerySnapshot._jsonSchemaVersion;
     result['bundleSource'] = 'QuerySnapshot';
     result['bundleName'] = AutoId.newId();
 
@@ -829,7 +838,7 @@ export class QuerySnapshot<
         throw new FirestoreError(
           Code.FAILED_PRECONDITION,
           'QuerySnapshot.toJSON() attempted to serialize a document with pending writes. ' +
-            'Await waitForPendingWrites() before invoking toJSON().'
+          'Await waitForPendingWrites() before invoking toJSON().'
         );
       }
       docBundleDataArray.push(
@@ -867,92 +876,69 @@ export class QuerySnapshot<
     db: Firestore,
     json: object
   ): QuerySnapshot<AppModelType, DbModelType> | null {
-    const requiredFields = ['bundle', 'bundleName', 'bundleSource'];
-    let error: string | undefined = undefined;
-    let bundleString: string = '';
-    for (const key of requiredFields) {
-      if (!(key in json)) {
-        error = `json missing required field: ${key}`;
+    if (validateJSON(json, QuerySnapshot._jsonSchema)) {
+      if (json.bundleSource !== 'QuerySnapshot') {
+        throw new FirestoreError(Code.INVALID_ARGUMENT, "Expected 'bundleSource' field to equal 'QuerySnapshot'");
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const value = (json as any)[key];
-      if (key === 'bundleSource') {
-        if (typeof value !== 'string') {
-          error = `json field 'bundleSource' must be a string.`;
-          break;
-        } else if (value !== 'QuerySnapshot') {
-          error = "Expected 'bundleSource' field to equal 'QuerySnapshot'";
-          break;
-        }
-      } else if (key === 'bundle') {
-        if (typeof value !== 'string') {
-          error = `json field 'bundle' must be a string.`;
-          break;
-        }
-        bundleString = value;
+      // Parse the bundle data.
+      const serializer = newSerializer(db._databaseId);
+      const bundleReader = createBundleReaderSync(json.bundle, serializer);
+      const bundleLoader: BundleLoader = new BundleLoader(
+        bundleReader.getMetadata(),
+        serializer
+      );
+      const elements = bundleReader.getElements();
+      for (const element of elements) {
+        bundleLoader.addSizedElement(element);
       }
-    }
-    if (error) {
-      throw new FirestoreError(Code.INVALID_ARGUMENT, error);
-    }
-    // Parse the bundle data.
-    const serializer = newSerializer(db._databaseId);
-    const bundleReader = createBundleReaderSync(bundleString, serializer);
-    const bundleMetadata = bundleReader.getMetadata();
-    const elements = bundleReader.getElements();
-    if (elements.length === 0) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'No snapshat data was found in the bundle.'
+      const parsedNamedQueries = bundleLoader.queries;
+      if (parsedNamedQueries.length !== 1) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `Snapshot data expected 1 query but found ${parsedNamedQueries.length} queries.`
+        );
+      }
+
+      // Create an internal Query object from the named query in the budnle.
+      const query = fromBundledQuery(parsedNamedQueries[0].bundledQuery!);
+
+      // Construct the arrays of document data for the query.
+      const bundledDocuments = bundleLoader.documents;
+      const documentSet = new DocumentSet();
+      const documentKeys = documentKeySet();
+      for (const bundledDocumet of bundledDocuments) {
+        const document = fromDocument(serializer, bundledDocumet.document!);
+        documentSet.add(document);
+        const documentPath = ResourcePath.fromString(
+          bundledDocumet.metadata.name!
+        );
+        documentKeys.add(new DocumentKey(documentPath));
+      }
+
+      // Create a view snapshot of the query and documents.
+      const viewSnapshot = ViewSnapshot.fromInitialDocuments(
+        query,
+        documentSet,
+        documentKeys,
+        /* fromCache= */ false, 
+        /* hasCachedResults= */ false
+      );
+
+      // Create an external Query object, required to construct the QuerySnapshot.
+      const externalQuery = new Query<AppModelType, DbModelType>(db, null, query);
+
+      // Return a new QuerySnapshot with all of the collected data.
+      return new QuerySnapshot<AppModelType, DbModelType>(
+        db,
+        new LiteUserDataWriter(db),
+        externalQuery,
+        viewSnapshot
       );
     }
 
-    const bundleLoader: BundleLoader = new BundleLoader(
-      bundleMetadata,
-      serializer
-    );
-    for (const element of elements) {
-      bundleLoader.addSizedElement(element);
-    }
-    const parsedNamedQueries = bundleLoader.queries;
-    if (parsedNamedQueries.length !== 1) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Snapshot data contained more than one named query.'
-      );
-    }
-
-    const query = fromBundledQuery(parsedNamedQueries[0].bundledQuery!);
-    // convert bundle data into the types that the DocumentSnapshot constructore requires.
-    const liteUserDataWriter = new LiteUserDataWriter(db);
-
-    const bundledDocuments = bundleLoader.documents;
-    const documentSet = new DocumentSet();
-    const documentKeys = documentKeySet();
-    for (const bundledDocumet of bundledDocuments) {
-      const document = fromDocument(serializer, bundledDocumet.document!);
-      documentSet.add(document);
-      const documentPath = ResourcePath.fromString(
-        bundledDocumet.metadata.name!
-      );
-      documentKeys.add(new DocumentKey(documentPath));
-    }
-
-    const viewSnapshot = ViewSnapshot.fromInitialDocuments(
-      query,
-      documentSet,
-      documentKeys,
-      false, // fromCache
-      false // hasCachedResults
-    );
-
-    const externalQuery = new Query<AppModelType, DbModelType>(db, null, query);
-
-    return new QuerySnapshot<AppModelType, DbModelType>(
-      db,
-      liteUserDataWriter,
-      externalQuery,
-      viewSnapshot
+    throw new FirestoreError(
+      Code.INTERNAL,
+      'Unexpected error creating QuerySnapshot from JSON.'
     );
   }
 }
@@ -977,10 +963,10 @@ export function changesFromSnapshot<
       );
       debugAssert(
         !lastDoc ||
-          newQueryComparator(querySnapshot._snapshot.query)(
-            lastDoc,
-            change.doc
-          ) < 0,
+        newQueryComparator(querySnapshot._snapshot.query)(
+          lastDoc,
+          change.doc
+        ) < 0,
         'Got added events in wrong order'
       );
       const doc = new QueryDocumentSnapshot<AppModelType, DbModelType>(
