@@ -68,9 +68,11 @@ export function average(field: string | FieldPath): AggregateField<number | null
 // @public
 export class Bytes {
     static fromBase64String(base64: string): Bytes;
+    static fromJSON(json: object): Bytes;
     static fromUint8Array(array: Uint8Array): Bytes;
     isEqual(other: Bytes): boolean;
     toBase64(): string;
+    toJSON(): object;
     toString(): string;
     toUint8Array(): Uint8Array;
 }
@@ -135,9 +137,11 @@ export function documentId(): FieldPath;
 export class DocumentReference<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> {
     readonly converter: FirestoreDataConverter<AppModelType, DbModelType> | null;
     readonly firestore: Firestore;
+    static fromJSON<NewAppModelType = DocumentData, NewDbModelType extends DocumentData = DocumentData>(firestore: Firestore, json: object, converter?: FirestoreDataConverter<NewAppModelType, NewDbModelType>): DocumentReference<NewAppModelType, NewDbModelType>;
     get id(): string;
     get parent(): CollectionReference<AppModelType, DbModelType>;
     get path(): string;
+    toJSON(): object;
     readonly type = "document";
     withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): DocumentReference<NewAppModelType, NewDbModelType>;
     withConverter(converter: null): DocumentReference<DocumentData, DocumentData>;
@@ -205,12 +209,14 @@ export type FirestoreErrorCode = 'cancelled' | 'unknown' | 'invalid-argument' | 
 // @public
 export class GeoPoint {
     constructor(latitude: number, longitude: number);
+    static fromJSON(json: object): GeoPoint;
     isEqual(other: GeoPoint): boolean;
     get latitude(): number;
     get longitude(): number;
     toJSON(): {
         latitude: number;
         longitude: number;
+        type: string;
     };
 }
 
@@ -416,6 +422,7 @@ export class Timestamp {
     seconds: number,
     nanoseconds: number);
     static fromDate(date: Date): Timestamp;
+    static fromJSON(json: object): Timestamp;
     static fromMillis(milliseconds: number): Timestamp;
     isEqual(other: Timestamp): boolean;
     readonly nanoseconds: number;
@@ -425,6 +432,7 @@ export class Timestamp {
     toJSON(): {
         seconds: number;
         nanoseconds: number;
+        type: string;
     };
     toMillis(): number;
     toString(): string;
@@ -466,8 +474,10 @@ export function vector(values?: number[]): VectorValue;
 // @public
 export class VectorValue {
     /* Excluded from this release type: __constructor */
+    static fromJSON(json: object): VectorValue;
     isEqual(other: VectorValue): boolean;
     toArray(): number[];
+    toJSON(): object;
 }
 
 // @public

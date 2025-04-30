@@ -16,6 +16,9 @@
  */
 
 import { Code, FirestoreError } from '../util/error';
+// API extractor fails importing 'property' unless we also explicitly import 'Property'.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-imports-ts
+import { Property, property, validateJSON } from '../util/json_validation';
 import { primitiveComparator } from '../util/misc';
 
 /**
@@ -79,11 +82,6 @@ export class GeoPoint {
     return this._lat === other._lat && this._long === other._long;
   }
 
-  /** Returns a JSON-serializable representation of this GeoPoint. */
-  toJSON(): { latitude: number; longitude: number } {
-    return { latitude: this._lat, longitude: this._long };
-  }
-
   /**
    * Actually private to JS consumers of our API, so this function is prefixed
    * with an underscore.
@@ -92,6 +90,43 @@ export class GeoPoint {
     return (
       primitiveComparator(this._lat, other._lat) ||
       primitiveComparator(this._long, other._long)
+    );
+  }
+
+  static _jsonSchemaVersion: string = 'firestore/geoPoint/1.0';
+  static _jsonSchema = {
+    type: property('string', GeoPoint._jsonSchemaVersion),
+    latitude: property('number'),
+    longitude: property('number')
+  };
+
+  /**
+   * Returns a JSON-serializable representation of this `GeoPoint` instance.
+   *
+   * @returns a JSON representation of this object.
+   */
+  toJSON(): { latitude: number; longitude: number; type: string } {
+    return {
+      latitude: this._lat,
+      longitude: this._long,
+      type: GeoPoint._jsonSchemaVersion
+    };
+  }
+
+  /**
+   * Builds a `GeoPoint` instance from a JSON object created by {@link GeoPoint.toJSON}.
+   *
+   * @param json a JSON object represention of a `GeoPoint` instance
+   * @returns an instance of {@link GeoPoint} if the JSON object could be parsed. Throws a
+   * {@link FirestoreError} if an error occurs.
+   */
+  static fromJSON(json: object): GeoPoint {
+    if (validateJSON(json, GeoPoint._jsonSchema)) {
+      return new GeoPoint(json.latitude, json.longitude);
+    }
+    throw new FirestoreError(
+      Code.INTERNAL,
+      'Unexpected error creating GeoPoint from JSON.'
     );
   }
 }

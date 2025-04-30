@@ -143,15 +143,101 @@ describe('Timestamp', () => {
   it('serializes to JSON', () => {
     expect(new Timestamp(123, 456).toJSON()).to.deep.equal({
       seconds: 123,
-      nanoseconds: 456
+      nanoseconds: 456,
+      type: 'firestore/timestamp/1.0'
     });
     expect(new Timestamp(0, 0).toJSON()).to.deep.equal({
       seconds: 0,
-      nanoseconds: 0
+      nanoseconds: 0,
+      type: 'firestore/timestamp/1.0'
     });
     expect(new Timestamp(-123, 456).toJSON()).to.deep.equal({
       seconds: -123,
-      nanoseconds: 456
+      nanoseconds: 456,
+      type: 'firestore/timestamp/1.0'
     });
+  });
+
+  it('fromJSON does not throw', () => {
+    const timestamp = new Timestamp(123, 456);
+    expect(() => {
+      Timestamp.fromJSON(timestamp.toJSON());
+    }).to.not.throw;
+  });
+
+  it('fromJSON reconstructs seconds and nanoseconds', () => {
+    const timestamp = new Timestamp(123, 456);
+    const deserializedTimestamp = Timestamp.fromJSON(timestamp.toJSON());
+    expect(deserializedTimestamp).to.exist;
+    expect(timestamp.nanoseconds).to.equal(deserializedTimestamp.nanoseconds);
+    expect(timestamp.seconds).to.equal(deserializedTimestamp.seconds);
+  });
+
+  it('toJSON -> fromJSON timestamp comparison', () => {
+    const timestamp = new Timestamp(123, 456);
+    const deserializedTimestamp = Timestamp.fromJSON(timestamp.toJSON());
+    expect(deserializedTimestamp.isEqual(timestamp)).to.be.true;
+  });
+
+  it('fromJSON parameter order does not matter', () => {
+    const type = 'firestore/timestamp/1.0';
+    const seconds = 123;
+    const nanoseconds = 456;
+    const control = new Timestamp(seconds, nanoseconds);
+    expect(() => {
+      expect(
+        Timestamp.fromJSON({ seconds, nanoseconds, type }).isEqual(control)
+      ).to.be.true;
+    }).to.not.throw;
+    expect(() => {
+      expect(
+        Timestamp.fromJSON({ nanoseconds, type, seconds }).isEqual(control)
+      ).to.be.true;
+    }).to.not.throw;
+    expect(() => {
+      expect(
+        Timestamp.fromJSON({ type, seconds, nanoseconds }).isEqual(control)
+      ).to.be.true;
+    }).to.not.throw;
+    expect(() => {
+      expect(
+        Timestamp.fromJSON({ seconds, type, nanoseconds }).isEqual(control)
+      ).to.be.true;
+    }).to.not.throw;
+  });
+
+  it('fromJSON missing fields throws', () => {
+    const type = 'firestore/timestamp/1.0';
+    const seconds = 123;
+    const nanoseconds = 456;
+
+    expect(() => {
+      Timestamp.fromJSON({ type, seconds });
+    }).to.throw;
+    expect(() => {
+      Timestamp.fromJSON({ type, nanoseconds });
+    }).to.throw;
+    expect(() => {
+      Timestamp.fromJSON({ seconds, nanoseconds });
+    }).to.throw;
+  });
+
+  it('fromJSON field errant field type throws', () => {
+    const type = 'firestore/timestamp/1.0';
+    const seconds = 123;
+    const nanoseconds = 456;
+
+    expect(() => {
+      Timestamp.fromJSON({ type, seconds, nanoseconds: 'wrong' });
+    }).to.throw;
+    expect(() => {
+      Timestamp.fromJSON({ type, nanoseconds, seconds: 'wrong' });
+    }).to.throw;
+    expect(() => {
+      Timestamp.fromJSON({ seconds, nanoseconds, type: 1 });
+    }).to.throw;
+    expect(() => {
+      Timestamp.fromJSON({ seconds, nanoseconds, type: 'firestore/wrong/1.0' });
+    }).to.throw;
   });
 });

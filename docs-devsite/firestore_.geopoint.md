@@ -37,8 +37,9 @@ export declare class GeoPoint
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
+|  [fromJSON(json)](./firestore_.geopoint.md#geopointfromjson) | <code>static</code> | Builds a <code>GeoPoint</code> instance from a JSON object created by [GeoPoint.toJSON()](./firestore_.geopoint.md#geopointtojson)<!-- -->. |
 |  [isEqual(other)](./firestore_.geopoint.md#geopointisequal) |  | Returns true if this <code>GeoPoint</code> is equal to the provided one. |
-|  [toJSON()](./firestore_.geopoint.md#geopointtojson) |  | Returns a JSON-serializable representation of this GeoPoint. |
+|  [toJSON()](./firestore_.geopoint.md#geopointtojson) |  | Returns a JSON-serializable representation of this <code>GeoPoint</code> instance. |
 
 ## GeoPoint.(constructor)
 
@@ -77,6 +78,28 @@ The longitude of this `GeoPoint` instance.
 get longitude(): number;
 ```
 
+## GeoPoint.fromJSON()
+
+Builds a `GeoPoint` instance from a JSON object created by [GeoPoint.toJSON()](./firestore_.geopoint.md#geopointtojson)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+static fromJSON(json: object): GeoPoint;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  json | object | a JSON object represention of a <code>GeoPoint</code> instance |
+
+<b>Returns:</b>
+
+[GeoPoint](./firestore_.geopoint.md#geopoint_class)
+
+an instance of [GeoPoint](./firestore_.geopoint.md#geopoint_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if an error occurs.
+
 ## GeoPoint.isEqual()
 
 Returns true if this `GeoPoint` is equal to the provided one.
@@ -101,7 +124,7 @@ true if this `GeoPoint` is equal to the provided one.
 
 ## GeoPoint.toJSON()
 
-Returns a JSON-serializable representation of this GeoPoint.
+Returns a JSON-serializable representation of this `GeoPoint` instance.
 
 <b>Signature:</b>
 
@@ -109,9 +132,12 @@ Returns a JSON-serializable representation of this GeoPoint.
 toJSON(): {
         latitude: number;
         longitude: number;
+        type: string;
     };
 ```
 <b>Returns:</b>
 
-{ latitude: number; longitude: number; }
+{ latitude: number; longitude: number; type: string; }
+
+a JSON representation of this object.
 
