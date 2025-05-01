@@ -51,7 +51,7 @@ abstract class FetchConnection<T extends ConnectionType>
     method: string,
     isUsingEmulator: boolean,
     body?: NodeJS.ArrayBufferView | Blob | string,
-    headers?: Record<string, string>,
+    headers?: Record<string, string>
   ): Promise<void> {
     if (this.sent_) {
       throw internalError('cannot .send() more than once');

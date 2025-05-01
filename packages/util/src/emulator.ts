@@ -173,6 +173,7 @@ export function updateStatus(
       parentDiv.style.borderRadius = '10px';
       parentDiv.style.padding = '.5em';
       parentDiv.style.textAlign = 'center';
+      parentDiv.classList.add('firebase-emulator-warning');
       document.body.appendChild(parentDiv);
     }
 
