@@ -92,10 +92,13 @@ export class ChromeAdapter {
    */
   async generateContent(request: GenerateContentRequest): Promise<Response> {
     const session = await this.createSession();
-    // TODO: support multiple content objects when Chrome supports
+    // NOTE: assumes all parts are from the same role, enforced by isOnDeviceRequest validation.
+    // TODO: stop stripping roles when Chrome supports
     // sequence<LanguageModelMessage>
     const contents = await Promise.all(
-      request.contents[0].parts.map(ChromeAdapter.toLanguageModelMessageContent)
+      request.contents.flatMap(content =>
+        content.parts.map(ChromeAdapter.toLanguageModelMessageContent)
+      )
     );
     const text = await session.prompt(contents);
     return ChromeAdapter.toResponse(text);
@@ -113,10 +116,13 @@ export class ChromeAdapter {
     request: GenerateContentRequest
   ): Promise<Response> {
     const session = await this.createSession();
-    // TODO: support multiple content objects when Chrome supports
+    // NOTE: assumes all parts are from the same role, enforced by isOnDeviceRequest validation.
+    // TODO: stop stripping roles when Chrome supports
     // sequence<LanguageModelMessage>
     const contents = await Promise.all(
-      request.contents[0].parts.map(ChromeAdapter.toLanguageModelMessageContent)
+      request.contents.flatMap(content =>
+        content.parts.map(ChromeAdapter.toLanguageModelMessageContent)
+      )
     );
     const stream = await session.promptStreaming(contents);
     return ChromeAdapter.toStreamResponse(stream);
