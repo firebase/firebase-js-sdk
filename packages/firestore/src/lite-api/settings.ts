@@ -113,7 +113,7 @@ export class FirestoreSettingsImpl {
   readonly useFetchStreams: boolean;
   readonly localCache?: FirestoreLocalCache;
 
-  readonly emulator?: boolean;
+  readonly isUsingEmulator: boolean;
 
   // Can be a google-auth-library or gapi client.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -133,7 +133,7 @@ export class FirestoreSettingsImpl {
       this.host = settings.host;
       this.ssl = settings.ssl ?? DEFAULT_SSL;
     }
-    this.emulator = settings.emulator;
+    this.isUsingEmulator = settings.emulatorOptions !== undefined;
 
     this.credentials = settings.credentials;
     this.ignoreUndefinedProperties = !!settings.ignoreUndefinedProperties;

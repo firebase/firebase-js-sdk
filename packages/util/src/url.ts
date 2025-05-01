@@ -16,8 +16,21 @@
  */
 
 /**
- * Checks whether a host url is a cloud workstation.
+ * Checks whether host is a cloud workstation or not.
+ * @public
  */
-export function isCloudWorkstation(url: string): boolean {
-  return url.endsWith('.cloudworkstations.dev');
+export function isCloudWorkstation(host: string): boolean {
+  return host.endsWith('.cloudworkstations.dev');
+}
+
+/**
+ * Makes a fetch request to the given server.
+ * Mostly used for forwarding cookies in Firebase Studio.
+ * @public
+ */
+export async function pingServer(endpoint: string): Promise<boolean> {
+  const result = await fetch(endpoint, {
+    credentials: 'include'
+  });
+  return result.ok;
 }

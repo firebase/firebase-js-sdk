@@ -279,10 +279,8 @@ export function isBrowserExtension(): boolean;
 // @public
 export function isCloudflareWorker(): boolean;
 
-// Warning: (ae-missing-release-tag) "isCloudWorkstation" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
-export function isCloudWorkstation(url: string): boolean;
+export function isCloudWorkstation(host: string): boolean;
 
 // Warning: (ae-missing-release-tag) "isElectron" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -409,6 +407,9 @@ export function ordinal(i: number): string;
 //
 // @public (undocumented)
 export type PartialObserver<T> = Partial<Observer<T>>;
+
+// @public
+export function pingServer(endpoint: string): Promise<boolean>;
 
 // Warning: (ae-internal-missing-underscore) The name "promiseWithTimeout" should be prefixed with an underscore because the declaration is marked as @internal
 //

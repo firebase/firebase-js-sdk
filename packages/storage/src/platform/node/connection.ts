@@ -49,9 +49,9 @@ abstract class FetchConnection<T extends ConnectionType>
   async send(
     url: string,
     method: string,
+    isUsingEmulator: boolean,
     body?: NodeJS.ArrayBufferView | Blob | string,
     headers?: Record<string, string>,
-    isUsingEmulator?: boolean
   ): Promise<void> {
     if (this.sent_) {
       throw internalError('cannot .send() more than once');
@@ -62,9 +62,9 @@ abstract class FetchConnection<T extends ConnectionType>
       const response = await newFetch(
         url,
         method,
+        isUsingEmulator,
         headers,
-        body,
-        isUsingEmulator
+        body
       );
       this.headers_ = response.headers;
       this.statusCode_ = response.status;
@@ -156,6 +156,7 @@ export class FetchStreamConnection extends FetchConnection<
   async send(
     url: string,
     method: string,
+    isUsingEmulator: boolean,
     body?: NodeJS.ArrayBufferView | Blob | string,
     headers?: Record<string, string>
   ): Promise<void> {
@@ -165,7 +166,13 @@ export class FetchStreamConnection extends FetchConnection<
     this.sent_ = true;
 
     try {
-      const response = await newFetch(url, method, headers, body);
+      const response = await newFetch(
+        url,
+        method,
+        isUsingEmulator,
+        headers,
+        body
+      );
       this.headers_ = response.headers;
       this.statusCode_ = response.status;
       this.errorCode_ = ErrorCode.NO_ERROR;
@@ -189,9 +196,9 @@ export class FetchStreamConnection extends FetchConnection<
 function newFetch(
   url: string,
   method: string,
+  isUsingEmulator: boolean,
   headers?: Record<string, string>,
-  body?: NodeJS.ArrayBufferView | Blob | string,
-  isUsingEmulator?: boolean
+  body?: NodeJS.ArrayBufferView | Blob | string
 ): Promise<Response> {
   const fetchArgs: RequestInit = {
     method,

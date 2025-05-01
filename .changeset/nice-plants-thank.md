@@ -1,11 +1,10 @@
 ---
-"@firebase/auth": patch
-"@firebase/data-connect": patch
 "@firebase/database-compat": patch
 "@firebase/database": patch
 "@firebase/firestore": patch
+"@firebase/functions": patch
 "@firebase/storage": patch
 "@firebase/util": patch
 ---
 
-Fix Auth Redirects on Firebase Studio
+Auto Enable SSL for Firebase Studio

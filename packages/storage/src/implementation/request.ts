@@ -115,9 +115,9 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
         .send(
           this.url_,
           this.method_,
+          this.isUsingEmulator,
           this.body_,
-          this.headers_,
-          this.isUsingEmulator
+          this.headers_
         )
         .then(() => {
           if (this.progressCallback_ !== null) {

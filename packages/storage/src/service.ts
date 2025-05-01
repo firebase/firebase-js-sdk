@@ -42,7 +42,12 @@ import {
 } from './implementation/error';
 import { validateNumber } from './implementation/type';
 import { FirebaseStorage } from './public-types';
-import { createMockUserToken, EmulatorMockTokenOptions } from '@firebase/util';
+import {
+  createMockUserToken,
+  EmulatorMockTokenOptions,
+  isCloudWorkstation,
+  pingServer
+} from '@firebase/util';
 import { Connection, ConnectionType } from './implementation/connection';
 
 export function isUrl(path?: string): boolean {
@@ -141,7 +146,13 @@ export function connectStorageEmulator(
   } = {}
 ): void {
   storage.host = `${host}:${port}`;
-  storage._protocol = 'http';
+  const useSsl = isCloudWorkstation(host);
+  // Workaround to get cookies in Firebase Studio
+  if (useSsl) {
+    void pingServer(`https://${storage.host}`);
+  }
+  storage._isUsingEmulator = true;
+  storage._protocol = useSsl ? 'https' : 'http';
   const { mockUserToken } = options;
   if (mockUserToken) {
     storage._overrideAuthToken =
@@ -188,7 +199,7 @@ export class FirebaseStorageImpl implements FirebaseStorage {
      */
     readonly _url?: string,
     readonly _firebaseVersion?: string,
-    readonly _isUsingEmulator = false
+    public _isUsingEmulator = false
   ) {
     this._maxOperationRetryTime = DEFAULT_MAX_OPERATION_RETRY_TIME;
     this._maxUploadRetryTime = DEFAULT_MAX_UPLOAD_RETRY_TIME;

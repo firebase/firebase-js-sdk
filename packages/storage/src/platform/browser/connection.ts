@@ -63,6 +63,7 @@ abstract class XhrConnection<T extends ConnectionType>
   send(
     url: string,
     method: string,
+    isUsingEmulator: boolean,
     body?: ArrayBufferView | Blob | string,
     headers?: Headers,
     isUsingEmulator?: boolean

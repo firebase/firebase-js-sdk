@@ -41,7 +41,7 @@ export class FetchConnection extends RestConnection {
     url: string,
     headers: StringMap,
     body: Req,
-    isUsingEmulator: boolean
+    forwardCredentials: boolean
   ): Promise<Resp> {
     const requestJson = JSON.stringify(body);
     let response: Response;
@@ -52,7 +52,7 @@ export class FetchConnection extends RestConnection {
         headers,
         body: requestJson
       };
-      if (isCloudWorkstation(url) && isUsingEmulator) {
+      if (forwardCredentials) {
         fetchArgs.credentials = 'include';
       }
       response = await fetch(url, fetchArgs);

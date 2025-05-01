@@ -60,6 +60,10 @@ describe('api/_performApiRequest', () => {
     auth = await testAuth();
   });
 
+  afterEach(() => {
+    sinon.restore();
+  });
+
   context('with regular requests', () => {
     beforeEach(mockFetch.setUp);
     afterEach(mockFetch.tearDown);
@@ -80,6 +84,26 @@ describe('api/_performApiRequest', () => {
       expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
         'testSDK/0.0.0'
       );
+      expect(mock.calls[0].fullRequest?.credentials).to.be.undefined;
+    });
+
+    it('should set credentials to "include" when using IDX and emulator', async () => {
+      const mock = mockEndpoint(Endpoint.SIGN_UP, serverResponse);
+      auth.emulatorConfig = {
+        host: 'https://something.cloudworkstations.dev',
+        protocol: '',
+        port: 8,
+        options: {
+          disableWarnings: false
+        }
+      };
+      await _performApiRequest<typeof request, typeof serverResponse>(
+        auth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
+      expect(mock.calls[0].fullRequest?.credentials).to.eq('include');
     });
 
     it('should set the device language if available', async () => {

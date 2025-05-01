@@ -28,7 +28,8 @@ import {
   EmulatorMockTokenOptions,
   getDefaultEmulatorHostnameAndPort,
   isCloudWorkstation,
-  updateStatus
+  updateStatus,
+  pingServer
 } from '@firebase/util';
 
 import {
@@ -335,17 +336,16 @@ export function connectFirestoreEmulator(
   } = {}
 ): void {
   firestore = cast(firestore, Firestore);
-  let ssl = false;
-  if (/^https:\/\//.test(host)) {
-    ssl = true;
-    host = host.substring(8);
-  }
+  const useSsl = isCloudWorkstation(host);
   const settings = firestore._getSettings();
   const existingConfig = {
     ...settings,
     emulatorOptions: firestore._getEmulatorOptions()
   };
   const newHostSetting = `${host}:${port}`;
+  if (useSsl) {
+    void pingServer(`https://${newHostSetting}`);
+  }
   if (settings.host !== DEFAULT_HOST && settings.host !== newHostSetting) {
     logWarn(
       'Host has been set in both settings() and connectFirestoreEmulator(), emulator host ' +
@@ -355,11 +355,9 @@ export function connectFirestoreEmulator(
   const newConfig = {
     ...settings,
     host: newHostSetting,
-    ssl,
-    emulatorOptions: options,
-    emulator: true
+    ssl: useSsl,
+    emulatorOptions: options
   };
-  console.log(newConfig);
   // No-op if the new configuration matches the current configuration. This supports SSR
   // enviornments which might call `connectFirestoreEmulator` multiple times as a standard practice.
   if (deepEqual(newConfig, existingConfig)) {
