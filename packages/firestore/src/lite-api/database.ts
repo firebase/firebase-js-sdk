@@ -307,7 +307,6 @@ export function getFirestore(
   if (!db._initialized) {
     const emulator = getDefaultEmulatorHostnameAndPort('firestore');
     if (emulator) {
-      console.log('emulator');
       connectFirestoreEmulator(db, ...emulator);
     }
   }
