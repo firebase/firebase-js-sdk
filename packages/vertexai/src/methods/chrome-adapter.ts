@@ -16,6 +16,7 @@
  */
 
 import { AIError } from '../errors';
+import { logger } from '../logger';
 import {
   CountTokensRequest,
   GenerateContentRequest,
@@ -97,6 +98,7 @@ export class ChromeAdapter {
     const contents = await Promise.all(
       request.contents[0].parts.map(ChromeAdapter.toLanguageModelMessageContent)
     );
+    logger.warn('Only generating content from first item in "contents" array.');
     const text = await session.prompt(contents);
     return ChromeAdapter.toResponse(text);
   }
@@ -118,6 +120,7 @@ export class ChromeAdapter {
     const contents = await Promise.all(
       request.contents[0].parts.map(ChromeAdapter.toLanguageModelMessageContent)
     );
+    logger.warn('Only generating content from first item in "contents" array.');
     const stream = await session.promptStreaming(contents);
     return ChromeAdapter.toStreamResponse(stream);
   }
@@ -135,6 +138,7 @@ export class ChromeAdapter {
   private static isOnDeviceRequest(request: GenerateContentRequest): boolean {
     // Returns false if the prompt is empty.
     if (request.contents.length === 0) {
+      logger.debug('Empty prompt rejected for on-device inference.');
       return false;
     }
 
@@ -142,6 +146,7 @@ export class ChromeAdapter {
       // Returns false if the request contains multiple roles, eg a chat history.
       // TODO: remove this guard once LanguageModelMessage is supported.
       if (content.role !== 'user') {
+        logger.debug('Non-user role "${content.role}" rejected for on-device inference.');
         return false;
       }
 
@@ -153,6 +158,9 @@ export class ChromeAdapter {
             part.inlineData.mimeType
           ) === -1
         ) {
+          logger.debug(
+            `Unsupported mime type "${part.inlineData.mimeType}" rejected for on-device inference.`
+          );
           return false;
         }
       }
