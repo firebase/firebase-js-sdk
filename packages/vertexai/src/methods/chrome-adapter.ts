@@ -27,7 +27,9 @@ import {
   Availability,
   LanguageModel,
   LanguageModelCreateOptions,
-  LanguageModelMessageContent
+  LanguageModelExpectedInput,
+  LanguageModelMessageContent,
+  LanguageModelMessageType
 } from '../types/language-model';
 
 /**
@@ -44,9 +46,7 @@ export class ChromeAdapter {
     private languageModelProvider?: LanguageModel,
     private mode?: InferenceMode,
     private onDeviceParams: LanguageModelCreateOptions = {}
-  ) {
-    this.addImageTypeAsExpectedInput();
-  }
+  ) {}
 
   /**
    * Checks if a given request can be made on-device.
@@ -68,8 +68,10 @@ export class ChromeAdapter {
       return false;
     }
 
+    const expectedInputs = ChromeAdapter.extractExpectedInputs(request);
+
     // Triggers out-of-band download so model will eventually become available.
-    const availability = await this.downloadIfAvailable();
+    const availability = await this.downloadIfAvailable(expectedInputs);
 
     if (this.mode === 'only_on_device') {
       return true;
@@ -130,6 +132,33 @@ export class ChromeAdapter {
   }
 
   /**
+   * Maps
+   * <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/inference#blob">
+   * Vertex's input mime types</a> to
+   * <a href="https://github.com/webmachinelearning/prompt-api?tab=readme-ov-file#full-api-surface-in-web-idl">
+   * Chrome's expected types</a>.
+   *
+   * <p>Chrome's API checks availability by type. It's tedious to specify the types in advance, so
+   * this method infers the types.</p>
+   */
+  private static extractExpectedInputs(
+    request: GenerateContentRequest
+  ): LanguageModelExpectedInput[] {
+    const inputSet = new Set<LanguageModelExpectedInput>();
+    for (const content of request.contents) {
+      for (const part of content.parts) {
+        if (part.inlineData) {
+          const type = part.inlineData.mimeType.split(
+            '/'
+          )[0] as LanguageModelMessageType;
+          inputSet.add({ type });
+        }
+      }
+    }
+    return Array.from(inputSet);
+  }
+
+  /**
    * Asserts inference for the given request can be performed by an on-device model.
    */
   private static isOnDeviceRequest(request: GenerateContentRequest): boolean {
@@ -164,12 +193,20 @@ export class ChromeAdapter {
   /**
    * Encapsulates logic to get availability and download a model if one is downloadable.
    */
-  private async downloadIfAvailable(): Promise<Availability | undefined> {
+  private async downloadIfAvailable(
+    expectedInputs: LanguageModelExpectedInput[]
+  ): Promise<Availability | undefined> {
+    // Side-effect: updates construction-time params with request-time params.
+    // This is required because params are referenced through multiple flows.
+    Object.assign(this.onDeviceParams, { expectedInputs });
+
     const availability = await this.languageModelProvider?.availability(
       this.onDeviceParams
     );
 
     if (availability === Availability.downloadable) {
+      // Side-effect: triggers out-of-band model download.
+      // This is required because Chrome manages the model download.
       this.download();
     }
 
@@ -250,11 +287,6 @@ export class ChromeAdapter {
     // Holds session reference, so model isn't unloaded from memory.
     this.oldSession = newSession;
     return newSession;
-  }
-
-  private addImageTypeAsExpectedInput(): void {
-    // Defaults to support image inputs for convenience.
-    this.onDeviceParams.expectedInputs ??= [{ type: 'image' }];
   }
 
   /**
