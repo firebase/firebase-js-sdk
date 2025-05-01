@@ -203,7 +203,7 @@ export function initializeApp(
  * @example
  * ```javascript
  *
- * // Initialize an instance of `FirebaseServerApp`.
+ * // Initialize an instance of `FirebaseServerApp` with explicit options.
  * // Retrieve your own options values by adding a web app on
  * // https://console.firebase.google.com
  * initializeServerApp({
@@ -231,29 +231,52 @@ export function initializeServerApp(
   config: FirebaseServerAppSettings
 ): FirebaseServerApp;
 
+/**
+ * Creates and initializes a {@link @firebase/app#FirebaseServerApp} instance with default configuration.
+ * 
+ * @example
+ * ```javascript
+ * // Initialize with default configuration
+ * initializeServerApp();
+ * ```
+ * 
+ * @returns The initialized `FirebaseServerApp` with default configuration.
+ * 
+ * @public
+ */
+export function initializeServerApp(): FirebaseServerApp;
+
 export function initializeServerApp(
-  _options: FirebaseOptions | FirebaseApp,
-  _serverAppConfig: FirebaseServerAppSettings
+  _options?: FirebaseOptions | FirebaseApp,
+  _serverAppConfig: FirebaseServerAppSettings = {}
 ): FirebaseServerApp {
   if (isBrowser() && !isWebWorker()) {
     // FirebaseServerApp isn't designed to be run in browsers.
     throw ERROR_FACTORY.create(AppError.INVALID_SERVER_APP_ENVIRONMENT);
   }
 
-  if (_serverAppConfig.automaticDataCollectionEnabled === undefined) {
-    _serverAppConfig.automaticDataCollectionEnabled = false;
+  let options = _options;
+  const config: FirebaseServerAppSettings = {
+    automaticDataCollectionEnabled: false,
+    ..._serverAppConfig
+  };
+
+  options ||= getDefaultAppConfig();
+
+  if (!options) {
+    throw ERROR_FACTORY.create(AppError.NO_OPTIONS);
   }
 
   let appOptions: FirebaseOptions;
-  if (_isFirebaseApp(_options)) {
-    appOptions = _options.options;
+  if (_isFirebaseApp(options)) {
+    appOptions = options.options;
   } else {
-    appOptions = _options;
+    appOptions = options;
   }
 
   // Build an app name based on a hash of the configuration options.
   const nameObj = {
-    ..._serverAppConfig,
+    ...config,
     ...appOptions
   };
 
@@ -270,7 +293,7 @@ export function initializeServerApp(
     );
   };
 
-  if (_serverAppConfig.releaseOnDeref !== undefined) {
+  if (config.releaseOnDeref !== undefined) {
     if (typeof FinalizationRegistry === 'undefined') {
       throw ERROR_FACTORY.create(
         AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED,
@@ -283,7 +306,7 @@ export function initializeServerApp(
   const existingApp = _serverApps.get(nameString) as FirebaseServerApp;
   if (existingApp) {
     (existingApp as FirebaseServerAppImpl).incRefCount(
-      _serverAppConfig.releaseOnDeref
+      config.releaseOnDeref
     );
     return existingApp;
   }
@@ -295,7 +318,7 @@ export function initializeServerApp(
 
   const newApp = new FirebaseServerAppImpl(
     appOptions,
-    _serverAppConfig,
+    config,
     nameString,
     container
   );
@@ -375,22 +398,22 @@ export async function deleteApp(app: FirebaseApp): Promise<void> {
   let cleanupProviders = false;
   const name = app.name;
   if (_apps.has(name)) {
-    cleanupProviders = true;
-    _apps.delete(name);
-  } else if (_serverApps.has(name)) {
-    const firebaseServerApp = app as FirebaseServerAppImpl;
-    if (firebaseServerApp.decRefCount() <= 0) {
-      _serverApps.delete(name);
       cleanupProviders = true;
-    }
+      _apps.delete(name);
+  } else if (_serverApps.has(name)) {
+      const firebaseServerApp = app as FirebaseServerAppImpl;
+      if (firebaseServerApp.decRefCount() <= 0) {
+          _serverApps.delete(name);
+          cleanupProviders = true;
+      }
   }
 
   if (cleanupProviders) {
-    await Promise.all(
+      await Promise.all(
       (app as FirebaseAppImpl).container
-        .getProviders()
-        .map(provider => provider.delete())
-    );
+              .getProviders()
+              .map(provider => provider.delete())
+      );
     (app as FirebaseAppImpl).isDeleted = true;
   }
 }
