@@ -256,7 +256,10 @@ describe('GenerativeModel', () => {
         { functionDeclarations: [{ name: 'myfunc', description: 'mydesc' }] }
       ],
       toolConfig: { functionCallingConfig: { mode: FunctionCallingMode.NONE } },
-      systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
+      systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] },
+      generationConfig: {
+        responseMimeType: 'image/jpeg'
+      }
     });
     expect(genModel.tools?.length).to.equal(1);
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
@@ -282,7 +285,10 @@ describe('GenerativeModel', () => {
         toolConfig: {
           functionCallingConfig: { mode: FunctionCallingMode.AUTO }
         },
-        systemInstruction: { role: 'system', parts: [{ text: 'be formal' }] }
+        systemInstruction: { role: 'system', parts: [{ text: 'be formal' }] },
+        generationConfig: {
+          responseMimeType: 'image/png'
+        }
       })
       .sendMessage('hello');
     expect(makeRequestStub).to.be.calledWith(
@@ -294,7 +300,9 @@ describe('GenerativeModel', () => {
         return (
           value.includes('otherfunc') &&
           value.includes(FunctionCallingMode.AUTO) &&
-          value.includes('be formal')
+          value.includes('be formal') &&
+          value.includes('image/png') &&
+          !value.includes('image/jpeg')
         );
       }),
       {}
