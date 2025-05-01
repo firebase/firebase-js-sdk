@@ -101,6 +101,21 @@ describe('Top level API', () => {
     expect(genModel).to.be.an.instanceOf(GenerativeModel);
     expect(genModel.model).to.equal('publishers/google/models/my-model');
   });
+  it('getGenerativeModel with HybridParams sets a default model', () => {
+    const genModel = getGenerativeModel(fakeVertexAI, {
+      mode: 'only_on_device'
+    });
+    expect(genModel.model).to.equal(
+      `publishers/google/models/${GenerativeModel.DEFAULT_HYBRID_IN_CLOUD_MODEL}`
+    );
+  });
+  it('getGenerativeModel with HybridParams honors a model override', () => {
+    const genModel = getGenerativeModel(fakeVertexAI, {
+      mode: 'prefer_on_device',
+      inCloudParams: { model: 'my-model' }
+    });
+    expect(genModel.model).to.equal('publishers/google/models/my-model');
+  });
   it('getImagenModel throws if no model is provided', () => {
     try {
       getImagenModel(fakeVertexAI, {} as ImagenModelParams);

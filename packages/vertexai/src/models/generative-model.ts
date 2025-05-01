@@ -43,12 +43,17 @@ import {
 } from '../requests/request-helpers';
 import { VertexAI } from '../public-types';
 import { VertexAIModel } from './vertexai-model';
+import { ChromeAdapter } from '../methods/chrome-adapter';
 
 /**
  * Class for generative model APIs.
  * @public
  */
 export class GenerativeModel extends VertexAIModel {
+  /**
+   * Defines the name of the default in-cloud model to use for hybrid inference.
+   */
+  static DEFAULT_HYBRID_IN_CLOUD_MODEL = 'gemini-2.0-flash-lite';
   generationConfig: GenerationConfig;
   safetySettings: SafetySetting[];
   requestOptions?: RequestOptions;
@@ -59,6 +64,7 @@ export class GenerativeModel extends VertexAIModel {
   constructor(
     vertexAI: VertexAI,
     modelParams: ModelParams,
+    private chromeAdapter: ChromeAdapter,
     requestOptions?: RequestOptions
   ) {
     super(vertexAI, modelParams.model);
@@ -91,6 +97,7 @@ export class GenerativeModel extends VertexAIModel {
         systemInstruction: this.systemInstruction,
         ...formattedParams
       },
+      this.chromeAdapter,
       this.requestOptions
     );
   }
@@ -116,6 +123,7 @@ export class GenerativeModel extends VertexAIModel {
         systemInstruction: this.systemInstruction,
         ...formattedParams
       },
+      this.chromeAdapter,
       this.requestOptions
     );
   }
@@ -128,6 +136,7 @@ export class GenerativeModel extends VertexAIModel {
     return new ChatSession(
       this._apiSettings,
       this.model,
+      this.chromeAdapter,
       {
         tools: this.tools,
         toolConfig: this.toolConfig,
@@ -145,6 +154,11 @@ export class GenerativeModel extends VertexAIModel {
     request: CountTokensRequest | string | Array<string | Part>
   ): Promise<CountTokensResponse> {
     const formattedParams = formatGenerateContentInput(request);
-    return countTokens(this._apiSettings, this.model, formattedParams);
+    return countTokens(
+      this._apiSettings,
+      this.model,
+      formattedParams,
+      this.chromeAdapter
+    );
   }
 }
