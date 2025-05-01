@@ -5868,10 +5868,10 @@ export function strConcat(
  * ```
  *
  * @param fieldName The field name of the map field.
- * @param subField The key to access in the map.
+ * @param key The key to access in the map.
  * @return A new {@code Expr} representing the value associated with the given key in the map.
  */
-export function mapGet(fieldName: string, subField: string): FunctionExpr;
+export function mapGet(fieldName: string, key: string): FunctionExpr;
 
 /**
  * @beta
