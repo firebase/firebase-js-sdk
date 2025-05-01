@@ -110,7 +110,7 @@ describe('Identifier Encoding/Decoding', () => {
     });
 
     it('should throw AIError for malformed identifier string (incorrect prefix)', () => {
-      const encoded = 'firebase/vertexai/location';
+      const encoded = 'firebase/AI/location';
       // This will also hit the default case in the switch statement
       expect(() => decodeInstanceIdentifier(encoded)).to.throw(
         AIError,
