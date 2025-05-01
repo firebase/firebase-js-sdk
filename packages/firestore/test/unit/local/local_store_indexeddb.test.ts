@@ -18,7 +18,18 @@
 import { isIndexedDBAvailable } from '@firebase/util';
 import { expect } from 'chai';
 
-import { serverTimestamp, Timestamp, GeoPoint } from '../../../src';
+import {
+  serverTimestamp,
+  Timestamp,
+  GeoPoint,
+  BsonObjectId,
+  BsonBinaryData,
+  BsonTimestamp,
+  Int32Value,
+  RegexValue,
+  MaxKey,
+  MinKey
+} from '../../../src';
 import { User } from '../../../src/auth/user';
 import { BundleConverterImpl } from '../../../src/core/bundle_impl';
 import {
@@ -30,16 +41,7 @@ import {
 } from '../../../src/core/query';
 import { Target } from '../../../src/core/target';
 import { TargetId } from '../../../src/core/types';
-import {
-  bsonBinaryData,
-  bsonObjectId,
-  bsonTimestamp,
-  int32,
-  maxKey,
-  minKey,
-  regex,
-  vector
-} from '../../../src/lite-api/field_value_impl';
+import { vector } from '../../../src/lite-api/field_value_impl';
 import { IndexBackfiller } from '../../../src/local/index_backfiller';
 import { LocalStore } from '../../../src/local/local_store';
 import {
@@ -972,12 +974,14 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
       await test.writeMutations(
         setMutation('coll/a', {
-          key: bsonObjectId('507f191e810c19729de860ea')
+          key: new BsonObjectId('507f191e810c19729de860ea')
         }),
         setMutation('coll/b', {
-          key: bsonObjectId('507f191e810c19729de860eb')
+          key: new BsonObjectId('507f191e810c19729de860eb')
         }),
-        setMutation('coll/c', { key: bsonObjectId('507f191e810c19729de860ec') })
+        setMutation('coll/c', {
+          key: new BsonObjectId('507f191e810c19729de860ec')
+        })
       );
       await test.backfillIndexes();
 
@@ -992,7 +996,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
       query_ = query(
         'coll',
-        filter('key', '==', bsonObjectId('507f191e810c19729de860ea'))
+        filter('key', '==', new BsonObjectId('507f191e810c19729de860ea'))
       );
       await test.executeQuery(query_);
       test.assertOverlaysRead(1, 0, {
@@ -1002,7 +1006,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
       query_ = query(
         'coll',
-        filter('key', '!=', bsonObjectId('507f191e810c19729de860ea'))
+        filter('key', '!=', new BsonObjectId('507f191e810c19729de860ea'))
       );
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
@@ -1013,7 +1017,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
       query_ = query(
         'coll',
-        filter('key', '>=', bsonObjectId('507f191e810c19729de860eb'))
+        filter('key', '>=', new BsonObjectId('507f191e810c19729de860eb'))
       );
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
@@ -1024,7 +1028,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
       query_ = query(
         'coll',
-        filter('key', '<', bsonObjectId('507f191e810c19729de860ea'))
+        filter('key', '<', new BsonObjectId('507f191e810c19729de860ea'))
       );
       await test.executeQuery(query_);
       test.assertOverlaysRead(0, 0);
@@ -1033,8 +1037,8 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       query_ = query(
         'coll',
         filter('key', 'in', [
-          bsonObjectId('507f191e810c19729de860ea'),
-          bsonObjectId('507f191e810c19729de860eb')
+          new BsonObjectId('507f191e810c19729de860ea'),
+          new BsonObjectId('507f191e810c19729de860eb')
         ])
       );
       await test.executeQuery(query_);
@@ -1047,8 +1051,8 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       query_ = query(
         'coll',
         filter('key', 'not-in', [
-          bsonObjectId('507f191e810c19729de860ea'),
-          bsonObjectId('507f191e810c19729de860eb')
+          new BsonObjectId('507f191e810c19729de860ea'),
+          new BsonObjectId('507f191e810c19729de860eb')
         ])
       );
       await test.executeQuery(query_);
@@ -1065,9 +1069,9 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       await test.configureFieldsIndexes(index);
       await test.writeMutations(
-        setMutation('coll/a', { key: bsonTimestamp(1000, 1000) }),
-        setMutation('coll/b', { key: bsonTimestamp(1001, 1000) }),
-        setMutation('coll/c', { key: bsonTimestamp(1000, 1001) })
+        setMutation('coll/a', { key: new BsonTimestamp(1000, 1000) }),
+        setMutation('coll/b', { key: new BsonTimestamp(1001, 1000) }),
+        setMutation('coll/c', { key: new BsonTimestamp(1000, 1001) })
       );
       await test.backfillIndexes();
 
@@ -1080,14 +1084,20 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       test.assertQueryReturned(query_, 'coll/a', 'coll/c', 'coll/b');
 
-      query_ = query('coll', filter('key', '==', bsonTimestamp(1000, 1000)));
+      query_ = query(
+        'coll',
+        filter('key', '==', new BsonTimestamp(1000, 1000))
+      );
       await test.executeQuery(query_);
       test.assertOverlaysRead(1, 0, {
         [key('coll/a').toString()]: MutationType.Set
       });
       test.assertQueryReturned(query_, 'coll/a');
 
-      query_ = query('coll', filter('key', '!=', bsonTimestamp(1000, 1000)));
+      query_ = query(
+        'coll',
+        filter('key', '!=', new BsonTimestamp(1000, 1000))
+      );
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
         [key('coll/b').toString()]: MutationType.Set,
@@ -1095,7 +1105,10 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       test.assertQueryReturned(query_, 'coll/c', 'coll/b');
 
-      query_ = query('coll', filter('key', '>=', bsonTimestamp(1000, 1001)));
+      query_ = query(
+        'coll',
+        filter('key', '>=', new BsonTimestamp(1000, 1001))
+      );
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
         [key('coll/b').toString()]: MutationType.Set,
@@ -1103,7 +1116,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       test.assertQueryReturned(query_, 'coll/c', 'coll/b');
 
-      query_ = query('coll', filter('key', '<', bsonTimestamp(1000, 1000)));
+      query_ = query('coll', filter('key', '<', new BsonTimestamp(1000, 1000)));
       await test.executeQuery(query_);
       test.assertOverlaysRead(0, 0);
       test.assertQueryReturned(query_);
@@ -1111,8 +1124,8 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       query_ = query(
         'coll',
         filter('key', 'in', [
-          bsonTimestamp(1000, 1000),
-          bsonTimestamp(1001, 1000)
+          new BsonTimestamp(1000, 1000),
+          new BsonTimestamp(1001, 1000)
         ])
       );
       await test.executeQuery(query_);
@@ -1125,8 +1138,8 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       query_ = query(
         'coll',
         filter('key', 'not-in', [
-          bsonTimestamp(1000, 1000),
-          bsonTimestamp(1001, 1000)
+          new BsonTimestamp(1000, 1000),
+          new BsonTimestamp(1001, 1000)
         ])
       );
       await test.executeQuery(query_);
@@ -1144,16 +1157,16 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       await test.configureFieldsIndexes(index);
       await test.writeMutations(
         setMutation('coll/a', {
-          key: bsonBinaryData(1, new Uint8Array([1, 2, 3]))
+          key: new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
         }),
         setMutation('coll/b', {
-          key: bsonBinaryData(1, new Uint8Array([1, 2]))
+          key: new BsonBinaryData(1, new Uint8Array([1, 2]))
         }),
         setMutation('coll/c', {
-          key: bsonBinaryData(1, new Uint8Array([1, 2, 4]))
+          key: new BsonBinaryData(1, new Uint8Array([1, 2, 4]))
         }),
         setMutation('coll/d', {
-          key: bsonBinaryData(2, new Uint8Array([1, 2]))
+          key: new BsonBinaryData(2, new Uint8Array([1, 2]))
         })
       );
       await test.backfillIndexes();
@@ -1170,7 +1183,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
       query_ = query(
         'coll',
-        filter('key', '==', bsonBinaryData(1, new Uint8Array([1, 2, 3])))
+        filter('key', '==', new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
       );
       await test.executeQuery(query_);
       test.assertOverlaysRead(1, 0, {
@@ -1180,7 +1193,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
       query_ = query(
         'coll',
-        filter('key', '!=', bsonBinaryData(1, new Uint8Array([1, 2, 3])))
+        filter('key', '!=', new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
       );
       await test.executeQuery(query_);
       test.assertOverlaysRead(3, 0, {
@@ -1192,7 +1205,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
       query_ = query(
         'coll',
-        filter('key', '>=', bsonBinaryData(1, new Uint8Array([1, 2, 3])))
+        filter('key', '>=', new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
       );
       await test.executeQuery(query_);
       test.assertOverlaysRead(3, 0, {
@@ -1204,7 +1217,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
       query_ = query(
         'coll',
-        filter('key', '<', bsonBinaryData(1, new Uint8Array([1, 2])))
+        filter('key', '<', new BsonBinaryData(1, new Uint8Array([1, 2])))
       );
       await test.executeQuery(query_);
       test.assertOverlaysRead(0, 0);
@@ -1213,8 +1226,8 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       query_ = query(
         'coll',
         filter('key', 'in', [
-          bsonBinaryData(1, new Uint8Array([1, 2, 3])),
-          bsonBinaryData(1, new Uint8Array([1, 2]))
+          new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+          new BsonBinaryData(1, new Uint8Array([1, 2]))
         ])
       );
       await test.executeQuery(query_);
@@ -1228,8 +1241,8 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       query_ = query(
         'coll',
         filter('key', 'not-in', [
-          bsonBinaryData(1, new Uint8Array([1, 2, 3])),
-          bsonBinaryData(1, new Uint8Array([1, 2]))
+          new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+          new BsonBinaryData(1, new Uint8Array([1, 2]))
         ])
       );
       await test.executeQuery(query_);
@@ -1247,9 +1260,9 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       await test.configureFieldsIndexes(index);
       await test.writeMutations(
-        setMutation('coll/a', { key: int32(-1) }),
-        setMutation('coll/b', { key: int32(0) }),
-        setMutation('coll/c', { key: int32(1) })
+        setMutation('coll/a', { key: new Int32Value(-1) }),
+        setMutation('coll/b', { key: new Int32Value(0) }),
+        setMutation('coll/c', { key: new Int32Value(1) })
       );
       await test.backfillIndexes();
 
@@ -1262,14 +1275,14 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       test.assertQueryReturned(query_, 'coll/a', 'coll/b', 'coll/c');
 
-      query_ = query('coll', filter('key', '==', int32(0)));
+      query_ = query('coll', filter('key', '==', new Int32Value(0)));
       await test.executeQuery(query_);
       test.assertOverlaysRead(1, 0, {
         [key('coll/b').toString()]: MutationType.Set
       });
       test.assertQueryReturned(query_, 'coll/b');
 
-      query_ = query('coll', filter('key', '!=', int32(0)));
+      query_ = query('coll', filter('key', '!=', new Int32Value(0)));
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
         [key('coll/a').toString()]: MutationType.Set,
@@ -1277,7 +1290,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       test.assertQueryReturned(query_, 'coll/a', 'coll/c');
 
-      query_ = query('coll', filter('key', '>=', int32(0)));
+      query_ = query('coll', filter('key', '>=', new Int32Value(0)));
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
         [key('coll/b').toString()]: MutationType.Set,
@@ -1285,12 +1298,15 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       test.assertQueryReturned(query_, 'coll/b', 'coll/c');
 
-      query_ = query('coll', filter('key', '<', int32(-1)));
+      query_ = query('coll', filter('key', '<', new Int32Value(-1)));
       await test.executeQuery(query_);
       test.assertOverlaysRead(0, 0);
       test.assertQueryReturned(query_);
 
-      query_ = query('coll', filter('key', 'in', [int32(0), int32(1)]));
+      query_ = query(
+        'coll',
+        filter('key', 'in', [new Int32Value(0), new Int32Value(1)])
+      );
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
         [key('coll/b').toString()]: MutationType.Set,
@@ -1298,7 +1314,10 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       test.assertQueryReturned(query_, 'coll/b', 'coll/c');
 
-      query_ = query('coll', filter('key', 'not-in', [int32(0), int32(1)]));
+      query_ = query(
+        'coll',
+        filter('key', 'not-in', [new Int32Value(0), new Int32Value(1)])
+      );
       await test.executeQuery(query_);
       test.assertOverlaysRead(1, 0, {
         [key('coll/a').toString()]: MutationType.Set
@@ -1313,9 +1332,9 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       await test.configureFieldsIndexes(index);
       await test.writeMutations(
-        setMutation('coll/a', { key: regex('a', 'i') }),
-        setMutation('coll/b', { key: regex('a', 'm') }),
-        setMutation('coll/c', { key: regex('b', 'i') })
+        setMutation('coll/a', { key: new RegexValue('a', 'i') }),
+        setMutation('coll/b', { key: new RegexValue('a', 'm') }),
+        setMutation('coll/c', { key: new RegexValue('b', 'i') })
       );
       await test.backfillIndexes();
 
@@ -1328,14 +1347,14 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       test.assertQueryReturned(query_, 'coll/a', 'coll/b', 'coll/c');
 
-      query_ = query('coll', filter('key', '==', regex('a', 'i')));
+      query_ = query('coll', filter('key', '==', new RegexValue('a', 'i')));
       await test.executeQuery(query_);
       test.assertOverlaysRead(1, 0, {
         [key('coll/a').toString()]: MutationType.Set
       });
       test.assertQueryReturned(query_, 'coll/a');
 
-      query_ = query('coll', filter('key', '!=', regex('a', 'i')));
+      query_ = query('coll', filter('key', '!=', new RegexValue('a', 'i')));
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
         [key('coll/b').toString()]: MutationType.Set,
@@ -1343,7 +1362,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       test.assertQueryReturned(query_, 'coll/b', 'coll/c');
 
-      query_ = query('coll', filter('key', '>=', regex('a', 'm')));
+      query_ = query('coll', filter('key', '>=', new RegexValue('a', 'm')));
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
         [key('coll/b').toString()]: MutationType.Set,
@@ -1351,14 +1370,17 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       test.assertQueryReturned(query_, 'coll/b', 'coll/c');
 
-      query_ = query('coll', filter('key', '<', regex('a', 'i')));
+      query_ = query('coll', filter('key', '<', new RegexValue('a', 'i')));
       await test.executeQuery(query_);
       test.assertOverlaysRead(0, 0);
       test.assertQueryReturned(query_);
 
       query_ = query(
         'coll',
-        filter('key', 'in', [regex('a', 'i'), regex('a', 'm')])
+        filter('key', 'in', [
+          new RegexValue('a', 'i'),
+          new RegexValue('a', 'm')
+        ])
       );
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
@@ -1369,7 +1391,10 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
       query_ = query(
         'coll',
-        filter('key', 'not-in', [regex('a', 'i'), regex('a', 'm')])
+        filter('key', 'not-in', [
+          new RegexValue('a', 'i'),
+          new RegexValue('a', 'm')
+        ])
       );
       await test.executeQuery(query_);
       test.assertOverlaysRead(1, 0, {
@@ -1385,11 +1410,11 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       await test.configureFieldsIndexes(index);
       await test.writeMutations(
-        setMutation('coll/a', { key: minKey() }),
-        setMutation('coll/b', { key: minKey() }),
+        setMutation('coll/a', { key: MinKey.instance() }),
+        setMutation('coll/b', { key: MinKey.instance() }),
         setMutation('coll/c', { key: null }),
         setMutation('coll/d', { key: 1 }),
-        setMutation('coll/e', { key: maxKey() })
+        setMutation('coll/e', { key: MaxKey.instance() })
       );
       await test.backfillIndexes();
 
@@ -1411,7 +1436,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
         'coll/e'
       );
 
-      query_ = query('coll', filter('key', '==', minKey()));
+      query_ = query('coll', filter('key', '==', MinKey.instance()));
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
         [key('coll/a').toString()]: MutationType.Set,
@@ -1419,7 +1444,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       test.assertQueryReturned(query_, 'coll/a', 'coll/b');
 
-      query_ = query('coll', filter('key', '!=', minKey()));
+      query_ = query('coll', filter('key', '!=', MinKey.instance()));
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
         [key('coll/d').toString()]: MutationType.Set,
@@ -1427,7 +1452,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       test.assertQueryReturned(query_, 'coll/d', 'coll/e');
 
-      query_ = query('coll', filter('key', '>=', minKey()));
+      query_ = query('coll', filter('key', '>=', MinKey.instance()));
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
         [key('coll/a').toString()]: MutationType.Set,
@@ -1435,12 +1460,12 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       test.assertQueryReturned(query_, 'coll/a', 'coll/b');
 
-      query_ = query('coll', filter('key', '<', minKey()));
+      query_ = query('coll', filter('key', '<', MinKey.instance()));
       await test.executeQuery(query_);
       test.assertOverlaysRead(0, 0, {});
       test.assertQueryReturned(query_);
 
-      query_ = query('coll', filter('key', 'in', [minKey()]));
+      query_ = query('coll', filter('key', 'in', [MinKey.instance()]));
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
         [key('coll/a').toString()]: MutationType.Set,
@@ -1448,7 +1473,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       test.assertQueryReturned(query_, 'coll/a', 'coll/b');
 
-      query_ = query('coll', filter('key', 'not-in', [minKey()]));
+      query_ = query('coll', filter('key', 'not-in', [MinKey.instance()]));
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
         [key('coll/d').toString()]: MutationType.Set,
@@ -1464,11 +1489,11 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       await test.configureFieldsIndexes(index);
       await test.writeMutations(
-        setMutation('coll/a', { key: maxKey() }),
-        setMutation('coll/b', { key: maxKey() }),
+        setMutation('coll/a', { key: MaxKey.instance() }),
+        setMutation('coll/b', { key: MaxKey.instance() }),
         setMutation('coll/c', { key: null }),
         setMutation('coll/d', { key: 1 }),
-        setMutation('coll/e', { key: minKey() })
+        setMutation('coll/e', { key: MinKey.instance() })
       );
       await test.backfillIndexes();
 
@@ -1490,7 +1515,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
         'coll/b'
       );
 
-      query_ = query('coll', filter('key', '==', maxKey()));
+      query_ = query('coll', filter('key', '==', MaxKey.instance()));
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
         [key('coll/a').toString()]: MutationType.Set,
@@ -1498,7 +1523,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       test.assertQueryReturned(query_, 'coll/a', 'coll/b');
 
-      query_ = query('coll', filter('key', '!=', maxKey()));
+      query_ = query('coll', filter('key', '!=', MaxKey.instance()));
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
         [key('coll/d').toString()]: MutationType.Set,
@@ -1506,7 +1531,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       test.assertQueryReturned(query_, 'coll/e', 'coll/d');
 
-      query_ = query('coll', filter('key', '<=', maxKey()));
+      query_ = query('coll', filter('key', '<=', MaxKey.instance()));
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
         [key('coll/a').toString()]: MutationType.Set,
@@ -1514,17 +1539,17 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       test.assertQueryReturned(query_, 'coll/a', 'coll/b');
 
-      query_ = query('coll', filter('key', '>', maxKey()));
+      query_ = query('coll', filter('key', '>', MaxKey.instance()));
       await test.executeQuery(query_);
       test.assertOverlaysRead(0, 0, {});
       test.assertQueryReturned(query_);
 
-      query_ = query('coll', filter('key', '<', maxKey()));
+      query_ = query('coll', filter('key', '<', MaxKey.instance()));
       await test.executeQuery(query_);
       test.assertOverlaysRead(0, 0, {});
       test.assertQueryReturned(query_);
 
-      query_ = query('coll', filter('key', 'in', [maxKey()]));
+      query_ = query('coll', filter('key', 'in', [MaxKey.instance()]));
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
         [key('coll/a').toString()]: MutationType.Set,
@@ -1532,7 +1557,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       });
       test.assertQueryReturned(query_, 'coll/a', 'coll/b');
 
-      query_ = query('coll', filter('key', 'not-in', [maxKey()]));
+      query_ = query('coll', filter('key', 'not-in', [MaxKey.instance()]));
       await test.executeQuery(query_);
       test.assertOverlaysRead(2, 0, {
         [key('coll/d').toString()]: MutationType.Set,
@@ -1549,26 +1574,26 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       await test.configureFieldsIndexes(index);
 
       await test.writeMutations(
-        setMutation('coll/a', { key: minKey() }),
-        setMutation('coll/b', { key: int32(2) }),
-        setMutation('coll/c', { key: int32(1) }),
-        setMutation('coll/d', { key: bsonTimestamp(1000, 1001) }),
-        setMutation('coll/e', { key: bsonTimestamp(1000, 1000) }),
+        setMutation('coll/a', { key: MinKey.instance() }),
+        setMutation('coll/b', { key: new Int32Value(2) }),
+        setMutation('coll/c', { key: new Int32Value(1) }),
+        setMutation('coll/d', { key: new BsonTimestamp(1000, 1001) }),
+        setMutation('coll/e', { key: new BsonTimestamp(1000, 1000) }),
         setMutation('coll/f', {
-          key: bsonBinaryData(1, new Uint8Array([1, 2, 4]))
+          key: new BsonBinaryData(1, new Uint8Array([1, 2, 4]))
         }),
         setMutation('coll/g', {
-          key: bsonBinaryData(1, new Uint8Array([1, 2, 3]))
+          key: new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
         }),
         setMutation('coll/h', {
-          key: bsonObjectId('507f191e810c19729de860eb')
+          key: new BsonObjectId('507f191e810c19729de860eb')
         }),
         setMutation('coll/i', {
-          key: bsonObjectId('507f191e810c19729de860ea')
+          key: new BsonObjectId('507f191e810c19729de860ea')
         }),
-        setMutation('coll/j', { key: regex('^bar', 'm') }),
-        setMutation('coll/k', { key: regex('^bar', 'i') }),
-        setMutation('coll/l', { key: maxKey() })
+        setMutation('coll/j', { key: new RegexValue('^bar', 'm') }),
+        setMutation('coll/k', { key: new RegexValue('^bar', 'i') }),
+        setMutation('coll/l', { key: MaxKey.instance() })
       );
       await test.backfillIndexes();
 
@@ -1614,29 +1639,29 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
       await test.writeMutations(
         setMutation('coll/a', { key: null }),
-        setMutation('coll/b', { key: minKey() }),
+        setMutation('coll/b', { key: MinKey.instance() }),
         setMutation('coll/c', { key: true }),
         setMutation('coll/d', { key: NaN }),
-        setMutation('coll/e', { key: int32(1) }),
+        setMutation('coll/e', { key: new Int32Value(1) }),
         setMutation('coll/f', { key: 2.0 }),
         setMutation('coll/g', { key: 3 }),
         setMutation('coll/h', { key: new Timestamp(100, 123456000) }),
-        setMutation('coll/i', { key: bsonTimestamp(1, 2) }),
+        setMutation('coll/i', { key: new BsonTimestamp(1, 2) }),
         setMutation('coll/j', { key: 'string' }),
         setMutation('coll/k', { key: blob(1, 2, 3) }),
         setMutation('coll/l', {
-          key: bsonBinaryData(1, new Uint8Array([1, 2, 3]))
+          key: new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
         }),
         setMutation('coll/m', { key: ref('foo/bar') }),
         setMutation('coll/n', {
-          key: bsonObjectId('507f191e810c19729de860ea')
+          key: new BsonObjectId('507f191e810c19729de860ea')
         }),
         setMutation('coll/o', { key: new GeoPoint(1, 2) }),
-        setMutation('coll/p', { key: regex('^bar', 'm') }),
+        setMutation('coll/p', { key: new RegexValue('^bar', 'm') }),
         setMutation('coll/q', { key: [2, 'foo'] }),
         setMutation('coll/r', { key: vector([1, 2, 3]) }),
         setMutation('coll/s', { key: { bar: 1, foo: 2 } }),
-        setMutation('coll/t', { key: maxKey() })
+        setMutation('coll/t', { key: MaxKey.instance() })
       );
       await test.backfillIndexes();
 

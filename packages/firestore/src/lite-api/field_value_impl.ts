@@ -14,15 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { BsonBinaryData } from './bson_binary_data';
-import { BsonObjectId } from './bson_object_Id';
-import { BsonTimestamp } from './bson_timestamp_value';
 import { FieldValue } from './field_value';
-import { Int32Value } from './int32_value';
-import { MaxKey } from './max_key';
-import { MinKey } from './min_key';
-import { RegexValue } from './regex_value';
 import {
   ArrayRemoveFieldValueImpl,
   ArrayUnionFieldValueImpl,
@@ -115,86 +107,4 @@ export function increment(n: number): FieldValue {
  */
 export function vector(values?: number[]): VectorValue {
   return new VectorValue(values);
-}
-
-/**
- * Creates a new `Int32Value` constructed with the given number.
- *
- * @param value - The 32-bit number to be used for constructing the Int32Value
- *
- * @returns A new `Int32Value` constructed with the given number.
- */
-export function int32(value: number): Int32Value {
-  return new Int32Value(value);
-}
-
-/**
- * Creates a new `RegexValue` constructed with the given pattern and options.
- *
- * @param subtype - The subtype of the BSON binary data.
- * @param data - The data to use for the BSON binary data.
- *
- * @returns A new `RegexValue` constructed with the given pattern and options.
- */
-export function regex(pattern: string, options: string): RegexValue {
-  return new RegexValue(pattern, options);
-}
-
-/**
- * Creates a new `BsonBinaryData` constructed with the given subtype and data.
- *
- * @param subtype - Create a `BsonBinaryData` instance with the given subtype.
- * @param data - Create a `BsonBinaryData` instance with a copy of this array of numbers.
- *
- * @returns A new `BsonBinaryData` constructed with the given subtype and data.
- */
-export function bsonBinaryData(
-  subtype: number,
-  data: Uint8Array
-): BsonBinaryData {
-  return new BsonBinaryData(subtype, data);
-}
-
-/**
- * Creates a new `BsonObjectId` constructed with the given string.
- *
- * @param value - The 24-character hex string representing the ObjectId.
- *
- * @returns A new `BsonObjectId` constructed with the given string.
- */
-export function bsonObjectId(value: string): BsonObjectId {
-  return new BsonObjectId(value);
-}
-
-/**
- * Creates a new `BsonTimestamp` constructed with the given seconds and increment.
- *
- * @param seconds - The underlying unsigned 32-bit integer for seconds.
- * @param seconds - The underlying unsigned 32-bit integer for increment.
- *
- * @returns A new `BsonTimestamp` constructed with the given seconds and increment.
- */
-export function bsonTimestamp(
-  seconds: number,
-  increment: number
-): BsonTimestamp {
-  return new BsonTimestamp(seconds, increment);
-}
-
-/**
- * Creates or returns a `MinKey` instance.
- *
- * @returns A `MinKey` instance.
- */
-export function minKey(): MinKey {
-  return MinKey.instance();
-}
-
-/**
- * Creates or returns a `MaxKey` instance.
- *
- * @returns A `MaxKey` instance.
- */
-export function maxKey(): MaxKey {
-  return MaxKey.instance();
 }

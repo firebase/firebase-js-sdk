@@ -28,6 +28,9 @@ import {
   sum,
   average
 } from '../../src/lite-api/aggregate';
+import { BsonBinaryData } from '../../src/lite-api/bson_binary_data';
+import { BsonObjectId } from '../../src/lite-api/bson_object_Id';
+import { BsonTimestamp } from '../../src/lite-api/bson_timestamp';
 import { Bytes } from '../../src/lite-api/bytes';
 import {
   Firestore,
@@ -40,18 +43,14 @@ import { FieldValue } from '../../src/lite-api/field_value';
 import {
   arrayRemove,
   arrayUnion,
-  bsonBinaryData,
-  bsonObjectId,
-  bsonTimestamp,
   deleteField,
   increment,
-  int32,
-  maxKey,
-  minKey,
-  regex,
   serverTimestamp,
   vector
 } from '../../src/lite-api/field_value_impl';
+import { Int32Value } from '../../src/lite-api/int32_value';
+import { MaxKey } from '../../src/lite-api/max_key';
+import { MinKey } from '../../src/lite-api/min_key';
 import {
   endAt,
   endBefore,
@@ -85,6 +84,7 @@ import {
   setDoc,
   updateDoc
 } from '../../src/lite-api/reference_impl';
+import { RegexValue } from '../../src/lite-api/regex_value';
 import {
   FirestoreDataConverter,
   snapshotEqual,
@@ -2974,37 +2974,41 @@ describe.skip('BSON types', () => {
   it('can be read and written using the lite SDK', async () => {
     return withTestCollection(async coll => {
       const ref = await addDoc(coll, {
-        objectId: bsonObjectId('507f191e810c19729de860ea'),
-        int32: int32(1),
-        min: minKey(),
-        max: maxKey(),
-        regex: regex('^foo', 'i')
+        objectId: new BsonObjectId('507f191e810c19729de860ea'),
+        int32: new Int32Value(1),
+        min: MinKey.instance(),
+        max: MaxKey.instance(),
+        regex: new RegexValue('^foo', 'i')
       });
 
       await setDoc(
         ref,
         {
-          binary: bsonBinaryData(1, new Uint8Array([1, 2, 3])),
-          timestamp: bsonTimestamp(1, 2),
-          int32: int32(2)
+          binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+          timestamp: new BsonTimestamp(1, 2),
+          int32: new Int32Value(2)
         },
         { merge: true }
       );
 
       const snap1 = await getDoc(ref);
       expect(
-        snap1.get('objectId').isEqual(bsonObjectId('507f191e810c19729de860ea'))
+        snap1
+          .get('objectId')
+          .isEqual(new BsonObjectId('507f191e810c19729de860ea'))
       ).to.be.true;
-      expect(snap1.get('int32').isEqual(int32(2))).to.be.true;
-      expect(snap1.get('min') === minKey()).to.be.true;
-      expect(snap1.get('max') === maxKey()).to.be.true;
+      expect(snap1.get('int32').isEqual(new Int32Value(2))).to.be.true;
+      expect(snap1.get('min') === MinKey.instance()).to.be.true;
+      expect(snap1.get('max') === MaxKey.instance()).to.be.true;
       expect(
         snap1
           .get('binary')
-          .isEqual(bsonBinaryData(1, new Uint8Array([1, 2, 3])))
+          .isEqual(new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
       ).to.be.true;
-      expect(snap1.get('timestamp').isEqual(bsonTimestamp(1, 2))).to.be.true;
-      expect(snap1.get('regex').isEqual(regex('^foo', 'i'))).to.be.true;
+      expect(snap1.get('timestamp').isEqual(new BsonTimestamp(1, 2))).to.be
+        .true;
+      expect(snap1.get('regex').isEqual(new RegexValue('^foo', 'i'))).to.be
+        .true;
     });
   });
 });

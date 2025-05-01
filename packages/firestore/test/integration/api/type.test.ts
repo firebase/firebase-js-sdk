@@ -20,9 +20,9 @@ import { expect } from 'chai';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
-  bsonBinaryData,
-  bsonObjectId,
-  bsonTimestamp,
+  BsonBinaryData,
+  BsonObjectId,
+  BsonTimestamp,
   Bytes,
   collection,
   doc,
@@ -34,15 +34,15 @@ import {
   GeoPoint,
   getDoc,
   getDocs,
-  int32,
-  maxKey,
-  minKey,
+  Int32Value,
+  MaxKey,
+  MinKey,
   onSnapshot,
   orderBy,
   query,
   QuerySnapshot,
   refEqual,
-  regex,
+  RegexValue,
   runTransaction,
   setDoc,
   Timestamp,
@@ -256,7 +256,9 @@ apiDescribe('Firestore', persistence => {
       settings,
       1,
       async dbs => {
-        await expectRoundtripWithoutTransaction(dbs[0], { min: minKey() });
+        await expectRoundtripWithoutTransaction(dbs[0], {
+          min: MinKey.instance()
+        });
       }
     );
   });
@@ -268,7 +270,9 @@ apiDescribe('Firestore', persistence => {
       settings,
       1,
       async dbs => {
-        await expectRoundtripWithoutTransaction(dbs[0], { max: maxKey() });
+        await expectRoundtripWithoutTransaction(dbs[0], {
+          max: MaxKey.instance()
+        });
       }
     );
   });
@@ -281,7 +285,7 @@ apiDescribe('Firestore', persistence => {
       1,
       async dbs => {
         await expectRoundtripWithoutTransaction(dbs[0], {
-          regex: regex('^foo', 'i')
+          regex: new RegexValue('^foo', 'i')
         });
       }
     );
@@ -294,7 +298,9 @@ apiDescribe('Firestore', persistence => {
       settings,
       1,
       async dbs => {
-        await expectRoundtripWithoutTransaction(dbs[0], { int32: int32(1) });
+        await expectRoundtripWithoutTransaction(dbs[0], {
+          int32: new Int32Value(1)
+        });
       }
     );
   });
@@ -307,7 +313,7 @@ apiDescribe('Firestore', persistence => {
       1,
       async dbs => {
         await expectRoundtripWithoutTransaction(dbs[0], {
-          bsonTimestamp: bsonTimestamp(1, 2)
+          bsonTimestamp: new BsonTimestamp(1, 2)
         });
       }
     );
@@ -321,7 +327,7 @@ apiDescribe('Firestore', persistence => {
       1,
       async dbs => {
         await expectRoundtripWithoutTransaction(dbs[0], {
-          objectId: bsonObjectId('507f191e810c19729de860ea')
+          objectId: new BsonObjectId('507f191e810c19729de860ea')
         });
       }
     );
@@ -335,7 +341,7 @@ apiDescribe('Firestore', persistence => {
       1,
       async dbs => {
         await expectRoundtripWithoutTransaction(dbs[0], {
-          binary: bsonBinaryData(1, new Uint8Array([1, 2, 3]))
+          binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
         });
       }
     );
@@ -350,12 +356,12 @@ apiDescribe('Firestore', persistence => {
       async dbs => {
         await expectRoundtripWithoutTransaction(dbs[0], {
           array: [
-            bsonBinaryData(1, new Uint8Array([1, 2, 3])),
-            bsonObjectId('507f191e810c19729de860ea'),
-            int32(1),
-            minKey(),
-            maxKey(),
-            regex('^foo', 'i')
+            new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+            new BsonObjectId('507f191e810c19729de860ea'),
+            new Int32Value(1),
+            MinKey.instance(),
+            MaxKey.instance(),
+            new RegexValue('^foo', 'i')
           ]
         });
       }
@@ -371,12 +377,12 @@ apiDescribe('Firestore', persistence => {
       async dbs => {
         await expectRoundtripWithoutTransaction(dbs[0], {
           object: {
-            binary: bsonBinaryData(1, new Uint8Array([1, 2, 3])),
-            objectId: bsonObjectId('507f191e810c19729de860ea'),
-            int32: int32(1),
-            min: minKey(),
-            max: maxKey(),
-            regex: regex('^foo', 'i')
+            binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+            objectId: new BsonObjectId('507f191e810c19729de860ea'),
+            int32: new Int32Value(1),
+            min: MinKey.instance(),
+            max: MaxKey.instance(),
+            regex: new RegexValue('^foo', 'i')
           }
         });
       }
@@ -393,7 +399,7 @@ apiDescribe('Firestore', persistence => {
         const docRef = doc(coll, 'test-doc');
         let errorMessage;
         try {
-          await setDoc(docRef, { key: int32(2147483648) });
+          await setDoc(docRef, { key: new Int32Value(2147483648) });
         } catch (err) {
           errorMessage = (err as FirestoreError)?.message;
         }
@@ -402,7 +408,7 @@ apiDescribe('Firestore', persistence => {
         );
 
         try {
-          await setDoc(docRef, { key: int32(-2147483650) });
+          await setDoc(docRef, { key: new Int32Value(-2147483650) });
         } catch (err) {
           errorMessage = (err as FirestoreError)?.message;
         }
@@ -424,22 +430,22 @@ apiDescribe('Firestore', persistence => {
         let errorMessage;
         try {
           // BSON timestamp larger than 32-bit integer gets rejected
-          await setDoc(docRef, { key: bsonTimestamp(4294967296, 2) });
+          await setDoc(docRef, { key: new BsonTimestamp(4294967296, 2) });
         } catch (err) {
           errorMessage = (err as FirestoreError)?.message;
         }
         expect(errorMessage).to.contains(
-          "The field 'seconds' value (4,294,967,296) does not represent an unsigned 32-bit integer."
+          "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer."
         );
 
         try {
           // negative BSON timestamp gets rejected
-          await setDoc(docRef, { key: bsonTimestamp(-1, 2) });
+          await setDoc(docRef, { key: new BsonTimestamp(-1, 2) });
         } catch (err) {
           errorMessage = (err as FirestoreError)?.message;
         }
         expect(errorMessage).to.contains(
-          "The field 'seconds' value (-1) does not represent an unsigned 32-bit integer."
+          "BsonTimestamp 'seconds' must be in the range of a 32-bit unsigned integer."
         );
       }
     );
@@ -455,7 +461,7 @@ apiDescribe('Firestore', persistence => {
         const docRef = doc(coll, 'test-doc');
         let errorMessage;
         try {
-          await setDoc(docRef, { key: regex('foo', 'a') });
+          await setDoc(docRef, { key: new RegexValue('foo', 'a') });
         } catch (err) {
           errorMessage = (err as FirestoreError)?.message;
         }
@@ -478,7 +484,7 @@ apiDescribe('Firestore', persistence => {
         let errorMessage;
         try {
           // bsonObjectId with length not equal to 24 gets rejected
-          await setDoc(docRef, { key: bsonObjectId('foo') });
+          await setDoc(docRef, { key: new BsonObjectId('foo') });
         } catch (err) {
           errorMessage = (err as FirestoreError)?.message;
         }
@@ -500,7 +506,7 @@ apiDescribe('Firestore', persistence => {
         let errorMessage;
         try {
           await setDoc(docRef, {
-            key: bsonBinaryData(1234, new Uint8Array([1, 2, 3]))
+            key: new BsonBinaryData(1234, new Uint8Array([1, 2, 3]))
           });
         } catch (err) {
           errorMessage = (err as FirestoreError)?.message;
@@ -515,26 +521,28 @@ apiDescribe('Firestore', persistence => {
   it('can order values of different TypeOrder together', async () => {
     const testDocs: { [key: string]: DocumentData } = {
       nullValue: { key: null },
-      minValue: { key: minKey() },
+      minValue: { key: MinKey.instance() },
       booleanValue: { key: true },
       nanValue: { key: NaN },
-      int32Value: { key: int32(1) },
+      int32Value: { key: new Int32Value(1) },
       doubleValue: { key: 2.0 },
       integerValue: { key: 3 },
       timestampValue: { key: new Timestamp(100, 123456000) },
-      bsonTimestampValue: { key: bsonTimestamp(1, 2) },
+      bsonTimestampValue: { key: new BsonTimestamp(1, 2) },
       stringValue: { key: 'string' },
       bytesValue: { key: Bytes.fromUint8Array(new Uint8Array([0, 1, 255])) },
-      bsonBinaryValue: { key: bsonBinaryData(1, new Uint8Array([1, 2, 3])) },
+      bsonBinaryValue: {
+        key: new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
+      },
       // referenceValue: {key: ref('coll/doc')},
       referenceValue: { key: 'placeholder' },
-      objectIdValue: { key: bsonObjectId('507f191e810c19729de860ea') },
+      objectIdValue: { key: new BsonObjectId('507f191e810c19729de860ea') },
       geoPointValue: { key: new GeoPoint(0, 0) },
-      regexValue: { key: regex('^foo', 'i') },
+      regexValue: { key: new RegexValue('^foo', 'i') },
       arrayValue: { key: [1, 2] },
       vectorValue: { key: vector([1, 2]) },
       objectValue: { key: { a: 1 } },
-      maxValue: { key: maxKey() }
+      maxValue: { key: MaxKey.instance() }
     };
 
     return withTestProjectIdAndCollectionSettings(

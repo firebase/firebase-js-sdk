@@ -77,7 +77,7 @@ import { Dict, forEach, isEmpty } from '../util/obj';
 
 import { BsonBinaryData } from './bson_binary_data';
 import { BsonObjectId } from './bson_object_Id';
-import { BsonTimestamp } from './bson_timestamp_value';
+import { BsonTimestamp } from './bson_timestamp';
 import { Bytes } from './bytes';
 import { Firestore } from './database';
 import { FieldPath } from './field_path';

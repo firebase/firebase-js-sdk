@@ -18,14 +18,14 @@
 import { expect } from 'chai';
 
 import {
-  bsonBinaryData,
-  bsonObjectId,
-  bsonTimestamp,
-  int32,
-  maxKey,
-  minKey,
-  regex
-} from '../../../src/lite-api/field_value_impl';
+  BsonBinaryData,
+  BsonObjectId,
+  BsonTimestamp,
+  Int32Value,
+  MaxKey,
+  MinKey,
+  RegexValue
+} from '../../../src';
 import {
   doc,
   expectEqual,
@@ -55,26 +55,26 @@ describe('Document', () => {
 
   it('can be constructed with bson types', () => {
     const data = {
-      objectId: bsonObjectId('foo'),
-      binary: bsonBinaryData(1, new Uint8Array([1, 2, 3])),
-      timestamp: bsonTimestamp(1, 2),
-      min: minKey(),
-      max: maxKey(),
-      regex: regex('a', 'b'),
-      int32: int32(1)
+      objectId: new BsonObjectId('foo'),
+      binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+      timestamp: new BsonTimestamp(1, 2),
+      min: MinKey.instance(),
+      max: MaxKey.instance(),
+      regex: new RegexValue('a', 'b'),
+      int32: new Int32Value(1)
     };
     const document = doc('rooms/Eros', 1, data);
 
     const value = document.data;
     expect(value.value).to.deep.equal(
       wrap({
-        objectId: bsonObjectId('foo'),
-        binary: bsonBinaryData(1, new Uint8Array([1, 2, 3])),
-        timestamp: bsonTimestamp(1, 2),
-        min: minKey(),
-        max: maxKey(),
-        regex: regex('a', 'b'),
-        int32: int32(1)
+        objectId: new BsonObjectId('foo'),
+        binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+        timestamp: new BsonTimestamp(1, 2),
+        min: MinKey.instance(),
+        max: MaxKey.instance(),
+        regex: new RegexValue('a', 'b'),
+        int32: new Int32Value(1)
       })
     );
     expect(value).not.to.equal(data);

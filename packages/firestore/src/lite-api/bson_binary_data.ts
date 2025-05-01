@@ -24,13 +24,9 @@ import { Code, FirestoreError } from '../util/error';
  * @class BsonBinaryData
  */
 export class BsonBinaryData {
-  /** The subtype for the data */
-  readonly subtype: number;
-
-  /** The binary data as a byte array */
   readonly data: Uint8Array;
 
-  constructor(subtype: number, data: Uint8Array) {
+  constructor(readonly subtype: number, data: Uint8Array) {
     if (subtype < 0 || subtype > 255) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,

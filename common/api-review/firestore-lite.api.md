@@ -68,13 +68,12 @@ export function average(field: string | FieldPath): AggregateField<number | null
 // @public
 export class BsonBinaryData {
     constructor(subtype: number, data: Uint8Array);
+    // (undocumented)
     readonly data: Uint8Array;
     isEqual(other: BsonBinaryData): boolean;
+    // (undocumented)
     readonly subtype: number;
 }
-
-// @public
-export function bsonBinaryData(subtype: number, data: Uint8Array): BsonBinaryData;
 
 // @public
 export class BsonObjectId {
@@ -85,9 +84,6 @@ export class BsonObjectId {
 }
 
 // @public
-export function bsonObjectId(value: string): BsonObjectId;
-
-// @public
 export class BsonTimestamp {
     constructor(seconds: number, increment: number);
     // (undocumented)
@@ -96,9 +92,6 @@ export class BsonTimestamp {
     // (undocumented)
     readonly seconds: number;
 }
-
-// @public
-export function bsonTimestamp(seconds: number, increment: number): BsonTimestamp;
 
 // @public
 export class Bytes {
@@ -285,9 +278,6 @@ export function initializeFirestore(app: FirebaseApp, settings: Settings): Fires
 export function initializeFirestore(app: FirebaseApp, settings: Settings, databaseId?: string): Firestore;
 
 // @public
-export function int32(value: number): Int32Value;
-
-// @public
 export class Int32Value {
     constructor(value: number);
     isEqual(other: Int32Value): boolean;
@@ -311,17 +301,11 @@ export class MaxKey {
 }
 
 // @public
-export function maxKey(): MaxKey;
-
-// @public
 export class MinKey {
     // (undocumented)
     static instance(): MinKey;
     readonly type = "MinKey";
 }
-
-// @public
-export function minKey(): MinKey;
 
 // @public
 export type NestedUpdateFields<T extends Record<string, unknown>> = UnionToIntersection<{
@@ -425,9 +409,6 @@ export class QueryStartAtConstraint extends QueryConstraint {
 
 // @public
 export function refEqual<AppModelType, DbModelType extends DocumentData>(left: DocumentReference<AppModelType, DbModelType> | CollectionReference<AppModelType, DbModelType>, right: DocumentReference<AppModelType, DbModelType> | CollectionReference<AppModelType, DbModelType>): boolean;
-
-// @public
-export function regex(pattern: string, options: string): RegexValue;
 
 // @public
 export class RegexValue {

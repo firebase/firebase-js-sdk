@@ -21,12 +21,5 @@ export {
   arrayUnion,
   serverTimestamp,
   deleteField,
-  vector,
-  int32,
-  regex,
-  bsonBinaryData,
-  bsonObjectId,
-  bsonTimestamp,
-  minKey,
-  maxKey
+  vector
 } from '../lite-api/field_value_impl';

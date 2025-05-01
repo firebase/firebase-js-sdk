@@ -16,15 +16,13 @@
  */
 import { expect } from 'chai';
 
-import {
-  bsonBinaryData,
-  bsonObjectId,
-  bsonTimestamp,
-  int32,
-  regex
-} from '../../../lite';
 import { FirestoreIndexValueWriter } from '../../../src/index/firestore_index_value_writer';
 import { IndexByteEncoder } from '../../../src/index/index_byte_encoder';
+import { BsonBinaryData } from '../../../src/lite-api/bson_binary_data';
+import { BsonObjectId } from '../../../src/lite-api/bson_object_Id';
+import { BsonTimestamp } from '../../../src/lite-api/bson_timestamp';
+import { Int32Value } from '../../../src/lite-api/int32_value';
+import { RegexValue } from '../../../src/lite-api/regex_value';
 import { Timestamp } from '../../../src/lite-api/timestamp';
 import {
   parseBsonBinaryData,
@@ -287,7 +285,7 @@ describe('Firestore Index Value Writer', () => {
         }
       };
       const value3 = parseBsonObjectId(
-        bsonObjectId('507f191e810c19729de860ea')
+        new BsonObjectId('507f191e810c19729de860ea')
       );
 
       expect(
@@ -340,8 +338,8 @@ describe('Firestore Index Value Writer', () => {
           }
         }
       };
-      const value3 = parseBsonTimestamp(bsonTimestamp(1, 2));
-      const value4 = parseBsonTimestamp(bsonTimestamp(2, 1));
+      const value3 = parseBsonTimestamp(new BsonTimestamp(1, 2));
+      const value4 = parseBsonTimestamp(new BsonTimestamp(2, 1));
 
       expect(
         compareIndexEncodedValues(value1, value2, IndexKind.ASCENDING)
@@ -400,7 +398,7 @@ describe('Firestore Index Value Writer', () => {
       );
       const value3 = parseBsonBinaryData(
         serializer,
-        bsonBinaryData(1, new Uint8Array([1, 2, 3]))
+        new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
       );
 
       const jsonSerializer = new JsonProtoSerializer(
@@ -410,7 +408,7 @@ describe('Firestore Index Value Writer', () => {
 
       const value4 = parseBsonBinaryData(
         jsonSerializer,
-        bsonBinaryData(1, new Uint8Array([1, 2, 3]))
+        new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
       );
 
       expect(
@@ -473,8 +471,8 @@ describe('Firestore Index Value Writer', () => {
           }
         }
       };
-      const value3 = parseRegexValue(regex('^foo', 'i'));
-      const value4 = parseRegexValue(regex('^zoo', 'i'));
+      const value3 = parseRegexValue(new RegexValue('^foo', 'i'));
+      const value4 = parseRegexValue(new RegexValue('^zoo', 'i'));
 
       expect(
         compareIndexEncodedValues(value1, value2, IndexKind.ASCENDING)
@@ -522,7 +520,8 @@ describe('Firestore Index Value Writer', () => {
           }
         }
       };
-      const value3 = parseInt32Value(int32(1));
+      const value3 = parseInt32Value(new Int32Value(1));
+      const value4 = parseInt32Value(new Int32Value(2));
 
       expect(
         compareIndexEncodedValues(value1, value2, IndexKind.ASCENDING)
@@ -543,6 +542,16 @@ describe('Firestore Index Value Writer', () => {
       expect(
         compareIndexEncodedValues(value3, value1, IndexKind.ASCENDING)
       ).to.equal(0);
+
+      expect(
+        compareIndexEncodedValues(value4, value1, IndexKind.ASCENDING)
+      ).to.equal(1);
+      expect(
+        compareIndexEncodedValues(value4, value2, IndexKind.ASCENDING)
+      ).to.equal(0);
+      expect(
+        compareIndexEncodedValues(value4, value3, IndexKind.ASCENDING)
+      ).to.equal(1);
     });
 
     it('can compare BSON MinKey', () => {

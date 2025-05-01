@@ -60,10 +60,11 @@ import { forEach } from '../util/obj';
 
 import { BsonBinaryData } from './bson_binary_data';
 import { BsonObjectId } from './bson_object_Id';
-import { BsonTimestamp } from './bson_timestamp_value';
-import { maxKey, minKey } from './field_value_impl';
+import { BsonTimestamp } from './bson_timestamp';
 import { GeoPoint } from './geo_point';
 import { Int32Value } from './int32_value';
+import { MaxKey } from './max_key';
+import { MinKey } from './min_key';
 import { RegexValue } from './regex_value';
 import { Timestamp } from './timestamp';
 import { VectorValue } from './vector_value';
@@ -118,9 +119,9 @@ export abstract class AbstractUserDataWriter {
       case TypeOrder.BsonTimestampValue:
         return this.convertToBsonTimestamp(value.mapValue!);
       case TypeOrder.MaxKeyValue:
-        return maxKey();
+        return MaxKey.instance();
       case TypeOrder.MinKeyValue:
-        return minKey();
+        return MinKey.instance();
       default:
         throw fail('Invalid value type: ' + JSON.stringify(value));
     }

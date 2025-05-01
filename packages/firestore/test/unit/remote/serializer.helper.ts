@@ -20,11 +20,18 @@ import { expect } from 'chai';
 import {
   arrayRemove,
   arrayUnion,
+  BsonBinaryData,
+  BsonObjectId,
+  BsonTimestamp,
   Bytes,
   DocumentReference,
   GeoPoint,
   increment,
+  Int32Value,
+  MaxKey,
+  MinKey,
   refEqual,
+  RegexValue,
   serverTimestamp,
   Timestamp
 } from '../../../src';
@@ -52,16 +59,7 @@ import {
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Target, targetEquals, TargetImpl } from '../../../src/core/target';
-import {
-  bsonBinaryData,
-  bsonObjectId,
-  bsonTimestamp,
-  int32,
-  maxKey,
-  minKey,
-  regex,
-  vector
-} from '../../../src/lite-api/field_value_impl';
+import { vector } from '../../../src/lite-api/field_value_impl';
 import { parseQueryValue } from '../../../src/lite-api/user_data_reader';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { FieldMask } from '../../../src/model/field_mask';
@@ -577,12 +575,12 @@ export function serializerTest(
 
       it('converts BSON types in mapValue', () => {
         const examples = [
-          bsonObjectId('foo'),
-          bsonTimestamp(1, 2),
-          minKey(),
-          maxKey(),
-          regex('a', 'b'),
-          int32(1)
+          new BsonObjectId('foo'),
+          new BsonTimestamp(1, 2),
+          MinKey.instance(),
+          MaxKey.instance(),
+          new RegexValue('a', 'b'),
+          new Int32Value(1)
         ];
 
         for (const example of examples) {
@@ -598,7 +596,7 @@ export function serializerTest(
         }
 
         // BsonBinaryData will be serialized differently Proto3Json VS. regular Protobuf format
-        const bsonBinary = bsonBinaryData(1, new Uint8Array([1, 2, 3]));
+        const bsonBinary = new BsonBinaryData(1, new Uint8Array([1, 2, 3]));
         const expectedJson: api.Value = {
           mapValue: {
             fields: {

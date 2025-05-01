@@ -18,15 +18,15 @@
 import { expect } from 'chai';
 
 import {
-  vector,
-  bsonObjectId,
-  bsonBinaryData,
-  bsonTimestamp,
-  int32,
-  regex,
-  minKey,
-  maxKey
-} from '../../../src/lite-api/field_value_impl';
+  BsonObjectId,
+  BsonBinaryData,
+  BsonTimestamp,
+  RegexValue,
+  Int32Value,
+  MaxKey,
+  MinKey
+} from '../../../src';
+import { vector } from '../../../src/lite-api/field_value_impl';
 import { extractFieldMask, ObjectValue } from '../../../src/model/object_value';
 import { TypeOrder } from '../../../src/model/type_order';
 import { typeOrder } from '../../../src/model/values';
@@ -38,13 +38,13 @@ describe('ObjectValue', () => {
       foo: { a: 1, b: true, c: 'string' },
       embedding: vector([1]),
       bson: {
-        objectId: bsonObjectId('foo'),
-        binary: bsonBinaryData(1, new Uint8Array([1, 2, 3])),
-        timestamp: bsonTimestamp(1, 2),
-        min: minKey(),
-        max: maxKey(),
-        regex: regex('a', 'b'),
-        int32: int32(1)
+        objectId: new BsonObjectId('foo'),
+        binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+        timestamp: new BsonTimestamp(1, 2),
+        min: MinKey.instance(),
+        max: MaxKey.instance(),
+        regex: new RegexValue('a', 'b'),
+        int32: new Int32Value(1)
       }
     });
 
@@ -102,30 +102,36 @@ describe('ObjectValue', () => {
 
     expect(objValue.field(field('bson'))!).to.deep.equal(
       wrap({
-        objectId: bsonObjectId('foo'),
-        binary: bsonBinaryData(1, new Uint8Array([1, 2, 3])),
-        timestamp: bsonTimestamp(1, 2),
-        min: minKey(),
-        max: maxKey(),
-        regex: regex('a', 'b'),
-        int32: int32(1)
+        objectId: new BsonObjectId('foo'),
+        binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+        timestamp: new BsonTimestamp(1, 2),
+        min: MinKey.instance(),
+        max: MaxKey.instance(),
+        regex: new RegexValue('a', 'b'),
+        int32: new Int32Value(1)
       })
     );
     expect(objValue.field(field('bson.objectId'))!).to.deep.equal(
-      wrap(bsonObjectId('foo'))
+      wrap(new BsonObjectId('foo'))
     );
     expect(objValue.field(field('bson.binary'))!).to.deep.equal(
-      wrap(bsonBinaryData(1, new Uint8Array([1, 2, 3])))
+      wrap(new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
     );
     expect(objValue.field(field('bson.timestamp'))!).to.deep.equal(
-      wrap(bsonTimestamp(1, 2))
+      wrap(new BsonTimestamp(1, 2))
     );
-    expect(objValue.field(field('bson.min'))!).to.deep.equal(wrap(minKey()));
-    expect(objValue.field(field('bson.max'))!).to.deep.equal(wrap(maxKey()));
+    expect(objValue.field(field('bson.min'))!).to.deep.equal(
+      wrap(MinKey.instance())
+    );
+    expect(objValue.field(field('bson.max'))!).to.deep.equal(
+      wrap(MaxKey.instance())
+    );
     expect(objValue.field(field('bson.regex'))!).to.deep.equal(
-      wrap(regex('a', 'b'))
+      wrap(new RegexValue('a', 'b'))
     );
-    expect(objValue.field(field('bson.int32'))!).to.deep.equal(wrap(int32(1)));
+    expect(objValue.field(field('bson.int32'))!).to.deep.equal(
+      wrap(new Int32Value(1))
+    );
   });
 
   it('can overwrite existing fields', () => {
@@ -234,56 +240,56 @@ describe('ObjectValue', () => {
   it('can handle bson types in ObjectValue', () => {
     const objValue = ObjectValue.empty();
     // Add new fields
-    objValue.set(field('objectId'), wrap(bsonObjectId('foo-value')));
+    objValue.set(field('objectId'), wrap(new BsonObjectId('foo-value')));
     objValue.set(
       field('binary'),
-      wrap(bsonBinaryData(1, new Uint8Array([1, 2, 3])))
+      wrap(new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
     );
-    objValue.set(field('timestamp'), wrap(bsonTimestamp(1, 2)));
-    objValue.set(field('regex'), wrap(regex('a', 'b')));
-    objValue.set(field('int32'), wrap(int32(1)));
-    objValue.set(field('min'), wrap(minKey()));
-    objValue.set(field('max'), wrap(maxKey()));
+    objValue.set(field('timestamp'), wrap(new BsonTimestamp(1, 2)));
+    objValue.set(field('regex'), wrap(new RegexValue('a', 'b')));
+    objValue.set(field('int32'), wrap(new Int32Value(1)));
+    objValue.set(field('min'), wrap(MinKey.instance()));
+    objValue.set(field('max'), wrap(MaxKey.instance()));
 
     assertObjectEquals(objValue, {
-      objectId: bsonObjectId('foo-value'),
-      binary: bsonBinaryData(1, new Uint8Array([1, 2, 3])),
-      timestamp: bsonTimestamp(1, 2),
-      regex: regex('a', 'b'),
-      int32: int32(1),
-      min: minKey(),
-      max: maxKey()
+      objectId: new BsonObjectId('foo-value'),
+      binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+      timestamp: new BsonTimestamp(1, 2),
+      regex: new RegexValue('a', 'b'),
+      int32: new Int32Value(1),
+      min: MinKey.instance(),
+      max: MaxKey.instance()
     });
 
     // Overwrite existing fields
-    objValue.set(field('objectId'), wrap(bsonObjectId('new-foo-value')));
+    objValue.set(field('objectId'), wrap(new BsonObjectId('new-foo-value')));
 
     // Create nested objects
     objValue.set(
       field('foo.binary'),
-      wrap(bsonBinaryData(2, new Uint8Array([1, 2, 3])))
+      wrap(new BsonBinaryData(2, new Uint8Array([1, 2, 3])))
     );
-    objValue.set(field('foo.timestamp'), wrap(bsonTimestamp(1, 2)));
+    objValue.set(field('foo.timestamp'), wrap(new BsonTimestamp(1, 2)));
 
     // Delete fields
     objValue.delete(field('binary'));
 
     // overwrite nested objects
-    objValue.set(field('foo.timestamp'), wrap(bsonTimestamp(2, 1)));
+    objValue.set(field('foo.timestamp'), wrap(new BsonTimestamp(2, 1)));
 
     // Overwrite primitive values to create objects
     objValue.set(field('min'), wrap(null));
 
     assertObjectEquals(objValue, {
-      objectId: bsonObjectId('new-foo-value'),
-      timestamp: bsonTimestamp(1, 2),
-      regex: regex('a', 'b'),
-      int32: int32(1),
+      objectId: new BsonObjectId('new-foo-value'),
+      timestamp: new BsonTimestamp(1, 2),
+      regex: new RegexValue('a', 'b'),
+      int32: new Int32Value(1),
       min: null,
-      max: maxKey(),
+      max: MaxKey.instance(),
       foo: {
-        binary: bsonBinaryData(2, new Uint8Array([1, 2, 3])),
-        timestamp: bsonTimestamp(2, 1)
+        binary: new BsonBinaryData(2, new Uint8Array([1, 2, 3])),
+        timestamp: new BsonTimestamp(2, 1)
       }
     });
   });
@@ -294,13 +300,13 @@ describe('ObjectValue', () => {
       map: { a: 1, b: true, c: 'string', nested: { d: 'e' } },
       emptymap: {},
       bar: {
-        objectId: bsonObjectId('foo'),
-        binary: bsonBinaryData(1, new Uint8Array([1, 2, 3])),
-        timestamp: bsonTimestamp(1, 2),
-        min: minKey(),
-        max: maxKey(),
-        regex: regex('a', 'b'),
-        int32: int32(1)
+        objectId: new BsonObjectId('foo'),
+        binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+        timestamp: new BsonTimestamp(1, 2),
+        min: MinKey.instance(),
+        max: MaxKey.instance(),
+        regex: new RegexValue('a', 'b'),
+        int32: new Int32Value(1)
       }
     });
     const expectedMask = mask(

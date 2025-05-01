@@ -67,17 +67,17 @@ import {
   QuerySnapshot,
   vector,
   getDocsFromServer,
-  bsonBinaryData,
-  bsonObjectId,
-  bsonTimestamp,
-  int32,
-  maxKey,
-  minKey,
-  regex,
   or,
   newTestFirestore,
   GeoPoint,
-  Bytes
+  Bytes,
+  BsonBinaryData,
+  BsonObjectId,
+  Int32Value,
+  MaxKey,
+  MinKey,
+  RegexValue,
+  BsonTimestamp
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -2454,20 +2454,20 @@ apiDescribe('Database', persistence => {
         {},
         async coll => {
           const docRef = await addDoc(coll, {
-            binary: bsonBinaryData(1, new Uint8Array([1, 2, 3])),
-            objectId: bsonObjectId('507f191e810c19729de860ea'),
-            int32: int32(1),
-            min: minKey(),
-            max: maxKey(),
-            regex: regex('^foo', 'i')
+            binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+            objectId: new BsonObjectId('507f191e810c19729de860ea'),
+            int32: new Int32Value(1),
+            min: MinKey.instance(),
+            max: MaxKey.instance(),
+            regex: new RegexValue('^foo', 'i')
           });
 
           await setDoc(
             docRef,
             {
-              binary: bsonBinaryData(1, new Uint8Array([1, 2, 3])),
-              timestamp: bsonTimestamp(1, 2),
-              int32: int32(2)
+              binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+              timestamp: new BsonTimestamp(1, 2),
+              int32: new Int32Value(2)
             },
             { merge: true }
           );
@@ -2476,19 +2476,20 @@ apiDescribe('Database', persistence => {
           expect(
             snapshot
               .get('objectId')
-              .isEqual(bsonObjectId('507f191e810c19729de860ea'))
+              .isEqual(new BsonObjectId('507f191e810c19729de860ea'))
           ).to.be.true;
-          expect(snapshot.get('int32').isEqual(int32(2))).to.be.true;
-          expect(snapshot.get('min') === minKey()).to.be.true;
-          expect(snapshot.get('max') === maxKey()).to.be.true;
+          expect(snapshot.get('int32').isEqual(new Int32Value(2))).to.be.true;
+          expect(snapshot.get('min') === MinKey.instance()).to.be.true;
+          expect(snapshot.get('max') === MaxKey.instance()).to.be.true;
           expect(
             snapshot
               .get('binary')
-              .isEqual(bsonBinaryData(1, new Uint8Array([1, 2, 3])))
+              .isEqual(new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
           ).to.be.true;
-          expect(snapshot.get('timestamp').isEqual(bsonTimestamp(1, 2))).to.be
-            .true;
-          expect(snapshot.get('regex').isEqual(regex('^foo', 'i'))).to.be.true;
+          expect(snapshot.get('timestamp').isEqual(new BsonTimestamp(1, 2))).to
+            .be.true;
+          expect(snapshot.get('regex').isEqual(new RegexValue('^foo', 'i'))).to
+            .be.true;
         }
       );
     });
@@ -2506,41 +2507,42 @@ apiDescribe('Database', persistence => {
           // Adding docs to cache, do not wait for promise to resolve.
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           setDoc(docRef, {
-            binary: bsonBinaryData(1, new Uint8Array([1, 2, 3])),
-            objectId: bsonObjectId('507f191e810c19729de860ea'),
-            int32: int32(1),
-            regex: regex('^foo', 'i'),
-            timestamp: bsonTimestamp(1, 2),
-            min: minKey(),
-            max: maxKey()
+            binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+            objectId: new BsonObjectId('507f191e810c19729de860ea'),
+            int32: new Int32Value(1),
+            regex: new RegexValue('^foo', 'i'),
+            timestamp: new BsonTimestamp(1, 2),
+            min: MinKey.instance(),
+            max: MaxKey.instance()
           });
 
           const snapshot = await getDocFromCache(docRef);
           expect(
             snapshot
               .get('binary')
-              .isEqual(bsonBinaryData(1, new Uint8Array([1, 2, 3])))
+              .isEqual(new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
           ).to.be.true;
           expect(
             snapshot
               .get('objectId')
-              .isEqual(bsonObjectId('507f191e810c19729de860ea'))
+              .isEqual(new BsonObjectId('507f191e810c19729de860ea'))
           ).to.be.true;
-          expect(snapshot.get('int32').isEqual(int32(1))).to.be.true;
-          expect(snapshot.get('regex').isEqual(regex('^foo', 'i'))).to.be.true;
-          expect(snapshot.get('timestamp').isEqual(bsonTimestamp(1, 2))).to.be
-            .true;
-          expect(snapshot.get('min') === minKey()).to.be.true;
-          expect(snapshot.get('max') === maxKey()).to.be.true;
+          expect(snapshot.get('int32').isEqual(new Int32Value(1))).to.be.true;
+          expect(snapshot.get('regex').isEqual(new RegexValue('^foo', 'i'))).to
+            .be.true;
+          expect(snapshot.get('timestamp').isEqual(new BsonTimestamp(1, 2))).to
+            .be.true;
+          expect(snapshot.get('min') === MinKey.instance()).to.be.true;
+          expect(snapshot.get('max') === MaxKey.instance()).to.be.true;
         }
       );
     });
 
     it('can filter and order objectIds', async () => {
       const testDocs = {
-        a: { key: bsonObjectId('507f191e810c19729de860ea') },
-        b: { key: bsonObjectId('507f191e810c19729de860eb') },
-        c: { key: bsonObjectId('507f191e810c19729de860ec') }
+        a: { key: new BsonObjectId('507f191e810c19729de860ea') },
+        b: { key: new BsonObjectId('507f191e810c19729de860eb') },
+        c: { key: new BsonObjectId('507f191e810c19729de860ec') }
       };
 
       return withTestProjectIdAndCollectionSettings(
@@ -2554,7 +2556,7 @@ apiDescribe('Database', persistence => {
 
           let orderedQuery = query(
             coll,
-            where('key', '>', bsonObjectId('507f191e810c19729de860ea')),
+            where('key', '>', new BsonObjectId('507f191e810c19729de860ea')),
             orderBy('key', 'desc')
           );
 
@@ -2572,8 +2574,8 @@ apiDescribe('Database', persistence => {
           orderedQuery = query(
             coll,
             where('key', 'in', [
-              bsonObjectId('507f191e810c19729de860ea'),
-              bsonObjectId('507f191e810c19729de860eb')
+              new BsonObjectId('507f191e810c19729de860ea'),
+              new BsonObjectId('507f191e810c19729de860eb')
             ]),
             orderBy('key', 'desc')
           );
@@ -2594,9 +2596,9 @@ apiDescribe('Database', persistence => {
 
     it('can filter and order Int32 values', async () => {
       const testDocs = {
-        a: { key: int32(-1) },
-        b: { key: int32(1) },
-        c: { key: int32(2) }
+        a: { key: new Int32Value(-1) },
+        b: { key: new Int32Value(1) },
+        c: { key: new Int32Value(2) }
       };
       return withTestProjectIdAndCollectionSettings(
         persistence,
@@ -2609,7 +2611,7 @@ apiDescribe('Database', persistence => {
 
           let orderedQuery = query(
             coll,
-            where('key', '>=', int32(1)),
+            where('key', '>=', new Int32Value(1)),
             orderBy('key', 'desc')
           );
 
@@ -2626,7 +2628,7 @@ apiDescribe('Database', persistence => {
 
           orderedQuery = query(
             coll,
-            where('key', 'not-in', [int32(1)]),
+            where('key', 'not-in', [new Int32Value(1)]),
             orderBy('key', 'desc')
           );
 
@@ -2646,9 +2648,9 @@ apiDescribe('Database', persistence => {
 
     it('can filter and order Timestamp values', async () => {
       const testDocs = {
-        a: { key: bsonTimestamp(1, 1) },
-        b: { key: bsonTimestamp(1, 2) },
-        c: { key: bsonTimestamp(2, 1) }
+        a: { key: new BsonTimestamp(1, 1) },
+        b: { key: new BsonTimestamp(1, 2) },
+        c: { key: new BsonTimestamp(2, 1) }
       };
       return withTestProjectIdAndCollectionSettings(
         persistence,
@@ -2661,7 +2663,7 @@ apiDescribe('Database', persistence => {
 
           let orderedQuery = query(
             coll,
-            where('key', '>', bsonTimestamp(1, 1)),
+            where('key', '>', new BsonTimestamp(1, 1)),
             orderBy('key', 'desc')
           );
 
@@ -2678,7 +2680,7 @@ apiDescribe('Database', persistence => {
 
           orderedQuery = query(
             coll,
-            where('key', '!=', bsonTimestamp(1, 1)),
+            where('key', '!=', new BsonTimestamp(1, 1)),
             orderBy('key', 'desc')
           );
 
@@ -2698,9 +2700,9 @@ apiDescribe('Database', persistence => {
 
     it('can filter and order Binary values', async () => {
       const testDocs = {
-        a: { key: bsonBinaryData(1, new Uint8Array([1, 2, 3])) },
-        b: { key: bsonBinaryData(1, new Uint8Array([1, 2, 4])) },
-        c: { key: bsonBinaryData(2, new Uint8Array([1, 2, 3])) }
+        a: { key: new BsonBinaryData(1, new Uint8Array([1, 2, 3])) },
+        b: { key: new BsonBinaryData(1, new Uint8Array([1, 2, 4])) },
+        c: { key: new BsonBinaryData(2, new Uint8Array([1, 2, 3])) }
       };
       return withTestProjectIdAndCollectionSettings(
         persistence,
@@ -2713,7 +2715,7 @@ apiDescribe('Database', persistence => {
 
           let orderedQuery = query(
             coll,
-            where('key', '>', bsonBinaryData(1, new Uint8Array([1, 2, 3]))),
+            where('key', '>', new BsonBinaryData(1, new Uint8Array([1, 2, 3]))),
             orderBy('key', 'desc')
           );
 
@@ -2730,8 +2732,12 @@ apiDescribe('Database', persistence => {
 
           orderedQuery = query(
             coll,
-            where('key', '>=', bsonBinaryData(1, new Uint8Array([1, 2, 3]))),
-            where('key', '<', bsonBinaryData(2, new Uint8Array([1, 2, 3]))),
+            where(
+              'key',
+              '>=',
+              new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
+            ),
+            where('key', '<', new BsonBinaryData(2, new Uint8Array([1, 2, 3]))),
             orderBy('key', 'desc')
           );
 
@@ -2751,9 +2757,9 @@ apiDescribe('Database', persistence => {
 
     it('can filter and order Regex values', async () => {
       const testDocs = {
-        a: { key: regex('^bar', 'i') },
-        b: { key: regex('^bar', 'x') },
-        c: { key: regex('^baz', 'i') }
+        a: { key: new RegexValue('^bar', 'i') },
+        b: { key: new RegexValue('^bar', 'x') },
+        c: { key: new RegexValue('^baz', 'i') }
       };
       return withTestProjectIdAndCollectionSettings(
         persistence,
@@ -2767,8 +2773,8 @@ apiDescribe('Database', persistence => {
           const orderedQuery = query(
             coll,
             or(
-              where('key', '>', regex('^bar', 'x')),
-              where('key', '!=', regex('^bar', 'x'))
+              where('key', '>', new RegexValue('^bar', 'x')),
+              where('key', '!=', new RegexValue('^bar', 'x'))
             ),
             orderBy('key', 'desc')
           );
@@ -2789,11 +2795,11 @@ apiDescribe('Database', persistence => {
 
     it('can filter and order minKey values', async () => {
       const testDocs = {
-        a: { key: minKey() },
-        b: { key: minKey() },
+        a: { key: MinKey.instance() },
+        b: { key: MinKey.instance() },
         c: { key: null },
         d: { key: 1 },
-        e: { key: maxKey() }
+        e: { key: MaxKey.instance() }
       };
       return withTestProjectIdAndCollectionSettings(
         persistence,
@@ -2804,7 +2810,10 @@ apiDescribe('Database', persistence => {
           // Populate the cache with all docs first
           await getDocs(coll);
 
-          let filteredQuery = query(coll, where('key', '==', minKey()));
+          let filteredQuery = query(
+            coll,
+            where('key', '==', MinKey.instance())
+          );
           let snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([
             testDocs['a'],
@@ -2817,7 +2826,7 @@ apiDescribe('Database', persistence => {
           );
 
           // TODO(Mila/BSON): uncomment after the null inclusion bug
-          // filteredQuery = query(coll, where('key', '!=', minKey()));
+          // filteredQuery = query(coll, where('key', '!=', MinKey.instance()));
           // snapshot = await getDocs(filteredQuery);
           // expect(toDataArray(snapshot)).to.deep.equal([
           //   testDocs['d'],
@@ -2829,7 +2838,7 @@ apiDescribe('Database', persistence => {
           //   toIds(snapshot)
           // );
 
-          filteredQuery = query(coll, where('key', '>=', minKey()));
+          filteredQuery = query(coll, where('key', '>=', MinKey.instance()));
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([
             testDocs['a'],
@@ -2841,7 +2850,7 @@ apiDescribe('Database', persistence => {
             toIds(snapshot)
           );
 
-          filteredQuery = query(coll, where('key', '<=', minKey()));
+          filteredQuery = query(coll, where('key', '<=', MinKey.instance()));
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([
             testDocs['a'],
@@ -2853,7 +2862,7 @@ apiDescribe('Database', persistence => {
             toIds(snapshot)
           );
 
-          filteredQuery = query(coll, where('key', '>', minKey()));
+          filteredQuery = query(coll, where('key', '>', MinKey.instance()));
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([]);
           await assertSDKQueryResultsConsistentWithBackend(
@@ -2862,7 +2871,7 @@ apiDescribe('Database', persistence => {
             toIds(snapshot)
           );
 
-          filteredQuery = query(coll, where('key', '<', minKey()));
+          filteredQuery = query(coll, where('key', '<', MinKey.instance()));
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([]);
           await assertSDKQueryResultsConsistentWithBackend(
@@ -2885,10 +2894,10 @@ apiDescribe('Database', persistence => {
 
     it('can filter and order maxKey values', async () => {
       const testDocs = {
-        a: { key: minKey() },
+        a: { key: MinKey.instance() },
         b: { key: 1 },
-        c: { key: maxKey() },
-        d: { key: maxKey() },
+        c: { key: MaxKey.instance() },
+        d: { key: MaxKey.instance() },
         e: { key: null }
       };
       return withTestProjectIdAndCollectionSettings(
@@ -2900,7 +2909,10 @@ apiDescribe('Database', persistence => {
           // Populate the cache with all docs first
           await getDocs(coll);
 
-          let filteredQuery = query(coll, where('key', '==', maxKey()));
+          let filteredQuery = query(
+            coll,
+            where('key', '==', MaxKey.instance())
+          );
           let snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([
             testDocs['c'],
@@ -2913,7 +2925,7 @@ apiDescribe('Database', persistence => {
           );
 
           // TODO(Mila/BSON): uncomment after the null inclusion bug
-          // filteredQuery = query(coll, where('key', '!=', maxKey()));
+          // filteredQuery = query(coll, where('key', '!=', MaxKey.instance()));
           // snapshot = await getDocs(filteredQuery);
           // expect(toDataArray(snapshot)).to.deep.equal([
           //   testDocs['a'],
@@ -2925,7 +2937,7 @@ apiDescribe('Database', persistence => {
           //   toIds(snapshot)
           // );
 
-          filteredQuery = query(coll, where('key', '>=', maxKey()));
+          filteredQuery = query(coll, where('key', '>=', MaxKey.instance()));
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([
             testDocs['c'],
@@ -2937,7 +2949,7 @@ apiDescribe('Database', persistence => {
             toIds(snapshot)
           );
 
-          filteredQuery = query(coll, where('key', '<=', maxKey()));
+          filteredQuery = query(coll, where('key', '<=', MaxKey.instance()));
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([
             testDocs['c'],
@@ -2949,7 +2961,7 @@ apiDescribe('Database', persistence => {
             toIds(snapshot)
           );
 
-          filteredQuery = query(coll, where('key', '>', maxKey()));
+          filteredQuery = query(coll, where('key', '>', MaxKey.instance()));
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([]);
           await assertSDKQueryResultsConsistentWithBackend(
@@ -2958,7 +2970,7 @@ apiDescribe('Database', persistence => {
             toIds(snapshot)
           );
 
-          filteredQuery = query(coll, where('key', '<', maxKey()));
+          filteredQuery = query(coll, where('key', '<', MaxKey.instance()));
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([]);
           await assertSDKQueryResultsConsistentWithBackend(
@@ -2981,11 +2993,11 @@ apiDescribe('Database', persistence => {
 
     it('can handle null with bson values', async () => {
       const testDocs = {
-        a: { key: minKey() },
+        a: { key: MinKey.instance() },
         b: { key: null },
         c: { key: null },
         d: { key: 1 },
-        e: { key: maxKey() }
+        e: { key: MaxKey.instance() }
       };
 
       return withTestProjectIdAndCollectionSettings(
@@ -3027,12 +3039,12 @@ apiDescribe('Database', persistence => {
 
     it('can listen to documents with bson types', async () => {
       const testDocs = {
-        a: { key: maxKey() },
-        b: { key: minKey() },
-        c: { key: bsonTimestamp(1, 2) },
-        d: { key: bsonObjectId('507f191e810c19729de860ea') },
-        e: { key: bsonBinaryData(1, new Uint8Array([1, 2, 3])) },
-        f: { key: regex('^foo', 'i') }
+        a: { key: MaxKey.instance() },
+        b: { key: MinKey.instance() },
+        c: { key: new BsonTimestamp(1, 2) },
+        d: { key: new BsonObjectId('507f191e810c19729de860ea') },
+        e: { key: new BsonBinaryData(1, new Uint8Array([1, 2, 3])) },
+        f: { key: new RegexValue('^foo', 'i') }
       };
       return withTestProjectIdAndCollectionSettings(
         persistence,
@@ -3055,7 +3067,7 @@ apiDescribe('Database', persistence => {
             testDocs['a']
           ]);
 
-          const newData = { key: int32(2) };
+          const newData = { key: new Int32Value(2) };
           await setDoc(doc(coll, 'g'), newData);
           listenSnapshot = await storeEvent.awaitEvent();
           expect(toDataArray(listenSnapshot)).to.deep.equal([
@@ -3077,9 +3089,9 @@ apiDescribe('Database', persistence => {
     // eslint-disable-next-line no-restricted-properties
     it.skip('can run transactions on documents with bson types', async () => {
       const testDocs = {
-        a: { key: bsonTimestamp(1, 2) },
-        b: { key: regex('^foo', 'i') },
-        c: { key: bsonBinaryData(1, new Uint8Array([1, 2, 3])) }
+        a: { key: new BsonTimestamp(1, 2) },
+        b: { key: new RegexValue('^foo', 'i') },
+        c: { key: new BsonBinaryData(1, new Uint8Array([1, 2, 3])) }
       };
       return withTestProjectIdAndCollectionSettings(
         persistence,
@@ -3114,24 +3126,24 @@ apiDescribe('Database', persistence => {
       it('SDK orders different value types together the same way online and offline', async () => {
         const testDocs: { [key: string]: DocumentData } = {
           a: { key: null },
-          b: { key: minKey() },
+          b: { key: MinKey.instance() },
           c: { key: true },
           d: { key: NaN },
-          e: { key: int32(1) },
+          e: { key: new Int32Value(1) },
           f: { key: 2.0 },
           g: { key: 3 },
           h: { key: new Timestamp(100, 123456000) },
-          i: { key: bsonTimestamp(1, 2) },
+          i: { key: new BsonTimestamp(1, 2) },
           j: { key: 'string' },
           k: { key: Bytes.fromUint8Array(new Uint8Array([0, 1, 255])) },
-          l: { key: bsonBinaryData(1, new Uint8Array([1, 2, 3])) },
-          n: { key: bsonObjectId('507f191e810c19729de860ea') },
+          l: { key: new BsonBinaryData(1, new Uint8Array([1, 2, 3])) },
+          n: { key: new BsonObjectId('507f191e810c19729de860ea') },
           o: { key: new GeoPoint(0, 0) },
-          p: { key: regex('^foo', 'i') },
+          p: { key: new RegexValue('^foo', 'i') },
           q: { key: [1, 2] },
           r: { key: vector([1, 2]) },
           s: { key: { a: 1 } },
-          t: { key: maxKey() }
+          t: { key: MaxKey.instance() }
         };
 
         return withTestProjectIdAndCollectionSettings(
@@ -3181,25 +3193,25 @@ apiDescribe('Database', persistence => {
 
       it('SDK orders bson types the same way online and offline', async () => {
         const testDocs: { [key: string]: DocumentData } = {
-          a: { key: maxKey() }, // maxKeys are all equal
-          b: { key: maxKey() },
-          c: { key: int32(1) },
-          d: { key: int32(-1) },
-          e: { key: int32(0) },
-          f: { key: bsonTimestamp(1, 1) },
-          g: { key: bsonTimestamp(2, 1) },
-          h: { key: bsonTimestamp(1, 2) },
-          i: { key: bsonBinaryData(1, new Uint8Array([1, 2, 3])) },
-          j: { key: bsonBinaryData(1, new Uint8Array([1, 1, 4])) },
-          k: { key: bsonBinaryData(2, new Uint8Array([1, 0, 0])) },
-          l: { key: bsonObjectId('507f191e810c19729de860eb') },
-          m: { key: bsonObjectId('507f191e810c19729de860ea') },
-          n: { key: bsonObjectId('407f191e810c19729de860ea') },
-          o: { key: regex('^foo', 'i') },
-          p: { key: regex('^foo', 'm') },
-          q: { key: regex('^bar', 'i') },
-          r: { key: minKey() }, // minKeys are all equal
-          s: { key: minKey() }
+          a: { key: MaxKey.instance() }, // maxKeys are all equal
+          b: { key: MaxKey.instance() },
+          c: { key: new Int32Value(1) },
+          d: { key: new Int32Value(-1) },
+          e: { key: new Int32Value(0) },
+          f: { key: new BsonTimestamp(1, 1) },
+          g: { key: new BsonTimestamp(2, 1) },
+          h: { key: new BsonTimestamp(1, 2) },
+          i: { key: new BsonBinaryData(1, new Uint8Array([1, 2, 3])) },
+          j: { key: new BsonBinaryData(1, new Uint8Array([1, 1, 4])) },
+          k: { key: new BsonBinaryData(2, new Uint8Array([1, 0, 0])) },
+          l: { key: new BsonObjectId('507f191e810c19729de860eb') },
+          m: { key: new BsonObjectId('507f191e810c19729de860ea') },
+          n: { key: new BsonObjectId('407f191e810c19729de860ea') },
+          o: { key: new RegexValue('^foo', 'i') },
+          p: { key: new RegexValue('^foo', 'm') },
+          q: { key: new RegexValue('^bar', 'i') },
+          r: { key: MinKey.instance() }, // minKeys are all equal
+          s: { key: MinKey.instance() }
         };
 
         return withTestProjectIdAndCollectionSettings(
