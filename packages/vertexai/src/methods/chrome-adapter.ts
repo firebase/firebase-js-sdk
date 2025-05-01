@@ -66,6 +66,9 @@ export class ChromeAdapter {
    */
   async isAvailable(request: GenerateContentRequest): Promise<boolean> {
     if (this.mode === 'only_in_cloud') {
+      logger.debug(
+        `On-device inference unavailable because mode is "only_in_cloud".`
+      );
       return false;
     }
 
@@ -77,10 +80,20 @@ export class ChromeAdapter {
     }
 
     // Applies prefer_on_device logic.
-    return (
-      availability === Availability.available &&
-      ChromeAdapter.isOnDeviceRequest(request)
-    );
+    if (availability !== Availability.available) {
+      logger.debug(
+        `On-device inference unavailable because availability is "${availability}".`
+      );
+      return false;
+    }
+    if (!ChromeAdapter.isOnDeviceRequest(request)) {
+      logger.debug(
+        `On-device inference unavailable because request is incompatible.`
+      );
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -98,7 +111,6 @@ export class ChromeAdapter {
     const contents = await Promise.all(
       request.contents[0].parts.map(ChromeAdapter.toLanguageModelMessageContent)
     );
-    logger.warn('Only generating content from first item in "contents" array.');
     const text = await session.prompt(contents);
     return ChromeAdapter.toResponse(text);
   }
@@ -120,7 +132,6 @@ export class ChromeAdapter {
     const contents = await Promise.all(
       request.contents[0].parts.map(ChromeAdapter.toLanguageModelMessageContent)
     );
-    logger.warn('Only generating content from first item in "contents" array.');
     const stream = await session.promptStreaming(contents);
     return ChromeAdapter.toStreamResponse(stream);
   }
@@ -146,7 +157,9 @@ export class ChromeAdapter {
       // Returns false if the request contains multiple roles, eg a chat history.
       // TODO: remove this guard once LanguageModelMessage is supported.
       if (content.role !== 'user') {
-        logger.debug('Non-user role "${content.role}" rejected for on-device inference.');
+        logger.debug(
+          `Non-user role "${content.role}" rejected for on-device inference.`
+        );
         return false;
       }
 
