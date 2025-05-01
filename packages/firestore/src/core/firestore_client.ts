@@ -809,7 +809,7 @@ export function firestoreClientGetNamedQuery(
   );
 }
 
-export function createBundleReader(
+function createBundleReader(
   data: ReadableStream<Uint8Array> | ArrayBuffer | string,
   serializer: JsonProtoSerializer
 ): BundleReader {

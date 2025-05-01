@@ -74,7 +74,7 @@ export class VectorValue {
   /**
    * Builds a `VectorValue` instance from a JSON object created by {@link VectorValue.toJSON}.
    *
-   * @param json a JSON object represention of a `VectorValue` instance
+   * @param json a JSON object represention of a `VectorValue` instance.
    * @returns an instance of {@link VectorValue} if the JSON object could be parsed. Throws a
    * {@link FirestoreError} if an error occurs.
    */

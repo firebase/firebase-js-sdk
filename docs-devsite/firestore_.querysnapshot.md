@@ -135,7 +135,7 @@ Builds a `QuerySnapshot` instance from a JSON object created by [QuerySnapshot.t
 <b>Signature:</b>
 
 ```typescript
-static fromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object): QuerySnapshot<AppModelType, DbModelType> | null;
+static fromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object): QuerySnapshot<AppModelType, DbModelType>;
 ```
 
 #### Parameters
@@ -147,7 +147,7 @@ static fromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(d
 
 <b>Returns:</b>
 
-[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; \| null
+[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;
 
 an instance of [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if an error occurs.
 

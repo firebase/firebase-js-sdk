@@ -38,7 +38,7 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
     if (element && element.isBundleMetadata()) {
       this.metadata = element as BundleMetadata;
     } else {
-      throw new Error(`The first element of the bundle is not a metadata, it is
+      throw new Error(`The first element of the bundle is not a metadata object, it is
          ${JSON.stringify(element?.payload)}`);
     }
 
@@ -114,6 +114,9 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
   }
 }
 
+/**
+ *  Creates an instance of BundleReader without exposing the BundleReaderSyncImpl class type.
+ */
 export function newBundleReaderSync(
   bundleData: string,
   serializer: JsonProtoSerializer

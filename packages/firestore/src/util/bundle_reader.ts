@@ -67,7 +67,7 @@ export interface BundleReader {
 }
 
 /**
- * A class representing a bundle.
+ * A class representing a synchronized bundle reader.
  *
  * Takes a bundle string buffer, parses the data, and provides accessors to the data contained
  * within it.

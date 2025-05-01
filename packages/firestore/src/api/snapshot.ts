@@ -586,7 +586,7 @@ export class DocumentSnapshot<
   >(
     db: Firestore,
     json: object,
-    converter: FirestoreDataConverter<AppModelType, DbModelType>
+    converter: FirestoreDataConverter<AppModelType, DbModelType> | null = null
   ): DocumentSnapshot<AppModelType, DbModelType> {
     if (validateJSON(json, DocumentSnapshot._jsonSchema)) {
       // Parse the bundle data.
@@ -865,10 +865,7 @@ export class QuerySnapshot<
   static fromJSON<
     AppModelType,
     DbModelType extends DocumentData = DocumentData
-  >(
-    db: Firestore,
-    json: object
-  ): QuerySnapshot<AppModelType, DbModelType> | null {
+  >(db: Firestore, json: object): QuerySnapshot<AppModelType, DbModelType> {
     if (validateJSON(json, QuerySnapshot._jsonSchema)) {
       // Parse the bundle data.
       const serializer = newSerializer(db._databaseId);

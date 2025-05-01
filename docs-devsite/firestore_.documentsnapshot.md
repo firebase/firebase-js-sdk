@@ -128,7 +128,7 @@ Builds a `DocumentSnapshot` instance from a JSON object created by [DocumentSnap
 <b>Signature:</b>
 
 ```typescript
-static fromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter: FirestoreDataConverter<AppModelType, DbModelType>): DocumentSnapshot<AppModelType, DbModelType>;
+static fromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter?: FirestoreDataConverter<AppModelType, DbModelType> | null): DocumentSnapshot<AppModelType, DbModelType>;
 ```
 
 #### Parameters
@@ -137,7 +137,7 @@ static fromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(d
 |  --- | --- | --- |
 |  db | [Firestore](./firestore_.firestore.md#firestore_class) |  |
 |  json | object | a JSON object represention of a <code>DocumentSnapshot</code> instance. |
-|  converter | [FirestoreDataConverter](./firestore_.firestoredataconverter.md#firestoredataconverter_interface)<!-- -->&lt;AppModelType, DbModelType&gt; | Converts objects to and from Firestore. |
+|  converter | [FirestoreDataConverter](./firestore_.firestoredataconverter.md#firestoredataconverter_interface)<!-- -->&lt;AppModelType, DbModelType&gt; \| null | Converts objects to and from Firestore. |
 
 <b>Returns:</b>
 
