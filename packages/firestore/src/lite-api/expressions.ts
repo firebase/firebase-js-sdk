@@ -3148,7 +3148,7 @@ export function isAbsent(value: Expr | string): BooleanExpr {
  * ```
  *
  * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @return A new {@code BooleanExpr} representing the 'isNull' check.
  */
 export function isNull(value: Expr): BooleanExpr;
 
@@ -3163,7 +3163,7 @@ export function isNull(value: Expr): BooleanExpr;
  * ```
  *
  * @param value The name of the field to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @return A new {@code BooleanExpr} representing the 'isNull' check.
  */
 export function isNull(value: string): BooleanExpr;
 export function isNull(value: Expr | string): BooleanExpr {
@@ -3181,7 +3181,7 @@ export function isNull(value: Expr | string): BooleanExpr {
  * ```
  *
  * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @return A new {@code BooleanExpr} representing the 'isNotNull' check.
  */
 export function isNotNull(value: Expr): BooleanExpr;
 
@@ -3196,7 +3196,7 @@ export function isNotNull(value: Expr): BooleanExpr;
  * ```
  *
  * @param value The name of the field to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @return A new {@code BooleanExpr} representing the 'isNotNull' check.
  */
 export function isNotNull(value: string): BooleanExpr;
 export function isNotNull(value: Expr | string): BooleanExpr {
@@ -3214,7 +3214,7 @@ export function isNotNull(value: Expr | string): BooleanExpr {
  * ```
  *
  * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNotNaN' check.
+ * @return A new {@code BooleanExpr} representing the 'isNotNaN' check.
  */
 export function isNotNan(value: Expr): BooleanExpr;
 
@@ -3229,7 +3229,7 @@ export function isNotNan(value: Expr): BooleanExpr;
  * ```
  *
  * @param value The name of the field to check.
- * @return A new {@code Expr} representing the 'isNotNaN' check.
+ * @return A new {@code BooleanExpr} representing the 'isNotNaN' check.
  */
 export function isNotNan(value: string): BooleanExpr;
 export function isNotNan(value: Expr | string): BooleanExpr {
