@@ -25,9 +25,9 @@ export interface SafetyRating
 |  [blocked](./vertexai.safetyrating.md#safetyratingblocked) | boolean |  |
 |  [category](./vertexai.safetyrating.md#safetyratingcategory) | [HarmCategory](./vertexai.md#harmcategory) |  |
 |  [probability](./vertexai.safetyrating.md#safetyratingprobability) | [HarmProbability](./vertexai.md#harmprobability) |  |
-|  [probabilityScore](./vertexai.safetyrating.md#safetyratingprobabilityscore) | number | This field is not supported in Google AI, so it will default to 0 when using Google AI. |
-|  [severity](./vertexai.safetyrating.md#safetyratingseverity) | [HarmSeverity](./vertexai.md#harmseverity) | This field is not supported in Google AI, so it will default to <code>HarmSeverity.UNSUPPORTED</code> when using Google AI. |
-|  [severityScore](./vertexai.safetyrating.md#safetyratingseverityscore) | number | This field is not supported in Google AI, so it will default to 0 when using Google AI. |
+|  [probabilityScore](./vertexai.safetyrating.md#safetyratingprobabilityscore) | number | The probability score of the harm category.<!-- -->This property is only supported when using the Gemini API in Vertex AI ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to 0. |
+|  [severity](./vertexai.safetyrating.md#safetyratingseverity) | [HarmSeverity](./vertexai.md#harmseverity) | The harm severity level.<!-- -->This property is only supported when using the Gemini API in Vertex AI ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to <code>HarmSeverity.UNSUPPORTED</code>. |
+|  [severityScore](./vertexai.safetyrating.md#safetyratingseverityscore) | number | The severity score of the harm category.<!-- -->This property is only supported when using the Gemini API in Vertex AI ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to 0. |
 
 ## SafetyRating.blocked
 
@@ -55,7 +55,9 @@ probability: HarmProbability;
 
 ## SafetyRating.probabilityScore
 
-This field is not supported in Google AI, so it will default to 0 when using Google AI.
+The probability score of the harm category.
+
+This property is only supported when using the Gemini API in Vertex AI ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to 0.
 
 <b>Signature:</b>
 
@@ -65,7 +67,9 @@ probabilityScore: number;
 
 ## SafetyRating.severity
 
-This field is not supported in Google AI, so it will default to `HarmSeverity.UNSUPPORTED` when using Google AI.
+The harm severity level.
+
+This property is only supported when using the Gemini API in Vertex AI ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to `HarmSeverity.UNSUPPORTED`<!-- -->.
 
 <b>Signature:</b>
 
@@ -75,7 +79,9 @@ severity: HarmSeverity;
 
 ## SafetyRating.severityScore
 
-This field is not supported in Google AI, so it will default to 0 when using Google AI.
+The severity score of the harm category.
+
+This property is only supported when using the Gemini API in Vertex AI ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to 0.
 
 <b>Signature:</b>
 

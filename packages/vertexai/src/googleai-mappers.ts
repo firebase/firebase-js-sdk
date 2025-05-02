@@ -36,15 +36,15 @@ import {
 } from './types/googleai';
 
 /**
- * This SDK supports both Vertex AI and Google AI APIs.
- * The public API prioritizes the Vertex AI API.
+ * This SDK supports both the Gemini API in Vertex AI and the Gemini Developer API (using Google AI).
+ * The public API prioritizes the format used by the Gemini API in Vertex AI.
  * We avoid having two sets of types by translating requests and responses between the two API formats.
- * We want to avoid two sets of types so that developers can switch between Vertex AI and Google AI
- * with minimal changes to their code.
+ * This translation allows developers to switch between the Gemini API in Vertex AI and the Gemini Developer API
+ * with minimal code changes.
  *
  * In here are functions that map requests and responses between the two API formats.
- * VertexAI requests defined by the user are mapped to Google AI requests before they're sent.
- * Google AI responses are mapped to VertexAI responses so they can be returned to the user.
+ * Requests in the Vertex AI format are mapped to the Google AI format before being sent.
+ * Responses from the Google AI backend are mapped back to the Vertex AI format before being returned to the user.
  */
 
 /**
@@ -64,7 +64,7 @@ export function mapGenerateContentRequest(
     if (safetySetting.method) {
       throw new AIError(
         AIErrorCode.UNSUPPORTED,
-        'SafetySetting.method is not supported in the Google AI. Please remove this property.'
+        'SafetySetting.method is not supported in the the Gemini Developer API. Please remove this property.'
       );
     }
   });
@@ -76,7 +76,7 @@ export function mapGenerateContentRequest(
 
     if (roundedTopK !== generateContentRequest.generationConfig.topK) {
       logger.warn(
-        'topK in GenerationConfig has been rounded to the nearest integer to match the format for Google AI requests.'
+        'topK in GenerationConfig has been rounded to the nearest integer to match the format for requests to the Gemini Developer API.'
       );
       generateContentRequest.generationConfig.topK = roundedTopK;
     }
@@ -182,7 +182,7 @@ export function mapGenerateContentCandidates(
       ) {
         throw new AIError(
           AIErrorCode.UNSUPPORTED,
-          'Part.videoMetadata is not supported in Google AI. Please remove this property.'
+          'Part.videoMetadata is not supported in the Gemini Developer API. Please remove this property.'
         );
       }
 

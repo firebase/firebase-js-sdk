@@ -10,7 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # VertexAIBackend class
-Represents the configuration class for the Vertex AI backend. Use this with [AIOptions](./vertexai.aioptions.md#aioptions_interface) when initializing the server with [getAI()](./vertexai.md#getai_a94a413)<!-- -->.
+Configuration class for the Gemini API in Vertex AI.
+
+Use this with [AIOptions](./vertexai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./vertexai.md#getai_a94a413) to specify the Gemini API in Vertex AI as the backend.
 
 <b>Signature:</b>
 
@@ -29,7 +31,7 @@ export declare class VertexAIBackend extends Backend
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [location](./vertexai.vertexaibackend.md#vertexaibackendlocation) |  | string | The region identifier. See [Vertex AI locations](https://firebase.google.com/docs/vertex-ai/locations?platform=web#available-locations) for a list of supported locations. |
+|  [location](./vertexai.vertexaibackend.md#vertexaibackendlocation) |  | string | The region identifier. See [Vertex AI locations](https://firebase.google.com/docs/vertex-ai/locations#available-locations) for a list of supported locations. |
 
 ## VertexAIBackend.(constructor)
 
@@ -45,11 +47,11 @@ constructor(location?: string);
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  location | string | The region identifier, defaulting to <code>us-central1</code>; see [Vertex AI locations](https://firebase.google.com/docs/vertex-ai/locations?platform=web#available-locations) for a list of supported locations. |
+|  location | string | The region identifier, defaulting to <code>us-central1</code>; see [Vertex AI locations](https://firebase.google.com/docs/vertex-ai/locations#available-locations) for a list of supported locations. |
 
 ## VertexAIBackend.location
 
-The region identifier. See [Vertex AI locations](https://firebase.google.com/docs/vertex-ai/locations?platform=web#available-locations) for a list of supported locations.
+The region identifier. See [Vertex AI locations](https://firebase.google.com/docs/vertex-ai/locations#available-locations) for a list of supported locations.
 
 <b>Signature:</b>
 

@@ -12,6 +12,8 @@ https://github.com/firebase/firebase-js-sdk
 # AIModel class
 Base class for Firebase AI model APIs.
 
+Instances of this class are associated with a specific Firebase AI backend (either the Gemini API in Vertex AI or the Gemini Developer API via Google AI) and provide methods for interacting with the configured generative model.
+
 The constructor for this class is marked as internal. Third-party code should not call the constructor directly or create subclasses that extend the `AIModel` class.
 
 <b>Signature:</b>

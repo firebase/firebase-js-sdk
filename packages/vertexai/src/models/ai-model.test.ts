@@ -17,7 +17,7 @@
 import { use, expect } from 'chai';
 import { AI, AIErrorCode } from '../public-types';
 import sinonChai from 'sinon-chai';
-import { AIModel } from './genai-model';
+import { AIModel } from './ai-model';
 import { AIError } from '../errors';
 import { VertexAIBackend } from '../backend';
 

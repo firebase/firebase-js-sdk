@@ -92,7 +92,7 @@ describe('Google AI Mappers', () => {
       };
       const mappedRequest = mapGenerateContentRequest(request);
       expect(loggerWarnStub).to.have.been.calledOnceWith(
-        'topK in GenerationConfig has been rounded to the nearest integer to match the format for Google AI requests.'
+        'topK in GenerationConfig has been rounded to the nearest integer to match the format for requests to the Gemini Developer API.'
       );
       expect(mappedRequest.generationConfig?.topK).to.equal(16);
     });

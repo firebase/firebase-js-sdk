@@ -28,7 +28,7 @@ import {
   ImagenGenerationResponse,
   ImagenSafetySettings
 } from '../types';
-import { AIModel } from './genai-model';
+import { AIModel } from './ai-model';
 
 /**
  * Class for Imagen model APIs.

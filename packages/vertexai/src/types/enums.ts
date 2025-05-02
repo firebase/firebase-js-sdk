@@ -62,7 +62,7 @@ export enum HarmBlockThreshold {
 }
 
 /**
- * This property is not supported in Google AI.
+ * This property is not supported in the Gemini Developer API ({@link GoogleAIBackend}).
  *
  * @public
  */

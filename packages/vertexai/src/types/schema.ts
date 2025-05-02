@@ -43,8 +43,8 @@ export enum SchemaType {
  */
 export interface SchemaShared<T> {
   /** Optional. The format of the property.
-   * When using the Google AI backend, this must be either `'enum'` or `'date-time'`, otherwise
-   * requests will fail.
+   * When using the Gemini Developer API ({@link GoogleAIBackend}), this must be either `'enum'` or
+   * `'date-time'`, otherwise requests will fail.
    */
   format?: string;
   /** Optional. The description of the property. */

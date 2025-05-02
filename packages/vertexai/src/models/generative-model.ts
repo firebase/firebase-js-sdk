@@ -42,7 +42,7 @@ import {
   formatSystemInstruction
 } from '../requests/request-helpers';
 import { AI } from '../public-types';
-import { AIModel } from './genai-model';
+import { AIModel } from './ai-model';
 
 /**
  * Class for generative model APIs.

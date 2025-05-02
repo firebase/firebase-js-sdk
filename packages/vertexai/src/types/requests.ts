@@ -64,8 +64,11 @@ export interface SafetySetting {
   category: HarmCategory;
   threshold: HarmBlockThreshold;
   /**
-   * This property is not supported in Google AI. If this is a property on a
-   * {@link GenerateContentRequest} to be sent, an {@link AIError} will be thrown.
+   * The harm block method.
+   *
+   * This property is only supported in the Gemini API in Vertex AI ({@link VertexAIBackend}).
+   * When using the Gemini Developer API ({@link GoogleAIBackend}), an {@link AIError} will be
+   * thrown if this property is defined.
    */
   method?: HarmBlockMethod;
 }

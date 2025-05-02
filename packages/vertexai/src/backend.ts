@@ -19,9 +19,11 @@ import { DEFAULT_LOCATION } from './constants';
 import { BackendType } from './public-types';
 
 /**
- * Abstract base class representing the configuration for an AI service backend.
- * This class should not be instantiated directly. Use its subclasses
- * {@link GoogleAIBackend} or {@link VertexAIBackend}.
+ * Abstract base class representing the configuration for an AI service backend,
+ * determining whether to use the Gemini Developer API (via Google AI) or the Gemini API in Vertex AI.
+ * This class should not be instantiated directly. Use its subclasses:
+ * - {@link GoogleAIBackend}: For the Gemini Developer API (via Google AI).
+ * - {@link VertexAIBackend}: For the Gemini API in Vertex AI.
  *
  * @public
  */
@@ -41,9 +43,10 @@ export abstract class Backend {
 }
 
 /**
- * Represents the configuration class for the Google AI backend.
- * Use this with {@link AIOptions} when initializing the service with
- * {@link getAI | getAI()}.
+ * Configuration class for the Gemini Developer API (using Google AI).
+ *
+ * Use this with {@link AIOptions} when initializing the AI service via
+ * {@link getAI | getAI()} to specify the Gemini Developer API as the backend.
  *
  * @public
  */
@@ -57,16 +60,17 @@ export class GoogleAIBackend extends Backend {
 }
 
 /**
- * Represents the configuration class for the Vertex AI backend.
- * Use this with {@link AIOptions} when initializing the server with
- * {@link getAI | getAI() }.
+ * Configuration class for the Gemini API in Vertex AI.
+ *
+ * Use this with {@link AIOptions} when initializing the AI service via
+ * {@link getAI | getAI()} to specify the Gemini API in Vertex AI as the backend.
  *
  * @public
  */
 export class VertexAIBackend extends Backend {
   /**
    * The region identifier.
-   * See {@link https://firebase.google.com/docs/vertex-ai/locations?platform=web#available-locations | Vertex AI locations}
+   * See {@link https://firebase.google.com/docs/vertex-ai/locations#available-locations | Vertex AI locations}
    * for a list of supported locations.
    */
   readonly location: string;
@@ -75,7 +79,7 @@ export class VertexAIBackend extends Backend {
    * Creates a configuration object for the Vertex AI backend.
    *
    * @param location - The region identifier, defaulting to `us-central1`;
-   * see {@link https://firebase.google.com/docs/vertex-ai/locations?platform=web#available-locations | Vertex AI locations}
+   * see {@link https://firebase.google.com/docs/vertex-ai/locations#available-locations | Vertex AI locations}
    * for a list of supported locations.
    */
   constructor(location: string = DEFAULT_LOCATION) {

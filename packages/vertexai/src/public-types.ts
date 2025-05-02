@@ -51,7 +51,9 @@ export interface AI {
    */
   app: FirebaseApp;
   /**
-   * A {@link Backend} instance that specifies the backend configuration.
+   * A {@link Backend} instance that specifies the configuration for the target backend,
+   * either the Gemini Developer API (using {@link GoogleAIBackend}) or the
+   * Gemini API in Vertex AI (using {@link VertexAIBackend}).
    */
   backend: Backend;
   /**
@@ -65,6 +67,8 @@ export interface AI {
 /**
  * An enum-like object containing constants that represent the supported backends
  * for the Firebase AI SDK.
+ * This determines which backend service (Gemini API in Vertex AI or Gemini Developer API)
+ * the SDK will communicate with.
  *
  * These values are assigned to the `backendType` property within the specific backend
  * configuration objects ({@link GoogleAIBackend} or {@link VertexAIBackend}) to identify
@@ -74,14 +78,13 @@ export interface AI {
  */
 export const BackendType = {
   /**
-   * Identifies the Vertex AI backend service provided through Google Cloud.
+   * Identifies the backend service for the Gemini API in Vertex AI provided through Google Cloud.
    * Use this constant when creating a {@link VertexAIBackend} configuration.
    */
   VERTEX_AI: 'VERTEX_AI',
 
   /**
-   * Identifies the Google AI backend service (often associated with models available
-   * through Google AI Studio, like Gemini).
+   * Identifies the backend service for the Gemini Developer API (via Google AI).
    * Use this constant when creating a {@link GoogleAIBackend} configuration.
    */
   GOOGLE_AI: 'GOOGLE_AI'
@@ -96,7 +99,9 @@ export const BackendType = {
 export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 
 /**
- * Options interface for initializing the AI service using {@link getAI | getAI()}.
+ * Options for initializing the AI service using {@link getAI | getAI()}.
+ * This allows specifying which backend to use (Gemini API in Vertex AI or Gemini Developer API)
+ * and configuring its specific options (like location for Vertex AI).
  *
  * @public
  */

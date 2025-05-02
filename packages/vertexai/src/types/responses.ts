@@ -109,7 +109,9 @@ export interface PromptFeedback {
   blockReason?: BlockReason;
   safetyRatings: SafetyRating[];
   /**
-   * This field is not supported in Google AI.
+   * A human-readable description of the `blockReason`.
+   *
+   * This property is only supported in the Gemini API in Vertex AI ({@link VertexAIBackend}).
    */
   blockReasonMessage?: string;
 }
@@ -146,11 +148,15 @@ export interface Citation {
   uri?: string;
   license?: string;
   /**
-   * This field is not supported in Google AI.
+   * The title of the cited source, if available.
+   *
+   * This property is only supported in the Gemini API in Vertex AI ({@link VertexAIBackend}).
    */
   title?: string;
   /**
-   * This field is not supported in Google AI.
+   * The publication date of the cited source, if available.
+   *
+   * This property is only supported in the Gemini API in Vertex AI ({@link VertexAIBackend}).
    */
   publicationDate?: Date;
 }
@@ -222,16 +228,24 @@ export interface SafetyRating {
   category: HarmCategory;
   probability: HarmProbability;
   /**
-   * This field is not supported in Google AI, so it will default to `HarmSeverity.UNSUPPORTED`
-   * when using Google AI.
+   * The harm severity level.
+   *
+   * This property is only supported when using the Gemini API in Vertex AI ({@link VertexAIBackend}).
+   * When using the Gemini Developer API ({@link GoogleAIBackend}), this property is not supported and will default to `HarmSeverity.UNSUPPORTED`.
    */
   severity: HarmSeverity;
   /**
-   * This field is not supported in Google AI, so it will default to 0 when using Google AI.
+   * The probability score of the harm category.
+   *
+   * This property is only supported when using the Gemini API in Vertex AI ({@link VertexAIBackend}).
+   * When using the Gemini Developer API ({@link GoogleAIBackend}), this property is not supported and will default to 0.
    */
   probabilityScore: number;
   /**
-   * This field is not supported in Google AI, so it will default to 0 when using Google AI.
+   * The severity score of the harm category.
+   *
+   * This property is only supported when using the Gemini API in Vertex AI ({@link VertexAIBackend}).
+   * When using the Gemini Developer API ({@link GoogleAIBackend}), this property is not supported and will default to 0.
    */
   severityScore: number;
   blocked: boolean;
@@ -250,7 +264,8 @@ export interface CountTokensResponse {
    * The total number of billable characters counted across all instances
    * from the request.
    *
-   * This field is not supported in Google AI, so it will default to 0 when using Google AI.
+   * This property is only supported when using the Gemini API in Vertex AI ({@link VertexAIBackend}).
+   * When using the Gemini Developer API ({@link GoogleAIBackend}), this property is not supported and will default to 0.
    */
   totalBillableCharacters?: number;
   /**

@@ -10,7 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # GoogleAIBackend class
-Represents the configuration class for the Google AI backend. Use this with [AIOptions](./vertexai.aioptions.md#aioptions_interface) when initializing the service with [getAI()](./vertexai.md#getai_a94a413)<!-- -->.
+Configuration class for the Gemini Developer API (using Google AI).
+
+Use this with [AIOptions](./vertexai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./vertexai.md#getai_a94a413) to specify the Gemini Developer API as the backend.
 
 <b>Signature:</b>
 

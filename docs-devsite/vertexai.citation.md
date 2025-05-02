@@ -24,9 +24,9 @@ export interface Citation
 |  --- | --- | --- |
 |  [endIndex](./vertexai.citation.md#citationendindex) | number |  |
 |  [license](./vertexai.citation.md#citationlicense) | string |  |
-|  [publicationDate](./vertexai.citation.md#citationpublicationdate) | Date | This field is not supported in Google AI. |
+|  [publicationDate](./vertexai.citation.md#citationpublicationdate) | Date | The publication date of the cited source, if available.<!-- -->This property is only supported in the Gemini API in Vertex AI ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). |
 |  [startIndex](./vertexai.citation.md#citationstartindex) | number |  |
-|  [title](./vertexai.citation.md#citationtitle) | string | This field is not supported in Google AI. |
+|  [title](./vertexai.citation.md#citationtitle) | string | The title of the cited source, if available.<!-- -->This property is only supported in the Gemini API in Vertex AI ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). |
 |  [uri](./vertexai.citation.md#citationuri) | string |  |
 
 ## Citation.endIndex
@@ -47,7 +47,9 @@ license?: string;
 
 ## Citation.publicationDate
 
-This field is not supported in Google AI.
+The publication date of the cited source, if available.
+
+This property is only supported in the Gemini API in Vertex AI ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->).
 
 <b>Signature:</b>
 
@@ -65,7 +67,9 @@ startIndex?: number;
 
 ## Citation.title
 
-This field is not supported in Google AI.
+The title of the cited source, if available.
+
+This property is only supported in the Gemini API in Vertex AI ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->).
 
 <b>Signature:</b>
 
