@@ -60,7 +60,7 @@ export interface EnhancedGenerateContentResponse
    */
   text: () => string;
   /**
-   * Aggregates and returns all {@link InlineDataPart} from the {@link GenerateContentResponse}'s
+   * Aggregates and returns all {@link InlineDataPart}s from the {@link GenerateContentResponse}'s
    * first candidate.
    *
    * @returns An array of {@link InlineDataPart}s containing data from the response, if available.
