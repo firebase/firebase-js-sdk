@@ -36,10 +36,10 @@ import {
 } from './types/googleai';
 
 /**
- * This SDK supports both the Gemini API in Vertex AI and the Gemini Developer API (using Google AI).
- * The public API prioritizes the format used by the Gemini API in Vertex AI.
+ * This SDK supports both the Vertex AI Gemini API and the Gemini Developer API (using Google AI).
+ * The public API prioritizes the format used by the Vertex AI Gemini API.
  * We avoid having two sets of types by translating requests and responses between the two API formats.
- * This translation allows developers to switch between the Gemini API in Vertex AI and the Gemini Developer API
+ * This translation allows developers to switch between the Vertex AI Gemini API and the Gemini Developer API
  * with minimal code changes.
  *
  * In here are functions that map requests and responses between the two API formats.

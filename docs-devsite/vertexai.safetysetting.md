@@ -23,7 +23,7 @@ export interface SafetySetting
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [category](./vertexai.safetysetting.md#safetysettingcategory) | [HarmCategory](./vertexai.md#harmcategory) |  |
-|  [method](./vertexai.safetysetting.md#safetysettingmethod) | [HarmBlockMethod](./vertexai.md#harmblockmethod) | The harm block method.<!-- -->This property is only supported in the Gemini API in Vertex AI ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->), an [AIError](./vertexai.aierror.md#aierror_class) will be thrown if this property is defined. |
+|  [method](./vertexai.safetysetting.md#safetysettingmethod) | [HarmBlockMethod](./vertexai.md#harmblockmethod) | The harm block method.<!-- -->This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->), an [AIError](./vertexai.aierror.md#aierror_class) will be thrown if this property is defined. |
 |  [threshold](./vertexai.safetysetting.md#safetysettingthreshold) | [HarmBlockThreshold](./vertexai.md#harmblockthreshold) |  |
 
 ## SafetySetting.category
@@ -38,7 +38,7 @@ category: HarmCategory;
 
 The harm block method.
 
-This property is only supported in the Gemini API in Vertex AI ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->), an [AIError](./vertexai.aierror.md#aierror_class) will be thrown if this property is defined.
+This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->), an [AIError](./vertexai.aierror.md#aierror_class) will be thrown if this property is defined.
 
 <b>Signature:</b>
 

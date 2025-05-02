@@ -24,9 +24,9 @@ export interface Citation
 |  --- | --- | --- |
 |  [endIndex](./vertexai.citation.md#citationendindex) | number |  |
 |  [license](./vertexai.citation.md#citationlicense) | string |  |
-|  [publicationDate](./vertexai.citation.md#citationpublicationdate) | Date | The publication date of the cited source, if available.<!-- -->This property is only supported in the Gemini API in Vertex AI ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). |
+|  [publicationDate](./vertexai.citation.md#citationpublicationdate) | Date | The publication date of the cited source, if available.<!-- -->This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). |
 |  [startIndex](./vertexai.citation.md#citationstartindex) | number |  |
-|  [title](./vertexai.citation.md#citationtitle) | string | The title of the cited source, if available.<!-- -->This property is only supported in the Gemini API in Vertex AI ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). |
+|  [title](./vertexai.citation.md#citationtitle) | string | The title of the cited source, if available.<!-- -->This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). |
 |  [uri](./vertexai.citation.md#citationuri) | string |  |
 
 ## Citation.endIndex
@@ -49,7 +49,7 @@ license?: string;
 
 The publication date of the cited source, if available.
 
-This property is only supported in the Gemini API in Vertex AI ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->).
+This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->).
 
 <b>Signature:</b>
 
@@ -69,7 +69,7 @@ startIndex?: number;
 
 The title of the cited source, if available.
 
-This property is only supported in the Gemini API in Vertex AI ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->).
+This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->).
 
 <b>Signature:</b>
 

@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # Backend class
-Abstract base class representing the configuration for an AI service backend, determining whether to use the Gemini Developer API (via Google AI) or the Gemini API in Vertex AI. This class should not be instantiated directly. Use its subclasses: - [GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->: For the Gemini Developer API (via Google AI). - [VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->: For the Gemini API in Vertex AI.
+Abstract base class representing the configuration for an AI service backend, determining whether to use the Gemini Developer API (via Google AI) or the Vertex AI Gemini API. This class should not be instantiated directly. Use its subclasses: - [GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->: For the Gemini Developer API (via Google AI). - [VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->: For the Vertex AI Gemini API.
 
 <b>Signature:</b>
 

@@ -68,8 +68,8 @@ declare module '@firebase/component' {
  * It is recommended to use the new {@link getAI | getAI()}.
  *
  * Returns a {@link VertexAI} instance for the given app, configured to use the
- * Gemini API in Vertex AI. This instance will be
- * configured to use the Gemini API in Vertex AI.
+ * Vertex AI Gemini API. This instance will be
+ * configured to use the Vertex AI Gemini API.
  *
  * @param app - The {@link @firebase/app#FirebaseApp} to use.
  * @param options - Options to configure the Vertex AI instance, including the location.
@@ -109,7 +109,7 @@ export function getVertexAI(
  *
  * @example
  * ```javascript
- * // Get an AI instance configured to use the Gemini API in Vertex AI.
+ * // Get an AI instance configured to use the Vertex AI Gemini API.
  * const ai = getAI(app, { backend: new VertexAIBackend() });
  * ```
  *

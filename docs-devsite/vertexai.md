@@ -18,7 +18,7 @@ The Firebase AI Web SDK.
 |  --- | --- |
 |  <b>function(app, ...)</b> |
 |  [getAI(app, options)](./vertexai.md#getai_a94a413) | Returns the default [AI](./vertexai.ai.md#ai_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings. |
-|  [getVertexAI(app, options)](./vertexai.md#getvertexai_04094cf) | It is recommended to use the new [getAI()](./vertexai.md#getai_a94a413)<!-- -->.<!-- -->Returns a [VertexAI](./vertexai.md#vertexai) instance for the given app, configured to use the Gemini API in Vertex AI. This instance will be configured to use the Gemini API in Vertex AI. |
+|  [getVertexAI(app, options)](./vertexai.md#getvertexai_04094cf) | It is recommended to use the new [getAI()](./vertexai.md#getai_a94a413)<!-- -->.<!-- -->Returns a [VertexAI](./vertexai.md#vertexai) instance for the given app, configured to use the Vertex AI Gemini API. This instance will be configured to use the Vertex AI Gemini API. |
 |  <b>function(ai, ...)</b> |
 |  [getGenerativeModel(ai, modelParams, requestOptions)](./vertexai.md#getgenerativemodel_80bd839) | Returns a [GenerativeModel](./vertexai.generativemodel.md#generativemodel_class) class with methods for inference and other functionality. |
 |  [getImagenModel(ai, modelParams, requestOptions)](./vertexai.md#getimagenmodel_e1f6645) | <b><i>(Public Preview)</i></b> Returns an [ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class) class with methods for using Imagen.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported. |
@@ -28,9 +28,9 @@ The Firebase AI Web SDK.
 |  Class | Description |
 |  --- | --- |
 |  [AIError](./vertexai.aierror.md#aierror_class) | Error class for the Firebase AI SDK. |
-|  [AIModel](./vertexai.aimodel.md#aimodel_class) | Base class for Firebase AI model APIs.<!-- -->Instances of this class are associated with a specific Firebase AI backend (either the Gemini API in Vertex AI or the Gemini Developer API via Google AI) and provide methods for interacting with the configured generative model. |
+|  [AIModel](./vertexai.aimodel.md#aimodel_class) | Base class for Firebase AI model APIs.<!-- -->Instances of this class are associated with a specific Firebase AI backend (either the Vertex AI Gemini API or the Gemini Developer API via Google AI) and provide methods for interacting with the configured generative model. |
 |  [ArraySchema](./vertexai.arrayschema.md#arrayschema_class) | Schema class for "array" types. The <code>items</code> param should refer to the type of item that can be a member of the array. |
-|  [Backend](./vertexai.backend.md#backend_class) | Abstract base class representing the configuration for an AI service backend, determining whether to use the Gemini Developer API (via Google AI) or the Gemini API in Vertex AI. This class should not be instantiated directly. Use its subclasses: - [GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->: For the Gemini Developer API (via Google AI). - [VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->: For the Gemini API in Vertex AI. |
+|  [Backend](./vertexai.backend.md#backend_class) | Abstract base class representing the configuration for an AI service backend, determining whether to use the Gemini Developer API (via Google AI) or the Vertex AI Gemini API. This class should not be instantiated directly. Use its subclasses: - [GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->: For the Gemini Developer API (via Google AI). - [VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->: For the Vertex AI Gemini API. |
 |  [BooleanSchema](./vertexai.booleanschema.md#booleanschema_class) | Schema class for "boolean" types. |
 |  [ChatSession](./vertexai.chatsession.md#chatsession_class) | ChatSession class that enables sending chat messages and stores history of sent and received messages so far. |
 |  [GenerativeModel](./vertexai.generativemodel.md#generativemodel_class) | Class for generative model APIs. |
@@ -42,7 +42,7 @@ The Firebase AI Web SDK.
 |  [ObjectSchema](./vertexai.objectschema.md#objectschema_class) | Schema class for "object" types. The <code>properties</code> param must be a map of <code>Schema</code> objects. |
 |  [Schema](./vertexai.schema.md#schema_class) | Parent class encompassing all Schema types, with static methods that allow building specific Schema types. This class can be converted with <code>JSON.stringify()</code> into a JSON string accepted by Vertex AI REST endpoints. (This string conversion is automatically done when calling SDK methods.) |
 |  [StringSchema](./vertexai.stringschema.md#stringschema_class) | Schema class for "string" types. Can be used with or without enum values. |
-|  [VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class) | Configuration class for the Gemini API in Vertex AI.<!-- -->Use this with [AIOptions](./vertexai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./vertexai.md#getai_a94a413) to specify the Gemini API in Vertex AI as the backend. |
+|  [VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class) | Configuration class for the Vertex AI Gemini API.<!-- -->Use this with [AIOptions](./vertexai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./vertexai.md#getai_a94a413) to specify the Vertex AI Gemini API as the backend. |
 
 ## Enumerations
 
@@ -68,7 +68,7 @@ The Firebase AI Web SDK.
 |  Interface | Description |
 |  --- | --- |
 |  [AI](./vertexai.ai.md#ai_interface) | An instance of the Firebase AI SDK.<!-- -->Do not create this instance directly. Instead, use [getAI()](./vertexai.md#getai_a94a413)<!-- -->. |
-|  [AIOptions](./vertexai.aioptions.md#aioptions_interface) | Options for initializing the AI service using [getAI()](./vertexai.md#getai_a94a413)<!-- -->. This allows specifying which backend to use (Gemini API in Vertex AI or Gemini Developer API) and configuring its specific options (like location for Vertex AI). |
+|  [AIOptions](./vertexai.aioptions.md#aioptions_interface) | Options for initializing the AI service using [getAI()](./vertexai.md#getai_a94a413)<!-- -->. This allows specifying which backend to use (Vertex AI Gemini API or Gemini Developer API) and configuring its specific options (like location for Vertex AI). |
 |  [BaseParams](./vertexai.baseparams.md#baseparams_interface) | Base parameters for a number of methods. |
 |  [Citation](./vertexai.citation.md#citation_interface) | A single citation. |
 |  [CitationMetadata](./vertexai.citationmetadata.md#citationmetadata_interface) | Citation metadata that may be found on a [GenerateContentCandidate](./vertexai.generatecontentcandidate.md#generatecontentcandidate_interface)<!-- -->. |
@@ -129,7 +129,7 @@ The Firebase AI Web SDK.
 
 |  Variable | Description |
 |  --- | --- |
-|  [BackendType](./vertexai.md#backendtype) | An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Gemini API in Vertex AI or Gemini Developer API) the SDK will communicate with.<!-- -->These values are assigned to the <code>backendType</code> property within the specific backend configuration objects ([GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class) or [VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->) to identify which service to target. |
+|  [BackendType](./vertexai.md#backendtype) | An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Vertex AI Gemini API or Gemini Developer API) the SDK will communicate with.<!-- -->These values are assigned to the <code>backendType</code> property within the specific backend configuration objects ([GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class) or [VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->) to identify which service to target. |
 |  [POSSIBLE\_ROLES](./vertexai.md#possible_roles) | Possible roles. |
 |  [VertexAIError](./vertexai.md#vertexaierror) | Error class for the Firebase AI SDK.<!-- -->For more information, refer to the documentation for the new [AIError](./vertexai.aierror.md#aierror_class)<!-- -->. |
 |  [VertexAIModel](./vertexai.md#vertexaimodel) | Base class for Firebase AI model APIs.<!-- -->For more information, refer to the documentation for the new [AIModel](./vertexai.aimodel.md#aimodel_class)<!-- -->. |
@@ -191,7 +191,7 @@ const ai = getAI(app, { backend: new GoogleAIBackend() });
 
 
 ```javascript
-// Get an AI instance configured to use the Gemini API in Vertex AI.
+// Get an AI instance configured to use the Vertex AI Gemini API.
 const ai = getAI(app, { backend: new VertexAIBackend() });
 
 ```
@@ -200,7 +200,7 @@ const ai = getAI(app, { backend: new VertexAIBackend() });
 
 It is recommended to use the new [getAI()](./vertexai.md#getai_a94a413)<!-- -->.
 
-Returns a [VertexAI](./vertexai.md#vertexai) instance for the given app, configured to use the Gemini API in Vertex AI. This instance will be configured to use the Gemini API in Vertex AI.
+Returns a [VertexAI](./vertexai.md#vertexai) instance for the given app, configured to use the Vertex AI Gemini API. This instance will be configured to use the Vertex AI Gemini API.
 
 <b>Signature:</b>
 
@@ -276,7 +276,7 @@ If the `apiKey` or `projectId` fields are missing in your Firebase config.
 
 ## BackendType
 
-An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Gemini API in Vertex AI or Gemini Developer API) the SDK will communicate with.
+An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Vertex AI Gemini API or Gemini Developer API) the SDK will communicate with.
 
 These values are assigned to the `backendType` property within the specific backend configuration objects ([GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class) or [VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->) to identify which service to target.
 

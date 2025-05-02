@@ -10,9 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # VertexAIBackend class
-Configuration class for the Gemini API in Vertex AI.
+Configuration class for the Vertex AI Gemini API.
 
-Use this with [AIOptions](./vertexai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./vertexai.md#getai_a94a413) to specify the Gemini API in Vertex AI as the backend.
+Use this with [AIOptions](./vertexai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./vertexai.md#getai_a94a413) to specify the Vertex AI Gemini API as the backend.
 
 <b>Signature:</b>
 

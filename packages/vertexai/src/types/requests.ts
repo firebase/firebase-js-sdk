@@ -66,7 +66,7 @@ export interface SafetySetting {
   /**
    * The harm block method.
    *
-   * This property is only supported in the Gemini API in Vertex AI ({@link VertexAIBackend}).
+   * This property is only supported in the Vertex AI Gemini API ({@link VertexAIBackend}).
    * When using the Gemini Developer API ({@link GoogleAIBackend}), an {@link AIError} will be
    * thrown if this property is defined.
    */

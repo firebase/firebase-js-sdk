@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # AIOptions interface
-Options for initializing the AI service using [getAI()](./vertexai.md#getai_a94a413)<!-- -->. This allows specifying which backend to use (Gemini API in Vertex AI or Gemini Developer API) and configuring its specific options (like location for Vertex AI).
+Options for initializing the AI service using [getAI()](./vertexai.md#getai_a94a413)<!-- -->. This allows specifying which backend to use (Vertex AI Gemini API or Gemini Developer API) and configuring its specific options (like location for Vertex AI).
 
 <b>Signature:</b>
 

@@ -25,7 +25,7 @@ export interface AI
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [app](./vertexai.ai.md#aiapp) | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) this [AI](./vertexai.ai.md#ai_interface) instance is associated with. |
-|  [backend](./vertexai.ai.md#aibackend) | [Backend](./vertexai.backend.md#backend_class) | A [Backend](./vertexai.backend.md#backend_class) instance that specifies the configuration for the target backend, either the Gemini Developer API (using [GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->) or the Gemini API in Vertex AI (using [VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). |
+|  [backend](./vertexai.ai.md#aibackend) | [Backend](./vertexai.backend.md#backend_class) | A [Backend](./vertexai.backend.md#backend_class) instance that specifies the configuration for the target backend, either the Gemini Developer API (using [GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->) or the Vertex AI Gemini API (using [VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). |
 |  [location](./vertexai.ai.md#ailocation) | string | The location configured for this AI service instance, relevant for Vertex AI backends. |
 
 ## AI.app
@@ -40,7 +40,7 @@ app: FirebaseApp;
 
 ## AI.backend
 
-A [Backend](./vertexai.backend.md#backend_class) instance that specifies the configuration for the target backend, either the Gemini Developer API (using [GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->) or the Gemini API in Vertex AI (using [VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->).
+A [Backend](./vertexai.backend.md#backend_class) instance that specifies the configuration for the target backend, either the Gemini Developer API (using [GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->) or the Vertex AI Gemini API (using [VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->).
 
 <b>Signature:</b>
 
