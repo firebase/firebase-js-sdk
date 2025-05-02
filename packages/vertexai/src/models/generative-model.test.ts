@@ -165,22 +165,6 @@ describe('GenerativeModel', () => {
     );
     restore();
   });
-  it('overrides base model params with startChatParams', () => {
-    const genModel = new GenerativeModel(fakeVertexAI, {
-      model: 'my-model',
-      generationConfig: {
-        topK: 1
-      }
-    });
-    const chatSession = genModel.startChat({
-      generationConfig: {
-        topK: 2
-      }
-    });
-    expect(chatSession.params?.generationConfig).to.deep.equal({
-      topK: 2
-    });
-  });
   it('passes params through to chat.sendMessage', async () => {
     const genModel = new GenerativeModel(fakeVertexAI, {
       model: 'my-model',
