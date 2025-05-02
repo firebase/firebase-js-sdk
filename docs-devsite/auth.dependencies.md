@@ -29,6 +29,7 @@ export interface Dependencies
 |  [errorMap](./auth.dependencies.md#dependencieserrormap) | [AuthErrorMap](./auth.autherrormap.md#autherrormap_interface) | Which [AuthErrorMap](./auth.autherrormap.md#autherrormap_interface) to use. |
 |  [persistence](./auth.dependencies.md#dependenciespersistence) | [Persistence](./auth.persistence.md#persistence_interface) \| [Persistence](./auth.persistence.md#persistence_interface)<!-- -->\[\] | Which [Persistence](./auth.persistence.md#persistence_interface) to use. If this is an array, the first <code>Persistence</code> that the device supports is used. The SDK searches for an existing account in order and, if one is found in a secondary <code>Persistence</code>, the account is moved to the primary <code>Persistence</code>.<!-- -->If no persistence is provided, the SDK falls back on [inMemoryPersistence](./auth.md#inmemorypersistence)<!-- -->. |
 |  [popupRedirectResolver](./auth.dependencies.md#dependenciespopupredirectresolver) | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | The [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) to use. This value depends on the platform. Options are [browserPopupRedirectResolver](./auth.md#browserpopupredirectresolver) and [cordovaPopupRedirectResolver](./auth.md#cordovapopupredirectresolver)<!-- -->. This field is optional if neither [signInWithPopup()](./auth.md#signinwithpopup_770f816) or [signInWithRedirect()](./auth.md#signinwithredirect_770f816) are being used. |
+|  [tenantConfig](./auth.dependencies.md#dependenciestenantconfig) | [TenantConfig](./auth.tenantconfig.md#tenantconfig_interface) | The [TenantConfig](./auth.tenantconfig.md#tenantconfig_interface) to use. This field is optional and required if Regional Auth Instance needs to be configured. The Auth instance depends on the  endpoint. |
 
 ## Dependencies.errorMap
 
@@ -60,4 +61,14 @@ The [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolve
 
 ```typescript
 popupRedirectResolver?: PopupRedirectResolver;
+```
+
+## Dependencies.tenantConfig
+
+The [TenantConfig](./auth.tenantconfig.md#tenantconfig_interface) to use. This field is optional and required if Regional Auth Instance needs to be configured. The Auth instance depends on the  endpoint.
+
+<b>Signature:</b>
+
+```typescript
+tenantConfig?: TenantConfig;
 ```
