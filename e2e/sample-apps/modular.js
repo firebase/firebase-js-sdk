@@ -314,13 +314,22 @@ async function callVertexAI(app) {
   console.log('[VERTEXAI] start');
   const vertexAI = getVertexAI(app);
   const model = getGenerativeModel(vertexAI, {
-    mode: 'only_on_device'
+    mode: 'prefer_on_device'
   });
   const singleResult = await model.generateContent([
-    { text: 'describe the following:' },
-    { text: 'the mojave desert' }
+    { text: 'describe this 20 x 20 px image in two words' },
+    {
+      inlineData: {
+        mimeType: 'image/heic',
+        data: 'AAAAGGZ0eXBoZWljAAAAAGhlaWNtaWYxAAAB7G1ldGEAAAAAAAAAIWhkbHIAAAAAAAAAAHBpY3QAAAAAAAAAAAAAAAAAAAAAJGRpbmYAAAAcZHJlZgAAAAAAAAABAAAADHVybCAAAAABAAAADnBpdG0AAAAAAAEAAAA4aWluZgAAAAAAAgAAABVpbmZlAgAAAAABAABodmMxAAAAABVpbmZlAgAAAQACAABFeGlmAAAAABppcmVmAAAAAAAAAA5jZHNjAAIAAQABAAABD2lwcnAAAADtaXBjbwAAABNjb2xybmNseAACAAIABoAAAAAMY2xsaQDLAEAAAAAUaXNwZQAAAAAAAAAUAAAADgAAAChjbGFwAAAAFAAAAAEAAAANAAAAAQAAAAAAAAAB/8AAAACAAAAAAAAJaXJvdAAAAAAQcGl4aQAAAAADCAgIAAAAcWh2Y0MBA3AAAACwAAAAAAAe8AD8/fj4AAALA6AAAQAXQAEMAf//A3AAAAMAsAAAAwAAAwAecCShAAEAI0IBAQNwAAADALAAAAMAAAMAHqAUIEHAjw1iHuRZVNwICBgCogABAAlEAcBhcshAUyQAAAAaaXBtYQAAAAAAAAABAAEHgQIDhIUGhwAAACxpbG9jAAAAAEQAAAIAAQAAAAEAAAJsAAABDAACAAAAAQAAAhQAAABYAAAAAW1kYXQAAAAAAAABdAAAAAZFeGlmAABNTQAqAAAACAAEARIAAwAAAAEAAQAAARoABQAAAAEAAAA+ARsABQAAAAEAAABGASgAAwAAAAEAAgAAAAAAAAAAAEgAAAABAAAASAAAAAEAAAEIKAGvoR8wDimTiRYUbALiHkU3ZdZ8DXAcSrRB9GARtVQHvnCE0LEyBGAyb5P4eYr6JAK5UxNX10WNlARq3ZpcGeVD+Xom6LodYasuZKKtDHCz/xnswOtC/ksZzVKhtWQqGvkXcsJnLYqWevNkacnccQ95jbHJBg9nXub69jAAN3xhNOXxjGSxaG9QvES5R7sYICEojRjLF5OB5K3v+okQAwfgWpz/u21ayideOgOZQLAyBkKOv7ymLNCagiPWTlHAuy/3qR1Q7m2ERFaxKIAbLSkIVO/P8m8+anKxhzhC//L8NMAUoF+Sf3aEH9O41fwLc+PlcbrDrjgY2EboD3cn9DyN32Rum2Ym'
+      }
+    }
   ]);
   console.log(`Generated text: ${singleResult.response.text()}`);
+  const chat = model.startChat();
+  let chatResult = await chat.sendMessage('describe red in two words');
+  chatResult = await chat.sendMessage('describe blue');
+  console.log('Chat history:', await chat.getHistory());
   console.log(`[VERTEXAI] end`);
 }
 
@@ -345,7 +354,7 @@ function callDataConnect(app) {
 async function main() {
   console.log('FIREBASE VERSION', SDK_VERSION);
   const app = initializeApp(config);
-  setLogLevel('warn');
+  setLogLevel('debug');
 
   // callAppCheck(app);
   // await authLogin(app);

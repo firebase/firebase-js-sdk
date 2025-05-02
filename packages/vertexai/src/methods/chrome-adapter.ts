@@ -16,6 +16,7 @@
  */
 
 import { AIError } from '../errors';
+import { logger } from '../logger';
 import {
   CountTokensRequest,
   GenerateContentRequest,
@@ -65,6 +66,9 @@ export class ChromeAdapter {
    */
   async isAvailable(request: GenerateContentRequest): Promise<boolean> {
     if (this.mode === 'only_in_cloud') {
+      logger.debug(
+        `On-device inference unavailable because mode is "only_in_cloud".`
+      );
       return false;
     }
 
@@ -76,10 +80,20 @@ export class ChromeAdapter {
     }
 
     // Applies prefer_on_device logic.
-    return (
-      availability === Availability.available &&
-      ChromeAdapter.isOnDeviceRequest(request)
-    );
+    if (availability !== Availability.available) {
+      logger.debug(
+        `On-device inference unavailable because availability is "${availability}".`
+      );
+      return false;
+    }
+    if (!ChromeAdapter.isOnDeviceRequest(request)) {
+      logger.debug(
+        `On-device inference unavailable because request is incompatible.`
+      );
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -135,6 +149,7 @@ export class ChromeAdapter {
   private static isOnDeviceRequest(request: GenerateContentRequest): boolean {
     // Returns false if the prompt is empty.
     if (request.contents.length === 0) {
+      logger.debug('Empty prompt rejected for on-device inference.');
       return false;
     }
 
@@ -142,6 +157,9 @@ export class ChromeAdapter {
       // Returns false if the request contains multiple roles, eg a chat history.
       // TODO: remove this guard once LanguageModelMessage is supported.
       if (content.role !== 'user') {
+        logger.debug(
+          `Non-user role "${content.role}" rejected for on-device inference.`
+        );
         return false;
       }
 
@@ -153,6 +171,9 @@ export class ChromeAdapter {
             part.inlineData.mimeType
           ) === -1
         ) {
+          logger.debug(
+            `Unsupported mime type "${part.inlineData.mimeType}" rejected for on-device inference.`
+          );
           return false;
         }
       }
