@@ -862,10 +862,44 @@ export class QuerySnapshot<
    * @returns an instance of {@link QuerySnapshot} if the JSON object could be
    * parsed. Throws a {@link FirestoreError} if an error occurs.
    */
-  static fromJSON<
+  static fromJSON(db: Firestore, json: object): QuerySnapshot {
+    return QuerySnapshot.fromJSONInternal(db, json, /* converter = */ null);
+  }
+
+  /**
+   * Builds a `QuerySnapshot` instance from a JSON object created by
+   * {@link QuerySnapshot.toJSON}.
+   *
+   * @param firestore - The {@link Firestore} instance the snapshot should be loaded for.
+   * @param json - a JSON object represention of a `QuerySnapshot` instance.
+   * @param converter - Converts objects to and from Firestore.
+   * @returns an instance of {@link QuerySnapshot} if the JSON object could be
+   * parsed. Throws a {@link FirestoreError} if an error occurs.
+   */
+  static fromJSONUsingConverter<
     AppModelType,
     DbModelType extends DocumentData = DocumentData
-  >(db: Firestore, json: object): QuerySnapshot<AppModelType, DbModelType> {
+  >(
+    db: Firestore,
+    json: object,
+    converter: FirestoreDataConverter<AppModelType, DbModelType>
+  ): QuerySnapshot<AppModelType, DbModelType> {
+    return QuerySnapshot.fromJSONInternal(db, json, converter);
+  }
+
+  /**
+   * Internal implementation for 'fromJSON' and 'fromJSONUsingCoverter'.
+   * @internal
+   * @private
+   */
+  private static fromJSONInternal<
+    AppModelType,
+    DbModelType extends DocumentData = DocumentData
+  >(
+    db: Firestore,
+    json: object,
+    converter: FirestoreDataConverter<AppModelType, DbModelType> | null
+  ): QuerySnapshot<AppModelType, DbModelType> {
     if (validateJSON(json, QuerySnapshot._jsonSchema)) {
       // Parse the bundle data.
       const serializer = newSerializer(db._databaseId);
@@ -914,7 +948,7 @@ export class QuerySnapshot<
       // Create an external Query object, required to construct the QuerySnapshot.
       const externalQuery = new Query<AppModelType, DbModelType>(
         db,
-        null,
+        converter,
         query
       );
 
