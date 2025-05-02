@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # UsageMetadata interface
-Usage metadata about a <code>[GenerateContentResponse](./vertexai.generatecontentresponse.md#generatecontentresponse_interface)</code>.
+Usage metadata about a [GenerateContentResponse](./vertexai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->.
 
 <b>Signature:</b>
 

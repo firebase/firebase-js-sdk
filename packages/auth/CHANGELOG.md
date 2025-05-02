@@ -1,5 +1,19 @@
 # @firebase/auth
 
+## 1.10.1
+
+### Patch Changes
+
+- [`1363ecc`](https://github.com/firebase/firebase-js-sdk/commit/1363ecc533de0ba5bfcae206a831acc33f9020a6) [#8912](https://github.com/firebase/firebase-js-sdk/pull/8912) - Fixed: `ActionCodeURL` not populating `languageCode` from the url.
+
+## 1.10.0
+
+### Minor Changes
+
+- [`fb5d422`](https://github.com/firebase/firebase-js-sdk/commit/fb5d4227571e06df128048abf87cbb1da2ace1bc) [#8839](https://github.com/firebase/firebase-js-sdk/pull/8839) - Adding `Persistence.COOKIE` a new persistence method backed by cookies. The
+  `browserCookiePersistence` implementation is designed to be used in conjunction with middleware that
+  ensures both your front and backend authentication state remains synchronized.
+
 ## 1.9.1
 
 ### Patch Changes

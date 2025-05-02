@@ -63,7 +63,7 @@ export class ImagenModel extends VertexAIModel {
   safetySettings?: ImagenSafetySettings;
 
   /**
-   * Constructs a new instance of the <code>{@link ImagenModel}</code> class.
+   * Constructs a new instance of the {@link ImagenModel} class.
    *
    * @param vertexAI - An instance of the Vertex AI in Firebase SDK.
    * @param modelParams - Parameters to use when making requests to Imagen.
@@ -88,7 +88,7 @@ export class ImagenModel extends VertexAIModel {
    * base64-encoded strings.
    *
    * @param prompt - A text prompt describing the image(s) to generate.
-   * @returns A promise that resolves to an <code>{@link ImagenGenerationResponse}</code>
+   * @returns A promise that resolves to an {@link ImagenGenerationResponse}
    * object containing the generated images.
    *
    * @throws If the request to generate images fails. This happens if the
@@ -127,7 +127,7 @@ export class ImagenModel extends VertexAIModel {
    * @param prompt - A text prompt describing the image(s) to generate.
    * @param gcsURI - The URI of file stored in a Cloud Storage for Firebase bucket.
    * This should be a directory. For example, `gs://my-bucket/my-directory/`.
-   * @returns A promise that resolves to an <code>{@link ImagenGenerationResponse}</code>
+   * @returns A promise that resolves to an {@link ImagenGenerationResponse}
    * object containing the URLs of the generated images.
    *
    * @throws If the request fails to generate images fails. This happens if

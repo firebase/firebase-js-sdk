@@ -60,6 +60,10 @@ describe('api/_performApiRequest', () => {
     auth = await testAuth();
   });
 
+  afterEach(() => {
+    sinon.restore();
+  });
+
   context('with regular requests', () => {
     beforeEach(mockFetch.setUp);
     afterEach(mockFetch.tearDown);
@@ -80,6 +84,26 @@ describe('api/_performApiRequest', () => {
       expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
         'testSDK/0.0.0'
       );
+      expect(mock.calls[0].fullRequest?.credentials).to.be.undefined;
+    });
+
+    it('should set credentials to "include" when using IDX and emulator', async () => {
+      const mock = mockEndpoint(Endpoint.SIGN_UP, serverResponse);
+      auth.emulatorConfig = {
+        host: 'https://something.cloudworkstations.dev',
+        protocol: '',
+        port: 8,
+        options: {
+          disableWarnings: false
+        }
+      };
+      await _performApiRequest<typeof request, typeof serverResponse>(
+        auth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
+      expect(mock.calls[0].fullRequest?.credentials).to.eq('include');
     });
 
     it('should set the device language if available', async () => {
@@ -509,17 +533,17 @@ describe('api/_performApiRequest', () => {
   });
 
   context('_getFinalTarget', () => {
-    it('works properly with a non-emulated environment', () => {
-      expect(_getFinalTarget(auth, 'host', '/path', 'query=test')).to.eq(
+    it('works properly with a non-emulated environment', async () => {
+      expect(await _getFinalTarget(auth, 'host', '/path', 'query=test')).to.eq(
         'mock://host/path?query=test'
       );
     });
 
-    it('works properly with an emulated environment', () => {
+    it('works properly with an emulated environment', async () => {
       (auth.config as ConfigInternal).emulator = {
         url: 'http://localhost:5000/'
       };
-      expect(_getFinalTarget(auth, 'host', '/path', 'query=test')).to.eq(
+      expect(await _getFinalTarget(auth, 'host', '/path', 'query=test')).to.eq(
         'http://localhost:5000/host/path?query=test'
       );
     });

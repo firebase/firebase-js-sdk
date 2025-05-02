@@ -30,7 +30,8 @@ const fakeVertexAI: VertexAI = {
     automaticDataCollectionEnabled: true,
     options: {
       apiKey: 'key',
-      projectId: 'my-project'
+      projectId: 'my-project',
+      appId: 'my-appid'
     }
   },
   location: 'us-central1'
@@ -59,6 +60,7 @@ describe('GenerativeModel', () => {
     );
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-success-basic-reply-short.json'
     );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
@@ -88,6 +90,7 @@ describe('GenerativeModel', () => {
     });
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-success-basic-reply-short.json'
     );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
@@ -128,6 +131,7 @@ describe('GenerativeModel', () => {
     );
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-success-basic-reply-short.json'
     );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
@@ -176,6 +180,7 @@ describe('GenerativeModel', () => {
     );
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-success-basic-reply-short.json'
     );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
@@ -205,6 +210,7 @@ describe('GenerativeModel', () => {
     });
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-success-basic-reply-short.json'
     );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
@@ -238,6 +244,7 @@ describe('GenerativeModel', () => {
     );
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-success-basic-reply-short.json'
     );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
@@ -276,7 +283,10 @@ describe('GenerativeModel', () => {
   });
   it('calls countTokens', async () => {
     const genModel = new GenerativeModel(fakeVertexAI, { model: 'my-model' });
-    const mockResponse = getMockResponse('unary-success-total-tokens.json');
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-total-tokens.json'
+    );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
       mockResponse as Response
     );

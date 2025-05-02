@@ -37,7 +37,8 @@ const fakeVertexAI: VertexAI = {
     automaticDataCollectionEnabled: true,
     options: {
       apiKey: 'key',
-      projectId: 'my-project'
+      projectId: 'my-project',
+      appId: 'my-appid'
     }
   },
   location: 'us-central1'
@@ -46,6 +47,7 @@ const fakeVertexAI: VertexAI = {
 describe('ImagenModel', () => {
   it('generateImages makes a request to predict with default parameters', async () => {
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-success-generate-images-base64.json'
     );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
@@ -89,6 +91,7 @@ describe('ImagenModel', () => {
     });
 
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-success-generate-images-base64.json'
     );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
@@ -132,6 +135,7 @@ describe('ImagenModel', () => {
   });
   it('throws if prompt blocked', async () => {
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-failure-generate-images-prompt-blocked.json'
     );
 

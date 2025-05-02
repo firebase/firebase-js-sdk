@@ -74,7 +74,7 @@ export class GenerativeModel extends VertexAIModel {
 
   /**
    * Makes a single non-streaming call to the model
-   * and returns an object containing a single <code>{@link GenerateContentResponse}</code>.
+   * and returns an object containing a single {@link GenerateContentResponse}.
    */
   async generateContent(
     request: GenerateContentRequest | string | Array<string | Part>
@@ -121,7 +121,7 @@ export class GenerativeModel extends VertexAIModel {
   }
 
   /**
-   * Gets a new <code>{@link ChatSession}</code> instance which can be used for
+   * Gets a new {@link ChatSession} instance which can be used for
    * multi-turn chats.
    */
   startChat(startChatParams?: StartChatParams): ChatSession {

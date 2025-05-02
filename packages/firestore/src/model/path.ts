@@ -19,6 +19,7 @@ import { Integer } from '@firebase/webchannel-wrapper/bloom-blob';
 
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
+import { compareUtf8Strings, primitiveComparator } from '../util/misc';
 
 export const DOCUMENT_KEY_NAME = '__name__';
 
@@ -34,13 +35,19 @@ abstract class BasePath<B extends BasePath<B>> {
     if (offset === undefined) {
       offset = 0;
     } else if (offset > segments.length) {
-      fail('offset ' + offset + ' out of range ' + segments.length);
+      fail(0x027d, 'offset out of range', {
+        offset,
+        range: segments.length
+      });
     }
 
     if (length === undefined) {
       length = segments.length - offset;
     } else if (length > segments.length - offset) {
-      fail('length ' + length + ' out of range ' + (segments.length - offset));
+      fail(0x06d2, 'length out of range', {
+        length,
+        range: segments.length - offset
+      });
     }
     this.segments = segments;
     this.offset = offset;
@@ -181,7 +188,7 @@ abstract class BasePath<B extends BasePath<B>> {
         return comparison;
       }
     }
-    return Math.sign(p1.length - p2.length);
+    return primitiveComparator(p1.length, p2.length);
   }
 
   private static compareSegments(lhs: string, rhs: string): number {
@@ -201,13 +208,7 @@ abstract class BasePath<B extends BasePath<B>> {
       );
     } else {
       // both non-numeric
-      if (lhs < rhs) {
-        return -1;
-      }
-      if (lhs > rhs) {
-        return 1;
-      }
-      return 0;
+      return compareUtf8Strings(lhs, rhs);
     }
   }
 

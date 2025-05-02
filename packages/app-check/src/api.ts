@@ -209,6 +209,9 @@ export async function getToken(
   if (result.error) {
     throw result.error;
   }
+  if (result.internalError) {
+    throw result.internalError;
+  }
   return { token: result.token };
 }
 

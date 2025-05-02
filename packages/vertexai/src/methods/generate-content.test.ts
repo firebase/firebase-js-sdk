@@ -37,6 +37,7 @@ use(chaiAsPromised);
 const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
+  appId: 'my-appid',
   location: 'us-central1'
 };
 
@@ -60,6 +61,7 @@ describe('generateContent()', () => {
   });
   it('short response', async () => {
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-success-basic-reply-short.json'
     );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
@@ -83,7 +85,10 @@ describe('generateContent()', () => {
     );
   });
   it('long response', async () => {
-    const mockResponse = getMockResponse('unary-success-basic-reply-long.json');
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-basic-reply-long.json'
+    );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
       mockResponse as Response
     );
@@ -104,6 +109,7 @@ describe('generateContent()', () => {
   });
   it('long response with token details', async () => {
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-success-basic-response-long-usage-metadata.json'
     );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
@@ -137,7 +143,10 @@ describe('generateContent()', () => {
     );
   });
   it('citations', async () => {
-    const mockResponse = getMockResponse('unary-success-citations.json');
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-citations.json'
+    );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
       mockResponse as Response
     );
@@ -162,6 +171,7 @@ describe('generateContent()', () => {
   });
   it('blocked prompt', async () => {
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-failure-prompt-blocked-safety.json'
     );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
@@ -183,6 +193,7 @@ describe('generateContent()', () => {
   });
   it('finishReason safety', async () => {
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-failure-finish-reason-safety.json'
     );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
@@ -203,7 +214,10 @@ describe('generateContent()', () => {
     );
   });
   it('empty content', async () => {
-    const mockResponse = getMockResponse('unary-failure-empty-content.json');
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-failure-empty-content.json'
+    );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
       mockResponse as Response
     );
@@ -223,6 +237,7 @@ describe('generateContent()', () => {
   });
   it('unknown enum - should ignore', async () => {
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-success-unknown-enum-safety-ratings.json'
     );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
@@ -243,7 +258,10 @@ describe('generateContent()', () => {
     );
   });
   it('image rejected (400)', async () => {
-    const mockResponse = getMockResponse('unary-failure-image-rejected.json');
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-failure-image-rejected.json'
+    );
     const mockFetch = stub(globalThis, 'fetch').resolves({
       ok: false,
       status: 400,
@@ -256,6 +274,7 @@ describe('generateContent()', () => {
   });
   it('api not enabled (403)', async () => {
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-failure-firebasevertexai-api-not-enabled.json'
     );
     const mockFetch = stub(globalThis, 'fetch').resolves({

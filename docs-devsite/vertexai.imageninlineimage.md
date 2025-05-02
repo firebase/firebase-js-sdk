@@ -26,7 +26,7 @@ export interface ImagenInlineImage
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [bytesBase64Encoded](./vertexai.imageninlineimage.md#imageninlineimagebytesbase64encoded) | string | <b><i>(Public Preview)</i></b> The base64-encoded image data. |
-|  [mimeType](./vertexai.imageninlineimage.md#imageninlineimagemimetype) | string | <b><i>(Public Preview)</i></b> The MIME type of the image; either <code>&quot;image/png&quot;</code> or <code>&quot;image/jpeg&quot;</code>.<!-- -->To request a different format, set the <code>imageFormat</code> property in your <code>[ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface)</code>. |
+|  [mimeType](./vertexai.imageninlineimage.md#imageninlineimagemimetype) | string | <b><i>(Public Preview)</i></b> The MIME type of the image; either <code>&quot;image/png&quot;</code> or <code>&quot;image/jpeg&quot;</code>.<!-- -->To request a different format, set the <code>imageFormat</code> property in your [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->. |
 
 ## ImagenInlineImage.bytesBase64Encoded
 
@@ -48,7 +48,7 @@ bytesBase64Encoded: string;
 
 The MIME type of the image; either `"image/png"` or `"image/jpeg"`<!-- -->.
 
-To request a different format, set the `imageFormat` property in your <code>[ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface)</code>.
+To request a different format, set the `imageFormat` property in your [ImagenGenerationConfig](./vertexai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.
 
 <b>Signature:</b>
 

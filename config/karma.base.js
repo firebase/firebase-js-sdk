@@ -31,7 +31,7 @@ function determineBrowsers() {
     );
     if (validBrowsers.length === 0) {
       console.error(
-        `The \'BROWSER\' environment variable was set, but no supported browsers were listed. The supported browsers are ${JSON.stringify(
+        `The \'BROWSERS\' environment variable was set, but no supported browsers were listed. The supported browsers are ${JSON.stringify(
           supportedBrowsers
         )}.`
       );
@@ -41,7 +41,7 @@ function determineBrowsers() {
     }
   } else {
     console.log(
-      "The 'BROWSER' environment variable is undefined. Defaulting to 'ChromeHeadless'."
+      "The 'BROWSERS' environment variable is undefined. Defaulting to 'ChromeHeadless'."
     );
     return ['ChromeHeadless'];
   }
