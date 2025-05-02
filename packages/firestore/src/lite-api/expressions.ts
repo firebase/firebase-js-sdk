@@ -1890,7 +1890,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * ```
    *
    * @param key The name of the key to remove from the input map.
-   * @returns A new {@code FirestoreFunction} representing the 'mapRemove' operation.
+   * @return A new {@code Expr} that evaluates to a modified map.
    */
   mapRemove(key: string): FunctionExpr;
   /**
@@ -1904,7 +1904,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * ```
    *
    * @param keyExpr An expression that produces the name of the key to remove from the input map.
-   * @returns A new {@code FirestoreFunction} representing the 'mapRemove' operation.
+   * @return A new {@code Expr} that evaluates to a modified map.
    */
   mapRemove(keyExpr: Expr): FunctionExpr;
   mapRemove(stringExpr: Expr | string): FunctionExpr {
@@ -3248,6 +3248,7 @@ export function isNotNan(value: Expr | string): BooleanExpr {
  *
  * @param mapField The name of a field containing a map value.
  * @param key The name of the key to remove from the input map.
+ * @return A new {@code Expr} that evaluates to a modified map.
  */
 export function mapRemove(mapField: string, key: string): FunctionExpr;
 /**
@@ -3262,6 +3263,7 @@ export function mapRemove(mapField: string, key: string): FunctionExpr;
  *
  * @param mapExpr An expression return a map value.
  * @param key The name of the key to remove from the input map.
+ * @return A new {@code Expr} that evaluates to a modified map.
  */
 export function mapRemove(mapExpr: Expr, key: string): FunctionExpr;
 /**
@@ -3276,6 +3278,7 @@ export function mapRemove(mapExpr: Expr, key: string): FunctionExpr;
  *
  * @param mapField The name of a field containing a map value.
  * @param keyExpr An expression that produces the name of the key to remove from the input map.
+ * @return A new {@code Expr} that evaluates to a modified map.
  */
 export function mapRemove(mapField: string, keyExpr: Expr): FunctionExpr;
 /**
@@ -3290,6 +3293,7 @@ export function mapRemove(mapField: string, keyExpr: Expr): FunctionExpr;
  *
  * @param mapExpr An expression return a map value.
  * @param keyExpr An expression that produces the name of the key to remove from the input map.
+ * @return A new {@code Expr} that evaluates to a modified map.
  */
 export function mapRemove(mapExpr: Expr, keyExpr: Expr): FunctionExpr;
 
