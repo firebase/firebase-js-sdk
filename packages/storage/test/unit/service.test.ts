@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
+import { expect, use } from 'chai';
+import * as sinon from 'sinon';
 import { TaskEvent } from '../../src/implementation/taskenums';
 import { Headers } from '../../src/implementation/connection';
 import {
@@ -34,11 +35,13 @@ import {
 import { Location } from '../../src/implementation/location';
 import { newTestConnection, TestingConnection } from './connection';
 import { injectTestConnection } from '../../src/platform/connection';
+import sinonChai from 'sinon-chai';
 
 const fakeAppGs = testShared.makeFakeApp('gs://mybucket');
 const fakeAppGsEndingSlash = testShared.makeFakeApp('gs://mybucket/');
 const fakeAppInvalidGs = testShared.makeFakeApp('gs://mybucket/hello');
 const testLocation = new Location('bucket', 'object');
+use(sinonChai);
 
 function makeGsUrl(child: string = ''): string {
   return 'gs://' + testShared.bucket + '/' + child;
@@ -227,6 +230,13 @@ GOOG4-RSA-SHA256`
     });
   });
   describe('connectStorageEmulator(service, host, port, options)', () => {
+    let sandbox: sinon.SinonSandbox;
+    beforeEach(() => {
+      sandbox = sinon.createSandbox();
+    });
+    afterEach(() => {
+      sandbox.restore();
+    });
     it('sets emulator host correctly', done => {
       function newSend(connection: TestingConnection, url: string): void {
         // Expect emulator host to be in url of storage operations requests,

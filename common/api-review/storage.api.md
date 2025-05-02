@@ -58,7 +58,7 @@ export class _FirebaseStorageImpl implements FirebaseStorage {
     constructor(
     app: FirebaseApp, _authProvider: Provider<FirebaseAuthInternalName>,
     _appCheckProvider: Provider<AppCheckInternalComponentName>,
-    _url?: string | undefined, _firebaseVersion?: string | undefined);
+    _url?: string | undefined, _firebaseVersion?: string | undefined, _isUsingEmulator?: boolean);
     readonly app: FirebaseApp;
     // (undocumented)
     readonly _appCheckProvider: Provider<AppCheckInternalComponentName>;
@@ -77,6 +77,8 @@ export class _FirebaseStorageImpl implements FirebaseStorage {
     _getAuthToken(): Promise<string | null>;
     get host(): string;
     set host(host: string);
+    // (undocumented)
+    _isUsingEmulator: boolean;
     // Warning: (ae-forgotten-export) The symbol "ConnectionType" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "RequestInfo" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "Connection" needs to be exported by the entry point index.d.ts
