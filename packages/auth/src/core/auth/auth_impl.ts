@@ -36,7 +36,8 @@ import {
   ErrorFn,
   NextFn,
   Unsubscribe,
-  PasswordValidationStatus
+  PasswordValidationStatus,
+  TenantConfig,
 } from '../../model/public_types';
 import {
   createSubscribe,
@@ -126,6 +127,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     | undefined = undefined;
   _persistenceManagerAvailable: Promise<void>;
   readonly name: string;
+  readonly tenantConfig?: TenantConfig;
 
   // Tracks the last notified UID for state change listeners to prevent
   // repeated calls to the callbacks. Undefined means it's never been
@@ -140,7 +142,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     public readonly app: FirebaseApp,
     private readonly heartbeatServiceProvider: Provider<'heartbeat'>,
     private readonly appCheckServiceProvider: Provider<AppCheckInternalComponentName>,
-    public readonly config: ConfigInternal
+    public readonly config: ConfigInternal,
+    tenantConfig?: TenantConfig
   ) {
     this.name = app.name;
     this.clientVersion = config.sdkClientVersion;
@@ -149,6 +152,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     this._persistenceManagerAvailable = new Promise<void>(
       resolve => (this._resolvePersistenceManagerAvailable = resolve)
     );
+    this.tenantConfig = tenantConfig;
   }
 
   _initializeWithPersistence(

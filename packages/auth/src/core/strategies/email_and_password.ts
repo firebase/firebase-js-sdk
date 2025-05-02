@@ -35,7 +35,7 @@ import {
 } from '../util/assert';
 import { _setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
-import { _castAuth } from '../auth/auth_impl';
+import { _castAuth, AuthImpl } from '../auth/auth_impl';
 import { AuthErrorCode } from '../errors';
 import { getModularInstance } from '@firebase/util';
 import { OperationType } from '../../model/enums';
@@ -47,6 +47,7 @@ import {
   RecaptchaAuthProvider
 } from '../../api';
 import { _isFirebaseServerApp } from '@firebase/app';
+import {_isFirebaseRegionalAuthInitialized} from '../util/validate_origin'
 
 /**
  * Updates the password policy cached in the {@link Auth} instance if a policy is already
