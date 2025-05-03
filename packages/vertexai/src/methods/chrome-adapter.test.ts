@@ -53,7 +53,7 @@ async function toStringArray(
 
 describe('ChromeAdapter', () => {
   describe('constructor', () => {
-    it('sets image as expected input type by default', async () => {
+    it('determines expected inputs by request inspection', async () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.available)
       } as LanguageModel;
@@ -69,7 +69,11 @@ describe('ChromeAdapter', () => {
         contents: [
           {
             role: 'user',
-            parts: [{ text: 'hi' }]
+            parts: [
+              { text: 'hi' },
+              // Triggers image as expected type.
+              { inlineData: { mimeType: 'image/asd', data: 'asd' } }
+            ]
           }
         ]
       });

@@ -52,7 +52,7 @@ export interface LanguageModelCreateOptions
 interface LanguageModelPromptOptions {
   signal?: AbortSignal;
 }
-interface LanguageModelExpectedInput {
+export interface LanguageModelExpectedInput {
   type: LanguageModelMessageType;
   languages?: string[];
 }
@@ -74,7 +74,7 @@ export interface LanguageModelMessageContent {
   content: LanguageModelMessageContentValue;
 }
 type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
-type LanguageModelMessageType = 'text' | 'image' | 'audio';
+export type LanguageModelMessageType = 'text' | 'image' | 'audio';
 type LanguageModelMessageContentValue =
   | ImageBitmapSource
   | AudioBuffer
