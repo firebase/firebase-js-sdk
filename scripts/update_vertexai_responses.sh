@@ -17,7 +17,7 @@
 # This script replaces mock response files for Vertex AI unit tests with a fresh
 # clone of the shared repository of Vertex AI test data.
 
-RESPONSES_VERSION='v8.*' # The major version of mock responses to use
+RESPONSES_VERSION='v10.*' # The major version of mock responses to use
 REPO_NAME="vertexai-sdk-test-data"
 REPO_LINK="https://github.com/FirebaseExtended/$REPO_NAME.git"
 

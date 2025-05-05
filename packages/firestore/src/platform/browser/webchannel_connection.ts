@@ -71,7 +71,8 @@ export class WebChannelConnection extends RestConnection {
     rpcName: string,
     url: string,
     headers: StringMap,
-    body: Req
+    body: Req,
+    _forwardCredentials: boolean
   ): Promise<Resp> {
     const streamId = generateUniqueDebugId();
     return new Promise((resolve: Resolver<Resp>, reject: Rejecter) => {

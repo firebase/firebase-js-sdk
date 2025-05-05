@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { isCloudWorkstation } from '@firebase/util';
 import {
   Connection,
   ConnectionType,
@@ -48,6 +49,7 @@ abstract class FetchConnection<T extends ConnectionType>
   async send(
     url: string,
     method: string,
+    isUsingEmulator: boolean,
     body?: NodeJS.ArrayBufferView | Blob | string,
     headers?: Record<string, string>
   ): Promise<void> {
@@ -57,11 +59,13 @@ abstract class FetchConnection<T extends ConnectionType>
     this.sent_ = true;
 
     try {
-      const response = await fetch(url, {
+      const response = await newFetch(
+        url,
         method,
-        headers: headers || {},
-        body: body as NodeJS.ArrayBufferView | string
-      });
+        isUsingEmulator,
+        headers,
+        body
+      );
       this.headers_ = response.headers;
       this.statusCode_ = response.status;
       this.errorCode_ = ErrorCode.NO_ERROR;
@@ -152,6 +156,7 @@ export class FetchStreamConnection extends FetchConnection<
   async send(
     url: string,
     method: string,
+    isUsingEmulator: boolean,
     body?: NodeJS.ArrayBufferView | Blob | string,
     headers?: Record<string, string>
   ): Promise<void> {
@@ -161,11 +166,13 @@ export class FetchStreamConnection extends FetchConnection<
     this.sent_ = true;
 
     try {
-      const response = await fetch(url, {
+      const response = await newFetch(
+        url,
         method,
-        headers: headers || {},
-        body: body as NodeJS.ArrayBufferView | string
-      });
+        isUsingEmulator,
+        headers,
+        body
+      );
       this.headers_ = response.headers;
       this.statusCode_ = response.status;
       this.errorCode_ = ErrorCode.NO_ERROR;
@@ -184,6 +191,24 @@ export class FetchStreamConnection extends FetchConnection<
     }
     return this.stream_;
   }
+}
+
+function newFetch(
+  url: string,
+  method: string,
+  isUsingEmulator: boolean,
+  headers?: Record<string, string>,
+  body?: NodeJS.ArrayBufferView | Blob | string
+): Promise<Response> {
+  const fetchArgs: RequestInit = {
+    method,
+    headers: headers || {},
+    body: body as NodeJS.ArrayBufferView | string
+  };
+  if (isCloudWorkstation(url) && isUsingEmulator) {
+    fetchArgs.credentials = 'include';
+  }
+  return fetch(url, fetchArgs);
 }
 
 export function newStreamConnection(): Connection<ReadableStream<Uint8Array>> {
