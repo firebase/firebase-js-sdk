@@ -55,7 +55,7 @@ describe('FieldMask', () => {
 });
 
 describe('CompareUtf8Strings', () => {
-  it.skip('compareUtf8Strings should return correct results', () => {
+  it('compareUtf8Strings should return correct results', () => {
     const errors = [];
     const seed = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
     let passCount = 0;
