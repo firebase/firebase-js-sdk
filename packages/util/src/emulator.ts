@@ -151,9 +151,9 @@ export interface EmulatorStatus {
 }
 
 // Checks whether any products are running on an emulator
-function areRunningEmulator() {
+function areRunningEmulator(): boolean {
   let runningEmulator = false;
-  for (let key of Object.keys(emulatorStatus)) {
+  for (const key of Object.keys(emulatorStatus)) {
     if (emulatorStatus[key]) {
       runningEmulator = true;
     }
@@ -178,7 +178,7 @@ function getOrCreateEl(id: string): { created: boolean; element: HTMLElement } {
  * @param isRunningEmulator
  * @public
  */
-export function updateEmulatorBanner(name: string, isRunningEmulator: boolean) {
+export function updateEmulatorBanner(name: string, isRunningEmulator: boolean): void {
   if (emulatorStatus[name] === isRunningEmulator) {
     // No rerendering required
     return;
@@ -190,7 +190,7 @@ export function updateEmulatorBanner(name: string, isRunningEmulator: boolean) {
     return;
   }
 
-  function tearDown() {
+  function tearDown(): void {
     if (typeof document !== 'undefined') {
       const element = document.getElementById(bannerId);
       if (element) {
@@ -199,9 +199,9 @@ export function updateEmulatorBanner(name: string, isRunningEmulator: boolean) {
     }
   }
 
-  function setupDom() {
+  function setupDom(): void {
     const banner = getOrCreateEl(bannerId);
-    let firebaseText: HTMLSpanElement =
+    const firebaseText: HTMLSpanElement =
       document.getElementById('__firebase__text') ||
       document.createElement('span');
     if (banner.created) {
