@@ -252,11 +252,13 @@ describe('Values', () => {
       [refValue(dbId('p2', 'd1'), key('c1/doc1'))],
 
       // ObjectId
-      [wrap(new BsonObjectId('foo')), wrap(new BsonObjectId('foo'))],
-      // TODO(Mila/BSON): uncomment after string sort bug is fixed
-      // [wrap(new BsonObjectId('Ḟoo'))], // with latin capital letter f with dot above
-      // [wrap(new BsonObjectId('foo\u0301'))], // with combining acute accent
-      [wrap(new BsonObjectId('xyz'))],
+      [wrap(new BsonObjectId('507f191e810c19729de860ea'))],
+      [wrap(new BsonObjectId('507f191e810c19729de860eb'))],
+      // latin small letter e + combining acute accent + latin small letter b
+      [wrap(new BsonObjectId('e\u0301b'))],
+      [wrap(new BsonObjectId('æ'))],
+      // latin small letter e with acute accent + latin small letter a
+      [wrap(new BsonObjectId('\u00e9a'))],
 
       // geo points
       [wrap(new GeoPoint(-90, -180))],

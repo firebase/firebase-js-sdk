@@ -644,7 +644,7 @@ function compareRegex(left: Value, right: Value): number {
     ]?.stringValue ?? '';
 
   // First order by patterns, and then options.
-  const patternDiff = primitiveComparator(leftPattern, rightPattern);
+  const patternDiff = compareUtf8Strings(leftPattern, rightPattern);
   return patternDiff !== 0
     ? patternDiff
     : primitiveComparator(leftOptions, rightOptions);
@@ -656,8 +656,7 @@ function compareBsonObjectIds(left: Value, right: Value): number {
   const rightOid =
     right.mapValue!.fields?.[RESERVED_BSON_OBJECT_ID_KEY]?.stringValue ?? '';
 
-  // TODO(Mila/BSON): use compareUtf8Strings once the bug fix is merged.
-  return primitiveComparator(leftOid, rightOid);
+  return compareUtf8Strings(leftOid, rightOid);
 }
 
 /**

@@ -633,6 +633,7 @@ export async function checkOnlineAndOfflineResultsMatch(
  * @returns {Promise<void>} A Promise that resolves when the assertions are complete.
  */
 export async function assertSDKQueryResultsConsistentWithBackend(
+  collection: CollectionReference,
   query: Query,
   allData: { [key: string]: DocumentData },
   expectedDocIds: string[]
@@ -640,7 +641,7 @@ export async function assertSDKQueryResultsConsistentWithBackend(
   // Check the cache round trip first to make sure cache is properly populated, otherwise the
   // snapshot listener below will return partial results from previous
   // "assertSDKQueryResultsConsistentWithBackend" calls if it is called multiple times in one test
-  await checkOnlineAndOfflineResultsMatch(query, ...expectedDocIds);
+  await checkOnlineAndOfflineResultsMatch(collection, query, ...expectedDocIds);
 
   const eventAccumulator = new EventsAccumulator<QuerySnapshot>();
   const unsubscribe = onSnapshot(

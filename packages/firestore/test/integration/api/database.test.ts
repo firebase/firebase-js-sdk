@@ -2818,9 +2818,6 @@ apiDescribe('Database', persistence => {
         settings,
         testDocs,
         async coll => {
-          // Populate the cache with all docs first
-          await getDocs(coll);
-
           let orderedQuery = query(
             coll,
             where('key', '>', new BsonObjectId('507f191e810c19729de860ea')),
@@ -2833,6 +2830,7 @@ apiDescribe('Database', persistence => {
             testDocs['b']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -2853,6 +2851,7 @@ apiDescribe('Database', persistence => {
             testDocs['a']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -2873,9 +2872,6 @@ apiDescribe('Database', persistence => {
         settings,
         testDocs,
         async coll => {
-          // Populate the cache with all docs first
-          await getDocs(coll);
-
           let orderedQuery = query(
             coll,
             where('key', '>=', new Int32Value(1)),
@@ -2888,6 +2884,7 @@ apiDescribe('Database', persistence => {
             testDocs['b']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -2905,6 +2902,7 @@ apiDescribe('Database', persistence => {
             testDocs['a']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -2925,9 +2923,6 @@ apiDescribe('Database', persistence => {
         settings,
         testDocs,
         async coll => {
-          // Populate the cache with all docs first
-          await getDocs(coll);
-
           let orderedQuery = query(
             coll,
             where('key', '>', new BsonTimestamp(1, 1)),
@@ -2940,6 +2935,7 @@ apiDescribe('Database', persistence => {
             testDocs['b']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -2957,6 +2953,7 @@ apiDescribe('Database', persistence => {
             testDocs['b']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -2977,9 +2974,6 @@ apiDescribe('Database', persistence => {
         settings,
         testDocs,
         async coll => {
-          // Populate the cache with all docs first
-          await getDocs(coll);
-
           let orderedQuery = query(
             coll,
             where('key', '>', new BsonBinaryData(1, new Uint8Array([1, 2, 3]))),
@@ -2992,6 +2986,7 @@ apiDescribe('Database', persistence => {
             testDocs['b']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -3014,6 +3009,7 @@ apiDescribe('Database', persistence => {
             testDocs['a']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -3034,9 +3030,6 @@ apiDescribe('Database', persistence => {
         settings,
         testDocs,
         async coll => {
-          // Populate the cache with all docs first
-          await getDocs(coll);
-
           const orderedQuery = query(
             coll,
             or(
@@ -3052,6 +3045,7 @@ apiDescribe('Database', persistence => {
             testDocs['a']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -3074,9 +3068,6 @@ apiDescribe('Database', persistence => {
         settings,
         testDocs,
         async coll => {
-          // Populate the cache with all docs first
-          await getDocs(coll);
-
           let filteredQuery = query(
             coll,
             where('key', '==', MinKey.instance())
@@ -3087,23 +3078,24 @@ apiDescribe('Database', persistence => {
             testDocs['b']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             filteredQuery,
             testDocs,
             toIds(snapshot)
           );
 
-          // TODO(Mila/BSON): uncomment after the null inclusion bug
-          // filteredQuery = query(coll, where('key', '!=', MinKey.instance()));
-          // snapshot = await getDocs(filteredQuery);
-          // expect(toDataArray(snapshot)).to.deep.equal([
-          //   testDocs['d'],
-          //   testDocs['e']
-          // ]);
-          // await assertSDKQueryResultsConsistentWithBackend(
-          //   filteredQuery,
-          //   testDocs,
-          //   toIds(snapshot)
-          // );
+          filteredQuery = query(coll, where('key', '!=', MinKey.instance()));
+          snapshot = await getDocs(filteredQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['d'],
+            testDocs['e']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
 
           filteredQuery = query(coll, where('key', '>=', MinKey.instance()));
           snapshot = await getDocs(filteredQuery);
@@ -3112,6 +3104,7 @@ apiDescribe('Database', persistence => {
             testDocs['b']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             filteredQuery,
             testDocs,
             toIds(snapshot)
@@ -3124,6 +3117,7 @@ apiDescribe('Database', persistence => {
             testDocs['b']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             filteredQuery,
             testDocs,
             toIds(snapshot)
@@ -3133,6 +3127,7 @@ apiDescribe('Database', persistence => {
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             filteredQuery,
             testDocs,
             toIds(snapshot)
@@ -3142,6 +3137,7 @@ apiDescribe('Database', persistence => {
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             filteredQuery,
             testDocs,
             toIds(snapshot)
@@ -3151,6 +3147,7 @@ apiDescribe('Database', persistence => {
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             filteredQuery,
             testDocs,
             toIds(snapshot)
@@ -3173,9 +3170,6 @@ apiDescribe('Database', persistence => {
         settings,
         testDocs,
         async coll => {
-          // Populate the cache with all docs first
-          await getDocs(coll);
-
           let filteredQuery = query(
             coll,
             where('key', '==', MaxKey.instance())
@@ -3186,23 +3180,24 @@ apiDescribe('Database', persistence => {
             testDocs['d']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             filteredQuery,
             testDocs,
             toIds(snapshot)
           );
 
-          // TODO(Mila/BSON): uncomment after the null inclusion bug
-          // filteredQuery = query(coll, where('key', '!=', MaxKey.instance()));
-          // snapshot = await getDocs(filteredQuery);
-          // expect(toDataArray(snapshot)).to.deep.equal([
-          //   testDocs['a'],
-          //   testDocs['b']
-          // ]);
-          // await assertSDKQueryResultsConsistentWithBackend(
-          //   filteredQuery,
-          //   testDocs,
-          //   toIds(snapshot)
-          // );
+          filteredQuery = query(coll, where('key', '!=', MaxKey.instance()));
+          snapshot = await getDocs(filteredQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['a'],
+            testDocs['b']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
 
           filteredQuery = query(coll, where('key', '>=', MaxKey.instance()));
           snapshot = await getDocs(filteredQuery);
@@ -3211,6 +3206,7 @@ apiDescribe('Database', persistence => {
             testDocs['d']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             filteredQuery,
             testDocs,
             toIds(snapshot)
@@ -3223,6 +3219,7 @@ apiDescribe('Database', persistence => {
             testDocs['d']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             filteredQuery,
             testDocs,
             toIds(snapshot)
@@ -3232,6 +3229,7 @@ apiDescribe('Database', persistence => {
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             filteredQuery,
             testDocs,
             toIds(snapshot)
@@ -3241,6 +3239,7 @@ apiDescribe('Database', persistence => {
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             filteredQuery,
             testDocs,
             toIds(snapshot)
@@ -3250,6 +3249,7 @@ apiDescribe('Database', persistence => {
           snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             filteredQuery,
             testDocs,
             toIds(snapshot)
@@ -3273,9 +3273,6 @@ apiDescribe('Database', persistence => {
         settings,
         testDocs,
         async coll => {
-          // Populate the cache with all docs first
-          await getDocs(coll);
-
           let filteredQuery = query(coll, where('key', '==', null));
           let snapshot = await getDocs(filteredQuery);
           expect(toDataArray(snapshot)).to.deep.equal([
@@ -3283,6 +3280,7 @@ apiDescribe('Database', persistence => {
             testDocs['c']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             filteredQuery,
             testDocs,
             toIds(snapshot)
@@ -3296,6 +3294,7 @@ apiDescribe('Database', persistence => {
             testDocs['e']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             filteredQuery,
             testDocs,
             toIds(snapshot)
@@ -3424,11 +3423,9 @@ apiDescribe('Database', persistence => {
             await setDoc(doc(coll, 'm'), { key: docRef });
             testDocs['m'] = { key: docRef };
 
-            // Populate the cache with all docs first
-            await getDocs(coll);
-
             const orderedQuery = query(coll, orderBy('key', 'desc'));
             await assertSDKQueryResultsConsistentWithBackend(
+              coll,
               orderedQuery,
               testDocs,
               [
@@ -3487,11 +3484,9 @@ apiDescribe('Database', persistence => {
           settings,
           testDocs,
           async coll => {
-            // Populate the cache with all docs first
-            await getDocs(coll);
-
             const orderedQuery = query(coll, orderBy('key'));
             await assertSDKQueryResultsConsistentWithBackend(
+              coll,
               orderedQuery,
               testDocs,
               [
