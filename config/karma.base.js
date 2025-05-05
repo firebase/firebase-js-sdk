@@ -53,7 +53,6 @@ const config = {
 
   // Doing 65 seconds to allow for the 20 second firestore tests
   browserNoActivityTimeout: 65000,
-  browserDisconnectTimeout: 65000,
 
   // Preprocess matching files before serving them to the browser.
   // Available preprocessors:
