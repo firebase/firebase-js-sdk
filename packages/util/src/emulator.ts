@@ -194,11 +194,9 @@ export function updateEmulatorBanner(
   }
 
   function tearDown(): void {
-    if (typeof document !== 'undefined') {
-      const element = document.getElementById(bannerId);
-      if (element) {
-        element.remove();
-      }
+    const element = document.getElementById(bannerId);
+    if (element) {
+      element.remove();
     }
   }
 
