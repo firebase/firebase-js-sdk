@@ -146,10 +146,6 @@ interface EmulatorStatuses {
 }
 const emulatorStatus: EmulatorStatuses = {};
 
-export interface EmulatorStatus {
-  isRunningEmulator: boolean;
-}
-
 // Checks whether any products are running on an emulator
 function areRunningEmulator(): boolean {
   let runningEmulator = false;
@@ -182,10 +178,14 @@ export function updateEmulatorBanner(
   name: string,
   isRunningEmulator: boolean
 ): void {
-  if (emulatorStatus[name] === isRunningEmulator) {
-    // No rerendering required
+  if (
+    typeof window === 'undefined' ||
+    typeof document === 'undefined' ||
+    emulatorStatus[name] === isRunningEmulator
+  ) {
     return;
   }
+
   emulatorStatus[name] = isRunningEmulator;
   const bannerId = '__firebase__banner';
   if (!areRunningEmulator()) {
@@ -232,11 +232,9 @@ export function updateEmulatorBanner(
     firebaseText.setAttribute('id', '__firebase__text');
     firebaseText.innerText = 'Running in this workspace';
   }
-  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-    if (document.readyState === 'loading') {
-      window.addEventListener('DOMContentLoaded', setupDom);
-    } else {
-      setupDom();
-    }
+  if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', setupDom);
+  } else {
+    setupDom();
   }
 }
