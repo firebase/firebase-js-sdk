@@ -201,12 +201,8 @@ export async function _performFetchWithErrorHandling<V>(
 ): Promise<V> {
   const authInternal = auth as AuthInternal;
   updateStatus(
-    {
-      name: 'Auth',
-      isRunningEmulator: authInternal.emulatorConfig !== undefined
-    },
-    authInternal.emulatorConfig!! &&
-      isCloudWorkstation(authInternal.emulatorConfig.host)
+    'Auth',
+    authInternal.emulatorConfig !== null
   );
   authInternal._canInitEmulator = false;
   const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };

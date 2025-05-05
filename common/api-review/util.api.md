@@ -146,8 +146,6 @@ export type EmulatorMockTokenOptions = ({
 export interface EmulatorStatus {
     // (undocumented)
     isRunningEmulator: boolean;
-    // (undocumented)
-    name: string;
 }
 
 // Warning: (ae-missing-release-tag) "ErrorData" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -495,7 +493,7 @@ export type Unsubscribe = () => void;
 // Warning: (ae-missing-release-tag) "updateStatus" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export function updateStatus(emulatorStatus: EmulatorStatus, isCloudWorkstation: boolean): void;
+export function updateStatus(name: string, isRunningEmulator: boolean): void;
 
 // Warning: (ae-missing-release-tag) "validateArgCount" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

@@ -150,11 +150,8 @@ function parsePort(portStr: string): number | null {
 
 function emitEmulatorWarning(isCloudWorkstation: boolean): void {
   updateStatus(
-    {
-      name: 'Auth',
-      isRunningEmulator: true
-    },
-    isCloudWorkstation
+      'Auth',
+      true
   );
   if (typeof console !== 'undefined' && typeof console.info === 'function') {
     console.info(
