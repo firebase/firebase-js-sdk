@@ -2433,7 +2433,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  describe.only('Sort unicode strings', () => {
+  describe('Sort unicode strings', () => {
     const expectedDocs = [
       'b',
       'a',

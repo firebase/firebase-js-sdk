@@ -54,7 +54,7 @@ describe('FieldMask', () => {
   });
 });
 
-describe.only('CompareUtf8Strings', () => {
+describe('CompareUtf8Strings', () => {
   it('compareUtf8Strings should return correct results', () => {
     const errors = [];
     const seed = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
