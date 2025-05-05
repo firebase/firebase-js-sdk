@@ -28,7 +28,7 @@ import {
   EmulatorMockTokenOptions,
   getDefaultEmulatorHostnameAndPort,
   isCloudWorkstation,
-  updateStatus,
+  updateEmulatorBanner,
   pingServer
 } from '@firebase/util';
 
@@ -143,9 +143,9 @@ export class Firestore implements FirestoreService {
 
   _freezeSettings(): FirestoreSettingsImpl {
     this._settingsFrozen = true;
-    updateStatus(
-        'Firestore',
-        (this._settings as PrivateSettings).emulator!!
+    updateEmulatorBanner(
+      'Firestore',
+      (this._settings as PrivateSettings).emulator!!
     );
     return this._settings;
   }
@@ -339,9 +339,7 @@ export function connectFirestoreEmulator(
     emulatorOptions: firestore._getEmulatorOptions()
   };
   const newHostSetting = `${host}:${port}`;
-  if (useSsl) {
-    void pingServer(`https://${newHostSetting}`);
-  }
+
   if (settings.host !== DEFAULT_HOST && settings.host !== newHostSetting) {
     logWarn(
       'Host has been set in both settings() and connectFirestoreEmulator(), emulator host ' +
@@ -361,6 +359,11 @@ export function connectFirestoreEmulator(
   }
 
   firestore._setSettings(newConfig);
+
+  if (useSsl) {
+    void pingServer(`https://${newHostSetting}`);
+    updateEmulatorBanner('firestore', true);
+  }
 
   if (options.mockUserToken) {
     let token: string;

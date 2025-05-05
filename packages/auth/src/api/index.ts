@@ -20,7 +20,7 @@ import {
   isCloudflareWorker,
   isCloudWorkstation,
   querystring,
-  updateStatus
+  updateEmulatorBanner
 } from '@firebase/util';
 
 import { AuthErrorCode, NamedErrorParams } from '../core/errors';
@@ -200,10 +200,7 @@ export async function _performFetchWithErrorHandling<V>(
   fetchFn: () => Promise<Response>
 ): Promise<V> {
   const authInternal = auth as AuthInternal;
-  updateStatus(
-    'Auth',
-    authInternal.emulatorConfig !== null
-  );
+  updateEmulatorBanner('Auth', authInternal.emulatorConfig !== null);
   authInternal._canInitEmulator = false;
   const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
   try {

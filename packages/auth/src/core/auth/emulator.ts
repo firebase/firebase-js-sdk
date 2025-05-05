@@ -22,7 +22,7 @@ import {
   deepEqual,
   isCloudWorkstation,
   pingServer,
-  updateStatus
+  updateEmulatorBanner
 } from '@firebase/util';
 
 /**
@@ -102,13 +102,14 @@ export function connectAuthEmulator(
   authInternal.emulatorConfig = emulatorConfig;
   authInternal.settings.appVerificationDisabledForTesting = true;
 
-  if (!disableWarnings) {
-    emitEmulatorWarning(isCloudWorkstation(emulatorConfig.host));
+  if (!disableWarnings && !isCloudWorkstation(host)) {
+    emitEmulatorWarning();
   }
 
   // Workaround to get cookies in Firebase Studio
   if (isCloudWorkstation(host)) {
     void pingServer(`${protocol}//${host}:${port}`);
+    updateEmulatorBanner('Auth', true);
   }
 }
 
@@ -148,16 +149,38 @@ function parsePort(portStr: string): number | null {
   return port;
 }
 
-function emitEmulatorWarning(isCloudWorkstation: boolean): void {
-  updateStatus(
-      'Auth',
-      true
-  );
+function emitEmulatorWarning(): void {
+  function attachBanner(): void {
+    const el = document.createElement('p');
+    const sty = el.style;
+    el.innerText =
+      'Running in emulator mode. Do not use with production credentials.';
+    sty.position = 'fixed';
+    sty.width = '100%';
+    sty.backgroundColor = '#ffffff';
+    sty.border = '.1em solid #000000';
+    sty.color = '#b50000';
+    sty.bottom = '0px';
+    sty.left = '0px';
+    sty.margin = '0px';
+    sty.zIndex = '10000';
+    sty.textAlign = 'center';
+    el.classList.add('firebase-emulator-warning');
+    document.body.appendChild(el);
+  }
+
   if (typeof console !== 'undefined' && typeof console.info === 'function') {
     console.info(
       'WARNING: You are using the Auth Emulator,' +
         ' which is intended for local testing only.  Do not use with' +
         ' production credentials.'
     );
+  }
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', attachBanner);
+    } else {
+      attachBanner();
+    }
   }
 }
