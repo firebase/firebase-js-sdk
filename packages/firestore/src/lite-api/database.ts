@@ -145,8 +145,7 @@ export class Firestore implements FirestoreService {
     this._settingsFrozen = true;
     updateEmulatorBanner(
       'Firestore',
-      (this._settings as PrivateSettings).emulatorOptions !== null &&
-        (this._settings as PrivateSettings).emulatorOptions !== undefined
+      this._settings.isUsingEmulator || isCloudWorkstation(this._settings.host)
     );
     return this._settings;
   }
@@ -363,7 +362,7 @@ export function connectFirestoreEmulator(
 
   if (useSsl) {
     void pingServer(`https://${newHostSetting}`);
-    updateEmulatorBanner('firestore', true);
+    updateEmulatorBanner('Firestore', true);
   }
 
   if (options.mockUserToken) {

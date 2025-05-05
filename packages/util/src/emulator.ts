@@ -146,15 +146,25 @@ interface EmulatorStatuses {
 }
 const emulatorStatus: EmulatorStatuses = {};
 
+interface EmulatorSummary {
+  prod: string[];
+  emulator: string[];
+}
+
 // Checks whether any products are running on an emulator
-function areRunningEmulator(): boolean {
-  let runningEmulator = false;
+function getEmulatorSummary(): EmulatorSummary {
+  const summary: EmulatorSummary = {
+    prod: [],
+    emulator: []
+  };
   for (const key of Object.keys(emulatorStatus)) {
     if (emulatorStatus[key]) {
-      runningEmulator = true;
+      summary.emulator.push(key);
+    } else {
+      summary.prod.push(key);
     }
   }
-  return runningEmulator;
+  return summary;
 }
 
 function getOrCreateEl(id: string): { created: boolean; element: HTMLElement } {
@@ -188,10 +198,8 @@ export function updateEmulatorBanner(
 
   emulatorStatus[name] = isRunningEmulator;
   const bannerId = '__firebase__banner';
-  if (!areRunningEmulator()) {
-    tearDown();
-    return;
-  }
+  const summary = getEmulatorSummary();
+  const showError = summary.prod.length > 0;
 
   function tearDown(): void {
     const element = document.getElementById(bannerId);
@@ -225,10 +233,17 @@ export function updateEmulatorBanner(
       };
       bannerEl.appendChild(firebaseText);
       bannerEl.appendChild(closeBtn);
-      document.body.appendChild(banner.element);
+      document.body.appendChild(bannerEl);
+    }
+    if (showError) {
+      banner.element.style.background = '#cd5c5c';
+      firebaseText.innerText = `Product${
+        summary.prod.length > 0 ? 's' : ''
+      } Running in Production: ${summary.prod.join(', ')}`;
+    } else {
+      firebaseText.innerText = 'Running in this workspace';
     }
     firebaseText.setAttribute('id', '__firebase__text');
-    firebaseText.innerText = 'Running in this workspace';
   }
   if (document.readyState === 'loading') {
     window.addEventListener('DOMContentLoaded', setupDom);
