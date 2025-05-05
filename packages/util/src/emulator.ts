@@ -178,7 +178,10 @@ function getOrCreateEl(id: string): { created: boolean; element: HTMLElement } {
  * @param isRunningEmulator
  * @public
  */
-export function updateEmulatorBanner(name: string, isRunningEmulator: boolean): void {
+export function updateEmulatorBanner(
+  name: string,
+  isRunningEmulator: boolean
+): void {
   if (emulatorStatus[name] === isRunningEmulator) {
     // No rerendering required
     return;
