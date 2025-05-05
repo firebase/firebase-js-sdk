@@ -1270,7 +1270,7 @@ export interface Dependencies {
 
 /**
  * The tenant config that can be used to initialize a Regional {@link Auth} instance.
- * 
+ *
  * @public
  */
 export interface TenantConfig {
