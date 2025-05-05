@@ -29,6 +29,7 @@ import { Endpoint } from '../../api';
 import { UserInternal } from '../../model/user';
 import { _castAuth } from './auth_impl';
 import { connectAuthEmulator } from './emulator';
+import * as Util from '@firebase/util';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -38,8 +39,10 @@ describe('core/auth/emulator', () => {
   let user: UserInternal;
   let normalEndpoint: fetch.Route;
   let emulatorEndpoint: fetch.Route;
+  let testStub: sinon.SinonStub;
 
   beforeEach(async () => {
+    testStub = sinon.stub(Util, 'pingServer');
     auth = await testAuth();
     user = testUser(_castAuth(auth), 'uid', 'email', true);
     fetch.setUp();
@@ -153,6 +156,19 @@ describe('core/auth/emulator', () => {
             'Do not use with production credentials.'
         );
       }
+    });
+    it('calls pingServer with port if specified', () => {
+      connectAuthEmulator(auth, 'https://abc.cloudworkstations.dev:2020');
+      expect(testStub).to.have.been.calledWith(
+        'https://abc.cloudworkstations.dev:2020'
+      );
+    });
+
+    it('calls pingServer with no port if none specified', () => {
+      connectAuthEmulator(auth, 'https://abc.cloudworkstations.dev');
+      expect(testStub).to.have.been.calledWith(
+        'https://abc.cloudworkstations.dev'
+      );
     });
 
     it('logs out a warning to the console', () => {
