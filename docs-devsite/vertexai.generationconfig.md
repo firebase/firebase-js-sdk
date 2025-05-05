@@ -83,7 +83,7 @@ responseMimeType?: string;
 
 Generation modalities to be returned in generation responses.
 
-- Multimodal response generation is only supported in `gemini-2.0-flash-exp`<!-- -->, not `gemini-2.0-flash`<!-- -->. - Only image generation (`ResponseModality.IMAGE`<!-- -->) is supported.
+- Multimodal response generation is only supported in some Gemini models and versions; see [model versions](https://firebase.google.com/docs/vertex-ai/models)<!-- -->. - Only image generation (`ResponseModality.IMAGE`<!-- -->) is supported.
 
 <b>Signature:</b>
 
