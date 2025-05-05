@@ -65,8 +65,7 @@ abstract class XhrConnection<T extends ConnectionType>
     method: string,
     isUsingEmulator: boolean,
     body?: ArrayBufferView | Blob | string,
-    headers?: Headers,
-    isUsingEmulator?: boolean
+    headers?: Headers
   ): Promise<void> {
     if (this.sent_) {
       throw internalError('cannot .send() more than once');

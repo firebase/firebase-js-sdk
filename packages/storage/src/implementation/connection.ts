@@ -44,8 +44,7 @@ export interface Connection<T extends ConnectionType> {
     method: string,
     isUsingEmulator: boolean,
     body?: ArrayBufferView | Blob | string | null,
-    headers?: Headers,
-    isUsingEmulator?: boolean
+    headers?: Headers
   ): Promise<void>;
 
   getErrorCode(): ErrorCode;

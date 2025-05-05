@@ -83,7 +83,6 @@ export interface PrivateSettings extends FirestoreSettings {
   experimentalLongPollingOptions?: ExperimentalLongPollingOptions;
   useFetchStreams?: boolean;
   emulatorOptions?: { mockUserToken?: EmulatorMockTokenOptions | string };
-  emulator?: boolean;
 
   localCache?: FirestoreLocalCache;
 }

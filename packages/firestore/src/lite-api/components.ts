@@ -28,7 +28,7 @@ import { Datastore, newDatastore } from '../remote/datastore';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 
-import { FirestoreSettingsImpl, PrivateSettings } from './settings';
+import { FirestoreSettingsImpl } from './settings';
 
 export const LOG_TAG = 'ComponentProvider';
 

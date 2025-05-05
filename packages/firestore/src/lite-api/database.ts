@@ -145,7 +145,8 @@ export class Firestore implements FirestoreService {
     this._settingsFrozen = true;
     updateEmulatorBanner(
       'Firestore',
-      (this._settings as PrivateSettings).emulator!!
+      (this._settings as PrivateSettings).emulatorOptions !== null &&
+        (this._settings as PrivateSettings).emulatorOptions !== undefined
     );
     return this._settings;
   }
