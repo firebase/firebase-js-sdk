@@ -1917,7 +1917,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   /**
    * @beta
    *
-   * Creates an expression that merges multiple map values.
+   * Creates an expression that merges multiple maps into a single map. If
+   * multiple maps have the same key, the later value is used.
    *
    * ```
    * // Merges the map in the settings field with, a map literal, and a map in
@@ -1929,8 +1930,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * an expression that returns a map.
    * @param otherMaps Optional additional maps to merge. Each map is represented
    * as a literal or an expression that returns a map.
-   *
-   * @returns A new {@code FirestoreFunction} representing the 'mapMerge' operation.
+   * @return A new {@code Expr} that evaluates to a merged map.
    */
   mapMerge(
     secondMap: Record<string, unknown> | Expr,
@@ -3307,7 +3307,8 @@ export function mapRemove(
 /**
  * @beta
  *
- * Creates an expression that merges multiple map values.
+ * Creates an expression that merges multiple maps into a single map. If
+ * multiple maps have the same key, the later value is used.
  *
  * ```
  * // Merges the map in the settings field with, a map literal, and a map in
@@ -3320,6 +3321,7 @@ export function mapRemove(
  * an expression that returns a map.
  * @param otherMaps Optional additional maps to merge. Each map is represented
  * as a literal or an expression that returns a map.
+ * @return A new {@code Expr} that evaluates to a merged map.
  */
 export function mapMerge(
   mapField: string,
@@ -3330,7 +3332,8 @@ export function mapMerge(
 /**
  * @beta
  *
- * Creates an expression that merges multiple map values.
+ * Creates an expression that merges multiple maps into a single map. If
+ * multiple maps have the same key, the later value is used.
  *
  * ```
  * // Merges the map in the settings field with, a map literal, and a map in
@@ -3343,6 +3346,7 @@ export function mapMerge(
  * an expression that returns a map.
  * @param otherMaps Optional additional maps to merge. Each map is represented
  * as a literal or an expression that returns a map.
+ * @return A new {@code Expr} that evaluates to a merged map.
  */
 export function mapMerge(
   firstMap: Record<string, unknown> | Expr,
