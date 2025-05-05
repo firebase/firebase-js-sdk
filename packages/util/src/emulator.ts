@@ -184,15 +184,15 @@ export function updateEmulatorBanner(name: string, isRunningEmulator: boolean) {
     return;
   }
   emulatorStatus[name] = isRunningEmulator;
+  const bannerId = '__firebase__banner';
   if (!areRunningEmulator()) {
     tearDown();
     return;
   }
 
   function tearDown() {
-    const divId = `__firebase_status`;
     if (typeof document !== 'undefined') {
-      const element = document.getElementById(divId);
+      const element = document.getElementById(bannerId);
       if (element) {
         element.remove();
       }
@@ -200,13 +200,7 @@ export function updateEmulatorBanner(name: string, isRunningEmulator: boolean) {
   }
 
   function setupDom() {
-    const parentDivId = `__firebase__status`;
-    let { element: parentDiv, created } = getOrCreateEl(parentDivId);
-    if (created) {
-      parentDiv.classList.add('firebase-emulator-warning');
-      document.body.appendChild(parentDiv);
-    }
-    const banner = getOrCreateEl('__firebase__banner');
+    const banner = getOrCreateEl(bannerId);
     let firebaseText: HTMLSpanElement =
       document.getElementById('__firebase__text') ||
       document.createElement('span');
@@ -220,11 +214,19 @@ export function updateEmulatorBanner(name: string, isRunningEmulator: boolean) {
       bannerEl.style.left = '5px';
       bannerEl.style.padding = '.5em';
       bannerEl.style.borderRadius = '5px';
+      bannerEl.style.alignContent = 'center';
+      const closeBtn = document.createElement('span');
+      closeBtn.style.cursor = 'pointer';
+      closeBtn.style.paddingLeft = '5px';
+      closeBtn.innerHTML = ' &times;';
+      closeBtn.onclick = () => {
+        tearDown();
+      };
       bannerEl.appendChild(firebaseText);
+      bannerEl.appendChild(closeBtn);
       document.body.appendChild(banner.element);
     }
     firebaseText.setAttribute('id', '__firebase__text');
-    firebaseText.setAttribute('style', 'align-content: center');
     firebaseText.innerText = 'Running in this workspace';
   }
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
