@@ -18,10 +18,12 @@
 import {
   assert,
   contains,
+  isCloudWorkstation,
   isEmpty,
   map,
   safeGet,
-  stringify
+  stringify,
+  updateEmulatorBanner
 } from '@firebase/util';
 
 import { ValueEventRegistration } from '../api/Reference_impl';
@@ -328,6 +330,9 @@ export function repoStart(
       repo.server_.unlisten(query, tag);
     }
   });
+  if (isCloudWorkstation(repo.repoInfo_.host)) {
+    updateEmulatorBanner('Database', repo.repoInfo_.isUsingEmulator);
+  }
 }
 
 /**

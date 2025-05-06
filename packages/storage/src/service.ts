@@ -46,9 +46,11 @@ import {
   createMockUserToken,
   EmulatorMockTokenOptions,
   isCloudWorkstation,
-  pingServer
+  pingServer,
+  updateEmulatorBanner
 } from '@firebase/util';
 import { Connection, ConnectionType } from './implementation/connection';
+import { updateEmail } from '@firebase/auth';
 
 export function isUrl(path?: string): boolean {
   return /^[A-Za-z]+:\/\//.test(path as string);
@@ -150,6 +152,7 @@ export function connectStorageEmulator(
   // Workaround to get cookies in Firebase Studio
   if (useSsl) {
     void pingServer(`https://${storage.host}`);
+    updateEmulatorBanner('Storage', true);
   }
   storage._isUsingEmulator = true;
   storage._protocol = useSsl ? 'https' : 'http';
@@ -324,6 +327,7 @@ export class FirebaseStorageImpl implements FirebaseStorage {
     appCheckToken: string | null,
     retry = true
   ): Request<O> {
+    updateEmulatorBanner('Service', this._isUsingEmulator);
     if (!this._deleted) {
       const request = makeRequest(
         requestInfo,
