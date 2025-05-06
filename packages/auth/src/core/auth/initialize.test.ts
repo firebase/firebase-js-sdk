@@ -26,6 +26,7 @@ import {
   AuthProvider,
   Persistence as PersistencePublic,
   PopupRedirectResolver,
+  TenantConfig,
   UserCredential
 } from '../../model/public_types';
 import { isNode } from '@firebase/util';
@@ -51,6 +52,7 @@ import { ClientPlatform, _getClientVersion } from '../util/version';
 import { initializeAuth } from './initialize';
 import { registerAuth } from './register';
 import { debugErrorMap, prodErrorMap } from '../errors';
+import { DefaultConfig } from './auth_impl';
 
 describe('core/auth/initialize', () => {
   let fakeApp: FirebaseApp;
@@ -132,6 +134,8 @@ describe('core/auth/initialize', () => {
   const fakePopupRedirectResolver: PopupRedirectResolver =
     FakePopupRedirectResolver;
 
+  const fakeTenantConfig: TenantConfig = {'location': "us", 'tenantId': "tenant-1"};
+
   before(() => {
     registerAuth(ClientPlatform.BROWSER);
   });
@@ -202,6 +206,15 @@ describe('core/auth/initialize', () => {
       );
     });
 
+    it('should set TenantConfig', async() => {
+      const auth = initializeAuth(fakeApp, {
+        tenantConfig: fakeTenantConfig
+      }) as AuthInternal;
+      await auth._initializationPromise;
+
+      expect(auth.config.apiHost).equal(DefaultConfig.REGIONAL_API_HOST);
+    });
+
     it('should abort initialization if deleted synchronously', async () => {
       const auth = initializeAuth(fakeApp, {
         popupRedirectResolver: fakePopupRedirectResolver
@@ -221,13 +234,15 @@ describe('core/auth/initialize', () => {
       const auth = initializeAuth(fakeApp, {
         errorMap: prodErrorMap,
         persistence: fakeSessionPersistence,
-        popupRedirectResolver: fakePopupRedirectResolver
+        popupRedirectResolver: fakePopupRedirectResolver,
+        tenantConfig: fakeTenantConfig
       });
       expect(
         initializeAuth(fakeApp, {
           errorMap: prodErrorMap,
           persistence: fakeSessionPersistence,
-          popupRedirectResolver: fakePopupRedirectResolver
+          popupRedirectResolver: fakePopupRedirectResolver,
+          tenantConfig: fakeTenantConfig
         })
       ).to.equal(auth);
     });
@@ -261,6 +276,17 @@ describe('core/auth/initialize', () => {
       expect(() =>
         initializeAuth(fakeApp, {
           persistence: [fakeSessionPersistence, inMemoryPersistence]
+        })
+      ).to.throw();
+    });
+
+    it('should throw if called again with different params (TenantConfig)', () => {
+      initializeAuth(fakeApp, {
+        tenantConfig: fakeTenantConfig
+      });
+      expect(() =>
+        initializeAuth(fakeApp, {
+          tenantConfig: undefined
         })
       ).to.throw();
     });
