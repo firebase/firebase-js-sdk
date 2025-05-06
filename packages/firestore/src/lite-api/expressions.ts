@@ -2566,8 +2566,8 @@ export function countIf(booleanExpr: BooleanExpr): AggregateFunction {
 
 /**
  * @beta
- * Creates an expression that return a pseudo-random value of type double in the
- * range of [0, 1), inclusive of 0 and exclusive of 1.
+ * Creates an expression that return a pseudo-random number of type double in
+ * the range of [0, 1), inclusive of 0 and exclusive of 1.
  *
  * @returns A new `Expr` representing the 'rand' function.
  */
@@ -3786,6 +3786,7 @@ export function mod(fieldName: string, expression: Expr): FunctionExpr;
  * @param value The divisor constant.
  * @return A new {@code Expr} representing the modulo operation.
  */
+// TODO: Should we only accept number constants on arithmetic operations? (including others)
 export function mod(fieldName: string, value: unknown): FunctionExpr;
 export function mod(left: Expr | string, right: Expr | unknown): FunctionExpr {
   const normalizedLeft = typeof left === 'string' ? field(left) : left;
@@ -5033,14 +5034,14 @@ export function reverse(stringExpression: Expr): FunctionExpr;
 /**
  * @beta
  *
- * Creates an expression that reverses a string value in the specified field.
+ * Creates an expression that reverses a string value from the specified field.
  *
  * ```typescript
  * // Reverse the value of the 'myString' field.
  * reverse("myString");
  * ```
  *
- * @param field The name of the field representing the string to reverse.
+ * @param field The name of the field that contains the string to reverse.
  * @return A new {@code Expr} representing the reversed string.
  */
 export function reverse(field: string): FunctionExpr;
@@ -5058,13 +5059,13 @@ export function reverse(expr: Expr | string): FunctionExpr {
  * replaceFirst(field("message"), "hello", "hi");
  * ```
  *
- * @param value The expression representing the string to perform the replacement on.
+ * @param stringExpression The expression representing the string to perform the replacement on.
  * @param find The substring to search for.
- * @param replace The substring to replace the first occurrence of 'find' with.
+ * @param replace The replacement for the first occurrence of 'find'.
  * @return A new {@code Expr} representing the string with the first occurrence replaced.
  */
 export function replaceFirst(
-  value: Expr,
+  stringExpression: Expr,
   find: string,
   replace: string
 ): FunctionExpr;
@@ -5080,13 +5081,13 @@ export function replaceFirst(
  * replaceFirst(field("message"), field("findField"), field("replaceField"));
  * ```
  *
- * @param value The expression representing the string to perform the replacement on.
+ * @param stringExpression The expression representing the string to perform the replacement on.
  * @param find The expression representing the substring to search for.
- * @param replace The expression representing the substring to replace the first occurrence of 'find' with.
+ * @param replace The expression representing the replacement for first occurrence of 'find'.
  * @return A new {@code Expr} representing the string with the first occurrence replaced.
  */
 export function replaceFirst(
-  value: Expr,
+  stringExpression: Expr,
   find: Expr,
   replace: Expr
 ): FunctionExpr;
@@ -5094,7 +5095,7 @@ export function replaceFirst(
 /**
  * @beta
  *
- * Creates an expression that replaces the first occurrence of a substring within a string represented by a field with another substring.
+ * Creates an expression that replaces the first occurrence of a substring within the specified string field.
  *
  * ```typescript
  * // Replace the first occurrence of "hello" with "hi" in the 'message' field.
@@ -5103,7 +5104,7 @@ export function replaceFirst(
  *
  * @param fieldName The name of the field representing the string to perform the replacement on.
  * @param find The substring to search for.
- * @param replace The substring to replace the first occurrence of 'find' with.
+ * @param replace The replacement for the first occurrence of 'find'.
  * @return A new {@code Expr} representing the string with the first occurrence replaced.
  */
 export function replaceFirst(
@@ -5132,13 +5133,13 @@ export function replaceFirst(
  * replaceAll(field("message"), "hello", "hi");
  * ```
  *
- * @param value The expression representing the string to perform the replacement on.
+ * @param stringExpression The expression representing the string to perform the replacement on.
  * @param find The substring to search for.
  * @param replace The substring to replace all occurrences of 'find' with.
  * @return A new {@code Expr} representing the string with all occurrences replaced.
  */
 export function replaceAll(
-  value: Expr,
+  stringExpression: Expr,
   find: string,
   replace: string
 ): FunctionExpr;
@@ -5154,13 +5155,13 @@ export function replaceAll(
  * replaceAll(field("message"), field("findField"), field("replaceField"));
  * ```
  *
- * @param value The expression representing the string to perform the replacement on.
+ * @param stringExpression The expression representing the string to perform the replacement on.
  * @param find The expression representing the substring to search for.
  * @param replace The expression representing the substring to replace all occurrences of 'find' with.
  * @return A new {@code Expr} representing the string with all occurrences replaced.
  */
 export function replaceAll(
-  value: Expr,
+  stringExpression: Expr,
   find: Expr,
   replace: Expr
 ): FunctionExpr;
@@ -5432,7 +5433,7 @@ export function regexContains(
  *
  * @param fieldName The name of the field containing the string.
  * @param pattern The regular expression to use for the match.
- * @return A new {@code Expr} representing the regular expression match.
+ * @return A new {@code Expr} representing the regular expression match comparison.
  */
 export function regexMatch(fieldName: string, pattern: string): BooleanExpr;
 
@@ -5448,7 +5449,7 @@ export function regexMatch(fieldName: string, pattern: string): BooleanExpr;
  *
  * @param fieldName The name of the field containing the string.
  * @param pattern The regular expression to use for the match.
- * @return A new {@code Expr} representing the regular expression match.
+ * @return A new {@code Expr} representing the regular expression match comparison.
  */
 export function regexMatch(fieldName: string, pattern: Expr): BooleanExpr;
 
@@ -5465,7 +5466,7 @@ export function regexMatch(fieldName: string, pattern: Expr): BooleanExpr;
  *
  * @param stringExpression The expression representing the string to match against.
  * @param pattern The regular expression to use for the match.
- * @return A new {@code Expr} representing the regular expression match.
+ * @return A new {@code Expr} representing the regular expression match comparison.
  */
 export function regexMatch(
   stringExpression: Expr,
@@ -5485,7 +5486,7 @@ export function regexMatch(
  *
  * @param stringExpression The expression representing the string to match against.
  * @param pattern The regular expression to use for the match.
- * @return A new {@code Expr} representing the regular expression match.
+ * @return A new {@code Expr} representing the regular expression match comparison.
  */
 export function regexMatch(stringExpression: Expr, pattern: Expr): BooleanExpr;
 export function regexMatch(
