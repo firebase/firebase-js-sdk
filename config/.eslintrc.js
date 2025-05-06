@@ -174,6 +174,7 @@ module.exports = {
         }
       }
     ],
+    '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
     '@typescript-eslint/explicit-member-accessibility': [
       'error',
       {
