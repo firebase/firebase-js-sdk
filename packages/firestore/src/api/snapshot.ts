@@ -579,10 +579,7 @@ export class DocumentSnapshot<
    * @returns an instance of {@link DocumentSnapshot} if the JSON object could be
    * parsed. Throws a {@link FirestoreError} if an error occurs.
    */
-  static fromJSON(db: Firestore, json: object): DocumentSnapshot {
-    return DocumentSnapshot.fromJSONInternal(db, json, /* converter = */ null);
-  }
-
+  static fromJSON(db: Firestore, json: object): DocumentSnapshot;
   /**
    * Builds a `DocumentSnapshot` instance from a JSON object created by
    * {@link DocumentSnapshot.toJSON}.
@@ -593,29 +590,21 @@ export class DocumentSnapshot<
    * @returns an instance of {@link DocumentSnapshot} if the JSON object could be
    * parsed. Throws a {@link FirestoreError} if an error occurs.
    */
-  static fromJSONUsingConverter<
+  static fromJSON<
     AppModelType,
     DbModelType extends DocumentData = DocumentData
   >(
     db: Firestore,
     json: object,
     converter: FirestoreDataConverter<AppModelType, DbModelType>
-  ): DocumentSnapshot<AppModelType, DbModelType> {
-    return DocumentSnapshot.fromJSONInternal(db, json, converter);
-  }
-
-  /**
-   * Internal implementation for 'fromJSON' and 'fromJSONUsingCoverter'.
-   * @internal
-   * @private
-   */
-  private static fromJSONInternal<
+  ): DocumentSnapshot<AppModelType, DbModelType>;
+  static fromJSON<
     AppModelType,
     DbModelType extends DocumentData = DocumentData
   >(
     db: Firestore,
     json: object,
-    converter: FirestoreDataConverter<AppModelType, DbModelType> | null = null
+    ...args: unknown[]
   ): DocumentSnapshot<AppModelType, DbModelType> {
     if (validateJSON(json, DocumentSnapshot._jsonSchema)) {
       // Parse the bundle data.
@@ -644,6 +633,15 @@ export class DocumentSnapshot<
       const documentKey = new DocumentKey(
         ResourcePath.fromString(json.bundleName)
       );
+
+      let converter: FirestoreDataConverter<AppModelType, DbModelType> | null =
+        null;
+      if (args[0]) {
+        converter = args[0] as FirestoreDataConverter<
+          AppModelType,
+          DbModelType
+        >;
+      }
 
       // Return the external facing DocumentSnapshot.
       return new DocumentSnapshot(
@@ -891,9 +889,7 @@ export class QuerySnapshot<
    * @returns an instance of {@link QuerySnapshot} if the JSON object could be
    * parsed. Throws a {@link FirestoreError} if an error occurs.
    */
-  static fromJSON(db: Firestore, json: object): QuerySnapshot {
-    return QuerySnapshot.fromJSONInternal(db, json, /* converter = */ null);
-  }
+  static fromJSON(db: Firestore, json: object): QuerySnapshot;
 
   /**
    * Builds a `QuerySnapshot` instance from a JSON object created by
@@ -905,29 +901,18 @@ export class QuerySnapshot<
    * @returns an instance of {@link QuerySnapshot} if the JSON object could be
    * parsed. Throws a {@link FirestoreError} if an error occurs.
    */
-  static fromJSONUsingConverter<
+  static fromJSON<
     AppModelType,
     DbModelType extends DocumentData = DocumentData
   >(
     db: Firestore,
     json: object,
     converter: FirestoreDataConverter<AppModelType, DbModelType>
-  ): QuerySnapshot<AppModelType, DbModelType> {
-    return QuerySnapshot.fromJSONInternal(db, json, converter);
-  }
-
-  /**
-   * Internal implementation for 'fromJSON' and 'fromJSONUsingCoverter'.
-   * @internal
-   * @private
-   */
-  private static fromJSONInternal<
-    AppModelType,
-    DbModelType extends DocumentData = DocumentData
-  >(
+  ): QuerySnapshot<AppModelType, DbModelType>;
+  static fromJSON<AppModelType, DbModelType extends DocumentData>(
     db: Firestore,
     json: object,
-    converter: FirestoreDataConverter<AppModelType, DbModelType> | null
+    ...args: unknown[]
   ): QuerySnapshot<AppModelType, DbModelType> {
     if (validateJSON(json, QuerySnapshot._jsonSchema)) {
       // Parse the bundle data.
@@ -967,6 +952,15 @@ export class QuerySnapshot<
         /* fromCache= */ false,
         /* hasCachedResults= */ false
       );
+
+      let converter: FirestoreDataConverter<AppModelType, DbModelType> | null =
+        null;
+      if (args[0]) {
+        converter = args[0] as FirestoreDataConverter<
+          AppModelType,
+          DbModelType
+        >;
+      }
 
       // Create an external Query object, required to construct the QuerySnapshot.
       const externalQuery = new Query<AppModelType, DbModelType>(

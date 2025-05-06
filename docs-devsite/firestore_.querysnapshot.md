@@ -35,7 +35,7 @@ export declare class QuerySnapshot<AppModelType = DocumentData, DbModelType exte
 |  [docChanges(options)](./firestore_.querysnapshot.md#querysnapshotdocchanges) |  | Returns an array of the documents changes since the last snapshot. If this is the first snapshot, all documents will be in the list as 'added' changes. |
 |  [forEach(callback, thisArg)](./firestore_.querysnapshot.md#querysnapshotforeach) |  | Enumerates all of the documents in the <code>QuerySnapshot</code>. |
 |  [fromJSON(db, json)](./firestore_.querysnapshot.md#querysnapshotfromjson) | <code>static</code> | Builds a <code>QuerySnapshot</code> instance from a JSON object created by [QuerySnapshot.toJSON()](./firestore_.querysnapshot.md#querysnapshottojson)<!-- -->. |
-|  [fromJSONUsingConverter(db, json, converter)](./firestore_.querysnapshot.md#querysnapshotfromjsonusingconverter) | <code>static</code> | Builds a <code>QuerySnapshot</code> instance from a JSON object created by [QuerySnapshot.toJSON()](./firestore_.querysnapshot.md#querysnapshottojson)<!-- -->. |
+|  [fromJSON(db, json, converter)](./firestore_.querysnapshot.md#querysnapshotfromjson) | <code>static</code> | Builds a <code>QuerySnapshot</code> instance from a JSON object created by [QuerySnapshot.toJSON()](./firestore_.querysnapshot.md#querysnapshottojson)<!-- -->. |
 |  [toJSON()](./firestore_.querysnapshot.md#querysnapshottojson) |  | Returns a JSON-serializable representation of this <code>QuerySnapshot</code> instance. |
 
 ## QuerySnapshot.docs
@@ -152,14 +152,14 @@ static fromJSON(db: Firestore, json: object): QuerySnapshot;
 
 an instance of [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if an error occurs.
 
-## QuerySnapshot.fromJSONUsingConverter()
+## QuerySnapshot.fromJSON()
 
 Builds a `QuerySnapshot` instance from a JSON object created by [QuerySnapshot.toJSON()](./firestore_.querysnapshot.md#querysnapshottojson)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-static fromJSONUsingConverter<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter: FirestoreDataConverter<AppModelType, DbModelType>): QuerySnapshot<AppModelType, DbModelType>;
+static fromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter: FirestoreDataConverter<AppModelType, DbModelType>): QuerySnapshot<AppModelType, DbModelType>;
 ```
 
 #### Parameters
