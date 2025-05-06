@@ -57,7 +57,6 @@ import { TransportManager } from '../realtime/TransportManager';
 import { WebSocketConnection } from '../realtime/WebSocketConnection';
 
 import { ReferenceImpl } from './Reference_impl';
-import { updateStrings } from 'yargs';
 
 export { EmulatorMockTokenOptions } from '@firebase/util';
 /**

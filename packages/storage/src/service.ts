@@ -50,7 +50,6 @@ import {
   updateEmulatorBanner
 } from '@firebase/util';
 import { Connection, ConnectionType } from './implementation/connection';
-import { updateEmail } from '@firebase/auth';
 
 export function isUrl(path?: string): boolean {
   return /^[A-Za-z]+:\/\//.test(path as string);
