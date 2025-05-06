@@ -32,7 +32,7 @@ Which location to use.
 <b>Signature:</b>
 
 ```typescript
-location?: string;
+location: string;
 ```
 
 ## TenantConfig.tenantId
@@ -42,5 +42,5 @@ The tenant Id being used.
 <b>Signature:</b>
 
 ```typescript
-tenantId?: string;
+tenantId: string;
 ```

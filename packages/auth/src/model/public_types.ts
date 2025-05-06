@@ -1261,9 +1261,9 @@ export interface Dependencies {
    */
   errorMap?: AuthErrorMap;
   /**
-   * The {@link TenantConfig} to use. This field is optional and required
-   * if Regional Auth Instance needs to be configured. The Auth instance depends
-   * on the {@link DefaultConfig.REGIONAL_API_HOST} endpoint.
+   * The {@link TenantConfig} to use. This dependency is only required
+   * if you want to use regional auth which works with
+   * {@link DefaultConfig.REGIONAL_API_HOST} endpoint. It should not be set otherwise.
    */
   tenantConfig?: TenantConfig;
 }
@@ -1277,11 +1277,11 @@ export interface TenantConfig {
   /**
    * Which location to use.
    */
-  location?: string;
+  location: string;
   /**
    * The tenant Id being used.
    */
-  tenantId?: string;
+  tenantId: string;
 }
 
 /**
