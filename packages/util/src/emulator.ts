@@ -179,6 +179,7 @@ function getOrCreateEl(id: string): { created: boolean; element: HTMLElement } {
   return { created, element: parentDiv };
 }
 
+let previouslyDismissed = false;
 /**
  * Updates Emulator Banner. Primarily used for Firebase Studio
  * @param name
@@ -193,7 +194,8 @@ export function updateEmulatorBanner(
     typeof window === 'undefined' ||
     typeof document === 'undefined' ||
     !isCloudWorkstation(window.location.host) ||
-    emulatorStatus[name] === isRunningEmulator
+    emulatorStatus[name] === isRunningEmulator ||
+    previouslyDismissed
   ) {
     return;
   }
@@ -243,6 +245,7 @@ export function updateEmulatorBanner(
       closeBtn.style.paddingLeft = '5px';
       closeBtn.innerHTML = ' &times;';
       closeBtn.onclick = () => {
+        previouslyDismissed = true;
         tearDown();
       };
       learnMoreLink.setAttribute('id', learnMoreId);
