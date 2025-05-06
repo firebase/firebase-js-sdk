@@ -798,8 +798,8 @@ export function signOut(auth: Auth): Promise<void>;
 
 // @public
 export interface TenantConfig {
-    location?: string;
-    tenantId?: string;
+    location: string;
+    tenantId: string;
 }
 
 // @public
