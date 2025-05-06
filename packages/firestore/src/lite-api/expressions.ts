@@ -5508,7 +5508,7 @@ export function regexMatch(
  * strContains("description", "example");
  * ```
  *
- * @param fieldName The name of the field containing the string.
+ * @param fieldName The name of the field to perform the comparison on.
  * @param substring The substring to search for.
  * @return A new {@code Expr} representing the 'contains' comparison.
  */
@@ -5524,7 +5524,7 @@ export function strContains(fieldName: string, substring: string): BooleanExpr;
  * strContains("description", field("keyword"));
  * ```
  *
- * @param fieldName The name of the field containing the string.
+ * @param fieldName The name of the field to perform the comparison on.
  * @param substring The expression representing the substring to search for.
  * @return A new {@code Expr} representing the 'contains' comparison.
  */
@@ -5826,8 +5826,8 @@ export function trim(expr: Expr | string): FunctionExpr {
  * ```
  *
  * @param fieldName The field name containing the initial string value.
- * @param secondString An expression or string literal to concatenate.
- * @param otherStrings Optional additional expressions or literals (typically strings) to concatenate.
+ * @param secondString A string expression or string literal to concatenate.
+ * @param otherStrings Optional additional string expressions or string literals to concatenate.
  * @return A new {@code Expr} representing the concatenated string.
  */
 export function strConcat(
@@ -5845,9 +5845,9 @@ export function strConcat(
  * strConcat(field("firstName"), " ", field("lastName"));
  * ```
  *
- * @param firstString The initial string expression to concatenate to.
- * @param secondString An expression or string literal to concatenate.
- * @param otherStrings Optional additional expressions or literals (typically strings) to concatenate.
+ * @param firstString The expression representing the initial string value.
+ * @param secondString A string expression or string literal to concatenate.
+ * @param otherStrings Optional additional string expressions or string literals to concatenate.
  * @return A new {@code Expr} representing the concatenated string.
  */
 export function strConcat(
