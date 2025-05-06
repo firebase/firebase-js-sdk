@@ -143,10 +143,9 @@ export class Firestore implements FirestoreService {
 
   _freezeSettings(): FirestoreSettingsImpl {
     this._settingsFrozen = true;
-    updateEmulatorBanner(
-      'Firestore',
-      this._settings.isUsingEmulator || isCloudWorkstation(this._settings.host)
-    );
+    if (isCloudWorkstation(this._settings.host)) {
+      updateEmulatorBanner('Firestore', this._settings.isUsingEmulator);
+    }
     return this._settings;
   }
 

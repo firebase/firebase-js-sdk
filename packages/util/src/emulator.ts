@@ -16,6 +16,7 @@
  */
 
 import { base64urlEncodeWithoutPadding } from './crypt';
+import { isCloudWorkstation } from './url';
 
 // Firebase Auth tokens contain snake_case claims following the JWT standard / convention.
 /* eslint-disable camelcase */
@@ -191,6 +192,7 @@ export function updateEmulatorBanner(
   if (
     typeof window === 'undefined' ||
     typeof document === 'undefined' ||
+    !isCloudWorkstation(window.location.host) ||
     emulatorStatus[name] === isRunningEmulator
   ) {
     return;

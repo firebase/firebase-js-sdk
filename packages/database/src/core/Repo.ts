@@ -330,9 +330,7 @@ export function repoStart(
       repo.server_.unlisten(query, tag);
     }
   });
-  if (isCloudWorkstation(repo.repoInfo_.host)) {
-    updateEmulatorBanner('Database', repo.repoInfo_.isUsingEmulator);
-  }
+  updateEmulatorBanner('Database', repo.repoInfo_.isUsingEmulator);
 }
 
 /**
