@@ -423,6 +423,20 @@ describe('getDoc()', () => {
       expect(docSnap.exists()).to.be.true;
     });
   });
+
+  it('can get doc with a deserialized reference', () => {
+    return withTestDocAndInitialData({ val: 1 }, async docRef => {
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.exists()).to.be.true;
+      const json = docRef.toJSON();
+      const deserializedDocRef = DocumentReference.fromJSON(
+        docSnap._firestore,
+        json
+      );
+      const docSnap2 = await getDoc(deserializedDocRef);
+      expect(docSnap2.exists()).to.be.true;
+    });
+  });
 });
 
 /**

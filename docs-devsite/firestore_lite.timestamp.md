@@ -40,6 +40,7 @@ export declare class Timestamp
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [fromDate(date)](./firestore_lite.timestamp.md#timestampfromdate) | <code>static</code> | Creates a new timestamp from the given date. |
+|  [fromJSON(json)](./firestore_lite.timestamp.md#timestampfromjson) | <code>static</code> | Builds a <code>Timestamp</code> instance from a JSON serialized version of <code>Bytes</code>. |
 |  [fromMillis(milliseconds)](./firestore_lite.timestamp.md#timestampfrommillis) | <code>static</code> | Creates a new timestamp from the given number of milliseconds. |
 |  [isEqual(other)](./firestore_lite.timestamp.md#timestampisequal) |  | Returns true if this <code>Timestamp</code> is equal to the provided one. |
 |  [now()](./firestore_lite.timestamp.md#timestampnow) | <code>static</code> | Creates a new timestamp with the current date, with millisecond precision. |
@@ -109,6 +110,26 @@ static fromDate(date: Date): Timestamp;
 [Timestamp](./firestore_lite.timestamp.md#timestamp_class)
 
 A new `Timestamp` representing the same point in time as the given date.
+
+## Timestamp.fromJSON()
+
+Builds a `Timestamp` instance from a JSON serialized version of `Bytes`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+static fromJSON(json: object): Timestamp;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  json | object |  |
+
+<b>Returns:</b>
+
+[Timestamp](./firestore_lite.timestamp.md#timestamp_class)
 
 ## Timestamp.fromMillis()
 
@@ -194,11 +215,12 @@ Returns a JSON-serializable representation of this `Timestamp`<!-- -->.
 toJSON(): {
         seconds: number;
         nanoseconds: number;
+        type: string;
     };
 ```
 <b>Returns:</b>
 
-{ seconds: number; nanoseconds: number; }
+{ seconds: number; nanoseconds: number; type: string; }
 
 ## Timestamp.toMillis()
 

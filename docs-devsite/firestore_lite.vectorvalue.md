@@ -24,8 +24,32 @@ export declare class VectorValue
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
+|  [fromJSON(json)](./firestore_lite.vectorvalue.md#vectorvaluefromjson) | <code>static</code> | Builds a <code>VectorValue</code> instance from a JSON object created by [VectorValue.toJSON()](./firestore_.vectorvalue.md#vectorvaluetojson)<!-- -->. |
 |  [isEqual(other)](./firestore_lite.vectorvalue.md#vectorvalueisequal) |  | Returns <code>true</code> if the two <code>VectorValue</code> values have the same raw number arrays, returns <code>false</code> otherwise. |
 |  [toArray()](./firestore_lite.vectorvalue.md#vectorvaluetoarray) |  | Returns a copy of the raw number array form of the vector. |
+|  [toJSON()](./firestore_lite.vectorvalue.md#vectorvaluetojson) |  | Returns a JSON-serializable representation of this <code>VectorValue</code> instance. |
+
+## VectorValue.fromJSON()
+
+Builds a `VectorValue` instance from a JSON object created by [VectorValue.toJSON()](./firestore_.vectorvalue.md#vectorvaluetojson)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+static fromJSON(json: object): VectorValue;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  json | object | a JSON object represention of a <code>VectorValue</code> instance |
+
+<b>Returns:</b>
+
+[VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class)
+
+an instance of [VectorValue](./firestore_.vectorvalue.md#vectorvalue_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if an error occurs.
 
 ## VectorValue.isEqual()
 
@@ -59,4 +83,19 @@ toArray(): number[];
 <b>Returns:</b>
 
 number\[\]
+
+## VectorValue.toJSON()
+
+Returns a JSON-serializable representation of this `VectorValue` instance.
+
+<b>Signature:</b>
+
+```typescript
+toJSON(): object;
+```
+<b>Returns:</b>
+
+object
+
+a JSON representation of this object.
 

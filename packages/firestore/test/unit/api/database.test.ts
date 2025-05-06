@@ -18,7 +18,9 @@
 import { expect } from 'chai';
 
 import {
+  DocumentReference,
   connectFirestoreEmulator,
+  loadBundle,
   refEqual,
   snapshotEqual,
   queryEqual
@@ -34,6 +36,15 @@ import {
   querySnapshot
 } from '../../util/api_helpers';
 import { keys } from '../../util/helpers';
+
+describe('Bundle', () => {
+  it('loadBundle does not throw with an empty bundle string)', async () => {
+    const db = newTestFirestore();
+    expect(async () => {
+      await loadBundle(db, '');
+    }).to.not.throw;
+  });
+});
 
 describe('CollectionReference', () => {
   it('support equality checking with isEqual()', () => {
@@ -60,6 +71,40 @@ describe('DocumentReference', () => {
 
   it('JSON.stringify() does not throw', () => {
     JSON.stringify(documentReference('foo/bar'));
+  });
+
+  it('toJSON() does not throw', () => {
+    expect(() => {
+      documentReference('foo/bar').toJSON();
+    }).to.not.throw;
+  });
+
+  it('toJSON() includes correct JSON fields', () => {
+    const docRef = documentReference('foo/bar');
+    const json = docRef.toJSON();
+    expect(json).to.deep.equal({
+      type: 'firestore/documentReference/1.0',
+      referencePath: 'foo/bar'
+    });
+  });
+
+  it('fromJSON() does not throw', () => {
+    const db = newTestFirestore();
+    const docRef = documentReference('foo/bar');
+    const json = docRef.toJSON();
+    expect(() => {
+      DocumentReference.fromJSON(db, json);
+    }).to.not.throw;
+  });
+
+  it('fromJSON() equals original docRef', () => {
+    const db = newTestFirestore();
+    const docRef = documentReference('foo/bar');
+    const json = docRef.toJSON();
+    const deserializedDocRef = DocumentReference.fromJSON(db, json);
+    expect(docRef.id).to.equal(deserializedDocRef.id);
+    expect(docRef.path).to.equal(deserializedDocRef.path);
+    expect(docRef.toJSON()).to.deep.equal(deserializedDocRef.toJSON());
   });
 });
 
@@ -106,6 +151,44 @@ describe('DocumentSnapshot', () => {
 
   it('JSON.stringify() does not throw', () => {
     JSON.stringify(documentSnapshot('foo/bar', { a: 1 }, true));
+  });
+
+  it('toJSON returns a bundle', () => {
+    const json = documentSnapshot(
+      'foo/bar',
+      { a: 1 },
+      /*fromCache=*/ true
+    ).toJSON();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((json as any).bundle).to.exist;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((json as any).bundle.length).to.be.greaterThan(0);
+  });
+
+  it('toJSON returns an empty bundle when there are no documents', () => {
+    const json = documentSnapshot(
+      'foo/bar',
+      /*data=*/ null,
+      /*fromCache=*/ true
+    ).toJSON();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((json as any).bundle).to.exist;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((json as any).bundle.length).to.equal(0);
+  });
+
+  it('toJSON throws when there are pending writes', () => {
+    expect(() => {
+      documentSnapshot(
+        'foo/bar',
+        {},
+        /*fromCache=*/ true,
+        /*hasPendingWrites=*/ true
+      ).toJSON();
+    }).to.throw(
+      `DocumentSnapshot.toJSON() attempted to serialize a document with pending writes. ` +
+        `Await waitForPendingWrites() before invoking toJSON().`
+    );
   });
 });
 
@@ -227,6 +310,45 @@ describe('QuerySnapshot', () => {
   it('JSON.stringify() does not throw', () => {
     JSON.stringify(
       querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false)
+    );
+  });
+
+  it('toJSON returns a bundle', () => {
+    const json = querySnapshot(
+      'foo',
+      {},
+      { a: { a: 1 } },
+      keys(),
+      false,
+      false
+    ).toJSON();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((json as any).bundle).to.exist;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((json as any).bundle.length).to.be.greaterThan(0);
+  });
+
+  it('toJSON returns a bundle when there are no documents', () => {
+    const json = querySnapshot('foo', {}, {}, keys(), false, false).toJSON();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((json as any).bundle).to.exist;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((json as any).bundle.length).to.be.greaterThan(0);
+  });
+
+  it('toJSON throws when there are pending writes', () => {
+    expect(() =>
+      querySnapshot(
+        'foo',
+        {},
+        { a: { a: 1 } },
+        keys('foo/a'),
+        true,
+        true
+      ).toJSON()
+    ).to.throw(
+      `QuerySnapshot.toJSON() attempted to serialize a document with pending writes. ` +
+        `Await waitForPendingWrites() before invoking toJSON().`
     );
   });
 });

@@ -16,6 +16,9 @@
  */
 
 import { Code, FirestoreError } from '../util/error';
+// API extractor fails importing 'property' unless we also explicitly import 'Property'.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-imports-ts
+import { Property, property, validateJSON } from '../util/json_validation';
 import { primitiveComparator } from '../util/misc';
 
 // The earliest date supported by Firestore timestamps (0001-01-01T00:00:00Z).
@@ -174,9 +177,31 @@ export class Timestamp {
     );
   }
 
+  static _jsonSchemaVersion: string = 'firestore/timestamp/1.0';
+  static _jsonSchema = {
+    type: property('string', Timestamp._jsonSchemaVersion),
+    seconds: property('number'),
+    nanoseconds: property('number')
+  };
+
   /** Returns a JSON-serializable representation of this `Timestamp`. */
-  toJSON(): { seconds: number; nanoseconds: number } {
-    return { seconds: this.seconds, nanoseconds: this.nanoseconds };
+  toJSON(): { seconds: number; nanoseconds: number; type: string } {
+    return {
+      type: Timestamp._jsonSchemaVersion,
+      seconds: this.seconds,
+      nanoseconds: this.nanoseconds
+    };
+  }
+
+  /** Builds a `Timestamp` instance from a JSON serialized version of `Bytes`. */
+  static fromJSON(json: object): Timestamp {
+    if (validateJSON(json, Timestamp._jsonSchema)) {
+      return new Timestamp(json.seconds, json.nanoseconds);
+    }
+    throw new FirestoreError(
+      Code.INTERNAL,
+      'Unexpected error creating Timestamp from JSON.'
+    );
   }
 
   /**

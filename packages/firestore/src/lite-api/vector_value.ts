@@ -16,6 +16,10 @@
  */
 
 import { isPrimitiveArrayEqual } from '../util/array';
+import { Code, FirestoreError } from '../util/error';
+// API extractor fails importing 'property' unless we also explicitly import 'Property'.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-imports-ts
+import { Property, property, validateJSON } from '../util/json_validation';
 
 /**
  * Represents a vector type in Firestore documents.
@@ -47,5 +51,49 @@ export class VectorValue {
    */
   isEqual(other: VectorValue): boolean {
     return isPrimitiveArrayEqual(this._values, other._values);
+  }
+
+  static _jsonSchemaVersion: string = 'firestore/vectorValue/1.0';
+  static _jsonSchema = {
+    type: property('string', VectorValue._jsonSchemaVersion),
+    vectorValues: property('object')
+  };
+
+  /**
+   * Returns a JSON-serializable representation of this `VectorValue` instance.
+   *
+   * @returns a JSON representation of this object.
+   */
+  toJSON(): object {
+    return {
+      type: VectorValue._jsonSchemaVersion,
+      vectorValues: this._values
+    };
+  }
+
+  /**
+   * Builds a `VectorValue` instance from a JSON object created by {@link VectorValue.toJSON}.
+   *
+   * @param json a JSON object represention of a `VectorValue` instance
+   * @returns an instance of {@link VectorValue} if the JSON object could be parsed. Throws a
+   * {@link FirestoreError} if an error occurs.
+   */
+  static fromJSON(json: object): VectorValue {
+    if (validateJSON(json, VectorValue._jsonSchema)) {
+      if (
+        Array.isArray(json.vectorValues) &&
+        json.vectorValues.every(element => typeof element === 'number')
+      ) {
+        return new VectorValue(json.vectorValues);
+      }
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        "Expected 'vectorValues' field to be a number array"
+      );
+    }
+    throw new FirestoreError(
+      Code.INTERNAL,
+      'Unexpected error creating Timestamp from JSON.'
+    );
   }
 }

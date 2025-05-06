@@ -32,6 +32,9 @@ import {
   validateDocumentPath,
   validateNonEmptyArgument
 } from '../util/input_validation';
+// API extractor fails importing property unless we also explicitly import Property.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-imports-ts
+import { Property, property, validateJSON } from '../util/json_validation';
 import { AutoId } from '../util/misc';
 
 import { Firestore } from './database';
@@ -276,6 +279,53 @@ export class DocumentReference<
       this.firestore,
       converter,
       this._key
+    );
+  }
+
+  static _jsonSchemaVersion: string = 'firestore/documentReference/1.0';
+  static _jsonSchema = {
+    type: property('string', DocumentReference._jsonSchemaVersion),
+    referencePath: property('string')
+  };
+
+  /**
+   * Returns a JSON-serializable representation of this `DocumentReference` instance.
+   *
+   * @returns a JSON representation of this object.
+   */
+  toJSON(): object {
+    return {
+      type: DocumentReference._jsonSchemaVersion,
+      referencePath: this._key.toString()
+    };
+  }
+
+  /**
+   * Builds a `DocumentReference` instance from a JSON object created by
+   * {@link DocumentReference.toJSON}.
+   *
+   * @param json a JSON object represention of a `DocumentReference` instance
+   * @returns an instance of {@link DocumentReference} if the JSON object could be parsed. Throws a
+   * {@link FirestoreError} if an error occurs.
+   */
+  static fromJSON<
+    NewAppModelType = DocumentData,
+    NewDbModelType extends DocumentData = DocumentData
+  >(
+    firestore: Firestore,
+    json: object,
+    converter?: FirestoreDataConverter<NewAppModelType, NewDbModelType>
+  ): DocumentReference<NewAppModelType, NewDbModelType> {
+    if (validateJSON(json, DocumentReference._jsonSchema)) {
+      return new DocumentReference<NewAppModelType, NewDbModelType>(
+        firestore,
+        converter ? converter : null,
+        new DocumentKey(ResourcePath.fromString(json.referencePath))
+      );
+    }
+    throw new FirestoreError(
+      Code.INTERNAL,
+      'Unexpected error creating Bytes from JSON.'
     );
   }
 }

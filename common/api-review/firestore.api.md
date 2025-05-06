@@ -68,9 +68,11 @@ export function average(field: string | FieldPath): AggregateField<number | null
 // @public
 export class Bytes {
     static fromBase64String(base64: string): Bytes;
+    static fromJSON(json: object): Bytes;
     static fromUint8Array(array: Uint8Array): Bytes;
     isEqual(other: Bytes): boolean;
     toBase64(): string;
+    toJSON(): object;
     toString(): string;
     toUint8Array(): Uint8Array;
 }
@@ -161,9 +163,11 @@ export function documentId(): FieldPath;
 export class DocumentReference<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> {
     readonly converter: FirestoreDataConverter<AppModelType, DbModelType> | null;
     readonly firestore: Firestore;
+    static fromJSON<NewAppModelType = DocumentData, NewDbModelType extends DocumentData = DocumentData>(firestore: Firestore, json: object, converter?: FirestoreDataConverter<NewAppModelType, NewDbModelType>): DocumentReference<NewAppModelType, NewDbModelType>;
     get id(): string;
     get parent(): CollectionReference<AppModelType, DbModelType>;
     get path(): string;
+    toJSON(): object;
     readonly type = "document";
     withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): DocumentReference<NewAppModelType, NewDbModelType>;
     withConverter(converter: null): DocumentReference<DocumentData, DocumentData>;
@@ -178,6 +182,8 @@ export class DocumentSnapshot<AppModelType = DocumentData, DbModelType extends D
     get id(): string;
     readonly metadata: SnapshotMetadata;
     get ref(): DocumentReference<AppModelType, DbModelType>;
+    // (undocumented)
+    toJSON(): object;
 }
 
 export { EmulatorMockTokenOptions }
@@ -264,12 +270,14 @@ export interface FirestoreSettings {
 // @public
 export class GeoPoint {
     constructor(latitude: number, longitude: number);
+    static fromJSON(json: object): GeoPoint;
     isEqual(other: GeoPoint): boolean;
     get latitude(): number;
     get longitude(): number;
     toJSON(): {
         latitude: number;
         longitude: number;
+        type: string;
     };
 }
 
@@ -460,6 +468,46 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(query
 export function onSnapshot<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, options: SnapshotListenOptions, onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
 
 // @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, options: SnapshotListenOptions, onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, options: SnapshotListenOptions, onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, observer: {
+    next: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+}, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, observer: {
+    next: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+}, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, options: SnapshotListenOptions, observer: {
+    next: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+}, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(firestore: Firestore, snapshotJson: object, options: SnapshotListenOptions, observer: {
+    next: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+}, converter?: FirestoreDataConverter<DbModelType>): Unsubscribe;
+
+// @public
 export function onSnapshotsInSync(firestore: Firestore, observer: {
     next?: (value: void) => void;
     error?: (error: FirestoreError) => void;
@@ -610,6 +658,8 @@ export class QuerySnapshot<AppModelType = DocumentData, DbModelType extends Docu
     readonly metadata: SnapshotMetadata;
     readonly query: Query<AppModelType, DbModelType>;
     get size(): number;
+    // (undocumented)
+    toJSON(): object;
 }
 
 // @public
@@ -696,6 +746,7 @@ export class Timestamp {
     seconds: number,
     nanoseconds: number);
     static fromDate(date: Date): Timestamp;
+    static fromJSON(json: object): Timestamp;
     static fromMillis(milliseconds: number): Timestamp;
     isEqual(other: Timestamp): boolean;
     readonly nanoseconds: number;
@@ -705,6 +756,7 @@ export class Timestamp {
     toJSON(): {
         seconds: number;
         nanoseconds: number;
+        type: string;
     };
     toMillis(): number;
     toString(): string;
@@ -751,8 +803,10 @@ export function vector(values?: number[]): VectorValue;
 // @public
 export class VectorValue {
     /* Excluded from this release type: __constructor */
+    static fromJSON(json: object): VectorValue;
     isEqual(other: VectorValue): boolean;
     toArray(): number[];
+    toJSON(): object;
 }
 
 // @public
