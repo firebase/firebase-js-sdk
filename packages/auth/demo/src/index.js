@@ -2046,7 +2046,13 @@ function onApplyAuthSettingsChange() {
 function initApp() {
   log('Initializing app...');
   app = initializeApp(config);
-  auth = getAuth(app);
+  const tenantConfig: {'location': "us", 'tenantId': 'tenant-1'};
+  // auth = getAuth(app);
+  auth = initializeAuth(app, {
+    tenantConfig: tenantConfig
+  });
+  console.log('demo app');
+  console.log(auth);
   if (USE_AUTH_EMULATOR) {
     connectAuthEmulator(auth, AUTH_EMULATOR_URL);
   }

@@ -31,7 +31,8 @@ import { EmailAuthProvider } from '../providers/email';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import {
   _assert,
-  _serverAppCurrentUserOperationNotSupportedError
+  _serverAppCurrentUserOperationNotSupportedError,
+  _operationNotSupportedForInitializedAuthInstance
 } from '../util/assert';
 import { _setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
@@ -47,6 +48,7 @@ import {
   RecaptchaAuthProvider
 } from '../../api';
 import { _isFirebaseServerApp } from '@firebase/app';
+import { _isFirebaseRegionalAuthInitialized } from '../../../internal';
 
 /**
  * Updates the password policy cached in the {@link Auth} instance if a policy is already
@@ -351,6 +353,9 @@ export function signInWithEmailAndPassword(
     return Promise.reject(
       _serverAppCurrentUserOperationNotSupportedError(auth)
     );
+  }
+  if (_isFirebaseRegionalAuthInitialized(auth)) {
+    return Promise.reject(_operationNotSupportedForInitializedAuthInstance(auth));
   }
   return signInWithCredential(
     getModularInstance(auth),
