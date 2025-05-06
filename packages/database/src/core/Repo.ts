@@ -18,7 +18,6 @@
 import {
   assert,
   contains,
-  isCloudWorkstation,
   isEmpty,
   map,
   safeGet,
