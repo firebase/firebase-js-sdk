@@ -27,6 +27,7 @@ import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
 import { mapCountTokensRequest } from '../googleai-mappers';
 import { GoogleAIBackend, VertexAIBackend } from '../backend';
+import { ChromeAdapter } from './chrome-adapter';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -66,7 +67,8 @@ describe('countTokens()', () => {
     const result = await countTokens(
       fakeApiSettings,
       'model',
-      fakeRequestParams
+      fakeRequestParams,
+      new ChromeAdapter()
     );
     expect(result.totalTokens).to.equal(6);
     expect(result.totalBillableCharacters).to.equal(16);
@@ -92,7 +94,8 @@ describe('countTokens()', () => {
     const result = await countTokens(
       fakeApiSettings,
       'model',
-      fakeRequestParams
+      fakeRequestParams,
+      new ChromeAdapter()
     );
     expect(result.totalTokens).to.equal(1837);
     expect(result.totalBillableCharacters).to.equal(117);
@@ -120,7 +123,8 @@ describe('countTokens()', () => {
     const result = await countTokens(
       fakeApiSettings,
       'model',
-      fakeRequestParams
+      fakeRequestParams,
+      new ChromeAdapter()
     );
     expect(result.totalTokens).to.equal(258);
     expect(result).to.not.have.property('totalBillableCharacters');
@@ -146,7 +150,12 @@ describe('countTokens()', () => {
       json: mockResponse.json
     } as Response);
     await expect(
-      countTokens(fakeApiSettings, 'model', fakeRequestParams)
+      countTokens(
+        fakeApiSettings,
+        'model',
+        fakeRequestParams,
+        new ChromeAdapter()
+      )
     ).to.be.rejectedWith(/404.*not found/);
     expect(mockFetch).to.be.called;
   });
@@ -164,7 +173,12 @@ describe('countTokens()', () => {
     it('maps request to GoogleAI format', async () => {
       makeRequestStub.resolves({ ok: true, json: () => {} } as Response); // Unused
 
-      await countTokens(fakeGoogleAIApiSettings, 'model', fakeRequestParams);
+      await countTokens(
+        fakeGoogleAIApiSettings,
+        'model',
+        fakeRequestParams,
+        new ChromeAdapter()
+      );
 
       expect(makeRequestStub).to.be.calledWith(
         'model',
@@ -175,5 +189,25 @@ describe('countTokens()', () => {
         undefined
       );
     });
+  });
+  it('on-device', async () => {
+    const chromeAdapter = new ChromeAdapter();
+    const isAvailableStub = stub(chromeAdapter, 'isAvailable').resolves(true);
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-total-tokens.json'
+    );
+    const countTokensStub = stub(chromeAdapter, 'countTokens').resolves(
+      mockResponse as Response
+    );
+    const result = await countTokens(
+      fakeApiSettings,
+      'model',
+      fakeRequestParams,
+      chromeAdapter
+    );
+    expect(result.totalTokens).eq(6);
+    expect(isAvailableStub).to.be.called;
+    expect(countTokensStub).to.be.calledWith(fakeRequestParams);
   });
 });

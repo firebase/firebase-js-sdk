@@ -28,6 +28,7 @@ import {
 } from './api';
 import { AI, VertexAI, AIErrorCode } from './public-types';
 import { VertexAIBackend } from './backend';
+import { ChromeAdapter } from './methods/chrome-adapter';
 
 function assertAssignable<T, _U extends T>(): void {}
 
@@ -65,7 +66,11 @@ describe('backwards-compatible types', () => {
   it('AIModel is backwards compatible with VertexAIModel', () => {
     assertAssignable<typeof VertexAIModel, typeof AIModel>();
 
-    const model = new GenerativeModel(fakeAI, { model: 'model-name' });
+    const model = new GenerativeModel(
+      fakeAI,
+      { model: 'model-name' },
+      new ChromeAdapter()
+    );
     expect(model).to.be.instanceOf(AIModel);
     expect(model).to.be.instanceOf(VertexAIModel);
   });
