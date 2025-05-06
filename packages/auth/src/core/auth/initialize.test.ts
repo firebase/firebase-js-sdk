@@ -134,7 +134,10 @@ describe('core/auth/initialize', () => {
   const fakePopupRedirectResolver: PopupRedirectResolver =
     FakePopupRedirectResolver;
 
-  const fakeTenantConfig: TenantConfig = {'location': "us", 'tenantId': "tenant-1"};
+  const fakeTenantConfig: TenantConfig = {
+    'location': 'us',
+    'tenantId': 'tenant-1'
+  };
 
   before(() => {
     registerAuth(ClientPlatform.BROWSER);
@@ -206,7 +209,7 @@ describe('core/auth/initialize', () => {
       );
     });
 
-    it('should set TenantConfig', async() => {
+    it('should set TenantConfig', async () => {
       const auth = initializeAuth(fakeApp, {
         tenantConfig: fakeTenantConfig
       }) as AuthInternal;
