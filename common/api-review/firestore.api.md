@@ -178,7 +178,8 @@ export class DocumentSnapshot<AppModelType = DocumentData, DbModelType extends D
     protected constructor();
     data(options?: SnapshotOptions): AppModelType | undefined;
     exists(): this is QueryDocumentSnapshot<AppModelType, DbModelType>;
-    static fromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter?: FirestoreDataConverter<AppModelType, DbModelType> | null): DocumentSnapshot<AppModelType, DbModelType>;
+    static fromJSON(db: Firestore, json: object): DocumentSnapshot;
+    static fromJSONUsingConverter<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter: FirestoreDataConverter<AppModelType, DbModelType>): DocumentSnapshot<AppModelType, DbModelType>;
     get(fieldPath: string | FieldPath, options?: SnapshotOptions): any;
     get id(): string;
     readonly metadata: SnapshotMetadata;

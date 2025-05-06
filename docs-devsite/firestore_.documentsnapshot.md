@@ -40,7 +40,8 @@ export declare class DocumentSnapshot<AppModelType = DocumentData, DbModelType e
 |  --- | --- | --- |
 |  [data(options)](./firestore_.documentsnapshot.md#documentsnapshotdata) |  | Retrieves all fields in the document as an <code>Object</code>. Returns <code>undefined</code> if the document doesn't exist.<!-- -->By default, <code>serverTimestamp()</code> values that have not yet been set to their final value will be returned as <code>null</code>. You can override this by passing an options object. |
 |  [exists()](./firestore_.documentsnapshot.md#documentsnapshotexists) |  | Returns whether or not the data exists. True if the document exists. |
-|  [fromJSON(db, json, converter)](./firestore_.documentsnapshot.md#documentsnapshotfromjson) | <code>static</code> | Builds a <code>DocumentSnapshot</code> instance from a JSON object created by [DocumentSnapshot.toJSON()](./firestore_.documentsnapshot.md#documentsnapshottojson)<!-- -->. |
+|  [fromJSON(db, json)](./firestore_.documentsnapshot.md#documentsnapshotfromjson) | <code>static</code> | Builds a <code>DocumentSnapshot</code> instance from a JSON object created by [DocumentSnapshot.toJSON()](./firestore_.documentsnapshot.md#documentsnapshottojson)<!-- -->. |
+|  [fromJSONUsingConverter(db, json, converter)](./firestore_.documentsnapshot.md#documentsnapshotfromjsonusingconverter) | <code>static</code> | Builds a <code>DocumentSnapshot</code> instance from a JSON object created by [DocumentSnapshot.toJSON()](./firestore_.documentsnapshot.md#documentsnapshottojson)<!-- -->. |
 |  [get(fieldPath, options)](./firestore_.documentsnapshot.md#documentsnapshotget) |  | Retrieves the field specified by <code>fieldPath</code>. Returns <code>undefined</code> if the document or field doesn't exist.<!-- -->By default, a <code>serverTimestamp()</code> that has not yet been set to its final value will be returned as <code>null</code>. You can override this by passing an options object. |
 |  [toJSON()](./firestore_.documentsnapshot.md#documentsnapshottojson) |  | Returns a JSON-serializable representation of this <code>DocumentSnapshot</code> instance. |
 
@@ -128,7 +129,7 @@ Builds a `DocumentSnapshot` instance from a JSON object created by [DocumentSnap
 <b>Signature:</b>
 
 ```typescript
-static fromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter?: FirestoreDataConverter<AppModelType, DbModelType> | null): DocumentSnapshot<AppModelType, DbModelType>;
+static fromJSON(db: Firestore, json: object): DocumentSnapshot;
 ```
 
 #### Parameters
@@ -137,7 +138,30 @@ static fromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(d
 |  --- | --- | --- |
 |  db | [Firestore](./firestore_.firestore.md#firestore_class) |  |
 |  json | object | a JSON object represention of a <code>DocumentSnapshot</code> instance. |
-|  converter | [FirestoreDataConverter](./firestore_.firestoredataconverter.md#firestoredataconverter_interface)<!-- -->&lt;AppModelType, DbModelType&gt; \| null | Converts objects to and from Firestore. |
+
+<b>Returns:</b>
+
+[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)
+
+an instance of [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if an error occurs.
+
+## DocumentSnapshot.fromJSONUsingConverter()
+
+Builds a `DocumentSnapshot` instance from a JSON object created by [DocumentSnapshot.toJSON()](./firestore_.documentsnapshot.md#documentsnapshottojson)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+static fromJSONUsingConverter<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter: FirestoreDataConverter<AppModelType, DbModelType>): DocumentSnapshot<AppModelType, DbModelType>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  db | [Firestore](./firestore_.firestore.md#firestore_class) |  |
+|  json | object | a JSON object represention of a <code>DocumentSnapshot</code> instance. |
+|  converter | [FirestoreDataConverter](./firestore_.firestoredataconverter.md#firestoredataconverter_interface)<!-- -->&lt;AppModelType, DbModelType&gt; | Converts objects to and from Firestore. |
 
 <b>Returns:</b>
 

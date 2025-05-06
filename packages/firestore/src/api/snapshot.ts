@@ -576,11 +576,40 @@ export class DocumentSnapshot<
    *
    * @param firestore - The {@link Firestore} instance the snapshot should be loaded for.
    * @param json - a JSON object represention of a `DocumentSnapshot` instance.
+   * @returns an instance of {@link DocumentSnapshot} if the JSON object could be
+   * parsed. Throws a {@link FirestoreError} if an error occurs.
+   */
+  static fromJSON(db: Firestore, json: object): DocumentSnapshot {
+    return DocumentSnapshot.fromJSONInternal(db, json, /* converter = */ null);
+  }
+
+  /**
+   * Builds a `DocumentSnapshot` instance from a JSON object created by
+   * {@link DocumentSnapshot.toJSON}.
+   *
+   * @param firestore - The {@link Firestore} instance the snapshot should be loaded for.
+   * @param json - a JSON object represention of a `DocumentSnapshot` instance.
    * @param converter - Converts objects to and from Firestore.
    * @returns an instance of {@link DocumentSnapshot} if the JSON object could be
    * parsed. Throws a {@link FirestoreError} if an error occurs.
    */
-  static fromJSON<
+  static fromJSONUsingConverter<
+    AppModelType,
+    DbModelType extends DocumentData = DocumentData
+  >(
+    db: Firestore,
+    json: object,
+    converter: FirestoreDataConverter<AppModelType, DbModelType>
+  ): DocumentSnapshot<AppModelType, DbModelType> {
+    return DocumentSnapshot.fromJSONInternal(db, json, converter);
+  }
+
+  /**
+   * Internal implementation for 'fromJSON' and 'fromJSONUsingCoverter'.
+   * @internal
+   * @private
+   */
+  private static fromJSONInternal<
     AppModelType,
     DbModelType extends DocumentData = DocumentData
   >(
