@@ -22,7 +22,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { RequestUrl, Task, getHeaders, makeRequest } from './request';
 import { ApiSettings } from '../types/internal';
 import { DEFAULT_API_VERSION } from '../constants';
-import { VertexAIErrorCode } from '../types';
+import { ApiVersion, VertexAIErrorCode } from '../types';
 import { VertexAIError } from '../errors';
 import { getMockResponse } from '../../test-utils/mock-response';
 
@@ -74,6 +74,18 @@ describe('request methods', () => {
         {}
       );
       expect(url.toString()).to.include(DEFAULT_API_VERSION);
+    });
+    it('custom apiVersion', async () => {
+      const url = new RequestUrl(
+        'models/model-name',
+        Task.GENERATE_CONTENT,
+        fakeApiSettings,
+        false,
+        { apiVersion: ApiVersion.V1 }
+      );
+      expect(url.toString()).to.include(ApiVersion.V1);
+      // TODO: Update test to set ApiVersion.V1BETA when ApiVersion.V1 becomes the default.
+      expect(ApiVersion.V1).to.not.equal(DEFAULT_API_VERSION);
     });
     it('custom baseUrl', async () => {
       const url = new RequestUrl(
