@@ -198,7 +198,7 @@ export function updateEmulatorBanner(
 
   emulatorStatus[name] = isRunningEmulator;
 
-  function prefixedId(id: string) {
+  function prefixedId(id: string): string {
     return `__firebase__banner__${id}`;
   }
   const bannerId = '__firebase__banner';
