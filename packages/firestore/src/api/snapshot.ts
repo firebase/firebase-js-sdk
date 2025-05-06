@@ -925,22 +925,16 @@ export class QuerySnapshot<
 
       // Construct the arrays of document data for the query.
       const bundledDocuments = bundleLoader.documents;
-      const documentSet = new DocumentSet();
-      const documentKeys = documentKeySet();
-      for (const bundledDocumet of bundledDocuments) {
-        const document = fromDocument(serializer, bundledDocumet.document!);
-        documentSet.add(document);
-        const documentPath = ResourcePath.fromString(
-          bundledDocumet.metadata.name!
-        );
-        documentKeys.add(new DocumentKey(documentPath));
-      }
-
+      let documentSet = new DocumentSet();
+      bundledDocuments.map(bundledDocument => {
+        const document = fromDocument(serializer, bundledDocument.document!);
+        documentSet = documentSet.add(document);
+      });
       // Create a view snapshot of the query and documents.
       const viewSnapshot = ViewSnapshot.fromInitialDocuments(
         query,
         documentSet,
-        documentKeys,
+        documentKeySet() /* Zero mutated keys signifies no pending writes. */,
         /* fromCache= */ false,
         /* hasCachedResults= */ false
       );
