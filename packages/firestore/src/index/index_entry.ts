@@ -65,10 +65,10 @@ export class IndexEntry {
   ): DbIndexEntry {
     return {
       indexId: this._indexId,
-      uid, // this.uid,
+      uid,
       arrayValue: indexSafeUint8Array(this._arrayValue),
       directionalValue: indexSafeUint8Array(this._directionalValue),
-      orderedDocumentKey: indexSafeUint8Array(orderedDocumentKey), // this.encodeDirectionalKey(fieldIndex, document.key),
+      orderedDocumentKey: indexSafeUint8Array(orderedDocumentKey),
       documentKey: documentKey.path.toArray()
     };
   }
