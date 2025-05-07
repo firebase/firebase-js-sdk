@@ -39,7 +39,11 @@ import {
 } from '../core/target';
 import { FirestoreIndexValueWriter } from '../index/firestore_index_value_writer';
 import { IndexByteEncoder } from '../index/index_byte_encoder';
-import { IndexEntry, indexEntryComparator } from '../index/index_entry';
+import {
+  IndexEntry,
+  indexEntryComparator,
+  indexSafeUint8Array
+} from '../index/index_entry';
 import { documentKeySet, DocumentMap } from '../model/collections';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -294,79 +298,90 @@ export class IndexedDbIndexManager implements IndexManager {
     let canServeTarget = true;
     const indexes = new Map<Target, FieldIndex | null>();
 
-    return PersistencePromise.forEach(
-      this.getSubTargets(target),
-      (subTarget: Target) => {
-        return this.getFieldIndex(transaction, subTarget).next(index => {
-          canServeTarget &&= !!index;
-          indexes.set(subTarget, index);
-        });
-      }
-    ).next(() => {
-      if (!canServeTarget) {
-        return PersistencePromise.resolve(null as DocumentKey[] | null);
-      } else {
-        let existingKeys = documentKeySet();
-        const result: DocumentKey[] = [];
-        return PersistencePromise.forEach(indexes, (index, subTarget) => {
-          logDebug(
-            LOG_TAG,
-            `Using index ${fieldIndexToString(
-              index!
-            )} to execute ${canonifyTarget(target)}`
-          );
+    return indexEntries
+      .count()
+      .next(count => {
+        //console.log(`INDEX ENTRY COUNT: ${count}`);
+        return PersistencePromise.forEach(
+          this.getSubTargets(target),
+          (subTarget: Target) => {
+            return this.getFieldIndex(transaction, subTarget).next(index => {
+              canServeTarget &&= !!index;
+              indexes.set(subTarget, index);
+            });
+          }
+        );
+      })
+      .next(() => {
+        if (!canServeTarget) {
+          return PersistencePromise.resolve(null as DocumentKey[] | null);
+        } else {
+          let existingKeys = documentKeySet();
+          const result: DocumentKey[] = [];
+          return PersistencePromise.forEach(indexes, (index, subTarget) => {
+            logDebug(
+              LOG_TAG,
+              `Using index ${fieldIndexToString(
+                index!
+              )} to execute ${canonifyTarget(target)}`
+            );
 
-          const arrayValues = targetGetArrayValues(subTarget, index!);
-          const notInValues = targetGetNotInValues(subTarget, index!);
-          const lowerBound = targetGetLowerBound(subTarget, index!);
-          const upperBound = targetGetUpperBound(subTarget, index!);
+            const arrayValues = targetGetArrayValues(subTarget, index!);
+            const notInValues = targetGetNotInValues(subTarget, index!);
+            const lowerBound = targetGetLowerBound(subTarget, index!);
+            const upperBound = targetGetUpperBound(subTarget, index!);
 
-          const lowerBoundEncoded = this.encodeBound(
-            index!,
-            subTarget,
-            lowerBound
-          );
-          const upperBoundEncoded = this.encodeBound(
-            index!,
-            subTarget,
-            upperBound
-          );
-          const notInEncoded = this.encodeValues(
-            index!,
-            subTarget,
-            notInValues
-          );
+            const lowerBoundEncoded = this.encodeBound(
+              index!,
+              subTarget,
+              lowerBound
+            );
+            const upperBoundEncoded = this.encodeBound(
+              index!,
+              subTarget,
+              upperBound
+            );
+            const notInEncoded = this.encodeValues(
+              index!,
+              subTarget,
+              notInValues
+            );
 
-          const indexRanges = this.generateIndexRanges(
-            index!.indexId,
-            arrayValues,
-            lowerBoundEncoded,
-            lowerBound.inclusive,
-            upperBoundEncoded,
-            upperBound.inclusive,
-            notInEncoded
-          );
-          return PersistencePromise.forEach(
-            indexRanges,
-            (indexRange: IDBKeyRange) => {
-              return indexEntries
-                .loadFirst(indexRange, target.limit)
-                .next(entries => {
-                  entries.forEach(entry => {
-                    const documentKey = DocumentKey.fromSegments(
-                      entry.documentKey
-                    );
-                    if (!existingKeys.has(documentKey)) {
-                      existingKeys = existingKeys.add(documentKey);
-                      result.push(documentKey);
-                    }
+            const indexRanges = this.generateIndexRanges(
+              index!.indexId,
+              arrayValues,
+              lowerBoundEncoded,
+              lowerBound.inclusive,
+              upperBoundEncoded,
+              upperBound.inclusive,
+              notInEncoded
+            );
+            return PersistencePromise.forEach(
+              indexRanges,
+              (indexRange: IDBKeyRange) => {
+                // console.log(`indexRange lower: ${JSON.stringify(indexRange.lower)}, upper: ${JSON.stringify(indexRange.upper)}`);
+                // console.log(`indexRange lower: ${JSON.stringify(indexRange.lower[2])}, upper: ${JSON.stringify(indexRange.upper[2])}`);
+                // console.log(`indexRange lower: ${JSON.stringify(indexRange.lowerOpen)}, upper: ${JSON.stringify(indexRange.upperOpen)}`);
+                // console.log(`target.limit: ${target.limit}`);
+                return indexEntries
+                  .loadFirst(indexRange, target.limit)
+                  .next(entries => {
+                    // console.log(JSON.stringify(entries));
+                    entries.forEach(entry => {
+                      const documentKey = DocumentKey.fromSegments(
+                        entry.documentKey
+                      );
+                      if (!existingKeys.has(documentKey)) {
+                        existingKeys = existingKeys.add(documentKey);
+                        result.push(documentKey);
+                      }
+                    });
                   });
-                });
-            }
-          );
-        }).next(() => result as DocumentKey[] | null);
-      }
-    });
+              }
+            );
+          }).next(() => result as DocumentKey[] | null);
+        }
+      });
   }
 
   private getSubTargets(target: Target): Target[] {
@@ -460,8 +475,8 @@ export class IndexedDbIndexManager implements IndexManager {
   /** Generates the lower bound for `arrayValue` and `directionalValue`. */
   private generateLowerBound(
     indexId: number,
-    arrayValue: Uint8Array,
-    directionalValue: Uint8Array,
+    arrayValue: Uint8Array | number[],
+    directionalValue: Uint8Array | number[],
     inclusive: boolean
   ): IndexEntry {
     const entry = new IndexEntry(
@@ -476,8 +491,8 @@ export class IndexedDbIndexManager implements IndexManager {
   /** Generates the upper bound for `arrayValue` and `directionalValue`. */
   private generateUpperBound(
     indexId: number,
-    arrayValue: Uint8Array,
-    directionalValue: Uint8Array,
+    arrayValue: Uint8Array | number[],
+    directionalValue: Uint8Array | number[],
     inclusive: boolean
   ): IndexEntry {
     const entry = new IndexEntry(
@@ -817,14 +832,13 @@ export class IndexedDbIndexManager implements IndexManager {
     indexEntry: IndexEntry
   ): PersistencePromise<void> {
     const indexEntries = indexEntriesStore(transaction);
-    return indexEntries.put({
-      indexId: indexEntry.indexId,
-      uid: this.uid,
-      arrayValue: indexEntry.arrayValue,
-      directionalValue: indexEntry.directionalValue,
-      orderedDocumentKey: this.encodeDirectionalKey(fieldIndex, document.key),
-      documentKey: document.key.path.toArray()
-    });
+    return indexEntries.put(
+      indexEntry.dbIndexEntry(
+        this.uid,
+        this.encodeDirectionalKey(fieldIndex, document.key),
+        document.key
+      )
+    );
   }
 
   private deleteIndexEntry(
@@ -834,14 +848,13 @@ export class IndexedDbIndexManager implements IndexManager {
     indexEntry: IndexEntry
   ): PersistencePromise<void> {
     const indexEntries = indexEntriesStore(transaction);
-    return indexEntries.delete([
-      indexEntry.indexId,
-      this.uid,
-      indexEntry.arrayValue,
-      indexEntry.directionalValue,
-      this.encodeDirectionalKey(fieldIndex, document.key),
-      document.key.path.toArray()
-    ]);
+    return indexEntries.delete(
+      indexEntry.dbIndexEntryKey(
+        this.uid,
+        this.encodeDirectionalKey(fieldIndex, document.key),
+        document.key
+      )
+    );
   }
 
   private getExistingIndexEntries(
@@ -858,7 +871,9 @@ export class IndexedDbIndexManager implements IndexManager {
           range: IDBKeyRange.only([
             fieldIndex.indexId,
             this.uid,
-            this.encodeDirectionalKey(fieldIndex, documentKey)
+            indexSafeUint8Array(
+              this.encodeDirectionalKey(fieldIndex, documentKey)
+            )
           ])
         },
         (_, entry) => {
@@ -1020,24 +1035,16 @@ export class IndexedDbIndexManager implements IndexManager {
         return [];
       }
 
-      const lowerBound = [
-        bounds[i].indexId,
+      const lowerBound = bounds[i].dbIndexEntryKey(
         this.uid,
-        bounds[i].arrayValue,
-        bounds[i].directionalValue,
         EMPTY_VALUE,
-        []
-      ] as DbIndexEntryKey;
-
-      const upperBound = [
-        bounds[i + 1].indexId,
+        DocumentKey.empty()
+      );
+      const upperBound = bounds[i + 1].dbIndexEntryKey(
         this.uid,
-        bounds[i + 1].arrayValue,
-        bounds[i + 1].directionalValue,
         EMPTY_VALUE,
-        []
-      ] as DbIndexEntryKey;
-
+        DocumentKey.empty()
+      );
       ranges.push(IDBKeyRange.bound(lowerBound, upperBound));
     }
     return ranges;

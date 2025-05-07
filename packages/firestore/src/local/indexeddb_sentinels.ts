@@ -313,9 +313,9 @@ export const DbIndexStateSequenceNumberIndexPath = ['uid', 'sequenceNumber'];
 export type DbIndexEntryKey = [
   number,
   string,
-  Uint8Array,
-  Uint8Array,
-  Uint8Array,
+  Uint8Array | number[],
+  Uint8Array | number[],
+  Uint8Array | number[],
   string[]
 ];
 

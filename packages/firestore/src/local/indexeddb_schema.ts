@@ -507,14 +507,14 @@ export interface DbIndexEntry {
   /** The user id for this entry. */
   uid: string;
   /** The encoded array index value for this entry. */
-  arrayValue: Uint8Array;
+  arrayValue: Uint8Array | number[];
   /** The encoded directional value for equality and inequality filters. */
-  directionalValue: Uint8Array;
+  directionalValue: Uint8Array | number[];
   /**
    * The document key this entry points to. This entry is encoded by an ordered
    * encoder to match the key order of the index.
    */
-  orderedDocumentKey: Uint8Array;
+  orderedDocumentKey: Uint8Array | number[];
   /** The segments of the document key this entry points to. */
   documentKey: string[];
 }
