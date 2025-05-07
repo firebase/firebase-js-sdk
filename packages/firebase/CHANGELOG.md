@@ -1,5 +1,42 @@
 # firebase
 
+## 11.7.0
+
+### Minor Changes
+
+- [`3789b5a`](https://github.com/firebase/firebase-js-sdk/commit/3789b5ad16ffd462fce1d0b9c2e9ffae373bc6eb) [#8999](https://github.com/firebase/firebase-js-sdk/pull/8999) - Default automaticDataCollectionEnabled to true without changing App Check's default behavior.
+
+### Patch Changes
+
+- Updated dependencies [[`3789b5a`](https://github.com/firebase/firebase-js-sdk/commit/3789b5ad16ffd462fce1d0b9c2e9ffae373bc6eb), [`6a02778`](https://github.com/firebase/firebase-js-sdk/commit/6a02778e3d12af683e710b53dc6dfb64329e8229), [`ea1f913`](https://github.com/firebase/firebase-js-sdk/commit/ea1f9139e6baec0269fbb91233fd3f7f4b0d5875), [`0e12766`](https://github.com/firebase/firebase-js-sdk/commit/0e127664946ba324c6566a02b393dafd23fc1ddb)]:
+  - @firebase/app-check@0.9.0
+  - @firebase/app@0.12.0
+  - @firebase/app-compat@0.3.0
+  - @firebase/auth@1.10.2
+  - @firebase/database-compat@2.0.6
+  - @firebase/database@1.0.15
+  - @firebase/firestore@4.7.12
+  - @firebase/functions@0.12.4
+  - @firebase/storage@0.13.8
+  - @firebase/util@1.11.1
+  - @firebase/data-connect@0.3.5
+  - @firebase/app-check-compat@0.3.21
+  - @firebase/analytics@0.10.13
+  - @firebase/installations@0.6.14
+  - @firebase/messaging@0.12.18
+  - @firebase/performance@0.7.3
+  - @firebase/remote-config@0.6.1
+  - @firebase/vertexai@1.2.2
+  - @firebase/analytics-compat@0.2.19
+  - @firebase/auth-compat@0.5.22
+  - @firebase/firestore-compat@0.3.47
+  - @firebase/functions-compat@0.3.21
+  - @firebase/installations-compat@0.2.14
+  - @firebase/messaging-compat@0.2.18
+  - @firebase/performance-compat@0.2.16
+  - @firebase/remote-config-compat@0.2.14
+  - @firebase/storage-compat@0.3.18
+
 ## 11.6.1
 
 ### Patch Changes
