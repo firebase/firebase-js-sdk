@@ -105,6 +105,12 @@ The Firebase AI Web SDK.
 |  [ImagenModelParams](./vertexai.imagenmodelparams.md#imagenmodelparams_interface) | <b><i>(Public Preview)</i></b> Parameters for configuring an [ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)<!-- -->. |
 |  [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) | <b><i>(Public Preview)</i></b> Settings for controlling the aggressiveness of filtering out sensitive content.<!-- -->See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details. |
 |  [InlineDataPart](./vertexai.inlinedatapart.md#inlinedatapart_interface) | Content part interface if the part represents an image. |
+|  [LanguageModelCreateCoreOptions](./vertexai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptions_interface) | Defines Prompt API session configuration for availability checking and creation. |
+|  [LanguageModelCreateOptions](./vertexai.languagemodelcreateoptions.md#languagemodelcreateoptions_interface) | Defines Prompt API session configuration used during creation.<!-- -->See Chrome's Prompt API explainer ([https://github.com/webmachinelearning/prompt-api](https://github.com/webmachinelearning/prompt-api)<!-- -->) for more context. |
+|  [LanguageModelExpectedInput](./vertexai.languagemodelexpectedinput.md#languagemodelexpectedinput_interface) | Defines input types to prepare for. |
+|  [LanguageModelMessage](./vertexai.languagemodelmessage.md#languagemodelmessage_interface) | Defines a prompt format comparable to Vertex's [Content](./vertexai.content.md#content_interface)<!-- -->. |
+|  [LanguageModelMessageContent](./vertexai.languagemodelmessagecontent.md#languagemodelmessagecontent_interface) | Defines a prompt format comparable to Vertex's [Part](./vertexai.md#part)<!-- -->. |
+|  [LanguageModelMessageShorthand](./vertexai.languagemodelmessageshorthand.md#languagemodelmessageshorthand_interface) | Defines a prompt format comparable to a simplified Vertex [Content](./vertexai.content.md#content_interface)<!-- -->. |
 |  [ModalityTokenCount](./vertexai.modalitytokencount.md#modalitytokencount_interface) | Represents token counting info for a single modality. |
 |  [ModelParams](./vertexai.modelparams.md#modelparams_interface) | Params passed to [getGenerativeModel()](./vertexai.md#getgenerativemodel_c63f46a)<!-- -->. |
 |  [ObjectSchemaInterface](./vertexai.objectschemainterface.md#objectschemainterface_interface) | Interface for [ObjectSchema](./vertexai.objectschema.md#objectschema_class) class. |
@@ -141,6 +147,7 @@ The Firebase AI Web SDK.
 |  --- | --- |
 |  [BackendType](./vertexai.md#backendtype) | Type alias representing valid backend types. It can be either <code>'VERTEX_AI'</code> or <code>'GOOGLE_AI'</code>. |
 |  [InferenceMode](./vertexai.md#inferencemode) | Determines whether inference happens on-device or in-cloud. |
+|  [LanguageModelInitialPrompts](./vertexai.md#languagemodelinitialprompts) | Enables multiple prompt formats. |
 |  [Part](./vertexai.md#part) | Content part - includes text, image/video, or function call/response part types. |
 |  [Role](./vertexai.md#role) | Role is the producer of the content. |
 |  [Tool](./vertexai.md#tool) | Defines a tool that model can call to access external knowledge. |
@@ -343,6 +350,16 @@ Determines whether inference happens on-device or in-cloud.
 
 ```typescript
 export type InferenceMode = 'prefer_on_device' | 'only_on_device' | 'only_in_cloud';
+```
+
+## LanguageModelInitialPrompts
+
+Enables multiple prompt formats.
+
+<b>Signature:</b>
+
+```typescript
+export type LanguageModelInitialPrompts = LanguageModelMessage[] | LanguageModelMessageShorthand[];
 ```
 
 ## Part

@@ -553,7 +553,6 @@ export enum HarmSeverity {
 export interface HybridParams {
     inCloudParams?: ModelParams;
     mode: InferenceMode;
-    // Warning: (ae-forgotten-export) The symbol "LanguageModelCreateOptions" needs to be exported by the entry point index.d.ts
     onDeviceParams?: LanguageModelCreateOptions;
 }
 
@@ -660,6 +659,66 @@ export interface InlineDataPart {
 // @public
 export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
+}
+
+// @public
+export interface LanguageModelCreateCoreOptions {
+    expectedInputs?: LanguageModelExpectedInput[];
+    // (undocumented)
+    temperature?: number;
+    // (undocumented)
+    topK?: number;
+}
+
+// @public
+export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptions {
+    // (undocumented)
+    initialPrompts?: LanguageModelInitialPrompts;
+    // (undocumented)
+    signal?: AbortSignal;
+    // (undocumented)
+    systemPrompt?: string;
+}
+
+// @public
+export interface LanguageModelExpectedInput {
+    // (undocumented)
+    languages?: string[];
+    // Warning: (ae-forgotten-export) The symbol "LanguageModelMessageType" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    type: LanguageModelMessageType;
+}
+
+// @public
+export type LanguageModelInitialPrompts = LanguageModelMessage[] | LanguageModelMessageShorthand[];
+
+// @public
+export interface LanguageModelMessage {
+    // (undocumented)
+    content: LanguageModelMessageContent[];
+    // Warning: (ae-forgotten-export) The symbol "LanguageModelMessageRole" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    role: LanguageModelMessageRole;
+}
+
+// @public
+export interface LanguageModelMessageContent {
+    // Warning: (ae-forgotten-export) The symbol "LanguageModelMessageContentValue" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    content: LanguageModelMessageContentValue;
+    // (undocumented)
+    type: LanguageModelMessageType;
+}
+
+// @public
+export interface LanguageModelMessageShorthand {
+    // (undocumented)
+    content: string;
+    // (undocumented)
+    role: LanguageModelMessageRole;
 }
 
 // @public

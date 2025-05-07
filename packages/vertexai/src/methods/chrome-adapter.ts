@@ -101,7 +101,7 @@ export class ChromeAdapter {
    *
    * <p>This is comparable to {@link GenerativeModel.generateContent} for generating content in
    * Cloud.</p>
-   * @param request a standard Vertex {@link GenerateContentRequest}
+   * @param request - a standard Vertex {@link GenerateContentRequest}
    * @returns {@link Response}, so we can reuse common response formatting.
    */
   async generateContent(request: GenerateContentRequest): Promise<Response> {
@@ -120,7 +120,7 @@ export class ChromeAdapter {
    *
    * <p>This is comparable to {@link GenerativeModel.generateContentStream} for generating content in
    * Cloud.</p>
-   * @param request a standard Vertex {@link GenerateContentRequest}
+   * @param request - a standard Vertex {@link GenerateContentRequest}
    * @returns {@link Response}, so we can reuse common response formatting.
    */
   async generateContentStream(
