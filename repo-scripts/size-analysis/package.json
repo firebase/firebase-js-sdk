@@ -20,9 +20,9 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.11.5",
+    "@firebase/app": "0.12.0",
     "@firebase/logger": "0.4.4",
-    "@firebase/util": "1.11.0",
+    "@firebase/util": "1.11.1",
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "6.1.0",
     "@rollup/plugin-node-resolve": "16.0.0",
