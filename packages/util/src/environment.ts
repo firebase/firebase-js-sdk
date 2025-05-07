@@ -178,7 +178,8 @@ export function isSafariOrWebkit(): boolean {
   return (
     !isNode() &&
     !!navigator.userAgent &&
-    (navigator.userAgent.includes('Safari') || navigator.userAgent.includes('WebKit')) &&
+    (navigator.userAgent.includes('Safari') ||
+      navigator.userAgent.includes('WebKit')) &&
     !navigator.userAgent.includes('Chrome')
   );
 }
