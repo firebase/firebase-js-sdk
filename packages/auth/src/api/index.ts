@@ -200,7 +200,6 @@ export async function _performFetchWithErrorHandling<V>(
   fetchFn: () => Promise<Response>
 ): Promise<V> {
   const authInternal = auth as AuthInternal;
-  updateEmulatorBanner('Auth', authInternal.emulatorConfig !== null);
   authInternal._canInitEmulator = false;
   const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
   try {

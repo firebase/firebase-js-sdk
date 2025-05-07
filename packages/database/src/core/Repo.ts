@@ -329,7 +329,6 @@ export function repoStart(
       repo.server_.unlisten(query, tag);
     }
   });
-  updateEmulatorBanner('Database', repo.repoInfo_.isUsingEmulator);
 }
 
 /**

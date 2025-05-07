@@ -193,8 +193,9 @@ export function updateEmulatorBanner(
   if (
     typeof window === 'undefined' ||
     typeof document === 'undefined' ||
-    !isCloudWorkstation(window.location.host) ||
+    // !isCloudWorkstation(window.location.host) ||
     emulatorStatus[name] === isRunningEmulator ||
+    emulatorStatus[name] || // If already set to use emulator, can't go back to prod.
     previouslyDismissed
   ) {
     return;
@@ -216,6 +217,38 @@ export function updateEmulatorBanner(
     }
   }
 
+  function setupBannerStyles(bannerEl: HTMLElement) {
+    bannerEl.style.display = 'flex';
+    bannerEl.style.background = '#7faaf0';
+    bannerEl.style.position = 'absolute';
+    bannerEl.style.bottom = '5px';
+    bannerEl.style.left = '5px';
+    bannerEl.style.padding = '.5em';
+    bannerEl.style.borderRadius = '5px';
+    bannerEl.style.alignContent = 'center';
+  }
+
+  function setupIconStyles(prependIcon: SVGElement, iconId: string) {
+    prependIcon.setAttribute('width', '24');
+    prependIcon.setAttribute('id', iconId);
+    prependIcon.setAttribute('height', '24');
+    prependIcon.setAttribute('viewBox', '0 0 24 24');
+    prependIcon.setAttribute('fill', 'none');
+    prependIcon.style.marginLeft = '-6px';
+  }
+
+  function setupCloseBtn() {
+    const closeBtn = document.createElement('span');
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.style.paddingLeft = '5px';
+    closeBtn.innerHTML = ' &times;';
+    closeBtn.onclick = () => {
+      previouslyDismissed = true;
+      tearDown();
+    };
+    return closeBtn;
+  }
+
   function setupDom(): void {
     const banner = getOrCreateEl(bannerId);
     const firebaseTextId = prefixedId('text');
@@ -226,40 +259,21 @@ export function updateEmulatorBanner(
       (document.getElementById(learnMoreId) as HTMLAnchorElement) ||
       document.createElement('a');
     const prependIconId = prefixedId('preprendIcon');
-    const prependIcon =
-      document.getElementById(prependIconId) ||
+    const prependIcon: SVGElement =
+      (document.getElementById(
+        prependIconId
+      ) as HTMLOrSVGElement as SVGElement) ||
       document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     if (banner.created) {
       // update styles
       const bannerEl = banner.element;
-      bannerEl.style.display = 'flex';
-      bannerEl.style.background = '#7faaf0';
-      bannerEl.style.position = 'absolute';
-      bannerEl.style.bottom = '5px';
-      bannerEl.style.left = '5px';
-      bannerEl.style.padding = '.5em';
-      bannerEl.style.borderRadius = '5px';
-      bannerEl.style.alignContent = 'center';
-      const closeBtn = document.createElement('span');
-      closeBtn.style.cursor = 'pointer';
-      closeBtn.style.paddingLeft = '5px';
-      closeBtn.innerHTML = ' &times;';
-      closeBtn.onclick = () => {
-        previouslyDismissed = true;
-        tearDown();
-      };
+      setupBannerStyles(bannerEl);
+      const closeBtn = setupCloseBtn();
       learnMoreLink.setAttribute('id', learnMoreId);
       learnMoreLink.href =
         'http://firebase.google.com/docs/studio/deploy-app#emulator ';
-      bannerEl.appendChild(prependIcon);
-      bannerEl.appendChild(firebaseText);
-      bannerEl.appendChild(learnMoreLink);
-      bannerEl.appendChild(closeBtn);
-      prependIcon.setAttribute('width', '24');
-      prependIcon.setAttribute('id', prependIconId);
-      prependIcon.setAttribute('height', '24');
-      prependIcon.setAttribute('viewBox', '0 0 24 24');
-      prependIcon.setAttribute('fill', 'none');
+      setupIconStyles(prependIcon, prependIconId);
+      bannerEl.append(prependIcon, firebaseText, learnMoreLink, closeBtn);
       document.body.appendChild(bannerEl);
     }
 
@@ -283,8 +297,6 @@ export function updateEmulatorBanner(
 </clipPath>
 </defs>`;
       firebaseText.innerText = 'Using emulated backend';
-      learnMoreLink.href =
-        'https://firebase.google.com/docs/studio/solution-build-with-ai';
     }
     firebaseText.setAttribute('id', firebaseTextId);
   }
