@@ -193,7 +193,7 @@ export function updateEmulatorBanner(
   if (
     typeof window === 'undefined' ||
     typeof document === 'undefined' ||
-    // !isCloudWorkstation(window.location.host) ||
+    !isCloudWorkstation(window.location.host) ||
     emulatorStatus[name] === isRunningEmulator ||
     emulatorStatus[name] || // If already set to use emulator, can't go back to prod.
     previouslyDismissed
@@ -217,7 +217,7 @@ export function updateEmulatorBanner(
     }
   }
 
-  function setupBannerStyles(bannerEl: HTMLElement) {
+  function setupBannerStyles(bannerEl: HTMLElement): void {
     bannerEl.style.display = 'flex';
     bannerEl.style.background = '#7faaf0';
     bannerEl.style.position = 'absolute';
@@ -228,7 +228,7 @@ export function updateEmulatorBanner(
     bannerEl.style.alignContent = 'center';
   }
 
-  function setupIconStyles(prependIcon: SVGElement, iconId: string) {
+  function setupIconStyles(prependIcon: SVGElement, iconId: string): void {
     prependIcon.setAttribute('width', '24');
     prependIcon.setAttribute('id', iconId);
     prependIcon.setAttribute('height', '24');
@@ -237,7 +237,7 @@ export function updateEmulatorBanner(
     prependIcon.style.marginLeft = '-6px';
   }
 
-  function setupCloseBtn() {
+  function setupCloseBtn(): HTMLSpanElement {
     const closeBtn = document.createElement('span');
     closeBtn.style.cursor = 'pointer';
     closeBtn.style.paddingLeft = '5px';

@@ -21,8 +21,7 @@ import {
   isEmpty,
   map,
   safeGet,
-  stringify,
-  updateEmulatorBanner
+  stringify
 } from '@firebase/util';
 
 import { ValueEventRegistration } from '../api/Reference_impl';
