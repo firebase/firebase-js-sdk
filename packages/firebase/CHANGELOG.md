@@ -1,5 +1,15 @@
 # firebase
 
+## 11.7.1
+
+### Patch Changes
+
+- Updated dependencies [[`51e7b48`](https://github.com/firebase/firebase-js-sdk/commit/51e7b489d8aadd531453f882421903da8727b19d)]:
+  - @firebase/app-compat@0.3.1
+  - @firebase/app-check@0.9.1
+  - @firebase/app@0.12.1
+  - @firebase/app-check-compat@0.3.22
+
 ## 11.7.0
 
 ### Minor Changes

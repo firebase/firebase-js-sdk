@@ -1,5 +1,11 @@
 # @firebase/app-check
 
+## 0.9.1
+
+### Patch Changes
+
+- [`51e7b48`](https://github.com/firebase/firebase-js-sdk/commit/51e7b489d8aadd531453f882421903da8727b19d) [#9007](https://github.com/firebase/firebase-js-sdk/pull/9007) - Revert https://github.com/firebase/firebase-js-sdk/pull/8999
+
 ## 0.9.0
 
 ### Minor Changes
