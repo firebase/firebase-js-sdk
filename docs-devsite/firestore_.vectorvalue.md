@@ -43,7 +43,7 @@ static fromJSON(json: object): VectorValue;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  json | object | a JSON object represention of a <code>VectorValue</code> instance |
+|  json | object | a JSON object represention of a <code>VectorValue</code> instance. |
 
 <b>Returns:</b>
 

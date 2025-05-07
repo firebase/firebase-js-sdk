@@ -1697,11 +1697,7 @@ async function loadBundleImpl(
 
     task._updateProgress(bundleInitialProgress(metadata));
 
-    const loader = new BundleLoader(
-      metadata,
-      syncEngine.localStore,
-      reader.serializer
-    );
+    const loader = new BundleLoader(metadata, reader.serializer);
     let element = await reader.nextElement();
     while (element) {
       debugAssert(
@@ -1716,7 +1712,7 @@ async function loadBundleImpl(
       element = await reader.nextElement();
     }
 
-    const result = await loader.complete();
+    const result = await loader.completeAndStoreAsync(syncEngine.localStore);
     await syncEngineEmitNewSnapsAndNotifyLocalStore(
       syncEngine,
       result.changedDocs,

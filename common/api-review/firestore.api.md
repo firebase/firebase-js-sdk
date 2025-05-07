@@ -163,7 +163,8 @@ export function documentId(): FieldPath;
 export class DocumentReference<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> {
     readonly converter: FirestoreDataConverter<AppModelType, DbModelType> | null;
     readonly firestore: Firestore;
-    static fromJSON<NewAppModelType = DocumentData, NewDbModelType extends DocumentData = DocumentData>(firestore: Firestore, json: object, converter?: FirestoreDataConverter<NewAppModelType, NewDbModelType>): DocumentReference<NewAppModelType, NewDbModelType>;
+    static fromJSON(firestore: Firestore, json: object): DocumentReference;
+    static fromJSON<NewAppModelType = DocumentData, NewDbModelType extends DocumentData = DocumentData>(firestore: Firestore, json: object, converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): DocumentReference<NewAppModelType, NewDbModelType>;
     get id(): string;
     get parent(): CollectionReference<AppModelType, DbModelType>;
     get path(): string;
@@ -178,11 +179,12 @@ export class DocumentSnapshot<AppModelType = DocumentData, DbModelType extends D
     protected constructor();
     data(options?: SnapshotOptions): AppModelType | undefined;
     exists(): this is QueryDocumentSnapshot<AppModelType, DbModelType>;
+    static fromJSON(db: Firestore, json: object): DocumentSnapshot;
+    static fromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter: FirestoreDataConverter<AppModelType, DbModelType>): DocumentSnapshot<AppModelType, DbModelType>;
     get(fieldPath: string | FieldPath, options?: SnapshotOptions): any;
     get id(): string;
     readonly metadata: SnapshotMetadata;
     get ref(): DocumentReference<AppModelType, DbModelType>;
-    // (undocumented)
     toJSON(): object;
 }
 
@@ -655,10 +657,11 @@ export class QuerySnapshot<AppModelType = DocumentData, DbModelType extends Docu
     get docs(): Array<QueryDocumentSnapshot<AppModelType, DbModelType>>;
     get empty(): boolean;
     forEach(callback: (result: QueryDocumentSnapshot<AppModelType, DbModelType>) => void, thisArg?: unknown): void;
+    static fromJSON(db: Firestore, json: object): QuerySnapshot;
+    static fromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter: FirestoreDataConverter<AppModelType, DbModelType>): QuerySnapshot<AppModelType, DbModelType>;
     readonly metadata: SnapshotMetadata;
     readonly query: Query<AppModelType, DbModelType>;
     get size(): number;
-    // (undocumented)
     toJSON(): object;
 }
 

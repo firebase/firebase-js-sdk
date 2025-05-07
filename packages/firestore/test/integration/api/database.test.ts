@@ -1341,6 +1341,66 @@ apiDescribe('Database', persistence => {
     });
   });
 
+  it('DocumentSnapshot updated doc events in snapshot created by fromJSON bundle', async () => {
+    const initialData = { a: 0 };
+    const finalData = { a: 1 };
+    await withTestDocAndInitialData(
+      persistence,
+      initialData,
+      async (docRef, db) => {
+        const doc = await getDoc(docRef);
+        const fromJsonDoc = DocumentSnapshot.fromJSON(db, doc.toJSON());
+        const accumulator = new EventsAccumulator<DocumentSnapshot>();
+        const unsubscribe = onSnapshot(
+          db,
+          fromJsonDoc.toJSON(),
+          accumulator.storeEvent
+        );
+        await accumulator
+          .awaitEvent()
+          .then(snap => {
+            expect(snap.exists()).to.be.true;
+            expect(snap.data()).to.deep.equal(initialData);
+          })
+          .then(() => setDoc(docRef, finalData))
+          .then(() => accumulator.awaitEvent())
+          .then(snap => {
+            expect(snap.exists()).to.be.true;
+            expect(snap.data()).to.deep.equal(finalData);
+          });
+        unsubscribe();
+      }
+    );
+  });
+
+  it('DocumentSnapshot updated doc events in snapshot created by fromJSON doc ref', async () => {
+    const initialData = { a: 0 };
+    const finalData = { a: 1 };
+    await withTestDocAndInitialData(
+      persistence,
+      initialData,
+      async (docRef, db) => {
+        const doc = await getDoc(docRef);
+        const fromJsonDoc = DocumentSnapshot.fromJSON(db, doc.toJSON());
+        const accumulator = new EventsAccumulator<DocumentSnapshot>();
+        const unsubscribe = onSnapshot(fromJsonDoc.ref, accumulator.storeEvent);
+        await accumulator
+          .awaitEvent()
+          .then(snap => {
+            expect(snap.exists()).to.be.true;
+            expect(snap.data()).to.deep.equal(initialData);
+          })
+          .then(() => setDoc(docRef, finalData))
+          .then(() => accumulator.awaitEvent())
+          .then(snap => {
+            expect(snap.exists()).to.be.true;
+            expect(snap.data()).to.deep.equal(finalData);
+          });
+        unsubscribe();
+      }
+    );
+  });
+
   it('Querysnapshot events for snapshot created by a bundle', async () => {
     const testDocs = {
       a: { foo: 1 },
@@ -1447,6 +1507,75 @@ apiDescribe('Database', persistence => {
       const unsubscribe = onSnapshot(
         db,
         querySnap.toJSON(),
+        accumulator.storeEvent
+      );
+      await accumulator
+        .awaitEvent()
+        .then(snap => {
+          expect(snap.docs).not.to.be.null;
+          expect(snap.docs.length).to.equal(2);
+          expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
+          expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+        })
+        .then(() => setDoc(refForDocA, { foo: 0 }))
+        .then(() => accumulator.awaitEvent())
+        .then(snap => {
+          expect(snap.docs).not.to.be.null;
+          expect(snap.docs.length).to.equal(2);
+          expect(snap.docs[0].data()).to.deep.equal({ foo: 0 });
+          expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+        });
+      unsubscribe();
+    });
+  });
+
+  it('QuerySnapshot updated doc events in snapshot created by fromJSON bundle', async () => {
+    const testDocs = {
+      a: { foo: 1 },
+      b: { bar: 2 }
+    };
+    await withTestCollection(persistence, testDocs, async (coll, db) => {
+      const querySnap = await getDocs(query(coll, orderBy(documentId())));
+      const querySnapFromJson = QuerySnapshot.fromJSON(db, querySnap.toJSON());
+      const refForDocA = querySnapFromJson.docs[0].ref;
+      const accumulator = new EventsAccumulator<QuerySnapshot>();
+      const unsubscribe = onSnapshot(
+        db,
+        querySnapFromJson.toJSON(),
+        accumulator.storeEvent
+      );
+      await accumulator
+        .awaitEvent()
+        .then(snap => {
+          expect(snap.docs).not.to.be.null;
+          expect(snap.docs.length).to.equal(2);
+          expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
+          expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+        })
+        .then(() => setDoc(refForDocA, { foo: 0 }))
+        .then(() => accumulator.awaitEvent())
+        .then(snap => {
+          expect(snap.docs).not.to.be.null;
+          expect(snap.docs.length).to.equal(2);
+          expect(snap.docs[0].data()).to.deep.equal({ foo: 0 });
+          expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+        });
+      unsubscribe();
+    });
+  });
+
+  it('QuerySnapshot updated doc events in snapshot created by fromJSON query ref', async () => {
+    const testDocs = {
+      a: { foo: 1 },
+      b: { bar: 2 }
+    };
+    await withTestCollection(persistence, testDocs, async (coll, db) => {
+      const querySnap = await getDocs(query(coll, orderBy(documentId())));
+      const querySnapFromJson = QuerySnapshot.fromJSON(db, querySnap.toJSON());
+      const refForDocA = querySnapFromJson.docs[0].ref;
+      const accumulator = new EventsAccumulator<QuerySnapshot>();
+      const unsubscribe = onSnapshot(
+        querySnapFromJson.query,
         accumulator.storeEvent
       );
       await accumulator

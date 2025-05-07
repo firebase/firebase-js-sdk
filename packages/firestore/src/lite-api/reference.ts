@@ -304,7 +304,19 @@ export class DocumentReference<
    * Builds a `DocumentReference` instance from a JSON object created by
    * {@link DocumentReference.toJSON}.
    *
+   * @param firestore - The {@link Firestore} instance the snapshot should be loaded for.
    * @param json a JSON object represention of a `DocumentReference` instance
+   * @returns an instance of {@link DocumentReference} if the JSON object could be parsed. Throws a
+   * {@link FirestoreError} if an error occurs.
+   */
+  static fromJSON(firestore: Firestore, json: object): DocumentReference;
+  /**
+   * Builds a `DocumentReference` instance from a JSON object created by
+   * {@link DocumentReference.toJSON}.
+   *
+   * @param firestore - The {@link Firestore} instance the snapshot should be loaded for.
+   * @param json a JSON object represention of a `DocumentReference` instance
+   * @param converter - Converts objects to and from Firestore.
    * @returns an instance of {@link DocumentReference} if the JSON object could be parsed. Throws a
    * {@link FirestoreError} if an error occurs.
    */
@@ -314,12 +326,30 @@ export class DocumentReference<
   >(
     firestore: Firestore,
     json: object,
-    converter?: FirestoreDataConverter<NewAppModelType, NewDbModelType>
+    converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>
+  ): DocumentReference<NewAppModelType, NewDbModelType>;
+  static fromJSON<
+    NewAppModelType = DocumentData,
+    NewDbModelType extends DocumentData = DocumentData
+  >(
+    firestore: Firestore,
+    json: object,
+    ...args: unknown[]
   ): DocumentReference<NewAppModelType, NewDbModelType> {
     if (validateJSON(json, DocumentReference._jsonSchema)) {
+      let converter: FirestoreDataConverter<
+        NewAppModelType,
+        NewDbModelType
+      > | null = null;
+      if (args[0]) {
+        converter = args[0] as FirestoreDataConverter<
+          NewAppModelType,
+          NewDbModelType
+        >;
+      }
       return new DocumentReference<NewAppModelType, NewDbModelType>(
         firestore,
-        converter ? converter : null,
+        converter,
         new DocumentKey(ResourcePath.fromString(json.referencePath))
       );
     }
