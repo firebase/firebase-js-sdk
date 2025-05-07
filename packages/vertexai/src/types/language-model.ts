@@ -86,10 +86,16 @@ export interface LanguageModelMessage {
   role: LanguageModelMessageRole;
   content: LanguageModelMessageContent[];
 }
+/**
+ * Defines a prompt format comparable to a simplified Vertex {@link Content}.
+ */
 export interface LanguageModelMessageShorthand {
   role: LanguageModelMessageRole;
   content: string;
 }
+/**
+ * Defines a prompt format comparable to Vertex's {@link Part}.
+ */
 export interface LanguageModelMessageContent {
   type: LanguageModelMessageType;
   content: LanguageModelMessageContentValue;

@@ -74,18 +74,6 @@ export class ArraySchema extends Schema {
     toJSON(): SchemaRequest;
 }
 
-// @public (undocumented)
-export enum Availability {
-    // (undocumented)
-    'available' = "available",
-    // (undocumented)
-    'downloadable' = "downloadable",
-    // (undocumented)
-    'downloading' = "downloading",
-    // (undocumented)
-    'unavailable' = "unavailable"
-}
-
 // @public
 export abstract class Backend {
     protected constructor(type: BackendType);
@@ -674,24 +662,6 @@ export class IntegerSchema extends Schema {
 }
 
 // @public
-export interface LanguageModel extends EventTarget {
-    // (undocumented)
-    availability(options?: LanguageModelCreateCoreOptions): Promise<Availability>;
-    // (undocumented)
-    create(options?: LanguageModelCreateOptions): Promise<LanguageModel>;
-    // (undocumented)
-    destroy(): undefined;
-    // (undocumented)
-    measureInputUsage(input: LanguageModelPrompt, options?: LanguageModelPromptOptions): Promise<number>;
-    // Warning: (ae-forgotten-export) The symbol "LanguageModelPromptOptions" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    prompt(input: LanguageModelPrompt, options?: LanguageModelPromptOptions): Promise<string>;
-    // (undocumented)
-    promptStreaming(input: LanguageModelPrompt, options?: LanguageModelPromptOptions): ReadableStream;
-}
-
-// @public
 export interface LanguageModelCreateCoreOptions {
     expectedInputs?: LanguageModelExpectedInput[];
     // (undocumented)
@@ -733,7 +703,7 @@ export interface LanguageModelMessage {
     role: LanguageModelMessageRole;
 }
 
-// @public (undocumented)
+// @public
 export interface LanguageModelMessageContent {
     // Warning: (ae-forgotten-export) The symbol "LanguageModelMessageContentValue" needs to be exported by the entry point index.d.ts
     //
@@ -743,16 +713,13 @@ export interface LanguageModelMessageContent {
     type: LanguageModelMessageType;
 }
 
-// @public (undocumented)
+// @public
 export interface LanguageModelMessageShorthand {
     // (undocumented)
     content: string;
     // (undocumented)
     role: LanguageModelMessageRole;
 }
-
-// @public (undocumented)
-export type LanguageModelPrompt = LanguageModelMessageContent[];
 
 // @public
 export enum Modality {

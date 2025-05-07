@@ -49,7 +49,6 @@ The Firebase AI Web SDK.
 |  Enumeration | Description |
 |  --- | --- |
 |  [AIErrorCode](./vertexai.md#aierrorcode) | Standardized error codes that [AIError](./vertexai.aierror.md#aierror_class) can have. |
-|  [Availability](./vertexai.md#availability) |  |
 |  [BlockReason](./vertexai.md#blockreason) | Reason that a prompt was blocked. |
 |  [FinishReason](./vertexai.md#finishreason) | Reason that a candidate finished. |
 |  [FunctionCallingMode](./vertexai.md#functioncallingmode) |  |
@@ -106,13 +105,12 @@ The Firebase AI Web SDK.
 |  [ImagenModelParams](./vertexai.imagenmodelparams.md#imagenmodelparams_interface) | <b><i>(Public Preview)</i></b> Parameters for configuring an [ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)<!-- -->. |
 |  [ImagenSafetySettings](./vertexai.imagensafetysettings.md#imagensafetysettings_interface) | <b><i>(Public Preview)</i></b> Settings for controlling the aggressiveness of filtering out sensitive content.<!-- -->See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details. |
 |  [InlineDataPart](./vertexai.inlinedatapart.md#inlinedatapart_interface) | Content part interface if the part represents an image. |
-|  [LanguageModel](./vertexai.languagemodel.md#languagemodel_interface) |  Copyright 2025 Google LLC<!-- -->Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at<!-- -->http://www.apache.org/licenses/LICENSE-2.0<!-- -->Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. |
 |  [LanguageModelCreateCoreOptions](./vertexai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptions_interface) | Defines Prompt API session configuration for availability checking and creation. |
 |  [LanguageModelCreateOptions](./vertexai.languagemodelcreateoptions.md#languagemodelcreateoptions_interface) | Defines Prompt API session configuration used during creation.<!-- -->See Chrome's Prompt API explainer ([https://github.com/webmachinelearning/prompt-api](https://github.com/webmachinelearning/prompt-api)<!-- -->) for more context. |
 |  [LanguageModelExpectedInput](./vertexai.languagemodelexpectedinput.md#languagemodelexpectedinput_interface) | Defines input types to prepare for. |
 |  [LanguageModelMessage](./vertexai.languagemodelmessage.md#languagemodelmessage_interface) | Defines a prompt format comparable to Vertex's [Content](./vertexai.content.md#content_interface)<!-- -->. |
-|  [LanguageModelMessageContent](./vertexai.languagemodelmessagecontent.md#languagemodelmessagecontent_interface) |  |
-|  [LanguageModelMessageShorthand](./vertexai.languagemodelmessageshorthand.md#languagemodelmessageshorthand_interface) |  |
+|  [LanguageModelMessageContent](./vertexai.languagemodelmessagecontent.md#languagemodelmessagecontent_interface) | Defines a prompt format comparable to Vertex's [Part](./vertexai.md#part)<!-- -->. |
+|  [LanguageModelMessageShorthand](./vertexai.languagemodelmessageshorthand.md#languagemodelmessageshorthand_interface) | Defines a prompt format comparable to a simplified Vertex [Content](./vertexai.content.md#content_interface)<!-- -->. |
 |  [ModalityTokenCount](./vertexai.modalitytokencount.md#modalitytokencount_interface) | Represents token counting info for a single modality. |
 |  [ModelParams](./vertexai.modelparams.md#modelparams_interface) | Params passed to [getGenerativeModel()](./vertexai.md#getgenerativemodel_c63f46a)<!-- -->. |
 |  [ObjectSchemaInterface](./vertexai.objectschemainterface.md#objectschemainterface_interface) | Interface for [ObjectSchema](./vertexai.objectschema.md#objectschema_class) class. |
@@ -150,7 +148,6 @@ The Firebase AI Web SDK.
 |  [BackendType](./vertexai.md#backendtype) | Type alias representing valid backend types. It can be either <code>'VERTEX_AI'</code> or <code>'GOOGLE_AI'</code>. |
 |  [InferenceMode](./vertexai.md#inferencemode) | Determines whether inference happens on-device or in-cloud. |
 |  [LanguageModelInitialPrompts](./vertexai.md#languagemodelinitialprompts) | Enables multiple prompt formats. |
-|  [LanguageModelPrompt](./vertexai.md#languagemodelprompt) |  |
 |  [Part](./vertexai.md#part) | Content part - includes text, image/video, or function call/response part types. |
 |  [Role](./vertexai.md#role) | Role is the producer of the content. |
 |  [Tool](./vertexai.md#tool) | Defines a tool that model can call to access external knowledge. |
@@ -365,14 +362,6 @@ Enables multiple prompt formats.
 export type LanguageModelInitialPrompts = LanguageModelMessage[] | LanguageModelMessageShorthand[];
 ```
 
-## LanguageModelPrompt
-
-<b>Signature:</b>
-
-```typescript
-export type LanguageModelPrompt = LanguageModelMessageContent[];
-```
-
 ## Part
 
 Content part - includes text, image/video, or function call/response part types.
@@ -452,23 +441,6 @@ export declare const enum AIErrorCode
 |  REQUEST\_ERROR | <code>&quot;request-error&quot;</code> | An error occurred in a request. |
 |  RESPONSE\_ERROR | <code>&quot;response-error&quot;</code> | An error occurred in a response. |
 |  UNSUPPORTED | <code>&quot;unsupported&quot;</code> | An error occured due an attempt to use an unsupported feature. |
-
-## Availability
-
-<b>Signature:</b>
-
-```typescript
-export declare enum Availability 
-```
-
-## Enumeration Members
-
-|  Member | Value | Description |
-|  --- | --- | --- |
-|  available | <code>&quot;available&quot;</code> |  |
-|  downloadable | <code>&quot;downloadable&quot;</code> |  |
-|  downloading | <code>&quot;downloading&quot;</code> |  |
-|  unavailable | <code>&quot;unavailable&quot;</code> |  |
 
 ## BlockReason
 

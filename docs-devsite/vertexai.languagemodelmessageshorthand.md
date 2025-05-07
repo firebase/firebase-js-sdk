@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # LanguageModelMessageShorthand interface
+Defines a prompt format comparable to a simplified Vertex [Content](./vertexai.content.md#content_interface)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

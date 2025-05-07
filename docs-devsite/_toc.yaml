@@ -552,8 +552,6 @@ toc:
     path: /docs/reference/js/vertexai.inlinedatapart.md
   - title: IntegerSchema
     path: /docs/reference/js/vertexai.integerschema.md
-  - title: LanguageModel
-    path: /docs/reference/js/vertexai.languagemodel.md
   - title: LanguageModelCreateCoreOptions
     path: /docs/reference/js/vertexai.languagemodelcreatecoreoptions.md
   - title: LanguageModelCreateOptions
