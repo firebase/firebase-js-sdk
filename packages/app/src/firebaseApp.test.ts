@@ -27,11 +27,11 @@ describe('FirebaseAppNext', () => {
     };
     const app = new FirebaseAppImpl(
       options,
-      { name: 'test', automaticDataCollectionEnabled: true },
+      { name: 'test', automaticDataCollectionEnabled: false },
       new ComponentContainer('test')
     );
 
-    expect(app.automaticDataCollectionEnabled).to.be.true;
+    expect(app.automaticDataCollectionEnabled).to.be.false;
     expect(app.name).to.equal('test');
     expect(app.options).to.deep.equal(options);
   });

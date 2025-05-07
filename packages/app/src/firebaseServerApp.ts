@@ -74,7 +74,7 @@ export class FirebaseServerAppImpl
     const automaticDataCollectionEnabled =
       serverConfig.automaticDataCollectionEnabled !== undefined
         ? serverConfig.automaticDataCollectionEnabled
-        : true;
+        : false;
 
     // Create the FirebaseAppSettings object for the FirebaseAppImp constructor.
     const config: Required<FirebaseAppSettings> = {

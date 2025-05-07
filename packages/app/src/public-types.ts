@@ -165,7 +165,7 @@ export interface FirebaseAppSettings {
    */
   name?: string;
   /**
-   * The settable config flag for GDPR opt-in/opt-out. Defaults to true.
+   * The settable config flag for GDPR opt-in/opt-out
    */
   automaticDataCollectionEnabled?: boolean;
 }
