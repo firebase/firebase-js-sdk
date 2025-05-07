@@ -23,3 +23,4 @@ export * from './error';
 export * from './schema';
 export * from './imagen';
 export * from './googleai';
+export * from './language-model';

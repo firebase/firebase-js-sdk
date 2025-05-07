@@ -552,6 +552,20 @@ toc:
     path: /docs/reference/js/vertexai.inlinedatapart.md
   - title: IntegerSchema
     path: /docs/reference/js/vertexai.integerschema.md
+  - title: LanguageModel
+    path: /docs/reference/js/vertexai.languagemodel.md
+  - title: LanguageModelCreateCoreOptions
+    path: /docs/reference/js/vertexai.languagemodelcreatecoreoptions.md
+  - title: LanguageModelCreateOptions
+    path: /docs/reference/js/vertexai.languagemodelcreateoptions.md
+  - title: LanguageModelExpectedInput
+    path: /docs/reference/js/vertexai.languagemodelexpectedinput.md
+  - title: LanguageModelMessage
+    path: /docs/reference/js/vertexai.languagemodelmessage.md
+  - title: LanguageModelMessageContent
+    path: /docs/reference/js/vertexai.languagemodelmessagecontent.md
+  - title: LanguageModelMessageShorthand
+    path: /docs/reference/js/vertexai.languagemodelmessageshorthand.md
   - title: ModalityTokenCount
     path: /docs/reference/js/vertexai.modalitytokencount.md
   - title: ModelParams

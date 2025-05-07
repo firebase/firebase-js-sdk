@@ -38,11 +38,23 @@ export enum Availability {
   'downloading' = 'downloading',
   'available' = 'available'
 }
+/**
+ * Defines Prompt API session configuration for availability checking and creation.
+ */
 export interface LanguageModelCreateCoreOptions {
   topK?: number;
   temperature?: number;
+  /**
+   * Configures the Prompt API to prepare for the given input types.
+   */
   expectedInputs?: LanguageModelExpectedInput[];
 }
+/**
+ * Defines Prompt API session configuration used during creation.
+ *
+ * See Chrome's Prompt API explainer ({@link https://github.com/webmachinelearning/prompt-api}) for
+ * more context.
+ */
 export interface LanguageModelCreateOptions
   extends LanguageModelCreateCoreOptions {
   signal?: AbortSignal;
@@ -52,20 +64,29 @@ export interface LanguageModelCreateOptions
 interface LanguageModelPromptOptions {
   signal?: AbortSignal;
 }
-interface LanguageModelExpectedInput {
+/**
+ * Defines input types to prepare for.
+ */
+export interface LanguageModelExpectedInput {
   type: LanguageModelMessageType;
   languages?: string[];
 }
 // TODO: revert to type from Prompt API explainer once it's supported.
 export type LanguageModelPrompt = LanguageModelMessageContent[];
-type LanguageModelInitialPrompts =
+/**
+ * Enables multiple prompt formats.
+ */
+export type LanguageModelInitialPrompts =
   | LanguageModelMessage[]
   | LanguageModelMessageShorthand[];
-interface LanguageModelMessage {
+/**
+ * Defines a prompt format comparable to Vertex's {@link Content}.
+ */
+export interface LanguageModelMessage {
   role: LanguageModelMessageRole;
   content: LanguageModelMessageContent[];
 }
-interface LanguageModelMessageShorthand {
+export interface LanguageModelMessageShorthand {
   role: LanguageModelMessageRole;
   content: string;
 }
