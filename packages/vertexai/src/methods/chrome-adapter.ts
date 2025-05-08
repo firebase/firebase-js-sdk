@@ -28,7 +28,8 @@ import {
   Availability,
   LanguageModel,
   LanguageModelCreateOptions,
-  LanguageModelMessageContent
+  LanguageModelMessageContent,
+  LanguageModelPromptOptions
 } from '../types/language-model';
 
 /**
@@ -106,13 +107,25 @@ export class ChromeAdapter {
    */
   async generateContent(request: GenerateContentRequest): Promise<Response> {
     const session = await this.createSession();
+
     // TODO: support multiple content objects when Chrome supports
     // sequence<LanguageModelMessage>
     const contents = await Promise.all(
       request.contents[0].parts.map(ChromeAdapter.toLanguageModelMessageContent)
     );
-    const text = await session.prompt(contents);
+
+    const options = ChromeAdapter.extractLanguageModelPromptOptions(request);
+    
+    const text = await session.prompt(contents, options);
     return ChromeAdapter.toResponse(text);
+  }
+
+  private static extractLanguageModelPromptOptions(
+    request: GenerateContentRequest
+  ): LanguageModelPromptOptions {
+    return {
+      responseConstraint: request.generationConfig?.responseSchema
+    };
   }
 
   /**

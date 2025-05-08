@@ -58,7 +58,7 @@ import {
   onValue,
   off
 } from 'firebase/database';
-import { getGenerativeModel, getVertexAI } from 'firebase/vertexai';
+import { getGenerativeModel, getVertexAI, Schema } from 'firebase/vertexai';
 import { getDataConnect, DataConnect } from 'firebase/data-connect';
 
 /**
@@ -313,23 +313,48 @@ function callPerformance(app) {
 async function callVertexAI(app) {
   console.log('[VERTEXAI] start');
   const vertexAI = getVertexAI(app);
-  const model = getGenerativeModel(vertexAI, {
-    mode: 'prefer_on_device'
+
+  const responseSchema = Schema.object({
+    properties: {
+      characters: Schema.array({
+        items: Schema.object({
+          properties: {
+            name: Schema.string(),
+            accessory: Schema.string(),
+            age: Schema.number(),
+            species: Schema.string()
+          },
+          optionalProperties: ['accessory']
+        })
+      })
+    }
   });
-  const singleResult = await model.generateContent([
-    { text: 'describe this 20 x 20 px image in two words' },
-    {
-      inlineData: {
-        mimeType: 'image/heic',
-        data: 'AAAAGGZ0eXBoZWljAAAAAGhlaWNtaWYxAAAB7G1ldGEAAAAAAAAAIWhkbHIAAAAAAAAAAHBpY3QAAAAAAAAAAAAAAAAAAAAAJGRpbmYAAAAcZHJlZgAAAAAAAAABAAAADHVybCAAAAABAAAADnBpdG0AAAAAAAEAAAA4aWluZgAAAAAAAgAAABVpbmZlAgAAAAABAABodmMxAAAAABVpbmZlAgAAAQACAABFeGlmAAAAABppcmVmAAAAAAAAAA5jZHNjAAIAAQABAAABD2lwcnAAAADtaXBjbwAAABNjb2xybmNseAACAAIABoAAAAAMY2xsaQDLAEAAAAAUaXNwZQAAAAAAAAAUAAAADgAAAChjbGFwAAAAFAAAAAEAAAANAAAAAQAAAAAAAAAB/8AAAACAAAAAAAAJaXJvdAAAAAAQcGl4aQAAAAADCAgIAAAAcWh2Y0MBA3AAAACwAAAAAAAe8AD8/fj4AAALA6AAAQAXQAEMAf//A3AAAAMAsAAAAwAAAwAecCShAAEAI0IBAQNwAAADALAAAAMAAAMAHqAUIEHAjw1iHuRZVNwICBgCogABAAlEAcBhcshAUyQAAAAaaXBtYQAAAAAAAAABAAEHgQIDhIUGhwAAACxpbG9jAAAAAEQAAAIAAQAAAAEAAAJsAAABDAACAAAAAQAAAhQAAABYAAAAAW1kYXQAAAAAAAABdAAAAAZFeGlmAABNTQAqAAAACAAEARIAAwAAAAEAAQAAARoABQAAAAEAAAA+ARsABQAAAAEAAABGASgAAwAAAAEAAgAAAAAAAAAAAEgAAAABAAAASAAAAAEAAAEIKAGvoR8wDimTiRYUbALiHkU3ZdZ8DXAcSrRB9GARtVQHvnCE0LEyBGAyb5P4eYr6JAK5UxNX10WNlARq3ZpcGeVD+Xom6LodYasuZKKtDHCz/xnswOtC/ksZzVKhtWQqGvkXcsJnLYqWevNkacnccQ95jbHJBg9nXub69jAAN3xhNOXxjGSxaG9QvES5R7sYICEojRjLF5OB5K3v+okQAwfgWpz/u21ayideOgOZQLAyBkKOv7ymLNCagiPWTlHAuy/3qR1Q7m2ERFaxKIAbLSkIVO/P8m8+anKxhzhC//L8NMAUoF+Sf3aEH9O41fwLc+PlcbrDrjgY2EboD3cn9DyN32Rum2Ym'
+
+  const model = getGenerativeModel(vertexAI, {
+    mode: 'prefer_on_device',
+    inCloudParams: {
+      generationConfig: {
+        responseSchema
       }
     }
-  ]);
-  console.log(`Generated text: ${singleResult.response.text()}`);
-  const chat = model.startChat();
-  let chatResult = await chat.sendMessage('describe red in two words');
-  chatResult = await chat.sendMessage('describe blue');
-  console.log('Chat history:', await chat.getHistory());
+  });
+
+  const singleResult = await model.generateContent({
+    generationConfig: {
+      responseSchema
+    },
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          {
+            text: "For use in a children's card game, generate 10 animal-based characters."
+          }
+        ]
+      }
+    ]
+  });
+  console.log(`Generated text:`, JSON.parse(singleResult.response.text()));
   console.log(`[VERTEXAI] end`);
 }
 

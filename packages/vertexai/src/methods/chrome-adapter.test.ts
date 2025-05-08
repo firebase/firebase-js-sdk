@@ -28,6 +28,7 @@ import {
 } from '../types/language-model';
 import { match, stub } from 'sinon';
 import { GenerateContentRequest, AIErrorCode } from '../types';
+import { Schema } from '../api';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -396,6 +397,51 @@ describe('ChromeAdapter', () => {
         }
       ]);
       // Asserts expected output.
+      expect(await response.json()).to.deep.equal({
+        candidates: [
+          {
+            content: {
+              parts: [{ text: promptOutput }]
+            }
+          }
+        ]
+      });
+    });
+    it('honors response constraint', async () => {
+      const languageModel = {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        prompt: (p: LanguageModelMessageContent[]) => Promise.resolve('')
+      } as LanguageModel;
+      const languageModelProvider = {
+        create: () => Promise.resolve(languageModel)
+      } as LanguageModel;
+      const promptOutput = '{}';
+      const promptStub = stub(languageModel, 'prompt').resolves(promptOutput);
+      const adapter = new ChromeAdapter(
+        languageModelProvider,
+        'prefer_on_device'
+      );
+      const responseSchema = Schema.object({
+        properties: {}
+      });
+      const request = {
+        generationConfig: {
+          responseSchema
+        },
+        contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
+      } as GenerateContentRequest;
+      const response = await adapter.generateContent(request);
+      expect(promptStub).to.have.been.calledOnceWith(
+        [
+          {
+            type: 'text',
+            content: request.contents[0].parts[0].text
+          }
+        ],
+        {
+          responseConstraint: responseSchema
+        }
+      );
       expect(await response.json()).to.deep.equal({
         candidates: [
           {
