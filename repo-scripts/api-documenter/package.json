@@ -24,7 +24,7 @@
     "api-extractor-model-me": "0.1.1",
     "@microsoft/tsdoc": "0.12.24",
     "@rushstack/node-core-library": "3.66.1",
-    "@rushstack/ts-command-line": "4.23.3",
+    "@rushstack/ts-command-line": "4.23.7",
     "colors": "~1.4.0",
     "resolve": "~1.22.0",
     "tslib": "^2.1.0",
