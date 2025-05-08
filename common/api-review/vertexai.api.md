@@ -553,8 +553,7 @@ export enum HarmSeverity {
 export interface HybridParams {
     inCloudParams?: ModelParams;
     mode: InferenceMode;
-    // Warning: (ae-forgotten-export) The symbol "LanguageModelCreateOptions" needs to be exported by the entry point index.d.ts
-    onDeviceParams?: LanguageModelCreateOptions;
+    onDeviceParams?: OnDeviceParams;
 }
 
 // @beta
@@ -716,6 +715,18 @@ export interface ObjectSchemaInterface extends SchemaInterface {
     optionalProperties?: string[];
     // (undocumented)
     type: SchemaType.OBJECT;
+}
+
+// @public
+export interface OnDeviceParams {
+    // Warning: (ae-forgotten-export) The symbol "LanguageModelCreateOptions" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    createOptions?: LanguageModelCreateOptions;
+    // Warning: (ae-forgotten-export) The symbol "LanguageModelPromptOptions" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    promptOptions?: LanguageModelPromptOptions;
 }
 
 // @public

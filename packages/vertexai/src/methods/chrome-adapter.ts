@@ -22,14 +22,13 @@ import {
   GenerateContentRequest,
   InferenceMode,
   Part,
-  AIErrorCode
+  AIErrorCode,
+  OnDeviceParams
 } from '../types';
 import {
   Availability,
   LanguageModel,
-  LanguageModelCreateOptions,
-  LanguageModelMessageContent,
-  LanguageModelPromptOptions
+  LanguageModelMessageContent
 } from '../types/language-model';
 
 /**
@@ -45,10 +44,13 @@ export class ChromeAdapter {
   constructor(
     private languageModelProvider?: LanguageModel,
     private mode?: InferenceMode,
-    private onDeviceParams: LanguageModelCreateOptions = {}
-  ) {
-    this.addImageTypeAsExpectedInput();
-  }
+    private onDeviceParams: OnDeviceParams = {
+      createOptions: {
+        // Defaults to support image inputs for convenience.
+        expectedInputs: [{ type: 'image' }]
+      }
+    }
+  ) {}
 
   /**
    * Checks if a given request can be made on-device.
@@ -112,8 +114,10 @@ export class ChromeAdapter {
     const contents = await Promise.all(
       request.contents[0].parts.map(ChromeAdapter.toLanguageModelMessageContent)
     );
-    const options = ChromeAdapter.extractLanguageModelPromptOptions(request);
-    const text = await session.prompt(contents, options);
+    const text = await session.prompt(
+      contents,
+      this.onDeviceParams.promptOptions
+    );
     return ChromeAdapter.toResponse(text);
   }
 
@@ -134,8 +138,10 @@ export class ChromeAdapter {
     const contents = await Promise.all(
       request.contents[0].parts.map(ChromeAdapter.toLanguageModelMessageContent)
     );
-    const options = ChromeAdapter.extractLanguageModelPromptOptions(request);
-    const stream = await session.promptStreaming(contents, options);
+    const stream = await session.promptStreaming(
+      contents,
+      this.onDeviceParams.promptOptions
+    );
     return ChromeAdapter.toStreamResponse(stream);
   }
 
@@ -190,7 +196,7 @@ export class ChromeAdapter {
    */
   private async downloadIfAvailable(): Promise<Availability | undefined> {
     const availability = await this.languageModelProvider?.availability(
-      this.onDeviceParams
+      this.onDeviceParams.createOptions
     );
 
     if (availability === Availability.downloadable) {
@@ -215,7 +221,7 @@ export class ChromeAdapter {
     }
     this.isDownloading = true;
     this.downloadPromise = this.languageModelProvider
-      ?.create(this.onDeviceParams)
+      ?.create(this.onDeviceParams.createOptions)
       .then(() => {
         this.isDownloading = false;
       });
@@ -266,7 +272,7 @@ export class ChromeAdapter {
       );
     }
     const newSession = await this.languageModelProvider.create(
-      this.onDeviceParams
+      this.onDeviceParams.createOptions
     );
     if (this.oldSession) {
       this.oldSession.destroy();
@@ -274,23 +280,6 @@ export class ChromeAdapter {
     // Holds session reference, so model isn't unloaded from memory.
     this.oldSession = newSession;
     return newSession;
-  }
-
-  /**
-   * Extracts fields in common between {@link GenerateContentRequest} and
-   * {@link LanguageModelPromptOptions}.
-   */
-  private static extractLanguageModelPromptOptions(
-    request: GenerateContentRequest
-  ): LanguageModelPromptOptions {
-    return {
-      responseConstraint: request.generationConfig?.responseSchema
-    };
-  }
-
-  private addImageTypeAsExpectedInput(): void {
-    // Defaults to support image inputs for convenience.
-    this.onDeviceParams.expectedInputs ??= [{ type: 'image' }];
   }
 
   /**

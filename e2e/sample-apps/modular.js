@@ -314,7 +314,7 @@ async function callVertexAI(app) {
   console.log('[VERTEXAI] start');
   const vertexAI = getVertexAI(app);
 
-  const responseSchema = Schema.object({
+  const jsonSchema = Schema.object({
     properties: {
       characters: Schema.array({
         items: Schema.object({
@@ -331,26 +331,24 @@ async function callVertexAI(app) {
   });
 
   const model = getGenerativeModel(vertexAI, {
-    mode: 'prefer_on_device',
-    // mode: 'only_in_cloud'
+    // mode: 'prefer_on_device',
+    mode: 'only_in_cloud',
+    inCloudParams: {
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: jsonSchema
+      }
+    },
+    onDeviceParams: {
+      promptOptions: {
+        responseConstraint: jsonSchema
+      }
+    }
   });
 
-  const singleResult = await model.generateContent({
-    generationConfig: {
-      responseMimeType: 'application/json',
-      responseSchema
-    },
-    contents: [
-      {
-        role: 'user',
-        parts: [
-          {
-            text: "For use in a children's card game, generate 10 animal-based characters."
-          }
-        ]
-      }
-    ]
-  });
+  const singleResult = await model.generateContent(
+    "For use in a children's card game, generate 10 animal-based characters."
+  );
   console.log(`Generated text:`, JSON.parse(singleResult.response.text()));
   console.log(`[VERTEXAI] end`);
 }
