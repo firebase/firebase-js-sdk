@@ -1,6 +1,6 @@
 ---
 "@firebase/firestore": patch
-"@firebase/util": patch
+"@firebase/util": minor
 ---
 
 Fix encoding of CSI keys in Safari
