@@ -100,7 +100,7 @@ export interface GenerationConfig {
    * Generation modalities to be returned in generation responses.
    *
    * @remarks
-   *  - Multimodal response generation is only supported in some Gemini models and versions; see {@link https://firebase.google.com/docs/vertex-ai/models | model versions}.
+   *  - Multimodal response generation is only supported by some Gemini models and versions; see {@link https://firebase.google.com/docs/vertex-ai/models | model versions}.
    *  - Only image generation (`ResponseModality.IMAGE`) is supported.
    *
    * @beta
