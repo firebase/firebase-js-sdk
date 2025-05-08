@@ -270,6 +270,7 @@ export function updateEmulatorBanner(
       setupBannerStyles(bannerEl);
       const closeBtn = setupCloseBtn();
       learnMoreLink.setAttribute('id', learnMoreId);
+      learnMoreLink.innerText = 'Learn more';
       learnMoreLink.href =
         'http://firebase.google.com/docs/studio/deploy-app#emulator ';
       setupIconStyles(prependIcon, prependIconId);
@@ -278,7 +279,7 @@ export function updateEmulatorBanner(
     }
 
     if (showError) {
-      firebaseText.innerText = `Running in Production`;
+      firebaseText.innerText = `Not using emulated backend.`;
       prependIcon.innerHTML = `<g clip-path="url(#clip0_6013_33858)">
 <path d="M4.8 17.6L12 5.6L19.2 17.6H4.8ZM6.91667 16.4H17.0833L12 7.93333L6.91667 16.4ZM12 15.6C12.1667 15.6 12.3056 15.5444 12.4167 15.4333C12.5389 15.3111 12.6 15.1667 12.6 15C12.6 14.8333 12.5389 14.6944 12.4167 14.5833C12.3056 14.4611 12.1667 14.4 12 14.4C11.8333 14.4 11.6889 14.4611 11.5667 14.5833C11.4556 14.6944 11.4 14.8333 11.4 15C11.4 15.1667 11.4556 15.3111 11.5667 15.4333C11.6889 15.5444 11.8333 15.6 12 15.6ZM11.4 13.6H12.6V10.4H11.4V13.6Z" fill="#212121"/>
 </g>
