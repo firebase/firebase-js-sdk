@@ -111,8 +111,6 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
     }
   }
 
-  updateEmulatorBanner('Auth', false);
-
   const authEmulatorHost = getDefaultEmulatorHost('auth');
   if (authEmulatorHost) {
     connectAuthEmulator(auth, `http://${authEmulatorHost}`);

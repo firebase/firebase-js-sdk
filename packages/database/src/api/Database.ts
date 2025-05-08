@@ -333,7 +333,6 @@ export function getDatabase(
     identifier: url
   }) as Database;
   if (!db._instanceStarted) {
-    updateEmulatorBanner('Database', false);
     const emulator = getDefaultEmulatorHostnameAndPort('database');
     if (emulator) {
       connectDatabaseEmulator(db, ...emulator);

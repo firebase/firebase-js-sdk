@@ -182,6 +182,7 @@ export class AsyncQueueImpl implements AsyncQueue {
   }
 
   private enqueueInternal<T extends unknown>(op: () => Promise<T>): Promise<T> {
+    console.trace();
     const newTail = this.tail.then(() => {
       this.operationInProgress = true;
       return op()

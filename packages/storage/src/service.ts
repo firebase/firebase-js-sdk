@@ -326,7 +326,6 @@ export class FirebaseStorageImpl implements FirebaseStorage {
     appCheckToken: string | null,
     retry = true
   ): Request<O> {
-    updateEmulatorBanner('Service', this._isUsingEmulator);
     if (!this._deleted) {
       const request = makeRequest(
         requestInfo,

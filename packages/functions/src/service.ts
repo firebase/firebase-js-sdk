@@ -200,7 +200,6 @@ export function httpsCallable<RequestData, ResponseData, StreamData = unknown>(
   name: string,
   options?: HttpsCallableOptions
 ): HttpsCallable<RequestData, ResponseData, StreamData> {
-  updateEmulatorBanner('Functions', functionsInstance.emulatorOrigin !== null);
   const callable = (
     data?: RequestData | null
   ): Promise<HttpsCallableResult> => {
@@ -231,7 +230,6 @@ export function httpsCallableFromURL<
   url: string,
   options?: HttpsCallableOptions
 ): HttpsCallable<RequestData, ResponseData, StreamData> {
-  updateEmulatorBanner('Functions', functionsInstance.emulatorOrigin !== null);
   const callable = (
     data?: RequestData | null
   ): Promise<HttpsCallableResult> => {

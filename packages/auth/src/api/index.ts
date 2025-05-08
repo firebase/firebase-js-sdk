@@ -198,8 +198,7 @@ export async function _performFetchWithErrorHandling<V>(
   customErrorMap: Partial<ServerErrorMap<ServerError>>,
   fetchFn: () => Promise<Response>
 ): Promise<V> {
-  const authInternal = auth as AuthInternal;
-  authInternal._canInitEmulator = false;
+  (auth as AuthInternal)._canInitEmulator = false;
   const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
   try {
     const networkTimeout = new NetworkTimeout<Response>(auth);
