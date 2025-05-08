@@ -16,6 +16,7 @@
  */
 
 import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
+import { KeySafeBytes } from '../index/index_entry';
 import { IndexKind } from '../model/field_index';
 import { BundledQuery } from '../protos/firestore_bundle_proto';
 import {
@@ -52,9 +53,11 @@ import { DbTimestampKey } from './indexeddb_sentinels';
  * 14. Add overlays.
  * 15. Add indexing support.
  * 16. Parse timestamp strings before creating index entries.
+ * 17. TODO(tomandersen)
+ * 18. Encode key safe representations of IndexEntry in DbIndexEntryStore.
  */
 
-export const SCHEMA_VERSION = 17;
+export const SCHEMA_VERSION = 18;
 
 /**
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.
@@ -507,14 +510,14 @@ export interface DbIndexEntry {
   /** The user id for this entry. */
   uid: string;
   /** The encoded array index value for this entry. */
-  arrayValue: Uint8Array | number[];
+  arrayValue: KeySafeBytes;
   /** The encoded directional value for equality and inequality filters. */
-  directionalValue: Uint8Array | number[];
+  directionalValue: KeySafeBytes;
   /**
    * The document key this entry points to. This entry is encoded by an ordered
    * encoder to match the key order of the index.
    */
-  orderedDocumentKey: Uint8Array | number[];
+  orderedDocumentKey: KeySafeBytes;
   /** The segments of the document key this entry points to. */
   documentKey: string[];
 }

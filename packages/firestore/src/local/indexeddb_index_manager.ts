@@ -42,7 +42,8 @@ import { IndexByteEncoder } from '../index/index_byte_encoder';
 import {
   IndexEntry,
   indexEntryComparator,
-  indexSafeUint8Array
+  encodeKeySafeBytes,
+  decodeKeySafeBytes
 } from '../index/index_entry';
 import { documentKeySet, DocumentMap } from '../model/collections';
 import { Document } from '../model/document';
@@ -860,7 +861,7 @@ export class IndexedDbIndexManager implements IndexManager {
           range: IDBKeyRange.only([
             fieldIndex.indexId,
             this.uid,
-            indexSafeUint8Array(
+            encodeKeySafeBytes(
               this.encodeDirectionalKey(fieldIndex, documentKey)
             )
           ])
@@ -870,8 +871,8 @@ export class IndexedDbIndexManager implements IndexManager {
             new IndexEntry(
               fieldIndex.indexId,
               documentKey,
-              entry.arrayValue,
-              entry.directionalValue
+              decodeKeySafeBytes(entry.arrayValue),
+              decodeKeySafeBytes(entry.directionalValue)
             )
           );
         }

@@ -18,7 +18,7 @@
 import { isSafariOrWebkit } from '@firebase/util';
 
 import { DbIndexEntry } from '../local/indexeddb_schema';
-import { DbIndexEntryKey } from '../local/indexeddb_sentinels';
+import { DbIndexEntryKey, KeySafeBytes } from '../local/indexeddb_sentinels';
 import { DocumentKey } from '../model/document_key';
 
 /** Represents an index entry saved by the SDK in persisted storage. */
@@ -26,8 +26,8 @@ export class IndexEntry {
   constructor(
     readonly _indexId: number,
     readonly _documentKey: DocumentKey,
-    readonly _arrayValue: Uint8Array | number[],
-    readonly _directionalValue: Uint8Array | number[]
+    readonly _arrayValue: Uint8Array,
+    readonly _directionalValue: Uint8Array
   ) {}
 
   /**
@@ -66,9 +66,9 @@ export class IndexEntry {
     return {
       indexId: this._indexId,
       uid,
-      arrayValue: indexSafeUint8Array(this._arrayValue),
-      directionalValue: indexSafeUint8Array(this._directionalValue),
-      orderedDocumentKey: indexSafeUint8Array(orderedDocumentKey),
+      arrayValue: encodeKeySafeBytes(this._arrayValue),
+      directionalValue: encodeKeySafeBytes(this._directionalValue),
+      orderedDocumentKey: encodeKeySafeBytes(orderedDocumentKey),
       documentKey: documentKey.path.toArray()
     };
   }
@@ -82,9 +82,9 @@ export class IndexEntry {
     return [
       this._indexId,
       uid,
-      indexSafeUint8Array(this._arrayValue),
-      indexSafeUint8Array(this._directionalValue),
-      indexSafeUint8Array(orderedDocumentKey),
+      encodeKeySafeBytes(this._arrayValue),
+      encodeKeySafeBytes(this._directionalValue),
+      encodeKeySafeBytes(orderedDocumentKey),
       documentKey.path.toArray()
     ];
   }
@@ -125,16 +125,56 @@ export function compareByteArrays(
   return left.length - right.length;
 }
 
-// Create an safe representation of Uint8Array values
-// If the browser is detected as Safari or WebKit, then
-// the input array will be converted to `number[]`.
-// Otherwise, the input array will be returned in its
-// original type.
-export function indexSafeUint8Array(
-  array: Uint8Array | number[]
-): Uint8Array | number[] {
+/**
+ * Workaround for WebKit bug: https://bugs.webkit.org/show_bug.cgi?id=292721
+ * Create a key safe representation of Uint8Array values.
+ * If the browser is detected as Safari or WebKit, then
+ * the input array will be converted to "sortable byte string".
+ * Otherwise, the input array will be returned in its original type.
+ */
+export function encodeKeySafeBytes(array: Uint8Array): KeySafeBytes {
   if (isSafariOrWebkit() && !Array.isArray(array)) {
-    return Array.from(array);
+    return encodeUint8ArrayToSortableString(array);
   }
   return array;
+}
+
+/**
+ * Reverts the key safe representation of Uint8Array (created by
+ * indexSafeUint8Array) to a normal Uint8Array.
+ */
+export function decodeKeySafeBytes(input: KeySafeBytes): Uint8Array {
+  if (typeof input !== 'string') {
+    return input;
+  }
+  return decodeSortableStringToUint8Array(input);
+}
+
+/**
+ * Encodes a Uint8Array into a "sortable byte string".
+ * A "sortable byte string" sorts in the same order as the Uint8Array.
+ * This works because JS string comparison sorts strings based on code points.
+ */
+function encodeUint8ArrayToSortableString(array: Uint8Array): string {
+  let byteString = '';
+  for (let i = 0; i < array.length; i++) {
+    byteString += String.fromCharCode(array[i]);
+  }
+
+  return byteString;
+}
+
+/**
+ * Decodes a "sortable byte string" back into a Uint8Array.
+ * A "sortable byte string" is assumed to be created where each character's
+ * Unicode code point directly corresponds to a single byte value (0-255).
+ */
+function decodeSortableStringToUint8Array(byteString: string): Uint8Array {
+  const uint8array = new Uint8Array(byteString.length);
+
+  for (let i = 0; i < byteString.length; i++) {
+    uint8array[i] = byteString.charCodeAt(i);
+  }
+
+  return uint8array;
 }
