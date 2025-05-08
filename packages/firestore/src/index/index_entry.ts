@@ -112,10 +112,7 @@ export function indexEntryComparator(
   return DocumentKey.comparator(left._documentKey, right._documentKey);
 }
 
-export function compareByteArrays(
-  left: Uint8Array | number[],
-  right: Uint8Array | number[]
-): number {
+export function compareByteArrays(left: Uint8Array, right: Uint8Array): number {
   for (let i = 0; i < left.length && i < right.length; ++i) {
     const compare = left[i] - right[i];
     if (compare !== 0) {
