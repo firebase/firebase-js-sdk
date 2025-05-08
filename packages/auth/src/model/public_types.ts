@@ -1260,6 +1260,28 @@ export interface Dependencies {
    * Which {@link AuthErrorMap} to use.
    */
   errorMap?: AuthErrorMap;
+  /**
+   * The {@link TenantConfig} to use. This dependency is only required
+   * if you want to use regional auth which works with
+   * {@link DefaultConfig.REGIONAL_API_HOST} endpoint. It should not be set otherwise.
+   */
+  tenantConfig?: TenantConfig;
+}
+
+/**
+ * The tenant config that can be used to initialize a Regional {@link Auth} instance.
+ *
+ * @public
+ */
+export interface TenantConfig {
+  /**
+   * Which location to use.
+   */
+  location: string;
+  /**
+   * The tenant Id being used.
+   */
+  tenantId: string;
 }
 
 /**
