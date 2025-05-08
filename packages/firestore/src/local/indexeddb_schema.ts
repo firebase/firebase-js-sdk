@@ -16,7 +16,6 @@
  */
 
 import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
-import { KeySafeBytes } from '../index/index_entry';
 import { IndexKind } from '../model/field_index';
 import { BundledQuery } from '../protos/firestore_bundle_proto';
 import {
@@ -27,7 +26,7 @@ import {
 } from '../protos/firestore_proto_api';
 
 import { EncodedResourcePath } from './encoded_resource_path';
-import { DbTimestampKey } from './indexeddb_sentinels';
+import { DbTimestampKey, KeySafeBytes } from './indexeddb_sentinels';
 
 /**
  * Schema Version for the Web client:
