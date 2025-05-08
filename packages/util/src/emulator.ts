@@ -249,6 +249,18 @@ export function updateEmulatorBanner(
     return closeBtn;
   }
 
+  function setupLinkStyles(
+    learnMoreLink: HTMLAnchorElement,
+    learnMoreId: string
+  ): void {
+    learnMoreLink.setAttribute('id', learnMoreId);
+    learnMoreLink.innerText = 'Learn more';
+    learnMoreLink.href =
+      'http://firebase.google.com/docs/studio/deploy-app#emulator ';
+    learnMoreLink.setAttribute('target', '__blank');
+    learnMoreLink.style.paddingLeft = '5px';
+  }
+
   function setupDom(): void {
     const banner = getOrCreateEl(bannerId);
     const firebaseTextId = prefixedId('text');
@@ -268,11 +280,8 @@ export function updateEmulatorBanner(
       // update styles
       const bannerEl = banner.element;
       setupBannerStyles(bannerEl);
+      setupLinkStyles(learnMoreLink, learnMoreId);
       const closeBtn = setupCloseBtn();
-      learnMoreLink.setAttribute('id', learnMoreId);
-      learnMoreLink.innerText = 'Learn more';
-      learnMoreLink.href =
-        'http://firebase.google.com/docs/studio/deploy-app#emulator ';
       setupIconStyles(prependIcon, prependIconId);
       bannerEl.append(prependIcon, firebaseText, learnMoreLink, closeBtn);
       document.body.appendChild(bannerEl);
