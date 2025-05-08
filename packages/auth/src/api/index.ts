@@ -19,8 +19,7 @@ import {
   FirebaseError,
   isCloudflareWorker,
   isCloudWorkstation,
-  querystring,
-  updateEmulatorBanner
+  querystring
 } from '@firebase/util';
 
 import { AuthErrorCode, NamedErrorParams } from '../core/errors';
