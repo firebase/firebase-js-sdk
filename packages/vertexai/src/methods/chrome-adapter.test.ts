@@ -407,7 +407,7 @@ describe('ChromeAdapter', () => {
         ]
       });
     });
-    it('honors response constraint', async () => {
+    it('supports structured output by mapping responseSchema to responseConstraint', async () => {
       const languageModel = {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         prompt: (p: LanguageModelMessageContent[]) => Promise.resolve('')
@@ -430,7 +430,7 @@ describe('ChromeAdapter', () => {
         },
         contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
       } as GenerateContentRequest;
-      const response = await adapter.generateContent(request);
+      await adapter.generateContent(request);
       expect(promptStub).to.have.been.calledOnceWith(
         [
           {
@@ -442,15 +442,6 @@ describe('ChromeAdapter', () => {
           responseConstraint: responseSchema
         }
       );
-      expect(await response.json()).to.deep.equal({
-        candidates: [
-          {
-            content: {
-              parts: [{ text: promptOutput }]
-            }
-          }
-        ]
-      });
     });
   });
   describe('countTokens', () => {
@@ -591,6 +582,43 @@ describe('ChromeAdapter', () => {
       expect(actual).to.deep.equal([
         `data: {"candidates":[{"content":{"role":"model","parts":[{"text":["${part}"]}]}}]}\n\n`
       ]);
+    });
+    it('supports structured output by mapping responseSchema to responseConstraint', async () => {
+      const languageModel = {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        promptStreaming: p => new ReadableStream()
+      } as LanguageModel;
+      const languageModelProvider = {
+        create: () => Promise.resolve(languageModel)
+      } as LanguageModel;
+      const promptStub = stub(languageModel, 'promptStreaming').returns(
+        new ReadableStream()
+      );
+      const adapter = new ChromeAdapter(
+        languageModelProvider,
+        'prefer_on_device'
+      );
+      const responseSchema = Schema.object({
+        properties: {}
+      });
+      const request = {
+        generationConfig: {
+          responseSchema
+        },
+        contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
+      } as GenerateContentRequest;
+      await adapter.generateContentStream(request);
+      expect(promptStub).to.have.been.calledOnceWith(
+        [
+          {
+            type: 'text',
+            content: request.contents[0].parts[0].text
+          }
+        ],
+        {
+          responseConstraint: responseSchema
+        }
+      );
     });
   });
 });

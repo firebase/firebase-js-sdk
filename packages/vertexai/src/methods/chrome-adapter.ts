@@ -107,25 +107,14 @@ export class ChromeAdapter {
    */
   async generateContent(request: GenerateContentRequest): Promise<Response> {
     const session = await this.createSession();
-
     // TODO: support multiple content objects when Chrome supports
     // sequence<LanguageModelMessage>
     const contents = await Promise.all(
       request.contents[0].parts.map(ChromeAdapter.toLanguageModelMessageContent)
     );
-
     const options = ChromeAdapter.extractLanguageModelPromptOptions(request);
-    
     const text = await session.prompt(contents, options);
     return ChromeAdapter.toResponse(text);
-  }
-
-  private static extractLanguageModelPromptOptions(
-    request: GenerateContentRequest
-  ): LanguageModelPromptOptions {
-    return {
-      responseConstraint: request.generationConfig?.responseSchema
-    };
   }
 
   /**
@@ -145,7 +134,8 @@ export class ChromeAdapter {
     const contents = await Promise.all(
       request.contents[0].parts.map(ChromeAdapter.toLanguageModelMessageContent)
     );
-    const stream = await session.promptStreaming(contents);
+    const options = ChromeAdapter.extractLanguageModelPromptOptions(request);
+    const stream = await session.promptStreaming(contents, options);
     return ChromeAdapter.toStreamResponse(stream);
   }
 
@@ -284,6 +274,18 @@ export class ChromeAdapter {
     // Holds session reference, so model isn't unloaded from memory.
     this.oldSession = newSession;
     return newSession;
+  }
+
+  /**
+   * Extracts fields in common between {@link GenerateContentRequest} and
+   * {@link LanguageModelPromptOptions}.
+   */
+  private static extractLanguageModelPromptOptions(
+    request: GenerateContentRequest
+  ): LanguageModelPromptOptions {
+    return {
+      responseConstraint: request.generationConfig?.responseSchema
+    };
   }
 
   private addImageTypeAsExpectedInput(): void {
