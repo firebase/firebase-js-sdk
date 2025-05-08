@@ -91,7 +91,8 @@ interface AsyncAction {
 export const enum DefaultConfig {
   TOKEN_API_HOST = 'securetoken.googleapis.com',
   API_HOST = 'identitytoolkit.googleapis.com',
-  API_SCHEME = 'https'
+  API_SCHEME = 'https',
+  REGIONAL_API_HOST = 'identityplatform.googleapis.com'
 }
 
 export class AuthImpl implements AuthInternal, _FirebaseService {

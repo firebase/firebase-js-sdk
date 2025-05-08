@@ -68,6 +68,7 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
         const appCheckServiceProvider =
           container.getProvider<'app-check-internal'>('app-check-internal');
         const { apiKey, authDomain } = app.options;
+        const tenantConfig = deps?.tenantConfig;
 
         _assert(
           apiKey && !apiKey.includes(':'),
@@ -79,7 +80,9 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
           apiKey,
           authDomain,
           clientPlatform,
-          apiHost: DefaultConfig.API_HOST,
+          apiHost: tenantConfig?.location
+            ? DefaultConfig.REGIONAL_API_HOST
+            : DefaultConfig.API_HOST,
           tokenApiHost: DefaultConfig.TOKEN_API_HOST,
           apiScheme: DefaultConfig.API_SCHEME,
           sdkClientVersion: _getClientVersion(clientPlatform)
