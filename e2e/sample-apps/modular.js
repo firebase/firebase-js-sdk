@@ -332,15 +332,12 @@ async function callVertexAI(app) {
 
   const model = getGenerativeModel(vertexAI, {
     mode: 'prefer_on_device',
-    inCloudParams: {
-      generationConfig: {
-        responseSchema
-      }
-    }
+    // mode: 'only_in_cloud'
   });
 
   const singleResult = await model.generateContent({
     generationConfig: {
+      responseMimeType: 'application/json',
       responseSchema
     },
     contents: [
