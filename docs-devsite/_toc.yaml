@@ -155,6 +155,8 @@ toc:
     path: /docs/reference/js/auth.recaptchaverifier.md
   - title: SAMLAuthProvider
     path: /docs/reference/js/auth.samlauthprovider.md
+  - title: TenantConfig
+    path: /docs/reference/js/auth.tenantconfig.md
   - title: TotpMultiFactorAssertion
     path: /docs/reference/js/auth.totpmultifactorassertion.md
   - title: TotpMultiFactorGenerator

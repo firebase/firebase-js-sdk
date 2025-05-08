@@ -316,6 +316,7 @@ export interface Dependencies {
     errorMap?: AuthErrorMap;
     persistence?: Persistence | Persistence[];
     popupRedirectResolver?: PopupRedirectResolver;
+    tenantConfig?: TenantConfig;
 }
 
 // @public
@@ -794,6 +795,12 @@ export function signInWithRedirect(auth: Auth, provider: AuthProvider, resolver?
 
 // @public
 export function signOut(auth: Auth): Promise<void>;
+
+// @public
+export interface TenantConfig {
+    location: string;
+    tenantId: string;
+}
 
 // @public
 export interface TotpMultiFactorAssertion extends MultiFactorAssertion {
