@@ -49,8 +49,9 @@ export interface LanguageModelCreateOptions
   systemPrompt?: string;
   initialPrompts?: LanguageModelInitialPrompts;
 }
-interface LanguageModelPromptOptions {
-  signal?: AbortSignal;
+export interface LanguageModelPromptOptions {
+  responseConstraint?: object;
+  // TODO: Restore AbortSignal once the API is defined.
 }
 interface LanguageModelExpectedInput {
   type: LanguageModelMessageType;

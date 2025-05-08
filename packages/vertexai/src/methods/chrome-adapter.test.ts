@@ -28,6 +28,7 @@ import {
 } from '../types/language-model';
 import { match, stub } from 'sinon';
 import { GenerateContentRequest, AIErrorCode } from '../types';
+import { Schema } from '../api';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -85,14 +86,16 @@ describe('ChromeAdapter', () => {
         languageModelProvider,
         'availability'
       ).resolves(Availability.available);
-      const onDeviceParams = {
+      const createOptions = {
         // Explicitly sets expected inputs.
         expectedInputs: [{ type: 'text' }]
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
         'prefer_on_device',
-        onDeviceParams
+        {
+          createOptions
+        }
       );
       await adapter.isAvailable({
         contents: [
@@ -102,7 +105,7 @@ describe('ChromeAdapter', () => {
           }
         ]
       });
-      expect(availabilityStub).to.have.been.calledWith(onDeviceParams);
+      expect(availabilityStub).to.have.been.calledWith(createOptions);
     });
   });
   describe('isAvailable', () => {
@@ -210,20 +213,20 @@ describe('ChromeAdapter', () => {
       const createStub = stub(languageModelProvider, 'create').resolves(
         {} as LanguageModel
       );
-      const expectedOnDeviceParams = {
+      const createOptions = {
         expectedInputs: [{ type: 'image' }]
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
         'prefer_on_device',
-        expectedOnDeviceParams
+        { createOptions }
       );
       expect(
         await adapter.isAvailable({
           contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
         })
       ).to.be.false;
-      expect(createStub).to.have.been.calledOnceWith(expectedOnDeviceParams);
+      expect(createStub).to.have.been.calledOnceWith(createOptions);
     });
     it('avoids redundant downloads', async () => {
       const languageModelProvider = {
@@ -310,21 +313,21 @@ describe('ChromeAdapter', () => {
       );
       const promptOutput = 'hi';
       const promptStub = stub(languageModel, 'prompt').resolves(promptOutput);
-      const expectedOnDeviceParams = {
+      const createOptions = {
         systemPrompt: 'be yourself',
         expectedInputs: [{ type: 'image' }]
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
         'prefer_on_device',
-        expectedOnDeviceParams
+        { createOptions }
       );
       const request = {
         contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
       } as GenerateContentRequest;
       const response = await adapter.generateContent(request);
       // Asserts initialization params are proxied.
-      expect(createStub).to.have.been.calledOnceWith(expectedOnDeviceParams);
+      expect(createStub).to.have.been.calledOnceWith(createOptions);
       // Asserts Vertex input type is mapped to Chrome type.
       expect(promptStub).to.have.been.calledOnceWith([
         {
@@ -356,14 +359,14 @@ describe('ChromeAdapter', () => {
       );
       const promptOutput = 'hi';
       const promptStub = stub(languageModel, 'prompt').resolves(promptOutput);
-      const expectedOnDeviceParams = {
+      const createOptions = {
         systemPrompt: 'be yourself',
         expectedInputs: [{ type: 'image' }]
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
         'prefer_on_device',
-        expectedOnDeviceParams
+        { createOptions }
       );
       const request = {
         contents: [
@@ -383,7 +386,7 @@ describe('ChromeAdapter', () => {
       } as GenerateContentRequest;
       const response = await adapter.generateContent(request);
       // Asserts initialization params are proxied.
-      expect(createStub).to.have.been.calledOnceWith(expectedOnDeviceParams);
+      expect(createStub).to.have.been.calledOnceWith(createOptions);
       // Asserts Vertex input type is mapped to Chrome type.
       expect(promptStub).to.have.been.calledOnceWith([
         {
@@ -405,6 +408,40 @@ describe('ChromeAdapter', () => {
           }
         ]
       });
+    });
+    it('honors prompt options', async () => {
+      const languageModel = {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        prompt: (p: LanguageModelMessageContent[]) => Promise.resolve('')
+      } as LanguageModel;
+      const languageModelProvider = {
+        create: () => Promise.resolve(languageModel)
+      } as LanguageModel;
+      const promptOutput = '{}';
+      const promptStub = stub(languageModel, 'prompt').resolves(promptOutput);
+      const promptOptions = {
+        responseConstraint: Schema.object({
+          properties: {}
+        })
+      };
+      const adapter = new ChromeAdapter(
+        languageModelProvider,
+        'prefer_on_device',
+        { promptOptions }
+      );
+      const request = {
+        contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
+      } as GenerateContentRequest;
+      await adapter.generateContent(request);
+      expect(promptStub).to.have.been.calledOnceWith(
+        [
+          {
+            type: 'text',
+            content: request.contents[0].parts[0].text
+          }
+        ],
+        promptOptions
+      );
     });
   });
   describe('countTokens', () => {
@@ -462,19 +499,19 @@ describe('ChromeAdapter', () => {
           }
         })
       );
-      const expectedOnDeviceParams = {
+      const createOptions = {
         expectedInputs: [{ type: 'image' }]
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
         'prefer_on_device',
-        expectedOnDeviceParams
+        { createOptions }
       );
       const request = {
         contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
       } as GenerateContentRequest;
       const response = await adapter.generateContentStream(request);
-      expect(createStub).to.have.been.calledOnceWith(expectedOnDeviceParams);
+      expect(createStub).to.have.been.calledOnceWith(createOptions);
       expect(promptStub).to.have.been.calledOnceWith([
         {
           type: 'text',
@@ -505,13 +542,13 @@ describe('ChromeAdapter', () => {
           }
         })
       );
-      const expectedOnDeviceParams = {
+      const createOptions = {
         expectedInputs: [{ type: 'image' }]
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
         'prefer_on_device',
-        expectedOnDeviceParams
+        { createOptions }
       );
       const request = {
         contents: [
@@ -530,7 +567,7 @@ describe('ChromeAdapter', () => {
         ]
       } as GenerateContentRequest;
       const response = await adapter.generateContentStream(request);
-      expect(createStub).to.have.been.calledOnceWith(expectedOnDeviceParams);
+      expect(createStub).to.have.been.calledOnceWith(createOptions);
       expect(promptStub).to.have.been.calledOnceWith([
         {
           type: 'text',
@@ -545,6 +582,41 @@ describe('ChromeAdapter', () => {
       expect(actual).to.deep.equal([
         `data: {"candidates":[{"content":{"role":"model","parts":[{"text":["${part}"]}]}}]}\n\n`
       ]);
+    });
+    it('honors prompt options', async () => {
+      const languageModel = {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        promptStreaming: p => new ReadableStream()
+      } as LanguageModel;
+      const languageModelProvider = {
+        create: () => Promise.resolve(languageModel)
+      } as LanguageModel;
+      const promptStub = stub(languageModel, 'promptStreaming').returns(
+        new ReadableStream()
+      );
+      const promptOptions = {
+        responseConstraint: Schema.object({
+          properties: {}
+        })
+      };
+      const adapter = new ChromeAdapter(
+        languageModelProvider,
+        'prefer_on_device',
+        { promptOptions }
+      );
+      const request = {
+        contents: [{ role: 'user', parts: [{ text: 'anything' }] }]
+      } as GenerateContentRequest;
+      await adapter.generateContentStream(request);
+      expect(promptStub).to.have.been.calledOnceWith(
+        [
+          {
+            type: 'text',
+            content: request.contents[0].parts[0].text
+          }
+        ],
+        promptOptions
+      );
     });
   });
 });
