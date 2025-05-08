@@ -27,6 +27,7 @@ export interface GenerationConfig
 |  [maxOutputTokens](./vertexai.generationconfig.md#generationconfigmaxoutputtokens) | number |  |
 |  [presencePenalty](./vertexai.generationconfig.md#generationconfigpresencepenalty) | number |  |
 |  [responseMimeType](./vertexai.generationconfig.md#generationconfigresponsemimetype) | string | Output response MIME type of the generated candidate text. Supported MIME types are <code>text/plain</code> (default, text output), <code>application/json</code> (JSON response in the candidates), and <code>text/x.enum</code>. |
+|  [responseModalities](./vertexai.generationconfig.md#generationconfigresponsemodalities) | [ResponseModality](./vertexai.md#responsemodality)<!-- -->\[\] | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [responseSchema](./vertexai.generationconfig.md#generationconfigresponseschema) | [TypedSchema](./vertexai.md#typedschema) \| [SchemaRequest](./vertexai.schemarequest.md#schemarequest_interface) | Output response schema of the generated candidate text. This value can be a class generated with a [Schema](./vertexai.schema.md#schema_class) static method like <code>Schema.string()</code> or <code>Schema.object()</code> or it can be a plain JS object matching the [SchemaRequest](./vertexai.schemarequest.md#schemarequest_interface) interface. <br/>Note: This only applies when the specified <code>responseMIMEType</code> supports a schema; currently this is limited to <code>application/json</code> and <code>text/x.enum</code>. |
 |  [stopSequences](./vertexai.generationconfig.md#generationconfigstopsequences) | string\[\] |  |
 |  [temperature](./vertexai.generationconfig.md#generationconfigtemperature) | number |  |
@@ -73,6 +74,21 @@ Output response MIME type of the generated candidate text. Supported MIME types 
 
 ```typescript
 responseMimeType?: string;
+```
+
+## GenerationConfig.responseModalities
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Generation modalities to be returned in generation responses.
+
+- Multimodal response generation is only supported by some Gemini models and versions; see [model versions](https://firebase.google.com/docs/vertex-ai/models)<!-- -->. - Only image generation (`ResponseModality.IMAGE`<!-- -->) is supported.
+
+<b>Signature:</b>
+
+```typescript
+responseModalities?: ResponseModality[];
 ```
 
 ## GenerationConfig.responseSchema

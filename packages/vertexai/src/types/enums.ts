@@ -249,3 +249,29 @@ export enum Modality {
    */
   DOCUMENT = 'DOCUMENT'
 }
+
+/**
+ * Generation modalities to be returned in generation responses.
+ *
+ * @beta
+ */
+export const ResponseModality = {
+  /**
+   * Text.
+   * @beta
+   */
+  TEXT: 'TEXT',
+  /**
+   * Image.
+   * @beta
+   */
+  IMAGE: 'IMAGE'
+} as const;
+
+/**
+ * Generation modalities to be returned in generation responses.
+ *
+ * @beta
+ */
+export type ResponseModality =
+  (typeof ResponseModality)[keyof typeof ResponseModality];

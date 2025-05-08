@@ -131,6 +131,7 @@ The Firebase AI Web SDK.
 |  --- | --- |
 |  [BackendType](./vertexai.md#backendtype) | An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Vertex AI Gemini API or Gemini Developer API) the SDK will communicate with.<!-- -->These values are assigned to the <code>backendType</code> property within the specific backend configuration objects ([GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class) or [VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->) to identify which service to target. |
 |  [POSSIBLE\_ROLES](./vertexai.md#possible_roles) | Possible roles. |
+|  [ResponseModality](./vertexai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [VertexAIError](./vertexai.md#vertexaierror) | Error class for the Firebase AI SDK.<!-- -->For more information, refer to the documentation for the new [AIError](./vertexai.aierror.md#aierror_class)<!-- -->. |
 |  [VertexAIModel](./vertexai.md#vertexaimodel) | Base class for Firebase AI model APIs.<!-- -->For more information, refer to the documentation for the new [AIModel](./vertexai.aimodel.md#aimodel_class)<!-- -->. |
 
@@ -140,6 +141,7 @@ The Firebase AI Web SDK.
 |  --- | --- |
 |  [BackendType](./vertexai.md#backendtype) | Type alias representing valid backend types. It can be either <code>'VERTEX_AI'</code> or <code>'GOOGLE_AI'</code>. |
 |  [Part](./vertexai.md#part) | Content part - includes text, image/video, or function call/response part types. |
+|  [ResponseModality](./vertexai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [Role](./vertexai.md#role) | Role is the producer of the content. |
 |  [Tool](./vertexai.md#tool) | Defines a tool that model can call to access external knowledge. |
 |  [TypedSchema](./vertexai.md#typedschema) | A type that includes all specific Schema types. |
@@ -299,6 +301,22 @@ Possible roles.
 POSSIBLE_ROLES: readonly ["user", "model", "function", "system"]
 ```
 
+## ResponseModality
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Generation modalities to be returned in generation responses.
+
+<b>Signature:</b>
+
+```typescript
+ResponseModality: {
+    readonly TEXT: "TEXT";
+    readonly IMAGE: "IMAGE";
+}
+```
+
 ## VertexAIError
 
 Error class for the Firebase AI SDK.
@@ -341,6 +359,19 @@ Content part - includes text, image/video, or function call/response part types.
 
 ```typescript
 export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart;
+```
+
+## ResponseModality
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Generation modalities to be returned in generation responses.
+
+<b>Signature:</b>
+
+```typescript
+export type ResponseModality = (typeof ResponseModality)[keyof typeof ResponseModality];
 ```
 
 ## Role
