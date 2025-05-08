@@ -124,6 +124,7 @@ export { Date_2 as Date }
 export interface EnhancedGenerateContentResponse extends GenerateContentResponse {
     // (undocumented)
     functionCalls: () => FunctionCall[] | undefined;
+    inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
 }
 
@@ -304,6 +305,8 @@ export interface GenerationConfig {
     // (undocumented)
     presencePenalty?: number;
     responseMimeType?: string;
+    // @beta
+    responseModalities?: ResponseModality[];
     responseSchema?: TypedSchema | SchemaRequest;
     // (undocumented)
     stopSequences?: string[];
@@ -595,6 +598,15 @@ export interface RequestOptions {
     baseUrl?: string;
     timeout?: number;
 }
+
+// @beta
+export const ResponseModality: {
+    readonly TEXT: "TEXT";
+    readonly IMAGE: "IMAGE";
+};
+
+// @beta
+export type ResponseModality = (typeof ResponseModality)[keyof typeof ResponseModality];
 
 // @public (undocumented)
 export interface RetrievedContextAttribution {

@@ -125,12 +125,14 @@ The Vertex AI in Firebase Web SDK.
 |  Variable | Description |
 |  --- | --- |
 |  [POSSIBLE\_ROLES](./vertexai.md#possible_roles) | Possible roles. |
+|  [ResponseModality](./vertexai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 
 ## Type Aliases
 
 |  Type Alias | Description |
 |  --- | --- |
 |  [Part](./vertexai.md#part) | Content part - includes text, image/video, or function call/response part types. |
+|  [ResponseModality](./vertexai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [Role](./vertexai.md#role) | Role is the producer of the content. |
 |  [Tool](./vertexai.md#tool) | Defines a tool that model can call to access external knowledge. |
 |  [TypedSchema](./vertexai.md#typedschema) | A type that includes all specific Schema types. |
@@ -223,6 +225,22 @@ Possible roles.
 POSSIBLE_ROLES: readonly ["user", "model", "function", "system"]
 ```
 
+## ResponseModality
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Generation modalities to be returned in generation responses.
+
+<b>Signature:</b>
+
+```typescript
+ResponseModality: {
+    readonly TEXT: "TEXT";
+    readonly IMAGE: "IMAGE";
+}
+```
+
 ## Part
 
 Content part - includes text, image/video, or function call/response part types.
@@ -231,6 +249,19 @@ Content part - includes text, image/video, or function call/response part types.
 
 ```typescript
 export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart;
+```
+
+## ResponseModality
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Generation modalities to be returned in generation responses.
+
+<b>Signature:</b>
+
+```typescript
+export type ResponseModality = (typeof ResponseModality)[keyof typeof ResponseModality];
 ```
 
 ## Role

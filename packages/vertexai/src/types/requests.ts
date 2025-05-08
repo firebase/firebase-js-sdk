@@ -21,7 +21,8 @@ import {
   FunctionCallingMode,
   HarmBlockMethod,
   HarmBlockThreshold,
-  HarmCategory
+  HarmCategory,
+  ResponseModality
 } from './enums';
 import { ObjectSchemaInterface, SchemaRequest } from './schema';
 
@@ -95,6 +96,16 @@ export interface GenerationConfig {
    * this is limited to `application/json` and `text/x.enum`.
    */
   responseSchema?: TypedSchema | SchemaRequest;
+  /**
+   * Generation modalities to be returned in generation responses.
+   *
+   * @remarks
+   *  - Multimodal response generation is only supported by some Gemini models and versions; see {@link https://firebase.google.com/docs/vertex-ai/models | model versions}.
+   *  - Only image generation (`ResponseModality.IMAGE`) is supported.
+   *
+   * @beta
+   */
+  responseModalities?: ResponseModality[];
 }
 
 /**
