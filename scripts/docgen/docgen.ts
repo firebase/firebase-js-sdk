@@ -60,7 +60,7 @@ const PREFERRED_PARAMS = [
   'performance',
   'remoteConfig',
   'storage',
-  'vertexAI' // TODO (dlarocque-ai)
+  'AI'
 ];
 
 let authApiReportOriginal: string;
@@ -133,7 +133,7 @@ function cleanup() {
   } catch (e) {
     console.error(
       'Error cleaning up files on exit - ' +
-      'check for temp modifications to md and json files.'
+        'check for temp modifications to md and json files.'
     );
     console.error(e);
   }
