@@ -44,7 +44,7 @@ export { AIErrorCode as VertexAIErrorCode };
  * @deprecated Use the new {@link AIModel} instead. The Vertex AI in Firebase SDK has been
  * replaced with the Firebase AI SDK to accommodate the evolving set of supported features and
  * services. For migration details, see the {@link https://firebase.google.com/docs/vertex-ai/migrate-to-latest-sdk | migration guide}.
- * 
+ *
  * Base class for Firebase AI model APIs.
  *
  * @public
@@ -55,9 +55,9 @@ export const VertexAIModel = AIModel;
  * @deprecated Use the new {@link AIError} instead. The Vertex AI in Firebase SDK has been
  * replaced with the Firebase AI SDK to accommodate the evolving set of supported features and
  * services. For migration details, see the {@link https://firebase.google.com/docs/vertex-ai/migrate-to-latest-sdk | migration guide}.
- * 
+ *
  * Error class for the Firebase AI SDK.
- * 
+ *
  * @public
  */
 export const VertexAIError = AIError;

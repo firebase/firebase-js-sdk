@@ -60,7 +60,7 @@ export interface AI {
   backend: Backend;
   /**
    * @deprecated use `AI.backend.location` instead.
-   * 
+   *
    * The location configured for this AI service instance, relevant for Vertex AI backends.
    */
   location: string;
