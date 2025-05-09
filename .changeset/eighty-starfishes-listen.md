@@ -3,4 +3,4 @@
 "@firebase/util": minor
 ---
 
-Fix encoding of CSI keys in Safari
+Fix Safari/WebKit cache issues when client-side indexing is used.
