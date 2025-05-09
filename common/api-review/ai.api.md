@@ -13,7 +13,7 @@ import { FirebaseError } from '@firebase/util';
 export interface AI {
     app: FirebaseApp;
     backend: Backend;
-    // @deprecated
+    // @deprecated (undocumented)
     location: string;
 }
 
@@ -423,7 +423,7 @@ export function getGenerativeModel(ai: AI, modelParams: ModelParams, requestOpti
 // @beta
 export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
 
-// @public
+// @public @deprecated (undocumented)
 export function getVertexAI(app?: FirebaseApp, options?: VertexAIOptions): VertexAI;
 
 // @public
@@ -916,7 +916,7 @@ export interface UsageMetadata {
     totalTokenCount: number;
 }
 
-// @public
+// @public @deprecated (undocumented)
 export type VertexAI = AI;
 
 // @public
@@ -925,10 +925,10 @@ export class VertexAIBackend extends Backend {
     readonly location: string;
 }
 
-// @public
+// @public @deprecated (undocumented)
 export const VertexAIError: typeof AIError;
 
-// @public
+// @public @deprecated (undocumented)
 export const VertexAIModel: typeof AIModel;
 
 // @public

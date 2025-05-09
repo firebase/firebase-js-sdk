@@ -41,19 +41,23 @@ export { Backend, VertexAIBackend, GoogleAIBackend } from './backend';
 export { AIErrorCode as VertexAIErrorCode };
 
 /**
+ * @deprecated Use the new {@link AIModel} instead. The Vertex AI in Firebase SDK has been
+ * replaced with the Firebase AI SDK to accommodate the evolving set of supported features and
+ * services. For migration details, see the {@link https://firebase.google.com/docs/vertex-ai/migrate-to-latest-sdk | migration guide}.
+ * 
  * Base class for Firebase AI model APIs.
- *
- * For more information, refer to the documentation for the new {@link AIModel}.
  *
  * @public
  */
 export const VertexAIModel = AIModel;
 
 /**
+ * @deprecated Use the new {@link AIError} instead. The Vertex AI in Firebase SDK has been
+ * replaced with the Firebase AI SDK to accommodate the evolving set of supported features and
+ * services. For migration details, see the {@link https://firebase.google.com/docs/vertex-ai/migrate-to-latest-sdk | migration guide}.
+ * 
  * Error class for the Firebase AI SDK.
- *
- * For more information, refer to the documentation for the new {@link AIError}.
- *
+ * 
  * @public
  */
 export const VertexAIError = AIError;
@@ -65,7 +69,9 @@ declare module '@firebase/component' {
 }
 
 /**
- * It is recommended to use the new {@link getAI | getAI()}.
+ * @deprecated Use the new {@link getAI | getAI()} instead. The Vertex AI in Firebase SDK has been
+ * replaced with the Firebase AI SDK to accommodate the evolving set of supported features and
+ * services. For migration details, see the {@link https://firebase.google.com/docs/vertex-ai/migrate-to-latest-sdk | migration guide}.
  *
  * Returns a {@link VertexAI} instance for the given app, configured to use the
  * Vertex AI Gemini API. This instance will be

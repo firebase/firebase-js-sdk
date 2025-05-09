@@ -21,9 +21,11 @@ import { Backend } from './backend';
 export * from './types';
 
 /**
- * An instance of the Firebase AI SDK.
+ * @deprecated Use the new {@link AI | AI} instead. The Vertex AI in Firebase SDK has been
+ * replaced with the Firebase AI SDK to accommodate the evolving set of supported features and
+ * services. For migration details, see the {@link https://firebase.google.com/docs/vertex-ai/migrate-to-latest-sdk | migration guide}.
  *
- * For more information, refer to the documentation for the new {@link AI} interface.
+ * An instance of the Firebase AI SDK.
  *
  * @public
  */
@@ -57,9 +59,9 @@ export interface AI {
    */
   backend: Backend;
   /**
-   * The location configured for this AI service instance, relevant for Vertex AI backends.
-   *
    * @deprecated use `AI.backend.location` instead.
+   * 
+   * The location configured for this AI service instance, relevant for Vertex AI backends.
    */
   location: string;
 }
