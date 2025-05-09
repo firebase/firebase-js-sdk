@@ -143,7 +143,7 @@ export function initializeApp(
 
   const config: Required<FirebaseAppSettings> = {
     name: DEFAULT_ENTRY_NAME,
-    automaticDataCollectionEnabled: false,
+    automaticDataCollectionEnabled: true,
     ...rawConfig
   };
   const name = config.name;
@@ -241,7 +241,7 @@ export function initializeServerApp(
   }
 
   if (_serverAppConfig.automaticDataCollectionEnabled === undefined) {
-    _serverAppConfig.automaticDataCollectionEnabled = false;
+    _serverAppConfig.automaticDataCollectionEnabled = true;
   }
 
   let appOptions: FirebaseOptions;

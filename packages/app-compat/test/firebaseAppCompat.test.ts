@@ -403,17 +403,17 @@ function firebaseAppTests(
       ).throws(/'abc'.*exists/i);
     });
 
-    it('automaticDataCollectionEnabled is `false` by default', () => {
+    it('automaticDataCollectionEnabled is `true` by default', () => {
       const app = firebase.initializeApp({}, 'my-app');
-      expect(app.automaticDataCollectionEnabled).to.eq(false);
+      expect(app.automaticDataCollectionEnabled).to.eq(true);
     });
 
     it('automaticDataCollectionEnabled can be set via the config object', () => {
       const app = firebase.initializeApp(
         {},
-        { automaticDataCollectionEnabled: true }
+        { automaticDataCollectionEnabled: false }
       );
-      expect(app.automaticDataCollectionEnabled).to.eq(true);
+      expect(app.automaticDataCollectionEnabled).to.eq(false);
     });
 
     it('Modifying options object does not change options.', () => {
