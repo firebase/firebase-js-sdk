@@ -36,6 +36,8 @@
     "test:browser:emulator": "karma start --targetBackend=emulator",
     "test:browser:nightly": "karma start --targetBackend=nightly",
     "test:browser:prod": "karma start --targetBackend=prod",
+    "test:webkit:prod": "BROWSERS=WebkitHeadless karma start --targetBackend=prod",
+    "test:webkit:unit": "BROWSERS=WebkitHeadless karma start --unit --targetBackend=prod",
     "test:browser:prod:nameddb": "karma start --targetBackend=prod --databaseId=test-db",
     "test:browser:unit": "karma start --unit",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
