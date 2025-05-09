@@ -79,13 +79,14 @@ export class IndexEntry {
     orderedDocumentKey: Uint8Array,
     documentKey: DocumentKey
   ): DbIndexEntryKey {
+    const entry = this.dbIndexEntry(uid, orderedDocumentKey, documentKey);
     return [
-      this._indexId,
-      uid,
-      encodeKeySafeBytes(this._arrayValue),
-      encodeKeySafeBytes(this._directionalValue),
-      encodeKeySafeBytes(orderedDocumentKey),
-      documentKey.path.toArray()
+      entry.indexId,
+      entry.uid,
+      entry.arrayValue,
+      entry.directionalValue,
+      entry.orderedDocumentKey,
+      entry.documentKey
     ];
   }
 }
@@ -130,7 +131,7 @@ export function compareByteArrays(left: Uint8Array, right: Uint8Array): number {
  * Otherwise, the input array will be returned in its original type.
  */
 export function encodeKeySafeBytes(array: Uint8Array): KeySafeBytes {
-  if (isSafariOrWebkit() && !Array.isArray(array)) {
+  if (isSafariOrWebkit()) {
     return encodeUint8ArrayToSortableString(array);
   }
   return array;
@@ -138,7 +139,7 @@ export function encodeKeySafeBytes(array: Uint8Array): KeySafeBytes {
 
 /**
  * Reverts the key safe representation of Uint8Array (created by
- * indexSafeUint8Array) to a normal Uint8Array.
+ * encodeKeySafeBytes) to a normal Uint8Array.
  */
 export function decodeKeySafeBytes(input: KeySafeBytes): Uint8Array {
   if (typeof input !== 'string') {
