@@ -60,7 +60,7 @@ const PREFERRED_PARAMS = [
   'performance',
   'remoteConfig',
   'storage',
-  'AI'
+  'ai'
 ];
 
 let authApiReportOriginal: string;
