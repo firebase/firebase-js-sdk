@@ -1,4 +1,4 @@
-# @firebase/vertexai
+# @firebase/ai
 
 ## 1.2.2
 
