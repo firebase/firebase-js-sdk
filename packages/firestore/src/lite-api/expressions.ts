@@ -2557,11 +2557,11 @@ export class BooleanExpr extends FunctionExpr {
  * countIf(field("is_active").eq(true)).as("numActiveDocuments");
  * ```
  *
- * @param booleanExpr - The boolean expression to evaluate on each input.
+ * @param condition The boolean expression to evaluate on each input.
  * @returns A new `AggregateFunction` representing the 'countIf' aggregation.
  */
-export function countIf(booleanExpr: BooleanExpr): AggregateFunction {
-  return booleanExpr.countIf();
+export function countIf(condition: BooleanExpr): AggregateFunction {
+  return condition.countIf();
 }
 
 /**
@@ -5726,7 +5726,7 @@ export function endsWith(
  * toLower("name");
  * ```
  *
- * @param fieldName The name of the field containing the string.
+ * @param fieldName The name of the field containing the string to convert to lowercase.
  * @return A new {@code Expr} representing the lowercase string.
  */
 export function toLower(fieldName: string): FunctionExpr;
@@ -5759,7 +5759,7 @@ export function toLower(expr: Expr | string): FunctionExpr {
  * toUpper("title");
  * ```
  *
- * @param fieldName The name of the field containing the string.
+ * @param fieldName The name of the field containing the string to convert to uppercase.
  * @return A new {@code Expr} representing the uppercase string.
  */
 export function toUpper(fieldName: string): FunctionExpr;
@@ -5792,7 +5792,7 @@ export function toUpper(expr: Expr | string): FunctionExpr {
  * trim("userInput");
  * ```
  *
- * @param fieldName The name of the field containing the string.
+ * @param fieldName The name of the field containing the string to trim.
  * @return A new {@code Expr} representing the trimmed string.
  */
 export function trim(fieldName: string): FunctionExpr;
@@ -6346,7 +6346,7 @@ export function euclideanDistance(
 /**
  * @beta
  *
- * Creates an expression that calculates the length of a Firestore Vector.
+ * Creates an expression that calculates the length (dimension) of a Firestore Vector.
  *
  * ```typescript
  * // Get the vector length (dimension) of the field 'embedding'.
@@ -6354,22 +6354,22 @@ export function euclideanDistance(
  * ```
  *
  * @param vectorExpression The expression representing the Firestore Vector.
- * @return A new {@code Expr} representing the length of the array.
+ * @return A new {@code Expr} representing the length of the vector.
  */
 export function vectorLength(vectorExpression: Expr): FunctionExpr;
 
 /**
  * @beta
  *
- * Creates an expression that calculates the length of a Firestore Vector represented by a field.
+ * Creates an expression that calculates the length (dimension) of a Firestore Vector represented by a field.
  *
  * ```typescript
  * // Get the vector length (dimension) of the field 'embedding'.
  * vectorLength("embedding");
  * ```
  *
- * @param fieldName The name of the field representing the Firestore Vector.
- * @return A new {@code Expr} representing the length of the array.
+ * @param fieldName The name of the field containing the Firestore Vector.
+ * @return A new {@code Expr} representing the length (dimension) of the vector.
  */
 export function vectorLength(fieldName: string): FunctionExpr;
 export function vectorLength(expr: Expr | string): FunctionExpr {
@@ -6595,7 +6595,7 @@ export function timestampToUnixSeconds(expr: Expr | string): FunctionExpr {
  * ```
  *
  * @param timestamp The expression representing the timestamp.
- * @param unit The expression evaluates to unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
+ * @param unit The expression evaluates to unit of time. Valid units include 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
  * @param amount The expression evaluates to amount of the unit.
  * @return A new {@code Expr} representing the resulting timestamp.
  */
@@ -6636,7 +6636,7 @@ export function timestampAdd(
  * timestampAdd("timestamp", "day", 1);
  * ```
  *
- * @param fieldName The name of the field representing the timestamp.
+ * @param fieldName The name of the field that contains the timestamp.
  * @param unit The unit of time to add (e.g., "day", "hour").
  * @param amount The amount of time to add.
  * @return A new {@code Expr} representing the resulting timestamp.
@@ -6675,7 +6675,7 @@ export function timestampAdd(
  * ```
  *
  * @param timestamp The expression representing the timestamp.
- * @param unit The expression evaluates to unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
+ * @param unit The expression evaluates to unit of time. Valid units include 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
  * @param amount The expression evaluates to amount of the unit.
  * @return A new {@code Expr} representing the resulting timestamp.
  */
@@ -6716,7 +6716,7 @@ export function timestampSub(
  * timestampSub("timestamp", "day", 1);
  * ```
  *
- * @param fieldName The name of the field representing the timestamp.
+ * @param fieldName The name of the field that contains the timestamp.
  * @param unit The unit of time to subtract (e.g., "day", "hour").
  * @param amount The amount of time to subtract.
  * @return A new {@code Expr} representing the resulting timestamp.
