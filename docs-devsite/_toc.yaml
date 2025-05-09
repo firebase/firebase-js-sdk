@@ -1,6 +1,155 @@
 toc:
 - title: firebase
   path: /docs/reference/js/index
+- title: ai
+  path: /docs/reference/js/ai.md
+  section:
+  - title: AI
+    path: /docs/reference/js/ai.ai.md
+  - title: AIError
+    path: /docs/reference/js/ai.aierror.md
+  - title: AIModel
+    path: /docs/reference/js/ai.aimodel.md
+  - title: AIOptions
+    path: /docs/reference/js/ai.aioptions.md
+  - title: ArraySchema
+    path: /docs/reference/js/ai.arrayschema.md
+  - title: Backend
+    path: /docs/reference/js/ai.backend.md
+  - title: BaseParams
+    path: /docs/reference/js/ai.baseparams.md
+  - title: BooleanSchema
+    path: /docs/reference/js/ai.booleanschema.md
+  - title: ChatSession
+    path: /docs/reference/js/ai.chatsession.md
+  - title: Citation
+    path: /docs/reference/js/ai.citation.md
+  - title: CitationMetadata
+    path: /docs/reference/js/ai.citationmetadata.md
+  - title: Content
+    path: /docs/reference/js/ai.content.md
+  - title: CountTokensRequest
+    path: /docs/reference/js/ai.counttokensrequest.md
+  - title: CountTokensResponse
+    path: /docs/reference/js/ai.counttokensresponse.md
+  - title: CustomErrorData
+    path: /docs/reference/js/ai.customerrordata.md
+  - title: Date_2
+    path: /docs/reference/js/ai.date_2.md
+  - title: EnhancedGenerateContentResponse
+    path: /docs/reference/js/ai.enhancedgeneratecontentresponse.md
+  - title: ErrorDetails
+    path: /docs/reference/js/ai.errordetails.md
+  - title: FileData
+    path: /docs/reference/js/ai.filedata.md
+  - title: FileDataPart
+    path: /docs/reference/js/ai.filedatapart.md
+  - title: FunctionCall
+    path: /docs/reference/js/ai.functioncall.md
+  - title: FunctionCallingConfig
+    path: /docs/reference/js/ai.functioncallingconfig.md
+  - title: FunctionCallPart
+    path: /docs/reference/js/ai.functioncallpart.md
+  - title: FunctionDeclaration
+    path: /docs/reference/js/ai.functiondeclaration.md
+  - title: FunctionDeclarationsTool
+    path: /docs/reference/js/ai.functiondeclarationstool.md
+  - title: FunctionResponse
+    path: /docs/reference/js/ai.functionresponse.md
+  - title: FunctionResponsePart
+    path: /docs/reference/js/ai.functionresponsepart.md
+  - title: GenerateContentCandidate
+    path: /docs/reference/js/ai.generatecontentcandidate.md
+  - title: GenerateContentRequest
+    path: /docs/reference/js/ai.generatecontentrequest.md
+  - title: GenerateContentResponse
+    path: /docs/reference/js/ai.generatecontentresponse.md
+  - title: GenerateContentResult
+    path: /docs/reference/js/ai.generatecontentresult.md
+  - title: GenerateContentStreamResult
+    path: /docs/reference/js/ai.generatecontentstreamresult.md
+  - title: GenerationConfig
+    path: /docs/reference/js/ai.generationconfig.md
+  - title: GenerativeContentBlob
+    path: /docs/reference/js/ai.generativecontentblob.md
+  - title: GenerativeModel
+    path: /docs/reference/js/ai.generativemodel.md
+  - title: GoogleAIBackend
+    path: /docs/reference/js/ai.googleaibackend.md
+  - title: GroundingAttribution
+    path: /docs/reference/js/ai.groundingattribution.md
+  - title: GroundingMetadata
+    path: /docs/reference/js/ai.groundingmetadata.md
+  - title: ImagenGCSImage
+    path: /docs/reference/js/ai.imagengcsimage.md
+  - title: ImagenGenerationConfig
+    path: /docs/reference/js/ai.imagengenerationconfig.md
+  - title: ImagenGenerationResponse
+    path: /docs/reference/js/ai.imagengenerationresponse.md
+  - title: ImagenImageFormat
+    path: /docs/reference/js/ai.imagenimageformat.md
+  - title: ImagenInlineImage
+    path: /docs/reference/js/ai.imageninlineimage.md
+  - title: ImagenModel
+    path: /docs/reference/js/ai.imagenmodel.md
+  - title: ImagenModelParams
+    path: /docs/reference/js/ai.imagenmodelparams.md
+  - title: ImagenSafetySettings
+    path: /docs/reference/js/ai.imagensafetysettings.md
+  - title: InlineDataPart
+    path: /docs/reference/js/ai.inlinedatapart.md
+  - title: IntegerSchema
+    path: /docs/reference/js/ai.integerschema.md
+  - title: ModalityTokenCount
+    path: /docs/reference/js/ai.modalitytokencount.md
+  - title: ModelParams
+    path: /docs/reference/js/ai.modelparams.md
+  - title: NumberSchema
+    path: /docs/reference/js/ai.numberschema.md
+  - title: ObjectSchema
+    path: /docs/reference/js/ai.objectschema.md
+  - title: ObjectSchemaInterface
+    path: /docs/reference/js/ai.objectschemainterface.md
+  - title: PromptFeedback
+    path: /docs/reference/js/ai.promptfeedback.md
+  - title: RequestOptions
+    path: /docs/reference/js/ai.requestoptions.md
+  - title: RetrievedContextAttribution
+    path: /docs/reference/js/ai.retrievedcontextattribution.md
+  - title: SafetyRating
+    path: /docs/reference/js/ai.safetyrating.md
+  - title: SafetySetting
+    path: /docs/reference/js/ai.safetysetting.md
+  - title: Schema
+    path: /docs/reference/js/ai.schema.md
+  - title: SchemaInterface
+    path: /docs/reference/js/ai.schemainterface.md
+  - title: SchemaParams
+    path: /docs/reference/js/ai.schemaparams.md
+  - title: SchemaRequest
+    path: /docs/reference/js/ai.schemarequest.md
+  - title: SchemaShared
+    path: /docs/reference/js/ai.schemashared.md
+  - title: Segment
+    path: /docs/reference/js/ai.segment.md
+  - title: StartChatParams
+    path: /docs/reference/js/ai.startchatparams.md
+  - title: StringSchema
+    path: /docs/reference/js/ai.stringschema.md
+  - title: TextPart
+    path: /docs/reference/js/ai.textpart.md
+  - title: ToolConfig
+    path: /docs/reference/js/ai.toolconfig.md
+  - title: UsageMetadata
+    path: /docs/reference/js/ai.usagemetadata.md
+  - title: VertexAIBackend
+    path: /docs/reference/js/ai.vertexaibackend.md
+  - title: VertexAIOptions
+    path: /docs/reference/js/ai.vertexaioptions.md
+  - title: VideoMetadata
+    path: /docs/reference/js/ai.videometadata.md
+  - title: WebAttribution
+    path: /docs/reference/js/ai.webattribution.md
 - title: analytics
   path: /docs/reference/js/analytics.md
   section:
@@ -469,152 +618,3 @@ toc:
     path: /docs/reference/js/storage.uploadtask.md
   - title: UploadTaskSnapshot
     path: /docs/reference/js/storage.uploadtasksnapshot.md
-- title: vertexai
-  path: /docs/reference/js/vertexai.md
-  section:
-  - title: AI
-    path: /docs/reference/js/vertexai.ai.md
-  - title: AIError
-    path: /docs/reference/js/vertexai.aierror.md
-  - title: AIModel
-    path: /docs/reference/js/vertexai.aimodel.md
-  - title: AIOptions
-    path: /docs/reference/js/vertexai.aioptions.md
-  - title: ArraySchema
-    path: /docs/reference/js/vertexai.arrayschema.md
-  - title: Backend
-    path: /docs/reference/js/vertexai.backend.md
-  - title: BaseParams
-    path: /docs/reference/js/vertexai.baseparams.md
-  - title: BooleanSchema
-    path: /docs/reference/js/vertexai.booleanschema.md
-  - title: ChatSession
-    path: /docs/reference/js/vertexai.chatsession.md
-  - title: Citation
-    path: /docs/reference/js/vertexai.citation.md
-  - title: CitationMetadata
-    path: /docs/reference/js/vertexai.citationmetadata.md
-  - title: Content
-    path: /docs/reference/js/vertexai.content.md
-  - title: CountTokensRequest
-    path: /docs/reference/js/vertexai.counttokensrequest.md
-  - title: CountTokensResponse
-    path: /docs/reference/js/vertexai.counttokensresponse.md
-  - title: CustomErrorData
-    path: /docs/reference/js/vertexai.customerrordata.md
-  - title: Date_2
-    path: /docs/reference/js/vertexai.date_2.md
-  - title: EnhancedGenerateContentResponse
-    path: /docs/reference/js/vertexai.enhancedgeneratecontentresponse.md
-  - title: ErrorDetails
-    path: /docs/reference/js/vertexai.errordetails.md
-  - title: FileData
-    path: /docs/reference/js/vertexai.filedata.md
-  - title: FileDataPart
-    path: /docs/reference/js/vertexai.filedatapart.md
-  - title: FunctionCall
-    path: /docs/reference/js/vertexai.functioncall.md
-  - title: FunctionCallingConfig
-    path: /docs/reference/js/vertexai.functioncallingconfig.md
-  - title: FunctionCallPart
-    path: /docs/reference/js/vertexai.functioncallpart.md
-  - title: FunctionDeclaration
-    path: /docs/reference/js/vertexai.functiondeclaration.md
-  - title: FunctionDeclarationsTool
-    path: /docs/reference/js/vertexai.functiondeclarationstool.md
-  - title: FunctionResponse
-    path: /docs/reference/js/vertexai.functionresponse.md
-  - title: FunctionResponsePart
-    path: /docs/reference/js/vertexai.functionresponsepart.md
-  - title: GenerateContentCandidate
-    path: /docs/reference/js/vertexai.generatecontentcandidate.md
-  - title: GenerateContentRequest
-    path: /docs/reference/js/vertexai.generatecontentrequest.md
-  - title: GenerateContentResponse
-    path: /docs/reference/js/vertexai.generatecontentresponse.md
-  - title: GenerateContentResult
-    path: /docs/reference/js/vertexai.generatecontentresult.md
-  - title: GenerateContentStreamResult
-    path: /docs/reference/js/vertexai.generatecontentstreamresult.md
-  - title: GenerationConfig
-    path: /docs/reference/js/vertexai.generationconfig.md
-  - title: GenerativeContentBlob
-    path: /docs/reference/js/vertexai.generativecontentblob.md
-  - title: GenerativeModel
-    path: /docs/reference/js/vertexai.generativemodel.md
-  - title: GoogleAIBackend
-    path: /docs/reference/js/vertexai.googleaibackend.md
-  - title: GroundingAttribution
-    path: /docs/reference/js/vertexai.groundingattribution.md
-  - title: GroundingMetadata
-    path: /docs/reference/js/vertexai.groundingmetadata.md
-  - title: ImagenGCSImage
-    path: /docs/reference/js/vertexai.imagengcsimage.md
-  - title: ImagenGenerationConfig
-    path: /docs/reference/js/vertexai.imagengenerationconfig.md
-  - title: ImagenGenerationResponse
-    path: /docs/reference/js/vertexai.imagengenerationresponse.md
-  - title: ImagenImageFormat
-    path: /docs/reference/js/vertexai.imagenimageformat.md
-  - title: ImagenInlineImage
-    path: /docs/reference/js/vertexai.imageninlineimage.md
-  - title: ImagenModel
-    path: /docs/reference/js/vertexai.imagenmodel.md
-  - title: ImagenModelParams
-    path: /docs/reference/js/vertexai.imagenmodelparams.md
-  - title: ImagenSafetySettings
-    path: /docs/reference/js/vertexai.imagensafetysettings.md
-  - title: InlineDataPart
-    path: /docs/reference/js/vertexai.inlinedatapart.md
-  - title: IntegerSchema
-    path: /docs/reference/js/vertexai.integerschema.md
-  - title: ModalityTokenCount
-    path: /docs/reference/js/vertexai.modalitytokencount.md
-  - title: ModelParams
-    path: /docs/reference/js/vertexai.modelparams.md
-  - title: NumberSchema
-    path: /docs/reference/js/vertexai.numberschema.md
-  - title: ObjectSchema
-    path: /docs/reference/js/vertexai.objectschema.md
-  - title: ObjectSchemaInterface
-    path: /docs/reference/js/vertexai.objectschemainterface.md
-  - title: PromptFeedback
-    path: /docs/reference/js/vertexai.promptfeedback.md
-  - title: RequestOptions
-    path: /docs/reference/js/vertexai.requestoptions.md
-  - title: RetrievedContextAttribution
-    path: /docs/reference/js/vertexai.retrievedcontextattribution.md
-  - title: SafetyRating
-    path: /docs/reference/js/vertexai.safetyrating.md
-  - title: SafetySetting
-    path: /docs/reference/js/vertexai.safetysetting.md
-  - title: Schema
-    path: /docs/reference/js/vertexai.schema.md
-  - title: SchemaInterface
-    path: /docs/reference/js/vertexai.schemainterface.md
-  - title: SchemaParams
-    path: /docs/reference/js/vertexai.schemaparams.md
-  - title: SchemaRequest
-    path: /docs/reference/js/vertexai.schemarequest.md
-  - title: SchemaShared
-    path: /docs/reference/js/vertexai.schemashared.md
-  - title: Segment
-    path: /docs/reference/js/vertexai.segment.md
-  - title: StartChatParams
-    path: /docs/reference/js/vertexai.startchatparams.md
-  - title: StringSchema
-    path: /docs/reference/js/vertexai.stringschema.md
-  - title: TextPart
-    path: /docs/reference/js/vertexai.textpart.md
-  - title: ToolConfig
-    path: /docs/reference/js/vertexai.toolconfig.md
-  - title: UsageMetadata
-    path: /docs/reference/js/vertexai.usagemetadata.md
-  - title: VertexAIBackend
-    path: /docs/reference/js/vertexai.vertexaibackend.md
-  - title: VertexAIOptions
-    path: /docs/reference/js/vertexai.vertexaioptions.md
-  - title: VideoMetadata
-    path: /docs/reference/js/vertexai.videometadata.md
-  - title: WebAttribution
-    path: /docs/reference/js/vertexai.webattribution.md

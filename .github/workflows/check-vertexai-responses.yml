@@ -33,7 +33,7 @@ jobs:
           LATEST=$(git tag --sort=v:refname | tail -n1)
           echo "cloned_tag=$CLONED" >> $GITHUB_ENV
           echo "latest_tag=$LATEST" >> $GITHUB_ENV
-        working-directory: packages/vertexai/test-utils/vertexai-sdk-test-data
+        working-directory: packages/ai/test-utils/vertexai-sdk-test-data
       - name: Find comment from previous run if exists
         # This commit represents v3.1.0
         uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e

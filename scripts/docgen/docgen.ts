@@ -60,7 +60,7 @@ const PREFERRED_PARAMS = [
   'performance',
   'remoteConfig',
   'storage',
-  'vertexAI'
+  'ai'
 ];
 
 let authApiReportOriginal: string;
