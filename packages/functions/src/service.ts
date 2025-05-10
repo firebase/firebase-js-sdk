@@ -30,7 +30,11 @@ import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { MessagingInternalComponentName } from '@firebase/messaging-interop-types';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
-import { isCloudWorkstation, pingServer } from '@firebase/util';
+import {
+  isCloudWorkstation,
+  pingServer,
+  updateEmulatorBanner
+} from '@firebase/util';
 
 export const DEFAULT_REGION = 'us-central1';
 
@@ -182,6 +186,7 @@ export function connectFunctionsEmulator(
   // Workaround to get cookies in Firebase Studio
   if (useSsl) {
     void pingServer(functionsInstance.emulatorOrigin);
+    updateEmulatorBanner('Functions', true);
   }
 }
 
