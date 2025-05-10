@@ -16,6 +16,8 @@ name: E2E Smoke Tests
 
 # Allows REST trigger. Currently triggered by release-cli script during a staging run.
 on:
+  #FIXME
+  pull_request:
   repository_dispatch:
     types: [staging-tests,canary-tests]
 
