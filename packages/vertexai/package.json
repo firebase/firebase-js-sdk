@@ -39,6 +39,7 @@
     "test:ci": "yarn testsetup && node ../../scripts/run_tests_in_ci.js -s test",
     "test:skip-clone": "karma start",
     "test:browser": "yarn testsetup && karma start",
+    "test:integration": "karma start --integration",
     "api-report": "api-extractor run --local --verbose",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/vertexai-public.d.ts",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit"
