@@ -17,7 +17,10 @@
 
 import { version } from '../package.json';
 
+// TODO (v12): Remove this
 export const VERTEX_TYPE = 'vertexAI';
+
+export const AI_TYPE = 'AI';
 
 export const DEFAULT_LOCATION = 'us-central1';
 

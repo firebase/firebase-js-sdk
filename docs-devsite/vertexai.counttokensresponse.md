@@ -23,7 +23,7 @@ export interface CountTokensResponse
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [promptTokensDetails](./vertexai.counttokensresponse.md#counttokensresponseprompttokensdetails) | [ModalityTokenCount](./vertexai.modalitytokencount.md#modalitytokencount_interface)<!-- -->\[\] | The breakdown, by modality, of how many tokens are consumed by the prompt. |
-|  [totalBillableCharacters](./vertexai.counttokensresponse.md#counttokensresponsetotalbillablecharacters) | number | The total number of billable characters counted across all instances from the request. |
+|  [totalBillableCharacters](./vertexai.counttokensresponse.md#counttokensresponsetotalbillablecharacters) | number | The total number of billable characters counted across all instances from the request.<!-- -->This property is only supported when using the Vertex AI Gemini API ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to 0. |
 |  [totalTokens](./vertexai.counttokensresponse.md#counttokensresponsetotaltokens) | number | The total number of tokens counted across all instances from the request. |
 
 ## CountTokensResponse.promptTokensDetails
@@ -39,6 +39,8 @@ promptTokensDetails?: ModalityTokenCount[];
 ## CountTokensResponse.totalBillableCharacters
 
 The total number of billable characters counted across all instances from the request.
+
+This property is only supported when using the Vertex AI Gemini API ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./vertexai.googleaibackend.md#googleaibackend_class)<!-- -->), this property is not supported and will default to 0.
 
 <b>Signature:</b>
 

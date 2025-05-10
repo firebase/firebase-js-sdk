@@ -1,5 +1,5 @@
 /**
- * The Vertex AI in Firebase Web SDK.
+ * The Firebase AI Web SDK.
  *
  * @packageDocumentation
  */
@@ -22,21 +22,33 @@
  */
 
 import { registerVersion, _registerComponent } from '@firebase/app';
-import { VertexAIService } from './service';
-import { VERTEX_TYPE } from './constants';
+import { AIService } from './service';
+import { AI_TYPE } from './constants';
 import { Component, ComponentType } from '@firebase/component';
 import { name, version } from '../package.json';
+import { decodeInstanceIdentifier } from './helpers';
+import { AIError } from './errors';
+import { AIErrorCode } from './public-types';
 
-function registerVertex(): void {
+function registerAI(): void {
   _registerComponent(
     new Component(
-      VERTEX_TYPE,
-      (container, { instanceIdentifier: location }) => {
+      AI_TYPE,
+      (container, { instanceIdentifier }) => {
+        if (!instanceIdentifier) {
+          throw new AIError(
+            AIErrorCode.ERROR,
+            'AIService instance identifier is undefined.'
+          );
+        }
+
+        const backend = decodeInstanceIdentifier(instanceIdentifier);
+
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const auth = container.getProvider('auth-internal');
         const appCheckProvider = container.getProvider('app-check-internal');
-        return new VertexAIService(app, auth, appCheckProvider, { location });
+        return new AIService(app, backend, auth, appCheckProvider);
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)
@@ -47,7 +59,7 @@ function registerVertex(): void {
   registerVersion(name, version, '__BUILD_TARGET__');
 }
 
-registerVertex();
+registerAI();
 
 export * from './api';
 export * from './public-types';

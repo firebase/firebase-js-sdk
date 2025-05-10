@@ -34,9 +34,19 @@ import {
   HarmCategory,
   HarmProbability,
   SafetyRating,
-  VertexAIErrorCode
+  AIErrorCode
 } from '../types';
-import { VertexAIError } from '../errors';
+import { AIError } from '../errors';
+import { ApiSettings } from '../types/internal';
+import { VertexAIBackend } from '../backend';
+
+const fakeApiSettings: ApiSettings = {
+  apiKey: 'key',
+  project: 'my-project',
+  appId: 'my-appid',
+  location: 'us-central1',
+  backend: new VertexAIBackend()
+};
 
 use(sinonChai);
 
@@ -75,7 +85,7 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-success-basic-reply-short.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     for await (const response of result.stream) {
       expect(response.text()).to.not.be.empty;
     }
@@ -87,7 +97,7 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-success-basic-reply-long.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     for await (const response of result.stream) {
       expect(response.text()).to.not.be.empty;
     }
@@ -101,7 +111,7 @@ describe('processStream', () => {
       'streaming-success-basic-reply-long.txt',
       1e6
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     for await (const response of result.stream) {
       expect(response.text()).to.not.be.empty;
     }
@@ -114,7 +124,7 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-success-utf8.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     for await (const response of result.stream) {
       expect(response.text()).to.not.be.empty;
     }
@@ -127,7 +137,7 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-success-function-call-short.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     for await (const response of result.stream) {
       expect(response.text()).to.be.empty;
       expect(response.functionCalls()).to.be.deep.equal([
@@ -151,7 +161,7 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-failure-finish-reason-safety.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.candidates?.[0].finishReason).to.equal('SAFETY');
     expect(aggregatedResponse.text).to.throw('SAFETY');
@@ -164,7 +174,7 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-failure-prompt-blocked-safety.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text).to.throw('SAFETY');
     expect(aggregatedResponse.promptFeedback?.blockReason).to.equal('SAFETY');
@@ -177,7 +187,7 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-failure-empty-content.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.equal('');
     for await (const response of result.stream) {
@@ -189,7 +199,7 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-success-unknown-safety-enum.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.include('Cats');
     for await (const response of result.stream) {
@@ -201,7 +211,7 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-failure-recitation-no-content.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text).to.throw('RECITATION');
     expect(aggregatedResponse.candidates?.[0].content.parts[0].text).to.include(
@@ -220,7 +230,7 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-success-citations.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.include('Quantum mechanics is');
     expect(
@@ -240,7 +250,7 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-success-empty-text-part.txt'
     );
-    const result = processStream(fakeResponse as Response);
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.equal('1');
     expect(aggregatedResponse.candidates?.length).to.equal(1);
@@ -472,10 +482,8 @@ describe('aggregateResponses', () => {
     try {
       aggregateResponses(responsesToAggregate);
     } catch (e) {
-      expect((e as VertexAIError).code).includes(
-        VertexAIErrorCode.INVALID_CONTENT
-      );
-      expect((e as VertexAIError).message).to.include(
+      expect((e as AIError).code).includes(AIErrorCode.INVALID_CONTENT);
+      expect((e as AIError).message).to.include(
         'Part should have at least one property, but there are none. This is likely caused ' +
           'by a malformed response from the backend.'
       );

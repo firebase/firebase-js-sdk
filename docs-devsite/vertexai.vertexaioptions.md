@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # VertexAIOptions interface
-Options when initializing the Vertex AI in Firebase SDK.
+Options when initializing the Firebase AI SDK.
 
 <b>Signature:</b>
 
