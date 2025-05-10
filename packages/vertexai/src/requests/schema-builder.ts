@@ -21,8 +21,7 @@ import {
   SchemaInterface,
   SchemaType,
   SchemaParams,
-  SchemaRequest,
-  ObjectSchemaInterface
+  SchemaRequest
 } from '../types/schema';
 
 /**
@@ -286,7 +285,7 @@ export class ObjectSchema extends Schema {
     if (required.length > 0) {
       obj.required = required;
     }
-    delete (obj as ObjectSchemaInterface).optionalProperties;
+    delete obj.optionalProperties;
     return obj as SchemaRequest;
   }
 }

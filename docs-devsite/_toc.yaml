@@ -564,8 +564,8 @@ toc:
     path: /docs/reference/js/vertexai.numberschema.md
   - title: ObjectSchema
     path: /docs/reference/js/vertexai.objectschema.md
-  - title: ObjectSchemaInterface
-    path: /docs/reference/js/vertexai.objectschemainterface.md
+  - title: ObjectSchemaRequest
+    path: /docs/reference/js/vertexai.objectschemarequest.md
   - title: PromptFeedback
     path: /docs/reference/js/vertexai.promptfeedback.md
   - title: RequestOptions
