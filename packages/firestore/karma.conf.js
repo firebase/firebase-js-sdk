@@ -74,5 +74,3 @@ function getTestFiles(argv) {
     return [unitTests, legacyIntegrationTests];
   }
 }
-
-module.exports.files = getTestFiles(argv);

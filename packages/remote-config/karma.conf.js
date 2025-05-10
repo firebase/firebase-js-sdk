@@ -32,5 +32,3 @@ module.exports = function (config) {
 
   config.set(karmaConfig);
 };
-
-module.exports.files = files;
