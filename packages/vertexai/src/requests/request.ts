@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { ErrorDetails, RequestOptions, VertexAIErrorCode } from '../types';
+import {
+  ErrorDetails,
+  SingleRequestOptions,
+  VertexAIErrorCode
+} from '../types';
 import { VertexAIError } from '../errors';
 import { ApiSettings } from '../types/internal';
 import {
@@ -26,6 +30,9 @@ import {
   PACKAGE_VERSION
 } from '../constants';
 import { logger } from '../logger';
+
+const TIMEOUT_EXPIRED_MESSAGE = 'Timeout has expired.';
+const ABORT_ERROR_NAME = 'AbortError';
 
 export enum Task {
   GENERATE_CONTENT = 'generateContent',
@@ -40,7 +47,7 @@ export class RequestUrl {
     public task: Task,
     public apiSettings: ApiSettings,
     public stream: boolean,
-    public requestOptions?: RequestOptions
+    public requestOptions?: SingleRequestOptions
   ) {}
   toString(): string {
     // TODO: allow user-set option if that feature becomes available
@@ -115,9 +122,15 @@ export async function constructRequest(
   apiSettings: ApiSettings,
   stream: boolean,
   body: string,
-  requestOptions?: RequestOptions
+  singleRequestOptions?: SingleRequestOptions
 ): Promise<{ url: string; fetchOptions: RequestInit }> {
-  const url = new RequestUrl(model, task, apiSettings, stream, requestOptions);
+  const url = new RequestUrl(
+    model,
+    task,
+    apiSettings,
+    stream,
+    singleRequestOptions
+  );
   return {
     url: url.toString(),
     fetchOptions: {
@@ -134,11 +147,49 @@ export async function makeRequest(
   apiSettings: ApiSettings,
   stream: boolean,
   body: string,
-  requestOptions?: RequestOptions
+  singleRequestOptions?: SingleRequestOptions
 ): Promise<Response> {
-  const url = new RequestUrl(model, task, apiSettings, stream, requestOptions);
+  const url = new RequestUrl(
+    model,
+    task,
+    apiSettings,
+    stream,
+    singleRequestOptions
+  );
   let response;
-  let fetchTimeoutId: string | number | NodeJS.Timeout | undefined;
+
+  const externalSignal = singleRequestOptions?.signal;
+  const timeoutMillis =
+    singleRequestOptions?.timeout != null && singleRequestOptions.timeout >= 0
+      ? singleRequestOptions.timeout
+      : DEFAULT_FETCH_TIMEOUT_MS;
+  const internalAbortController = new AbortController();
+  const fetchTimeoutId = setTimeout(() => {
+    internalAbortController.abort(TIMEOUT_EXPIRED_MESSAGE);
+    logger.debug(
+      `Aborting request to ${url} due to timeout (${timeoutMillis}ms)`
+    );
+  }, timeoutMillis);
+
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      clearTimeout(fetchTimeoutId);
+      throw new DOMException(
+        externalSignal.reason ?? 'Aborted externally before fetch',
+        ABORT_ERROR_NAME
+      );
+    }
+
+    const externalAbortListener = (): void => {
+      logger.debug(`Aborting request to ${url} due to external abort signal.`);
+      internalAbortController.abort(externalSignal.reason);
+    };
+
+    externalSignal.addEventListener('abort', externalAbortListener, {
+      once: true
+    });
+  }
+
   try {
     const request = await constructRequest(
       model,
@@ -146,16 +197,9 @@ export async function makeRequest(
       apiSettings,
       stream,
       body,
-      requestOptions
+      singleRequestOptions
     );
-    // Timeout is 180s by default
-    const timeoutMillis =
-      requestOptions?.timeout != null && requestOptions.timeout >= 0
-        ? requestOptions.timeout
-        : DEFAULT_FETCH_TIMEOUT_MS;
-    const abortController = new AbortController();
-    fetchTimeoutId = setTimeout(() => abortController.abort(), timeoutMillis);
-    request.fetchOptions.signal = abortController.signal;
+    request.fetchOptions.signal = internalAbortController.signal;
 
     response = await fetch(request.url, request.fetchOptions);
     if (!response.ok) {
