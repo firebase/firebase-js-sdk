@@ -15,6 +15,7 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Package | Description |
 |  --- | --- |
+|  [@firebase/ai](./ai.md#ai_package) | The Firebase AI Web SDK. |
 |  [@firebase/analytics](./analytics.md#analytics_package) | The Firebase Analytics Web SDK. This SDK does not work in a Node.js environment. |
 |  [@firebase/app](./app.md#app_package) | Firebase App |
 |  [@firebase/app-check](./app-check.md#app-check_package) | The Firebase App Check Web SDK. |
@@ -27,5 +28,4 @@ https://github.com/firebase/firebase-js-sdk
 |  [@firebase/performance](./performance.md#performance_package) | The Firebase Performance Monitoring Web SDK. This SDK does not work in a Node.js environment. |
 |  [@firebase/remote-config](./remote-config.md#remote-config_package) | The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environment. |
 |  [@firebase/storage](./storage.md#storage_package) | Cloud Storage for Firebase |
-|  [@firebase/vertexai](./vertexai.md#vertexai_package) | The Firebase AI Web SDK. |
 
