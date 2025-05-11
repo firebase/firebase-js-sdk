@@ -28,4 +28,5 @@ https://github.com/firebase/firebase-js-sdk
 |  [@firebase/performance](./performance.md#performance_package) | The Firebase Performance Monitoring Web SDK. This SDK does not work in a Node.js environment. |
 |  [@firebase/remote-config](./remote-config.md#remote-config_package) | The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environment. |
 |  [@firebase/storage](./storage.md#storage_package) | Cloud Storage for Firebase |
+|  [@firebase/vertexai](./vertexai.md#vertexai_package) | The Firebase AI Web SDK. |
 
