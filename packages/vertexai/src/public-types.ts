@@ -84,7 +84,7 @@ export const BackendType = {
   VERTEX_AI: 'VERTEX_AI',
 
   /**
-   * Identifies the backend service for the Gemini Developer API (via Google AI).
+   * Identifies the backend service for the Gemini Developer API ({@link https://ai.google/ | Google AI}).
    * Use this constant when creating a {@link GoogleAIBackend} configuration.
    */
   GOOGLE_AI: 'GOOGLE_AI'

@@ -19,11 +19,10 @@ import { DEFAULT_LOCATION } from './constants';
 import { BackendType } from './public-types';
 
 /**
- * Abstract base class representing the configuration for an AI service backend,
- * determining whether to use the Gemini Developer API (via Google AI) or the Vertex AI Gemini API.
- * This class should not be instantiated directly. Use its subclasses:
- * - {@link GoogleAIBackend}: For the Gemini Developer API (via Google AI).
- * - {@link VertexAIBackend}: For the Vertex AI Gemini API.
+ * Abstract base class representing the configuration for an AI service backend.
+ * This class should not be instantiated directly. Use its subclasses; {@link GoogleAIBackend} for
+ * the Gemini Developer API (via {@link https://ai.google/ | Google AI}), and
+ * {@link VertexAIBackend} for the Vertex AI Gemini API.
  *
  * @public
  */
@@ -35,7 +34,7 @@ export abstract class Backend {
 
   /**
    * Protected constructor for use by subclasses.
-   * @param type - The specific backend type constant (e.g., BackendType.GOOGLE_AI).
+   * @param type - The backend type.
    */
   protected constructor(type: BackendType) {
     this.backendType = type;
@@ -43,7 +42,7 @@ export abstract class Backend {
 }
 
 /**
- * Configuration class for the Gemini Developer API (using Google AI).
+ * Configuration class for the Gemini Developer API (using {@link https://ai.google/ | Google AI}).
  *
  * Use this with {@link AIOptions} when initializing the AI service via
  * {@link getAI | getAI()} to specify the Gemini Developer API as the backend.
