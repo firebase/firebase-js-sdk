@@ -49,7 +49,11 @@ class ReadableStreamSpy<Uint8Array> {
    * @param inputReadableStream The ReadableStream to spy on.
    * @param id id for logging
    */
-  constructor(inputReadableStream: ReadableStream<Uint8Array>, id: string) {
+  constructor(
+    type: 'request' | 'response',
+    inputReadableStream: ReadableStream<Uint8Array>,
+    id: string
+  ) {
     if (!(inputReadableStream instanceof ReadableStream)) {
       throw new Error('Input must be a ReadableStream.');
     }
@@ -63,7 +67,7 @@ class ReadableStreamSpy<Uint8Array> {
         controller: TransformStreamDefaultController<Uint8Array>
       ) => {
         // @ts-ignore
-        logDebug(`(fetch: ${id}) ${this.decoder.decode(chunk)}`);
+        logDebug(`${type}: (fetch: ${id}) ${this.decoder.decode(chunk)}`);
 
         controller.enqueue(chunk); // Pass the chunk along
       },
@@ -88,26 +92,59 @@ class ReadableStreamSpy<Uint8Array> {
   }
 }
 
+class RequestInfo {}
+
 globalThis.fetch = async function (requestOrUrl, options) {
-  const url =
-    typeof requestOrUrl === 'string'
-      ? requestOrUrl
-      : requestOrUrl instanceof URL
-      ? requestOrUrl.toString()
-      : requestOrUrl.url;
+  let url = '';
+  let verb = 'GET';
+  let request = requestOrUrl;
+  const id = generateUniqueDebugId();
+
+  if (typeof requestOrUrl === 'string') {
+    url = requestOrUrl;
+  } else if (requestOrUrl instanceof URL) {
+    url = requestOrUrl.toString();
+  } else {
+    url = requestOrUrl.url;
+    verb = requestOrUrl.method;
+    if (
+      url.startsWith(
+        'https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel'
+      )
+    ) {
+      try {
+        if (requestOrUrl.body instanceof ReadableStream) {
+          const requestSpy = new ReadableStreamSpy(
+            'request',
+            requestOrUrl.body,
+            id
+          );
+          const requestInit: RequestInit = {
+            body: requestSpy.readableStream,
+            // @ts-ignore
+            duplex: 'half'
+          };
+          request = new Request(requestOrUrl, requestInit);
+        } else {
+          logDebug(JSON.stringify(requestOrUrl.body));
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    }
+  }
 
   if (
     url.startsWith(
       'https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel'
     )
   ) {
-    const response = await originalFetch(requestOrUrl, options);
+    logDebug(`(fetch: ${id}) FETCH FOR ${verb} ${url}`);
+
+    const response = await originalFetch(request, options);
 
     if (response.body) {
-      const id = generateUniqueDebugId();
-      logDebug(`(fetch: ${id}) FETCH FOR ${url}`);
-
-      const spy = new ReadableStreamSpy(response.body, id);
+      const spy = new ReadableStreamSpy('response', response.body, id);
 
       return Promise.resolve(
         new Response(spy.readableStream, {
@@ -125,7 +162,7 @@ globalThis.fetch = async function (requestOrUrl, options) {
 };
 
 // enable contextual debug logging
-setLogLevel('error', 200);
+setLogLevel('error', 400);
 
 export function newTestApp(projectId: string, appName?: string): FirebaseApp {
   if (appName === undefined) {
