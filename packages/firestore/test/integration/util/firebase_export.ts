@@ -25,6 +25,7 @@ import { FirebaseApp, initializeApp } from '@firebase/app';
 import { Firestore, initializeFirestore, setLogLevel } from '../../../src';
 import { PrivateSettings } from '../../../src/lite-api/settings';
 import { logDebug } from '../../../src/util/log';
+import { generateUniqueDebugId } from '../../../src/util/debug_uid';
 
 // TODO(dimond): Right now we create a new app and Firestore instance for
 // every test and never clean them up. We may need to revisit.
@@ -46,8 +47,9 @@ class ReadableStreamSpy<Uint8Array> {
   /**
    * Creates an instance of ReadableStreamSpy.
    * @param inputReadableStream The ReadableStream to spy on.
+   * @param id id for logging
    */
-  constructor(inputReadableStream: ReadableStream<Uint8Array>) {
+  constructor(inputReadableStream: ReadableStream<Uint8Array>, id: string) {
     if (!(inputReadableStream instanceof ReadableStream)) {
       throw new Error('Input must be a ReadableStream.');
     }
@@ -61,7 +63,7 @@ class ReadableStreamSpy<Uint8Array> {
         controller: TransformStreamDefaultController<Uint8Array>
       ) => {
         // @ts-ignore
-        logDebug(this.decoder.decode(chunk));
+        logDebug(`(fetch: ${id}) ${this.decoder.decode(chunk)}`);
 
         controller.enqueue(chunk); // Pass the chunk along
       },
@@ -94,8 +96,6 @@ globalThis.fetch = async function (requestOrUrl, options) {
       ? requestOrUrl.toString()
       : requestOrUrl.url;
 
-  logDebug(`FETCH FOR ${url}`);
-
   if (
     url.startsWith(
       'https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel'
@@ -104,7 +104,10 @@ globalThis.fetch = async function (requestOrUrl, options) {
     const response = await originalFetch(requestOrUrl, options);
 
     if (response.body) {
-      const spy = new ReadableStreamSpy(response.body);
+      const id = generateUniqueDebugId();
+      logDebug(`(fetch: ${id}) FETCH FOR ${url}`);
+
+      const spy = new ReadableStreamSpy(response.body, id);
 
       return Promise.resolve(
         new Response(spy.readableStream, {
