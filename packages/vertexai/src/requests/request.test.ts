@@ -22,9 +22,10 @@ import chaiAsPromised from 'chai-as-promised';
 import { RequestUrl, Task, getHeaders, makeRequest } from './request';
 import { ApiSettings } from '../types/internal';
 import { DEFAULT_API_VERSION } from '../constants';
-import { VertexAIErrorCode } from '../types';
-import { VertexAIError } from '../errors';
+import { AIErrorCode } from '../types';
+import { AIError } from '../errors';
 import { getMockResponse } from '../../test-utils/mock-response';
+import { VertexAIBackend } from '../backend';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -33,7 +34,8 @@ const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'us-central1'
+  location: 'us-central1',
+  backend: new VertexAIBackend()
 };
 
 describe('request methods', () => {
@@ -106,6 +108,7 @@ describe('request methods', () => {
       project: 'myproject',
       appId: 'my-appid',
       location: 'moon',
+      backend: new VertexAIBackend(),
       getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
       getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
     };
@@ -132,6 +135,7 @@ describe('request methods', () => {
         project: 'myproject',
         appId: 'my-appid',
         location: 'moon',
+        backend: new VertexAIBackend(),
         automaticDataCollectionEnabled: true,
         getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
         getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
@@ -156,6 +160,7 @@ describe('request methods', () => {
         project: 'myproject',
         appId: 'my-appid',
         location: 'moon',
+        backend: new VertexAIBackend(),
         automaticDataCollectionEnabled: false,
         getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
         getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
@@ -182,7 +187,8 @@ describe('request methods', () => {
           apiKey: 'key',
           project: 'myproject',
           appId: 'my-appid',
-          location: 'moon'
+          location: 'moon',
+          backend: new VertexAIBackend()
         },
         true,
         {}
@@ -216,6 +222,7 @@ describe('request methods', () => {
           project: 'myproject',
           appId: 'my-appid',
           location: 'moon',
+          backend: new VertexAIBackend(),
           getAppCheckToken: () =>
             Promise.resolve({ token: 'dummytoken', error: Error('oops') })
         },
@@ -242,7 +249,8 @@ describe('request methods', () => {
           apiKey: 'key',
           project: 'myproject',
           appId: 'my-appid',
-          location: 'moon'
+          location: 'moon',
+          backend: new VertexAIBackend()
         },
         true,
         {}
@@ -302,14 +310,12 @@ describe('request methods', () => {
           }
         );
       } catch (e) {
-        expect((e as VertexAIError).code).to.equal(
-          VertexAIErrorCode.FETCH_ERROR
-        );
-        expect((e as VertexAIError).customErrorData?.status).to.equal(500);
-        expect((e as VertexAIError).customErrorData?.statusText).to.equal(
+        expect((e as AIError).code).to.equal(AIErrorCode.FETCH_ERROR);
+        expect((e as AIError).customErrorData?.status).to.equal(500);
+        expect((e as AIError).customErrorData?.statusText).to.equal(
           'AbortError'
         );
-        expect((e as VertexAIError).message).to.include('500 AbortError');
+        expect((e as AIError).message).to.include('500 AbortError');
       }
 
       expect(fetchStub).to.be.calledOnce;
@@ -329,14 +335,12 @@ describe('request methods', () => {
           ''
         );
       } catch (e) {
-        expect((e as VertexAIError).code).to.equal(
-          VertexAIErrorCode.FETCH_ERROR
-        );
-        expect((e as VertexAIError).customErrorData?.status).to.equal(500);
-        expect((e as VertexAIError).customErrorData?.statusText).to.equal(
+        expect((e as AIError).code).to.equal(AIErrorCode.FETCH_ERROR);
+        expect((e as AIError).customErrorData?.status).to.equal(500);
+        expect((e as AIError).customErrorData?.statusText).to.equal(
           'Server Error'
         );
-        expect((e as VertexAIError).message).to.include('500 Server Error');
+        expect((e as AIError).message).to.include('500 Server Error');
       }
       expect(fetchStub).to.be.calledOnce;
     });
@@ -356,15 +360,13 @@ describe('request methods', () => {
           ''
         );
       } catch (e) {
-        expect((e as VertexAIError).code).to.equal(
-          VertexAIErrorCode.FETCH_ERROR
-        );
-        expect((e as VertexAIError).customErrorData?.status).to.equal(500);
-        expect((e as VertexAIError).customErrorData?.statusText).to.equal(
+        expect((e as AIError).code).to.equal(AIErrorCode.FETCH_ERROR);
+        expect((e as AIError).customErrorData?.status).to.equal(500);
+        expect((e as AIError).customErrorData?.statusText).to.equal(
           'Server Error'
         );
-        expect((e as VertexAIError).message).to.include('500 Server Error');
-        expect((e as VertexAIError).message).to.include('extra info');
+        expect((e as AIError).message).to.include('500 Server Error');
+        expect((e as AIError).message).to.include('extra info');
       }
       expect(fetchStub).to.be.calledOnce;
     });
@@ -396,18 +398,14 @@ describe('request methods', () => {
           ''
         );
       } catch (e) {
-        expect((e as VertexAIError).code).to.equal(
-          VertexAIErrorCode.FETCH_ERROR
-        );
-        expect((e as VertexAIError).customErrorData?.status).to.equal(500);
-        expect((e as VertexAIError).customErrorData?.statusText).to.equal(
+        expect((e as AIError).code).to.equal(AIErrorCode.FETCH_ERROR);
+        expect((e as AIError).customErrorData?.status).to.equal(500);
+        expect((e as AIError).customErrorData?.statusText).to.equal(
           'Server Error'
         );
-        expect((e as VertexAIError).message).to.include('500 Server Error');
-        expect((e as VertexAIError).message).to.include('extra info');
-        expect((e as VertexAIError).message).to.include(
-          'generic::invalid_argument'
-        );
+        expect((e as AIError).message).to.include('500 Server Error');
+        expect((e as AIError).message).to.include('extra info');
+        expect((e as AIError).message).to.include('generic::invalid_argument');
       }
       expect(fetchStub).to.be.calledOnce;
     });
@@ -429,11 +427,9 @@ describe('request methods', () => {
         ''
       );
     } catch (e) {
-      expect((e as VertexAIError).code).to.equal(
-        VertexAIErrorCode.API_NOT_ENABLED
-      );
-      expect((e as VertexAIError).message).to.include('my-project');
-      expect((e as VertexAIError).message).to.include('googleapis.com');
+      expect((e as AIError).code).to.equal(AIErrorCode.API_NOT_ENABLED);
+      expect((e as AIError).message).to.include('my-project');
+      expect((e as AIError).message).to.include('googleapis.com');
     }
     expect(fetchStub).to.be.calledOnce;
   });

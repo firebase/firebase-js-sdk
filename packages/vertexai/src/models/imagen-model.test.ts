@@ -20,18 +20,19 @@ import {
   ImagenAspectRatio,
   ImagenPersonFilterLevel,
   ImagenSafetyFilterLevel,
-  VertexAI,
-  VertexAIErrorCode
+  AI,
+  AIErrorCode
 } from '../public-types';
 import * as request from '../requests/request';
 import sinonChai from 'sinon-chai';
-import { VertexAIError } from '../errors';
+import { AIError } from '../errors';
 import { getMockResponse } from '../../test-utils/mock-response';
 import { match, restore, stub } from 'sinon';
+import { VertexAIBackend } from '../backend';
 
 use(sinonChai);
 
-const fakeVertexAI: VertexAI = {
+const fakeAI: AI = {
   app: {
     name: 'DEFAULT',
     automaticDataCollectionEnabled: true,
@@ -41,6 +42,7 @@ const fakeVertexAI: VertexAI = {
       appId: 'my-appid'
     }
   },
+  backend: new VertexAIBackend('us-central1'),
   location: 'us-central1'
 };
 
@@ -54,7 +56,7 @@ describe('ImagenModel', () => {
       mockResponse as Response
     );
 
-    const imagenModel = new ImagenModel(fakeVertexAI, {
+    const imagenModel = new ImagenModel(fakeAI, {
       model: 'my-model'
     });
     const prompt = 'A photorealistic image of a toy boat at sea.';
@@ -75,7 +77,7 @@ describe('ImagenModel', () => {
     restore();
   });
   it('generateImages makes a request to predict with generation config and safety settings', async () => {
-    const imagenModel = new ImagenModel(fakeVertexAI, {
+    const imagenModel = new ImagenModel(fakeAI, {
       model: 'my-model',
       generationConfig: {
         negativePrompt: 'do not hallucinate',
@@ -146,15 +148,15 @@ describe('ImagenModel', () => {
       json: mockResponse.json
     } as Response);
 
-    const imagenModel = new ImagenModel(fakeVertexAI, {
+    const imagenModel = new ImagenModel(fakeAI, {
       model: 'my-model'
     });
     try {
       await imagenModel.generateImages('some inappropriate prompt.');
     } catch (e) {
-      expect((e as VertexAIError).code).to.equal(VertexAIErrorCode.FETCH_ERROR);
-      expect((e as VertexAIError).message).to.include('400');
-      expect((e as VertexAIError).message).to.include(
+      expect((e as AIError).code).to.equal(AIErrorCode.FETCH_ERROR);
+      expect((e as AIError).message).to.include('400');
+      expect((e as AIError).message).to.include(
         "Image generation failed with the following error: The prompt could not be submitted. This prompt contains sensitive words that violate Google's Responsible AI practices. Try rephrasing the prompt. If you think this was an error, send feedback."
       );
     } finally {

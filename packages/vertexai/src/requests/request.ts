@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { ErrorDetails, RequestOptions, VertexAIErrorCode } from '../types';
-import { VertexAIError } from '../errors';
+import { ErrorDetails, RequestOptions, AIErrorCode } from '../types';
+import { AIError } from '../errors';
 import { ApiSettings } from '../types/internal';
 import {
   DEFAULT_API_VERSION,
@@ -26,6 +26,7 @@ import {
   PACKAGE_VERSION
 } from '../constants';
 import { logger } from '../logger';
+import { GoogleAIBackend, VertexAIBackend } from '../backend';
 
 export enum Task {
   GENERATE_CONTENT = 'generateContent',
@@ -43,29 +44,40 @@ export class RequestUrl {
     public requestOptions?: RequestOptions
   ) {}
   toString(): string {
-    // TODO: allow user-set option if that feature becomes available
-    const apiVersion = DEFAULT_API_VERSION;
-    const baseUrl = this.requestOptions?.baseUrl || DEFAULT_BASE_URL;
-    let url = `${baseUrl}/${apiVersion}`;
-    url += `/projects/${this.apiSettings.project}`;
-    url += `/locations/${this.apiSettings.location}`;
-    url += `/${this.model}`;
-    url += `:${this.task}`;
-    if (this.stream) {
-      url += '?alt=sse';
-    }
-    return url;
+    const url = new URL(this.baseUrl); // Throws if the URL is invalid
+    url.pathname = `/${this.apiVersion}/${this.modelPath}:${this.task}`;
+    url.search = this.queryParams.toString();
+    return url.toString();
   }
 
-  /**
-   * If the model needs to be passed to the backend, it needs to
-   * include project and location path.
-   */
-  get fullModelString(): string {
-    let modelString = `projects/${this.apiSettings.project}`;
-    modelString += `/locations/${this.apiSettings.location}`;
-    modelString += `/${this.model}`;
-    return modelString;
+  private get baseUrl(): string {
+    return this.requestOptions?.baseUrl || DEFAULT_BASE_URL;
+  }
+
+  private get apiVersion(): string {
+    return DEFAULT_API_VERSION; // TODO: allow user-set options if that feature becomes available
+  }
+
+  private get modelPath(): string {
+    if (this.apiSettings.backend instanceof GoogleAIBackend) {
+      return `projects/${this.apiSettings.project}/${this.model}`;
+    } else if (this.apiSettings.backend instanceof VertexAIBackend) {
+      return `projects/${this.apiSettings.project}/locations/${this.apiSettings.backend.location}/${this.model}`;
+    } else {
+      throw new AIError(
+        AIErrorCode.ERROR,
+        `Invalid backend: ${JSON.stringify(this.apiSettings.backend)}`
+      );
+    }
+  }
+
+  private get queryParams(): URLSearchParams {
+    const params = new URLSearchParams();
+    if (this.stream) {
+      params.set('alt', 'sse');
+    }
+
+    return params;
   }
 }
 
@@ -184,9 +196,9 @@ export async function makeRequest(
           )
         )
       ) {
-        throw new VertexAIError(
-          VertexAIErrorCode.API_NOT_ENABLED,
-          `The Vertex AI in Firebase SDK requires the Vertex AI in Firebase ` +
+        throw new AIError(
+          AIErrorCode.API_NOT_ENABLED,
+          `The Firebase AI SDK requires the Firebase AI ` +
             `API ('firebasevertexai.googleapis.com') to be enabled in your ` +
             `Firebase project. Enable this API by visiting the Firebase Console ` +
             `at https://console.firebase.google.com/project/${url.apiSettings.project}/genai/ ` +
@@ -200,8 +212,8 @@ export async function makeRequest(
           }
         );
       }
-      throw new VertexAIError(
-        VertexAIErrorCode.FETCH_ERROR,
+      throw new AIError(
+        AIErrorCode.FETCH_ERROR,
         `Error fetching from ${url}: [${response.status} ${response.statusText}] ${message}`,
         {
           status: response.status,
@@ -213,12 +225,12 @@ export async function makeRequest(
   } catch (e) {
     let err = e as Error;
     if (
-      (e as VertexAIError).code !== VertexAIErrorCode.FETCH_ERROR &&
-      (e as VertexAIError).code !== VertexAIErrorCode.API_NOT_ENABLED &&
+      (e as AIError).code !== AIErrorCode.FETCH_ERROR &&
+      (e as AIError).code !== AIErrorCode.API_NOT_ENABLED &&
       e instanceof Error
     ) {
-      err = new VertexAIError(
-        VertexAIErrorCode.ERROR,
+      err = new AIError(
+        AIErrorCode.ERROR,
         `Error fetching from ${url.toString()}: ${e.message}`
       );
       err.stack = e.stack;

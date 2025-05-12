@@ -18,36 +18,63 @@
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { getModularInstance } from '@firebase/util';
-import { DEFAULT_LOCATION, VERTEX_TYPE } from './constants';
-import { VertexAIService } from './service';
-import { VertexAI, VertexAIOptions } from './public-types';
+import { AI_TYPE } from './constants';
+import { AIService } from './service';
+import { AI, AIOptions, VertexAI, VertexAIOptions } from './public-types';
 import {
   ImagenModelParams,
   ModelParams,
   RequestOptions,
-  VertexAIErrorCode
+  AIErrorCode
 } from './types';
-import { VertexAIError } from './errors';
-import { VertexAIModel, GenerativeModel, ImagenModel } from './models';
+import { AIError } from './errors';
+import { AIModel, GenerativeModel, ImagenModel } from './models';
+import { encodeInstanceIdentifier } from './helpers';
+import { GoogleAIBackend, VertexAIBackend } from './backend';
 
 export { ChatSession } from './methods/chat-session';
 export * from './requests/schema-builder';
 export { ImagenImageFormat } from './requests/imagen-image-format';
-export { VertexAIModel, GenerativeModel, ImagenModel };
-export { VertexAIError };
+export { AIModel, GenerativeModel, ImagenModel, AIError };
+export { Backend, VertexAIBackend, GoogleAIBackend } from './backend';
+
+export { AIErrorCode as VertexAIErrorCode };
+
+/**
+ * Base class for Firebase AI model APIs.
+ *
+ * For more information, refer to the documentation for the new {@link AIModel}.
+ *
+ * @public
+ */
+export const VertexAIModel = AIModel;
+
+/**
+ * Error class for the Firebase AI SDK.
+ *
+ * For more information, refer to the documentation for the new {@link AIError}.
+ *
+ * @public
+ */
+export const VertexAIError = AIError;
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    [VERTEX_TYPE]: VertexAIService;
+    [AI_TYPE]: AIService;
   }
 }
 
 /**
- * Returns a {@link VertexAI} instance for the given app.
+ * It is recommended to use the new {@link getAI | getAI()}.
  *
- * @public
+ * Returns a {@link VertexAI} instance for the given app, configured to use the
+ * Vertex AI Gemini API. This instance will be
+ * configured to use the Vertex AI Gemini API.
  *
  * @param app - The {@link @firebase/app#FirebaseApp} to use.
+ * @param options - Options to configure the Vertex AI instance, including the location.
+ *
+ * @public
  */
 export function getVertexAI(
   app: FirebaseApp = getApp(),
@@ -55,10 +82,54 @@ export function getVertexAI(
 ): VertexAI {
   app = getModularInstance(app);
   // Dependencies
-  const vertexProvider: Provider<'vertexAI'> = _getProvider(app, VERTEX_TYPE);
+  const AIProvider: Provider<'AI'> = _getProvider(app, AI_TYPE);
 
-  return vertexProvider.getImmediate({
-    identifier: options?.location || DEFAULT_LOCATION
+  const backend = new VertexAIBackend(options?.location);
+  const identifier = encodeInstanceIdentifier(backend);
+  return AIProvider.getImmediate({
+    identifier
+  });
+}
+
+/**
+ * Returns the default {@link AI} instance that is associated with the provided
+ * {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new instance with the
+ * default settings.
+ *
+ * @example
+ * ```javascript
+ * const ai = getAI(app);
+ * ```
+ *
+ * @example
+ * ```javascript
+ * // Get an AI instance configured to use the Gemini Developer API (via Google AI).
+ * const ai = getAI(app, { backend: new GoogleAIBackend() });
+ * ```
+ *
+ * @example
+ * ```javascript
+ * // Get an AI instance configured to use the Vertex AI Gemini API.
+ * const ai = getAI(app, { backend: new VertexAIBackend() });
+ * ```
+ *
+ * @param app - The {@link @firebase/app#FirebaseApp} to use.
+ * @param options - {@link AIOptions} that configure the AI instance.
+ * @returns The default {@link AI} instance for the given {@link @firebase/app#FirebaseApp}.
+ *
+ * @public
+ */
+export function getAI(
+  app: FirebaseApp = getApp(),
+  options: AIOptions = { backend: new GoogleAIBackend() }
+): AI {
+  app = getModularInstance(app);
+  // Dependencies
+  const AIProvider: Provider<'AI'> = _getProvider(app, AI_TYPE);
+
+  const identifier = encodeInstanceIdentifier(options.backend);
+  return AIProvider.getImmediate({
+    identifier
   });
 }
 
@@ -69,17 +140,17 @@ export function getVertexAI(
  * @public
  */
 export function getGenerativeModel(
-  vertexAI: VertexAI,
+  ai: AI,
   modelParams: ModelParams,
   requestOptions?: RequestOptions
 ): GenerativeModel {
   if (!modelParams.model) {
-    throw new VertexAIError(
-      VertexAIErrorCode.NO_MODEL,
+    throw new AIError(
+      AIErrorCode.NO_MODEL,
       `Must provide a model name. Example: getGenerativeModel({ model: 'my-model-name' })`
     );
   }
-  return new GenerativeModel(vertexAI, modelParams, requestOptions);
+  return new GenerativeModel(ai, modelParams, requestOptions);
 }
 
 /**
@@ -87,7 +158,7 @@ export function getGenerativeModel(
  *
  * Only Imagen 3 models (named `imagen-3.0-*`) are supported.
  *
- * @param vertexAI - An instance of the Vertex AI in Firebase SDK.
+ * @param ai - An {@link AI} instance.
  * @param modelParams - Parameters to use when making Imagen requests.
  * @param requestOptions - Additional options to use when making requests.
  *
@@ -97,15 +168,15 @@ export function getGenerativeModel(
  * @beta
  */
 export function getImagenModel(
-  vertexAI: VertexAI,
+  ai: AI,
   modelParams: ImagenModelParams,
   requestOptions?: RequestOptions
 ): ImagenModel {
   if (!modelParams.model) {
-    throw new VertexAIError(
-      VertexAIErrorCode.NO_MODEL,
+    throw new AIError(
+      AIErrorCode.NO_MODEL,
       `Must provide a model name. Example: getImagenModel({ model: 'my-model-name' })`
     );
   }
-  return new ImagenModel(vertexAI, modelParams, requestOptions);
+  return new ImagenModel(ai, modelParams, requestOptions);
 }

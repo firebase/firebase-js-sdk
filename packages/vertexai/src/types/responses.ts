@@ -117,6 +117,11 @@ export interface ModalityTokenCount {
 export interface PromptFeedback {
   blockReason?: BlockReason;
   safetyRatings: SafetyRating[];
+  /**
+   * A human-readable description of the `blockReason`.
+   *
+   * This property is only supported in the Vertex AI Gemini API ({@link VertexAIBackend}).
+   */
   blockReasonMessage?: string;
 }
 
@@ -151,7 +156,17 @@ export interface Citation {
   endIndex?: number;
   uri?: string;
   license?: string;
+  /**
+   * The title of the cited source, if available.
+   *
+   * This property is only supported in the Vertex AI Gemini API ({@link VertexAIBackend}).
+   */
   title?: string;
+  /**
+   * The publication date of the cited source, if available.
+   *
+   * This property is only supported in the Vertex AI Gemini API ({@link VertexAIBackend}).
+   */
   publicationDate?: Date;
 }
 
@@ -221,8 +236,26 @@ export interface Date {
 export interface SafetyRating {
   category: HarmCategory;
   probability: HarmProbability;
+  /**
+   * The harm severity level.
+   *
+   * This property is only supported when using the Vertex AI Gemini API ({@link VertexAIBackend}).
+   * When using the Gemini Developer API ({@link GoogleAIBackend}), this property is not supported and will default to `HarmSeverity.UNSUPPORTED`.
+   */
   severity: HarmSeverity;
+  /**
+   * The probability score of the harm category.
+   *
+   * This property is only supported when using the Vertex AI Gemini API ({@link VertexAIBackend}).
+   * When using the Gemini Developer API ({@link GoogleAIBackend}), this property is not supported and will default to 0.
+   */
   probabilityScore: number;
+  /**
+   * The severity score of the harm category.
+   *
+   * This property is only supported when using the Vertex AI Gemini API ({@link VertexAIBackend}).
+   * When using the Gemini Developer API ({@link GoogleAIBackend}), this property is not supported and will default to 0.
+   */
   severityScore: number;
   blocked: boolean;
 }
@@ -239,6 +272,9 @@ export interface CountTokensResponse {
   /**
    * The total number of billable characters counted across all instances
    * from the request.
+   *
+   * This property is only supported when using the Vertex AI Gemini API ({@link VertexAIBackend}).
+   * When using the Gemini Developer API ({@link GoogleAIBackend}), this property is not supported and will default to 0.
    */
   totalBillableCharacters?: number;
   /**

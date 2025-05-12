@@ -15,18 +15,21 @@
  * limitations under the License.
  */
 
-import { VertexAIError } from '../errors';
-import { VertexAI, VertexAIErrorCode } from '../public-types';
-import { VertexAIService } from '../service';
+import { AIError } from '../errors';
+import { AIErrorCode, AI, BackendType } from '../public-types';
+import { AIService } from '../service';
 import { ApiSettings } from '../types/internal';
 import { _isFirebaseServerApp } from '@firebase/app';
 
 /**
- * Base class for Vertex AI in Firebase model APIs.
+ * Base class for Firebase AI model APIs.
+ *
+ * Instances of this class are associated with a specific Firebase AI {@link Backend}
+ * and provide methods for interacting with the configured generative model.
  *
  * @public
  */
-export abstract class VertexAIModel {
+export abstract class AIModel {
   /**
    * The fully qualified model resource name to use for generating images
    * (for example, `publishers/google/models/imagen-3.0-generate-002`).
@@ -39,12 +42,12 @@ export abstract class VertexAIModel {
   protected _apiSettings: ApiSettings;
 
   /**
-   * Constructs a new instance of the {@link VertexAIModel} class.
+   * Constructs a new instance of the {@link AIModel} class.
    *
    * This constructor should only be called from subclasses that provide
    * a model API.
    *
-   * @param vertexAI - An instance of the Vertex AI in Firebase SDK.
+   * @param ai - an {@link AI} instance.
    * @param modelName - The name of the model being used. It can be in one of the following formats:
    * - `my-model` (short name, will resolve to `publishers/google/models/my-model`)
    * - `models/my-model` (will resolve to `publishers/google/models/my-model`)
@@ -55,51 +58,51 @@ export abstract class VertexAIModel {
    *
    * @internal
    */
-  protected constructor(vertexAI: VertexAI, modelName: string) {
-    this.model = VertexAIModel.normalizeModelName(modelName);
-
-    if (!vertexAI.app?.options?.apiKey) {
-      throw new VertexAIError(
-        VertexAIErrorCode.NO_API_KEY,
-        `The "apiKey" field is empty in the local Firebase config. Firebase VertexAI requires this field to contain a valid API key.`
+  protected constructor(ai: AI, modelName: string) {
+    if (!ai.app?.options?.apiKey) {
+      throw new AIError(
+        AIErrorCode.NO_API_KEY,
+        `The "apiKey" field is empty in the local Firebase config. Firebase AI requires this field to contain a valid API key.`
       );
-    } else if (!vertexAI.app?.options?.projectId) {
-      throw new VertexAIError(
-        VertexAIErrorCode.NO_PROJECT_ID,
-        `The "projectId" field is empty in the local Firebase config. Firebase VertexAI requires this field to contain a valid project ID.`
+    } else if (!ai.app?.options?.projectId) {
+      throw new AIError(
+        AIErrorCode.NO_PROJECT_ID,
+        `The "projectId" field is empty in the local Firebase config. Firebase AI requires this field to contain a valid project ID.`
       );
-    } else if (!vertexAI.app?.options?.appId) {
-      throw new VertexAIError(
-        VertexAIErrorCode.NO_APP_ID,
-        `The "appId" field is empty in the local Firebase config. Firebase VertexAI requires this field to contain a valid app ID.`
+    } else if (!ai.app?.options?.appId) {
+      throw new AIError(
+        AIErrorCode.NO_APP_ID,
+        `The "appId" field is empty in the local Firebase config. Firebase AI requires this field to contain a valid app ID.`
       );
     } else {
       this._apiSettings = {
-        apiKey: vertexAI.app.options.apiKey,
-        project: vertexAI.app.options.projectId,
-        appId: vertexAI.app.options.appId,
-        automaticDataCollectionEnabled:
-          vertexAI.app.automaticDataCollectionEnabled,
-        location: vertexAI.location
+        apiKey: ai.app.options.apiKey,
+        project: ai.app.options.projectId,
+        appId: ai.app.options.appId,
+        automaticDataCollectionEnabled: ai.app.automaticDataCollectionEnabled,
+        location: ai.location,
+        backend: ai.backend
       };
 
-      if (
-        _isFirebaseServerApp(vertexAI.app) &&
-        vertexAI.app.settings.appCheckToken
-      ) {
-        const token = vertexAI.app.settings.appCheckToken;
+      if (_isFirebaseServerApp(ai.app) && ai.app.settings.appCheckToken) {
+        const token = ai.app.settings.appCheckToken;
         this._apiSettings.getAppCheckToken = () => {
           return Promise.resolve({ token });
         };
-      } else if ((vertexAI as VertexAIService).appCheck) {
+      } else if ((ai as AIService).appCheck) {
         this._apiSettings.getAppCheckToken = () =>
-          (vertexAI as VertexAIService).appCheck!.getToken();
+          (ai as AIService).appCheck!.getToken();
       }
 
-      if ((vertexAI as VertexAIService).auth) {
+      if ((ai as AIService).auth) {
         this._apiSettings.getAuthToken = () =>
-          (vertexAI as VertexAIService).auth!.getToken();
+          (ai as AIService).auth!.getToken();
       }
+
+      this.model = AIModel.normalizeModelName(
+        modelName,
+        this._apiSettings.backend.backendType
+      );
     }
   }
 
@@ -108,8 +111,31 @@ export abstract class VertexAIModel {
    *
    * @param modelName - The model name to normalize.
    * @returns The fully qualified model resource name.
+   *
+   * @internal
    */
-  static normalizeModelName(modelName: string): string {
+  static normalizeModelName(
+    modelName: string,
+    backendType: BackendType
+  ): string {
+    if (backendType === BackendType.GOOGLE_AI) {
+      return AIModel.normalizeGoogleAIModelName(modelName);
+    } else {
+      return AIModel.normalizeVertexAIModelName(modelName);
+    }
+  }
+
+  /**
+   * @internal
+   */
+  private static normalizeGoogleAIModelName(modelName: string): string {
+    return `models/${modelName}`;
+  }
+
+  /**
+   * @internal
+   */
+  private static normalizeVertexAIModelName(modelName: string): string {
     let model: string;
     if (modelName.includes('/')) {
       if (modelName.startsWith('models/')) {

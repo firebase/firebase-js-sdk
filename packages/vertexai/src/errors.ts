@@ -16,32 +16,31 @@
  */
 
 import { FirebaseError } from '@firebase/util';
-import { VertexAIErrorCode, CustomErrorData } from './types';
-import { VERTEX_TYPE } from './constants';
+import { AIErrorCode, CustomErrorData } from './types';
+import { AI_TYPE } from './constants';
 
 /**
- * Error class for the Vertex AI in Firebase SDK.
+ * Error class for the Firebase AI SDK.
  *
  * @public
  */
-export class VertexAIError extends FirebaseError {
+export class AIError extends FirebaseError {
   /**
-   * Constructs a new instance of the `VertexAIError` class.
+   * Constructs a new instance of the `AIError` class.
    *
-   * @param code - The error code from {@link VertexAIErrorCode}.
+   * @param code - The error code from {@link AIErrorCode}.
    * @param message - A human-readable message describing the error.
    * @param customErrorData - Optional error data.
    */
   constructor(
-    readonly code: VertexAIErrorCode,
+    readonly code: AIErrorCode,
     message: string,
     readonly customErrorData?: CustomErrorData
   ) {
     // Match error format used by FirebaseError from ErrorFactory
-    const service = VERTEX_TYPE;
-    const serviceName = 'VertexAI';
+    const service = AI_TYPE;
     const fullCode = `${service}/${code}`;
-    const fullMessage = `${serviceName}: ${message} (${fullCode})`;
+    const fullMessage = `${service}: ${message} (${fullCode})`;
     super(code, fullMessage);
 
     // FirebaseError initializes a stack trace, but it assumes the error is created from the error
@@ -51,14 +50,14 @@ export class VertexAIError extends FirebaseError {
     if (Error.captureStackTrace) {
       // Allows us to initialize the stack trace without including the constructor itself at the
       // top level of the stack trace.
-      Error.captureStackTrace(this, VertexAIError);
+      Error.captureStackTrace(this, AIError);
     }
 
-    // Allows instanceof VertexAIError in ES5/ES6
+    // Allows instanceof AIError in ES5/ES6
     // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
     // TODO(dlarocque): Replace this with `new.target`: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
     //                   which we can now use since we no longer target ES5.
-    Object.setPrototypeOf(this, VertexAIError.prototype);
+    Object.setPrototypeOf(this, AIError.prototype);
 
     // Since Error is an interface, we don't inherit toString and so we define it ourselves.
     this.toString = () => fullMessage;
