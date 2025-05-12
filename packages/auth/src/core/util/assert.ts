@@ -112,7 +112,9 @@ export function _serverAppCurrentUserOperationNotSupportedError(
   );
 }
 
-export function _operationNotSupportedForInitializedAuthInstance(auth: Auth) : FirebaseError {
+export function _operationNotSupportedForInitializedAuthInstance(
+  auth: Auth
+): FirebaseError {
   return _errorWithCustomMessage(
     auth,
     AuthErrorCode.OPERATION_NOT_ALLOWED,

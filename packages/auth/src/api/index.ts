@@ -38,7 +38,7 @@ import { IdTokenMfaResponse } from './authentication/mfa';
 import { SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
 import { PersistenceType } from '../core/persistence';
 import { CookiePersistence } from '../platform_browser/persistence/cookie_storage';
-import {_operationNotSupportedForInitializedAuthInstance} from '../core/util/assert';
+import { _operationNotSupportedForInitializedAuthInstance } from '../core/util/assert';
 
 export const enum HttpMethod {
   POST = 'POST',
@@ -332,7 +332,10 @@ function _assertValidEndpointForAuth(
   auth: Auth,
   path: Endpoint | Regional_Endpoint
 ): void {
-  if (!auth.tenantConfig && Object.values(Regional_Endpoint).includes(path as Regional_Endpoint)) {
+  if (
+    !auth.tenantConfig &&
+    Object.values(Regional_Endpoint).includes(path as Regional_Endpoint)
+  ) {
     throw _operationNotSupportedForInitializedAuthInstance(auth);
   }
 

@@ -186,7 +186,7 @@ export interface Auth {
   /**
    * The {@link TenantConfig} used to initialize a Regional Auth. This is only present
    * if regional auth is initialized and {@link DefaultConfig.REGIONAL_API_HOST}
-   * backend endpoint is used. 
+   * backend endpoint is used.
    */
   readonly tenantConfig?: TenantConfig;
   /**

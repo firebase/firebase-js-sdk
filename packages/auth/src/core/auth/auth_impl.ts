@@ -37,7 +37,7 @@ import {
   NextFn,
   Unsubscribe,
   PasswordValidationStatus,
-  TenantConfig,
+  TenantConfig
 } from '../../model/public_types';
 import {
   createSubscribe,
