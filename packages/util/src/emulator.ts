@@ -241,6 +241,7 @@ export function updateEmulatorBanner(
     const closeBtn = document.createElement('span');
     closeBtn.style.cursor = 'pointer';
     closeBtn.style.paddingLeft = '5px';
+    closeBtn.style.width = '10px';
     closeBtn.innerHTML = ' &times;';
     closeBtn.onclick = () => {
       previouslyDismissed = true;
@@ -251,7 +252,8 @@ export function updateEmulatorBanner(
 
   function setupLinkStyles(
     learnMoreLink: HTMLAnchorElement,
-    learnMoreId: string
+    learnMoreId: string,
+    svgElement: SVGElement
   ): void {
     learnMoreLink.setAttribute('id', learnMoreId);
     learnMoreLink.innerText = 'Learn more';
@@ -259,6 +261,8 @@ export function updateEmulatorBanner(
       'http://firebase.google.com/docs/studio/deploy-app#emulator ';
     learnMoreLink.setAttribute('target', '__blank');
     learnMoreLink.style.paddingLeft = '5px';
+    learnMoreLink.style.textDecoration = 'underline';
+    learnMoreLink.appendChild(svgElement);
   }
 
   function setupOpenExternal(svgElement: SVGElement, id: string): void {
@@ -295,8 +299,8 @@ export function updateEmulatorBanner(
       // update styles
       const bannerEl = banner.element;
       setupBannerStyles(bannerEl);
-      setupLinkStyles(learnMoreLink, learnMoreId);
       setupOpenExternal(openExternalIcon, openExternalIconId);
+      setupLinkStyles(learnMoreLink, learnMoreId, openExternalIcon);
       const closeBtn = setupCloseBtn();
       setupIconStyles(prependIcon, prependIconId);
       bannerEl.append(
