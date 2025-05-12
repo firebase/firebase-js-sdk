@@ -44,6 +44,7 @@ The Vertex AI in Firebase Web SDK.
 
 |  Enumeration | Description |
 |  --- | --- |
+|  [ApiVersion](./vertexai.md#apiversion) | API versions for the Vertex AI in Firebase endpoint. |
 |  [BlockReason](./vertexai.md#blockreason) | Reason that a prompt was blocked. |
 |  [FinishReason](./vertexai.md#finishreason) | Reason that a candidate finished. |
 |  [FunctionCallingMode](./vertexai.md#functioncallingmode) |  |
@@ -293,6 +294,23 @@ A type that includes all specific Schema types.
 ```typescript
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema;
 ```
+
+## ApiVersion
+
+API versions for the Vertex AI in Firebase endpoint.
+
+<b>Signature:</b>
+
+```typescript
+export declare enum ApiVersion 
+```
+
+## Enumeration Members
+
+|  Member | Value | Description |
+|  --- | --- | --- |
+|  V1 | <code>&quot;v1&quot;</code> | The stable channel for version 1 of the API. |
+|  V1BETA | <code>&quot;v1beta&quot;</code> | The beta channel for version 1 of the API. |
 
 ## BlockReason
 
