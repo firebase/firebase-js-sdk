@@ -58,7 +58,7 @@ import {
   onValue,
   off
 } from 'firebase/database';
-import { getGenerativeModel, getAI } from 'firebase/ai';
+import { getGenerativeModel, getAI, VertexAIBackend } from 'firebase/ai';
 import { getDataConnect, DataConnect } from 'firebase/data-connect';
 
 /**
@@ -312,7 +312,7 @@ function callPerformance(app) {
  */
 async function callAI(app) {
   console.log('[AI] start');
-  const ai = getAI(app);
+  const ai = getAI(app, { backend: new VertexAIBackend() });
   const model = getGenerativeModel(ai, { model: 'gemini-1.5-flash' });
   const result = await model.countTokens('abcdefg');
   console.log(`[AI] counted tokens: ${result.totalTokens}`);
