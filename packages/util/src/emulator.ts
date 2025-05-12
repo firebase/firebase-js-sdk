@@ -225,7 +225,7 @@ export function updateEmulatorBanner(
     bannerEl.style.left = '5px';
     bannerEl.style.padding = '.5em';
     bannerEl.style.borderRadius = '5px';
-    bannerEl.style.alignContent = 'center';
+    bannerEl.style.alignItems = 'center';
   }
 
   function setupIconStyles(prependIcon: SVGElement, iconId: string): void {
@@ -240,8 +240,8 @@ export function updateEmulatorBanner(
   function setupCloseBtn(): HTMLSpanElement {
     const closeBtn = document.createElement('span');
     closeBtn.style.cursor = 'pointer';
-    closeBtn.style.paddingLeft = '5px';
-    closeBtn.style.width = '10px';
+    closeBtn.style.marginLeft = '16px';
+    closeBtn.style.fontSize = '24px';
     closeBtn.innerHTML = ' &times;';
     closeBtn.onclick = () => {
       previouslyDismissed = true;
@@ -285,12 +285,7 @@ export function updateEmulatorBanner(
       setupLinkStyles(learnMoreLink, learnMoreId);
       const closeBtn = setupCloseBtn();
       setupIconStyles(prependIcon, prependIconId);
-      bannerEl.append(
-        prependIcon,
-        firebaseText,
-        learnMoreLink,
-        closeBtn
-      );
+      bannerEl.append(prependIcon, firebaseText, learnMoreLink, closeBtn);
       document.body.appendChild(bannerEl);
     }
 
