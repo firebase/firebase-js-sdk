@@ -42,7 +42,7 @@ export abstract class Backend {
 }
 
 /**
- * Configuration class for the Gemini Developer API (using {@link https://ai.google/ | Google AI}).
+ * Configuration class for the Gemini Developer API.
  *
  * Use this with {@link AIOptions} when initializing the AI service via
  * {@link getAI | getAI()} to specify the Gemini Developer API as the backend.
@@ -51,7 +51,7 @@ export abstract class Backend {
  */
 export class GoogleAIBackend extends Backend {
   /**
-   * Creates a configuration object for the Google AI backend.
+   * Creates a configuration object for the Gemini Developer API backend.
    */
   constructor() {
     super(BackendType.GOOGLE_AI);
