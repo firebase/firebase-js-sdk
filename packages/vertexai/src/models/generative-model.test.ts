@@ -392,7 +392,8 @@ describe('GenerativeModel', () => {
       { model: 'my-model' },
       requestOptions
     );
-    await expect(genModel.countTokens('hello', singleRequestOptions)).to.be.rejected;
+    await expect(genModel.countTokens('hello', singleRequestOptions)).to.be
+      .rejected;
     expect(countTokensStub).to.be.calledWith(
       match.any,
       match.any,
