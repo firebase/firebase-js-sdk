@@ -87,9 +87,12 @@ class ReadableStreamSpy<Uint8Array> {
 }
 
 globalThis.fetch = async function (requestOrUrl, options) {
-  // @ts-ignore
   const url =
-    typeof requestOrUrl === 'string' ? requestOrUrl : requestOrUrl.url;
+    typeof requestOrUrl === 'string'
+      ? requestOrUrl
+      : requestOrUrl instanceof URL
+      ? requestOrUrl.toString()
+      : requestOrUrl.url;
 
   logDebug(`FETCH FOR ${url}`);
 
