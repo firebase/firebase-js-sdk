@@ -562,6 +562,8 @@ toc:
     path: /docs/reference/js/vertexai.objectschema.md
   - title: ObjectSchemaInterface
     path: /docs/reference/js/vertexai.objectschemainterface.md
+  - title: OnDeviceParams
+    path: /docs/reference/js/vertexai.ondeviceparams.md
   - title: PromptFeedback
     path: /docs/reference/js/vertexai.promptfeedback.md
   - title: RequestOptions

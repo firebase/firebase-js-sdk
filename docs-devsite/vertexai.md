@@ -108,6 +108,7 @@ The Firebase AI Web SDK.
 |  [ModalityTokenCount](./vertexai.modalitytokencount.md#modalitytokencount_interface) | Represents token counting info for a single modality. |
 |  [ModelParams](./vertexai.modelparams.md#modelparams_interface) | Params passed to [getGenerativeModel()](./vertexai.md#getgenerativemodel_c63f46a)<!-- -->. |
 |  [ObjectSchemaInterface](./vertexai.objectschemainterface.md#objectschemainterface_interface) | Interface for [ObjectSchema](./vertexai.objectschema.md#objectschema_class) class. |
+|  [OnDeviceParams](./vertexai.ondeviceparams.md#ondeviceparams_interface) | Encapsulates configuration for on-device inference. |
 |  [PromptFeedback](./vertexai.promptfeedback.md#promptfeedback_interface) | If the prompt was blocked, this will be populated with <code>blockReason</code> and the relevant <code>safetyRatings</code>. |
 |  [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) | Params passed to [getGenerativeModel()](./vertexai.md#getgenerativemodel_c63f46a)<!-- -->. |
 |  [RetrievedContextAttribution](./vertexai.retrievedcontextattribution.md#retrievedcontextattribution_interface) |  |
