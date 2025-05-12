@@ -111,6 +111,7 @@ The Vertex AI in Firebase Web SDK.
 |  [SchemaRequest](./vertexai.schemarequest.md#schemarequest_interface) | Final format for [Schema](./vertexai.schema.md#schema_class) params passed to backend requests. |
 |  [SchemaShared](./vertexai.schemashared.md#schemashared_interface) | Basic [Schema](./vertexai.schema.md#schema_class) properties shared across several Schema-related types. |
 |  [Segment](./vertexai.segment.md#segment_interface) |  |
+|  [SingleRequestOptions](./vertexai.singlerequestoptions.md#singlerequestoptions_interface) | Options that can be provided per-request. Extends the base [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) (like <code>timeout</code> and <code>baseUrl</code>) with request-specific controls like cancellation via <code>AbortSignal</code>.<!-- -->Options specified here will override any default [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) configured on a model (e.g. [GenerativeModel](./vertexai.generativemodel.md#generativemodel_class)<!-- -->). |
 |  [StartChatParams](./vertexai.startchatparams.md#startchatparams_interface) | Params for [GenerativeModel.startChat()](./vertexai.generativemodel.md#generativemodelstartchat)<!-- -->. |
 |  [TextPart](./vertexai.textpart.md#textpart_interface) | Content part interface if the part represents a text string. |
 |  [ToolConfig](./vertexai.toolconfig.md#toolconfig_interface) | Tool config. This config is shared for all tools provided in the request. |

@@ -29,11 +29,12 @@ import {
   GenerationConfig,
   ModelParams,
   Part,
-  RequestOptions,
   SafetySetting,
+  RequestOptions,
   StartChatParams,
   Tool,
-  ToolConfig
+  ToolConfig,
+  SingleRequestOptions
 } from '../types';
 import { ChatSession } from '../methods/chat-session';
 import { countTokens } from '../methods/count-tokens';
@@ -77,7 +78,8 @@ export class GenerativeModel extends VertexAIModel {
    * and returns an object containing a single {@link GenerateContentResponse}.
    */
   async generateContent(
-    request: GenerateContentRequest | string | Array<string | Part>
+    request: GenerateContentRequest | string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentResult> {
     const formattedParams = formatGenerateContentInput(request);
     return generateContent(
@@ -91,7 +93,11 @@ export class GenerativeModel extends VertexAIModel {
         systemInstruction: this.systemInstruction,
         ...formattedParams
       },
-      this.requestOptions
+      // Merge request options
+      {
+        ...this.requestOptions,
+        ...singleRequestOptions
+      }
     );
   }
 
@@ -102,7 +108,8 @@ export class GenerativeModel extends VertexAIModel {
    * a promise that returns the final aggregated response.
    */
   async generateContentStream(
-    request: GenerateContentRequest | string | Array<string | Part>
+    request: GenerateContentRequest | string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentStreamResult> {
     const formattedParams = formatGenerateContentInput(request);
     return generateContentStream(
@@ -116,7 +123,11 @@ export class GenerativeModel extends VertexAIModel {
         systemInstruction: this.systemInstruction,
         ...formattedParams
       },
-      this.requestOptions
+      // Merge request options
+      {
+        ...this.requestOptions,
+        ...singleRequestOptions
+      }
     );
   }
 
@@ -149,9 +160,19 @@ export class GenerativeModel extends VertexAIModel {
    * Counts the tokens in the provided request.
    */
   async countTokens(
-    request: CountTokensRequest | string | Array<string | Part>
+    request: CountTokensRequest | string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<CountTokensResponse> {
     const formattedParams = formatGenerateContentInput(request);
-    return countTokens(this._apiSettings, this.model, formattedParams);
+    return countTokens(
+      this._apiSettings,
+      this.model,
+      formattedParams,
+      // Merge request options
+      {
+        ...this.requestOptions,
+        ...singleRequestOptions
+      }
+    );
   }
 }
