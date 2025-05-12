@@ -26,7 +26,9 @@ export { LogLevel, LogLevelString };
 
 const logClient = new Logger('@firebase/firestore');
 const defaultLogHandler = logClient.logHandler;
-let logBuffer: LogBuffer | undefined;
+let logBuffer:
+  | LogBuffer<{ level: LogLevel; now: string; args: unknown[] }>
+  | undefined;
 
 // Helper methods are needed because variables can't be exported as read/write
 export function getLogLevel(): LogLevel {
@@ -59,7 +61,11 @@ export function setLogLevel(
   logClient.setLogLevel(logLevel);
 
   if (includeContext > 0) {
-    logBuffer = new LogBuffer(includeContext);
+    logBuffer = new LogBuffer<{
+      level: LogLevel;
+      now: string;
+      args: unknown[];
+    }>(includeContext);
     logClient.logHandler = bufferingLogHandler;
   } else {
     logBuffer = undefined;
@@ -107,8 +113,8 @@ function argToString(obj: unknown): string | unknown {
   }
 }
 
-class LogBuffer {
-  private _buffer: Array<{ level: LogLevel; now: string; args: unknown[] }>;
+export class LogBuffer<T> {
+  private _buffer: T[];
   private _numTruncated: number = 0;
 
   constructor(readonly bufferSize: number) {
@@ -132,12 +138,8 @@ class LogBuffer {
    * @param now
    * @param args
    */
-  add(level: LogLevel, now: string, args: unknown[]): void {
-    this._buffer.push({
-      level,
-      now,
-      args
-    });
+  add(v: T): void {
+    this._buffer.push(v);
 
     if (this._buffer.length > this.bufferSize) {
       // remove the first (oldest) element
@@ -154,18 +156,14 @@ class LogBuffer {
     return this._numTruncated;
   }
 
-  get first(): { level: LogLevel; now: string; args: unknown[] } | undefined {
+  get first(): T | undefined {
     return this._buffer[0];
   }
 
   /**
    * Iterate from oldest to newest.
    */
-  [Symbol.iterator](): Iterator<{
-    level: LogLevel;
-    now: string;
-    args: unknown[];
-  }> {
+  [Symbol.iterator](): Iterator<T> {
     let currentIndex = 0;
     // Create a snapshot of the buffer for iteration.
     // This ensures that if the buffer is modified while iterating (e.g., by adding new logs),
@@ -174,11 +172,7 @@ class LogBuffer {
     const bufferSnapshot = [...this._buffer];
 
     return {
-      next: (): IteratorResult<{
-        level: LogLevel;
-        now: string;
-        args: unknown[];
-      }> => {
+      next: (): IteratorResult<T> => {
         if (currentIndex < bufferSnapshot.length) {
           return { value: bufferSnapshot[currentIndex++], done: false };
         } else {
@@ -220,7 +214,7 @@ const bufferingLogHandler: LogHandler = (instance, logType, ...args): void => {
 
   // Buffer any messages less than the current logLevel
   if (logType < instance.logLevel) {
-    logBuffer!.add(logType, now, args);
+    logBuffer!.add({ level: logType, now, args });
     return;
   }
 
