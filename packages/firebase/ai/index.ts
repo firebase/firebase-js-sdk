@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export * from '@firebase/ai'
+export * from '@firebase/ai';
