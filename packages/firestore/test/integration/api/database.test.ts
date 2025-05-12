@@ -33,6 +33,7 @@ import {
   DocumentData,
   documentId,
   DocumentSnapshot,
+  documentSnapshotFromJSON,
   enableIndexedDbPersistence,
   enableNetwork,
   getDoc,
@@ -67,6 +68,7 @@ import {
   newTestApp,
   FirestoreError,
   QuerySnapshot,
+  querySnapshotFromJSON,
   vector,
   getDocsFromServer
 } from '../util/firebase_export';
@@ -1350,7 +1352,7 @@ apiDescribe('Database', persistence => {
       initialData,
       async (docRef, db) => {
         const doc = await getDoc(docRef);
-        const fromJsonDoc = DocumentSnapshot.fromJSON(db, doc.toJSON());
+        const fromJsonDoc = documentSnapshotFromJSON(db, doc.toJSON());
         const accumulator = new EventsAccumulator<DocumentSnapshot>();
         const unsubscribe = onSnapshotResume(
           db,
@@ -1382,7 +1384,7 @@ apiDescribe('Database', persistence => {
       initialData,
       async (docRef, db) => {
         const doc = await getDoc(docRef);
-        const fromJsonDoc = DocumentSnapshot.fromJSON(db, doc.toJSON());
+        const fromJsonDoc = documentSnapshotFromJSON(db, doc.toJSON());
         const accumulator = new EventsAccumulator<DocumentSnapshot>();
         const unsubscribe = onSnapshot(fromJsonDoc.ref, accumulator.storeEvent);
         await accumulator
@@ -1537,7 +1539,7 @@ apiDescribe('Database', persistence => {
     };
     await withTestCollection(persistence, testDocs, async (coll, db) => {
       const querySnap = await getDocs(query(coll, orderBy(documentId())));
-      const querySnapFromJson = QuerySnapshot.fromJSON(db, querySnap.toJSON());
+      const querySnapFromJson = querySnapshotFromJSON(db, querySnap.toJSON());
       const refForDocA = querySnapFromJson.docs[0].ref;
       const accumulator = new EventsAccumulator<QuerySnapshot>();
       const unsubscribe = onSnapshotResume(
@@ -1572,7 +1574,7 @@ apiDescribe('Database', persistence => {
     };
     await withTestCollection(persistence, testDocs, async (coll, db) => {
       const querySnap = await getDocs(query(coll, orderBy(documentId())));
-      const querySnapFromJson = QuerySnapshot.fromJSON(db, querySnap.toJSON());
+      const querySnapFromJson = querySnapshotFromJSON(db, querySnap.toJSON());
       const refForDocA = querySnapFromJson.docs[0].ref;
       const accumulator = new EventsAccumulator<QuerySnapshot>();
       const unsubscribe = onSnapshot(

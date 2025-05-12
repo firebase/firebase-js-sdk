@@ -179,14 +179,18 @@ export class DocumentSnapshot<AppModelType = DocumentData, DbModelType extends D
     protected constructor();
     data(options?: SnapshotOptions): AppModelType | undefined;
     exists(): this is QueryDocumentSnapshot<AppModelType, DbModelType>;
-    static fromJSON(db: Firestore, json: object): DocumentSnapshot;
-    static fromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter: FirestoreDataConverter<AppModelType, DbModelType>): DocumentSnapshot<AppModelType, DbModelType>;
     get(fieldPath: string | FieldPath, options?: SnapshotOptions): any;
     get id(): string;
     readonly metadata: SnapshotMetadata;
     get ref(): DocumentReference<AppModelType, DbModelType>;
     toJSON(): object;
 }
+
+// @public
+export function documentSnapshotFromJSON(db: Firestore, json: object): DocumentSnapshot;
+
+// @public
+export function documentSnapshotFromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter: FirestoreDataConverter<AppModelType, DbModelType>): DocumentSnapshot<AppModelType, DbModelType>;
 
 export { EmulatorMockTokenOptions }
 
@@ -657,13 +661,17 @@ export class QuerySnapshot<AppModelType = DocumentData, DbModelType extends Docu
     get docs(): Array<QueryDocumentSnapshot<AppModelType, DbModelType>>;
     get empty(): boolean;
     forEach(callback: (result: QueryDocumentSnapshot<AppModelType, DbModelType>) => void, thisArg?: unknown): void;
-    static fromJSON(db: Firestore, json: object): QuerySnapshot;
-    static fromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter: FirestoreDataConverter<AppModelType, DbModelType>): QuerySnapshot<AppModelType, DbModelType>;
     readonly metadata: SnapshotMetadata;
     readonly query: Query<AppModelType, DbModelType>;
     get size(): number;
     toJSON(): object;
 }
+
+// @public
+export function querySnapshotFromJSON(db: Firestore, json: object): QuerySnapshot;
+
+// @public
+export function querySnapshotFromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter: FirestoreDataConverter<AppModelType, DbModelType>): QuerySnapshot<AppModelType, DbModelType>;
 
 // @public
 export class QueryStartAtConstraint extends QueryConstraint {

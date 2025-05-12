@@ -20,7 +20,9 @@ import { expect } from 'chai';
 import {
   DocumentReference,
   DocumentSnapshot,
+  documentSnapshotFromJSON,
   QuerySnapshot,
+  querySnapshotFromJSON,
   connectFirestoreEmulator,
   loadBundle,
   refEqual,
@@ -101,7 +103,7 @@ describe('DocumentReference', () => {
   it('fromJSON() throws with missing type data', () => {
     const db = newTestFirestore();
     expect(() => {
-      DocumentSnapshot.fromJSON(db, {
+      documentSnapshotFromJSON(db, {
         bundleSource: 'DocumentSnapshot',
         bundleName: 'test name',
         bundle: 'test bundle'
@@ -112,7 +114,7 @@ describe('DocumentReference', () => {
   it('fromJSON() throws with invalid type data', () => {
     const db = newTestFirestore();
     expect(() => {
-      DocumentSnapshot.fromJSON(db, {
+      documentSnapshotFromJSON(db, {
         type: 1,
         bundleSource: 'DocumentSnapshot',
         bundleName: 'test name',
@@ -124,7 +126,7 @@ describe('DocumentReference', () => {
   it('fromJSON() throws with missing bundleSource', () => {
     const db = newTestFirestore();
     expect(() => {
-      DocumentSnapshot.fromJSON(db, {
+      documentSnapshotFromJSON(db, {
         type: DocumentSnapshot._jsonSchemaVersion,
         bundleName: 'test name',
         bundle: 'test bundle'
@@ -135,7 +137,7 @@ describe('DocumentReference', () => {
   it('fromJSON() throws with invalid bundleSource type', () => {
     const db = newTestFirestore();
     expect(() => {
-      DocumentSnapshot.fromJSON(db, {
+      documentSnapshotFromJSON(db, {
         type: DocumentSnapshot._jsonSchemaVersion,
         bundleSource: 1,
         bundleName: 'test name',
@@ -147,7 +149,7 @@ describe('DocumentReference', () => {
   it('fromJSON() throws with invalid bundleSource value', () => {
     const db = newTestFirestore();
     expect(() => {
-      DocumentSnapshot.fromJSON(db, {
+      documentSnapshotFromJSON(db, {
         type: DocumentSnapshot._jsonSchemaVersion,
         bundleSource: 'QuerySnapshot',
         bundleName: 'test name',
@@ -159,7 +161,7 @@ describe('DocumentReference', () => {
   it('fromJSON() throws with missing bundleName', () => {
     const db = newTestFirestore();
     expect(() => {
-      DocumentSnapshot.fromJSON(db, {
+      documentSnapshotFromJSON(db, {
         type: DocumentSnapshot._jsonSchemaVersion,
         bundleSource: 'DocumentSnapshot',
         bundle: 'test bundle'
@@ -170,7 +172,7 @@ describe('DocumentReference', () => {
   it('fromJSON() throws with invalid bundleName', () => {
     const db = newTestFirestore();
     expect(() => {
-      DocumentSnapshot.fromJSON(db, {
+      documentSnapshotFromJSON(db, {
         type: DocumentSnapshot._jsonSchemaVersion,
         bundleSource: 'DocumentSnapshot',
         bundleName: 1,
@@ -182,7 +184,7 @@ describe('DocumentReference', () => {
   it('fromJSON() throws with missing bundle', () => {
     const db = newTestFirestore();
     expect(() => {
-      DocumentSnapshot.fromJSON(db, {
+      documentSnapshotFromJSON(db, {
         type: DocumentSnapshot._jsonSchemaVersion,
         bundleSource: 'DocumentSnapshot',
         bundleName: 'test name'
@@ -193,7 +195,7 @@ describe('DocumentReference', () => {
   it('fromJSON() throws with invalid bundle', () => {
     const db = newTestFirestore();
     expect(() => {
-      DocumentSnapshot.fromJSON(db, {
+      documentSnapshotFromJSON(db, {
         type: DocumentSnapshot._jsonSchemaVersion,
         bundleSource: 'DocumentSnapshot',
         bundleName: 'test name',
@@ -309,7 +311,7 @@ describe('DocumentSnapshot', () => {
     const docSnap = documentSnapshot('foo/bar', { a: 1 }, /*fromCache=*/ true);
     const json = docSnap.toJSON();
     expect(() => {
-      DocumentSnapshot.fromJSON(docSnap._firestore, json);
+      documentSnapshotFromJSON(docSnap._firestore, json);
     }).to.not.throw;
   });
 
@@ -320,7 +322,7 @@ describe('DocumentSnapshot', () => {
       /*fromCache=*/ true
     ).toJSON();
     const db = firestore();
-    const docSnap = DocumentSnapshot.fromJSON(db, json);
+    const docSnap = documentSnapshotFromJSON(db, json);
     expect(docSnap).to.exist;
     const data = docSnap.data();
     expect(data).to.not.be.undefined;
@@ -497,14 +499,14 @@ describe('QuerySnapshot', () => {
   it('fromJSON() throws with invalid data', () => {
     const db = newTestFirestore();
     expect(() => {
-      QuerySnapshot.fromJSON(db, {});
+      querySnapshotFromJSON(db, {});
     }).to.throw;
   });
 
   it('fromJSON() throws with missing type data', () => {
     const db = newTestFirestore();
     expect(() => {
-      QuerySnapshot.fromJSON(db, {
+      querySnapshotFromJSON(db, {
         bundleSource: 'QuerySnapshot',
         bundleName: 'test name',
         bundle: 'test bundle'
@@ -515,7 +517,7 @@ describe('QuerySnapshot', () => {
   it('fromJSON() throws with invalid type data', () => {
     const db = newTestFirestore();
     expect(() => {
-      QuerySnapshot.fromJSON(db, {
+      querySnapshotFromJSON(db, {
         type: 1,
         bundleSource: 'QuerySnapshot',
         bundleName: 'test name',
@@ -527,7 +529,7 @@ describe('QuerySnapshot', () => {
   it('fromJSON() throws with invalid type data', () => {
     const db = newTestFirestore();
     expect(() => {
-      QuerySnapshot.fromJSON(db, {
+      querySnapshotFromJSON(db, {
         type: QuerySnapshot._jsonSchemaVersion,
         bundleName: 'test name',
         bundle: 'test bundle'
@@ -538,7 +540,7 @@ describe('QuerySnapshot', () => {
   it('fromJSON() throws with invalid bundleSource type', () => {
     const db = newTestFirestore();
     expect(() => {
-      QuerySnapshot.fromJSON(db, {
+      querySnapshotFromJSON(db, {
         type: QuerySnapshot._jsonSchemaVersion,
         bundleSource: 1,
         bundleName: 'test name',
@@ -550,7 +552,7 @@ describe('QuerySnapshot', () => {
   it('fromJSON() throws with invalid bundleSource value', () => {
     const db = newTestFirestore();
     expect(() => {
-      QuerySnapshot.fromJSON(db, {
+      querySnapshotFromJSON(db, {
         type: QuerySnapshot._jsonSchemaVersion,
         bundleSource: 'DocumentSnapshot',
         bundleName: 'test name',
@@ -562,7 +564,7 @@ describe('QuerySnapshot', () => {
   it('fromJSON() throws with missing bundleName', () => {
     const db = newTestFirestore();
     expect(() => {
-      QuerySnapshot.fromJSON(db, {
+      querySnapshotFromJSON(db, {
         type: QuerySnapshot._jsonSchemaVersion,
         bundleSource: 'QuerySnapshot',
         bundle: 'test bundle'
@@ -573,7 +575,7 @@ describe('QuerySnapshot', () => {
   it('fromJSON() throws with invalid bundleName', () => {
     const db = newTestFirestore();
     expect(() => {
-      QuerySnapshot.fromJSON(db, {
+      querySnapshotFromJSON(db, {
         type: QuerySnapshot._jsonSchemaVersion,
         bundleSource: 'QuerySnapshot',
         bundleName: 1,
@@ -585,7 +587,7 @@ describe('QuerySnapshot', () => {
   it('fromJSON() throws with missing bundle data', () => {
     const db = newTestFirestore();
     expect(() => {
-      QuerySnapshot.fromJSON(db, {
+      querySnapshotFromJSON(db, {
         type: QuerySnapshot._jsonSchemaVersion,
         bundleSource: 'QuerySnapshot',
         bundleName: 'test name'
@@ -596,7 +598,7 @@ describe('QuerySnapshot', () => {
   it('fromJSON() throws with invalid bundle data', () => {
     const db = newTestFirestore();
     expect(() => {
-      QuerySnapshot.fromJSON(db, {
+      querySnapshotFromJSON(db, {
         type: QuerySnapshot._jsonSchemaVersion,
         bundleSource: 'QuerySnapshot',
         bundleName: 'test name',
@@ -617,7 +619,7 @@ describe('QuerySnapshot', () => {
 
     const db = firestore();
     expect(() => {
-      QuerySnapshot.fromJSON(db, json);
+      querySnapshotFromJSON(db, json);
     }).to.not.throw;
   });
 
@@ -632,7 +634,7 @@ describe('QuerySnapshot', () => {
     ).toJSON();
 
     const db = firestore();
-    const querySnap = QuerySnapshot.fromJSON(db, json);
+    const querySnap = querySnapshotFromJSON(db, json);
     expect(querySnap).to.exist;
     if (querySnap !== undefined) {
       const docs = querySnap.docs;

@@ -19,6 +19,11 @@ https://github.com/firebase/firebase-js-sdk
 |  [getFirestore(app)](./firestore_.md#getfirestore_cf608e1) | Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
 |  [getFirestore(app, databaseId)](./firestore_.md#getfirestore_48de6cb) | <b><i>(Public Preview)</i></b> Returns the existing named [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
 |  [initializeFirestore(app, settings, databaseId)](./firestore_.md#initializefirestore_fc7d200) | Initializes a new instance of [Firestore](./firestore_.firestore.md#firestore_class) with the provided settings. Can only be called before any other function, including [getFirestore()](./firestore_.md#getfirestore)<!-- -->. If the custom settings are empty, this function is equivalent to calling [getFirestore()](./firestore_.md#getfirestore)<!-- -->. |
+|  <b>function(db, ...)</b> |
+|  [documentSnapshotFromJSON(db, json)](./firestore_.md#documentsnapshotfromjson_a318ff2) | Builds a <code>DocumentSnapshot</code> instance from a JSON object created by [DocumentSnapshot.toJSON()](./firestore_.documentsnapshot.md#documentsnapshottojson)<!-- -->. |
+|  [documentSnapshotFromJSON(db, json, converter)](./firestore_.md#documentsnapshotfromjson_ddb369d) | Builds a <code>DocumentSnapshot</code> instance from a JSON object created by [DocumentSnapshot.toJSON()](./firestore_.documentsnapshot.md#documentsnapshottojson)<!-- -->. |
+|  [querySnapshotFromJSON(db, json)](./firestore_.md#querysnapshotfromjson_a318ff2) | Builds a <code>QuerySnapshot</code> instance from a JSON object created by [QuerySnapshot.toJSON()](./firestore_.querysnapshot.md#querysnapshottojson)<!-- -->. |
+|  [querySnapshotFromJSON(db, json, converter)](./firestore_.md#querysnapshotfromjson_ddb369d) | Builds a <code>QuerySnapshot</code> instance from a JSON object created by [QuerySnapshot.toJSON()](./firestore_.querysnapshot.md#querysnapshottojson)<!-- -->. |
 |  <b>function(firestore, ...)</b> |
 |  [clearIndexedDbPersistence(firestore)](./firestore_.md#clearindexeddbpersistence_231a8e0) | Clears the persistent storage. This includes pending writes and cached documents.<!-- -->Must be called while the [Firestore](./firestore_.firestore.md#firestore_class) instance is not started (after the app is terminated or when the app is first initialized). On startup, this function must be called before other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore_fc7d200) or [getFirestore()](./firestore_.md#getfirestore)<!-- -->)). If the [Firestore](./firestore_.firestore.md#firestore_class) instance is still running, the promise will be rejected with the error code of <code>failed-precondition</code>.<!-- -->Note: <code>clearIndexedDbPersistence()</code> is primarily intended to help write reliable tests that use Cloud Firestore. It uses an efficient mechanism for dropping existing data but does not attempt to securely overwrite or otherwise make cached data unrecoverable. For applications that are sensitive to the disclosure of cached data in between user sessions, we strongly recommend not enabling persistence at all. |
 |  [collection(firestore, path, pathSegments)](./firestore_.md#collection_1eb4c23) | Gets a <code>CollectionReference</code> instance that refers to the collection at the specified absolute path. |
@@ -305,6 +310,102 @@ export declare function initializeFirestore(app: FirebaseApp, settings: Firestor
 [Firestore](./firestore_.firestore.md#firestore_class)
 
 A newly initialized [Firestore](./firestore_.firestore.md#firestore_class) instance.
+
+## function(db, ...)
+
+### documentSnapshotFromJSON(db, json) {:#documentsnapshotfromjson_a318ff2}
+
+Builds a `DocumentSnapshot` instance from a JSON object created by [DocumentSnapshot.toJSON()](./firestore_.documentsnapshot.md#documentsnapshottojson)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare function documentSnapshotFromJSON(db: Firestore, json: object): DocumentSnapshot;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  db | [Firestore](./firestore_.firestore.md#firestore_class) |  |
+|  json | object | a JSON object represention of a <code>DocumentSnapshot</code> instance. |
+
+<b>Returns:</b>
+
+[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)
+
+an instance of [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if an error occurs.
+
+### documentSnapshotFromJSON(db, json, converter) {:#documentsnapshotfromjson_ddb369d}
+
+Builds a `DocumentSnapshot` instance from a JSON object created by [DocumentSnapshot.toJSON()](./firestore_.documentsnapshot.md#documentsnapshottojson)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare function documentSnapshotFromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter: FirestoreDataConverter<AppModelType, DbModelType>): DocumentSnapshot<AppModelType, DbModelType>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  db | [Firestore](./firestore_.firestore.md#firestore_class) |  |
+|  json | object | a JSON object represention of a <code>DocumentSnapshot</code> instance. |
+|  converter | [FirestoreDataConverter](./firestore_.firestoredataconverter.md#firestoredataconverter_interface)<!-- -->&lt;AppModelType, DbModelType&gt; | Converts objects to and from Firestore. |
+
+<b>Returns:</b>
+
+[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;
+
+an instance of [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if an error occurs.
+
+### querySnapshotFromJSON(db, json) {:#querysnapshotfromjson_a318ff2}
+
+Builds a `QuerySnapshot` instance from a JSON object created by [QuerySnapshot.toJSON()](./firestore_.querysnapshot.md#querysnapshottojson)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare function querySnapshotFromJSON(db: Firestore, json: object): QuerySnapshot;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  db | [Firestore](./firestore_.firestore.md#firestore_class) |  |
+|  json | object | a JSON object represention of a <code>QuerySnapshot</code> instance. |
+
+<b>Returns:</b>
+
+[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)
+
+an instance of [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if an error occurs.
+
+### querySnapshotFromJSON(db, json, converter) {:#querysnapshotfromjson_ddb369d}
+
+Builds a `QuerySnapshot` instance from a JSON object created by [QuerySnapshot.toJSON()](./firestore_.querysnapshot.md#querysnapshottojson)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare function querySnapshotFromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter: FirestoreDataConverter<AppModelType, DbModelType>): QuerySnapshot<AppModelType, DbModelType>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  db | [Firestore](./firestore_.firestore.md#firestore_class) |  |
+|  json | object | a JSON object represention of a <code>QuerySnapshot</code> instance. |
+|  converter | [FirestoreDataConverter](./firestore_.firestoredataconverter.md#firestoredataconverter_interface)<!-- -->&lt;AppModelType, DbModelType&gt; | Converts objects to and from Firestore. |
+
+<b>Returns:</b>
+
+[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;
+
+an instance of [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if an error occurs.
 
 ## function(firestore, ...)
 

@@ -34,8 +34,6 @@ export declare class QuerySnapshot<AppModelType = DocumentData, DbModelType exte
 |  --- | --- | --- |
 |  [docChanges(options)](./firestore_.querysnapshot.md#querysnapshotdocchanges) |  | Returns an array of the documents changes since the last snapshot. If this is the first snapshot, all documents will be in the list as 'added' changes. |
 |  [forEach(callback, thisArg)](./firestore_.querysnapshot.md#querysnapshotforeach) |  | Enumerates all of the documents in the <code>QuerySnapshot</code>. |
-|  [fromJSON(db, json)](./firestore_.querysnapshot.md#querysnapshotfromjson) | <code>static</code> | Builds a <code>QuerySnapshot</code> instance from a JSON object created by [QuerySnapshot.toJSON()](./firestore_.querysnapshot.md#querysnapshottojson)<!-- -->. |
-|  [fromJSON(db, json, converter)](./firestore_.querysnapshot.md#querysnapshotfromjson) | <code>static</code> | Builds a <code>QuerySnapshot</code> instance from a JSON object created by [QuerySnapshot.toJSON()](./firestore_.querysnapshot.md#querysnapshottojson)<!-- -->. |
 |  [toJSON()](./firestore_.querysnapshot.md#querysnapshottojson) |  | Returns a JSON-serializable representation of this <code>QuerySnapshot</code> instance. |
 
 ## QuerySnapshot.docs
@@ -128,53 +126,6 @@ forEach(callback: (result: QueryDocumentSnapshot<AppModelType, DbModelType>) => 
 <b>Returns:</b>
 
 void
-
-## QuerySnapshot.fromJSON()
-
-Builds a `QuerySnapshot` instance from a JSON object created by [QuerySnapshot.toJSON()](./firestore_.querysnapshot.md#querysnapshottojson)<!-- -->.
-
-<b>Signature:</b>
-
-```typescript
-static fromJSON(db: Firestore, json: object): QuerySnapshot;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  db | [Firestore](./firestore_.firestore.md#firestore_class) |  |
-|  json | object | a JSON object represention of a <code>QuerySnapshot</code> instance. |
-
-<b>Returns:</b>
-
-[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)
-
-an instance of [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if an error occurs.
-
-## QuerySnapshot.fromJSON()
-
-Builds a `QuerySnapshot` instance from a JSON object created by [QuerySnapshot.toJSON()](./firestore_.querysnapshot.md#querysnapshottojson)<!-- -->.
-
-<b>Signature:</b>
-
-```typescript
-static fromJSON<AppModelType, DbModelType extends DocumentData = DocumentData>(db: Firestore, json: object, converter: FirestoreDataConverter<AppModelType, DbModelType>): QuerySnapshot<AppModelType, DbModelType>;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  db | [Firestore](./firestore_.firestore.md#firestore_class) |  |
-|  json | object | a JSON object represention of a <code>QuerySnapshot</code> instance. |
-|  converter | [FirestoreDataConverter](./firestore_.firestoredataconverter.md#firestoredataconverter_interface)<!-- -->&lt;AppModelType, DbModelType&gt; | Converts objects to and from Firestore. |
-
-<b>Returns:</b>
-
-[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;
-
-an instance of [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class) if the JSON object could be parsed. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if an error occurs.
 
 ## QuerySnapshot.toJSON()
 
