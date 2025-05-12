@@ -161,6 +161,7 @@ export {
   getDocsFromServer,
   onSnapshot,
   onSnapshotsInSync,
+  onSnapshotResume,
   setDoc,
   updateDoc
 } from './api/reference_impl';

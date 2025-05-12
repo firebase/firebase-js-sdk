@@ -42,6 +42,7 @@ import {
   initializeFirestore,
   limit,
   onSnapshot,
+  onSnapshotResume,
   onSnapshotsInSync,
   orderBy,
   query,
@@ -1209,7 +1210,7 @@ apiDescribe('Database', persistence => {
       async (docRef, db) => {
         const doc = await getDoc(docRef);
         const accumulator = new EventsAccumulator<DocumentSnapshot>();
-        const unsubscribe = onSnapshot(
+        const unsubscribe = onSnapshotResume(
           db,
           doc.toJSON(),
           accumulator.storeEvent
@@ -1240,7 +1241,7 @@ apiDescribe('Database', persistence => {
       async (docRef, db) => {
         const doc = await getDoc(docRef);
         const accumulator = new EventsAccumulator<DocumentSnapshot>();
-        const unsubscribe = onSnapshot(
+        const unsubscribe = onSnapshotResume(
           db,
           doc.toJSON(),
           accumulator.storeEvent
@@ -1271,7 +1272,7 @@ apiDescribe('Database', persistence => {
       async (docRef, db) => {
         const doc = await getDoc(docRef);
         const accumulator = new EventsAccumulator<DocumentSnapshot>();
-        const unsubscribe = onSnapshot(db, doc.toJSON(), {
+        const unsubscribe = onSnapshotResume(db, doc.toJSON(), {
           next: accumulator.storeEvent
         });
         await accumulator
@@ -1299,7 +1300,7 @@ apiDescribe('Database', persistence => {
         bundleSource: 'DocumentSnapshot'
       };
       const deferred = new Deferred();
-      const unsubscribe = onSnapshot(
+      const unsubscribe = onSnapshotResume(
         db,
         json,
         ds => {
@@ -1325,7 +1326,7 @@ apiDescribe('Database', persistence => {
         bundleSource: 'QuerySnapshot'
       };
       const deferred = new Deferred();
-      const unsubscribe = onSnapshot(db, json, {
+      const unsubscribe = onSnapshotResume(db, json, {
         next: ds => {
           expect(ds).to.not.exist;
           deferred.resolve();
@@ -1351,7 +1352,7 @@ apiDescribe('Database', persistence => {
         const doc = await getDoc(docRef);
         const fromJsonDoc = DocumentSnapshot.fromJSON(db, doc.toJSON());
         const accumulator = new EventsAccumulator<DocumentSnapshot>();
-        const unsubscribe = onSnapshot(
+        const unsubscribe = onSnapshotResume(
           db,
           fromJsonDoc.toJSON(),
           accumulator.storeEvent
@@ -1409,7 +1410,7 @@ apiDescribe('Database', persistence => {
     await withTestCollection(persistence, testDocs, async (coll, db) => {
       const querySnap = await getDocs(query(coll, orderBy(documentId())));
       const accumulator = new EventsAccumulator<QuerySnapshot>();
-      const unsubscribe = onSnapshot(
+      const unsubscribe = onSnapshotResume(
         db,
         querySnap.toJSON(),
         accumulator.storeEvent
@@ -1432,7 +1433,7 @@ apiDescribe('Database', persistence => {
     await withTestCollection(persistence, testDocs, async (coll, db) => {
       const querySnap = await getDocs(query(coll, orderBy(documentId())));
       const accumulator = new EventsAccumulator<QuerySnapshot>();
-      const unsubscribe = onSnapshot(db, querySnap.toJSON(), {
+      const unsubscribe = onSnapshotResume(db, querySnap.toJSON(), {
         next: accumulator.storeEvent
       });
       await accumulator.awaitEvent().then(snap => {
@@ -1453,7 +1454,7 @@ apiDescribe('Database', persistence => {
         bundleSource: 'QuerySnapshot'
       };
       const deferred = new Deferred();
-      const unsubscribe = onSnapshot(
+      const unsubscribe = onSnapshotResume(
         db,
         json,
         qs => {
@@ -1479,7 +1480,7 @@ apiDescribe('Database', persistence => {
         bundleSource: 'QuerySnapshot'
       };
       const deferred = new Deferred();
-      const unsubscribe = onSnapshot(db, json, {
+      const unsubscribe = onSnapshotResume(db, json, {
         next: qs => {
           expect(qs).to.not.exist;
           deferred.resolve();
@@ -1504,7 +1505,7 @@ apiDescribe('Database', persistence => {
       const querySnap = await getDocs(query(coll, orderBy(documentId())));
       const refForDocA = querySnap.docs[0].ref;
       const accumulator = new EventsAccumulator<QuerySnapshot>();
-      const unsubscribe = onSnapshot(
+      const unsubscribe = onSnapshotResume(
         db,
         querySnap.toJSON(),
         accumulator.storeEvent
@@ -1539,7 +1540,7 @@ apiDescribe('Database', persistence => {
       const querySnapFromJson = QuerySnapshot.fromJSON(db, querySnap.toJSON());
       const refForDocA = querySnapFromJson.docs[0].ref;
       const accumulator = new EventsAccumulator<QuerySnapshot>();
-      const unsubscribe = onSnapshot(
+      const unsubscribe = onSnapshotResume(
         db,
         querySnapFromJson.toJSON(),
         accumulator.storeEvent
