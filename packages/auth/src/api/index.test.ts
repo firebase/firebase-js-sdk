@@ -603,7 +603,7 @@ describe('api/_performApiRequest', () => {
     });
   });
 
-  context('throws Operation now allowed exception', () => {
+  context('throws Operation not allowed exception', () => {
     it('when tenantConfig is not initialized and Regional Endpoint is used', async () => {
       await expect(
         _performApiRequest<typeof request, typeof serverResponse>(
