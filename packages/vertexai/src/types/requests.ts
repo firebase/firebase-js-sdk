@@ -64,13 +64,6 @@ export interface GenerateContentRequest extends BaseParams {
 export interface SafetySetting {
   category: HarmCategory;
   threshold: HarmBlockThreshold;
-  /**
-   * The harm block method.
-   *
-   * This property is only supported in the Vertex AI Gemini API ({@link VertexAIBackend}).
-   * When using the Gemini Developer API ({@link GoogleAIBackend}), an {@link AIError} will be
-   * thrown if this property is defined.
-   */
   method?: HarmBlockMethod;
 }
 

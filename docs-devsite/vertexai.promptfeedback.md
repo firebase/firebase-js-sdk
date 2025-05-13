@@ -23,7 +23,7 @@ export interface PromptFeedback
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [blockReason](./vertexai.promptfeedback.md#promptfeedbackblockreason) | [BlockReason](./vertexai.md#blockreason) |  |
-|  [blockReasonMessage](./vertexai.promptfeedback.md#promptfeedbackblockreasonmessage) | string | A human-readable description of the <code>blockReason</code>.<!-- -->This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). |
+|  [blockReasonMessage](./vertexai.promptfeedback.md#promptfeedbackblockreasonmessage) | string |  |
 |  [safetyRatings](./vertexai.promptfeedback.md#promptfeedbacksafetyratings) | [SafetyRating](./vertexai.safetyrating.md#safetyrating_interface)<!-- -->\[\] |  |
 
 ## PromptFeedback.blockReason
@@ -35,10 +35,6 @@ blockReason?: BlockReason;
 ```
 
 ## PromptFeedback.blockReasonMessage
-
-A human-readable description of the `blockReason`<!-- -->.
-
-This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->).
 
 <b>Signature:</b>
 

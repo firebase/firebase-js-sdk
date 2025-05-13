@@ -58,11 +58,11 @@ export interface CustomErrorData {
 }
 
 /**
- * Standardized error codes that {@link AIError} can have.
+ * Standardized error codes that {@link VertexAIError} can have.
  *
  * @public
  */
-export const enum AIErrorCode {
+export const enum VertexAIErrorCode {
   /** A generic error occurred. */
   ERROR = 'error',
 
@@ -97,8 +97,5 @@ export const enum AIErrorCode {
   NO_PROJECT_ID = 'no-project-id',
 
   /** An error occurred while parsing. */
-  PARSE_FAILED = 'parse-failed',
-
-  /** An error occured due an attempt to use an unsupported feature. */
-  UNSUPPORTED = 'unsupported'
+  PARSE_FAILED = 'parse-failed'
 }

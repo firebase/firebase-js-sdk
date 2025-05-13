@@ -9,13 +9,13 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# AIError class
-Error class for the Firebase AI SDK.
+# VertexAIError class
+Error class for the Vertex AI in Firebase SDK.
 
 <b>Signature:</b>
 
 ```typescript
-export declare class AIError extends FirebaseError 
+export declare class VertexAIError extends FirebaseError 
 ```
 <b>Extends:</b> [FirebaseError](./util.firebaseerror.md#firebaseerror_class)
 
@@ -23,42 +23,42 @@ export declare class AIError extends FirebaseError
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(code, message, customErrorData)](./vertexai.aierror.md#aierrorconstructor) |  | Constructs a new instance of the <code>AIError</code> class. |
+|  [(constructor)(code, message, customErrorData)](./vertexai.vertexaierror.md#vertexaierrorconstructor) |  | Constructs a new instance of the <code>VertexAIError</code> class. |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [code](./vertexai.aierror.md#aierrorcode) |  | [AIErrorCode](./vertexai.md#aierrorcode) |  |
-|  [customErrorData](./vertexai.aierror.md#aierrorcustomerrordata) |  | [CustomErrorData](./vertexai.customerrordata.md#customerrordata_interface) \| undefined |  |
+|  [code](./vertexai.vertexaierror.md#vertexaierrorcode) |  | [VertexAIErrorCode](./vertexai.md#vertexaierrorcode) |  |
+|  [customErrorData](./vertexai.vertexaierror.md#vertexaierrorcustomerrordata) |  | [CustomErrorData](./vertexai.customerrordata.md#customerrordata_interface) \| undefined |  |
 
-## AIError.(constructor)
+## VertexAIError.(constructor)
 
-Constructs a new instance of the `AIError` class.
+Constructs a new instance of the `VertexAIError` class.
 
 <b>Signature:</b>
 
 ```typescript
-constructor(code: AIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
+constructor(code: VertexAIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  code | [AIErrorCode](./vertexai.md#aierrorcode) | The error code from [AIErrorCode](./vertexai.md#aierrorcode)<!-- -->. |
+|  code | [VertexAIErrorCode](./vertexai.md#vertexaierrorcode) | The error code from [VertexAIErrorCode](./vertexai.md#vertexaierrorcode)<!-- -->. |
 |  message | string | A human-readable message describing the error. |
 |  customErrorData | [CustomErrorData](./vertexai.customerrordata.md#customerrordata_interface) \| undefined | Optional error data. |
 
-## AIError.code
+## VertexAIError.code
 
 <b>Signature:</b>
 
 ```typescript
-readonly code: AIErrorCode;
+readonly code: VertexAIErrorCode;
 ```
 
-## AIError.customErrorData
+## VertexAIError.customErrorData
 
 <b>Signature:</b>
 

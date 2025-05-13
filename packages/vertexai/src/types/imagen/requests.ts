@@ -58,9 +58,6 @@ export interface ImagenGenerationConfig {
    * Support for negative prompts depends on the Imagen model.
    *
    * See the {@link http://firebase.google.com/docs/vertex-ai/model-parameters#imagen | documentation} for more details.
-   *
-   * This is no longer supported in the Gemini Developer API ({@link GoogleAIBackend}) in versions
-   * greater than `imagen-3.0-generate-002`.
    */
   negativePrompt?: string;
   /**
@@ -91,9 +88,6 @@ export interface ImagenGenerationConfig {
    *
    * For Imagen 3 models, the default value is `true`; see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen">addWatermark</a>
    * documentation for more details.
-   *
-   * When using the Gemini Developer API ({@link GoogleAIBackend}), this will default to true,
-   * and cannot be turned off.
    */
   addWatermark?: boolean;
 }

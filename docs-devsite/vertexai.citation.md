@@ -24,9 +24,9 @@ export interface Citation
 |  --- | --- | --- |
 |  [endIndex](./vertexai.citation.md#citationendindex) | number |  |
 |  [license](./vertexai.citation.md#citationlicense) | string |  |
-|  [publicationDate](./vertexai.citation.md#citationpublicationdate) | Date | The publication date of the cited source, if available.<!-- -->This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). |
+|  [publicationDate](./vertexai.citation.md#citationpublicationdate) | Date |  |
 |  [startIndex](./vertexai.citation.md#citationstartindex) | number |  |
-|  [title](./vertexai.citation.md#citationtitle) | string | The title of the cited source, if available.<!-- -->This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->). |
+|  [title](./vertexai.citation.md#citationtitle) | string |  |
 |  [uri](./vertexai.citation.md#citationuri) | string |  |
 
 ## Citation.endIndex
@@ -47,10 +47,6 @@ license?: string;
 
 ## Citation.publicationDate
 
-The publication date of the cited source, if available.
-
-This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->).
-
 <b>Signature:</b>
 
 ```typescript
@@ -66,10 +62,6 @@ startIndex?: number;
 ```
 
 ## Citation.title
-
-The title of the cited source, if available.
-
-This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./vertexai.vertexaibackend.md#vertexaibackend_class)<!-- -->).
 
 <b>Signature:</b>
 

@@ -26,8 +26,6 @@ import { Task, makeRequest } from '../requests/request';
 import { createEnhancedContentResponse } from '../requests/response-helpers';
 import { processStream } from '../requests/stream-reader';
 import { ApiSettings } from '../types/internal';
-import * as GoogleAIMapper from '../googleai-mappers';
-import { BackendType } from '../public-types';
 
 export async function generateContentStream(
   apiSettings: ApiSettings,
@@ -35,9 +33,6 @@ export async function generateContentStream(
   params: GenerateContentRequest,
   requestOptions?: RequestOptions
 ): Promise<GenerateContentStreamResult> {
-  if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
-    params = GoogleAIMapper.mapGenerateContentRequest(params);
-  }
   const response = await makeRequest(
     model,
     Task.STREAM_GENERATE_CONTENT,
@@ -46,7 +41,7 @@ export async function generateContentStream(
     JSON.stringify(params),
     requestOptions
   );
-  return processStream(response, apiSettings); // TODO: Map streaming responses
+  return processStream(response);
 }
 
 export async function generateContent(
@@ -55,9 +50,6 @@ export async function generateContent(
   params: GenerateContentRequest,
   requestOptions?: RequestOptions
 ): Promise<GenerateContentResult> {
-  if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
-    params = GoogleAIMapper.mapGenerateContentRequest(params);
-  }
   const response = await makeRequest(
     model,
     Task.GENERATE_CONTENT,
@@ -66,26 +58,9 @@ export async function generateContent(
     JSON.stringify(params),
     requestOptions
   );
-  const generateContentResponse = await processGenerateContentResponse(
-    response,
-    apiSettings
-  );
-  const enhancedResponse = createEnhancedContentResponse(
-    generateContentResponse
-  );
+  const responseJson: GenerateContentResponse = await response.json();
+  const enhancedResponse = createEnhancedContentResponse(responseJson);
   return {
     response: enhancedResponse
   };
-}
-
-async function processGenerateContentResponse(
-  response: Response,
-  apiSettings: ApiSettings
-): Promise<GenerateContentResponse> {
-  const responseJson = await response.json();
-  if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
-    return GoogleAIMapper.mapGenerateContentResponse(responseJson);
-  } else {
-    return responseJson;
-  }
 }

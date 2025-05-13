@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { AI } from '../public-types';
+import { VertexAI } from '../public-types';
 import { Task, makeRequest } from '../requests/request';
 import { createPredictRequestBody } from '../requests/request-helpers';
 import { handlePredictResponse } from '../requests/response-helpers';
@@ -28,7 +28,7 @@ import {
   ImagenGenerationResponse,
   ImagenSafetySettings
 } from '../types';
-import { AIModel } from './ai-model';
+import { VertexAIModel } from './vertexai-model';
 
 /**
  * Class for Imagen model APIs.
@@ -38,7 +38,7 @@ import { AIModel } from './ai-model';
  * @example
  * ```javascript
  * const imagen = new ImagenModel(
- *   ai,
+ *   vertexAI,
  *   {
  *     model: 'imagen-3.0-generate-002'
  *   }
@@ -52,7 +52,7 @@ import { AIModel } from './ai-model';
  *
  * @beta
  */
-export class ImagenModel extends AIModel {
+export class ImagenModel extends VertexAIModel {
   /**
    * The Imagen generation configuration.
    */
@@ -65,7 +65,7 @@ export class ImagenModel extends AIModel {
   /**
    * Constructs a new instance of the {@link ImagenModel} class.
    *
-   * @param ai - an {@link AI} instance.
+   * @param vertexAI - An instance of the Vertex AI in Firebase SDK.
    * @param modelParams - Parameters to use when making requests to Imagen.
    * @param requestOptions - Additional options to use when making requests.
    *
@@ -73,12 +73,12 @@ export class ImagenModel extends AIModel {
    * Firebase config.
    */
   constructor(
-    ai: AI,
+    vertexAI: VertexAI,
     modelParams: ImagenModelParams,
     public requestOptions?: RequestOptions
   ) {
     const { model, generationConfig, safetySettings } = modelParams;
-    super(ai, model);
+    super(vertexAI, model);
     this.generationConfig = generationConfig;
     this.safetySettings = safetySettings;
   }

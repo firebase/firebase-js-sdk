@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp, _FirebaseService } from '@firebase/app';
-import { AI } from './public-types';
+import { VertexAI, VertexAIOptions } from './public-types';
 import {
   AppCheckInternalComponentName,
   FirebaseAppCheckInternal
@@ -26,29 +26,24 @@ import {
   FirebaseAuthInternal,
   FirebaseAuthInternalName
 } from '@firebase/auth-interop-types';
-import { Backend, VertexAIBackend } from './backend';
+import { DEFAULT_LOCATION } from './constants';
 
-export class AIService implements AI, _FirebaseService {
+export class VertexAIService implements VertexAI, _FirebaseService {
   auth: FirebaseAuthInternal | null;
   appCheck: FirebaseAppCheckInternal | null;
-  location: string; // This is here for backwards-compatibility
+  location: string;
 
   constructor(
     public app: FirebaseApp,
-    public backend: Backend,
     authProvider?: Provider<FirebaseAuthInternalName>,
-    appCheckProvider?: Provider<AppCheckInternalComponentName>
+    appCheckProvider?: Provider<AppCheckInternalComponentName>,
+    public options?: VertexAIOptions
   ) {
     const appCheck = appCheckProvider?.getImmediate({ optional: true });
     const auth = authProvider?.getImmediate({ optional: true });
     this.auth = auth || null;
     this.appCheck = appCheck || null;
-
-    if (backend instanceof VertexAIBackend) {
-      this.location = backend.location;
-    } else {
-      this.location = '';
-    }
+    this.location = this.options?.location || DEFAULT_LOCATION;
   }
 
   _delete(): Promise<void> {

@@ -15,25 +15,24 @@
  * limitations under the License.
  */
 import { use, expect } from 'chai';
-import { AI, AIErrorCode } from '../public-types';
+import { VertexAI, VertexAIErrorCode } from '../public-types';
 import sinonChai from 'sinon-chai';
-import { AIModel } from './ai-model';
-import { AIError } from '../errors';
-import { VertexAIBackend } from '../backend';
+import { VertexAIModel } from './vertexai-model';
+import { VertexAIError } from '../errors';
 
 use(sinonChai);
 
 /**
- * A class that extends AIModel that allows us to test the protected constructor.
+ * A class that extends VertexAIModel that allows us to test the protected constructor.
  */
-class TestModel extends AIModel {
+class TestModel extends VertexAIModel {
   /* eslint-disable @typescript-eslint/no-useless-constructor */
-  constructor(ai: AI, modelName: string) {
-    super(ai, modelName);
+  constructor(vertexAI: VertexAI, modelName: string) {
+    super(vertexAI, modelName);
   }
 }
 
-const fakeAI: AI = {
+const fakeVertexAI: VertexAI = {
   app: {
     name: 'DEFAULT',
     automaticDataCollectionEnabled: true,
@@ -43,32 +42,31 @@ const fakeAI: AI = {
       appId: 'my-appid'
     }
   },
-  backend: new VertexAIBackend('us-central1'),
   location: 'us-central1'
 };
 
-describe('AIModel', () => {
+describe('VertexAIModel', () => {
   it('handles plain model name', () => {
-    const testModel = new TestModel(fakeAI, 'my-model');
+    const testModel = new TestModel(fakeVertexAI, 'my-model');
     expect(testModel.model).to.equal('publishers/google/models/my-model');
   });
   it('handles models/ prefixed model name', () => {
-    const testModel = new TestModel(fakeAI, 'models/my-model');
+    const testModel = new TestModel(fakeVertexAI, 'models/my-model');
     expect(testModel.model).to.equal('publishers/google/models/my-model');
   });
   it('handles full model name', () => {
     const testModel = new TestModel(
-      fakeAI,
+      fakeVertexAI,
       'publishers/google/models/my-model'
     );
     expect(testModel.model).to.equal('publishers/google/models/my-model');
   });
   it('handles prefixed tuned model name', () => {
-    const testModel = new TestModel(fakeAI, 'tunedModels/my-model');
+    const testModel = new TestModel(fakeVertexAI, 'tunedModels/my-model');
     expect(testModel.model).to.equal('tunedModels/my-model');
   });
   it('throws if not passed an api key', () => {
-    const fakeAI: AI = {
+    const fakeVertexAI: VertexAI = {
       app: {
         name: 'DEFAULT',
         automaticDataCollectionEnabled: true,
@@ -76,17 +74,16 @@ describe('AIModel', () => {
           projectId: 'my-project'
         }
       },
-      backend: new VertexAIBackend('us-central1'),
       location: 'us-central1'
     };
     try {
-      new TestModel(fakeAI, 'my-model');
+      new TestModel(fakeVertexAI, 'my-model');
     } catch (e) {
-      expect((e as AIError).code).to.equal(AIErrorCode.NO_API_KEY);
+      expect((e as VertexAIError).code).to.equal(VertexAIErrorCode.NO_API_KEY);
     }
   });
   it('throws if not passed a project ID', () => {
-    const fakeAI: AI = {
+    const fakeVertexAI: VertexAI = {
       app: {
         name: 'DEFAULT',
         automaticDataCollectionEnabled: true,
@@ -94,17 +91,18 @@ describe('AIModel', () => {
           apiKey: 'key'
         }
       },
-      backend: new VertexAIBackend('us-central1'),
       location: 'us-central1'
     };
     try {
-      new TestModel(fakeAI, 'my-model');
+      new TestModel(fakeVertexAI, 'my-model');
     } catch (e) {
-      expect((e as AIError).code).to.equal(AIErrorCode.NO_PROJECT_ID);
+      expect((e as VertexAIError).code).to.equal(
+        VertexAIErrorCode.NO_PROJECT_ID
+      );
     }
   });
   it('throws if not passed an app ID', () => {
-    const fakeAI: AI = {
+    const fakeVertexAI: VertexAI = {
       app: {
         name: 'DEFAULT',
         automaticDataCollectionEnabled: true,
@@ -113,13 +111,12 @@ describe('AIModel', () => {
           projectId: 'my-project'
         }
       },
-      backend: new VertexAIBackend('us-central1'),
       location: 'us-central1'
     };
     try {
-      new TestModel(fakeAI, 'my-model');
+      new TestModel(fakeVertexAI, 'my-model');
     } catch (e) {
-      expect((e as AIError).code).to.equal(AIErrorCode.NO_APP_ID);
+      expect((e as VertexAIError).code).to.equal(VertexAIErrorCode.NO_APP_ID);
     }
   });
 });

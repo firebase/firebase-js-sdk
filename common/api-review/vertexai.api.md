@@ -10,62 +10,6 @@ import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
 
 // @public
-export interface AI {
-    app: FirebaseApp;
-    backend: Backend;
-    // @deprecated
-    location: string;
-}
-
-// @public
-export class AIError extends FirebaseError {
-    constructor(code: AIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
-    // (undocumented)
-    readonly code: AIErrorCode;
-    // (undocumented)
-    readonly customErrorData?: CustomErrorData | undefined;
-}
-
-// @public
-const enum AIErrorCode {
-    API_NOT_ENABLED = "api-not-enabled",
-    ERROR = "error",
-    FETCH_ERROR = "fetch-error",
-    INVALID_CONTENT = "invalid-content",
-    INVALID_SCHEMA = "invalid-schema",
-    NO_API_KEY = "no-api-key",
-    NO_APP_ID = "no-app-id",
-    NO_MODEL = "no-model",
-    NO_PROJECT_ID = "no-project-id",
-    PARSE_FAILED = "parse-failed",
-    REQUEST_ERROR = "request-error",
-    RESPONSE_ERROR = "response-error",
-    UNSUPPORTED = "unsupported"
-}
-
-export { AIErrorCode }
-
-export { AIErrorCode as VertexAIErrorCode }
-
-// @public
-export abstract class AIModel {
-    // @internal
-    protected constructor(ai: AI, modelName: string);
-    // Warning: (ae-forgotten-export) The symbol "ApiSettings" needs to be exported by the entry point index.d.ts
-    //
-    // @internal (undocumented)
-    protected _apiSettings: ApiSettings;
-    readonly model: string;
-    // @internal
-    static normalizeModelName(modelName: string, backendType: BackendType): string;
-    }
-
-// @public
-export interface AIOptions {
-    backend: Backend;
-}
-
-// @public
 export class ArraySchema extends Schema {
     constructor(schemaParams: SchemaParams, items: TypedSchema);
     // (undocumented)
@@ -73,21 +17,6 @@ export class ArraySchema extends Schema {
     // @internal (undocumented)
     toJSON(): SchemaRequest;
 }
-
-// @public
-export abstract class Backend {
-    protected constructor(type: BackendType);
-    readonly backendType: BackendType;
-}
-
-// @public
-export const BackendType: {
-    readonly VERTEX_AI: "VERTEX_AI";
-    readonly GOOGLE_AI: "GOOGLE_AI";
-};
-
-// @public
-export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 
 // @public
 export interface BaseParams {
@@ -112,6 +41,7 @@ export class BooleanSchema extends Schema {
 
 // @public
 export class ChatSession {
+    // Warning: (ae-forgotten-export) The symbol "ApiSettings" needs to be exported by the entry point index.d.ts
     constructor(apiSettings: ApiSettings, model: string, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     getHistory(): Promise<Content[]>;
     // (undocumented)
@@ -130,9 +60,11 @@ export interface Citation {
     endIndex?: number;
     // (undocumented)
     license?: string;
+    // (undocumented)
     publicationDate?: Date_2;
     // (undocumented)
     startIndex?: number;
+    // (undocumented)
     title?: string;
     // (undocumented)
     uri?: string;
@@ -394,8 +326,8 @@ export interface GenerativeContentBlob {
 }
 
 // @public
-export class GenerativeModel extends AIModel {
-    constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions);
+export class GenerativeModel extends VertexAIModel {
+    constructor(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
@@ -415,75 +347,13 @@ export class GenerativeModel extends AIModel {
 }
 
 // @public
-export function getAI(app?: FirebaseApp, options?: AIOptions): AI;
-
-// @public
-export function getGenerativeModel(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
+export function getGenerativeModel(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
 
 // @beta
-export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
+export function getImagenModel(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
 
 // @public
 export function getVertexAI(app?: FirebaseApp, options?: VertexAIOptions): VertexAI;
-
-// @public
-export class GoogleAIBackend extends Backend {
-    constructor();
-}
-
-// Warning: (ae-internal-missing-underscore) The name "GoogleAICitationMetadata" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export interface GoogleAICitationMetadata {
-    // (undocumented)
-    citationSources: Citation[];
-}
-
-// Warning: (ae-internal-missing-underscore) The name "GoogleAICountTokensRequest" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export interface GoogleAICountTokensRequest {
-    // (undocumented)
-    generateContentRequest: {
-        model: string;
-        contents: Content[];
-        systemInstruction?: string | Part | Content;
-        tools?: Tool[];
-        generationConfig?: GenerationConfig;
-    };
-}
-
-// Warning: (ae-internal-missing-underscore) The name "GoogleAIGenerateContentCandidate" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export interface GoogleAIGenerateContentCandidate {
-    // (undocumented)
-    citationMetadata?: GoogleAICitationMetadata;
-    // (undocumented)
-    content: Content;
-    // (undocumented)
-    finishMessage?: string;
-    // (undocumented)
-    finishReason?: FinishReason;
-    // (undocumented)
-    groundingMetadata?: GroundingMetadata;
-    // (undocumented)
-    index: number;
-    // (undocumented)
-    safetyRatings?: SafetyRating[];
-}
-
-// Warning: (ae-internal-missing-underscore) The name "GoogleAIGenerateContentResponse" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export interface GoogleAIGenerateContentResponse {
-    // (undocumented)
-    candidates?: GoogleAIGenerateContentCandidate[];
-    // (undocumented)
-    promptFeedback?: PromptFeedback;
-    // (undocumented)
-    usageMetadata?: UsageMetadata;
-}
 
 // @public @deprecated (undocumented)
 export interface GroundingAttribution {
@@ -507,7 +377,7 @@ export interface GroundingMetadata {
     webSearchQueries?: string[];
 }
 
-// @public
+// @public (undocumented)
 export enum HarmBlockMethod {
     PROBABILITY = "PROBABILITY",
     SEVERITY = "SEVERITY"
@@ -546,8 +416,7 @@ export enum HarmSeverity {
     HARM_SEVERITY_HIGH = "HARM_SEVERITY_HIGH",
     HARM_SEVERITY_LOW = "HARM_SEVERITY_LOW",
     HARM_SEVERITY_MEDIUM = "HARM_SEVERITY_MEDIUM",
-    HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE",
-    HARM_SEVERITY_UNSUPPORTED = "HARM_SEVERITY_UNSUPPORTED"
+    HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE"
 }
 
 // @beta
@@ -595,8 +464,8 @@ export interface ImagenInlineImage {
 }
 
 // @beta
-export class ImagenModel extends AIModel {
-    constructor(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
+export class ImagenModel extends VertexAIModel {
+    constructor(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
     generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
     // @internal
     generateImagesGCS(prompt: string, gcsURI: string): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
@@ -718,6 +587,7 @@ export const POSSIBLE_ROLES: readonly ["user", "model", "function", "system"];
 export interface PromptFeedback {
     // (undocumented)
     blockReason?: BlockReason;
+    // (undocumented)
     blockReasonMessage?: string;
     // (undocumented)
     safetyRatings: SafetyRating[];
@@ -757,8 +627,11 @@ export interface SafetyRating {
     category: HarmCategory;
     // (undocumented)
     probability: HarmProbability;
+    // (undocumented)
     probabilityScore: number;
+    // (undocumented)
     severity: HarmSeverity;
+    // (undocumented)
     severityScore: number;
 }
 
@@ -766,6 +639,7 @@ export interface SafetyRating {
 export interface SafetySetting {
     // (undocumented)
     category: HarmCategory;
+    // (undocumented)
     method?: HarmBlockMethod;
     // (undocumented)
     threshold: HarmBlockThreshold;
@@ -917,19 +791,46 @@ export interface UsageMetadata {
 }
 
 // @public
-export type VertexAI = AI;
-
-// @public
-export class VertexAIBackend extends Backend {
-    constructor(location?: string);
-    readonly location: string;
+export interface VertexAI {
+    app: FirebaseApp;
+    // (undocumented)
+    location: string;
 }
 
 // @public
-export const VertexAIError: typeof AIError;
+export class VertexAIError extends FirebaseError {
+    constructor(code: VertexAIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
+    // (undocumented)
+    readonly code: VertexAIErrorCode;
+    // (undocumented)
+    readonly customErrorData?: CustomErrorData | undefined;
+}
 
 // @public
-export const VertexAIModel: typeof AIModel;
+export const enum VertexAIErrorCode {
+    API_NOT_ENABLED = "api-not-enabled",
+    ERROR = "error",
+    FETCH_ERROR = "fetch-error",
+    INVALID_CONTENT = "invalid-content",
+    INVALID_SCHEMA = "invalid-schema",
+    NO_API_KEY = "no-api-key",
+    NO_APP_ID = "no-app-id",
+    NO_MODEL = "no-model",
+    NO_PROJECT_ID = "no-project-id",
+    PARSE_FAILED = "parse-failed",
+    REQUEST_ERROR = "request-error",
+    RESPONSE_ERROR = "response-error"
+}
+
+// @public
+export abstract class VertexAIModel {
+    // @internal
+    protected constructor(vertexAI: VertexAI, modelName: string);
+    // @internal (undocumented)
+    protected _apiSettings: ApiSettings;
+    readonly model: string;
+    static normalizeModelName(modelName: string): string;
+}
 
 // @public
 export interface VertexAIOptions {

@@ -62,13 +62,11 @@ export enum HarmBlockThreshold {
 }
 
 /**
- * This property is not supported in the Gemini Developer API ({@link GoogleAIBackend}).
- *
  * @public
  */
 export enum HarmBlockMethod {
   /**
-   * The harm block method uses both probability and severity scores.
+   *  The harm block method uses both probability and severity scores.
    */
   SEVERITY = 'SEVERITY',
   /**
@@ -120,14 +118,7 @@ export enum HarmSeverity {
   /**
    * High level of harm severity.
    */
-  HARM_SEVERITY_HIGH = 'HARM_SEVERITY_HIGH',
-  /**
-   * Harm severity is not supported.
-   *
-   * @remarks
-   * The GoogleAI backend does not support `HarmSeverity`, so this value is used as a fallback.
-   */
-  HARM_SEVERITY_UNSUPPORTED = 'HARM_SEVERITY_UNSUPPORTED'
+  HARM_SEVERITY_HIGH = 'HARM_SEVERITY_HIGH'
 }
 
 /**

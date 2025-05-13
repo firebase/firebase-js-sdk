@@ -16,14 +16,13 @@
  */
 
 import { expect, use } from 'chai';
-import Sinon, { match, restore, stub } from 'sinon';
+import { match, restore, stub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import { getMockResponse } from '../../test-utils/mock-response';
 import * as request from '../requests/request';
 import { generateContent } from './generate-content';
 import {
-  AIErrorCode,
   GenerateContentRequest,
   HarmBlockMethod,
   HarmBlockThreshold,
@@ -31,9 +30,6 @@ import {
 } from '../types';
 import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
-import { AIError } from '../api';
-import { mapGenerateContentRequest } from '../googleai-mappers';
-import { GoogleAIBackend, VertexAIBackend } from '../backend';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -42,16 +38,7 @@ const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  location: 'us-central1',
-  backend: new VertexAIBackend()
-};
-
-const fakeGoogleAIApiSettings: ApiSettings = {
-  apiKey: 'key',
-  project: 'my-project',
-  appId: 'my-appid',
-  location: 'us-central1',
-  backend: new GoogleAIBackend()
+  location: 'us-central1'
 };
 
 const fakeRequestParams: GenerateContentRequest = {
@@ -64,19 +51,6 @@ const fakeRequestParams: GenerateContentRequest = {
       category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
       threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
       method: HarmBlockMethod.SEVERITY
-    }
-  ]
-};
-
-const fakeGoogleAIRequestParams: GenerateContentRequest = {
-  contents: [{ parts: [{ text: 'hello' }], role: 'user' }],
-  generationConfig: {
-    topK: 16
-  },
-  safetySettings: [
-    {
-      category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-      threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE
     }
   ]
 };
@@ -104,7 +78,9 @@ describe('generateContent()', () => {
       Task.GENERATE_CONTENT,
       fakeApiSettings,
       false,
-      JSON.stringify(fakeRequestParams),
+      match((value: string) => {
+        return value.includes('contents');
+      }),
       undefined
     );
   });
@@ -312,67 +288,5 @@ describe('generateContent()', () => {
       /firebasevertexai\.googleapis[\s\S]*my-project[\s\S]*api-not-enabled/
     );
     expect(mockFetch).to.be.called;
-  });
-  describe('googleAI', () => {
-    let makeRequestStub: Sinon.SinonStub;
-
-    beforeEach(() => {
-      makeRequestStub = stub(request, 'makeRequest');
-    });
-
-    afterEach(() => {
-      restore();
-    });
-
-    it('throws error when method is defined', async () => {
-      const mockResponse = getMockResponse(
-        'googleAI',
-        'unary-success-basic-reply-short.txt'
-      );
-      makeRequestStub.resolves(mockResponse as Response);
-
-      const requestParamsWithMethod: GenerateContentRequest = {
-        contents: [{ parts: [{ text: 'hello' }], role: 'user' }],
-        safetySettings: [
-          {
-            category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-            threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
-            method: HarmBlockMethod.SEVERITY // Unsupported in Google AI.
-          }
-        ]
-      };
-
-      // Expect generateContent to throw a AIError that method is not supported.
-      await expect(
-        generateContent(
-          fakeGoogleAIApiSettings,
-          'model',
-          requestParamsWithMethod
-        )
-      ).to.be.rejectedWith(AIError, AIErrorCode.UNSUPPORTED);
-      expect(makeRequestStub).to.not.be.called;
-    });
-    it('maps request to GoogleAI format', async () => {
-      const mockResponse = getMockResponse(
-        'googleAI',
-        'unary-success-basic-reply-short.txt'
-      );
-      makeRequestStub.resolves(mockResponse as Response);
-
-      await generateContent(
-        fakeGoogleAIApiSettings,
-        'model',
-        fakeGoogleAIRequestParams
-      );
-
-      expect(makeRequestStub).to.be.calledWith(
-        'model',
-        Task.GENERATE_CONTENT,
-        fakeGoogleAIApiSettings,
-        false,
-        JSON.stringify(mapGenerateContentRequest(fakeGoogleAIRequestParams)),
-        undefined
-      );
-    });
   });
 });

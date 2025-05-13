@@ -227,18 +227,6 @@
       },
       "default": "./storage/dist/esm/index.esm.js"
     },
-    "./ai": {
-      "types": "./vertexai/dist/vertexai/index.d.ts",
-      "node": {
-        "require": "./vertexai/dist/index.cjs.js",
-        "import": "./vertexai/dist/index.mjs"
-      },
-      "browser": {
-        "require": "./vertexai/dist/index.cjs.js",
-        "import": "./vertexai/dist/esm/index.esm.js"
-      },
-      "default": "./vertexai/dist/esm/index.esm.js"
-    },
     "./vertexai": {
       "types": "./vertexai/dist/vertexai/index.d.ts",
       "node": {
@@ -455,7 +443,6 @@
     "rollup-plugin-license": "3.5.3"
   },
   "components": [
-    "ai",
     "analytics",
     "app",
     "app-check",

@@ -472,18 +472,8 @@ toc:
 - title: vertexai
   path: /docs/reference/js/vertexai.md
   section:
-  - title: AI
-    path: /docs/reference/js/vertexai.ai.md
-  - title: AIError
-    path: /docs/reference/js/vertexai.aierror.md
-  - title: AIModel
-    path: /docs/reference/js/vertexai.aimodel.md
-  - title: AIOptions
-    path: /docs/reference/js/vertexai.aioptions.md
   - title: ArraySchema
     path: /docs/reference/js/vertexai.arrayschema.md
-  - title: Backend
-    path: /docs/reference/js/vertexai.backend.md
   - title: BaseParams
     path: /docs/reference/js/vertexai.baseparams.md
   - title: BooleanSchema
@@ -542,8 +532,6 @@ toc:
     path: /docs/reference/js/vertexai.generativecontentblob.md
   - title: GenerativeModel
     path: /docs/reference/js/vertexai.generativemodel.md
-  - title: GoogleAIBackend
-    path: /docs/reference/js/vertexai.googleaibackend.md
   - title: GroundingAttribution
     path: /docs/reference/js/vertexai.groundingattribution.md
   - title: GroundingMetadata
@@ -610,8 +598,12 @@ toc:
     path: /docs/reference/js/vertexai.toolconfig.md
   - title: UsageMetadata
     path: /docs/reference/js/vertexai.usagemetadata.md
-  - title: VertexAIBackend
-    path: /docs/reference/js/vertexai.vertexaibackend.md
+  - title: VertexAI
+    path: /docs/reference/js/vertexai.vertexai.md
+  - title: VertexAIError
+    path: /docs/reference/js/vertexai.vertexaierror.md
+  - title: VertexAIModel
+    path: /docs/reference/js/vertexai.vertexaimodel.md
   - title: VertexAIOptions
     path: /docs/reference/js/vertexai.vertexaioptions.md
   - title: VideoMetadata

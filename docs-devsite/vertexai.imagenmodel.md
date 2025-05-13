@@ -20,15 +20,15 @@ This class provides methods for generating images using the Imagen model.
 <b>Signature:</b>
 
 ```typescript
-export declare class ImagenModel extends AIModel 
+export declare class ImagenModel extends VertexAIModel 
 ```
-<b>Extends:</b> [AIModel](./vertexai.aimodel.md#aimodel_class)
+<b>Extends:</b> [VertexAIModel](./vertexai.vertexaimodel.md#vertexaimodel_class)
 
 ## Constructors
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(ai, modelParams, requestOptions)](./vertexai.imagenmodel.md#imagenmodelconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the [ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class) class. |
+|  [(constructor)(vertexAI, modelParams, requestOptions)](./vertexai.imagenmodel.md#imagenmodelconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the [ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class) class. |
 
 ## Properties
 
@@ -54,14 +54,14 @@ Constructs a new instance of the [ImagenModel](./vertexai.imagenmodel.md#imagenm
 <b>Signature:</b>
 
 ```typescript
-constructor(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
+constructor(vertexAI: VertexAI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  ai | [AI](./vertexai.ai.md#ai_interface) | an [AI](./vertexai.ai.md#ai_interface) instance. |
+|  vertexAI | [VertexAI](./vertexai.vertexai.md#vertexai_interface) | An instance of the Vertex AI in Firebase SDK. |
 |  modelParams | [ImagenModelParams](./vertexai.imagenmodelparams.md#imagenmodelparams_interface) | Parameters to use when making requests to Imagen. |
 |  requestOptions | [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) \| undefined | Additional options to use when making requests. |
 
@@ -142,7 +142,7 @@ If the request to generate images fails. This happens if the prompt is blocked.
 
 ```javascript
 const imagen = new ImagenModel(
-  ai,
+  vertexAI,
   {
     model: 'imagen-3.0-generate-002'
   }

@@ -1,12 +1,12 @@
 /**
- * The Firebase AI Web SDK.
+ * The Vertex AI in Firebase Web SDK.
  *
  * @packageDocumentation
  */
 
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,10 @@
  */
 
 import { registerVersion, _registerComponent } from '@firebase/app';
-import { AIService } from './service';
-import { AI_TYPE } from './constants';
+import { VertexAIService } from './service';
+import { VERTEX_TYPE } from './constants';
 import { Component, ComponentType } from '@firebase/component';
 import { name, version } from '../package.json';
-import { decodeInstanceIdentifier } from './helpers';
-import { AIError } from './api';
-import { AIErrorCode } from './types';
 
 declare global {
   interface Window {
@@ -36,25 +33,16 @@ declare global {
   }
 }
 
-function registerAI(): void {
+function registerVertex(): void {
   _registerComponent(
     new Component(
-      AI_TYPE,
-      (container, { instanceIdentifier }) => {
-        if (!instanceIdentifier) {
-          throw new AIError(
-            AIErrorCode.ERROR,
-            'AIService instance identifier is undefined.'
-          );
-        }
-
-        const backend = decodeInstanceIdentifier(instanceIdentifier);
-
+      VERTEX_TYPE,
+      (container, { instanceIdentifier: location }) => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const auth = container.getProvider('auth-internal');
         const appCheckProvider = container.getProvider('app-check-internal');
-        return new AIService(app, backend, auth, appCheckProvider);
+        return new VertexAIService(app, auth, appCheckProvider, { location });
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)
@@ -65,7 +53,7 @@ function registerAI(): void {
   registerVersion(name, version, '__BUILD_TARGET__');
 }
 
-registerAI();
+registerVertex();
 
 export * from './api';
 export * from './public-types';

@@ -22,8 +22,6 @@ import {
 } from '../types';
 import { Task, makeRequest } from '../requests/request';
 import { ApiSettings } from '../types/internal';
-import * as GoogleAIMapper from '../googleai-mappers';
-import { BackendType } from '../public-types';
 
 export async function countTokens(
   apiSettings: ApiSettings,
@@ -31,19 +29,12 @@ export async function countTokens(
   params: CountTokensRequest,
   requestOptions?: RequestOptions
 ): Promise<CountTokensResponse> {
-  let body: string = '';
-  if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
-    const mappedParams = GoogleAIMapper.mapCountTokensRequest(params, model);
-    body = JSON.stringify(mappedParams);
-  } else {
-    body = JSON.stringify(params);
-  }
   const response = await makeRequest(
     model,
     Task.COUNT_TOKENS,
     apiSettings,
     false,
-    body,
+    JSON.stringify(params),
     requestOptions
   );
   return response.json();

@@ -21,14 +21,10 @@ import {
   GenerateContentResponse,
   GenerateContentStreamResult,
   Part,
-  AIErrorCode
+  VertexAIErrorCode
 } from '../types';
-import { AIError } from '../errors';
+import { VertexAIError } from '../errors';
 import { createEnhancedContentResponse } from './response-helpers';
-import * as GoogleAIMapper from '../googleai-mappers';
-import { GoogleAIGenerateContentResponse } from '../types/googleai';
-import { ApiSettings } from '../types/internal';
-import { BackendType } from '../public-types';
 
 const responseLineRE = /^data\: (.*)(?:\n\n|\r\r|\r\n\r\n)/;
 
@@ -40,10 +36,7 @@ const responseLineRE = /^data\: (.*)(?:\n\n|\r\r|\r\n\r\n)/;
  *
  * @param response - Response from a fetch call
  */
-export function processStream(
-  response: Response,
-  apiSettings: ApiSettings
-): GenerateContentStreamResult {
+export function processStream(response: Response): GenerateContentStreamResult {
   const inputStream = response.body!.pipeThrough(
     new TextDecoderStream('utf8', { fatal: true })
   );
@@ -51,27 +44,23 @@ export function processStream(
     getResponseStream<GenerateContentResponse>(inputStream);
   const [stream1, stream2] = responseStream.tee();
   return {
-    stream: generateResponseSequence(stream1, apiSettings),
-    response: getResponsePromise(stream2, apiSettings)
+    stream: generateResponseSequence(stream1),
+    response: getResponsePromise(stream2)
   };
 }
 
 async function getResponsePromise(
-  stream: ReadableStream<GenerateContentResponse>,
-  apiSettings: ApiSettings
+  stream: ReadableStream<GenerateContentResponse>
 ): Promise<EnhancedGenerateContentResponse> {
   const allResponses: GenerateContentResponse[] = [];
   const reader = stream.getReader();
   while (true) {
     const { done, value } = await reader.read();
     if (done) {
-      let generateContentResponse = aggregateResponses(allResponses);
-      if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
-        generateContentResponse = GoogleAIMapper.mapGenerateContentResponse(
-          generateContentResponse as GoogleAIGenerateContentResponse
-        );
-      }
-      return createEnhancedContentResponse(generateContentResponse);
+      const enhancedResponse = createEnhancedContentResponse(
+        aggregateResponses(allResponses)
+      );
+      return enhancedResponse;
     }
 
     allResponses.push(value);
@@ -79,8 +68,7 @@ async function getResponsePromise(
 }
 
 async function* generateResponseSequence(
-  stream: ReadableStream<GenerateContentResponse>,
-  apiSettings: ApiSettings
+  stream: ReadableStream<GenerateContentResponse>
 ): AsyncGenerator<EnhancedGenerateContentResponse> {
   const reader = stream.getReader();
   while (true) {
@@ -89,17 +77,7 @@ async function* generateResponseSequence(
       break;
     }
 
-    let enhancedResponse: EnhancedGenerateContentResponse;
-    if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
-      enhancedResponse = createEnhancedContentResponse(
-        GoogleAIMapper.mapGenerateContentResponse(
-          value as GoogleAIGenerateContentResponse
-        )
-      );
-    } else {
-      enhancedResponse = createEnhancedContentResponse(value);
-    }
-
+    const enhancedResponse = createEnhancedContentResponse(value);
     yield enhancedResponse;
   }
 }
@@ -122,7 +100,10 @@ export function getResponseStream<T>(
           if (done) {
             if (currentText.trim()) {
               controller.error(
-                new AIError(AIErrorCode.PARSE_FAILED, 'Failed to parse stream')
+                new VertexAIError(
+                  VertexAIErrorCode.PARSE_FAILED,
+                  'Failed to parse stream'
+                )
               );
               return;
             }
@@ -138,8 +119,8 @@ export function getResponseStream<T>(
               parsedResponse = JSON.parse(match[1]);
             } catch (e) {
               controller.error(
-                new AIError(
-                  AIErrorCode.PARSE_FAILED,
+                new VertexAIError(
+                  VertexAIErrorCode.PARSE_FAILED,
                   `Error parsing JSON response: "${match[1]}`
                 )
               );
@@ -217,8 +198,8 @@ export function aggregateResponses(
               newPart.functionCall = part.functionCall;
             }
             if (Object.keys(newPart).length === 0) {
-              throw new AIError(
-                AIErrorCode.INVALID_CONTENT,
+              throw new VertexAIError(
+                VertexAIErrorCode.INVALID_CONTENT,
                 'Part should have at least one property, but there are none. This is likely caused ' +
                   'by a malformed response from the backend.'
               );
