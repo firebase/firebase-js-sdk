@@ -23,14 +23,35 @@ export function isCloudWorkstation(host: string): boolean {
   return host.endsWith('.cloudworkstations.dev');
 }
 
+const pingQueue: { [name: string]: boolean } = {};
+const MAX_PING_RETRIES = 10;
+
 /**
  * Makes a fetch request to the given server.
  * Mostly used for forwarding cookies in Firebase Studio.
  * @public
  */
 export async function pingServer(endpoint: string): Promise<boolean> {
-  const result = await fetch(endpoint, {
-    credentials: 'include'
-  });
-  return result.ok;
+  if (pingQueue[endpoint]) {
+    return Promise.resolve(false);
+  }
+  pingQueue[endpoint] = true;
+  function waitFor(ms: number) {
+    return new Promise((resolve, reject) => {
+      setTimeout(resolve);
+    });
+  }
+  for (let i = 0; i < MAX_PING_RETRIES; i++) {
+    try {
+      await waitFor(i * 1000);
+      const result = await fetch(endpoint, {
+        credentials: 'include'
+      });
+      if (result.ok) {
+        return result.ok;
+      }
+    } catch {}
+  }
+  delete pingQueue[endpoint];
+  return false;
 }
