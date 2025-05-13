@@ -33,5 +33,5 @@ export {
   LanguageModelMessageContentValue,
   LanguageModelMessageRole,
   LanguageModelMessageShorthand,
-  LanguageModelMessageType,
+  LanguageModelMessageType
 } from './language-model';
