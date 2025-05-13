@@ -25,7 +25,11 @@ import { FirebaseError, getUA } from '@firebase/util';
 import * as utils from '@firebase/util';
 
 import { mockEndpoint } from '../../test/helpers/api/helper';
-import { regionalTestAuth, testAuth, TestAuth } from '../../test/helpers/mock_auth';
+import {
+  regionalTestAuth,
+  testAuth,
+  TestAuth
+} from '../../test/helpers/mock_auth';
 import * as mockFetch from '../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../core/errors';
 import { ConfigInternal } from '../model/auth';
@@ -599,26 +603,31 @@ describe('api/_performApiRequest', () => {
     });
   });
 
-
   it('should throw exception when tenantConfig is not initialized and Regional Endpoint is used', async () => {
     await expect(
-      _performApiRequest<
-        typeof request,
-        typeof serverResponse
-      >(auth, HttpMethod.POST, RegionalEndpoint.EXCHANGE_TOKEN, request)).to.be.rejectedWith(
-        FirebaseError,
-        'Firebase: Operations not allowed for the auth object initialized. (auth/operation-not-allowed).'
-      );
+      _performApiRequest<typeof request, typeof serverResponse>(
+        auth,
+        HttpMethod.POST,
+        RegionalEndpoint.EXCHANGE_TOKEN,
+        request
+      )
+    ).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: Operations not allowed for the auth object initialized. (auth/operation-not-allowed).'
+    );
   });
 
   it('should throw exception when tenantConfig is initialized and default Endpoint is used', async () => {
     await expect(
-      _performApiRequest<
-        typeof request,
-        typeof serverResponse
-      >(regionalAuth, HttpMethod.POST, Endpoint.SIGN_UP, request)).to.be.rejectedWith(
-        FirebaseError,
-        'Firebase: Operations not allowed for the auth object initialized. (auth/operation-not-allowed).'
-      );
+      _performApiRequest<typeof request, typeof serverResponse>(
+        regionalAuth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      )
+    ).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: Operations not allowed for the auth object initialized. (auth/operation-not-allowed).'
+    );
   });
 });

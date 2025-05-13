@@ -117,7 +117,7 @@ export async function testAuth(
 }
 
 export async function regionalTestAuth(): Promise<TestAuth> {
-  const tenantConfig = {'location': "us", 'tenantId': "tenant-1"};
+  const tenantConfig = { 'location': 'us', 'tenantId': 'tenant-1' };
   const auth: TestAuth = new AuthImpl(
     FAKE_APP,
     FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
