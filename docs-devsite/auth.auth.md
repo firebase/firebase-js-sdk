@@ -31,6 +31,7 @@ export interface Auth
 |  [languageCode](./auth.auth.md#authlanguagecode) | string \| null | The [Auth](./auth.auth.md#auth_interface) instance's language code. |
 |  [name](./auth.auth.md#authname) | string | The name of the app associated with the <code>Auth</code> service instance. |
 |  [settings](./auth.auth.md#authsettings) | [AuthSettings](./auth.authsettings.md#authsettings_interface) | The [Auth](./auth.auth.md#auth_interface) instance's settings. |
+|  [tenantConfig](./auth.auth.md#authtenantconfig) | [TenantConfig](./auth.tenantconfig.md#tenantconfig_interface) | The [TenantConfig](./auth.tenantconfig.md#tenantconfig_interface) used to initialize a Regional Auth. This is only present if regional auth is initialized and  backend endpoint is used. |
 |  [tenantId](./auth.auth.md#authtenantid) | string \| null | The [Auth](./auth.auth.md#auth_interface) instance's tenant ID. |
 
 ## Methods
@@ -118,6 +119,16 @@ This is used to edit/read configuration related options such as app verification
 
 ```typescript
 readonly settings: AuthSettings;
+```
+
+## Auth.tenantConfig
+
+The [TenantConfig](./auth.tenantconfig.md#tenantconfig_interface) used to initialize a Regional Auth. This is only present if regional auth is initialized and  backend endpoint is used.
+
+<b>Signature:</b>
+
+```typescript
+readonly tenantConfig?: TenantConfig;
 ```
 
 ## Auth.tenantId

@@ -26,6 +26,7 @@ import { AuthErrorCode, NamedErrorParams } from '../core/errors';
 import {
   _createError,
   _errorWithCustomMessage,
+  _operationNotSupportedForInitializedAuthInstance,
   _fail
 } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
@@ -53,7 +54,7 @@ export const enum HttpHeader {
   X_FIREBASE_APP_CHECK = 'X-Firebase-AppCheck'
 }
 
-export const enum Endpoint {
+export enum Endpoint {
   CREATE_AUTH_URI = '/v1/accounts:createAuthUri',
   DELETE_ACCOUNT = '/v1/accounts:delete',
   RESET_PASSWORD = '/v1/accounts:resetPassword',
@@ -78,6 +79,10 @@ export const enum Endpoint {
   GET_PASSWORD_POLICY = '/v2/passwordPolicy',
   TOKEN = '/v1/token',
   REVOKE_TOKEN = '/v2/accounts:revokeToken'
+}
+
+export enum RegionalEndpoint {
+  EXCHANGE_TOKEN = 'v2/${body.parent}:exchangeOidcToken'
 }
 
 const CookieAuthProxiedEndpoints: string[] = [
@@ -139,10 +144,11 @@ export function _addTidIfNecessary<T extends { tenantId?: string }>(
 export async function _performApiRequest<T, V>(
   auth: Auth,
   method: HttpMethod,
-  path: Endpoint,
+  path: Endpoint | RegionalEndpoint,
   request?: T,
   customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
+  _assertValidEndpointForAuth(auth, path);
   return _performFetchWithErrorHandling(auth, customErrorMap, async () => {
     let body = {};
     let params = {};
@@ -319,6 +325,22 @@ export function _parseEnforcementState(
       return EnforcementState.OFF;
     default:
       return EnforcementState.ENFORCEMENT_STATE_UNSPECIFIED;
+  }
+}
+
+function _assertValidEndpointForAuth(
+  auth: Auth,
+  path: Endpoint | RegionalEndpoint
+): void {
+  if (
+    !auth.tenantConfig &&
+    Object.values(RegionalEndpoint).includes(path as RegionalEndpoint)
+  ) {
+    throw _operationNotSupportedForInitializedAuthInstance(auth);
+  }
+
+  if (auth.tenantConfig && Object.values(Endpoint).includes(path as Endpoint)) {
+    throw _operationNotSupportedForInitializedAuthInstance(auth);
   }
 }
 

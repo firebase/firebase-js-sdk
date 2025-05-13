@@ -95,6 +95,7 @@ export interface Auth {
     setPersistence(persistence: Persistence): Promise<void>;
     readonly settings: AuthSettings;
     signOut(): Promise<void>;
+    readonly tenantConfig?: TenantConfig;
     tenantId: string | null;
     updateCurrentUser(user: User | null): Promise<void>;
     useDeviceLanguage(): void;
