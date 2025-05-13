@@ -603,31 +603,33 @@ describe('api/_performApiRequest', () => {
     });
   });
 
-  it('should throw exception when tenantConfig is not initialized and Regional Endpoint is used', async () => {
-    await expect(
-      _performApiRequest<typeof request, typeof serverResponse>(
-        auth,
-        HttpMethod.POST,
-        RegionalEndpoint.EXCHANGE_TOKEN,
-        request
-      )
-    ).to.be.rejectedWith(
-      FirebaseError,
-      'Firebase: Operations not allowed for the auth object initialized. (auth/operation-not-allowed).'
-    );
-  });
+  context('throws Operation now allowed exception', () => {
+    it('when tenantConfig is not initialized and Regional Endpoint is used', async () => {
+      await expect(
+        _performApiRequest<typeof request, typeof serverResponse>(
+          auth,
+          HttpMethod.POST,
+          RegionalEndpoint.EXCHANGE_TOKEN,
+          request
+        )
+      ).to.be.rejectedWith(
+        FirebaseError,
+        'Firebase: Operations not allowed for the auth object initialized. (auth/operation-not-allowed).'
+      );
+    });
 
-  it('should throw exception when tenantConfig is initialized and default Endpoint is used', async () => {
-    await expect(
-      _performApiRequest<typeof request, typeof serverResponse>(
-        regionalAuth,
-        HttpMethod.POST,
-        Endpoint.SIGN_UP,
-        request
-      )
-    ).to.be.rejectedWith(
-      FirebaseError,
-      'Firebase: Operations not allowed for the auth object initialized. (auth/operation-not-allowed).'
-    );
+    it('when tenantConfig is initialized and default Endpoint is used', async () => {
+      await expect(
+        _performApiRequest<typeof request, typeof serverResponse>(
+          regionalAuth,
+          HttpMethod.POST,
+          Endpoint.SIGN_UP,
+          request
+        )
+      ).to.be.rejectedWith(
+        FirebaseError,
+        'Firebase: Operations not allowed for the auth object initialized. (auth/operation-not-allowed).'
+      );
+    });
   });
 });
