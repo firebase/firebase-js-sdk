@@ -88,7 +88,7 @@ module.exports = [
     stats: {
       colors: true
     },
-    devtool: 'source-map',
+    devtool: 'eval-source-map',
     devServer: {
       static: './build'
     }
