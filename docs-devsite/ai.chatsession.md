@@ -22,7 +22,7 @@ export declare class ChatSession
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(apiSettings, model, params, requestOptions)](./ai.chatsession.md#chatsessionconstructor) |  | Constructs a new instance of the <code>ChatSession</code> class |
+|  [(constructor)(apiSettings, model, chromeAdapter, params, requestOptions)](./ai.chatsession.md#chatsessionconstructor) |  | Constructs a new instance of the <code>ChatSession</code> class |
 
 ## Properties
 
@@ -47,7 +47,7 @@ Constructs a new instance of the `ChatSession` class
 <b>Signature:</b>
 
 ```typescript
-constructor(apiSettings: ApiSettings, model: string, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
+constructor(apiSettings: ApiSettings, model: string, chromeAdapter: ChromeAdapter, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
 ```
 
 #### Parameters
@@ -56,6 +56,7 @@ constructor(apiSettings: ApiSettings, model: string, params?: StartChatParams | 
 |  --- | --- | --- |
 |  apiSettings | ApiSettings |  |
 |  model | string |  |
+|  chromeAdapter | ChromeAdapter |  |
 |  params | [StartChatParams](./ai.startchatparams.md#startchatparams_interface) \| undefined |  |
 |  requestOptions | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) \| undefined |  |
 

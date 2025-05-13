@@ -80,6 +80,8 @@ toc:
     path: /docs/reference/js/ai.groundingattribution.md
   - title: GroundingMetadata
     path: /docs/reference/js/ai.groundingmetadata.md
+  - title: HybridParams
+    path: /docs/reference/js/ai.hybridparams.md
   - title: ImagenGCSImage
     path: /docs/reference/js/ai.imagengcsimage.md
   - title: ImagenGenerationConfig
@@ -110,6 +112,8 @@ toc:
     path: /docs/reference/js/ai.objectschema.md
   - title: ObjectSchemaInterface
     path: /docs/reference/js/ai.objectschemainterface.md
+  - title: OnDeviceParams
+    path: /docs/reference/js/ai.ondeviceparams.md
   - title: PromptFeedback
     path: /docs/reference/js/ai.promptfeedback.md
   - title: RequestOptions

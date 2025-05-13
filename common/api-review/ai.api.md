@@ -112,7 +112,8 @@ export class BooleanSchema extends Schema {
 
 // @public
 export class ChatSession {
-    constructor(apiSettings: ApiSettings, model: string, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
+    // Warning: (ae-forgotten-export) The symbol "ChromeAdapter" needs to be exported by the entry point index.d.ts
+    constructor(apiSettings: ApiSettings, model: string, chromeAdapter: ChromeAdapter, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
@@ -395,8 +396,9 @@ export interface GenerativeContentBlob {
 
 // @public
 export class GenerativeModel extends AIModel {
-    constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions);
+    constructor(ai: AI, modelParams: ModelParams, chromeAdapter: ChromeAdapter, requestOptions?: RequestOptions);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
+    static DEFAULT_HYBRID_IN_CLOUD_MODEL: string;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
     // (undocumented)
@@ -418,7 +420,7 @@ export class GenerativeModel extends AIModel {
 export function getAI(app?: FirebaseApp, options?: AIOptions): AI;
 
 // @public
-export function getGenerativeModel(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
+export function getGenerativeModel(ai: AI, modelParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 
 // @beta
 export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
@@ -550,6 +552,13 @@ export enum HarmSeverity {
     HARM_SEVERITY_UNSUPPORTED = "HARM_SEVERITY_UNSUPPORTED"
 }
 
+// @public
+export interface HybridParams {
+    inCloudParams?: ModelParams;
+    mode: InferenceMode;
+    onDeviceParams?: OnDeviceParams;
+}
+
 // @beta
 export enum ImagenAspectRatio {
     LANDSCAPE_16x9 = "16:9",
@@ -635,6 +644,9 @@ export interface ImagenSafetySettings {
 }
 
 // @public
+export type InferenceMode = 'prefer_on_device' | 'only_on_device' | 'only_in_cloud';
+
+// @public
 export interface InlineDataPart {
     // (undocumented)
     functionCall?: never;
@@ -706,6 +718,18 @@ export interface ObjectSchemaInterface extends SchemaInterface {
     optionalProperties?: string[];
     // (undocumented)
     type: SchemaType.OBJECT;
+}
+
+// @public
+export interface OnDeviceParams {
+    // Warning: (ae-forgotten-export) The symbol "LanguageModelCreateOptions" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    createOptions?: LanguageModelCreateOptions;
+    // Warning: (ae-forgotten-export) The symbol "LanguageModelPromptOptions" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    promptOptions?: LanguageModelPromptOptions;
 }
 
 // @public

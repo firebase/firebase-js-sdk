@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ModelParams interface
-Params passed to [getGenerativeModel()](./ai.md#getgenerativemodel_80bd839)<!-- -->.
+Params passed to [getGenerativeModel()](./ai.md#getgenerativemodel_c63f46a)<!-- -->.
 
 <b>Signature:</b>
 
