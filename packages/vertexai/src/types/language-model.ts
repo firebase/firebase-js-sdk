@@ -14,7 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+/**
+ * {@see https://github.com/webmachinelearning/prompt-api#full-api-surface-in-web-idl}
+ */
 export interface LanguageModel extends EventTarget {
   create(options?: LanguageModelCreateOptions): Promise<LanguageModel>;
   availability(options?: LanguageModelCreateCoreOptions): Promise<Availability>;
@@ -57,12 +59,14 @@ interface LanguageModelExpectedInput {
   type: LanguageModelMessageType;
   languages?: string[];
 }
-// TODO: revert to type from Prompt API explainer once it's supported.
-export type LanguageModelPrompt = LanguageModelMessageContent[];
+export type LanguageModelPrompt =
+  | LanguageModelMessage[]
+  | LanguageModelMessageShorthand[]
+  | string;
 type LanguageModelInitialPrompts =
   | LanguageModelMessage[]
   | LanguageModelMessageShorthand[];
-interface LanguageModelMessage {
+export interface LanguageModelMessage {
   role: LanguageModelMessageRole;
   content: LanguageModelMessageContent[];
 }
@@ -74,7 +78,7 @@ export interface LanguageModelMessageContent {
   type: LanguageModelMessageType;
   content: LanguageModelMessageContentValue;
 }
-type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
+export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 type LanguageModelMessageType = 'text' | 'image' | 'audio';
 type LanguageModelMessageContentValue =
   | ImageBitmapSource
