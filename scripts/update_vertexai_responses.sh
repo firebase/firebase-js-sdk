@@ -21,7 +21,7 @@ RESPONSES_VERSION='v11.*' # The major version of mock responses to use
 REPO_NAME="vertexai-sdk-test-data"
 REPO_LINK="https://github.com/FirebaseExtended/$REPO_NAME.git"
 
-cd "$(dirname "$0")/../packages/ai/test-utils" || exit
+cd "$(dirname "$0")/../packages/vertexai/test-utils" || exit
 rm -rf "$REPO_NAME"
 git clone "$REPO_LINK" --quiet || exit
 cd "$REPO_NAME" || exit

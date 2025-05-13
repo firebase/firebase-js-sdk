@@ -1,6 +1,6 @@
 ---
 'firebase': minor
-'@firebase/ai': minor
+'@firebase/vertexai': minor
 ---
 
 Add support for Gemini multimodal output
