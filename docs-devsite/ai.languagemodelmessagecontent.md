@@ -20,7 +20,7 @@ export interface LanguageModelMessageContent
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [content](./ai.languagemodelmessagecontent.md#languagemodelmessagecontentcontent) | LanguageModelMessageContentValue |  |
+|  [content](./ai.languagemodelmessagecontent.md#languagemodelmessagecontentcontent) | [LanguageModelMessageContentValue](./ai.md#languagemodelmessagecontentvalue) |  |
 |  [type](./ai.languagemodelmessagecontent.md#languagemodelmessagecontenttype) | [LanguageModelMessageType](./ai.md#languagemodelmessagetype) |  |
 
 ## LanguageModelMessageContent.content

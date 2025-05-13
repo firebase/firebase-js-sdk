@@ -705,13 +705,14 @@ export interface LanguageModelMessage {
 
 // @public (undocumented)
 export interface LanguageModelMessageContent {
-    // Warning: (ae-forgotten-export) The symbol "LanguageModelMessageContentValue" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     content: LanguageModelMessageContentValue;
     // (undocumented)
     type: LanguageModelMessageType;
 }
+
+// @public (undocumented)
+export type LanguageModelMessageContentValue = ImageBitmapSource | AudioBuffer | BufferSource | string;
 
 // @public (undocumented)
 export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
