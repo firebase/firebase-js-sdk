@@ -49,6 +49,12 @@ export abstract class Schema implements SchemaInterface {
   format?: string;
   /** Optional. The description of the property. */
   description?: string;
+  /** Optional. The items of the property. */
+  items?: SchemaInterface;
+  /** The minimum number of items (elements) in a schema of type {@link SchemaType.ARRAY}. */
+  minItems?: number;
+  /** The maximum number of items (elements) in a schema of type {@link SchemaType.ARRAY}. */
+  maxItems?: number;
   /** Optional. Whether the property is nullable. Defaults to false. */
   nullable: boolean;
   /** Optional. The example of the property. */
@@ -77,7 +83,7 @@ export abstract class Schema implements SchemaInterface {
    * @internal
    */
   toJSON(): SchemaRequest {
-    const obj: { type: SchemaType; [key: string]: unknown } = {
+    const obj: { type: SchemaType;[key: string]: unknown } = {
       type: this.type
     };
     for (const prop in this) {
