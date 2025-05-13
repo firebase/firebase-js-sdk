@@ -105,6 +105,12 @@ The Firebase AI Web SDK.
 |  [ImagenModelParams](./ai.imagenmodelparams.md#imagenmodelparams_interface) | <b><i>(Public Preview)</i></b> Parameters for configuring an [ImagenModel](./ai.imagenmodel.md#imagenmodel_class)<!-- -->. |
 |  [ImagenSafetySettings](./ai.imagensafetysettings.md#imagensafetysettings_interface) | <b><i>(Public Preview)</i></b> Settings for controlling the aggressiveness of filtering out sensitive content.<!-- -->See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details. |
 |  [InlineDataPart](./ai.inlinedatapart.md#inlinedatapart_interface) | Content part interface if the part represents an image. |
+|  [LanguageModelCreateCoreOptions](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptions_interface) |  |
+|  [LanguageModelCreateOptions](./ai.languagemodelcreateoptions.md#languagemodelcreateoptions_interface) |  |
+|  [LanguageModelExpectedInput](./ai.languagemodelexpectedinput.md#languagemodelexpectedinput_interface) |  |
+|  [LanguageModelMessage](./ai.languagemodelmessage.md#languagemodelmessage_interface) |  |
+|  [LanguageModelMessageContent](./ai.languagemodelmessagecontent.md#languagemodelmessagecontent_interface) |  |
+|  [LanguageModelMessageShorthand](./ai.languagemodelmessageshorthand.md#languagemodelmessageshorthand_interface) |  |
 |  [ModalityTokenCount](./ai.modalitytokencount.md#modalitytokencount_interface) | Represents token counting info for a single modality. |
 |  [ModelParams](./ai.modelparams.md#modelparams_interface) | Params passed to [getGenerativeModel()](./ai.md#getgenerativemodel_c63f46a)<!-- -->. |
 |  [ObjectSchemaInterface](./ai.objectschemainterface.md#objectschemainterface_interface) | Interface for [ObjectSchema](./ai.objectschema.md#objectschema_class) class. |
@@ -143,6 +149,8 @@ The Firebase AI Web SDK.
 |  --- | --- |
 |  [BackendType](./ai.md#backendtype) | Type alias representing valid backend types. It can be either <code>'VERTEX_AI'</code> or <code>'GOOGLE_AI'</code>. |
 |  [InferenceMode](./ai.md#inferencemode) | Determines whether inference happens on-device or in-cloud. |
+|  [LanguageModelInitialPrompts](./ai.md#languagemodelinitialprompts) |  |
+|  [LanguageModelMessageType](./ai.md#languagemodelmessagetype) |  |
 |  [Part](./ai.md#part) | Content part - includes text, image/video, or function call/response part types. |
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [Role](./ai.md#role) | Role is the producer of the content. |
@@ -371,6 +379,22 @@ Determines whether inference happens on-device or in-cloud.
 
 ```typescript
 export type InferenceMode = 'prefer_on_device' | 'only_on_device' | 'only_in_cloud';
+```
+
+## LanguageModelInitialPrompts
+
+<b>Signature:</b>
+
+```typescript
+export type LanguageModelInitialPrompts = LanguageModelMessage[] | LanguageModelMessageShorthand[];
+```
+
+## LanguageModelMessageType
+
+<b>Signature:</b>
+
+```typescript
+export type LanguageModelMessageType = 'text' | 'image' | 'audio';
 ```
 
 ## Part

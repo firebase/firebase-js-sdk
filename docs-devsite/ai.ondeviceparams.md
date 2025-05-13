@@ -22,7 +22,7 @@ export interface OnDeviceParams
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [createOptions](./ai.ondeviceparams.md#ondeviceparamscreateoptions) | LanguageModelCreateOptions |  |
+|  [createOptions](./ai.ondeviceparams.md#ondeviceparamscreateoptions) | [LanguageModelCreateOptions](./ai.languagemodelcreateoptions.md#languagemodelcreateoptions_interface) |  |
 |  [promptOptions](./ai.ondeviceparams.md#ondeviceparamspromptoptions) | LanguageModelPromptOptions |  |
 
 ## OnDeviceParams.createOptions
