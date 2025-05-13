@@ -23,7 +23,7 @@ export interface LanguageModelMessageContent
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [content](./vertexai.languagemodelmessagecontent.md#languagemodelmessagecontentcontent) | LanguageModelMessageContentValue |  |
-|  [type](./vertexai.languagemodelmessagecontent.md#languagemodelmessagecontenttype) | LanguageModelMessageType |  |
+|  [type](./vertexai.languagemodelmessagecontent.md#languagemodelmessagecontenttype) | [LanguageModelMessageType](./vertexai.md#languagemodelmessagetype) |  |
 
 ## LanguageModelMessageContent.content
 

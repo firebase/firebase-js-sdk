@@ -23,7 +23,7 @@ export interface LanguageModelExpectedInput
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [languages](./vertexai.languagemodelexpectedinput.md#languagemodelexpectedinputlanguages) | string\[\] |  |
-|  [type](./vertexai.languagemodelexpectedinput.md#languagemodelexpectedinputtype) | LanguageModelMessageType |  |
+|  [type](./vertexai.languagemodelexpectedinput.md#languagemodelexpectedinputtype) | [LanguageModelMessageType](./vertexai.md#languagemodelmessagetype) |  |
 
 ## LanguageModelExpectedInput.languages
 

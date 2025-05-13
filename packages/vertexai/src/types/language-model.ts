@@ -101,9 +101,18 @@ export interface LanguageModelMessageContent {
   type: LanguageModelMessageType;
   content: LanguageModelMessageContentValue;
 }
-type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
-type LanguageModelMessageType = 'text' | 'image' | 'audio';
-type LanguageModelMessageContentValue =
+/**
+ * Defines the producer of the prompt.
+ */
+export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
+/**
+ * Indicates the type of prompt content.
+ */
+export type LanguageModelMessageType = 'text' | 'image' | 'audio';
+/**
+ * Defines the prompt content itself.
+ */
+export type LanguageModelMessageContentValue =
   | ImageBitmapSource
   | AudioBuffer
   | BufferSource

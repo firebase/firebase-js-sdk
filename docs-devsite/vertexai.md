@@ -149,6 +149,7 @@ The Firebase AI Web SDK.
 |  [BackendType](./vertexai.md#backendtype) | Type alias representing valid backend types. It can be either <code>'VERTEX_AI'</code> or <code>'GOOGLE_AI'</code>. |
 |  [InferenceMode](./vertexai.md#inferencemode) | Determines whether inference happens on-device or in-cloud. |
 |  [LanguageModelInitialPrompts](./vertexai.md#languagemodelinitialprompts) | Enables multiple prompt formats. |
+|  [LanguageModelMessageType](./vertexai.md#languagemodelmessagetype) | Indicates the type of prompt content. |
 |  [Part](./vertexai.md#part) | Content part - includes text, image/video, or function call/response part types. |
 |  [Role](./vertexai.md#role) | Role is the producer of the content. |
 |  [Tool](./vertexai.md#tool) | Defines a tool that model can call to access external knowledge. |
@@ -361,6 +362,16 @@ Enables multiple prompt formats.
 
 ```typescript
 export type LanguageModelInitialPrompts = LanguageModelMessage[] | LanguageModelMessageShorthand[];
+```
+
+## LanguageModelMessageType
+
+Indicates the type of prompt content.
+
+<b>Signature:</b>
+
+```typescript
+export type LanguageModelMessageType = 'text' | 'image' | 'audio';
 ```
 
 ## Part

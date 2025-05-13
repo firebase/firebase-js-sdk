@@ -30,5 +30,6 @@ export {
   LanguageModelInitialPrompts,
   LanguageModelMessage,
   LanguageModelMessageContent,
-  LanguageModelMessageShorthand
+  LanguageModelMessageShorthand,
+  LanguageModelMessageType
 } from './language-model';

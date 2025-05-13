@@ -684,8 +684,6 @@ export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptio
 export interface LanguageModelExpectedInput {
     // (undocumented)
     languages?: string[];
-    // Warning: (ae-forgotten-export) The symbol "LanguageModelMessageType" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     type: LanguageModelMessageType;
 }
@@ -720,6 +718,9 @@ export interface LanguageModelMessageShorthand {
     // (undocumented)
     role: LanguageModelMessageRole;
 }
+
+// @public
+export type LanguageModelMessageType = 'text' | 'image' | 'audio';
 
 // @public
 export enum Modality {
