@@ -24,7 +24,7 @@ import {
   Availability,
   LanguageModel,
   LanguageModelCreateOptions,
-  LanguageModelMessageContent
+  LanguageModelMessage
 } from '../types/language-model';
 import { match, stub } from 'sinon';
 import { GenerateContentRequest, AIErrorCode } from '../types';
@@ -138,7 +138,7 @@ describe('ChromeAdapter', () => {
         })
       ).to.be.false;
     });
-    it('returns false if request content has non-user role', async () => {
+    it('returns false if request content has "function" role', async () => {
       const adapter = new ChromeAdapter(
         {
           availability: async () => Availability.available
@@ -149,7 +149,7 @@ describe('ChromeAdapter', () => {
         await adapter.isAvailable({
           contents: [
             {
-              role: 'model',
+              role: 'function',
               parts: []
             }
           ]
@@ -306,7 +306,7 @@ describe('ChromeAdapter', () => {
       } as LanguageModel;
       const languageModel = {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        prompt: (p: LanguageModelMessageContent[]) => Promise.resolve('')
+        prompt: (p: LanguageModelMessage[]) => Promise.resolve('')
       } as LanguageModel;
       const createStub = stub(languageModelProvider, 'create').resolves(
         languageModel
@@ -331,8 +331,13 @@ describe('ChromeAdapter', () => {
       // Asserts Vertex input type is mapped to Chrome type.
       expect(promptStub).to.have.been.calledOnceWith([
         {
-          type: 'text',
-          content: request.contents[0].parts[0].text
+          role: request.contents[0].role,
+          content: [
+            {
+              type: 'text',
+              content: request.contents[0].parts[0].text
+            }
+          ]
         }
       ]);
       // Asserts expected output.
@@ -352,7 +357,7 @@ describe('ChromeAdapter', () => {
       } as LanguageModel;
       const languageModel = {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        prompt: (p: LanguageModelMessageContent[]) => Promise.resolve('')
+        prompt: (p: LanguageModelMessage[]) => Promise.resolve('')
       } as LanguageModel;
       const createStub = stub(languageModelProvider, 'create').resolves(
         languageModel
@@ -390,12 +395,17 @@ describe('ChromeAdapter', () => {
       // Asserts Vertex input type is mapped to Chrome type.
       expect(promptStub).to.have.been.calledOnceWith([
         {
-          type: 'text',
-          content: request.contents[0].parts[0].text
-        },
-        {
-          type: 'image',
-          content: match.instanceOf(ImageBitmap)
+          role: request.contents[0].role,
+          content: [
+            {
+              type: 'text',
+              content: request.contents[0].parts[0].text
+            },
+            {
+              type: 'image',
+              content: match.instanceOf(ImageBitmap)
+            }
+          ]
         }
       ]);
       // Asserts expected output.
@@ -412,7 +422,7 @@ describe('ChromeAdapter', () => {
     it('honors prompt options', async () => {
       const languageModel = {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        prompt: (p: LanguageModelMessageContent[]) => Promise.resolve('')
+        prompt: (p: LanguageModelMessage[]) => Promise.resolve('')
       } as LanguageModel;
       const languageModelProvider = {
         create: () => Promise.resolve(languageModel)
@@ -436,12 +446,47 @@ describe('ChromeAdapter', () => {
       expect(promptStub).to.have.been.calledOnceWith(
         [
           {
-            type: 'text',
-            content: request.contents[0].parts[0].text
+            role: request.contents[0].role,
+            content: [
+              {
+                type: 'text',
+                content: request.contents[0].parts[0].text
+              }
+            ]
           }
         ],
         promptOptions
       );
+    });
+    it('normalizes roles', async () => {
+      const languageModel = {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        prompt: (p: LanguageModelMessage[]) => Promise.resolve('unused')
+      } as LanguageModel;
+      const promptStub = stub(languageModel, 'prompt').resolves('unused');
+      const languageModelProvider = {
+        create: () => Promise.resolve(languageModel)
+      } as LanguageModel;
+      const adapter = new ChromeAdapter(
+        languageModelProvider,
+        'prefer_on_device'
+      );
+      const request = {
+        contents: [{ role: 'model', parts: [{ text: 'unused' }] }]
+      } as GenerateContentRequest;
+      await adapter.generateContent(request);
+      expect(promptStub).to.have.been.calledOnceWith([
+        {
+          // Asserts Vertex's "model" role normalized to Chrome's "assistant" role.
+          role: 'assistant',
+          content: [
+            {
+              type: 'text',
+              content: request.contents[0].parts[0].text
+            }
+          ]
+        }
+      ]);
     });
   });
   describe('countTokens', () => {
@@ -514,8 +559,13 @@ describe('ChromeAdapter', () => {
       expect(createStub).to.have.been.calledOnceWith(createOptions);
       expect(promptStub).to.have.been.calledOnceWith([
         {
-          type: 'text',
-          content: request.contents[0].parts[0].text
+          role: request.contents[0].role,
+          content: [
+            {
+              type: 'text',
+              content: request.contents[0].parts[0].text
+            }
+          ]
         }
       ]);
       const actual = await toStringArray(response.body!);
@@ -570,12 +620,17 @@ describe('ChromeAdapter', () => {
       expect(createStub).to.have.been.calledOnceWith(createOptions);
       expect(promptStub).to.have.been.calledOnceWith([
         {
-          type: 'text',
-          content: request.contents[0].parts[0].text
-        },
-        {
-          type: 'image',
-          content: match.instanceOf(ImageBitmap)
+          role: request.contents[0].role,
+          content: [
+            {
+              type: 'text',
+              content: request.contents[0].parts[0].text
+            },
+            {
+              type: 'image',
+              content: match.instanceOf(ImageBitmap)
+            }
+          ]
         }
       ]);
       const actual = await toStringArray(response.body!);
@@ -611,12 +666,49 @@ describe('ChromeAdapter', () => {
       expect(promptStub).to.have.been.calledOnceWith(
         [
           {
-            type: 'text',
-            content: request.contents[0].parts[0].text
+            role: request.contents[0].role,
+            content: [
+              {
+                type: 'text',
+                content: request.contents[0].parts[0].text
+              }
+            ]
           }
         ],
         promptOptions
       );
+    });
+    it('normalizes roles', async () => {
+      const languageModel = {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        promptStreaming: p => new ReadableStream()
+      } as LanguageModel;
+      const promptStub = stub(languageModel, 'promptStreaming').returns(
+        new ReadableStream()
+      );
+      const languageModelProvider = {
+        create: () => Promise.resolve(languageModel)
+      } as LanguageModel;
+      const adapter = new ChromeAdapter(
+        languageModelProvider,
+        'prefer_on_device'
+      );
+      const request = {
+        contents: [{ role: 'model', parts: [{ text: 'unused' }] }]
+      } as GenerateContentRequest;
+      await adapter.generateContentStream(request);
+      expect(promptStub).to.have.been.calledOnceWith([
+        {
+          // Asserts Vertex's "model" role normalized to Chrome's "assistant" role.
+          role: 'assistant',
+          content: [
+            {
+              type: 'text',
+              content: request.contents[0].parts[0].text
+            }
+          ]
+        }
+      ]);
     });
   });
 });
