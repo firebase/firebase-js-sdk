@@ -30,6 +30,7 @@ on:
         options:
         - main
         - v8
+        - at-11-7-1
       verbose:
         description: 'Enable verbose logging'
         type: boolean
