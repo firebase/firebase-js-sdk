@@ -24,7 +24,7 @@ import { FirebaseApp, initializeApp } from '@firebase/app';
 
 import { Firestore, initializeFirestore, setLogLevel } from '../../../src';
 import { PrivateSettings } from '../../../src/lite-api/settings';
-import { logDebug } from '../../../src/util/log';
+import { logDebug, logError } from '../../../src/util/log';
 import { generateUniqueDebugId } from '../../../src/util/debug_uid';
 
 // TODO(dimond): Right now we create a new app and Firestore instance for
@@ -92,12 +92,12 @@ class ReadableStreamSpy<Uint8Array> {
   }
 }
 
-class RequestInfo {}
-
 globalThis.fetch = async function (requestOrUrl, options) {
   let url = '';
   let verb = 'GET';
   let request = requestOrUrl;
+  let bodyPromise: Promise<string> = Promise.resolve('none');
+  let contentType: string = '';
   const id = generateUniqueDebugId();
 
   if (typeof requestOrUrl === 'string') {
@@ -107,31 +107,9 @@ globalThis.fetch = async function (requestOrUrl, options) {
   } else {
     url = requestOrUrl.url;
     verb = requestOrUrl.method;
-    if (
-      url.startsWith(
-        'https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel'
-      )
-    ) {
-      try {
-        if (requestOrUrl.body instanceof ReadableStream) {
-          const requestSpy = new ReadableStreamSpy(
-            'request',
-            requestOrUrl.body,
-            id
-          );
-          const requestInit: RequestInit = {
-            body: requestSpy.readableStream,
-            // @ts-ignore
-            duplex: 'half'
-          };
-          request = new Request(requestOrUrl, requestInit);
-        } else {
-          logDebug(JSON.stringify(requestOrUrl.body));
-        }
-      } catch (e) {
-        console.log(e);
-      }
-    }
+    bodyPromise = requestOrUrl.clone().text();
+    contentType = requestOrUrl.headers.get('Content-Type') ?? 'empty';
+    request = requestOrUrl;
   }
 
   if (
@@ -142,6 +120,20 @@ globalThis.fetch = async function (requestOrUrl, options) {
     logDebug(`(fetch: ${id}) FETCH FOR ${verb} ${url}`);
 
     const response = await originalFetch(request, options);
+
+    bodyPromise.then(bodyText => {
+      if (contentType === 'application/x-www-form-urlencoded') {
+        const decodedData: Record<string, string> = {};
+
+        bodyText.split('&').forEach(pair => {
+          const [key, value] = pair.split('=');
+          decodedData[key] = decodeURIComponent(value);
+        });
+        logDebug(`(fetch: ${id}) BODY: ${JSON.stringify(decodedData)}`);
+      } else {
+        logDebug(`(fetch: ${id}) BODY: ${bodyText}`);
+      }
+    });
 
     if (response.body) {
       const spy = new ReadableStreamSpy('response', response.body, id);

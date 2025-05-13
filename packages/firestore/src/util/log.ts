@@ -213,13 +213,14 @@ const bufferingLogHandler: LogHandler = (instance, logType, ...args): void => {
   }
 
   // Buffer any messages less than the current logLevel
-  //if (logType < instance.logLevel) {
   let codeFound = false;
   args.forEach(v => {
     if (typeof v === 'string' && /ID:\sca9/.test(v)) {
       codeFound = true;
     }
   });
+
+  //if (logType < instance.logLevel) {
   if (!codeFound) {
     logBuffer!.add({ level: logType, now, args });
     return;
