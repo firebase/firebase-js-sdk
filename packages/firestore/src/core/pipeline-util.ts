@@ -108,13 +108,7 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
           const values = value?.arrayValue?.values?.map((val: any) =>
             Constant._fromProto(val)
           );
-          if (!values) {
-            return and(fieldValue.exists(), fieldValue.eqAny([]));
-          } else if (values.length === 1) {
-            return and(fieldValue.exists(), fieldValue.eq(values[0]));
-          } else {
-            return and(fieldValue.exists(), fieldValue.eqAny(values));
-          }
+          return and(fieldValue.exists(), fieldValue.eqAny(values ?? []));
         }
         case Operator.ARRAY_CONTAINS_ANY: {
           const values = value?.arrayValue?.values?.map((val: any) =>
@@ -126,13 +120,7 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
           const values = value?.arrayValue?.values?.map((val: any) =>
             Constant._fromProto(val)
           );
-          if (!values) {
-            return and(fieldValue.exists(), fieldValue.notEqAny([]));
-          } else if (values.length === 1) {
-            return and(fieldValue.exists(), fieldValue.neq(values[0]));
-          } else {
-            return and(fieldValue.exists(), fieldValue.notEqAny(values));
-          }
+          return and(fieldValue.exists(), fieldValue.notEqAny(values ?? []));
         }
         default:
           fail('Unexpected operator');
@@ -221,7 +209,7 @@ export function toPipeline(query: Query, db: Firestore): Pipeline {
         );
       }
 
-      pipeline = pipeline.limit(query.limit!, true);
+      pipeline = pipeline.limit(query.limit!);
       pipeline = pipeline.sort(orderings[0], ...orderings.slice(1));
     } else {
       pipeline = pipeline.sort(orderings[0], ...orderings.slice(1));
