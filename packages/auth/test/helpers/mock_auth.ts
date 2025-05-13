@@ -116,6 +116,26 @@ export async function testAuth(
   return auth;
 }
 
+export async function regionalTestAuth(): Promise<TestAuth> {
+  const tenantConfig = { 'location': 'us', 'tenantId': 'tenant-1' };
+  const auth: TestAuth = new AuthImpl(
+    FAKE_APP,
+    FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+    FAKE_APP_CHECK_CONTROLLER_PROVIDER,
+    {
+      apiKey: TEST_KEY,
+      authDomain: TEST_AUTH_DOMAIN,
+      apiHost: TEST_HOST,
+      apiScheme: TEST_SCHEME,
+      tokenApiHost: TEST_TOKEN_HOST,
+      clientPlatform: ClientPlatform.BROWSER,
+      sdkClientVersion: 'testSDK/0.0.0'
+    },
+    tenantConfig
+  ) as TestAuth;
+  return auth;
+}
+
 export function testUser(
   auth: AuthInternal,
   uid: string,
