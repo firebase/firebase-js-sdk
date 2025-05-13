@@ -216,7 +216,7 @@ const bufferingLogHandler: LogHandler = (instance, logType, ...args): void => {
   //if (logType < instance.logLevel) {
   let codeFound = false;
   args.forEach(v => {
-    if (typeof v === 'string' && /ca9/.test(v)) {
+    if (typeof v === 'string' && /ID:\sca9/.test(v)) {
       codeFound = true;
     }
   });
