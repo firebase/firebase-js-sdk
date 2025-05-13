@@ -92,7 +92,8 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
           app,
           heartbeatServiceProvider,
           appCheckServiceProvider,
-          config
+          config,
+          tenantConfig
         );
         _initializeAuthInstance(authInstance, deps);
 

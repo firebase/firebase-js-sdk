@@ -23,6 +23,7 @@ import {
   PasswordPolicy,
   PasswordValidationStatus,
   PopupRedirectResolver,
+  TenantConfig,
   User
 } from './public_types';
 import { ErrorFactory } from '@firebase/util';
@@ -100,6 +101,7 @@ export interface AuthInternal extends Auth {
 
   readonly name: AppName;
   readonly config: ConfigInternal;
+  readonly tenantConfig?: TenantConfig;
   languageCode: string | null;
   tenantId: string | null;
   readonly settings: AuthSettings;
