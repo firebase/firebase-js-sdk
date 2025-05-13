@@ -26,6 +26,7 @@ import { AuthErrorCode, NamedErrorParams } from '../core/errors';
 import {
   _createError,
   _errorWithCustomMessage,
+  _operationNotSupportedForInitializedAuthInstance,
   _fail
 } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
@@ -38,7 +39,6 @@ import { IdTokenMfaResponse } from './authentication/mfa';
 import { SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
 import { PersistenceType } from '../core/persistence';
 import { CookiePersistence } from '../platform_browser/persistence/cookie_storage';
-import { _operationNotSupportedForInitializedAuthInstance } from '../core/util/assert';
 
 export const enum HttpMethod {
   POST = 'POST',
@@ -81,7 +81,7 @@ export enum Endpoint {
   REVOKE_TOKEN = '/v2/accounts:revokeToken'
 }
 
-export enum Regional_Endpoint {
+export enum RegionalEndpoint {
   EXCHANGE_TOKEN = 'v2/${body.parent}:exchangeOidcToken'
 }
 
@@ -144,7 +144,7 @@ export function _addTidIfNecessary<T extends { tenantId?: string }>(
 export async function _performApiRequest<T, V>(
   auth: Auth,
   method: HttpMethod,
-  path: Endpoint | Regional_Endpoint,
+  path: Endpoint | RegionalEndpoint,
   request?: T,
   customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
@@ -330,11 +330,11 @@ export function _parseEnforcementState(
 
 function _assertValidEndpointForAuth(
   auth: Auth,
-  path: Endpoint | Regional_Endpoint
+  path: Endpoint | RegionalEndpoint
 ): void {
   if (
     !auth.tenantConfig &&
-    Object.values(Regional_Endpoint).includes(path as Regional_Endpoint)
+    Object.values(RegionalEndpoint).includes(path as RegionalEndpoint)
   ) {
     throw _operationNotSupportedForInitializedAuthInstance(auth);
   }
