@@ -74,9 +74,9 @@ export interface LanguageModelMessageContent {
   type: LanguageModelMessageType;
   content: LanguageModelMessageContentValue;
 }
-type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
+export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 export type LanguageModelMessageType = 'text' | 'image' | 'audio';
-type LanguageModelMessageContentValue =
+export type LanguageModelMessageContentValue =
   | ImageBitmapSource
   | AudioBuffer
   | BufferSource

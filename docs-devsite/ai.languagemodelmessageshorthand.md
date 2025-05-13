@@ -21,7 +21,7 @@ export interface LanguageModelMessageShorthand
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [content](./ai.languagemodelmessageshorthand.md#languagemodelmessageshorthandcontent) | string |  |
-|  [role](./ai.languagemodelmessageshorthand.md#languagemodelmessageshorthandrole) | LanguageModelMessageRole |  |
+|  [role](./ai.languagemodelmessageshorthand.md#languagemodelmessageshorthandrole) | [LanguageModelMessageRole](./ai.md#languagemodelmessagerole) |  |
 
 ## LanguageModelMessageShorthand.content
 

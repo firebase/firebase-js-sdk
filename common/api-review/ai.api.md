@@ -699,8 +699,6 @@ export type LanguageModelInitialPrompts = LanguageModelMessage[] | LanguageModel
 export interface LanguageModelMessage {
     // (undocumented)
     content: LanguageModelMessageContent[];
-    // Warning: (ae-forgotten-export) The symbol "LanguageModelMessageRole" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     role: LanguageModelMessageRole;
 }
@@ -714,6 +712,9 @@ export interface LanguageModelMessageContent {
     // (undocumented)
     type: LanguageModelMessageType;
 }
+
+// @public (undocumented)
+export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 
 // @public (undocumented)
 export interface LanguageModelMessageShorthand {

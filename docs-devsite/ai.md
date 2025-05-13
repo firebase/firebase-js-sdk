@@ -150,6 +150,7 @@ The Firebase AI Web SDK.
 |  [BackendType](./ai.md#backendtype) | Type alias representing valid backend types. It can be either <code>'VERTEX_AI'</code> or <code>'GOOGLE_AI'</code>. |
 |  [InferenceMode](./ai.md#inferencemode) | Determines whether inference happens on-device or in-cloud. |
 |  [LanguageModelInitialPrompts](./ai.md#languagemodelinitialprompts) |  |
+|  [LanguageModelMessageRole](./ai.md#languagemodelmessagerole) |  |
 |  [LanguageModelMessageType](./ai.md#languagemodelmessagetype) |  |
 |  [Part](./ai.md#part) | Content part - includes text, image/video, or function call/response part types. |
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
@@ -387,6 +388,14 @@ export type InferenceMode = 'prefer_on_device' | 'only_on_device' | 'only_in_clo
 
 ```typescript
 export type LanguageModelInitialPrompts = LanguageModelMessage[] | LanguageModelMessageShorthand[];
+```
+
+## LanguageModelMessageRole
+
+<b>Signature:</b>
+
+```typescript
+export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 ```
 
 ## LanguageModelMessageType

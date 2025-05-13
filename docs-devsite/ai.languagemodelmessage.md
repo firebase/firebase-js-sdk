@@ -21,7 +21,7 @@ export interface LanguageModelMessage
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [content](./ai.languagemodelmessage.md#languagemodelmessagecontent) | [LanguageModelMessageContent](./ai.languagemodelmessagecontent.md#languagemodelmessagecontent_interface)<!-- -->\[\] |  |
-|  [role](./ai.languagemodelmessage.md#languagemodelmessagerole) | LanguageModelMessageRole |  |
+|  [role](./ai.languagemodelmessage.md#languagemodelmessagerole) | [LanguageModelMessageRole](./ai.md#languagemodelmessagerole) |  |
 
 ## LanguageModelMessage.content
 
