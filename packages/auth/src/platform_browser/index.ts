@@ -30,7 +30,11 @@ import { browserSessionPersistence } from './persistence/session_storage';
 import { indexedDBLocalPersistence } from './persistence/indexed_db';
 import { browserPopupRedirectResolver } from './popup_redirect';
 import { Auth, User } from '../model/public_types';
-import { getDefaultEmulatorHost, getExperimentalSetting } from '@firebase/util';
+import {
+  getDefaultEmulatorHost,
+  getExperimentalSetting,
+  updateEmulatorBanner
+} from '@firebase/util';
 import { _setExternalJSProvider } from './load_js';
 import { _createError } from '../core/util/assert';
 import { AuthErrorCode } from '../core/errors';
@@ -110,6 +114,8 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
   const authEmulatorHost = getDefaultEmulatorHost('auth');
   if (authEmulatorHost) {
     connectAuthEmulator(auth, `http://${authEmulatorHost}`);
+  } else {
+    updateEmulatorBanner('Auth', false);
   }
 
   return auth;
