@@ -73,7 +73,7 @@ export interface SchemaShared<T> {
  * {@link Schema} classes.
  * @public
  */
-export interface SchemaParams extends SchemaShared<SchemaInterface> { }
+export interface SchemaParams extends SchemaShared<SchemaInterface> {}
 
 /**
  * Final format for {@link Schema} params passed to backend requests.
