@@ -452,7 +452,7 @@ export class WebChannelConnection extends RestConnection {
   }
 
   /**
-   * Remove a WebChannel instance to the collection of open instances.
+   * Remove a WebChannel instance from the collection of open instances.
    * @param webChannel
    */
   removeOpenWebChannel(webChannel: WebChannel): void {
