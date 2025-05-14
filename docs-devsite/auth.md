@@ -28,6 +28,7 @@ Firebase Authentication
 |  [confirmPasswordReset(auth, oobCode, newPassword)](./auth.md#confirmpasswordreset_749dad8) | Completes the password reset process, given a confirmation code and new password. |
 |  [connectAuthEmulator(auth, url, options)](./auth.md#connectauthemulator_657c7e5) | Changes the [Auth](./auth.auth.md#auth_interface) instance to communicate with the Firebase Auth Emulator, instead of production Firebase Auth services. |
 |  [createUserWithEmailAndPassword(auth, email, password)](./auth.md#createuserwithemailandpassword_21ad33b) | Creates a new user account associated with the specified email address and password. |
+|  [exchangeToken(auth, idpConfigId, customToken)](./auth.md#exchangetoken_b6b1871) | Asynchronously exchanges an OIDC provider's Authorization code or Id Token for an OidcToken i.e. Outbound Access Token. |
 |  [fetchSignInMethodsForEmail(auth, email)](./auth.md#fetchsigninmethodsforemail_efb3887) | Gets the list of possible sign in methods for the given email address. This method returns an empty list when [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, irrespective of the number of authentication methods available for the given email. |
 |  [getMultiFactorResolver(auth, error)](./auth.md#getmultifactorresolver_201ba61) | Provides a [MultiFactorResolver](./auth.multifactorresolver.md#multifactorresolver_interface) suitable for completion of a multi-factor flow. |
 |  [getRedirectResult(auth, resolver)](./auth.md#getredirectresult_c35dc1f) | Returns a [UserCredential](./auth.usercredential.md#usercredential_interface) from the redirect-based sign-in flow. |
@@ -404,6 +405,34 @@ export declare function createUserWithEmailAndPassword(auth: Auth, email: string
 <b>Returns:</b>
 
 Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
+
+### exchangeToken(auth, idpConfigId, customToken) {:#exchangetoken_b6b1871}
+
+Asynchronously exchanges an OIDC provider's Authorization code or Id Token for an OidcToken i.e. Outbound Access Token.
+
+This method is imeplemented only for  and requires [TenantConfig](./auth.tenantconfig.md#tenantconfig_interface) to be configured in the [Auth](./auth.auth.md#auth_interface) instance used.
+
+Fails with an error if the token is invalid, expired, or not accepted by the Firebase Auth service.
+
+<b>Signature:</b>
+
+```typescript
+export declare function exchangeToken(auth: Auth, idpConfigId: string, customToken: string): Promise<string>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
+|  idpConfigId | string | The ExternalUserDirectoryId corresponding to the OIDC custom Token. |
+|  customToken | string | The OIDC provider's Authorization code or Id Token to exchange. |
+
+<b>Returns:</b>
+
+Promise&lt;string&gt;
+
+The firebase access token (JWT signed by Firebase Auth).
 
 ### fetchSignInMethodsForEmail(auth, email) {:#fetchsigninmethodsforemail_efb3887}
 
