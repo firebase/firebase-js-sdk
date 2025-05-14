@@ -29,6 +29,7 @@ The Firebase AI Web SDK.
 |  --- | --- |
 |  [AIError](./ai.aierror.md#aierror_class) | Error class for the Firebase AI SDK. |
 |  [AIModel](./ai.aimodel.md#aimodel_class) | Base class for Firebase AI model APIs.<!-- -->Instances of this class are associated with a specific Firebase AI [Backend](./ai.backend.md#backend_class) and provide methods for interacting with the configured generative model. |
+|  [AnyOfSchema](./ai.anyofschema.md#anyofschema_class) | Schema class representing a value that can conform to any of the provided sub-schemas. This is useful when a field can accept multiple distinct types or structures. |
 |  [ArraySchema](./ai.arrayschema.md#arrayschema_class) | Schema class for "array" types. The <code>items</code> param should refer to the type of item that can be a member of the array. |
 |  [Backend](./ai.backend.md#backend_class) | Abstract base class representing the configuration for an AI service backend. This class should not be instantiated directly. Use its subclasses; [GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) for the Gemini Developer API (via [Google AI](https://ai.google/)<!-- -->), and [VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class) for the Vertex AI Gemini API. |
 |  [BooleanSchema](./ai.booleanschema.md#booleanschema_class) | Schema class for "boolean" types. |
@@ -410,7 +411,7 @@ A type that includes all specific Schema types.
 <b>Signature:</b>
 
 ```typescript
-export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema;
+export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
 ```
 
 ## VertexAI

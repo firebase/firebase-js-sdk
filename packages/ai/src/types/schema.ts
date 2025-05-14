@@ -42,6 +42,12 @@ export enum SchemaType {
  * @public
  */
 export interface SchemaShared<T> {
+  /**
+   * An array of {@link Schema}. The generated data must be valid against any of the schemas
+   * listed in this array. This allows specifying multiple possible structures or types for a
+   * single field.
+   */
+  anyOf?: T[];
   /** Optional. The format of the property.
    * When using the Gemini Developer API ({@link GoogleAIBackend}), this must be either `'enum'` or
    * `'date-time'`, otherwise requests will fail.
@@ -77,10 +83,10 @@ export interface SchemaParams extends SchemaShared<SchemaInterface> {}
  */
 export interface SchemaRequest extends SchemaShared<SchemaRequest> {
   /**
-   * The type of the property. {@link
-   * SchemaType}.
+   * The type of the property. this can only be undefined when using `anyof` schemas,
+   * which do not have an explicit type in the {@link OpenAPI specification | https://swagger.io/docs/specification/v3_0/data-models/data-types/#any-type}.
    */
-  type: SchemaType;
+  type?: SchemaType;
   /** Optional. Array of required property. */
   required?: string[];
 }
@@ -91,10 +97,10 @@ export interface SchemaRequest extends SchemaShared<SchemaRequest> {
  */
 export interface SchemaInterface extends SchemaShared<SchemaInterface> {
   /**
-   * The type of the property. {@link
-   * SchemaType}.
+   * The type of the property. this can only be undefined when using `anyof` schemas,
+   * which do not have an explicit type in the {@link OpenAPI specification | https://swagger.io/docs/specification/v3_0/data-models/data-types/#any-type}.
    */
-  type: SchemaType;
+  type?: SchemaType;
 }
 
 /**

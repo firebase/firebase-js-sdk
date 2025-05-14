@@ -99,7 +99,7 @@ export interface GenerationConfig {
    * value can be a class generated with a {@link Schema} static method
    * like `Schema.string()` or `Schema.object()` or it can be a plain
    * JS object matching the {@link SchemaRequest} interface.
-   * <br/>Note: This only applies when the specified `responseMIMEType` supports a schema; currently
+   * <br/>Note: This only applies when the specified `responseMimeType` supports a schema; currently
    * this is limited to `application/json` and `text/x.enum`.
    */
   responseSchema?: TypedSchema | SchemaRequest;
