@@ -17,10 +17,7 @@
 
 import {
   assert,
-  jsonEval,
   safeGet,
-  querystring,
-  Deferred
 } from '@firebase/util';
 
 import { AppCheckTokenProvider } from './AppCheckTokenProvider';
@@ -56,7 +53,7 @@ export class ReadonlyRestClient extends ServerActions {
     } else {
       assert(
         query._queryParams.isDefault(),
-        "should have a tag if it's not a default query."
+        'should have a tag if it\'s not a default query.'
       );
       return query._path.toString();
     }
@@ -81,7 +78,7 @@ export class ReadonlyRestClient extends ServerActions {
   }
 
   /** @inheritDoc */
-  listen(
+  async listen(
     query: QueryContext,
     currentHashFn: () => string,
     tag: number | null,
@@ -99,35 +96,34 @@ export class ReadonlyRestClient extends ServerActions {
       query._queryParams
     );
 
-    this.restRequest_(
+    let [response, data] = await this.restRequest_(
       pathString + '.json',
       queryStringParameters,
-      (error, result) => {
-        let data = result;
-
-        if (error === 404) {
-          data = null;
-          error = null;
-        }
-
-        if (error === null) {
-          this.onDataUpdate_(pathString, data, /*isMerge=*/ false, tag);
-        }
-
-        if (safeGet(this.listens_, listenId) === thisListen) {
-          let status;
-          if (!error) {
-            status = 'ok';
-          } else if (error === 401) {
-            status = 'permission_denied';
-          } else {
-            status = 'rest_error:' + error;
-          }
-
-          onComplete(status, null);
-        }
-      }
     );
+
+    let error = response.status;
+
+    if (error === 404) {
+      data = null;
+      error = null;
+    }
+
+    if (error === null) {
+      this.onDataUpdate_(pathString, data, /*isMerge=*/ false, tag);
+    }
+
+    if (safeGet(this.listens_, listenId) === thisListen) {
+      let status;
+      if (!error) {
+        status = 'ok';
+      } else if (error === 401) {
+        status = 'permission_denied';
+      } else {
+        status = 'rest_error:' + error;
+      }
+
+      onComplete(status, null);
+    }
   }
 
   /** @inheritDoc */
@@ -136,40 +132,31 @@ export class ReadonlyRestClient extends ServerActions {
     delete this.listens_[listenId];
   }
 
-  get(query: QueryContext): Promise<string> {
+  async get(query: QueryContext): Promise<string> {
     const queryStringParameters = queryParamsToRestQueryStringParameters(
       query._queryParams
     );
 
     const pathString = query._path.toString();
 
-    const deferred = new Deferred<string>();
-
-    this.restRequest_(
+    let [response, data] = await this.restRequest_(
       pathString + '.json',
-      queryStringParameters,
-      (error, result) => {
-        let data = result;
-
-        if (error === 404) {
-          data = null;
-          error = null;
-        }
-
-        if (error === null) {
-          this.onDataUpdate_(
-            pathString,
-            data,
-            /*isMerge=*/ false,
-            /*tag=*/ null
-          );
-          deferred.resolve(data as string);
-        } else {
-          deferred.reject(new Error(data as string));
-        }
-      }
+      queryStringParameters
     );
-    return deferred.promise;
+
+      if (response.status === 404) {
+        data = null;
+      } else if (!response.ok) {
+        throw new Error(data as string);
+      }
+
+      this.onDataUpdate_(
+        pathString,
+        data,
+        /*isMerge=*/ false,
+        /*tag=*/ null
+      );
+      return data as string;
   }
 
   /** @inheritDoc */
@@ -181,74 +168,57 @@ export class ReadonlyRestClient extends ServerActions {
    * Performs a REST request to the given path, with the provided query string parameters,
    * and any auth credentials we have.
    */
-  private restRequest_(
+  private async restRequest_<T = unknown>(
     pathString: string,
-    queryStringParameters: { [k: string]: string | number } = {},
-    callback: ((a: number | null, b?: unknown) => void) | null
-  ) {
-    queryStringParameters['format'] = 'export';
+    queryStringParameters: Record<string, string | number> = {},
+  ): Promise<[Response, T | null]> {
 
-    return Promise.all([
+    // Fetch tokens
+    const [authToken, appCheckToken] = await Promise.all([
       this.authTokenProvider_.getToken(/*forceRefresh=*/ false),
       this.appCheckTokenProvider_.getToken(/*forceRefresh=*/ false)
-    ]).then(([authToken, appCheckToken]) => {
-      if (authToken && authToken.accessToken) {
-        queryStringParameters['auth'] = authToken.accessToken;
-      }
-      if (appCheckToken && appCheckToken.token) {
-        queryStringParameters['ac'] = appCheckToken.token;
-      }
+    ]);
 
-      const url =
-        (this.repoInfo_.secure ? 'https://' : 'http://') +
-        this.repoInfo_.host +
-        pathString +
-        '?' +
-        'ns=' +
-        this.repoInfo_.namespace +
-        querystring(queryStringParameters);
+    // Configure URL parameters
+    const searchParams = new URLSearchParams(queryStringParameters as Record<string, string>);
+    if (authToken && authToken.accessToken) {
+      searchParams.set('auth', authToken.accessToken);
+    }
+    if (appCheckToken && appCheckToken.token) {
+      searchParams.set("ac", appCheckToken.token);
+    }
+    searchParams.set('format', 'export');
+    searchParams.set('ns', this.repoInfo_.namespace);
 
-      this.log_('Sending REST request for ' + url);
-      const xhr = new XMLHttpRequest();
-      xhr.onreadystatechange = () => {
-        if (callback && xhr.readyState === 4) {
-          this.log_(
-            'REST Response for ' + url + ' received. status:',
-            xhr.status,
-            'response:',
-            xhr.responseText
-          );
-          let res = null;
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-              res = jsonEval(xhr.responseText);
-            } catch (e) {
-              warn(
-                'Failed to parse JSON response for ' +
-                  url +
-                  ': ' +
-                  xhr.responseText
-              );
-            }
-            callback(null, res);
-          } else {
-            // 401 and 404 are expected.
-            if (xhr.status !== 401 && xhr.status !== 404) {
-              warn(
-                'Got unsuccessful REST response for ' +
-                  url +
-                  ' Status: ' +
-                  xhr.status
-              );
-            }
-            callback(xhr.status);
-          }
-          callback = null;
-        }
-      };
+    // Build & send the request
+    const url =
+      (this.repoInfo_.secure ? 'https://' : 'http://') +
+      this.repoInfo_.host +
+      pathString +
+      '?' +
+      searchParams.toString();
 
-      xhr.open('GET', url, /*asynchronous=*/ true);
-      xhr.send();
-    });
+    this.log_('Sending REST request for ' + url);
+    const response = await fetch(url);
+    if (!response.ok) {
+      // Request was not successful, so throw an error
+      throw new Error(`REST request at ${url} returned error: ${response.status}`);
+    }
+
+    this.log_(
+      'REST Response for ' + url + ' received. status:',
+      response.status,
+    );
+    let result: T | null = null;
+    try {
+      result = await response.json();
+    } catch (e) {
+      warn(
+        'Failed to parse server response as json.',
+        e
+      );
+    }
+
+    return [response, result];
   }
 }
