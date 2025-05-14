@@ -355,7 +355,7 @@ describe('Schema builder', () => {
           {
             type: 'object',
             properties: { name: { type: 'string', nullable: false } },
-            nullable: false,
+            nullable: false
           },
           {
             type: 'array',

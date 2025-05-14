@@ -88,7 +88,7 @@ export abstract class Schema implements SchemaInterface {
    * @internal
    */
   toJSON(): SchemaRequest {
-    const obj: { type?: SchemaType;[key: string]: unknown } = {
+    const obj: { type?: SchemaType; [key: string]: unknown } = {
       type: this.type
     };
     for (const prop in this) {
