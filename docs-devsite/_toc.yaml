@@ -102,6 +102,18 @@ toc:
     path: /docs/reference/js/ai.inlinedatapart.md
   - title: IntegerSchema
     path: /docs/reference/js/ai.integerschema.md
+  - title: LanguageModelCreateCoreOptions
+    path: /docs/reference/js/ai.languagemodelcreatecoreoptions.md
+  - title: LanguageModelCreateOptions
+    path: /docs/reference/js/ai.languagemodelcreateoptions.md
+  - title: LanguageModelExpectedInput
+    path: /docs/reference/js/ai.languagemodelexpectedinput.md
+  - title: LanguageModelMessage
+    path: /docs/reference/js/ai.languagemodelmessage.md
+  - title: LanguageModelMessageContent
+    path: /docs/reference/js/ai.languagemodelmessagecontent.md
+  - title: LanguageModelMessageShorthand
+    path: /docs/reference/js/ai.languagemodelmessageshorthand.md
   - title: ModalityTokenCount
     path: /docs/reference/js/ai.modalitytokencount.md
   - title: ModelParams

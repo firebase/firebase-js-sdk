@@ -53,20 +53,20 @@ export interface LanguageModelPromptOptions {
   responseConstraint?: object;
   // TODO: Restore AbortSignal once the API is defined.
 }
-interface LanguageModelExpectedInput {
+export interface LanguageModelExpectedInput {
   type: LanguageModelMessageType;
   languages?: string[];
 }
 // TODO: revert to type from Prompt API explainer once it's supported.
 export type LanguageModelPrompt = LanguageModelMessageContent[];
-type LanguageModelInitialPrompts =
+export type LanguageModelInitialPrompts =
   | LanguageModelMessage[]
   | LanguageModelMessageShorthand[];
-interface LanguageModelMessage {
+export interface LanguageModelMessage {
   role: LanguageModelMessageRole;
   content: LanguageModelMessageContent[];
 }
-interface LanguageModelMessageShorthand {
+export interface LanguageModelMessageShorthand {
   role: LanguageModelMessageRole;
   content: string;
 }
@@ -74,9 +74,9 @@ export interface LanguageModelMessageContent {
   type: LanguageModelMessageType;
   content: LanguageModelMessageContentValue;
 }
-type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
-type LanguageModelMessageType = 'text' | 'image' | 'audio';
-type LanguageModelMessageContentValue =
+export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
+export type LanguageModelMessageType = 'text' | 'image' | 'audio';
+export type LanguageModelMessageContentValue =
   | ImageBitmapSource
   | AudioBuffer
   | BufferSource

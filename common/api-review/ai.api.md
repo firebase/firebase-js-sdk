@@ -664,6 +664,70 @@ export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
 
+// @public (undocumented)
+export interface LanguageModelCreateCoreOptions {
+    // (undocumented)
+    expectedInputs?: LanguageModelExpectedInput[];
+    // (undocumented)
+    temperature?: number;
+    // (undocumented)
+    topK?: number;
+}
+
+// @public (undocumented)
+export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptions {
+    // (undocumented)
+    initialPrompts?: LanguageModelInitialPrompts;
+    // (undocumented)
+    signal?: AbortSignal;
+    // (undocumented)
+    systemPrompt?: string;
+}
+
+// @public (undocumented)
+export interface LanguageModelExpectedInput {
+    // (undocumented)
+    languages?: string[];
+    // (undocumented)
+    type: LanguageModelMessageType;
+}
+
+// @public (undocumented)
+export type LanguageModelInitialPrompts = LanguageModelMessage[] | LanguageModelMessageShorthand[];
+
+// @public (undocumented)
+export interface LanguageModelMessage {
+    // (undocumented)
+    content: LanguageModelMessageContent[];
+    // (undocumented)
+    role: LanguageModelMessageRole;
+}
+
+// @public (undocumented)
+export interface LanguageModelMessageContent {
+    // (undocumented)
+    content: LanguageModelMessageContentValue;
+    // (undocumented)
+    type: LanguageModelMessageType;
+}
+
+// @public (undocumented)
+export type LanguageModelMessageContentValue = ImageBitmapSource | AudioBuffer | BufferSource | string;
+
+// @public (undocumented)
+export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
+
+// @public (undocumented)
+export interface LanguageModelMessageShorthand {
+    // (undocumented)
+    content: string;
+    // (undocumented)
+    role: LanguageModelMessageRole;
+}
+
+// @public (undocumented)
+export type LanguageModelMessageType = 'text' | 'image' | 'audio';
+
 // @public
 export enum Modality {
     AUDIO = "AUDIO",
@@ -722,8 +786,6 @@ export interface ObjectSchemaInterface extends SchemaInterface {
 
 // @public
 export interface OnDeviceParams {
-    // Warning: (ae-forgotten-export) The symbol "LanguageModelCreateOptions" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     createOptions?: LanguageModelCreateOptions;
     // Warning: (ae-forgotten-export) The symbol "LanguageModelPromptOptions" needs to be exported by the entry point index.d.ts
