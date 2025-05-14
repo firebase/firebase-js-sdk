@@ -2,4 +2,4 @@
 "@firebase/util": patch
 ---
 
-Fixed scroll behavior
+Fixed emulator overlay behavior on scroll
