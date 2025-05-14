@@ -1,5 +1,38 @@
 # firebase
 
+## 11.7.3
+
+### Patch Changes
+
+- Updated dependencies [[`9bcd1ea`](https://github.com/firebase/firebase-js-sdk/commit/9bcd1ea9b8cc5b55692765d40df000da8ddef02b)]:
+  - @firebase/util@1.11.3
+  - @firebase/analytics@0.10.15
+  - @firebase/analytics-compat@0.2.21
+  - @firebase/app@0.12.3
+  - @firebase/app-check@0.9.3
+  - @firebase/app-check-compat@0.3.24
+  - @firebase/app-compat@0.3.3
+  - @firebase/auth@1.10.4
+  - @firebase/auth-compat@0.5.24
+  - @firebase/data-connect@0.3.7
+  - @firebase/database@1.0.17
+  - @firebase/database-compat@2.0.8
+  - @firebase/firestore@4.7.14
+  - @firebase/firestore-compat@0.3.49
+  - @firebase/functions@0.12.6
+  - @firebase/functions-compat@0.3.23
+  - @firebase/installations@0.6.16
+  - @firebase/installations-compat@0.2.16
+  - @firebase/messaging@0.12.20
+  - @firebase/messaging-compat@0.2.20
+  - @firebase/performance@0.7.5
+  - @firebase/performance-compat@0.2.18
+  - @firebase/remote-config@0.6.3
+  - @firebase/remote-config-compat@0.2.16
+  - @firebase/storage@0.13.10
+  - @firebase/storage-compat@0.3.20
+  - @firebase/vertexai@1.2.4
+
 ## 11.7.2
 
 ### Patch Changes
