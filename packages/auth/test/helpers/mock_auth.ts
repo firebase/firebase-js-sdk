@@ -42,7 +42,9 @@ export interface TestAuth extends AuthImpl {
 
 const FAKE_APP: FirebaseApp = {
   name: 'test-app',
-  options: {},
+  options: {
+    projectId: 'test-project-id'
+  },
   automaticDataCollectionEnabled: false
 };
 

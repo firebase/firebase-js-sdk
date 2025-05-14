@@ -315,6 +315,7 @@ export {
   sendEmailVerification,
   verifyBeforeUpdateEmail
 } from './strategies/email';
+export { exchangeToken } from './strategies/exhange_token';
 
 // core
 export { ActionCodeURL, parseActionCodeURL } from './action_code_url';
