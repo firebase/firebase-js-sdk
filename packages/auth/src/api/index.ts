@@ -54,7 +54,7 @@ export const enum HttpHeader {
   X_FIREBASE_APP_CHECK = 'X-Firebase-AppCheck'
 }
 
-export enum Endpoint {
+export const enum Endpoint {
   CREATE_AUTH_URI = '/v1/accounts:createAuthUri',
   DELETE_ACCOUNT = '/v1/accounts:delete',
   RESET_PASSWORD = '/v1/accounts:resetPassword',
@@ -155,7 +155,6 @@ async function performApiRequest<T, V>(
   request?: T,
   customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
-  _assertValidEndpointForAuth(auth, path);
   return _performFetchWithErrorHandling(auth, customErrorMap, async () => {
     let body = {};
     let params = {};
@@ -372,22 +371,6 @@ export function _parseEnforcementState(
       return EnforcementState.OFF;
     default:
       return EnforcementState.ENFORCEMENT_STATE_UNSPECIFIED;
-  }
-}
-
-function _assertValidEndpointForAuth(
-  auth: Auth,
-  path: Endpoint | RegionalEndpoint
-): void {
-  if (
-    !auth.tenantConfig &&
-    Object.values(RegionalEndpoint).includes(path as RegionalEndpoint)
-  ) {
-    throw _operationNotSupportedForInitializedAuthInstance(auth);
-  }
-
-  if (auth.tenantConfig && Object.values(Endpoint).includes(path as Endpoint)) {
-    throw _operationNotSupportedForInitializedAuthInstance(auth);
   }
 }
 
