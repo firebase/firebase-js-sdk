@@ -93,7 +93,7 @@ export const enum DefaultConfig {
   TOKEN_API_HOST = 'securetoken.googleapis.com',
   API_HOST = 'identitytoolkit.googleapis.com',
   API_SCHEME = 'https',
-  REGIONAL_API_HOST = 'identityplatform.googleapis.com'
+  REGIONAL_API_HOST = 'identityplatform.googleapis.com/v2alpha/'
 }
 
 export class AuthImpl implements AuthInternal, _FirebaseService {
