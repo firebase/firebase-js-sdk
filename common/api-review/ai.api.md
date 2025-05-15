@@ -831,10 +831,14 @@ export interface SchemaShared<T> {
     example?: unknown;
     format?: string;
     items?: T;
+    maximum?: number;
+    minimum?: number;
     nullable?: boolean;
     properties?: {
         [k: string]: T;
     };
+    propertyOrdering?: string[];
+    title?: string;
 }
 
 // @public
