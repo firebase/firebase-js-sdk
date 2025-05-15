@@ -608,7 +608,7 @@ export function documentSnapshotFromJSON<
 >(
   db: Firestore,
   json: object,
-  ...args: unknown[]
+  converter?: FirestoreDataConverter<AppModelType, DbModelType>
 ): DocumentSnapshot<AppModelType, DbModelType> {
   if (validateJSON(json, DocumentSnapshot._jsonSchema)) {
     // Parse the bundle data.
@@ -638,12 +638,6 @@ export function documentSnapshotFromJSON<
       ResourcePath.fromString(json.bundleName)
     );
 
-    let converter: FirestoreDataConverter<AppModelType, DbModelType> | null =
-      null;
-    if (args[0]) {
-      converter = args[0] as FirestoreDataConverter<AppModelType, DbModelType>;
-    }
-
     // Return the external facing DocumentSnapshot.
     return new DocumentSnapshot(
       db,
@@ -654,7 +648,7 @@ export function documentSnapshotFromJSON<
         /* hasPendingWrites= */ false,
         /* fromCache= */ false
       ),
-      converter
+      converter ? converter : null
     );
   }
   throw new FirestoreError(
@@ -918,7 +912,7 @@ export function querySnapshotFromJSON<
 >(
   db: Firestore,
   json: object,
-  ...args: unknown[]
+  converter?: FirestoreDataConverter<AppModelType, DbModelType>
 ): QuerySnapshot<AppModelType, DbModelType> {
   if (validateJSON(json, QuerySnapshot._jsonSchema)) {
     // Parse the bundle data.
@@ -959,16 +953,10 @@ export function querySnapshotFromJSON<
       /* hasCachedResults= */ false
     );
 
-    let converter: FirestoreDataConverter<AppModelType, DbModelType> | null =
-      null;
-    if (args[0]) {
-      converter = args[0] as FirestoreDataConverter<AppModelType, DbModelType>;
-    }
-
     // Create an external Query object, required to construct the QuerySnapshot.
     const externalQuery = new Query<AppModelType, DbModelType>(
       db,
-      converter,
+      converter ? converter : null,
       query
     );
 
