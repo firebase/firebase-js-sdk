@@ -16,7 +16,7 @@
  */
 
 import { deleteApp } from '@firebase/app';
-import { Deferred } from '@firebase/util';
+import { Deferred , isNode } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
@@ -86,13 +86,6 @@ import {
   toIds
 } from '../util/helpers';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
-
-import {
-  DOCUMENT_SNAPSHOT_BUNDLE_TEST_PROJECT,
-  QUERY_SNAPSHOT_BUNDLE_TEST_PROJECT
-} from '../../util/helpers';
-
-import { isNode } from '@firebase/util';
 
 use(chaiAsPromised);
 
@@ -1211,108 +1204,101 @@ apiDescribe('Database', persistence => {
   });
 
   it('DocumentSnapshot events for snapshot created by a bundle', async () => {
-    const initialData = { a: 1 };
-    const finalData = { a: 2 };
-    await withTestDocAndInitialData(
-      persistence,
-      initialData,
-      async (docRef, db) => {
-        const doc = await getDoc(docRef);
-        const accumulator = new EventsAccumulator<DocumentSnapshot>();
-        let json: object = DOCUMENT_SNAPSHOT_BUNDLE_TEST_PROJECT; // Bundled Doc: { a: 1 }.
-        if (isNode()) {
-          // Test programmatically generated JSON if the environment supports bundle generation.
-          json = doc.toJSON();
+    if (isNode()) {
+      const initialData = { a: 1 };
+      const finalData = { a: 2 };
+      await withTestDocAndInitialData(
+        persistence,
+        initialData,
+        async (docRef, db) => {
+          const doc = await getDoc(docRef);
+          const accumulator = new EventsAccumulator<DocumentSnapshot>();
+          const unsubscribe = onSnapshotResume(
+            db,
+            doc.toJSON(),
+            accumulator.storeEvent
+          );
+          await accumulator
+            .awaitEvent()
+            .then(snap => {
+              console.error('DEDB accumulator event 1');
+              expect(snap.exists()).to.be.true;
+              expect(snap.data()).to.deep.equal(initialData);
+            })
+            .then(() => setDoc(docRef, finalData))
+            .then(() => accumulator.awaitEvent())
+            .then(snap => {
+              expect(snap.exists()).to.be.true;
+              expect(snap.data()).to.deep.equal(finalData);
+            });
+          unsubscribe();
         }
-
-        const unsubscribe = onSnapshotResume(db, json, accumulator.storeEvent);
-        await accumulator
-          .awaitEvent()
-          .then(snap => {
-            console.error('DEDB accumulator event 1');
-            expect(snap.exists()).to.be.true;
-            expect(snap.data()).to.deep.equal(initialData);
-          })
-          .then(() => setDoc(docRef, finalData))
-          .then(() => accumulator.awaitEvent())
-          .then(snap => {
-            expect(snap.exists()).to.be.true;
-            expect(snap.data()).to.deep.equal(finalData);
-          });
-        unsubscribe();
-      }
-    );
+      );
+    }
   });
 
   it('DocumentSnapshot updated doc events in snapshot created by a bundle accumulator', async () => {
-    const initialData = { a: 1 };
-    const finalData = { a: 2 };
-    await withTestDocAndInitialData(
-      persistence,
-      initialData,
-      async (docRef, db) => {
-        const doc = await getDoc(docRef);
-        const accumulator = new EventsAccumulator<DocumentSnapshot>();
-        let json: object = DOCUMENT_SNAPSHOT_BUNDLE_TEST_PROJECT; // Bundled Doc: { a: 1 }.
-        if (isNode()) {
-          // Test programmatically generated JSON if the environment supports bundle generation.
-          json = doc.toJSON();
+    if (isNode()) {
+      const initialData = { a: 1 };
+      const finalData = { a: 2 };
+      await withTestDocAndInitialData(
+        persistence,
+        initialData,
+        async (docRef, db) => {
+          const doc = await getDoc(docRef);
+          const accumulator = new EventsAccumulator<DocumentSnapshot>();
+          const unsubscribe = onSnapshotResume(
+            db,
+            doc.toJSON(),
+            accumulator.storeEvent
+          );
+          await accumulator
+            .awaitEvent()
+            .then(snap => {
+              expect(snap.exists()).to.be.true;
+              expect(snap.data()).to.deep.equal(initialData);
+            })
+            .then(() => setDoc(docRef, finalData))
+            .then(() => accumulator.awaitEvent())
+            .then(snap => {
+              expect(snap.exists()).to.be.true;
+              expect(snap.data()).to.deep.equal(finalData);
+            });
+          unsubscribe();
         }
-        const unsubscribe = onSnapshotResume(db, json, accumulator.storeEvent);
-        await accumulator
-          .awaitEvent()
-          .then(snap => {
-            console.error('accumulator DDB 1!');
-            expect(snap.exists()).to.be.true;
-            expect(snap.data()).to.deep.equal(initialData);
-          })
-          .then(() => {
-            console.error('accumulator DDB 2!');
-            setDoc(docRef, finalData);
-          })
-          .then(() => accumulator.awaitEvent())
-          .then(snap => {
-            console.error('accumulator DDB 3!');
-            expect(snap.exists()).to.be.true;
-            expect(snap.data()).to.deep.equal(finalData);
-          });
-        unsubscribe();
-      }
-    );
+      );
+    }
   });
 
   it('DocumentSnapshot observer events for snapshot created by a bundle', async () => {
-    const initialData = { a: 1 };
-    const finalData = { a: 2 };
-    await withTestDocAndInitialData(
-      persistence,
-      initialData,
-      async (docRef, db) => {
-        const doc = await getDoc(docRef);
-        const accumulator = new EventsAccumulator<DocumentSnapshot>();
-        let json: object = DOCUMENT_SNAPSHOT_BUNDLE_TEST_PROJECT; // Bundled Doc: { a: 1 }.
-        if (isNode()) {
-          // Test programmatically generated JSON if the environment supports bundle generation.
-          json = doc.toJSON();
-        }
-        const unsubscribe = onSnapshotResume(db, json, {
-          next: accumulator.storeEvent
-        });
-        await accumulator
-          .awaitEvent()
-          .then(snap => {
-            expect(snap.exists()).to.be.true;
-            expect(snap.data()).to.deep.equal(initialData);
-          })
-          .then(() => setDoc(docRef, finalData))
-          .then(() => accumulator.awaitEvent())
-          .then(snap => {
-            expect(snap.exists()).to.be.true;
-            expect(snap.data()).to.deep.equal(finalData);
+    if (isNode()) {
+      const initialData = { a: 1 };
+      const finalData = { a: 2 };
+      await withTestDocAndInitialData(
+        persistence,
+        initialData,
+        async (docRef, db) => {
+          const doc = await getDoc(docRef);
+          const accumulator = new EventsAccumulator<DocumentSnapshot>();
+          const unsubscribe = onSnapshotResume(db, doc.toJSON(), {
+            next: accumulator.storeEvent
           });
-        unsubscribe();
-      }
-    );
+          await accumulator
+            .awaitEvent()
+            .then(snap => {
+              expect(snap.exists()).to.be.true;
+              expect(snap.data()).to.deep.equal(initialData);
+            })
+            .then(() => setDoc(docRef, finalData))
+            .then(() => accumulator.awaitEvent())
+            .then(snap => {
+              expect(snap.exists()).to.be.true;
+              expect(snap.data()).to.deep.equal(finalData);
+            });
+          unsubscribe();
+        }
+      );
+    }
   });
 
   it('DocumentSnapshot error events for snapshot created by a bundle', async () => {
@@ -1400,86 +1386,84 @@ apiDescribe('Database', persistence => {
   });
 
   it('DocumentSnapshot updated doc events in snapshot created by fromJSON doc ref', async () => {
-    const initialData = { a: 1 };
-    const finalData = { a: 2 };
-    await withTestDocAndInitialData(
-      persistence,
-      initialData,
-      async (docRef, db) => {
-        const doc = await getDoc(docRef);
-        let json: object = DOCUMENT_SNAPSHOT_BUNDLE_TEST_PROJECT; // Bundled Doc: { a: 1 }, same as initialData.
-        if (isNode()) {
-          // Test generated JSON if we're in an enviorment that supports bundle generation.
-          json = doc.toJSON();
+    if (isNode()) {
+      const initialData = { a: 1 };
+      const finalData = { a: 2 };
+      await withTestDocAndInitialData(
+        persistence,
+        initialData,
+        async (docRef, db) => {
+          const doc = await getDoc(docRef);
+          const fromJsonDoc = documentSnapshotFromJSON(db, doc.toJSON());
+          const accumulator = new EventsAccumulator<DocumentSnapshot>();
+          const unsubscribe = onSnapshot(
+            fromJsonDoc.ref,
+            accumulator.storeEvent
+          );
+          await accumulator
+            .awaitEvent()
+            .then(snap => {
+              expect(snap.exists()).to.be.true;
+              expect(snap.data()).to.deep.equal(initialData);
+            })
+            .then(() => setDoc(docRef, finalData))
+            .then(() => accumulator.awaitEvent())
+            .then(snap => {
+              expect(snap.exists()).to.be.true;
+              expect(snap.data()).to.deep.equal(finalData);
+            });
+          unsubscribe();
         }
-        const fromJsonDoc = documentSnapshotFromJSON(db, json);
-        const accumulator = new EventsAccumulator<DocumentSnapshot>();
-        const unsubscribe = onSnapshot(fromJsonDoc.ref, accumulator.storeEvent);
-        await accumulator
-          .awaitEvent()
-          .then(snap => {
-            expect(snap.exists()).to.be.true;
-            expect(snap.data()).to.deep.equal(initialData);
-          })
-          .then(() => setDoc(docRef, finalData))
-          .then(() => accumulator.awaitEvent())
-          .then(snap => {
-            expect(snap.exists()).to.be.true;
-            expect(snap.data()).to.deep.equal(finalData);
-          });
-        unsubscribe();
-      }
-    );
+      );
+    }
   });
 
   it('Querysnapshot events for snapshot created by a bundle', async () => {
-    const testDocs = {
-      a: { foo: 1 },
-      b: { bar: 2 }
-    };
-    await withTestCollection(persistence, testDocs, async (coll, db) => {
-      const querySnap = await getDocs(query(coll, orderBy(documentId())));
-      const accumulator = new EventsAccumulator<QuerySnapshot>();
-      let json: object = QUERY_SNAPSHOT_BUNDLE_TEST_PROJECT; // Bundled docs: { a: { foo: 1 }, b: { bar: 2 } }.
-      if (isNode()) {
-        // Test programmatically generated JSON if the environment supports bundle generation.
-        json = querySnap.toJSON();
-      }
-      const unsubscribe = onSnapshotResume(db, json, accumulator.storeEvent);
-      await accumulator.awaitEvent().then(snap => {
-        expect(snap.docs).not.to.be.null;
-        expect(snap.docs.length).to.equal(2);
-        expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
-        expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+    if (isNode()) {
+      const testDocs = {
+        a: { foo: 1 },
+        b: { bar: 2 }
+      };
+      await withTestCollection(persistence, testDocs, async (coll, db) => {
+        const querySnap = await getDocs(query(coll, orderBy(documentId())));
+        const accumulator = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshotResume(
+          db,
+          querySnap.toJSON(),
+          accumulator.storeEvent
+        );
+        await accumulator.awaitEvent().then(snap => {
+          expect(snap.docs).not.to.be.null;
+          expect(snap.docs.length).to.equal(2);
+          expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
+          expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+        });
+        unsubscribe();
       });
-      unsubscribe();
-    });
+    }
   });
 
   it('Querysnapshot observer events for snapshot created by a bundle', async () => {
-    const testDocs = {
-      a: { foo: 1 },
-      b: { bar: 2 }
-    };
-    await withTestCollection(persistence, testDocs, async (coll, db) => {
-      const querySnap = await getDocs(query(coll, orderBy(documentId())));
-      let json: object = QUERY_SNAPSHOT_BUNDLE_TEST_PROJECT; // Bundled docs: { a: { foo: 1 }, b: { bar: 2 } }.
-      if (isNode()) {
-        // Test programmatically generated JSON if the environment supports bundle generation.
-        json = querySnap.toJSON();
-      }
-      const accumulator = new EventsAccumulator<QuerySnapshot>();
-      const unsubscribe = onSnapshotResume(db, json, {
-        next: accumulator.storeEvent
+    if (isNode()) {
+      const testDocs = {
+        a: { foo: 1 },
+        b: { bar: 2 }
+      };
+      await withTestCollection(persistence, testDocs, async (coll, db) => {
+        const querySnap = await getDocs(query(coll, orderBy(documentId())));
+        const accumulator = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshotResume(db, querySnap.toJSON(), {
+          next: accumulator.storeEvent
+        });
+        await accumulator.awaitEvent().then(snap => {
+          expect(snap.docs).not.to.be.null;
+          expect(snap.docs.length).to.equal(2);
+          expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
+          expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+        });
+        unsubscribe();
       });
-      await accumulator.awaitEvent().then(snap => {
-        expect(snap.docs).not.to.be.null;
-        expect(snap.docs.length).to.equal(2);
-        expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
-        expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
-      });
-      unsubscribe();
-    });
+    }
   });
 
   it('QuerySnapshot error events for snapshot created by a bundle', async () => {
@@ -1533,38 +1517,39 @@ apiDescribe('Database', persistence => {
   });
 
   it('QuerySnapshot updated doc events in snapshot created by a bundle', async () => {
-    const testDocs = {
-      a: { foo: 1 },
-      b: { bar: 2 }
-    };
-    await withTestCollection(persistence, testDocs, async (coll, db) => {
-      const querySnap = await getDocs(query(coll, orderBy(documentId())));
-      const refForDocA = querySnap.docs[0].ref;
-      const accumulator = new EventsAccumulator<QuerySnapshot>();
-      let json: object = QUERY_SNAPSHOT_BUNDLE_TEST_PROJECT; // Bundled docs: { a: { foo: 1 }, b: { bar: 2 } }.
-      if (isNode()) {
-        // Test programmatically generated JSON if the environment supports bundle generation.
-        json = querySnap.toJSON();
-      }
-      const unsubscribe = onSnapshotResume(db, json, accumulator.storeEvent);
-      await accumulator
-        .awaitEvent()
-        .then(snap => {
-          expect(snap.docs).not.to.be.null;
-          expect(snap.docs.length).to.equal(2);
-          expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
-          expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
-        })
-        .then(() => setDoc(refForDocA, { foo: 0 }))
-        .then(() => accumulator.awaitEvent())
-        .then(snap => {
-          expect(snap.docs).not.to.be.null;
-          expect(snap.docs.length).to.equal(2);
-          expect(snap.docs[0].data()).to.deep.equal({ foo: 0 });
-          expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
-        });
-      unsubscribe();
-    });
+    if (isNode()) {
+      const testDocs = {
+        a: { foo: 1 },
+        b: { bar: 2 }
+      };
+      await withTestCollection(persistence, testDocs, async (coll, db) => {
+        const querySnap = await getDocs(query(coll, orderBy(documentId())));
+        const refForDocA = querySnap.docs[0].ref;
+        const accumulator = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshotResume(
+          db,
+          querySnap.toJSON(),
+          accumulator.storeEvent
+        );
+        await accumulator
+          .awaitEvent()
+          .then(snap => {
+            expect(snap.docs).not.to.be.null;
+            expect(snap.docs.length).to.equal(2);
+            expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
+            expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+          })
+          .then(() => setDoc(refForDocA, { foo: 0 }))
+          .then(() => accumulator.awaitEvent())
+          .then(snap => {
+            expect(snap.docs).not.to.be.null;
+            expect(snap.docs.length).to.equal(2);
+            expect(snap.docs[0].data()).to.deep.equal({ foo: 0 });
+            expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+          });
+        unsubscribe();
+      });
+    }
   });
 
   it('QuerySnapshot updated doc events in snapshot created by fromJSON ', async () => {
@@ -1606,42 +1591,39 @@ apiDescribe('Database', persistence => {
   });
 
   it('QuerySnapshot updated doc events in snapshot created by fromJSON query ref', async () => {
-    const testDocs = {
-      a: { foo: 1 },
-      b: { bar: 2 }
-    };
-    await withTestCollection(persistence, testDocs, async (coll, db) => {
-      const querySnap = await getDocs(query(coll, orderBy(documentId())));
-      let json: object = QUERY_SNAPSHOT_BUNDLE_TEST_PROJECT; // Bundled docs: { a: { foo: 1 }, b: { bar: 2 } }.
-      if (isNode()) {
-        // Test programmatically generated JSON if the environment supports bundle generation.
-        json = querySnap.toJSON();
-      }
-      const querySnapFromJson = querySnapshotFromJSON(db, json);
-      const refForDocA = querySnapFromJson.docs[0].ref;
-      const accumulator = new EventsAccumulator<QuerySnapshot>();
-      const unsubscribe = onSnapshot(
-        querySnapFromJson.query,
-        accumulator.storeEvent
-      );
-      await accumulator
-        .awaitEvent()
-        .then(snap => {
-          expect(snap.docs).not.to.be.null;
-          expect(snap.docs.length).to.equal(2);
-          expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
-          expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
-        })
-        .then(() => setDoc(refForDocA, { foo: 0 }))
-        .then(() => accumulator.awaitEvent())
-        .then(snap => {
-          expect(snap.docs).not.to.be.null;
-          expect(snap.docs.length).to.equal(2);
-          expect(snap.docs[0].data()).to.deep.equal({ foo: 0 });
-          expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
-        });
-      unsubscribe();
-    });
+    if (isNode()) {
+      const testDocs = {
+        a: { foo: 1 },
+        b: { bar: 2 }
+      };
+      await withTestCollection(persistence, testDocs, async (coll, db) => {
+        const querySnap = await getDocs(query(coll, orderBy(documentId())));
+        const querySnapFromJson = querySnapshotFromJSON(db, querySnap.toJSON());
+        const refForDocA = querySnapFromJson.docs[0].ref;
+        const accumulator = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(
+          querySnapFromJson.query,
+          accumulator.storeEvent
+        );
+        await accumulator
+          .awaitEvent()
+          .then(snap => {
+            expect(snap.docs).not.to.be.null;
+            expect(snap.docs.length).to.equal(2);
+            expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
+            expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+          })
+          .then(() => setDoc(refForDocA, { foo: 0 }))
+          .then(() => accumulator.awaitEvent())
+          .then(snap => {
+            expect(snap.docs).not.to.be.null;
+            expect(snap.docs.length).to.equal(2);
+            expect(snap.docs[0].data()).to.deep.equal({ foo: 0 });
+            expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+          });
+        unsubscribe();
+      });
+    }
   });
 
   it('Metadata only changes are not fired when no options provided', () => {

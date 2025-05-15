@@ -18,9 +18,7 @@
 /** Return the Platform-specific build JSON bundle implementations. */
 import { Firestore } from '../../api/database';
 import { Query } from '../../core/query';
-import {
-  DocumentData
-} from '../../lite-api/reference';
+import { DocumentData } from '../../lite-api/reference';
 import { Document } from '../../model/document';
 import {
   BundleBuilder,
@@ -29,22 +27,16 @@ import {
 } from '../../util/bundle_builder_impl';
 import { AutoId } from '../../util/misc';
 
-
 export function buildDocumentSnapshotJsonBundle(
   db: Firestore,
   document: Document,
   docData: DocumentData,
   path: string
 ): string {
-  const builder: BundleBuilder = new BundleBuilder(
-    db,
-    AutoId.newId()
+  const builder: BundleBuilder = new BundleBuilder(db, AutoId.newId());
+  builder.addBundleDocument(
+    documentToDocumentSnapshotBundleData(path, docData, document)
   );
-  builder.addBundleDocument(documentToDocumentSnapshotBundleData(
-    path,
-    docData,
-    document
-  ));
   return builder.build();
 }
 
@@ -56,15 +48,11 @@ export function buildQuerySnapshotJsonBundle(
   paths: string[],
   docs: Document[],
   documentData: DocumentData[]
-) : string {
+): string {
   const docBundleDataArray: DocumentSnapshotBundleData[] = [];
   for (let i = 0; i < docs.length; i++) {
     docBundleDataArray.push(
-      documentToDocumentSnapshotBundleData(
-        paths[i],
-        documentData[i],
-        docs[i]
-      )
+      documentToDocumentSnapshotBundleData(paths[i], documentData[i], docs[i])
     );
   }
   const bundleData: QuerySnapshotBundleData = {

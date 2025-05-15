@@ -49,7 +49,6 @@ import {
 } from '../platform/snapshot_to_json';
 import { fromDocument } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
-
 import { Code, FirestoreError } from '../util/error';
 // API extractor fails importing 'property' unless we also explicitly import 'Property'.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-imports-ts

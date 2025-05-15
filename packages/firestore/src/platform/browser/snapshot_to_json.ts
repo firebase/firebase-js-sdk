@@ -16,11 +16,10 @@
  */
 
 /** Return the Platform-specific build JSON bundle implementations. */
+import { Firestore } from '../../api/database';
 import { Query } from '../../core/query';
 import { DocumentData } from '../../lite-api/reference';
 import { Document } from '../../model/document';
-import { Firestore } from '../../api/database';
-
 
 export function buildDocumentSnapshotJsonBundle(
   db: Firestore,
@@ -28,7 +27,7 @@ export function buildDocumentSnapshotJsonBundle(
   docData: DocumentData,
   path: string
 ): string {
-  return "NOT SUPPORTED";
+  return 'NOT SUPPORTED';
 }
 
 export function buildQuerySnapshotJsonBundle(
@@ -39,6 +38,6 @@ export function buildQuerySnapshotJsonBundle(
   paths: string[],
   docs: Document[],
   documentData: DocumentData[]
-) : string {
-  return "NOT SUPPORTED";
+): string {
+  return 'NOT SUPPORTED';
 }

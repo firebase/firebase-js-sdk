@@ -15,16 +15,18 @@
  * limitations under the License.
  */
 
+import { Firestore } from '../api/database';
 import { Query } from '../core/query';
 import { DocumentData } from '../lite-api/reference';
 import { Document } from '../model/document';
-import { Firestore } from '../api/database';
 
 // This file is only used under ts-node.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/snapshot_to_json`);
+const platform = require(`./${
+  process.env.TEST_PLATFORM ?? 'node'
+}/snapshot_to_json`);
 
-/** 
+/**
  * Constructs the bundle data for a DocumentSnapshot used in its toJSON serialization.
  */
 export function buildDocumentSnapshotJsonBundle(
@@ -36,16 +38,25 @@ export function buildDocumentSnapshotJsonBundle(
   return platform.buildDocumentSnapshotJsonBundle(db, document, docData, path);
 }
 
-/** 
+/**
  * Constructs the bundle data for a QuerySnapshot used in its toJSON serialization.
  */
 export function buildQuerySnapshotJsonBundle(
-  db: Firestore, query: Query,
+  db: Firestore,
+  query: Query,
   bundleName: string,
   parent: string,
   paths: string[],
   docs: Document[],
   documentData: DocumentData[]
-) : string {
-  return platform.buildQuerySnapshotJsonBundle(db, query, bundleName, parent, paths, docs, documentData);
+): string {
+  return platform.buildQuerySnapshotJsonBundle(
+    db,
+    query,
+    bundleName,
+    parent,
+    paths,
+    docs,
+    documentData
+  );
 }

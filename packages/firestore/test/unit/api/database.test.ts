@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { isNode } from '@firebase/util';
 import { expect } from 'chai';
 
 import {
@@ -40,13 +41,8 @@ import {
   query,
   querySnapshot
 } from '../../util/api_helpers';
-import {
-  DOCUMENT_SNAPSHOT_BUNDLE_TEST_PROJECT,
-  QUERY_SNAPSHOT_BUNDLE_TEST_PROJECT,
-  keys
-} from '../../util/helpers';
+import { keys } from '../../util/helpers';
 
-import { isNode } from '@firebase/util';
 
 describe('Bundle', () => {
   it('loadBundle does not throw with an empty bundle string)', async () => {
@@ -291,7 +287,7 @@ describe('DocumentSnapshot', () => {
     if (!isNode()) {
       const snapshotJson = documentSnapshot(
         'foo/bar',
-        /*data=*/ null,
+        { a: 1 },
         /*fromCache=*/ true
       ).toJSON();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -343,36 +339,37 @@ describe('DocumentSnapshot', () => {
   });
 
   it('fromJSON parses toJSON result', () => {
-    const docSnap = documentSnapshot('foo/bar', { a: 1 }, /*fromCache=*/ true);
-    let json: object = DOCUMENT_SNAPSHOT_BUNDLE_TEST_PROJECT; // Bundled Doc: { a: 1 }.
     if (isNode()) {
-      json = docSnap.toJSON();
+      const docSnap = documentSnapshot(
+        'foo/bar',
+        { a: 1 },
+        /*fromCache=*/ true
+      );
+      expect(() => {
+        documentSnapshotFromJSON(docSnap._firestore, docSnap.toJSON());
+      }).to.not.throw;
     }
-
-    expect(() => {
-      documentSnapshotFromJSON(docSnap._firestore, json);
-    }).to.not.throw;
   });
 
   it('fromJSON produces valid snapshot data.', () => {
-    const docSnap = documentSnapshot('foo/bar', { a: 1 }, /*fromCache=*/ true);
-    let json: object = DOCUMENT_SNAPSHOT_BUNDLE_TEST_PROJECT; // Bundled Doc: { a: 1 }.
-    //if (isNode()) {
-    if (true) {
-      console.error('DEDB docSnap.toJSON: ', docSnap.toJSON());
-      json = docSnap.toJSON();
-    }
-    const db = firestore();
-    const docSnapFromJSON = documentSnapshotFromJSON(db, json);
-    expect(docSnapFromJSON).to.exist;
-    const data = docSnapFromJSON.data();
-    expect(docSnapFromJSON).to.not.be.undefined;
-    expect(docSnapFromJSON).to.not.be.null;
-    if (data) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((data as any).a).to.exist;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((data as any).a).to.equal(1);
+    if (isNode()) {
+      const docSnap = documentSnapshot(
+        'foo/bar',
+        { a: 1 },
+        /*fromCache=*/ true
+      );
+      const db = firestore();
+      const docSnapFromJSON = documentSnapshotFromJSON(db, docSnap.toJSON());
+      expect(docSnapFromJSON).to.exist;
+      const data = docSnapFromJSON.data();
+      expect(docSnapFromJSON).to.not.be.undefined;
+      expect(docSnapFromJSON).to.not.be.null;
+      if (data) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        expect((data as any).a).to.exist;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        expect((data as any).a).to.equal(1);
+      }
     }
   });
 });
@@ -675,64 +672,60 @@ describe('QuerySnapshot', () => {
   });
 
   it('fromJSON does not throw', () => {
-    const snapshot = querySnapshot(
-      'foo',
-      {},
-      {
-        a: { a: 1 },
-        b: { bar: 2 }
-      },
-      keys(), // An empty set of mutaded document keys signifies that there are no pending writes.
-      false,
-      false
-    );
-    let json: object = QUERY_SNAPSHOT_BUNDLE_TEST_PROJECT; // Bundled docs: { a: { foo: 1 }, b: { bar: 2 } }.
     if (isNode()) {
-      json = snapshot.toJSON();
+      const snapshot = querySnapshot(
+        'foo',
+        {},
+        {
+          a: { a: 1 },
+          b: { bar: 2 }
+        },
+        keys(), // An empty set of mutaded document keys signifies that there are no pending writes.
+        false,
+        false
+      );
+      const db = firestore();
+      expect(() => {
+        querySnapshotFromJSON(db, snapshot.toJSON());
+      }).to.not.throw;
     }
-    const db = firestore();
-    expect(() => {
-      querySnapshotFromJSON(db, json);
-    }).to.not.throw;
   });
 
   it('fromJSON produces valid snapshot data', () => {
-    const snapshot = querySnapshot(
-      'foo',
-      {},
-      {
-        a: { a: 1 },
-        b: { bar: 2 }
-      },
-      keys(), // An empty set of mutaded document keys signifies that there are no pending writes.
-      false,
-      false
-    );
-    let json: object = QUERY_SNAPSHOT_BUNDLE_TEST_PROJECT; // Bundled docs: { a: { foo: 1 }, b: { bar: 2 } }.
     if (isNode()) {
-      json = snapshot.toJSON();
-    }
-    const db = firestore();
-    const querySnap = querySnapshotFromJSON(db, json);
-    expect(querySnap).to.exist;
-    if (querySnap !== undefined) {
-      const docs = querySnap.docs;
-      expect(docs).to.not.be.undefined;
-      expect(docs).to.not.be.null;
-      if (docs) {
-        expect(docs.length).to.equal(2);
-        if (docs.length === 2) {
-          let docData = docs[0].data();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          let data = docData as any;
-          expect(data.a).to.exist;
-          expect(data.a).to.equal(1);
+      const snapshot = querySnapshot(
+        'foo',
+        {},
+        {
+          a: { a: 1 },
+          b: { bar: 2 }
+        },
+        keys(), // An empty set of mutaded document keys signifies that there are no pending writes.
+        false,
+        false
+      );
+      const db = firestore();
+      const querySnap = querySnapshotFromJSON(db, snapshot.toJSON());
+      expect(querySnap).to.exist;
+      if (querySnap !== undefined) {
+        const docs = querySnap.docs;
+        expect(docs).to.not.be.undefined;
+        expect(docs).to.not.be.null;
+        if (docs) {
+          expect(docs.length).to.equal(2);
+          if (docs.length === 2) {
+            let docData = docs[0].data();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let data = docData as any;
+            expect(data.a).to.exist;
+            expect(data.a).to.equal(1);
 
-          docData = docs[1].data();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          data = docData as any;
-          expect(data.bar).to.exist;
-          expect(data.bar).to.equal(2);
+            docData = docs[1].data();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            data = docData as any;
+            expect(data.bar).to.exist;
+            expect(data.bar).to.equal(2);
+          }
         }
       }
     }
