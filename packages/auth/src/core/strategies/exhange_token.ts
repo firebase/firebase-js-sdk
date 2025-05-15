@@ -27,7 +27,7 @@ import { _castAuth } from '../auth/auth_impl';
  * for an OidcToken i.e. Outbound Access Token.
  *
  * @remarks
- * This method is imeplemented only for {@link DefaultConfig.REGIONAL_API_HOST}
+ * This method is implemented only for {@link DefaultConfig.REGIONAL_API_HOST}
  * and requires {@link TenantConfig} to be configured in the {@link Auth} instance used.
  *
  * Fails with an error if the token is invalid, expired, or not accepted by the Firebase Auth service.
