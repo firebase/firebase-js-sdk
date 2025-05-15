@@ -83,25 +83,20 @@ export class ChromeAdapter {
     }
 
     // Applies prefer_on_device logic.
-    const isAvailable = availability === Availability.available;
-    const isOnDeviceRequest = ChromeAdapter.isOnDeviceRequest(request);
-    if (isAvailable && isOnDeviceRequest) {
-      return true;
-    }
-
-    if (!isAvailable) {
+    if (availability !== Availability.available) {
       logger.debug(
         `On-device inference unavailable because availability is "${availability}".`
       );
+      return false;
     }
-
-    if (!isOnDeviceRequest) {
+    if (!ChromeAdapter.isOnDeviceRequest(request)) {
       logger.debug(
         `On-device inference unavailable because request is incompatible.`
       );
+      return false;
     }
 
-    return false;
+    return true;
   }
 
   /**
