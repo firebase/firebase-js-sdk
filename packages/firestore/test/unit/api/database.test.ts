@@ -99,7 +99,7 @@ describe('DocumentReference', () => {
     const db = newTestFirestore();
     expect(() => {
       DocumentReference.fromJSON(db, {});
-    }).to.throw;
+    }).to.throw("JSON missing required field: 'type'");
   });
 
   it('fromJSON() throws with missing type data', () => {
@@ -110,7 +110,7 @@ describe('DocumentReference', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw;
+    }).to.throw("JSON missing required field: 'type'");
   });
 
   it('fromJSON() throws with invalid type data', () => {
@@ -122,7 +122,7 @@ describe('DocumentReference', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw;
+    }).to.throw("JSON field 'type' must be a string");
   });
 
   it('fromJSON() throws with missing bundleSource', () => {
@@ -133,7 +133,7 @@ describe('DocumentReference', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw;
+    }).to.throw("JSON missing required field: 'bundleSource'");
   });
 
   it('fromJSON() throws with invalid bundleSource type', () => {
@@ -145,7 +145,7 @@ describe('DocumentReference', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw;
+    }).to.throw("JSON field 'bundleSource' must be a string");
   });
 
   it('fromJSON() throws with invalid bundleSource value', () => {
@@ -157,7 +157,7 @@ describe('DocumentReference', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw;
+    }).to.throw("Expected 'bundleSource' field to equal 'DocumentSnapshot'");
   });
 
   it('fromJSON() throws with missing bundleName', () => {
@@ -168,7 +168,7 @@ describe('DocumentReference', () => {
         bundleSource: 'DocumentSnapshot',
         bundle: 'test bundle'
       });
-    }).to.throw;
+    }).to.throw("JSON missing required field: 'bundleName'");
   });
 
   it('fromJSON() throws with invalid bundleName', () => {
@@ -180,7 +180,7 @@ describe('DocumentReference', () => {
         bundleName: 1,
         bundle: 'test bundle'
       });
-    }).to.throw;
+    }).to.throw("JSON field 'bundleName' must be a string");
   });
 
   it('fromJSON() throws with missing bundle', () => {
@@ -191,7 +191,7 @@ describe('DocumentReference', () => {
         bundleSource: 'DocumentSnapshot',
         bundleName: 'test name'
       });
-    }).to.throw;
+    }).to.throw("JSON missing required field: 'bundle'");
   });
 
   it('fromJSON() throws with invalid bundle', () => {
@@ -203,7 +203,7 @@ describe('DocumentReference', () => {
         bundleName: 'test name',
         bundle: 1
       });
-    }).to.throw;
+    }).to.throw("JSON field 'bundle' must be a string");
   });
 
   it('fromJSON() does not throw', () => {
@@ -564,7 +564,7 @@ describe('QuerySnapshot', () => {
     const db = newTestFirestore();
     expect(() => {
       querySnapshotFromJSON(db, {});
-    }).to.throw;
+    }).to.throw("JSON missing required field: 'type'");
   });
 
   it('fromJSON() throws with missing type data', () => {
@@ -575,7 +575,7 @@ describe('QuerySnapshot', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw;
+    }).to.throw("JSON missing required field: 'type'");
   });
 
   it('fromJSON() throws with invalid type data', () => {
@@ -587,10 +587,10 @@ describe('QuerySnapshot', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw;
+    }).to.throw("JSON field 'type' must be a string");
   });
 
-  it('fromJSON() throws with invalid type data', () => {
+  it('fromJSON() throws with missing bundle source data', () => {
     const db = newTestFirestore();
     expect(() => {
       querySnapshotFromJSON(db, {
@@ -598,7 +598,7 @@ describe('QuerySnapshot', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw;
+    }).to.throw("JSON missing required field: 'bundleSource'");
   });
 
   it('fromJSON() throws with invalid bundleSource type', () => {
@@ -610,7 +610,7 @@ describe('QuerySnapshot', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw;
+    }).to.throw("JSON field 'bundleSource' must be a string");
   });
 
   it('fromJSON() throws with invalid bundleSource value', () => {
@@ -622,7 +622,7 @@ describe('QuerySnapshot', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw;
+    }).to.throw("Expected 'bundleSource' field to equal 'QuerySnapshot'");
   });
 
   it('fromJSON() throws with missing bundleName', () => {
@@ -633,7 +633,7 @@ describe('QuerySnapshot', () => {
         bundleSource: 'QuerySnapshot',
         bundle: 'test bundle'
       });
-    }).to.throw;
+    }).to.throw("JSON missing required field: 'bundleName'");
   });
 
   it('fromJSON() throws with invalid bundleName', () => {
@@ -645,10 +645,10 @@ describe('QuerySnapshot', () => {
         bundleName: 1,
         bundle: 'test bundle'
       });
-    }).to.throw;
+    }).to.throw("JSON field 'bundleName' must be a string");
   });
 
-  it('fromJSON() throws with missing bundle data', () => {
+  it('fromJSON() throws with missing bundle field', () => {
     const db = newTestFirestore();
     expect(() => {
       querySnapshotFromJSON(db, {
@@ -656,10 +656,10 @@ describe('QuerySnapshot', () => {
         bundleSource: 'QuerySnapshot',
         bundleName: 'test name'
       });
-    }).to.throw;
+    }).to.throw("JSON missing required field: 'bundle'");
   });
 
-  it('fromJSON() throws with invalid bundle data', () => {
+  it('fromJSON() throws with invalid bundle field', () => {
     const db = newTestFirestore();
     expect(() => {
       querySnapshotFromJSON(db, {
@@ -668,7 +668,7 @@ describe('QuerySnapshot', () => {
         bundleName: 'test name',
         bundle: 1
       });
-    }).to.throw;
+    }).to.throw("JSON field 'bundle' must be a string");
   });
 
   it('fromJSON does not throw', () => {

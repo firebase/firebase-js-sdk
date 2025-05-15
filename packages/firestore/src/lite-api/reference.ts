@@ -334,22 +334,12 @@ export class DocumentReference<
   >(
     firestore: Firestore,
     json: object,
-    ...args: unknown[]
+    converter?: FirestoreDataConverter<NewAppModelType, NewDbModelType>
   ): DocumentReference<NewAppModelType, NewDbModelType> {
     if (validateJSON(json, DocumentReference._jsonSchema)) {
-      let converter: FirestoreDataConverter<
-        NewAppModelType,
-        NewDbModelType
-      > | null = null;
-      if (args[0]) {
-        converter = args[0] as FirestoreDataConverter<
-          NewAppModelType,
-          NewDbModelType
-        >;
-      }
       return new DocumentReference<NewAppModelType, NewDbModelType>(
         firestore,
-        converter,
+        converter ? converter : null,
         new DocumentKey(ResourcePath.fromString(json.referencePath))
       );
     }
