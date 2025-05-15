@@ -317,6 +317,11 @@ export function isReactNative(): boolean;
 // @public
 export function isSafari(): boolean;
 
+// Warning: (ae-missing-release-tag) "isSafariOrWebkit" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export function isSafariOrWebkit(): boolean;
+
 // Warning: (ae-missing-release-tag) "issuedAtTime" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public

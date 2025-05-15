@@ -227,17 +227,29 @@
       },
       "default": "./storage/dist/esm/index.esm.js"
     },
-    "./vertexai": {
-      "types": "./vertexai/dist/vertexai/index.d.ts",
+    "./ai": {
+      "types": "./ai/dist/ai/index.d.ts",
       "node": {
-        "require": "./vertexai/dist/index.cjs.js",
-        "import": "./vertexai/dist/index.mjs"
+        "require": "./ai/dist/index.cjs.js",
+        "import": "./ai/dist/index.mjs"
       },
       "browser": {
-        "require": "./vertexai/dist/index.cjs.js",
-        "import": "./vertexai/dist/esm/index.esm.js"
+        "require": "./ai/dist/index.cjs.js",
+        "import": "./ai/dist/esm/index.esm.js"
       },
-      "default": "./vertexai/dist/esm/index.esm.js"
+      "default": "./ai/dist/esm/index.esm.js"
+    },
+    "./vertexai": {
+      "types": "./ai/dist/ai/index.d.ts",
+      "node": {
+        "require": "./ai/dist/index.cjs.js",
+        "import": "./ai/dist/index.mjs"
+      },
+      "browser": {
+        "require": "./ai/dist/index.cjs.js",
+        "import": "./ai/dist/esm/index.esm.js"
+      },
+      "default": "./ai/dist/esm/index.esm.js"
     },
     "./compat/analytics": {
       "types": "./compat/analytics/dist/compat/analytics/index.d.ts",
@@ -399,6 +411,7 @@
     "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@firebase/ai": "1.2.4",
     "@firebase/app": "0.12.3",
     "@firebase/app-compat": "0.3.3",
     "@firebase/app-types": "0.9.3",
@@ -425,8 +438,7 @@
     "@firebase/analytics-compat": "0.2.21",
     "@firebase/app-check": "0.9.3",
     "@firebase/app-check-compat": "0.3.24",
-    "@firebase/util": "1.11.3",
-    "@firebase/vertexai": "1.2.4"
+    "@firebase/util": "1.11.3"
   },
   "devDependencies": {
     "rollup": "2.79.2",
@@ -443,6 +455,7 @@
     "rollup-plugin-license": "3.5.3"
   },
   "components": [
+    "ai",
     "analytics",
     "app",
     "app-check",

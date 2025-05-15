@@ -239,7 +239,7 @@ describe('api', () => {
       expect(getStateReference(app).activated).to.equal(true);
     });
 
-    it('isTokenAutoRefreshEnabled value defaults to global setting', () => {
+    it('global false + local unset = false', () => {
       app.automaticDataCollectionEnabled = false;
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
@@ -247,8 +247,77 @@ describe('api', () => {
       expect(getStateReference(app).isTokenAutoRefreshEnabled).to.equal(false);
     });
 
-    it('sets isTokenAutoRefreshEnabled correctly, overriding global setting', () => {
+    it('global false + local true = false', () => {
       app.automaticDataCollectionEnabled = false;
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
+      });
+      expect(getStateReference(app).isTokenAutoRefreshEnabled).to.equal(false);
+    });
+
+    it('global false + local false = false', () => {
+      app.automaticDataCollectionEnabled = false;
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: false
+      });
+      expect(getStateReference(app).isTokenAutoRefreshEnabled).to.equal(false);
+    });
+
+    it('global unset + local unset = false', () => {
+      // Global unset should default to true.
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+      expect(getStateReference(app).isTokenAutoRefreshEnabled).to.equal(false);
+    });
+
+    it('global unset + local false = false', () => {
+      // Global unset should default to true.
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: false
+      });
+      expect(getStateReference(app).isTokenAutoRefreshEnabled).to.equal(false);
+    });
+
+    it('global unset + local true = true', () => {
+      // Global unset should default to true.
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
+      });
+      expect(getStateReference(app).isTokenAutoRefreshEnabled).to.equal(true);
+    });
+
+    it('global true + local unset = false', () => {
+      app.automaticDataCollectionEnabled = true;
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+      expect(getStateReference(app).isTokenAutoRefreshEnabled).to.equal(false);
+    });
+
+    it('global true + local false = false', () => {
+      app.automaticDataCollectionEnabled = true;
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: false
+      });
+      expect(getStateReference(app).isTokenAutoRefreshEnabled).to.equal(false);
+    });
+
+    it('global true + local true = true', () => {
+      app.automaticDataCollectionEnabled = true;
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
+      });
+      expect(getStateReference(app).isTokenAutoRefreshEnabled).to.equal(true);
+    });
+
+    it('sets isTokenAutoRefreshEnabled correctly, overriding global setting', () => {
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
