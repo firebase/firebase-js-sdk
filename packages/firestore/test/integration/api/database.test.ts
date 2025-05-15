@@ -16,7 +16,7 @@
  */
 
 import { deleteApp } from '@firebase/app';
-import { Deferred , isNode } from '@firebase/util';
+import { Deferred, isNode } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 

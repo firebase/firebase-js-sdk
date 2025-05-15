@@ -43,7 +43,6 @@ import {
 } from '../../util/api_helpers';
 import { keys } from '../../util/helpers';
 
-
 describe('Bundle', () => {
   it('loadBundle does not throw with an empty bundle string)', async () => {
     const db = newTestFirestore();

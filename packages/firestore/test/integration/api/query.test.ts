@@ -74,7 +74,6 @@ import {
 import { USE_EMULATOR } from '../util/settings';
 import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 
-
 apiDescribe('Queries', persistence => {
   addEqualityMatcher();
 
