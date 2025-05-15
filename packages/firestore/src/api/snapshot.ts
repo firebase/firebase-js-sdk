@@ -43,13 +43,13 @@ import { DocumentKey } from '../model/document_key';
 import { DocumentSet } from '../model/document_set';
 import { ResourcePath } from '../model/path';
 import { newSerializer } from '../platform/serializer';
+import {
+  buildQuerySnapshotJsonBundle,
+  buildDocumentSnapshotJsonBundle
+} from '../platform/snapshot_to_json';
 import { fromDocument } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
-import {
-  BundleBuilder,
-  DocumentSnapshotBundleData,
-  QuerySnapshotBundleData
-} from '../util/bundle_builder_impl';
+
 import { Code, FirestoreError } from '../util/error';
 // API extractor fails importing 'property' unless we also explicitly import 'Property'.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-imports-ts
@@ -529,6 +529,13 @@ export class DocumentSnapshot<
    * @returns a JSON representation of this object.
    */
   toJSON(): object {
+    if (this.metadata.hasPendingWrites) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'DocumentSnapshot.toJSON() attempted to serialize a document with pending writes. ' +
+          'Await waitForPendingWrites() before invoking toJSON().'
+      );
+    }
     const document = this._document;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = {};
@@ -544,29 +551,16 @@ export class DocumentSnapshot<
     ) {
       return result;
     }
-    const builder: BundleBuilder = new BundleBuilder(
-      this._firestore,
-      AutoId.newId()
-    );
     const documentData = this._userDataWriter.convertObjectMap(
       document.data.value.mapValue.fields,
       'previous'
     );
-    if (this.metadata.hasPendingWrites) {
-      throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        'DocumentSnapshot.toJSON() attempted to serialize a document with pending writes. ' +
-          'Await waitForPendingWrites() before invoking toJSON().'
-      );
-    }
-    builder.addBundleDocument(
-      documentToDocumentSnapshotBundleData(
-        this.ref.path,
-        documentData,
-        document
-      )
+    result['bundle'] = buildDocumentSnapshotJsonBundle(
+      this._firestore,
+      document,
+      documentData,
+      this.ref.path
     );
-    result['bundle'] = builder.build();
     return result;
   }
 }
@@ -611,6 +605,12 @@ export function documentSnapshotFromJSON<
   ...args: unknown[]
 ): DocumentSnapshot<AppModelType, DbModelType> {
   if (validateJSON(json, DocumentSnapshot._jsonSchema)) {
+    if (json.bundle === 'NOT SUPPORTED') {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'The provided JSON object was created in a client environment, which is not supported.'
+      );
+    }
     // Parse the bundle data.
     const serializer = newSerializer(db._databaseId);
     const bundleReader = createBundleReaderSync(json.bundle, serializer);
@@ -831,52 +831,48 @@ export class QuerySnapshot<
    * @returns a JSON representation of this object.
    */
   toJSON(): object {
+    if (this.metadata.hasPendingWrites) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'QuerySnapshot.toJSON() attempted to serialize a document with pending writes. ' +
+          'Await waitForPendingWrites() before invoking toJSON().'
+      );
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = {};
     result['type'] = QuerySnapshot._jsonSchemaVersion;
     result['bundleSource'] = 'QuerySnapshot';
     result['bundleName'] = AutoId.newId();
 
-    const builder: BundleBuilder = new BundleBuilder(
-      this._firestore,
-      result['bundleName']
-    );
     const databaseId = this._firestore._databaseId.database;
     const projectId = this._firestore._databaseId.projectId;
     const parent = `projects/${projectId}/databases/${databaseId}/documents`;
-    const docBundleDataArray: DocumentSnapshotBundleData[] = [];
-    const docArray = this.docs;
-    docArray.forEach(doc => {
+    const documents: Document[] = [];
+    const documentData: DocumentData[] = [];
+    const paths: string[] = [];
+
+    this.docs.forEach(doc => {
       if (doc._document === null) {
         return;
       }
-      const documentData = this._userDataWriter.convertObjectMap(
-        doc._document.data.value.mapValue.fields,
-        'previous'
-      );
-      if (this.metadata.hasPendingWrites) {
-        throw new FirestoreError(
-          Code.FAILED_PRECONDITION,
-          'QuerySnapshot.toJSON() attempted to serialize a document with pending writes. ' +
-            'Await waitForPendingWrites() before invoking toJSON().'
-        );
-      }
-      docBundleDataArray.push(
-        documentToDocumentSnapshotBundleData(
-          doc.ref.path,
-          documentData,
-          doc._document
+      documents.push(doc._document);
+      documentData.push(
+        this._userDataWriter.convertObjectMap(
+          doc._document.data.value.mapValue.fields,
+          'previous'
         )
       );
+      paths.push(doc.ref.path);
     });
-    const bundleData: QuerySnapshotBundleData = {
-      name: result['bundleName'],
-      query: this.query._query,
+    result['bundle'] = buildQuerySnapshotJsonBundle(
+      this._firestore,
+      this.query._query,
+      result['bundleName'],
       parent,
-      docBundleDataArray
-    };
-    builder.addBundleQuery(bundleData);
-    result['bundle'] = builder.build();
+      paths,
+      documents,
+      documentData
+    );
     return result;
   }
 }
@@ -921,6 +917,12 @@ export function querySnapshotFromJSON<
   ...args: unknown[]
 ): QuerySnapshot<AppModelType, DbModelType> {
   if (validateJSON(json, QuerySnapshot._jsonSchema)) {
+    if (json.bundle === 'NOT SUPPORTED') {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'The provided JSON object was created in a client environment, which is not supported.'
+      );
+    }
     // Parse the bundle data.
     const serializer = newSerializer(db._databaseId);
     const bundleReader = createBundleReaderSync(json.bundle, serializer);
@@ -1122,21 +1124,4 @@ export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(
   }
 
   return false;
-}
-
-// Formats Document data for bundling a DocumentSnapshot.
-function documentToDocumentSnapshotBundleData(
-  path: string,
-  documentData: DocumentData,
-  document: Document
-): DocumentSnapshotBundleData {
-  return {
-    documentData,
-    documentKey: document.mutableCopy().key,
-    documentPath: path,
-    documentExists: true,
-    createdTime: document.createTime.toTimestamp(),
-    readTime: document.readTime.toTimestamp(),
-    versionTime: document.version.toTimestamp()
-  };
 }

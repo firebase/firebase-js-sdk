@@ -131,6 +131,64 @@ import { FIRESTORE } from './api_helpers';
 
 export type TestSnapshotVersion = number;
 
+// Bundle creation is disabled in client enviornments, but we still would like to test bundle
+// parsing, so test against some pre-generated bundles:
+
+// DocSnapshot for a document: { a: 1 }
+export const DOCUMENT_SNAPSHOT_BUNDLE_TEST_PROJECT = {
+  type: 'firestore/documentSnapshot/1.0',
+  bundle:
+    '136{"metadata":{"id":"EOwNtTspbiBhdlUwGG35","createTime":"1970-01-01T00:00:00.000001000Z","version":1,"totalDocuments":1,"totalBytes":366}}149{"documentMetadata":{"name":"projects/test-project/databases/(default)/documents/foo/bar","readTime":"1970-01-01T00:00:00.000001000Z","exists":true}}211{"document":{"name":"projects/test-project/databases/(default)/documents/foo/bar","fields":{"a":{"integerValue":"1"}},"updateTime":"1970-01-01T00:00:00.000001000Z","createTime":"1970-01-01T00:00:00.000000000Z"}}',
+  bundleSource: 'DocumentSnapshot',
+  bundleName: 'foo/bar'
+};
+
+export const DOCUMENT_SNAPSHOT_BUNDLE = {
+  type: 'firestore/documentSnapshot/1.0',
+  bundle:
+    '136{"metadata":{"id":"Bgp6Hfz4727aGh0tnRg2","createTime":"2025-05-14T14:44:12.73326700' +
+    '0","version":1,"totalDocuments":1,"totalBytes":440}}186{"documentMetadata":{"name":"projects/' +
+    'jscore-sandbox-141b5/databases/(default)/documents/test-collection/aUuEtA9KU1ur7bGiolOy","rea' +
+    'dTime":"2025-05-14T14:44:12.733267000Z","exists":true}}248{"document":{"name":"projects/jscor' +
+    'e-sandbox-141b5/databases/(default)/documents/test-collection/aUuEtA9KU1ur7bGiolOy","fields":' +
+    '{"a":{"integerValue":"1"}},"updateTime":"2025-05-14T14:44:12.733267000Z","createTime":"2025-0' +
+    '5-14T14:44:12.733267000Z"}}',
+  bundleSource: 'DocumentSnapshot',
+  bundleName: 'test-collection/aUuEtA9KU1ur7bGiolOy'
+};
+
+// QuerySnapshot for documents: { a: { foo: 1 }, b: { bar: 2 } }
+/*
+export const QUERY_SNAPSHOT_BUNDLE = {
+  type: 'firestore/querySnapshot/1.0',
+  bundleSource: 'QuerySnapshot',
+  bundleName: 'VQKk4gLMygspliy1FOoJ',
+  bundle: '137{"metadata":{"id":"VQKk4gLMygspliy1FOoJ","createTime":"2025-05-14T15:10:14.87945200' +
+    '0Z","version":1,"totalDocuments":2,"totalBytes":1219}}318{"namedQuery":{"name":"VQKk4gLMygsp' +
+    'liy1FOoJ","bundledQuery":{"parent":"projects/jscore-sandbox-141b5/databases/(default)/docume' +
+    'nts","structuredQuery":{"from":[{"collectionId":"aasegAu0fT6StwPkDCME"}],"orderBy":[{"field"' +
+    ':{"fieldPath":"__name__"},"direction":"ASCENDING"}]}},"readTime":"2025-05-14T15:10:14.879452' +
+    '000Z"}}207{"documentMetadata":{"name":"projects/jscore-sandbox-141b5/databases/(default)/doc' +
+    'uments/aasegAu0fT6StwPkDCME/a","readTime":"2025-05-14T15:10:14.879452000Z","exists":true,"qu' +
+    'eries":["VQKk4gLMygspliy1FOoJ"]}}236{"document":{"name":"projects/jscore-sandbox-141b5/datab' +
+    'ases/(default)/documents/aasegAu0fT6StwPkDCME/a","fields":{"foo":{"integerValue":"1"}},"upda' +
+    'teTime":"2025-05-14T15:10:14.683496000Z","createTime":"2025-05-14T15:10:14.683496000Z"}}207{' +
+    '"documentMetadata":{"name":"projects/jscore-sandbox-141b5/databases/(default)/documents/aase' +
+    'gAu0fT6StwPkDCME/b","readTime":"2025-05-14T15:10:14.879452000Z","exists":true,"queries":["VQ' +
+    'Kk4gLMygspliy1FOoJ"]}}236{"document":{"name":"projects/jscore-sandbox-141b5/databases/(defau' +
+    'lt)/documents/aasegAu0fT6StwPkDCME/b","fields":{"bar":{"integerValue":"2"}},"updateTime":"20' +
+    '25-05-14T15:10:14.683496000Z","createTime":"2025-05-14T15:10:14.683496000Z"}}'
+};
+*/
+
+export const QUERY_SNAPSHOT_BUNDLE_TEST_PROJECT = {
+  type: 'firestore/querySnapshot/1.0',
+  bundleSource: 'QuerySnapshot',
+  bundleName: 'wwGYOhjXqZ0rRAVvSixP',
+  bundle:
+    '137{"metadata":{"id":"wwGYOhjXqZ0rRAVvSixP","createTime":"1970-01-01T00:00:00.000001000Z","version":1,"totalDocuments":2,"totalBytes":1092}}293{"namedQuery":{"name":"wwGYOhjXqZ0rRAVvSixP","bundledQuery":{"parent":"projects/test-project/databases/(default)/documents","structuredQuery":{"from":[{"collectionId":"foo"}],"orderBy":[{"field":{"fieldPath":"__name__"},"direction":"ASCENDING"}]}},"readTime":"1970-01-01T00:00:00.000001000Z"}}182{"documentMetadata":{"name":"projects/test-project/databases/(default)/documents/foo/a","readTime":"1970-01-01T00:00:00.000001000Z","exists":true,"queries":["wwGYOhjXqZ0rRAVvSixP"]}}209{"document":{"name":"projects/test-project/databases/(default)/documents/foo/a","fields":{"a":{"integerValue":"1"}},"updateTime":"1970-01-01T00:00:00.000001000Z","createTime":"1970-01-01T00:00:00.000000000Z"}}182{"documentMetadata":{"name":"projects/test-project/databases/(default)/documents/foo/b","readTime":"1970-01-01T00:00:00.000001000Z","exists":true,"queries":["wwGYOhjXqZ0rRAVvSixP"]}}211{"document":{"name":"projects/test-project/databases/(default)/documents/foo/b","fields":{"bar":{"integerValue":"2"}},"updateTime":"1970-01-01T00:00:00.000001000Z","createTime":"1970-01-01T00:00:00.000000000Z"}}'
+};
+
 export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
   return new UserDataReader(
     TEST_DATABASE_ID,

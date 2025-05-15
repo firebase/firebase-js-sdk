@@ -1005,10 +1005,7 @@ export function onSnapshotResume<
   let curArg = 0;
   let options: SnapshotListenOptions | undefined = undefined;
   if (typeof args[curArg] === 'object' && !isPartialObserver(args[curArg])) {
-    console.error('DEDB arg 0 is SnapsotLsitenOptions');
     options = args[curArg++] as SnapshotListenOptions;
-  } else {
-    console.error('DEDB arg 0 is NOT SnapsotLsitenOptions');
   }
 
   if (json.bundleSource === 'QuerySnapshot') {
@@ -1274,6 +1271,10 @@ function onSnapshotDocumentSnapshotBundle<
           db,
           converter ? converter : null,
           DocumentKey.fromPath(json.bundleName)
+        );
+        console.error(
+          'DEDB onSnapshotDocumentSnapshotBundle callong onSnapshot with docRef: ',
+          docReference.path.toString()
         );
         internalUnsubscribe = onSnapshot(
           docReference as DocumentReference<AppModelType, DbModelType>,
