@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  assert,
-  safeGet,
-} from '@firebase/util';
+import { assert, safeGet } from '@firebase/util';
 
 import { AppCheckTokenProvider } from './AppCheckTokenProvider';
 import { AuthTokenProvider } from './AuthTokenProvider';
@@ -53,7 +50,7 @@ export class ReadonlyRestClient extends ServerActions {
     } else {
       assert(
         query._queryParams.isDefault(),
-        'should have a tag if it\'s not a default query.'
+        "should have a tag if it's not a default query."
       );
       return query._path.toString();
     }
@@ -98,7 +95,7 @@ export class ReadonlyRestClient extends ServerActions {
 
     let [response, data] = await this.restRequest_(
       pathString + '.json',
-      queryStringParameters,
+      queryStringParameters
     );
 
     let error = response.status;
@@ -144,19 +141,14 @@ export class ReadonlyRestClient extends ServerActions {
       queryStringParameters
     );
 
-      if (response.status === 404) {
-        data = null;
-      } else if (!response.ok) {
-        throw new Error(data as string);
-      }
+    if (response.status === 404) {
+      data = null;
+    } else if (!response.ok) {
+      throw new Error(data as string);
+    }
 
-      this.onDataUpdate_(
-        pathString,
-        data,
-        /*isMerge=*/ false,
-        /*tag=*/ null
-      );
-      return data as string;
+    this.onDataUpdate_(pathString, data, /*isMerge=*/ false, /*tag=*/ null);
+    return data as string;
   }
 
   /** @inheritDoc */
@@ -170,9 +162,8 @@ export class ReadonlyRestClient extends ServerActions {
    */
   private async restRequest_<T = unknown>(
     pathString: string,
-    queryStringParameters: Record<string, string | number> = {},
+    queryStringParameters: Record<string, string | number> = {}
   ): Promise<[Response, T | null]> {
-
     // Fetch tokens
     const [authToken, appCheckToken] = await Promise.all([
       this.authTokenProvider_.getToken(/*forceRefresh=*/ false),
@@ -180,12 +171,14 @@ export class ReadonlyRestClient extends ServerActions {
     ]);
 
     // Configure URL parameters
-    const searchParams = new URLSearchParams(queryStringParameters as Record<string, string>);
+    const searchParams = new URLSearchParams(
+      queryStringParameters as Record<string, string>
+    );
     if (authToken && authToken.accessToken) {
       searchParams.set('auth', authToken.accessToken);
     }
     if (appCheckToken && appCheckToken.token) {
-      searchParams.set("ac", appCheckToken.token);
+      searchParams.set('ac', appCheckToken.token);
     }
     searchParams.set('format', 'export');
     searchParams.set('ns', this.repoInfo_.namespace);
@@ -202,21 +195,20 @@ export class ReadonlyRestClient extends ServerActions {
     const response = await fetch(url);
     if (!response.ok) {
       // Request was not successful, so throw an error
-      throw new Error(`REST request at ${url} returned error: ${response.status}`);
+      throw new Error(
+        `REST request at ${url} returned error: ${response.status}`
+      );
     }
 
     this.log_(
       'REST Response for ' + url + ' received. status:',
-      response.status,
+      response.status
     );
     let result: T | null = null;
     try {
       result = await response.json();
     } catch (e) {
-      warn(
-        'Failed to parse server response as json.',
-        e
-      );
+      warn('Failed to parse server response as json.', e);
     }
 
     return [response, result];
