@@ -68,7 +68,7 @@ export class ChromeAdapter {
    * separation of concerns.</p>
    */
   async isAvailable(request: GenerateContentRequest): Promise<boolean> {
-    if (this.mode === 'only_in_cloud') {
+    if (!this.mode || this.mode === 'only_in_cloud') {
       logger.debug(
         `On-device inference unavailable because mode is "only_in_cloud".`
       );
@@ -83,20 +83,25 @@ export class ChromeAdapter {
     }
 
     // Applies prefer_on_device logic.
-    if (availability !== Availability.available) {
+    const isAvailable = availability === Availability.available;
+    const isOnDeviceRequest = ChromeAdapter.isOnDeviceRequest(request);
+    if (isAvailable && isOnDeviceRequest) {
+      return true;
+    }
+
+    if (!isAvailable) {
       logger.debug(
         `On-device inference unavailable because availability is "${availability}".`
       );
-      return false;
     }
-    if (!ChromeAdapter.isOnDeviceRequest(request)) {
+
+    if (!isOnDeviceRequest) {
       logger.debug(
         `On-device inference unavailable because request is incompatible.`
       );
-      return false;
     }
 
-    return true;
+    return false;
   }
 
   /**
