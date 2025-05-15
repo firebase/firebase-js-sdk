@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-check-compat",
-  "version": "0.3.22",
+  "version": "0.3.24",
   "description": "A compat App Check package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -34,16 +34,16 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/app-check": "0.9.1",
+    "@firebase/app-check": "0.9.3",
     "@firebase/app-check-types": "0.5.3",
     "@firebase/logger": "0.4.4",
-    "@firebase/util": "1.11.1",
-    "@firebase/component": "0.6.14",
+    "@firebase/util": "1.11.3",
+    "@firebase/component": "0.6.16",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app-compat": "0.3.1",
+    "@firebase/app-compat": "0.3.3",
     "rollup": "2.79.2",
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "6.1.0",
