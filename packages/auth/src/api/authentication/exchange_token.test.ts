@@ -52,11 +52,12 @@ describe('api/authentication/exchange_token', () => {
     const mock = mockRegionalEndpointWithParent(
       RegionalEndpoint.EXCHANGE_TOKEN,
       'test-parent',
-      { accessToken: 'outbound-token' }
+      { accessToken: 'outbound-token', expiresIn: '1000' }
     );
 
     const response = await exchangeToken(regionalAuth, request);
     expect(response.accessToken).equal('outbound-token');
+    expect(response.expiresIn).equal('1000');
     expect(mock.calls[0].request).to.eql({
       parent: 'test-parent',
       token: 'custom-token'

@@ -47,7 +47,7 @@ describe('core/strategies/exchangeToken', () => {
     const mock = mockRegionalEndpointWithParent(
       RegionalEndpoint.EXCHANGE_TOKEN,
       'projects/test-project-id/locations/us/tenants/tenant-1/idpConfigs/idp-config',
-      { accessToken: 'outbound-token' }
+      { accessToken: 'outbound-token', expiresIn: '1000' }
     );
 
     const accessToken = await exchangeToken(
