@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Endpoint } from '../../../src/api';
+import { Endpoint, RegionalEndpoint } from '../../../src/api';
 import { TEST_HOST, TEST_KEY, TEST_SCHEME } from '../mock_auth';
 import { mock, Route } from '../mock_fetch';
 
@@ -54,4 +54,14 @@ export function mockEndpointWithParams(
   status = 200
 ): Route {
   return mock(endpointUrlWithParams(endpoint, params), response, status);
+}
+
+export function mockRegionalEndpointWithParent(
+  endpoint: RegionalEndpoint,
+  parent: string,
+  response: object,
+  status = 200
+): Route {
+  const url = `${TEST_SCHEME}://${TEST_HOST}${parent}${endpoint}`;
+  return mock(url, response, status);
 }

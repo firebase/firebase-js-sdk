@@ -364,6 +364,9 @@ export interface EmulatorConfig {
 
 export { ErrorFn }
 
+// @public (undocumented)
+export function exchangeToken(auth: Auth, idpConfigId: string, customToken: string): Promise<string>;
+
 // Warning: (ae-forgotten-export) The symbol "BaseOAuthProvider" needs to be exported by the entry point index.d.ts
 //
 // @public

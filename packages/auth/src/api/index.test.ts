@@ -36,6 +36,7 @@ import { ConfigInternal } from '../model/auth';
 import {
   _getFinalTarget,
   _performApiRequest,
+  _performRegionalApiRequest,
   DEFAULT_API_TIMEOUT_MS,
   Endpoint,
   RegionalEndpoint,
@@ -606,7 +607,7 @@ describe('api/_performApiRequest', () => {
   context('throws Operation not allowed exception', () => {
     it('when tenantConfig is not initialized and Regional Endpoint is used', async () => {
       await expect(
-        _performApiRequest<typeof request, typeof serverResponse>(
+        _performRegionalApiRequest<typeof request, typeof serverResponse>(
           auth,
           HttpMethod.POST,
           RegionalEndpoint.EXCHANGE_TOKEN,
