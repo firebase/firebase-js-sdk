@@ -1,5 +1,15 @@
 # @firebase/firestore
 
+## 4.7.15
+
+### Patch Changes
+
+- [`8a03143`](https://github.com/firebase/firebase-js-sdk/commit/8a03143b9217effdd86d68bdf195493c0979aa27) [#8993](https://github.com/firebase/firebase-js-sdk/pull/8993) - Fix Safari/WebKit cache issues when client-side indexing is used.
+
+- Updated dependencies [[`8a03143`](https://github.com/firebase/firebase-js-sdk/commit/8a03143b9217effdd86d68bdf195493c0979aa27)]:
+  - @firebase/util@1.12.0
+  - @firebase/component@0.6.17
+
 ## 4.7.14
 
 ### Patch Changes
