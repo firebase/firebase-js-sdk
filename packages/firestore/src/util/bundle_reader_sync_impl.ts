@@ -17,7 +17,7 @@
 
 import { BundleMetadata } from '../protos/firestore_bundle_proto';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { Code, FirestoreError } from '../util/error'
+import { Code, FirestoreError } from '../util/error';
 
 import { BundleReaderSync, SizedBundleElement } from './bundle_reader';
 
@@ -87,7 +87,8 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
     if (this.cursor + length > this.bundleData.length) {
       throw new FirestoreError(
         Code.INTERNAL,
-        'Reached the end of bundle when more is expected.');
+        'Reached the end of bundle when more is expected.'
+      );
     }
     const result = this.bundleData.slice(this.cursor, (this.cursor += length));
     return result;
