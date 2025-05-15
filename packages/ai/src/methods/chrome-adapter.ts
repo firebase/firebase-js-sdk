@@ -68,6 +68,12 @@ export class ChromeAdapter {
    * separation of concerns.</p>
    */
   async isAvailable(request: GenerateContentRequest): Promise<boolean> {
+    if (!this.mode) {
+      logger.debug(
+        `On-device inference unavailable because mode is undefined.`
+      );
+      return false;
+    }
     if (this.mode === 'only_in_cloud') {
       logger.debug(
         `On-device inference unavailable because mode is "only_in_cloud".`

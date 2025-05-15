@@ -109,6 +109,14 @@ describe('ChromeAdapter', () => {
     });
   });
   describe('isAvailable', () => {
+    it('returns false if mode is undefined', async () => {
+      const adapter = new ChromeAdapter();
+      expect(
+        await adapter.isAvailable({
+          contents: []
+        })
+      ).to.be.false;
+    });
     it('returns false if mode is only cloud', async () => {
       const adapter = new ChromeAdapter(undefined, 'only_in_cloud');
       expect(
@@ -239,7 +247,10 @@ describe('ChromeAdapter', () => {
       const createStub = stub(languageModelProvider, 'create').returns(
         downloadPromise
       );
-      const adapter = new ChromeAdapter(languageModelProvider);
+      const adapter = new ChromeAdapter(
+        languageModelProvider,
+        'prefer_on_device'
+      );
       await adapter.isAvailable({
         contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
       });
@@ -260,7 +271,10 @@ describe('ChromeAdapter', () => {
       const createStub = stub(languageModelProvider, 'create').returns(
         downloadPromise
       );
-      const adapter = new ChromeAdapter(languageModelProvider);
+      const adapter = new ChromeAdapter(
+        languageModelProvider,
+        'prefer_on_device'
+      );
       await adapter.isAvailable({
         contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
       });
