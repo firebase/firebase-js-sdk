@@ -292,6 +292,17 @@ describe('Database Tests', () => {
     expect((db as any)._delegate._repo.repoInfo_.isUsingEmulator).to.be.false;
   });
 
+  it('uses ssl when useEmulator is called with ssl specified', () => {
+    const db = firebase.database();
+    const cloudWorkstation = 'abc.cloudworkstations.dev';
+    db.useEmulator(cloudWorkstation, 80);
+    expect((db as any)._delegate._repo.repoInfo_.isUsingEmulator).to.be.true;
+    expect((db as any)._delegate._repo.repoInfo_.host).to.equal(
+      `${cloudWorkstation}:80`
+    );
+    expect((db as any)._delegate._repo.repoInfo_.secure).to.be.true;
+  });
+
   it('cannot call useEmulator after use', () => {
     const db = (firebase as any).database();
 

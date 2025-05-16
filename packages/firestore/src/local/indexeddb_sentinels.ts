@@ -306,6 +306,15 @@ export const DbIndexStateSequenceNumberIndex = 'sequenceNumberIndex';
 export const DbIndexStateSequenceNumberIndexPath = ['uid', 'sequenceNumber'];
 
 /**
+ * Representation of a byte array that is safe for
+ * use in an IndexedDb key. The value is either
+ * a "sortable byte string", which is key safe in
+ * Safari/WebKit, or the value is a Uint8Array,
+ * which is key safe in other browsers.
+ */
+export type KeySafeBytes = Uint8Array | string;
+
+/**
  * The key for each index entry consists of the index id and its user id,
  * the encoded array and directional value for the indexed fields as well as
  * an ordered and an encoded document path for the indexed document.
@@ -313,9 +322,9 @@ export const DbIndexStateSequenceNumberIndexPath = ['uid', 'sequenceNumber'];
 export type DbIndexEntryKey = [
   number,
   string,
-  Uint8Array,
-  Uint8Array,
-  Uint8Array,
+  KeySafeBytes,
+  KeySafeBytes,
+  KeySafeBytes,
   string[]
 ];
 
@@ -425,6 +434,7 @@ export const V15_STORES = [
 ];
 export const V16_STORES = V15_STORES;
 export const V17_STORES = [...V15_STORES, DbGlobalsStore];
+export const V18_STORES = V17_STORES;
 
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is
@@ -435,7 +445,9 @@ export const ALL_STORES = V12_STORES;
 
 /** Returns the object stores for the provided schema. */
 export function getObjectStores(schemaVersion: number): string[] {
-  if (schemaVersion === 17) {
+  if (schemaVersion === 18) {
+    return V18_STORES;
+  } else if (schemaVersion === 17) {
     return V17_STORES;
   } else if (schemaVersion === 16) {
     return V16_STORES;
@@ -450,6 +462,6 @@ export function getObjectStores(schemaVersion: number): string[] {
   } else if (schemaVersion === 11) {
     return V11_STORES;
   } else {
-    fail(0xeb55, 'Only schema version 11 and 12 and 13 are supported');
+    fail(0xeb55, 'Only schema versions >11 are supported');
   }
 }

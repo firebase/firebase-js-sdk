@@ -53,7 +53,8 @@ import { STORAGE_TYPE } from './constants';
 import {
   EmulatorMockTokenOptions,
   getModularInstance,
-  getDefaultEmulatorHostnameAndPort
+  getDefaultEmulatorHostnameAndPort,
+  updateEmulatorBanner
 } from '@firebase/util';
 import { StringFormat } from './implementation/string';
 
@@ -332,6 +333,7 @@ export function getStorage(
   bucketUrl?: string
 ): FirebaseStorage {
   app = getModularInstance(app);
+  updateEmulatorBanner('Storage', false);
   const storageProvider: Provider<'storage'> = _getProvider(app, STORAGE_TYPE);
   const storageInstance = storageProvider.getImmediate({
     identifier: bucketUrl

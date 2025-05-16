@@ -26,7 +26,10 @@ import {
   createMockUserToken,
   deepEqual,
   EmulatorMockTokenOptions,
-  getDefaultEmulatorHostnameAndPort
+  getDefaultEmulatorHostnameAndPort,
+  isCloudWorkstation,
+  updateEmulatorBanner,
+  pingServer
 } from '@firebase/util';
 
 import {
@@ -140,6 +143,7 @@ export class Firestore implements FirestoreService {
 
   _freezeSettings(): FirestoreSettingsImpl {
     this._settingsFrozen = true;
+    updateEmulatorBanner('Firestore', this._settings.isUsingEmulator);
     return this._settings;
   }
 
@@ -325,12 +329,14 @@ export function connectFirestoreEmulator(
   } = {}
 ): void {
   firestore = cast(firestore, Firestore);
+  const useSsl = isCloudWorkstation(host);
   const settings = firestore._getSettings();
   const existingConfig = {
     ...settings,
     emulatorOptions: firestore._getEmulatorOptions()
   };
   const newHostSetting = `${host}:${port}`;
+
   if (settings.host !== DEFAULT_HOST && settings.host !== newHostSetting) {
     logWarn(
       'Host has been set in both settings() and connectFirestoreEmulator(), emulator host ' +
@@ -340,7 +346,7 @@ export function connectFirestoreEmulator(
   const newConfig = {
     ...settings,
     host: newHostSetting,
-    ssl: false,
+    ssl: useSsl,
     emulatorOptions: options
   };
   // No-op if the new configuration matches the current configuration. This supports SSR
@@ -350,6 +356,11 @@ export function connectFirestoreEmulator(
   }
 
   firestore._setSettings(newConfig);
+
+  if (useSsl) {
+    void pingServer(`https://${newHostSetting}`);
+    updateEmulatorBanner('Firestore', true);
+  }
 
   if (options.mockUserToken) {
     let token: string;

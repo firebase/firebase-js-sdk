@@ -1,5 +1,137 @@
 # firebase
 
+## 11.7.3
+
+### Patch Changes
+
+- Updated dependencies [[`9bcd1ea`](https://github.com/firebase/firebase-js-sdk/commit/9bcd1ea9b8cc5b55692765d40df000da8ddef02b)]:
+  - @firebase/util@1.11.3
+  - @firebase/analytics@0.10.15
+  - @firebase/analytics-compat@0.2.21
+  - @firebase/app@0.12.3
+  - @firebase/app-check@0.9.3
+  - @firebase/app-check-compat@0.3.24
+  - @firebase/app-compat@0.3.3
+  - @firebase/auth@1.10.4
+  - @firebase/auth-compat@0.5.24
+  - @firebase/data-connect@0.3.7
+  - @firebase/database@1.0.17
+  - @firebase/database-compat@2.0.8
+  - @firebase/firestore@4.7.14
+  - @firebase/firestore-compat@0.3.49
+  - @firebase/functions@0.12.6
+  - @firebase/functions-compat@0.3.23
+  - @firebase/installations@0.6.16
+  - @firebase/installations-compat@0.2.16
+  - @firebase/messaging@0.12.20
+  - @firebase/messaging-compat@0.2.20
+  - @firebase/performance@0.7.5
+  - @firebase/performance-compat@0.2.18
+  - @firebase/remote-config@0.6.3
+  - @firebase/remote-config-compat@0.2.16
+  - @firebase/storage@0.13.10
+  - @firebase/storage-compat@0.3.20
+  - @firebase/vertexai@1.2.4
+
+## 11.7.2
+
+### Patch Changes
+
+- Updated dependencies [[`8593fa0`](https://github.com/firebase/firebase-js-sdk/commit/8593fa05bd884c2f1f6f3b4ae062efa48af93d24)]:
+  - @firebase/auth@1.10.3
+  - @firebase/firestore@4.7.13
+  - @firebase/util@1.11.2
+  - @firebase/database@1.0.16
+  - @firebase/storage@0.13.9
+  - @firebase/functions@0.12.5
+  - @firebase/auth-compat@0.5.23
+  - @firebase/firestore-compat@0.3.48
+  - @firebase/analytics@0.10.14
+  - @firebase/analytics-compat@0.2.20
+  - @firebase/app@0.12.2
+  - @firebase/app-check@0.9.2
+  - @firebase/app-check-compat@0.3.23
+  - @firebase/app-compat@0.3.2
+  - @firebase/data-connect@0.3.6
+  - @firebase/database-compat@2.0.7
+  - @firebase/functions-compat@0.3.22
+  - @firebase/installations@0.6.15
+  - @firebase/installations-compat@0.2.15
+  - @firebase/messaging@0.12.19
+  - @firebase/messaging-compat@0.2.19
+  - @firebase/performance@0.7.4
+  - @firebase/performance-compat@0.2.17
+  - @firebase/remote-config@0.6.2
+  - @firebase/remote-config-compat@0.2.15
+  - @firebase/storage-compat@0.3.19
+  - @firebase/vertexai@1.2.3
+
+## 11.7.1
+
+### Patch Changes
+
+- Updated dependencies [[`51e7b48`](https://github.com/firebase/firebase-js-sdk/commit/51e7b489d8aadd531453f882421903da8727b19d)]:
+  - @firebase/app-compat@0.3.1
+  - @firebase/app-check@0.9.1
+  - @firebase/app@0.12.1
+  - @firebase/app-check-compat@0.3.22
+
+## 11.7.0
+
+### Minor Changes
+
+- [`3789b5a`](https://github.com/firebase/firebase-js-sdk/commit/3789b5ad16ffd462fce1d0b9c2e9ffae373bc6eb) [#8999](https://github.com/firebase/firebase-js-sdk/pull/8999) - Default automaticDataCollectionEnabled to true without changing App Check's default behavior.
+
+### Patch Changes
+
+- Updated dependencies [[`3789b5a`](https://github.com/firebase/firebase-js-sdk/commit/3789b5ad16ffd462fce1d0b9c2e9ffae373bc6eb), [`6a02778`](https://github.com/firebase/firebase-js-sdk/commit/6a02778e3d12af683e710b53dc6dfb64329e8229), [`ea1f913`](https://github.com/firebase/firebase-js-sdk/commit/ea1f9139e6baec0269fbb91233fd3f7f4b0d5875), [`0e12766`](https://github.com/firebase/firebase-js-sdk/commit/0e127664946ba324c6566a02b393dafd23fc1ddb)]:
+  - @firebase/app-check@0.9.0
+  - @firebase/app@0.12.0
+  - @firebase/app-compat@0.3.0
+  - @firebase/auth@1.10.2
+  - @firebase/database-compat@2.0.6
+  - @firebase/database@1.0.15
+  - @firebase/firestore@4.7.12
+  - @firebase/functions@0.12.4
+  - @firebase/storage@0.13.8
+  - @firebase/util@1.11.1
+  - @firebase/data-connect@0.3.5
+  - @firebase/app-check-compat@0.3.21
+  - @firebase/analytics@0.10.13
+  - @firebase/installations@0.6.14
+  - @firebase/messaging@0.12.18
+  - @firebase/performance@0.7.3
+  - @firebase/remote-config@0.6.1
+  - @firebase/vertexai@1.2.2
+  - @firebase/analytics-compat@0.2.19
+  - @firebase/auth-compat@0.5.22
+  - @firebase/firestore-compat@0.3.47
+  - @firebase/functions-compat@0.3.21
+  - @firebase/installations-compat@0.2.14
+  - @firebase/messaging-compat@0.2.18
+  - @firebase/performance-compat@0.2.16
+  - @firebase/remote-config-compat@0.2.14
+  - @firebase/storage-compat@0.3.18
+
+## 11.6.1
+
+### Patch Changes
+
+- [`ed0803a`](https://github.com/firebase/firebase-js-sdk/commit/ed0803a29791cc0cecd0153f95e814ddcee7efd8) [#8915](https://github.com/firebase/firebase-js-sdk/pull/8915) - Fixed the `null` value handling in `!=` and `not-in` filters.
+
+- [`88a8055`](https://github.com/firebase/firebase-js-sdk/commit/88a8055808bdbd1c75011a94d11062460027d931) [#8888](https://github.com/firebase/firebase-js-sdk/pull/8888) (fixes [#6465](https://github.com/firebase/firebase-js-sdk/issues/6465)) - Fix 'window is not defined' error when calling `clearIndexedDbPersistence` from a service worker
+
+- [`195d943`](https://github.com/firebase/firebase-js-sdk/commit/195d943103795a50bb3fc5c56ef2bb64610006a1) [#8871](https://github.com/firebase/firebase-js-sdk/pull/8871) (fixes [#8593](https://github.com/firebase/firebase-js-sdk/issues/8593)) - Fix issue where Firestore would produce `undefined` for document snapshot data if using IndexedDB persistence and "clear site data" (or equivalent) button was pressed in the web browser.
+
+- Updated dependencies [[`ed0803a`](https://github.com/firebase/firebase-js-sdk/commit/ed0803a29791cc0cecd0153f95e814ddcee7efd8), [`88a8055`](https://github.com/firebase/firebase-js-sdk/commit/88a8055808bdbd1c75011a94d11062460027d931), [`1363ecc`](https://github.com/firebase/firebase-js-sdk/commit/1363ecc533de0ba5bfcae206a831acc33f9020a6), [`1df3d26`](https://github.com/firebase/firebase-js-sdk/commit/1df3d26fbfb4db24b74d5d779825017e9ec40eaa), [`e055e90`](https://github.com/firebase/firebase-js-sdk/commit/e055e9057caab4d9f73734307fe4e0be2098249b), [`195d943`](https://github.com/firebase/firebase-js-sdk/commit/195d943103795a50bb3fc5c56ef2bb64610006a1)]:
+  - @firebase/app@0.11.5
+  - @firebase/firestore@4.7.11
+  - @firebase/auth@1.10.1
+  - @firebase/data-connect@0.3.4
+  - @firebase/app-compat@0.2.54
+  - @firebase/firestore-compat@0.3.46
+  - @firebase/auth-compat@0.5.21
+
 ## 11.6.0
 
 ### Minor Changes
