@@ -27,7 +27,6 @@ import {
   getGenerativeModel,
   Part,
   CountTokensRequest,
-  Schema,
   InlineDataPart,
   FileDataPart
 } from '../src';
@@ -40,11 +39,9 @@ import {
 } from './constants';
 import { FIREBASE_CONFIG } from './firebase-config';
 
-
 describe('Count Tokens', () => {
   testConfigs.forEach(testConfig => {
     describe(`${testConfig.toString()}`, () => {
-
       it('text input', async () => {
         const generationConfig: GenerationConfig = {
           temperature: 0,
@@ -94,12 +91,16 @@ describe('Count Tokens', () => {
         expect(response.totalBillableCharacters).to.equal(16);
         expect(response.promptTokensDetails).to.not.be.null;
         expect(response.promptTokensDetails!.length).to.equal(1);
-        expect(response.promptTokensDetails![0].modality).to.equal(Modality.TEXT);
+        expect(response.promptTokensDetails![0].modality).to.equal(
+          Modality.TEXT
+        );
         expect(response.promptTokensDetails![0].tokenCount).to.equal(6);
       });
 
       it('image input', async () => {
-        const model = getGenerativeModel(testConfig.ai, { model: testConfig.model });
+        const model = getGenerativeModel(testConfig.ai, {
+          model: testConfig.model
+        });
         const imagePart: Part = {
           inlineData: {
             mimeType: IMAGE_MIME_TYPE,
@@ -109,15 +110,32 @@ describe('Count Tokens', () => {
         const response = await model.countTokens([imagePart]);
 
         const expectedImageTokens = 258;
-        expect(response.totalTokens, 'totalTokens should have correct token count').to.equal(expectedImageTokens);
-        expect(response.totalBillableCharacters, 'totalBillableCharacters should be undefined').to.be.undefined; // Incorrect behavior
-        expect(response.promptTokensDetails!.length, 'promptTokensDetails should have one entry').to.equal(1);
-        expect(response.promptTokensDetails![0].modality, 'modality should be IMAGE').to.equal(Modality.IMAGE);
-        expect(response.promptTokensDetails![0].tokenCount, 'promptTokenDetails tokenCount should be correct').to.equal(expectedImageTokens);
+        expect(
+          response.totalTokens,
+          'totalTokens should have correct token count'
+        ).to.equal(expectedImageTokens);
+        expect(
+          response.totalBillableCharacters,
+          'totalBillableCharacters should be undefined'
+        ).to.be.undefined; // Incorrect behavior
+        expect(
+          response.promptTokensDetails!.length,
+          'promptTokensDetails should have one entry'
+        ).to.equal(1);
+        expect(
+          response.promptTokensDetails![0].modality,
+          'modality should be IMAGE'
+        ).to.equal(Modality.IMAGE);
+        expect(
+          response.promptTokensDetails![0].tokenCount,
+          'promptTokenDetails tokenCount should be correct'
+        ).to.equal(expectedImageTokens);
       });
 
       it('audio input', async () => {
-        const model = getGenerativeModel(testConfig.ai, { model: testConfig.model });
+        const model = getGenerativeModel(testConfig.ai, {
+          model: testConfig.model
+        });
         const audioPart: InlineDataPart = {
           inlineData: {
             mimeType: AUDIO_MIME_TYPE,
@@ -127,40 +145,82 @@ describe('Count Tokens', () => {
 
         const response = await model.countTokens([audioPart]);
         // This may be different on Google AI
-        expect(response.totalTokens, 'totalTokens is expected to be undefined').to.be.undefined;
-        expect(response.totalBillableCharacters, 'totalBillableCharacters should be undefined').to.be.undefined; // Incorrect behavior
-        expect(response.promptTokensDetails!.length, 'promptTokensDetails should have one entry').to.equal(1);
-        expect(response.promptTokensDetails![0].modality, 'modality should be AUDIO').to.equal(Modality.AUDIO);
-        expect(response.promptTokensDetails![0].tokenCount, 'promptTokenDetails tokenCount is expected to be undefined').to.be.undefined;
+        expect(response.totalTokens, 'totalTokens is expected to be undefined')
+          .to.be.undefined;
+        expect(
+          response.totalBillableCharacters,
+          'totalBillableCharacters should be undefined'
+        ).to.be.undefined; // Incorrect behavior
+        expect(
+          response.promptTokensDetails!.length,
+          'promptTokensDetails should have one entry'
+        ).to.equal(1);
+        expect(
+          response.promptTokensDetails![0].modality,
+          'modality should be AUDIO'
+        ).to.equal(Modality.AUDIO);
+        expect(
+          response.promptTokensDetails![0].tokenCount,
+          'promptTokenDetails tokenCount is expected to be undefined'
+        ).to.be.undefined;
       });
 
       it('text, image, and audio input', async () => {
-        const model = getGenerativeModel(testConfig.ai, { model: testConfig.model });
+        const model = getGenerativeModel(testConfig.ai, {
+          model: testConfig.model
+        });
         const textPart: Part = { text: 'Describe these:' };
-        const imagePart: Part = { inlineData: { mimeType: IMAGE_MIME_TYPE, data: TINY_IMG_BASE64 } };
-        const audioPart: Part = { inlineData: { mimeType: AUDIO_MIME_TYPE, data: TINY_MP3_BASE64 } };
+        const imagePart: Part = {
+          inlineData: { mimeType: IMAGE_MIME_TYPE, data: TINY_IMG_BASE64 }
+        };
+        const audioPart: Part = {
+          inlineData: { mimeType: AUDIO_MIME_TYPE, data: TINY_MP3_BASE64 }
+        };
 
         const request: CountTokensRequest = {
           contents: [{ role: 'user', parts: [textPart, imagePart, audioPart] }]
         };
         const response = await model.countTokens(request);
 
-        expect(response.totalTokens, 'totalTokens should have correct token count').to.equal(261);
-        expect(response.totalBillableCharacters, 'totalBillableCharacters should have correct count').to.equal('Describe these:'.length - 1); // For some reason it's the length-1
+        expect(
+          response.totalTokens,
+          'totalTokens should have correct token count'
+        ).to.equal(261);
+        expect(
+          response.totalBillableCharacters,
+          'totalBillableCharacters should have correct count'
+        ).to.equal('Describe these:'.length - 1); // For some reason it's the length-1
 
-        expect(response.promptTokensDetails!.length, 'promptTokensDetails should have three entries').to.equal(3);
+        expect(
+          response.promptTokensDetails!.length,
+          'promptTokensDetails should have three entries'
+        ).to.equal(3);
 
-        const textDetails = response.promptTokensDetails!.find(d => d.modality === Modality.TEXT);
-        const visionDetails = response.promptTokensDetails!.find(d => d.modality === Modality.IMAGE);
-        const audioDetails = response.promptTokensDetails!.find(d => d.modality === Modality.AUDIO);
+        const textDetails = response.promptTokensDetails!.find(
+          d => d.modality === Modality.TEXT
+        );
+        const visionDetails = response.promptTokensDetails!.find(
+          d => d.modality === Modality.IMAGE
+        );
+        const audioDetails = response.promptTokensDetails!.find(
+          d => d.modality === Modality.AUDIO
+        );
 
-        expect(textDetails).to.deep.equal({ modality: Modality.TEXT, tokenCount: 3 });
-        expect(visionDetails).to.deep.equal({ modality: Modality.IMAGE, tokenCount: 258 });
+        expect(textDetails).to.deep.equal({
+          modality: Modality.TEXT,
+          tokenCount: 3
+        });
+        expect(visionDetails).to.deep.equal({
+          modality: Modality.IMAGE,
+          tokenCount: 258
+        });
         expect(audioDetails).to.deep.equal({ modality: Modality.AUDIO }); // Incorrect behavior because there's no tokenCount
       });
 
       it('public storage reference', async () => {
-        const model = getGenerativeModel(testConfig.ai, { model: testConfig.model });
+        const model = getGenerativeModel(testConfig.ai, {
+          model: testConfig.model
+        });
         const filePart: FileDataPart = {
           fileData: {
             mimeType: IMAGE_MIME_TYPE,
@@ -170,13 +230,23 @@ describe('Count Tokens', () => {
         const response = await model.countTokens([filePart]);
 
         const expectedFileTokens = 258;
-        expect(response.totalTokens, 'totalTokens should have correct token count').to.equal(expectedFileTokens);
-        expect(response.totalBillableCharacters, 'totalBillableCharacters should be undefined').to.be.undefined;
+        expect(
+          response.totalTokens,
+          'totalTokens should have correct token count'
+        ).to.equal(expectedFileTokens);
+        expect(
+          response.totalBillableCharacters,
+          'totalBillableCharacters should be undefined'
+        ).to.be.undefined;
         expect(response.promptTokensDetails).to.not.be.null;
         expect(response.promptTokensDetails!.length).to.equal(1);
-        expect(response.promptTokensDetails![0].modality).to.equal(Modality.IMAGE);
-        expect(response.promptTokensDetails![0].tokenCount).to.equal(expectedFileTokens);
+        expect(response.promptTokensDetails![0].modality).to.equal(
+          Modality.IMAGE
+        );
+        expect(response.promptTokensDetails![0].tokenCount).to.equal(
+          expectedFileTokens
+        );
       });
     });
-  })
+  });
 });
