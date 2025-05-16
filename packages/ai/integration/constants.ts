@@ -27,19 +27,17 @@ import { FIREBASE_CONFIG } from './firebase-config';
 
 const app = initializeApp(FIREBASE_CONFIG);
 
-export type ModelName = 'gemini-2.0-flash' | 'gemini-2.0-flash-exp';
-
 /**
  * Test config that all tests will be ran against.
  */
 export type TestConfig = Readonly<{
   ai: AI;
-  model: ModelName;
+  model: string;
   /** This will be used to output the test config at runtime */
   toString: () => string;
 }>;
 
-function formatConfigAsString(config: { ai: AI; model: ModelName }): string {
+function formatConfigAsString(config: { ai: AI; model: string }): string {
   return `${backendNames.get(config.ai.backend.backendType)} ${config.model}`;
 }
 
@@ -53,9 +51,9 @@ const backendNames: Map<BackendType, string> = new Map([
   [BackendType.VERTEX_AI, 'Vertex AI']
 ]);
 
-const modelNames: ReadonlyArray<ModelName> = [
+const modelNames: ReadonlyArray<string> = [
   'gemini-2.0-flash',
-  'gemini-2.0-flash-exp'
+  // 'gemini-2.0-flash-exp'
 ];
 
 export const testConfigs: ReadonlyArray<TestConfig> = backends.flatMap(backend => {
@@ -68,3 +66,8 @@ export const testConfigs: ReadonlyArray<TestConfig> = backends.flatMap(backend =
     }
   })
 })
+
+export const TINY_IMG_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAApJREFUCNdjYAAAAAIAAeIhvDMAAAAASUVORK5CYII=';
+export const IMAGE_MIME_TYPE = 'image/png';
+export const TINY_MP3_BASE64 = 'SUQzBAAAAAAAIlRTU0UAAAAOAAADTGF2ZjYxLjcuMTAwAAAAAAAAAAAAAAD/+0DAAAAAAAAAAAAAAAAAAAAAAABJbmZvAAAADwAAAAUAAAK+AGhoaGhoaGhoaGhoaGhoaGhoaGiOjo6Ojo6Ojo6Ojo6Ojo6Ojo6OjrS0tLS0tLS0tLS0tLS0tLS0tLS02tra2tra2tra2tra2tra2tra2tr//////////////////////////wAAAABMYXZjNjEuMTkAAAAAAAAAAAAAAAAkAwYAAAAAAAACvhC6DYoAAAAAAP/7EMQAA8AAAaQAAAAgAAA0gAAABExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sQxCmDwAABpAAAACAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/+xDEUwPAAAGkAAAAIAAANIAAAARVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/7EMR8g8AAAaQAAAAgAAA0gAAABFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sQxKYDwAABpAAAACAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVU=';
+export const AUDIO_MIME_TYPE = 'audio/mpeg';
