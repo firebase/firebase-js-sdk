@@ -551,6 +551,7 @@ export declare enum HarmBlockThreshold
 |  BLOCK\_MEDIUM\_AND\_ABOVE | <code>&quot;BLOCK_MEDIUM_AND_ABOVE&quot;</code> | Content with <code>NEGLIGIBLE</code> and <code>LOW</code> will be allowed. |
 |  BLOCK\_NONE | <code>&quot;BLOCK_NONE&quot;</code> | All content will be allowed. |
 |  BLOCK\_ONLY\_HIGH | <code>&quot;BLOCK_ONLY_HIGH&quot;</code> | Content with <code>NEGLIGIBLE</code>, <code>LOW</code>, and <code>MEDIUM</code> will be allowed. |
+|  OFF | <code>&quot;OFF&quot;</code> | All content will be allowed. This is the same as <code>BLOCK_NONE</code>, but the metadata corresponding to the [HarmCategory](./ai.md#harmcategory) will not be present in the response. |
 
 ## HarmCategory
 
