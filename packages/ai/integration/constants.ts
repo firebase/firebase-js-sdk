@@ -1,0 +1,70 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { initializeApp } from '@firebase/app';
+import {
+  AI,
+  Backend,
+  BackendType,
+  VertexAIBackend,
+  getAI
+} from '../src';
+import { FIREBASE_CONFIG } from './firebase-config';
+
+const app = initializeApp(FIREBASE_CONFIG);
+
+export type ModelName = 'gemini-2.0-flash' | 'gemini-2.0-flash-exp';
+
+/**
+ * Test config that all tests will be ran against.
+ */
+export type TestConfig = Readonly<{
+  ai: AI;
+  model: ModelName;
+  /** This will be used to output the test config at runtime */
+  toString: () => string;
+}>;
+
+function formatConfigAsString(config: { ai: AI; model: ModelName }): string {
+  return `${backendNames.get(config.ai.backend.backendType)} ${config.model}`;
+}
+
+const backends: ReadonlyArray<Backend> = [
+  // new GoogleAIBackend(), TODO: activate once live
+  new VertexAIBackend()
+];
+
+const backendNames: Map<BackendType, string> = new Map([
+  [BackendType.GOOGLE_AI, 'Google AI'],
+  [BackendType.VERTEX_AI, 'Vertex AI']
+]);
+
+const modelNames: ReadonlyArray<ModelName> = [
+  'gemini-2.0-flash',
+  'gemini-2.0-flash-exp'
+];
+
+export const testConfigs: ReadonlyArray<TestConfig> = backends.flatMap(backend => {
+  return modelNames.map(modelName => {
+    const ai = getAI(app, { backend });
+    return {
+      ai: getAI(app, { backend }),
+      model: modelName,
+      toString: () => formatConfigAsString({ ai, model: modelName })
+    }
+  })
+})
