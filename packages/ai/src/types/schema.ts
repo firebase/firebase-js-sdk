@@ -51,6 +51,10 @@ export interface SchemaShared<T> {
   description?: string;
   /** Optional. The items of the property. */
   items?: T;
+  /** The minimum number of items (elements) in a schema of type {@link SchemaType.ARRAY}. */
+  minItems?: number;
+  /** The maximum number of items (elements) in a schema of type {@link SchemaType.ARRAY}. */
+  maxItems?: number;
   /** Optional. Map of `Schema` objects. */
   properties?: {
     [k: string]: T;

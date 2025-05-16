@@ -81,6 +81,93 @@ describe('Schema builder', () => {
       nullable: false
     });
   });
+  describe('Schema.array', () => {
+    it('builds an array schema with basic items', () => {
+      const schema = Schema.array({
+        items: Schema.string()
+      });
+      expect(schema.toJSON()).to.eql({
+        type: 'array',
+        nullable: false,
+        items: {
+          type: 'string',
+          nullable: false
+        }
+      });
+    });
+
+    it('builds an array schema with items and minItems', () => {
+      const schema = Schema.array({
+        items: Schema.number(),
+        minItems: 1
+      });
+      expect(schema.toJSON()).to.eql({
+        type: 'array',
+        nullable: false,
+        items: {
+          type: 'number',
+          nullable: false
+        },
+        minItems: 1
+      });
+    });
+
+    it('builds an array schema with items and maxItems', () => {
+      const schema = Schema.array({
+        items: Schema.boolean(),
+        maxItems: 10
+      });
+      expect(schema.toJSON()).to.eql({
+        type: 'array',
+        nullable: false,
+        items: {
+          type: 'boolean',
+          nullable: false
+        },
+        maxItems: 10
+      });
+    });
+
+    it('builds an array schema with items, minItems, and maxItems', () => {
+      const schema = Schema.array({
+        items: Schema.integer(),
+        minItems: 0,
+        maxItems: 5
+      });
+      expect(schema.toJSON()).to.eql({
+        type: 'array',
+        nullable: false,
+        items: {
+          type: 'integer',
+          nullable: false
+        },
+        minItems: 0,
+        maxItems: 5
+      });
+    });
+
+    it('builds an array schema with items, minItems, maxItems, and other options', () => {
+      const schema = Schema.array({
+        items: Schema.string({ description: 'A list of names' }),
+        minItems: 1,
+        maxItems: 3,
+        nullable: true,
+        description: 'An array of strings'
+      });
+      expect(schema.toJSON()).to.eql({
+        type: 'array',
+        nullable: true,
+        description: 'An array of strings',
+        items: {
+          type: 'string',
+          description: 'A list of names',
+          nullable: false
+        },
+        minItems: 1,
+        maxItems: 3
+      });
+    });
+  });
   it('builds an object schema', () => {
     const schema = Schema.object({
       properties: {
