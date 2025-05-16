@@ -783,7 +783,11 @@ apiDescribe('Database', persistence => {
 
         return withTestCollection(persistence, docs, async randomCol => {
           const orderedQuery = query(randomCol, orderBy('embedding'));
-          await checkOnlineAndOfflineResultsMatch(orderedQuery, ...documentIds);
+          await checkOnlineAndOfflineResultsMatch(
+            randomCol,
+            orderedQuery,
+            ...documentIds
+          );
 
           const orderedQueryLessThan = query(
             randomCol,
@@ -791,6 +795,7 @@ apiDescribe('Database', persistence => {
             where('embedding', '<', vector([1, 2, 100, 4, 4]))
           );
           await checkOnlineAndOfflineResultsMatch(
+            randomCol,
             orderedQueryLessThan,
             ...documentIds.slice(2, 11)
           );
@@ -801,6 +806,7 @@ apiDescribe('Database', persistence => {
             where('embedding', '>', vector([1, 2, 100, 4, 4]))
           );
           await checkOnlineAndOfflineResultsMatch(
+            randomCol,
             orderedQueryGreaterThan,
             ...documentIds.slice(12, 13)
           );
@@ -1199,7 +1205,7 @@ apiDescribe('Database', persistence => {
           onSnapshot(docA, () => deferred2.resolve());
         });
       });
-      return Promise.all([deferred1.promise, deferred2.promise]).then(() => {});
+      return Promise.all([deferred1.promise, deferred2.promise]).then(() => { });
     });
   });
 
@@ -1663,7 +1669,7 @@ apiDescribe('Database', persistence => {
         const queryForRejection = collection(db, 'a/__badpath__/b');
         onSnapshot(
           queryForRejection,
-          () => {},
+          () => { },
           (err: Error) => {
             expect(err.name).to.exist;
             expect(err.message).to.exist;
@@ -1680,13 +1686,13 @@ apiDescribe('Database', persistence => {
         const queryForRejection = collection(db, 'a/__badpath__/b');
         onSnapshot(
           queryForRejection,
-          () => {},
+          () => { },
           (err: Error) => {
             expect(err.name).to.exist;
             expect(err.message).to.exist;
             onSnapshot(
               queryForRejection,
-              () => {},
+              () => { },
               (err2: Error) => {
                 expect(err2.name).to.exist;
                 expect(err2.message).to.exist;
@@ -2101,7 +2107,7 @@ apiDescribe('Database', persistence => {
   it('can query after firestore restart', async () => {
     return withTestDoc(persistence, async (docRef, firestore) => {
       const deferred: Deferred<FirestoreError> = new Deferred();
-      const unsubscribe = onSnapshot(docRef, snapshot => {}, deferred.resolve);
+      const unsubscribe = onSnapshot(docRef, snapshot => { }, deferred.resolve);
 
       await firestore._restart();
 
@@ -2121,7 +2127,7 @@ apiDescribe('Database', persistence => {
   it('query listener throws error on termination', async () => {
     return withTestDoc(persistence, async (docRef, firestore) => {
       const deferred: Deferred<FirestoreError> = new Deferred();
-      const unsubscribe = onSnapshot(docRef, snapshot => {}, deferred.resolve);
+      const unsubscribe = onSnapshot(docRef, snapshot => { }, deferred.resolve);
 
       await terminate(firestore);
 
@@ -2168,7 +2174,7 @@ apiDescribe('Database', persistence => {
         readonly title: string,
         readonly author: string,
         readonly ref: DocumentReference | null = null
-      ) {}
+      ) { }
       byline(): string {
         return this.title + ', by ' + this.author;
       }
@@ -2298,8 +2304,8 @@ apiDescribe('Database', persistence => {
           batch.set(ref, { title: 'olive' }, { merge: true })
         ).to.throw(
           'Function WriteBatch.set() called with invalid ' +
-            'data (via `toFirestore()`). Unsupported field value: undefined ' +
-            '(found in field author in document posts/some-post)'
+          'data (via `toFirestore()`). Unsupported field value: undefined ' +
+          '(found in field author in document posts/some-post)'
         );
       });
     });
@@ -2822,6 +2828,7 @@ apiDescribe('Database', persistence => {
               'a'
             ];
             await checkOnlineAndOfflineResultsMatch(
+              collectionRef,
               orderedQuery,
               ...expectedDocs
             );
@@ -2842,6 +2849,7 @@ apiDescribe('Database', persistence => {
               'Aa'
             ];
             await checkOnlineAndOfflineResultsMatch(
+              collectionRef,
               filteredQuery,
               ...expectedDocs
             );
@@ -2893,7 +2901,11 @@ apiDescribe('Database', persistence => {
 
         unsubscribe();
 
-        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+        await checkOnlineAndOfflineResultsMatch(
+          collectionRef,
+          orderedQuery,
+          ...expectedDocs
+        );
       });
     });
 
@@ -2925,7 +2937,11 @@ apiDescribe('Database', persistence => {
 
         unsubscribe();
 
-        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+        await checkOnlineAndOfflineResultsMatch(
+          collectionRef,
+          orderedQuery,
+          ...expectedDocs
+        );
       });
     });
 
@@ -2957,7 +2973,11 @@ apiDescribe('Database', persistence => {
 
         unsubscribe();
 
-        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+        await checkOnlineAndOfflineResultsMatch(
+          collectionRef,
+          orderedQuery,
+          ...expectedDocs
+        );
       });
     });
 
@@ -2989,7 +3009,11 @@ apiDescribe('Database', persistence => {
 
         unsubscribe();
 
-        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+        await checkOnlineAndOfflineResultsMatch(
+          collectionRef,
+          orderedQuery,
+          ...expectedDocs
+        );
       });
     });
 
@@ -3034,7 +3058,11 @@ apiDescribe('Database', persistence => {
 
         unsubscribe();
 
-        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+        await checkOnlineAndOfflineResultsMatch(
+          collectionRef,
+          orderedQuery,
+          ...expectedDocs
+        );
       });
     });
 
