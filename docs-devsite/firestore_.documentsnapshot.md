@@ -41,7 +41,7 @@ export declare class DocumentSnapshot<AppModelType = DocumentData, DbModelType e
 |  [data(options)](./firestore_.documentsnapshot.md#documentsnapshotdata) |  | Retrieves all fields in the document as an <code>Object</code>. Returns <code>undefined</code> if the document doesn't exist.<!-- -->By default, <code>serverTimestamp()</code> values that have not yet been set to their final value will be returned as <code>null</code>. You can override this by passing an options object. |
 |  [exists()](./firestore_.documentsnapshot.md#documentsnapshotexists) |  | Returns whether or not the data exists. True if the document exists. |
 |  [get(fieldPath, options)](./firestore_.documentsnapshot.md#documentsnapshotget) |  | Retrieves the field specified by <code>fieldPath</code>. Returns <code>undefined</code> if the document or field doesn't exist.<!-- -->By default, a <code>serverTimestamp()</code> that has not yet been set to its final value will be returned as <code>null</code>. You can override this by passing an options object. |
-|  [toJSON()](./firestore_.documentsnapshot.md#documentsnapshottojson) |  |  |
+|  [toJSON()](./firestore_.documentsnapshot.md#documentsnapshottojson) |  | Returns a JSON-serializable representation of this <code>DocumentSnapshot</code> instance. |
 
 ## DocumentSnapshot.(constructor)
 
@@ -147,6 +147,8 @@ The data at the specified field location or undefined if no such field exists in
 
 ## DocumentSnapshot.toJSON()
 
+Returns a JSON-serializable representation of this `DocumentSnapshot` instance.
+
 <b>Signature:</b>
 
 ```typescript
@@ -155,4 +157,6 @@ toJSON(): object;
 <b>Returns:</b>
 
 object
+
+a JSON representation of this object.
 

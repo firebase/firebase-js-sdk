@@ -34,7 +34,7 @@ export declare class QuerySnapshot<AppModelType = DocumentData, DbModelType exte
 |  --- | --- | --- |
 |  [docChanges(options)](./firestore_.querysnapshot.md#querysnapshotdocchanges) |  | Returns an array of the documents changes since the last snapshot. If this is the first snapshot, all documents will be in the list as 'added' changes. |
 |  [forEach(callback, thisArg)](./firestore_.querysnapshot.md#querysnapshotforeach) |  | Enumerates all of the documents in the <code>QuerySnapshot</code>. |
-|  [toJSON()](./firestore_.querysnapshot.md#querysnapshottojson) |  |  |
+|  [toJSON()](./firestore_.querysnapshot.md#querysnapshottojson) |  | Returns a JSON-serializable representation of this <code>QuerySnapshot</code> instance. |
 
 ## QuerySnapshot.docs
 
@@ -129,6 +129,8 @@ void
 
 ## QuerySnapshot.toJSON()
 
+Returns a JSON-serializable representation of this `QuerySnapshot` instance.
+
 <b>Signature:</b>
 
 ```typescript
@@ -137,4 +139,6 @@ toJSON(): object;
 <b>Returns:</b>
 
 object
+
+a JSON representation of this object.
 

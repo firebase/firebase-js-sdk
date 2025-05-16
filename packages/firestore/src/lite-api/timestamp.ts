@@ -184,7 +184,9 @@ export class Timestamp {
     nanoseconds: property('number')
   };
 
-  /** Returns a JSON-serializable representation of this `Timestamp`. */
+  /**
+   * Returns a JSON-serializable representation of this `Timestamp`.
+   */
   toJSON(): { seconds: number; nanoseconds: number; type: string } {
     return {
       type: Timestamp._jsonSchemaVersion,
@@ -193,7 +195,9 @@ export class Timestamp {
     };
   }
 
-  /** Builds a `Timestamp` instance from a JSON serialized version of `Bytes`. */
+  /**
+   * Builds a `Timestamp` instance from a JSON object created by {@link Timestamp.toJSON}.
+   */
   static fromJSON(json: object): Timestamp {
     if (validateJSON(json, Timestamp._jsonSchema)) {
       return new Timestamp(json.seconds, json.nanoseconds);

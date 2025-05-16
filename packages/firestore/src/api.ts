@@ -89,9 +89,11 @@ export {
   DocumentChange,
   DocumentChangeType,
   DocumentSnapshot,
+  documentSnapshotFromJSON,
   FirestoreDataConverter,
   QueryDocumentSnapshot,
   QuerySnapshot,
+  querySnapshotFromJSON,
   snapshotEqual,
   SnapshotMetadata,
   SnapshotOptions
@@ -161,6 +163,7 @@ export {
   getDocsFromServer,
   onSnapshot,
   onSnapshotsInSync,
+  onSnapshotResume,
   setDoc,
   updateDoc
 } from './api/reference_impl';

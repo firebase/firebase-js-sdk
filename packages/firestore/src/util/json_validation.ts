@@ -112,7 +112,7 @@ export function validateJSON<S extends JsonSchema>(
   schema: S
 ): json is Json<S> {
   if (!isPlainObject(json)) {
-    throw new FirestoreError(Code.INVALID_ARGUMENT, 'json must be an object');
+    throw new FirestoreError(Code.INVALID_ARGUMENT, 'JSON must be an object');
   }
   let error: string | undefined = undefined;
   for (const key in schema) {
@@ -121,12 +121,13 @@ export function validateJSON<S extends JsonSchema>(
       const value: { value: unknown } | undefined =
         'value' in schema[key] ? { value: schema[key].value } : undefined;
       if (!(key in json)) {
-        error = `json missing required field: ${key}`;
+        error = `JSON missing required field: '${key}'`;
+        break;
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const fieldValue = (json as any)[key];
       if (typeString && typeof fieldValue !== typeString) {
-        error = `json field '${key}' must be a ${typeString}.`;
+        error = `JSON field '${key}' must be a ${typeString}.`;
         break;
       } else if (value !== undefined && fieldValue !== value.value) {
         error = `Expected '${key}' field to equal '${value.value}'`;

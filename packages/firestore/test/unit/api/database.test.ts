@@ -19,6 +19,10 @@ import { expect } from 'chai';
 
 import {
   DocumentReference,
+  DocumentSnapshot,
+  documentSnapshotFromJSON,
+  QuerySnapshot,
+  querySnapshotFromJSON,
   connectFirestoreEmulator,
   loadBundle,
   refEqual,
@@ -31,6 +35,7 @@ import {
   collectionReference,
   documentReference,
   documentSnapshot,
+  firestore,
   newTestFirestore,
   query,
   querySnapshot
@@ -86,6 +91,117 @@ describe('DocumentReference', () => {
       type: 'firestore/documentReference/1.0',
       referencePath: 'foo/bar'
     });
+  });
+
+  it('fromJSON() throws with invalid data', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      DocumentReference.fromJSON(db, {});
+    }).to.throw("JSON missing required field: 'type'");
+  });
+
+  it('fromJSON() throws with missing type data', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      documentSnapshotFromJSON(db, {
+        bundleSource: 'DocumentSnapshot',
+        bundleName: 'test name',
+        bundle: 'test bundle'
+      });
+    }).to.throw("JSON missing required field: 'type'");
+  });
+
+  it('fromJSON() throws with invalid type data', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      documentSnapshotFromJSON(db, {
+        type: 1,
+        bundleSource: 'DocumentSnapshot',
+        bundleName: 'test name',
+        bundle: 'test bundle'
+      });
+    }).to.throw("JSON field 'type' must be a string");
+  });
+
+  it('fromJSON() throws with missing bundleSource', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      documentSnapshotFromJSON(db, {
+        type: DocumentSnapshot._jsonSchemaVersion,
+        bundleName: 'test name',
+        bundle: 'test bundle'
+      });
+    }).to.throw("JSON missing required field: 'bundleSource'");
+  });
+
+  it('fromJSON() throws with invalid bundleSource type', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      documentSnapshotFromJSON(db, {
+        type: DocumentSnapshot._jsonSchemaVersion,
+        bundleSource: 1,
+        bundleName: 'test name',
+        bundle: 'test bundle'
+      });
+    }).to.throw("JSON field 'bundleSource' must be a string");
+  });
+
+  it('fromJSON() throws with invalid bundleSource value', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      documentSnapshotFromJSON(db, {
+        type: DocumentSnapshot._jsonSchemaVersion,
+        bundleSource: 'QuerySnapshot',
+        bundleName: 'test name',
+        bundle: 'test bundle'
+      });
+    }).to.throw("Expected 'bundleSource' field to equal 'DocumentSnapshot'");
+  });
+
+  it('fromJSON() throws with missing bundleName', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      documentSnapshotFromJSON(db, {
+        type: DocumentSnapshot._jsonSchemaVersion,
+        bundleSource: 'DocumentSnapshot',
+        bundle: 'test bundle'
+      });
+    }).to.throw("JSON missing required field: 'bundleName'");
+  });
+
+  it('fromJSON() throws with invalid bundleName', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      documentSnapshotFromJSON(db, {
+        type: DocumentSnapshot._jsonSchemaVersion,
+        bundleSource: 'DocumentSnapshot',
+        bundleName: 1,
+        bundle: 'test bundle'
+      });
+    }).to.throw("JSON field 'bundleName' must be a string");
+  });
+
+  it('fromJSON() throws with missing bundle', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      documentSnapshotFromJSON(db, {
+        type: DocumentSnapshot._jsonSchemaVersion,
+        bundleSource: 'DocumentSnapshot',
+        bundleName: 'test name'
+      });
+    }).to.throw("JSON missing required field: 'bundle'");
+  });
+
+  it('fromJSON() throws with invalid bundle', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      documentSnapshotFromJSON(db, {
+        type: DocumentSnapshot._jsonSchemaVersion,
+        bundleSource: 'DocumentSnapshot',
+        bundleName: 'test name',
+        bundle: 1
+      });
+    }).to.throw("JSON field 'bundle' must be a string");
   });
 
   it('fromJSON() does not throw', () => {
@@ -189,6 +305,34 @@ describe('DocumentSnapshot', () => {
       `DocumentSnapshot.toJSON() attempted to serialize a document with pending writes. ` +
         `Await waitForPendingWrites() before invoking toJSON().`
     );
+  });
+
+  it('fromJSON parses toJSON result', () => {
+    const docSnap = documentSnapshot('foo/bar', { a: 1 }, /*fromCache=*/ true);
+    const json = docSnap.toJSON();
+    expect(() => {
+      documentSnapshotFromJSON(docSnap._firestore, json);
+    }).to.not.throw;
+  });
+
+  it('fromJSON produces valid snapshot data.', () => {
+    const json = documentSnapshot(
+      'foo/bar',
+      { a: 1 },
+      /*fromCache=*/ true
+    ).toJSON();
+    const db = firestore();
+    const docSnap = documentSnapshotFromJSON(db, json);
+    expect(docSnap).to.exist;
+    const data = docSnap.data();
+    expect(data).to.not.be.undefined;
+    expect(data).to.not.be.null;
+    if (data) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((data as any).a).to.exist;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((data as any).a).to.equal(1);
+    }
   });
 });
 
@@ -318,7 +462,7 @@ describe('QuerySnapshot', () => {
       'foo',
       {},
       { a: { a: 1 } },
-      keys(),
+      keys(), // An empty set of mutaded document keys signifies that there are no pending writes.
       false,
       false
     ).toJSON();
@@ -342,14 +486,172 @@ describe('QuerySnapshot', () => {
         'foo',
         {},
         { a: { a: 1 } },
-        keys('foo/a'),
-        true,
-        true
+        keys('foo/a'), // A non empty set of mutated keys signifies pending writes.
+        false,
+        false
       ).toJSON()
     ).to.throw(
       `QuerySnapshot.toJSON() attempted to serialize a document with pending writes. ` +
         `Await waitForPendingWrites() before invoking toJSON().`
     );
+  });
+
+  it('fromJSON() throws with invalid data', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      querySnapshotFromJSON(db, {});
+    }).to.throw("JSON missing required field: 'type'");
+  });
+
+  it('fromJSON() throws with missing type data', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      querySnapshotFromJSON(db, {
+        bundleSource: 'QuerySnapshot',
+        bundleName: 'test name',
+        bundle: 'test bundle'
+      });
+    }).to.throw("JSON missing required field: 'type'");
+  });
+
+  it('fromJSON() throws with invalid type data', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      querySnapshotFromJSON(db, {
+        type: 1,
+        bundleSource: 'QuerySnapshot',
+        bundleName: 'test name',
+        bundle: 'test bundle'
+      });
+    }).to.throw("JSON field 'type' must be a string");
+  });
+
+  it('fromJSON() throws with missing bundle source data', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      querySnapshotFromJSON(db, {
+        type: QuerySnapshot._jsonSchemaVersion,
+        bundleName: 'test name',
+        bundle: 'test bundle'
+      });
+    }).to.throw("JSON missing required field: 'bundleSource'");
+  });
+
+  it('fromJSON() throws with invalid bundleSource type', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      querySnapshotFromJSON(db, {
+        type: QuerySnapshot._jsonSchemaVersion,
+        bundleSource: 1,
+        bundleName: 'test name',
+        bundle: 'test bundle'
+      });
+    }).to.throw("JSON field 'bundleSource' must be a string");
+  });
+
+  it('fromJSON() throws with invalid bundleSource value', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      querySnapshotFromJSON(db, {
+        type: QuerySnapshot._jsonSchemaVersion,
+        bundleSource: 'DocumentSnapshot',
+        bundleName: 'test name',
+        bundle: 'test bundle'
+      });
+    }).to.throw("Expected 'bundleSource' field to equal 'QuerySnapshot'");
+  });
+
+  it('fromJSON() throws with missing bundleName', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      querySnapshotFromJSON(db, {
+        type: QuerySnapshot._jsonSchemaVersion,
+        bundleSource: 'QuerySnapshot',
+        bundle: 'test bundle'
+      });
+    }).to.throw("JSON missing required field: 'bundleName'");
+  });
+
+  it('fromJSON() throws with invalid bundleName', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      querySnapshotFromJSON(db, {
+        type: QuerySnapshot._jsonSchemaVersion,
+        bundleSource: 'QuerySnapshot',
+        bundleName: 1,
+        bundle: 'test bundle'
+      });
+    }).to.throw("JSON field 'bundleName' must be a string");
+  });
+
+  it('fromJSON() throws with missing bundle field', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      querySnapshotFromJSON(db, {
+        type: QuerySnapshot._jsonSchemaVersion,
+        bundleSource: 'QuerySnapshot',
+        bundleName: 'test name'
+      });
+    }).to.throw("JSON missing required field: 'bundle'");
+  });
+
+  it('fromJSON() throws with invalid bundle field', () => {
+    const db = newTestFirestore();
+    expect(() => {
+      querySnapshotFromJSON(db, {
+        type: QuerySnapshot._jsonSchemaVersion,
+        bundleSource: 'QuerySnapshot',
+        bundleName: 'test name',
+        bundle: 1
+      });
+    }).to.throw("JSON field 'bundle' must be a string");
+  });
+
+  it('fromJSON does not throw', () => {
+    const json = querySnapshot(
+      'foo',
+      {},
+      { a: { a: 1 } },
+      keys(), // An empty set of mutaded document keys signifies that there are no pending writes.
+      false,
+      false
+    ).toJSON();
+
+    const db = firestore();
+    expect(() => {
+      querySnapshotFromJSON(db, json);
+    }).to.not.throw;
+  });
+
+  it('fromJSON parses produces valid snapshot data', () => {
+    const json = querySnapshot(
+      'foo',
+      {},
+      { a: { a: 1 } },
+      keys(), // An empty set of mutaded document keys signifies that there are no pending writes.
+      false,
+      false
+    ).toJSON();
+
+    const db = firestore();
+    const querySnap = querySnapshotFromJSON(db, json);
+    expect(querySnap).to.exist;
+    if (querySnap !== undefined) {
+      const docs = querySnap.docs;
+      expect(docs).to.not.be.undefined;
+      expect(docs).to.not.be.null;
+      if (docs) {
+        expect(docs.length).to.equal(1);
+        docs.map(document => {
+          const docData = document.data();
+          expect(docData).to.exist;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          expect((docData as any).a).to.exist;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          expect((docData as any).a).to.equal(1);
+        });
+      }
+    }
   });
 });
 

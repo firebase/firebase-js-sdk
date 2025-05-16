@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { BundleLoader } from '../core/bundle_impl';
+import { createBundleReaderSync } from '../core/firestore_client';
 import { newQueryComparator } from '../core/query';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { FieldPath } from '../lite-api/field_path';
@@ -26,6 +28,7 @@ import {
   SetOptions,
   WithFieldValue
 } from '../lite-api/reference';
+import { LiteUserDataWriter } from '../lite-api/reference_impl';
 import {
   DocumentSnapshot as LiteDocumentSnapshot,
   fieldPathFromArgument,
@@ -33,8 +36,14 @@ import {
 } from '../lite-api/snapshot';
 import { UntypedFirestoreDataConverter } from '../lite-api/user_data_reader';
 import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
+import { fromBundledQuery } from '../local/local_serializer';
+import { documentKeySet } from '../model/collections';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { DocumentSet } from '../model/document_set';
+import { ResourcePath } from '../model/path';
+import { newSerializer } from '../platform/serializer';
+import { fromDocument } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
 import {
   BundleBuilder,
@@ -42,6 +51,9 @@ import {
   QuerySnapshotBundleData
 } from '../util/bundle_builder_impl';
 import { Code, FirestoreError } from '../util/error';
+// API extractor fails importing 'property' unless we also explicitly import 'Property'.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-imports-ts
+import { Property, property, validateJSON } from '../util/json_validation';
 import { AutoId } from '../util/misc';
 
 import { Firestore } from './database';
@@ -503,10 +515,24 @@ export class DocumentSnapshot<
     return undefined;
   }
 
+  static _jsonSchemaVersion: string = 'firestore/documentSnapshot/1.0';
+  static _jsonSchema = {
+    type: property('string', DocumentSnapshot._jsonSchemaVersion),
+    bundleSource: property('string', 'DocumentSnapshot'),
+    bundleName: property('string'),
+    bundle: property('string')
+  };
+
+  /**
+   * Returns a JSON-serializable representation of this `DocumentSnapshot` instance.
+   *
+   * @returns a JSON representation of this object.
+   */
   toJSON(): object {
     const document = this._document;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = {};
+    result['type'] = DocumentSnapshot._jsonSchemaVersion;
     result['bundle'] = '';
     result['bundleSource'] = 'DocumentSnapshot';
     result['bundleName'] = this._key.toString();
@@ -543,6 +569,92 @@ export class DocumentSnapshot<
     result['bundle'] = builder.build();
     return result;
   }
+}
+
+/**
+ * Builds a `DocumentSnapshot` instance from a JSON object created by
+ * {@link DocumentSnapshot.toJSON}.
+ *
+ * @param firestore - The {@link Firestore} instance the snapshot should be loaded for.
+ * @param json - a JSON object represention of a `DocumentSnapshot` instance.
+ * @returns an instance of {@link DocumentSnapshot} if the JSON object could be
+ * parsed. Throws a {@link FirestoreError} if an error occurs.
+ */
+export function documentSnapshotFromJSON(
+  db: Firestore,
+  json: object
+): DocumentSnapshot;
+/**
+ * Builds a `DocumentSnapshot` instance from a JSON object created by
+ * {@link DocumentSnapshot.toJSON}.
+ *
+ * @param firestore - The {@link Firestore} instance the snapshot should be loaded for.
+ * @param json - a JSON object represention of a `DocumentSnapshot` instance.
+ * @param converter - Converts objects to and from Firestore.
+ * @returns an instance of {@link DocumentSnapshot} if the JSON object could be
+ * parsed. Throws a {@link FirestoreError} if an error occurs.
+ */
+export function documentSnapshotFromJSON<
+  AppModelType,
+  DbModelType extends DocumentData = DocumentData
+>(
+  db: Firestore,
+  json: object,
+  converter: FirestoreDataConverter<AppModelType, DbModelType>
+): DocumentSnapshot<AppModelType, DbModelType>;
+export function documentSnapshotFromJSON<
+  AppModelType,
+  DbModelType extends DocumentData = DocumentData
+>(
+  db: Firestore,
+  json: object,
+  converter?: FirestoreDataConverter<AppModelType, DbModelType>
+): DocumentSnapshot<AppModelType, DbModelType> {
+  if (validateJSON(json, DocumentSnapshot._jsonSchema)) {
+    // Parse the bundle data.
+    const serializer = newSerializer(db._databaseId);
+    const bundleReader = createBundleReaderSync(json.bundle, serializer);
+    const elements = bundleReader.getElements();
+    const bundleLoader: BundleLoader = new BundleLoader(
+      bundleReader.getMetadata(),
+      serializer
+    );
+    for (const element of elements) {
+      bundleLoader.addSizedElement(element);
+    }
+
+    // Ensure that we have the correct number of documents in the bundle.
+    const bundledDocuments = bundleLoader.documents;
+    if (bundledDocuments.length !== 1) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Expected bundle data to contain 1 document, but it contains ${bundledDocuments.length} documents.`
+      );
+    }
+
+    // Build out the internal document data.
+    const document = fromDocument(serializer, bundledDocuments[0].document!);
+    const documentKey = new DocumentKey(
+      ResourcePath.fromString(json.bundleName)
+    );
+
+    // Return the external facing DocumentSnapshot.
+    return new DocumentSnapshot(
+      db,
+      new LiteUserDataWriter(db),
+      documentKey,
+      document,
+      new SnapshotMetadata(
+        /* hasPendingWrites= */ false,
+        /* fromCache= */ false
+      ),
+      converter ? converter : null
+    );
+  }
+  throw new FirestoreError(
+    Code.INTERNAL,
+    'Unexpected error creating DocumentSnapshot from JSON.'
+  );
 }
 
 /**
@@ -699,9 +811,23 @@ export class QuerySnapshot<
     return this._cachedChanges;
   }
 
+  static _jsonSchemaVersion: string = 'firestore/querySnapshot/1.0';
+  static _jsonSchema = {
+    type: property('string', QuerySnapshot._jsonSchemaVersion),
+    bundleSource: property('string', 'QuerySnapshot'),
+    bundleName: property('string'),
+    bundle: property('string')
+  };
+
+  /**
+   * Returns a JSON-serializable representation of this `QuerySnapshot` instance.
+   *
+   * @returns a JSON representation of this object.
+   */
   toJSON(): object {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = {};
+    result['type'] = QuerySnapshot._jsonSchemaVersion;
     result['bundleSource'] = 'QuerySnapshot';
     result['bundleName'] = AutoId.newId();
 
@@ -747,6 +873,105 @@ export class QuerySnapshot<
     result['bundle'] = builder.build();
     return result;
   }
+}
+
+/**
+ * Builds a `QuerySnapshot` instance from a JSON object created by
+ * {@link QuerySnapshot.toJSON}.
+ *
+ * @param firestore - The {@link Firestore} instance the snapshot should be loaded for.
+ * @param json - a JSON object represention of a `QuerySnapshot` instance.
+ * @returns an instance of {@link QuerySnapshot} if the JSON object could be
+ * parsed. Throws a {@link FirestoreError} if an error occurs.
+ */
+export function querySnapshotFromJSON(
+  db: Firestore,
+  json: object
+): QuerySnapshot;
+/**
+ * Builds a `QuerySnapshot` instance from a JSON object created by
+ * {@link QuerySnapshot.toJSON}.
+ *
+ * @param firestore - The {@link Firestore} instance the snapshot should be loaded for.
+ * @param json - a JSON object represention of a `QuerySnapshot` instance.
+ * @param converter - Converts objects to and from Firestore.
+ * @returns an instance of {@link QuerySnapshot} if the JSON object could be
+ * parsed. Throws a {@link FirestoreError} if an error occurs.
+ */
+export function querySnapshotFromJSON<
+  AppModelType,
+  DbModelType extends DocumentData = DocumentData
+>(
+  db: Firestore,
+  json: object,
+  converter: FirestoreDataConverter<AppModelType, DbModelType>
+): QuerySnapshot<AppModelType, DbModelType>;
+export function querySnapshotFromJSON<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  db: Firestore,
+  json: object,
+  converter?: FirestoreDataConverter<AppModelType, DbModelType>
+): QuerySnapshot<AppModelType, DbModelType> {
+  if (validateJSON(json, QuerySnapshot._jsonSchema)) {
+    // Parse the bundle data.
+    const serializer = newSerializer(db._databaseId);
+    const bundleReader = createBundleReaderSync(json.bundle, serializer);
+    const elements = bundleReader.getElements();
+    const bundleLoader: BundleLoader = new BundleLoader(
+      bundleReader.getMetadata(),
+      serializer
+    );
+    for (const element of elements) {
+      bundleLoader.addSizedElement(element);
+    }
+
+    if (bundleLoader.queries.length !== 1) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Snapshot data expected 1 query but found ${bundleLoader.queries.length} queries.`
+      );
+    }
+
+    // Create an internal Query object from the named query in the budnle.
+    const query = fromBundledQuery(bundleLoader.queries[0].bundledQuery!);
+
+    // Construct the arrays of document data for the query.
+    const bundledDocuments = bundleLoader.documents;
+    let documentSet = new DocumentSet();
+    bundledDocuments.map(bundledDocument => {
+      const document = fromDocument(serializer, bundledDocument.document!);
+      documentSet = documentSet.add(document);
+    });
+    // Create a view snapshot of the query and documents.
+    const viewSnapshot = ViewSnapshot.fromInitialDocuments(
+      query,
+      documentSet,
+      documentKeySet() /* Zero mutated keys signifies no pending writes. */,
+      /* fromCache= */ false,
+      /* hasCachedResults= */ false
+    );
+
+    // Create an external Query object, required to construct the QuerySnapshot.
+    const externalQuery = new Query<AppModelType, DbModelType>(
+      db,
+      converter ? converter : null,
+      query
+    );
+
+    // Return a new QuerySnapshot with all of the collected data.
+    return new QuerySnapshot<AppModelType, DbModelType>(
+      db,
+      new LiteUserDataWriter(db),
+      externalQuery,
+      viewSnapshot
+    );
+  }
+  throw new FirestoreError(
+    Code.INTERNAL,
+    'Unexpected error creating QuerySnapshot from JSON.'
+  );
 }
 
 /** Calculates the array of `DocumentChange`s for a given `ViewSnapshot`. */
