@@ -28,7 +28,7 @@ export interface GenerationConfig
 |  [presencePenalty](./ai.generationconfig.md#generationconfigpresencepenalty) | number |  |
 |  [responseMimeType](./ai.generationconfig.md#generationconfigresponsemimetype) | string | Output response MIME type of the generated candidate text. Supported MIME types are <code>text/plain</code> (default, text output), <code>application/json</code> (JSON response in the candidates), and <code>text/x.enum</code>. |
 |  [responseModalities](./ai.generationconfig.md#generationconfigresponsemodalities) | [ResponseModality](./ai.md#responsemodality)<!-- -->\[\] | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
-|  [responseSchema](./ai.generationconfig.md#generationconfigresponseschema) | [TypedSchema](./ai.md#typedschema) \| [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) | Output response schema of the generated candidate text. This value can be a class generated with a [Schema](./ai.schema.md#schema_class) static method like <code>Schema.string()</code> or <code>Schema.object()</code> or it can be a plain JS object matching the [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) interface. <br/>Note: This only applies when the specified <code>responseMIMEType</code> supports a schema; currently this is limited to <code>application/json</code> and <code>text/x.enum</code>. |
+|  [responseSchema](./ai.generationconfig.md#generationconfigresponseschema) | [TypedSchema](./ai.md#typedschema) \| [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) | Output response schema of the generated candidate text. This value can be a class generated with a [Schema](./ai.schema.md#schema_class) static method like <code>Schema.string()</code> or <code>Schema.object()</code> or it can be a plain JS object matching the [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) interface. <br/>Note: This only applies when the specified <code>responseMimeType</code> supports a schema; currently this is limited to <code>application/json</code> and <code>text/x.enum</code>. |
 |  [stopSequences](./ai.generationconfig.md#generationconfigstopsequences) | string\[\] |  |
 |  [temperature](./ai.generationconfig.md#generationconfigtemperature) | number |  |
 |  [topK](./ai.generationconfig.md#generationconfigtopk) | number |  |
@@ -93,7 +93,7 @@ responseModalities?: ResponseModality[];
 
 ## GenerationConfig.responseSchema
 
-Output response schema of the generated candidate text. This value can be a class generated with a [Schema](./ai.schema.md#schema_class) static method like `Schema.string()` or `Schema.object()` or it can be a plain JS object matching the [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) interface. <br/>Note: This only applies when the specified `responseMIMEType` supports a schema; currently this is limited to `application/json` and `text/x.enum`<!-- -->.
+Output response schema of the generated candidate text. This value can be a class generated with a [Schema](./ai.schema.md#schema_class) static method like `Schema.string()` or `Schema.object()` or it can be a plain JS object matching the [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) interface. <br/>Note: This only applies when the specified `responseMimeType` supports a schema; currently this is limited to `application/json` and `text/x.enum`<!-- -->.
 
 <b>Signature:</b>
 
