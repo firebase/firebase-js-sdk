@@ -53,8 +53,7 @@ import {
   collection,
   documentId as documentIdFieldPath,
   writeBatch,
-  addDoc,
-  increment
+  addDoc
 } from '../util/firebase_export';
 import { apiDescribe, withTestCollection, itIf } from '../util/helpers';
 import {
@@ -144,16 +143,17 @@ use(chaiAsPromised);
 
 setLogLevel('debug');
 
-const testUnsupportedFeatures: boolean | 'only' = false;
-const timestampDeltaMS = 1000;
+const testUnsupportedFeatures = false;
 
-apiDescribe.only('Pipelines', persistence => {
+apiDescribe('Pipelines', persistence => {
   addEqualityMatcher();
 
   let firestore: Firestore;
   let randomCol: CollectionReference;
   let beginDocCreation: number = 0;
   let endDocCreation: number = 0;
+
+  const timestampDeltaMS = 1000;
 
   async function testCollectionWithDocs(docs: {
     [id: string]: DocumentData;
@@ -343,7 +343,8 @@ apiDescribe.only('Pipelines', persistence => {
       expect(snapshot.results.length).to.equal(0);
     });
 
-    it('full snapshot as expected', async () => {
+    // Skipping because __name__ is not currently working in DBE
+    itIf(testUnsupportedFeatures)('full snapshot as expected', async () => {
       const ppl = firestore
         .pipeline()
         .collection(randomCol.path)
@@ -1371,7 +1372,8 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     describe('union stage', () => {
-      it('run pipeline with union', async () => {
+      // __name__ not currently supported by dbe
+      itIf(testUnsupportedFeatures)('run pipeline with union', async () => {
         const snapshot = await execute(
           firestore
             .pipeline()
@@ -2364,6 +2366,21 @@ apiDescribe.only('Pipelines', persistence => {
       expectResults(snapshot, ...expectedResults);
     });
 
+    // TODO: current_context tests with are failing because of b/395937453
+    itIf(testUnsupportedFeatures)('supports currentContext', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(currentContext().as('currentContext'))
+      );
+      expectResults(snapshot, {
+        currentContext: 'TODO'
+      });
+    });
+
     it('supports map', async () => {
       const snapshot = await execute(
         firestore
@@ -2943,7 +2960,7 @@ apiDescribe.only('Pipelines', persistence => {
       });
     }
 
-    // sort on __name__ is not working, see b/409358591
+    // sort on __name__ is not working
     itIf(testUnsupportedFeatures)(
       'supports pagination with filters',
       async () => {
@@ -2985,7 +3002,7 @@ apiDescribe.only('Pipelines', persistence => {
       }
     );
 
-    // sort on __name__ is not working, see b/409358591
+    // sort on __name__ is not working
     itIf(testUnsupportedFeatures)(
       'supports pagination with offsets',
       async () => {

@@ -95,6 +95,23 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     }).next(() => result);
   }
 
+  getAllOverlays(
+    transaction: PersistenceTransaction,
+    sinceBatchId: number
+  ): PersistencePromise<OverlayMap> {
+    const overlays = newOverlayMap();
+    // TODO(pipeline): should we create an index for this? But how often people really expect
+    // querying entire database to be fast?
+    return documentOverlayStore(transaction)
+      .iterate((dbOverlayKey, dbOverlay) => {
+        const overlay = fromDbDocumentOverlay(this.serializer, dbOverlay);
+        if (overlay.largestBatchId > sinceBatchId) {
+          overlays.set(overlay.getKey(), overlay);
+        }
+      })
+      .next(() => overlays);
+  }
+
   saveOverlays(
     transaction: PersistenceTransaction,
     largestBatchId: number,
