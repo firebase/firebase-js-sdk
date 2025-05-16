@@ -1272,10 +1272,6 @@ function onSnapshotDocumentSnapshotBundle<
           converter ? converter : null,
           DocumentKey.fromPath(json.bundleName)
         );
-        console.error(
-          'DEDB onSnapshotDocumentSnapshotBundle callong onSnapshot with docRef: ',
-          docReference.path.toString()
-        );
         internalUnsubscribe = onSnapshot(
           docReference as DocumentReference<AppModelType, DbModelType>,
           options ? options : {},
