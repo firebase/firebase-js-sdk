@@ -61,10 +61,7 @@ export interface SchemaShared<T> {
   properties?: {
     [k: string]: T;
   };
-  /**
-   * A hint to the gemini model, suggesting the order in which the keys should appear in the
-   * generated JSON string.
-   */
+  /** A hint suggesting the order in which the keys should appear in the generated JSON string. */
   propertyOrdering?: string[];
   /** Optional. The enum of the property. */
   enum?: string[];

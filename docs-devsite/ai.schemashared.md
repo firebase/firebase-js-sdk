@@ -31,7 +31,7 @@ export interface SchemaShared<T>
 |  [minimum](./ai.schemashared.md#schemasharedminimum) | number | The minimum value of a numeric type. |
 |  [nullable](./ai.schemashared.md#schemasharednullable) | boolean | Optional. Whether the property is nullable. |
 |  [properties](./ai.schemashared.md#schemasharedproperties) | { \[k: string\]: T; } | Optional. Map of <code>Schema</code> objects. |
-|  [propertyOrdering](./ai.schemashared.md#schemasharedpropertyordering) | string\[\] | A hint to the gemini model, suggesting the order in which the keys should appear in the generated JSON string. |
+|  [propertyOrdering](./ai.schemashared.md#schemasharedpropertyordering) | string\[\] | A hint suggesting the order in which the keys should appear in the generated JSON string. |
 |  [title](./ai.schemashared.md#schemasharedtitle) | string | The title of the property. This helps document the schema's purpose but does not typically constrain the generated value. It can subtly guide the model by clarifying the intent of a field. |
 
 ## SchemaShared.description
@@ -128,7 +128,7 @@ properties?: {
 
 ## SchemaShared.propertyOrdering
 
-A hint to the gemini model, suggesting the order in which the keys should appear in the generated JSON string.
+A hint suggesting the order in which the keys should appear in the generated JSON string.
 
 <b>Signature:</b>
 
