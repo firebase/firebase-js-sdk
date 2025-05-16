@@ -146,6 +146,7 @@ export abstract class Emulator {
       if (this.isDataConnect) {
         const dataConnectConfigDir = this.findDataConnectConfigDir();
         promise = spawn(this.binaryPath, [
+          '--logtostderr',
           '--v=2',
           'dev',
           `--listen=127.0.0.1:${this.port},[::1]:${this.port}`,
@@ -153,6 +154,9 @@ export abstract class Emulator {
         ]);
         promise.childProcess.stdout?.on('data', console.log);
         promise.childProcess.stderr?.on('data', res =>
+          console.log(res.toString())
+        );
+        promise.childProcess.stderr?.on('error', res =>
           console.log(res.toString())
         );
       } else {

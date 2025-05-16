@@ -1,5 +1,20 @@
 # @firebase/performance
 
+## 0.7.3
+
+### Patch Changes
+
+- Updated dependencies [[`ea1f913`](https://github.com/firebase/firebase-js-sdk/commit/ea1f9139e6baec0269fbb91233fd3f7f4b0d5875), [`0e12766`](https://github.com/firebase/firebase-js-sdk/commit/0e127664946ba324c6566a02b393dafd23fc1ddb)]:
+  - @firebase/util@1.11.1
+  - @firebase/installations@0.6.14
+  - @firebase/component@0.6.14
+
+## 0.7.2
+
+### Patch Changes
+
+- [`5611175`](https://github.com/firebase/firebase-js-sdk/commit/5611175975deb8d39eb1387a7ef083120f12c8b5) [#8814](https://github.com/firebase/firebase-js-sdk/pull/8814) (fixes [#8813](https://github.com/firebase/firebase-js-sdk/issues/8813)) - Modify the retry mechanism to stop when remaining tries is less than or equal to zero, improving the robustness of the retry handling.
+
 ## 0.7.1
 
 ### Patch Changes

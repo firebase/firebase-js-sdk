@@ -1,5 +1,33 @@
 ## Unreleased
 
+## 0.3.5
+
+### Patch Changes
+
+- [`0e12766`](https://github.com/firebase/firebase-js-sdk/commit/0e127664946ba324c6566a02b393dafd23fc1ddb) [#8968](https://github.com/firebase/firebase-js-sdk/pull/8968) - Fix Auth Redirects on Firebase Studio
+
+- Updated dependencies [[`ea1f913`](https://github.com/firebase/firebase-js-sdk/commit/ea1f9139e6baec0269fbb91233fd3f7f4b0d5875), [`0e12766`](https://github.com/firebase/firebase-js-sdk/commit/0e127664946ba324c6566a02b393dafd23fc1ddb)]:
+  - @firebase/util@1.11.1
+  - @firebase/component@0.6.14
+
+## 0.3.4
+
+### Patch Changes
+
+- [`1df3d26`](https://github.com/firebase/firebase-js-sdk/commit/1df3d26fbfb4db24b74d5d779825017e9ec40eaa) [#8898](https://github.com/firebase/firebase-js-sdk/pull/8898) - Fix DataConnectOperationError.
+
+## 0.3.3
+
+### Patch Changes
+
+- [`edb4001`](https://github.com/firebase/firebase-js-sdk/commit/edb40010bb480806b26f48601b65f4257ffed2df) [#8821](https://github.com/firebase/firebase-js-sdk/pull/8821) - Expose partial errors to the user.
+
+## 0.3.2
+
+### Patch Changes
+
+- [`43d6b67`](https://github.com/firebase/firebase-js-sdk/commit/43d6b6735f8b1d20dbe33793b57adb221efde95d) [#8820](https://github.com/firebase/firebase-js-sdk/pull/8820) - Update requests to point to v1 backend endpoints instead of v1beta
+
 ## 0.3.1
 
 ### Patch Changes

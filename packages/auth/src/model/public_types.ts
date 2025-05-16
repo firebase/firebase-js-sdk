@@ -341,8 +341,9 @@ export interface Persistence {
    * - 'SESSION' is used for temporary persistence such as `sessionStorage`.
    * - 'LOCAL' is used for long term persistence such as `localStorage` or `IndexedDB`.
    * - 'NONE' is used for in-memory, or no persistence.
+   * - 'COOKIE' is used for cookie persistence, useful for server-side rendering.
    */
-  readonly type: 'SESSION' | 'LOCAL' | 'NONE';
+  readonly type: 'SESSION' | 'LOCAL' | 'NONE' | 'COOKIE';
 }
 
 /**

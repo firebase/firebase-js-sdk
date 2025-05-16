@@ -203,7 +203,7 @@ class TargetState {
           removedDocuments = removedDocuments.add(key);
           break;
         default:
-          fail('Encountered invalid change type: ' + changeType);
+          fail(0x9481, 'Encountered invalid change type', { changeType });
       }
     });
 
@@ -242,10 +242,9 @@ class TargetState {
     this.pendingResponses -= 1;
     hardAssert(
       this.pendingResponses >= 0,
-      '`pendingResponses` is less than 0. Actual value: ' +
-        this.pendingResponses +
-        '. This indicates that the SDK received more target acks from the ' +
-        'server than expected. The SDK should not continue to operate.'
+      0x0ca9,
+      '`pendingResponses` is less than 0. This indicates that the SDK received more target acks from the server than expected. The SDK should not continue to operate.',
+      { pendingResponses: this.pendingResponses }
     );
   }
 
@@ -378,7 +377,9 @@ export class WatchChangeAggregator {
           }
           break;
         default:
-          fail('Unknown target watch change state: ' + targetChange.state);
+          fail(0xddd6, 'Unknown target watch change state', {
+            state: targetChange.state
+          });
       }
     });
   }
@@ -432,7 +433,9 @@ export class WatchChangeAggregator {
         } else {
           hardAssert(
             expectedCount === 1,
-            'Single document existence filter with count: ' + expectedCount
+            0x4e2d,
+            'Single document existence filter with count',
+            { expectedCount }
           );
         }
       } else {
