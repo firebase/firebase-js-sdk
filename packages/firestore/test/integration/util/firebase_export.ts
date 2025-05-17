@@ -22,12 +22,139 @@
 
 import { FirebaseApp, initializeApp } from '@firebase/app';
 
-import { Firestore, initializeFirestore } from '../../../src';
+import { Firestore, initializeFirestore, setLogLevel } from '../../../src';
 import { PrivateSettings } from '../../../src/lite-api/settings';
+import { logDebug, logError } from '../../../src/util/log';
+import { generateUniqueDebugId } from '../../../src/util/debug_uid';
 
 // TODO(dimond): Right now we create a new app and Firestore instance for
 // every test and never clean them up. We may need to revisit.
 let appCount = 0;
+
+const originalFetch = globalThis.fetch;
+
+/**
+ * A class that acts as a spy for a ReadableStream.
+ * It logs the content of the input stream as it's read and then pipes it through.
+ */
+class ReadableStreamSpy<Uint8Array> {
+  private inputReadableStream: ReadableStream<Uint8Array>;
+  private spyTransformStream: TransformStream<Uint8Array, Uint8Array>;
+  private spiedReadableStream: ReadableStream<Uint8Array>;
+
+  private readonly decoder = new TextDecoder();
+
+  /**
+   * Creates an instance of ReadableStreamSpy.
+   * @param inputReadableStream The ReadableStream to spy on.
+   * @param id id for logging
+   */
+  constructor(
+    type: 'request' | 'response',
+    inputReadableStream: ReadableStream<Uint8Array>,
+    id: string
+  ) {
+    if (!(inputReadableStream instanceof ReadableStream)) {
+      throw new Error('Input must be a ReadableStream.');
+    }
+
+    this.inputReadableStream = inputReadableStream;
+
+    // Create a TransformStream that logs data
+    this.spyTransformStream = new TransformStream<Uint8Array, Uint8Array>({
+      transform: (
+        chunk: Uint8Array,
+        controller: TransformStreamDefaultController<Uint8Array>
+      ) => {
+        // @ts-ignore
+        logDebug(`${type}: (fetch: ${id}) ${this.decoder.decode(chunk)}`);
+
+        controller.enqueue(chunk); // Pass the chunk along
+      },
+      flush: (controller: TransformStreamDefaultController<Uint8Array>) => {
+        // Any cleanup or final actions if needed
+      }
+    });
+
+    // Pipe the input stream through the spy transform stream
+    this.spiedReadableStream = this.inputReadableStream.pipeThrough(
+      this.spyTransformStream
+    );
+  }
+
+  /**
+   * Gets the spied-on ReadableStream.
+   * You should read from this stream to observe the logged chunks.
+   * @returns The ReadableStream with spy functionality.
+   */
+  get readableStream(): ReadableStream<Uint8Array> {
+    return this.spiedReadableStream;
+  }
+}
+
+globalThis.fetch = async function (requestOrUrl, options) {
+  let url = '';
+  let verb = 'GET';
+  let request = requestOrUrl;
+  let bodyPromise: Promise<string> = Promise.resolve('none');
+  let contentType: string = '';
+  const id = generateUniqueDebugId();
+
+  if (typeof requestOrUrl === 'string') {
+    url = requestOrUrl;
+  } else if (requestOrUrl instanceof URL) {
+    url = requestOrUrl.toString();
+  } else {
+    url = requestOrUrl.url;
+    verb = requestOrUrl.method;
+    bodyPromise = requestOrUrl.clone().text();
+    contentType = requestOrUrl.headers.get('Content-Type') ?? 'empty';
+    request = requestOrUrl;
+  }
+
+  if (
+    url.startsWith(
+      'https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel'
+    )
+  ) {
+    logDebug(`(fetch: ${id}) FETCH FOR ${verb} ${url}`);
+
+    const response = await originalFetch(request, options);
+
+    bodyPromise.then(bodyText => {
+      if (contentType === 'application/x-www-form-urlencoded') {
+        const decodedData: Record<string, string> = {};
+
+        bodyText.split('&').forEach(pair => {
+          const [key, value] = pair.split('=');
+          decodedData[key] = decodeURIComponent(value);
+        });
+        logDebug(`(fetch: ${id}) BODY: ${JSON.stringify(decodedData)}`);
+      } else {
+        logDebug(`(fetch: ${id}) BODY: ${bodyText}`);
+      }
+    });
+
+    if (response.body) {
+      const spy = new ReadableStreamSpy('response', response.body, id);
+
+      return Promise.resolve(
+        new Response(spy.readableStream, {
+          headers: response.headers,
+          status: response.status,
+          statusText: response.statusText
+        })
+      );
+    }
+
+    return Promise.resolve(response);
+  }
+
+  return originalFetch(requestOrUrl, options);
+};
+
+// enable contextual debug logging
+setLogLevel('error', 400);
 
 export function newTestApp(projectId: string, appName?: string): FirebaseApp {
   if (appName === undefined) {

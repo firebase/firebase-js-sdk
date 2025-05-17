@@ -59,6 +59,9 @@ export class WebChannelConnection extends RestConnection {
   private readonly useFetchStreams: boolean;
   private readonly longPollingOptions: ExperimentalLongPollingOptions;
 
+  /** A collection of open WebChannel instances */
+  private webChannels: WebChannel[] = [];
+
   constructor(info: DatabaseInfo) {
     super(info);
     this.forceLongPolling = info.forceLongPolling;
@@ -239,6 +242,7 @@ export class WebChannelConnection extends RestConnection {
       request
     );
     const channel = webchannelTransport.createWebChannel(url, request);
+    this.trackWebChannel(channel);
 
     // WebChannel supports sending the first message with the handshake - saving
     // a network round trip. However, it will have to call send in the same
@@ -321,6 +325,7 @@ export class WebChannelConnection extends RestConnection {
           `RPC '${rpcName}' stream ${streamId} transport closed`
         );
         streamBridge.callOnClose();
+        this.untrackWebChannel(channel);
       }
     });
 
@@ -426,5 +431,23 @@ export class WebChannelConnection extends RestConnection {
       streamBridge.callOnOpen();
     }, 0);
     return streamBridge;
+  }
+
+  /**
+   * Closes and cleans up any resources associated with the connection.
+   */
+  terminate(): void {
+    this.webChannels.forEach(webChannel => webChannel.close());
+    this.webChannels = [];
+  }
+
+  trackWebChannel(webChannel: WebChannel): void {
+    this.webChannels.push(webChannel);
+  }
+
+  untrackWebChannel(webChannel: WebChannel): void {
+    this.webChannels = this.webChannels.filter(
+      instance => instance === webChannel
+    );
   }
 }

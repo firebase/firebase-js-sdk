@@ -639,7 +639,7 @@ export function setIndexConfiguration(firestore: Firestore, configuration: Index
 export function setIndexConfiguration(firestore: Firestore, json: string): Promise<void>;
 
 // @public
-export function setLogLevel(logLevel: LogLevel): void;
+export function setLogLevel(logLevel: LogLevel, includeContext?: number): void;
 
 // @public
 export type SetOptions = {

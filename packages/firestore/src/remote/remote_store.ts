@@ -55,6 +55,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
+import { canonifyTarget } from '../core/target';
 
 const LOG_TAG = 'RemoteStore';
 
@@ -331,6 +332,11 @@ function sendWatchRequest(
   remoteStoreImpl: RemoteStoreImpl,
   targetData: TargetData
 ): void {
+  logDebug(
+    `sendWatchRequest (target id: ${
+      targetData.targetId
+    }) (target: ${canonifyTarget(targetData.target)})`
+  );
   remoteStoreImpl.watchChangeAggregator!.recordPendingTargetRequest(
     targetData.targetId
   );
@@ -357,6 +363,7 @@ function sendUnwatchRequest(
   remoteStoreImpl: RemoteStoreImpl,
   targetId: TargetId
 ): void {
+  logDebug(`sendUnwatchRequest (target id: ${targetId})`);
   remoteStoreImpl.watchChangeAggregator!.recordPendingTargetRequest(targetId);
   ensureWatchStream(remoteStoreImpl).unwatch(targetId);
 }

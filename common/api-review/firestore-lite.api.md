@@ -373,7 +373,7 @@ export function setDoc<AppModelType, DbModelType extends DocumentData>(reference
 export function setDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, data: PartialWithFieldValue<AppModelType>, options: SetOptions): Promise<void>;
 
 // @public
-export function setLogLevel(logLevel: LogLevel): void;
+export function setLogLevel(logLevel: LogLevel, includeContext?: number): void;
 
 // @public
 export type SetOptions = {
