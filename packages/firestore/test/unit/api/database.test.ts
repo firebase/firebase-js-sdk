@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { isNode } from '@firebase/util';
 import { expect } from 'chai';
 
 import {
@@ -270,27 +271,43 @@ describe('DocumentSnapshot', () => {
   });
 
   it('toJSON returns a bundle', () => {
-    const json = documentSnapshot(
+    const snapshotJson = documentSnapshot(
       'foo/bar',
       { a: 1 },
       /*fromCache=*/ true
     ).toJSON();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((json as any).bundle).to.exist;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((json as any).bundle.length).to.be.greaterThan(0);
+    const json = snapshotJson as any;
+    expect(json.bundle).to.exist;
+    expect(json.bundle.length).to.be.greaterThan(0);
+  });
+
+  it('toJSON returns a bundle containing NOT_SUPPORTED in non-node environments', () => {
+    if (!isNode()) {
+      const snapshotJson = documentSnapshot(
+        'foo/bar',
+        { a: 1 },
+        /*fromCache=*/ true
+      ).toJSON();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const json = snapshotJson as any;
+      expect(json.bundle).to.exist;
+      expect(json.bundle).to.equal('NOT SUPPORTED');
+    }
   });
 
   it('toJSON returns an empty bundle when there are no documents', () => {
-    const json = documentSnapshot(
-      'foo/bar',
-      /*data=*/ null,
-      /*fromCache=*/ true
-    ).toJSON();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((json as any).bundle).to.exist;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((json as any).bundle.length).to.equal(0);
+    if (isNode()) {
+      const snapshotJson = documentSnapshot(
+        'foo/bar',
+        /*data=*/ null,
+        /*fromCache=*/ true
+      ).toJSON();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const json = snapshotJson as any;
+      expect(json.bundle).to.exist;
+      expect(json.bundle.length).to.equal(0);
+    }
   });
 
   it('toJSON throws when there are pending writes', () => {
@@ -307,31 +324,51 @@ describe('DocumentSnapshot', () => {
     );
   });
 
+  it('fromJSON throws when parsing client-side toJSON result', () => {
+    if (!isNode()) {
+      const docSnap = documentSnapshot(
+        'foo/bar',
+        { a: 1 },
+        /*fromCache=*/ true
+      );
+      expect(() => {
+        documentSnapshotFromJSON(docSnap._firestore, docSnap.toJSON());
+      }).to.throw;
+    }
+  });
+
   it('fromJSON parses toJSON result', () => {
-    const docSnap = documentSnapshot('foo/bar', { a: 1 }, /*fromCache=*/ true);
-    const json = docSnap.toJSON();
-    expect(() => {
-      documentSnapshotFromJSON(docSnap._firestore, json);
-    }).to.not.throw;
+    if (isNode()) {
+      const docSnap = documentSnapshot(
+        'foo/bar',
+        { a: 1 },
+        /*fromCache=*/ true
+      );
+      expect(() => {
+        documentSnapshotFromJSON(docSnap._firestore, docSnap.toJSON());
+      }).to.not.throw;
+    }
   });
 
   it('fromJSON produces valid snapshot data.', () => {
-    const json = documentSnapshot(
-      'foo/bar',
-      { a: 1 },
-      /*fromCache=*/ true
-    ).toJSON();
-    const db = firestore();
-    const docSnap = documentSnapshotFromJSON(db, json);
-    expect(docSnap).to.exist;
-    const data = docSnap.data();
-    expect(data).to.not.be.undefined;
-    expect(data).to.not.be.null;
-    if (data) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((data as any).a).to.exist;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((data as any).a).to.equal(1);
+    if (isNode()) {
+      const docSnap = documentSnapshot(
+        'foo/bar',
+        { a: 1 },
+        /*fromCache=*/ true
+      );
+      const db = firestore();
+      const docSnapFromJSON = documentSnapshotFromJSON(db, docSnap.toJSON());
+      expect(docSnapFromJSON).to.exist;
+      const data = docSnapFromJSON.data();
+      expect(docSnapFromJSON).to.not.be.undefined;
+      expect(docSnapFromJSON).to.not.be.null;
+      if (data) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        expect((data as any).a).to.exist;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        expect((data as any).a).to.equal(1);
+      }
     }
   });
 });
@@ -458,7 +495,7 @@ describe('QuerySnapshot', () => {
   });
 
   it('toJSON returns a bundle', () => {
-    const json = querySnapshot(
+    const snapshotJson = querySnapshot(
       'foo',
       {},
       { a: { a: 1 } },
@@ -467,17 +504,43 @@ describe('QuerySnapshot', () => {
       false
     ).toJSON();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((json as any).bundle).to.exist;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((json as any).bundle.length).to.be.greaterThan(0);
+    const json = snapshotJson as any;
+    expect(json.bundle).to.exist;
+    expect(json.bundle.length).to.be.greaterThan(0);
+  });
+
+  it('toJSON returns a bundle containing NOT_SUPPORTED in non-node environments', () => {
+    if (!isNode()) {
+      const snapshotJson = querySnapshot(
+        'foo',
+        {},
+        { a: { a: 1 } },
+        keys(), // An empty set of mutaded document keys signifies that there are no pending writes.
+        false,
+        false
+      ).toJSON();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const json = snapshotJson as any;
+      expect(json.bundle).to.exist;
+      expect(json.bundle).to.equal('NOT SUPPORTED');
+    }
   });
 
   it('toJSON returns a bundle when there are no documents', () => {
-    const json = querySnapshot('foo', {}, {}, keys(), false, false).toJSON();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((json as any).bundle).to.exist;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((json as any).bundle.length).to.be.greaterThan(0);
+    if (isNode()) {
+      const snapshotJson = querySnapshot(
+        'foo',
+        {},
+        {},
+        keys(),
+        false,
+        false
+      ).toJSON();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const json = snapshotJson as any;
+      expect(json.bundle).to.exist;
+      expect(json.bundle.length).to.be.greaterThan(0);
+    }
   });
 
   it('toJSON throws when there are pending writes', () => {
@@ -608,49 +671,79 @@ describe('QuerySnapshot', () => {
   });
 
   it('fromJSON does not throw', () => {
-    const json = querySnapshot(
-      'foo',
-      {},
-      { a: { a: 1 } },
-      keys(), // An empty set of mutaded document keys signifies that there are no pending writes.
-      false,
-      false
-    ).toJSON();
-
-    const db = firestore();
-    expect(() => {
-      querySnapshotFromJSON(db, json);
-    }).to.not.throw;
+    if (isNode()) {
+      const snapshot = querySnapshot(
+        'foo',
+        {},
+        {
+          a: { a: 1 },
+          b: { bar: 2 }
+        },
+        keys(), // An empty set of mutaded document keys signifies that there are no pending writes.
+        false,
+        false
+      );
+      const db = firestore();
+      expect(() => {
+        querySnapshotFromJSON(db, snapshot.toJSON());
+      }).to.not.throw;
+    }
   });
 
-  it('fromJSON parses produces valid snapshot data', () => {
-    const json = querySnapshot(
-      'foo',
-      {},
-      { a: { a: 1 } },
-      keys(), // An empty set of mutaded document keys signifies that there are no pending writes.
-      false,
-      false
-    ).toJSON();
+  it('fromJSON produces valid snapshot data', () => {
+    if (isNode()) {
+      const snapshot = querySnapshot(
+        'foo',
+        {},
+        {
+          a: { a: 1 },
+          b: { bar: 2 }
+        },
+        keys(), // An empty set of mutaded document keys signifies that there are no pending writes.
+        false,
+        false
+      );
+      const db = firestore();
+      const querySnap = querySnapshotFromJSON(db, snapshot.toJSON());
+      expect(querySnap).to.exist;
+      if (querySnap !== undefined) {
+        const docs = querySnap.docs;
+        expect(docs).to.not.be.undefined;
+        expect(docs).to.not.be.null;
+        if (docs) {
+          expect(docs.length).to.equal(2);
+          if (docs.length === 2) {
+            let docData = docs[0].data();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let data = docData as any;
+            expect(data.a).to.exist;
+            expect(data.a).to.equal(1);
 
-    const db = firestore();
-    const querySnap = querySnapshotFromJSON(db, json);
-    expect(querySnap).to.exist;
-    if (querySnap !== undefined) {
-      const docs = querySnap.docs;
-      expect(docs).to.not.be.undefined;
-      expect(docs).to.not.be.null;
-      if (docs) {
-        expect(docs.length).to.equal(1);
-        docs.map(document => {
-          const docData = document.data();
-          expect(docData).to.exist;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          expect((docData as any).a).to.exist;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          expect((docData as any).a).to.equal(1);
-        });
+            docData = docs[1].data();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            data = docData as any;
+            expect(data.bar).to.exist;
+            expect(data.bar).to.equal(2);
+          }
+        }
       }
+    }
+  });
+
+  it('fromJSON throws when parsing client-side toJSON result', () => {
+    if (!isNode()) {
+      const querySnap = querySnapshot(
+        'foo',
+        {},
+        { a: { a: 1 } },
+        keys(), // An empty set of mutaded document keys signifies that there are no pending writes.
+        false,
+        false
+      );
+      const json = querySnap.toJSON();
+      expect(() => {
+        querySnapshotFromJSON(querySnap._firestore, json);
+      }).to.throw;
     }
   });
 });
