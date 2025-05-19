@@ -61,6 +61,8 @@ describe('core/strategies/exchangeToken', () => {
         'projects/test-project-id/locations/us/tenants/tenant-1/idpConfigs/idp-config',
       token: 'custom-token'
     });
+    expect(regionalAuth.tokenResponse?.token).to.equal('outbound-token');
+    expect(regionalAuth.tokenResponse?.expiresIn).to.equal('1000');
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'

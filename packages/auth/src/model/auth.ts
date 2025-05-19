@@ -24,6 +24,7 @@ import {
   PasswordValidationStatus,
   PopupRedirectResolver,
   TenantConfig,
+  TokenResponse,
   User
 } from './public_types';
 import { ErrorFactory } from '@firebase/util';
@@ -66,6 +67,7 @@ export interface ConfigInternal extends Config {
 export interface AuthInternal extends Auth {
   currentUser: User | null;
   emulatorConfig: EmulatorConfig | null;
+  tokenResponse: TokenResponse | null;
   _agentRecaptchaConfig: RecaptchaConfig | null;
   _tenantRecaptchaConfigs: Record<string, RecaptchaConfig>;
   _projectPasswordPolicy: PasswordPolicy | null;
@@ -75,6 +77,7 @@ export interface AuthInternal extends Auth {
   _initializationPromise: Promise<void> | null;
   _persistenceManagerAvailable: Promise<void>;
   _updateCurrentUser(user: UserInternal | null): Promise<void>;
+  _updateTokenResponse(tokenResponse: TokenResponse | null): Promise<void>;
 
   _onStorageEvent(): void;
 

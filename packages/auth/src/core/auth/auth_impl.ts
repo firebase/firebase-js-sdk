@@ -37,7 +37,8 @@ import {
   NextFn,
   Unsubscribe,
   PasswordValidationStatus,
-  TenantConfig
+  TenantConfig,
+  TokenResponse
 } from '../../model/public_types';
 import {
   createSubscribe,
@@ -99,6 +100,7 @@ export const enum DefaultConfig {
 export class AuthImpl implements AuthInternal, _FirebaseService {
   currentUser: User | null = null;
   emulatorConfig: EmulatorConfig | null = null;
+  tokenResponse: TokenResponse | null = null;
   private operations = Promise.resolve();
   private persistenceManager?: PersistenceUserManager;
   private redirectPersistenceManager?: PersistenceUserManager;
@@ -452,6 +454,12 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       await this.directlySetCurrentUser(user as UserInternal | null);
       this.notifyAuthListeners();
     });
+  }
+
+  async _updateTokenResponse(tokenResponse: TokenResponse): Promise<void> {
+    if (tokenResponse) {
+      this.tokenResponse = tokenResponse;
+    }
   }
 
   async signOut(): Promise<void> {

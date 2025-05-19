@@ -28,7 +28,7 @@ export interface ExchangeTokenRequest {
 
 export interface ExchangeTokenRespose {
   accessToken: string;
-  expiresIn?: string;
+  expiresIn: string;
 }
 
 export async function exchangeToken(
