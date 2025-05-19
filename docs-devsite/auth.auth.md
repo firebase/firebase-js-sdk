@@ -33,6 +33,7 @@ export interface Auth
 |  [settings](./auth.auth.md#authsettings) | [AuthSettings](./auth.authsettings.md#authsettings_interface) | The [Auth](./auth.auth.md#auth_interface) instance's settings. |
 |  [tenantConfig](./auth.auth.md#authtenantconfig) | [TenantConfig](./auth.tenantconfig.md#tenantconfig_interface) | The [TenantConfig](./auth.tenantconfig.md#tenantconfig_interface) used to initialize a Regional Auth. This is only present if regional auth is initialized and <code>DefaultConfig.REGIONAL_API_HOST</code> backend endpoint is used. |
 |  [tenantId](./auth.auth.md#authtenantid) | string \| null | The [Auth](./auth.auth.md#auth_interface) instance's tenant ID. |
+|  [tokenResponse](./auth.auth.md#authtokenresponse) | [TokenResponse](./auth.tokenresponse.md#tokenresponse_interface) \| null | The token response initialized via [exchangeToken()](./auth.md#exchangetoken_b6b1871) endpoint. |
 
 ## Methods
 
@@ -154,6 +155,18 @@ auth.tenantId = 'TENANT_PROJECT_ID';
 const result = await signInWithEmailAndPassword(auth, email, password);
 // result.user.tenantId should be 'TENANT_PROJECT_ID'.
 
+```
+
+## Auth.tokenResponse
+
+The token response initialized via [exchangeToken()](./auth.md#exchangetoken_b6b1871) endpoint.
+
+This field is only supported for [Auth](./auth.auth.md#auth_interface) instance that have defined [TenantConfig](./auth.tenantconfig.md#tenantconfig_interface)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+readonly tokenResponse: TokenResponse | null;
 ```
 
 ## Auth.authStateReady()

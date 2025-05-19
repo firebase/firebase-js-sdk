@@ -306,6 +306,8 @@ toc:
     path: /docs/reference/js/auth.samlauthprovider.md
   - title: TenantConfig
     path: /docs/reference/js/auth.tenantconfig.md
+  - title: TokenResponse
+    path: /docs/reference/js/auth.tokenresponse.md
   - title: TotpMultiFactorAssertion
     path: /docs/reference/js/auth.totpmultifactorassertion.md
   - title: TotpMultiFactorGenerator
