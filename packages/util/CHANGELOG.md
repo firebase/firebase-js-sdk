@@ -1,5 +1,11 @@
 # @firebase/util
 
+## 1.12.0
+
+### Minor Changes
+
+- [`8a03143`](https://github.com/firebase/firebase-js-sdk/commit/8a03143b9217effdd86d68bdf195493c0979aa27) [#8993](https://github.com/firebase/firebase-js-sdk/pull/8993) - Fix Safari/WebKit cache issues when client-side indexing is used.
+
 ## 1.11.3
 
 ### Patch Changes

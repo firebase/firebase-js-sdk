@@ -16,7 +16,7 @@
  */
 
 import { initializeApp } from '@firebase/app';
-import { AI, Backend, BackendType, VertexAIBackend, getAI } from '../src';
+import { AI, Backend, BackendType, GoogleAIBackend, VertexAIBackend, getAI } from '../src';
 import { FIREBASE_CONFIG } from './firebase-config';
 
 const app = initializeApp(FIREBASE_CONFIG);
@@ -36,7 +36,7 @@ function formatConfigAsString(config: { ai: AI; model: string }): string {
 }
 
 const backends: readonly Backend[] = [
-  // new GoogleAIBackend(), TODO: activate once live
+  new GoogleAIBackend(),
   new VertexAIBackend()
 ];
 

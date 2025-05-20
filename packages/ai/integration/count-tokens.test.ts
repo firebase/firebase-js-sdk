@@ -28,7 +28,8 @@ import {
   Part,
   CountTokensRequest,
   InlineDataPart,
-  FileDataPart
+  FileDataPart,
+  BackendType
 } from '../src';
 import {
   AUDIO_MIME_TYPE,
@@ -87,14 +88,21 @@ describe('Count Tokens', () => {
 
         const response = await model.countTokens('Why is the sky blue?');
 
-        expect(response.totalTokens).to.equal(6);
-        expect(response.totalBillableCharacters).to.equal(16);
         expect(response.promptTokensDetails).to.not.be.null;
         expect(response.promptTokensDetails!.length).to.equal(1);
         expect(response.promptTokensDetails![0].modality).to.equal(
           Modality.TEXT
         );
-        expect(response.promptTokensDetails![0].tokenCount).to.equal(6);
+
+        if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
+          expect(response.totalTokens).to.equal(7);
+          expect(response.totalBillableCharacters).to.be.undefined;
+          expect(response.promptTokensDetails![0].tokenCount).to.equal(7);
+        } else if (testConfig.ai.backend.backendType === BackendType.VERTEX_AI) {
+          expect(response.totalTokens).to.equal(6);
+          expect(response.totalBillableCharacters).to.equal(16);
+          expect(response.promptTokensDetails![0].tokenCount).to.equal(6);
+        }
       });
 
       it('image input', async () => {
@@ -108,28 +116,25 @@ describe('Count Tokens', () => {
           }
         };
         const response = await model.countTokens([imagePart]);
+        console.log(JSON.stringify(response));
 
-        const expectedImageTokens = 258;
-        expect(
-          response.totalTokens,
-          'totalTokens should have correct token count'
-        ).to.equal(expectedImageTokens);
-        expect(
-          response.totalBillableCharacters,
-          'totalBillableCharacters should be undefined'
-        ).to.be.undefined; // Incorrect behavior
-        expect(
-          response.promptTokensDetails!.length,
-          'promptTokensDetails should have one entry'
-        ).to.equal(1);
-        expect(
-          response.promptTokensDetails![0].modality,
-          'modality should be IMAGE'
-        ).to.equal(Modality.IMAGE);
-        expect(
-          response.promptTokensDetails![0].tokenCount,
-          'promptTokenDetails tokenCount should be correct'
-        ).to.equal(expectedImageTokens);
+        if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
+          const expectedImageTokens = 259;
+
+        } else if (testConfig.ai.backend.backendType === BackendType.VERTEX_AI) {
+          const expectedImageTokens = 258;
+          expect(response.totalTokens).to.equal(expectedImageTokens);
+          expect(
+            response.totalBillableCharacters,
+          ).to.be.undefined; // Incorrect behavior
+          expect(
+            response.promptTokensDetails!.length,
+          ).to.equal(1);
+          expect(
+            response.promptTokensDetails![0].modality,
+          ).to.equal(Modality.IMAGE);
+          expect(response.promptTokensDetails![0].tokenCount).to.equal(expectedImageTokens);
+        }
       });
 
       it('audio input', async () => {
@@ -144,25 +149,19 @@ describe('Count Tokens', () => {
         };
 
         const response = await model.countTokens([audioPart]);
+        console.log(JSON.stringify(response));
         // This may be different on Google AI
-        expect(response.totalTokens, 'totalTokens is expected to be undefined')
-          .to.be.undefined;
+        expect(response.totalTokens).to.be.undefined;
         expect(
           response.totalBillableCharacters,
-          'totalBillableCharacters should be undefined'
         ).to.be.undefined; // Incorrect behavior
         expect(
           response.promptTokensDetails!.length,
-          'promptTokensDetails should have one entry'
         ).to.equal(1);
         expect(
           response.promptTokensDetails![0].modality,
-          'modality should be AUDIO'
         ).to.equal(Modality.AUDIO);
-        expect(
-          response.promptTokensDetails![0].tokenCount,
-          'promptTokenDetails tokenCount is expected to be undefined'
-        ).to.be.undefined;
+        expect(response.promptTokensDetails![0].tokenCount).to.be.undefined;
       });
 
       it('text, image, and audio input', async () => {
@@ -181,20 +180,14 @@ describe('Count Tokens', () => {
           contents: [{ role: 'user', parts: [textPart, imagePart, audioPart] }]
         };
         const response = await model.countTokens(request);
+        console.log(JSON.stringify(response));
 
-        expect(
-          response.totalTokens,
-          'totalTokens should have correct token count'
-        ).to.equal(261);
+        expect(response.totalTokens).to.equal(261);
         expect(
           response.totalBillableCharacters,
-          'totalBillableCharacters should have correct count'
         ).to.equal('Describe these:'.length - 1); // For some reason it's the length-1
 
-        expect(
-          response.promptTokensDetails!.length,
-          'promptTokensDetails should have three entries'
-        ).to.equal(3);
+        expect(response.promptTokensDetails!.length).to.equal(3);
 
         const textDetails = response.promptTokensDetails!.find(
           d => d.modality === Modality.TEXT
@@ -228,16 +221,11 @@ describe('Count Tokens', () => {
           }
         };
         const response = await model.countTokens([filePart]);
+        console.log(JSON.stringify(response));
 
         const expectedFileTokens = 258;
-        expect(
-          response.totalTokens,
-          'totalTokens should have correct token count'
-        ).to.equal(expectedFileTokens);
-        expect(
-          response.totalBillableCharacters,
-          'totalBillableCharacters should be undefined'
-        ).to.be.undefined;
+        expect(response.totalTokens).to.equal(expectedFileTokens);
+        expect(response.totalBillableCharacters).to.be.undefined;
         expect(response.promptTokensDetails).to.not.be.null;
         expect(response.promptTokensDetails!.length).to.equal(1);
         expect(response.promptTokensDetails![0].modality).to.equal(
