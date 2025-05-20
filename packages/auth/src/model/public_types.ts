@@ -982,8 +982,8 @@ export interface ReactNativeAsyncStorage {
 export interface TokenResponse {
   // The firebase access token (JWT signed by Firebase Auth).
   readonly token: string;
-  // The time in seconds when the access token expires.
-  readonly expiresIn: string;
+  // The time when the access token expires.
+  readonly expirationTime: number;
 }
 
 /**

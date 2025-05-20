@@ -43,11 +43,31 @@ export class AuthInterop implements FirebaseAuthInternal {
   ): Promise<{ accessToken: string } | null> {
     this.assertAuthConfigured();
     await this.auth._initializationPromise;
+    if (this.auth.tenantConfig) {
+      return this.getTokenRegionalAuth();
+    }
     if (!this.auth.currentUser) {
       return null;
     }
 
     const accessToken = await this.auth.currentUser.getIdToken(forceRefresh);
+    return { accessToken };
+  }
+
+  async getTokenRegionalAuth() :
+  Promise<{ accessToken: string } | null> {
+    this.assertRegionalAuthConfigured();
+    if (!this.auth.tokenResponse) {
+      return null;
+    }
+
+    if (!this.auth.tokenResponse.expirationTime ||
+      Date.now() > this.auth.tokenResponse.expirationTime) {
+        await this.auth._updateTokenResponse(null);
+        return null;
+      }
+
+    const accessToken = await this.auth.tokenResponse.token;
     return { accessToken };
   }
 
@@ -83,6 +103,10 @@ export class AuthInterop implements FirebaseAuthInternal {
       this.auth._initializationPromise,
       AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH
     );
+  }
+
+  private assertRegionalAuthConfigured(): void {
+    _assert(this.auth.tenantConfig, AuthErrorCode.OPERATION_NOT_ALLOWED);
   }
 
   private updateProactiveRefresh(): void {

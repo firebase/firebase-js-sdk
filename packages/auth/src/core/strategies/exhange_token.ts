@@ -57,7 +57,7 @@ export async function exchangeToken(
   if (token) {
     await authInternal._updateTokenResponse({
       token: token.accessToken,
-      expiresIn: token.expiresIn
+      expirationTime: Date.now() + Number(token.expiresInSec) * 1000
     });
   }
   return token.accessToken;

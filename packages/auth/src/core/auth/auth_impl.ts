@@ -629,6 +629,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     }
   }
 
+  async getTokenForRegionalAuth():
+  Promise<string> {
+    if (Date.now() > this.tokenResponse?.expiresIn)
+  }
+
   toJSON(): object {
     return {
       apiKey: this.config.apiKey,
