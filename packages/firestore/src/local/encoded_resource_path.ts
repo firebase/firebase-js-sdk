@@ -118,11 +118,13 @@ export function decodeResourcePath(path: EncodedResourcePath): ResourcePath {
   // Event the empty path must encode as a path of at least length 2. A path
   // with exactly 2 must be the empty path.
   const length = path.length;
-  hardAssert(length >= 2, 'Invalid path ' + path);
+  hardAssert(length >= 2, 0xfb98, 'Invalid path', { path });
   if (length === 2) {
     hardAssert(
       path.charAt(0) === escapeChar && path.charAt(1) === encodedSeparatorChar,
-      'Non-empty path ' + path + ' had length 2'
+      0xdb51,
+      'Non-empty path had length 2',
+      { path }
     );
     return ResourcePath.emptyPath();
   }
@@ -139,7 +141,7 @@ export function decodeResourcePath(path: EncodedResourcePath): ResourcePath {
     // there must be an end to this segment.
     const end = path.indexOf(escapeChar, start);
     if (end < 0 || end > lastReasonableEscapeIndex) {
-      fail('Invalid encoded resource path: "' + path + '"');
+      fail(0xc553, 'Invalid encoded resource path', { path });
     }
 
     const next = path.charAt(end + 1);
@@ -167,7 +169,7 @@ export function decodeResourcePath(path: EncodedResourcePath): ResourcePath {
         segmentBuilder += path.substring(start, end + 1);
         break;
       default:
-        fail('Invalid encoded resource path: "' + path + '"');
+        fail(0xeeef, 'Invalid encoded resource path', { path });
     }
 
     start = end + 2;

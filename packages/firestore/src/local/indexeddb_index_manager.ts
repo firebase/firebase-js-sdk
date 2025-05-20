@@ -39,7 +39,12 @@ import {
 } from '../core/target';
 import { FirestoreIndexValueWriter } from '../index/firestore_index_value_writer';
 import { IndexByteEncoder } from '../index/index_byte_encoder';
-import { IndexEntry, indexEntryComparator } from '../index/index_entry';
+import {
+  IndexEntry,
+  indexEntryComparator,
+  encodeKeySafeBytes,
+  decodeKeySafeBytes
+} from '../index/index_entry';
 import { documentKeySet, DocumentMap } from '../model/collections';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -817,14 +822,13 @@ export class IndexedDbIndexManager implements IndexManager {
     indexEntry: IndexEntry
   ): PersistencePromise<void> {
     const indexEntries = indexEntriesStore(transaction);
-    return indexEntries.put({
-      indexId: indexEntry.indexId,
-      uid: this.uid,
-      arrayValue: indexEntry.arrayValue,
-      directionalValue: indexEntry.directionalValue,
-      orderedDocumentKey: this.encodeDirectionalKey(fieldIndex, document.key),
-      documentKey: document.key.path.toArray()
-    });
+    return indexEntries.put(
+      indexEntry.dbIndexEntry(
+        this.uid,
+        this.encodeDirectionalKey(fieldIndex, document.key),
+        document.key
+      )
+    );
   }
 
   private deleteIndexEntry(
@@ -834,14 +838,13 @@ export class IndexedDbIndexManager implements IndexManager {
     indexEntry: IndexEntry
   ): PersistencePromise<void> {
     const indexEntries = indexEntriesStore(transaction);
-    return indexEntries.delete([
-      indexEntry.indexId,
-      this.uid,
-      indexEntry.arrayValue,
-      indexEntry.directionalValue,
-      this.encodeDirectionalKey(fieldIndex, document.key),
-      document.key.path.toArray()
-    ]);
+    return indexEntries.delete(
+      indexEntry.dbIndexEntryKey(
+        this.uid,
+        this.encodeDirectionalKey(fieldIndex, document.key),
+        document.key
+      )
+    );
   }
 
   private getExistingIndexEntries(
@@ -858,7 +861,9 @@ export class IndexedDbIndexManager implements IndexManager {
           range: IDBKeyRange.only([
             fieldIndex.indexId,
             this.uid,
-            this.encodeDirectionalKey(fieldIndex, documentKey)
+            encodeKeySafeBytes(
+              this.encodeDirectionalKey(fieldIndex, documentKey)
+            )
           ])
         },
         (_, entry) => {
@@ -866,8 +871,8 @@ export class IndexedDbIndexManager implements IndexManager {
             new IndexEntry(
               fieldIndex.indexId,
               documentKey,
-              entry.arrayValue,
-              entry.directionalValue
+              decodeKeySafeBytes(entry.arrayValue),
+              decodeKeySafeBytes(entry.directionalValue)
             )
           );
         }
@@ -1020,24 +1025,16 @@ export class IndexedDbIndexManager implements IndexManager {
         return [];
       }
 
-      const lowerBound = [
-        bounds[i].indexId,
+      const lowerBound = bounds[i].dbIndexEntryKey(
         this.uid,
-        bounds[i].arrayValue,
-        bounds[i].directionalValue,
         EMPTY_VALUE,
-        []
-      ] as DbIndexEntryKey;
-
-      const upperBound = [
-        bounds[i + 1].indexId,
+        DocumentKey.empty()
+      );
+      const upperBound = bounds[i + 1].dbIndexEntryKey(
         this.uid,
-        bounds[i + 1].arrayValue,
-        bounds[i + 1].directionalValue,
         EMPTY_VALUE,
-        []
-      ] as DbIndexEntryKey;
-
+        DocumentKey.empty()
+      );
       ranges.push(IDBKeyRange.bound(lowerBound, upperBound));
     }
     return ranges;
@@ -1066,7 +1063,7 @@ export class IndexedDbIndexManager implements IndexManager {
       this.getSubTargets(target),
       (subTarget: Target) =>
         this.getFieldIndex(transaction, subTarget).next(index =>
-          index ? index : fail('Target cannot be served from index')
+          index ? index : fail(0xad8a, 'Target cannot be served from index')
         )
     ).next(getMinOffsetFromFieldIndexes);
   }
@@ -1118,6 +1115,7 @@ function indexStateStore(
 function getMinOffsetFromFieldIndexes(fieldIndexes: FieldIndex[]): IndexOffset {
   hardAssert(
     fieldIndexes.length !== 0,
+    0x7099,
     'Found empty index group when looking for least recent index offset.'
   );
 

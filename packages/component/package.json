@@ -1,6 +1,6 @@
 {
   "name": "@firebase/component",
-  "version": "0.6.13",
+  "version": "0.6.17",
   "description": "Firebase Component Platform",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -31,7 +31,7 @@
     "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@firebase/util": "1.11.0",
+    "@firebase/util": "1.12.0",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",

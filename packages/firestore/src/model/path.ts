@@ -35,13 +35,19 @@ abstract class BasePath<B extends BasePath<B>> {
     if (offset === undefined) {
       offset = 0;
     } else if (offset > segments.length) {
-      fail('offset ' + offset + ' out of range ' + segments.length);
+      fail(0x027d, 'offset out of range', {
+        offset,
+        range: segments.length
+      });
     }
 
     if (length === undefined) {
       length = segments.length - offset;
     } else if (length > segments.length - offset) {
-      fail('length ' + length + ' out of range ' + (segments.length - offset));
+      fail(0x06d2, 'length out of range', {
+        length,
+        range: segments.length - offset
+      });
     }
     this.segments = segments;
     this.offset = offset;

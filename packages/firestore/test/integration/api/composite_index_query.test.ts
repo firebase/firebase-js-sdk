@@ -73,6 +73,7 @@ apiDescribe('Composite Index Queries', persistence => {
       return testHelper.withTestDocs(persistence, testDocs, async coll => {
         // a == 1, limit 2, b - desc
         await testHelper.assertOnlineAndOfflineResultsMatch(
+          coll,
           testHelper.query(
             coll,
             where('a', '==', 1),
@@ -97,6 +98,7 @@ apiDescribe('Composite Index Queries', persistence => {
       return testHelper.withTestDocs(persistence, testDocs, async coll => {
         // with one inequality: a>2 || b==1.
         await testHelper.assertOnlineAndOfflineResultsMatch(
+          coll,
           testHelper.compositeQuery(
             coll,
             or(where('a', '>', 2), where('b', '==', 1))
@@ -108,6 +110,7 @@ apiDescribe('Composite Index Queries', persistence => {
 
         // Test with limits (implicit order by ASC): (a==1) || (b > 0) LIMIT 2
         await testHelper.assertOnlineAndOfflineResultsMatch(
+          coll,
           testHelper.compositeQuery(
             coll,
             or(where('a', '==', 1), where('b', '>', 0)),
@@ -120,6 +123,7 @@ apiDescribe('Composite Index Queries', persistence => {
         // Test with limits (explicit order by): (a==1) || (b > 0) LIMIT_TO_LAST 2
         // Note: The public query API does not allow implicit ordering when limitToLast is used.
         await testHelper.assertOnlineAndOfflineResultsMatch(
+          coll,
           testHelper.compositeQuery(
             coll,
             or(where('a', '==', 1), where('b', '>', 0)),
@@ -132,6 +136,7 @@ apiDescribe('Composite Index Queries', persistence => {
 
         // Test with limits (explicit order by ASC): (a==2) || (b == 1) ORDER BY a LIMIT 1
         await testHelper.assertOnlineAndOfflineResultsMatch(
+          coll,
           testHelper.compositeQuery(
             coll,
             or(where('a', '==', 2), where('b', '==', 1)),
@@ -143,6 +148,7 @@ apiDescribe('Composite Index Queries', persistence => {
 
         // Test with limits (explicit order by DESC): (a==2) || (b == 1) ORDER BY a LIMIT_TO_LAST 1
         await testHelper.assertOnlineAndOfflineResultsMatch(
+          coll,
           testHelper.compositeQuery(
             coll,
             or(where('a', '==', 2), where('b', '==', 1)),
@@ -857,12 +863,14 @@ apiDescribe('Composite Index Queries', persistence => {
         return testHelper.withTestDocs(persistence, testDocs, async coll => {
           // implicit AND: a != 1 && b < 2
           await testHelper.assertOnlineAndOfflineResultsMatch(
+            coll,
             testHelper.query(coll, where('a', '!=', 1), where('b', '<', 2)),
             'doc2'
           );
 
           // explicit AND: a != 1 && b < 2
           await testHelper.assertOnlineAndOfflineResultsMatch(
+            coll,
             testHelper.compositeQuery(
               coll,
               and(where('a', '!=', 1), where('b', '<', 2))
@@ -873,6 +881,7 @@ apiDescribe('Composite Index Queries', persistence => {
           // explicit AND: a < 3 && b not-in [2, 3]
           // Implicitly ordered by: a asc, b asc, __name__ asc
           await testHelper.assertOnlineAndOfflineResultsMatch(
+            coll,
             testHelper.compositeQuery(
               coll,
               and(where('a', '<', 3), where('b', 'not-in', [2, 3]))
@@ -884,6 +893,7 @@ apiDescribe('Composite Index Queries', persistence => {
 
           // a <3 && b != 0, implicitly ordered by: a asc, b asc, __name__ asc
           await testHelper.assertOnlineAndOfflineResultsMatch(
+            coll,
             testHelper.query(
               coll,
               where('b', '!=', 0),
@@ -896,6 +906,7 @@ apiDescribe('Composite Index Queries', persistence => {
 
           // a <3 && b != 0, ordered by: b desc, a desc, __name__ desc
           await testHelper.assertOnlineAndOfflineResultsMatch(
+            coll,
             testHelper.query(
               coll,
               where('a', '<', 3),
@@ -909,6 +920,7 @@ apiDescribe('Composite Index Queries', persistence => {
 
           // explicit OR: multiple inequality: a>2 || b<1.
           await testHelper.assertOnlineAndOfflineResultsMatch(
+            coll,
             testHelper.compositeQuery(
               coll,
               or(where('a', '>', 2), where('b', '<', 1))
