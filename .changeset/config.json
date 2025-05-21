@@ -13,7 +13,7 @@
     "firebase-firestore-integration-test",
     "firebase-messaging-integration-test",
     "firebase-compat-interop-test",
-    "fdc-test",
+    "firebase-dataconnect-kokoro-test",
     "firebase-compat-typings-test",
     "@firebase/changelog-generator",
     "firebase-size-analysis",

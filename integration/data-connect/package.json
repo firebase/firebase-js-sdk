@@ -1,5 +1,5 @@
 {
-  "name": "fdc-test",
+  "name": "firebase-dataconnect-kokoro-test",
   "version": "1.0.0",
   "description": "",
   "scripts": {
