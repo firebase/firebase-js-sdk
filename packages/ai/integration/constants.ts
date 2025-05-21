@@ -16,7 +16,14 @@
  */
 
 import { initializeApp } from '@firebase/app';
-import { AI, Backend, BackendType, GoogleAIBackend, VertexAIBackend, getAI } from '../src';
+import {
+  AI,
+  Backend,
+  BackendType,
+  GoogleAIBackend,
+  VertexAIBackend,
+  getAI
+} from '../src';
 import { FIREBASE_CONFIG } from './firebase-config';
 
 const app = initializeApp(FIREBASE_CONFIG);
@@ -51,7 +58,7 @@ const modelNames: readonly string[] = [
 ];
 
 /**
- * Array of test configurations that is iterated over to get full coverage 
+ * Array of test configurations that is iterated over to get full coverage
  * of backends and models. Contains all combinations of backends and models.
  */
 export const testConfigs: readonly TestConfig[] = backends.flatMap(backend => {

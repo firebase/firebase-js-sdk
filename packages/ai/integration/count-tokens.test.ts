@@ -88,17 +88,18 @@ describe('Count Tokens', () => {
 
         const response = await model.countTokens('Why is the sky blue?');
 
-        expect(response.promptTokensDetails).to.not.be.null;
+        expect(response.promptTokensDetails).to.exist;
         expect(response.promptTokensDetails!.length).to.equal(1);
         expect(response.promptTokensDetails![0].modality).to.equal(
           Modality.TEXT
         );
-
         if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
           expect(response.totalTokens).to.equal(7);
           expect(response.totalBillableCharacters).to.be.undefined;
           expect(response.promptTokensDetails![0].tokenCount).to.equal(7);
-        } else if (testConfig.ai.backend.backendType === BackendType.VERTEX_AI) {
+        } else if (
+          testConfig.ai.backend.backendType === BackendType.VERTEX_AI
+        ) {
           expect(response.totalTokens).to.equal(6);
           expect(response.totalBillableCharacters).to.equal(16);
           expect(response.promptTokensDetails![0].tokenCount).to.equal(6);
@@ -119,7 +120,17 @@ describe('Count Tokens', () => {
 
         if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
           const expectedImageTokens = 259;
-
+          expect(response.totalTokens).to.equal(expectedImageTokens);
+          expect(response.totalBillableCharacters).to.be.undefined; // Incorrect behavior
+          expect(response.promptTokensDetails!.length).to.equal(2);
+          expect(response.promptTokensDetails![0]).to.deep.equal({
+            modality: Modality.TEXT, // Note: 1 unexpected text token observed for Google AI with image-only input.
+            tokenCount: 1
+          });
+          expect(response.promptTokensDetails![1]).to.deep.equal({
+            modality: Modality.IMAGE,
+            tokenCount: 258
+          });
         } else if (testConfig.ai.backend.backendType === BackendType.VERTEX_AI) {
           const expectedImageTokens = 258;
           expect(response.totalTokens).to.equal(expectedImageTokens);
@@ -129,9 +140,8 @@ describe('Count Tokens', () => {
           expect(
             response.promptTokensDetails!.length,
           ).to.equal(1);
-          expect(
-            response.promptTokensDetails![0].modality,
-          ).to.equal(Modality.IMAGE);
+          // Note: No text tokens are present for Vertex AI with image-only input.
+          expect(response.promptTokensDetails![0]).to.deep.equal({ modality: Modality.IMAGE, tokenCount: 258 })
           expect(response.promptTokensDetails![0].tokenCount).to.equal(expectedImageTokens);
         }
       });
@@ -149,6 +159,7 @@ describe('Count Tokens', () => {
 
         const response = await model.countTokens([audioPart]);
 
+        expect(response.promptTokensDetails).to.exist;
         const textDetails = response.promptTokensDetails!.find(
           d => d.modality === Modality.TEXT
         );
@@ -158,20 +169,24 @@ describe('Count Tokens', () => {
 
         if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
           expect(response.totalTokens).to.equal(6);
-          expect(
-            response.promptTokensDetails!.length,
-          ).to.equal(2);
-          expect(textDetails).to.deep.equal({ modality: Modality.TEXT, tokenCount: 1 })
-          expect(audioDetails).to.deep.equal({ modality: Modality.AUDIO, tokenCount: 5 })
-        } else if (testConfig.ai.backend.backendType === BackendType.VERTEX_AI) {
+          expect(response.promptTokensDetails!.length).to.equal(2);
+          expect(textDetails).to.deep.equal({
+            modality: Modality.TEXT,
+            tokenCount: 1
+          });
+          expect(audioDetails).to.deep.equal({
+            modality: Modality.AUDIO,
+            tokenCount: 5
+          });
+        } else if (
+          testConfig.ai.backend.backendType === BackendType.VERTEX_AI
+        ) {
           expect(response.totalTokens).to.be.undefined;
-          expect(response.promptTokensDetails!.length).to.equal(1); // For some reason we don't get text
-          expect(audioDetails).to.deep.equal({ modality: Modality.AUDIO }); // For some reason there are no tokens
+          expect(response.promptTokensDetails!.length).to.equal(1); // Note: Text modality details absent for Vertex AI with audio-only input.
+          expect(audioDetails).to.deep.equal({ modality: Modality.AUDIO }); // Note: Audio tokenCount is undefined for Vertex AI with audio-only input.
         }
 
-        expect(
-          response.totalBillableCharacters,
-        ).to.be.undefined; // Incorrect behavior
+        expect(response.totalBillableCharacters).to.be.undefined; // Incorrect behavior
       });
 
       it('text, image, and audio input', async () => {
@@ -193,12 +208,19 @@ describe('Count Tokens', () => {
         const textDetails = response.promptTokensDetails!.find(
           d => d.modality === Modality.TEXT
         );
-        const visionDetails = response.promptTokensDetails!.find(
+        const imageDetails = response.promptTokensDetails!.find(
           d => d.modality === Modality.IMAGE
         );
         const audioDetails = response.promptTokensDetails!.find(
           d => d.modality === Modality.AUDIO
         );
+        expect(response.promptTokensDetails).to.exist;
+        expect(response.promptTokensDetails!.length).to.equal(3);
+
+        expect(imageDetails).to.deep.equal({
+          modality: Modality.IMAGE,
+          tokenCount: 258
+        });
 
         if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
           expect(response.totalTokens).to.equal(267);
@@ -207,25 +229,22 @@ describe('Count Tokens', () => {
             modality: Modality.TEXT,
             tokenCount: 4
           });
-          expect(audioDetails).to.deep.equal({ modality: Modality.AUDIO, tokenCount: 5 }); // Incorrect behavior because there's no tokenCount
-        } else if (testConfig.ai.backend.backendType === BackendType.VERTEX_AI) {
+          expect(audioDetails).to.deep.equal({
+            modality: Modality.AUDIO,
+            tokenCount: 5
+          });
+        } else if (
+          testConfig.ai.backend.backendType === BackendType.VERTEX_AI
+        ) {
           expect(response.totalTokens).to.equal(261);
           expect(textDetails).to.deep.equal({
             modality: Modality.TEXT,
             tokenCount: 3
           });
-          expect(
-            response.totalBillableCharacters,
-          ).to.equal('Describe these:'.length - 1); // For some reason it's the length-1
+          const expectedText = 'Describe these:';
+          expect(response.totalBillableCharacters).to.equal(expectedText.length - 1); // Note: BillableCharacters observed as (text length - 1) for Vertex AI.
           expect(audioDetails).to.deep.equal({ modality: Modality.AUDIO }); // Incorrect behavior because there's no tokenCount
         }
-
-        expect(response.promptTokensDetails!.length).to.equal(3);
-
-        expect(visionDetails).to.deep.equal({
-          modality: Modality.IMAGE,
-          tokenCount: 258
-        });
       });
 
       it('public storage reference', async () => {
@@ -248,7 +267,7 @@ describe('Count Tokens', () => {
         const expectedFileTokens = 258;
         expect(response.totalTokens).to.equal(expectedFileTokens);
         expect(response.totalBillableCharacters).to.be.undefined;
-        expect(response.promptTokensDetails).to.not.be.null;
+        expect(response.promptTokensDetails).to.exist;
         expect(response.promptTokensDetails!.length).to.equal(1);
         expect(response.promptTokensDetails![0].modality).to.equal(
           Modality.IMAGE
