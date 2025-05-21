@@ -52,6 +52,7 @@ export const testConfig: {
       'firebase-firestore-integration-test',
       'firebase-messaging-integration-test',
       'firebase-compat-typings-test',
+      'fdc-test',
       '@firebase/rules-unit-testing',
       '@firebase/auth',
       '@firebase/auth-compat',
