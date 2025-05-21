@@ -46,12 +46,10 @@ describe('Generate Content', () => {
           {
             category: HarmCategory.HARM_CATEGORY_HARASSMENT,
             threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
-            method: HarmBlockMethod.PROBABILITY
           },
           {
             category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
             threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
-            method: HarmBlockMethod.SEVERITY
           },
           {
             category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,

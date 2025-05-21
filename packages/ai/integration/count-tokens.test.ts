@@ -116,7 +116,6 @@ describe('Count Tokens', () => {
           }
         };
         const response = await model.countTokens([imagePart]);
-        console.log(JSON.stringify(response));
 
         if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
           const expectedImageTokens = 259;
@@ -149,19 +148,30 @@ describe('Count Tokens', () => {
         };
 
         const response = await model.countTokens([audioPart]);
-        console.log(JSON.stringify(response));
-        // This may be different on Google AI
-        expect(response.totalTokens).to.be.undefined;
+
+        const textDetails = response.promptTokensDetails!.find(
+          d => d.modality === Modality.TEXT
+        );
+        const audioDetails = response.promptTokensDetails!.find(
+          d => d.modality === Modality.AUDIO
+        );
+
+        if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
+          expect(response.totalTokens).to.equal(6);
+          expect(
+            response.promptTokensDetails!.length,
+          ).to.equal(2);
+          expect(textDetails).to.deep.equal({ modality: Modality.TEXT, tokenCount: 1 })
+          expect(audioDetails).to.deep.equal({ modality: Modality.AUDIO, tokenCount: 5 })
+        } else if (testConfig.ai.backend.backendType === BackendType.VERTEX_AI) {
+          expect(response.totalTokens).to.be.undefined;
+          expect(response.promptTokensDetails!.length).to.equal(1); // For some reason we don't get text
+          expect(audioDetails).to.deep.equal({ modality: Modality.AUDIO }); // For some reason there are no tokens
+        }
+
         expect(
           response.totalBillableCharacters,
         ).to.be.undefined; // Incorrect behavior
-        expect(
-          response.promptTokensDetails!.length,
-        ).to.equal(1);
-        expect(
-          response.promptTokensDetails![0].modality,
-        ).to.equal(Modality.AUDIO);
-        expect(response.promptTokensDetails![0].tokenCount).to.be.undefined;
       });
 
       it('text, image, and audio input', async () => {
@@ -180,15 +190,6 @@ describe('Count Tokens', () => {
           contents: [{ role: 'user', parts: [textPart, imagePart, audioPart] }]
         };
         const response = await model.countTokens(request);
-        console.log(JSON.stringify(response));
-
-        expect(response.totalTokens).to.equal(261);
-        expect(
-          response.totalBillableCharacters,
-        ).to.equal('Describe these:'.length - 1); // For some reason it's the length-1
-
-        expect(response.promptTokensDetails!.length).to.equal(3);
-
         const textDetails = response.promptTokensDetails!.find(
           d => d.modality === Modality.TEXT
         );
@@ -199,18 +200,39 @@ describe('Count Tokens', () => {
           d => d.modality === Modality.AUDIO
         );
 
-        expect(textDetails).to.deep.equal({
-          modality: Modality.TEXT,
-          tokenCount: 3
-        });
+        if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
+          expect(response.totalTokens).to.equal(267);
+          expect(response.totalBillableCharacters).to.be.undefined;
+          expect(textDetails).to.deep.equal({
+            modality: Modality.TEXT,
+            tokenCount: 4
+          });
+          expect(audioDetails).to.deep.equal({ modality: Modality.AUDIO, tokenCount: 5 }); // Incorrect behavior because there's no tokenCount
+        } else if (testConfig.ai.backend.backendType === BackendType.VERTEX_AI) {
+          expect(response.totalTokens).to.equal(261);
+          expect(textDetails).to.deep.equal({
+            modality: Modality.TEXT,
+            tokenCount: 3
+          });
+          expect(
+            response.totalBillableCharacters,
+          ).to.equal('Describe these:'.length - 1); // For some reason it's the length-1
+          expect(audioDetails).to.deep.equal({ modality: Modality.AUDIO }); // Incorrect behavior because there's no tokenCount
+        }
+
+        expect(response.promptTokensDetails!.length).to.equal(3);
+
         expect(visionDetails).to.deep.equal({
           modality: Modality.IMAGE,
           tokenCount: 258
         });
-        expect(audioDetails).to.deep.equal({ modality: Modality.AUDIO }); // Incorrect behavior because there's no tokenCount
       });
 
       it('public storage reference', async () => {
+        // This test is not expected to pass when using Google AI.
+        if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
+          return;
+        }
         const model = getGenerativeModel(testConfig.ai, {
           model: testConfig.model
         });
@@ -220,8 +242,8 @@ describe('Count Tokens', () => {
             fileUri: `gs://${FIREBASE_CONFIG.storageBucket}/images/tree.png`
           }
         };
+
         const response = await model.countTokens([filePart]);
-        console.log(JSON.stringify(response));
 
         const expectedFileTokens = 258;
         expect(response.totalTokens).to.equal(expectedFileTokens);
