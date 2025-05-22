@@ -49,6 +49,10 @@ const controller = new AbortController();
 const model = getGenerativeModel({
   // ...
 });
+model.generateContent(
+  "Write a story about a magic backpack.",
+  { signal: controller.signal }
+);
 
 // To cancel request:
 controller.abort();
