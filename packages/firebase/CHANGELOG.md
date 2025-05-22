@@ -1,5 +1,112 @@
 # firebase
 
+## 11.8.0
+
+### Minor Changes
+
+- [`6be75f7`](https://github.com/firebase/firebase-js-sdk/commit/6be75f74dec92d1b84f77f79ccb770a3e23280b7) [#9010](https://github.com/firebase/firebase-js-sdk/pull/9010) - Default `automaticDataCollectionEnabled` to true without changing App Check's default behavior.
+
+- [`e99683b`](https://github.com/firebase/firebase-js-sdk/commit/e99683b17cf75c581bd362a1d7cb85f0b9c110ba) [#8922](https://github.com/firebase/firebase-js-sdk/pull/8922) - Add support for Gemini multimodal output
+
+- [`d5082f9`](https://github.com/firebase/firebase-js-sdk/commit/d5082f9f2fc4de98a6bfd1c6a5af4571af4d0bc6) [#8931](https://github.com/firebase/firebase-js-sdk/pull/8931) - Add support for the Gemini Developer API, enabling usage in a free tier, and add new `AI` API to accomodate new product naming.
+
+### Patch Changes
+
+- Updated dependencies [[`8a03143`](https://github.com/firebase/firebase-js-sdk/commit/8a03143b9217effdd86d68bdf195493c0979aa27), [`050c1b6`](https://github.com/firebase/firebase-js-sdk/commit/050c1b6a099b87be1488b9207e4fad4da9f8f64b), [`6be75f7`](https://github.com/firebase/firebase-js-sdk/commit/6be75f74dec92d1b84f77f79ccb770a3e23280b7), [`e99683b`](https://github.com/firebase/firebase-js-sdk/commit/e99683b17cf75c581bd362a1d7cb85f0b9c110ba), [`d5082f9`](https://github.com/firebase/firebase-js-sdk/commit/d5082f9f2fc4de98a6bfd1c6a5af4571af4d0bc6)]:
+  - @firebase/firestore@4.7.15
+  - @firebase/util@1.12.0
+  - @firebase/ai@1.3.0
+  - @firebase/app-compat@0.4.0
+  - @firebase/app-check@0.10.0
+  - @firebase/app@0.13.0
+  - @firebase/firestore-compat@0.3.50
+  - @firebase/analytics@0.10.16
+  - @firebase/analytics-compat@0.2.22
+  - @firebase/app-check-compat@0.3.25
+  - @firebase/auth@1.10.5
+  - @firebase/auth-compat@0.5.25
+  - @firebase/data-connect@0.3.8
+  - @firebase/database@1.0.18
+  - @firebase/database-compat@2.0.9
+  - @firebase/functions@0.12.7
+  - @firebase/functions-compat@0.3.24
+  - @firebase/installations@0.6.17
+  - @firebase/installations-compat@0.2.17
+  - @firebase/messaging@0.12.21
+  - @firebase/messaging-compat@0.2.21
+  - @firebase/performance@0.7.6
+  - @firebase/performance-compat@0.2.19
+  - @firebase/remote-config@0.6.4
+  - @firebase/remote-config-compat@0.2.17
+  - @firebase/storage@0.13.11
+  - @firebase/storage-compat@0.3.21
+
+## 11.7.3
+
+### Patch Changes
+
+- Updated dependencies [[`9bcd1ea`](https://github.com/firebase/firebase-js-sdk/commit/9bcd1ea9b8cc5b55692765d40df000da8ddef02b)]:
+  - @firebase/util@1.11.3
+  - @firebase/analytics@0.10.15
+  - @firebase/analytics-compat@0.2.21
+  - @firebase/app@0.12.3
+  - @firebase/app-check@0.9.3
+  - @firebase/app-check-compat@0.3.24
+  - @firebase/app-compat@0.3.3
+  - @firebase/auth@1.10.4
+  - @firebase/auth-compat@0.5.24
+  - @firebase/data-connect@0.3.7
+  - @firebase/database@1.0.17
+  - @firebase/database-compat@2.0.8
+  - @firebase/firestore@4.7.14
+  - @firebase/firestore-compat@0.3.49
+  - @firebase/functions@0.12.6
+  - @firebase/functions-compat@0.3.23
+  - @firebase/installations@0.6.16
+  - @firebase/installations-compat@0.2.16
+  - @firebase/messaging@0.12.20
+  - @firebase/messaging-compat@0.2.20
+  - @firebase/performance@0.7.5
+  - @firebase/performance-compat@0.2.18
+  - @firebase/remote-config@0.6.3
+  - @firebase/remote-config-compat@0.2.16
+  - @firebase/storage@0.13.10
+  - @firebase/storage-compat@0.3.20
+  - @firebase/vertexai@1.2.4
+
+## 11.7.2
+
+### Patch Changes
+
+- Updated dependencies [[`8593fa0`](https://github.com/firebase/firebase-js-sdk/commit/8593fa05bd884c2f1f6f3b4ae062efa48af93d24)]:
+  - @firebase/auth@1.10.3
+  - @firebase/firestore@4.7.13
+  - @firebase/util@1.11.2
+  - @firebase/database@1.0.16
+  - @firebase/storage@0.13.9
+  - @firebase/functions@0.12.5
+  - @firebase/auth-compat@0.5.23
+  - @firebase/firestore-compat@0.3.48
+  - @firebase/analytics@0.10.14
+  - @firebase/analytics-compat@0.2.20
+  - @firebase/app@0.12.2
+  - @firebase/app-check@0.9.2
+  - @firebase/app-check-compat@0.3.23
+  - @firebase/app-compat@0.3.2
+  - @firebase/data-connect@0.3.6
+  - @firebase/database-compat@2.0.7
+  - @firebase/functions-compat@0.3.22
+  - @firebase/installations@0.6.15
+  - @firebase/installations-compat@0.2.15
+  - @firebase/messaging@0.12.19
+  - @firebase/messaging-compat@0.2.19
+  - @firebase/performance@0.7.4
+  - @firebase/performance-compat@0.2.17
+  - @firebase/remote-config@0.6.2
+  - @firebase/remote-config-compat@0.2.15
+  - @firebase/storage-compat@0.3.19
+  - @firebase/vertexai@1.2.3
+
 ## 11.7.1
 
 ### Patch Changes

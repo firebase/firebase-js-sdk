@@ -58,7 +58,7 @@ import {
   onValue,
   off
 } from 'firebase/database';
-import { getGenerativeModel, getVertexAI, VertexAI } from 'firebase/vertexai';
+import { getGenerativeModel, getAI, VertexAIBackend } from 'firebase/ai';
 import { getDataConnect, DataConnect } from 'firebase/data-connect';
 
 /**
@@ -307,15 +307,15 @@ function callPerformance(app) {
 }
 
 /**
- * VertexAI smoke test.
+ * AI smoke test.
  * Just make sure some functions can be called without obvious errors.
  */
-async function callVertexAI(app) {
-  console.log('[VERTEXAI] start');
-  const vertexAI = getVertexAI(app);
-  const model = getGenerativeModel(vertexAI, { model: 'gemini-1.5-flash' });
+async function callAI(app) {
+  console.log('[AI] start');
+  const ai = getAI(app, { backend: new VertexAIBackend() });
+  const model = getGenerativeModel(ai, { model: 'gemini-1.5-flash' });
   const result = await model.countTokens('abcdefg');
-  console.log(`[VERTEXAI] counted tokens: ${result.totalTokens}`);
+  console.log(`[AI] counted tokens: ${result.totalTokens}`);
 }
 
 /**
@@ -350,7 +350,7 @@ async function main() {
   callAnalytics(app);
   callPerformance(app);
   await callFunctions(app);
-  await callVertexAI(app);
+  await callAI(app);
   callDataConnect(app);
   await authLogout(app);
   console.log('DONE');
