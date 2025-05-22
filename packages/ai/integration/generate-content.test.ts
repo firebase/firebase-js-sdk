@@ -27,7 +27,6 @@ import {
 } from '../src';
 import { testConfigs, TOKEN_COUNT_DELTA } from './constants';
 
-
 describe('Generate Content', () => {
   testConfigs.forEach(testConfig => {
     describe(`${testConfig.toString()}`, () => {

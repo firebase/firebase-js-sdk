@@ -131,18 +131,21 @@ describe('Count Tokens', () => {
             modality: Modality.IMAGE,
             tokenCount: 258
           });
-        } else if (testConfig.ai.backend.backendType === BackendType.VERTEX_AI) {
+        } else if (
+          testConfig.ai.backend.backendType === BackendType.VERTEX_AI
+        ) {
           const expectedImageTokens = 258;
           expect(response.totalTokens).to.equal(expectedImageTokens);
-          expect(
-            response.totalBillableCharacters,
-          ).to.be.undefined; // Incorrect behavior
-          expect(
-            response.promptTokensDetails!.length,
-          ).to.equal(1);
+          expect(response.totalBillableCharacters).to.be.undefined; // Incorrect behavior
+          expect(response.promptTokensDetails!.length).to.equal(1);
           // Note: No text tokens are present for Vertex AI with image-only input.
-          expect(response.promptTokensDetails![0]).to.deep.equal({ modality: Modality.IMAGE, tokenCount: 258 })
-          expect(response.promptTokensDetails![0].tokenCount).to.equal(expectedImageTokens);
+          expect(response.promptTokensDetails![0]).to.deep.equal({
+            modality: Modality.IMAGE,
+            tokenCount: 258
+          });
+          expect(response.promptTokensDetails![0].tokenCount).to.equal(
+            expectedImageTokens
+          );
         }
       });
 
@@ -242,7 +245,9 @@ describe('Count Tokens', () => {
             tokenCount: 3
           });
           const expectedText = 'Describe these:';
-          expect(response.totalBillableCharacters).to.equal(expectedText.length - 1); // Note: BillableCharacters observed as (text length - 1) for Vertex AI.
+          expect(response.totalBillableCharacters).to.equal(
+            expectedText.length - 1
+          ); // Note: BillableCharacters observed as (text length - 1) for Vertex AI.
           expect(audioDetails).to.deep.equal({ modality: Modality.AUDIO }); // Incorrect behavior because there's no tokenCount
         }
       });
