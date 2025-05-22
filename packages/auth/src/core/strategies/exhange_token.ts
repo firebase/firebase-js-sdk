@@ -24,7 +24,7 @@ import { _castAuth } from '../auth/auth_impl';
 
 /**
  * Asynchronously exchanges an OIDC provider's Authorization code or Id Token
- * for an OidcToken i.e. Outbound Access Token.
+ * for a Firebase Token.
  *
  * @remarks
  * This method is implemented only for `DefaultConfig.REGIONAL_API_HOST` and
