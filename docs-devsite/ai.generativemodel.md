@@ -40,9 +40,9 @@ export declare class GenerativeModel extends AIModel
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [countTokens(request)](./ai.generativemodel.md#generativemodelcounttokens) |  | Counts the tokens in the provided request. |
-|  [generateContent(request)](./ai.generativemodel.md#generativemodelgeneratecontent) |  | Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
-|  [generateContentStream(request)](./ai.generativemodel.md#generativemodelgeneratecontentstream) |  | Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
+|  [countTokens(request, singleRequestOptions)](./ai.generativemodel.md#generativemodelcounttokens) |  | Counts the tokens in the provided request. |
+|  [generateContent(request, singleRequestOptions)](./ai.generativemodel.md#generativemodelgeneratecontent) |  | Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
+|  [generateContentStream(request, singleRequestOptions)](./ai.generativemodel.md#generativemodelgeneratecontentstream) |  | Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
 |  [startChat(startChatParams)](./ai.generativemodel.md#generativemodelstartchat) |  | Gets a new [ChatSession](./ai.chatsession.md#chatsession_class) instance which can be used for multi-turn chats. |
 
 ## GenerativeModel.(constructor)
@@ -118,7 +118,7 @@ Counts the tokens in the provided request.
 <b>Signature:</b>
 
 ```typescript
-countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
+countTokens(request: CountTokensRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<CountTokensResponse>;
 ```
 
 #### Parameters
@@ -126,6 +126,7 @@ countTokens(request: CountTokensRequest | string | Array<string | Part>): Promis
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  request | [CountTokensRequest](./ai.counttokensrequest.md#counttokensrequest_interface) \| string \| Array&lt;string \| [Part](./ai.md#part)<!-- -->&gt; |  |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) |  |
 
 <b>Returns:</b>
 
@@ -138,7 +139,7 @@ Makes a single non-streaming call to the model and returns an object containing 
 <b>Signature:</b>
 
 ```typescript
-generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
+generateContent(request: GenerateContentRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
 ```
 
 #### Parameters
@@ -146,6 +147,7 @@ generateContent(request: GenerateContentRequest | string | Array<string | Part>)
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  request | [GenerateContentRequest](./ai.generatecontentrequest.md#generatecontentrequest_interface) \| string \| Array&lt;string \| [Part](./ai.md#part)<!-- -->&gt; |  |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) |  |
 
 <b>Returns:</b>
 
@@ -158,7 +160,7 @@ Makes a single streaming call to the model and returns an object containing an i
 <b>Signature:</b>
 
 ```typescript
-generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
+generateContentStream(request: GenerateContentRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
 ```
 
 #### Parameters
@@ -166,6 +168,7 @@ generateContentStream(request: GenerateContentRequest | string | Array<string | 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  request | [GenerateContentRequest](./ai.generatecontentrequest.md#generatecontentrequest_interface) \| string \| Array&lt;string \| [Part](./ai.md#part)<!-- -->&gt; |  |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) |  |
 
 <b>Returns:</b>
 

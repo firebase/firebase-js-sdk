@@ -36,15 +36,9 @@ export declare class ChatSession
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-<<<<<<< HEAD:docs-devsite/vertexai.chatsession.md
-|  [getHistory()](./vertexai.chatsession.md#chatsessiongethistory) |  | Gets the chat history so far. Blocked prompts are not added to history. Neither blocked candidates nor the prompts that generated them are added to history. |
-|  [sendMessage(request, singleRequestOptions)](./vertexai.chatsession.md#chatsessionsendmessage) |  | Sends a chat message and receives a non-streaming [GenerateContentResult](./vertexai.generatecontentresult.md#generatecontentresult_interface) |
-|  [sendMessageStream(request, singleRequestOptions)](./vertexai.chatsession.md#chatsessionsendmessagestream) |  | Sends a chat message and receives the response as a [GenerateContentStreamResult](./vertexai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise. |
-=======
 |  [getHistory()](./ai.chatsession.md#chatsessiongethistory) |  | Gets the chat history so far. Blocked prompts are not added to history. Neither blocked candidates nor the prompts that generated them are added to history. |
-|  [sendMessage(request)](./ai.chatsession.md#chatsessionsendmessage) |  | Sends a chat message and receives a non-streaming [GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface) |
-|  [sendMessageStream(request)](./ai.chatsession.md#chatsessionsendmessagestream) |  | Sends a chat message and receives the response as a [GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise. |
->>>>>>> main:docs-devsite/ai.chatsession.md
+|  [sendMessage(request, singleRequestOptions)](./ai.chatsession.md#chatsessionsendmessage) |  | Sends a chat message and receives a non-streaming [GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface) |
+|  [sendMessageStream(request, singleRequestOptions)](./ai.chatsession.md#chatsessionsendmessagestream) |  | Sends a chat message and receives the response as a [GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise. |
 
 ## ChatSession.(constructor)
 
@@ -116,12 +110,8 @@ sendMessage(request: string | Array<string | Part>, singleRequestOptions?: Singl
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-<<<<<<< HEAD:docs-devsite/vertexai.chatsession.md
-|  request | string \| Array&lt;string \| [Part](./vertexai.md#part)<!-- -->&gt; |  |
-|  singleRequestOptions | [SingleRequestOptions](./vertexai.singlerequestoptions.md#singlerequestoptions_interface) |  |
-=======
 |  request | string \| Array&lt;string \| [Part](./ai.md#part)<!-- -->&gt; |  |
->>>>>>> main:docs-devsite/ai.chatsession.md
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) |  |
 
 <b>Returns:</b>
 
@@ -141,12 +131,8 @@ sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?:
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-<<<<<<< HEAD:docs-devsite/vertexai.chatsession.md
-|  request | string \| Array&lt;string \| [Part](./vertexai.md#part)<!-- -->&gt; |  |
-|  singleRequestOptions | [SingleRequestOptions](./vertexai.singlerequestoptions.md#singlerequestoptions_interface) |  |
-=======
 |  request | string \| Array&lt;string \| [Part](./ai.md#part)<!-- -->&gt; |  |
->>>>>>> main:docs-devsite/ai.chatsession.md
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) |  |
 
 <b>Returns:</b>
 

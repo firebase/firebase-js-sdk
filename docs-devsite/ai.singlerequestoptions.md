@@ -10,22 +10,22 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # SingleRequestOptions interface
-Options that can be provided per-request. Extends the base [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) (like `timeout` and `baseUrl`<!-- -->) with request-specific controls like cancellation via `AbortSignal`<!-- -->.
+Options that can be provided per-request. Extends the base [RequestOptions](./ai.requestoptions.md#requestoptions_interface) (like `timeout` and `baseUrl`<!-- -->) with request-specific controls like cancellation via `AbortSignal`<!-- -->.
 
-Options specified here will override any default [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) configured on a model (e.g. [GenerativeModel](./vertexai.generativemodel.md#generativemodel_class)<!-- -->).
+Options specified here will override any default [RequestOptions](./ai.requestoptions.md#requestoptions_interface) configured on a model (e.g. [GenerativeModel](./ai.generativemodel.md#generativemodel_class)<!-- -->).
 
 <b>Signature:</b>
 
 ```typescript
 export interface SingleRequestOptions extends RequestOptions 
 ```
-<b>Extends:</b> [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface)
+<b>Extends:</b> [RequestOptions](./ai.requestoptions.md#requestoptions_interface)
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [signal](./vertexai.singlerequestoptions.md#singlerequestoptionssignal) | AbortSignal | An <code>AbortSignal</code> instance that allows cancelling ongoing requests (like <code>generateContent</code> or <code>generateImages</code>).<!-- -->If provided, calling <code>abort()</code> on the corresponding <code>AbortController</code> will attempt to cancel the underlying HTTP request. An <code>AbortError</code> will be thrown if cancellation is successful.<!-- -->Note that this will not cancel the request in the backend, so billing will still be applied despite cancellation. |
+|  [signal](./ai.singlerequestoptions.md#singlerequestoptionssignal) | AbortSignal | An <code>AbortSignal</code> instance that allows cancelling ongoing requests (like <code>generateContent</code> or <code>generateImages</code>).<!-- -->If provided, calling <code>abort()</code> on the corresponding <code>AbortController</code> will attempt to cancel the underlying HTTP request. An <code>AbortError</code> will be thrown if cancellation is successful.<!-- -->Note that this will not cancel the request in the backend, so billing will still be applied despite cancellation. |
 
 ## SingleRequestOptions.signal
 

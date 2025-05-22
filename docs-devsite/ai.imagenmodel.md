@@ -42,11 +42,7 @@ export declare class ImagenModel extends AIModel
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-<<<<<<< HEAD:docs-devsite/vertexai.imagenmodel.md
-|  [generateImages(prompt, singleRequestOptions)](./vertexai.imagenmodel.md#imagenmodelgenerateimages) |  | <b><i>(Public Preview)</i></b> Generates images using the Imagen model and returns them as base64-encoded strings. |
-=======
-|  [generateImages(prompt)](./ai.imagenmodel.md#imagenmodelgenerateimages) |  | <b><i>(Public Preview)</i></b> Generates images using the Imagen model and returns them as base64-encoded strings. |
->>>>>>> main:docs-devsite/ai.imagenmodel.md
+|  [generateImages(prompt, singleRequestOptions)](./ai.imagenmodel.md#imagenmodelgenerateimages) |  | <b><i>(Public Preview)</i></b> Generates images using the Imagen model and returns them as base64-encoded strings. |
 
 ## ImagenModel.(constructor)
 
@@ -130,7 +126,7 @@ generateImages(prompt: string, singleRequestOptions?: SingleRequestOptions): Pro
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  prompt | string | A text prompt describing the image(s) to generate. |
-|  singleRequestOptions | [SingleRequestOptions](./vertexai.singlerequestoptions.md#singlerequestoptions_interface) |  |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) |  |
 
 <b>Returns:</b>
 
