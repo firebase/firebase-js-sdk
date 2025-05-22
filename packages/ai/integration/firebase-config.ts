@@ -15,6 +15,6 @@
  * limitations under the License.
  */
 
-import * as config from '../../../config/project.json';
+import * as config from '../../../config/ci.config.json';
 
 export const FIREBASE_CONFIG = config;
