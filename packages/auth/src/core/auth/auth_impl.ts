@@ -37,7 +37,8 @@ import {
   NextFn,
   Unsubscribe,
   PasswordValidationStatus,
-  TenantConfig
+  TenantConfig,
+  TokenResponse
 } from '../../model/public_types';
 import {
   createSubscribe,
@@ -100,6 +101,7 @@ export const enum DefaultConfig {
 export class AuthImpl implements AuthInternal, _FirebaseService {
   currentUser: User | null = null;
   emulatorConfig: EmulatorConfig | null = null;
+  tokenResponse: TokenResponse | null = null;
   private operations = Promise.resolve();
   private persistenceManager?: PersistenceUserManager;
   private redirectPersistenceManager?: PersistenceUserManager;
@@ -455,6 +457,12 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     });
   }
 
+  async _updateTokenResponse(tokenResponse: TokenResponse): Promise<void> {
+    if (tokenResponse) {
+      this.tokenResponse = tokenResponse;
+    }
+  }
+
   async signOut(): Promise<void> {
     if (_isFirebaseServerApp(this.app)) {
       return Promise.reject(
@@ -620,6 +628,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       }
       await revokeToken(this, request);
     }
+  }
+
+  async getTokenForRegionalAuth():
+  Promise<string> {
+    if (Date.now() > this.tokenResponse?.expiresIn)
   }
 
   toJSON(): object {
