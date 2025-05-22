@@ -1269,7 +1269,7 @@ export interface Dependencies {
   /**
    * The {@link TenantConfig} to use. This dependency is only required
    * if you want to use regional auth which works with
-   * `DefaultConfig.REGIONAL_API_HOST`` endpoint. It should not be set otherwise.
+   * `DefaultConfig.REGIONAL_API_HOST` endpoint. It should not be set otherwise.
    */
   tenantConfig?: TenantConfig;
 }
