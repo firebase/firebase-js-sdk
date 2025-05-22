@@ -410,7 +410,7 @@ Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!
 
 Asynchronously exchanges an OIDC provider's Authorization code or Id Token for an OidcToken i.e. Outbound Access Token.
 
-This method is imeplemented only for  and requires [TenantConfig](./auth.tenantconfig.md#tenantconfig_interface) to be configured in the [Auth](./auth.auth.md#auth_interface) instance used.
+This method is implemented only for `DefaultConfig.REGIONAL_API_HOST` and requires [TenantConfig](./auth.tenantconfig.md#tenantconfig_interface) to be configured in the [Auth](./auth.auth.md#auth_interface) instance used.
 
 Fails with an error if the token is invalid, expired, or not accepted by the Firebase Auth service.
 
