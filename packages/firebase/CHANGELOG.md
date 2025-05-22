@@ -1,5 +1,22 @@
 # firebase
 
+## 11.8.1
+
+### Patch Changes
+
+- Updated dependencies [[`35ad526`](https://github.com/firebase/firebase-js-sdk/commit/35ad5266304e14425988fcf5ad06d028b37588ac), [`b5df4ae`](https://github.com/firebase/firebase-js-sdk/commit/b5df4ae71c1b5b54d9237e7929d0f793189b82c9)]:
+  - @firebase/auth@1.10.6
+  - @firebase/database@1.0.19
+  - @firebase/firestore@4.7.16
+  - @firebase/functions@0.12.8
+  - @firebase/storage@0.13.12
+  - @firebase/data-connect@0.3.9
+  - @firebase/auth-compat@0.5.26
+  - @firebase/database-compat@2.0.10
+  - @firebase/firestore-compat@0.3.51
+  - @firebase/functions-compat@0.3.25
+  - @firebase/storage-compat@0.3.22
+
 ## 11.8.0
 
 ### Minor Changes

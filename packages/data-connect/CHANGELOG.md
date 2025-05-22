@@ -1,5 +1,11 @@
 ## Unreleased
 
+## 0.3.9
+
+### Patch Changes
+
+- [`b5df4ae`](https://github.com/firebase/firebase-js-sdk/commit/b5df4ae71c1b5b54d9237e7929d0f793189b82c9) [#9055](https://github.com/firebase/firebase-js-sdk/pull/9055) - Updated to only show banner when calling connect\*Emulator
+
 ## 0.3.8
 
 ### Patch Changes
