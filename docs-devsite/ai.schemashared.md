@@ -22,6 +22,7 @@ export interface SchemaShared<T>
 
 |  Property | Type | Description |
 |  --- | --- | --- |
+|  [anyOf](./ai.schemashared.md#schemasharedanyof) | T\[\] | An array of [Schema](./ai.schema.md#schema_class)<!-- -->. The generated data must be valid against any of the schemas listed in this array. This allows specifying multiple possible structures or types for a single field. |
 |  [description](./ai.schemashared.md#schemashareddescription) | string | Optional. The description of the property. |
 |  [enum](./ai.schemashared.md#schemasharedenum) | string\[\] | Optional. The enum of the property. |
 |  [example](./ai.schemashared.md#schemasharedexample) | unknown | Optional. The example of the property. |
@@ -29,6 +30,16 @@ export interface SchemaShared<T>
 |  [items](./ai.schemashared.md#schemashareditems) | T | Optional. The items of the property. |
 |  [nullable](./ai.schemashared.md#schemasharednullable) | boolean | Optional. Whether the property is nullable. |
 |  [properties](./ai.schemashared.md#schemasharedproperties) | { \[k: string\]: T; } | Optional. Map of <code>Schema</code> objects. |
+
+## SchemaShared.anyOf
+
+An array of [Schema](./ai.schema.md#schema_class)<!-- -->. The generated data must be valid against any of the schemas listed in this array. This allows specifying multiple possible structures or types for a single field.
+
+<b>Signature:</b>
+
+```typescript
+anyOf?: T[];
+```
 
 ## SchemaShared.description
 

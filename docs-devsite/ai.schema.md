@@ -33,12 +33,13 @@ export declare abstract class Schema implements SchemaInterface
 |  [example](./ai.schema.md#schemaexample) |  | unknown | Optional. The example of the property. |
 |  [format](./ai.schema.md#schemaformat) |  | string | Optional. The format of the property. Supported formats:<br/> <ul> <li>for NUMBER type: "float", "double"</li> <li>for INTEGER type: "int32", "int64"</li> <li>for STRING type: "email", "byte", etc</li> </ul> |
 |  [nullable](./ai.schema.md#schemanullable) |  | boolean | Optional. Whether the property is nullable. Defaults to false. |
-|  [type](./ai.schema.md#schematype) |  | [SchemaType](./ai.md#schematype) | Optional. The type of the property. [SchemaType](./ai.md#schematype)<!-- -->. |
+|  [type](./ai.schema.md#schematype) |  | [SchemaType](./ai.md#schematype) | Optional. The type of the property. [SchemaType](./ai.md#schematype)<!-- -->. This can only be undefined when using <code>anyOf</code> schemas, which do not have an explicit type in the . |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
+|  [anyOf(anyOfParams)](./ai.schema.md#schemaanyof) | <code>static</code> |  |
 |  [array(arrayParams)](./ai.schema.md#schemaarray) | <code>static</code> |  |
 |  [boolean(booleanParams)](./ai.schema.md#schemaboolean) | <code>static</code> |  |
 |  [enumString(stringParams)](./ai.schema.md#schemaenumstring) | <code>static</code> |  |
@@ -105,13 +106,33 @@ nullable: boolean;
 
 ## Schema.type
 
-Optional. The type of the property. [SchemaType](./ai.md#schematype)<!-- -->.
+Optional. The type of the property. [SchemaType](./ai.md#schematype)<!-- -->. This can only be undefined when using `anyOf` schemas, which do not have an explicit type in the .
 
 <b>Signature:</b>
 
 ```typescript
-type: SchemaType;
+type?: SchemaType;
 ```
+
+## Schema.anyOf()
+
+<b>Signature:</b>
+
+```typescript
+static anyOf(anyOfParams: SchemaParams & {
+        anyOf: TypedSchema[];
+    }): AnyOfSchema;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  anyOfParams | [SchemaParams](./ai.schemaparams.md#schemaparams_interface) &amp; { anyOf: [TypedSchema](./ai.md#typedschema)<!-- -->\[\]; } |  |
+
+<b>Returns:</b>
+
+[AnyOfSchema](./ai.anyofschema.md#anyofschema_class)
 
 ## Schema.array()
 

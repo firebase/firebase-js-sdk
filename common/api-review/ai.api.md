@@ -66,6 +66,17 @@ export interface AIOptions {
 }
 
 // @public
+export class AnyOfSchema extends Schema {
+    constructor(schemaParams: SchemaParams & {
+        anyOf: TypedSchema[];
+    });
+    // (undocumented)
+    anyOf: TypedSchema[];
+    // @internal (undocumented)
+    toJSON(): SchemaRequest;
+}
+
+// @public
 export class ArraySchema extends Schema {
     constructor(schemaParams: SchemaParams, items: TypedSchema);
     // (undocumented)
@@ -776,6 +787,10 @@ export abstract class Schema implements SchemaInterface {
     constructor(schemaParams: SchemaInterface);
     [key: string]: unknown;
     // (undocumented)
+    static anyOf(anyOfParams: SchemaParams & {
+        anyOf: TypedSchema[];
+    }): AnyOfSchema;
+    // (undocumented)
     static array(arrayParams: SchemaParams & {
         items: Schema;
     }): ArraySchema;
@@ -804,12 +819,12 @@ export abstract class Schema implements SchemaInterface {
     static string(stringParams?: SchemaParams): StringSchema;
     // @internal
     toJSON(): SchemaRequest;
-    type: SchemaType;
+    type?: SchemaType;
 }
 
 // @public
 export interface SchemaInterface extends SchemaShared<SchemaInterface> {
-    type: SchemaType;
+    type?: SchemaType;
 }
 
 // @public
@@ -819,13 +834,14 @@ export interface SchemaParams extends SchemaShared<SchemaInterface> {
 // @public
 export interface SchemaRequest extends SchemaShared<SchemaRequest> {
     required?: string[];
-    type: SchemaType;
+    type?: SchemaType;
 }
 
 // @public
 export interface SchemaShared<T> {
     // (undocumented)
     [key: string]: unknown;
+    anyOf?: T[];
     description?: string;
     enum?: string[];
     example?: unknown;
@@ -900,7 +916,7 @@ export interface ToolConfig {
 }
 
 // @public
-export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema;
+export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
 
 // @public
 export interface UsageMetadata {
