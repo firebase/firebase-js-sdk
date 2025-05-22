@@ -790,6 +790,9 @@ export abstract class Schema implements SchemaInterface {
     format?: string;
     // (undocumented)
     static integer(integerParams?: SchemaParams): IntegerSchema;
+    items?: SchemaInterface;
+    maxItems?: number;
+    minItems?: number;
     nullable: boolean;
     // (undocumented)
     static number(numberParams?: SchemaParams): NumberSchema;
@@ -831,6 +834,8 @@ export interface SchemaShared<T> {
     example?: unknown;
     format?: string;
     items?: T;
+    maxItems?: number;
+    minItems?: number;
     nullable?: boolean;
     properties?: {
         [k: string]: T;
