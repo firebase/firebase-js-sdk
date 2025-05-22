@@ -28,7 +28,7 @@ Firebase Authentication
 |  [confirmPasswordReset(auth, oobCode, newPassword)](./auth.md#confirmpasswordreset_749dad8) | Completes the password reset process, given a confirmation code and new password. |
 |  [connectAuthEmulator(auth, url, options)](./auth.md#connectauthemulator_657c7e5) | Changes the [Auth](./auth.auth.md#auth_interface) instance to communicate with the Firebase Auth Emulator, instead of production Firebase Auth services. |
 |  [createUserWithEmailAndPassword(auth, email, password)](./auth.md#createuserwithemailandpassword_21ad33b) | Creates a new user account associated with the specified email address and password. |
-|  [exchangeToken(auth, idpConfigId, customToken)](./auth.md#exchangetoken_b6b1871) | Asynchronously exchanges an OIDC provider's Authorization code or Id Token for an OidcToken i.e. Outbound Access Token. |
+|  [exchangeToken(auth, idpConfigId, customToken)](./auth.md#exchangetoken_b6b1871) | Asynchronously exchanges an OIDC provider's Authorization code or Id Token for a Firebase Token. |
 |  [fetchSignInMethodsForEmail(auth, email)](./auth.md#fetchsigninmethodsforemail_efb3887) | Gets the list of possible sign in methods for the given email address. This method returns an empty list when [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, irrespective of the number of authentication methods available for the given email. |
 |  [getMultiFactorResolver(auth, error)](./auth.md#getmultifactorresolver_201ba61) | Provides a [MultiFactorResolver](./auth.multifactorresolver.md#multifactorresolver_interface) suitable for completion of a multi-factor flow. |
 |  [getRedirectResult(auth, resolver)](./auth.md#getredirectresult_c35dc1f) | Returns a [UserCredential](./auth.usercredential.md#usercredential_interface) from the redirect-based sign-in flow. |
@@ -408,7 +408,7 @@ Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!
 
 ### exchangeToken(auth, idpConfigId, customToken) {:#exchangetoken_b6b1871}
 
-Asynchronously exchanges an OIDC provider's Authorization code or Id Token for an OidcToken i.e. Outbound Access Token.
+Asynchronously exchanges an OIDC provider's Authorization code or Id Token for a Firebase Token.
 
 This method is implemented only for `DefaultConfig.REGIONAL_API_HOST` and requires [TenantConfig](./auth.tenantconfig.md#tenantconfig_interface) to be configured in the [Auth](./auth.auth.md#auth_interface) instance used.
 
