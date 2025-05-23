@@ -52,9 +52,7 @@ const backendNames: Map<BackendType, string> = new Map([
   [BackendType.VERTEX_AI, 'Vertex AI']
 ]);
 
-const modelNames: readonly string[] = [
-  'gemini-2.0-flash'
-];
+const modelNames: readonly string[] = ['gemini-2.0-flash'];
 
 /**
  * Array of test configurations that is iterated over to get full coverage
