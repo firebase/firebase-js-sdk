@@ -26,7 +26,7 @@ export interface ExchangeTokenRequest {
   token: string;
 }
 
-export interface ExchangeTokenRespose {
+export interface ExchangeTokenResponse {
   accessToken: string;
   expiresIn?: string;
 }
@@ -34,8 +34,8 @@ export interface ExchangeTokenRespose {
 export async function exchangeToken(
   auth: Auth,
   request: ExchangeTokenRequest
-): Promise<ExchangeTokenRespose> {
-  return _performRegionalApiRequest<ExchangeTokenRequest, ExchangeTokenRespose>(
+): Promise<ExchangeTokenResponse> {
+  return _performRegionalApiRequest<ExchangeTokenRequest, ExchangeTokenResponse>(
     auth,
     HttpMethod.POST,
     RegionalEndpoint.EXCHANGE_TOKEN,
