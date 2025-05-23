@@ -24,7 +24,7 @@ import {
   Modality,
   SafetySetting,
   getGenerativeModel
-} from '../src';
+} from '@firebase/ai';
 import { testConfigs, TOKEN_COUNT_DELTA } from './constants';
 
 describe('Generate Content', () => {

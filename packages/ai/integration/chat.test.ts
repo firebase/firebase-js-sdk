@@ -23,7 +23,7 @@ import {
   HarmCategory,
   SafetySetting,
   getGenerativeModel
-} from '../src';
+} from '@firebase/ai';
 import { testConfigs, TOKEN_COUNT_DELTA } from './constants';
 
 describe('Chat Session', () => {

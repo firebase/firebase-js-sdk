@@ -23,7 +23,7 @@ import {
   GoogleAIBackend,
   VertexAIBackend,
   getAI
-} from '../src';
+} from '@firebase/ai';
 import { FIREBASE_CONFIG } from './firebase-config';
 
 const app = initializeApp(FIREBASE_CONFIG);

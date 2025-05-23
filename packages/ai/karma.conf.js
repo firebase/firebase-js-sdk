@@ -21,15 +21,6 @@ const { existsSync } = require('fs');
 
 const files = [`src/**/*.test.ts`];
 
-// Validate that the file that defines the Firebase config to be used in the integration tests exists.
-if (argv.integration) {
-  if (!existsSync('integration/firebase-config.ts')) {
-    throw new Error(
-      `integration/firebase-config.ts does not exist. This file must contain a Firebase config for a project with Vertex AI enabled.`
-    );
-  }
-}
-
 module.exports = function (config) {
   const karmaConfig = {
     ...karmaBase,
