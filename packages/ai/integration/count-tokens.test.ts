@@ -30,7 +30,7 @@ import {
   InlineDataPart,
   FileDataPart,
   BackendType
-} from '@firebase/ai';
+} from '../src';
 import {
   AUDIO_MIME_TYPE,
   IMAGE_MIME_TYPE,
