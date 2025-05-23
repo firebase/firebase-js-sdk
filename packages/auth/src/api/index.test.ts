@@ -24,7 +24,10 @@ import sinonChai from 'sinon-chai';
 import { FirebaseError, getUA } from '@firebase/util';
 import * as utils from '@firebase/util';
 
-import { mockEndpoint } from '../../test/helpers/api/helper';
+import {
+  mockEndpoint,
+  mockRegionalEndpointWithParent
+} from '../../test/helpers/api/helper';
 import {
   regionalTestAuth,
   testAuth,
@@ -36,6 +39,7 @@ import { ConfigInternal } from '../model/auth';
 import {
   _getFinalTarget,
   _performApiRequest,
+  _performRegionalApiRequest,
   DEFAULT_API_TIMEOUT_MS,
   Endpoint,
   RegionalEndpoint,
@@ -604,12 +608,12 @@ describe('api/_performApiRequest', () => {
   });
 
   context('throws Operation not allowed exception', () => {
-    it('when tenantConfig is not initialized and Regional Endpoint is used', async () => {
+    it('when tenantConfig is initialized and default Endpoint is used', async () => {
       await expect(
         _performApiRequest<typeof request, typeof serverResponse>(
-          auth,
+          regionalAuth,
           HttpMethod.POST,
-          RegionalEndpoint.EXCHANGE_TOKEN,
+          Endpoint.SIGN_UP,
           request
         )
       ).to.be.rejectedWith(
@@ -617,13 +621,100 @@ describe('api/_performApiRequest', () => {
         'Firebase: Operations not allowed for the auth object initialized. (auth/operation-not-allowed).'
       );
     });
+  });
+});
 
-    it('when tenantConfig is initialized and default Endpoint is used', async () => {
+describe('api/_performRegionalApiRequest', () => {
+  const request = {
+    requestKey: 'request-value'
+  };
+
+  const serverResponse = {
+    responseKey: 'response-value'
+  };
+
+  let auth: TestAuth;
+  let regionalAuth: TestAuth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    regionalAuth = await regionalTestAuth();
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  context('with regular requests', () => {
+    beforeEach(mockFetch.setUp);
+    afterEach(mockFetch.tearDown);
+    it('should set the correct request, method and HTTP Headers', async () => {
+      const mock = mockRegionalEndpointWithParent(
+        RegionalEndpoint.EXCHANGE_TOKEN,
+        'test-parent',
+        serverResponse
+      );
+      const response = await _performRegionalApiRequest<
+        typeof request,
+        typeof serverResponse
+      >(
+        regionalAuth,
+        HttpMethod.POST,
+        RegionalEndpoint.EXCHANGE_TOKEN,
+        request,
+        {},
+        'test-parent'
+      );
+      expect(response).to.eql(serverResponse);
+      expect(mock.calls.length).to.eq(1);
+      expect(mock.calls[0].method).to.eq(HttpMethod.POST);
+      expect(mock.calls[0].request).to.eql(request);
+      expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+        'application/json'
+      );
+      expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+        'testSDK/0.0.0'
+      );
+      expect(mock.calls[0].fullRequest?.credentials).to.be.undefined;
+    });
+
+    it('should include whatever headers the auth impl attaches', async () => {
+      sinon.stub(regionalAuth, '_getAdditionalHeaders').returns(
+        Promise.resolve({
+          'look-at-me-im-a-header': 'header-value',
+          'anotherheader': 'header-value-2'
+        })
+      );
+
+      const mock = mockRegionalEndpointWithParent(
+        RegionalEndpoint.EXCHANGE_TOKEN,
+        'test-parent',
+        serverResponse
+      );
+      await _performRegionalApiRequest<typeof request, typeof serverResponse>(
+        regionalAuth,
+        HttpMethod.POST,
+        RegionalEndpoint.EXCHANGE_TOKEN,
+        request,
+        {},
+        'test-parent'
+      );
+      expect(mock.calls[0].headers.get('look-at-me-im-a-header')).to.eq(
+        'header-value'
+      );
+      expect(mock.calls[0].headers.get('anotherheader')).to.eq(
+        'header-value-2'
+      );
+    });
+  });
+
+  context('throws Operation not allowed exception', () => {
+    it('when tenantConfig is not initialized and Regional Endpoint is used', async () => {
       await expect(
-        _performApiRequest<typeof request, typeof serverResponse>(
-          regionalAuth,
+        _performRegionalApiRequest<typeof request, typeof serverResponse>(
+          auth,
           HttpMethod.POST,
-          Endpoint.SIGN_UP,
+          RegionalEndpoint.EXCHANGE_TOKEN,
           request
         )
       ).to.be.rejectedWith(

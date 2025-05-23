@@ -54,7 +54,7 @@ export const enum HttpHeader {
   X_FIREBASE_APP_CHECK = 'X-Firebase-AppCheck'
 }
 
-export enum Endpoint {
+export const enum Endpoint {
   CREATE_AUTH_URI = '/v1/accounts:createAuthUri',
   DELETE_ACCOUNT = '/v1/accounts:delete',
   RESET_PASSWORD = '/v1/accounts:resetPassword',
@@ -81,8 +81,11 @@ export enum Endpoint {
   REVOKE_TOKEN = '/v2/accounts:revokeToken'
 }
 
-export enum RegionalEndpoint {
-  EXCHANGE_TOKEN = 'v2/${body.parent}:exchangeOidcToken'
+export const EXCHANGE_TOKEN_PARENT =
+  'projects/${projectId}/locations/${location}/tenants/${tenantId}/idpConfigs/${idpConfigId}';
+
+export const enum RegionalEndpoint {
+  EXCHANGE_TOKEN = ':exchangeOidcToken'
 }
 
 const CookieAuthProxiedEndpoints: string[] = [
@@ -141,14 +144,17 @@ export function _addTidIfNecessary<T extends { tenantId?: string }>(
   return request;
 }
 
-export async function _performApiRequest<T, V>(
+function isRegionalAuthInitialized(auth: Auth): boolean {
+  return !!auth.tenantConfig;
+}
+
+async function performApiRequest<T, V>(
   auth: Auth,
   method: HttpMethod,
-  path: Endpoint | RegionalEndpoint,
+  path: string,
   request?: T,
   customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
-  _assertValidEndpointForAuth(auth, path);
   return _performFetchWithErrorHandling(auth, customErrorMap, async () => {
     let body = {};
     let params = {};
@@ -162,10 +168,17 @@ export async function _performApiRequest<T, V>(
       }
     }
 
-    const query = querystring({
-      key: auth.config.apiKey,
-      ...params
-    }).slice(1);
+    let queryParamString: string;
+    if (isRegionalAuthInitialized(auth)) {
+      queryParamString = querystring({
+        ...params
+      }).slice(1);
+    } else {
+      queryParamString = querystring({
+        key: auth.config.apiKey,
+        ...params
+      }).slice(1);
+    }
 
     const headers = await (auth as AuthInternal)._getAdditionalHeaders();
     headers[HttpHeader.CONTENT_TYPE] = 'application/json';
@@ -193,10 +206,43 @@ export async function _performApiRequest<T, V>(
     }
 
     return FetchProvider.fetch()(
-      await _getFinalTarget(auth, auth.config.apiHost, path, query),
+      await _getFinalTarget(auth, auth.config.apiHost, path, queryParamString),
       fetchArgs
     );
   });
+}
+
+export async function _performRegionalApiRequest<T, V>(
+  auth: Auth,
+  method: HttpMethod,
+  path: RegionalEndpoint,
+  request?: T,
+  customErrorMap: Partial<ServerErrorMap<ServerError>> = {},
+  parent?: string
+): Promise<V> {
+  if (!isRegionalAuthInitialized(auth)) {
+    throw _operationNotSupportedForInitializedAuthInstance(auth);
+  }
+  return performApiRequest(
+    auth,
+    method,
+    `${parent}${path}`,
+    request,
+    customErrorMap
+  );
+}
+
+export async function _performApiRequest<T, V>(
+  auth: Auth,
+  method: HttpMethod,
+  path: Endpoint,
+  request?: T,
+  customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
+): Promise<V> {
+  if (isRegionalAuthInitialized(auth)) {
+    throw _operationNotSupportedForInitializedAuthInstance(auth);
+  }
+  return performApiRequest(auth, method, `${path}`, request, customErrorMap);
 }
 
 export async function _performFetchWithErrorHandling<V>(
@@ -287,9 +333,9 @@ export async function _getFinalTarget(
   auth: Auth,
   host: string,
   path: string,
-  query: string
+  query?: string
 ): Promise<string> {
-  const base = `${host}${path}?${query}`;
+  const base = query ? `${host}${path}?${query}` : `${host}${path}`;
 
   const authInternal = auth as AuthInternal;
   const finalTarget = authInternal.config.emulator
@@ -325,22 +371,6 @@ export function _parseEnforcementState(
       return EnforcementState.OFF;
     default:
       return EnforcementState.ENFORCEMENT_STATE_UNSPECIFIED;
-  }
-}
-
-function _assertValidEndpointForAuth(
-  auth: Auth,
-  path: Endpoint | RegionalEndpoint
-): void {
-  if (
-    !auth.tenantConfig &&
-    Object.values(RegionalEndpoint).includes(path as RegionalEndpoint)
-  ) {
-    throw _operationNotSupportedForInitializedAuthInstance(auth);
-  }
-
-  if (auth.tenantConfig && Object.values(Endpoint).includes(path as Endpoint)) {
-    throw _operationNotSupportedForInitializedAuthInstance(auth);
   }
 }
 
