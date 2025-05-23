@@ -35,7 +35,10 @@ export async function exchangeToken(
   auth: Auth,
   request: ExchangeTokenRequest
 ): Promise<ExchangeTokenResponse> {
-  return _performRegionalApiRequest<ExchangeTokenRequest, ExchangeTokenResponse>(
+  return _performRegionalApiRequest<
+    ExchangeTokenRequest,
+    ExchangeTokenResponse
+  >(
     auth,
     HttpMethod.POST,
     RegionalEndpoint.EXCHANGE_TOKEN,
