@@ -32,7 +32,12 @@ const buildPlugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
-      exclude: [...tsconfig.exclude, '**/*.test.ts', 'test-utils'],
+      exclude: [
+        ...tsconfig.exclude,
+        '**/*.test.ts',
+        'test-utils',
+        'integration'
+      ],
       compilerOptions: {
         target: 'es2017'
       }
