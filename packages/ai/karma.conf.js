@@ -17,7 +17,6 @@
 
 const karmaBase = require('../../config/karma.base');
 const { argv } = require('yargs');
-const { existsSync } = require('fs');
 
 const files = [`src/**/*.test.ts`];
 
