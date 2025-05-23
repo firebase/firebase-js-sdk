@@ -1,6 +1,6 @@
 {
   "name": "@firebase/data-connect",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",

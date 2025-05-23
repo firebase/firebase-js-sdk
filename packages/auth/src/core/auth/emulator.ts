@@ -18,7 +18,12 @@ import { Auth } from '../../model/public_types';
 import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
 import { _castAuth } from './auth_impl';
-import { deepEqual, isCloudWorkstation, pingServer } from '@firebase/util';
+import {
+  deepEqual,
+  isCloudWorkstation,
+  pingServer,
+  updateEmulatorBanner
+} from '@firebase/util';
 
 /**
  * Changes the {@link Auth} instance to communicate with the Firebase Auth Emulator, instead of production
@@ -97,13 +102,12 @@ export function connectAuthEmulator(
   authInternal.emulatorConfig = emulatorConfig;
   authInternal.settings.appVerificationDisabledForTesting = true;
 
-  if (!disableWarnings) {
-    emitEmulatorWarning();
-  }
-
   // Workaround to get cookies in Firebase Studio
   if (isCloudWorkstation(host)) {
     void pingServer(`${protocol}//${host}${portStr}`);
+    updateEmulatorBanner('Auth', true);
+  } else if (!disableWarnings) {
+    emitEmulatorWarning();
   }
 }
 
