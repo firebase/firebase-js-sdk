@@ -185,7 +185,7 @@ export interface Auth {
   readonly config: Config;
   /**
    * The {@link TenantConfig} used to initialize a Regional Auth. This is only present
-   * if regional auth is initialized and {@link DefaultConfig.REGIONAL_API_HOST}
+   * if regional auth is initialized and `DefaultConfig.REGIONAL_API_HOST`
    * backend endpoint is used.
    */
   readonly tenantConfig?: TenantConfig;
@@ -1269,7 +1269,7 @@ export interface Dependencies {
   /**
    * The {@link TenantConfig} to use. This dependency is only required
    * if you want to use regional auth which works with
-   * {@link DefaultConfig.REGIONAL_API_HOST} endpoint. It should not be set otherwise.
+   * `DefaultConfig.REGIONAL_API_HOST` endpoint. It should not be set otherwise.
    */
   tenantConfig?: TenantConfig;
 }
