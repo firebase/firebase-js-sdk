@@ -54,7 +54,6 @@ const backendNames: Map<BackendType, string> = new Map([
 
 const modelNames: readonly string[] = [
   'gemini-2.0-flash'
-  // 'gemini-2.0-flash-exp'
 ];
 
 /**

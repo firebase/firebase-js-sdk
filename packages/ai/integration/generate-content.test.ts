@@ -135,41 +135,6 @@ describe('Generate Content', () => {
         const trimmedText = response.text().trim();
         expect(trimmedText).to.equal('Mountain View');
         expect(response.usageMetadata).to.be.undefined; // Note: This is incorrect behavior.
-
-        /*
-        expect(response.usageMetadata).to.exist;
-        expect(response.usageMetadata!.promptTokenCount).to.be.closeTo(
-          21,
-          TOKEN_COUNT_DELTA
-        ); // TODO: fix promptTokenToke is undefined
-        // Candidate token count can be slightly different in streaming
-        expect(response.usageMetadata!.candidatesTokenCount).to.be.closeTo(
-          4,
-          TOKEN_COUNT_DELTA + 1 // Allow slightly more variance for stream
-        );
-        expect(response.usageMetadata!.totalTokenCount).to.be.closeTo(
-          25,
-          TOKEN_COUNT_DELTA * 2 + 1 // Allow slightly more variance for stream
-        );
-        expect(response.usageMetadata!.promptTokensDetails).to.not.be.null;
-        expect(response.usageMetadata!.promptTokensDetails!.length).to.equal(1);
-        expect(
-          response.usageMetadata!.promptTokensDetails![0].modality
-        ).to.equal(Modality.TEXT);
-        expect(
-          response.usageMetadata!.promptTokensDetails![0].tokenCount
-        ).to.equal(21);
-        expect(response.usageMetadata!.candidatesTokensDetails).to.not.be.null;
-        expect(
-          response.usageMetadata!.candidatesTokensDetails!.length
-        ).to.equal(1);
-        expect(
-          response.usageMetadata!.candidatesTokensDetails![0].modality
-        ).to.equal(Modality.TEXT);
-        expect(
-          response.usageMetadata!.candidatesTokensDetails![0].tokenCount
-        ).to.be.closeTo(4, TOKEN_COUNT_DELTA + 1); // Allow slightly more variance for stream
-        */
       });
     });
   });
