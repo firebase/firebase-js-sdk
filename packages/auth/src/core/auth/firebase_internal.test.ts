@@ -20,7 +20,7 @@ import { expect, use } from 'chai';
 import * as sinon from 'sinon';
 import chaiAsPromised from 'chai-as-promised';
 
-import { testAuth, testUser } from '../../../test/helpers/mock_auth';
+import { regionalTestAuth, testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { AuthInternal } from '../../model/auth';
 import { UserInternal } from '../../model/user';
 import { AuthInterop } from './firebase_internal';
@@ -37,6 +37,9 @@ describe('core/auth/firebase_internal', () => {
 
   afterEach(() => {
     sinon.restore();
+    delete (auth as unknown as Record<string, unknown>)[
+        '_initializationPromise'
+      ];
   });
 
   context('getUid', () => {
@@ -212,6 +215,25 @@ describe('core/auth/firebase_internal', () => {
           'auth/dependent-sdk-initialized-before-auth'
         );
       });
+    });
+  });
+});
+
+describe('core/auth/firebase_internal - Regional Firebase Auth', () => {
+  let regionalAuth: AuthInternal;
+  let regionalAuthInternal: AuthInterop;
+  beforeEach(async () => {
+    regionalAuth = await regionalTestAuth();
+    regionalAuthInternal = new AuthInterop(regionalAuth);
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  context('getFirebaseToken', () => {
+    it('returns null if firebase token is undefined', async () => {
+      expect(await regionalAuthInternal.getFirebaseToken()).to.be.null;
     });
   });
 });

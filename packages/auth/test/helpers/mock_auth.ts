@@ -118,7 +118,10 @@ export async function testAuth(
   return auth;
 }
 
-export async function regionalTestAuth(): Promise<TestAuth> {
+export async function regionalTestAuth(
+  popupRedirectResolver?: PopupRedirectResolver,
+  persistence = new MockPersistenceLayer(),
+  skipAwaitOnInit?: boolean): Promise<TestAuth> {
   const tenantConfig = { 'location': 'us', 'tenantId': 'tenant-1' };
   const auth: TestAuth = new AuthImpl(
     FAKE_APP,
@@ -135,6 +138,15 @@ export async function regionalTestAuth(): Promise<TestAuth> {
     },
     tenantConfig
   ) as TestAuth;
+  if (skipAwaitOnInit) {
+    // This is used to verify scenarios where auth flows (like signInWithRedirect) are invoked before auth is fully initialized.
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    auth._initializeWithPersistence([persistence], popupRedirectResolver);
+  } else {
+    await auth._initializeWithPersistence([persistence], popupRedirectResolver);
+  }
+  auth.persistenceLayer = persistence;
+  auth.settings.appVerificationDisabledForTesting = true;
   return auth;
 }
 

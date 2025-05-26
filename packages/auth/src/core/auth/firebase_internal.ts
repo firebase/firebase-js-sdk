@@ -54,6 +54,7 @@ export class AuthInterop implements FirebaseAuthInternal {
 
   async getFirebaseToken(): Promise<{ accessToken: string } | null> {
     this.assertAuthConfigured();
+    await this.auth._initializationPromise;
     this.assertRegionalAuthConfigured();
     if (!this.auth.firebaseToken) {
       return null;
