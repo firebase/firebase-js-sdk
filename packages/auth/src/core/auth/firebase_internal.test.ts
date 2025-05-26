@@ -20,7 +20,11 @@ import { expect, use } from 'chai';
 import * as sinon from 'sinon';
 import chaiAsPromised from 'chai-as-promised';
 
-import { regionalTestAuth, testAuth, testUser } from '../../../test/helpers/mock_auth';
+import {
+  regionalTestAuth,
+  testAuth,
+  testUser
+} from '../../../test/helpers/mock_auth';
 import { AuthInternal } from '../../model/auth';
 import { UserInternal } from '../../model/user';
 import { AuthInterop } from './firebase_internal';
@@ -38,8 +42,8 @@ describe('core/auth/firebase_internal', () => {
   afterEach(() => {
     sinon.restore();
     delete (auth as unknown as Record<string, unknown>)[
-        '_initializationPromise'
-      ];
+      '_initializationPromise'
+    ];
   });
 
   context('getUid', () => {
@@ -222,9 +226,12 @@ describe('core/auth/firebase_internal', () => {
 describe('core/auth/firebase_internal - Regional Firebase Auth', () => {
   let regionalAuth: AuthInternal;
   let regionalAuthInternal: AuthInterop;
+  let now: number;
   beforeEach(async () => {
     regionalAuth = await regionalTestAuth();
     regionalAuthInternal = new AuthInterop(regionalAuth);
+    now = Date.now();
+    sinon.stub(Date, 'now').returns(now);
   });
 
   afterEach(() => {
@@ -234,6 +241,38 @@ describe('core/auth/firebase_internal - Regional Firebase Auth', () => {
   context('getFirebaseToken', () => {
     it('returns null if firebase token is undefined', async () => {
       expect(await regionalAuthInternal.getFirebaseToken()).to.be.null;
+    });
+
+    it('returns the id token correctly', async () => {
+      await regionalAuth._updateFirebaseToken({
+        token: 'access-token',
+        expirationTime: now + 300_000
+      });
+      expect(await regionalAuthInternal.getFirebaseToken()).to.eql({
+        accessToken: 'access-token'
+      });
+    });
+
+    it('logs out the the id token expires in next 30 seconds', async () => {
+      expect(await regionalAuthInternal.getFirebaseToken()).to.be.null;
+    });
+
+    it('logs out if token has expired', async () => {
+      await regionalAuth._updateFirebaseToken({
+        token: 'access-token',
+        expirationTime: now - 5_000
+      });
+      expect(await regionalAuthInternal.getFirebaseToken()).to.null;
+      expect(regionalAuth.firebaseToken).to.null;
+    });
+
+    it('logs out if token is expiring in next 5 seconds', async () => {
+      await regionalAuth._updateFirebaseToken({
+        token: 'access-token',
+        expirationTime: now + 5_000
+      });
+      expect(await regionalAuthInternal.getFirebaseToken()).to.null;
+      expect(regionalAuth.firebaseToken).to.null;
     });
   });
 });

@@ -121,7 +121,8 @@ export async function testAuth(
 export async function regionalTestAuth(
   popupRedirectResolver?: PopupRedirectResolver,
   persistence = new MockPersistenceLayer(),
-  skipAwaitOnInit?: boolean): Promise<TestAuth> {
+  skipAwaitOnInit?: boolean
+): Promise<TestAuth> {
   const tenantConfig = { 'location': 'us', 'tenantId': 'tenant-1' };
   const auth: TestAuth = new AuthImpl(
     FAKE_APP,
