@@ -978,7 +978,7 @@ export interface FirebaseToken {
   // The firebase access token (JWT signed by Firebase Auth).
   readonly token: string;
   // The time when the access token expires.
-  readonly expirationTime: number; 
+  readonly expirationTime: number;
 }
 
 /**
