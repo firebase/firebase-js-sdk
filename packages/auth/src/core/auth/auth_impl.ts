@@ -460,7 +460,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   async _updateFirebaseToken(
     firebaseToken: FirebaseToken | null
   ): Promise<void> {
-      this.firebaseToken = firebaseToken;
+    this.firebaseToken = firebaseToken;
   }
 
   async signOut(): Promise<void> {
