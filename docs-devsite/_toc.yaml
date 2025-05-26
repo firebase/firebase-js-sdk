@@ -246,6 +246,8 @@ toc:
     path: /docs/reference/js/auth.emulatorconfig.md
   - title: FacebookAuthProvider
     path: /docs/reference/js/auth.facebookauthprovider.md
+  - title: FirebaseToken
+    path: /docs/reference/js/auth.firebasetoken.md
   - title: GithubAuthProvider
     path: /docs/reference/js/auth.githubauthprovider.md
   - title: GoogleAuthProvider
