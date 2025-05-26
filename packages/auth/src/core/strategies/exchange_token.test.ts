@@ -24,6 +24,7 @@ import {
   testAuth,
   TestAuth
 } from '../../../test/helpers/mock_auth';
+import * as sinon from 'sinon';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { HttpHeader, RegionalEndpoint } from '../../api';
 import { exchangeToken } from './exhange_token';
@@ -35,19 +36,23 @@ use(chaiAsPromised);
 describe('core/strategies/exchangeToken', () => {
   let auth: TestAuth;
   let regionalAuth: TestAuth;
+  let now: number;
 
   beforeEach(async () => {
     auth = await testAuth();
     regionalAuth = await regionalTestAuth();
     mockFetch.setUp();
+    now = Date.now();
+    sinon.stub(Date, 'now').returns(now);
   });
   afterEach(mockFetch.tearDown);
+  afterEach(() => sinon.restore());
 
   it('should return a valid access token for Regional Auth', async () => {
     const mock = mockRegionalEndpointWithParent(
       RegionalEndpoint.EXCHANGE_TOKEN,
       'projects/test-project-id/locations/us/tenants/tenant-1/idpConfigs/idp-config',
-      { accessToken: 'outbound-token', expiresIn: '1000' }
+      { accessToken: 'outbound-token', expiresIn: 10000 }
     );
 
     const accessToken = await exchangeToken(
@@ -65,6 +70,8 @@ describe('core/strategies/exchangeToken', () => {
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'
     );
+    expect(regionalAuth.firebaseToken?.token).to.equal('outbound-token');
+    expect(regionalAuth.firebaseToken?.expirationTime).to.equal(now + 10_000);
   });
 
   it('throws exception for default Auth', async () => {
@@ -106,5 +113,6 @@ describe('core/strategies/exchangeToken', () => {
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'
     );
+    expect(regionalAuth.firebaseToken).is.null;
   });
 });

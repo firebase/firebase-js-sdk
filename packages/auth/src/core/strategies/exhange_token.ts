@@ -54,7 +54,12 @@ export async function exchangeToken(
     parent: buildParent(auth, idpConfigId),
     token: customToken
   });
-  // TODO(sammansi): Write token to the Auth object passed.
+  if (token) {
+    await authInternal._updateFirebaseToken({
+      token: token.accessToken,
+      expirationTime: Date.now() + token.expiresIn * 1000
+    });
+  }
   return token.accessToken;
 }
 

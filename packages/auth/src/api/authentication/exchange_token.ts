@@ -27,8 +27,10 @@ export interface ExchangeTokenRequest {
 }
 
 export interface ExchangeTokenResponse {
+  // The firebase access token (JWT signed by Firebase Auth).
   accessToken: string;
-  expiresIn?: string;
+  // The time when the access token expires.
+  expiresIn: number;
 }
 
 export async function exchangeToken(
