@@ -28,6 +28,7 @@ interface TokenListener {
 }
 
 export class AuthInterop implements FirebaseAuthInternal {
+  private readonly TOKEN_EXPIRATION_BUFFER = 30_000;
   private readonly internalListeners: Map<TokenListener, Unsubscribe> =
     new Map();
 
@@ -48,6 +49,26 @@ export class AuthInterop implements FirebaseAuthInternal {
     }
 
     const accessToken = await this.auth.currentUser.getIdToken(forceRefresh);
+    return { accessToken };
+  }
+
+  async getFirebaseToken(): Promise<{ accessToken: string } | null> {
+    this.assertAuthConfigured();
+    this.assertRegionalAuthConfigured();
+    if (!this.auth.firebaseToken) {
+      return null;
+    }
+
+    if (
+      !this.auth.firebaseToken.expirationTime ||
+      Date.now() >
+        this.auth.firebaseToken.expirationTime - this.TOKEN_EXPIRATION_BUFFER
+    ) {
+      await this.auth._updateFirebaseToken(null);
+      return null;
+    }
+
+    const accessToken = await this.auth.firebaseToken.token;
     return { accessToken };
   }
 
@@ -83,6 +104,10 @@ export class AuthInterop implements FirebaseAuthInternal {
       this.auth._initializationPromise,
       AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH
     );
+  }
+
+  private assertRegionalAuthConfigured(): void {
+    _assert(this.auth.tenantConfig, AuthErrorCode.OPERATION_NOT_ALLOWED);
   }
 
   private updateProactiveRefresh(): void {
