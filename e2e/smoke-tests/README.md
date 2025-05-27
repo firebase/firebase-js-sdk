@@ -15,7 +15,7 @@ Before running the tests, you will need:
 
 #### Project Config and Test User
 
-Create a file named `firebase-config.js` in the top level of this `e2e/smoke-test` directory. The contents of the file should be:
+Create a file named `firebase-config.js` in the top level of this `s` directory. The contents of the file should be:
 
 ```javascript
 // A config for a project
