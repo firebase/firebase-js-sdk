@@ -29,8 +29,7 @@ import {
 } from './service';
 import {
   getModularInstance,
-  getDefaultEmulatorHostnameAndPort,
-  updateEmulatorBanner
+  getDefaultEmulatorHostnameAndPort
 } from '@firebase/util';
 
 export { FunctionsError } from './error';
@@ -48,7 +47,6 @@ export function getFunctions(
   app: FirebaseApp = getApp(),
   regionOrCustomDomain: string = DEFAULT_REGION
 ): Functions {
-  updateEmulatorBanner('Functions', false);
   // Dependencies
   const functionsProvider: Provider<'functions'> = _getProvider(
     getModularInstance(app),

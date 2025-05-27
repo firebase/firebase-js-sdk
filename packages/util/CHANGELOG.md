@@ -1,5 +1,23 @@
 # @firebase/util
 
+## 1.12.0
+
+### Minor Changes
+
+- [`8a03143`](https://github.com/firebase/firebase-js-sdk/commit/8a03143b9217effdd86d68bdf195493c0979aa27) [#8993](https://github.com/firebase/firebase-js-sdk/pull/8993) - Fix Safari/WebKit cache issues when client-side indexing is used.
+
+## 1.11.3
+
+### Patch Changes
+
+- [`9bcd1ea`](https://github.com/firebase/firebase-js-sdk/commit/9bcd1ea9b8cc5b55692765d40df000da8ddef02b) [#9043](https://github.com/firebase/firebase-js-sdk/pull/9043) - Fixed emulator overlay behavior on scroll
+
+## 1.11.2
+
+### Patch Changes
+
+- [`8593fa0`](https://github.com/firebase/firebase-js-sdk/commit/8593fa05bd884c2f1f6f3b4ae062efa48af93d24) [#9031](https://github.com/firebase/firebase-js-sdk/pull/9031) - Add Emulator Overlay
+
 ## 1.11.1
 
 ### Patch Changes

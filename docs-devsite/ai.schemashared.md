@@ -27,10 +27,14 @@ export interface SchemaShared<T>
 |  [example](./ai.schemashared.md#schemasharedexample) | unknown | Optional. The example of the property. |
 |  [format](./ai.schemashared.md#schemasharedformat) | string | Optional. The format of the property. When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this must be either <code>'enum'</code> or <code>'date-time'</code>, otherwise requests will fail. |
 |  [items](./ai.schemashared.md#schemashareditems) | T | Optional. The items of the property. |
+|  [maximum](./ai.schemashared.md#schemasharedmaximum) | number | The maximum value of a numeric type. |
 |  [maxItems](./ai.schemashared.md#schemasharedmaxitems) | number | The maximum number of items (elements) in a schema of type [SchemaType.ARRAY](./ai.md#schematypearray_enummember)<!-- -->. |
+|  [minimum](./ai.schemashared.md#schemasharedminimum) | number | The minimum value of a numeric type. |
 |  [minItems](./ai.schemashared.md#schemasharedminitems) | number | The minimum number of items (elements) in a schema of type [SchemaType.ARRAY](./ai.md#schematypearray_enummember)<!-- -->. |
 |  [nullable](./ai.schemashared.md#schemasharednullable) | boolean | Optional. Whether the property is nullable. |
 |  [properties](./ai.schemashared.md#schemasharedproperties) | { \[k: string\]: T; } | Optional. Map of <code>Schema</code> objects. |
+|  [propertyOrdering](./ai.schemashared.md#schemasharedpropertyordering) | string\[\] | A hint suggesting the order in which the keys should appear in the generated JSON string. |
+|  [title](./ai.schemashared.md#schemasharedtitle) | string | The title of the property. This helps document the schema's purpose but does not typically constrain the generated value. It can subtly guide the model by clarifying the intent of a field. |
 
 ## SchemaShared.description
 
@@ -82,6 +86,16 @@ Optional. The items of the property.
 items?: T;
 ```
 
+## SchemaShared.maximum
+
+The maximum value of a numeric type.
+
+<b>Signature:</b>
+
+```typescript
+maximum?: number;
+```
+
 ## SchemaShared.maxItems
 
 The maximum number of items (elements) in a schema of type [SchemaType.ARRAY](./ai.md#schematypearray_enummember)<!-- -->.
@@ -90,6 +104,16 @@ The maximum number of items (elements) in a schema of type [SchemaType.ARRAY](./
 
 ```typescript
 maxItems?: number;
+```
+
+## SchemaShared.minimum
+
+The minimum value of a numeric type.
+
+<b>Signature:</b>
+
+```typescript
+minimum?: number;
 ```
 
 ## SchemaShared.minItems
@@ -122,4 +146,24 @@ Optional. Map of `Schema` objects.
 properties?: {
         [k: string]: T;
     };
+```
+
+## SchemaShared.propertyOrdering
+
+A hint suggesting the order in which the keys should appear in the generated JSON string.
+
+<b>Signature:</b>
+
+```typescript
+propertyOrdering?: string[];
+```
+
+## SchemaShared.title
+
+The title of the property. This helps document the schema's purpose but does not typically constrain the generated value. It can subtly guide the model by clarifying the intent of a field.
+
+<b>Signature:</b>
+
+```typescript
+title?: string;
 ```

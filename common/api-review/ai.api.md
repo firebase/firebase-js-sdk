@@ -518,7 +518,8 @@ export enum HarmBlockThreshold {
     BLOCK_LOW_AND_ABOVE = "BLOCK_LOW_AND_ABOVE",
     BLOCK_MEDIUM_AND_ABOVE = "BLOCK_MEDIUM_AND_ABOVE",
     BLOCK_NONE = "BLOCK_NONE",
-    BLOCK_ONLY_HIGH = "BLOCK_ONLY_HIGH"
+    BLOCK_ONLY_HIGH = "BLOCK_ONLY_HIGH",
+    OFF = "OFF"
 }
 
 // @public
@@ -834,12 +835,16 @@ export interface SchemaShared<T> {
     example?: unknown;
     format?: string;
     items?: T;
+    maximum?: number;
     maxItems?: number;
+    minimum?: number;
     minItems?: number;
     nullable?: boolean;
     properties?: {
         [k: string]: T;
     };
+    propertyOrdering?: string[];
+    title?: string;
 }
 
 // @public

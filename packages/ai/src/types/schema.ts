@@ -49,6 +49,12 @@ export interface SchemaShared<T> {
   format?: string;
   /** Optional. The description of the property. */
   description?: string;
+  /**
+   * The title of the property. This helps document the schema's purpose but does not typically
+   * constrain the generated value. It can subtly guide the model by clarifying the intent of a
+   * field.
+   */
+  title?: string;
   /** Optional. The items of the property. */
   items?: T;
   /** The minimum number of items (elements) in a schema of type {@link SchemaType.ARRAY}. */
@@ -59,12 +65,18 @@ export interface SchemaShared<T> {
   properties?: {
     [k: string]: T;
   };
+  /** A hint suggesting the order in which the keys should appear in the generated JSON string. */
+  propertyOrdering?: string[];
   /** Optional. The enum of the property. */
   enum?: string[];
   /** Optional. The example of the property. */
   example?: unknown;
   /** Optional. Whether the property is nullable. */
   nullable?: boolean;
+  /** The minimum value of a numeric type. */
+  minimum?: number;
+  /** The maximum value of a numeric type. */
+  maximum?: number;
   [key: string]: unknown;
 }
 

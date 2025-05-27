@@ -102,10 +102,10 @@ export function connectAuthEmulator(
   authInternal.emulatorConfig = emulatorConfig;
   authInternal.settings.appVerificationDisabledForTesting = true;
 
+  // Workaround to get cookies in Firebase Studio
   if (isCloudWorkstation(host)) {
-    updateEmulatorBanner('Auth', true);
-    // Workaround to get cookies in Firebase Studio
     void pingServer(`${protocol}//${host}${portStr}`);
+    updateEmulatorBanner('Auth', true);
   } else if (!disableWarnings) {
     emitEmulatorWarning();
   }
