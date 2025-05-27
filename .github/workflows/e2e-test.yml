@@ -54,7 +54,9 @@ jobs:
       - name: Poll npm until version to test is available for install
         run: |
           echo "Polling npm for firebase@latest"
-          node ../scripts/release/poll-npm-publish.js
+          node ./scripts/release/poll-npm-publish.js
+          # run in root
+          working-directory: '.'
         env:
           VERSION: latest
       - name: Yarn install
@@ -83,23 +85,23 @@ jobs:
         env:
           APP_CHECK_DEBUG_TOKEN: ${{ secrets.APP_CHECK_DEBUG_TOKEN }}
         run: xvfb-run yarn test:compat
-      - name: Tests succeeded
-        if: success()
-        run: node scripts/ci/notify-test-result.js success
-        # we don't want THIS step erroring to trigger the failure notification
-        continue-on-error: true
-        env:
-          WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
-          RELEASE_TRACKER_URL: ${{ secrets.RELEASE_TRACKER_URL }}
-          VERSION_OR_TAG: latest
-        # run in root
-        working-directory: '.'
-      - name: Tests failed
-        if: failure()
-        run: node scripts/ci/notify-test-result.js fail
-        env:
-          WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
-          RELEASE_TRACKER_URL: ${{ secrets.RELEASE_TRACKER_URL }}
-          VERSION_OR_TAG: ${{ github.event.client_payload.versionOrTag }}
-        # run in root
-        working-directory: '.'
+      # - name: Tests succeeded
+      #   if: success()
+      #   run: node scripts/ci/notify-test-result.js success
+      #   # we don't want THIS step erroring to trigger the failure notification
+      #   continue-on-error: true
+      #   env:
+      #     WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
+      #     RELEASE_TRACKER_URL: ${{ secrets.RELEASE_TRACKER_URL }}
+      #     VERSION_OR_TAG: latest
+      #   # run in root
+      #   working-directory: '.'
+      # - name: Tests failed
+      #   if: failure()
+      #   run: node scripts/ci/notify-test-result.js fail
+      #   env:
+      #     WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
+      #     RELEASE_TRACKER_URL: ${{ secrets.RELEASE_TRACKER_URL }}
+      #     VERSION_OR_TAG: ${{ github.event.client_payload.versionOrTag }}
+      #   # run in root
+      #   working-directory: '.'
