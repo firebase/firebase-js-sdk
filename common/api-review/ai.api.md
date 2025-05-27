@@ -667,7 +667,7 @@ export class IntegerSchema extends Schema {
 // @public (undocumented)
 export interface LanguageModelCreateCoreOptions {
     // (undocumented)
-    expectedInputs?: LanguageModelExpectedInput[];
+    expectedInputs?: LanguageModelExpected[];
     // (undocumented)
     temperature?: number;
     // (undocumented)
@@ -683,7 +683,7 @@ export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptio
 }
 
 // @public (undocumented)
-export interface LanguageModelExpectedInput {
+export interface LanguageModelExpected {
     // (undocumented)
     languages?: string[];
     // (undocumented)

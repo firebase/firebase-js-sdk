@@ -21,16 +21,15 @@ export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptio
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [initialPrompts](./ai.languagemodelcreateoptions.md#languagemodelcreateoptionsinitialprompts) | [LanguageModelInitialPrompts](./ai.md#languagemodelinitialprompts) |  |
+|  [initialPrompts](./ai.languagemodelcreateoptions.md#languagemodelcreateoptionsinitialprompts) | [LanguageModelMessage](./ai.languagemodelmessage.md#languagemodelmessage_interface)<!-- -->\[\] |  |
 |  [signal](./ai.languagemodelcreateoptions.md#languagemodelcreateoptionssignal) | AbortSignal |  |
-|  [systemPrompt](./ai.languagemodelcreateoptions.md#languagemodelcreateoptionssystemprompt) | string |  |
 
 ## LanguageModelCreateOptions.initialPrompts
 
 <b>Signature:</b>
 
 ```typescript
-initialPrompts?: LanguageModelInitialPrompts;
+initialPrompts?: LanguageModelMessage[];
 ```
 
 ## LanguageModelCreateOptions.signal
@@ -39,12 +38,4 @@ initialPrompts?: LanguageModelInitialPrompts;
 
 ```typescript
 signal?: AbortSignal;
-```
-
-## LanguageModelCreateOptions.systemPrompt
-
-<b>Signature:</b>
-
-```typescript
-systemPrompt?: string;
 ```
