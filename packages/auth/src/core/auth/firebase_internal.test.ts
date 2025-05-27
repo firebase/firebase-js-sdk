@@ -18,6 +18,7 @@
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as sinon from 'sinon';
+import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import {
@@ -29,6 +30,7 @@ import { AuthInternal } from '../../model/auth';
 import { UserInternal } from '../../model/user';
 import { AuthInterop } from './firebase_internal';
 
+use(sinonChai);
 use(chaiAsPromised);
 
 describe('core/auth/firebase_internal', () => {
@@ -240,7 +242,7 @@ describe('core/auth/firebase_internal - Regional Firebase Auth', () => {
 
   context('getFirebaseToken', () => {
     it('returns null if firebase token is undefined', async () => {
-      expect(await regionalAuthInternal.getFirebaseToken()).to.be.null;
+      expect(await regionalAuthInternal.getToken()).to.be.null;
     });
 
     it('returns the id token correctly', async () => {
@@ -248,13 +250,13 @@ describe('core/auth/firebase_internal - Regional Firebase Auth', () => {
         token: 'access-token',
         expirationTime: now + 300_000
       });
-      expect(await regionalAuthInternal.getFirebaseToken()).to.eql({
+      expect(await regionalAuthInternal.getToken()).to.eql({
         accessToken: 'access-token'
       });
     });
 
     it('logs out the the id token expires in next 30 seconds', async () => {
-      expect(await regionalAuthInternal.getFirebaseToken()).to.be.null;
+      expect(await regionalAuthInternal.getToken()).to.be.null;
     });
 
     it('logs out if token has expired', async () => {
@@ -262,7 +264,7 @@ describe('core/auth/firebase_internal - Regional Firebase Auth', () => {
         token: 'access-token',
         expirationTime: now - 5_000
       });
-      expect(await regionalAuthInternal.getFirebaseToken()).to.null;
+      expect(await regionalAuthInternal.getToken()).to.null;
       expect(regionalAuth.firebaseToken).to.null;
     });
 
@@ -271,8 +273,23 @@ describe('core/auth/firebase_internal - Regional Firebase Auth', () => {
         token: 'access-token',
         expirationTime: now + 5_000
       });
-      expect(await regionalAuthInternal.getFirebaseToken()).to.null;
+      expect(await regionalAuthInternal.getToken()).to.null;
       expect(regionalAuth.firebaseToken).to.null;
+    });
+
+    it('logs warning if getToken is called with forceRefresh true', async () => {
+      sinon.stub(console, 'warn');
+      await regionalAuth._updateFirebaseToken({
+        token: 'access-token',
+        expirationTime: now + 300_000
+      });
+      expect(await regionalAuthInternal.getToken(true)).to.eql({
+        accessToken: 'access-token'
+      });
+      expect(console.warn).to.have.been.calledWith(
+        sinon.match.string,
+        sinon.match(/Refresh token is not a valid operation for Regional Auth instance initialized\./)
+      );
     });
   });
 });
