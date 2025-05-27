@@ -27,7 +27,7 @@ export class AIError extends FirebaseError {
 }
 
 // @public
-const enum AIErrorCode {
+export const enum AIErrorCode {
     API_NOT_ENABLED = "api-not-enabled",
     ERROR = "error",
     FETCH_ERROR = "fetch-error",
@@ -42,10 +42,6 @@ const enum AIErrorCode {
     RESPONSE_ERROR = "response-error",
     UNSUPPORTED = "unsupported"
 }
-
-export { AIErrorCode }
-
-export { AIErrorCode as VertexAIErrorCode }
 
 // @public
 export abstract class AIModel {
@@ -422,9 +418,6 @@ export function getGenerativeModel(ai: AI, modelParams: ModelParams, requestOpti
 
 // @beta
 export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
-
-// @public @deprecated (undocumented)
-export function getVertexAI(app?: FirebaseApp, options?: VertexAIOptions): VertexAI;
 
 // @public
 export class GoogleAIBackend extends Backend {
@@ -921,25 +914,10 @@ export interface UsageMetadata {
     totalTokenCount: number;
 }
 
-// @public @deprecated (undocumented)
-export type VertexAI = AI;
-
 // @public
 export class VertexAIBackend extends Backend {
     constructor(location?: string);
     readonly location: string;
-}
-
-// @public @deprecated (undocumented)
-export const VertexAIError: typeof AIError;
-
-// @public @deprecated (undocumented)
-export const VertexAIModel: typeof AIModel;
-
-// @public
-export interface VertexAIOptions {
-    // (undocumented)
-    location?: string;
 }
 
 // @public

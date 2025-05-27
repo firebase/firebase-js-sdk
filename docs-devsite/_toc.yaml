@@ -144,8 +144,6 @@ toc:
     path: /docs/reference/js/ai.usagemetadata.md
   - title: VertexAIBackend
     path: /docs/reference/js/ai.vertexaibackend.md
-  - title: VertexAIOptions
-    path: /docs/reference/js/ai.vertexaioptions.md
   - title: VideoMetadata
     path: /docs/reference/js/ai.videometadata.md
   - title: WebAttribution
