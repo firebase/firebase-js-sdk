@@ -22,6 +22,7 @@ import { AuthInternal } from '../../model/auth';
 import { UserInternal } from '../../model/user';
 import { _assert } from '../util/assert';
 import { AuthErrorCode } from '../errors';
+import { _logWarn } from '../util/log';
 
 interface TokenListener {
   (tok: string | null): unknown;
@@ -44,32 +45,17 @@ export class AuthInterop implements FirebaseAuthInternal {
   ): Promise<{ accessToken: string } | null> {
     this.assertAuthConfigured();
     await this.auth._initializationPromise;
+    if (this.auth.tenantConfig) {
+      if (forceRefresh) {
+        _logWarn("Refresh token is not a valid operation for Regional Auth instance initialized.");
+      }
+      return this.getTokenForRegionalAuth();
+    }
     if (!this.auth.currentUser) {
       return null;
     }
 
     const accessToken = await this.auth.currentUser.getIdToken(forceRefresh);
-    return { accessToken };
-  }
-
-  async getFirebaseToken(): Promise<{ accessToken: string } | null> {
-    this.assertAuthConfigured();
-    await this.auth._initializationPromise;
-    this.assertRegionalAuthConfigured();
-    if (!this.auth.firebaseToken) {
-      return null;
-    }
-
-    if (
-      !this.auth.firebaseToken.expirationTime ||
-      Date.now() >
-        this.auth.firebaseToken.expirationTime - this.TOKEN_EXPIRATION_BUFFER
-    ) {
-      await this.auth._updateFirebaseToken(null);
-      return null;
-    }
-
-    const accessToken = await this.auth.firebaseToken.token;
     return { accessToken };
   }
 
@@ -117,5 +103,23 @@ export class AuthInterop implements FirebaseAuthInternal {
     } else {
       this.auth._stopProactiveRefresh();
     }
+  }
+
+  private async getTokenForRegionalAuth(): Promise<{ accessToken: string } | null> {
+    if (!this.auth.firebaseToken) {
+      return null;
+    }
+
+    if (
+      !this.auth.firebaseToken.expirationTime ||
+      Date.now() >
+        this.auth.firebaseToken.expirationTime - this.TOKEN_EXPIRATION_BUFFER
+    ) {
+      await this.auth._updateFirebaseToken(null);
+      return null;
+    }
+
+    const accessToken = await this.auth.firebaseToken.token;
+    return { accessToken };
   }
 }

@@ -21,7 +21,6 @@ export interface FirebaseAuthTokenData {
 
 export interface FirebaseAuthInternal {
   getToken(refreshToken?: boolean): Promise<FirebaseAuthTokenData | null>;
-  getFirebaseToken(): Promise<FirebaseAuthTokenData | null>;
   getUid(): string | null;
   addAuthTokenListener(fn: (token: string | null) => void): void;
   removeAuthTokenListener(fn: (token: string | null) => void): void;
