@@ -76,7 +76,7 @@ export interface LanguageModelMessageShorthand {
 }
 export interface LanguageModelMessageContent {
   type: LanguageModelMessageType;
-  content: LanguageModelMessageContentValue;
+  value: LanguageModelMessageContentValue;
 }
 export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 export type LanguageModelMessageType = 'text' | 'image' | 'audio';

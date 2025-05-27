@@ -349,7 +349,7 @@ describe('ChromeAdapter', () => {
           content: [
             {
               type: 'text',
-              content: request.contents[0].parts[0].text
+              value: request.contents[0].parts[0].text
             }
           ]
         }
@@ -413,11 +413,11 @@ describe('ChromeAdapter', () => {
           content: [
             {
               type: 'text',
-              content: request.contents[0].parts[0].text
+              value: request.contents[0].parts[0].text
             },
             {
               type: 'image',
-              content: match.instanceOf(ImageBitmap)
+              value: match.instanceOf(ImageBitmap)
             }
           ]
         }
@@ -464,7 +464,7 @@ describe('ChromeAdapter', () => {
             content: [
               {
                 type: 'text',
-                content: request.contents[0].parts[0].text
+                value: request.contents[0].parts[0].text
               }
             ]
           }
@@ -496,7 +496,7 @@ describe('ChromeAdapter', () => {
           content: [
             {
               type: 'text',
-              content: request.contents[0].parts[0].text
+              value: request.contents[0].parts[0].text
             }
           ]
         }
@@ -577,7 +577,7 @@ describe('ChromeAdapter', () => {
           content: [
             {
               type: 'text',
-              content: request.contents[0].parts[0].text
+              value: request.contents[0].parts[0].text
             }
           ]
         }
@@ -638,11 +638,11 @@ describe('ChromeAdapter', () => {
           content: [
             {
               type: 'text',
-              content: request.contents[0].parts[0].text
+              value: request.contents[0].parts[0].text
             },
             {
               type: 'image',
-              content: match.instanceOf(ImageBitmap)
+              value: match.instanceOf(ImageBitmap)
             }
           ]
         }
@@ -684,7 +684,7 @@ describe('ChromeAdapter', () => {
             content: [
               {
                 type: 'text',
-                content: request.contents[0].parts[0].text
+                value: request.contents[0].parts[0].text
               }
             ]
           }
@@ -718,7 +718,7 @@ describe('ChromeAdapter', () => {
           content: [
             {
               type: 'text',
-              content: request.contents[0].parts[0].text
+              value: request.contents[0].parts[0].text
             }
           ]
         }

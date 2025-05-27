@@ -253,7 +253,7 @@ export class ChromeAdapter {
     if (part.text) {
       return {
         type: 'text',
-        content: part.text
+        value: part.text
       };
     } else if (part.inlineData) {
       const formattedImageContent = await fetch(
@@ -263,7 +263,7 @@ export class ChromeAdapter {
       const imageBitmap = await createImageBitmap(imageBlob);
       return {
         type: 'image',
-        content: imageBitmap
+        value: imageBitmap
       };
     }
     // Assumes contents have been verified to contain only a single TextPart.
