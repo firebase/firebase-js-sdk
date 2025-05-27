@@ -16,7 +16,6 @@ name: E2E Smoke Tests
 
 # Allows REST trigger. Currently triggered by release-cli script during a staging run.
 on:
-  pull_request:
   repository_dispatch:
     types: [staging-tests,canary-tests]
 
@@ -31,7 +30,7 @@ jobs:
 
     defaults:
       run:
-        # Run any command steps in the /e2e subdir
+        # Run any command steps in the /e2e/smoke-tests subdir
         working-directory: './e2e/smoke-tests'
 
     steps:
@@ -53,15 +52,15 @@ jobs:
           echo "export const config = $PROJECT_CONFIG; export const testAccount = $TEST_ACCOUNT" > firebase-config.js
       - name: Poll npm until version to test is available for install
         run: |
-          echo "Polling npm for firebase@11.8.1"
+          echo "Polling npm for firebase@${{ github.event.client_payload.versionOrTag }}"
           node ./scripts/release/poll-npm-publish.js
         # run in root
         working-directory: '.'
         env:
-          VERSION: 11.8.1
+          VERSION: ${{ github.event.client_payload.versionOrTag }}
       - name: Yarn install
         run: |
-          echo "Installing firebase@11.8.1"
+          echo "Installing firebase@${{ github.event.client_payload.versionOrTag }}"
           yarn add firebase@11.8.1
           yarn
       - name: Deploy "callTest" cloud function
@@ -85,23 +84,23 @@ jobs:
         env:
           APP_CHECK_DEBUG_TOKEN: ${{ secrets.APP_CHECK_DEBUG_TOKEN }}
         run: xvfb-run yarn test:compat
-      # - name: Tests succeeded
-      #   if: success()
-      #   run: node scripts/ci/notify-test-result.js success
-      #   # we don't want THIS step erroring to trigger the failure notification
-      #   continue-on-error: true
-      #   env:
-      #     WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
-      #     RELEASE_TRACKER_URL: ${{ secrets.RELEASE_TRACKER_URL }}
-      #     VERSION_OR_TAG: 11.8.1
-      #   # run in root
-      #   working-directory: '.'
-      # - name: Tests failed
-      #   if: failure()
-      #   run: node scripts/ci/notify-test-result.js fail
-      #   env:
-      #     WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
-      #     RELEASE_TRACKER_URL: ${{ secrets.RELEASE_TRACKER_URL }}
-      #     VERSION_OR_TAG: ${{ github.event.client_payload.versionOrTag }}
-      #   # run in root
-      #   working-directory: '.'
+      - name: Tests succeeded
+        if: success()
+        run: node scripts/ci/notify-test-result.js success
+        # we don't want THIS step erroring to trigger the failure notification
+        continue-on-error: true
+        env:
+          WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
+          RELEASE_TRACKER_URL: ${{ secrets.RELEASE_TRACKER_URL }}
+          VERSION_OR_TAG: ${{ github.event.client_payload.versionOrTag }}
+        # run in root
+        working-directory: '.'
+      - name: Tests failed
+        if: failure()
+        run: node scripts/ci/notify-test-result.js fail
+        env:
+          WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
+          RELEASE_TRACKER_URL: ${{ secrets.RELEASE_TRACKER_URL }}
+          VERSION_OR_TAG: ${{ github.event.client_payload.versionOrTag }}
+        # run in root
+        working-directory: '.'
