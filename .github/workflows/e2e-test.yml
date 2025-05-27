@@ -55,8 +55,8 @@ jobs:
         run: |
           echo "Polling npm for firebase@latest"
           node ./scripts/release/poll-npm-publish.js
-          # run in root
-          working-directory: '.'
+        # run in root
+        working-directory: '.'
         env:
           VERSION: latest
       - name: Yarn install
