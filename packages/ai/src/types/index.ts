@@ -26,12 +26,10 @@ export * from './googleai';
 export {
   LanguageModelCreateOptions,
   LanguageModelCreateCoreOptions,
-  LanguageModelExpectedInput,
-  LanguageModelInitialPrompts,
+  LanguageModelExpected,
   LanguageModelMessage,
   LanguageModelMessageContent,
   LanguageModelMessageContentValue,
   LanguageModelMessageRole,
-  LanguageModelMessageShorthand,
   LanguageModelMessageType
 } from './language-model';

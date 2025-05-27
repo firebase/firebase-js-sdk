@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 /**
- * {@see https://github.com/webmachinelearning/prompt-api#full-api-surface-in-web-idl}
+ * The subset of the Prompt API
+ * ({@see https://github.com/webmachinelearning/prompt-api#full-api-surface-in-web-idl})
+ * required for hybrid functionality.
  */
 export interface LanguageModel extends EventTarget {
   create(options?: LanguageModelCreateOptions): Promise<LanguageModel>;
@@ -43,36 +45,25 @@ export enum Availability {
 export interface LanguageModelCreateCoreOptions {
   topK?: number;
   temperature?: number;
-  expectedInputs?: LanguageModelExpectedInput[];
+  expectedInputs?: LanguageModelExpected[];
 }
 export interface LanguageModelCreateOptions
   extends LanguageModelCreateCoreOptions {
   signal?: AbortSignal;
-  systemPrompt?: string;
-  initialPrompts?: LanguageModelInitialPrompts;
+  initialPrompts?: LanguageModelMessage[];
 }
 export interface LanguageModelPromptOptions {
   responseConstraint?: object;
   // TODO: Restore AbortSignal once the API is defined.
 }
-export interface LanguageModelExpectedInput {
+export interface LanguageModelExpected {
   type: LanguageModelMessageType;
   languages?: string[];
 }
-export type LanguageModelPrompt =
-  | LanguageModelMessage[]
-  | LanguageModelMessageShorthand[]
-  | string;
-export type LanguageModelInitialPrompts =
-  | LanguageModelMessage[]
-  | LanguageModelMessageShorthand[];
+export type LanguageModelPrompt = LanguageModelMessage[];
 export interface LanguageModelMessage {
   role: LanguageModelMessageRole;
   content: LanguageModelMessageContent[];
-}
-export interface LanguageModelMessageShorthand {
-  role: LanguageModelMessageRole;
-  content: string;
 }
 export interface LanguageModelMessageContent {
   type: LanguageModelMessageType;
