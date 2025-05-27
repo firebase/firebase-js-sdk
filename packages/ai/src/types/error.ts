@@ -87,7 +87,7 @@ export const enum AIErrorCode {
   /** An error occurred due to a missing Firebase API key. */
   NO_API_KEY = 'no-api-key',
 
-  /** An error occured due to a missing Firebase app ID. */
+  /** An error occurred due to a missing Firebase app ID. */
   NO_APP_ID = 'no-app-id',
 
   /** An error occurred due to a model name not being specified during initialization. */
@@ -99,6 +99,6 @@ export const enum AIErrorCode {
   /** An error occurred while parsing. */
   PARSE_FAILED = 'parse-failed',
 
-  /** An error occured due an attempt to use an unsupported feature. */
+  /** An error occurred due an attempt to use an unsupported feature. */
   UNSUPPORTED = 'unsupported'
 }
