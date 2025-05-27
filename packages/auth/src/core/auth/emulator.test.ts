@@ -29,6 +29,7 @@ import { Endpoint } from '../../api';
 import { UserInternal } from '../../model/user';
 import { _castAuth } from './auth_impl';
 import { connectAuthEmulator } from './emulator';
+import * as Util from '@firebase/util';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -38,8 +39,10 @@ describe('core/auth/emulator', () => {
   let user: UserInternal;
   let normalEndpoint: fetch.Route;
   let emulatorEndpoint: fetch.Route;
+  let utilStub: sinon.SinonStub;
 
   beforeEach(async () => {
+    utilStub = sinon.stub(Util, 'pingServer');
     auth = await testAuth();
     user = testUser(_castAuth(auth), 'uid', 'email', true);
     fetch.setUp();
@@ -74,6 +77,41 @@ describe('core/auth/emulator', () => {
         FirebaseError,
         'auth/emulator-config-failed'
       );
+    });
+
+    it('passes with same config if a network request has already been made', async () => {
+      expect(() => connectAuthEmulator(auth, 'http://127.0.0.1:2020')).to.not
+        .throw;
+      await user.delete();
+      expect(() => connectAuthEmulator(auth, 'http://127.0.0.1:2020')).to.not
+        .throw;
+    });
+
+    it('fails with alternate config if a network request has already been made', async () => {
+      expect(() => connectAuthEmulator(auth, 'http://127.0.0.1:2020')).to.not
+        .throw;
+      await user.delete();
+      expect(() => connectAuthEmulator(auth, 'http://127.0.0.1:2021')).to.throw(
+        FirebaseError,
+        'auth/emulator-config-failed'
+      );
+    });
+
+    it('subsequent calls update the endpoint appropriately', async () => {
+      connectAuthEmulator(auth, 'http://127.0.0.1:2021');
+      expect(auth.emulatorConfig).to.eql({
+        protocol: 'http',
+        host: '127.0.0.1',
+        port: 2021,
+        options: { disableWarnings: false }
+      });
+      connectAuthEmulator(auth, 'http://127.0.0.1:2020');
+      expect(auth.emulatorConfig).to.eql({
+        protocol: 'http',
+        host: '127.0.0.1',
+        port: 2020,
+        options: { disableWarnings: false }
+      });
     });
 
     it('updates the endpoint appropriately', async () => {
@@ -118,6 +156,19 @@ describe('core/auth/emulator', () => {
             'Do not use with production credentials.'
         );
       }
+    });
+    it('calls pingServer with port if specified', () => {
+      connectAuthEmulator(auth, 'https://abc.cloudworkstations.dev:2020');
+      expect(utilStub).to.have.been.calledWith(
+        'https://abc.cloudworkstations.dev:2020'
+      );
+    });
+
+    it('calls pingServer with no port if none specified', () => {
+      connectAuthEmulator(auth, 'https://abc.cloudworkstations.dev');
+      expect(utilStub).to.have.been.calledWith(
+        'https://abc.cloudworkstations.dev'
+      );
     });
 
     it('logs out a warning to the console', () => {

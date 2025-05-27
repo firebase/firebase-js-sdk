@@ -37,10 +37,10 @@ packages/messaging-interop-types @zwu52 @firebase/jssdk-global-approvers
 integration/messaging @zwu52 @firebase/jssdk-global-approvers
 
 # Auth Code
-packages/auth @lisajian @Xiaoshouzi-gh @sam-gc @firebase/jssdk-global-approvers
-packages/auth-compat @lisajian @Xiaoshouzi-gh @sam-gc @firebase/jssdk-global-approvers
-packages/auth-types @lisajian @Xiaoshouzi-gh @sam-gc @firebase/jssdk-global-approvers
-packages/auth-interop-types @lisajian @Xiaoshouzi-gh @sam-gc @firebase/jssdk-global-approvers
+packages/auth @lisajian @Xiaoshouzi-gh @sam-gc @pashanka @mansisampat @nhienlam @firebase/jssdk-global-approvers
+packages/auth-compat @lisajian @Xiaoshouzi-gh @sam-gc @pashanka @mansisampat @nhienlam @firebase/jssdk-global-approvers
+packages/auth-types @lisajian @Xiaoshouzi-gh @sam-gc @pashanka @mansisampat @nhienlam @firebase/jssdk-global-approvers
+packages/auth-interop-types @lisajian @Xiaoshouzi-gh @sam-gc @pashanka @mansisampat @nhienlam @firebase/jssdk-global-approvers
 
 # Testing Code
 packages/rules-unit-testing  @avolkovi @sam-gc @yuchenshi @firebase/jssdk-global-approvers
@@ -51,9 +51,9 @@ packages/installations-compat @avolkovi @yoyomyo @firebase/jssdk-global-approver
 packages/installations-types @avolkovi @yoyomyo @firebase/jssdk-global-approvers
 
 # Performance Code
-packages/performance @jposuna @firebase/jssdk-global-approvers
-packages/performance-compat @jposuna @firebase/jssdk-global-approvers
-packages/performance-types @jposuna @firebase/jssdk-global-approvers
+packages/performance @visumickey @firebase/jssdk-global-approvers
+packages/performance-compat @visumickey @firebase/jssdk-global-approvers
+packages/performance-types @visumickey @firebase/jssdk-global-approvers
 
 # Analytics Code
 packages/analytics @hsubox76 @firebase/jssdk-global-approvers
@@ -72,7 +72,7 @@ packages/app-check-types @hsubox76 @firebase/jssdk-global-approvers
 packages/app-check-interop-types @hsubox76 @firebase/jssdk-global-approvers
 
 # Documentation Changes
-packages/firebase/index.d.ts @egilmorez @firebase/jssdk-global-approvers
+packages/firebase/compat/index.d.ts @egilmorez @firebase/jssdk-global-approvers
 scripts/docgen/content-sources/ @egilmorez @firebase/jssdk-global-approvers
 docs-devsite/ @firebase/firebase-techwriters
 

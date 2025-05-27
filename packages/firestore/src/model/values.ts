@@ -25,7 +25,11 @@ import {
   Value
 } from '../protos/firestore_proto_api';
 import { fail } from '../util/assert';
-import { arrayEquals, primitiveComparator } from '../util/misc';
+import {
+  arrayEquals,
+  compareUtf8Strings,
+  primitiveComparator
+} from '../util/misc';
 import { forEach, objectSize } from '../util/obj';
 import { isNegativeZero } from '../util/types';
 
@@ -89,7 +93,7 @@ export function typeOrder(value: Value): TypeOrder {
     }
     return TypeOrder.ObjectValue;
   } else {
-    return fail('Invalid value type: ' + JSON.stringify(value));
+    return fail(0x6e87, 'Invalid value type', { value });
   }
 }
 
@@ -136,7 +140,7 @@ export function valueEquals(left: Value, right: Value): boolean {
     case TypeOrder.MaxValue:
       return true;
     default:
-      return fail('Unexpected value type: ' + JSON.stringify(left));
+      return fail(0xcbf8, 'Unexpected value type', { left });
   }
 }
 
@@ -251,7 +255,7 @@ export function valueCompare(left: Value, right: Value): number {
         getLocalWriteTime(right)
       );
     case TypeOrder.StringValue:
-      return primitiveComparator(left.stringValue!, right.stringValue!);
+      return compareUtf8Strings(left.stringValue!, right.stringValue!);
     case TypeOrder.BlobValue:
       return compareBlobs(left.bytesValue!, right.bytesValue!);
     case TypeOrder.RefValue:
@@ -265,7 +269,7 @@ export function valueCompare(left: Value, right: Value): number {
     case TypeOrder.ObjectValue:
       return compareMaps(left.mapValue!, right.mapValue!);
     default:
-      throw fail('Invalid value type: ' + leftType);
+      throw fail(0x5ae0, 'Invalid value type', { leftType });
   }
 }
 
@@ -400,7 +404,7 @@ function compareMaps(left: MapValue, right: MapValue): number {
   rightKeys.sort();
 
   for (let i = 0; i < leftKeys.length && i < rightKeys.length; ++i) {
-    const keyCompare = primitiveComparator(leftKeys[i], rightKeys[i]);
+    const keyCompare = compareUtf8Strings(leftKeys[i], rightKeys[i]);
     if (keyCompare !== 0) {
       return keyCompare;
     }
@@ -445,7 +449,7 @@ function canonifyValue(value: Value): string {
   } else if ('mapValue' in value) {
     return canonifyMap(value.mapValue!);
   } else {
-    return fail('Invalid value type: ' + JSON.stringify(value));
+    return fail(0xee4d, 'Invalid value type', { value });
   }
 }
 
@@ -537,7 +541,7 @@ export function estimateByteSize(value: Value): number {
     case TypeOrder.ObjectValue:
       return estimateMapByteSize(value.mapValue!);
     default:
-      throw fail('Invalid value type: ' + JSON.stringify(value));
+      throw fail(0x34ae, 'Invalid value type', { value });
   }
 }
 
@@ -697,7 +701,7 @@ export function valuesGetLowerBound(value: Value): Value {
     }
     return { mapValue: {} };
   } else {
-    return fail('Invalid value type: ' + JSON.stringify(value));
+    return fail(0x8c66, 'Invalid value type', { value });
   }
 }
 
@@ -727,7 +731,7 @@ export function valuesGetUpperBound(value: Value): Value {
     }
     return MAX_VALUE;
   } else {
-    return fail('Invalid value type: ' + JSON.stringify(value));
+    return fail(0xf207, 'Invalid value type', { value });
   }
 }
 

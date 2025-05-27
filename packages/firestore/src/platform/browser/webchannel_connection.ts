@@ -59,6 +59,9 @@ export class WebChannelConnection extends RestConnection {
   private readonly useFetchStreams: boolean;
   private readonly longPollingOptions: ExperimentalLongPollingOptions;
 
+  /** A collection of open WebChannel instances */
+  private openWebChannels: WebChannel[] = [];
+
   constructor(info: DatabaseInfo) {
     super(info);
     this.forceLongPolling = info.forceLongPolling;
@@ -71,7 +74,8 @@ export class WebChannelConnection extends RestConnection {
     rpcName: string,
     url: string,
     headers: StringMap,
-    body: Req
+    body: Req,
+    _forwardCredentials: boolean
   ): Promise<Resp> {
     const streamId = generateUniqueDebugId();
     return new Promise((resolve: Resolver<Resp>, reject: Rejecter) => {
@@ -142,12 +146,14 @@ export class WebChannelConnection extends RestConnection {
               break;
             default:
               fail(
-                `RPC '${rpcName}' ${streamId} ` +
-                  'failed with unanticipated webchannel error: ' +
-                  xhr.getLastErrorCode() +
-                  ': ' +
-                  xhr.getLastError() +
-                  ', giving up.'
+                0x235f,
+                'RPC failed with unanticipated webchannel error. Giving up.',
+                {
+                  rpcName,
+                  streamId,
+                  lastErrorCode: xhr.getLastErrorCode(),
+                  lastError: xhr.getLastError()
+                }
               );
           }
         } finally {
@@ -236,6 +242,7 @@ export class WebChannelConnection extends RestConnection {
       request
     );
     const channel = webchannelTransport.createWebChannel(url, request);
+    this.addOpenWebChannel(channel);
 
     // WebChannel supports sending the first message with the handshake - saving
     // a network round trip. However, it will have to call send in the same
@@ -318,6 +325,7 @@ export class WebChannelConnection extends RestConnection {
           `RPC '${rpcName}' stream ${streamId} transport closed`
         );
         streamBridge.callOnClose();
+        this.removeOpenWebChannel(channel);
       }
     });
 
@@ -326,8 +334,10 @@ export class WebChannelConnection extends RestConnection {
         closed = true;
         logWarn(
           LOG_TAG,
-          `RPC '${rpcName}' stream ${streamId} transport errored:`,
-          err
+          `RPC '${rpcName}' stream ${streamId} transport errored. Name:`,
+          err.name,
+          'Message:',
+          err.message
         );
         streamBridge.callOnClose(
           new FirestoreError(
@@ -351,7 +361,11 @@ export class WebChannelConnection extends RestConnection {
       msg => {
         if (!closed) {
           const msgData = msg.data[0];
-          hardAssert(!!msgData, 'Got a webchannel message without data.');
+          hardAssert(
+            !!msgData,
+            0x3fdd,
+            'Got a webchannel message without data.'
+          );
           // TODO(b/35143891): There is a bug in One Platform that caused errors
           // (and only errors) to be wrapped in an extra array. To be forward
           // compatible with the bug we need to check either condition. The latter
@@ -417,5 +431,33 @@ export class WebChannelConnection extends RestConnection {
       streamBridge.callOnOpen();
     }, 0);
     return streamBridge;
+  }
+
+  /**
+   * Closes and cleans up any resources associated with the connection.
+   */
+  terminate(): void {
+    // If the Firestore instance is terminated, we will explicitly
+    // close any remaining open WebChannel instances.
+    this.openWebChannels.forEach(webChannel => webChannel.close());
+    this.openWebChannels = [];
+  }
+
+  /**
+   * Add a WebChannel instance to the collection of open instances.
+   * @param webChannel
+   */
+  addOpenWebChannel(webChannel: WebChannel): void {
+    this.openWebChannels.push(webChannel);
+  }
+
+  /**
+   * Remove a WebChannel instance from the collection of open instances.
+   * @param webChannel
+   */
+  removeOpenWebChannel(webChannel: WebChannel): void {
+    this.openWebChannels = this.openWebChannels.filter(
+      instance => instance === webChannel
+    );
   }
 }

@@ -19,7 +19,7 @@ import { version as grpcVersion } from '@grpc/grpc-js/package.json';
 import alias from '@rollup/plugin-alias';
 import json from '@rollup/plugin-json';
 import replace from 'rollup-plugin-replace';
-import { terser } from 'rollup-plugin-terser';
+import terser from '@rollup/plugin-terser';
 import dts from 'rollup-plugin-dts';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import tmp from 'tmp';
@@ -28,6 +28,7 @@ import typescript from 'typescript';
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
 import pkg from './package.json';
+import tsconfig from './tsconfig.json';
 
 const sourcemaps = require('rollup-plugin-sourcemaps');
 const util = require('./rollup.shared');
@@ -35,6 +36,7 @@ const util = require('./rollup.shared');
 const nodePlugins = [
   typescriptPlugin({
     typescript,
+    exclude: [...tsconfig.exclude, '**/*.test.ts'],
     cacheDir: tmp.dirSync(),
     abortOnError: true,
     transformers: [util.removeAssertTransformer]
@@ -48,6 +50,7 @@ const nodePlugins = [
 const browserPlugins = [
   typescriptPlugin({
     typescript,
+    exclude: [...tsconfig.exclude, '**/*.test.ts'],
     cacheDir: tmp.dirSync(),
     abortOnError: true,
     transformers: [util.removeAssertAndPrefixInternalTransformer]

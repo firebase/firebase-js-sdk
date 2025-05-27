@@ -674,7 +674,7 @@ export class SpecBuilder {
     } else if (doc.isNoDocument()) {
       // Don't send any updates
     } else {
-      fail('Unknown parameter: ' + doc);
+      fail(0xd71c, 'Unknown parameter', { doc });
     }
     this.watchCurrents(query, 'resume-token-' + version);
     this.watchSnapshots(version);
@@ -1149,7 +1149,7 @@ export class SpecBuilder {
             userDataWriter.convertValue(filter.value)
           ] as SpecQueryFilter;
         } else {
-          return fail('Unknown filter: ' + filter);
+          return fail(0x0e51, 'Unknown filter', { filter });
         }
       });
     }
@@ -1210,7 +1210,10 @@ export class SpecBuilder {
     targetPurpose?: TargetPurpose
   ): void {
     if (!(resume?.resumeToken || resume?.readTime) && resume?.expectedCount) {
-      fail('Expected count is present without a resume token or read time.');
+      fail(
+        0xc9a1,
+        'Expected count is present without a resume token or read time.'
+      );
     }
 
     if (this.activeTargets[targetId]) {
@@ -1273,7 +1276,10 @@ export class SpecBuilder {
     if (queryTargetId && limboTargetId) {
       // TODO(dimond): add support for query for doc and limbo doc at the same
       // time?
-      fail('Found both query and limbo doc with target ID, not supported yet');
+      fail(
+        0x6e17,
+        'Found both query and limbo doc with target ID, not supported yet'
+      );
     }
     const targetId = queryTargetId || limboTargetId;
     debugAssert(

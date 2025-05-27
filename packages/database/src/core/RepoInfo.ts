@@ -15,12 +15,16 @@
  * limitations under the License.
  */
 
-import { assert } from '@firebase/util';
+import { assert, EmulatorMockTokenOptions } from '@firebase/util';
 
 import { LONG_POLLING, WEBSOCKET } from '../realtime/Constants';
 
 import { PersistentStorage } from './storage/storage';
 import { each } from './util/util';
+
+export interface RepoInfoEmulatorOptions {
+  mockUserToken?: string | EmulatorMockTokenOptions;
+}
 
 /**
  * A class that holds metadata about a Repo object
@@ -46,7 +50,8 @@ export class RepoInfo {
     public readonly nodeAdmin: boolean = false,
     public readonly persistenceKey: string = '',
     public readonly includeNamespaceInQueryParams: boolean = false,
-    public readonly isUsingEmulator: boolean = false
+    public readonly isUsingEmulator: boolean = false,
+    public readonly emulatorOptions: RepoInfoEmulatorOptions | null = null
   ) {
     this._host = host.toLowerCase();
     this._domain = this._host.substr(this._host.indexOf('.') + 1);

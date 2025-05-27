@@ -40,11 +40,13 @@ export interface ActionCodeSettings {
         minimumVersion?: string;
         packageName: string;
     };
+    // @deprecated
     dynamicLinkDomain?: string;
     handleCodeInApp?: boolean;
     iOS?: {
         bundleId: string;
     };
+    linkDomain?: string;
     url: string;
 }
 
@@ -236,6 +238,7 @@ export const AuthErrorCodes: {
     readonly MISSING_RECAPTCHA_VERSION: "auth/missing-recaptcha-version";
     readonly INVALID_RECAPTCHA_VERSION: "auth/invalid-recaptcha-version";
     readonly INVALID_REQ_TYPE: "auth/invalid-req-type";
+    readonly INVALID_HOSTING_LINK_DOMAIN: "auth/invalid-hosting-link-domain";
 };
 
 // @public
@@ -254,6 +257,9 @@ export interface AuthSettings {
 
 // @public
 export function beforeAuthStateChanged(auth: Auth, callback: (user: User | null) => void | Promise<void>, onAbort?: () => void): Unsubscribe;
+
+// @beta
+export const browserCookiePersistence: Persistence;
 
 // @public
 export const browserLocalPersistence: Persistence;
@@ -593,7 +599,7 @@ export interface PasswordValidationStatus {
 
 // @public
 export interface Persistence {
-    readonly type: 'SESSION' | 'LOCAL' | 'NONE';
+    readonly type: 'SESSION' | 'LOCAL' | 'NONE' | 'COOKIE';
 }
 
 // @public

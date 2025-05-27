@@ -1,5 +1,95 @@
 # @firebase/database-compat
 
+## 2.0.10
+
+### Patch Changes
+
+- Updated dependencies [[`35ad526`](https://github.com/firebase/firebase-js-sdk/commit/35ad5266304e14425988fcf5ad06d028b37588ac), [`b5df4ae`](https://github.com/firebase/firebase-js-sdk/commit/b5df4ae71c1b5b54d9237e7929d0f793189b82c9)]:
+  - @firebase/database@1.0.19
+
+## 2.0.9
+
+### Patch Changes
+
+- Updated dependencies [[`8a03143`](https://github.com/firebase/firebase-js-sdk/commit/8a03143b9217effdd86d68bdf195493c0979aa27)]:
+  - @firebase/util@1.12.0
+  - @firebase/component@0.6.17
+  - @firebase/database@1.0.18
+  - @firebase/database-types@1.0.14
+
+## 2.0.8
+
+### Patch Changes
+
+- Updated dependencies [[`9bcd1ea`](https://github.com/firebase/firebase-js-sdk/commit/9bcd1ea9b8cc5b55692765d40df000da8ddef02b)]:
+  - @firebase/util@1.11.3
+  - @firebase/component@0.6.16
+  - @firebase/database@1.0.17
+  - @firebase/database-types@1.0.13
+
+## 2.0.7
+
+### Patch Changes
+
+- Updated dependencies [[`8593fa0`](https://github.com/firebase/firebase-js-sdk/commit/8593fa05bd884c2f1f6f3b4ae062efa48af93d24)]:
+  - @firebase/util@1.11.2
+  - @firebase/database@1.0.16
+  - @firebase/component@0.6.15
+  - @firebase/database-types@1.0.12
+
+## 2.0.6
+
+### Patch Changes
+
+- [`ea1f913`](https://github.com/firebase/firebase-js-sdk/commit/ea1f9139e6baec0269fbb91233fd3f7f4b0d5875) [#8980](https://github.com/firebase/firebase-js-sdk/pull/8980) - Auto Enable SSL for Firebase Studio
+
+- [`0e12766`](https://github.com/firebase/firebase-js-sdk/commit/0e127664946ba324c6566a02b393dafd23fc1ddb) [#8968](https://github.com/firebase/firebase-js-sdk/pull/8968) - Fix Auth Redirects on Firebase Studio
+
+- Updated dependencies [[`ea1f913`](https://github.com/firebase/firebase-js-sdk/commit/ea1f9139e6baec0269fbb91233fd3f7f4b0d5875), [`0e12766`](https://github.com/firebase/firebase-js-sdk/commit/0e127664946ba324c6566a02b393dafd23fc1ddb)]:
+  - @firebase/database@1.0.15
+  - @firebase/util@1.11.1
+  - @firebase/component@0.6.14
+  - @firebase/database-types@1.0.11
+
+## 2.0.5
+
+### Patch Changes
+
+- [`113c965`](https://github.com/firebase/firebase-js-sdk/commit/113c965a34d9d7219d236f1b2cb62029e0f80fda) [#8800](https://github.com/firebase/firebase-js-sdk/pull/8800) - Added non-null parent properties to ThenableReference
+
+- Updated dependencies [[`113c965`](https://github.com/firebase/firebase-js-sdk/commit/113c965a34d9d7219d236f1b2cb62029e0f80fda)]:
+  - @firebase/database-types@1.0.10
+  - @firebase/database@1.0.14
+
+## 2.0.4
+
+### Patch Changes
+
+- [`b3e68ca`](https://github.com/firebase/firebase-js-sdk/commit/b3e68ca410d9b984736780098330bd6b8ee2e997) [#8769](https://github.com/firebase/firebase-js-sdk/pull/8769) - Fixed: invoking `connectDatabaseEmulator` multiple times with the same parameters will no longer
+  cause an error. Fixes [GitHub Issue #6824](https://github.com/firebase/firebase-js-sdk/issues/6824).
+- Updated dependencies [[`b3e68ca`](https://github.com/firebase/firebase-js-sdk/commit/b3e68ca410d9b984736780098330bd6b8ee2e997), [`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5)]:
+  - @firebase/database@1.0.13
+  - @firebase/util@1.11.0
+  - @firebase/component@0.6.13
+  - @firebase/database-types@1.0.9
+
+## 2.0.3
+
+### Patch Changes
+
+- Updated dependencies [[`01f36ea`](https://github.com/firebase/firebase-js-sdk/commit/01f36ea41011fdd6ec77e4b1a799193bef58aa91), [`97d48c7`](https://github.com/firebase/firebase-js-sdk/commit/97d48c7650e2d4273b7f94c8964dfcb44113952a)]:
+  - @firebase/database@1.0.12
+
+## 2.0.2
+
+### Patch Changes
+
+- Updated dependencies [[`25a6204c1`](https://github.com/firebase/firebase-js-sdk/commit/25a6204c1531b6c772e5368d12b2411ae1d21bbc)]:
+  - @firebase/util@1.10.3
+  - @firebase/component@0.6.12
+  - @firebase/database@1.0.11
+  - @firebase/database-types@1.0.8
+
 ## 2.0.1
 
 ### Patch Changes

@@ -163,7 +163,7 @@ describe('internal api', () => {
       const error = new Error('oops, something went wrong');
       stub(client, 'exchangeToken').returns(Promise.reject(error));
 
-      const token = await getToken(appCheck as AppCheckService);
+      const token = await getToken(appCheck as AppCheckService, false, true);
 
       expect(reCAPTCHASpy).to.be.called;
       expect(token).to.deep.equal({
@@ -176,6 +176,29 @@ describe('internal api', () => {
       errorStub.restore();
     });
 
+    it('resolves with a dummy token and an error if failed to get a token in debug mode', async () => {
+      const errorStub = stub(console, 'error');
+      window.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+
+      const error = new Error('oops, something went wrong');
+      stub(client, 'exchangeToken').returns(Promise.reject(error));
+
+      const token = await getToken(appCheck as AppCheckService, false, true);
+
+      expect(token).to.deep.equal({
+        token: formatDummyToken(defaultTokenErrorData),
+        error
+      });
+      expect(errorStub.args[0][1].message).to.include(
+        'oops, something went wrong'
+      );
+      delete window.FIREBASE_APPCHECK_DEBUG_TOKEN;
+      errorStub.restore();
+    });
+
     it('resolves with a dummy token and an error if recaptcha failed', async () => {
       const errorStub = stub(console, 'error');
       const appCheck = initializeAppCheck(app, {
@@ -185,7 +208,7 @@ describe('internal api', () => {
       const reCAPTCHASpy = stubGetRecaptchaToken('', false);
       const exchangeTokenStub = stub(client, 'exchangeToken');
 
-      const token = await getToken(appCheck as AppCheckService);
+      const token = await getToken(appCheck as AppCheckService, false, true);
 
       expect(reCAPTCHASpy).to.be.called;
       expect(exchangeTokenStub).to.not.be.called;
@@ -267,7 +290,6 @@ describe('internal api', () => {
     });
 
     it('calls 3P error handler if there is an error getting a token', async () => {
-      stub(console, 'error');
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
@@ -291,7 +313,6 @@ describe('internal api', () => {
     });
 
     it('ignores listeners that throw', async () => {
-      stub(console, 'error');
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true

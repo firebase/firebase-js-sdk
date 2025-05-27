@@ -19,7 +19,7 @@ import { expect } from 'chai';
 import { stub } from 'sinon';
 import '../test/setup';
 import { createTestComponent, TestService } from '../test/util';
-import { initializeApp, getApps, deleteApp } from './api';
+import { initializeApp, initializeServerApp, getApps, deleteApp } from './api';
 import { FirebaseAppImpl } from './firebaseApp';
 import {
   _addComponent,
@@ -28,9 +28,11 @@ import {
   _components,
   _clearComponents,
   _getProvider,
-  _removeServiceInstance
+  _removeServiceInstance,
+  _isFirebaseServerApp
 } from './internal';
 import { logger } from './logger';
+import { isBrowser } from '@firebase/util';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -159,6 +161,27 @@ describe('Internal API tests', () => {
       const instance2 = provider.getImmediate();
 
       expect(instance1).to.not.equal(instance2);
+    });
+  });
+
+  describe('_isFirebaseServerApp', () => {
+    it('detects a valid FirebaseServerApp', () => {
+      if (!isBrowser()) {
+        // FirebaseServerApp isn't supported for execution in browser environments.
+        const app = initializeServerApp({}, {});
+        expect(_isFirebaseServerApp(app)).to.be.true;
+      }
+    });
+    it('a standard FirebaseApp returns false', () => {
+      const app = initializeApp({});
+      expect(_isFirebaseServerApp(app)).to.be.false;
+    });
+    it('a null object returns false', () => {
+      expect(_isFirebaseServerApp(null)).to.be.false;
+    });
+    it('undefined returns false', () => {
+      let app: undefined;
+      expect(_isFirebaseServerApp(app)).to.be.false;
     });
   });
 });

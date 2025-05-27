@@ -150,6 +150,7 @@ Firebase Authentication
 |  --- | --- |
 |  [ActionCodeOperation](./auth.md#actioncodeoperation) | An enumeration of the possible email action types. |
 |  [AuthErrorCodes](./auth.md#autherrorcodes) | A map of potential <code>Auth</code> error codes, for easier comparison with errors thrown by the SDK. |
+|  [browserCookiePersistence](./auth.md#browsercookiepersistence) | <b><i>(Public Preview)</i></b> An implementation of [Persistence](./auth.persistence.md#persistence_interface) of type <code>COOKIE</code>, for use on the client side in applications leveraging hybrid rendering and middleware. |
 |  [browserLocalPersistence](./auth.md#browserlocalpersistence) | An implementation of [Persistence](./auth.persistence.md#persistence_interface) of type <code>LOCAL</code> using <code>localStorage</code> for the underlying storage. |
 |  [browserPopupRedirectResolver](./auth.md#browserpopupredirectresolver) | An implementation of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) suitable for browser based applications. |
 |  [browserSessionPersistence](./auth.md#browsersessionpersistence) | An implementation of [Persistence](./auth.persistence.md#persistence_interface) of <code>SESSION</code> using <code>sessionStorage</code> for the underlying storage. |
@@ -1956,7 +1957,23 @@ AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY: {
     readonly MISSING_RECAPTCHA_VERSION: "auth/missing-recaptcha-version";
     readonly INVALID_RECAPTCHA_VERSION: "auth/invalid-recaptcha-version";
     readonly INVALID_REQ_TYPE: "auth/invalid-req-type";
+    readonly INVALID_HOSTING_LINK_DOMAIN: "auth/invalid-hosting-link-domain";
 }
+```
+
+## browserCookiePersistence
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+An implementation of [Persistence](./auth.persistence.md#persistence_interface) of type `COOKIE`<!-- -->, for use on the client side in applications leveraging hybrid rendering and middleware.
+
+This persistence method requires companion middleware to function, such as that provided by [ReactFire](https://firebaseopensource.com/projects/firebaseextended/reactfire/) for NextJS.
+
+<b>Signature:</b>
+
+```typescript
+browserCookiePersistence: Persistence
 ```
 
 ## browserLocalPersistence

@@ -24,8 +24,12 @@ import {
 } from '@firebase/app';
 import {
   createMockUserToken,
+  deepEqual,
   EmulatorMockTokenOptions,
-  getDefaultEmulatorHostnameAndPort
+  getDefaultEmulatorHostnameAndPort,
+  isCloudWorkstation,
+  pingServer,
+  updateEmulatorBanner
 } from '@firebase/util';
 
 import {
@@ -74,6 +78,9 @@ export class Firestore implements FirestoreService {
 
   private _settings = new FirestoreSettingsImpl({});
   private _settingsFrozen = false;
+  private _emulatorOptions: {
+    mockUserToken?: EmulatorMockTokenOptions | string;
+  } = {};
 
   // A task that is assigned when the terminate() is invoked and resolved when
   // all components have shut down. Otherwise, Firestore is not terminated,
@@ -122,6 +129,8 @@ export class Firestore implements FirestoreService {
       );
     }
     this._settings = new FirestoreSettingsImpl(settings);
+    this._emulatorOptions = settings.emulatorOptions || {};
+
     if (settings.credentials !== undefined) {
       this._authCredentials = makeAuthCredentialsProvider(settings.credentials);
     }
@@ -129,6 +138,10 @@ export class Firestore implements FirestoreService {
 
   _getSettings(): FirestoreSettingsImpl {
     return this._settings;
+  }
+
+  _getEmulatorOptions(): { mockUserToken?: EmulatorMockTokenOptions | string } {
+    return this._emulatorOptions;
   }
 
   _freezeSettings(): FirestoreSettingsImpl {
@@ -327,21 +340,36 @@ export function connectFirestoreEmulator(
   } = {}
 ): void {
   firestore = cast(firestore, Firestore);
+  const useSsl = isCloudWorkstation(host);
   const settings = firestore._getSettings();
+  const existingConfig = {
+    ...settings,
+    emulatorOptions: firestore._getEmulatorOptions()
+  };
   const newHostSetting = `${host}:${port}`;
-
+  if (useSsl) {
+    void pingServer(`https://${newHostSetting}`);
+    updateEmulatorBanner('Firestore', true);
+  }
   if (settings.host !== DEFAULT_HOST && settings.host !== newHostSetting) {
     logWarn(
       'Host has been set in both settings() and connectFirestoreEmulator(), emulator host ' +
         'will be used.'
     );
   }
-
-  firestore._setSettings({
+  const newConfig = {
     ...settings,
     host: newHostSetting,
-    ssl: false
-  });
+    ssl: useSsl,
+    emulatorOptions: options
+  };
+  // No-op if the new configuration matches the current configuration. This supports SSR
+  // enviornments which might call `connectFirestoreEmulator` multiple times as a standard practice.
+  if (deepEqual(newConfig, existingConfig)) {
+    return;
+  }
+
+  firestore._setSettings(newConfig);
 
   if (options.mockUserToken) {
     let token: string;

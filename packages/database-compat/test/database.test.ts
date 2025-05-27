@@ -292,6 +292,17 @@ describe('Database Tests', () => {
     expect((db as any)._delegate._repo.repoInfo_.isUsingEmulator).to.be.false;
   });
 
+  it('uses ssl when useEmulator is called with ssl specified', () => {
+    const db = firebase.database();
+    const cloudWorkstation = 'abc.cloudworkstations.dev';
+    db.useEmulator(cloudWorkstation, 80);
+    expect((db as any)._delegate._repo.repoInfo_.isUsingEmulator).to.be.true;
+    expect((db as any)._delegate._repo.repoInfo_.host).to.equal(
+      `${cloudWorkstation}:80`
+    );
+    expect((db as any)._delegate._repo.repoInfo_.secure).to.be.true;
+  });
+
   it('cannot call useEmulator after use', () => {
     const db = (firebase as any).database();
 
@@ -301,7 +312,9 @@ describe('Database Tests', () => {
 
     expect(() => {
       db.useEmulator('localhost', 1234);
-    }).to.throw(/Cannot call useEmulator/);
+    }).to.throw(
+      'FIREBASE FATAL ERROR: connectDatabaseEmulator() cannot initialize or alter the emulator configuration after the database instance has started.'
+    );
   });
 
   it('refFromURL returns an emulated ref with useEmulator', () => {

@@ -1,5 +1,60 @@
 # @firebase/remote-config-compat
 
+## 0.2.17
+
+### Patch Changes
+
+- Updated dependencies [[`8a03143`](https://github.com/firebase/firebase-js-sdk/commit/8a03143b9217effdd86d68bdf195493c0979aa27)]:
+  - @firebase/util@1.12.0
+  - @firebase/component@0.6.17
+  - @firebase/remote-config@0.6.4
+
+## 0.2.16
+
+### Patch Changes
+
+- Updated dependencies [[`9bcd1ea`](https://github.com/firebase/firebase-js-sdk/commit/9bcd1ea9b8cc5b55692765d40df000da8ddef02b)]:
+  - @firebase/util@1.11.3
+  - @firebase/component@0.6.16
+  - @firebase/remote-config@0.6.3
+
+## 0.2.15
+
+### Patch Changes
+
+- Updated dependencies [[`8593fa0`](https://github.com/firebase/firebase-js-sdk/commit/8593fa05bd884c2f1f6f3b4ae062efa48af93d24)]:
+  - @firebase/util@1.11.2
+  - @firebase/component@0.6.15
+  - @firebase/remote-config@0.6.2
+
+## 0.2.14
+
+### Patch Changes
+
+- Updated dependencies [[`ea1f913`](https://github.com/firebase/firebase-js-sdk/commit/ea1f9139e6baec0269fbb91233fd3f7f4b0d5875), [`0e12766`](https://github.com/firebase/firebase-js-sdk/commit/0e127664946ba324c6566a02b393dafd23fc1ddb)]:
+  - @firebase/util@1.11.1
+  - @firebase/remote-config@0.6.1
+  - @firebase/component@0.6.14
+
+## 0.2.13
+
+### Patch Changes
+
+- Updated dependencies [[`70e08cf`](https://github.com/firebase/firebase-js-sdk/commit/70e08cf95b5c43d3b98382a6f68fbd3c3555e31f), [`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5)]:
+  - @firebase/remote-config@0.6.0
+  - @firebase/util@1.11.0
+  - @firebase/component@0.6.13
+
+## 0.2.12
+
+### Patch Changes
+
+- Updated dependencies [[`25a6204c1`](https://github.com/firebase/firebase-js-sdk/commit/25a6204c1531b6c772e5368d12b2411ae1d21bbc), [`7bf2aec63`](https://github.com/firebase/firebase-js-sdk/commit/7bf2aec6328b06c9c7dda91354630c0d59f2b411)]:
+  - @firebase/util@1.10.3
+  - @firebase/remote-config-types@0.4.0
+  - @firebase/remote-config@0.5.0
+  - @firebase/component@0.6.12
+
 ## 0.2.11
 
 ### Patch Changes

@@ -28,6 +28,9 @@ jobs:
     name: Check changeset vs changed files
     runs-on: ubuntu-latest
 
+    permissions:
+      pull-requests: write
+
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v4
@@ -35,7 +38,7 @@ jobs:
         # This makes Actions fetch all Git history so check_changeset script can diff properly.
         fetch-depth: 0
     - name: Set up Node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
     - name: Yarn install
@@ -54,14 +57,16 @@ jobs:
     - name: Print blocking failure status
       run: echo "${{steps.check-changeset.outputs.BLOCKING_FAILURE}}"
     - name: Find Comment
-      uses: peter-evans/find-comment@v3
+      # This commit represents v3.1.0
+      uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e
       id: fc
       with:
         issue-number: ${{github.event.number}}
         body-includes: Changeset File Check
     - name: Create comment (missing packages)
       if: ${{!steps.fc.outputs.comment-id && steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
-      uses: peter-evans/create-or-update-comment@v4
+      # This commit represents v4.0.0
+      uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043
       with:
         issue-number: ${{github.event.number}}
         body: |
@@ -69,7 +74,8 @@ jobs:
           ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
     - name: Update comment (missing packages)
       if: ${{steps.fc.outputs.comment-id && steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
-      uses: peter-evans/create-or-update-comment@v4
+      # This commit represents v4.0.0
+      uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043
       with:
         comment-id: ${{steps.fc.outputs.comment-id}}
         edit-mode: replace
@@ -78,7 +84,8 @@ jobs:
           ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
     - name: Update comment (no missing packages)
       if: ${{steps.fc.outputs.comment-id && !steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
-      uses: peter-evans/create-or-update-comment@v4
+      # This commit represents v4.0.0
+      uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043
       with:
         comment-id: ${{steps.fc.outputs.comment-id}}
         edit-mode: replace

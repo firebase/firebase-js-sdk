@@ -10,6 +10,62 @@ import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
 
 // @public
+export interface AI {
+    app: FirebaseApp;
+    backend: Backend;
+    // @deprecated
+    location: string;
+}
+
+// @public
+export class AIError extends FirebaseError {
+    constructor(code: AIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
+    // (undocumented)
+    readonly code: AIErrorCode;
+    // (undocumented)
+    readonly customErrorData?: CustomErrorData | undefined;
+}
+
+// @public
+const enum AIErrorCode {
+    API_NOT_ENABLED = "api-not-enabled",
+    ERROR = "error",
+    FETCH_ERROR = "fetch-error",
+    INVALID_CONTENT = "invalid-content",
+    INVALID_SCHEMA = "invalid-schema",
+    NO_API_KEY = "no-api-key",
+    NO_APP_ID = "no-app-id",
+    NO_MODEL = "no-model",
+    NO_PROJECT_ID = "no-project-id",
+    PARSE_FAILED = "parse-failed",
+    REQUEST_ERROR = "request-error",
+    RESPONSE_ERROR = "response-error",
+    UNSUPPORTED = "unsupported"
+}
+
+export { AIErrorCode }
+
+export { AIErrorCode as VertexAIErrorCode }
+
+// @public
+export abstract class AIModel {
+    // @internal
+    protected constructor(ai: AI, modelName: string);
+    // Warning: (ae-forgotten-export) The symbol "ApiSettings" needs to be exported by the entry point index.d.ts
+    //
+    // @internal (undocumented)
+    protected _apiSettings: ApiSettings;
+    readonly model: string;
+    // @internal
+    static normalizeModelName(modelName: string, backendType: BackendType): string;
+    }
+
+// @public
+export interface AIOptions {
+    backend: Backend;
+}
+
+// @public
 export class ArraySchema extends Schema {
     constructor(schemaParams: SchemaParams, items: TypedSchema);
     // (undocumented)
@@ -17,6 +73,21 @@ export class ArraySchema extends Schema {
     // @internal (undocumented)
     toJSON(): SchemaRequest;
 }
+
+// @public
+export abstract class Backend {
+    protected constructor(type: BackendType);
+    readonly backendType: BackendType;
+}
+
+// @public
+export const BackendType: {
+    readonly VERTEX_AI: "VERTEX_AI";
+    readonly GOOGLE_AI: "GOOGLE_AI";
+};
+
+// @public
+export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 
 // @public
 export interface BaseParams {
@@ -28,9 +99,9 @@ export interface BaseParams {
 
 // @public
 export enum BlockReason {
-    // (undocumented)
+    BLOCKLIST = "BLOCKLIST",
     OTHER = "OTHER",
-    // (undocumented)
+    PROHIBITED_CONTENT = "PROHIBITED_CONTENT",
     SAFETY = "SAFETY"
 }
 
@@ -41,7 +112,6 @@ export class BooleanSchema extends Schema {
 
 // @public
 export class ChatSession {
-    // Warning: (ae-forgotten-export) The symbol "ApiSettings" needs to be exported by the entry point index.d.ts
     constructor(apiSettings: ApiSettings, model: string, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     getHistory(): Promise<Content[]>;
     // (undocumented)
@@ -60,11 +130,9 @@ export interface Citation {
     endIndex?: number;
     // (undocumented)
     license?: string;
-    // (undocumented)
     publicationDate?: Date_2;
     // (undocumented)
     startIndex?: number;
-    // (undocumented)
     title?: string;
     // (undocumented)
     uri?: string;
@@ -88,10 +156,14 @@ export interface Content {
 export interface CountTokensRequest {
     // (undocumented)
     contents: Content[];
+    generationConfig?: GenerationConfig;
+    systemInstruction?: string | Part | Content;
+    tools?: Tool[];
 }
 
 // @public
 export interface CountTokensResponse {
+    promptTokensDetails?: ModalityTokenCount[];
     totalBillableCharacters?: number;
     totalTokens: number;
 }
@@ -120,6 +192,7 @@ export { Date_2 as Date }
 export interface EnhancedGenerateContentResponse extends GenerateContentResponse {
     // (undocumented)
     functionCalls: () => FunctionCall[] | undefined;
+    inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
 }
 
@@ -157,15 +230,14 @@ export interface FileDataPart {
 
 // @public
 export enum FinishReason {
-    // (undocumented)
+    BLOCKLIST = "BLOCKLIST",
+    MALFORMED_FUNCTION_CALL = "MALFORMED_FUNCTION_CALL",
     MAX_TOKENS = "MAX_TOKENS",
-    // (undocumented)
     OTHER = "OTHER",
-    // (undocumented)
+    PROHIBITED_CONTENT = "PROHIBITED_CONTENT",
     RECITATION = "RECITATION",
-    // (undocumented)
     SAFETY = "SAFETY",
-    // (undocumented)
+    SPII = "SPII",
     STOP = "STOP"
 }
 
@@ -187,11 +259,8 @@ export interface FunctionCallingConfig {
 
 // @public (undocumented)
 export enum FunctionCallingMode {
-    // (undocumented)
     ANY = "ANY",
-    // (undocumented)
     AUTO = "AUTO",
-    // (undocumented)
     NONE = "NONE"
 }
 
@@ -304,6 +373,8 @@ export interface GenerationConfig {
     // (undocumented)
     presencePenalty?: number;
     responseMimeType?: string;
+    // @beta
+    responseModalities?: ResponseModality[];
     responseSchema?: TypedSchema | SchemaRequest;
     // (undocumented)
     stopSequences?: string[];
@@ -323,15 +394,13 @@ export interface GenerativeContentBlob {
 }
 
 // @public
-export class GenerativeModel {
-    constructor(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions);
+export class GenerativeModel extends AIModel {
+    constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
     // (undocumented)
     generationConfig: GenerationConfig;
-    // (undocumented)
-    model: string;
     // (undocumented)
     requestOptions?: RequestOptions;
     // (undocumented)
@@ -346,12 +415,77 @@ export class GenerativeModel {
 }
 
 // @public
-export function getGenerativeModel(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
+export function getAI(app?: FirebaseApp, options?: AIOptions): AI;
+
+// @public
+export function getGenerativeModel(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
+
+// @beta
+export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
 
 // @public
 export function getVertexAI(app?: FirebaseApp, options?: VertexAIOptions): VertexAI;
 
-// @public (undocumented)
+// @public
+export class GoogleAIBackend extends Backend {
+    constructor();
+}
+
+// Warning: (ae-internal-missing-underscore) The name "GoogleAICitationMetadata" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface GoogleAICitationMetadata {
+    // (undocumented)
+    citationSources: Citation[];
+}
+
+// Warning: (ae-internal-missing-underscore) The name "GoogleAICountTokensRequest" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface GoogleAICountTokensRequest {
+    // (undocumented)
+    generateContentRequest: {
+        model: string;
+        contents: Content[];
+        systemInstruction?: string | Part | Content;
+        tools?: Tool[];
+        generationConfig?: GenerationConfig;
+    };
+}
+
+// Warning: (ae-internal-missing-underscore) The name "GoogleAIGenerateContentCandidate" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface GoogleAIGenerateContentCandidate {
+    // (undocumented)
+    citationMetadata?: GoogleAICitationMetadata;
+    // (undocumented)
+    content: Content;
+    // (undocumented)
+    finishMessage?: string;
+    // (undocumented)
+    finishReason?: FinishReason;
+    // (undocumented)
+    groundingMetadata?: GroundingMetadata;
+    // (undocumented)
+    index: number;
+    // (undocumented)
+    safetyRatings?: SafetyRating[];
+}
+
+// Warning: (ae-internal-missing-underscore) The name "GoogleAIGenerateContentResponse" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface GoogleAIGenerateContentResponse {
+    // (undocumented)
+    candidates?: GoogleAIGenerateContentCandidate[];
+    // (undocumented)
+    promptFeedback?: PromptFeedback;
+    // (undocumented)
+    usageMetadata?: UsageMetadata;
+}
+
+// @public @deprecated (undocumented)
 export interface GroundingAttribution {
     // (undocumented)
     confidenceScore?: number;
@@ -365,7 +499,7 @@ export interface GroundingAttribution {
 
 // @public
 export interface GroundingMetadata {
-    // (undocumented)
+    // @deprecated (undocumented)
     groundingAttributions: GroundingAttribution[];
     // (undocumented)
     retrievalQueries?: string[];
@@ -373,23 +507,17 @@ export interface GroundingMetadata {
     webSearchQueries?: string[];
 }
 
-// @public (undocumented)
+// @public
 export enum HarmBlockMethod {
-    // (undocumented)
     PROBABILITY = "PROBABILITY",
-    // (undocumented)
     SEVERITY = "SEVERITY"
 }
 
 // @public
 export enum HarmBlockThreshold {
-    // (undocumented)
     BLOCK_LOW_AND_ABOVE = "BLOCK_LOW_AND_ABOVE",
-    // (undocumented)
     BLOCK_MEDIUM_AND_ABOVE = "BLOCK_MEDIUM_AND_ABOVE",
-    // (undocumented)
     BLOCK_NONE = "BLOCK_NONE",
-    // (undocumented)
     BLOCK_ONLY_HIGH = "BLOCK_ONLY_HIGH"
 }
 
@@ -407,26 +535,103 @@ export enum HarmCategory {
 
 // @public
 export enum HarmProbability {
-    // (undocumented)
     HIGH = "HIGH",
-    // (undocumented)
     LOW = "LOW",
-    // (undocumented)
     MEDIUM = "MEDIUM",
-    // (undocumented)
     NEGLIGIBLE = "NEGLIGIBLE"
 }
 
 // @public
 export enum HarmSeverity {
-    // (undocumented)
     HARM_SEVERITY_HIGH = "HARM_SEVERITY_HIGH",
-    // (undocumented)
     HARM_SEVERITY_LOW = "HARM_SEVERITY_LOW",
-    // (undocumented)
     HARM_SEVERITY_MEDIUM = "HARM_SEVERITY_MEDIUM",
+    HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE",
+    HARM_SEVERITY_UNSUPPORTED = "HARM_SEVERITY_UNSUPPORTED"
+}
+
+// @beta
+export enum ImagenAspectRatio {
+    LANDSCAPE_16x9 = "16:9",
+    LANDSCAPE_3x4 = "3:4",
+    PORTRAIT_4x3 = "4:3",
+    PORTRAIT_9x16 = "9:16",
+    SQUARE = "1:1"
+}
+
+// @public
+export interface ImagenGCSImage {
+    gcsURI: string;
+    mimeType: string;
+}
+
+// @beta
+export interface ImagenGenerationConfig {
+    addWatermark?: boolean;
+    aspectRatio?: ImagenAspectRatio;
+    imageFormat?: ImagenImageFormat;
+    negativePrompt?: string;
+    numberOfImages?: number;
+}
+
+// @beta
+export interface ImagenGenerationResponse<T extends ImagenInlineImage | ImagenGCSImage> {
+    filteredReason?: string;
+    images: T[];
+}
+
+// @beta
+export class ImagenImageFormat {
+    compressionQuality?: number;
+    static jpeg(compressionQuality?: number): ImagenImageFormat;
+    mimeType: string;
+    static png(): ImagenImageFormat;
+}
+
+// @beta
+export interface ImagenInlineImage {
+    bytesBase64Encoded: string;
+    mimeType: string;
+}
+
+// @beta
+export class ImagenModel extends AIModel {
+    constructor(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
+    generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
+    // @internal
+    generateImagesGCS(prompt: string, gcsURI: string): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
+    generationConfig?: ImagenGenerationConfig;
     // (undocumented)
-    HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE"
+    requestOptions?: RequestOptions | undefined;
+    safetySettings?: ImagenSafetySettings;
+}
+
+// @beta
+export interface ImagenModelParams {
+    generationConfig?: ImagenGenerationConfig;
+    model: string;
+    safetySettings?: ImagenSafetySettings;
+}
+
+// @beta
+export enum ImagenPersonFilterLevel {
+    ALLOW_ADULT = "allow_adult",
+    ALLOW_ALL = "allow_all",
+    BLOCK_ALL = "dont_allow"
+}
+
+// @beta
+export enum ImagenSafetyFilterLevel {
+    BLOCK_LOW_AND_ABOVE = "block_low_and_above",
+    BLOCK_MEDIUM_AND_ABOVE = "block_medium_and_above",
+    BLOCK_NONE = "block_none",
+    BLOCK_ONLY_HIGH = "block_only_high"
+}
+
+// @beta
+export interface ImagenSafetySettings {
+    personFilterLevel?: ImagenPersonFilterLevel;
+    safetyFilterLevel?: ImagenSafetyFilterLevel;
 }
 
 // @public
@@ -445,6 +650,22 @@ export interface InlineDataPart {
 // @public
 export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
+}
+
+// @public
+export enum Modality {
+    AUDIO = "AUDIO",
+    DOCUMENT = "DOCUMENT",
+    IMAGE = "IMAGE",
+    MODALITY_UNSPECIFIED = "MODALITY_UNSPECIFIED",
+    TEXT = "TEXT",
+    VIDEO = "VIDEO"
+}
+
+// @public
+export interface ModalityTokenCount {
+    modality: Modality;
+    tokenCount: number;
 }
 
 // @public
@@ -497,7 +718,6 @@ export const POSSIBLE_ROLES: readonly ["user", "model", "function", "system"];
 export interface PromptFeedback {
     // (undocumented)
     blockReason?: BlockReason;
-    // (undocumented)
     blockReasonMessage?: string;
     // (undocumented)
     safetyRatings: SafetyRating[];
@@ -508,6 +728,15 @@ export interface RequestOptions {
     baseUrl?: string;
     timeout?: number;
 }
+
+// @beta
+export const ResponseModality: {
+    readonly TEXT: "TEXT";
+    readonly IMAGE: "IMAGE";
+};
+
+// @beta
+export type ResponseModality = (typeof ResponseModality)[keyof typeof ResponseModality];
 
 // @public (undocumented)
 export interface RetrievedContextAttribution {
@@ -528,11 +757,8 @@ export interface SafetyRating {
     category: HarmCategory;
     // (undocumented)
     probability: HarmProbability;
-    // (undocumented)
     probabilityScore: number;
-    // (undocumented)
     severity: HarmSeverity;
-    // (undocumented)
     severityScore: number;
 }
 
@@ -540,7 +766,6 @@ export interface SafetyRating {
 export interface SafetySetting {
     // (undocumented)
     category: HarmCategory;
-    // (undocumented)
     method?: HarmBlockMethod;
     // (undocumented)
     threshold: HarmBlockThreshold;
@@ -682,41 +907,29 @@ export interface UsageMetadata {
     // (undocumented)
     candidatesTokenCount: number;
     // (undocumented)
+    candidatesTokensDetails?: ModalityTokenCount[];
+    // (undocumented)
     promptTokenCount: number;
+    // (undocumented)
+    promptTokensDetails?: ModalityTokenCount[];
     // (undocumented)
     totalTokenCount: number;
 }
 
 // @public
-export interface VertexAI {
-    app: FirebaseApp;
-    // (undocumented)
-    location: string;
+export type VertexAI = AI;
+
+// @public
+export class VertexAIBackend extends Backend {
+    constructor(location?: string);
+    readonly location: string;
 }
 
 // @public
-export class VertexAIError extends FirebaseError {
-    constructor(code: VertexAIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
-    // (undocumented)
-    readonly code: VertexAIErrorCode;
-    // (undocumented)
-    readonly customErrorData?: CustomErrorData | undefined;
-}
+export const VertexAIError: typeof AIError;
 
 // @public
-export const enum VertexAIErrorCode {
-    API_NOT_ENABLED = "api-not-enabled",
-    ERROR = "error",
-    FETCH_ERROR = "fetch-error",
-    INVALID_CONTENT = "invalid-content",
-    INVALID_SCHEMA = "invalid-schema",
-    NO_API_KEY = "no-api-key",
-    NO_MODEL = "no-model",
-    NO_PROJECT_ID = "no-project-id",
-    PARSE_FAILED = "parse-failed",
-    REQUEST_ERROR = "request-error",
-    RESPONSE_ERROR = "response-error"
-}
+export const VertexAIModel: typeof AIModel;
 
 // @public
 export interface VertexAIOptions {

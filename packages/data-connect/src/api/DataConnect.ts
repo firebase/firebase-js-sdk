@@ -24,6 +24,11 @@ import {
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import {
+  isCloudWorkstation,
+  pingServer,
+  updateEmulatorBanner
+} from '@firebase/util';
 
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../core/error';
@@ -33,7 +38,12 @@ import {
 } from '../core/FirebaseAuthProvider';
 import { QueryManager } from '../core/QueryManager';
 import { logDebug, logError } from '../logger';
-import { DataConnectTransport, TransportClass } from '../network';
+import {
+  CallerSdkType,
+  CallerSdkTypeEnum,
+  DataConnectTransport,
+  TransportClass
+} from '../network';
 import { RESTTransport } from '../network/transport/rest';
 
 import { MutationManager } from './Mutation';
@@ -92,6 +102,7 @@ export class DataConnect {
   private _transportOptions?: TransportOptions;
   private _authTokenProvider?: AuthTokenProvider;
   _isUsingGeneratedSdk: boolean = false;
+  _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base;
   private _appCheckTokenProvider?: AppCheckTokenProvider;
   // @internal
   constructor(
@@ -114,6 +125,12 @@ export class DataConnect {
   _useGeneratedSdk(): void {
     if (!this._isUsingGeneratedSdk) {
       this._isUsingGeneratedSdk = true;
+    }
+  }
+  _setCallerSdkType(callerSdkType: CallerSdkType): void {
+    this._callerSdkType = callerSdkType;
+    if (this._initialized) {
+      this._transport._setCallerSdkType(callerSdkType);
     }
   }
   _delete(): Promise<void> {
@@ -151,7 +168,7 @@ export class DataConnect {
     }
     if (this._appCheckProvider) {
       this._appCheckTokenProvider = new AppCheckTokenProvider(
-        this.app.name,
+        this.app,
         this._appCheckProvider
       );
     }
@@ -164,7 +181,8 @@ export class DataConnect {
       this._authTokenProvider,
       this._appCheckTokenProvider,
       undefined,
-      this._isUsingGeneratedSdk
+      this._isUsingGeneratedSdk,
+      this._callerSdkType
     );
     if (this._transportOptions) {
       this._transport.useEmulator(
@@ -179,7 +197,10 @@ export class DataConnect {
 
   // @internal
   enableEmulator(transportOptions: TransportOptions): void {
-    if (this._initialized) {
+    if (
+      this._initialized &&
+      !areTransportOptionsEqual(this._transportOptions, transportOptions)
+    ) {
       logError('enableEmulator called after initialization');
       throw new DataConnectError(
         Code.ALREADY_INITIALIZED,
@@ -189,6 +210,23 @@ export class DataConnect {
     this._transportOptions = transportOptions;
     this.isEmulator = true;
   }
+}
+
+/**
+ * @internal
+ * @param transportOptions1
+ * @param transportOptions2
+ * @returns
+ */
+export function areTransportOptionsEqual(
+  transportOptions1: TransportOptions,
+  transportOptions2: TransportOptions
+): boolean {
+  return (
+    transportOptions1.host === transportOptions2.host &&
+    transportOptions1.port === transportOptions2.port &&
+    transportOptions1.sslEnabled === transportOptions2.sslEnabled
+  );
 }
 
 /**
@@ -204,6 +242,11 @@ export function connectDataConnectEmulator(
   port?: number,
   sslEnabled = false
 ): void {
+  // Workaround to get cookies in Firebase Studio
+  if (isCloudWorkstation(host)) {
+    void pingServer(`https://${host}${port ? `:${port}` : ''}`);
+    updateEmulatorBanner('Data Connect', true);
+  }
   dc.enableEmulator({ host, port, sslEnabled });
 }
 

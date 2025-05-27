@@ -381,7 +381,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     return documentGlobalStore(txn)
       .get(DbRemoteDocumentGlobalKey)
       .next(metadata => {
-        hardAssert(!!metadata, 'Missing document cache metadata');
+        hardAssert(!!metadata, 0x4e35, 'Missing document cache metadata');
         return metadata!;
       });
   }
@@ -655,5 +655,9 @@ export function dbKeyComparator(l: DocumentKey, r: DocumentKey): number {
     return cmp;
   }
 
+  // TODO(b/329441702): Document IDs should be sorted by UTF-8 encoded byte
+  // order, but IndexedDB sorts strings lexicographically. Document ID
+  // comparison here still relies on primitive comparison to avoid mismatches
+  // observed in snapshot listeners with Unicode characters in documentIds
   return primitiveComparator(left[left.length - 1], right[right.length - 1]);
 }

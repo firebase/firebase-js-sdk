@@ -1,5 +1,95 @@
 # @firebase/auth
 
+## 1.10.6
+
+### Patch Changes
+
+- [`35ad526`](https://github.com/firebase/firebase-js-sdk/commit/35ad5266304e14425988fcf5ad06d028b37588ac) [#9053](https://github.com/firebase/firebase-js-sdk/pull/9053) - Revert "Fixed scroll behavior (#9043)"
+
+- [`b5df4ae`](https://github.com/firebase/firebase-js-sdk/commit/b5df4ae71c1b5b54d9237e7929d0f793189b82c9) [#9055](https://github.com/firebase/firebase-js-sdk/pull/9055) - Updated to only show banner when calling connect\*Emulator
+
+## 1.10.5
+
+### Patch Changes
+
+- Updated dependencies [[`8a03143`](https://github.com/firebase/firebase-js-sdk/commit/8a03143b9217effdd86d68bdf195493c0979aa27)]:
+  - @firebase/util@1.12.0
+  - @firebase/component@0.6.17
+
+## 1.10.4
+
+### Patch Changes
+
+- Updated dependencies [[`9bcd1ea`](https://github.com/firebase/firebase-js-sdk/commit/9bcd1ea9b8cc5b55692765d40df000da8ddef02b)]:
+  - @firebase/util@1.11.3
+  - @firebase/component@0.6.16
+
+## 1.10.3
+
+### Patch Changes
+
+- [`8593fa0`](https://github.com/firebase/firebase-js-sdk/commit/8593fa05bd884c2f1f6f3b4ae062efa48af93d24) [#9031](https://github.com/firebase/firebase-js-sdk/pull/9031) - Add Emulator Overlay
+
+- Updated dependencies [[`8593fa0`](https://github.com/firebase/firebase-js-sdk/commit/8593fa05bd884c2f1f6f3b4ae062efa48af93d24)]:
+  - @firebase/util@1.11.2
+  - @firebase/component@0.6.15
+
+## 1.10.2
+
+### Patch Changes
+
+- [`6a02778`](https://github.com/firebase/firebase-js-sdk/commit/6a02778e3d12af683e710b53dc6dfb64329e8229) [#8998](https://github.com/firebase/firebase-js-sdk/pull/8998) - Fix issue where auth port wasn't properly set when setting up cookies in Firebase Studio.
+
+- [`0e12766`](https://github.com/firebase/firebase-js-sdk/commit/0e127664946ba324c6566a02b393dafd23fc1ddb) [#8968](https://github.com/firebase/firebase-js-sdk/pull/8968) - Fix Auth Redirects on Firebase Studio
+
+- Updated dependencies [[`ea1f913`](https://github.com/firebase/firebase-js-sdk/commit/ea1f9139e6baec0269fbb91233fd3f7f4b0d5875), [`0e12766`](https://github.com/firebase/firebase-js-sdk/commit/0e127664946ba324c6566a02b393dafd23fc1ddb)]:
+  - @firebase/util@1.11.1
+  - @firebase/component@0.6.14
+
+## 1.10.1
+
+### Patch Changes
+
+- [`1363ecc`](https://github.com/firebase/firebase-js-sdk/commit/1363ecc533de0ba5bfcae206a831acc33f9020a6) [#8912](https://github.com/firebase/firebase-js-sdk/pull/8912) - Fixed: `ActionCodeURL` not populating `languageCode` from the url.
+
+## 1.10.0
+
+### Minor Changes
+
+- [`fb5d422`](https://github.com/firebase/firebase-js-sdk/commit/fb5d4227571e06df128048abf87cbb1da2ace1bc) [#8839](https://github.com/firebase/firebase-js-sdk/pull/8839) - Adding `Persistence.COOKIE` a new persistence method backed by cookies. The
+  `browserCookiePersistence` implementation is designed to be used in conjunction with middleware that
+  ensures both your front and backend authentication state remains synchronized.
+
+## 1.9.1
+
+### Patch Changes
+
+- [`c791ecf`](https://github.com/firebase/firebase-js-sdk/commit/c791ecf3a03a0e4f56fcdc49b703578135bf8ce6) [#8750](https://github.com/firebase/firebase-js-sdk/pull/8750) - Fixed: invoking `connectAuthEmulator` multiple times with the same parameters will no longer cause
+  an error. Fixes [GitHub Issue #6824](https://github.com/firebase/firebase-js-sdk/issues/6824).
+- Updated dependencies [[`777f465`](https://github.com/firebase/firebase-js-sdk/commit/777f465ff37495ff933a29583769ce8a6a2b59b5)]:
+  - @firebase/util@1.11.0
+  - @firebase/component@0.6.13
+
+## 1.9.0
+
+### Minor Changes
+
+- [`9d88e3a`](https://github.com/firebase/firebase-js-sdk/commit/9d88e3a85a7253694dd7cf58d7eb834e41af2b79) [#8738](https://github.com/firebase/firebase-js-sdk/pull/8738) - Added `ActionCodeSettings.linkDomain` to customize the Firebase Hosting link domain that is used in mobile out-of-band email action flows. Also, deprecated `ActionCodeSettings.dynamicLinkDomain`.
+
+### Patch Changes
+
+- [`97d48c7`](https://github.com/firebase/firebase-js-sdk/commit/97d48c7650e2d4273b7f94c8964dfcb44113952a) [#8651](https://github.com/firebase/firebase-js-sdk/pull/8651) - `FirebaseServerApp` can now be initalized with an App Check token instead of invoking the App Check
+  `getToken` method. This should unblock the use of App Check enforced products in SSR environments
+  where the App Check SDK cannot be initialized.
+
+## 1.8.2
+
+### Patch Changes
+
+- Updated dependencies [[`25a6204c1`](https://github.com/firebase/firebase-js-sdk/commit/25a6204c1531b6c772e5368d12b2411ae1d21bbc)]:
+  - @firebase/util@1.10.3
+  - @firebase/component@0.6.12
+
 ## 1.8.1
 
 ### Patch Changes

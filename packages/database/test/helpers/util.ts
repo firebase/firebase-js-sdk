@@ -16,7 +16,6 @@
  */
 
 import { FirebaseApp, initializeApp } from '@firebase/app';
-import { uuidv4 } from '@firebase/util';
 import { expect } from 'chai';
 
 import {
@@ -34,9 +33,9 @@ import { EventAccumulator } from './EventAccumulator';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../../config/project.json');
-const EMULATOR_PORT = process.env.RTDB_EMULATOR_PORT;
+export const EMULATOR_PORT = process.env.RTDB_EMULATOR_PORT;
 const EMULATOR_NAMESPACE = process.env.RTDB_EMULATOR_NAMESPACE;
-const USE_EMULATOR = !!EMULATOR_PORT;
+export const USE_EMULATOR = !!EMULATOR_PORT;
 
 let freshRepoId = 0;
 const activeFreshApps: FirebaseApp[] = [];
@@ -105,7 +104,7 @@ export function waitFor(waitTimeInMS: number) {
 
 // Creates a unique reference using uuid
 export function getUniqueRef(db: Database) {
-  const path = uuidv4();
+  const path = crypto.randomUUID();
   return ref(db, path);
 }
 
