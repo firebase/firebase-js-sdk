@@ -31,7 +31,7 @@ jobs:
     defaults:
       run:
         # Run any command steps in the /e2e subdir
-        working-directory: './e2e'
+        working-directory: './e2e/smoke-test'
 
     steps:
       - name: Checkout Repo
