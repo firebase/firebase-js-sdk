@@ -288,7 +288,9 @@ describe('core/auth/firebase_internal - Regional Firebase Auth', () => {
       });
       expect(console.warn).to.have.been.calledWith(
         sinon.match.string,
-        sinon.match(/Refresh token is not a valid operation for Regional Auth instance initialized\./)
+        sinon.match(
+          /Refresh token is not a valid operation for Regional Auth instance initialized\./
+        )
       );
     });
   });

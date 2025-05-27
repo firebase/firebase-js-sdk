@@ -47,7 +47,9 @@ export class AuthInterop implements FirebaseAuthInternal {
     await this.auth._initializationPromise;
     if (this.auth.tenantConfig) {
       if (forceRefresh) {
-        _logWarn("Refresh token is not a valid operation for Regional Auth instance initialized.");
+        _logWarn(
+          'Refresh token is not a valid operation for Regional Auth instance initialized.'
+        );
       }
       return this.getTokenForRegionalAuth();
     }
@@ -105,7 +107,9 @@ export class AuthInterop implements FirebaseAuthInternal {
     }
   }
 
-  private async getTokenForRegionalAuth(): Promise<{ accessToken: string } | null> {
+  private async getTokenForRegionalAuth(): Promise<{
+    accessToken: string;
+  } | null> {
     if (!this.auth.firebaseToken) {
       return null;
     }
