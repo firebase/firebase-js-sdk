@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # SingleRequestOptions interface
 Options that can be provided per-request. Extends the base [RequestOptions](./ai.requestoptions.md#requestoptions_interface) (like `timeout` and `baseUrl`<!-- -->) with request-specific controls like cancellation via `AbortSignal`<!-- -->.
 
-Options specified here will override any default [RequestOptions](./ai.requestoptions.md#requestoptions_interface) configured on a model (e.g. [GenerativeModel](./ai.generativemodel.md#generativemodel_class)<!-- -->).
+Options specified here will override any default [RequestOptions](./ai.requestoptions.md#requestoptions_interface) configured on a model (for example, [GenerativeModel](./ai.generativemodel.md#generativemodel_class)<!-- -->).
 
 <b>Signature:</b>
 
@@ -25,7 +25,7 @@ export interface SingleRequestOptions extends RequestOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [signal](./ai.singlerequestoptions.md#singlerequestoptionssignal) | AbortSignal | An <code>AbortSignal</code> instance that allows cancelling ongoing requests (like <code>generateContent</code> or <code>generateImages</code>).<!-- -->If provided, calling <code>abort()</code> on the corresponding <code>AbortController</code> will attempt to cancel the underlying HTTP request. An <code>AbortError</code> will be thrown if cancellation is successful.<!-- -->Note that this will not cancel the request in the backend, so billing will still be applied despite cancellation. |
+|  [signal](./ai.singlerequestoptions.md#singlerequestoptionssignal) | AbortSignal | An <code>AbortSignal</code> instance that allows cancelling ongoing requests (like <code>generateContent</code> or <code>generateImages</code>).<!-- -->If provided, calling <code>abort()</code> on the corresponding <code>AbortController</code> will attempt to cancel the underlying HTTP request. An <code>AbortError</code> will be thrown if cancellation is successful.<!-- -->Note that this will not cancel the request in the backend, so any applicable billing charges will still be applied despite cancellation. |
 
 ## SingleRequestOptions.signal
 
@@ -33,7 +33,7 @@ An `AbortSignal` instance that allows cancelling ongoing requests (like `generat
 
 If provided, calling `abort()` on the corresponding `AbortController` will attempt to cancel the underlying HTTP request. An `AbortError` will be thrown if cancellation is successful.
 
-Note that this will not cancel the request in the backend, so billing will still be applied despite cancellation.
+Note that this will not cancel the request in the backend, so any applicable billing charges will still be applied despite cancellation.
 
 <b>Signature:</b>
 

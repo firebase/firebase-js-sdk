@@ -167,7 +167,7 @@ export interface RequestOptions {
  * with request-specific controls like cancellation via `AbortSignal`.
  *
  * Options specified here will override any default {@link RequestOptions}
- * configured on a model (e.g. {@link GenerativeModel}).
+ * configured on a model (for example, {@link GenerativeModel}).
  *
  * @public
  */
@@ -180,8 +180,8 @@ export interface SingleRequestOptions extends RequestOptions {
    * will attempt to cancel the underlying HTTP request. An `AbortError` will be thrown
    * if cancellation is successful.
    *
-   * Note that this will not cancel the request in the backend, so billing will
-   * still be applied despite cancellation.
+   * Note that this will not cancel the request in the backend, so any applicable billing charges
+   * will still be applied despite cancellation.
    *
    * @example
    * ```javascript
