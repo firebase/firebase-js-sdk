@@ -16,14 +16,28 @@
  */
 
 const karmaBase = require('../../config/karma.base');
+const { argv } = require('yargs');
 
 const files = [`src/**/*.test.ts`];
 
 module.exports = function (config) {
   const karmaConfig = {
     ...karmaBase,
+
+    preprocessors: {
+      ...karmaBase.preprocessors,
+      'integration/**/*.ts': ['webpack', 'sourcemap']
+    },
+
     // files to load into karma
-    files,
+    files: (() => {
+      if (argv.integration) {
+        return ['integration/**'];
+      } else {
+        return ['src/**/*.test.ts'];
+      }
+    })(),
+
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha']
