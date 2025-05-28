@@ -20,7 +20,7 @@ export interface LanguageModelCreateCoreOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [expectedInputs](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionsexpectedinputs) | [LanguageModelExpectedInput](./ai.languagemodelexpectedinput.md#languagemodelexpectedinput_interface)<!-- -->\[\] |  |
+|  [expectedInputs](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionsexpectedinputs) | [LanguageModelExpected](./ai.languagemodelexpected.md#languagemodelexpected_interface)<!-- -->\[\] |  |
 |  [temperature](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionstemperature) | number |  |
 |  [topK](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionstopk) | number |  |
 
@@ -29,7 +29,7 @@ export interface LanguageModelCreateCoreOptions
 <b>Signature:</b>
 
 ```typescript
-expectedInputs?: LanguageModelExpectedInput[];
+expectedInputs?: LanguageModelExpected[];
 ```
 
 ## LanguageModelCreateCoreOptions.temperature

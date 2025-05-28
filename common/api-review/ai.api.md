@@ -667,7 +667,7 @@ export class IntegerSchema extends Schema {
 // @public (undocumented)
 export interface LanguageModelCreateCoreOptions {
     // (undocumented)
-    expectedInputs?: LanguageModelExpectedInput[];
+    expectedInputs?: LanguageModelExpected[];
     // (undocumented)
     temperature?: number;
     // (undocumented)
@@ -677,23 +677,18 @@ export interface LanguageModelCreateCoreOptions {
 // @public (undocumented)
 export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptions {
     // (undocumented)
-    initialPrompts?: LanguageModelInitialPrompts;
+    initialPrompts?: LanguageModelMessage[];
     // (undocumented)
     signal?: AbortSignal;
-    // (undocumented)
-    systemPrompt?: string;
 }
 
 // @public (undocumented)
-export interface LanguageModelExpectedInput {
+export interface LanguageModelExpected {
     // (undocumented)
     languages?: string[];
     // (undocumented)
     type: LanguageModelMessageType;
 }
-
-// @public (undocumented)
-export type LanguageModelInitialPrompts = LanguageModelMessage[] | LanguageModelMessageShorthand[];
 
 // @public (undocumented)
 export interface LanguageModelMessage {
@@ -716,14 +711,6 @@ export type LanguageModelMessageContentValue = ImageBitmapSource | AudioBuffer |
 
 // @public (undocumented)
 export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
-
-// @public (undocumented)
-export interface LanguageModelMessageShorthand {
-    // (undocumented)
-    content: string;
-    // (undocumented)
-    role: LanguageModelMessageRole;
-}
 
 // @public (undocumented)
 export type LanguageModelMessageType = 'text' | 'image' | 'audio';

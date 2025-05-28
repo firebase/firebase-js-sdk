@@ -9,32 +9,32 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# LanguageModelMessageShorthand interface
+# LanguageModelExpected interface
 <b>Signature:</b>
 
 ```typescript
-export interface LanguageModelMessageShorthand 
+export interface LanguageModelExpected 
 ```
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [content](./ai.languagemodelmessageshorthand.md#languagemodelmessageshorthandcontent) | string |  |
-|  [role](./ai.languagemodelmessageshorthand.md#languagemodelmessageshorthandrole) | [LanguageModelMessageRole](./ai.md#languagemodelmessagerole) |  |
+|  [languages](./ai.languagemodelexpected.md#languagemodelexpectedlanguages) | string\[\] |  |
+|  [type](./ai.languagemodelexpected.md#languagemodelexpectedtype) | [LanguageModelMessageType](./ai.md#languagemodelmessagetype) |  |
 
-## LanguageModelMessageShorthand.content
+## LanguageModelExpected.languages
 
 <b>Signature:</b>
 
 ```typescript
-content: string;
+languages?: string[];
 ```
 
-## LanguageModelMessageShorthand.role
+## LanguageModelExpected.type
 
 <b>Signature:</b>
 
 ```typescript
-role: LanguageModelMessageRole;
+type: LanguageModelMessageType;
 ```

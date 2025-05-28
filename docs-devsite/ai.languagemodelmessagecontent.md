@@ -20,16 +20,8 @@ export interface LanguageModelMessageContent
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [content](./ai.languagemodelmessagecontent.md#languagemodelmessagecontentcontent) | [LanguageModelMessageContentValue](./ai.md#languagemodelmessagecontentvalue) |  |
 |  [type](./ai.languagemodelmessagecontent.md#languagemodelmessagecontenttype) | [LanguageModelMessageType](./ai.md#languagemodelmessagetype) |  |
-
-## LanguageModelMessageContent.content
-
-<b>Signature:</b>
-
-```typescript
-content: LanguageModelMessageContentValue;
-```
+|  [value](./ai.languagemodelmessagecontent.md#languagemodelmessagecontentvalue) | [LanguageModelMessageContentValue](./ai.md#languagemodelmessagecontentvalue) |  |
 
 ## LanguageModelMessageContent.type
 
@@ -37,4 +29,12 @@ content: LanguageModelMessageContentValue;
 
 ```typescript
 type: LanguageModelMessageType;
+```
+
+## LanguageModelMessageContent.value
+
+<b>Signature:</b>
+
+```typescript
+value: LanguageModelMessageContentValue;
 ```
