@@ -706,9 +706,9 @@ export interface LanguageModelMessage {
 // @public (undocumented)
 export interface LanguageModelMessageContent {
     // (undocumented)
-    content: LanguageModelMessageContentValue;
-    // (undocumented)
     type: LanguageModelMessageType;
+    // (undocumented)
+    value: LanguageModelMessageContentValue;
 }
 
 // @public (undocumented)

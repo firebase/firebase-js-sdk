@@ -23,12 +23,16 @@ import {
   InferenceMode,
   Part,
   AIErrorCode,
-  OnDeviceParams
+  OnDeviceParams,
+  Content,
+  Role
 } from '../types';
 import {
   Availability,
   LanguageModel,
-  LanguageModelMessageContent
+  LanguageModelMessage,
+  LanguageModelMessageContent,
+  LanguageModelMessageRole
 } from '../types/language-model';
 
 /**
@@ -115,10 +119,8 @@ export class ChromeAdapter {
    */
   async generateContent(request: GenerateContentRequest): Promise<Response> {
     const session = await this.createSession();
-    // TODO: support multiple content objects when Chrome supports
-    // sequence<LanguageModelMessage>
     const contents = await Promise.all(
-      request.contents[0].parts.map(ChromeAdapter.toLanguageModelMessageContent)
+      request.contents.map(ChromeAdapter.toLanguageModelMessage)
     );
     const text = await session.prompt(
       contents,
@@ -139,10 +141,8 @@ export class ChromeAdapter {
     request: GenerateContentRequest
   ): Promise<Response> {
     const session = await this.createSession();
-    // TODO: support multiple content objects when Chrome supports
-    // sequence<LanguageModelMessage>
     const contents = await Promise.all(
-      request.contents[0].parts.map(ChromeAdapter.toLanguageModelMessageContent)
+      request.contents.map(ChromeAdapter.toLanguageModelMessage)
     );
     const stream = await session.promptStreaming(
       contents,
@@ -169,12 +169,8 @@ export class ChromeAdapter {
     }
 
     for (const content of request.contents) {
-      // Returns false if the request contains multiple roles, eg a chat history.
-      // TODO: remove this guard once LanguageModelMessage is supported.
-      if (content.role !== 'user') {
-        logger.debug(
-          `Non-user role "${content.role}" rejected for on-device inference.`
-        );
+      if (content.role === 'function') {
+        logger.debug(`"Function" role rejected for on-device inference.`);
         return false;
       }
 
@@ -234,6 +230,21 @@ export class ChromeAdapter {
   }
 
   /**
+   * Converts Vertex {@link Content} object to a Chrome {@link LanguageModelMessage} object.
+   */
+  private static async toLanguageModelMessage(
+    content: Content
+  ): Promise<LanguageModelMessage> {
+    const languageModelMessageContents = await Promise.all(
+      content.parts.map(ChromeAdapter.toLanguageModelMessageContent)
+    );
+    return {
+      role: ChromeAdapter.toLanguageModelMessageRole(content.role),
+      content: languageModelMessageContents
+    };
+  }
+
+  /**
    * Converts a Vertex Part object to a Chrome LanguageModelMessageContent object.
    */
   private static async toLanguageModelMessageContent(
@@ -242,7 +253,7 @@ export class ChromeAdapter {
     if (part.text) {
       return {
         type: 'text',
-        content: part.text
+        value: part.text
       };
     } else if (part.inlineData) {
       const formattedImageContent = await fetch(
@@ -252,12 +263,22 @@ export class ChromeAdapter {
       const imageBitmap = await createImageBitmap(imageBlob);
       return {
         type: 'image',
-        content: imageBitmap
+        value: imageBitmap
       };
     }
     // Assumes contents have been verified to contain only a single TextPart.
     // TODO: support other input types
     throw new Error('Not yet implemented');
+  }
+
+  /**
+   * Converts a Vertex {@link Role} string to a {@link LanguageModelMessageRole} string.
+   */
+  private static toLanguageModelMessageRole(
+    role: Role
+  ): LanguageModelMessageRole {
+    // Assumes 'function' rule has been filtered by isOnDeviceRequest
+    return role === 'model' ? 'assistant' : 'user';
   }
 
   /**
