@@ -20,9 +20,8 @@ const json = require('@rollup/plugin-json');
 const alias = require('@rollup/plugin-alias');
 const typescriptPlugin = require('rollup-plugin-typescript2');
 const typescript = require('typescript');
-const { terser } = require('rollup-plugin-terser');
+const { terser } = require('@rollup/plugin-terser');
 const path = require('path');
-const sourcemaps = require('rollup-plugin-sourcemaps');
 
 const { renameInternals } = require('./scripts/rename-internals');
 const { extractPublicIdentifiers } = require('./scripts/extract-api');

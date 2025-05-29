@@ -22,10 +22,16 @@ import {
   OOB_TRACE_PAGE_LOAD_PREFIX,
   FIRST_PAINT_COUNTER_NAME,
   FIRST_CONTENTFUL_PAINT_COUNTER_NAME,
-  FIRST_INPUT_DELAY_COUNTER_NAME
+  FIRST_INPUT_DELAY_COUNTER_NAME,
+  LARGEST_CONTENTFUL_PAINT_METRIC_NAME,
+  LARGEST_CONTENTFUL_PAINT_ATTRIBUTE_NAME,
+  INTERACTION_TO_NEXT_PAINT_METRIC_NAME,
+  INTERACTION_TO_NEXT_PAINT_ATTRIBUTE_NAME,
+  CUMULATIVE_LAYOUT_SHIFT_METRIC_NAME,
+  CUMULATIVE_LAYOUT_SHIFT_ATTRIBUTE_NAME
 } from '../constants';
 import { Api } from '../services/api_service';
-import { logTrace } from '../services/perf_logger';
+import { logTrace, flushLogs } from '../services/perf_logger';
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
 import {
   isValidCustomAttributeName,
@@ -37,6 +43,7 @@ import {
 } from '../utils/metric_utils';
 import { PerformanceTrace } from '../public_types';
 import { PerformanceController } from '../controllers/perf';
+import { CoreVitalMetric, WebVitalMetrics } from './web_vitals';
 
 const enum TraceState {
   UNINITIALIZED = 1,
@@ -279,6 +286,7 @@ export class Trace implements PerformanceTrace {
     performanceController: PerformanceController,
     navigationTimings: PerformanceNavigationTiming[],
     paintTimings: PerformanceEntry[],
+    webVitalMetrics: WebVitalMetrics,
     firstInputDelay?: number
   ): void {
     const route = Api.getInstance().getUrl();
@@ -340,7 +348,43 @@ export class Trace implements PerformanceTrace {
       }
     }
 
+    this.addWebVitalMetric(
+      trace,
+      LARGEST_CONTENTFUL_PAINT_METRIC_NAME,
+      LARGEST_CONTENTFUL_PAINT_ATTRIBUTE_NAME,
+      webVitalMetrics.lcp
+    );
+    this.addWebVitalMetric(
+      trace,
+      CUMULATIVE_LAYOUT_SHIFT_METRIC_NAME,
+      CUMULATIVE_LAYOUT_SHIFT_ATTRIBUTE_NAME,
+      webVitalMetrics.cls
+    );
+    this.addWebVitalMetric(
+      trace,
+      INTERACTION_TO_NEXT_PAINT_METRIC_NAME,
+      INTERACTION_TO_NEXT_PAINT_ATTRIBUTE_NAME,
+      webVitalMetrics.inp
+    );
+
+    // Page load logs are sent at unload time and so should be logged and
+    // flushed immediately.
     logTrace(trace);
+    flushLogs();
+  }
+
+  static addWebVitalMetric(
+    trace: Trace,
+    metricKey: string,
+    attributeKey: string,
+    metric?: CoreVitalMetric
+  ): void {
+    if (metric) {
+      trace.putMetric(metricKey, Math.floor(metric.value * 1000));
+      if (metric.elementAttribution) {
+        trace.putAttribute(attributeKey, metric.elementAttribution);
+      }
+    }
   }
 
   static createUserTimingTrace(

@@ -76,7 +76,7 @@ export function mutationRef<Data, Variables>(
  * @internal
  */
 export class MutationManager {
-  private _inflight: Array<PromiseLike<unknown>> = [];
+  private _inflight: Array<Promise<unknown>> = [];
   constructor(private _transport: DataConnectTransport) {}
   executeMutation<Data, Variables>(
     mutationRef: MutationRef<Data, Variables>
@@ -95,7 +95,7 @@ export class MutationManager {
       return obj;
     });
     this._inflight.push(result);
-    const removePromise = (): Array<PromiseLike<unknown>> =>
+    const removePromise = (): Array<Promise<unknown>> =>
       (this._inflight = this._inflight.filter(promise => promise !== result));
     result.then(removePromise, removePromise);
     return withRefPromise;
@@ -113,7 +113,7 @@ export interface MutationResult<Data, Variables>
  * Mutation return value from `executeMutation`
  */
 export interface MutationPromise<Data, Variables>
-  extends PromiseLike<MutationResult<Data, Variables>> {
+  extends Promise<MutationResult<Data, Variables>> {
   // reserved for special actions like cancellation
 }
 

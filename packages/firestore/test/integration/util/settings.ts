@@ -110,6 +110,10 @@ function getFirestoreHost(targetBackend: TargetBackend): string {
   }
 }
 
+export function getEmulatorPort(): number {
+  return parseInt(process.env.FIRESTORE_EMULATOR_PORT || '8080', 10);
+}
+
 function getSslEnabled(targetBackend: TargetBackend): boolean {
   return targetBackend !== TargetBackend.EMULATOR;
 }

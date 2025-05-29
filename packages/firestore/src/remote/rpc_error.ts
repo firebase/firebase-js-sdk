@@ -58,7 +58,7 @@ enum RpcCode {
 export function isPermanentError(code: Code): boolean {
   switch (code) {
     case Code.OK:
-      return fail('Treated status OK as error');
+      return fail(0xfdaa, 'Treated status OK as error');
     case Code.CANCELLED:
     case Code.UNKNOWN:
     case Code.DEADLINE_EXCEEDED:
@@ -83,7 +83,7 @@ export function isPermanentError(code: Code): boolean {
     case Code.DATA_LOSS:
       return true;
     default:
-      return fail('Unknown status code: ' + code);
+      return fail(0x3c6b, 'Unknown status code', { code });
   }
 }
 
@@ -171,7 +171,7 @@ export function mapCodeFromRpcCode(code: number | undefined): Code {
     case RpcCode.DATA_LOSS:
       return Code.DATA_LOSS;
     default:
-      return fail('Unknown status code: ' + code);
+      return fail(0x999b, 'Unknown status code', { code });
   }
 }
 
@@ -220,7 +220,7 @@ export function mapRpcCodeFromCode(code: Code | undefined): number {
     case Code.DATA_LOSS:
       return RpcCode.DATA_LOSS;
     default:
-      return fail('Unknown status code: ' + code);
+      return fail(0x3019, 'Unknown status code', { code });
   }
 }
 

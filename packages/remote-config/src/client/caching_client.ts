@@ -16,8 +16,8 @@
  */
 
 import { StorageCache } from '../storage/storage_cache';
+import { FetchResponse } from '../public_types';
 import {
-  FetchResponse,
   RemoteConfigFetchClient,
   FetchRequest
 } from './remote_config_fetch_client';

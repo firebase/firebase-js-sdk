@@ -166,37 +166,6 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     await deleteApp(serverApp);
   });
 
-  it('invalid token does not sign in user', async () => {
-    if (isBrowser()) {
-      return;
-    }
-    const authIdToken = '{ invalid token }';
-    const firebaseServerAppSettings = { authIdToken };
-
-    const serverApp = initializeServerApp(
-      getAppConfig(),
-      firebaseServerAppSettings
-    );
-    const serverAppAuth = getTestInstanceForServerApp(serverApp);
-    expect(serverAppAuth.currentUser).to.be.null;
-
-    let numberServerLogins = 0;
-    onAuthStateChanged(serverAppAuth, serverAuthUser => {
-      if (serverAuthUser) {
-        numberServerLogins++;
-      }
-    });
-
-    await new Promise(resolve => {
-      setTimeout(resolve, signInWaitDuration);
-    });
-
-    expect(numberServerLogins).to.equal(0);
-    expect(serverAppAuth.currentUser).to.be.null;
-
-    await deleteApp(serverApp);
-  });
-
   it('signs in with email credentials user', async () => {
     if (isBrowser()) {
       return;

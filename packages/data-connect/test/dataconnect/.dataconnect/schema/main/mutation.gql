@@ -1,8 +1,0 @@
-extend type Mutation {
-  movie_insert(data: Movie_Data!): Movie_Key!
-  movie_upsert(data: Movie_Data!, update: Movie_Update): Movie_Key!
-  movie_update(id: String, id_expr: String_Expr, key: Movie_Key, data: Movie_Data, update: Movie_Update): Movie_Key
-  movie_updateMany(where: Movie_Filter, all: Boolean = false, data: Movie_Data, update: Movie_Update): Int!
-  movie_delete(id: String, id_expr: String_Expr, key: Movie_Key): Movie_Key
-  movie_deleteMany(where: Movie_Filter, all: Boolean = false): Int!
-}

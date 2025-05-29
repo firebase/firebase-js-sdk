@@ -16,3 +16,6 @@
  */
 
 export const RC_COMPONENT_NAME = 'remote-config';
+export const RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS = 100;
+export const RC_CUSTOM_SIGNAL_KEY_MAX_LENGTH = 250;
+export const RC_CUSTOM_SIGNAL_VALUE_MAX_LENGTH = 500;

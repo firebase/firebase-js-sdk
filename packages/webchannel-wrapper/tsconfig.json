@@ -3,7 +3,7 @@
   "compilerOptions": {
     "declaration": false,
     "outDir": "dist",
-    "downlevelIteration": true,
+    "downlevelIteration": true
   },
   "include": ["../../node_modules/closure-net/firebase"]
 }

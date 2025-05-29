@@ -21,14 +21,10 @@ import { consoleLogger } from '../utils/console_logger';
 
 const DEFAULT_SEND_INTERVAL_MS = 10 * 1000;
 const INITIAL_SEND_TIME_DELAY_MS = 5.5 * 1000;
-// If end point does not work, the call will be tried for these many times.
-const DEFAULT_REMAINING_TRIES = 3;
 const MAX_EVENT_COUNT_PER_REQUEST = 1000;
-let remainingTries = DEFAULT_REMAINING_TRIES;
+const DEFAULT_REMAINING_TRIES = 3;
 
-interface LogResponseDetails {
-  responseAction?: string;
-}
+let remainingTries = DEFAULT_REMAINING_TRIES;
 
 interface BatchEvent {
   message: string;
@@ -77,16 +73,14 @@ export function resetTransportService(): void {
 function processQueue(timeOffset: number): void {
   setTimeout(() => {
     // If there is no remainingTries left, stop retrying.
-    if (remainingTries === 0) {
+    if (remainingTries <= 0) {
       return;
     }
 
-    // If there are no events to process, wait for DEFAULT_SEND_INTERVAL_MS and try again.
-    if (!queue.length) {
-      return processQueue(DEFAULT_SEND_INTERVAL_MS);
+    if (queue.length > 0) {
+      dispatchQueueEvents();
     }
-
-    dispatchQueueEvents();
+    processQueue(DEFAULT_SEND_INTERVAL_MS);
   }, timeOffset);
 }
 
@@ -114,60 +108,32 @@ function dispatchQueueEvents(): void {
   };
   /* eslint-enable camelcase */
 
-  sendEventsToFl(data, staged).catch(() => {
-    // If the request fails for some reason, add the events that were attempted
-    // back to the primary queue to retry later.
-    queue = [...staged, ...queue];
-    remainingTries--;
-    consoleLogger.info(`Tries left: ${remainingTries}.`);
-    processQueue(DEFAULT_SEND_INTERVAL_MS);
-  });
-}
-
-function sendEventsToFl(
-  data: TransportBatchLogFormat,
-  staged: BatchEvent[]
-): Promise<void> {
-  return postToFlEndpoint(data)
-    .then(res => {
-      if (!res.ok) {
-        consoleLogger.info('Call to Firebase backend failed.');
-      }
-      return res.json();
-    })
-    .then(res => {
-      // Find the next call wait time from the response.
-      const transportWait = Number(res.nextRequestWaitMillis);
-      let requestOffset = DEFAULT_SEND_INTERVAL_MS;
-      if (!isNaN(transportWait)) {
-        requestOffset = Math.max(transportWait, requestOffset);
-      }
-
-      // Delete request if response include RESPONSE_ACTION_UNKNOWN or DELETE_REQUEST action.
-      // Otherwise, retry request using normal scheduling if response include RETRY_REQUEST_LATER.
-      const logResponseDetails: LogResponseDetails[] = res.logResponseDetails;
-      if (
-        Array.isArray(logResponseDetails) &&
-        logResponseDetails.length > 0 &&
-        logResponseDetails[0].responseAction === 'RETRY_REQUEST_LATER'
-      ) {
-        queue = [...staged, ...queue];
-        consoleLogger.info(`Retry transport request later.`);
-      }
-
+  postToFlEndpoint(data)
+    .then(() => {
       remainingTries = DEFAULT_REMAINING_TRIES;
-      // Schedule the next process.
-      processQueue(requestOffset);
+    })
+    .catch(() => {
+      // If the request fails for some reason, add the events that were attempted
+      // back to the primary queue to retry later.
+      queue = [...staged, ...queue];
+      remainingTries--;
+      consoleLogger.info(`Tries left: ${remainingTries}.`);
+      processQueue(DEFAULT_SEND_INTERVAL_MS);
     });
 }
 
-function postToFlEndpoint(data: TransportBatchLogFormat): Promise<Response> {
+function postToFlEndpoint(data: TransportBatchLogFormat): Promise<void> {
   const flTransportFullUrl =
     SettingsService.getInstance().getFlTransportFullUrl();
-  return fetch(flTransportFullUrl, {
-    method: 'POST',
-    body: JSON.stringify(data)
-  });
+  const body = JSON.stringify(data);
+
+  return navigator.sendBeacon && navigator.sendBeacon(flTransportFullUrl, body)
+    ? Promise.resolve()
+    : fetch(flTransportFullUrl, {
+        method: 'POST',
+        body,
+        keepalive: true
+      }).then();
 }
 
 function addToQueue(evt: BatchEvent): void {
@@ -190,4 +156,14 @@ export function transportHandler(
       eventTime: Date.now()
     });
   };
+}
+
+/**
+ * Force flush the queued events. Useful at page unload time to ensure all
+ * events are uploaded.
+ */
+export function flushQueuedEvents(): void {
+  while (queue.length > 0) {
+    dispatchQueueEvents();
+  }
 }

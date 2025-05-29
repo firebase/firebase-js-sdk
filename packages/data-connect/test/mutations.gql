@@ -1,6 +1,0 @@
-mutation seedDatabase($id: UUID!, $content: String!) @auth(level: PUBLIC) {
-    post: post_insert(data: {id: $id, content: $content})
-}
-mutation removePost($id: UUID!) @auth(level: PUBLIC) {
-    post: post_delete(id: $id)
-}

@@ -37,9 +37,16 @@ export function _setActionCodeSettingsOnRequest(
     auth,
     AuthErrorCode.INVALID_DYNAMIC_LINK_DOMAIN
   );
+  _assert(
+    typeof actionCodeSettings.linkDomain === 'undefined' ||
+      actionCodeSettings.linkDomain.length > 0,
+    auth,
+    AuthErrorCode.INVALID_HOSTING_LINK_DOMAIN
+  );
 
   request.continueUrl = actionCodeSettings.url;
   request.dynamicLinkDomain = actionCodeSettings.dynamicLinkDomain;
+  request.linkDomain = actionCodeSettings.linkDomain;
   request.canHandleCodeInApp = actionCodeSettings.handleCodeInApp;
 
   if (actionCodeSettings.iOS) {

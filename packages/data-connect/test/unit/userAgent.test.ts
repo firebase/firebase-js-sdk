@@ -54,7 +54,7 @@ describe('User Agent Tests', () => {
     // @ts-ignore
     await executeQuery(queryRef(dc, '')).catch(() => {});
     expect(fakeFetchImpl).to.be.calledWithMatch(
-      'https://firebasedataconnect.googleapis.com/v1beta/projects/p/locations/l/services/s/connectors/c:executeQuery',
+      'https://firebasedataconnect.googleapis.com/v1/projects/p/locations/l/services/s/connectors/c:executeQuery',
       {
         headers: {
           ['X-Goog-Api-Client']: 'gl-js/ fire/' + SDK_VERSION + ' js/gen'
@@ -66,7 +66,7 @@ describe('User Agent Tests', () => {
     // @ts-ignore
     await executeQuery(queryRef(dc, '')).catch(() => {});
     expect(fakeFetchImpl).to.be.calledWithMatch(
-      'https://firebasedataconnect.googleapis.com/v1beta/projects/p/locations/l/services/s/connectors/c:executeQuery',
+      'https://firebasedataconnect.googleapis.com/v1/projects/p/locations/l/services/s/connectors/c:executeQuery',
       {
         headers: {
           ['X-Goog-Api-Client']: 'gl-js/ fire/' + SDK_VERSION

@@ -10,6 +10,12 @@ import { FirebaseApp } from '@firebase/app';
 export function activate(remoteConfig: RemoteConfig): Promise<boolean>;
 
 // @public
+export interface CustomSignals {
+    // (undocumented)
+    [key: string]: string | number | null;
+}
+
+// @public
 export function ensureInitialized(remoteConfig: RemoteConfig): Promise<void>;
 
 // @public
@@ -19,7 +25,20 @@ export function fetchAndActivate(remoteConfig: RemoteConfig): Promise<boolean>;
 export function fetchConfig(remoteConfig: RemoteConfig): Promise<void>;
 
 // @public
+export interface FetchResponse {
+    config?: FirebaseRemoteConfigObject;
+    eTag?: string;
+    status: number;
+}
+
+// @public
 export type FetchStatus = 'no-fetch-yet' | 'success' | 'failure' | 'throttle';
+
+// @public
+export interface FirebaseRemoteConfigObject {
+    // (undocumented)
+    [key: string]: string;
+}
 
 // @public
 export function getAll(remoteConfig: RemoteConfig): Record<string, Value>;
@@ -31,7 +50,7 @@ export function getBoolean(remoteConfig: RemoteConfig, key: string): boolean;
 export function getNumber(remoteConfig: RemoteConfig, key: string): number;
 
 // @public (undocumented)
-export function getRemoteConfig(app?: FirebaseApp): RemoteConfig;
+export function getRemoteConfig(app?: FirebaseApp, options?: RemoteConfigOptions): RemoteConfig;
 
 // @public
 export function getString(remoteConfig: RemoteConfig, key: string): string;
@@ -57,10 +76,19 @@ export interface RemoteConfig {
 }
 
 // @public
+export interface RemoteConfigOptions {
+    initialFetchResponse?: FetchResponse;
+    templateId?: string;
+}
+
+// @public
 export interface RemoteConfigSettings {
     fetchTimeoutMillis: number;
     minimumFetchIntervalMillis: number;
 }
+
+// @public
+export function setCustomSignals(remoteConfig: RemoteConfig, customSignals: CustomSignals): Promise<void>;
 
 // @public
 export function setLogLevel(remoteConfig: RemoteConfig, logLevel: LogLevel): void;

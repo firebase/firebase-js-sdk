@@ -1609,6 +1609,6 @@ function toLegacyDbRemoteDocument(
       parentPath
     };
   } else {
-    return fail('Unexpected Document ' + document);
+    return fail(0x6bb7, 'Unexpected Document ', { document });
   }
 }

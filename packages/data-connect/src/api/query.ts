@@ -67,7 +67,7 @@ export interface QueryResult<Data, Variables>
  * Promise returned from `executeQuery`
  */
 export interface QueryPromise<Data, Variables>
-  extends PromiseLike<QueryResult<Data, Variables>> {
+  extends Promise<QueryResult<Data, Variables>> {
   // reserved for special actions like cancellation
 }
 
@@ -124,7 +124,7 @@ export function queryRef<Data, Variables>(
     dataConnect: dcInstance,
     refType: QUERY_STR,
     name: queryName,
-    variables: variables as Variables
+    variables
   };
 }
 /**

@@ -86,24 +86,30 @@ import {
   StorageReference,
   deleteObject
 } from 'firebase/storage';
+import {
+  getGenerativeModel,
+  getAI,
+  AI,
+  VertexAIBackend
+} from 'firebase/vertexai';
+import { getDataConnect, DataConnect } from 'firebase/data-connect';
 import { config, testAccount } from '../firebase-config';
-import 'chai/register-expect';
-import { expect } from 'chai';
+import 'jest';
 
 describe('MODULAR', () => {
   let app: FirebaseApp;
-  before(() => {
+  beforeAll(() => {
     console.log('FIREBASE VERSION', SDK_VERSION);
     app = initializeApp(config);
     setLogLevel('warn');
   });
 
-  after(() => {
+  afterAll(() => {
     signOut(getAuth(app));
     deleteApp(app);
   });
 
-  describe('AUTH', async () => {
+  describe('AUTH', () => {
     let auth: Auth;
     it('initializeAuth()', () => {
       auth = initializeAuth(app);
@@ -118,11 +124,11 @@ describe('MODULAR', () => {
         testAccount.password
       );
       console.log('Logged in with test account', cred.user.email);
-      expect(cred.user.email).to.equal(testAccount.email);
+      expect(cred.user.email).toBe(testAccount.email);
     });
   });
 
-  describe('APP CHECK', async () => {
+  describe('APP CHECK', () => {
     let appCheck: AppCheck;
     it('init appCheck', () => {
       // Test uses debug token, any string is fine here.
@@ -135,7 +141,7 @@ describe('MODULAR', () => {
     });
   });
 
-  describe('FUNCTIONS', async () => {
+  describe('FUNCTIONS', () => {
     let functions: Functions;
     it('getFunctions()', () => {
       functions = getFunctions(app);
@@ -146,21 +152,21 @@ describe('MODULAR', () => {
         'callTest'
       );
       const result = await callTest({ data: 'blah' });
-      expect(result.data.word).to.equal('hellooo');
+      expect(result.data.word).toBe('hellooo');
       // This takes a while. Extend timeout past default (2000)
-    }).timeout(5000);
+    });
     it('httpsCallableFromURL()', async () => {
       const callTest = httpsCallableFromURL<{ data: string }, { word: string }>(
         functions,
         `https://us-central1-${app.options.projectId}.cloudfunctions.net/callTest`
       );
       const result = await callTest({ data: 'blah' });
-      expect(result.data.word).to.equal('hellooo');
+      expect(result.data.word).toBe('hellooo');
       // This takes a while. Extend timeout past default (2000)
-    }).timeout(5000);
+    });
   });
 
-  describe('STORAGE', async () => {
+  describe('STORAGE', () => {
     let storage: FirebaseStorage;
     let sRef: StorageReference;
     let url: string;
@@ -173,25 +179,28 @@ describe('MODULAR', () => {
     });
     it('getDownloadURL()', async () => {
       url = await getDownloadURL(sRef);
-      expect(url).to.match(/test-exp\.txt/);
+      expect(url).toMatch(/test-exp\.txt/);
     });
     it('fetch uploaded data', async () => {
       const response = await fetch(url);
       const data = await response.text();
-      expect(data).to.equal('exp-efg');
+      expect(data).toBe('exp-efg');
       await deleteObject(sRef);
     });
   });
 
-  describe('FIRESTORE', async () => {
+  describe('FIRESTORE', () => {
     let firestore: Firestore;
     it('initializeFirestore()', () => {
-      firestore = initializeFirestore(app, {});
+      // fetch streams doesn't work in Jest.
+      // @ts-ignore I think the option is private so TS doesn't like it.
+      firestore = initializeFirestore(app, { useFetchStreams: false });
     });
     it('getFirestore()', () => {
       firestore = getFirestore(app);
     });
     it('setDoc(), getDocs(), query(), where()', async () => {
+      firestore = getFirestore(app);
       await setDoc(doc(firestore, 'testCollection/trueDoc'), {
         testbool: true
       });
@@ -205,18 +214,20 @@ describe('MODULAR', () => {
           where('testbool', '==', true)
         )
       );
-      expect(trueDocs.docs.length).to.equal(1);
+      expect(trueDocs.docs.length).toBe(1);
       await deleteDoc(doc(collection(firestore, 'testCollection'), 'trueDoc'));
+
       await deleteDoc(doc(firestore, 'testCollection/falseDoc'));
     });
     it('onSnapshot() reflects CRUD operations', async () => {
+      firestore = getFirestore(app);
       const testDocRef = doc(firestore, 'testCollection/testDoc');
       let expectedData: any = {};
-      onSnapshot(testDocRef, snap => {
+      const unsub = onSnapshot(testDocRef, snap => {
         if (snap.exists()) {
-          expect(snap.data()).to.deep.equal(expectedData);
+          expect(snap.data()).toEqual(expectedData);
         } else {
-          expect(expectedData).to.be.null;
+          expect(expectedData).toBeNull;
         }
       });
       expectedData = { word: 'hi', number: 14 };
@@ -225,10 +236,11 @@ describe('MODULAR', () => {
       await updateDoc(testDocRef, { word: 'bye', newProp: ['a'] });
       expectedData = null;
       await deleteDoc(testDocRef);
+      unsub();
     });
   });
 
-  describe('DATABASE', async () => {
+  describe('DATABASE', () => {
     let db: Database;
     it('getDatabase', () => {
       db = getDatabase(app);
@@ -238,9 +250,9 @@ describe('MODULAR', () => {
       let expectedValue: any = {};
       onValue(ref, snap => {
         if (snap.exists()) {
-          expect(snap.val()).to.deep.equal(expectedValue);
+          expect(snap.val()).toEqual(expectedValue);
         } else {
-          expect(expectedValue).to.be.null;
+          expect(expectedValue).toBeNull;
         }
       });
       expectedValue = { text: 'string 123 xyz' };
@@ -255,15 +267,31 @@ describe('MODULAR', () => {
 
   describe('MESSAGING', () => {
     it('getMessaging()', () => {
+      // @ts-ignore Stub missing browser APIs that FCM depends on
+      window.indexedDB = { open: () => Promise.resolve() };
+      // @ts-ignore Stub missing browser APIs that FCM depends on
+      navigator.serviceWorker = { addEventListener: () => {} };
       getMessaging(app);
+      // @ts-ignore
+      delete window.indexedDB;
+      // @ts-ignore
+      delete navigator.serviceWorker;
     });
   });
 
-  describe('ANALYTICS', async () => {
+  describe('ANALYTICS', () => {
     let analytics: Analytics;
-    it('analyticsIsSupported()', () => analyticsIsSupported());
+    it('analyticsIsSupported()', () => {
+      analyticsIsSupported();
+    });
     it('getAnalytics()', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementationOnce(() => {});
       analytics = getAnalytics(app);
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringMatching('@firebase/analytics'),
+        expect.stringMatching(/IndexedDB unavailable/)
+      );
+      warn.mockRestore();
     });
     it("logEvent() doesn't error", () => {
       logEvent(analytics, 'begin_checkout');
@@ -280,7 +308,34 @@ describe('MODULAR', () => {
       trace.start();
       trace.stop();
       trace.putAttribute('testattr', 'perftestvalue');
-      expect(trace.getAttribute('testattr')).to.equal('perftestvalue');
+      expect(trace.getAttribute('testattr')).toBe('perftestvalue');
+    });
+  });
+
+  describe('AI', () => {
+    let ai: AI;
+    it('getVertexAI()', () => {
+      ai = getAI(app, { backend: new VertexAIBackend() });
+    });
+    it('getGenerativeModel() and countTokens()', async () => {
+      const model = getGenerativeModel(ai, { model: 'gemini-1.5-flash' });
+      expect(model.model).toMatch(/gemini-1.5-flash$/);
+      const result = await model.countTokens('abcdefg');
+      expect(result.totalTokens).toBeTruthy;
+    });
+  });
+
+  describe('DATA CONNECT', () => {
+    let dataConnect: DataConnect;
+    it('getDataConnect()', () => {
+      dataConnect = getDataConnect(app, {
+        location: 'a-location',
+        connector: 'a-connector',
+        service: 'service'
+      });
+    });
+    it('dataConnect.getSettings()', () => {
+      expect(dataConnect.getSettings().location).toBe('a-location');
     });
   });
 });

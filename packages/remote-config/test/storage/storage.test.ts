@@ -18,12 +18,14 @@
 import '../setup';
 import { expect } from 'chai';
 import {
-  Storage,
   ThrottleMetadata,
   openDatabase,
-  APP_NAMESPACE_STORE
+  APP_NAMESPACE_STORE,
+  IndexedDbStorage,
+  InMemoryStorage,
+  Storage
 } from '../../src/storage/storage';
-import { FetchResponse } from '../../src/client/remote_config_fetch_client';
+import { FetchResponse } from '../../src';
 
 // Clears global IndexedDB state.
 async function clearDatabase(): Promise<void> {
@@ -34,87 +36,161 @@ async function clearDatabase(): Promise<void> {
 }
 
 describe('Storage', () => {
-  const storage = new Storage('appId', 'appName', 'namespace');
+  const indexedDbTestCase = {
+    getStorage: () => new IndexedDbStorage('appId', 'appName', 'namespace'),
+    name: 'IndexedDbStorage'
+  };
+
+  const inMemoryStorage = {
+    getStorage: () => new InMemoryStorage(),
+    name: 'InMemoryStorage'
+  };
 
   beforeEach(async () => {
     await clearDatabase();
   });
 
-  it('constructs a composite key', async () => {
+  it(`${indexedDbTestCase.name} constructs a composite key`, async () => {
     // This is defensive, but the cost of accidentally changing the key composition is high.
-    expect(storage.createCompositeKey('throttle_metadata')).to.eq(
-      'appId,appName,namespace,throttle_metadata'
-    );
+    expect(
+      indexedDbTestCase.getStorage().createCompositeKey('throttle_metadata')
+    ).to.eq('appId,appName,namespace,throttle_metadata');
   });
 
-  it('sets and gets last fetch attempt status', async () => {
-    const expectedStatus = 'success';
+  for (const { name, getStorage } of [indexedDbTestCase, inMemoryStorage]) {
+    describe(name, () => {
+      let storage: Storage;
 
-    await storage.setLastFetchStatus(expectedStatus);
+      beforeEach(() => {
+        storage = getStorage();
+      });
 
-    const actualStatus = await storage.getLastFetchStatus();
+      it('sets and gets last fetch attempt status', async () => {
+        const expectedStatus = 'success';
 
-    expect(actualStatus).to.deep.eq(expectedStatus);
-  });
+        await storage.setLastFetchStatus(expectedStatus);
 
-  it('sets and gets last fetch success timestamp', async () => {
-    const lastSuccessfulFetchTimestampMillis = 123;
+        const actualStatus = await storage.getLastFetchStatus();
 
-    await storage.setLastSuccessfulFetchTimestampMillis(
-      lastSuccessfulFetchTimestampMillis
-    );
+        expect(actualStatus).to.deep.eq(expectedStatus);
+      });
 
-    const actualMetadata =
-      await storage.getLastSuccessfulFetchTimestampMillis();
+      it('sets and gets last fetch success timestamp', async () => {
+        const lastSuccessfulFetchTimestampMillis = 123;
 
-    expect(actualMetadata).to.deep.eq(lastSuccessfulFetchTimestampMillis);
-  });
+        await storage.setLastSuccessfulFetchTimestampMillis(
+          lastSuccessfulFetchTimestampMillis
+        );
 
-  it('sets and gets last successful fetch response', async () => {
-    const lastSuccessfulFetchResponse = { status: 200 } as FetchResponse;
+        const actualMetadata =
+          await storage.getLastSuccessfulFetchTimestampMillis();
 
-    await storage.setLastSuccessfulFetchResponse(lastSuccessfulFetchResponse);
+        expect(actualMetadata).to.deep.eq(lastSuccessfulFetchTimestampMillis);
+      });
 
-    const actualConfig = await storage.getLastSuccessfulFetchResponse();
+      it('sets and gets last successful fetch response', async () => {
+        const lastSuccessfulFetchResponse = { status: 200 } as FetchResponse;
 
-    expect(actualConfig).to.deep.eq(lastSuccessfulFetchResponse);
-  });
+        await storage.setLastSuccessfulFetchResponse(
+          lastSuccessfulFetchResponse
+        );
 
-  it('sets and gets active config', async () => {
-    const expectedConfig = { key: 'value' };
+        const actualConfig = await storage.getLastSuccessfulFetchResponse();
 
-    await storage.setActiveConfig(expectedConfig);
+        expect(actualConfig).to.deep.eq(lastSuccessfulFetchResponse);
+      });
 
-    const storedConfig = await storage.getActiveConfig();
+      it('sets and gets active config', async () => {
+        const expectedConfig = { key: 'value' };
 
-    expect(storedConfig).to.deep.eq(expectedConfig);
-  });
+        await storage.setActiveConfig(expectedConfig);
 
-  it('sets and gets active config etag', async () => {
-    const expectedEtag = 'etag';
+        const storedConfig = await storage.getActiveConfig();
 
-    await storage.setActiveConfigEtag(expectedEtag);
+        expect(storedConfig).to.deep.eq(expectedConfig);
+      });
 
-    const storedConfigEtag = await storage.getActiveConfigEtag();
+      it('sets and gets active config etag', async () => {
+        const expectedEtag = 'etag';
 
-    expect(storedConfigEtag).to.deep.eq(expectedEtag);
-  });
+        await storage.setActiveConfigEtag(expectedEtag);
 
-  it('sets, gets and deletes throttle metadata', async () => {
-    const expectedMetadata = {
-      throttleEndTimeMillis: 1
-    } as ThrottleMetadata;
+        const storedConfigEtag = await storage.getActiveConfigEtag();
 
-    await storage.setThrottleMetadata(expectedMetadata);
+        expect(storedConfigEtag).to.deep.eq(expectedEtag);
+      });
 
-    let actualMetadata = await storage.getThrottleMetadata();
+      it('sets, gets and deletes throttle metadata', async () => {
+        const expectedMetadata = {
+          throttleEndTimeMillis: 1
+        } as ThrottleMetadata;
 
-    expect(actualMetadata).to.deep.eq(expectedMetadata);
+        await storage.setThrottleMetadata(expectedMetadata);
 
-    await storage.deleteThrottleMetadata();
+        let actualMetadata = await storage.getThrottleMetadata();
 
-    actualMetadata = await storage.getThrottleMetadata();
+        expect(actualMetadata).to.deep.eq(expectedMetadata);
 
-    expect(actualMetadata).to.be.undefined;
-  });
+        await storage.deleteThrottleMetadata();
+
+        actualMetadata = await storage.getThrottleMetadata();
+
+        expect(actualMetadata).to.be.undefined;
+      });
+
+      it('sets and gets custom signals', async () => {
+        const customSignals = { key: 'value', key1: 'value1', key2: 1 };
+        const customSignalsInStorage = {
+          key: 'value',
+          key1: 'value1',
+          key2: '1'
+        };
+
+        await storage.setCustomSignals(customSignals);
+
+        const storedCustomSignals = await storage.getCustomSignals();
+
+        expect(storedCustomSignals).to.deep.eq(customSignalsInStorage);
+      });
+
+      it('upserts custom signals when key is present in storage', async () => {
+        const customSignals = { key: 'value', key1: 'value1' };
+        const updatedSignals = { key: 'value', key1: 'value2' };
+
+        await storage.setCustomSignals(customSignals);
+
+        await storage.setCustomSignals({ key1: 'value2' });
+
+        const storedCustomSignals = await storage.getCustomSignals();
+
+        expect(storedCustomSignals).to.deep.eq(updatedSignals);
+      });
+
+      it('deletes custom signal when value supplied is null', async () => {
+        const customSignals = { key: 'value', key1: 'value1' };
+        const updatedSignals = { key: 'value' };
+
+        await storage.setCustomSignals(customSignals);
+
+        await storage.setCustomSignals({ key1: null });
+
+        const storedCustomSignals = await storage.getCustomSignals();
+
+        expect(storedCustomSignals).to.deep.eq(updatedSignals);
+      });
+
+      it('throws an error when supplied with excess custom signals', async () => {
+        const customSignals: { [key: string]: string } = {};
+        for (let i = 0; i < 101; i++) {
+          customSignals[`key${i}`] = `value${i}`;
+        }
+
+        await expect(
+          storage.setCustomSignals(customSignals)
+        ).to.eventually.be.rejectedWith(
+          'Remote Config: Setting more than 100 custom signals is not supported.'
+        );
+      });
+    });
+  }
 });

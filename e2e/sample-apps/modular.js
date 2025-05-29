@@ -58,6 +58,9 @@ import {
   onValue,
   off
 } from 'firebase/database';
+import { getGenerativeModel, getAI, VertexAIBackend } from 'firebase/ai';
+import { getDataConnect, DataConnect } from 'firebase/data-connect';
+
 /**
  * The config file should look like:
  *
@@ -287,7 +290,7 @@ function callAppCheck(app) {
 }
 
 /**
- * Analytics smoke test.
+ * Performance smoke test.
  * Just make sure some functions can be called without obvious errors.
  */
 function callPerformance(app) {
@@ -301,6 +304,32 @@ function callPerformance(app) {
     "[PERFORMANCE] trace (should be 'perftestvalue')",
     trace.getAttribute('testattr')
   );
+}
+
+/**
+ * AI smoke test.
+ * Just make sure some functions can be called without obvious errors.
+ */
+async function callAI(app) {
+  console.log('[AI] start');
+  const ai = getAI(app, { backend: new VertexAIBackend() });
+  const model = getGenerativeModel(ai, { model: 'gemini-1.5-flash' });
+  const result = await model.countTokens('abcdefg');
+  console.log(`[AI] counted tokens: ${result.totalTokens}`);
+}
+
+/**
+ * DataConnect smoke test.
+ * Just make sure some functions can be called without obvious errors.
+ */
+function callDataConnect(app) {
+  console.log('[DATACONNECT] start');
+  getDataConnect(app, {
+    location: 'a-location',
+    connector: 'a-connector',
+    service: 'service'
+  });
+  console.log('[DATACONNECT] initialized');
 }
 
 /**
@@ -321,6 +350,8 @@ async function main() {
   callAnalytics(app);
   callPerformance(app);
   await callFunctions(app);
+  await callAI(app);
+  callDataConnect(app);
   await authLogout(app);
   console.log('DONE');
 }

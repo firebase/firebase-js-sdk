@@ -32,7 +32,7 @@ jobs:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
       - name: Set up Node (20)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.10.0
       - name: install Chrome stable
@@ -50,10 +50,7 @@ jobs:
 
   test-firefox:
     name: Test Packages With Changed Files in Firefox
-    # Whatever version of Firefox comes with 22.04 is causing Firefox
-    # startup to hang when launched by karma. Need to look further into
-    # why.
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repo
@@ -61,13 +58,11 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set up Node (20)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.10.0
       - name: install Firefox stable
-        run: |
-          sudo apt-get update
-          sudo apt-get install firefox
+        run: npx @puppeteer/browsers install firefox@stable
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
@@ -90,7 +85,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set up Node (20)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.10.0
       - name: Test setup and yarn install

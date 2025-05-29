@@ -60,7 +60,8 @@ export function generateToc({
     yaml.dump(
       { toc },
       {
-        quotingType: '"'
+        quotingType: '"',
+        noArrayIndent: true
       }
     )
   );

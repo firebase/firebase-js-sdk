@@ -26,6 +26,35 @@ import { ComponentContainer } from '@firebase/component';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ERROR_FACTORY, AppError } from './errors';
 import { name as packageName, version } from '../package.json';
+import { base64Decode } from '@firebase/util';
+
+// Parse the token and check to see if the `exp` claim is in the future.
+// Reports an error to the console if the token or claim could not be parsed, or if `exp` is in
+// the past.
+function validateTokenTTL(base64Token: string, tokenName: string): void {
+  const secondPart = base64Decode(base64Token.split('.')[1]);
+  if (secondPart === null) {
+    console.error(
+      `FirebaseServerApp ${tokenName} is invalid: second part could not be parsed.`
+    );
+    return;
+  }
+  const expClaim = JSON.parse(secondPart).exp;
+  if (expClaim === undefined) {
+    console.error(
+      `FirebaseServerApp ${tokenName} is invalid: expiration claim could not be parsed`
+    );
+    return;
+  }
+  const exp = JSON.parse(secondPart).exp * 1000;
+  const now = new Date().getTime();
+  const diff = exp - now;
+  if (diff <= 0) {
+    console.error(
+      `FirebaseServerApp ${tokenName} is invalid: the token has expired.`
+    );
+  }
+}
 
 export class FirebaseServerAppImpl
   extends FirebaseAppImpl
@@ -45,7 +74,7 @@ export class FirebaseServerAppImpl
     const automaticDataCollectionEnabled =
       serverConfig.automaticDataCollectionEnabled !== undefined
         ? serverConfig.automaticDataCollectionEnabled
-        : false;
+        : true;
 
     // Create the FirebaseAppSettings object for the FirebaseAppImp constructor.
     const config: Required<FirebaseAppSettings> = {
@@ -66,6 +95,16 @@ export class FirebaseServerAppImpl
       automaticDataCollectionEnabled,
       ...serverConfig
     };
+
+    // Ensure that the current time is within the `authIdtoken` window of validity.
+    if (this._serverConfig.authIdToken) {
+      validateTokenTTL(this._serverConfig.authIdToken, 'authIdToken');
+    }
+
+    // Ensure that the current time is within the `appCheckToken` window of validity.
+    if (this._serverConfig.appCheckToken) {
+      validateTokenTTL(this._serverConfig.appCheckToken, 'appCheckToken');
+    }
 
     this._finalizationRegistry = null;
     if (typeof FinalizationRegistry !== 'undefined') {

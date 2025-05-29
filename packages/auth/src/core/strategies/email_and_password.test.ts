@@ -121,7 +121,8 @@ describe('core/strategies/sendPasswordResetEmail', () => {
           bundleId: 'my-bundle'
         },
         url: 'my-url',
-        dynamicLinkDomain: 'fdl-domain'
+        dynamicLinkDomain: 'fdl-domain',
+        linkDomain: 'hosting-link-domain'
       });
 
       expect(mock.calls[0].request).to.eql({
@@ -129,6 +130,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
         email,
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
+        linkDomain: 'hosting-link-domain',
         canHandleCodeInApp: true,
         iOSBundleId: 'my-bundle',
         clientType: 'CLIENT_TYPE_WEB'
@@ -149,13 +151,15 @@ describe('core/strategies/sendPasswordResetEmail', () => {
           packageName: 'my-package'
         },
         url: 'my-url',
-        dynamicLinkDomain: 'fdl-domain'
+        dynamicLinkDomain: 'fdl-domain',
+        linkDomain: 'hosting-link-domain'
       });
       expect(mock.calls[0].request).to.eql({
         requestType: ActionCodeOperation.PASSWORD_RESET,
         email,
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
+        linkDomain: 'hosting-link-domain',
         canHandleCodeInApp: true,
         androidInstallApp: false,
         androidMinimumVersionCode: 'my-version',

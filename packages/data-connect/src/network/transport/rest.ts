@@ -23,7 +23,7 @@ import { logDebug } from '../../logger';
 import { addToken, urlBuilder } from '../../util/url';
 import { dcFetch } from '../fetch';
 
-import { DataConnectTransport } from '.';
+import { CallerSdkType, CallerSdkTypeEnum, DataConnectTransport } from '.';
 
 export class RESTTransport implements DataConnectTransport {
   private _host = '';
@@ -36,6 +36,7 @@ export class RESTTransport implements DataConnectTransport {
   private _accessToken: string | null = null;
   private _appCheckToken: string | null = null;
   private _lastToken: string | null = null;
+  private _isUsingEmulator = false;
   constructor(
     options: DataConnectOptions,
     private apiKey?: string | undefined,
@@ -43,7 +44,8 @@ export class RESTTransport implements DataConnectTransport {
     private authProvider?: AuthTokenProvider | undefined,
     private appCheckProvider?: AppCheckTokenProvider | undefined,
     transportOptions?: TransportOptions | undefined,
-    private _isUsingGen = false
+    private _isUsingGen = false,
+    private _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base
   ) {
     if (transportOptions) {
       if (typeof transportOptions.port === 'number') {
@@ -92,6 +94,7 @@ export class RESTTransport implements DataConnectTransport {
   }
   useEmulator(host: string, port?: number, isSecure?: boolean): void {
     this._host = host;
+    this._isUsingEmulator = true;
     if (typeof port === 'number') {
       this._port = port;
     }
@@ -161,11 +164,12 @@ export class RESTTransport implements DataConnectTransport {
   invokeQuery: <T, U>(
     queryName: string,
     body?: U
-  ) => PromiseLike<{ data: T; errors: Error[] }> = <T, U = unknown>(
+  ) => Promise<{ data: T; errors: Error[] }> = <T, U = unknown>(
     queryName: string,
     body: U
   ) => {
     const abortController = new AbortController();
+
     // TODO(mtewani): Update to proper value
     const withAuth = this.withRetry(() =>
       dcFetch<T, U>(
@@ -174,24 +178,22 @@ export class RESTTransport implements DataConnectTransport {
           name: `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`,
           operationName: queryName,
           variables: body
-        } as unknown as U, // TODO(mtewani): This is a patch, fix this.
+        },
         abortController,
         this.appId,
         this._accessToken,
         this._appCheckToken,
-        this._isUsingGen
+        this._isUsingGen,
+        this._callerSdkType,
+        this._isUsingEmulator
       )
     );
-
-    return {
-      then: withAuth.then.bind(withAuth),
-      catch: withAuth.catch.bind(withAuth)
-    };
+    return withAuth;
   };
   invokeMutation: <T, U>(
     queryName: string,
     body?: U
-  ) => PromiseLike<{ data: T; errors: Error[] }> = <T, U = unknown>(
+  ) => Promise<{ data: T; errors: Error[] }> = <T, U = unknown>(
     mutationName: string,
     body: U
   ) => {
@@ -203,20 +205,20 @@ export class RESTTransport implements DataConnectTransport {
           name: `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`,
           operationName: mutationName,
           variables: body
-        } as unknown as U,
+        },
         abortController,
         this.appId,
         this._accessToken,
         this._appCheckToken,
-        this._isUsingGen
+        this._isUsingGen,
+        this._callerSdkType,
+        this._isUsingEmulator
       );
     });
-
-    return {
-      then: taskResult.then.bind(taskResult),
-      // catch: taskResult.catch.bind(taskResult),
-      // finally: taskResult.finally.bind(taskResult),
-      cancel: () => abortController.abort()
-    };
+    return taskResult;
   };
+
+  _setCallerSdkType(callerSdkType: CallerSdkType): void {
+    this._callerSdkType = callerSdkType;
+  }
 }

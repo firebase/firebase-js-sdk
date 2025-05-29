@@ -91,7 +91,7 @@ export async function _savePersistenceForRedirect(
     auth.name
   );
   if (session) {
-    session.setItem(key, auth._getPersistence());
+    session.setItem(key, auth._getPersistenceType());
   }
 }
 

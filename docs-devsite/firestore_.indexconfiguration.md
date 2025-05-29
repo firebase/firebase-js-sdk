@@ -32,7 +32,7 @@ export declare interface IndexConfiguration
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [indexes](./firestore_.indexconfiguration.md#indexconfigurationindexes) | [Index](./firestore_.index.md#index_interface)<!-- -->\[\] | <b><i>(BETA)</i></b> A list of all Firestore indexes. |
+|  [indexes](./firestore_.indexconfiguration.md#indexconfigurationindexes) | [Index](./firestore_.index.md#index_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> A list of all Firestore indexes. |
 
 ## IndexConfiguration.indexes
 

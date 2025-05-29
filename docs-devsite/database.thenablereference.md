@@ -19,3 +19,25 @@ export declare interface ThenableReference extends DatabaseReference, Pick<Promi
 ```
 <b>Extends:</b> [DatabaseReference](./database.databasereference.md#databasereference_interface)<!-- -->, Pick&lt;Promise&lt;[DatabaseReference](./database.databasereference.md#databasereference_interface)<!-- -->&gt;, 'then' \| 'catch'&gt;
 
+## Properties
+
+|  Property | Type | Description |
+|  --- | --- | --- |
+|  [key](./database.thenablereference.md#thenablereferencekey) | string |  |
+|  [parent](./database.thenablereference.md#thenablereferenceparent) | [DatabaseReference](./database.databasereference.md#databasereference_interface) |  |
+
+## ThenableReference.key
+
+<b>Signature:</b>
+
+```typescript
+key: string;
+```
+
+## ThenableReference.parent
+
+<b>Signature:</b>
+
+```typescript
+parent: DatabaseReference;
+```

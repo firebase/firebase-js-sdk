@@ -43,6 +43,7 @@ import {
 } from './internal-api';
 import { readTokenFromStorage } from './storage';
 import { getDebugToken, initializeDebugMode, isDebugMode } from './debug';
+import { logger } from './logger';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -132,7 +133,7 @@ export function initializeAppCheck(
 function _activate(
   app: FirebaseApp,
   provider: AppCheckProvider,
-  isTokenAutoRefreshEnabled?: boolean
+  isTokenAutoRefreshEnabled: boolean = false
 ): void {
   // Create an entry in the APP_CHECK_STATES map. Further changes should
   // directly mutate this object.
@@ -149,13 +150,18 @@ function _activate(
     return cachedToken;
   });
 
-  // Use value of global `automaticDataCollectionEnabled` (which
-  // itself defaults to false if not specified in config) if
-  // `isTokenAutoRefreshEnabled` param was not provided by user.
+  // Global `automaticDataCollectionEnabled` (defaults to true) and
+  // `isTokenAutoRefreshEnabled` must both be true.
   state.isTokenAutoRefreshEnabled =
-    isTokenAutoRefreshEnabled === undefined
-      ? app.automaticDataCollectionEnabled
-      : isTokenAutoRefreshEnabled;
+    isTokenAutoRefreshEnabled && app.automaticDataCollectionEnabled;
+
+  if (!app.automaticDataCollectionEnabled && isTokenAutoRefreshEnabled) {
+    logger.warn(
+      '`isTokenAutoRefreshEnabled` is true but ' +
+        '`automaticDataCollectionEnabled` was set to false during' +
+        ' `initializeApp()`. This blocks automatic token refresh.'
+    );
+  }
 
   state.provider.initialize(app);
 }
@@ -208,6 +214,9 @@ export async function getToken(
   );
   if (result.error) {
     throw result.error;
+  }
+  if (result.internalError) {
+    throw result.internalError;
   }
   return { token: result.token };
 }

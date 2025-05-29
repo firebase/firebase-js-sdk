@@ -19,12 +19,20 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 import pkg from './package.json';
+import tsconfig from './tsconfig.json';
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-const buildPlugins = [typescriptPlugin({ typescript })];
+const buildPlugins = [
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      exclude: [...tsconfig.exclude, '**/*.test.ts']
+    }
+  })
+];
 
 const esmBuild = {
   input: 'index.ts',

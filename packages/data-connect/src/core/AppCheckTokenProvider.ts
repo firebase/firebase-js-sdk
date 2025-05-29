@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirebaseApp, _isFirebaseServerApp } from '@firebase/app';
 import {
   AppCheckInternalComponentName,
   AppCheckTokenListener,
@@ -29,10 +30,14 @@ import { Provider } from '@firebase/component';
  */
 export class AppCheckTokenProvider {
   private appCheck?: FirebaseAppCheckInternal;
+  private serverAppAppCheckToken?: string;
   constructor(
-    private appName_: string,
+    app: FirebaseApp,
     private appCheckProvider?: Provider<AppCheckInternalComponentName>
   ) {
+    if (_isFirebaseServerApp(app) && app.settings.appCheckToken) {
+      this.serverAppAppCheckToken = app.settings.appCheckToken;
+    }
     this.appCheck = appCheckProvider?.getImmediate({ optional: true });
     if (!this.appCheck) {
       void appCheckProvider
@@ -42,7 +47,11 @@ export class AppCheckTokenProvider {
     }
   }
 
-  getToken(forceRefresh?: boolean): Promise<AppCheckTokenResult> {
+  getToken(): Promise<AppCheckTokenResult> {
+    if (this.serverAppAppCheckToken) {
+      return Promise.resolve({ token: this.serverAppAppCheckToken });
+    }
+
     if (!this.appCheck) {
       return new Promise<AppCheckTokenResult>((resolve, reject) => {
         // Support delayed initialization of FirebaseAppCheck. This allows our
@@ -51,14 +60,14 @@ export class AppCheckTokenProvider {
         // becomes available before the timoeout below expires.
         setTimeout(() => {
           if (this.appCheck) {
-            this.getToken(forceRefresh).then(resolve, reject);
+            this.getToken().then(resolve, reject);
           } else {
             resolve(null);
           }
         }, 0);
       });
     }
-    return this.appCheck.getToken(forceRefresh);
+    return this.appCheck.getToken();
   }
 
   addTokenChangeListener(listener: AppCheckTokenListener): void {

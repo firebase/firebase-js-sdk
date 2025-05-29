@@ -70,14 +70,14 @@ class RemoveAsserts {
             updatedNode = ts.factory.createCallExpression(
               declaration.name!,
               /*typeArgs*/ undefined,
-              [node.arguments[0]]
+              node.arguments.filter(value => !ts.isStringLiteral(value))
             );
           } else if (method === 'fail') {
             // Remove the log message
             updatedNode = ts.factory.createCallExpression(
               declaration.name!,
               /*typeArgs*/ undefined,
-              []
+              node.arguments.filter(value => !ts.isStringLiteral(value))
             );
           }
         }

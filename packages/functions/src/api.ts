@@ -88,12 +88,16 @@ export function connectFunctionsEmulator(
  * @param name - The name of the trigger.
  * @public
  */
-export function httpsCallable<RequestData = unknown, ResponseData = unknown>(
+export function httpsCallable<
+  RequestData = unknown,
+  ResponseData = unknown,
+  StreamData = unknown
+>(
   functionsInstance: Functions,
   name: string,
   options?: HttpsCallableOptions
-): HttpsCallable<RequestData, ResponseData> {
-  return _httpsCallable<RequestData, ResponseData>(
+): HttpsCallable<RequestData, ResponseData, StreamData> {
+  return _httpsCallable<RequestData, ResponseData, StreamData>(
     getModularInstance<FunctionsService>(functionsInstance as FunctionsService),
     name,
     options
@@ -107,13 +111,14 @@ export function httpsCallable<RequestData = unknown, ResponseData = unknown>(
  */
 export function httpsCallableFromURL<
   RequestData = unknown,
-  ResponseData = unknown
+  ResponseData = unknown,
+  StreamData = unknown
 >(
   functionsInstance: Functions,
   url: string,
   options?: HttpsCallableOptions
-): HttpsCallable<RequestData, ResponseData> {
-  return _httpsCallableFromURL<RequestData, ResponseData>(
+): HttpsCallable<RequestData, ResponseData, StreamData> {
+  return _httpsCallableFromURL<RequestData, ResponseData, StreamData>(
     getModularInstance<FunctionsService>(functionsInstance as FunctionsService),
     url,
     options

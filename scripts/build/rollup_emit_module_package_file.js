@@ -26,7 +26,7 @@
  */
 export function emitModulePackageFile() {
   return {
-    generateBundle() {
+    generateBundle(options) {
       this.emitFile({
         fileName: 'package.json',
         source: `{"type":"module"}`,

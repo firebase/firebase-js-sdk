@@ -239,9 +239,21 @@ function genericBundleReadingTests(bytesPerRead: number): void {
         'Reached the end of bundle when a length string is expected.'
       );
 
-      await expect(
-        generateBundleAndParse('{metadata: "no length prefix"}', bytesPerRead)
-      ).to.be.rejectedWith(/(Unexpected end of )(?=.*JSON\b).*/gi);
+      // The multiple "rejectedWith" checks below are an attempt to make the
+      // test robust in the presence of various permutations of the error
+      // message, which is produced by the JavaScript runtime.
+      // Chrome produces: Unexpected end of JSON input
+      // Webkit produces: JSON Parse error: Unexpected EOF
+      const noLengthPrefixPromise = generateBundleAndParse(
+        '{metadata: "no length prefix"}',
+        bytesPerRead
+      );
+      await expect(noLengthPrefixPromise).to.be.rejectedWith(
+        /(\b|^)unexpected ((end of)|(eof))(\b|$)/gi
+      );
+      await expect(noLengthPrefixPromise).to.be.rejectedWith(
+        /(\b|^)JSON(\b|$)/g
+      );
 
       await expect(
         generateBundleAndParse(

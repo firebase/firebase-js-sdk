@@ -170,7 +170,7 @@ describe('core/auth/initialize', () => {
         sdkClientVersion: expectedSdkClientVersion,
         tokenApiHost: 'securetoken.googleapis.com'
       });
-      expect(auth._getPersistence()).to.eq('NONE');
+      expect(auth._getPersistenceType()).to.eq('NONE');
     });
 
     it('should set persistence', async () => {
@@ -179,7 +179,7 @@ describe('core/auth/initialize', () => {
       }) as AuthInternal;
       await auth._initializationPromise;
 
-      expect(auth._getPersistence()).to.eq('SESSION');
+      expect(auth._getPersistenceType()).to.eq('SESSION');
     });
 
     it('should set persistence with fallback', async () => {
@@ -188,7 +188,7 @@ describe('core/auth/initialize', () => {
       }) as AuthInternal;
       await auth._initializationPromise;
 
-      expect(auth._getPersistence()).to.eq('SESSION');
+      expect(auth._getPersistenceType()).to.eq('SESSION');
     });
 
     it('should set resolver', async () => {

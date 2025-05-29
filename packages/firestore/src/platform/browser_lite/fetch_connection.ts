@@ -38,17 +38,22 @@ export class FetchConnection extends RestConnection {
     rpcName: string,
     url: string,
     headers: StringMap,
-    body: Req
+    body: Req,
+    forwardCredentials: boolean
   ): Promise<Resp> {
     const requestJson = JSON.stringify(body);
     let response: Response;
 
     try {
-      response = await fetch(url, {
+      const fetchArgs: RequestInit = {
         method: 'POST',
         headers,
         body: requestJson
-      });
+      };
+      if (forwardCredentials) {
+        fetchArgs.credentials = 'include';
+      }
+      response = await fetch(url, fetchArgs);
     } catch (e) {
       const err = e as { status: number | undefined; statusText: string };
       throw new FirestoreError(

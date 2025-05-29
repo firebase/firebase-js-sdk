@@ -206,7 +206,7 @@ Reference docs for the Firebase [JS SDK](https://firebase.google.com/docs/refere
 [Typedoc](https://typedoc.org/).
 
 Typedoc generates this documentation from the main
-[firebase index.d.ts type definition file](packages/firebase/index.d.ts).  Any updates to
+[firebase index.d.ts type definition file](packages/firebase/compat/index.d.ts).  Any updates to
 documentation should be made in that file.
 
 If any pages are added or removed by your change (by adding or removing a class or interface), the

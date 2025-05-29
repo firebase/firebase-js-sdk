@@ -541,19 +541,42 @@ export function partitionedTestDocs(partitions: {
  * documents as running the query while offline. If `expectedDocs` is provided, it also checks
  * that both online and offline query result is equal to the expected documents.
  *
+ * This function first performs a "get" for the entire COLLECTION from the server.
+ * It then performs the QUERY from CACHE which, results in `executeFullCollectionScan()`
+ * It then performs the QUERY from SERVER.
+ * It then performs the QUERY from CACHE again, which results in `performQueryUsingRemoteKeys()`.
+ * It then ensure that all the above QUERY results are the same.
+ *
+ * @param collection The collection on which the query is performed.
  * @param query The query to check
  * @param expectedDocs Ordered list of document keys that are expected to match the query
  */
 export async function checkOnlineAndOfflineResultsMatch(
+  collection: Query,
   query: Query,
   ...expectedDocs: string[]
 ): Promise<void> {
+  // Note: Order matters. The following has to be done in the specific order:
+
+  // 1- Pre-populate the cache with the entire collection.
+  await getDocsFromServer(collection);
+
+  // 2- This performs the query against the cache using full collection scan.
+  const docsFromCacheFullCollectionScan = await getDocsFromCache(query);
+
+  // 3- This goes to the server (backend/emulator).
   const docsFromServer = await getDocsFromServer(query);
 
+  // 4- This performs the query against the cache using remote keys.
+  const docsFromCacheUsingRemoteKeys = await getDocsFromCache(query);
+
+  expect(toIds(docsFromServer)).to.deep.equal(
+    toIds(docsFromCacheFullCollectionScan)
+  );
+  expect(toIds(docsFromServer)).to.deep.equal(
+    toIds(docsFromCacheUsingRemoteKeys)
+  );
   if (expectedDocs.length !== 0) {
     expect(expectedDocs).to.deep.equal(toIds(docsFromServer));
   }
-
-  const docsFromCache = await getDocsFromCache(query);
-  expect(toIds(docsFromServer)).to.deep.equal(toIds(docsFromCache));
 }

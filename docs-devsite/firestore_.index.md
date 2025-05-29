@@ -30,8 +30,8 @@ export declare interface Index
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [collectionGroup](./firestore_.index.md#indexcollectiongroup) | string | <b><i>(BETA)</i></b> The ID of the collection to index. |
-|  [fields](./firestore_.index.md#indexfields) | [IndexField](./firestore_.indexfield.md#indexfield_interface)<!-- -->\[\] | <b><i>(BETA)</i></b> A list of fields to index. |
+|  [collectionGroup](./firestore_.index.md#indexcollectiongroup) | string | <b><i>(Public Preview)</i></b> The ID of the collection to index. |
+|  [fields](./firestore_.index.md#indexfields) | [IndexField](./firestore_.indexfield.md#indexfield_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> A list of fields to index. |
 
 ## Index.collectionGroup
 

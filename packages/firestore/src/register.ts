@@ -47,6 +47,7 @@ export function registerFirestore(
             container.getProvider('auth-internal')
           ),
           new FirebaseAppCheckTokenProvider(
+            app,
             container.getProvider('app-check-internal')
           ),
           databaseIdFromApp(app, databaseId),

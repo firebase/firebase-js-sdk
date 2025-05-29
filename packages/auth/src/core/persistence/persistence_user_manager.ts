@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { getAccountInfo } from '../../api/account_management/account';
 import { ApiKey, AppName, AuthInternal } from '../../model/auth';
 import { UserInternal } from '../../model/user';
 import { PersistedBlob, PersistenceInternal } from '../persistence';
@@ -66,8 +67,22 @@ export class PersistenceUserManager {
   }
 
   async getCurrentUser(): Promise<UserInternal | null> {
-    const blob = await this.persistence._get<PersistedBlob>(this.fullUserKey);
-    return blob ? UserImpl._fromJSON(this.auth, blob) : null;
+    const blob = await this.persistence._get<PersistedBlob | string>(
+      this.fullUserKey
+    );
+    if (!blob) {
+      return null;
+    }
+    if (typeof blob === 'string') {
+      const response = await getAccountInfo(this.auth, { idToken: blob }).catch(
+        () => undefined
+      );
+      if (!response) {
+        return null;
+      }
+      return UserImpl._fromGetAccountInfoResponse(this.auth, response, blob);
+    }
+    return UserImpl._fromJSON(this.auth, blob);
   }
 
   removeCurrentUser(): Promise<void> {
@@ -140,9 +155,24 @@ export class PersistenceUserManager {
     // persistence, we will (but only if that persistence supports migration).
     for (const persistence of persistenceHierarchy) {
       try {
-        const blob = await persistence._get<PersistedBlob>(key);
+        const blob = await persistence._get<PersistedBlob | string>(key);
         if (blob) {
-          const user = UserImpl._fromJSON(auth, blob); // throws for unparsable blob (wrong format)
+          let user: UserInternal;
+          if (typeof blob === 'string') {
+            const response = await getAccountInfo(auth, {
+              idToken: blob
+            }).catch(() => undefined);
+            if (!response) {
+              break;
+            }
+            user = await UserImpl._fromGetAccountInfoResponse(
+              auth,
+              response,
+              blob
+            );
+          } else {
+            user = UserImpl._fromJSON(auth, blob); // throws for unparsable blob (wrong format)
+          }
           if (persistence !== selectedPersistence) {
             userToMigrate = user;
           }

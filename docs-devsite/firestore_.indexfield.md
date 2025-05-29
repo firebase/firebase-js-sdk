@@ -30,9 +30,9 @@ export declare interface IndexField
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [arrayConfig](./firestore_.indexfield.md#indexfieldarrayconfig) | 'CONTAINS' | <b><i>(BETA)</i></b> What type of array index to create. Set to <code>CONTAINS</code> for <code>array-contains</code> and <code>array-contains-any</code> indexes.<!-- -->Only one of <code>arrayConfig</code> or <code>order</code> should be set; |
-|  [fieldPath](./firestore_.indexfield.md#indexfieldfieldpath) | string | <b><i>(BETA)</i></b> The field path to index. |
-|  [order](./firestore_.indexfield.md#indexfieldorder) | 'ASCENDING' \| 'DESCENDING' | <b><i>(BETA)</i></b> What type of array index to create. Set to <code>ASCENDING</code> or 'DESCENDING<code> for </code>==<code>, </code>!=<code>, </code>&lt;<!-- -->=<code>, </code>&lt;<!-- -->=<code>, </code>in<code> and </code>not-in<!-- -->\` filters.<!-- -->Only one of <code>arrayConfig</code> or <code>order</code> should be set. |
+|  [arrayConfig](./firestore_.indexfield.md#indexfieldarrayconfig) | 'CONTAINS' | <b><i>(Public Preview)</i></b> What type of array index to create. Set to <code>CONTAINS</code> for <code>array-contains</code> and <code>array-contains-any</code> indexes.<!-- -->Only one of <code>arrayConfig</code> or <code>order</code> should be set; |
+|  [fieldPath](./firestore_.indexfield.md#indexfieldfieldpath) | string | <b><i>(Public Preview)</i></b> The field path to index. |
+|  [order](./firestore_.indexfield.md#indexfieldorder) | 'ASCENDING' \| 'DESCENDING' | <b><i>(Public Preview)</i></b> What type of array index to create. Set to <code>ASCENDING</code> or 'DESCENDING<code> for </code>==<code>, </code>!=<code>, </code>&lt;<!-- -->=<code>, </code>&lt;<!-- -->=<code>, </code>in<code> and </code>not-in<!-- -->\` filters.<!-- -->Only one of <code>arrayConfig</code> or <code>order</code> should be set. |
 
 ## IndexField.arrayConfig
 

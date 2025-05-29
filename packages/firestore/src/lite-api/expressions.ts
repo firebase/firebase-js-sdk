@@ -2160,6 +2160,7 @@ export class Constant extends Expr {
   _toProto(serializer: JsonProtoSerializer): ProtoValue {
     hardAssert(
       this._protoValue !== undefined,
+      0x3e26,
       'Value of this constant has not been serialized to proto value'
     );
     return this._protoValue;

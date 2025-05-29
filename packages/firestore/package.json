@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "4.7.5",
+  "version": "4.7.16",
   "engines": {
     "node": ">=18.0.0"
   },
@@ -20,14 +20,14 @@
     "dev": "rollup -c -w",
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "prettier": "prettier --write '*.js' '@(lite|src|test)/**/*.ts' 'test/unit/remote/bloom_filter_golden_test_data/*.json'",
+    "prettier": "prettier --write '*.js' '@(lite|src|test|scripts)/**/*.ts' 'test/unit/remote/bloom_filter_golden_test_data/*.json'",
     "test:lite": "ts-node ./scripts/run-tests.ts --emulator --platform node_lite --main=lite/index.ts 'test/lite/**/*.test.ts'",
     "test:lite:prod": "ts-node ./scripts/run-tests.ts --platform node_lite --main=lite/index.ts 'test/lite/**/*.test.ts'",
     "test:lite:prod:nameddb": "ts-node ./scripts/run-tests.ts --platform node_lite --databaseId=test-db --main=lite/index.ts 'test/lite/**/*.test.ts'",
     "test:lite:browser": "karma start --lite",
     "test:lite:browser:nameddb": "karma start --lite --databaseId=test-db",
     "test:lite:browser:debug": "karma start --browsers=Chrome --lite --auto-watch",
-    "test": "run-s --npm-path npm lint test:all",
+    "test": "run-s --npm-path npm lint assertion-id:check test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all:ci",
     "test:all:ci": "run-s --npm-path npm test:browser test:travis test:lite:browser test:browser:prod:nameddb test:lite:browser:nameddb",
     "test:all": "run-p --npm-path npm test:browser test:lite:browser test:travis test:minified test:browser:prod:nameddb test:lite:browser:nameddb",
@@ -36,6 +36,8 @@
     "test:browser:emulator": "karma start --targetBackend=emulator",
     "test:browser:nightly": "karma start --targetBackend=nightly",
     "test:browser:prod": "karma start --targetBackend=prod",
+    "test:webkit:prod": "BROWSERS=WebkitHeadless karma start --targetBackend=prod",
+    "test:webkit:unit": "BROWSERS=WebkitHeadless karma start --unit --targetBackend=prod",
     "test:browser:prod:nameddb": "karma start --targetBackend=prod --databaseId=test-db",
     "test:browser:unit": "karma start --unit",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
@@ -52,7 +54,11 @@
     "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose",
     "api-report": "run-s --npm-path npm api-report:main api-report:lite && yarn api-report:api-json",
     "doc": "api-documenter markdown --input temp --output docs",
-    "typings:public": "node ../../scripts/build/use_typings.js ./dist/index.d.ts"
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/index.d.ts",
+    "assertion-id:check": "ts-node scripts/assertion-id-tool.ts --dir=src --check",
+    "assertion-id:new": "ts-node scripts/assertion-id-tool.ts --dir=src --new",
+    "assertion-id:list": "ts-node scripts/assertion-id-tool.ts --dir=src --list",
+    "assertion-id:find": "ts-node scripts/assertion-id-tool.ts --dir=src --find"
   },
   "exports": {
     ".": {
@@ -94,9 +100,9 @@
     "lite/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.6.11",
+    "@firebase/component": "0.6.17",
     "@firebase/logger": "0.4.4",
-    "@firebase/util": "1.10.2",
+    "@firebase/util": "1.12.0",
     "@firebase/webchannel-wrapper": "1.0.3",
     "@grpc/grpc-js": "~1.9.0",
     "@grpc/proto-loader": "^0.7.8",
@@ -106,23 +112,22 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.10.16",
-    "@firebase/app-compat": "0.2.46",
-    "@firebase/auth": "1.8.1",
-    "@rollup/plugin-alias": "5.1.0",
-    "@rollup/plugin-json": "4.1.0",
+    "@firebase/app": "0.13.0",
+    "@firebase/app-compat": "0.4.0",
+    "@firebase/auth": "1.10.6",
+    "@rollup/plugin-alias": "5.1.1",
+    "@rollup/plugin-json": "6.1.0",
     "@types/eslint": "7.29.0",
-    "@types/json-stable-stringify": "1.0.36",
-    "chai-exclude": "2.1.0",
-    "json-stable-stringify": "1.1.1",
-    "protobufjs": "7.2.6",
-    "rollup": "2.79.1",
+    "chai-exclude": "2.1.1",
+    "json-stable-stringify": "1.2.1",
+    "protobufjs": "7.4.0",
+    "rollup": "2.79.2",
     "rollup-plugin-copy": "3.5.0",
     "rollup-plugin-copy-assets": "2.0.3",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-sourcemaps": "0.6.3",
-    "rollup-plugin-terser": "7.0.2",
-    "rollup-plugin-typescript2": "0.31.2",
+    "@rollup/plugin-terser": "0.4.4",
+    "rollup-plugin-typescript2": "0.36.0",
     "rollup-plugin-dts": "5.3.1",
     "ts-node": "10.9.2",
     "typescript": "5.5.4"

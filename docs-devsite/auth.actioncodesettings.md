@@ -26,13 +26,14 @@ export interface ActionCodeSettings
 |  [dynamicLinkDomain](./auth.actioncodesettings.md#actioncodesettingsdynamiclinkdomain) | string | When multiple custom dynamic link domains are defined for a project, specify which one to use when the link is to be opened via a specified mobile app (for example, <code>example.page.link</code>). |
 |  [handleCodeInApp](./auth.actioncodesettings.md#actioncodesettingshandlecodeinapp) | boolean | When set to true, the action code link will be be sent as a Universal Link or Android App Link and will be opened by the app if installed. |
 |  [iOS](./auth.actioncodesettings.md#actioncodesettingsios) | { bundleId: string; } | Sets the iOS bundle ID. |
+|  [linkDomain](./auth.actioncodesettings.md#actioncodesettingslinkdomain) | string | The optional custom Firebase Hosting domain to use when the link is to be opened via a specified mobile app. The domain must be configured in Firebase Hosting and owned by the project. This cannot be a default Hosting domain (<code>web.app</code> or <code>firebaseapp.com</code>). |
 |  [url](./auth.actioncodesettings.md#actioncodesettingsurl) | string | Sets the link continue/state URL. |
 
 ## ActionCodeSettings.android
 
 Sets the Android package name.
 
-This will try to open the link in an android app if it is installed. If `installApp` is passed, it specifies whether to install the Android app if the device supports it and the app is not already installed. If this field is provided without a `packageName`<!-- -->, an error is thrown explaining that the `packageName` must be provided in conjunction with this field. If `minimumVersion` is specified, and an older version of the app is installed, the user is taken to the Play Store to upgrade the app.
+This will try to open the link in an Android app if it is installed.
 
 <b>Signature:</b>
 
@@ -45,6 +46,11 @@ android?: {
 ```
 
 ## ActionCodeSettings.dynamicLinkDomain
+
+> Warning: This API is now obsolete.
+> 
+> Firebase Dynamic Links is deprecated and will be shut down as early as August 2025. Instead, use [ActionCodeSettings.linkDomain](./auth.actioncodesettings.md#actioncodesettingslinkdomain) to set a custom domain for mobile links. Learn more in the [Dynamic Links deprecation FAQ](https://firebase.google.com/support/dynamic-links-faq)<!-- -->.
+> 
 
 When multiple custom dynamic link domains are defined for a project, specify which one to use when the link is to be opened via a specified mobile app (for example, `example.page.link`<!-- -->).
 
@@ -72,8 +78,6 @@ Sets the iOS bundle ID.
 
 This will try to open the link in an iOS app if it is installed.
 
-App installation is not supported for iOS.
-
 <b>Signature:</b>
 
 ```typescript
@@ -82,11 +86,21 @@ iOS?: {
     };
 ```
 
+## ActionCodeSettings.linkDomain
+
+The optional custom Firebase Hosting domain to use when the link is to be opened via a specified mobile app. The domain must be configured in Firebase Hosting and owned by the project. This cannot be a default Hosting domain (`web.app` or `firebaseapp.com`<!-- -->).
+
+<b>Signature:</b>
+
+```typescript
+linkDomain?: string;
+```
+
 ## ActionCodeSettings.url
 
 Sets the link continue/state URL.
 
-This has different meanings in different contexts: - When the link is handled in the web action widgets, this is the deep link in the `continueUrl` query parameter. - When the link is handled in the app directly, this is the `continueUrl` query parameter in the deep link of the Dynamic Link.
+This has different meanings in different contexts: - When the link is handled in the web action widgets, this is the deep link in the `continueUrl` query parameter. - When the link is handled in the app directly, this is the `continueUrl` query parameter in the deep link of the Dynamic Link or Hosting link.
 
 <b>Signature:</b>
 

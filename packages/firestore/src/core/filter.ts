@@ -141,6 +141,7 @@ export class FieldFilter extends Filter {
     if (this.op === Operator.NOT_EQUAL) {
       return (
         other !== null &&
+        other.nullValue === undefined &&
         this.matchesComparison(valueCompare(other!, this.value))
       );
     }
@@ -168,7 +169,9 @@ export class FieldFilter extends Filter {
       case Operator.GREATER_THAN_OR_EQUAL:
         return comparison >= 0;
       default:
-        return fail('Unknown FieldFilter operator: ' + this.op);
+        return fail(0xb8a2, 'Unknown FieldFilter operator', {
+          operator: this.op
+        });
     }
   }
 
@@ -315,7 +318,7 @@ export function filterEquals(f1: Filter, f2: Filter): boolean {
   } else if (f1 instanceof CompositeFilter) {
     return compositeFilterEquals(f1, f2);
   } else {
-    fail('Only FieldFilters and CompositeFilters can be compared');
+    fail(0x4bef, 'Only FieldFilters and CompositeFilters can be compared');
   }
 }
 
@@ -495,7 +498,11 @@ export class NotInFilter extends FieldFilter {
       return false;
     }
     const other = doc.data.field(this.field);
-    return other !== null && !arrayValueContains(this.value.arrayValue!, other);
+    return (
+      other !== null &&
+      other.nullValue === undefined &&
+      !arrayValueContains(this.value.arrayValue!, other)
+    );
   }
 }
 

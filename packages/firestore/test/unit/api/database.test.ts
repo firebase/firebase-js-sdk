@@ -553,6 +553,31 @@ describe('Settings', () => {
     expect(db._getSettings().ssl).to.be.false;
   });
 
+  it('gets privateSettings from useEmulator', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    const emulatorOptions = { mockUserToken: 'test' };
+    connectFirestoreEmulator(db, '127.0.0.1', 9000, emulatorOptions);
+
+    expect(db._getSettings().host).to.exist.and.to.equal('127.0.0.1:9000');
+    expect(db._getSettings().ssl).to.exist.and.to.be.false;
+    expect(db._getEmulatorOptions()).to.equal(emulatorOptions);
+  });
+
+  it('sets ssl to true if cloud workstation host', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    const emulatorOptions = { mockUserToken: 'test' };
+    const workstationHost = 'abc.cloudworkstations.dev';
+    connectFirestoreEmulator(db, workstationHost, 9000, emulatorOptions);
+
+    expect(db._getSettings().host).to.exist.and.to.equal(
+      `${workstationHost}:9000`
+    );
+    expect(db._getSettings().ssl).to.exist.and.to.be.true;
+    expect(db._getEmulatorOptions()).to.equal(emulatorOptions);
+  });
+
   it('prefers host from useEmulator to host from settings', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();

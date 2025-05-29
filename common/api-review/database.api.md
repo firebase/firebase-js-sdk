@@ -228,6 +228,10 @@ export function startAt(value?: number | string | boolean | null, key?: string):
 
 // @public
 export interface ThenableReference extends DatabaseReference, Pick<Promise<DatabaseReference>, 'then' | 'catch'> {
+    // (undocumented)
+    key: string;
+    // (undocumented)
+    parent: DatabaseReference;
 }
 
 // @public

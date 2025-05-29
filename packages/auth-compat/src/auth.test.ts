@@ -65,7 +65,7 @@ describe('auth compat', () => {
     it('saves the persistence into session storage if available', async () => {
       if (typeof self !== 'undefined') {
         underlyingAuth._initializationPromise = Promise.resolve();
-        sinon.stub(underlyingAuth, '_getPersistence').returns('TEST');
+        sinon.stub(underlyingAuth, '_getPersistenceType').returns('TEST');
         sinon
           .stub(underlyingAuth, '_initializationPromise')
           .value(Promise.resolve());
@@ -97,7 +97,7 @@ describe('auth compat', () => {
           }
         } as unknown as Window);
         const setItemSpy = sinon.spy(sessionStorage, 'setItem');
-        sinon.stub(underlyingAuth, '_getPersistence').returns('TEST');
+        sinon.stub(underlyingAuth, '_getPersistenceType').returns('TEST');
         sinon
           .stub(underlyingAuth, '_initializationPromise')
           .value(Promise.resolve());

@@ -17,12 +17,16 @@
 
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import pkg from './package.json';
+import tsconfig from './tsconfig.json';
 import typescript from 'typescript';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 
 const buildPlugins = [
   typescriptPlugin({
-    typescript
+    typescript,
+    tsconfigOverride: {
+      exclude: [...tsconfig.exclude, '**/*.test.ts']
+    }
   })
 ];
 
