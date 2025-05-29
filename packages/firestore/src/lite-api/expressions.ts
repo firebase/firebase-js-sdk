@@ -36,6 +36,7 @@ import { isString } from '../util/types';
 import { Bytes } from './bytes';
 import { documentId as documentIdFieldPath, FieldPath } from './field_path';
 import { GeoPoint } from './geo_point';
+import { Pipeline } from './pipeline';
 import { DocumentReference } from './reference';
 import { Timestamp } from './timestamp';
 import {
@@ -2022,7 +2023,7 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
    */
   _createdFromLiteral: boolean = false;
 
-  constructor(private name: string, private params: Expr[]) {}
+  constructor(readonly name: string, readonly params: Expr[]) {}
 
   /**
    * Assigns an alias to this AggregateFunction. The alias specifies the name that
@@ -2132,12 +2133,12 @@ export class ExprWithAlias implements Selectable, UserData {
 }
 
 /**
+ * @private
  * @internal
  */
-class ListOfExprs extends Expr {
+export class ListOfExprs extends Expr {
   exprType: ExprType = 'ListOfExprs';
-
-  constructor(private exprs: Expr[]) {
+  constructor(readonly exprs: Expr[]) {
     super();
   }
 
@@ -2187,15 +2188,16 @@ export class Field extends Expr implements Selectable {
   /**
    * @internal
    * @private
-   * @hideconstructor
-   * @param fieldPath
    */
-  constructor(private fieldPath: InternalFieldPath) {
+  constructor(
+    readonly _fieldPath: InternalFieldPath,
+    private pipeline: Pipeline | null = null
+  ) {
     super();
   }
 
   fieldName(): string {
-    return this.fieldPath.canonicalString();
+    return this._fieldPath.canonicalString();
   }
 
   get alias(): string {
@@ -2212,7 +2214,7 @@ export class Field extends Expr implements Selectable {
    */
   _toProto(serializer: JsonProtoSerializer): ProtoValue {
     return {
-      fieldReferenceValue: this.fieldPath.canonicalString()
+      fieldReferenceValue: this._fieldPath.canonicalString()
     };
   }
 
@@ -2274,12 +2276,13 @@ export class Constant extends Expr {
   private _protoValue?: ProtoValue;
 
   /**
-   * @private
    * @internal
    * @hideconstructor
-   * @param value The value of the constant.
    */
-  constructor(private value: unknown) {
+  constructor(
+    readonly value: any,
+    readonly options?: { preferIntegers: boolean }
+  ) {
     super();
   }
 
@@ -2318,8 +2321,16 @@ export class Constant extends Expr {
     if (isFirestoreValue(this._protoValue)) {
       return;
     } else {
-      this._protoValue = parseData(this.value, context)!;
+      this._protoValue = parseData(this.value, context, this.options)!;
     }
+  }
+
+  _getValue(): ProtoValue {
+    hardAssert(
+      this._protoValue !== undefined,
+      'Value of this constant has not been serialized to proto value'
+    );
+    return this._protoValue;
   }
 }
 
@@ -2329,7 +2340,10 @@ export class Constant extends Expr {
  * @param value The number value.
  * @return A new `Constant` instance.
  */
-export function constant(value: number): Constant;
+export function constant(
+  value: number,
+  options?: { preferIntegers: boolean }
+): Constant;
 
 /**
  * Creates a `Constant` instance for a string value.
@@ -2413,8 +2427,11 @@ export function constant(value: ProtoValue): Constant;
  */
 export function constant(value: VectorValue): Constant;
 
-export function constant(value: unknown): Constant {
-  return new Constant(value);
+export function constant(
+  value: unknown,
+  options?: { preferIntegers: boolean }
+): Constant {
+  return new Constant(value, options);
 }
 
 /**
@@ -2476,7 +2493,7 @@ export class MapValue extends Expr {
 export class FunctionExpr extends Expr {
   readonly exprType: ExprType = 'Function';
 
-  constructor(private name: string, private params: Expr[]) {
+  constructor(readonly name: string, readonly params: Expr[]) {
     super();
   }
 
@@ -4994,8 +5011,8 @@ export function isNan(value: Expr): BooleanExpr;
  * Creates an expression that checks if a field's value evaluates to 'NaN' (Not a Number).
  *
  * ```typescript
- * // Check if the result of a calculation is NaN
- * isNaN("value");
+ * // Check if the result of a calculation is null.
+ * isNan("value");
  * ```
  *
  * @param fieldName The name of the field to check.

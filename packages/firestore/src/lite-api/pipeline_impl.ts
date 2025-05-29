@@ -88,6 +88,7 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
               ? new DocumentReference(pipeline._db, null, element.key)
               : undefined,
             element.fields,
+            element.executionTime?.toTimestamp(),
             element.createTime?.toTimestamp(),
             element.updateTime?.toTimestamp()
           )

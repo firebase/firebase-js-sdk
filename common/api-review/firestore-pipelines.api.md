@@ -16,12 +16,18 @@ export function add(fieldName: string, second: Expr | unknown, ...others: Array<
 export class AddFields implements Stage {
     constructor(fields: Map<string, Expr>);
     // (undocumented)
+    readonly fields: Map<string, Expr>;
+    // (undocumented)
     name: string;
 }
 
 // @beta (undocumented)
 export class Aggregate implements Stage {
     constructor(accumulators: Map<string, AggregateFunction>, groups: Map<string, Expr>);
+    // (undocumented)
+    readonly accumulators: Map<string, AggregateFunction>;
+    // (undocumented)
+    readonly groups: Map<string, Expr>;
     // (undocumented)
     name: string;
 }
@@ -32,7 +38,11 @@ export class AggregateFunction {
     as(name: string): AggregateWithAlias;
     // (undocumented)
     exprType: ExprType;
-    }
+    // (undocumented)
+    readonly name: string;
+    // (undocumented)
+    readonly params: Expr[];
+}
 
 // @beta
 export class AggregateWithAlias {
@@ -90,6 +100,9 @@ export function arrayContainsAny(array: Expr, values: Expr): BooleanExpr;
 
 // @beta
 export function arrayContainsAny(fieldName: string, values: Expr): BooleanExpr;
+
+// @beta
+export function arrayLength(fieldName: string): FunctionExpr;
 
 // @beta
 export function arrayLength(array: Expr): FunctionExpr;
@@ -210,12 +223,16 @@ export function charLength(stringExpression: Expr): FunctionExpr;
 export class CollectionGroupSource implements Stage {
     constructor(collectionId: string);
     // (undocumented)
+    readonly collectionId: string;
+    // (undocumented)
     name: string;
 }
 
 // @beta (undocumented)
 export class CollectionSource implements Stage {
     constructor(collectionPath: string);
+    // (undocumented)
+    readonly collectionPath: string;
     // (undocumented)
     name: string;
 }
@@ -225,14 +242,25 @@ export function cond(condition: BooleanExpr, thenExpr: Expr, elseExpr: Expr): Fu
 
 // @beta
 export class Constant extends Expr {
+    constructor(value: any, options?: {
+        preferIntegers: boolean;
+    } | undefined);
     // (undocumented)
     readonly exprType: ExprType;
-    }
+    // (undocumented)
+    readonly options?: {
+        preferIntegers: boolean;
+    } | undefined;
+    // (undocumented)
+    readonly value: any;
+}
 
 // Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Constant" which is marked as @beta
 //
 // @public
-export function constant(value: number): Constant;
+export function constant(value: number, options?: {
+    preferIntegers: boolean;
+}): Constant;
 
 // Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Constant" which is marked as @beta
 //
@@ -328,6 +356,8 @@ export function descending(fieldName: string): Ordering;
 export class Distinct implements Stage {
     constructor(groups: Map<string, Expr>);
     // (undocumented)
+    readonly groups: Map<string, Expr>;
+    // (undocumented)
     name: string;
 }
 
@@ -352,6 +382,8 @@ export function documentId(documentPathExpr: Expr): FunctionExpr;
 // @beta (undocumented)
 export class DocumentsSource implements Stage {
     constructor(docPaths: string[]);
+    // (undocumented)
+    readonly docPaths: string[];
     // (undocumented)
     name: string;
     // (undocumented)
@@ -493,7 +525,7 @@ export abstract class Expr {
     /* Excluded from this release type: _readUserData */
     divide(other: Expr): FunctionExpr;
     /* Excluded from this release type: _readUserData */
-    divide(other: unknown): FunctionExpr;
+    divide(other: number): FunctionExpr;
     /* Excluded from this release type: _readUserData */
     documentId(): FunctionExpr;
     /* Excluded from this release type: _readUserData */
@@ -562,10 +594,6 @@ export abstract class Expr {
     /* Excluded from this release type: _readUserData */
     lte(value: unknown): BooleanExpr;
     /* Excluded from this release type: _readUserData */
-    manhattanDistance(vector: VectorValue | number[]): FunctionExpr;
-    /* Excluded from this release type: _readUserData */
-    manhattanDistance(vectorExpression: Expr): FunctionExpr;
-    /* Excluded from this release type: _readUserData */
     mapGet(subfield: string): FunctionExpr;
     /* Excluded from this release type: _readUserData */
     mapMerge(secondMap: Record<string, unknown> | Expr, ...otherMaps: Array<Record<string, unknown> | Expr>): FunctionExpr;
@@ -580,9 +608,9 @@ export abstract class Expr {
     /* Excluded from this release type: _readUserData */
     mod(expression: Expr): FunctionExpr;
     /* Excluded from this release type: _readUserData */
-    mod(value: unknown): FunctionExpr;
+    mod(value: number): FunctionExpr;
     /* Excluded from this release type: _readUserData */
-    multiply(second: Expr | unknown, ...others: Array<Expr | unknown>): FunctionExpr;
+    multiply(second: Expr | number, ...others: Array<Expr | number>): FunctionExpr;
     /* Excluded from this release type: _readUserData */
     neq(expression: Expr): BooleanExpr;
     /* Excluded from this release type: _readUserData */
@@ -626,7 +654,7 @@ export abstract class Expr {
     /* Excluded from this release type: _readUserData */
     subtract(other: Expr): FunctionExpr;
     /* Excluded from this release type: _readUserData */
-    subtract(other: unknown): FunctionExpr;
+    subtract(other: number): FunctionExpr;
     /* Excluded from this release type: _readUserData */
     sum(): AggregateFunction;
     /* Excluded from this release type: _readUserData */
@@ -725,7 +753,11 @@ export class FunctionExpr extends Expr {
     constructor(name: string, params: Expr[]);
     // (undocumented)
     readonly exprType: ExprType;
-    }
+    // (undocumented)
+    readonly name: string;
+    // (undocumented)
+    readonly params: Expr[];
+}
 
 // @beta (undocumented)
 export class GenericStage implements Stage {
@@ -859,18 +891,6 @@ export function lte(fieldName: string, expression: Expr): BooleanExpr;
 export function lte(fieldName: string, value: unknown): BooleanExpr;
 
 // @beta
-export function manhattanDistance(fieldName: string, vector: number[] | VectorValue): FunctionExpr;
-
-// @beta
-export function manhattanDistance(fieldName: string, vectorExpression: Expr): FunctionExpr;
-
-// @beta
-export function manhattanDistance(vectorExpression: Expr, vector: number[] | VectorValue): FunctionExpr;
-
-// @beta
-export function manhattanDistance(vectorExpression: Expr, otherVectorExpression: Expr): FunctionExpr;
-
-// @beta
 export function map(elements: Record<string, unknown>): FunctionExpr;
 
 // @beta
@@ -959,7 +979,9 @@ export class Offset implements Stage {
     constructor(offset: number);
     // (undocumented)
     name: string;
-    }
+    // (undocumented)
+    readonly offset: number;
+}
 
 // @beta
 export function or(first: BooleanExpr, second: BooleanExpr, ...more: BooleanExpr[]): BooleanExpr;
@@ -992,8 +1014,9 @@ export class Pipeline {
     readUserData: any;
     // Warning: (ae-incompatible-release-tags) The symbol "removeFields" is marked as @public, but its signature references "Field" which is marked as @beta
     removeFields(fieldValue: Field | string, ...additionalFields: Array<Field | string>): Pipeline;
-    // Warning: (ae-incompatible-release-tags) The symbol "replaceWith" is marked as @public, but its signature references "Field" which is marked as @beta
-    replaceWith(fieldValue: Field | string): Pipeline;
+    replaceWith(fieldName: string): Pipeline;
+    // Warning: (ae-incompatible-release-tags) The symbol "replaceWith" is marked as @public, but its signature references "Expr" which is marked as @beta
+    replaceWith(expr: Expr): Pipeline;
     sample(documents: number): Pipeline;
     sample(options: { percentage: number; } | { documents: number; }): Pipeline;
     // Warning: (ae-incompatible-release-tags) The symbol "select" is marked as @public, but its signature references "Selectable" which is marked as @beta
@@ -1002,31 +1025,60 @@ export class Pipeline {
     selectablesToMap: any;
     // Warning: (ae-incompatible-release-tags) The symbol "sort" is marked as @public, but its signature references "Ordering" which is marked as @beta
     sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
+    // Warning: (ae-incompatible-release-tags) The symbol "stages" is marked as @public, but its signature references "Stage" which is marked as @beta
+    //
     // (undocumented)
-    stages: any;
+    stages: Stage[];
     union(other: Pipeline): Pipeline;
     // Warning: (ae-incompatible-release-tags) The symbol "unnest" is marked as @public, but its signature references "Selectable" which is marked as @beta
     unnest(selectable: Selectable, indexField?: string): Pipeline;
-    // (undocumented)
-    userDataReader: any;
     // Warning: (ae-incompatible-release-tags) The symbol "where" is marked as @public, but its signature references "BooleanExpr" which is marked as @beta
     where(condition: BooleanExpr): Pipeline;
 }
 
-// Warning: (ae-forgotten-export) The symbol "DocumentData" needs to be exported by the entry point pipelines.d.ts
-//
 // @beta
-export class PipelineResult<AppModelType = DocumentData> {
+export class PipelineResult {
+    get createTime(): Timestamp | undefined;
     /* Excluded from this release type: _ref */
     /* Excluded from this release type: _fields */
     /* Excluded from this release type: __constructor */
-    get createTime(): Timestamp | undefined;
-    data(): AppModelType | undefined;
+    /* Excluded from this release type: fromDocument */
+    // Warning: (ae-forgotten-export) The symbol "DocumentData" needs to be exported by the entry point pipelines.d.ts
+    data(): DocumentData | undefined;
+    /* Excluded from this release type: _ref */
+    /* Excluded from this release type: _fields */
+    /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: fromDocument */
     get(fieldPath: string | FieldPath | Field): any;
+    /* Excluded from this release type: _ref */
+    /* Excluded from this release type: _fields */
+    /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: fromDocument */
     get id(): string | undefined;
+    /* Excluded from this release type: _ref */
+    /* Excluded from this release type: _fields */
+    /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: fromDocument */
+    // Warning: (ae-forgotten-export) The symbol "SnapshotMetadata" needs to be exported by the entry point pipelines.d.ts
+    //
+    // (undocumented)
+    readonly metadata?: SnapshotMetadata | undefined;
+    /* Excluded from this release type: _ref */
+    /* Excluded from this release type: _fields */
+    /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: fromDocument */
     get ref(): DocumentReference | undefined;
+    /* Excluded from this release type: _ref */
+    /* Excluded from this release type: _fields */
+    /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: fromDocument */
     get updateTime(): Timestamp | undefined;
 }
+
+// Warning: (ae-incompatible-release-tags) The symbol "pipelineResultEqual" is marked as @public, but its signature references "PipelineResult" which is marked as @beta
+//
+// @public (undocumented)
+export function pipelineResultEqual(left: PipelineResult, right: PipelineResult): boolean;
 
 // @public (undocumented)
 export class PipelineSnapshot {
@@ -1050,7 +1102,7 @@ export class PipelineSource<PipelineType> {
     collectionGroup(collectionId: string): PipelineType;
     /* Excluded from this release type: _createPipeline */
     /* Excluded from this release type: __constructor */
-    createFrom(query: Query): Pipeline;
+    createFrom(query: Query): PipelineType;
     /* Excluded from this release type: _createPipeline */
     /* Excluded from this release type: __constructor */
     database(): PipelineType;
@@ -1115,7 +1167,9 @@ export class Select implements Stage {
     constructor(projections: Map<string, Expr>);
     // (undocumented)
     name: string;
-    }
+    // (undocumented)
+    readonly projections: Map<string, Expr>;
+}
 
 // @beta
 export interface Selectable {
@@ -1132,7 +1186,9 @@ export class Sort implements Stage {
     constructor(orders: Ordering[]);
     // (undocumented)
     name: string;
-    }
+    // (undocumented)
+    readonly orders: Ordering[];
+}
 
 // @beta (undocumented)
 export interface Stage {
@@ -1282,6 +1338,8 @@ export function vectorLength(fieldName: string): FunctionExpr;
 export class Where implements Stage {
     constructor(condition: BooleanExpr);
     // (undocumented)
+    readonly condition: BooleanExpr;
+    // (undocumented)
     name: string;
 }
 
@@ -1291,8 +1349,8 @@ export function xor(first: BooleanExpr, second: BooleanExpr, ...additionalCondit
 
 // Warnings were encountered during analysis:
 //
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:4552:26 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AggregateWithAlias" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:4552:62 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/wuandy/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:4487:26 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AggregateWithAlias" which is marked as @beta
+// /Users/wuandy/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:4487:62 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
 
 // (No @packageDocumentation comment for this package)
 
