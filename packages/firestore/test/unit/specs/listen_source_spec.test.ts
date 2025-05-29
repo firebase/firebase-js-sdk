@@ -719,9 +719,11 @@ describeSpec('Listens source options:', [], () => {
     }
   );
 
+  // Skipping pipeline conversion because pipeline has no concept of mirroring
+  // and will not be able to have fromCache:false because of this.
   specTest(
     'Mirror queries being listened from different sources while listening to server in primary tab',
-    ['multi-client'],
+    ['multi-client', 'no-pipeline-conversion'],
     () => {
       const limit = queryWithLimit(
         query('collection', orderBy('sort', 'asc')),
@@ -761,9 +763,11 @@ describeSpec('Listens source options:', [], () => {
     }
   );
 
+  // Skipping pipeline conversion because pipeline has no concept of mirroring
+  // and will not be able to have fromCache:false because of this.
   specTest(
     'Mirror queries from different sources while listening to server in secondary tab',
-    ['multi-client'],
+    ['multi-client', 'no-pipeline-conversion'],
     () => {
       const limit = queryWithLimit(
         query('collection', orderBy('sort', 'asc')),
