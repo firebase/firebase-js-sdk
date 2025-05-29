@@ -2953,109 +2953,101 @@ apiDescribe.only('Pipelines', persistence => {
       });
     }
 
-    // sort on __name__ is not working, see b/409358591
-    itIf(testUnsupportedFeatures)(
-      'supports pagination with filters',
-      async () => {
-        await addBooks(randomCol);
-        const pageSize = 2;
-        const pipeline = firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .select('title', 'rating', '__name__')
-          .sort(field('rating').descending(), field('__name__').ascending());
+    it('supports pagination with filters', async () => {
+      await addBooks(randomCol);
+      const pageSize = 2;
+      const pipeline = firestore
+        .pipeline()
+        .collection(randomCol.path)
+        .select('title', 'rating', '__name__')
+        .sort(field('rating').descending(), field('__name__').ascending());
 
-        let snapshot = await execute(pipeline.limit(pageSize));
-        expectResults(
-          snapshot,
-          { title: 'The Lord of the Rings', rating: 4.7 },
-          { title: 'Jonathan Strange & Mr Norrell', rating: 4.6 }
-        );
+      let snapshot = await execute(pipeline.limit(pageSize));
+      expectResults(
+        snapshot,
+        { title: 'The Lord of the Rings', rating: 4.7 },
+        { title: 'Dune', rating: 4.6 }
+      );
 
-        const lastDoc = snapshot.results[snapshot.results.length - 1];
+      const lastDoc = snapshot.results[snapshot.results.length - 1];
 
-        snapshot = await execute(
-          pipeline
-            .where(
-              or(
-                and(
-                  field('rating').eq(lastDoc.get('rating')),
-                  field('__path__').gt(lastDoc.ref?.id)
-                ),
-                field('rating').lt(lastDoc.get('rating'))
-              )
+      snapshot = await execute(
+        pipeline
+          .where(
+            or(
+              and(
+                field('rating').eq(lastDoc.get('rating')),
+                field('__name__').gt(lastDoc.ref)
+              ),
+              field('rating').lt(lastDoc.get('rating'))
             )
-            .limit(pageSize)
-        );
-        expectResults(
-          snapshot,
-          { title: 'Pride and Prejudice', rating: 4.5 },
-          { title: 'Crime and Punishment', rating: 4.3 }
-        );
-      }
-    );
+          )
+          .limit(pageSize)
+      );
+      expectResults(
+        snapshot,
+        { title: 'Jonathan Strange & Mr Norrell', rating: 4.6 },
+        { title: 'The Master and Margarita', rating: 4.6 }
+      );
+    });
 
-    // sort on __name__ is not working, see b/409358591
-    itIf(testUnsupportedFeatures)(
-      'supports pagination with offsets',
-      async () => {
-        await addBooks(randomCol);
+    it('supports pagination with offsets', async () => {
+      await addBooks(randomCol);
 
-        const secondFilterField = '__path__';
+      const secondFilterField = '__name__';
 
-        const pipeline = firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .select('title', 'rating', secondFilterField)
-          .sort(
-            field('rating').descending(),
-            field(secondFilterField).ascending()
-          );
-
-        const pageSize = 2;
-        let currPage = 0;
-
-        let snapshot = await execute(
-          pipeline.offset(currPage++ * pageSize).limit(pageSize)
+      const pipeline = firestore
+        .pipeline()
+        .collection(randomCol.path)
+        .select('title', 'rating', secondFilterField)
+        .sort(
+          field('rating').descending(),
+          field(secondFilterField).ascending()
         );
 
-        expectResults(
-          snapshot,
-          {
-            title: 'The Lord of the Rings',
-            rating: 4.7
-          },
-          { title: 'Dune', rating: 4.6 }
-        );
+      const pageSize = 2;
+      let currPage = 0;
 
-        snapshot = await execute(
-          pipeline.offset(currPage++ * pageSize).limit(pageSize)
-        );
-        expectResults(
-          snapshot,
-          {
-            title: 'Jonathan Strange & Mr Norrell',
-            rating: 4.6
-          },
-          { title: 'The Master and Margarita', rating: 4.6 }
-        );
+      let snapshot = await execute(
+        pipeline.offset(currPage++ * pageSize).limit(pageSize)
+      );
 
-        snapshot = await execute(
-          pipeline.offset(currPage++ * pageSize).limit(pageSize)
-        );
-        expectResults(
-          snapshot,
-          {
-            title: 'A Long Way to a Small, Angry Planet',
-            rating: 4.6
-          },
-          {
-            title: 'Pride and Prejudice',
-            rating: 4.5
-          }
-        );
-      }
-    );
+      expectResults(
+        snapshot,
+        {
+          title: 'The Lord of the Rings',
+          rating: 4.7
+        },
+        { title: 'Dune', rating: 4.6 }
+      );
+
+      snapshot = await execute(
+        pipeline.offset(currPage++ * pageSize).limit(pageSize)
+      );
+      expectResults(
+        snapshot,
+        {
+          title: 'Jonathan Strange & Mr Norrell',
+          rating: 4.6
+        },
+        { title: 'The Master and Margarita', rating: 4.6 }
+      );
+
+      snapshot = await execute(
+        pipeline.offset(currPage++ * pageSize).limit(pageSize)
+      );
+      expectResults(
+        snapshot,
+        {
+          title: 'A Long Way to a Small, Angry Planet',
+          rating: 4.6
+        },
+        {
+          title: 'Pride and Prejudice',
+          rating: 4.5
+        }
+      );
+    });
   });
 
   describe('console support', () => {
