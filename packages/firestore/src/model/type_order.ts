@@ -24,18 +24,28 @@
  */
 export const enum TypeOrder {
   // This order is based on the backend's ordering, but modified to support
-  // server timestamps and `MAX_VALUE`.
+  // server timestamps and `MAX_VALUE` inside the SDK.
+  // NULL and MIN_KEY sort the same.
   NullValue = 0,
-  BooleanValue = 1,
-  NumberValue = 2,
-  TimestampValue = 3,
-  ServerTimestampValue = 4,
-  StringValue = 5,
-  BlobValue = 6,
-  RefValue = 7,
-  GeoPointValue = 8,
-  ArrayValue = 9,
-  VectorValue = 10,
-  ObjectValue = 11,
+  MinKeyValue = 1,
+  BooleanValue = 2,
+  // Note: all numbers (32-bit int, 64-bit int, 64-bit double, 128-bit decimal,
+  // etc.) are sorted together numerically. The `numberEquals` function
+  // distinguishes between different number types and compares them accordingly.
+  NumberValue = 3,
+  TimestampValue = 4,
+  BsonTimestampValue = 5,
+  ServerTimestampValue = 6,
+  StringValue = 7,
+  BlobValue = 8,
+  BsonBinaryValue = 9,
+  RefValue = 10,
+  BsonObjectIdValue = 11,
+  GeoPointValue = 12,
+  RegexValue = 13,
+  ArrayValue = 14,
+  VectorValue = 15,
+  ObjectValue = 16,
+  MaxKeyValue = 17,
   MaxValue = 9007199254740991 // Number.MAX_SAFE_INTEGER
 }
