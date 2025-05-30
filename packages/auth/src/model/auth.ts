@@ -20,6 +20,7 @@ import {
   AuthSettings,
   Config,
   EmulatorConfig,
+  FirebaseToken,
   PasswordPolicy,
   PasswordValidationStatus,
   PopupRedirectResolver,
@@ -75,6 +76,7 @@ export interface AuthInternal extends Auth {
   _initializationPromise: Promise<void> | null;
   _persistenceManagerAvailable: Promise<void>;
   _updateCurrentUser(user: UserInternal | null): Promise<void>;
+  _updateFirebaseToken(firebaseToken: FirebaseToken | null): Promise<void>;
 
   _onStorageEvent(): void;
 
