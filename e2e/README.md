@@ -1,6 +1,6 @@
 # E2E Tests
 
-This directory is for Firebase E2E tests that are completely independent of the main SDK workspaces. Packages in here should
+This directory is for Firebase E2E tests that are completely independent of the main SDK workspaces. Packages in here should:
 
 * Have a start trigger independent of the main CI PR/push triggers (e.g., manual trigger, repository_dispatch, from an external runner like Kokoro, etc.)
   

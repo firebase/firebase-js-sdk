@@ -61,7 +61,7 @@ jobs:
       - name: Yarn install
         run: |
           echo "Installing firebase@${{ github.event.client_payload.versionOrTag }}"
-          yarn add firebase@11.8.1
+          yarn add firebase@${{ github.event.client_payload.versionOrTag }}
           yarn
       - name: Deploy "callTest" cloud function
         run: |
