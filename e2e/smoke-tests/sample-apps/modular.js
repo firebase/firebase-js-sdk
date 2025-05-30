@@ -121,7 +121,7 @@ async function authLogout(app) {
  *
  * Call a deployed function.
  * This cloud function must be deployed in this project first. See
- * e2e/README.md for more info.
+ * e2e/smoke-tests/README.md for more info.
  */
 async function callFunctions(app) {
   console.log('[FUNCTIONS] start');
