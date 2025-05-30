@@ -118,6 +118,7 @@ Firebase Authentication
 |  [ConfirmationResult](./auth.confirmationresult.md#confirmationresult_interface) | A result from a phone number sign-in, link, or reauthenticate call. |
 |  [Dependencies](./auth.dependencies.md#dependencies_interface) | The dependencies that can be used to initialize an [Auth](./auth.auth.md#auth_interface) instance. |
 |  [EmulatorConfig](./auth.emulatorconfig.md#emulatorconfig_interface) | Configuration of Firebase Authentication Emulator. |
+|  [FirebaseToken](./auth.firebasetoken.md#firebasetoken_interface) |  |
 |  [IdTokenResult](./auth.idtokenresult.md#idtokenresult_interface) | Interface representing ID token result obtained from [User.getIdTokenResult()](./auth.user.md#usergetidtokenresult)<!-- -->. |
 |  [MultiFactorAssertion](./auth.multifactorassertion.md#multifactorassertion_interface) | The base class for asserting ownership of a second factor. |
 |  [MultiFactorError](./auth.multifactorerror.md#multifactorerror_interface) | The error thrown when the user needs to provide a second factor to sign in successfully. |
