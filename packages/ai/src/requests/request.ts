@@ -185,7 +185,9 @@ export async function makeRequest(
       }
       if (
         response.status === 403 &&
+        errorDetails &&
         errorDetails.some(
+          // FIXME: cannot read 'some' of undefined
           (detail: ErrorDetails) => detail.reason === 'SERVICE_DISABLED'
         ) &&
         errorDetails.some((detail: ErrorDetails) =>
