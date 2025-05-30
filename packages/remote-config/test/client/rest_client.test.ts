@@ -78,7 +78,14 @@ describe('RestClient', () => {
         eTag: 'etag',
         state: 'UPDATE',
         entries: { color: 'sparkling' },
-        templateVersion: 1
+        templateVersion: 1,
+        experimentDescriptions: [{
+          experimentId: "_exp_1",
+          variantId : "1",
+          experimentStartTime : "2025-04-06T14:13:57.597Z",
+          triggerTimeoutMillis : "15552000000",
+          timeToLiveMillis : "15552000000"
+        }]
       };
 
       fetchStub.returns(
@@ -90,7 +97,8 @@ describe('RestClient', () => {
             Promise.resolve({
               entries: expectedResponse.entries,
               state: expectedResponse.state,
-              templateVersion: expectedResponse.templateVersion
+              templateVersion: expectedResponse.templateVersion,
+              experimentDescriptions: expectedResponse.experimentDescriptions
             })
         } as Response)
       );
@@ -101,7 +109,8 @@ describe('RestClient', () => {
         status: expectedResponse.status,
         eTag: expectedResponse.eTag,
         config: expectedResponse.entries,
-        templateVersion: expectedResponse.templateVersion
+        templateVersion: expectedResponse.templateVersion,
+        experiments: expectedResponse.experimentDescriptions
       });
     });
 
@@ -191,7 +200,8 @@ describe('RestClient', () => {
         status: 304,
         eTag: 'response-etag',
         config: undefined,
-        templateVersion: undefined
+        templateVersion: undefined,
+        experiments: undefined
       });
     });
 
@@ -230,7 +240,8 @@ describe('RestClient', () => {
         status: 304,
         eTag: 'etag',
         config: undefined,
-        templateVersion: undefined
+        templateVersion: undefined,
+        experiments: undefined
       });
     });
 
@@ -248,7 +259,8 @@ describe('RestClient', () => {
           status: 200,
           eTag: 'etag',
           config: {},
-          templateVersion: undefined
+          templateVersion: undefined,
+          experiments: []
         });
       }
     });

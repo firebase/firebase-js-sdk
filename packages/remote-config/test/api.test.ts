@@ -68,7 +68,14 @@ describe('Remote Config API', () => {
     status: 200,
     eTag: 'asdf',
     config: { 'foobar': 'hello world' },
-    templateVersion: 1
+    templateVersion: 1,
+    experiments: [{
+      experimentId: "_exp_1",
+      variantId : "1",
+      experimentStartTime : "2025-04-06T14:13:57.597Z",
+      triggerTimeoutMillis : "15552000000",
+      timeToLiveMillis : "15552000000"
+    }]
   };
   let fetchStub: sinon.SinonStub;
 
@@ -106,7 +113,8 @@ describe('Remote Config API', () => {
           Promise.resolve({
             entries: response.config,
             state: 'OK',
-            templateVersion: response.templateVersion
+            templateVersion: response.templateVersion,
+            experimentDescriptions: response.experiments,
           })
       } as Response)
     );
