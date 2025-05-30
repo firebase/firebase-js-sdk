@@ -28,11 +28,28 @@ export function fetchConfig(remoteConfig: RemoteConfig): Promise<void>;
 export interface FetchResponse {
     config?: FirebaseRemoteConfigObject;
     eTag?: string;
+    experiments?: FirebaseExperimentDescription[];
     status: number;
 }
 
 // @public
 export type FetchStatus = 'no-fetch-yet' | 'success' | 'failure' | 'throttle';
+
+// @public
+export interface FirebaseExperimentDescription {
+    // (undocumented)
+    affectedParameterKeys?: string[];
+    // (undocumented)
+    experimentId: string;
+    // (undocumented)
+    experimentStartTime: string;
+    // (undocumented)
+    timeToLiveMillis: string;
+    // (undocumented)
+    triggerTimeoutMillis: string;
+    // (undocumented)
+    variantId: string;
+}
 
 // @public
 export interface FirebaseRemoteConfigObject {

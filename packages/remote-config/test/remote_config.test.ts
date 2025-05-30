@@ -380,6 +380,13 @@ describe('RemoteConfig', () => {
     const ETAG = 'etag';
     const CONFIG = { key: 'val' };
     const NEW_ETAG = 'new_etag';
+    const EXPERIMENTS = [{
+      "experimentId" : "_exp_1",
+      "variantId" : "1",
+      "experimentStartTime" : "2025-04-06T14:13:57.597Z",
+      "triggerTimeoutMillis" : "15552000000",
+      "timeToLiveMillis" : "15552000000"   
+    }];
 
     let getLastSuccessfulFetchResponseStub: sinon.SinonStub;
     let getActiveConfigEtagStub: sinon.SinonStub;
@@ -425,7 +432,7 @@ describe('RemoteConfig', () => {
 
     it('activates if fetched and active etags are different', async () => {
       getLastSuccessfulFetchResponseStub.returns(
-        Promise.resolve({ config: CONFIG, eTag: NEW_ETAG })
+        Promise.resolve({ config: CONFIG, experiments: EXPERIMENTS, eTag: NEW_ETAG })
       );
       getActiveConfigEtagStub.returns(Promise.resolve(ETAG));
 
@@ -438,7 +445,7 @@ describe('RemoteConfig', () => {
 
     it('activates if fetched is defined but active config is not', async () => {
       getLastSuccessfulFetchResponseStub.returns(
-        Promise.resolve({ config: CONFIG, eTag: NEW_ETAG })
+        Promise.resolve({ config: CONFIG, experiments: EXPERIMENTS, eTag: NEW_ETAG })
       );
       getActiveConfigEtagStub.returns(Promise.resolve());
 
