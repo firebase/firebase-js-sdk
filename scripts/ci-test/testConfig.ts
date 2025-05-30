@@ -52,7 +52,6 @@ export const testConfig: {
       'firebase-firestore-integration-test',
       'firebase-messaging-integration-test',
       'firebase-compat-typings-test',
-      'firebase-dataconnect-kokoro-test',
       '@firebase/rules-unit-testing',
       '@firebase/auth',
       '@firebase/auth-compat',
