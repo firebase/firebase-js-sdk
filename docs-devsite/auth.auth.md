@@ -28,6 +28,7 @@ export interface Auth
 |  [config](./auth.auth.md#authconfig) | [Config](./auth.config.md#config_interface) | The [Config](./auth.config.md#config_interface) used to initialize this instance. |
 |  [currentUser](./auth.auth.md#authcurrentuser) | [User](./auth.user.md#user_interface) \| null | The currently signed-in user (or null). |
 |  [emulatorConfig](./auth.auth.md#authemulatorconfig) | [EmulatorConfig](./auth.emulatorconfig.md#emulatorconfig_interface) \| null | The current emulator configuration (or null). |
+|  [firebaseToken](./auth.auth.md#authfirebasetoken) | [FirebaseToken](./auth.firebasetoken.md#firebasetoken_interface) \| null | The token response initialized via [exchangeToken()](./auth.md#exchangetoken_b6b1871) endpoint. |
 |  [languageCode](./auth.auth.md#authlanguagecode) | string \| null | The [Auth](./auth.auth.md#auth_interface) instance's language code. |
 |  [name](./auth.auth.md#authname) | string | The name of the app associated with the <code>Auth</code> service instance. |
 |  [settings](./auth.auth.md#authsettings) | [AuthSettings](./auth.authsettings.md#authsettings_interface) | The [Auth](./auth.auth.md#auth_interface) instance's settings. |
@@ -85,6 +86,18 @@ The current emulator configuration (or null).
 
 ```typescript
 readonly emulatorConfig: EmulatorConfig | null;
+```
+
+## Auth.firebaseToken
+
+The token response initialized via [exchangeToken()](./auth.md#exchangetoken_b6b1871) endpoint.
+
+This field is only supported for [Auth](./auth.auth.md#auth_interface) instance that have defined [TenantConfig](./auth.tenantconfig.md#tenantconfig_interface)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+readonly firebaseToken: FirebaseToken | null;
 ```
 
 ## Auth.languageCode
