@@ -90,6 +90,8 @@ describe('FirebaseError', () => {
     } catch (error) {
       assert.isDefined((error as Error).stack);
       // Multi-line match trick - .* does not match \n
+      console.log('** Error stack **');
+      console.log((error as Error).stack);
       assert.match((error as Error).stack!, /FirebaseError[\s\S]/);
     }
   });
