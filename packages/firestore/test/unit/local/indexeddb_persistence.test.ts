@@ -316,10 +316,14 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       lastRemoteSnapshotVersion: { seconds: 1, nanoseconds: 1 },
       targetCount: 1
     };
+    const timestamp = SnapshotVersion.min().toTimestamp();
     const resetTargetGlobal: DbTargetGlobal = {
       highestTargetId: 0,
       highestListenSequenceNumber: 0,
-      lastRemoteSnapshotVersion: SnapshotVersion.min().toTimestamp(),
+      lastRemoteSnapshotVersion: {
+        seconds: timestamp.seconds,
+        nanoseconds: timestamp.nanoseconds
+      },
       targetCount: 0
     };
 
