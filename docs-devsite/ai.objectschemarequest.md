@@ -10,21 +10,21 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ObjectSchemaRequest interface
-Interface for JSON parameters in [SchemaType.OBJECT](./vertexai.md#schematypeobject_enummember) format when not using the [ObjectSchema](./vertexai.objectschema.md#objectschema_class) helper.
+Interface for JSON parameters in [SchemaType.OBJECT](./ai.md#schematypeobject_enummember) format when not using the [ObjectSchema](./ai.objectschema.md#objectschema_class) helper.
 
 <b>Signature:</b>
 
 ```typescript
 export interface ObjectSchemaRequest extends SchemaRequest 
 ```
-<b>Extends:</b> [SchemaRequest](./vertexai.schemarequest.md#schemarequest_interface)
+<b>Extends:</b> [SchemaRequest](./ai.schemarequest.md#schemarequest_interface)
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [optionalProperties](./vertexai.objectschemarequest.md#objectschemarequestoptionalproperties) | never | This is not a property accepted in the final request to the backend, but is a client-side convenience property that is only usable by constructing a schema through the <code>Schema.object()</code> helper method. |
-|  [type](./vertexai.objectschemarequest.md#objectschemarequesttype) | [SchemaType.OBJECT](./vertexai.md#schematypeobject_enummember) |  |
+|  [optionalProperties](./ai.objectschemarequest.md#objectschemarequestoptionalproperties) | never | This is not a property accepted in the final request to the backend, but is a client-side convenience property that is only usable by constructing a schema through the <code>Schema.object()</code> helper method. |
+|  [type](./ai.objectschemarequest.md#objectschemarequesttype) | [SchemaType.OBJECT](./ai.md#schematypeobject_enummember) |  |
 
 ## ObjectSchemaRequest.optionalProperties
 

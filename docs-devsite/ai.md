@@ -106,7 +106,7 @@ The Firebase AI Web SDK.
 |  [InlineDataPart](./ai.inlinedatapart.md#inlinedatapart_interface) | Content part interface if the part represents an image. |
 |  [ModalityTokenCount](./ai.modalitytokencount.md#modalitytokencount_interface) | Represents token counting info for a single modality. |
 |  [ModelParams](./ai.modelparams.md#modelparams_interface) | Params passed to [getGenerativeModel()](./ai.md#getgenerativemodel_80bd839)<!-- -->. |
-|  [ObjectSchemaInterface](./ai.objectschemainterface.md#objectschemainterface_interface) | Interface for [ObjectSchema](./ai.objectschema.md#objectschema_class) class. |
+|  [ObjectSchemaRequest](./ai.objectschemarequest.md#objectschemarequest_interface) | Interface for JSON parameters in [SchemaType.OBJECT](./ai.md#schematypeobject_enummember) format when not using the [ObjectSchema](./ai.objectschema.md#objectschema_class) helper. |
 |  [PromptFeedback](./ai.promptfeedback.md#promptfeedback_interface) | If the prompt was blocked, this will be populated with <code>blockReason</code> and the relevant <code>safetyRatings</code>. |
 |  [RequestOptions](./ai.requestoptions.md#requestoptions_interface) | Params passed to [getGenerativeModel()](./ai.md#getgenerativemodel_80bd839)<!-- -->. |
 |  [RetrievedContextAttribution](./ai.retrievedcontextattribution.md#retrievedcontextattribution_interface) |  |
