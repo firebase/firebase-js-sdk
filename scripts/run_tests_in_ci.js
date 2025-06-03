@@ -27,7 +27,9 @@ const crossBrowserPackages = {
   'packages/auth': 'test:browser:unit',
   'packages/auth-compat': 'test:browser:unit',
   'packages/firestore': 'test:browser:unit',
-  'packages/firestore-compat': 'test:browser'
+  'packages/firestore-compat': 'test:browser',
+  'packages/storage': 'test:browser:unit',
+  'packages/storage-compat': 'test:browser:unit'
 };
 
 function writeLogs(status, name, logText) {
@@ -67,6 +69,8 @@ const argv = yargs.options({
       for (const package in crossBrowserPackages) {
         if (dir.endsWith(package)) {
           scriptName = crossBrowserPackages[package];
+        } else {
+          scriptName = "test:browser"
         }
       }
     }
