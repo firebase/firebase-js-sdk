@@ -1,5 +1,5 @@
 ---
-'@firebase/vertexai': patch
+'@firebase/ai': patch
 ---
 
-Fix typings for functionDeclaration.parameters.
+Fix typings for `functionDeclaration.parameters`.
