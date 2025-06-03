@@ -8,8 +8,8 @@
     "test:debug": "karma start --browsers Chrome --auto-watch"
   },
   "dependencies": {
-    "@firebase/app": "0.13.0",
-    "@firebase/app-compat": "0.4.0",
+    "@firebase/app": "0.13.1",
+    "@firebase/app-compat": "0.4.1",
     "@firebase/analytics": "0.10.16",
     "@firebase/analytics-compat": "0.2.22",
     "@firebase/auth": "1.10.6",
