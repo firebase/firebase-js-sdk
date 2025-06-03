@@ -89,10 +89,8 @@ describe('FirebaseError', () => {
       throw e;
     } catch (error) {
       assert.isDefined((error as Error).stack);
-      // Multi-line match trick - .* does not match \n
-      console.log('** Error stack **');
-      console.log((error as Error).stack);
-      assert.match((error as Error).stack!, /FirebaseError[\s\S]/);
+      // Firefox no longer puts the error class name in the stack
+      // as of 139.0 so we don't have a string to match on.
     }
   });
 

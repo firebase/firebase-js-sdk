@@ -67,7 +67,7 @@ const argv = yargs.options({
   try {
     if (process.env?.BROWSERS) {
       if (scripts['test:browser']) {
-          scriptName = 'test:browser';
+        scriptName = 'test:browser';
       }
       for (const package in crossBrowserPackages) {
         if (dir.endsWith(package)) {
@@ -80,7 +80,9 @@ const argv = yargs.options({
     }
 
     console.log(
-      `[${name}][${process.env.BROWSERS ?? 'chrome/node'}]: Running script ${scriptName}`
+      `[${name}][${
+        process.env.BROWSERS ?? 'chrome/node'
+      }]: Running script ${scriptName}`
     );
 
     const testProcess = spawn('yarn', ['--cwd', dir, scriptName]);
