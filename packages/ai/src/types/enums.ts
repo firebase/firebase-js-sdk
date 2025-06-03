@@ -58,7 +58,12 @@ export enum HarmBlockThreshold {
   /**
    * All content will be allowed.
    */
-  BLOCK_NONE = 'BLOCK_NONE'
+  BLOCK_NONE = 'BLOCK_NONE',
+  /**
+   * All content will be allowed. This is the same as `BLOCK_NONE`, but the metadata corresponding
+   * to the {@link HarmCategory} will not be present in the response.
+   */
+  OFF = 'OFF'
 }
 
 /**
