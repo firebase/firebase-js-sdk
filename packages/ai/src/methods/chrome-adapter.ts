@@ -257,7 +257,7 @@ export class ChromeAdapter {
     if (availability === Availability.downloadable) {
       // Side-effect: triggers out-of-band model download.
       // This is required because Chrome manages the model download.
-      this.download();
+      this.download(createOptions);
     }
 
     return availability;
@@ -267,18 +267,18 @@ export class ChromeAdapter {
    * Triggers out-of-band download of an on-device model.
    *
    * <p>Chrome only downloads models as needed. Chrome knows a model is needed when code calls
-   * LanguageModel.create.</p>
+   * {@link LanguageModel.create}.</p>
    *
    * <p>Since Chrome manages the download, the SDK can only avoid redundant download requests by
    * tracking if a download has previously been requested.</p>
    */
-  private download(): void {
+  private download(createOptions: LanguageModelCreateOptions): void {
     if (this.isDownloading) {
       return;
     }
     this.isDownloading = true;
     this.downloadPromise = this.languageModelProvider
-      ?.create(this.onDeviceParams.createOptions)
+      ?.create(createOptions)
       .then(() => {
         this.isDownloading = false;
       });
