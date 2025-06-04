@@ -74,9 +74,6 @@ const argv = yargs.options({
           scriptName = crossBrowserPackages[package];
         }
       }
-      // console.log(
-      //   `[${name}][${process.env.BROWSERS}]: Running script ${scriptName}`
-      // );
     }
 
     console.log(
