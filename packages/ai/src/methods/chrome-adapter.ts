@@ -30,12 +30,14 @@ import {
 import {
   Availability,
   LanguageModel,
+  LanguageModelCreateOptions,
   LanguageModelExpected,
   LanguageModelMessage,
   LanguageModelMessageContent,
   LanguageModelMessageRole,
   LanguageModelMessageType
 } from '../types/language-model';
+import { deepExtend } from '@firebase/util';
 
 /**
  * Defines an inference "backend" that uses Chrome's on-device model,
@@ -51,9 +53,7 @@ export class ChromeAdapter {
     private languageModelProvider?: LanguageModel,
     private mode?: InferenceMode,
     private onDeviceParams: OnDeviceParams = {}
-  ) {
-    this.onDeviceParams.createOptions ??= {};
-  }
+  ) {}
 
   /**
    * Checks if a given request can be made on-device.
@@ -84,10 +84,11 @@ export class ChromeAdapter {
       return false;
     }
 
-    const expectedInputs = ChromeAdapter.extractExpectedInputs(request);
+    const requestOptions = this.inferCreateOptions(request);
+    const mergedOptions = this.mergeCreateOptions(requestOptions);
 
     // Triggers out-of-band download so model will eventually become available.
-    const availability = await this.downloadIfAvailable(expectedInputs);
+    const availability = await this.downloadIfAvailable(mergedOptions);
 
     if (this.mode === 'only_on_device') {
       return true;
@@ -119,7 +120,9 @@ export class ChromeAdapter {
    * @returns {@link Response}, so we can reuse common response formatting.
    */
   async generateContent(request: GenerateContentRequest): Promise<Response> {
-    const session = await this.createSession();
+    const requestOptions = this.inferCreateOptions(request);
+    const mergedOptions = this.mergeCreateOptions(requestOptions);
+    const session = await this.createSession(mergedOptions);
     const contents = await Promise.all(
       request.contents.map(ChromeAdapter.toLanguageModelMessage)
     );
@@ -141,7 +144,9 @@ export class ChromeAdapter {
   async generateContentStream(
     request: GenerateContentRequest
   ): Promise<Response> {
-    const session = await this.createSession();
+    const inferredOptions = this.inferCreateOptions(request);
+    const mergedOptions = this.mergeCreateOptions(inferredOptions);
+    const session = await this.createSession(mergedOptions);
     const contents = await Promise.all(
       request.contents.map(ChromeAdapter.toLanguageModelMessage)
     );
@@ -164,14 +169,14 @@ export class ChromeAdapter {
    * <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/inference#blob">
    * Vertex's input mime types</a> to
    * <a href="https://github.com/webmachinelearning/prompt-api?tab=readme-ov-file#full-api-surface-in-web-idl">
-   * Chrome's expected types</a>.
+   * Chrome's expected input types</a>.
    *
    * <p>Chrome's API checks availability by type. It's tedious to specify the types in advance, so
    * this method infers the types.</p>
    */
-  private static extractExpectedInputs(
+  private inferCreateOptions(
     request: GenerateContentRequest
-  ): LanguageModelExpected[] {
+  ): LanguageModelCreateOptions {
     const inputSet = new Set<LanguageModelExpected>();
     for (const content of request.contents) {
       for (const part of content.parts) {
@@ -183,7 +188,23 @@ export class ChromeAdapter {
         }
       }
     }
-    return Array.from(inputSet);
+
+    return {
+      expectedInputs: Array.from(inputSet)
+    };
+  }
+
+  /**
+   * Assembles a unified {@link LanguageModelCreateOptions} from create- and request-time options.
+   * Request-time options take priority over create-time options.
+   */
+  private mergeCreateOptions(
+    requestOptions: LanguageModelCreateOptions
+  ): LanguageModelCreateOptions {
+    return deepExtend(
+      this.onDeviceParams.createOptions,
+      requestOptions
+    ) as LanguageModelCreateOptions;
   }
 
   /**
@@ -225,15 +246,10 @@ export class ChromeAdapter {
    * Encapsulates logic to get availability and download a model if one is downloadable.
    */
   private async downloadIfAvailable(
-    expectedInputs: LanguageModelExpected[]
+    createOptions: LanguageModelCreateOptions
   ): Promise<Availability | undefined> {
-    // Side-effect: updates construction-time params with request-time params.
-    // This is required because params are referenced through multiple flows.
-    // TODO: remove this side effect, since we need to also pass options when creating a session.
-    Object.assign(this.onDeviceParams.createOptions!, { expectedInputs });
-
     const availability = await this.languageModelProvider?.availability(
-      this.onDeviceParams.createOptions
+      createOptions
     );
 
     if (availability === Availability.downloadable) {
@@ -328,16 +344,16 @@ export class ChromeAdapter {
    * <p>Chrome will remove a model from memory if it's no longer in use, so this method ensures a
    * new session is created before an old session is destroyed.</p>
    */
-  private async createSession(): Promise<LanguageModel> {
+  private async createSession(
+    createOptions: LanguageModelCreateOptions
+  ): Promise<LanguageModel> {
     if (!this.languageModelProvider) {
       throw new AIError(
         AIErrorCode.REQUEST_ERROR,
         'Chrome AI requested for unsupported browser version.'
       );
     }
-    const newSession = await this.languageModelProvider.create(
-      this.onDeviceParams.createOptions
-    );
+    const newSession = await this.languageModelProvider.create(createOptions);
     if (this.oldSession) {
       this.oldSession.destroy();
     }
