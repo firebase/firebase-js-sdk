@@ -84,8 +84,8 @@ export class ChromeAdapter {
       return false;
     }
 
-    const requestOptions = this.inferCreateOptions(request);
-    const mergedOptions = this.mergeCreateOptions(requestOptions);
+    const extractedOptions = this.extractCreateOptions(request);
+    const mergedOptions = this.mergeCreateOptions(extractedOptions);
 
     // Triggers out-of-band download so model will eventually become available.
     const availability = await this.downloadIfAvailable(mergedOptions);
@@ -120,8 +120,8 @@ export class ChromeAdapter {
    * @returns {@link Response}, so we can reuse common response formatting.
    */
   async generateContent(request: GenerateContentRequest): Promise<Response> {
-    const requestOptions = this.inferCreateOptions(request);
-    const mergedOptions = this.mergeCreateOptions(requestOptions);
+    const extractedOptions = this.extractCreateOptions(request);
+    const mergedOptions = this.mergeCreateOptions(extractedOptions);
     const session = await this.createSession(mergedOptions);
     const contents = await Promise.all(
       request.contents.map(ChromeAdapter.toLanguageModelMessage)
@@ -144,8 +144,8 @@ export class ChromeAdapter {
   async generateContentStream(
     request: GenerateContentRequest
   ): Promise<Response> {
-    const inferredOptions = this.inferCreateOptions(request);
-    const mergedOptions = this.mergeCreateOptions(inferredOptions);
+    const extractedOptions = this.extractCreateOptions(request);
+    const mergedOptions = this.mergeCreateOptions(extractedOptions);
     const session = await this.createSession(mergedOptions);
     const contents = await Promise.all(
       request.contents.map(ChromeAdapter.toLanguageModelMessage)
@@ -165,16 +165,18 @@ export class ChromeAdapter {
   }
 
   /**
-   * Maps
+   * Extracts session creation options specified at request-time.
+   *
+   * <p>In particular, this method maps
    * <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/inference#blob">
    * Vertex's input mime types</a> to
    * <a href="https://github.com/webmachinelearning/prompt-api?tab=readme-ov-file#full-api-surface-in-web-idl">
-   * Chrome's expected input types</a>.
+   * Chrome's expected input types</a>.</p>
    *
    * <p>Chrome's API checks availability by type. It's tedious to specify the types in advance, so
    * this method infers the types.</p>
    */
-  private inferCreateOptions(
+  private extractCreateOptions(
     request: GenerateContentRequest
   ): LanguageModelCreateOptions {
     const inputSet = new Set<LanguageModelExpected>();
