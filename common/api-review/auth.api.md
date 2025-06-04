@@ -88,6 +88,7 @@ export interface Auth {
     readonly config: Config;
     readonly currentUser: User | null;
     readonly emulatorConfig: EmulatorConfig | null;
+    readonly firebaseToken: FirebaseToken | null;
     languageCode: string | null;
     readonly name: string;
     onAuthStateChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
@@ -364,7 +365,7 @@ export interface EmulatorConfig {
 
 export { ErrorFn }
 
-// @public (undocumented)
+// @public
 export function exchangeToken(auth: Auth, idpConfigId: string, customToken: string): Promise<string>;
 
 // Warning: (ae-forgotten-export) The symbol "BaseOAuthProvider" needs to be exported by the entry point index.d.ts
@@ -387,6 +388,14 @@ export const FactorId: {
 
 // @public
 export function fetchSignInMethodsForEmail(auth: Auth, email: string): Promise<string[]>;
+
+// @public (undocumented)
+export interface FirebaseToken {
+    // (undocumented)
+    readonly expirationTime: number;
+    // (undocumented)
+    readonly token: string;
+}
 
 // @public
 export function getAdditionalUserInfo(userCredential: UserCredential): AdditionalUserInfo | null;
