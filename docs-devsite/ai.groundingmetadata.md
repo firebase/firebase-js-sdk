@@ -22,21 +22,8 @@ export interface GroundingMetadata
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [groundingAttributions](./ai.groundingmetadata.md#groundingmetadatagroundingattributions) | [GroundingAttribution](./ai.groundingattribution.md#groundingattribution_interface)<!-- -->\[\] |  |
 |  [retrievalQueries](./ai.groundingmetadata.md#groundingmetadataretrievalqueries) | string\[\] |  |
 |  [webSearchQueries](./ai.groundingmetadata.md#groundingmetadatawebsearchqueries) | string\[\] |  |
-
-## GroundingMetadata.groundingAttributions
-
-> Warning: This API is now obsolete.
-> 
-> 
-
-<b>Signature:</b>
-
-```typescript
-groundingAttributions: GroundingAttribution[];
-```
 
 ## GroundingMetadata.retrievalQueries
 
