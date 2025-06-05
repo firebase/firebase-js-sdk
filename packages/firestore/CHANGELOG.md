@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 4.7.17
+
+### Patch Changes
+
+- [`9964849`](https://github.com/firebase/firebase-js-sdk/commit/9964849e9540f08d02fa3825ecec32c1bfedc62d) [#9041](https://github.com/firebase/firebase-js-sdk/pull/9041) - Clean up leaked WebChannel instances when the Firestore instance is terminated.
+
 ## 4.7.16
 
 ### Patch Changes

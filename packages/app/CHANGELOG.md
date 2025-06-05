@@ -1,5 +1,11 @@
 # @firebase/app
 
+## 0.13.1
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
 ## 0.13.0
 
 ### Minor Changes
