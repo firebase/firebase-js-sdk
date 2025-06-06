@@ -20,6 +20,8 @@ const path = require('path');
 const webpackTestConfig = require('./webpack.test');
 const { argv } = require('yargs');
 
+// FIXME
+
 function determineBrowsers() {
   const supportedBrowsers = ['ChromeHeadless', 'WebkitHeadless', 'Firefox'];
 
