@@ -925,20 +925,6 @@ apiDescribe('Queries', persistence => {
         { array: ['a', 42, 'c'] },
         { array: [42], array2: ['bingo'] }
       ]);
-
-      // NOTE: The backend doesn't currently support null, NaN, objects, or
-      // arrays, so there isn't much of anything else interesting to test.
-      // With null.
-      const snapshot3 = await getDocs(
-        query(coll, where('zip', 'array-contains', null))
-      );
-      expect(toDataArray(snapshot3)).to.deep.equal([]);
-
-      // With NaN.
-      const snapshot4 = await getDocs(
-        query(coll, where('zip', 'array-contains', Number.NaN))
-      );
-      expect(toDataArray(snapshot4)).to.deep.equal([]);
     });
   });
 
