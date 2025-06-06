@@ -77,6 +77,7 @@ import {
   SCHEMA_VERSION
 } from '../../../src/local/indexeddb_schema';
 import { SchemaConverter } from '../../../src/local/indexeddb_schema_converter';
+import { DatabaseDeletedListenerContinueResult } from '../../../src/local/persistence';
 import {
   DbPrimaryClientKey,
   DbPrimaryClientStore
@@ -365,8 +366,9 @@ abstract class TestRunner {
     this.eventManager.onLastRemoteStoreUnlisten =
       triggerRemoteStoreUnlisten.bind(null, this.syncEngine);
 
-    await this.persistence.setDatabaseDeletedListener(async () => {
-      await this.shutdown();
+    this.persistence.setDatabaseDeletedListener(() => {
+      this.shutdown();
+      return new DatabaseDeletedListenerContinueResult();
     });
 
     this.started = true;

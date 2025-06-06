@@ -33,7 +33,7 @@ import {
   localStoreReadDocument,
   localStoreSetIndexAutoCreationEnabled
 } from '../local/local_store_impl';
-import { Persistence } from '../local/persistence';
+import { Persistence, DatabaseDeletedListenerAbortResult, DatabaseDeletedListenerContinueResult } from '../local/persistence';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldIndex } from '../model/field_index';
@@ -234,12 +234,10 @@ export async function setOfflineComponentProvider(
   // need to be terminated to allow the delete to succeed.
   offlineComponentProvider.persistence.setDatabaseDeletedListener(reason => {
     client.terminate();
-    if (reason === "persistence cleared") {
-      return { reason: `allowing another tab's "clear persistence" attempt to succeed` };
-    } else if (reason === "site data cleared") {
-      return { reason: `protecting against database corruption` };
-    } else {
-      return { reason: `unknown (code: vpfvjqeqvn)` };
+    if (reason === "site data cleared") {
+      return new DatabaseDeletedListenerAbortResult("protecting against database corruption");
+    } else  {
+      return new DatabaseDeletedListenerContinueResult();
     }
   });
 

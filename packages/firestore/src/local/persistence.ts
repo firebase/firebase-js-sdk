@@ -100,13 +100,16 @@ export interface ReferenceDelegate {
 
 export type DatabaseDeletedReason = "persistence cleared" | "site data cleared";
 
-export const DatabaseDeletedListenerContinueResult: unique symbol = Symbol("DatabaseDeletedListenerContinueResult");
-
-export interface DatabaseDeletedListenerAbortResult {
-  reason: string;
+export class DatabaseDeletedListenerContinueResult {
+  readonly type = "continue" as const;
 }
 
-export type DatabaseDeletedListenerResult = typeof DatabaseDeletedListenerContinueResult | DatabaseDeletedListenerAbortResult;
+export class DatabaseDeletedListenerAbortResult {
+  readonly type = "abort" as const;
+  constructor(readonly abortReason: string) {}
+}
+
+export type DatabaseDeletedListenerResult = DatabaseDeletedListenerContinueResult | DatabaseDeletedListenerAbortResult;
 
 export type DatabaseDeletedListener = (reason: DatabaseDeletedReason) => DatabaseDeletedListenerResult;
 

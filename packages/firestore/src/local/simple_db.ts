@@ -23,10 +23,7 @@ import {logDebug, logError, logWarn} from '../util/log';
 import {Deferred} from '../util/promise';
 
 import {PersistencePromise} from './persistence_promise';
-import {
-  type DatabaseDeletedListener,
-  DatabaseDeletedListenerContinueResult
-} from './persistence';
+import {type DatabaseDeletedListener} from './persistence';
 
 // References to `indexedDB` are guarded by SimpleDb.isAvailable() and getGlobal()
 /* eslint-disable no-restricted-globals */
@@ -371,11 +368,11 @@ export class SimpleDb {
             );
             if (this.databaseDeletedListener) {
               const listenerResult = this.databaseDeletedListener("site data cleared");
-              if (listenerResult !== DatabaseDeletedListenerContinueResult) {
+              if (listenerResult.type !== "continue") {
                 throw new Error(
                   `Refusing to open IndexedDB database after having been ` +
                   `cleared, such as by clicking the "clear site data" button ` +
-                  `in a web browser: ${listenerResult.reason} (` +
+                  `in a web browser: ${listenerResult.abortReason} (` +
                   `db.name=${db.name}, ` +
                   `db.version=${db.version}, ` +
                   `lastClosedDbVersion=${this.lastClosedDbVersion}, ` +
@@ -435,11 +432,11 @@ export class SimpleDb {
       );
       if (this.databaseDeletedListener) {
         const listenerResult = this.databaseDeletedListener("persistence cleared");
-        if (listenerResult !== DatabaseDeletedListenerContinueResult) {
+        if (listenerResult.type !== "continue") {
           logWarn(
             `Closing IndexedDB database "${db.name}" in response to ` +
             `"versionchange" event with newVersion===null: ` +
-            `${listenerResult.reason}`
+            `${listenerResult.abortReason}`
           );
           db.close();
           if (db === this.db) {
