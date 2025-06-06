@@ -37,7 +37,7 @@ import {
   LanguageModelMessageRole,
   LanguageModelMessageType
 } from '../types/language-model';
-import { deepExtend } from '@firebase/util';
+import deepMerge from 'deepmerge';
 
 /**
  * Defines an inference "backend" that uses Chrome's on-device model,
@@ -203,10 +203,7 @@ export class ChromeAdapter {
   private mergeCreateOptions(
     requestOptions: LanguageModelCreateOptions
   ): LanguageModelCreateOptions {
-    return deepExtend(
-      this.onDeviceParams.createOptions,
-      requestOptions
-    ) as LanguageModelCreateOptions;
+    return deepMerge(this.onDeviceParams.createOptions || {}, requestOptions);
   }
 
   /**

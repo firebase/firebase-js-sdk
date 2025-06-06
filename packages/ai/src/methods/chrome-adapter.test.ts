@@ -275,7 +275,7 @@ describe('ChromeAdapter', () => {
         })
       ).to.be.false;
     });
-    it('extracts expected inputs from the request', async () => {
+    it('extracts and merges expected inputs from the request', async () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.available)
       } as LanguageModel;
@@ -285,7 +285,12 @@ describe('ChromeAdapter', () => {
       ).resolves(Availability.available);
       const adapter = new ChromeAdapter(
         languageModelProvider,
-        'prefer_on_device'
+        'prefer_on_device',
+        {
+          createOptions: {
+            expectedInputs: [{ type: 'text' }]
+          }
+        }
       );
       await adapter.isAvailable({
         contents: [
@@ -300,7 +305,7 @@ describe('ChromeAdapter', () => {
         ]
       });
       expect(availabilityStub).to.have.been.calledWith({
-        expectedInputs: [{ type: 'image' }]
+        expectedInputs: [{ type: 'text' }, { type: 'image' }]
       });
     });
   });
