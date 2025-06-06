@@ -232,9 +232,16 @@ export async function setOfflineComponentProvider(
 
   // When a user calls clearPersistence() in one client, all other clients
   // need to be terminated to allow the delete to succeed.
-  offlineComponentProvider.persistence.setDatabaseDeletedListener(() =>
-    client.terminate()
-  );
+  offlineComponentProvider.persistence.setDatabaseDeletedListener(reason => {
+    client.terminate();
+    if (reason === "persistence cleared") {
+      return { reason: `allowing another tab's "clear persistence" attempt to succeed` };
+    } else if (reason === "site data cleared") {
+      return { reason: `protecting against database corruption` };
+    } else {
+      return { reason: `unknown (code: vpfvjqeqvn)` };
+    }
+  });
 
   client._offlineComponents = offlineComponentProvider;
 }

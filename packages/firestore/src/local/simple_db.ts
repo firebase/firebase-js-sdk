@@ -15,14 +15,18 @@
  * limitations under the License.
  */
 
-import { getGlobal, getUA, isIndexedDBAvailable } from '@firebase/util';
+import {getGlobal, getUA, isIndexedDBAvailable} from '@firebase/util';
 
-import { debugAssert } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
-import { logDebug, logError } from '../util/log';
-import { Deferred } from '../util/promise';
+import {debugAssert} from '../util/assert';
+import {Code, FirestoreError} from '../util/error';
+import {logDebug, logError, logWarn} from '../util/log';
+import {Deferred} from '../util/promise';
 
-import { PersistencePromise } from './persistence_promise';
+import {PersistencePromise} from './persistence_promise';
+import {
+  type DatabaseDeletedListener,
+  DatabaseDeletedListenerContinueResult
+} from './persistence';
 
 // References to `indexedDB` are guarded by SimpleDb.isAvailable() and getGlobal()
 /* eslint-disable no-restricted-globals */
@@ -159,7 +163,7 @@ export class SimpleDbTransaction {
 export class SimpleDb {
   private db?: IDBDatabase;
   private lastClosedDbVersion: number | null = null;
-  private versionchangelistener?: (event: IDBVersionChangeEvent) => void;
+  private databaseDeletedListener?: DatabaseDeletedListener;
 
   /** Deletes the specified database. */
   static delete(name: string): Promise<void> {
@@ -352,19 +356,35 @@ export class SimpleDb {
             this.lastClosedDbVersion !== null &&
             this.lastClosedDbVersion !== event.oldVersion
           ) {
-            // This thrown error will get passed to the `onerror` callback
-            // registered above, and will then be propagated correctly.
-            throw new Error(
-              `refusing to open IndexedDB database due to potential ` +
-                `corruption of the IndexedDB database data; this corruption ` +
-                `could be caused by clicking the "clear site data" button in ` +
-                `a web browser; try reloading the web page to re-initialize ` +
-                `the IndexedDB database: ` +
-                `lastClosedDbVersion=${this.lastClosedDbVersion}, ` +
-                `event.oldVersion=${event.oldVersion}, ` +
-                `event.newVersion=${event.newVersion}, ` +
-                `db.version=${db.version}`
+            logWarn(
+              `IndexedDB onupgradeneeded indicates that the ` +
+              `database contents may have been cleared, such as by clicking ` +
+              `the "clear site data" button in a browser. This _could_ cause ` +
+              `corruption of the IndexeDB database data if the clear ` +
+              `operation happened in the middle of Firestore operations. (` +
+              `db.name=${db.name}, ` +
+              `db.version=${db.version}, ` +
+              `lastClosedDbVersion=${this.lastClosedDbVersion}, ` +
+              `event.oldVersion=${event.oldVersion}, ` +
+              `event.newVersion=${event.newVersion}` +
+              `)`
             );
+            if (this.databaseDeletedListener) {
+              const listenerResult = this.databaseDeletedListener("site data cleared");
+              if (listenerResult !== DatabaseDeletedListenerContinueResult) {
+                throw new Error(
+                  `Refusing to open IndexedDB database after having been ` +
+                  `cleared, such as by clicking the "clear site data" button ` +
+                  `in a web browser: ${listenerResult.reason} (` +
+                  `db.name=${db.name}, ` +
+                  `db.version=${db.version}, ` +
+                  `lastClosedDbVersion=${this.lastClosedDbVersion}, ` +
+                  `event.oldVersion=${event.oldVersion}, ` +
+                  `event.newVersion=${event.newVersion}` +
+                  `)`
+                );
+              }
+            }
           }
           this.schemaConverter
             .createOrUpgrade(
@@ -387,27 +407,56 @@ export class SimpleDb {
         event => {
           const db = event.target as IDBDatabase;
           this.lastClosedDbVersion = db.version;
+          logWarn(
+            `IndexedDB "close" event received, indicating abnormal database ` +
+            `closure. The database contents may have been cleared, such as ` +
+            `by clicking the "clear site data" button in a browser. ` +
+            `Re-opening the IndexedDB database may fail to avoid IndexedDB ` +
+            `database data corruption (` +
+            `db.name=${db.name}, ` +
+            `db.version=${db.version}` +
+            `)`
+          );
         },
         { passive: true }
       );
     }
 
-    if (this.versionchangelistener) {
-      this.db.onversionchange = event => this.versionchangelistener!(event);
-    }
+    this.db.addEventListener("versionchange", event => {
+      const db = event.target as IDBDatabase;
+      if (event.newVersion !== null) {
+        return;
+      }
+
+      logDebug(
+        `IndexedDB "versionchange" event with newVersion===null received; ` +
+        `this is likely because clearIndexedDbPersistence() was called, ` +
+        `possibly in another tab if multi-tab persistence is enabled.`
+      );
+      if (this.databaseDeletedListener) {
+        const listenerResult = this.databaseDeletedListener("persistence cleared");
+        if (listenerResult !== DatabaseDeletedListenerContinueResult) {
+          logWarn(
+            `Closing IndexedDB database "${db.name}" in response to ` +
+            `"versionchange" event with newVersion===null: ` +
+            `${listenerResult.reason}`
+          );
+          db.close();
+          if (db === this.db) {
+            this.db = undefined;
+          }
+        }
+      }
+    }, {passive:true});
 
     return this.db;
   }
 
-  setVersionChangeListener(
-    versionChangeListener: (event: IDBVersionChangeEvent) => void
-  ): void {
-    this.versionchangelistener = versionChangeListener;
-    if (this.db) {
-      this.db.onversionchange = (event: IDBVersionChangeEvent) => {
-        return versionChangeListener(event);
-      };
+  setDatabaseDeletedListener(databaseDeletedListener: DatabaseDeletedListener): void {
+    if (this.databaseDeletedListener) {
+      throw new Error("setOnDatabaseDeletedListener() has already been called");
     }
+    this.databaseDeletedListener = databaseDeletedListener;
   }
 
   async runTransaction<T>(
