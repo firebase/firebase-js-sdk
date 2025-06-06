@@ -20,7 +20,7 @@ import {
   GenerateContentResponse,
   GenerateContentResult,
   GenerateContentStreamResult,
-  RequestOptions
+  SingleRequestOptions
 } from '../types';
 import { Task, makeRequest } from '../requests/request';
 import { createEnhancedContentResponse } from '../requests/response-helpers';
@@ -33,7 +33,7 @@ export async function generateContentStream(
   apiSettings: ApiSettings,
   model: string,
   params: GenerateContentRequest,
-  requestOptions?: RequestOptions
+  singleRequestOptions?: SingleRequestOptions
 ): Promise<GenerateContentStreamResult> {
   if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
     params = GoogleAIMapper.mapGenerateContentRequest(params);
@@ -44,7 +44,7 @@ export async function generateContentStream(
     apiSettings,
     /* stream */ true,
     JSON.stringify(params),
-    requestOptions
+    singleRequestOptions
   );
   return processStream(response, apiSettings); // TODO: Map streaming responses
 }
@@ -53,7 +53,7 @@ export async function generateContent(
   apiSettings: ApiSettings,
   model: string,
   params: GenerateContentRequest,
-  requestOptions?: RequestOptions
+  singleRequestOptions?: SingleRequestOptions
 ): Promise<GenerateContentResult> {
   if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
     params = GoogleAIMapper.mapGenerateContentRequest(params);
@@ -64,7 +64,7 @@ export async function generateContent(
     apiSettings,
     /* stream */ false,
     JSON.stringify(params),
-    requestOptions
+    singleRequestOptions
   );
   const generateContentResponse = await processGenerateContentResponse(
     response,
