@@ -46,6 +46,7 @@ import {
 import * as api from '../src/api';
 import { fetchAndActivate } from '../src';
 import { restore } from 'sinon';
+import { Experiment } from '../src/abt/experiment';
 
 describe('RemoteConfig', () => {
   const ACTIVE_CONFIG = {
@@ -388,12 +389,16 @@ describe('RemoteConfig', () => {
       "timeToLiveMillis" : "15552000000"   
     }];
 
+    let sandbox: sinon.SinonSandbox;
+    let updateActiveExperimentsStub: sinon.SinonStub;
     let getLastSuccessfulFetchResponseStub: sinon.SinonStub;
     let getActiveConfigEtagStub: sinon.SinonStub;
     let setActiveConfigEtagStub: sinon.SinonStub;
     let setActiveConfigStub: sinon.SinonStub;
 
     beforeEach(() => {
+      sandbox = sinon.createSandbox(); 
+      updateActiveExperimentsStub = sandbox.stub(Experiment.prototype, 'updateActiveExperiments');
       getLastSuccessfulFetchResponseStub = sinon.stub();
       getActiveConfigEtagStub = sinon.stub();
       setActiveConfigEtagStub = sinon.stub();
@@ -406,6 +411,10 @@ describe('RemoteConfig', () => {
       storageCache.setActiveConfig = setActiveConfigStub;
     });
 
+    afterEach(() => {
+      sandbox.restore();
+    });
+
     it('does not activate if last successful fetch response is undefined', async () => {
       getLastSuccessfulFetchResponseStub.returns(Promise.resolve());
       getActiveConfigEtagStub.returns(Promise.resolve(ETAG));
@@ -415,6 +424,7 @@ describe('RemoteConfig', () => {
       expect(activateResponse).to.be.false;
       expect(storage.setActiveConfigEtag).to.not.have.been.called;
       expect(storageCache.setActiveConfig).to.not.have.been.called;
+      expect(updateActiveExperimentsStub).to.not.have.been.called;
     });
 
     it('does not activate if fetched and active etags are the same', async () => {
@@ -428,6 +438,7 @@ describe('RemoteConfig', () => {
       expect(activateResponse).to.be.false;
       expect(storage.setActiveConfigEtag).to.not.have.been.called;
       expect(storageCache.setActiveConfig).to.not.have.been.called;
+      expect(updateActiveExperimentsStub).to.not.have.been.called;
     });
 
     it('activates if fetched and active etags are different', async () => {
@@ -454,6 +465,7 @@ describe('RemoteConfig', () => {
       expect(activateResponse).to.be.true;
       expect(storage.setActiveConfigEtag).to.have.been.calledWith(NEW_ETAG);
       expect(storageCache.setActiveConfig).to.have.been.calledWith(CONFIG);
+      expect(updateActiveExperimentsStub).to.have.been.calledWith(EXPERIMENTS);
     });
   });
 
