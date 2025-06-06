@@ -165,7 +165,7 @@ export interface RequestOptions {
  * Defines a tool that model can call to access external knowledge.
  * @public
  */
-export declare type Tool = FunctionDeclarationsTool;
+export declare type Tool = FunctionDeclarationsTool | GoogleSearchTool;
 
 /**
  * Structured representation of a function declaration as defined by the
@@ -195,6 +195,32 @@ export declare interface FunctionDeclaration {
    */
   parameters?: ObjectSchemaInterface;
 }
+
+/**
+ * A tool that allows the generative model to connect to Google Search
+ * to access and incorporate up-to-date information from the web into its responses.
+ *
+ * When this tool is used, the model's responses may include "Grounded Results"
+ * which are subject to the Grounding with Google Search terms outlined in the
+ * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms}.
+ *
+ * @public
+ */
+export declare interface GoogleSearchTool {
+  /**
+   * Specifies the Google Search configuration.
+   * Currently, this is an empty object, but it's reserved for future configuration options.
+   */
+  googleSearch: GoogleSearch;
+}
+
+/**
+ * Configuration for the {@link GoogleSearchTool}.
+ *
+ * @remarks Currently, this interface is empty and serves as a placeholder for future configuration options.
+ * @public
+ */
+export declare interface GoogleSearch {}
 
 /**
  * A `FunctionDeclarationsTool` is a piece of code that enables the system to
