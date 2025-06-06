@@ -54,30 +54,6 @@ async function toStringArray(
 
 describe('ChromeAdapter', () => {
   describe('constructor', () => {
-    it('sets image as expected input type by default', async () => {
-      const languageModelProvider = {
-        availability: () => Promise.resolve(Availability.available)
-      } as LanguageModel;
-      const availabilityStub = stub(
-        languageModelProvider,
-        'availability'
-      ).resolves(Availability.available);
-      const adapter = new ChromeAdapter(
-        languageModelProvider,
-        'prefer_on_device'
-      );
-      await adapter.isAvailable({
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: 'hi' }]
-          }
-        ]
-      });
-      expect(availabilityStub).to.have.been.calledWith({
-        expectedInputs: [{ type: 'image' }]
-      });
-    });
     it('honors explicitly set expected inputs', async () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.available)
@@ -299,6 +275,39 @@ describe('ChromeAdapter', () => {
         })
       ).to.be.false;
     });
+    it('extracts and merges expected inputs from the request', async () => {
+      const languageModelProvider = {
+        availability: () => Promise.resolve(Availability.available)
+      } as LanguageModel;
+      const availabilityStub = stub(
+        languageModelProvider,
+        'availability'
+      ).resolves(Availability.available);
+      const adapter = new ChromeAdapter(
+        languageModelProvider,
+        'prefer_on_device',
+        {
+          createOptions: {
+            expectedInputs: [{ type: 'text' }]
+          }
+        }
+      );
+      await adapter.isAvailable({
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { text: 'hi' },
+              // Triggers image as expected type.
+              { inlineData: { mimeType: 'image/jpeg', data: 'asd' } }
+            ]
+          }
+        ]
+      });
+      expect(availabilityStub).to.have.been.calledWith({
+        expectedInputs: [{ type: 'text' }, { type: 'image' }]
+      });
+    });
   });
   describe('generateContent', () => {
     it('throws if Chrome API is undefined', async () => {
@@ -378,14 +387,9 @@ describe('ChromeAdapter', () => {
       );
       const promptOutput = 'hi';
       const promptStub = stub(languageModel, 'prompt').resolves(promptOutput);
-      const createOptions = {
-        systemPrompt: 'be yourself',
-        expectedInputs: [{ type: 'image' }]
-      } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
-        'prefer_on_device',
-        { createOptions }
+        'prefer_on_device'
       );
       const request = {
         contents: [
@@ -405,7 +409,9 @@ describe('ChromeAdapter', () => {
       } as GenerateContentRequest;
       const response = await adapter.generateContent(request);
       // Asserts initialization params are proxied.
-      expect(createStub).to.have.been.calledOnceWith(createOptions);
+      expect(createStub).to.have.been.calledOnceWith({
+        expectedInputs: [{ type: 'image' }]
+      });
       // Asserts Vertex input type is mapped to Chrome type.
       expect(promptStub).to.have.been.calledOnceWith([
         {
@@ -606,13 +612,9 @@ describe('ChromeAdapter', () => {
           }
         })
       );
-      const createOptions = {
-        expectedInputs: [{ type: 'image' }]
-      } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
-        'prefer_on_device',
-        { createOptions }
+        'prefer_on_device'
       );
       const request = {
         contents: [
@@ -631,7 +633,9 @@ describe('ChromeAdapter', () => {
         ]
       } as GenerateContentRequest;
       const response = await adapter.generateContentStream(request);
-      expect(createStub).to.have.been.calledOnceWith(createOptions);
+      expect(createStub).to.have.been.calledOnceWith({
+        expectedInputs: [{ type: 'image' }]
+      });
       expect(promptStub).to.have.been.calledOnceWith([
         {
           role: request.contents[0].role,
