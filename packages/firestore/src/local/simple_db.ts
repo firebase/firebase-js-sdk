@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-import {getGlobal, getUA, isIndexedDBAvailable} from '@firebase/util';
+import { getGlobal, getUA, isIndexedDBAvailable } from '@firebase/util';
 
-import {debugAssert} from '../util/assert';
-import {Code, FirestoreError} from '../util/error';
-import {logDebug, logError, logWarn} from '../util/log';
-import {Deferred} from '../util/promise';
+import { debugAssert } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
+import { logDebug, logError, logWarn } from '../util/log';
+import { Deferred } from '../util/promise';
 
-import {PersistencePromise} from './persistence_promise';
-import {type DatabaseDeletedListener} from './persistence';
+import { PersistencePromise } from './persistence_promise';
+import { type DatabaseDeletedListener } from './persistence';
 
 // References to `indexedDB` are guarded by SimpleDb.isAvailable() and getGlobal()
 /* eslint-disable no-restricted-globals */
@@ -355,30 +355,31 @@ export class SimpleDb {
           ) {
             logWarn(
               `IndexedDB onupgradeneeded indicates that the ` +
-              `database contents may have been cleared, such as by clicking ` +
-              `the "clear site data" button in a browser. This _could_ cause ` +
-              `corruption of the IndexeDB database data if the clear ` +
-              `operation happened in the middle of Firestore operations. (` +
-              `db.name=${db.name}, ` +
-              `db.version=${db.version}, ` +
-              `lastClosedDbVersion=${this.lastClosedDbVersion}, ` +
-              `event.oldVersion=${event.oldVersion}, ` +
-              `event.newVersion=${event.newVersion}` +
-              `)`
+                `database contents may have been cleared, such as by clicking ` +
+                `the "clear site data" button in a browser. This _could_ cause ` +
+                `corruption of the IndexeDB database data if the clear ` +
+                `operation happened in the middle of Firestore operations. (` +
+                `db.name=${db.name}, ` +
+                `db.version=${db.version}, ` +
+                `lastClosedDbVersion=${this.lastClosedDbVersion}, ` +
+                `event.oldVersion=${event.oldVersion}, ` +
+                `event.newVersion=${event.newVersion}` +
+                `)`
             );
             if (this.databaseDeletedListener) {
-              const listenerResult = this.databaseDeletedListener("site data cleared");
-              if (listenerResult.type !== "continue") {
+              const listenerResult =
+                this.databaseDeletedListener('site data cleared');
+              if (listenerResult.type !== 'continue') {
                 throw new Error(
                   `Refusing to open IndexedDB database after having been ` +
-                  `cleared, such as by clicking the "clear site data" button ` +
-                  `in a web browser: ${listenerResult.abortReason} (` +
-                  `db.name=${db.name}, ` +
-                  `db.version=${db.version}, ` +
-                  `lastClosedDbVersion=${this.lastClosedDbVersion}, ` +
-                  `event.oldVersion=${event.oldVersion}, ` +
-                  `event.newVersion=${event.newVersion}` +
-                  `)`
+                    `cleared, such as by clicking the "clear site data" button ` +
+                    `in a web browser: ${listenerResult.abortReason} (` +
+                    `db.name=${db.name}, ` +
+                    `db.version=${db.version}, ` +
+                    `lastClosedDbVersion=${this.lastClosedDbVersion}, ` +
+                    `event.oldVersion=${event.oldVersion}, ` +
+                    `event.newVersion=${event.newVersion}` +
+                    `)`
                 );
               }
             }
@@ -406,52 +407,60 @@ export class SimpleDb {
           this.lastClosedDbVersion = db.version;
           logWarn(
             `IndexedDB "close" event received, indicating abnormal database ` +
-            `closure. The database contents may have been cleared, such as ` +
-            `by clicking the "clear site data" button in a browser. ` +
-            `Re-opening the IndexedDB database may fail to avoid IndexedDB ` +
-            `database data corruption (` +
-            `db.name=${db.name}, ` +
-            `db.version=${db.version}` +
-            `)`
+              `closure. The database contents may have been cleared, such as ` +
+              `by clicking the "clear site data" button in a browser. ` +
+              `Re-opening the IndexedDB database may fail to avoid IndexedDB ` +
+              `database data corruption (` +
+              `db.name=${db.name}, ` +
+              `db.version=${db.version}` +
+              `)`
           );
         },
         { passive: true }
       );
     }
 
-    this.db.addEventListener("versionchange", event => {
-      const db = event.target as IDBDatabase;
-      if (event.newVersion !== null) {
-        return;
-      }
+    this.db.addEventListener(
+      'versionchange',
+      event => {
+        const db = event.target as IDBDatabase;
+        if (event.newVersion !== null) {
+          return;
+        }
 
-      logDebug(
-        `IndexedDB "versionchange" event with newVersion===null received; ` +
-        `this is likely because clearIndexedDbPersistence() was called, ` +
-        `possibly in another tab if multi-tab persistence is enabled.`
-      );
-      if (this.databaseDeletedListener) {
-        const listenerResult = this.databaseDeletedListener("persistence cleared");
-        if (listenerResult.type !== "continue") {
-          logWarn(
-            `Closing IndexedDB database "${db.name}" in response to ` +
-            `"versionchange" event with newVersion===null: ` +
-            `${listenerResult.abortReason}`
+        logDebug(
+          `IndexedDB "versionchange" event with newVersion===null received; ` +
+            `this is likely because clearIndexedDbPersistence() was called, ` +
+            `possibly in another tab if multi-tab persistence is enabled.`
+        );
+        if (this.databaseDeletedListener) {
+          const listenerResult = this.databaseDeletedListener(
+            'persistence cleared'
           );
-          db.close();
-          if (db === this.db) {
-            this.db = undefined;
+          if (listenerResult.type !== 'continue') {
+            logWarn(
+              `Closing IndexedDB database "${db.name}" in response to ` +
+                `"versionchange" event with newVersion===null: ` +
+                `${listenerResult.abortReason}`
+            );
+            db.close();
+            if (db === this.db) {
+              this.db = undefined;
+            }
           }
         }
-      }
-    }, {passive:true});
+      },
+      { passive: true }
+    );
 
     return this.db;
   }
 
-  setDatabaseDeletedListener(databaseDeletedListener: DatabaseDeletedListener): void {
+  setDatabaseDeletedListener(
+    databaseDeletedListener: DatabaseDeletedListener
+  ): void {
     if (this.databaseDeletedListener) {
-      throw new Error("setOnDatabaseDeletedListener() has already been called");
+      throw new Error('setOnDatabaseDeletedListener() has already been called');
     }
     this.databaseDeletedListener = databaseDeletedListener;
   }

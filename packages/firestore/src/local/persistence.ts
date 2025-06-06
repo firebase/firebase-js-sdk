@@ -98,20 +98,24 @@ export interface ReferenceDelegate {
   ): PersistencePromise<void>;
 }
 
-export type DatabaseDeletedReason = "persistence cleared" | "site data cleared";
+export type DatabaseDeletedReason = 'persistence cleared' | 'site data cleared';
 
 export class DatabaseDeletedListenerContinueResult {
-  readonly type = "continue" as const;
+  readonly type = 'continue' as const;
 }
 
 export class DatabaseDeletedListenerAbortResult {
-  readonly type = "abort" as const;
+  readonly type = 'abort' as const;
   constructor(readonly abortReason: string) {}
 }
 
-export type DatabaseDeletedListenerResult = DatabaseDeletedListenerContinueResult | DatabaseDeletedListenerAbortResult;
+export type DatabaseDeletedListenerResult =
+  | DatabaseDeletedListenerContinueResult
+  | DatabaseDeletedListenerAbortResult;
 
-export type DatabaseDeletedListener = (reason: DatabaseDeletedReason) => DatabaseDeletedListenerResult;
+export type DatabaseDeletedListener = (
+  reason: DatabaseDeletedReason
+) => DatabaseDeletedListenerResult;
 
 /**
  * Persistence is the lowest-level shared interface to persistent storage in

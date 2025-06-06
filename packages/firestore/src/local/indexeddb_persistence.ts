@@ -58,7 +58,11 @@ import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { getStore, IndexedDbTransaction } from './indexeddb_transaction';
 import { LocalSerializer } from './local_serializer';
 import { LruParams } from './lru_garbage_collector';
-import { Persistence, PrimaryStateListener, DatabaseDeletedListener } from './persistence';
+import {
+  Persistence,
+  PrimaryStateListener,
+  DatabaseDeletedListener
+} from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import {
   PersistenceTransaction,
