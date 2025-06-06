@@ -20,10 +20,13 @@ import * as sinon from 'sinon';
 import { Experiment } from '../../src/abt/experiment';
 import { FirebaseExperimentDescription } from '../../src/public_types';
 import { Storage } from '../../src/storage/storage';
+import { Provider } from '@firebase/component';
+import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
 
 describe('Experiment', () => {
   const storage = {} as Storage;
-  const experiment = new Experiment(storage);
+  const analytics = {} as Provider<FirebaseAnalyticsInternalName>;
+  const experiment = new Experiment(storage, analytics);
 
   describe('updateActiveExperiments', () => {
     beforeEach(() => {

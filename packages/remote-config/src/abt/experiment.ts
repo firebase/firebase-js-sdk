@@ -16,9 +16,14 @@
  */
 import { Storage } from '../storage/storage';
 import { FirebaseExperimentDescription } from '../public_types';
+import { Provider } from '@firebase/component';
+import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
 
 export class Experiment {
-  constructor(private readonly storage: Storage) {}
+  constructor(
+    private readonly storage: Storage,
+    private readonly analytics: Provider<FirebaseAnalyticsInternalName>
+  ) {}
 
   async updateActiveExperiments(
     latestExperiments: FirebaseExperimentDescription[]

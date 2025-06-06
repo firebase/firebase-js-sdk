@@ -47,6 +47,8 @@ import * as api from '../src/api';
 import { fetchAndActivate } from '../src';
 import { restore } from 'sinon';
 import { Experiment } from '../src/abt/experiment';
+import { Provider } from '@firebase/component';
+import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
 
 describe('RemoteConfig', () => {
   const ACTIVE_CONFIG = {
@@ -69,6 +71,8 @@ describe('RemoteConfig', () => {
   let storage: Storage;
   let logger: Logger;
   let rc: RemoteConfigType;
+  let analytics: Provider<FirebaseAnalyticsInternalName>;
+
 
   let getActiveConfigStub: sinon.SinonStub;
   let loggerDebugSpy: sinon.SinonSpy;
@@ -80,12 +84,13 @@ describe('RemoteConfig', () => {
     client = {} as RemoteConfigFetchClient;
     storageCache = {} as StorageCache;
     storage = {} as Storage;
+    analytics = {} as Provider<FirebaseAnalyticsInternalName>;
     logger = new Logger('package-name');
     getActiveConfigStub = sinon.stub().returns(undefined);
     storageCache.getActiveConfig = getActiveConfigStub;
     loggerDebugSpy = sinon.spy(logger, 'debug');
     loggerLogLevelSpy = sinon.spy(logger, 'logLevel', ['set']);
-    rc = new RemoteConfig(app, client, storageCache, storage, logger);
+    rc = new RemoteConfig(app, client, storageCache, storage, logger, analytics);
   });
 
   afterEach(() => {
