@@ -239,18 +239,6 @@
       },
       "default": "./ai/dist/esm/index.esm.js"
     },
-    "./vertexai": {
-      "types": "./ai/dist/ai/index.d.ts",
-      "node": {
-        "require": "./ai/dist/index.cjs.js",
-        "import": "./ai/dist/index.mjs"
-      },
-      "browser": {
-        "require": "./ai/dist/index.cjs.js",
-        "import": "./ai/dist/esm/index.esm.js"
-      },
-      "default": "./ai/dist/esm/index.esm.js"
-    },
     "./compat/analytics": {
       "types": "./compat/analytics/dist/compat/analytics/index.d.ts",
       "node": {
@@ -472,7 +460,6 @@
     "messaging",
     "messaging/sw",
     "database",
-    "vertexai",
     "data-connect"
   ],
   "typings": "empty.d.ts"
