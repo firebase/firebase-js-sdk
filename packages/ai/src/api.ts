@@ -14,7 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+// Imports navigator.userAgentData types.
+// The user-agent-data-types package isn't intended for modular imports.
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference types="user-agent-data-types" />
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { getModularInstance } from '@firebase/util';
@@ -175,6 +178,7 @@ export function getGenerativeModel(
     inCloudParams,
     new ChromeAdapter(
       window.LanguageModel as LanguageModel,
+      window.navigator.userAgentData as UADataValues,
       hybridParams.mode,
       hybridParams.onDeviceParams
     ),

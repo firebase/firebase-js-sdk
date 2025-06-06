@@ -14,7 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+// Imports navigator.userAgentData types.
+// The user-agent-data-types package isn't intended for modular imports.
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference types="user-agent-data-types" />
 import { AIError } from '../errors';
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
@@ -68,6 +71,7 @@ describe('ChromeAdapter', () => {
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
+        undefined,
         'prefer_on_device',
         {
           createOptions
@@ -94,7 +98,7 @@ describe('ChromeAdapter', () => {
       ).to.be.false;
     });
     it('returns false if mode is only cloud', async () => {
-      const adapter = new ChromeAdapter(undefined, 'only_in_cloud');
+      const adapter = new ChromeAdapter(undefined, undefined, 'only_in_cloud');
       expect(
         await adapter.isAvailable({
           contents: []
@@ -102,7 +106,11 @@ describe('ChromeAdapter', () => {
       ).to.be.false;
     });
     it('returns false if LanguageModel API is undefined', async () => {
-      const adapter = new ChromeAdapter(undefined, 'prefer_on_device');
+      const adapter = new ChromeAdapter(
+        undefined,
+        undefined,
+        'prefer_on_device'
+      );
       expect(
         await adapter.isAvailable({
           contents: []
@@ -114,6 +122,7 @@ describe('ChromeAdapter', () => {
         {
           availability: async () => Availability.available
         } as LanguageModel,
+        undefined,
         'prefer_on_device'
       );
       expect(
@@ -122,11 +131,59 @@ describe('ChromeAdapter', () => {
         })
       ).to.be.false;
     });
+    it('returns false if unsupported browser', async () => {
+      const adapter = new ChromeAdapter(
+        {
+          availability: async () => Availability.available
+        } as LanguageModel,
+        // Defines user agent, but no supported browser.
+        { brands: [] } as UADataValues,
+        'prefer_on_device'
+      );
+      expect(
+        await adapter.isAvailable({
+          contents: []
+        })
+      ).to.be.false;
+    });
+    it('returns true if supported browser', async () => {
+      const adapter = new ChromeAdapter(
+        {
+          availability: async () => Availability.available
+        } as LanguageModel,
+        {
+          brands: [{ brand: 'Google Chrome', version: '138' }]
+        } as UADataValues,
+        'prefer_on_device'
+      );
+      for (const mimeType of ChromeAdapter.SUPPORTED_MIME_TYPES) {
+        expect(
+          await adapter.isAvailable({
+            contents: [
+              {
+                role: 'user',
+                parts: [
+                  {
+                    inlineData: {
+                      mimeType,
+                      data: ''
+                    }
+                  }
+                ]
+              }
+            ]
+          })
+        ).to.be.true;
+      }
+    });
     it('returns false if request content has "function" role', async () => {
       const adapter = new ChromeAdapter(
         {
           availability: async () => Availability.available
         } as LanguageModel,
+        {
+          brands: [{ brand: 'Google Chrome', version: '138' }]
+        } as UADataValues,
         'prefer_on_device'
       );
       expect(
@@ -145,6 +202,9 @@ describe('ChromeAdapter', () => {
         {
           availability: async () => Availability.available
         } as LanguageModel,
+        {
+          brands: [{ brand: 'Google Chrome', version: '138' }]
+        } as UADataValues,
         'prefer_on_device'
       );
       for (const mimeType of ChromeAdapter.SUPPORTED_MIME_TYPES) {
@@ -173,6 +233,9 @@ describe('ChromeAdapter', () => {
       } as LanguageModel;
       const adapter = new ChromeAdapter(
         languageModelProvider,
+        {
+          brands: [{ brand: 'Google Chrome', version: '138' }]
+        } as UADataValues,
         'prefer_on_device'
       );
       expect(
@@ -202,6 +265,7 @@ describe('ChromeAdapter', () => {
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
+        undefined,
         'prefer_on_device',
         { createOptions }
       );
@@ -225,6 +289,7 @@ describe('ChromeAdapter', () => {
       );
       const adapter = new ChromeAdapter(
         languageModelProvider,
+        undefined,
         'prefer_on_device'
       );
       await adapter.isAvailable({
@@ -249,6 +314,7 @@ describe('ChromeAdapter', () => {
       );
       const adapter = new ChromeAdapter(
         languageModelProvider,
+        undefined,
         'prefer_on_device'
       );
       await adapter.isAvailable({
@@ -267,6 +333,9 @@ describe('ChromeAdapter', () => {
       } as LanguageModel;
       const adapter = new ChromeAdapter(
         languageModelProvider,
+        {
+          brands: [{ brand: 'Google Chrome', version: '138' }]
+        } as UADataValues,
         'prefer_on_device'
       );
       expect(
@@ -285,6 +354,7 @@ describe('ChromeAdapter', () => {
       ).resolves(Availability.available);
       const adapter = new ChromeAdapter(
         languageModelProvider,
+        undefined,
         'prefer_on_device',
         {
           createOptions: {
@@ -311,7 +381,7 @@ describe('ChromeAdapter', () => {
   });
   describe('generateContent', () => {
     it('throws if Chrome API is undefined', async () => {
-      const adapter = new ChromeAdapter(undefined, 'only_on_device');
+      const adapter = new ChromeAdapter(undefined, undefined, 'only_on_device');
       await expect(
         adapter.generateContent({
           contents: []
@@ -342,6 +412,9 @@ describe('ChromeAdapter', () => {
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
+        {
+          brands: [{ brand: 'Google Chrome', version: '138' }]
+        } as UADataValues,
         'prefer_on_device',
         { createOptions }
       );
@@ -389,6 +462,9 @@ describe('ChromeAdapter', () => {
       const promptStub = stub(languageModel, 'prompt').resolves(promptOutput);
       const adapter = new ChromeAdapter(
         languageModelProvider,
+        {
+          brands: [{ brand: 'Google Chrome', version: '138' }]
+        } as UADataValues,
         'prefer_on_device'
       );
       const request = {
@@ -456,6 +532,7 @@ describe('ChromeAdapter', () => {
       };
       const adapter = new ChromeAdapter(
         languageModelProvider,
+        undefined,
         'prefer_on_device',
         { promptOptions }
       );
@@ -489,6 +566,7 @@ describe('ChromeAdapter', () => {
       } as LanguageModel;
       const adapter = new ChromeAdapter(
         languageModelProvider,
+        undefined,
         'prefer_on_device'
       );
       const request = {
@@ -525,6 +603,7 @@ describe('ChromeAdapter', () => {
 
       const adapter = new ChromeAdapter(
         languageModelProvider,
+        undefined,
         'prefer_on_device'
       );
 
@@ -534,6 +613,8 @@ describe('ChromeAdapter', () => {
 
       try {
         await adapter.countTokens(countTokenRequest);
+        // eslint-disable-next-line no-throw-literal
+        throw 'unthrown';
       } catch (e) {
         // the call to countToken should be rejected with Error
         expect((e as AIError).code).to.equal(AIErrorCode.REQUEST_ERROR);
@@ -569,6 +650,7 @@ describe('ChromeAdapter', () => {
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapter(
         languageModelProvider,
+        undefined,
         'prefer_on_device',
         { createOptions }
       );
@@ -614,6 +696,7 @@ describe('ChromeAdapter', () => {
       );
       const adapter = new ChromeAdapter(
         languageModelProvider,
+        undefined,
         'prefer_on_device'
       );
       const request = {
@@ -674,6 +757,7 @@ describe('ChromeAdapter', () => {
       };
       const adapter = new ChromeAdapter(
         languageModelProvider,
+        undefined,
         'prefer_on_device',
         { promptOptions }
       );
@@ -709,6 +793,7 @@ describe('ChromeAdapter', () => {
       } as LanguageModel;
       const adapter = new ChromeAdapter(
         languageModelProvider,
+        undefined,
         'prefer_on_device'
       );
       const request = {
