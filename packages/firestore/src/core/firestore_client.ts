@@ -237,6 +237,7 @@ export async function setOfflineComponentProvider(
   // When a user calls clearPersistence() in one client, all other clients
   // need to be terminated to allow the delete to succeed.
   offlineComponentProvider.persistence.setDatabaseDeletedListener(reason => {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     client.terminate();
     if (reason === 'site data cleared') {
       return new DatabaseDeletedListenerAbortResult(

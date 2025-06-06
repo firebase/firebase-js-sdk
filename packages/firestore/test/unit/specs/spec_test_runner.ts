@@ -77,7 +77,6 @@ import {
   SCHEMA_VERSION
 } from '../../../src/local/indexeddb_schema';
 import { SchemaConverter } from '../../../src/local/indexeddb_schema_converter';
-import { DatabaseDeletedListenerContinueResult } from '../../../src/local/persistence';
 import {
   DbPrimaryClientKey,
   DbPrimaryClientStore
@@ -86,6 +85,7 @@ import { LocalStore } from '../../../src/local/local_store';
 import { localStoreConfigureFieldIndexes } from '../../../src/local/local_store_impl';
 import { LruGarbageCollector } from '../../../src/local/lru_garbage_collector';
 import { MemoryLruDelegate } from '../../../src/local/memory_persistence';
+import { DatabaseDeletedListenerContinueResult } from '../../../src/local/persistence';
 import {
   ClientId,
   SharedClientState
@@ -367,6 +367,7 @@ abstract class TestRunner {
       triggerRemoteStoreUnlisten.bind(null, this.syncEngine);
 
     this.persistence.setDatabaseDeletedListener(() => {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.shutdown();
       return new DatabaseDeletedListenerContinueResult();
     });

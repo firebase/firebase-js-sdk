@@ -22,8 +22,8 @@ import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError, logWarn } from '../util/log';
 import { Deferred } from '../util/promise';
 
-import { PersistencePromise } from './persistence_promise';
 import { type DatabaseDeletedListener } from './persistence';
+import { PersistencePromise } from './persistence_promise';
 
 // References to `indexedDB` are guarded by SimpleDb.isAvailable() and getGlobal()
 /* eslint-disable no-restricted-globals */
