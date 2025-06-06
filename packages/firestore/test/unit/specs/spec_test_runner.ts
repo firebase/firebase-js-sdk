@@ -85,6 +85,7 @@ import { LocalStore } from '../../../src/local/local_store';
 import { localStoreConfigureFieldIndexes } from '../../../src/local/local_store_impl';
 import { LruGarbageCollector } from '../../../src/local/lru_garbage_collector';
 import { MemoryLruDelegate } from '../../../src/local/memory_persistence';
+import { DatabaseDeletedListenerContinueResult } from '../../../src/local/persistence';
 import {
   ClientId,
   SharedClientState
@@ -365,8 +366,10 @@ abstract class TestRunner {
     this.eventManager.onLastRemoteStoreUnlisten =
       triggerRemoteStoreUnlisten.bind(null, this.syncEngine);
 
-    await this.persistence.setDatabaseDeletedListener(async () => {
-      await this.shutdown();
+    this.persistence.setDatabaseDeletedListener(() => {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.shutdown();
+      return new DatabaseDeletedListenerContinueResult();
     });
 
     this.started = true;

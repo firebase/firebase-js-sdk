@@ -98,6 +98,25 @@ export interface ReferenceDelegate {
   ): PersistencePromise<void>;
 }
 
+export type DatabaseDeletedReason = 'persistence cleared' | 'site data cleared';
+
+export class DatabaseDeletedListenerContinueResult {
+  readonly type = 'continue' as const;
+}
+
+export class DatabaseDeletedListenerAbortResult {
+  readonly type = 'abort' as const;
+  constructor(readonly abortReason: string) {}
+}
+
+export type DatabaseDeletedListenerResult =
+  | DatabaseDeletedListenerContinueResult
+  | DatabaseDeletedListenerAbortResult;
+
+export type DatabaseDeletedListener = (
+  reason: DatabaseDeletedReason
+) => DatabaseDeletedListenerResult;
+
 /**
  * Persistence is the lowest-level shared interface to persistent storage in
  * Firestore.
@@ -151,13 +170,16 @@ export interface Persistence {
   shutdown(): Promise<void>;
 
   /**
-   * Registers a listener that gets called when the database receives a
-   * version change event indicating that it has deleted.
+   * Registers a listener that gets called when the database receives an
+   * event indicating that it has deleted. This could be, for example, another
+   * tab in multi-tab persistence mode having its `clearIndexedDbPersistence()`
+   * function called, or a user manually clicking "Clear Site Data" in a
+   * browser.
    *
    * PORTING NOTE: This is only used for Web multi-tab.
    */
   setDatabaseDeletedListener(
-    databaseDeletedListener: () => Promise<void>
+    databaseDeletedListener: DatabaseDeletedListener
   ): void;
 
   /**
