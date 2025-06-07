@@ -14,10 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// Imports navigator.userAgentData types.
-// The user-agent-data-types package isn't intended for modular imports.
-// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference types="user-agent-data-types" />
+
 import { AIError } from '../errors';
 import { logger } from '../logger';
 import {
@@ -40,6 +37,7 @@ import {
   LanguageModelMessageRole,
   LanguageModelMessageType
 } from '../types/language-model';
+import { UADataValues } from '../types/user-agent-data';
 import deepMerge from 'deepmerge';
 
 /**

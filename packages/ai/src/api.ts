@@ -14,10 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// Imports navigator.userAgentData types.
-// The user-agent-data-types package isn't intended for modular imports.
-// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference types="user-agent-data-types" />
+
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { getModularInstance } from '@firebase/util';
@@ -37,6 +34,7 @@ import { encodeInstanceIdentifier } from './helpers';
 import { GoogleAIBackend, VertexAIBackend } from './backend';
 import { ChromeAdapter } from './methods/chrome-adapter';
 import { LanguageModel } from './types/language-model';
+import { NavigatorUA } from './types/user-agent-data';
 
 export { ChatSession } from './methods/chat-session';
 export * from './requests/schema-builder';
@@ -178,7 +176,7 @@ export function getGenerativeModel(
     inCloudParams,
     new ChromeAdapter(
       window.LanguageModel as LanguageModel,
-      window.navigator.userAgentData as UADataValues,
+      (window.navigator as NavigatorUA).userAgentData,
       hybridParams.mode,
       hybridParams.onDeviceParams
     ),

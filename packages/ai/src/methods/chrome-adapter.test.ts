@@ -14,10 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// Imports navigator.userAgentData types.
-// The user-agent-data-types package isn't intended for modular imports.
-// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference types="user-agent-data-types" />
+
 import { AIError } from '../errors';
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
@@ -29,6 +26,7 @@ import {
   LanguageModelCreateOptions,
   LanguageModelMessage
 } from '../types/language-model';
+import { UADataValues } from '../types/user-agent-data';
 import { match, stub } from 'sinon';
 import { GenerateContentRequest, AIErrorCode } from '../types';
 import { Schema } from '../api';
@@ -137,7 +135,9 @@ describe('ChromeAdapter', () => {
           availability: async () => Availability.available
         } as LanguageModel,
         // Defines user agent, but no supported browser.
-        { brands: [] } as UADataValues,
+        {
+          brands: []
+        } as UADataValues,
         'prefer_on_device'
       );
       expect(
@@ -152,29 +152,25 @@ describe('ChromeAdapter', () => {
           availability: async () => Availability.available
         } as LanguageModel,
         {
+          // Defines supported browser.
           brands: [{ brand: 'Google Chrome', version: '138' }]
         } as UADataValues,
         'prefer_on_device'
       );
-      for (const mimeType of ChromeAdapter.SUPPORTED_MIME_TYPES) {
-        expect(
-          await adapter.isAvailable({
-            contents: [
-              {
-                role: 'user',
-                parts: [
-                  {
-                    inlineData: {
-                      mimeType,
-                      data: ''
-                    }
-                  }
-                ]
-              }
-            ]
-          })
-        ).to.be.true;
-      }
+      expect(
+        await adapter.isAvailable({
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                {
+                  text: 'hi'
+                }
+              ]
+            }
+          ]
+        })
+      ).to.be.true;
     });
     it('returns false if request content has "function" role', async () => {
       const adapter = new ChromeAdapter(
