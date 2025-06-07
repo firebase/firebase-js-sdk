@@ -34,6 +34,7 @@ import { encodeInstanceIdentifier } from './helpers';
 import { GoogleAIBackend, VertexAIBackend } from './backend';
 import { ChromeAdapter } from './methods/chrome-adapter';
 import { LanguageModel } from './types/language-model';
+import { NavigatorUA } from './types/user-agent-data';
 
 export { ChatSession } from './methods/chat-session';
 export * from './requests/schema-builder';
@@ -175,6 +176,7 @@ export function getGenerativeModel(
     inCloudParams,
     new ChromeAdapter(
       window.LanguageModel as LanguageModel,
+      (window.navigator as NavigatorUA).userAgentData,
       hybridParams.mode,
       hybridParams.onDeviceParams
     ),

@@ -37,6 +37,7 @@ import {
   LanguageModelMessageRole,
   LanguageModelMessageType
 } from '../types/language-model';
+import { UADataValues } from '../types/user-agent-data';
 import deepMerge from 'deepmerge';
 
 /**
@@ -51,6 +52,7 @@ export class ChromeAdapter {
   private oldSession: LanguageModel | undefined;
   constructor(
     private languageModelProvider?: LanguageModel,
+    private userAgentDataProvider?: UADataValues,
     private mode?: InferenceMode,
     private onDeviceParams: OnDeviceParams = {}
   ) {}
@@ -101,7 +103,13 @@ export class ChromeAdapter {
       );
       return false;
     }
-    if (!ChromeAdapter.isOnDeviceRequest(request)) {
+    if (!this.isSupportedBrowser()) {
+      logger.debug(
+        `On-device inference unavailable because browser is unsupported.`
+      );
+      return false;
+    }
+    if (!ChromeAdapter.isSupportedRequest(request)) {
       logger.debug(
         `On-device inference unavailable because request is incompatible.`
       );
@@ -207,9 +215,22 @@ export class ChromeAdapter {
   }
 
   /**
+   * Guards against unstable AI API implementations.
+   */
+  private isSupportedBrowser(): boolean {
+    return !!this.userAgentDataProvider?.brands?.find(({ brand, version }) => {
+      const versionNumber = Number(version);
+      return (
+        (brand === 'Google Chrome' && versionNumber > 137) ||
+        (brand === 'Microsoft Edge' && versionNumber > 138)
+      );
+    });
+  }
+
+  /**
    * Asserts inference for the given request can be performed by an on-device model.
    */
-  private static isOnDeviceRequest(request: GenerateContentRequest): boolean {
+  private static isSupportedRequest(request: GenerateContentRequest): boolean {
     // Returns false if the prompt is empty.
     if (request.contents.length === 0) {
       logger.debug('Empty prompt rejected for on-device inference.');
