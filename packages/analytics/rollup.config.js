@@ -81,7 +81,7 @@ const cjsBuilds = [
 const google3TypingsBuild = {
   input: 'dist/src/index.d.ts',
   output: {
-    file: 'dist/esm/src/global_index.d.ts',
+    file: 'dist/src/global_index.d.ts',
     format: 'es'
   },
   plugins: [
