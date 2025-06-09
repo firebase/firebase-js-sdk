@@ -23,6 +23,7 @@ import { logDebug, logError } from '../util/log';
 import { Deferred } from '../util/promise';
 
 import { PersistencePromise } from './persistence_promise';
+import { DatabaseDeletedListener } from './persistence';
 
 // References to `indexedDB` are guarded by SimpleDb.isAvailable() and getGlobal()
 /* eslint-disable no-restricted-globals */
@@ -158,8 +159,8 @@ export class SimpleDbTransaction {
  */
 export class SimpleDb {
   private db?: IDBDatabase;
+  private databaseDeletedListener?: DatabaseDeletedListener;
   private lastClosedDbVersion: number | null = null;
-  private versionchangelistener?: (event: IDBVersionChangeEvent) => void;
 
   /** Deletes the specified database. */
   static delete(name: string): Promise<void> {
@@ -392,22 +393,31 @@ export class SimpleDb {
       );
     }
 
-    if (this.versionchangelistener) {
-      this.db.onversionchange = event => this.versionchangelistener!(event);
-    }
+    this.db.addEventListener(
+      'versionchange',
+      event => {
+        // Notify the listener if another tab attempted to delete the IndexedDb
+        // database, such as by calling clearIndexedDbPersistence().
+        if (event.newVersion === null) {
+          this.databaseDeletedListener?.();
+        }
+      },
+      { passive: true }
+    );
 
     return this.db;
   }
 
-  setVersionChangeListener(
-    versionChangeListener: (event: IDBVersionChangeEvent) => void
+  setDatabaseDeletedListener(
+    databaseDeletedListener: DatabaseDeletedListener
   ): void {
-    this.versionchangelistener = versionChangeListener;
-    if (this.db) {
-      this.db.onversionchange = (event: IDBVersionChangeEvent) => {
-        return versionChangeListener(event);
-      };
+    if (this.databaseDeletedListener) {
+      throw new Error(
+        'setDatabaseDeletedListener() may only be called once, ' +
+          'and it has already been called'
+      );
     }
+    this.databaseDeletedListener = databaseDeletedListener;
   }
 
   async runTransaction<T>(
