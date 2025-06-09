@@ -31,7 +31,6 @@ import { BundleCache } from './bundle_cache';
 import { DocumentOverlayCache } from './document_overlay_cache';
 import { GlobalsCache } from './globals_cache';
 import { IndexManager } from './index_manager';
-import { DatabaseDeletedListener } from './persistence';
 import { IndexedDbBundleCache } from './indexeddb_bundle_cache';
 import { IndexedDbDocumentOverlayCache } from './indexeddb_document_overlay_cache';
 import { IndexedDbGlobalsCache } from './indexeddb_globals_cache';
@@ -59,7 +58,11 @@ import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { getStore, IndexedDbTransaction } from './indexeddb_transaction';
 import { LocalSerializer } from './local_serializer';
 import { LruParams } from './lru_garbage_collector';
-import { Persistence, PrimaryStateListener } from './persistence';
+import {
+  DatabaseDeletedListener,
+  Persistence,
+  PrimaryStateListener
+} from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import {
   PersistenceTransaction,

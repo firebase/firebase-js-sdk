@@ -19,11 +19,11 @@ import { getGlobal, getUA, isIndexedDBAvailable } from '@firebase/util';
 
 import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug, logError } from '../util/log';
+import { logDebug, logError, logWarn } from '../util/log';
 import { Deferred } from '../util/promise';
 
-import { PersistencePromise } from './persistence_promise';
 import { DatabaseDeletedListener } from './persistence';
+import { PersistencePromise } from './persistence_promise';
 
 // References to `indexedDB` are guarded by SimpleDb.isAvailable() and getGlobal()
 /* eslint-disable no-restricted-globals */
@@ -399,6 +399,10 @@ export class SimpleDb {
         // Notify the listener if another tab attempted to delete the IndexedDb
         // database, such as by calling clearIndexedDbPersistence().
         if (event.newVersion === null) {
+          logWarn(
+            `Received "versionchange" event with newVersion===null; ` +
+              'notifying the registered DatabaseDeletedListener, if any'
+          );
           this.databaseDeletedListener?.();
         }
       },

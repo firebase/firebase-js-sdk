@@ -231,7 +231,21 @@ export async function setOfflineComponentProvider(
   });
 
   offlineComponentProvider.persistence.setDatabaseDeletedListener(() => {
-    client.terminate();
+    logWarn('Terminating Firestore due to IndexedDb database deletion');
+    client
+      .terminate()
+      .then(() => {
+        logDebug(
+          'Terminating Firestore due to IndexedDb database deletion ' +
+            'completed successfully'
+        );
+      })
+      .catch(error => {
+        logWarn(
+          'Terminating Firestore due to IndexedDb database deletion failed',
+          error
+        );
+      });
   });
 
   client._offlineComponents = offlineComponentProvider;
