@@ -1,5 +1,15 @@
 # firebase
 
+## 11.9.1
+
+### Patch Changes
+
+- Updated dependencies [[`0f891d8`](https://github.com/firebase/firebase-js-sdk/commit/0f891d861bdf4e7bac8cd777f5fb32d0b7b9bf8e), [`c0617a3`](https://github.com/firebase/firebase-js-sdk/commit/c0617a341a693c2578a21b35a4f7b27b726defef)]:
+  - @firebase/storage@0.13.13
+  - @firebase/auth@1.10.7
+  - @firebase/storage-compat@0.3.23
+  - @firebase/auth-compat@0.5.27
+
 ## 11.9.0
 
 ### Minor Changes

@@ -114,7 +114,7 @@
   "devDependencies": {
     "@firebase/app": "0.13.1",
     "@firebase/app-compat": "0.4.1",
-    "@firebase/auth": "1.10.6",
+    "@firebase/auth": "1.10.7",
     "@rollup/plugin-alias": "5.1.1",
     "@rollup/plugin-json": "6.1.0",
     "@types/eslint": "7.29.0",
