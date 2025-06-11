@@ -65,3 +65,24 @@ export interface BundleReader {
    */
   nextElement(): Promise<SizedBundleElement | null>;
 }
+
+/**
+ * A class representing a synchronized bundle reader.
+ *
+ * Takes a bundle string buffer, parses the data, and provides accessors to the data contained
+ * within it.
+ */
+export interface BundleReaderSync {
+  serializer: JsonProtoSerializer;
+
+  /**
+   * Returns the metadata of the bundle.
+   */
+  getMetadata(): BundleMetadata;
+
+  /**
+   * Returns BundleElements parsed from the bundle. Returns an empty array if no bundle elements
+   * exist.
+   */
+  getElements(): SizedBundleElement[];
+}
