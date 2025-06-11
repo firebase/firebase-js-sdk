@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 1.10.7
+
+### Patch Changes
+
+- [`c0617a3`](https://github.com/firebase/firebase-js-sdk/commit/c0617a341a693c2578a21b35a4f7b27b726defef) [#9075](https://github.com/firebase/firebase-js-sdk/pull/9075) - Fixed issue where Firebase Auth cookie refresh attempts issues in Firebase Studio resulted in CORS errors.
+
 ## 1.10.6
 
 ### Patch Changes
