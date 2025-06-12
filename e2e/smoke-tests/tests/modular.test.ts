@@ -86,7 +86,12 @@ import {
   StorageReference,
   deleteObject
 } from 'firebase/storage';
-import { getGenerativeModel, getVertexAI, VertexAI } from 'firebase/vertexai';
+import {
+  getGenerativeModel,
+  getAI,
+  AI,
+  VertexAIBackend
+} from 'firebase/vertexai';
 import { getDataConnect, DataConnect } from 'firebase/data-connect';
 import { config, testAccount } from '../firebase-config';
 import 'jest';
@@ -307,13 +312,13 @@ describe('MODULAR', () => {
     });
   });
 
-  describe('VERTEXAI', () => {
-    let vertexAI: VertexAI;
+  describe('AI', () => {
+    let ai: AI;
     it('getVertexAI()', () => {
-      vertexAI = getVertexAI(app);
+      ai = getAI(app, { backend: new VertexAIBackend() });
     });
     it('getGenerativeModel() and countTokens()', async () => {
-      const model = getGenerativeModel(vertexAI, { model: 'gemini-1.5-flash' });
+      const model = getGenerativeModel(ai, { model: 'gemini-1.5-flash' });
       expect(model.model).toMatch(/gemini-1.5-flash$/);
       const result = await model.countTokens('abcdefg');
       expect(result.totalTokens).toBeTruthy;
