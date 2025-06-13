@@ -132,6 +132,8 @@ toc:
     path: /docs/reference/js/ai.schemashared.md
   - title: Segment
     path: /docs/reference/js/ai.segment.md
+  - title: SingleRequestOptions
+    path: /docs/reference/js/ai.singlerequestoptions.md
   - title: StartChatParams
     path: /docs/reference/js/ai.startchatparams.md
   - title: StringSchema
