@@ -37,6 +37,7 @@ import {
   _apps,
   _components,
   _isFirebaseApp,
+  _isFirebaseServerAppSettings,
   _registerComponent,
   _serverApps
 } from './internal';
@@ -231,31 +232,73 @@ export function initializeServerApp(
   config: FirebaseServerAppSettings
 ): FirebaseServerApp;
 
+/**
+ * Creates and initializes a {@link @firebase/app#FirebaseServerApp} instance.
+ *
+ * @param config - Optional `FirebaseServerApp` configuration.
+ *
+ * @returns The initialized `FirebaseServerApp` with default app configuration.
+ *
+ * @public
+ */
 export function initializeServerApp(
-  _options: FirebaseOptions | FirebaseApp,
-  _serverAppConfig: FirebaseServerAppSettings
+  _serverAppConfig?: FirebaseServerAppSettings
+): FirebaseServerApp;
+
+export function initializeServerApp(
+  _options?: FirebaseApp | FirebaseServerAppSettings | FirebaseOptions,
+  _serverAppConfig: FirebaseServerAppSettings = {}
 ): FirebaseServerApp {
   if (isBrowser() && !isWebWorker()) {
     // FirebaseServerApp isn't designed to be run in browsers.
     throw ERROR_FACTORY.create(AppError.INVALID_SERVER_APP_ENVIRONMENT);
   }
 
-  if (_serverAppConfig.automaticDataCollectionEnabled === undefined) {
-    _serverAppConfig.automaticDataCollectionEnabled = true;
+  let app: FirebaseApp;
+  let firebaseOptions: FirebaseOptions | undefined;
+  //let serverAppSettings: FirebaseServerAppSettings = _serverAppConfig || { };
+  let serverAppSettings: FirebaseServerAppSettings = _serverAppConfig || {};
+
+  console.log('options: ', _options);
+  console.log('_serverAppConfig: ', _serverAppConfig);
+
+  if (_options) {
+    if (_isFirebaseApp(_options)) {
+      console.log('_isFirebaseApp');
+      app = _options;
+      firebaseOptions = app.options;
+      /*serverAppSettings = {
+        ...serverAppSettings,
+        ..._serverAppConfig
+      };*/
+    } else if (_isFirebaseServerAppSettings(_options)) {
+      console.log('_isFirebaseServerAppSettings');
+      serverAppSettings = _options;
+      /*serverAppSettings = {
+        ...serverAppSettings,
+        ..._options
+      };*/
+    } else {
+      console.log('isFirebaseOptions');
+      firebaseOptions = _options;
+    }
   }
 
-  let appOptions: FirebaseOptions;
-  if (_isFirebaseApp(_options)) {
-    appOptions = _options.options;
-  } else {
-    appOptions = _options;
+  firebaseOptions ||= getDefaultAppConfig();
+  if (!firebaseOptions) {
+    throw ERROR_FACTORY.create(AppError.NO_OPTIONS);
   }
 
   // Build an app name based on a hash of the configuration options.
   const nameObj = {
-    ..._serverAppConfig,
-    ...appOptions
+    ...serverAppSettings,
+    ...firebaseOptions
   };
+
+  console.log('Final:');
+  console.log('app: ', app!);
+  console.log('firebaseOptions: ', firebaseOptions);
+  console.log('serverAppSettings: ', serverAppSettings);
 
   // However, Do not mangle the name based on releaseOnDeref, since it will vary between the
   // construction of FirebaseServerApp instances. For example, if the object is the request headers.
@@ -270,7 +313,7 @@ export function initializeServerApp(
     );
   };
 
-  if (_serverAppConfig.releaseOnDeref !== undefined) {
+  if (serverAppSettings.releaseOnDeref !== undefined) {
     if (typeof FinalizationRegistry === 'undefined') {
       throw ERROR_FACTORY.create(
         AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED,
@@ -283,7 +326,7 @@ export function initializeServerApp(
   const existingApp = _serverApps.get(nameString) as FirebaseServerApp;
   if (existingApp) {
     (existingApp as FirebaseServerAppImpl).incRefCount(
-      _serverAppConfig.releaseOnDeref
+      serverAppSettings.releaseOnDeref
     );
     return existingApp;
   }
@@ -294,8 +337,8 @@ export function initializeServerApp(
   }
 
   const newApp = new FirebaseServerAppImpl(
-    appOptions,
-    _serverAppConfig,
+    firebaseOptions,
+    serverAppSettings,
     nameString,
     container
   );
