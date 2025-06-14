@@ -164,6 +164,7 @@ export interface CountTokensRequest {
 // @public
 export interface CountTokensResponse {
     promptTokensDetails?: ModalityTokenCount[];
+    // @deprecated (undocumented)
     totalBillableCharacters?: number;
     totalTokens: number;
 }
