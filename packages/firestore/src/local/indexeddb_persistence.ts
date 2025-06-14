@@ -58,7 +58,11 @@ import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { getStore, IndexedDbTransaction } from './indexeddb_transaction';
 import { LocalSerializer } from './local_serializer';
 import { LruParams } from './lru_garbage_collector';
-import { Persistence, PrimaryStateListener } from './persistence';
+import {
+  DatabaseDeletedListener,
+  Persistence,
+  PrimaryStateListener
+} from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import {
   PersistenceTransaction,
@@ -324,20 +328,25 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   /**
-   * Registers a listener that gets called when the database receives a
-   * version change event indicating that it has deleted.
+   * Registers a listener that gets called when the underlying database receives
+   * an event indicating that it either has been deleted or is pending deletion
+   * and must be closed.
+   *
+   * For example, this callback will be called in the case that multi-tab
+   * IndexedDB persistence is in use and another tab calls
+   * clearIndexedDbPersistence(). In that case, this Firestore instance must
+   * close its IndexedDB connection in order to allow the deletion initiated by
+   * the other tab to proceed.
+   *
+   * This method may only be called once; subsequent invocations will result in
+   * an exception, refusing to supersede the previously-registered listener.
    *
    * PORTING NOTE: This is only used for Web multi-tab.
    */
   setDatabaseDeletedListener(
-    databaseDeletedListener: () => Promise<void>
+    databaseDeletedListener: DatabaseDeletedListener
   ): void {
-    this.simpleDb.setVersionChangeListener(async event => {
-      // Check if an attempt is made to delete IndexedDB.
-      if (event.newVersion === null) {
-        await databaseDeletedListener();
-      }
-    });
+    this.simpleDb.setDatabaseDeletedListener(databaseDeletedListener);
   }
 
   /**
