@@ -190,6 +190,8 @@ export function aggregateResponses(
           candidate.finishMessage;
         aggregatedResponse.candidates[i].safetyRatings =
           candidate.safetyRatings;
+        aggregatedResponse.candidates[i].groundingMetadata =
+          candidate.groundingMetadata;
 
         /**
          * Candidates should always have content and parts, but this handles
