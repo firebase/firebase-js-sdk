@@ -23,7 +23,7 @@
     "@firebase/app": "0.13.1",
     "@firebase/logger": "0.4.4",
     "@firebase/util": "1.12.0",
-    "@rollup/plugin-commonjs": "21.1.0",
+    "@rollup/plugin-commonjs": "28.0.5",
     "@rollup/plugin-json": "6.1.0",
     "@rollup/plugin-node-resolve": "16.0.0",
     "@rollup/plugin-virtual": "2.1.0",
