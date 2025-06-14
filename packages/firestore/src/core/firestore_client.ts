@@ -33,7 +33,11 @@ import {
   localStoreReadDocument,
   localStoreSetIndexAutoCreationEnabled
 } from '../local/local_store_impl';
-import { Persistence } from '../local/persistence';
+import {
+  Persistence,
+  DatabaseDeletedListenerAbortResult,
+  DatabaseDeletedListenerContinueResult
+} from '../local/persistence';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldIndex } from '../model/field_index';
@@ -232,9 +236,17 @@ export async function setOfflineComponentProvider(
 
   // When a user calls clearPersistence() in one client, all other clients
   // need to be terminated to allow the delete to succeed.
-  offlineComponentProvider.persistence.setDatabaseDeletedListener(() =>
-    client.terminate()
-  );
+  offlineComponentProvider.persistence.setDatabaseDeletedListener(reason => {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    client.terminate();
+    if (reason === 'site data cleared') {
+      return new DatabaseDeletedListenerAbortResult(
+        'protecting against database corruption'
+      );
+    } else {
+      return new DatabaseDeletedListenerContinueResult();
+    }
+  });
 
   client._offlineComponents = offlineComponentProvider;
 }
