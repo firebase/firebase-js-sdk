@@ -485,22 +485,8 @@ export interface GoogleAIGenerateContentResponse {
     usageMetadata?: UsageMetadata;
 }
 
-// @public @deprecated (undocumented)
-export interface GroundingAttribution {
-    // (undocumented)
-    confidenceScore?: number;
-    // (undocumented)
-    retrievedContext?: RetrievedContextAttribution;
-    // (undocumented)
-    segment: Segment;
-    // (undocumented)
-    web?: WebAttribution;
-}
-
 // @public
 export interface GroundingMetadata {
-    // @deprecated (undocumented)
-    groundingAttributions: GroundingAttribution[];
     // (undocumented)
     retrievalQueries?: string[];
     // (undocumented)
