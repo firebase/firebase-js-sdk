@@ -71,7 +71,6 @@ const cjsBuild = {
   ]
 };
 
-
 const google3TypingsBuild = {
   input: 'dist/src/index.d.ts',
   output: {
@@ -84,6 +83,5 @@ const google3TypingsBuild = {
     })
   ]
 };
-
 
 export default [esmBuild, cjsBuild, google3TypingsBuild];
