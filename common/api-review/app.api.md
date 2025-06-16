@@ -115,6 +115,9 @@ export function initializeServerApp(options: FirebaseOptions | FirebaseApp, conf
 // @public
 export function initializeServerApp(_serverAppConfig?: FirebaseServerAppSettings): FirebaseServerApp;
 
+// @public
+export function initializeServerApp(): FirebaseServerApp;
+
 // @internal (undocumented)
 export function _isFirebaseApp(obj: FirebaseApp | FirebaseOptions | FirebaseAppSettings): obj is FirebaseApp;
 

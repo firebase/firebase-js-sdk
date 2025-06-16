@@ -245,6 +245,14 @@ export function initializeServerApp(
   _serverAppConfig?: FirebaseServerAppSettings
 ): FirebaseServerApp;
 
+/**
+ * Creates and initializes a {@link @firebase/app#FirebaseServerApp} instance using Auto Init.
+ *
+ * @returns The initialized `FirebaseServerApp.
+ *
+ * @public
+ */
+export function initializeServerApp(): FirebaseServerApp;
 export function initializeServerApp(
   _options?: FirebaseApp | FirebaseServerAppSettings | FirebaseOptions,
   _serverAppConfig: FirebaseServerAppSettings = {}

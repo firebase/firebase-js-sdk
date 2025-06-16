@@ -23,6 +23,7 @@ This package coordinates the communication between the different Firebase compon
 |  <b>function()</b> |
 |  [getApps()](./app.md#getapps) | A (read-only) array of all initialized apps. |
 |  [initializeApp()](./app.md#initializeapp) | Creates and initializes a FirebaseApp instance. |
+|  [initializeServerApp()](./app.md#initializeserverapp) | Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance using Auto Init. |
 |  <b>function(\_serverAppConfig, ...)</b> |
 |  [initializeServerApp(\_serverAppConfig)](./app.md#initializeserverapp_b13f0eb) | Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance. |
 |  <b>function(libraryKeyOrName, ...)</b> |
@@ -117,6 +118,21 @@ export declare function initializeApp(): FirebaseApp;
 <b>Returns:</b>
 
 [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)
+
+### initializeServerApp() {:#initializeserverapp}
+
+Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance using Auto Init.
+
+<b>Signature:</b>
+
+```typescript
+export declare function initializeServerApp(): FirebaseServerApp;
+```
+<b>Returns:</b>
+
+[FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)
+
+The initialized \`<!-- -->FirebaseServerApp.
 
 ## function(\_serverAppConfig, ...)
 
