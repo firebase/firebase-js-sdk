@@ -37,7 +37,8 @@ describe('api/authentication/exchange_token', () => {
   let regionalAuth: TestAuth;
   const request = {
     parent: 'test-parent',
-    token: 'custom-token'
+    // eslint-disable-next-line camelcase
+    id_token: 'custom-token'
   };
 
   beforeEach(async () => {
@@ -52,6 +53,7 @@ describe('api/authentication/exchange_token', () => {
     const mock = mockRegionalEndpointWithParent(
       RegionalEndpoint.EXCHANGE_TOKEN,
       'test-parent',
+      'test-api-key',
       { accessToken: 'outbound-token', expiresIn: '1000' }
     );
 
@@ -60,7 +62,8 @@ describe('api/authentication/exchange_token', () => {
     expect(response.expiresIn).equal('1000');
     expect(mock.calls[0].request).to.eql({
       parent: 'test-parent',
-      token: 'custom-token'
+      // eslint-disable-next-line camelcase
+      id_token: 'custom-token'
     });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
@@ -79,6 +82,7 @@ describe('api/authentication/exchange_token', () => {
     const mock = mockRegionalEndpointWithParent(
       RegionalEndpoint.EXCHANGE_TOKEN,
       'test-parent',
+      'test-api-key',
       {
         error: {
           code: 400,
