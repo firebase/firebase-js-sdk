@@ -61,7 +61,6 @@ import {
   neq,
   lt,
   countIf,
-  currentContext,
   lte,
   gt,
   arrayConcat,
@@ -2359,21 +2358,6 @@ describe('Firestore Pipelines', () => {
           .select(field('tags').arrayOffset(0).as('firstTag'))
       );
       expectResults(snapshot, ...expectedResults);
-    });
-
-    // TODO: current_context tests with are failing because of b/395937453
-    itIf(testUnsupportedFeatures)('supports currentContext', async () => {
-      const snapshot = await execute(
-        firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .sort(field('rating').descending())
-          .limit(1)
-          .select(currentContext().as('currentContext'))
-      );
-      expectResults(snapshot, {
-        currentContext: 'TODO'
-      });
     });
 
     it('supports map', async () => {

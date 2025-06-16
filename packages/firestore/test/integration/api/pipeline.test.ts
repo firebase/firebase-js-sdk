@@ -1140,17 +1140,17 @@ apiDescribe.only('Pipelines', persistence => {
         );
       });
 
-      it('where with boolean constant', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .where(constant(true))
-            .sort(ascending('__name__'))
-            .limit(2)
-        );
-        expectResults(snapshot, 'book1', 'book10');
-      });
+      // it('where with boolean constant', async () => {
+      //   const snapshot = await execute(
+      //     firestore
+      //       .pipeline()
+      //       .collection(randomCol.path)
+      //       .where(constant(true))
+      //       .sort(ascending('__name__'))
+      //       .limit(2)
+      //   );
+      //   expectResults(snapshot, 'book1', 'book10');
+      // });
     });
 
     describe('sort, offset, and limit stages', () => {
@@ -1422,7 +1422,7 @@ apiDescribe.only('Pipelines', persistence => {
             .pipeline()
             .collection(randomCol.path)
             .where(eq('title', "The Hitchhiker's Guide to the Galaxy"))
-            .unnest(field('tags').as('tag'))
+            .unnest(field('tags').as('tag'), 'tagsIndex')
             .select(
               'title',
               'author',

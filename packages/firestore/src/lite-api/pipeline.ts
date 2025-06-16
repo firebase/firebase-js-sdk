@@ -735,7 +735,13 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     const alias = field(selectable.alias);
     this.readUserData('unnest', alias);
 
-    return this._addStage(new Unnest(selectable.expr, alias, indexField));
+    if (indexField) {
+      return this._addStage(
+        new Unnest(selectable.expr, alias, field(indexField))
+      );
+    } else {
+      return this._addStage(new Unnest(selectable.expr, alias));
+    }
   }
 
   /**

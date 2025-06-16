@@ -116,7 +116,6 @@ export {
   neq,
   lt,
   countIf,
-  currentContext,
   lte,
   gt,
   gte,

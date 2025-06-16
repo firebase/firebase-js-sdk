@@ -438,7 +438,7 @@ export class Unnest implements Stage {
   constructor(
     private expr: Expr,
     private alias: Field,
-    private indexField?: string
+    private indexField?: Field
   ) {}
 
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
@@ -449,7 +449,7 @@ export class Unnest implements Stage {
 
     if (this.indexField) {
       stageProto.options = {
-        indexField: toStringValue(this.indexField)
+        index_field: this.indexField._toProto(serializer)
       };
     }
 

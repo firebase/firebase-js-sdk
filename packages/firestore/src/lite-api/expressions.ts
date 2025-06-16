@@ -2345,7 +2345,7 @@ export function constant(value: string): Constant;
  * @param value The boolean value.
  * @return A new `Constant` instance.
  */
-export function constant(value: boolean): BooleanExpr;
+export function constant(value: boolean): Constant;
 
 /**
  * Creates a `Constant` instance for a null value.
