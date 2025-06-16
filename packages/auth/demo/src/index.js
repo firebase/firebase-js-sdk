@@ -74,7 +74,8 @@ import {
   connectAuthEmulator,
   initializeRecaptchaConfig,
   validatePassword,
-  revokeAccessToken
+  revokeAccessToken,
+  exchangeToken
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -95,6 +96,7 @@ const AUTH_EMULATOR_URL = 'http://localhost:9099';
 
 let app = null;
 let auth = null;
+let regionalAuth = null;
 let currentTab = null;
 let lastUser = null;
 let applicationVerifier = null;
@@ -1506,6 +1508,24 @@ function onFinalizeSignInWithTotpMultiFactor(event) {
   }, onAuthError);
 }
 
+function onExchangeToken(event) {
+  event.preventDefault();
+  const byoCiamInput = document.getElementById("byo-ciam-token");
+  const byoCiamSubmit = document.getElementById("byo-ciam-submit");
+  const byoCiamResult = document.getElementById("byo-ciam-result");
+
+  byoCiamResult.textContent = "Exchanging token...";
+
+  exchangeCIAMToken(byoCiamInput.value)
+  .then((response) => {
+    byoCiamResult.textContent = response.accessToken;
+    console.log("Token:", response);
+  })
+  .catch((error) => {
+    console.error("Error exchanging token:", error);
+  });
+}
+
 /**
  * Adds a new row to insert an OAuth custom parameter key/value pair.
  * @param {!jQuery.Event} _event The jQuery event object.
@@ -1795,6 +1815,14 @@ function revokeAppleTokenAndDeleteUser() {
   });
 }
 
+async function exchangeCIAMToken(token) {
+  const firebaseToken = await exchangeToken(
+    regaionalAuth,
+    idpConfigId = "Bar-e2e-idpconfig-002",
+    token)
+  return firebaseToken;
+}
+
 /**
  * Gets a specific query parameter from the current URL.
  * @param {string} name Name of the parameter.
@@ -2047,6 +2075,20 @@ function initApp() {
   log('Initializing app...');
   app = initializeApp(config);
   auth = getAuth(app);
+  let tenantConfig = {
+    "location": "global",
+    "tenantId": "Foo-e2e-tenant-001"
+  };
+  const regionalApp = initializeApp(
+    config,
+    `${auth.name}-rgcip`
+  );
+
+  regaionalAuth = initializeAuth(regionalApp, {
+    persistence: inMemoryPersistence,
+    popupRedirectResolver: browserPopupRedirectResolver,
+    tenantConfig: tenantConfig
+  });
   if (USE_AUTH_EMULATOR) {
     connectAuthEmulator(auth, AUTH_EMULATOR_URL);
   }
@@ -2377,6 +2419,10 @@ function initApp() {
   // Completes multi-factor sign-in with supplied OTP(One-Time Password).
   $('#sign-in-with-totp-multi-factor').click(
     onFinalizeSignInWithTotpMultiFactor
+  );
+
+  $('#exchange-token').click(
+    onExchangeToken
   );
 
   // Starts multi-factor enrollment with phone number.
