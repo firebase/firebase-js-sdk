@@ -290,13 +290,6 @@ export interface GroundingSupport {
    * and `groundingChunks[4]` are the retrieved content supporting this part of the response.
    */
   groundingChunkIndices?: number[];
-  /**
-   * A list of confidence scores, corresponding to each index in `groundingChunkIndices`.
-   * Each score indicates the model's confidence that the correspondingly indexed grounding chunk
-   * supports the claim in the response segment. Scores range from 0.0 to 1.0, where 1.0 is the highest confidence.
-   * This list will have the same number of elements as `groundingChunkIndices`.
-   */
-  confidenceScores?: number[];
 }
 
 /**

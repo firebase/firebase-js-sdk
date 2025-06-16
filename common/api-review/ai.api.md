@@ -525,7 +525,6 @@ export interface GroundingMetadata {
 
 // @public
 export interface GroundingSupport {
-    confidenceScores?: number[];
     groundingChunkIndices?: number[];
     segment?: Segment;
 }

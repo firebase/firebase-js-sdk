@@ -22,19 +22,8 @@ export interface GroundingSupport
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [confidenceScores](./ai.groundingsupport.md#groundingsupportconfidencescores) | number\[\] | A list of confidence scores, corresponding to each index in <code>groundingChunkIndices</code>. Each score indicates the model's confidence that the correspondingly indexed grounding chunk supports the claim in the response segment. Scores range from 0.0 to 1.0, where 1.0 is the highest confidence. This list will have the same number of elements as <code>groundingChunkIndices</code>. |
 |  [groundingChunkIndices](./ai.groundingsupport.md#groundingsupportgroundingchunkindices) | number\[\] | A list of indices that refer to specific [GroundingChunk](./ai.groundingchunk.md#groundingchunk_interface) objects within the [GroundingMetadata.groundingChunks](./ai.groundingmetadata.md#groundingmetadatagroundingchunks) array. These referenced chunks are the sources that support the claim made in the associated <code>segment</code> of the response. For example, an array <code>[1, 3, 4]</code> means that <code>groundingChunks[1]</code>, <code>groundingChunks[3]</code>, and <code>groundingChunks[4]</code> are the retrieved content supporting this part of the response. |
 |  [segment](./ai.groundingsupport.md#groundingsupportsegment) | [Segment](./ai.segment.md#segment_interface) | Specifies the segment of the model's response content that this grounding support pertains to. |
-
-## GroundingSupport.confidenceScores
-
-A list of confidence scores, corresponding to each index in `groundingChunkIndices`<!-- -->. Each score indicates the model's confidence that the correspondingly indexed grounding chunk supports the claim in the response segment. Scores range from 0.0 to 1.0, where 1.0 is the highest confidence. This list will have the same number of elements as `groundingChunkIndices`<!-- -->.
-
-<b>Signature:</b>
-
-```typescript
-confidenceScores?: number[];
-```
 
 ## GroundingSupport.groundingChunkIndices
 
