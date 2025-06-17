@@ -221,7 +221,7 @@ export function initializeApp(
  *
  * @param options - `Firebase.AppOptions` to configure the app's services, or a
  *   a `FirebaseApp` instance which contains the `AppOptions` within.
- * @param config - `FirebaseServerApp` configuration.
+ * @param config - Optional `FirebaseServerApp` configuration.
  *
  * @returns The initialized `FirebaseServerApp`.
  *
@@ -229,7 +229,7 @@ export function initializeApp(
  */
 export function initializeServerApp(
   options: FirebaseOptions | FirebaseApp,
-  config: FirebaseServerAppSettings
+  config?: FirebaseServerAppSettings
 ): FirebaseServerApp;
 
 /**
@@ -237,16 +237,17 @@ export function initializeServerApp(
  *
  * @param config - Optional `FirebaseServerApp` configuration.
  *
- * @returns The initialized `FirebaseServerApp` with default app configuration.
+ * @returns The initialized `FirebaseServerApp`.
  *
  * @public
  */
 export function initializeServerApp(
-  _serverAppConfig?: FirebaseServerAppSettings
+  config?: FirebaseServerAppSettings
 ): FirebaseServerApp;
 
 /**
- * Creates and initializes a {@link @firebase/app#FirebaseServerApp} instance using Auto Init.
+ * Creates and initializes a {@link @firebase/app#FirebaseServerApp} instance using
+ * Firebase App Hosting Auto Init.
  *
  * @returns The initialized `FirebaseServerApp.
  *
@@ -264,30 +265,15 @@ export function initializeServerApp(
 
   let app: FirebaseApp;
   let firebaseOptions: FirebaseOptions | undefined;
-  //let serverAppSettings: FirebaseServerAppSettings = _serverAppConfig || { };
   let serverAppSettings: FirebaseServerAppSettings = _serverAppConfig || {};
-
-  console.log('options: ', _options);
-  console.log('_serverAppConfig: ', _serverAppConfig);
 
   if (_options) {
     if (_isFirebaseApp(_options)) {
-      console.log('_isFirebaseApp');
       app = _options;
       firebaseOptions = app.options;
-      /*serverAppSettings = {
-        ...serverAppSettings,
-        ..._serverAppConfig
-      };*/
     } else if (_isFirebaseServerAppSettings(_options)) {
-      console.log('_isFirebaseServerAppSettings');
       serverAppSettings = _options;
-      /*serverAppSettings = {
-        ...serverAppSettings,
-        ..._options
-      };*/
     } else {
-      console.log('isFirebaseOptions');
       firebaseOptions = _options;
     }
   }
@@ -302,11 +288,6 @@ export function initializeServerApp(
     ...serverAppSettings,
     ...firebaseOptions
   };
-
-  console.log('Final:');
-  console.log('app: ', app!);
-  console.log('firebaseOptions: ', firebaseOptions);
-  console.log('serverAppSettings: ', serverAppSettings);
 
   // However, Do not mangle the name based on releaseOnDeref, since it will vary between the
   // construction of FirebaseServerApp instances. For example, if the object is the request headers.

@@ -110,10 +110,10 @@ export function initializeApp(options: FirebaseOptions, config?: FirebaseAppSett
 export function initializeApp(): FirebaseApp;
 
 // @public
-export function initializeServerApp(options: FirebaseOptions | FirebaseApp, config: FirebaseServerAppSettings): FirebaseServerApp;
+export function initializeServerApp(options: FirebaseOptions | FirebaseApp, config?: FirebaseServerAppSettings): FirebaseServerApp;
 
 // @public
-export function initializeServerApp(_serverAppConfig?: FirebaseServerAppSettings): FirebaseServerApp;
+export function initializeServerApp(config?: FirebaseServerAppSettings): FirebaseServerApp;
 
 // @public
 export function initializeServerApp(): FirebaseServerApp;
