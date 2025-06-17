@@ -221,7 +221,7 @@ export function initializeApp(
  *
  * @param options - `Firebase.AppOptions` to configure the app's services, or a
  *   a `FirebaseApp` instance which contains the `AppOptions` within.
- * @param config - Optional `FirebaseServerApp` configuration.
+ * @param config - Optional `FirebaseServerApp` settings.
  *
  * @returns The initialized `FirebaseServerApp`.
  *
@@ -244,16 +244,6 @@ export function initializeServerApp(
 export function initializeServerApp(
   config?: FirebaseServerAppSettings
 ): FirebaseServerApp;
-
-/**
- * Creates and initializes a {@link @firebase/app#FirebaseServerApp} instance using
- * Firebase App Hosting Auto Init.
- *
- * @returns The initialized `FirebaseServerApp.
- *
- * @public
- */
-export function initializeServerApp(): FirebaseServerApp;
 export function initializeServerApp(
   _options?: FirebaseApp | FirebaseServerAppSettings | FirebaseOptions,
   _serverAppConfig: FirebaseServerAppSettings = {}

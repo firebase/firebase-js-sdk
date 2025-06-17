@@ -23,7 +23,6 @@ This package coordinates the communication between the different Firebase compon
 |  <b>function()</b> |
 |  [getApps()](./app.md#getapps) | A (read-only) array of all initialized apps. |
 |  [initializeApp()](./app.md#initializeapp) | Creates and initializes a FirebaseApp instance. |
-|  [initializeServerApp()](./app.md#initializeserverapp) | Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance using Firebase App Hosting Auto Init. |
 |  <b>function(config, ...)</b> |
 |  [initializeServerApp(config)](./app.md#initializeserverapp_e7d0728) | Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance. |
 |  <b>function(libraryKeyOrName, ...)</b> |
@@ -118,21 +117,6 @@ export declare function initializeApp(): FirebaseApp;
 <b>Returns:</b>
 
 [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)
-
-### initializeServerApp() {:#initializeserverapp}
-
-Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance using Firebase App Hosting Auto Init.
-
-<b>Signature:</b>
-
-```typescript
-export declare function initializeServerApp(): FirebaseServerApp;
-```
-<b>Returns:</b>
-
-[FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)
-
-The initialized \`<!-- -->FirebaseServerApp.
 
 ## function(config, ...)
 
@@ -373,7 +357,7 @@ export declare function initializeServerApp(options: FirebaseOptions | FirebaseA
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) \| [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | <code>Firebase.AppOptions</code> to configure the app's services, or a a <code>FirebaseApp</code> instance which contains the <code>AppOptions</code> within. |
-|  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Optional <code>FirebaseServerApp</code> configuration. |
+|  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Optional <code>FirebaseServerApp</code> settings. |
 
 <b>Returns:</b>
 
