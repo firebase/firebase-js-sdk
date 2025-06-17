@@ -35,7 +35,7 @@ const browserPlugins = function () {
       typescript,
       tsconfigOverride: {
         compilerOptions: {
-          target: 'es2017'
+          target: 'es2020'
         }
       },
       cacheDir: tmp.dirSync(),

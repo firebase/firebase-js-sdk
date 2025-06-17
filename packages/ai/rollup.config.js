@@ -39,7 +39,7 @@ const buildPlugins = [
         'integration'
       ],
       compilerOptions: {
-        target: 'es2017'
+        target: 'es2020'
       }
     }
   }),
