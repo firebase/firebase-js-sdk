@@ -59,10 +59,12 @@ export function mockEndpointWithParams(
 export function mockRegionalEndpointWithParent(
   endpoint: RegionalEndpoint,
   parent: string,
+  key: string,
   response: object,
   status = 200
 ): Route {
-  const url = `${TEST_SCHEME}://${TEST_HOST}${parent}${endpoint}`;
-  console.log('here ', url);
+  let url = `${TEST_SCHEME}://${TEST_HOST}${parent}${endpoint}`;
+  url += "?key=";
+  url += key; 
   return mock(url, response, status);
 }
