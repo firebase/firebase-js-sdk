@@ -58,6 +58,8 @@ import { AutoId } from '../util/misc';
 import { Firestore } from './database';
 import { SnapshotListenOptions } from './reference_impl';
 
+const NOT_SUPPORTED = 'NOT SUPPORTED';
+
 /**
  * Converter used by `withConverter()` to transform user objects of type
  * `AppModelType` into Firestore data of type `DbModelType`.
@@ -604,7 +606,7 @@ export function documentSnapshotFromJSON<
   converter?: FirestoreDataConverter<AppModelType, DbModelType>
 ): DocumentSnapshot<AppModelType, DbModelType> {
   if (validateJSON(json, DocumentSnapshot._jsonSchema)) {
-    if (json.bundle === 'NOT SUPPORTED') {
+    if (json.bundle === NOT_SUPPORTED) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'The provided JSON object was created in a client environment, which is not supported.'
@@ -910,7 +912,7 @@ export function querySnapshotFromJSON<
   converter?: FirestoreDataConverter<AppModelType, DbModelType>
 ): QuerySnapshot<AppModelType, DbModelType> {
   if (validateJSON(json, QuerySnapshot._jsonSchema)) {
-    if (json.bundle === 'NOT SUPPORTED') {
+    if (json.bundle === NOT_SUPPORTED) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'The provided JSON object was created in a client environment, which is not supported.'
