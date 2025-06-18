@@ -168,17 +168,12 @@ async function performApiRequest<T, V>(
       }
     }
 
-    let queryParamString: string;
-    if (isRegionalAuthInitialized(auth)) {
-      queryParamString = querystring({
-        ...params
-      }).slice(1);
-    } else {
-      queryParamString = querystring({
+    const queryParamString = querystring({
         key: auth.config.apiKey,
         ...params
       }).slice(1);
-    }
+    console.log("here");
+    console.log(queryParamString);
 
     const headers = await (auth as AuthInternal)._getAdditionalHeaders();
     headers[HttpHeader.CONTENT_TYPE] = 'application/json';
