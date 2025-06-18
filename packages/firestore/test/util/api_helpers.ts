@@ -82,9 +82,7 @@ export function documentSnapshot(
   fromCache: boolean,
   hasPendingWrites?: boolean
 ): DocumentSnapshot {
-  if (hasPendingWrites === undefined) {
-    hasPendingWrites = false;
-  }
+  hasPendingWrites = !!hasPendingWrites;
   const db = firestore();
   const userDataWriter = new ExpUserDataWriter(db);
   if (data) {
