@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage-compat",
-  "version": "0.3.20",
+  "version": "0.3.23",
   "description": "The Firebase Firestore compatibility package",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "./dist/index.cjs.js",
@@ -37,15 +37,15 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/storage": "0.13.10",
+    "@firebase/storage": "0.13.13",
     "@firebase/storage-types": "0.8.3",
-    "@firebase/util": "1.11.3",
-    "@firebase/component": "0.6.16",
+    "@firebase/util": "1.12.0",
+    "@firebase/component": "0.6.17",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.3.3",
-    "@firebase/auth-compat": "0.5.24",
+    "@firebase/app-compat": "0.4.1",
+    "@firebase/auth-compat": "0.5.27",
     "rollup": "2.79.2",
     "@rollup/plugin-json": "6.1.0",
     "rollup-plugin-typescript2": "0.36.0",

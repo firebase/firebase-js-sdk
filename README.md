@@ -143,6 +143,8 @@ and follow the instructions to login.
 
 For more information, visit https://firebase.google.com/docs/storage/web/download-files#cors_configuration
 
+Then, make sure you have anonymous sign-in provider enabled:
+
 #### Authentication Support
 
 Visit the authentication config in your project and enable the `Anonymous`

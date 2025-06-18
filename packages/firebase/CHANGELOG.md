@@ -1,5 +1,90 @@
 # firebase
 
+## 11.9.1
+
+### Patch Changes
+
+- Updated dependencies [[`0f891d8`](https://github.com/firebase/firebase-js-sdk/commit/0f891d861bdf4e7bac8cd777f5fb32d0b7b9bf8e), [`c0617a3`](https://github.com/firebase/firebase-js-sdk/commit/c0617a341a693c2578a21b35a4f7b27b726defef)]:
+  - @firebase/storage@0.13.13
+  - @firebase/auth@1.10.7
+  - @firebase/storage-compat@0.3.23
+  - @firebase/auth-compat@0.5.27
+
+## 11.9.0
+
+### Minor Changes
+
+- [`1933324`](https://github.com/firebase/firebase-js-sdk/commit/1933324e0f3e4c8ed4d4d784f0c701fd0ec6ebc3) [#9026](https://github.com/firebase/firebase-js-sdk/pull/9026) - Add support for `minItems` and `maxItems` to `Schema`.
+
+- [`40be2db`](https://github.com/firebase/firebase-js-sdk/commit/40be2dbb884b8e1485862af8bb015e23db69ccbf) [#9047](https://github.com/firebase/firebase-js-sdk/pull/9047) - Add `title`, `maximum`, `minimum`, `propertyOrdering` to Schema builder
+
+### Patch Changes
+
+- Updated dependencies [[`1933324`](https://github.com/firebase/firebase-js-sdk/commit/1933324e0f3e4c8ed4d4d784f0c701fd0ec6ebc3), [`9964849`](https://github.com/firebase/firebase-js-sdk/commit/9964849e9540f08d02fa3825ecec32c1bfedc62d), [`40be2db`](https://github.com/firebase/firebase-js-sdk/commit/40be2dbb884b8e1485862af8bb015e23db69ccbf)]:
+  - @firebase/ai@1.4.0
+  - @firebase/app@0.13.1
+  - @firebase/firestore@4.7.17
+  - @firebase/app-compat@0.4.1
+  - @firebase/firestore-compat@0.3.52
+
+## 11.8.1
+
+### Patch Changes
+
+- Updated dependencies [[`35ad526`](https://github.com/firebase/firebase-js-sdk/commit/35ad5266304e14425988fcf5ad06d028b37588ac), [`b5df4ae`](https://github.com/firebase/firebase-js-sdk/commit/b5df4ae71c1b5b54d9237e7929d0f793189b82c9)]:
+  - @firebase/auth@1.10.6
+  - @firebase/database@1.0.19
+  - @firebase/firestore@4.7.16
+  - @firebase/functions@0.12.8
+  - @firebase/storage@0.13.12
+  - @firebase/data-connect@0.3.9
+  - @firebase/auth-compat@0.5.26
+  - @firebase/database-compat@2.0.10
+  - @firebase/firestore-compat@0.3.51
+  - @firebase/functions-compat@0.3.25
+  - @firebase/storage-compat@0.3.22
+
+## 11.8.0
+
+### Minor Changes
+
+- [`6be75f7`](https://github.com/firebase/firebase-js-sdk/commit/6be75f74dec92d1b84f77f79ccb770a3e23280b7) [#9010](https://github.com/firebase/firebase-js-sdk/pull/9010) - Default `automaticDataCollectionEnabled` to true without changing App Check's default behavior.
+
+- [`e99683b`](https://github.com/firebase/firebase-js-sdk/commit/e99683b17cf75c581bd362a1d7cb85f0b9c110ba) [#8922](https://github.com/firebase/firebase-js-sdk/pull/8922) - Add support for Gemini multimodal output
+
+- [`d5082f9`](https://github.com/firebase/firebase-js-sdk/commit/d5082f9f2fc4de98a6bfd1c6a5af4571af4d0bc6) [#8931](https://github.com/firebase/firebase-js-sdk/pull/8931) - Add support for the Gemini Developer API, enabling usage in a free tier, and add new `AI` API to accomodate new product naming.
+
+### Patch Changes
+
+- Updated dependencies [[`8a03143`](https://github.com/firebase/firebase-js-sdk/commit/8a03143b9217effdd86d68bdf195493c0979aa27), [`050c1b6`](https://github.com/firebase/firebase-js-sdk/commit/050c1b6a099b87be1488b9207e4fad4da9f8f64b), [`6be75f7`](https://github.com/firebase/firebase-js-sdk/commit/6be75f74dec92d1b84f77f79ccb770a3e23280b7), [`e99683b`](https://github.com/firebase/firebase-js-sdk/commit/e99683b17cf75c581bd362a1d7cb85f0b9c110ba), [`d5082f9`](https://github.com/firebase/firebase-js-sdk/commit/d5082f9f2fc4de98a6bfd1c6a5af4571af4d0bc6)]:
+  - @firebase/firestore@4.7.15
+  - @firebase/util@1.12.0
+  - @firebase/ai@1.3.0
+  - @firebase/app-compat@0.4.0
+  - @firebase/app-check@0.10.0
+  - @firebase/app@0.13.0
+  - @firebase/firestore-compat@0.3.50
+  - @firebase/analytics@0.10.16
+  - @firebase/analytics-compat@0.2.22
+  - @firebase/app-check-compat@0.3.25
+  - @firebase/auth@1.10.5
+  - @firebase/auth-compat@0.5.25
+  - @firebase/data-connect@0.3.8
+  - @firebase/database@1.0.18
+  - @firebase/database-compat@2.0.9
+  - @firebase/functions@0.12.7
+  - @firebase/functions-compat@0.3.24
+  - @firebase/installations@0.6.17
+  - @firebase/installations-compat@0.2.17
+  - @firebase/messaging@0.12.21
+  - @firebase/messaging-compat@0.2.21
+  - @firebase/performance@0.7.6
+  - @firebase/performance-compat@0.2.19
+  - @firebase/remote-config@0.6.4
+  - @firebase/remote-config-compat@0.2.17
+  - @firebase/storage@0.13.11
+  - @firebase/storage-compat@0.3.21
+
 ## 11.7.3
 
 ### Patch Changes

@@ -1,5 +1,29 @@
 # @firebase/firestore
 
+## 4.7.17
+
+### Patch Changes
+
+- [`9964849`](https://github.com/firebase/firebase-js-sdk/commit/9964849e9540f08d02fa3825ecec32c1bfedc62d) [#9041](https://github.com/firebase/firebase-js-sdk/pull/9041) - Clean up leaked WebChannel instances when the Firestore instance is terminated.
+
+## 4.7.16
+
+### Patch Changes
+
+- [`35ad526`](https://github.com/firebase/firebase-js-sdk/commit/35ad5266304e14425988fcf5ad06d028b37588ac) [#9053](https://github.com/firebase/firebase-js-sdk/pull/9053) - Revert "Fixed scroll behavior (#9043)"
+
+- [`b5df4ae`](https://github.com/firebase/firebase-js-sdk/commit/b5df4ae71c1b5b54d9237e7929d0f793189b82c9) [#9055](https://github.com/firebase/firebase-js-sdk/pull/9055) - Updated to only show banner when calling connect\*Emulator
+
+## 4.7.15
+
+### Patch Changes
+
+- [`8a03143`](https://github.com/firebase/firebase-js-sdk/commit/8a03143b9217effdd86d68bdf195493c0979aa27) [#8993](https://github.com/firebase/firebase-js-sdk/pull/8993) - Fix Safari/WebKit cache issues when client-side indexing is used.
+
+- Updated dependencies [[`8a03143`](https://github.com/firebase/firebase-js-sdk/commit/8a03143b9217effdd86d68bdf195493c0979aa27)]:
+  - @firebase/util@1.12.0
+  - @firebase/component@0.6.17
+
 ## 4.7.14
 
 ### Patch Changes
