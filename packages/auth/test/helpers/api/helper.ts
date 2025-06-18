@@ -64,7 +64,7 @@ export function mockRegionalEndpointWithParent(
   status = 200
 ): Route {
   let url = `${TEST_SCHEME}://${TEST_HOST}${parent}${endpoint}`;
-  url += "?key=";
-  url += key; 
+  url += '?key=';
+  url += key;
   return mock(url, response, status);
 }
