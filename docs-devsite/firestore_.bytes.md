@@ -23,7 +23,7 @@ export declare class Bytes
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [fromBase64String(base64)](./firestore_.bytes.md#bytesfrombase64string) | <code>static</code> | Creates a new <code>Bytes</code> object from the given Base64 string, converting it to bytes. |
-|  [fromJSON(json)](./firestore_.bytes.md#bytesfromjson) | <code>static</code> | Builds a <code>Byes</code> instance from a JSON object created by [Bytes.toJSON()](./firestore_.bytes.md#bytestojson)<!-- -->. |
+|  [fromJSON(json)](./firestore_.bytes.md#bytesfromjson) | <code>static</code> | Builds a <code>Bytes</code> instance from a JSON object created by [Bytes.toJSON()](./firestore_.bytes.md#bytestojson)<!-- -->. |
 |  [fromUint8Array(array)](./firestore_.bytes.md#bytesfromuint8array) | <code>static</code> | Creates a new <code>Bytes</code> object from the given Uint8Array. |
 |  [isEqual(other)](./firestore_.bytes.md#bytesisequal) |  | Returns true if this <code>Bytes</code> object is equal to the provided one. |
 |  [toBase64()](./firestore_.bytes.md#bytestobase64) |  | Returns the underlying bytes as a Base64-encoded string. |
@@ -53,7 +53,7 @@ static fromBase64String(base64: string): Bytes;
 
 ## Bytes.fromJSON()
 
-Builds a `Byes` instance from a JSON object created by [Bytes.toJSON()](./firestore_.bytes.md#bytestojson)<!-- -->.
+Builds a `Bytes` instance from a JSON object created by [Bytes.toJSON()](./firestore_.bytes.md#bytestojson)<!-- -->.
 
 <b>Signature:</b>
 
