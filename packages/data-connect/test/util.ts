@@ -21,11 +21,8 @@ import {
   connectDataConnectEmulator,
   ConnectorConfig,
   DataConnect,
-  executeMutation,
-  getDataConnect,
-  mutationRef
+  getDataConnect
 } from '../src';
-import { removePost, removePostRef } from './dataconnect/connector/gen/web';
 
 export const EMULATOR_PORT = process.env.DC_EMULATOR_PORT;
 const USE_EMULATOR = !!EMULATOR_PORT;
