@@ -129,7 +129,12 @@ export async function _getRedirectUrl(
 
 function getHandlerBase({ config }: AuthInternal): string {
   if (!config.emulator) {
-    return `https://${config.authDomain}/${WIDGET_PATH}`;
+    const path = `https://${config.authDomain}/${WIDGET_PATH}`;
+    if(typeof process !== 'undefined' && process.env.FIREBASE_USE_HANDLER_EXT) {
+      // Static servers require extensions to infer Content-Type
+      return `${path}.html`;
+    }
+    return path;
   }
 
   return _emulatorUrl(config, EMULATOR_WIDGET_PATH);
