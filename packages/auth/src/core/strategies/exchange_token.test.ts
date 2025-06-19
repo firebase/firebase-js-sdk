@@ -52,6 +52,7 @@ describe('core/strategies/exchangeToken', () => {
     const mock = mockRegionalEndpointWithParent(
       RegionalEndpoint.EXCHANGE_TOKEN,
       'projects/test-project-id/locations/us/tenants/tenant-1/idpConfigs/idp-config',
+      'test-api-key',
       { accessToken: 'outbound-token', expiresIn: 10 }
     );
 
@@ -64,7 +65,8 @@ describe('core/strategies/exchangeToken', () => {
     expect(mock.calls[0].request).to.eql({
       parent:
         'projects/test-project-id/locations/us/tenants/tenant-1/idpConfigs/idp-config',
-      token: 'custom-token'
+      // eslint-disable-next-line camelcase
+      id_token: 'custom-token'
     });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
@@ -87,6 +89,7 @@ describe('core/strategies/exchangeToken', () => {
     const mock = mockRegionalEndpointWithParent(
       RegionalEndpoint.EXCHANGE_TOKEN,
       'projects/test-project-id/locations/us/tenants/tenant-1/idpConfigs/idp-config',
+      'test-api-key',
       {
         error: {
           code: 400,
@@ -107,7 +110,8 @@ describe('core/strategies/exchangeToken', () => {
     expect(mock.calls[0].request).to.eql({
       parent:
         'projects/test-project-id/locations/us/tenants/tenant-1/idpConfigs/idp-config',
-      token: 'custom-token'
+      // eslint-disable-next-line camelcase
+      id_token: 'custom-token'
     });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(

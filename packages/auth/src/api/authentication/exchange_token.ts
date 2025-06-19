@@ -23,7 +23,7 @@ import { Auth } from '../../model/public_types';
 
 export interface ExchangeTokenRequest {
   parent: string;
-  token: string;
+  id_token: string;
 }
 
 export interface ExchangeTokenResponse {

@@ -74,7 +74,8 @@ import {
   connectAuthEmulator,
   initializeRecaptchaConfig,
   validatePassword,
-  revokeAccessToken
+  revokeAccessToken,
+  exchangeToken
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -95,6 +96,7 @@ const AUTH_EMULATOR_URL = 'http://localhost:9099';
 
 let app = null;
 let auth = null;
+let regionalAuth = null;
 let currentTab = null;
 let lastUser = null;
 let applicationVerifier = null;
@@ -1506,6 +1508,32 @@ function onFinalizeSignInWithTotpMultiFactor(event) {
   }, onAuthError);
 }
 
+async function exchangeCIAMToken(token) {
+  const firebaseToken = await exchangeToken(
+    regaionalAuth,
+    (idpConfigId = 'Bar-e2e-idpconfig-002'),
+    token
+  );
+  return firebaseToken;
+}
+
+function onExchangeToken(event) {
+  event.preventDefault();
+  const byoCiamInput = document.getElementById('byo-ciam-token');
+  const byoCiamResult = document.getElementById('byo-ciam-result');
+
+  byoCiamResult.textContent = 'Exchanging token...';
+
+  exchangeCIAMToken(byoCiamInput.value)
+    .then(response => {
+      byoCiamResult.textContent = response.accessToken;
+      console.log('Token:', response);
+    })
+    .catch(error => {
+      console.error('Error exchanging token:', error);
+    });
+}
+
 /**
  * Adds a new row to insert an OAuth custom parameter key/value pair.
  * @param {!jQuery.Event} _event The jQuery event object.
@@ -2051,6 +2079,18 @@ function initApp() {
     connectAuthEmulator(auth, AUTH_EMULATOR_URL);
   }
 
+  let tenantConfig = {
+    'location': 'global',
+    'tenantId': 'Foo-e2e-tenant-001'
+  };
+  const regionalApp = initializeApp(config, `${auth.name}-rgcip`);
+
+  regionalAuth = initializeAuth(regionalApp, {
+    persistence: inMemoryPersistence,
+    popupRedirectResolver: browserPopupRedirectResolver,
+    tenantConfig: tenantConfig
+  });
+
   tempApp = initializeApp(
     {
       apiKey: config.apiKey,
@@ -2391,6 +2431,9 @@ function initApp() {
   $('#enroll-mfa-totp-finalize').click(onFinalizeEnrollWithTotpMultiFactor);
   // Sets tenant for the current auth instance
   $('#set-tenant-btn').click(onSetTenantIdClick);
+
+  // Performs Exchange Token
+  $('#exchange-token').click(onExchangeToken);
 }
 
 $(initApp);

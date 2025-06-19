@@ -652,6 +652,7 @@ describe('api/_performRegionalApiRequest', () => {
       const mock = mockRegionalEndpointWithParent(
         RegionalEndpoint.EXCHANGE_TOKEN,
         'test-parent',
+        'test-api-key',
         serverResponse
       );
       const response = await _performRegionalApiRequest<
@@ -689,6 +690,7 @@ describe('api/_performRegionalApiRequest', () => {
       const mock = mockRegionalEndpointWithParent(
         RegionalEndpoint.EXCHANGE_TOKEN,
         'test-parent',
+        'test-api-key',
         serverResponse
       );
       await _performRegionalApiRequest<typeof request, typeof serverResponse>(
