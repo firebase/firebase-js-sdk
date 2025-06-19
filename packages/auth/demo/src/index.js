@@ -1525,11 +1525,11 @@ function onExchangeToken(event) {
   byoCiamResult.textContent = 'Exchanging token...';
 
   exchangeCIAMToken(byoCiamInput.value)
-    .then((response) => {
+    .then(response => {
       byoCiamResult.textContent = response.accessToken;
       console.log('Token:', response);
     })
-    .catch((error) => {
+    .catch(error => {
       console.error('Error exchanging token:', error);
     });
 }
