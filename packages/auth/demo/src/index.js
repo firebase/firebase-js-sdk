@@ -1511,27 +1511,27 @@ function onFinalizeSignInWithTotpMultiFactor(event) {
 async function exchangeCIAMToken(token) {
   const firebaseToken = await exchangeToken(
     regaionalAuth,
-    idpConfigId = "Bar-e2e-idpconfig-002",
-    token)
+    (idpConfigId = 'Bar-e2e-idpconfig-002'),
+    token
+  );
   return firebaseToken;
 }
 
 function onExchangeToken(event) {
   event.preventDefault();
-  const byoCiamInput = document.getElementById("byo-ciam-token");
-  const byoCiamSubmit = document.getElementById("byo-ciam-submit");
-  const byoCiamResult = document.getElementById("byo-ciam-result");
+  const byoCiamInput = document.getElementById('byo-ciam-token');
+  const byoCiamResult = document.getElementById('byo-ciam-result');
 
-  byoCiamResult.textContent = "Exchanging token...";
+  byoCiamResult.textContent = 'Exchanging token...';
 
   exchangeCIAMToken(byoCiamInput.value)
-  .then((response) => {
-    byoCiamResult.textContent = response.accessToken;
-    console.log("Token:", response);
-  })
-  .catch((error) => {
-    console.error("Error exchanging token:", error);
-  });
+    .then((response) => {
+      byoCiamResult.textContent = response.accessToken;
+      console.log('Token:', response);
+    })
+    .catch((error) => {
+      console.error('Error exchanging token:', error);
+    });
 }
 
 /**
@@ -2080,13 +2080,10 @@ function initApp() {
   }
 
   let tenantConfig = {
-    "location": "global",
-    "tenantId": "Foo-e2e-tenant-001"
+    'location': 'global',
+    'tenantId': 'Foo-e2e-tenant-001'
   };
-  const regionalApp = initializeApp(
-    config,
-    `${auth.name}-rgcip`
-  );
+  const regionalApp = initializeApp(config, `${auth.name}-rgcip`);
 
   regionalAuth = initializeAuth(regionalApp, {
     persistence: inMemoryPersistence,
@@ -2436,9 +2433,7 @@ function initApp() {
   $('#set-tenant-btn').click(onSetTenantIdClick);
 
   // Performs Exchange Token
-  $('#exchange-token').click(
-    onExchangeToken
-  );
+  $('#exchange-token').click(onExchangeToken);
 }
 
 $(initApp);
