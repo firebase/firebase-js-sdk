@@ -58,7 +58,11 @@ import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { getStore, IndexedDbTransaction } from './indexeddb_transaction';
 import { LocalSerializer } from './local_serializer';
 import { LruParams } from './lru_garbage_collector';
-import { Persistence, PrimaryStateListener } from './persistence';
+import {
+  Persistence,
+  PrimaryStateListener,
+  DatabaseDeletedListener
+} from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import {
   PersistenceTransaction,
@@ -324,20 +328,18 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   /**
-   * Registers a listener that gets called when the database receives a
-   * version change event indicating that it has deleted.
+   * Registers a listener that gets called when the database receives an
+   * event indicating that it has deleted. This could be, for example, another
+   * tab in multi-tab persistence mode having its `clearIndexedDbPersistence()`
+   * function called, or a user manually clicking "Clear Site Data" in a
+   * browser.
    *
    * PORTING NOTE: This is only used for Web multi-tab.
    */
   setDatabaseDeletedListener(
-    databaseDeletedListener: () => Promise<void>
+    databaseDeletedListener: DatabaseDeletedListener
   ): void {
-    this.simpleDb.setVersionChangeListener(async event => {
-      // Check if an attempt is made to delete IndexedDB.
-      if (event.newVersion === null) {
-        await databaseDeletedListener();
-      }
-    });
+    this.simpleDb.setDatabaseDeletedListener(databaseDeletedListener);
   }
 
   /**
