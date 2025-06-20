@@ -173,42 +173,54 @@ export interface Citation {
 /**
  * Metadata returned to client when grounding is enabled.
  *
+ * If using Grounding with Google Search, you are required to comply with the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+ *
  * @public
  */
 export interface GroundingMetadata {
   /**
-   * Google search entry for the following web searches.
-   * An HTML/CSS snippet that can be embedded in a web page to display a Google Search Entry point
-   * for follow-up web searches related to the model's response.
+   * Google search entry point for web searches.
+   * This contains An HTML/CSS snippet that *must* be embedded in an app to display a Google Search Entry point
+   * for follow-up web searches related to the model's "Grounded Response".
+   *
+   * When using this feature, you are required to comply with the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
    */
   searchEntryPoint?: SearchEntrypoint;
   /**
    * A list of {@link GroundingChunk} objects. Each chunk represents a piece of retrieved content
    * (e.g. from a web page). that the model used to ground its response.
+   *
+   * When using this feature, you are required to comply with the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
    */
   groundingChunks?: GroundingChunk[];
   /**
    * A list of {@link GroundingSupport} objects. Each object details how specific
    * segments of the model's response are supported by the `groundingChunks`.
+   *
+   * When using this feature, you are required to comply with the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
    */
   groundingSupports?: GroundingSupport[];
   /**
    * A list of web search queries that the model performed to gather the grounding information.
    * These can be used to allow users to explore the search results themselves.
+   *
+   * When using this feature, you are required to comply with the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
    */
   webSearchQueries?: string[];
   /**
-   * @deprecated Use {@link GroundingMetadata.groundingSupports} instead.
+   * @deprecated Use {@link GroundingSupport} instead.
    */
   retrievalQueries?: string[];
   /**
-   * @deprecated
+   * @deprecated Use {@link GroundingChunk} instead.
    */
   groundingAttributions: GroundingAttribution[];
 }
 
 /**
  * Google search entry point.
+ *
+ * When using this feature, you are required to comply with the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
  *
  * @public
  */
@@ -235,6 +247,8 @@ export interface SearchEntrypoint {
  * Represents a chunk of retrieved data that supports a claim in the model's response.
  * This is part of the grounding information provided when grounding is enabled.
  *
+ * When using this feature, you are required to comply with the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+ *
  * @public
  */
 export interface GroundingChunk {
@@ -246,6 +260,8 @@ export interface GroundingChunk {
 
 /**
  * A grounding chunk from the web.
+ *
+ * When using this feature, you are required to comply with the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
  *
  * @public
  */
@@ -274,6 +290,8 @@ export interface WebGroundingChunk {
 /**
  * Provides information about how a specific segment of the model's response
  * is supported by the retrieved grounding chunks.
+ *
+ * When using this feature, you are required to comply with the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
  *
  * @public
  */

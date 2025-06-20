@@ -12,6 +12,8 @@ https://github.com/firebase/firebase-js-sdk
 # GroundingMetadata interface
 Metadata returned to client when grounding is enabled.
 
+If using Grounding with Google Search, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Search".
+
 <b>Signature:</b>
 
 ```typescript
@@ -23,16 +25,17 @@ export interface GroundingMetadata
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [groundingAttributions](./ai.groundingmetadata.md#groundingmetadatagroundingattributions) | [GroundingAttribution](./ai.groundingattribution.md#groundingattribution_interface)<!-- -->\[\] |  |
-|  [groundingChunks](./ai.groundingmetadata.md#groundingmetadatagroundingchunks) | [GroundingChunk](./ai.groundingchunk.md#groundingchunk_interface)<!-- -->\[\] | A list of [GroundingChunk](./ai.groundingchunk.md#groundingchunk_interface) objects. Each chunk represents a piece of retrieved content (e.g. from a web page). that the model used to ground its response. |
-|  [groundingSupports](./ai.groundingmetadata.md#groundingmetadatagroundingsupports) | [GroundingSupport](./ai.groundingsupport.md#groundingsupport_interface)<!-- -->\[\] | A list of [GroundingSupport](./ai.groundingsupport.md#groundingsupport_interface) objects. Each object details how specific segments of the model's response are supported by the <code>groundingChunks</code>. |
+|  [groundingChunks](./ai.groundingmetadata.md#groundingmetadatagroundingchunks) | [GroundingChunk](./ai.groundingchunk.md#groundingchunk_interface)<!-- -->\[\] | A list of [GroundingChunk](./ai.groundingchunk.md#groundingchunk_interface) objects. Each chunk represents a piece of retrieved content (e.g. from a web page). that the model used to ground its response.<!-- -->When using this feature, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Search". |
+|  [groundingSupports](./ai.groundingmetadata.md#groundingmetadatagroundingsupports) | [GroundingSupport](./ai.groundingsupport.md#groundingsupport_interface)<!-- -->\[\] | A list of [GroundingSupport](./ai.groundingsupport.md#groundingsupport_interface) objects. Each object details how specific segments of the model's response are supported by the <code>groundingChunks</code>.<!-- -->When using this feature, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Search". |
 |  [retrievalQueries](./ai.groundingmetadata.md#groundingmetadataretrievalqueries) | string\[\] |  |
-|  [searchEntryPoint](./ai.groundingmetadata.md#groundingmetadatasearchentrypoint) | [SearchEntrypoint](./ai.searchentrypoint.md#searchentrypoint_interface) | Google search entry for the following web searches. An HTML/CSS snippet that can be embedded in a web page to display a Google Search Entry point for follow-up web searches related to the model's response. |
-|  [webSearchQueries](./ai.groundingmetadata.md#groundingmetadatawebsearchqueries) | string\[\] | A list of web search queries that the model performed to gather the grounding information. These can be used to allow users to explore the search results themselves. |
+|  [searchEntryPoint](./ai.groundingmetadata.md#groundingmetadatasearchentrypoint) | [SearchEntrypoint](./ai.searchentrypoint.md#searchentrypoint_interface) | Google search entry point for web searches. This contains An HTML/CSS snippet that \*must\* be embedded in an app to display a Google Search Entry point for follow-up web searches related to the model's "Grounded Response".<!-- -->When using this feature, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Search". |
+|  [webSearchQueries](./ai.groundingmetadata.md#groundingmetadatawebsearchqueries) | string\[\] | A list of web search queries that the model performed to gather the grounding information. These can be used to allow users to explore the search results themselves.<!-- -->When using this feature, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Search". |
 
 ## GroundingMetadata.groundingAttributions
 
 > Warning: This API is now obsolete.
 > 
+> Use [GroundingChunk](./ai.groundingchunk.md#groundingchunk_interface) instead.
 > 
 
 <b>Signature:</b>
@@ -45,6 +48,8 @@ groundingAttributions: GroundingAttribution[];
 
 A list of [GroundingChunk](./ai.groundingchunk.md#groundingchunk_interface) objects. Each chunk represents a piece of retrieved content (e.g. from a web page). that the model used to ground its response.
 
+When using this feature, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Search".
+
 <b>Signature:</b>
 
 ```typescript
@@ -54,6 +59,8 @@ groundingChunks?: GroundingChunk[];
 ## GroundingMetadata.groundingSupports
 
 A list of [GroundingSupport](./ai.groundingsupport.md#groundingsupport_interface) objects. Each object details how specific segments of the model's response are supported by the `groundingChunks`<!-- -->.
+
+When using this feature, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Search".
 
 <b>Signature:</b>
 
@@ -65,7 +72,7 @@ groundingSupports?: GroundingSupport[];
 
 > Warning: This API is now obsolete.
 > 
-> Use [GroundingMetadata.groundingSupports](./ai.groundingmetadata.md#groundingmetadatagroundingsupports) instead.
+> Use [GroundingSupport](./ai.groundingsupport.md#groundingsupport_interface) instead.
 > 
 
 <b>Signature:</b>
@@ -76,7 +83,9 @@ retrievalQueries?: string[];
 
 ## GroundingMetadata.searchEntryPoint
 
-Google search entry for the following web searches. An HTML/CSS snippet that can be embedded in a web page to display a Google Search Entry point for follow-up web searches related to the model's response.
+Google search entry point for web searches. This contains An HTML/CSS snippet that \*must\* be embedded in an app to display a Google Search Entry point for follow-up web searches related to the model's "Grounded Response".
+
+When using this feature, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Search".
 
 <b>Signature:</b>
 
@@ -87,6 +96,8 @@ searchEntryPoint?: SearchEntrypoint;
 ## GroundingMetadata.webSearchQueries
 
 A list of web search queries that the model performed to gather the grounding information. These can be used to allow users to explore the search results themselves.
+
+When using this feature, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Search".
 
 <b>Signature:</b>
 

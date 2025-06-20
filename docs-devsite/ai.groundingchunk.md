@@ -12,6 +12,8 @@ https://github.com/firebase/firebase-js-sdk
 # GroundingChunk interface
 Represents a chunk of retrieved data that supports a claim in the model's response. This is part of the grounding information provided when grounding is enabled.
 
+When using this feature, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Search".
+
 <b>Signature:</b>
 
 ```typescript
