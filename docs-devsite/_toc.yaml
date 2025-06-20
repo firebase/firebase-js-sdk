@@ -76,10 +76,18 @@ toc:
     path: /docs/reference/js/ai.generativemodel.md
   - title: GoogleAIBackend
     path: /docs/reference/js/ai.googleaibackend.md
+  - title: GoogleSearch
+    path: /docs/reference/js/ai.googlesearch.md
+  - title: GoogleSearchTool
+    path: /docs/reference/js/ai.googlesearchtool.md
   - title: GroundingAttribution
     path: /docs/reference/js/ai.groundingattribution.md
+  - title: GroundingChunk
+    path: /docs/reference/js/ai.groundingchunk.md
   - title: GroundingMetadata
     path: /docs/reference/js/ai.groundingmetadata.md
+  - title: GroundingSupport
+    path: /docs/reference/js/ai.groundingsupport.md
   - title: ImagenGCSImage
     path: /docs/reference/js/ai.imagengcsimage.md
   - title: ImagenGenerationConfig
@@ -130,6 +138,8 @@ toc:
     path: /docs/reference/js/ai.schemarequest.md
   - title: SchemaShared
     path: /docs/reference/js/ai.schemashared.md
+  - title: SearchEntrypoint
+    path: /docs/reference/js/ai.searchentrypoint.md
   - title: Segment
     path: /docs/reference/js/ai.segment.md
   - title: StartChatParams
@@ -150,6 +160,8 @@ toc:
     path: /docs/reference/js/ai.videometadata.md
   - title: WebAttribution
     path: /docs/reference/js/ai.webattribution.md
+  - title: WebGroundingChunk
+    path: /docs/reference/js/ai.webgroundingchunk.md
 - title: analytics
   path: /docs/reference/js/analytics.md
   section:
