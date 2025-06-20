@@ -44,7 +44,7 @@ module.exports = {
           options: {
             compilerOptions: {
               module: 'commonjs',
-              target: 'es2017',
+              target: 'es2020',
               downlevelIteration: true,
               resolveJsonModule: true
             }
@@ -55,15 +55,6 @@ module.exports = {
         test: /\.[tj]sx?$/,
         use: 'source-map-loader',
         enforce: 'pre'
-      },
-      {
-        test: /\.tsx?$/,
-        use: {
-          loader: 'istanbul-instrumenter-loader',
-          options: { esModules: true }
-        },
-        enforce: 'post',
-        exclude: [/\.test\.ts$/, /\btest(ing)?\//]
       },
       {
         test: /\.js$/,

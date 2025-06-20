@@ -31,7 +31,7 @@ const buildPlugins = [
     abortOnError: false,
     tsconfigOverride: {
       compilerOptions: {
-        target: 'es2017'
+        target: 'es2020'
       }
     }
   }),
