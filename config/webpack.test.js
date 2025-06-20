@@ -28,7 +28,7 @@ const PLATFORM_RE = /^(.*)\/platform\/([^.\/]*)(\.ts)?$/;
 
 module.exports = {
   mode: 'development',
-  devtool: 'source-map',
+  devtool: 'inline-source-map',
   optimization: {
     runtimeChunk: false,
     splitChunks: false,
