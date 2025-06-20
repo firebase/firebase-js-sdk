@@ -20,7 +20,7 @@ import { SinonFakeXMLHttpRequest, useFakeXMLHttpRequest } from 'sinon';
 import { ErrorCode } from '../../src/implementation/connection';
 import { XhrBytesConnection } from '../../src/platform/browser/connection';
 
-describe.only('Connections', () => {
+describe('Connections', () => {
   it('XhrConnection.send() should not reject on network errors', async () => {
     const fakeXHR = useFakeXMLHttpRequest();
     const connection = new XhrBytesConnection();
@@ -31,7 +31,7 @@ describe.only('Connections', () => {
     expect(connection.getErrorCode()).to.equal(ErrorCode.NETWORK_ERROR);
     fakeXHR.restore();
   });
-  it.only('XhrConnection.send() should send credentials when using cloud workstation', async () => {
+  it('XhrConnection.send() should send credentials when using cloud workstation', async () => {
     const fakeXHR = useFakeXMLHttpRequest();
     const connection = new XhrBytesConnection();
     const sendPromise = connection.send(
