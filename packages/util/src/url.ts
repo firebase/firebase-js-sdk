@@ -19,7 +19,11 @@
  * Checks whether host is a cloud workstation or not.
  * @public
  */
-export function isCloudWorkstation(host: string): boolean {
+export function isCloudWorkstation(url: string): boolean {
+  const host =
+    url.startsWith('http://') || url.startsWith('https://')
+      ? new URL(url).hostname
+      : url;
   return host.endsWith('.cloudworkstations.dev');
 }
 

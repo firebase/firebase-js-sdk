@@ -70,7 +70,7 @@ abstract class XhrConnection<T extends ConnectionType>
     if (this.sent_) {
       throw internalError('cannot .send() more than once');
     }
-    if (isCloudWorkstation(new URL(url).hostname) && isUsingEmulator) {
+    if (isCloudWorkstation(url) && isUsingEmulator) {
       this.xhr_.withCredentials = true;
     }
     this.sent_ = true;
