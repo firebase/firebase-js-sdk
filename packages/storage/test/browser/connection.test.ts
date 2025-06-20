@@ -35,7 +35,7 @@ describe('Connections', () => {
     const fakeXHR = useFakeXMLHttpRequest();
     const connection = new XhrBytesConnection();
     const sendPromise = connection.send(
-      'https://abc.cloudworkstations.dev',
+      'https://abc.cloudworkstations.dev/test',
       'GET',
       true
     );

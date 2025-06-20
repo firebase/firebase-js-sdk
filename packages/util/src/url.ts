@@ -19,8 +19,20 @@
  * Checks whether host is a cloud workstation or not.
  * @public
  */
-export function isCloudWorkstation(host: string): boolean {
-  return host.endsWith('.cloudworkstations.dev');
+export function isCloudWorkstation(url: string): boolean {
+  // `isCloudWorkstation` is called without protocol in certain connect*Emulator functions
+  // In HTTP request builders, it's called with the protocol.
+  // If called with protocol prefix, it's a valid URL, so we extract the hostname
+  // If called without, we assume the string is the hostname.
+  try {
+    const host =
+      url.startsWith('http://') || url.startsWith('https://')
+        ? new URL(url).hostname
+        : url;
+    return host.endsWith('.cloudworkstations.dev');
+  } catch {
+    return false;
+  }
 }
 
 /**
