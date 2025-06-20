@@ -96,7 +96,9 @@ describe('Generate Content', () => {
             TOKEN_COUNT_DELTA * 2
           );
           expect(response.usageMetadata!.promptTokensDetails).to.not.be.null;
-          expect(response.usageMetadata!.promptTokensDetails!.length).to.equal(1);
+          expect(response.usageMetadata!.promptTokensDetails!.length).to.equal(
+            1
+          );
           expect(
             response.usageMetadata!.promptTokensDetails![0].modality
           ).to.equal(Modality.TEXT);
@@ -119,14 +121,17 @@ describe('Generate Content', () => {
             TOKEN_COUNT_DELTA * 2
           );
           expect(response.usageMetadata!.promptTokensDetails).to.not.be.null;
-          expect(response.usageMetadata!.promptTokensDetails!.length).to.equal(1);
+          expect(response.usageMetadata!.promptTokensDetails!.length).to.equal(
+            1
+          );
           expect(
             response.usageMetadata!.promptTokensDetails![0].modality
           ).to.equal(Modality.TEXT);
           expect(
             response.usageMetadata!.promptTokensDetails![0].tokenCount
           ).to.equal(21);
-          expect(response.usageMetadata!.candidatesTokensDetails).to.not.be.null;
+          expect(response.usageMetadata!.candidatesTokensDetails).to.not.be
+            .null;
           expect(
             response.usageMetadata!.candidatesTokensDetails!.length
           ).to.equal(1);
@@ -136,7 +141,6 @@ describe('Generate Content', () => {
           expect(
             response.usageMetadata!.candidatesTokensDetails![0].tokenCount
           ).to.be.closeTo(4, TOKEN_COUNT_DELTA);
-
         }
       });
 
