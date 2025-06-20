@@ -881,7 +881,7 @@ export enum SchemaType {
 
 // @public
 export interface SearchEntrypoint {
-    renderedContent: string;
+    renderedContent?: string;
 }
 
 // @public

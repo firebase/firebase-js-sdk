@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # WebGroundingChunk interface
 A grounding chunk from the web.
 
-When using this feature, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Search".
+\*\*Important\*\*: If using Grounding with Google Search, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for \*Grounding with Google Search\*.
 
 <b>Signature:</b>
 
@@ -26,7 +26,7 @@ export interface WebGroundingChunk
 |  --- | --- | --- |
 |  [domain](./ai.webgroundingchunk.md#webgroundingchunkdomain) | string | The domain of the original URI from which the content was retrieved (e.g., <code>example.com</code>).<!-- -->This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property will be undefined. |
 |  [title](./ai.webgroundingchunk.md#webgroundingchunktitle) | string | The title of the retrieved web page. |
-|  [uri](./ai.webgroundingchunk.md#webgroundingchunkuri) | string | The URI of the retrieved web page. This URI is a Google-hosted proxy to the original source and typically contains the <code>vertexaisearch</code> subdomain (e.g., <code>https://vertexaisearch.cloud.google.com/grounding-api-redirect/AWhgh4y9L4oeNGWCat...</code>.<!-- -->This proxied URI remains accessible for 30 days after the grounding result is generated. |
+|  [uri](./ai.webgroundingchunk.md#webgroundingchunkuri) | string | The URI of the retrieved web page. |
 
 ## WebGroundingChunk.domain
 
@@ -52,9 +52,7 @@ title?: string;
 
 ## WebGroundingChunk.uri
 
-The URI of the retrieved web page. This URI is a Google-hosted proxy to the original source and typically contains the `vertexaisearch` subdomain (e.g., `https://vertexaisearch.cloud.google.com/grounding-api-redirect/AWhgh4y9L4oeNGWCat...`<!-- -->.
-
-This proxied URI remains accessible for 30 days after the grounding result is generated.
+The URI of the retrieved web page.
 
 <b>Signature:</b>
 

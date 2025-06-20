@@ -171,9 +171,12 @@ export interface Citation {
 }
 
 /**
- * Metadata returned to client when grounding is enabled.
+ * Metadata returned when grounding is enabled.
  *
- * If using Grounding with Google Search, you are required to comply with the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+ * Currently, the only way to use grounding is to include a {@link GoogleSearchTool} in your {@link GenerationConfig}.
+ *
+ * **Important**: If using Grounding with Google Search, you are required to comply with the
+ * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for *Grounding with Google Search*.
  *
  * @public
  */
@@ -183,28 +186,32 @@ export interface GroundingMetadata {
    * This contains An HTML/CSS snippet that *must* be embedded in an app to display a Google Search Entry point
    * for follow-up web searches related to the model's "Grounded Response".
    *
-   * When using this feature, you are required to comply with the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+   * **Important**: If using Grounding with Google Search, you are required to comply with the
+   * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for *Grounding with Google Search*.
    */
   searchEntryPoint?: SearchEntrypoint;
   /**
    * A list of {@link GroundingChunk} objects. Each chunk represents a piece of retrieved content
    * (e.g. from a web page). that the model used to ground its response.
    *
-   * When using this feature, you are required to comply with the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+   * **Important**: If using Grounding with Google Search, you are required to comply with the
+   * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for *Grounding with Google Search*.
    */
   groundingChunks?: GroundingChunk[];
   /**
    * A list of {@link GroundingSupport} objects. Each object details how specific
    * segments of the model's response are supported by the `groundingChunks`.
    *
-   * When using this feature, you are required to comply with the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+   * **Important**: If using Grounding with Google Search, you are required to comply with the
+   * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for *Grounding with Google Search*.
    */
   groundingSupports?: GroundingSupport[];
   /**
    * A list of web search queries that the model performed to gather the grounding information.
    * These can be used to allow users to explore the search results themselves.
    *
-   * When using this feature, you are required to comply with the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+   * **Important**: If using Grounding with Google Search, you are required to comply with the
+   * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for *Grounding with Google Search*.
    */
   webSearchQueries?: string[];
   /**
@@ -220,7 +227,8 @@ export interface GroundingMetadata {
 /**
  * Google search entry point.
  *
- * When using this feature, you are required to comply with the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+ * **Important**: If using Grounding with Google Search, you are required to comply with the
+ * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for *Grounding with Google Search*.
  *
  * @public
  */
@@ -240,14 +248,15 @@ export interface SearchEntrypoint {
    * container.attachShadow({ mode: 'open' }).innerHTML = renderedContent;
    * ```
    */
-  renderedContent: string;
+  renderedContent?: string;
 }
 
 /**
  * Represents a chunk of retrieved data that supports a claim in the model's response.
  * This is part of the grounding information provided when grounding is enabled.
  *
- * When using this feature, you are required to comply with the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+ * **Important**: If using Grounding with Google Search, you are required to comply with the
+ * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for *Grounding with Google Search*.
  *
  * @public
  */
@@ -261,17 +270,14 @@ export interface GroundingChunk {
 /**
  * A grounding chunk from the web.
  *
- * When using this feature, you are required to comply with the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+ * **Important**: If using Grounding with Google Search, you are required to comply with the
+ * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for *Grounding with Google Search*.
  *
  * @public
  */
 export interface WebGroundingChunk {
   /**
-   * The URI of the retrieved web page. This URI is a Google-hosted proxy to the original source
-   * and typically contains the `vertexaisearch` subdomain (e.g.,
-   * `https://vertexaisearch.cloud.google.com/grounding-api-redirect/AWhgh4y9L4oeNGWCat...`.
-   *
-   * This proxied URI remains accessible for 30 days after the grounding result is generated.
+   * The URI of the retrieved web page.
    */
   uri?: string;
   /**
@@ -291,7 +297,8 @@ export interface WebGroundingChunk {
  * Provides information about how a specific segment of the model's response
  * is supported by the retrieved grounding chunks.
  *
- * When using this feature, you are required to comply with the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+ * **Important**: If using Grounding with Google Search, you are required to comply with the
+ * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for *Grounding with Google Search*.
  *
  * @public
  */

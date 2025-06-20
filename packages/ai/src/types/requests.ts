@@ -200,9 +200,9 @@ export declare interface FunctionDeclaration {
  * A tool that allows the generative model to connect to Google Search
  * to access and incorporate up-to-date information from the web into its responses.
  *
- * When this tool is used, the model's responses may include "Grounded Results"
- * which are subject to the Grounding with Google Search terms outlined in the
- * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms}.
+ * When using Grounding with Google Search, you may receive a response with data generated from
+ * Google's search engine. This response is a "Grounded Result" subject to the Grounding with Google Search
+ * terms in the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms}.
  *
  * @public
  */

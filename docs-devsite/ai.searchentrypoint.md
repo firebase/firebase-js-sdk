@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # SearchEntrypoint interface
 Google search entry point.
 
-When using this feature, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Search".
+\*\*Important\*\*: If using Grounding with Google Search, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for \*Grounding with Google Search\*.
 
 <b>Signature:</b>
 
@@ -35,7 +35,7 @@ To ensure proper rendering and prevent CSS conflicts, it is recommended to encap
 <b>Signature:</b>
 
 ```typescript
-renderedContent: string;
+renderedContent?: string;
 ```
 
 ### Example
