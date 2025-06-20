@@ -140,5 +140,5 @@ toJSON(): object;
 
 object
 
-a JSON representation of this object.
+a JSON representation of this object. Throws a [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) if this `QuerySnapshot` has pending writes.
 

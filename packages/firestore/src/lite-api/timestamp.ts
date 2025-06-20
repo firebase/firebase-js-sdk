@@ -203,7 +203,7 @@ export class Timestamp {
       return new Timestamp(json.seconds, json.nanoseconds);
     }
     throw new FirestoreError(
-      Code.INTERNAL,
+      Code.INVALID_ARGUMENT,
       'Unexpected error creating Timestamp from JSON.'
     );
   }

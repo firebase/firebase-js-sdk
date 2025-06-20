@@ -125,7 +125,7 @@ export class Bytes {
       return Bytes.fromBase64String(json.bytes);
     }
     throw new FirestoreError(
-      Code.INTERNAL,
+      Code.INVALID_ARGUMENT,
       'Unexpected error creating Bytes from JSON.'
     );
   }

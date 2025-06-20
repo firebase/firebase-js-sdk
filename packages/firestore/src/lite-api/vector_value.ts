@@ -92,7 +92,7 @@ export class VectorValue {
       );
     }
     throw new FirestoreError(
-      Code.INTERNAL,
+      Code.INVALID_ARGUMENT,
       'Unexpected error creating Timestamp from JSON.'
     );
   }

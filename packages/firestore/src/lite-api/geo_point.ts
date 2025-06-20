@@ -125,7 +125,7 @@ export class GeoPoint {
       return new GeoPoint(json.latitude, json.longitude);
     }
     throw new FirestoreError(
-      Code.INTERNAL,
+      Code.INVALID_ARGUMENT,
       'Unexpected error creating GeoPoint from JSON.'
     );
   }

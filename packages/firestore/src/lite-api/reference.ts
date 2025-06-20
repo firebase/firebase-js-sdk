@@ -344,7 +344,7 @@ export class DocumentReference<
       );
     }
     throw new FirestoreError(
-      Code.INTERNAL,
+      Code.INVALID_ARGUMENT,
       'Unexpected error creating Bytes from JSON.'
     );
   }

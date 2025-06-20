@@ -527,7 +527,8 @@ export class DocumentSnapshot<
   /**
    * Returns a JSON-serializable representation of this `DocumentSnapshot` instance.
    *
-   * @returns a JSON representation of this object.
+   * @returns a JSON representation of this object.  Throws a {@link FirestoreError} if this
+   * `DocumentSnapshot` has pending writes.
    */
   toJSON(): object {
     if (this.metadata.hasPendingWrites) {
@@ -823,7 +824,8 @@ export class QuerySnapshot<
   /**
    * Returns a JSON-serializable representation of this `QuerySnapshot` instance.
    *
-   * @returns a JSON representation of this object.
+   * @returns a JSON representation of this object. Throws a {@link FirestoreError} if this
+   * `QuerySnapshot` has pending writes.
    */
   toJSON(): object {
     if (this.metadata.hasPendingWrites) {
@@ -937,7 +939,7 @@ export function querySnapshotFromJSON<
       );
     }
 
-    // Create an internal Query object from the named query in the budnle.
+    // Create an internal Query object from the named query in the bundle.
     const query = fromBundledQuery(bundleLoader.queries[0].bundledQuery!);
 
     // Construct the arrays of document data for the query.
