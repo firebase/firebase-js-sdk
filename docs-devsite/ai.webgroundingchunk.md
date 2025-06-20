@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # WebGroundingChunk interface
 A grounding chunk from the web.
 
-\*\*Important\*\*: If using Grounding with Google Search, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for \*Grounding with Google Search\*.
+Important: If using Grounding with Google Search, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Search".
 
 <b>Signature:</b>
 
