@@ -20,6 +20,10 @@
  * @public
  */
 export function isCloudWorkstation(url: string): boolean {
+  // `isCloudWorkstation` is called without protocol in certain connect*Emulator functions
+  // In HTTP request builders, it's called with the protocol.
+  // If called with protocol prefix, it's a valid URL, so we extract the hostname
+  // If called without, we assume the string is the hostname.
   const host =
     url.startsWith('http://') || url.startsWith('https://')
       ? new URL(url).hostname
