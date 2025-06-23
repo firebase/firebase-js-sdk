@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import copy from 'rollup-plugin-copy';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
 import typescript from 'typescript';
@@ -53,6 +54,14 @@ const esmBuilds = [
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     plugins: [
       ...buildPlugins,
+      copy({
+        targets: [
+          {
+            src: './typescript-not-supported.d.ts',
+            dest: 'dist/'
+          }
+        ]
+      }),
       replace({
         ...generateBuildTargetReplaceConfig('esm', 2017),
         '__RUNTIME_ENV__': ''

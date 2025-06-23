@@ -7,6 +7,10 @@
   "browser": "dist/esm/index.esm2017.js",
   "module": "dist/esm/index.esm2017.js",
   "react-native": "dist/index.cjs.js",
+  "typesVersions": {
+    ">=4.5.0": { "*": ["./dist/app-public.d.ts"] },
+    "<4.5.0": { "*": ["./dist/typescript-not-supported.d.ts"] }
+  },
   "exports": {
     ".": {
       "types": "./dist/app-public.d.ts",
@@ -49,6 +53,7 @@
   "devDependencies": {
     "@rollup/plugin-json": "6.1.0",
     "rollup": "2.79.2",
+    "rollup-plugin-copy": "3.5.0",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.36.0",
     "rollup-plugin-dts": "5.3.1",
