@@ -780,7 +780,7 @@ export function parseData(
   }
 }
 
-function parseObject(
+export function parseObject(
   obj: Dict<unknown>,
   context: ParseContextImpl
 ): { mapValue: ProtoMapValue } {
