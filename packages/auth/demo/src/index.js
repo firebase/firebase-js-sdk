@@ -1510,7 +1510,7 @@ function onFinalizeSignInWithTotpMultiFactor(event) {
 
 async function exchangeCIAMToken(token) {
   const firebaseToken = await exchangeToken(
-    regaionalAuth,
+    regionalAuth,
     (idpConfigId = 'Bar-e2e-idpconfig-002'),
     token
   );
