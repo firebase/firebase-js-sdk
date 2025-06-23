@@ -164,6 +164,7 @@ export interface CountTokensRequest {
 // @public
 export interface CountTokensResponse {
     promptTokensDetails?: ModalityTokenCount[];
+    // @deprecated (undocumented)
     totalBillableCharacters?: number;
     totalTokens: number;
 }
@@ -791,6 +792,9 @@ export abstract class Schema implements SchemaInterface {
     format?: string;
     // (undocumented)
     static integer(integerParams?: SchemaParams): IntegerSchema;
+    items?: SchemaInterface;
+    maxItems?: number;
+    minItems?: number;
     nullable: boolean;
     // (undocumented)
     static number(numberParams?: SchemaParams): NumberSchema;
@@ -833,7 +837,9 @@ export interface SchemaShared<T> {
     format?: string;
     items?: T;
     maximum?: number;
+    maxItems?: number;
     minimum?: number;
+    minItems?: number;
     nullable?: boolean;
     properties?: {
         [k: string]: T;

@@ -1,5 +1,32 @@
 # firebase
 
+## 11.9.1
+
+### Patch Changes
+
+- Updated dependencies [[`0f891d8`](https://github.com/firebase/firebase-js-sdk/commit/0f891d861bdf4e7bac8cd777f5fb32d0b7b9bf8e), [`c0617a3`](https://github.com/firebase/firebase-js-sdk/commit/c0617a341a693c2578a21b35a4f7b27b726defef)]:
+  - @firebase/storage@0.13.13
+  - @firebase/auth@1.10.7
+  - @firebase/storage-compat@0.3.23
+  - @firebase/auth-compat@0.5.27
+
+## 11.9.0
+
+### Minor Changes
+
+- [`1933324`](https://github.com/firebase/firebase-js-sdk/commit/1933324e0f3e4c8ed4d4d784f0c701fd0ec6ebc3) [#9026](https://github.com/firebase/firebase-js-sdk/pull/9026) - Add support for `minItems` and `maxItems` to `Schema`.
+
+- [`40be2db`](https://github.com/firebase/firebase-js-sdk/commit/40be2dbb884b8e1485862af8bb015e23db69ccbf) [#9047](https://github.com/firebase/firebase-js-sdk/pull/9047) - Add `title`, `maximum`, `minimum`, `propertyOrdering` to Schema builder
+
+### Patch Changes
+
+- Updated dependencies [[`1933324`](https://github.com/firebase/firebase-js-sdk/commit/1933324e0f3e4c8ed4d4d784f0c701fd0ec6ebc3), [`9964849`](https://github.com/firebase/firebase-js-sdk/commit/9964849e9540f08d02fa3825ecec32c1bfedc62d), [`40be2db`](https://github.com/firebase/firebase-js-sdk/commit/40be2dbb884b8e1485862af8bb015e23db69ccbf)]:
+  - @firebase/ai@1.4.0
+  - @firebase/app@0.13.1
+  - @firebase/firestore@4.7.17
+  - @firebase/app-compat@0.4.1
+  - @firebase/firestore-compat@0.3.52
+
 ## 11.8.1
 
 ### Patch Changes
