@@ -52,7 +52,8 @@ export async function exchangeToken(
   const authInternal = _castAuth(auth);
   const token = await getToken(authInternal, {
     parent: buildParent(auth, idpConfigId),
-    token: customToken
+    // eslint-disable-next-line camelcase
+    id_token: customToken
   });
   if (token) {
     await authInternal._updateFirebaseToken({

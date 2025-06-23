@@ -170,6 +170,13 @@
                 Action Code Settings
               </a>
             </li>
+            <li role="presentation">
+              <a href="#tab-byo-ciam-content"
+                 aria-controls="tab-byo-ciam-content"
+                 data-toggle="tab" role="tab">
+                BYO-CIAM methods
+              </a>
+            </li>
             <li role="presentation" class="visible-xs">
               <a href="#logs-section"
                  aria-controls="logs-section"
@@ -843,6 +850,16 @@
                 <button class="btn btn-block btn-primary"
                         id="action-code-settings-reset">Reset</button>
               </form>
+            </div>
+            <div class="tab-pane" id="tab-byo-ciam-content">
+              <h2>Sign in with your CIAM token</h2>
+              <input type="text" id="byo-ciam-token"
+                     class="form-control" placeholder="Enter CIAM token" />
+              <button class="btn btn-block btn-primary"
+                  id="exchange-token">
+                Exchange Token
+              </button>
+              <pre id="byo-ciam-result"></pre>
             </div>
             <div class="tab-pane" id="logs-section">
               <pre class="well logs"></pre>
