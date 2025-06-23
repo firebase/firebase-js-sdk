@@ -8,7 +8,7 @@
   "module": "dist/esm/index.esm2017.js",
   "react-native": "dist/index.cjs.js",
   "typesVersions": {
-    ">=4.5.0": { "*": ["./dist/app-public.d.ts"] },
+    ">=4.5.0": { "*": ["./dist/app/src/index.d.ts"] },
     "<4.5.0": { "*": ["./dist/typescript-not-supported.d.ts"] }
   },
   "exports": {
