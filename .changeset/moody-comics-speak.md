@@ -1,6 +1,6 @@
 ---
 '@firebase/firestore': minor
-'firebase': patch
+'firebase': minor
 ---
 
 Added support for Firestore result types to be serialized with `toJSON` and then deserialized with `fromJSON` methods on the objects.
