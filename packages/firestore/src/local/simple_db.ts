@@ -19,10 +19,14 @@ import { getGlobal, getUA, isIndexedDBAvailable } from '@firebase/util';
 
 import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug, logError, logWarn } from '../util/log';
+import { logDebug, logError } from '../util/log';
 import { Deferred } from '../util/promise';
 
-import { DatabaseDeletedListener } from './persistence';
+import {
+  ClearSiteDataDatabaseDeletedEvent,
+  DatabaseDeletedListener,
+  VersionChangeDatabaseDeletedEvent
+} from './persistence';
 import { PersistencePromise } from './persistence_promise';
 
 // References to `indexedDB` are guarded by SimpleDb.isAvailable() and getGlobal()
@@ -299,8 +303,31 @@ export class SimpleDb {
         // https://developer.mozilla.org/en-US/docs/Web/API/IDBVersionChangeRequest/setVersion
         const request = indexedDB.open(this.name, this.version);
 
+        // Store information about "Clear Site Data" being detected in the
+        // "onupgradeneeded" event and check it in the "onsuccess" event
+        // rather than throwing directly from the "onupgradeneeded" event
+        // since throwing directly from the listener results in a generic
+        // exception that cannot be distinguished from other errors.
+        const clearSiteDataEvent = {
+          event: null as ClearSiteDataDatabaseDeletedEvent | null
+        };
+
         request.onsuccess = (event: Event) => {
           const db = (event.target as IDBOpenDBRequest).result;
+
+          if (clearSiteDataEvent.event) {
+            try {
+              this.databaseDeletedListener?.(clearSiteDataEvent.event);
+            } catch (e) {
+              try {
+                db.close();
+              } finally {
+                reject(e);
+              }
+              return;
+            }
+          }
+
           resolve(db);
         };
 
@@ -353,19 +380,12 @@ export class SimpleDb {
             this.lastClosedDbVersion !== null &&
             this.lastClosedDbVersion !== event.oldVersion
           ) {
-            // This thrown error will get passed to the `onerror` callback
-            // registered above, and will then be propagated correctly.
-            throw new Error(
-              `refusing to open IndexedDB database due to potential ` +
-                `corruption of the IndexedDB database data; this corruption ` +
-                `could be caused by clicking the "clear site data" button in ` +
-                `a web browser; try reloading the web page to re-initialize ` +
-                `the IndexedDB database: ` +
-                `lastClosedDbVersion=${this.lastClosedDbVersion}, ` +
-                `event.oldVersion=${event.oldVersion}, ` +
-                `event.newVersion=${event.newVersion}, ` +
-                `db.version=${db.version}`
-            );
+            clearSiteDataEvent.event = new ClearSiteDataDatabaseDeletedEvent({
+              lastClosedVersion: this.lastClosedDbVersion,
+              eventOldVersion: event.oldVersion,
+              eventNewVersion: event.newVersion,
+              dbVersion: db.version
+            });
           }
           this.schemaConverter
             .createOrUpgrade(
@@ -399,11 +419,11 @@ export class SimpleDb {
         // Notify the listener if another tab attempted to delete the IndexedDb
         // database, such as by calling clearIndexedDbPersistence().
         if (event.newVersion === null) {
-          logWarn(
-            `Received "versionchange" event with newVersion===null; ` +
-              'notifying the registered DatabaseDeletedListener, if any'
+          this.databaseDeletedListener?.(
+            new VersionChangeDatabaseDeletedEvent({
+              eventNewVersion: event.newVersion
+            })
           );
-          this.databaseDeletedListener?.();
         }
       },
       { passive: true }

@@ -231,22 +231,47 @@ export async function setOfflineComponentProvider(
     }
   });
 
-  offlineComponentProvider.persistence.setDatabaseDeletedListener(() => {
-    logWarn('Terminating Firestore due to IndexedDb database deletion');
+  offlineComponentProvider.persistence.setDatabaseDeletedListener(event => {
+    let error: FirestoreError | null;
+
+    if (event.type === 'ClearSiteDataDatabaseDeletedEvent') {
+      const message =
+        `Terminating Firestore in response to "${event.type}" event ` +
+        `to prevent potential IndexedDB database corruption. ` +
+        `This situation could be caused by clicking the ` +
+        `"Clear Site Data" button in a web browser. ` +
+        `Try reloading the web page to re-initialize the ` +
+        `IndexedDB database.`;
+      // Throw FirestoreError rather than just Error so that the error will
+      // be treated as "non-retryable".
+      error = new FirestoreError('failed-precondition', message);
+      logWarn(message, event.data);
+    } else {
+      error = null;
+      logWarn(
+        `Terminating Firestore in response to "${event.type}" event`,
+        event.data
+      );
+    }
+
     client
       .terminate()
       .then(() => {
         logDebug(
-          'Terminating Firestore due to IndexedDb database deletion ' +
+          `Terminating Firestore in response to "${event.type}" event ` +
             'completed successfully'
         );
       })
       .catch(error => {
         logWarn(
-          'Terminating Firestore due to IndexedDb database deletion failed',
-          error
+          `Terminating Firestore in response to "${event.type}" event failed:`,
+            error
         );
       });
+
+    if (error) {
+      throw error;
+    }
   });
 
   client._offlineComponents = offlineComponentProvider;
