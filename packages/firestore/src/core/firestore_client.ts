@@ -265,7 +265,7 @@ export async function setOfflineComponentProvider(
       .catch(error => {
         logWarn(
           `Terminating Firestore in response to "${event.type}" event failed:`,
-            error
+          error
         );
       });
 
