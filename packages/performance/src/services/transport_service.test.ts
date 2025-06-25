@@ -21,7 +21,7 @@ import sinonChai from 'sinon-chai';
 import {
   transportHandler,
   setupTransportService,
-  resetTransportService
+  resetTransportService, flushQueuedEvents
 } from './transport_service';
 import { SettingsService } from './settings_service';
 
@@ -88,7 +88,7 @@ describe('Firebase Performance > transport_service', () => {
     expect(fetchStub).to.not.have.been.called;
   });
 
-  it('sends up to the maximum event limit in one request', async () => {
+  it('sends up to the maximum event limit in one request if payload is under 64 KB', async () => {
     // Arrange
     const setting = SettingsService.getInstance();
     const flTransportFullUrl =
@@ -134,6 +134,61 @@ describe('Firebase Performance > transport_service', () => {
     expect(fetchStub).to.not.have.been.called;
   });
 
+  it('sends fetch if payload is above 64 KB', async () => {
+    // Arrange
+    const setting = SettingsService.getInstance();
+    const flTransportFullUrl =
+      setting.flTransportEndpointUrl + '?key=' + setting.transportKey;
+    fetchStub.resolves(
+      new Response('{}', {
+        status: 200,
+        headers: { 'Content-type': 'application/json' }
+      })
+    );
+
+    const payload = 'a'.repeat(300);
+    // Act
+    // Generate 1020 events
+    for (let i = 0; i < 1020; i++) {
+      testTransportHandler(payload + i);
+    }
+    // Wait for first and second event dispatch to happen.
+    clock.tick(INITIAL_SEND_TIME_DELAY_MS);
+    // This is to resolve the floating promise chain in transport service.
+    await Promise.resolve().then().then().then();
+    clock.tick(DEFAULT_SEND_INTERVAL_MS);
+
+    // Assert
+    // Expects the first logRequest which contains first 1000 events.
+    const firstLogRequest = generateLogRequest('5501');
+    for (let i = 0; i < MAX_EVENT_COUNT_PER_REQUEST; i++) {
+      firstLogRequest['log_event'].push({
+        'source_extension_json_proto3': payload + i,
+        'event_time_ms': '1'
+      });
+    }
+    expect(fetchStub).calledWith(
+      flTransportFullUrl,
+      {
+        method: 'POST',
+        body: JSON.stringify(firstLogRequest),
+      }
+    );
+    // Expects the second logRequest which contains remaining 20 events;
+    const secondLogRequest = generateLogRequest('15501');
+    for (let i = 0; i < 20; i++) {
+      secondLogRequest['log_event'].push({
+        'source_extension_json_proto3':
+          payload + (MAX_EVENT_COUNT_PER_REQUEST + i),
+        'event_time_ms': '1'
+      });
+    }
+    expect(sendBeaconStub).calledWith(
+      flTransportFullUrl,
+      JSON.stringify(secondLogRequest)
+    );
+  });
+
   it('falls back to fetch if sendBeacon fails.', async () => {
     sendBeaconStub.returns(false);
     fetchStub.resolves(
@@ -145,6 +200,102 @@ describe('Firebase Performance > transport_service', () => {
     testTransportHandler('event1');
     clock.tick(INITIAL_SEND_TIME_DELAY_MS);
     expect(fetchStub).to.have.been.calledOnce;
+  });
+
+  it('flushes the queue with multiple sendBeacons in batches of 40', async () => {
+    // Arrange
+    const setting = SettingsService.getInstance();
+    const flTransportFullUrl =
+      setting.flTransportEndpointUrl + '?key=' + setting.transportKey;
+    fetchStub.resolves(
+      new Response('{}', {
+        status: 200,
+        headers: { 'Content-type': 'application/json' }
+      })
+    );
+
+    const payload = 'a'.repeat(300);
+    // Act
+    // Generate 80 events
+    for (let i = 0; i < 80; i++) {
+      testTransportHandler(payload + i);
+    }
+
+    flushQueuedEvents();
+
+    // Assert
+    const firstLogRequest = generateLogRequest('1');
+    const secondLogRequest = generateLogRequest('1');
+    for (let i = 0; i < 40; i++) {
+      firstLogRequest['log_event'].push({
+        'source_extension_json_proto3': payload + (i + 40),
+        'event_time_ms': '1'
+      });
+      secondLogRequest['log_event'].push({
+        'source_extension_json_proto3': payload + i,
+        'event_time_ms': '1'
+      });
+    }
+    expect(sendBeaconStub).calledWith(
+      flTransportFullUrl,
+      JSON.stringify(firstLogRequest)
+    );
+    expect(sendBeaconStub).calledWith(
+      flTransportFullUrl,
+      JSON.stringify(secondLogRequest)
+    );
+    expect(fetchStub).to.not.have.been.called;
+  });
+
+  it('flushes the queue with fetch for sendBeacons that failed', async () => {
+    // Arrange
+    const setting = SettingsService.getInstance();
+    const flTransportFullUrl =
+      setting.flTransportEndpointUrl + '?key=' + setting.transportKey;
+    fetchStub.resolves(
+      new Response('{}', {
+        status: 200,
+        headers: { 'Content-type': 'application/json' }
+      })
+    );
+
+    const payload = 'a'.repeat(300);
+    // Act
+    // Generate 80 events
+    for (let i = 0; i < 80; i++) {
+      testTransportHandler(payload + i);
+    }
+    sendBeaconStub.onCall(0).returns(true);
+    sendBeaconStub.onCall(1).returns(false);
+    flushQueuedEvents();
+
+
+    // Assert
+    const firstLogRequest = generateLogRequest('1');
+    const secondLogRequest = generateLogRequest('1');
+    for (let i = 40; i < 80; i++) {
+      firstLogRequest['log_event'].push({
+        'source_extension_json_proto3': payload + i,
+        'event_time_ms': '1'
+      });
+    }
+    for (let i = 0; i < 40; i++) {
+      secondLogRequest['log_event'].push({
+        'source_extension_json_proto3': payload + i,
+        'event_time_ms': '1'
+      });
+    }
+    expect(sendBeaconStub).calledWith(
+      flTransportFullUrl,
+      JSON.stringify(firstLogRequest)
+    );
+    expect(fetchStub).calledWith(
+      flTransportFullUrl,
+      {
+        method: 'POST',
+        body: JSON.stringify(secondLogRequest),
+      }
+    );
   });
 
   function generateLogRequest(requestTimeMs: string): any {
