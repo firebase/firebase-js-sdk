@@ -18,6 +18,7 @@
 import { getGlobal, getUA, isIndexedDBAvailable } from '@firebase/util';
 
 import { debugAssert } from '../util/assert';
+import { generateUniqueDebugId } from '../util/debug_uid';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
 import { Deferred } from '../util/promise';
@@ -383,6 +384,7 @@ export class SimpleDb {
           ) {
             clearSiteDataEvent.push(
               new ClearSiteDataDatabaseDeletedEvent({
+                eventId: generateUniqueDebugId(),
                 lastClosedVersion: this.lastClosedDbVersion,
                 eventOldVersion: event.oldVersion,
                 eventNewVersion: event.newVersion,
@@ -424,6 +426,7 @@ export class SimpleDb {
         if (event.newVersion === null) {
           this.databaseDeletedListener?.(
             new VersionChangeDatabaseDeletedEvent({
+              eventId: generateUniqueDebugId(),
               eventNewVersion: event.newVersion
             })
           );

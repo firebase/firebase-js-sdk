@@ -232,7 +232,7 @@ export async function setOfflineComponentProvider(
   });
 
   offlineComponentProvider.persistence.setDatabaseDeletedListener(event => {
-    let error: FirestoreError | null;
+    let error: FirestoreError | undefined;
 
     if (event.type === 'ClearSiteDataDatabaseDeletedEvent') {
       // Throw FirestoreError rather than just Error so that the error will
@@ -248,7 +248,6 @@ export async function setOfflineComponentProvider(
       );
       logWarn(error.message, event.data);
     } else {
-      error = null;
       logWarn(
         `Terminating Firestore in response to "${event.type}" event`,
         event.data
@@ -260,13 +259,15 @@ export async function setOfflineComponentProvider(
       .then(() => {
         logDebug(
           `Terminating Firestore in response to "${event.type}" event ` +
-            'completed successfully'
+            'completed successfully',
+          event.data
         );
       })
       .catch(error => {
         logWarn(
           `Terminating Firestore in response to "${event.type}" event failed:`,
-          error
+          error,
+          event.data
         );
       });
 

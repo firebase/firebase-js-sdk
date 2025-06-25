@@ -111,6 +111,8 @@ export class VersionChangeDatabaseDeletedEvent {
 
   constructor(
     readonly data: {
+      /** A unique ID for this event. */
+      eventId: string;
       /**
        * The value of the "newVersion" property of the "versionchange" event
        * that triggered this event. Its value is _always_ `null`, but is kept
@@ -132,6 +134,8 @@ export class ClearSiteDataDatabaseDeletedEvent {
 
   constructor(
     readonly data: {
+      /** A unique ID for this event. */
+      eventId: string;
       /** The IndexedDB version that was last reported by the database. */
       lastClosedVersion: number;
       /**
