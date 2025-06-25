@@ -113,8 +113,8 @@ export class VersionChangeDatabaseDeletedEvent {
     readonly data: {
       /**
        * The value of the "newVersion" property of the "versionchange" event
-       * that triggered this event. Its value is _always_ `null`, but is kept here
-       * for posterity.
+       * that triggered this event. Its value is _always_ `null`, but is kept
+       * here for posterity.
        */
       eventNewVersion: null;
     }

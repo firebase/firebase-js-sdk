@@ -304,31 +304,32 @@ export class SimpleDb {
         const request = indexedDB.open(this.name, this.version);
 
         // Store information about "Clear Site Data" being detected in the
-        // "onupgradeneeded" event and check it in the "onsuccess" event
-        // rather than throwing directly from the "onupgradeneeded" event
-        // since throwing directly from the listener results in a generic
-        // exception that cannot be distinguished from other errors.
-        const clearSiteDataEvent = {
-          event: null as ClearSiteDataDatabaseDeletedEvent | null
-        };
+        // "onupgradeneeded" event listener and handle it in the "onsuccess"
+        // event listener, as opposed to throwing directly from the
+        // "onupgradeneeded" event listener. Do this because throwing from the
+        // "onupgradeneeded" event listener results in a generic error being
+        // reported to the "onerror" event listener that cannot be distinguished
+        // from other errors.
+        const clearSiteDataEvent: ClearSiteDataDatabaseDeletedEvent[] = [];
 
         request.onsuccess = (event: Event) => {
-          const db = (event.target as IDBOpenDBRequest).result;
-
-          if (clearSiteDataEvent.event) {
+          let error: unknown;
+          if (clearSiteDataEvent[0]) {
             try {
-              this.databaseDeletedListener?.(clearSiteDataEvent.event);
+              this.databaseDeletedListener?.(clearSiteDataEvent[0]);
             } catch (e) {
-              try {
-                db.close();
-              } finally {
-                reject(e);
-              }
-              return;
+              error = e;
             }
           }
 
-          resolve(db);
+          const db = (event.target as IDBOpenDBRequest).result;
+
+          if (error) {
+            reject(error);
+            db.close();
+          } else {
+            resolve(db);
+          }
         };
 
         request.onblocked = () => {
@@ -380,12 +381,14 @@ export class SimpleDb {
             this.lastClosedDbVersion !== null &&
             this.lastClosedDbVersion !== event.oldVersion
           ) {
-            clearSiteDataEvent.event = new ClearSiteDataDatabaseDeletedEvent({
-              lastClosedVersion: this.lastClosedDbVersion,
-              eventOldVersion: event.oldVersion,
-              eventNewVersion: event.newVersion,
-              dbVersion: db.version
-            });
+            clearSiteDataEvent.push(
+              new ClearSiteDataDatabaseDeletedEvent({
+                lastClosedVersion: this.lastClosedDbVersion,
+                eventOldVersion: event.oldVersion,
+                eventNewVersion: event.newVersion,
+                dbVersion: db.version
+              })
+            );
           }
           this.schemaConverter
             .createOrUpgrade(
