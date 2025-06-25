@@ -93,6 +93,7 @@ import {
   targetIsPipelineTarget
 } from './target';
 import { VectorValue } from '../api';
+import { ListenOptions } from './event_manager';
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
@@ -573,7 +574,12 @@ function addSystemFields(
 }
 
 export function toCorePipeline(
-  p: ApiPipeline | RealtimePipeline
+  p: ApiPipeline | RealtimePipeline,
+  listenOptions?: ListenOptions
 ): CorePipeline {
-  return new CorePipeline(p.userDataReader.serializer, rewriteStages(p.stages));
+  return new CorePipeline(
+    p.userDataReader.serializer,
+    rewriteStages(p.stages),
+    listenOptions
+  );
 }

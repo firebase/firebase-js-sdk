@@ -28,12 +28,14 @@ import { JsonProtoSerializer } from '../remote/serializer';
 import { debugAssert } from '../util/assert';
 
 import { PipelineFlavor, PipelineSourceType } from './pipeline-util';
+import { ListenOptions } from './event_manager';
 
 export class CorePipeline {
   isCorePipeline = true;
   constructor(
     readonly serializer: JsonProtoSerializer,
-    readonly stages: Stage[]
+    readonly stages: Stage[],
+    readonly listenOptions?: ListenOptions
   ) {}
   getPipelineCollection(): string | undefined {
     return getPipelineCollection(this);

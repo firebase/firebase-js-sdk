@@ -45,6 +45,7 @@ export type PipelineInputOutput = MutableDocument;
 
 export interface EvaluationContext {
   serializer: JsonProtoSerializer;
+  serverTimestampBehavior?: 'estimate' | 'previous' | 'none';
 }
 
 export function runPipeline(
@@ -53,7 +54,14 @@ export function runPipeline(
 ): PipelineInputOutput[] {
   let current = input;
   for (const stage of pipeline.stages) {
-    current = evaluate({ serializer: pipeline.serializer }, stage, current);
+    current = evaluate(
+      {
+        serializer: pipeline.serializer,
+        serverTimestampBehavior: pipeline.listenOptions?.serverTimestampBehavior
+      },
+      stage,
+      current
+    );
   }
 
   return current;

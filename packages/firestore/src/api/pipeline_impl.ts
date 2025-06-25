@@ -51,7 +51,11 @@ import { ensureFirestoreConfigured, Firestore } from './database';
 import { Pipeline } from './pipeline'; // Keep this specific Pipeline import if needed alongside LitePipeline
 import { RealtimePipeline } from './realtime_pipeline';
 import { DocumentReference } from './reference';
-import { SnapshotListenOptions, Unsubscribe } from './reference_impl';
+import {
+  PipelineListenOptions,
+  SnapshotListenOptions,
+  Unsubscribe
+} from './reference_impl';
 import { RealtimePipelineSnapshot } from './snapshot';
 import { ExpUserDataWriter } from './user_data_writer';
 
@@ -215,7 +219,7 @@ export function _onRealtimePipelineSnapshot(
  */
 export function _onRealtimePipelineSnapshot(
   pipeline: RealtimePipeline,
-  options: SnapshotListenOptions,
+  options: PipelineListenOptions,
   observer: {
     next?: (snapshot: RealtimePipelineSnapshot) => void;
     error?: (error: FirestoreError) => void;
@@ -238,7 +242,7 @@ export function _onRealtimePipelineSnapshot(
  */
 export function _onRealtimePipelineSnapshot(
   pipeline: RealtimePipeline,
-  options: SnapshotListenOptions,
+  options: PipelineListenOptions,
   onNext: (snapshot: RealtimePipelineSnapshot) => void,
   onError?: (error: FirestoreError) => void,
   onComplete?: () => void
@@ -247,9 +251,10 @@ export function _onRealtimePipelineSnapshot(
   pipeline: RealtimePipeline,
   ...args: unknown[]
 ): Unsubscribe {
-  let options: SnapshotListenOptions = {
+  let options: PipelineListenOptions = {
     includeMetadataChanges: false,
-    source: 'default'
+    source: 'default',
+    serverTimestampBehavior: 'none'
   };
   let currArg = 0;
   if (typeof args[currArg] === 'object' && !isPartialObserver(args[currArg])) {
@@ -259,7 +264,8 @@ export function _onRealtimePipelineSnapshot(
 
   const internalOptions = {
     includeMetadataChanges: options.includeMetadataChanges,
-    source: options.source as ListenerDataSource
+    source: options.source as ListenerDataSource,
+    serverTimestampBehavior: options.serverTimestampBehavior
   };
 
   let userObserver: PartialObserver<RealtimePipelineSnapshot>;
@@ -277,7 +283,9 @@ export function _onRealtimePipelineSnapshot(
   const observer = {
     next: (snapshot: ViewSnapshot) => {
       if (userObserver.next) {
-        userObserver.next(new RealtimePipelineSnapshot(pipeline, snapshot));
+        userObserver.next(
+          new RealtimePipelineSnapshot(pipeline, snapshot, internalOptions)
+        );
       }
     },
     error: userObserver.error,
@@ -286,7 +294,7 @@ export function _onRealtimePipelineSnapshot(
 
   return firestoreClientListen(
     client,
-    toCorePipeline(pipeline),
+    toCorePipeline(pipeline, internalOptions),
     internalOptions, // Pass parsed options here
     observer
   );

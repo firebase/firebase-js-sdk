@@ -58,6 +58,12 @@ import { objectSize } from '../util/obj';
 import { isNegativeZero } from '../util/types';
 
 import { EvaluationContext, PipelineInputOutput } from './pipeline_run';
+import {
+  getLocalWriteTime,
+  getPreviousValue,
+  isServerTimestamp
+} from '../model/server_timestamps';
+import { SnapshotVersion } from './snapshot_version';
 
 export type EvaluateResultType =
   | 'ERROR'
@@ -312,7 +318,34 @@ export class CoreField implements EvaluableExpr {
     }
     // Return 'UNSET' if the field doesn't exist, otherwise the Value.
     const result = input.data.field(this.expr.fieldPath);
+
+    function getServerTimestampValue(
+      context: EvaluationContext,
+      value: Value
+    ): Value {
+      if (context.serverTimestampBehavior === 'estimate') {
+        return {
+          timestampValue: toVersion(
+            context.serializer,
+            SnapshotVersion.fromTimestamp(getLocalWriteTime(value))
+          )
+        };
+      } else if (context.serverTimestampBehavior === 'previous') {
+        const previousValue = getPreviousValue(value);
+        if (previousValue) {
+          return previousValue;
+        }
+      }
+      return { nullValue: 'NULL_VALUE' };
+    }
+
     if (!!result) {
+      if (isServerTimestamp(result)) {
+        return EvaluateResult.newValue(
+          getServerTimestampValue(context, result)
+        );
+      }
+
       return EvaluateResult.newValue(result);
     } else {
       return EvaluateResult.newUnset();
