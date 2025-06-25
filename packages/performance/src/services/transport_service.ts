@@ -142,13 +142,16 @@ function postToFlEndpoint(body: string): Promise<void | Response> {
     SettingsService.getInstance().getFlTransportFullUrl();
   const size = TEXT_ENCODER.encode(body).length;
 
-  if (size <= MAX_SEND_BEACON_PAYLOAD_SIZE && navigator.sendBeacon &&
-    navigator.sendBeacon(flTransportFullUrl, body)) {
+  if (
+    size <= MAX_SEND_BEACON_PAYLOAD_SIZE &&
+    navigator.sendBeacon &&
+    navigator.sendBeacon(flTransportFullUrl, body)
+  ) {
     return Promise.resolve();
   } else {
     return fetch(flTransportFullUrl, {
       method: 'POST',
-      body,
+      body
     });
   }
 }
@@ -170,7 +173,7 @@ export function transportHandler(
     const message = serializer(...args);
     addToQueue({
       message,
-      eventTime: Date.now(),
+      eventTime: Date.now()
     });
   };
 }
@@ -178,7 +181,7 @@ export function transportHandler(
 /**
  * Force flush the queued events. Useful at page unload time to ensure all events are uploaded.
  * Flush will attempt to use sendBeacon to send events async and defaults back to fetch as soon as a
- * sendBeacon fails. Firefox 
+ * sendBeacon fails. Firefox
  */
 export function flushQueuedEvents(): void {
   const flTransportFullUrl =
@@ -189,7 +192,10 @@ export function flushQueuedEvents(): void {
     const staged = queue.splice(-MAX_FLUSH_SIZE);
     const body = buildPayload(staged);
 
-    if (navigator.sendBeacon && navigator.sendBeacon(flTransportFullUrl, body)) {
+    if (
+      navigator.sendBeacon &&
+      navigator.sendBeacon(flTransportFullUrl, body)
+    ) {
       continue;
     } else {
       queue = [...queue, ...staged];
@@ -200,7 +206,7 @@ export function flushQueuedEvents(): void {
     const body = buildPayload(queue);
     fetch(flTransportFullUrl, {
       method: 'POST',
-      body,
+      body
     }).catch(() => {
       consoleLogger.info(`Failed flushing queued events.`);
     });

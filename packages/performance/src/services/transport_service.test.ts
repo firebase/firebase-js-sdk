@@ -21,7 +21,8 @@ import sinonChai from 'sinon-chai';
 import {
   transportHandler,
   setupTransportService,
-  resetTransportService, flushQueuedEvents
+  resetTransportService,
+  flushQueuedEvents
 } from './transport_service';
 import { SettingsService } from './settings_service';
 
@@ -167,13 +168,10 @@ describe('Firebase Performance > transport_service', () => {
         'event_time_ms': '1'
       });
     }
-    expect(fetchStub).calledWith(
-      flTransportFullUrl,
-      {
-        method: 'POST',
-        body: JSON.stringify(firstLogRequest),
-      }
-    );
+    expect(fetchStub).calledWith(flTransportFullUrl, {
+      method: 'POST',
+      body: JSON.stringify(firstLogRequest)
+    });
     // Expects the second logRequest which contains remaining 20 events;
     const secondLogRequest = generateLogRequest('15501');
     for (let i = 0; i < 20; i++) {
@@ -269,7 +267,6 @@ describe('Firebase Performance > transport_service', () => {
     sendBeaconStub.onCall(1).returns(false);
     flushQueuedEvents();
 
-
     // Assert
     const firstLogRequest = generateLogRequest('1');
     const secondLogRequest = generateLogRequest('1');
@@ -289,13 +286,10 @@ describe('Firebase Performance > transport_service', () => {
       flTransportFullUrl,
       JSON.stringify(firstLogRequest)
     );
-    expect(fetchStub).calledWith(
-      flTransportFullUrl,
-      {
-        method: 'POST',
-        body: JSON.stringify(secondLogRequest),
-      }
-    );
+    expect(fetchStub).calledWith(flTransportFullUrl, {
+      method: 'POST',
+      body: JSON.stringify(secondLogRequest)
+    });
   });
 
   function generateLogRequest(requestTimeMs: string): any {
