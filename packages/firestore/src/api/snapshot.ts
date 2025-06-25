@@ -17,6 +17,7 @@
 
 import { BundleLoader } from '../core/bundle_impl';
 import { createBundleReaderSync } from '../core/firestore_client';
+import { ListenOptions } from '../core/event_manager';
 import { CorePipeline } from '../core/pipeline';
 import { isPipeline } from '../core/pipeline-util';
 import { newPipelineComparator } from '../core/pipeline_run';
@@ -1175,7 +1176,8 @@ export function resultChangesFromSnapshot(
         new SnapshotMetadata(
           querySnapshot._snapshot.mutatedKeys.has(change.doc.key),
           querySnapshot._snapshot.fromCache
-        )
+        ),
+        querySnapshot._listenOptions
       );
       lastDoc = change.doc;
       return {
@@ -1205,7 +1207,8 @@ export function resultChangesFromSnapshot(
           new SnapshotMetadata(
             querySnapshot._snapshot.mutatedKeys.has(change.doc.key),
             querySnapshot._snapshot.fromCache
-          )
+          ),
+          querySnapshot._listenOptions
         );
         let oldIndex = -1;
         let newIndex = -1;
@@ -1245,7 +1248,11 @@ export class RealtimePipelineSnapshot {
   private _cachedChangesIncludeMetadataChanges?: boolean;
 
   /** @hideconstructor */
-  constructor(pipeline: RealtimePipeline, readonly _snapshot: ViewSnapshot) {
+  constructor(
+    pipeline: RealtimePipeline,
+    readonly _snapshot: ViewSnapshot,
+    readonly _listenOptions: ListenOptions
+  ) {
     this.metadata = new SnapshotMetadata(
       _snapshot.hasPendingWrites,
       _snapshot.fromCache
@@ -1257,7 +1264,7 @@ export class RealtimePipelineSnapshot {
   get results(): PipelineResult[] {
     const result: PipelineResult[] = [];
     this._snapshot.docs.forEach(doc =>
-      result.push(toPipelineResult(doc, this.pipeline))
+      result.push(toPipelineResult(doc, this.pipeline, this._listenOptions))
     );
     return result;
   }

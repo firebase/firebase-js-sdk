@@ -408,6 +408,9 @@ export interface ListenOptions {
 
   /** Set the source events raised from. */
   readonly source?: ListenerDataSource;
+
+  /** Realtime Pipeline Only: Set server timestamp behavior. */
+  readonly serverTimestampBehavior?: 'estimate' | 'previous' | 'none';
 }
 
 /**
