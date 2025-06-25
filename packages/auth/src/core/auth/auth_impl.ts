@@ -405,7 +405,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   private async initializeFirebaseToken(): Promise<void> {
-    this.firebaseToken = await this.persistenceManager?.getFirebaseToken() ?? null;
+    this.firebaseToken =
+      (await this.persistenceManager?.getFirebaseToken()) ?? null;
   }
 
   useDeviceLanguage(): void {
