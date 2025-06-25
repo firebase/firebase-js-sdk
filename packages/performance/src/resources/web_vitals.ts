@@ -15,6 +15,19 @@
  * limitations under the License.
  */
 
+<<<<<<<< HEAD:e2e/jest.config.ts
+import type { Config } from 'jest';
+
+const config: Config = {
+  verbose: true,
+  testEnvironment: './fix-jsdom-environment.ts',
+  globals: {
+    FIREBASE_APPCHECK_DEBUG_TOKEN: process.env.APP_CHECK_DEBUG_TOKEN
+  }
+};
+
+export default config;
+========
 export interface CoreVitalMetric {
   value: number;
   elementAttribution?: string;
@@ -25,3 +38,4 @@ export interface WebVitalMetrics {
   inp?: CoreVitalMetric;
   lcp?: CoreVitalMetric;
 }
+>>>>>>>> 86155b3c8f3974f8d777232625108c14f924e035:packages/performance/src/resources/web_vitals.ts
