@@ -17,6 +17,7 @@
 
 import { getAccountInfo } from '../../api/account_management/account';
 import { ApiKey, AppName, AuthInternal } from '../../model/auth';
+import { FirebaseToken } from '../../model/public_types';
 import { UserInternal } from '../../model/user';
 import { PersistedBlob, PersistenceInternal } from '../persistence';
 import { UserImpl } from '../user/user_impl';
@@ -27,7 +28,8 @@ export const enum KeyName {
   AUTH_USER = 'authUser',
   AUTH_EVENT = 'authEvent',
   REDIRECT_USER = 'redirectUser',
-  PERSISTENCE_USER = 'persistence'
+  PERSISTENCE_USER = 'persistence',
+  PERSISTENCE_TOKEN = 'persistence-token'
 }
 export const enum Namespace {
   PERSISTENCE = 'firebase'
@@ -44,6 +46,7 @@ export function _persistenceKeyName(
 export class PersistenceUserManager {
   private readonly fullUserKey: string;
   private readonly fullPersistenceKey: string;
+  private readonly firebaseTokenPersistenceKey: string;
   private readonly boundEventHandler: () => void;
 
   private constructor(
@@ -58,12 +61,43 @@ export class PersistenceUserManager {
       config.apiKey,
       name
     );
+    this.firebaseTokenPersistenceKey = _persistenceKeyName(
+      KeyName.PERSISTENCE_TOKEN,
+      config.apiKey,
+      name
+    );
     this.boundEventHandler = auth._onStorageEvent.bind(auth);
     this.persistence._addListener(this.fullUserKey, this.boundEventHandler);
   }
 
   setCurrentUser(user: UserInternal): Promise<void> {
     return this.persistence._set(this.fullUserKey, user.toJSON());
+  }
+
+  setFirebaseToken(firebaseToken: FirebaseToken): Promise<void> {
+    return this.persistence._set(this.firebaseTokenPersistenceKey, {
+      token: firebaseToken.token,
+      expirationTime: firebaseToken.expirationTime
+    });
+  }
+
+  async getFirebaseToken(): Promise<FirebaseToken | null> {
+    const blob = await this.persistence._get<PersistedBlob>(
+      this.firebaseTokenPersistenceKey
+    );
+    if (!blob) {
+      return null;
+    }
+    const token = blob.token as string;
+    const expirationTime = blob.expirationTime as number;
+    return {
+      token,
+      expirationTime
+    };
+  }
+
+  removeFirebaseToken(): Promise<void> {
+    return this.persistence._remove(this.firebaseTokenPersistenceKey);
   }
 
   async getCurrentUser(): Promise<UserInternal | null> {

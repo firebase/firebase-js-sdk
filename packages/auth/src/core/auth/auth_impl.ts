@@ -195,6 +195,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       }
 
       await this.initializeCurrentUser(popupRedirectResolver);
+      await this.initializeFirebaseToken();
 
       this.lastNotifiedUid = this.currentUser?.uid || null;
 
@@ -403,6 +404,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     return this.directlySetCurrentUser(user);
   }
 
+  private async initializeFirebaseToken(): Promise<void> {
+    this.firebaseToken = await this.persistenceManager?.getFirebaseToken() ?? null;
+  }
+
   useDeviceLanguage(): void {
     this.languageCode = _getUserLanguage();
   }
@@ -461,6 +466,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     firebaseToken: FirebaseToken | null
   ): Promise<void> {
     this.firebaseToken = firebaseToken;
+    if (firebaseToken) {
+      await this.assertedPersistence.setFirebaseToken(firebaseToken);
+    } else {
+      await this.assertedPersistence.removeFirebaseToken();
+    }
   }
 
   async signOut(): Promise<void> {
