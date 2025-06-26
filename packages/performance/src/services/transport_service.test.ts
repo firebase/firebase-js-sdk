@@ -96,7 +96,8 @@ describe('Firebase Performance > transport_service', () => {
       setting.flTransportEndpointUrl + '?key=' + setting.transportKey;
 
     // Act
-    // Generate 1020 events, which should be dispatched in two batches (1000 events and 20 events).
+    // Generate 1020 events with small payloads, which should be dispatched in two batches
+    // (1000 events and 20 events).
     for (let i = 0; i < 1020; i++) {
       testTransportHandler('event' + i);
     }
@@ -147,9 +148,9 @@ describe('Firebase Performance > transport_service', () => {
       })
     );
 
-    const payload = 'a'.repeat(300);
     // Act
-    // Generate 1020 events
+    // Generate 1020 events with a large payload. The total size of the payload will be > 65 KB
+    const payload = 'a'.repeat(300);
     for (let i = 0; i < 1020; i++) {
       testTransportHandler(payload + i);
     }
