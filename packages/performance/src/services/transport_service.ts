@@ -26,9 +26,6 @@ const DEFAULT_REMAINING_TRIES = 3;
 
 // Most browsers have a max payload of 64KB for sendbeacon/keep alive payload.
 const MAX_SEND_BEACON_PAYLOAD_SIZE = 65536;
-// The max number of events to send during a flush. This number is kept low to since Chrome has a
-// shared payload limit for all sendBeacon calls in the same nav context.
-const MAX_FLUSH_SIZE = 40;
 
 const TEXT_ENCODER = new TextEncoder();
 
@@ -189,7 +186,7 @@ export function flushQueuedEvents(): void {
 
   while (queue.length > 0) {
     // Send the last events first to prioritize page load traces
-    const staged = queue.splice(-MAX_FLUSH_SIZE);
+    const staged = queue.splice(-SettingsService.getInstance().logMaxFlushSize);
     const body = buildPayload(staged);
 
     if (
