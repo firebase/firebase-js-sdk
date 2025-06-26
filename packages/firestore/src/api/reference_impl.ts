@@ -71,7 +71,7 @@ import {
   QuerySnapshot,
   SnapshotMetadata
 } from './snapshot';
-import {ExpUserDataWriter} from "./user_data_writer";
+import { ExpUserDataWriter } from './user_data_writer';
 
 /**
  * An options object that can be passed to {@link (onSnapshot:1)} and {@link
