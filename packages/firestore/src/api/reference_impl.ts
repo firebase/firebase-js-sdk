@@ -58,11 +58,9 @@ import {
   parseUpdateData,
   parseUpdateVarargs
 } from '../lite-api/user_data_reader';
-import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 import { DocumentKey } from '../model/document_key';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { debugAssert } from '../util/assert';
-import { ByteString } from '../util/byte_string';
 import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
@@ -73,6 +71,7 @@ import {
   QuerySnapshot,
   SnapshotMetadata
 } from './snapshot';
+import {ExpUserDataWriter} from "./user_data_writer";
 
 /**
  * An options object that can be passed to {@link (onSnapshot:1)} and {@link
