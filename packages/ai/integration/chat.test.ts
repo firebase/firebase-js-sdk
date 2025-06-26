@@ -76,56 +76,85 @@ describe('Chat Session', () => {
           'What is the capital of France?'
         );
         const response1 = result1.response;
-        expect(response1.text().trim().toLowerCase()).to.include('paris');
+        const result2 = await chat.sendMessage('And what about Italy?');
+        const response2 = result2.response;
+        const history = await chat.getHistory();
 
-        let history = await chat.getHistory();
-        expect(history.length).to.equal(2);
+        expect(response1.text().trim().toLowerCase()).to.include('paris');
+        expect(response1.usageMetadata).to.not.be.null;
+        expect(response2.text().trim().toLowerCase()).to.include('rome');
+        expect(response2.usageMetadata).to.not.be.null;
+        expect(history.length).to.equal(4);
         expect(history[0].role).to.equal('user');
         expect(history[0].parts[0].text).to.equal(
           'What is the capital of France?'
         );
         expect(history[1].role).to.equal('model');
         expect(history[1].parts[0].text?.toLowerCase()).to.include('paris');
-
-        expect(response1.usageMetadata).to.not.be.null;
-        // Token counts can vary slightly in chat context
-        expect(response1.usageMetadata!.promptTokenCount).to.be.closeTo(
-          15, // "What is the capital of France?" + system instruction
-          TOKEN_COUNT_DELTA + 2 // More variance for chat context
-        );
-        expect(response1.usageMetadata!.candidatesTokenCount).to.be.closeTo(
-          8, // "Paris"
-          TOKEN_COUNT_DELTA
-        );
-        expect(response1.usageMetadata!.totalTokenCount).to.be.closeTo(
-          23, // "What is the capital of France?" + system instruction + "Paris"
-          TOKEN_COUNT_DELTA + 3 // More variance for chat context
-        );
-
-        const result2 = await chat.sendMessage('And what about Italy?');
-        const response2 = result2.response;
-        expect(response2.text().trim().toLowerCase()).to.include('rome');
-
-        history = await chat.getHistory();
-        expect(history.length).to.equal(4);
         expect(history[2].role).to.equal('user');
         expect(history[2].parts[0].text).to.equal('And what about Italy?');
         expect(history[3].role).to.equal('model');
         expect(history[3].parts[0].text?.toLowerCase()).to.include('rome');
 
-        expect(response2.usageMetadata).to.not.be.null;
-        expect(response2.usageMetadata!.promptTokenCount).to.be.closeTo(
-          28, // History + "And what about Italy?" + system instruction
-          TOKEN_COUNT_DELTA + 5 // More variance for chat context with history
-        );
-        expect(response2.usageMetadata!.candidatesTokenCount).to.be.closeTo(
-          8,
-          TOKEN_COUNT_DELTA
-        );
-        expect(response2.usageMetadata!.totalTokenCount).to.be.closeTo(
-          36,
-          TOKEN_COUNT_DELTA
-        );
+        if (model.model.includes('gemini-2.5-flash')) {
+          // Token counts can vary slightly in chat context
+          expect(response1.usageMetadata!.promptTokenCount).to.be.closeTo(
+            17, // "What is the capital of France?" + system instruction
+            TOKEN_COUNT_DELTA + 2 // More variance for chat context
+          );
+          expect(response1.usageMetadata!.candidatesTokenCount).to.be.closeTo(
+            8, // "Paris"
+            TOKEN_COUNT_DELTA
+          );
+          expect(response1.usageMetadata!.totalTokenCount).to.be.closeTo(
+            49, // "What is the capital of France?" + system instruction + "Paris"
+            TOKEN_COUNT_DELTA + 3 // More variance for chat context
+          );
+          expect(response1.usageMetadata!.totalTokenCount).to.be.closeTo(
+            49, // "What is the capital of France?" + system instruction + "Paris"
+            TOKEN_COUNT_DELTA + 3 // More variance for chat context
+          );
+
+          expect(response2.usageMetadata!.promptTokenCount).to.be.closeTo(
+            32, // History + "And what about Italy?" + system instruction
+            TOKEN_COUNT_DELTA + 5 // More variance for chat context with history
+          );
+          expect(response2.usageMetadata!.candidatesTokenCount).to.be.closeTo(
+            8,
+            TOKEN_COUNT_DELTA
+          );
+          expect(response2.usageMetadata!.totalTokenCount).to.be.closeTo(
+            68,
+            TOKEN_COUNT_DELTA + 2
+          );
+        } else if (model.model.includes('gemini-2.0-flash')) {
+          expect(response1.usageMetadata).to.not.be.null;
+          // Token counts can vary slightly in chat context
+          expect(response1.usageMetadata!.promptTokenCount).to.be.closeTo(
+            15, // "What is the capital of France?" + system instruction
+            TOKEN_COUNT_DELTA + 2 // More variance for chat context
+          );
+          expect(response1.usageMetadata!.candidatesTokenCount).to.be.closeTo(
+            8, // "Paris"
+            TOKEN_COUNT_DELTA
+          );
+          expect(response1.usageMetadata!.totalTokenCount).to.be.closeTo(
+            23, // "What is the capital of France?" + system instruction + "Paris"
+            TOKEN_COUNT_DELTA + 3 // More variance for chat context
+          );
+          expect(response2.usageMetadata!.promptTokenCount).to.be.closeTo(
+            28, // History + "And what about Italy?" + system instruction
+            TOKEN_COUNT_DELTA + 5 // More variance for chat context with history
+          );
+          expect(response2.usageMetadata!.candidatesTokenCount).to.be.closeTo(
+            8,
+            TOKEN_COUNT_DELTA
+          );
+          expect(response2.usageMetadata!.totalTokenCount).to.be.closeTo(
+            36,
+            TOKEN_COUNT_DELTA
+          );
+        }
       });
     });
   });
