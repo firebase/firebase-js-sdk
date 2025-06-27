@@ -22,7 +22,7 @@ import {
 } from '@firebase/firestore-types';
 import { Compat, deepEqual, getModularInstance } from '@firebase/util';
 
-import { ParseContext } from '../api/parse_context';
+import { ContextSettings, ParseContext } from '../api/parse_context';
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
 import { FieldMask } from '../model/field_mask';
@@ -67,7 +67,8 @@ import {
   JsonProtoSerializer,
   toBytes,
   toResourceName,
-  toTimestamp
+  toTimestamp,
+  isProtoValueSerializable
 } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
 import { ByteString } from '../util/byte_string';
@@ -198,33 +199,6 @@ function isWrite(dataSource: UserDataSource): boolean {
         dataSource
       });
   }
-}
-
-/** Contains the settings that are mutated as we parse user data. */
-interface ContextSettings {
-  /** Indicates what kind of API method this data came from. */
-  readonly dataSource: UserDataSource;
-  /** The name of the method the user called to create the ParseContext. */
-  readonly methodName: string;
-  /** The document the user is attempting to modify, if that applies. */
-  readonly targetDoc?: DocumentKey;
-  /**
-   * A path within the object being parsed. This could be an empty path (in
-   * which case the context represents the root of the data being parsed), or a
-   * nonempty path (indicating the context represents a nested location within
-   * the data).
-   */
-  readonly path?: InternalFieldPath;
-  /**
-   * Whether or not this context corresponds to an element of an array.
-   * If not set, elements are treated as if they were outside of arrays.
-   */
-  readonly arrayElement?: boolean;
-  /**
-   * Whether or not a converter was specified in this context. If true, error
-   * messages will reference the converter when invalid data is provided.
-   */
-  readonly hasConverter?: boolean;
 }
 
 /** A "context" object passed around while parsing user data. */
@@ -750,7 +724,7 @@ export function parseQueryValue(
  */
 export function parseData(
   input: unknown,
-  context: ParseContextImpl
+  context: ParseContext
 ): ProtoValue | null {
   // Unwrap the API type from the Compat SDK. This will return the API type
   // from firestore-exp.
@@ -801,7 +775,7 @@ export function parseData(
 
 function parseObject(
   obj: Dict<unknown>,
-  context: ParseContextImpl
+  context: ParseContext
 ): { mapValue: ProtoMapValue } {
   const fields: Dict<ProtoValue> = {};
 
@@ -823,7 +797,7 @@ function parseObject(
   return { mapValue: { fields } };
 }
 
-function parseArray(array: unknown[], context: ParseContextImpl): ProtoValue {
+function parseArray(array: unknown[], context: ParseContext): ProtoValue {
   const values: ProtoValue[] = [];
   let entryIndex = 0;
   for (const entry of array) {
@@ -848,7 +822,7 @@ function parseArray(array: unknown[], context: ParseContextImpl): ProtoValue {
  */
 function parseSentinelFieldValue(
   value: FieldValue,
-  context: ParseContextImpl
+  context: ParseContext
 ): void {
   // Sentinels are only supported with writes, and not within arrays.
   if (!isWrite(context.dataSource)) {
@@ -873,9 +847,9 @@ function parseSentinelFieldValue(
  *
  * @returns The parsed value
  */
-function parseScalarValue(
+export function parseScalarValue(
   value: unknown,
-  context: ParseContextImpl
+  context: ParseContext
 ): ProtoValue | null {
   value = getModularInstance(value);
 
@@ -944,6 +918,8 @@ function parseScalarValue(
     return parseMinKey();
   } else if (value instanceof MaxKey) {
     return parseMaxKey();
+  } else if (isProtoValueSerializable(value)) {
+    return value._toProto(context.serializer);
   } else {
     throw context.createError(
       `Unsupported field value: ${valueDescription(value)}`
@@ -955,9 +931,10 @@ function parseScalarValue(
  * Creates a new VectorValue proto value (using the internal format).
  */
 export function parseVectorValue(
-  value: VectorValue,
-  context: ParseContextImpl
-): ProtoValue {
+  value: VectorValue | number[],
+  context: ParseContext
+): { mapValue: ProtoMapValue } {
+  const values = value instanceof VectorValue ? value.toArray() : value;
   const mapValue: ProtoMapValue = {
     fields: {
       [TYPE_KEY]: {
@@ -965,7 +942,7 @@ export function parseVectorValue(
       },
       [VECTOR_MAP_VECTORS_KEY]: {
         arrayValue: {
-          values: value.toArray().map(value => {
+          values: values.map(value => {
             if (typeof value !== 'number') {
               throw context.createError(
                 'VectorValues must only contain numeric values.'
@@ -1090,7 +1067,7 @@ export function parseBsonBinaryData(
  * GeoPoints, etc. are not considered to look like JSON objects since they map
  * to specific FieldValue types other than ObjectValue.
  */
-function looksLikeJsonObject(input: unknown): boolean {
+export function looksLikeJsonObject(input: unknown): boolean {
   return (
     typeof input === 'object' &&
     input !== null &&
@@ -1108,13 +1085,14 @@ function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof RegexValue) &&
     !(input instanceof BsonObjectId) &&
     !(input instanceof BsonTimestamp) &&
-    !(input instanceof BsonBinaryData)
+    !(input instanceof BsonBinaryData) &&
+    !isProtoValueSerializable(input)
   );
 }
 
 function validatePlainObject(
   message: string,
-  context: ParseContextImpl,
+  context: ParseContext,
   input: unknown
 ): asserts input is Dict<unknown> {
   if (!looksLikeJsonObject(input) || !isPlainObject(input)) {

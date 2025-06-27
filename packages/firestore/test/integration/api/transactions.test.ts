@@ -33,7 +33,7 @@ import {
   runTransaction,
   setDoc
 } from '../util/firebase_export';
-import { apiDescribe, withTestDb } from '../util/helpers';
+import { apiDescribe, withTestCollection, withTestDb } from '../util/helpers';
 
 apiDescribe('Database transactions', persistence => {
   type TransactionStage = (
