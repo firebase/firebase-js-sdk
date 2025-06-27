@@ -72,6 +72,7 @@ import {
   SnapshotMetadata
 } from './snapshot';
 import { ExpUserDataWriter } from './user_data_writer';
+import { CorePipeline } from '../core/pipeline';
 
 /**
  * An options object that can be passed to {@link (onSnapshot:1)} and {@link
@@ -808,9 +809,9 @@ export function onPipelineSnapshot(
   };
 
   if (isPartialObserver(args[currArg])) {
-    const userObserver = args[currArg] as PartialObserver<
-      QuerySnapshot<AppModelType, DbModelType>
-    >;
+    const userObserver = args[
+      currArg
+    ] as PartialObserver<RealtimePipelineSnapshot>;
     args[currArg] = userObserver.next?.bind(userObserver);
     args[currArg + 1] = userObserver.error?.bind(userObserver);
     args[currArg + 2] = userObserver.complete?.bind(userObserver);
@@ -818,7 +819,7 @@ export function onPipelineSnapshot(
 
   let observer: PartialObserver<ViewSnapshot>;
   let firestore: Firestore;
-  let internalQuery: RealtimePipeline;
+  let internalQuery: CorePipeline;
 
   // RealtimePipeline
   firestore = cast(reference._db, Firestore);
