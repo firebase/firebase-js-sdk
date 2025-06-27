@@ -38,6 +38,7 @@ import {
   initializeFirestore,
   terminate
 } from '../../src/lite-api/database';
+import { Decimal128Value } from '../../src/lite-api/decimal128_value';
 import { FieldPath } from '../../src/lite-api/field_path';
 import { FieldValue } from '../../src/lite-api/field_value';
 import {
@@ -2976,6 +2977,7 @@ describe.skip('BSON types', () => {
       const ref = await addDoc(coll, {
         objectId: new BsonObjectId('507f191e810c19729de860ea'),
         int32: new Int32Value(1),
+        decimal128: new Decimal128Value('1.2e3'),
         min: MinKey.instance(),
         max: MaxKey.instance(),
         regex: new RegexValue('^foo', 'i')
@@ -2998,6 +3000,8 @@ describe.skip('BSON types', () => {
           .isEqual(new BsonObjectId('507f191e810c19729de860ea'))
       ).to.be.true;
       expect(snap1.get('int32').isEqual(new Int32Value(2))).to.be.true;
+      expect(snap1.get('decimal128').isEqual(new Decimal128Value('1.2e3'))).to
+        .be.true;
       expect(snap1.get('min') === MinKey.instance()).to.be.true;
       expect(snap1.get('max') === MaxKey.instance()).to.be.true;
       expect(

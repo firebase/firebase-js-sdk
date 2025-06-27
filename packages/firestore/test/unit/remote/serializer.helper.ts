@@ -24,6 +24,7 @@ import {
   BsonObjectId,
   BsonTimestamp,
   Bytes,
+  Decimal128Value,
   DocumentReference,
   GeoPoint,
   increment,
@@ -580,7 +581,8 @@ export function serializerTest(
           MinKey.instance(),
           MaxKey.instance(),
           new RegexValue('a', 'b'),
-          new Int32Value(1)
+          new Int32Value(1),
+          new Decimal128Value('1.2e3')
         ];
 
         for (const example of examples) {

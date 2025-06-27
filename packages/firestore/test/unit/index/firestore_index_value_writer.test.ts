@@ -21,6 +21,7 @@ import { IndexByteEncoder } from '../../../src/index/index_byte_encoder';
 import { BsonBinaryData } from '../../../src/lite-api/bson_binary_data';
 import { BsonObjectId } from '../../../src/lite-api/bson_object_Id';
 import { BsonTimestamp } from '../../../src/lite-api/bson_timestamp';
+import { Decimal128Value } from '../../../src/lite-api/decimal128_value';
 import { Int32Value } from '../../../src/lite-api/int32_value';
 import { RegexValue } from '../../../src/lite-api/regex_value';
 import { Timestamp } from '../../../src/lite-api/timestamp';
@@ -31,7 +32,8 @@ import {
   parseMinKey,
   parseBsonObjectId,
   parseRegexValue,
-  parseBsonTimestamp
+  parseBsonTimestamp,
+  parseDecimal128Value
 } from '../../../src/lite-api/user_data_reader';
 import { IndexKind } from '../../../src/model/field_index';
 import type { Value } from '../../../src/protos/firestore_proto_api';
@@ -552,6 +554,108 @@ describe('Firestore Index Value Writer', () => {
       expect(
         compareIndexEncodedValues(value4, value3, IndexKind.ASCENDING)
       ).to.equal(1);
+    });
+
+    it('can compare BSON Decimal128', () => {
+      const value1 = {
+        mapValue: {
+          fields: {
+            '__decimal128__': { stringValue: '-1.2e3' }
+          }
+        }
+      };
+      const value2 = {
+        mapValue: {
+          fields: {
+            '__decimal128__': { stringValue: '1.2e3' }
+          }
+        }
+      };
+      const value3 = parseDecimal128Value(new Decimal128Value('-1.2e3'));
+      const value4 = parseDecimal128Value(new Decimal128Value('1.2e3'));
+
+      expect(
+        compareIndexEncodedValues(value1, value2, IndexKind.ASCENDING)
+      ).to.equal(-1);
+      expect(
+        compareIndexEncodedValues(value2, value1, IndexKind.ASCENDING)
+      ).to.equal(1);
+      expect(
+        compareIndexEncodedValues(value1, value1, IndexKind.ASCENDING)
+      ).to.equal(0);
+
+      expect(
+        compareIndexEncodedValues(value3, value2, IndexKind.ASCENDING)
+      ).to.equal(-1);
+      expect(
+        compareIndexEncodedValues(value2, value3, IndexKind.ASCENDING)
+      ).to.equal(1);
+      expect(
+        compareIndexEncodedValues(value3, value1, IndexKind.ASCENDING)
+      ).to.equal(0);
+
+      expect(
+        compareIndexEncodedValues(value4, value1, IndexKind.ASCENDING)
+      ).to.equal(1);
+      expect(
+        compareIndexEncodedValues(value4, value2, IndexKind.ASCENDING)
+      ).to.equal(0);
+      expect(
+        compareIndexEncodedValues(value4, value3, IndexKind.ASCENDING)
+      ).to.equal(1);
+    });
+
+    it('can compare BSON Decimal128 special cases', () => {
+      const value1 = {
+        mapValue: {
+          fields: {
+            '__decimal128__': { stringValue: 'NaN' }
+          }
+        }
+      };
+      const value2 = {
+        mapValue: {
+          fields: {
+            '__decimal128__': { stringValue: '-Infinity' }
+          }
+        }
+      };
+      const value3 = parseDecimal128Value(new Decimal128Value('NaN'));
+      const value4 = parseDecimal128Value(new Decimal128Value('Infinity'));
+
+      // order should be: NaNs are equal, and less than -Infinity
+      expect(
+        compareIndexEncodedValues(value1, value2, IndexKind.ASCENDING)
+      ).to.equal(-1);
+      expect(
+        compareIndexEncodedValues(value2, value1, IndexKind.ASCENDING)
+      ).to.equal(1);
+      expect(
+        compareIndexEncodedValues(value1, value3, IndexKind.ASCENDING)
+      ).to.equal(0);
+      expect(
+        compareIndexEncodedValues(value1, value4, IndexKind.ASCENDING)
+      ).to.equal(-1);
+
+      expect(
+        compareIndexEncodedValues(value2, value2, IndexKind.ASCENDING)
+      ).to.equal(0);
+      expect(
+        compareIndexEncodedValues(value2, value3, IndexKind.ASCENDING)
+      ).to.equal(1);
+      expect(
+        compareIndexEncodedValues(value2, value4, IndexKind.ASCENDING)
+      ).to.equal(-1);
+
+      expect(
+        compareIndexEncodedValues(value3, value4, IndexKind.ASCENDING)
+      ).to.equal(-1);
+      expect(
+        compareIndexEncodedValues(value4, value3, IndexKind.ASCENDING)
+      ).to.equal(1);
+      expect(
+        compareIndexEncodedValues(value4, value4, IndexKind.ASCENDING)
+      ).to.equal(0);
     });
 
     it('can compare BSON MinKey', () => {

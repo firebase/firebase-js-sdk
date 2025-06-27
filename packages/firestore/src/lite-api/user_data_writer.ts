@@ -41,7 +41,10 @@ import {
   RESERVED_BSON_TIMESTAMP_KEY,
   RESERVED_BSON_TIMESTAMP_SECONDS_KEY,
   typeOrder,
-  VECTOR_MAP_VECTORS_KEY
+  VECTOR_MAP_VECTORS_KEY,
+  RESERVED_DECIMAL128_KEY,
+  isInt32Value,
+  isDecimal128Value
 } from '../model/values';
 import {
   ApiClientObjectMap,
@@ -61,6 +64,7 @@ import { forEach } from '../util/obj';
 import { BsonBinaryData } from './bson_binary_data';
 import { BsonObjectId } from './bson_object_Id';
 import { BsonTimestamp } from './bson_timestamp';
+import { Decimal128Value } from './decimal128_value';
 import { GeoPoint } from './geo_point';
 import { Int32Value } from './int32_value';
 import { MaxKey } from './max_key';
@@ -89,7 +93,11 @@ export abstract class AbstractUserDataWriter {
         return value.booleanValue!;
       case TypeOrder.NumberValue:
         if ('mapValue' in value) {
-          return this.convertToInt32Value(value.mapValue!);
+          if (isInt32Value(value)) {
+            return this.convertToInt32Value(value.mapValue!);
+          } else if (isDecimal128Value(value)) {
+            return this.convertToDecimal128Value(value.mapValue!);
+          }
         }
         return normalizeNumber(value.integerValue || value.doubleValue);
       case TypeOrder.TimestampValue:
@@ -213,6 +221,12 @@ export abstract class AbstractUserDataWriter {
   private convertToInt32Value(mapValue: ProtoMapValue): Int32Value {
     const value = Number(mapValue!.fields?.[RESERVED_INT32_KEY]?.integerValue);
     return new Int32Value(value);
+  }
+
+  private convertToDecimal128Value(mapValue: ProtoMapValue): Decimal128Value {
+    const value =
+      mapValue!.fields?.[RESERVED_DECIMAL128_KEY]?.stringValue ?? '';
+    return new Decimal128Value(value);
   }
 
   private convertGeoPoint(value: ProtoLatLng): GeoPoint {

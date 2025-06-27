@@ -143,6 +143,14 @@ export function connectFirestoreEmulator(firestore: Firestore, host: string, por
 export function count(): AggregateField<number>;
 
 // @public
+export class Decimal128Value {
+    constructor(value: string);
+    isEqual(other: Decimal128Value): boolean;
+    // (undocumented)
+    readonly stringValue: string;
+    }
+
+// @public
 export function deleteAllPersistentCacheIndexes(indexManager: PersistentCacheIndexManager): void;
 
 // @public

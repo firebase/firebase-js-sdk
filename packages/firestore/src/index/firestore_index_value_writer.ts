@@ -31,9 +31,16 @@ import {
   MapRepresentation,
   RESERVED_REGEX_PATTERN_KEY,
   RESERVED_REGEX_OPTIONS_KEY,
-  RESERVED_INT32_KEY
+  RESERVED_INT32_KEY,
+  RESERVED_DECIMAL128_KEY
 } from '../model/values';
-import { ArrayValue, MapValue, Value } from '../protos/firestore_proto_api';
+import {
+  ArrayValue,
+  MapValue,
+  Value,
+  Timestamp,
+  LatLng
+} from '../protos/firestore_proto_api';
 import { fail } from '../util/assert';
 import { isNegativeZero } from '../util/types';
 
@@ -106,26 +113,10 @@ export class FirestoreIndexValueWriter {
       this.writeValueTypeLabel(encoder, INDEX_TYPE_NUMBER);
       encoder.writeNumber(normalizeNumber(indexValue.integerValue));
     } else if ('doubleValue' in indexValue) {
-      const n = normalizeNumber(indexValue.doubleValue);
-      if (isNaN(n)) {
-        this.writeValueTypeLabel(encoder, INDEX_TYPE_NAN);
-      } else {
-        this.writeValueTypeLabel(encoder, INDEX_TYPE_NUMBER);
-        if (isNegativeZero(n)) {
-          // -0.0, 0 and 0.0 are all considered the same
-          encoder.writeNumber(0.0);
-        } else {
-          encoder.writeNumber(n);
-        }
-      }
+      const doubleValue = normalizeNumber(indexValue.doubleValue);
+      this.writeIndexDouble(doubleValue, encoder);
     } else if ('timestampValue' in indexValue) {
-      let timestamp = indexValue.timestampValue!;
-      this.writeValueTypeLabel(encoder, INDEX_TYPE_TIMESTAMP);
-      if (typeof timestamp === 'string') {
-        timestamp = normalizeTimestamp(timestamp);
-      }
-      encoder.writeString(`${timestamp.seconds || ''}`);
-      encoder.writeNumber(timestamp.nanos || 0);
+      this.writeIndexTimestamp(indexValue.timestampValue!, encoder);
     } else if ('stringValue' in indexValue) {
       this.writeIndexString(indexValue.stringValue!, encoder);
       this.writeTruncationMarker(encoder);
@@ -136,10 +127,7 @@ export class FirestoreIndexValueWriter {
     } else if ('referenceValue' in indexValue) {
       this.writeIndexEntityRef(indexValue.referenceValue!, encoder);
     } else if ('geoPointValue' in indexValue) {
-      const geoPoint = indexValue.geoPointValue!;
-      this.writeValueTypeLabel(encoder, INDEX_TYPE_GEOPOINT);
-      encoder.writeNumber(geoPoint.latitude || 0);
-      encoder.writeNumber(geoPoint.longitude || 0);
+      this.writeIndexGeoPoint(indexValue.geoPointValue!, encoder);
     } else if ('mapValue' in indexValue) {
       const type = detectMapRepresentation(indexValue);
       if (type === MapRepresentation.INTERNAL_MAX) {
@@ -159,12 +147,14 @@ export class FirestoreIndexValueWriter {
       } else if (type === MapRepresentation.BSON_OBJECT_ID) {
         this.writeIndexBsonObjectId(indexValue.mapValue!, encoder);
       } else if (type === MapRepresentation.INT32) {
-        this.writeValueTypeLabel(encoder, INDEX_TYPE_NUMBER);
-        encoder.writeNumber(
-          normalizeNumber(
-            indexValue.mapValue!.fields![RESERVED_INT32_KEY]!.integerValue!
-          )
+        this.writeIndexInt32(indexValue.mapValue!, encoder);
+      } else if (type === MapRepresentation.DECIMAL128) {
+        // Double and Decimal128 sort the same
+        // Decimal128 is written as double with precision lost
+        const parsedValue = parseFloat(
+          indexValue.mapValue!.fields![RESERVED_DECIMAL128_KEY]!.stringValue!
         );
+        this.writeIndexDouble(parsedValue, encoder);
       } else {
         this.writeIndexMap(indexValue.mapValue!, encoder);
         this.writeTruncationMarker(encoder);
@@ -190,6 +180,54 @@ export class FirestoreIndexValueWriter {
     encoder: DirectionalIndexByteEncoder
   ): void {
     encoder.writeString(stringIndexValue);
+  }
+
+  private writeIndexDouble(
+    double: number,
+    encoder: DirectionalIndexByteEncoder
+  ): void {
+    if (isNaN(double)) {
+      this.writeValueTypeLabel(encoder, INDEX_TYPE_NAN);
+    } else {
+      this.writeValueTypeLabel(encoder, INDEX_TYPE_NUMBER);
+      if (isNegativeZero(double)) {
+        // -0.0, 0 and 0.0 are all considered the same
+        encoder.writeNumber(0.0);
+      } else {
+        encoder.writeNumber(double);
+      }
+    }
+  }
+
+  private writeIndexInt32(
+    mapValue: MapValue,
+    encoder: DirectionalIndexByteEncoder
+  ): void {
+    this.writeValueTypeLabel(encoder, INDEX_TYPE_NUMBER);
+    encoder.writeNumber(
+      normalizeNumber(mapValue.fields![RESERVED_INT32_KEY]!.integerValue!)
+    );
+  }
+
+  private writeIndexTimestamp(
+    timestamp: Timestamp,
+    encoder: DirectionalIndexByteEncoder
+  ): void {
+    this.writeValueTypeLabel(encoder, INDEX_TYPE_TIMESTAMP);
+    if (typeof timestamp === 'string') {
+      timestamp = normalizeTimestamp(timestamp);
+    }
+    encoder.writeString(`${timestamp.seconds || ''}`);
+    encoder.writeNumber(timestamp.nanos || 0);
+  }
+
+  private writeIndexGeoPoint(
+    geoPoint: LatLng,
+    encoder: DirectionalIndexByteEncoder
+  ): void {
+    this.writeValueTypeLabel(encoder, INDEX_TYPE_GEOPOINT);
+    encoder.writeNumber(geoPoint.latitude || 0);
+    encoder.writeNumber(geoPoint.longitude || 0);
   }
 
   private writeIndexMap(

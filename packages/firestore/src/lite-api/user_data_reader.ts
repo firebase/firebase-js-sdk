@@ -55,7 +55,8 @@ import {
   RESERVED_BSON_TIMESTAMP_INCREMENT_KEY,
   RESERVED_BSON_BINARY_KEY,
   RESERVED_MIN_KEY,
-  RESERVED_MAX_KEY
+  RESERVED_MAX_KEY,
+  RESERVED_DECIMAL128_KEY
 } from '../model/values';
 import { newSerializer } from '../platform/serializer';
 import {
@@ -80,6 +81,7 @@ import { BsonObjectId } from './bson_object_Id';
 import { BsonTimestamp } from './bson_timestamp';
 import { Bytes } from './bytes';
 import { Firestore } from './database';
+import { Decimal128Value } from './decimal128_value';
 import { FieldPath } from './field_path';
 import { FieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
@@ -936,6 +938,8 @@ function parseScalarValue(
     return parseBsonObjectId(value);
   } else if (value instanceof Int32Value) {
     return parseInt32Value(value);
+  } else if (value instanceof Decimal128Value) {
+    return parseDecimal128Value(value);
   } else if (value instanceof BsonTimestamp) {
     return parseBsonTimestamp(value);
   } else if (value instanceof BsonBinaryData) {
@@ -1045,6 +1049,17 @@ export function parseInt32Value(value: Int32Value): ProtoValue {
   return { mapValue };
 }
 
+export function parseDecimal128Value(value: Decimal128Value): ProtoValue {
+  const mapValue: ProtoMapValue = {
+    fields: {
+      [RESERVED_DECIMAL128_KEY]: {
+        stringValue: value.stringValue
+      }
+    }
+  };
+  return { mapValue };
+}
+
 export function parseBsonTimestamp(value: BsonTimestamp): ProtoValue {
   const mapValue: ProtoMapValue = {
     fields: {
@@ -1105,6 +1120,7 @@ function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof MinKey) &&
     !(input instanceof MaxKey) &&
     !(input instanceof Int32Value) &&
+    !(input instanceof Decimal128Value) &&
     !(input instanceof RegexValue) &&
     !(input instanceof BsonObjectId) &&
     !(input instanceof BsonTimestamp) &&

@@ -25,6 +25,7 @@ import {
   BsonTimestamp,
   Bytes,
   collection,
+  Decimal128Value,
   doc,
   DocumentData,
   DocumentReference,
@@ -305,6 +306,41 @@ apiDescribe('Firestore', persistence => {
     );
   });
 
+  it('can read and write decimal128 fields', () => {
+    return withTestDbsSettings(
+      persistence,
+      NIGHTLY_PROJECT_ID,
+      settings,
+      1,
+      async dbs => {
+        await expectRoundtripWithoutTransaction(dbs[0], {
+          decimalSciPositive: new Decimal128Value('1.2e3'),
+          decimalSciNegative: new Decimal128Value('-2.5e-2'),
+          decimalSciPositiveCapE: new Decimal128Value('1.2345E+5'),
+          decimalSciNegativeCapE: new Decimal128Value('-9.876E-3'),
+          decimalIntPositive: new Decimal128Value('12345'),
+          decimalIntNegative: new Decimal128Value('-67890'),
+          decimalFloatPositive: new Decimal128Value('123.456'),
+          decimalFloatNegative: new Decimal128Value('-789.012'),
+          decimalZeroFloat: new Decimal128Value('0.0'),
+          decimalZeroInt: new Decimal128Value('0'),
+          decimalPrecisePositive: new Decimal128Value(
+            '0.1234567890123456789012345678901234'
+          ),
+          decimalLargePositive: new Decimal128Value(
+            '1234567890123456789012345678901234'
+          ),
+          decimalPreciseNegative: new Decimal128Value(
+            '-0.1234567890123456789012345678901234'
+          ),
+          decimalLargeNegative: new Decimal128Value(
+            '-1234567890123456789012345678901234'
+          )
+        });
+      }
+    );
+  });
+
   it('can read and write bsonTimestamp fields', () => {
     return withTestDbsSettings(
       persistence,
@@ -359,6 +395,8 @@ apiDescribe('Firestore', persistence => {
             new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
             new BsonObjectId('507f191e810c19729de860ea'),
             new Int32Value(1),
+            new Decimal128Value('1.2e3'),
+            new BsonTimestamp(1, 2),
             MinKey.instance(),
             MaxKey.instance(),
             new RegexValue('^foo', 'i')
@@ -380,6 +418,8 @@ apiDescribe('Firestore', persistence => {
             binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
             objectId: new BsonObjectId('507f191e810c19729de860ea'),
             int32: new Int32Value(1),
+            decimal128: new Decimal128Value('1.2e3'),
+            bsonTimestamp: new BsonTimestamp(1, 2),
             min: MinKey.instance(),
             max: MaxKey.instance(),
             regex: new RegexValue('^foo', 'i')
@@ -415,6 +455,39 @@ apiDescribe('Firestore', persistence => {
         expect(errorMessage).to.contains(
           "The field '__int__' value (-2,147,483,650) is too large to be converted to a 32-bit integer."
         );
+      }
+    );
+  });
+
+  it('invalid decimal128 gets rejected', async () => {
+    return withTestProjectIdAndCollectionSettings(
+      persistence,
+      NIGHTLY_PROJECT_ID,
+      settings,
+      {},
+      async coll => {
+        const docRef = doc(coll, 'test-doc');
+        let errorMessage;
+        try {
+          await setDoc(docRef, { key: new Decimal128Value('') });
+        } catch (err) {
+          errorMessage = (err as FirestoreError)?.message;
+        }
+        expect(errorMessage).to.contains('Invalid number');
+
+        try {
+          await setDoc(docRef, { key: new Decimal128Value('1 23. 4') });
+        } catch (err) {
+          errorMessage = (err as FirestoreError)?.message;
+        }
+        expect(errorMessage).to.contains('Invalid number 1 23. 4');
+
+        try {
+          await setDoc(docRef, { key: new Decimal128Value('abc') });
+        } catch (err) {
+          errorMessage = (err as FirestoreError)?.message;
+        }
+        expect(errorMessage).to.contains('Invalid number abc');
       }
     );
   });
@@ -525,6 +598,7 @@ apiDescribe('Firestore', persistence => {
       booleanValue: { key: true },
       nanValue: { key: NaN },
       int32Value: { key: new Int32Value(1) },
+      decimal128Value: { key: new Decimal128Value('1.2e3') },
       doubleValue: { key: 2.0 },
       integerValue: { key: 3 },
       timestampValue: { key: new Timestamp(100, 123456000) },

@@ -143,6 +143,8 @@ export { VectorValue } from '../src/lite-api/vector_value';
 
 export { Int32Value } from '../src/lite-api/int32_value';
 
+export { Decimal128Value } from '../src/lite-api/decimal128_value';
+
 export { RegexValue } from '../src/lite-api/regex_value';
 
 export { BsonBinaryData } from '../src/lite-api/bson_binary_data';

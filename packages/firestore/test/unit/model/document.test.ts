@@ -21,6 +21,7 @@ import {
   BsonBinaryData,
   BsonObjectId,
   BsonTimestamp,
+  Decimal128Value,
   Int32Value,
   MaxKey,
   MinKey,
@@ -61,7 +62,8 @@ describe('Document', () => {
       min: MinKey.instance(),
       max: MaxKey.instance(),
       regex: new RegexValue('a', 'b'),
-      int32: new Int32Value(1)
+      int32: new Int32Value(1),
+      decimal128: new Decimal128Value('1.2e3')
     };
     const document = doc('rooms/Eros', 1, data);
 
@@ -74,7 +76,8 @@ describe('Document', () => {
         min: MinKey.instance(),
         max: MaxKey.instance(),
         regex: new RegexValue('a', 'b'),
-        int32: new Int32Value(1)
+        int32: new Int32Value(1),
+        decimal128: new Decimal128Value('1.2e3')
       })
     );
     expect(value).not.to.equal(data);

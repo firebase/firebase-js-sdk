@@ -30,6 +30,7 @@ import {
   primitiveComparator
 } from '../util/misc';
 import { forEach, objectSize } from '../util/obj';
+import { Quadruple } from '../util/quadruple';
 import { isNegativeZero } from '../util/types';
 
 import { DocumentKey } from './document_key';
@@ -58,6 +59,8 @@ export const RESERVED_REGEX_OPTIONS_KEY = 'options';
 export const RESERVED_BSON_OBJECT_ID_KEY = '__oid__';
 
 export const RESERVED_INT32_KEY = '__int__';
+
+export const RESERVED_DECIMAL128_KEY = '__decimal128__';
 
 export const RESERVED_BSON_TIMESTAMP_KEY = '__request_timestamp__';
 export const RESERVED_BSON_TIMESTAMP_SECONDS_KEY = 'seconds';
@@ -168,6 +171,7 @@ export enum MapRepresentation {
   REGEX = 'regexValue',
   BSON_OBJECT_ID = 'bsonObjectIdValue',
   INT32 = 'int32Value',
+  DECIMAL128 = 'decimal128Value',
   BSON_TIMESTAMP = 'bsonTimestampValue',
   BSON_BINARY = 'bsonBinaryValue',
   MIN_KEY = 'minKeyValue',
@@ -177,6 +181,27 @@ export enum MapRepresentation {
   SERVER_TIMESTAMP = 'serverTimestampValue',
   REGULAR_MAP = 'regularMapValue'
 }
+
+const TYPE_BASED_REPRESENTATIONS: Record<string, MapRepresentation> = {
+  [RESERVED_VECTOR_KEY]: MapRepresentation.VECTOR,
+  [RESERVED_MAX_KEY]: MapRepresentation.INTERNAL_MAX,
+  [RESERVED_SERVER_TIMESTAMP_KEY]: MapRepresentation.SERVER_TIMESTAMP
+};
+
+const BSON_REPRESENTATIONS: Record<string, MapRepresentation> = {
+  [RESERVED_REGEX_KEY]: MapRepresentation.REGEX,
+  [RESERVED_BSON_OBJECT_ID_KEY]: MapRepresentation.BSON_OBJECT_ID,
+  [RESERVED_INT32_KEY]: MapRepresentation.INT32,
+  [RESERVED_DECIMAL128_KEY]: MapRepresentation.DECIMAL128,
+  [RESERVED_BSON_TIMESTAMP_KEY]: MapRepresentation.BSON_TIMESTAMP,
+  [RESERVED_BSON_BINARY_KEY]: MapRepresentation.BSON_BINARY,
+  [RESERVED_MIN_KEY]: MapRepresentation.MIN_KEY,
+  [RESERVED_MAX_KEY]: MapRepresentation.MAX_KEY
+};
+
+const BSON_TYPE_REPRESENTATIONS = new Set<MapRepresentation>(
+  Object.values(BSON_REPRESENTATIONS)
+);
 
 /** Extracts the backend's type order for the provided value. */
 export function typeOrder(value: Value): TypeOrder {
@@ -212,6 +237,7 @@ export function typeOrder(value: Value): TypeOrder {
       case MapRepresentation.BSON_OBJECT_ID:
         return TypeOrder.BsonObjectIdValue;
       case MapRepresentation.INT32:
+      case MapRepresentation.DECIMAL128:
         return TypeOrder.NumberValue;
       case MapRepresentation.BSON_TIMESTAMP:
         return TypeOrder.BsonTimestampValue;
@@ -321,10 +347,11 @@ function blobEquals(left: Value, right: Value): boolean {
 }
 
 export function numberEquals(left: Value, right: Value): boolean {
-  if (
+  if (isDecimal128Value(left) && isDecimal128Value(right)) {
+    return compareQuadruples(left, right) === 0;
+  } else if (
     ('integerValue' in left && 'integerValue' in right) ||
-    (detectMapRepresentation(left) === MapRepresentation.INT32 &&
-      detectMapRepresentation(right) === MapRepresentation.INT32)
+    (isInt32Value(left) && isInt32Value(right))
   ) {
     return extractNumber(left) === extractNumber(right);
   } else if ('doubleValue' in left && 'doubleValue' in right) {
@@ -431,7 +458,7 @@ export function valueCompare(left: Value, right: Value): number {
 
 export function extractNumber(value: Value): number {
   let numberValue;
-  if (detectMapRepresentation(value) === MapRepresentation.INT32) {
+  if (isInt32Value(value)) {
     numberValue = value.mapValue!.fields![RESERVED_INT32_KEY].integerValue!;
   } else {
     numberValue = value.integerValue || value.doubleValue;
@@ -439,23 +466,53 @@ export function extractNumber(value: Value): number {
   return normalizeNumber(numberValue);
 }
 
+function getDecimal128StringValue(value: Value): string {
+  return value.mapValue!.fields![RESERVED_DECIMAL128_KEY].stringValue!;
+}
+
 function compareNumbers(left: Value, right: Value): number {
+  // If either number is Decimal128, we cast both to wider (128-bit) representation, and compare those.
+  if (isDecimal128Value(left) || isDecimal128Value(right)) {
+    return compareQuadruples(left, right);
+  }
+
   const leftNumber = extractNumber(left);
   const rightNumber = extractNumber(right);
 
-  if (leftNumber < rightNumber) {
-    return -1;
-  } else if (leftNumber > rightNumber) {
+  // one or both numbers are NaN.
+  if (isNaN(leftNumber)) {
+    return isNaN(rightNumber) ? 0 : -1;
+  } else if (isNaN(rightNumber)) {
     return 1;
-  } else if (leftNumber === rightNumber) {
+  }
+
+  return primitiveComparator(leftNumber, rightNumber);
+}
+
+function compareQuadruples(left: Value, right: Value): number {
+  const leftQuadruple = convertNumberToQuadruple(left);
+  const rightQuadruple = convertNumberToQuadruple(right);
+
+  // Firestore considers +0 and -0 to be equal.
+  if (leftQuadruple.isZero() && rightQuadruple.isZero()) {
     return 0;
+  }
+
+  // NaN sorts equal to itself and before any other number.
+  if (leftQuadruple.isNaN()) {
+    return rightQuadruple.isNaN() ? 0 : -1;
+  } else if (rightQuadruple.isNaN()) {
+    return 1;
+  }
+
+  return leftQuadruple.compareTo(rightQuadruple);
+}
+
+function convertNumberToQuadruple(value: Value): Quadruple {
+  if (isDecimal128Value(value)) {
+    return Quadruple.fromString(getDecimal128StringValue(value));
   } else {
-    // one or both are NaN.
-    if (isNaN(leftNumber)) {
-      return isNaN(rightNumber) ? 0 : -1;
-    } else {
-      return 1;
-    }
+    return Quadruple.fromNumber(extractNumber(value));
   }
 }
 
@@ -758,7 +815,9 @@ export function estimateByteSize(value: Value): number {
     case TypeOrder.BooleanValue:
       return 4;
     case TypeOrder.NumberValue:
-      // TODO(Mila/BSON): return 16 if the value is 128 decimal value
+      if (isDecimal128Value(value)) {
+        return 16;
+      }
       return 8;
     case TypeOrder.TimestampValue:
       // Timestamps are made up of two distinct numbers (seconds + nanoseconds)
@@ -819,22 +878,48 @@ export function refValue(databaseId: DatabaseId, key: DocumentKey): Value {
 }
 
 /** Returns true if `value` is an IntegerValue . */
-export function isInteger(
+export function isIntegerValue(
   value?: Value | null
 ): value is { integerValue: string | number } {
   return !!value && 'integerValue' in value;
 }
 
 /** Returns true if `value` is a DoubleValue. */
-export function isDouble(
+export function isDoubleValue(
   value?: Value | null
 ): value is { doubleValue: string | number } {
   return !!value && 'doubleValue' in value;
 }
 
+export function isDecimal128Value(value: Value): boolean {
+  if (!value.mapValue?.fields) {
+    return false;
+  }
+
+  const fields = value.mapValue.fields;
+  return (
+    objectSize(fields) === 1 &&
+    fields[RESERVED_DECIMAL128_KEY] &&
+    !!fields[RESERVED_DECIMAL128_KEY].stringValue
+  );
+}
+
+export function isInt32Value(value: Value): boolean {
+  if (!value.mapValue?.fields) {
+    return false;
+  }
+
+  const fields = value.mapValue.fields;
+  return (
+    objectSize(fields) === 1 &&
+    fields[RESERVED_INT32_KEY] &&
+    !!fields[RESERVED_INT32_KEY].integerValue
+  );
+}
+
 /** Returns true if `value` is either an IntegerValue or a DoubleValue. */
 export function isNumber(value?: Value | null): boolean {
-  return isInteger(value) || isDouble(value);
+  return isIntegerValue(value) || isDoubleValue(value);
 }
 
 /** Returns true if `value` is an ArrayValue. */
@@ -859,10 +944,16 @@ export function isNullValue(
 }
 
 /** Returns true if `value` is NaN. */
-export function isNanValue(
-  value?: Value | null
-): value is { doubleValue: 'NaN' | number } {
-  return !!value && 'doubleValue' in value && isNaN(Number(value.doubleValue));
+export function isNanValue(value: Value): boolean {
+  if (isDoubleValue(value) && isNaN(Number(value.doubleValue))) {
+    return true;
+  }
+
+  if (isDecimal128Value(value) && getDecimal128StringValue(value) === 'NaN') {
+    return true;
+  }
+
+  return false;
 }
 
 /** Returns true if `value` is a MapValue. */
@@ -872,63 +963,30 @@ export function isMapValue(
   return !!value && 'mapValue' in value;
 }
 
+export function isBsonType(value: Value): boolean {
+  return BSON_TYPE_REPRESENTATIONS.has(detectMapRepresentation(value));
+}
+
 export function detectMapRepresentation(value: Value): MapRepresentation {
-  if (!value || !value.mapValue || !value.mapValue.fields) {
-    return MapRepresentation.REGULAR_MAP; // Not a special map type
+  if (!value.mapValue?.fields) {
+    return MapRepresentation.REGULAR_MAP;
   }
 
   const fields = value.mapValue.fields;
 
   // Check for type-based mappings
-  const type = fields[TYPE_KEY]?.stringValue;
-  if (type) {
-    const typeMap: Record<string, MapRepresentation> = {
-      [RESERVED_VECTOR_KEY]: MapRepresentation.VECTOR,
-      [RESERVED_MAX_KEY]: MapRepresentation.INTERNAL_MAX,
-      [RESERVED_SERVER_TIMESTAMP_KEY]: MapRepresentation.SERVER_TIMESTAMP
-    };
-    if (typeMap[type]) {
-      return typeMap[type];
-    }
+  const typeString = fields[TYPE_KEY]?.stringValue;
+  if (typeString && TYPE_BASED_REPRESENTATIONS[typeString]) {
+    return TYPE_BASED_REPRESENTATIONS[typeString];
   }
 
-  if (objectSize(fields) !== 1) {
-    // All BSON types have 1 key in the map. To improve performance, we can
-    // return early if the number of keys in the map is not 1.
-    return MapRepresentation.REGULAR_MAP;
-  }
-
-  // Check for BSON-related mappings
-  const bsonMap: Record<string, MapRepresentation> = {
-    [RESERVED_REGEX_KEY]: MapRepresentation.REGEX,
-    [RESERVED_BSON_OBJECT_ID_KEY]: MapRepresentation.BSON_OBJECT_ID,
-    [RESERVED_INT32_KEY]: MapRepresentation.INT32,
-    [RESERVED_BSON_TIMESTAMP_KEY]: MapRepresentation.BSON_TIMESTAMP,
-    [RESERVED_BSON_BINARY_KEY]: MapRepresentation.BSON_BINARY,
-    [RESERVED_MIN_KEY]: MapRepresentation.MIN_KEY,
-    [RESERVED_MAX_KEY]: MapRepresentation.MAX_KEY
-  };
-
-  for (const key in bsonMap) {
-    if (fields[key]) {
-      return bsonMap[key];
-    }
+  // For BSON-related mappings, they typically have a single, unique key.
+  if (objectSize(fields) === 1) {
+    const keys = Object.keys(fields);
+    return BSON_REPRESENTATIONS[keys[0]];
   }
 
   return MapRepresentation.REGULAR_MAP;
-}
-
-export function isBsonType(value: Value): boolean {
-  const bsonTypes = new Set([
-    MapRepresentation.REGEX,
-    MapRepresentation.BSON_OBJECT_ID,
-    MapRepresentation.INT32,
-    MapRepresentation.BSON_TIMESTAMP,
-    MapRepresentation.BSON_BINARY,
-    MapRepresentation.MIN_KEY,
-    MapRepresentation.MAX_KEY
-  ]);
-  return bsonTypes.has(detectMapRepresentation(value));
 }
 
 /** Creates a deep copy of `source`. */
@@ -980,25 +1038,28 @@ export function valuesGetLowerBound(value: Value): Value {
     return { arrayValue: {} };
   } else if ('mapValue' in value) {
     const type = detectMapRepresentation(value);
-    if (type === MapRepresentation.VECTOR) {
-      return MIN_VECTOR_VALUE;
-    } else if (type === MapRepresentation.BSON_OBJECT_ID) {
-      return MIN_BSON_OBJECT_ID_VALUE;
-    } else if (type === MapRepresentation.BSON_TIMESTAMP) {
-      return MIN_BSON_TIMESTAMP_VALUE;
-    } else if (type === MapRepresentation.BSON_BINARY) {
-      return MIN_BSON_BINARY_VALUE;
-    } else if (type === MapRepresentation.REGEX) {
-      return MIN_REGEX_VALUE;
-    } else if (type === MapRepresentation.INT32) {
-      // int32Value is treated the same as integerValue and doubleValue
-      return { doubleValue: NaN };
-    } else if (type === MapRepresentation.MIN_KEY) {
-      return MIN_KEY_VALUE;
-    } else if (type === MapRepresentation.MAX_KEY) {
-      return MAX_KEY_VALUE;
+    switch (type) {
+      case MapRepresentation.VECTOR:
+        return MIN_VECTOR_VALUE;
+      case MapRepresentation.BSON_OBJECT_ID:
+        return MIN_BSON_OBJECT_ID_VALUE;
+      case MapRepresentation.BSON_TIMESTAMP:
+        return MIN_BSON_TIMESTAMP_VALUE;
+      case MapRepresentation.BSON_BINARY:
+        return MIN_BSON_BINARY_VALUE;
+      case MapRepresentation.REGEX:
+        return MIN_REGEX_VALUE;
+      case MapRepresentation.INT32:
+      case MapRepresentation.DECIMAL128:
+        // Int32Value and Decimal128Value are treated the same as integerValue and doubleValue
+        return { doubleValue: NaN };
+      case MapRepresentation.MIN_KEY:
+        return MIN_KEY_VALUE;
+      case MapRepresentation.MAX_KEY:
+        return MAX_KEY_VALUE;
+      default:
+        return { mapValue: {} };
     }
-    return { mapValue: {} };
   } else {
     return fail(0x8c66, 'Invalid value type', { value });
   }
@@ -1026,25 +1087,28 @@ export function valuesGetUpperBound(value: Value): Value {
     return MIN_VECTOR_VALUE;
   } else if ('mapValue' in value) {
     const type = detectMapRepresentation(value);
-    if (type === MapRepresentation.VECTOR) {
-      return { mapValue: {} };
-    } else if (type === MapRepresentation.BSON_OBJECT_ID) {
-      return { geoPointValue: { latitude: -90, longitude: -180 } };
-    } else if (type === MapRepresentation.BSON_TIMESTAMP) {
-      return { stringValue: '' };
-    } else if (type === MapRepresentation.BSON_BINARY) {
-      return refValue(DatabaseId.empty(), DocumentKey.empty());
-    } else if (type === MapRepresentation.REGEX) {
-      return { arrayValue: {} };
-    } else if (type === MapRepresentation.INT32) {
-      // int32Value is treated the same as integerValue and doubleValue
-      return { timestampValue: { seconds: Number.MIN_SAFE_INTEGER } };
-    } else if (type === MapRepresentation.MIN_KEY) {
-      return { booleanValue: false };
-    } else if (type === MapRepresentation.MAX_KEY) {
-      return INTERNAL_MAX_VALUE;
+    switch (type) {
+      case MapRepresentation.VECTOR:
+        return { mapValue: {} };
+      case MapRepresentation.BSON_OBJECT_ID:
+        return { geoPointValue: { latitude: -90, longitude: -180 } };
+      case MapRepresentation.BSON_TIMESTAMP:
+        return { stringValue: '' };
+      case MapRepresentation.BSON_BINARY:
+        return refValue(DatabaseId.empty(), DocumentKey.empty());
+      case MapRepresentation.REGEX:
+        return { arrayValue: {} };
+      case MapRepresentation.INT32:
+      case MapRepresentation.DECIMAL128:
+        // Int32Value and Decimal128Value are treated the same as integerValue and doubleValue
+        return { timestampValue: { seconds: Number.MIN_SAFE_INTEGER } };
+      case MapRepresentation.MIN_KEY:
+        return { booleanValue: false };
+      case MapRepresentation.MAX_KEY:
+        return INTERNAL_MAX_VALUE;
+      default:
+        return MAX_KEY_VALUE;
     }
-    return MAX_KEY_VALUE;
   } else {
     return fail(0xf207, 'Invalid value type', { value });
   }

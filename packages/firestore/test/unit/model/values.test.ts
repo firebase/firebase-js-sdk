@@ -26,7 +26,8 @@ import {
   RegexValue,
   Int32Value,
   MaxKey,
-  MinKey
+  MinKey,
+  Decimal128Value
 } from '../../../src';
 import { DatabaseId } from '../../../src/core/database_info';
 import { vector } from '../../../src/lite-api/field_value_impl';
@@ -49,7 +50,8 @@ import {
   MIN_BSON_BINARY_VALUE,
   MIN_KEY_VALUE,
   MIN_REGEX_VALUE,
-  MIN_BSON_OBJECT_ID_VALUE
+  MIN_BSON_OBJECT_ID_VALUE,
+  RESERVED_DECIMAL128_KEY
 } from '../../../src/model/values';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { primitiveComparator } from '../../../src/util/misc';
@@ -124,6 +126,7 @@ describe('Values', () => {
         wrap(new BsonObjectId('123456789012'))
       ],
       [wrap(new Int32Value(255)), wrap(new Int32Value(255))],
+      [wrap(new Decimal128Value('1.2e3')), wrap(new Decimal128Value('1.2e3'))],
       [wrap(MaxKey.instance()), wrap(MaxKey.instance())]
     ];
     expectEqualitySets(values, (v1, v2) => valueEquals(v1, v2));
@@ -171,32 +174,61 @@ describe('Values', () => {
       [wrap(true)],
 
       // numbers
-      [wrap(NaN)],
-      [wrap(-Infinity)],
+      [wrap(NaN), wrap(new Decimal128Value('NaN'))],
+      [wrap(-Infinity), wrap(new Decimal128Value('-Infinity'))],
       [wrap(-Number.MAX_VALUE)],
-      [wrap(Number.MIN_SAFE_INTEGER - 1)],
+      [
+        wrap(Number.MIN_SAFE_INTEGER - 1),
+        wrap(new Decimal128Value('-9007199254740992'))
+      ],
       [wrap(Number.MIN_SAFE_INTEGER)],
-      // 64-bit and 32-bit integers order together numerically.
-      [{ integerValue: -2147483648 }, wrap(new Int32Value(-2147483648))],
-      [wrap(-1.1)],
+      // 64-bit,32-bit integers and 128 decimal numbers order together numerically.
+      [
+        { integerValue: -2147483648 },
+        wrap(new Int32Value(-2147483648)),
+        wrap(new Decimal128Value('-2147483648')),
+        wrap(new Decimal128Value('-2.147483648e9'))
+      ],
+      [wrap(-1.5), wrap(new Decimal128Value('-1.5'))],
       // Integers, Int32Values and Doubles order the same.
-      [{ integerValue: -1 }, { doubleValue: -1 }, wrap(new Int32Value(-1))],
+      [
+        { integerValue: -1 },
+        { doubleValue: -1 },
+        wrap(new Int32Value(-1)),
+        wrap(new Decimal128Value('-1')),
+        wrap(new Decimal128Value('-1.0'))
+      ],
       [wrap(-Number.MIN_VALUE)],
       // zeros all compare the same.
       [
         { integerValue: 0 },
         { doubleValue: 0 },
         { doubleValue: -0 },
-        wrap(new Int32Value(0))
+        wrap(new Int32Value(0)),
+        wrap(new Decimal128Value('0')),
+        wrap(new Decimal128Value('0.0')),
+        wrap(new Decimal128Value('-0')),
+        wrap(new Decimal128Value('-0.0')),
+        wrap(new Decimal128Value('+0')),
+        wrap(new Decimal128Value('+0.0'))
       ],
       [wrap(Number.MIN_VALUE)],
-      [{ integerValue: 1 }, { doubleValue: 1.0 }, wrap(new Int32Value(1))],
-      [wrap(1.1)],
-      [wrap(new Int32Value(2))],
-      [wrap(new Int32Value(2147483647))],
+      [
+        { integerValue: 1 },
+        { doubleValue: 1.0 },
+        wrap(new Int32Value(1)),
+        wrap(new Decimal128Value('1')),
+        wrap(new Decimal128Value('1.0'))
+      ],
+      [wrap(1.5), wrap(new Decimal128Value('1.5'))],
+      [wrap(new Int32Value(2)), wrap(new Decimal128Value('2'))],
+      [
+        wrap(new Int32Value(2147483647)),
+        wrap(new Decimal128Value('2.147483647e9'))
+      ],
       [wrap(Number.MAX_SAFE_INTEGER)],
       [wrap(Number.MAX_SAFE_INTEGER + 1)],
-      [wrap(Infinity)],
+      [wrap(Infinity), wrap(new Decimal128Value('Infinity'))],
 
       // timestamps
       [wrap(date1)],
@@ -428,6 +460,13 @@ describe('Values', () => {
       {
         expectedByteSize: 16,
         elements: [
+          wrap(new Decimal128Value('1.2e3')),
+          wrap(new Decimal128Value('1234567890.1234567890123456'))
+        ]
+      },
+      {
+        expectedByteSize: 16,
+        elements: [
           wrap(new BsonBinaryData(1, new Uint8Array([127, 128]))),
           wrap(new BsonBinaryData(128, new Uint8Array([1, 2])))
         ]
@@ -503,9 +542,15 @@ describe('Values', () => {
         valuesGetLowerBound({
           mapValue: { fields: { [RESERVED_INT32_KEY]: { integerValue: 0 } } }
         }),
+        valuesGetLowerBound({
+          mapValue: {
+            fields: { [RESERVED_DECIMAL128_KEY]: { stringValue: '0' } }
+          }
+        }),
         wrap(NaN)
       ],
       [wrap(Number.NEGATIVE_INFINITY)],
+      [wrap(0), wrap(new Int32Value(0)), wrap(new Decimal128Value('0.0'))],
       [wrap(Number.MIN_VALUE)],
 
       // dates
@@ -622,7 +667,10 @@ describe('Values', () => {
       [valuesGetUpperBound({ booleanValue: false })],
 
       // numbers
-      [wrap(new Int32Value(2147483647))], //largest int32 value
+      [
+        wrap(new Int32Value(2147483647)),
+        wrap(new Decimal128Value('2147483647'))
+      ], //largest int32 value
       [wrap(Number.MAX_SAFE_INTEGER)],
       [wrap(Number.POSITIVE_INFINITY)],
       [valuesGetUpperBound({ doubleValue: NaN })],
@@ -727,6 +775,9 @@ describe('Values', () => {
       '{__request_timestamp__:{increment:2,seconds:1}}'
     );
     expect(canonicalId(wrap(new Int32Value(1)))).to.equal('{__int__:1}');
+    expect(canonicalId(wrap(new Decimal128Value('-1.2e3')))).to.equal(
+      '{__decimal128__:-1.2e3}'
+    );
     expect(
       canonicalId(wrap(new BsonBinaryData(1, new Uint8Array([1, 2, 3]))))
     ).to.equal('{__binary__:AQECAw==}');

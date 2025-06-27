@@ -24,7 +24,8 @@ import {
   RegexValue,
   Int32Value,
   MaxKey,
-  MinKey
+  MinKey,
+  Decimal128Value
 } from '../../../src';
 import { vector } from '../../../src/lite-api/field_value_impl';
 import { extractFieldMask, ObjectValue } from '../../../src/model/object_value';
@@ -44,7 +45,8 @@ describe('ObjectValue', () => {
         min: MinKey.instance(),
         max: MaxKey.instance(),
         regex: new RegexValue('a', 'b'),
-        int32: new Int32Value(1)
+        int32: new Int32Value(1),
+        decimal128: new Decimal128Value('1.2e3')
       }
     });
 
@@ -84,6 +86,9 @@ describe('ObjectValue', () => {
     expect(typeOrder(objValue.field(field('bson.int32'))!)).to.equal(
       TypeOrder.NumberValue
     );
+    expect(typeOrder(objValue.field(field('bson.decimal128'))!)).to.equal(
+      TypeOrder.NumberValue
+    );
 
     expect(objValue.field(field('foo.a.b'))).to.be.null;
     expect(objValue.field(field('bar'))).to.be.null;
@@ -108,7 +113,8 @@ describe('ObjectValue', () => {
         min: MinKey.instance(),
         max: MaxKey.instance(),
         regex: new RegexValue('a', 'b'),
-        int32: new Int32Value(1)
+        int32: new Int32Value(1),
+        decimal128: new Decimal128Value('1.2e3')
       })
     );
     expect(objValue.field(field('bson.objectId'))!).to.deep.equal(
@@ -131,6 +137,9 @@ describe('ObjectValue', () => {
     );
     expect(objValue.field(field('bson.int32'))!).to.deep.equal(
       wrap(new Int32Value(1))
+    );
+    expect(objValue.field(field('bson.decimal128'))!).to.deep.equal(
+      wrap(new Decimal128Value('1.2e3'))
     );
   });
 
@@ -248,6 +257,7 @@ describe('ObjectValue', () => {
     objValue.set(field('timestamp'), wrap(new BsonTimestamp(1, 2)));
     objValue.set(field('regex'), wrap(new RegexValue('a', 'b')));
     objValue.set(field('int32'), wrap(new Int32Value(1)));
+    objValue.set(field('decimal128'), wrap(new Decimal128Value('1.2e3')));
     objValue.set(field('min'), wrap(MinKey.instance()));
     objValue.set(field('max'), wrap(MaxKey.instance()));
 
@@ -257,6 +267,7 @@ describe('ObjectValue', () => {
       timestamp: new BsonTimestamp(1, 2),
       regex: new RegexValue('a', 'b'),
       int32: new Int32Value(1),
+      decimal128: new Decimal128Value('1.2e3'),
       min: MinKey.instance(),
       max: MaxKey.instance()
     });
@@ -285,6 +296,7 @@ describe('ObjectValue', () => {
       timestamp: new BsonTimestamp(1, 2),
       regex: new RegexValue('a', 'b'),
       int32: new Int32Value(1),
+      decimal128: new Decimal128Value('1.2e3'),
       min: null,
       max: MaxKey.instance(),
       foo: {
@@ -306,7 +318,8 @@ describe('ObjectValue', () => {
         min: MinKey.instance(),
         max: MaxKey.instance(),
         regex: new RegexValue('a', 'b'),
-        int32: new Int32Value(1)
+        int32: new Int32Value(1),
+        decimal128: new Decimal128Value('1.2e3')
       }
     });
     const expectedMask = mask(
@@ -322,7 +335,8 @@ describe('ObjectValue', () => {
       'bar.min',
       'bar.max',
       'bar.regex',
-      'bar.int32'
+      'bar.int32',
+      'bar.decimal128'
     );
     const actualMask = extractFieldMask(objValue.value.mapValue);
     expect(actualMask.isEqual(expectedMask)).to.be.true;

@@ -28,7 +28,8 @@ import {
   Int32Value,
   RegexValue,
   MaxKey,
-  MinKey
+  MinKey,
+  Decimal128Value
 } from '../../../src';
 import { User } from '../../../src/auth/user';
 import { BundleConverterImpl } from '../../../src/core/bundle_impl';
@@ -1325,6 +1326,188 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       test.assertQueryReturned(query_, 'coll/a');
     });
 
+    it('Indexes BSON Decimal128 fields', async () => {
+      const index = fieldIndex('coll', {
+        id: 1,
+        fields: [['key', IndexKind.ASCENDING]]
+      });
+      await test.configureFieldsIndexes(index);
+      await test.writeMutations(
+        setMutation('coll/a', { key: new Decimal128Value('-1.2e3') }),
+        setMutation('coll/b', { key: new Decimal128Value('0') }),
+        setMutation('coll/c', { key: new Decimal128Value('1.2e3') })
+      );
+      await test.backfillIndexes();
+
+      let query_ = query('coll', orderBy('key', 'asc'));
+      await test.executeQuery(query_);
+      test.assertOverlaysRead(3, 0, {
+        [key('coll/a').toString()]: MutationType.Set,
+        [key('coll/b').toString()]: MutationType.Set,
+        [key('coll/c').toString()]: MutationType.Set
+      });
+      test.assertQueryReturned(query_, 'coll/a', 'coll/b', 'coll/c');
+
+      query_ = query('coll', filter('key', '==', new Decimal128Value('-1200')));
+      await test.executeQuery(query_);
+      test.assertOverlaysRead(1, 0, {
+        [key('coll/a').toString()]: MutationType.Set
+      });
+      test.assertQueryReturned(query_, 'coll/a');
+
+      query_ = query('coll', filter('key', '!=', new Decimal128Value('0.0')));
+      await test.executeQuery(query_);
+      test.assertOverlaysRead(2, 0, {
+        [key('coll/a').toString()]: MutationType.Set,
+        [key('coll/c').toString()]: MutationType.Set
+      });
+      test.assertQueryReturned(query_, 'coll/a', 'coll/c');
+
+      query_ = query('coll', filter('key', '>=', new Decimal128Value('-0')));
+      await test.executeQuery(query_);
+      test.assertOverlaysRead(2, 0, {
+        [key('coll/b').toString()]: MutationType.Set,
+        [key('coll/c').toString()]: MutationType.Set
+      });
+      test.assertQueryReturned(query_, 'coll/b', 'coll/c');
+
+      // This will fail if the negative 0s are not converted to positive 0 in `writeIndexValueAux`
+      // function
+      query_ = query('coll', filter('key', '<=', new Decimal128Value('-0.0')));
+      await test.executeQuery(query_);
+      test.assertOverlaysRead(2, 0, {
+        [key('coll/a').toString()]: MutationType.Set,
+        [key('coll/b').toString()]: MutationType.Set
+      });
+      test.assertQueryReturned(query_, 'coll/a', 'coll/b');
+
+      query_ = query('coll', filter('key', '>', new Decimal128Value('1.2e3')));
+      await test.executeQuery(query_);
+      test.assertOverlaysRead(0, 0);
+      test.assertQueryReturned(query_);
+
+      query_ = query('coll', filter('key', '<', new Decimal128Value('-1.2e3')));
+      await test.executeQuery(query_);
+      test.assertOverlaysRead(0, 0);
+      test.assertQueryReturned(query_);
+
+      query_ = query(
+        'coll',
+        filter('key', 'in', [
+          new Decimal128Value('-1.2e3'),
+          new Decimal128Value('0')
+        ])
+      );
+      await test.executeQuery(query_);
+      test.assertOverlaysRead(2, 0, {
+        [key('coll/a').toString()]: MutationType.Set,
+        [key('coll/b').toString()]: MutationType.Set
+      });
+      test.assertQueryReturned(query_, 'coll/a', 'coll/b');
+
+      query_ = query(
+        'coll',
+        filter('key', 'not-in', [
+          new Decimal128Value('-1200'),
+          new Decimal128Value('0.0')
+        ])
+      );
+      await test.executeQuery(query_);
+      test.assertOverlaysRead(1, 0, {
+        [key('coll/c').toString()]: MutationType.Set
+      });
+      test.assertQueryReturned(query_, 'coll/c');
+    });
+
+    it('Indexes BSON Decimal128 fields with precision loss', async () => {
+      const index = fieldIndex('coll', {
+        id: 1,
+        fields: [['key', IndexKind.ASCENDING]]
+      });
+      await test.configureFieldsIndexes(index);
+      await test.writeMutations(
+        setMutation('coll/a', {
+          key: new Decimal128Value('-0.1234567890123456789')
+        }), // will be rounded to -0.12345678901234568
+        setMutation('coll/b', { key: new Decimal128Value('0') }),
+        setMutation('coll/c', {
+          key: new Decimal128Value('0.1234567890123456789')
+        }) // will be rounded to 0.12345678901234568
+      );
+      await test.backfillIndexes();
+
+      let query_ = query('coll', orderBy('key', 'asc'));
+      await test.executeQuery(query_);
+      test.assertOverlaysRead(3, 0, {
+        [key('coll/a').toString()]: MutationType.Set,
+        [key('coll/b').toString()]: MutationType.Set,
+        [key('coll/c').toString()]: MutationType.Set
+      });
+      test.assertQueryReturned(query_, 'coll/a', 'coll/b', 'coll/c');
+
+      query_ = query(
+        'coll',
+        filter('key', '==', new Decimal128Value('0.1234567890123456789'))
+      );
+      await test.executeQuery(query_);
+      test.assertOverlaysRead(1, 0, {
+        [key('coll/c').toString()]: MutationType.Set
+      });
+      test.assertQueryReturned(query_, 'coll/c');
+
+      // Mismatch behavior caused by rounding error. Firestore fetches the doc3 from IndexedDb as
+      // doc3 rounds to the same number, but, it is not presented on the final query result.
+      query_ = query(
+        'coll',
+        filter('key', '==', new Decimal128Value('0.12345678901234568'))
+      );
+      await test.executeQuery(query_);
+      test.assertOverlaysRead(1, 0, {
+        [key('coll/c').toString()]: MutationType.Set
+      });
+      test.assertQueryReturned(query_);
+
+      // Operations that doesn't go up to 17 decimal digits of precision wouldn't be affected by
+      // this rounding errors.
+      query_ = query('coll', filter('key', '!=', new Decimal128Value('0.0')));
+      await test.executeQuery(query_);
+      test.assertOverlaysRead(2, 0, {
+        [key('coll/a').toString()]: MutationType.Set,
+        [key('coll/c').toString()]: MutationType.Set
+      });
+      test.assertQueryReturned(query_, 'coll/a', 'coll/c');
+
+      query_ = query(
+        'coll',
+        filter('key', '>=', new Decimal128Value('1.23e-1'))
+      );
+      await test.executeQuery(query_);
+      test.assertOverlaysRead(1, 0, {
+        [key('coll/c').toString()]: MutationType.Set
+      });
+      test.assertQueryReturned(query_, 'coll/c');
+
+      query_ = query(
+        'coll',
+        filter('key', '<=', new Decimal128Value('-1.23e-1'))
+      );
+      await test.executeQuery(query_);
+      test.assertOverlaysRead(1, 0, {
+        [key('coll/a').toString()]: MutationType.Set
+      });
+      test.assertQueryReturned(query_, 'coll/a');
+
+      query_ = query('coll', filter('key', '>', new Decimal128Value('1.2e3')));
+      await test.executeQuery(query_);
+      test.assertOverlaysRead(0, 0);
+      test.assertQueryReturned(query_);
+
+      query_ = query('coll', filter('key', '<', new Decimal128Value('-1.2e3')));
+      await test.executeQuery(query_);
+      test.assertOverlaysRead(0, 0);
+      test.assertQueryReturned(query_);
+    });
+
     it('Indexes BSON Regex fields', async () => {
       const index = fieldIndex('coll', {
         id: 1,
@@ -1576,30 +1759,32 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       await test.writeMutations(
         setMutation('coll/a', { key: MinKey.instance() }),
         setMutation('coll/b', { key: new Int32Value(2) }),
-        setMutation('coll/c', { key: new Int32Value(1) }),
-        setMutation('coll/d', { key: new BsonTimestamp(1000, 1001) }),
-        setMutation('coll/e', { key: new BsonTimestamp(1000, 1000) }),
-        setMutation('coll/f', {
+        setMutation('coll/c', { key: new Int32Value(-1) }),
+        setMutation('coll/d', { key: new Decimal128Value('1.2e3') }),
+        setMutation('coll/e', { key: new Decimal128Value('-0') }),
+        setMutation('coll/f', { key: new BsonTimestamp(1000, 1001) }),
+        setMutation('coll/g', { key: new BsonTimestamp(1000, 1000) }),
+        setMutation('coll/h', {
           key: new BsonBinaryData(1, new Uint8Array([1, 2, 4]))
         }),
-        setMutation('coll/g', {
+        setMutation('coll/i', {
           key: new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
         }),
-        setMutation('coll/h', {
+        setMutation('coll/j', {
           key: new BsonObjectId('507f191e810c19729de860eb')
         }),
-        setMutation('coll/i', {
+        setMutation('coll/k', {
           key: new BsonObjectId('507f191e810c19729de860ea')
         }),
-        setMutation('coll/j', { key: new RegexValue('^bar', 'm') }),
-        setMutation('coll/k', { key: new RegexValue('^bar', 'i') }),
-        setMutation('coll/l', { key: MaxKey.instance() })
+        setMutation('coll/l', { key: new RegexValue('^bar', 'm') }),
+        setMutation('coll/m', { key: new RegexValue('^bar', 'i') }),
+        setMutation('coll/n', { key: MaxKey.instance() })
       );
       await test.backfillIndexes();
 
       const query_ = query('coll', orderBy('key', 'desc'));
       await test.executeQuery(query_);
-      test.assertOverlaysRead(12, 0, {
+      test.assertOverlaysRead(14, 0, {
         [key('coll/a').toString()]: MutationType.Set,
         [key('coll/b').toString()]: MutationType.Set,
         [key('coll/c').toString()]: MutationType.Set,
@@ -1611,22 +1796,26 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
         [key('coll/i').toString()]: MutationType.Set,
         [key('coll/j').toString()]: MutationType.Set,
         [key('coll/k').toString()]: MutationType.Set,
-        [key('coll/l').toString()]: MutationType.Set
+        [key('coll/l').toString()]: MutationType.Set,
+        [key('coll/m').toString()]: MutationType.Set,
+        [key('coll/n').toString()]: MutationType.Set
       });
       test.assertQueryReturned(
         query_,
-        'coll/l',
-        'coll/j',
-        'coll/k',
-        'coll/h',
-        'coll/i',
-        'coll/f',
-        'coll/g',
-        'coll/d',
-        'coll/e',
-        'coll/b',
-        'coll/c',
-        'coll/a'
+        'coll/n', // maxKey
+        'coll/l', // regex m
+        'coll/m', // regex i
+        'coll/j', // objectId eb
+        'coll/k', // objectId ea
+        'coll/h', // binary [1,2,4]
+        'coll/i', // binary [1,2,3]
+        'coll/f', // timestamp 1000,1001
+        'coll/g', // timestamp 1000,1000
+        'coll/d', // Number decimal128 1200
+        'coll/b', // Number int32 2
+        'coll/e', // Number decimal128 -0.0
+        'coll/c', // Number int32 -1
+        'coll/a' // minKey
       );
     });
 
@@ -1645,29 +1834,30 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
         setMutation('coll/e', { key: new Int32Value(1) }),
         setMutation('coll/f', { key: 2.0 }),
         setMutation('coll/g', { key: 3 }),
-        setMutation('coll/h', { key: new Timestamp(100, 123456000) }),
-        setMutation('coll/i', { key: new BsonTimestamp(1, 2) }),
-        setMutation('coll/j', { key: 'string' }),
-        setMutation('coll/k', { key: blob(1, 2, 3) }),
-        setMutation('coll/l', {
+        setMutation('coll/h', { key: new Decimal128Value('1.2e3') }),
+        setMutation('coll/i', { key: new Timestamp(100, 123456000) }),
+        setMutation('coll/j', { key: new BsonTimestamp(1, 2) }),
+        setMutation('coll/k', { key: 'string' }),
+        setMutation('coll/l', { key: blob(1, 2, 3) }),
+        setMutation('coll/m', {
           key: new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
         }),
-        setMutation('coll/m', { key: ref('foo/bar') }),
-        setMutation('coll/n', {
+        setMutation('coll/n', { key: ref('foo/bar') }),
+        setMutation('coll/o', {
           key: new BsonObjectId('507f191e810c19729de860ea')
         }),
-        setMutation('coll/o', { key: new GeoPoint(1, 2) }),
-        setMutation('coll/p', { key: new RegexValue('^bar', 'm') }),
-        setMutation('coll/q', { key: [2, 'foo'] }),
-        setMutation('coll/r', { key: vector([1, 2, 3]) }),
-        setMutation('coll/s', { key: { bar: 1, foo: 2 } }),
-        setMutation('coll/t', { key: MaxKey.instance() })
+        setMutation('coll/p', { key: new GeoPoint(1, 2) }),
+        setMutation('coll/q', { key: new RegexValue('^bar', 'm') }),
+        setMutation('coll/r', { key: [2, 'foo'] }),
+        setMutation('coll/s', { key: vector([1, 2, 3]) }),
+        setMutation('coll/t', { key: { bar: 1, foo: 2 } }),
+        setMutation('coll/u', { key: MaxKey.instance() })
       );
       await test.backfillIndexes();
 
       const query_ = query('coll', orderBy('key', 'asc'));
       await test.executeQuery(query_);
-      test.assertOverlaysRead(20, 0, {
+      test.assertOverlaysRead(21, 0, {
         [key('coll/a').toString()]: MutationType.Set,
         [key('coll/b').toString()]: MutationType.Set,
         [key('coll/c').toString()]: MutationType.Set,
@@ -1687,7 +1877,8 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
         [key('coll/q').toString()]: MutationType.Set,
         [key('coll/r').toString()]: MutationType.Set,
         [key('coll/s').toString()]: MutationType.Set,
-        [key('coll/t').toString()]: MutationType.Set
+        [key('coll/t').toString()]: MutationType.Set,
+        [key('coll/u').toString()]: MutationType.Set
       });
       test.assertQueryReturned(
         query_,
@@ -1710,7 +1901,8 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
         'coll/q',
         'coll/r',
         'coll/s',
-        'coll/t'
+        'coll/t',
+        'coll/u'
       );
     });
   });
