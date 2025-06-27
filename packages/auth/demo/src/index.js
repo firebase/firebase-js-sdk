@@ -1520,15 +1520,16 @@ async function exchangeCIAMToken(token) {
 function onExchangeToken(event) {
   event.preventDefault();
   const byoCiamInput = document.getElementById('byo-ciam-token');
-  const firebaseTokenStatus = document.getElementById('firebase-token-status');
+  const byoCiamResult = document.getElementById('byo-ciam-result');
+
+  byoCiamResult.textContent = 'Exchanging token...';
 
   exchangeCIAMToken(byoCiamInput.value)
     .then(response => {
-      firebaseTokenStatus.textContent = '✅ Firebase token is set: ' + response;
+      byoCiamResult.textContent = response;
       console.log('Token:', response);
     })
     .catch(error => {
-      (firebaseTokenStatus.textContent = 'Error exchanging token: '), error;
       console.error('Error exchanging token:', error);
     });
 }
@@ -2089,18 +2090,6 @@ function initApp() {
     popupRedirectResolver: browserPopupRedirectResolver,
     tenantConfig: tenantConfig
   });
-
-  if (regionalAuth.onFirebaseTokenChanged) {
-    regionalAuth.onFirebaseTokenChanged(token => {
-      if (token) {
-        firebaseTokenStatus.textContent =
-          '✅ Firebase token is set: ' + token.token;
-      } else {
-        firebaseTokenStatus.textContent =
-          'No CIAM token found. User not logged in.';
-      }
-    });
-  }
 
   tempApp = initializeApp(
     {
