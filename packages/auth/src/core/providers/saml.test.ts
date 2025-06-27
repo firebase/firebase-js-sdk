@@ -47,8 +47,8 @@ describe('core/providers/saml', () => {
   });
 
   it('generates SAML provider', () => {
-      const provider = new SAMLAuthProvider('saml.provider');
-      expect(provider.providerId).to.eq('saml.provider');
+    const provider = new SAMLAuthProvider('saml.provider');
+    expect(provider.providerId).to.eq('saml.provider');
   });
 
   it('returns error for invalid SAML provdier', () => {
