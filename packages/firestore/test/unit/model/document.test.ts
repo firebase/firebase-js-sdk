@@ -18,6 +18,16 @@
 import { expect } from 'chai';
 
 import {
+  BsonBinaryData,
+  BsonObjectId,
+  BsonTimestamp,
+  Decimal128Value,
+  Int32Value,
+  MaxKey,
+  MinKey,
+  RegexValue
+} from '../../../src';
+import {
   doc,
   expectEqual,
   expectNotEqual,
@@ -38,6 +48,36 @@ describe('Document', () => {
       wrap({
         desc: 'Discuss all the project related stuff',
         owner: 'Jonny'
+      })
+    );
+    expect(value).not.to.equal(data);
+    expect(document.hasLocalMutations).to.equal(false);
+  });
+
+  it('can be constructed with bson types', () => {
+    const data = {
+      objectId: new BsonObjectId('foo'),
+      binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+      timestamp: new BsonTimestamp(1, 2),
+      min: MinKey.instance(),
+      max: MaxKey.instance(),
+      regex: new RegexValue('a', 'b'),
+      int32: new Int32Value(1),
+      decimal128: new Decimal128Value('1.2e3')
+    };
+    const document = doc('rooms/Eros', 1, data);
+
+    const value = document.data;
+    expect(value.value).to.deep.equal(
+      wrap({
+        objectId: new BsonObjectId('foo'),
+        binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+        timestamp: new BsonTimestamp(1, 2),
+        min: MinKey.instance(),
+        max: MaxKey.instance(),
+        regex: new RegexValue('a', 'b'),
+        int32: new Int32Value(1),
+        decimal128: new Decimal128Value('1.2e3')
       })
     );
     expect(value).not.to.equal(data);
