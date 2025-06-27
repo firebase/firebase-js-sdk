@@ -1529,7 +1529,7 @@ function onExchangeToken(event) {
     })
     .catch(error => {
       (firebaseTokenStatus.textContent = 'Error exchanging token: '), error;
-       console.error('Error exchanging token:', error);
+      console.error('Error exchanging token:', error);
     });
 }
 
@@ -2090,13 +2090,14 @@ function initApp() {
     tenantConfig: tenantConfig
   });
 
-  if (regionalAuth.onFirebaseTokenChanged) {qq
+  if (regionalAuth.onFirebaseTokenChanged) {
     regionalAuth.onFirebaseTokenChanged(token => {
       if (token) {
-        firebaseTokenStatus.textContent = '✅ Firebase token is set: ' + token.token;
+        firebaseTokenStatus.textContent =
+          '✅ Firebase token is set: ' + token.token;
       } else {
         firebaseTokenStatus.textContent =
-        'No CIAM token found. User not logged in.';
+          'No CIAM token found. User not logged in.';
       }
     });
   }
