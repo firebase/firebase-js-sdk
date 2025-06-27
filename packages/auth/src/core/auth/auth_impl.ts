@@ -107,6 +107,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   private redirectPersistenceManager?: PersistenceUserManager;
   private authStateSubscription = new Subscription<User>(this);
   private idTokenSubscription = new Subscription<User>(this);
+  private firebaseTokenSubscription = new Subscription<FirebaseToken>(this);
   private readonly beforeStateQueue = new AuthMiddlewareQueue(this);
   private redirectUser: UserInternal | null = null;
   private isProactiveRefreshEnabled = false;
@@ -195,6 +196,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       }
 
       await this.initializeCurrentUser(popupRedirectResolver);
+      await this.initializeFirebaseToken();
 
       this.lastNotifiedUid = this.currentUser?.uid || null;
 
@@ -403,6 +405,12 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     return this.directlySetCurrentUser(user);
   }
 
+  private async initializeFirebaseToken(): Promise<void> {
+    this.firebaseToken =
+      (await this.persistenceManager?.getFirebaseToken()) ?? null;
+    this.firebaseTokenSubscription.next(this.firebaseToken);
+  }
+
   useDeviceLanguage(): void {
     this.languageCode = _getUserLanguage();
   }
@@ -461,6 +469,12 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     firebaseToken: FirebaseToken | null
   ): Promise<void> {
     this.firebaseToken = firebaseToken;
+    this.firebaseTokenSubscription.next(firebaseToken);
+    if (firebaseToken) {
+      await this.assertedPersistence.setFirebaseToken(firebaseToken);
+    } else {
+      await this.assertedPersistence.removeFirebaseToken();
+    }
   }
 
   async signOut(): Promise<void> {
@@ -575,6 +589,29 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       error,
       completed
     );
+  }
+
+  onFirebaseTokenChanged(
+    nextOrObserver: NextOrObserver<FirebaseToken | null>,
+    error?: ErrorFn,
+    completed?: CompleteFn
+  ): Unsubscribe {
+    if (typeof nextOrObserver === 'function') {
+      const unsubscribe = this.firebaseTokenSubscription.addObserver(
+        nextOrObserver,
+        error,
+        completed
+      );
+      return () => {
+        unsubscribe();
+      };
+    } else {
+      const unsubscribe =
+        this.firebaseTokenSubscription.addObserver(nextOrObserver);
+      return () => {
+        unsubscribe();
+      };
+    }
   }
 
   beforeAuthStateChanged(
