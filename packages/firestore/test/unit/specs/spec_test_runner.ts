@@ -282,7 +282,8 @@ abstract class TestRunner {
       /*forceLongPolling=*/ false,
       /*autoDetectLongPolling=*/ false,
       /*longPollingOptions=*/ {},
-      /*useFetchStreams=*/ false
+      /*useFetchStreams=*/ false,
+      /*isUsingEmulator=*/ false
     );
 
     // TODO(mrschmidt): During client startup in `firestore_client`, we block
@@ -364,8 +365,14 @@ abstract class TestRunner {
     this.eventManager.onLastRemoteStoreUnlisten =
       triggerRemoteStoreUnlisten.bind(null, this.syncEngine);
 
-    await this.persistence.setDatabaseDeletedListener(async () => {
-      await this.shutdown();
+    this.persistence.setDatabaseDeletedListener(() => {
+      this.shutdown().catch(error => {
+        console.warn(
+          'WARNING: this.shutdown() failed in callback ' +
+            'specified to persistence.setDatabaseDeletedListener',
+          error
+        );
+      });
     });
 
     this.started = true;
@@ -477,7 +484,7 @@ abstract class TestRunner {
         ? this.doFailDatabase(step.failDatabase!)
         : this.doRecoverDatabase();
     } else {
-      return fail('Unknown step: ' + JSON.stringify(step));
+      return fail(0x6bb3, 'Unknown step: ' + JSON.stringify(step));
     }
   }
 
@@ -724,7 +731,7 @@ abstract class TestRunner {
       );
       return this.doWatchEvent(change);
     } else {
-      return fail('Either doc or docs must be set');
+      return fail(0xdcc3, 'Either doc or docs must be set');
     }
   }
 

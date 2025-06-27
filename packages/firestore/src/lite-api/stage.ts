@@ -322,6 +322,7 @@ export class Limit implements Stage {
   constructor(readonly limit: number) {
     hardAssert(
       !isNaN(limit) && limit !== Infinity && limit !== -Infinity,
+      0x882c,
       'Invalid limit value'
     );
   }
@@ -449,7 +450,7 @@ export class Unnest implements Stage {
 
     if (this.indexField) {
       stageProto.options = {
-        index_field: this.indexField._toProto(serializer)
+        ['index_field']: this.indexField._toProto(serializer)
       };
     }
 

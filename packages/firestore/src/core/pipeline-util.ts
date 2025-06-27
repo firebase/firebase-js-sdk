@@ -135,7 +135,7 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
           }
         }
         default:
-          fail('Unexpected operator');
+          fail(0x9047, 'Unexpected operator');
       }
     }
   } else if (f instanceof CompositeFilterInternal) {
@@ -149,7 +149,7 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
         return or(conditions[0], conditions[1], ...conditions.slice(2));
       }
       default:
-        fail('Unexpected operator');
+        fail(0x89ea, 'Unexpected operator');
     }
   }
 

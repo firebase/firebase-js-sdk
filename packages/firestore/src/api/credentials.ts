@@ -207,7 +207,9 @@ export class LiteAuthCredentialsProvider implements CredentialsProvider<User> {
       if (tokenData) {
         hardAssert(
           typeof tokenData.accessToken === 'string',
-          'Invalid tokenData returned from getToken():' + tokenData
+          0xa539,
+          'Invalid tokenData returned from getToken()',
+          { tokenData }
         );
         return new OAuthToken(
           tokenData.accessToken,
@@ -259,6 +261,7 @@ export class FirebaseAuthCredentialsProvider
   ): void {
     hardAssert(
       this.tokenListener === undefined,
+      0xa540,
       'Token listener already added'
     );
     let lastTokenId = this.tokenCounter;
@@ -357,7 +360,9 @@ export class FirebaseAuthCredentialsProvider
         if (tokenData) {
           hardAssert(
             typeof tokenData.accessToken === 'string',
-            'Invalid tokenData returned from getToken():' + tokenData
+            0x7c5d,
+            'Invalid tokenData returned from getToken()',
+            { tokenData }
           );
           return new OAuthToken(tokenData.accessToken, this.currentUser);
         } else {
@@ -386,7 +391,9 @@ export class FirebaseAuthCredentialsProvider
     const currentUid = this.auth && this.auth.getUid();
     hardAssert(
       currentUid === null || typeof currentUid === 'string',
-      'Received invalid UID: ' + currentUid
+      0x0807,
+      'Received invalid UID',
+      { currentUid }
     );
     return new User(currentUid);
   }
@@ -513,6 +520,7 @@ export class FirebaseAppCheckTokenProvider
   ): void {
     hardAssert(
       this.tokenListener === undefined,
+      0x0db8,
       'Token listener already added'
     );
 
@@ -588,7 +596,9 @@ export class FirebaseAppCheckTokenProvider
       if (tokenResult) {
         hardAssert(
           typeof tokenResult.token === 'string',
-          'Invalid tokenResult returned from getToken():' + tokenResult
+          0xae0e,
+          'Invalid tokenResult returned from getToken()',
+          { tokenResult }
         );
         this.latestAppCheckToken = tokenResult.token;
         return new AppCheckToken(tokenResult.token);
@@ -659,7 +669,9 @@ export class LiteAppCheckTokenProvider implements CredentialsProvider<string> {
       if (tokenResult) {
         hardAssert(
           typeof tokenResult.token === 'string',
-          'Invalid tokenResult returned from getToken():' + tokenResult
+          0x0d8e,
+          'Invalid tokenResult returned from getToken()',
+          { tokenResult }
         );
         return new AppCheckToken(tokenResult.token);
       } else {

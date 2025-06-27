@@ -98,6 +98,8 @@ export interface ReferenceDelegate {
   ): PersistencePromise<void>;
 }
 
+export type DatabaseDeletedListener = () => void;
+
 /**
  * Persistence is the lowest-level shared interface to persistent storage in
  * Firestore.
@@ -151,13 +153,23 @@ export interface Persistence {
   shutdown(): Promise<void>;
 
   /**
-   * Registers a listener that gets called when the database receives a
-   * version change event indicating that it has deleted.
+   * Registers a listener that gets called when the underlying database receives
+   * an event indicating that it either has been deleted or is pending deletion
+   * and must be closed.
+   *
+   * For example, this callback will be called in the case that multi-tab
+   * IndexedDB persistence is in use and another tab calls
+   * clearIndexedDbPersistence(). In that case, this Firestore instance must
+   * close its IndexedDB connection in order to allow the deletion initiated by
+   * the other tab to proceed.
+   *
+   * This method may only be called once; subsequent invocations will result in
+   * an exception, refusing to supersede the previously-registered listener.
    *
    * PORTING NOTE: This is only used for Web multi-tab.
    */
   setDatabaseDeletedListener(
-    databaseDeletedListener: () => Promise<void>
+    databaseDeletedListener: DatabaseDeletedListener
   ): void;
 
   /**

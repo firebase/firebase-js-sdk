@@ -256,7 +256,7 @@ describe('Query', () => {
     document = doc('collection/1', 0, {
       zip: null
     });
-    expect(queryMatches(query1, document)).to.be.true;
+    expect(queryMatches(query1, document)).to.be.false;
 
     // NaN match.
     document = doc('collection/1', 0, {
@@ -354,7 +354,7 @@ describe('Query', () => {
     expect(queryMatches(query2, doc3)).to.equal(true);
     expect(queryMatches(query2, doc4)).to.equal(true);
     expect(queryMatches(query2, doc5)).to.equal(true);
-    expect(queryMatches(query2, doc6)).to.equal(true);
+    expect(queryMatches(query2, doc6)).to.equal(false);
   });
 
   it('matches null for filters', () => {

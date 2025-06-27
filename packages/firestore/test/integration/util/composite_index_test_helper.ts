@@ -162,10 +162,12 @@ export class CompositeIndexTestHelper {
   // the same as running it while offline. The expected document Ids are hashed to match the
   // actual document IDs created by the test helper.
   async assertOnlineAndOfflineResultsMatch(
+    collection: CollectionReference,
     query: Query,
     ...expectedDocs: string[]
   ): Promise<void> {
     return checkOnlineAndOfflineResultsMatch(
+      this.query(collection),
       query,
       ...this.toHashedIds(expectedDocs)
     );

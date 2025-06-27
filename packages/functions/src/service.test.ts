@@ -47,6 +47,15 @@ describe('Firebase Functions > Service', () => {
         'http://localhost:5005/my-project/us-central1/foo'
       );
     });
+    it('can use emulator with SSL', () => {
+      service = createTestService(app);
+      const workstationHost = 'abc.cloudworkstations.dev';
+      connectFunctionsEmulator(service, workstationHost, 5005);
+      assert.equal(
+        service._url('foo'),
+        `https://${workstationHost}:5005/my-project/us-central1/foo`
+      );
+    });
 
     it('correctly sets region', () => {
       service = createTestService(app, 'my-region');

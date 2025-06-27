@@ -59,8 +59,9 @@ import { JsonProtoSerializer } from '../remote/serializer';
 import { debugAssert } from '../util/assert';
 import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
-import { BundleReader } from '../util/bundle_reader';
+import { BundleReader, BundleReaderSync } from '../util/bundle_reader';
 import { newBundleReader } from '../util/bundle_reader_impl';
+import { newBundleReaderSync } from '../util/bundle_reader_sync_impl';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logWarn } from '../util/log';
 import { AutoId } from '../util/misc';
@@ -236,11 +237,23 @@ export async function setOfflineComponentProvider(
     }
   });
 
-  // When a user calls clearPersistence() in one client, all other clients
-  // need to be terminated to allow the delete to succeed.
-  offlineComponentProvider.persistence.setDatabaseDeletedListener(() =>
-    client.terminate()
-  );
+  offlineComponentProvider.persistence.setDatabaseDeletedListener(() => {
+    logWarn('Terminating Firestore due to IndexedDb database deletion');
+    client
+      .terminate()
+      .then(() => {
+        logDebug(
+          'Terminating Firestore due to IndexedDb database deletion ' +
+            'completed successfully'
+        );
+      })
+      .catch(error => {
+        logWarn(
+          'Terminating Firestore due to IndexedDb database deletion failed',
+          error
+        );
+      });
+  });
 
   client._offlineComponents = offlineComponentProvider;
 }
@@ -345,7 +358,7 @@ async function ensureOfflineComponents(
   return client._offlineComponents!;
 }
 
-async function ensureOnlineComponents(
+export async function ensureOnlineComponents(
   client: FirestoreClient
 ): Promise<OnlineComponentProvider> {
   if (!client._onlineComponents) {
@@ -842,6 +855,13 @@ function createBundleReader(
     content = data;
   }
   return newBundleReader(toByteStreamReader(content), serializer);
+}
+
+export function createBundleReaderSync(
+  bundleData: string,
+  serializer: JsonProtoSerializer
+): BundleReaderSync {
+  return newBundleReaderSync(bundleData, serializer);
 }
 
 export function firestoreClientSetIndexConfiguration(
