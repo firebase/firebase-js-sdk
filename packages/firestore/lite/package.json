@@ -9,6 +9,6 @@
   "typings": "../dist/lite/index.d.ts",
   "private": true,
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=20.0.0"
   }
 }

@@ -2,7 +2,7 @@
   "name": "@firebase/firestore",
   "version": "4.7.17",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=20.0.0"
   },
   "description": "The Cloud Firestore component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
