@@ -408,7 +408,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   private async initializeFirebaseToken(): Promise<void> {
     this.firebaseToken =
       (await this.persistenceManager?.getFirebaseToken()) ?? null;
-      this.firebaseTokenSubscription.next(this.firebaseToken);
+    this.firebaseTokenSubscription.next(this.firebaseToken);
   }
 
   useDeviceLanguage(): void {
@@ -606,7 +606,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         unsubscribe();
       };
     } else {
-      const unsubscribe = this.firebaseTokenSubscription.addObserver(nextOrObserver);
+      const unsubscribe =
+        this.firebaseTokenSubscription.addObserver(nextOrObserver);
       return () => {
         unsubscribe();
       };
