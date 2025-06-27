@@ -270,7 +270,7 @@ export function isBrowserExtension(): boolean;
 export function isCloudflareWorker(): boolean;
 
 // @public
-export function isCloudWorkstation(host: string): boolean;
+export function isCloudWorkstation(url: string): boolean;
 
 // Warning: (ae-missing-release-tag) "isElectron" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -316,6 +316,11 @@ export function isReactNative(): boolean;
 //
 // @public
 export function isSafari(): boolean;
+
+// Warning: (ae-missing-release-tag) "isSafariOrWebkit" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export function isSafariOrWebkit(): boolean;
 
 // Warning: (ae-missing-release-tag) "issuedAtTime" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -481,6 +486,9 @@ export interface Subscribe<T> {
 //
 // @public (undocumented)
 export type Unsubscribe = () => void;
+
+// @public
+export function updateEmulatorBanner(name: string, isRunningEmulator: boolean): void;
 
 // Warning: (ae-missing-release-tag) "validateArgCount" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { isSafariOrWebkit } from '@firebase/util';
+
 import { User } from '../auth/user';
 import { ListenSequence } from '../core/listen_sequence';
 import { SnapshotVersion } from '../core/snapshot_version';
@@ -275,6 +277,22 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       p = p.next(() => {
         createGlobalsStore(db);
       });
+    }
+
+    if (fromVersion < 18 && toVersion >= 18) {
+      // Clear the IndexEntryStores on WebKit and Safari to remove possibly
+      // corrupted index entries
+      if (isSafariOrWebkit()) {
+        p = p
+          .next(() => {
+            const indexStateStore = txn.objectStore(DbIndexStateStore);
+            indexStateStore.clear();
+          })
+          .next(() => {
+            const indexEntryStore = txn.objectStore(DbIndexEntryStore);
+            indexEntryStore.clear();
+          });
+      }
     }
 
     return p;
