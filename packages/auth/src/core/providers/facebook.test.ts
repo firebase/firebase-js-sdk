@@ -120,4 +120,16 @@ describe('core/providers/facebook', () => {
     // Restore original method
     FacebookAuthProvider.credential = original;
   });
+
+  it('returns null when error.customData is undefined (falls back to empty object)', () => {
+    const error = _createError(AuthErrorCode.NEED_CONFIRMATION, {
+      appName: 'foo'
+    });
+
+    // Don't set `customData` at all → fallback to {}
+    delete (error as any).customData;
+
+    const cred = FacebookAuthProvider.credentialFromError(error);
+    expect(cred).to.be.null;
+  });
 });
