@@ -36,9 +36,9 @@ describe('core/providers/github', () => {
   });
 
   it('generates Github provider', () => {
-      const provider = new GithubAuthProvider();
-      expect(provider.providerId).to.eq(ProviderId.GITHUB);
-    });
+    const provider = new GithubAuthProvider();
+    expect(provider.providerId).to.eq(ProviderId.GITHUB);
+  });
 
   it('credentialFromResult creates the cred from a tagged result', async () => {
     const auth = await testAuth();
