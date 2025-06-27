@@ -171,16 +171,181 @@ export interface Citation {
 }
 
 /**
- * Metadata returned to client when grounding is enabled.
+ * Metadata returned when grounding is enabled.
+ *
+ * Currently, the only way to use grounding is to include a {@link GoogleSearchTool} in your {@link GenerationConfig}.
+ *
+ * Important: If using Grounding with Google Search, you are required to comply with the
+ * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+ *
  * @public
  */
 export interface GroundingMetadata {
+  /**
+   * Google search entry point for web searches.
+   * This contains An HTML/CSS snippet that *must* be embedded in an app to display a Google Search Entry point
+   * for follow-up web searches related to the model's "Grounded Response".
+   *
+   * Important: If using Grounding with Google Search, you are required to comply with the
+   * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+   */
+  searchEntryPoint?: SearchEntrypoint;
+  /**
+   * A list of {@link GroundingChunk} objects. Each chunk represents a piece of retrieved content
+   * (e.g. from a web page). that the model used to ground its response.
+   *
+   * Important: If using Grounding with Google Search, you are required to comply with the
+   * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+   */
+  groundingChunks?: GroundingChunk[];
+  /**
+   * A list of {@link GroundingSupport} objects. Each object details how specific
+   * segments of the model's response are supported by the `groundingChunks`.
+   *
+   * Important: If using Grounding with Google Search, you are required to comply with the
+   * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+   */
+  groundingSupports?: GroundingSupport[];
+  /**
+   * A list of web search queries that the model performed to gather the grounding information.
+   * These can be used to allow users to explore the search results themselves.
+   *
+   * Important: If using Grounding with Google Search, you are required to comply with the
+   * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+   */
   webSearchQueries?: string[];
+  /**
+   * @deprecated Use {@link GroundingSupport} instead.
+   */
   retrievalQueries?: string[];
   /**
-   * @deprecated
+   * @deprecated Use {@link GroundingChunk} instead.
    */
   groundingAttributions: GroundingAttribution[];
+}
+
+/**
+ * Google search entry point.
+ *
+ * Important: If using Grounding with Google Search, you are required to comply with the
+ * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+ *
+ * @public
+ */
+export interface SearchEntrypoint {
+  /**
+   * HTML/CSS snippet that can be embedded in a web page. The snippet is designed to avoid undesired
+   * interaction with the rest of the page's CSS.
+   *
+   * To ensure proper rendering and prevent CSS conflicts, it is recommended
+   * to encapsulate this `renderedContent` within a shadow DOM when embedding it
+   * into a webpage. See {@link https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM | MDN: Using shadow DOM}.
+   *
+   * @example
+   * ```javascript
+   * const container = document.createElement('div');
+   * document.body.appendChild(container);
+   * container.attachShadow({ mode: 'open' }).innerHTML = renderedContent;
+   * ```
+   */
+  renderedContent?: string;
+}
+
+/**
+ * Represents a chunk of retrieved data that supports a claim in the model's response.
+ * This is part of the grounding information provided when grounding is enabled.
+ *
+ * Important: If using Grounding with Google Search, you are required to comply with the
+ * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+ *
+ * @public
+ */
+export interface GroundingChunk {
+  /**
+   * Contains details if the grounding chunk is from a web source.
+   */
+  web?: WebGroundingChunk;
+}
+
+/**
+ * A grounding chunk from the web.
+ *
+ * Important: If using Grounding with Google Search, you are required to comply with the
+ * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+ *
+ * @public
+ */
+export interface WebGroundingChunk {
+  /**
+   * The URI of the retrieved web page.
+   */
+  uri?: string;
+  /**
+   * The title of the retrieved web page.
+   */
+  title?: string;
+  /**
+   * The domain of the original URI from which the content was retrieved (e.g., `example.com`).
+   *
+   * This property is only supported in the Vertex AI Gemini API ({@link VertexAIBackend}).
+   * When using the Gemini Developer API ({@link GoogleAIBackend}), this property will be undefined.
+   */
+  domain?: string;
+}
+
+/**
+ * Provides information about how a specific segment of the model's response
+ * is supported by the retrieved grounding chunks.
+ *
+ * Important: If using Grounding with Google Search, you are required to comply with the
+ * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+ *
+ * @public
+ */
+export interface GroundingSupport {
+  /**
+   * Specifies the segment of the model's response content that this grounding support pertains to.
+   */
+  segment?: Segment;
+  /**
+   * A list of indices that refer to specific {@link GroundingChunk} objects within the
+   * {@link GroundingMetadata.groundingChunks} array. These referenced chunks
+   * are the sources that support the claim made in the associated `segment` of the response.
+   * For example, an array `[1, 3, 4]` means that `groundingChunks[1]`, `groundingChunks[3]`,
+   * and `groundingChunks[4]` are the retrieved content supporting this part of the response.
+   */
+  groundingChunkIndices?: number[];
+}
+
+/**
+ * Represents a specific segment within a {@link Content} object, often used to
+ * pinpoint the exact location of text or data that grounding information refers to.
+ *
+ * @public
+ */
+export interface Segment {
+  /**
+   * The zero-based index of the {@link Part} object within the `parts` array
+   * of its parent {@link Content} object. This identifies which part of the
+   * content the segment belongs to.
+   */
+  partIndex: number;
+  /**
+   * The zero-based start index of the segment within the specified `Part`,
+   * measured in UTF-8 bytes. This offset is inclusive, starting from 0 at the
+   * beginning of the part's content (e.g., `Part.text`).
+   */
+  startIndex: number;
+  /**
+   * The zero-based end index of the segment within the specified `Part`,
+   * measured in UTF-8 bytes. This offset is exclusive, meaning the character
+   * at this index is not included in the segment.
+   */
+  endIndex: number;
+  /**
+   * The text corresponding to the segment from the response.
+   */
+  text: string;
 }
 
 /**
@@ -192,15 +357,6 @@ export interface GroundingAttribution {
   confidenceScore?: number;
   web?: WebAttribution;
   retrievedContext?: RetrievedContextAttribution;
-}
-
-/**
- * @public
- */
-export interface Segment {
-  partIndex: number;
-  startIndex: number;
-  endIndex: number;
 }
 
 /**
