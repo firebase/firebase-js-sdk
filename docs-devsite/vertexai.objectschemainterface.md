@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ObjectSchemaInterface interface
-Interface for <code>[ObjectSchema](./vertexai.objectschema.md#objectschema_class)</code> class.
+Interface for [ObjectSchema](./vertexai.objectschema.md#objectschema_class) class.
 
 <b>Signature:</b>
 

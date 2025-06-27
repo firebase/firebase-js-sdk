@@ -414,6 +414,7 @@ describe('request methods', () => {
   });
   it('Network error, API not enabled', async () => {
     const mockResponse = getMockResponse(
+      'vertexAI',
       'unary-failure-firebasevertexai-api-not-enabled.json'
     );
     const fetchStub = stub(globalThis, 'fetch').resolves(

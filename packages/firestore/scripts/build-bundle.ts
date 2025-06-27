@@ -24,18 +24,20 @@ const typescriptPlugin = require('rollup-plugin-typescript2');
 
 const util = require('../rollup.shared');
 
-const argv = yargs.options({
-  input: {
-    type: 'string',
-    demandOption: true,
-    desc: 'The location of the index.ts file'
-  },
-  output: {
-    type: 'string',
-    demandOption: true,
-    desc: 'The location for the transpiled JavaScript bundle'
-  }
-}).parseSync();
+const argv = yargs
+  .options({
+    input: {
+      type: 'string',
+      demandOption: true,
+      desc: 'The location of the index.ts file'
+    },
+    output: {
+      type: 'string',
+      demandOption: true,
+      desc: 'The location for the transpiled JavaScript bundle'
+    }
+  })
+  .parseSync();
 
 /**
  * Builds an ESM bundle for the TypeScript file at `index` and writes it the

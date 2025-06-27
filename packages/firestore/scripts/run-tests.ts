@@ -20,32 +20,34 @@ import { resolve } from 'path';
 import { spawn } from 'child-process-promise';
 import * as yargs from 'yargs';
 
-const argv = yargs.options({
-  main: {
-    type: 'string',
-    demandOption: true
-  },
-  platform: {
-    type: 'string',
-    default: 'node'
-  },
-  emulator: {
-    type: 'boolean'
-  },
-  persistence: {
-    type: 'boolean'
-  },
-  databaseId: {
-    type: 'string'
-  }
-}).parseSync();
+const argv = yargs
+  .options({
+    main: {
+      type: 'string',
+      demandOption: true
+    },
+    platform: {
+      type: 'string',
+      default: 'node'
+    },
+    emulator: {
+      type: 'boolean'
+    },
+    persistence: {
+      type: 'boolean'
+    },
+    databaseId: {
+      type: 'string'
+    }
+  })
+  .parseSync();
 
 const nyc = resolve(__dirname, '../../../node_modules/.bin/nyc');
 const mocha = resolve(__dirname, '../../../node_modules/.bin/mocha');
 const babel = resolve(__dirname, '../babel-register.js');
 
 // used in '../../config/mocharc.node.js' to disable ts-node
-process.env.NO_TS_NODE = "true";
+process.env.NO_TS_NODE = 'true';
 process.env.TEST_PLATFORM = argv.platform;
 
 let args = [

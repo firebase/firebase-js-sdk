@@ -67,7 +67,8 @@ describe('RestConnection', () => {
     /*forceLongPolling=*/ false,
     /*autoDetectLongPolling=*/ false,
     /*longPollingOptions=*/ {},
-    /*useFetchStreams=*/ false
+    /*useFetchStreams=*/ false,
+    /*isUsingEmulator=*/ false
   );
   const connection = new TestRestConnection(testDatabaseInfo);
 

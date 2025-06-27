@@ -71,7 +71,8 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
     private timeout_: number,
     private progressCallback_: ((p1: number, p2: number) => void) | null,
     private connectionFactory_: () => Connection<I>,
-    private retry = true
+    private retry = true,
+    private isUsingEmulator = false
   ) {
     this.promise_ = new Promise((resolve, reject) => {
       this.resolve_ = resolve as (value?: O | PromiseLike<O>) => void;
@@ -111,7 +112,13 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
       // connection.send() never rejects, so we don't need to have a error handler or use catch on the returned promise.
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       connection
-        .send(this.url_, this.method_, this.body_, this.headers_)
+        .send(
+          this.url_,
+          this.method_,
+          this.isUsingEmulator,
+          this.body_,
+          this.headers_
+        )
         .then(() => {
           if (this.progressCallback_ !== null) {
             connection.removeUploadProgressListener(progressListener);
@@ -261,7 +268,8 @@ export function makeRequest<I extends ConnectionType, O>(
   appCheckToken: string | null,
   requestFactory: () => Connection<I>,
   firebaseVersion?: string,
-  retry = true
+  retry = true,
+  isUsingEmulator = false
 ): Request<O> {
   const queryPart = makeQueryString(requestInfo.urlParams);
   const url = requestInfo.url + queryPart;
@@ -282,6 +290,7 @@ export function makeRequest<I extends ConnectionType, O>(
     requestInfo.timeout,
     requestInfo.progressCallback,
     requestFactory,
-    retry
+    retry,
+    isUsingEmulator
   );
 }

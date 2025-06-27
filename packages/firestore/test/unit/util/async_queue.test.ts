@@ -139,7 +139,7 @@ describe('AsyncQueue', () => {
         Promise.reject('dummyOp should not be run');
       expect(() => {
         queue.enqueueAndForget(dummyOp);
-      }).to.throw(/already failed:.*Simulated Error/);
+      }).to.throw(/already failed.*Simulated Error/);
 
       // Finally, restore log level.
       setLogLevel(oldLogLevel as unknown as LogLevelString);
@@ -247,7 +247,7 @@ describe('AsyncQueue', () => {
     const deferred = new Deferred<void>();
     queue.enqueueRetryable(async () => {
       deferred.resolve();
-      throw fail('Simulated test failure');
+      throw fail(0x1576, 'Simulated test failure');
     });
     await deferred.promise;
     await expect(

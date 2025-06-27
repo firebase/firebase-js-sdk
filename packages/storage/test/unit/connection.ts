@@ -60,6 +60,7 @@ export class TestingConnection implements Connection<string> {
   send(
     url: string,
     method: string,
+    _isUsingEmulator: boolean,
     body?: ArrayBufferView | Blob | string | null,
     headers?: Headers
   ): Promise<void> {

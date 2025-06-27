@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # SchemaInterface interface
-Interface for <code>[Schema](./vertexai.schema.md#schema_class)</code> class.
+Interface for [Schema](./vertexai.schema.md#schema_class) class.
 
 <b>Signature:</b>
 

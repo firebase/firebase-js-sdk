@@ -111,7 +111,7 @@ export function validateChatHistory(history: Content[]): void {
       if (!validPreviousContentRoles.includes(prevContent.role)) {
         throw new VertexAIError(
           VertexAIErrorCode.INVALID_CONTENT,
-          `Content with role '${role} can't follow '${
+          `Content with role '${role}' can't follow '${
             prevContent.role
           }'. Valid previous roles: ${JSON.stringify(
             VALID_PREVIOUS_CONTENT_ROLES

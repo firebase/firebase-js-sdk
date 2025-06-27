@@ -128,7 +128,7 @@ export function valueDescription(input: unknown): string {
   } else if (typeof input === 'function') {
     return 'a function';
   } else {
-    return fail('Unknown wrong type: ' + typeof input);
+    return fail(0x3029, 'Unknown wrong type', { type: typeof input });
   }
 }
 

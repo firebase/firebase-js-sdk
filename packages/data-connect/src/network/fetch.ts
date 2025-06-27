@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { isCloudWorkstation } from '@firebase/util';
+
 import {
   Code,
   DataConnectError,
@@ -22,7 +24,7 @@ import {
   DataConnectOperationFailureResponse
 } from '../core/error';
 import { SDK_VERSION } from '../core/version';
-import { logDebug, logError } from '../logger';
+import { logError } from '../logger';
 
 import { CallerSdkType, CallerSdkTypeEnum } from './transport';
 
@@ -58,7 +60,8 @@ export function dcFetch<T, U>(
   accessToken: string | null,
   appCheckToken: string | null,
   _isUsingGen: boolean,
-  _callerSdkType: CallerSdkType
+  _callerSdkType: CallerSdkType,
+  _isUsingEmulator: boolean
 ): Promise<{ data: T; errors: Error[] }> {
   if (!connectFetch) {
     throw new DataConnectError(Code.OTHER, 'No Fetch Implementation detected!');
@@ -77,14 +80,17 @@ export function dcFetch<T, U>(
     headers['X-Firebase-AppCheck'] = appCheckToken;
   }
   const bodyStr = JSON.stringify(body);
-  logDebug(`Making request out to ${url} with body: ${bodyStr}`);
-
-  return connectFetch(url, {
+  const fetchOptions: RequestInit = {
     body: bodyStr,
     method: 'POST',
     headers,
     signal
-  })
+  };
+  if (isCloudWorkstation(url) && _isUsingEmulator) {
+    fetchOptions.credentials = 'include';
+  }
+
+  return connectFetch(url, fetchOptions)
     .catch(err => {
       throw new DataConnectError(
         Code.OTHER,

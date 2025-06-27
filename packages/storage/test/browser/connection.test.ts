@@ -24,11 +24,27 @@ describe('Connections', () => {
   it('XhrConnection.send() should not reject on network errors', async () => {
     const fakeXHR = useFakeXMLHttpRequest();
     const connection = new XhrBytesConnection();
-    const sendPromise = connection.send('testurl', 'GET');
+    const sendPromise = connection.send('testurl', 'GET', false);
     // simulate a network error
     ((connection as any).xhr_ as SinonFakeXMLHttpRequest).error();
     await sendPromise;
     expect(connection.getErrorCode()).to.equal(ErrorCode.NETWORK_ERROR);
+    fakeXHR.restore();
+  });
+  it('XhrConnection.send() should send credentials when using cloud workstation', async () => {
+    const fakeXHR = useFakeXMLHttpRequest();
+    const connection = new XhrBytesConnection();
+    const sendPromise = connection.send(
+      'https://abc.cloudworkstations.dev',
+      'GET',
+      true
+    );
+    // simulate a network error
+    ((connection as any).xhr_ as SinonFakeXMLHttpRequest).error();
+    await sendPromise;
+    expect(
+      ((connection as any).xhr_ as SinonFakeXMLHttpRequest).withCredentials
+    ).to.be.true;
     fakeXHR.restore();
   });
 });

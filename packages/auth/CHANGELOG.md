@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 1.10.1
+
+### Patch Changes
+
+- [`1363ecc`](https://github.com/firebase/firebase-js-sdk/commit/1363ecc533de0ba5bfcae206a831acc33f9020a6) [#8912](https://github.com/firebase/firebase-js-sdk/pull/8912) - Fixed: `ActionCodeURL` not populating `languageCode` from the url.
+
 ## 1.10.0
 
 ### Minor Changes

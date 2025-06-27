@@ -18,7 +18,7 @@
 import { ImagenImageFormat } from '../../requests/imagen-image-format';
 
 /**
- * Parameters for configuring an <code>{@link ImagenModel}</code>.
+ * Parameters for configuring an {@link ImagenModel}.
  *
  * @beta
  */
@@ -64,20 +64,20 @@ export interface ImagenGenerationConfig {
    * The number of images to generate. The default value is 1.
    *
    * The number of sample images that may be generated in each request depends on the model
-   * (typically up to 4); see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen"><code>sampleCount</code></a>
+   * (typically up to 4); see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen">sampleCount</a>
    * documentation for more details.
    */
   numberOfImages?: number;
   /**
    * The aspect ratio of the generated images. The default value is square 1:1.
-   * Supported aspect ratios depend on the Imagen model, see <code>{@link ImagenAspectRatio}</code>
+   * Supported aspect ratios depend on the Imagen model, see {@link ImagenAspectRatio}
    * for more details.
    */
   aspectRatio?: ImagenAspectRatio;
   /**
    * The image format of the generated images. The default is PNG.
    *
-   * See <code>{@link ImagenImageFormat}</code> for more details.
+   * See {@link ImagenImageFormat} for more details.
    */
   imageFormat?: ImagenImageFormat;
   /**
@@ -86,7 +86,7 @@ export interface ImagenGenerationConfig {
    * If set to `true`, an invisible SynthID watermark is embedded in generated images to indicate
    * that they are AI generated. If set to `false`, watermarking will be disabled.
    *
-   * For Imagen 3 models, the default value is `true`; see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen"><code>addWatermark</code></a>
+   * For Imagen 3 models, the default value is `true`; see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen">addWatermark</a>
    * documentation for more details.
    */
   addWatermark?: boolean;
@@ -129,7 +129,7 @@ export enum ImagenSafetyFilterLevel {
 /**
  * A filter level controlling whether generation of images containing people or faces is allowed.
  *
- * See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images"><code>personGeneration</code></a>
+ * See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a>
  * documentation for more details.
  *
  * @beta
@@ -181,7 +181,7 @@ export interface ImagenSafetySettings {
  * Aspect ratios for Imagen images.
  *
  * To specify an aspect ratio for generated images, set the `aspectRatio` property in your
- * <code>{@link ImagenGenerationConfig}</code>.
+ * {@link ImagenGenerationConfig}.
  *
  * See the the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
  * for more details and examples of the supported aspect ratios.

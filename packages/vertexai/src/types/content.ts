@@ -82,7 +82,7 @@ export interface VideoMetadata {
 }
 
 /**
- * Content part interface if the part represents a <code>{@link FunctionCall}</code>.
+ * Content part interface if the part represents a {@link FunctionCall}.
  * @public
  */
 export interface FunctionCallPart {
@@ -93,7 +93,7 @@ export interface FunctionCallPart {
 }
 
 /**
- * Content part interface if the part represents <code>{@link FunctionResponse}</code>.
+ * Content part interface if the part represents {@link FunctionResponse}.
  * @public
  */
 export interface FunctionResponsePart {
@@ -104,7 +104,7 @@ export interface FunctionResponsePart {
 }
 
 /**
- * Content part interface if the part represents <code>{@link FileData}</code>
+ * Content part interface if the part represents {@link FileData}
  * @public
  */
 export interface FileDataPart {
@@ -116,7 +116,7 @@ export interface FileDataPart {
 }
 
 /**
- * A predicted <code>{@link FunctionCall}</code> returned from the model
+ * A predicted {@link FunctionCall} returned from the model
  * that contains a string representing the {@link FunctionDeclaration.name}
  * and a structured JSON object containing the parameters and their values.
  * @public
@@ -127,11 +127,11 @@ export interface FunctionCall {
 }
 
 /**
- * The result output from a <code>{@link FunctionCall}</code> that contains a string
+ * The result output from a {@link FunctionCall} that contains a string
  * representing the {@link FunctionDeclaration.name}
  * and a structured JSON object containing any output
  * from the function is used as context to the model.
- * This should contain the result of a <code>{@link FunctionCall}</code>
+ * This should contain the result of a {@link FunctionCall}
  * made based on model prediction.
  * @public
  */

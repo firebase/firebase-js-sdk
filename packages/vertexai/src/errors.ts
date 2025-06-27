@@ -28,7 +28,7 @@ export class VertexAIError extends FirebaseError {
   /**
    * Constructs a new instance of the `VertexAIError` class.
    *
-   * @param code - The error code from <code>{@link VertexAIErrorCode}</code>.
+   * @param code - The error code from {@link VertexAIErrorCode}.
    * @param message - A human-readable message describing the error.
    * @param customErrorData - Optional error data.
    */

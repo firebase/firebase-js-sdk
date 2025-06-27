@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # GenerateContentCandidate interface
-A candidate returned as part of a <code>[GenerateContentResponse](./vertexai.generatecontentresponse.md#generatecontentresponse_interface)</code>.
+A candidate returned as part of a [GenerateContentResponse](./vertexai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->.
 
 <b>Signature:</b>
 

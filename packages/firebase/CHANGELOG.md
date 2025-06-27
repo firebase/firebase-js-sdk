@@ -1,5 +1,24 @@
 # firebase
 
+## 11.6.1
+
+### Patch Changes
+
+- [`ed0803a`](https://github.com/firebase/firebase-js-sdk/commit/ed0803a29791cc0cecd0153f95e814ddcee7efd8) [#8915](https://github.com/firebase/firebase-js-sdk/pull/8915) - Fixed the `null` value handling in `!=` and `not-in` filters.
+
+- [`88a8055`](https://github.com/firebase/firebase-js-sdk/commit/88a8055808bdbd1c75011a94d11062460027d931) [#8888](https://github.com/firebase/firebase-js-sdk/pull/8888) (fixes [#6465](https://github.com/firebase/firebase-js-sdk/issues/6465)) - Fix 'window is not defined' error when calling `clearIndexedDbPersistence` from a service worker
+
+- [`195d943`](https://github.com/firebase/firebase-js-sdk/commit/195d943103795a50bb3fc5c56ef2bb64610006a1) [#8871](https://github.com/firebase/firebase-js-sdk/pull/8871) (fixes [#8593](https://github.com/firebase/firebase-js-sdk/issues/8593)) - Fix issue where Firestore would produce `undefined` for document snapshot data if using IndexedDB persistence and "clear site data" (or equivalent) button was pressed in the web browser.
+
+- Updated dependencies [[`ed0803a`](https://github.com/firebase/firebase-js-sdk/commit/ed0803a29791cc0cecd0153f95e814ddcee7efd8), [`88a8055`](https://github.com/firebase/firebase-js-sdk/commit/88a8055808bdbd1c75011a94d11062460027d931), [`1363ecc`](https://github.com/firebase/firebase-js-sdk/commit/1363ecc533de0ba5bfcae206a831acc33f9020a6), [`1df3d26`](https://github.com/firebase/firebase-js-sdk/commit/1df3d26fbfb4db24b74d5d779825017e9ec40eaa), [`e055e90`](https://github.com/firebase/firebase-js-sdk/commit/e055e9057caab4d9f73734307fe4e0be2098249b), [`195d943`](https://github.com/firebase/firebase-js-sdk/commit/195d943103795a50bb3fc5c56ef2bb64610006a1)]:
+  - @firebase/app@0.11.5
+  - @firebase/firestore@4.7.11
+  - @firebase/auth@1.10.1
+  - @firebase/data-connect@0.3.4
+  - @firebase/app-compat@0.2.54
+  - @firebase/firestore-compat@0.3.46
+  - @firebase/auth-compat@0.5.21
+
 ## 11.6.0
 
 ### Minor Changes

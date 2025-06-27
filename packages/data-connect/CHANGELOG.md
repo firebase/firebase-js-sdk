@@ -1,5 +1,11 @@
 ## Unreleased
 
+## 0.3.4
+
+### Patch Changes
+
+- [`1df3d26`](https://github.com/firebase/firebase-js-sdk/commit/1df3d26fbfb4db24b74d5d779825017e9ec40eaa) [#8898](https://github.com/firebase/firebase-js-sdk/pull/8898) - Fix DataConnectOperationError.
+
 ## 0.3.3
 
 ### Patch Changes

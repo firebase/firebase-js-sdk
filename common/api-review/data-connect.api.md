@@ -24,6 +24,20 @@ export const CallerSdkTypeEnum: {
     readonly GeneratedAngular: "GeneratedAngular";
 };
 
+// @public (undocumented)
+export type Code = DataConnectErrorCode;
+
+// @public (undocumented)
+export const Code: {
+    OTHER: DataConnectErrorCode;
+    ALREADY_INITIALIZED: DataConnectErrorCode;
+    NOT_INITIALIZED: DataConnectErrorCode;
+    NOT_SUPPORTED: DataConnectErrorCode;
+    INVALID_ARGUMENT: DataConnectErrorCode;
+    PARTIAL_ERROR: DataConnectErrorCode;
+    UNAUTHORIZED: DataConnectErrorCode;
+};
+
 // @public
 export function connectDataConnectEmulator(dc: DataConnect, host: string, port?: number, sslEnabled?: boolean): void;
 
@@ -54,7 +68,9 @@ export class DataConnect {
 
 // @public
 export class DataConnectError extends FirebaseError {
-    }
+    /* Excluded from this release type: name */
+    constructor(code: Code, message: string);
+}
 
 // @public (undocumented)
 export type DataConnectErrorCode = 'other' | 'already-initialized' | 'not-initialized' | 'not-supported' | 'invalid-argument' | 'partial-error' | 'unauthorized';

@@ -1,5 +1,17 @@
 # @firebase/firestore
 
+## 4.7.11
+
+### Patch Changes
+
+- [`ed0803a`](https://github.com/firebase/firebase-js-sdk/commit/ed0803a29791cc0cecd0153f95e814ddcee7efd8) [#8915](https://github.com/firebase/firebase-js-sdk/pull/8915) - Fixed the `null` value handling in `!=` and `not-in` filters.
+
+- [`88a8055`](https://github.com/firebase/firebase-js-sdk/commit/88a8055808bdbd1c75011a94d11062460027d931) [#8888](https://github.com/firebase/firebase-js-sdk/pull/8888) (fixes [#6465](https://github.com/firebase/firebase-js-sdk/issues/6465)) - Fix 'window is not defined' error when calling `clearIndexedDbPersistence` from a service worker
+
+- [`e055e90`](https://github.com/firebase/firebase-js-sdk/commit/e055e9057caab4d9f73734307fe4e0be2098249b) [#8313](https://github.com/firebase/firebase-js-sdk/pull/8313) - Add unique IDs and state information into fatal error messages instead of the generic "unexpected state" message.
+
+- [`195d943`](https://github.com/firebase/firebase-js-sdk/commit/195d943103795a50bb3fc5c56ef2bb64610006a1) [#8871](https://github.com/firebase/firebase-js-sdk/pull/8871) (fixes [#8593](https://github.com/firebase/firebase-js-sdk/issues/8593)) - Fix issue where Firestore would produce `undefined` for document snapshot data if using IndexedDB persistence and "clear site data" (or equivalent) button was pressed in the web browser.
+
 ## 4.7.10
 
 ### Patch Changes

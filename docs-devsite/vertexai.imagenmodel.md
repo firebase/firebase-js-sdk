@@ -28,7 +28,7 @@ export declare class ImagenModel extends VertexAIModel
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(vertexAI, modelParams, requestOptions)](./vertexai.imagenmodel.md#imagenmodelconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the <code>[ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)</code> class. |
+|  [(constructor)(vertexAI, modelParams, requestOptions)](./vertexai.imagenmodel.md#imagenmodelconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the [ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class) class. |
 
 ## Properties
 
@@ -49,7 +49,7 @@ export declare class ImagenModel extends VertexAIModel
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Constructs a new instance of the <code>[ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class)</code> class.
+Constructs a new instance of the [ImagenModel](./vertexai.imagenmodel.md#imagenmodel_class) class.
 
 <b>Signature:</b>
 
@@ -131,7 +131,7 @@ generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineIma
 
 Promise&lt;[ImagenGenerationResponse](./vertexai.imagengenerationresponse.md#imagengenerationresponse_interface)<!-- -->&lt;[ImagenInlineImage](./vertexai.imageninlineimage.md#imageninlineimage_interface)<!-- -->&gt;&gt;
 
-A promise that resolves to an <code>[ImagenGenerationResponse](./vertexai.imagengenerationresponse.md#imagengenerationresponse_interface)</code> object containing the generated images.
+A promise that resolves to an [ImagenGenerationResponse](./vertexai.imagengenerationresponse.md#imagengenerationresponse_interface) object containing the generated images.
 
 #### Exceptions
 

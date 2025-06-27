@@ -44,8 +44,8 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.2.53",
-    "@firebase/auth-compat": "0.5.20",
+    "@firebase/app-compat": "0.2.54",
+    "@firebase/auth-compat": "0.5.21",
     "rollup": "2.79.2",
     "@rollup/plugin-json": "6.1.0",
     "rollup-plugin-typescript2": "0.36.0",

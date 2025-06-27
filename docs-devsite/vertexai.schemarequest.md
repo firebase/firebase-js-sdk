@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # SchemaRequest interface
-Final format for <code>[Schema](./vertexai.schema.md#schema_class)</code> params passed to backend requests.
+Final format for [Schema](./vertexai.schema.md#schema_class) params passed to backend requests.
 
 <b>Signature:</b>
 

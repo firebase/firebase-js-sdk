@@ -1066,7 +1066,7 @@ export class IndexedDbIndexManager implements IndexManager {
       this.getSubTargets(target),
       (subTarget: Target) =>
         this.getFieldIndex(transaction, subTarget).next(index =>
-          index ? index : fail('Target cannot be served from index')
+          index ? index : fail(0xad8a, 'Target cannot be served from index')
         )
     ).next(getMinOffsetFromFieldIndexes);
   }
@@ -1118,6 +1118,7 @@ function indexStateStore(
 function getMinOffsetFromFieldIndexes(fieldIndexes: FieldIndex[]): IndexOffset {
   hardAssert(
     fieldIndexes.length !== 0,
+    0x7099,
     'Found empty index group when looking for least recent index offset.'
   );
 

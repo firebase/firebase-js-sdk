@@ -27,11 +27,11 @@ export interface ImagenGenerationConfig
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [addWatermark](./vertexai.imagengenerationconfig.md#imagengenerationconfigaddwatermark) | boolean | <b><i>(Public Preview)</i></b> Whether to add an invisible watermark to generated images.<!-- -->If set to <code>true</code>, an invisible SynthID watermark is embedded in generated images to indicate that they are AI generated. If set to <code>false</code>, watermarking will be disabled.<!-- -->For Imagen 3 models, the default value is <code>true</code>; see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen"><code>addWatermark</code></a> documentation for more details. |
-|  [aspectRatio](./vertexai.imagengenerationconfig.md#imagengenerationconfigaspectratio) | [ImagenAspectRatio](./vertexai.md#imagenaspectratio) | <b><i>(Public Preview)</i></b> The aspect ratio of the generated images. The default value is square 1:1. Supported aspect ratios depend on the Imagen model, see <code>[ImagenAspectRatio](./vertexai.md#imagenaspectratio)</code> for more details. |
-|  [imageFormat](./vertexai.imagengenerationconfig.md#imagengenerationconfigimageformat) | [ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class) | <b><i>(Public Preview)</i></b> The image format of the generated images. The default is PNG.<!-- -->See <code>[ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class)</code> for more details. |
+|  [addWatermark](./vertexai.imagengenerationconfig.md#imagengenerationconfigaddwatermark) | boolean | <b><i>(Public Preview)</i></b> Whether to add an invisible watermark to generated images.<!-- -->If set to <code>true</code>, an invisible SynthID watermark is embedded in generated images to indicate that they are AI generated. If set to <code>false</code>, watermarking will be disabled.<!-- -->For Imagen 3 models, the default value is <code>true</code>; see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen">addWatermark</a> documentation for more details. |
+|  [aspectRatio](./vertexai.imagengenerationconfig.md#imagengenerationconfigaspectratio) | [ImagenAspectRatio](./vertexai.md#imagenaspectratio) | <b><i>(Public Preview)</i></b> The aspect ratio of the generated images. The default value is square 1:1. Supported aspect ratios depend on the Imagen model, see [ImagenAspectRatio](./vertexai.md#imagenaspectratio) for more details. |
+|  [imageFormat](./vertexai.imagengenerationconfig.md#imagengenerationconfigimageformat) | [ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class) | <b><i>(Public Preview)</i></b> The image format of the generated images. The default is PNG.<!-- -->See [ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class) for more details. |
 |  [negativePrompt](./vertexai.imagengenerationconfig.md#imagengenerationconfignegativeprompt) | string | <b><i>(Public Preview)</i></b> A description of what should be omitted from the generated images.<!-- -->Support for negative prompts depends on the Imagen model.<!-- -->See the [documentation](http://firebase.google.com/docs/vertex-ai/model-parameters#imagen) for more details. |
-|  [numberOfImages](./vertexai.imagengenerationconfig.md#imagengenerationconfignumberofimages) | number | <b><i>(Public Preview)</i></b> The number of images to generate. The default value is 1.<!-- -->The number of sample images that may be generated in each request depends on the model (typically up to 4); see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen"><code>sampleCount</code></a> documentation for more details. |
+|  [numberOfImages](./vertexai.imagengenerationconfig.md#imagengenerationconfignumberofimages) | number | <b><i>(Public Preview)</i></b> The number of images to generate. The default value is 1.<!-- -->The number of sample images that may be generated in each request depends on the model (typically up to 4); see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen">sampleCount</a> documentation for more details. |
 
 ## ImagenGenerationConfig.addWatermark
 
@@ -42,7 +42,7 @@ Whether to add an invisible watermark to generated images.
 
 If set to `true`<!-- -->, an invisible SynthID watermark is embedded in generated images to indicate that they are AI generated. If set to `false`<!-- -->, watermarking will be disabled.
 
-For Imagen 3 models, the default value is `true`<!-- -->; see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen"><code>addWatermark</code></a> documentation for more details.
+For Imagen 3 models, the default value is `true`<!-- -->; see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen">addWatermark</a> documentation for more details.
 
 <b>Signature:</b>
 
@@ -55,7 +55,7 @@ addWatermark?: boolean;
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-The aspect ratio of the generated images. The default value is square 1:1. Supported aspect ratios depend on the Imagen model, see <code>[ImagenAspectRatio](./vertexai.md#imagenaspectratio)</code> for more details.
+The aspect ratio of the generated images. The default value is square 1:1. Supported aspect ratios depend on the Imagen model, see [ImagenAspectRatio](./vertexai.md#imagenaspectratio) for more details.
 
 <b>Signature:</b>
 
@@ -70,7 +70,7 @@ aspectRatio?: ImagenAspectRatio;
 
 The image format of the generated images. The default is PNG.
 
-See <code>[ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class)</code> for more details.
+See [ImagenImageFormat](./vertexai.imagenimageformat.md#imagenimageformat_class) for more details.
 
 <b>Signature:</b>
 
@@ -102,7 +102,7 @@ negativePrompt?: string;
 
 The number of images to generate. The default value is 1.
 
-The number of sample images that may be generated in each request depends on the model (typically up to 4); see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen"><code>sampleCount</code></a> documentation for more details.
+The number of sample images that may be generated in each request depends on the model (typically up to 4); see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen">sampleCount</a> documentation for more details.
 
 <b>Signature:</b>
 

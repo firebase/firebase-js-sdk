@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FunctionResponsePart interface
-Content part interface if the part represents <code>[FunctionResponse](./vertexai.functionresponse.md#functionresponse_interface)</code>.
+Content part interface if the part represents [FunctionResponse](./vertexai.functionresponse.md#functionresponse_interface)<!-- -->.
 
 <b>Signature:</b>
 

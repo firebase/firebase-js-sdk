@@ -37,8 +37,8 @@ export declare class ChatSession
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [getHistory()](./vertexai.chatsession.md#chatsessiongethistory) |  | Gets the chat history so far. Blocked prompts are not added to history. Neither blocked candidates nor the prompts that generated them are added to history. |
-|  [sendMessage(request)](./vertexai.chatsession.md#chatsessionsendmessage) |  | Sends a chat message and receives a non-streaming <code>[GenerateContentResult](./vertexai.generatecontentresult.md#generatecontentresult_interface)</code> |
-|  [sendMessageStream(request)](./vertexai.chatsession.md#chatsessionsendmessagestream) |  | Sends a chat message and receives the response as a <code>[GenerateContentStreamResult](./vertexai.generatecontentstreamresult.md#generatecontentstreamresult_interface)</code> containing an iterable stream and a response promise. |
+|  [sendMessage(request)](./vertexai.chatsession.md#chatsessionsendmessage) |  | Sends a chat message and receives a non-streaming [GenerateContentResult](./vertexai.generatecontentresult.md#generatecontentresult_interface) |
+|  [sendMessageStream(request)](./vertexai.chatsession.md#chatsessionsendmessagestream) |  | Sends a chat message and receives the response as a [GenerateContentStreamResult](./vertexai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise. |
 
 ## ChatSession.(constructor)
 
@@ -98,7 +98,7 @@ Promise&lt;[Content](./vertexai.content.md#content_interface)<!-- -->\[\]&gt;
 
 ## ChatSession.sendMessage()
 
-Sends a chat message and receives a non-streaming <code>[GenerateContentResult](./vertexai.generatecontentresult.md#generatecontentresult_interface)</code>
+Sends a chat message and receives a non-streaming [GenerateContentResult](./vertexai.generatecontentresult.md#generatecontentresult_interface)
 
 <b>Signature:</b>
 
@@ -118,7 +118,7 @@ Promise&lt;[GenerateContentResult](./vertexai.generatecontentresult.md#generatec
 
 ## ChatSession.sendMessageStream()
 
-Sends a chat message and receives the response as a <code>[GenerateContentStreamResult](./vertexai.generatecontentstreamresult.md#generatecontentstreamresult_interface)</code> containing an iterable stream and a response promise.
+Sends a chat message and receives the response as a [GenerateContentStreamResult](./vertexai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise.
 
 <b>Signature:</b>
 

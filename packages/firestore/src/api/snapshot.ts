@@ -749,7 +749,7 @@ export function resultChangeType(type: ChangeType): DocumentChangeType {
     case ChangeType.Removed:
       return 'removed';
     default:
-      return fail('Unknown change type: ' + type);
+      return fail(0xf03d, 'Unknown change type', { type });
   }
 }
 

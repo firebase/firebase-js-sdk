@@ -36,6 +36,7 @@ export class RESTTransport implements DataConnectTransport {
   private _accessToken: string | null = null;
   private _appCheckToken: string | null = null;
   private _lastToken: string | null = null;
+  private _isUsingEmulator = false;
   constructor(
     options: DataConnectOptions,
     private apiKey?: string | undefined,
@@ -93,6 +94,7 @@ export class RESTTransport implements DataConnectTransport {
   }
   useEmulator(host: string, port?: number, isSecure?: boolean): void {
     this._host = host;
+    this._isUsingEmulator = true;
     if (typeof port === 'number') {
       this._port = port;
     }
@@ -182,7 +184,8 @@ export class RESTTransport implements DataConnectTransport {
         this._accessToken,
         this._appCheckToken,
         this._isUsingGen,
-        this._callerSdkType
+        this._callerSdkType,
+        this._isUsingEmulator
       )
     );
     return withAuth;
@@ -208,7 +211,8 @@ export class RESTTransport implements DataConnectTransport {
         this._accessToken,
         this._appCheckToken,
         this._isUsingGen,
-        this._callerSdkType
+        this._callerSdkType,
+        this._isUsingEmulator
       );
     });
     return taskResult;
