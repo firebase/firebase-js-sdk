@@ -200,7 +200,7 @@ const webWorkerBuild = {
         lib: [
           // Remove dom after we figure out why navigator stuff doesn't exist
           'dom',
-          'es2017',
+          'es2020',
           'webworker'
         ]
       }
