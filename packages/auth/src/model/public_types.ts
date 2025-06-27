@@ -280,6 +280,12 @@ export interface Auth {
     callback: (user: User | null) => void | Promise<void>,
     onAbort?: () => void
   ): Unsubscribe;
+
+  onFirebaseTokenChanged(
+    nextOrObserver: NextOrObserver<FirebaseToken | null>,
+    error?: ErrorFn,
+    completed?: CompleteFn
+  ): Unsubscribe;
   /**
    * Adds an observer for changes to the signed-in user's ID token.
    *
