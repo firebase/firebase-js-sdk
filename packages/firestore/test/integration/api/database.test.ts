@@ -3137,7 +3137,8 @@ apiDescribe('Database', persistence => {
     const NIGHTLY_PROJECT_ID = 'firestore-sdk-nightly';
     const settings = {
       ...DEFAULT_SETTINGS,
-      host: 'test-firestore.sandbox.googleapis.com'
+      host: 'test-firestore.sandbox.googleapis.com',
+      databaseId: '(default)'
     };
 
     it('can write and read BSON types', async () => {
@@ -3379,6 +3380,7 @@ apiDescribe('Database', persistence => {
           ]);
 
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -3399,6 +3401,7 @@ apiDescribe('Database', persistence => {
             testDocs['d']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -3417,6 +3420,7 @@ apiDescribe('Database', persistence => {
             testDocs['b']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -3435,6 +3439,7 @@ apiDescribe('Database', persistence => {
             testDocs['f']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -3459,6 +3464,7 @@ apiDescribe('Database', persistence => {
             testDocs['e']
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -3901,6 +3907,7 @@ apiDescribe('Database', persistence => {
             'i' // NaN
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -3923,6 +3930,7 @@ apiDescribe('Database', persistence => {
             'i'
           ]);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -3936,6 +3944,7 @@ apiDescribe('Database', persistence => {
           snapshot = await getDocs(orderedQuery);
           expect(toIds(snapshot)).to.deep.equal(['f', 'e', 'd', 'c']);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -3969,6 +3978,7 @@ apiDescribe('Database', persistence => {
           let snapshot = await getDocs(orderedQuery);
           expect(toIds(snapshot)).to.deep.equal(['b']);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -3981,6 +3991,7 @@ apiDescribe('Database', persistence => {
           snapshot = await getDocs(orderedQuery);
           expect(toIds(snapshot)).to.deep.equal(['a', 'e', 'd', 'c']);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -3990,6 +4001,7 @@ apiDescribe('Database', persistence => {
           snapshot = await getDocs(orderedQuery);
           expect(toIds(snapshot)).to.deep.equal(['c']);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)
@@ -3999,6 +4011,7 @@ apiDescribe('Database', persistence => {
           snapshot = await getDocs(orderedQuery);
           expect(toIds(snapshot)).to.deep.equal(['a', 'e', 'd', 'b']);
           await assertSDKQueryResultsConsistentWithBackend(
+            coll,
             orderedQuery,
             testDocs,
             toIds(snapshot)

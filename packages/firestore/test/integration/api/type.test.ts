@@ -247,7 +247,8 @@ apiDescribe('Firestore', persistence => {
   const NIGHTLY_PROJECT_ID = 'firestore-sdk-nightly';
   const settings = {
     ...DEFAULT_SETTINGS,
-    host: 'test-firestore.sandbox.googleapis.com'
+    host: 'test-firestore.sandbox.googleapis.com',
+    databaseId: '(default)'
   };
 
   it('can read and write minKey fields', () => {
