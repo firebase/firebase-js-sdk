@@ -23,3 +23,13 @@ export * from './error';
 export * from './schema';
 export * from './imagen';
 export * from './googleai';
+export {
+  LanguageModelCreateOptions,
+  LanguageModelCreateCoreOptions,
+  LanguageModelExpected,
+  LanguageModelMessage,
+  LanguageModelMessageContent,
+  LanguageModelMessageContentValue,
+  LanguageModelMessageRole,
+  LanguageModelMessageType
+} from './language-model';
