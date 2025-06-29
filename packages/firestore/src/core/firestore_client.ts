@@ -23,7 +23,6 @@ import {
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
-import { Pipeline } from '../lite-api/pipeline';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreConfigureFieldIndexes,
@@ -88,6 +87,7 @@ import {
   removeSnapshotsInSyncListener
 } from './event_manager';
 import { newQueryForPath, Query } from './query';
+import { StructuredPipeline } from './structured_pipeline';
 import { SyncEngine } from './sync_engine';
 import {
   syncEngineListen,
@@ -570,7 +570,7 @@ export function firestoreClientRunAggregateQuery(
 
 export function firestoreClientExecutePipeline(
   client: FirestoreClient,
-  pipeline: Pipeline
+  pipeline: StructuredPipeline
 ): Promise<PipelineStreamElement[]> {
   const deferred = new Deferred<PipelineStreamElement[]>();
 
