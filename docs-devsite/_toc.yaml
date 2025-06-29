@@ -76,8 +76,6 @@ toc:
     path: /docs/reference/js/ai.generativemodel.md
   - title: GoogleAIBackend
     path: /docs/reference/js/ai.googleaibackend.md
-  - title: GroundingAttribution
-    path: /docs/reference/js/ai.groundingattribution.md
   - title: GroundingMetadata
     path: /docs/reference/js/ai.groundingmetadata.md
   - title: ImagenGCSImage
