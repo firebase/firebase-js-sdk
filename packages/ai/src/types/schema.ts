@@ -65,9 +65,9 @@ export interface SchemaShared<T> {
   title?: string;
   /** Optional. The items of the property. */
   items?: T;
-  /** The minimum number of items (elements) in a schema of type {@link SchemaType.ARRAY}. */
+  /** The minimum number of items (elements) in a schema of {@link (SchemaType:type)} `array`. */
   minItems?: number;
-  /** The maximum number of items (elements) in a schema of type {@link SchemaType.ARRAY}. */
+  /** The maximum number of items (elements) in a schema of {@link (SchemaType:type)} `array`. */
   maxItems?: number;
   /** Optional. Map of `Schema` objects. */
   properties?: {
@@ -102,7 +102,7 @@ export interface SchemaParams extends SchemaShared<SchemaInterface> {}
 export interface SchemaRequest extends SchemaShared<SchemaRequest> {
   /**
    * The type of the property. {@link
-   * SchemaType}.
+   * (SchemaType:type)}.
    */
   type: SchemaType;
   /** Optional. Array of required property. */
@@ -116,7 +116,7 @@ export interface SchemaRequest extends SchemaShared<SchemaRequest> {
 export interface SchemaInterface extends SchemaShared<SchemaInterface> {
   /**
    * The type of the property. {@link
-   * SchemaType}.
+   * (SchemaType:type)}.
    */
   type: SchemaType;
 }

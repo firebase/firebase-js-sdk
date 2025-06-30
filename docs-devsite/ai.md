@@ -44,25 +44,6 @@ The Firebase AI Web SDK.
 |  [StringSchema](./ai.stringschema.md#stringschema_class) | Schema class for "string" types. Can be used with or without enum values. |
 |  [VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class) | Configuration class for the Vertex AI Gemini API.<!-- -->Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Vertex AI Gemini API as the backend. |
 
-## Enumerations
-
-|  Enumeration | Description |
-|  --- | --- |
-|  [AIErrorCode](./ai.md#aierrorcode) | Standardized error codes that [AIError](./ai.aierror.md#aierror_class) can have. |
-|  [BlockReason](./ai.md#blockreason) | Reason that a prompt was blocked. |
-|  [FinishReason](./ai.md#finishreason) | Reason that a candidate finished. |
-|  [FunctionCallingMode](./ai.md#functioncallingmode) |  |
-|  [HarmBlockMethod](./ai.md#harmblockmethod) | This property is not supported in the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->). |
-|  [HarmBlockThreshold](./ai.md#harmblockthreshold) | Threshold above which a prompt or candidate will be blocked. |
-|  [HarmCategory](./ai.md#harmcategory) | Harm categories that would cause prompts or candidates to be blocked. |
-|  [HarmProbability](./ai.md#harmprobability) | Probability that a prompt or candidate matches a harm category. |
-|  [HarmSeverity](./ai.md#harmseverity) | Harm severity levels. |
-|  [ImagenAspectRatio](./ai.md#imagenaspectratio) | <b><i>(Public Preview)</i></b> Aspect ratios for Imagen images.<!-- -->To specify an aspect ratio for generated images, set the <code>aspectRatio</code> property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.<!-- -->See the the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details and examples of the supported aspect ratios. |
-|  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details. |
-|  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
-|  [Modality](./ai.md#modality) | Content part modality. |
-|  [SchemaType](./ai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
-
 ## Interfaces
 
 |  Interface | Description |
@@ -129,9 +110,23 @@ The Firebase AI Web SDK.
 
 |  Variable | Description |
 |  --- | --- |
+|  [AIErrorCode](./ai.md#aierrorcode) | Standardized error codes that [AIError](./ai.aierror.md#aierror_class) can have. |
 |  [BackendType](./ai.md#backendtype) | An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Vertex AI Gemini API or Gemini Developer API) the SDK will communicate with.<!-- -->These values are assigned to the <code>backendType</code> property within the specific backend configuration objects ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) or [VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->) to identify which service to target. |
+|  [BlockReason](./ai.md#blockreason) | Reason that a prompt was blocked. |
+|  [FinishReason](./ai.md#finishreason) | Reason that a candidate finished. |
+|  [FunctionCallingMode](./ai.md#functioncallingmode) |  |
+|  [HarmBlockMethod](./ai.md#harmblockmethod) | This property is not supported in the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->). |
+|  [HarmBlockThreshold](./ai.md#harmblockthreshold) | Threshold above which a prompt or candidate will be blocked. |
+|  [HarmCategory](./ai.md#harmcategory) | Harm categories that would cause prompts or candidates to be blocked. |
+|  [HarmProbability](./ai.md#harmprobability) | Probability that a prompt or candidate matches a harm category. |
+|  [HarmSeverity](./ai.md#harmseverity) | Harm severity levels. |
+|  [ImagenAspectRatio](./ai.md#imagenaspectratio) | <b><i>(Public Preview)</i></b> Aspect ratios for Imagen images.<!-- -->To specify an aspect ratio for generated images, set the <code>aspectRatio</code> property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.<!-- -->See the the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details and examples of the supported aspect ratios. |
+|  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details. |
+|  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
+|  [Modality](./ai.md#modality) | Content part modality. |
 |  [POSSIBLE\_ROLES](./ai.md#possible_roles) | Possible roles. |
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
+|  [SchemaType](./ai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
 |  [VertexAIError](./ai.md#vertexaierror) |  |
 |  [VertexAIModel](./ai.md#vertexaimodel) |  |
 
@@ -139,10 +134,24 @@ The Firebase AI Web SDK.
 
 |  Type Alias | Description |
 |  --- | --- |
+|  [AIErrorCode](./ai.md#aierrorcode) | Standardized error codes that [AIError](./ai.aierror.md#aierror_class) can have. |
 |  [BackendType](./ai.md#backendtype) | Type alias representing valid backend types. It can be either <code>'VERTEX_AI'</code> or <code>'GOOGLE_AI'</code>. |
+|  [BlockReason](./ai.md#blockreason) | Reason that a prompt was blocked. |
+|  [FinishReason](./ai.md#finishreason) | Reason that a candidate finished. |
+|  [FunctionCallingMode](./ai.md#functioncallingmode) |  |
+|  [HarmBlockMethod](./ai.md#harmblockmethod) | This property is not supported in the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->). |
+|  [HarmBlockThreshold](./ai.md#harmblockthreshold) | Threshold above which a prompt or candidate will be blocked. |
+|  [HarmCategory](./ai.md#harmcategory) | Harm categories that would cause prompts or candidates to be blocked. |
+|  [HarmProbability](./ai.md#harmprobability) | Probability that a prompt or candidate matches a harm category. |
+|  [HarmSeverity](./ai.md#harmseverity) | Harm severity levels. |
+|  [ImagenAspectRatio](./ai.md#imagenaspectratio) | <b><i>(Public Preview)</i></b> Aspect ratios for Imagen images.<!-- -->To specify an aspect ratio for generated images, set the <code>aspectRatio</code> property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.<!-- -->See the the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details and examples of the supported aspect ratios. |
+|  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details. |
+|  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
+|  [Modality](./ai.md#modality) | Content part modality. |
 |  [Part](./ai.md#part) | Content part - includes text, image/video, or function call/response part types. |
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [Role](./ai.md#role) | Role is the producer of the content. |
+|  [SchemaType](./ai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
 |  [Tool](./ai.md#tool) | Defines a tool that model can call to access external knowledge. |
 |  [TypedSchema](./ai.md#typedschema) | A type that includes all specific Schema types. |
 |  [VertexAI](./ai.md#vertexai) |  |
@@ -279,6 +288,30 @@ export declare function getImagenModel(ai: AI, modelParams: ImagenModelParams, r
 
 If the `apiKey` or `projectId` fields are missing in your Firebase config.
 
+## AIErrorCode
+
+Standardized error codes that [AIError](./ai.aierror.md#aierror_class) can have.
+
+<b>Signature:</b>
+
+```typescript
+AIErrorCode: {
+    readonly ERROR: "error";
+    readonly REQUEST_ERROR: "request-error";
+    readonly RESPONSE_ERROR: "response-error";
+    readonly FETCH_ERROR: "fetch-error";
+    readonly INVALID_CONTENT: "invalid-content";
+    readonly API_NOT_ENABLED: "api-not-enabled";
+    readonly INVALID_SCHEMA: "invalid-schema";
+    readonly NO_API_KEY: "no-api-key";
+    readonly NO_APP_ID: "no-app-id";
+    readonly NO_MODEL: "no-model";
+    readonly NO_PROJECT_ID: "no-project-id";
+    readonly PARSE_FAILED: "parse-failed";
+    readonly UNSUPPORTED: "unsupported";
+}
+```
+
 ## BackendType
 
 An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Vertex AI Gemini API or Gemini Developer API) the SDK will communicate with.
@@ -291,6 +324,208 @@ These values are assigned to the `backendType` property within the specific back
 BackendType: {
     readonly VERTEX_AI: "VERTEX_AI";
     readonly GOOGLE_AI: "GOOGLE_AI";
+}
+```
+
+## BlockReason
+
+Reason that a prompt was blocked.
+
+<b>Signature:</b>
+
+```typescript
+BlockReason: {
+    readonly SAFETY: "SAFETY";
+    readonly OTHER: "OTHER";
+    readonly BLOCKLIST: "BLOCKLIST";
+    readonly PROHIBITED_CONTENT: "PROHIBITED_CONTENT";
+}
+```
+
+## FinishReason
+
+Reason that a candidate finished.
+
+<b>Signature:</b>
+
+```typescript
+FinishReason: {
+    readonly STOP: "STOP";
+    readonly MAX_TOKENS: "MAX_TOKENS";
+    readonly SAFETY: "SAFETY";
+    readonly RECITATION: "RECITATION";
+    readonly OTHER: "OTHER";
+    readonly BLOCKLIST: "BLOCKLIST";
+    readonly PROHIBITED_CONTENT: "PROHIBITED_CONTENT";
+    readonly SPII: "SPII";
+    readonly MALFORMED_FUNCTION_CALL: "MALFORMED_FUNCTION_CALL";
+}
+```
+
+## FunctionCallingMode
+
+
+<b>Signature:</b>
+
+```typescript
+FunctionCallingMode: {
+    readonly AUTO: "AUTO";
+    readonly ANY: "ANY";
+    readonly NONE: "NONE";
+}
+```
+
+## HarmBlockMethod
+
+This property is not supported in the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->).
+
+<b>Signature:</b>
+
+```typescript
+HarmBlockMethod: {
+    readonly SEVERITY: "SEVERITY";
+    readonly PROBABILITY: "PROBABILITY";
+}
+```
+
+## HarmBlockThreshold
+
+Threshold above which a prompt or candidate will be blocked.
+
+<b>Signature:</b>
+
+```typescript
+HarmBlockThreshold: {
+    readonly BLOCK_LOW_AND_ABOVE: "BLOCK_LOW_AND_ABOVE";
+    readonly BLOCK_MEDIUM_AND_ABOVE: "BLOCK_MEDIUM_AND_ABOVE";
+    readonly BLOCK_ONLY_HIGH: "BLOCK_ONLY_HIGH";
+    readonly BLOCK_NONE: "BLOCK_NONE";
+    readonly OFF: "OFF";
+}
+```
+
+## HarmCategory
+
+Harm categories that would cause prompts or candidates to be blocked.
+
+<b>Signature:</b>
+
+```typescript
+HarmCategory: {
+    readonly HARM_CATEGORY_HATE_SPEECH: "HARM_CATEGORY_HATE_SPEECH";
+    readonly HARM_CATEGORY_SEXUALLY_EXPLICIT: "HARM_CATEGORY_SEXUALLY_EXPLICIT";
+    readonly HARM_CATEGORY_HARASSMENT: "HARM_CATEGORY_HARASSMENT";
+    readonly HARM_CATEGORY_DANGEROUS_CONTENT: "HARM_CATEGORY_DANGEROUS_CONTENT";
+}
+```
+
+## HarmProbability
+
+Probability that a prompt or candidate matches a harm category.
+
+<b>Signature:</b>
+
+```typescript
+HarmProbability: {
+    readonly NEGLIGIBLE: "NEGLIGIBLE";
+    readonly LOW: "LOW";
+    readonly MEDIUM: "MEDIUM";
+    readonly HIGH: "HIGH";
+}
+```
+
+## HarmSeverity
+
+Harm severity levels.
+
+<b>Signature:</b>
+
+```typescript
+HarmSeverity: {
+    readonly HARM_SEVERITY_NEGLIGIBLE: "HARM_SEVERITY_NEGLIGIBLE";
+    readonly HARM_SEVERITY_LOW: "HARM_SEVERITY_LOW";
+    readonly HARM_SEVERITY_MEDIUM: "HARM_SEVERITY_MEDIUM";
+    readonly HARM_SEVERITY_HIGH: "HARM_SEVERITY_HIGH";
+    readonly HARM_SEVERITY_UNSUPPORTED: "HARM_SEVERITY_UNSUPPORTED";
+}
+```
+
+## ImagenAspectRatio
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Aspect ratios for Imagen images.
+
+To specify an aspect ratio for generated images, set the `aspectRatio` property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.
+
+See the the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details and examples of the supported aspect ratios.
+
+<b>Signature:</b>
+
+```typescript
+ImagenAspectRatio: {
+    readonly SQUARE: "1:1";
+    readonly LANDSCAPE_3x4: "3:4";
+    readonly PORTRAIT_4x3: "4:3";
+    readonly LANDSCAPE_16x9: "16:9";
+    readonly PORTRAIT_9x16: "9:16";
+}
+```
+
+## ImagenPersonFilterLevel
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+A filter level controlling whether generation of images containing people or faces is allowed.
+
+See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details.
+
+<b>Signature:</b>
+
+```typescript
+ImagenPersonFilterLevel: {
+    readonly BLOCK_ALL: "dont_allow";
+    readonly ALLOW_ADULT: "allow_adult";
+    readonly ALLOW_ALL: "allow_all";
+}
+```
+
+## ImagenSafetyFilterLevel
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+A filter level controlling how aggressively to filter sensitive content.
+
+Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, `violence`<!-- -->, `sexual`<!-- -->, `derogatory`<!-- -->, and `toxic`<!-- -->). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details.
+
+<b>Signature:</b>
+
+```typescript
+ImagenSafetyFilterLevel: {
+    readonly BLOCK_LOW_AND_ABOVE: "block_low_and_above";
+    readonly BLOCK_MEDIUM_AND_ABOVE: "block_medium_and_above";
+    readonly BLOCK_ONLY_HIGH: "block_only_high";
+    readonly BLOCK_NONE: "block_none";
+}
+```
+
+## Modality
+
+Content part modality.
+
+<b>Signature:</b>
+
+```typescript
+Modality: {
+    readonly MODALITY_UNSPECIFIED: "MODALITY_UNSPECIFIED";
+    readonly TEXT: "TEXT";
+    readonly IMAGE: "IMAGE";
+    readonly VIDEO: "VIDEO";
+    readonly AUDIO: "AUDIO";
+    readonly DOCUMENT: "DOCUMENT";
 }
 ```
 
@@ -317,6 +552,23 @@ Generation modalities to be returned in generation responses.
 ResponseModality: {
     readonly TEXT: "TEXT";
     readonly IMAGE: "IMAGE";
+}
+```
+
+## SchemaType
+
+Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/)
+
+<b>Signature:</b>
+
+```typescript
+SchemaType: {
+    readonly STRING: "string";
+    readonly NUMBER: "number";
+    readonly INTEGER: "integer";
+    readonly BOOLEAN: "boolean";
+    readonly ARRAY: "array";
+    readonly OBJECT: "object";
 }
 ```
 
@@ -350,6 +602,16 @@ VertexAIError: typeof AIError
 VertexAIModel: typeof AIModel
 ```
 
+## AIErrorCode
+
+Standardized error codes that [AIError](./ai.aierror.md#aierror_class) can have.
+
+<b>Signature:</b>
+
+```typescript
+export type AIErrorCode = (typeof AIErrorCode)[keyof typeof AIErrorCode];
+```
+
 ## BackendType
 
 Type alias representing valid backend types. It can be either `'VERTEX_AI'` or `'GOOGLE_AI'`<!-- -->.
@@ -358,6 +620,141 @@ Type alias representing valid backend types. It can be either `'VERTEX_AI'` or `
 
 ```typescript
 export type BackendType = (typeof BackendType)[keyof typeof BackendType];
+```
+
+## BlockReason
+
+Reason that a prompt was blocked.
+
+<b>Signature:</b>
+
+```typescript
+export type BlockReason = (typeof BlockReason)[keyof typeof BlockReason];
+```
+
+## FinishReason
+
+Reason that a candidate finished.
+
+<b>Signature:</b>
+
+```typescript
+export type FinishReason = (typeof FinishReason)[keyof typeof FinishReason];
+```
+
+## FunctionCallingMode
+
+<b>Signature:</b>
+
+```typescript
+export type FunctionCallingMode = (typeof FunctionCallingMode)[keyof typeof FunctionCallingMode];
+```
+
+## HarmBlockMethod
+
+This property is not supported in the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->).
+
+<b>Signature:</b>
+
+```typescript
+export type HarmBlockMethod = (typeof HarmBlockMethod)[keyof typeof HarmBlockMethod];
+```
+
+## HarmBlockThreshold
+
+Threshold above which a prompt or candidate will be blocked.
+
+<b>Signature:</b>
+
+```typescript
+export type HarmBlockThreshold = (typeof HarmBlockThreshold)[keyof typeof HarmBlockThreshold];
+```
+
+## HarmCategory
+
+Harm categories that would cause prompts or candidates to be blocked.
+
+<b>Signature:</b>
+
+```typescript
+export type HarmCategory = (typeof HarmCategory)[keyof typeof HarmCategory];
+```
+
+## HarmProbability
+
+Probability that a prompt or candidate matches a harm category.
+
+<b>Signature:</b>
+
+```typescript
+export type HarmProbability = (typeof HarmProbability)[keyof typeof HarmProbability];
+```
+
+## HarmSeverity
+
+Harm severity levels.
+
+<b>Signature:</b>
+
+```typescript
+export type HarmSeverity = (typeof HarmSeverity)[keyof typeof HarmSeverity];
+```
+
+## ImagenAspectRatio
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Aspect ratios for Imagen images.
+
+To specify an aspect ratio for generated images, set the `aspectRatio` property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.
+
+See the the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details and examples of the supported aspect ratios.
+
+<b>Signature:</b>
+
+```typescript
+export type ImagenAspectRatio = (typeof ImagenAspectRatio)[keyof typeof ImagenAspectRatio];
+```
+
+## ImagenPersonFilterLevel
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+A filter level controlling whether generation of images containing people or faces is allowed.
+
+See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details.
+
+<b>Signature:</b>
+
+```typescript
+export type ImagenPersonFilterLevel = (typeof ImagenPersonFilterLevel)[keyof typeof ImagenPersonFilterLevel];
+```
+
+## ImagenSafetyFilterLevel
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+A filter level controlling how aggressively to filter sensitive content.
+
+Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, `violence`<!-- -->, `sexual`<!-- -->, `derogatory`<!-- -->, and `toxic`<!-- -->). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details.
+
+<b>Signature:</b>
+
+```typescript
+export type ImagenSafetyFilterLevel = (typeof ImagenSafetyFilterLevel)[keyof typeof ImagenSafetyFilterLevel];
+```
+
+## Modality
+
+Content part modality.
+
+<b>Signature:</b>
+
+```typescript
+export type Modality = (typeof Modality)[keyof typeof Modality];
 ```
 
 ## Part
@@ -391,6 +788,16 @@ Role is the producer of the content.
 
 ```typescript
 export type Role = (typeof POSSIBLE_ROLES)[number];
+```
+
+## SchemaType
+
+Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/)
+
+<b>Signature:</b>
+
+```typescript
+export type SchemaType = (typeof SchemaType)[keyof typeof SchemaType];
 ```
 
 ## Tool
@@ -427,303 +834,3 @@ export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanS
 ```typescript
 export type VertexAI = AI;
 ```
-
-## AIErrorCode
-
-Standardized error codes that [AIError](./ai.aierror.md#aierror_class) can have.
-
-<b>Signature:</b>
-
-```typescript
-export declare const enum AIErrorCode 
-```
-
-## Enumeration Members
-
-|  Member | Value | Description |
-|  --- | --- | --- |
-|  API\_NOT\_ENABLED | <code>&quot;api-not-enabled&quot;</code> | An error due to the Firebase API not being enabled in the Console. |
-|  ERROR | <code>&quot;error&quot;</code> | A generic error occurred. |
-|  FETCH\_ERROR | <code>&quot;fetch-error&quot;</code> | An error occurred while performing a fetch. |
-|  INVALID\_CONTENT | <code>&quot;invalid-content&quot;</code> | An error associated with a Content object. |
-|  INVALID\_SCHEMA | <code>&quot;invalid-schema&quot;</code> | An error due to invalid Schema input. |
-|  NO\_API\_KEY | <code>&quot;no-api-key&quot;</code> | An error occurred due to a missing Firebase API key. |
-|  NO\_APP\_ID | <code>&quot;no-app-id&quot;</code> | An error occurred due to a missing Firebase app ID. |
-|  NO\_MODEL | <code>&quot;no-model&quot;</code> | An error occurred due to a model name not being specified during initialization. |
-|  NO\_PROJECT\_ID | <code>&quot;no-project-id&quot;</code> | An error occurred due to a missing project ID. |
-|  PARSE\_FAILED | <code>&quot;parse-failed&quot;</code> | An error occurred while parsing. |
-|  REQUEST\_ERROR | <code>&quot;request-error&quot;</code> | An error occurred in a request. |
-|  RESPONSE\_ERROR | <code>&quot;response-error&quot;</code> | An error occurred in a response. |
-|  UNSUPPORTED | <code>&quot;unsupported&quot;</code> | An error occurred due an attempt to use an unsupported feature. |
-
-## BlockReason
-
-Reason that a prompt was blocked.
-
-<b>Signature:</b>
-
-```typescript
-export declare enum BlockReason 
-```
-
-## Enumeration Members
-
-|  Member | Value | Description |
-|  --- | --- | --- |
-|  BLOCKLIST | <code>&quot;BLOCKLIST&quot;</code> | Content was blocked because it contained terms from the terminology blocklist. |
-|  OTHER | <code>&quot;OTHER&quot;</code> | Content was blocked, but the reason is uncategorized. |
-|  PROHIBITED\_CONTENT | <code>&quot;PROHIBITED_CONTENT&quot;</code> | Content was blocked due to prohibited content. |
-|  SAFETY | <code>&quot;SAFETY&quot;</code> | Content was blocked by safety settings. |
-
-## FinishReason
-
-Reason that a candidate finished.
-
-<b>Signature:</b>
-
-```typescript
-export declare enum FinishReason 
-```
-
-## Enumeration Members
-
-|  Member | Value | Description |
-|  --- | --- | --- |
-|  BLOCKLIST | <code>&quot;BLOCKLIST&quot;</code> | The candidate content contained forbidden terms. |
-|  MALFORMED\_FUNCTION\_CALL | <code>&quot;MALFORMED_FUNCTION_CALL&quot;</code> | The function call generated by the model was invalid. |
-|  MAX\_TOKENS | <code>&quot;MAX_TOKENS&quot;</code> | The maximum number of tokens as specified in the request was reached. |
-|  OTHER | <code>&quot;OTHER&quot;</code> | Unknown reason. |
-|  PROHIBITED\_CONTENT | <code>&quot;PROHIBITED_CONTENT&quot;</code> | The candidate content potentially contained prohibited content. |
-|  RECITATION | <code>&quot;RECITATION&quot;</code> | The candidate content was flagged for recitation reasons. |
-|  SAFETY | <code>&quot;SAFETY&quot;</code> | The candidate content was flagged for safety reasons. |
-|  SPII | <code>&quot;SPII&quot;</code> | The candidate content potentially contained Sensitive Personally Identifiable Information (SPII). |
-|  STOP | <code>&quot;STOP&quot;</code> | Natural stop point of the model or provided stop sequence. |
-
-## FunctionCallingMode
-
-
-<b>Signature:</b>
-
-```typescript
-export declare enum FunctionCallingMode 
-```
-
-## Enumeration Members
-
-|  Member | Value | Description |
-|  --- | --- | --- |
-|  ANY | <code>&quot;ANY&quot;</code> | Model is constrained to always predicting a function call only. If <code>allowed_function_names</code> is set, the predicted function call will be limited to any one of <code>allowed_function_names</code>, else the predicted function call will be any one of the provided <code>function_declarations</code>. |
-|  AUTO | <code>&quot;AUTO&quot;</code> | Default model behavior; model decides to predict either a function call or a natural language response. |
-|  NONE | <code>&quot;NONE&quot;</code> | Model will not predict any function call. Model behavior is same as when not passing any function declarations. |
-
-## HarmBlockMethod
-
-This property is not supported in the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->).
-
-<b>Signature:</b>
-
-```typescript
-export declare enum HarmBlockMethod 
-```
-
-## Enumeration Members
-
-|  Member | Value | Description |
-|  --- | --- | --- |
-|  PROBABILITY | <code>&quot;PROBABILITY&quot;</code> | The harm block method uses the probability score. |
-|  SEVERITY | <code>&quot;SEVERITY&quot;</code> | The harm block method uses both probability and severity scores. |
-
-## HarmBlockThreshold
-
-Threshold above which a prompt or candidate will be blocked.
-
-<b>Signature:</b>
-
-```typescript
-export declare enum HarmBlockThreshold 
-```
-
-## Enumeration Members
-
-|  Member | Value | Description |
-|  --- | --- | --- |
-|  BLOCK\_LOW\_AND\_ABOVE | <code>&quot;BLOCK_LOW_AND_ABOVE&quot;</code> | Content with <code>NEGLIGIBLE</code> will be allowed. |
-|  BLOCK\_MEDIUM\_AND\_ABOVE | <code>&quot;BLOCK_MEDIUM_AND_ABOVE&quot;</code> | Content with <code>NEGLIGIBLE</code> and <code>LOW</code> will be allowed. |
-|  BLOCK\_NONE | <code>&quot;BLOCK_NONE&quot;</code> | All content will be allowed. |
-|  BLOCK\_ONLY\_HIGH | <code>&quot;BLOCK_ONLY_HIGH&quot;</code> | Content with <code>NEGLIGIBLE</code>, <code>LOW</code>, and <code>MEDIUM</code> will be allowed. |
-|  OFF | <code>&quot;OFF&quot;</code> | All content will be allowed. This is the same as <code>BLOCK_NONE</code>, but the metadata corresponding to the [HarmCategory](./ai.md#harmcategory) will not be present in the response. |
-
-## HarmCategory
-
-Harm categories that would cause prompts or candidates to be blocked.
-
-<b>Signature:</b>
-
-```typescript
-export declare enum HarmCategory 
-```
-
-## Enumeration Members
-
-|  Member | Value | Description |
-|  --- | --- | --- |
-|  HARM\_CATEGORY\_DANGEROUS\_CONTENT | <code>&quot;HARM_CATEGORY_DANGEROUS_CONTENT&quot;</code> |  |
-|  HARM\_CATEGORY\_HARASSMENT | <code>&quot;HARM_CATEGORY_HARASSMENT&quot;</code> |  |
-|  HARM\_CATEGORY\_HATE\_SPEECH | <code>&quot;HARM_CATEGORY_HATE_SPEECH&quot;</code> |  |
-|  HARM\_CATEGORY\_SEXUALLY\_EXPLICIT | <code>&quot;HARM_CATEGORY_SEXUALLY_EXPLICIT&quot;</code> |  |
-
-## HarmProbability
-
-Probability that a prompt or candidate matches a harm category.
-
-<b>Signature:</b>
-
-```typescript
-export declare enum HarmProbability 
-```
-
-## Enumeration Members
-
-|  Member | Value | Description |
-|  --- | --- | --- |
-|  HIGH | <code>&quot;HIGH&quot;</code> | Content has a high chance of being unsafe. |
-|  LOW | <code>&quot;LOW&quot;</code> | Content has a low chance of being unsafe. |
-|  MEDIUM | <code>&quot;MEDIUM&quot;</code> | Content has a medium chance of being unsafe. |
-|  NEGLIGIBLE | <code>&quot;NEGLIGIBLE&quot;</code> | Content has a negligible chance of being unsafe. |
-
-## HarmSeverity
-
-Harm severity levels.
-
-<b>Signature:</b>
-
-```typescript
-export declare enum HarmSeverity 
-```
-
-## Enumeration Members
-
-|  Member | Value | Description |
-|  --- | --- | --- |
-|  HARM\_SEVERITY\_HIGH | <code>&quot;HARM_SEVERITY_HIGH&quot;</code> | High level of harm severity. |
-|  HARM\_SEVERITY\_LOW | <code>&quot;HARM_SEVERITY_LOW&quot;</code> | Low level of harm severity. |
-|  HARM\_SEVERITY\_MEDIUM | <code>&quot;HARM_SEVERITY_MEDIUM&quot;</code> | Medium level of harm severity. |
-|  HARM\_SEVERITY\_NEGLIGIBLE | <code>&quot;HARM_SEVERITY_NEGLIGIBLE&quot;</code> | Negligible level of harm severity. |
-|  HARM\_SEVERITY\_UNSUPPORTED | <code>&quot;HARM_SEVERITY_UNSUPPORTED&quot;</code> | Harm severity is not supported. |
-
-## ImagenAspectRatio
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Aspect ratios for Imagen images.
-
-To specify an aspect ratio for generated images, set the `aspectRatio` property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.
-
-See the the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details and examples of the supported aspect ratios.
-
-<b>Signature:</b>
-
-```typescript
-export declare enum ImagenAspectRatio 
-```
-
-## Enumeration Members
-
-|  Member | Value | Description |
-|  --- | --- | --- |
-|  LANDSCAPE\_16x9 | <code>&quot;16:9&quot;</code> | <b><i>(Public Preview)</i></b> Landscape (16:9) aspect ratio. |
-|  LANDSCAPE\_3x4 | <code>&quot;3:4&quot;</code> | <b><i>(Public Preview)</i></b> Landscape (3:4) aspect ratio. |
-|  PORTRAIT\_4x3 | <code>&quot;4:3&quot;</code> | <b><i>(Public Preview)</i></b> Portrait (4:3) aspect ratio. |
-|  PORTRAIT\_9x16 | <code>&quot;9:16&quot;</code> | <b><i>(Public Preview)</i></b> Portrait (9:16) aspect ratio. |
-|  SQUARE | <code>&quot;1:1&quot;</code> | <b><i>(Public Preview)</i></b> Square (1:1) aspect ratio. |
-
-## ImagenPersonFilterLevel
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-A filter level controlling whether generation of images containing people or faces is allowed.
-
-See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details.
-
-<b>Signature:</b>
-
-```typescript
-export declare enum ImagenPersonFilterLevel 
-```
-
-## Enumeration Members
-
-|  Member | Value | Description |
-|  --- | --- | --- |
-|  ALLOW\_ADULT | <code>&quot;allow_adult&quot;</code> | <b><i>(Public Preview)</i></b> Allow generation of images containing adults only; images of children are filtered out.<!-- -->Generation of images containing people or faces may require your use case to be reviewed and approved by Cloud support; see the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#person-face-gen) for more details. |
-|  ALLOW\_ALL | <code>&quot;allow_all&quot;</code> | <b><i>(Public Preview)</i></b> Allow generation of images containing adults only; images of children are filtered out.<!-- -->Generation of images containing people or faces may require your use case to be reviewed and approved by Cloud support; see the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#person-face-gen) for more details. |
-|  BLOCK\_ALL | <code>&quot;dont_allow&quot;</code> | <b><i>(Public Preview)</i></b> Disallow generation of images containing people or faces; images of people are filtered out. |
-
-## ImagenSafetyFilterLevel
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-A filter level controlling how aggressively to filter sensitive content.
-
-Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, `violence`<!-- -->, `sexual`<!-- -->, `derogatory`<!-- -->, and `toxic`<!-- -->). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details.
-
-<b>Signature:</b>
-
-```typescript
-export declare enum ImagenSafetyFilterLevel 
-```
-
-## Enumeration Members
-
-|  Member | Value | Description |
-|  --- | --- | --- |
-|  BLOCK\_LOW\_AND\_ABOVE | <code>&quot;block_low_and_above&quot;</code> | <b><i>(Public Preview)</i></b> The most aggressive filtering level; most strict blocking. |
-|  BLOCK\_MEDIUM\_AND\_ABOVE | <code>&quot;block_medium_and_above&quot;</code> | <b><i>(Public Preview)</i></b> Blocks some sensitive prompts and responses. |
-|  BLOCK\_NONE | <code>&quot;block_none&quot;</code> | <b><i>(Public Preview)</i></b> The least aggressive filtering level; blocks very few sensitive prompts and responses.<!-- -->Access to this feature is restricted and may require your case to be reviewed and approved by Cloud support. |
-|  BLOCK\_ONLY\_HIGH | <code>&quot;block_only_high&quot;</code> | <b><i>(Public Preview)</i></b> Blocks few sensitive prompts and responses. |
-
-## Modality
-
-Content part modality.
-
-<b>Signature:</b>
-
-```typescript
-export declare enum Modality 
-```
-
-## Enumeration Members
-
-|  Member | Value | Description |
-|  --- | --- | --- |
-|  AUDIO | <code>&quot;AUDIO&quot;</code> | Audio. |
-|  DOCUMENT | <code>&quot;DOCUMENT&quot;</code> | Document (for example, PDF). |
-|  IMAGE | <code>&quot;IMAGE&quot;</code> | Image. |
-|  MODALITY\_UNSPECIFIED | <code>&quot;MODALITY_UNSPECIFIED&quot;</code> | Unspecified modality. |
-|  TEXT | <code>&quot;TEXT&quot;</code> | Plain text. |
-|  VIDEO | <code>&quot;VIDEO&quot;</code> | Video. |
-
-## SchemaType
-
-Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/)
-
-<b>Signature:</b>
-
-```typescript
-export declare enum SchemaType 
-```
-
-## Enumeration Members
-
-|  Member | Value | Description |
-|  --- | --- | --- |
-|  ARRAY | <code>&quot;array&quot;</code> | Array type. |
-|  BOOLEAN | <code>&quot;boolean&quot;</code> | Boolean type. |
-|  INTEGER | <code>&quot;integer&quot;</code> | Integer type. |
-|  NUMBER | <code>&quot;number&quot;</code> | Number type. |
-|  OBJECT | <code>&quot;object&quot;</code> | Object type. |
-|  STRING | <code>&quot;string&quot;</code> | String type. |
-

@@ -73,7 +73,7 @@ export interface ImagenGenerationConfig {
   numberOfImages?: number;
   /**
    * The aspect ratio of the generated images. The default value is square 1:1.
-   * Supported aspect ratios depend on the Imagen model, see {@link ImagenAspectRatio}
+   * Supported aspect ratios depend on the Imagen model, see {@link (ImagenAspectRatio:type)}
    * for more details.
    */
   aspectRatio?: ImagenAspectRatio;

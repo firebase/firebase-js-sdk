@@ -24,7 +24,7 @@ export interface ObjectSchemaInterface extends SchemaInterface
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [optionalProperties](./ai.objectschemainterface.md#objectschemainterfaceoptionalproperties) | string\[\] |  |
-|  [type](./ai.objectschemainterface.md#objectschemainterfacetype) | [SchemaType.OBJECT](./ai.md#schematypeobject_enummember) |  |
+|  [type](./ai.objectschemainterface.md#objectschemainterfacetype) | 'object' |  |
 
 ## ObjectSchemaInterface.optionalProperties
 
@@ -39,5 +39,5 @@ optionalProperties?: string[];
 <b>Signature:</b>
 
 ```typescript
-type: SchemaType.OBJECT;
+type: 'object';
 ```
