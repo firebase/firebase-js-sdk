@@ -4,6 +4,7 @@ dist
 .awcache
 .cache
 /config/project.json
+/config/prod.project.json
 scripts/docgen-compat/html
 
 # OS Specific Files
