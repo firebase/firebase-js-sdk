@@ -21,20 +21,28 @@
  * {@link https://swagger.io/docs/specification/data-models/data-types/ | OpenAPI specification}
  * @public
  */
-export enum SchemaType {
+export const SchemaType = {
   /** String type. */
-  STRING = 'string',
+  STRING: 'string',
   /** Number type. */
-  NUMBER = 'number',
+  NUMBER: 'number',
   /** Integer type. */
-  INTEGER = 'integer',
+  INTEGER: 'integer',
   /** Boolean type. */
-  BOOLEAN = 'boolean',
+  BOOLEAN: 'boolean',
   /** Array type. */
-  ARRAY = 'array',
+  ARRAY: 'array',
   /** Object type. */
-  OBJECT = 'object'
-}
+  OBJECT: 'object'
+} as const;
+
+/**
+ * Contains the list of OpenAPI data types
+ * as defined by the
+ * {@link https://swagger.io/docs/specification/data-models/data-types/ | OpenAPI specification}
+ * @public
+ */
+export type SchemaType = (typeof SchemaType)[keyof typeof SchemaType];
 
 /**
  * Basic {@link Schema} properties shared across several Schema-related
@@ -118,6 +126,6 @@ export interface SchemaInterface extends SchemaShared<SchemaInterface> {
  * @public
  */
 export interface ObjectSchemaInterface extends SchemaInterface {
-  type: SchemaType.OBJECT;
+  type: 'object';
   optionalProperties?: string[];
 }
