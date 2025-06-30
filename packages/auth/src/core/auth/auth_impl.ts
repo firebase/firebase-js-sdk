@@ -106,6 +106,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   private persistenceManager?: PersistenceUserManager;
   private redirectPersistenceManager?: PersistenceUserManager;
   private authStateSubscription = new Subscription<User>(this);
+  private firebaseTokenSubscription = new Subscription<FirebaseToken>(this);
   private idTokenSubscription = new Subscription<User>(this);
   private readonly beforeStateQueue = new AuthMiddlewareQueue(this);
   private redirectUser: UserInternal | null = null;
@@ -405,7 +406,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   private async initializeFirebaseToken(): Promise<void> {
-    this.firebaseToken = await this.persistenceManager?.getFirebaseToken() ?? null;
+    this.firebaseToken =
+      (await this.persistenceManager?.getFirebaseToken()) ?? null;
+    this.firebaseTokenSubscription.next(this.firebaseToken);
   }
 
   useDeviceLanguage(): void {
@@ -466,6 +469,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     firebaseToken: FirebaseToken | null
   ): Promise<void> {
     this.firebaseToken = firebaseToken;
+    this.firebaseTokenSubscription.next(firebaseToken);
     if (firebaseToken) {
       await this.assertedPersistence.setFirebaseToken(firebaseToken);
     } else {
