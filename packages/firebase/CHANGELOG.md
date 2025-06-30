@@ -1,5 +1,46 @@
 # firebase
 
+## 11.10.0
+
+### Minor Changes
+
+- [`86155b3`](https://github.com/firebase/firebase-js-sdk/commit/86155b3c8f3974f8d777232625108c14f924e035) [#9115](https://github.com/firebase/firebase-js-sdk/pull/9115) - Added support for Firestore result types to be serialized with `toJSON` and then deserialized with `fromJSON` methods on the objects.
+
+  Addeed support to resume `onSnapshot` listeners in the CSR phase based on serialized `DataSnapshot`s and `QuerySnapshot`s built in the SSR phase.
+
+### Patch Changes
+
+- [`13e6cce`](https://github.com/firebase/firebase-js-sdk/commit/13e6cce882d687e06c8d9bfb56895f8a77fc57b5) [#9085](https://github.com/firebase/firebase-js-sdk/pull/9085) - Add rollup config to generate modular typings for google3
+
+- Updated dependencies [[`13e6cce`](https://github.com/firebase/firebase-js-sdk/commit/13e6cce882d687e06c8d9bfb56895f8a77fc57b5), [`42ac401`](https://github.com/firebase/firebase-js-sdk/commit/42ac4011787db6bb7a08f8c84f364ea86ea51e83), [`bb57947`](https://github.com/firebase/firebase-js-sdk/commit/bb57947c942e44b39e5b0254324bee6bf665fd4e), [`f73e08b`](https://github.com/firebase/firebase-js-sdk/commit/f73e08b212314547b39a10cd3e393f9e94776f21), [`86155b3`](https://github.com/firebase/firebase-js-sdk/commit/86155b3c8f3974f8d777232625108c14f924e035), [`b97eab3`](https://github.com/firebase/firebase-js-sdk/commit/b97eab36a3553c906c35f4751a0b17c717178b13)]:
+  - @firebase/remote-config@0.6.5
+  - @firebase/analytics@0.10.17
+  - @firebase/storage@0.13.14
+  - @firebase/util@1.12.1
+  - @firebase/app@0.13.2
+  - @firebase/firestore@4.8.0
+  - @firebase/ai@1.4.1
+  - @firebase/remote-config-compat@0.2.18
+  - @firebase/analytics-compat@0.2.23
+  - @firebase/storage-compat@0.3.24
+  - @firebase/app-check@0.10.1
+  - @firebase/app-check-compat@0.3.26
+  - @firebase/app-compat@0.4.2
+  - @firebase/auth@1.10.8
+  - @firebase/auth-compat@0.5.28
+  - @firebase/data-connect@0.3.10
+  - @firebase/database@1.0.20
+  - @firebase/database-compat@2.0.11
+  - @firebase/firestore-compat@0.3.53
+  - @firebase/functions@0.12.9
+  - @firebase/functions-compat@0.3.26
+  - @firebase/installations@0.6.18
+  - @firebase/installations-compat@0.2.18
+  - @firebase/messaging@0.12.22
+  - @firebase/messaging-compat@0.2.22
+  - @firebase/performance@0.7.7
+  - @firebase/performance-compat@0.2.20
+
 ## 11.9.1
 
 ### Patch Changes

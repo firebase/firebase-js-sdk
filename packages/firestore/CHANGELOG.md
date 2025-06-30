@@ -1,5 +1,21 @@
 # @firebase/firestore
 
+## 4.8.0
+
+### Minor Changes
+
+- [`86155b3`](https://github.com/firebase/firebase-js-sdk/commit/86155b3c8f3974f8d777232625108c14f924e035) [#9115](https://github.com/firebase/firebase-js-sdk/pull/9115) - Added support for Firestore result types to be serialized with `toJSON` and then deserialized with `fromJSON` methods on the objects.
+
+  Addeed support to resume `onSnapshot` listeners in the CSR phase based on serialized `DataSnapshot`s and `QuerySnapshot`s built in the SSR phase.
+
+### Patch Changes
+
+- [`f73e08b`](https://github.com/firebase/firebase-js-sdk/commit/f73e08b212314547b39a10cd3e393f9e94776f21) [#9087](https://github.com/firebase/firebase-js-sdk/pull/9087) - Internal listener registration change for IndexedDB "versionchange" events.
+
+- Updated dependencies [[`42ac401`](https://github.com/firebase/firebase-js-sdk/commit/42ac4011787db6bb7a08f8c84f364ea86ea51e83)]:
+  - @firebase/util@1.12.1
+  - @firebase/component@0.6.18
+
 ## 4.7.17
 
 ### Patch Changes
