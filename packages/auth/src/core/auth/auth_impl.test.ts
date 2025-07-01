@@ -46,8 +46,9 @@ import { mockEndpointWithParams } from '../../../test/helpers/api/helper';
 import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../errors';
-import { PasswordValidationStatus } from '../../model/public_types';
+import { FirebaseToken, PasswordValidationStatus } from '../../model/public_types';
 import { PasswordPolicyImpl } from './password_policy_impl';
+import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -147,6 +148,144 @@ describe('core/auth/auth_impl', () => {
         FirebaseError,
         '(auth/tenant-id-mismatch)'
       );
+    });
+  });
+
+  describe('#updateFirebaseToken', () => {
+    const token: FirebaseToken = {
+      token: 'test-token',
+      expirationTime: 123456789
+    };
+
+    it('sets the field on the auth object', async () => {
+      await auth._updateFirebaseToken(token);
+      expect((auth as any).firebaseToken).to.eql(token);
+    });
+
+    it('calls persistence._set with correct values', async () => {
+      await auth._updateFirebaseToken(token);
+      expect(persistenceStub._set).to.have.been.calledWith(
+        'firebase:persistence-token:api-key:test-app', // key
+        {
+          token: token.token,
+          expirationTime: token.expirationTime
+        }
+      );
+    });
+
+    it('setting to null triggers persistence._remove', async () => {
+      await auth._updateFirebaseToken(null);
+      expect(persistenceStub._remove).to.have.been.calledWith(
+        'firebase:persistence-token:api-key:test-app');
+    });
+
+    it('orders async updates correctly', async () => {
+      const tokens: FirebaseToken[] = Array.from({ length: 5 }, (_, i) => ({
+        token: `token-${i}`,
+        expirationTime: Date.now() + i
+      }));
+
+      persistenceStub._set.callsFake(() => {
+        return new Promise(resolve => {
+          setTimeout(() => resolve(), 1);
+        });
+      });
+
+      await Promise.all(tokens.map(t => auth._updateFirebaseToken(t)));
+
+      for (let i = 0; i < tokens.length; i++) {
+        expect(persistenceStub._set.getCall(i)).to.have.been.calledWith(
+          'firebase:persistence-token:api-key:test-app',
+          {
+            token: tokens[i].token,
+            expirationTime: tokens[i].expirationTime
+          }
+        );
+      }
+    });
+
+    it('throws if persistence._set fails', async () => {
+      persistenceStub._set.rejects(new Error('fail'));
+      await expect(auth._updateFirebaseToken(token)).to.be.rejectedWith('fail');
+    });
+
+    it('throws if persistence._remove fails', async () => {
+      persistenceStub._remove.rejects(new Error('remove fail'));
+      await expect(auth._updateFirebaseToken(null)).to.be.rejectedWith('remove fail');
+    });
+  });
+
+  describe('#_initializeWithPersistence', () => {
+    let mockToken: FirebaseToken;
+    let persistenceManager: any;
+    let subscription: any;
+    let authImpl: AuthImpl;
+
+    beforeEach(() => {
+      mockToken = {
+        token: 'test-token',
+        expirationTime: 123456789
+      };
+
+      persistenceManager = {
+        getFirebaseToken: sinon.stub().resolves(mockToken),
+        getCurrentUser: sinon.stub().resolves(null),
+        setCurrentUser: sinon.stub().resolves(),
+        removeCurrentUser: sinon.stub().resolves(),
+        getPersistence: sinon.stub().returns('LOCAL')
+      };
+
+      subscription = {
+        next: sinon.spy()
+      };
+
+      sinon.stub(PersistenceUserManager, 'create').resolves(persistenceManager);
+
+      authImpl = new AuthImpl(
+        FAKE_APP,
+        FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+        FAKE_APP_CHECK_CONTROLLER_PROVIDER,
+        {
+          apiKey: FAKE_APP.options.apiKey!,
+          apiHost: DefaultConfig.API_HOST,
+          apiScheme: DefaultConfig.API_SCHEME,
+          tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+          clientPlatform: ClientPlatform.BROWSER,
+          sdkClientVersion: 'v'
+        }
+      );
+
+      (authImpl as any).firebaseTokenSubscription = subscription;
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it('should load the firebaseToken from persistence and set it', async () => {
+      await authImpl._initializeWithPersistence([persistenceStub as PersistenceInternal]);
+
+      expect(persistenceManager.getFirebaseToken).to.have.been.called;
+      expect((authImpl as any).firebaseToken).to.eql(mockToken);
+      expect(subscription.next).to.have.been.calledWith(mockToken);
+    });
+
+    it('should set firebaseToken to null if getFirebaseToken returns undefined', async () => {
+      persistenceManager.getFirebaseToken.resolves(undefined);
+
+      await authImpl._initializeWithPersistence([persistenceStub as PersistenceInternal]);
+
+      expect((authImpl as any).firebaseToken).to.be.null;
+      expect(subscription.next).to.have.been.calledWith(null);
+    });
+
+    it('should set firebaseToken to null if getFirebaseToken returns null', async () => {
+      persistenceManager.getFirebaseToken.resolves(null);
+
+      await authImpl._initializeWithPersistence([persistenceStub as PersistenceInternal]);
+
+      expect((authImpl as any).firebaseToken).to.be.null;
+      expect(subscription.next).to.have.been.calledWith(null);
     });
   });
 
