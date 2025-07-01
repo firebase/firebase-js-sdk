@@ -46,7 +46,10 @@ import { mockEndpointWithParams } from '../../../test/helpers/api/helper';
 import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../errors';
-import { FirebaseToken, PasswordValidationStatus } from '../../model/public_types';
+import {
+  FirebaseToken,
+  PasswordValidationStatus
+} from '../../model/public_types';
 import { PasswordPolicyImpl } from './password_policy_impl';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 
@@ -176,7 +179,8 @@ describe('core/auth/auth_impl', () => {
     it('setting to null triggers persistence._remove', async () => {
       await auth._updateFirebaseToken(null);
       expect(persistenceStub._remove).to.have.been.calledWith(
-        'firebase:persistence-token:api-key:test-app');
+        'firebase:persistence-token:api-key:test-app'
+      );
     });
 
     it('orders async updates correctly', async () => {
@@ -211,7 +215,9 @@ describe('core/auth/auth_impl', () => {
 
     it('throws if persistence._remove fails', async () => {
       persistenceStub._remove.rejects(new Error('remove fail'));
-      await expect(auth._updateFirebaseToken(null)).to.be.rejectedWith('remove fail');
+      await expect(auth._updateFirebaseToken(null)).to.be.rejectedWith(
+        'remove fail'
+      );
     });
   });
 
@@ -263,7 +269,9 @@ describe('core/auth/auth_impl', () => {
     });
 
     it('should load the firebaseToken from persistence and set it', async () => {
-      await authImpl._initializeWithPersistence([persistenceStub as PersistenceInternal]);
+      await authImpl._initializeWithPersistence([
+        persistenceStub as PersistenceInternal
+      ]);
 
       expect(persistenceManager.getFirebaseToken).to.have.been.called;
       expect((authImpl as any).firebaseToken).to.eql(mockToken);
@@ -273,7 +281,9 @@ describe('core/auth/auth_impl', () => {
     it('should set firebaseToken to null if getFirebaseToken returns undefined', async () => {
       persistenceManager.getFirebaseToken.resolves(undefined);
 
-      await authImpl._initializeWithPersistence([persistenceStub as PersistenceInternal]);
+      await authImpl._initializeWithPersistence([
+        persistenceStub as PersistenceInternal
+      ]);
 
       expect((authImpl as any).firebaseToken).to.be.null;
       expect(subscription.next).to.have.been.calledWith(null);
@@ -282,7 +292,9 @@ describe('core/auth/auth_impl', () => {
     it('should set firebaseToken to null if getFirebaseToken returns null', async () => {
       persistenceManager.getFirebaseToken.resolves(null);
 
-      await authImpl._initializeWithPersistence([persistenceStub as PersistenceInternal]);
+      await authImpl._initializeWithPersistence([
+        persistenceStub as PersistenceInternal
+      ]);
 
       expect((authImpl as any).firebaseToken).to.be.null;
       expect(subscription.next).to.have.been.calledWith(null);
