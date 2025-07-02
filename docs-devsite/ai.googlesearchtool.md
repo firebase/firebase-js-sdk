@@ -17,7 +17,7 @@ Important: If using Grounding with Google Search, you are required to comply wit
 <b>Signature:</b>
 
 ```typescript
-export declare interface GoogleSearchTool 
+export interface GoogleSearchTool 
 ```
 
 ## Properties

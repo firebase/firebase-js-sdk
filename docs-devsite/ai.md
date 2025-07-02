@@ -406,7 +406,7 @@ Defines a tool that model can call to access external knowledge.
 <b>Signature:</b>
 
 ```typescript
-export declare type Tool = FunctionDeclarationsTool | GoogleSearchTool;
+export type Tool = FunctionDeclarationsTool | GoogleSearchTool;
 ```
 
 ## TypedSchema

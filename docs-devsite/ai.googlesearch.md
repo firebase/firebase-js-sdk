@@ -17,5 +17,5 @@ Currently, this is an empty object, but it's reserved for future configuration o
 <b>Signature:</b>
 
 ```typescript
-export declare interface GoogleSearch 
+export interface GoogleSearch 
 ```
