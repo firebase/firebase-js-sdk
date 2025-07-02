@@ -10,9 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # GoogleSearch interface
-Configuration for the [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface)<!-- -->.
+Specifies the Google Search configuration.
 
-Currently, this interface is empty and serves as a placeholder for future configuration options.
+Currently, this is an empty object, but it's reserved for future configuration options.
 
 <b>Signature:</b>
 

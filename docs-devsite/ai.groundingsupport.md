@@ -12,8 +12,6 @@ https://github.com/firebase/firebase-js-sdk
 # GroundingSupport interface
 Provides information about how a specific segment of the model's response is supported by the retrieved grounding chunks.
 
-Important: If using Grounding with Google Search, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Search".
-
 <b>Signature:</b>
 
 ```typescript

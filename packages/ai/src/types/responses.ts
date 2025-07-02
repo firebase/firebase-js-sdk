@@ -173,45 +173,35 @@ export interface Citation {
 /**
  * Metadata returned when grounding is enabled.
  *
- * Currently, the only way to use grounding is to include a {@link GoogleSearchTool} in your {@link GenerationConfig}.
+ * Currently, only Grounding with Google Search is supported (see {@link GoogleSearchTool}).
  *
  * Important: If using Grounding with Google Search, you are required to comply with the
- * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+ * "Grounding with Google Search" usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-search | Gemini Developer API}
+ * or {@link https://cloud.google.com/terms/service-terms | Vertex AI Gemini API}
+ * (see Service Terms section within the Service Specific Terms).
  *
  * @public
  */
 export interface GroundingMetadata {
   /**
-   * Google search entry point for web searches.
-   * This contains An HTML/CSS snippet that *must* be embedded in an app to display a Google Search Entry point
-   * for follow-up web searches related to the model's "Grounded Response".
-   *
-   * Important: If using Grounding with Google Search, you are required to comply with the
-   * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+   * Google Search entry point for web searches. This contains an HTML/CSS snippet that must be
+   * embedded in an app to display a Google Search entry point for follow-up web searches related to
+   * a model's “Grounded Response”.
    */
   searchEntryPoint?: SearchEntrypoint;
   /**
    * A list of {@link GroundingChunk} objects. Each chunk represents a piece of retrieved content
-   * (e.g. from a web page). that the model used to ground its response.
-   *
-   * Important: If using Grounding with Google Search, you are required to comply with the
-   * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+   * (for example, from a web page). that the model used to ground its response.
    */
   groundingChunks?: GroundingChunk[];
   /**
-   * A list of {@link GroundingSupport} objects. Each object details how specific
-   * segments of the model's response are supported by the `groundingChunks`.
-   *
-   * Important: If using Grounding with Google Search, you are required to comply with the
-   * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+   * A list of {@link GroundingSupport} objects. Each object details how specific segments of the
+   * model's response are supported by the `groundingChunks`.
    */
   groundingSupports?: GroundingSupport[];
   /**
    * A list of web search queries that the model performed to gather the grounding information.
    * These can be used to allow users to explore the search results themselves.
-   *
-   * Important: If using Grounding with Google Search, you are required to comply with the
-   * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
    */
   webSearchQueries?: string[];
   /**
@@ -227,15 +217,12 @@ export interface GroundingMetadata {
 /**
  * Google search entry point.
  *
- * Important: If using Grounding with Google Search, you are required to comply with the
- * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
- *
  * @public
  */
 export interface SearchEntrypoint {
   /**
-   * HTML/CSS snippet that can be embedded in a web page. The snippet is designed to avoid undesired
-   * interaction with the rest of the page's CSS.
+   * HTML/CSS snippet that must be embedded in a web page. The snippet is designed to avoid
+   * undesired interaction with the rest of the page's CSS.
    *
    * To ensure proper rendering and prevent CSS conflicts, it is recommended
    * to encapsulate this `renderedContent` within a shadow DOM when embedding it
@@ -252,11 +239,8 @@ export interface SearchEntrypoint {
 }
 
 /**
- * Represents a chunk of retrieved data that supports a claim in the model's response.
- * This is part of the grounding information provided when grounding is enabled.
- *
- * Important: If using Grounding with Google Search, you are required to comply with the
- * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+ * Represents a chunk of retrieved data that supports a claim in the model's response. This is part
+ * of the grounding information provided when grounding is enabled.
  *
  * @public
  */
@@ -285,20 +269,18 @@ export interface WebGroundingChunk {
    */
   title?: string;
   /**
-   * The domain of the original URI from which the content was retrieved (e.g., `example.com`).
+   * The domain of the original URI from which the content was retrieved.
    *
    * This property is only supported in the Vertex AI Gemini API ({@link VertexAIBackend}).
-   * When using the Gemini Developer API ({@link GoogleAIBackend}), this property will be undefined.
+   * When using the Gemini Developer API ({@link GoogleAIBackend}), this property will be
+   * `undefined`.
    */
   domain?: string;
 }
 
 /**
- * Provides information about how a specific segment of the model's response
- * is supported by the retrieved grounding chunks.
- *
- * Important: If using Grounding with Google Search, you are required to comply with the
- * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+ * Provides information about how a specific segment of the model's response is supported by the
+ * retrieved grounding chunks.
  *
  * @public
  */

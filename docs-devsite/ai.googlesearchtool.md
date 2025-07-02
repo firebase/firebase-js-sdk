@@ -10,9 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # GoogleSearchTool interface
-A tool that allows the generative model to connect to Google Search to access and incorporate up-to-date information from the web into its responses.
+A tool that allows a Gemini model to connect to Google Search to access and incorporate up-to-date information from the web into its responses.
 
-When using Grounding with Google Search, you may receive a response with data generated from Google's search engine. This response is a "Grounded Result" subject to the Grounding with Google Search terms in the [Service Specific Terms](https://cloud.google.com/terms/service-terms)<!-- -->.
+Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or [Vertex AI Gemini API](https://cloud.google.com/terms/service-terms) (see Service Terms section within the Service Specific Terms).
 
 <b>Signature:</b>
 
@@ -24,11 +24,13 @@ export declare interface GoogleSearchTool
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [googleSearch](./ai.googlesearchtool.md#googlesearchtoolgooglesearch) | [GoogleSearch](./ai.googlesearch.md#googlesearch_interface) | Specifies the Google Search configuration. Currently, this is an empty object, but it's reserved for future configuration options. |
+|  [googleSearch](./ai.googlesearchtool.md#googlesearchtoolgooglesearch) | [GoogleSearch](./ai.googlesearch.md#googlesearch_interface) | Specifies the Google Search configuration. Currently, this is an empty object, but it's reserved for future configuration options. Specifies the Google Search configuration. Currently, this is an empty object, but it's reserved for future configuration options.<!-- -->When using this feature, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or [Vertex AI Gemini API](https://cloud.google.com/terms/service-terms) (see Service Terms section within the Service Specific Terms). |
 
 ## GoogleSearchTool.googleSearch
 
-Specifies the Google Search configuration. Currently, this is an empty object, but it's reserved for future configuration options.
+Specifies the Google Search configuration. Currently, this is an empty object, but it's reserved for future configuration options. Specifies the Google Search configuration. Currently, this is an empty object, but it's reserved for future configuration options.
+
+When using this feature, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or [Vertex AI Gemini API](https://cloud.google.com/terms/service-terms) (see Service Terms section within the Service Specific Terms).
 
 <b>Signature:</b>
 

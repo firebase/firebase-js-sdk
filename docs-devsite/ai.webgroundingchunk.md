@@ -24,15 +24,15 @@ export interface WebGroundingChunk
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [domain](./ai.webgroundingchunk.md#webgroundingchunkdomain) | string | The domain of the original URI from which the content was retrieved (e.g., <code>example.com</code>).<!-- -->This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property will be undefined. |
+|  [domain](./ai.webgroundingchunk.md#webgroundingchunkdomain) | string | The domain of the original URI from which the content was retrieved.<!-- -->This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property will be <code>undefined</code>. |
 |  [title](./ai.webgroundingchunk.md#webgroundingchunktitle) | string | The title of the retrieved web page. |
 |  [uri](./ai.webgroundingchunk.md#webgroundingchunkuri) | string | The URI of the retrieved web page. |
 
 ## WebGroundingChunk.domain
 
-The domain of the original URI from which the content was retrieved (e.g., `example.com`<!-- -->).
+The domain of the original URI from which the content was retrieved.
 
-This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property will be undefined.
+This property is only supported in the Vertex AI Gemini API ([VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property will be `undefined`<!-- -->.
 
 <b>Signature:</b>
 

@@ -197,12 +197,13 @@ export declare interface FunctionDeclaration {
 }
 
 /**
- * A tool that allows the generative model to connect to Google Search
- * to access and incorporate up-to-date information from the web into its responses.
+ * A tool that allows a Gemini model to connect to Google Search to access and incorporate
+ * up-to-date information from the web into its responses.
  *
- * When using Grounding with Google Search, you may receive a response with data generated from
- * Google's search engine. This response is a "Grounded Result" subject to the Grounding with Google Search
- * terms in the {@link https://cloud.google.com/terms/service-terms | Service Specific Terms}.
+ * Important: If using Grounding with Google Search, you are required to comply with the
+ * "Grounding with Google Search" usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-search | Gemini Developer API}
+ * or {@link https://cloud.google.com/terms/service-terms | Vertex AI Gemini API}
+ * (see Service Terms section within the Service Specific Terms).
  *
  * @public
  */
@@ -210,14 +211,22 @@ export declare interface GoogleSearchTool {
   /**
    * Specifies the Google Search configuration.
    * Currently, this is an empty object, but it's reserved for future configuration options.
+   * Specifies the Google Search configuration. Currently, this is an empty object, but it's
+   * reserved for future configuration options.
+   *
+   * When using this feature, you are required to comply with the "Grounding with Google Search"
+   * usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-search | Gemini Developer API}
+   * or {@link https://cloud.google.com/terms/service-terms | Vertex AI Gemini API}
+   * (see Service Terms section within the Service Specific Terms).
    */
   googleSearch: GoogleSearch;
 }
 
 /**
- * Configuration for the {@link GoogleSearchTool}.
+ * Specifies the Google Search configuration.
  *
- * @remarks Currently, this interface is empty and serves as a placeholder for future configuration options.
+ * @remarks Currently, this is an empty object, but it's reserved for future configuration options.
+ *
  * @public
  */
 export declare interface GoogleSearch {}
