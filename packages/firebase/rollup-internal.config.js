@@ -88,8 +88,9 @@ const customBuilds = [
         ]
       }
     ];
-  }).flat();
+  })
+  .flat();
 
-  console.log(customBuilds.length);
+console.log(customBuilds.length);
 
 export default [/*...buildsWithLicense,*/ ...customBuilds];
