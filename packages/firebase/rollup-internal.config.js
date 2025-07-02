@@ -55,9 +55,9 @@ const buildsWithLicense = cdnBuilds.map(build => {
  * Custom builds that include combinations of multiple products.
  */
 const customBuilds = [
-  { inputFile: 'custom/index.all.cdn.ts', outputFile: 'firebase.js' },
+  { inputFile: 'custom/index.all.ts', outputFile: 'firebase.js' },
   {
-    inputFile: 'custom/analytics-remote-config.cdn.ts',
+    inputFile: 'custom/analytics-remote-config.ts',
     outputFile: 'firebase-analytics-rc.js'
   }
 ]
