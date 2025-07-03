@@ -26,8 +26,17 @@ import { AuthErrorCode } from '../errors';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _createError } from '../util/assert';
 import { OAuthProvider } from './oauth';
+import { OAuthCredential } from '../credentials/oauth';
+import sinon from 'sinon';
 
 describe('core/providers/oauth', () => {
+
+  const callMethod = (tokenResponse: any) => {
+    return (OAuthProvider as any).oauthCredentialFromTaggedObject({
+      _tokenResponse: tokenResponse
+    });
+  };
+
   it('generates the correct type of oauth credential', () => {
     const cred = new OAuthProvider('google.com').credential({
       idToken: 'id-token',
@@ -124,5 +133,97 @@ describe('core/providers/oauth', () => {
     expect(cred.providerId).to.eq('foo.test');
     expect(cred.signInMethod).to.eq('foo.test');
     expect((cred.toJSON() as { nonce: string }).nonce).to.eq('i-am-a-nonce');
+  });
+
+  it('creates OAuthCredential from valid object input', () => {
+    const input = {
+      providerId: 'google.com',
+      signInMethod: 'google.com',
+      idToken: 'id-token',
+      accessToken: 'access-token'
+    };
+
+    const credential = OAuthProvider.credentialFromJSON(input);
+    expect(credential).to.be.instanceOf(OAuthCredential);
+    expect(credential.providerId).to.equal('google.com');
+    expect(credential.signInMethod).to.equal('google.com');
+    expect(credential.idToken).to.equal('id-token');
+    expect(credential.accessToken).to.equal('access-token');
+  });
+
+  it('creates OAuthCredential from valid JSON string input', () => {
+    const input = JSON.stringify({
+      providerId: 'providerid',
+      signInMethod: 'providerid',
+      accessToken: 'access-token'
+    });
+
+    const credential = OAuthProvider.credentialFromJSON(input);
+    expect(credential).to.be.instanceOf(OAuthCredential);
+    expect(credential.providerId).to.equal('providerid');
+    expect(credential.signInMethod).to.equal('providerid');
+    expect(credential.accessToken).to.equal('access-token');
+  });
+
+  it('throws an error if providerId or signInMethod is missing', () => {
+    const input = {
+      idToken: 'missing-provider-id'
+    };
+
+    expect(() => {
+      OAuthProvider.credentialFromJSON(input);
+    }).to.throw(AuthErrorCode.ARGUMENT_ERROR);
+  });
+
+  it('throws an error if JSON string is invalid', () => {
+    const invalidJson = '{ not valid json }';
+
+    expect(() => {
+      OAuthProvider.credentialFromJSON(invalidJson);
+    }).to.throw(SyntaxError);
+  });
+
+  it('returns null if tokenResponse is missing', () => {
+    const result = callMethod(undefined);
+    expect(result).to.be.null;
+  });
+
+  it('returns null if all tokens (idToken, accessToken, tokenSecret, pendingToken) are missing', () => {
+    const result = callMethod({
+      providerId: 'google.com'
+      // all token fields missing
+    });
+    expect(result).to.be.null;
+  });
+
+  it('returns null if providerId is missing', () => {
+    const result = callMethod({
+      oauthIdToken: 'id-token',
+      oauthAccessToken: 'access-token',
+      // providerId is missing
+    });
+    expect(result).to.be.null;
+  });
+
+  it('returns null if OAuthProvider._credential throws', () => {
+    const proto = OAuthProvider.prototype as any;
+    const original = proto._credential;
+
+    // Temporarily replace _credential to throw an error
+    proto._credential = () => {
+      throw new Error('Simulated error');
+    };
+
+    const result = (OAuthProvider as any).oauthCredentialFromTaggedObject({
+      _tokenResponse: {
+        providerId: 'google.com',
+        oauthIdToken: 'id-token'
+      }
+    });
+
+    expect(result).to.be.null;
+
+    // Restore original method
+    proto._credential = original;
   });
 });
