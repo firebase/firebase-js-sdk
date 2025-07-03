@@ -1526,7 +1526,7 @@ function onExchangeToken(event) {
 
   exchangeCIAMToken(byoCiamInput.value)
     .then(response => {
-      byoCiamResult.textContent = response.accessToken;
+      byoCiamResult.textContent = response;
       console.log('Token:', response);
     })
     .catch(error => {
@@ -2086,7 +2086,7 @@ function initApp() {
   const regionalApp = initializeApp(config, `${auth.name}-rgcip`);
 
   regionalAuth = initializeAuth(regionalApp, {
-    persistence: inMemoryPersistence,
+    persistence: indexedDBLocalPersistence,
     popupRedirectResolver: browserPopupRedirectResolver,
     tenantConfig: tenantConfig
   });
