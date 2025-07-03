@@ -65,6 +65,7 @@ const PREFERRED_PARAMS = [
 
 let authApiReportOriginal: string;
 let authApiConfigOriginal: string;
+let appPkgOriginal: string;
 
 yargs
   .command(
@@ -117,6 +118,14 @@ function cleanup() {
       fs.writeFileSync(
         `${projectRoot}/common/api-review/auth.api.md`,
         authApiReportOriginal
+      );
+    }
+    // Restore original app/package.json
+    if (authApiConfigOriginal) {
+      console.log(`Restoring original app/package.json contents.`);
+      fs.writeFileSync(
+        `${projectRoot}/packages/app/package.json`,
+        appPkgOriginal
       );
     }
     for (const excludedPackage of EXCLUDED_PACKAGES) {
@@ -198,10 +207,25 @@ async function generateDocs(
     `"mainEntryPointFilePath": "<projectFolder>/dist/esm2017/index.doc.d.ts"`
   );
 
+  console.log(`Temporarily modifying packages/app/package.json for docgen.`);
+  // Remove typesVersions restriction just for docgen
+  appPkgOriginal = fs.readFileSync(
+    `${projectRoot}/packages/app/package.json`,
+    'utf8'
+  );
+  const appPkgModified = appPkgOriginal.replace(
+    `./dist/typescript-not-supported.d.ts`,
+    `./dist/app/src/index.d.ts`
+  );
+
   try {
     fs.writeFileSync(
       `${projectRoot}/packages/auth/api-extractor.json`,
       authApiConfigModified
+    );
+    fs.writeFileSync(
+      `${projectRoot}/packages/app/package.json`,
+      appPkgModified
     );
 
     if (skipBuild) {
