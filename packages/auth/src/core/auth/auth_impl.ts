@@ -106,6 +106,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   private persistenceManager?: PersistenceUserManager;
   private redirectPersistenceManager?: PersistenceUserManager;
   private authStateSubscription = new Subscription<User>(this);
+  private firebaseTokenSubscription = new Subscription<FirebaseToken>(this);
   private idTokenSubscription = new Subscription<User>(this);
   private readonly beforeStateQueue = new AuthMiddlewareQueue(this);
   private redirectUser: UserInternal | null = null;
@@ -195,6 +196,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       }
 
       await this.initializeCurrentUser(popupRedirectResolver);
+      await this.initializeFirebaseToken();
 
       this.lastNotifiedUid = this.currentUser?.uid || null;
 
@@ -403,6 +405,12 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     return this.directlySetCurrentUser(user);
   }
 
+  private async initializeFirebaseToken(): Promise<void> {
+    this.firebaseToken =
+      (await this.persistenceManager?.getFirebaseToken()) ?? null;
+    this.firebaseTokenSubscription.next(this.firebaseToken);
+  }
+
   useDeviceLanguage(): void {
     this.languageCode = _getUserLanguage();
   }
@@ -461,6 +469,12 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     firebaseToken: FirebaseToken | null
   ): Promise<void> {
     this.firebaseToken = firebaseToken;
+    this.firebaseTokenSubscription.next(firebaseToken);
+    if (firebaseToken) {
+      await this.assertedPersistence.setFirebaseToken(firebaseToken);
+    } else {
+      await this.assertedPersistence.removeFirebaseToken();
+    }
   }
 
   async signOut(): Promise<void> {
