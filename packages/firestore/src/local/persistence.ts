@@ -98,7 +98,74 @@ export interface ReferenceDelegate {
   ): PersistencePromise<void>;
 }
 
-export type DatabaseDeletedListener = () => void;
+/**
+ * A {@link DatabaseDeletedListener} event indicating that the IndexedDB
+ * database received a "versionchange" event with a null value for "newVersion".
+ * This event indicates that another tab in multi-tab IndexedDB persistence mode
+ * has called `clearIndexedDbPersistence()` and requires this tab to close its
+ * IndexedDB connection in order to allow the "clear" operation to proceed.
+ */
+export class VersionChangeDatabaseDeletedEvent {
+  /** A type discriminator. */
+  readonly type = 'VersionChangeDatabaseDeletedEvent' as const;
+
+  constructor(
+    readonly data: {
+      /** A unique ID for this event. */
+      eventId: string;
+      /**
+       * The value of the "newVersion" property of the "versionchange" event
+       * that triggered this event. Its value is _always_ `null`, but is kept
+       * here for posterity.
+       */
+      eventNewVersion: null;
+    }
+  ) {}
+}
+
+/**
+ * A {@link DatabaseDeletedListener} event indicating that the "Clear Site Data"
+ * button in a web browser was (likely) clicked, deleting the IndexedDB
+ * database.
+ */
+export class ClearSiteDataDatabaseDeletedEvent {
+  /** A type discriminator. */
+  readonly type = 'ClearSiteDataDatabaseDeletedEvent' as const;
+
+  constructor(
+    readonly data: {
+      /** A unique ID for this event. */
+      eventId: string;
+      /** The IndexedDB version that was last reported by the database. */
+      lastClosedVersion: number;
+      /**
+       * The value of the "oldVersion" property of the "onupgradeneeded"
+       * IndexedDB event that triggered this event.
+       */
+      eventOldVersion: number;
+      /**
+       * The value of the "newVersion" property of the "onupgradeneeded"
+       * IndexedDB event that triggered this event.
+       */
+      eventNewVersion: number | null;
+      /**
+       * The value of the "version" property of the "IDBDatabase" object.
+       */
+      dbVersion: number;
+    }
+  ) {}
+}
+
+/**
+ * The type of the "event" parameter of {@link DatabaseDeletedListener}.
+ */
+export type DatabaseDeletedListenerEvent =
+  | VersionChangeDatabaseDeletedEvent
+  | ClearSiteDataDatabaseDeletedEvent;
+
+export type DatabaseDeletedListener = (
+  event: DatabaseDeletedListenerEvent
+) => void;
 
 /**
  * Persistence is the lowest-level shared interface to persistent storage in
