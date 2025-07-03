@@ -1305,6 +1305,7 @@ function onRefreshToken() {
 function onSignOut() {
   setLastUser(auth.currentUser);
   auth.signOut().then(signOut, onAuthError);
+  regionalAuth.signOut();
 }
 
 /**
