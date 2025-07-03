@@ -30,7 +30,6 @@ import { OAuthCredential } from '../credentials/oauth';
 import sinon from 'sinon';
 
 describe('core/providers/oauth', () => {
-
   const callMethod = (tokenResponse: any) => {
     return (OAuthProvider as any).oauthCredentialFromTaggedObject({
       _tokenResponse: tokenResponse
@@ -199,7 +198,7 @@ describe('core/providers/oauth', () => {
   it('returns null if providerId is missing', () => {
     const result = callMethod({
       oauthIdToken: 'id-token',
-      oauthAccessToken: 'access-token',
+      oauthAccessToken: 'access-token'
       // providerId is missing
     });
     expect(result).to.be.null;
