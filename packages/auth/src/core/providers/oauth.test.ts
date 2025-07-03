@@ -27,7 +27,6 @@ import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _createError } from '../util/assert';
 import { OAuthProvider } from './oauth';
 import { OAuthCredential } from '../credentials/oauth';
-import sinon from 'sinon';
 
 describe('core/providers/oauth', () => {
   const callMethod = (tokenResponse: any) => {
