@@ -15,7 +15,7 @@ Structured representation of a function declaration as defined by the [OpenAPI 3
 <b>Signature:</b>
 
 ```typescript
-export declare interface FunctionDeclaration 
+export interface FunctionDeclaration 
 ```
 
 ## Properties
