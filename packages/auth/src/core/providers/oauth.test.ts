@@ -29,7 +29,7 @@ import { OAuthProvider } from './oauth';
 import { OAuthCredential } from '../credentials/oauth';
 
 describe('core/providers/oauth', () => {
-  const callMethod = (tokenResponse: any) => {
+  const callMethod = (tokenResponse: any): OAuthCredential => {
     return (OAuthProvider as any).oauthCredentialFromTaggedObject({
       _tokenResponse: tokenResponse
     });
