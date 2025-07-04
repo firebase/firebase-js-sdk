@@ -2,3 +2,5 @@
 /firebase*.map
 /firebase*.gz
 /firebase*.tgz
+/custom/*.d.ts
+/packages

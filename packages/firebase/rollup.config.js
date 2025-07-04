@@ -134,7 +134,7 @@ const componentBuilds = pkg.components
 /**
  * CDN script builds
  */
-const cdnBuilds = [
+export const cdnBuilds = [
   {
     input: 'app/index.cdn.ts',
     output: {
@@ -174,5 +174,7 @@ const cdnBuilds = [
       };
     })
 ];
+
+export { plugins };
 
 export default [...appBuilds, ...componentBuilds, ...cdnBuilds];
