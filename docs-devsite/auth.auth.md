@@ -42,6 +42,7 @@ export interface Auth
 |  [authStateReady()](./auth.auth.md#authauthstateready) | returns a promise that resolves immediately when the initial auth state is settled. When the promise resolves, the current user might be a valid user or <code>null</code> if the user signed out. |
 |  [beforeAuthStateChanged(callback, onAbort)](./auth.auth.md#authbeforeauthstatechanged) | Adds a blocking callback that runs before an auth state change sets a new user. |
 |  [onAuthStateChanged(nextOrObserver, error, completed)](./auth.auth.md#authonauthstatechanged) | Adds an observer for changes to the user's sign-in state. |
+|  [onFirebaseTokenChanged(nextOrObserver, error, completed)](./auth.auth.md#authonfirebasetokenchanged) |  |
 |  [onIdTokenChanged(nextOrObserver, error, completed)](./auth.auth.md#authonidtokenchanged) | Adds an observer for changes to the signed-in user's ID token. |
 |  [setPersistence(persistence)](./auth.auth.md#authsetpersistence) | Changes the type of persistence on the <code>Auth</code> instance. |
 |  [signOut()](./auth.auth.md#authsignout) | Signs out the current user. This does not automatically revoke the user's ID token. |
@@ -222,6 +223,26 @@ onAuthStateChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn,
 |  nextOrObserver | [NextOrObserver](./auth.md#nextorobserver)<!-- -->&lt;[User](./auth.user.md#user_interface) \| null&gt; | callback triggered on change. |
 |  error | [ErrorFn](./util.md#errorfn) | Deprecated. This callback is never triggered. Errors on signing in/out can be caught in promises returned from sign-in/sign-out functions. |
 |  completed | [CompleteFn](./util.md#completefn) | Deprecated. This callback is never triggered. |
+
+<b>Returns:</b>
+
+[Unsubscribe](./util.md#unsubscribe)
+
+## Auth.onFirebaseTokenChanged()
+
+<b>Signature:</b>
+
+```typescript
+onFirebaseTokenChanged(nextOrObserver: NextOrObserver<FirebaseToken | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  nextOrObserver | [NextOrObserver](./auth.md#nextorobserver)<!-- -->&lt;[FirebaseToken](./auth.firebasetoken.md#firebasetoken_interface) \| null&gt; |  |
+|  error | [ErrorFn](./util.md#errorfn) |  |
+|  completed | [CompleteFn](./util.md#completefn) |  |
 
 <b>Returns:</b>
 
