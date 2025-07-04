@@ -41,7 +41,7 @@ export default [
         typescript,
         tsconfigOverride: {
           compilerOptions: {
-            target: 'es2017',
+            target: 'es2020',
             module: 'es2015'
           }
         }
@@ -66,7 +66,7 @@ export default [
         typescript,
         tsconfigOverride: {
           compilerOptions: {
-            target: 'es2017',
+            target: 'es2020',
             module: 'es2015'
           }
         }

@@ -54,7 +54,7 @@ async function buildBundle(input: string, output: string): Promise<void> {
       typescriptPlugin({
         tsconfigOverride: {
           compilerOptions: {
-            target: 'es2017'
+            target: 'es2020'
           }
         },
         transformers: [util.removeAssertTransformer]

@@ -5,7 +5,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "target": "es2017",
+    "target": "es2020",
     "esModuleInterop": true,
     "declaration": true,
     "strict": true,
