@@ -28,7 +28,7 @@ export class AIError extends FirebaseError {
   /**
    * Constructs a new instance of the `AIError` class.
    *
-   * @param code - The error code from {@link AIErrorCode}.
+   * @param code - The error code from {@link (AIErrorCode:type)}.
    * @param message - A human-readable message describing the error.
    * @param customErrorData - Optional error data.
    */
