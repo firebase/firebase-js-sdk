@@ -181,6 +181,22 @@ export {
 
 export { VectorValue } from './lite-api/vector_value';
 
+export { Int32Value } from './lite-api/int32_value';
+
+export { Decimal128Value } from './lite-api/decimal128_value';
+
+export { RegexValue } from './lite-api/regex_value';
+
+export { BsonBinaryData } from './lite-api/bson_binary_data';
+
+export { BsonObjectId } from './lite-api/bson_object_Id';
+
+export { BsonTimestamp } from './lite-api/bson_timestamp';
+
+export { MinKey } from './lite-api/min_key';
+
+export { MaxKey } from './lite-api/max_key';
+
 export { LogLevelString as LogLevel, setLogLevel } from './util/log';
 
 export { Bytes } from './api/bytes';
