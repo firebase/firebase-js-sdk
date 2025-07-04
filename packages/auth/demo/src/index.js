@@ -2095,11 +2095,13 @@ function initApp() {
   const firebaseTokenStatus = document.getElementById('firebase-token-status');
   setTimeout(() => {
     if (regionalAuth.firebaseToken) {
-      firebaseTokenStatus.textContent = '✅ Firebase token is set: ' + regionalAuth.firebaseToken.token;
+      firebaseTokenStatus.textContent =
+        '✅ Firebase token is set: ' + regionalAuth.firebaseToken.token;
     } else {
-      firebaseTokenStatus.textContent = 'No CIAM token found. User not logged in.';
+      firebaseTokenStatus.textContent =
+        'No CIAM token found. User not logged in.';
     }
-    console.log("firebaseToken after delay: ", regionalAuth.firebaseToken);
+    console.log('firebaseToken after delay: ', regionalAuth.firebaseToken);
   }, 1000);
   tempApp = initializeApp(
     {
