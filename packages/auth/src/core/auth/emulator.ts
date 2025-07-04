@@ -113,7 +113,7 @@ export function connectAuthEmulator(
 
 function extractProtocol(url: string): string {
   const protocolEnd = url.indexOf(':');
-  return protocolEnd < 0 ? '' : url.substr(0, protocolEnd + 1);
+  return protocolEnd < 0 ? '' : url.slice(0, protocolEnd + 1);
 }
 
 function extractHostAndPort(url: string): {
@@ -121,7 +121,7 @@ function extractHostAndPort(url: string): {
   port: number | null;
 } {
   const protocol = extractProtocol(url);
-  const authority = /(\/\/)?([^?#/]+)/.exec(url.substr(protocol.length)); // Between // and /, ? or #.
+  const authority = /(\/\/)?([^?#/]+)/.exec(url.slice(protocol.length)); // Between // and /, ? or #.
   if (!authority) {
     return { host: '', port: null };
   }
@@ -129,7 +129,7 @@ function extractHostAndPort(url: string): {
   const bracketedIPv6 = /^(\[[^\]]+\])(:|$)/.exec(hostAndPort);
   if (bracketedIPv6) {
     const host = bracketedIPv6[1];
-    return { host, port: parsePort(hostAndPort.substr(host.length + 1)) };
+    return { host, port: parsePort(hostAndPort.slice(host.length + 1)) };
   } else {
     const [host, port] = hostAndPort.split(':');
     return { host, port: parsePort(port) };
