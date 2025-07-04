@@ -40,7 +40,7 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - uses: actions/checkout@v4
-    - name: Set up Node (20)
+    - name: Set up Node (22)
       uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
@@ -79,7 +79,7 @@ jobs:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
-    - name: Set up Node (20)
+    - name: Set up Node (22)
       uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
@@ -126,7 +126,7 @@ jobs:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
-    - name: Set up Node (20)
+    - name: Set up Node (22)
       uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
@@ -166,7 +166,7 @@ jobs:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
-    - name: Set up Node (20)
+    - name: Set up Node (22)
       uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
@@ -209,7 +209,7 @@ jobs:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
-    - name: Set up Node (20)
+    - name: Set up Node (22)
       uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
