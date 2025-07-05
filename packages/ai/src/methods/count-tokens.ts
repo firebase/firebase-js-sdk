@@ -18,7 +18,7 @@
 import {
   CountTokensRequest,
   CountTokensResponse,
-  RequestOptions
+  SingleRequestOptions
 } from '../types';
 import { Task, makeRequest } from '../requests/request';
 import { ApiSettings } from '../types/internal';
@@ -29,7 +29,7 @@ export async function countTokens(
   apiSettings: ApiSettings,
   model: string,
   params: CountTokensRequest,
-  requestOptions?: RequestOptions
+  singleRequestOptions?: SingleRequestOptions
 ): Promise<CountTokensResponse> {
   let body: string = '';
   if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
@@ -44,7 +44,7 @@ export async function countTokens(
     apiSettings,
     false,
     body,
-    requestOptions
+    singleRequestOptions
   );
   return response.json();
 }
