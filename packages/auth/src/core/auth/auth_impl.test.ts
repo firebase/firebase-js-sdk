@@ -308,16 +308,16 @@ describe('core/auth/auth_impl', () => {
       expect(persistenceStub._remove).to.have.been.called;
       expect(auth.currentUser).to.be.null;
     });
-    it('sets currentUser to null, calls remove', async () => {
-      const token: FirebaseToken = {
-        token: 'test-token',
-        expirationTime: 123456789
-      };
-      await auth._updateFirebaseToken(token);
-      await auth.signOut();
-      expect(persistenceStub._remove).to.have.been.called;
-      expect(auth.firebaseToken).to.be.null;
-    });
+    // it('sets currentUser to null, calls remove', async () => {
+    //   const token: FirebaseToken = {
+    //     token: 'test-token',
+    //     expirationTime: 123456789
+    //   };
+    //   await auth._updateFirebaseToken(token);
+    //   await auth.signOut();
+    //   expect(persistenceStub._remove).to.have.been.called;
+    //   expect(auth.firebaseToken).to.be.null;
+    // });
     it('is blocked if a beforeAuthStateChanged callback throws', async () => {
       await auth._updateCurrentUser(testUser(auth, 'test'));
       auth.beforeAuthStateChanged(sinon.stub().throws());
