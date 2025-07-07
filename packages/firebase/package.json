@@ -131,6 +131,18 @@
       },
       "default": "./firestore/dist/esm/index.esm.js"
     },
+    "./firestore/pipelines": {
+      "types": "./firestore/dist/firestore/pipelines.d.ts",
+      "node": {
+        "require": "./firestore/dist/pipelines.cjs.js",
+        "import": "./firestore/dist/pipelines.mjs"
+      },
+      "browser": {
+        "require": "./firestore/dist/pipelines.cjs.js",
+        "import": "./firestore/dist/esm/pipelines.esm.js"
+      },
+      "default": "./firestore/dist/esm/pipelines.esm.js"
+    },
     "./firestore/lite": {
       "types": "./firestore/lite/dist/firestore/lite/index.d.ts",
       "node": {

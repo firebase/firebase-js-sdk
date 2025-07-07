@@ -151,6 +151,26 @@ export function arrayEquals<T>(
   }
   return left.every((value, index) => comparator(value, right[index]));
 }
+
+/**
+ * Verifies equality for an optional value.
+ */
+export function isOptionalEqual<T>(
+  left: T | undefined,
+  right: T | undefined,
+  equalityTest: (left: T, right: T) => boolean
+): boolean {
+  if (left === undefined && right === undefined) {
+    return true;
+  }
+
+  if (left === undefined || right === undefined) {
+    return false;
+  }
+
+  return equalityTest(left, right);
+}
+
 /**
  * Returns the immediate lexicographically-following string. This is useful to
  * construct an inclusive range for indexeddb iterators.
