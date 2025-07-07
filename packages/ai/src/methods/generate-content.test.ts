@@ -34,6 +34,7 @@ import { Task } from '../requests/request';
 import { AIError } from '../api';
 import { mapGenerateContentRequest } from '../googleai-mappers';
 import { GoogleAIBackend, VertexAIBackend } from '../backend';
+import { ChromeAdapter } from './chrome-adapter';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -96,7 +97,8 @@ describe('generateContent()', () => {
     const result = await generateContent(
       fakeApiSettings,
       'model',
-      fakeRequestParams
+      fakeRequestParams,
+      new ChromeAdapter()
     );
     expect(result.response.text()).to.include('Mountain View, California');
     expect(makeRequestStub).to.be.calledWith(
@@ -119,7 +121,8 @@ describe('generateContent()', () => {
     const result = await generateContent(
       fakeApiSettings,
       'model',
-      fakeRequestParams
+      fakeRequestParams,
+      new ChromeAdapter()
     );
     expect(result.response.text()).to.include('Use Freshly Ground Coffee');
     expect(result.response.text()).to.include('30 minutes of brewing');
@@ -142,7 +145,8 @@ describe('generateContent()', () => {
     const result = await generateContent(
       fakeApiSettings,
       'model',
-      fakeRequestParams
+      fakeRequestParams,
+      new ChromeAdapter()
     );
     expect(result.response.usageMetadata?.totalTokenCount).to.equal(1913);
     expect(result.response.usageMetadata?.candidatesTokenCount).to.equal(76);
@@ -177,7 +181,8 @@ describe('generateContent()', () => {
     const result = await generateContent(
       fakeApiSettings,
       'model',
-      fakeRequestParams
+      fakeRequestParams,
+      new ChromeAdapter()
     );
     expect(result.response.text()).to.include(
       'Some information cited from an external source'
@@ -204,7 +209,8 @@ describe('generateContent()', () => {
     const result = await generateContent(
       fakeApiSettings,
       'model',
-      fakeRequestParams
+      fakeRequestParams,
+      new ChromeAdapter()
     );
     expect(result.response.text).to.throw('SAFETY');
     expect(makeRequestStub).to.be.calledWith(
@@ -226,7 +232,8 @@ describe('generateContent()', () => {
     const result = await generateContent(
       fakeApiSettings,
       'model',
-      fakeRequestParams
+      fakeRequestParams,
+      new ChromeAdapter()
     );
     expect(result.response.text).to.throw('SAFETY');
     expect(makeRequestStub).to.be.calledWith(
@@ -248,7 +255,8 @@ describe('generateContent()', () => {
     const result = await generateContent(
       fakeApiSettings,
       'model',
-      fakeRequestParams
+      fakeRequestParams,
+      new ChromeAdapter()
     );
     expect(result.response.text()).to.equal('');
     expect(makeRequestStub).to.be.calledWith(
@@ -270,7 +278,8 @@ describe('generateContent()', () => {
     const result = await generateContent(
       fakeApiSettings,
       'model',
-      fakeRequestParams
+      fakeRequestParams,
+      new ChromeAdapter()
     );
     expect(result.response.text()).to.include('Some text');
     expect(makeRequestStub).to.be.calledWith(
@@ -292,7 +301,12 @@ describe('generateContent()', () => {
       json: mockResponse.json
     } as Response);
     await expect(
-      generateContent(fakeApiSettings, 'model', fakeRequestParams)
+      generateContent(
+        fakeApiSettings,
+        'model',
+        fakeRequestParams,
+        new ChromeAdapter()
+      )
     ).to.be.rejectedWith(/400.*invalid argument/);
     expect(mockFetch).to.be.called;
   });
@@ -307,7 +321,12 @@ describe('generateContent()', () => {
       json: mockResponse.json
     } as Response);
     await expect(
-      generateContent(fakeApiSettings, 'model', fakeRequestParams)
+      generateContent(
+        fakeApiSettings,
+        'model',
+        fakeRequestParams,
+        new ChromeAdapter()
+      )
     ).to.be.rejectedWith(
       /firebasevertexai\.googleapis[\s\S]*my-project[\s\S]*api-not-enabled/
     );
@@ -347,7 +366,8 @@ describe('generateContent()', () => {
         generateContent(
           fakeGoogleAIApiSettings,
           'model',
-          requestParamsWithMethod
+          requestParamsWithMethod,
+          new ChromeAdapter()
         )
       ).to.be.rejectedWith(AIError, AIErrorCode.UNSUPPORTED);
       expect(makeRequestStub).to.not.be.called;
@@ -362,7 +382,8 @@ describe('generateContent()', () => {
       await generateContent(
         fakeGoogleAIApiSettings,
         'model',
-        fakeGoogleAIRequestParams
+        fakeGoogleAIRequestParams,
+        new ChromeAdapter()
       );
 
       expect(makeRequestStub).to.be.calledWith(
@@ -374,5 +395,26 @@ describe('generateContent()', () => {
         undefined
       );
     });
+  });
+  // TODO: define a similar test for generateContentStream
+  it('on-device', async () => {
+    const chromeAdapter = new ChromeAdapter();
+    const isAvailableStub = stub(chromeAdapter, 'isAvailable').resolves(true);
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-basic-reply-short.json'
+    );
+    const generateContentStub = stub(chromeAdapter, 'generateContent').resolves(
+      mockResponse as Response
+    );
+    const result = await generateContent(
+      fakeApiSettings,
+      'model',
+      fakeRequestParams,
+      chromeAdapter
+    );
+    expect(result.response.text()).to.include('Mountain View, California');
+    expect(isAvailableStub).to.be.called;
+    expect(generateContentStub).to.be.calledWith(fakeRequestParams);
   });
 });
