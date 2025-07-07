@@ -490,6 +490,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       await this._setRedirectUser(null);
     }
 
+    // Clear Firebase token for Regional Auth Instance when signOut is called
+    if (this.tenantConfig) {
+      await this._updateFirebaseToken(null);
+    }
     // Prevent callbacks from being called again in _updateCurrentUser, as
     // they were already called in the first line.
     return this._updateCurrentUser(null, /* skipBeforeStateCallbacks */ true);
