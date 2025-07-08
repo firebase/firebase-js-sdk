@@ -63,8 +63,6 @@ const customBuilds = [
 ]
   .map(build => {
     const { dir, name } = parse(build.inputFile);
-    console.log(`${dir}/${name}.d.ts`);
-    console.log(`dist/${name}.global.d.ts`);
     return [
       {
         input: build.inputFile,
@@ -90,7 +88,5 @@ const customBuilds = [
     ];
   })
   .flat();
-
-console.log(customBuilds.length);
 
 export default [...buildsWithLicense, ...customBuilds];
