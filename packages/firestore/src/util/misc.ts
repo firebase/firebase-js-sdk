@@ -110,7 +110,7 @@ export function compareUtf8Strings(left: string, right: string): number {
   // direct comparison of the UTF-16 code units, as would be done in case 1, would erroneously
   // produce the _opposite_ ordering, because 0xFFFD is _greater than_ 0xD83D. As it turns out,
   // this relative ordering holds for all comparisons of UTF-16 code points requiring a surrogate
-  // pair with those that do not.  
+  // pair with those that do not.
   const length = Math.min(left.length, right.length);
   for (let i = 0; i < length; i++) {
     const leftChar = left.charAt(i);
