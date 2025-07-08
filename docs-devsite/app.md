@@ -134,7 +134,7 @@ export declare function initializeServerApp(config?: FirebaseServerAppSettings):
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Optional <code>FirebaseServerApp</code> configuration. |
+|  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Optional <code>FirebaseServerApp</code> settings. |
 
 <b>Returns:</b>
 
