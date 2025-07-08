@@ -138,6 +138,8 @@ toc:
     path: /docs/reference/js/ai.stringschema.md
   - title: TextPart
     path: /docs/reference/js/ai.textpart.md
+  - title: ThinkingConfig
+    path: /docs/reference/js/ai.thinkingconfig.md
   - title: ToolConfig
     path: /docs/reference/js/ai.toolconfig.md
   - title: UsageMetadata

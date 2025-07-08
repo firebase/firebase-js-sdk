@@ -381,6 +381,7 @@ export interface GenerationConfig {
     stopSequences?: string[];
     // (undocumented)
     temperature?: number;
+    thinkingConfig?: ThinkingConfig;
     // (undocumented)
     topK?: number;
     // (undocumented)
@@ -902,6 +903,11 @@ export interface TextPart {
 }
 
 // @public
+export interface ThinkingConfig {
+    thinkingBudget?: number;
+}
+
+// @public
 export type Tool = FunctionDeclarationsTool;
 
 // @public
@@ -923,6 +929,7 @@ export interface UsageMetadata {
     promptTokenCount: number;
     // (undocumented)
     promptTokensDetails?: ModalityTokenCount[];
+    thoughtsTokenCount?: number;
     // (undocumented)
     totalTokenCount: number;
 }

@@ -91,6 +91,10 @@ describe('Generate Content', () => {
             2,
             TOKEN_COUNT_DELTA
           );
+          expect(response.usageMetadata!.thoughtsTokenCount).to.be.closeTo(
+            30,
+            TOKEN_COUNT_DELTA * 2
+          );
           expect(response.usageMetadata!.totalTokenCount).to.be.closeTo(
             55,
             TOKEN_COUNT_DELTA * 2
