@@ -235,7 +235,7 @@ export function initializeServerApp(
 /**
  * Creates and initializes a {@link @firebase/app#FirebaseServerApp} instance.
  *
- * @param config - Optional `FirebaseServerApp` configuration.
+ * @param config - Optional `FirebaseServerApp` settings.
  *
  * @returns The initialized `FirebaseServerApp`.
  *
@@ -253,19 +253,21 @@ export function initializeServerApp(
     throw ERROR_FACTORY.create(AppError.INVALID_SERVER_APP_ENVIRONMENT);
   }
 
-  let app: FirebaseApp;
   let firebaseOptions: FirebaseOptions | undefined;
   let serverAppSettings: FirebaseServerAppSettings = _serverAppConfig || {};
 
   if (_options) {
     if (_isFirebaseApp(_options)) {
-      app = _options;
-      firebaseOptions = app.options;
+      firebaseOptions = _options.options;
     } else if (_isFirebaseServerAppSettings(_options)) {
       serverAppSettings = _options;
     } else {
       firebaseOptions = _options;
     }
+  }
+
+  if (serverAppSettings.automaticDataCollectionEnabled === undefined) {
+    serverAppSettings.automaticDataCollectionEnabled = true;
   }
 
   firebaseOptions ||= getDefaultAppConfig();
