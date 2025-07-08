@@ -14,7 +14,7 @@ Metadata returned when grounding is enabled.
 
 Currently, only Grounding with Google Search is supported (see [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface)<!-- -->).
 
-Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or [Vertex AI Gemini API](https://cloud.google.com/terms/service-terms) (see Service Terms section within the Service Specific Terms).
+Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or Vertex AI Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms).
 
 <b>Signature:</b>
 

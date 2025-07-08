@@ -177,8 +177,8 @@ export interface Citation {
  *
  * Important: If using Grounding with Google Search, you are required to comply with the
  * "Grounding with Google Search" usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-search | Gemini Developer API}
- * or {@link https://cloud.google.com/terms/service-terms | Vertex AI Gemini API}
- * (see Service Terms section within the Service Specific Terms).
+ * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+ * section within the Service Specific Terms).
  *
  * @public
  */
