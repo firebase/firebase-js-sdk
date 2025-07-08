@@ -142,6 +142,14 @@ export declare function initializeServerApp(config?: FirebaseServerAppSettings):
 
 The initialized `FirebaseServerApp`<!-- -->.
 
+#### Exceptions
+
+If invoked in an unsupported non-server environment such as a browser.
+
+If [FirebaseServerAppSettings.releaseOnDeref](./app.firebaseserverappsettings.md#firebaseserverappsettingsreleaseonderef) is defined but the runtime doesn't provide Finalization Registry support.
+
+If the `FIREBASE_OPTIONS` enviornment variable does not contain a valid project configuration required for auto-initialization.
+
 ## function(libraryKeyOrName, ...)
 
 ### registerVersion(libraryKeyOrName, version, variant) {:#registerversion_f673248}
@@ -286,6 +294,12 @@ export declare function initializeApp(options: FirebaseOptions, name?: string): 
 
 The initialized app.
 
+#### Exceptions
+
+If the optional `name` parameter is malformed or empty.
+
+If a `FirebaseApp` already exists with the same name but with a different configuration.
+
 ### Example 1
 
 
@@ -338,6 +352,12 @@ export declare function initializeApp(options: FirebaseOptions, config?: Firebas
 
 [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)
 
+#### Exceptions
+
+If [FirebaseAppSettings.name](./app.firebaseappsettings.md#firebaseappsettingsname) is defined but the value is malformed or empty.
+
+If a `FirebaseApp` already exists with the same name but with a different configuration.
+
 ### initializeServerApp(options, config) {:#initializeserverapp_30ab697}
 
 Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance.
@@ -364,6 +384,12 @@ export declare function initializeServerApp(options: FirebaseOptions | FirebaseA
 [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)
 
 The initialized `FirebaseServerApp`<!-- -->.
+
+#### Exceptions
+
+If invoked in an unsupported non-server environment such as a browser.
+
+If [FirebaseServerAppSettings.releaseOnDeref](./app.firebaseserverappsettings.md#firebaseserverappsettingsreleaseonderef) is defined but the runtime doesn't provide Finalization Registry support.
 
 ### Example
 
