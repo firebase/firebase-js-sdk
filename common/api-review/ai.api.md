@@ -281,7 +281,7 @@ export interface FunctionCallPart {
 export interface FunctionDeclaration {
     description: string;
     name: string;
-    parameters?: ObjectSchemaInterface;
+    parameters?: ObjectSchema | ObjectSchemaRequest;
 }
 
 // @public
@@ -703,9 +703,8 @@ export class ObjectSchema extends Schema {
 }
 
 // @public
-export interface ObjectSchemaInterface extends SchemaInterface {
-    // (undocumented)
-    optionalProperties?: string[];
+export interface ObjectSchemaRequest extends SchemaRequest {
+    optionalProperties?: never;
     // (undocumented)
     type: SchemaType.OBJECT;
 }
