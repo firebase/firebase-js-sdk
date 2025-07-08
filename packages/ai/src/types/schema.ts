@@ -123,7 +123,9 @@ export interface ObjectSchemaRequest extends SchemaRequest {
   /**
    * This is not a property accepted in the final request to the backend, but is
    * a client-side convenience property that is only usable by constructing
-   * a schema through the `Schema.object()` helper method.
+   * a schema through the `Schema.object()` helper method. Populating this
+   * property will cause response errors if the object is not wrapped with
+   * `Schema.object()`.
    */
   optionalProperties?: never;
 }
