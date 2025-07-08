@@ -21,7 +21,7 @@
  */
 
 // When run in google3, original rollup.config.js will have been renamed to rollup-main.config.js.
-import * as baseBuilds from './rollup.config.js';
+import baseBuilds from './rollup.config.js';
 import license from 'rollup-plugin-license';
 
 const firebaseLicense = license({
