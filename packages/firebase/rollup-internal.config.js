@@ -93,4 +93,4 @@ const customBuilds = [
 
 console.log(customBuilds.length);
 
-export default [/*...buildsWithLicense,*/ ...customBuilds];
+export default [...buildsWithLicense, ...customBuilds];
