@@ -95,6 +95,22 @@ export function compareUtf8Strings(left: string, right: string): number {
   // used to represent code points greater than 0xFFFF which have 4-byte UTF-8 representations
   // and are lexicographically greater than the 1, 2, or 3-byte representations of code points
   // less than or equal to 0xFFFF.
+  //
+  // An example of why Case 2 is required is comparing the following two Unicode code points:
+  //
+  // |-----------------------|------------|---------------------|-----------------|
+  // | Name                  | Code Point | UTF-8 Encoding      | UTF-16 Encoding |
+  // |-----------------------|------------|---------------------|-----------------|
+  // | Replacement Character | U+FFFD     | 0xEF 0xBF 0xBD      | 0xFFFD          |
+  // | Grinning Face         | U+1F600    | 0xF0 0x9F 0x98 0x80 | 0xD83D 0xDE00   |
+  // |-----------------------|------------|---------------------|-----------------|
+  //
+  // A lexicographical comparison of the UTF-8 encodings of these code points would order
+  // "Replacement Character" _before_ "Grinning Face" because 0xEF is less than 0xF0. However, a
+  // direct comparison of the UTF-16 code units, as would be done in case 1, would erroneously
+  // produce the _opposite_ ordering, because 0xFFFD is _greater than_ 0xD83D. As it turns out,
+  // this relative ordering holds for all comparisons of UTF-16 code points requiring a surrogate
+  // pair with those that do not.  
   const length = Math.min(left.length, right.length);
   for (let i = 0; i < length; i++) {
     const leftChar = left.charAt(i);
