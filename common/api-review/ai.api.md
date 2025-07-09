@@ -160,6 +160,7 @@ export interface CountTokensRequest {
 // @public
 export interface CountTokensResponse {
     promptTokensDetails?: ModalityTokenCount[];
+    // @deprecated (undocumented)
     totalBillableCharacters?: number;
     totalTokens: number;
 }
@@ -276,7 +277,7 @@ export interface FunctionCallPart {
 export interface FunctionDeclaration {
     description: string;
     name: string;
-    parameters?: ObjectSchemaInterface;
+    parameters?: ObjectSchema | ObjectSchemaRequest;
 }
 
 // @public
@@ -695,9 +696,8 @@ export class ObjectSchema extends Schema {
 }
 
 // @public
-export interface ObjectSchemaInterface extends SchemaInterface {
-    // (undocumented)
-    optionalProperties?: string[];
+export interface ObjectSchemaRequest extends SchemaRequest {
+    optionalProperties?: never;
     // (undocumented)
     type: SchemaType.OBJECT;
 }
@@ -784,6 +784,9 @@ export abstract class Schema implements SchemaInterface {
     format?: string;
     // (undocumented)
     static integer(integerParams?: SchemaParams): IntegerSchema;
+    items?: SchemaInterface;
+    maxItems?: number;
+    minItems?: number;
     nullable: boolean;
     // (undocumented)
     static number(numberParams?: SchemaParams): NumberSchema;
@@ -826,7 +829,9 @@ export interface SchemaShared<T> {
     format?: string;
     items?: T;
     maximum?: number;
+    maxItems?: number;
     minimum?: number;
+    minItems?: number;
     nullable?: boolean;
     properties?: {
         [k: string]: T;

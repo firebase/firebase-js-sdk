@@ -30,8 +30,8 @@ jobs:
 
     defaults:
       run:
-        # Run any command steps in the /e2e subdir
-        working-directory: './e2e'
+        # Run any command steps in the /e2e/smoke-tests subdir
+        working-directory: './e2e/smoke-tests'
 
     steps:
       - name: Checkout Repo
@@ -53,7 +53,9 @@ jobs:
       - name: Poll npm until version to test is available for install
         run: |
           echo "Polling npm for firebase@${{ github.event.client_payload.versionOrTag }}"
-          node ../scripts/release/poll-npm-publish.js
+          node ./scripts/release/poll-npm-publish.js
+        # run in root
+        working-directory: '.'
         env:
           VERSION: ${{ github.event.client_payload.versionOrTag }}
       - name: Yarn install
