@@ -106,8 +106,8 @@ toc:
     path: /docs/reference/js/ai.numberschema.md
   - title: ObjectSchema
     path: /docs/reference/js/ai.objectschema.md
-  - title: ObjectSchemaInterface
-    path: /docs/reference/js/ai.objectschemainterface.md
+  - title: ObjectSchemaRequest
+    path: /docs/reference/js/ai.objectschemarequest.md
   - title: PromptFeedback
     path: /docs/reference/js/ai.promptfeedback.md
   - title: RequestOptions

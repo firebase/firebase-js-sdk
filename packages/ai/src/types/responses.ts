@@ -255,11 +255,10 @@ export interface CountTokensResponse {
    */
   totalTokens: number;
   /**
+   * @deprecated Use `totalTokens` instead. This property is undefined when using models greater than `gemini-1.5-*`.
+   *
    * The total number of billable characters counted across all instances
    * from the request.
-   *
-   * This property is only supported when using the Vertex AI Gemini API ({@link VertexAIBackend}).
-   * When using the Gemini Developer API ({@link GoogleAIBackend}), this property is not supported and will default to 0.
    */
   totalBillableCharacters?: number;
   /**
