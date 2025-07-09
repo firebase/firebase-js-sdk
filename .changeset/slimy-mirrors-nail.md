@@ -1,4 +1,5 @@
 ---
+'firebase': major
 '@firebase/ai': major
 ---
 
