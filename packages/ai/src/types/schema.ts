@@ -122,10 +122,18 @@ export interface SchemaInterface extends SchemaShared<SchemaInterface> {
 }
 
 /**
- * Interface for {@link ObjectSchema} class.
+ * Interface for JSON parameters in a schema of {@link SchemaType}
+ * "object" when not using the `Schema.object()` helper.
  * @public
  */
-export interface ObjectSchemaInterface extends SchemaInterface {
+export interface ObjectSchemaRequest extends SchemaRequest {
   type: 'object';
-  optionalProperties?: string[];
+  /**
+   * This is not a property accepted in the final request to the backend, but is
+   * a client-side convenience property that is only usable by constructing
+   * a schema through the `Schema.object()` helper method. Populating this
+   * property will cause response errors if the object is not wrapped with
+   * `Schema.object()`.
+   */
+  optionalProperties?: never;
 }
