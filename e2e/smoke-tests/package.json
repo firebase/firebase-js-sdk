@@ -1,0 +1,40 @@
+{
+  "name": "firebase-smoke-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "yarn jest",
+    "test:compat": "yarn jest tests/compat.test.ts",
+    "test:modular": "yarn jest tests/modular.test.ts",
+    "watch": "webpack --watch",
+    "build": "webpack",
+    "start:modular": "webpack serve --config-name modular",
+    "start:compat": "webpack serve --config-name compat",
+    "build:modular": "webpack --config-name modular",
+    "build:compat": "webpack --config-name compat"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "firebase": "^11.8.0-20250512211235"
+  },
+  "devDependencies": {
+    "@babel/core": "7.26.8",
+    "@babel/preset-env": "7.26.8",
+    "@babel/preset-typescript": "7.26.0",
+    "@types/jest": "29.5.14",
+    "babel-jest": "29.7.0",
+    "babel-loader": "8.4.1",
+    "jest": "29.7.0",
+    "jest-environment-jsdom": "29.7.0",
+    "ts-node": "10.9.2",
+    "typescript": "5.5.4",
+    "webpack": "5.98.0",
+    "webpack-cli": "5.1.4",
+    "webpack-dev-server": "5.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

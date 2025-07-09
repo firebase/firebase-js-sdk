@@ -220,7 +220,7 @@ export function updateEmulatorBanner(
   function setupBannerStyles(bannerEl: HTMLElement): void {
     bannerEl.style.display = 'flex';
     bannerEl.style.background = '#7faaf0';
-    bannerEl.style.position = 'absolute';
+    bannerEl.style.position = 'fixed';
     bannerEl.style.bottom = '5px';
     bannerEl.style.left = '5px';
     bannerEl.style.padding = '.5em';

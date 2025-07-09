@@ -55,18 +55,34 @@ export interface SchemaShared<T> {
   format?: string;
   /** Optional. The description of the property. */
   description?: string;
+  /**
+   * The title of the property. This helps document the schema's purpose but does not typically
+   * constrain the generated value. It can subtly guide the model by clarifying the intent of a
+   * field.
+   */
+  title?: string;
   /** Optional. The items of the property. */
   items?: T;
+  /** The minimum number of items (elements) in a schema of type {@link SchemaType.ARRAY}. */
+  minItems?: number;
+  /** The maximum number of items (elements) in a schema of type {@link SchemaType.ARRAY}. */
+  maxItems?: number;
   /** Optional. Map of `Schema` objects. */
   properties?: {
     [k: string]: T;
   };
+  /** A hint suggesting the order in which the keys should appear in the generated JSON string. */
+  propertyOrdering?: string[];
   /** Optional. The enum of the property. */
   enum?: string[];
   /** Optional. The example of the property. */
   example?: unknown;
   /** Optional. Whether the property is nullable. */
   nullable?: boolean;
+  /** The minimum value of a numeric type. */
+  minimum?: number;
+  /** The maximum value of a numeric type. */
+  maximum?: number;
   [key: string]: unknown;
 }
 
@@ -104,10 +120,18 @@ export interface SchemaInterface extends SchemaShared<SchemaInterface> {
 }
 
 /**
- * Interface for {@link ObjectSchema} class.
+ * Interface for JSON parameters in {@link SchemaType.OBJECT} format when
+ * not using the {@link ObjectSchema} helper.
  * @public
  */
-export interface ObjectSchemaInterface extends SchemaInterface {
+export interface ObjectSchemaRequest extends SchemaRequest {
   type: SchemaType.OBJECT;
-  optionalProperties?: string[];
+  /**
+   * This is not a property accepted in the final request to the backend, but is
+   * a client-side convenience property that is only usable by constructing
+   * a schema through the `Schema.object()` helper method. Populating this
+   * property will cause response errors if the object is not wrapped with
+   * `Schema.object()`.
+   */
+  optionalProperties?: never;
 }

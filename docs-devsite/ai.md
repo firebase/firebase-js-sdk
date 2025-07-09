@@ -107,7 +107,7 @@ The Firebase AI Web SDK.
 |  [InlineDataPart](./ai.inlinedatapart.md#inlinedatapart_interface) | Content part interface if the part represents an image. |
 |  [ModalityTokenCount](./ai.modalitytokencount.md#modalitytokencount_interface) | Represents token counting info for a single modality. |
 |  [ModelParams](./ai.modelparams.md#modelparams_interface) | Params passed to [getGenerativeModel()](./ai.md#getgenerativemodel_80bd839)<!-- -->. |
-|  [ObjectSchemaInterface](./ai.objectschemainterface.md#objectschemainterface_interface) | Interface for [ObjectSchema](./ai.objectschema.md#objectschema_class) class. |
+|  [ObjectSchemaRequest](./ai.objectschemarequest.md#objectschemarequest_interface) | Interface for JSON parameters in [SchemaType.OBJECT](./ai.md#schematypeobject_enummember) format when not using the [ObjectSchema](./ai.objectschema.md#objectschema_class) helper. |
 |  [PromptFeedback](./ai.promptfeedback.md#promptfeedback_interface) | If the prompt was blocked, this will be populated with <code>blockReason</code> and the relevant <code>safetyRatings</code>. |
 |  [RequestOptions](./ai.requestoptions.md#requestoptions_interface) | Params passed to [getGenerativeModel()](./ai.md#getgenerativemodel_80bd839)<!-- -->. |
 |  [RetrievedContextAttribution](./ai.retrievedcontextattribution.md#retrievedcontextattribution_interface) |  |
@@ -449,13 +449,13 @@ export declare const enum AIErrorCode
 |  INVALID\_CONTENT | <code>&quot;invalid-content&quot;</code> | An error associated with a Content object. |
 |  INVALID\_SCHEMA | <code>&quot;invalid-schema&quot;</code> | An error due to invalid Schema input. |
 |  NO\_API\_KEY | <code>&quot;no-api-key&quot;</code> | An error occurred due to a missing Firebase API key. |
-|  NO\_APP\_ID | <code>&quot;no-app-id&quot;</code> | An error occured due to a missing Firebase app ID. |
+|  NO\_APP\_ID | <code>&quot;no-app-id&quot;</code> | An error occurred due to a missing Firebase app ID. |
 |  NO\_MODEL | <code>&quot;no-model&quot;</code> | An error occurred due to a model name not being specified during initialization. |
 |  NO\_PROJECT\_ID | <code>&quot;no-project-id&quot;</code> | An error occurred due to a missing project ID. |
 |  PARSE\_FAILED | <code>&quot;parse-failed&quot;</code> | An error occurred while parsing. |
 |  REQUEST\_ERROR | <code>&quot;request-error&quot;</code> | An error occurred in a request. |
 |  RESPONSE\_ERROR | <code>&quot;response-error&quot;</code> | An error occurred in a response. |
-|  UNSUPPORTED | <code>&quot;unsupported&quot;</code> | An error occured due an attempt to use an unsupported feature. |
+|  UNSUPPORTED | <code>&quot;unsupported&quot;</code> | An error occurred due an attempt to use an unsupported feature. |
 
 ## BlockReason
 
@@ -552,6 +552,7 @@ export declare enum HarmBlockThreshold
 |  BLOCK\_MEDIUM\_AND\_ABOVE | <code>&quot;BLOCK_MEDIUM_AND_ABOVE&quot;</code> | Content with <code>NEGLIGIBLE</code> and <code>LOW</code> will be allowed. |
 |  BLOCK\_NONE | <code>&quot;BLOCK_NONE&quot;</code> | All content will be allowed. |
 |  BLOCK\_ONLY\_HIGH | <code>&quot;BLOCK_ONLY_HIGH&quot;</code> | Content with <code>NEGLIGIBLE</code>, <code>LOW</code>, and <code>MEDIUM</code> will be allowed. |
+|  OFF | <code>&quot;OFF&quot;</code> | All content will be allowed. This is the same as <code>BLOCK_NONE</code>, but the metadata corresponding to the [HarmCategory](./ai.md#harmcategory) will not be present in the response. |
 
 ## HarmCategory
 

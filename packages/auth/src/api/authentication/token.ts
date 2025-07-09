@@ -17,7 +17,7 @@
 
 /* eslint-disable camelcase */
 
-import { querystring } from '@firebase/util';
+import { isCloudWorkstation, querystring } from '@firebase/util';
 
 import {
   _getFinalTarget,
@@ -84,11 +84,18 @@ export async function requestStsToken(
         const headers = await (auth as AuthInternal)._getAdditionalHeaders();
         headers[HttpHeader.CONTENT_TYPE] = 'application/x-www-form-urlencoded';
 
-        return FetchProvider.fetch()(url, {
+        const options: RequestInit = {
           method: HttpMethod.POST,
           headers,
           body
-        });
+        };
+        if (
+          auth.emulatorConfig &&
+          isCloudWorkstation(auth.emulatorConfig.host)
+        ) {
+          options.credentials = 'include';
+        }
+        return FetchProvider.fetch()(url, options);
       }
     );
 

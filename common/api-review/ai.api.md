@@ -175,6 +175,7 @@ export interface CountTokensRequest {
 // @public
 export interface CountTokensResponse {
     promptTokensDetails?: ModalityTokenCount[];
+    // @deprecated (undocumented)
     totalBillableCharacters?: number;
     totalTokens: number;
 }
@@ -291,7 +292,7 @@ export interface FunctionCallPart {
 export interface FunctionDeclaration {
     description: string;
     name: string;
-    parameters?: ObjectSchemaInterface;
+    parameters?: ObjectSchema | ObjectSchemaRequest;
 }
 
 // @public
@@ -529,7 +530,8 @@ export enum HarmBlockThreshold {
     BLOCK_LOW_AND_ABOVE = "BLOCK_LOW_AND_ABOVE",
     BLOCK_MEDIUM_AND_ABOVE = "BLOCK_MEDIUM_AND_ABOVE",
     BLOCK_NONE = "BLOCK_NONE",
-    BLOCK_ONLY_HIGH = "BLOCK_ONLY_HIGH"
+    BLOCK_ONLY_HIGH = "BLOCK_ONLY_HIGH",
+    OFF = "OFF"
 }
 
 // @public
@@ -712,9 +714,8 @@ export class ObjectSchema extends Schema {
 }
 
 // @public
-export interface ObjectSchemaInterface extends SchemaInterface {
-    // (undocumented)
-    optionalProperties?: string[];
+export interface ObjectSchemaRequest extends SchemaRequest {
+    optionalProperties?: never;
     // (undocumented)
     type: SchemaType.OBJECT;
 }
@@ -805,6 +806,9 @@ export abstract class Schema implements SchemaInterface {
     format?: string;
     // (undocumented)
     static integer(integerParams?: SchemaParams): IntegerSchema;
+    items?: SchemaInterface;
+    maxItems?: number;
+    minItems?: number;
     nullable: boolean;
     // (undocumented)
     static number(numberParams?: SchemaParams): NumberSchema;
@@ -847,10 +851,16 @@ export interface SchemaShared<T> {
     example?: unknown;
     format?: string;
     items?: T;
+    maximum?: number;
+    maxItems?: number;
+    minimum?: number;
+    minItems?: number;
     nullable?: boolean;
     properties?: {
         [k: string]: T;
     };
+    propertyOrdering?: string[];
+    title?: string;
 }
 
 // @public
