@@ -57,7 +57,7 @@ const browserBuilds = [
     plugins: [
       ...buildPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('esm', 2017),
+        ...generateBuildTargetReplaceConfig('esm', 2020),
         __PACKAGE_VERSION__: pkg.version
       }),
       emitModulePackageFile()
@@ -74,7 +74,7 @@ const browserBuilds = [
     plugins: [
       ...buildPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('cjs', 2017),
+        ...generateBuildTargetReplaceConfig('cjs', 2020),
         __PACKAGE_VERSION__: pkg.version
       })
     ],
@@ -93,7 +93,7 @@ const nodeBuilds = [
     plugins: [
       ...buildPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('esm', 2017)
+        ...generateBuildTargetReplaceConfig('esm', 2020)
       })
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -108,7 +108,7 @@ const nodeBuilds = [
     plugins: [
       ...buildPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('cjs', 2017)
+        ...generateBuildTargetReplaceConfig('cjs', 2020)
       })
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))

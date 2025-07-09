@@ -61,13 +61,13 @@ const browserBuilds = [
       internal: 'internal/index.ts'
     },
     output: {
-      dir: 'dist/esm2017',
+      dir: 'dist/esm',
       format: 'es',
       sourcemap: true
     },
     plugins: [
       ...buildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2020))
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
@@ -79,7 +79,7 @@ const browserBuilds = [
     output: [{ dir: 'dist/browser-cjs', format: 'cjs', sourcemap: true }],
     plugins: [
       ...buildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2020))
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
@@ -92,13 +92,13 @@ const browserWebExtensionBuilds = [
       internal: 'internal/index.ts'
     },
     output: {
-      dir: 'dist/web-extension-esm2017',
+      dir: 'dist/web-extension-esm',
       format: 'es',
       sourcemap: true
     },
     plugins: [
       ...buildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 2017)),
+      replace(generateBuildTargetReplaceConfig('esm', 2020)),
       emitModulePackageFile()
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -111,7 +111,7 @@ const browserWebExtensionBuilds = [
     output: [{ dir: 'dist/web-extension-cjs', format: 'cjs', sourcemap: true }],
     plugins: [
       ...buildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2020))
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
@@ -127,7 +127,7 @@ const nodeBuilds = [
     plugins: [
       nodeAliasPlugin,
       ...buildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2020))
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
@@ -140,7 +140,7 @@ const nodeBuilds = [
     plugins: [
       nodeAliasPlugin,
       ...buildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 2017)),
+      replace(generateBuildTargetReplaceConfig('esm', 2020)),
       emitModulePackageFile()
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -159,7 +159,7 @@ const cordovaBuild = {
   },
   plugins: [
     ...buildPlugins,
-    replace(generateBuildTargetReplaceConfig('esm', 2017))
+    replace(generateBuildTargetReplaceConfig('esm', 2020))
   ],
   external: id =>
     [...deps, 'cordova'].some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -173,7 +173,7 @@ const rnBuild = {
   output: [{ dir: 'dist/rn', format: 'cjs', sourcemap: true }],
   plugins: [
     ...buildPlugins,
-    replace(generateBuildTargetReplaceConfig('cjs', 2017))
+    replace(generateBuildTargetReplaceConfig('cjs', 2020))
   ],
   external: id =>
     [...deps, 'react-native'].some(
@@ -205,7 +205,7 @@ const webWorkerBuild = {
         ]
       }
     }),
-    replace(generateBuildTargetReplaceConfig('esm', 2017))
+    replace(generateBuildTargetReplaceConfig('esm', 2020))
   ],
   external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
 };

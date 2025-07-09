@@ -3,13 +3,13 @@
   "version": "0.2.17",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "module": "dist/esm/index.esm2017.js",
-  "browser": "dist/esm/index.esm2017.js",
+  "module": "dist/esm/index.esm.js",
+  "browser": "dist/esm/index.esm.js",
   "exports": {
     ".": {
       "types": "./dist/src/index.d.ts",
       "require": "./dist/index.cjs.js",
-      "default": "./dist/esm/index.esm2017.js"
+      "default": "./dist/esm/index.esm.js"
     },
     "./package.json": "./package.json"
   },
