@@ -24,7 +24,7 @@ export interface SchemaRequest extends SchemaShared<SchemaRequest>
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [required](./ai.schemarequest.md#schemarequestrequired) | string\[\] | Optional. Array of required property. |
-|  [type](./ai.schemarequest.md#schemarequesttype) | [SchemaType](./ai.md#schematype) | The type of the property. this can only be undefined when using <code>anyof</code> schemas, which do not have an explicit type in the . |
+|  [type](./ai.schemarequest.md#schemarequesttype) | [SchemaType](./ai.md#schematype) | The type of the property. this can only be undefined when using <code>anyOf</code> schemas, which do not have an explicit type in the . |
 
 ## SchemaRequest.required
 
@@ -38,7 +38,7 @@ required?: string[];
 
 ## SchemaRequest.type
 
-The type of the property. this can only be undefined when using `anyof` schemas, which do not have an explicit type in the .
+The type of the property. this can only be undefined when using `anyOf` schemas, which do not have an explicit type in the .
 
 <b>Signature:</b>
 

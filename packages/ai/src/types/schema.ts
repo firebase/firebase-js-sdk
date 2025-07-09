@@ -99,7 +99,7 @@ export interface SchemaParams extends SchemaShared<SchemaInterface> {}
  */
 export interface SchemaRequest extends SchemaShared<SchemaRequest> {
   /**
-   * The type of the property. this can only be undefined when using `anyof` schemas,
+   * The type of the property. this can only be undefined when using `anyOf` schemas,
    * which do not have an explicit type in the {@link OpenAPI specification | https://swagger.io/docs/specification/v3_0/data-models/data-types/#any-type}.
    */
   type?: SchemaType;
