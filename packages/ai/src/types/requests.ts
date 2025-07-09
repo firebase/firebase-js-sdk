@@ -113,6 +113,10 @@ export interface GenerationConfig {
    * @beta
    */
   responseModalities?: ResponseModality[];
+  /**
+   * Configuration for "thinking" behavior of compatible Gemini models.
+   */
+  thinkingConfig?: ThinkingConfig;
 }
 
 /**
@@ -265,4 +269,29 @@ export interface ToolConfig {
 export interface FunctionCallingConfig {
   mode?: FunctionCallingMode;
   allowedFunctionNames?: string[];
+}
+
+/**
+ * Configuration for "thinking" behavior of compatible Gemini models.
+ *
+ * Certain models utilize a thinking process before generating a response. This allows them to
+ * reason through complex problems and plan a more coherent and accurate answer.
+ *
+ * @public
+ */
+export interface ThinkingConfig {
+  /**
+   * The thinking budget, in tokens.
+   *
+   * This parameter sets an upper limit on the number of tokens the model can use for its internal
+   * "thinking" process. A higher budget may result in higher quality responses for complex tasks
+   * but can also increase latency and cost.
+   *
+   * If you don't specify a budget, the model will determine the appropriate amount
+   * of thinking based on the complexity of the prompt.
+   *
+   * An error will be thrown if you set a thinking budget for a model that does not support this
+   * feature or if the specified budget is not within the model's supported range.
+   */
+  thinkingBudget?: number;
 }
