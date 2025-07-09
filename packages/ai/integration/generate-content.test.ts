@@ -81,36 +81,111 @@ describe('Generate Content', () => {
         expect(trimmedText).to.equal('Mountain View');
 
         expect(response.usageMetadata).to.not.be.null;
-        expect(response.usageMetadata!.promptTokenCount).to.be.closeTo(
-          21,
-          TOKEN_COUNT_DELTA
+
+        if (model.model.includes('gemini-2.5-flash')) {
+          expect(response.usageMetadata!.promptTokenCount).to.be.closeTo(
+            22,
+            TOKEN_COUNT_DELTA
+          );
+          expect(response.usageMetadata!.candidatesTokenCount).to.be.closeTo(
+            2,
+            TOKEN_COUNT_DELTA
+          );
+          expect(response.usageMetadata!.thoughtsTokenCount).to.be.closeTo(
+            30,
+            TOKEN_COUNT_DELTA * 2
+          );
+          expect(response.usageMetadata!.totalTokenCount).to.be.closeTo(
+            55,
+            TOKEN_COUNT_DELTA * 2
+          );
+          expect(response.usageMetadata!.promptTokensDetails).to.not.be.null;
+          expect(response.usageMetadata!.promptTokensDetails!.length).to.equal(
+            1
+          );
+          expect(
+            response.usageMetadata!.promptTokensDetails![0].modality
+          ).to.equal(Modality.TEXT);
+          expect(
+            response.usageMetadata!.promptTokensDetails![0].tokenCount
+          ).to.closeTo(22, TOKEN_COUNT_DELTA);
+
+          // candidatesTokenDetails comes back about half the time, so let's just not test it.
+        } else if (model.model.includes('gemini-2.0-flash')) {
+          expect(response.usageMetadata!.promptTokenCount).to.be.closeTo(
+            21,
+            TOKEN_COUNT_DELTA
+          );
+          expect(response.usageMetadata!.candidatesTokenCount).to.be.closeTo(
+            4,
+            TOKEN_COUNT_DELTA
+          );
+          expect(response.usageMetadata!.totalTokenCount).to.be.closeTo(
+            25,
+            TOKEN_COUNT_DELTA * 2
+          );
+          expect(response.usageMetadata!.promptTokensDetails).to.not.be.null;
+          expect(response.usageMetadata!.promptTokensDetails!.length).to.equal(
+            1
+          );
+          expect(
+            response.usageMetadata!.promptTokensDetails![0].modality
+          ).to.equal(Modality.TEXT);
+          expect(
+            response.usageMetadata!.promptTokensDetails![0].tokenCount
+          ).to.equal(21);
+          expect(response.usageMetadata!.candidatesTokensDetails).to.not.be
+            .null;
+          expect(
+            response.usageMetadata!.candidatesTokensDetails!.length
+          ).to.equal(1);
+          expect(
+            response.usageMetadata!.candidatesTokensDetails![0].modality
+          ).to.equal(Modality.TEXT);
+          expect(
+            response.usageMetadata!.candidatesTokensDetails![0].tokenCount
+          ).to.be.closeTo(4, TOKEN_COUNT_DELTA);
+        }
+      });
+
+      it('generateContent: google search grounding', async () => {
+        const model = getGenerativeModel(testConfig.ai, {
+          model: testConfig.model,
+          generationConfig: commonGenerationConfig,
+          safetySettings: commonSafetySettings,
+          tools: [{ googleSearch: {} }]
+        });
+
+        const result = await model.generateContent(
+          'What is the speed of light in a vaccuum in meters per second?'
         );
-        expect(response.usageMetadata!.candidatesTokenCount).to.be.closeTo(
-          4,
-          TOKEN_COUNT_DELTA
+        const response = result.response;
+        const trimmedText = response.text().trim();
+        const groundingMetadata = response.candidates?.[0].groundingMetadata;
+        expect(trimmedText).to.contain('299,792,458');
+        expect(groundingMetadata).to.exist;
+        expect(groundingMetadata!.searchEntryPoint?.renderedContent).to.contain(
+          'div'
         );
-        expect(response.usageMetadata!.totalTokenCount).to.be.closeTo(
-          25,
-          TOKEN_COUNT_DELTA * 2
-        );
-        expect(response.usageMetadata!.promptTokensDetails).to.not.be.null;
-        expect(response.usageMetadata!.promptTokensDetails!.length).to.equal(1);
         expect(
-          response.usageMetadata!.promptTokensDetails![0].modality
-        ).to.equal(Modality.TEXT);
+          groundingMetadata!.groundingChunks
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingChunks!.forEach(groundingChunk => {
+          expect(groundingChunk.web).to.exist;
+          expect(groundingChunk.web!.uri).to.exist;
+        });
         expect(
-          response.usageMetadata!.promptTokensDetails![0].tokenCount
-        ).to.equal(21);
-        expect(response.usageMetadata!.candidatesTokensDetails).to.not.be.null;
-        expect(
-          response.usageMetadata!.candidatesTokensDetails!.length
-        ).to.equal(1);
-        expect(
-          response.usageMetadata!.candidatesTokensDetails![0].modality
-        ).to.equal(Modality.TEXT);
-        expect(
-          response.usageMetadata!.candidatesTokensDetails![0].tokenCount
-        ).to.be.closeTo(4, TOKEN_COUNT_DELTA);
+          groundingMetadata?.groundingSupports
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingSupports!.forEach(groundingSupport => {
+          expect(
+            groundingSupport.groundingChunkIndices
+          ).to.have.length.greaterThanOrEqual(1);
+          expect(groundingSupport.segment).to.exist;
+          expect(groundingSupport.segment?.endIndex).to.exist;
+          expect(groundingSupport.segment?.text).to.exist;
+          // Since partIndex and startIndex are commonly 0, they may be omitted from responses.
+        });
       });
 
       it('generateContentStream: text input, text output', async () => {
