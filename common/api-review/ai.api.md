@@ -281,7 +281,7 @@ export interface FunctionCallPart {
 export interface FunctionDeclaration {
     description: string;
     name: string;
-    parameters?: ObjectSchemaInterface;
+    parameters?: ObjectSchema | ObjectSchemaRequest;
 }
 
 // @public
@@ -487,6 +487,15 @@ export interface GoogleAIGenerateContentResponse {
     usageMetadata?: UsageMetadata;
 }
 
+// @public
+export interface GoogleSearch {
+}
+
+// @public
+export interface GoogleSearchTool {
+    googleSearch: GoogleSearch;
+}
+
 // @public @deprecated (undocumented)
 export interface GroundingAttribution {
     // (undocumented)
@@ -500,13 +509,26 @@ export interface GroundingAttribution {
 }
 
 // @public
+export interface GroundingChunk {
+    web?: WebGroundingChunk;
+}
+
+// @public
 export interface GroundingMetadata {
     // @deprecated (undocumented)
     groundingAttributions: GroundingAttribution[];
-    // (undocumented)
+    groundingChunks?: GroundingChunk[];
+    groundingSupports?: GroundingSupport[];
+    // @deprecated (undocumented)
     retrievalQueries?: string[];
-    // (undocumented)
+    searchEntryPoint?: SearchEntrypoint;
     webSearchQueries?: string[];
+}
+
+// @public
+export interface GroundingSupport {
+    groundingChunkIndices?: number[];
+    segment?: Segment;
 }
 
 // @public
@@ -704,9 +726,8 @@ export class ObjectSchema extends Schema {
 }
 
 // @public
-export interface ObjectSchemaInterface extends SchemaInterface {
-    // (undocumented)
-    optionalProperties?: string[];
+export interface ObjectSchemaRequest extends SchemaRequest {
+    optionalProperties?: never;
     // (undocumented)
     type: SchemaType.OBJECT;
 }
@@ -859,14 +880,17 @@ export enum SchemaType {
     STRING = "string"
 }
 
-// @public (undocumented)
+// @public
+export interface SearchEntrypoint {
+    renderedContent?: string;
+}
+
+// @public
 export interface Segment {
-    // (undocumented)
     endIndex: number;
-    // (undocumented)
     partIndex: number;
-    // (undocumented)
     startIndex: number;
+    text: string;
 }
 
 // @public
@@ -908,7 +932,7 @@ export interface ThinkingConfig {
 }
 
 // @public
-export type Tool = FunctionDeclarationsTool;
+export type Tool = FunctionDeclarationsTool | GoogleSearchTool;
 
 // @public
 export interface ToolConfig {
@@ -967,6 +991,13 @@ export interface WebAttribution {
     title: string;
     // (undocumented)
     uri: string;
+}
+
+// @public
+export interface WebGroundingChunk {
+    domain?: string;
+    title?: string;
+    uri?: string;
 }
 
 

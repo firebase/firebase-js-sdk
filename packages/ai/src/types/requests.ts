@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { TypedSchema } from '../requests/schema-builder';
+import { ObjectSchema, TypedSchema } from '../requests/schema-builder';
 import { Content, Part } from './content';
 import {
   FunctionCallingMode,
@@ -24,7 +24,7 @@ import {
   HarmCategory,
   ResponseModality
 } from './enums';
-import { ObjectSchemaInterface, SchemaRequest } from './schema';
+import { ObjectSchemaRequest, SchemaRequest } from './schema';
 
 /**
  * Base parameters for a number of methods.
@@ -169,7 +169,7 @@ export interface RequestOptions {
  * Defines a tool that model can call to access external knowledge.
  * @public
  */
-export declare type Tool = FunctionDeclarationsTool;
+export type Tool = FunctionDeclarationsTool | GoogleSearchTool;
 
 /**
  * Structured representation of a function declaration as defined by the
@@ -180,7 +180,7 @@ export declare type Tool = FunctionDeclarationsTool;
  * as a Tool by the model and executed by the client.
  * @public
  */
-export declare interface FunctionDeclaration {
+export interface FunctionDeclaration {
   /**
    * The name of the function to call. Must start with a letter or an
    * underscore. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with
@@ -197,8 +197,43 @@ export declare interface FunctionDeclaration {
    * format. Reflects the Open API 3.03 Parameter Object. Parameter names are
    * case-sensitive. For a function with no parameters, this can be left unset.
    */
-  parameters?: ObjectSchemaInterface;
+  parameters?: ObjectSchema | ObjectSchemaRequest;
 }
+
+/**
+ * A tool that allows a Gemini model to connect to Google Search to access and incorporate
+ * up-to-date information from the web into its responses.
+ *
+ * Important: If using Grounding with Google Search, you are required to comply with the
+ * "Grounding with Google Search" usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-search | Gemini Developer API}
+ * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+ * section within the Service Specific Terms).
+ *
+ * @public
+ */
+export interface GoogleSearchTool {
+  /**
+   * Specifies the Google Search configuration.
+   * Currently, this is an empty object, but it's reserved for future configuration options.
+   * Specifies the Google Search configuration. Currently, this is an empty object, but it's
+   * reserved for future configuration options.
+   *
+   * When using this feature, you are required to comply with the "Grounding with Google Search"
+   * usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-search | Gemini Developer API}
+   * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+   * section within the Service Specific Terms).
+   */
+  googleSearch: GoogleSearch;
+}
+
+/**
+ * Specifies the Google Search configuration.
+ *
+ * @remarks Currently, this is an empty object, but it's reserved for future configuration options.
+ *
+ * @public
+ */
+export interface GoogleSearch {}
 
 /**
  * A `FunctionDeclarationsTool` is a piece of code that enables the system to
@@ -206,7 +241,7 @@ export declare interface FunctionDeclaration {
  * outside of knowledge and scope of the model.
  * @public
  */
-export declare interface FunctionDeclarationsTool {
+export interface FunctionDeclarationsTool {
   /**
    * Optional. One or more function declarations
    * to be passed to the model along with the current user query. Model may
