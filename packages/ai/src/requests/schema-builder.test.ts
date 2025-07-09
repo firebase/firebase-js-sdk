@@ -15,10 +15,16 @@
  * limitations under the License.
  */
 
+import { AIError } from '../errors';
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
-import { Schema } from './schema-builder';
-import { AIErrorCode } from '../types';
+import {
+  AnyOfSchema,
+  NumberSchema,
+  Schema,
+  StringSchema
+} from './schema-builder';
+import { AIErrorCode, SchemaType } from '../types';
 
 use(sinonChai);
 
@@ -442,56 +448,200 @@ describe('Schema builder', () => {
         population: Schema.integer({ nullable: true })
       },
       optionalProperties: ['cat']
-    });
+    }) as any; // Cast to any to bypass TypedSchema check for testing purposes
+    expect(() => schema.toJSON()).to.throw(
+      AIError,
+      /Property "cat" specified in "optionalProperties" does not exist./
+    );
+    // Check the error code as well
     expect(() => schema.toJSON()).to.throw(AIErrorCode.INVALID_SCHEMA);
   });
-  it('builds schema with minimum and maximum for integer', () => {
-    const schema = Schema.integer({ minimum: 5, maximum: 10, title: 'Rating' });
-    expect(schema.toJSON()).to.eql({
-      type: 'integer',
-      nullable: false,
-      minimum: 5,
-      maximum: 10,
-      title: 'Rating'
+
+  describe('AnyOfSchema', () => {
+    it('builds an anyOf schema with basic types using Schema.anyOf()', () => {
+      const schema: AnyOfSchema = Schema.anyOf({
+        anyOf: [Schema.string(), Schema.number()]
+      });
+
+      expect(schema).to.be.instanceOf(AnyOfSchema);
+      expect(schema.type).to.be.undefined;
+      expect(schema.nullable).to.be.false; // Default from SchemaParams
+      expect(schema.anyOf).to.be.an('array').with.lengthOf(2);
+      expect(schema.anyOf[0]).to.be.instanceOf(StringSchema);
+      expect(schema.anyOf[1]).to.be.instanceOf(NumberSchema);
+
+      expect(schema.toJSON()).to.eql({
+        type: undefined,
+        anyOf: [
+          { type: 'string', nullable: false },
+          { type: 'number', nullable: false }
+        ],
+        nullable: false
+      });
+    });
+
+    it('builds an anyOf schema with complex types and options', () => {
+      const schema = Schema.anyOf({
+        description: 'Can be a string or a detailed object',
+        nullable: true,
+        anyOf: [
+          Schema.string({ description: 'A simple string' }),
+          Schema.object({
+            properties: {
+              id: Schema.integer(),
+              name: Schema.string()
+            },
+            description: 'A detailed object',
+            nullable: false // Explicitly set for the object schema itself
+          })
+        ]
+      });
+
+      expect(schema.description).to.equal(
+        'Can be a string or a detailed object'
+      );
+      expect(schema.nullable).to.be.true;
+      expect(schema.anyOf).to.be.an('array').with.lengthOf(2);
+
+      expect(schema.toJSON()).to.eql({
+        type: undefined,
+        description: 'Can be a string or a detailed object',
+        nullable: true,
+        anyOf: [
+          { type: 'string', description: 'A simple string', nullable: false },
+          {
+            type: 'object',
+            description: 'A detailed object',
+            properties: {
+              id: { type: 'integer', nullable: false },
+              name: { type: 'string', nullable: false }
+            },
+            required: ['id', 'name'],
+            nullable: false
+          }
+        ]
+      });
+    });
+
+    it('correctly overrides type to undefined even if type is passed in params', () => {
+      const schema = Schema.anyOf({
+        type: SchemaType.STRING,
+        anyOf: [Schema.string(), Schema.number()]
+      });
+      expect(schema.toJSON().type).to.be.undefined;
+      expect(schema.toJSON()).to.eql({
+        type: undefined, // Explicitly undefined for anyOf
+        anyOf: [
+          { type: 'string', nullable: false },
+          { type: 'number', nullable: false }
+        ],
+        nullable: false // Default from SchemaParams
+      });
+    });
+
+    it('toJSON() correctly serializes nested complex schemas within anyOf', () => {
+      const schema = Schema.anyOf({
+        anyOf: [
+          Schema.object({
+            properties: { name: Schema.string() },
+            optionalProperties: ['name']
+          }),
+          Schema.array({ items: Schema.integer() })
+        ]
+      });
+      expect(schema.toJSON()).to.eql({
+        type: undefined,
+        anyOf: [
+          {
+            type: 'object',
+            properties: { name: { type: 'string', nullable: false } },
+            nullable: false
+          },
+          {
+            type: 'array',
+            items: { type: 'integer', nullable: false },
+            nullable: false
+          }
+        ],
+        nullable: false
+      });
+    });
+
+    it('throws an error if the anyOf array is empty', () => {
+      expect(() => Schema.anyOf({ anyOf: [] })).to.throw(
+        AIErrorCode.INVALID_SCHEMA
+      );
     });
   });
 
-  it('builds schema with minimum and maximum for number', () => {
-    const schema = Schema.number({
-      minimum: 1.5,
-      maximum: 9.9,
-      title: 'Measurement'
+  describe('ObjectSchema toJSON() optionalProperties edge cases', () => {
+    it('handles empty optionalProperties array (all properties required)', () => {
+      const schema = Schema.object({
+        properties: { a: Schema.string(), b: Schema.integer() },
+        optionalProperties: []
+      });
+      expect(schema.toJSON().required).to.deep.equal(['a', 'b']);
     });
-    expect(schema.toJSON()).to.eql({
-      type: 'number',
-      nullable: false,
-      minimum: 1.5,
-      maximum: 9.9,
-      title: 'Measurement'
-    });
-  });
 
-  it('builds object schema with propertyOrdering', () => {
-    const schema = Schema.object({
-      title: 'User Data',
-      properties: {
-        name: Schema.string(),
-        age: Schema.integer(),
-        email: Schema.string()
-      },
-      propertyOrdering: ['name', 'email', 'age']
+    it('handles all properties being optional (empty required array)', () => {
+      const schema = Schema.object({
+        properties: { a: Schema.string(), b: Schema.integer() },
+        optionalProperties: ['a', 'b']
+      });
+      expect(schema.toJSON().required).to.be.undefined; // or empty array, depending on implementation
     });
-    expect(schema.toJSON()).to.eql({
-      type: 'object',
-      nullable: false,
-      title: 'User Data',
-      properties: {
-        name: { type: 'string', nullable: false },
-        age: { type: 'integer', nullable: false },
-        email: { type: 'string', nullable: false }
-      },
-      required: ['name', 'age', 'email'],
-      propertyOrdering: ['name', 'email', 'age']
+    it('builds schema with minimum and maximum for integer', () => {
+      const schema = Schema.integer({
+        minimum: 5,
+        maximum: 10,
+        title: 'Rating'
+      });
+      expect(schema.toJSON()).to.eql({
+        type: 'integer',
+        nullable: false,
+        minimum: 5,
+        maximum: 10,
+        title: 'Rating'
+      });
+    });
+
+    it('builds schema with minimum and maximum for number', () => {
+      const schema = Schema.number({
+        minimum: 1.5,
+        maximum: 9.9,
+        title: 'Measurement'
+      });
+      expect(schema.toJSON()).to.eql({
+        type: 'number',
+        nullable: false,
+        minimum: 1.5,
+        maximum: 9.9,
+        title: 'Measurement'
+      });
+    });
+
+    it('builds object schema with propertyOrdering', () => {
+      const schema = Schema.object({
+        title: 'User Data',
+        properties: {
+          name: Schema.string(),
+          age: Schema.integer(),
+          email: Schema.string()
+        },
+        propertyOrdering: ['name', 'email', 'age']
+      });
+      expect(schema.toJSON()).to.eql({
+        type: 'object',
+        nullable: false,
+        title: 'User Data',
+        properties: {
+          name: { type: 'string', nullable: false },
+          age: { type: 'integer', nullable: false },
+          email: { type: 'string', nullable: false }
+        },
+        required: ['name', 'age', 'email'],
+        propertyOrdering: ['name', 'email', 'age']
+      });
     });
   });
 });

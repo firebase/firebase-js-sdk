@@ -22,6 +22,7 @@ export interface SchemaShared<T>
 
 |  Property | Type | Description |
 |  --- | --- | --- |
+|  [anyOf](./ai.schemashared.md#schemasharedanyof) | T\[\] | An array of [Schema](./ai.schema.md#schema_class)<!-- -->. The generated data must be valid against any of the schemas listed in this array. This allows specifying multiple possible structures or types for a single field. |
 |  [description](./ai.schemashared.md#schemashareddescription) | string | Optional. The description of the property. |
 |  [enum](./ai.schemashared.md#schemasharedenum) | string\[\] | Optional. The enum of the property. |
 |  [example](./ai.schemashared.md#schemasharedexample) | unknown | Optional. The example of the property. |
@@ -35,6 +36,16 @@ export interface SchemaShared<T>
 |  [properties](./ai.schemashared.md#schemasharedproperties) | { \[k: string\]: T; } | Optional. Map of <code>Schema</code> objects. |
 |  [propertyOrdering](./ai.schemashared.md#schemasharedpropertyordering) | string\[\] | A hint suggesting the order in which the keys should appear in the generated JSON string. |
 |  [title](./ai.schemashared.md#schemasharedtitle) | string | The title of the property. This helps document the schema's purpose but does not typically constrain the generated value. It can subtly guide the model by clarifying the intent of a field. |
+
+## SchemaShared.anyOf
+
+An array of [Schema](./ai.schema.md#schema_class)<!-- -->. The generated data must be valid against any of the schemas listed in this array. This allows specifying multiple possible structures or types for a single field.
+
+<b>Signature:</b>
+
+```typescript
+anyOf?: T[];
+```
 
 ## SchemaShared.description
 
