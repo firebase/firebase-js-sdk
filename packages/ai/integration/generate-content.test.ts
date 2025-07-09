@@ -144,6 +144,46 @@ describe('Generate Content', () => {
         }
       });
 
+      it('generateContent: google search grounding', async () => {
+        const model = getGenerativeModel(testConfig.ai, {
+          model: testConfig.model,
+          generationConfig: commonGenerationConfig,
+          safetySettings: commonSafetySettings,
+          tools: [{ googleSearch: {} }]
+        });
+
+        const result = await model.generateContent(
+          'What is the speed of light in a vaccuum in meters per second?'
+        );
+        const response = result.response;
+        const trimmedText = response.text().trim();
+        const groundingMetadata = response.candidates?.[0].groundingMetadata;
+        expect(trimmedText).to.contain('299,792,458');
+        expect(groundingMetadata).to.exist;
+        expect(groundingMetadata!.searchEntryPoint?.renderedContent).to.contain(
+          'div'
+        );
+        expect(
+          groundingMetadata!.groundingChunks
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingChunks!.forEach(groundingChunk => {
+          expect(groundingChunk.web).to.exist;
+          expect(groundingChunk.web!.uri).to.exist;
+        });
+        expect(
+          groundingMetadata?.groundingSupports
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingSupports!.forEach(groundingSupport => {
+          expect(
+            groundingSupport.groundingChunkIndices
+          ).to.have.length.greaterThanOrEqual(1);
+          expect(groundingSupport.segment).to.exist;
+          expect(groundingSupport.segment?.endIndex).to.exist;
+          expect(groundingSupport.segment?.text).to.exist;
+          // Since partIndex and startIndex are commonly 0, they may be omitted from responses.
+        });
+      });
+
       it('generateContentStream: text input, text output', async () => {
         const model = getGenerativeModel(testConfig.ai, {
           model: testConfig.model,
