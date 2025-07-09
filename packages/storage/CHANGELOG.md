@@ -1,5 +1,11 @@
 #Unreleased
 
+## 0.13.13
+
+### Patch Changes
+
+- [`0f891d8`](https://github.com/firebase/firebase-js-sdk/commit/0f891d861bdf4e7bac8cd777f5fb32d0b7b9bf8e) [#9059](https://github.com/firebase/firebase-js-sdk/pull/9059) - Fixed issue where Firebase Studio wasn't populating cookies for Storage users
+
 ## 0.13.12
 
 ### Patch Changes
