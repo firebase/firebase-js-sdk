@@ -18,7 +18,6 @@ The Firebase AI Web SDK.
 |  --- | --- |
 |  <b>function(app, ...)</b> |
 |  [getAI(app, options)](./ai.md#getai_a94a413) | Returns the default [AI](./ai.ai.md#ai_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings. |
-|  [getVertexAI(app, options)](./ai.md#getvertexai_04094cf) |  |
 |  <b>function(ai, ...)</b> |
 |  [getGenerativeModel(ai, modelParams, requestOptions)](./ai.md#getgenerativemodel_80bd839) | Returns a [GenerativeModel](./ai.generativemodel.md#generativemodel_class) class with methods for inference and other functionality. |
 |  [getImagenModel(ai, modelParams, requestOptions)](./ai.md#getimagenmodel_e1f6645) | <b><i>(Public Preview)</i></b> Returns an [ImagenModel](./ai.imagenmodel.md#imagenmodel_class) class with methods for using Imagen.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported. |
@@ -127,7 +126,6 @@ The Firebase AI Web SDK.
 |  [ThinkingConfig](./ai.thinkingconfig.md#thinkingconfig_interface) | Configuration for "thinking" behavior of compatible Gemini models.<!-- -->Certain models utilize a thinking process before generating a response. This allows them to reason through complex problems and plan a more coherent and accurate answer. |
 |  [ToolConfig](./ai.toolconfig.md#toolconfig_interface) | Tool config. This config is shared for all tools provided in the request. |
 |  [UsageMetadata](./ai.usagemetadata.md#usagemetadata_interface) | Usage metadata about a [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
-|  [VertexAIOptions](./ai.vertexaioptions.md#vertexaioptions_interface) | Options when initializing the Firebase AI SDK. |
 |  [VideoMetadata](./ai.videometadata.md#videometadata_interface) | Describes the input video content. |
 |  [WebAttribution](./ai.webattribution.md#webattribution_interface) |  |
 |  [WebGroundingChunk](./ai.webgroundingchunk.md#webgroundingchunk_interface) | A grounding chunk from the web.<!-- -->Important: If using Grounding with Google Search, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Search". |
@@ -139,8 +137,6 @@ The Firebase AI Web SDK.
 |  [BackendType](./ai.md#backendtype) | An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. This determines which backend service (Vertex AI Gemini API or Gemini Developer API) the SDK will communicate with.<!-- -->These values are assigned to the <code>backendType</code> property within the specific backend configuration objects ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) or [VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->) to identify which service to target. |
 |  [POSSIBLE\_ROLES](./ai.md#possible_roles) | Possible roles. |
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
-|  [VertexAIError](./ai.md#vertexaierror) |  |
-|  [VertexAIModel](./ai.md#vertexaimodel) |  |
 
 ## Type Aliases
 
@@ -152,7 +148,6 @@ The Firebase AI Web SDK.
 |  [Role](./ai.md#role) | Role is the producer of the content. |
 |  [Tool](./ai.md#tool) | Defines a tool that model can call to access external knowledge. |
 |  [TypedSchema](./ai.md#typedschema) | A type that includes all specific Schema types. |
-|  [VertexAI](./ai.md#vertexai) |  |
 
 ## function(app, ...)
 
@@ -204,32 +199,6 @@ const ai = getAI(app, { backend: new GoogleAIBackend() });
 const ai = getAI(app, { backend: new VertexAIBackend() });
 
 ```
-
-### getVertexAI(app, options) {:#getvertexai_04094cf}
-
-> Warning: This API is now obsolete.
-> 
-> Use the new [getAI()](./ai.md#getai_a94a413) instead. The Vertex AI in Firebase SDK has been replaced with the Firebase AI SDK to accommodate the evolving set of supported features and services. For migration details, see the [migration guide](https://firebase.google.com/docs/vertex-ai/migrate-to-latest-sdk)<!-- -->.
-> 
-> Returns a [VertexAI](./ai.md#vertexai) instance for the given app, configured to use the Vertex AI Gemini API. This instance will be configured to use the Vertex AI Gemini API.
-> 
-
-<b>Signature:</b>
-
-```typescript
-export declare function getVertexAI(app?: FirebaseApp, options?: VertexAIOptions): VertexAI;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) to use. |
-|  options | [VertexAIOptions](./ai.vertexaioptions.md#vertexaioptions_interface) | Options to configure the Vertex AI instance, including the location. |
-
-<b>Returns:</b>
-
-[VertexAI](./ai.md#vertexai)
 
 ## function(ai, ...)
 
@@ -327,36 +296,6 @@ ResponseModality: {
 }
 ```
 
-## VertexAIError
-
-> Warning: This API is now obsolete.
-> 
-> Use the new [AIError](./ai.aierror.md#aierror_class) instead. The Vertex AI in Firebase SDK has been replaced with the Firebase AI SDK to accommodate the evolving set of supported features and services. For migration details, see the [migration guide](https://firebase.google.com/docs/vertex-ai/migrate-to-latest-sdk)<!-- -->.
-> 
-> Error class for the Firebase AI SDK.
-> 
-
-<b>Signature:</b>
-
-```typescript
-VertexAIError: typeof AIError
-```
-
-## VertexAIModel
-
-> Warning: This API is now obsolete.
-> 
-> Use the new [AIModel](./ai.aimodel.md#aimodel_class) instead. The Vertex AI in Firebase SDK has been replaced with the Firebase AI SDK to accommodate the evolving set of supported features and services. For migration details, see the [migration guide](https://firebase.google.com/docs/vertex-ai/migrate-to-latest-sdk)<!-- -->.
-> 
-> Base class for Firebase AI model APIs.
-> 
-
-<b>Signature:</b>
-
-```typescript
-VertexAIModel: typeof AIModel
-```
-
 ## BackendType
 
 Type alias representing valid backend types. It can be either `'VERTEX_AI'` or `'GOOGLE_AI'`<!-- -->.
@@ -418,21 +357,6 @@ A type that includes all specific Schema types.
 
 ```typescript
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema;
-```
-
-## VertexAI
-
-> Warning: This API is now obsolete.
-> 
-> Use the new [AI](./ai.ai.md#ai_interface) instead. The Vertex AI in Firebase SDK has been replaced with the Firebase AI SDK to accommodate the evolving set of supported features and services. For migration details, see the [migration guide](https://firebase.google.com/docs/vertex-ai/migrate-to-latest-sdk)<!-- -->.
-> 
-> An instance of the Firebase AI SDK.
-> 
-
-<b>Signature:</b>
-
-```typescript
-export type VertexAI = AI;
 ```
 
 ## AIErrorCode
