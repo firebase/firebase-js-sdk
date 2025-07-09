@@ -106,9 +106,9 @@ export const SDK_VERSION = version;
  *   is provided, the default is `"[DEFAULT]"`.
  *
  * @returns The initialized app.
- * 
+ *
  * @throws If the optional `name` parameter is malformed or empty.
- * 
+ *
  * @throws If a `FirebaseApp` already exists with the same name but with a different configuration.
  *
  * @public
@@ -124,7 +124,7 @@ export function initializeApp(
  * @param config - FirebaseApp Configuration
  *
  * @throws If {@link FirebaseAppSettings.name} is defined but the value is malformed or empty.
- * 
+ *
  * @throws If a `FirebaseApp` already exists with the same name but with a different configuration.
  * @public
  */
@@ -231,12 +231,12 @@ export function initializeApp(
  * @param config - Optional `FirebaseServerApp` settings.
  *
  * @returns The initialized `FirebaseServerApp`.
- * 
+ *
  * @throws If invoked in an unsupported non-server environment such as a browser.
- * 
+ *
  * @throws If {@link FirebaseServerAppSettings.releaseOnDeref} is defined but the runtime doesn't
  *   provide Finalization Registry support.
- * 
+ *
  * @public
  */
 export function initializeServerApp(
@@ -250,13 +250,13 @@ export function initializeServerApp(
  * @param config - Optional `FirebaseServerApp` settings.
  *
  * @returns The initialized `FirebaseServerApp`.
- * 
+ *
  * @throws If invoked in an unsupported non-server environment such as a browser.
  * @throws If {@link FirebaseServerAppSettings.releaseOnDeref} is defined but the runtime doesn't
  *   provide Finalization Registry support.
  * @throws If the `FIREBASE_OPTIONS` enviornment variable does not contain a valid project
  *   configuration required for auto-initialization.
- * 
+ *
  * @public
  */
 export function initializeServerApp(
