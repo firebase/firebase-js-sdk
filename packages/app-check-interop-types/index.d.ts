@@ -34,10 +34,10 @@ export interface FirebaseAppCheckInternal {
   removeTokenListener(listener: AppCheckTokenListener): void;
 }
 
-type AppCheckTokenListener = (token: AppCheckTokenResult) => void;
+export type AppCheckTokenListener = (token: AppCheckTokenResult) => void;
 
 // If the error field is defined, the token field will be populated with a dummy token
-interface AppCheckTokenResult {
+export interface AppCheckTokenResult {
   readonly token: string;
   readonly error?: Error;
 }
