@@ -149,6 +149,14 @@ async function getActiveUserBlocking() {
   }
 }
 
+class TokenRefreshHandlerImpl {
+  refreshToken() {
+    log("inside here");
+    console.log("inside handler");
+    return;
+  }
+}
+
 /**
  * Refreshes the current user data in the UI, displaying a user info box if
  * a user is signed in, or removing it.
@@ -2092,6 +2100,8 @@ function initApp() {
     popupRedirectResolver: browserPopupRedirectResolver,
     tenantConfig: tenantConfig
   });
+  const tokenRefreshHandler = new TokenRefreshHandlerImpl(); 
+  regionalAuth.setTokenRefreshHandler(tokenRefreshHandler);
 
   const firebaseTokenStatus = document.getElementById('firebase-token-status');
   setTimeout(() => {
