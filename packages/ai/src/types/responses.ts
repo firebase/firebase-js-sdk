@@ -92,6 +92,10 @@ export interface GenerateContentResponse {
 export interface UsageMetadata {
   promptTokenCount: number;
   candidatesTokenCount: number;
+  /**
+   * The number of tokens used by the model's internal "thinking" process.
+   */
+  thoughtsTokenCount?: number;
   totalTokenCount: number;
   promptTokensDetails?: ModalityTokenCount[];
   candidatesTokensDetails?: ModalityTokenCount[];
