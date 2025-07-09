@@ -49,7 +49,7 @@ import {
   Subscribe
 } from '@firebase/util';
 
-import { AuthInternal, ConfigInternal } from '../../model/auth';
+import { AuthInternal, ConfigInternal, TokenRefreshHandler } from '../../model/auth';
 import { PopupRedirectResolverInternal } from '../../model/popup_redirect';
 import { UserInternal } from '../../model/user';
 import {
@@ -102,6 +102,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   currentUser: User | null = null;
   emulatorConfig: EmulatorConfig | null = null;
   firebaseToken: FirebaseToken | null = null;
+  tokenRefreshHandler?: TokenRefreshHandler;
   private operations = Promise.resolve();
   private persistenceManager?: PersistenceUserManager;
   private redirectPersistenceManager?: PersistenceUserManager;
@@ -112,6 +113,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   private redirectUser: UserInternal | null = null;
   private isProactiveRefreshEnabled = false;
   private readonly EXPECTED_PASSWORD_POLICY_SCHEMA_VERSION: number = 1;
+  private readonly TOKEN_EXPIRATION_BUFFER = 30_000;
 
   // Any network calls will set this to true and prevent subsequent emulator
   // initialization
@@ -159,6 +161,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     this.tenantConfig = tenantConfig;
   }
 
+  setTokenRefreshHandler(tokenRefreshHandler: TokenRefreshHandler): void {
+    this.tokenRefreshHandler = tokenRefreshHandler;
+  }
+
   _initializeWithPersistence(
     persistenceHierarchy: PersistenceInternal[],
     popupRedirectResolver?: PopupRedirectResolver
@@ -196,7 +202,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       }
 
       await this.initializeCurrentUser(popupRedirectResolver);
-      await this.initializeFirebaseToken();
+      this.firebaseToken = await this.getFirebaseAccessToken(false);
 
       this.lastNotifiedUid = this.currentUser?.uid || null;
 
@@ -208,6 +214,33 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     });
 
     return this._initializationPromise;
+  }
+
+  async getFirebaseAccessToken(forceRefresh?: boolean): 
+    Promise<FirebaseToken | null> {
+      const firebaseAccessToken =
+        (await this.persistenceManager?.getFirebaseToken()) ?? null;
+      
+      if (
+        firebaseAccessToken &&
+        this.isFirebaseAccessTokenValid(firebaseAccessToken) &&
+        !forceRefresh
+      ) {
+        this.firebaseToken = firebaseAccessToken;
+        this.firebaseTokenSubscription.next(this.firebaseToken);
+        return firebaseAccessToken;
+      }
+
+      if (firebaseAccessToken && this.tokenRefreshHandler) {
+        // Resets the Firebase Access Token to null i.e. logs out the user.
+        await this._updateFirebaseToken(null);
+        // Awaits for the callback method to execute. The callback method
+        // is responsible for performing the exchangeToken(auth, valid3pIdpToken)
+        await this.tokenRefreshHandler.refreshToken();
+        return this.getFirebaseAccessToken(false);
+      }
+
+      return null;
   }
 
   /**
@@ -238,6 +271,20 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     // Update current Auth state. Either a new login or logout.
     // Skip blocking callbacks, they should not apply to a change in another tab.
     await this._updateCurrentUser(user, /* skipBeforeStateCallbacks */ true);
+  }
+
+  private isFirebaseAccessTokenValid(
+    firebaseToken: FirebaseToken | null
+  ): boolean {
+    if(
+      firebaseToken &&
+      firebaseToken.expirationTime &&
+      (Date.now() >
+        firebaseToken.expirationTime - this.TOKEN_EXPIRATION_BUFFER)
+    ) {
+      return false;
+    }
+    return true;
   }
 
   private async initializeCurrentUserFromIdToken(
