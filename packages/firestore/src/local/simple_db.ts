@@ -319,7 +319,10 @@ export class SimpleDb {
             try {
               this.databaseDeletedListener?.(clearSiteDataEvent[0]);
             } catch (e) {
-              logError(`zzyzx this.databaseDeletedListener?.(clearSiteDataEvent[0]) threw`, e);
+              logError(
+                `zzyzx this.databaseDeletedListener?.(clearSiteDataEvent[0]) threw`,
+                e
+              );
               error = e;
             }
           }
