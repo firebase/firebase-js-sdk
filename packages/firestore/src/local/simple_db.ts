@@ -315,7 +315,7 @@ export class SimpleDb {
 
         request.onsuccess = (event: Event) => {
           let error: unknown;
-          if (clearSiteDataEvent[0]) {
+          if (clearSiteDataEvent.length > 0) {
             try {
               this.databaseDeletedListener?.(clearSiteDataEvent[0]);
             } catch (e) {
