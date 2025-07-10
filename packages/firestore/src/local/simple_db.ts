@@ -166,6 +166,7 @@ export class SimpleDb {
   private db?: IDBDatabase;
   private databaseDeletedListener?: DatabaseDeletedListener;
   private lastClosedDbVersion: number | null = null;
+  private readonly logTag = `${LOG_TAG} [${generateUniqueDebugId()}]`;
 
   /** Deletes the specified database. */
   static delete(name: string): Promise<void> {
@@ -270,6 +271,7 @@ export class SimpleDb {
     private readonly version: number,
     private readonly schemaConverter: SimpleDbSchemaConverter
   ) {
+    logDebug(`${this.logTag} created!`);
     debugAssert(
       SimpleDb.isAvailable(),
       'IndexedDB not supported in current environment.'
@@ -295,7 +297,8 @@ export class SimpleDb {
    */
   async ensureDb(action: string): Promise<IDBDatabase> {
     if (!this.db) {
-      logDebug(LOG_TAG, 'Opening database:', this.name);
+      console.trace("zzyzx SimpleDb.ensureDb() is opening a new database connection");
+      logDebug(this.logTag, 'Opening database:', this.name);
       this.db = await new Promise<IDBDatabase>((resolve, reject) => {
         // TODO(mikelehen): Investigate browser compatibility.
         // https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
@@ -377,7 +380,7 @@ export class SimpleDb {
 
         request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
           logDebug(
-            LOG_TAG,
+            this.logTag,
             'Database "' + this.name + '" requires upgrade from version:',
             event.oldVersion
           );
@@ -405,7 +408,7 @@ export class SimpleDb {
             )
             .next(() => {
               logDebug(
-                LOG_TAG,
+                this.logTag,
                 'Database upgrade to version ' + this.version + ' complete'
               );
             });
@@ -415,6 +418,7 @@ export class SimpleDb {
       this.db.addEventListener(
         'close',
         event => {
+          logDebug(`${this.logTag} close callback`);
           const db = event.target as IDBDatabase;
           this.lastClosedDbVersion = db.version;
         },
@@ -460,6 +464,7 @@ export class SimpleDb {
     objectStores: string[],
     transactionFn: (transaction: SimpleDbTransaction) => PersistencePromise<T>
   ): Promise<T> {
+    logDebug(`${this.logTag} runTransaction action=${action}`);
     const readonly = mode === 'readonly';
     let attemptNumber = 0;
 
@@ -512,7 +517,7 @@ export class SimpleDb {
           error.name !== 'FirebaseError' &&
           attemptNumber < TRANSACTION_RETRY_COUNT;
         logDebug(
-          LOG_TAG,
+          this.logTag,
           'Transaction failed with error:',
           error.message,
           'Retrying:',
@@ -529,6 +534,7 @@ export class SimpleDb {
   }
 
   close(): void {
+    logDebug(`${this.logTag} close() called!`);
     if (this.db) {
       this.db.close();
     }
