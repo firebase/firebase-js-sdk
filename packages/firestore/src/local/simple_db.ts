@@ -17,12 +17,17 @@
 
 import { getGlobal, getUA, isIndexedDBAvailable } from '@firebase/util';
 
-import { debugAssert, fail } from '../util/assert';
+import { debugAssert } from '../util/assert';
+import { generateUniqueDebugId } from '../util/debug_uid';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug, logError, logWarn } from '../util/log';
+import { logDebug, logError } from '../util/log';
 import { Deferred } from '../util/promise';
 
-import { DatabaseDeletedListener } from './persistence';
+import {
+  ClearSiteDataDatabaseDeletedEvent,
+  DatabaseDeletedListener,
+  VersionChangeDatabaseDeletedEvent
+} from './persistence';
 import { PersistencePromise } from './persistence_promise';
 
 // References to `indexedDB` are guarded by SimpleDb.isAvailable() and getGlobal()
@@ -299,9 +304,34 @@ export class SimpleDb {
         // https://developer.mozilla.org/en-US/docs/Web/API/IDBVersionChangeRequest/setVersion
         const request = indexedDB.open(this.name, this.version);
 
+        // Store information about "Clear Site Data" being detected in the
+        // "onupgradeneeded" event listener and handle it in the "onsuccess"
+        // event listener, as opposed to throwing directly from the
+        // "onupgradeneeded" event listener. Do this because throwing from the
+        // "onupgradeneeded" event listener results in a generic error being
+        // reported to the "onerror" event listener that cannot be distinguished
+        // from other errors.
+        const clearSiteDataEvent: ClearSiteDataDatabaseDeletedEvent[] = [];
+
         request.onsuccess = (event: Event) => {
+          let error: unknown;
+          if (clearSiteDataEvent.length > 0) {
+            try {
+              this.databaseDeletedListener?.(clearSiteDataEvent[0]);
+            } catch (e) {
+              logError(`zzyzx this.databaseDeletedListener?.(clearSiteDataEvent[0]) threw`, e);
+              error = e;
+            }
+          }
+
           const db = (event.target as IDBOpenDBRequest).result;
-          resolve(db);
+
+          if (error) {
+            reject(error);
+            db.close();
+          } else {
+            resolve(db);
+          }
         };
 
         request.onblocked = () => {
@@ -353,19 +383,14 @@ export class SimpleDb {
             this.lastClosedDbVersion !== null &&
             this.lastClosedDbVersion !== event.oldVersion
           ) {
-            // This thrown error will get passed to the `onerror` callback
-            // registered above, and will then be propagated correctly.
-            fail(
-              0x3456,
-              `refusing to open IndexedDB database due to potential ` +
-                `corruption of the IndexedDB database data; this corruption ` +
-                `could be caused by clicking the "clear site data" button in ` +
-                `a web browser; try reloading the web page to re-initialize ` +
-                `the IndexedDB database: ` +
-                `lastClosedDbVersion=${this.lastClosedDbVersion}, ` +
-                `event.oldVersion=${event.oldVersion}, ` +
-                `event.newVersion=${event.newVersion}, ` +
-                `db.version=${db.version}`
+            clearSiteDataEvent.push(
+              new ClearSiteDataDatabaseDeletedEvent({
+                eventId: generateUniqueDebugId(),
+                lastClosedVersion: this.lastClosedDbVersion,
+                eventOldVersion: event.oldVersion,
+                eventNewVersion: event.newVersion,
+                dbVersion: db.version
+              })
             );
           }
           this.schemaConverter
@@ -400,11 +425,12 @@ export class SimpleDb {
         // Notify the listener if another tab attempted to delete the IndexedDb
         // database, such as by calling clearIndexedDbPersistence().
         if (event.newVersion === null) {
-          logWarn(
-            `Received "versionchange" event with newVersion===null; ` +
-              'notifying the registered DatabaseDeletedListener, if any'
+          this.databaseDeletedListener?.(
+            new VersionChangeDatabaseDeletedEvent({
+              eventId: generateUniqueDebugId(),
+              eventNewVersion: event.newVersion
+            })
           );
-          this.databaseDeletedListener?.();
         }
       },
       { passive: true }
