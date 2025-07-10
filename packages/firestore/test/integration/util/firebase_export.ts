@@ -30,7 +30,7 @@ import { PrivateSettings } from '../../../src/lite-api/settings';
 let appCount = 0;
 
 // enable contextual debug logging
-setLogLevel('error', 100);
+setLogLevel('error', 1000);
 
 export function newTestApp(projectId: string, appName?: string): FirebaseApp {
   if (appName === undefined) {

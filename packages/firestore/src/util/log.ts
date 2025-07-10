@@ -224,6 +224,19 @@ const bufferingLogHandler: LogHandler = (instance, logType, ...args): void => {
     return;
   }
 
+  let codeFound = false;
+  args.forEach(v => {
+    if (typeof v === 'string' && /ID:\s3456/.test(v)) {
+      codeFound = true;
+    }
+  });
+
+  // Buffer any message that do not match the expected code
+  if (!codeFound) {
+    logBuffer!.add(logType, now, args);
+    return;
+  }
+
   // create identifier that associates all of the associated
   // context messages with the log message that caused the
   // flush of the logBuffer

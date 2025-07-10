@@ -17,7 +17,7 @@
 
 import { getGlobal, getUA, isIndexedDBAvailable } from '@firebase/util';
 
-import { debugAssert } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError, logWarn } from '../util/log';
 import { Deferred } from '../util/promise';
@@ -355,7 +355,8 @@ export class SimpleDb {
           ) {
             // This thrown error will get passed to the `onerror` callback
             // registered above, and will then be propagated correctly.
-            throw new Error(
+            fail(
+              0x3456,
               `refusing to open IndexedDB database due to potential ` +
                 `corruption of the IndexedDB database data; this corruption ` +
                 `could be caused by clicking the "clear site data" button in ` +

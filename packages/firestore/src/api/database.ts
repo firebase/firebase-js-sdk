@@ -269,7 +269,7 @@ export function getFirestore(
       connectFirestoreEmulator(db, ...emulator);
     }
   }
-  
+
   return db;
 }
 
