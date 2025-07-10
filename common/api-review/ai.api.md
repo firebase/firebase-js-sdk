@@ -27,21 +27,24 @@ export class AIError extends FirebaseError {
 }
 
 // @public
-export const enum AIErrorCode {
-    API_NOT_ENABLED = "api-not-enabled",
-    ERROR = "error",
-    FETCH_ERROR = "fetch-error",
-    INVALID_CONTENT = "invalid-content",
-    INVALID_SCHEMA = "invalid-schema",
-    NO_API_KEY = "no-api-key",
-    NO_APP_ID = "no-app-id",
-    NO_MODEL = "no-model",
-    NO_PROJECT_ID = "no-project-id",
-    PARSE_FAILED = "parse-failed",
-    REQUEST_ERROR = "request-error",
-    RESPONSE_ERROR = "response-error",
-    UNSUPPORTED = "unsupported"
-}
+export const AIErrorCode: {
+    readonly ERROR: "error";
+    readonly REQUEST_ERROR: "request-error";
+    readonly RESPONSE_ERROR: "response-error";
+    readonly FETCH_ERROR: "fetch-error";
+    readonly INVALID_CONTENT: "invalid-content";
+    readonly API_NOT_ENABLED: "api-not-enabled";
+    readonly INVALID_SCHEMA: "invalid-schema";
+    readonly NO_API_KEY: "no-api-key";
+    readonly NO_APP_ID: "no-app-id";
+    readonly NO_MODEL: "no-model";
+    readonly NO_PROJECT_ID: "no-project-id";
+    readonly PARSE_FAILED: "parse-failed";
+    readonly UNSUPPORTED: "unsupported";
+};
+
+// @public
+export type AIErrorCode = (typeof AIErrorCode)[keyof typeof AIErrorCode];
 
 // @public
 export abstract class AIModel {
@@ -94,12 +97,15 @@ export interface BaseParams {
 }
 
 // @public
-export enum BlockReason {
-    BLOCKLIST = "BLOCKLIST",
-    OTHER = "OTHER",
-    PROHIBITED_CONTENT = "PROHIBITED_CONTENT",
-    SAFETY = "SAFETY"
-}
+export const BlockReason: {
+    readonly SAFETY: "SAFETY";
+    readonly OTHER: "OTHER";
+    readonly BLOCKLIST: "BLOCKLIST";
+    readonly PROHIBITED_CONTENT: "PROHIBITED_CONTENT";
+};
+
+// @public
+export type BlockReason = (typeof BlockReason)[keyof typeof BlockReason];
 
 // @public
 export class BooleanSchema extends Schema {
@@ -226,17 +232,20 @@ export interface FileDataPart {
 }
 
 // @public
-export enum FinishReason {
-    BLOCKLIST = "BLOCKLIST",
-    MALFORMED_FUNCTION_CALL = "MALFORMED_FUNCTION_CALL",
-    MAX_TOKENS = "MAX_TOKENS",
-    OTHER = "OTHER",
-    PROHIBITED_CONTENT = "PROHIBITED_CONTENT",
-    RECITATION = "RECITATION",
-    SAFETY = "SAFETY",
-    SPII = "SPII",
-    STOP = "STOP"
-}
+export const FinishReason: {
+    readonly STOP: "STOP";
+    readonly MAX_TOKENS: "MAX_TOKENS";
+    readonly SAFETY: "SAFETY";
+    readonly RECITATION: "RECITATION";
+    readonly OTHER: "OTHER";
+    readonly BLOCKLIST: "BLOCKLIST";
+    readonly PROHIBITED_CONTENT: "PROHIBITED_CONTENT";
+    readonly SPII: "SPII";
+    readonly MALFORMED_FUNCTION_CALL: "MALFORMED_FUNCTION_CALL";
+};
+
+// @public
+export type FinishReason = (typeof FinishReason)[keyof typeof FinishReason];
 
 // @public
 export interface FunctionCall {
@@ -255,11 +264,14 @@ export interface FunctionCallingConfig {
 }
 
 // @public (undocumented)
-export enum FunctionCallingMode {
-    ANY = "ANY",
-    AUTO = "AUTO",
-    NONE = "NONE"
-}
+export const FunctionCallingMode: {
+    readonly AUTO: "AUTO";
+    readonly ANY: "ANY";
+    readonly NONE: "NONE";
+};
+
+// @public (undocumented)
+export type FunctionCallingMode = (typeof FunctionCallingMode)[keyof typeof FunctionCallingMode];
 
 // @public
 export interface FunctionCallPart {
@@ -525,57 +537,71 @@ export interface GroundingSupport {
 }
 
 // @public
-export enum HarmBlockMethod {
-    PROBABILITY = "PROBABILITY",
-    SEVERITY = "SEVERITY"
-}
+export const HarmBlockMethod: {
+    readonly SEVERITY: "SEVERITY";
+    readonly PROBABILITY: "PROBABILITY";
+};
 
 // @public
-export enum HarmBlockThreshold {
-    BLOCK_LOW_AND_ABOVE = "BLOCK_LOW_AND_ABOVE",
-    BLOCK_MEDIUM_AND_ABOVE = "BLOCK_MEDIUM_AND_ABOVE",
-    BLOCK_NONE = "BLOCK_NONE",
-    BLOCK_ONLY_HIGH = "BLOCK_ONLY_HIGH",
-    OFF = "OFF"
-}
+export type HarmBlockMethod = (typeof HarmBlockMethod)[keyof typeof HarmBlockMethod];
 
 // @public
-export enum HarmCategory {
-    // (undocumented)
-    HARM_CATEGORY_DANGEROUS_CONTENT = "HARM_CATEGORY_DANGEROUS_CONTENT",
-    // (undocumented)
-    HARM_CATEGORY_HARASSMENT = "HARM_CATEGORY_HARASSMENT",
-    // (undocumented)
-    HARM_CATEGORY_HATE_SPEECH = "HARM_CATEGORY_HATE_SPEECH",
-    // (undocumented)
-    HARM_CATEGORY_SEXUALLY_EXPLICIT = "HARM_CATEGORY_SEXUALLY_EXPLICIT"
-}
+export const HarmBlockThreshold: {
+    readonly BLOCK_LOW_AND_ABOVE: "BLOCK_LOW_AND_ABOVE";
+    readonly BLOCK_MEDIUM_AND_ABOVE: "BLOCK_MEDIUM_AND_ABOVE";
+    readonly BLOCK_ONLY_HIGH: "BLOCK_ONLY_HIGH";
+    readonly BLOCK_NONE: "BLOCK_NONE";
+    readonly OFF: "OFF";
+};
 
 // @public
-export enum HarmProbability {
-    HIGH = "HIGH",
-    LOW = "LOW",
-    MEDIUM = "MEDIUM",
-    NEGLIGIBLE = "NEGLIGIBLE"
-}
+export type HarmBlockThreshold = (typeof HarmBlockThreshold)[keyof typeof HarmBlockThreshold];
 
 // @public
-export enum HarmSeverity {
-    HARM_SEVERITY_HIGH = "HARM_SEVERITY_HIGH",
-    HARM_SEVERITY_LOW = "HARM_SEVERITY_LOW",
-    HARM_SEVERITY_MEDIUM = "HARM_SEVERITY_MEDIUM",
-    HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE",
-    HARM_SEVERITY_UNSUPPORTED = "HARM_SEVERITY_UNSUPPORTED"
-}
+export const HarmCategory: {
+    readonly HARM_CATEGORY_HATE_SPEECH: "HARM_CATEGORY_HATE_SPEECH";
+    readonly HARM_CATEGORY_SEXUALLY_EXPLICIT: "HARM_CATEGORY_SEXUALLY_EXPLICIT";
+    readonly HARM_CATEGORY_HARASSMENT: "HARM_CATEGORY_HARASSMENT";
+    readonly HARM_CATEGORY_DANGEROUS_CONTENT: "HARM_CATEGORY_DANGEROUS_CONTENT";
+};
+
+// @public
+export type HarmCategory = (typeof HarmCategory)[keyof typeof HarmCategory];
+
+// @public
+export const HarmProbability: {
+    readonly NEGLIGIBLE: "NEGLIGIBLE";
+    readonly LOW: "LOW";
+    readonly MEDIUM: "MEDIUM";
+    readonly HIGH: "HIGH";
+};
+
+// @public
+export type HarmProbability = (typeof HarmProbability)[keyof typeof HarmProbability];
+
+// @public
+export const HarmSeverity: {
+    readonly HARM_SEVERITY_NEGLIGIBLE: "HARM_SEVERITY_NEGLIGIBLE";
+    readonly HARM_SEVERITY_LOW: "HARM_SEVERITY_LOW";
+    readonly HARM_SEVERITY_MEDIUM: "HARM_SEVERITY_MEDIUM";
+    readonly HARM_SEVERITY_HIGH: "HARM_SEVERITY_HIGH";
+    readonly HARM_SEVERITY_UNSUPPORTED: "HARM_SEVERITY_UNSUPPORTED";
+};
+
+// @public
+export type HarmSeverity = (typeof HarmSeverity)[keyof typeof HarmSeverity];
 
 // @beta
-export enum ImagenAspectRatio {
-    LANDSCAPE_16x9 = "16:9",
-    LANDSCAPE_3x4 = "3:4",
-    PORTRAIT_4x3 = "4:3",
-    PORTRAIT_9x16 = "9:16",
-    SQUARE = "1:1"
-}
+export const ImagenAspectRatio: {
+    readonly SQUARE: "1:1";
+    readonly LANDSCAPE_3x4: "3:4";
+    readonly PORTRAIT_4x3: "4:3";
+    readonly LANDSCAPE_16x9: "16:9";
+    readonly PORTRAIT_9x16: "9:16";
+};
+
+// @beta
+export type ImagenAspectRatio = (typeof ImagenAspectRatio)[keyof typeof ImagenAspectRatio];
 
 // @public
 export interface ImagenGCSImage {
@@ -632,19 +658,25 @@ export interface ImagenModelParams {
 }
 
 // @beta
-export enum ImagenPersonFilterLevel {
-    ALLOW_ADULT = "allow_adult",
-    ALLOW_ALL = "allow_all",
-    BLOCK_ALL = "dont_allow"
-}
+export const ImagenPersonFilterLevel: {
+    readonly BLOCK_ALL: "dont_allow";
+    readonly ALLOW_ADULT: "allow_adult";
+    readonly ALLOW_ALL: "allow_all";
+};
 
 // @beta
-export enum ImagenSafetyFilterLevel {
-    BLOCK_LOW_AND_ABOVE = "block_low_and_above",
-    BLOCK_MEDIUM_AND_ABOVE = "block_medium_and_above",
-    BLOCK_NONE = "block_none",
-    BLOCK_ONLY_HIGH = "block_only_high"
-}
+export type ImagenPersonFilterLevel = (typeof ImagenPersonFilterLevel)[keyof typeof ImagenPersonFilterLevel];
+
+// @beta
+export const ImagenSafetyFilterLevel: {
+    readonly BLOCK_LOW_AND_ABOVE: "block_low_and_above";
+    readonly BLOCK_MEDIUM_AND_ABOVE: "block_medium_and_above";
+    readonly BLOCK_ONLY_HIGH: "block_only_high";
+    readonly BLOCK_NONE: "block_none";
+};
+
+// @beta
+export type ImagenSafetyFilterLevel = (typeof ImagenSafetyFilterLevel)[keyof typeof ImagenSafetyFilterLevel];
 
 // @beta
 export interface ImagenSafetySettings {
@@ -671,14 +703,17 @@ export class IntegerSchema extends Schema {
 }
 
 // @public
-export enum Modality {
-    AUDIO = "AUDIO",
-    DOCUMENT = "DOCUMENT",
-    IMAGE = "IMAGE",
-    MODALITY_UNSPECIFIED = "MODALITY_UNSPECIFIED",
-    TEXT = "TEXT",
-    VIDEO = "VIDEO"
-}
+export const Modality: {
+    readonly MODALITY_UNSPECIFIED: "MODALITY_UNSPECIFIED";
+    readonly TEXT: "TEXT";
+    readonly IMAGE: "IMAGE";
+    readonly VIDEO: "VIDEO";
+    readonly AUDIO: "AUDIO";
+    readonly DOCUMENT: "DOCUMENT";
+};
+
+// @public
+export type Modality = (typeof Modality)[keyof typeof Modality];
 
 // @public
 export interface ModalityTokenCount {
@@ -722,7 +757,7 @@ export class ObjectSchema extends Schema {
 export interface ObjectSchemaRequest extends SchemaRequest {
     optionalProperties?: never;
     // (undocumented)
-    type: SchemaType.OBJECT;
+    type: 'object';
 }
 
 // @public
@@ -864,14 +899,17 @@ export interface SchemaShared<T> {
 }
 
 // @public
-export enum SchemaType {
-    ARRAY = "array",
-    BOOLEAN = "boolean",
-    INTEGER = "integer",
-    NUMBER = "number",
-    OBJECT = "object",
-    STRING = "string"
-}
+export const SchemaType: {
+    readonly STRING: "string";
+    readonly NUMBER: "number";
+    readonly INTEGER: "integer";
+    readonly BOOLEAN: "boolean";
+    readonly ARRAY: "array";
+    readonly OBJECT: "object";
+};
+
+// @public
+export type SchemaType = (typeof SchemaType)[keyof typeof SchemaType];
 
 // @public
 export interface SearchEntrypoint {
