@@ -418,7 +418,7 @@ export class SimpleDb {
       this.db.addEventListener(
         'close',
         event => {
-          logDebug(`${this.logTag} close callback`);
+          logDebug(`${this.logTag} close callback`, event);
           const db = event.target as IDBDatabase;
           this.lastClosedDbVersion = db.version;
         },
