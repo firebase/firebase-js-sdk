@@ -229,7 +229,7 @@ const badFinishReasons = [FinishReason.RECITATION, FinishReason.SAFETY];
 function hadBadFinishReason(candidate: GenerateContentCandidate): boolean {
   return (
     !!candidate.finishReason &&
-    badFinishReasons.includes(candidate.finishReason)
+    badFinishReasons.some(reason => reason === candidate.finishReason)
   );
 }
 
