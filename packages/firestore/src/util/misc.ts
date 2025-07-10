@@ -16,7 +16,6 @@
  */
 
 import { randomBytes } from '../platform/random_bytes';
-import { newTextEncoder } from '../platform/text_serializer';
 
 import { debugAssert } from './assert';
 
@@ -77,63 +76,66 @@ export interface Equatable<T> {
 
 /** Compare strings in UTF-8 encoded byte order */
 export function compareUtf8Strings(left: string, right: string): number {
-  let i = 0;
-  while (i < left.length && i < right.length) {
-    const leftCodePoint = left.codePointAt(i)!;
-    const rightCodePoint = right.codePointAt(i)!;
-
-    if (leftCodePoint !== rightCodePoint) {
-      if (leftCodePoint < 128 && rightCodePoint < 128) {
-        // ASCII comparison
-        return primitiveComparator(leftCodePoint, rightCodePoint);
-      } else {
-        // Lazy instantiate TextEncoder
-        const encoder = newTextEncoder();
-
-        // UTF-8 encode the character at index i for byte comparison.
-        const leftBytes = encoder.encode(getUtf8SafeSubstring(left, i));
-        const rightBytes = encoder.encode(getUtf8SafeSubstring(right, i));
-
-        const comp = compareByteArrays(leftBytes, rightBytes);
-        if (comp !== 0) {
-          return comp;
-        } else {
-          // EXTREMELY RARE CASE: Code points differ, but their UTF-8 byte
-          // representations are identical. This can happen with malformed input
-          // (invalid surrogate pairs). The backend also actively prevents invalid
-          // surrogates as INVALID_ARGUMENT errors, so we almost never receive
-          // invalid strings from backend.
-          // Fallback to code point comparison for graceful handling.
-          return primitiveComparator(leftCodePoint, rightCodePoint);
-        }
-      }
+  // Find the first differing character (a.k.a. "UTF-16 code unit") in the two strings and,
+  // if found, use that character to determine the relative ordering of the two strings as a
+  // whole. Comparing UTF-16 strings in UTF-8 byte order can be done simply and efficiently by
+  // comparing the UTF-16 code units (chars). This serendipitously works because of the way UTF-8
+  // and UTF-16 happen to represent Unicode code points.
+  //
+  // After finding the first pair of differing characters, there are two cases:
+  //
+  // Case 1: Both characters are non-surrogates (code points less than or equal to 0xFFFF) or
+  // both are surrogates from a surrogate pair (that collectively represent code points greater
+  // than 0xFFFF). In this case their numeric order as UTF-16 code units is the same as the
+  // lexicographical order of their corresponding UTF-8 byte sequences. A direct comparison is
+  // sufficient.
+  //
+  // Case 2: One character is a surrogate and the other is not. In this case the surrogate-
+  // containing string is always ordered after the non-surrogate. This is because surrogates are
+  // used to represent code points greater than 0xFFFF which have 4-byte UTF-8 representations
+  // and are lexicographically greater than the 1, 2, or 3-byte representations of code points
+  // less than or equal to 0xFFFF.
+  //
+  // An example of why Case 2 is required is comparing the following two Unicode code points:
+  //
+  // |-----------------------|------------|---------------------|-----------------|
+  // | Name                  | Code Point | UTF-8 Encoding      | UTF-16 Encoding |
+  // |-----------------------|------------|---------------------|-----------------|
+  // | Replacement Character | U+FFFD     | 0xEF 0xBF 0xBD      | 0xFFFD          |
+  // | Grinning Face         | U+1F600    | 0xF0 0x9F 0x98 0x80 | 0xD83D 0xDE00   |
+  // |-----------------------|------------|---------------------|-----------------|
+  //
+  // A lexicographical comparison of the UTF-8 encodings of these code points would order
+  // "Replacement Character" _before_ "Grinning Face" because 0xEF is less than 0xF0. However, a
+  // direct comparison of the UTF-16 code units, as would be done in case 1, would erroneously
+  // produce the _opposite_ ordering, because 0xFFFD is _greater than_ 0xD83D. As it turns out,
+  // this relative ordering holds for all comparisons of UTF-16 code points requiring a surrogate
+  // pair with those that do not.
+  const length = Math.min(left.length, right.length);
+  for (let i = 0; i < length; i++) {
+    const leftChar = left.charAt(i);
+    const rightChar = right.charAt(i);
+    if (leftChar !== rightChar) {
+      return isSurrogate(leftChar) === isSurrogate(rightChar)
+        ? primitiveComparator(leftChar, rightChar)
+        : isSurrogate(leftChar)
+        ? 1
+        : -1;
     }
-    // Increment by 2 for surrogate pairs, 1 otherwise
-    i += leftCodePoint > 0xffff ? 2 : 1;
   }
 
-  // Compare lengths if all characters are equal
+  // Use the lengths of the strings to determine the overall comparison result since either the
+  // strings were equal or one is a prefix of the other.
   return primitiveComparator(left.length, right.length);
 }
 
-function getUtf8SafeSubstring(str: string, index: number): string {
-  const firstCodePoint = str.codePointAt(index)!;
-  if (firstCodePoint > 0xffff) {
-    // It's a surrogate pair, return the whole pair
-    return str.substring(index, index + 2);
-  } else {
-    // It's a single code point, return it
-    return str.substring(index, index + 1);
-  }
-}
+const MIN_SURROGATE = 0xd800;
+const MAX_SURROGATE = 0xdfff;
 
-function compareByteArrays(left: Uint8Array, right: Uint8Array): number {
-  for (let i = 0; i < left.length && i < right.length; ++i) {
-    if (left[i] !== right[i]) {
-      return primitiveComparator(left[i], right[i]);
-    }
-  }
-  return primitiveComparator(left.length, right.length);
+export function isSurrogate(s: string): boolean {
+  debugAssert(s.length === 1, `s.length == ${s.length}, but expected 1`);
+  const c = s.charCodeAt(0);
+  return c >= MIN_SURROGATE && c <= MAX_SURROGATE;
 }
 
 export interface Iterable<V> {

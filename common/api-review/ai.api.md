@@ -27,7 +27,7 @@ export class AIError extends FirebaseError {
 }
 
 // @public
-const enum AIErrorCode {
+export const enum AIErrorCode {
     API_NOT_ENABLED = "api-not-enabled",
     ERROR = "error",
     FETCH_ERROR = "fetch-error",
@@ -42,10 +42,6 @@ const enum AIErrorCode {
     RESPONSE_ERROR = "response-error",
     UNSUPPORTED = "unsupported"
 }
-
-export { AIErrorCode }
-
-export { AIErrorCode as VertexAIErrorCode }
 
 // @public
 export abstract class AIModel {
@@ -281,7 +277,7 @@ export interface FunctionCallPart {
 export interface FunctionDeclaration {
     description: string;
     name: string;
-    parameters?: ObjectSchemaInterface;
+    parameters?: ObjectSchema | ObjectSchemaRequest;
 }
 
 // @public
@@ -381,6 +377,7 @@ export interface GenerationConfig {
     stopSequences?: string[];
     // (undocumented)
     temperature?: number;
+    thinkingConfig?: ThinkingConfig;
     // (undocumented)
     topK?: number;
     // (undocumented)
@@ -423,9 +420,6 @@ export function getGenerativeModel(ai: AI, modelParams: ModelParams, requestOpti
 
 // @beta
 export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
-
-// @public @deprecated (undocumented)
-export function getVertexAI(app?: FirebaseApp, options?: VertexAIOptions): VertexAI;
 
 // @public
 export class GoogleAIBackend extends Backend {
@@ -486,6 +480,15 @@ export interface GoogleAIGenerateContentResponse {
     usageMetadata?: UsageMetadata;
 }
 
+// @public
+export interface GoogleSearch {
+}
+
+// @public
+export interface GoogleSearchTool {
+    googleSearch: GoogleSearch;
+}
+
 // @public @deprecated (undocumented)
 export interface GroundingAttribution {
     // (undocumented)
@@ -499,13 +502,26 @@ export interface GroundingAttribution {
 }
 
 // @public
+export interface GroundingChunk {
+    web?: WebGroundingChunk;
+}
+
+// @public
 export interface GroundingMetadata {
     // @deprecated (undocumented)
     groundingAttributions: GroundingAttribution[];
-    // (undocumented)
+    groundingChunks?: GroundingChunk[];
+    groundingSupports?: GroundingSupport[];
+    // @deprecated (undocumented)
     retrievalQueries?: string[];
-    // (undocumented)
+    searchEntryPoint?: SearchEntrypoint;
     webSearchQueries?: string[];
+}
+
+// @public
+export interface GroundingSupport {
+    groundingChunkIndices?: number[];
+    segment?: Segment;
 }
 
 // @public
@@ -703,9 +719,8 @@ export class ObjectSchema extends Schema {
 }
 
 // @public
-export interface ObjectSchemaInterface extends SchemaInterface {
-    // (undocumented)
-    optionalProperties?: string[];
+export interface ObjectSchemaRequest extends SchemaRequest {
+    optionalProperties?: never;
     // (undocumented)
     type: SchemaType.OBJECT;
 }
@@ -858,14 +873,17 @@ export enum SchemaType {
     STRING = "string"
 }
 
-// @public (undocumented)
+// @public
+export interface SearchEntrypoint {
+    renderedContent?: string;
+}
+
+// @public
 export interface Segment {
-    // (undocumented)
     endIndex: number;
-    // (undocumented)
     partIndex: number;
-    // (undocumented)
     startIndex: number;
+    text: string;
 }
 
 // @public
@@ -902,7 +920,12 @@ export interface TextPart {
 }
 
 // @public
-export type Tool = FunctionDeclarationsTool;
+export interface ThinkingConfig {
+    thinkingBudget?: number;
+}
+
+// @public
+export type Tool = FunctionDeclarationsTool | GoogleSearchTool;
 
 // @public
 export interface ToolConfig {
@@ -923,29 +946,15 @@ export interface UsageMetadata {
     promptTokenCount: number;
     // (undocumented)
     promptTokensDetails?: ModalityTokenCount[];
+    thoughtsTokenCount?: number;
     // (undocumented)
     totalTokenCount: number;
 }
-
-// @public @deprecated (undocumented)
-export type VertexAI = AI;
 
 // @public
 export class VertexAIBackend extends Backend {
     constructor(location?: string);
     readonly location: string;
-}
-
-// @public @deprecated (undocumented)
-export const VertexAIError: typeof AIError;
-
-// @public @deprecated (undocumented)
-export const VertexAIModel: typeof AIModel;
-
-// @public
-export interface VertexAIOptions {
-    // (undocumented)
-    location?: string;
 }
 
 // @public
@@ -960,6 +969,13 @@ export interface WebAttribution {
     title: string;
     // (undocumented)
     uri: string;
+}
+
+// @public
+export interface WebGroundingChunk {
+    domain?: string;
+    title?: string;
+    uri?: string;
 }
 
 
