@@ -161,9 +161,11 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
     const { idbDatabase: db, debugId: dbDebugId } = idbDatabaseDebugIdPair;
 
-    const simpleDbTransaction = new SimpleDbTransaction('createOrUpgrade', txn);
-
-    logDebug(`${simpleDbTransaction.debugId} created from ${dbDebugId}`);
+    const simpleDbTransaction = new SimpleDbTransaction(
+      'createOrUpgrade',
+      txn,
+      dbDebugId
+    );
 
     if (fromVersion < 1 && toVersion >= 1) {
       createPrimaryClientStore(db);

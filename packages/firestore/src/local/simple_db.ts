@@ -52,7 +52,7 @@ export interface SimpleDbSchemaConverter {
  * specific object store.
  */
 export class SimpleDbTransaction {
-  readonly debugId = `SimpleDbTransaction@${generateUniqueDebugId()}`;
+  readonly debugId: string;
   private aborted = false;
 
   /**
@@ -67,12 +67,11 @@ export class SimpleDbTransaction {
     objectStoreNames: string[]
   ): SimpleDbTransaction {
     try {
-      const transaction = new SimpleDbTransaction(
+      return new SimpleDbTransaction(
         action,
-        db.idbDatabase.transaction(objectStoreNames, mode)
+        db.idbDatabase.transaction(objectStoreNames, mode),
+        db.debugId
       );
-      logDebug(`${transaction.debugId} created from ${db.debugId}`);
-      return transaction;
     } catch (e) {
       throw new IndexedDbTransactionError(action, e as Error);
     }
@@ -80,8 +79,12 @@ export class SimpleDbTransaction {
 
   constructor(
     private readonly action: string,
-    private readonly transaction: IDBTransaction
+    private readonly transaction: IDBTransaction,
+    readonly dbDebugId: string
   ) {
+    this.debugId =
+      `SimpleDbTransaction@${generateUniqueDebugId()}, ` +
+      `action="${action}", dbDebugId=${dbDebugId}`;
     this.transaction.oncomplete = () => {
       this.completionDeferred.resolve();
     };
@@ -148,9 +151,7 @@ export class SimpleDbTransaction {
   ): SimpleDbStore<KeyType, ValueType> {
     const store = this.transaction.objectStore(storeName);
     debugAssert(!!store, 'Object store not part of transaction: ' + storeName);
-    const simpleDbStore = new SimpleDbStore<KeyType, ValueType>(store);
-    logDebug(`${simpleDbStore.debugId} created from ${this.debugId}`);
-    return simpleDbStore;
+    return new SimpleDbStore<KeyType, ValueType>(store, this.debugId);
   }
 }
 
@@ -755,9 +756,11 @@ export class SimpleDbStore<
   KeyType extends IDBValidKey,
   ValueType extends unknown
 > {
-  readonly debugId = `SimpleDbStore@${generateUniqueDebugId()}`;
+  readonly debugId: string;
 
-  constructor(private store: IDBObjectStore) {}
+  constructor(private store: IDBObjectStore, transactionId: string) {
+    this.debugId = transactionId;
+  }
 
   /**
    * Writes a value into the Object Store.
