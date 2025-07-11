@@ -162,6 +162,7 @@ export class FirestoreClient {
 
   get configuration(): ComponentConfiguration {
     return {
+      debugId: this.debugId,
       asyncQueue: this.asyncQueue,
       databaseInfo: this.databaseInfo,
       clientId: this.clientId,

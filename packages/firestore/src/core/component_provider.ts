@@ -80,6 +80,8 @@ import { OnlineStateSource } from './types';
 type Kind = 'memory' | 'persistent';
 
 export interface ComponentConfiguration {
+  readonly debugId: string;
+
   asyncQueue: AsyncQueue;
   databaseInfo: DatabaseInfo;
   authCredentials: CredentialsProvider<User>;
@@ -486,6 +488,7 @@ export class OnlineComponentProvider {
   createDatastore(cfg: ComponentConfiguration): Datastore {
     const serializer = newSerializer(cfg.databaseInfo.databaseId);
     const connection = newConnection(cfg.databaseInfo);
+    logDebug(`${connection.debugId} created for ${cfg.debugId}`);
     return newDatastore(
       cfg.authCredentials,
       cfg.appCheckCredentials,

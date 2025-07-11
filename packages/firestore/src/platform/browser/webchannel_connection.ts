@@ -47,13 +47,13 @@ import { logDebug, logWarn } from '../../util/log';
 import { Rejecter, Resolver } from '../../util/promise';
 import { StringMap } from '../../util/types';
 
-const LOG_TAG = 'WebChannelConnection';
-
 const RPC_STREAM_SERVICE = 'google.firestore.v1.Firestore';
 
 const XHR_TIMEOUT_SECS = 15;
 
 export class WebChannelConnection extends RestConnection {
+  readonly debugId = `WebChannelConnection@${generateUniqueDebugId()}`;
+
   private readonly forceLongPolling: boolean;
   private readonly autoDetectLongPolling: boolean;
   private readonly useFetchStreams: boolean;
@@ -77,7 +77,7 @@ export class WebChannelConnection extends RestConnection {
     body: Req,
     _forwardCredentials: boolean
   ): Promise<Resp> {
-    const streamId = generateUniqueDebugId();
+    const streamId = `stream@${generateUniqueDebugId()}`;
     return new Promise((resolve: Resolver<Resp>, reject: Rejecter) => {
       const xhr = new XhrIo();
       xhr.setWithCredentials(true);
@@ -87,14 +87,14 @@ export class WebChannelConnection extends RestConnection {
             case ErrorCode.NO_ERROR:
               const json = xhr.getResponseJson() as Resp;
               logDebug(
-                LOG_TAG,
+                this.debugId,
                 `XHR for RPC '${rpcName}' ${streamId} received:`,
                 JSON.stringify(json)
               );
               resolve(json);
               break;
             case ErrorCode.TIMEOUT:
-              logDebug(LOG_TAG, `RPC '${rpcName}' ${streamId} timed out`);
+              logDebug(this.debugId, `RPC '${rpcName}' ${streamId} timed out`);
               reject(
                 new FirestoreError(Code.DEADLINE_EXCEEDED, 'Request time out')
               );
@@ -102,7 +102,7 @@ export class WebChannelConnection extends RestConnection {
             case ErrorCode.HTTP_ERROR:
               const status = xhr.getStatus();
               logDebug(
-                LOG_TAG,
+                this.debugId,
                 `RPC '${rpcName}' ${streamId} failed with status:`,
                 status,
                 'response text:',
@@ -157,12 +157,16 @@ export class WebChannelConnection extends RestConnection {
               );
           }
         } finally {
-          logDebug(LOG_TAG, `RPC '${rpcName}' ${streamId} completed.`);
+          logDebug(this.debugId, `RPC '${rpcName}' ${streamId} completed.`);
         }
       });
 
       const requestString = JSON.stringify(body);
-      logDebug(LOG_TAG, `RPC '${rpcName}' ${streamId} sending request:`, body);
+      logDebug(
+        this.debugId,
+        `RPC '${rpcName}' ${streamId} sending request:`,
+        body
+      );
       xhr.send(url, 'POST', requestString, headers, XHR_TIMEOUT_SECS);
     });
   }
@@ -237,7 +241,7 @@ export class WebChannelConnection extends RestConnection {
 
     const url = urlParts.join('');
     logDebug(
-      LOG_TAG,
+      this.debugId,
       `Creating RPC '${rpcName}' stream ${streamId}: ${url}`,
       request
     );
@@ -261,21 +265,21 @@ export class WebChannelConnection extends RestConnection {
         if (!closed) {
           if (!opened) {
             logDebug(
-              LOG_TAG,
+              this.debugId,
               `Opening RPC '${rpcName}' stream ${streamId} transport.`
             );
             channel.open();
             opened = true;
           }
           logDebug(
-            LOG_TAG,
+            this.debugId,
             `RPC '${rpcName}' stream ${streamId} sending:`,
             msg
           );
           channel.send(msg);
         } else {
           logDebug(
-            LOG_TAG,
+            this.debugId,
             `Not sending because RPC '${rpcName}' stream ${streamId} ` +
               'is closed:',
             msg
@@ -310,7 +314,7 @@ export class WebChannelConnection extends RestConnection {
     unguardedEventListen(channel, WebChannel.EventType.OPEN, () => {
       if (!closed) {
         logDebug(
-          LOG_TAG,
+          this.debugId,
           `RPC '${rpcName}' stream ${streamId} transport opened.`
         );
         streamBridge.callOnConnected();
@@ -321,7 +325,7 @@ export class WebChannelConnection extends RestConnection {
       if (!closed) {
         closed = true;
         logDebug(
-          LOG_TAG,
+          this.debugId,
           `RPC '${rpcName}' stream ${streamId} transport closed`
         );
         streamBridge.callOnClose();
@@ -333,7 +337,7 @@ export class WebChannelConnection extends RestConnection {
       if (!closed) {
         closed = true;
         logWarn(
-          LOG_TAG,
+          this.debugId,
           `RPC '${rpcName}' stream ${streamId} transport errored. Name:`,
           err.name,
           'Message:',
@@ -377,7 +381,7 @@ export class WebChannelConnection extends RestConnection {
             (msgDataOrError as WebChannelError[])[0]?.error;
           if (error) {
             logDebug(
-              LOG_TAG,
+              this.debugId,
               `RPC '${rpcName}' stream ${streamId} received error:`,
               error
             );
@@ -399,7 +403,7 @@ export class WebChannelConnection extends RestConnection {
             channel.close();
           } else {
             logDebug(
-              LOG_TAG,
+              this.debugId,
               `RPC '${rpcName}' stream ${streamId} received:`,
               msgData
             );
@@ -412,12 +416,12 @@ export class WebChannelConnection extends RestConnection {
     unguardedEventListen<StatEvent>(requestStats, Event.STAT_EVENT, event => {
       if (event.stat === Stat.PROXY) {
         logDebug(
-          LOG_TAG,
+          this.debugId,
           `RPC '${rpcName}' stream ${streamId} detected buffering proxy`
         );
       } else if (event.stat === Stat.NOPROXY) {
         logDebug(
-          LOG_TAG,
+          this.debugId,
           `RPC '${rpcName}' stream ${streamId} detected no buffering proxy`
         );
       }

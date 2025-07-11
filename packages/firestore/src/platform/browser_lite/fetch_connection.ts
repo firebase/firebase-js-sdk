@@ -19,6 +19,7 @@ import { Token } from '../../api/credentials';
 import { Stream } from '../../remote/connection';
 import { RestConnection } from '../../remote/rest_connection';
 import { mapCodeFromHttpStatus } from '../../remote/rpc_error';
+import { generateUniqueDebugId } from '../../util/debug_uid';
 import { FirestoreError } from '../../util/error';
 import { StringMap } from '../../util/types';
 
@@ -27,6 +28,8 @@ import { StringMap } from '../../util/types';
  * (e.g. `fetch` or a polyfill).
  */
 export class FetchConnection extends RestConnection {
+  readonly debugId = `FetchConnection@${generateUniqueDebugId()}`;
+
   openStream<Req, Resp>(
     rpcName: string,
     token: Token | null
