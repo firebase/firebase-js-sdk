@@ -1,5 +1,15 @@
 #Unreleased
 
+## 0.13.14
+
+### Patch Changes
+
+- [`42ac401`](https://github.com/firebase/firebase-js-sdk/commit/42ac4011787db6bb7a08f8c84f364ea86ea51e83) [#9111](https://github.com/firebase/firebase-js-sdk/pull/9111) - Fixed issue where Storage on Firebase Studio throws CORS errors.
+
+- Updated dependencies [[`42ac401`](https://github.com/firebase/firebase-js-sdk/commit/42ac4011787db6bb7a08f8c84f364ea86ea51e83)]:
+  - @firebase/util@1.12.1
+  - @firebase/component@0.6.18
+
 ## 0.13.13
 
 ### Patch Changes
