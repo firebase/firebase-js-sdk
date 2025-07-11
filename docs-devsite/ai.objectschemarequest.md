@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ObjectSchemaRequest interface
-Interface for JSON parameters in [SchemaType.OBJECT](./ai.md#schematypeobject_enummember) format when not using the [ObjectSchema](./ai.objectschema.md#objectschema_class) helper.
+Interface for JSON parameters in a schema of  "object" when not using the `Schema.object()` helper.
 
 <b>Signature:</b>
 
@@ -24,7 +24,7 @@ export interface ObjectSchemaRequest extends SchemaRequest
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [optionalProperties](./ai.objectschemarequest.md#objectschemarequestoptionalproperties) | never | This is not a property accepted in the final request to the backend, but is a client-side convenience property that is only usable by constructing a schema through the <code>Schema.object()</code> helper method. Populating this property will cause response errors if the object is not wrapped with <code>Schema.object()</code>. |
-|  [type](./ai.objectschemarequest.md#objectschemarequesttype) | [SchemaType.OBJECT](./ai.md#schematypeobject_enummember) |  |
+|  [type](./ai.objectschemarequest.md#objectschemarequesttype) | 'object' |  |
 
 ## ObjectSchemaRequest.optionalProperties
 
@@ -41,5 +41,5 @@ optionalProperties?: never;
 <b>Signature:</b>
 
 ```typescript
-type: SchemaType.OBJECT;
+type: 'object';
 ```
