@@ -26,7 +26,8 @@ import {
   SimpleDb,
   SimpleDbSchemaConverter,
   SimpleDbStore,
-  SimpleDbTransaction
+  SimpleDbTransaction,
+  type IdbDatabaseDebugIdPair
 } from '../../../src/local/simple_db';
 import { ResourcePath } from '../../../src/model/path';
 import { path } from '../../util/helpers';
@@ -36,12 +37,12 @@ const sep = '\u0001\u0001';
 
 class EncodedResourcePathSchemaConverter implements SimpleDbSchemaConverter {
   createOrUpgrade(
-    db: IDBDatabase,
+    idbDatabaseDebugIdPair: IdbDatabaseDebugIdPair,
     txn: IDBTransaction,
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
-    db.createObjectStore('test');
+    idbDatabaseDebugIdPair.idbDatabase.createObjectStore('test');
     return PersistencePromise.resolve();
   }
 }

@@ -138,7 +138,8 @@ async function withDb(
     schemaVersion,
     schemaConverter
   );
-  const database = await simpleDb.ensureDb('IndexedDbPersistenceTests');
+  const dbWithDebugId = await simpleDb.ensureDb('IndexedDbPersistenceTests');
+  const database = dbWithDebugId.idbDatabase;
   return fn(
     simpleDb,
     database.version,

@@ -17,7 +17,8 @@
 
 import { getGlobal, getUA, isIndexedDBAvailable } from '@firebase/util';
 
-import { debugAssert } from '../util/assert';
+import { debugAssert, hardAssert } from '../util/assert';
+import { generateUniqueDebugId } from '../util/debug_uid';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError, logWarn } from '../util/log';
 import { Deferred } from '../util/promise';
@@ -27,8 +28,6 @@ import { PersistencePromise } from './persistence_promise';
 
 // References to `indexedDB` are guarded by SimpleDb.isAvailable() and getGlobal()
 /* eslint-disable no-restricted-globals */
-
-const LOG_TAG = 'SimpleDb';
 
 /**
  * The maximum number of retry attempts for an IndexedDb transaction that fails
@@ -41,7 +40,7 @@ type SimpleDbTransactionMode = 'readonly' | 'readwrite';
 
 export interface SimpleDbSchemaConverter {
   createOrUpgrade(
-    db: IDBDatabase,
+    db: IdbDatabaseDebugIdPair,
     txn: IDBTransaction,
     fromVersion: number,
     toVersion: number
@@ -53,6 +52,7 @@ export interface SimpleDbSchemaConverter {
  * specific object store.
  */
 export class SimpleDbTransaction {
+  readonly debugId: string;
   private aborted = false;
 
   /**
@@ -61,7 +61,7 @@ export class SimpleDbTransaction {
   private readonly completionDeferred = new Deferred<void>();
 
   static open(
-    db: IDBDatabase,
+    db: IdbDatabaseDebugIdPair,
     action: string,
     mode: IDBTransactionMode,
     objectStoreNames: string[]
@@ -69,7 +69,8 @@ export class SimpleDbTransaction {
     try {
       return new SimpleDbTransaction(
         action,
-        db.transaction(objectStoreNames, mode)
+        db.idbDatabase.transaction(objectStoreNames, mode),
+        { dbDebugId: db.debugId }
       );
     } catch (e) {
       throw new IndexedDbTransactionError(action, e as Error);
@@ -78,8 +79,11 @@ export class SimpleDbTransaction {
 
   constructor(
     private readonly action: string,
-    private readonly transaction: IDBTransaction
+    private readonly transaction: IDBTransaction,
+    args: { dbDebugId: string }
   ) {
+    this.debugId = `SimpleDbTransaction@${generateUniqueDebugId()}`;
+    logDebug(this.debugId, `created with dbDebugId=${args.dbDebugId}`);
     this.transaction.oncomplete = () => {
       this.completionDeferred.resolve();
     };
@@ -113,7 +117,7 @@ export class SimpleDbTransaction {
 
     if (!this.aborted) {
       logDebug(
-        LOG_TAG,
+        this.debugId,
         'Aborting transaction:',
         error ? error.message : 'Client-initiated abort'
       );
@@ -146,9 +150,68 @@ export class SimpleDbTransaction {
   ): SimpleDbStore<KeyType, ValueType> {
     const store = this.transaction.objectStore(storeName);
     debugAssert(!!store, 'Object store not part of transaction: ' + storeName);
-    return new SimpleDbStore<KeyType, ValueType>(store);
+    return new SimpleDbStore<KeyType, ValueType>(store, this.debugId);
   }
 }
+
+export interface IdbDatabaseDebugIdPair {
+  idbDatabase: IDBDatabase;
+  debugId: string;
+}
+
+class SimpleDbStateNew {
+  readonly name = 'new' as const;
+
+  constructor(
+    readonly databaseDeletedListener: DatabaseDeletedListener | null
+  ) {}
+
+  withDatabaseDeletedListener(
+    databaseDeletedListener: DatabaseDeletedListener
+  ): SimpleDbStateNew {
+    return new SimpleDbStateNew(databaseDeletedListener);
+  }
+}
+
+class SimpleDbStateOpening {
+  readonly name = 'opening' as const;
+
+  constructor(
+    readonly promise: Promise<unknown>,
+    readonly databaseDeletedListener: DatabaseDeletedListener | null
+  ) {}
+
+  withDatabaseDeletedListener(
+    databaseDeletedListener: DatabaseDeletedListener
+  ): SimpleDbStateOpening {
+    return new SimpleDbStateOpening(this.promise, databaseDeletedListener);
+  }
+}
+
+class SimpleDbStateOpened {
+  readonly name = 'opened' as const;
+
+  constructor(
+    readonly db: IdbDatabaseDebugIdPair,
+    readonly databaseDeletedListener: DatabaseDeletedListener | null
+  ) {}
+
+  withDatabaseDeletedListener(
+    databaseDeletedListener: DatabaseDeletedListener
+  ): SimpleDbStateOpened {
+    return new SimpleDbStateOpened(this.db, databaseDeletedListener);
+  }
+}
+
+class SimpleDbStateClosed {
+  readonly name = 'closed' as const;
+}
+
+type SimpleDbState =
+  | SimpleDbStateNew
+  | SimpleDbStateOpened
+  | SimpleDbStateOpening
+  | SimpleDbStateClosed;
 
 /**
  * Provides a wrapper around IndexedDb with a simplified interface that uses
@@ -158,16 +221,25 @@ export class SimpleDbTransaction {
  * See PersistencePromise for more details.
  */
 export class SimpleDb {
-  private db?: IDBDatabase;
-  private databaseDeletedListener?: DatabaseDeletedListener;
+  readonly debugId = `SimpleDb@${generateUniqueDebugId()}`;
+  private state: SimpleDbState = new SimpleDbStateNew(null);
 
   /** Deletes the specified database. */
   static delete(name: string): Promise<void> {
-    logDebug(LOG_TAG, 'Removing database:', name);
+    const logTag = `SimpleDb[op=${generateUniqueDebugId()}]`;
+    logDebug(logTag, `Deleting IndexedDB database "${name}"`);
     const globals = getGlobal();
-    return wrapRequest<void>(
-      globals.indexedDB.deleteDatabase(name)
-    ).toPromise();
+
+    return wrapRequest<void>(globals.indexedDB.deleteDatabase(name))
+      .toPromise()
+      .then(
+        () => {
+          logDebug(logTag, `Deleting IndexedDB database "${name}" completed`);
+        },
+        e => {
+          logWarn(logTag, `Deleting IndexedDB database "${name}" failed`, e);
+        }
+      );
   }
 
   /** Returns true if IndexedDB is available in the current environment. */
@@ -264,6 +336,7 @@ export class SimpleDb {
     private readonly version: number,
     private readonly schemaConverter: SimpleDbSchemaConverter
   ) {
+    logDebug(this.debugId, 'new instance created');
     debugAssert(
       SimpleDb.isAvailable(),
       'IndexedDB not supported in current environment.'
@@ -287,113 +360,163 @@ export class SimpleDb {
   /**
    * Opens the specified database, creating or upgrading it if necessary.
    */
-  async ensureDb(action: string): Promise<IDBDatabase> {
-    if (!this.db) {
-      logDebug(LOG_TAG, 'Opening database:', this.name);
-      this.db = await new Promise<IDBDatabase>((resolve, reject) => {
-        // TODO(mikelehen): Investigate browser compatibility.
-        // https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
-        // suggests IE9 and older WebKit browsers handle upgrade
-        // differently. They expect setVersion, as described here:
-        // https://developer.mozilla.org/en-US/docs/Web/API/IDBVersionChangeRequest/setVersion
-        const request = indexedDB.open(this.name, this.version);
-
-        request.onsuccess = (event: Event) => {
-          const db = (event.target as IDBOpenDBRequest).result;
-          resolve(db);
-        };
-
-        request.onblocked = () => {
-          reject(
-            new IndexedDbTransactionError(
-              action,
-              'Cannot upgrade IndexedDB schema while another tab is open. ' +
-                'Close all tabs that access Firestore and reload this page to proceed.'
-            )
-          );
-        };
-
-        request.onerror = (event: Event) => {
-          const error: DOMException = (event.target as IDBOpenDBRequest).error!;
-          if (error.name === 'VersionError') {
-            reject(
-              new FirestoreError(
-                Code.FAILED_PRECONDITION,
-                'A newer version of the Firestore SDK was previously used and so the persisted ' +
-                  'data is not compatible with the version of the SDK you are now using. The SDK ' +
-                  'will operate with persistence disabled. If you need persistence, please ' +
-                  're-upgrade to a newer version of the SDK or else clear the persisted IndexedDB ' +
-                  'data for your app to start fresh.'
-              )
-            );
-          } else if (error.name === 'InvalidStateError') {
-            reject(
-              new FirestoreError(
-                Code.FAILED_PRECONDITION,
-                'Unable to open an IndexedDB connection. This could be due to running in a ' +
-                  'private browsing session on a browser whose private browsing sessions do not ' +
-                  'support IndexedDB: ' +
-                  error
-              )
-            );
-          } else {
-            reject(new IndexedDbTransactionError(action, error));
-          }
-        };
-
-        request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-          logDebug(
-            LOG_TAG,
-            'Database "' + this.name + '" requires upgrade from version:',
-            event.oldVersion
-          );
-          const db = (event.target as IDBOpenDBRequest).result;
-          this.schemaConverter
-            .createOrUpgrade(
+  async ensureDb(action: string): Promise<IdbDatabaseDebugIdPair> {
+    while (true) {
+      const currentState = this.state;
+      if (currentState.name === 'closed') {
+        throw new Error(`${this.debugId} has been closed`);
+      } else if (currentState.name === 'opening') {
+        await currentState.promise.catch(_ => {});
+      } else if (currentState.name === 'opened') {
+        return currentState.db;
+      } else {
+        hardAssert(currentState.name === 'new', 0x56e8, { state: this.state });
+        const promise = this.openDb(action);
+        const openingState = new SimpleDbStateOpening(
+          promise,
+          currentState.databaseDeletedListener
+        );
+        this.state = openingState;
+        try {
+          const db = await promise;
+          if (this.state === openingState) {
+            this.state = new SimpleDbStateOpened(
               db,
-              request.transaction!,
-              event.oldVersion,
-              this.version
-            )
-            .next(() => {
-              logDebug(
-                LOG_TAG,
-                'Database upgrade to version ' + this.version + ' complete'
-              );
-            });
-        };
-      });
-    }
-
-    this.db.addEventListener(
-      'versionchange',
-      event => {
-        // Notify the listener if another tab attempted to delete the IndexedDb
-        // database, such as by calling clearIndexedDbPersistence().
-        if (event.newVersion === null) {
-          logWarn(
-            `Received "versionchange" event with newVersion===null; ` +
-              'notifying the registered DatabaseDeletedListener, if any'
-          );
-          this.databaseDeletedListener?.();
+              openingState.databaseDeletedListener
+            );
+            return db;
+          } else {
+            db.idbDatabase.close();
+          }
+        } catch (e) {
+          if (this.state === openingState) {
+            this.state = new SimpleDbStateNew(
+              this.state.databaseDeletedListener
+            );
+            throw e;
+          }
         }
-      },
-      { passive: true }
+      }
+    }
+  }
+
+  private async openDb(action: string): Promise<IdbDatabaseDebugIdPair> {
+    const dbDebugId = `${this.debugId} IDBDatabase@${generateUniqueDebugId()}`;
+    logDebug(
+      dbDebugId,
+      `Opening database: name="${this.name}" version=${this.version}`
     );
 
-    return this.db;
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open(this.name, this.version);
+
+      request.onsuccess = (event: Event) => {
+        logDebug(dbDebugId, 'IDBOpenDBRequest.onsuccess');
+        const db = (event.target as IDBOpenDBRequest).result;
+        resolve(db);
+      };
+
+      request.onblocked = () => {
+        logWarn(dbDebugId, 'IDBOpenDBRequest.onblocked');
+        reject(
+          new IndexedDbTransactionError(
+            action,
+            'Cannot upgrade IndexedDB schema while another tab is open. ' +
+              'Close all tabs that access Firestore and reload this page to proceed.'
+          )
+        );
+      };
+
+      request.onerror = (event: Event) => {
+        const error: DOMException = (event.target as IDBOpenDBRequest).error!;
+        logWarn(dbDebugId, 'IDBOpenDBRequest.onerror', error);
+        if (error.name === 'VersionError') {
+          reject(
+            new FirestoreError(
+              Code.FAILED_PRECONDITION,
+              'A newer version of the Firestore SDK was previously used and so the persisted ' +
+                'data is not compatible with the version of the SDK you are now using. The SDK ' +
+                'will operate with persistence disabled. If you need persistence, please ' +
+                're-upgrade to a newer version of the SDK or else clear the persisted IndexedDB ' +
+                'data for your app to start fresh.'
+            )
+          );
+        } else if (error.name === 'InvalidStateError') {
+          reject(
+            new FirestoreError(
+              Code.FAILED_PRECONDITION,
+              'Unable to open an IndexedDB connection. This could be due to running in a ' +
+                'private browsing session on a browser whose private browsing sessions do not ' +
+                'support IndexedDB: ' +
+                error
+            )
+          );
+        } else {
+          reject(new IndexedDbTransactionError(action, error));
+        }
+      };
+
+      request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
+        logDebug(
+          dbDebugId,
+          `IDBOpenDBRequest.onupgradeneeded oldVersion=${event.oldVersion} newVersion=${event.newVersion}`
+        );
+        const db = (event.target as IDBOpenDBRequest).result;
+        this.schemaConverter
+          .createOrUpgrade(
+            { idbDatabase: db, debugId: dbDebugId },
+            request.transaction!,
+            event.oldVersion,
+            this.version
+          )
+          .next(() => {
+            logDebug(
+              this.debugId,
+              'Database upgrade to version ' + this.version + ' complete'
+            );
+          });
+      };
+
+      db.addEventListener(
+        'versionchange',
+        event => {
+          logDebug(
+            dbDebugId,
+            `IDBOpenDBRequest.versionchange oldVersion=${event.oldVersion} newVersion=${event.newVersion}`
+          );
+
+          // Notify the listener if another tab attempted to delete the IndexedDb
+          // database, such as by calling clearIndexedDbPersistence().
+          if (event.newVersion === null) {
+            logWarn(
+              dbDebugId,
+              `Received "versionchange" event with newVersion===null; ` +
+                'notifying the registered DatabaseDeletedListener, if any'
+            );
+            if ('databaseDeletedListener' in this.state) {
+              this.state.databaseDeletedListener?.();
+            }
+          }
+        },
+        { passive: true }
+      );
+    });
+
+    return { idbDatabase: db, debugId: dbDebugId };
   }
 
   setDatabaseDeletedListener(
     databaseDeletedListener: DatabaseDeletedListener
   ): void {
-    if (this.databaseDeletedListener) {
-      throw new Error(
-        'setDatabaseDeletedListener() may only be called once, ' +
-          'and it has already been called'
-      );
+    if (!('databaseDeletedListener' in this.state)) {
+      return;
     }
-    this.databaseDeletedListener = databaseDeletedListener;
+    if (this.state.databaseDeletedListener) {
+      throw new Error('setDatabaseDeletedListener() has already been called');
+    }
+    this.state = this.state.withDatabaseDeletedListener(
+      databaseDeletedListener
+    );
   }
 
   async runTransaction<T>(
@@ -402,17 +525,29 @@ export class SimpleDb {
     objectStores: string[],
     transactionFn: (transaction: SimpleDbTransaction) => PersistencePromise<T>
   ): Promise<T> {
+    const transactionId = generateUniqueDebugId();
+    logDebug(
+      this.debugId,
+      `runTransaction transactionId=${transactionId} starting; ` +
+        `action="${action}", mode="${mode}", objectStores=${objectStores.join()}`
+    );
     const readonly = mode === 'readonly';
     let attemptNumber = 0;
 
     while (true) {
       ++attemptNumber;
+      logDebug(
+        this.debugId,
+        `runTransaction transactionId=${transactionId} attemptNumber=${attemptNumber}`
+      );
+
+      const dbBefore = 'db' in this.state ? this.state.db : null;
 
       try {
-        this.db = await this.ensureDb(action);
+        const db = await this.ensureDb(action);
 
         const transaction = SimpleDbTransaction.open(
-          this.db,
+          db,
           action,
           readonly ? 'readonly' : 'readwrite',
           objectStores
@@ -454,14 +589,23 @@ export class SimpleDb {
           error.name !== 'FirebaseError' &&
           attemptNumber < TRANSACTION_RETRY_COUNT;
         logDebug(
-          LOG_TAG,
-          'Transaction failed with error:',
+          this.debugId,
+          `Transaction transactionId=${transactionId} failed with error:`,
           error.message,
           'Retrying:',
           retryable
         );
 
-        this.close();
+        if ('db' in this.state && dbBefore === this.state.db) {
+          this.state = new SimpleDbStateNew(this.state.databaseDeletedListener);
+          logWarn(
+            this.debugId,
+            `Transaction transactionId=${transactionId} closing IDBDatabase ` +
+              `due to error:`,
+            error.message
+          );
+          dbBefore.idbDatabase.close();
+        }
 
         if (!retryable) {
           return Promise.reject(error);
@@ -471,10 +615,14 @@ export class SimpleDb {
   }
 
   close(): void {
-    if (this.db) {
-      this.db.close();
+    if (this.state.name === 'closed') {
+      return;
     }
-    this.db = undefined;
+    logDebug(this.debugId, 'close()');
+    if ('db' in this.state) {
+      this.state.db.idbDatabase.close();
+    }
+    this.state = new SimpleDbStateClosed();
   }
 }
 
@@ -592,7 +740,12 @@ export class SimpleDbStore<
   KeyType extends IDBValidKey,
   ValueType extends unknown
 > {
-  constructor(private store: IDBObjectStore) {}
+  readonly debugId: string;
+
+  constructor(private store: IDBObjectStore, dbDebugId: string) {
+    this.debugId = `SimpleDbStore@${generateUniqueDebugId()}`;
+    logDebug(this.debugId, `created with dbDebugId=${dbDebugId}`);
+  }
 
   /**
    * Writes a value into the Object Store.
@@ -609,10 +762,10 @@ export class SimpleDbStore<
   ): PersistencePromise<void> {
     let request;
     if (value !== undefined) {
-      logDebug(LOG_TAG, 'PUT', this.store.name, keyOrValue, value);
+      logDebug(this.debugId, 'PUT', this.store.name, keyOrValue, value);
       request = this.store.put(value, keyOrValue as KeyType);
     } else {
-      logDebug(LOG_TAG, 'PUT', this.store.name, '<auto-key>', keyOrValue);
+      logDebug(this.debugId, 'PUT', this.store.name, '<auto-key>', keyOrValue);
       request = this.store.put(keyOrValue as ValueType);
     }
     return wrapRequest<void>(request);
@@ -626,7 +779,7 @@ export class SimpleDbStore<
    * @returns The key of the value to add.
    */
   add(value: ValueType): PersistencePromise<KeyType> {
-    logDebug(LOG_TAG, 'ADD', this.store.name, value, value);
+    logDebug(this.debugId, 'ADD', this.store.name, value, value);
     const request = this.store.add(value as ValueType);
     return wrapRequest<KeyType>(request);
   }
@@ -647,13 +800,13 @@ export class SimpleDbStore<
       if (result === undefined) {
         result = null;
       }
-      logDebug(LOG_TAG, 'GET', this.store.name, key, result);
+      logDebug(this.debugId, 'GET', this.store.name, key, result);
       return result;
     });
   }
 
   delete(key: KeyType | IDBKeyRange): PersistencePromise<void> {
-    logDebug(LOG_TAG, 'DELETE', this.store.name, key);
+    logDebug(this.debugId, 'DELETE', this.store.name, key);
     const request = this.store.delete(key);
     return wrapRequest<void>(request);
   }
@@ -665,7 +818,7 @@ export class SimpleDbStore<
    * Returns the number of rows in the store.
    */
   count(): PersistencePromise<number> {
-    logDebug(LOG_TAG, 'COUNT', this.store.name);
+    logDebug(this.debugId, 'COUNT', this.store.name);
     const request = this.store.count();
     return wrapRequest<number>(request);
   }
@@ -741,7 +894,7 @@ export class SimpleDbStore<
     indexOrRange?: string | IDBKeyRange,
     range?: IDBKeyRange
   ): PersistencePromise<void> {
-    logDebug(LOG_TAG, 'DELETE ALL', this.store.name);
+    logDebug(this.debugId, 'DELETE ALL', this.store.name);
     const options = this.options(indexOrRange, range);
     options.keysOnly = false;
     const cursor = this.cursor(options);

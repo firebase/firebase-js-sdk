@@ -26,7 +26,8 @@ import {
   SimpleDb,
   SimpleDbSchemaConverter,
   SimpleDbStore,
-  SimpleDbTransaction
+  SimpleDbTransaction,
+  type IdbDatabaseDebugIdPair
 } from '../../../src/local/simple_db';
 import { DocumentKey } from '../../../src/model/document_key';
 import { fail } from '../../../src/util/assert';
@@ -64,11 +65,13 @@ function isIndexedDbMock(): boolean {
 
 class TestSchemaConverter implements SimpleDbSchemaConverter {
   createOrUpgrade(
-    db: IDBDatabase,
+    idbDatabaseDebugIdPair: IdbDatabaseDebugIdPair,
     txn: IDBTransaction,
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
+    const db = idbDatabaseDebugIdPair.idbDatabase;
+
     const userStore = db.createObjectStore('users', { keyPath: 'id' });
     userStore.createIndex('age-name', ['age', 'name'], {
       unique: false

@@ -128,7 +128,11 @@ import {
 import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { MemoryEagerDelegate, MemoryPersistence } from './memory_persistence';
 import { PersistencePromise } from './persistence_promise';
-import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
+import {
+  SimpleDbSchemaConverter,
+  SimpleDbTransaction,
+  type IdbDatabaseDebugIdPair
+} from './simple_db';
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {
@@ -142,7 +146,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
    * and local feature development.
    */
   createOrUpgrade(
-    db: IDBDatabase,
+    idbDatabaseDebugIdPair: IdbDatabaseDebugIdPair,
     txn: IDBTransaction,
     fromVersion: number,
     toVersion: number
@@ -154,7 +158,13 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       `Unexpected schema upgrade from v${fromVersion} to v${toVersion}.`
     );
 
-    const simpleDbTransaction = new SimpleDbTransaction('createOrUpgrade', txn);
+    const { idbDatabase: db, debugId: dbDebugId } = idbDatabaseDebugIdPair;
+
+    const simpleDbTransaction = new SimpleDbTransaction(
+      'createOrUpgrade',
+      txn,
+      { dbDebugId }
+    );
 
     if (fromVersion < 1 && toVersion >= 1) {
       createPrimaryClientStore(db);
