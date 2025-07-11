@@ -212,10 +212,6 @@ export interface GroundingMetadata {
    * @deprecated Use {@link GroundingSupport} instead.
    */
   retrievalQueries?: string[];
-  /**
-   * @deprecated Use {@link GroundingChunk} instead.
-   */
-  groundingAttributions: GroundingAttribution[];
 }
 
 /**
@@ -332,17 +328,6 @@ export interface Segment {
    * The text corresponding to the segment from the response.
    */
   text: string;
-}
-
-/**
- * @deprecated
- * @public
- */
-export interface GroundingAttribution {
-  segment: Segment;
-  confidenceScore?: number;
-  web?: WebAttribution;
-  retrievedContext?: RetrievedContextAttribution;
 }
 
 /**

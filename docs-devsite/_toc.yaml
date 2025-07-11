@@ -80,8 +80,6 @@ toc:
     path: /docs/reference/js/ai.googlesearch.md
   - title: GoogleSearchTool
     path: /docs/reference/js/ai.googlesearchtool.md
-  - title: GroundingAttribution
-    path: /docs/reference/js/ai.groundingattribution.md
   - title: GroundingChunk
     path: /docs/reference/js/ai.groundingchunk.md
   - title: GroundingMetadata
