@@ -23,11 +23,11 @@ import { dbKeyComparator } from '../../../src/local/indexeddb_remote_document_ca
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
   getAndroidVersion,
+  IdbDatabaseDebugIdPair,
   SimpleDb,
   SimpleDbSchemaConverter,
   SimpleDbStore,
-  SimpleDbTransaction,
-  type IdbDatabaseDebugIdPair
+  SimpleDbTransaction
 } from '../../../src/local/simple_db';
 import { DocumentKey } from '../../../src/model/document_key';
 import { fail } from '../../../src/util/assert';

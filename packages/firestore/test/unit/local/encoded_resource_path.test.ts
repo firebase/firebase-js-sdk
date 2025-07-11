@@ -23,11 +23,11 @@ import {
 } from '../../../src/local/encoded_resource_path';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
+  IdbDatabaseDebugIdPair,
   SimpleDb,
   SimpleDbSchemaConverter,
   SimpleDbStore,
-  SimpleDbTransaction,
-  type IdbDatabaseDebugIdPair
+  SimpleDbTransaction
 } from '../../../src/local/simple_db';
 import { ResourcePath } from '../../../src/model/path';
 import { path } from '../../util/helpers';

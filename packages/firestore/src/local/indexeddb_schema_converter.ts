@@ -129,9 +129,9 @@ import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { MemoryEagerDelegate, MemoryPersistence } from './memory_persistence';
 import { PersistencePromise } from './persistence_promise';
 import {
+  IdbDatabaseDebugIdPair,
   SimpleDbSchemaConverter,
-  SimpleDbTransaction,
-  type IdbDatabaseDebugIdPair
+  SimpleDbTransaction
 } from './simple_db';
 
 /** Performs database creation and schema upgrades. */
