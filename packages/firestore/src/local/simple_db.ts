@@ -17,17 +17,12 @@
 
 import { getGlobal, getUA, isIndexedDBAvailable } from '@firebase/util';
 
-import { debugAssert } from '../util/assert';
-import { generateUniqueDebugId } from '../util/debug_uid';
+import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug, logError } from '../util/log';
+import { logDebug, logError, logWarn } from '../util/log';
 import { Deferred } from '../util/promise';
 
-import {
-  ClearSiteDataDatabaseDeletedEvent,
-  DatabaseDeletedListener,
-  VersionChangeDatabaseDeletedEvent
-} from './persistence';
+import { DatabaseDeletedListener } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 
 // References to `indexedDB` are guarded by SimpleDb.isAvailable() and getGlobal()
@@ -166,7 +161,6 @@ export class SimpleDb {
   private db?: IDBDatabase;
   private databaseDeletedListener?: DatabaseDeletedListener;
   private lastClosedDbVersion: number | null = null;
-  private readonly logTag = `${LOG_TAG} [${generateUniqueDebugId()}]`;
 
   /** Deletes the specified database. */
   static delete(name: string): Promise<void> {
@@ -271,7 +265,6 @@ export class SimpleDb {
     private readonly version: number,
     private readonly schemaConverter: SimpleDbSchemaConverter
   ) {
-    logDebug(`${this.logTag} created!`);
     debugAssert(
       SimpleDb.isAvailable(),
       'IndexedDB not supported in current environment.'
@@ -297,8 +290,7 @@ export class SimpleDb {
    */
   async ensureDb(action: string): Promise<IDBDatabase> {
     if (!this.db) {
-      console.trace("zzyzx SimpleDb.ensureDb() is opening a new database connection");
-      logDebug(this.logTag, 'Opening database:', this.name);
+      logDebug(LOG_TAG, 'Opening database:', this.name);
       this.db = await new Promise<IDBDatabase>((resolve, reject) => {
         // TODO(mikelehen): Investigate browser compatibility.
         // https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
@@ -307,37 +299,9 @@ export class SimpleDb {
         // https://developer.mozilla.org/en-US/docs/Web/API/IDBVersionChangeRequest/setVersion
         const request = indexedDB.open(this.name, this.version);
 
-        // Store information about "Clear Site Data" being detected in the
-        // "onupgradeneeded" event listener and handle it in the "onsuccess"
-        // event listener, as opposed to throwing directly from the
-        // "onupgradeneeded" event listener. Do this because throwing from the
-        // "onupgradeneeded" event listener results in a generic error being
-        // reported to the "onerror" event listener that cannot be distinguished
-        // from other errors.
-        const clearSiteDataEvent: ClearSiteDataDatabaseDeletedEvent[] = [];
-
         request.onsuccess = (event: Event) => {
-          let error: unknown;
-          if (clearSiteDataEvent.length > 0) {
-            try {
-              this.databaseDeletedListener?.(clearSiteDataEvent[0]);
-            } catch (e) {
-              logError(
-                `zzyzx this.databaseDeletedListener?.(clearSiteDataEvent[0]) threw`,
-                e
-              );
-              error = e;
-            }
-          }
-
           const db = (event.target as IDBOpenDBRequest).result;
-
-          if (error) {
-            reject(error);
-            db.close();
-          } else {
-            resolve(db);
-          }
+          resolve(db);
         };
 
         request.onblocked = () => {
@@ -380,7 +344,7 @@ export class SimpleDb {
 
         request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
           logDebug(
-            this.logTag,
+            LOG_TAG,
             'Database "' + this.name + '" requires upgrade from version:',
             event.oldVersion
           );
@@ -389,14 +353,19 @@ export class SimpleDb {
             this.lastClosedDbVersion !== null &&
             this.lastClosedDbVersion !== event.oldVersion
           ) {
-            clearSiteDataEvent.push(
-              new ClearSiteDataDatabaseDeletedEvent({
-                eventId: generateUniqueDebugId(),
-                lastClosedVersion: this.lastClosedDbVersion,
-                eventOldVersion: event.oldVersion,
-                eventNewVersion: event.newVersion,
-                dbVersion: db.version
-              })
+            // This thrown error will get passed to the `onerror` callback
+            // registered above, and will then be propagated correctly.
+            fail(
+              0x3456,
+              `refusing to open IndexedDB database due to potential ` +
+                `corruption of the IndexedDB database data; this corruption ` +
+                `could be caused by clicking the "clear site data" button in ` +
+                `a web browser; try reloading the web page to re-initialize ` +
+                `the IndexedDB database: ` +
+                `lastClosedDbVersion=${this.lastClosedDbVersion}, ` +
+                `event.oldVersion=${event.oldVersion}, ` +
+                `event.newVersion=${event.newVersion}, ` +
+                `db.version=${db.version}`
             );
           }
           this.schemaConverter
@@ -408,7 +377,7 @@ export class SimpleDb {
             )
             .next(() => {
               logDebug(
-                this.logTag,
+                LOG_TAG,
                 'Database upgrade to version ' + this.version + ' complete'
               );
             });
@@ -418,7 +387,6 @@ export class SimpleDb {
       this.db.addEventListener(
         'close',
         event => {
-          logDebug(`${this.logTag} close callback`, event);
           const db = event.target as IDBDatabase;
           this.lastClosedDbVersion = db.version;
         },
@@ -432,12 +400,11 @@ export class SimpleDb {
         // Notify the listener if another tab attempted to delete the IndexedDb
         // database, such as by calling clearIndexedDbPersistence().
         if (event.newVersion === null) {
-          this.databaseDeletedListener?.(
-            new VersionChangeDatabaseDeletedEvent({
-              eventId: generateUniqueDebugId(),
-              eventNewVersion: event.newVersion
-            })
+          logWarn(
+            `Received "versionchange" event with newVersion===null; ` +
+              'notifying the registered DatabaseDeletedListener, if any'
           );
+          this.databaseDeletedListener?.();
         }
       },
       { passive: true }
@@ -464,7 +431,6 @@ export class SimpleDb {
     objectStores: string[],
     transactionFn: (transaction: SimpleDbTransaction) => PersistencePromise<T>
   ): Promise<T> {
-    logDebug(`${this.logTag} runTransaction action=${action}`);
     const readonly = mode === 'readonly';
     let attemptNumber = 0;
 
@@ -517,7 +483,7 @@ export class SimpleDb {
           error.name !== 'FirebaseError' &&
           attemptNumber < TRANSACTION_RETRY_COUNT;
         logDebug(
-          this.logTag,
+          LOG_TAG,
           'Transaction failed with error:',
           error.message,
           'Retrying:',
@@ -534,7 +500,6 @@ export class SimpleDb {
   }
 
   close(): void {
-    logDebug(`${this.logTag} close() called!`);
     if (this.db) {
       this.db.close();
     }
