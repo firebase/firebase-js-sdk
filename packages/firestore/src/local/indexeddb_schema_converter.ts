@@ -24,7 +24,6 @@ import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 import { debugAssert, fail, hardAssert } from '../util/assert';
-import { logDebug } from '../util/log';
 import { BATCHID_UNKNOWN } from '../util/types';
 
 import {
