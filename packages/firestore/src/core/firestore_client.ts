@@ -56,6 +56,7 @@ import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { BundleReader, BundleReaderSync } from '../util/bundle_reader';
 import { newBundleReader } from '../util/bundle_reader_impl';
 import { newBundleReaderSync } from '../util/bundle_reader_sync_impl';
+import { generateUniqueDebugId } from '../util/debug_uid';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logWarn } from '../util/log';
 import { AutoId } from '../util/misc';
@@ -98,7 +99,6 @@ import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
 
-const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
 
 /** DOMException error code constants. */
@@ -112,6 +112,8 @@ const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
  * async queue that is shared by all of the other components in the system. //
  */
 export class FirestoreClient {
+  readonly debugId = `FirestoreClient@${generateUniqueDebugId()}`;
+
   private user = User.UNAUTHENTICATED;
   private readonly clientId = AutoId.newId();
   private authCredentialListener: CredentialChangeListener<User> = () =>
@@ -148,12 +150,12 @@ export class FirestoreClient {
   ) {
     this._uninitializedComponentsProvider = componentProvider;
     this.authCredentials.start(asyncQueue, async user => {
-      logDebug(LOG_TAG, 'Received user=', user.uid);
+      logDebug(this.debugId, 'Received user=', user.uid);
       await this.authCredentialListener(user);
       this.user = user;
     });
     this.appCheckCredentials.start(asyncQueue, newAppCheckToken => {
-      logDebug(LOG_TAG, 'Received new app check token=', newAppCheckToken);
+      logDebug(this.debugId, 'Received new app check token=', newAppCheckToken);
       return this.appCheckCredentialListener(newAppCheckToken, this.user);
     });
   }
@@ -216,7 +218,7 @@ export async function setOfflineComponentProvider(
 ): Promise<void> {
   client.asyncQueue.verifyOperationInProgress();
 
-  logDebug(LOG_TAG, 'Initializing OfflineComponentProvider');
+  logDebug(client.debugId, 'Initializing OfflineComponentProvider');
   const configuration = client.configuration;
   await offlineComponentProvider.initialize(configuration);
 
@@ -260,7 +262,7 @@ export async function setOnlineComponentProvider(
 
   const offlineComponents = await ensureOfflineComponents(client);
 
-  logDebug(LOG_TAG, 'Initializing OnlineComponentProvider');
+  logDebug(client.debugId, 'Initializing OnlineComponentProvider');
   await onlineComponentProvider.initialize(
     offlineComponents,
     client.configuration
@@ -319,7 +321,7 @@ async function ensureOfflineComponents(
 ): Promise<OfflineComponentProvider> {
   if (!client._offlineComponents) {
     if (client._uninitializedComponentsProvider) {
-      logDebug(LOG_TAG, 'Using user provided OfflineComponentProvider');
+      logDebug(client.debugId, 'Using user provided OfflineComponentProvider');
       try {
         await setOfflineComponentProvider(
           client,
@@ -341,12 +343,17 @@ async function ensureOfflineComponents(
         );
       }
     } else {
-      logDebug(LOG_TAG, 'Using default OfflineComponentProvider');
+      logDebug(client.debugId, 'Using default OfflineComponentProvider');
       await setOfflineComponentProvider(
         client,
         new LruGcMemoryOfflineComponentProvider(undefined)
       );
     }
+    logDebug(
+      `${client.debugId} using OfflineComponentProvider: ${
+        client._offlineComponents!.debugId
+      }`
+    );
   }
 
   return client._offlineComponents!;
@@ -357,13 +364,13 @@ export async function ensureOnlineComponents(
 ): Promise<OnlineComponentProvider> {
   if (!client._onlineComponents) {
     if (client._uninitializedComponentsProvider) {
-      logDebug(LOG_TAG, 'Using user provided OnlineComponentProvider');
+      logDebug(client.debugId, 'Using user provided OnlineComponentProvider');
       await setOnlineComponentProvider(
         client,
         client._uninitializedComponentsProvider._online
       );
     } else {
-      logDebug(LOG_TAG, 'Using default OnlineComponentProvider');
+      logDebug(client.debugId, 'Using default OnlineComponentProvider');
       await setOnlineComponentProvider(client, new OnlineComponentProvider());
     }
   }

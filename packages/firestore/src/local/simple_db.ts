@@ -52,7 +52,7 @@ export interface SimpleDbSchemaConverter {
  * specific object store.
  */
 export class SimpleDbTransaction {
-  readonly debugId: string;
+  readonly debugId = `SimpleDbTransaction@${generateUniqueDebugId()}`;
   private aborted = false;
 
   /**
@@ -67,11 +67,12 @@ export class SimpleDbTransaction {
     objectStoreNames: string[]
   ): SimpleDbTransaction {
     try {
-      return new SimpleDbTransaction(
+      const transaction = new SimpleDbTransaction(
         action,
-        db.idbDatabase.transaction(objectStoreNames, mode),
-        { dbDebugId: db.debugId }
+        db.idbDatabase.transaction(objectStoreNames, mode)
       );
+      logDebug(`${transaction.debugId} created from ${db.debugId}`);
+      return transaction;
     } catch (e) {
       throw new IndexedDbTransactionError(action, e as Error);
     }
@@ -79,11 +80,8 @@ export class SimpleDbTransaction {
 
   constructor(
     private readonly action: string,
-    private readonly transaction: IDBTransaction,
-    args: { dbDebugId: string }
+    private readonly transaction: IDBTransaction
   ) {
-    this.debugId = `SimpleDbTransaction@${generateUniqueDebugId()}`;
-    logDebug(this.debugId, `created with dbDebugId=${args.dbDebugId}`);
     this.transaction.oncomplete = () => {
       this.completionDeferred.resolve();
     };
@@ -150,7 +148,9 @@ export class SimpleDbTransaction {
   ): SimpleDbStore<KeyType, ValueType> {
     const store = this.transaction.objectStore(storeName);
     debugAssert(!!store, 'Object store not part of transaction: ' + storeName);
-    return new SimpleDbStore<KeyType, ValueType>(store, this.debugId);
+    const simpleDbStore = new SimpleDbStore<KeyType, ValueType>(store);
+    logDebug(`${simpleDbStore.debugId} created from ${this.debugId}`);
+    return simpleDbStore;
   }
 }
 
@@ -336,7 +336,6 @@ export class SimpleDb {
     private readonly version: number,
     private readonly schemaConverter: SimpleDbSchemaConverter
   ) {
-    logDebug(this.debugId, 'new instance created');
     debugAssert(
       SimpleDb.isAvailable(),
       'IndexedDB not supported in current environment.'
@@ -404,7 +403,8 @@ export class SimpleDb {
     const dbDebugId = `${this.debugId} IDBDatabase@${generateUniqueDebugId()}`;
     logDebug(
       dbDebugId,
-      `Opening database: name="${this.name}" version=${this.version}`
+      `Opening database:`,
+      `name="${this.name}" version=${this.version} action="${action}"`
     );
 
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
@@ -740,12 +740,9 @@ export class SimpleDbStore<
   KeyType extends IDBValidKey,
   ValueType extends unknown
 > {
-  readonly debugId: string;
+  readonly debugId = `SimpleDbStore@${generateUniqueDebugId()}`;
 
-  constructor(private store: IDBObjectStore, dbDebugId: string) {
-    this.debugId = `SimpleDbStore@${generateUniqueDebugId()}`;
-    logDebug(this.debugId, `created with dbDebugId=${dbDebugId}`);
-  }
+  constructor(private store: IDBObjectStore) {}
 
   /**
    * Writes a value into the Object Store.

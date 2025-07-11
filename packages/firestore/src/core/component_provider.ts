@@ -56,7 +56,9 @@ import {
 import { JsonProtoSerializer } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
+import { generateUniqueDebugId } from '../util/debug_uid';
 import { Code, FirestoreError } from '../util/error';
+import { logDebug } from '../util/log';
 
 import { DatabaseInfo } from './database_info';
 import { EventManager, newEventManager } from './event_manager';
@@ -96,6 +98,7 @@ export interface OfflineComponentProviderFactory {
  * cache. Implementations override `initialize()` to provide all components.
  */
 export interface OfflineComponentProvider {
+  readonly debugId: string;
   readonly kind: Kind;
   persistence: Persistence;
   sharedClientState: SharedClientState;
@@ -116,7 +119,12 @@ export interface OfflineComponentProvider {
 export class MemoryOfflineComponentProvider
   implements OfflineComponentProvider
 {
+  readonly debugId: string;
   kind: Kind = 'memory';
+
+  constructor() {
+    this.debugId = `MemoryOfflineComponentProvider@${generateUniqueDebugId()}`;
+  }
 
   static readonly provider: OfflineComponentProviderFactory = {
     build: () => new MemoryOfflineComponentProvider()
@@ -171,7 +179,12 @@ export class MemoryOfflineComponentProvider
   }
 
   createPersistence(cfg: ComponentConfiguration): Persistence {
-    return new MemoryPersistence(MemoryEagerDelegate.factory, this.serializer);
+    const persistence = new MemoryPersistence(
+      MemoryEagerDelegate.factory,
+      this.serializer
+    );
+    logDebug(`${persistence.debugId} created from ${this.debugId}`);
+    return persistence;
   }
 
   createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
@@ -222,6 +235,7 @@ export class LruGcMemoryOfflineComponentProvider extends MemoryOfflineComponentP
  * Provides all components needed for Firestore with IndexedDB persistence.
  */
 export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentProvider {
+  readonly debugId: string;
   kind: Kind = 'persistent';
   persistence!: IndexedDbPersistence;
   sharedClientState!: SharedClientState;
@@ -236,6 +250,7 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
     protected readonly forceOwnership: boolean | undefined
   ) {
     super();
+    this.debugId = `IndexedDbOfflineComponentProvider@${generateUniqueDebugId()}`;
   }
 
   async initialize(cfg: ComponentConfiguration): Promise<void> {
@@ -301,7 +316,7 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
         ? LruParams.withCacheSize(this.cacheSizeBytes)
         : LruParams.DEFAULT;
 
-    return new IndexedDbPersistence(
+    const persistence = new IndexedDbPersistence(
       this.synchronizeTabs,
       persistenceKey,
       cfg.clientId,
@@ -313,6 +328,10 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
       this.sharedClientState,
       !!this.forceOwnership
     );
+
+    logDebug(`${persistence.debugId} created from ${this.debugId}`);
+
+    return persistence;
   }
 
   createSharedClientState(cfg: ComponentConfiguration): SharedClientState {

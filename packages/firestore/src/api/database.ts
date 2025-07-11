@@ -61,9 +61,10 @@ import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../local/lru_garbage_collector_imp
 import { debugAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { AsyncQueueImpl } from '../util/async_queue_impl';
+import { generateUniqueDebugId } from '../util/debug_uid';
 import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
-import { logWarn } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { Deferred } from '../util/promise';
 
 import { LoadBundleTask } from './bundle';
@@ -94,6 +95,7 @@ export const CACHE_SIZE_UNLIMITED = LRU_COLLECTION_DISABLED;
  * Do not call this constructor directly. Instead, use {@link (getFirestore:1)}.
  */
 export class Firestore extends LiteFirestore {
+  readonly _debugId = `Firestore@${generateUniqueDebugId()}`;
   /**
    * Whether it's a {@link Firestore} or Firestore Lite instance.
    */
@@ -204,10 +206,20 @@ export function initializeFirestore(
     void pingServer(settings.host);
   }
 
-  return provider.initialize({
+  const db = provider.initialize({
     options: settings,
     instanceIdentifier: databaseId
   });
+
+  logDebug(
+    `initializeFirestore(` +
+      `app.name=${app.name ?? 'undefined'}, databaseId=${
+        databaseId ?? 'undefined'
+      }` +
+      `) returns ${db._debugId}`
+  );
+
+  return db;
 }
 
 /**
@@ -269,6 +281,15 @@ export function getFirestore(
       connectFirestoreEmulator(db, ...emulator);
     }
   }
+
+  logDebug(
+    `getFirestore(` +
+      `app.name=${app.name ?? 'undefined'}, databaseId=${
+        databaseId ?? 'undefined'
+      }` +
+      `) returns ${db._debugId}`
+  );
+
   return db;
 }
 
@@ -323,6 +344,7 @@ export function configureFirestore(firestore: Firestore): void {
     firestore._componentsProvider &&
       buildComponentProvider(firestore._componentsProvider)
   );
+  logDebug(`${firestore._firestoreClient} created by ${firestore._debugId}`);
 }
 
 function buildComponentProvider(componentsProvider: {
@@ -500,6 +522,8 @@ export function clearIndexedDbPersistence(firestore: Firestore): Promise<void> {
     );
   }
 
+  logDebug(firestore._debugId, 'clearIndexedDbPersistence()');
+
   const deferred = new Deferred<void>();
   firestore._queue.enqueueAndForgetEvenWhileRestricted(async () => {
     try {
@@ -531,6 +555,7 @@ export function clearIndexedDbPersistence(firestore: Firestore): Promise<void> {
  * acknowledged by the backend.
  */
 export function waitForPendingWrites(firestore: Firestore): Promise<void> {
+  logDebug(firestore._debugId, 'waitForPendingWrites()');
   firestore = cast(firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   return firestoreClientWaitForPendingWrites(client);
@@ -543,6 +568,7 @@ export function waitForPendingWrites(firestore: Firestore): Promise<void> {
  * @returns A `Promise` that is resolved once the network has been enabled.
  */
 export function enableNetwork(firestore: Firestore): Promise<void> {
+  logDebug(firestore._debugId, 'enableNetwork()');
   firestore = cast(firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   return firestoreClientEnableNetwork(client);
@@ -557,6 +583,7 @@ export function enableNetwork(firestore: Firestore): Promise<void> {
  * @returns A `Promise` that is resolved once the network has been disabled.
  */
 export function disableNetwork(firestore: Firestore): Promise<void> {
+  logDebug(firestore._debugId, 'disableNetwork()');
   firestore = cast(firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   return firestoreClientDisableNetwork(client);
@@ -585,6 +612,7 @@ export function disableNetwork(firestore: Firestore): Promise<void> {
  * terminated.
  */
 export function terminate(firestore: Firestore): Promise<void> {
+  logDebug(firestore._debugId, 'terminate()');
   _removeServiceInstance(
     firestore.app,
     'firestore',
@@ -608,6 +636,7 @@ export function loadBundle(
   firestore: Firestore,
   bundleData: ReadableStream<Uint8Array> | ArrayBuffer | string
 ): LoadBundleTask {
+  logDebug(firestore._debugId, 'loadBundle()');
   firestore = cast(firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   const resultTask = new LoadBundleTask();
@@ -636,6 +665,7 @@ export function namedQuery(
   firestore: Firestore,
   name: string
 ): Promise<Query | null> {
+  logDebug(firestore._debugId, 'namedQuery() name:', name);
   firestore = cast(firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   return firestoreClientGetNamedQuery(client, name).then(namedQuery => {
