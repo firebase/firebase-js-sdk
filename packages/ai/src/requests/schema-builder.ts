@@ -21,8 +21,7 @@ import {
   SchemaInterface,
   SchemaType,
   SchemaParams,
-  SchemaRequest,
-  ObjectSchemaInterface
+  SchemaRequest
 } from '../types/schema';
 
 /**
@@ -35,7 +34,7 @@ import {
 export abstract class Schema implements SchemaInterface {
   /**
    * Optional. The type of the property. {@link
-   * SchemaType}.
+   * (SchemaType:type)}.
    */
   type: SchemaType;
   /** Optional. The format of the property.
@@ -51,9 +50,9 @@ export abstract class Schema implements SchemaInterface {
   description?: string;
   /** Optional. The items of the property. */
   items?: SchemaInterface;
-  /** The minimum number of items (elements) in a schema of type {@link SchemaType.ARRAY}. */
+  /** The minimum number of items (elements) in a schema of {@link (SchemaType:type)} `array`. */
   minItems?: number;
-  /** The maximum number of items (elements) in a schema of type {@link SchemaType.ARRAY}. */
+  /** The maximum number of items (elements) in a schema of {@link (SchemaType:type)} `array`. */
   maxItems?: number;
   /** Optional. Whether the property is nullable. Defaults to false. */
   nullable: boolean;
@@ -292,7 +291,7 @@ export class ObjectSchema extends Schema {
     if (required.length > 0) {
       obj.required = required;
     }
-    delete (obj as ObjectSchemaInterface).optionalProperties;
+    delete obj.optionalProperties;
     return obj as SchemaRequest;
   }
 }
