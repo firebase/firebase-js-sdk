@@ -1,5 +1,15 @@
 # @firebase/app
 
+## 0.13.2
+
+### Patch Changes
+
+- [`bb57947`](https://github.com/firebase/firebase-js-sdk/commit/bb57947c942e44b39e5b0254324bee6bf665fd4e) [#9112](https://github.com/firebase/firebase-js-sdk/pull/9112) (fixes [#8988](https://github.com/firebase/firebase-js-sdk/issues/8988)) - Add "react-native" entry point to @firebase/app
+
+- Updated dependencies [[`42ac401`](https://github.com/firebase/firebase-js-sdk/commit/42ac4011787db6bb7a08f8c84f364ea86ea51e83)]:
+  - @firebase/util@1.12.1
+  - @firebase/component@0.6.18
+
 ## 0.13.1
 
 ### Patch Changes
