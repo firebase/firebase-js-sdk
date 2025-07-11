@@ -476,31 +476,46 @@ export class SimpleDb {
             );
           });
       };
-
-      db.addEventListener(
-        'versionchange',
-        event => {
-          logDebug(
-            dbDebugId,
-            `IDBOpenDBRequest.versionchange oldVersion=${event.oldVersion} newVersion=${event.newVersion}`
-          );
-
-          // Notify the listener if another tab attempted to delete the IndexedDb
-          // database, such as by calling clearIndexedDbPersistence().
-          if (event.newVersion === null) {
-            logWarn(
-              dbDebugId,
-              `Received "versionchange" event with newVersion===null; ` +
-                'notifying the registered DatabaseDeletedListener, if any'
-            );
-            if ('databaseDeletedListener' in this.state) {
-              this.state.databaseDeletedListener?.();
-            }
-          }
-        },
-        { passive: true }
-      );
     });
+
+    db.addEventListener(
+      'versionchange',
+      event => {
+        logDebug(
+          dbDebugId,
+          `IDBDatabase "versionchange" event: ` +
+            `oldVersion=${event.oldVersion} newVersion=${event.newVersion}`
+        );
+
+        // Notify the listener if another tab attempted to delete the IndexedDb
+        // database, such as by calling clearIndexedDbPersistence().
+        if (event.newVersion === null) {
+          logWarn(
+            dbDebugId,
+            `Received "versionchange" event with newVersion===null; ` +
+              'notifying the registered DatabaseDeletedListener, if any'
+          );
+          if ('databaseDeletedListener' in this.state) {
+            this.state.databaseDeletedListener?.();
+          }
+        }
+      },
+      { passive: true }
+    );
+
+    db.addEventListener(
+      'close',
+      () => {
+        logWarn(
+          dbDebugId,
+          `IDBDatabase "close" event received, ` +
+            `indicating that the IDBDatabase was abnormally closed. ` +
+            `One possible cause is clicking the "Clear Site Data" button ` +
+            `in a web browser.`
+        );
+      },
+      { passive: true }
+    );
 
     return { idbDatabase: db, debugId: dbDebugId };
   }
