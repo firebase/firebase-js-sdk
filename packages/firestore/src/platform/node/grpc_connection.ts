@@ -37,7 +37,6 @@ import { Deferred } from '../../util/promise';
 // when there's a cleaner way to dynamic require JSON in both Node ESM and CJS
 const grpcVersion = '__GRPC_VERSION__';
 
-const LOG_TAG = 'GrpcConnection';
 const X_GOOG_API_CLIENT_VALUE = `gl-node/${process.versions.node} fire/${SDK_VERSION} grpc/${grpcVersion}`;
 
 function createMetadata(
@@ -81,6 +80,8 @@ type GeneratedGrpcStub = any;
  * A Connection implemented by GRPC-Node.
  */
 export class GrpcConnection implements Connection {
+  readonly debugId = `GrpcConnection@${generateUniqueDebugId()}`;
+
   private readonly databasePath: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private readonly firestore: any;
@@ -102,7 +103,7 @@ export class GrpcConnection implements Connection {
 
   private ensureActiveStub(): GeneratedGrpcStub {
     if (!this.cachedStub) {
-      logDebug(LOG_TAG, 'Creating Firestore stub.');
+      logDebug(this.debugId, 'Creating Firestore stub.');
       const credentials = this.databaseInfo.ssl
         ? grpc.credentials.createSsl()
         : grpc.credentials.createInsecure();
@@ -133,7 +134,7 @@ export class GrpcConnection implements Connection {
 
     return nodePromise((callback: NodeCallback<Resp>) => {
       logDebug(
-        LOG_TAG,
+        this.debugId,
         `RPC '${rpcName}' ${streamId} invoked with request:`,
         request
       );
@@ -143,7 +144,7 @@ export class GrpcConnection implements Connection {
         (grpcError?: grpc.ServiceError, value?: Resp) => {
           if (grpcError) {
             logDebug(
-              LOG_TAG,
+              this.debugId,
               `RPC '${rpcName}' ${streamId} failed with error:`,
               grpcError
             );
@@ -155,7 +156,7 @@ export class GrpcConnection implements Connection {
             );
           } else {
             logDebug(
-              LOG_TAG,
+              this.debugId,
               `RPC '${rpcName}' ${streamId} completed with response:`,
               value
             );
@@ -178,7 +179,7 @@ export class GrpcConnection implements Connection {
     const results: Resp[] = [];
     const responseDeferred = new Deferred<Resp[]>();
     logDebug(
-      LOG_TAG,
+      this.debugId,
       `RPC '${rpcName}' ${streamId} invoked (streaming) with request:`,
       request
     );
@@ -194,7 +195,7 @@ export class GrpcConnection implements Connection {
     let callbackFired = false;
     stream.on('data', (response: Resp) => {
       logDebug(
-        LOG_TAG,
+        this.debugId,
         `RPC ${rpcName} ${streamId} received result:`,
         response
       );
@@ -208,7 +209,7 @@ export class GrpcConnection implements Connection {
       }
     });
     stream.on('end', () => {
-      logDebug(LOG_TAG, `RPC '${rpcName}' ${streamId} completed.`);
+      logDebug(this.debugId, `RPC '${rpcName}' ${streamId} completed.`);
       if (!callbackFired) {
         callbackFired = true;
         responseDeferred.resolve(results);
@@ -216,7 +217,7 @@ export class GrpcConnection implements Connection {
     });
     stream.on('error', (grpcError: grpc.ServiceError) => {
       logDebug(
-        LOG_TAG,
+        this.debugId,
         `RPC '${rpcName}' ${streamId} failed with error:`,
         grpcError
       );
@@ -256,7 +257,7 @@ export class GrpcConnection implements Connection {
       sendFn: (msg: Req) => {
         if (!closed) {
           logDebug(
-            LOG_TAG,
+            this.debugId,
             `RPC '${rpcName}' stream ${streamId} sending:`,
             msg
           );
@@ -271,7 +272,7 @@ export class GrpcConnection implements Connection {
           }
         } else {
           logDebug(
-            LOG_TAG,
+            this.debugId,
             `RPC '${rpcName}' stream ${streamId} ` +
               'not sending because gRPC stream is closed:',
             msg
@@ -280,7 +281,7 @@ export class GrpcConnection implements Connection {
       },
       closeFn: () => {
         logDebug(
-          LOG_TAG,
+          this.debugId,
           `RPC '${rpcName}' stream ${streamId} closed locally via close().`
         );
         close();
@@ -290,7 +291,11 @@ export class GrpcConnection implements Connection {
     let onConnectedSent = false;
     grpcStream.on('data', (msg: Resp) => {
       if (!closed) {
-        logDebug(LOG_TAG, `RPC '${rpcName}' stream ${streamId} received:`, msg);
+        logDebug(
+          this.debugId,
+          `RPC '${rpcName}' stream ${streamId} received:`,
+          msg
+        );
         // Emulate the "onConnected" event that WebChannelConnection sends.
         if (!onConnectedSent) {
           stream.callOnConnected();
@@ -301,14 +306,14 @@ export class GrpcConnection implements Connection {
     });
 
     grpcStream.on('end', () => {
-      logDebug(LOG_TAG, `RPC '${rpcName}' stream ${streamId} ended.`);
+      logDebug(this.debugId, `RPC '${rpcName}' stream ${streamId} ended.`);
       close();
     });
 
     grpcStream.on('error', (grpcError: grpc.ServiceError) => {
       if (!closed) {
         logWarn(
-          LOG_TAG,
+          this.debugId,
           `RPC '${rpcName}' stream ${streamId} error. Code:`,
           grpcError.code,
           'Message:',
@@ -320,7 +325,7 @@ export class GrpcConnection implements Connection {
     });
 
     logDebug(
-      LOG_TAG,
+      this.debugId,
       `Opening RPC '${rpcName}' stream ${streamId} ` +
         `to ${this.databaseInfo.host}`
     );

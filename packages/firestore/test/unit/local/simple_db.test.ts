@@ -23,6 +23,7 @@ import { dbKeyComparator } from '../../../src/local/indexeddb_remote_document_ca
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
   getAndroidVersion,
+  IdbDatabaseDebugIdPair,
   SimpleDb,
   SimpleDbSchemaConverter,
   SimpleDbStore,
@@ -64,11 +65,13 @@ function isIndexedDbMock(): boolean {
 
 class TestSchemaConverter implements SimpleDbSchemaConverter {
   createOrUpgrade(
-    db: IDBDatabase,
+    idbDatabaseDebugIdPair: IdbDatabaseDebugIdPair,
     txn: IDBTransaction,
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
+    const db = idbDatabaseDebugIdPair.idbDatabase;
+
     const userStore = db.createObjectStore('users', { keyPath: 'id' });
     userStore.createIndex('age-name', ['age', 'name'], {
       unique: false

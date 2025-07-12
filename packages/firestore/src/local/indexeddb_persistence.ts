@@ -23,6 +23,7 @@ import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { debugAssert } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
+import { generateUniqueDebugId } from '../util/debug_uid';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
 import { DocumentLike, WindowLike } from '../util/types';
@@ -75,8 +76,6 @@ import {
   SimpleDb,
   SimpleDbStore
 } from './simple_db';
-
-const LOG_TAG = 'IndexedDbPersistence';
 
 /**
  * Oldest acceptable age in milliseconds for client metadata before the client
@@ -167,6 +166,8 @@ export const MAIN_DATABASE = 'main';
  * longer optional.
  */
 export class IndexedDbPersistence implements Persistence {
+  readonly debugId = `IndexedDbPersistence@${generateUniqueDebugId()}`;
+
   private simpleDb: SimpleDb;
 
   private listenSequence: ListenSequence | null = null;
@@ -239,6 +240,7 @@ export class IndexedDbPersistence implements Persistence {
       this.schemaVersion,
       new SchemaConverter(this.serializer)
     );
+    logDebug(`${this.simpleDb.debugId} created from ${this.debugId}`);
     this.globalsCache = new IndexedDbGlobalsCache();
     this.targetCache = new IndexedDbTargetCache(
       this.referenceDelegate,
@@ -252,7 +254,7 @@ export class IndexedDbPersistence implements Persistence {
       this.webStorage = null;
       if (forceOwningTab === false) {
         logError(
-          LOG_TAG,
+          this.debugId,
           'LocalStorage is unavailable. As a result, persistence may not work ' +
             'reliably. In particular enablePersistence() could fail immediately ' +
             'after refreshing the page.'
@@ -267,6 +269,7 @@ export class IndexedDbPersistence implements Persistence {
    * @returns Whether persistence was enabled.
    */
   start(): Promise<void> {
+    logDebug(this.debugId, 'start()');
     debugAssert(!this.started, 'IndexedDbPersistence double-started!');
     debugAssert(this.window !== null, "Expected 'window' to be defined");
 
@@ -356,6 +359,7 @@ export class IndexedDbPersistence implements Persistence {
    * PORTING NOTE: This is only used for Web multi-tab.
    */
   setNetworkEnabled(networkEnabled: boolean): void {
+    logDebug(this.debugId, `setNetworkEnabled(${networkEnabled})`);
     if (this.networkEnabled !== networkEnabled) {
       this.networkEnabled = networkEnabled;
       // Schedule a primary lease refresh for immediate execution. The eventual
@@ -413,7 +417,7 @@ export class IndexedDbPersistence implements Persistence {
     )
       .catch(e => {
         if (isIndexedDbTransactionError(e)) {
-          logDebug(LOG_TAG, 'Failed to extend owner lease: ', e);
+          logDebug(this.debugId, 'Failed to extend owner lease: ', e);
           // Proceed with the existing state. Any subsequent access to
           // IndexedDB will verify the lease.
           return this.isPrimary;
@@ -424,7 +428,7 @@ export class IndexedDbPersistence implements Persistence {
         }
 
         logDebug(
-          LOG_TAG,
+          this.debugId,
           'Releasing owner lease after error during lease refresh',
           e
         );
@@ -637,7 +641,7 @@ export class IndexedDbPersistence implements Persistence {
       .next(canActAsPrimary => {
         if (this.isPrimary !== canActAsPrimary) {
           logDebug(
-            LOG_TAG,
+            this.debugId,
             `Client ${
               canActAsPrimary ? 'is' : 'is not'
             } eligible for a primary lease.`
@@ -648,6 +652,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   async shutdown(): Promise<void> {
+    logDebug(this.debugId, 'shutdown()');
     // The shutdown() operations are idempotent and can be called even when
     // start() aborted (e.g. because it couldn't acquire the persistence lease).
     this._started = false;
@@ -795,7 +800,7 @@ export class IndexedDbPersistence implements Persistence {
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    logDebug(LOG_TAG, 'Starting transaction:', action);
+    logDebug(this.debugId, 'Starting transaction:', action);
 
     const simpleDbMode = mode === 'readonly' ? 'readonly' : 'readwrite';
     const objectStores = getObjectStores(this.schemaVersion);
@@ -919,7 +924,7 @@ export class IndexedDbPersistence implements Persistence {
     const store = primaryClientStore(txn);
     return store.get(DbPrimaryClientKey).next(primaryClient => {
       if (this.isLocalClient(primaryClient)) {
-        logDebug(LOG_TAG, 'Releasing primary lease.');
+        logDebug(this.debugId, 'Releasing primary lease.');
         return store.delete(DbPrimaryClientKey);
       } else {
         return PersistencePromise.resolve();
@@ -1044,7 +1049,7 @@ export class IndexedDbPersistence implements Persistence {
           this.zombiedClientLocalStorageKey(clientId)
         ) !== null;
       logDebug(
-        LOG_TAG,
+        this.debugId,
         `Client '${clientId}' ${
           isZombied ? 'is' : 'is not'
         } zombied in LocalStorage`
@@ -1052,7 +1057,7 @@ export class IndexedDbPersistence implements Persistence {
       return isZombied;
     } catch (e) {
       // Gracefully handle if LocalStorage isn't working.
-      logError(LOG_TAG, 'Failed to get zombied client id.', e);
+      logError(this.debugId, 'Failed to get zombied client id.', e);
       return false;
     }
   }

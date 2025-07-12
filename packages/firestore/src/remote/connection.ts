@@ -34,6 +34,8 @@ import { FirestoreError } from '../util/error';
  * creating the equivalent protocol buffers for GRPC.
  */
 export interface Connection {
+  readonly debugId: string;
+
   /**
    * Invokes an RPC by name, given a request message as a JavaScript object
    * representing the JSON to send.

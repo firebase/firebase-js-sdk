@@ -132,6 +132,7 @@ import {
 } from '../../../src/util/async_queue_impl';
 import { newBundleReader } from '../../../src/util/bundle_reader_impl';
 import { ByteString } from '../../../src/util/byte_string';
+import { generateUniqueDebugId } from '../../../src/util/debug_uid';
 import { FirestoreError } from '../../../src/util/error';
 import { logWarn } from '../../../src/util/log';
 import { primitiveComparator } from '../../../src/util/misc';
@@ -223,6 +224,8 @@ export function parseQuery(querySpec: string | SpecQuery): Query {
 }
 
 abstract class TestRunner {
+  readonly debugId = `TestRunner@${generateUniqueDebugId()}`;
+
   protected queue: AsyncQueueImpl;
 
   // Initialized asynchronously via start().
@@ -310,6 +313,7 @@ abstract class TestRunner {
 
   async start(): Promise<void> {
     const configuration = {
+      debugId: this.debugId,
       asyncQueue: this.queue,
       databaseInfo: this.databaseInfo,
       authCredentials: new EmptyAuthCredentialsProvider(),

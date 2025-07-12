@@ -33,6 +33,7 @@ import {
   invokeBatchGetDocumentsRpc
 } from '../../../src/remote/datastore';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import { generateUniqueDebugId } from '../../../src/util/debug_uid';
 import { Code, FirestoreError } from '../../../src/util/error';
 
 use(chaiAsPromised);
@@ -42,6 +43,8 @@ use(chaiAsPromised);
 // `invokeRPC()` and `invokeStreamingRPC()`.
 describe('Datastore', () => {
   class MockConnection implements Connection {
+    readonly debugId = `DatastoreMockConnection@${generateUniqueDebugId}`;
+
     terminateInvoked = false;
 
     terminate(): void {

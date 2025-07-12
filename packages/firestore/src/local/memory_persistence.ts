@@ -24,6 +24,7 @@ import { DocumentKey } from '../model/document_key';
 import { estimateByteSize } from '../model/values';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { fail } from '../util/assert';
+import { generateUniqueDebugId } from '../util/debug_uid';
 import { logDebug } from '../util/log';
 import { ObjectMap } from '../util/obj_map';
 
@@ -59,12 +60,12 @@ import {
 import { ReferenceSet } from './reference_set';
 import { TargetData } from './target_data';
 
-const LOG_TAG = 'MemoryPersistence';
 /**
  * A memory-backed instance of Persistence. Data is stored only in RAM and
  * not persisted across sessions.
  */
 export class MemoryPersistence implements Persistence {
+  readonly debugId = `MemoryPersistence@${generateUniqueDebugId()}`;
   /**
    * Note that these are retained here to make it easier to write tests
    * affecting both the in-memory and IndexedDB-backed persistence layers. Tests
@@ -177,7 +178,7 @@ export class MemoryPersistence implements Persistence {
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    logDebug(LOG_TAG, 'Starting transaction:', action);
+    logDebug(this.debugId, 'Starting transaction:', action);
     const txn = new MemoryTransaction(this.listenSequence.next());
     this.referenceDelegate.onTransactionStarted();
     return transactionOperation(txn)

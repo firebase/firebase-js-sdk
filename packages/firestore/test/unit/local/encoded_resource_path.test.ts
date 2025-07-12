@@ -23,6 +23,7 @@ import {
 } from '../../../src/local/encoded_resource_path';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
+  IdbDatabaseDebugIdPair,
   SimpleDb,
   SimpleDbSchemaConverter,
   SimpleDbStore,
@@ -36,12 +37,12 @@ const sep = '\u0001\u0001';
 
 class EncodedResourcePathSchemaConverter implements SimpleDbSchemaConverter {
   createOrUpgrade(
-    db: IDBDatabase,
+    idbDatabaseDebugIdPair: IdbDatabaseDebugIdPair,
     txn: IDBTransaction,
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
-    db.createObjectStore('test');
+    idbDatabaseDebugIdPair.idbDatabase.createObjectStore('test');
     return PersistencePromise.resolve();
   }
 }
