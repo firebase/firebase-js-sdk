@@ -51,7 +51,7 @@ export function registerRemoteConfig(): void {
   );
 
   registerVersion(packageName, version);
-  // BUILD_TARGET will be replaced by values like esm2017, cjs2017, etc during the compilation
+  // BUILD_TARGET will be replaced by values like esm, cjs, etc during the compilation
   registerVersion(packageName, version, '__BUILD_TARGET__');
 
   function remoteConfigFactory(

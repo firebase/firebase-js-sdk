@@ -4,21 +4,21 @@
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "browser": "dist/esm/index.esm2017.js",
-  "module": "dist/esm/index.esm2017.js",
-  "sw": "dist/esm/index.sw.esm2017.js",
+  "browser": "dist/esm/index.esm.js",
+  "module": "dist/esm/index.esm.js",
+  "sw": "dist/esm/index.sw.esm.js",
   "sw-main": "dist/index.sw.cjs",
   "exports": {
     ".": {
       "types": "./dist/index-public.d.ts",
       "require": "./dist/index.cjs.js",
-      "module": "./dist/esm/index.esm2017.js",
-      "default": "./dist/esm/index.esm2017.js"
+      "module": "./dist/esm/index.esm.js",
+      "default": "./dist/esm/index.esm.js"
     },
     "./sw": {
       "types": "./dist/sw/index-public.d.ts",
       "require": "./dist/index.sw.cjs",
-      "default": "./dist/esm/index.sw.esm2017.js"
+      "default": "./dist/esm/index.sw.esm.js"
     },
     "./package.json": "./package.json"
   },
