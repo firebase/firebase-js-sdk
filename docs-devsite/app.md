@@ -23,6 +23,8 @@ This package coordinates the communication between the different Firebase compon
 |  <b>function()</b> |
 |  [getApps()](./app.md#getapps) | A (read-only) array of all initialized apps. |
 |  [initializeApp()](./app.md#initializeapp) | Creates and initializes a FirebaseApp instance. |
+|  <b>function(config, ...)</b> |
+|  [initializeServerApp(config)](./app.md#initializeserverapp_e7d0728) | Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance. |
 |  <b>function(libraryKeyOrName, ...)</b> |
 |  [registerVersion(libraryKeyOrName, version, variant)](./app.md#registerversion_f673248) | Registers a library's name and version for platform logging purposes. |
 |  <b>function(logCallback, ...)</b> |
@@ -115,6 +117,38 @@ export declare function initializeApp(): FirebaseApp;
 <b>Returns:</b>
 
 [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)
+
+## function(config, ...)
+
+### initializeServerApp(config) {:#initializeserverapp_e7d0728}
+
+Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance.
+
+<b>Signature:</b>
+
+```typescript
+export declare function initializeServerApp(config?: FirebaseServerAppSettings): FirebaseServerApp;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Optional <code>FirebaseServerApp</code> settings. |
+
+<b>Returns:</b>
+
+[FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)
+
+The initialized `FirebaseServerApp`<!-- -->.
+
+#### Exceptions
+
+If invoked in an unsupported non-server environment such as a browser.
+
+If [FirebaseServerAppSettings.releaseOnDeref](./app.firebaseserverappsettings.md#firebaseserverappsettingsreleaseonderef) is defined but the runtime doesn't provide Finalization Registry support.
+
+If the `FIREBASE_OPTIONS` enviornment variable does not contain a valid project configuration required for auto-initialization.
 
 ## function(libraryKeyOrName, ...)
 
@@ -260,6 +294,12 @@ export declare function initializeApp(options: FirebaseOptions, name?: string): 
 
 The initialized app.
 
+#### Exceptions
+
+If the optional `name` parameter is malformed or empty.
+
+If a `FirebaseApp` already exists with the same name but with a different configuration.
+
 ### Example 1
 
 
@@ -312,6 +352,12 @@ export declare function initializeApp(options: FirebaseOptions, config?: Firebas
 
 [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)
 
+#### Exceptions
+
+If [FirebaseAppSettings.name](./app.firebaseappsettings.md#firebaseappsettingsname) is defined but the value is malformed or empty.
+
+If a `FirebaseApp` already exists with the same name but with a different configuration.
+
 ### initializeServerApp(options, config) {:#initializeserverapp_30ab697}
 
 Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance.
@@ -323,7 +369,7 @@ See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_fi
 <b>Signature:</b>
 
 ```typescript
-export declare function initializeServerApp(options: FirebaseOptions | FirebaseApp, config: FirebaseServerAppSettings): FirebaseServerApp;
+export declare function initializeServerApp(options: FirebaseOptions | FirebaseApp, config?: FirebaseServerAppSettings): FirebaseServerApp;
 ```
 
 #### Parameters
@@ -331,13 +377,19 @@ export declare function initializeServerApp(options: FirebaseOptions | FirebaseA
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) \| [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | <code>Firebase.AppOptions</code> to configure the app's services, or a a <code>FirebaseApp</code> instance which contains the <code>AppOptions</code> within. |
-|  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | <code>FirebaseServerApp</code> configuration. |
+|  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Optional <code>FirebaseServerApp</code> settings. |
 
 <b>Returns:</b>
 
 [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)
 
 The initialized `FirebaseServerApp`<!-- -->.
+
+#### Exceptions
+
+If invoked in an unsupported non-server environment such as a browser.
+
+If [FirebaseServerAppSettings.releaseOnDeref](./app.firebaseserverappsettings.md#firebaseserverappsettingsreleaseonderef) is defined but the runtime doesn't provide Finalization Registry support.
 
 ### Example
 
