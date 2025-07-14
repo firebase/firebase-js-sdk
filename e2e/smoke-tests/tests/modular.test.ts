@@ -91,8 +91,9 @@ import {
   getAI,
   AI,
   VertexAIBackend
-} from 'firebase/vertexai';
+} from 'firebase/ai';
 import { getDataConnect, DataConnect } from 'firebase/data-connect';
+// @ts-ignore
 import { config, testAccount } from '../firebase-config';
 import 'jest';
 
