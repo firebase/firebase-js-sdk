@@ -86,12 +86,7 @@ import {
   StorageReference,
   deleteObject
 } from 'firebase/storage';
-import {
-  getGenerativeModel,
-  getAI,
-  AI,
-  VertexAIBackend
-} from 'firebase/ai';
+import { getGenerativeModel, getAI, AI, VertexAIBackend } from 'firebase/ai';
 import { getDataConnect, DataConnect } from 'firebase/data-connect';
 // @ts-ignore
 import { config, testAccount } from '../firebase-config';
