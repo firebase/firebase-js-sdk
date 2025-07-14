@@ -501,18 +501,6 @@ export interface GoogleSearchTool {
     googleSearch: GoogleSearch;
 }
 
-// @public @deprecated (undocumented)
-export interface GroundingAttribution {
-    // (undocumented)
-    confidenceScore?: number;
-    // (undocumented)
-    retrievedContext?: RetrievedContextAttribution;
-    // (undocumented)
-    segment: Segment;
-    // (undocumented)
-    web?: WebAttribution;
-}
-
 // @public
 export interface GroundingChunk {
     web?: WebGroundingChunk;
@@ -520,8 +508,6 @@ export interface GroundingChunk {
 
 // @public
 export interface GroundingMetadata {
-    // @deprecated (undocumented)
-    groundingAttributions: GroundingAttribution[];
     groundingChunks?: GroundingChunk[];
     groundingSupports?: GroundingSupport[];
     // @deprecated (undocumented)
