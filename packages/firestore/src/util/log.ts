@@ -98,7 +98,7 @@ interface LogBufferMessage {
 
 class LogBuffer {
   private readonly messages: LogBufferMessage[] = [];
-  private readonly enabledDumpIds: strings[];
+  private readonly enabledDumpIds: string[];
 
   constructor(private readonly maxLength: number, enabledDumpIds: string[]) {
     this.enabledDumpIds = Array.from(enabledDumpIds);
@@ -118,13 +118,11 @@ class LogBuffer {
   }
 
   private isDumpIdEnabled(dumpId: string | undefined): boolean {
-    if (dumpId === undefined) {
-      return true;
-    } else if (this.enabledDumpIds.length === 0) {
-      return true;
-    } else {
-      return this.enabledDumpIds.includes(dumpId);
-    }
+    return (
+      dumpId === undefined ||
+      this.enabledDumpIds.length === 0 ||
+      this.enabledDumpIds.includes(dumpId)
+    );
   }
 
   dump(dumpId?: string | undefined): void {
@@ -140,9 +138,15 @@ class LogBuffer {
     }
   }
 
-  private doDump(): void {
+  private doDump(dumpId?: string | undefined): void {
     const now = performance.now();
     const numBufferedMessages = this.messages.length;
+    logClient.info(
+      `Firestore (${SDK_VERSION}): ` +
+        `Dumping ${numBufferedMessages} buffered log messages ` +
+        `with dumpId=${dumpId}`
+    );
+
     const i = 1;
 
     while (true) {
@@ -153,7 +157,7 @@ class LogBuffer {
       const { level, msg, objs, timestamp } = message;
       const args = objs.map(argToString);
       const messageString =
-        `Firestore BUFFERED ${i}/${numBufferedMessages} ` +
+        `Firestore (${SDK_VERSION}): BUFFERED ${i}/${numBufferedMessages} ` +
         `(${now - timestamp}ms ago): ${msg}`;
       if (level === LogLevel.WARN) {
         logClient.warn(messageString, ...args);
@@ -168,11 +172,14 @@ class LogBuffer {
 
 let logBuffer: LogBuffer | null = null;
 
-export function enableLogBuffer(maxLength: number, enabledDumpIds?: string[]): void {
+export function enableLogBuffer(
+  maxLength: number,
+  enabledDumpIds?: string[]
+): void {
   if (logBuffer) {
     throw new Error('log buffer has already been enabled');
   }
-  logBuffer = new LogBuffer(maxLength, ids ?? []);
+  logBuffer = new LogBuffer(maxLength, enabledDumpIds ?? []);
 }
 
 export function dumpLogBuffer(dumpId?: string | undefined): void {
