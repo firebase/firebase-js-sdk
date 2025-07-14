@@ -35,7 +35,7 @@ export abstract class Schema implements SchemaInterface {
   /**
    * Optional. The type of the property. {@link
    * SchemaType}. This can only be undefined when using `anyOf` schemas, which do not have an
-   * explicit type in the {@link OpenAPI specification | https://swagger.io/docs/specification/v3_0/data-models/data-types/#any-type}.
+   * explicit type in the {@link https://swagger.io/docs/specification/v3_0/data-models/data-types/#any-type | OpenAPI specification}.
    */
   type?: SchemaType;
   /** Optional. The format of the property.

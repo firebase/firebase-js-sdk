@@ -36,7 +36,7 @@ export declare abstract class Schema implements SchemaInterface
 |  [maxItems](./ai.schema.md#schemamaxitems) |  | number | The maximum number of items (elements) in a schema of type [SchemaType.ARRAY](./ai.md#schematypearray_enummember)<!-- -->. |
 |  [minItems](./ai.schema.md#schemaminitems) |  | number | The minimum number of items (elements) in a schema of type [SchemaType.ARRAY](./ai.md#schematypearray_enummember)<!-- -->. |
 |  [nullable](./ai.schema.md#schemanullable) |  | boolean | Optional. Whether the property is nullable. Defaults to false. |
-|  [type](./ai.schema.md#schematype) |  | [SchemaType](./ai.md#schematype) | Optional. The type of the property. [SchemaType](./ai.md#schematype)<!-- -->. This can only be undefined when using <code>anyOf</code> schemas, which do not have an explicit type in the . |
+|  [type](./ai.schema.md#schematype) |  | [SchemaType](./ai.md#schematype) | Optional. The type of the property. [SchemaType](./ai.md#schematype)<!-- -->. This can only be undefined when using <code>anyOf</code> schemas, which do not have an explicit type in the [OpenAPI specification](https://swagger.io/docs/specification/v3_0/data-models/data-types/#any-type)<!-- -->. |
 
 ## Methods
 
@@ -139,7 +139,7 @@ nullable: boolean;
 
 ## Schema.type
 
-Optional. The type of the property. [SchemaType](./ai.md#schematype)<!-- -->. This can only be undefined when using `anyOf` schemas, which do not have an explicit type in the .
+Optional. The type of the property. [SchemaType](./ai.md#schematype)<!-- -->. This can only be undefined when using `anyOf` schemas, which do not have an explicit type in the [OpenAPI specification](https://swagger.io/docs/specification/v3_0/data-models/data-types/#any-type)<!-- -->.
 
 <b>Signature:</b>
 
