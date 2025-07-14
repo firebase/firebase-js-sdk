@@ -54,7 +54,7 @@ const esmBuilds = [
     plugins: [
       ...buildPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('esm', 2017),
+        ...generateBuildTargetReplaceConfig('esm', 2020),
         '__RUNTIME_ENV__': ''
       }),
       emitModulePackageFile()
@@ -74,7 +74,7 @@ const cjsBuilds = [
     plugins: [
       ...buildPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('cjs', 2017),
+        ...generateBuildTargetReplaceConfig('cjs', 2020),
         '__RUNTIME_ENV__': 'node'
       })
     ]

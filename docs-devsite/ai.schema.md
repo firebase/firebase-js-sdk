@@ -33,8 +33,8 @@ export declare abstract class Schema implements SchemaInterface
 |  [example](./ai.schema.md#schemaexample) |  | unknown | Optional. The example of the property. |
 |  [format](./ai.schema.md#schemaformat) |  | string | Optional. The format of the property. Supported formats:<br/> <ul> <li>for NUMBER type: "float", "double"</li> <li>for INTEGER type: "int32", "int64"</li> <li>for STRING type: "email", "byte", etc</li> </ul> |
 |  [items](./ai.schema.md#schemaitems) |  | [SchemaInterface](./ai.schemainterface.md#schemainterface_interface) | Optional. The items of the property. |
-|  [maxItems](./ai.schema.md#schemamaxitems) |  | number | The maximum number of items (elements) in a schema of type [SchemaType.ARRAY](./ai.md#schematypearray_enummember)<!-- -->. |
-|  [minItems](./ai.schema.md#schemaminitems) |  | number | The minimum number of items (elements) in a schema of type [SchemaType.ARRAY](./ai.md#schematypearray_enummember)<!-- -->. |
+|  [maxItems](./ai.schema.md#schemamaxitems) |  | number | The maximum number of items (elements) in a schema of [SchemaType](./ai.md#schematype) <code>array</code>. |
+|  [minItems](./ai.schema.md#schemaminitems) |  | number | The minimum number of items (elements) in a schema of [SchemaType](./ai.md#schematype) <code>array</code>. |
 |  [nullable](./ai.schema.md#schemanullable) |  | boolean | Optional. Whether the property is nullable. Defaults to false. |
 |  [type](./ai.schema.md#schematype) |  | [SchemaType](./ai.md#schematype) | Optional. The type of the property. [SchemaType](./ai.md#schematype)<!-- -->. This can only be undefined when using <code>anyOf</code> schemas, which do not have an explicit type in the [OpenAPI specification](https://swagger.io/docs/specification/v3_0/data-models/data-types/#any-type)<!-- -->. |
 
@@ -109,7 +109,7 @@ items?: SchemaInterface;
 
 ## Schema.maxItems
 
-The maximum number of items (elements) in a schema of type [SchemaType.ARRAY](./ai.md#schematypearray_enummember)<!-- -->.
+The maximum number of items (elements) in a schema of [SchemaType](./ai.md#schematype) `array`<!-- -->.
 
 <b>Signature:</b>
 
@@ -119,7 +119,7 @@ maxItems?: number;
 
 ## Schema.minItems
 
-The minimum number of items (elements) in a schema of type [SchemaType.ARRAY](./ai.md#schematypearray_enummember)<!-- -->.
+The minimum number of items (elements) in a schema of [SchemaType](./ai.md#schematype) `array`<!-- -->.
 
 <b>Signature:</b>
 

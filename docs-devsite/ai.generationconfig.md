@@ -31,6 +31,7 @@ export interface GenerationConfig
 |  [responseSchema](./ai.generationconfig.md#generationconfigresponseschema) | [TypedSchema](./ai.md#typedschema) \| [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) | Output response schema of the generated candidate text. This value can be a class generated with a [Schema](./ai.schema.md#schema_class) static method like <code>Schema.string()</code> or <code>Schema.object()</code> or it can be a plain JS object matching the [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) interface. <br/>Note: This only applies when the specified <code>responseMimeType</code> supports a schema; currently this is limited to <code>application/json</code> and <code>text/x.enum</code>. |
 |  [stopSequences](./ai.generationconfig.md#generationconfigstopsequences) | string\[\] |  |
 |  [temperature](./ai.generationconfig.md#generationconfigtemperature) | number |  |
+|  [thinkingConfig](./ai.generationconfig.md#generationconfigthinkingconfig) | [ThinkingConfig](./ai.thinkingconfig.md#thinkingconfig_interface) | Configuration for "thinking" behavior of compatible Gemini models. |
 |  [topK](./ai.generationconfig.md#generationconfigtopk) | number |  |
 |  [topP](./ai.generationconfig.md#generationconfigtopp) | number |  |
 
@@ -115,6 +116,16 @@ stopSequences?: string[];
 
 ```typescript
 temperature?: number;
+```
+
+## GenerationConfig.thinkingConfig
+
+Configuration for "thinking" behavior of compatible Gemini models.
+
+<b>Signature:</b>
+
+```typescript
+thinkingConfig?: ThinkingConfig;
 ```
 
 ## GenerationConfig.topK

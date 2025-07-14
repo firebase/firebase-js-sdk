@@ -31,5 +31,5 @@ export * from './interfaces/public-types';
 
 registerInstallations();
 registerVersion(name, version);
-// BUILD_TARGET will be replaced by values like esm2017, cjs2017, etc during the compilation
+// BUILD_TARGET will be replaced by values like esm, cjs, etc during the compilation
 registerVersion(name, version, '__BUILD_TARGET__');

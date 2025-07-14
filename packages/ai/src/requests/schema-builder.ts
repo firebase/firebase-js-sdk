@@ -33,8 +33,8 @@ import {
  */
 export abstract class Schema implements SchemaInterface {
   /**
-   * Optional. The type of the property. {@link
-   * SchemaType}. This can only be undefined when using `anyOf` schemas, which do not have an
+   * Optional. The type of the property. {@link SchemaType:type}. 
+   * This can only be undefined when using `anyOf` schemas, which do not have an
    * explicit type in the {@link https://swagger.io/docs/specification/v3_0/data-models/data-types/#any-type | OpenAPI specification}.
    */
   type?: SchemaType;
@@ -51,9 +51,9 @@ export abstract class Schema implements SchemaInterface {
   description?: string;
   /** Optional. The items of the property. */
   items?: SchemaInterface;
-  /** The minimum number of items (elements) in a schema of type {@link SchemaType.ARRAY}. */
+  /** The minimum number of items (elements) in a schema of {@link (SchemaType:type)} `array`. */
   minItems?: number;
-  /** The maximum number of items (elements) in a schema of type {@link SchemaType.ARRAY}. */
+  /** The maximum number of items (elements) in a schema of {@link (SchemaType:type)} `array`. */
   maxItems?: number;
   /** Optional. Whether the property is nullable. Defaults to false. */
   nullable: boolean;

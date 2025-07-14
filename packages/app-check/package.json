@@ -1,16 +1,16 @@
 {
   "name": "@firebase/app-check",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "The App Check component of the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "browser": "dist/esm/index.esm2017.js",
-  "module": "dist/esm/index.esm2017.js",
+  "browser": "dist/esm/index.esm.js",
+  "module": "dist/esm/index.esm.js",
   "exports": {
     ".": {
       "types": "./dist/app-check-public.d.ts",
       "require": "./dist/index.cjs.js",
-      "default": "./dist/esm/index.esm2017.js"
+      "default": "./dist/esm/index.esm.js"
     },
     "./package.json": "./package.json"
   },
@@ -37,14 +37,14 @@
     "@firebase/app": "0.x"
   },
   "dependencies": {
-    "@firebase/util": "1.12.0",
-    "@firebase/component": "0.6.17",
+    "@firebase/util": "1.12.1",
+    "@firebase/component": "0.6.18",
     "@firebase/logger": "0.4.4",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.13.1",
+    "@firebase/app": "0.13.2",
     "rollup": "2.79.2",
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "6.1.0",

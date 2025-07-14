@@ -1,16 +1,16 @@
 {
   "name": "@firebase/component",
-  "version": "0.6.17",
+  "version": "0.6.18",
   "description": "Firebase Component Platform",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "browser": "dist/esm/index.esm2017.js",
-  "module": "dist/esm/index.esm2017.js",
+  "browser": "dist/esm/index.esm.js",
+  "module": "dist/esm/index.esm.js",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "require": "./dist/index.cjs.js",
-      "default": "./dist/esm/index.esm2017.js"
+      "default": "./dist/esm/index.esm.js"
     },
     "./package.json": "./package.json"
   },
@@ -31,7 +31,7 @@
     "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@firebase/util": "1.12.0",
+    "@firebase/util": "1.12.1",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",

@@ -29,9 +29,9 @@ export interface SchemaShared<T>
 |  [format](./ai.schemashared.md#schemasharedformat) | string | Optional. The format of the property. When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this must be either <code>'enum'</code> or <code>'date-time'</code>, otherwise requests will fail. |
 |  [items](./ai.schemashared.md#schemashareditems) | T | Optional. The items of the property. |
 |  [maximum](./ai.schemashared.md#schemasharedmaximum) | number | The maximum value of a numeric type. |
-|  [maxItems](./ai.schemashared.md#schemasharedmaxitems) | number | The maximum number of items (elements) in a schema of type [SchemaType.ARRAY](./ai.md#schematypearray_enummember)<!-- -->. |
+|  [maxItems](./ai.schemashared.md#schemasharedmaxitems) | number | The maximum number of items (elements) in a schema of [SchemaType](./ai.md#schematype) <code>array</code>. |
 |  [minimum](./ai.schemashared.md#schemasharedminimum) | number | The minimum value of a numeric type. |
-|  [minItems](./ai.schemashared.md#schemasharedminitems) | number | The minimum number of items (elements) in a schema of type [SchemaType.ARRAY](./ai.md#schematypearray_enummember)<!-- -->. |
+|  [minItems](./ai.schemashared.md#schemasharedminitems) | number | The minimum number of items (elements) in a schema of [SchemaType](./ai.md#schematype) <code>array</code>. |
 |  [nullable](./ai.schemashared.md#schemasharednullable) | boolean | Optional. Whether the property is nullable. |
 |  [properties](./ai.schemashared.md#schemasharedproperties) | { \[k: string\]: T; } | Optional. Map of <code>Schema</code> objects. |
 |  [propertyOrdering](./ai.schemashared.md#schemasharedpropertyordering) | string\[\] | A hint suggesting the order in which the keys should appear in the generated JSON string. |
@@ -109,7 +109,7 @@ maximum?: number;
 
 ## SchemaShared.maxItems
 
-The maximum number of items (elements) in a schema of type [SchemaType.ARRAY](./ai.md#schematypearray_enummember)<!-- -->.
+The maximum number of items (elements) in a schema of [SchemaType](./ai.md#schematype) `array`<!-- -->.
 
 <b>Signature:</b>
 
@@ -129,7 +129,7 @@ minimum?: number;
 
 ## SchemaShared.minItems
 
-The minimum number of items (elements) in a schema of type [SchemaType.ARRAY](./ai.md#schematypearray_enummember)<!-- -->.
+The minimum number of items (elements) in a schema of [SchemaType](./ai.md#schematype) `array`<!-- -->.
 
 <b>Signature:</b>
 
