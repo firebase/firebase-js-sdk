@@ -20,16 +20,16 @@
 // reference to the minified sources. If you change any exports in this file,
 // you need to also adjust "integration/firestore/firebase_export.ts".
 
-import { FirebaseApp, initializeApp, setLogLevel } from '@firebase/app';
+import { FirebaseApp, initializeApp } from '@firebase/app';
 
-import { Firestore, initializeFirestore } from '../../../src';
+import { Firestore, initializeFirestore, _enableLogBuffer } from '../../../src';
 import { PrivateSettings } from '../../../src/lite-api/settings';
 
 // TODO(dimond): Right now we create a new app and Firestore instance for
 // every test and never clean them up. We may need to revisit.
 let appCount = 0;
 
-setLogLevel('debug');
+_enableLogBuffer(1000);
 
 export function newTestApp(projectId: string, appName?: string): FirebaseApp {
   if (appName === undefined) {

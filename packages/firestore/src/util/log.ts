@@ -47,6 +47,7 @@ export function setLogLevel(logLevel: LogLevelString): void {
 }
 
 export function logDebug(msg: string, ...obj: unknown[]): void {
+  logBuffer?.add(LogLevel.DEBUG, msg, obj);
   if (logClient.logLevel <= LogLevel.DEBUG) {
     const args = obj.map(argToString);
     logClient.debug(`Firestore (${SDK_VERSION}): ${msg}`, ...args);
@@ -54,6 +55,7 @@ export function logDebug(msg: string, ...obj: unknown[]): void {
 }
 
 export function logError(msg: string, ...obj: unknown[]): void {
+  logBuffer?.add(LogLevel.ERROR, msg, obj);
   if (logClient.logLevel <= LogLevel.ERROR) {
     const args = obj.map(argToString);
     logClient.error(`Firestore (${SDK_VERSION}): ${msg}`, ...args);
@@ -64,6 +66,7 @@ export function logError(msg: string, ...obj: unknown[]): void {
  * @internal
  */
 export function logWarn(msg: string, ...obj: unknown[]): void {
+  logBuffer?.add(LogLevel.WARN, msg, obj);
   if (logClient.logLevel <= LogLevel.WARN) {
     const args = obj.map(argToString);
     logClient.warn(`Firestore (${SDK_VERSION}): ${msg}`, ...args);
@@ -84,4 +87,62 @@ function argToString(obj: unknown): string | unknown {
       return obj;
     }
   }
+}
+
+interface LogBufferMessage {
+  level: LogLevel;
+  msg: string;
+  objs: unknown[];
+  timestamp: number;
+}
+
+class LogBuffer {
+  private messages: Array<LogBufferMessage> = [];
+
+  constructor(private readonly maxLength: number) {}
+
+  add(level: LogLevel, msg: string, objs: unknown[]): void {
+    const message: LogBufferMessage = {
+      level,
+      msg,
+      objs: objs.map(value => structuredClone(value)),
+      timestamp: performance.now()
+    };
+    if (this.messages.length == this.maxLength) {
+      this.messages.shift();
+    }
+    this.messages.push(message);
+  }
+
+  dump(): void {
+    const now = performance.now();
+
+    while (this.messages.length > 0) {
+      const { level, msg, objs, timestamp } = this.messages.shift();
+      const args = obj.map(argToString);
+      const messageString = `Firestore BUFFERED (${
+        now - timestamp
+      }ms ago): ${msg}`;
+      if (level === LogLevel.WARN) {
+        logClient.warn(messageString, ...objs);
+      } else if (level === LogLevel.ERROR) {
+        logClient.error(messageString, ...objs);
+      } else {
+        logClient.debug(messageString, ...objs);
+      }
+    }
+  }
+}
+
+let logBuffer: LogBuffer | null = null;
+
+export function enableLogBuffer(maxLength: number): void {
+  if (logBuffer) {
+    throw new Error('log buffer has already been enabled');
+  }
+  logBuffer = new LogBuffer(maxLength);
+}
+
+export function dumpLogBuffer(): void {
+  logBuffer?.dump();
 }

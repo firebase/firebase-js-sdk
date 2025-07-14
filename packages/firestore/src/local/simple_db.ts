@@ -20,7 +20,7 @@ import { getGlobal, getUA, isIndexedDBAvailable } from '@firebase/util';
 import { debugAssert, hardAssert } from '../util/assert';
 import { generateUniqueDebugId } from '../util/debug_uid';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug, logError, logWarn } from '../util/log';
+import { logDebug, logError, logWarn, dumpLogBuffer } from '../util/log';
 import { Deferred } from '../util/promise';
 
 import { DatabaseDeletedListener } from './persistence';
@@ -514,6 +514,8 @@ export class SimpleDb {
             `One possible cause is clicking the "Clear Site Data" button ` +
             `in a web browser.`
         );
+        // TODO(dconeybe) REVERT THE NEXT LINE
+        dumpLogBuffer();
       },
       { passive: true }
     );
