@@ -162,24 +162,57 @@ export interface IdbDatabaseDebugIdPair {
 
 class SimpleDbStateNew {
   readonly name = 'new' as const;
+
+  constructor(
+    readonly databaseDeletedListener: DatabaseDeletedListener | null
+  ) {}
+
+  withDatabaseDeletedListener(
+    databaseDeletedListener: DatabaseDeletedListener
+  ): SimpleDbStateNew {
+    return new SimpleDbStateNew(databaseDeletedListener);
+  }
 }
 
 class SimpleDbStateOpening {
   readonly name = 'opening' as const;
 
-  constructor(readonly promise: Promise<unknown>) {}
+  constructor(
+    readonly promise: Promise<unknown>,
+    readonly databaseDeletedListener: DatabaseDeletedListener | null
+  ) {}
+
+  withDatabaseDeletedListener(
+    databaseDeletedListener: DatabaseDeletedListener
+  ): SimpleDbStateOpening {
+    return new SimpleDbStateOpening(this.promise, databaseDeletedListener);
+  }
 }
 
 class SimpleDbStateOpened {
   readonly name = 'opened' as const;
 
-  constructor(readonly db: IdbDatabaseDebugIdPair) {}
+  constructor(
+    readonly db: IdbDatabaseDebugIdPair,
+    readonly databaseDeletedListener: DatabaseDeletedListener | null
+  ) {}
+
+  withDatabaseDeletedListener(
+    databaseDeletedListener: DatabaseDeletedListener
+  ): SimpleDbStateOpened {
+    return new SimpleDbStateOpened(this.db, databaseDeletedListener);
+  }
+}
+
+class SimpleDbStateClosed {
+  readonly name = 'closed' as const;
 }
 
 type SimpleDbState =
   | SimpleDbStateNew
   | SimpleDbStateOpened
-  | SimpleDbStateOpening;
+  | SimpleDbStateOpening
+  | SimpleDbStateClosed;
 
 /**
  * Provides a wrapper around IndexedDb with a simplified interface that uses
@@ -190,8 +223,7 @@ type SimpleDbState =
  */
 export class SimpleDb {
   readonly debugId = `SimpleDb@${generateUniqueDebugId()}`;
-  private state: SimpleDbState = new SimpleDbStateNew();
-  private databaseDeletedListener: DatabaseDeletedListener | null = null;
+  private state: SimpleDbState = new SimpleDbStateNew(null);
 
   /** Deletes the specified database. */
   static delete(name: string): Promise<void> {
@@ -331,26 +363,41 @@ export class SimpleDb {
   async ensureDb(action: string): Promise<IdbDatabaseDebugIdPair> {
     while (true) {
       const currentState = this.state;
-      if (currentState.name === 'opening') {
+      if (currentState.name === 'closed') {
+        console.trace(
+          `zzyzx ${this.debugId} ` +
+            `ensureDb(${JSON.stringify(action)}) called after close()`
+        );
+        dumpLogBuffer('SimpleDb.ensureDb after close');
+        throw new Error(`${this.debugId} has been closed`);
+      } else if (currentState.name === 'opening') {
         await currentState.promise.catch(_ => {});
       } else if (currentState.name === 'opened') {
         return currentState.db;
       } else {
         hardAssert(currentState.name === 'new', 0x56e8, { state: this.state });
         const promise = this.openDb(action);
-        const openingState = new SimpleDbStateOpening(promise);
+        const openingState = new SimpleDbStateOpening(
+          promise,
+          currentState.databaseDeletedListener
+        );
         this.state = openingState;
         try {
           const db = await promise;
           if (this.state === openingState) {
-            this.state = new SimpleDbStateOpened(db);
+            this.state = new SimpleDbStateOpened(
+              db,
+              openingState.databaseDeletedListener
+            );
             return db;
           } else {
             db.idbDatabase.close();
           }
         } catch (e) {
           if (this.state === openingState) {
-            this.state = new SimpleDbStateNew();
+            this.state = new SimpleDbStateNew(
+              this.state.databaseDeletedListener
+            );
             throw e;
           }
         }
@@ -454,7 +501,9 @@ export class SimpleDb {
             `Received "versionchange" event with newVersion===null; ` +
               'notifying the registered DatabaseDeletedListener, if any'
           );
-          this.databaseDeletedListener?.();
+          if ('databaseDeletedListener' in this.state) {
+            this.state.databaseDeletedListener?.();
+          }
         }
       },
       { passive: true }
@@ -471,9 +520,6 @@ export class SimpleDb {
             `in a web browser.`
         );
         dumpLogBuffer('SimpleDbCloseEvent');
-        if (this.state.name === 'opened' && this.state.db.idbDatabase === db) {
-          this.state = new SimpleDbStateNew();
-        }
       },
       { passive: true }
     );
@@ -484,10 +530,15 @@ export class SimpleDb {
   setDatabaseDeletedListener(
     databaseDeletedListener: DatabaseDeletedListener
   ): void {
-    if (this.databaseDeletedListener) {
+    if (!('databaseDeletedListener' in this.state)) {
+      return;
+    }
+    if (this.state.databaseDeletedListener) {
       throw new Error('setDatabaseDeletedListener() has already been called');
     }
-    this.databaseDeletedListener = databaseDeletedListener;
+    this.state = this.state.withDatabaseDeletedListener(
+      databaseDeletedListener
+    );
   }
 
   async runTransaction<T>(
@@ -568,7 +619,7 @@ export class SimpleDb {
         );
 
         if ('db' in this.state && dbBefore === this.state.db) {
-          this.state = new SimpleDbStateNew();
+          this.state = new SimpleDbStateNew(this.state.databaseDeletedListener);
           logWarn(
             this.debugId,
             `Transaction transactionId=${transactionId} closing IDBDatabase ` +
@@ -586,11 +637,15 @@ export class SimpleDb {
   }
 
   close(): void {
+    if (this.state.name === 'closed') {
+      dumpLogBuffer('SimpleDb.close');
+      return;
+    }
     logDebug(this.debugId, 'close()');
     if ('db' in this.state) {
       this.state.db.idbDatabase.close();
     }
-    this.state = new SimpleDbStateNew();
+    this.state = new SimpleDbStateClosed();
   }
 }
 
