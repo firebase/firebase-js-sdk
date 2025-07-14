@@ -215,7 +215,7 @@ export interface ImagenSafetySettings {
  * To specify an aspect ratio for generated images, set the `aspectRatio` property in your
  * {@link ImagenGenerationConfig}.
  *
- * See the the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
+ * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
  * for more details and examples of the supported aspect ratios.
  *
  * @beta
@@ -249,7 +249,7 @@ export const ImagenAspectRatio = {
  * To specify an aspect ratio for generated images, set the `aspectRatio` property in your
  * {@link ImagenGenerationConfig}.
  *
- * See the the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
+ * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
  * for more details and examples of the supported aspect ratios.
  *
  * @beta

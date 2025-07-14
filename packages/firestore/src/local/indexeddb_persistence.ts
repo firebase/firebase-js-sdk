@@ -131,11 +131,11 @@ export const MAIN_DATABASE = 'main';
  * `enablePersistence()` with `{synchronizeTabs:true}`.
  *
  * In multi-tab mode, if multiple clients are active at the same time, the SDK
- * will designate one client as the “primary client”. An effort is made to pick
+ * will designate one client as the "primary client". An effort is made to pick
  * a visible, network-connected and active client, and this client is
  * responsible for letting other clients know about its presence. The primary
  * client writes a unique client-generated identifier (the client ID) to
- * IndexedDb’s “owner” store every 4 seconds. If the primary client fails to
+ * IndexedDb’s "owner" store every 4 seconds. If the primary client fails to
  * update this entry, another client can acquire the lease and take over as
  * primary.
  *

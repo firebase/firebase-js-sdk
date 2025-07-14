@@ -190,7 +190,7 @@ export interface GroundingMetadata {
   /**
    * Google Search entry point for web searches. This contains an HTML/CSS snippet that must be
    * embedded in an app to display a Google Search entry point for follow-up web searches related to
-   * a model's “Grounded Response”.
+   * a model's "Grounded Response".
    */
   searchEntryPoint?: SearchEntrypoint;
   /**
