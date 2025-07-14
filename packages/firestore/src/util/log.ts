@@ -97,7 +97,7 @@ interface LogBufferMessage {
 }
 
 class LogBuffer {
-  private messages: Array<LogBufferMessage> = [];
+  private messages: LogBufferMessage[] = [];
 
   constructor(private readonly maxLength: number) {}
 
@@ -108,7 +108,7 @@ class LogBuffer {
       objs: objs.map(value => structuredClone(value)),
       timestamp: performance.now()
     };
-    if (this.messages.length == this.maxLength) {
+    if (this.messages.length === this.maxLength) {
       this.messages.shift();
     }
     this.messages.push(message);
@@ -116,19 +116,25 @@ class LogBuffer {
 
   dump(): void {
     const now = performance.now();
+    const numBufferedMessages = this.messages.length;
+    const i = 1;
 
-    while (this.messages.length > 0) {
-      const { level, msg, objs, timestamp } = this.messages.shift();
-      const args = obj.map(argToString);
-      const messageString = `Firestore BUFFERED (${
-        now - timestamp
-      }ms ago): ${msg}`;
+    while (true) {
+      const message = this.messages.shift();
+      if (!message) {
+        break;
+      }
+      const { level, msg, objs, timestamp } = message;
+      const args = objs.map(argToString);
+      const messageString =
+        `Firestore BUFFERED ${i}/${numBufferedMessages} ` +
+        `(${now - timestamp}ms ago): ${msg}`;
       if (level === LogLevel.WARN) {
-        logClient.warn(messageString, ...objs);
+        logClient.warn(messageString, ...args);
       } else if (level === LogLevel.ERROR) {
-        logClient.error(messageString, ...objs);
+        logClient.error(messageString, ...args);
       } else {
-        logClient.debug(messageString, ...objs);
+        logClient.debug(messageString, ...args);
       }
     }
   }
