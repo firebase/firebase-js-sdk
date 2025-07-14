@@ -514,8 +514,7 @@ export class SimpleDb {
             `One possible cause is clicking the "Clear Site Data" button ` +
             `in a web browser.`
         );
-        // TODO(dconeybe) REVERT THE NEXT LINE
-        dumpLogBuffer();
+        dumpLogBuffer("SimpleDbCloseEvent");
       },
       { passive: true }
     );

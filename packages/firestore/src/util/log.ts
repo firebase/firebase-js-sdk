@@ -97,9 +97,12 @@ interface LogBufferMessage {
 }
 
 class LogBuffer {
-  private messages: LogBufferMessage[] = [];
+  private readonly messages: LogBufferMessage[] = [];
+  private readonly enabledDumpIds: strings[];
 
-  constructor(private readonly maxLength: number) {}
+  constructor(private readonly maxLength: number, enabledDumpIds: string[]) {
+    this.enabledDumpIds = Array.from(enabledDumpIds);
+  }
 
   add(level: LogLevel, msg: string, objs: unknown[]): void {
     const message: LogBufferMessage = {
@@ -114,7 +117,30 @@ class LogBuffer {
     this.messages.push(message);
   }
 
-  dump(): void {
+  private isDumpIdEnabled(dumpId: string | undefined): boolean {
+    if (dumpId === undefined) {
+      return true;
+    } else if (this.enabledDumpIds.length === 0) {
+      return true;
+    } else {
+      return this.enabledDumpIds.includes(dumpId);
+    }
+  }
+
+  dump(dumpId?: string | undefined): void {
+    if (!this.isDumpIdEnabled(dumpId)) {
+      return;
+    }
+    const oldLogLevel = logClient.logLevel;
+    logClient.setLogLevel(LogLevel.DEBUG);
+    try {
+      this.doDump();
+    } finally {
+      logClient.setLogLevel(oldLogLevel);
+    }
+  }
+
+  private doDump(): void {
     const now = performance.now();
     const numBufferedMessages = this.messages.length;
     const i = 1;
@@ -142,13 +168,13 @@ class LogBuffer {
 
 let logBuffer: LogBuffer | null = null;
 
-export function enableLogBuffer(maxLength: number): void {
+export function enableLogBuffer(maxLength: number, enabledDumpIds?: string[]): void {
   if (logBuffer) {
     throw new Error('log buffer has already been enabled');
   }
-  logBuffer = new LogBuffer(maxLength);
+  logBuffer = new LogBuffer(maxLength, ids ?? []);
 }
 
-export function dumpLogBuffer(): void {
-  logBuffer?.dump();
+export function dumpLogBuffer(dumpId?: string | undefined): void {
+  logBuffer?.dump(dumpId);
 }
