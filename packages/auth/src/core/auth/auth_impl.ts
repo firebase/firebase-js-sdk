@@ -489,7 +489,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     if (this.redirectPersistenceManager || this._popupRedirectResolver) {
       await this._setRedirectUser(null);
     }
-
+    if (this.tenantConfig) {
+      await this._updateFirebaseToken(null);
+    }
     // Prevent callbacks from being called again in _updateCurrentUser, as
     // they were already called in the first line.
     return this._updateCurrentUser(null, /* skipBeforeStateCallbacks */ true);
