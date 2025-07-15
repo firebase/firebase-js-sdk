@@ -4,8 +4,8 @@
   "description": "The Realtime Database component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.js",
-  "browser": "dist/index.esm2017.js",
-  "module": "dist/index.esm2017.js",
+  "browser": "dist/index.esm.js",
+  "module": "dist/index.esm.js",
   "license": "Apache-2.0",
   "typings": "dist/database-compat/src/index.d.ts",
   "files": [
@@ -22,9 +22,9 @@
       },
       "browser": {
         "require": "./dist/index.js",
-        "import": "./dist/index.esm2017.js"
+        "import": "./dist/index.esm.js"
       },
-      "default": "./dist/index.esm2017.js"
+      "default": "./dist/index.esm.js"
     },
     "./standalone": {
       "types": "./dist/database-compat/src/index.standalone.d.ts",
@@ -69,6 +69,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }

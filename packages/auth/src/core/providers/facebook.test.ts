@@ -35,6 +35,11 @@ describe('core/providers/facebook', () => {
     expect(cred.signInMethod).to.eq(SignInMethod.FACEBOOK);
   });
 
+  it('generates Facebook provider', () => {
+    const provider = new FacebookAuthProvider();
+    expect(provider.providerId).to.eq(ProviderId.FACEBOOK);
+  });
+
   it('credentialFromResult creates the cred from a tagged result', async () => {
     const auth = await testAuth();
     const userCred = new UserCredentialImpl({
@@ -65,5 +70,66 @@ describe('core/providers/facebook', () => {
     expect(cred.accessToken).to.eq('access-token');
     expect(cred.providerId).to.eq(ProviderId.FACEBOOK);
     expect(cred.signInMethod).to.eq(SignInMethod.FACEBOOK);
+  });
+
+  it('returns null when _tokenResponse is missing', () => {
+    const error = _createError(AuthErrorCode.NEED_CONFIRMATION, {
+      appName: 'foo'
+    });
+    error.customData = {}; // no _tokenResponse
+
+    const cred = FacebookAuthProvider.credentialFromError(error);
+    expect(cred).to.be.null;
+  });
+
+  it('returns null when _tokenResponse is missing oauthAccessToken key', () => {
+    const error = _createError(AuthErrorCode.NEED_CONFIRMATION, {
+      appName: 'foo'
+    });
+    error.customData = {
+      _tokenResponse: {
+        // intentionally missing oauthAccessToken
+        idToken: 'some-id-token',
+        oauthAccessToken: null
+      }
+    };
+
+    const cred = FacebookAuthProvider.credentialFromError(error);
+    expect(cred).to.be.null;
+  });
+
+  it('returns null when FacebookAuthProvider.credential throws', () => {
+    // Temporarily stub credential method to throw
+    const original = FacebookAuthProvider.credential;
+    FacebookAuthProvider.credential = () => {
+      throw new Error('Simulated failure');
+    };
+
+    const error = _createError(AuthErrorCode.NEED_CONFIRMATION, {
+      appName: 'foo'
+    });
+    error.customData = {
+      _tokenResponse: {
+        oauthAccessToken: 'valid-token'
+      }
+    };
+
+    const cred = FacebookAuthProvider.credentialFromError(error);
+    expect(cred).to.be.null;
+
+    // Restore original method
+    FacebookAuthProvider.credential = original;
+  });
+
+  it('returns null when error.customData is undefined (falls back to empty object)', () => {
+    const error = _createError(AuthErrorCode.NEED_CONFIRMATION, {
+      appName: 'foo'
+    });
+
+    // Don't set `customData` at all → fallback to {}
+    delete (error as any).customData;
+
+    const cred = FacebookAuthProvider.credentialFromError(error);
+    expect(cred).to.be.null;
   });
 });

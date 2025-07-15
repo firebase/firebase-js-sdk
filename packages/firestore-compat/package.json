@@ -5,8 +5,8 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
   "react-native": "dist/index.rn.js",
-  "browser": "dist/index.esm2017.js",
-  "module": "dist/index.esm2017.js",
+  "browser": "dist/index.esm.js",
+  "module": "dist/index.esm.js",
   "exports": {
     ".": {
       "types": "./dist/src/index.d.ts",
@@ -17,9 +17,9 @@
       "react-native": "./dist/index.rn.js",
       "browser": {
         "require": "./dist/index.cjs.js",
-        "import": "./dist/index.esm2017.js"
+        "import": "./dist/index.esm.js"
       },
-      "default": "./dist/index.esm2017.js"
+      "default": "./dist/index.esm.js"
     },
     "./package.json": "./package.json"
   },
@@ -74,6 +74,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }

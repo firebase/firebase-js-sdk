@@ -37,6 +37,7 @@ import {
   _apps,
   _components,
   _isFirebaseApp,
+  _isFirebaseServerAppSettings,
   _registerComponent,
   _serverApps
 } from './internal';
@@ -106,6 +107,10 @@ export const SDK_VERSION = version;
  *
  * @returns The initialized app.
  *
+ * @throws If the optional `name` parameter is malformed or empty.
+ *
+ * @throws If a `FirebaseApp` already exists with the same name but with a different configuration.
+ *
  * @public
  */
 export function initializeApp(
@@ -118,6 +123,9 @@ export function initializeApp(
  * @param options - Options to configure the app's services.
  * @param config - FirebaseApp Configuration
  *
+ * @throws If {@link FirebaseAppSettings.name} is defined but the value is malformed or empty.
+ *
+ * @throws If a `FirebaseApp` already exists with the same name but with a different configuration.
  * @public
  */
 export function initializeApp(
@@ -220,41 +228,75 @@ export function initializeApp(
  *
  * @param options - `Firebase.AppOptions` to configure the app's services, or a
  *   a `FirebaseApp` instance which contains the `AppOptions` within.
- * @param config - `FirebaseServerApp` configuration.
+ * @param config - Optional `FirebaseServerApp` settings.
  *
  * @returns The initialized `FirebaseServerApp`.
+ *
+ * @throws If invoked in an unsupported non-server environment such as a browser.
+ *
+ * @throws If {@link FirebaseServerAppSettings.releaseOnDeref} is defined but the runtime doesn't
+ *   provide Finalization Registry support.
  *
  * @public
  */
 export function initializeServerApp(
   options: FirebaseOptions | FirebaseApp,
-  config: FirebaseServerAppSettings
+  config?: FirebaseServerAppSettings
 ): FirebaseServerApp;
 
+/**
+ * Creates and initializes a {@link @firebase/app#FirebaseServerApp} instance.
+ *
+ * @param config - Optional `FirebaseServerApp` settings.
+ *
+ * @returns The initialized `FirebaseServerApp`.
+ *
+ * @throws If invoked in an unsupported non-server environment such as a browser.
+ * @throws If {@link FirebaseServerAppSettings.releaseOnDeref} is defined but the runtime doesn't
+ *   provide Finalization Registry support.
+ * @throws If the `FIREBASE_OPTIONS` enviornment variable does not contain a valid project
+ *   configuration required for auto-initialization.
+ *
+ * @public
+ */
 export function initializeServerApp(
-  _options: FirebaseOptions | FirebaseApp,
-  _serverAppConfig: FirebaseServerAppSettings
+  config?: FirebaseServerAppSettings
+): FirebaseServerApp;
+export function initializeServerApp(
+  _options?: FirebaseApp | FirebaseServerAppSettings | FirebaseOptions,
+  _serverAppConfig: FirebaseServerAppSettings = {}
 ): FirebaseServerApp {
   if (isBrowser() && !isWebWorker()) {
     // FirebaseServerApp isn't designed to be run in browsers.
     throw ERROR_FACTORY.create(AppError.INVALID_SERVER_APP_ENVIRONMENT);
   }
 
-  if (_serverAppConfig.automaticDataCollectionEnabled === undefined) {
-    _serverAppConfig.automaticDataCollectionEnabled = true;
+  let firebaseOptions: FirebaseOptions | undefined;
+  let serverAppSettings: FirebaseServerAppSettings = _serverAppConfig || {};
+
+  if (_options) {
+    if (_isFirebaseApp(_options)) {
+      firebaseOptions = _options.options;
+    } else if (_isFirebaseServerAppSettings(_options)) {
+      serverAppSettings = _options;
+    } else {
+      firebaseOptions = _options;
+    }
   }
 
-  let appOptions: FirebaseOptions;
-  if (_isFirebaseApp(_options)) {
-    appOptions = _options.options;
-  } else {
-    appOptions = _options;
+  if (serverAppSettings.automaticDataCollectionEnabled === undefined) {
+    serverAppSettings.automaticDataCollectionEnabled = true;
+  }
+
+  firebaseOptions ||= getDefaultAppConfig();
+  if (!firebaseOptions) {
+    throw ERROR_FACTORY.create(AppError.NO_OPTIONS);
   }
 
   // Build an app name based on a hash of the configuration options.
   const nameObj = {
-    ..._serverAppConfig,
-    ...appOptions
+    ...serverAppSettings,
+    ...firebaseOptions
   };
 
   // However, Do not mangle the name based on releaseOnDeref, since it will vary between the
@@ -270,7 +312,7 @@ export function initializeServerApp(
     );
   };
 
-  if (_serverAppConfig.releaseOnDeref !== undefined) {
+  if (serverAppSettings.releaseOnDeref !== undefined) {
     if (typeof FinalizationRegistry === 'undefined') {
       throw ERROR_FACTORY.create(
         AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED,
@@ -283,7 +325,7 @@ export function initializeServerApp(
   const existingApp = _serverApps.get(nameString) as FirebaseServerApp;
   if (existingApp) {
     (existingApp as FirebaseServerAppImpl).incRefCount(
-      _serverAppConfig.releaseOnDeref
+      serverAppSettings.releaseOnDeref
     );
     return existingApp;
   }
@@ -294,8 +336,8 @@ export function initializeServerApp(
   }
 
   const newApp = new FirebaseServerAppImpl(
-    appOptions,
-    _serverAppConfig,
+    firebaseOptions,
+    serverAppSettings,
     nameString,
     container
   );

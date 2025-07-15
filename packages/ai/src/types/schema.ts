@@ -21,20 +21,28 @@
  * {@link https://swagger.io/docs/specification/data-models/data-types/ | OpenAPI specification}
  * @public
  */
-export enum SchemaType {
+export const SchemaType = {
   /** String type. */
-  STRING = 'string',
+  STRING: 'string',
   /** Number type. */
-  NUMBER = 'number',
+  NUMBER: 'number',
   /** Integer type. */
-  INTEGER = 'integer',
+  INTEGER: 'integer',
   /** Boolean type. */
-  BOOLEAN = 'boolean',
+  BOOLEAN: 'boolean',
   /** Array type. */
-  ARRAY = 'array',
+  ARRAY: 'array',
   /** Object type. */
-  OBJECT = 'object'
-}
+  OBJECT: 'object'
+} as const;
+
+/**
+ * Contains the list of OpenAPI data types
+ * as defined by the
+ * {@link https://swagger.io/docs/specification/data-models/data-types/ | OpenAPI specification}
+ * @public
+ */
+export type SchemaType = (typeof SchemaType)[keyof typeof SchemaType];
 
 /**
  * Basic {@link Schema} properties shared across several Schema-related
@@ -42,6 +50,12 @@ export enum SchemaType {
  * @public
  */
 export interface SchemaShared<T> {
+  /**
+   * An array of {@link Schema}. The generated data must be valid against any of the schemas
+   * listed in this array. This allows specifying multiple possible structures or types for a
+   * single field.
+   */
+  anyOf?: T[];
   /** Optional. The format of the property.
    * When using the Gemini Developer API ({@link GoogleAIBackend}), this must be either `'enum'` or
    * `'date-time'`, otherwise requests will fail.
@@ -57,9 +71,9 @@ export interface SchemaShared<T> {
   title?: string;
   /** Optional. The items of the property. */
   items?: T;
-  /** The minimum number of items (elements) in a schema of type {@link SchemaType.ARRAY}. */
+  /** The minimum number of items (elements) in a schema of {@link (SchemaType:type)} `array`. */
   minItems?: number;
-  /** The maximum number of items (elements) in a schema of type {@link SchemaType.ARRAY}. */
+  /** The maximum number of items (elements) in a schema of {@link (SchemaType:type)} `array`. */
   maxItems?: number;
   /** Optional. Map of `Schema` objects. */
   properties?: {
@@ -93,10 +107,10 @@ export interface SchemaParams extends SchemaShared<SchemaInterface> {}
  */
 export interface SchemaRequest extends SchemaShared<SchemaRequest> {
   /**
-   * The type of the property. {@link
-   * SchemaType}.
+   * The type of the property. this can only be undefined when using `anyOf` schemas,
+   * which do not have an explicit type in the {@link https://swagger.io/docs/specification/v3_0/data-models/data-types/#any-type | OpenAPI specification }.
    */
-  type: SchemaType;
+  type?: SchemaType;
   /** Optional. Array of required property. */
   required?: string[];
 }
@@ -107,17 +121,25 @@ export interface SchemaRequest extends SchemaShared<SchemaRequest> {
  */
 export interface SchemaInterface extends SchemaShared<SchemaInterface> {
   /**
-   * The type of the property. {@link
-   * SchemaType}.
+   * The type of the property. this can only be undefined when using `anyof` schemas,
+   * which do not have an explicit type in the {@link https://swagger.io/docs/specification/v3_0/data-models/data-types/#any-type | OpenAPI Specification}.
    */
-  type: SchemaType;
+  type?: SchemaType;
 }
 
 /**
- * Interface for {@link ObjectSchema} class.
+ * Interface for JSON parameters in a schema of {@link SchemaType}
+ * "object" when not using the `Schema.object()` helper.
  * @public
  */
-export interface ObjectSchemaInterface extends SchemaInterface {
-  type: SchemaType.OBJECT;
-  optionalProperties?: string[];
+export interface ObjectSchemaRequest extends SchemaRequest {
+  type: 'object';
+  /**
+   * This is not a property accepted in the final request to the backend, but is
+   * a client-side convenience property that is only usable by constructing
+   * a schema through the `Schema.object()` helper method. Populating this
+   * property will cause response errors if the object is not wrapped with
+   * `Schema.object()`.
+   */
+  optionalProperties?: never;
 }

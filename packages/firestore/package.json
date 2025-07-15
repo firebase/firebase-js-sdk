@@ -2,7 +2,7 @@
   "name": "@firebase/firestore",
   "version": "4.8.0",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "description": "The Cloud Firestore component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -70,9 +70,9 @@
       "react-native": "./dist/index.rn.js",
       "browser": {
         "require": "./dist/index.cjs.js",
-        "import": "./dist/index.esm2017.js"
+        "import": "./dist/index.esm.js"
       },
-      "default": "./dist/index.esm2017.js"
+      "default": "./dist/index.esm.js"
     },
     "./lite": {
       "types": "./dist/lite/index.d.ts",
@@ -80,20 +80,20 @@
         "require": "./dist/lite/index.node.cjs.js",
         "import": "./dist/lite/index.node.mjs"
       },
-      "react-native": "./dist/lite/index.rn.esm2017.js",
+      "react-native": "./dist/lite/index.rn.esm.js",
       "browser": {
         "require": "./dist/lite/index.cjs.js",
-        "import": "./dist/lite/index.browser.esm2017.js"
+        "import": "./dist/lite/index.browser.esm.js"
       },
-      "default": "./dist/lite/index.browser.esm2017.js"
+      "default": "./dist/lite/index.browser.esm.js"
     },
     "./package.json": "./package.json"
   },
   "main": "dist/index.node.cjs.js",
   "main-esm": "dist/index.node.mjs",
   "react-native": "dist/index.rn.js",
-  "browser": "dist/index.esm2017.js",
-  "module": "dist/index.esm2017.js",
+  "browser": "dist/index.esm.js",
+  "module": "dist/index.esm.js",
   "license": "Apache-2.0",
   "files": [
     "dist",

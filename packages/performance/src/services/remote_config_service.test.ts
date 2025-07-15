@@ -40,7 +40,8 @@ describe('Performance Monitoring > remote_config_service', () => {
   "fpr_log_endpoint_url":"https://firebaselogging.test.com",\
   "fpr_log_transport_key":"pseudo-transport-key",\
   "fpr_log_source":"2","fpr_vc_network_request_sampling_rate":"0.250000",\
-  "fpr_vc_session_sampling_rate":"0.250000","fpr_vc_trace_sampling_rate":"0.500000"},\
+  "fpr_vc_session_sampling_rate":"0.250000","fpr_vc_trace_sampling_rate":"0.500000",
+  "fpr_log_max_flush_size":"10"},\
   "state":"UPDATE"}`;
   const PROJECT_ID = 'project1';
   const APP_ID = '1:23r:web:fewq';
@@ -80,6 +81,7 @@ describe('Performance Monitoring > remote_config_service', () => {
     settingsService.loggingEnabled = false;
     settingsService.networkRequestsSamplingRate = 1;
     settingsService.tracesSamplingRate = 1;
+    settingsService.logMaxFlushSize = 40;
   }
 
   // parameterized beforeEach. Should be called at beginning of each test.
@@ -150,6 +152,7 @@ describe('Performance Monitoring > remote_config_service', () => {
       expect(SettingsService.getInstance().tracesSamplingRate).to.equal(
         TRACE_SAMPLING_RATE
       );
+      expect(SettingsService.getInstance().logMaxFlushSize).to.equal(10);
     });
 
     it('does not call remote config if a valid config is in local storage', async () => {
@@ -190,6 +193,7 @@ describe('Performance Monitoring > remote_config_service', () => {
       expect(SettingsService.getInstance().tracesSamplingRate).to.equal(
         TRACE_SAMPLING_RATE
       );
+      expect(SettingsService.getInstance().logMaxFlushSize).to.equal(10);
     });
 
     it('does not change the default config if call to RC fails', async () => {
@@ -207,6 +211,7 @@ describe('Performance Monitoring > remote_config_service', () => {
       await getConfig(performanceController, IID);
 
       expect(SettingsService.getInstance().loggingEnabled).to.equal(false);
+      expect(SettingsService.getInstance().logMaxFlushSize).to.equal(40);
     });
 
     it('uses secondary configs if the response does not have all the fields', async () => {

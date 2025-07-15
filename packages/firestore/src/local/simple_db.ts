@@ -160,7 +160,6 @@ export class SimpleDbTransaction {
 export class SimpleDb {
   private db?: IDBDatabase;
   private databaseDeletedListener?: DatabaseDeletedListener;
-  private lastClosedDbVersion: number | null = null;
 
   /** Deletes the specified database. */
   static delete(name: string): Promise<void> {
@@ -349,24 +348,6 @@ export class SimpleDb {
             event.oldVersion
           );
           const db = (event.target as IDBOpenDBRequest).result;
-          if (
-            this.lastClosedDbVersion !== null &&
-            this.lastClosedDbVersion !== event.oldVersion
-          ) {
-            // This thrown error will get passed to the `onerror` callback
-            // registered above, and will then be propagated correctly.
-            throw new Error(
-              `refusing to open IndexedDB database due to potential ` +
-                `corruption of the IndexedDB database data; this corruption ` +
-                `could be caused by clicking the "clear site data" button in ` +
-                `a web browser; try reloading the web page to re-initialize ` +
-                `the IndexedDB database: ` +
-                `lastClosedDbVersion=${this.lastClosedDbVersion}, ` +
-                `event.oldVersion=${event.oldVersion}, ` +
-                `event.newVersion=${event.newVersion}, ` +
-                `db.version=${db.version}`
-            );
-          }
           this.schemaConverter
             .createOrUpgrade(
               db,
@@ -382,15 +363,6 @@ export class SimpleDb {
             });
         };
       });
-
-      this.db.addEventListener(
-        'close',
-        event => {
-          const db = event.target as IDBDatabase;
-          this.lastClosedDbVersion = db.version;
-        },
-        { passive: true }
-      );
     }
 
     this.db.addEventListener(
