@@ -33,8 +33,6 @@ import { StringMap } from '../util/types';
 
 import { Connection, Stream } from './connection';
 
-const LOG_TAG = 'RestConnection';
-
 /**
  * Maps RPC names to the corresponding REST endpoint name.
  *
@@ -59,6 +57,8 @@ function getGoogApiClientValue(): string {
  * HTTP).
  */
 export abstract class RestConnection implements Connection {
+  readonly debugId = `RestConnection@${generateUniqueDebugId()}`;
+
   protected readonly databaseId: DatabaseId;
   protected readonly baseUrl: string;
   private readonly databasePath: string;
@@ -92,7 +92,7 @@ export abstract class RestConnection implements Connection {
   ): Promise<Resp> {
     const streamId = generateUniqueDebugId();
     const url = this.makeUrl(rpcName, path.toUriEncodedString());
-    logDebug(LOG_TAG, `Sending RPC '${rpcName}' ${streamId}:`, url, req);
+    logDebug(this.debugId, `Sending RPC '${rpcName}' ${streamId}:`, url, req);
 
     const headers: StringMap = {
       'google-cloud-resource-prefix': this.databasePath,
@@ -110,12 +110,16 @@ export abstract class RestConnection implements Connection {
       forwardCredentials
     ).then(
       response => {
-        logDebug(LOG_TAG, `Received RPC '${rpcName}' ${streamId}: `, response);
+        logDebug(
+          this.debugId,
+          `Received RPC '${rpcName}' ${streamId}: `,
+          response
+        );
         return response;
       },
       (err: FirestoreError) => {
         logWarn(
-          LOG_TAG,
+          this.debugId,
           `RPC '${rpcName}' ${streamId} failed with error: `,
           err,
           'url: ',

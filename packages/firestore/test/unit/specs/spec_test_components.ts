@@ -61,6 +61,7 @@ import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { StreamBridge } from '../../../src/remote/stream_bridge';
 import { debugAssert, fail } from '../../../src/util/assert';
 import { AsyncQueue } from '../../../src/util/async_queue';
+import { generateUniqueDebugId } from '../../../src/util/debug_uid';
 import { FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
 import { WindowLike } from '../../../src/util/types';
@@ -229,6 +230,8 @@ export class MockMemoryOfflineComponentProvider extends MemoryOfflineComponentPr
 }
 
 export class MockConnection implements Connection {
+  readonly debugId = `SpecTestMockConnection@${generateUniqueDebugId}`;
+
   watchStream: StreamBridge<api.ListenRequest, api.ListenResponse> | null =
     null;
   writeStream: StreamBridge<api.WriteRequest, api.WriteResponse> | null = null;

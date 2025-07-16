@@ -238,7 +238,11 @@ export { debugAssert as _debugAssert } from './util/assert';
 export { FieldPath as _FieldPath } from './model/path';
 export type { ResourcePath as _ResourcePath } from './model/path';
 export { ByteString as _ByteString } from './util/byte_string';
-export { logWarn as _logWarn } from './util/log';
+export {
+  logWarn as _logWarn,
+  enableLogBuffer as _enableLogBuffer,
+  dumpLogBuffer as _dumpLogBuffer
+} from './util/log';
 export { AutoId as _AutoId } from './util/misc';
 export type {
   AuthTokenFactory,
