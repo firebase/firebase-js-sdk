@@ -92,6 +92,8 @@ export interface Auth {
     languageCode: string | null;
     readonly name: string;
     onAuthStateChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
+    // (undocumented)
+    onFirebaseTokenChanged(nextOrObserver: NextOrObserver<FirebaseToken | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
     onIdTokenChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
     setPersistence(persistence: Persistence): Promise<void>;
     readonly settings: AuthSettings;
