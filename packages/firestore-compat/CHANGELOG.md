@@ -1,5 +1,20 @@
 # @firebase/firestore-compat
 
+## 0.4.0
+
+### Minor Changes
+
+- [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113) [#9128](https://github.com/firebase/firebase-js-sdk/pull/9128) - Update node "engines" version to a minimum of Node 20.
+
+### Patch Changes
+
+- [`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9) [#9167](https://github.com/firebase/firebase-js-sdk/pull/9167) - Set build targets to ES2020.
+
+- Updated dependencies [[`f11b552`](https://github.com/firebase/firebase-js-sdk/commit/f11b55294a04dfe6a1216c487b1af3a7e7d07196), [`9771bff`](https://github.com/firebase/firebase-js-sdk/commit/9771bffadbc464890150dd7dd1a9a0fe2df60bf0), [`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9), [`a029ce3`](https://github.com/firebase/firebase-js-sdk/commit/a029ce39ee1ea1f6f28e79a1733ad8e8ebedf4bb), [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113)]:
+  - @firebase/firestore@4.9.0
+  - @firebase/component@0.7.0
+  - @firebase/util@1.13.0
+
 ## 0.3.53
 
 ### Patch Changes
