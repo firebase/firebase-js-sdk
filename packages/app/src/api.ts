@@ -254,7 +254,7 @@ export function initializeServerApp(
  * @throws If invoked in an unsupported non-server environment such as a browser.
  * @throws If {@link FirebaseServerAppSettings.releaseOnDeref} is defined but the runtime doesn't
  *   provide Finalization Registry support.
- * @throws If the `FIREBASE_OPTIONS` enviornment variable does not contain a valid project
+ * @throws If the `FIREBASE_OPTIONS` environment variable does not contain a valid project
  *   configuration required for auto-initialization.
  *
  * @public

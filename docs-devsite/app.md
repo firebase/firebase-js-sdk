@@ -148,7 +148,7 @@ If invoked in an unsupported non-server environment such as a browser.
 
 If [FirebaseServerAppSettings.releaseOnDeref](./app.firebaseserverappsettings.md#firebaseserverappsettingsreleaseonderef) is defined but the runtime doesn't provide Finalization Registry support.
 
-If the `FIREBASE_OPTIONS` enviornment variable does not contain a valid project configuration required for auto-initialization.
+If the `FIREBASE_OPTIONS` environment variable does not contain a valid project configuration required for auto-initialization.
 
 ## function(libraryKeyOrName, ...)
 
