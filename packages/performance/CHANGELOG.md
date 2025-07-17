@@ -1,5 +1,19 @@
 # @firebase/performance
 
+## 0.7.8
+
+### Patch Changes
+
+- [`3d44792`](https://github.com/firebase/firebase-js-sdk/commit/3d44792f14f3df265162d06e2acdf3cad0c2ef86) [#9120](https://github.com/firebase/firebase-js-sdk/pull/9120) (fixes [#9067](https://github.com/firebase/firebase-js-sdk/issues/9067)) - Fix bug where events are not sent if they exceed sendBeacon payload limit
+
+- [`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9) [#9167](https://github.com/firebase/firebase-js-sdk/pull/9167) - Set build targets to ES2020.
+
+- Updated dependencies [[`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9), [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113)]:
+  - @firebase/installations@0.6.19
+  - @firebase/component@0.7.0
+  - @firebase/logger@0.5.0
+  - @firebase/util@1.13.0
+
 ## 0.7.7
 
 ### Patch Changes
