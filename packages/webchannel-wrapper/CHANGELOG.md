@@ -1,5 +1,11 @@
 # @firebase/webchannel-wrapper
 
+## 1.0.4
+
+### Patch Changes
+
+- [`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9) [#9167](https://github.com/firebase/firebase-js-sdk/pull/9167) - Set build targets to ES2020.
+
 ## 1.0.3
 
 ### Patch Changes
