@@ -62,7 +62,7 @@ import { fromVersion, JsonProtoSerializer } from '../remote/serializer';
 import { diffArrays } from '../util/array';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
-import { logDebug } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { SortedMap } from '../util/sorted_map';
@@ -1029,22 +1029,22 @@ export async function localStoreReleaseTarget(
 ): Promise<void> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const targetData = localStoreImpl.targetDataByTarget.get(targetId);
-  debugAssert(
-    targetData !== null,
-    `Tried to release nonexistent target: ${targetId}`
-  );
+
+  if (targetData === null) {
+    logWarn(`Tried to release nonexistent target: ${targetId}`);
+  }
 
   const mode = keepPersistedTargetData ? 'readwrite' : 'readwrite-primary';
 
   try {
-    if (!keepPersistedTargetData) {
+    if (!keepPersistedTargetData && targetData) {
       await localStoreImpl.persistence.runTransaction(
         'Release target',
         mode,
         txn => {
           return localStoreImpl.persistence.referenceDelegate.removeTarget(
             txn,
-            targetData!
+            targetData
           );
         }
       );
@@ -1067,7 +1067,10 @@ export async function localStoreReleaseTarget(
 
   localStoreImpl.targetDataByTarget =
     localStoreImpl.targetDataByTarget.remove(targetId);
-  localStoreImpl.targetIdByTarget.delete(targetData!.target);
+
+  if (targetData) {
+    localStoreImpl.targetIdByTarget.delete(targetData!.target);
+  }
 }
 
 /**
