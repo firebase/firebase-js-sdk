@@ -32,7 +32,8 @@ import {
   set,
   startAt,
   update,
-  orderByKey
+  orderByKey,
+  equalTo
 } from '../../src/api/Reference_impl';
 import {
   connectDatabaseEmulator,
@@ -556,5 +557,78 @@ describe('Database@exp Tests', () => {
     await incrementViaTransaction();
     expect(latestValue).to.equal(2);
     unsubscribe();
+  });
+  it.only('doesn\'t override a tagged query with no data at the location', async () => {
+    const database = getDatabase(defaultApp);
+    const testingRef = ref(database, 'testing');
+    await set(testingRef, {
+      folderA: {
+        itemB: {
+          color: 'blue',
+          name: 'ocean'
+        }
+      },
+      folderB: {
+        itemC: {
+          color: 'yellow',
+          name: 'sun'
+        }
+      }
+    });
+    const queryA = query(testingRef, orderByChild('testIndex'), equalTo(true));
+    const queryB = query(testingRef, limitToFirst(100));
+    // TODO: Check count
+    const waitForInitialEvents = EventAccumulatorFactory.waitsForExactCount(2);
+    onValue(queryA, (snapshot) => {
+      waitForInitialEvents.addEvent(snapshot);
+    });
+    onValue(queryB, (snapshot) => {
+      waitForInitialEvents.addEvent(snapshot);
+    });
+    await waitForInitialEvents.promise;
+    expect(waitForInitialEvents.eventData[0].val()).to.eq(null);
+    expect(waitForInitialEvents.eventData[1].val()).to.deep.eq({
+      folderA: {
+        itemB: {
+          color: 'blue',
+          name: 'ocean'
+        }
+      },
+      folderB: {
+        itemC: {
+          color: 'yellow',
+          name: 'sun'
+        }
+      }
+    });
+    waitForInitialEvents.reset();
+    const waitForSecondWave = EventAccumulatorFactory.waitsForExactCount(1);
+    const folderARef = child(testingRef, 'folderA/itemB');
+    let folderARefListenerUnsub = onValue(folderARef, (snapshot) => {
+      waitForSecondWave.addEvent(snapshot);
+    });
+    await waitForSecondWave.promise;
+    expect(waitForSecondWave.eventData[0].val()).to.deep.eq({
+          color: 'blue',
+          name: 'ocean'
+      });
+    waitForSecondWave.reset();
+    await update(folderARef,  { name: 'sky'});
+    await waitForSecondWave.promise;
+    expect(waitForSecondWave.eventData[0].val()).to.deep.eq({
+          color: 'blue',
+          name: 'sky'
+        }
+      );
+      waitForSecondWave.reset();
+      folderARefListenerUnsub();
+      folderARefListenerUnsub = onValue(folderARef, snapshot => {
+        waitForSecondWave.addEvent(snapshot);
+      });
+    await waitForSecondWave.promise;
+expect(waitForSecondWave.eventData[0].val()).to.deep.eq({
+    color: 'blue',
+    name: 'sky'
+});
   });
 });
