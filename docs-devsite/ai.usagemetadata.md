@@ -26,6 +26,7 @@ export interface UsageMetadata
 |  [candidatesTokensDetails](./ai.usagemetadata.md#usagemetadatacandidatestokensdetails) | [ModalityTokenCount](./ai.modalitytokencount.md#modalitytokencount_interface)<!-- -->\[\] |  |
 |  [promptTokenCount](./ai.usagemetadata.md#usagemetadataprompttokencount) | number |  |
 |  [promptTokensDetails](./ai.usagemetadata.md#usagemetadataprompttokensdetails) | [ModalityTokenCount](./ai.modalitytokencount.md#modalitytokencount_interface)<!-- -->\[\] |  |
+|  [thoughtsTokenCount](./ai.usagemetadata.md#usagemetadatathoughtstokencount) | number | The number of tokens used by the model's internal "thinking" process. |
 |  [totalTokenCount](./ai.usagemetadata.md#usagemetadatatotaltokencount) | number |  |
 
 ## UsageMetadata.candidatesTokenCount
@@ -58,6 +59,16 @@ promptTokenCount: number;
 
 ```typescript
 promptTokensDetails?: ModalityTokenCount[];
+```
+
+## UsageMetadata.thoughtsTokenCount
+
+The number of tokens used by the model's internal "thinking" process.
+
+<b>Signature:</b>
+
+```typescript
+thoughtsTokenCount?: number;
 ```
 
 ## UsageMetadata.totalTokenCount

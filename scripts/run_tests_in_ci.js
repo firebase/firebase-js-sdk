@@ -27,7 +27,9 @@ const crossBrowserPackages = {
   'packages/auth': 'test:browser:unit',
   'packages/auth-compat': 'test:browser:unit',
   'packages/firestore': 'test:browser:unit',
-  'packages/firestore-compat': 'test:browser'
+  'packages/firestore-compat': 'test:browser',
+  'packages/storage': 'test:browser:unit',
+  'packages/storage-compat': 'test:browser:unit'
 };
 
 function writeLogs(status, name, logText) {
@@ -59,17 +61,27 @@ const argv = yargs.options({
   const myPath = argv.d;
   let scriptName = argv.s;
   const dir = path.resolve(myPath);
-  const { name } = require(`${dir}/package.json`);
+  const { name, scripts } = require(`${dir}/package.json`);
 
   let testProcessOutput = '';
   try {
     if (process.env?.BROWSERS) {
+      if (scripts['test:browser']) {
+        scriptName = 'test:browser';
+      }
       for (const package in crossBrowserPackages) {
         if (dir.endsWith(package)) {
           scriptName = crossBrowserPackages[package];
         }
       }
     }
+
+    console.log(
+      `[${name}][${
+        process.env.BROWSERS ?? 'chrome/node'
+      }]: Running script ${scriptName}`
+    );
+
     const testProcess = spawn('yarn', ['--cwd', dir, scriptName]);
 
     testProcess.childProcess.stdout.on('data', data => {

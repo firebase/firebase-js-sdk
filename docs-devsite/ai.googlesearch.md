@@ -9,25 +9,13 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# VertexAIOptions interface
-Options when initializing the Firebase AI SDK.
+# GoogleSearch interface
+Specifies the Google Search configuration.
+
+Currently, this is an empty object, but it's reserved for future configuration options.
 
 <b>Signature:</b>
 
 ```typescript
-export interface VertexAIOptions 
-```
-
-## Properties
-
-|  Property | Type | Description |
-|  --- | --- | --- |
-|  [location](./ai.vertexaioptions.md#vertexaioptionslocation) | string |  |
-
-## VertexAIOptions.location
-
-<b>Signature:</b>
-
-```typescript
-location?: string;
+export interface GoogleSearch 
 ```
