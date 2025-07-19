@@ -682,6 +682,9 @@ export class QueryStartAtConstraint extends QueryConstraint {
 export function refEqual<AppModelType, DbModelType extends DocumentData>(left: DocumentReference<AppModelType, DbModelType> | CollectionReference<AppModelType, DbModelType>, right: DocumentReference<AppModelType, DbModelType> | CollectionReference<AppModelType, DbModelType>): boolean;
 
 // @public
+export function runPersistentCacheIndexPerformanceExperiment(log: (...args: unknown[]) => unknown, logLevel: 'info' | 'debug'): Promise<number>;
+
+// @public
 export function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>, options?: TransactionOptions): Promise<T>;
 
 // @public
