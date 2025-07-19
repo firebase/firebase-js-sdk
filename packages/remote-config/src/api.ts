@@ -102,7 +102,6 @@ export async function activate(remoteConfig: RemoteConfig): Promise<boolean> {
   if (
     !lastSuccessfulFetchResponse ||
     !lastSuccessfulFetchResponse.config ||
-    !lastSuccessfulFetchResponse.experiments ||
     !lastSuccessfulFetchResponse.eTag ||
     !lastSuccessfulFetchResponse.templateVersion ||
     lastSuccessfulFetchResponse.eTag === activeConfigEtag
