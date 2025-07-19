@@ -93,7 +93,7 @@ const allBuilds = [
       }),
       json(),
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2020))
     ],
     external: util.resolveNodeExterns,
     treeshake: {
@@ -110,7 +110,7 @@ const allBuilds = [
     },
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2020))
     ],
     external: util.resolveNodeExterns,
     treeshake: {
@@ -140,7 +140,7 @@ const allBuilds = [
       moduleSideEffects: false
     }
   },
-  // Convert es2017 build to CJS
+  // Convert es2020 build to CJS
   {
     input: path.resolve('./lite', pkg.browser),
     output: [
@@ -152,14 +152,14 @@ const allBuilds = [
     ],
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2020))
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
   },
-  // Browser es2017 build
+  // Browser es2020 build
   {
     input: path.resolve('./lite', pkg.browser),
     output: [
@@ -171,7 +171,7 @@ const allBuilds = [
     ],
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2020))
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
@@ -190,7 +190,7 @@ const allBuilds = [
       alias(util.generateAliasConfig('rn_lite')),
       ...browserPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('esm', 2017),
+        ...generateBuildTargetReplaceConfig('esm', 2020),
         '__RUNTIME_ENV__': 'rn'
       })
     ],

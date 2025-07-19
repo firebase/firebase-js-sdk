@@ -21,8 +21,7 @@ import {
   SchemaInterface,
   SchemaType,
   SchemaParams,
-  SchemaRequest,
-  ObjectSchemaInterface
+  SchemaRequest
 } from '../types/schema';
 
 /**
@@ -34,10 +33,11 @@ import {
  */
 export abstract class Schema implements SchemaInterface {
   /**
-   * Optional. The type of the property. {@link
-   * SchemaType}.
+   * Optional. The type of the property.
+   * This can only be undefined when using `anyOf` schemas, which do not have an
+   * explicit type in the {@link https://swagger.io/docs/specification/v3_0/data-models/data-types/#any-type | OpenAPI specification}.
    */
-  type: SchemaType;
+  type?: SchemaType;
   /** Optional. The format of the property.
    * Supported formats:<br/>
    * <ul>
@@ -51,9 +51,9 @@ export abstract class Schema implements SchemaInterface {
   description?: string;
   /** Optional. The items of the property. */
   items?: SchemaInterface;
-  /** The minimum number of items (elements) in a schema of type {@link SchemaType.ARRAY}. */
+  /** The minimum number of items (elements) in a schema of {@link (SchemaType:type)} `array`. */
   minItems?: number;
-  /** The maximum number of items (elements) in a schema of type {@link SchemaType.ARRAY}. */
+  /** The maximum number of items (elements) in a schema of {@link (SchemaType:type)} `array`. */
   maxItems?: number;
   /** Optional. Whether the property is nullable. Defaults to false. */
   nullable: boolean;
@@ -66,12 +66,22 @@ export abstract class Schema implements SchemaInterface {
   [key: string]: unknown;
 
   constructor(schemaParams: SchemaInterface) {
+    // TODO(dlarocque): Enforce this with union types
+    if (!schemaParams.type && !schemaParams.anyOf) {
+      throw new AIError(
+        AIErrorCode.INVALID_SCHEMA,
+        "A schema must have either a 'type' or an 'anyOf' array of sub-schemas."
+      );
+    }
     // eslint-disable-next-line guard-for-in
     for (const paramKey in schemaParams) {
       this[paramKey] = schemaParams[paramKey];
     }
     // Ensure these are explicitly set to avoid TS errors.
     this.type = schemaParams.type;
+    this.format = schemaParams.hasOwnProperty('format')
+      ? schemaParams.format
+      : undefined;
     this.nullable = schemaParams.hasOwnProperty('nullable')
       ? !!schemaParams.nullable
       : false;
@@ -83,7 +93,7 @@ export abstract class Schema implements SchemaInterface {
    * @internal
    */
   toJSON(): SchemaRequest {
-    const obj: { type: SchemaType; [key: string]: unknown } = {
+    const obj: { type?: SchemaType; [key: string]: unknown } = {
       type: this.type
     };
     for (const prop in this) {
@@ -139,6 +149,12 @@ export abstract class Schema implements SchemaInterface {
   static boolean(booleanParams?: SchemaParams): BooleanSchema {
     return new BooleanSchema(booleanParams);
   }
+
+  static anyOf(
+    anyOfParams: SchemaParams & { anyOf: TypedSchema[] }
+  ): AnyOfSchema {
+    return new AnyOfSchema(anyOfParams);
+  }
 }
 
 /**
@@ -151,7 +167,8 @@ export type TypedSchema =
   | StringSchema
   | BooleanSchema
   | ObjectSchema
-  | ArraySchema;
+  | ArraySchema
+  | AnyOfSchema;
 
 /**
  * Schema class for "integer" types.
@@ -292,7 +309,41 @@ export class ObjectSchema extends Schema {
     if (required.length > 0) {
       obj.required = required;
     }
-    delete (obj as ObjectSchemaInterface).optionalProperties;
+    delete obj.optionalProperties;
     return obj as SchemaRequest;
+  }
+}
+
+/**
+ * Schema class representing a value that can conform to any of the provided sub-schemas. This is
+ * useful when a field can accept multiple distinct types or structures.
+ * @public
+ */
+export class AnyOfSchema extends Schema {
+  anyOf: TypedSchema[]; // Re-define field to narrow to required type
+  constructor(schemaParams: SchemaParams & { anyOf: TypedSchema[] }) {
+    if (schemaParams.anyOf.length === 0) {
+      throw new AIError(
+        AIErrorCode.INVALID_SCHEMA,
+        "The 'anyOf' array must not be empty."
+      );
+    }
+    super({
+      ...schemaParams,
+      type: undefined // anyOf schemas do not have an explicit type
+    });
+    this.anyOf = schemaParams.anyOf;
+  }
+
+  /**
+   * @internal
+   */
+  toJSON(): SchemaRequest {
+    const obj = super.toJSON();
+    // Ensure the 'anyOf' property contains serialized SchemaRequest objects.
+    if (this.anyOf && Array.isArray(this.anyOf)) {
+      obj.anyOf = (this.anyOf as TypedSchema[]).map(s => s.toJSON());
+    }
+    return obj;
   }
 }
