@@ -270,7 +270,7 @@ export function isBrowserExtension(): boolean;
 export function isCloudflareWorker(): boolean;
 
 // @public
-export function isCloudWorkstation(host: string): boolean;
+export function isCloudWorkstation(url: string): boolean;
 
 // Warning: (ae-missing-release-tag) "isElectron" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

@@ -102,8 +102,8 @@ describe('processStream', () => {
       expect(response.text()).to.not.be.empty;
     }
     const aggregatedResponse = await result.response;
-    expect(aggregatedResponse.text()).to.include('**Cats:**');
-    expect(aggregatedResponse.text()).to.include('to their owners.');
+    expect(aggregatedResponse.text()).to.include('Okay');
+    expect(aggregatedResponse.text()).to.include('brewing delicious coffee');
   });
   it('streaming response - long - big chunk', async () => {
     const fakeResponse = getMockResponseStreaming(
@@ -116,8 +116,8 @@ describe('processStream', () => {
       expect(response.text()).to.not.be.empty;
     }
     const aggregatedResponse = await result.response;
-    expect(aggregatedResponse.text()).to.include('**Cats:**');
-    expect(aggregatedResponse.text()).to.include('to their owners.');
+    expect(aggregatedResponse.text()).to.include('Okay');
+    expect(aggregatedResponse.text()).to.include('brewing delicious coffee');
   });
   it('streaming response - utf8', async () => {
     const fakeResponse = getMockResponseStreaming(
