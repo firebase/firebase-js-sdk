@@ -34,6 +34,7 @@ import { Api } from '../services/api_service';
 import { logTrace, flushLogs } from '../services/perf_logger';
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
 import {
+  MAX_ATTRIBUTE_VALUE_LENGTH,
   isValidCustomAttributeName,
   isValidCustomAttributeValue
 } from '../utils/attributes_utils';
@@ -382,7 +383,14 @@ export class Trace implements PerformanceTrace {
     if (metric) {
       trace.putMetric(metricKey, Math.floor(metric.value * 1000));
       if (metric.elementAttribution) {
-        trace.putAttribute(attributeKey, metric.elementAttribution);
+        if (metric.elementAttribution.length > MAX_ATTRIBUTE_VALUE_LENGTH) {
+          trace.putAttribute(
+            attributeKey,
+            metric.elementAttribution.substring(0, MAX_ATTRIBUTE_VALUE_LENGTH)
+          );
+        } else {
+          trace.putAttribute(attributeKey, metric.elementAttribution);
+        }
       }
     }
   }
