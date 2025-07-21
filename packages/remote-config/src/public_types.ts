@@ -223,13 +223,19 @@ declare module '@firebase/component' {
  * @public
  */
 export interface ConfigUpdateObserver {
-    // Called when a new ConfigUpdate is available.
+    /**
+     * Called when a new ConfigUpdate is available.
+     */
     next: (configUpdate: ConfigUpdate) => void;
 
-    // Called if an error occurs during the stream.
+    /**
+     * Called if an error occurs during the stream.
+     */ 
     error: (error: FirebaseError) => void;
 
-    // Called when the stream is gracefully terminated.
+     /**
+     * Called when the stream is gracefully terminated.
+     */ 
     complete: () => void;
 }
 

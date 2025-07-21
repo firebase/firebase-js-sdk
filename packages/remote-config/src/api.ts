@@ -354,6 +354,7 @@ export async function setCustomSignals(
     );
   }
 }
+
 /**
  * Registers a real-time listener for Remote Config updates.
  *
