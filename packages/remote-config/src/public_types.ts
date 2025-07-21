@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app';
-
+import { FirebaseApp, FirebaseError } from '@firebase/app';
 /**
  * The Firebase Remote Config service interface.
  *
@@ -216,4 +215,40 @@ declare module '@firebase/component' {
   interface NameServiceMapping {
     'remote-config': RemoteConfig;
   }
+}
+
+/**
+ * Observer interface for receiving real-time Remote Config update notifications.
+ *
+ * @public
+ */
+export interface ConfigUpdateObserver {
+    // Called when a new ConfigUpdate is available.
+    next: (configUpdate: ConfigUpdate) => void;
+
+    // Called if an error occurs during the stream.
+    error: (error: FirebaseError) => void;
+
+    // Called when the stream is gracefully terminated.
+    complete: () => void;
+}
+
+/**
+ * A function that unsubscribes from a real-time event stream.
+ *
+ * @public
+ */
+export type Unsubscribe = () => void;
+
+/**
+ * Contains information about which keys have been updated.
+ * 
+ * @public
+ */
+export interface ConfigUpdate {
+  /**
+   * Parameter keys whose values have been updated from the currently activated values.
+   * Includes keys that are added, deleted, or whose value, value source, or metadata has changed.
+   */
+  readonly updatedKeys: string[]
 }

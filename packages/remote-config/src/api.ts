@@ -22,7 +22,10 @@ import {
   LogLevel as RemoteConfigLogLevel,
   RemoteConfig,
   Value,
-  RemoteConfigOptions
+  RemoteConfigOptions,
+  ConfigUpdateObserver,
+  Unsubscribe,
+  ConfigUpdate
 } from './public_types';
 import { RemoteConfigAbortSignal } from './client/remote_config_fetch_client';
 import {
@@ -351,3 +354,22 @@ export async function setCustomSignals(
     );
   }
 }
+/**
+ * Registers a real-time listener for Remote Config updates.
+ *
+ * @param remoteConfig - The {@link RemoteConfig} instance.
+ * @param observer - The {@link ConfigUpdateObserver} to be notified of config updates.
+ * @returns An {@link Unsubscribe} function to remove the listener.
+ *
+ * @public
+ */
+export function onConfigUpdate(
+  remoteConfig: RemoteConfig,
+  observer: ConfigUpdateObserver
+): Unsubscribe {
+  const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;
+  rc._realtimeHandler.addObserver(observer);
+  return () => {
+    rc._realtimeHandler.removeObserver(observer);
+  }
+};
