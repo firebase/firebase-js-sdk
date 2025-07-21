@@ -95,7 +95,8 @@ describe('RestClient', () => {
       expect(response).to.deep.eq({
         status: expectedResponse.status,
         eTag: expectedResponse.eTag,
-        config: expectedResponse.entries
+        config: expectedResponse.entries,
+        version: undefined
       });
     });
 
@@ -184,7 +185,8 @@ describe('RestClient', () => {
       expect(response).to.deep.eq({
         status: 304,
         eTag: 'response-etag',
-        config: undefined
+        config: undefined,
+        version: undefined
       });
     });
 
@@ -222,7 +224,8 @@ describe('RestClient', () => {
       expect(response).to.deep.eq({
         status: 304,
         eTag: 'etag',
-        config: undefined
+        config: undefined,
+        version: undefined
       });
     });
 
@@ -239,7 +242,8 @@ describe('RestClient', () => {
         await expect(client.fetch(DEFAULT_REQUEST)).to.eventually.be.deep.eq({
           status: 200,
           eTag: 'etag',
-          config: {}
+          config: {},
+          version: undefined
         });
       }
     });

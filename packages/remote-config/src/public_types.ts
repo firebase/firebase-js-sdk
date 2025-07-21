@@ -90,6 +90,11 @@ export interface FetchResponse {
    */
   config?: FirebaseRemoteConfigObject;
 
+  /**
+   * Defines remote config version.
+   */
+  version?: string;
+
   // Note: we're not extracting experiment metadata until
   // ABT and Analytics have Web SDKs.
 }

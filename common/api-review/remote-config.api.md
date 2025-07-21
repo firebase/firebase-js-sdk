@@ -29,6 +29,7 @@ export interface FetchResponse {
     config?: FirebaseRemoteConfigObject;
     eTag?: string;
     status: number;
+    version?: string;
 }
 
 // @public
