@@ -17,8 +17,6 @@ export class RealtimeHandler {
      */
     addObserver(observer: ConfigUpdateObserver) {
         this.observers.add(observer);
-        console.log("observer added:", this.observers);
-
         this.begineRealtime();
     }
     /**
@@ -28,7 +26,6 @@ export class RealtimeHandler {
      */
     removeObserver(observer: ConfigUpdateObserver) {
         if (this.observers.has(observer)) {
-            console.log("observer remove:", this.observers);
             return this.observers.delete(observer);
         }
     }
