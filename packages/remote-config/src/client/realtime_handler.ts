@@ -19,7 +19,7 @@ import { ConfigUpdateObserver } from "../public_types";
 const MAX_HTTP_RETRIES = 8;
 
 export class RealtimeHandler{
-    constructor () 
+    constructor ( ) 
     { }
     
     private observers: Set<ConfigUpdateObserver> = new Set<ConfigUpdateObserver>();
@@ -28,10 +28,12 @@ export class RealtimeHandler{
     * Adds an observer to the realtime updates.
     * @param observer The observer to add.
     */
-    public addObserver(observer: ConfigUpdateObserver) {
+    public addObserver(observer: ConfigUpdateObserver): void {
         this.observers.add(observer);
         this.beginRealtime();
+
     }
+    
     /**
      * Removes an observer from the realtime updates.
      * @param observer The observer to remove.
@@ -44,7 +46,7 @@ export class RealtimeHandler{
 
     private beginRealtime(): void {
         if (this.observers.size > 0) {
-            this.makeRealtimeHttpConnection(0);
+            this.makeRealtimeHttpConnection(0)
         }
     }
 
