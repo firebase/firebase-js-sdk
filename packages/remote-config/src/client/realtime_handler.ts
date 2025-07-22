@@ -30,7 +30,11 @@ export class RealtimeHandler{
     */
     public addObserver(observer: ConfigUpdateObserver) {
         this.observers.add(observer);
-        this.beginRealtime();
+<<<<<<< HEAD
+        his.beginRealtime();
+=======
+        this.begineRealtime();
+>>>>>>> 0e1e4c98f94a55cb8a96ba07f2ec5c8059266e67
     }
     /**
      * Removes an observer from the realtime updates.
@@ -38,7 +42,11 @@ export class RealtimeHandler{
      */
     public removeObserver(observer: ConfigUpdateObserver): void {
         if (this.observers.has(observer)) {
+<<<<<<< HEAD
             this.observers.delete(observer);
+=======
+            return this.observers.delete(observer);
+>>>>>>> 0e1e4c98f94a55cb8a96ba07f2ec5c8059266e67
         }
     }
 
