@@ -31,7 +31,6 @@ export class RealtimeHandler{
     public addObserver(observer: ConfigUpdateObserver): void {
         this.observers.add(observer);
         this.beginRealtime();
-
     }
     
     /**
