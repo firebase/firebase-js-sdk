@@ -30,7 +30,7 @@
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "6.1.0",
     "@rollup/plugin-node-resolve": "16.0.0",
-    "@rollup/plugin-virtual": "2.1.0",
+    "@rollup/plugin-virtual": "3.0.2",
     "rollup": "2.79.2",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.36.0",
