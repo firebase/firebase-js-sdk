@@ -335,9 +335,7 @@ export class WebChannelConnection extends RestConnection {
         logWarn(
           LOG_TAG,
           `RPC '${rpcName}' stream ${streamId} transport errored. Name:`,
-          err.name,
-          'Message:',
-          err.message
+          err
         );
         streamBridge.callOnClose(
           new FirestoreError(
