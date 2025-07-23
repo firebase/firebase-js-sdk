@@ -61,9 +61,9 @@ export class RulesTestEnvironmentImpl implements RulesTestEnvironment {
     return this.createContext(/* authToken = */ undefined);
   }
 
-  async withSecurityRulesDisabled(
-    callback: (context: RulesTestContext) => Promise<void>
-  ): Promise<void> {
+  async withSecurityRulesDisabled<T>(
+    callback: (context: RulesTestContext) => Promise<T>
+  ): Promise<T> {
     this.checkNotDestroyed();
     // The "owner" token is recognized by the emulators as a special value that bypasses Security
     // Rules. This should only ever be used in withSecurityRulesDisabled.
@@ -72,14 +72,16 @@ export class RulesTestEnvironmentImpl implements RulesTestEnvironment {
     // Admin SDKs to the emulators for integration testing via environment variables.
     // See: https://firebase.google.com/docs/emulator-suite/connect_firestore#admin_sdks
     const context = this.createContext('owner');
+    let data
     try {
-      await callback(context);
+      data = await callback(context);
     } finally {
       // We eagerly clean up this context to actively prevent misuse outside of the callback, e.g.
       // storing the context in a variable.
       context.cleanup();
       this.contexts.delete(context);
     }
+    return data
   }
 
   private createContext(
