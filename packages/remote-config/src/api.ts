@@ -24,8 +24,7 @@ import {
   Value,
   RemoteConfigOptions,
   ConfigUpdateObserver,
-  Unsubscribe,
-  ConfigUpdate
+  Unsubscribe
 } from './public_types';
 import { RemoteConfigAbortSignal } from './client/remote_config_fetch_client';
 import {
@@ -372,5 +371,5 @@ export function onConfigUpdate(
   rc._realtimeHandler.addObserver(observer);
   return () => {
     rc._realtimeHandler.removeObserver(observer);
-  }
-};
+  };
+}

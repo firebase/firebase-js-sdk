@@ -46,6 +46,7 @@ import {
 import * as api from '../src/api';
 import { fetchAndActivate } from '../src';
 import { restore } from 'sinon';
+import { RealtimeHandler } from '../src/client/realtime_handler';
 
 describe('RemoteConfig', () => {
   const ACTIVE_CONFIG = {
@@ -67,6 +68,7 @@ describe('RemoteConfig', () => {
   let storageCache: StorageCache;
   let storage: Storage;
   let logger: Logger;
+  let realtimeHandler: RealtimeHandler;
   let rc: RemoteConfigType;
 
   let getActiveConfigStub: sinon.SinonStub;
@@ -79,12 +81,13 @@ describe('RemoteConfig', () => {
     client = {} as RemoteConfigFetchClient;
     storageCache = {} as StorageCache;
     storage = {} as Storage;
+    realtimeHandler = {} as RealtimeHandler;
     logger = new Logger('package-name');
     getActiveConfigStub = sinon.stub().returns(undefined);
     storageCache.getActiveConfig = getActiveConfigStub;
     loggerDebugSpy = sinon.spy(logger, 'debug');
     loggerLogLevelSpy = sinon.spy(logger, 'logLevel', ['set']);
-    rc = new RemoteConfig(app, client, storageCache, storage, logger);
+    rc = new RemoteConfig(app, client, storageCache, storage, logger, realtimeHandler);
   });
 
   afterEach(() => {

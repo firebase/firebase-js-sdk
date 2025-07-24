@@ -223,20 +223,20 @@ declare module '@firebase/component' {
  * @public
  */
 export interface ConfigUpdateObserver {
-    /**
-     * Called when a new ConfigUpdate is available.
-     */
-    next: (configUpdate: ConfigUpdate) => void;
+  /**
+   * Called when a new ConfigUpdate is available.
+   */
+  next: (configUpdate: ConfigUpdate) => void;
 
-    /**
-     * Called if an error occurs during the stream.
-     */ 
-    error: (error: FirebaseError) => void;
+  /**
+   * Called if an error occurs during the stream.
+   */
+  error: (error: FirebaseError) => void;
 
-     /**
-     * Called when the stream is gracefully terminated.
-     */ 
-    complete: () => void;
+  /**
+   * Called when the stream is gracefully terminated.
+   */
+  complete: () => void;
 }
 
 /**
@@ -248,7 +248,7 @@ export type Unsubscribe = () => void;
 
 /**
  * Contains information about which keys have been updated.
- * 
+ *
  * @public
  */
 export interface ConfigUpdate {
@@ -256,5 +256,5 @@ export interface ConfigUpdate {
    * Parameter keys whose values have been updated from the currently activated values.
    * Includes keys that are added, deleted, or whose value, value source, or metadata has changed.
    */
-  readonly updatedKeys: string[]
+  readonly updatedKeys: string[];
 }

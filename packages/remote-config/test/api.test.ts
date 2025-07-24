@@ -17,11 +17,14 @@
 
 import { expect } from 'chai';
 import {
+  ConfigUpdateObserver,
   ensureInitialized,
   fetchAndActivate,
   FetchResponse,
   getRemoteConfig,
-  getString
+  getString,
+  onConfigUpdate,
+  Unsubscribe
 } from '../src';
 import '../test/setup';
 import {
@@ -52,8 +55,19 @@ async function clearDatabase(): Promise<void> {
     .clear();
 }
 
+interface MockRealtimeHandler {
+  addObserver: sinon.SinonStub<[ConfigUpdateObserver], Unsubscribe>;
+  removeObserver: sinon.SinonStub<[ConfigUpdateObserver], Unsubscribe>;
+}
+
 describe('Remote Config API', () => {
   let app: FirebaseApp;
+  let mockObserver: ConfigUpdateObserver;
+  let mockNextCallback: sinon.SinonStub;
+  let mockErrorCallback: sinon.SinonStub;
+  let mockCompleteCallback: sinon.SinonStub;
+  let mockRealtimeHandler: MockRealtimeHandler;
+
   const STUB_FETCH_RESPONSE: FetchResponse = {
     status: 200,
     eTag: 'asdf',
@@ -64,6 +78,20 @@ describe('Remote Config API', () => {
   beforeEach(() => {
     fetchStub = sinon.stub(window, 'fetch');
     app = initializeApp(fakeFirebaseConfig);
+    mockNextCallback = sinon.stub();
+    mockErrorCallback = sinon.stub();
+    mockCompleteCallback = sinon.stub();
+    mockObserver = {
+      next: mockNextCallback,
+      error: mockErrorCallback,
+      complete: mockCompleteCallback
+    };
+
+    mockRealtimeHandler = {
+      addObserver: sinon.stub<[ConfigUpdateObserver], Unsubscribe>().returns(sinon.stub()),
+      removeObserver: sinon.stub<[ConfigUpdateObserver], Unsubscribe>().returns(sinon.stub()),
+    };
+    
     _addOrOverwriteComponent(
       app,
       new Component(
@@ -77,6 +105,9 @@ describe('Remote Config API', () => {
         ComponentType.PUBLIC
       ) as any
     );
+    mockRealtimeHandler.addObserver.resetHistory();
+    mockRealtimeHandler.removeObserver.resetHistory();
+
   });
 
   afterEach(async () => {
@@ -149,4 +180,30 @@ describe('Remote Config API', () => {
     await ensureInitialized(rc);
     expect(getString(rc, 'foobar')).to.equal('hello world');
   });
+
+  it('should call addObserver on the realtime handler with the correct arguments', () => {
+    const rc = getRemoteConfig(app);
+    const addObserverStub = sinon.stub(
+      (rc as any)._realtimeHandler, 
+      'addObserver'
+    );
+    const unsubscribeStub = sinon.stub();
+    addObserverStub.returns(unsubscribeStub);
+    onConfigUpdate(rc, mockObserver);
+    expect(addObserverStub).to.have.been.calledOnceWith(mockObserver);
+    addObserverStub.restore();
+  });
+
+  it('should return a function that removes the observer', () => {
+    const rc = getRemoteConfig(app);
+    const removeObserverStub = sinon.stub(
+      (rc as any)._realtimeHandler,
+      'removeObserver'
+    );
+    const unsubscribe = onConfigUpdate(rc, mockObserver);
+    unsubscribe();
+    expect(removeObserverStub).to.have.been.calledOnceWith(mockObserver);
+    removeObserverStub.restore();
+  });
+
 });

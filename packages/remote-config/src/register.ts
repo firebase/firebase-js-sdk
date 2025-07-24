@@ -108,7 +108,7 @@ export function registerRemoteConfig(): void {
       logger
     );
 
-    const realtimehandler = new RealtimeHandler();
+    const realtimehandler = new RealtimeHandler(installations);
 
     const remoteConfigInstance = new RemoteConfigImpl(
       app,
