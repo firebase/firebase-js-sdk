@@ -113,9 +113,7 @@ describe('platform_browser/popup_redirect', () => {
       provider.setCustomParameters({ foo: 'bar' });
 
       await resolver._openPopup(auth, provider, event);
-      expect(popupUrl).to.include(
-        `https://${TEST_AUTH_DOMAIN}/__/auth/handler`
-      );
+      expect(popupUrl).to.include(`http://${TEST_AUTH_DOMAIN}/__/auth/handler`);
       expect(popupUrl).to.include(`apiKey=${TEST_KEY}`);
       expect(popupUrl).to.include('appName=test-app');
       expect(popupUrl).to.include(`authType=${AuthEventType.LINK_VIA_POPUP}`);
@@ -207,7 +205,7 @@ describe('platform_browser/popup_redirect', () => {
       });
 
       expect(newWindowLocation).to.include(
-        `https://${TEST_AUTH_DOMAIN}/__/auth/handler`
+        `http://${TEST_AUTH_DOMAIN}/__/auth/handler`
       );
       expect(newWindowLocation).to.include(`apiKey=${TEST_KEY}`);
       expect(newWindowLocation).to.include('appName=test-app');
