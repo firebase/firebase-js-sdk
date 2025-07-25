@@ -37,6 +37,12 @@ import * as sinon from 'sinon';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { openDatabase, APP_NAMESPACE_STORE } from '../src/storage/storage';
+import { RemoteConfig } from '@firebase/remote-config-types';
+import { RealtimeHandler } from '../src/client/realtime_handler';
+
+interface RemoteConfigWithHandler extends RemoteConfig {
+  _realtimeHandler: RealtimeHandler;
+}
 
 const fakeFirebaseConfig = {
   apiKey: 'api-key',
@@ -91,7 +97,7 @@ describe('Remote Config API', () => {
       addObserver: sinon.stub<[ConfigUpdateObserver], Unsubscribe>().returns(sinon.stub()),
       removeObserver: sinon.stub<[ConfigUpdateObserver], Unsubscribe>().returns(sinon.stub()),
     };
-    
+
     _addOrOverwriteComponent(
       app,
       new Component(
@@ -105,15 +111,14 @@ describe('Remote Config API', () => {
         ComponentType.PUBLIC
       ) as any
     );
-    mockRealtimeHandler.addObserver.resetHistory();
-    mockRealtimeHandler.removeObserver.resetHistory();
-
   });
 
   afterEach(async () => {
     fetchStub.restore();
     await clearDatabase();
     await deleteApp(app);
+    mockRealtimeHandler.addObserver.resetHistory();
+    mockRealtimeHandler.removeObserver.resetHistory();
   });
 
   function setFetchResponse(response: FetchResponse = { status: 200 }): void {
@@ -184,11 +189,9 @@ describe('Remote Config API', () => {
   it('should call addObserver on the realtime handler with the correct arguments', () => {
     const rc = getRemoteConfig(app);
     const addObserverStub = sinon.stub(
-      (rc as any)._realtimeHandler, 
+      (rc as unknown as RemoteConfigWithHandler)._realtimeHandler,
       'addObserver'
     );
-    const unsubscribeStub = sinon.stub();
-    addObserverStub.returns(unsubscribeStub);
     onConfigUpdate(rc, mockObserver);
     expect(addObserverStub).to.have.been.calledOnceWith(mockObserver);
     addObserverStub.restore();
@@ -197,7 +200,7 @@ describe('Remote Config API', () => {
   it('should return a function that removes the observer', () => {
     const rc = getRemoteConfig(app);
     const removeObserverStub = sinon.stub(
-      (rc as any)._realtimeHandler,
+      (rc as unknown as RemoteConfigWithHandler)._realtimeHandler,
       'removeObserver'
     );
     const unsubscribe = onConfigUpdate(rc, mockObserver);
@@ -205,5 +208,4 @@ describe('Remote Config API', () => {
     expect(removeObserverStub).to.have.been.calledOnceWith(mockObserver);
     removeObserverStub.restore();
   });
-
 });
