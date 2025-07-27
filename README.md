@@ -245,4 +245,6 @@ JavaScript SDK.
 
 Cross-browser Testing Platform and Open Source <3 Provided by [Sauce Labs][homepage]
 
-[homepage]: https://saucelabs.com
+[homepage]: https://saucelabs.com  
+
+# Sauce is used for testing
