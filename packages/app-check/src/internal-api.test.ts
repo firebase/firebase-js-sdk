@@ -642,10 +642,10 @@ describe('internal api', () => {
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
-      const appCheckServie = appCheck as AppCheckService;
+      const appCheckService = appCheck as AppCheckService;
       const [token1, token2] = await Promise.all([
-        getToken(appCheckServie),
-        getToken(appCheckServie)
+        getToken(appCheckService),
+        getToken(appCheckService)
       ]);
       expect(exchangeTokenStub.args[0][0].body['debug_token']).to.equal(
         'my-debug-token'
