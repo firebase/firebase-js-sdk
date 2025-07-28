@@ -630,7 +630,7 @@ describe('internal api', () => {
       expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
     });
 
-     it('exchanges debug token only once if debug mode with no cached token', async () => {
+    it('exchanges debug token only once if debug mode with no cached token', async () => {
       const exchangeTokenStub: SinonStub = stub(
         client,
         'exchangeToken'
@@ -643,7 +643,10 @@ describe('internal api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
       const appCheckServie = appCheck as AppCheckService;
-      const [token1, token2] = await Promise.all([getToken(appCheckServie),getToken(appCheckServie)]);
+      const [token1, token2] = await Promise.all([
+        getToken(appCheckServie),
+        getToken(appCheckServie)
+      ]);
       expect(exchangeTokenStub.args[0][0].body['debug_token']).to.equal(
         'my-debug-token'
       );
