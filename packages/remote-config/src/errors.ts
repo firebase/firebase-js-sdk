@@ -34,7 +34,7 @@ export const enum ErrorCode {
   FETCH_STATUS = 'fetch-status',
   INDEXED_DB_UNAVAILABLE = 'indexed-db-unavailable',
   CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS = 'custom-signal-max-allowed-signals',
-  REALTIME_UPDATE_STREAM_ERROR = 'stream-error'
+  CONFIG_UPDATE_STREAM_ERROR = 'stream-error'
 }
 
 const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
@@ -74,7 +74,7 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
     'Indexed DB is not supported by current browser',
   [ErrorCode.CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS]:
     'Setting more than {$maxSignals} custom signals is not supported.',
-  [ErrorCode.REALTIME_UPDATE_STREAM_ERROR]:
+  [ErrorCode.CONFIG_UPDATE_STREAM_ERROR]:
     'The stream was not able to connect to the backend.'
 };
 
@@ -95,6 +95,7 @@ interface ErrorParams {
   [ErrorCode.FETCH_PARSE]: { originalErrorMessage: string };
   [ErrorCode.FETCH_STATUS]: { httpStatus: number };
   [ErrorCode.CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS]: { maxSignals: number };
+  [ErrorCode.CONFIG_UPDATE_STREAM_ERROR]: { httpStatus?: number; originalErrorMessage?: string };
 }
 
 export const ERROR_FACTORY = new ErrorFactory<ErrorCode, ErrorParams>(

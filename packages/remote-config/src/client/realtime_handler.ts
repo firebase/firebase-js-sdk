@@ -15,35 +15,39 @@
  * limitations under the License.
  */
 
-import { ConfigUpdateObserver, /*FetchResponse*/ } from '../public_types';
-const MAX_HTTP_RETRIES = 8;
-// import { ERROR_FACTORY, ErrorCode } from '../errors';
-// import { FetchRequest } from './remote_config_fetch_client';
+import { ConfigUpdateObserver, FetchResponse } from '../public_types';
+const ORIGINAL_RETRIES = 8;
+import { ERROR_FACTORY, ErrorCode } from '../errors';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
+import { Storage } from '../storage/storage';
+import { calculateBackoffMillis, FirebaseError } from '@firebase/util';
+
 export class RealtimeHandler {
-  constructor (
+  constructor(
     private readonly firebaseInstallations: _FirebaseInstallationsInternal,
-  )
-  { }
+    private readonly storage: Storage,
+    private readonly sdkVersion: string,
+    private readonly namespace: string,
+    private readonly projectId: string,
+    private readonly apiKey: string,
+    private readonly appId: string
+  ) { }
 
   private streamController?: AbortController;
   private observers: Set<ConfigUpdateObserver> = new Set<ConfigUpdateObserver>();
   private isConnectionActive: boolean = false;
-  private retriesRemaining: number = MAX_HTTP_RETRIES;
+  private retriesRemaining: number = ORIGINAL_RETRIES;
   private isRealtimeDisabled: boolean = false;
   private isInBackground: boolean = false;
-  private backoffCount: number = 0;
   private scheduledConnectionTimeoutId?: ReturnType<typeof setTimeout>;
- // private backoffManager: BackoffManager = new BackoffManager();
-
-
+  private templateVersion: number = 0;
   /**
    * Adds an observer to the realtime updates.
    * @param observer The observer to add.
    */
   addObserver(observer: ConfigUpdateObserver): void {
     this.observers.add(observer);
-    //this.beginRealtime();
+    this.beginRealtime();
   }
 
   /**
@@ -58,142 +62,199 @@ export class RealtimeHandler {
 
   private beginRealtime(): void {
     if (this.observers.size > 0) {
-      this.retriesRemaining = MAX_HTTP_RETRIES;
-      this.backoffCount = 0;
-    //  this.makeRealtimeHttpConnection(0);
+      this.makeRealtimeHttpConnection(0);
     }
   }
 
-  // private canMakeHttpConnection(): void {
-
-  // }
-
+  /**
+   * Checks whether connection can be made or not based on some conditions
+   * @returns booelean
+   */
   private canEstablishStreamConnection(): boolean {
     const hasActiveListeners = this.observers.size > 0;
     const isNotDisabled = !this.isRealtimeDisabled;
     const isForeground = !this.isInBackground;
-    return hasActiveListeners && isNotDisabled && isForeground;
+    const isNoConnectionActive = !this.isConnectionActive;
+    return hasActiveListeners && isNotDisabled && isForeground && isNoConnectionActive;
   }
 
-  // private async makeRealtimeHttpConnection(delayMillis: number): void {
-  //   if (this.scheduledConnectionTimeoutId) {
-  //     clearTimeout(this.scheduledConnectionTimeoutId);
-  //   }
 
-  //   this.scheduledConnectionTimeoutId = setTimeout(() => {
-  //     // Check 1: Can we connect at all? Mirrors Java's first check.
-  //     if (!this.canEstablishStreamConnection()) {
-  //       return;
-  //     }
-  //     if (this.retriesRemaining > 0) {
-  //       this.retriesRemaining--;
-  //       await this.beginRealtimeHttpStream();
-  //     } else if (!this.isInBackground) {
-  //       throw ERROR_FACTORY.create(ErrorCode.REALTIME_UPDATE_STREAM_ERROR);
-  //     }
-  //   }, delayMillis);
-  // }
+  private makeRealtimeHttpConnection(delayMillis: number): void {
+    if (this.scheduledConnectionTimeoutId) {
+      clearTimeout(this.scheduledConnectionTimeoutId);
+    }
+    if (!this.canEstablishStreamConnection()) {
+      return;
+    }
+    this.scheduledConnectionTimeoutId = setTimeout(() => {
+      if (this.retriesRemaining > 0) {
+        this.retriesRemaining--;
+        this.beginRealtimeHttpStream();
+      } else if (!this.isInBackground) {
+        const error = ERROR_FACTORY.create(ErrorCode.CONFIG_UPDATE_STREAM_ERROR, { originalErrorMessage: 'Unable to connect to the server. Check your connection and try again.' });
+        this.propagateError(error);
+      }
+    }, delayMillis);
+  }
 
+  private setIsHttpConnectionRunning(connectionRunning: boolean): void {
+    this.isConnectionActive = connectionRunning;
+  }
 
   private checkAndSetHttpConnectionFlagIfNotRunning(): boolean {
     if (this.canEstablishStreamConnection()) {
       this.streamController = new AbortController();
-      this.isConnectionActive = true;
+      this.setIsHttpConnectionRunning(true);
       return true;
     }
     return false;
   }
 
-  // private retryHttpConnectionWhenBackoffEnds(): void {
-  //   const currentTime = Date.now();
-  //   const timeToWait = Math.max(0, this.backoffManager.backoffEndTimeMillis - currentTime);
-  //   this.makeRealtimeHttpConnection(timeToWait);
-  // }
+  private resetRetryCount(): void {
+    this.retriesRemaining = ORIGINAL_RETRIES;
+  }
 
+  private async beginRealtimeHttpStream(): Promise<void> {
+    if (!this.checkAndSetHttpConnectionFlagIfNotRunning()) {
+      return;
+    }
 
-  //   private async createFetchRequest(): Promise<FetchRequest> {
-  //       const [installationId, installationTokenResult] = await Promise.all([
-  //           this.firebaseInstallations.getId(),
-  //           this.firebaseInstallations.getToken(false)
-  //       ]);
-        
-  //       const url = this._getRealtimeUrl();
-        
-  //       const requestBody = {
-  //           project: extractProjectNumberFromAppId(this.firebaseApp.options.appId!),
-  //           namespace: 'firebase',
-  //           lastKnownVersionNumber: this.templateVersion.toString(),
-  //           appId: this.firebaseApp.options.appId,
-  //           sdkVersion: '20.0.4',
-  //           appInstanceId: installationId
-  //       };
-        
-  //       const request: FetchRequest = {
-  //           url: url.toString(),
-  //           method: 'POST',
-  //           signal: this.streamController!.signal,
-  //           body: JSON.stringify(requestBody),
-  //           headers: {
-  //               'Content-Type': 'application/json',
-  //               'Accept': 'application/json',
-  //               'X-Goog-Api-Key': this.firebaseApp.options.apiKey!,
-  //               'X-Goog-Firebase-Installations-Auth': installationTokenResult.token,
-  //               'X-Accept-Response-Streaming': 'true',
-  //               'X-Google-GFE-Can-Retry': 'yes'
-  //           }
-  //       };
-  //       return request;
-  //   }
-    
-  // //method which is responsible for making an realtime HTTP connection
-  // private async beginRealtimeHttpStream(): void {
-  //   if (!this.checkAndSetHttpConnectionFlagIfNotRunning()) {
-  //     return;
-  //   }
+    const [metadataFromStorage, storedVersion] = await Promise.all([
+      this.storage.getRealtimeBackoffMetadata(),
+      this.storage.getLastKnownTemplateVersion()
+    ]);
 
-  //   const currentTime = Date.now();
-  //   if (currentTime < this.backoffManager.backoffEndTimeMillis) {
-  //     this.retryHttpConnectionWhenBackoffEnds();
-  //     return;
-  //   }
+    let metadata;
+    if (metadataFromStorage) {
+      metadata = metadataFromStorage;
+    } else {
+      metadata = {
+        backoffEndTimeMillis: new Date(0),
+        numFailedStreams: 0
+      };
+      await this.storage.setRealtimeBackoffMetadata(metadata);
+    }
 
-  //   let response: FetchResponse | undefined;
+    if (storedVersion !== undefined) {
+      this.templateVersion = storedVersion;
+    } else {
+      this.templateVersion = 0;
+      await this.storage.setLastKnownTemplateVersion(0);
+    }
 
-  //   try {
-  //           const request = await this.createFetchRequest();
-            
-  //           response = await this.fetchClient.fetch(request);
+    const backoffEndTime = new Date(metadata.backoffEndTimeMillis).getTime();
+    if (Date.now() < backoffEndTime) {
+      this.retryHttpConnectionWhenBackoffEnds();
+      return;
+    }
+    let response;
+    try {
+      const [installationId, installationTokenResult] = await Promise.all([
+        this.firebaseInstallations.getId(),
+        this.firebaseInstallations.getToken(false)
+      ]);
+      const headers = {
+        'Content-Type': 'application/json',
+        'Content-Encoding': 'gzip',
+        'If-None-Match': '*',
+        'authentication-token': installationTokenResult
+      };
 
-  //           if (response.status === 200 && response.body) {
-  //               this.retriesRemaining = MAX_HTTP_RETRIES;
-  //               this.backoffCount = 0;
-  //               this.backoffManager.reset();
-  //               this.saveRealtimeBackoffMetadata(); 
+      const url = this.getRealtimeUrl();
+      const requestBody = {
+        project: this.projectId,
+        namespace: this.namespace,
+        lastKnownVersionNumber: this.templateVersion.toString(),
+        appId: this.appId,
+        sdkVersion: this.sdkVersion,
+        appInstanceId: installationId
+      };
 
-  //               const parser = new StreamParser(response.body, this.observers);
-  //               await parser.listen();
-  //           } else {
-  //                throw new FirebaseError('http-status-error', `HTTP Error: ${response.status}`);
-  //           }
-  //       } catch (error) {
-  //           if (error.name === 'AbortError') {
-  //               return;
-  //           }
-  //       } finally {
-  //           this.isConnectionActive = false;
+      response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(requestBody)
+      });
+      if (response.status === 200 && response.body) {
+        this.resetRetryCount();
+        this.resetRealtimeBackoff();
+        //code related to start StartAutofetch
+        //and then give the notification for al the observers
+      } else {
+        throw new FirebaseError('http-status-error', `HTTP Error: ${response.status}`);
+      }
+    } catch (error: any) {
+      if (this.isInBackground) {
+        // It's possible the app was backgrounded while the connection was open, which
+        // threw an exception trying to read the response. No real error here, so treat
+        // this as a success, even if we haven't read a 200 response code yet.
+        this.resetRetryCount();
+      }
+    } finally {
+      this.isConnectionActive = false;
+      const statusCode = response?.status;
+      const connectionFailed = !this.isInBackground && (!statusCode || this.isStatusCodeRetryable(statusCode));
 
-  //           const statusCode = response?.status;
-  //           const connectionFailed = !this.isInBackground && (!statusCode || this.isStatusCodeRetryable(statusCode));
+      if (connectionFailed) {
+        this.updateBackoffMetadataWithLastFailedStreamConnectionTime(new Date());
+      }
 
-  //           if (connectionFailed) {
-  //               this.handleStreamError();
-  //           } else if (statusCode && statusCode !== 200) {
-  //               const firebaseError = new FirebaseError('config-update-stream-error', 
-  //                   `Unable to connect to the server. HTTP status code: ${statusCode}`);
-  //               this.propagateError(firebaseError);
-  //           } else {
-  //                this.makeRealtimeHttpConnection(0);
-  //           }
-  //       }
-  // }
+      if (connectionFailed || statusCode === 200) {
+        this.retryHttpConnectionWhenBackoffEnds();
+      } else {
+        //still have to implement this part
+        let errorMessage = `Unable to connect to the server. Try again in a few minutes. HTTP status code: ${statusCode}`;
+        if (statusCode === 403) {
+          //still have to implemet this parseErrorResponseBody method
+          // errorMessage = await this.parseErrorResponseBody(response?.body);
+        }
+        const firebaseError = ERROR_FACTORY.create(ErrorCode.CONFIG_UPDATE_STREAM_ERROR, {
+          httpStatus: statusCode,
+          originalErrorMessage: errorMessage
+        });
+        this.propagateError(firebaseError);
+      }
+    }
+  }
+
+  private propagateError = (e: FirebaseError) => this.observers.forEach(o => o.error?.(e));
+
+  private async updateBackoffMetadataWithLastFailedStreamConnectionTime(lastFailedStreamTime: Date): Promise<void> {
+    const numFailedStreams = ((await this.storage.getRealtimeBackoffMetadata())?.numFailedStreams || 0) + 1;
+    const backoffMillis = calculateBackoffMillis(numFailedStreams);
+    await this.storage.setRealtimeBackoffMetadata({
+      backoffEndTimeMillis: new Date(lastFailedStreamTime.getTime() + backoffMillis),
+      numFailedStreams
+    });
+  }
+
+  private isStatusCodeRetryable = (sc?: number) => !sc || [408, 429, 500, 502, 503, 504].includes(sc);
+
+  private async retryHttpConnectionWhenBackoffEnds(): Promise<void> {
+    const metadata = (await this.storage.getRealtimeBackoffMetadata()) || {
+      backoffEndTimeMillis: new Date(0),
+      numFailedStreams: 0
+    };
+    const backoffEndTime = new Date(metadata.backoffEndTimeMillis).getTime();
+    const currentTime = Date.now();
+    const retrySeconds = Math.max(0, backoffEndTime - currentTime);
+    this.makeRealtimeHttpConnection(retrySeconds);
+  }
+
+  private async resetRealtimeBackoff(): Promise<void> {
+    await this.storage.setRealtimeBackoffMetadata({
+      backoffEndTimeMillis: new Date(0),
+      numFailedStreams: 0
+    });
+  }
+
+  private getRealtimeUrl(): URL {
+    const urlBase =
+      window.FIREBASE_REMOTE_CONFIG_URL_BASE ||
+      'https://firebaseremoteconfigrealtime.googleapis.com';
+
+    const urlString = `${urlBase}/v1/projects/${this.projectId}/namespaces/${this.namespace}:streamFetchInvalidations?key=${this.apiKey}`;
+    return new URL(urlString);
+  }
+
 }

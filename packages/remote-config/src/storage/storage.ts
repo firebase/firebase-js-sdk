@@ -57,6 +57,16 @@ export interface ThrottleMetadata {
 }
 
 /**
+ * Encapsulates metadata about the retry mechanism in real-time connection.
+ */
+export interface RealtimeBackoffMetadata {
+  // The number of consecutive connection streams that have failed.
+  numFailedStreams: number;
+  // The Date until which the client should wait before attempting any new real-time connections.
+  backoffEndTimeMillis: Date;
+}
+
+/**
  * Provides type-safety for the "key" field used by {@link APP_NAMESPACE_STORE}.
  *
  * <p>This seems like a small price to avoid potentially subtle bugs caused by a typo.
@@ -69,7 +79,9 @@ type ProjectNamespaceKeyFieldValue =
   | 'last_successful_fetch_response'
   | 'settings'
   | 'throttle_metadata'
-  | 'custom_signals';
+  | 'custom_signals'
+  | 'realtime_backoff_metadata'
+  | 'last_known_template_version';
 
 // Visible for testing.
 export function openDatabase(): Promise<IDBDatabase> {
@@ -178,6 +190,22 @@ export abstract class Storage {
   abstract get<T>(key: ProjectNamespaceKeyFieldValue): Promise<T | undefined>;
   abstract set<T>(key: ProjectNamespaceKeyFieldValue, value: T): Promise<void>;
   abstract delete(key: ProjectNamespaceKeyFieldValue): Promise<void>;
+
+  setRealtimeBackoffMetadata(realtime_metadata: RealtimeBackoffMetadata): Promise<void> {
+    return this.set<RealtimeBackoffMetadata>('realtime_backoff_metadata', realtime_metadata);
+  }
+
+  getRealtimeBackoffMetadata(): Promise<RealtimeBackoffMetadata | undefined> {
+    return this.get<RealtimeBackoffMetadata>('realtime_backoff_metadata');
+  }
+
+  getLastKnownTemplateVersion(): Promise<number | undefined> {
+    return this.get<number>('last_known_template_version');
+  }
+
+  setLastKnownTemplateVersion(version: number): Promise<void> {
+    return this.set<number>('last_known_template_version', version);
+  }
 }
 
 export class IndexedDbStorage extends Storage {
