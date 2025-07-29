@@ -10,10 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ThinkingConfig interface
-Configuration for "thinking" behavior of compatible Gemini models.
-
-Certain models utilize a thinking process before generating a response. This allows them to reason through complex problems and plan a more coherent and accurate answer.
-
 <b>Signature:</b>
 
 ```typescript

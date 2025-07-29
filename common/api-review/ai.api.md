@@ -1032,7 +1032,7 @@ export interface TextPart {
     text: string;
 }
 
-// @public
+// @public (undocumented)
 export interface ThinkingConfig {
     thinkingBudget?: number;
 }
