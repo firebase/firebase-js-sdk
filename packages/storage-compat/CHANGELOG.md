@@ -1,5 +1,70 @@
 # @firebase/storage-compat
 
+## 0.4.0
+
+### Minor Changes
+
+- [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113) [#9128](https://github.com/firebase/firebase-js-sdk/pull/9128) - Update node "engines" version to a minimum of Node 20.
+
+### Patch Changes
+
+- [`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9) [#9167](https://github.com/firebase/firebase-js-sdk/pull/9167) - Set build targets to ES2020.
+
+- Updated dependencies [[`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9), [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113)]:
+  - @firebase/component@0.7.0
+  - @firebase/storage@0.14.0
+  - @firebase/util@1.13.0
+
+## 0.3.24
+
+### Patch Changes
+
+- Updated dependencies [[`42ac401`](https://github.com/firebase/firebase-js-sdk/commit/42ac4011787db6bb7a08f8c84f364ea86ea51e83)]:
+  - @firebase/storage@0.13.14
+  - @firebase/util@1.12.1
+  - @firebase/component@0.6.18
+
+## 0.3.23
+
+### Patch Changes
+
+- Updated dependencies [[`0f891d8`](https://github.com/firebase/firebase-js-sdk/commit/0f891d861bdf4e7bac8cd777f5fb32d0b7b9bf8e)]:
+  - @firebase/storage@0.13.13
+
+## 0.3.22
+
+### Patch Changes
+
+- Updated dependencies [[`35ad526`](https://github.com/firebase/firebase-js-sdk/commit/35ad5266304e14425988fcf5ad06d028b37588ac), [`b5df4ae`](https://github.com/firebase/firebase-js-sdk/commit/b5df4ae71c1b5b54d9237e7929d0f793189b82c9)]:
+  - @firebase/storage@0.13.12
+
+## 0.3.21
+
+### Patch Changes
+
+- Updated dependencies [[`8a03143`](https://github.com/firebase/firebase-js-sdk/commit/8a03143b9217effdd86d68bdf195493c0979aa27)]:
+  - @firebase/util@1.12.0
+  - @firebase/component@0.6.17
+  - @firebase/storage@0.13.11
+
+## 0.3.20
+
+### Patch Changes
+
+- Updated dependencies [[`9bcd1ea`](https://github.com/firebase/firebase-js-sdk/commit/9bcd1ea9b8cc5b55692765d40df000da8ddef02b)]:
+  - @firebase/util@1.11.3
+  - @firebase/component@0.6.16
+  - @firebase/storage@0.13.10
+
+## 0.3.19
+
+### Patch Changes
+
+- Updated dependencies [[`8593fa0`](https://github.com/firebase/firebase-js-sdk/commit/8593fa05bd884c2f1f6f3b4ae062efa48af93d24)]:
+  - @firebase/util@1.11.2
+  - @firebase/storage@0.13.9
+  - @firebase/component@0.6.15
+
 ## 0.3.18
 
 ### Patch Changes

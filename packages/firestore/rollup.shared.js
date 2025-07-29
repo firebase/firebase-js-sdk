@@ -33,8 +33,8 @@ const pkg = require('./package.json');
 // This file contains shared utilities for Firestore's rollup builds.
 
 // Firestore is released in a number of different build configurations:
-// - Browser builds that support persistence in ES2017 CJS and ESM formats.
-// - In-memory Browser builds that support persistence in ES2017 CJS and ESM
+// - Browser builds that support persistence in ES2020 CJS and ESM formats.
+// - In-memory Browser builds that support persistence in ES2020 CJS and ESM
 //   formats.
 // - A NodeJS build that supports persistence (to be used with an IndexedDb
 //   shim)
@@ -46,7 +46,7 @@ const pkg = require('./package.json');
 // We use two different rollup pipelines to take advantage of tree shaking,
 // as Rollup does not support tree shaking for TypeScript classes transpiled
 // down to ES5 (see https://bit.ly/340P23U). The build pipeline in this file
-// produces tree-shaken ES2017 builds that are consumed by the ES5 builds in
+// produces tree-shaken ES2020 builds that are consumed by the ES5 builds in
 // `rollup.config.es.js`.
 //
 // All browser builds rely on Terser's property name mangling to reduce code
@@ -240,7 +240,7 @@ exports.applyPrebuilt = function (name = 'prebuilt.js') {
   });
 };
 
-exports.es2017Plugins = function (platform, mangled = false) {
+exports.es2020Plugins = function (platform, mangled = false) {
   if (mangled) {
     return [
       alias(generateAliasConfig(platform)),
@@ -265,7 +265,7 @@ exports.es2017Plugins = function (platform, mangled = false) {
   }
 };
 
-exports.es2017PluginsCompat = function (
+exports.es2020PluginsCompat = function (
   platform,
   pathTransformer,
   mangled = false

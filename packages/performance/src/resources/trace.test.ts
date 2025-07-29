@@ -306,4 +306,37 @@ describe('Firebase Performance > trace', () => {
       expect(trace.getAttribute('stage')).to.equal('beginning');
     });
   });
+
+  describe('#addWebVitalMetric', () => {
+    it('has correctly scaled metric', () => {
+      Trace.addWebVitalMetric(trace, 'metric', 'attributeName', {
+        value: 0.5,
+        elementAttribution: 'test'
+      });
+
+      expect(trace.getMetric('metric') === 500);
+    });
+
+    it('has correct attribute', () => {
+      Trace.addWebVitalMetric(trace, 'metric', 'attributeName', {
+        value: 0.5,
+        elementAttribution: 'test'
+      });
+
+      expect(trace.getAttribute('attributeName') === 'test');
+    });
+
+    it('correctly truncates long attribute names', () => {
+      Trace.addWebVitalMetric(trace, 'metric', 'attributeName', {
+        value: 0.5,
+        elementAttribution:
+          'html>body>main>p>button.my_button_class.really_long_class_name_that_is_above_100_characters.another_long_class_name'
+      });
+
+      expect(
+        trace.getAttribute('attributeName') ===
+          'html>body>main>p>button.my_button_class.really_long_class_name_that_is_above_100_characters.another_'
+      );
+    });
+  });
 });

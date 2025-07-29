@@ -1,5 +1,86 @@
 # @firebase/ai
 
+## 2.0.0
+
+### Major Changes
+
+- [`5200f7b`](https://github.com/firebase/firebase-js-sdk/commit/5200f7bb777cf2260dcd396fbd19ac6cc7cb44c4) [#9042](https://github.com/firebase/firebase-js-sdk/pull/9042) - Add support for `anyOf` schemas
+
+- [`e59cd7d`](https://github.com/firebase/firebase-js-sdk/commit/e59cd7da1f375ec89f237ceb684c9f450d65cd34) [#9137](https://github.com/firebase/firebase-js-sdk/pull/9137) - Convert TS enums exports in Firebase AI into const variables.
+
+- [`cb19688`](https://github.com/firebase/firebase-js-sdk/commit/cb19688bf3d339a46c4964cb30b6263af08526e6) [#9079](https://github.com/firebase/firebase-js-sdk/pull/9079) - Remove GroundingAttribution
+
+- [`ec5f374`](https://github.com/firebase/firebase-js-sdk/commit/ec5f37403d9ebe28d3d71a7789d59edfb12762df) [#9063](https://github.com/firebase/firebase-js-sdk/pull/9063) - Remove `VertexAI` APIs.
+
+### Minor Changes
+
+- [`a4ccd25`](https://github.com/firebase/firebase-js-sdk/commit/a4ccd254dd1ecb63aa010ca010ad50d4b8a8316a) [#9068](https://github.com/firebase/firebase-js-sdk/pull/9068) - Add support for Grounding with Google Search.
+
+- [`6ab4e13`](https://github.com/firebase/firebase-js-sdk/commit/6ab4e13a1665dab4be89ecc141b4584a5a6df569) [#9156](https://github.com/firebase/firebase-js-sdk/pull/9156) - Add support for Thinking Budget.
+
+- [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113) [#9128](https://github.com/firebase/firebase-js-sdk/pull/9128) - Update node "engines" version to a minimum of Node 20.
+
+### Patch Changes
+
+- [`ae976d0`](https://github.com/firebase/firebase-js-sdk/commit/ae976d02908a5a8913c5fcd4c0485fcf4b081fec) [#8948](https://github.com/firebase/firebase-js-sdk/pull/8948) (fixes [#8944](https://github.com/firebase/firebase-js-sdk/issues/8944)) - Fix typings for `functionDeclaration.parameters`.
+
+- [`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9) [#9167](https://github.com/firebase/firebase-js-sdk/pull/9167) - Set build targets to ES2020.
+
+- Updated dependencies [[`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9), [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113)]:
+  - @firebase/component@0.7.0
+  - @firebase/logger@0.5.0
+  - @firebase/util@1.13.0
+
+## 1.4.1
+
+### Patch Changes
+
+- [`b97eab3`](https://github.com/firebase/firebase-js-sdk/commit/b97eab36a3553c906c35f4751a0b17c717178b13) [#9090](https://github.com/firebase/firebase-js-sdk/pull/9090) - Add deprecation label to `totalBillableCharacters`. `totalTokens` should be used instead.
+
+- Updated dependencies [[`42ac401`](https://github.com/firebase/firebase-js-sdk/commit/42ac4011787db6bb7a08f8c84f364ea86ea51e83)]:
+  - @firebase/util@1.12.1
+  - @firebase/component@0.6.18
+
+## 1.4.0
+
+### Minor Changes
+
+- [`1933324`](https://github.com/firebase/firebase-js-sdk/commit/1933324e0f3e4c8ed4d4d784f0c701fd0ec6ebc3) [#9026](https://github.com/firebase/firebase-js-sdk/pull/9026) - Add support for `minItems` and `maxItems` to `Schema`.
+
+- [`40be2db`](https://github.com/firebase/firebase-js-sdk/commit/40be2dbb884b8e1485862af8bb015e23db69ccbf) [#9047](https://github.com/firebase/firebase-js-sdk/pull/9047) - Add `title`, `maximum`, `minimum`, `propertyOrdering` to Schema builder
+
+## 1.3.0
+
+### Minor Changes
+
+- [`e99683b`](https://github.com/firebase/firebase-js-sdk/commit/e99683b17cf75c581bd362a1d7cb85f0b9c110ba) [#8922](https://github.com/firebase/firebase-js-sdk/pull/8922) - Add support for Gemini multimodal output
+
+- [`d5082f9`](https://github.com/firebase/firebase-js-sdk/commit/d5082f9f2fc4de98a6bfd1c6a5af4571af4d0bc6) [#8931](https://github.com/firebase/firebase-js-sdk/pull/8931) - Add support for the Gemini Developer API, enabling usage in a free tier, and add new `AI` API to accomodate new product naming.
+
+### Patch Changes
+
+- [`050c1b6`](https://github.com/firebase/firebase-js-sdk/commit/050c1b6a099b87be1488b9207e4fad4da9f8f64b) [#8972](https://github.com/firebase/firebase-js-sdk/pull/8972) - Pass `GenerativeModel`'s `BaseParams` to created chat sessions. This fixes an issue where `GenerationConfig` would not be inherited from `ChatSession`.
+
+- Updated dependencies [[`8a03143`](https://github.com/firebase/firebase-js-sdk/commit/8a03143b9217effdd86d68bdf195493c0979aa27)]:
+  - @firebase/util@1.12.0
+  - @firebase/component@0.6.17
+
+## 1.2.4
+
+### Patch Changes
+
+- Updated dependencies [[`9bcd1ea`](https://github.com/firebase/firebase-js-sdk/commit/9bcd1ea9b8cc5b55692765d40df000da8ddef02b)]:
+  - @firebase/util@1.11.3
+  - @firebase/component@0.6.16
+
+## 1.2.3
+
+### Patch Changes
+
+- Updated dependencies [[`8593fa0`](https://github.com/firebase/firebase-js-sdk/commit/8593fa05bd884c2f1f6f3b4ae062efa48af93d24)]:
+  - @firebase/util@1.11.2
+  - @firebase/component@0.6.15
+
 ## 1.2.2
 
 ### Patch Changes

@@ -1,16 +1,16 @@
 {
   "name": "@firebase/app-check-compat",
-  "version": "0.3.22",
+  "version": "0.4.0",
   "description": "A compat App Check package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "browser": "dist/esm/index.esm2017.js",
-  "module": "dist/esm/index.esm2017.js",
+  "browser": "dist/esm/index.esm.js",
+  "module": "dist/esm/index.esm.js",
   "exports": {
     ".": {
       "types": "./dist/src/index.d.ts",
       "require": "./dist/index.cjs.js",
-      "default": "./dist/esm/index.esm2017.js"
+      "default": "./dist/esm/index.esm.js"
     },
     "./package.json": "./package.json"
   },
@@ -34,16 +34,16 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/app-check": "0.9.1",
+    "@firebase/app-check": "0.11.0",
     "@firebase/app-check-types": "0.5.3",
-    "@firebase/logger": "0.4.4",
-    "@firebase/util": "1.11.1",
-    "@firebase/component": "0.6.14",
+    "@firebase/logger": "0.5.0",
+    "@firebase/util": "1.13.0",
+    "@firebase/component": "0.7.0",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app-compat": "0.3.1",
+    "@firebase/app-compat": "0.5.0",
     "rollup": "2.79.2",
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "6.1.0",
@@ -67,6 +67,6 @@
     "reportDir": "./coverage/node"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }
