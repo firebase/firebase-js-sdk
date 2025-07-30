@@ -16,8 +16,10 @@
  */
 /**
  * The subset of the Prompt API
- * ({@see https://github.com/webmachinelearning/prompt-api#full-api-surface-in-web-idl})
+ * (see {@link https://github.com/webmachinelearning/prompt-api#full-api-surface-in-web-idl })
  * required for hybrid functionality.
+ * 
+ * @public
  */
 export interface LanguageModel extends EventTarget {
   create(options?: LanguageModelCreateOptions): Promise<LanguageModel>;
@@ -36,41 +38,84 @@ export interface LanguageModel extends EventTarget {
   ): Promise<number>;
   destroy(): undefined;
 }
+
+/**
+ * @public
+ */
 export enum Availability {
   'unavailable' = 'unavailable',
   'downloadable' = 'downloadable',
   'downloading' = 'downloading',
   'available' = 'available'
 }
+
+/**
+ * @public
+ */
 export interface LanguageModelCreateCoreOptions {
   topK?: number;
   temperature?: number;
   expectedInputs?: LanguageModelExpected[];
 }
+
+/**
+ * @public
+ */
 export interface LanguageModelCreateOptions
   extends LanguageModelCreateCoreOptions {
   signal?: AbortSignal;
   initialPrompts?: LanguageModelMessage[];
 }
+
+/**
+ * @public
+ */
 export interface LanguageModelPromptOptions {
   responseConstraint?: object;
   // TODO: Restore AbortSignal once the API is defined.
 }
-export interface LanguageModelExpected {
+
+/**
+ * @public
+ */export interface LanguageModelExpected {
   type: LanguageModelMessageType;
   languages?: string[];
 }
+
+/**
+ * @public
+ */
 export type LanguageModelPrompt = LanguageModelMessage[];
+
+/**
+ * @public
+ */
 export interface LanguageModelMessage {
   role: LanguageModelMessageRole;
   content: LanguageModelMessageContent[];
 }
+
+/**
+ * @public
+ */
 export interface LanguageModelMessageContent {
   type: LanguageModelMessageType;
   value: LanguageModelMessageContentValue;
 }
+
+/**
+ * @public
+ */
 export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
+
+/**
+ * @public
+ */
 export type LanguageModelMessageType = 'text' | 'image' | 'audio';
+
+/**
+ * @public
+ */
 export type LanguageModelMessageContentValue =
   | ImageBitmapSource
   | AudioBuffer

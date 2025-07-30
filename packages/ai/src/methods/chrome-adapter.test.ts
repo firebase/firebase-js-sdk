@@ -19,7 +19,7 @@ import { AIError } from '../errors';
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { ChromeAdapter } from './chrome-adapter';
+import { ChromeAdapterImpl } from './chrome-adapter';
 import {
   Availability,
   LanguageModel,
@@ -62,7 +62,7 @@ describe('ChromeAdapter', () => {
         languageModelProvider,
         'availability'
       ).resolves(Availability.available);
-      const adapter = new ChromeAdapter(
+      const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         'prefer_on_device'
       );
@@ -90,7 +90,7 @@ describe('ChromeAdapter', () => {
         // Explicitly sets expected inputs.
         expectedInputs: [{ type: 'text' }]
       } as LanguageModelCreateOptions;
-      const adapter = new ChromeAdapter(
+      const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         'prefer_on_device',
         {
@@ -110,7 +110,7 @@ describe('ChromeAdapter', () => {
   });
   describe('isAvailable', () => {
     it('returns false if mode is undefined', async () => {
-      const adapter = new ChromeAdapter();
+      const adapter = new ChromeAdapterImpl();
       expect(
         await adapter.isAvailable({
           contents: []
@@ -118,7 +118,7 @@ describe('ChromeAdapter', () => {
       ).to.be.false;
     });
     it('returns false if mode is only cloud', async () => {
-      const adapter = new ChromeAdapter(undefined, 'only_in_cloud');
+      const adapter = new ChromeAdapterImpl(undefined, 'only_in_cloud');
       expect(
         await adapter.isAvailable({
           contents: []
@@ -126,7 +126,7 @@ describe('ChromeAdapter', () => {
       ).to.be.false;
     });
     it('returns false if LanguageModel API is undefined', async () => {
-      const adapter = new ChromeAdapter(undefined, 'prefer_on_device');
+      const adapter = new ChromeAdapterImpl(undefined, 'prefer_on_device');
       expect(
         await adapter.isAvailable({
           contents: []
@@ -134,7 +134,7 @@ describe('ChromeAdapter', () => {
       ).to.be.false;
     });
     it('returns false if request contents empty', async () => {
-      const adapter = new ChromeAdapter(
+      const adapter = new ChromeAdapterImpl(
         {
           availability: async () => Availability.available
         } as LanguageModel,
@@ -147,7 +147,7 @@ describe('ChromeAdapter', () => {
       ).to.be.false;
     });
     it('returns false if request content has "function" role', async () => {
-      const adapter = new ChromeAdapter(
+      const adapter = new ChromeAdapterImpl(
         {
           availability: async () => Availability.available
         } as LanguageModel,
@@ -165,13 +165,13 @@ describe('ChromeAdapter', () => {
       ).to.be.false;
     });
     it('returns true if request has image with supported mime type', async () => {
-      const adapter = new ChromeAdapter(
+      const adapter = new ChromeAdapterImpl(
         {
           availability: async () => Availability.available
         } as LanguageModel,
         'prefer_on_device'
       );
-      for (const mimeType of ChromeAdapter.SUPPORTED_MIME_TYPES) {
+      for (const mimeType of ChromeAdapterImpl.SUPPORTED_MIME_TYPES) {
         expect(
           await adapter.isAvailable({
             contents: [
@@ -195,7 +195,7 @@ describe('ChromeAdapter', () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.available)
       } as LanguageModel;
-      const adapter = new ChromeAdapter(
+      const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         'prefer_on_device'
       );
@@ -224,7 +224,7 @@ describe('ChromeAdapter', () => {
       const createOptions = {
         expectedInputs: [{ type: 'image' }]
       } as LanguageModelCreateOptions;
-      const adapter = new ChromeAdapter(
+      const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         'prefer_on_device',
         { createOptions }
@@ -247,7 +247,7 @@ describe('ChromeAdapter', () => {
       const createStub = stub(languageModelProvider, 'create').returns(
         downloadPromise
       );
-      const adapter = new ChromeAdapter(
+      const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         'prefer_on_device'
       );
@@ -271,7 +271,7 @@ describe('ChromeAdapter', () => {
       const createStub = stub(languageModelProvider, 'create').returns(
         downloadPromise
       );
-      const adapter = new ChromeAdapter(
+      const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         'prefer_on_device'
       );
@@ -289,7 +289,7 @@ describe('ChromeAdapter', () => {
         availability: () => Promise.resolve(Availability.unavailable),
         create: () => Promise.resolve({})
       } as LanguageModel;
-      const adapter = new ChromeAdapter(
+      const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         'prefer_on_device'
       );
@@ -302,7 +302,7 @@ describe('ChromeAdapter', () => {
   });
   describe('generateContent', () => {
     it('throws if Chrome API is undefined', async () => {
-      const adapter = new ChromeAdapter(undefined, 'only_on_device');
+      const adapter = new ChromeAdapterImpl(undefined, 'only_on_device');
       await expect(
         adapter.generateContent({
           contents: []
@@ -331,7 +331,7 @@ describe('ChromeAdapter', () => {
         systemPrompt: 'be yourself',
         expectedInputs: [{ type: 'image' }]
       } as LanguageModelCreateOptions;
-      const adapter = new ChromeAdapter(
+      const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         'prefer_on_device',
         { createOptions }
@@ -382,7 +382,7 @@ describe('ChromeAdapter', () => {
         systemPrompt: 'be yourself',
         expectedInputs: [{ type: 'image' }]
       } as LanguageModelCreateOptions;
-      const adapter = new ChromeAdapter(
+      const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         'prefer_on_device',
         { createOptions }
@@ -448,7 +448,7 @@ describe('ChromeAdapter', () => {
           properties: {}
         })
       };
-      const adapter = new ChromeAdapter(
+      const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         'prefer_on_device',
         { promptOptions }
@@ -481,7 +481,7 @@ describe('ChromeAdapter', () => {
       const languageModelProvider = {
         create: () => Promise.resolve(languageModel)
       } as LanguageModel;
-      const adapter = new ChromeAdapter(
+      const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         'prefer_on_device'
       );
@@ -517,7 +517,7 @@ describe('ChromeAdapter', () => {
         languageModel
       );
 
-      const adapter = new ChromeAdapter(
+      const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         'prefer_on_device'
       );
@@ -561,7 +561,7 @@ describe('ChromeAdapter', () => {
       const createOptions = {
         expectedInputs: [{ type: 'image' }]
       } as LanguageModelCreateOptions;
-      const adapter = new ChromeAdapter(
+      const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         'prefer_on_device',
         { createOptions }
@@ -609,7 +609,7 @@ describe('ChromeAdapter', () => {
       const createOptions = {
         expectedInputs: [{ type: 'image' }]
       } as LanguageModelCreateOptions;
-      const adapter = new ChromeAdapter(
+      const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         'prefer_on_device',
         { createOptions }
@@ -668,7 +668,7 @@ describe('ChromeAdapter', () => {
           properties: {}
         })
       };
-      const adapter = new ChromeAdapter(
+      const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         'prefer_on_device',
         { promptOptions }
@@ -703,7 +703,7 @@ describe('ChromeAdapter', () => {
       const languageModelProvider = {
         create: () => Promise.resolve(languageModel)
       } as LanguageModel;
-      const adapter = new ChromeAdapter(
+      const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         'prefer_on_device'
       );

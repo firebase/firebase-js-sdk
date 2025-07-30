@@ -24,7 +24,7 @@ import { GenerateContentStreamResult } from '../types';
 import { ChatSession } from './chat-session';
 import { ApiSettings } from '../types/internal';
 import { VertexAIBackend } from '../backend';
-import { ChromeAdapter } from './chrome-adapter';
+import { ChromeAdapterImpl } from './chrome-adapter';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -50,7 +50,7 @@ describe('ChatSession', () => {
       const chatSession = new ChatSession(
         fakeApiSettings,
         'a-model',
-        new ChromeAdapter()
+        new ChromeAdapterImpl()
       );
       await expect(chatSession.sendMessage('hello')).to.be.rejected;
       expect(generateContentStub).to.be.calledWith(
@@ -71,7 +71,7 @@ describe('ChatSession', () => {
       const chatSession = new ChatSession(
         fakeApiSettings,
         'a-model',
-        new ChromeAdapter()
+        new ChromeAdapterImpl()
       );
       await expect(chatSession.sendMessageStream('hello')).to.be.rejected;
       expect(generateContentStreamStub).to.be.calledWith(
@@ -94,7 +94,7 @@ describe('ChatSession', () => {
       const chatSession = new ChatSession(
         fakeApiSettings,
         'a-model',
-        new ChromeAdapter()
+        new ChromeAdapterImpl()
       );
       await chatSession.sendMessageStream('hello');
       expect(generateContentStreamStub).to.be.calledWith(

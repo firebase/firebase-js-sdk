@@ -28,7 +28,7 @@ import { processStream } from '../requests/stream-reader';
 import { ApiSettings } from '../types/internal';
 import * as GoogleAIMapper from '../googleai-mappers';
 import { BackendType } from '../public-types';
-import { ChromeAdapter } from './chrome-adapter';
+import { ChromeAdapter } from '../types/chrome-adapter';
 
 async function generateContentStreamOnCloud(
   apiSettings: ApiSettings,
@@ -53,11 +53,11 @@ export async function generateContentStream(
   apiSettings: ApiSettings,
   model: string,
   params: GenerateContentRequest,
-  chromeAdapter: ChromeAdapter,
+  chromeAdapter?: ChromeAdapter,
   requestOptions?: RequestOptions
 ): Promise<GenerateContentStreamResult> {
   let response;
-  if (await chromeAdapter.isAvailable(params)) {
+  if (chromeAdapter && (await chromeAdapter.isAvailable(params))) {
     response = await chromeAdapter.generateContentStream(params);
   } else {
     response = await generateContentStreamOnCloud(
@@ -93,11 +93,11 @@ export async function generateContent(
   apiSettings: ApiSettings,
   model: string,
   params: GenerateContentRequest,
-  chromeAdapter: ChromeAdapter,
+  chromeAdapter?: ChromeAdapter,
   requestOptions?: RequestOptions
 ): Promise<GenerateContentResult> {
   let response;
-  if (await chromeAdapter.isAvailable(params)) {
+  if (chromeAdapter && (await chromeAdapter.isAvailable(params))) {
     response = await chromeAdapter.generateContent(params);
   } else {
     response = await generateContentOnCloud(

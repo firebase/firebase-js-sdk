@@ -27,7 +27,7 @@ import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
 import { mapCountTokensRequest } from '../googleai-mappers';
 import { GoogleAIBackend, VertexAIBackend } from '../backend';
-import { ChromeAdapter } from './chrome-adapter';
+import { ChromeAdapterImpl } from './chrome-adapter';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -68,7 +68,7 @@ describe('countTokens()', () => {
       fakeApiSettings,
       'model',
       fakeRequestParams,
-      new ChromeAdapter()
+      new ChromeAdapterImpl()
     );
     expect(result.totalTokens).to.equal(6);
     expect(result.totalBillableCharacters).to.equal(16);
@@ -95,7 +95,7 @@ describe('countTokens()', () => {
       fakeApiSettings,
       'model',
       fakeRequestParams,
-      new ChromeAdapter()
+      new ChromeAdapterImpl()
     );
     expect(result.totalTokens).to.equal(1837);
     expect(result.totalBillableCharacters).to.equal(117);
@@ -124,7 +124,7 @@ describe('countTokens()', () => {
       fakeApiSettings,
       'model',
       fakeRequestParams,
-      new ChromeAdapter()
+      new ChromeAdapterImpl()
     );
     expect(result.totalTokens).to.equal(258);
     expect(result).to.not.have.property('totalBillableCharacters');
@@ -154,7 +154,7 @@ describe('countTokens()', () => {
         fakeApiSettings,
         'model',
         fakeRequestParams,
-        new ChromeAdapter()
+        new ChromeAdapterImpl()
       )
     ).to.be.rejectedWith(/404.*not found/);
     expect(mockFetch).to.be.called;
@@ -177,7 +177,7 @@ describe('countTokens()', () => {
         fakeGoogleAIApiSettings,
         'model',
         fakeRequestParams,
-        new ChromeAdapter()
+        new ChromeAdapterImpl()
       );
 
       expect(makeRequestStub).to.be.calledWith(
@@ -191,7 +191,7 @@ describe('countTokens()', () => {
     });
   });
   it('on-device', async () => {
-    const chromeAdapter = new ChromeAdapter();
+    const chromeAdapter = new ChromeAdapterImpl();
     const isAvailableStub = stub(chromeAdapter, 'isAvailable').resolves(true);
     const mockResponse = getMockResponse(
       'vertexAI',

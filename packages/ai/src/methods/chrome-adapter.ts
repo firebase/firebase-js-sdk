@@ -27,6 +27,7 @@ import {
   Content,
   Role
 } from '../types';
+import { ChromeAdapter } from '../types/chrome-adapter';
 import {
   Availability,
   LanguageModel,
@@ -39,7 +40,7 @@ import {
  * Defines an inference "backend" that uses Chrome's on-device model,
  * and encapsulates logic for detecting when on-device is possible.
  */
-export class ChromeAdapter {
+export class ChromeAdapterImpl implements ChromeAdapter {
   // Visible for testing
   static SUPPORTED_MIME_TYPES = ['image/jpeg', 'image/png'];
   private isDownloading = false;
@@ -99,7 +100,7 @@ export class ChromeAdapter {
       );
       return false;
     }
-    if (!ChromeAdapter.isOnDeviceRequest(request)) {
+    if (!ChromeAdapterImpl.isOnDeviceRequest(request)) {
       logger.debug(
         `On-device inference unavailable because request is incompatible.`
       );
@@ -114,19 +115,19 @@ export class ChromeAdapter {
    *
    * <p>This is comparable to {@link GenerativeModel.generateContent} for generating content in
    * Cloud.</p>
-   * @param request - a standard Vertex {@link GenerateContentRequest}
+   * @param request - a standard Firebase AI {@link GenerateContentRequest}
    * @returns {@link Response}, so we can reuse common response formatting.
    */
   async generateContent(request: GenerateContentRequest): Promise<Response> {
     const session = await this.createSession();
     const contents = await Promise.all(
-      request.contents.map(ChromeAdapter.toLanguageModelMessage)
+      request.contents.map(ChromeAdapterImpl.toLanguageModelMessage)
     );
     const text = await session.prompt(
       contents,
       this.onDeviceParams.promptOptions
     );
-    return ChromeAdapter.toResponse(text);
+    return ChromeAdapterImpl.toResponse(text);
   }
 
   /**
@@ -134,7 +135,7 @@ export class ChromeAdapter {
    *
    * <p>This is comparable to {@link GenerativeModel.generateContentStream} for generating content in
    * Cloud.</p>
-   * @param request - a standard Vertex {@link GenerateContentRequest}
+   * @param request - a standard Firebase AI {@link GenerateContentRequest}
    * @returns {@link Response}, so we can reuse common response formatting.
    */
   async generateContentStream(
@@ -142,13 +143,13 @@ export class ChromeAdapter {
   ): Promise<Response> {
     const session = await this.createSession();
     const contents = await Promise.all(
-      request.contents.map(ChromeAdapter.toLanguageModelMessage)
+      request.contents.map(ChromeAdapterImpl.toLanguageModelMessage)
     );
-    const stream = await session.promptStreaming(
+    const stream = session.promptStreaming(
       contents,
       this.onDeviceParams.promptOptions
     );
-    return ChromeAdapter.toStreamResponse(stream);
+    return ChromeAdapterImpl.toStreamResponse(stream);
   }
 
   async countTokens(_request: CountTokensRequest): Promise<Response> {
@@ -178,7 +179,7 @@ export class ChromeAdapter {
       for (const part of content.parts) {
         if (
           part.inlineData &&
-          ChromeAdapter.SUPPORTED_MIME_TYPES.indexOf(
+          ChromeAdapterImpl.SUPPORTED_MIME_TYPES.indexOf(
             part.inlineData.mimeType
           ) === -1
         ) {
@@ -224,28 +225,28 @@ export class ChromeAdapter {
     this.isDownloading = true;
     this.downloadPromise = this.languageModelProvider
       ?.create(this.onDeviceParams.createOptions)
-      .then(() => {
+      .finally(() => {
         this.isDownloading = false;
       });
   }
 
   /**
-   * Converts Vertex {@link Content} object to a Chrome {@link LanguageModelMessage} object.
+   * Converts Firebase AI {@link Content} object to a Chrome {@link LanguageModelMessage} object.
    */
   private static async toLanguageModelMessage(
     content: Content
   ): Promise<LanguageModelMessage> {
     const languageModelMessageContents = await Promise.all(
-      content.parts.map(ChromeAdapter.toLanguageModelMessageContent)
+      content.parts.map(ChromeAdapterImpl.toLanguageModelMessageContent)
     );
     return {
-      role: ChromeAdapter.toLanguageModelMessageRole(content.role),
+      role: ChromeAdapterImpl.toLanguageModelMessageRole(content.role),
       content: languageModelMessageContents
     };
   }
 
   /**
-   * Converts a Vertex Part object to a Chrome LanguageModelMessageContent object.
+   * Converts a Firebase AI Part object to a Chrome LanguageModelMessageContent object.
    */
   private static async toLanguageModelMessageContent(
     part: Part
@@ -266,13 +267,14 @@ export class ChromeAdapter {
         value: imageBitmap
       };
     }
-    // Assumes contents have been verified to contain only a single TextPart.
-    // TODO: support other input types
-    throw new Error('Not yet implemented');
+    throw new AIError(
+      AIErrorCode.REQUEST_ERROR,
+      `Processing of this Part type is not currently supported.`
+    );
   }
 
   /**
-   * Converts a Vertex {@link Role} string to a {@link LanguageModelMessageRole} string.
+   * Converts a Firebase AI {@link Role} string to a {@link LanguageModelMessageRole} string.
    */
   private static toLanguageModelMessageRole(
     role: Role
@@ -284,8 +286,8 @@ export class ChromeAdapter {
   /**
    * Abstracts Chrome session creation.
    *
-   * <p>Chrome uses a multi-turn session for all inference. Vertex uses single-turn for all
-   * inference. To map the Vertex API to Chrome's API, the SDK creates a new session for all
+   * <p>Chrome uses a multi-turn session for all inference. Firebase AI uses single-turn for all
+   * inference. To map the Firebase AI API to Chrome's API, the SDK creates a new session for all
    * inference.</p>
    *
    * <p>Chrome will remove a model from memory if it's no longer in use, so this method ensures a
@@ -294,7 +296,7 @@ export class ChromeAdapter {
   private async createSession(): Promise<LanguageModel> {
     if (!this.languageModelProvider) {
       throw new AIError(
-        AIErrorCode.REQUEST_ERROR,
+        AIErrorCode.UNSUPPORTED,
         'Chrome AI requested for unsupported browser version.'
       );
     }
@@ -310,7 +312,7 @@ export class ChromeAdapter {
   }
 
   /**
-   * Formats string returned by Chrome as a {@link Response} returned by Vertex.
+   * Formats string returned by Chrome as a {@link Response} returned by Firebase AI.
    */
   private static toResponse(text: string): Response {
     return {
@@ -327,7 +329,7 @@ export class ChromeAdapter {
   }
 
   /**
-   * Formats string stream returned by Chrome as SSE returned by Vertex.
+   * Formats string stream returned by Chrome as SSE returned by Firebase AI.
    */
   private static toStreamResponse(stream: ReadableStream<string>): Response {
     const encoder = new TextEncoder();

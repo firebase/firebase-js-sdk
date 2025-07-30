@@ -9,33 +9,24 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# LanguageModelExpected interface
+# LanguageModelPromptOptions interface
 
 <b>Signature:</b>
 
 ```typescript
-export interface LanguageModelExpected 
+export interface LanguageModelPromptOptions 
 ```
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [languages](./ai.languagemodelexpected.md#languagemodelexpectedlanguages) | string\[\] |  |
-|  [type](./ai.languagemodelexpected.md#languagemodelexpectedtype) | [LanguageModelMessageType](./ai.md#languagemodelmessagetype) |  |
+|  [responseConstraint](./ai.languagemodelpromptoptions.md#languagemodelpromptoptionsresponseconstraint) | object |  |
 
-## LanguageModelExpected.languages
-
-<b>Signature:</b>
-
-```typescript
-languages?: string[];
-```
-
-## LanguageModelExpected.type
+## LanguageModelPromptOptions.responseConstraint
 
 <b>Signature:</b>
 
 ```typescript
-type: LanguageModelMessageType;
+responseConstraint?: object;
 ```

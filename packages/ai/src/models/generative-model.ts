@@ -43,7 +43,7 @@ import {
 } from '../requests/request-helpers';
 import { AI } from '../public-types';
 import { AIModel } from './ai-model';
-import { ChromeAdapter } from '../methods/chrome-adapter';
+import { ChromeAdapter } from '../types/chrome-adapter';
 
 /**
  * Class for generative model APIs.
@@ -64,8 +64,8 @@ export class GenerativeModel extends AIModel {
   constructor(
     ai: AI,
     modelParams: ModelParams,
-    private chromeAdapter: ChromeAdapter,
-    requestOptions?: RequestOptions
+    requestOptions?: RequestOptions,
+    private chromeAdapter?: ChromeAdapter
   ) {
     super(ai, modelParams.model);
     this.generationConfig = modelParams.generationConfig || {};

@@ -26,6 +26,7 @@ import {
   HarmBlockMethod,
   HarmBlockThreshold,
   HarmCategory,
+  InferenceMode,
   ResponseModality
 } from './enums';
 import { ObjectSchemaRequest, SchemaRequest } from './schema';
@@ -277,6 +278,8 @@ export interface FunctionCallingConfig {
 
 /**
  * Encapsulates configuration for on-device inference.
+ * 
+ * @public
  */
 export interface OnDeviceParams {
   createOptions?: LanguageModelCreateOptions;
@@ -284,7 +287,8 @@ export interface OnDeviceParams {
 }
 
 /**
- * Toggles hybrid inference.
+ * Configures hybrid inference.
+ * @public
  */
 export interface HybridParams {
   /**
@@ -302,14 +306,6 @@ export interface HybridParams {
 }
 
 /**
- * Determines whether inference happens on-device or in-cloud.
- */
-export type InferenceMode =
-  | 'prefer_on_device'
-  | 'only_on_device'
-  | 'only_in_cloud';
-
-/*
  * Configuration for "thinking" behavior of compatible Gemini models.
  *
  * Certain models utilize a thinking process before generating a response. This allows them to

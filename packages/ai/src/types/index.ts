@@ -31,5 +31,7 @@ export {
   LanguageModelMessageContent,
   LanguageModelMessageContentValue,
   LanguageModelMessageRole,
-  LanguageModelMessageType
+  LanguageModelMessageType,
+  LanguageModelPromptOptions
 } from './language-model';
+export * from './chrome-adapter';

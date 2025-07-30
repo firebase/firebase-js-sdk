@@ -125,8 +125,7 @@ export class BooleanSchema extends Schema {
 
 // @public
 export class ChatSession {
-    // Warning: (ae-forgotten-export) The symbol "ChromeAdapter" needs to be exported by the entry point index.d.ts
-    constructor(apiSettings: ApiSettings, model: string, chromeAdapter: ChromeAdapter, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
+    constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
@@ -137,6 +136,18 @@ export class ChatSession {
     sendMessage(request: string | Array<string | Part>): Promise<GenerateContentResult>;
     sendMessageStream(request: string | Array<string | Part>): Promise<GenerateContentStreamResult>;
     }
+
+// @public
+export interface ChromeAdapter {
+    // (undocumented)
+    countTokens(_request: CountTokensRequest): Promise<Response>;
+    // (undocumented)
+    generateContent(request: GenerateContentRequest): Promise<Response>;
+    // (undocumented)
+    generateContentStream(request: GenerateContentRequest): Promise<Response>;
+    // (undocumented)
+    isAvailable(request: GenerateContentRequest): Promise<boolean>;
+}
 
 // @public
 export interface Citation {
@@ -417,7 +428,7 @@ export interface GenerativeContentBlob {
 
 // @public
 export class GenerativeModel extends AIModel {
-    constructor(ai: AI, modelParams: ModelParams, chromeAdapter: ChromeAdapter, requestOptions?: RequestOptions);
+    constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions, chromeAdapter?: ChromeAdapter | undefined);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
     static DEFAULT_HYBRID_IN_CLOUD_MODEL: string;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
@@ -609,7 +620,7 @@ export const ImagenAspectRatio: {
 // @beta
 export type ImagenAspectRatio = (typeof ImagenAspectRatio)[keyof typeof ImagenAspectRatio];
 
-// @public
+// @beta
 export interface ImagenGCSImage {
     gcsURI: string;
     mimeType: string;
@@ -691,7 +702,14 @@ export interface ImagenSafetySettings {
 }
 
 // @public
-export type InferenceMode = 'prefer_on_device' | 'only_on_device' | 'only_in_cloud';
+export const InferenceMode: {
+    readonly PREFER_ON_DEVICE: "prefer_on_device";
+    readonly ONLY_ON_DEVICE: "only_on_device";
+    readonly ONLY_IN_CLOUD: "only_in_cloud";
+};
+
+// @public
+export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
 
 // @public
 export interface InlineDataPart {
@@ -762,6 +780,12 @@ export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 // @public (undocumented)
 export type LanguageModelMessageType = 'text' | 'image' | 'audio';
 
+// @public (undocumented)
+export interface LanguageModelPromptOptions {
+    // (undocumented)
+    responseConstraint?: object;
+}
+
 // @public
 export const Modality: {
     readonly MODALITY_UNSPECIFIED: "MODALITY_UNSPECIFIED";
@@ -824,8 +848,6 @@ export interface ObjectSchemaRequest extends SchemaRequest {
 export interface OnDeviceParams {
     // (undocumented)
     createOptions?: LanguageModelCreateOptions;
-    // Warning: (ae-forgotten-export) The symbol "LanguageModelPromptOptions" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     promptOptions?: LanguageModelPromptOptions;
 }
@@ -1032,7 +1054,7 @@ export interface TextPart {
     text: string;
 }
 
-// @public (undocumented)
+// @public
 export interface ThinkingConfig {
     thinkingBudget?: number;
 }

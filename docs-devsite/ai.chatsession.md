@@ -47,7 +47,7 @@ Constructs a new instance of the `ChatSession` class
 <b>Signature:</b>
 
 ```typescript
-constructor(apiSettings: ApiSettings, model: string, chromeAdapter: ChromeAdapter, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
+constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
 ```
 
 #### Parameters
@@ -56,7 +56,7 @@ constructor(apiSettings: ApiSettings, model: string, chromeAdapter: ChromeAdapte
 |  --- | --- | --- |
 |  apiSettings | ApiSettings |  |
 |  model | string |  |
-|  chromeAdapter | ChromeAdapter |  |
+|  chromeAdapter | [ChromeAdapter](./ai.chromeadapter.md#chromeadapter_interface) \| undefined |  |
 |  params | [StartChatParams](./ai.startchatparams.md#startchatparams_interface) \| undefined |  |
 |  requestOptions | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) \| undefined |  |
 

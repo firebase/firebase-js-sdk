@@ -10,6 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # LanguageModelMessage interface
+
 <b>Signature:</b>
 
 ```typescript

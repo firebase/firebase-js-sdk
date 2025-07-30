@@ -24,6 +24,8 @@ toc:
     path: /docs/reference/js/ai.booleanschema.md
   - title: ChatSession
     path: /docs/reference/js/ai.chatsession.md
+  - title: ChromeAdapter
+    path: /docs/reference/js/ai.chromeadapter.md
   - title: Citation
     path: /docs/reference/js/ai.citation.md
   - title: CitationMetadata
@@ -120,6 +122,8 @@ toc:
     path: /docs/reference/js/ai.languagemodelmessage.md
   - title: LanguageModelMessageContent
     path: /docs/reference/js/ai.languagemodelmessagecontent.md
+  - title: LanguageModelPromptOptions
+    path: /docs/reference/js/ai.languagemodelpromptoptions.md
   - title: ModalityTokenCount
     path: /docs/reference/js/ai.modalitytokencount.md
   - title: ModelParams

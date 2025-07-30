@@ -22,7 +22,7 @@ import { match, restore, stub } from 'sinon';
 import { getMockResponse } from '../../test-utils/mock-response';
 import sinonChai from 'sinon-chai';
 import { VertexAIBackend } from '../backend';
-import { ChromeAdapter } from '../methods/chrome-adapter';
+import { ChromeAdapterImpl } from '../methods/chrome-adapter';
 
 use(sinonChai);
 
@@ -61,7 +61,7 @@ describe('GenerativeModel', () => {
         },
         systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
       },
-      new ChromeAdapter()
+      new ChromeAdapterImpl()
     );
     expect(genModel.tools?.length).to.equal(1);
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
@@ -99,7 +99,7 @@ describe('GenerativeModel', () => {
         model: 'my-model',
         systemInstruction: 'be friendly'
       },
-      new ChromeAdapter()
+      new ChromeAdapterImpl()
     );
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
     const mockResponse = getMockResponse(
@@ -142,7 +142,7 @@ describe('GenerativeModel', () => {
         },
         systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
       },
-      new ChromeAdapter()
+      new ChromeAdapterImpl()
     );
     expect(genModel.tools?.length).to.equal(1);
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
@@ -193,7 +193,7 @@ describe('GenerativeModel', () => {
           topK: 1
         }
       },
-      new ChromeAdapter()
+      new ChromeAdapterImpl()
     );
     const chatSession = genModel.startChat();
     expect(chatSession.params?.generationConfig).to.deep.equal({
@@ -210,7 +210,7 @@ describe('GenerativeModel', () => {
           topK: 1
         }
       },
-      new ChromeAdapter()
+      new ChromeAdapterImpl()
     );
     const chatSession = genModel.startChat({
       generationConfig: {
@@ -237,7 +237,7 @@ describe('GenerativeModel', () => {
           topK: 1
         }
       },
-      new ChromeAdapter()
+      new ChromeAdapterImpl()
     );
     expect(genModel.tools?.length).to.equal(1);
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
@@ -276,7 +276,7 @@ describe('GenerativeModel', () => {
         model: 'my-model',
         systemInstruction: 'be friendly'
       },
-      new ChromeAdapter()
+      new ChromeAdapterImpl()
     );
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
     const mockResponse = getMockResponse(
@@ -315,7 +315,7 @@ describe('GenerativeModel', () => {
           responseMimeType: 'image/jpeg'
         }
       },
-      new ChromeAdapter()
+      new ChromeAdapterImpl()
     );
     expect(genModel.tools?.length).to.equal(1);
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
@@ -369,7 +369,7 @@ describe('GenerativeModel', () => {
     const genModel = new GenerativeModel(
       fakeAI,
       { model: 'my-model' },
-      new ChromeAdapter()
+      new ChromeAdapterImpl()
     );
     const mockResponse = getMockResponse(
       'vertexAI',

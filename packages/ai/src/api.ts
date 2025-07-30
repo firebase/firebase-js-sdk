@@ -32,7 +32,7 @@ import { AIError } from './errors';
 import { AIModel, GenerativeModel, ImagenModel } from './models';
 import { encodeInstanceIdentifier } from './helpers';
 import { GoogleAIBackend } from './backend';
-import { ChromeAdapter } from './methods/chrome-adapter';
+import { ChromeAdapterImpl } from './methods/chrome-adapter';
 import { LanguageModel } from './types/language-model';
 
 export { ChatSession } from './methods/chat-session';
@@ -117,16 +117,15 @@ export function getGenerativeModel(
       `Must provide a model name. Example: getGenerativeModel({ model: 'my-model-name' })`
     );
   }
-  return new GenerativeModel(
-    ai,
-    inCloudParams,
-    new ChromeAdapter(
+  let chromeAdapter: ChromeAdapterImpl | undefined;
+  if (typeof window !== 'undefined' && hybridParams.mode) {
+    chromeAdapter = new ChromeAdapterImpl(
       window.LanguageModel as LanguageModel,
       hybridParams.mode,
       hybridParams.onDeviceParams
-    ),
-    requestOptions
-  );
+    );
+  }
+  return new GenerativeModel(ai, inCloudParams, requestOptions, chromeAdapter);
 }
 
 /**

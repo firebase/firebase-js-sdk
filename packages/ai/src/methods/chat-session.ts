@@ -30,7 +30,7 @@ import { validateChatHistory } from './chat-session-helpers';
 import { generateContent, generateContentStream } from './generate-content';
 import { ApiSettings } from '../types/internal';
 import { logger } from '../logger';
-import { ChromeAdapter } from './chrome-adapter';
+import { ChromeAdapter } from '../types/chrome-adapter';
 
 /**
  * Do not log a message for this error.
@@ -51,7 +51,7 @@ export class ChatSession {
   constructor(
     apiSettings: ApiSettings,
     public model: string,
-    private chromeAdapter: ChromeAdapter,
+    private chromeAdapter?: ChromeAdapter,
     public params?: StartChatParams,
     public requestOptions?: RequestOptions
   ) {
