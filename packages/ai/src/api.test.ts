@@ -21,7 +21,7 @@ import { expect } from 'chai';
 import { AI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
 import { VertexAIBackend } from './backend';
-import { AI_TYPE } from './constants';
+import { AI_TYPE, DEFAULT_HYBRID_IN_CLOUD_MODEL } from './constants';
 
 const fakeAI: AI = {
   app: {
@@ -107,7 +107,7 @@ describe('Top level API', () => {
       mode: 'only_on_device'
     });
     expect(genModel.model).to.equal(
-      `publishers/google/models/${GenerativeModel.DEFAULT_HYBRID_IN_CLOUD_MODEL}`
+      `publishers/google/models/${DEFAULT_HYBRID_IN_CLOUD_MODEL}`
     );
   });
   it('getGenerativeModel with HybridParams honors a model override', () => {

@@ -61,6 +61,7 @@ describe('GenerativeModel', () => {
         },
         systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
       },
+      {},
       new ChromeAdapterImpl()
     );
     expect(genModel.tools?.length).to.equal(1);
@@ -99,6 +100,7 @@ describe('GenerativeModel', () => {
         model: 'my-model',
         systemInstruction: 'be friendly'
       },
+      {},
       new ChromeAdapterImpl()
     );
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
@@ -142,6 +144,7 @@ describe('GenerativeModel', () => {
         },
         systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
       },
+      {},
       new ChromeAdapterImpl()
     );
     expect(genModel.tools?.length).to.equal(1);
@@ -193,6 +196,7 @@ describe('GenerativeModel', () => {
           topK: 1
         }
       },
+      {},
       new ChromeAdapterImpl()
     );
     const chatSession = genModel.startChat();
@@ -210,6 +214,7 @@ describe('GenerativeModel', () => {
           topK: 1
         }
       },
+      {},
       new ChromeAdapterImpl()
     );
     const chatSession = genModel.startChat({
@@ -237,6 +242,7 @@ describe('GenerativeModel', () => {
           topK: 1
         }
       },
+      {},
       new ChromeAdapterImpl()
     );
     expect(genModel.tools?.length).to.equal(1);
@@ -276,6 +282,7 @@ describe('GenerativeModel', () => {
         model: 'my-model',
         systemInstruction: 'be friendly'
       },
+      {},
       new ChromeAdapterImpl()
     );
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
@@ -315,6 +322,7 @@ describe('GenerativeModel', () => {
           responseMimeType: 'image/jpeg'
         }
       },
+      {},
       new ChromeAdapterImpl()
     );
     expect(genModel.tools?.length).to.equal(1);
@@ -369,6 +377,7 @@ describe('GenerativeModel', () => {
     const genModel = new GenerativeModel(
       fakeAI,
       { model: 'my-model' },
+      {},
       new ChromeAdapterImpl()
     );
     const mockResponse = getMockResponse(

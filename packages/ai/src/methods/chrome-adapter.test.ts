@@ -27,7 +27,7 @@ import {
   LanguageModelMessage
 } from '../types/language-model';
 import { match, stub } from 'sinon';
-import { GenerateContentRequest, AIErrorCode } from '../types';
+import { GenerateContentRequest, AIErrorCode, InferenceMode } from '../types';
 import { Schema } from '../api';
 
 use(sinonChai);
@@ -64,7 +64,7 @@ describe('ChromeAdapter', () => {
       ).resolves(Availability.available);
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
-        'prefer_on_device'
+        InferenceMode.PREFER_ON_DEVICE
       );
       await adapter.isAvailable({
         contents: [
@@ -92,7 +92,7 @@ describe('ChromeAdapter', () => {
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
-        'prefer_on_device',
+        InferenceMode.PREFER_ON_DEVICE,
         {
           createOptions
         }
@@ -126,7 +126,10 @@ describe('ChromeAdapter', () => {
       ).to.be.false;
     });
     it('returns false if LanguageModel API is undefined', async () => {
-      const adapter = new ChromeAdapterImpl(undefined, 'prefer_on_device');
+      const adapter = new ChromeAdapterImpl(
+        undefined,
+        InferenceMode.PREFER_ON_DEVICE
+      );
       expect(
         await adapter.isAvailable({
           contents: []
@@ -138,7 +141,7 @@ describe('ChromeAdapter', () => {
         {
           availability: async () => Availability.available
         } as LanguageModel,
-        'prefer_on_device'
+        InferenceMode.PREFER_ON_DEVICE
       );
       expect(
         await adapter.isAvailable({
@@ -151,7 +154,7 @@ describe('ChromeAdapter', () => {
         {
           availability: async () => Availability.available
         } as LanguageModel,
-        'prefer_on_device'
+        InferenceMode.PREFER_ON_DEVICE
       );
       expect(
         await adapter.isAvailable({
@@ -169,7 +172,7 @@ describe('ChromeAdapter', () => {
         {
           availability: async () => Availability.available
         } as LanguageModel,
-        'prefer_on_device'
+        InferenceMode.PREFER_ON_DEVICE
       );
       for (const mimeType of ChromeAdapterImpl.SUPPORTED_MIME_TYPES) {
         expect(
@@ -197,7 +200,7 @@ describe('ChromeAdapter', () => {
       } as LanguageModel;
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
-        'prefer_on_device'
+        InferenceMode.PREFER_ON_DEVICE
       );
       expect(
         await adapter.isAvailable({
@@ -226,7 +229,7 @@ describe('ChromeAdapter', () => {
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
-        'prefer_on_device',
+        InferenceMode.PREFER_ON_DEVICE,
         { createOptions }
       );
       expect(
@@ -249,7 +252,7 @@ describe('ChromeAdapter', () => {
       );
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
-        'prefer_on_device'
+        InferenceMode.PREFER_ON_DEVICE
       );
       await adapter.isAvailable({
         contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
@@ -273,7 +276,7 @@ describe('ChromeAdapter', () => {
       );
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
-        'prefer_on_device'
+        InferenceMode.PREFER_ON_DEVICE
       );
       await adapter.isAvailable({
         contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
@@ -291,7 +294,7 @@ describe('ChromeAdapter', () => {
       } as LanguageModel;
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
-        'prefer_on_device'
+        InferenceMode.PREFER_ON_DEVICE
       );
       expect(
         await adapter.isAvailable({
@@ -312,7 +315,7 @@ describe('ChromeAdapter', () => {
           AIError,
           'Chrome AI requested for unsupported browser version.'
         )
-        .and.have.property('code', AIErrorCode.REQUEST_ERROR);
+        .and.have.property('code', AIErrorCode.UNSUPPORTED);
     });
     it('generates content', async () => {
       const languageModelProvider = {
@@ -333,7 +336,7 @@ describe('ChromeAdapter', () => {
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
-        'prefer_on_device',
+        InferenceMode.PREFER_ON_DEVICE,
         { createOptions }
       );
       const request = {
@@ -384,7 +387,7 @@ describe('ChromeAdapter', () => {
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
-        'prefer_on_device',
+        InferenceMode.PREFER_ON_DEVICE,
         { createOptions }
       );
       const request = {
@@ -450,7 +453,7 @@ describe('ChromeAdapter', () => {
       };
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
-        'prefer_on_device',
+        InferenceMode.PREFER_ON_DEVICE,
         { promptOptions }
       );
       const request = {
@@ -483,7 +486,7 @@ describe('ChromeAdapter', () => {
       } as LanguageModel;
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
-        'prefer_on_device'
+        InferenceMode.PREFER_ON_DEVICE
       );
       const request = {
         contents: [{ role: 'model', parts: [{ text: 'unused' }] }]
@@ -519,7 +522,7 @@ describe('ChromeAdapter', () => {
 
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
-        'prefer_on_device'
+        InferenceMode.PREFER_ON_DEVICE
       );
 
       const countTokenRequest = {
@@ -563,7 +566,7 @@ describe('ChromeAdapter', () => {
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
-        'prefer_on_device',
+        InferenceMode.PREFER_ON_DEVICE,
         { createOptions }
       );
       const request = {
@@ -611,7 +614,7 @@ describe('ChromeAdapter', () => {
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
-        'prefer_on_device',
+        InferenceMode.PREFER_ON_DEVICE,
         { createOptions }
       );
       const request = {
@@ -670,7 +673,7 @@ describe('ChromeAdapter', () => {
       };
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
-        'prefer_on_device',
+        InferenceMode.PREFER_ON_DEVICE,
         { promptOptions }
       );
       const request = {
@@ -705,7 +708,7 @@ describe('ChromeAdapter', () => {
       } as LanguageModel;
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
-        'prefer_on_device'
+        InferenceMode.PREFER_ON_DEVICE
       );
       const request = {
         contents: [{ role: 'model', parts: [{ text: 'unused' }] }]

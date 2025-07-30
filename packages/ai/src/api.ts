@@ -18,7 +18,7 @@
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { getModularInstance } from '@firebase/util';
-import { AI_TYPE } from './constants';
+import { AI_TYPE, DEFAULT_HYBRID_IN_CLOUD_MODEL } from './constants';
 import { AIService } from './service';
 import { AI, AIOptions } from './public-types';
 import {
@@ -105,7 +105,7 @@ export function getGenerativeModel(
   let inCloudParams: ModelParams;
   if (hybridParams.mode) {
     inCloudParams = hybridParams.inCloudParams || {
-      model: GenerativeModel.DEFAULT_HYBRID_IN_CLOUD_MODEL
+      model: DEFAULT_HYBRID_IN_CLOUD_MODEL
     };
   } else {
     inCloudParams = modelParams as ModelParams;
@@ -118,6 +118,7 @@ export function getGenerativeModel(
     );
   }
   let chromeAdapter: ChromeAdapterImpl | undefined;
+  // Do not initialize a ChromeAdapter if we are not in hybrid mode.
   if (typeof window !== 'undefined' && hybridParams.mode) {
     chromeAdapter = new ChromeAdapterImpl(
       window.LanguageModel as LanguageModel,

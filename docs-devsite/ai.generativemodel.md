@@ -29,7 +29,6 @@ export declare class GenerativeModel extends AIModel
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [DEFAULT\_HYBRID\_IN\_CLOUD\_MODEL](./ai.generativemodel.md#generativemodeldefault_hybrid_in_cloud_model) | <code>static</code> | string | Defines the name of the default in-cloud model to use for hybrid inference. |
 |  [generationConfig](./ai.generativemodel.md#generativemodelgenerationconfig) |  | [GenerationConfig](./ai.generationconfig.md#generationconfig_interface) |  |
 |  [requestOptions](./ai.generativemodel.md#generativemodelrequestoptions) |  | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) |  |
 |  [safetySettings](./ai.generativemodel.md#generativemodelsafetysettings) |  | [SafetySetting](./ai.safetysetting.md#safetysetting_interface)<!-- -->\[\] |  |
@@ -64,16 +63,6 @@ constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions, c
 |  modelParams | [ModelParams](./ai.modelparams.md#modelparams_interface) |  |
 |  requestOptions | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) |  |
 |  chromeAdapter | [ChromeAdapter](./ai.chromeadapter.md#chromeadapter_interface) \| undefined |  |
-
-## GenerativeModel.DEFAULT\_HYBRID\_IN\_CLOUD\_MODEL
-
-Defines the name of the default in-cloud model to use for hybrid inference.
-
-<b>Signature:</b>
-
-```typescript
-static DEFAULT_HYBRID_IN_CLOUD_MODEL: string;
-```
 
 ## GenerativeModel.generationConfig
 

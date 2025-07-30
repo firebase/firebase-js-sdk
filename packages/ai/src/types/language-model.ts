@@ -16,10 +16,10 @@
  */
 /**
  * The subset of the Prompt API
- * (see {@link https://github.com/webmachinelearning/prompt-api#full-api-surface-in-web-idl })
+ * (see {@link https://github.com/webmachinelearning/prompt-api#full-api-surface-in-web-idl }
  * required for hybrid functionality.
- * 
- * @public
+ *
+ * @internal
  */
 export interface LanguageModel extends EventTarget {
   create(options?: LanguageModelCreateOptions): Promise<LanguageModel>;
@@ -40,7 +40,7 @@ export interface LanguageModel extends EventTarget {
 }
 
 /**
- * @public
+ * @internal
  */
 export enum Availability {
   'unavailable' = 'unavailable',
@@ -50,6 +50,8 @@ export enum Availability {
 }
 
 /**
+ * (EXPERIMENTAL)
+ * Used to configure the creation of an on-device language model session.
  * @public
  */
 export interface LanguageModelCreateCoreOptions {
@@ -59,6 +61,8 @@ export interface LanguageModelCreateCoreOptions {
 }
 
 /**
+ * (EXPERIMENTAL)
+ * Used to configure the creation of an on-device language model session.
  * @public
  */
 export interface LanguageModelCreateOptions
@@ -68,6 +72,8 @@ export interface LanguageModelCreateOptions
 }
 
 /**
+ * (EXPERIMENTAL)
+ * Options for an on-device language model prompt.
  * @public
  */
 export interface LanguageModelPromptOptions {
@@ -76,18 +82,24 @@ export interface LanguageModelPromptOptions {
 }
 
 /**
+ * (EXPERIMENTAL)
+ * Options for an on-device language model expected inputs.
  * @public
- */export interface LanguageModelExpected {
+ */ export interface LanguageModelExpected {
   type: LanguageModelMessageType;
   languages?: string[];
 }
 
 /**
+ * (EXPERIMENTAL)
+ * An on-device language model prompt.
  * @public
  */
 export type LanguageModelPrompt = LanguageModelMessage[];
 
 /**
+ * (EXPERIMENTAL)
+ * An on-device language model message.
  * @public
  */
 export interface LanguageModelMessage {
@@ -96,6 +108,8 @@ export interface LanguageModelMessage {
 }
 
 /**
+ * (EXPERIMENTAL)
+ * An on-device language model content object.
  * @public
  */
 export interface LanguageModelMessageContent {
@@ -104,16 +118,22 @@ export interface LanguageModelMessageContent {
 }
 
 /**
+ * (EXPERIMENTAL)
+ * Allowable roles for on-device language model usage.
  * @public
  */
 export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 
 /**
+ * (EXPERIMENTAL)
+ * Allowable types for on-device language model messages.
  * @public
  */
 export type LanguageModelMessageType = 'text' | 'image' | 'audio';
 
 /**
+ * (EXPERIMENTAL)
+ * Content formats that can be provided as on-device message content.
  * @public
  */
 export type LanguageModelMessageContentValue =

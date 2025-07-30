@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # HybridParams interface
-Configures hybrid inference.
+(EXPERIMENTAL) Configures hybrid inference.
 
 <b>Signature:</b>
 

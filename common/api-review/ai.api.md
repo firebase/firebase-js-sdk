@@ -430,7 +430,6 @@ export interface GenerativeContentBlob {
 export class GenerativeModel extends AIModel {
     constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions, chromeAdapter?: ChromeAdapter | undefined);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
-    static DEFAULT_HYBRID_IN_CLOUD_MODEL: string;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
     // (undocumented)
@@ -729,7 +728,7 @@ export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
 
-// @public (undocumented)
+// @public
 export interface LanguageModelCreateCoreOptions {
     // (undocumented)
     expectedInputs?: LanguageModelExpected[];
@@ -739,7 +738,7 @@ export interface LanguageModelCreateCoreOptions {
     topK?: number;
 }
 
-// @public (undocumented)
+// @public
 export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptions {
     // (undocumented)
     initialPrompts?: LanguageModelMessage[];
@@ -747,7 +746,7 @@ export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptio
     signal?: AbortSignal;
 }
 
-// @public (undocumented)
+// @public
 export interface LanguageModelExpected {
     // (undocumented)
     languages?: string[];
@@ -755,7 +754,7 @@ export interface LanguageModelExpected {
     type: LanguageModelMessageType;
 }
 
-// @public (undocumented)
+// @public
 export interface LanguageModelMessage {
     // (undocumented)
     content: LanguageModelMessageContent[];
@@ -763,7 +762,7 @@ export interface LanguageModelMessage {
     role: LanguageModelMessageRole;
 }
 
-// @public (undocumented)
+// @public
 export interface LanguageModelMessageContent {
     // (undocumented)
     type: LanguageModelMessageType;
@@ -771,16 +770,16 @@ export interface LanguageModelMessageContent {
     value: LanguageModelMessageContentValue;
 }
 
-// @public (undocumented)
+// @public
 export type LanguageModelMessageContentValue = ImageBitmapSource | AudioBuffer | BufferSource | string;
 
-// @public (undocumented)
+// @public
 export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 
-// @public (undocumented)
+// @public
 export type LanguageModelMessageType = 'text' | 'image' | 'audio';
 
-// @public (undocumented)
+// @public
 export interface LanguageModelPromptOptions {
     // (undocumented)
     responseConstraint?: object;

@@ -10,6 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # LanguageModelMessageContent interface
+(EXPERIMENTAL) An on-device language model content object.
 
 <b>Signature:</b>
 

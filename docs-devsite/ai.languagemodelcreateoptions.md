@@ -10,6 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # LanguageModelCreateOptions interface
+(EXPERIMENTAL) Used to configure the creation of an on-device language model session.
 
 <b>Signature:</b>
 
