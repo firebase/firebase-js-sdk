@@ -21,11 +21,50 @@ import { CountTokensRequest, GenerateContentRequest } from './requests';
  * Defines an inference "backend" that uses Chrome's on-device model,
  * and encapsulates logic for detecting when on-device is possible.
  *
+ * These methods should not be called directly by the user.
+ *
  * @public
  */
 export interface ChromeAdapter {
+  /**
+   * Checks if a given request can be made on-device.
+   *
+   * <ol>Encapsulates a few concerns:
+   *   <li>the mode</li>
+   *   <li>API existence</li>
+   *   <li>prompt formatting</li>
+   *   <li>model availability, including triggering download if necessary</li>
+   * </ol>
+   *
+   * <p>Pros: callers needn't be concerned with details of on-device availability.</p>
+   * <p>Cons: this method spans a few concerns and splits request validation from usage.
+   * If instance variables weren't already part of the API, we could consider a better
+   * separation of concerns.</p>
+   */
   isAvailable(request: GenerateContentRequest): Promise<boolean>;
+
+  /**
+   * Stub - not yet available for on-device.
+   */
   countTokens(_request: CountTokensRequest): Promise<Response>;
+
+  /**
+   * Generates content on device.
+   *
+   * <p>This is comparable to {@link GenerativeModel.generateContent} for generating content in
+   * Cloud.</p>
+   * @param request - a standard Firebase AI {@link GenerateContentRequest}
+   * @returns {@link Response}, so we can reuse common response formatting.
+   */
   generateContent(request: GenerateContentRequest): Promise<Response>;
+
+  /**
+   * Generates content stream on device.
+   *
+   * <p>This is comparable to {@link GenerativeModel.generateContentStream} for generating content in
+   * Cloud.</p>
+   * @param request - a standard Firebase AI {@link GenerateContentRequest}
+   * @returns {@link Response}, so we can reuse common response formatting.
+   */
   generateContentStream(request: GenerateContentRequest): Promise<Response>;
 }

@@ -139,13 +139,9 @@ export class ChatSession {
 
 // @public
 export interface ChromeAdapter {
-    // (undocumented)
     countTokens(_request: CountTokensRequest): Promise<Response>;
-    // (undocumented)
     generateContent(request: GenerateContentRequest): Promise<Response>;
-    // (undocumented)
     generateContentStream(request: GenerateContentRequest): Promise<Response>;
-    // (undocumented)
     isAvailable(request: GenerateContentRequest): Promise<boolean>;
 }
 
