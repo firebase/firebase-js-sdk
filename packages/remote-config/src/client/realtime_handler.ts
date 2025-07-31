@@ -21,6 +21,7 @@ import { ERROR_FACTORY, ErrorCode } from '../errors';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { Storage } from '../storage/storage';
 import { calculateBackoffMillis, FirebaseError } from '@firebase/util';
+import { VisibilityMonitor } from '../../../database/src/core/util/VisibilityMonitor';
 
 export class RealtimeHandler {
   constructor(
@@ -31,7 +32,9 @@ export class RealtimeHandler {
     private readonly projectId: string,
     private readonly apiKey: string,
     private readonly appId: string
-  ) { }
+  ) {
+      VisibilityMonitor.getInstance().on('visible', this.onVisibilityChange_, this);
+  }
 
   private streamController?: AbortController;
   private observers: Set<ConfigUpdateObserver> = new Set<ConfigUpdateObserver>();
@@ -110,6 +113,15 @@ export class RealtimeHandler {
     return false;
   }
 
+  private stopRealtime(): void {
+    if (this.scheduledConnectionTimeoutId) {
+      clearTimeout(this.scheduledConnectionTimeoutId);
+      this.scheduledConnectionTimeoutId = undefined;
+    }
+    this.streamController?.abort();
+    this.isConnectionActive = false;
+  }
+
   private resetRetryCount(): void {
     this.retriesRemaining = ORIGINAL_RETRIES;
   }
@@ -159,7 +171,6 @@ export class RealtimeHandler {
         'If-None-Match': '*',
         'authentication-token': installationTokenResult
       };
-
       const url = this.getRealtimeUrl();
       const requestBody = {
         project: this.projectId,
@@ -257,4 +268,15 @@ export class RealtimeHandler {
     return new URL(urlString);
   }
 
+  private onVisibilityChange_(visible: unknown) {
+    const wasInBackground = this.isInBackground;
+    this.isInBackground = !visible;
+    if (wasInBackground !== this.isInBackground) {
+      if (this.isInBackground) {
+        this.stopRealtime();
+      } else {
+        this.beginRealtime();
+      }
+    }
+  }
 }
