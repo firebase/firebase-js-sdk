@@ -22,6 +22,7 @@ import typescript from 'typescript';
 import pkg from './package.json';
 import tsconfig from './tsconfig.json';
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
+import { getEnvironmentReplacements } from '../../scripts/build/rollup_get_environment_replacements';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 
 const deps = Object.keys(
@@ -57,12 +58,14 @@ const browserBuilds = [
     plugins: [
       ...buildPlugins,
       replace({
+        ...getEnvironmentReplacements('browser'),
         ...generateBuildTargetReplaceConfig('esm', 2020),
-        __PACKAGE_VERSION__: pkg.version
+        '__PACKAGE_VERSION__': pkg.version
       }),
       emitModulePackageFile()
     ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id =>
+      id === 'ws' || deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
     input: 'src/index.ts',
@@ -74,11 +77,13 @@ const browserBuilds = [
     plugins: [
       ...buildPlugins,
       replace({
+        ...getEnvironmentReplacements('browser'),
         ...generateBuildTargetReplaceConfig('cjs', 2020),
-        __PACKAGE_VERSION__: pkg.version
+        '__PACKAGE_VERSION__': pkg.version
       })
     ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id =>
+      id === 'ws' || deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
 
@@ -93,10 +98,12 @@ const nodeBuilds = [
     plugins: [
       ...buildPlugins,
       replace({
+        ...getEnvironmentReplacements('node'),
         ...generateBuildTargetReplaceConfig('esm', 2020)
       })
     ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id =>
+      id === 'ws' || deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
     input: 'src/index.node.ts',
@@ -108,10 +115,12 @@ const nodeBuilds = [
     plugins: [
       ...buildPlugins,
       replace({
+        ...getEnvironmentReplacements('node'),
         ...generateBuildTargetReplaceConfig('cjs', 2020)
       })
     ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id =>
+      id === 'ws' || deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
 

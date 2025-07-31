@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { BackendName } from './types';
 import { vertexAIMocksLookup, googleAIMocksLookup } from './mocks-lookup';
 
 const mockSetMaps: Record<BackendName, Record<string, string>> = {
