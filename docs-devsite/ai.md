@@ -51,7 +51,7 @@ The Firebase AI Web SDK.
 |  [AI](./ai.ai.md#ai_interface) | An instance of the Firebase AI SDK.<!-- -->Do not create this instance directly. Instead, use [getAI()](./ai.md#getai_a94a413)<!-- -->. |
 |  [AIOptions](./ai.aioptions.md#aioptions_interface) | Options for initializing the AI service using [getAI()](./ai.md#getai_a94a413)<!-- -->. This allows specifying which backend to use (Vertex AI Gemini API or Gemini Developer API) and configuring its specific options (like location for Vertex AI). |
 |  [BaseParams](./ai.baseparams.md#baseparams_interface) | Base parameters for a number of methods. |
-|  [ChromeAdapter](./ai.chromeadapter.md#chromeadapter_interface) | Defines an inference "backend" that uses Chrome's on-device model, and encapsulates logic for detecting when on-device is possible. |
+|  [ChromeAdapter](./ai.chromeadapter.md#chromeadapter_interface) | (EXPERIMENTAL)<!-- -->Defines an inference "backend" that uses Chrome's on-device model, and encapsulates logic for detecting when on-device is possible.<!-- -->These methods should not be called directly by the user. |
 |  [Citation](./ai.citation.md#citation_interface) | A single citation. |
 |  [CitationMetadata](./ai.citationmetadata.md#citationmetadata_interface) | Citation metadata that may be found on a [GenerateContentCandidate](./ai.generatecontentcandidate.md#generatecontentcandidate_interface)<!-- -->. |
 |  [Content](./ai.content.md#content_interface) | Content type for both prompts and response candidates. |

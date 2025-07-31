@@ -10,7 +10,11 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ChromeAdapter interface
+(EXPERIMENTAL)
+
 Defines an inference "backend" that uses Chrome's on-device model, and encapsulates logic for detecting when on-device is possible.
+
+These methods should not be called directly by the user.
 
 <b>Signature:</b>
 
@@ -22,12 +26,14 @@ export interface ChromeAdapter
 
 |  Method | Description |
 |  --- | --- |
-|  [countTokens(\_request)](./ai.chromeadapter.md#chromeadaptercounttokens) |  |
-|  [generateContent(request)](./ai.chromeadapter.md#chromeadaptergeneratecontent) |  |
-|  [generateContentStream(request)](./ai.chromeadapter.md#chromeadaptergeneratecontentstream) |  |
-|  [isAvailable(request)](./ai.chromeadapter.md#chromeadapterisavailable) |  |
+|  [countTokens(\_request)](./ai.chromeadapter.md#chromeadaptercounttokens) | Stub - not yet available for on-device. |
+|  [generateContent(request)](./ai.chromeadapter.md#chromeadaptergeneratecontent) | Generates content on device.<p>This is comparable to [GenerativeModel.generateContent()](./ai.generativemodel.md#generativemodelgeneratecontent) for generating content in Cloud.</p> |
+|  [generateContentStream(request)](./ai.chromeadapter.md#chromeadaptergeneratecontentstream) | Generates content stream on device.<p>This is comparable to [GenerativeModel.generateContentStream()](./ai.generativemodel.md#generativemodelgeneratecontentstream) for generating content in Cloud.</p> |
+|  [isAvailable(request)](./ai.chromeadapter.md#chromeadapterisavailable) | Checks if a given request can be made on-device.<ol>Encapsulates a few concerns: <li>the mode</li> <li>API existence</li> <li>prompt formatting</li> <li>model availability, including triggering download if necessary</li> </ol><p>Pros: callers needn't be concerned with details of on-device availability.</p> <p>Cons: this method spans a few concerns and splits request validation from usage. If instance variables weren't already part of the API, we could consider a better separation of concerns.</p> |
 
 ## ChromeAdapter.countTokens()
+
+Stub - not yet available for on-device.
 
 <b>Signature:</b>
 
@@ -47,6 +53,10 @@ Promise&lt;Response&gt;
 
 ## ChromeAdapter.generateContent()
 
+Generates content on device.
+
+<p>This is comparable to [GenerativeModel.generateContent()](./ai.generativemodel.md#generativemodelgeneratecontent) for generating content in Cloud.</p>
+
 <b>Signature:</b>
 
 ```typescript
@@ -57,13 +67,19 @@ generateContent(request: GenerateContentRequest): Promise<Response>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  request | [GenerateContentRequest](./ai.generatecontentrequest.md#generatecontentrequest_interface) |  |
+|  request | [GenerateContentRequest](./ai.generatecontentrequest.md#generatecontentrequest_interface) | a standard Firebase AI [GenerateContentRequest](./ai.generatecontentrequest.md#generatecontentrequest_interface) |
 
 <b>Returns:</b>
 
 Promise&lt;Response&gt;
 
+, so we can reuse common response formatting.
+
 ## ChromeAdapter.generateContentStream()
+
+Generates content stream on device.
+
+<p>This is comparable to [GenerativeModel.generateContentStream()](./ai.generativemodel.md#generativemodelgeneratecontentstream) for generating content in Cloud.</p>
 
 <b>Signature:</b>
 
@@ -75,13 +91,21 @@ generateContentStream(request: GenerateContentRequest): Promise<Response>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  request | [GenerateContentRequest](./ai.generatecontentrequest.md#generatecontentrequest_interface) |  |
+|  request | [GenerateContentRequest](./ai.generatecontentrequest.md#generatecontentrequest_interface) | a standard Firebase AI [GenerateContentRequest](./ai.generatecontentrequest.md#generatecontentrequest_interface) |
 
 <b>Returns:</b>
 
 Promise&lt;Response&gt;
 
+, so we can reuse common response formatting.
+
 ## ChromeAdapter.isAvailable()
+
+Checks if a given request can be made on-device.
+
+<ol>Encapsulates a few concerns: <li>the mode</li> <li>API existence</li> <li>prompt formatting</li> <li>model availability, including triggering download if necessary</li> </ol>
+
+<p>Pros: callers needn't be concerned with details of on-device availability.</p> <p>Cons: this method spans a few concerns and splits request validation from usage. If instance variables weren't already part of the API, we could consider a better separation of concerns.</p>
 
 <b>Signature:</b>
 
