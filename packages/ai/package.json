@@ -40,6 +40,7 @@
     "test:skip-clone": "karma start",
     "test:browser": "yarn testsetup && karma start",
     "test:integration": "karma start --integration",
+    "test:integration:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' mocha integration/**/*.test.ts --config ../../config/mocharc.node.js",
     "api-report": "api-extractor run --local --verbose",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/ai-public.d.ts",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit"
