@@ -208,6 +208,8 @@ export interface EnhancedGenerateContentResponse extends GenerateContentResponse
     functionCalls: () => FunctionCall[] | undefined;
     inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
+    // (undocumented)
+    thoughtSummary: () => string | undefined;
 }
 
 // @public
@@ -240,6 +242,10 @@ export interface FileDataPart {
     inlineData?: never;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // (undocumented)
+    thoughtSignature?: string;
 }
 
 // @public
@@ -294,6 +300,10 @@ export interface FunctionCallPart {
     inlineData?: never;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // (undocumented)
+    thoughtSignature?: string;
 }
 
 // @public
@@ -326,6 +336,10 @@ export interface FunctionResponsePart {
     inlineData?: never;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // (undocumented)
+    thoughtSignature?: string;
 }
 
 // @public
@@ -691,6 +705,10 @@ export interface InlineDataPart {
     inlineData: GenerativeContentBlob;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // (undocumented)
+    thoughtSignature?: string;
     videoMetadata?: VideoMetadata;
 }
 
@@ -957,10 +975,15 @@ export interface TextPart {
     inlineData?: never;
     // (undocumented)
     text: string;
+    // (undocumented)
+    thought?: boolean;
+    // (undocumented)
+    thoughtSignature?: string;
 }
 
 // @public
 export interface ThinkingConfig {
+    includeThoughts?: boolean;
     thinkingBudget?: number;
 }
 

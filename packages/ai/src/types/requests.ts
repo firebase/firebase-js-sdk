@@ -294,4 +294,13 @@ export interface ThinkingConfig {
    * feature or if the specified budget is not within the model's supported range.
    */
   thinkingBudget?: number;
+
+  /**
+   * Whether to include "thought summaries" in the model's response.
+   *
+   * Thought summaries provide a brief overview of the model's internal thinking process,
+   * offering insight into how it arrived at the final answer. This can be useful for
+   * debugging, understanding the model's reasoning, and verifying its accuracy.
+   */
+  includeThoughts?: boolean;
 }
