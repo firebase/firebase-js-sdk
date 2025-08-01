@@ -128,7 +128,7 @@ export interface SchemaInterface extends SchemaShared<SchemaInterface> {
 }
 
 /**
- * Interface for JSON parameters in a schema of {@link SchemaType}
+ * Interface for JSON parameters in a schema of {@link (SchemaType:type)}
  * "object" when not using the `Schema.object()` helper.
  * @public
  */

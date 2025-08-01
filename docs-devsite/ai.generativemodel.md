@@ -23,7 +23,7 @@ export declare class GenerativeModel extends AIModel
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(ai, modelParams, requestOptions)](./ai.generativemodel.md#generativemodelconstructor) |  | Constructs a new instance of the <code>GenerativeModel</code> class |
+|  [(constructor)(ai, modelParams, requestOptions, chromeAdapter)](./ai.generativemodel.md#generativemodelconstructor) |  | Constructs a new instance of the <code>GenerativeModel</code> class |
 
 ## Properties
 
@@ -52,7 +52,7 @@ Constructs a new instance of the `GenerativeModel` class
 <b>Signature:</b>
 
 ```typescript
-constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions);
+constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions, chromeAdapter?: ChromeAdapter | undefined);
 ```
 
 #### Parameters
@@ -62,6 +62,7 @@ constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions);
 |  ai | [AI](./ai.ai.md#ai_interface) |  |
 |  modelParams | [ModelParams](./ai.modelparams.md#modelparams_interface) |  |
 |  requestOptions | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) |  |
+|  chromeAdapter | [ChromeAdapter](./ai.chromeadapter.md#chromeadapter_interface) \| undefined |  |
 
 ## GenerativeModel.generationConfig
 

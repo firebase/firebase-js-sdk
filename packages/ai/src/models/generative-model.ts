@@ -43,6 +43,7 @@ import {
 } from '../requests/request-helpers';
 import { AI } from '../public-types';
 import { AIModel } from './ai-model';
+import { ChromeAdapter } from '../types/chrome-adapter';
 
 /**
  * Class for generative model APIs.
@@ -59,7 +60,8 @@ export class GenerativeModel extends AIModel {
   constructor(
     ai: AI,
     modelParams: ModelParams,
-    requestOptions?: RequestOptions
+    requestOptions?: RequestOptions,
+    private chromeAdapter?: ChromeAdapter
   ) {
     super(ai, modelParams.model);
     this.generationConfig = modelParams.generationConfig || {};
@@ -91,6 +93,7 @@ export class GenerativeModel extends AIModel {
         systemInstruction: this.systemInstruction,
         ...formattedParams
       },
+      this.chromeAdapter,
       this.requestOptions
     );
   }
@@ -116,6 +119,7 @@ export class GenerativeModel extends AIModel {
         systemInstruction: this.systemInstruction,
         ...formattedParams
       },
+      this.chromeAdapter,
       this.requestOptions
     );
   }
@@ -128,6 +132,7 @@ export class GenerativeModel extends AIModel {
     return new ChatSession(
       this._apiSettings,
       this.model,
+      this.chromeAdapter,
       {
         tools: this.tools,
         toolConfig: this.toolConfig,
@@ -152,6 +157,11 @@ export class GenerativeModel extends AIModel {
     request: CountTokensRequest | string | Array<string | Part>
   ): Promise<CountTokensResponse> {
     const formattedParams = formatGenerateContentInput(request);
-    return countTokens(this._apiSettings, this.model, formattedParams);
+    return countTokens(
+      this._apiSettings,
+      this.model,
+      formattedParams,
+      this.chromeAdapter
+    );
   }
 }

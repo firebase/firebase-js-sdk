@@ -24,8 +24,9 @@ import { Task, makeRequest } from '../requests/request';
 import { ApiSettings } from '../types/internal';
 import * as GoogleAIMapper from '../googleai-mappers';
 import { BackendType } from '../public-types';
+import { ChromeAdapter } from '../types/chrome-adapter';
 
-export async function countTokens(
+export async function countTokensOnCloud(
   apiSettings: ApiSettings,
   model: string,
   params: CountTokensRequest,
@@ -47,4 +48,18 @@ export async function countTokens(
     requestOptions
   );
   return response.json();
+}
+
+export async function countTokens(
+  apiSettings: ApiSettings,
+  model: string,
+  params: CountTokensRequest,
+  chromeAdapter?: ChromeAdapter,
+  requestOptions?: RequestOptions
+): Promise<CountTokensResponse> {
+  if (chromeAdapter && (await chromeAdapter.isAvailable(params))) {
+    return (await chromeAdapter.countTokens(params)).json();
+  }
+
+  return countTokensOnCloud(apiSettings, model, params, requestOptions);
 }
