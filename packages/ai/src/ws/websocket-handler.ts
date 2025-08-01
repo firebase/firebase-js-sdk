@@ -83,25 +83,46 @@ export interface WebSocketHandler {
  * @internal
  */
 export function createWebSocketHandler(): WebSocketHandler {
-  // `isNode()` is replaced with a static boolean during build time to enable tree shaking
+  // `isNode()` is replaced with a static boolean during build time so this block will be
+  // tree-shaken in browser builds.
   if (isNode()) {
-    const [major] = process.versions.node.split('.').map(Number);
-    if (major < 22) {
-      throw new AIError(
-        AIErrorCode.UNSUPPORTED,
-        'The Live feature requires Node version 22 or higher for native WebSocket support.'
-      );
+    // At this point we're certain we're in a Node bundle, but we still need to have checks
+    // to be certain we're in a Node environment, and not something like Deno, Bun, or Edge workers.
+    if (typeof process === 'object' && process.versions?.node) {
+      const [major] = process.versions.node.split('.').map(Number);
+      if (major < 22) {
+        throw new AIError(
+          AIErrorCode.UNSUPPORTED,
+          `The "Live" feature is being used in a Node environment, but the ` +
+            `runtime version is ${process.versions.node}. This feature requires Node.js ` +
+            `version 22 or higher for native WebSocket support.`
+        );
+      }
+      return new NodeWebSocketHandler();
     }
-    return new NodeWebSocketHandler();
   }
 
-  // `isBrowser()` is replaced with a static boolean during build time to enable tree shaking
-  if (isBrowser() && window.WebSocket) {
-    return new BrowserWebSocketHandler();
+  // `isBrowser()` is replaced with a static boolean during build time so this block will be
+  // tree-shaken in Node builds.
+  if (isBrowser()) {
+    // At this point we're certain we're in a browser build, but we still need to check for the
+    // existence of the `WebSocket` API. This check would fail in environments that use a browser
+    // bundle, but don't support WebSockets (Web workers and SSR).
+    if (typeof WebSocket !== 'undefined') {
+      return new BrowserWebSocketHandler();
+    } else {
+      throw new AIError(
+        AIErrorCode.UNSUPPORTED,
+        'The WebSocket API is not available in this browser-like environment. ' +
+          'The Firebase AI "Live" feature is not supported here. It is supported in ' +
+          'standard browser windows, Web Workers with WebSocket support, and Node >= 22.'
+      );
+    }
   }
 
   throw new AIError(
     AIErrorCode.UNSUPPORTED,
-    'A WebSocket API is not available in this environment.'
+    'This environment is not supported by the "Live" feature. ' +
+      'Supported environments are modern web browsers and Node >= 22.'
   );
 }
