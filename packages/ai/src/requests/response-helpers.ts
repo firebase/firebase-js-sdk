@@ -78,7 +78,7 @@ export function addHelpers(
           }
         );
       }
-      return getText(response);
+      return getText(response, false);
     } else if (response.promptFeedback) {
       throw new AIError(
         AIErrorCode.RESPONSE_ERROR,
@@ -160,13 +160,19 @@ export function addHelpers(
 }
 
 /**
- * Returns all text found in all parts of first candidate.
+ * Returns all text from the first candidate's parts, filtering by whether they
+ * are part of the model's 'thought' process.
+ *
+ * @param response - The {@link GenerateContentResponse} from which to extract text.
+ * @param isThought - If `true`, extracts text from `thought` parts of the response,
+ * which represent the model's internal reasoning. If `false`, extracts text from
+ * regular response parts.
  */
-export function getText(response: GenerateContentResponse): string {
+export function getText(response: GenerateContentResponse, isThought: boolean): string {
   const textStrings = [];
   if (response.candidates?.[0].content?.parts) {
     for (const part of response.candidates?.[0].content?.parts) {
-      if (part.text) {
+      if (part.text && (part.thought ?? false) === isThought) {
         textStrings.push(part.text);
       }
     }
