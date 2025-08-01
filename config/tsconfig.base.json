@@ -9,7 +9,7 @@
       "es2020",
       "esnext.WeakRef",
     ],
-    "module": "ES2015",
+    "module": "ES2020",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "esModuleInterop": true,

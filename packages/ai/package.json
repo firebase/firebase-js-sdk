@@ -39,6 +39,7 @@
     "test:ci": "yarn testsetup && node ../../scripts/run_tests_in_ci.js -s test",
     "test:skip-clone": "karma start",
     "test:browser": "yarn testsetup && karma start",
+    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' mocha --require ts-node/register --require src/index.node.ts src/**/*.test.ts --config ../../config/mocharc.node.js",
     "test:integration": "karma start --integration",
     "api-report": "api-extractor run --local --verbose",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/ai-public.d.ts",
@@ -62,7 +63,8 @@
     "rollup": "2.79.2",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.36.0",
-    "typescript": "5.5.4"
+    "typescript": "5.5.4",
+    "ws": "8.18.3"
   },
   "repository": {
     "directory": "packages/ai",
