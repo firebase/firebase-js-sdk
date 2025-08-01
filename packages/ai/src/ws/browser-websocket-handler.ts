@@ -21,7 +21,7 @@ import { WebSocketHandler } from './websocket-handler';
 
 /**
  * A WebSocketHandler implementation for the browser environment.
- * It uses the native `WebSocket` class available on the `window` object.
+ * It uses the native `WebSocket`.
  * @internal
  */
 export class BrowserWebSocketHandler implements WebSocketHandler {
