@@ -112,13 +112,54 @@ describe('ChromeAdapter', () => {
     it('returns false if mode is only cloud', async () => {
       const adapter = new ChromeAdapterImpl(
         {} as LanguageModel,
-        'only_in_cloud'
+        InferenceMode.ONLY_IN_CLOUD
       );
       expect(
         await adapter.isAvailable({
           contents: []
         })
       ).to.be.false;
+    });
+    it('returns true if mode is only on device and is available', async () => {
+      const adapter = new ChromeAdapterImpl(
+        {
+          availability: async () => Availability.AVAILABLE
+        } as LanguageModel,
+        InferenceMode.ONLY_ON_DEVICE
+      );
+      expect(
+        await adapter.isAvailable({
+          contents: []
+        })
+      ).to.be.true;
+    });
+    it('throws if mode is only on device and is unavailable', async () => {
+      const adapter = new ChromeAdapterImpl(
+        {
+          availability: async () => Availability.UNAVAILABLE
+        } as LanguageModel,
+        InferenceMode.ONLY_ON_DEVICE
+      );
+      await expect(
+        adapter.isAvailable({
+          contents: []
+        })
+      ).to.be.rejected;
+    });
+    it('returns true after waiting for download if mode is only on device', async () => {
+      const adapter = new ChromeAdapterImpl(
+        {
+          availability: async () => Availability.DOWNLOADING,
+          create: ({}: LanguageModelCreateOptions) =>
+            Promise.resolve({} as LanguageModel)
+        } as LanguageModel,
+        InferenceMode.ONLY_ON_DEVICE
+      );
+      expect(
+        await adapter.isAvailable({
+          contents: []
+        })
+      ).to.be.true;
     });
     it('returns false if LanguageModel API is undefined', async () => {
       const adapter = new ChromeAdapterImpl(
@@ -301,8 +342,11 @@ describe('ChromeAdapter', () => {
   });
   describe('generateContent', () => {
     it('throws if Chrome API is undefined', async () => {
-      // @ts-expect-error
-      const adapter = new ChromeAdapterImpl(undefined, 'only_on_device');
+      const adapter = new ChromeAdapterImpl(
+        // @ts-expect-error
+        undefined,
+        InferenceMode.ONLY_ON_DEVICE
+      );
       await expect(
         adapter.generateContent({
           contents: []

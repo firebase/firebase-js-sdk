@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { InferenceMode } from './enums';
 import { CountTokensRequest, GenerateContentRequest } from './requests';
 
 /**
