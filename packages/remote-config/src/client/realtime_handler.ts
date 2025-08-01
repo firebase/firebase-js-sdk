@@ -21,7 +21,7 @@ import { ERROR_FACTORY, ErrorCode } from '../errors';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { Storage } from '../storage/storage';
 import { calculateBackoffMillis, FirebaseError } from '@firebase/util';
-import { VisibilityMonitor } from '../../../database/src/core/util/VisibilityMonitor';
+import { VisibilityMonitor } from '@firebase/database/dist/src/core/util/VisibilityMonitor';
 
 export class RealtimeHandler {
   constructor(
