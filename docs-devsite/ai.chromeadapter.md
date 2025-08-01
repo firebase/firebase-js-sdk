@@ -22,12 +22,6 @@ These methods should not be called directly by the user.
 export interface ChromeAdapter 
 ```
 
-## Properties
-
-|  Property | Type | Description |
-|  --- | --- | --- |
-|  [mode](./ai.chromeadapter.md#chromeadaptermode) | [InferenceMode](./ai.md#inferencemode) |  |
-
 ## Methods
 
 |  Method | Description |
@@ -36,14 +30,6 @@ export interface ChromeAdapter
 |  [generateContent(request)](./ai.chromeadapter.md#chromeadaptergeneratecontent) | Generates content on device.<p>This is comparable to [GenerativeModel.generateContent()](./ai.generativemodel.md#generativemodelgeneratecontent) for generating content in Cloud.</p> |
 |  [generateContentStream(request)](./ai.chromeadapter.md#chromeadaptergeneratecontentstream) | Generates content stream on device.<p>This is comparable to [GenerativeModel.generateContentStream()](./ai.generativemodel.md#generativemodelgeneratecontentstream) for generating content in Cloud.</p> |
 |  [isAvailable(request)](./ai.chromeadapter.md#chromeadapterisavailable) | Checks if a given request can be made on-device.<ol>Encapsulates a few concerns: <li>the mode</li> <li>API existence</li> <li>prompt formatting</li> <li>model availability, including triggering download if necessary</li> </ol><p>Pros: callers needn't be concerned with details of on-device availability.</p> <p>Cons: this method spans a few concerns and splits request validation from usage. If instance variables weren't already part of the API, we could consider a better separation of concerns.</p> |
-
-## ChromeAdapter.mode
-
-<b>Signature:</b>
-
-```typescript
-mode: InferenceMode;
-```
 
 ## ChromeAdapter.countTokens()
 

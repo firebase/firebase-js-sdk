@@ -143,8 +143,6 @@ export interface ChromeAdapter {
     generateContent(request: GenerateContentRequest): Promise<Response>;
     generateContentStream(request: GenerateContentRequest): Promise<Response>;
     isAvailable(request: GenerateContentRequest): Promise<boolean>;
-    // (undocumented)
-    mode: InferenceMode;
 }
 
 // @public
