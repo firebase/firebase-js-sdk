@@ -168,7 +168,10 @@ export function addHelpers(
  * which represent the model's internal reasoning. If `false`, extracts text from
  * regular response parts.
  */
-export function getText(response: GenerateContentResponse, isThought: boolean): string {
+export function getText(
+  response: GenerateContentResponse,
+  isThought: boolean
+): string {
   const textStrings = [];
   if (response.candidates?.[0].content?.parts) {
     for (const part of response.candidates?.[0].content?.parts) {
