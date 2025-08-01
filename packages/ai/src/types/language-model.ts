@@ -43,10 +43,10 @@ export interface LanguageModel extends EventTarget {
  * @internal
  */
 export enum Availability {
-  'unavailable' = 'unavailable',
-  'downloadable' = 'downloadable',
-  'downloading' = 'downloading',
-  'available' = 'available'
+  'UNAVAILABLE' = 'unavailable',
+  'DOWNLOADABLE' = 'downloadable',
+  'DOWNLOADING' = 'downloading',
+  'AVAILABLE' = 'available'
 }
 
 /**

@@ -47,8 +47,8 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   private downloadPromise: Promise<LanguageModel | void> | undefined;
   private oldSession: LanguageModel | undefined;
   constructor(
-    private languageModelProvider?: LanguageModel,
-    private mode?: InferenceMode,
+    private languageModelProvider: LanguageModel,
+    private mode: InferenceMode,
     private onDeviceParams: OnDeviceParams = {
       createOptions: {
         // Defaults to support image inputs for convenience.
@@ -79,7 +79,7 @@ export class ChromeAdapterImpl implements ChromeAdapter {
       );
       return false;
     }
-    if (this.mode === 'only_in_cloud') {
+    if (this.mode === InferenceMode.ONLY_IN_CLOUD) {
       logger.debug(
         `On-device inference unavailable because mode is "only_in_cloud".`
       );
@@ -89,12 +89,27 @@ export class ChromeAdapterImpl implements ChromeAdapter {
     // Triggers out-of-band download so model will eventually become available.
     const availability = await this.downloadIfAvailable();
 
-    if (this.mode === 'only_on_device') {
+    if (this.mode === InferenceMode.ONLY_ON_DEVICE) {
+      // If it will never be available due to API inavailability, throw.
+      if (availability === Availability.UNAVAILABLE) {
+        throw new AIError(
+          AIErrorCode.API_NOT_ENABLED,
+          'Local LanguageModel API not available in this environment.'
+        );
+      } else if (
+        availability === Availability.DOWNLOADABLE ||
+        availability === Availability.DOWNLOADING
+      ) {
+        // TODO(chholland): Better user experience during download - progress?
+        logger.debug(`Waiting for download of LanguageModel to complete.`);
+        await this.downloadPromise;
+        return true;
+      }
       return true;
     }
 
     // Applies prefer_on_device logic.
-    if (availability !== Availability.available) {
+    if (availability !== Availability.AVAILABLE) {
       logger.debug(
         `On-device inference unavailable because availability is "${availability}".`
       );
@@ -202,7 +217,7 @@ export class ChromeAdapterImpl implements ChromeAdapter {
       this.onDeviceParams.createOptions
     );
 
-    if (availability === Availability.downloadable) {
+    if (availability === Availability.DOWNLOADABLE) {
       this.download();
     }
 

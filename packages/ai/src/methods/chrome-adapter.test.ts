@@ -56,12 +56,12 @@ describe('ChromeAdapter', () => {
   describe('constructor', () => {
     it('sets image as expected input type by default', async () => {
       const languageModelProvider = {
-        availability: () => Promise.resolve(Availability.available)
+        availability: () => Promise.resolve(Availability.AVAILABLE)
       } as LanguageModel;
       const availabilityStub = stub(
         languageModelProvider,
         'availability'
-      ).resolves(Availability.available);
+      ).resolves(Availability.AVAILABLE);
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
         InferenceMode.PREFER_ON_DEVICE
@@ -80,12 +80,12 @@ describe('ChromeAdapter', () => {
     });
     it('honors explicitly set expected inputs', async () => {
       const languageModelProvider = {
-        availability: () => Promise.resolve(Availability.available)
+        availability: () => Promise.resolve(Availability.AVAILABLE)
       } as LanguageModel;
       const availabilityStub = stub(
         languageModelProvider,
         'availability'
-      ).resolves(Availability.available);
+      ).resolves(Availability.AVAILABLE);
       const createOptions = {
         // Explicitly sets expected inputs.
         expectedInputs: [{ type: 'text' }]
@@ -109,16 +109,11 @@ describe('ChromeAdapter', () => {
     });
   });
   describe('isAvailable', () => {
-    it('returns false if mode is undefined', async () => {
-      const adapter = new ChromeAdapterImpl();
-      expect(
-        await adapter.isAvailable({
-          contents: []
-        })
-      ).to.be.false;
-    });
     it('returns false if mode is only cloud', async () => {
-      const adapter = new ChromeAdapterImpl(undefined, 'only_in_cloud');
+      const adapter = new ChromeAdapterImpl(
+        {} as LanguageModel,
+        'only_in_cloud'
+      );
       expect(
         await adapter.isAvailable({
           contents: []
@@ -127,6 +122,7 @@ describe('ChromeAdapter', () => {
     });
     it('returns false if LanguageModel API is undefined', async () => {
       const adapter = new ChromeAdapterImpl(
+        // @ts-expect-error
         undefined,
         InferenceMode.PREFER_ON_DEVICE
       );
@@ -139,7 +135,7 @@ describe('ChromeAdapter', () => {
     it('returns false if request contents empty', async () => {
       const adapter = new ChromeAdapterImpl(
         {
-          availability: async () => Availability.available
+          availability: async () => Availability.AVAILABLE
         } as LanguageModel,
         InferenceMode.PREFER_ON_DEVICE
       );
@@ -152,7 +148,7 @@ describe('ChromeAdapter', () => {
     it('returns false if request content has "function" role', async () => {
       const adapter = new ChromeAdapterImpl(
         {
-          availability: async () => Availability.available
+          availability: async () => Availability.AVAILABLE
         } as LanguageModel,
         InferenceMode.PREFER_ON_DEVICE
       );
@@ -170,7 +166,7 @@ describe('ChromeAdapter', () => {
     it('returns true if request has image with supported mime type', async () => {
       const adapter = new ChromeAdapterImpl(
         {
-          availability: async () => Availability.available
+          availability: async () => Availability.AVAILABLE
         } as LanguageModel,
         InferenceMode.PREFER_ON_DEVICE
       );
@@ -196,7 +192,7 @@ describe('ChromeAdapter', () => {
     });
     it('returns true if model is readily available', async () => {
       const languageModelProvider = {
-        availability: () => Promise.resolve(Availability.available)
+        availability: () => Promise.resolve(Availability.AVAILABLE)
       } as LanguageModel;
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
@@ -218,7 +214,7 @@ describe('ChromeAdapter', () => {
     });
     it('returns false and triggers download when model is available after download', async () => {
       const languageModelProvider = {
-        availability: () => Promise.resolve(Availability.downloadable),
+        availability: () => Promise.resolve(Availability.DOWNLOADABLE),
         create: () => Promise.resolve({})
       } as LanguageModel;
       const createStub = stub(languageModelProvider, 'create').resolves(
@@ -241,7 +237,7 @@ describe('ChromeAdapter', () => {
     });
     it('avoids redundant downloads', async () => {
       const languageModelProvider = {
-        availability: () => Promise.resolve(Availability.downloadable),
+        availability: () => Promise.resolve(Availability.DOWNLOADABLE),
         create: () => Promise.resolve({})
       } as LanguageModel;
       const downloadPromise = new Promise<LanguageModel>(() => {
@@ -264,7 +260,7 @@ describe('ChromeAdapter', () => {
     });
     it('clears state when download completes', async () => {
       const languageModelProvider = {
-        availability: () => Promise.resolve(Availability.downloadable),
+        availability: () => Promise.resolve(Availability.DOWNLOADABLE),
         create: () => Promise.resolve({})
       } as LanguageModel;
       let resolveDownload;
@@ -289,7 +285,7 @@ describe('ChromeAdapter', () => {
     });
     it('returns false when model is never available', async () => {
       const languageModelProvider = {
-        availability: () => Promise.resolve(Availability.unavailable),
+        availability: () => Promise.resolve(Availability.UNAVAILABLE),
         create: () => Promise.resolve({})
       } as LanguageModel;
       const adapter = new ChromeAdapterImpl(
@@ -305,6 +301,7 @@ describe('ChromeAdapter', () => {
   });
   describe('generateContent', () => {
     it('throws if Chrome API is undefined', async () => {
+      // @ts-expect-error
       const adapter = new ChromeAdapterImpl(undefined, 'only_on_device');
       await expect(
         adapter.generateContent({

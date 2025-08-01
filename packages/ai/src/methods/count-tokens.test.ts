@@ -22,7 +22,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { getMockResponse } from '../../test-utils/mock-response';
 import * as request from '../requests/request';
 import { countTokens } from './count-tokens';
-import { CountTokensRequest } from '../types';
+import { CountTokensRequest, InferenceMode } from '../types';
 import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
 import { mapCountTokensRequest } from '../googleai-mappers';
@@ -52,6 +52,12 @@ const fakeRequestParams: CountTokensRequest = {
   contents: [{ parts: [{ text: 'hello' }], role: 'user' }]
 };
 
+const fakeChromeAdapter = new ChromeAdapterImpl(
+  // @ts-expect-error
+  undefined,
+  InferenceMode.PREFER_ON_DEVICE
+);
+
 describe('countTokens()', () => {
   afterEach(() => {
     restore();
@@ -68,7 +74,7 @@ describe('countTokens()', () => {
       fakeApiSettings,
       'model',
       fakeRequestParams,
-      new ChromeAdapterImpl()
+      fakeChromeAdapter
     );
     expect(result.totalTokens).to.equal(6);
     expect(result.totalBillableCharacters).to.equal(16);
@@ -95,7 +101,7 @@ describe('countTokens()', () => {
       fakeApiSettings,
       'model',
       fakeRequestParams,
-      new ChromeAdapterImpl()
+      fakeChromeAdapter
     );
     expect(result.totalTokens).to.equal(1837);
     expect(result.totalBillableCharacters).to.equal(117);
@@ -124,7 +130,7 @@ describe('countTokens()', () => {
       fakeApiSettings,
       'model',
       fakeRequestParams,
-      new ChromeAdapterImpl()
+      fakeChromeAdapter
     );
     expect(result.totalTokens).to.equal(258);
     expect(result).to.not.have.property('totalBillableCharacters');
@@ -154,7 +160,7 @@ describe('countTokens()', () => {
         fakeApiSettings,
         'model',
         fakeRequestParams,
-        new ChromeAdapterImpl()
+        fakeChromeAdapter
       )
     ).to.be.rejectedWith(/404.*not found/);
     expect(mockFetch).to.be.called;
@@ -177,7 +183,7 @@ describe('countTokens()', () => {
         fakeGoogleAIApiSettings,
         'model',
         fakeRequestParams,
-        new ChromeAdapterImpl()
+        fakeChromeAdapter
       );
 
       expect(makeRequestStub).to.be.calledWith(
@@ -191,7 +197,7 @@ describe('countTokens()', () => {
     });
   });
   it('on-device', async () => {
-    const chromeAdapter = new ChromeAdapterImpl();
+    const chromeAdapter = fakeChromeAdapter;
     const isAvailableStub = stub(chromeAdapter, 'isAvailable').resolves(true);
     const mockResponse = getMockResponse(
       'vertexAI',

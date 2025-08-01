@@ -20,7 +20,7 @@ import { match, restore, stub, useFakeTimers } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as generateContentMethods from './generate-content';
-import { GenerateContentStreamResult } from '../types';
+import { GenerateContentStreamResult, InferenceMode } from '../types';
 import { ChatSession } from './chat-session';
 import { ApiSettings } from '../types/internal';
 import { VertexAIBackend } from '../backend';
@@ -37,6 +37,12 @@ const fakeApiSettings: ApiSettings = {
   backend: new VertexAIBackend()
 };
 
+const fakeChromeAdapter = new ChromeAdapterImpl(
+  // @ts-expect-error
+  undefined,
+  InferenceMode.PREFER_ON_DEVICE
+);
+
 describe('ChatSession', () => {
   afterEach(() => {
     restore();
@@ -50,7 +56,7 @@ describe('ChatSession', () => {
       const chatSession = new ChatSession(
         fakeApiSettings,
         'a-model',
-        new ChromeAdapterImpl()
+        fakeChromeAdapter
       );
       await expect(chatSession.sendMessage('hello')).to.be.rejected;
       expect(generateContentStub).to.be.calledWith(
@@ -71,7 +77,7 @@ describe('ChatSession', () => {
       const chatSession = new ChatSession(
         fakeApiSettings,
         'a-model',
-        new ChromeAdapterImpl()
+        fakeChromeAdapter
       );
       await expect(chatSession.sendMessageStream('hello')).to.be.rejected;
       expect(generateContentStreamStub).to.be.calledWith(
@@ -94,7 +100,7 @@ describe('ChatSession', () => {
       const chatSession = new ChatSession(
         fakeApiSettings,
         'a-model',
-        new ChromeAdapterImpl()
+        fakeChromeAdapter
       );
       await chatSession.sendMessageStream('hello');
       expect(generateContentStreamStub).to.be.calledWith(

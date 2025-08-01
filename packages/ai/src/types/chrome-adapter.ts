@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
+import { InferenceMode } from './enums';
 import { CountTokensRequest, GenerateContentRequest } from './requests';
 
 /**
  * (EXPERIMENTAL)
- * 
+ *
  * Defines an inference "backend" that uses Chrome's on-device model,
  * and encapsulates logic for detecting when on-device is possible.
  *
@@ -56,7 +57,7 @@ export interface ChromeAdapter {
    * <p>This is comparable to {@link GenerativeModel.generateContent} for generating content in
    * Cloud.</p>
    * @param request - a standard Firebase AI {@link GenerateContentRequest}
-   * @returns {@link Response}, so we can reuse common response formatting.
+   * @returns Response, so we can reuse common response formatting.
    */
   generateContent(request: GenerateContentRequest): Promise<Response>;
 
@@ -66,7 +67,7 @@ export interface ChromeAdapter {
    * <p>This is comparable to {@link GenerativeModel.generateContentStream} for generating content in
    * Cloud.</p>
    * @param request - a standard Firebase AI {@link GenerateContentRequest}
-   * @returns {@link Response}, so we can reuse common response formatting.
+   * @returns Response, so we can reuse common response formatting.
    */
   generateContentStream(request: GenerateContentRequest): Promise<Response>;
 }

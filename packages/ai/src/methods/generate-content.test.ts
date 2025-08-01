@@ -27,7 +27,8 @@ import {
   GenerateContentRequest,
   HarmBlockMethod,
   HarmBlockThreshold,
-  HarmCategory
+  HarmCategory,
+  InferenceMode
 } from '../types';
 import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
@@ -38,6 +39,12 @@ import { ChromeAdapterImpl } from './chrome-adapter';
 
 use(sinonChai);
 use(chaiAsPromised);
+
+const fakeChromeAdapter = new ChromeAdapterImpl(
+  // @ts-expect-error
+  undefined,
+  InferenceMode.PREFER_ON_DEVICE
+);
 
 const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
@@ -425,7 +432,7 @@ describe('generateContent()', () => {
   });
   // TODO: define a similar test for generateContentStream
   it('on-device', async () => {
-    const chromeAdapter = new ChromeAdapterImpl();
+    const chromeAdapter = fakeChromeAdapter;
     const isAvailableStub = stub(chromeAdapter, 'isAvailable').resolves(true);
     const mockResponse = getMockResponse(
       'vertexAI',

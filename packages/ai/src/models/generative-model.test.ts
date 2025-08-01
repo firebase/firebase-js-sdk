@@ -16,7 +16,7 @@
  */
 import { use, expect } from 'chai';
 import { GenerativeModel } from './generative-model';
-import { FunctionCallingMode, AI } from '../public-types';
+import { FunctionCallingMode, AI, InferenceMode } from '../public-types';
 import * as request from '../requests/request';
 import { match, restore, stub } from 'sinon';
 import { getMockResponse } from '../../test-utils/mock-response';
@@ -40,6 +40,12 @@ const fakeAI: AI = {
   location: 'us-central1'
 };
 
+const fakeChromeAdapter = new ChromeAdapterImpl(
+  // @ts-expect-error
+  undefined,
+  InferenceMode.PREFER_ON_DEVICE
+);
+
 describe('GenerativeModel', () => {
   it('passes params through to generateContent', async () => {
     const genModel = new GenerativeModel(
@@ -62,7 +68,7 @@ describe('GenerativeModel', () => {
         systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
       },
       {},
-      new ChromeAdapterImpl()
+      fakeChromeAdapter
     );
     expect(genModel.tools?.length).to.equal(1);
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
@@ -101,7 +107,7 @@ describe('GenerativeModel', () => {
         systemInstruction: 'be friendly'
       },
       {},
-      new ChromeAdapterImpl()
+      fakeChromeAdapter
     );
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
     const mockResponse = getMockResponse(
@@ -145,7 +151,7 @@ describe('GenerativeModel', () => {
         systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
       },
       {},
-      new ChromeAdapterImpl()
+      fakeChromeAdapter
     );
     expect(genModel.tools?.length).to.equal(1);
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
@@ -197,7 +203,7 @@ describe('GenerativeModel', () => {
         }
       },
       {},
-      new ChromeAdapterImpl()
+      fakeChromeAdapter
     );
     const chatSession = genModel.startChat();
     expect(chatSession.params?.generationConfig).to.deep.equal({
@@ -215,7 +221,7 @@ describe('GenerativeModel', () => {
         }
       },
       {},
-      new ChromeAdapterImpl()
+      fakeChromeAdapter
     );
     const chatSession = genModel.startChat({
       generationConfig: {
@@ -243,7 +249,7 @@ describe('GenerativeModel', () => {
         }
       },
       {},
-      new ChromeAdapterImpl()
+      fakeChromeAdapter
     );
     expect(genModel.tools?.length).to.equal(1);
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
@@ -283,7 +289,7 @@ describe('GenerativeModel', () => {
         systemInstruction: 'be friendly'
       },
       {},
-      new ChromeAdapterImpl()
+      fakeChromeAdapter
     );
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
     const mockResponse = getMockResponse(
@@ -323,7 +329,7 @@ describe('GenerativeModel', () => {
         }
       },
       {},
-      new ChromeAdapterImpl()
+      fakeChromeAdapter
     );
     expect(genModel.tools?.length).to.equal(1);
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
@@ -378,7 +384,7 @@ describe('GenerativeModel', () => {
       fakeAI,
       { model: 'my-model' },
       {},
-      new ChromeAdapterImpl()
+      fakeChromeAdapter
     );
     const mockResponse = getMockResponse(
       'vertexAI',
