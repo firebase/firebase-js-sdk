@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 
-import { ConfigUpdateObserver, FetchResponse } from '../public_types';
-const ORIGINAL_RETRIES = 8;
+import { ConfigUpdateObserver } from '../public_types';
 import { ERROR_FACTORY, ErrorCode } from '../errors';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { Storage } from '../storage/storage';
 import { calculateBackoffMillis, FirebaseError } from '@firebase/util';
 import { VisibilityMonitor } from './VisibilityMonitor';
+
+const ORIGINAL_RETRIES = 8;
 
 export class RealtimeHandler {
   constructor(
@@ -48,9 +49,9 @@ export class RealtimeHandler {
    * Adds an observer to the realtime updates.
    * @param observer The observer to add.
    */
-  addObserver(observer: ConfigUpdateObserver): void {
+  async addObserver(observer: ConfigUpdateObserver): Promise<void> {
     this.observers.add(observer);
-    this.beginRealtime();
+    await this.beginRealtime();
   }
 
   /**
@@ -61,11 +62,14 @@ export class RealtimeHandler {
     if (this.observers.has(observer)) {
       this.observers.delete(observer);
     }
+    if (this.observers.size === 0) {
+      this.stopRealtime();
+    }
   }
 
-  private beginRealtime(): void {
+  private async beginRealtime(): Promise<void> {
     if (this.observers.size > 0) {
-      this.makeRealtimeHttpConnection(0);
+      await this.makeRealtimeHttpConnection(0);
     }
   }
 
@@ -81,18 +85,17 @@ export class RealtimeHandler {
     return hasActiveListeners && isNotDisabled && isForeground && isNoConnectionActive;
   }
 
-
-  private makeRealtimeHttpConnection(delayMillis: number): void {
+  private async makeRealtimeHttpConnection(delayMillis: number): Promise<void> {
     if (this.scheduledConnectionTimeoutId) {
       clearTimeout(this.scheduledConnectionTimeoutId);
     }
     if (!this.canEstablishStreamConnection()) {
       return;
     }
-    this.scheduledConnectionTimeoutId = setTimeout(() => {
+    this.scheduledConnectionTimeoutId = setTimeout(async () => {
       if (this.retriesRemaining > 0) {
         this.retriesRemaining--;
-        this.beginRealtimeHttpStream();
+        await this.beginRealtimeHttpStream();
       } else if (!this.isInBackground) {
         const error = ERROR_FACTORY.create(ErrorCode.CONFIG_UPDATE_STREAM_ERROR, { originalErrorMessage: 'Unable to connect to the server. Check your connection and try again.' });
         this.propagateError(error);
@@ -154,12 +157,13 @@ export class RealtimeHandler {
       await this.storage.setLastKnownTemplateVersion(0);
     }
 
-    const backoffEndTime = new Date(metadata.backoffEndTimeMillis).getTime();
+    const backoffEndTime = metadata.backoffEndTimeMillis.getTime();
+  
     if (Date.now() < backoffEndTime) {
-      this.retryHttpConnectionWhenBackoffEnds();
+      await this.retryHttpConnectionWhenBackoffEnds();
       return;
     }
-    let response;
+    let response: Response | undefined;
     try {
       const [installationId, installationTokenResult] = await Promise.all([
         this.firebaseInstallations.getId(),
@@ -168,8 +172,11 @@ export class RealtimeHandler {
       const headers = {
         'Content-Type': 'application/json',
         'Content-Encoding': 'gzip',
+        'X-Google-GFE-Can-Retry': 'yes',
+        'X-Accept-Response-Streaming': 'true',
         'If-None-Match': '*',
-        'authentication-token': installationTokenResult
+        'authentication-token': installationTokenResult,
+        'Accept': 'application/json'
       };
       const url = this.getRealtimeUrl();
       const requestBody = {
@@ -181,25 +188,27 @@ export class RealtimeHandler {
         appInstanceId: installationId
       };
 
-      response = await fetch(url, {
+      response =  await fetch(url, {
         method: "POST",
         headers,
         body: JSON.stringify(requestBody)
       });
-      if (response.status === 200 && response.body) {
+      if (response?.status === 200 && response?.body) {
         this.resetRetryCount();
-        this.resetRealtimeBackoff();
+        await this.resetRealtimeBackoff();
         //code related to start StartAutofetch
-        //and then give the notification for al the observers
+        //and then give the notification to all the observers
       } else {
         throw new FirebaseError('http-status-error', `HTTP Error: ${response.status}`);
       }
-    } catch (error: any) {
+    } catch (error) {
       if (this.isInBackground) {
         // It's possible the app was backgrounded while the connection was open, which
         // threw an exception trying to read the response. No real error here, so treat
         // this as a success, even if we haven't read a 200 response code yet.
         this.resetRetryCount();
+      } else {
+        console.error('Exception connecting to real-time RC backend. Retrying the connection...:', error);
       }
     } finally {
       this.isConnectionActive = false;
@@ -207,17 +216,15 @@ export class RealtimeHandler {
       const connectionFailed = !this.isInBackground && (!statusCode || this.isStatusCodeRetryable(statusCode));
 
       if (connectionFailed) {
-        this.updateBackoffMetadataWithLastFailedStreamConnectionTime(new Date());
+       await this.updateBackoffMetadataWithLastFailedStreamConnectionTime(new Date());
       }
 
       if (connectionFailed || statusCode === 200) {
-        this.retryHttpConnectionWhenBackoffEnds();
+        await this.retryHttpConnectionWhenBackoffEnds();
       } else {
-        //still have to implement this part
         let errorMessage = `Unable to connect to the server. Try again in a few minutes. HTTP status code: ${statusCode}`;
-        if (statusCode === 403) {
-          //still have to implemet this parseErrorResponseBody method
-          // errorMessage = await this.parseErrorResponseBody(response?.body);
+        if (statusCode === 403 && response) {
+          errorMessage = await this.parseErrorResponseBody(response.body);
         }
         const firebaseError = ERROR_FACTORY.create(ErrorCode.CONFIG_UPDATE_STREAM_ERROR, {
           httpStatus: statusCode,
@@ -249,7 +256,7 @@ export class RealtimeHandler {
     const backoffEndTime = new Date(metadata.backoffEndTimeMillis).getTime();
     const currentTime = Date.now();
     const retrySeconds = Math.max(0, backoffEndTime - currentTime);
-    this.makeRealtimeHttpConnection(retrySeconds);
+    await this.makeRealtimeHttpConnection(retrySeconds);
   }
 
   private async resetRealtimeBackoff(): Promise<void> {
@@ -258,6 +265,7 @@ export class RealtimeHandler {
       numFailedStreams: 0
     });
   }
+
 
   private getRealtimeUrl(): URL {
     const urlBase =
@@ -279,4 +287,35 @@ export class RealtimeHandler {
       }
     }
   }
+  private async parseErrorResponseBody(
+    body: ReadableStream<Uint8Array> | null
+  ): Promise<string> {
+    if (!body) {
+      return 'Response body is empty.';
+    }
+
+    try {
+      const reader = body.getReader();
+      const chunks: Uint8Array[] = [];
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+        chunks.push(value);
+      }
+      const blob = new Blob(chunks);
+      const text = await blob.text();
+
+      const jsonResponse = JSON.parse(text);
+      return (
+        jsonResponse.error?.message ||
+        jsonResponse.message ||
+        'Unknown error from server.'
+      );
+    } catch (e) {
+      return 'Could not parse error response body, or body is not JSON.';
+    }
+  }
 }
+
