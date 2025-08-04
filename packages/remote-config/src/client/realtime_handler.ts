@@ -21,7 +21,7 @@ import { ERROR_FACTORY, ErrorCode } from '../errors';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { Storage } from '../storage/storage';
 import { calculateBackoffMillis, FirebaseError } from '@firebase/util';
-import { VisibilityMonitor } from '@firebase/database/dist/src/core/util/VisibilityMonitor';
+import { VisibilityMonitor } from './VisibilityMonitor';
 
 export class RealtimeHandler {
   constructor(
@@ -33,7 +33,7 @@ export class RealtimeHandler {
     private readonly apiKey: string,
     private readonly appId: string
   ) {
-      VisibilityMonitor.getInstance().on('visible', this.onVisibilityChange_, this);
+    VisibilityMonitor.getInstance().on('visible', this.onVisibilityChange, this);
   }
 
   private streamController?: AbortController;
@@ -268,7 +268,7 @@ export class RealtimeHandler {
     return new URL(urlString);
   }
 
-  private onVisibilityChange_(visible: unknown) {
+  private onVisibilityChange(visible: unknown) {
     const wasInBackground = this.isInBackground;
     this.isInBackground = !visible;
     if (wasInBackground !== this.isInBackground) {
