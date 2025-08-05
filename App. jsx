@@ -1,0 +1,6 @@
+import { AppProvider } from './path-to-context';
+
+<AppProvider>
+  <YourRoutesOrComponents />
+</AppProvider>
+￼Enter
