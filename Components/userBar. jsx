@@ -1,0 +1,26 @@
+hereimport React from 'react';
+import { useApp } from '../AppContext';
+import { signOut } from 'firebase/auth';
+
+const UserBar = () => {
+  const { user, isAdmin, auth } = useApp();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (e) {
+      console.error("Logout error:", e);
+    }
+  };
+
+  if (!user) return null;
+
+  return (
+    <div className="flex justify-between items-center">
+      <span>Logged in as: {isAdmin ? 'Admin' : 'User'}</span>
+      <button onClick={handleLogout}>Logout</button>
+    </div>
+  );
+};
+
+export default UserBar;
