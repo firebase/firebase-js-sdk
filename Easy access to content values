@@ -1,0 +1,17 @@
+return (
+  <AppContext.Provider
+    value={{
+      user,
+      isAdmin,
+      artworks,
+      loading,
+      userId,
+      auth,
+      db,
+      appId
+    }}
+  >
+    {children}
+  </AppContext.Provider>
+);
+￼Enter
