@@ -1,0 +1,16 @@
+hereuseEffect(() => {
+  if (!db) return;
+
+  const artworksRef = collection(db, "artworks");
+  const q = query(artworksRef); // You can add filters if needed
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const artworkList = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    setArtworks(artworkList);
+  });
+
+  return () => unsubscribe();
+}, [db]);
