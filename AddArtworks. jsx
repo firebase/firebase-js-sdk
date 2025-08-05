@@ -1,0 +1,41 @@
+import React, { useState } from 'react';
+import { useApp } from './path-to-context';
+import { collection, addDoc } from 'firebase/firestore';
+
+const AddArtwork = () => {
+  const { isAdmin, db } = useApp();
+  const [title, setTitle] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [description, setDescription] = useState('');
+
+  const handleAdd = async () => {
+    try {
+      await addDoc(collection(db, "artworks"), {
+        title,
+        imageUrl,
+        description,
+        createdAt: new Date(),
+      });
+      setTitle('');
+      setImageUrl('');
+      setDescription('');
+      alert("Artwork added!");
+    } catch (error) {
+      console.error("Failed to add artwork:", error);
+    }
+  };
+
+  if (!isAdmin) return <p>Unauthorized: Only admins can add artworks.</p>;
+
+  return (
+    <div>
+      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" />
+      <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="Image URL" />
+      <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" />
+      <button onClick={handleAdd}>Add Artwork</button>
+    </div>
+  );
+};
+
+export default AddArtwork;
+￼Enter
