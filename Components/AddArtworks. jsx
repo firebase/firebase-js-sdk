@@ -1,0 +1,47 @@
+import React, { useState } from 'react';
+import { useApp } from '../AppContext';
+import { doc, setDoc } from 'firebase/firestore';
+
+const AddArtwork = () => {
+  const { isAdmin, db, userId, appId } = useApp();
+  const [title, setTitle] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [description, setDescription] = useState('');
+
+  const handleSubmit = async () => {
+    if (!title || !imageUrl) return alert("Title and Image URL are required");
+
+    const newId = `${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const docRef = doc(db, `artifacts/${appId}/public/data/artworks`, newId);
+
+    try {
+      await setDoc(docRef, {
+        title,
+        imageUrl,
+        description,
+        createdAt: new Date(),
+        createdBy: userId,
+      });
+      alert("Artwork uploaded!");
+      setTitle('');
+      setImageUrl('');
+      setDescription('');
+    } catch (e) {
+      console.error("Upload failed:", e);
+    }
+  };
+
+  if (!isAdmin) return <p>You are not authorized to add artworks.</p>;
+
+  return (
+    <div>
+      <input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+      <input placeholder="Image URL" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+      <textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
+      <button onClick={handleSubmit}>Add Artwork</button>
+    </div>
+  );
+};
+
+export default AddArtwork;
+￼Enter
