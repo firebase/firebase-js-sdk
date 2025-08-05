@@ -39,6 +39,10 @@ export interface AI {
    */
   backend: Backend;
   /**
+   * Options applied to this {@link AI} instance.
+   */
+  options?: AIOptions;
+  /**
    * @deprecated use `AI.backend.location` instead.
    *
    * The location configured for this AI service instance, relevant for Vertex AI backends.
@@ -92,4 +96,15 @@ export interface AIOptions {
    * The backend configuration to use for the AI service instance.
    */
   backend: Backend;
+  /**
+   * Configures App Check usage for this AI service instance.
+   */
+  appCheck?: AppCheckOptions;
+}
+
+/**
+ * Configures App Check usage for this AI service instance.
+ */
+export interface AppCheckOptions {
+  limitedUseTokens?: boolean;
 }

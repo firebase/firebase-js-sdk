@@ -15,6 +15,7 @@ export interface AI {
     backend: Backend;
     // @deprecated (undocumented)
     location: string;
+    options?: AIOptions;
 }
 
 // @public
@@ -61,6 +62,7 @@ export abstract class AIModel {
 
 // @public
 export interface AIOptions {
+    appCheck?: AppCheckOptions;
     backend: Backend;
 }
 
@@ -73,6 +75,12 @@ export class AnyOfSchema extends Schema {
     anyOf: TypedSchema[];
     // @internal (undocumented)
     toJSON(): SchemaRequest;
+}
+
+// @public
+export interface AppCheckOptions {
+    // (undocumented)
+    limitedUseTokens?: boolean;
 }
 
 // @public

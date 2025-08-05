@@ -90,8 +90,13 @@ export abstract class AIModel {
           return Promise.resolve({ token });
         };
       } else if ((ai as AIService).appCheck) {
-        this._apiSettings.getAppCheckToken = () =>
-          (ai as AIService).appCheck!.getToken();
+        if (ai.options?.appCheck?.limitedUseTokens) {
+          this._apiSettings.getAppCheckToken = () =>
+            (ai as AIService).appCheck!.getLimitedUseToken();
+        } else {
+          this._apiSettings.getAppCheckToken = () =>
+            (ai as AIService).appCheck!.getToken();
+        }
       }
 
       if ((ai as AIService).auth) {

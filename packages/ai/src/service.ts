@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp, _FirebaseService } from '@firebase/app';
-import { AI } from './public-types';
+import { AI, AIOptions } from './public-types';
 import {
   AppCheckInternalComponentName,
   FirebaseAppCheckInternal
@@ -31,6 +31,7 @@ import { Backend, VertexAIBackend } from './backend';
 export class AIService implements AI, _FirebaseService {
   auth: FirebaseAuthInternal | null;
   appCheck: FirebaseAppCheckInternal | null;
+  _options?: AIOptions;
   location: string; // This is here for backwards-compatibility
 
   constructor(
@@ -53,5 +54,13 @@ export class AIService implements AI, _FirebaseService {
 
   _delete(): Promise<void> {
     return Promise.resolve();
+  }
+
+  set options(optionsToSet: AIOptions) {
+    this.options = optionsToSet;
+  }
+
+  get options(): AIOptions {
+    return this.options;
   }
 }
