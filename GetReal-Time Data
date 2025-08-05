@@ -1,0 +1,10 @@
+import { db } from './firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
+
+const subscribeToArtworks = (callback) => {
+  const unsub = onSnapshot(collection(db, 'artworks'), snapshot => {
+    const artworks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    callback(artworks);
+  });
+  return unsub;
+};
