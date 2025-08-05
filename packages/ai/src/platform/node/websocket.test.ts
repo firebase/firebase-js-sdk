@@ -19,11 +19,11 @@ import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import { isNode } from '@firebase/util';
-import { NodeWebSocketHandler } from './node-websocket-handler';
-import { WebSocketHandler } from './websocket-handler';
-import { MockWebSocketServer } from '../../test-utils/mock-websocket-server';
-import { AIError } from '../errors';
 import { TextEncoder } from 'util';
+import { MockWebSocketServer } from '../../../test-utils/mock-websocket-server';
+import { WebSocketHandler } from '../websocket';
+import { NodeWebSocketHandler } from './websocket';
+import { AIError } from '../../errors';
 
 use(sinonChai);
 use(chaiAsPromised);

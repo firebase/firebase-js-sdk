@@ -17,9 +17,9 @@
 
 import { isBrowser, isNode } from '@firebase/util';
 import { AIError } from '../errors';
-import { AIErrorCode } from '../public-types';
-import { NodeWebSocketHandler } from './node-websocket-handler';
-import { BrowserWebSocketHandler } from './browser-websocket-handler';
+import { AIErrorCode } from '../types';
+import { NodeWebSocketHandler } from './node/websocket';
+import { BrowserWebSocketHandler } from './browser/websocket';
 
 /**
  * A standardized interface for interacting with a WebSocket connection.
@@ -71,10 +71,7 @@ export interface WebSocketHandler {
  *
  * 1. Module Loading: The primary difference is how the `WebSocket` class is
  *    accessed. In browsers, it's a global (`window.WebSocket`). In Node, it
- *    must be imported from the built-in `'ws'` module. Isolating the Node
- *    `import('ws')` call in its own class prevents browser-bundling tools
- *    (like Webpack, Vite) from trying to resolve a Node-specific module, which
- *    would either fail the build or include unnecessary polyfills.
+ *    must be imported from the built-in `'ws'` module.
  *
  * 2. Type Safety: TypeScript's type definitions for the browser's WebSocket
  *    (from `lib.dom.d.ts`) and Node's WebSocket (from `@types/node`) are
@@ -83,11 +80,7 @@ export interface WebSocketHandler {
  * @internal
  */
 export function createWebSocketHandler(): WebSocketHandler {
-  // `isNode()` is replaced with a static boolean during build time so this block will be
-  // tree-shaken in browser builds.
   if (isNode()) {
-    // At this point we're certain we're in a Node bundle, but we still need to have checks
-    // to be certain we're in a Node environment, and not something like Deno, Bun, or Edge workers.
     if (typeof process === 'object' && process.versions?.node) {
       const [major] = process.versions.node.split('.').map(Number);
       if (major < 22) {
@@ -102,12 +95,7 @@ export function createWebSocketHandler(): WebSocketHandler {
     }
   }
 
-  // `isBrowser()` is replaced with a static boolean during build time so this block will be
-  // tree-shaken in Node builds.
   if (isBrowser()) {
-    // At this point we're certain we're in a browser build, but we still need to check for the
-    // existence of the `WebSocket` API. This check would fail in environments that use a browser
-    // bundle, but don't support WebSockets (Web workers and SSR).
     if (typeof WebSocket !== 'undefined') {
       return new BrowserWebSocketHandler();
     } else {

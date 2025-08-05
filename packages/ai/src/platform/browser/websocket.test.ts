@@ -19,9 +19,9 @@ import { expect, use } from 'chai';
 import sinon, { SinonFakeTimers, SinonStub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { BrowserWebSocketHandler } from './browser-websocket-handler';
-import { AIError } from '../errors';
 import { isBrowser } from '@firebase/util';
+import { BrowserWebSocketHandler } from './websocket';
+import { AIError } from '../../errors';
 
 use(sinonChai);
 use(chaiAsPromised);

@@ -15,13 +15,27 @@
  * limitations under the License.
  */
 
-import { AIError } from '../errors';
-import { AIErrorCode } from '../types';
-import { WebSocketHandler } from './websocket-handler';
+import { AIError } from '../../errors';
+import { AIErrorCode } from '../../types';
+import { WebSocketHandler } from '../websocket';
+
+export function createWebSocketHandler(): WebSocketHandler {
+  if (typeof WebSocket !== 'undefined') {
+    return new BrowserWebSocketHandler();
+  } else {
+    throw new AIError(
+      AIErrorCode.UNSUPPORTED,
+      'The WebSocket API is not available in this browser-like environment. ' +
+        'The "Live" feature is not supported here. It is supported in ' +
+        'standard browser windows, Web Workers with WebSocket support, and Node >= 22.'
+    );
+  }
+}
 
 /**
  * A WebSocketHandler implementation for the browser environment.
  * It uses the native `WebSocket`.
+ *
  * @internal
  */
 export class BrowserWebSocketHandler implements WebSocketHandler {
@@ -63,7 +77,6 @@ export class BrowserWebSocketHandler implements WebSocketHandler {
   }
 
   async *listen(): AsyncGenerator<unknown> {
-    console.log('listener started');
     if (!this.ws) {
       throw new AIError(
         AIErrorCode.REQUEST_ERROR,
@@ -77,16 +90,21 @@ export class BrowserWebSocketHandler implements WebSocketHandler {
 
     const messageListener = async (event: MessageEvent): Promise<void> => {
       if (event.data instanceof Blob) {
-        const obj = JSON.parse(await event.data.text()) as unknown;
-        messageQueue.push(obj);
-        if (resolvePromise) {
-          resolvePromise();
-          resolvePromise = null;
+        try {
+          const obj = JSON.parse(await event.data.text()) as unknown;
+          messageQueue.push(obj);
+          if (resolvePromise) {
+            resolvePromise();
+            resolvePromise = null;
+          }
+        } catch (e) {
+          console.warn('Failed to parse WebSocket message to JSON:', e);
         }
       } else {
         throw new AIError(
           AIErrorCode.PARSE_FAILED,
-          'Failed to parse WebSocket response to JSON, response was not a Blob'
+          `Failed to parse WebSocket response to JSON. ` +
+            `Expected data to be a Blob, but was ${typeof event.data}.`
         );
       }
     };

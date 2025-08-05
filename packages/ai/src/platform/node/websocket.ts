@@ -15,13 +15,34 @@
  * limitations under the License.
  */
 
-import { AIError } from '../errors';
-import { AIErrorCode } from '../public-types';
-import { WebSocketHandler } from './websocket-handler';
+// import { WebSocket, MessageEvent } from 'ws'; // External dependency on native Node module
+import { AIError } from '../../errors';
+import { AIErrorCode } from '../../types';
+import { WebSocketHandler } from '../websocket';
+
+export function createWebSocketHandler(): WebSocketHandler {
+  if (typeof process === 'object' && process.versions?.node) {
+    const [major] = process.versions.node.split('.').map(Number);
+    if (major < 22) {
+      throw new AIError(
+        AIErrorCode.UNSUPPORTED,
+        `The "Live" feature is being used in a Node environment, but the ` +
+          `runtime version is ${process.versions.node}. This feature requires Node >= 22` +
+          `for native WebSocket support.`
+      );
+    }
+    return new NodeWebSocketHandler();
+  } else {
+    throw new AIError(
+      AIErrorCode.UNSUPPORTED,
+      'The "Live" feature is not supported in this Node-like environment. It is supported in ' +
+        'standard browser windows, Web Workers with WebSocket support, and Node >= 22.'
+    );
+  }
+}
 
 /**
  * A WebSocketHandler implementation for Node >= 22.
- * It uses the native, built-in 'ws' module, which must be imported.
  *
  * @internal
  */
@@ -29,14 +50,18 @@ export class NodeWebSocketHandler implements WebSocketHandler {
   private ws?: import('ws').WebSocket;
 
   async connect(url: string): Promise<void> {
-    // This dynamic import is why we need a separate class.
-    // It is only ever executed in a Node environment, preventing browser
-    // bundlers from attempting to resolve this Node-specific module.
-    // eslint-disable-next-line import/no-extraneous-dependencies
-    const { WebSocket } = await import('ws');
-
-    return new Promise((resolve, reject) => {
-      this.ws = new WebSocket(url);
+    return new Promise(async (resolve, reject) => {
+      const { WebSocket } = await import('ws');
+      try {
+        this.ws = new WebSocket(url);
+      } catch (e) {
+        return reject(
+          new AIError(
+            AIErrorCode.ERROR,
+            `Internal Error: Invalid WebSocket URL: ${url}`
+          )
+        );
+      }
       this.ws!.addEventListener('open', () => resolve(), { once: true });
       this.ws!.addEventListener(
         'error',
@@ -84,8 +109,11 @@ export class NodeWebSocketHandler implements WebSocketHandler {
         const decoder = new TextDecoder();
         textData = decoder.decode(event.data);
       } else {
-        console.warn('Received unexpected WebSocket message type:', event.data);
-        return;
+        throw new AIError(
+          AIErrorCode.PARSE_FAILED,
+          `Failed to parse WebSocket response to JSON. ` +
+            `Expected data to be string, Buffer, ArrayBuffer, or Uint8Array, but was ${typeof event.data}.`
+        );
       }
 
       try {
@@ -106,6 +134,7 @@ export class NodeWebSocketHandler implements WebSocketHandler {
         resolvePromise();
         resolvePromise = null;
       }
+      // Clean up listeners to prevent memory leaks
       this.ws?.removeEventListener('message', messageListener);
       this.ws?.removeEventListener('close', closeListener);
     };
@@ -126,7 +155,11 @@ export class NodeWebSocketHandler implements WebSocketHandler {
 
   close(code?: number, reason?: string): Promise<void> {
     return new Promise(resolve => {
-      if (!this.ws || this.ws.readyState === this.ws.CLOSED) {
+      if (
+        !this.ws ||
+        this.ws.readyState === this.ws.CLOSED ||
+        this.ws.readyState === this.ws.CLOSING
+      ) {
         return resolve();
       }
       this.ws.addEventListener('close', () => resolve(), { once: true });
