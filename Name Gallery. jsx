@@ -1,0 +1,23 @@
+import React from 'react';
+import { useApp } from './path-to-context';
+
+const Gallery = () => {
+  const { artworks, loading } = useApp();
+
+  if (loading) return <p>Loading artworks...</p>;
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {artworks.map((art) => (
+        <div key={art.id} className="border p-2 rounded">
+          <img src={art.imageUrl} alt={art.title} className="w-full h-auto" />
+          <h3>{art.title}</h3>
+          <p>{art.description}</p>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default Gallery;
+￼Enter
