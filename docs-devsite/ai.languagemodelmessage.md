@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # LanguageModelMessage interface
-(EXPERIMENTAL) An on-device language model message.
+<b>(EXPERIMENTAL)</b> An on-device language model message.
 
 <b>Signature:</b>
 

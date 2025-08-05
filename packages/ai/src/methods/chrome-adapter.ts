@@ -38,7 +38,8 @@ import {
 
 /**
  * Defines an inference "backend" that uses Chrome's on-device model,
- * and encapsulates logic for detecting when on-device is possible.
+ * and encapsulates logic for detecting when on-device inference is
+ * possible.
  */
 export class ChromeAdapterImpl implements ChromeAdapter {
   // Visible for testing

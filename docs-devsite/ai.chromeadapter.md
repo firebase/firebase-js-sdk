@@ -10,9 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ChromeAdapter interface
-(EXPERIMENTAL)
-
-Defines an inference "backend" that uses Chrome's on-device model, and encapsulates logic for detecting when on-device is possible.
+<b>(EXPERIMENTAL)</b> Defines an inference "backend" that uses Chrome's on-device model, and encapsulates logic for detecting when on-device inference is possible.
 
 These methods should not be called directly by the user.
 
@@ -26,36 +24,15 @@ export interface ChromeAdapter
 
 |  Method | Description |
 |  --- | --- |
-|  [countTokens(\_request)](./ai.chromeadapter.md#chromeadaptercounttokens) | Stub - not yet available for on-device. |
-|  [generateContent(request)](./ai.chromeadapter.md#chromeadaptergeneratecontent) | Generates content on device.<p>This is comparable to [GenerativeModel.generateContent()](./ai.generativemodel.md#generativemodelgeneratecontent) for generating content in Cloud.</p> |
-|  [generateContentStream(request)](./ai.chromeadapter.md#chromeadaptergeneratecontentstream) | Generates content stream on device.<p>This is comparable to [GenerativeModel.generateContentStream()](./ai.generativemodel.md#generativemodelgeneratecontentstream) for generating content in Cloud.</p> |
-|  [isAvailable(request)](./ai.chromeadapter.md#chromeadapterisavailable) | Checks if a given request can be made on-device.<ol>Encapsulates a few concerns: <li>the mode</li> <li>API existence</li> <li>prompt formatting</li> <li>model availability, including triggering download if necessary</li> </ol><p>Pros: callers needn't be concerned with details of on-device availability.</p> <p>Cons: this method spans a few concerns and splits request validation from usage. If instance variables weren't already part of the API, we could consider a better separation of concerns.</p> |
-
-## ChromeAdapter.countTokens()
-
-Stub - not yet available for on-device.
-
-<b>Signature:</b>
-
-```typescript
-countTokens(_request: CountTokensRequest): Promise<Response>;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  \_request | [CountTokensRequest](./ai.counttokensrequest.md#counttokensrequest_interface) |  |
-
-<b>Returns:</b>
-
-Promise&lt;Response&gt;
+|  [generateContent(request)](./ai.chromeadapter.md#chromeadaptergeneratecontent) | Generates content using on-device inference.<p>This is comparable to [GenerativeModel.generateContent()](./ai.generativemodel.md#generativemodelgeneratecontent) for generating content using in-cloud inference.</p> |
+|  [generateContentStream(request)](./ai.chromeadapter.md#chromeadaptergeneratecontentstream) | Generates a content stream using on-device inference.<p>This is comparable to [GenerativeModel.generateContentStream()](./ai.generativemodel.md#generativemodelgeneratecontentstream) for generating content using in-cloud inference.</p> |
+|  [isAvailable(request)](./ai.chromeadapter.md#chromeadapterisavailable) | Checks if the on-device model is capable of handling a given request. |
 
 ## ChromeAdapter.generateContent()
 
-Generates content on device.
+Generates content using on-device inference.
 
-<p>This is comparable to [GenerativeModel.generateContent()](./ai.generativemodel.md#generativemodelgeneratecontent) for generating content in Cloud.</p>
+<p>This is comparable to [GenerativeModel.generateContent()](./ai.generativemodel.md#generativemodelgeneratecontent) for generating content using in-cloud inference.</p>
 
 <b>Signature:</b>
 
@@ -73,13 +50,11 @@ generateContent(request: GenerateContentRequest): Promise<Response>;
 
 Promise&lt;Response&gt;
 
-Response, so we can reuse common response formatting.
-
 ## ChromeAdapter.generateContentStream()
 
-Generates content stream on device.
+Generates a content stream using on-device inference.
 
-<p>This is comparable to [GenerativeModel.generateContentStream()](./ai.generativemodel.md#generativemodelgeneratecontentstream) for generating content in Cloud.</p>
+<p>This is comparable to [GenerativeModel.generateContentStream()](./ai.generativemodel.md#generativemodelgeneratecontentstream) for generating content using in-cloud inference.</p>
 
 <b>Signature:</b>
 
@@ -97,15 +72,9 @@ generateContentStream(request: GenerateContentRequest): Promise<Response>;
 
 Promise&lt;Response&gt;
 
-Response, so we can reuse common response formatting.
-
 ## ChromeAdapter.isAvailable()
 
-Checks if a given request can be made on-device.
-
-<ol>Encapsulates a few concerns: <li>the mode</li> <li>API existence</li> <li>prompt formatting</li> <li>model availability, including triggering download if necessary</li> </ol>
-
-<p>Pros: callers needn't be concerned with details of on-device availability.</p> <p>Cons: this method spans a few concerns and splits request validation from usage. If instance variables weren't already part of the API, we could consider a better separation of concerns.</p>
+Checks if the on-device model is capable of handling a given request.
 
 <b>Signature:</b>
 
@@ -117,7 +86,7 @@ isAvailable(request: GenerateContentRequest): Promise<boolean>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  request | [GenerateContentRequest](./ai.generatecontentrequest.md#generatecontentrequest_interface) |  |
+|  request | [GenerateContentRequest](./ai.generatecontentrequest.md#generatecontentrequest_interface) | A potential request to be passed to the model. |
 
 <b>Returns:</b>
 

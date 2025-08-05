@@ -277,7 +277,7 @@ export interface FunctionCallingConfig {
 }
 
 /**
- * (EXPERIMENTAL)
+ * <b>(EXPERIMENTAL)</b>
  * Encapsulates configuration for on-device inference.
  *
  * @public
@@ -288,7 +288,7 @@ export interface OnDeviceParams {
 }
 
 /**
- * (EXPERIMENTAL)
+ * <b>(EXPERIMENTAL)</b>
  * Configures hybrid inference.
  * @public
  */

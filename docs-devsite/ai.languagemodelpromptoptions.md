@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # LanguageModelPromptOptions interface
-(EXPERIMENTAL) Options for an on-device language model prompt.
+<b>(EXPERIMENTAL)</b> Options for an on-device language model prompt.
 
 <b>Signature:</b>
 

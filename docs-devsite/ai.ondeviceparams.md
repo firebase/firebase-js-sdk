@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # OnDeviceParams interface
-(EXPERIMENTAL) Encapsulates configuration for on-device inference.
+<b>(EXPERIMENTAL)</b> Encapsulates configuration for on-device inference.
 
 <b>Signature:</b>
 

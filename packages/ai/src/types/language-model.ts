@@ -50,8 +50,8 @@ export enum Availability {
 }
 
 /**
- * (EXPERIMENTAL)
- * Used to configure the creation of an on-device language model session.
+ * <b>(EXPERIMENTAL)</b>
+ * Configures the creation of an on-device language model session.
  * @public
  */
 export interface LanguageModelCreateCoreOptions {
@@ -61,8 +61,8 @@ export interface LanguageModelCreateCoreOptions {
 }
 
 /**
- * (EXPERIMENTAL)
- * Used to configure the creation of an on-device language model session.
+ * <b>(EXPERIMENTAL)</b>
+ * Configures the creation of an on-device language model session.
  * @public
  */
 export interface LanguageModelCreateOptions
@@ -72,7 +72,7 @@ export interface LanguageModelCreateOptions
 }
 
 /**
- * (EXPERIMENTAL)
+ * <b>(EXPERIMENTAL)</b>
  * Options for an on-device language model prompt.
  * @public
  */
@@ -82,8 +82,8 @@ export interface LanguageModelPromptOptions {
 }
 
 /**
- * (EXPERIMENTAL)
- * Options for an on-device language model expected inputs.
+ * <b>(EXPERIMENTAL)</b>
+ * Options for the expected inputs for an on-device language model.
  * @public
  */ export interface LanguageModelExpected {
   type: LanguageModelMessageType;
@@ -91,14 +91,14 @@ export interface LanguageModelPromptOptions {
 }
 
 /**
- * (EXPERIMENTAL)
+ * <b>(EXPERIMENTAL)</b>
  * An on-device language model prompt.
  * @public
  */
 export type LanguageModelPrompt = LanguageModelMessage[];
 
 /**
- * (EXPERIMENTAL)
+ * <b>(EXPERIMENTAL)</b>
  * An on-device language model message.
  * @public
  */
@@ -108,7 +108,7 @@ export interface LanguageModelMessage {
 }
 
 /**
- * (EXPERIMENTAL)
+ * <b>(EXPERIMENTAL)</b>
  * An on-device language model content object.
  * @public
  */
@@ -118,21 +118,21 @@ export interface LanguageModelMessageContent {
 }
 
 /**
- * (EXPERIMENTAL)
+ * <b>(EXPERIMENTAL)</b>
  * Allowable roles for on-device language model usage.
  * @public
  */
 export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 
 /**
- * (EXPERIMENTAL)
+ * <b>(EXPERIMENTAL)</b>
  * Allowable types for on-device language model messages.
  * @public
  */
 export type LanguageModelMessageType = 'text' | 'image' | 'audio';
 
 /**
- * (EXPERIMENTAL)
+ * <b>(EXPERIMENTAL)</b>
  * Content formats that can be provided as on-device message content.
  * @public
  */

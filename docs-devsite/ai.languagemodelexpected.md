@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # LanguageModelExpected interface
-(EXPERIMENTAL) Options for an on-device language model expected inputs.
+<b>(EXPERIMENTAL)</b> Options for the expected inputs for an on-device language model.
 
 <b>Signature:</b>
 

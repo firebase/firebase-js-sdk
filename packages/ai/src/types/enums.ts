@@ -340,7 +340,7 @@ export type ResponseModality =
   (typeof ResponseModality)[keyof typeof ResponseModality];
 
 /**
- * (EXPERIMENTAL)
+ * <b>(EXPERIMENTAL)</b>
  * Determines whether inference happens on-device or in-cloud.
  * @public
  */
@@ -351,7 +351,7 @@ export const InferenceMode = {
 } as const;
 
 /**
- * (EXPERIMENTAL)
+ * <b>(EXPERIMENTAL)</b>
  * Determines whether inference happens on-device or in-cloud.
  * @public
  */
