@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { GenerateContentRequest } from './requests';
+import { CountTokensRequest, GenerateContentRequest } from './requests';
 
 /**
  * <b>(EXPERIMENTAL)</b> Defines an inference "backend" that uses Chrome's on-device model,
@@ -51,4 +51,9 @@ export interface ChromeAdapter {
    * @param request - a standard Firebase AI {@link GenerateContentRequest}
    */
   generateContentStream(request: GenerateContentRequest): Promise<Response>;
+
+  /**
+   * @internal
+   */
+  countTokens(request: CountTokensRequest): Promise<Response>;
 }
