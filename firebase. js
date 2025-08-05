@@ -1,0 +1,43 @@
+// firebase.js
+import { initializeApp } from 'firebase/app';
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+} from 'firebase/auth';
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  collection,
+  addDoc,
+  deleteDoc,
+  onSnapshot,
+  query,
+  where,
+} from 'firebase/firestore';
+
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyDGis0P2HOYjIAgTkXbpaNfnR2tTSSOKFM",
+  authDomain: "art-gallery-57624.firebaseapp.com",
+  projectId: "art-gallery-57624",
+  storageBucket: "art-gallery-57624.firebasestorage.app",
+  messagingSenderId: "901537749813",
+  appId: "1:901537749813:web:4eefa2cc4df7b9fe4a8a7c",
+  measurementId: "G-LQ6W17SH8G"
+};
+
+const app = initializeApp(firebaseConfig);
+
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+
+// Auth helpers
+export const register = (email, password) => createUserWithEmailAndPassword(auth, email, password);
+export const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
+export const logout = () => signOut(auth);
+export const onUserChange = (callback) => onAuthStateChanged(auth, callback);
