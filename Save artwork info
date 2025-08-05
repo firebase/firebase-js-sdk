@@ -1,0 +1,12 @@
+import { db } from './firebase';
+import { collection, addDoc } from 'firebase/firestore';
+
+const saveArtwork = async (artwork) => {
+  try {
+    await addDoc(collection(db, 'artworks'), artwork);
+    alert('Artwork saved!');
+  } catch (error) {
+    console.error('Error adding document:', error);
+  }
+};
+￼Enter
