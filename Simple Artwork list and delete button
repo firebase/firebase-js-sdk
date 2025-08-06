@@ -1,0 +1,83 @@
+return (
+  <div className="min-h-screen bg-gray-50 p-6">
+    <div className="max-w-5xl mx-auto bg-white rounded shadow p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+        >
+          Logout
+        </button>
+      </div>
+
+      {/* Success and Error Messages */}
+      {error && <p className="text-red-600 mb-4">{error}</p>}
+      {success && <p className="text-green-600 mb-4">{success}</p>}
+
+      {/* Add New Artwork */}
+      <form onSubmit={handleAddArtwork} className="space-y-4 mb-8">
+        <h2 className="text-xl font-semibold">Add New Artwork</h2>
+        <input
+          name="title"
+          value={newArtwork.title}
+          onChange={handleInputChange}
+          placeholder="Title"
+          className="w-full border p-2 rounded"
+          required
+        />
+        <input
+          name="price"
+          value={newArtwork.price}
+          onChange={handleInputChange}
+          placeholder="Price (USD)"
+          type="number"
+          step="0.01"
+          className="w-full border p-2 rounded"
+          required
+        />
+        <input
+          name="category"
+          value={newArtwork.category}
+          onChange={handleInputChange}
+          placeholder="Category"
+          className="w-full border p-2 rounded"
+        />
+        <input
+          name="imageUrl"
+          value={newArtwork.imageUrl}
+          onChange={handleInputChange}
+          placeholder="Image URL"
+          className="w-full border p-2 rounded"
+          required
+        />
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Add Artwork
+        </button>
+      </form>
+
+      {/* Artwork List */}
+      <h2 className="text-xl font-semibold mb-4">All Artworks</h2>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {artworks.map((art) => (
+          <div key={art.id} className="border p-4 rounded bg-gray-100">
+            <img src={art.imageUrl} alt={art.title} className="w-full h-40 object-cover rounded mb-2" />
+            <h3 className="font-bold text-lg">{art.title}</h3>
+            <p className="text-sm">Category: {art.category || "N/A"}</p>
+            <p className="text-sm">Price: ${art.price?.toFixed(2)} (~₵{(art.price * currencyExchangeRate).toFixed(2)})</p>
+            <button
+              onClick={() => handleDeleteArtwork(art.id)}
+              className="mt-2 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+            >
+              Delete
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+￼Enter
