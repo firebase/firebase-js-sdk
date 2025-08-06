@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-import { isBrowser, isNode } from '@firebase/util';
-import { AIError } from '../errors';
-import { AIErrorCode } from '../types';
 import { NodeWebSocketHandler } from './node/websocket';
-import { BrowserWebSocketHandler } from './browser/websocket';
 
 /**
  * A standardized interface for interacting with a WebSocket connection.
@@ -64,53 +60,27 @@ export interface WebSocketHandler {
 }
 
 /**
+ * NOTE: Imports to this these APIs are renamed to either `platform/browser/websocket.ts` or
+ * `platform/node/websocket.ts` during build time.
+ *
+ * The types are still useful for type-checking during development.
+ * These are only used during the Node tests, which are ran against non-bundled code.
+ */
+
+/**
  * Factory function to create the appropriate WebSocketHandler for the current environment.
  *
- * Even though the browser and Node >=22 WebSocket APIs are now very similar,
- * we use two separate handler classes. There are two reasons for this:
- *
- * 1. Module Loading: The primary difference is how the `WebSocket` class is
- *    accessed. In browsers, it's a global (`window.WebSocket`). In Node, it
- *    must be imported from the built-in `'ws'` module.
- *
- * 2. Type Safety: TypeScript's type definitions for the browser's WebSocket
- *    (from `lib.dom.d.ts`) and Node's WebSocket (from `@types/node`) are
- *    distinct. Using separate classes ensures type correctness for each environment.
+ * This is only a stub for tests. See the real definitions in `./browser/websocket.ts` and
+ * `./node/websocket.ts`.
  *
  * @internal
  */
 export function createWebSocketHandler(): WebSocketHandler {
-  if (isNode()) {
-    if (typeof process === 'object' && process.versions?.node) {
-      const [major] = process.versions.node.split('.').map(Number);
-      if (major < 22) {
-        throw new AIError(
-          AIErrorCode.UNSUPPORTED,
-          `The "Live" feature is being used in a Node environment, but the ` +
-            `runtime version is ${process.versions.node}. This feature requires Node.js ` +
-            `version 22 or higher for native WebSocket support.`
-        );
-      }
-      return new NodeWebSocketHandler();
-    }
+  if (typeof WebSocket === 'undefined') {
+    throw Error(
+      'WebSocket API is not available. Make sure tests are being ran in Node >= 22.'
+    );
   }
 
-  if (isBrowser()) {
-    if (typeof WebSocket !== 'undefined') {
-      return new BrowserWebSocketHandler();
-    } else {
-      throw new AIError(
-        AIErrorCode.UNSUPPORTED,
-        'The WebSocket API is not available in this browser-like environment. ' +
-          'The Firebase AI "Live" feature is not supported here. It is supported in ' +
-          'standard browser windows, Web Workers with WebSocket support, and Node >= 22.'
-      );
-    }
-  }
-
-  throw new AIError(
-    AIErrorCode.UNSUPPORTED,
-    'This environment is not supported by the "Live" feature. ' +
-      'Supported environments are modern web browsers and Node >= 22.'
-  );
+  return new NodeWebSocketHandler();
 }
