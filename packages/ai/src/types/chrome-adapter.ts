@@ -47,7 +47,7 @@ export interface ChromeAdapter {
    * Generates a content stream using on-device inference.
    *
    * <p>This is comparable to {@link GenerativeModel.generateContentStream} for generating
-   * content using in-cloud inference.</p>
+   * a content stream using in-cloud inference.</p>
    * @param request - a standard Firebase AI {@link GenerateContentRequest}
    */
   generateContentStream(request: GenerateContentRequest): Promise<Response>;
