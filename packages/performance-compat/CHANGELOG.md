@@ -1,5 +1,12 @@
 # @firebase/performance-compat
 
+## 0.2.22
+
+### Patch Changes
+
+- Updated dependencies [[`a4897a6`](https://github.com/firebase/firebase-js-sdk/commit/a4897a621e99f270ddf6821d587fcddd3a0c5cd1)]:
+  - @firebase/performance@0.7.9
+
 ## 0.2.21
 
 ### Patch Changes
