@@ -433,10 +433,6 @@ export class GenerativeModel extends AIModel {
     toolConfig?: ToolConfig;
     // (undocumented)
     tools?: Tool[];
-    // Warning: (ae-forgotten-export) The symbol "WebSocketHandler" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    ws: WebSocketHandler;
 }
 
 // @public
