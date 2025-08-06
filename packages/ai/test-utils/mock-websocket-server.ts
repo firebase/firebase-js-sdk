@@ -52,7 +52,7 @@ export class MockWebSocketServer {
   broadcast(message: string | Buffer): void {
     for (const client of this.clients) {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(message);
+        client.send(message, { binary: true });
       }
     }
   }

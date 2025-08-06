@@ -20,16 +20,16 @@ import { AIErrorCode } from '../../types';
 import { WebSocketHandler } from '../websocket';
 
 export function createWebSocketHandler(): WebSocketHandler {
-  if (typeof WebSocket !== 'undefined') {
-    return new BrowserWebSocketHandler();
-  } else {
+  if (typeof WebSocket === 'undefined') {
     throw new AIError(
       AIErrorCode.UNSUPPORTED,
       'The WebSocket API is not available in this browser-like environment. ' +
         'The "Live" feature is not supported here. It is supported in ' +
-        'standard browser windows, Web Workers with WebSocket support, and Node >= 22.'
+        'modern browser windows, Web Workers with WebSocket support, and Node >= 22.'
     );
   }
+
+  return new BrowserWebSocketHandler();
 }
 
 /**
@@ -43,17 +43,7 @@ export class BrowserWebSocketHandler implements WebSocketHandler {
 
   connect(url: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      try {
-        this.ws = new WebSocket(url);
-      } catch (e) {
-        return reject(
-          new AIError(
-            AIErrorCode.ERROR,
-            `Internal Error: Invalid WebSocket URL: ${url}`
-          )
-        );
-      }
-
+      this.ws = new WebSocket(url);
       this.ws.addEventListener('open', () => resolve(), { once: true });
       this.ws.addEventListener(
         'error',
@@ -136,15 +126,22 @@ export class BrowserWebSocketHandler implements WebSocketHandler {
 
   close(code?: number, reason?: string): Promise<void> {
     return new Promise(resolve => {
+      if (!this.ws) {
+        return resolve();
+      }
+
+      this.ws.addEventListener('close', () => resolve(), { once: true });
+      // Calling 'close' during these states results in an error.
       if (
-        !this.ws ||
         this.ws.readyState === WebSocket.CLOSED ||
-        this.ws.readyState === WebSocket.CLOSING
+        this.ws.readyState === WebSocket.CONNECTING
       ) {
         return resolve();
       }
-      this.ws.addEventListener('close', () => resolve(), { once: true });
-      this.ws.close(code, reason);
+
+      if (this.ws.readyState !== WebSocket.CLOSING) {
+        this.ws.close(code, reason);
+      }
     });
   }
 }

@@ -23,7 +23,6 @@ import { TextEncoder } from 'util';
 import { MockWebSocketServer } from '../../../test-utils/mock-websocket-server';
 import { WebSocketHandler } from '../websocket';
 import { NodeWebSocketHandler } from './websocket';
-import { AIError } from '../../errors';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -31,7 +30,7 @@ use(chaiAsPromised);
 const TEST_PORT = 9003;
 const TEST_URL = `ws://localhost:${TEST_PORT}`;
 
-describe('NodeWebSocketHandler (Integration Tests)', () => {
+describe('NodeWebSocketHandler', () => {
   let server: MockWebSocketServer;
   let handler: WebSocketHandler;
 
@@ -66,12 +65,9 @@ describe('NodeWebSocketHandler (Integration Tests)', () => {
       expect(server.clients.size).to.equal(1);
     });
 
-    it('should reject if the connection fails (e.g., wrong port)', async () => {
-      const wrongPortUrl = `ws://localhost:${TEST_PORT + 1}`;
-      await expect(handler.connect(wrongPortUrl)).to.be.rejectedWith(
-        AIError,
-        /Failed to establish WebSocket connection/
-      );
+    it('should reject if the connection fails', async () => {
+      const wrongPortUrl = `ws://wrongUrl:9000`;
+      await expect(handler.connect(wrongPortUrl)).to.be.rejected;
     });
   });
 

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-// import { WebSocket, MessageEvent } from 'ws'; // External dependency on native Node module
 import { AIError } from '../../errors';
 import { AIErrorCode } from '../../types';
 import { WebSocketHandler } from '../websocket';
@@ -27,16 +26,23 @@ export function createWebSocketHandler(): WebSocketHandler {
       throw new AIError(
         AIErrorCode.UNSUPPORTED,
         `The "Live" feature is being used in a Node environment, but the ` +
-          `runtime version is ${process.versions.node}. This feature requires Node >= 22` +
+          `runtime version is ${process.versions.node}. This feature requires Node >= 22 ` +
           `for native WebSocket support.`
       );
+    } else if (typeof WebSocket === 'undefined') {
+      throw new AIError(
+        AIErrorCode.UNSUPPORTED,
+        `The "Live" feature is being used in a Node environment that does not offer the ` +
+          `'WebSocket' API in the global scope.`
+      );
     }
+
     return new NodeWebSocketHandler();
   } else {
     throw new AIError(
       AIErrorCode.UNSUPPORTED,
       'The "Live" feature is not supported in this Node-like environment. It is supported in ' +
-        'standard browser windows, Web Workers with WebSocket support, and Node >= 22.'
+        'modern browser windows, Web Workers with WebSocket support, and Node >= 22.'
     );
   }
 }
@@ -44,24 +50,17 @@ export function createWebSocketHandler(): WebSocketHandler {
 /**
  * A WebSocketHandler implementation for Node >= 22.
  *
+ * Node 22 is the minimum version that offers the built-in global `WebSocket` API.
+ *
  * @internal
  */
 export class NodeWebSocketHandler implements WebSocketHandler {
-  private ws?: import('ws').WebSocket;
+  private ws?: WebSocket;
 
   async connect(url: string): Promise<void> {
     return new Promise(async (resolve, reject) => {
-      const { WebSocket } = await import('ws');
-      try {
-        this.ws = new WebSocket(url);
-      } catch (e) {
-        return reject(
-          new AIError(
-            AIErrorCode.ERROR,
-            `Internal Error: Invalid WebSocket URL: ${url}`
-          )
-        );
-      }
+      this.ws = new WebSocket(url);
+      this.ws.binaryType = 'blob';
       this.ws!.addEventListener('open', () => resolve(), { once: true });
       this.ws!.addEventListener(
         'error',
@@ -78,7 +77,7 @@ export class NodeWebSocketHandler implements WebSocketHandler {
   }
 
   send(data: string | ArrayBuffer): void {
-    if (!this.ws || this.ws.readyState !== this.ws.OPEN) {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       throw new AIError(AIErrorCode.REQUEST_ERROR, 'WebSocket is not open.');
     }
     this.ws.send(data);
@@ -96,35 +95,24 @@ export class NodeWebSocketHandler implements WebSocketHandler {
     let resolvePromise: (() => void) | null = null;
     let isClosed = false;
 
-    const messageListener = (event: import('ws').MessageEvent): void => {
-      let textData: string;
-
-      if (typeof event.data === 'string') {
-        textData = event.data;
-      } else if (
-        event.data instanceof Buffer ||
-        event.data instanceof ArrayBuffer ||
-        event.data instanceof Uint8Array
-      ) {
-        const decoder = new TextDecoder();
-        textData = decoder.decode(event.data);
+    const messageListener = async (event: MessageEvent): Promise<void> => {
+      if (event.data instanceof Blob) {
+        try {
+          const obj = JSON.parse(await event.data.text()) as unknown;
+          messageQueue.push(obj);
+          if (resolvePromise) {
+            resolvePromise();
+            resolvePromise = null;
+          }
+        } catch (e) {
+          console.warn('Failed to parse WebSocket message to JSON:', e);
+        }
       } else {
         throw new AIError(
           AIErrorCode.PARSE_FAILED,
           `Failed to parse WebSocket response to JSON. ` +
-            `Expected data to be string, Buffer, ArrayBuffer, or Uint8Array, but was ${typeof event.data}.`
+            `Expected data to be a Blob, but was ${typeof event.data}.`
         );
-      }
-
-      try {
-        const parsedObject = JSON.parse(textData);
-        messageQueue.push(parsedObject);
-        if (resolvePromise) {
-          resolvePromise();
-          resolvePromise = null;
-        }
-      } catch (e) {
-        console.warn('Failed to parse WebSocket message to JSON:', textData, e);
       }
     };
 
@@ -155,15 +143,22 @@ export class NodeWebSocketHandler implements WebSocketHandler {
 
   close(code?: number, reason?: string): Promise<void> {
     return new Promise(resolve => {
+      if (!this.ws) {
+        return resolve();
+      }
+
+      this.ws.addEventListener('close', () => resolve(), { once: true });
+      // Calling 'close' during these states results in an error.
       if (
-        !this.ws ||
-        this.ws.readyState === this.ws.CLOSED ||
-        this.ws.readyState === this.ws.CLOSING
+        this.ws.readyState === WebSocket.CLOSED ||
+        this.ws.readyState === WebSocket.CONNECTING
       ) {
         return resolve();
       }
-      this.ws.addEventListener('close', () => resolve(), { once: true });
-      this.ws.close(code, reason);
+
+      if (this.ws.readyState !== WebSocket.CLOSING) {
+        this.ws.close(code, reason);
+      }
     });
   }
 }
