@@ -18,10 +18,15 @@
 import { ObjectSchema, TypedSchema } from '../requests/schema-builder';
 import { Content, Part } from './content';
 import {
+  LanguageModelCreateOptions,
+  LanguageModelPromptOptions
+} from './language-model';
+import {
   FunctionCallingMode,
   HarmBlockMethod,
   HarmBlockThreshold,
   HarmCategory,
+  InferenceMode,
   ResponseModality
 } from './enums';
 import { ObjectSchemaRequest, SchemaRequest } from './schema';
@@ -269,6 +274,37 @@ export interface ToolConfig {
 export interface FunctionCallingConfig {
   mode?: FunctionCallingMode;
   allowedFunctionNames?: string[];
+}
+
+/**
+ * <b>(EXPERIMENTAL)</b>
+ * Encapsulates configuration for on-device inference.
+ *
+ * @public
+ */
+export interface OnDeviceParams {
+  createOptions?: LanguageModelCreateOptions;
+  promptOptions?: LanguageModelPromptOptions;
+}
+
+/**
+ * <b>(EXPERIMENTAL)</b>
+ * Configures hybrid inference.
+ * @public
+ */
+export interface HybridParams {
+  /**
+   * Specifies on-device or in-cloud inference. Defaults to prefer on-device.
+   */
+  mode: InferenceMode;
+  /**
+   * Optional. Specifies advanced params for on-device inference.
+   */
+  onDeviceParams?: OnDeviceParams;
+  /**
+   * Optional. Specifies advanced params for in-cloud inference.
+   */
+  inCloudParams?: ModelParams;
 }
 
 /**
