@@ -1,0 +1,19 @@
+hereimport React, { useState } from 'react';
+import { useAppContext } from './AppContext';
+import AdminLogin from './components/AdminLogin';
+import AdminDashboard from './components/AdminDashboard';
+
+const AdminPage = () => {
+  const { isAdmin, user, loading } = useAppContext();
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  if (loading) return <p>Loading...</p>;
+
+  if (!user || !isAdmin || !loggedIn) {
+    return <AdminLogin onLoginSuccess={() => setLoggedIn(true)} />;
+  }
+
+  return <AdminDashboard />;
+};
+
+export default AdminPage;
