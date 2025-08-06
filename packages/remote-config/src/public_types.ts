@@ -89,6 +89,8 @@ export interface FetchResponse {
    */
   config?: FirebaseRemoteConfigObject;
 
+  templateVersionNumber?: number;
+
   // Note: we're not extracting experiment metadata until
   // ABT and Analytics have Web SDKs.
 }
@@ -256,5 +258,7 @@ export interface ConfigUpdate {
    * Parameter keys whose values have been updated from the currently activated values.
    * Includes keys that are added, deleted, or whose value, value source, or metadata has changed.
    */
-  readonly updatedKeys: string[];
+    getUpdatedKeys(): Set<string>;
+
+  
 }
