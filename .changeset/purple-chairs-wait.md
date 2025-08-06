@@ -2,4 +2,4 @@
 '@firebase/ai': minor
 ---
 
-Add hybrid inference to the Firebase AI SDK.
+Add hybrid inference options to the Firebase AI SDK.
