@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ObjectSchemaRequest interface
-Interface for JSON parameters in a schema of  "object" when not using the `Schema.object()` helper.
+Interface for JSON parameters in a schema of [SchemaType](./ai.md#schematype) "object" when not using the `Schema.object()` helper.
 
 <b>Signature:</b>
 
