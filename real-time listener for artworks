@@ -1,4 +1,4 @@
-hereuseEffect(() => {
+useEffect(() => {
   if (!db) return;
 
   const artworksRef = collection(db, "artworks");
