@@ -15,16 +15,21 @@
  * limitations under the License.
  */
 
-import { ConfigUpdate, ConfigUpdateObserver, FetchResponse, FirebaseRemoteConfigObject } from '../public_types';
+import { ConfigUpdate, ConfigUpdateObserver, FetchResponse, FirebaseRemoteConfigObject, FetchType } from '../public_types';
 import { ERROR_FACTORY, ErrorCode } from '../errors';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
-import { Storage } from '../storage/storage';
+import { RealtimeBackoffMetadata, Storage } from '../storage/storage';
 import { calculateBackoffMillis, FirebaseError } from '@firebase/util';
 import { StorageCache } from '../storage/storage_cache';
 import { FetchRequest, RemoteConfigAbortSignal } from './remote_config_fetch_client';
 import { RestClient } from './rest_client';
+import { RemoteConfig } from '../remote_config';
+import { activate } from '../api';
+
 
 const ORIGINAL_RETRIES = 8;
+const API_KEY_HEADER = 'X-Goog-Api-Key';
+const INSTALLATIONS_AUTH_TOKEN_HEADER = 'X-Goog-Firebase-Installations-Auth';
 
 export class RealtimeHandler {
   constructor(
@@ -118,13 +123,9 @@ export class RealtimeHandler {
   }
 
   private async makeRealtimeHttpConnection(delayMillis: number): Promise<void> {
-    // if (this.scheduledConnectionTimeoutId) {
-    //   clearTimeout(this.scheduledConnectionTimeoutId);
-    // }
     if (!this.canEstablishStreamConnection()) {
       return;
     }
-
     if (this.retriesRemaining > 0) {
       this.retriesRemaining--;
       this.scheduledConnectionTimeoutId = setTimeout(async () => {
@@ -141,9 +142,7 @@ export class RealtimeHandler {
   }
 
   private checkAndSetHttpConnectionFlagIfNotRunning(): boolean {
-    if (this.canEstablishStreamConnection()) {
-      this.streamController = new AbortController();
-      this.setIsHttpConnectionRunning(true);
+    if (this.canEstablishStreamConnection()) {      this.setIsHttpConnectionRunning(true);
       return true;
     }
     return false;
@@ -162,103 +161,59 @@ export class RealtimeHandler {
     this.retriesRemaining = ORIGINAL_RETRIES;
   }
 
+ 
+
   private async beginRealtimeHttpStream(): Promise<void> {
     if (!this.checkAndSetHttpConnectionFlagIfNotRunning()) {
       return;
     }
-
-    const [metadata, storedVersion] = await Promise.all([
-      this.storage.getRealtimeBackoffMetadata(),
-      this.storage.getLastKnownTemplateVersion()
-    ]);
-
-    // let metadata;
-    // if (metadataFromStorage) {
-    //   metadata = metadataFromStorage;
-    // } else {
-    //   metadata = {
-    //     backoffEndTimeMillis: new Date(0),
-    //     numFailedStreams: 0
-    //   };
-    //   await this.storage.setRealtimeBackoffMetadata(metadata);
-    // }
-
-    // if (storedVersion !== undefined) {
-    //   this.templateVersion = storedVersion;
-    // } else {
-    //   this.templateVersion = 0;
-    //   await this.storage.setLastKnownTemplateVersion(0);
-    // }
-
+    let metadata: RealtimeBackoffMetadata;
+    metadata = await this.storage.getRealtimeBackoffMetadata();
     const backoffEndTime = metadata.backoffEndTimeMillis.getTime();
     if (Date.now() < backoffEndTime) {
       await this.retryHttpConnectionWhenBackoffEnds();
       return;
     }
-    let response: Response | undefined;
-    try {
-      const [installationId, installationTokenResult] = await Promise.all([
-        this.firebaseInstallations.getId(),
-        this.firebaseInstallations.getToken(false)
-      ]);
-      const headers = {
-        'Content-Type': 'application/json',
-        'Content-Encoding': 'gzip',
-        'X-Google-GFE-Can-Retry': 'yes',
-        'X-Accept-Response-Streaming': 'true',
-        'If-None-Match': '*',
-        'authentication-token': installationTokenResult,
-        'Accept': 'application/json'
-      };
-      const url = this.getRealtimeUrl();
-      const requestBody = {
-        project: this.projectId,
-        namespace: this.namespace,
-        lastKnownVersionNumber: (await this.storage.getLastKnownTemplateVersion()).toString,
-        appId: this.appId,
-        sdkVersion: this.sdkVersion,
-        appInstanceId: installationId
-      };
 
-      response = await fetch(url, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(requestBody)
-      });
+    let response;
+    try {
+      const fetchRequest: FetchRequest = {
+        cacheMaxAgeMillis: 0,
+        signal: new RemoteConfigAbortSignal(),
+        //fetchType: 'REALTIME',
+        //fetchAttempt: currentAttempt
+      };
+      response = await this.createRealtimeConnection(fetchRequest);
       if (response?.status === 200 && response?.body) {
         this.resetRetryCount();
         await this.resetRealtimeBackoff();
         const configAutoFetch = this.startAutoFetch(response.body.getReader());
-        void configAutoFetch.listenForNotifications();
-      } else {
-        throw new FirebaseError('http-status-error', `HTTP Error: ${response.status}`);
+        await configAutoFetch.listenForNotifications();
       }
     } catch (error) {
       if (this.isInBackground) {
-        // It's possible the app was backgrounded while the connection was open, which
-        // threw an exception trying to read the response. No real error here, so treat
-        // this as a success, even if we haven't read a 200 response code yet.
         this.resetRetryCount();
       } else {
         console.error('Exception connecting to real-time RC backend. Retrying the connection...:', error);
       }
     } finally {
+      this.stopRealtime();
       this.isConnectionActive = false;
       const statusCode = response?.status;
+
       const connectionFailed = !this.isInBackground && (statusCode == null || this.isStatusCodeRetryable(statusCode));
 
       if (connectionFailed) {
         await this.updateBackoffMetadataWithLastFailedStreamConnectionTime(new Date());
       }
-      // If responseCode is null then no connection was made to server and the SDK should
-      // still
-      // retry.
+
+      // Decide whether to schedule a retry or propagate a final error.
       if (connectionFailed || statusCode === 200) {
         await this.retryHttpConnectionWhenBackoffEnds();
       } else {
-        let errorMessage = `Unable to connect to the server. Try again in a few minutes. HTTP status code: ${statusCode}`;
-        if (statusCode === 403 && response) {
-          errorMessage = await this.parseErrorResponseBody(response.body);
+        let errorMessage = `Unable to connect to the server. HTTP status code: ${statusCode}`;
+        if (statusCode === 403) {
+          errorMessage = await this.parseForbiddenErrorResponseMessage(response.body);
         }
         const firebaseError = ERROR_FACTORY.create(ErrorCode.CONFIG_UPDATE_STREAM_ERROR, {
           httpStatus: statusCode,
@@ -269,77 +224,150 @@ export class RealtimeHandler {
     }
   }
 
+  private async createRealtimeConnection(fetchRequest: FetchRequest): Promise<FetchResponse> {
+    try {
+      const [installationId, installationTokenResult] = await Promise.all([
+        this.firebaseInstallations.getId(),
+        this.firebaseInstallations.getToken(false)
+      ]);
+      const eTagValue = await this.storage.getActiveConfigEtag();
+      const headers = {
+        [API_KEY_HEADER]: this.apiKey,
+        [INSTALLATIONS_AUTH_TOKEN_HEADER]: installationTokenResult,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'If-None-Match': eTagValue || '*',
+        'Content-Encoding': 'gzip',
+      };
+
+      const url = this.getRealtimeUrl();
+      const requestBody = {
+        project: this.projectId,
+        namespace: this.namespace,
+        lastKnownVersionNumber: await this.storage.getLastKnownTemplateVersion,
+        appId: this.appId,
+        sdkVersion: this.sdkVersion,
+        appInstanceId: installationId
+      };
+
+      const fetchPromise = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(requestBody),
+      });
+
+      const timeoutPromise = new Promise((_resolve, reject) => {
+        // Maps async event listener to Promise API.
+        fetchRequest.signal.addEventListener(() => {
+          // Emulates https://heycam.github.io/webidl/#aborterror
+          const error = new Error('The operation was aborted.');
+          error.name = 'AbortError';
+          reject(error);
+        });
+      });
+
+      let response;
+      try {
+        await Promise.race([fetchPromise, timeoutPromise]);
+        response = await fetchPromise;
+      } catch (originalError) {
+        let errorCode = ErrorCode.FETCH_NETWORK;
+        if ((originalError as Error)?.name === 'AbortError') {
+          errorCode = ErrorCode.FETCH_TIMEOUT;
+        }
+        throw ERROR_FACTORY.create(errorCode, {
+          originalErrorMessage: (originalError as Error)?.message
+        });
+      }
+    let status = response.status;
+    // Normalizes nullable header to optional.
+    const responseEtag = response.headers.get('ETag') || undefined;
+
+    let state: string | undefined;
+    let config: FirebaseRemoteConfigObject = {};
+    state= response['state'];
+    config = response['entries'];
+
+        if (state === 'INSTANCE_STATE_UNSPECIFIED') {
+      status = 500;
+    } else if (state === 'NO_CHANGE') {
+      status = 304;
+    } else if (state === 'NO_TEMPLATE' || state === 'EMPTY_CONFIG') {
+      // These cases can be fixed remotely, so normalize to safe value.
+      config = {};
+    }
+
+      // If the final status isn't a success code, throw an error.
+      if (status !== 200 && status !== 304) {
+      throw new Error(`Server returned a non-successful status: ${status}`);
+    }
+
+      if (status !== 304 && status !== 200) {
+      throw ERROR_FACTORY.create(ErrorCode.FETCH_STATUS, {
+        httpStatus: status
+      });
+    }
+    return response;
+  } catch(error) {
+    // If anything fails during setup or fetch, re-throw a standardized error.
+    // This makes sure the Orchestrator's `catch` block will trigger.
+    console.error("Error during connection creation:", error);
+    throw new Error("Failed to create real-time connection.");
+  }
+}
+
+
   private propagateError = (e: FirebaseError) => this.observers.forEach(o => o.error?.(e));
 
-  private async updateBackoffMetadataWithLastFailedStreamConnectionTime(lastFailedStreamTime: Date): Promise<void> {
-    const numFailedStreams = ((await this.storage.getRealtimeBackoffMetadata())?.numFailedStreams || 0) + 1;
-    const backoffMillis = calculateBackoffMillis(numFailedStreams);
-    await this.storage.setRealtimeBackoffMetadata({
-      backoffEndTimeMillis: new Date(lastFailedStreamTime.getTime() + backoffMillis),
-      numFailedStreams
-    });
-  }
+  private async updateBackoffMetadataWithLastFailedStreamConnectionTime(lastFailedStreamTime: Date): Promise < void> {
+  const numFailedStreams = ((await this.storage.getRealtimeBackoffMetadata())?.numFailedStreams || 0) + 1;
+  const backoffMillis = calculateBackoffMillis(numFailedStreams);
+  await this.storage.setRealtimeBackoffMetadata({
+    backoffEndTimeMillis: new Date(lastFailedStreamTime.getTime() + backoffMillis),
+    numFailedStreams
+  });
+}
 
   private isStatusCodeRetryable = (sc?: number) => !sc || [408, 429, 502, 503, 504].includes(sc);
 
-  private async retryHttpConnectionWhenBackoffEnds(): Promise<void> {
-    const metadata = (await this.storage.getRealtimeBackoffMetadata()) || {
-      backoffEndTimeMillis: new Date(0),
-      numFailedStreams: 0
-    };
-    const backoffEndTime = new Date(metadata.backoffEndTimeMillis).getTime();
-    const currentTime = Date.now();
-    const retrySeconds = Math.max(0, backoffEndTime - currentTime);
-    await this.makeRealtimeHttpConnection(retrySeconds);
-  }
+  private async retryHttpConnectionWhenBackoffEnds(): Promise < void> {
+  const metadata = await this.storage.getRealtimeBackoffMetadata();
+  const backoffEndTime = new Date((await metadata).backoffEndTimeMillis).getTime();
+  const currentTime = Date.now();
+  const retryMillis = Math.max(0, backoffEndTime - currentTime);
+  this.makeRealtimeHttpConnection(retryMillis);
+}
 
-  private async resetRealtimeBackoff(): Promise<void> {
-    await this.storage.setRealtimeBackoffMetadata({
-      backoffEndTimeMillis: new Date(0),
-      numFailedStreams: 0
-    });
-  }
-
+  private async resetRealtimeBackoff(): Promise < void> {
+  await this.storage.setRealtimeBackoffMetadata({
+    backoffEndTimeMillis: new Date(-1),
+    numFailedStreams: 0
+  });
+}
 
   private getRealtimeUrl(): URL {
-    const urlBase =
-      window.FIREBASE_REMOTE_CONFIG_URL_BASE ||
-      'https://firebaseremoteconfigrealtime.googleapis.com';
+  const urlBase =
+    window.FIREBASE_REMOTE_CONFIG_URL_BASE ||
+    'https://firebaseremoteconfigrealtime.googleapis.com';
 
-    const urlString = `${urlBase}/v1/projects/${this.projectId}/namespaces/${this.namespace}:streamFetchInvalidations?key=${this.apiKey}`;
-    return new URL(urlString);
+  const urlString = `${urlBase}/v1/projects/${this.projectId}/namespaces/${this.namespace}:streamFetchInvalidations?key=${this.apiKey}`;
+  return new URL(urlString);
+}
+
+ 
+private async parseForbiddenErrorResponseMessage(
+  body: ReadableStream<Uint8Array> | null
+): Promise < string > {
+  if(!body) {
+    return "Unable to connect to the server, access is forbidden. HTTP status code: 403";
   }
-
-  private async parseErrorResponseBody(
-    body: ReadableStream<Uint8Array> | null
-  ): Promise<string> {
-    if (!body) {
-      return 'Response body is empty.';
-    }
-
-    try {
-      const reader = body.getReader();
-      const chunks: Uint8Array[] = [];
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
-          break;
-        }
-        chunks.push(value);
-      }
-      const blob = new Blob(chunks);
-      const text = await blob.text();
-
-      const jsonResponse = JSON.parse(text);
-      return (
-        jsonResponse.error?.message ||
-        jsonResponse.message ||
-        'Unknown error from server.'
-      );
-    } catch (e) {
-      return 'Could not parse error response body, or body is not JSON.';
-    }
+  try {
+    const text = await new Response(body).text();
+    return text || "Unable to connect to the server, access is forbidden. HTTP status code: 403";
+  } catch(e) {
+    return "Unable to connect to the server, access is forbidden. HTTP status code: 403";
   }
+}
 }
 
 const MAXIMUM_FETCH_ATTEMPTS = 3;
@@ -373,50 +401,15 @@ class ConfigAutoFetch {
         if (partialUpdateConfigMessage.includes('}')) {
           const data = JSON.parse(currentConfigUpdateMessage);
           if (isNaN(data.latestTemplateVersionNumber)) return;
-          let oldtemplateVersion = await this.storage.getLastKnownTemplateVersion();
+          const oldtemplateVersion = (await this.storage.getLastKnownTemplateVersion()) ?? 0;
           let templateVersion = Number(data.latestTemplateVersionNumber);
           if (templateVersion > oldtemplateVersion) {
+            await this.storage.setLastKnownTemplateVersion(templateVersion);
             console.log('Received new template version:', templateVersion);
             this.autoFetch(MAXIMUM_FETCH_ATTEMPTS, templateVersion);
           }
         }
       }
-
-      // console.log(partialUpdateConfigMessage);
-      // let lastIndex;
-      // while ((lastIndex = this.buffer.indexOf('\n')) !== -1) {
-      //   const message = this.buffer.substring(0, lastIndex).trim();
-      //   this.buffer = this.buffer.substring(lastIndex + 1);
-      //   if (!message) continue;
-      //   try {
-      //     console.log('message:', message);
-      //     const data = JSON.parse(message);
-      //     console.log(data);
-      //     if (data.featureDisabled === true) {
-      //       const error = ERROR_FACTORY.create(
-      //         ErrorCode.CONFIG_UPDATE_UNAVAILABLE,
-      //         { originalErrorMessage: 'The server is temporarily unavailable. Realtime updates disabled.' }
-      //       );
-      //       this.retrycallback.error?.(error);
-      //       return;
-      //     }
-      //     if (this.observers.size === 0) return;
-      //     if (typeof data.latestTemplateVersionNumber === 'number' && data.latestTemplateVersionNumber > this.templateVersionRef) {
-      //       console.log('Received new template version:', data.latestTemplateVersionNumber);
-      //       const targetTemplateVersion = data.latestTemplateVersionNumber;
-      //       this.autoFetch(MAXIMUM_FETCH_ATTEMPTS, targetTemplateVersion);
-      //     }
-      //   } catch (e: unknown) {
-      //     const errorMessage = e instanceof Error ? e.message : String(e);
-      //     const error = ERROR_FACTORY.create(
-      //       ErrorCode.CONFIG_UPDATE_MESSAGE_INVALID,
-      //       { originalErrorMessage: `Unable to parse config update message: ${errorMessage}` }
-      //     );
-      //     this.retrycallback.error?.(error);
-      //   }
-      // }
-
-
     } catch (e: unknown) {
       const errorAsError = e instanceof Error ? e : new Error(String(e));
       if (errorAsError.name !== 'AbortError') {
@@ -446,16 +439,22 @@ class ConfigAutoFetch {
 
   private async fetchLatestConfig(remainingAttempts: number, targetVersion: number): Promise<void> {
     const remainingAttemptsAfterFetch = remainingAttempts - 1;
+    const currentAttempt = MAXIMUM_FETCH_ATTEMPTS - remainingAttemptsAfterFetch;
+    // type fetchtype=FetchType.REALTIME
     try {
       const fetchRequest: FetchRequest = {
         cacheMaxAgeMillis: 0,
         signal: new RemoteConfigAbortSignal(),
+        //fetchType: 'REALTIME',
+        //fetchAttempt: currentAttempt
       };
+
       const fetchResponse: FetchResponse = await this.restclient.fetch(fetchRequest);
       console.log(fetchResponse.templateVersionNumber);
       const activatedConfigs = (await this.storage.getActiveConfig());
       console.log("activatedConfigs:", activatedConfigs);
       console.log(fetchResponse.config);
+
 
       if (!this.fetchResponseIsUpToDate(fetchResponse, targetVersion)) {
         console.log("Fetched template version is the same as SDK's current version." + " Retrying fetch.");
@@ -481,8 +480,8 @@ class ConfigAutoFetch {
 
       const configUpdate: ConfigUpdate = {
         // Implement the getUpdatedKeys method
-        getUpdatedKeys(): Set<string> {
-          return new Set(updatedKeys);
+          getUpdatedKeys(): Set<string> {
+           return new Set(updatedKeys);
         }
       };
 
@@ -502,11 +501,9 @@ class ConfigAutoFetch {
   }
 
   private fetchResponseIsUpToDate(fetchResponse: FetchResponse, lastKnownVersion: number): boolean {
-    // If there's a config, make sure its version is >= the last known version.
     if (fetchResponse.config != null) {
       return fetchResponse.templateVersionNumber >= lastKnownVersion;
     }
-    // If there isn't a config, treat as not up to date
     return false;
   }
 }
@@ -521,11 +518,9 @@ function getChangedParams(
 ): Set<string> {
   const changed = new Set<string>();
 
-  // Assume configs are plain objects with key-value pairs
   const newKeys = new Set(Object.keys(newConfig || {}));
   const oldKeys = new Set(Object.keys(oldConfig || {}));
 
-  // Keys present in newConfig but not in oldConfig, or with different values
   for (const key of newKeys) {
     if (!oldKeys.has(key)) {
       changed.add(key);
@@ -537,7 +532,6 @@ function getChangedParams(
     }
   }
 
-  // Keys present in oldConfig but not in newConfig
   for (const key of oldKeys) {
     if (!newKeys.has(key)) {
       changed.add(key);

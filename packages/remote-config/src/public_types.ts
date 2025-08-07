@@ -213,12 +213,6 @@ export interface CustomSignals {
   [key: string]: string | number | null;
 }
 
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'remote-config': RemoteConfig;
-  }
-}
-
 /**
  * Observer interface for receiving real-time Remote Config update notifications.
  *
@@ -259,6 +253,22 @@ export interface ConfigUpdate {
    * Includes keys that are added, deleted, or whose value, value source, or metadata has changed.
    */
     getUpdatedKeys(): Set<string>;
+}
 
-  
+/**
+ * Indicates the type of fetch request.
+ *
+ * <ul>
+ *   <li>"BASE" indicates a standard fetch request.</li>
+ *   <li>"REALTIME" indicates a fetch request triggered by a real-time update.</li>
+ * </ul>
+ *
+ * @public
+ */
+export type FetchType = 'BASE' | 'REALTIME';
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'remote-config': RemoteConfig;
+  }
 }

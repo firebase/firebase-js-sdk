@@ -165,7 +165,8 @@ export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
     await rc._client.fetch({
       cacheMaxAgeMillis: rc.settings.minimumFetchIntervalMillis,
       signal: abortSignal,
-      customSignals
+      customSignals,
+      //fetchType: 'BASE',
     });
 
     await rc._storageCache.setLastFetchStatus('success');

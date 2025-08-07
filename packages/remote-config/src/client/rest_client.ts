@@ -81,13 +81,13 @@ export class RestClient implements RemoteConfigFetchClient {
       'https://firebaseremoteconfig.googleapis.com';
 
     const url = `${urlBase}/v1/projects/${this.projectId}/namespaces/${this.namespace}:fetch?key=${this.apiKey}`;
-
     const headers = {
       'Content-Type': 'application/json',
       'Content-Encoding': 'gzip',
       // Deviates from pure decorator by not passing max-age header since we don't currently have
       // service behavior using that header.
       'If-None-Match': request.eTag || '*'
+      //'X_FIREBASE_RC_FETCH_TYPE': 'BASE/1'
     };
 
     const requestBody: FetchRequestBody = {
@@ -177,7 +177,6 @@ export class RestClient implements RemoteConfigFetchClient {
         httpStatus: status
       });
     }
-
     return { status, eTag: responseEtag, config, templateVersionNumber };
   }
 }
