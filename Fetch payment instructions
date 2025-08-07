@@ -1,0 +1,16 @@
+const fetchAdminPaymentInfo = async () => {
+  try {
+    const paymentDocRef = doc(db, `artifacts/${appId}/users/${userId}/paymentOptions`, 'adminPaymentDetails');
+    const snapshot = await getDoc(paymentDocRef);
+    if (snapshot.exists()) {
+      const data = snapshot.data();
+      alert(`Send payment to:\nMobile Money: ${data.mobileMoney}\nBank: ${data.bankAccount}`);
+    } else {
+      alert("Payment instructions not available.");
+    }
+  } catch (e) {
+    console.error("Error fetching payment info:", e);
+    alert("Error retrieving payment info.");
+  }
+};
+￼Enter
