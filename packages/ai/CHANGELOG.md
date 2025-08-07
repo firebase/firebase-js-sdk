@@ -1,5 +1,11 @@
 # @firebase/ai
 
+## 2.1.0
+
+### Minor Changes
+
+- [`e25317f`](https://github.com/firebase/firebase-js-sdk/commit/e25317f9f3c58305bc093e4f2e676690feb16db0) [#9029](https://github.com/firebase/firebase-js-sdk/pull/9029) - Add hybrid inference options to the Firebase AI SDK.
+
 ## 2.0.0
 
 ### Major Changes
