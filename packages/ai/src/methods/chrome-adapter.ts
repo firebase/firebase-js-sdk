@@ -129,6 +129,7 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   /**
    * Generates content on device.
    *
+   * @remarks
    * This is comparable to {@link GenerativeModel.generateContent} for generating content in
    * Cloud.
    * @param request - a standard Firebase AI {@link GenerateContentRequest}
@@ -149,6 +150,7 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   /**
    * Generates content stream on device.
    *
+   * @remarks
    * This is comparable to {@link GenerativeModel.generateContentStream} for generating content in
    * Cloud.
    * @param request - a standard Firebase AI {@link GenerateContentRequest}
