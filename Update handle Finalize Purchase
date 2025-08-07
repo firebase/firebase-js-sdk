@@ -1,0 +1,23 @@
+const handleFinalizePurchase = async () => {
+  if (!user || !purchaseModal.artwork) return;
+
+  try {
+    const purchaseRef = collection(db, `artifacts/${appId}/orders`);
+    await addDoc(purchaseRef, {
+      artworkId: purchaseModal.artwork.id,
+      title: purchaseModal.artwork.title,
+      price: purchaseModal.artwork.price,
+      currency: 'GHS',
+      buyerId: user.uid,
+      buyerEmail: user.email,
+      purchasedAt: new Date().toISOString(),
+    });
+
+    setMessage(`Thank you for purchasing "${purchaseModal.artwork.title}"!`);
+    setPurchaseModal({ isOpen: false, artwork: null });
+  } catch (error) {
+    console.error("Error saving purchase: ", error);
+    setMessage("Something went wrong while processing your purchase.");
+  }
+};
+￼Enter
