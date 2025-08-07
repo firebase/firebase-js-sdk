@@ -24,15 +24,15 @@ export interface ChromeAdapter
 
 |  Method | Description |
 |  --- | --- |
-|  [generateContent(request)](./ai.chromeadapter.md#chromeadaptergeneratecontent) | Generates content using on-device inference.<p>This is comparable to [GenerativeModel.generateContent()](./ai.generativemodel.md#generativemodelgeneratecontent) for generating content using in-cloud inference.</p> |
-|  [generateContentStream(request)](./ai.chromeadapter.md#chromeadaptergeneratecontentstream) | Generates a content stream using on-device inference.<p>This is comparable to [GenerativeModel.generateContentStream()](./ai.generativemodel.md#generativemodelgeneratecontentstream) for generating a content stream using in-cloud inference.</p> |
+|  [generateContent(request)](./ai.chromeadapter.md#chromeadaptergeneratecontent) | Generates content using on-device inference.<!-- -->This is comparable to [GenerativeModel.generateContent()](./ai.generativemodel.md#generativemodelgeneratecontent) for generating content using in-cloud inference. |
+|  [generateContentStream(request)](./ai.chromeadapter.md#chromeadaptergeneratecontentstream) | Generates a content stream using on-device inference.<!-- -->This is comparable to [GenerativeModel.generateContentStream()](./ai.generativemodel.md#generativemodelgeneratecontentstream) for generating a content stream using in-cloud inference. |
 |  [isAvailable(request)](./ai.chromeadapter.md#chromeadapterisavailable) | Checks if the on-device model is capable of handling a given request. |
 
 ## ChromeAdapter.generateContent()
 
 Generates content using on-device inference.
 
-<p>This is comparable to [GenerativeModel.generateContent()](./ai.generativemodel.md#generativemodelgeneratecontent) for generating content using in-cloud inference.</p>
+This is comparable to [GenerativeModel.generateContent()](./ai.generativemodel.md#generativemodelgeneratecontent) for generating content using in-cloud inference.
 
 <b>Signature:</b>
 
@@ -54,7 +54,7 @@ Promise&lt;Response&gt;
 
 Generates a content stream using on-device inference.
 
-<p>This is comparable to [GenerativeModel.generateContentStream()](./ai.generativemodel.md#generativemodelgeneratecontentstream) for generating a content stream using in-cloud inference.</p>
+This is comparable to [GenerativeModel.generateContentStream()](./ai.generativemodel.md#generativemodelgeneratecontentstream) for generating a content stream using in-cloud inference.
 
 <b>Signature:</b>
 
