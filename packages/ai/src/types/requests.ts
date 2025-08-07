@@ -165,7 +165,10 @@ export interface RequestOptions {
    */
   timeout?: number;
   /**
-   * Base url for endpoint. Defaults to https://firebasevertexai.googleapis.com
+   * Base url for endpoint. Defaults to
+   * https://firebasevertexai.googleapis.com, which is the
+   * {@link https://console.cloud.google.com/apis/library/firebasevertexai.googleapis.com?project=_ | Firebase AI Logic API}
+   * (used regardless of your chosen Gemini API provider).
    */
   baseUrl?: string;
 }

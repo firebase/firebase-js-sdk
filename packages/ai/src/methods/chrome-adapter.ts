@@ -66,7 +66,7 @@ export class ChromeAdapterImpl implements ChromeAdapter {
    *   API existence
    *   prompt formatting
    *   model availability, including triggering download if necessary
-   * 
+   *
    *
    * Pros: callers needn't be concerned with details of on-device availability.</p>
    * Cons: this method spans a few concerns and splits request validation from usage.
