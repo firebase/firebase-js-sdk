@@ -92,27 +92,56 @@ export class NodeWebSocketHandler implements WebSocketHandler {
     }
 
     const messageQueue: unknown[] = [];
+    const errorQueue: Error[] = [];
     let resolvePromise: (() => void) | null = null;
     let isClosed = false;
 
     const messageListener = async (event: MessageEvent): Promise<void> => {
+      let data: string;
       if (event.data instanceof Blob) {
-        try {
-          const obj = JSON.parse(await event.data.text()) as unknown;
-          messageQueue.push(obj);
-          if (resolvePromise) {
-            resolvePromise();
-            resolvePromise = null;
-          }
-        } catch (e) {
-          console.warn('Failed to parse WebSocket message to JSON:', e);
-        }
+        data = await event.data.text();
+      } else if (typeof event.data === 'string') {
+        data = event.data;
       } else {
-        throw new AIError(
-          AIErrorCode.PARSE_FAILED,
-          `Failed to parse WebSocket response to JSON. ` +
-            `Expected data to be a Blob, but was ${typeof event.data}.`
+        errorQueue.push(
+          new AIError(
+            AIErrorCode.PARSE_FAILED,
+            `Failed to parse WebSocket response. Expected data to be a Blob or string, but was ${typeof event.data}.`
+          )
         );
+        if (resolvePromise) {
+          resolvePromise();
+          resolvePromise = null;
+        }
+        return;
+      }
+
+      try {
+        const obj = JSON.parse(data) as unknown;
+        messageQueue.push(obj);
+      } catch (e) {
+        const err = e as Error;
+        errorQueue.push(
+          new AIError(
+            AIErrorCode.PARSE_FAILED,
+            `Error parsing WebSocket message to JSON: ${err.message}`
+          )
+        );
+      }
+
+      if (resolvePromise) {
+        resolvePromise();
+        resolvePromise = null;
+      }
+    };
+
+    const errorListener = (): void => {
+      errorQueue.push(
+        new AIError(AIErrorCode.FETCH_ERROR, 'WebSocket connection error.')
+      );
+      if (resolvePromise) {
+        resolvePromise();
+        resolvePromise = null;
       }
     };
 
@@ -122,15 +151,21 @@ export class NodeWebSocketHandler implements WebSocketHandler {
         resolvePromise();
         resolvePromise = null;
       }
-      // Clean up listeners to prevent memory leaks
+      // Clean up listeners to prevent memory leaks.
       this.ws?.removeEventListener('message', messageListener);
       this.ws?.removeEventListener('close', closeListener);
+      this.ws?.removeEventListener('error', errorListener);
     };
 
     this.ws.addEventListener('message', messageListener);
     this.ws.addEventListener('close', closeListener);
+    this.ws.addEventListener('error', errorListener);
 
     while (!isClosed) {
+      if (errorQueue.length > 0) {
+        const error = errorQueue.shift()!;
+        throw error;
+      }
       if (messageQueue.length > 0) {
         yield messageQueue.shift()!;
       } else {
@@ -138,6 +173,12 @@ export class NodeWebSocketHandler implements WebSocketHandler {
           resolvePromise = resolve;
         });
       }
+    }
+
+    // If the loop terminated because isClosed is true, check for any final errors
+    if (errorQueue.length > 0) {
+      const error = errorQueue.shift()!;
+      throw error;
     }
   }
 
@@ -148,7 +189,7 @@ export class NodeWebSocketHandler implements WebSocketHandler {
       }
 
       this.ws.addEventListener('close', () => resolve(), { once: true });
-      // Calling 'close' during these states results in an error.
+      // Calling 'close' during these states results in an error
       if (
         this.ws.readyState === WebSocket.CLOSED ||
         this.ws.readyState === WebSocket.CONNECTING
