@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import alias from '@rollup/plugin-alias';
 import json from '@rollup/plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
@@ -23,6 +24,7 @@ import pkg from './package.json';
 import tsconfig from './tsconfig.json';
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
+import { generateAliasConfig } from '../../scripts/build/rollup_generate_alias_config';
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
@@ -55,14 +57,16 @@ const browserBuilds = [
       sourcemap: true
     },
     plugins: [
+      alias(generateAliasConfig('browser')),
       ...buildPlugins,
       replace({
         ...generateBuildTargetReplaceConfig('esm', 2020),
-        __PACKAGE_VERSION__: pkg.version
+        '__PACKAGE_VERSION__': pkg.version
       }),
       emitModulePackageFile()
     ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id =>
+      id === 'ws' || deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
     input: 'src/index.ts',
@@ -72,13 +76,15 @@ const browserBuilds = [
       sourcemap: true
     },
     plugins: [
+      alias(generateAliasConfig('browser')),
       ...buildPlugins,
       replace({
         ...generateBuildTargetReplaceConfig('cjs', 2020),
-        __PACKAGE_VERSION__: pkg.version
+        '__PACKAGE_VERSION__': pkg.version
       })
     ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id =>
+      id === 'ws' || deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
 
@@ -91,12 +97,14 @@ const nodeBuilds = [
       sourcemap: true
     },
     plugins: [
+      alias(generateAliasConfig('node')),
       ...buildPlugins,
       replace({
         ...generateBuildTargetReplaceConfig('esm', 2020)
       })
     ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id =>
+      id === 'ws' || deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
     input: 'src/index.node.ts',
@@ -106,12 +114,14 @@ const nodeBuilds = [
       sourcemap: true
     },
     plugins: [
+      alias(generateAliasConfig('node')),
       ...buildPlugins,
       replace({
         ...generateBuildTargetReplaceConfig('cjs', 2020)
       })
     ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id =>
+      id === 'ws' || deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
 

@@ -86,6 +86,7 @@
     "@types/sinon-chai": "3.2.12",
     "@types/tmp": "0.2.6",
     "@types/trusted-types": "2.0.7",
+    "@types/ws": "8.18.1",
     "@types/yargs": "17.0.33",
     "@typescript-eslint/eslint-plugin": "7.18.0",
     "@typescript-eslint/eslint-plugin-tslint": "7.0.2",
@@ -158,6 +159,7 @@
     "typescript": "5.5.4",
     "watch": "1.0.2",
     "webpack": "5.98.0",
+    "ws": "8.18.3",
     "yargs": "17.7.2"
   }
 }
