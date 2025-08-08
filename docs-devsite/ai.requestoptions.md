@@ -22,12 +22,12 @@ export interface RequestOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [baseUrl](./ai.requestoptions.md#requestoptionsbaseurl) | string | Base url for endpoint. Defaults to https://firebasevertexai.googleapis.com |
+|  [baseUrl](./ai.requestoptions.md#requestoptionsbaseurl) | string | Base url for endpoint. Defaults to https://firebasevertexai.googleapis.com, which is the [Firebase AI Logic API](https://console.cloud.google.com/apis/library/firebasevertexai.googleapis.com?project=_) (used regardless of your chosen Gemini API provider). |
 |  [timeout](./ai.requestoptions.md#requestoptionstimeout) | number | Request timeout in milliseconds. Defaults to 180 seconds (180000ms). |
 
 ## RequestOptions.baseUrl
 
-Base url for endpoint. Defaults to https://firebasevertexai.googleapis.com
+Base url for endpoint. Defaults to https://firebasevertexai.googleapis.com, which is the [Firebase AI Logic API](https://console.cloud.google.com/apis/library/firebasevertexai.googleapis.com?project=_) (used regardless of your chosen Gemini API provider).
 
 <b>Signature:</b>
 
