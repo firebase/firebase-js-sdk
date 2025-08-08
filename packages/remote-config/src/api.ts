@@ -258,7 +258,7 @@ export function getValue(remoteConfig: RemoteConfig, key: string): Value {
   if (!rc._isInitializationComplete) {
     rc._logger.debug(
       `A value was requested for key "${key}" before SDK initialization completed.` +
-      ' Await on ensureInitialized if the intent was to get a previously activated value.'
+       ' Await on ensureInitialized if the intent was to get a previously activated value.'
     );
   }
   const activeConfig = rc._storageCache.getActiveConfig();
@@ -269,7 +269,7 @@ export function getValue(remoteConfig: RemoteConfig, key: string): Value {
   }
   rc._logger.debug(
     `Returning static value for key "${key}".` +
-    ' Define a default or remote value if this is unintentional.'
+     ' Define a default or remote value if this is unintentional.'
   );
   return new ValueImpl('static');
 }
@@ -354,8 +354,14 @@ export async function setCustomSignals(
   }
 }
 
+// TODO: Add public document for the Remote Config Realtime API guide on the Web Platform.
 /**
- * Registers a real-time listener for Remote Config updates.
+ * Starts listening for real-time config updates from the Remote Config backend and automatically
+ * fetches updates from the RC backend when they are available.
+ *
+ * <p>If a connection to the Remote Config backend is not already open, calling this method will
+ * open it. Multiple listeners can be added by calling this method again, but subsequent calls
+ * re-use the same connection to the backend.
  *
  * @param remoteConfig - The {@link RemoteConfig} instance.
  * @param observer - The {@link ConfigUpdateObserver} to be notified of config updates.

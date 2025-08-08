@@ -213,7 +213,23 @@ export interface CustomSignals {
 }
 
 /**
+ * Contains information about which keys have been updated.
+ *
+ * @public
+ */
+export interface ConfigUpdate {
+  /**
+   * Parameter keys whose values have been updated from the currently activated values.
+   * Includes keys that are added, deleted, or whose value, value source, or metadata has changed.
+   */
+  getUpdatedKeys(): Set<string>;
+}
+
+/**
  * Observer interface for receiving real-time Remote Config update notifications.
+ *
+ * NOTE: Although an `complete` callback can be provided, it will
+ * never be called because the ConfigUpdate stream is never-ending.
  *
  * @public
  */
@@ -240,19 +256,6 @@ export interface ConfigUpdateObserver {
  * @public
  */
 export type Unsubscribe = () => void;
-
-/**
- * Contains information about which keys have been updated.
- *
- * @public
- */
-export interface ConfigUpdate {
-  /**
-   * Parameter keys whose values have been updated from the currently activated values.
-   * Includes keys that are added, deleted, or whose value, value source, or metadata has changed.
-   */
-  getUpdatedKeys(): Set<string>;
-}
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

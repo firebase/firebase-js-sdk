@@ -188,16 +188,16 @@ export abstract class Storage {
   abstract set<T>(key: ProjectNamespaceKeyFieldValue, value: T): Promise<void>;
   abstract delete(key: ProjectNamespaceKeyFieldValue): Promise<void>;
 
-  setRealtimeBackoffMetadata(realtime_metadata: RealtimeBackoffMetadata): Promise<void> {
-    return this.set<RealtimeBackoffMetadata>('realtime_backoff_metadata', realtime_metadata);
-  }
-
   getRealtimeBackoffMetadata(): Promise<RealtimeBackoffMetadata | undefined> {
     return this.get<RealtimeBackoffMetadata>('realtime_backoff_metadata');
   }
 
   getLastKnownTemplateVersion(): Promise<number | undefined> {
     return this.get<number>('last_known_template_version');
+  }
+
+  setRealtimeBackoffMetadata(realtime_metadata: RealtimeBackoffMetadata): Promise<void> {
+    return this.set<RealtimeBackoffMetadata>('realtime_backoff_metadata', realtime_metadata);
   }
 
 }
