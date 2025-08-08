@@ -69,6 +69,7 @@ export interface EnhancedGenerateContentResponse
    */
   inlineDataParts: () => InlineDataPart[] | undefined;
   functionCalls: () => FunctionCall[] | undefined;
+  thoughtSummary: () => string | undefined;
 }
 
 /**
