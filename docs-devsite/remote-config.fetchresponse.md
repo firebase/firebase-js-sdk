@@ -17,7 +17,7 @@ Defines a successful response (200 or 304).
 <b>Signature:</b>
 
 ```typescript
-export interface FetchResponse 
+export interface FetchResponse
 ```
 
 ## Properties
@@ -27,6 +27,7 @@ export interface FetchResponse
 |  [config](./remote-config.fetchresponse.md#fetchresponseconfig) | [FirebaseRemoteConfigObject](./remote-config.firebaseremoteconfigobject.md#firebaseremoteconfigobject_interface) | Defines the map of parameters returned as "entries" in the fetch response body.<p>Only defined for 200 responses. |
 |  [eTag](./remote-config.fetchresponse.md#fetchresponseetag) | string | Defines the ETag response header value.<p>Only defined for 200 and 304 responses. |
 |  [status](./remote-config.fetchresponse.md#fetchresponsestatus) | number | The HTTP status, which is useful for differentiating success responses with data from those without.<p>The Remote Config client is modeled after the native <code>Fetch</code> interface, so HTTP status is first-class.<p>Disambiguation: the fetch response returns a legacy "state" value that is redundant with the HTTP status code. The former is normalized into the latter. |
+|  [version](./remote-config.fetchresponse.md#version) | string | Remote config version. |
 
 ## FetchResponse.config
 
@@ -64,4 +65,14 @@ The HTTP status, which is useful for differentiating success responses with data
 
 ```typescript
 status: number;
+```
+
+## FetchResponse.version
+
+Remote config version.
+
+<b>Signature:</b>
+
+```typescript
+version?: string;
 ```
