@@ -21,6 +21,7 @@ import { calculateBackoffMillis, FirebaseError } from "@firebase/util";
 import { ERROR_FACTORY, ErrorCode } from "../errors";
 import { Storage } from "../storage/storage";
 import { isBefore } from 'date-fns';
+import { VisibilityMonitor } from './visibility_monitor';
 
 const API_KEY_HEADER = 'X-Goog-Api-Key';
 const INSTALLATIONS_AUTH_TOKEN_HEADER = 'X-Goog-Firebase-Installations-Auth';
@@ -40,6 +41,7 @@ export class RealtimeHandler {
   ) { 
     this.httpRetriesRemaining = ORIGINAL_RETRIES;
     this.setRetriesRemaining();
+    VisibilityMonitor.getInstance().on('visible', this.onVisibilityChange, this);
   }
 
   private observers: Set<ConfigUpdateObserver> = new Set<ConfigUpdateObserver>();
@@ -48,6 +50,7 @@ export class RealtimeHandler {
   private controller?: AbortController;
   private reader: ReadableStreamDefaultReader | undefined;
   private httpRetriesRemaining: number = ORIGINAL_RETRIES;
+  private isInBackground: boolean = false;
 
   private async setRetriesRemaining() {
   // Retrieve number of remaining retries from last session. The minimum retry count being one.
@@ -101,9 +104,9 @@ export class RealtimeHandler {
    * and canceling the stream reader if they exist.
    */
   private closeRealtimeHttpConnection(): void {
-    if (this.controller) {
-      this.controller.abort();
-      this.controller = undefined;
+    if (this.controller && !this.isInBackground) {
+       this.controller.abort();
+       this.controller = undefined;
     }
 
     if (this.reader) {
@@ -244,15 +247,22 @@ export class RealtimeHandler {
       //await configAutoFetch.listenForNotifications();
      }
     } catch (error) {
+      if (this.isInBackground) {
+        // It's possible the app was backgrounded while the connection was open, which
+        // threw an exception trying to read the response. No real error here, so treat
+        // this as a success, even if we haven't read a 200 response code yet.
+        this.resetRetryCount();
+      } else {
       //there might have been a transient error so the client will retry the connection.
       console.error('Exception connecting to real-time RC backend. Retrying the connection...:', error);
+      }
     } finally {
       // Close HTTP connection and associated streams.
       this.closeRealtimeHttpConnection();
       this.setIsHttpConnectionRunning(false);
       
       // Update backoff metadata if the connection failed in the foreground.
-      const connectionFailed = responseCode == null || this.isStatusCodeRetryable(responseCode);
+      const connectionFailed = !this.isInBackground && (responseCode == null || this.isStatusCodeRetryable(responseCode));
 
       if (connectionFailed) {
         await this.updateBackoffMetadataWithLastFailedStreamConnectionTime(new Date());
@@ -279,9 +289,10 @@ export class RealtimeHandler {
     const hasActiveListeners = this.observers.size > 0;
     const isNotDisabled = !this.isRealtimeDisabled;
     const isNoConnectionActive = !this.isConnectionActive;
-    return hasActiveListeners && isNotDisabled && isNoConnectionActive;
+    const inForeground = !this.isInBackground;
+    return hasActiveListeners && isNotDisabled && isNoConnectionActive && inForeground;
   }
-
+  
   private async makeRealtimeHttpConnection(delayMillis: number): Promise<void> {
     if (!this.canEstablishStreamConnection()) {
       return;
@@ -291,6 +302,9 @@ export class RealtimeHandler {
       setTimeout(async () => {
         await this.beginRealtimeHttpStream();
       }, delayMillis);
+    } else if (!this.isInBackground) {
+      const error = ERROR_FACTORY.create(ErrorCode.CONFIG_UPDATE_STREAM_ERROR, { originalErrorMessage: 'Unable to connect to the server. Check your connection and try again.' });
+      this.propagateError(error);
     }
   }
 
@@ -307,5 +321,25 @@ export class RealtimeHandler {
   async addObserver(observer: ConfigUpdateObserver): Promise<void> {
     this.observers.add(observer);
     await this.beginRealtime();
+  }
+
+  private abortRealtimeConnection(): void {
+    if (this.controller) {
+       this.controller.abort();
+       this.controller = undefined;
+       this.isConnectionActive = false;
+    }
+  }
+
+  private onVisibilityChange(visible: unknown) {
+    const wasInBackground = this.isInBackground;
+    this.isInBackground = !visible;
+    if (wasInBackground !== this.isInBackground) {
+      if (this.isInBackground) {
+        this.abortRealtimeConnection();
+      } else {
+        this.beginRealtime();
+      }
+    }
   }
 }
