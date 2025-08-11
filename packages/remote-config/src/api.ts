@@ -258,7 +258,7 @@ export function getValue(remoteConfig: RemoteConfig, key: string): Value {
   if (!rc._isInitializationComplete) {
     rc._logger.debug(
       `A value was requested for key "${key}" before SDK initialization completed.` +
-       ' Await on ensureInitialized if the intent was to get a previously activated value.'
+        ' Await on ensureInitialized if the intent was to get a previously activated value.'
     );
   }
   const activeConfig = rc._storageCache.getActiveConfig();
@@ -269,7 +269,7 @@ export function getValue(remoteConfig: RemoteConfig, key: string): Value {
   }
   rc._logger.debug(
     `Returning static value for key "${key}".` +
-     ' Define a default or remote value if this is unintentional.'
+      ' Define a default or remote value if this is unintentional.'
   );
   return new ValueImpl('static');
 }
@@ -369,12 +369,12 @@ export async function setCustomSignals(
  *
  * @public
  */
-export function onConfigUpdate(
+export async function onConfigUpdate(
   remoteConfig: RemoteConfig,
   observer: ConfigUpdateObserver
-): Unsubscribe {
+): Promise<Unsubscribe> {
   const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;
-  rc._realtimeHandler.addObserver(observer);
+  await rc._realtimeHandler.addObserver(observer);
   return () => {
     rc._realtimeHandler.removeObserver(observer);
   };
