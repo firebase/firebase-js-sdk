@@ -57,6 +57,14 @@ describe('Top level API', () => {
       expect(ai.backend).to.be.instanceOf(VertexAIBackend);
       expect(ai.options?.appCheck?.limitedUseTokens).to.be.true;
     });
+    it('works with options: appCheck option is empty', () => {
+      const ai = getAI(getFullApp(), {
+        backend: new VertexAIBackend('us-central1'),
+        appCheck: {}
+      });
+      expect(ai.backend).to.be.instanceOf(VertexAIBackend);
+      expect(ai.options?.appCheck?.limitedUseTokens).to.be.false;
+    });
     it('works with options: backend specified only', () => {
       const ai = getAI(getFullApp(), {
         backend: new VertexAIBackend('us-central1')

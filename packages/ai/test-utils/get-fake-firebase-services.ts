@@ -38,13 +38,7 @@ export function getFullApp(fakeAppParams?: {
   appId?: string;
   apiKey?: string;
 }): FirebaseApp {
-  _registerComponent(
-    new Component(
-      AI_TYPE,
-      factory,
-      ComponentType.PUBLIC
-    )
-  );
+  _registerComponent(new Component(AI_TYPE, factory, ComponentType.PUBLIC));
   _registerComponent(
     new Component(
       'app-check-internal',

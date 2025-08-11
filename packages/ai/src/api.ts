@@ -79,9 +79,17 @@ export function getAI(app: FirebaseApp = getApp(), options?: AIOptions): AI {
 
   const backend = options?.backend ?? new GoogleAIBackend();
 
-  const finalOptions = {
-    appCheck: options?.appCheck ?? { limitedUseTokens: false }
-  };
+  const finalOptions: Omit<AIOptions, 'backend'> = {};
+
+  if (options?.appCheck) {
+    if (options.appCheck.hasOwnProperty('limitedUseTokens')) {
+      finalOptions.appCheck = options.appCheck;
+    } else {
+      finalOptions.appCheck = { ...options.appCheck, limitedUseTokens: false };
+    }
+  } else {
+    finalOptions.appCheck = { limitedUseTokens: false };
+  }
 
   const identifier = encodeInstanceIdentifier(backend);
   const aiInstance = AIProvider.getImmediate({
