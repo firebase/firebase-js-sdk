@@ -29,6 +29,7 @@ export declare class LiveSession
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
+|  [inConversation](./ai.livesession.md#livesessioninconversation) |  | boolean | <b><i>(Public Preview)</i></b> Indicates whether this Live session is being controlled by an <code>AudioConversationController</code>. |
 |  [isClosed](./ai.livesession.md#livesessionisclosed) |  | boolean | <b><i>(Public Preview)</i></b> Indicates whether this Live session is closed. |
 
 ## Methods
@@ -40,6 +41,19 @@ export declare class LiveSession
 |  [send(request, turnComplete)](./ai.livesession.md#livesessionsend) |  | <b><i>(Public Preview)</i></b> Sends content to the server. |
 |  [sendMediaChunks(mediaChunks)](./ai.livesession.md#livesessionsendmediachunks) |  | <b><i>(Public Preview)</i></b> Sends realtime input to the server. |
 |  [sendMediaStream(mediaChunkStream)](./ai.livesession.md#livesessionsendmediastream) |  | <b><i>(Public Preview)</i></b> Sends a stream of [GenerativeContentBlob](./ai.generativecontentblob.md#generativecontentblob_interface)<!-- -->. |
+
+## LiveSession.inConversation
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Indicates whether this Live session is being controlled by an `AudioConversationController`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+inConversation: boolean;
+```
 
 ## LiveSession.isClosed
 

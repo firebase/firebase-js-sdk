@@ -85,6 +85,11 @@ export class ArraySchema extends Schema {
     toJSON(): SchemaRequest;
 }
 
+// @beta
+export interface AudioConversationController {
+    stop: () => Promise<void>;
+}
+
 // @public
 export abstract class Backend {
     protected constructor(type: BackendType);
@@ -787,6 +792,7 @@ export class LiveSession {
     // @internal
     constructor(webSocketHandler: WebSocketHandler, serverMessages: AsyncGenerator<unknown>);
     close(): Promise<void>;
+    inConversation: boolean;
     isClosed: boolean;
     receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation>;
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
@@ -1029,6 +1035,14 @@ export interface Segment {
 // @beta
 export interface SpeechConfig {
     voiceConfig?: VoiceConfig;
+}
+
+// @beta
+export function startAudioConversation(liveSession: LiveSession, options?: StartAudioConversationOptions): Promise<AudioConversationController>;
+
+// @beta
+export interface StartAudioConversationOptions {
+    functionCallingHandler?: (functionCalls: LiveServerToolCall['functionCalls']) => Promise<Part>;
 }
 
 // @public

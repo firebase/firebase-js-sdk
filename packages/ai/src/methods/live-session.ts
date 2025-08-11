@@ -47,6 +47,12 @@ export class LiveSession {
    * @beta
    */
   isClosed = false;
+  /**
+   * Indicates whether this Live session is being controlled by an `AudioConversationController`.
+   *
+   * @beta
+   */
+  inConversation = false;
 
   /**
    * @internal

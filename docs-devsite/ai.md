@@ -22,6 +22,8 @@ The Firebase AI Web SDK.
 |  [getGenerativeModel(ai, modelParams, requestOptions)](./ai.md#getgenerativemodel_80bd839) | Returns a [GenerativeModel](./ai.generativemodel.md#generativemodel_class) class with methods for inference and other functionality. |
 |  [getImagenModel(ai, modelParams, requestOptions)](./ai.md#getimagenmodel_e1f6645) | <b><i>(Public Preview)</i></b> Returns an [ImagenModel](./ai.imagenmodel.md#imagenmodel_class) class with methods for using Imagen.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported. |
 |  [getLiveGenerativeModel(ai, modelParams)](./ai.md#getlivegenerativemodel_f2099ac) | <b><i>(Public Preview)</i></b> Returns a [LiveGenerativeModel](./ai.livegenerativemodel.md#livegenerativemodel_class) class for real-time, bidirectional communication.<!-- -->The Live API is only supported in modern browser windows and Node &gt;<!-- -->= 22. |
+|  <b>function(liveSession, ...)</b> |
+|  [startAudioConversation(liveSession, options)](./ai.md#startaudioconversation_01c8e7f) | <b><i>(Public Preview)</i></b> Starts a real-time, bidirectional audio conversation with the model. This helper function manages the complexities of microphone access, audio recording, playback, and interruptions. |
 
 ## Classes
 
@@ -53,6 +55,7 @@ The Firebase AI Web SDK.
 |  --- | --- |
 |  [AI](./ai.ai.md#ai_interface) | An instance of the Firebase AI SDK.<!-- -->Do not create this instance directly. Instead, use [getAI()](./ai.md#getai_a94a413)<!-- -->. |
 |  [AIOptions](./ai.aioptions.md#aioptions_interface) | Options for initializing the AI service using [getAI()](./ai.md#getai_a94a413)<!-- -->. This allows specifying which backend to use (Vertex AI Gemini API or Gemini Developer API) and configuring its specific options (like location for Vertex AI). |
+|  [AudioConversationController](./ai.audioconversationcontroller.md#audioconversationcontroller_interface) | <b><i>(Public Preview)</i></b> A controller for managing an active audio conversation. |
 |  [BaseParams](./ai.baseparams.md#baseparams_interface) | Base parameters for a number of methods. |
 |  [Citation](./ai.citation.md#citation_interface) | A single citation. |
 |  [CitationMetadata](./ai.citationmetadata.md#citationmetadata_interface) | Citation metadata that may be found on a [GenerateContentCandidate](./ai.generatecontentcandidate.md#generatecontentcandidate_interface)<!-- -->. |
@@ -112,6 +115,7 @@ The Firebase AI Web SDK.
 |  [SearchEntrypoint](./ai.searchentrypoint.md#searchentrypoint_interface) | Google search entry point. |
 |  [Segment](./ai.segment.md#segment_interface) | Represents a specific segment within a [Content](./ai.content.md#content_interface) object, often used to pinpoint the exact location of text or data that grounding information refers to. |
 |  [SpeechConfig](./ai.speechconfig.md#speechconfig_interface) | <b><i>(Public Preview)</i></b> Configures speech synthesis. |
+|  [StartAudioConversationOptions](./ai.startaudioconversationoptions.md#startaudioconversationoptions_interface) | <b><i>(Public Preview)</i></b> Options for [startAudioConversation()](./ai.md#startaudioconversation_01c8e7f)<!-- -->. |
 |  [StartChatParams](./ai.startchatparams.md#startchatparams_interface) | Params for [GenerativeModel.startChat()](./ai.generativemodel.md#generativemodelstartchat)<!-- -->. |
 |  [TextPart](./ai.textpart.md#textpart_interface) | Content part interface if the part represents a text string. |
 |  [ThinkingConfig](./ai.thinkingconfig.md#thinkingconfig_interface) | Configuration for "thinking" behavior of compatible Gemini models.<!-- -->Certain models utilize a thinking process before generating a response. This allows them to reason through complex problems and plan a more coherent and accurate answer. |
@@ -306,6 +310,76 @@ export declare function getLiveGenerativeModel(ai: AI, modelParams: LiveModelPar
 #### Exceptions
 
 If the `apiKey` or `projectId` fields are missing in your Firebase config.
+
+## function(liveSession, ...)
+
+### startAudioConversation(liveSession, options) {:#startaudioconversation_01c8e7f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Starts a real-time, bidirectional audio conversation with the model. This helper function manages the complexities of microphone access, audio recording, playback, and interruptions.
+
+Important: This function must be called in response to a user gesture (for example, a button click) to comply with [browser autoplay policies](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Best_practices#autoplay_policy)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare function startAudioConversation(liveSession: LiveSession, options?: StartAudioConversationOptions): Promise<AudioConversationController>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  liveSession | [LiveSession](./ai.livesession.md#livesession_class) | An active [LiveSession](./ai.livesession.md#livesession_class) instance. |
+|  options | [StartAudioConversationOptions](./ai.startaudioconversationoptions.md#startaudioconversationoptions_interface) | Configuration options for the audio conversation. |
+
+<b>Returns:</b>
+
+Promise&lt;[AudioConversationController](./ai.audioconversationcontroller.md#audioconversationcontroller_interface)<!-- -->&gt;
+
+A `Promise` that resolves with an [AudioConversationController](./ai.audioconversationcontroller.md#audioconversationcontroller_interface)<!-- -->.
+
+#### Exceptions
+
+`AIError` if the environment does not support required Web APIs (`UNSUPPORTED`<!-- -->), if a conversation is already active (`REQUEST_ERROR`<!-- -->), the session is closed (`SESSION_CLOSED`<!-- -->), or if an unexpected initialization error occurs (`ERROR`<!-- -->).
+
+`DOMException` Thrown by `navigator.mediaDevices.getUserMedia()` if issues occur with microphone access, such as permissions being denied (`NotAllowedError`<!-- -->) or no compatible hardware being found (`NotFoundError`<!-- -->). See the [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia#exceptions) for a full list of exceptions.
+
+### Example
+
+
+```javascript
+const liveSession = await model.connect();
+let conversationController;
+
+// This function must be called from within a click handler.
+async function startConversation() {
+  try {
+    conversationController = await startAudioConversation(liveSession);
+  } catch (e) {
+    // Handle AI-specific errors
+    if (e instanceof AIError) {
+      console.error("AI Error:", e.message);
+    }
+    // Handle microphone permission and hardware errors
+    else if (e instanceof DOMException) {
+      console.error("Microphone Error:", e.message);
+    }
+    // Handle other unexpected errors
+    else {
+      console.error("An unexpected error occurred:", e);
+    }
+  }
+}
+
+// Later, to stop the conversation:
+// if (conversationController) {
+//   await conversationController.stop();
+// }
+
+```
 
 ## AIErrorCode
 
