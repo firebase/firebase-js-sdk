@@ -197,11 +197,11 @@ export abstract class Storage {
   }
 
   setRealtimeBackoffMetadata(
-    realtime_metadata: RealtimeBackoffMetadata
+    realtimeMetadata: RealtimeBackoffMetadata
   ): Promise<void> {
     return this.set<RealtimeBackoffMetadata>(
       'realtime_backoff_metadata',
-      realtime_metadata
+      realtimeMetadata
     );
   }
 }

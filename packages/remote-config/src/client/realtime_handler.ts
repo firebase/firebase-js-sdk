@@ -16,6 +16,7 @@
  */
 
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
+import { Logger } from '@firebase/logger';
 import { ConfigUpdateObserver } from '../public_types';
 import { calculateBackoffMillis, FirebaseError } from '@firebase/util';
 import { ERROR_FACTORY, ErrorCode } from '../errors';
@@ -36,9 +37,10 @@ export class RealtimeHandler {
     private readonly namespace: string,
     private readonly projectId: string,
     private readonly apiKey: string,
-    private readonly appId: string
+    private readonly appId: string,
+    private readonly logger: Logger
   ) {
-    this.setRetriesRemaining();
+    void this.setRetriesRemaining();
   }
 
   private observers: Set<ConfigUpdateObserver> =
@@ -49,7 +51,7 @@ export class RealtimeHandler {
   private reader: ReadableStreamDefaultReader | undefined;
   private httpRetriesRemaining: number = ORIGINAL_RETRIES;
 
-  private async setRetriesRemaining() {
+  private async setRetriesRemaining(): Promise<void> {
     // Retrieve number of remaining retries from last session. The minimum retry count being one.
     const metadata = await this.storage.getRealtimeBackoffMetadata();
     const numFailedStreams = metadata?.numFailedStreams || 0;
@@ -59,7 +61,7 @@ export class RealtimeHandler {
     );
   }
 
-  private propagateError = (e: FirebaseError) =>
+  private propagateError = (e: FirebaseError): void =>
     this.observers.forEach(o => o.error?.(e));
 
   /**
@@ -107,7 +109,7 @@ export class RealtimeHandler {
     }
 
     if (this.reader) {
-      this.reader.cancel();
+      void this.reader.cancel();
       this.reader = undefined;
     }
   }
@@ -150,7 +152,7 @@ export class RealtimeHandler {
     const requestBody = {
       project: this.projectId,
       namespace: this.namespace,
-      lastKnownVersionNumber: lastKnownVersionNumber,
+      lastKnownVersionNumber,
       appId: this.appId,
       sdkVersion: this.sdkVersion,
       appInstanceId: installationId
@@ -160,7 +162,7 @@ export class RealtimeHandler {
       method: 'POST',
       headers,
       body: JSON.stringify(requestBody),
-      signal: signal
+      signal
     });
     return response;
   }
@@ -181,12 +183,13 @@ export class RealtimeHandler {
     ]);
     this.controller = new AbortController();
     const url = this.getRealtimeUrl();
-    return await this.establishRealtimeConnection(
+    const realtimeConnection = await this.establishRealtimeConnection(
       url,
       installationId,
       installationTokenResult,
       this.controller.signal
     );
+    return realtimeConnection;
   }
 
   /**
@@ -205,7 +208,7 @@ export class RealtimeHandler {
     ).getTime();
     const currentTime = Date.now();
     const retryMillis = Math.max(0, backoffEndTime - currentTime);
-    this.makeRealtimeHttpConnection(retryMillis);
+    await this.makeRealtimeHttpConnection(retryMillis);
   }
 
   private setIsHttpConnectionRunning(connectionRunning: boolean): void {
@@ -259,7 +262,7 @@ export class RealtimeHandler {
       }
     } catch (error) {
       //there might have been a transient error so the client will retry the connection.
-      console.error(
+      this.logger.error(
         'Exception connecting to real-time RC backend. Retrying the connection...:',
         error
       );
@@ -281,7 +284,7 @@ export class RealtimeHandler {
       if (connectionFailed || response?.ok) {
         await this.retryHttpConnectionWhenBackoffEnds();
       } else {
-        let errorMessage = `Unable to connect to the server. HTTP status code: ${responseCode}`;
+        const errorMessage = `Unable to connect to the server. HTTP status code: ${responseCode}`;
         const firebaseError = ERROR_FACTORY.create(
           ErrorCode.CONFIG_UPDATE_STREAM_ERROR,
           {
