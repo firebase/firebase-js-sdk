@@ -17,6 +17,7 @@
 
 import { assert } from '@firebase/util';
 
+// TODO: Consolidate the Visibility monitoring API code into a shared utility function in firebase/util to be used by both packages/database and packages/remote-config.
 /**
  * Base class to be used if you want to emit events. Call the constructor with
  * the set of allowed event names.
@@ -65,6 +66,7 @@ export abstract class EventEmitter {
 
     const eventData = this.getInitialEvent(eventType);
     if (eventData) {
+      //@ts-ignore
       callback.apply(context, eventData);
     }
   }
@@ -92,4 +94,3 @@ export abstract class EventEmitter {
     );
   }
 }
-

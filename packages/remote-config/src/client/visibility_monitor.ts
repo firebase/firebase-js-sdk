@@ -21,6 +21,7 @@ import { EventEmitter } from './eventEmitter';
 
 declare const document: Document;
 
+// TODO: Consolidate the Visibility monitoring API code into a shared utility function in firebase/util to be used by both packages/database and packages/remote-config.
 export class VisibilityMonitor extends EventEmitter {
   private visible_: boolean;
 
@@ -40,13 +41,16 @@ export class VisibilityMonitor extends EventEmitter {
         // Opera 12.10 and Firefox 18 and later support
         visibilityChange = 'visibilitychange';
         hidden = 'hidden';
-      } else if (typeof document['mozHidden'] !== 'undefined') {
+      } //@ts-ignore
+      else if (typeof document['mozHidden'] !== 'undefined') {
         visibilityChange = 'mozvisibilitychange';
         hidden = 'mozHidden';
-      } else if (typeof document['msHidden'] !== 'undefined') {
+      } //@ts-ignore
+      else if (typeof document['msHidden'] !== 'undefined') {
         visibilityChange = 'msvisibilitychange';
         hidden = 'msHidden';
-      } else if (typeof document['webkitHidden'] !== 'undefined') {
+      } //@ts-ignore
+      else if (typeof document['webkitHidden'] !== 'undefined') {
         visibilityChange = 'webkitvisibilitychange';
         hidden = 'webkitHidden';
       }
@@ -58,10 +62,12 @@ export class VisibilityMonitor extends EventEmitter {
     // reconnects
     this.visible_ = true;
 
+    //@ts-ignore
     if (visibilityChange) {
       document.addEventListener(
         visibilityChange,
         () => {
+          //@ts-ignore
           const visible = !document[hidden];
           if (visible !== this.visible_) {
             this.visible_ = visible;
@@ -78,4 +84,3 @@ export class VisibilityMonitor extends EventEmitter {
     return [this.visible_];
   }
 }
-

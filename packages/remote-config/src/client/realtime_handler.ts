@@ -323,23 +323,13 @@ export class RealtimeHandler {
     await this.beginRealtime();
   }
 
-  private abortRealtimeConnection(): void {
-    if (this.controller) {
-       this.controller.abort();
-       this.controller = undefined;
-       this.isConnectionActive = false;
-    }
-  }
-
-  private onVisibilityChange(visible: unknown) {
-    const wasInBackground = this.isInBackground;
+  private async onVisibilityChange(visible: unknown) {
     this.isInBackground = !visible;
-    if (wasInBackground !== this.isInBackground) {
-      if (this.isInBackground) {
-        this.abortRealtimeConnection();
-      } else {
-        this.beginRealtime();
-      }
+    if (!visible && this.controller) {
+      this.controller.abort();
+      this.controller = undefined;
+    } else if(visible) {
+      await this.beginRealtime();
     }
   }
 }
