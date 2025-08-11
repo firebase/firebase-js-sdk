@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { _FirebaseInstallationsInternal } from "@firebase/installations";
-import { ConfigUpdateObserver } from "../public_types";
-import { calculateBackoffMillis, FirebaseError } from "@firebase/util";
-import { ERROR_FACTORY, ErrorCode } from "../errors";
-import { Storage } from "../storage/storage";
+import { _FirebaseInstallationsInternal } from '@firebase/installations';
+import { ConfigUpdateObserver } from '../public_types';
+import { calculateBackoffMillis, FirebaseError } from '@firebase/util';
+import { ERROR_FACTORY, ErrorCode } from '../errors';
+import { Storage } from '../storage/storage';
 import { isBefore } from 'date-fns';
 
 const API_KEY_HEADER = 'X-Goog-Api-Key';
@@ -36,13 +36,13 @@ export class RealtimeHandler {
     private readonly namespace: string,
     private readonly projectId: string,
     private readonly apiKey: string,
-    private readonly appId: string,
-  ) { 
-    this.httpRetriesRemaining = ORIGINAL_RETRIES;
+    private readonly appId: string
+  ) {
     this.setRetriesRemaining();
   }
 
-  private observers: Set<ConfigUpdateObserver> = new Set<ConfigUpdateObserver>();
+  private observers: Set<ConfigUpdateObserver> =
+    new Set<ConfigUpdateObserver>();
   private isConnectionActive: boolean = false;
   private isRealtimeDisabled: boolean = false;
   private controller?: AbortController;
@@ -50,52 +50,52 @@ export class RealtimeHandler {
   private httpRetriesRemaining: number = ORIGINAL_RETRIES;
 
   private async setRetriesRemaining() {
-  // Retrieve number of remaining retries from last session. The minimum retry count being one.
-  const metadata = await this.storage.getRealtimeBackoffMetadata();
-  const numFailedStreams = metadata?.numFailedStreams || 0;
-  this.httpRetriesRemaining= Math.max(ORIGINAL_RETRIES - numFailedStreams, 1);
-  }
-  
-  /**
-   * Removes an observer from the realtime updates.
-   * @param observer The observer to remove.
-   */
-  removeObserver(observer: ConfigUpdateObserver): void {
-    if (this.observers.has(observer)) {
-      this.observers.delete(observer);
-    }
+    // Retrieve number of remaining retries from last session. The minimum retry count being one.
+    const metadata = await this.storage.getRealtimeBackoffMetadata();
+    const numFailedStreams = metadata?.numFailedStreams || 0;
+    this.httpRetriesRemaining = Math.max(
+      ORIGINAL_RETRIES - numFailedStreams,
+      1
+    );
   }
 
-  private propagateError = (e: FirebaseError) => this.observers.forEach(o => o.error?.(e));
+  private propagateError = (e: FirebaseError) =>
+    this.observers.forEach(o => o.error?.(e));
 
   /**
    * Increment the number of failed stream attempts, increase the backoff duration, set the backoff
    * end time to "backoff duration" after {@code lastFailedStreamTime} and persist the new
    * values to storage metadata.
    */
-  private async updateBackoffMetadataWithLastFailedStreamConnectionTime(lastFailedStreamTime: Date): Promise<void> {
-    const numFailedStreams = ((await this.storage.getRealtimeBackoffMetadata())?.numFailedStreams || 0) + 1;
+  private async updateBackoffMetadataWithLastFailedStreamConnectionTime(
+    lastFailedStreamTime: Date
+  ): Promise<void> {
+    const numFailedStreams =
+      ((await this.storage.getRealtimeBackoffMetadata())?.numFailedStreams ||
+        0) + 1;
     const backoffMillis = calculateBackoffMillis(numFailedStreams);
     await this.storage.setRealtimeBackoffMetadata({
-      backoffEndTimeMillis: new Date(lastFailedStreamTime.getTime() + backoffMillis),
+      backoffEndTimeMillis: new Date(
+        lastFailedStreamTime.getTime() + backoffMillis
+      ),
       numFailedStreams
     });
   }
-  
+
   /**
    * HTTP status code that the Realtime client should retry on.
    */
   private isStatusCodeRetryable = (statusCode?: number): boolean => {
     const retryableStatusCodes = [
-        408, // Request Timeout
-        429, // Too Many Requests
-        502, // Bad Gateway
-        503, // Service Unavailable
-        504  // Gateway Timeout
+      408, // Request Timeout
+      429, // Too Many Requests
+      502, // Bad Gateway
+      503, // Service Unavailable
+      504 // Gateway Timeout
     ];
     return !statusCode || retryableStatusCodes.includes(statusCode);
-  }
-  
+  };
+
   /**
    * Stops the real-time HTTP connection by aborting the in-progress fetch request
    * and canceling the stream reader if they exist.
@@ -111,34 +111,40 @@ export class RealtimeHandler {
       this.reader = undefined;
     }
   }
- 
+
   private async resetRealtimeBackoff(): Promise<void> {
     await this.storage.setRealtimeBackoffMetadata({
       backoffEndTimeMillis: new Date(-1),
       numFailedStreams: 0
     });
-  }  
-  
+  }
+
   private resetRetryCount(): void {
     this.httpRetriesRemaining = ORIGINAL_RETRIES;
   }
-  
+
   /**
    * Assembles the request headers and body and executes the fetch request to
    * establish the real-time streaming connection. This is the "worker" method
    * that performs the actual network communication.
-   */  
-  private async establishRealtimeConnection(url: URL, installationId: string, installationTokenResult: string, signal: AbortSignal): Promise<Response> {
+   */
+  private async establishRealtimeConnection(
+    url: URL,
+    installationId: string,
+    installationTokenResult: string,
+    signal: AbortSignal
+  ): Promise<Response> {
     const eTagValue = await this.storage.getActiveConfigEtag();
-    const lastKnownVersionNumber = await this.storage.getLastKnownTemplateVersion();
-    
+    const lastKnownVersionNumber =
+      await this.storage.getLastKnownTemplateVersion();
+
     const headers = {
       [API_KEY_HEADER]: this.apiKey,
       [INSTALLATIONS_AUTH_TOKEN_HEADER]: installationTokenResult,
       'Content-Type': 'application/json',
       'Accept': 'application/json',
       'If-None-Match': eTagValue || '*',
-      'Content-Encoding': 'gzip',
+      'Content-Encoding': 'gzip'
     };
 
     const requestBody = {
@@ -175,7 +181,12 @@ export class RealtimeHandler {
     ]);
     this.controller = new AbortController();
     const url = this.getRealtimeUrl();
-    return await this.establishRealtimeConnection(url, installationId, installationTokenResult, this.controller.signal);
+    return await this.establishRealtimeConnection(
+      url,
+      installationId,
+      installationTokenResult,
+      this.controller.signal
+    );
   }
 
   /**
@@ -187,9 +198,11 @@ export class RealtimeHandler {
       backoffMetadata = {
         backoffEndTimeMillis: new Date(NO_BACKOFF_TIME_IN_MILLIS),
         numFailedStreams: NO_FAILED_REALTIME_STREAMS
-      }
-    } 
-    const backoffEndTime = new Date(backoffMetadata.backoffEndTimeMillis).getTime();
+      };
+    }
+    const backoffEndTime = new Date(
+      backoffMetadata.backoffEndTimeMillis
+    ).getTime();
     const currentTime = Date.now();
     const retryMillis = Math.max(0, backoffEndTime - currentTime);
     this.makeRealtimeHttpConnection(retryMillis);
@@ -218,12 +231,13 @@ export class RealtimeHandler {
     if (!this.checkAndSetHttpConnectionFlagIfNotRunning()) {
       return;
     }
+
     let backoffMetadata = await this.storage.getRealtimeBackoffMetadata();
     if (!backoffMetadata) {
       backoffMetadata = {
         backoffEndTimeMillis: new Date(NO_BACKOFF_TIME_IN_MILLIS),
         numFailedStreams: NO_FAILED_REALTIME_STREAMS
-      } 
+      };
     }
     const backoffEndTime = backoffMetadata.backoffEndTimeMillis.getTime();
     if (isBefore(new Date(), backoffEndTime)) {
@@ -234,47 +248,56 @@ export class RealtimeHandler {
     let response: Response | undefined;
     let responseCode: number | undefined;
     try {
-    //this has been called in the try cause it throws an error if the method does not get implemented
-    response = await this.createRealtimeConnection();
-    responseCode = response.status;
-     if (response.ok && response.body) {
-      this.resetRetryCount();
-      await this.resetRealtimeBackoff();
-      //const configAutoFetch = this.startAutoFetch(reader);
-      //await configAutoFetch.listenForNotifications();
-     }
+      //this has been called in the try cause it throws an error if the method does not get implemented
+      response = await this.createRealtimeConnection();
+      responseCode = response.status;
+      if (response.ok && response.body) {
+        this.resetRetryCount();
+        await this.resetRealtimeBackoff();
+        //const configAutoFetch = this.startAutoFetch(reader);
+        //await configAutoFetch.listenForNotifications();
+      }
     } catch (error) {
       //there might have been a transient error so the client will retry the connection.
-      console.error('Exception connecting to real-time RC backend. Retrying the connection...:', error);
+      console.error(
+        'Exception connecting to real-time RC backend. Retrying the connection...:',
+        error
+      );
     } finally {
       // Close HTTP connection and associated streams.
       this.closeRealtimeHttpConnection();
       this.setIsHttpConnectionRunning(false);
-      
+
       // Update backoff metadata if the connection failed in the foreground.
-      const connectionFailed = responseCode == null || this.isStatusCodeRetryable(responseCode);
+      const connectionFailed =
+        responseCode == null || this.isStatusCodeRetryable(responseCode);
 
       if (connectionFailed) {
-        await this.updateBackoffMetadataWithLastFailedStreamConnectionTime(new Date());
+        await this.updateBackoffMetadataWithLastFailedStreamConnectionTime(
+          new Date()
+        );
       }
       // If responseCode is null then no connection was made to server and the SDK should still retry.
-      if (connectionFailed || response?.ok ) {
+      if (connectionFailed || response?.ok) {
         await this.retryHttpConnectionWhenBackoffEnds();
       } else {
         let errorMessage = `Unable to connect to the server. HTTP status code: ${responseCode}`;
-        const firebaseError = ERROR_FACTORY.create(ErrorCode.CONFIG_UPDATE_STREAM_ERROR, {
-          httpStatus: responseCode,
-          originalErrorMessage: errorMessage
-        });
+        const firebaseError = ERROR_FACTORY.create(
+          ErrorCode.CONFIG_UPDATE_STREAM_ERROR,
+          {
+            httpStatus: responseCode,
+            originalErrorMessage: errorMessage
+          }
+        );
         this.propagateError(firebaseError);
       }
     }
   }
 
   /**
-  * Checks whether connection can be made or not based on some conditions
-  * @returns booelean
-  */
+   * Checks whether connection can be made or not based on some conditions
+   * @returns booelean
+   */
   private canEstablishStreamConnection(): boolean {
     const hasActiveListeners = this.observers.size > 0;
     const isNotDisabled = !this.isRealtimeDisabled;
@@ -301,11 +324,21 @@ export class RealtimeHandler {
   }
 
   /**
-  * Adds an observer to the realtime updates.
-  * @param observer The observer to add.
-  */
+   * Adds an observer to the realtime updates.
+   * @param observer The observer to add.
+   */
   async addObserver(observer: ConfigUpdateObserver): Promise<void> {
     this.observers.add(observer);
     await this.beginRealtime();
+  }
+
+  /**
+   * Removes an observer from the realtime updates.
+   * @param observer The observer to remove.
+   */
+  removeObserver(observer: ConfigUpdateObserver): void {
+    if (this.observers.has(observer)) {
+      this.observers.delete(observer);
+    }
   }
 }

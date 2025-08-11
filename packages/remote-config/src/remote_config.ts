@@ -86,8 +86,8 @@ export class RemoteConfig implements RemoteConfigType {
      */
     readonly _logger: Logger,
     /**
-    * @internal
-    */
+     * @internal
+     */
     readonly _realtimeHandler: RealtimeHandler
-  ) { }
+  ) {}
 }

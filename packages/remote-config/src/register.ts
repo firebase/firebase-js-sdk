@@ -115,7 +115,8 @@ export function registerRemoteConfig(): void {
       namespace,
       projectId,
       apiKey,
-      appId);
+      appId
+    );
 
     const remoteConfigInstance = new RemoteConfigImpl(
       app,
