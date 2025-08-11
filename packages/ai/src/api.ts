@@ -77,12 +77,13 @@ export function getAI(app: FirebaseApp = getApp(), options?: AIOptions): AI {
   // Dependencies
   const AIProvider: Provider<'AI'> = _getProvider(app, AI_TYPE);
 
+  const backend = options?.backend ?? new GoogleAIBackend();
+
   const finalOptions = {
-    backend: options?.backend ?? new GoogleAIBackend(),
     appCheck: options?.appCheck ?? { limitedUseTokens: false }
   };
 
-  const identifier = encodeInstanceIdentifier(finalOptions.backend);
+  const identifier = encodeInstanceIdentifier(backend);
   const aiInstance = AIProvider.getImmediate({
     identifier
   });

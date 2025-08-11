@@ -21,6 +21,8 @@ The Firebase AI Web SDK.
 |  <b>function(ai, ...)</b> |
 |  [getGenerativeModel(ai, modelParams, requestOptions)](./ai.md#getgenerativemodel_80bd839) | Returns a [GenerativeModel](./ai.generativemodel.md#generativemodel_class) class with methods for inference and other functionality. |
 |  [getImagenModel(ai, modelParams, requestOptions)](./ai.md#getimagenmodel_e1f6645) | <b><i>(Public Preview)</i></b> Returns an [ImagenModel](./ai.imagenmodel.md#imagenmodel_class) class with methods for using Imagen.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported. |
+|  <b>function(container, ...)</b> |
+|  [factory(container, { instanceIdentifier })](./ai.md#factory_6581aeb) |  |
 
 ## Classes
 
@@ -50,6 +52,7 @@ The Firebase AI Web SDK.
 |  --- | --- |
 |  [AI](./ai.ai.md#ai_interface) | An instance of the Firebase AI SDK.<!-- -->Do not create this instance directly. Instead, use [getAI()](./ai.md#getai_a94a413)<!-- -->. |
 |  [AIOptions](./ai.aioptions.md#aioptions_interface) | Options for initializing the AI service using [getAI()](./ai.md#getai_a94a413)<!-- -->. This allows specifying which backend to use (Vertex AI Gemini API or Gemini Developer API) and configuring its specific options (like location for Vertex AI). |
+|  [AppCheckOptions](./ai.appcheckoptions.md#appcheckoptions_interface) | Configures App Check usage for this AI service instance. |
 |  [BaseParams](./ai.baseparams.md#baseparams_interface) | Base parameters for a number of methods. |
 |  [Citation](./ai.citation.md#citation_interface) | A single citation. |
 |  [CitationMetadata](./ai.citationmetadata.md#citationmetadata_interface) | Citation metadata that may be found on a [GenerateContentCandidate](./ai.generatecontentcandidate.md#generatecontentcandidate_interface)<!-- -->. |
@@ -263,6 +266,27 @@ export declare function getImagenModel(ai: AI, modelParams: ImagenModelParams, r
 #### Exceptions
 
 If the `apiKey` or `projectId` fields are missing in your Firebase config.
+
+## function(container, ...)
+
+### factory(container, { instanceIdentifier }) {:#factory_6581aeb}
+
+<b>Signature:</b>
+
+```typescript
+export declare function factory(container: ComponentContainer, { instanceIdentifier }: InstanceFactoryOptions): AIService;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  container | ComponentContainer |  |
+|  { instanceIdentifier } | InstanceFactoryOptions |  |
+
+<b>Returns:</b>
+
+AIService
 
 ## AIErrorCode
 

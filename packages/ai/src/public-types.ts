@@ -94,8 +94,9 @@ export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 export interface AIOptions {
   /**
    * The backend configuration to use for the AI service instance.
+   * Defaults to {@link GoogleAIBackend}.
    */
-  backend: Backend;
+  backend?: Backend;
   /**
    * Configures App Check usage for this AI service instance.
    */
@@ -106,5 +107,8 @@ export interface AIOptions {
  * Configures App Check usage for this AI service instance.
  */
 export interface AppCheckOptions {
+  /**
+   * Defaults to false.
+   */
   limitedUseTokens?: boolean;
 }

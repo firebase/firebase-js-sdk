@@ -14,6 +14,8 @@ toc:
     path: /docs/reference/js/ai.aioptions.md
   - title: AnyOfSchema
     path: /docs/reference/js/ai.anyofschema.md
+  - title: AppCheckOptions
+    path: /docs/reference/js/ai.appcheckoptions.md
   - title: ArraySchema
     path: /docs/reference/js/ai.arrayschema.md
   - title: Backend

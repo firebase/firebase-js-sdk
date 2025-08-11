@@ -31,7 +31,7 @@ import { Backend, VertexAIBackend } from './backend';
 export class AIService implements AI, _FirebaseService {
   auth: FirebaseAuthInternal | null;
   appCheck: FirebaseAppCheckInternal | null;
-  _options?: AIOptions;
+  _options?: Omit<AIOptions, 'backend'>;
   location: string; // This is here for backwards-compatibility
 
   constructor(
@@ -57,10 +57,10 @@ export class AIService implements AI, _FirebaseService {
   }
 
   set options(optionsToSet: AIOptions) {
-    this.options = optionsToSet;
+    this._options = optionsToSet;
   }
 
-  get options(): AIOptions {
-    return this.options;
+  get options(): AIOptions | undefined {
+    return this._options;
   }
 }

@@ -16,12 +16,13 @@
  */
 import { ImagenModelParams, ModelParams, AIErrorCode } from './types';
 import { AIError } from './errors';
-import { ImagenModel, getGenerativeModel, getImagenModel } from './api';
+import { getAI, ImagenModel, getGenerativeModel, getImagenModel } from './api';
 import { expect } from 'chai';
 import { AI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
-import { VertexAIBackend } from './backend';
+import { GoogleAIBackend, VertexAIBackend } from './backend';
 import { AI_TYPE } from './constants';
+import { getFullApp } from '../test-utils/get-fake-firebase-services';
 
 const fakeAI: AI = {
   app: {
@@ -38,6 +39,32 @@ const fakeAI: AI = {
 };
 
 describe('Top level API', () => {
+  describe('getAI()', () => {
+    it('works without options', () => {
+      const ai = getAI(getFullApp());
+      expect(ai.backend).to.be.instanceOf(GoogleAIBackend);
+    });
+    it('works with options: no backend, limited use token', () => {
+      const ai = getAI(getFullApp(), { appCheck: { limitedUseTokens: true } });
+      expect(ai.backend).to.be.instanceOf(GoogleAIBackend);
+      expect(ai.options?.appCheck?.limitedUseTokens).to.be.true;
+    });
+    it('works with options: backend specified, limited use token', () => {
+      const ai = getAI(getFullApp(), {
+        backend: new VertexAIBackend('us-central1'),
+        appCheck: { limitedUseTokens: true }
+      });
+      expect(ai.backend).to.be.instanceOf(VertexAIBackend);
+      expect(ai.options?.appCheck?.limitedUseTokens).to.be.true;
+    });
+    it('works with options: backend specified only', () => {
+      const ai = getAI(getFullApp(), {
+        backend: new VertexAIBackend('us-central1')
+      });
+      expect(ai.backend).to.be.instanceOf(VertexAIBackend);
+      expect(ai.options?.appCheck?.limitedUseTokens).to.be.false;
+    });
+  });
   it('getGenerativeModel throws if no model is provided', () => {
     try {
       getGenerativeModel(fakeAI, {} as ModelParams);

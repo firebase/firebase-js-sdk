@@ -17,9 +17,11 @@
 import { use, expect } from 'chai';
 import { AI, AIErrorCode } from '../public-types';
 import sinonChai from 'sinon-chai';
+import { stub } from 'sinon';
 import { AIModel } from './ai-model';
 import { AIError } from '../errors';
 import { VertexAIBackend } from '../backend';
+import { AIService } from '../service';
 
 use(sinonChai);
 
@@ -66,6 +68,52 @@ describe('AIModel', () => {
   it('handles prefixed tuned model name', () => {
     const testModel = new TestModel(fakeAI, 'tunedModels/my-model');
     expect(testModel.model).to.equal('tunedModels/my-model');
+  });
+  it('calls regular app check token when option is set', async () => {
+    const getTokenStub = stub().resolves();
+    const getLimitedUseTokenStub = stub().resolves();
+    const testModel = new TestModel(
+      //@ts-ignore
+      {
+        ...fakeAI,
+        options: { appCheck: { limitedUseTokens: false } },
+        appCheck: {
+          getToken: getTokenStub,
+          getLimitedUseToken: getLimitedUseTokenStub
+        }
+      } as AIService,
+      'models/my-model'
+    );
+    if (testModel._apiSettings?.getAppCheckToken) {
+      await testModel._apiSettings.getAppCheckToken();
+    }
+    expect(getTokenStub).to.be.called;
+    expect(getLimitedUseTokenStub).to.not.be.called;
+    getTokenStub.reset();
+    getLimitedUseTokenStub.reset();
+  });
+  it('calls limited use token when option is set', async () => {
+    const getTokenStub = stub().resolves();
+    const getLimitedUseTokenStub = stub().resolves();
+    const testModel = new TestModel(
+      //@ts-ignore
+      {
+        ...fakeAI,
+        options: { appCheck: { limitedUseTokens: true } },
+        appCheck: {
+          getToken: getTokenStub,
+          getLimitedUseToken: getLimitedUseTokenStub
+        }
+      } as AIService,
+      'models/my-model'
+    );
+    if (testModel._apiSettings?.getAppCheckToken) {
+      await testModel._apiSettings.getAppCheckToken();
+    }
+    expect(getTokenStub).to.not.be.called;
+    expect(getLimitedUseTokenStub).to.be.called;
+    getTokenStub.reset();
+    getLimitedUseTokenStub.reset();
   });
   it('throws if not passed an api key', () => {
     const fakeAI: AI = {

@@ -22,14 +22,25 @@ export interface AIOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [backend](./ai.aioptions.md#aioptionsbackend) | [Backend](./ai.backend.md#backend_class) | The backend configuration to use for the AI service instance. |
+|  [appCheck](./ai.aioptions.md#aioptionsappcheck) | [AppCheckOptions](./ai.appcheckoptions.md#appcheckoptions_interface) | Configures App Check usage for this AI service instance. |
+|  [backend](./ai.aioptions.md#aioptionsbackend) | [Backend](./ai.backend.md#backend_class) | The backend configuration to use for the AI service instance. Defaults to [GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->. |
 
-## AIOptions.backend
+## AIOptions.appCheck
 
-The backend configuration to use for the AI service instance.
+Configures App Check usage for this AI service instance.
 
 <b>Signature:</b>
 
 ```typescript
-backend: Backend;
+appCheck?: AppCheckOptions;
+```
+
+## AIOptions.backend
+
+The backend configuration to use for the AI service instance. Defaults to [GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+backend?: Backend;
 ```

@@ -39,7 +39,7 @@ export abstract class AIModel {
   /**
    * @internal
    */
-  protected _apiSettings: ApiSettings;
+  _apiSettings: ApiSettings;
 
   /**
    * Constructs a new instance of the {@link AIModel} class.
