@@ -1,5 +1,11 @@
 # @firebase/performance
 
+## 0.7.9
+
+### Patch Changes
+
+- [`a4897a6`](https://github.com/firebase/firebase-js-sdk/commit/a4897a621e99f270ddf6821d587fcddd3a0c5cd1) [#9178](https://github.com/firebase/firebase-js-sdk/pull/9178) (fixes [#9136](https://github.com/firebase/firebase-js-sdk/issues/9136)) - Fixed errors thrown when capturing long target element names for the out-of-the-box metrics.
+
 ## 0.7.8
 
 ### Patch Changes

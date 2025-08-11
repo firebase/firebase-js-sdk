@@ -1,6 +1,6 @@
 {
   "name": "@firebase/performance",
-  "version": "0.7.8",
+  "version": "0.7.9",
   "description": "Firebase performance for web",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -47,7 +47,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.14.0",
+    "@firebase/app": "0.14.1",
     "rollup": "2.79.2",
     "@rollup/plugin-json": "6.1.0",
     "rollup-plugin-typescript2": "0.36.0",

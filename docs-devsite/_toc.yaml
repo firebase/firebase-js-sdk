@@ -26,6 +26,8 @@ toc:
     path: /docs/reference/js/ai.booleanschema.md
   - title: ChatSession
     path: /docs/reference/js/ai.chatsession.md
+  - title: ChromeAdapter
+    path: /docs/reference/js/ai.chromeadapter.md
   - title: Citation
     path: /docs/reference/js/ai.citation.md
   - title: CitationMetadata
@@ -90,6 +92,8 @@ toc:
     path: /docs/reference/js/ai.groundingmetadata.md
   - title: GroundingSupport
     path: /docs/reference/js/ai.groundingsupport.md
+  - title: HybridParams
+    path: /docs/reference/js/ai.hybridparams.md
   - title: ImagenGCSImage
     path: /docs/reference/js/ai.imagengcsimage.md
   - title: ImagenGenerationConfig
@@ -110,6 +114,18 @@ toc:
     path: /docs/reference/js/ai.inlinedatapart.md
   - title: IntegerSchema
     path: /docs/reference/js/ai.integerschema.md
+  - title: LanguageModelCreateCoreOptions
+    path: /docs/reference/js/ai.languagemodelcreatecoreoptions.md
+  - title: LanguageModelCreateOptions
+    path: /docs/reference/js/ai.languagemodelcreateoptions.md
+  - title: LanguageModelExpected
+    path: /docs/reference/js/ai.languagemodelexpected.md
+  - title: LanguageModelMessage
+    path: /docs/reference/js/ai.languagemodelmessage.md
+  - title: LanguageModelMessageContent
+    path: /docs/reference/js/ai.languagemodelmessagecontent.md
+  - title: LanguageModelPromptOptions
+    path: /docs/reference/js/ai.languagemodelpromptoptions.md
   - title: ModalityTokenCount
     path: /docs/reference/js/ai.modalitytokencount.md
   - title: ModelParams
@@ -120,6 +136,8 @@ toc:
     path: /docs/reference/js/ai.objectschema.md
   - title: ObjectSchemaRequest
     path: /docs/reference/js/ai.objectschemarequest.md
+  - title: OnDeviceParams
+    path: /docs/reference/js/ai.ondeviceparams.md
   - title: PromptFeedback
     path: /docs/reference/js/ai.promptfeedback.md
   - title: RequestOptions

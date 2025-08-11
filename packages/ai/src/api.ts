@@ -18,11 +18,12 @@
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { getModularInstance } from '@firebase/util';
-import { AI_TYPE } from './constants';
+import { AI_TYPE, DEFAULT_HYBRID_IN_CLOUD_MODEL } from './constants';
 import { AIService } from './service';
 import { AI, AIOptions } from './public-types';
 import {
   ImagenModelParams,
+  HybridParams,
   ModelParams,
   RequestOptions,
   AIErrorCode
@@ -31,6 +32,8 @@ import { AIError } from './errors';
 import { AIModel, GenerativeModel, ImagenModel } from './models';
 import { encodeInstanceIdentifier } from './helpers';
 import { GoogleAIBackend } from './backend';
+import { ChromeAdapterImpl } from './methods/chrome-adapter';
+import { LanguageModel } from './types/language-model';
 
 export { ChatSession } from './methods/chat-session';
 export * from './requests/schema-builder';
@@ -109,16 +112,36 @@ export function getAI(app: FirebaseApp = getApp(), options?: AIOptions): AI {
  */
 export function getGenerativeModel(
   ai: AI,
-  modelParams: ModelParams,
+  modelParams: ModelParams | HybridParams,
   requestOptions?: RequestOptions
 ): GenerativeModel {
-  if (!modelParams.model) {
+  // Uses the existence of HybridParams.mode to clarify the type of the modelParams input.
+  const hybridParams = modelParams as HybridParams;
+  let inCloudParams: ModelParams;
+  if (hybridParams.mode) {
+    inCloudParams = hybridParams.inCloudParams || {
+      model: DEFAULT_HYBRID_IN_CLOUD_MODEL
+    };
+  } else {
+    inCloudParams = modelParams as ModelParams;
+  }
+
+  if (!inCloudParams.model) {
     throw new AIError(
       AIErrorCode.NO_MODEL,
       `Must provide a model name. Example: getGenerativeModel({ model: 'my-model-name' })`
     );
   }
-  return new GenerativeModel(ai, modelParams, requestOptions);
+  let chromeAdapter: ChromeAdapterImpl | undefined;
+  // Do not initialize a ChromeAdapter if we are not in hybrid mode.
+  if (typeof window !== 'undefined' && hybridParams.mode) {
+    chromeAdapter = new ChromeAdapterImpl(
+      window.LanguageModel as LanguageModel,
+      hybridParams.mode,
+      hybridParams.onDeviceParams
+    );
+  }
+  return new GenerativeModel(ai, inCloudParams, requestOptions, chromeAdapter);
 }
 
 /**

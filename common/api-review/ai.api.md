@@ -140,7 +140,7 @@ export class BooleanSchema extends Schema {
 
 // @public
 export class ChatSession {
-    constructor(apiSettings: ApiSettings, model: string, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
+    constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
@@ -151,6 +151,15 @@ export class ChatSession {
     sendMessage(request: string | Array<string | Part>): Promise<GenerateContentResult>;
     sendMessageStream(request: string | Array<string | Part>): Promise<GenerateContentStreamResult>;
     }
+
+// @public
+export interface ChromeAdapter {
+    // @internal (undocumented)
+    countTokens(request: CountTokensRequest): Promise<Response>;
+    generateContent(request: GenerateContentRequest): Promise<Response>;
+    generateContentStream(request: GenerateContentRequest): Promise<Response>;
+    isAvailable(request: GenerateContentRequest): Promise<boolean>;
+}
 
 // @public
 export interface Citation {
@@ -436,7 +445,7 @@ export interface GenerativeContentBlob {
 
 // @public
 export class GenerativeModel extends AIModel {
-    constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions);
+    constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions, chromeAdapter?: ChromeAdapter | undefined);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
@@ -459,7 +468,7 @@ export class GenerativeModel extends AIModel {
 export function getAI(app?: FirebaseApp, options?: AIOptions): AI;
 
 // @public
-export function getGenerativeModel(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
+export function getGenerativeModel(ai: AI, modelParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 
 // @beta
 export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
@@ -608,6 +617,13 @@ export const HarmSeverity: {
 // @public
 export type HarmSeverity = (typeof HarmSeverity)[keyof typeof HarmSeverity];
 
+// @public
+export interface HybridParams {
+    inCloudParams?: ModelParams;
+    mode: InferenceMode;
+    onDeviceParams?: OnDeviceParams;
+}
+
 // @beta
 export const ImagenAspectRatio: {
     readonly SQUARE: "1:1";
@@ -620,7 +636,7 @@ export const ImagenAspectRatio: {
 // @beta
 export type ImagenAspectRatio = (typeof ImagenAspectRatio)[keyof typeof ImagenAspectRatio];
 
-// @public
+// @beta
 export interface ImagenGCSImage {
     gcsURI: string;
     mimeType: string;
@@ -702,6 +718,16 @@ export interface ImagenSafetySettings {
 }
 
 // @public
+export const InferenceMode: {
+    readonly PREFER_ON_DEVICE: "prefer_on_device";
+    readonly ONLY_ON_DEVICE: "only_on_device";
+    readonly ONLY_IN_CLOUD: "only_in_cloud";
+};
+
+// @public
+export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
+
+// @public
 export interface InlineDataPart {
     // (undocumented)
     functionCall?: never;
@@ -717,6 +743,63 @@ export interface InlineDataPart {
 // @public
 export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
+}
+
+// @public
+export interface LanguageModelCreateCoreOptions {
+    // (undocumented)
+    expectedInputs?: LanguageModelExpected[];
+    // (undocumented)
+    temperature?: number;
+    // (undocumented)
+    topK?: number;
+}
+
+// @public
+export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptions {
+    // (undocumented)
+    initialPrompts?: LanguageModelMessage[];
+    // (undocumented)
+    signal?: AbortSignal;
+}
+
+// @public
+export interface LanguageModelExpected {
+    // (undocumented)
+    languages?: string[];
+    // (undocumented)
+    type: LanguageModelMessageType;
+}
+
+// @public
+export interface LanguageModelMessage {
+    // (undocumented)
+    content: LanguageModelMessageContent[];
+    // (undocumented)
+    role: LanguageModelMessageRole;
+}
+
+// @public
+export interface LanguageModelMessageContent {
+    // (undocumented)
+    type: LanguageModelMessageType;
+    // (undocumented)
+    value: LanguageModelMessageContentValue;
+}
+
+// @public
+export type LanguageModelMessageContentValue = ImageBitmapSource | AudioBuffer | BufferSource | string;
+
+// @public
+export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
+
+// @public
+export type LanguageModelMessageType = 'text' | 'image' | 'audio';
+
+// @public
+export interface LanguageModelPromptOptions {
+    // (undocumented)
+    responseConstraint?: object;
 }
 
 // @public
@@ -775,6 +858,14 @@ export interface ObjectSchemaRequest extends SchemaRequest {
     optionalProperties?: never;
     // (undocumented)
     type: 'object';
+}
+
+// @public
+export interface OnDeviceParams {
+    // (undocumented)
+    createOptions?: LanguageModelCreateOptions;
+    // (undocumented)
+    promptOptions?: LanguageModelPromptOptions;
 }
 
 // @public
