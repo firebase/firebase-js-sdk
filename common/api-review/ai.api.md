@@ -32,6 +32,7 @@ export const AIErrorCode: {
     readonly REQUEST_ERROR: "request-error";
     readonly RESPONSE_ERROR: "response-error";
     readonly FETCH_ERROR: "fetch-error";
+    readonly SESSION_CLOSED: "session-closed";
     readonly INVALID_CONTENT: "invalid-content";
     readonly API_NOT_ENABLED: "api-not-enabled";
     readonly INVALID_SCHEMA: "invalid-schema";
@@ -262,6 +263,7 @@ export type FinishReason = (typeof FinishReason)[keyof typeof FinishReason];
 export interface FunctionCall {
     // (undocumented)
     args: object;
+    id?: string;
     // (undocumented)
     name: string;
 }
@@ -310,6 +312,7 @@ export interface FunctionDeclarationsTool {
 
 // @public
 export interface FunctionResponse {
+    id?: string;
     // (undocumented)
     name: string;
     // (undocumented)
@@ -443,6 +446,9 @@ export function getGenerativeModel(ai: AI, modelParams: ModelParams, requestOpti
 
 // @beta
 export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
+
+// @beta
+export function getLiveGenerativeModel(ai: AI, modelParams: LiveModelParams): LiveGenerativeModel;
 
 // @public
 export class GoogleAIBackend extends Backend {
@@ -699,6 +705,127 @@ export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
 
+// Warning: (ae-internal-missing-underscore) The name "LiveClientContent" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface LiveClientContent {
+    // (undocumented)
+    clientContent: {
+        turns: [Content];
+        turnComplete: boolean;
+    };
+}
+
+// Warning: (ae-internal-missing-underscore) The name "LiveClientRealtimeInput" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface LiveClientRealtimeInput {
+    // (undocumented)
+    realtimeInput: {
+        mediaChunks: GenerativeContentBlob[];
+    };
+}
+
+// Warning: (ae-internal-missing-underscore) The name "LiveClientSetup" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface LiveClientSetup {
+    // (undocumented)
+    setup: {
+        model: string;
+        generationConfig?: LiveGenerationConfig;
+    };
+}
+
+// @beta
+export interface LiveGenerationConfig {
+    candidateCount?: number;
+    frequencyPenalty?: number;
+    maxOutputTokens?: number;
+    presencePenalty?: number;
+    responseModalities?: [ResponseModality];
+    speechConfig?: SpeechConfig;
+    temperature?: number;
+    topK?: number;
+    topP?: number;
+}
+
+// @beta
+export class LiveGenerativeModel extends AIModel {
+    // @internal
+    constructor(ai: AI, modelParams: LiveModelParams, _webSocketHandler: WebSocketHandler);
+    connect(): Promise<LiveSession>;
+    // (undocumented)
+    generationConfig: LiveGenerationConfig;
+    // (undocumented)
+    systemInstruction?: Content;
+    // (undocumented)
+    toolConfig?: ToolConfig;
+    // (undocumented)
+    tools?: Tool[];
+    // Warning: (ae-forgotten-export) The symbol "WebSocketHandler" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    _webSocketHandler: WebSocketHandler;
+}
+
+// @beta
+export interface LiveModelParams {
+    generationConfig?: LiveGenerationConfig;
+    model: string;
+    // (undocumented)
+    systemInstruction?: string | Part | Content;
+    // (undocumented)
+    toolConfig?: ToolConfig;
+    // (undocumented)
+    tools?: Tool[];
+}
+
+// @beta
+export const LiveResponseType: {
+    SERVER_CONTENT: string;
+    TOOL_CALL: string;
+    TOOL_CALL_CANCELLATION: string;
+};
+
+// @beta
+export type LiveResponseType = (typeof LiveResponseType)[keyof typeof LiveResponseType];
+
+// @beta
+export interface LiveServerContent {
+    interrupted?: boolean;
+    modelTurn?: Content;
+    turnComplete?: boolean;
+    // (undocumented)
+    type: 'serverContent';
+}
+
+// @beta
+export interface LiveServerToolCall {
+    functionCalls: FunctionCall[];
+    // (undocumented)
+    type: 'toolCall';
+}
+
+// @beta
+export interface LiveServerToolCallCancellation {
+    functionIds: string[];
+    // (undocumented)
+    type: 'toolCallCancellation';
+}
+
+// @beta
+export class LiveSession {
+    // @internal
+    constructor(webSocketHandler: WebSocketHandler, serverMessages: AsyncGenerator<unknown>);
+    close(): Promise<void>;
+    isClosed: boolean;
+    receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation>;
+    send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
+    sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void>;
+    sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;
+    }
+
 // @public
 export const Modality: {
     readonly MODALITY_UNSPECIFIED: "MODALITY_UNSPECIFIED";
@@ -762,6 +889,11 @@ export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionRespon
 
 // @public
 export const POSSIBLE_ROLES: readonly ["user", "model", "function", "system"];
+
+// @beta
+export interface PrebuiltVoiceConfig {
+    voiceConfig?: string;
+}
 
 // @public
 export interface PromptFeedback {
@@ -926,6 +1058,11 @@ export interface Segment {
     text: string;
 }
 
+// @beta
+export interface SpeechConfig {
+    voiceConfig?: VoiceConfig;
+}
+
 // @public
 export interface StartChatParams extends BaseParams {
     // (undocumented)
@@ -1001,6 +1138,11 @@ export class VertexAIBackend extends Backend {
 export interface VideoMetadata {
     endOffset: string;
     startOffset: string;
+}
+
+// @beta
+export interface VoiceConfig {
+    prebuiltVoiceConfig?: PrebuiltVoiceConfig;
 }
 
 // @public (undocumented)

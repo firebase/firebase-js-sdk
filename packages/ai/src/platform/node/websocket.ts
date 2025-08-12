@@ -62,13 +62,13 @@ export class NodeWebSocketHandler implements WebSocketHandler {
       this.ws = new WebSocket(url);
       this.ws.binaryType = 'blob';
       this.ws!.addEventListener('open', () => resolve(), { once: true });
-      this.ws!.addEventListener(
+      this.ws.addEventListener(
         'error',
         () =>
           reject(
             new AIError(
               AIErrorCode.FETCH_ERROR,
-              'Failed to establish WebSocket connection'
+              `Error event raised on WebSocket`
             )
           ),
         { once: true }

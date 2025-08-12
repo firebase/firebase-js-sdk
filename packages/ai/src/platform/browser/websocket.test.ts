@@ -134,7 +134,7 @@ describe('BrowserWebSocketHandler', () => {
 
       await expect(connectPromise).to.be.rejectedWith(
         AIError,
-        /Failed to establish WebSocket connection/
+        /Error event raised on WebSocket/
       );
     });
   });

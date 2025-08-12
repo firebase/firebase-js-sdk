@@ -23,6 +23,7 @@ export interface FunctionCall
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [args](./ai.functioncall.md#functioncallargs) | object |  |
+|  [id](./ai.functioncall.md#functioncallid) | string | The id of the function call. This must be sent back in the associated [FunctionResponse](./ai.functionresponse.md#functionresponse_interface)<!-- -->.<!-- -->This property is only supported in the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property will be <code>undefined</code>. |
 |  [name](./ai.functioncall.md#functioncallname) | string |  |
 
 ## FunctionCall.args
@@ -31,6 +32,18 @@ export interface FunctionCall
 
 ```typescript
 args: object;
+```
+
+## FunctionCall.id
+
+The id of the function call. This must be sent back in the associated [FunctionResponse](./ai.functionresponse.md#functionresponse_interface)<!-- -->.
+
+This property is only supported in the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->). When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this property will be `undefined`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+id?: string;
 ```
 
 ## FunctionCall.name

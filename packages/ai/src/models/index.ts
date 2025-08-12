@@ -17,4 +17,5 @@
 
 export * from './ai-model';
 export * from './generative-model';
+export * from './live-model';
 export * from './imagen-model';

@@ -16,7 +16,7 @@
  */
 
 import { ObjectSchema, TypedSchema } from '../requests/schema-builder';
-import { Content, Part } from './content';
+import { Content, GenerativeContentBlob, Part } from './content';
 import {
   FunctionCallingMode,
   HarmBlockMethod,
@@ -46,6 +46,23 @@ export interface ModelParams extends BaseParams {
   systemInstruction?: string | Part | Content;
 }
 
+/**
+ * Params passed to {@link getLiveGenerativeModel}.
+ * @beta
+ */
+export interface LiveModelParams {
+  /**
+   * The model name.
+   */
+  model: string;
+  /**
+   * Configuration parameters used for live content generation.
+   */
+  generationConfig?: LiveGenerationConfig;
+  tools?: Tool[];
+  toolConfig?: ToolConfig;
+  systemInstruction?: string | Part | Content;
+}
 /**
  * Request sent through {@link GenerativeModel.generateContent}
  * @public
@@ -117,6 +134,62 @@ export interface GenerationConfig {
    * Configuration for "thinking" behavior of compatible Gemini models.
    */
   thinkingConfig?: ThinkingConfig;
+}
+
+/**
+ * Configuration parameters used by {@link LiveGenerativeModel} to control live content generation.
+ *
+ * @beta
+ */
+export interface LiveGenerationConfig {
+  /**
+   * Configuration for speech synthesis.
+   */
+  speechConfig?: SpeechConfig;
+  /**
+   * The maximum number of generated response messages to return. This value must be between
+   * 1 and 8. If unset, this will default to 1.
+   */
+  candidateCount?: number;
+  /**
+   * Specifies the maximum number of tokens that can be generated in the response. The number of
+   * tokens per word varies depending on the language outputted. Defaults to 0.
+   */
+  maxOutputTokens?: number;
+  /**
+   * Controls the degree of randomness in token selection. A `temperature` value of 0 means that the highest
+   * probability tokens are always selected. In this case, responses for a given prompt are mostly
+   * deterministic, but a small amount of variation is still possible.
+   */
+  temperature?: number;
+  /**
+   * Changes how the model selects tokens for output. Tokens are
+   * selected from the most to least probable until the sum of their probabilities equals the `topP`
+   * value. For example, if tokens A, B, and C have probabilities of 0.3, 0.2, and 0.1 respectively
+   * and the `topP` value is 0.5, then the model will select either A or B as the next token by using
+   * the `temperature` and exclude C as a candidate. Defaults to 0.95 if unset.
+   */
+  topP?: number;
+  /**
+   * Changes how the model selects token for output. A `topK` value of 1 means the select token is
+   * the most probable among all tokens in the model's vocabulary, while a `topK` value 3 means that
+   * the next token is selected from among the 3 most probably using probabilities sampled. Tokens
+   * are then further filtered with the highest selected `temperature` sampling. Defaults to 40
+   * if unspecified.
+   */
+  topK?: number;
+  /**
+   * Positive penalties.
+   */
+  presencePenalty?: number;
+  /**
+   * Frequency penalties.
+   */
+  frequencyPenalty?: number;
+  /**
+   * The modalities of the response.
+   */
+  responseModalities?: [ResponseModality];
 }
 
 /**
@@ -294,4 +367,78 @@ export interface ThinkingConfig {
    * feature or if the specified budget is not within the model's supported range.
    */
   thinkingBudget?: number;
+}
+
+/**
+ * The first message in a Live session, used to configure generation options.
+ *
+ * @internal
+ */
+export interface LiveClientSetup {
+  setup: {
+    model: string;
+    generationConfig?: LiveGenerationConfig;
+  };
+}
+
+/**
+ * User input that is sent to the model in real time.
+ *
+ * @internal
+ */
+export interface LiveClientRealtimeInput {
+  realtimeInput: {
+    mediaChunks: GenerativeContentBlob[];
+  };
+}
+
+/**
+ * User input that is sent to the model.
+ *
+ * @internal
+ */
+export interface LiveClientContent {
+  clientContent: {
+    turns: [Content];
+    turnComplete: boolean;
+  };
+}
+
+/**
+ * Configuration for a pre-built voice.
+ *
+ * @beta
+ */
+export interface PrebuiltVoiceConfig {
+  /**
+   * The voice name to use for speech synthesis.
+   *
+   * See https://cloud.google.com/text-to-speech/docs/chirp3-hd for names and
+   * sound demos.
+   */
+  voiceConfig?: string;
+}
+
+/**
+ * Configuration for the voice to used in speech synthesis.
+ *
+ * @beta
+ */
+export interface VoiceConfig {
+  /**
+   * Configures the voice using a pre-built voice configuration.
+   */
+  prebuiltVoiceConfig?: PrebuiltVoiceConfig;
+}
+
+/**
+ * Configures speech synthesis.
+ *
+ * @beta
+ */
+export interface SpeechConfig {
+  /**
+   * Configures the voice to be used in speech synthesis.
+   */
+  voiceConfig?: VoiceConfig;
 }

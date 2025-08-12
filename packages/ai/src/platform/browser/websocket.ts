@@ -16,6 +16,7 @@
  */
 
 import { AIError } from '../../errors';
+import { logger } from '../../logger';
 import { AIErrorCode } from '../../types';
 import { WebSocketHandler } from '../websocket';
 
@@ -51,11 +52,16 @@ export class BrowserWebSocketHandler implements WebSocketHandler {
           reject(
             new AIError(
               AIErrorCode.FETCH_ERROR,
-              'Failed to establish WebSocket connection'
+              `Error event raised on WebSocket`
             )
           ),
         { once: true }
       );
+      this.ws!.addEventListener('close', (closeEvent: CloseEvent) => {
+        logger.warn(
+          `WebSocket connection closed by server. Reason: '${closeEvent.reason}'`
+        );
+      });
     });
   }
 

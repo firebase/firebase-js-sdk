@@ -25,17 +25,25 @@ import {
   ImagenModelParams,
   ModelParams,
   RequestOptions,
-  AIErrorCode
+  AIErrorCode,
+  LiveModelParams
 } from './types';
 import { AIError } from './errors';
-import { AIModel, GenerativeModel, ImagenModel } from './models';
+import {
+  AIModel,
+  GenerativeModel,
+  LiveGenerativeModel,
+  ImagenModel
+} from './models';
 import { encodeInstanceIdentifier } from './helpers';
 import { GoogleAIBackend } from './backend';
+import { createWebSocketHandler } from './platform/websocket';
 
 export { ChatSession } from './methods/chat-session';
+export { LiveSession } from './methods/live-session';
 export * from './requests/schema-builder';
 export { ImagenImageFormat } from './requests/imagen-image-format';
-export { AIModel, GenerativeModel, ImagenModel, AIError };
+export { AIModel, GenerativeModel, LiveGenerativeModel, ImagenModel, AIError };
 export { Backend, VertexAIBackend, GoogleAIBackend } from './backend';
 
 declare module '@firebase/component' {
@@ -132,4 +140,28 @@ export function getImagenModel(
     );
   }
   return new ImagenModel(ai, modelParams, requestOptions);
+}
+
+/**
+ * Returns a {@link LiveGenerativeModel} class for real-time, bidirectional communication.
+ *
+ * @param ai - An {@link AI} instance.
+ * @param modelParams - Parameters to use when setting up a {@link LiveSession}.
+ * @throws If the `apiKey` or `projectId` fields are missing in your
+ * Firebase config.
+ *
+ * @beta
+ */
+export function getLiveGenerativeModel(
+  ai: AI,
+  modelParams: LiveModelParams
+): LiveGenerativeModel {
+  if (!modelParams.model) {
+    throw new AIError(
+      AIErrorCode.NO_MODEL,
+      `Must provide a model name for getLiveGenerativeModel. Example: getLiveGenerativeModel(ai, { model: 'my-model-name' })`
+    );
+  }
+  const webSocketHandler = createWebSocketHandler();
+  return new LiveGenerativeModel(ai, modelParams, webSocketHandler);
 }
