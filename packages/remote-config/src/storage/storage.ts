@@ -196,10 +196,14 @@ export abstract class Storage {
     return this.get<number>('last_known_template_version');
   }
 
-  setRealtimeBackoffMetadata(realtime_metadata: RealtimeBackoffMetadata): Promise<void> {
-    return this.set<RealtimeBackoffMetadata>('realtime_backoff_metadata', realtime_metadata);
+  setRealtimeBackoffMetadata(
+    realtimeMetadata: RealtimeBackoffMetadata
+  ): Promise<void> {
+    return this.set<RealtimeBackoffMetadata>(
+      'realtime_backoff_metadata',
+      realtimeMetadata
+    );
   }
-
 }
 
 export class IndexedDbStorage extends Storage {
