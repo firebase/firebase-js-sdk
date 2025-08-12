@@ -74,7 +74,7 @@ export class RealtimeHandler {
     const numFailedStreams =
       ((await this.storage.getRealtimeBackoffMetadata())?.numFailedStreams ||
         0) + 1;
-    const backoffMillis = calculateBackoffMillis(numFailedStreams);
+    const backoffMillis = calculateBackoffMillis(numFailedStreams) * 60;
     await this.storage.setRealtimeBackoffMetadata({
       backoffEndTimeMillis: new Date(
         lastFailedStreamTime.getTime() + backoffMillis
