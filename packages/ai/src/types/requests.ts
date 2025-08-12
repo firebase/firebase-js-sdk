@@ -51,13 +51,7 @@ export interface ModelParams extends BaseParams {
  * @beta
  */
 export interface LiveModelParams {
-  /**
-   * The model name.
-   */
   model: string;
-  /**
-   * Configuration parameters used for live content generation.
-   */
   generationConfig?: LiveGenerationConfig;
   tools?: Tool[];
   toolConfig?: ToolConfig;

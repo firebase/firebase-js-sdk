@@ -771,7 +771,9 @@ export class LiveGenerativeModel extends AIModel {
 
 // @beta
 export interface LiveModelParams {
+    // (undocumented)
     generationConfig?: LiveGenerationConfig;
+    // (undocumented)
     model: string;
     // (undocumented)
     systemInstruction?: string | Part | Content;

@@ -25,8 +25,8 @@ export interface LiveModelParams
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [generationConfig](./ai.livemodelparams.md#livemodelparamsgenerationconfig) | [LiveGenerationConfig](./ai.livegenerationconfig.md#livegenerationconfig_interface) | <b><i>(Public Preview)</i></b> Configuration parameters used for live content generation. |
-|  [model](./ai.livemodelparams.md#livemodelparamsmodel) | string | <b><i>(Public Preview)</i></b> The model name. |
+|  [generationConfig](./ai.livemodelparams.md#livemodelparamsgenerationconfig) | [LiveGenerationConfig](./ai.livegenerationconfig.md#livegenerationconfig_interface) | <b><i>(Public Preview)</i></b> |
+|  [model](./ai.livemodelparams.md#livemodelparamsmodel) | string | <b><i>(Public Preview)</i></b> |
 |  [systemInstruction](./ai.livemodelparams.md#livemodelparamssysteminstruction) | string \| [Part](./ai.md#part) \| [Content](./ai.content.md#content_interface) | <b><i>(Public Preview)</i></b> |
 |  [toolConfig](./ai.livemodelparams.md#livemodelparamstoolconfig) | [ToolConfig](./ai.toolconfig.md#toolconfig_interface) | <b><i>(Public Preview)</i></b> |
 |  [tools](./ai.livemodelparams.md#livemodelparamstools) | [Tool](./ai.md#tool)<!-- -->\[\] | <b><i>(Public Preview)</i></b> |
@@ -35,8 +35,6 @@ export interface LiveModelParams
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
-
-Configuration parameters used for live content generation.
 
 <b>Signature:</b>
 
@@ -48,8 +46,6 @@ generationConfig?: LiveGenerationConfig;
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
-
-The model name.
 
 <b>Signature:</b>
 

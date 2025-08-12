@@ -112,10 +112,10 @@ describe('NodeWebSocketHandler', () => {
         }
       })();
 
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 50));
       // The server's `send` method can handle Buffers/Uint8Arrays
       server.clients.forEach(client => client.send(bufferData));
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 50));
       await handler.close();
 
       await consumerPromise;
