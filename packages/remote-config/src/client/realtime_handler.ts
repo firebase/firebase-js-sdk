@@ -41,7 +41,11 @@ export class RealtimeHandler {
     private readonly logger: Logger
   ) {
     void this.setRetriesRemaining();
-    VisibilityMonitor.getInstance().on('visible', this.onVisibilityChange, this);
+    void VisibilityMonitor.getInstance().on(
+      'visible',
+      this.onVisibilityChange,
+      this
+    );
   }
 
   private observers: Set<ConfigUpdateObserver> =
@@ -106,8 +110,8 @@ export class RealtimeHandler {
    */
   private closeRealtimeHttpConnection(): void {
     if (this.controller && !this.isInBackground) {
-       this.controller.abort();
-       this.controller = undefined;
+      this.controller.abort();
+      this.controller = undefined;
     }
 
     if (this.reader) {
@@ -269,11 +273,11 @@ export class RealtimeHandler {
         // this as a success, even if we haven't read a 200 response code yet.
         this.resetRetryCount();
       } else {
-      //there might have been a transient error so the client will retry the connection.
-      this.logger.error(
-        'Exception connecting to real-time RC backend. Retrying the connection...:',
-        error
-      );
+        //there might have been a transient error so the client will retry the connection.
+        this.logger.debug(
+          'Exception connecting to real-time RC backend. Retrying the connection...:',
+          error
+        );
       }
     } finally {
       // Close HTTP connection and associated streams.
@@ -315,9 +319,14 @@ export class RealtimeHandler {
     const isNotDisabled = !this.isRealtimeDisabled;
     const isNoConnectionActive = !this.isConnectionActive;
     const inForeground = !this.isInBackground;
-    return hasActiveListeners && isNotDisabled && isNoConnectionActive && inForeground;
+    return (
+      hasActiveListeners &&
+      isNotDisabled &&
+      isNoConnectionActive &&
+      inForeground
+    );
   }
-  
+
   private async makeRealtimeHttpConnection(delayMillis: number): Promise<void> {
     if (!this.canEstablishStreamConnection()) {
       return;
@@ -328,7 +337,10 @@ export class RealtimeHandler {
         await this.beginRealtimeHttpStream();
       }, delayMillis);
     } else if (!this.isInBackground) {
-      const error = ERROR_FACTORY.create(ErrorCode.CONFIG_UPDATE_STREAM_ERROR, { originalErrorMessage: 'Unable to connect to the server. Check your connection and try again.' });
+      const error = ERROR_FACTORY.create(ErrorCode.CONFIG_UPDATE_STREAM_ERROR, {
+        originalErrorMessage:
+          'Unable to connect to the server. Check your connection and try again.'
+      });
       this.propagateError(error);
     }
   }
@@ -358,12 +370,12 @@ export class RealtimeHandler {
     }
   }
 
-  private async onVisibilityChange(visible: unknown) {
+  private async onVisibilityChange(visible: unknown): Promise<void> {
     this.isInBackground = !visible;
     if (!visible && this.controller) {
       this.controller.abort();
       this.controller = undefined;
-    } else if(visible) {
+    } else if (visible) {
       await this.beginRealtime();
     }
   }

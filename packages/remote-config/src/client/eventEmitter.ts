@@ -48,7 +48,7 @@ export abstract class EventEmitter {
   /**
    * To be called by derived classes to trigger events.
    */
-  protected trigger(eventType: string, ...varArgs: unknown[]) {
+  protected trigger(eventType: string, ...varArgs: unknown[]): void {
     if (Array.isArray(this.listeners_[eventType])) {
       // Clone the list, since callbacks could add/remove listeners.
       const listeners = [...this.listeners_[eventType]];
@@ -59,7 +59,11 @@ export abstract class EventEmitter {
     }
   }
 
-  on(eventType: string, callback: (a: unknown) => void, context: unknown) {
+  on(
+    eventType: string,
+    callback: (a: unknown) => void,
+    context: unknown
+  ): void {
     this.validateEventType_(eventType);
     this.listeners_[eventType] = this.listeners_[eventType] || [];
     this.listeners_[eventType].push({ callback, context });
@@ -71,7 +75,11 @@ export abstract class EventEmitter {
     }
   }
 
-  off(eventType: string, callback: (a: unknown) => void, context: unknown) {
+  off(
+    eventType: string,
+    callback: (a: unknown) => void,
+    context: unknown
+  ): void {
     this.validateEventType_(eventType);
     const listeners = this.listeners_[eventType] || [];
     for (let i = 0; i < listeners.length; i++) {
@@ -85,7 +93,7 @@ export abstract class EventEmitter {
     }
   }
 
-  private validateEventType_(eventType: string) {
+  private validateEventType_(eventType: string): void {
     assert(
       this.allowedEvents_.find(et => {
         return et === eventType;

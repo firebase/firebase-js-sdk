@@ -25,7 +25,7 @@ declare const document: Document;
 export class VisibilityMonitor extends EventEmitter {
   private visible_: boolean;
 
-  static getInstance() {
+  static getInstance(): VisibilityMonitor {
     return new VisibilityMonitor();
   }
 
@@ -41,15 +41,15 @@ export class VisibilityMonitor extends EventEmitter {
         // Opera 12.10 and Firefox 18 and later support
         visibilityChange = 'visibilitychange';
         hidden = 'hidden';
-      } //@ts-ignore
+      } // @ts-ignore
       else if (typeof document['mozHidden'] !== 'undefined') {
         visibilityChange = 'mozvisibilitychange';
         hidden = 'mozHidden';
-      } //@ts-ignore
+      } // @ts-ignore
       else if (typeof document['msHidden'] !== 'undefined') {
         visibilityChange = 'msvisibilitychange';
         hidden = 'msHidden';
-      } //@ts-ignore
+      } // @ts-ignore
       else if (typeof document['webkitHidden'] !== 'undefined') {
         visibilityChange = 'webkitvisibilitychange';
         hidden = 'webkitHidden';
@@ -62,12 +62,12 @@ export class VisibilityMonitor extends EventEmitter {
     // reconnects
     this.visible_ = true;
 
-    //@ts-ignore
+    // @ts-ignore
     if (visibilityChange) {
       document.addEventListener(
         visibilityChange,
         () => {
-          //@ts-ignore
+          // @ts-ignore
           const visible = !document[hidden];
           if (visible !== this.visible_) {
             this.visible_ = visible;
