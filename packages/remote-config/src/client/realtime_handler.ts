@@ -21,7 +21,6 @@ import { ConfigUpdateObserver } from '../public_types';
 import { calculateBackoffMillis, FirebaseError } from '@firebase/util';
 import { ERROR_FACTORY, ErrorCode } from '../errors';
 import { Storage } from '../storage/storage';
-import { isBefore } from 'date-fns';
 
 const API_KEY_HEADER = 'X-Goog-Api-Key';
 const INSTALLATIONS_AUTH_TOKEN_HEADER = 'X-Goog-Firebase-Installations-Auth';
@@ -243,7 +242,7 @@ export class RealtimeHandler {
       };
     }
     const backoffEndTime = backoffMetadata.backoffEndTimeMillis.getTime();
-    if (isBefore(new Date(), backoffEndTime)) {
+    if (Date.now() < backoffEndTime) {
       await this.retryHttpConnectionWhenBackoffEnds();
       return;
     }
