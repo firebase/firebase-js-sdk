@@ -32,7 +32,7 @@ import { _isFirebaseServerApp } from '@firebase/app';
 export abstract class AIModel {
   /**
    * The fully qualified model resource name to use for generating images
-   * (for example, `publishers/google/models/imagen-3.0-generate-002`).
+   * (for example, `publishers/google/models/model-name`).
    */
   readonly model: string;
 

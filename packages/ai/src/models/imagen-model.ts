@@ -34,13 +34,14 @@ import { AIModel } from './ai-model';
  * Class for Imagen model APIs.
  *
  * This class provides methods for generating images using the Imagen model.
+ * See the documentation for a list of {@link https://firebase.google.com/docs/ai-logic/models | supported models}.
  *
  * @example
  * ```javascript
  * const imagen = new ImagenModel(
  *   ai,
  *   {
- *     model: 'imagen-3.0-generate-002'
+ *     model: 'imagen-model-name'
  *   }
  * );
  *

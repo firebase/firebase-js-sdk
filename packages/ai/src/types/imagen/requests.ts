@@ -25,9 +25,8 @@ import { ImagenImageFormat } from '../../requests/imagen-image-format';
 export interface ImagenModelParams {
   /**
    * The Imagen model to use for generating images.
-   * For example: `imagen-3.0-generate-002`.
    *
-   * Only Imagen 3 models (named `imagen-3.0-*`) are supported.
+   * See the documentation for a list of {@link https://firebase.google.com/docs/ai-logic/models | supported models}.
    *
    * See {@link https://firebase.google.com/docs/vertex-ai/models | model versions}
    * for a full list of supported Imagen 3 models.
