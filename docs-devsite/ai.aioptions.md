@@ -23,7 +23,7 @@ export interface AIOptions
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [appCheck](./ai.aioptions.md#aioptionsappcheck) | [AppCheckOptions](./ai.appcheckoptions.md#appcheckoptions_interface) | Configures App Check usage for this AI service instance. |
-|  [backend](./ai.aioptions.md#aioptionsbackend) | [Backend](./ai.backend.md#backend_class) | The backend configuration to use for the AI service instance. Defaults to [GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->. |
+|  [backend](./ai.aioptions.md#aioptionsbackend) | [Backend](./ai.backend.md#backend_class) | The backend configuration to use for the AI service instance. Defaults to the Gemini Developer API backend ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->). |
 
 ## AIOptions.appCheck
 
@@ -37,7 +37,7 @@ appCheck?: AppCheckOptions;
 
 ## AIOptions.backend
 
-The backend configuration to use for the AI service instance. Defaults to [GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->.
+The backend configuration to use for the AI service instance. Defaults to the Gemini Developer API backend ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->).
 
 <b>Signature:</b>
 

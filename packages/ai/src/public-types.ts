@@ -94,7 +94,7 @@ export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 export interface AIOptions {
   /**
    * The backend configuration to use for the AI service instance.
-   * Defaults to {@link GoogleAIBackend}.
+   * Defaults to the Gemini Developer API backend ({@link GoogleAIBackend}).
    */
   backend?: Backend;
   /**
