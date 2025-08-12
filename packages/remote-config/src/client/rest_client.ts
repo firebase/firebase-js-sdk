@@ -82,12 +82,15 @@ export class RestClient implements RemoteConfigFetchClient {
 
     const url = `${urlBase}/v1/projects/${this.projectId}/namespaces/${this.namespace}:fetch?key=${this.apiKey}`;
 
+    const fetchType = request.fetchType || 'BASE';
+    const fetchAttempt = request.fetchAttempt || 0;
     const headers = {
       'Content-Type': 'application/json',
       'Content-Encoding': 'gzip',
       // Deviates from pure decorator by not passing max-age header since we don't currently have
       // service behavior using that header.
-      'If-None-Match': request.eTag || '*'
+      'If-None-Match': request.eTag || '*',
+      'X_FIREBASE_RC_FETCH_TYPE': `${fetchType}/${fetchAttempt}`
     };
 
     const requestBody: FetchRequestBody = {

@@ -90,8 +90,13 @@ export interface FetchResponse {
    */
   config?: FirebaseRemoteConfigObject;
 
-  // Note: we're not extracting experiment metadata until
-  // ABT and Analytics have Web SDKs.
+  /**
+   * The version number of the config template fetched from the server.
+   */
+  templateVersionNumber?: number;
+
+ // Note: we're not extracting experiment metadata until
+ // ABT and Analytics have Web SDKs.
 }
 
 /**
@@ -256,6 +261,18 @@ export interface ConfigUpdateObserver {
  * @public
  */
 export type Unsubscribe = () => void;
+
+/**
+* Indicates the type of fetch request.
+*
+* <ul>
+*   <li>"BASE" indicates a standard fetch request.</li>
+*   <li>"REALTIME" indicates a fetch request triggered by a real-time update.</li>
+* </ul>
+*
+* @public
+*/
+export type FetchType = 'BASE' | 'REALTIME';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

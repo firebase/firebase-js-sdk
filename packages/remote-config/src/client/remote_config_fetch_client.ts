@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { CustomSignals, FetchResponse } from '../public_types';
+import { CustomSignals, FetchResponse, FetchType } from '../public_types';
 
 /**
  * Defines a client, as in https://en.wikipedia.org/wiki/Client%E2%80%93server_model, for the
@@ -100,4 +100,18 @@ export interface FetchRequest {
    * <p>Optional in case no custom signals are set for the instance.
    */
   customSignals?: CustomSignals;
+
+  /**
+  * The type of fetch to perform, such as a regular fetch or a real-time fetch.
+  *
+  * <p>Optional as not all fetch requests need to be distinguished.
+  */
+ fetchType?: FetchType;
+
+ /**
+  * The number of fetch attempts made so far for this request.
+  *
+  * <p>Optional as not all fetch requests are part of a retry series.
+  */
+ fetchAttempt?: number;
 }
