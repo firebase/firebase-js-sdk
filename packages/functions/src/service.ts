@@ -185,7 +185,7 @@ export function connectFunctionsEmulator(
   }://${host}:${port}`;
   // Workaround to get cookies in Firebase Studio
   if (useSsl) {
-    void pingServer(functionsInstance.emulatorOrigin);
+    void pingServer(functionsInstance.emulatorOrigin + '/backends');
     updateEmulatorBanner('Functions', true);
   }
 }
@@ -439,7 +439,12 @@ async function streamAtURL(
       method: 'POST',
       body: JSON.stringify(body),
       headers,
-      signal: options?.signal
+      signal: options?.signal,
+      credentials:
+        functionsInstance.emulatorOrigin &&
+        isCloudWorkstation(functionsInstance.emulatorOrigin)
+          ? 'include'
+          : undefined
     });
   } catch (e) {
     if (e instanceof Error && e.name === 'AbortError') {
