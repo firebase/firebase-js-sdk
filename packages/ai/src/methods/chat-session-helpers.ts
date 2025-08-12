@@ -80,7 +80,8 @@ export function validateChatHistory(history: Content[]): void {
       text: 0,
       inlineData: 0,
       functionCall: 0,
-      functionResponse: 0
+      functionResponse: 0,
+      thought: 0
     };
 
     for (const part of parts) {

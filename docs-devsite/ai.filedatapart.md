@@ -27,6 +27,7 @@ export interface FileDataPart
 |  [functionResponse](./ai.filedatapart.md#filedatapartfunctionresponse) | never |  |
 |  [inlineData](./ai.filedatapart.md#filedatapartinlinedata) | never |  |
 |  [text](./ai.filedatapart.md#filedataparttext) | never |  |
+|  [thought](./ai.filedatapart.md#filedatapartthought) | boolean |  |
 
 ## FileDataPart.fileData
 
@@ -66,4 +67,12 @@ inlineData?: never;
 
 ```typescript
 text?: never;
+```
+
+## FileDataPart.thought
+
+<b>Signature:</b>
+
+```typescript
+thought?: boolean;
 ```

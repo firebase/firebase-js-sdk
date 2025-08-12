@@ -298,6 +298,7 @@ export interface ThinkingConfig {
   /**
    * Whether to include "thought summaries" in the model's response.
    *
+   * @remarks
    * Thought summaries provide a brief overview of the model's internal thinking process,
    * offering insight into how it arrived at the final answer. This can be useful for
    * debugging, understanding the model's reasoning, and verifying its accuracy.

@@ -204,11 +204,9 @@ export { Date_2 as Date }
 
 // @public
 export interface EnhancedGenerateContentResponse extends GenerateContentResponse {
-    // (undocumented)
     functionCalls: () => FunctionCall[] | undefined;
     inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
-    // (undocumented)
     thoughtSummary: () => string | undefined;
 }
 
@@ -244,8 +242,6 @@ export interface FileDataPart {
     text?: never;
     // (undocumented)
     thought?: boolean;
-    // (undocumented)
-    thoughtSignature?: string;
 }
 
 // @public
@@ -302,8 +298,6 @@ export interface FunctionCallPart {
     text?: never;
     // (undocumented)
     thought?: boolean;
-    // (undocumented)
-    thoughtSignature?: string;
 }
 
 // @public
@@ -338,8 +332,6 @@ export interface FunctionResponsePart {
     text?: never;
     // (undocumented)
     thought?: boolean;
-    // (undocumented)
-    thoughtSignature?: string;
 }
 
 // @public
@@ -707,8 +699,6 @@ export interface InlineDataPart {
     text?: never;
     // (undocumented)
     thought?: boolean;
-    // (undocumented)
-    thoughtSignature?: string;
     videoMetadata?: VideoMetadata;
 }
 
@@ -977,8 +967,6 @@ export interface TextPart {
     text: string;
     // (undocumented)
     thought?: boolean;
-    // (undocumented)
-    thoughtSignature?: string;
 }
 
 // @public

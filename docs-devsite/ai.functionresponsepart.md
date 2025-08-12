@@ -26,6 +26,7 @@ export interface FunctionResponsePart
 |  [functionResponse](./ai.functionresponsepart.md#functionresponsepartfunctionresponse) | [FunctionResponse](./ai.functionresponse.md#functionresponse_interface) |  |
 |  [inlineData](./ai.functionresponsepart.md#functionresponsepartinlinedata) | never |  |
 |  [text](./ai.functionresponsepart.md#functionresponseparttext) | never |  |
+|  [thought](./ai.functionresponsepart.md#functionresponsepartthought) | boolean |  |
 
 ## FunctionResponsePart.functionCall
 
@@ -57,4 +58,12 @@ inlineData?: never;
 
 ```typescript
 text?: never;
+```
+
+## FunctionResponsePart.thought
+
+<b>Signature:</b>
+
+```typescript
+thought?: boolean;
 ```

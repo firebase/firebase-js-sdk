@@ -48,7 +48,6 @@ export interface TextPart {
   functionCall?: never;
   functionResponse?: never;
   thought?: boolean;
-  thoughtSignature?: string;
 }
 
 /**
@@ -65,7 +64,6 @@ export interface InlineDataPart {
    */
   videoMetadata?: VideoMetadata;
   thought?: boolean;
-  thoughtSignature?: string;
 }
 
 /**
@@ -95,7 +93,6 @@ export interface FunctionCallPart {
   functionCall: FunctionCall;
   functionResponse?: never;
   thought?: boolean;
-  thoughtSignature?: string;
 }
 
 /**
@@ -108,7 +105,6 @@ export interface FunctionResponsePart {
   functionCall?: never;
   functionResponse: FunctionResponse;
   thought?: boolean;
-  thoughtSignature?: string;
 }
 
 /**
@@ -122,7 +118,6 @@ export interface FileDataPart {
   functionResponse?: never;
   fileData: FileData;
   thought?: boolean;
-  thoughtSignature?: string;
 }
 
 /**
