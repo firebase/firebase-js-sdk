@@ -406,9 +406,11 @@ export class RealtimeHandler {
 
     const timeTillFetchSeconds = this.getRandomInt(4);
     const timeTillFetchInMiliseconds = timeTillFetchSeconds * 1000;
-    setTimeout(async () => {
-      await this.fetchLatestConfig(remainingAttempts, targetVersion);
-    }, timeTillFetchInMiliseconds);
+
+    await new Promise(resolve =>
+      setTimeout(resolve, timeTillFetchInMiliseconds)
+    );
+    await this.fetchLatestConfig(remainingAttempts, targetVersion);
   }
 
   private async handleNotifications(
@@ -633,9 +635,8 @@ export class RealtimeHandler {
     }
     if (this.httpRetriesRemaining > 0) {
       this.httpRetriesRemaining--;
-      setTimeout(async () => {
-        await this.beginRealtimeHttpStream();
-      }, delayMillis);
+      await new Promise(resolve => setTimeout(resolve, delayMillis));
+      await this.beginRealtimeHttpStream();
     } else if (!this.isInBackground) {
       const error = ERROR_FACTORY.create(ErrorCode.CONFIG_UPDATE_STREAM_ERROR, {
         originalErrorMessage:

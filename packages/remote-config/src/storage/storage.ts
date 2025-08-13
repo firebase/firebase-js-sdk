@@ -192,10 +192,6 @@ export abstract class Storage {
     return this.get<RealtimeBackoffMetadata>('realtime_backoff_metadata');
   }
 
-  getLastKnownTemplateVersion(): Promise<number | undefined> {
-    return this.get<number>('last_known_template_version');
-  }
-
   setRealtimeBackoffMetadata(
     realtimeMetadata: RealtimeBackoffMetadata
   ): Promise<void> {
@@ -203,6 +199,10 @@ export abstract class Storage {
       'realtime_backoff_metadata',
       realtimeMetadata
     );
+  }
+
+  getLastKnownTemplateVersion(): Promise<number | undefined> {
+    return this.get<number>('last_known_template_version');
   }
 
   setLastKnownTemplateVersion(version: number): Promise<void> {
