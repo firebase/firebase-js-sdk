@@ -23,7 +23,7 @@ import {
   LiveServerContent,
   LiveServerToolCall,
   LiveServerToolCallCancellation,
-  ResponseModality,
+  ResponseModality
 } from '../src';
 import { liveTestConfigs } from './constants';
 import { HELLO_AUDIO_PCM_BASE64 } from './sample-data/hello-audio';
@@ -177,12 +177,6 @@ describe('Live', function () {
         });
 
         it('should send multiple audio chunks in a single batch call', async () => {
-          // Sending more than one mediaChunk in a message to Google AI results in the server
-          // closing the WebSocket connection with 'Request Contains an Invalid Argument.'.
-          // Skip this test for Google AI.
-          if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
-            return;
-          }
           const model = getLiveGenerativeModel(testConfig.ai, {
             model: testConfig.model,
             generationConfig: textLiveGenerationConfig
@@ -241,7 +235,7 @@ describe('Live', function () {
        * These tests are currently very unreliable. Their behavior seems to change frequently.
        * Skipping them for now.
        */
-      /**
+      /*
       describe('function calling', () => {
         // When this tests runs against the Google AI backend, the first message we get back 
         // has an `executableCode` part, and then 

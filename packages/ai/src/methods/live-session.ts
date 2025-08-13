@@ -101,10 +101,14 @@ export class LiveSession {
       );
     }
 
-    const message: _LiveClientRealtimeInput = {
-      realtimeInput: { mediaChunks }
-    };
-    this.webSocketHandler.send(JSON.stringify(message));
+    // The backend does not support sending more than one mediaChunk in one message.
+    // Work around this limitation by sending mediaChunks in separate messages.
+    mediaChunks.forEach(mediaChunk => {
+      const message: _LiveClientRealtimeInput = {
+        realtimeInput: { mediaChunks: [mediaChunk] }
+      };
+      this.webSocketHandler.send(JSON.stringify(message));
+    });
   }
 
   /**
