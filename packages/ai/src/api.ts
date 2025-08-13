@@ -145,6 +145,8 @@ export function getImagenModel(
 /**
  * Returns a {@link LiveGenerativeModel} class for real-time, bidirectional communication.
  *
+ * The Live API is only supported in modern browser windows and Node >= 22.
+ *
  * @param ai - An {@link AI} instance.
  * @param modelParams - Parameters to use when setting up a {@link LiveSession}.
  * @throws If the `apiKey` or `projectId` fields are missing in your

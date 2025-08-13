@@ -21,7 +21,7 @@ The Firebase AI Web SDK.
 |  <b>function(ai, ...)</b> |
 |  [getGenerativeModel(ai, modelParams, requestOptions)](./ai.md#getgenerativemodel_80bd839) | Returns a [GenerativeModel](./ai.generativemodel.md#generativemodel_class) class with methods for inference and other functionality. |
 |  [getImagenModel(ai, modelParams, requestOptions)](./ai.md#getimagenmodel_e1f6645) | <b><i>(Public Preview)</i></b> Returns an [ImagenModel](./ai.imagenmodel.md#imagenmodel_class) class with methods for using Imagen.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported. |
-|  [getLiveGenerativeModel(ai, modelParams)](./ai.md#getlivegenerativemodel_f2099ac) | <b><i>(Public Preview)</i></b> Returns a [LiveGenerativeModel](./ai.livegenerativemodel.md#livegenerativemodel_class) class for real-time, bidirectional communication. |
+|  [getLiveGenerativeModel(ai, modelParams)](./ai.md#getlivegenerativemodel_f2099ac) | <b><i>(Public Preview)</i></b> Returns a [LiveGenerativeModel](./ai.livegenerativemodel.md#livegenerativemodel_class) class for real-time, bidirectional communication.<!-- -->The Live API is only supported in modern browser windows and Node &gt;<!-- -->= 22. |
 
 ## Classes
 
@@ -283,6 +283,8 @@ If the `apiKey` or `projectId` fields are missing in your Firebase config.
 > 
 
 Returns a [LiveGenerativeModel](./ai.livegenerativemodel.md#livegenerativemodel_class) class for real-time, bidirectional communication.
+
+The Live API is only supported in modern browser windows and Node &gt;<!-- -->= 22.
 
 <b>Signature:</b>
 
