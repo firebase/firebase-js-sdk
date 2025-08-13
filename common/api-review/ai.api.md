@@ -242,6 +242,8 @@ export interface FileDataPart {
     text?: never;
     // (undocumented)
     thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
 }
 
 // @public
@@ -298,6 +300,8 @@ export interface FunctionCallPart {
     text?: never;
     // (undocumented)
     thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
 }
 
 // @public
@@ -332,6 +336,8 @@ export interface FunctionResponsePart {
     text?: never;
     // (undocumented)
     thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
 }
 
 // @public
@@ -699,6 +705,8 @@ export interface InlineDataPart {
     text?: never;
     // (undocumented)
     thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
     videoMetadata?: VideoMetadata;
 }
 
@@ -967,6 +975,8 @@ export interface TextPart {
     text: string;
     // (undocumented)
     thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: string;
 }
 
 // @public
