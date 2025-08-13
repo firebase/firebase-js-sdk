@@ -22,7 +22,7 @@ import { AI } from '../public-types';
 import { LiveSession } from '../methods/live-session';
 import { WebSocketHandler } from '../platform/websocket';
 import { GoogleAIBackend } from '../backend';
-import { LiveGenerativeModel } from './live-model';
+import { LiveGenerativeModel } from './live-generative-model';
 import { AIError } from '../errors';
 
 use(sinonChai);

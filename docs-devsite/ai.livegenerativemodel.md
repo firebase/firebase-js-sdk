@@ -30,7 +30,6 @@ export declare class LiveGenerativeModel extends AIModel
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [\_webSocketHandler](./ai.livegenerativemodel.md#livegenerativemodel_websockethandler) |  | WebSocketHandler | <b><i>(Public Preview)</i></b> |
 |  [generationConfig](./ai.livegenerativemodel.md#livegenerativemodelgenerationconfig) |  | [LiveGenerationConfig](./ai.livegenerationconfig.md#livegenerationconfig_interface) | <b><i>(Public Preview)</i></b> |
 |  [systemInstruction](./ai.livegenerativemodel.md#livegenerativemodelsysteminstruction) |  | [Content](./ai.content.md#content_interface) | <b><i>(Public Preview)</i></b> |
 |  [toolConfig](./ai.livegenerativemodel.md#livegenerativemodeltoolconfig) |  | [ToolConfig](./ai.toolconfig.md#toolconfig_interface) | <b><i>(Public Preview)</i></b> |
@@ -41,17 +40,6 @@ export declare class LiveGenerativeModel extends AIModel
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [connect()](./ai.livegenerativemodel.md#livegenerativemodelconnect) |  | <b><i>(Public Preview)</i></b> Starts a [LiveSession](./ai.livesession.md#livesession_class)<!-- -->. |
-
-## LiveGenerativeModel.\_webSocketHandler
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-<b>Signature:</b>
-
-```typescript
-_webSocketHandler: WebSocketHandler;
-```
 
 ## LiveGenerativeModel.generationConfig
 

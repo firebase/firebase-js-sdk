@@ -368,10 +368,14 @@ export interface ThinkingConfig {
  *
  * @internal
  */
-export interface LiveClientSetup {
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export interface _LiveClientSetup {
   setup: {
     model: string;
     generationConfig?: LiveGenerationConfig;
+    tools?: Tool[];
+    toolConfig?: ToolConfig;
+    systemInstruction?: string | Part | Content;
   };
 }
 
@@ -380,7 +384,8 @@ export interface LiveClientSetup {
  *
  * @internal
  */
-export interface LiveClientRealtimeInput {
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export interface _LiveClientRealtimeInput {
   realtimeInput: {
     mediaChunks: GenerativeContentBlob[];
   };
@@ -391,7 +396,8 @@ export interface LiveClientRealtimeInput {
  *
  * @internal
  */
-export interface LiveClientContent {
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export interface _LiveClientContent {
   clientContent: {
     turns: [Content];
     turnComplete: boolean;

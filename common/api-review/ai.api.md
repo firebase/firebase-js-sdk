@@ -705,10 +705,8 @@ export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
 
-// Warning: (ae-internal-missing-underscore) The name "LiveClientContent" should be prefixed with an underscore because the declaration is marked as @internal
-//
 // @internal
-export interface LiveClientContent {
+export interface _LiveClientContent {
     // (undocumented)
     clientContent: {
         turns: [Content];
@@ -716,24 +714,23 @@ export interface LiveClientContent {
     };
 }
 
-// Warning: (ae-internal-missing-underscore) The name "LiveClientRealtimeInput" should be prefixed with an underscore because the declaration is marked as @internal
-//
 // @internal
-export interface LiveClientRealtimeInput {
+export interface _LiveClientRealtimeInput {
     // (undocumented)
     realtimeInput: {
         mediaChunks: GenerativeContentBlob[];
     };
 }
 
-// Warning: (ae-internal-missing-underscore) The name "LiveClientSetup" should be prefixed with an underscore because the declaration is marked as @internal
-//
 // @internal
-export interface LiveClientSetup {
+export interface _LiveClientSetup {
     // (undocumented)
     setup: {
         model: string;
         generationConfig?: LiveGenerationConfig;
+        tools?: Tool[];
+        toolConfig?: ToolConfig;
+        systemInstruction?: string | Part | Content;
     };
 }
 
@@ -752,8 +749,11 @@ export interface LiveGenerationConfig {
 
 // @beta
 export class LiveGenerativeModel extends AIModel {
+    // Warning: (ae-forgotten-export) The symbol "WebSocketHandler" needs to be exported by the entry point index.d.ts
+    //
     // @internal
-    constructor(ai: AI, modelParams: LiveModelParams, _webSocketHandler: WebSocketHandler);
+    constructor(ai: AI, modelParams: LiveModelParams,
+    _webSocketHandler: WebSocketHandler);
     connect(): Promise<LiveSession>;
     // (undocumented)
     generationConfig: LiveGenerationConfig;
@@ -763,11 +763,7 @@ export class LiveGenerativeModel extends AIModel {
     toolConfig?: ToolConfig;
     // (undocumented)
     tools?: Tool[];
-    // Warning: (ae-forgotten-export) The symbol "WebSocketHandler" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    _webSocketHandler: WebSocketHandler;
-}
+    }
 
 // @beta
 export interface LiveModelParams {

@@ -26,7 +26,8 @@ import {
   LiveGenerationConfig,
   LiveModelParams,
   Tool,
-  ToolConfig
+  ToolConfig,
+  _LiveClientSetup
 } from '../public-types';
 import { WebSocketHandler } from '../platform/websocket';
 import { WebSocketUrl } from '../requests/request';
@@ -52,7 +53,10 @@ export class LiveGenerativeModel extends AIModel {
   constructor(
     ai: AI,
     modelParams: LiveModelParams,
-    public _webSocketHandler: WebSocketHandler
+    /**
+     * @internal
+     */
+    private _webSocketHandler: WebSocketHandler
   ) {
     super(ai, modelParams.model);
     this.generationConfig = modelParams.generationConfig || {};
@@ -82,11 +86,12 @@ export class LiveGenerativeModel extends AIModel {
       fullModelPath = `projects/${this._apiSettings.project}/locations/${this._apiSettings.location}/${this.model}`;
     }
 
-    const setupMessage = {
+    const setupMessage: _LiveClientSetup = {
       setup: {
         model: fullModelPath,
         generationConfig: this.generationConfig,
         tools: this.tools,
+        toolConfig: this.toolConfig,
         systemInstruction: this.systemInstruction
       }
     };

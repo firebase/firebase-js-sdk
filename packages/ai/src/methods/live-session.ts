@@ -18,8 +18,8 @@
 import {
   AIErrorCode,
   GenerativeContentBlob,
-  LiveClientContent,
-  LiveClientRealtimeInput,
+  _LiveClientContent,
+  _LiveClientRealtimeInput,
   LiveResponseType,
   LiveServerContent,
   LiveServerToolCall,
@@ -76,7 +76,7 @@ export class LiveSession {
 
     const newContent = formatNewContent(request);
 
-    const message: LiveClientContent = {
+    const message: _LiveClientContent = {
       clientContent: {
         turns: [newContent],
         turnComplete
@@ -101,7 +101,7 @@ export class LiveSession {
       );
     }
 
-    const message: LiveClientRealtimeInput = {
+    const message: _LiveClientRealtimeInput = {
       realtimeInput: { mediaChunks }
     };
     this.webSocketHandler.send(JSON.stringify(message));
