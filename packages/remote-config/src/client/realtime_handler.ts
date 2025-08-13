@@ -99,7 +99,7 @@ export class RealtimeHandler {
     const numFailedStreams =
       ((await this.storage.getRealtimeBackoffMetadata())?.numFailedStreams ||
         0) + 1;
-    const backoffMillis = calculateBackoffMillis(numFailedStreams) * 60;
+    const backoffMillis = calculateBackoffMillis(numFailedStreams, 60000, 2);
     await this.storage.setRealtimeBackoffMetadata({
       backoffEndTimeMillis: new Date(
         lastFailedStreamTime.getTime() + backoffMillis
@@ -142,6 +142,7 @@ export class RealtimeHandler {
    * and canceling the stream reader if they exist.
    */
   private closeRealtimeHttpConnection(): void {
+    // Aborting only when the controller is not null and tab is in foreground.
     if (this.controller && !this.isInBackground) {
       this.controller.abort();
       this.controller = undefined;
@@ -269,7 +270,7 @@ export class RealtimeHandler {
     if (fetchResponse.config != null && fetchResponse.templateVersion) {
       return fetchResponse.templateVersion >= lastKnownVersion;
     }
-    return false;
+    return this.storageCache.getLastFetchStatus() === 'success' ;
   }
 
   private parseAndValidateConfigUpdateMessage(message: string): string {
@@ -336,10 +337,11 @@ export class RealtimeHandler {
         `Fetching config with custom signals: ${JSON.stringify(customSignals)}`
       );
     }
+    const abortSignal =new RemoteConfigAbortSignal();
     try {
       const fetchRequest: FetchRequest = {
         cacheMaxAgeMillis: 0,
-        signal: new RemoteConfigAbortSignal(),
+        signal: abortSignal,
         customSignals: customSignals,
         fetchType: 'REALTIME',
         fetchAttempt: currentAttempt
@@ -409,10 +411,11 @@ export class RealtimeHandler {
       return;
     }
 
-    const timeTillFetch = this.getRandomInt(4);
+    const timeTillFetchSeconds = this.getRandomInt(4);
+    const timeTillFetchInMiliseconds = timeTillFetchSeconds * 1000;
     setTimeout(async () => {
       await this.fetchLatestConfig(remainingAttempts, targetVersion);
-    }, timeTillFetch);
+    }, timeTillFetchInMiliseconds);
   }
 
   private async handleNotifications(
