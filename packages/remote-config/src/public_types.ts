@@ -52,6 +52,8 @@ export interface RemoteConfig {
 
 /**
  * Defines a self-descriptive reference for config key-value pairs.
+ *
+ *  @public
  */
 export interface FirebaseRemoteConfigObject {
   [key: string]: string;
@@ -62,6 +64,8 @@ export interface FirebaseRemoteConfigObject {
  *
  * <p>Modeled after the native `Response` interface, but simplified for Remote Config's
  * use case.
+ *
+ * @public
  */
 export interface FetchResponse {
   /**

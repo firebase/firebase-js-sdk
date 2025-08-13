@@ -120,7 +120,7 @@ export class RealtimeHandler {
       backoffEndTimeMillis: backoffEndTime,
       numFailedStreams
     });
-    this.retryHttpConnectionWhenBackoffEnds();
+    await this.retryHttpConnectionWhenBackoffEnds();
   }
 
   /**
@@ -270,7 +270,7 @@ export class RealtimeHandler {
     if (fetchResponse.config != null && fetchResponse.templateVersion) {
       return fetchResponse.templateVersion >= lastKnownVersion;
     }
-    return this.storageCache.getLastFetchStatus() === 'success' ;
+    return this.storageCache.getLastFetchStatus() === 'success';
   }
 
   private parseAndValidateConfigUpdateMessage(message: string): string {
@@ -299,30 +299,23 @@ export class RealtimeHandler {
     newConfig: FirebaseRemoteConfigObject,
     oldConfig: FirebaseRemoteConfigObject
   ): Set<string> {
-    const changed = new Set<string>();
+    const changedKeys = new Set<string>();
     const newKeys = new Set(Object.keys(newConfig || {}));
     const oldKeys = new Set(Object.keys(oldConfig || {}));
 
     for (const key of newKeys) {
-      if (!oldKeys.has(key)) {
-        changed.add(key);
-        continue;
-      }
-      if (
-        JSON.stringify((newConfig as any)[key]) !==
-        JSON.stringify((oldConfig as any)[key])
-      ) {
-        changed.add(key);
-        continue;
+      if (!oldKeys.has(key) || newConfig[key] !== oldConfig[key]) {
+        changedKeys.add(key);
       }
     }
 
     for (const key of oldKeys) {
       if (!newKeys.has(key)) {
-        changed.add(key);
+        changedKeys.add(key);
       }
     }
-    return changed;
+
+    return changedKeys;
   }
 
   private async fetchLatestConfig(
@@ -337,12 +330,12 @@ export class RealtimeHandler {
         `Fetching config with custom signals: ${JSON.stringify(customSignals)}`
       );
     }
-    const abortSignal =new RemoteConfigAbortSignal();
+    const abortSignal = new RemoteConfigAbortSignal();
     try {
       const fetchRequest: FetchRequest = {
         cacheMaxAgeMillis: 0,
         signal: abortSignal,
-        customSignals: customSignals,
+        customSignals,
         fetchType: 'REALTIME',
         fetchAttempt: currentAttempt
       };
@@ -471,7 +464,7 @@ export class RealtimeHandler {
           if (TEMPLATE_VERSION_KEY in jsonObject) {
             const oldTemplateVersion =
               await this.storage.getLastKnownTemplateVersion();
-            let targetTemplateVersion = Number(
+            const targetTemplateVersion = Number(
               jsonObject[TEMPLATE_VERSION_KEY]
             );
             if (
@@ -497,11 +490,12 @@ export class RealtimeHandler {
               retryIntervalSeconds
             );
           }
-        } catch (e: any) {
+        } catch (e: unknown) {
           this.logger.error('Unable to parse latest config update message.', e);
+          const errorMessage = e instanceof Error ? e.message : String(e);
           this.propagateError(
             ERROR_FACTORY.create(ErrorCode.CONFIG_UPDATE_MESSAGE_INVALID, {
-              originalErrorMessage: e
+              originalErrorMessage: errorMessage
             })
           );
         }
@@ -510,7 +504,7 @@ export class RealtimeHandler {
     }
   }
 
-  public async listenForNotifications(
+  private async listenForNotifications(
     reader: ReadableStreamDefaultReader
   ): Promise<void> {
     try {
@@ -521,15 +515,14 @@ export class RealtimeHandler {
       if (!this.isInBackground) {
         // Otherwise, the real-time server connection was closed due to a transient issue.
         this.logger.debug(
-          'Real-time connection was closed due to an exception.',
-          e
+          'Real-time connection was closed due to an exception.'
         );
       }
     } finally {
       // Only need to close the reader, beginRealtimeHttpStream will disconnect
       // the connection
       if (this.reader) {
-        this.reader.cancel();
+        void this.reader.cancel();
         this.reader = undefined;
       }
     }

@@ -26,6 +26,7 @@ import {
   FetchRequest,
   RemoteConfigAbortSignal
 } from '../../src/client/remote_config_fetch_client';
+import { Storage } from '../../src/storage/storage';
 
 const DEFAULT_REQUEST: FetchRequest = {
   cacheMaxAgeMillis: 1,
@@ -34,6 +35,7 @@ const DEFAULT_REQUEST: FetchRequest = {
 
 describe('RestClient', () => {
   const firebaseInstallations = {} as FirebaseInstallations;
+  const storage = {} as Storage;
   let client: RestClient;
 
   beforeEach(() => {
@@ -43,7 +45,8 @@ describe('RestClient', () => {
       'namespace',
       'project-id',
       'api-key',
-      'app-id'
+      'app-id',
+      storage
     );
     firebaseInstallations.getId = sinon
       .stub()
@@ -51,6 +54,7 @@ describe('RestClient', () => {
     firebaseInstallations.getToken = sinon
       .stub()
       .returns(Promise.resolve('fis-token'));
+    storage.setLastKnownTemplateVersion = sinon.stub();
   });
 
   describe('fetch', () => {
@@ -74,7 +78,8 @@ describe('RestClient', () => {
         status: 200,
         eTag: 'etag',
         state: 'UPDATE',
-        entries: { color: 'sparkling' }
+        entries: { color: 'sparkling' },
+        templateVersion: 1
       };
 
       fetchStub.returns(
@@ -85,7 +90,8 @@ describe('RestClient', () => {
           json: () =>
             Promise.resolve({
               entries: expectedResponse.entries,
-              state: expectedResponse.state
+              state: expectedResponse.state,
+              templateVersion: expectedResponse.templateVersion
             })
         } as Response)
       );
@@ -95,7 +101,8 @@ describe('RestClient', () => {
       expect(response).to.deep.eq({
         status: expectedResponse.status,
         eTag: expectedResponse.eTag,
-        config: expectedResponse.entries
+        config: expectedResponse.entries,
+        templateVersion: expectedResponse.templateVersion
       });
     });
 
@@ -184,7 +191,8 @@ describe('RestClient', () => {
       expect(response).to.deep.eq({
         status: 304,
         eTag: 'response-etag',
-        config: undefined
+        config: undefined,
+        templateVersion: undefined
       });
     });
 
@@ -222,7 +230,8 @@ describe('RestClient', () => {
       expect(response).to.deep.eq({
         status: 304,
         eTag: 'etag',
-        config: undefined
+        config: undefined,
+        templateVersion: undefined
       });
     });
 
@@ -239,7 +248,8 @@ describe('RestClient', () => {
         await expect(client.fetch(DEFAULT_REQUEST)).to.eventually.be.deep.eq({
           status: 200,
           eTag: 'etag',
-          config: {}
+          config: {},
+          templateVersion: undefined
         });
       }
     });

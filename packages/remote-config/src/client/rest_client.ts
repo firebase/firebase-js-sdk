@@ -163,8 +163,8 @@ export class RestClient implements RemoteConfigFetchClient {
       state = responseBody['state'];
       templateVersion = responseBody['templateVersion'];
 
-      if (templateVersion != undefined) {
-        this.storage.setLastKnownTemplateVersion(templateVersion);
+      if (templateVersion !== undefined) {
+        await this.storage.setLastKnownTemplateVersion(templateVersion);
       }
     }
 

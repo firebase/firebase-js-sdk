@@ -53,6 +53,7 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 |  Type Alias | Description |
 |  --- | --- |
 |  [FetchStatus](./remote-config.md#fetchstatus) | Summarizes the outcome of the last attempt to fetch config from the Firebase Remote Config server.<ul> <li>"no-fetch-yet" indicates the [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) instance has not yet attempted to fetch config, or that SDK initialization is incomplete.</li> <li>"success" indicates the last attempt succeeded.</li> <li>"failure" indicates the last attempt failed.</li> <li>"throttle" indicates the last attempt was rate-limited.</li> </ul> |
+|  [FetchType](./remote-config.md#fetchtype) | Indicates the type of fetch request.<ul> <li>"BASE" indicates a standard fetch request.</li> <li>"REALTIME" indicates a fetch request triggered by a real-time update.</li> </ul> |
 |  [LogLevel](./remote-config.md#loglevel) | Defines levels of Remote Config logging. |
 |  [Unsubscribe](./remote-config.md#unsubscribe) | A function that unsubscribes from a real-time event stream. |
 |  [ValueSource](./remote-config.md#valuesource) | Indicates the source of a value.<ul> <li>"static" indicates the value was defined by a static constant.</li> <li>"default" indicates the value was defined by default config.</li> <li>"remote" indicates the value was defined by fetched config.</li> </ul> |
@@ -382,6 +383,18 @@ Summarizes the outcome of the last attempt to fetch config from the Firebase Rem
 
 ```typescript
 export type FetchStatus = 'no-fetch-yet' | 'success' | 'failure' | 'throttle';
+```
+
+## FetchType
+
+Indicates the type of fetch request.
+
+<ul> <li>"BASE" indicates a standard fetch request.</li> <li>"REALTIME" indicates a fetch request triggered by a real-time update.</li> </ul>
+
+<b>Signature:</b>
+
+```typescript
+export type FetchType = 'BASE' | 'REALTIME';
 ```
 
 ## LogLevel
