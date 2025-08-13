@@ -134,7 +134,12 @@ export class BrowserWebSocketHandler implements WebSocketHandler {
       }
     };
 
-    const closeListener = (): void => {
+    const closeListener = (event: CloseEvent): void => {
+      if (event.reason) {
+        logger.warn(
+          `WebSocket connection closed by the server with reason: ${event.reason}`
+        );
+      }
       isClosed = true;
       if (resolvePromise) {
         resolvePromise();
