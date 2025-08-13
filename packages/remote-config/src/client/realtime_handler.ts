@@ -17,17 +17,32 @@
 
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { Logger } from '@firebase/logger';
-import { ConfigUpdateObserver } from '../public_types';
+import {
+  ConfigUpdate,
+  ConfigUpdateObserver,
+  FetchResponse,
+  FirebaseRemoteConfigObject
+} from '../public_types';
 import { calculateBackoffMillis, FirebaseError } from '@firebase/util';
 import { ERROR_FACTORY, ErrorCode } from '../errors';
 import { Storage } from '../storage/storage';
 import { VisibilityMonitor } from './visibility_monitor';
+import { StorageCache } from '../storage/storage_cache';
+import {
+  FetchRequest,
+  RemoteConfigAbortSignal
+} from './remote_config_fetch_client';
+import { RestClient } from './rest_client';
 
 const API_KEY_HEADER = 'X-Goog-Api-Key';
 const INSTALLATIONS_AUTH_TOKEN_HEADER = 'X-Goog-Firebase-Installations-Auth';
 const ORIGINAL_RETRIES = 8;
+const MAXIMUM_FETCH_ATTEMPTS = 3;
 const NO_BACKOFF_TIME_IN_MILLIS = -1;
 const NO_FAILED_REALTIME_STREAMS = 0;
+const REALTIME_DISABLED_KEY = 'featureDisabled';
+const REALTIME_RETRY_INTERVAL = 'retryIntervalSeconds';
+const TEMPLATE_VERSION_KEY = 'latestTemplateVersionNumber';
 
 export class RealtimeHandler {
   constructor(
@@ -38,7 +53,9 @@ export class RealtimeHandler {
     private readonly projectId: string,
     private readonly apiKey: string,
     private readonly appId: string,
-    private readonly logger: Logger
+    private readonly logger: Logger,
+    private readonly storageCache: StorageCache,
+    private readonly restClient: RestClient
   ) {
     void this.setRetriesRemaining();
     void VisibilityMonitor.getInstance().on(
@@ -56,6 +73,7 @@ export class RealtimeHandler {
   private reader: ReadableStreamDefaultReader | undefined;
   private httpRetriesRemaining: number = ORIGINAL_RETRIES;
   private isInBackground: boolean = false;
+  private readonly decoder = new TextDecoder('utf-8');
 
   private async setRetriesRemaining(): Promise<void> {
     // Retrieve number of remaining retries from last session. The minimum retry count being one.
@@ -88,6 +106,21 @@ export class RealtimeHandler {
       ),
       numFailedStreams
     });
+  }
+
+  private async updateBackoffMetadataWithRetryInterval(
+    retryIntervalSeconds: number
+  ): Promise<void> {
+    const currentTime = Date.now();
+    const backoffDurationInMillis = retryIntervalSeconds * 1000;
+    const backoffEndTime = new Date(currentTime + backoffDurationInMillis);
+    const numFailedStreams =
+      (await this.storage.getRealtimeBackoffMetadata())?.numFailedStreams || 0;
+    await this.storage.setRealtimeBackoffMetadata({
+      backoffEndTimeMillis: backoffEndTime,
+      numFailedStreams
+    });
+    this.retryHttpConnectionWhenBackoffEnds();
   }
 
   /**
@@ -229,6 +262,276 @@ export class RealtimeHandler {
     return canMakeConnection;
   }
 
+  private fetchResponseIsUpToDate(
+    fetchResponse: FetchResponse,
+    lastKnownVersion: number
+  ): boolean {
+    if (fetchResponse.config != null && fetchResponse.templateVersion) {
+      return fetchResponse.templateVersion >= lastKnownVersion;
+    }
+    return false;
+  }
+
+  private parseAndValidateConfigUpdateMessage(message: string): string {
+    const left = message.indexOf('{');
+    const right = message.indexOf('}', left);
+
+    if (left < 0 || right < 0) {
+      return '';
+    }
+    return left >= right ? '' : message.substring(left, right + 1);
+  }
+
+  private isEventListenersEmpty(): boolean {
+    return this.observers.size === 0;
+  }
+
+  private getRandomInt(max: number): number {
+    return Math.floor(Math.random() * max);
+  }
+
+  private executeAllListenerCallbacks(configUpdate: ConfigUpdate): void {
+    this.observers.forEach(observer => observer.next(configUpdate));
+  }
+
+  private getChangedParams(
+    newConfig: FirebaseRemoteConfigObject,
+    oldConfig: FirebaseRemoteConfigObject
+  ): Set<string> {
+    const changed = new Set<string>();
+    const newKeys = new Set(Object.keys(newConfig || {}));
+    const oldKeys = new Set(Object.keys(oldConfig || {}));
+
+    for (const key of newKeys) {
+      if (!oldKeys.has(key)) {
+        changed.add(key);
+        continue;
+      }
+      if (
+        JSON.stringify((newConfig as any)[key]) !==
+        JSON.stringify((oldConfig as any)[key])
+      ) {
+        changed.add(key);
+        continue;
+      }
+    }
+
+    for (const key of oldKeys) {
+      if (!newKeys.has(key)) {
+        changed.add(key);
+      }
+    }
+    return changed;
+  }
+
+  private async fetchLatestConfig(
+    remainingAttempts: number,
+    targetVersion: number
+  ): Promise<void> {
+    const remainingAttemptsAfterFetch = remainingAttempts - 1;
+    const currentAttempt = MAXIMUM_FETCH_ATTEMPTS - remainingAttemptsAfterFetch;
+    const customSignals = this.storageCache.getCustomSignals();
+    if (customSignals) {
+      this.logger.debug(
+        `Fetching config with custom signals: ${JSON.stringify(customSignals)}`
+      );
+    }
+    try {
+      const fetchRequest: FetchRequest = {
+        cacheMaxAgeMillis: 0,
+        signal: new RemoteConfigAbortSignal(),
+        customSignals: customSignals,
+        fetchType: 'REALTIME',
+        fetchAttempt: currentAttempt
+      };
+
+      const fetchResponse: FetchResponse = await this.restClient.fetch(
+        fetchRequest
+      );
+      let activatedConfigs = await this.storage.getActiveConfig();
+
+      if (!this.fetchResponseIsUpToDate(fetchResponse, targetVersion)) {
+        this.logger.debug(
+          "Fetched template version is the same as SDK's current version." +
+            ' Retrying fetch.'
+        );
+        // Continue fetching until template version number is greater than current.
+        await this.autoFetch(remainingAttemptsAfterFetch, targetVersion);
+        return;
+      }
+
+      if (fetchResponse.config == null) {
+        this.logger.debug(
+          'The fetch succeeded, but the backend had no updates.'
+        );
+        return;
+      }
+
+      if (activatedConfigs == null) {
+        activatedConfigs = {};
+      }
+
+      const updatedKeys = this.getChangedParams(
+        fetchResponse.config,
+        activatedConfigs
+      );
+
+      if (updatedKeys.size === 0) {
+        this.logger.debug('Config was fetched, but no params changed.');
+        return;
+      }
+
+      const configUpdate: ConfigUpdate = {
+        getUpdatedKeys(): Set<string> {
+          return new Set(updatedKeys);
+        }
+      };
+      this.executeAllListenerCallbacks(configUpdate);
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      const error = ERROR_FACTORY.create(ErrorCode.CONFIG_UPDATE_NOT_FETCHED, {
+        originalErrorMessage: `Failed to auto-fetch config update: ${errorMessage}`
+      });
+      this.propagateError(error);
+    }
+  }
+
+  private async autoFetch(
+    remainingAttempts: number,
+    targetVersion: number
+  ): Promise<void> {
+    if (remainingAttempts === 0) {
+      const error = ERROR_FACTORY.create(ErrorCode.CONFIG_UPDATE_NOT_FETCHED, {
+        originalErrorMessage:
+          'Unable to fetch the latest version of the template.'
+      });
+      this.propagateError(error);
+      return;
+    }
+
+    const timeTillFetch = this.getRandomInt(4);
+    setTimeout(async () => {
+      await this.fetchLatestConfig(remainingAttempts, targetVersion);
+    }, timeTillFetch);
+  }
+
+  private async handleNotifications(
+    reader: ReadableStreamDefaultReader
+  ): Promise<void> {
+    if (reader == null) {
+      return;
+    }
+
+    let partialConfigUpdateMessage: string;
+    let currentConfigUpdateMessage = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        break;
+      }
+
+      partialConfigUpdateMessage = this.decoder.decode(value, { stream: true });
+      currentConfigUpdateMessage += partialConfigUpdateMessage;
+
+      if (partialConfigUpdateMessage.includes('}')) {
+        currentConfigUpdateMessage = this.parseAndValidateConfigUpdateMessage(
+          currentConfigUpdateMessage
+        );
+
+        if (currentConfigUpdateMessage.length === 0) {
+          continue;
+        }
+
+        try {
+          const jsonObject = JSON.parse(currentConfigUpdateMessage);
+
+          if (this.isEventListenersEmpty()) {
+            break;
+          }
+
+          if (
+            REALTIME_DISABLED_KEY in jsonObject &&
+            jsonObject[REALTIME_DISABLED_KEY] === true
+          ) {
+            const error = ERROR_FACTORY.create(
+              ErrorCode.CONFIG_UPDATE_UNAVAILABLE,
+              {
+                originalErrorMessage:
+                  'The server is temporarily unavailable. Try again in a few minutes.'
+              }
+            );
+            this.propagateError(error);
+            break;
+          }
+
+          if (TEMPLATE_VERSION_KEY in jsonObject) {
+            const oldTemplateVersion =
+              await this.storage.getLastKnownTemplateVersion();
+            let targetTemplateVersion = Number(
+              jsonObject[TEMPLATE_VERSION_KEY]
+            );
+            if (
+              oldTemplateVersion &&
+              targetTemplateVersion > oldTemplateVersion
+            ) {
+              await this.autoFetch(
+                MAXIMUM_FETCH_ATTEMPTS,
+                targetTemplateVersion
+              );
+            }
+          }
+
+          // This field in the response indicates that the realtime request should retry after the
+          // specified interval to establish a long-lived connection. This interval extends the
+          // backoff duration without affecting the number of retries, so it will not enter an
+          // exponential backoff state.
+          if (REALTIME_RETRY_INTERVAL in jsonObject) {
+            const retryIntervalSeconds = Number(
+              jsonObject[REALTIME_RETRY_INTERVAL]
+            );
+            await this.updateBackoffMetadataWithRetryInterval(
+              retryIntervalSeconds
+            );
+          }
+        } catch (e: any) {
+          this.logger.error('Unable to parse latest config update message.', e);
+          this.propagateError(
+            ERROR_FACTORY.create(ErrorCode.CONFIG_UPDATE_MESSAGE_INVALID, {
+              originalErrorMessage: e
+            })
+          );
+        }
+        currentConfigUpdateMessage = '';
+      }
+    }
+  }
+
+  public async listenForNotifications(
+    reader: ReadableStreamDefaultReader
+  ): Promise<void> {
+    try {
+      await this.handleNotifications(reader);
+    } catch (e) {
+      // If the real-time connection is at an unexpected lifecycle state when the app is
+      // backgrounded, it's expected closing the connection and will throw an exception.
+      if (!this.isInBackground) {
+        // Otherwise, the real-time server connection was closed due to a transient issue.
+        this.logger.debug(
+          'Real-time connection was closed due to an exception.',
+          e
+        );
+      }
+    } finally {
+      // Only need to close the reader, beginRealtimeHttpStream will disconnect
+      // the connection
+      if (this.reader) {
+        this.reader.cancel();
+        this.reader = undefined;
+      }
+    }
+  }
+
   /**
    * Open the real-time connection, begin listening for updates, and auto-fetch when an update is
    * received.
@@ -263,8 +566,9 @@ export class RealtimeHandler {
       if (response.ok && response.body) {
         this.resetRetryCount();
         await this.resetRealtimeBackoff();
-        //const configAutoFetch = this.startAutoFetch(reader);
-        //await configAutoFetch.listenForNotifications();
+        const reader = response.body.getReader();
+        // Start listening for realtime notifications.
+        await this.listenForNotifications(reader);
       }
     } catch (error) {
       if (this.isInBackground) {

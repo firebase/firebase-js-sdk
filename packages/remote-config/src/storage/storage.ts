@@ -204,6 +204,10 @@ export abstract class Storage {
       realtimeMetadata
     );
   }
+
+  setLastKnownTemplateVersion(version: number): Promise<void> {
+    return this.set<number>('last_known_template_version', version);
+  }
 }
 
 export class IndexedDbStorage extends Storage {

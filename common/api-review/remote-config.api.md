@@ -42,10 +42,14 @@ export interface FetchResponse {
     config?: FirebaseRemoteConfigObject;
     eTag?: string;
     status: number;
+    templateVersion?: number;
 }
 
 // @public
 export type FetchStatus = 'no-fetch-yet' | 'success' | 'failure' | 'throttle';
+
+// @public
+export type FetchType = 'BASE' | 'REALTIME';
 
 // @public
 export interface FirebaseRemoteConfigObject {

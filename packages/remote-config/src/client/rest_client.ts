@@ -27,6 +27,7 @@ import {
 import { ERROR_FACTORY, ErrorCode } from '../errors';
 import { getUserLanguage } from '../language';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
+import { Storage } from '../storage/storage';
 
 /**
  * Defines request body parameters required to call the fetch API:
@@ -58,7 +59,8 @@ export class RestClient implements RemoteConfigFetchClient {
     private readonly namespace: string,
     private readonly projectId: string,
     private readonly apiKey: string,
-    private readonly appId: string
+    private readonly appId: string,
+    private readonly storage: Storage
   ) {}
 
   /**
@@ -82,12 +84,16 @@ export class RestClient implements RemoteConfigFetchClient {
 
     const url = `${urlBase}/v1/projects/${this.projectId}/namespaces/${this.namespace}:fetch?key=${this.apiKey}`;
 
+    const fetchType = request.fetchType || 'BASE';
+    const fetchAttempt = request.fetchAttempt || 0;
+
     const headers = {
       'Content-Type': 'application/json',
       'Content-Encoding': 'gzip',
       // Deviates from pure decorator by not passing max-age header since we don't currently have
       // service behavior using that header.
-      'If-None-Match': request.eTag || '*'
+      'If-None-Match': request.eTag || '*',
+      'X_FIREBASE_RC_FETCH_TYPE': `${fetchType}/${fetchAttempt}`
     };
 
     const requestBody: FetchRequestBody = {
@@ -140,6 +146,7 @@ export class RestClient implements RemoteConfigFetchClient {
 
     let config: FirebaseRemoteConfigObject | undefined;
     let state: string | undefined;
+    let templateVersion: number | undefined;
 
     // JSON parsing throws SyntaxError if the response body isn't a JSON string.
     // Requesting application/json and checking for a 200 ensures there's JSON data.
@@ -154,6 +161,11 @@ export class RestClient implements RemoteConfigFetchClient {
       }
       config = responseBody['entries'];
       state = responseBody['state'];
+      templateVersion = responseBody['templateVersion'];
+
+      if (templateVersion != undefined) {
+        this.storage.setLastKnownTemplateVersion(templateVersion);
+      }
     }
 
     // Normalizes based on legacy state.
@@ -176,6 +188,6 @@ export class RestClient implements RemoteConfigFetchClient {
       });
     }
 
-    return { status, eTag: responseEtag, config };
+    return { status, eTag: responseEtag, config, templateVersion };
   }
 }
