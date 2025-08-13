@@ -245,18 +245,27 @@ export function httpsCallableFromURL<
   return callable as HttpsCallable<RequestData, ResponseData, StreamData>;
 }
 
+function getCredentials(functionsInstance: FunctionsService) {
+  return functionsInstance.emulatorOrigin &&
+    isCloudWorkstation(functionsInstance.emulatorOrigin)
+    ? 'include'
+    : undefined;
+}
+
 /**
  * Does an HTTP POST and returns the completed response.
  * @param url The url to post to.
  * @param body The JSON body of the post.
  * @param headers The HTTP headers to include in the request.
+ * @param functionsInstance functions instance that is calling postJSON
  * @return A Promise that will succeed when the request finishes.
  */
 async function postJSON(
   url: string,
   body: unknown,
   headers: { [key: string]: string },
-  fetchImpl: typeof fetch
+  fetchImpl: typeof fetch,
+  functionsInstance: FunctionsService
 ): Promise<HttpResponse> {
   headers['Content-Type'] = 'application/json';
 
@@ -265,7 +274,8 @@ async function postJSON(
     response = await fetchImpl(url, {
       method: 'POST',
       body: JSON.stringify(body),
-      headers
+      headers,
+      credentials: getCredentials(functionsInstance)
     });
   } catch (e) {
     // This could be an unhandled error on the backend, or it could be a
@@ -353,7 +363,13 @@ async function callAtURL(
 
   const failAfterHandle = failAfter(timeout);
   const response = await Promise.race([
-    postJSON(url, body, headers, functionsInstance.fetchImpl),
+    postJSON(
+      url,
+      body,
+      headers,
+      functionsInstance.fetchImpl,
+      functionsInstance
+    ),
     failAfterHandle.promise,
     functionsInstance.cancelAllRequests
   ]);
@@ -440,11 +456,7 @@ async function streamAtURL(
       body: JSON.stringify(body),
       headers,
       signal: options?.signal,
-      credentials:
-        functionsInstance.emulatorOrigin &&
-        isCloudWorkstation(functionsInstance.emulatorOrigin)
-          ? 'include'
-          : undefined
+      credentials: getCredentials(functionsInstance)
     });
   } catch (e) {
     if (e instanceof Error && e.name === 'AbortError') {

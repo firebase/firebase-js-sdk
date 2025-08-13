@@ -37,7 +37,11 @@ import {
   AppCheckInternalComponentName
 } from '@firebase/app-check-interop-types';
 import { makeFakeApp, createTestService } from '../test/utils';
-import { FunctionsService, httpsCallable } from './service';
+import {
+  FunctionsService,
+  httpsCallable,
+  httpsCallableFromURL
+} from './service';
 import { FUNCTIONS_TYPE } from './constants';
 import { FunctionsError } from './error';
 
@@ -526,6 +530,7 @@ describe('Firebase Functions > Stream', () => {
     expect(options.credentials).to.equal(undefined);
     expect(options.headers['Accept']).to.equal('text/event-stream');
   });
+
   it('calls cloud workstations with credentials', async () => {
     const authMock: FirebaseAuthInternal = {
       getToken: async () => ({ accessToken: 'auth-token' })
@@ -579,6 +584,69 @@ describe('Firebase Functions > Stream', () => {
     } as Response);
 
     const func = httpsCallable<Record<string, any>, string, string>(
+      functions,
+      'stream'
+    );
+    await func.stream({});
+
+    expect(mockFetch.calledOnce).to.be.true;
+    const [_, options] = mockFetch.firstCall.args;
+    expect(options.credentials).to.equal('include');
+  });
+
+  it.only('calls streamFromURL cloud workstations with credentials', async () => {
+    const authMock: FirebaseAuthInternal = {
+      getToken: async () => ({ accessToken: 'auth-token' })
+    } as unknown as FirebaseAuthInternal;
+    const authProvider = new Provider<FirebaseAuthInternalName>(
+      'auth-internal',
+      new ComponentContainer('test')
+    );
+    authProvider.setComponent(
+      new Component('auth-internal', () => authMock, ComponentType.PRIVATE)
+    );
+    const appCheckMock: FirebaseAppCheckInternal = {
+      getToken: async () => ({ token: 'app-check-token' })
+    } as unknown as FirebaseAppCheckInternal;
+    const appCheckProvider = new Provider<AppCheckInternalComponentName>(
+      'app-check-internal',
+      new ComponentContainer('test')
+    );
+    appCheckProvider.setComponent(
+      new Component(
+        'app-check-internal',
+        () => appCheckMock,
+        ComponentType.PRIVATE
+      )
+    );
+
+    const functions = createTestService(
+      app,
+      region,
+      authProvider,
+      undefined,
+      appCheckProvider
+    );
+    functions.emulatorOrigin = 'test.cloudworkstations.dev';
+    const mockFetch = sinon.stub(functions, 'fetchImpl' as any);
+
+    const mockResponse = new ReadableStream({
+      start(controller) {
+        controller.enqueue(
+          new TextEncoder().encode('data: {"result":"Success"}\n')
+        );
+        controller.close();
+      }
+    });
+
+    mockFetch.resolves({
+      body: mockResponse,
+      headers: new Headers({ 'Content-Type': 'text/event-stream' }),
+      status: 200,
+      statusText: 'OK'
+    } as Response);
+
+    const func = httpsCallableFromURL<Record<string, any>, string, string>(
       functions,
       'stream'
     );
