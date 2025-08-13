@@ -245,7 +245,9 @@ export function httpsCallableFromURL<
   return callable as HttpsCallable<RequestData, ResponseData, StreamData>;
 }
 
-function getCredentials(functionsInstance: FunctionsService) {
+function getCredentials(
+  functionsInstance: FunctionsService
+): 'include' | undefined {
   return functionsInstance.emulatorOrigin &&
     isCloudWorkstation(functionsInstance.emulatorOrigin)
     ? 'include'
