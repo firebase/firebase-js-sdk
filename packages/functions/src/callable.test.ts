@@ -594,7 +594,7 @@ describe('Firebase Functions > Stream', () => {
     expect(options.credentials).to.equal('include');
   });
 
-  it.only('calls streamFromURL cloud workstations with credentials', async () => {
+  it('calls streamFromURL cloud workstations with credentials', async () => {
     const authMock: FirebaseAuthInternal = {
       getToken: async () => ({ accessToken: 'auth-token' })
     } as unknown as FirebaseAuthInternal;
