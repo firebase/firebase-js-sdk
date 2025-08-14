@@ -70,10 +70,11 @@ export class RealtimeHandler {
   private isConnectionActive: boolean = false;
   private isRealtimeDisabled: boolean = false;
   private controller?: AbortController;
-  private reader: ReadableStreamDefaultReader | undefined;
+  private reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
   private httpRetriesRemaining: number = ORIGINAL_RETRIES;
   private isInBackground: boolean = false;
   private readonly decoder = new TextDecoder('utf-8');
+  private isClosingConnection: boolean = false;
 
   private async setRetriesRemaining(): Promise<void> {
     // Retrieve number of remaining retries from last session. The minimum retry count being one.
@@ -142,16 +143,22 @@ export class RealtimeHandler {
    * and canceling the stream reader if they exist.
    */
   private closeRealtimeHttpConnection(): void {
-    // Aborting only when the controller is not null and tab is in foreground.
-    if (this.controller && !this.isInBackground) {
-      this.controller.abort();
-      this.controller = undefined;
+    if(this.isClosingConnection) {
+      return;
     }
-
+    this.isClosingConnection = true;
+    
     if (this.reader) {
       void this.reader.cancel();
       this.reader = undefined;
     }
+
+    if (this.controller) {
+      this.controller.abort();
+      this.controller = undefined;
+    }
+
+    this.isClosingConnection = false;
   }
 
   private async resetRealtimeBackoff(): Promise<void> {
@@ -493,7 +500,7 @@ export class RealtimeHandler {
             );
           }
         } catch (e: unknown) {
-          this.logger.error('Unable to parse latest config update message.', e);
+          this.logger.debug('Unable to parse latest config update message.', e);
           const errorMessage = e instanceof Error ? e.message : String(e);
           this.propagateError(
             ERROR_FACTORY.create(ErrorCode.CONFIG_UPDATE_MESSAGE_INVALID, {
@@ -565,6 +572,7 @@ export class RealtimeHandler {
         this.resetRetryCount();
         await this.resetRealtimeBackoff();
         const reader = response.body.getReader();
+        this.reader = reader;
         // Start listening for realtime notifications.
         await this.listenForNotifications(reader);
       }
@@ -583,11 +591,11 @@ export class RealtimeHandler {
       }
     } finally {
       // Close HTTP connection and associated streams.
-      this.closeRealtimeHttpConnection();
+      await this.closeRealtimeHttpConnection();
       this.setIsHttpConnectionRunning(false);
 
       // Update backoff metadata if the connection failed in the foreground.
-      const connectionFailed =
+      const connectionFailed = !this.isInBackground &&
         responseCode == null || this.isStatusCodeRetryable(responseCode);
 
       if (connectionFailed) {
@@ -673,9 +681,8 @@ export class RealtimeHandler {
 
   private async onVisibilityChange(visible: unknown): Promise<void> {
     this.isInBackground = !visible;
-    if (!visible && this.controller) {
-      this.controller.abort();
-      this.controller = undefined;
+    if (!visible) {
+       await this.closeRealtimeHttpConnection();
     } else if (visible) {
       await this.beginRealtime();
     }
