@@ -32,7 +32,7 @@ import {
   FetchRequest,
   RemoteConfigAbortSignal
 } from './remote_config_fetch_client';
-import { RestClient } from './rest_client';
+import { CachingClient } from './caching_client';
 
 const API_KEY_HEADER = 'X-Goog-Api-Key';
 const INSTALLATIONS_AUTH_TOKEN_HEADER = 'X-Goog-Firebase-Installations-Auth';
@@ -55,7 +55,7 @@ export class RealtimeHandler {
     private readonly appId: string,
     private readonly logger: Logger,
     private readonly storageCache: StorageCache,
-    private readonly restClient: RestClient
+    private readonly cachingClient: CachingClient
   ) {
     void this.setRetriesRemaining();
     void VisibilityMonitor.getInstance().on(
@@ -178,7 +178,7 @@ export class RealtimeHandler {
   ): Promise<Response> {
     const eTagValue = await this.storage.getActiveConfigEtag();
     const lastKnownVersionNumber =
-      await this.storage.getLastKnownTemplateVersion();
+      await this.storage.getActiveConfigTemplateVersion();
 
     const headers = {
       [API_KEY_HEADER]: this.apiKey,
@@ -340,7 +340,7 @@ export class RealtimeHandler {
         fetchAttempt: currentAttempt
       };
 
-      const fetchResponse: FetchResponse = await this.restClient.fetch(
+      const fetchResponse: FetchResponse = await this.cachingClient.fetch(
         fetchRequest
       );
       let activatedConfigs = await this.storage.getActiveConfig();
@@ -465,7 +465,7 @@ export class RealtimeHandler {
 
           if (TEMPLATE_VERSION_KEY in jsonObject) {
             const oldTemplateVersion =
-              await this.storage.getLastKnownTemplateVersion();
+              await this.storage.getActiveConfigTemplateVersion();
             const targetTemplateVersion = Number(
               jsonObject[TEMPLATE_VERSION_KEY]
             );

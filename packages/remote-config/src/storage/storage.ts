@@ -201,11 +201,11 @@ export abstract class Storage {
     );
   }
 
-  getLastKnownTemplateVersion(): Promise<number | undefined> {
+  getActiveConfigTemplateVersion(): Promise<number | undefined> {
     return this.get<number>('last_known_template_version');
   }
 
-  setLastKnownTemplateVersion(version: number): Promise<void> {
+  setActiveConfigTemplateVersion(version: number): Promise<void> {
     return this.set<number>('last_known_template_version', version);
   }
 }

@@ -98,8 +98,7 @@ export function registerRemoteConfig(): void {
       namespace,
       projectId,
       apiKey,
-      appId,
-      storage
+      appId
     );
     const retryingClient = new RetryingClient(restClient, storage);
     const cachingClient = new CachingClient(
@@ -119,7 +118,7 @@ export function registerRemoteConfig(): void {
       appId,
       logger,
       storageCache,
-      restClient
+      cachingClient
     );
 
     const remoteConfigInstance = new RemoteConfigImpl(

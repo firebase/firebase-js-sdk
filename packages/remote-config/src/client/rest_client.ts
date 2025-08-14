@@ -27,7 +27,6 @@ import {
 import { ERROR_FACTORY, ErrorCode } from '../errors';
 import { getUserLanguage } from '../language';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
-import { Storage } from '../storage/storage';
 
 /**
  * Defines request body parameters required to call the fetch API:
@@ -59,8 +58,7 @@ export class RestClient implements RemoteConfigFetchClient {
     private readonly namespace: string,
     private readonly projectId: string,
     private readonly apiKey: string,
-    private readonly appId: string,
-    private readonly storage: Storage
+    private readonly appId: string
   ) {}
 
   /**
@@ -162,10 +160,6 @@ export class RestClient implements RemoteConfigFetchClient {
       config = responseBody['entries'];
       state = responseBody['state'];
       templateVersion = responseBody['templateVersion'];
-
-      if (templateVersion !== undefined) {
-        await this.storage.setLastKnownTemplateVersion(templateVersion);
-      }
     }
 
     // Normalizes based on legacy state.

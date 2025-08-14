@@ -57,7 +57,8 @@ describe('Remote Config API', () => {
   const STUB_FETCH_RESPONSE: FetchResponse = {
     status: 200,
     eTag: 'asdf',
-    config: { 'foobar': 'hello world' }
+    config: { 'foobar': 'hello world' },
+    templateVersion: 1
   };
   let fetchStub: sinon.SinonStub;
 
@@ -94,7 +95,8 @@ describe('Remote Config API', () => {
         json: () =>
           Promise.resolve({
             entries: response.config,
-            state: 'OK'
+            state: 'OK',
+            templateVersion: response.templateVersion
           })
       } as Response)
     );

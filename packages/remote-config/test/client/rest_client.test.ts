@@ -45,8 +45,7 @@ describe('RestClient', () => {
       'namespace',
       'project-id',
       'api-key',
-      'app-id',
-      storage
+      'app-id'
     );
     firebaseInstallations.getId = sinon
       .stub()
@@ -54,7 +53,7 @@ describe('RestClient', () => {
     firebaseInstallations.getToken = sinon
       .stub()
       .returns(Promise.resolve('fis-token'));
-    storage.setLastKnownTemplateVersion = sinon.stub();
+    storage.setActiveConfigTemplateVersion = sinon.stub();
   });
 
   describe('fetch', () => {

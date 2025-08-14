@@ -68,6 +68,9 @@ export function getRemoteConfig(
     rc._initializePromise = Promise.all([
       rc._storage.setLastSuccessfulFetchResponse(options.initialFetchResponse),
       rc._storage.setActiveConfigEtag(options.initialFetchResponse?.eTag || ''),
+      rc._storage.setActiveConfigTemplateVersion(
+        options.initialFetchResponse.templateVersion || 0
+      ),
       rc._storageCache.setLastSuccessfulFetchTimestampMillis(Date.now()),
       rc._storageCache.setLastFetchStatus('success'),
       rc._storageCache.setActiveConfig(
@@ -100,6 +103,7 @@ export async function activate(remoteConfig: RemoteConfig): Promise<boolean> {
     !lastSuccessfulFetchResponse ||
     !lastSuccessfulFetchResponse.config ||
     !lastSuccessfulFetchResponse.eTag ||
+    !lastSuccessfulFetchResponse.templateVersion ||
     lastSuccessfulFetchResponse.eTag === activeConfigEtag
   ) {
     // Either there is no successful fetched config, or is the same as current active
@@ -108,7 +112,10 @@ export async function activate(remoteConfig: RemoteConfig): Promise<boolean> {
   }
   await Promise.all([
     rc._storageCache.setActiveConfig(lastSuccessfulFetchResponse.config),
-    rc._storage.setActiveConfigEtag(lastSuccessfulFetchResponse.eTag)
+    rc._storage.setActiveConfigEtag(lastSuccessfulFetchResponse.eTag),
+    rc._storage.setActiveConfigTemplateVersion(
+      lastSuccessfulFetchResponse.templateVersion
+    )
   ]);
   return true;
 }
