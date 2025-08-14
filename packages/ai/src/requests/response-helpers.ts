@@ -152,8 +152,8 @@ export function addHelpers(
 }
 
 /**
- * Returns all text from the first candidate's parts, filtering by whether they
- * are part of the model's 'thought' process.
+ * Returns all text from the first candidate's parts, filtering by whether
+ * `partFilter()` returns true.
  *
  * @param response - The `GenerateContentResponse` from which to extract text.
  * @param partFilter - Only return `Part`s for which this returns true
@@ -178,7 +178,7 @@ export function getText(
 }
 
 /**
- * Returns {@link FunctionCall}s associated with first candidate.
+ * Returns every {@link FunctionCall} associated with first candidate.
  */
 export function getFunctionCalls(
   response: GenerateContentResponse
@@ -199,7 +199,7 @@ export function getFunctionCalls(
 }
 
 /**
- * Returns {@link InlineDataPart}s in the first candidate if present.
+ * Returns every {@link InlineDataPart} in the first candidate if present.
  *
  * @internal
  */
