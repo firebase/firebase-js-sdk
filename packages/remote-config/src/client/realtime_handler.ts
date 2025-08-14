@@ -152,8 +152,15 @@ export class RealtimeHandler {
     }
     this.isClosingConnection = true;
 
-    if (this.reader) {
-      await this.reader.cancel();
+    try {
+      if (this.reader) {
+        await this.reader.cancel();
+      }
+    } catch (e) {
+      // The network connection was lost, so cancel() failed.
+      // This is expected in a disconnected state, so we can safely ignore the error.
+      this.logger.debug('Failed to cancel the reader, connection is gone.');
+    } finally {
       this.reader = undefined;
     }
 
@@ -444,7 +451,7 @@ export class RealtimeHandler {
    * invalid messages or when real-time updates are disabled.
    */
   private async handleNotifications(
-    reader: ReadableStreamDefaultReader
+    reader: ReadableStreamDefaultReader<Uint8Array>
   ): Promise<void> {
     if (reader == null) {
       return;
