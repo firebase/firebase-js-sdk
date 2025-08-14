@@ -109,6 +109,9 @@ export class RealtimeHandler {
     });
   }
 
+  /**
+   * Increase the backoff duration with a new end time based on Retry Interval.
+   */
   private async updateBackoffMetadataWithRetryInterval(
     retryIntervalSeconds: number
   ): Promise<void> {
@@ -139,8 +142,9 @@ export class RealtimeHandler {
   };
 
   /**
-   * Stops the real-time HTTP connection by aborting the in-progress fetch request
-   * and canceling the stream reader if they exist.
+   * Closes the realtime HTTP connection.
+   * Note: This method is designed to be called only once at a time.
+   * If a call is already in progress, subsequent calls will be ignored.
    */
   private async closeRealtimeHttpConnection(): Promise<void> {
     if (this.isClosingConnection) {
@@ -262,6 +266,11 @@ export class RealtimeHandler {
     this.isConnectionActive = connectionRunning;
   }
 
+  /**
+   * Combines the check and set operations to prevent multiple asynchronous
+   * calls from redundantly starting an HTTP connection. This ensures that
+   * only one attempt is made at a time.
+   */
   private checkAndSetHttpConnectionFlagIfNotRunning(): boolean {
     const canMakeConnection = this.canEstablishStreamConnection();
     if (canMakeConnection) {
@@ -274,9 +283,12 @@ export class RealtimeHandler {
     fetchResponse: FetchResponse,
     lastKnownVersion: number
   ): boolean {
+    // If there is a config, make sure its version is >= the last known version.
     if (fetchResponse.config != null && fetchResponse.templateVersion) {
       return fetchResponse.templateVersion >= lastKnownVersion;
     }
+    // If there isn't a config, return true if the fetch was successful and backend had no update.
+    // Else, it returned an out of date config.
     return this.storageCache.getLastFetchStatus() === 'success';
   }
 
@@ -302,6 +314,10 @@ export class RealtimeHandler {
     this.observers.forEach(observer => observer.next(configUpdate));
   }
 
+  /**
+   * Compares two configuration objects and returns a set of keys that have changed.
+   * A key is considered changed if it's new, removed, or has a different value.
+   */
   private getChangedParams(
     newConfig: FirebaseRemoteConfigObject,
     oldConfig: FirebaseRemoteConfigObject
@@ -420,6 +436,13 @@ export class RealtimeHandler {
     await this.fetchLatestConfig(remainingAttempts, targetVersion);
   }
 
+  /**
+   * Processes a stream of real-time messages for configuration updates.
+   * This method reassembles fragmented messages, validates and parses the JSON,
+   * and automatically fetches a new config if a newer template version is available.
+   * It also handles server-specified retry intervals and propagates errors for
+   * invalid messages or when real-time updates are disabled.
+   */
   private async handleNotifications(
     reader: ReadableStreamDefaultReader
   ): Promise<void> {
@@ -526,13 +549,6 @@ export class RealtimeHandler {
         this.logger.debug(
           'Real-time connection was closed due to an exception.'
         );
-      }
-    } finally {
-      // Only need to close the reader, beginRealtimeHttpStream will disconnect
-      // the connection
-      if (this.reader) {
-        void this.reader.cancel();
-        this.reader = undefined;
       }
     }
   }
@@ -680,6 +696,13 @@ export class RealtimeHandler {
     }
   }
 
+  /**
+   * Handles changes to the application's visibility state, managing the real-time connection.
+   *
+   * When the application is moved to the background, this method closes the existing
+   * real-time connection to save resources. When the application returns to the
+   * foreground, it attempts to re-establish the connection.
+   */
   private async onVisibilityChange(visible: unknown): Promise<void> {
     this.isInBackground = !visible;
     if (!visible) {
