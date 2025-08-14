@@ -142,19 +142,19 @@ export class RealtimeHandler {
    * Stops the real-time HTTP connection by aborting the in-progress fetch request
    * and canceling the stream reader if they exist.
    */
-  private closeRealtimeHttpConnection(): void {
-    if(this.isClosingConnection) {
+  private async closeRealtimeHttpConnection(): Promise<void> {
+    if (this.isClosingConnection) {
       return;
     }
     this.isClosingConnection = true;
-    
+
     if (this.reader) {
-      void this.reader.cancel();
+      await this.reader.cancel();
       this.reader = undefined;
     }
 
     if (this.controller) {
-      this.controller.abort();
+      await this.controller.abort();
       this.controller = undefined;
     }
 
@@ -595,8 +595,9 @@ export class RealtimeHandler {
       this.setIsHttpConnectionRunning(false);
 
       // Update backoff metadata if the connection failed in the foreground.
-      const connectionFailed = !this.isInBackground &&
-        responseCode == null || this.isStatusCodeRetryable(responseCode);
+      const connectionFailed =
+        !this.isInBackground &&
+        (responseCode == null || this.isStatusCodeRetryable(responseCode));
 
       if (connectionFailed) {
         await this.updateBackoffMetadataWithLastFailedStreamConnectionTime(
@@ -682,7 +683,7 @@ export class RealtimeHandler {
   private async onVisibilityChange(visible: unknown): Promise<void> {
     this.isInBackground = !visible;
     if (!visible) {
-       await this.closeRealtimeHttpConnection();
+      await this.closeRealtimeHttpConnection();
     } else if (visible) {
       await this.beginRealtime();
     }

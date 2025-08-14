@@ -430,9 +430,9 @@ describe('RemoteConfig', () => {
       expect(activateResponse).to.be.false;
       expect(storage.setActiveConfigEtag).to.not.have.been.called;
       expect(storageCache.setActiveConfig).to.not.have.been.called;
-      expect(storage.setActiveConfigTemplateVersion).to.not.have.been.calledWith(
-        TEMPLATE_VERSION
-      );
+      expect(
+        storage.setActiveConfigTemplateVersion
+      ).to.not.have.been.calledWith(TEMPLATE_VERSION);
     });
 
     it('does not activate if fetched and active etags are the same', async () => {
@@ -450,9 +450,9 @@ describe('RemoteConfig', () => {
       expect(activateResponse).to.be.false;
       expect(storage.setActiveConfigEtag).to.not.have.been.called;
       expect(storageCache.setActiveConfig).to.not.have.been.called;
-      expect(storage.setActiveConfigTemplateVersion).to.not.have.been.calledWith(
-        TEMPLATE_VERSION
-      );
+      expect(
+        storage.setActiveConfigTemplateVersion
+      ).to.not.have.been.calledWith(TEMPLATE_VERSION);
     });
 
     it('activates if fetched and active etags are different', async () => {
