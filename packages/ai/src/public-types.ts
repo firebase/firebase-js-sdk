@@ -98,17 +98,7 @@ export interface AIOptions {
    */
   backend?: Backend;
   /**
-   * Configures App Check usage for this AI service instance.
+   * Whether to use App Check limited use tokens. Defaults to false.
    */
-  appCheck?: AppCheckOptions;
-}
-
-/**
- * Configures App Check usage for this AI service instance.
- */
-export interface AppCheckOptions {
-  /**
-   * Defaults to false.
-   */
-  limitedUseTokens?: boolean;
+  useLimitedUseAppCheckTokens?: boolean;
 }

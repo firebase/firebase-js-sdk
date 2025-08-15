@@ -52,7 +52,6 @@ The Firebase AI Web SDK.
 |  --- | --- |
 |  [AI](./ai.ai.md#ai_interface) | An instance of the Firebase AI SDK.<!-- -->Do not create this instance directly. Instead, use [getAI()](./ai.md#getai_a94a413)<!-- -->. |
 |  [AIOptions](./ai.aioptions.md#aioptions_interface) | Options for initializing the AI service using [getAI()](./ai.md#getai_a94a413)<!-- -->. This allows specifying which backend to use (Vertex AI Gemini API or Gemini Developer API) and configuring its specific options (like location for Vertex AI). |
-|  [AppCheckOptions](./ai.appcheckoptions.md#appcheckoptions_interface) | Configures App Check usage for this AI service instance. |
 |  [BaseParams](./ai.baseparams.md#baseparams_interface) | Base parameters for a number of methods. |
 |  [ChromeAdapter](./ai.chromeadapter.md#chromeadapter_interface) | <b>(EXPERIMENTAL)</b> Defines an inference "backend" that uses Chrome's on-device model, and encapsulates logic for detecting when on-device inference is possible.<!-- -->These methods should not be called directly by the user. |
 |  [Citation](./ai.citation.md#citation_interface) | A single citation. |

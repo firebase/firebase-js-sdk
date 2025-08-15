@@ -22,18 +22,8 @@ export interface AIOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [appCheck](./ai.aioptions.md#aioptionsappcheck) | [AppCheckOptions](./ai.appcheckoptions.md#appcheckoptions_interface) | Configures App Check usage for this AI service instance. |
 |  [backend](./ai.aioptions.md#aioptionsbackend) | [Backend](./ai.backend.md#backend_class) | The backend configuration to use for the AI service instance. Defaults to the Gemini Developer API backend ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->). |
-
-## AIOptions.appCheck
-
-Configures App Check usage for this AI service instance.
-
-<b>Signature:</b>
-
-```typescript
-appCheck?: AppCheckOptions;
-```
+|  [useLimitedUseAppCheckTokens](./ai.aioptions.md#aioptionsuselimiteduseappchecktokens) | boolean | Whether to use App Check limited use tokens. Defaults to false. |
 
 ## AIOptions.backend
 
@@ -43,4 +33,14 @@ The backend configuration to use for the AI service instance. Defaults to the Ge
 
 ```typescript
 backend?: Backend;
+```
+
+## AIOptions.useLimitedUseAppCheckTokens
+
+Whether to use App Check limited use tokens. Defaults to false.
+
+<b>Signature:</b>
+
+```typescript
+useLimitedUseAppCheckTokens?: boolean;
 ```

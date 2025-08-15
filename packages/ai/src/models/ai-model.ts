@@ -90,7 +90,7 @@ export abstract class AIModel {
           return Promise.resolve({ token });
         };
       } else if ((ai as AIService).appCheck) {
-        if (ai.options?.appCheck?.limitedUseTokens) {
+        if (ai.options?.useLimitedUseAppCheckTokens) {
           this._apiSettings.getAppCheckToken = () =>
             (ai as AIService).appCheck!.getLimitedUseToken();
         } else {

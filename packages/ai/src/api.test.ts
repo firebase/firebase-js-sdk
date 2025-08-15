@@ -45,32 +45,32 @@ describe('Top level API', () => {
       expect(ai.backend).to.be.instanceOf(GoogleAIBackend);
     });
     it('works with options: no backend, limited use token', () => {
-      const ai = getAI(getFullApp(), { appCheck: { limitedUseTokens: true } });
+      const ai = getAI(getFullApp(), { useLimitedUseAppCheckTokens: true });
       expect(ai.backend).to.be.instanceOf(GoogleAIBackend);
-      expect(ai.options?.appCheck?.limitedUseTokens).to.be.true;
+      expect(ai.options?.useLimitedUseAppCheckTokens).to.be.true;
     });
     it('works with options: backend specified, limited use token', () => {
       const ai = getAI(getFullApp(), {
         backend: new VertexAIBackend('us-central1'),
-        appCheck: { limitedUseTokens: true }
+        useLimitedUseAppCheckTokens: true
       });
       expect(ai.backend).to.be.instanceOf(VertexAIBackend);
-      expect(ai.options?.appCheck?.limitedUseTokens).to.be.true;
+      expect(ai.options?.useLimitedUseAppCheckTokens).to.be.true;
     });
-    it('works with options: appCheck option is empty', () => {
+    it('works with options: appCheck option is falsy', () => {
       const ai = getAI(getFullApp(), {
         backend: new VertexAIBackend('us-central1'),
-        appCheck: {}
+        useLimitedUseAppCheckTokens: undefined
       });
       expect(ai.backend).to.be.instanceOf(VertexAIBackend);
-      expect(ai.options?.appCheck?.limitedUseTokens).to.be.false;
+      expect(ai.options?.useLimitedUseAppCheckTokens).to.be.false;
     });
     it('works with options: backend specified only', () => {
       const ai = getAI(getFullApp(), {
         backend: new VertexAIBackend('us-central1')
       });
       expect(ai.backend).to.be.instanceOf(VertexAIBackend);
-      expect(ai.options?.appCheck?.limitedUseTokens).to.be.false;
+      expect(ai.options?.useLimitedUseAppCheckTokens).to.be.false;
     });
   });
   it('getGenerativeModel throws if no model is provided', () => {

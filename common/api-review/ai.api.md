@@ -70,8 +70,8 @@ export abstract class AIModel {
 
 // @public
 export interface AIOptions {
-    appCheck?: AppCheckOptions;
     backend?: Backend;
+    useLimitedUseAppCheckTokens?: boolean;
 }
 
 // @public
@@ -83,11 +83,6 @@ export class AnyOfSchema extends Schema {
     anyOf: TypedSchema[];
     // @internal (undocumented)
     toJSON(): SchemaRequest;
-}
-
-// @public
-export interface AppCheckOptions {
-    limitedUseTokens?: boolean;
 }
 
 // @public

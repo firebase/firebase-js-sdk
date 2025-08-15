@@ -76,7 +76,7 @@ describe('AIModel', () => {
       //@ts-ignore
       {
         ...fakeAI,
-        options: { appCheck: { limitedUseTokens: false } },
+        options: { useLimitedUseAppCheckTokens: false },
         appCheck: {
           getToken: getTokenStub,
           getLimitedUseToken: getLimitedUseTokenStub
@@ -99,7 +99,7 @@ describe('AIModel', () => {
       //@ts-ignore
       {
         ...fakeAI,
-        options: { appCheck: { limitedUseTokens: true } },
+        options: { useLimitedUseAppCheckTokens: true },
         appCheck: {
           getToken: getTokenStub,
           getLimitedUseToken: getLimitedUseTokenStub
