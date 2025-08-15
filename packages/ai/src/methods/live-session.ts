@@ -18,8 +18,6 @@
 import {
   AIErrorCode,
   GenerativeContentBlob,
-  _LiveClientContent,
-  _LiveClientRealtimeInput,
   LiveResponseType,
   LiveServerContent,
   LiveServerToolCall,
@@ -30,11 +28,15 @@ import { formatNewContent } from '../requests/request-helpers';
 import { AIError } from '../errors';
 import { WebSocketHandler } from '../platform/websocket';
 import { logger } from '../logger';
+import {
+  _LiveClientContent,
+  _LiveClientRealtimeInput
+} from '../types/live-responses';
 
 /**
  * Represents an active, real-time, bidirectional conversation with the model.
  *
- * Do not call this constructor directly. Instead, call {@link LiveGenerativeModel.connect}.
+ * This class should only be instantiated by calling {@link LiveGenerativeModel.connect}.
  *
  * @beta
  */
@@ -173,18 +175,26 @@ export class LiveSession {
         if (LiveResponseType.SERVER_CONTENT in message) {
           yield {
             type: 'serverContent',
-            ...(message as { serverContent: object }).serverContent
+            ...(message as { serverContent: Omit<LiveServerContent, 'type'> })
+              .serverContent
           } as LiveServerContent;
         } else if (LiveResponseType.TOOL_CALL in message) {
           yield {
             type: 'toolCall',
-            ...(message as { toolCall: object }).toolCall
+            ...(message as { toolCall: Omit<LiveServerToolCall, 'type'> })
+              .toolCall
           } as LiveServerToolCall;
         } else if (LiveResponseType.TOOL_CALL_CANCELLATION in message) {
           yield {
             type: 'toolCallCancellation',
-            ...(message as { toolCallCancellation: object })
-              .toolCallCancellation
+            ...(
+              message as {
+                toolCallCancellation: Omit<
+                  LiveServerToolCallCancellation,
+                  'type'
+                >;
+              }
+            ).toolCallCancellation
           } as LiveServerToolCallCancellation;
         } else {
           logger.warn(

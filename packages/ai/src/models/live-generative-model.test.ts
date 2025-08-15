@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { use, expect } from 'chai';
-import sinon, { stub } from 'sinon';
+import sinon, { SinonFakeTimers, stub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import { AI } from '../public-types';
@@ -79,13 +79,16 @@ const fakeAI: AI = {
 
 describe('LiveGenerativeModel', () => {
   let mockHandler: MockWebSocketHandler;
+  let clock: SinonFakeTimers;
 
   beforeEach(() => {
     mockHandler = new MockWebSocketHandler();
+    clock = sinon.useFakeTimers();
   });
 
   afterEach(() => {
     sinon.restore();
+    clock.restore();
   });
 
   it('connect() should call handler.connect and send setup message', async () => {
@@ -100,7 +103,8 @@ describe('LiveGenerativeModel', () => {
     expect(mockHandler.connect).to.have.been.calledOnce;
 
     // Wait for the setup message to be sent
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await clock.runAllAsync();
+
     expect(mockHandler.send).to.have.been.calledOnce;
     const setupMessage = JSON.parse(mockHandler.send.getCall(0).args[0]);
     expect(setupMessage.setup.model).to.include('my-model');
@@ -121,7 +125,7 @@ describe('LiveGenerativeModel', () => {
     const connectPromise = model.connect();
 
     // Wait for setup message
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await clock.runAllAsync();
 
     // Simulate a failed handshake
     mockHandler.simulateServerMessage({ error: 'handshake failed' });
@@ -152,7 +156,9 @@ describe('LiveGenerativeModel', () => {
       mockHandler
     );
     const connectPromise = model.connect();
-    await new Promise(resolve => setTimeout(resolve, 0)); // Allow async operations
+
+    // Wait for setup message
+    await clock.runAllAsync();
 
     const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
     expect(sentData.setup.generationConfig).to.deep.equal({ temperature: 0.8 });

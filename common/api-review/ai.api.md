@@ -705,35 +705,6 @@ export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
 
-// @internal
-export interface _LiveClientContent {
-    // (undocumented)
-    clientContent: {
-        turns: [Content];
-        turnComplete: boolean;
-    };
-}
-
-// @internal
-export interface _LiveClientRealtimeInput {
-    // (undocumented)
-    realtimeInput: {
-        mediaChunks: GenerativeContentBlob[];
-    };
-}
-
-// @internal
-export interface _LiveClientSetup {
-    // (undocumented)
-    setup: {
-        model: string;
-        generationConfig?: LiveGenerationConfig;
-        tools?: Tool[];
-        toolConfig?: ToolConfig;
-        systemInstruction?: string | Part | Content;
-    };
-}
-
 // @beta
 export interface LiveGenerationConfig {
     candidateCount?: number;

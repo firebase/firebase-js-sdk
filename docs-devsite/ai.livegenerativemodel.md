@@ -15,7 +15,7 @@ https://github.com/firebase/firebase-js-sdk
 
 Class for Live generative model APIs. The Live API enables low-latency, two-way multimodal interactions with Gemini.
 
-Do not call this class' constructor directly. Instead, call [getLiveGenerativeModel()](./ai.md#getlivegenerativemodel_f2099ac)<!-- -->.
+This class should only be instantiated with [getLiveGenerativeModel()](./ai.md#getlivegenerativemodel_f2099ac)<!-- -->.
 
 The constructor for this class is marked as internal. Third-party code should not call the constructor directly or create subclasses that extend the `LiveGenerativeModel` class.
 

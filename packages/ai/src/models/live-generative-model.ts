@@ -26,18 +26,18 @@ import {
   LiveGenerationConfig,
   LiveModelParams,
   Tool,
-  ToolConfig,
-  _LiveClientSetup
+  ToolConfig
 } from '../public-types';
 import { WebSocketHandler } from '../platform/websocket';
 import { WebSocketUrl } from '../requests/request';
 import { formatSystemInstruction } from '../requests/request-helpers';
+import { _LiveClientSetup } from '../types/live-responses';
 
 /**
  * Class for Live generative model APIs. The Live API enables low-latency, two-way multimodal
  * interactions with Gemini.
  *
- * Do not call this class' constructor directly. Instead, call {@link getLiveGenerativeModel}.
+ * This class should only be instantiated with {@link getLiveGenerativeModel}.
  *
  * @beta
  */

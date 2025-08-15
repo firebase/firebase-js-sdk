@@ -16,7 +16,7 @@
  */
 
 import { ObjectSchema, TypedSchema } from '../requests/schema-builder';
-import { Content, GenerativeContentBlob, Part } from './content';
+import { Content, Part } from './content';
 import {
   FunctionCallingMode,
   HarmBlockMethod,
@@ -361,47 +361,6 @@ export interface ThinkingConfig {
    * feature or if the specified budget is not within the model's supported range.
    */
   thinkingBudget?: number;
-}
-
-/**
- * The first message in a Live session, used to configure generation options.
- *
- * @internal
- */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export interface _LiveClientSetup {
-  setup: {
-    model: string;
-    generationConfig?: LiveGenerationConfig;
-    tools?: Tool[];
-    toolConfig?: ToolConfig;
-    systemInstruction?: string | Part | Content;
-  };
-}
-
-/**
- * User input that is sent to the model in real time.
- *
- * @internal
- */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export interface _LiveClientRealtimeInput {
-  realtimeInput: {
-    mediaChunks: GenerativeContentBlob[];
-  };
-}
-
-/**
- * User input that is sent to the model.
- *
- * @internal
- */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export interface _LiveClientContent {
-  clientContent: {
-    turns: [Content];
-    turnComplete: boolean;
-  };
 }
 
 /**

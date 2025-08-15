@@ -15,7 +15,7 @@ https://github.com/firebase/firebase-js-sdk
 
 Represents an active, real-time, bidirectional conversation with the model.
 
-Do not call this constructor directly. Instead, call [LiveGenerativeModel.connect()](./ai.livegenerativemodel.md#livegenerativemodelconnect)<!-- -->.
+This class should only be instantiated by calling [LiveGenerativeModel.connect()](./ai.livegenerativemodel.md#livegenerativemodelconnect)<!-- -->.
 
 The constructor for this class is marked as internal. Third-party code should not call the constructor directly or create subclasses that extend the `LiveSession` class.
 

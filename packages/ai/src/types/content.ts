@@ -125,7 +125,8 @@ export interface FunctionCall {
   /**
    * The id of the function call. This must be sent back in the associated {@link FunctionResponse}.
    *
-   * This property is only supported in the Gemini Developer API ({@link GoogleAIBackend}).
+   *
+   * @remarks This property is only supported in the Gemini Developer API ({@link GoogleAIBackend}).
    * When using the Gemini Developer API ({@link GoogleAIBackend}), this property will be
    * `undefined`.
    */
@@ -147,7 +148,7 @@ export interface FunctionResponse {
   /**
    * The id of the {@link FunctionCall}.
    *
-   * This property is only supported in the Gemini Developer API ({@link GoogleAIBackend}).
+   * @remarks This property is only supported in the Gemini Developer API ({@link GoogleAIBackend}).
    * When using the Gemini Developer API ({@link GoogleAIBackend}), this property will be
    * `undefined`.
    */
