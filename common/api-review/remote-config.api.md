@@ -82,7 +82,7 @@ export function isSupported(): Promise<boolean>;
 export type LogLevel = 'debug' | 'error' | 'silent';
 
 // @public
-export function onConfigUpdate(remoteConfig: RemoteConfig, observer: ConfigUpdateObserver): Promise<Unsubscribe>;
+export function onConfigUpdate(remoteConfig: RemoteConfig, observer: ConfigUpdateObserver): Unsubscribe;
 
 // @public
 export interface RemoteConfig {

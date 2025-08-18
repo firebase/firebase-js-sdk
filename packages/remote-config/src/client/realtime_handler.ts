@@ -668,7 +668,7 @@ export class RealtimeHandler {
     if (this.httpRetriesRemaining > 0) {
       this.httpRetriesRemaining--;
       await new Promise(resolve => setTimeout(resolve, delayMillis));
-      await this.prepareAndBeginRealtimeHttpStream();
+      void this.prepareAndBeginRealtimeHttpStream();
     } else if (!this.isInBackground) {
       const error = ERROR_FACTORY.create(ErrorCode.CONFIG_UPDATE_STREAM_ERROR, {
         originalErrorMessage:

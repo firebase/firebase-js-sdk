@@ -296,7 +296,7 @@ Starts listening for real-time config updates from the Remote Config backend and
 <b>Signature:</b>
 
 ```typescript
-export declare function onConfigUpdate(remoteConfig: RemoteConfig, observer: ConfigUpdateObserver): Promise<Unsubscribe>;
+export declare function onConfigUpdate(remoteConfig: RemoteConfig, observer: ConfigUpdateObserver): Unsubscribe;
 ```
 
 #### Parameters
@@ -308,7 +308,7 @@ export declare function onConfigUpdate(remoteConfig: RemoteConfig, observer: Con
 
 <b>Returns:</b>
 
-Promise&lt;[Unsubscribe](./remote-config.md#unsubscribe)<!-- -->&gt;
+[Unsubscribe](./remote-config.md#unsubscribe)
 
 An [Unsubscribe](./remote-config.md#unsubscribe) function to remove the listener.
 

@@ -376,12 +376,12 @@ export async function setCustomSignals(
  *
  * @public
  */
-export async function onConfigUpdate(
+export function onConfigUpdate(
   remoteConfig: RemoteConfig,
   observer: ConfigUpdateObserver
-): Promise<Unsubscribe> {
+): Unsubscribe {
   const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;
-  await rc._realtimeHandler.addObserver(observer);
+  rc._realtimeHandler.addObserver(observer);
   return () => {
     rc._realtimeHandler.removeObserver(observer);
   };
