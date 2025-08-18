@@ -567,7 +567,7 @@ export class RealtimeHandler {
    * <p>If the connection is successful, this method will block on its thread while it reads the
    * chunk-encoded HTTP body. When the connection closes, it attempts to reestablish the stream.
    */
-  private async beginRealtimeHttpStream(): Promise<void> {
+  private async prepareAndBeginRealtimeHttpStream(): Promise<void> {
     if (!this.checkAndSetHttpConnectionFlagIfNotRunning()) {
       return;
     }
@@ -668,7 +668,7 @@ export class RealtimeHandler {
     if (this.httpRetriesRemaining > 0) {
       this.httpRetriesRemaining--;
       await new Promise(resolve => setTimeout(resolve, delayMillis));
-      await this.beginRealtimeHttpStream();
+      await this.prepareAndBeginRealtimeHttpStream();
     } else if (!this.isInBackground) {
       const error = ERROR_FACTORY.create(ErrorCode.CONFIG_UPDATE_STREAM_ERROR, {
         originalErrorMessage:
@@ -688,9 +688,9 @@ export class RealtimeHandler {
    * Adds an observer to the realtime updates.
    * @param observer The observer to add.
    */
-  async addObserver(observer: ConfigUpdateObserver): Promise<void> {
+  addObserver(observer: ConfigUpdateObserver): void {
     this.observers.add(observer);
-    await this.beginRealtime();
+    void this.beginRealtime();
   }
 
   /**
