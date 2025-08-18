@@ -21,6 +21,7 @@ import { ConfigUpdateObserver } from '../public_types';
 import { calculateBackoffMillis, FirebaseError } from '@firebase/util';
 import { ERROR_FACTORY, ErrorCode } from '../errors';
 import { Storage } from '../storage/storage';
+import { VisibilityMonitor } from './visibility_monitor';
 
 const API_KEY_HEADER = 'X-Goog-Api-Key';
 const INSTALLATIONS_AUTH_TOKEN_HEADER = 'X-Goog-Firebase-Installations-Auth';
@@ -40,6 +41,11 @@ export class RealtimeHandler {
     private readonly logger: Logger
   ) {
     void this.setRetriesRemaining();
+    void VisibilityMonitor.getInstance().on(
+      'visible',
+      this.onVisibilityChange,
+      this
+    );
   }
 
   private observers: Set<ConfigUpdateObserver> =
@@ -49,6 +55,7 @@ export class RealtimeHandler {
   private controller?: AbortController;
   private reader: ReadableStreamDefaultReader | undefined;
   private httpRetriesRemaining: number = ORIGINAL_RETRIES;
+  private isInBackground: boolean = false;
 
   private async setRetriesRemaining(): Promise<void> {
     // Retrieve number of remaining retries from last session. The minimum retry count being one.
@@ -102,7 +109,7 @@ export class RealtimeHandler {
    * and canceling the stream reader if they exist.
    */
   private closeRealtimeHttpConnection(): void {
-    if (this.controller) {
+    if (this.controller && !this.isInBackground) {
       this.controller.abort();
       this.controller = undefined;
     }
@@ -260,11 +267,18 @@ export class RealtimeHandler {
         //await configAutoFetch.listenForNotifications();
       }
     } catch (error) {
-      //there might have been a transient error so the client will retry the connection.
-      this.logger.error(
-        'Exception connecting to real-time RC backend. Retrying the connection...:',
-        error
-      );
+      if (this.isInBackground) {
+        // It's possible the app was backgrounded while the connection was open, which
+        // threw an exception trying to read the response. No real error here, so treat
+        // this as a success, even if we haven't read a 200 response code yet.
+        this.resetRetryCount();
+      } else {
+        //there might have been a transient error so the client will retry the connection.
+        this.logger.debug(
+          'Exception connecting to real-time RC backend. Retrying the connection...:',
+          error
+        );
+      }
     } finally {
       // Close HTTP connection and associated streams.
       this.closeRealtimeHttpConnection();
@@ -304,7 +318,13 @@ export class RealtimeHandler {
     const hasActiveListeners = this.observers.size > 0;
     const isNotDisabled = !this.isRealtimeDisabled;
     const isNoConnectionActive = !this.isConnectionActive;
-    return hasActiveListeners && isNotDisabled && isNoConnectionActive;
+    const inForeground = !this.isInBackground;
+    return (
+      hasActiveListeners &&
+      isNotDisabled &&
+      isNoConnectionActive &&
+      inForeground
+    );
   }
 
   private async makeRealtimeHttpConnection(delayMillis: number): Promise<void> {
@@ -316,6 +336,12 @@ export class RealtimeHandler {
       setTimeout(async () => {
         await this.beginRealtimeHttpStream();
       }, delayMillis);
+    } else if (!this.isInBackground) {
+      const error = ERROR_FACTORY.create(ErrorCode.CONFIG_UPDATE_STREAM_ERROR, {
+        originalErrorMessage:
+          'Unable to connect to the server. Check your connection and try again.'
+      });
+      this.propagateError(error);
     }
   }
 
@@ -341,6 +367,16 @@ export class RealtimeHandler {
   removeObserver(observer: ConfigUpdateObserver): void {
     if (this.observers.has(observer)) {
       this.observers.delete(observer);
+    }
+  }
+
+  private async onVisibilityChange(visible: unknown): Promise<void> {
+    this.isInBackground = !visible;
+    if (!visible && this.controller) {
+      this.controller.abort();
+      this.controller = undefined;
+    } else if (visible) {
+      await this.beginRealtime();
     }
   }
 }
