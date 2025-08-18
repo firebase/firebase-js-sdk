@@ -112,8 +112,8 @@ export class TransactionRunner<T> {
     }
   }
 
-  private isRetryableTransactionError(error: Error): boolean {
-    if (error.name === 'FirebaseError') {
+  private isRetryableTransactionError(error: Error | undefined): boolean {
+    if (error?.name === 'FirebaseError') {
       // In transactions, the backend will fail outdated reads with FAILED_PRECONDITION and
       // non-matching document versions with ABORTED. These errors should be retried.
       const code = (error as FirestoreError).code;
