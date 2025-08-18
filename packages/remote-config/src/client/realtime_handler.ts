@@ -118,8 +118,7 @@ export class RealtimeHandler {
     const currentTime = Date.now();
     const backoffDurationInMillis = retryIntervalSeconds * 1000;
     const backoffEndTime = new Date(currentTime + backoffDurationInMillis);
-    const numFailedStreams =
-      (await this.storage.getRealtimeBackoffMetadata())?.numFailedStreams || 0;
+    const numFailedStreams = 0;
     await this.storage.setRealtimeBackoffMetadata({
       backoffEndTimeMillis: backoffEndTime,
       numFailedStreams
@@ -159,7 +158,7 @@ export class RealtimeHandler {
     } catch (e) {
       // The network connection was lost, so cancel() failed.
       // This is expected in a disconnected state, so we can safely ignore the error.
-      this.logger.debug('Failed to cancel the reader, connection is gone.');
+      this.logger.debug('Failed to cancel the reader, connection was lost.');
     } finally {
       this.reader = undefined;
     }
@@ -550,7 +549,7 @@ export class RealtimeHandler {
       await this.handleNotifications(reader);
     } catch (e) {
       // If the real-time connection is at an unexpected lifecycle state when the app is
-      // backgrounded, it's expected closing the connection and will throw an exception.
+      // backgrounded, it's expected closing the connection will throw an exception.
       if (!this.isInBackground) {
         // Otherwise, the real-time server connection was closed due to a transient issue.
         this.logger.debug(
@@ -588,7 +587,6 @@ export class RealtimeHandler {
     let response: Response | undefined;
     let responseCode: number | undefined;
     try {
-      //this has been called in the try cause it throws an error if the method does not get implemented
       response = await this.createRealtimeConnection();
       responseCode = response.status;
       if (response.ok && response.body) {

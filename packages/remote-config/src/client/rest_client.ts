@@ -83,7 +83,7 @@ export class RestClient implements RemoteConfigFetchClient {
     const url = `${urlBase}/v1/projects/${this.projectId}/namespaces/${this.namespace}:fetch?key=${this.apiKey}`;
 
     const fetchType = request.fetchType || 'BASE';
-    const fetchAttempt = request.fetchAttempt || 0;
+    const fetchAttempt = request.fetchAttempt || 1;
 
     const headers = {
       'Content-Type': 'application/json',
