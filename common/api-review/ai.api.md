@@ -707,7 +707,6 @@ export class IntegerSchema extends Schema {
 
 // @beta
 export interface LiveGenerationConfig {
-    candidateCount?: number;
     frequencyPenalty?: number;
     maxOutputTokens?: number;
     presencePenalty?: number;

@@ -141,11 +141,6 @@ export interface LiveGenerationConfig {
    */
   speechConfig?: SpeechConfig;
   /**
-   * The maximum number of generated response messages to return. This value must be between
-   * 1 and 8. If unset, this will default to 1.
-   */
-  candidateCount?: number;
-  /**
    * Specifies the maximum number of tokens that can be generated in the response. The number of
    * tokens per word varies depending on the language outputted. Is unbounded by default.
    */
