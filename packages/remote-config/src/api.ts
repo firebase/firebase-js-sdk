@@ -22,7 +22,9 @@ import {
   LogLevel as RemoteConfigLogLevel,
   RemoteConfig,
   Value,
-  RemoteConfigOptions
+  RemoteConfigOptions,
+  ConfigUpdateObserver,
+  Unsubscribe
 } from './public_types';
 import { RemoteConfigAbortSignal } from './client/remote_config_fetch_client';
 import {
@@ -350,4 +352,30 @@ export async function setCustomSignals(
       `Error encountered while setting custom signals: ${error}`
     );
   }
+}
+
+// TODO: Add public document for the Remote Config Realtime API guide on the Web Platform.
+/**
+ * Starts listening for real-time config updates from the Remote Config backend and automatically
+ * fetches updates from the RC backend when they are available.
+ *
+ * <p>If a connection to the Remote Config backend is not already open, calling this method will
+ * open it. Multiple listeners can be added by calling this method again, but subsequent calls
+ * re-use the same connection to the backend.
+ *
+ * @param remoteConfig - The {@link RemoteConfig} instance.
+ * @param observer - The {@link ConfigUpdateObserver} to be notified of config updates.
+ * @returns An {@link Unsubscribe} function to remove the listener.
+ *
+ * @public
+ */
+export async function onConfigUpdate(
+  remoteConfig: RemoteConfig,
+  observer: ConfigUpdateObserver
+): Promise<Unsubscribe> {
+  const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;
+  await rc._realtimeHandler.addObserver(observer);
+  return () => {
+    rc._realtimeHandler.removeObserver(observer);
+  };
 }

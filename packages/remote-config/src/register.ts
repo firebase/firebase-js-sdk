@@ -37,6 +37,7 @@ import { ErrorCode, ERROR_FACTORY } from './errors';
 import { RemoteConfig as RemoteConfigImpl } from './remote_config';
 import { IndexedDbStorage, InMemoryStorage } from './storage/storage';
 import { StorageCache } from './storage/storage_cache';
+import { RealtimeHandler } from './client/realtime_handler';
 // This needs to be in the same file that calls `getProvider()` on the component
 // or it will get tree-shaken out.
 import '@firebase/installations';
@@ -107,12 +108,24 @@ export function registerRemoteConfig(): void {
       logger
     );
 
+    const realtimehandler = new RealtimeHandler(
+      installations,
+      storage,
+      SDK_VERSION,
+      namespace,
+      projectId,
+      apiKey,
+      appId,
+      logger
+    );
+
     const remoteConfigInstance = new RemoteConfigImpl(
       app,
       cachingClient,
       storageCache,
       storage,
-      logger
+      logger,
+      realtimehandler
     );
 
     // Starts warming cache.

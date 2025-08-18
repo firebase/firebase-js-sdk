@@ -28,6 +28,7 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 |  [getNumber(remoteConfig, key)](./remote-config.md#getnumber_476c09f) | Gets the value for the given key as a number.<!-- -->Convenience method for calling <code>remoteConfig.getValue(key).asNumber()</code>. |
 |  [getString(remoteConfig, key)](./remote-config.md#getstring_476c09f) | Gets the value for the given key as a string. Convenience method for calling <code>remoteConfig.getValue(key).asString()</code>. |
 |  [getValue(remoteConfig, key)](./remote-config.md#getvalue_476c09f) | Gets the [Value](./remote-config.value.md#value_interface) for the given key. |
+|  [onConfigUpdate(remoteConfig, observer)](./remote-config.md#onconfigupdate_8b13b26) | Starts listening for real-time config updates from the Remote Config backend and automatically fetches updates from the RC backend when they are available.<p>If a connection to the Remote Config backend is not already open, calling this method will open it. Multiple listeners can be added by calling this method again, but subsequent calls re-use the same connection to the backend. |
 |  [setCustomSignals(remoteConfig, customSignals)](./remote-config.md#setcustomsignals_aeeb95e) | Sets the custom signals for the app instance. |
 |  [setLogLevel(remoteConfig, logLevel)](./remote-config.md#setloglevel_039a45b) | Defines the log level to use. |
 |  <b>function()</b> |
@@ -37,6 +38,8 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 
 |  Interface | Description |
 |  --- | --- |
+|  [ConfigUpdate](./remote-config.configupdate.md#configupdate_interface) | Contains information about which keys have been updated. |
+|  [ConfigUpdateObserver](./remote-config.configupdateobserver.md#configupdateobserver_interface) | Observer interface for receiving real-time Remote Config update notifications.<!-- -->NOTE: Although an <code>complete</code> callback can be provided, it will never be called because the ConfigUpdate stream is never-ending. |
 |  [CustomSignals](./remote-config.customsignals.md#customsignals_interface) | Defines the type for representing custom signals and their values.<p>The values in CustomSignals must be one of the following types:<ul> <li><code>string</code> <li><code>number</code> <li><code>null</code> </ul> |
 |  [FetchResponse](./remote-config.fetchresponse.md#fetchresponse_interface) | Defines a successful response (200 or 304).<p>Modeled after the native <code>Response</code> interface, but simplified for Remote Config's use case. |
 |  [FirebaseRemoteConfigObject](./remote-config.firebaseremoteconfigobject.md#firebaseremoteconfigobject_interface) | Defines a self-descriptive reference for config key-value pairs. |
@@ -51,6 +54,7 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 |  --- | --- |
 |  [FetchStatus](./remote-config.md#fetchstatus) | Summarizes the outcome of the last attempt to fetch config from the Firebase Remote Config server.<ul> <li>"no-fetch-yet" indicates the [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) instance has not yet attempted to fetch config, or that SDK initialization is incomplete.</li> <li>"success" indicates the last attempt succeeded.</li> <li>"failure" indicates the last attempt failed.</li> <li>"throttle" indicates the last attempt was rate-limited.</li> </ul> |
 |  [LogLevel](./remote-config.md#loglevel) | Defines levels of Remote Config logging. |
+|  [Unsubscribe](./remote-config.md#unsubscribe) | A function that unsubscribes from a real-time event stream. |
 |  [ValueSource](./remote-config.md#valuesource) | Indicates the source of a value.<ul> <li>"static" indicates the value was defined by a static constant.</li> <li>"default" indicates the value was defined by default config.</li> <li>"remote" indicates the value was defined by fetched config.</li> </ul> |
 
 ## function(app, ...)
@@ -282,6 +286,31 @@ export declare function getValue(remoteConfig: RemoteConfig, key: string): Value
 
 The value for the given key.
 
+### onConfigUpdate(remoteConfig, observer) {:#onconfigupdate_8b13b26}
+
+Starts listening for real-time config updates from the Remote Config backend and automatically fetches updates from the RC backend when they are available.
+
+<p>If a connection to the Remote Config backend is not already open, calling this method will open it. Multiple listeners can be added by calling this method again, but subsequent calls re-use the same connection to the backend.
+
+<b>Signature:</b>
+
+```typescript
+export declare function onConfigUpdate(remoteConfig: RemoteConfig, observer: ConfigUpdateObserver): Promise<Unsubscribe>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) | The [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) instance. |
+|  observer | [ConfigUpdateObserver](./remote-config.configupdateobserver.md#configupdateobserver_interface) | The [ConfigUpdateObserver](./remote-config.configupdateobserver.md#configupdateobserver_interface) to be notified of config updates. |
+
+<b>Returns:</b>
+
+Promise&lt;[Unsubscribe](./remote-config.md#unsubscribe)<!-- -->&gt;
+
+An [Unsubscribe](./remote-config.md#unsubscribe) function to remove the listener.
+
 ### setCustomSignals(remoteConfig, customSignals) {:#setcustomsignals_aeeb95e}
 
 Sets the custom signals for the app instance.
@@ -363,6 +392,16 @@ Defines levels of Remote Config logging.
 
 ```typescript
 export type LogLevel = 'debug' | 'error' | 'silent';
+```
+
+## Unsubscribe
+
+A function that unsubscribes from a real-time event stream.
+
+<b>Signature:</b>
+
+```typescript
+export type Unsubscribe = () => void;
 ```
 
 ## ValueSource

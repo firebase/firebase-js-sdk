@@ -56,6 +56,13 @@ export interface ThrottleMetadata {
   throttleEndTimeMillis: number;
 }
 
+export interface RealtimeBackoffMetadata {
+  // The number of consecutive connection streams that have failed.
+  numFailedStreams: number;
+  // The Date until which the client should wait before attempting any new real-time connections.
+  backoffEndTimeMillis: Date;
+}
+
 /**
  * Provides type-safety for the "key" field used by {@link APP_NAMESPACE_STORE}.
  *
@@ -69,7 +76,9 @@ type ProjectNamespaceKeyFieldValue =
   | 'last_successful_fetch_response'
   | 'settings'
   | 'throttle_metadata'
-  | 'custom_signals';
+  | 'custom_signals'
+  | 'realtime_backoff_metadata'
+  | 'last_known_template_version';
 
 // Visible for testing.
 export function openDatabase(): Promise<IDBDatabase> {
@@ -178,6 +187,23 @@ export abstract class Storage {
   abstract get<T>(key: ProjectNamespaceKeyFieldValue): Promise<T | undefined>;
   abstract set<T>(key: ProjectNamespaceKeyFieldValue, value: T): Promise<void>;
   abstract delete(key: ProjectNamespaceKeyFieldValue): Promise<void>;
+
+  getRealtimeBackoffMetadata(): Promise<RealtimeBackoffMetadata | undefined> {
+    return this.get<RealtimeBackoffMetadata>('realtime_backoff_metadata');
+  }
+
+  getLastKnownTemplateVersion(): Promise<number | undefined> {
+    return this.get<number>('last_known_template_version');
+  }
+
+  setRealtimeBackoffMetadata(
+    realtimeMetadata: RealtimeBackoffMetadata
+  ): Promise<void> {
+    return this.set<RealtimeBackoffMetadata>(
+      'realtime_backoff_metadata',
+      realtimeMetadata
+    );
+  }
 }
 
 export class IndexedDbStorage extends Storage {
