@@ -25,7 +25,7 @@ export interface PrebuiltVoiceConfig
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [voiceConfig](./ai.prebuiltvoiceconfig.md#prebuiltvoiceconfigvoiceconfig) | string | <b><i>(Public Preview)</i></b> The voice name to use for speech synthesis.<!-- -->See https://cloud.google.com/text-to-speech/docs/chirp3-hd for names and sound demos. |
+|  [voiceConfig](./ai.prebuiltvoiceconfig.md#prebuiltvoiceconfigvoiceconfig) | string | <b><i>(Public Preview)</i></b> The voice name to use for speech synthesis.<!-- -->For a full list of names and demos of what each voice sounds like, see [Chirp 3: HD Voices](https://cloud.google.com/text-to-speech/docs/chirp3-hd)<!-- -->. |
 
 ## PrebuiltVoiceConfig.voiceConfig
 
@@ -34,7 +34,7 @@ export interface PrebuiltVoiceConfig
 
 The voice name to use for speech synthesis.
 
-See https://cloud.google.com/text-to-speech/docs/chirp3-hd for names and sound demos.
+For a full list of names and demos of what each voice sounds like, see [Chirp 3: HD Voices](https://cloud.google.com/text-to-speech/docs/chirp3-hd)<!-- -->.
 
 <b>Signature:</b>
 

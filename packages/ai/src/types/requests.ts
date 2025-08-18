@@ -147,7 +147,7 @@ export interface LiveGenerationConfig {
   candidateCount?: number;
   /**
    * Specifies the maximum number of tokens that can be generated in the response. The number of
-   * tokens per word varies depending on the language outputted. Defaults to 0.
+   * tokens per word varies depending on the language outputted. Is unbounded by default.
    */
   maxOutputTokens?: number;
   /**
@@ -372,8 +372,7 @@ export interface PrebuiltVoiceConfig {
   /**
    * The voice name to use for speech synthesis.
    *
-   * See https://cloud.google.com/text-to-speech/docs/chirp3-hd for names and
-   * sound demos.
+   * For a full list of names and demos of what each voice sounds like, see {@link https://cloud.google.com/text-to-speech/docs/chirp3-hd | Chirp 3: HD Voices}.
    */
   voiceConfig?: string;
 }

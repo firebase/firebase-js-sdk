@@ -27,7 +27,7 @@ export interface LiveGenerationConfig
 |  --- | --- | --- |
 |  [candidateCount](./ai.livegenerationconfig.md#livegenerationconfigcandidatecount) | number | <b><i>(Public Preview)</i></b> The maximum number of generated response messages to return. This value must be between 1 and 8. If unset, this will default to 1. |
 |  [frequencyPenalty](./ai.livegenerationconfig.md#livegenerationconfigfrequencypenalty) | number | <b><i>(Public Preview)</i></b> Frequency penalties. |
-|  [maxOutputTokens](./ai.livegenerationconfig.md#livegenerationconfigmaxoutputtokens) | number | <b><i>(Public Preview)</i></b> Specifies the maximum number of tokens that can be generated in the response. The number of tokens per word varies depending on the language outputted. Defaults to 0. |
+|  [maxOutputTokens](./ai.livegenerationconfig.md#livegenerationconfigmaxoutputtokens) | number | <b><i>(Public Preview)</i></b> Specifies the maximum number of tokens that can be generated in the response. The number of tokens per word varies depending on the language outputted. Is unbounded by default. |
 |  [presencePenalty](./ai.livegenerationconfig.md#livegenerationconfigpresencepenalty) | number | <b><i>(Public Preview)</i></b> Positive penalties. |
 |  [responseModalities](./ai.livegenerationconfig.md#livegenerationconfigresponsemodalities) | \[[ResponseModality](./ai.md#responsemodality)<!-- -->\] | <b><i>(Public Preview)</i></b> The modalities of the response. |
 |  [speechConfig](./ai.livegenerationconfig.md#livegenerationconfigspeechconfig) | [SpeechConfig](./ai.speechconfig.md#speechconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for speech synthesis. |
@@ -66,7 +66,7 @@ frequencyPenalty?: number;
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Specifies the maximum number of tokens that can be generated in the response. The number of tokens per word varies depending on the language outputted. Defaults to 0.
+Specifies the maximum number of tokens that can be generated in the response. The number of tokens per word varies depending on the language outputted. Is unbounded by default.
 
 <b>Signature:</b>
 
