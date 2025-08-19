@@ -49,6 +49,12 @@ const fakeFirebaseConfig = {
   appId: '1:111:web:a1234'
 };
 
+const mockObserver = {
+  next: sinon.stub(),
+  error: sinon.stub(),
+  complete: sinon.stub()
+};
+
 async function clearDatabase(): Promise<void> {
   const db = await openDatabase();
   db.transaction([APP_NAMESPACE_STORE], 'readwrite')
@@ -184,48 +190,25 @@ describe('Remote Config API', () => {
     });
 
     it('should call addObserver on the internal realtimeHandler', async () => {
-      const mockObserver = {
-        next: sinon.stub(),
-        error: sinon.stub(),
-        complete: sinon.stub()
-      };
       await onConfigUpdate(rc, mockObserver);
-
       expect(addObserverStub).to.have.been.calledOnce;
       expect(addObserverStub).to.have.been.calledWith(mockObserver);
     });
 
     it('should return an unsubscribe function', async () => {
-      const mockObserver = {
-        next: sinon.stub(),
-        error: sinon.stub(),
-        complete: sinon.stub()
-      };
       const unsubscribe = await onConfigUpdate(rc, mockObserver);
-
       expect(unsubscribe).to.be.a('function');
     });
 
     it('returned unsubscribe function should call removeObserver', async () => {
-      const mockObserver = {
-        next: sinon.stub(),
-        error: sinon.stub(),
-        complete: sinon.stub()
-      };
       const unsubscribe = await onConfigUpdate(rc, mockObserver);
 
       unsubscribe();
-
       expect(removeObserverStub).to.have.been.calledOnce;
       expect(removeObserverStub).to.have.been.calledWith(mockObserver);
     });
 
     it('observer.next should be called when realtimeHandler propagates an update', async () => {
-      const mockObserver = {
-        next: sinon.stub(),
-        error: sinon.stub(),
-        complete: sinon.stub()
-      };
       await onConfigUpdate(rc, mockObserver);
 
       if (capturedObserver && capturedObserver.next) {
@@ -245,11 +228,6 @@ describe('Remote Config API', () => {
     });
 
     it('observer.error should be called when realtimeHandler propagates an error', async () => {
-      const mockObserver = {
-        next: sinon.stub(),
-        error: sinon.stub(),
-        complete: sinon.stub()
-      };
       await onConfigUpdate(rc, mockObserver);
 
       if (capturedObserver && capturedObserver.error) {
@@ -275,7 +253,7 @@ describe('Remote Config API', () => {
         'customData.originalErrorMessage',
         'Realtime stream error'
       );
-      expect((receivedError as any).code).to.equal('remoteconfig/stream-error'); // Updated to expect the full prefixed code
+      expect((receivedError as any).code).to.equal('remoteconfig/stream-error');
     });
   });
 });

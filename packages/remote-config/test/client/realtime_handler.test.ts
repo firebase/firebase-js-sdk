@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai'; // FIX: Import 'use' from Chai.
+import { expect, use } from 'chai';
 import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import { RealtimeHandler } from '../../src/client/realtime_handler';
@@ -154,9 +154,8 @@ describe('RealtimeHandler', () => {
     });
 
     it('should set retries remaining from storage if available', async () => {
-      sinon.restore(); // Restore to allow new constructor call
       mockStorage.getRealtimeBackoffMetadata.resolves({
-        backoffEndTimeMillis: new Date(FAKE_NOW - 1000), // In the past, so no immediate backoff
+        backoffEndTimeMillis: new Date(FAKE_NOW - 1000), // In the past, so no backoff
         numFailedStreams: 3
       });
 
@@ -175,7 +174,7 @@ describe('RealtimeHandler', () => {
       await clock.runAllAsync();
       expect((realtime as any).httpRetriesRemaining).to.equal(
         ORIGINAL_RETRIES - 3
-      ); // 8 - 3 = 5
+      );
     });
   });
 
@@ -211,6 +210,7 @@ describe('RealtimeHandler', () => {
     });
 
     it('should return false for non-retryable status codes', () => {
+      // This is a sample of non-retryable codes for testing purposes.
       const nonRetryableCodes = [200, 304, 400, 401, 403];
       nonRetryableCodes.forEach(code => {
         expect((realtime as any).isStatusCodeRetryable(code)).to.be.false;
@@ -286,7 +286,8 @@ describe('RealtimeHandler', () => {
       expect(mockLogger.debug).to.have.been.calledWith(
         'Failed to cancel the reader, connection was lost.'
       );
-      expect((realtime as any).reader).to.be.undefined; // Should still clear reader
+      // Should still clear reader
+      expect((realtime as any).reader).to.be.undefined;
     });
 
     it('should handle being called when reader is already undefined', async () => {
@@ -372,7 +373,8 @@ describe('RealtimeHandler', () => {
 
     it('should call makeRealtimeHttpConnection with calculated delay if backoff metadata exists', async () => {
       mockStorage.getRealtimeBackoffMetadata.resolves({
-        backoffEndTimeMillis: new Date(FAKE_NOW + 5000), // 5 seconds in the future
+        // 5 seconds in the future
+        backoffEndTimeMillis: new Date(FAKE_NOW + 5000),
         numFailedStreams: 1
       });
       await (realtime as any).retryHttpConnectionWhenBackoffEnds();
