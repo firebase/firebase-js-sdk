@@ -21,7 +21,7 @@ export const AI_TYPE = 'AI';
 
 export const DEFAULT_LOCATION = 'us-central1';
 
-export const DEFAULT_BASE_URL = 'https://firebasevertexai.googleapis.com';
+export const DEFAULT_DOMAIN = 'firebasevertexai.googleapis.com';
 
 export const DEFAULT_API_VERSION = 'v1beta';
 

@@ -75,6 +75,9 @@ export const AIErrorCode = {
   /** An error occurred while performing a fetch. */
   FETCH_ERROR: 'fetch-error',
 
+  /** An error occurred because an operation was attempted on a closed session. */
+  SESSION_CLOSED: 'session-closed',
+
   /** An error associated with a Content object.  */
   INVALID_CONTENT: 'invalid-content',
 

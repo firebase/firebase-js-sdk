@@ -108,6 +108,20 @@ toc:
     path: /docs/reference/js/ai.inlinedatapart.md
   - title: IntegerSchema
     path: /docs/reference/js/ai.integerschema.md
+  - title: LiveGenerationConfig
+    path: /docs/reference/js/ai.livegenerationconfig.md
+  - title: LiveGenerativeModel
+    path: /docs/reference/js/ai.livegenerativemodel.md
+  - title: LiveModelParams
+    path: /docs/reference/js/ai.livemodelparams.md
+  - title: LiveServerContent
+    path: /docs/reference/js/ai.liveservercontent.md
+  - title: LiveServerToolCall
+    path: /docs/reference/js/ai.liveservertoolcall.md
+  - title: LiveServerToolCallCancellation
+    path: /docs/reference/js/ai.liveservertoolcallcancellation.md
+  - title: LiveSession
+    path: /docs/reference/js/ai.livesession.md
   - title: ModalityTokenCount
     path: /docs/reference/js/ai.modalitytokencount.md
   - title: ModelParams
@@ -118,6 +132,8 @@ toc:
     path: /docs/reference/js/ai.objectschema.md
   - title: ObjectSchemaRequest
     path: /docs/reference/js/ai.objectschemarequest.md
+  - title: PrebuiltVoiceConfig
+    path: /docs/reference/js/ai.prebuiltvoiceconfig.md
   - title: PromptFeedback
     path: /docs/reference/js/ai.promptfeedback.md
   - title: RequestOptions
@@ -142,6 +158,8 @@ toc:
     path: /docs/reference/js/ai.searchentrypoint.md
   - title: Segment
     path: /docs/reference/js/ai.segment.md
+  - title: SpeechConfig
+    path: /docs/reference/js/ai.speechconfig.md
   - title: StartChatParams
     path: /docs/reference/js/ai.startchatparams.md
   - title: StringSchema
@@ -158,6 +176,8 @@ toc:
     path: /docs/reference/js/ai.vertexaibackend.md
   - title: VideoMetadata
     path: /docs/reference/js/ai.videometadata.md
+  - title: VoiceConfig
+    path: /docs/reference/js/ai.voiceconfig.md
   - title: WebAttribution
     path: /docs/reference/js/ai.webattribution.md
   - title: WebGroundingChunk

@@ -19,20 +19,19 @@ import { expect, use } from 'chai';
 import sinon, { SinonFakeTimers, SinonStub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { isBrowser } from '@firebase/util';
-import { BrowserWebSocketHandler } from './websocket';
-import { AIError } from '../../errors';
+import { WebSocketHandlerImpl } from './websocket';
+import { AIError } from './errors';
 
 use(sinonChai);
 use(chaiAsPromised);
 
-class MockBrowserWebSocket {
+class MockWebSocket {
   static CONNECTING = 0;
   static OPEN = 1;
   static CLOSING = 2;
   static CLOSED = 3;
 
-  readyState: number = MockBrowserWebSocket.CONNECTING;
+  readyState: number = MockWebSocket.CONNECTING;
   sentMessages: Array<string | ArrayBuffer> = [];
   url: string;
   private listeners: Map<string, Set<EventListener>> = new Map();
@@ -42,7 +41,7 @@ class MockBrowserWebSocket {
   }
 
   send(data: string | ArrayBuffer): void {
-    if (this.readyState !== MockBrowserWebSocket.OPEN) {
+    if (this.readyState !== MockWebSocket.OPEN) {
       throw new Error('WebSocket is not in OPEN state');
     }
     this.sentMessages.push(data);
@@ -50,14 +49,14 @@ class MockBrowserWebSocket {
 
   close(): void {
     if (
-      this.readyState === MockBrowserWebSocket.CLOSED ||
-      this.readyState === MockBrowserWebSocket.CLOSING
+      this.readyState === MockWebSocket.CLOSED ||
+      this.readyState === MockWebSocket.CLOSING
     ) {
       return;
     }
-    this.readyState = MockBrowserWebSocket.CLOSING;
+    this.readyState = MockWebSocket.CLOSING;
     setTimeout(() => {
-      this.readyState = MockBrowserWebSocket.CLOSED;
+      this.readyState = MockWebSocket.CLOSED;
       this.dispatchEvent(new Event('close'));
     }, 10);
   }
@@ -78,7 +77,7 @@ class MockBrowserWebSocket {
   }
 
   triggerOpen(): void {
-    this.readyState = MockBrowserWebSocket.OPEN;
+    this.readyState = MockWebSocket.OPEN;
     this.dispatchEvent(new Event('open'));
   }
 
@@ -91,24 +90,21 @@ class MockBrowserWebSocket {
   }
 }
 
-describe('BrowserWebSocketHandler', () => {
-  let handler: BrowserWebSocketHandler;
-  let mockWebSocket: MockBrowserWebSocket;
+describe('WebSocketHandlerImpl', () => {
+  let handler: WebSocketHandlerImpl;
+  let mockWebSocket: MockWebSocket;
   let clock: SinonFakeTimers;
   let webSocketStub: SinonStub;
 
-  // Only run these tests in a browser environment
-  if (!isBrowser()) {
-    return;
-  }
-
   beforeEach(() => {
-    webSocketStub = sinon.stub(window, 'WebSocket').callsFake((url: string) => {
-      mockWebSocket = new MockBrowserWebSocket(url);
-      return mockWebSocket as any;
-    });
+    webSocketStub = sinon
+      .stub(globalThis, 'WebSocket')
+      .callsFake((url: string) => {
+        mockWebSocket = new MockWebSocket(url);
+        return mockWebSocket as any;
+      });
     clock = sinon.useFakeTimers();
-    handler = new BrowserWebSocketHandler();
+    handler = new WebSocketHandlerImpl();
   });
 
   afterEach(() => {
@@ -134,7 +130,7 @@ describe('BrowserWebSocketHandler', () => {
 
       await expect(connectPromise).to.be.rejectedWith(
         AIError,
-        /Failed to establish WebSocket connection/
+        /Error event raised on WebSocket/
       );
     });
   });
@@ -267,7 +263,7 @@ describe('BrowserWebSocketHandler', () => {
       await expect(closePromise).to.be.fulfilled;
       await expect(listenPromise).to.be.fulfilled;
 
-      expect(mockWebSocket.readyState).to.equal(MockBrowserWebSocket.CLOSED);
+      expect(mockWebSocket.readyState).to.equal(MockWebSocket.CLOSED);
     });
   });
 });
