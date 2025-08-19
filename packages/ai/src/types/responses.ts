@@ -60,22 +60,22 @@ export interface EnhancedGenerateContentResponse
    */
   text: () => string;
   /**
-   * Aggregates and returns every {@link InlineDataPart} from the {@link GenerateContentResponse}'s
-   * first candidate.
+   * Aggregates and returns every {@link InlineDataPart} from the first candidate of
+   * {@link GenerateContentResponse}.
    *
    * @throws If the prompt or candidate was blocked.
    */
   inlineDataParts: () => InlineDataPart[] | undefined;
   /**
-   * Aggregates and returns every {@link FunctionCall} from the {@link GenerateContentResponse}'s
-   * first candidate.
+   * Aggregates and returns every {@link FunctionCall} from the first candidate of
+   * {@link GenerateContentResponse}.
    *
    * @throws If the prompt or candidate was blocked.
    */
   functionCalls: () => FunctionCall[] | undefined;
   /**
    * Aggregates and returns every {@link TextPart} with their `thought` property set
-   * to `true` from the {@link GenerateContentResponse}'s first candidate.
+   * to `true` from the first candidate of {@link GenerateContentResponse}.
    *
    * @throws If the prompt or candidate was blocked.
    *
