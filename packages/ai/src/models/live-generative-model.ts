@@ -28,7 +28,7 @@ import {
   Tool,
   ToolConfig
 } from '../public-types';
-import { WebSocketHandler } from '../platform/websocket';
+import { WebSocketHandler } from '../websocket';
 import { WebSocketUrl } from '../requests/request';
 import { formatSystemInstruction } from '../requests/request-helpers';
 import { _LiveClientSetup } from '../types/live-responses';

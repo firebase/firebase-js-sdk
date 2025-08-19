@@ -20,7 +20,7 @@ import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import { AI } from '../public-types';
 import { LiveSession } from '../methods/live-session';
-import { WebSocketHandler } from '../platform/websocket';
+import { WebSocketHandler } from '../websocket';
 import { GoogleAIBackend } from '../backend';
 import { LiveGenerativeModel } from './live-generative-model';
 import { AIError } from '../errors';

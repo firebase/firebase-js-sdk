@@ -26,7 +26,7 @@ import {
 } from '../public-types';
 import { formatNewContent } from '../requests/request-helpers';
 import { AIError } from '../errors';
-import { WebSocketHandler } from '../platform/websocket';
+import { WebSocketHandler } from '../websocket';
 import { logger } from '../logger';
 import {
   _LiveClientContent,

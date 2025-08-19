@@ -15,54 +15,77 @@
  * limitations under the License.
  */
 
-import { AIError } from '../../errors';
-import { logger } from '../../logger';
-import { AIErrorCode } from '../../types';
-import { WebSocketHandler } from '../websocket';
+import { AIError } from './errors';
+import { logger } from './logger';
+import { AIErrorCode } from './types';
 
-export function createWebSocketHandler(): WebSocketHandler {
-  if (typeof process === 'object' && process.versions?.node) {
-    const [major] = process.versions.node.split('.').map(Number);
-    if (major < 22) {
-      throw new AIError(
-        AIErrorCode.UNSUPPORTED,
-        `The "Live" feature is being used in a Node environment, but the ` +
-          `runtime version is ${process.versions.node}. This feature requires Node >= 22 ` +
-          `for native WebSocket support.`
-      );
-    } else if (typeof WebSocket === 'undefined') {
-      throw new AIError(
-        AIErrorCode.UNSUPPORTED,
-        `The "Live" feature is being used in a Node environment that does not offer the ` +
-          `'WebSocket' API in the global scope.`
-      );
-    }
+/**
+ * A standardized interface for interacting with a WebSocket connection.
+ * This abstraction allows the SDK to use the appropriate WebSocket implementation
+ * for the current JS environment (Browser vs. Node) without
+ * changing the core logic of the `LiveSession`.
+ * @internal
+ */
 
-    return new NodeWebSocketHandler();
-  } else {
-    throw new AIError(
-      AIErrorCode.UNSUPPORTED,
-      'The "Live" feature is not supported in this Node-like environment. It is supported in ' +
-        'modern browser windows, Web Workers with WebSocket support, and Node >= 22.'
-    );
-  }
+export interface WebSocketHandler {
+  /**
+   * Establishes a connection to the given URL.
+   *
+   * @param url The WebSocket URL (e.g., wss://...).
+   * @returns A promise that resolves on successful connection or rejects on failure.
+   */
+  connect(url: string): Promise<void>;
+
+  /**
+   * Sends data over the WebSocket.
+   *
+   * @param data The string or binary data to send.
+   */
+  send(data: string | ArrayBuffer): void;
+
+  /**
+   * Returns an async generator that yields parsed JSON objects from the server.
+   * The yielded type is `unknown` because the handler cannot guarantee the shape of the data.
+   * The consumer is responsible for type validation.
+   * The generator terminates when the connection is closed.
+   *
+   * @returns A generator that allows consumers to pull messages using a `for await...of` loop.
+   */
+  listen(): AsyncGenerator<unknown>;
+
+  /**
+   * Closes the WebSocket connection.
+   *
+   * @param code - A numeric status code explaining why the connection is closing.
+   * @param reason - A human-readable string explaining why the connection is closing.
+   */
+  close(code?: number, reason?: string): Promise<void>;
 }
 
 /**
- * A WebSocketHandler implementation for Node >= 22.
- *
- * Node 22 is the minimum version that offers the built-in global `WebSocket` API.
+ * A wrapper for the native `WebSocket` available in both Browsers and Node >= 22.
  *
  * @internal
  */
-export class NodeWebSocketHandler implements WebSocketHandler {
+export class WebSocketHandlerImpl implements WebSocketHandler {
   private ws?: WebSocket;
 
-  async connect(url: string): Promise<void> {
-    return new Promise(async (resolve, reject) => {
+  constructor() {
+    if (typeof WebSocket === 'undefined') {
+      throw new AIError(
+        AIErrorCode.UNSUPPORTED,
+        'The WebSocket API is not available in this environment. ' +
+          'The "Live" feature is not supported here. It is supported in ' +
+          'modern browser windows, Web Workers with WebSocket support, and Node >= 22.'
+      );
+    }
+  }
+
+  connect(url: string): Promise<void> {
+    return new Promise((resolve, reject) => {
       this.ws = new WebSocket(url);
-      this.ws.binaryType = 'blob';
-      this.ws!.addEventListener('open', () => resolve(), { once: true });
+      this.ws.binaryType = 'blob'; // Only important to set in Node
+      this.ws.addEventListener('open', () => resolve(), { once: true });
       this.ws.addEventListener(
         'error',
         () =>
@@ -74,6 +97,13 @@ export class NodeWebSocketHandler implements WebSocketHandler {
           ),
         { once: true }
       );
+      this.ws!.addEventListener('close', (closeEvent: CloseEvent) => {
+        if (closeEvent.reason) {
+          logger.warn(
+            `WebSocket connection closed by server. Reason: '${closeEvent.reason}'`
+          );
+        }
+      });
     });
   }
 
@@ -157,7 +187,7 @@ export class NodeWebSocketHandler implements WebSocketHandler {
         resolvePromise();
         resolvePromise = null;
       }
-      // Clean up listeners to prevent memory leaks.
+      // Clean up listeners to prevent memory leaks
       this.ws?.removeEventListener('message', messageListener);
       this.ws?.removeEventListener('close', closeListener);
       this.ws?.removeEventListener('error', errorListener);
@@ -195,7 +225,7 @@ export class NodeWebSocketHandler implements WebSocketHandler {
       }
 
       this.ws.addEventListener('close', () => resolve(), { once: true });
-      // Calling 'close' during these states results in an error
+      // Calling 'close' during these states results in an error.
       if (
         this.ws.readyState === WebSocket.CLOSED ||
         this.ws.readyState === WebSocket.CONNECTING

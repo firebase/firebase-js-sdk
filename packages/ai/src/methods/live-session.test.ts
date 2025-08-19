@@ -26,7 +26,7 @@ import {
   LiveServerToolCallCancellation
 } from '../types';
 import { LiveSession } from './live-session';
-import { WebSocketHandler } from '../platform/websocket';
+import { WebSocketHandler } from '../websocket';
 import { AIError } from '../errors';
 import { logger } from '../logger';
 
