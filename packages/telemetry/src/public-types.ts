@@ -15,9 +15,18 @@
  * limitations under the License.
  */
 
-import { registerTelemetry } from './src';
+import { FirebaseApp } from '@firebase/app';
 
-registerTelemetry();
-
-export * from './src/api';
-export * from './src/public-types';
+/**
+ * An instance of the Firebase Telemetry SDK.
+ *
+ * Do not create this instance directly. Instead, use {@link getTelemetry | getTelemetry()}.
+ *
+ * @public
+ */
+export interface Telemetry {
+  /**
+   * The {@link @firebase/app#FirebaseApp} this {@link Telemetry} instance is associated with.
+   */
+  app: FirebaseApp;
+}

@@ -22,7 +22,10 @@
  * just use index.ts
  */
 
-import { testFxn } from './src';
+import { registerTelemetry } from './src/index';
 
 console.log('Hi Node.js Users!');
-testFxn();
+registerTelemetry();
+
+export * from './src/api';
+export * from './src/public-types';
