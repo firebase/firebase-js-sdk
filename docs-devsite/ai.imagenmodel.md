@@ -15,7 +15,7 @@ https://github.com/firebase/firebase-js-sdk
 
 Class for Imagen model APIs.
 
-This class provides methods for generating images using the Imagen model.
+This class provides methods for generating images using the Imagen model. See the documentation for a list of [supported models](https://firebase.google.com/docs/ai-logic/models)<!-- -->.
 
 <b>Signature:</b>
 
@@ -144,7 +144,7 @@ If the request to generate images fails. This happens if the prompt is blocked.
 const imagen = new ImagenModel(
   ai,
   {
-    model: 'imagen-3.0-generate-002'
+    model: 'imagen-model-name'
   }
 );
 

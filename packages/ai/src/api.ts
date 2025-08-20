@@ -132,7 +132,7 @@ export function getGenerativeModel(
 /**
  * Returns an {@link ImagenModel} class with methods for using Imagen.
  *
- * Only Imagen 3 models (named `imagen-3.0-*`) are supported.
+ * See the documentation for a list of {@link https://firebase.google.com/docs/ai-logic/models | supported models}.
  *
  * @param ai - An {@link AI} instance.
  * @param modelParams - Parameters to use when making Imagen requests.
