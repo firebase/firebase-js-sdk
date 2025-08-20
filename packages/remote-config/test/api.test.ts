@@ -247,7 +247,7 @@ describe('Remote Config API', () => {
       const receivedError = mockObserver.error.getCall(0).args[0];
 
       expect(receivedError.message).to.equal(
-        'Remote Config: The stream was not able to connect to the backend. (remoteconfig/stream-error).'
+        'Remote Config: The stream was not able to connect to the backend: Realtime stream error. (remoteconfig/stream-error).'
       );
       expect(receivedError).to.have.nested.property(
         'customData.originalErrorMessage',
