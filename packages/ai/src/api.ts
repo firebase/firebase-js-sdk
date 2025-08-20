@@ -75,18 +75,25 @@ declare module '@firebase/component' {
  *
  * @public
  */
-export function getAI(
-  app: FirebaseApp = getApp(),
-  options: AIOptions = { backend: new GoogleAIBackend() }
-): AI {
+export function getAI(app: FirebaseApp = getApp(), options?: AIOptions): AI {
   app = getModularInstance(app);
   // Dependencies
   const AIProvider: Provider<'AI'> = _getProvider(app, AI_TYPE);
 
-  const identifier = encodeInstanceIdentifier(options.backend);
-  return AIProvider.getImmediate({
+  const backend = options?.backend ?? new GoogleAIBackend();
+
+  const finalOptions: Omit<AIOptions, 'backend'> = {
+    useLimitedUseAppCheckTokens: options?.useLimitedUseAppCheckTokens ?? false
+  };
+
+  const identifier = encodeInstanceIdentifier(backend);
+  const aiInstance = AIProvider.getImmediate({
     identifier
   });
+
+  aiInstance.options = finalOptions;
+
+  return aiInstance;
 }
 
 /**

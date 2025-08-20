@@ -39,7 +39,7 @@ export abstract class AIModel {
   /**
    * @internal
    */
-  protected _apiSettings: ApiSettings;
+  _apiSettings: ApiSettings;
 
   /**
    * Constructs a new instance of the {@link AIModel} class.
@@ -90,8 +90,13 @@ export abstract class AIModel {
           return Promise.resolve({ token });
         };
       } else if ((ai as AIService).appCheck) {
-        this._apiSettings.getAppCheckToken = () =>
-          (ai as AIService).appCheck!.getToken();
+        if (ai.options?.useLimitedUseAppCheckTokens) {
+          this._apiSettings.getAppCheckToken = () =>
+            (ai as AIService).appCheck!.getLimitedUseToken();
+        } else {
+          this._apiSettings.getAppCheckToken = () =>
+            (ai as AIService).appCheck!.getToken();
+        }
       }
 
       if ((ai as AIService).auth) {
