@@ -27,9 +27,6 @@ export interface ImagenModelParams {
    * The Imagen model to use for generating images.
    *
    * See the documentation for a list of {@link https://firebase.google.com/docs/ai-logic/models | supported models}.
-   *
-   * See {@link https://firebase.google.com/docs/vertex-ai/models | model versions}
-   * for a full list of supported Imagen 3 models.
    */
   model: string;
   /**

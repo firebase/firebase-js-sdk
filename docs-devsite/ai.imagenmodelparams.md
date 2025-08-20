@@ -26,7 +26,7 @@ export interface ImagenModelParams
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [generationConfig](./ai.imagenmodelparams.md#imagenmodelparamsgenerationconfig) | [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface) | <b><i>(Public Preview)</i></b> Configuration options for generating images with Imagen. |
-|  [model](./ai.imagenmodelparams.md#imagenmodelparamsmodel) | string | <b><i>(Public Preview)</i></b> The Imagen model to use for generating images.<!-- -->See the documentation for a list of [supported models](https://firebase.google.com/docs/ai-logic/models)<!-- -->.<!-- -->See [model versions](https://firebase.google.com/docs/vertex-ai/models) for a full list of supported Imagen 3 models. |
+|  [model](./ai.imagenmodelparams.md#imagenmodelparamsmodel) | string | <b><i>(Public Preview)</i></b> The Imagen model to use for generating images.<!-- -->See the documentation for a list of [supported models](https://firebase.google.com/docs/ai-logic/models)<!-- -->. |
 |  [safetySettings](./ai.imagenmodelparams.md#imagenmodelparamssafetysettings) | [ImagenSafetySettings](./ai.imagensafetysettings.md#imagensafetysettings_interface) | <b><i>(Public Preview)</i></b> Safety settings for filtering potentially inappropriate content. |
 
 ## ImagenModelParams.generationConfig
@@ -50,8 +50,6 @@ generationConfig?: ImagenGenerationConfig;
 The Imagen model to use for generating images.
 
 See the documentation for a list of [supported models](https://firebase.google.com/docs/ai-logic/models)<!-- -->.
-
-See [model versions](https://firebase.google.com/docs/vertex-ai/models) for a full list of supported Imagen 3 models.
 
 <b>Signature:</b>
 
