@@ -22,7 +22,7 @@
  * just use index.ts
  */
 
-import { registerTelemetry } from './src/index';
+import { registerTelemetry } from './src/index.node';
 
 console.log('Hi Node.js Users!');
 registerTelemetry();
