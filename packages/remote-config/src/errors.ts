@@ -78,11 +78,13 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
   [ErrorCode.CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS]:
     'Setting more than {$maxSignals} custom signals is not supported.',
   [ErrorCode.CONFIG_UPDATE_STREAM_ERROR]:
-    'The stream was not able to connect to the backend.',
-  [ErrorCode.CONFIG_UPDATE_UNAVAILABLE]: 'The Realtime service is unavailable.',
+    'The stream was not able to connect to the backend: {$originalErrorMessage}.',
+  [ErrorCode.CONFIG_UPDATE_UNAVAILABLE]:
+    'The Realtime service is unavailable: {$originalErrorMessage}',
   [ErrorCode.CONFIG_UPDATE_MESSAGE_INVALID]:
-    'The stream invalidation message was unparsable.',
-  [ErrorCode.CONFIG_UPDATE_NOT_FETCHED]: 'Unable to fetch the latest config.'
+    'The stream invalidation message was unparsable: {$originalErrorMessage}',
+  [ErrorCode.CONFIG_UPDATE_NOT_FETCHED]:
+    'Unable to fetch the latest config: {$originalErrorMessage}'
 };
 
 // Note this is effectively a type system binding a code to params. This approach overlaps with the
@@ -102,10 +104,7 @@ interface ErrorParams {
   [ErrorCode.FETCH_PARSE]: { originalErrorMessage: string };
   [ErrorCode.FETCH_STATUS]: { httpStatus: number };
   [ErrorCode.CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS]: { maxSignals: number };
-  [ErrorCode.CONFIG_UPDATE_STREAM_ERROR]: {
-    httpStatus?: number;
-    originalErrorMessage?: string;
-  };
+  [ErrorCode.CONFIG_UPDATE_STREAM_ERROR]: { originalErrorMessage: string };
   [ErrorCode.CONFIG_UPDATE_UNAVAILABLE]: { originalErrorMessage: string };
   [ErrorCode.CONFIG_UPDATE_MESSAGE_INVALID]: { originalErrorMessage: string };
   [ErrorCode.CONFIG_UPDATE_NOT_FETCHED]: { originalErrorMessage: string };
