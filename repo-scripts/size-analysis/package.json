@@ -5,7 +5,7 @@
   "description": "A template package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "esm2017": "dist/index.esm2017.js",
+  "module": "dist/index.esm.js",
   "files": [
     "dist"
   ],
@@ -19,28 +19,30 @@
     "build": "rollup -c"
   },
   "license": "Apache-2.0",
-  "devDependencies": {
-    "@firebase/app": "0.13.1",
-    "@firebase/logger": "0.4.4",
-    "@firebase/util": "1.12.0",
+  "dependencies": {
+    "@firebase/util": "1.13.0",
+    "child-process-promise": "2.2.1",
+    "glob": "7.2.3",
+    "tmp": "0.2.3",
+    "gzip-size": "6.0.0",
+    "memfs": "3.5.3",
+    "terser": "5.37.0",
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "6.1.0",
     "@rollup/plugin-node-resolve": "16.0.0",
     "@rollup/plugin-virtual": "2.1.0",
-    "@types/webpack": "5.28.5",
-    "child-process-promise": "2.2.1",
-    "glob": "7.2.3",
-    "gzip-size": "6.0.0",
-    "memfs": "3.5.3",
     "rollup": "2.79.2",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.36.0",
-    "terser": "5.37.0",
-    "tmp": "0.2.3",
     "typescript": "5.5.4",
     "webpack": "5.98.0",
     "webpack-virtual-modules": "0.6.2",
     "yargs": "17.7.2"
+  },
+  "devDependencies": {
+    "@firebase/app": "0.14.1",
+    "@firebase/logger": "0.5.0",
+    "@types/webpack": "5.28.5"
   },
   "repository": {
     "directory": "repo-scripts/size-analysis",
@@ -57,6 +59,6 @@
     "reportDir": "./coverage/node"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }

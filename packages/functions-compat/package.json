@@ -1,23 +1,23 @@
 {
   "name": "@firebase/functions-compat",
-  "version": "0.3.25",
+  "version": "0.4.0",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "browser": "dist/esm/index.esm2017.js",
-  "module": "dist/esm/index.esm2017.js",
+  "browser": "dist/esm/index.esm.js",
+  "module": "dist/esm/index.esm.js",
   "exports": {
     ".": {
       "types": "./dist/src/index.d.ts",
       "node": {
         "require": "./dist/index.cjs.js",
-        "import": "./dist/esm/index.esm2017.js"
+        "import": "./dist/esm/index.esm.js"
       },
       "browser": {
         "require": "./dist/index.cjs.js",
-        "import": "./dist/esm/index.esm2017.js"
+        "import": "./dist/esm/index.esm.js"
       },
-      "default": "./dist/esm/index.esm2017.js"
+      "default": "./dist/esm/index.esm.js"
     },
     "./package.json": "./package.json"
   },
@@ -29,7 +29,7 @@
     "@firebase/app-compat": "0.x"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.4.1",
+    "@firebase/app-compat": "0.5.1",
     "rollup": "2.79.2",
     "@rollup/plugin-json": "6.1.0",
     "rollup-plugin-typescript2": "0.36.0",
@@ -62,10 +62,10 @@
   },
   "typings": "dist/src/index.d.ts",
   "dependencies": {
-    "@firebase/component": "0.6.17",
-    "@firebase/functions": "0.12.8",
+    "@firebase/component": "0.7.0",
+    "@firebase/functions": "0.13.0",
     "@firebase/functions-types": "0.6.3",
-    "@firebase/util": "1.12.0",
+    "@firebase/util": "1.13.0",
     "tslib": "^2.1.0"
   },
   "nyc": {
@@ -75,6 +75,6 @@
     "reportDir": "./coverage/node"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }

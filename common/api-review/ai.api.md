@@ -27,21 +27,24 @@ export class AIError extends FirebaseError {
 }
 
 // @public
-export const enum AIErrorCode {
-    API_NOT_ENABLED = "api-not-enabled",
-    ERROR = "error",
-    FETCH_ERROR = "fetch-error",
-    INVALID_CONTENT = "invalid-content",
-    INVALID_SCHEMA = "invalid-schema",
-    NO_API_KEY = "no-api-key",
-    NO_APP_ID = "no-app-id",
-    NO_MODEL = "no-model",
-    NO_PROJECT_ID = "no-project-id",
-    PARSE_FAILED = "parse-failed",
-    REQUEST_ERROR = "request-error",
-    RESPONSE_ERROR = "response-error",
-    UNSUPPORTED = "unsupported"
-}
+export const AIErrorCode: {
+    readonly ERROR: "error";
+    readonly REQUEST_ERROR: "request-error";
+    readonly RESPONSE_ERROR: "response-error";
+    readonly FETCH_ERROR: "fetch-error";
+    readonly INVALID_CONTENT: "invalid-content";
+    readonly API_NOT_ENABLED: "api-not-enabled";
+    readonly INVALID_SCHEMA: "invalid-schema";
+    readonly NO_API_KEY: "no-api-key";
+    readonly NO_APP_ID: "no-app-id";
+    readonly NO_MODEL: "no-model";
+    readonly NO_PROJECT_ID: "no-project-id";
+    readonly PARSE_FAILED: "parse-failed";
+    readonly UNSUPPORTED: "unsupported";
+};
+
+// @public
+export type AIErrorCode = (typeof AIErrorCode)[keyof typeof AIErrorCode];
 
 // @public
 export abstract class AIModel {
@@ -59,6 +62,17 @@ export abstract class AIModel {
 // @public
 export interface AIOptions {
     backend: Backend;
+}
+
+// @public
+export class AnyOfSchema extends Schema {
+    constructor(schemaParams: SchemaParams & {
+        anyOf: TypedSchema[];
+    });
+    // (undocumented)
+    anyOf: TypedSchema[];
+    // @internal (undocumented)
+    toJSON(): SchemaRequest;
 }
 
 // @public
@@ -94,12 +108,15 @@ export interface BaseParams {
 }
 
 // @public
-export enum BlockReason {
-    BLOCKLIST = "BLOCKLIST",
-    OTHER = "OTHER",
-    PROHIBITED_CONTENT = "PROHIBITED_CONTENT",
-    SAFETY = "SAFETY"
-}
+export const BlockReason: {
+    readonly SAFETY: "SAFETY";
+    readonly OTHER: "OTHER";
+    readonly BLOCKLIST: "BLOCKLIST";
+    readonly PROHIBITED_CONTENT: "PROHIBITED_CONTENT";
+};
+
+// @public
+export type BlockReason = (typeof BlockReason)[keyof typeof BlockReason];
 
 // @public
 export class BooleanSchema extends Schema {
@@ -108,7 +125,7 @@ export class BooleanSchema extends Schema {
 
 // @public
 export class ChatSession {
-    constructor(apiSettings: ApiSettings, model: string, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
+    constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
@@ -119,6 +136,15 @@ export class ChatSession {
     sendMessage(request: string | Array<string | Part>): Promise<GenerateContentResult>;
     sendMessageStream(request: string | Array<string | Part>): Promise<GenerateContentStreamResult>;
     }
+
+// @public
+export interface ChromeAdapter {
+    // @internal (undocumented)
+    countTokens(request: CountTokensRequest): Promise<Response>;
+    generateContent(request: GenerateContentRequest): Promise<Response>;
+    generateContentStream(request: GenerateContentRequest): Promise<Response>;
+    isAvailable(request: GenerateContentRequest): Promise<boolean>;
+}
 
 // @public
 export interface Citation {
@@ -226,17 +252,20 @@ export interface FileDataPart {
 }
 
 // @public
-export enum FinishReason {
-    BLOCKLIST = "BLOCKLIST",
-    MALFORMED_FUNCTION_CALL = "MALFORMED_FUNCTION_CALL",
-    MAX_TOKENS = "MAX_TOKENS",
-    OTHER = "OTHER",
-    PROHIBITED_CONTENT = "PROHIBITED_CONTENT",
-    RECITATION = "RECITATION",
-    SAFETY = "SAFETY",
-    SPII = "SPII",
-    STOP = "STOP"
-}
+export const FinishReason: {
+    readonly STOP: "STOP";
+    readonly MAX_TOKENS: "MAX_TOKENS";
+    readonly SAFETY: "SAFETY";
+    readonly RECITATION: "RECITATION";
+    readonly OTHER: "OTHER";
+    readonly BLOCKLIST: "BLOCKLIST";
+    readonly PROHIBITED_CONTENT: "PROHIBITED_CONTENT";
+    readonly SPII: "SPII";
+    readonly MALFORMED_FUNCTION_CALL: "MALFORMED_FUNCTION_CALL";
+};
+
+// @public
+export type FinishReason = (typeof FinishReason)[keyof typeof FinishReason];
 
 // @public
 export interface FunctionCall {
@@ -255,11 +284,14 @@ export interface FunctionCallingConfig {
 }
 
 // @public (undocumented)
-export enum FunctionCallingMode {
-    ANY = "ANY",
-    AUTO = "AUTO",
-    NONE = "NONE"
-}
+export const FunctionCallingMode: {
+    readonly AUTO: "AUTO";
+    readonly ANY: "ANY";
+    readonly NONE: "NONE";
+};
+
+// @public (undocumented)
+export type FunctionCallingMode = (typeof FunctionCallingMode)[keyof typeof FunctionCallingMode];
 
 // @public
 export interface FunctionCallPart {
@@ -393,7 +425,7 @@ export interface GenerativeContentBlob {
 
 // @public
 export class GenerativeModel extends AIModel {
-    constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions);
+    constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions, chromeAdapter?: ChromeAdapter | undefined);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
@@ -416,7 +448,7 @@ export class GenerativeModel extends AIModel {
 export function getAI(app?: FirebaseApp, options?: AIOptions): AI;
 
 // @public
-export function getGenerativeModel(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
+export function getGenerativeModel(ai: AI, modelParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 
 // @beta
 export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
@@ -489,18 +521,6 @@ export interface GoogleSearchTool {
     googleSearch: GoogleSearch;
 }
 
-// @public @deprecated (undocumented)
-export interface GroundingAttribution {
-    // (undocumented)
-    confidenceScore?: number;
-    // (undocumented)
-    retrievedContext?: RetrievedContextAttribution;
-    // (undocumented)
-    segment: Segment;
-    // (undocumented)
-    web?: WebAttribution;
-}
-
 // @public
 export interface GroundingChunk {
     web?: WebGroundingChunk;
@@ -508,8 +528,6 @@ export interface GroundingChunk {
 
 // @public
 export interface GroundingMetadata {
-    // @deprecated (undocumented)
-    groundingAttributions: GroundingAttribution[];
     groundingChunks?: GroundingChunk[];
     groundingSupports?: GroundingSupport[];
     // @deprecated (undocumented)
@@ -525,59 +543,80 @@ export interface GroundingSupport {
 }
 
 // @public
-export enum HarmBlockMethod {
-    PROBABILITY = "PROBABILITY",
-    SEVERITY = "SEVERITY"
-}
+export const HarmBlockMethod: {
+    readonly SEVERITY: "SEVERITY";
+    readonly PROBABILITY: "PROBABILITY";
+};
 
 // @public
-export enum HarmBlockThreshold {
-    BLOCK_LOW_AND_ABOVE = "BLOCK_LOW_AND_ABOVE",
-    BLOCK_MEDIUM_AND_ABOVE = "BLOCK_MEDIUM_AND_ABOVE",
-    BLOCK_NONE = "BLOCK_NONE",
-    BLOCK_ONLY_HIGH = "BLOCK_ONLY_HIGH",
-    OFF = "OFF"
-}
+export type HarmBlockMethod = (typeof HarmBlockMethod)[keyof typeof HarmBlockMethod];
 
 // @public
-export enum HarmCategory {
-    // (undocumented)
-    HARM_CATEGORY_DANGEROUS_CONTENT = "HARM_CATEGORY_DANGEROUS_CONTENT",
-    // (undocumented)
-    HARM_CATEGORY_HARASSMENT = "HARM_CATEGORY_HARASSMENT",
-    // (undocumented)
-    HARM_CATEGORY_HATE_SPEECH = "HARM_CATEGORY_HATE_SPEECH",
-    // (undocumented)
-    HARM_CATEGORY_SEXUALLY_EXPLICIT = "HARM_CATEGORY_SEXUALLY_EXPLICIT"
-}
+export const HarmBlockThreshold: {
+    readonly BLOCK_LOW_AND_ABOVE: "BLOCK_LOW_AND_ABOVE";
+    readonly BLOCK_MEDIUM_AND_ABOVE: "BLOCK_MEDIUM_AND_ABOVE";
+    readonly BLOCK_ONLY_HIGH: "BLOCK_ONLY_HIGH";
+    readonly BLOCK_NONE: "BLOCK_NONE";
+    readonly OFF: "OFF";
+};
 
 // @public
-export enum HarmProbability {
-    HIGH = "HIGH",
-    LOW = "LOW",
-    MEDIUM = "MEDIUM",
-    NEGLIGIBLE = "NEGLIGIBLE"
-}
+export type HarmBlockThreshold = (typeof HarmBlockThreshold)[keyof typeof HarmBlockThreshold];
 
 // @public
-export enum HarmSeverity {
-    HARM_SEVERITY_HIGH = "HARM_SEVERITY_HIGH",
-    HARM_SEVERITY_LOW = "HARM_SEVERITY_LOW",
-    HARM_SEVERITY_MEDIUM = "HARM_SEVERITY_MEDIUM",
-    HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE",
-    HARM_SEVERITY_UNSUPPORTED = "HARM_SEVERITY_UNSUPPORTED"
+export const HarmCategory: {
+    readonly HARM_CATEGORY_HATE_SPEECH: "HARM_CATEGORY_HATE_SPEECH";
+    readonly HARM_CATEGORY_SEXUALLY_EXPLICIT: "HARM_CATEGORY_SEXUALLY_EXPLICIT";
+    readonly HARM_CATEGORY_HARASSMENT: "HARM_CATEGORY_HARASSMENT";
+    readonly HARM_CATEGORY_DANGEROUS_CONTENT: "HARM_CATEGORY_DANGEROUS_CONTENT";
+};
+
+// @public
+export type HarmCategory = (typeof HarmCategory)[keyof typeof HarmCategory];
+
+// @public
+export const HarmProbability: {
+    readonly NEGLIGIBLE: "NEGLIGIBLE";
+    readonly LOW: "LOW";
+    readonly MEDIUM: "MEDIUM";
+    readonly HIGH: "HIGH";
+};
+
+// @public
+export type HarmProbability = (typeof HarmProbability)[keyof typeof HarmProbability];
+
+// @public
+export const HarmSeverity: {
+    readonly HARM_SEVERITY_NEGLIGIBLE: "HARM_SEVERITY_NEGLIGIBLE";
+    readonly HARM_SEVERITY_LOW: "HARM_SEVERITY_LOW";
+    readonly HARM_SEVERITY_MEDIUM: "HARM_SEVERITY_MEDIUM";
+    readonly HARM_SEVERITY_HIGH: "HARM_SEVERITY_HIGH";
+    readonly HARM_SEVERITY_UNSUPPORTED: "HARM_SEVERITY_UNSUPPORTED";
+};
+
+// @public
+export type HarmSeverity = (typeof HarmSeverity)[keyof typeof HarmSeverity];
+
+// @public
+export interface HybridParams {
+    inCloudParams?: ModelParams;
+    mode: InferenceMode;
+    onDeviceParams?: OnDeviceParams;
 }
 
 // @beta
-export enum ImagenAspectRatio {
-    LANDSCAPE_16x9 = "16:9",
-    LANDSCAPE_3x4 = "3:4",
-    PORTRAIT_4x3 = "4:3",
-    PORTRAIT_9x16 = "9:16",
-    SQUARE = "1:1"
-}
+export const ImagenAspectRatio: {
+    readonly SQUARE: "1:1";
+    readonly LANDSCAPE_3x4: "3:4";
+    readonly PORTRAIT_4x3: "4:3";
+    readonly LANDSCAPE_16x9: "16:9";
+    readonly PORTRAIT_9x16: "9:16";
+};
 
-// @public
+// @beta
+export type ImagenAspectRatio = (typeof ImagenAspectRatio)[keyof typeof ImagenAspectRatio];
+
+// @beta
 export interface ImagenGCSImage {
     gcsURI: string;
     mimeType: string;
@@ -632,25 +671,41 @@ export interface ImagenModelParams {
 }
 
 // @beta
-export enum ImagenPersonFilterLevel {
-    ALLOW_ADULT = "allow_adult",
-    ALLOW_ALL = "allow_all",
-    BLOCK_ALL = "dont_allow"
-}
+export const ImagenPersonFilterLevel: {
+    readonly BLOCK_ALL: "dont_allow";
+    readonly ALLOW_ADULT: "allow_adult";
+    readonly ALLOW_ALL: "allow_all";
+};
 
 // @beta
-export enum ImagenSafetyFilterLevel {
-    BLOCK_LOW_AND_ABOVE = "block_low_and_above",
-    BLOCK_MEDIUM_AND_ABOVE = "block_medium_and_above",
-    BLOCK_NONE = "block_none",
-    BLOCK_ONLY_HIGH = "block_only_high"
-}
+export type ImagenPersonFilterLevel = (typeof ImagenPersonFilterLevel)[keyof typeof ImagenPersonFilterLevel];
+
+// @beta
+export const ImagenSafetyFilterLevel: {
+    readonly BLOCK_LOW_AND_ABOVE: "block_low_and_above";
+    readonly BLOCK_MEDIUM_AND_ABOVE: "block_medium_and_above";
+    readonly BLOCK_ONLY_HIGH: "block_only_high";
+    readonly BLOCK_NONE: "block_none";
+};
+
+// @beta
+export type ImagenSafetyFilterLevel = (typeof ImagenSafetyFilterLevel)[keyof typeof ImagenSafetyFilterLevel];
 
 // @beta
 export interface ImagenSafetySettings {
     personFilterLevel?: ImagenPersonFilterLevel;
     safetyFilterLevel?: ImagenSafetyFilterLevel;
 }
+
+// @public
+export const InferenceMode: {
+    readonly PREFER_ON_DEVICE: "prefer_on_device";
+    readonly ONLY_ON_DEVICE: "only_on_device";
+    readonly ONLY_IN_CLOUD: "only_in_cloud";
+};
+
+// @public
+export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
 
 // @public
 export interface InlineDataPart {
@@ -671,14 +726,74 @@ export class IntegerSchema extends Schema {
 }
 
 // @public
-export enum Modality {
-    AUDIO = "AUDIO",
-    DOCUMENT = "DOCUMENT",
-    IMAGE = "IMAGE",
-    MODALITY_UNSPECIFIED = "MODALITY_UNSPECIFIED",
-    TEXT = "TEXT",
-    VIDEO = "VIDEO"
+export interface LanguageModelCreateCoreOptions {
+    // (undocumented)
+    expectedInputs?: LanguageModelExpected[];
+    // (undocumented)
+    temperature?: number;
+    // (undocumented)
+    topK?: number;
 }
+
+// @public
+export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptions {
+    // (undocumented)
+    initialPrompts?: LanguageModelMessage[];
+    // (undocumented)
+    signal?: AbortSignal;
+}
+
+// @public
+export interface LanguageModelExpected {
+    // (undocumented)
+    languages?: string[];
+    // (undocumented)
+    type: LanguageModelMessageType;
+}
+
+// @public
+export interface LanguageModelMessage {
+    // (undocumented)
+    content: LanguageModelMessageContent[];
+    // (undocumented)
+    role: LanguageModelMessageRole;
+}
+
+// @public
+export interface LanguageModelMessageContent {
+    // (undocumented)
+    type: LanguageModelMessageType;
+    // (undocumented)
+    value: LanguageModelMessageContentValue;
+}
+
+// @public
+export type LanguageModelMessageContentValue = ImageBitmapSource | AudioBuffer | BufferSource | string;
+
+// @public
+export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
+
+// @public
+export type LanguageModelMessageType = 'text' | 'image' | 'audio';
+
+// @public
+export interface LanguageModelPromptOptions {
+    // (undocumented)
+    responseConstraint?: object;
+}
+
+// @public
+export const Modality: {
+    readonly MODALITY_UNSPECIFIED: "MODALITY_UNSPECIFIED";
+    readonly TEXT: "TEXT";
+    readonly IMAGE: "IMAGE";
+    readonly VIDEO: "VIDEO";
+    readonly AUDIO: "AUDIO";
+    readonly DOCUMENT: "DOCUMENT";
+};
+
+// @public
+export type Modality = (typeof Modality)[keyof typeof Modality];
 
 // @public
 export interface ModalityTokenCount {
@@ -722,7 +837,15 @@ export class ObjectSchema extends Schema {
 export interface ObjectSchemaRequest extends SchemaRequest {
     optionalProperties?: never;
     // (undocumented)
-    type: SchemaType.OBJECT;
+    type: 'object';
+}
+
+// @public
+export interface OnDeviceParams {
+    // (undocumented)
+    createOptions?: LanguageModelCreateOptions;
+    // (undocumented)
+    promptOptions?: LanguageModelPromptOptions;
 }
 
 // @public
@@ -793,6 +916,10 @@ export abstract class Schema implements SchemaInterface {
     constructor(schemaParams: SchemaInterface);
     [key: string]: unknown;
     // (undocumented)
+    static anyOf(anyOfParams: SchemaParams & {
+        anyOf: TypedSchema[];
+    }): AnyOfSchema;
+    // (undocumented)
     static array(arrayParams: SchemaParams & {
         items: Schema;
     }): ArraySchema;
@@ -824,12 +951,12 @@ export abstract class Schema implements SchemaInterface {
     static string(stringParams?: SchemaParams): StringSchema;
     // @internal
     toJSON(): SchemaRequest;
-    type: SchemaType;
+    type?: SchemaType;
 }
 
 // @public
 export interface SchemaInterface extends SchemaShared<SchemaInterface> {
-    type: SchemaType;
+    type?: SchemaType;
 }
 
 // @public
@@ -839,13 +966,14 @@ export interface SchemaParams extends SchemaShared<SchemaInterface> {
 // @public
 export interface SchemaRequest extends SchemaShared<SchemaRequest> {
     required?: string[];
-    type: SchemaType;
+    type?: SchemaType;
 }
 
 // @public
 export interface SchemaShared<T> {
     // (undocumented)
     [key: string]: unknown;
+    anyOf?: T[];
     description?: string;
     enum?: string[];
     example?: unknown;
@@ -864,14 +992,17 @@ export interface SchemaShared<T> {
 }
 
 // @public
-export enum SchemaType {
-    ARRAY = "array",
-    BOOLEAN = "boolean",
-    INTEGER = "integer",
-    NUMBER = "number",
-    OBJECT = "object",
-    STRING = "string"
-}
+export const SchemaType: {
+    readonly STRING: "string";
+    readonly NUMBER: "number";
+    readonly INTEGER: "integer";
+    readonly BOOLEAN: "boolean";
+    readonly ARRAY: "array";
+    readonly OBJECT: "object";
+};
+
+// @public
+export type SchemaType = (typeof SchemaType)[keyof typeof SchemaType];
 
 // @public
 export interface SearchEntrypoint {
@@ -934,7 +1065,7 @@ export interface ToolConfig {
 }
 
 // @public
-export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema;
+export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
 
 // @public
 export interface UsageMetadata {

@@ -190,7 +190,7 @@ export interface GroundingMetadata {
   /**
    * Google Search entry point for web searches. This contains an HTML/CSS snippet that must be
    * embedded in an app to display a Google Search entry point for follow-up web searches related to
-   * a model's “Grounded Response”.
+   * a model's "Grounded Response".
    */
   searchEntryPoint?: SearchEntrypoint;
   /**
@@ -212,10 +212,6 @@ export interface GroundingMetadata {
    * @deprecated Use {@link GroundingSupport} instead.
    */
   retrievalQueries?: string[];
-  /**
-   * @deprecated Use {@link GroundingChunk} instead.
-   */
-  groundingAttributions: GroundingAttribution[];
 }
 
 /**
@@ -332,17 +328,6 @@ export interface Segment {
    * The text corresponding to the segment from the response.
    */
   text: string;
-}
-
-/**
- * @deprecated
- * @public
- */
-export interface GroundingAttribution {
-  segment: Segment;
-  confidenceScore?: number;
-  web?: WebAttribution;
-  retrievedContext?: RetrievedContextAttribution;
 }
 
 /**

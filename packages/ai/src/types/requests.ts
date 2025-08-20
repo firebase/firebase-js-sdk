@@ -18,10 +18,15 @@
 import { ObjectSchema, TypedSchema } from '../requests/schema-builder';
 import { Content, Part } from './content';
 import {
+  LanguageModelCreateOptions,
+  LanguageModelPromptOptions
+} from './language-model';
+import {
   FunctionCallingMode,
   HarmBlockMethod,
   HarmBlockThreshold,
   HarmCategory,
+  InferenceMode,
   ResponseModality
 } from './enums';
 import { ObjectSchemaRequest, SchemaRequest } from './schema';
@@ -99,7 +104,7 @@ export interface GenerationConfig {
    * value can be a class generated with a {@link Schema} static method
    * like `Schema.string()` or `Schema.object()` or it can be a plain
    * JS object matching the {@link SchemaRequest} interface.
-   * <br/>Note: This only applies when the specified `responseMIMEType` supports a schema; currently
+   * <br/>Note: This only applies when the specified `responseMimeType` supports a schema; currently
    * this is limited to `application/json` and `text/x.enum`.
    */
   responseSchema?: TypedSchema | SchemaRequest;
@@ -160,7 +165,10 @@ export interface RequestOptions {
    */
   timeout?: number;
   /**
-   * Base url for endpoint. Defaults to https://firebasevertexai.googleapis.com
+   * Base url for endpoint. Defaults to
+   * https://firebasevertexai.googleapis.com, which is the
+   * {@link https://console.cloud.google.com/apis/library/firebasevertexai.googleapis.com?project=_ | Firebase AI Logic API}
+   * (used regardless of your chosen Gemini API provider).
    */
   baseUrl?: string;
 }
@@ -269,6 +277,37 @@ export interface ToolConfig {
 export interface FunctionCallingConfig {
   mode?: FunctionCallingMode;
   allowedFunctionNames?: string[];
+}
+
+/**
+ * <b>(EXPERIMENTAL)</b>
+ * Encapsulates configuration for on-device inference.
+ *
+ * @public
+ */
+export interface OnDeviceParams {
+  createOptions?: LanguageModelCreateOptions;
+  promptOptions?: LanguageModelPromptOptions;
+}
+
+/**
+ * <b>(EXPERIMENTAL)</b>
+ * Configures hybrid inference.
+ * @public
+ */
+export interface HybridParams {
+  /**
+   * Specifies on-device or in-cloud inference. Defaults to prefer on-device.
+   */
+  mode: InferenceMode;
+  /**
+   * Optional. Specifies advanced params for on-device inference.
+   */
+  onDeviceParams?: OnDeviceParams;
+  /**
+   * Optional. Specifies advanced params for in-cloud inference.
+   */
+  inCloudParams?: ModelParams;
 }
 
 /**

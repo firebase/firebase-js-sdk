@@ -1,23 +1,23 @@
 {
   "name": "@firebase/functions",
-  "version": "0.12.8",
+  "version": "0.13.0",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "browser": "dist/esm/index.esm2017.js",
-  "module": "dist/esm/index.esm2017.js",
+  "browser": "dist/esm/index.esm.js",
+  "module": "dist/esm/index.esm.js",
   "exports": {
     ".": {
       "types": "./dist/functions-public.d.ts",
       "node": {
-        "import": "./dist/esm/index.esm2017.js",
+        "import": "./dist/esm/index.esm.js",
         "require": "./dist/index.cjs.js"
       },
       "browser": {
         "require": "./dist/index.cjs.js",
-        "import": "./dist/esm/index.esm2017.js"
+        "import": "./dist/esm/index.esm.js"
       },
-      "default": "./dist/esm/index.esm2017.js"
+      "default": "./dist/esm/index.esm.js"
     },
     "./package.json": "./package.json"
   },
@@ -49,7 +49,7 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.13.1",
+    "@firebase/app": "0.14.1",
     "rollup": "2.79.2",
     "@rollup/plugin-json": "6.1.0",
     "rollup-plugin-typescript2": "0.36.0",
@@ -65,11 +65,11 @@
   },
   "typings": "dist/src/index.d.ts",
   "dependencies": {
-    "@firebase/component": "0.6.17",
+    "@firebase/component": "0.7.0",
     "@firebase/messaging-interop-types": "0.2.3",
     "@firebase/auth-interop-types": "0.2.4",
     "@firebase/app-check-interop-types": "0.3.3",
-    "@firebase/util": "1.12.0",
+    "@firebase/util": "1.13.0",
     "tslib": "^2.1.0"
   },
   "nyc": {
@@ -79,6 +79,6 @@
     "reportDir": "./coverage/node"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }
