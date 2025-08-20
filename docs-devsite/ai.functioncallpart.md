@@ -26,6 +26,7 @@ export interface FunctionCallPart
 |  [functionResponse](./ai.functioncallpart.md#functioncallpartfunctionresponse) | never |  |
 |  [inlineData](./ai.functioncallpart.md#functioncallpartinlinedata) | never |  |
 |  [text](./ai.functioncallpart.md#functioncallparttext) | never |  |
+|  [thought](./ai.functioncallpart.md#functioncallpartthought) | boolean |  |
 
 ## FunctionCallPart.functionCall
 
@@ -57,4 +58,12 @@ inlineData?: never;
 
 ```typescript
 text?: never;
+```
+
+## FunctionCallPart.thought
+
+<b>Signature:</b>
+
+```typescript
+thought?: boolean;
 ```

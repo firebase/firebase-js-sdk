@@ -24,13 +24,15 @@ const VALID_PART_FIELDS: Array<keyof Part> = [
   'text',
   'inlineData',
   'functionCall',
-  'functionResponse'
+  'functionResponse',
+  'thought',
+  'thoughtSignature'
 ];
 
 const VALID_PARTS_PER_ROLE: { [key in Role]: Array<keyof Part> } = {
   user: ['text', 'inlineData'],
   function: ['functionResponse'],
-  model: ['text', 'functionCall'],
+  model: ['text', 'functionCall', 'thought', 'thoughtSignature'],
   // System instructions shouldn't be in history anyway.
   system: ['text']
 };
@@ -65,7 +67,7 @@ export function validateChatHistory(history: Content[]): void {
     if (!Array.isArray(parts)) {
       throw new AIError(
         AIErrorCode.INVALID_CONTENT,
-        `Content should have 'parts' but property with an array of Parts`
+        `Content should have 'parts' property with an array of Parts`
       );
     }
 
@@ -80,7 +82,9 @@ export function validateChatHistory(history: Content[]): void {
       text: 0,
       inlineData: 0,
       functionCall: 0,
-      functionResponse: 0
+      functionResponse: 0,
+      thought: 0,
+      thoughtSignature: 0
     };
 
     for (const part of parts) {

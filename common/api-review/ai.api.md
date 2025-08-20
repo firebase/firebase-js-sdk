@@ -223,10 +223,10 @@ export { Date_2 as Date }
 
 // @public
 export interface EnhancedGenerateContentResponse extends GenerateContentResponse {
-    // (undocumented)
     functionCalls: () => FunctionCall[] | undefined;
     inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
+    thoughtSummary: () => string | undefined;
 }
 
 // @public
@@ -264,6 +264,10 @@ export interface FileDataPart {
     inlineData?: never;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
 }
 
 // @public
@@ -318,6 +322,10 @@ export interface FunctionCallPart {
     inlineData?: never;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
 }
 
 // @public
@@ -350,6 +358,10 @@ export interface FunctionResponsePart {
     inlineData?: never;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
 }
 
 // @public
@@ -732,6 +744,10 @@ export interface InlineDataPart {
     inlineData: GenerativeContentBlob;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
     videoMetadata?: VideoMetadata;
 }
 
@@ -1063,10 +1079,15 @@ export interface TextPart {
     inlineData?: never;
     // (undocumented)
     text: string;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: string;
 }
 
 // @public
 export interface ThinkingConfig {
+    includeThoughts?: boolean;
     thinkingBudget?: number;
 }
 
