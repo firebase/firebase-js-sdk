@@ -23,6 +23,18 @@
     "compat/index.d.ts"
   ],
   "exports": {
+    "./ai": {
+      "types": "./ai/dist/ai/index.d.ts",
+      "node": {
+        "require": "./ai/dist/index.cjs.js",
+        "import": "./ai/dist/index.mjs"
+      },
+      "browser": {
+        "require": "./ai/dist/index.cjs.js",
+        "import": "./ai/dist/esm/index.esm.js"
+      },
+      "default": "./ai/dist/esm/index.esm.js"
+    },
     "./analytics": {
       "types": "./analytics/dist/analytics/index.d.ts",
       "node": {
@@ -227,17 +239,17 @@
       },
       "default": "./storage/dist/esm/index.esm.js"
     },
-    "./ai": {
-      "types": "./ai/dist/ai/index.d.ts",
+    "./telemetry": {
+      "types": "./telemetry/dist/telemetry/index.d.ts",
       "node": {
-        "require": "./ai/dist/index.cjs.js",
-        "import": "./ai/dist/index.mjs"
+        "require": "./telemetry/dist/index.cjs.js",
+        "import": "./telemetry/dist/index.mjs"
       },
       "browser": {
-        "require": "./ai/dist/index.cjs.js",
-        "import": "./ai/dist/esm/index.esm.js"
+        "require": "./telemetry/dist/index.cjs.js",
+        "import": "./telemetry/dist/esm/index.esm.js"
       },
-      "default": "./ai/dist/esm/index.esm.js"
+      "default": "./telemetry/dist/esm/index.esm.js"
     },
     "./compat/analytics": {
       "types": "./compat/analytics/dist/compat/analytics/index.d.ts",
@@ -418,6 +430,7 @@
     "@firebase/messaging-compat": "0.2.23",
     "@firebase/storage": "0.14.0",
     "@firebase/storage-compat": "0.4.0",
+    "@firebase/telemetry": "0.0.1",
     "@firebase/performance": "0.7.9",
     "@firebase/performance-compat": "0.2.22",
     "@firebase/remote-config": "0.6.6",
@@ -457,6 +470,7 @@
     "storage",
     "performance",
     "remote-config",
+    "telemetry",
     "messaging",
     "messaging/sw",
     "database",
