@@ -104,7 +104,7 @@ interface ErrorParams {
   [ErrorCode.FETCH_PARSE]: { originalErrorMessage: string };
   [ErrorCode.FETCH_STATUS]: { httpStatus: number };
   [ErrorCode.CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS]: { maxSignals: number };
-  [ErrorCode.CONFIG_UPDATE_STREAM_ERROR]: { originalErrorMessage?: string };
+  [ErrorCode.CONFIG_UPDATE_STREAM_ERROR]: { originalErrorMessage: string };
   [ErrorCode.CONFIG_UPDATE_UNAVAILABLE]: { originalErrorMessage: string };
   [ErrorCode.CONFIG_UPDATE_MESSAGE_INVALID]: { originalErrorMessage: string };
   [ErrorCode.CONFIG_UPDATE_NOT_FETCHED]: { originalErrorMessage: string };
