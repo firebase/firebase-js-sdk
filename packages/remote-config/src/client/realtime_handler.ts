@@ -452,10 +452,6 @@ export class RealtimeHandler {
   private async handleNotifications(
     reader: ReadableStreamDefaultReader<Uint8Array>
   ): Promise<void> {
-    if (reader == null) {
-      return;
-    }
-
     let partialConfigUpdateMessage: string;
     let currentConfigUpdateMessage = '';
 
@@ -618,7 +614,8 @@ export class RealtimeHandler {
       // Update backoff metadata if the connection failed in the foreground.
       const connectionFailed =
         !this.isInBackground &&
-        (responseCode == null || this.isStatusCodeRetryable(responseCode));
+        (responseCode === undefined ||
+          this.isStatusCodeRetryable(responseCode));
 
       if (connectionFailed) {
         await this.updateBackoffMetadataWithLastFailedStreamConnectionTime(
@@ -633,7 +630,6 @@ export class RealtimeHandler {
         const firebaseError = ERROR_FACTORY.create(
           ErrorCode.CONFIG_UPDATE_STREAM_ERROR,
           {
-            httpStatus: responseCode,
             originalErrorMessage: errorMessage
           }
         );
