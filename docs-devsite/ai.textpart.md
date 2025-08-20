@@ -26,6 +26,7 @@ export interface TextPart
 |  [functionResponse](./ai.textpart.md#textpartfunctionresponse) | never |  |
 |  [inlineData](./ai.textpart.md#textpartinlinedata) | never |  |
 |  [text](./ai.textpart.md#textparttext) | string |  |
+|  [thought](./ai.textpart.md#textpartthought) | boolean |  |
 
 ## TextPart.functionCall
 
@@ -57,4 +58,12 @@ inlineData?: never;
 
 ```typescript
 text: string;
+```
+
+## TextPart.thought
+
+<b>Signature:</b>
+
+```typescript
+thought?: boolean;
 ```

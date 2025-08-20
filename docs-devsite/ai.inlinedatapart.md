@@ -26,6 +26,7 @@ export interface InlineDataPart
 |  [functionResponse](./ai.inlinedatapart.md#inlinedatapartfunctionresponse) | never |  |
 |  [inlineData](./ai.inlinedatapart.md#inlinedatapartinlinedata) | [GenerativeContentBlob](./ai.generativecontentblob.md#generativecontentblob_interface) |  |
 |  [text](./ai.inlinedatapart.md#inlinedataparttext) | never |  |
+|  [thought](./ai.inlinedatapart.md#inlinedatapartthought) | boolean |  |
 |  [videoMetadata](./ai.inlinedatapart.md#inlinedatapartvideometadata) | [VideoMetadata](./ai.videometadata.md#videometadata_interface) | Applicable if <code>inlineData</code> is a video. |
 
 ## InlineDataPart.functionCall
@@ -58,6 +59,14 @@ inlineData: GenerativeContentBlob;
 
 ```typescript
 text?: never;
+```
+
+## InlineDataPart.thought
+
+<b>Signature:</b>
+
+```typescript
+thought?: boolean;
 ```
 
 ## InlineDataPart.videoMetadata
