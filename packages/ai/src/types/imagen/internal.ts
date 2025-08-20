@@ -84,6 +84,7 @@ export interface ImagenResponseInternal {
  *     "personGeneration": "allow_all",
  *     "sampleCount": 2,
  *     "includeRaiReason": true,
+ *     "includeSafetyAttributes": true,
  *     "aspectRatio": "9:16"
  *   }
  * }
@@ -111,6 +112,7 @@ export interface PredictRequestBody {
     safetyFilterLevel?: string;
     personGeneration?: string; // Maps to personFilterLevel
     includeRaiReason: boolean;
+    includeSafetyAttributes: boolean;
   };
 }
 

@@ -156,7 +156,8 @@ export function createPredictRequestBody(
       addWatermark,
       safetyFilterLevel,
       personGeneration: personFilterLevel,
-      includeRaiReason: true
+      includeRaiReason: true,
+      includeSafetyAttributes: true
     }
   };
   return body;
