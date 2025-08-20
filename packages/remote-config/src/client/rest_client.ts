@@ -82,16 +82,14 @@ export class RestClient implements RemoteConfigFetchClient {
 
     const url = `${urlBase}/v1/projects/${this.projectId}/namespaces/${this.namespace}:fetch?key=${this.apiKey}`;
 
-    const fetchType = request.fetchType || 'BASE';
-    const fetchAttempt = request.fetchAttempt || 1;
-
     const headers = {
       'Content-Type': 'application/json',
       'Content-Encoding': 'gzip',
       // Deviates from pure decorator by not passing max-age header since we don't currently have
       // service behavior using that header.
-      'If-None-Match': request.eTag || '*',
-      'X_FIREBASE_RC_FETCH_TYPE': `${fetchType}/${fetchAttempt}`
+      'If-None-Match': request.eTag || '*'
+      // TODO: Add this header once CORS error is fixed internally.
+      //'X-Firebase-RC-Fetch-Type': `${fetchType}/${fetchAttempt}`
     };
 
     const requestBody: FetchRequestBody = {
