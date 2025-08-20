@@ -15,9 +15,5 @@
  * limitations under the License.
  */
 
-import { registerTelemetry } from './src';
-
-registerTelemetry();
-
-export * from './src/api';
-export * from './src/public-types';
+/** Type constant for Firebase Telemetry. */
+export const TELEMETRY_TYPE = 'telemetry';

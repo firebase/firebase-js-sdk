@@ -38,7 +38,7 @@ export function registerTelemetry(): void {
   _registerComponent(
     new Component(
       TELEMETRY_TYPE,
-      (container, {}) => {
+      container => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         return new TelemetryService(app);
@@ -47,7 +47,7 @@ export function registerTelemetry(): void {
     )
   );
 
-  registerVersion(name, version);
+  registerVersion(name, version, 'node');
   // BUILD_TARGET will be replaced by values like esm, cjs, etc during the compilation
   registerVersion(name, version, '__BUILD_TARGET__');
 }

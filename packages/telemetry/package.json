@@ -43,12 +43,15 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "tslib": "^2.1.0"
+    "tslib": "^2.1.0",
+    "@firebase/component": "0.7.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
     "@firebase/app": "0.14.1",
+    "@rollup/plugin-json": "6.1.0",
     "rollup": "2.79.2",
+    "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.36.0",
     "typescript": "5.5.4"
   },
