@@ -91,7 +91,7 @@ export class RealtimeHandler {
 
   /**
    * Increment the number of failed stream attempts, increase the backoff duration, set the backoff
-   * end time to "backoff duration" after {@code lastFailedStreamTime} and persist the new
+   * end time to "backoff duration" after `lastFailedStreamTime` and persist the new
    * values to storage metadata.
    */
   private async updateBackoffMetadataWithLastFailedStreamConnectionTime(
@@ -559,7 +559,7 @@ export class RealtimeHandler {
    * Open the real-time connection, begin listening for updates, and auto-fetch when an update is
    * received.
    *
-   * <p>If the connection is successful, this method will block on its thread while it reads the
+   * If the connection is successful, this method will block on its thread while it reads the
    * chunk-encoded HTTP body. When the connection closes, it attempts to reestablish the stream.
    */
   private async prepareAndBeginRealtimeHttpStream(): Promise<void> {

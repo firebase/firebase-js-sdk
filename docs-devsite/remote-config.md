@@ -28,7 +28,7 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 |  [getNumber(remoteConfig, key)](./remote-config.md#getnumber_476c09f) | Gets the value for the given key as a number.<!-- -->Convenience method for calling <code>remoteConfig.getValue(key).asNumber()</code>. |
 |  [getString(remoteConfig, key)](./remote-config.md#getstring_476c09f) | Gets the value for the given key as a string. Convenience method for calling <code>remoteConfig.getValue(key).asString()</code>. |
 |  [getValue(remoteConfig, key)](./remote-config.md#getvalue_476c09f) | Gets the [Value](./remote-config.value.md#value_interface) for the given key. |
-|  [onConfigUpdate(remoteConfig, observer)](./remote-config.md#onconfigupdate_8b13b26) | Starts listening for real-time config updates from the Remote Config backend and automatically fetches updates from the RC backend when they are available.<p>If a connection to the Remote Config backend is not already open, calling this method will open it. Multiple listeners can be added by calling this method again, but subsequent calls re-use the same connection to the backend. |
+|  [onConfigUpdate(remoteConfig, observer)](./remote-config.md#onconfigupdate_8b13b26) | Starts listening for real-time config updates from the Remote Config backend and automatically fetches updates from the RC backend when they are available. |
 |  [setCustomSignals(remoteConfig, customSignals)](./remote-config.md#setcustomsignals_aeeb95e) | Sets the custom signals for the app instance. |
 |  [setLogLevel(remoteConfig, logLevel)](./remote-config.md#setloglevel_039a45b) | Defines the log level to use. |
 |  <b>function()</b> |
@@ -291,7 +291,7 @@ The value for the given key.
 
 Starts listening for real-time config updates from the Remote Config backend and automatically fetches updates from the RC backend when they are available.
 
-<p>If a connection to the Remote Config backend is not already open, calling this method will open it. Multiple listeners can be added by calling this method again, but subsequent calls re-use the same connection to the backend.
+If a connection to the Remote Config backend is not already open, calling this method will open it. Multiple listeners can be added by calling this method again, but subsequent calls re-use the same connection to the backend.
 
 <b>Signature:</b>
 

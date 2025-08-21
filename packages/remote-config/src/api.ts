@@ -366,7 +366,8 @@ export async function setCustomSignals(
  * Starts listening for real-time config updates from the Remote Config backend and automatically
  * fetches updates from the RC backend when they are available.
  *
- * <p>If a connection to the Remote Config backend is not already open, calling this method will
+ * @remarks
+ * If a connection to the Remote Config backend is not already open, calling this method will
  * open it. Multiple listeners can be added by calling this method again, but subsequent calls
  * re-use the same connection to the backend.
  *

@@ -104,14 +104,14 @@ export interface FetchRequest {
   /**
    * The type of fetch to perform, such as a regular fetch or a real-time fetch.
    *
-   * <p>Optional as not all fetch requests need to be distinguished.
+   * Optional as not all fetch requests need to be distinguished.
    */
   fetchType?: FetchType;
 
   /**
    * The number of fetch attempts made so far for this request.
    *
-   * <p>Optional as not all fetch requests are part of a retry series.
+   * Optional as not all fetch requests are part of a retry series.
    */
   fetchAttempt?: number;
 }

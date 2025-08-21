@@ -108,7 +108,7 @@ export function registerRemoteConfig(): void {
       logger
     );
 
-    const realtimehandler = new RealtimeHandler(
+    const realtimeHandler = new RealtimeHandler(
       installations,
       storage,
       SDK_VERSION,
@@ -127,7 +127,7 @@ export function registerRemoteConfig(): void {
       storageCache,
       storage,
       logger,
-      realtimehandler
+      realtimeHandler
     );
 
     // Starts warming cache.
