@@ -299,9 +299,7 @@ export async function handlePredictResponse<
     } else {
       throw new AIError(
         AIErrorCode.RESPONSE_ERROR,
-        `Predictions array in response has missing properties. Response: ${JSON.stringify(
-          responseJson
-        )}`
+        `Unexpected element in 'predictions' array in response: '${prediction}'`
       );
     }
   }
