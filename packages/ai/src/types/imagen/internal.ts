@@ -61,6 +61,14 @@ export interface ImagenResponseInternal {
      * The reason why the image was filtered.
      */
     raiFilteredReason?: string;
+    /**
+     * The safety attributes.
+     *
+     * This type is currently unused in the SDK. It is sent back because our requests set
+     * `includeSafetyAttributes`. This property is currently only used to avoid throwing an error
+     * when encountering this unsupported prediction type.
+     */
+    safetyAttributes?: unknown;
   }>;
 }
 
@@ -84,6 +92,7 @@ export interface ImagenResponseInternal {
  *     "personGeneration": "allow_all",
  *     "sampleCount": 2,
  *     "includeRaiReason": true,
+ *     "includeSafetyAttributes": true,
  *     "aspectRatio": "9:16"
  *   }
  * }
@@ -111,6 +120,7 @@ export interface PredictRequestBody {
     safetyFilterLevel?: string;
     personGeneration?: string; // Maps to personFilterLevel
     includeRaiReason: boolean;
+    includeSafetyAttributes: boolean;
   };
 }
 
