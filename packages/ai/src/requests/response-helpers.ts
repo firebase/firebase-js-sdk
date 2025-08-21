@@ -299,7 +299,9 @@ export async function handlePredictResponse<
     } else {
       throw new AIError(
         AIErrorCode.RESPONSE_ERROR,
-        `Unexpected element in 'predictions' array in response: '${prediction}'`
+        `Unexpected element in 'predictions' array in response: '${JSON.stringify(
+          prediction
+        )}'`
       );
     }
   }
