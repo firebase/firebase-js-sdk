@@ -390,39 +390,56 @@ describe('RemoteConfig', () => {
     const ETAG = 'etag';
     const CONFIG = { key: 'val' };
     const NEW_ETAG = 'new_etag';
+    const TEMPLATE_VERSION = 1;
 
     let getLastSuccessfulFetchResponseStub: sinon.SinonStub;
     let getActiveConfigEtagStub: sinon.SinonStub;
+    let getActiveConfigTemplateVersionStub: sinon.SinonStub;
     let setActiveConfigEtagStub: sinon.SinonStub;
     let setActiveConfigStub: sinon.SinonStub;
+    let setActiveConfigTemplateVersionStub: sinon.SinonStub;
 
     beforeEach(() => {
       getLastSuccessfulFetchResponseStub = sinon.stub();
       getActiveConfigEtagStub = sinon.stub();
+      getActiveConfigTemplateVersionStub = sinon.stub();
       setActiveConfigEtagStub = sinon.stub();
       setActiveConfigStub = sinon.stub();
+      setActiveConfigTemplateVersionStub = sinon.stub();
 
       storage.getLastSuccessfulFetchResponse =
         getLastSuccessfulFetchResponseStub;
       storage.getActiveConfigEtag = getActiveConfigEtagStub;
+      storage.getActiveConfigTemplateVersion =
+        getActiveConfigTemplateVersionStub;
       storage.setActiveConfigEtag = setActiveConfigEtagStub;
       storageCache.setActiveConfig = setActiveConfigStub;
+      storage.setActiveConfigTemplateVersion =
+        setActiveConfigTemplateVersionStub;
     });
 
     it('does not activate if last successful fetch response is undefined', async () => {
       getLastSuccessfulFetchResponseStub.returns(Promise.resolve());
       getActiveConfigEtagStub.returns(Promise.resolve(ETAG));
+      getActiveConfigTemplateVersionStub.returns(
+        Promise.resolve(TEMPLATE_VERSION)
+      );
 
       const activateResponse = await activate(rc);
 
       expect(activateResponse).to.be.false;
       expect(storage.setActiveConfigEtag).to.not.have.been.called;
       expect(storageCache.setActiveConfig).to.not.have.been.called;
+      expect(storage.setActiveConfigTemplateVersion).to.not.have.been.called;
     });
 
     it('does not activate if fetched and active etags are the same', async () => {
       getLastSuccessfulFetchResponseStub.returns(
-        Promise.resolve({ config: {}, etag: ETAG })
+        Promise.resolve({
+          config: {},
+          eTag: ETAG,
+          templateVersion: TEMPLATE_VERSION
+        })
       );
       getActiveConfigEtagStub.returns(Promise.resolve(ETAG));
 
@@ -431,11 +448,16 @@ describe('RemoteConfig', () => {
       expect(activateResponse).to.be.false;
       expect(storage.setActiveConfigEtag).to.not.have.been.called;
       expect(storageCache.setActiveConfig).to.not.have.been.called;
+      expect(storage.setActiveConfigTemplateVersion).to.not.have.been.called;
     });
 
     it('activates if fetched and active etags are different', async () => {
       getLastSuccessfulFetchResponseStub.returns(
-        Promise.resolve({ config: CONFIG, eTag: NEW_ETAG })
+        Promise.resolve({
+          config: CONFIG,
+          eTag: NEW_ETAG,
+          templateVersion: TEMPLATE_VERSION
+        })
       );
       getActiveConfigEtagStub.returns(Promise.resolve(ETAG));
 
@@ -444,11 +466,18 @@ describe('RemoteConfig', () => {
       expect(activateResponse).to.be.true;
       expect(storage.setActiveConfigEtag).to.have.been.calledWith(NEW_ETAG);
       expect(storageCache.setActiveConfig).to.have.been.calledWith(CONFIG);
+      expect(storage.setActiveConfigTemplateVersion).to.have.been.calledWith(
+        TEMPLATE_VERSION
+      );
     });
 
     it('activates if fetched is defined but active config is not', async () => {
       getLastSuccessfulFetchResponseStub.returns(
-        Promise.resolve({ config: CONFIG, eTag: NEW_ETAG })
+        Promise.resolve({
+          config: CONFIG,
+          eTag: NEW_ETAG,
+          templateVersion: TEMPLATE_VERSION
+        })
       );
       getActiveConfigEtagStub.returns(Promise.resolve());
 
@@ -457,6 +486,9 @@ describe('RemoteConfig', () => {
       expect(activateResponse).to.be.true;
       expect(storage.setActiveConfigEtag).to.have.been.calledWith(NEW_ETAG);
       expect(storageCache.setActiveConfig).to.have.been.calledWith(CONFIG);
+      expect(storage.setActiveConfigTemplateVersion).to.have.been.calledWith(
+        TEMPLATE_VERSION
+      );
     });
   });
 

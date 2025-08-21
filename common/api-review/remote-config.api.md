@@ -42,10 +42,14 @@ export interface FetchResponse {
     config?: FirebaseRemoteConfigObject;
     eTag?: string;
     status: number;
+    templateVersion?: number;
 }
 
 // @public
 export type FetchStatus = 'no-fetch-yet' | 'success' | 'failure' | 'throttle';
+
+// @public
+export type FetchType = 'BASE' | 'REALTIME';
 
 // @public
 export interface FirebaseRemoteConfigObject {
@@ -78,7 +82,7 @@ export function isSupported(): Promise<boolean>;
 export type LogLevel = 'debug' | 'error' | 'silent';
 
 // @public
-export function onConfigUpdate(remoteConfig: RemoteConfig, observer: ConfigUpdateObserver): Promise<Unsubscribe>;
+export function onConfigUpdate(remoteConfig: RemoteConfig, observer: ConfigUpdateObserver): Unsubscribe;
 
 // @public
 export interface RemoteConfig {

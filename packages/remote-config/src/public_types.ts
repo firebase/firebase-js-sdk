@@ -52,6 +52,8 @@ export interface RemoteConfig {
 
 /**
  * Defines a self-descriptive reference for config key-value pairs.
+ *
+ *  @public
  */
 export interface FirebaseRemoteConfigObject {
   [key: string]: string;
@@ -62,6 +64,8 @@ export interface FirebaseRemoteConfigObject {
  *
  * <p>Modeled after the native `Response` interface, but simplified for Remote Config's
  * use case.
+ *
+ * @public
  */
 export interface FetchResponse {
   /**
@@ -89,6 +93,11 @@ export interface FetchResponse {
    * <p>Only defined for 200 responses.
    */
   config?: FirebaseRemoteConfigObject;
+
+  /**
+   * The version number of the config template fetched from the server.
+   */
+  templateVersion?: number;
 
   // Note: we're not extracting experiment metadata until
   // ABT and Analytics have Web SDKs.
@@ -256,6 +265,18 @@ export interface ConfigUpdateObserver {
  * @public
  */
 export type Unsubscribe = () => void;
+
+/**
+ * Indicates the type of fetch request.
+ *
+ * <ul>
+ *   <li>"BASE" indicates a standard fetch request.</li>
+ *   <li>"REALTIME" indicates a fetch request triggered by a real-time update.</li>
+ * </ul>
+ *
+ * @public
+ */
+export type FetchType = 'BASE' | 'REALTIME';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
