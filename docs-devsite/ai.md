@@ -663,6 +663,7 @@ Generation modalities to be returned in generation responses.
 ResponseModality: {
     readonly TEXT: "TEXT";
     readonly IMAGE: "IMAGE";
+    readonly AUDIO: "AUDIO";
 }
 ```
 

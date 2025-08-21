@@ -369,7 +369,7 @@ export interface PrebuiltVoiceConfig {
    *
    * For a full list of names and demos of what each voice sounds like, see {@link https://cloud.google.com/text-to-speech/docs/chirp3-hd | Chirp 3: HD Voices}.
    */
-  voiceConfig?: string;
+  voiceName?: string;
 }
 
 /**

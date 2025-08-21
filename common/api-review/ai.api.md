@@ -866,7 +866,7 @@ export const POSSIBLE_ROLES: readonly ["user", "model", "function", "system"];
 
 // @beta
 export interface PrebuiltVoiceConfig {
-    voiceConfig?: string;
+    voiceName?: string;
 }
 
 // @public
@@ -888,6 +888,7 @@ export interface RequestOptions {
 export const ResponseModality: {
     readonly TEXT: "TEXT";
     readonly IMAGE: "IMAGE";
+    readonly AUDIO: "AUDIO";
 };
 
 // @beta
