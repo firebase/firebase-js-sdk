@@ -61,6 +61,14 @@ export interface ImagenResponseInternal {
      * The reason why the image was filtered.
      */
     raiFilteredReason?: string;
+    /**
+     * The safety attributes.
+     *
+     * This type is currently unused in the SDK. It is sent back because our requests set
+     * `includeSafetyAttributes`. This field is currently only used to avoid logging unsupported
+     * prediction types.
+     */
+    safetyAttributes?: unknown;
   }>;
 }
 
