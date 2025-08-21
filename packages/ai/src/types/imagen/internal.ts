@@ -65,8 +65,8 @@ export interface ImagenResponseInternal {
      * The safety attributes.
      *
      * This type is currently unused in the SDK. It is sent back because our requests set
-     * `includeSafetyAttributes`. This field is currently only used to avoid logging unsupported
-     * prediction types.
+     * `includeSafetyAttributes`. This property is currently only used to avoid throwing an error
+     * when encountering this unsupported prediction type.
      */
     safetyAttributes?: unknown;
   }>;
