@@ -214,6 +214,7 @@ describe('request formatting methods', () => {
       expect(body.instances[0].prompt).to.equal(prompt);
       expect(body.parameters.sampleCount).to.equal(1);
       expect(body.parameters.includeRaiReason).to.be.true;
+      expect(body.parameters.includeSafetyAttributes).to.be.true;
 
       // Parameters without default values should be undefined
       expect(body.parameters.storageUri).to.be.undefined;
@@ -258,6 +259,7 @@ describe('request formatting methods', () => {
       personGeneration: safetySettings.personFilterLevel,
       aspectRatio,
       includeRaiReason: true,
+      includeSafetyAttributes: true,
       storageUri: undefined
     });
   });
