@@ -45,17 +45,32 @@ export async function hasDiff() {
   return !!diff;
 }
 
+// TODO(yifany): remove console log output that is for debugging purpose
 export async function pushReleaseTagsToGithub() {
+  console.log('Pushing release tags to GitHub ...');
+
   // Get tags pointing to HEAD
   // When running the release script, these tags should be release tags created by changeset
+  console.log(`Running git tag --points-at HEAD at ${process.cwd()}`);
   const { stdout: rawTags } = await exec(`git tag --points-at HEAD`);
+  console.log(`stdout for git tag: ${rawTags}`);
 
-  const tags = rawTags.split(/\r?\n/);
+  const tags = rawTags.split(/\r?\n/).join(' ');
 
+  console.log(`Running git rev-parse --abbrev-ref HEAD at ${process.cwd()}`);
   let { stdout: currentBranch } = await exec(`git rev-parse --abbrev-ref HEAD`);
+  console.log(`stdout for git rev-parse: ${currentBranch}`);
   currentBranch = currentBranch.trim();
 
-  await exec(`git push origin ${currentBranch} ${tags.join(' ')} --no-verify`, {
-    cwd: root
-  });
+  console.log(
+    `Running git push origin ${currentBranch} ${tags} --no-verify at ${root}`
+  );
+  const result = await exec(
+    `git push origin ${currentBranch} ${tags} --no-verify`,
+    { cwd: root }
+  );
+  console.log(`stdout for git push: ${result.stdout}`);
+  console.log(`stderr for git push: ${result.stderr}`);
+
+  console.log(`Pushing release tags to GitHub done.`);
 }
