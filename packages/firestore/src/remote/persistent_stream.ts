@@ -30,7 +30,7 @@ import {
 import { debugAssert, hardAssert } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug, logError } from '../util/log';
+import { logDebug, logError, logWarn } from '../util/log';
 import { isNullOrUndefined } from '../util/types';
 
 import { ExponentialBackoff } from './backoff';
@@ -400,6 +400,13 @@ export abstract class PersistentStream<
       // fail, however. In this case, we should get a Code.UNAUTHENTICATED error
       // before we received the first message and we need to invalidate the token
       // to ensure that we fetch a new token.
+      logWarn(
+        LOG_TAG,
+        'Invalidating Auth and AppCheck tokens ' +
+          'in response to UNAUTHENTICATED error ' +
+          'on an otherwise-healthy connection ' +
+          'so that new token(s) are retrieved upon reconnection'
+      );
       this.authCredentialsProvider.invalidateToken();
       this.appCheckCredentialsProvider.invalidateToken();
     }

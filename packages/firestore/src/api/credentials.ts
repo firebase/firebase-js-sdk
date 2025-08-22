@@ -32,7 +32,7 @@ import { User } from '../auth/user';
 import { debugAssert, hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { Deferred } from '../util/promise';
 
 // TODO(mikelehen): This should be split into multiple files and probably
@@ -527,12 +527,28 @@ export class FirebaseAppCheckTokenProvider
     const onTokenChanged: (
       tokenResult: AppCheckTokenResult
     ) => Promise<void> = tokenResult => {
-      if (tokenResult.error != null) {
-        logDebug(
+      if (tokenResult.error) {
+        const code = getCode(tokenResult.error);
+        logWarn(
           'FirebaseAppCheckTokenProvider',
-          `Error getting App Check token; using placeholder token instead. Error: ${tokenResult.error.message}`
+          `Error getting App Check token (code=${code}): ${tokenResult.error.message}`
         );
+
+        // Ignore errors due to the App Check provider throttling requests to
+        // the provider's servers. Treat these errors as if nothing happened
+        // because App Check will get the provider to try again after throttling
+        // unblock it, at which point we will get a shiny, new, valid token.
+        if (isAppCheckThrottleCode(code)) {
+          logWarn(
+            'FirebaseAppCheckTokenProvider',
+            'ignoring failed App Check token retrieval since it is throttled ' +
+              'and App Check will try again later. (code=${code})'
+          );
+          return Promise.resolve();
+        }
+        logWarn('FirebaseAppCheckTokenProvider', 'using placeholder token');
       }
+
       const tokenUpdated = tokenResult.token !== this.latestAppCheckToken;
       this.latestAppCheckToken = tokenResult.token;
       logDebug(
@@ -717,4 +733,16 @@ export function makeAuthCredentialsProvider(
         'makeAuthCredentialsProvider failed due to invalid credential type'
       );
   }
+}
+
+function getCode(error: Error): string | undefined {
+  return 'code' in error && typeof error.code === 'string'
+    ? error.code
+    : undefined;
+}
+
+type AppCheckThrottleCode = 'appCheck/initial-throttle' | 'appCheck/throttled';
+
+function isAppCheckThrottleCode(code: unknown): code is AppCheckThrottleCode {
+  return code === 'appCheck/initial-throttle' || code === 'appCheck/throttled';
 }
