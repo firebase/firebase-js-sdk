@@ -323,9 +323,5 @@ describe('Live', function () {
       });
       */
     });
-
-    describe('startAudioConversation', () => {
-      it('');
-    });
   });
 });

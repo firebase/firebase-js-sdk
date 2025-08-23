@@ -25,6 +25,7 @@ import {
   Part
 } from '../types';
 import { LiveSession } from './live-session';
+import { Deferred } from '@firebase/util';
 
 const SERVER_INPUT_SAMPLE_RATE = 16_000;
 const SERVER_OUTPUT_SAMPLE_RATE = 24_000;
@@ -138,12 +139,8 @@ interface RunnerDependencies {
 export class AudioConversationRunner {
   /** A flag to indicate if the conversation has been stopped. */
   private isStopped = false;
-  /** A resolver function for the `stopPromise`. */
-  private stopResolver!: () => void;
-  /** A promise that resolves when `stop()` is called, used to unblock the receive loop. */
-  private readonly stopPromise = new Promise<void>(
-    resolve => (this.stopResolver = resolve)
-  );
+  /** A deferred that contains a promise that is resolved when stop() is called, to unblock the receive loop. */
+  private readonly stopDeferred = new Deferred<void>();
   /** A promise that tracks the lifecycle of the main `runReceiveLoop`. */
   private readonly receiveLoopPromise: Promise<void>;
 
@@ -199,7 +196,8 @@ export class AudioConversationRunner {
       return;
     }
     this.isStopped = true;
-    this.stopResolver(); // Unblock the receive loop
+    this.stopDeferred.resolve();
+    // this.stopResolver(); // Unblock the receive loop
     await this.receiveLoopPromise; // Wait for the loop and cleanup to finish
   }
 
@@ -310,7 +308,7 @@ export class AudioConversationRunner {
     while (!this.isStopped) {
       const result = await Promise.race([
         messageGenerator.next(),
-        this.stopPromise
+        this.stopDeferred.promise
       ]);
 
       if (this.isStopped || !result || result.done) {
