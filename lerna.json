@@ -6,5 +6,6 @@
     "integration/*",
     "repo-scripts/*"
   ],
-  "useWorkspaces": true
+  "useWorkspaces": true,
+  "versionUpdated": false
 }
