@@ -715,7 +715,7 @@ export interface LiveGenerationConfig {
     frequencyPenalty?: number;
     maxOutputTokens?: number;
     presencePenalty?: number;
-    responseModalities?: [ResponseModality];
+    responseModalities?: ResponseModality[];
     speechConfig?: SpeechConfig;
     temperature?: number;
     topK?: number;

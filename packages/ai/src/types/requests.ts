@@ -178,7 +178,7 @@ export interface LiveGenerationConfig {
   /**
    * The modalities of the response.
    */
-  responseModalities?: [ResponseModality];
+  responseModalities?: ResponseModality[];
 }
 
 /**

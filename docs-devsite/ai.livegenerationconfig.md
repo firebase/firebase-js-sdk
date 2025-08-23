@@ -28,7 +28,7 @@ export interface LiveGenerationConfig
 |  [frequencyPenalty](./ai.livegenerationconfig.md#livegenerationconfigfrequencypenalty) | number | <b><i>(Public Preview)</i></b> Frequency penalties. |
 |  [maxOutputTokens](./ai.livegenerationconfig.md#livegenerationconfigmaxoutputtokens) | number | <b><i>(Public Preview)</i></b> Specifies the maximum number of tokens that can be generated in the response. The number of tokens per word varies depending on the language outputted. Is unbounded by default. |
 |  [presencePenalty](./ai.livegenerationconfig.md#livegenerationconfigpresencepenalty) | number | <b><i>(Public Preview)</i></b> Positive penalties. |
-|  [responseModalities](./ai.livegenerationconfig.md#livegenerationconfigresponsemodalities) | \[[ResponseModality](./ai.md#responsemodality)<!-- -->\] | <b><i>(Public Preview)</i></b> The modalities of the response. |
+|  [responseModalities](./ai.livegenerationconfig.md#livegenerationconfigresponsemodalities) | [ResponseModality](./ai.md#responsemodality)<!-- -->\[\] | <b><i>(Public Preview)</i></b> The modalities of the response. |
 |  [speechConfig](./ai.livegenerationconfig.md#livegenerationconfigspeechconfig) | [SpeechConfig](./ai.speechconfig.md#speechconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for speech synthesis. |
 |  [temperature](./ai.livegenerationconfig.md#livegenerationconfigtemperature) | number | <b><i>(Public Preview)</i></b> Controls the degree of randomness in token selection. A <code>temperature</code> value of 0 means that the highest probability tokens are always selected. In this case, responses for a given prompt are mostly deterministic, but a small amount of variation is still possible. |
 |  [topK](./ai.livegenerationconfig.md#livegenerationconfigtopk) | number | <b><i>(Public Preview)</i></b> Changes how the model selects token for output. A <code>topK</code> value of 1 means the select token is the most probable among all tokens in the model's vocabulary, while a <code>topK</code> value 3 means that the next token is selected from among the 3 most probably using probabilities sampled. Tokens are then further filtered with the highest selected <code>temperature</code> sampling. Defaults to 40 if unspecified. |
@@ -83,7 +83,7 @@ The modalities of the response.
 <b>Signature:</b>
 
 ```typescript
-responseModalities?: [ResponseModality];
+responseModalities?: ResponseModality[];
 ```
 
 ## LiveGenerationConfig.speechConfig
