@@ -196,8 +196,7 @@ export class AudioConversationRunner {
       return;
     }
     this.isStopped = true;
-    this.stopDeferred.resolve();
-    // this.stopResolver(); // Unblock the receive loop
+    this.stopDeferred.resolve(); // Unblock the receive loop
     await this.receiveLoopPromise; // Wait for the loop and cleanup to finish
   }
 
