@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
@@ -1615,6 +1616,33 @@ apiDescribe('Pipelines', persistence => {
           }
         );
       });
+    });
+  });
+
+  describe('error handling', () => {
+    it('error properties are propagated from the firestore backend', async () => {
+      try {
+        const myPipeline = firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .genericStage('select', [
+            // incorrect parameter type
+            field('title'),
+          ]);
+
+        await execute(myPipeline);
+
+        expect.fail('expected pipeline.execute() to throw');
+      } catch (e: unknown) {
+        expect(e instanceof FirebaseError).to.be.true;
+        const err = e as FirebaseError;
+        expect(err['code']).to.equal('invalid-argument');
+        expect(typeof err['message']).to.equal('string');
+
+        expect(err['message']).to.match(
+          /^3 INVALID_ARGUMENT: .*$/
+        );
+      }
     });
   });
 
