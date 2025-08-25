@@ -19,7 +19,7 @@ import { AIError } from '../errors';
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { ChromeAdapterImpl } from './chrome-adapter';
+import { chromeAdapterFactory, ChromeAdapterImpl } from './chrome-adapter';
 import {
   Availability,
   LanguageModel,
@@ -768,6 +768,20 @@ describe('ChromeAdapter', () => {
         }
       ]);
     });
+  });
+});
+
+describe('chromeAdapterFactory', () => {
+  it('creates a populated ChromeAdapterImpl', () => {
+    const fakeLanguageModel = {} as LanguageModel;
+    const adapter = chromeAdapterFactory(
+      InferenceMode.PREFER_ON_DEVICE,
+      { LanguageModel: fakeLanguageModel } as Window,
+      { createOptions: {} }
+    );
+    expect(adapter?.languageModelProvider).to.equal(fakeLanguageModel);
+    expect(adapter?.mode).to.equal(InferenceMode.PREFER_ON_DEVICE);
+    expect(adapter?.onDeviceParams.createOptions).to.exist;
   });
 });
 

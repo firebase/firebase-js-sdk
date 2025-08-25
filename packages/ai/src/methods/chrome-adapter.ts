@@ -48,9 +48,9 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   private downloadPromise: Promise<LanguageModel | void> | undefined;
   private oldSession: LanguageModel | undefined;
   constructor(
-    private languageModelProvider: LanguageModel,
-    private mode: InferenceMode,
-    private onDeviceParams: OnDeviceParams = {
+    public languageModelProvider: LanguageModel,
+    public mode: InferenceMode,
+    public onDeviceParams: OnDeviceParams = {
       createOptions: {
         // Defaults to support image inputs for convenience.
         expectedInputs: [{ type: 'image' }]
@@ -384,7 +384,7 @@ export function chromeAdapterFactory(
   // Do not initialize a ChromeAdapter if we are not in hybrid mode.
   if (typeof window !== 'undefined' && mode) {
     return new ChromeAdapterImpl(
-      (window as Window).languageModel as LanguageModel,
+      (window as Window).LanguageModel as LanguageModel,
       mode,
       params
     );

@@ -39,7 +39,7 @@ import { LanguageModel } from './types/language-model';
 
 declare global {
   interface Window {
-    languageModel: LanguageModel;
+    LanguageModel: LanguageModel;
   }
 }
 
