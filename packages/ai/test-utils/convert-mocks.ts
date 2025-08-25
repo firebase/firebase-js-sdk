@@ -19,14 +19,14 @@
 const { readdirSync, readFileSync, writeFileSync } = require('node:fs');
 const { join } = require('node:path');
 
+type BackendName = import('./types').BackendName; // Import type without triggering ES module detection
+
 const MOCK_RESPONSES_DIR_PATH = join(
   __dirname,
   'vertexai-sdk-test-data',
   'mock-responses'
 );
 const MOCK_LOOKUP_OUTPUT_PATH = join(__dirname, 'mocks-lookup.ts');
-
-type BackendName = 'vertexAI' | 'googleAI';
 
 const mockDirs: Record<BackendName, string> = {
   vertexAI: join(MOCK_RESPONSES_DIR_PATH, 'vertexai'),
