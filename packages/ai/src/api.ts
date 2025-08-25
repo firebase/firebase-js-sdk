@@ -129,7 +129,7 @@ export function getGenerativeModel(
    */
   const chromeAdapter = (ai as AIService).chromeAdapterFactory?.(
     hybridParams.mode,
-    typeof window && window,
+    typeof window === 'undefined' ? undefined : window,
     hybridParams.onDeviceParams
   );
 
