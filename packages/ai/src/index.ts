@@ -34,10 +34,12 @@ import { name, version } from '../package.json';
 import { decodeInstanceIdentifier } from './helpers';
 import { AIError } from './api';
 import { AIErrorCode } from './types';
+import { chromeAdapterFactory } from './methods/chrome-adapter';
+import { LanguageModel } from './types/language-model';
 
 declare global {
   interface Window {
-    [key: string]: unknown;
+    languageModel: LanguageModel;
   }
 }
 
@@ -58,7 +60,14 @@ export function factory(
   const app = container.getProvider('app').getImmediate();
   const auth = container.getProvider('auth-internal');
   const appCheckProvider = container.getProvider('app-check-internal');
-  return new AIService(app, backend, auth, appCheckProvider);
+
+  return new AIService(
+    app,
+    backend,
+    auth,
+    appCheckProvider,
+    chromeAdapterFactory
+  );
 }
 
 function registerAI(): void {

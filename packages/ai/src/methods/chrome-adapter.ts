@@ -372,3 +372,21 @@ export class ChromeAdapterImpl implements ChromeAdapter {
     } as Response;
   }
 }
+
+/**
+ * Creates a ChromeAdapterImpl on demand.
+ */
+export function chromeAdapterFactory(
+  mode: InferenceMode,
+  window?: Global | Window,
+  params?: OnDeviceParams
+): ChromeAdapterImpl | undefined {
+  // Do not initialize a ChromeAdapter if we are not in hybrid mode.
+  if (typeof window !== 'undefined' && mode) {
+    return new ChromeAdapterImpl(
+      (window as Window).languageModel as LanguageModel,
+      mode,
+      params
+    );
+  }
+}
