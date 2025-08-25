@@ -9,35 +9,33 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# PrebuiltVoiceConfig interface
+# AudioConversationController interface
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Configuration for a pre-built voice.
+A controller for managing an active audio conversation.
 
 <b>Signature:</b>
 
 ```typescript
-export interface PrebuiltVoiceConfig 
+export interface AudioConversationController 
 ```
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [voiceName](./ai.prebuiltvoiceconfig.md#prebuiltvoiceconfigvoicename) | string | <b><i>(Public Preview)</i></b> The voice name to use for speech synthesis.<!-- -->For a full list of names and demos of what each voice sounds like, see [Chirp 3: HD Voices](https://cloud.google.com/text-to-speech/docs/chirp3-hd)<!-- -->. |
+|  [stop](./ai.audioconversationcontroller.md#audioconversationcontrollerstop) | () =&gt; Promise&lt;void&gt; | <b><i>(Public Preview)</i></b> Stops the audio conversation, closes the microphone connection, and cleans up resources. Returns a promise that resolves when cleanup is complete. |
 
-## PrebuiltVoiceConfig.voiceName
+## AudioConversationController.stop
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-The voice name to use for speech synthesis.
-
-For a full list of names and demos of what each voice sounds like, see [Chirp 3: HD Voices](https://cloud.google.com/text-to-speech/docs/chirp3-hd)<!-- -->.
+Stops the audio conversation, closes the microphone connection, and cleans up resources. Returns a promise that resolves when cleanup is complete.
 
 <b>Signature:</b>
 
 ```typescript
-voiceName?: string;
+stop: () => Promise<void>;
 ```

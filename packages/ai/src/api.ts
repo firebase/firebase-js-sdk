@@ -45,6 +45,11 @@ export * from './requests/schema-builder';
 export { ImagenImageFormat } from './requests/imagen-image-format';
 export { AIModel, GenerativeModel, LiveGenerativeModel, ImagenModel, AIError };
 export { Backend, VertexAIBackend, GoogleAIBackend } from './backend';
+export {
+  startAudioConversation,
+  AudioConversationController,
+  StartAudioConversationOptions
+} from './methods/live-session-helpers';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

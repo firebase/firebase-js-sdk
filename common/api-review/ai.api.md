@@ -85,6 +85,11 @@ export class ArraySchema extends Schema {
     toJSON(): SchemaRequest;
 }
 
+// @beta
+export interface AudioConversationController {
+    stop: () => Promise<void>;
+}
+
 // @public
 export abstract class Backend {
     protected constructor(type: BackendType);
@@ -710,7 +715,7 @@ export interface LiveGenerationConfig {
     frequencyPenalty?: number;
     maxOutputTokens?: number;
     presencePenalty?: number;
-    responseModalities?: [ResponseModality];
+    responseModalities?: ResponseModality[];
     speechConfig?: SpeechConfig;
     temperature?: number;
     topK?: number;
@@ -787,6 +792,7 @@ export class LiveSession {
     // @internal
     constructor(webSocketHandler: WebSocketHandler, serverMessages: AsyncGenerator<unknown>);
     close(): Promise<void>;
+    inConversation: boolean;
     isClosed: boolean;
     receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation>;
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
@@ -860,7 +866,7 @@ export const POSSIBLE_ROLES: readonly ["user", "model", "function", "system"];
 
 // @beta
 export interface PrebuiltVoiceConfig {
-    voiceConfig?: string;
+    voiceName?: string;
 }
 
 // @public
@@ -882,6 +888,7 @@ export interface RequestOptions {
 export const ResponseModality: {
     readonly TEXT: "TEXT";
     readonly IMAGE: "IMAGE";
+    readonly AUDIO: "AUDIO";
 };
 
 // @beta
@@ -1029,6 +1036,14 @@ export interface Segment {
 // @beta
 export interface SpeechConfig {
     voiceConfig?: VoiceConfig;
+}
+
+// @beta
+export function startAudioConversation(liveSession: LiveSession, options?: StartAudioConversationOptions): Promise<AudioConversationController>;
+
+// @beta
+export interface StartAudioConversationOptions {
+    functionCallingHandler?: (functionCalls: LiveServerToolCall['functionCalls']) => Promise<Part>;
 }
 
 // @public
