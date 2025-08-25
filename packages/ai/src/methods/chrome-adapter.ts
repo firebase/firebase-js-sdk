@@ -378,7 +378,7 @@ export class ChromeAdapterImpl implements ChromeAdapter {
  */
 export function chromeAdapterFactory(
   mode: InferenceMode,
-  window?: Global | Window,
+  window?: Window,
   params?: OnDeviceParams
 ): ChromeAdapterImpl | undefined {
   // Do not initialize a ChromeAdapter if we are not in hybrid mode.
