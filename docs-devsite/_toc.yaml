@@ -650,4 +650,6 @@ toc:
     path: /docs/reference/js/storage.uploadtasksnapshot.md
 - title: telemetry
   path: /docs/reference/js/telemetry.md
-  section: []
+  section:
+  - title: Telemetry
+    path: /docs/reference/js/telemetry.telemetry.md
