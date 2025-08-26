@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { registerTelemetry } from './src';
+import { registerTelemetry } from './src/register';
 
 registerTelemetry();
 
