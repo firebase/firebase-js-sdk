@@ -4,11 +4,23 @@
 
 ```ts
 
-// @public (undocumented)
-export function registerTelemetry(): void;
+import { FirebaseApp } from '@firebase/app';
+import { LoggerProvider } from '@opentelemetry/sdk-logs';
 
-// @public (undocumented)
-export function testFxn(): number;
+// @public
+export function captureError(telemetry: Telemetry, error: unknown): void;
+
+// @public
+export function flush(telemetry: Telemetry): Promise<void>;
+
+// @public
+export function getTelemetry(app?: FirebaseApp): Telemetry;
+
+// @public
+export interface Telemetry {
+    app: FirebaseApp;
+    loggerProvider: LoggerProvider;
+}
 
 
 // (No @packageDocumentation comment for this package)

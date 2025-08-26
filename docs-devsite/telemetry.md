@@ -15,30 +15,92 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  [registerTelemetry()](./telemetry.md#registertelemetry) |  |
-|  [testFxn()](./telemetry.md#testfxn) |  |
+|  <b>function(app, ...)</b> |
+|  [getTelemetry(app)](./telemetry.md#gettelemetry_cf608e1) | Returns the default [Telemetry](./telemetry.telemetry.md#telemetry_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings. |
+|  <b>function(telemetry, ...)</b> |
+|  [captureError(telemetry, error)](./telemetry.md#captureerror_7c2d94e) | Enqueues an error to be uploaded to the Firebase Telemetry API. |
+|  [flush(telemetry)](./telemetry.md#flush_8975134) | Flushes all enqueued telemetry data immediately, instead of waiting for default batching. |
 
-## function()
+## Interfaces
 
-### registerTelemetry() {:#registertelemetry}
+|  Interface | Description |
+|  --- | --- |
+|  [Telemetry](./telemetry.telemetry.md#telemetry_interface) | An instance of the Firebase Telemetry SDK.<!-- -->Do not create this instance directly. Instead, use [getTelemetry()](./telemetry.md#gettelemetry_cf608e1)<!-- -->. |
+
+## function(app, ...)
+
+### getTelemetry(app) {:#gettelemetry_cf608e1}
+
+Returns the default [Telemetry](./telemetry.telemetry.md#telemetry_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function registerTelemetry(): void;
+export declare function getTelemetry(app?: FirebaseApp): Telemetry;
 ```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) to use. |
+
+<b>Returns:</b>
+
+[Telemetry](./telemetry.telemetry.md#telemetry_interface)
+
+The default [Telemetry](./telemetry.telemetry.md#telemetry_interface) instance for the given [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->.
+
+### Example
+
+
+```javascript
+const telemetry = getTelemetry(app);
+
+```
+
+## function(telemetry, ...)
+
+### captureError(telemetry, error) {:#captureerror_7c2d94e}
+
+Enqueues an error to be uploaded to the Firebase Telemetry API.
+
+<b>Signature:</b>
+
+```typescript
+export declare function captureError(telemetry: Telemetry, error: unknown): void;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  telemetry | [Telemetry](./telemetry.telemetry.md#telemetry_interface) | The [Telemetry](./telemetry.telemetry.md#telemetry_interface) instance. |
+|  error | unknown | the caught exception, typically an  |
+
 <b>Returns:</b>
 
 void
 
-### testFxn() {:#testfxn}
+### flush(telemetry) {:#flush_8975134}
+
+Flushes all enqueued telemetry data immediately, instead of waiting for default batching.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function testFxn(): number;
+export declare function flush(telemetry: Telemetry): Promise<void>;
 ```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  telemetry | [Telemetry](./telemetry.telemetry.md#telemetry_interface) | The [Telemetry](./telemetry.telemetry.md#telemetry_interface) instance. |
+
 <b>Returns:</b>
 
-number
+Promise&lt;void&gt;
+
+a promise which is resolved when all flushes are complete
 
