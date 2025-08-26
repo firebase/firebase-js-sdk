@@ -4,10 +4,18 @@
 
 ```ts
 
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
+import { ComponentContainer } from '@firebase/component';
 import { FirebaseApp } from '@firebase/app';
+import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
+import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
+import { _FirebaseService } from '@firebase/app';
+import { InstanceFactoryOptions } from '@firebase/component';
+import { Provider } from '@firebase/component';
 
 // @public
 export interface AI {
@@ -15,6 +23,7 @@ export interface AI {
     backend: Backend;
     // @deprecated (undocumented)
     location: string;
+    options?: AIOptions;
 }
 
 // @public
@@ -54,7 +63,7 @@ export abstract class AIModel {
     // Warning: (ae-forgotten-export) The symbol "ApiSettings" needs to be exported by the entry point index.d.ts
     //
     // @internal (undocumented)
-    protected _apiSettings: ApiSettings;
+    _apiSettings: ApiSettings;
     readonly model: string;
     // @internal
     static normalizeModelName(modelName: string, backendType: BackendType): string;
@@ -62,7 +71,8 @@ export abstract class AIModel {
 
 // @public
 export interface AIOptions {
-    backend: Backend;
+    backend?: Backend;
+    useLimitedUseAppCheckTokens?: boolean;
 }
 
 // @public
@@ -131,7 +141,7 @@ export class BooleanSchema extends Schema {
 
 // @public
 export class ChatSession {
-    constructor(apiSettings: ApiSettings, model: string, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
+    constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
@@ -142,6 +152,15 @@ export class ChatSession {
     sendMessage(request: string | Array<string | Part>): Promise<GenerateContentResult>;
     sendMessageStream(request: string | Array<string | Part>): Promise<GenerateContentStreamResult>;
     }
+
+// @public
+export interface ChromeAdapter {
+    // @internal (undocumented)
+    countTokens(request: CountTokensRequest): Promise<Response>;
+    generateContent(request: GenerateContentRequest): Promise<Response>;
+    generateContentStream(request: GenerateContentRequest): Promise<Response>;
+    isAvailable(request: GenerateContentRequest): Promise<boolean>;
+}
 
 // @public
 export interface Citation {
@@ -210,10 +229,10 @@ export { Date_2 as Date }
 
 // @public
 export interface EnhancedGenerateContentResponse extends GenerateContentResponse {
-    // (undocumented)
     functionCalls: () => FunctionCall[] | undefined;
     inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
+    thoughtSummary: () => string | undefined;
 }
 
 // @public
@@ -225,6 +244,11 @@ export interface ErrorDetails {
     metadata?: Record<string, unknown>;
     reason?: string;
 }
+
+// Warning: (ae-forgotten-export) The symbol "AIService" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export function factory(container: ComponentContainer, { instanceIdentifier }: InstanceFactoryOptions): AIService;
 
 // @public
 export interface FileData {
@@ -246,6 +270,10 @@ export interface FileDataPart {
     inlineData?: never;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
 }
 
 // @public
@@ -301,6 +329,10 @@ export interface FunctionCallPart {
     inlineData?: never;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
 }
 
 // @public
@@ -334,6 +366,10 @@ export interface FunctionResponsePart {
     inlineData?: never;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
 }
 
 // @public
@@ -424,7 +460,7 @@ export interface GenerativeContentBlob {
 
 // @public
 export class GenerativeModel extends AIModel {
-    constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions);
+    constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions, chromeAdapter?: ChromeAdapter | undefined);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
@@ -447,7 +483,7 @@ export class GenerativeModel extends AIModel {
 export function getAI(app?: FirebaseApp, options?: AIOptions): AI;
 
 // @public
-export function getGenerativeModel(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
+export function getGenerativeModel(ai: AI, modelParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 
 // @beta
 export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
@@ -599,6 +635,13 @@ export const HarmSeverity: {
 // @public
 export type HarmSeverity = (typeof HarmSeverity)[keyof typeof HarmSeverity];
 
+// @public
+export interface HybridParams {
+    inCloudParams?: ModelParams;
+    mode: InferenceMode;
+    onDeviceParams?: OnDeviceParams;
+}
+
 // @beta
 export const ImagenAspectRatio: {
     readonly SQUARE: "1:1";
@@ -611,7 +654,7 @@ export const ImagenAspectRatio: {
 // @beta
 export type ImagenAspectRatio = (typeof ImagenAspectRatio)[keyof typeof ImagenAspectRatio];
 
-// @public
+// @beta
 export interface ImagenGCSImage {
     gcsURI: string;
     mimeType: string;
@@ -693,6 +736,16 @@ export interface ImagenSafetySettings {
 }
 
 // @public
+export const InferenceMode: {
+    readonly PREFER_ON_DEVICE: "prefer_on_device";
+    readonly ONLY_ON_DEVICE: "only_on_device";
+    readonly ONLY_IN_CLOUD: "only_in_cloud";
+};
+
+// @public
+export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
+
+// @public
 export interface InlineDataPart {
     // (undocumented)
     functionCall?: never;
@@ -702,12 +755,73 @@ export interface InlineDataPart {
     inlineData: GenerativeContentBlob;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
     videoMetadata?: VideoMetadata;
 }
 
 // @public
 export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
+}
+
+// @public
+export interface LanguageModelCreateCoreOptions {
+    // (undocumented)
+    expectedInputs?: LanguageModelExpected[];
+    // (undocumented)
+    temperature?: number;
+    // (undocumented)
+    topK?: number;
+}
+
+// @public
+export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptions {
+    // (undocumented)
+    initialPrompts?: LanguageModelMessage[];
+    // (undocumented)
+    signal?: AbortSignal;
+}
+
+// @public
+export interface LanguageModelExpected {
+    // (undocumented)
+    languages?: string[];
+    // (undocumented)
+    type: LanguageModelMessageType;
+}
+
+// @public
+export interface LanguageModelMessage {
+    // (undocumented)
+    content: LanguageModelMessageContent[];
+    // (undocumented)
+    role: LanguageModelMessageRole;
+}
+
+// @public
+export interface LanguageModelMessageContent {
+    // (undocumented)
+    type: LanguageModelMessageType;
+    // (undocumented)
+    value: LanguageModelMessageContentValue;
+}
+
+// @public
+export type LanguageModelMessageContentValue = ImageBitmapSource | AudioBuffer | BufferSource | string;
+
+// @public
+export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
+
+// @public
+export type LanguageModelMessageType = 'text' | 'image' | 'audio';
+
+// @public
+export interface LanguageModelPromptOptions {
+    // (undocumented)
+    responseConstraint?: object;
 }
 
 // @beta
@@ -856,6 +970,14 @@ export interface ObjectSchemaRequest extends SchemaRequest {
     optionalProperties?: never;
     // (undocumented)
     type: 'object';
+}
+
+// @public
+export interface OnDeviceParams {
+    // (undocumented)
+    createOptions?: LanguageModelCreateOptions;
+    // (undocumented)
+    promptOptions?: LanguageModelPromptOptions;
 }
 
 // @public
@@ -1077,10 +1199,15 @@ export interface TextPart {
     inlineData?: never;
     // (undocumented)
     text: string;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: string;
 }
 
 // @public
 export interface ThinkingConfig {
+    includeThoughts?: boolean;
     thinkingBudget?: number;
 }
 

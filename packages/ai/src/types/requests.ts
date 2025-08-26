@@ -18,10 +18,15 @@
 import { ObjectSchema, TypedSchema } from '../requests/schema-builder';
 import { Content, Part } from './content';
 import {
+  LanguageModelCreateOptions,
+  LanguageModelPromptOptions
+} from './language-model';
+import {
   FunctionCallingMode,
   HarmBlockMethod,
   HarmBlockThreshold,
   HarmCategory,
+  InferenceMode,
   ResponseModality
 } from './enums';
 import { ObjectSchemaRequest, SchemaRequest } from './schema';
@@ -222,7 +227,10 @@ export interface RequestOptions {
    */
   timeout?: number;
   /**
-   * Base url for endpoint. Defaults to https://firebasevertexai.googleapis.com
+   * Base url for endpoint. Defaults to
+   * https://firebasevertexai.googleapis.com, which is the
+   * {@link https://console.cloud.google.com/apis/library/firebasevertexai.googleapis.com?project=_ | Firebase AI Logic API}
+   * (used regardless of your chosen Gemini API provider).
    */
   baseUrl?: string;
 }
@@ -334,6 +342,37 @@ export interface FunctionCallingConfig {
 }
 
 /**
+ * <b>(EXPERIMENTAL)</b>
+ * Encapsulates configuration for on-device inference.
+ *
+ * @public
+ */
+export interface OnDeviceParams {
+  createOptions?: LanguageModelCreateOptions;
+  promptOptions?: LanguageModelPromptOptions;
+}
+
+/**
+ * <b>(EXPERIMENTAL)</b>
+ * Configures hybrid inference.
+ * @public
+ */
+export interface HybridParams {
+  /**
+   * Specifies on-device or in-cloud inference. Defaults to prefer on-device.
+   */
+  mode: InferenceMode;
+  /**
+   * Optional. Specifies advanced params for on-device inference.
+   */
+  onDeviceParams?: OnDeviceParams;
+  /**
+   * Optional. Specifies advanced params for in-cloud inference.
+   */
+  inCloudParams?: ModelParams;
+}
+
+/**
  * Configuration for "thinking" behavior of compatible Gemini models.
  *
  * Certain models utilize a thinking process before generating a response. This allows them to
@@ -356,6 +395,16 @@ export interface ThinkingConfig {
    * feature or if the specified budget is not within the model's supported range.
    */
   thinkingBudget?: number;
+
+  /**
+   * Whether to include "thought summaries" in the model's response.
+   *
+   * @remarks
+   * Thought summaries provide a brief overview of the model's internal thinking process,
+   * offering insight into how it arrived at the final answer. This can be useful for
+   * debugging, understanding the model's reasoning, and verifying its accuracy.
+   */
+  includeThoughts?: boolean;
 }
 
 /**

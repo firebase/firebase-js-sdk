@@ -1,6 +1,6 @@
 {
   "name": "@firebase/ai",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "The Firebase AI SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "engines": {
@@ -39,7 +39,7 @@
     "test:ci": "yarn testsetup && node ../../scripts/run_tests_in_ci.js -s test",
     "test:skip-clone": "karma start",
     "test:browser": "yarn testsetup && karma start",
-    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' mocha --require ts-node/register --require src/index.node.ts 'src/**/*.test.ts' --config ../../config/mocharc.node.js",
+    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' mocha --require ts-node/register --require src/index.node.ts 'src/**/!(*-browser)*.test.ts' --config ../../config/mocharc.node.js",
     "test:integration": "karma start --integration",
     "test:integration:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' mocha integration/**/*.test.ts --config ../../config/mocharc.node.js",
     "api-report": "api-extractor run --local --verbose",
@@ -59,7 +59,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.14.0",
+    "@firebase/app": "0.14.1",
     "@rollup/plugin-json": "6.1.0",
     "rollup": "2.79.2",
     "rollup-plugin-replace": "2.2.0",

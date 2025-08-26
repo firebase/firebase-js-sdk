@@ -67,7 +67,7 @@ export const HarmBlockThreshold = {
   BLOCK_NONE: 'BLOCK_NONE',
   /**
    * All content will be allowed. This is the same as `BLOCK_NONE`, but the metadata corresponding
-   * to the {@link HarmCategory} will not be present in the response.
+   * to the {@link (HarmCategory:type)} will not be present in the response.
    */
   OFF: 'OFF'
 } as const;
@@ -270,6 +270,9 @@ export const FunctionCallingMode = {
   NONE: 'NONE'
 } as const;
 
+/**
+ * @public
+ */
 export type FunctionCallingMode =
   (typeof FunctionCallingMode)[keyof typeof FunctionCallingMode];
 
@@ -340,3 +343,21 @@ export const ResponseModality = {
  */
 export type ResponseModality =
   (typeof ResponseModality)[keyof typeof ResponseModality];
+
+/**
+ * <b>(EXPERIMENTAL)</b>
+ * Determines whether inference happens on-device or in-cloud.
+ * @public
+ */
+export const InferenceMode = {
+  'PREFER_ON_DEVICE': 'prefer_on_device',
+  'ONLY_ON_DEVICE': 'only_on_device',
+  'ONLY_IN_CLOUD': 'only_in_cloud'
+} as const;
+
+/**
+ * <b>(EXPERIMENTAL)</b>
+ * Determines whether inference happens on-device or in-cloud.
+ * @public
+ */
+export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
