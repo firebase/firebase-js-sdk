@@ -17,9 +17,10 @@
 
 import { _FirebaseService, FirebaseApp } from '@firebase/app';
 import { Telemetry } from './public-types';
+import { LoggerProvider } from '@opentelemetry/sdk-logs';
 
 export class TelemetryService implements Telemetry, _FirebaseService {
-  constructor(public app: FirebaseApp) {}
+  constructor(public app: FirebaseApp, public loggerProvider: LoggerProvider) {}
 
   _delete(): Promise<void> {
     return Promise.resolve();

@@ -19,6 +19,14 @@ import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
 import { TELEMETRY_TYPE } from './constants';
 import { Telemetry } from './public-types';
 import { Provider } from '@firebase/component';
+import { SeverityNumber } from '@opentelemetry/api-logs';
+import { TelemetryService } from './service';
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    [TELEMETRY_TYPE]: TelemetryService;
+  }
+}
 
 /**
  * Returns the default {@link Telemetry} instance that is associated with the provided
@@ -43,4 +51,50 @@ export function getTelemetry(app: FirebaseApp = getApp()): Telemetry {
   );
 
   return telemetryProvider.getImmediate();
+}
+
+/**
+ * Enqueues an error to be uploaded to the Firebase Telemetry API.
+ *
+ * @public
+ *
+ * @param telemetry - The {@link Telemetry} instance.
+ * @param error - the caught exception, typically an {@link Error}
+ */
+export function captureError(telemetry: Telemetry, error: unknown): void {
+  const logger = telemetry.loggerProvider.getLogger('error-logger');
+  if (error instanceof Error) {
+    logger.emit({
+      severityNumber: SeverityNumber.ERROR,
+      body: error.message,
+      attributes: {
+        'error.type': error.name || 'Error',
+        'error.stack': error.stack || 'No stack trace available'
+      }
+    });
+  } else if (typeof error === 'string') {
+    logger.emit({
+      severityNumber: SeverityNumber.ERROR,
+      body: error
+    });
+  } else {
+    logger.emit({
+      severityNumber: SeverityNumber.ERROR,
+      body: `Unknown error type: ${typeof error}`
+    });
+  }
+}
+
+/**
+ * Flushes all enqueued telemetry data immediately, instead of waiting for default batching.
+ *
+ * @public
+ *
+ * @param telemetry - The {@link Telemetry} instance.
+ * @returns a promise which is resolved when all flushes are complete
+ */
+export function flush(telemetry: Telemetry): Promise<void> {
+  return telemetry.loggerProvider.forceFlush().catch(err => {
+    console.error('Error flushing logs from Firebase Telemetry:', err);
+  });
 }

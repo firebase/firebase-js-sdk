@@ -16,23 +16,11 @@
  */
 
 import { _registerComponent, registerVersion } from '@firebase/app';
-import { TestType } from './types/index';
 import { Component, ComponentType } from '@firebase/component';
 import { TELEMETRY_TYPE } from './constants';
 import { name, version } from '../package.json';
 import { TelemetryService } from './service';
-
-export function testFxn(): number {
-  const _thing: TestType = {};
-  console.log('hi');
-  return 42;
-}
-
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    [TELEMETRY_TYPE]: TelemetryService;
-  }
-}
+import { createLoggerProvider } from './helpers';
 
 export function registerTelemetry(): void {
   _registerComponent(
@@ -41,7 +29,9 @@ export function registerTelemetry(): void {
       (container, {}) => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
-        return new TelemetryService(app);
+        const loggerProvider = createLoggerProvider();
+
+        return new TelemetryService(app, loggerProvider);
       },
       ComponentType.PUBLIC
     )
