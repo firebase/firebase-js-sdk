@@ -16,6 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app';
+import { LoggerProvider } from '@opentelemetry/sdk-logs';
 
 /**
  * An instance of the Firebase Telemetry SDK.
@@ -29,4 +30,7 @@ export interface Telemetry {
    * The {@link @firebase/app#FirebaseApp} this {@link Telemetry} instance is associated with.
    */
   app: FirebaseApp;
+
+  /** The {@link LoggerProvider} this {@link Telemetry} instance uses. */
+  loggerProvider: LoggerProvider;
 }
