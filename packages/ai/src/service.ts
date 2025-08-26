@@ -42,7 +42,7 @@ export class AIService implements AI, _FirebaseService {
     appCheckProvider?: Provider<AppCheckInternalComponentName>,
     public chromeAdapterFactory?: (
       mode: InferenceMode,
-      window?: Global | Window,
+      window?: Window,
       params?: OnDeviceParams
     ) => ChromeAdapterImpl | undefined
   ) {
