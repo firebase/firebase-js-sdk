@@ -35,7 +35,9 @@
     "test:all": "run-p --npm-path npm test:browser test:node",
     "test:browser": "karma start",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.* --config ../../config/mocharc.node.js",
-    "trusted-type-check": "tsec -p tsconfig.json --noEmit"
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
+    "api-report": "api-extractor run --local --verbose && ts-node-script ../../repo-scripts/prune-dts/prune-dts.ts --input dist/telemetry-public.d.ts --output dist/telemetry-public.d.ts",
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/telemetry-public.d.ts"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
@@ -67,7 +69,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/index.d.ts",
+  "typings": "dist/src/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"
