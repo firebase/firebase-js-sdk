@@ -86,7 +86,7 @@ export function captureError(telemetry: Telemetry, error: unknown): void {
 }
 
 /**
- * Flushes all enqueued telemetry data immediately.
+ * Flushes all enqueued telemetry data immediately, instead of waiting for default batching.
  *
  * @public
  *
