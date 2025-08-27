@@ -60,15 +60,34 @@ export interface EnhancedGenerateContentResponse
    */
   text: () => string;
   /**
-   * Aggregates and returns all {@link InlineDataPart}s from the {@link GenerateContentResponse}'s
-   * first candidate.
-   *
-   * @returns An array of {@link InlineDataPart}s containing data from the response, if available.
+   * Aggregates and returns every {@link InlineDataPart} from the first candidate of
+   * {@link GenerateContentResponse}.
    *
    * @throws If the prompt or candidate was blocked.
    */
   inlineDataParts: () => InlineDataPart[] | undefined;
+  /**
+   * Aggregates and returns every {@link FunctionCall} from the first candidate of
+   * {@link GenerateContentResponse}.
+   *
+   * @throws If the prompt or candidate was blocked.
+   */
   functionCalls: () => FunctionCall[] | undefined;
+  /**
+   * Aggregates and returns every {@link TextPart} with their `thought` property set
+   * to `true` from the first candidate of {@link GenerateContentResponse}.
+   *
+   * @throws If the prompt or candidate was blocked.
+   *
+   * @remarks
+   * Thought summaries provide a brief overview of the model's internal thinking process,
+   * offering insight into how it arrived at the final answer. This can be useful for
+   * debugging, understanding the model's reasoning, and verifying its accuracy.
+   *
+   * Thoughts will only be included if {@link ThinkingConfig.includeThoughts} is
+   * set to `true`.
+   */
+  thoughtSummary: () => string | undefined;
 }
 
 /**
@@ -408,3 +427,73 @@ export interface CountTokensResponse {
    */
   promptTokensDetails?: ModalityTokenCount[];
 }
+
+/**
+ * An incremental content update from the model.
+ *
+ * @beta
+ */
+export interface LiveServerContent {
+  type: 'serverContent';
+  /**
+   * The content that the model has generated as part of the current conversation with the user.
+   */
+  modelTurn?: Content;
+  /**
+   * Indicates whether the turn is complete. This is `undefined` if the turn is not complete.
+   */
+  turnComplete?: boolean;
+  /**
+   * Indicates whether the model was interrupted by the client. An interruption occurs when
+   * the client sends a message before the model finishes it's turn. This is `undefined` if the
+   * model was not interrupted.
+   */
+  interrupted?: boolean;
+}
+
+/**
+ * A request from the model for the client to execute one or more functions.
+ *
+ * @beta
+ */
+export interface LiveServerToolCall {
+  type: 'toolCall';
+  /**
+   * An array of function calls to run.
+   */
+  functionCalls: FunctionCall[];
+}
+
+/**
+ * Notification to cancel a previous function call triggered by {@link LiveServerToolCall}.
+ *
+ * @beta
+ */
+export interface LiveServerToolCallCancellation {
+  type: 'toolCallCancellation';
+  /**
+   * IDs of function calls that were cancelled. These refer to the `id` property of a {@link FunctionCall}.
+   */
+  functionIds: string[];
+}
+
+/**
+ * The types of responses that can be returned by {@link LiveSession.receive}.
+ *
+ * @beta
+ */
+export const LiveResponseType = {
+  SERVER_CONTENT: 'serverContent',
+  TOOL_CALL: 'toolCall',
+  TOOL_CALL_CANCELLATION: 'toolCallCancellation'
+};
+
+/**
+ * The types of responses that can be returned by {@link LiveSession.receive}.
+ * This is a property on all messages that can be used for type narrowing. This property is not
+ * returned by the server, it is assigned to a server message object once it's parsed.
+ *
+ * @beta
+ */
+export type LiveResponseType =
+  (typeof LiveResponseType)[keyof typeof LiveResponseType];

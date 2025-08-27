@@ -24,40 +24,57 @@
 import { registerVersion, _registerComponent } from '@firebase/app';
 import { AIService } from './service';
 import { AI_TYPE } from './constants';
-import { Component, ComponentType } from '@firebase/component';
+import {
+  Component,
+  ComponentContainer,
+  ComponentType,
+  InstanceFactoryOptions
+} from '@firebase/component';
 import { name, version } from '../package.json';
 import { decodeInstanceIdentifier } from './helpers';
 import { AIError } from './api';
 import { AIErrorCode } from './types';
+import { chromeAdapterFactory } from './methods/chrome-adapter';
+import { LanguageModel } from './types/language-model';
 
 declare global {
   interface Window {
-    [key: string]: unknown;
+    LanguageModel: LanguageModel;
   }
+}
+
+export function factory(
+  container: ComponentContainer,
+  { instanceIdentifier }: InstanceFactoryOptions
+): AIService {
+  if (!instanceIdentifier) {
+    throw new AIError(
+      AIErrorCode.ERROR,
+      'AIService instance identifier is undefined.'
+    );
+  }
+
+  const backend = decodeInstanceIdentifier(instanceIdentifier);
+
+  // getImmediate for FirebaseApp will always succeed
+  const app = container.getProvider('app').getImmediate();
+  const auth = container.getProvider('auth-internal');
+  const appCheckProvider = container.getProvider('app-check-internal');
+
+  return new AIService(
+    app,
+    backend,
+    auth,
+    appCheckProvider,
+    chromeAdapterFactory
+  );
 }
 
 function registerAI(): void {
   _registerComponent(
-    new Component(
-      AI_TYPE,
-      (container, { instanceIdentifier }) => {
-        if (!instanceIdentifier) {
-          throw new AIError(
-            AIErrorCode.ERROR,
-            'AIService instance identifier is undefined.'
-          );
-        }
-
-        const backend = decodeInstanceIdentifier(instanceIdentifier);
-
-        // getImmediate for FirebaseApp will always succeed
-        const app = container.getProvider('app').getImmediate();
-        const auth = container.getProvider('auth-internal');
-        const appCheckProvider = container.getProvider('app-check-internal');
-        return new AIService(app, backend, auth, appCheckProvider);
-      },
-      ComponentType.PUBLIC
-    ).setMultipleInstances(true)
+    new Component(AI_TYPE, factory, ComponentType.PUBLIC).setMultipleInstances(
+      true
+    )
   );
 
   registerVersion(name, version);

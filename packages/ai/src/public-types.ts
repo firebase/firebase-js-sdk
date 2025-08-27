@@ -39,6 +39,10 @@ export interface AI {
    */
   backend: Backend;
   /**
+   * Options applied to this {@link AI} instance.
+   */
+  options?: AIOptions;
+  /**
    * @deprecated use `AI.backend.location` instead.
    *
    * The location configured for this AI service instance, relevant for Vertex AI backends.
@@ -90,6 +94,11 @@ export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 export interface AIOptions {
   /**
    * The backend configuration to use for the AI service instance.
+   * Defaults to the Gemini Developer API backend ({@link GoogleAIBackend}).
    */
-  backend: Backend;
+  backend?: Backend;
+  /**
+   * Whether to use App Check limited use tokens. Defaults to false.
+   */
+  useLimitedUseAppCheckTokens?: boolean;
 }

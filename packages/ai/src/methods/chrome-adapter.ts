@@ -48,9 +48,9 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   private downloadPromise: Promise<LanguageModel | void> | undefined;
   private oldSession: LanguageModel | undefined;
   constructor(
-    private languageModelProvider: LanguageModel,
-    private mode: InferenceMode,
-    private onDeviceParams: OnDeviceParams = {
+    public languageModelProvider: LanguageModel,
+    public mode: InferenceMode,
+    public onDeviceParams: OnDeviceParams = {
       createOptions: {
         // Defaults to support image inputs for convenience.
         expectedInputs: [{ type: 'image' }]
@@ -61,17 +61,17 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   /**
    * Checks if a given request can be made on-device.
    *
-   * <ol>Encapsulates a few concerns:
-   *   <li>the mode</li>
-   *   <li>API existence</li>
-   *   <li>prompt formatting</li>
-   *   <li>model availability, including triggering download if necessary</li>
-   * </ol>
+   * Encapsulates a few concerns:
+   *   the mode
+   *   API existence
+   *   prompt formatting
+   *   model availability, including triggering download if necessary
    *
-   * <p>Pros: callers needn't be concerned with details of on-device availability.</p>
-   * <p>Cons: this method spans a few concerns and splits request validation from usage.
+   *
+   * Pros: callers needn't be concerned with details of on-device availability.</p>
+   * Cons: this method spans a few concerns and splits request validation from usage.
    * If instance variables weren't already part of the API, we could consider a better
-   * separation of concerns.</p>
+   * separation of concerns.
    */
   async isAvailable(request: GenerateContentRequest): Promise<boolean> {
     if (!this.mode) {
@@ -129,8 +129,9 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   /**
    * Generates content on device.
    *
-   * <p>This is comparable to {@link GenerativeModel.generateContent} for generating content in
-   * Cloud.</p>
+   * @remarks
+   * This is comparable to {@link GenerativeModel.generateContent} for generating content in
+   * Cloud.
    * @param request - a standard Firebase AI {@link GenerateContentRequest}
    * @returns {@link Response}, so we can reuse common response formatting.
    */
@@ -149,8 +150,9 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   /**
    * Generates content stream on device.
    *
-   * <p>This is comparable to {@link GenerativeModel.generateContentStream} for generating content in
-   * Cloud.</p>
+   * @remarks
+   * This is comparable to {@link GenerativeModel.generateContentStream} for generating content in
+   * Cloud.
    * @param request - a standard Firebase AI {@link GenerateContentRequest}
    * @returns {@link Response}, so we can reuse common response formatting.
    */
@@ -228,11 +230,11 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   /**
    * Triggers out-of-band download of an on-device model.
    *
-   * <p>Chrome only downloads models as needed. Chrome knows a model is needed when code calls
-   * LanguageModel.create.</p>
+   * Chrome only downloads models as needed. Chrome knows a model is needed when code calls
+   * LanguageModel.create.
    *
-   * <p>Since Chrome manages the download, the SDK can only avoid redundant download requests by
-   * tracking if a download has previously been requested.</p>
+   * Since Chrome manages the download, the SDK can only avoid redundant download requests by
+   * tracking if a download has previously been requested.
    */
   private download(): void {
     if (this.isDownloading) {
@@ -302,12 +304,12 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   /**
    * Abstracts Chrome session creation.
    *
-   * <p>Chrome uses a multi-turn session for all inference. Firebase AI uses single-turn for all
+   * Chrome uses a multi-turn session for all inference. Firebase AI uses single-turn for all
    * inference. To map the Firebase AI API to Chrome's API, the SDK creates a new session for all
-   * inference.</p>
+   * inference.
    *
-   * <p>Chrome will remove a model from memory if it's no longer in use, so this method ensures a
-   * new session is created before an old session is destroyed.</p>
+   * Chrome will remove a model from memory if it's no longer in use, so this method ensures a
+   * new session is created before an old session is destroyed.
    */
   private async createSession(): Promise<LanguageModel> {
     if (!this.languageModelProvider) {
@@ -368,5 +370,23 @@ export class ChromeAdapterImpl implements ChromeAdapter {
         })
       )
     } as Response;
+  }
+}
+
+/**
+ * Creates a ChromeAdapterImpl on demand.
+ */
+export function chromeAdapterFactory(
+  mode: InferenceMode,
+  window?: Window,
+  params?: OnDeviceParams
+): ChromeAdapterImpl | undefined {
+  // Do not initialize a ChromeAdapter if we are not in hybrid mode.
+  if (typeof window !== 'undefined' && mode) {
+    return new ChromeAdapterImpl(
+      (window as Window).LanguageModel as LanguageModel,
+      mode,
+      params
+    );
   }
 }

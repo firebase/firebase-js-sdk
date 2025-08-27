@@ -47,6 +47,11 @@ export interface TextPart {
   inlineData?: never;
   functionCall?: never;
   functionResponse?: never;
+  thought?: boolean;
+  /**
+   * @internal
+   */
+  thoughtSignature?: string;
 }
 
 /**
@@ -62,6 +67,11 @@ export interface InlineDataPart {
    * Applicable if `inlineData` is a video.
    */
   videoMetadata?: VideoMetadata;
+  thought?: boolean;
+  /**
+   * @internal
+   */
+  thoughtSignature?: never;
 }
 
 /**
@@ -90,6 +100,11 @@ export interface FunctionCallPart {
   inlineData?: never;
   functionCall: FunctionCall;
   functionResponse?: never;
+  thought?: boolean;
+  /**
+   * @internal
+   */
+  thoughtSignature?: never;
 }
 
 /**
@@ -101,6 +116,11 @@ export interface FunctionResponsePart {
   inlineData?: never;
   functionCall?: never;
   functionResponse: FunctionResponse;
+  thought?: boolean;
+  /**
+   * @internal
+   */
+  thoughtSignature?: never;
 }
 
 /**
@@ -113,6 +133,11 @@ export interface FileDataPart {
   functionCall?: never;
   functionResponse?: never;
   fileData: FileData;
+  thought?: boolean;
+  /**
+   * @internal
+   */
+  thoughtSignature?: never;
 }
 
 /**
@@ -122,6 +147,15 @@ export interface FileDataPart {
  * @public
  */
 export interface FunctionCall {
+  /**
+   * The id of the function call. This must be sent back in the associated {@link FunctionResponse}.
+   *
+   *
+   * @remarks This property is only supported in the Gemini Developer API ({@link GoogleAIBackend}).
+   * When using the Gemini Developer API ({@link GoogleAIBackend}), this property will be
+   * `undefined`.
+   */
+  id?: string;
   name: string;
   args: object;
 }
@@ -136,6 +170,14 @@ export interface FunctionCall {
  * @public
  */
 export interface FunctionResponse {
+  /**
+   * The id of the {@link FunctionCall}.
+   *
+   * @remarks This property is only supported in the Gemini Developer API ({@link GoogleAIBackend}).
+   * When using the Gemini Developer API ({@link GoogleAIBackend}), this property will be
+   * `undefined`.
+   */
+  id?: string;
   name: string;
   response: object;
 }

@@ -4,10 +4,18 @@
 
 ```ts
 
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
+import { ComponentContainer } from '@firebase/component';
 import { FirebaseApp } from '@firebase/app';
+import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
+import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
+import { _FirebaseService } from '@firebase/app';
+import { InstanceFactoryOptions } from '@firebase/component';
+import { Provider } from '@firebase/component';
 
 // @public
 export interface AI {
@@ -15,6 +23,7 @@ export interface AI {
     backend: Backend;
     // @deprecated (undocumented)
     location: string;
+    options?: AIOptions;
 }
 
 // @public
@@ -32,6 +41,7 @@ export const AIErrorCode: {
     readonly REQUEST_ERROR: "request-error";
     readonly RESPONSE_ERROR: "response-error";
     readonly FETCH_ERROR: "fetch-error";
+    readonly SESSION_CLOSED: "session-closed";
     readonly INVALID_CONTENT: "invalid-content";
     readonly API_NOT_ENABLED: "api-not-enabled";
     readonly INVALID_SCHEMA: "invalid-schema";
@@ -53,7 +63,7 @@ export abstract class AIModel {
     // Warning: (ae-forgotten-export) The symbol "ApiSettings" needs to be exported by the entry point index.d.ts
     //
     // @internal (undocumented)
-    protected _apiSettings: ApiSettings;
+    _apiSettings: ApiSettings;
     readonly model: string;
     // @internal
     static normalizeModelName(modelName: string, backendType: BackendType): string;
@@ -61,7 +71,8 @@ export abstract class AIModel {
 
 // @public
 export interface AIOptions {
-    backend: Backend;
+    backend?: Backend;
+    useLimitedUseAppCheckTokens?: boolean;
 }
 
 // @public
@@ -82,6 +93,11 @@ export class ArraySchema extends Schema {
     items: TypedSchema;
     // @internal (undocumented)
     toJSON(): SchemaRequest;
+}
+
+// @beta
+export interface AudioConversationController {
+    stop: () => Promise<void>;
 }
 
 // @public
@@ -213,10 +229,10 @@ export { Date_2 as Date }
 
 // @public
 export interface EnhancedGenerateContentResponse extends GenerateContentResponse {
-    // (undocumented)
     functionCalls: () => FunctionCall[] | undefined;
     inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
+    thoughtSummary: () => string | undefined;
 }
 
 // @public
@@ -228,6 +244,11 @@ export interface ErrorDetails {
     metadata?: Record<string, unknown>;
     reason?: string;
 }
+
+// Warning: (ae-forgotten-export) The symbol "AIService" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export function factory(container: ComponentContainer, { instanceIdentifier }: InstanceFactoryOptions): AIService;
 
 // @public
 export interface FileData {
@@ -249,6 +270,10 @@ export interface FileDataPart {
     inlineData?: never;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
 }
 
 // @public
@@ -271,6 +296,7 @@ export type FinishReason = (typeof FinishReason)[keyof typeof FinishReason];
 export interface FunctionCall {
     // (undocumented)
     args: object;
+    id?: string;
     // (undocumented)
     name: string;
 }
@@ -303,6 +329,10 @@ export interface FunctionCallPart {
     inlineData?: never;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
 }
 
 // @public
@@ -319,6 +349,7 @@ export interface FunctionDeclarationsTool {
 
 // @public
 export interface FunctionResponse {
+    id?: string;
     // (undocumented)
     name: string;
     // (undocumented)
@@ -335,6 +366,10 @@ export interface FunctionResponsePart {
     inlineData?: never;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
 }
 
 // @public
@@ -452,6 +487,9 @@ export function getGenerativeModel(ai: AI, modelParams: ModelParams | HybridPara
 
 // @beta
 export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
+
+// @beta
+export function getLiveGenerativeModel(ai: AI, modelParams: LiveModelParams): LiveGenerativeModel;
 
 // @public
 export class GoogleAIBackend extends Backend {
@@ -717,6 +755,10 @@ export interface InlineDataPart {
     inlineData: GenerativeContentBlob;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
     videoMetadata?: VideoMetadata;
 }
 
@@ -781,6 +823,96 @@ export interface LanguageModelPromptOptions {
     // (undocumented)
     responseConstraint?: object;
 }
+
+// @beta
+export interface LiveGenerationConfig {
+    frequencyPenalty?: number;
+    maxOutputTokens?: number;
+    presencePenalty?: number;
+    responseModalities?: ResponseModality[];
+    speechConfig?: SpeechConfig;
+    temperature?: number;
+    topK?: number;
+    topP?: number;
+}
+
+// @beta
+export class LiveGenerativeModel extends AIModel {
+    // Warning: (ae-forgotten-export) The symbol "WebSocketHandler" needs to be exported by the entry point index.d.ts
+    //
+    // @internal
+    constructor(ai: AI, modelParams: LiveModelParams,
+    _webSocketHandler: WebSocketHandler);
+    connect(): Promise<LiveSession>;
+    // (undocumented)
+    generationConfig: LiveGenerationConfig;
+    // (undocumented)
+    systemInstruction?: Content;
+    // (undocumented)
+    toolConfig?: ToolConfig;
+    // (undocumented)
+    tools?: Tool[];
+    }
+
+// @beta
+export interface LiveModelParams {
+    // (undocumented)
+    generationConfig?: LiveGenerationConfig;
+    // (undocumented)
+    model: string;
+    // (undocumented)
+    systemInstruction?: string | Part | Content;
+    // (undocumented)
+    toolConfig?: ToolConfig;
+    // (undocumented)
+    tools?: Tool[];
+}
+
+// @beta
+export const LiveResponseType: {
+    SERVER_CONTENT: string;
+    TOOL_CALL: string;
+    TOOL_CALL_CANCELLATION: string;
+};
+
+// @beta
+export type LiveResponseType = (typeof LiveResponseType)[keyof typeof LiveResponseType];
+
+// @beta
+export interface LiveServerContent {
+    interrupted?: boolean;
+    modelTurn?: Content;
+    turnComplete?: boolean;
+    // (undocumented)
+    type: 'serverContent';
+}
+
+// @beta
+export interface LiveServerToolCall {
+    functionCalls: FunctionCall[];
+    // (undocumented)
+    type: 'toolCall';
+}
+
+// @beta
+export interface LiveServerToolCallCancellation {
+    functionIds: string[];
+    // (undocumented)
+    type: 'toolCallCancellation';
+}
+
+// @beta
+export class LiveSession {
+    // @internal
+    constructor(webSocketHandler: WebSocketHandler, serverMessages: AsyncGenerator<unknown>);
+    close(): Promise<void>;
+    inConversation: boolean;
+    isClosed: boolean;
+    receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation>;
+    send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
+    sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void>;
+    sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;
+    }
 
 // @public
 export const Modality: {
@@ -854,6 +986,11 @@ export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionRespon
 // @public
 export const POSSIBLE_ROLES: readonly ["user", "model", "function", "system"];
 
+// @beta
+export interface PrebuiltVoiceConfig {
+    voiceName?: string;
+}
+
 // @public
 export interface PromptFeedback {
     // (undocumented)
@@ -873,6 +1010,7 @@ export interface RequestOptions {
 export const ResponseModality: {
     readonly TEXT: "TEXT";
     readonly IMAGE: "IMAGE";
+    readonly AUDIO: "AUDIO";
 };
 
 // @beta
@@ -1017,6 +1155,19 @@ export interface Segment {
     text: string;
 }
 
+// @beta
+export interface SpeechConfig {
+    voiceConfig?: VoiceConfig;
+}
+
+// @beta
+export function startAudioConversation(liveSession: LiveSession, options?: StartAudioConversationOptions): Promise<AudioConversationController>;
+
+// @beta
+export interface StartAudioConversationOptions {
+    functionCallingHandler?: (functionCalls: LiveServerToolCall['functionCalls']) => Promise<Part>;
+}
+
 // @public
 export interface StartChatParams extends BaseParams {
     // (undocumented)
@@ -1048,10 +1199,15 @@ export interface TextPart {
     inlineData?: never;
     // (undocumented)
     text: string;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: string;
 }
 
 // @public
 export interface ThinkingConfig {
+    includeThoughts?: boolean;
     thinkingBudget?: number;
 }
 
@@ -1092,6 +1248,11 @@ export class VertexAIBackend extends Backend {
 export interface VideoMetadata {
     endOffset: string;
     startOffset: string;
+}
+
+// @beta
+export interface VoiceConfig {
+    prebuiltVoiceConfig?: PrebuiltVoiceConfig;
 }
 
 // @public (undocumented)

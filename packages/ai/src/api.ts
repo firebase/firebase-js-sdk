@@ -26,20 +26,31 @@ import {
   HybridParams,
   ModelParams,
   RequestOptions,
-  AIErrorCode
+  AIErrorCode,
+  LiveModelParams
 } from './types';
 import { AIError } from './errors';
-import { AIModel, GenerativeModel, ImagenModel } from './models';
+import {
+  AIModel,
+  GenerativeModel,
+  LiveGenerativeModel,
+  ImagenModel
+} from './models';
 import { encodeInstanceIdentifier } from './helpers';
 import { GoogleAIBackend } from './backend';
-import { ChromeAdapterImpl } from './methods/chrome-adapter';
-import { LanguageModel } from './types/language-model';
+import { WebSocketHandlerImpl } from './websocket';
 
 export { ChatSession } from './methods/chat-session';
+export { LiveSession } from './methods/live-session';
 export * from './requests/schema-builder';
 export { ImagenImageFormat } from './requests/imagen-image-format';
-export { AIModel, GenerativeModel, ImagenModel, AIError };
+export { AIModel, GenerativeModel, LiveGenerativeModel, ImagenModel, AIError };
 export { Backend, VertexAIBackend, GoogleAIBackend } from './backend';
+export {
+  startAudioConversation,
+  AudioConversationController,
+  StartAudioConversationOptions
+} from './methods/live-session-helpers';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -75,18 +86,25 @@ declare module '@firebase/component' {
  *
  * @public
  */
-export function getAI(
-  app: FirebaseApp = getApp(),
-  options: AIOptions = { backend: new GoogleAIBackend() }
-): AI {
+export function getAI(app: FirebaseApp = getApp(), options?: AIOptions): AI {
   app = getModularInstance(app);
   // Dependencies
   const AIProvider: Provider<'AI'> = _getProvider(app, AI_TYPE);
 
-  const identifier = encodeInstanceIdentifier(options.backend);
-  return AIProvider.getImmediate({
+  const backend = options?.backend ?? new GoogleAIBackend();
+
+  const finalOptions: Omit<AIOptions, 'backend'> = {
+    useLimitedUseAppCheckTokens: options?.useLimitedUseAppCheckTokens ?? false
+  };
+
+  const identifier = encodeInstanceIdentifier(backend);
+  const aiInstance = AIProvider.getImmediate({
     identifier
   });
+
+  aiInstance.options = finalOptions;
+
+  return aiInstance;
 }
 
 /**
@@ -117,15 +135,17 @@ export function getGenerativeModel(
       `Must provide a model name. Example: getGenerativeModel({ model: 'my-model-name' })`
     );
   }
-  let chromeAdapter: ChromeAdapterImpl | undefined;
-  // Do not initialize a ChromeAdapter if we are not in hybrid mode.
-  if (typeof window !== 'undefined' && hybridParams.mode) {
-    chromeAdapter = new ChromeAdapterImpl(
-      window.LanguageModel as LanguageModel,
-      hybridParams.mode,
-      hybridParams.onDeviceParams
-    );
-  }
+
+  /**
+   * An AIService registered by index.node.ts will not have a
+   * chromeAdapterFactory() method.
+   */
+  const chromeAdapter = (ai as AIService).chromeAdapterFactory?.(
+    hybridParams.mode,
+    typeof window === 'undefined' ? undefined : window,
+    hybridParams.onDeviceParams
+  );
+
   return new GenerativeModel(ai, inCloudParams, requestOptions, chromeAdapter);
 }
 
@@ -155,4 +175,30 @@ export function getImagenModel(
     );
   }
   return new ImagenModel(ai, modelParams, requestOptions);
+}
+
+/**
+ * Returns a {@link LiveGenerativeModel} class for real-time, bidirectional communication.
+ *
+ * The Live API is only supported in modern browser windows and Node >= 22.
+ *
+ * @param ai - An {@link AI} instance.
+ * @param modelParams - Parameters to use when setting up a {@link LiveSession}.
+ * @throws If the `apiKey` or `projectId` fields are missing in your
+ * Firebase config.
+ *
+ * @beta
+ */
+export function getLiveGenerativeModel(
+  ai: AI,
+  modelParams: LiveModelParams
+): LiveGenerativeModel {
+  if (!modelParams.model) {
+    throw new AIError(
+      AIErrorCode.NO_MODEL,
+      `Must provide a model name for getLiveGenerativeModel. Example: getLiveGenerativeModel(ai, { model: 'my-model-name' })`
+    );
+  }
+  const webSocketHandler = new WebSocketHandlerImpl();
+  return new LiveGenerativeModel(ai, modelParams, webSocketHandler);
 }

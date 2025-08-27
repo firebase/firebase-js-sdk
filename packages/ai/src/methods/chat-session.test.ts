@@ -20,7 +20,7 @@ import { match, restore, stub, useFakeTimers } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as generateContentMethods from './generate-content';
-import { GenerateContentStreamResult, InferenceMode } from '../types';
+import { Content, GenerateContentStreamResult, InferenceMode } from '../types';
 import { ChatSession } from './chat-session';
 import { ApiSettings } from '../types/internal';
 import { VertexAIBackend } from '../backend';
@@ -63,6 +63,53 @@ describe('ChatSession', () => {
         fakeApiSettings,
         'a-model',
         match.any
+      );
+    });
+    it('adds message and response to history', async () => {
+      const fakeContent: Content = {
+        role: 'model',
+        parts: [
+          { text: 'hi' },
+          {
+            text: 'thought about hi',
+            thoughtSignature: 'thought signature'
+          }
+        ]
+      };
+      const fakeResponse = {
+        candidates: [
+          {
+            index: 1,
+            content: fakeContent
+          }
+        ]
+      };
+      const generateContentStub = stub(
+        generateContentMethods,
+        'generateContent'
+      ).resolves({
+        // @ts-ignore
+        response: fakeResponse
+      });
+      const chatSession = new ChatSession(fakeApiSettings, 'a-model');
+      const result = await chatSession.sendMessage('hello');
+      // @ts-ignore
+      expect(result.response).to.equal(fakeResponse);
+      // Test: stores history correctly?
+      const history = await chatSession.getHistory();
+      expect(history[0].role).to.equal('user');
+      expect(history[0].parts[0].text).to.equal('hello');
+      expect(history[1]).to.deep.equal(fakeResponse.candidates[0].content);
+      // Test: sends history correctly?
+      await chatSession.sendMessage('hello 2');
+      expect(generateContentStub.args[1][2].contents[0].parts[0].text).to.equal(
+        'hello'
+      );
+      expect(generateContentStub.args[1][2].contents[1]).to.deep.equal(
+        fakeResponse.candidates[0].content
+      );
+      expect(generateContentStub.args[1][2].contents[2].parts[0].text).to.equal(
+        'hello 2'
       );
     });
   });
