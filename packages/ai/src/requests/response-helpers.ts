@@ -295,12 +295,14 @@ export async function handlePredictResponse<
         mimeType: prediction.mimeType,
         gcsURI: prediction.gcsUri
       } as T);
+    } else if (prediction.safetyAttributes) {
+      // Ignore safetyAttributes "prediction" to avoid throwing an error below.
     } else {
       throw new AIError(
         AIErrorCode.RESPONSE_ERROR,
-        `Predictions array in response has missing properties. Response: ${JSON.stringify(
-          responseJson
-        )}`
+        `Unexpected element in 'predictions' array in response: '${JSON.stringify(
+          prediction
+        )}'`
       );
     }
   }
