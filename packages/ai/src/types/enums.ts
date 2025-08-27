@@ -328,7 +328,12 @@ export const ResponseModality = {
    * Image.
    * @beta
    */
-  IMAGE: 'IMAGE'
+  IMAGE: 'IMAGE',
+  /**
+   * Audio.
+   * @beta
+   */
+  AUDIO: 'AUDIO'
 } as const;
 
 /**
