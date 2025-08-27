@@ -60,7 +60,8 @@ const PREFERRED_PARAMS = [
   'performance',
   'remoteConfig',
   'storage',
-  'ai'
+  'ai',
+  'telemetry'
 ];
 
 let authApiReportOriginal: string;
