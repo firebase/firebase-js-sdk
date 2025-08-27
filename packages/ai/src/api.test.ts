@@ -16,7 +16,14 @@
  */
 import { ImagenModelParams, ModelParams, AIErrorCode } from './types';
 import { AIError } from './errors';
-import { getAI, ImagenModel, getGenerativeModel, getImagenModel } from './api';
+import {
+  getAI,
+  ImagenModel,
+  LiveGenerativeModel,
+  getGenerativeModel,
+  getImagenModel,
+  getLiveGenerativeModel
+} from './api';
 import { expect } from 'chai';
 import { AI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
@@ -215,5 +222,63 @@ describe('Top level API', () => {
     const genModel = getImagenModel(fakeAI, { model: 'my-model' });
     expect(genModel).to.be.an.instanceOf(ImagenModel);
     expect(genModel.model).to.equal('publishers/google/models/my-model');
+  });
+
+  it('getLiveGenerativeModel throws if no apiKey is provided', () => {
+    const fakeVertexNoApiKey = {
+      ...fakeAI,
+      app: { options: { projectId: 'my-project', appId: 'my-appid' } }
+    } as AI;
+    try {
+      getLiveGenerativeModel(fakeVertexNoApiKey, { model: 'my-model' });
+    } catch (e) {
+      expect((e as AIError).code).includes(AIErrorCode.NO_API_KEY);
+      expect((e as AIError).message).equals(
+        `AI: The "apiKey" field is empty in the local ` +
+          `Firebase config. Firebase AI requires this field to` +
+          ` contain a valid API key. (${AI_TYPE}/${AIErrorCode.NO_API_KEY})`
+      );
+    }
+  });
+  it('getLiveGenerativeModel throws if no projectId is provided', () => {
+    const fakeVertexNoProject = {
+      ...fakeAI,
+      app: { options: { apiKey: 'my-key', appId: 'my-appid' } }
+    } as AI;
+    try {
+      getLiveGenerativeModel(fakeVertexNoProject, { model: 'my-model' });
+    } catch (e) {
+      expect((e as AIError).code).includes(AIErrorCode.NO_PROJECT_ID);
+      expect((e as AIError).message).equals(
+        `AI: The "projectId" field is empty in the local` +
+          ` Firebase config. Firebase AI requires this field ` +
+          `to contain a valid project ID. (${AI_TYPE}/${AIErrorCode.NO_PROJECT_ID})`
+      );
+    }
+  });
+  it('getLiveGenerativeModel throws if no appId is provided', () => {
+    const fakeVertexNoProject = {
+      ...fakeAI,
+      app: { options: { apiKey: 'my-key', projectId: 'my-project' } }
+    } as AI;
+    try {
+      getLiveGenerativeModel(fakeVertexNoProject, { model: 'my-model' });
+    } catch (e) {
+      expect((e as AIError).code).includes(AIErrorCode.NO_APP_ID);
+      expect((e as AIError).message).equals(
+        `AI: The "appId" field is empty in the local` +
+          ` Firebase config. Firebase AI requires this field ` +
+          `to contain a valid app ID. (${AI_TYPE}/${AIErrorCode.NO_APP_ID})`
+      );
+    }
+  });
+  it('getLiveGenerativeModel gets a LiveGenerativeModel', () => {
+    const liveGenerativeModel = getLiveGenerativeModel(fakeAI, {
+      model: 'my-model'
+    });
+    expect(liveGenerativeModel).to.be.an.instanceOf(LiveGenerativeModel);
+    expect(liveGenerativeModel.model).to.equal(
+      'publishers/google/models/my-model'
+    );
   });
 });
