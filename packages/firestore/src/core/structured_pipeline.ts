@@ -15,19 +15,40 @@
  * limitations under the License.
  */
 
-import { ObjectValue } from '../model/object_value';
-import { FieldPath } from '../model/path';
+import {ParseContext} from "../api/parse_context";
+import {UserDataReader, UserDataSource} from "../lite-api/user_data_reader";
 import {
-  StructuredPipeline as StructuredPipelineProto,
+  ApiClientObjectMap, firestoreV1ApiClientInterfaces,
   Pipeline as PipelineProto,
-  ApiClientObjectMap,
-  Value
+  StructuredPipeline as StructuredPipelineProto
 } from '../protos/firestore_proto_api';
-import { JsonProtoSerializer, ProtoSerializable } from '../remote/serializer';
-import { mapToArray } from '../util/obj';
+import {
+  JsonProtoSerializer,
+  ProtoSerializable,
+  UserData
+} from '../remote/serializer';
 
-export interface StructuredPipelineOptions {
-  indexMode?: 'recommended';
+import {OptionsUtil} from "./options_util";
+
+export class StructuredPipelineOptions implements UserData{
+  proto: ApiClientObjectMap<firestoreV1ApiClientInterfaces.Value> | undefined;
+
+  readonly optionsUtil = new OptionsUtil({
+    indexMode: {
+      serverName: 'index_mode',
+    }
+  });
+
+  constructor(
+    private _userOptions: Record<string, unknown> = {},
+    private _optionsOverride: Record<string, unknown> = {}) {}
+
+  _readUserData(dataReader: UserDataReader, context?: ParseContext): void {
+    if (!context) {
+      context = dataReader.createContext(UserDataSource.Argument, "StructuredPipelineOptions._readUserData");
+    }
+    this.proto = this.optionsUtil.getOptionsProto(context, this._userOptions, this._optionsOverride);
+  }
 }
 
 export class StructuredPipeline
@@ -36,45 +57,12 @@ export class StructuredPipeline
   constructor(
     private pipeline: ProtoSerializable<PipelineProto>,
     private options: StructuredPipelineOptions,
-    private optionsOverride: ApiClientObjectMap<Value>
   ) {}
-
-  /**
-   * @private
-   * @internal for testing
-   */
-  _getKnownOptions(): ObjectValue {
-    const options: ObjectValue = ObjectValue.empty();
-
-    // SERIALIZE KNOWN OPTIONS
-    if (typeof this.options.indexMode === 'string') {
-      options.set(FieldPath.fromServerFormat('index_mode'), {
-        stringValue: this.options.indexMode
-      });
-    }
-
-    return options;
-  }
-
-  private getOptionsProto(): ApiClientObjectMap<Value> {
-    const options: ObjectValue = this._getKnownOptions();
-
-    // APPLY OPTIONS OVERRIDES
-    const optionsMap = new Map(
-      mapToArray(this.optionsOverride, (value, key) => [
-        FieldPath.fromServerFormat(key),
-        value
-      ])
-    );
-    options.setAll(optionsMap);
-
-    return options.value.mapValue.fields ?? {};
-  }
 
   _toProto(serializer: JsonProtoSerializer): StructuredPipelineProto {
     return {
       pipeline: this.pipeline._toProto(serializer),
-      options: this.getOptionsProto()
+      options: this.options.proto
     };
   }
 }

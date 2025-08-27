@@ -165,7 +165,7 @@ describe('execute(Pipeline|PipelineOptions)', () => {
 
     await execute({
       pipeline: firestore.pipeline().collection('foo'),
-      genericOptions: {
+      customOptions: {
         'foo': 'bar'
       }
     });

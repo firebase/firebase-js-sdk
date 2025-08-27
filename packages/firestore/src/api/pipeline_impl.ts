@@ -28,11 +28,9 @@ import { PipelineOptions } from '../lite-api/pipeline_settings';
 import { Stage } from '../lite-api/stage';
 import {
   newUserDataReader,
-  parseData,
   UserDataReader,
   UserDataSource
 } from '../lite-api/user_data_reader';
-import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
@@ -84,17 +82,16 @@ export function execute(options: PipelineOptions): Promise<PipelineSnapshot>;
 export function execute(
   pipelineOrOptions: LitePipeline | PipelineOptions
 ): Promise<PipelineSnapshot> {
-  const pipeline: LitePipeline =
-    pipelineOrOptions instanceof LitePipeline
-      ? pipelineOrOptions
-      : pipelineOrOptions.pipeline;
-  const options: StructuredPipelineOptions = !(
+  const options: PipelineOptions = !(
     pipelineOrOptions instanceof LitePipeline
   )
     ? pipelineOrOptions
-    : {};
-  const genericOptions: { [name: string]: unknown } =
-    (pipelineOrOptions as PipelineOptions).genericOptions ?? {};
+    : {
+      pipeline: pipelineOrOptions
+    };
+
+  const { pipeline, customOptions, ...rest } = options;
+  const genericOptions: { [name:string]: unknown } = customOptions ?? {};
 
   const firestore = cast(pipeline._db, Firestore);
   const client = ensureFirestoreConfigured(firestore);
@@ -104,13 +101,13 @@ export function execute(
     /* ignoreUndefinedProperties */ true
   );
   const context = udr.createContext(UserDataSource.Argument, 'execute');
-  const optionsOverride: ApiClientObjectMap<Value> =
-    parseData(genericOptions, context)?.mapValue?.fields ?? {};
+
+  const structuredPipelineOptions = new StructuredPipelineOptions(rest, genericOptions);
+  structuredPipelineOptions._readUserData(udr, context);
 
   const structuredPipeline: StructuredPipeline = new StructuredPipeline(
     pipeline,
-    options,
-    optionsOverride
+    structuredPipelineOptions
   );
 
   return firestoreClientExecutePipeline(client, structuredPipeline).then(

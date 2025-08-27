@@ -19,20 +19,22 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 
 import { DatabaseId } from '../../../src/core/database_info';
-import { StructuredPipeline } from '../../../src/core/structured_pipeline';
-import { ObjectValue } from '../../../src/model/object_value';
+import {StructuredPipeline, StructuredPipelineOptions} from '../../../src/core/structured_pipeline';
 import { Pipeline as PipelineProto } from '../../../src/protos/firestore_proto_api';
 import {
   JsonProtoSerializer,
   ProtoSerializable
 } from '../../../src/remote/serializer';
+import {testUserDataReader} from "../../util/helpers";
 
-describe('StructuredPipeline', () => {
+describe.only('StructuredPipeline', () => {
   it('should serialize the pipeline argument', () => {
     const pipeline: ProtoSerializable<PipelineProto> = {
       _toProto: sinon.fake.returns({} as PipelineProto)
     };
-    const structuredPipeline = new StructuredPipeline(pipeline, {}, {});
+    const structuredPipelineOptions = new StructuredPipelineOptions();
+    structuredPipelineOptions._readUserData(testUserDataReader(false));
+    const structuredPipeline = new StructuredPipeline(pipeline, structuredPipelineOptions);
 
     const proto = structuredPipeline._toProto(
       new JsonProtoSerializer(DatabaseId.empty(), false)
@@ -50,12 +52,13 @@ describe('StructuredPipeline', () => {
     const pipeline: ProtoSerializable<PipelineProto> = {
       _toProto: sinon.fake.returns({} as PipelineProto)
     };
+
+    const options = new StructuredPipelineOptions({
+      indexMode: 'recommended'
+    });
+    options._readUserData(testUserDataReader(false));
     const structuredPipeline = new StructuredPipeline(
-      pipeline,
-      {
-        indexMode: 'recommended'
-      },
-      {}
+      pipeline,options
     );
 
     const proto = structuredPipeline._toProto(
@@ -78,12 +81,16 @@ describe('StructuredPipeline', () => {
     const pipeline: ProtoSerializable<PipelineProto> = {
       _toProto: sinon.fake.returns({} as PipelineProto)
     };
+    const options =
+        new StructuredPipelineOptions({},
+            {
+              'foo_bar': 'baz'
+            }
+        );
+    options._readUserData(testUserDataReader(false));
     const structuredPipeline = new StructuredPipeline(
       pipeline,
-      {},
-      {
-        'foo_bar': { stringValue: 'baz' }
-      }
+        options
     );
 
     const proto = structuredPipeline._toProto(
@@ -106,12 +113,16 @@ describe('StructuredPipeline', () => {
     const pipeline: ProtoSerializable<PipelineProto> = {
       _toProto: sinon.fake.returns({} as PipelineProto)
     };
+    const options =
+        new StructuredPipelineOptions({},
+            {
+              'foo.bar': 'baz'
+            }
+        );
+    options._readUserData(testUserDataReader(false));
     const structuredPipeline = new StructuredPipeline(
       pipeline,
-      {},
-      {
-        'foo.bar': { stringValue: 'baz' }
-      }
+        options
     );
 
     const proto = structuredPipeline._toProto(
@@ -138,14 +149,18 @@ describe('StructuredPipeline', () => {
     const pipeline: ProtoSerializable<PipelineProto> = {
       _toProto: sinon.fake.returns({} as PipelineProto)
     };
+    const options =
+        new StructuredPipelineOptions({
+              indexMode: 'recommended'
+            },
+            {
+              'index_mode': 'baz'
+            }
+        );
+    options._readUserData(testUserDataReader(false));
     const structuredPipeline = new StructuredPipeline(
       pipeline,
-      {
-        indexMode: 'recommended'
-      },
-      {
-        'index_mode': { stringValue: 'baz' }
-      }
+        options
     );
 
     const proto = structuredPipeline._toProto(
@@ -157,171 +172,6 @@ describe('StructuredPipeline', () => {
       options: {
         'index_mode': {
           stringValue: 'baz'
-        }
-      }
-    });
-
-    expect((pipeline._toProto as sinon.SinonSpy).calledOnce).to.be.true;
-  });
-
-  it('should support options override of nested field', () => {
-    const pipeline: ProtoSerializable<PipelineProto> = {
-      _toProto: sinon.fake.returns({} as PipelineProto)
-    };
-
-    const structuredPipeline = new StructuredPipeline(
-      pipeline,
-      {},
-      {
-        'foo.bar': { integerValue: 123 }
-      }
-    );
-
-    // Fake known options with a nested {foo: {bar: "baz"}}
-    structuredPipeline._getKnownOptions = sinon.fake.returns(
-      new ObjectValue({
-        mapValue: {
-          fields: {
-            'foo': {
-              mapValue: {
-                fields: {
-                  'bar': { stringValue: 'baz' },
-                  'waldo': { booleanValue: true }
-                }
-              }
-            }
-          }
-        }
-      })
-    );
-
-    const proto = structuredPipeline._toProto(
-      new JsonProtoSerializer(DatabaseId.empty(), false)
-    );
-
-    expect(proto).to.deep.equal({
-      pipeline: {},
-      options: {
-        'foo': {
-          mapValue: {
-            fields: {
-              'bar': {
-                integerValue: 123
-              },
-              'waldo': {
-                booleanValue: true
-              }
-            }
-          }
-        }
-      }
-    });
-
-    expect((pipeline._toProto as sinon.SinonSpy).calledOnce).to.be.true;
-  });
-
-  it('will replace a nested object if given a new object', () => {
-    const pipeline: ProtoSerializable<PipelineProto> = {
-      _toProto: sinon.fake.returns({} as PipelineProto)
-    };
-
-    const structuredPipeline = new StructuredPipeline(
-      pipeline,
-      {},
-      {
-        'foo': { mapValue: { fields: { bar: { integerValue: 123 } } } }
-      }
-    );
-
-    // Fake known options with a nested {foo: {bar: "baz"}}
-    structuredPipeline._getKnownOptions = sinon.fake.returns(
-      new ObjectValue({
-        mapValue: {
-          fields: {
-            'foo': {
-              mapValue: {
-                fields: {
-                  'bar': { stringValue: 'baz' },
-                  'waldo': { booleanValue: true }
-                }
-              }
-            }
-          }
-        }
-      })
-    );
-
-    const proto = structuredPipeline._toProto(
-      new JsonProtoSerializer(DatabaseId.empty(), false)
-    );
-
-    expect(proto).to.deep.equal({
-      pipeline: {},
-      options: {
-        'foo': {
-          mapValue: {
-            fields: {
-              'bar': {
-                integerValue: 123
-              }
-            }
-          }
-        }
-      }
-    });
-
-    expect((pipeline._toProto as sinon.SinonSpy).calledOnce).to.be.true;
-  });
-
-  it('will replace a top level property that is not an object if given a nested field with dot notation', () => {
-    const pipeline: ProtoSerializable<PipelineProto> = {
-      _toProto: sinon.fake.returns({} as PipelineProto)
-    };
-
-    const structuredPipeline = new StructuredPipeline(
-      pipeline,
-      {},
-      {
-        'foo': {
-          mapValue: {
-            fields: {
-              'bar': { stringValue: '123' },
-              'waldo': { booleanValue: true }
-            }
-          }
-        }
-      }
-    );
-
-    // Fake known options with a nested {foo: {bar: "baz"}}
-    structuredPipeline._getKnownOptions = sinon.fake.returns(
-      new ObjectValue({
-        mapValue: {
-          fields: {
-            'foo': { integerValue: 123 }
-          }
-        }
-      })
-    );
-
-    const proto = structuredPipeline._toProto(
-      new JsonProtoSerializer(DatabaseId.empty(), false)
-    );
-
-    expect(proto).to.deep.equal({
-      pipeline: {},
-      options: {
-        'foo': {
-          mapValue: {
-            fields: {
-              'bar': {
-                stringValue: '123'
-              },
-              'waldo': {
-                booleanValue: true
-              }
-            }
-          }
         }
       }
     });

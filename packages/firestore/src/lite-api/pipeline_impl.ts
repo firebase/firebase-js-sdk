@@ -15,6 +15,10 @@
  * limitations under the License.
  */
 
+import {
+  StructuredPipeline,
+  StructuredPipelineOptions
+} from "../core/structured_pipeline";
 import { invokeExecutePipeline } from '../remote/datastore';
 
 import { getDatastore } from './components';
@@ -25,7 +29,11 @@ import { PipelineSource } from './pipeline-source';
 import { DocumentReference } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
 import { Stage } from './stage';
-import { newUserDataReader } from './user_data_reader';
+import {
+  newUserDataReader,
+  UserDataReader,
+  UserDataSource
+} from './user_data_reader';
 
 declare module './database' {
   interface Firestore {
@@ -69,7 +77,22 @@ declare module './database' {
  */
 export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
   const datastore = getDatastore(pipeline._db);
-  return invokeExecutePipeline(datastore, pipeline).then(result => {
+
+  const udr = new UserDataReader(
+    pipeline._db._databaseId,
+    /* ignoreUndefinedProperties */ true
+  );
+  const context = udr.createContext(UserDataSource.Argument, 'execute');
+
+  const structuredPipelineOptions = new StructuredPipelineOptions({}, {});
+  structuredPipelineOptions._readUserData(udr, context);
+
+  const structuredPipeline: StructuredPipeline = new StructuredPipeline(
+    pipeline,
+    structuredPipelineOptions
+  );
+
+  return invokeExecutePipeline(datastore, structuredPipeline).then(result => {
     // Get the execution time from the first result.
     // firestoreClientExecutePipeline returns at least one PipelineStreamElement
     // even if the returned document set is empty.
