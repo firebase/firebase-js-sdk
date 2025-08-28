@@ -34,7 +34,7 @@ jobs:
         # This makes Actions fetch all Git history so run-changed script can diff properly.
         fetch-depth: 0
     # This commit represents v0.8.3
-    - uses: 'google-github-actions/auth@c4799db9111fba4461e9f9da8732e5057b394f72'
+    - uses: 'google-github-actions/auth@0dfce0c0f81ee698e8ca7d23b8a0b0706f6370e3'
       if: ${{ fromJSON(env.run_terraform_steps) }}
       with:
         credentials_json: '${{ secrets.JSSDK_ACTIONS_SA_KEY }}'
