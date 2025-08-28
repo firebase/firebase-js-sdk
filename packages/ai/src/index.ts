@@ -43,7 +43,7 @@ declare global {
   }
 }
 
-export function factory(
+function factory(
   container: ComponentContainer,
   { instanceIdentifier }: InstanceFactoryOptions
 ): AIService {
