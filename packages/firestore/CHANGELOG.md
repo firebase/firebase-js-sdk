@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 4.9.1
+
+### Patch Changes
+
+- [`2058432`](https://github.com/firebase/firebase-js-sdk/commit/2058432e6c8e809d5b695e31fde582e94f1349c5) [#9177](https://github.com/firebase/firebase-js-sdk/pull/9177) (fixes [#9147](https://github.com/firebase/firebase-js-sdk/issues/9147)) - Fixed a bug where a rejected promise with an empty message in a transaction would cause a timeout.
+
 ## 4.9.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @firebase/functions
 
+## 0.13.1
+
+### Patch Changes
+
+- [`5501791`](https://github.com/firebase/firebase-js-sdk/commit/5501791d0bd665c1c7d4fcd786053a46ceff208c) [#9204](https://github.com/firebase/firebase-js-sdk/pull/9204) - Fixed issue where Firebase Functions SDK caused CORS errors when connected to emulators in Firebase Studio
+
 ## 0.13.0
 
 ### Minor Changes
