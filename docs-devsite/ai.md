@@ -22,8 +22,6 @@ The Firebase AI Web SDK.
 |  [getGenerativeModel(ai, modelParams, requestOptions)](./ai.md#getgenerativemodel_c63f46a) | Returns a [GenerativeModel](./ai.generativemodel.md#generativemodel_class) class with methods for inference and other functionality. |
 |  [getImagenModel(ai, modelParams, requestOptions)](./ai.md#getimagenmodel_e1f6645) | <b><i>(Public Preview)</i></b> Returns an [ImagenModel](./ai.imagenmodel.md#imagenmodel_class) class with methods for using Imagen.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported. |
 |  [getLiveGenerativeModel(ai, modelParams)](./ai.md#getlivegenerativemodel_f2099ac) | <b><i>(Public Preview)</i></b> Returns a [LiveGenerativeModel](./ai.livegenerativemodel.md#livegenerativemodel_class) class for real-time, bidirectional communication.<!-- -->The Live API is only supported in modern browser windows and Node &gt;<!-- -->= 22. |
-|  <b>function(container, ...)</b> |
-|  [factory(container, { instanceIdentifier })](./ai.md#factory_6581aeb) |  |
 |  <b>function(liveSession, ...)</b> |
 |  [startAudioConversation(liveSession, options)](./ai.md#startaudioconversation_01c8e7f) | <b><i>(Public Preview)</i></b> Starts a real-time, bidirectional audio conversation with the model. This helper function manages the complexities of microphone access, audio recording, playback, and interruptions. |
 
@@ -326,27 +324,6 @@ export declare function getLiveGenerativeModel(ai: AI, modelParams: LiveModelPar
 #### Exceptions
 
 If the `apiKey` or `projectId` fields are missing in your Firebase config.
-
-## function(container, ...)
-
-### factory(container, { instanceIdentifier }) {:#factory_6581aeb}
-
-<b>Signature:</b>
-
-```typescript
-export declare function factory(container: ComponentContainer, { instanceIdentifier }: InstanceFactoryOptions): AIService;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  container | ComponentContainer |  |
-|  { instanceIdentifier } | InstanceFactoryOptions |  |
-
-<b>Returns:</b>
-
-AIService
 
 ## function(liveSession, ...)
 

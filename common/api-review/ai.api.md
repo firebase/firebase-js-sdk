@@ -4,18 +4,10 @@
 
 ```ts
 
-import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
-import { ComponentContainer } from '@firebase/component';
 import { FirebaseApp } from '@firebase/app';
-import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
-import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
-import { _FirebaseService } from '@firebase/app';
-import { InstanceFactoryOptions } from '@firebase/component';
-import { Provider } from '@firebase/component';
 
 // @public
 export interface AI {
@@ -244,11 +236,6 @@ export interface ErrorDetails {
     metadata?: Record<string, unknown>;
     reason?: string;
 }
-
-// Warning: (ae-forgotten-export) The symbol "AIService" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export function factory(container: ComponentContainer, { instanceIdentifier }: InstanceFactoryOptions): AIService;
 
 // @public
 export interface FileData {
