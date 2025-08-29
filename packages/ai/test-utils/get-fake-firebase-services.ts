@@ -24,7 +24,7 @@ import {
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
 import { AI_TYPE } from '../src/constants';
-import { factory } from '../src';
+import { factory } from '../src/factory-browser';
 
 const fakeConfig = {
   projectId: 'projectId',
@@ -38,7 +38,11 @@ export function getFullApp(fakeAppParams?: {
   appId?: string;
   apiKey?: string;
 }): FirebaseApp {
-  _registerComponent(new Component(AI_TYPE, factory, ComponentType.PUBLIC));
+  _registerComponent(
+    new Component(AI_TYPE, factory, ComponentType.PUBLIC).setMultipleInstances(
+      true
+    )
+  );
   _registerComponent(
     new Component(
       'app-check-internal',
