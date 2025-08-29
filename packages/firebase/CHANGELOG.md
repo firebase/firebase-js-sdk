@@ -1,5 +1,33 @@
 # firebase
 
+## 12.2.1
+
+### Patch Changes
+
+- Updated dependencies [[`095c098`](https://github.com/firebase/firebase-js-sdk/commit/095c098de1e4399f3fb2993edae45060b2a8c6d0)]:
+  - @firebase/ai@2.2.1
+
+## 12.2.0
+
+### Minor Changes
+
+- [`984086b`](https://github.com/firebase/firebase-js-sdk/commit/984086b0b1bd607d3aac4cbb8400bc61416e2959) [#9224](https://github.com/firebase/firebase-js-sdk/pull/9224) - Add support for the Gemini Live API.
+
+- [`9b63cd6`](https://github.com/firebase/firebase-js-sdk/commit/9b63cd60efcd02b64b0d37f81affb3eabf70f9eb) [#9192](https://github.com/firebase/firebase-js-sdk/pull/9192) - Add `thoughtSummary()` convenience method to `EnhancedGenerateContentResponse`.
+
+- [`02280d7`](https://github.com/firebase/firebase-js-sdk/commit/02280d747863445fa1c21dfda01030412a6cecff) [#9201](https://github.com/firebase/firebase-js-sdk/pull/9201) - Add App Check limited use token option to `getAI()`.
+
+### Patch Changes
+
+- Updated dependencies [[`984086b`](https://github.com/firebase/firebase-js-sdk/commit/984086b0b1bd607d3aac4cbb8400bc61416e2959), [`9b63cd6`](https://github.com/firebase/firebase-js-sdk/commit/9b63cd60efcd02b64b0d37f81affb3eabf70f9eb), [`84b8bed`](https://github.com/firebase/firebase-js-sdk/commit/84b8bed35b69e4713fe8f677803cb06625525a61), [`c5f08a9`](https://github.com/firebase/firebase-js-sdk/commit/c5f08a9bc5da0d2b0207802c972d53724ccef055), [`02280d7`](https://github.com/firebase/firebase-js-sdk/commit/02280d747863445fa1c21dfda01030412a6cecff), [`2058432`](https://github.com/firebase/firebase-js-sdk/commit/2058432e6c8e809d5b695e31fde582e94f1349c5), [`5501791`](https://github.com/firebase/firebase-js-sdk/commit/5501791d0bd665c1c7d4fcd786053a46ceff208c), [`cbef6c6`](https://github.com/firebase/firebase-js-sdk/commit/cbef6c6e5b752c316104f9c834e0fe21b75c3ef1)]:
+  - @firebase/ai@2.2.0
+  - @firebase/app@0.14.2
+  - @firebase/firestore@4.9.1
+  - @firebase/functions@0.13.1
+  - @firebase/app-compat@0.5.2
+  - @firebase/firestore-compat@0.4.1
+  - @firebase/functions-compat@0.4.1
+
 ## 12.1.0
 
 ### Minor Changes
