@@ -1,6 +1,6 @@
 # Firestore JavaScript SDK Overview
 
-This document is the starting point for navigating the Firestore JavaScript SDK codebase and its documentation. It provides a high-level overview of the SDK, its architecture, how it is built, tested, and the developer workflow.
+This document is the starting point for navigating the Firestore JavaScript SDK codebase documentation. It provides a high-level overview of the SDK, how it is built, tested, and the developer workflow.
 
 All contributors are expected to be familiar with the [prerequisites](./prerequisites.md) before working in this codebase.
 
