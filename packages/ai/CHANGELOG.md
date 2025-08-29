@@ -1,5 +1,11 @@
 # @firebase/ai
 
+## 2.2.1
+
+### Patch Changes
+
+- [`095c098`](https://github.com/firebase/firebase-js-sdk/commit/095c098de1e4399f3fb2993edae45060b2a8c6d0) [#9232](https://github.com/firebase/firebase-js-sdk/pull/9232) (fixes [#9231](https://github.com/firebase/firebase-js-sdk/issues/9231)) - Remove accidental `factory` export.
+
 ## 2.2.0
 
 ### Minor Changes
