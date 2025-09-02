@@ -18,11 +18,7 @@
 import { use, expect } from 'chai';
 import { SinonStub, SinonStubbedInstance, restore, stub } from 'sinon';
 import { callCloudOrDevice } from './helpers';
-import {
-  GenerateContentRequest,
-  InferenceMode,
-  AIErrorCode
-} from '../types';
+import { GenerateContentRequest, InferenceMode, AIErrorCode } from '../types';
 import { AIError } from '../errors';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';

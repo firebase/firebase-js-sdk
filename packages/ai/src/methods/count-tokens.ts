@@ -61,7 +61,9 @@ export async function countTokens(
   chromeAdapter?: ChromeAdapter,
   requestOptions?: RequestOptions
 ): Promise<CountTokensResponse> {
-  if ((chromeAdapter as ChromeAdapterImpl)?.mode === InferenceMode.ONLY_ON_DEVICE) {
+  if (
+    (chromeAdapter as ChromeAdapterImpl)?.mode === InferenceMode.ONLY_ON_DEVICE
+  ) {
     throw new AIError(
       AIErrorCode.UNSUPPORTED,
       'countTokens() is not supported for on-device models.'
