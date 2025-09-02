@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { use, expect } from 'chai';
 import { SinonStub, SinonStubbedInstance, restore, stub } from 'sinon';
 import { callCloudOrDevice } from './helpers';
 import {
@@ -25,6 +25,11 @@ import {
   AIErrorCode
 } from '../types';
 import { AIError } from '../errors';
+import sinonChai from 'sinon-chai';
+import chaiAsPromised from 'chai-as-promised';
+
+use(sinonChai);
+use(chaiAsPromised);
 
 describe('callCloudOrDevice', () => {
   let chromeAdapter: SinonStubbedInstance<ChromeAdapter>;
@@ -111,16 +116,12 @@ describe('callCloudOrDevice', () => {
       expect(inCloudCall).to.not.have.been.called;
     });
 
-    it('should call inCloudCall if not available', async () => {
+    it('should throw if not available', async () => {
       chromeAdapter.isAvailable.resolves(false);
-      const result = await callCloudOrDevice(
-        request,
-        chromeAdapter,
-        onDeviceCall,
-        inCloudCall
-      );
-      expect(result).to.equal('in-cloud-response');
-      expect(inCloudCall).to.have.been.calledOnce;
+      await expect(
+        callCloudOrDevice(request, chromeAdapter, onDeviceCall, inCloudCall)
+      ).to.be.rejectedWith(/On-device model is not available/);
+      expect(inCloudCall).to.not.have.been.called;
       expect(onDeviceCall).to.not.have.been.called;
     });
   });

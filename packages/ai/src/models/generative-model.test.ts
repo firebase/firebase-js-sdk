@@ -24,14 +24,19 @@ import {
 } from '../public-types';
 import * as request from '../requests/request';
 import { SinonStub, match, restore, stub } from 'sinon';
-import { getMockResponse } from '../../test-utils/mock-response';
+import {
+  getMockResponse,
+  getMockResponseStreaming
+} from '../../test-utils/mock-response';
 import sinonChai from 'sinon-chai';
 import { VertexAIBackend } from '../backend';
 import { ChromeAdapter } from '../types/chrome-adapter';
 import { ChromeAdapterImpl } from '../methods/chrome-adapter';
 import { AIError } from '../errors';
+import chaiAsPromised from 'chai-as-promised';
 
 use(sinonChai);
+use(chaiAsPromised);
 
 const fakeAI: AI = {
   app: {
@@ -418,18 +423,32 @@ describe('GenerativeModel dispatch logic', () => {
   let makeRequestStub: SinonStub;
   let mockChromeAdapter: ChromeAdapter;
 
+  function stubMakeRequest(stream?: boolean): void {
+    if (stream) {
+      makeRequestStub = stub(request, 'makeRequest').resolves(
+        getMockResponseStreaming(
+          'vertexAI',
+          'unary-success-basic-reply-short.json'
+        ) as Response
+      );
+    } else {
+      makeRequestStub = stub(request, 'makeRequest').resolves(
+        getMockResponse(
+          'vertexAI',
+          'unary-success-basic-reply-short.json'
+        ) as Response
+      );
+    }
+  }
+
   beforeEach(() => {
-    makeRequestStub = stub(request, 'makeRequest').resolves(
-      getMockResponse(
-        'vertexAI',
-        'unary-success-basic-reply-short.json'
-      ) as Response
-    );
     mockChromeAdapter = {
       isAvailable: stub(),
-      generateContent: stub().resolves({} as Response),
-      generateContentStream: stub().resolves({} as Response),
-      countTokens: stub().resolves({} as Response),
+      generateContent: stub().resolves(new Response(JSON.stringify({}))),
+      generateContentStream: stub().resolves(
+        new Response(new ReadableStream())
+      ),
+      countTokens: stub().resolves(new Response(JSON.stringify({}))),
       mode: InferenceMode.PREFER_ON_DEVICE
     };
   });
@@ -443,6 +462,7 @@ describe('GenerativeModel dispatch logic', () => {
       mockChromeAdapter.mode = InferenceMode.PREFER_ON_DEVICE;
     });
     it('should use on-device for generateContent when available', async () => {
+      stubMakeRequest();
       (mockChromeAdapter.isAvailable as SinonStub).resolves(true);
       const model = new GenerativeModel(
         fakeAI,
@@ -455,6 +475,7 @@ describe('GenerativeModel dispatch logic', () => {
       expect(makeRequestStub).to.not.have.been.called;
     });
     it('should use cloud for generateContent when on-device is not available', async () => {
+      stubMakeRequest();
       (mockChromeAdapter.isAvailable as SinonStub).resolves(false);
       const model = new GenerativeModel(
         fakeAI,
@@ -467,6 +488,7 @@ describe('GenerativeModel dispatch logic', () => {
       expect(makeRequestStub).to.have.been.calledOnce;
     });
     it('should use on-device for generateContentStream when available', async () => {
+      stubMakeRequest(true);
       (mockChromeAdapter.isAvailable as SinonStub).resolves(true);
       const model = new GenerativeModel(
         fakeAI,
@@ -479,6 +501,7 @@ describe('GenerativeModel dispatch logic', () => {
       expect(makeRequestStub).to.not.have.been.called;
     });
     it('should use cloud for generateContentStream when on-device is not available', async () => {
+      stubMakeRequest(true);
       (mockChromeAdapter.isAvailable as SinonStub).resolves(false);
       const model = new GenerativeModel(
         fakeAI,
@@ -491,6 +514,7 @@ describe('GenerativeModel dispatch logic', () => {
       expect(makeRequestStub).to.have.been.calledOnce;
     });
     it('should use cloud for countTokens', async () => {
+      stubMakeRequest();
       const model = new GenerativeModel(
         fakeAI,
         { model: 'model' },
@@ -507,6 +531,7 @@ describe('GenerativeModel dispatch logic', () => {
       mockChromeAdapter.mode = InferenceMode.ONLY_ON_DEVICE;
     });
     it('should use on-device for generateContent when available', async () => {
+      stubMakeRequest();
       (mockChromeAdapter.isAvailable as SinonStub).resolves(true);
       const model = new GenerativeModel(
         fakeAI,
@@ -518,7 +543,8 @@ describe('GenerativeModel dispatch logic', () => {
       expect(mockChromeAdapter.generateContent).to.have.been.calledOnce;
       expect(makeRequestStub).to.not.have.been.called;
     });
-    it('should use cloud for generateContent when on-device is not available', async () => {
+    it('generateContent should throw when on-device is not available', async () => {
+      stubMakeRequest();
       (mockChromeAdapter.isAvailable as SinonStub).resolves(false);
       const model = new GenerativeModel(
         fakeAI,
@@ -526,20 +552,49 @@ describe('GenerativeModel dispatch logic', () => {
         {},
         mockChromeAdapter
       );
-      await model.generateContent('hello');
+      await expect(model.generateContent('hello')).to.be.rejectedWith(
+        /On-device model is not available/
+      );
       expect(mockChromeAdapter.generateContent).to.not.have.been.called;
-      expect(makeRequestStub).to.have.been.calledOnce;
+      expect(makeRequestStub).to.not.have.been.called;
     });
-    it('should throw for countTokens', async () => {
+    it('should use on-device for generateContentStream when available', async () => {
+      stubMakeRequest(true);
+      (mockChromeAdapter.isAvailable as SinonStub).resolves(true);
       const model = new GenerativeModel(
         fakeAI,
         { model: 'model' },
         {},
         mockChromeAdapter
       );
-      await expect(model.countTokens('hello')).to.be.rejectedWith(
-        /countTokens\(\) is not supported for on-device models/
+      await model.generateContentStream('hello');
+      expect(mockChromeAdapter.generateContentStream).to.have.been.calledOnce;
+      expect(makeRequestStub).to.not.have.been.called;
+    });
+    it('generateContentStream should throw when on-device is not available', async () => {
+      stubMakeRequest(true);
+      (mockChromeAdapter.isAvailable as SinonStub).resolves(false);
+      const model = new GenerativeModel(
+        fakeAI,
+        { model: 'model' },
+        {},
+        mockChromeAdapter
       );
+      await expect(model.generateContentStream('hello')).to.be.rejectedWith(
+        /On-device model is not available/
+      );
+      expect(mockChromeAdapter.generateContent).to.not.have.been.called;
+      expect(makeRequestStub).to.not.have.been.called;
+    });
+    it('should always throw for countTokens', async () => {
+      stubMakeRequest();
+      const model = new GenerativeModel(
+        fakeAI,
+        { model: 'model' },
+        {},
+        mockChromeAdapter
+      );
+      await expect(model.countTokens('hello')).to.be.rejectedWith(AIError);
       expect(makeRequestStub).to.not.have.been.called;
     });
   });
@@ -549,6 +604,7 @@ describe('GenerativeModel dispatch logic', () => {
       mockChromeAdapter.mode = InferenceMode.ONLY_IN_CLOUD;
     });
     it('should use cloud for generateContent even when on-device is available', async () => {
+      stubMakeRequest();
       (mockChromeAdapter.isAvailable as SinonStub).resolves(true);
       const model = new GenerativeModel(
         fakeAI,
@@ -557,10 +613,11 @@ describe('GenerativeModel dispatch logic', () => {
         mockChromeAdapter
       );
       await model.generateContent('hello');
-      expect(mockChromeAdapter.generateContent).to.not.have.been.called;
       expect(makeRequestStub).to.have.been.calledOnce;
+      expect(mockChromeAdapter.generateContent).to.not.have.been.called;
     });
     it('should use cloud for generateContentStream even when on-device is available', async () => {
+      stubMakeRequest(true);
       (mockChromeAdapter.isAvailable as SinonStub).resolves(true);
       const model = new GenerativeModel(
         fakeAI,
@@ -569,10 +626,11 @@ describe('GenerativeModel dispatch logic', () => {
         mockChromeAdapter
       );
       await model.generateContentStream('hello');
-      expect(mockChromeAdapter.generateContentStream).to.not.have.been.called;
       expect(makeRequestStub).to.have.been.calledOnce;
+      expect(mockChromeAdapter.generateContentStream).to.not.have.been.called;
     });
-    it('should use cloud for countTokens', async () => {
+    it('should always use cloud for countTokens', async () => {
+      stubMakeRequest();
       const model = new GenerativeModel(
         fakeAI,
         { model: 'model' },
@@ -589,6 +647,7 @@ describe('GenerativeModel dispatch logic', () => {
       mockChromeAdapter.mode = InferenceMode.PREFER_IN_CLOUD;
     });
     it('should use cloud for generateContent when available', async () => {
+      stubMakeRequest();
       const model = new GenerativeModel(
         fakeAI,
         { model: 'model' },
@@ -615,6 +674,7 @@ describe('GenerativeModel dispatch logic', () => {
       expect(mockChromeAdapter.generateContent).to.have.been.calledOnce;
     });
     it('should use cloud for generateContentStream when available', async () => {
+      stubMakeRequest(true);
       const model = new GenerativeModel(
         fakeAI,
         { model: 'model' },
@@ -641,6 +701,7 @@ describe('GenerativeModel dispatch logic', () => {
       expect(mockChromeAdapter.generateContentStream).to.have.been.calledOnce;
     });
     it('should use cloud for countTokens', async () => {
+      stubMakeRequest();
       const model = new GenerativeModel(
         fakeAI,
         { model: 'model' },

@@ -16,7 +16,7 @@
  */
 
 import { AIError } from '../errors';
-import { GenerateContentRequest, InferenceMode } from '../types';
+import { GenerateContentRequest, InferenceMode, AIErrorCode } from '../types';
 import { ChromeAdapter } from '../types/chrome-adapter';
 
 /**
@@ -39,6 +39,16 @@ export async function callCloudOrDevice<Response>(
     return inCloudCall();
   }
   switch (chromeAdapter.mode) {
+    case InferenceMode.ONLY_ON_DEVICE:
+      if (await chromeAdapter.isAvailable(request)) {
+        return onDeviceCall();
+      }
+      throw new AIError(
+        AIErrorCode.UNSUPPORTED,
+        'On-device model is not available.'
+      );
+    case InferenceMode.ONLY_IN_CLOUD:
+      return inCloudCall();
     case InferenceMode.PREFER_IN_CLOUD:
       try {
         return await inCloudCall();
@@ -48,7 +58,7 @@ export async function callCloudOrDevice<Response>(
         }
         throw e;
       }
-    default:
+    default: // PREFER_ON_DEVICE
       if (await chromeAdapter.isAvailable(request)) {
         return onDeviceCall();
       }
