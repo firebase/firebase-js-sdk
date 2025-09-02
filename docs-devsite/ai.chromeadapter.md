@@ -20,6 +20,12 @@ These methods should not be called directly by the user.
 export interface ChromeAdapter 
 ```
 
+## Properties
+
+|  Property | Type | Description |
+|  --- | --- | --- |
+|  [mode](./ai.chromeadapter.md#chromeadaptermode) | [InferenceMode](./ai.md#inferencemode) | The inference mode. |
+
 ## Methods
 
 |  Method | Description |
@@ -27,6 +33,16 @@ export interface ChromeAdapter
 |  [generateContent(request)](./ai.chromeadapter.md#chromeadaptergeneratecontent) | Generates content using on-device inference. |
 |  [generateContentStream(request)](./ai.chromeadapter.md#chromeadaptergeneratecontentstream) | Generates a content stream using on-device inference. |
 |  [isAvailable(request)](./ai.chromeadapter.md#chromeadapterisavailable) | Checks if the on-device model is capable of handling a given request. |
+
+## ChromeAdapter.mode
+
+The inference mode.
+
+<b>Signature:</b>
+
+```typescript
+mode: InferenceMode;
+```
 
 ## ChromeAdapter.generateContent()
 

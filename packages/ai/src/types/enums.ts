@@ -352,7 +352,8 @@ export type ResponseModality =
 export const InferenceMode = {
   'PREFER_ON_DEVICE': 'prefer_on_device',
   'ONLY_ON_DEVICE': 'only_on_device',
-  'ONLY_IN_CLOUD': 'only_in_cloud'
+  'ONLY_IN_CLOUD': 'only_in_cloud',
+  'PREFER_IN_CLOUD': 'prefer_in_cloud'
 } as const;
 
 /**
