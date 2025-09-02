@@ -17,7 +17,7 @@
 
 import { AIError } from '../errors';
 import { GenerateContentRequest, InferenceMode, AIErrorCode } from '../types';
-import { ChromeAdapter } from '../types/chrome-adapter';
+import { ChromeAdapterImpl } from './chrome-adapter';
 
 /**
  * Dispatches a request to the appropriate backend (on-device or in-cloud)
@@ -31,7 +31,7 @@ import { ChromeAdapter } from '../types/chrome-adapter';
  */
 export async function callCloudOrDevice<Response>(
   request: GenerateContentRequest,
-  chromeAdapter: ChromeAdapter | undefined,
+  chromeAdapter: ChromeAdapterImpl | undefined,
   onDeviceCall: () => Promise<Response>,
   inCloudCall: () => Promise<Response>
 ): Promise<Response> {

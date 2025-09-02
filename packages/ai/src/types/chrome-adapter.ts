@@ -16,7 +16,6 @@
  */
 
 import { CountTokensRequest, GenerateContentRequest } from './requests';
-import { InferenceMode } from './enums';
 
 /**
  * <b>(EXPERIMENTAL)</b> Defines an inference "backend" that uses Chrome's on-device model,
@@ -28,11 +27,6 @@ import { InferenceMode } from './enums';
  * @public
  */
 export interface ChromeAdapter {
-  /**
-   * The inference mode.
-   */
-  mode: InferenceMode;
-
   /**
    * Checks if the on-device model is capable of handling a given
    * request.
