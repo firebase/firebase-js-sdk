@@ -30,7 +30,6 @@ import {
 } from '../../test-utils/mock-response';
 import sinonChai from 'sinon-chai';
 import { VertexAIBackend } from '../backend';
-import { ChromeAdapter } from '../types/chrome-adapter';
 import { ChromeAdapterImpl } from '../methods/chrome-adapter';
 import { AIError } from '../errors';
 import chaiAsPromised from 'chai-as-promised';
@@ -421,7 +420,7 @@ describe('GenerativeModel', () => {
 
 describe('GenerativeModel dispatch logic', () => {
   let makeRequestStub: SinonStub;
-  let mockChromeAdapter: ChromeAdapter;
+  let mockChromeAdapter: ChromeAdapterImpl;
 
   function stubMakeRequest(stream?: boolean): void {
     if (stream) {
@@ -442,6 +441,7 @@ describe('GenerativeModel dispatch logic', () => {
   }
 
   beforeEach(() => {
+    // @ts-ignore
     mockChromeAdapter = {
       isAvailable: stub(),
       generateContent: stub().resolves(new Response(JSON.stringify({}))),

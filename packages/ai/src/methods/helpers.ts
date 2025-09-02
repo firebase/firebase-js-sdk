@@ -16,7 +16,12 @@
  */
 
 import { AIError } from '../errors';
-import { GenerateContentRequest, InferenceMode, AIErrorCode } from '../types';
+import {
+  GenerateContentRequest,
+  InferenceMode,
+  AIErrorCode,
+  ChromeAdapter
+} from '../types';
 import { ChromeAdapterImpl } from './chrome-adapter';
 
 /**
@@ -31,14 +36,14 @@ import { ChromeAdapterImpl } from './chrome-adapter';
  */
 export async function callCloudOrDevice<Response>(
   request: GenerateContentRequest,
-  chromeAdapter: ChromeAdapterImpl | undefined,
+  chromeAdapter: ChromeAdapter | undefined,
   onDeviceCall: () => Promise<Response>,
   inCloudCall: () => Promise<Response>
 ): Promise<Response> {
   if (!chromeAdapter) {
     return inCloudCall();
   }
-  switch (chromeAdapter.mode) {
+  switch ((chromeAdapter as ChromeAdapterImpl).mode) {
     case InferenceMode.ONLY_ON_DEVICE:
       if (await chromeAdapter.isAvailable(request)) {
         return onDeviceCall();

@@ -19,7 +19,6 @@ import { use, expect } from 'chai';
 import { SinonStub, SinonStubbedInstance, restore, stub } from 'sinon';
 import { callCloudOrDevice } from './helpers';
 import {
-  ChromeAdapter,
   GenerateContentRequest,
   InferenceMode,
   AIErrorCode
@@ -27,17 +26,19 @@ import {
 import { AIError } from '../errors';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
+import { ChromeAdapterImpl } from './chrome-adapter';
 
 use(sinonChai);
 use(chaiAsPromised);
 
 describe('callCloudOrDevice', () => {
-  let chromeAdapter: SinonStubbedInstance<ChromeAdapter>;
+  let chromeAdapter: SinonStubbedInstance<ChromeAdapterImpl>;
   let onDeviceCall: SinonStub;
   let inCloudCall: SinonStub;
   let request: GenerateContentRequest;
 
   beforeEach(() => {
+    // @ts-ignore
     chromeAdapter = {
       mode: InferenceMode.PREFER_ON_DEVICE,
       isAvailable: stub(),
