@@ -112,7 +112,8 @@ describe('execute(Pipeline|PipelineOptions)', () => {
                   'referenceValue': '/foo'
                 }
               ],
-              'name': 'collection'
+              'name': 'collection',
+              'options': {}
             }
           ]
         }
@@ -148,7 +149,8 @@ describe('execute(Pipeline|PipelineOptions)', () => {
                   'referenceValue': '/foo'
                 }
               ],
-              'name': 'collection'
+              'name': 'collection',
+              'options': {}
             }
           ]
         }
@@ -186,7 +188,8 @@ describe('execute(Pipeline|PipelineOptions)', () => {
                   'referenceValue': '/foo'
                 }
               ],
-              'name': 'collection'
+              'name': 'collection',
+              'options': {}
             }
           ]
         }

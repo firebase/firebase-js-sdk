@@ -24,7 +24,7 @@ import {
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult, PipelineSnapshot } from '../lite-api/pipeline-result';
 import { PipelineSource } from '../lite-api/pipeline-source';
-import { PipelineOptions } from '../lite-api/pipeline_settings';
+import { PipelineOptions } from '../lite-api/pipeline_options';
 import { Stage } from '../lite-api/stage';
 import {
   newUserDataReader,
@@ -91,7 +91,6 @@ export function execute(
     };
 
   const { pipeline, customOptions, ...rest } = options;
-  const genericOptions: { [name:string]: unknown } = customOptions ?? {};
 
   const firestore = cast(pipeline._db, Firestore);
   const client = ensureFirestoreConfigured(firestore);
@@ -102,8 +101,8 @@ export function execute(
   );
   const context = udr.createContext(UserDataSource.Argument, 'execute');
 
-  const structuredPipelineOptions = new StructuredPipelineOptions(rest, genericOptions);
-  structuredPipelineOptions._readUserData(udr, context);
+  const structuredPipelineOptions = new StructuredPipelineOptions(rest, customOptions);
+  structuredPipelineOptions._readUserData(context);
 
   const structuredPipeline: StructuredPipeline = new StructuredPipeline(
     pipeline,
@@ -142,10 +141,12 @@ export function execute(
 
 // Augment the Firestore class with the pipeline() factory method
 Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
-  return new PipelineSource<Pipeline>(this._databaseId, (stages: Stage[]) => {
+  const userDataReader =
+    newUserDataReader(this);
+  return new PipelineSource<Pipeline>(this._databaseId, userDataReader, (stages: Stage[]) => {
     return new Pipeline(
       this,
-      newUserDataReader(this),
+      userDataReader,
       new ExpUserDataWriter(this),
       stages
     );

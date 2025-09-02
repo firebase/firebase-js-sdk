@@ -26,7 +26,6 @@ import {
   ProtoValueSerializable,
   toMapValue,
   toStringValue,
-  UserData
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
 import { isPlainObject } from '../util/input_validation';
@@ -40,9 +39,7 @@ import { DocumentReference } from './reference';
 import { Timestamp } from './timestamp';
 import {
   fieldPathFromArgument,
-  parseData,
-  UserDataReader,
-  UserDataSource
+  parseData, UserData,
 } from './user_data_reader';
 import { VectorValue } from './vector_value';
 
@@ -72,14 +69,13 @@ function valueToDefaultExpr(value: unknown): Expr {
   if (value instanceof Expr) {
     return value;
   } else if (isPlainObject(value)) {
-    result = map(value as Record<string, unknown>);
+    result = _map(value as Record<string, unknown>, undefined);
   } else if (value instanceof Array) {
     result = array(value);
   } else {
-    result = new Constant(value);
+    result = _constant(value, undefined);
   }
 
-  result._createdFromLiteral = true;
   return result;
 }
 
@@ -96,7 +92,6 @@ function vectorToExpr(value: VectorValue | number[] | Expr): Expr {
     return value;
   } else {
     const result = constantVector(value);
-    result._createdFromLiteral = true;
     return result;
   }
 }
@@ -114,7 +109,6 @@ function vectorToExpr(value: VectorValue | number[] | Expr): Expr {
 function fieldOrExpression(value: unknown): Expr {
   if (isString(value)) {
     const result = field(value);
-    result._createdFromLiteral = true;
     return result;
   } else {
     return valueToDefaultExpr(value);
@@ -140,13 +134,7 @@ function fieldOrExpression(value: unknown): Expr {
 export abstract class Expr implements ProtoValueSerializable, UserData {
   abstract readonly exprType: ExprType;
 
-  /**
-   * @internal
-   * @private
-   * Indicates if this expression was created from a literal value passed
-   * by the caller.
-   */
-  _createdFromLiteral: boolean = false;
+  abstract readonly _methodName?: string;
 
   /**
    * @private
@@ -160,8 +148,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @internal
    */
   abstract _readUserData(
-    dataReader: UserDataReader,
-    context?: ParseContext
+    context: ParseContext
   ): void;
 
   /**
@@ -176,12 +163,11 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param others Optional additional expressions or literals to add to this expression.
    * @return A new `Expr` representing the addition operation.
    */
-  add(second: Expr | unknown, ...others: Array<Expr | unknown>): FunctionExpr {
-    const values = [second, ...others];
+  add(second: Expr | unknown): FunctionExpr {
     return new FunctionExpr('add', [
       this,
-      ...values.map(value => valueToDefaultExpr(value))
-    ]);
+      valueToDefaultExpr(second)
+    ], 'add');
   }
 
   /**
@@ -210,7 +196,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    */
   subtract(other: number): FunctionExpr;
   subtract(other: number | Expr): FunctionExpr {
-    return new FunctionExpr('subtract', [this, valueToDefaultExpr(other)]);
+    return new FunctionExpr('subtract', [this, valueToDefaultExpr(other)], 'subtract');
   }
 
   /**
@@ -227,13 +213,11 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    */
   multiply(
     second: Expr | number,
-    ...others: Array<Expr | number>
   ): FunctionExpr {
     return new FunctionExpr('multiply', [
       this,
-      valueToDefaultExpr(second),
-      ...others.map(value => valueToDefaultExpr(value))
-    ]);
+      valueToDefaultExpr(second)
+    ], 'multiply');
   }
 
   /**
@@ -262,7 +246,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    */
   divide(other: number): FunctionExpr;
   divide(other: number | Expr): FunctionExpr {
-    return new FunctionExpr('divide', [this, valueToDefaultExpr(other)]);
+    return new FunctionExpr('divide', [this, valueToDefaultExpr(other)], 'divide');
   }
 
   /**
@@ -291,7 +275,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    */
   mod(value: number): FunctionExpr;
   mod(other: number | Expr): FunctionExpr {
-    return new FunctionExpr('mod', [this, valueToDefaultExpr(other)]);
+    return new FunctionExpr('mod', [this, valueToDefaultExpr(other)], 'mod');
   }
 
   /**
@@ -320,7 +304,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    */
   eq(value: unknown): BooleanExpr;
   eq(other: unknown): BooleanExpr {
-    return new BooleanExpr('eq', [this, valueToDefaultExpr(other)]);
+    return new BooleanExpr('eq', [this, valueToDefaultExpr(other)], 'eq');
   }
 
   /**
@@ -349,7 +333,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    */
   neq(value: unknown): BooleanExpr;
   neq(other: unknown): BooleanExpr {
-    return new BooleanExpr('neq', [this, valueToDefaultExpr(other)]);
+    return new BooleanExpr('neq', [this, valueToDefaultExpr(other)], 'neq');
   }
 
   /**
@@ -378,7 +362,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    */
   lt(value: unknown): BooleanExpr;
   lt(other: unknown): BooleanExpr {
-    return new BooleanExpr('lt', [this, valueToDefaultExpr(other)]);
+    return new BooleanExpr('lt', [this, valueToDefaultExpr(other)], 'lt');
   }
 
   /**
@@ -408,7 +392,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    */
   lte(value: unknown): BooleanExpr;
   lte(other: unknown): BooleanExpr {
-    return new BooleanExpr('lte', [this, valueToDefaultExpr(other)]);
+    return new BooleanExpr('lte', [this, valueToDefaultExpr(other)], 'lte');
   }
 
   /**
@@ -437,7 +421,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    */
   gt(value: unknown): BooleanExpr;
   gt(other: unknown): BooleanExpr {
-    return new BooleanExpr('gt', [this, valueToDefaultExpr(other)]);
+    return new BooleanExpr('gt', [this, valueToDefaultExpr(other)], 'gt');
   }
 
   /**
@@ -468,7 +452,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    */
   gte(value: unknown): BooleanExpr;
   gte(other: unknown): BooleanExpr {
-    return new BooleanExpr('gte', [this, valueToDefaultExpr(other)]);
+    return new BooleanExpr('gte', [this, valueToDefaultExpr(other)], 'gte');
   }
 
   /**
@@ -488,7 +472,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   ): FunctionExpr {
     const elements = [secondArray, ...otherArrays];
     const exprValues = elements.map(value => valueToDefaultExpr(value));
-    return new FunctionExpr('array_concat', [this, ...exprValues]);
+    return new FunctionExpr('array_concat', [this, ...exprValues], 'arrayConcat');
   }
 
   /**
@@ -520,7 +504,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
     return new BooleanExpr('array_contains', [
       this,
       valueToDefaultExpr(element)
-    ]);
+    ], 'arrayContains');
   }
 
   /**
@@ -550,9 +534,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   arrayContainsAll(arrayExpression: Expr): BooleanExpr;
   arrayContainsAll(values: unknown[] | Expr): BooleanExpr {
     const normalizedExpr = Array.isArray(values)
-      ? new ListOfExprs(values.map(valueToDefaultExpr))
+      ? new ListOfExprs(values.map(valueToDefaultExpr), 'arrayContainsAll')
       : values;
-    return new BooleanExpr('array_contains_all', [this, normalizedExpr]);
+    return new BooleanExpr('array_contains_all', [this, normalizedExpr], 'arrayContainsAll');
   }
 
   /**
@@ -583,9 +567,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   arrayContainsAny(arrayExpression: Expr): BooleanExpr;
   arrayContainsAny(values: Array<unknown | Expr> | Expr): BooleanExpr {
     const normalizedExpr = Array.isArray(values)
-      ? new ListOfExprs(values.map(valueToDefaultExpr))
+      ? new ListOfExprs(values.map(valueToDefaultExpr), 'arrayContainsAny')
       : values;
-    return new BooleanExpr('array_contains_any', [this, normalizedExpr]);
+    return new BooleanExpr('array_contains_any', [this, normalizedExpr], 'arrayContainsAny');
   }
 
   /**
@@ -599,7 +583,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `Expr` representing the length of the array.
    */
   arrayLength(): FunctionExpr {
-    return new FunctionExpr('array_length', [this]);
+    return new FunctionExpr('array_length', [this], 'arrayLength');
   }
 
   /**
@@ -631,9 +615,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   eqAny(arrayExpression: Expr): BooleanExpr;
   eqAny(others: unknown[] | Expr): BooleanExpr {
     const exprOthers = Array.isArray(others)
-      ? new ListOfExprs(others.map(valueToDefaultExpr))
+      ? new ListOfExprs(others.map(valueToDefaultExpr), 'eqAny')
       : others;
-    return new BooleanExpr('eq_any', [this, exprOthers]);
+    return new BooleanExpr('eq_any', [this, exprOthers], 'eqAny');
   }
 
   /**
@@ -664,9 +648,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   notEqAny(arrayExpression: Expr): BooleanExpr;
   notEqAny(others: unknown[] | Expr): BooleanExpr {
     const exprOthers = Array.isArray(others)
-      ? new ListOfExprs(others.map(valueToDefaultExpr))
+      ? new ListOfExprs(others.map(valueToDefaultExpr), 'notEqAny')
       : others;
-    return new BooleanExpr('not_eq_any', [this, exprOthers]);
+    return new BooleanExpr('not_eq_any', [this, exprOthers], 'notEqAny');
   }
 
   /**
@@ -680,7 +664,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `Expr` representing the 'isNaN' check.
    */
   isNan(): BooleanExpr {
-    return new BooleanExpr('is_nan', [this]);
+    return new BooleanExpr('is_nan', [this], 'isNan');
   }
 
   /**
@@ -694,7 +678,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `Expr` representing the 'isNull' check.
    */
   isNull(): BooleanExpr {
-    return new BooleanExpr('is_null', [this]);
+    return new BooleanExpr('is_null', [this], 'isNull');
   }
 
   /**
@@ -708,7 +692,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `Expr` representing the 'exists' check.
    */
   exists(): BooleanExpr {
-    return new BooleanExpr('exists', [this]);
+    return new BooleanExpr('exists', [this], 'exists');
   }
 
   /**
@@ -722,7 +706,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `Expr` representing the length of the string.
    */
   charLength(): FunctionExpr {
-    return new FunctionExpr('char_length', [this]);
+    return new FunctionExpr('char_length', [this], 'charLength');
   }
 
   /**
@@ -736,7 +720,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param pattern The pattern to search for. You can use "%" as a wildcard character.
    * @return A new `Expr` representing the 'like' comparison.
    */
-  like(pattern: string): FunctionExpr;
+  like(pattern: string): BooleanExpr;
 
   /**
    * Creates an expression that performs a case-sensitive string comparison.
@@ -749,9 +733,9 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @param pattern The pattern to search for. You can use "%" as a wildcard character.
    * @return A new `Expr` representing the 'like' comparison.
    */
-  like(pattern: Expr): FunctionExpr;
-  like(stringOrExpr: string | Expr): FunctionExpr {
-    return new FunctionExpr('like', [this, valueToDefaultExpr(stringOrExpr)]);
+  like(pattern: Expr): BooleanExpr;
+  like(stringOrExpr: string | Expr): BooleanExpr {
+    return new BooleanExpr('like', [this, valueToDefaultExpr(stringOrExpr)], 'like');
   }
 
   /**
@@ -785,7 +769,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
     return new BooleanExpr('regex_contains', [
       this,
       valueToDefaultExpr(stringOrExpr)
-    ]);
+    ], 'regexContains');
   }
 
   /**
@@ -817,7 +801,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
     return new BooleanExpr('regex_match', [
       this,
       valueToDefaultExpr(stringOrExpr)
-    ]);
+    ], 'regexMatch');
   }
 
   /**
@@ -849,7 +833,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
     return new BooleanExpr('str_contains', [
       this,
       valueToDefaultExpr(stringOrExpr)
-    ]);
+    ], 'strContains');
   }
 
   /**
@@ -882,7 +866,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
     return new BooleanExpr('starts_with', [
       this,
       valueToDefaultExpr(stringOrExpr)
-    ]);
+    ], 'startsWith');
   }
 
   /**
@@ -915,7 +899,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
     return new BooleanExpr('ends_with', [
       this,
       valueToDefaultExpr(stringOrExpr)
-    ]);
+    ], 'endsWith');
   }
 
   /**
@@ -929,7 +913,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `Expr` representing the lowercase string.
    */
   toLower(): FunctionExpr {
-    return new FunctionExpr('to_lower', [this]);
+    return new FunctionExpr('to_lower', [this], 'toLower');
   }
 
   /**
@@ -943,7 +927,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `Expr` representing the uppercase string.
    */
   toUpper(): FunctionExpr {
-    return new FunctionExpr('to_upper', [this]);
+    return new FunctionExpr('to_upper', [this], 'toUpper');
   }
 
   /**
@@ -957,7 +941,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `Expr` representing the trimmed string.
    */
   trim(): FunctionExpr {
-    return new FunctionExpr('trim', [this]);
+    return new FunctionExpr('trim', [this], 'trim');
   }
 
   /**
@@ -978,7 +962,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   ): FunctionExpr {
     const elements = [secondString, ...otherStrings];
     const exprs = elements.map(valueToDefaultExpr);
-    return new FunctionExpr('str_concat', [this, ...exprs]);
+    return new FunctionExpr('str_concat', [this, ...exprs], 'strConcat');
   }
 
   /**
@@ -992,7 +976,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new {@code Expr} representing the reversed string.
    */
   reverse(): FunctionExpr {
-    return new FunctionExpr('reverse', [this]);
+    return new FunctionExpr('reverse', [this], 'reverse');
   }
 
   /**
@@ -1028,7 +1012,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
       this,
       valueToDefaultExpr(find),
       valueToDefaultExpr(replace)
-    ]);
+    ], 'replaceFirst');
   }
 
   /**
@@ -1064,7 +1048,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
       this,
       valueToDefaultExpr(find),
       valueToDefaultExpr(replace)
-    ]);
+    ], 'replaceAll');
   }
 
   /**
@@ -1078,7 +1062,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new {@code Expr} representing the length of the string in bytes.
    */
   byteLength(): FunctionExpr {
-    return new FunctionExpr('byte_length', [this]);
+    return new FunctionExpr('byte_length', [this], 'byteLength');
   }
 
   /**
@@ -1093,7 +1077,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `Expr` representing the value associated with the given key in the map.
    */
   mapGet(subfield: string): FunctionExpr {
-    return new FunctionExpr('map_get', [this, constant(subfield)]);
+    return new FunctionExpr('map_get', [this, constant(subfield)], 'mapGet');
   }
 
   /**
@@ -1108,7 +1092,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `AggregateFunction` representing the 'count' aggregation.
    */
   count(): AggregateFunction {
-    return new AggregateFunction('count', [this]);
+    return new AggregateFunction('count', [this], 'count');
   }
 
   /**
@@ -1122,7 +1106,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `AggregateFunction` representing the 'sum' aggregation.
    */
   sum(): AggregateFunction {
-    return new AggregateFunction('sum', [this]);
+    return new AggregateFunction('sum', [this], 'sum');
   }
 
   /**
@@ -1137,7 +1121,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `AggregateFunction` representing the 'avg' aggregation.
    */
   avg(): AggregateFunction {
-    return new AggregateFunction('avg', [this]);
+    return new AggregateFunction('avg', [this], 'avg');
   }
 
   /**
@@ -1151,7 +1135,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `AggregateFunction` representing the 'min' aggregation.
    */
   minimum(): AggregateFunction {
-    return new AggregateFunction('minimum', [this]);
+    return new AggregateFunction('min', [this], 'minimum');
   }
 
   /**
@@ -1165,7 +1149,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new `AggregateFunction` representing the 'max' aggregation.
    */
   maximum(): AggregateFunction {
-    return new AggregateFunction('maximum', [this]);
+    return new AggregateFunction('max', [this], 'maximum');
   }
 
   /**
@@ -1185,10 +1169,11 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
     ...others: Array<Expr | unknown>
   ): FunctionExpr {
     const values = [second, ...others];
-    return new FunctionExpr('logical_maximum', [
+    return new FunctionExpr('max', [
       this,
       ...values.map(valueToDefaultExpr)
-    ]);
+    ],
+    'logicalMaximum');
   }
 
   /**
@@ -1208,10 +1193,10 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
     ...others: Array<Expr | unknown>
   ): FunctionExpr {
     const values = [second, ...others];
-    return new FunctionExpr('logical_minimum', [
+    return new FunctionExpr('min', [
       this,
       ...values.map(valueToDefaultExpr)
-    ]);
+    ], 'logicalMinimum');
   }
 
   /**
@@ -1225,7 +1210,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new {@code Expr} representing the length of the vector.
    */
   vectorLength(): FunctionExpr {
-    return new FunctionExpr('vector_length', [this]);
+    return new FunctionExpr('vector_length', [this], 'vectorLength');
   }
 
   /**
@@ -1253,7 +1238,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    */
   cosineDistance(vector: VectorValue | number[]): FunctionExpr;
   cosineDistance(other: Expr | VectorValue | number[]): FunctionExpr {
-    return new FunctionExpr('cosine_distance', [this, vectorToExpr(other)]);
+    return new FunctionExpr('cosine_distance', [this, vectorToExpr(other)], 'cosineDistance');
   }
 
   /**
@@ -1282,7 +1267,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    */
   dotProduct(vector: VectorValue | number[]): FunctionExpr;
   dotProduct(other: Expr | VectorValue | number[]): FunctionExpr {
-    return new FunctionExpr('dot_product', [this, vectorToExpr(other)]);
+    return new FunctionExpr('dot_product', [this, vectorToExpr(other)], 'dotProduct');
   }
 
   /**
@@ -1311,7 +1296,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    */
   euclideanDistance(vector: VectorValue | number[]): FunctionExpr;
   euclideanDistance(other: Expr | VectorValue | number[]): FunctionExpr {
-    return new FunctionExpr('euclidean_distance', [this, vectorToExpr(other)]);
+    return new FunctionExpr('euclidean_distance', [this, vectorToExpr(other)], 'euclideanDistance');
   }
 
   /**
@@ -1326,7 +1311,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new {@code Expr} representing the timestamp.
    */
   unixMicrosToTimestamp(): FunctionExpr {
-    return new FunctionExpr('unix_micros_to_timestamp', [this]);
+    return new FunctionExpr('unix_micros_to_timestamp', [this], 'unixMicrosToTimestamp');
   }
 
   /**
@@ -1340,7 +1325,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new {@code Expr} representing the number of microseconds since epoch.
    */
   timestampToUnixMicros(): FunctionExpr {
-    return new FunctionExpr('timestamp_to_unix_micros', [this]);
+    return new FunctionExpr('timestamp_to_unix_micros', [this], 'timestampToUnixMicros');
   }
 
   /**
@@ -1355,7 +1340,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new {@code Expr} representing the timestamp.
    */
   unixMillisToTimestamp(): FunctionExpr {
-    return new FunctionExpr('unix_millis_to_timestamp', [this]);
+    return new FunctionExpr('unix_millis_to_timestamp', [this], 'unixMillisToTimestamp');
   }
 
   /**
@@ -1369,7 +1354,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new {@code Expr} representing the number of milliseconds since epoch.
    */
   timestampToUnixMillis(): FunctionExpr {
-    return new FunctionExpr('timestamp_to_unix_millis', [this]);
+    return new FunctionExpr('timestamp_to_unix_millis', [this], 'timestampToUnixMillis');
   }
 
   /**
@@ -1384,7 +1369,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new {@code Expr} representing the timestamp.
    */
   unixSecondsToTimestamp(): FunctionExpr {
-    return new FunctionExpr('unix_seconds_to_timestamp', [this]);
+    return new FunctionExpr('unix_seconds_to_timestamp', [this], 'unixSecondsToTimestamp');
   }
 
   /**
@@ -1398,7 +1383,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new {@code Expr} representing the number of seconds since epoch.
    */
   timestampToUnixSeconds(): FunctionExpr {
-    return new FunctionExpr('timestamp_to_unix_seconds', [this]);
+    return new FunctionExpr('timestamp_to_unix_seconds', [this], 'timestampToUnixSeconds');
   }
 
   /**
@@ -1446,7 +1431,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
       this,
       valueToDefaultExpr(unit),
       valueToDefaultExpr(amount)
-    ]);
+    ], 'timestampAdd');
   }
 
   /**
@@ -1494,7 +1479,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
       this,
       valueToDefaultExpr(unit),
       valueToDefaultExpr(amount)
-    ]);
+    ], 'timestampSub');
   }
 
   /**
@@ -1529,7 +1514,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
     return new FunctionExpr('bit_and', [
       this,
       valueToDefaultExpr(bitsOrExpression)
-    ]);
+    ], 'bitAnd');
   }
 
   /**
@@ -1564,7 +1549,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
     return new FunctionExpr('bit_or', [
       this,
       valueToDefaultExpr(bitsOrExpression)
-    ]);
+    ], 'bitOr');
   }
 
   /**
@@ -1599,7 +1584,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
     return new FunctionExpr('bit_xor', [
       this,
       valueToDefaultExpr(bitsOrExpression)
-    ]);
+    ], 'bitXor');
   }
 
   /**
@@ -1615,7 +1600,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new {@code Expr} representing the bitwise NOT operation.
    */
   bitNot(): FunctionExpr {
-    return new FunctionExpr('bit_not', [this]);
+    return new FunctionExpr('bit_not', [this], 'bitNot');
   }
 
   /**
@@ -1650,7 +1635,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
     return new FunctionExpr('bit_left_shift', [
       this,
       valueToDefaultExpr(numberExpr)
-    ]);
+    ], 'bitLeftShift');
   }
 
   /**
@@ -1685,7 +1670,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
     return new FunctionExpr('bit_right_shift', [
       this,
       valueToDefaultExpr(numberExpr)
-    ]);
+    ], 'bitRightShift');
   }
 
   /**
@@ -1701,7 +1686,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new {@code Expr} representing the documentId operation.
    */
   documentId(): FunctionExpr {
-    return new FunctionExpr('document_id', [this]);
+    return new FunctionExpr('document_id', [this], 'documentId');
   }
 
   /**
@@ -1728,13 +1713,13 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   substr(position: Expr | number, length?: Expr | number): FunctionExpr {
     const positionExpr = valueToDefaultExpr(position);
     if (length === undefined) {
-      return new FunctionExpr('substr', [this, positionExpr]);
+      return new FunctionExpr('substr', [this, positionExpr], 'substr');
     } else {
       return new FunctionExpr('substr', [
         this,
         positionExpr,
         valueToDefaultExpr(length)
-      ]);
+      ], 'substr');
     }
   }
 
@@ -1746,13 +1731,13 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *
    * ```typescript
    * // Return the value in the 'tags' field array at index `1`.
-   * field('tags').arrayOffset(1);
+   * field('tags').arrayGet(1);
    * ```
    *
    * @param offset The index of the element to return.
-   * @return A new Expr representing the 'arrayOffset' operation.
+   * @return A new Expr representing the 'arrayGet' operation.
    */
-  arrayOffset(offset: number): FunctionExpr;
+  arrayGet(offset: number): FunctionExpr;
 
   /**
    * @beta
@@ -1763,15 +1748,15 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * ```typescript
    * // Return the value in the tags field array at index specified by field
    * // 'favoriteTag'.
-   * field('tags').arrayOffset(field('favoriteTag'));
+   * field('tags').arrayGet(field('favoriteTag'));
    * ```
    *
    * @param offsetExpr An Expr evaluating to the index of the element to return.
-   * @return A new Expr representing the 'arrayOffset' operation.
+   * @return A new Expr representing the 'arrayGet' operation.
    */
-  arrayOffset(offsetExpr: Expr): FunctionExpr;
-  arrayOffset(offset: Expr | number): FunctionExpr {
-    return new FunctionExpr('array_offset', [this, valueToDefaultExpr(offset)]);
+  arrayGet(offsetExpr: Expr): FunctionExpr;
+  arrayGet(offset: Expr | number): FunctionExpr {
+    return new FunctionExpr('array_get', [this, valueToDefaultExpr(offset)], 'arrayGet');
   }
 
   /**
@@ -1787,7 +1772,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new {@code BooleanExpr} representing the 'isError' check.
    */
   isError(): BooleanExpr {
-    return new BooleanExpr('is_error', [this]);
+    return new BooleanExpr('is_error', [this], 'isError');
   }
 
   /**
@@ -1799,7 +1784,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * ```typescript
    * // Returns the first item in the title field arrays, or returns
    * // the entire title field if the array is empty or the field is another type.
-   * field("title").arrayOffset(0).ifError(field("title"));
+   * field("title").arrayGet(0).ifError(field("title"));
    * ```
    *
    * @param catchExpr The catch expression that will be evaluated and
@@ -1817,7 +1802,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * ```typescript
    * // Returns the first item in the title field arrays, or returns
    * // "Default Title"
-   * field("title").arrayOffset(0).ifError("Default Title");
+   * field("title").arrayGet(0).ifError("Default Title");
    * ```
    *
    * @param catchValue The value that will be returned if this expression
@@ -1826,7 +1811,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    */
   ifError(catchValue: unknown): FunctionExpr;
   ifError(catchValue: unknown): FunctionExpr {
-    return new FunctionExpr('if_error', [this, valueToDefaultExpr(catchValue)]);
+    return new FunctionExpr('if_error', [this, valueToDefaultExpr(catchValue)], 'ifError');
   }
 
   /**
@@ -1843,7 +1828,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new {@code BooleanExpr} representing the 'isAbsent' check.
    */
   isAbsent(): BooleanExpr {
-    return new BooleanExpr('is_absent', [this]);
+    return new BooleanExpr('is_absent', [this], 'isAbsent');
   }
 
   /**
@@ -1859,7 +1844,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new {@code BooleanExpr} representing the 'isNotNull' check.
    */
   isNotNull(): BooleanExpr {
-    return new BooleanExpr('is_not_null', [this]);
+    return new BooleanExpr('is_not_null', [this], 'isNotNull');
   }
 
   /**
@@ -1875,7 +1860,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * @return A new {@code Expr} representing the 'isNaN' check.
    */
   isNotNan(): BooleanExpr {
-    return new BooleanExpr('is_not_nan', [this]);
+    return new BooleanExpr('is_not_nan', [this], 'isNotNan');
   }
 
   /**
@@ -1910,7 +1895,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
     return new FunctionExpr('map_remove', [
       this,
       valueToDefaultExpr(stringExpr)
-    ]);
+    ], 'mapRemove');
   }
 
   /**
@@ -1941,7 +1926,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
       this,
       secondMapExpr,
       ...otherMapExprs
-    ]);
+    ], 'mapMerge');
   }
 
   /**
@@ -1991,7 +1976,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    *     expression and associates it with the provided alias.
    */
   as(name: string): ExprWithAlias {
-    return new ExprWithAlias(this, name);
+    return new ExprWithAlias(this, name, 'as');
   }
 }
 
@@ -2014,15 +1999,9 @@ export interface Selectable {
 export class AggregateFunction implements ProtoValueSerializable, UserData {
   exprType: ExprType = 'AggregateFunction';
 
-  /**
-   * @internal
-   * @private
-   * Indicates if this expression was created from a literal value passed
-   * by the caller.
-   */
-  _createdFromLiteral: boolean = false;
-
-  constructor(private name: string, private params: Expr[]) {}
+  constructor( name: string,  params: Expr[]);
+  constructor( name: string,  params: Expr[],  _methodName: string | undefined);
+  constructor(private name: string, private params: Expr[], readonly _methodName?: string) {}
 
   /**
    * Assigns an alias to this AggregateFunction. The alias specifies the name that
@@ -2039,7 +2018,7 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
    *     AggregateFunction and associates it with the provided alias.
    */
   as(name: string): AggregateWithAlias {
-    return new AggregateWithAlias(this, name);
+    return new AggregateWithAlias(this, name, 'as');
   }
 
   /**
@@ -2061,13 +2040,10 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
    * @private
    * @internal
    */
-  _readUserData(dataReader: UserDataReader, context?: ParseContext): void {
-    context =
-      this._createdFromLiteral && context
-        ? context
-        : dataReader.createContext(UserDataSource.Argument, this.name);
+  _readUserData(context: ParseContext): void {
+    context = this._methodName ? context.contextWith({methodName: this._methodName}) : context;
     this.params.forEach(expr => {
-      return expr._readUserData(dataReader, context);
+      return expr._readUserData(context);
     });
   }
 }
@@ -2078,7 +2054,7 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
  * An AggregateFunction with alias.
  */
 export class AggregateWithAlias implements UserData {
-  constructor(readonly aggregate: AggregateFunction, readonly alias: string) {}
+  constructor(readonly aggregate: AggregateFunction, readonly alias: string, readonly _methodName: string | undefined) {}
 
   /**
    * @internal
@@ -2092,12 +2068,8 @@ export class AggregateWithAlias implements UserData {
    * @private
    * @internal
    */
-  _readUserData(dataReader: UserDataReader, context?: ParseContext): void {
-    context =
-      this._createdFromLiteral && context
-        ? context
-        : dataReader.createContext(UserDataSource.Argument, 'as');
-    this.aggregate._readUserData(dataReader, context);
+  _readUserData(context: ParseContext): void {
+    this.aggregate._readUserData(context);
   }
 }
 
@@ -2116,18 +2088,14 @@ export class ExprWithAlias implements Selectable, UserData {
    */
   _createdFromLiteral: boolean = false;
 
-  constructor(readonly expr: Expr, readonly alias: string) {}
+  constructor(readonly expr: Expr, readonly alias: string, readonly _methodName: string | undefined) {}
 
   /**
    * @private
    * @internal
    */
-  _readUserData(dataReader: UserDataReader, context?: ParseContext): void {
-    context =
-      this._createdFromLiteral && context
-        ? context
-        : dataReader.createContext(UserDataSource.Argument, 'as');
-    this.expr._readUserData(dataReader, context);
+  _readUserData(context: ParseContext): void {
+    this.expr._readUserData(context);
   }
 }
 
@@ -2137,7 +2105,7 @@ export class ExprWithAlias implements Selectable, UserData {
 class ListOfExprs extends Expr implements UserData {
   exprType: ExprType = 'ListOfExprs';
 
-  constructor(private exprs: Expr[]) {
+  constructor(private exprs: Expr[], readonly _methodName: string | undefined) {
     super();
   }
 
@@ -2157,8 +2125,8 @@ class ListOfExprs extends Expr implements UserData {
    * @private
    * @internal
    */
-  _readUserData(dataReader: UserDataReader): void {
-    this.exprs.forEach((expr: Expr) => expr._readUserData(dataReader));
+  _readUserData(context: ParseContext): void {
+    this.exprs.forEach((expr: Expr) => expr._readUserData(context));
   }
 }
 
@@ -2190,7 +2158,7 @@ export class Field extends Expr implements Selectable {
    * @hideconstructor
    * @param fieldPath
    */
-  constructor(private fieldPath: InternalFieldPath) {
+  constructor(private fieldPath: InternalFieldPath, readonly _methodName: string | undefined) {
     super();
   }
 
@@ -2220,7 +2188,7 @@ export class Field extends Expr implements Selectable {
    * @private
    * @internal
    */
-  _readUserData(dataReader: UserDataReader): void {}
+  _readUserData(context: ParseContext): void {}
 }
 
 /**
@@ -2243,13 +2211,17 @@ export class Field extends Expr implements Selectable {
 export function field(name: string): Field;
 export function field(path: FieldPath): Field;
 export function field(nameOrPath: string | FieldPath): Field {
+  return _field(nameOrPath, 'field');
+}
+
+export function _field(nameOrPath: string | FieldPath, methodName: string | undefined): Field {
   if (typeof nameOrPath === 'string') {
     if (DOCUMENT_KEY_NAME === nameOrPath) {
-      return new Field(documentIdFieldPath()._internalPath);
+      return new Field(documentIdFieldPath()._internalPath, methodName);
     }
-    return new Field(fieldPathFromArgument('field', nameOrPath));
+    return new Field(fieldPathFromArgument('field', nameOrPath), methodName);
   } else {
-    return new Field(nameOrPath._internalPath);
+    return new Field(nameOrPath._internalPath, methodName);
   }
 }
 
@@ -2279,7 +2251,7 @@ export class Constant extends Expr {
    * @hideconstructor
    * @param value The value of the constant.
    */
-  constructor(private value: unknown) {
+  constructor(private value: unknown, readonly _methodName: string | undefined) {
     super();
   }
 
@@ -2288,7 +2260,7 @@ export class Constant extends Expr {
    * @internal
    */
   static _fromProto(value: ProtoValue): Constant {
-    const result = new Constant(value);
+    const result = new Constant(value, undefined);
     result._protoValue = value;
     return result;
   }
@@ -2310,12 +2282,8 @@ export class Constant extends Expr {
    * @private
    * @internal
    */
-  _readUserData(dataReader: UserDataReader, context?: ParseContext): void {
-    context =
-      this._createdFromLiteral && context
-        ? context
-        : dataReader.createContext(UserDataSource.Argument, 'constant');
-
+  _readUserData(context: ParseContext): void {
+    context = this._methodName ? context.contextWith({methodName: this._methodName}) : context;
     if (isFirestoreValue(this._protoValue)) {
       return;
     } else {
@@ -2415,10 +2383,21 @@ export function constant(value: ProtoValue): Constant;
 export function constant(value: VectorValue): Constant;
 
 export function constant(value: unknown): Constant {
-  return new Constant(value);
+  return _constant(value, 'contant');
 }
 
 /**
+ * @internal
+ * @private
+ * @param value
+ * @param methodName
+ */
+export function _constant(value: unknown, methodName: string | undefined): Constant {
+  return new Constant(value, methodName);
+}
+
+/**
+ * TODO remove
  * Creates a `Constant` instance for a VectorValue value.
  *
  * ```typescript
@@ -2431,9 +2410,9 @@ export function constant(value: unknown): Constant {
  */
 export function constantVector(value: number[] | VectorValue): Constant {
   if (value instanceof VectorValue) {
-    return new Constant(value);
+    return _constant(value, 'constantVector');
   } else {
-    return new Constant(new VectorValue(value as number[]));
+    return _constant(new VectorValue(value as number[]), 'constantVector');
   }
 }
 
@@ -2443,20 +2422,16 @@ export function constantVector(value: number[] | VectorValue): Constant {
  * @private
  */
 export class MapValue extends Expr {
-  constructor(private plainObject: Map<string, Expr>) {
+  constructor(private plainObject: Map<string, Expr>, readonly _methodName: string | undefined) {
     super();
   }
 
   exprType: ExprType = 'Constant';
 
-  _readUserData(dataReader: UserDataReader, context?: ParseContext): void {
-    context =
-      this._createdFromLiteral && context
-        ? context
-        : dataReader.createContext(UserDataSource.Argument, '_map');
-
+  _readUserData(context: ParseContext): void {
+    context = this._methodName ? context.contextWith({methodName: this._methodName}) : context;
     this.plainObject.forEach(expr => {
-      expr._readUserData(dataReader, context);
+      expr._readUserData(context);
     });
   }
 
@@ -2477,7 +2452,9 @@ export class MapValue extends Expr {
 export class FunctionExpr extends Expr {
   readonly exprType: ExprType = 'Function';
 
-  constructor(private name: string, private params: Expr[]) {
+  constructor( name: string,  params: Expr[]);
+  constructor( name: string,  params: Expr[],  _methodName: string | undefined);
+  constructor(private name: string, private params: Expr[], readonly _methodName?: string) {
     super();
   }
 
@@ -2498,13 +2475,10 @@ export class FunctionExpr extends Expr {
    * @private
    * @internal
    */
-  _readUserData(dataReader: UserDataReader, context?: ParseContext): void {
-    context =
-      this._createdFromLiteral && context
-        ? context
-        : dataReader.createContext(UserDataSource.Argument, this.name);
+  _readUserData(context: ParseContext): void {
+    context = this._methodName ? context.contextWith({methodName: this._methodName}) : context;
     this.params.forEach(expr => {
-      return expr._readUserData(dataReader, context);
+      return expr._readUserData(context);
     });
   }
 }
@@ -2529,7 +2503,7 @@ export class BooleanExpr extends FunctionExpr {
    * @return A new `AggregateFunction` representing the 'countIf' aggregation.
    */
   countIf(): AggregateFunction {
-    return new AggregateFunction('count_if', [this]);
+    return new AggregateFunction('count_if', [this], 'countIf');
   }
 
   /**
@@ -2543,7 +2517,7 @@ export class BooleanExpr extends FunctionExpr {
    * @return A new {@code Expr} representing the negated filter condition.
    */
   not(): BooleanExpr {
-    return new BooleanExpr('not', [this]);
+    return new BooleanExpr('not', [this], 'not');
   }
 }
 
@@ -2572,7 +2546,7 @@ export function countIf(booleanExpr: BooleanExpr): AggregateFunction {
  * @returns A new `Expr` representing the 'rand' function.
  */
 export function rand(): FunctionExpr {
-  return new FunctionExpr('rand', []);
+  return new FunctionExpr('rand', [], 'rand');
 }
 
 /**
@@ -2970,14 +2944,14 @@ export function bitRightShift(
  *
  * ```typescript
  * // Return the value in the tags field array at index 1.
- * arrayOffset('tags', 1);
+ * arrayGet('tags', 1);
  * ```
  *
  * @param arrayField The name of the array field.
  * @param offset The index of the element to return.
- * @return A new Expr representing the 'arrayOffset' operation.
+ * @return A new Expr representing the 'arrayGet' operation.
  */
-export function arrayOffset(arrayField: string, offset: number): FunctionExpr;
+export function arrayGet(arrayField: string, offset: number): FunctionExpr;
 
 /**
  * @beta
@@ -2988,14 +2962,14 @@ export function arrayOffset(arrayField: string, offset: number): FunctionExpr;
  * ```typescript
  * // Return the value in the tags field array at index specified by field
  * // 'favoriteTag'.
- * arrayOffset('tags', field('favoriteTag'));
+ * arrayGet('tags', field('favoriteTag'));
  * ```
  *
  * @param arrayField The name of the array field.
  * @param offsetExpr An Expr evaluating to the index of the element to return.
- * @return A new Expr representing the 'arrayOffset' operation.
+ * @return A new Expr representing the 'arrayGet' operation.
  */
-export function arrayOffset(arrayField: string, offsetExpr: Expr): FunctionExpr;
+export function arrayGet(arrayField: string, offsetExpr: Expr): FunctionExpr;
 
 /**
  * @beta
@@ -3005,14 +2979,14 @@ export function arrayOffset(arrayField: string, offsetExpr: Expr): FunctionExpr;
  *
  * ```typescript
  * // Return the value in the tags field array at index 1.
- * arrayOffset(field('tags'), 1);
+ * arrayGet(field('tags'), 1);
  * ```
  *
  * @param arrayExpression An Expr evaluating to an array.
  * @param offset The index of the element to return.
- * @return A new Expr representing the 'arrayOffset' operation.
+ * @return A new Expr representing the 'arrayGet' operation.
  */
-export function arrayOffset(
+export function arrayGet(
   arrayExpression: Expr,
   offset: number
 ): FunctionExpr;
@@ -3026,22 +3000,22 @@ export function arrayOffset(
  * ```typescript
  * // Return the value in the tags field array at index specified by field
  * // 'favoriteTag'.
- * arrayOffset(field('tags'), field('favoriteTag'));
+ * arrayGet(field('tags'), field('favoriteTag'));
  * ```
  *
  * @param arrayExpression An Expr evaluating to an array.
  * @param offsetExpr An Expr evaluating to the index of the element to return.
- * @return A new Expr representing the 'arrayOffset' operation.
+ * @return A new Expr representing the 'arrayGet' operation.
  */
-export function arrayOffset(
+export function arrayGet(
   arrayExpression: Expr,
   offsetExpr: Expr
 ): FunctionExpr;
-export function arrayOffset(
+export function arrayGet(
   array: Expr | string,
   offset: Expr | number
 ): FunctionExpr {
-  return fieldOrExpression(array).arrayOffset(valueToDefaultExpr(offset));
+  return fieldOrExpression(array).arrayGet(valueToDefaultExpr(offset));
 }
 
 /**
@@ -3070,7 +3044,7 @@ export function isError(value: Expr): BooleanExpr {
  * ```typescript
  * // Returns the first item in the title field arrays, or returns
  * // the entire title field if the array is empty or the field is another type.
- * ifError(field("title").arrayOffset(0), field("title"));
+ * ifError(field("title").arrayGet(0), field("title"));
  * ```
  *
  * @param tryExpr The try expression.
@@ -3089,7 +3063,7 @@ export function ifError(tryExpr: Expr, catchExpr: Expr): FunctionExpr;
  * ```typescript
  * // Returns the first item in the title field arrays, or returns
  * // "Default Title"
- * ifError(field("title").arrayOffset(0), "Default Title");
+ * ifError(field("title").arrayGet(0), "Default Title");
  * ```
  *
  * @param tryExpr The try expression.
@@ -3484,7 +3458,6 @@ export function substr(
 export function add(
   first: Expr,
   second: Expr | unknown,
-  ...others: Array<Expr | unknown>
 ): FunctionExpr;
 
 /**
@@ -3505,17 +3478,14 @@ export function add(
 export function add(
   fieldName: string,
   second: Expr | unknown,
-  ...others: Array<Expr | unknown>
 ): FunctionExpr;
 
 export function add(
   first: Expr | string,
   second: Expr | unknown,
-  ...others: Array<Expr | unknown>
 ): FunctionExpr {
   return fieldOrExpression(first).add(
-    valueToDefaultExpr(second),
-    ...others.map(value => valueToDefaultExpr(value))
+    valueToDefaultExpr(second)
   );
 }
 
@@ -3609,7 +3579,6 @@ export function subtract(
 export function multiply(
   first: Expr,
   second: Expr | unknown,
-  ...others: Array<Expr | unknown>
 ): FunctionExpr;
 
 /**
@@ -3629,18 +3598,15 @@ export function multiply(
  */
 export function multiply(
   fieldName: string,
-  second: Expr | unknown,
-  ...others: Array<Expr | unknown>
+  second: Expr | unknown
 ): FunctionExpr;
 
 export function multiply(
   first: Expr | string,
-  second: Expr | unknown,
-  ...others: Array<Expr | unknown>
+  second: Expr | unknown
 ): FunctionExpr {
   return fieldOrExpression(first).multiply(
-    valueToDefaultExpr(second),
-    ...others.map(valueToDefaultExpr)
+    valueToDefaultExpr(second)
   );
 }
 
@@ -3799,6 +3765,9 @@ export function mod(left: Expr | string, right: Expr | unknown): FunctionExpr {
  * @return A new {@code Expr} representing the map function.
  */
 export function map(elements: Record<string, unknown>): FunctionExpr {
+  return _map(elements, 'map');
+}
+export function _map(elements: Record<string, unknown>, methodName: string | undefined): FunctionExpr {
   const result: Expr[] = [];
   for (const key in elements) {
     if (Object.prototype.hasOwnProperty.call(elements, key)) {
@@ -3807,7 +3776,7 @@ export function map(elements: Record<string, unknown>): FunctionExpr {
       result.push(valueToDefaultExpr(value));
     }
   }
-  return new FunctionExpr('map', result);
+  return new FunctionExpr('map', result, 'map');
 }
 
 /**
@@ -3829,7 +3798,7 @@ export function _mapValue(plainObject: Record<string, unknown>): MapValue {
       result.set(key, valueToDefaultExpr(value));
     }
   }
-  return new MapValue(result);
+  return new MapValue(result, undefined);
 }
 
 /**
@@ -3846,9 +3815,13 @@ export function _mapValue(plainObject: Record<string, unknown>): MapValue {
  * @return A new {@code Expr} representing the array function.
  */
 export function array(elements: unknown[]): FunctionExpr {
+  return _array(elements, 'array');
+}
+export function _array(elements: unknown[], methodName: string | undefined): FunctionExpr {
   return new FunctionExpr(
     'array',
-    elements.map(element => valueToDefaultExpr(element))
+    elements.map(element => valueToDefaultExpr(element)),
+    methodName
   );
 }
 
@@ -4781,7 +4754,7 @@ export function xor(
   second: BooleanExpr,
   ...additionalConditions: BooleanExpr[]
 ): BooleanExpr {
-  return new BooleanExpr('xor', [first, second, ...additionalConditions]);
+  return new BooleanExpr('xor', [first, second, ...additionalConditions], 'xor');
 }
 
 /**
@@ -4806,7 +4779,7 @@ export function cond(
   thenExpr: Expr,
   elseExpr: Expr
 ): FunctionExpr {
-  return new FunctionExpr('cond', [condition, thenExpr, elseExpr]);
+  return new FunctionExpr('cond', [condition, thenExpr, elseExpr], 'cond');
 }
 
 /**
@@ -5324,7 +5297,7 @@ export function like(stringExpression: Expr, pattern: Expr): BooleanExpr;
 export function like(
   left: Expr | string,
   pattern: Expr | string
-): FunctionExpr {
+): BooleanExpr {
   const leftExpr = fieldOrExpression(left);
   const patternExpr = valueToDefaultExpr(pattern);
   return leftExpr.like(patternExpr);
@@ -5908,7 +5881,7 @@ export function mapGet(
  * @return A new {@code AggregateFunction} representing the 'countAll' aggregation.
  */
 export function countAll(): AggregateFunction {
-  return new AggregateFunction('count', []);
+  return new AggregateFunction('count', [], 'count');
 }
 
 /**
@@ -6756,7 +6729,7 @@ export function and(
   second: BooleanExpr,
   ...more: BooleanExpr[]
 ): BooleanExpr {
-  return new BooleanExpr('and', [first, second, ...more]);
+  return new BooleanExpr('and', [first, second, ...more], 'and');
 }
 
 /**
@@ -6780,7 +6753,7 @@ export function or(
   second: BooleanExpr,
   ...more: BooleanExpr[]
 ): BooleanExpr {
-  return new BooleanExpr('or', [first, second, ...more]);
+  return new BooleanExpr('or', [first, second, ...more], 'xor');
 }
 
 /**
@@ -6815,7 +6788,7 @@ export function ascending(expr: Expr): Ordering;
  */
 export function ascending(fieldName: string): Ordering;
 export function ascending(field: Expr | string): Ordering {
-  return new Ordering(fieldOrExpression(field), 'ascending');
+  return new Ordering(fieldOrExpression(field), 'ascending', 'ascending');
 }
 
 /**
@@ -6850,7 +6823,7 @@ export function descending(expr: Expr): Ordering;
  */
 export function descending(fieldName: string): Ordering;
 export function descending(field: Expr | string): Ordering {
-  return new Ordering(fieldOrExpression(field), 'descending');
+  return new Ordering(fieldOrExpression(field), 'descending', 'descending');
 }
 
 /**
@@ -6863,7 +6836,8 @@ export function descending(field: Expr | string): Ordering {
 export class Ordering implements ProtoValueSerializable, UserData {
   constructor(
     readonly expr: Expr,
-    readonly direction: 'ascending' | 'descending'
+    readonly direction: 'ascending' | 'descending',
+    readonly _methodName: string | undefined
   ) {}
 
   /**
@@ -6893,12 +6867,8 @@ export class Ordering implements ProtoValueSerializable, UserData {
    * @private
    * @internal
    */
-  _readUserData(dataReader: UserDataReader, context?: ParseContext): void {
-    context =
-      this._createdFromLiteral && context
-        ? context
-        : dataReader.createContext(UserDataSource.Argument, 'constant');
-    this.expr._readUserData(dataReader);
+  _readUserData(context: ParseContext): void {
+    this.expr._readUserData(context);
   }
 
   _protoValueType: 'ProtoValue' = 'ProtoValue';

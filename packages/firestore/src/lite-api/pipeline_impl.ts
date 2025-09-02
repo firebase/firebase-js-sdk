@@ -85,7 +85,7 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
   const context = udr.createContext(UserDataSource.Argument, 'execute');
 
   const structuredPipelineOptions = new StructuredPipelineOptions({}, {});
-  structuredPipelineOptions._readUserData(udr, context);
+  structuredPipelineOptions._readUserData(context);
 
   const structuredPipeline: StructuredPipeline = new StructuredPipeline(
     pipeline,
@@ -123,7 +123,7 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
 Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
   const userDataWriter = new LiteUserDataWriter(this);
   const userDataReader = newUserDataReader(this);
-  return new PipelineSource<Pipeline>(this._databaseId, (stages: Stage[]) => {
+  return new PipelineSource<Pipeline>(this._databaseId, userDataReader, (stages: Stage[]) => {
     return new Pipeline(this, userDataReader, userDataWriter, stages);
   });
 };

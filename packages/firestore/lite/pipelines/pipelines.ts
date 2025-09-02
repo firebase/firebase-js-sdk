@@ -50,6 +50,8 @@ export type {
 
 export { PipelineSource } from '../../src/lite-api/pipeline-source';
 
+export { OneOf } from '../../src/util/types';
+
 export {
   PipelineResult,
   PipelineSnapshot
@@ -60,8 +62,29 @@ export { Pipeline } from '../../src/lite-api/pipeline';
 export { execute } from '../../src/lite-api/pipeline_impl';
 
 export {
+  StageOptions,
+  CollectionStageOptions,
+  CollectionGroupStageOptions,
+  DatabaseStageOptions,
+  DocumentsStageOptions,
+  AddFieldsStageOptions,
+  RemoveFieldsStageOptions,
+  SelectStageOptions,
+  WhereStageOptions,
+  OffsetStageOptions,
+  LimitStageOptions,
+  DistinctStageOptions,
+  AggregateStageOptions,
+  FindNearestStageOptions,
+  ReplaceWithStageOptions,
+  SampleStageOptions,
+  UnionStageOptions,
+  UnnestStageOptions,
+  SortStageOptions
+} from '../../src/lite-api/stage_options';
+
+export {
   Stage,
-  FindNearestOptions,
   AddFields,
   Aggregate,
   Distinct,
@@ -83,7 +106,6 @@ export {
   field,
   and,
   array,
-  arrayOffset,
   constant,
   add,
   subtract,

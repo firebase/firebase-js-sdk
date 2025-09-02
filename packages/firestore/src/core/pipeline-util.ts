@@ -161,7 +161,8 @@ function reverseOrderings(orderings: Ordering[]): Ordering[] {
     o =>
       new Ordering(
         o.expr,
-        o.direction === 'ascending' ? 'descending' : 'ascending'
+        o.direction === 'ascending' ? 'descending' : 'ascending',
+        undefined
       )
   );
 }

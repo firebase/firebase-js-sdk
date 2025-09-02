@@ -29,7 +29,6 @@ import {
   field,
   and,
   array,
-  arrayOffset,
   constant,
   add,
   subtract,
@@ -114,7 +113,7 @@ import {
   not,
   toLower,
   toUpper,
-  trim
+  trim, arrayGet
 } from '../../src/lite-api/expressions';
 import { documentId as documentIdFieldPath } from '../../src/lite-api/field_path';
 import { vector } from '../../src/lite-api/field_value_impl';
@@ -131,7 +130,7 @@ import {
   doc
 } from '../../src/lite-api/reference';
 import { addDoc, setDoc } from '../../src/lite-api/reference_impl';
-import { FindNearestOptions } from '../../src/lite-api/stage';
+import { FindNearestStageOptions } from '../../src/lite-api/stage_options';
 import { Timestamp } from '../../src/lite-api/timestamp';
 import { writeBatch } from '../../src/lite-api/write_batch';
 import { itIf } from '../integration/util/helpers';
@@ -388,7 +387,7 @@ describe('Firestore Pipelines', () => {
       );
     });
 
-    it.only('returns execution time for an empty query', async () => {
+    it('returns execution time for an empty query', async () => {
       const start = new Date().valueOf();
       const pipeline = firestore.pipeline().collection(randomCol.path).limit(0);
 
@@ -1164,7 +1163,7 @@ describe('Firestore Pipelines', () => {
           firestore
             .pipeline()
             .collection(randomCol.path)
-            .genericStage('select', [
+            .rawStage('select', [
               {
                 title: field('title'),
                 metadata: {
@@ -1191,7 +1190,7 @@ describe('Firestore Pipelines', () => {
             .sort(field('author').ascending())
             .limit(1)
             .select('title', 'author')
-            .genericStage('add_fields', [
+            .rawStage('add_fields', [
               {
                 display: strConcat('title', ' - ', field('author'))
               }
@@ -1210,7 +1209,7 @@ describe('Firestore Pipelines', () => {
             .pipeline()
             .collection(randomCol.path)
             .select('title', 'author')
-            .genericStage('where', [field('author').eq('Douglas Adams')])
+            .rawStage('where', [field('author').eq('Douglas Adams')])
         );
         expectResults(snapshot, {
           title: "The Hitchhiker's Guide to the Galaxy",
@@ -1224,14 +1223,14 @@ describe('Firestore Pipelines', () => {
             .pipeline()
             .collection(randomCol.path)
             .select('title', 'author')
-            .genericStage('sort', [
+            .rawStage('sort', [
               {
                 direction: 'ascending',
                 expression: field('author')
               }
             ])
-            .genericStage('offset', [3])
-            .genericStage('limit', [1])
+            .rawStage('offset', [3])
+            .rawStage('limit', [1])
         );
         expectResults(snapshot, {
           author: 'Fyodor Dostoevsky',
@@ -1245,7 +1244,7 @@ describe('Firestore Pipelines', () => {
             .pipeline()
             .collection(randomCol.path)
             .select('title', 'author', 'rating')
-            .genericStage('aggregate', [
+            .rawStage('aggregate', [
               { averageRating: field('rating').avg() },
               {}
             ])
@@ -1261,7 +1260,7 @@ describe('Firestore Pipelines', () => {
             .pipeline()
             .collection(randomCol.path)
             .select('title', 'author', 'rating')
-            .genericStage('distinct', [{ rating: field('rating') }])
+            .rawStage('distinct', [{ rating: field('rating') }])
             .sort(field('rating').descending())
         );
         expectResults(
@@ -1542,7 +1541,7 @@ describe('Firestore Pipelines', () => {
 
     describe('findNearest stage', () => {
       it('run pipeline with findNearest', async () => {
-        const measures: Array<FindNearestOptions['distanceMeasure']> = [
+        const measures: Array<FindNearestStageOptions['distanceMeasure']> = [
           'euclidean',
           'dot_product',
           'cosine'
@@ -1898,8 +1897,8 @@ describe('Firestore Pipelines', () => {
             subtract(field('published'), 1900).as('yearsSince1900'),
             field('rating').multiply(10).as('ratingTimesTen'),
             divide('rating', 2).as('ratingDividedByTwo'),
-            multiply('rating', 10, 2).as('ratingTimes20'),
-            add('rating', 1, 2).as('ratingPlus3'),
+            multiply('rating', 10).as('ratingTimes20'),
+            add('rating', 1).as('ratingPlus3'),
             mod('rating', 2).as('ratingMod2')
           )
           .limit(1)
@@ -1963,7 +1962,7 @@ describe('Firestore Pipelines', () => {
       );
     });
 
-    it.only('testChecks', async () => {
+    it('testChecks', async () => {
       let snapshot = await execute(
         firestore
           .pipeline()
@@ -1973,8 +1972,8 @@ describe('Firestore Pipelines', () => {
           .select(
             isNull('rating').as('ratingIsNull'),
             isNan('rating').as('ratingIsNaN'),
-            isError(arrayOffset('title', 0)).as('isError'),
-            ifError(arrayOffset('title', 0), constant('was error')).as(
+            isError(arrayGet('title', 0)).as('isError'),
+            ifError(arrayGet('title', 0), constant('was error')).as(
               'ifError'
             ),
             isAbsent('foo').as('isAbsent'),
@@ -2005,8 +2004,8 @@ describe('Firestore Pipelines', () => {
           .select(
             field('rating').isNull().as('ratingIsNull'),
             field('rating').isNan().as('ratingIsNaN'),
-            arrayOffset('title', 0).isError().as('isError'),
-            arrayOffset('title', 0)
+            arrayGet('title', 0).isError().as('isError'),
+            arrayGet('title', 0)
               .ifError(constant('was error'))
               .as('ifError'),
             field('foo').isAbsent().as('isAbsent'),
@@ -2334,7 +2333,7 @@ describe('Firestore Pipelines', () => {
           .collection(randomCol.path)
           .sort(field('rating').descending())
           .limit(3)
-          .select(arrayOffset('tags', 0).as('firstTag'))
+          .select(arrayGet('tags', 0).as('firstTag'))
       );
       const expectedResults = [
         {
@@ -2355,7 +2354,7 @@ describe('Firestore Pipelines', () => {
           .collection(randomCol.path)
           .sort(field('rating').descending())
           .limit(3)
-          .select(field('tags').arrayOffset(0).as('firstTag'))
+          .select(field('tags').arrayGet(0).as('firstTag'))
       );
       expectResults(snapshot, ...expectedResults);
     });

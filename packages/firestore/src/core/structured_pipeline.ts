@@ -16,7 +16,7 @@
  */
 
 import {ParseContext} from "../api/parse_context";
-import {UserDataReader, UserDataSource} from "../lite-api/user_data_reader";
+import {UserData} from "../lite-api/user_data_reader";
 import {
   ApiClientObjectMap, firestoreV1ApiClientInterfaces,
   Pipeline as PipelineProto,
@@ -25,7 +25,6 @@ import {
 import {
   JsonProtoSerializer,
   ProtoSerializable,
-  UserData
 } from '../remote/serializer';
 
 import {OptionsUtil} from "./options_util";
@@ -43,10 +42,7 @@ export class StructuredPipelineOptions implements UserData{
     private _userOptions: Record<string, unknown> = {},
     private _optionsOverride: Record<string, unknown> = {}) {}
 
-  _readUserData(dataReader: UserDataReader, context?: ParseContext): void {
-    if (!context) {
-      context = dataReader.createContext(UserDataSource.Argument, "StructuredPipelineOptions._readUserData");
-    }
+  _readUserData(context: ParseContext): void {
     this.proto = this.optionsUtil.getOptionsProto(context, this._userOptions, this._optionsOverride);
   }
 }

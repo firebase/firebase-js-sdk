@@ -24,7 +24,7 @@ import {
 } from "../../../src/lite-api/user_data_reader";
 import {testUserDataReader} from "../../util/helpers";
 
-describe.only('OptionsUtil', () => {
+describe('OptionsUtil', () => {
   let context: ParseContext | undefined;
   beforeEach(async () => {
     context = testUserDataReader(false).createContext(UserDataSource.Argument, 'beforeEach');

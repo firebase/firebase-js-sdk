@@ -17,6 +17,8 @@
 
 export { PipelineSource } from './lite-api/pipeline-source';
 
+export { OneOf } from './util/types';
+
 export {
   PipelineResult,
   PipelineSnapshot,
@@ -27,9 +29,32 @@ export { Pipeline } from './api/pipeline';
 
 export { execute } from './api/pipeline_impl';
 
+export { PipelineOptions } from './lite-api/pipeline_options';
+
+export {
+  StageOptions,
+  CollectionStageOptions,
+  CollectionGroupStageOptions,
+  DatabaseStageOptions,
+  DocumentsStageOptions,
+  AddFieldsStageOptions,
+  RemoveFieldsStageOptions,
+  SelectStageOptions,
+  WhereStageOptions,
+  OffsetStageOptions,
+  LimitStageOptions,
+  DistinctStageOptions,
+  AggregateStageOptions,
+  FindNearestStageOptions,
+  ReplaceWithStageOptions,
+  SampleStageOptions,
+  UnionStageOptions,
+  UnnestStageOptions,
+  SortStageOptions
+} from './lite-api/stage_options';
+
 export {
   Stage,
-  FindNearestOptions,
   AddFields,
   Aggregate,
   Distinct,
@@ -121,7 +146,7 @@ export {
   bitRightShift,
   rand,
   array,
-  arrayOffset,
+  arrayGet,
   isError,
   ifError,
   isAbsent,
