@@ -16,10 +16,7 @@
  */
 
 import { AIError } from '../errors';
-import {
-  GenerateContentRequest,
-  InferenceMode
-} from '../types';
+import { GenerateContentRequest, InferenceMode } from '../types';
 import { ChromeAdapter } from '../types/chrome-adapter';
 
 /**

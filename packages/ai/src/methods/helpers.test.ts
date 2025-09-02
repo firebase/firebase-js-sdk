@@ -162,7 +162,9 @@ describe('callCloudOrDevice', () => {
     });
 
     it('should fall back to onDeviceCall if inCloudCall fails with AIError', async () => {
-      inCloudCall.rejects(new AIError(AIErrorCode.FETCH_ERROR, 'Network error'));
+      inCloudCall.rejects(
+        new AIError(AIErrorCode.FETCH_ERROR, 'Network error')
+      );
       const result = await callCloudOrDevice(
         request,
         chromeAdapter,
