@@ -24,7 +24,11 @@ import {
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
-import { isCloudWorkstation, pingServer } from '@firebase/util';
+import {
+  isCloudWorkstation,
+  pingServer,
+  updateEmulatorBanner
+} from '@firebase/util';
 
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../core/error';
@@ -241,6 +245,7 @@ export function connectDataConnectEmulator(
   // Workaround to get cookies in Firebase Studio
   if (isCloudWorkstation(host)) {
     void pingServer(`https://${host}${port ? `:${port}` : ''}`);
+    updateEmulatorBanner('Data Connect', true);
   }
   dc.enableEmulator({ host, port, sslEnabled });
 }

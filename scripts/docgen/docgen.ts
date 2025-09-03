@@ -60,7 +60,7 @@ const PREFERRED_PARAMS = [
   'performance',
   'remoteConfig',
   'storage',
-  'vertexAI'
+  'ai'
 ];
 
 let authApiReportOriginal: string;
@@ -194,8 +194,8 @@ async function generateDocs(
     'utf8'
   );
   const authApiConfigModified = authApiConfigOriginal.replace(
-    `"mainEntryPointFilePath": "<projectFolder>/dist/esm2017/index.d.ts"`,
-    `"mainEntryPointFilePath": "<projectFolder>/dist/esm2017/index.doc.d.ts"`
+    `"mainEntryPointFilePath": "<projectFolder>/dist/esm/index.d.ts"`,
+    `"mainEntryPointFilePath": "<projectFolder>/dist/esm/index.doc.d.ts"`
   );
 
   try {

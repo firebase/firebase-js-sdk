@@ -1,14 +1,14 @@
 {
   "name": "@firebase/auth",
-  "version": "1.10.2",
+  "version": "1.11.0",
   "description": "The Firebase Authenticaton component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/node/index.js",
   "react-native": "dist/rn/index.js",
-  "browser": "dist/esm2017/index.js",
-  "module": "dist/esm2017/index.js",
+  "browser": "dist/esm/index.js",
+  "module": "dist/esm/index.js",
   "cordova": "dist/cordova/index.js",
-  "web-extension": "dist/web-extension-esm2017/index.js",
+  "web-extension": "dist/web-extension-esm/index.js",
   "webworker": "dist/index.webworker.js",
   "exports": {
     ".": {
@@ -32,19 +32,19 @@
       },
       "browser": {
         "require": "./dist/browser-cjs/index.js",
-        "import": "./dist/esm2017/index.js"
+        "import": "./dist/esm/index.js"
       },
-      "default": "./dist/esm2017/index.js"
+      "default": "./dist/esm/index.js"
     },
     "./cordova": {
       "types": "./dist/cordova/auth-cordova-public.d.ts",
       "default": "./dist/cordova/index.js"
     },
     "./web-extension": {
-      "types:": "./dist/web-extension-esm2017/auth-web-extension-public.d.ts",
-      "import": "./dist/web-extension-esm2017/index.js",
+      "types:": "./dist/web-extension-esm/auth-web-extension-public.d.ts",
+      "import": "./dist/web-extension-esm/index.js",
       "require": "./dist/web-extension-cjs/index.js",
-      "default": "./dist/web-extension-esm2017/index.js"
+      "default": "./dist/web-extension-esm/index.js"
     },
     "./internal": {
       "types": "./dist/internal/index.d.ts",
@@ -63,15 +63,15 @@
       },
       "browser": {
         "require": "./dist/browser-cjs/internal.js",
-        "import": "./dist/esm2017/internal.js"
+        "import": "./dist/esm/internal.js"
       },
       "web-extension": {
         "types:": "./dist/web-extension-cjs/internal/index.d.ts",
-        "import": "./dist/web-extension-esm2017/internal.js",
+        "import": "./dist/web-extension-esm/internal.js",
         "require": "./dist/web-extension-cjs/internal.js",
-        "default": "./dist/web-extension-esm2017/internal.js"
+        "default": "./dist/web-extension-esm/internal.js"
       },
-      "default": "./dist/esm2017/internal.js"
+      "default": "./dist/esm/internal.js"
     },
     "./package.json": "./package.json"
   },
@@ -124,14 +124,14 @@
     }
   },
   "dependencies": {
-    "@firebase/component": "0.6.14",
-    "@firebase/logger": "0.4.4",
-    "@firebase/util": "1.11.1",
+    "@firebase/component": "0.7.0",
+    "@firebase/logger": "0.5.0",
+    "@firebase/util": "1.13.0",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.12.1",
+    "@firebase/app": "0.14.2",
     "@rollup/plugin-json": "6.1.0",
     "@rollup/plugin-strip": "2.1.0",
     "@types/express": "4.17.21",
@@ -160,6 +160,6 @@
     "reportDir": "./coverage/node"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }

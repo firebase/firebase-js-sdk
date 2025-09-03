@@ -19,6 +19,7 @@ import json from '@rollup/plugin-json'; // Enables package.json import in TypeSc
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
 import typescript from 'typescript';
+import dts from 'rollup-plugin-dts';
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 import pkg from './package.json';
@@ -51,7 +52,7 @@ const esmBuild = {
   external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
   plugins: [
     ...buildPlugins,
-    replace(generateBuildTargetReplaceConfig('esm', 2017)),
+    replace(generateBuildTargetReplaceConfig('esm', 2020)),
     emitModulePackageFile()
   ]
 };
@@ -66,8 +67,21 @@ const cjsBuild = {
   external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
   plugins: [
     ...buildPlugins,
-    replace(generateBuildTargetReplaceConfig('cjs', 2017))
+    replace(generateBuildTargetReplaceConfig('cjs', 2020))
   ]
 };
 
-export default [esmBuild, cjsBuild];
+const google3TypingsBuild = {
+  input: 'dist/src/index.d.ts',
+  output: {
+    file: 'dist/src/global_index.d.ts',
+    format: 'es'
+  },
+  plugins: [
+    dts({
+      respectExternal: true
+    })
+  ]
+};
+
+export default [esmBuild, cjsBuild, google3TypingsBuild];

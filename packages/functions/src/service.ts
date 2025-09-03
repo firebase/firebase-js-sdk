@@ -30,7 +30,11 @@ import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { MessagingInternalComponentName } from '@firebase/messaging-interop-types';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
-import { isCloudWorkstation, pingServer } from '@firebase/util';
+import {
+  isCloudWorkstation,
+  pingServer,
+  updateEmulatorBanner
+} from '@firebase/util';
 
 export const DEFAULT_REGION = 'us-central1';
 
@@ -181,7 +185,8 @@ export function connectFunctionsEmulator(
   }://${host}:${port}`;
   // Workaround to get cookies in Firebase Studio
   if (useSsl) {
-    void pingServer(functionsInstance.emulatorOrigin);
+    void pingServer(functionsInstance.emulatorOrigin + '/backends');
+    updateEmulatorBanner('Functions', true);
   }
 }
 
@@ -240,18 +245,29 @@ export function httpsCallableFromURL<
   return callable as HttpsCallable<RequestData, ResponseData, StreamData>;
 }
 
+function getCredentials(
+  functionsInstance: FunctionsService
+): 'include' | undefined {
+  return functionsInstance.emulatorOrigin &&
+    isCloudWorkstation(functionsInstance.emulatorOrigin)
+    ? 'include'
+    : undefined;
+}
+
 /**
  * Does an HTTP POST and returns the completed response.
  * @param url The url to post to.
  * @param body The JSON body of the post.
  * @param headers The HTTP headers to include in the request.
+ * @param functionsInstance functions instance that is calling postJSON
  * @return A Promise that will succeed when the request finishes.
  */
 async function postJSON(
   url: string,
   body: unknown,
   headers: { [key: string]: string },
-  fetchImpl: typeof fetch
+  fetchImpl: typeof fetch,
+  functionsInstance: FunctionsService
 ): Promise<HttpResponse> {
   headers['Content-Type'] = 'application/json';
 
@@ -260,7 +276,8 @@ async function postJSON(
     response = await fetchImpl(url, {
       method: 'POST',
       body: JSON.stringify(body),
-      headers
+      headers,
+      credentials: getCredentials(functionsInstance)
     });
   } catch (e) {
     // This could be an unhandled error on the backend, or it could be a
@@ -348,7 +365,13 @@ async function callAtURL(
 
   const failAfterHandle = failAfter(timeout);
   const response = await Promise.race([
-    postJSON(url, body, headers, functionsInstance.fetchImpl),
+    postJSON(
+      url,
+      body,
+      headers,
+      functionsInstance.fetchImpl,
+      functionsInstance
+    ),
     failAfterHandle.promise,
     functionsInstance.cancelAllRequests
   ]);
@@ -434,7 +457,8 @@ async function streamAtURL(
       method: 'POST',
       body: JSON.stringify(body),
       headers,
-      signal: options?.signal
+      signal: options?.signal,
+      credentials: getCredentials(functionsInstance)
     });
   } catch (e) {
     if (e instanceof Error && e.name === 'AbortError') {
