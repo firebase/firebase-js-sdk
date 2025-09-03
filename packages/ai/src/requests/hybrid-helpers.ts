@@ -59,7 +59,7 @@ export async function callCloudOrDevice<Response>(
       }
       throw new AIError(
         AIErrorCode.UNSUPPORTED,
-        'On-device model is not available.'
+        'Inference mode is ONLY_ON_DEVICE, but an on-device model is not available.'
       );
     case InferenceMode.ONLY_IN_CLOUD:
       return inCloudCall();
@@ -72,10 +72,12 @@ export async function callCloudOrDevice<Response>(
         }
         throw e;
       }
-    default: // PREFER_ON_DEVICE
+    case InferenceMode.PREFER_ON_DEVICE:
       if (await chromeAdapter.isAvailable(request)) {
         return onDeviceCall();
       }
       return inCloudCall();
+    default:
+      throw new AIError(AIErrorCode.Error, `Unexpected infererence mode: ${(chromeAdapter as ChromeAdapterImpl).mode}`);
   }
 }
