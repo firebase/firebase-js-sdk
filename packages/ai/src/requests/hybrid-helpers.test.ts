@@ -17,12 +17,12 @@
 
 import { use, expect } from 'chai';
 import { SinonStub, SinonStubbedInstance, restore, stub } from 'sinon';
-import { callCloudOrDevice } from './helpers';
+import { callCloudOrDevice } from './hybrid-helpers';
 import { GenerateContentRequest, InferenceMode, AIErrorCode } from '../types';
 import { AIError } from '../errors';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { ChromeAdapterImpl } from './chrome-adapter';
+import { ChromeAdapterImpl } from '../methods/chrome-adapter';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -159,7 +159,7 @@ describe('callCloudOrDevice', () => {
       expect(onDeviceCall).to.not.have.been.called;
     });
 
-    it('should fall back to onDeviceCall if inCloudCall fails with AIError', async () => {
+    it('should fall back to onDeviceCall if inCloudCall fails with AIErrorCode.FETCH_ERROR', async () => {
       inCloudCall.rejects(
         new AIError(AIErrorCode.FETCH_ERROR, 'Network error')
       );
@@ -175,7 +175,7 @@ describe('callCloudOrDevice', () => {
     });
 
     it('should re-throw other errors from inCloudCall', async () => {
-      const error = new Error('Some other error');
+      const error = new AIError(AIErrorCode.RESPONSE_ERROR, 'safety problem');
       inCloudCall.rejects(error);
       await expect(
         callCloudOrDevice(request, chromeAdapter, onDeviceCall, inCloudCall)

@@ -29,7 +29,7 @@ import { ApiSettings } from '../types/internal';
 import * as GoogleAIMapper from '../googleai-mappers';
 import { BackendType } from '../public-types';
 import { ChromeAdapter } from '../types/chrome-adapter';
-import { callCloudOrDevice } from './helpers';
+import { callCloudOrDevice } from '../requests/hybrid-helpers';
 
 async function generateContentStreamOnCloud(
   apiSettings: ApiSettings,

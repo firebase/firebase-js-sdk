@@ -22,7 +22,16 @@ import {
   AIErrorCode,
   ChromeAdapter
 } from '../types';
-import { ChromeAdapterImpl } from './chrome-adapter';
+import { ChromeAdapterImpl } from '../methods/chrome-adapter';
+
+const errorsCausingFallback: AIErrorCode[] = [
+  // most network errors
+  AIErrorCode.FETCH_ERROR,
+  // fallback code for all other errors in makeRequest
+  AIErrorCode.ERROR,
+  // error due to API not being enabled in project
+  AIErrorCode.API_NOT_ENABLED
+];
 
 /**
  * Dispatches a request to the appropriate backend (on-device or in-cloud)
@@ -58,7 +67,7 @@ export async function callCloudOrDevice<Response>(
       try {
         return await inCloudCall();
       } catch (e) {
-        if (e instanceof AIError) {
+        if (e instanceof AIError && errorsCausingFallback.includes(e.code)) {
           return onDeviceCall();
         }
         throw e;
