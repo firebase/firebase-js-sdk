@@ -350,9 +350,26 @@ export type ResponseModality =
  * @public
  */
 export const InferenceMode = {
+  /**
+   * Attempt to make inference calls on-device. If on-device
+   * inference is not available, it will fall back to cloud.
+   */
   'PREFER_ON_DEVICE': 'prefer_on_device',
+  /**
+   * Only attempt to make inference calls on-device. It will not
+   * fall back to cloud. If on-device inference is not available,
+   * inference methods will throw.
+   */
   'ONLY_ON_DEVICE': 'only_on_device',
+  /**
+   * Only attempt to make inference calls to the cloud. It will not
+   * fall back to on-device.
+   */
   'ONLY_IN_CLOUD': 'only_in_cloud',
+  /**
+   * Attempt to make inference calls to the cloud. If not available,
+   * it will fall back to on-device.
+   */
   'PREFER_IN_CLOUD': 'prefer_in_cloud'
 } as const;
 
