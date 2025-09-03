@@ -78,6 +78,11 @@ export async function callCloudOrDevice<Response>(
       }
       return inCloudCall();
     default:
-      throw new AIError(AIErrorCode.Error, `Unexpected infererence mode: ${(chromeAdapter as ChromeAdapterImpl).mode}`);
+      throw new AIError(
+        AIErrorCode.ERROR,
+        `Unexpected infererence mode: ${
+          (chromeAdapter as ChromeAdapterImpl).mode
+        }`
+      );
   }
 }
