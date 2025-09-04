@@ -18,8 +18,13 @@
 import { expect } from 'chai';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { Telemetry } from './public-types';
+import { trace } from '@opentelemetry/api';
 import { Logger, LogRecord, SeverityNumber } from '@opentelemetry/api-logs';
+import { InMemorySpanExporter, SimpleSpanProcessor, WebTracerProvider } from '@opentelemetry/sdk-trace-web';
 import { captureError, flush } from './api';
+
+const PROJECT_ID = 'my-project';
+const APP_ID = 'my-appid';
 
 const emittedLogs: LogRecord[] = [];
 
@@ -43,8 +48,8 @@ const fakeTelemetry: Telemetry = {
     name: 'DEFAULT',
     automaticDataCollectionEnabled: true,
     options: {
-      projectId: 'my-project',
-      appId: 'my-appid'
+      projectId: PROJECT_ID,
+      appId: APP_ID
     }
   },
   loggerProvider: fakeLoggerProvider
@@ -97,7 +102,7 @@ describe('Top level API', () => {
       const log = emittedLogs[0];
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('a string error');
-      expect(log.attributes).to.be.undefined;
+      expect(log.attributes).to.deep.equal({});
     });
 
     it('should capture an unknown error type correctly', () => {
@@ -107,7 +112,37 @@ describe('Top level API', () => {
       const log = emittedLogs[0];
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('Unknown error type: number');
-      expect(log.attributes).to.be.undefined;
+      expect(log.attributes).to.deep.equal({});
+    });
+
+    it('should propagate trace context', async () => {
+      const provider = new WebTracerProvider({
+        spanProcessors: [
+          new SimpleSpanProcessor(new InMemorySpanExporter())
+        ]
+      });
+      provider.register();
+
+      trace.getTracer('test-tracer').startActiveSpan('test-span', (span) => {
+        const error = new Error('This is a test error');
+        error.stack = '...stack trace...';
+        error.name = 'TestError';
+
+        span.spanContext().traceId = 'my-trace';
+        span.spanContext().spanId = 'my-span';
+
+        captureError(fakeTelemetry, error);
+        span.end();
+      });
+
+      await provider.shutdown();
+
+      expect(emittedLogs[0].attributes).to.deep.equal({
+        'error.type': 'TestError',
+        'error.stack': '...stack trace...',
+        'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
+        'logging.googleapis.com/spanId': `my-span`
+      });
     });
   });
 
