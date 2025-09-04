@@ -25,9 +25,11 @@ import {
 import { FieldPath, ResourcePath } from '../model/path';
 import {
   canonicalId,
-  MAX_VALUE,
-  MIN_VALUE,
+  INTERNAL_MAX_VALUE,
+  INTERNAL_MIN_VALUE,
   lowerBoundCompare,
+  MAX_KEY_VALUE,
+  MIN_KEY_VALUE,
   upperBoundCompare,
   valuesGetLowerBound,
   valuesGetUpperBound
@@ -302,7 +304,7 @@ export function targetGetNotInValues(
 
 /**
  * Returns a lower bound of field values that can be used as a starting point to
- * scan the index defined by `fieldIndex`. Returns `MIN_VALUE` if no lower bound
+ * scan the index defined by `fieldIndex`. Returns `INTERNAL_MIN_VALUE` if no lower bound
  * exists.
  */
 export function targetGetLowerBound(
@@ -328,7 +330,7 @@ export function targetGetLowerBound(
 
 /**
  * Returns an upper bound of field values that can be used as an ending point
- * when scanning the index defined by `fieldIndex`. Returns `MAX_VALUE` if no
+ * when scanning the index defined by `fieldIndex`. Returns `INTERNAL_MAX_VALUE` if no
  * upper bound exists.
  */
 export function targetGetUpperBound(
@@ -362,13 +364,13 @@ function targetGetAscendingBound(
   fieldPath: FieldPath,
   bound: Bound | null
 ): { value: ProtoValue; inclusive: boolean } {
-  let value: ProtoValue = MIN_VALUE;
+  let value: ProtoValue = INTERNAL_MIN_VALUE;
 
   let inclusive = true;
 
   // Process all filters to find a value for the current field segment
   for (const fieldFilter of targetGetFieldFiltersForPath(target, fieldPath)) {
-    let filterValue: ProtoValue = MIN_VALUE;
+    let filterValue: ProtoValue = INTERNAL_MIN_VALUE;
     let filterInclusive = true;
 
     switch (fieldFilter.op) {
@@ -387,7 +389,7 @@ function targetGetAscendingBound(
         break;
       case Operator.NOT_EQUAL:
       case Operator.NOT_IN:
-        filterValue = MIN_VALUE;
+        filterValue = MIN_KEY_VALUE;
         break;
       default:
       // Remaining filters cannot be used as lower bounds.
@@ -437,12 +439,12 @@ function targetGetDescendingBound(
   fieldPath: FieldPath,
   bound: Bound | null
 ): { value: ProtoValue; inclusive: boolean } {
-  let value: ProtoValue = MAX_VALUE;
+  let value: ProtoValue = INTERNAL_MAX_VALUE;
   let inclusive = true;
 
   // Process all filters to find a value for the current field segment
   for (const fieldFilter of targetGetFieldFiltersForPath(target, fieldPath)) {
-    let filterValue: ProtoValue = MAX_VALUE;
+    let filterValue: ProtoValue = INTERNAL_MAX_VALUE;
     let filterInclusive = true;
 
     switch (fieldFilter.op) {
@@ -462,7 +464,7 @@ function targetGetDescendingBound(
         break;
       case Operator.NOT_EQUAL:
       case Operator.NOT_IN:
-        filterValue = MAX_VALUE;
+        filterValue = MAX_KEY_VALUE;
         break;
       default:
       // Remaining filters cannot be used as upper bounds.
