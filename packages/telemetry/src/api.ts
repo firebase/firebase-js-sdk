@@ -19,7 +19,8 @@ import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
 import { TELEMETRY_TYPE } from './constants';
 import { Telemetry } from './public-types';
 import { Provider } from '@firebase/component';
-import { SeverityNumber } from '@opentelemetry/api-logs';
+import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
+import { trace } from '@opentelemetry/api';
 import { TelemetryService } from './service';
 
 declare module '@firebase/component' {
@@ -63,24 +64,44 @@ export function getTelemetry(app: FirebaseApp = getApp()): Telemetry {
  */
 export function captureError(telemetry: Telemetry, error: unknown): void {
   const logger = telemetry.loggerProvider.getLogger('error-logger');
+
+  const activeSpanContext = trace.getActiveSpan()?.spanContext();
+  const traceAttributes = {} as AnyValueMap;
+  if (telemetry.app.options.projectId && activeSpanContext?.traceId) {
+    traceAttributes[
+      'logging.googleapis.com/trace'
+    ] = `projects/${telemetry.app.options.projectId}/traces/${activeSpanContext.traceId}`;
+    if (activeSpanContext?.spanId) {
+      traceAttributes['logging.googleapis.com/spanId'] =
+        activeSpanContext.spanId;
+    }
+  }
+
   if (error instanceof Error) {
     logger.emit({
       severityNumber: SeverityNumber.ERROR,
       body: error.message,
       attributes: {
         'error.type': error.name || 'Error',
-        'error.stack': error.stack || 'No stack trace available'
+        'error.stack': error.stack || 'No stack trace available',
+        ...traceAttributes
       }
     });
   } else if (typeof error === 'string') {
     logger.emit({
       severityNumber: SeverityNumber.ERROR,
-      body: error
+      body: error,
+      attributes: {
+        ...traceAttributes
+      }
     });
   } else {
     logger.emit({
       severityNumber: SeverityNumber.ERROR,
-      body: `Unknown error type: ${typeof error}`
+      body: `Unknown error type: ${typeof error}`,
+      attributes: {
+        ...traceAttributes
+      }
     });
   }
 }
