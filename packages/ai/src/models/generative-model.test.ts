@@ -553,7 +553,7 @@ describe('GenerativeModel dispatch logic', () => {
         mockChromeAdapter
       );
       await expect(model.generateContent('hello')).to.be.rejectedWith(
-        /On-device model is not available/
+        /on-device model is not available/
       );
       expect(mockChromeAdapter.generateContent).to.not.have.been.called;
       expect(makeRequestStub).to.not.have.been.called;
@@ -581,7 +581,7 @@ describe('GenerativeModel dispatch logic', () => {
         mockChromeAdapter
       );
       await expect(model.generateContentStream('hello')).to.be.rejectedWith(
-        /On-device model is not available/
+        /on-device model is not available/
       );
       expect(mockChromeAdapter.generateContent).to.not.have.been.called;
       expect(makeRequestStub).to.not.have.been.called;

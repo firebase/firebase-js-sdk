@@ -117,7 +117,7 @@ describe('callCloudOrDevice', () => {
       chromeAdapter.isAvailable.resolves(false);
       await expect(
         callCloudOrDevice(request, chromeAdapter, onDeviceCall, inCloudCall)
-      ).to.be.rejectedWith(/On-device model is not available/);
+      ).to.be.rejectedWith(/on-device model is not available/);
       expect(inCloudCall).to.not.have.been.called;
       expect(onDeviceCall).to.not.have.been.called;
     });
