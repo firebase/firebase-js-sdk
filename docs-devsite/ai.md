@@ -631,6 +631,7 @@ InferenceMode: {
     readonly PREFER_ON_DEVICE: "prefer_on_device";
     readonly ONLY_ON_DEVICE: "only_on_device";
     readonly ONLY_IN_CLOUD: "only_in_cloud";
+    readonly PREFER_IN_CLOUD: "prefer_in_cloud";
 }
 ```
 
@@ -861,6 +862,8 @@ export type ImagenSafetyFilterLevel = (typeof ImagenSafetyFilterLevel)[keyof typ
 ## InferenceMode
 
 <b>(EXPERIMENTAL)</b> Determines whether inference happens on-device or in-cloud.
+
+<b>PREFER\_ON\_DEVICE:</b> Attempt to make inference calls on-device. If on-device inference is not available, it will fall back to cloud. <br/> <b>ONLY\_ON\_DEVICE:</b> Only attempt to make inference calls on-device. It will not fall back to cloud. If on-device inference is not available, inference methods will throw. <br/> <b>ONLY\_IN\_CLOUD:</b> Only attempt to make inference calls to the cloud. It will not fall back to on-device. <br/> <b>PREFER\_IN\_CLOUD:</b> Attempt to make inference calls to the cloud. If not available, it will fall back to on-device.
 
 <b>Signature:</b>
 
