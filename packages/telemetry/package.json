@@ -45,6 +45,7 @@
   },
   "dependencies": {
     "@firebase/component": "0.7.0",
+    "@opentelemetry/api": "1.9.0",
     "@opentelemetry/api-logs": "0.203.0",
     "@opentelemetry/exporter-logs-otlp-http": "0.203.0",
     "@opentelemetry/resources": "2.0.1",
@@ -54,7 +55,8 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.14.1",
+    "@firebase/app": "0.14.2",
+    "@opentelemetry/sdk-trace-web": "2.1.0",
     "@rollup/plugin-json": "6.1.0",
     "rollup": "2.79.2",
     "rollup-plugin-replace": "2.2.0",
