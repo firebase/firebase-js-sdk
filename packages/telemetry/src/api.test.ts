@@ -20,7 +20,11 @@ import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { Telemetry } from './public-types';
 import { trace } from '@opentelemetry/api';
 import { Logger, LogRecord, SeverityNumber } from '@opentelemetry/api-logs';
-import { InMemorySpanExporter, SimpleSpanProcessor, WebTracerProvider } from '@opentelemetry/sdk-trace-web';
+import {
+  InMemorySpanExporter,
+  SimpleSpanProcessor,
+  WebTracerProvider
+} from '@opentelemetry/sdk-trace-web';
 import { captureError, flush } from './api';
 
 const PROJECT_ID = 'my-project';
@@ -117,13 +121,11 @@ describe('Top level API', () => {
 
     it('should propagate trace context', async () => {
       const provider = new WebTracerProvider({
-        spanProcessors: [
-          new SimpleSpanProcessor(new InMemorySpanExporter())
-        ]
+        spanProcessors: [new SimpleSpanProcessor(new InMemorySpanExporter())]
       });
       provider.register();
 
-      trace.getTracer('test-tracer').startActiveSpan('test-span', (span) => {
+      trace.getTracer('test-tracer').startActiveSpan('test-span', span => {
         const error = new Error('This is a test error');
         error.stack = '...stack trace...';
         error.name = 'TestError';
