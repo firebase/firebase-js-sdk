@@ -88,6 +88,8 @@ export class RestClient implements RemoteConfigFetchClient {
       // Deviates from pure decorator by not passing max-age header since we don't currently have
       // service behavior using that header.
       'If-None-Match': request.eTag || '*'
+      // TODO: Add this header once CORS error is fixed internally.
+      //'X-Firebase-RC-Fetch-Type': `${fetchType}/${fetchAttempt}`
     };
 
     const requestBody: FetchRequestBody = {
@@ -140,6 +142,7 @@ export class RestClient implements RemoteConfigFetchClient {
 
     let config: FirebaseRemoteConfigObject | undefined;
     let state: string | undefined;
+    let templateVersion: number | undefined;
 
     // JSON parsing throws SyntaxError if the response body isn't a JSON string.
     // Requesting application/json and checking for a 200 ensures there's JSON data.
@@ -154,6 +157,7 @@ export class RestClient implements RemoteConfigFetchClient {
       }
       config = responseBody['entries'];
       state = responseBody['state'];
+      templateVersion = responseBody['templateVersion'];
     }
 
     // Normalizes based on legacy state.
@@ -176,6 +180,6 @@ export class RestClient implements RemoteConfigFetchClient {
       });
     }
 
-    return { status, eTag: responseEtag, config };
+    return { status, eTag: responseEtag, config, templateVersion };
   }
 }

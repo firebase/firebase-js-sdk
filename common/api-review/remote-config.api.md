@@ -5,9 +5,22 @@
 ```ts
 
 import { FirebaseApp } from '@firebase/app';
+import { FirebaseError } from '@firebase/app';
 
 // @public
 export function activate(remoteConfig: RemoteConfig): Promise<boolean>;
+
+// @public
+export interface ConfigUpdate {
+    getUpdatedKeys(): Set<string>;
+}
+
+// @public
+export interface ConfigUpdateObserver {
+    complete: () => void;
+    error: (error: FirebaseError) => void;
+    next: (configUpdate: ConfigUpdate) => void;
+}
 
 // @public
 export interface CustomSignals {
@@ -29,10 +42,14 @@ export interface FetchResponse {
     config?: FirebaseRemoteConfigObject;
     eTag?: string;
     status: number;
+    templateVersion?: number;
 }
 
 // @public
 export type FetchStatus = 'no-fetch-yet' | 'success' | 'failure' | 'throttle';
+
+// @public
+export type FetchType = 'BASE' | 'REALTIME';
 
 // @public
 export interface FirebaseRemoteConfigObject {
@@ -65,6 +82,9 @@ export function isSupported(): Promise<boolean>;
 export type LogLevel = 'debug' | 'error' | 'silent';
 
 // @public
+export function onConfigUpdate(remoteConfig: RemoteConfig, observer: ConfigUpdateObserver): Unsubscribe;
+
+// @public
 export interface RemoteConfig {
     app: FirebaseApp;
     defaultConfig: {
@@ -92,6 +112,9 @@ export function setCustomSignals(remoteConfig: RemoteConfig, customSignals: Cust
 
 // @public
 export function setLogLevel(remoteConfig: RemoteConfig, logLevel: LogLevel): void;
+
+// @public
+export type Unsubscribe = () => void;
 
 // @public
 export interface Value {
