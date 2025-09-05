@@ -30,8 +30,9 @@ export function registerTelemetry(): void {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const loggerProvider = createLoggerProvider();
+        const appCheckProvider = container.getProvider('app-check-internal');
 
-        return new TelemetryService(app, loggerProvider);
+        return new TelemetryService(app, loggerProvider, appCheckProvider);
       },
       ComponentType.PUBLIC
     )
