@@ -347,18 +347,7 @@ export type ResponseModality =
 /**
  * <b>(EXPERIMENTAL)</b>
  * Determines whether inference happens on-device or in-cloud.
- * @public
- */
-export const InferenceMode = {
-  'PREFER_ON_DEVICE': 'prefer_on_device',
-  'ONLY_ON_DEVICE': 'only_on_device',
-  'ONLY_IN_CLOUD': 'only_in_cloud',
-  'PREFER_IN_CLOUD': 'prefer_in_cloud'
-} as const;
-
-/**
- * <b>(EXPERIMENTAL)</b>
- * Determines whether inference happens on-device or in-cloud.
+ *
  * @remarks
  * <b>PREFER_ON_DEVICE:</b> Attempt to make inference calls on-device.
  * If on-device inference is not available, it will fall back to cloud.
@@ -372,6 +361,19 @@ export const InferenceMode = {
  * <br/>
  * <b>PREFER_IN_CLOUD:</b> Attempt to make inference calls to the cloud.
  * If not available, it will fall back to on-device.
+ *
+ * @public
+ */
+export const InferenceMode = {
+  'PREFER_ON_DEVICE': 'prefer_on_device',
+  'ONLY_ON_DEVICE': 'only_on_device',
+  'ONLY_IN_CLOUD': 'only_in_cloud',
+  'PREFER_IN_CLOUD': 'prefer_in_cloud'
+} as const;
+
+/**
+ * <b>(EXPERIMENTAL)</b>
+ * Determines whether inference happens on-device or in-cloud.
  *
  * @public
  */
