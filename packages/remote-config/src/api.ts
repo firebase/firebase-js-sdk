@@ -364,7 +364,7 @@ export async function setCustomSignals(
 // TODO: Add public document for the Remote Config Realtime API guide on the Web Platform.
 /**
  * Starts listening for real-time config updates from the Remote Config backend and automatically
- * fetches updates from the RC backend when they are available.
+ * fetches updates from the Remote Config backend when they are available.
  *
  * @remarks
  * If a connection to the Remote Config backend is not already open, calling this method will
