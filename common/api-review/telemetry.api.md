@@ -4,17 +4,22 @@
 
 ```ts
 
+import { AnyValueMap } from '@opentelemetry/api-logs';
 import { FirebaseApp } from '@firebase/app';
+import { Instrumentation } from 'next';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 
 // @public
-export function captureError(telemetry: Telemetry, error: unknown): void;
+export function captureError(telemetry: Telemetry, error: unknown, attributes?: AnyValueMap): void;
 
 // @public
 export function flush(telemetry: Telemetry): Promise<void>;
 
 // @public
 export function getTelemetry(app?: FirebaseApp): Telemetry;
+
+// @public
+export const nextOnRequestError: Instrumentation.onRequestError;
 
 // @public
 export interface Telemetry {

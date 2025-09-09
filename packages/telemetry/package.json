@@ -51,6 +51,7 @@
     "@opentelemetry/resources": "2.0.1",
     "@opentelemetry/sdk-logs": "0.203.0",
     "@opentelemetry/semantic-conventions": "1.36.0",
+    "next": "15.5.2",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
