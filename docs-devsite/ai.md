@@ -624,6 +624,8 @@ ImagenSafetyFilterLevel: {
 
 <b>(EXPERIMENTAL)</b> Determines whether inference happens on-device or in-cloud.
 
+<b>PREFER\_ON\_DEVICE:</b> Attempt to make inference calls using an on-device model. If on-device inference is not available, the SDK will fall back to using a cloud-hosted model. <br/> <b>ONLY\_ON\_DEVICE:</b> Only attempt to make inference calls using an on-device model. The SDK will not fall back to a cloud-hosted model. If on-device inference is not available, inference methods will throw. <br/> <b>ONLY\_IN\_CLOUD:</b> Only attempt to make inference calls using a cloud-hosted model. The SDK will not fall back to an on-device model. <br/> <b>PREFER\_IN\_CLOUD:</b> Attempt to make inference calls to a cloud-hosted model. If not available, the SDK will fall back to an on-device model.
+
 <b>Signature:</b>
 
 ```typescript
@@ -631,6 +633,7 @@ InferenceMode: {
     readonly PREFER_ON_DEVICE: "prefer_on_device";
     readonly ONLY_ON_DEVICE: "only_on_device";
     readonly ONLY_IN_CLOUD: "only_in_cloud";
+    readonly PREFER_IN_CLOUD: "prefer_in_cloud";
 }
 ```
 
