@@ -211,6 +211,16 @@ export interface DbRemoteDocument {
   /** The document ID. */
   documentId: string;
 
+  /**
+   * The type of the remote document.
+   * 0: A normal document.
+   * 1: A document representing a bundle.
+   *
+   * This is a schema migration starting at version 19. Documents written
+   * prior to this version has this field unset.
+   */
+  documentType?: number;
+
   /** When the document was read from the backend. */
   readTime: DbTimestampKey;
 

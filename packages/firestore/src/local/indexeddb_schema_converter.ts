@@ -295,7 +295,25 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       }
     }
 
+    if (fromVersion < 19 && toVersion >= 19) {
+      p = p.next(() => this.backfillDocumentType(simpleDbTransaction));
+    }
+
     return p;
+  }
+
+  private backfillDocumentType(
+    txn: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    const remoteDocumentStore = txn.store<
+      DbRemoteDocumentKey,
+      DbRemoteDocument
+    >(DbRemoteDocumentStore);
+
+    return remoteDocumentStore.iterate((key, doc) => {
+      doc.documentType = 0;
+      return remoteDocumentStore.put(doc);
+    });
   }
 
   private addDocumentGlobal(
