@@ -16,9 +16,11 @@
  */
 
 import { getApp } from '@firebase/app';
-// import { captureError, getTelemetry } from '@firebase/telemetry';
 import { captureError, getTelemetry } from '../api';
 import { type Instrumentation } from 'next';
+import { registerTelemetry } from '../register';
+
+registerTelemetry();
 
 /**
  * Automatically report uncaught errors from server routes to Firebase Telemetry.
