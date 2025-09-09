@@ -299,12 +299,13 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
       ''
     ];
 
+    let results = mutableDocumentMap();
+
     return remoteDocumentsStore(transaction)
-      .loadAll(IDBKeyRange.bound(startKey, endKey, true))
-      .next(dbRemoteDocs => {
-        context?.incrementDocumentReadCount(dbRemoteDocs.length);
-        let results = mutableDocumentMap();
-        for (const dbRemoteDoc of dbRemoteDocs) {
+      .iterate(
+        { range: IDBKeyRange.bound(startKey, endKey, true) },
+        (_, dbRemoteDoc, control) => {
+          context?.incrementDocumentReadCount(1);
           const document = this.maybeDecodeDocument(
             DocumentKey.fromSegments(
               dbRemoteDoc.prefixPath.concat(
@@ -322,8 +323,8 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
             results = results.insert(document.key, document);
           }
         }
-        return results;
-      });
+      )
+      .next(() => results);
   }
 
   getAllFromCollectionGroup(
