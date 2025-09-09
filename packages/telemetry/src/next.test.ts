@@ -28,7 +28,7 @@ import { nextOnRequestError } from './next';
 use(sinonChai);
 use(chaiAsPromised);
 
-describe('onRequestError', () => {
+describe('nextOnRequestError', () => {
   let getTelemetryStub: sinon.SinonStub;
   let captureErrorStub: sinon.SinonStub;
   let fakeApp: FirebaseApp;
