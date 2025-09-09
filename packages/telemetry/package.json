@@ -19,6 +19,11 @@
       },
       "default": "./dist/index.esm.js"
     },
+    "./next": {
+      "types": "./dist/next/index.d.ts",
+      "import": "./dist/next/index.esm.js",
+      "require": "./dist/next/index.cjs.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -27,7 +32,7 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "build": "rollup -c && yarn api-report",
+    "build": "rollup -c && yarn api-report && yarn api-report:next",
     "build:deps": "lerna run --scope @firebase/telemetry --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:all",
@@ -37,6 +42,7 @@
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.* --config ../../config/mocharc.node.js",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "api-extractor run --local --verbose",
+    "api-report:next": "api-extractor run --config api-extractor.next.json --local --verbose",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/telemetry-public.d.ts"
   },
   "peerDependencies": {
@@ -51,6 +57,7 @@
     "@opentelemetry/resources": "2.0.1",
     "@opentelemetry/sdk-logs": "0.203.0",
     "@opentelemetry/semantic-conventions": "1.36.0",
+    "next": "15.5.2",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
