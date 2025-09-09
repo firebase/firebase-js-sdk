@@ -73,4 +73,41 @@ const nodeBuilds = [
   }
 ];
 
-export default [...browserBuilds, ...nodeBuilds];
+const nextBuilds = [
+  {
+    input: 'src/next/index.ts',
+    output: {
+      file: 'dist/next/index.esm.js',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.next.json',
+        useTsconfigDeclarationDir: true
+      }),
+      json()
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'src/next/index.ts',
+    output: {
+      file: 'dist/next/index.cjs.js',
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.next.json',
+        useTsconfigDeclarationDir: true
+      }),
+      json()
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+export default [...browserBuilds, ...nodeBuilds, ...nextBuilds];

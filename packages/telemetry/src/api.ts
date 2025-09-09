@@ -60,9 +60,14 @@ export function getTelemetry(app: FirebaseApp = getApp()): Telemetry {
  * @public
  *
  * @param telemetry - The {@link Telemetry} instance.
- * @param error - the caught exception, typically an {@link Error}
+ * @param error - The caught exception, typically an {@link Error}
+ * @param attributes = Optional, arbitrary attributes to attach to the error log
  */
-export function captureError(telemetry: Telemetry, error: unknown): void {
+export function captureError(
+  telemetry: Telemetry,
+  error: unknown,
+  attributes?: AnyValueMap
+): void {
   const logger = telemetry.loggerProvider.getLogger('error-logger');
 
   const activeSpanContext = trace.getActiveSpan()?.spanContext();
@@ -77,6 +82,8 @@ export function captureError(telemetry: Telemetry, error: unknown): void {
     }
   }
 
+  const customAttributes = attributes || {};
+
   if (error instanceof Error) {
     logger.emit({
       severityNumber: SeverityNumber.ERROR,
@@ -84,7 +91,8 @@ export function captureError(telemetry: Telemetry, error: unknown): void {
       attributes: {
         'error.type': error.name || 'Error',
         'error.stack': error.stack || 'No stack trace available',
-        ...traceAttributes
+        ...traceAttributes,
+        ...customAttributes
       }
     });
   } else if (typeof error === 'string') {
@@ -92,7 +100,8 @@ export function captureError(telemetry: Telemetry, error: unknown): void {
       severityNumber: SeverityNumber.ERROR,
       body: error,
       attributes: {
-        ...traceAttributes
+        ...traceAttributes,
+        ...customAttributes
       }
     });
   } else {
@@ -100,7 +109,8 @@ export function captureError(telemetry: Telemetry, error: unknown): void {
       severityNumber: SeverityNumber.ERROR,
       body: `Unknown error type: ${typeof error}`,
       attributes: {
-        ...traceAttributes
+        ...traceAttributes,
+        ...customAttributes
       }
     });
   }

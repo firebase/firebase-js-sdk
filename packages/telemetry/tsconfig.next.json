@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": true,
+    "declarationDir": "dist",
+    "rootDir": "./"
+  },
+  "include": [
+    "src/next/index.ts"
+  ]
+}

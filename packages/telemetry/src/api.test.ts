@@ -146,6 +146,34 @@ describe('Top level API', () => {
         'logging.googleapis.com/spanId': `my-span`
       });
     });
+
+    it('should propagate custom attributes', () => {
+      const error = new Error('This is a test error');
+      error.stack = '...stack trace...';
+      error.name = 'TestError';
+
+      captureError(fakeTelemetry, error, {
+        strAttr: 'string attribute',
+        mapAttr: {
+          boolAttr: true,
+          numAttr: 2
+        },
+        arrAttr: [1, 2, 3]
+      });
+
+      expect(emittedLogs.length).to.equal(1);
+      const log = emittedLogs[0];
+      expect(log.attributes).to.deep.equal({
+        'error.type': 'TestError',
+        'error.stack': '...stack trace...',
+        strAttr: 'string attribute',
+        mapAttr: {
+          boolAttr: true,
+          numAttr: 2
+        },
+        arrAttr: [1, 2, 3]
+      });
+    });
   });
 
   describe('flush()', () => {
