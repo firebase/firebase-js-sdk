@@ -196,24 +196,16 @@ describe('countTokens()', () => {
       );
     });
   });
-  it('on-device', async () => {
-    const chromeAdapter = fakeChromeAdapter;
-    const isAvailableStub = stub(chromeAdapter, 'isAvailable').resolves(true);
-    const mockResponse = getMockResponse(
-      'vertexAI',
-      'unary-success-total-tokens.json'
+  it('throws if mode is ONLY_ON_DEVICE', async () => {
+    const chromeAdapter = new ChromeAdapterImpl(
+      // @ts-expect-error
+      undefined,
+      InferenceMode.ONLY_ON_DEVICE
     );
-    const countTokensStub = stub(chromeAdapter, 'countTokens').resolves(
-      mockResponse as Response
+    await expect(
+      countTokens(fakeApiSettings, 'model', fakeRequestParams, chromeAdapter)
+    ).to.be.rejectedWith(
+      /countTokens\(\) is not supported for on-device models/
     );
-    const result = await countTokens(
-      fakeApiSettings,
-      'model',
-      fakeRequestParams,
-      chromeAdapter
-    );
-    expect(result.totalTokens).eq(6);
-    expect(isAvailableStub).to.be.called;
-    expect(countTokensStub).to.be.calledWith(fakeRequestParams);
   });
 });

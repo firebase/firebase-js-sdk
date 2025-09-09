@@ -347,17 +347,36 @@ export type ResponseModality =
 /**
  * <b>(EXPERIMENTAL)</b>
  * Determines whether inference happens on-device or in-cloud.
+ *
+ * @remarks
+ * <b>PREFER_ON_DEVICE:</b> Attempt to make inference calls using an
+ * on-device model. If on-device inference is not available, the SDK
+ * will fall back to using a cloud-hosted model.
+ * <br/>
+ * <b>ONLY_ON_DEVICE:</b> Only attempt to make inference calls using an
+ * on-device model. The SDK will not fall back to a cloud-hosted model.
+ * If on-device inference is not available, inference methods will throw.
+ * <br/>
+ * <b>ONLY_IN_CLOUD:</b> Only attempt to make inference calls using a
+ * cloud-hosted model. The SDK will not fall back to an on-device model.
+ * <br/>
+ * <b>PREFER_IN_CLOUD:</b> Attempt to make inference calls to a
+ * cloud-hosted model. If not available, the SDK will fall back to an
+ * on-device model.
+ *
  * @public
  */
 export const InferenceMode = {
   'PREFER_ON_DEVICE': 'prefer_on_device',
   'ONLY_ON_DEVICE': 'only_on_device',
-  'ONLY_IN_CLOUD': 'only_in_cloud'
+  'ONLY_IN_CLOUD': 'only_in_cloud',
+  'PREFER_IN_CLOUD': 'prefer_in_cloud'
 } as const;
 
 /**
  * <b>(EXPERIMENTAL)</b>
  * Determines whether inference happens on-device or in-cloud.
+ *
  * @public
  */
 export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
