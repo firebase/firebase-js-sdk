@@ -211,16 +211,6 @@ export interface DbRemoteDocument {
   /** The document ID. */
   documentId: string;
 
-  /**
-   * The type of the remote document.
-   * 0: A normal document.
-   * 1: A document representing a bundle.
-   *
-   * This is a schema migration starting at version 19. Documents written
-   * prior to this version has this field unset.
-   */
-  documentType?: number;
-
   /** When the document was read from the backend. */
   readTime: DbTimestampKey;
 
@@ -247,6 +237,19 @@ export interface DbRemoteDocument {
    * the write's commit version as their document version.
    */
   hasCommittedMutations: boolean;
+  /**
+   * The type of the remote document.
+   * 0: The type has not been determined, likely due to a schema migration from
+   *    and older version that lacked this property.
+   * 1: NO_DOCUMENT: The `noDocument` property is set.
+   * 2: FOUND_DOCUMENT: The `document` property is set to a real document.
+   * 3: UNKNOWN_DOCUMENT: The `unknownDocument` property is set.
+   * 4: INVALID_DOCUMENT: Should never happen, but here for completeness.
+   *
+   * This property was added in a schema migration at version 19. Documents
+   * written prior to this version has this field set to 0 (zero).
+   */
+  documentType: number;
 }
 
 /**

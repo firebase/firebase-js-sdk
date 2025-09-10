@@ -172,6 +172,25 @@ export const DbRemoteDocumentCollectionGroupIndexPath = [
   'documentId'
 ];
 
+/**
+ * An index that provides access to documents by collection, read time, and
+ * document type.
+ *
+ * This index is used as an optimization in getDocumentsMatchingQuery() to
+ * avoid visiting "tombstone" entries which are impossible to be part of the
+ * query result anyway.
+ *
+ * See https://github.com/firebase/firebase-android-sdk/issues/7295.
+ */
+export const DbRemoteDocumentCollectionIndex = 'collectionIndex';
+
+export const DbRemoteDocumentCollectionIndexPath = [
+  'documentType',
+  'prefixPath',
+  'collectionGroup',
+  'readTime'
+];
+
 export const DbRemoteDocumentGlobalStore = 'remoteDocumentGlobal';
 
 export const DbRemoteDocumentGlobalKey = 'remoteDocumentGlobalKey';

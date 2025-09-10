@@ -74,6 +74,8 @@ import {
   DbGlobalsStore,
   DbIndexConfigurationCollectionGroupIndex,
   DbIndexConfigurationCollectionGroupIndexPath,
+  DbRemoteDocumentCollectionIndex,
+  DbRemoteDocumentCollectionIndexPath,
   DbIndexConfigurationKeyPath,
   DbIndexConfigurationStore,
   DbIndexEntryDocumentKeyIndex,
@@ -296,24 +298,13 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     }
 
     if (fromVersion < 19 && toVersion >= 19) {
-      p = p.next(() => this.backfillDocumentType(simpleDbTransaction));
+      p = p.next(() => {
+        createRemoteDocumentStoreDocumentTypeIndex(txn);
+        return backfillRemoteDocumentStoreDocumentType(simpleDbTransaction);
+      });
     }
 
     return p;
-  }
-
-  private backfillDocumentType(
-    txn: SimpleDbTransaction
-  ): PersistencePromise<void> {
-    const remoteDocumentStore = txn.store<
-      DbRemoteDocumentKey,
-      DbRemoteDocument
-    >(DbRemoteDocumentStore);
-
-    return remoteDocumentStore.iterate((key, doc) => {
-      doc.documentType = 0;
-      return remoteDocumentStore.put(doc);
-    });
   }
 
   private addDocumentGlobal(
@@ -519,7 +510,8 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
           unknownDocument: legacyDocument.unknownDocument,
           noDocument: legacyDocument.noDocument,
           document: legacyDocument.document,
-          hasCommittedMutations: !!legacyDocument.hasCommittedMutations
+          hasCommittedMutations: !!legacyDocument.hasCommittedMutations,
+          documentType: 0
         };
         writes.push(remoteDocumentStore.put(dbRemoteDocument));
       })
@@ -812,4 +804,27 @@ function extractKey(remoteDoc: DbRemoteDocumentLegacy): DocumentKey {
   } else {
     return fail(0x8faf, 'Unexpected DbRemoteDocument');
   }
+}
+
+function createRemoteDocumentStoreDocumentTypeIndex(txn: IDBTransaction): void {
+  txn
+    .objectStore(DbRemoteDocumentStore)
+    .createIndex(
+      DbRemoteDocumentCollectionIndex,
+      DbRemoteDocumentCollectionIndexPath,
+      { unique: false }
+    );
+}
+
+function backfillRemoteDocumentStoreDocumentType(
+  txn: SimpleDbTransaction
+): PersistencePromise<void> {
+  const remoteDocumentStore = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
+    DbRemoteDocumentStore
+  );
+
+  return remoteDocumentStore.iterate((key, doc) => {
+    doc.documentType = 0;
+    return remoteDocumentStore.put(doc);
+  });
 }
