@@ -54,9 +54,10 @@ import { DbTimestampKey, KeySafeBytes } from './indexeddb_sentinels';
  * 16. Parse timestamp strings before creating index entries.
  * 17. TODO(tomandersen)
  * 18. Encode key safe representations of IndexEntry in DbIndexEntryStore.
+ * 19. Add "documentType" property and index to DbRemoteDocumentStore.
  */
 
-export const SCHEMA_VERSION = 18;
+export const SCHEMA_VERSION = 19;
 
 /**
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.
