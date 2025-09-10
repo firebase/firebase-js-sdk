@@ -18,28 +18,15 @@ export function flush(telemetry: Telemetry): Promise<void>;
 export function getTelemetry(app?: FirebaseApp): Telemetry;
 
 // @public (undocumented)
-export type InstrumentationOnRequestError = (error: unknown, errorRequest: Readonly<{
-    path: string;
-    method: string;
-    headers: NodeJS.Dict<string | string[]>;
-}>, errorContext: Readonly<RequestErrorContext>) => void | Promise<void>;
-
-// @public
-export const nextOnRequestError: InstrumentationOnRequestError;
-
-// @public
-export interface RequestErrorContext {
+export namespace Instrumentation {
+    // Warning: (ae-forgotten-export) The symbol "InstrumentationOnRequestError" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    renderSource?: 'react-server-components' | 'react-server-components-payload' | 'server-rendering';
-    // (undocumented)
-    revalidateReason: 'on-demand' | 'stale' | undefined;
-    // (undocumented)
-    routePath: string;
-    // (undocumented)
-    routerKind: 'Pages Router' | 'App Router';
-    // (undocumented)
-    routeType: 'render' | 'route' | 'action' | 'middleware';
+    export type onRequestError = InstrumentationOnRequestError;
 }
+
+// @public
+export const nextOnRequestError: Instrumentation.onRequestError;
 
 // @public
 export interface Telemetry {
