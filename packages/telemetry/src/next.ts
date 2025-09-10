@@ -28,7 +28,7 @@ export interface RequestErrorContext {
     | 'react-server-components-payload'
     | 'server-rendering';
   revalidateReason: 'on-demand' | 'stale' | undefined;
-};
+}
 export type InstrumentationOnRequestError = (
   error: unknown,
   errorRequest: Readonly<{
