@@ -6,7 +6,6 @@
 
 import { AnyValueMap } from '@opentelemetry/api-logs';
 import { FirebaseApp } from '@firebase/app';
-import { Instrumentation } from 'next';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 
 // @public
@@ -18,8 +17,24 @@ export function flush(telemetry: Telemetry): Promise<void>;
 // @public
 export function getTelemetry(app?: FirebaseApp): Telemetry;
 
+// @public (undocumented)
+export type InstrumentationOnRequestError = (error: unknown, errorRequest: Readonly<{
+    path: string;
+    method: string;
+    headers: NodeJS.Dict<string | string[]>;
+}>, errorContext: Readonly<RequestErrorContext>) => void | Promise<void>;
+
 // @public
-export const nextOnRequestError: Instrumentation.onRequestError;
+export const nextOnRequestError: InstrumentationOnRequestError;
+
+// @public
+export type RequestErrorContext = {
+    routerKind: 'Pages Router' | 'App Router';
+    routePath: string;
+    routeType: 'render' | 'route' | 'action' | 'middleware';
+    renderSource?: 'react-server-components' | 'react-server-components-payload' | 'server-rendering';
+    revalidateReason: 'on-demand' | 'stale' | undefined;
+};
 
 // @public
 export interface Telemetry {
