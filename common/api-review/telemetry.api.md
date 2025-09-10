@@ -28,13 +28,18 @@ export type InstrumentationOnRequestError = (error: unknown, errorRequest: Reado
 export const nextOnRequestError: InstrumentationOnRequestError;
 
 // @public
-export type RequestErrorContext = {
-    routerKind: 'Pages Router' | 'App Router';
-    routePath: string;
-    routeType: 'render' | 'route' | 'action' | 'middleware';
+export interface RequestErrorContext {
+    // (undocumented)
     renderSource?: 'react-server-components' | 'react-server-components-payload' | 'server-rendering';
+    // (undocumented)
     revalidateReason: 'on-demand' | 'stale' | undefined;
-};
+    // (undocumented)
+    routePath: string;
+    // (undocumented)
+    routerKind: 'Pages Router' | 'App Router';
+    // (undocumented)
+    routeType: 'render' | 'route' | 'action' | 'middleware';
+}
 
 // @public
 export interface Telemetry {
