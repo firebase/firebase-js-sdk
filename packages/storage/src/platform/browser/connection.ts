@@ -119,7 +119,18 @@ abstract class XhrConnection<T extends ConnectionType>
     if (!this.sent_) {
       throw internalError('cannot .getErrorText() before sending');
     }
-    return this.xhr_.statusText;
+    let errorText = '';
+    if (this.xhr_.statusText) {
+      errorText = this.xhr_.statusText;
+    } else if (this.xhr_.response) {
+      try {
+        const parsed = JSON.parse(this.xhr_.response);
+        errorText = parsed.error?.message || '';
+      } catch (ignored) {
+        /** Don't block if response couldn't be JSON parsed. */
+      }
+    }
+    return errorText;
   }
 
   /** Aborts the request. */

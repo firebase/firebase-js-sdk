@@ -70,6 +70,12 @@ abstract class FetchConnection<T extends ConnectionType>
       this.statusCode_ = response.status;
       this.errorCode_ = ErrorCode.NO_ERROR;
       this.body_ = await response.arrayBuffer();
+      try {
+        const parsed = await response.json();
+        this.errorText_ = parsed.error?.message || '';
+      } catch (ignored) {
+        /** Don't block if response couldn't be JSON parsed. */
+      }
     } catch (e) {
       this.errorText_ = (e as Error)?.message;
       // emulate XHR which sets status to 0 when encountering a network error
