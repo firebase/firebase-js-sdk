@@ -675,5 +675,7 @@ toc:
 - title: telemetry
   path: /docs/reference/js/telemetry.md
   section:
+  - title: RequestErrorContext
+    path: /docs/reference/js/telemetry.requesterrorcontext.md
   - title: Telemetry
     path: /docs/reference/js/telemetry.telemetry.md

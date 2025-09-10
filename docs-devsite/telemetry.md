@@ -18,14 +18,27 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(app, ...)</b> |
 |  [getTelemetry(app)](./telemetry.md#gettelemetry_cf608e1) | Returns the default [Telemetry](./telemetry.telemetry.md#telemetry_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings. |
 |  <b>function(telemetry, ...)</b> |
-|  [captureError(telemetry, error)](./telemetry.md#captureerror_7c2d94e) | Enqueues an error to be uploaded to the Firebase Telemetry API. |
+|  [captureError(telemetry, error, attributes)](./telemetry.md#captureerror_862e6b3) | Enqueues an error to be uploaded to the Firebase Telemetry API. |
 |  [flush(telemetry)](./telemetry.md#flush_8975134) | Flushes all enqueued telemetry data immediately, instead of waiting for default batching. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
+|  [RequestErrorContext](./telemetry.requesterrorcontext.md#requesterrorcontext_interface) |  Copyright 2025 Google LLC<!-- -->Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at<!-- -->http://www.apache.org/licenses/LICENSE-2.0<!-- -->Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. |
 |  [Telemetry](./telemetry.telemetry.md#telemetry_interface) | An instance of the Firebase Telemetry SDK.<!-- -->Do not create this instance directly. Instead, use [getTelemetry()](./telemetry.md#gettelemetry_cf608e1)<!-- -->. |
+
+## Variables
+
+|  Variable | Description |
+|  --- | --- |
+|  [nextOnRequestError](./telemetry.md#nextonrequesterror) | Automatically report uncaught errors from server routes to Firebase Telemetry. |
+
+## Type Aliases
+
+|  Type Alias | Description |
+|  --- | --- |
+|  [InstrumentationOnRequestError](./telemetry.md#instrumentationonrequesterror) |  |
 
 ## function(app, ...)
 
@@ -61,14 +74,14 @@ const telemetry = getTelemetry(app);
 
 ## function(telemetry, ...)
 
-### captureError(telemetry, error) {:#captureerror_7c2d94e}
+### captureError(telemetry, error, attributes) {:#captureerror_862e6b3}
 
 Enqueues an error to be uploaded to the Firebase Telemetry API.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function captureError(telemetry: Telemetry, error: unknown): void;
+export declare function captureError(telemetry: Telemetry, error: unknown, attributes?: AnyValueMap): void;
 ```
 
 #### Parameters
@@ -76,7 +89,8 @@ export declare function captureError(telemetry: Telemetry, error: unknown): void
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  telemetry | [Telemetry](./telemetry.telemetry.md#telemetry_interface) | The [Telemetry](./telemetry.telemetry.md#telemetry_interface) instance. |
-|  error | unknown | the caught exception, typically an  |
+|  error | unknown | The caught exception, typically an  |
+|  attributes | AnyValueMap | = Optional, arbitrary attributes to attach to the error log |
 
 <b>Returns:</b>
 
@@ -104,3 +118,33 @@ Promise&lt;void&gt;
 
 a promise which is resolved when all flushes are complete
 
+## nextOnRequestError
+
+Automatically report uncaught errors from server routes to Firebase Telemetry.
+
+<b>Signature:</b>
+
+```typescript
+nextOnRequestError: InstrumentationOnRequestError
+```
+
+### Example
+
+
+```javascript
+// In instrumentation.ts (https://nextjs.org/docs/app/guides/instrumentation):
+export { nextOnRequestError as onRequestError }  from 'firebase/telemetry'
+
+```
+
+## InstrumentationOnRequestError
+
+<b>Signature:</b>
+
+```typescript
+export type InstrumentationOnRequestError = (error: unknown, errorRequest: Readonly<{
+    path: string;
+    method: string;
+    headers: NodeJS.Dict<string | string[]>;
+}>, errorContext: Readonly<RequestErrorContext>) => void | Promise<void>;
+```
