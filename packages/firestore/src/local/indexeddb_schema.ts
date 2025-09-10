@@ -186,6 +186,26 @@ export interface DbUnknownDocument {
 }
 
 /**
+ * The "type" of a document stored in a `DbRemoteDocument`.
+ */
+export enum DbRemoteDocumentType {
+  /**
+   * The `noDocument` property of the `DbRemoteDocument` is set.
+   */
+  NoDocument = 1,
+
+  /**
+   * The `document` property of the `DbRemoteDocument` is set.
+   */
+  FoundDocument = 2,
+
+  /**
+   * The `unknownDocument` property of the `DbRemoteDocument` is set.
+   */
+  UnknownDocument = 3
+}
+
+/**
  * An object to be stored in the 'remoteDocuments' store in IndexedDb.
  * It represents either:
  *
@@ -238,18 +258,17 @@ export interface DbRemoteDocument {
    */
   hasCommittedMutations: boolean;
   /**
-   * The type of the remote document.
-   * 0: The type has not been determined, likely due to a schema migration from
-   *    and older version that lacked this property.
-   * 1: NO_DOCUMENT: The `noDocument` property is set.
-   * 2: FOUND_DOCUMENT: The `document` property is set to a real document.
-   * 3: UNKNOWN_DOCUMENT: The `unknownDocument` property is set.
-   * 4: INVALID_DOCUMENT: Should never happen, but here for completeness.
+   * The "type" of document stored in this object.
+   *
+   * The value of this property _must_ be consistent with the semantics of the
+   * `unknownDocument`, `noDocument`, and `document` properties. This property
+   * is provided as an optimization to allow skipping entries in result sets
+   * whose documents are not of the desired "type".
    *
    * This property was added in a schema migration at version 19. Documents
    * written prior to this version has this field set to 0 (zero).
    */
-  documentType: number;
+  documentType: DbRemoteDocumentType;
 }
 
 /**

@@ -44,6 +44,7 @@ import {
   DbMutationQueue,
   DbRemoteDocument,
   DbRemoteDocumentGlobal,
+  DbRemoteDocumentType,
   DbTarget,
   DbTargetDocument,
   DbTargetGlobal,
@@ -51,8 +52,8 @@ import {
 } from './indexeddb_schema';
 import {
   DbRemoteDocument as DbRemoteDocumentLegacy,
-  DbRemoteDocumentStore as DbRemoteDocumentStoreLegacy,
-  DbRemoteDocumentKey as DbRemoteDocumentKeyLegacy
+  DbRemoteDocumentKey as DbRemoteDocumentKeyLegacy,
+  DbRemoteDocumentStore as DbRemoteDocumentStoreLegacy
 } from './indexeddb_schema_legacy';
 import {
   DbBundleKeyPath,
@@ -74,8 +75,6 @@ import {
   DbGlobalsStore,
   DbIndexConfigurationCollectionGroupIndex,
   DbIndexConfigurationCollectionGroupIndexPath,
-  DbRemoteDocumentCollectionIndex,
-  DbRemoteDocumentCollectionIndexPath,
   DbIndexConfigurationKeyPath,
   DbIndexConfigurationStore,
   DbIndexEntryDocumentKeyIndex,
@@ -99,6 +98,8 @@ import {
   DbPrimaryClientStore,
   DbRemoteDocumentCollectionGroupIndex,
   DbRemoteDocumentCollectionGroupIndexPath,
+  DbRemoteDocumentCollectionIndex,
+  DbRemoteDocumentCollectionIndexPath,
   DbRemoteDocumentDocumentKeyIndex,
   DbRemoteDocumentDocumentKeyIndexPath,
   DbRemoteDocumentGlobalKey,
@@ -502,6 +503,9 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         >(DbRemoteDocumentStore);
 
         const path = extractKey(legacyDocument).path.toArray();
+
+        // Note: omit the "documentType" property because it will be populated
+        // by schema migration 19.
         const dbRemoteDocument = {
           prefixPath: path.slice(0, path.length - 2),
           collectionGroup: path[path.length - 2],
@@ -510,9 +514,8 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
           unknownDocument: legacyDocument.unknownDocument,
           noDocument: legacyDocument.noDocument,
           document: legacyDocument.document,
-          hasCommittedMutations: !!legacyDocument.hasCommittedMutations,
-          documentType: 0
-        };
+          hasCommittedMutations: !!legacyDocument.hasCommittedMutations
+        } satisfies Omit<DbRemoteDocument, 'documentType'> as DbRemoteDocument;
         writes.push(remoteDocumentStore.put(dbRemoteDocument));
       })
       .next(() => PersistencePromise.waitFor(writes));
@@ -824,7 +827,12 @@ function backfillRemoteDocumentStoreDocumentType(
   );
 
   return remoteDocumentStore.iterate((key, doc) => {
-    doc.documentType = 0;
+    doc.documentType = doc.noDocument
+      ? DbRemoteDocumentType.NoDocument
+      : doc.unknownDocument
+      ? DbRemoteDocumentType.UnknownDocument
+      : DbRemoteDocumentType.FoundDocument;
+
     return remoteDocumentStore.put(doc);
   });
 }
