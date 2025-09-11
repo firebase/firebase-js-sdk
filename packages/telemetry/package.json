@@ -58,6 +58,7 @@
     "@firebase/app": "0.14.2",
     "@opentelemetry/sdk-trace-web": "2.1.0",
     "@rollup/plugin-json": "6.1.0",
+    "next": "15.5.2",
     "rollup": "2.79.2",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.36.0",

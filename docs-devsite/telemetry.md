@@ -18,7 +18,7 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(app, ...)</b> |
 |  [getTelemetry(app)](./telemetry.md#gettelemetry_cf608e1) | Returns the default [Telemetry](./telemetry.telemetry.md#telemetry_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings. |
 |  <b>function(telemetry, ...)</b> |
-|  [captureError(telemetry, error)](./telemetry.md#captureerror_7c2d94e) | Enqueues an error to be uploaded to the Firebase Telemetry API. |
+|  [captureError(telemetry, error, attributes)](./telemetry.md#captureerror_862e6b3) | Enqueues an error to be uploaded to the Firebase Telemetry API. |
 |  [flush(telemetry)](./telemetry.md#flush_8975134) | Flushes all enqueued telemetry data immediately, instead of waiting for default batching. |
 
 ## Interfaces
@@ -26,6 +26,18 @@ https://github.com/firebase/firebase-js-sdk
 |  Interface | Description |
 |  --- | --- |
 |  [Telemetry](./telemetry.telemetry.md#telemetry_interface) | An instance of the Firebase Telemetry SDK.<!-- -->Do not create this instance directly. Instead, use [getTelemetry()](./telemetry.md#gettelemetry_cf608e1)<!-- -->. |
+
+## Namespaces
+
+|  Namespace | Description |
+|  --- | --- |
+|  [Instrumentation](./telemetry.instrumentation.md#instrumentation_namespace) |  |
+
+## Variables
+
+|  Variable | Description |
+|  --- | --- |
+|  [nextOnRequestError](./telemetry.md#nextonrequesterror) | Automatically report uncaught errors from server routes to Firebase Telemetry. |
 
 ## function(app, ...)
 
@@ -61,14 +73,14 @@ const telemetry = getTelemetry(app);
 
 ## function(telemetry, ...)
 
-### captureError(telemetry, error) {:#captureerror_7c2d94e}
+### captureError(telemetry, error, attributes) {:#captureerror_862e6b3}
 
 Enqueues an error to be uploaded to the Firebase Telemetry API.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function captureError(telemetry: Telemetry, error: unknown): void;
+export declare function captureError(telemetry: Telemetry, error: unknown, attributes?: AnyValueMap): void;
 ```
 
 #### Parameters
@@ -76,7 +88,8 @@ export declare function captureError(telemetry: Telemetry, error: unknown): void
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  telemetry | [Telemetry](./telemetry.telemetry.md#telemetry_interface) | The [Telemetry](./telemetry.telemetry.md#telemetry_interface) instance. |
-|  error | unknown | the caught exception, typically an  |
+|  error | unknown | The caught exception, typically an  |
+|  attributes | AnyValueMap | = Optional, arbitrary attributes to attach to the error log |
 
 <b>Returns:</b>
 
@@ -103,4 +116,23 @@ export declare function flush(telemetry: Telemetry): Promise<void>;
 Promise&lt;void&gt;
 
 a promise which is resolved when all flushes are complete
+
+## nextOnRequestError
+
+Automatically report uncaught errors from server routes to Firebase Telemetry.
+
+<b>Signature:</b>
+
+```typescript
+nextOnRequestError: Instrumentation.onRequestError
+```
+
+### Example
+
+
+```javascript
+// In instrumentation.ts (https://nextjs.org/docs/app/guides/instrumentation):
+export { nextOnRequestError as onRequestError }  from 'firebase/telemetry'
+
+```
 
