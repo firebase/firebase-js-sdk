@@ -4,17 +4,29 @@
 
 ```ts
 
+import { AnyValueMap } from '@opentelemetry/api-logs';
 import { FirebaseApp } from '@firebase/app';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 
 // @public
-export function captureError(telemetry: Telemetry, error: unknown): void;
+export function captureError(telemetry: Telemetry, error: unknown, attributes?: AnyValueMap): void;
 
 // @public
 export function flush(telemetry: Telemetry): Promise<void>;
 
 // @public
 export function getTelemetry(app?: FirebaseApp): Telemetry;
+
+// @public (undocumented)
+export namespace Instrumentation {
+    // Warning: (ae-forgotten-export) The symbol "InstrumentationOnRequestError" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    export type onRequestError = InstrumentationOnRequestError;
+}
+
+// @public
+export const nextOnRequestError: Instrumentation.onRequestError;
 
 // @public
 export interface Telemetry {

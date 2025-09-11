@@ -24,8 +24,8 @@
 
 import { registerTelemetry } from './src/register.node';
 
-console.log('Hi Node.js Users!');
 registerTelemetry();
 
 export * from './src/api';
 export * from './src/public-types';
+export * from './src/next';

@@ -21,3 +21,4 @@ registerTelemetry();
 
 export * from './src/api';
 export * from './src/public-types';
+export * from './src/next';
