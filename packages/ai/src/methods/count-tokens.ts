@@ -15,16 +15,20 @@
  * limitations under the License.
  */
 
+import { AIError } from '../errors';
 import {
   CountTokensRequest,
   CountTokensResponse,
-  RequestOptions
+  InferenceMode,
+  RequestOptions,
+  AIErrorCode
 } from '../types';
 import { Task, makeRequest } from '../requests/request';
 import { ApiSettings } from '../types/internal';
 import * as GoogleAIMapper from '../googleai-mappers';
 import { BackendType } from '../public-types';
 import { ChromeAdapter } from '../types/chrome-adapter';
+import { ChromeAdapterImpl } from './chrome-adapter';
 
 export async function countTokensOnCloud(
   apiSettings: ApiSettings,
@@ -57,9 +61,13 @@ export async function countTokens(
   chromeAdapter?: ChromeAdapter,
   requestOptions?: RequestOptions
 ): Promise<CountTokensResponse> {
-  if (chromeAdapter && (await chromeAdapter.isAvailable(params))) {
-    return (await chromeAdapter.countTokens(params)).json();
+  if (
+    (chromeAdapter as ChromeAdapterImpl)?.mode === InferenceMode.ONLY_ON_DEVICE
+  ) {
+    throw new AIError(
+      AIErrorCode.UNSUPPORTED,
+      'countTokens() is not supported for on-device models.'
+    );
   }
-
   return countTokensOnCloud(apiSettings, model, params, requestOptions);
 }
