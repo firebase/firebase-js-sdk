@@ -175,6 +175,39 @@ export interface CitationMetadata {
 }
 
 // @public
+export interface CodeExecutionResult {
+    outcome?: Outcome;
+    output?: string;
+}
+
+// @public
+export interface CodeExecutionResultPart {
+    // (undocumented)
+    codeExecutionResult?: CodeExecutionResult;
+    // (undocumented)
+    executableCode?: never;
+    // (undocumented)
+    fileData: never;
+    // (undocumented)
+    functionCall?: never;
+    // (undocumented)
+    functionResponse?: never;
+    // (undocumented)
+    inlineData?: never;
+    // (undocumented)
+    text?: never;
+    // (undocumented)
+    thought?: never;
+    // @internal (undocumented)
+    thoughtSignature?: never;
+}
+
+// @public
+export interface CodeExecutionTool {
+    codeExecution: {};
+}
+
+// @public
 export interface Content {
     // (undocumented)
     parts: Part[];
@@ -238,6 +271,34 @@ export interface ErrorDetails {
 }
 
 // @public
+export interface ExecutableCode {
+    code?: string;
+    language?: Language;
+}
+
+// @public
+export interface ExecutableCodePart {
+    // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: ExecutableCode;
+    // (undocumented)
+    fileData: never;
+    // (undocumented)
+    functionCall?: never;
+    // (undocumented)
+    functionResponse?: never;
+    // (undocumented)
+    inlineData?: never;
+    // (undocumented)
+    text?: never;
+    // (undocumented)
+    thought?: never;
+    // @internal (undocumented)
+    thoughtSignature?: never;
+}
+
+// @public
 export interface FileData {
     // (undocumented)
     fileUri: string;
@@ -247,6 +308,10 @@ export interface FileData {
 
 // @public
 export interface FileDataPart {
+    // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
     // (undocumented)
     fileData: FileData;
     // (undocumented)
@@ -309,6 +374,10 @@ export type FunctionCallingMode = (typeof FunctionCallingMode)[keyof typeof Func
 // @public
 export interface FunctionCallPart {
     // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
+    // (undocumented)
     functionCall: FunctionCall;
     // (undocumented)
     functionResponse?: never;
@@ -345,6 +414,10 @@ export interface FunctionResponse {
 
 // @public
 export interface FunctionResponsePart {
+    // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
     // (undocumented)
     functionCall?: never;
     // (undocumented)
@@ -736,6 +809,10 @@ export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
 // @public
 export interface InlineDataPart {
     // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
+    // (undocumented)
     functionCall?: never;
     // (undocumented)
     functionResponse?: never;
@@ -754,6 +831,15 @@ export interface InlineDataPart {
 export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
+
+// @public
+export const Language: {
+    UNSPECIFIED: string;
+    PYTHON: string;
+};
+
+// @public
+export type Language = (typeof Language)[keyof typeof Language];
 
 // @public
 export interface LanguageModelCreateCoreOptions {
@@ -969,7 +1055,18 @@ export interface OnDeviceParams {
 }
 
 // @public
-export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart;
+export const Outcome: {
+    UNSPECIFIED: string;
+    OK: string;
+    FAILED: string;
+    DEADLINE_EXCEEDED: string;
+};
+
+// @public
+export type Outcome = (typeof Outcome)[keyof typeof Outcome];
+
+// @public
+export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart | ExecutableCodePart | CodeExecutionResultPart;
 
 // @public
 export const POSSIBLE_ROLES: readonly ["user", "model", "function", "system"];
@@ -1180,6 +1277,10 @@ export class StringSchema extends Schema {
 // @public
 export interface TextPart {
     // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
+    // (undocumented)
     functionCall?: never;
     // (undocumented)
     functionResponse?: never;
@@ -1200,7 +1301,7 @@ export interface ThinkingConfig {
 }
 
 // @public
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool;
+export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool;
 
 // @public
 export interface ToolConfig {

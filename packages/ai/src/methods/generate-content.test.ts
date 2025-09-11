@@ -28,7 +28,9 @@ import {
   HarmBlockMethod,
   HarmBlockThreshold,
   HarmCategory,
-  InferenceMode
+  InferenceMode,
+  Language,
+  Outcome
 } from '../types';
 import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
@@ -247,6 +249,26 @@ describe('generateContent()', () => {
       false,
       match.any
     );
+  });
+  it('codeExecution', async () => {
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-code-execution.json'
+    );
+    stub(request, 'makeRequest').resolves(mockResponse as Response);
+    const result = await generateContent(
+      fakeApiSettings,
+      'model',
+      fakeRequestParams
+    );
+    const parts = result.response.candidates?.[0].content.parts;
+    parts?.forEach(part => console.log(Object.keys(part)));
+    expect(
+      parts?.some(part => part.codeExecutionResult?.outcome === Outcome.OK)
+    ).to.be.true;
+    expect(
+      parts?.some(part => part.executableCode?.language === Language.PYTHON)
+    ).to.be.true;
   });
   it('blocked prompt', async () => {
     const mockResponse = getMockResponse(
