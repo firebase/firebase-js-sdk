@@ -39,7 +39,8 @@ import { dbDocumentSize } from './indexeddb_mutation_batch_impl';
 import {
   DbRemoteDocument,
   DbRemoteDocumentType,
-  DbRemoteDocumentGlobal
+  DbRemoteDocumentGlobal,
+  DbRemoteDocumentCollectionIndexKey
 } from './indexeddb_schema';
 import {
   DbRemoteDocumentCollectionGroupIndex,
@@ -289,7 +290,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     context?: QueryContext
   ): PersistencePromise<MutableDocumentMap> {
     const collection = query.path;
-    const startKey = [
+    const startKey: DbRemoteDocumentCollectionIndexKey = [
       DbRemoteDocumentType.FoundDocument,
       collection.popLast().toArray(),
       collection.lastSegment(),
@@ -298,7 +299,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
         ? ''
         : offset.documentKey.path.lastSegment()
     ];
-    const endKey = [
+    const endKey: DbRemoteDocumentCollectionIndexKey = [
       DbRemoteDocumentType.FoundDocument,
       collection.popLast().toArray(),
       collection.lastSegment(),

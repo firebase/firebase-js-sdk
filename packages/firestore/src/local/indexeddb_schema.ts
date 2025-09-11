@@ -273,6 +273,17 @@ export interface DbRemoteDocument {
 }
 
 /**
+ * A key in the `DbRemoteDocumentCollectionIndex` index.
+ */
+export type DbRemoteDocumentCollectionIndexKey = [
+  /** document type */ DbRemoteDocumentType,
+  /** path to collection */ string[],
+  /** collection group */ string,
+  /** read time */ DbTimestampKey,
+  /** document ID */ string
+];
+
+/**
  * Contains a single entry that has metadata about the remote document cache.
  */
 export interface DbRemoteDocumentGlobal {
