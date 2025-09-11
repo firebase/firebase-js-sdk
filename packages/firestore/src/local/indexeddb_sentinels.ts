@@ -464,7 +464,7 @@ export const ALL_STORES = V12_STORES;
 
 /** Returns the object stores for the provided schema. */
 export function getObjectStores(schemaVersion: number): string[] {
-  if (schemaVersion === 18) {
+  if (schemaVersion === 18 || schemaVersion === 19) {
     return V18_STORES;
   } else if (schemaVersion === 17) {
     return V17_STORES;
