@@ -36,7 +36,11 @@ import { SortedSet } from '../util/sorted_set';
 
 import { IndexManager } from './index_manager';
 import { dbDocumentSize } from './indexeddb_mutation_batch_impl';
-import { DbRemoteDocument, DbRemoteDocumentGlobal } from './indexeddb_schema';
+import {
+  DbRemoteDocument,
+  DbRemoteDocumentType,
+  DbRemoteDocumentGlobal
+} from './indexeddb_schema';
 import {
   DbRemoteDocumentCollectionGroupIndex,
   DbRemoteDocumentDocumentKeyIndex,
@@ -44,6 +48,7 @@ import {
   DbRemoteDocumentGlobalStore,
   DbRemoteDocumentKey,
   DbRemoteDocumentStore,
+  DbRemoteDocumentCollectionIndex,
   DbTimestampKey
 } from './indexeddb_sentinels';
 import { getStore } from './indexeddb_transaction';
@@ -285,6 +290,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
   ): PersistencePromise<MutableDocumentMap> {
     const collection = query.path;
     const startKey = [
+      DbRemoteDocumentType.FoundDocument,
       collection.popLast().toArray(),
       collection.lastSegment(),
       toDbTimestampKey(offset.readTime),
@@ -292,7 +298,8 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
         ? ''
         : offset.documentKey.path.lastSegment()
     ];
-    const endKey: DbRemoteDocumentKey = [
+    const endKey = [
+      DbRemoteDocumentType.FoundDocument,
       collection.popLast().toArray(),
       collection.lastSegment(),
       [Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER],
@@ -303,8 +310,11 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
 
     return remoteDocumentsStore(transaction)
       .iterate(
-        { range: IDBKeyRange.bound(startKey, endKey, true) },
-        (_, dbRemoteDoc, control) => {
+        {
+          index: DbRemoteDocumentCollectionIndex,
+          range: IDBKeyRange.bound(startKey, endKey, true)
+        },
+        (_, dbRemoteDoc) => {
           context?.incrementDocumentReadCount(1);
           const document = this.maybeDecodeDocument(
             DocumentKey.fromSegments(
@@ -315,10 +325,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
             ),
             dbRemoteDoc
           );
-          if (
-            document.isFoundDocument() &&
-            (queryMatches(query, document) || mutatedDocs.has(document.key))
-          ) {
+          if (queryMatches(query, document) || mutatedDocs.has(document.key)) {
             // Either the document matches the given query, or it is mutated.
             results = results.insert(document.key, document);
           }

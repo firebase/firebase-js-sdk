@@ -188,7 +188,8 @@ export const DbRemoteDocumentCollectionIndexPath = [
   'documentType',
   'prefixPath',
   'collectionGroup',
-  'readTime'
+  'readTime',
+  'documentId'
 ];
 
 export const DbRemoteDocumentGlobalStore = 'remoteDocumentGlobal';
