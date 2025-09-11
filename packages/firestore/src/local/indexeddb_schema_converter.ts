@@ -300,8 +300,29 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
     if (fromVersion < 19 && toVersion >= 19) {
       p = p.next(() => {
-        createRemoteDocumentStoreDocumentTypeIndex(txn);
-        return backfillRemoteDocumentStoreDocumentType(simpleDbTransaction);
+        {
+          const startTime = performance.now();
+          console.log(
+            'zzyzx createRemoteDocumentStoreDocumentTypeIndex starting'
+          );
+          createRemoteDocumentStoreDocumentTypeIndex(txn);
+          console.log(
+            'zzyzx createRemoteDocumentStoreDocumentTypeIndex completed: elapsedTime:',
+            performance.now() - startTime
+          );
+        }
+        {
+          const startTime = performance.now();
+          console.log('zzyzx backfillRemoteDocumentStoreDocumentType starting');
+          return backfillRemoteDocumentStoreDocumentType(
+            simpleDbTransaction
+          ).next(() => {
+            console.log(
+              'zzyzx backfillRemoteDocumentStoreDocumentType completed: elapsedTime:',
+              performance.now() - startTime
+            );
+          });
+        }
       });
     }
 
