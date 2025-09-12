@@ -289,19 +289,19 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
   ): PersistencePromise<MutableDocumentMap> {
     const collection = query.path;
     const startKey: DbRemoteDocumentCollectionIndexKey = [
-      MIN_CREATE_TIME,
       collection.popLast().toArray(),
       collection.lastSegment(),
       toDbTimestampKey(offset.readTime),
       offset.documentKey.path.isEmpty()
         ? ''
-        : offset.documentKey.path.lastSegment()
+        : offset.documentKey.path.lastSegment(),
+      ''
     ];
     const endKey: DbRemoteDocumentCollectionIndexKey = [
-      MAX_CREATE_TIME,
       collection.popLast().toArray(),
       collection.lastSegment(),
       [Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER],
+      '',
       ''
     ];
 

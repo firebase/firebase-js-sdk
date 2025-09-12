@@ -199,11 +199,11 @@ export const DbRemoteDocumentCollectionGroupIndexPath = [
 export const DbRemoteDocumentCollectionIndex = 'collectionIndex';
 
 export const DbRemoteDocumentCollectionIndexPath = [
-  'document.createTime',
   'prefixPath',
   'collectionGroup',
   'readTime',
-  'documentId'
+  'documentId',
+  'document.createTime'
 ];
 
 export const MIN_CREATE_TIME = '' as const;
@@ -218,11 +218,11 @@ export const MAX_CREATE_TIME = '\uFFFF' as const;
  * filtering.
  */
 export type DbRemoteDocumentCollectionIndexKey = [
-  /** document.createTime */ typeof MIN_CREATE_TIME | typeof MAX_CREATE_TIME,
   /** path to collection */ string[],
   /** collection group */ string,
   /** read time */ DbTimestampKey,
-  /** document ID */ string
+  /** document ID */ string,
+  /** document.createTime */ typeof MIN_CREATE_TIME | typeof MAX_CREATE_TIME
 ];
 
 export const DbRemoteDocumentGlobalStore = 'remoteDocumentGlobal';
