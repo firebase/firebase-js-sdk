@@ -215,7 +215,7 @@ export interface ExecutableCode {
  */
 export interface CodeExecutionResult {
   /**
-   * The result of the execution.
+   * The result of the code execution.
    */
   outcome?: Outcome;
   /**

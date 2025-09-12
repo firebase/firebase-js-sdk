@@ -22,12 +22,12 @@ export interface CodeExecutionResult
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [outcome](./ai.codeexecutionresult.md#codeexecutionresultoutcome) | [Outcome](./ai.md#outcome) | The result of the execution. |
+|  [outcome](./ai.codeexecutionresult.md#codeexecutionresultoutcome) | [Outcome](./ai.md#outcome) | The result of the code execution. |
 |  [output](./ai.codeexecutionresult.md#codeexecutionresultoutput) | string | The output from the code execution, or an error message if it failed. |
 
 ## CodeExecutionResult.outcome
 
-The result of the execution.
+The result of the code execution.
 
 <b>Signature:</b>
 

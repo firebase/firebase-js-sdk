@@ -3,4 +3,4 @@
 'firebase': minor
 ---
 
-Add Code Execution feature.
+Added Code Execution feature.
