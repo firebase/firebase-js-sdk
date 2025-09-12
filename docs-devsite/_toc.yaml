@@ -635,6 +635,10 @@ toc:
 - title: remote-config
   path: /docs/reference/js/remote-config.md
   section:
+  - title: ConfigUpdate
+    path: /docs/reference/js/remote-config.configupdate.md
+  - title: ConfigUpdateObserver
+    path: /docs/reference/js/remote-config.configupdateobserver.md
   - title: CustomSignals
     path: /docs/reference/js/remote-config.customsignals.md
   - title: FetchResponse
