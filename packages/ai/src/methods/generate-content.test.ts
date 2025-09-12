@@ -262,7 +262,6 @@ describe('generateContent()', () => {
       fakeRequestParams
     );
     const parts = result.response.candidates?.[0].content.parts;
-    parts?.forEach(part => console.log(Object.keys(part)));
     expect(
       parts?.some(part => part.codeExecutionResult?.outcome === Outcome.OK)
     ).to.be.true;
