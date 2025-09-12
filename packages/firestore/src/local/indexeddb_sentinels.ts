@@ -173,23 +173,56 @@ export const DbRemoteDocumentCollectionGroupIndexPath = [
 ];
 
 /**
- * An index that provides access to documents by collection, read time, and
- * document type.
+ * An index that provides access to documents by the primary key, but filtering
+ * out all but "known" documents.
  *
  * This index is used as an optimization in getDocumentsMatchingQuery() to
  * avoid visiting "tombstone" entries which are impossible to be part of the
- * query result anyway.
+ * query result anyway. For background information and motivation, see
+ * https://github.com/firebase/firebase-android-sdk/issues/7295.
  *
- * See https://github.com/firebase/firebase-android-sdk/issues/7295.
+ * This "filtering" is achieved as a side effect of including a property from
+ * the "document" property in the index's key. Since the "document" property
+ * is _only_ present for "found" documents, indexing one of its keys has the
+ * convenient side effect of excluding all entries that lack a "document"
+ * property. The "createTime" sub-property was chosen for several reasons:
+ *
+ * 1. Its length is strictly bounded. This provides a predictable O(1) size of
+ *    the index entries relative to the size of the primary key. This is because
+ *    the "createTime" values are RFC3339 strings (e.g. "2023-09-24T15:30:00Z").
+ * 2. It is easy to pick a "smallest" and "largest" value for "createTime",
+ *    which is critical when creating bounded IndexedDB key ranges. Namely,
+ *    "" (the empty string) is smaller than any value and "\uffff" is larger
+ *    than any value, guaranteed. This cannot be said about arbitrary strings.
+ *
  */
 export const DbRemoteDocumentCollectionIndex = 'collectionIndex';
 
 export const DbRemoteDocumentCollectionIndexPath = [
-  'documentType',
+  'document.createTime',
   'prefixPath',
   'collectionGroup',
   'readTime',
   'documentId'
+];
+
+export const MIN_CREATE_TIME = '' as const;
+export const MAX_CREATE_TIME = '\uFFFF' as const;
+
+/**
+ * A key in the `DbRemoteDocumentCollectionIndex` index.
+ *
+ * Note that the "document.createTime" entry is restricted to the min and max
+ * values as they are only intended to be used for _filtering_ entries that
+ * contain the "document" property and are not intended for general-purpose
+ * filtering.
+ */
+export type DbRemoteDocumentCollectionIndexKey = [
+  /** document.createTime */ typeof MIN_CREATE_TIME | typeof MAX_CREATE_TIME,
+  /** path to collection */ string[],
+  /** collection group */ string,
+  /** read time */ DbTimestampKey,
+  /** document ID */ string
 ];
 
 export const DbRemoteDocumentGlobalStore = 'remoteDocumentGlobal';

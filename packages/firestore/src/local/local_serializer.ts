@@ -66,7 +66,6 @@ import {
   DbNamedQuery,
   DbQuery,
   DbRemoteDocument,
-  DbRemoteDocumentType,
   DbTarget,
   DbTimestamp
 } from './indexeddb_schema';
@@ -118,48 +117,30 @@ export function toDbRemoteDocument(
   document: MutableDocument
 ): DbRemoteDocument {
   const key = document.key;
-  return {
+  const remoteDoc: DbRemoteDocument = {
     prefixPath: key.getCollectionPath().popLast().toArray(),
     collectionGroup: key.collectionGroup,
     documentId: key.path.lastSegment(),
     readTime: toDbTimestampKey(document.readTime),
-    hasCommittedMutations: document.hasCommittedMutations,
-    ...toDbRemoteDocumentDocumentSpecificComponents(localSerializer, document)
+    hasCommittedMutations: document.hasCommittedMutations
   };
-}
 
-function toDbRemoteDocumentDocumentSpecificComponents(
-  localSerializer: LocalSerializer,
-  document: MutableDocument
-): Pick<
-  DbRemoteDocument,
-  'documentType' | 'document' | 'noDocument' | 'unknownDocument'
-> {
   if (document.isFoundDocument()) {
-    return {
-      documentType: DbRemoteDocumentType.FoundDocument,
-      document: toDocument(localSerializer.remoteSerializer, document)
+    remoteDoc.document = toDocument(localSerializer.remoteSerializer, document);
+  } else if (document.isNoDocument()) {
+    remoteDoc.noDocument = {
+      path: key.path.toArray(),
+      readTime: toDbTimestamp(document.version)
     };
-  }
-  if (document.isNoDocument()) {
-    return {
-      documentType: DbRemoteDocumentType.NoDocument,
-      noDocument: {
-        path: document.key.path.toArray(),
-        readTime: toDbTimestamp(document.version)
-      }
+  } else if (document.isUnknownDocument()) {
+    remoteDoc.unknownDocument = {
+      path: key.path.toArray(),
+      version: toDbTimestamp(document.version)
     };
+  } else {
+    return fail(0xe230, 'Unexpected Document', { document });
   }
-  if (document.isUnknownDocument()) {
-    return {
-      documentType: DbRemoteDocumentType.UnknownDocument,
-      unknownDocument: {
-        path: document.key.path.toArray(),
-        version: toDbTimestamp(document.version)
-      }
-    };
-  }
-  fail(0xe230, 'Unexpected Document', { document });
+  return remoteDoc;
 }
 
 export function toDbTimestampKey(

@@ -36,12 +36,7 @@ import { SortedSet } from '../util/sorted_set';
 
 import { IndexManager } from './index_manager';
 import { dbDocumentSize } from './indexeddb_mutation_batch_impl';
-import {
-  DbRemoteDocument,
-  DbRemoteDocumentType,
-  DbRemoteDocumentGlobal,
-  DbRemoteDocumentCollectionIndexKey
-} from './indexeddb_schema';
+import { DbRemoteDocument, DbRemoteDocumentGlobal } from './indexeddb_schema';
 import {
   DbRemoteDocumentCollectionGroupIndex,
   DbRemoteDocumentDocumentKeyIndex,
@@ -50,6 +45,9 @@ import {
   DbRemoteDocumentKey,
   DbRemoteDocumentStore,
   DbRemoteDocumentCollectionIndex,
+  DbRemoteDocumentCollectionIndexKey,
+  MAX_CREATE_TIME,
+  MIN_CREATE_TIME,
   DbTimestampKey
 } from './indexeddb_sentinels';
 import { getStore } from './indexeddb_transaction';
@@ -291,7 +289,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
   ): PersistencePromise<MutableDocumentMap> {
     const collection = query.path;
     const startKey: DbRemoteDocumentCollectionIndexKey = [
-      DbRemoteDocumentType.FoundDocument,
+      MIN_CREATE_TIME,
       collection.popLast().toArray(),
       collection.lastSegment(),
       toDbTimestampKey(offset.readTime),
@@ -300,7 +298,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
         : offset.documentKey.path.lastSegment()
     ];
     const endKey: DbRemoteDocumentCollectionIndexKey = [
-      DbRemoteDocumentType.FoundDocument,
+      MAX_CREATE_TIME,
       collection.popLast().toArray(),
       collection.lastSegment(),
       [Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER],

@@ -44,7 +44,6 @@ import {
   DbMutationQueue,
   DbRemoteDocument,
   DbRemoteDocumentGlobal,
-  DbRemoteDocumentType,
   DbTarget,
   DbTargetDocument,
   DbTargetGlobal,
@@ -300,29 +299,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
     if (fromVersion < 19 && toVersion >= 19) {
       p = p.next(() => {
-        {
-          const startTime = performance.now();
-          console.log(
-            'zzyzx createRemoteDocumentStoreDocumentTypeIndex starting'
-          );
-          createRemoteDocumentStoreDocumentTypeIndex(txn);
-          console.log(
-            'zzyzx createRemoteDocumentStoreDocumentTypeIndex completed: elapsedTime:',
-            performance.now() - startTime
-          );
-        }
-        {
-          const startTime = performance.now();
-          console.log('zzyzx backfillRemoteDocumentStoreDocumentType starting');
-          return backfillRemoteDocumentStoreDocumentType(
-            simpleDbTransaction
-          ).next(() => {
-            console.log(
-              'zzyzx backfillRemoteDocumentStoreDocumentType completed: elapsedTime:',
-              performance.now() - startTime
-            );
-          });
-        }
+        createRemoteDocumentCollectionIndex(txn);
       });
     }
 
@@ -525,8 +502,6 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
         const path = extractKey(legacyDocument).path.toArray();
 
-        // Note: omit the "documentType" property because it will be populated
-        // by schema migration 19.
         const dbRemoteDocument = {
           prefixPath: path.slice(0, path.length - 2),
           collectionGroup: path[path.length - 2],
@@ -536,7 +511,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
           noDocument: legacyDocument.noDocument,
           document: legacyDocument.document,
           hasCommittedMutations: !!legacyDocument.hasCommittedMutations
-        } satisfies Omit<DbRemoteDocument, 'documentType'> as DbRemoteDocument;
+        };
         writes.push(remoteDocumentStore.put(dbRemoteDocument));
       })
       .next(() => PersistencePromise.waitFor(writes));
@@ -830,30 +805,11 @@ function extractKey(remoteDoc: DbRemoteDocumentLegacy): DocumentKey {
   }
 }
 
-function createRemoteDocumentStoreDocumentTypeIndex(txn: IDBTransaction): void {
+function createRemoteDocumentCollectionIndex(txn: IDBTransaction): void {
   txn
     .objectStore(DbRemoteDocumentStore)
     .createIndex(
       DbRemoteDocumentCollectionIndex,
-      DbRemoteDocumentCollectionIndexPath,
-      { unique: false }
+      DbRemoteDocumentCollectionIndexPath
     );
-}
-
-function backfillRemoteDocumentStoreDocumentType(
-  txn: SimpleDbTransaction
-): PersistencePromise<void> {
-  const remoteDocumentStore = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
-    DbRemoteDocumentStore
-  );
-
-  return remoteDocumentStore.iterate((key, doc) => {
-    doc.documentType = doc.noDocument
-      ? DbRemoteDocumentType.NoDocument
-      : doc.unknownDocument
-      ? DbRemoteDocumentType.UnknownDocument
-      : DbRemoteDocumentType.FoundDocument;
-
-    return remoteDocumentStore.put(doc);
-  });
 }
