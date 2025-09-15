@@ -20,7 +20,7 @@ import { Component, ComponentType } from '@firebase/component';
 import { TELEMETRY_TYPE } from './constants';
 import { name, version } from '../package.json';
 import { TelemetryService } from './service';
-import { createLoggerProvider } from './logging/logger-provider';
+import { createLoggerProvider } from './helpers';
 
 export function registerTelemetry(): void {
   _registerComponent(
