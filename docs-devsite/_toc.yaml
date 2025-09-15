@@ -32,6 +32,12 @@ toc:
     path: /docs/reference/js/ai.citation.md
   - title: CitationMetadata
     path: /docs/reference/js/ai.citationmetadata.md
+  - title: CodeExecutionResult
+    path: /docs/reference/js/ai.codeexecutionresult.md
+  - title: CodeExecutionResultPart
+    path: /docs/reference/js/ai.codeexecutionresultpart.md
+  - title: CodeExecutionTool
+    path: /docs/reference/js/ai.codeexecutiontool.md
   - title: Content
     path: /docs/reference/js/ai.content.md
   - title: CountTokensRequest
@@ -46,6 +52,10 @@ toc:
     path: /docs/reference/js/ai.enhancedgeneratecontentresponse.md
   - title: ErrorDetails
     path: /docs/reference/js/ai.errordetails.md
+  - title: ExecutableCode
+    path: /docs/reference/js/ai.executablecode.md
+  - title: ExecutableCodePart
+    path: /docs/reference/js/ai.executablecodepart.md
   - title: FileData
     path: /docs/reference/js/ai.filedata.md
   - title: FileDataPart

@@ -21,7 +21,9 @@ import {
   GenerationConfig,
   HarmBlockThreshold,
   HarmCategory,
+  Language,
   Modality,
+  Outcome,
   SafetySetting,
   getGenerativeModel
 } from '../src';
@@ -186,6 +188,32 @@ describe('Generate Content', () => {
           expect(groundingSupport.segment?.text).to.exist;
           // Since partIndex and startIndex are commonly 0, they may be omitted from responses.
         });
+      });
+
+      it('generateContent: code execution', async () => {
+        const model = getGenerativeModel(testConfig.ai, {
+          model: testConfig.model,
+          generationConfig: commonGenerationConfig,
+          safetySettings: commonSafetySettings,
+          tools: [{ codeExecution: {} }]
+        });
+        const prompt =
+          'What is the sum of the first 50 prime numbers? ' +
+          'Generate and run code for the calculation, and make sure you get all 50.';
+
+        const result = await model.generateContent(prompt);
+        const parts = result.response.candidates?.[0].content.parts;
+        expect(
+          parts?.some(part => part.executableCode?.language === Language.PYTHON)
+        ).to.be.true;
+        expect(
+          parts?.some(part => part.codeExecutionResult?.outcome === Outcome.OK)
+        ).to.be.true;
+        // Expect these to be truthy (!= null)
+        expect(parts?.some(part => part.executableCode?.code != null)).to.be
+          .true;
+        expect(parts?.some(part => part.codeExecutionResult?.output != null)).to
+          .be.true;
       });
 
       it('generateContentStream: text input, text output', async () => {
