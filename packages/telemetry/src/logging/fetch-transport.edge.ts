@@ -1,7 +1,8 @@
 /*
+* @license
  * Copyright The OpenTelemetry Authors
  * Copyright 2025 Google LLC
- * 
+ *
  * This file has been modified by Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +18,10 @@
  * limitations under the License.
  */
 
-import { IExporterTransport, ExportResponse } from '@opentelemetry/otlp-exporter-base';
+import {
+  IExporterTransport,
+  ExportResponse
+} from '@opentelemetry/otlp-exporter-base';
 import { diag } from '@opentelemetry/api';
 
 function isExportRetryable(statusCode: number): boolean {
@@ -53,7 +57,7 @@ export interface FetchTransportParameters {
 
 /**
  * An implementation of IExporterTransport that can be used in the Edge Runtime.
- * 
+ *
  * @internal
  */
 export class FetchTransportEdge implements IExporterTransport {
@@ -84,15 +88,15 @@ export class FetchTransportEdge implements IExporterTransport {
       }
       return {
         status: 'failure',
-        error: new Error('Fetch request failed with non-retryable status'),
+        error: new Error('Fetch request failed with non-retryable status')
       };
     } catch (error) {
       if (error instanceof Error) {
-        return {status: 'failure', error,};
+        return { status: 'failure', error };
       }
       return {
         status: 'failure',
-        error: new Error(`Fetch request errored: ${error}`),
+        error: new Error(`Fetch request errored: ${error}`)
       };
     } finally {
       clearTimeout(timeout);

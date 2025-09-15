@@ -1,7 +1,8 @@
 /*
+* @license
  * Copyright The OpenTelemetry Authors
  * Copyright 2025 Google LLC
- * 
+ *
  * This file has been modified by Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,15 +21,19 @@
 import * as sinon from 'sinon';
 import * as assert from 'assert';
 import { FetchTransportEdge } from './fetch-transport.edge';
-import { ExportResponseRetryable, ExportResponseFailure, ExportResponseSuccess } from '@opentelemetry/otlp-exporter-base';
+import {
+  ExportResponseRetryable,
+  ExportResponseFailure,
+  ExportResponseSuccess
+} from '@opentelemetry/otlp-exporter-base';
 
 const testTransportParameters = {
   url: 'http://example.test',
   headers: () => ({
     foo: 'foo-value',
     bar: 'bar-value',
-    'Content-Type': 'application/json',
-  }),
+    'Content-Type': 'application/json'
+  })
 };
 
 const requestTimeout = 1000;
@@ -40,7 +45,7 @@ describe('FetchTransportEdge', () => {
   });
 
   describe('send', () => {
-    it('returns success when request succeeds', (done) => {
+    it('returns success when request succeeds', done => {
       // arrange
       const fetchStub = sinon
         .stub(globalThis, 'fetch')
@@ -65,9 +70,9 @@ describe('FetchTransportEdge', () => {
               headers: {
                 foo: 'foo-value',
                 bar: 'bar-value',
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
               },
-              body: testPayload,
+              body: testPayload
             }
           );
           done();
@@ -77,7 +82,7 @@ describe('FetchTransportEdge', () => {
       }, done /* catch any rejections */);
     });
 
-    it('returns failure when request fails', (done) => {
+    it('returns failure when request fails', done => {
       // arrange
       sinon
         .stub(globalThis, 'fetch')
@@ -96,7 +101,7 @@ describe('FetchTransportEdge', () => {
       }, done /* catch any rejections */);
     });
 
-    it('returns retryable when request is retryable', (done) => {
+    it('returns retryable when request is retryable', done => {
       // arrange
       sinon
         .stub(globalThis, 'fetch')
@@ -121,7 +126,7 @@ describe('FetchTransportEdge', () => {
       }, done /* catch any rejections */);
     });
 
-    it('returns failure when request times out', (done) => {
+    it('returns failure when request times out', done => {
       // arrange
       const abortError = new Error('aborted request');
       abortError.name = 'AbortError';
@@ -146,7 +151,7 @@ describe('FetchTransportEdge', () => {
       clock.tick(requestTimeout + 100);
     });
 
-    it('returns failure when no server exists', (done) => {
+    it('returns failure when no server exists', done => {
       // arrange
       sinon.stub(globalThis, 'fetch').throws(new Error('fetch failed'));
       const clock = sinon.useFakeTimers();

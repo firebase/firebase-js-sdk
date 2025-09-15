@@ -19,14 +19,17 @@ import {
   LoggerProvider,
   BatchLogRecordProcessor,
   ReadableLogRecord,
-  LogRecordExporter,
+  LogRecordExporter
 } from '@opentelemetry/sdk-logs';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import { JsonLogsSerializer } from '@opentelemetry/otlp-transformer';
 import type { OTLPExporterConfigBase } from '@opentelemetry/otlp-exporter-base';
-import { OTLPExporterBase, createOtlpNetworkExportDelegate } from '@opentelemetry/otlp-exporter-base';
+import {
+  OTLPExporterBase,
+  createOtlpNetworkExportDelegate
+} from '@opentelemetry/otlp-exporter-base';
 import { FetchTransportEdge } from './fetch-transport.edge';
 
 /**
@@ -44,18 +47,18 @@ export function createLoggerProvider(): LoggerProvider {
     // We need a slightly custom implementation for the Edge Runtime, because it doesn't have access
     // to many features available in Node.
     const logExporter = new OTLPLogExporterEdge({ url: otlpEndpoint });
-    const provider =  new LoggerProvider({
+    const provider = new LoggerProvider({
       resource,
       processors: [new BatchLogRecordProcessor(logExporter)],
       logRecordLimits: {}
     });
     return provider;
   } else {
-      const logExporter = new OTLPLogExporter({ url: otlpEndpoint });
-      return new LoggerProvider({
-        resource,
-        processors: [new BatchLogRecordProcessor(logExporter)]
-      });
+    const logExporter = new OTLPLogExporter({ url: otlpEndpoint });
+    return new LoggerProvider({
+      resource,
+      processors: [new BatchLogRecordProcessor(logExporter)]
+    });
   }
 }
 
@@ -78,7 +81,7 @@ class OTLPLogExporterEdge
           headers: () => ({
             'Content-Type': 'application/json'
           })
-        }),
+        })
       )
     );
   }
