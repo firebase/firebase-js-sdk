@@ -25,6 +25,27 @@ interface BackingObjectListenerMap {
 
 type FDCScalarValue = string | number | boolean | null;
 
+// NOTE: Tracking new fields and removed fields is going to be complicated. Every time we get a new field, we need to add to the query's existing set of bdo's
+// If a field is removed, we need to remove it from the query's BDO list.
+
+// We need a map from query to the BDO's they listen to.
+// But if a field is removed, then we would probably re-trigger the same message twice.
+// bdoToQueries = {};
+// const bdosToTrack = query.initializeCache();
+// queryToBdos[queryId] = bdosToTrack;
+// bdosToTrack.addQueryToMap(queryId);
+
+
+
+/**
+onNewMessage((newData) => {
+  const bdosUpdated = updateTree(newData);
+  const updatedQueries = new Set();
+  bdosUpdated.forEach(bdo => updatedQueries.add(bdosToQuery[bdo.id]));
+  updatedQueries.forEach(query => query.update());
+});
+ */
+
 class BackingDataObject {
   typedKey: string;
   private serverValues = new Map<string, FDCScalarValue>();
@@ -50,9 +71,11 @@ class BackingDataObject {
     }
   }
 
+  // Series of updates.
   serverValue(key: string): FDCScalarValue {
     return this.serverValues[key];
   }
+
   toJson() {
     const toReturn: object = {};
     for (const [key, value] of this.serverValues) {
@@ -123,6 +146,11 @@ interface CachedObject {
     __typename: string;
     [field: string]: FDCScalarValue | CachedObject | FDCScalarValue[] | CachedObject[];
 }
+
+/*
+const triggeredQueries = resultTree.updateValues(incomingData);
+triggeredQueries.forEach(query => query.reload());
+ */
 
 class StubObject {
   constructor(
