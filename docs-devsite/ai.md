@@ -60,6 +60,9 @@ The Firebase AI Web SDK.
 |  [ChromeAdapter](./ai.chromeadapter.md#chromeadapter_interface) | <b>(EXPERIMENTAL)</b> Defines an inference "backend" that uses Chrome's on-device model, and encapsulates logic for detecting when on-device inference is possible.<!-- -->These methods should not be called directly by the user. |
 |  [Citation](./ai.citation.md#citation_interface) | A single citation. |
 |  [CitationMetadata](./ai.citationmetadata.md#citationmetadata_interface) | Citation metadata that may be found on a [GenerateContentCandidate](./ai.generatecontentcandidate.md#generatecontentcandidate_interface)<!-- -->. |
+|  [CodeExecutionResult](./ai.codeexecutionresult.md#codeexecutionresult_interface) | The results of code execution run by the model. |
+|  [CodeExecutionResultPart](./ai.codeexecutionresultpart.md#codeexecutionresultpart_interface) | Represents the code execution result from the model. |
+|  [CodeExecutionTool](./ai.codeexecutiontool.md#codeexecutiontool_interface) | A tool that enables the model to use code execution. |
 |  [Content](./ai.content.md#content_interface) | Content type for both prompts and response candidates. |
 |  [CountTokensRequest](./ai.counttokensrequest.md#counttokensrequest_interface) | Params for calling [GenerativeModel.countTokens()](./ai.generativemodel.md#generativemodelcounttokens) |
 |  [CountTokensResponse](./ai.counttokensresponse.md#counttokensresponse_interface) | Response from calling [GenerativeModel.countTokens()](./ai.generativemodel.md#generativemodelcounttokens)<!-- -->. |
@@ -67,6 +70,8 @@ The Firebase AI Web SDK.
 |  [Date\_2](./ai.date_2.md#date_2_interface) | Protobuf google.type.Date |
 |  [EnhancedGenerateContentResponse](./ai.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponse_interface) | Response object wrapped with helper methods. |
 |  [ErrorDetails](./ai.errordetails.md#errordetails_interface) | Details object that may be included in an error response. |
+|  [ExecutableCode](./ai.executablecode.md#executablecode_interface) | An interface for executable code returned by the model. |
+|  [ExecutableCodePart](./ai.executablecodepart.md#executablecodepart_interface) | Represents the code that is executed by the model. |
 |  [FileData](./ai.filedata.md#filedata_interface) | Data pointing to a file uploaded on Google Cloud Storage. |
 |  [FileDataPart](./ai.filedatapart.md#filedatapart_interface) | Content part interface if the part represents [FileData](./ai.filedata.md#filedata_interface) |
 |  [FunctionCall](./ai.functioncall.md#functioncall_interface) | A predicted [FunctionCall](./ai.functioncall.md#functioncall_interface) returned from the model that contains a string representing the [FunctionDeclaration.name](./ai.functiondeclaration.md#functiondeclarationname) and a structured JSON object containing the parameters and their values. |
@@ -153,8 +158,10 @@ The Firebase AI Web SDK.
 |  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details. |
 |  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
 |  [InferenceMode](./ai.md#inferencemode) | <b>(EXPERIMENTAL)</b> Determines whether inference happens on-device or in-cloud. |
+|  [Language](./ai.md#language) | The programming language of the code. |
 |  [LiveResponseType](./ai.md#liveresponsetype) | <b><i>(Public Preview)</i></b> The types of responses that can be returned by [LiveSession.receive()](./ai.livesession.md#livesessionreceive)<!-- -->. |
 |  [Modality](./ai.md#modality) | Content part modality. |
+|  [Outcome](./ai.md#outcome) | Represents the result of the code execution. |
 |  [POSSIBLE\_ROLES](./ai.md#possible_roles) | Possible roles. |
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [SchemaType](./ai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
@@ -177,11 +184,13 @@ The Firebase AI Web SDK.
 |  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details. |
 |  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
 |  [InferenceMode](./ai.md#inferencemode) | <b>(EXPERIMENTAL)</b> Determines whether inference happens on-device or in-cloud. |
+|  [Language](./ai.md#language) | The programming language of the code. |
 |  [LanguageModelMessageContentValue](./ai.md#languagemodelmessagecontentvalue) | <b>(EXPERIMENTAL)</b> Content formats that can be provided as on-device message content. |
 |  [LanguageModelMessageRole](./ai.md#languagemodelmessagerole) | <b>(EXPERIMENTAL)</b> Allowable roles for on-device language model usage. |
 |  [LanguageModelMessageType](./ai.md#languagemodelmessagetype) | <b>(EXPERIMENTAL)</b> Allowable types for on-device language model messages. |
 |  [LiveResponseType](./ai.md#liveresponsetype) | <b><i>(Public Preview)</i></b> The types of responses that can be returned by [LiveSession.receive()](./ai.livesession.md#livesessionreceive)<!-- -->. This is a property on all messages that can be used for type narrowing. This property is not returned by the server, it is assigned to a server message object once it's parsed. |
 |  [Modality](./ai.md#modality) | Content part modality. |
+|  [Outcome](./ai.md#outcome) | Represents the result of the code execution. |
 |  [Part](./ai.md#part) | Content part - includes text, image/video, or function call/response part types. |
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [Role](./ai.md#role) | Role is the producer of the content. |
@@ -637,6 +646,19 @@ InferenceMode: {
 }
 ```
 
+## Language
+
+The programming language of the code.
+
+<b>Signature:</b>
+
+```typescript
+Language: {
+    UNSPECIFIED: string;
+    PYTHON: string;
+}
+```
+
 ## LiveResponseType
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -668,6 +690,21 @@ Modality: {
     readonly VIDEO: "VIDEO";
     readonly AUDIO: "AUDIO";
     readonly DOCUMENT: "DOCUMENT";
+}
+```
+
+## Outcome
+
+Represents the result of the code execution.
+
+<b>Signature:</b>
+
+```typescript
+Outcome: {
+    UNSPECIFIED: string;
+    OK: string;
+    FAILED: string;
+    DEADLINE_EXCEEDED: string;
 }
 ```
 
@@ -871,6 +908,16 @@ export type ImagenSafetyFilterLevel = (typeof ImagenSafetyFilterLevel)[keyof typ
 export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
 ```
 
+## Language
+
+The programming language of the code.
+
+<b>Signature:</b>
+
+```typescript
+export type Language = (typeof Language)[keyof typeof Language];
+```
+
 ## LanguageModelMessageContentValue
 
 <b>(EXPERIMENTAL)</b> Content formats that can be provided as on-device message content.
@@ -924,6 +971,16 @@ Content part modality.
 export type Modality = (typeof Modality)[keyof typeof Modality];
 ```
 
+## Outcome
+
+Represents the result of the code execution.
+
+<b>Signature:</b>
+
+```typescript
+export type Outcome = (typeof Outcome)[keyof typeof Outcome];
+```
+
 ## Part
 
 Content part - includes text, image/video, or function call/response part types.
@@ -931,7 +988,7 @@ Content part - includes text, image/video, or function call/response part types.
 <b>Signature:</b>
 
 ```typescript
-export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart;
+export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart | ExecutableCodePart | CodeExecutionResultPart;
 ```
 
 ## ResponseModality
@@ -974,7 +1031,7 @@ Defines a tool that model can call to access external knowledge.
 <b>Signature:</b>
 
 ```typescript
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool;
+export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool;
 ```
 
 ## TypedSchema
