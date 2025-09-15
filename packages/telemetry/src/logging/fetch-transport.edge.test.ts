@@ -1,5 +1,5 @@
 /*
-* @license
+ * @license
  * Copyright The OpenTelemetry Authors
  * Copyright 2025 Google LLC
  *
