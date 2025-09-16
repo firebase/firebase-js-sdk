@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # URLContextTool interface
-A tool that allows you to provide additional context to the models in the form of URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhances it's response. At most 20 URLs can be consumed per request.
+A tool that allows you to provide additional context to the models in the form of URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhance its response.
 
 <b>Signature:</b>
 
@@ -22,9 +22,11 @@ export interface URLContextTool
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [urlContext](./ai.urlcontexttool.md#urlcontexttoolurlcontext) | [URLContext](./ai.urlcontext.md#urlcontext_interface) |  |
+|  [urlContext](./ai.urlcontexttool.md#urlcontexttoolurlcontext) | [URLContext](./ai.urlcontext.md#urlcontext_interface) | Specifies the URL Context configuration. |
 
 ## URLContextTool.urlContext
+
+Specifies the URL Context configuration.
 
 <b>Signature:</b>
 

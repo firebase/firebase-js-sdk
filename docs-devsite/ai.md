@@ -136,7 +136,7 @@ The Firebase AI Web SDK.
 |  [ToolConfig](./ai.toolconfig.md#toolconfig_interface) | Tool config. This config is shared for all tools provided in the request. |
 |  [URLContext](./ai.urlcontext.md#urlcontext_interface) | Specifies the URL Context configuration. |
 |  [URLContextMetadata](./ai.urlcontextmetadata.md#urlcontextmetadata_interface) | Metadata related to [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface)<!-- -->. |
-|  [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) | A tool that allows you to provide additional context to the models in the form of URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhances it's response. At most 20 URLs can be consumed per request. |
+|  [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) | A tool that allows you to provide additional context to the models in the form of URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhance its response. |
 |  [URLMetadata](./ai.urlmetadata.md#urlmetadata_interface) | Metadata for a URL that was used to provide context to the Gemini model. |
 |  [UsageMetadata](./ai.usagemetadata.md#usagemetadata_interface) | Usage metadata about a [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
 |  [VideoMetadata](./ai.videometadata.md#videometadata_interface) | Describes the input video content. |
@@ -1053,13 +1053,7 @@ Defines a tool that model can call to access external knowledge.
 <b>Signature:</b>
 
 ```typescript
-<<<<<<< HEAD
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool | URLContextTool;
-||||||| a4848b401
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool;
-=======
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool;
->>>>>>> main
+export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
 ```
 
 ## TypedSchema
