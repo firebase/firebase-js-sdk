@@ -193,7 +193,6 @@ describe('Generate Content', function () {
         });
       });
 
-<<<<<<< HEAD
       describe('URL Context', async () => {
         // URL Context is not supported in Google AI for gemini-2.0-flash
         if (
@@ -318,8 +317,8 @@ describe('Generate Content', function () {
             expect(groundingMetadata?.groundingChunks).to.exist;
           }
         });
-||||||| a4848b401
-=======
+      });
+
       it('generateContent: code execution', async () => {
         const model = getGenerativeModel(testConfig.ai, {
           model: testConfig.model,
@@ -344,7 +343,6 @@ describe('Generate Content', function () {
           .true;
         expect(parts?.some(part => part.codeExecutionResult?.output != null)).to
           .be.true;
->>>>>>> main
       });
 
       it('generateContentStream: text input, text output', async () => {
