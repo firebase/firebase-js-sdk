@@ -239,7 +239,11 @@ export interface RequestOptions {
  * Defines a tool that model can call to access external knowledge.
  * @public
  */
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool | URLContextTool;
+export type Tool =
+  | FunctionDeclarationsTool
+  | GoogleSearchTool
+  | CodeExecutionTool
+  | URLContextTool;
 
 /**
  * Structured representation of a function declaration as defined by the
@@ -285,8 +289,6 @@ export interface GoogleSearchTool {
   /**
    * Specifies the Google Search configuration.
    * Currently, this is an empty object, but it's reserved for future configuration options.
-   * Specifies the Google Search configuration. Currently, this is an empty object, but it's
-   * reserved for future configuration options.
    *
    * When using this feature, you are required to comply with the "Grounding with Google Search"
    * usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-search | Gemini Developer API}
@@ -294,6 +296,19 @@ export interface GoogleSearchTool {
    * section within the Service Specific Terms).
    */
   googleSearch: GoogleSearch;
+}
+
+/**
+ * A tool that enables the model to use code execution.
+ *
+ * @public
+ */
+export interface CodeExecutionTool {
+  /**
+   * Specifies the Google Search configuration.
+   * Currently, this is an empty object, but it's reserved for future configuration options.
+   */
+  codeExecution: {};
 }
 
 /**
