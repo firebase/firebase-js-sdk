@@ -198,16 +198,16 @@ async function generateDocs(
     `"mainEntryPointFilePath": "<projectFolder>/dist/esm/index.doc.d.ts"`
   );
 
-  // TODO: Throw error if path doesn't exist once all packages add markdown support.
-  const apiJsonDirectories = (
+  /**
+   * Exclude compat as this script is only for modular docgen.
+   */
+  const packageDirectories = (
     await mapWorkspaceToPackages([`${projectRoot}/packages/*`])
-  ).filter(
-    path => fs.existsSync(join(path, 'temp')) && !path.includes('-compat')
-  );
+  ).filter(path => fs.existsSync(path) && !path.includes('-compat'));
 
   try {
     console.log(`Deleting old temp directories in each package.`);
-    for (const dir of apiJsonDirectories) {
+    for (const dir of packageDirectories) {
       fs.rmSync(join(dir, 'temp'), { recursive: true, force: true });
     }
 
@@ -259,17 +259,19 @@ async function generateDocs(
 
   fs.mkdirSync(tmpDir);
 
+  const apiJsonDirectories = packageDirectories
+    .map(path => join(path, 'temp'))
+    .filter(path => fs.existsSync(path));
   for (const dir of apiJsonDirectories) {
-    const pkgTmpDir = join(dir, 'temp');
     const paths = await new Promise<string[]>(resolve =>
-      glob(`${pkgTmpDir}/*.api.json`, (err, paths) => {
+      glob(`${dir}/*.api.json`, (err, paths) => {
         if (err) throw err;
         resolve(paths);
       })
     );
 
     if (paths.length === 0) {
-      throw Error(`*.api.json file is missing in ${pkgTmpDir}`);
+      throw Error(`*.api.json file is missing in ${dir}`);
     }
 
     // there will be only 1 api.json file
