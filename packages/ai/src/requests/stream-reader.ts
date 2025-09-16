@@ -28,7 +28,7 @@ import { createEnhancedContentResponse } from './response-helpers';
 import * as GoogleAIMapper from '../googleai-mappers';
 import { GoogleAIGenerateContentResponse } from '../types/googleai';
 import { ApiSettings } from '../types/internal';
-import { BackendType } from '../public-types';
+import { BackendType, URLContextMetadata } from '../public-types';
 
 const responseLineRE = /^data\: (.*)(?:\n\n|\r\r|\r\n\r\n)/;
 
@@ -192,8 +192,15 @@ export function aggregateResponses(
           candidate.safetyRatings;
         aggregatedResponse.candidates[i].groundingMetadata =
           candidate.groundingMetadata;
-        aggregatedResponse.candidates[i].urlContextMetadata =
-          candidate.urlContextMetadata;
+
+        // The urlContextMetadata object is defined in the first chunk of the response stream.
+        // In all subsequent chunks, the urlContextMetadata object will be undefined. We need to
+        // make sure that we don't overwrite the first value urlContextMetadata object with undefined.
+        // FIXME: What happens if we receive a second, valid urlContextMetadata object?
+        const urlContextMetadata = candidate.urlContextMetadata as unknown;
+        if (typeof urlContextMetadata === 'object' && urlContextMetadata !== null && Object.keys(urlContextMetadata).length > 0) {
+          aggregatedResponse.candidates[i].urlContextMetadata = urlContextMetadata as URLContextMetadata;
+        }
 
         /**
          * Candidates should always have content and parts, but this handles
