@@ -1305,13 +1305,7 @@ export interface ThinkingConfig {
 }
 
 // @public
-<<<<<<< HEAD
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool | URLContextTool;
-||||||| a4848b401
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool;
-=======
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool;
->>>>>>> main
+export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
 
 // @public
 export interface ToolConfig {
