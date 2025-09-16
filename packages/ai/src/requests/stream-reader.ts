@@ -192,6 +192,8 @@ export function aggregateResponses(
           candidate.safetyRatings;
         aggregatedResponse.candidates[i].groundingMetadata =
           candidate.groundingMetadata;
+        aggregatedResponse.candidates[i].urlContextMetadata =
+          candidate.urlContextMetadata;
 
         /**
          * Candidates should always have content and parts, but this handles

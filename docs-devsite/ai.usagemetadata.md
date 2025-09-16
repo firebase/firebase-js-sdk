@@ -27,6 +27,8 @@ export interface UsageMetadata
 |  [promptTokenCount](./ai.usagemetadata.md#usagemetadataprompttokencount) | number |  |
 |  [promptTokensDetails](./ai.usagemetadata.md#usagemetadataprompttokensdetails) | [ModalityTokenCount](./ai.modalitytokencount.md#modalitytokencount_interface)<!-- -->\[\] |  |
 |  [thoughtsTokenCount](./ai.usagemetadata.md#usagemetadatathoughtstokencount) | number | The number of tokens used by the model's internal "thinking" process. |
+|  [toolUsePromptTokenCount](./ai.usagemetadata.md#usagemetadatatooluseprompttokencount) | number | The number of tokens in the results from tool executions, which are provided back to the model as input. |
+|  [toolUsePromptTokensDetails](./ai.usagemetadata.md#usagemetadatatooluseprompttokensdetails) | [ModalityTokenCount](./ai.modalitytokencount.md#modalitytokencount_interface)<!-- -->\[\] | A list of tokens used by tools whose usage was triggered from a prompt, broken down by modality. |
 |  [totalTokenCount](./ai.usagemetadata.md#usagemetadatatotaltokencount) | number |  |
 
 ## UsageMetadata.candidatesTokenCount
@@ -69,6 +71,26 @@ The number of tokens used by the model's internal "thinking" process.
 
 ```typescript
 thoughtsTokenCount?: number;
+```
+
+## UsageMetadata.toolUsePromptTokenCount
+
+The number of tokens in the results from tool executions, which are provided back to the model as input.
+
+<b>Signature:</b>
+
+```typescript
+toolUsePromptTokenCount?: number;
+```
+
+## UsageMetadata.toolUsePromptTokensDetails
+
+A list of tokens used by tools whose usage was triggered from a prompt, broken down by modality.
+
+<b>Signature:</b>
+
+```typescript
+toolUsePromptTokensDetails?: ModalityTokenCount[];
 ```
 
 ## UsageMetadata.totalTokenCount

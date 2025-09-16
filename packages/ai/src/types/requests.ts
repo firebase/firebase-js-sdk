@@ -239,7 +239,7 @@ export interface RequestOptions {
  * Defines a tool that model can call to access external knowledge.
  * @public
  */
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool;
+export type Tool = FunctionDeclarationsTool | GoogleSearchTool | URLContextTool;
 
 /**
  * Structured representation of a function declaration as defined by the
@@ -304,6 +304,29 @@ export interface GoogleSearchTool {
  * @public
  */
 export interface GoogleSearch {}
+
+/**
+ * A tool that allows you to provide additional context to the models in the form of URLs.
+ * By including URLs in your request, the Gemini model will access the content from those pages
+ * to inform and enhance its response.
+ *
+ * @public
+ */
+export interface URLContextTool {
+  /**
+   * Specifies the URL Context configuration.
+   */
+  urlContext: URLContext;
+}
+
+/**
+ * Specifies the URL Context configuration.
+ *
+ * @remarks Currently, this is an empty object, but it's reserved for future configuration.
+ *
+ * @public
+ */
+export interface URLContext {}
 
 /**
  * A `FunctionDeclarationsTool` is a piece of code that enables the system to

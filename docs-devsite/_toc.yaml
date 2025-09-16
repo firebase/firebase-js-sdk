@@ -192,6 +192,14 @@ toc:
     path: /docs/reference/js/ai.thinkingconfig.md
   - title: ToolConfig
     path: /docs/reference/js/ai.toolconfig.md
+  - title: URLContext
+    path: /docs/reference/js/ai.urlcontext.md
+  - title: URLContextMetadata
+    path: /docs/reference/js/ai.urlcontextmetadata.md
+  - title: URLContextTool
+    path: /docs/reference/js/ai.urlcontexttool.md
+  - title: URLMetadata
+    path: /docs/reference/js/ai.urlmetadata.md
   - title: UsageMetadata
     path: /docs/reference/js/ai.usagemetadata.md
   - title: VertexAIBackend

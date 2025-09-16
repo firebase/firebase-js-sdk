@@ -375,6 +375,8 @@ export interface GenerateContentCandidate {
     index: number;
     // (undocumented)
     safetyRatings?: SafetyRating[];
+    // (undocumented)
+    urlContextMetadata?: URLContextMetadata;
 }
 
 // @public
@@ -523,6 +525,8 @@ export interface GoogleAIGenerateContentCandidate {
     index: number;
     // (undocumented)
     safetyRatings?: SafetyRating[];
+    // (undocumented)
+    urlContextMetadata?: URLContextMetadata;
 }
 
 // Warning: (ae-internal-missing-underscore) The name "GoogleAIGenerateContentResponse" should be prefixed with an underscore because the declaration is marked as @internal
@@ -1199,7 +1203,7 @@ export interface ThinkingConfig {
 }
 
 // @public
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool;
+export type Tool = FunctionDeclarationsTool | GoogleSearchTool | URLContextTool;
 
 // @public
 export interface ToolConfig {
@@ -1209,6 +1213,38 @@ export interface ToolConfig {
 
 // @public
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
+
+// @public
+export interface URLContext {
+}
+
+// @public
+export interface URLContextMetadata {
+    urlMetadata: URLMetadata[];
+}
+
+// @public
+export interface URLContextTool {
+    urlContext: URLContext;
+}
+
+// @public
+export interface URLMetadata {
+    retrievedUrl?: string;
+    urlRetrievalStatus?: URLRetrievalStatus;
+}
+
+// @public
+export const URLRetrievalStatus: {
+    URL_RETRIEVAL_STATUS_UNSPECIFIED: string;
+    URL_RETRIEVAL_STATUS_SUCCESS: string;
+    URL_RETRIEVAL_STATUS_ERROR: string;
+    URL_RETRIEVAL_STATUS_PAYWALL: string;
+    URL_RETRIEVAL_STATUS_UNSAFE: string;
+};
+
+// @public
+export type URLRetrievalStatus = (typeof URLRetrievalStatus)[keyof typeof URLRetrievalStatus];
 
 // @public
 export interface UsageMetadata {
@@ -1221,6 +1257,8 @@ export interface UsageMetadata {
     // (undocumented)
     promptTokensDetails?: ModalityTokenCount[];
     thoughtsTokenCount?: number;
+    toolUsePromptTokenCount?: number;
+    toolUsePromptTokensDetails?: ModalityTokenCount[];
     // (undocumented)
     totalTokenCount: number;
 }
