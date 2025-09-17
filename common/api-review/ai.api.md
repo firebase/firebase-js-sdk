@@ -133,6 +133,7 @@ export class BooleanSchema extends Schema {
 
 // @public
 export class ChatSession {
+    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     getHistory(): Promise<Content[]>;
     // (undocumented)
@@ -145,7 +146,7 @@ export class ChatSession {
     sendMessageStream(request: string | Array<string | Part>): Promise<GenerateContentStreamResult>;
     }
 
-// @public
+// @beta
 export interface ChromeAdapter {
     // @internal (undocumented)
     countTokens(request: CountTokensRequest): Promise<Response>;
@@ -172,6 +173,39 @@ export interface Citation {
 export interface CitationMetadata {
     // (undocumented)
     citations: Citation[];
+}
+
+// @public
+export interface CodeExecutionResult {
+    outcome?: Outcome;
+    output?: string;
+}
+
+// @public
+export interface CodeExecutionResultPart {
+    // (undocumented)
+    codeExecutionResult?: CodeExecutionResult;
+    // (undocumented)
+    executableCode?: never;
+    // (undocumented)
+    fileData: never;
+    // (undocumented)
+    functionCall?: never;
+    // (undocumented)
+    functionResponse?: never;
+    // (undocumented)
+    inlineData?: never;
+    // (undocumented)
+    text?: never;
+    // (undocumented)
+    thought?: never;
+    // @internal (undocumented)
+    thoughtSignature?: never;
+}
+
+// @public
+export interface CodeExecutionTool {
+    codeExecution: {};
 }
 
 // @public
@@ -238,6 +272,34 @@ export interface ErrorDetails {
 }
 
 // @public
+export interface ExecutableCode {
+    code?: string;
+    language?: Language;
+}
+
+// @public
+export interface ExecutableCodePart {
+    // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: ExecutableCode;
+    // (undocumented)
+    fileData: never;
+    // (undocumented)
+    functionCall?: never;
+    // (undocumented)
+    functionResponse?: never;
+    // (undocumented)
+    inlineData?: never;
+    // (undocumented)
+    text?: never;
+    // (undocumented)
+    thought?: never;
+    // @internal (undocumented)
+    thoughtSignature?: never;
+}
+
+// @public
 export interface FileData {
     // (undocumented)
     fileUri: string;
@@ -247,6 +309,10 @@ export interface FileData {
 
 // @public
 export interface FileDataPart {
+    // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
     // (undocumented)
     fileData: FileData;
     // (undocumented)
@@ -309,6 +375,10 @@ export type FunctionCallingMode = (typeof FunctionCallingMode)[keyof typeof Func
 // @public
 export interface FunctionCallPart {
     // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
+    // (undocumented)
     functionCall: FunctionCall;
     // (undocumented)
     functionResponse?: never;
@@ -345,6 +415,10 @@ export interface FunctionResponse {
 
 // @public
 export interface FunctionResponsePart {
+    // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
     // (undocumented)
     functionCall?: never;
     // (undocumented)
@@ -447,6 +521,7 @@ export interface GenerativeContentBlob {
 
 // @public
 export class GenerativeModel extends AIModel {
+    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions, chromeAdapter?: ChromeAdapter | undefined);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
@@ -469,6 +544,8 @@ export class GenerativeModel extends AIModel {
 // @public
 export function getAI(app?: FirebaseApp, options?: AIOptions): AI;
 
+// Warning: (ae-incompatible-release-tags) The symbol "getGenerativeModel" is marked as @public, but its signature references "HybridParams" which is marked as @beta
+//
 // @public
 export function getGenerativeModel(ai: AI, modelParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 
@@ -622,7 +699,7 @@ export const HarmSeverity: {
 // @public
 export type HarmSeverity = (typeof HarmSeverity)[keyof typeof HarmSeverity];
 
-// @public
+// @beta
 export interface HybridParams {
     inCloudParams?: ModelParams;
     mode: InferenceMode;
@@ -722,18 +799,23 @@ export interface ImagenSafetySettings {
     safetyFilterLevel?: ImagenSafetyFilterLevel;
 }
 
-// @public
+// @beta
 export const InferenceMode: {
     readonly PREFER_ON_DEVICE: "prefer_on_device";
     readonly ONLY_ON_DEVICE: "only_on_device";
     readonly ONLY_IN_CLOUD: "only_in_cloud";
+    readonly PREFER_IN_CLOUD: "prefer_in_cloud";
 };
 
-// @public
+// @beta
 export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
 
 // @public
 export interface InlineDataPart {
+    // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
     // (undocumented)
     functionCall?: never;
     // (undocumented)
@@ -755,6 +837,15 @@ export class IntegerSchema extends Schema {
 }
 
 // @public
+export const Language: {
+    UNSPECIFIED: string;
+    PYTHON: string;
+};
+
+// @public
+export type Language = (typeof Language)[keyof typeof Language];
+
+// @beta
 export interface LanguageModelCreateCoreOptions {
     // (undocumented)
     expectedInputs?: LanguageModelExpected[];
@@ -764,7 +855,7 @@ export interface LanguageModelCreateCoreOptions {
     topK?: number;
 }
 
-// @public
+// @beta
 export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptions {
     // (undocumented)
     initialPrompts?: LanguageModelMessage[];
@@ -772,7 +863,7 @@ export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptio
     signal?: AbortSignal;
 }
 
-// @public
+// @beta
 export interface LanguageModelExpected {
     // (undocumented)
     languages?: string[];
@@ -780,7 +871,7 @@ export interface LanguageModelExpected {
     type: LanguageModelMessageType;
 }
 
-// @public
+// @beta
 export interface LanguageModelMessage {
     // (undocumented)
     content: LanguageModelMessageContent[];
@@ -788,7 +879,7 @@ export interface LanguageModelMessage {
     role: LanguageModelMessageRole;
 }
 
-// @public
+// @beta
 export interface LanguageModelMessageContent {
     // (undocumented)
     type: LanguageModelMessageType;
@@ -796,16 +887,16 @@ export interface LanguageModelMessageContent {
     value: LanguageModelMessageContentValue;
 }
 
-// @public
+// @beta
 export type LanguageModelMessageContentValue = ImageBitmapSource | AudioBuffer | BufferSource | string;
 
-// @public
+// @beta
 export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 
-// @public
+// @beta
 export type LanguageModelMessageType = 'text' | 'image' | 'audio';
 
-// @public
+// @beta
 export interface LanguageModelPromptOptions {
     // (undocumented)
     responseConstraint?: object;
@@ -959,7 +1050,7 @@ export interface ObjectSchemaRequest extends SchemaRequest {
     type: 'object';
 }
 
-// @public
+// @beta
 export interface OnDeviceParams {
     // (undocumented)
     createOptions?: LanguageModelCreateOptions;
@@ -968,7 +1059,18 @@ export interface OnDeviceParams {
 }
 
 // @public
-export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart;
+export const Outcome: {
+    UNSPECIFIED: string;
+    OK: string;
+    FAILED: string;
+    DEADLINE_EXCEEDED: string;
+};
+
+// @public
+export type Outcome = (typeof Outcome)[keyof typeof Outcome];
+
+// @public
+export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart | ExecutableCodePart | CodeExecutionResultPart;
 
 // @public
 export const POSSIBLE_ROLES: readonly ["user", "model", "function", "system"];
@@ -1179,6 +1281,10 @@ export class StringSchema extends Schema {
 // @public
 export interface TextPart {
     // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
+    // (undocumented)
     functionCall?: never;
     // (undocumented)
     functionResponse?: never;
@@ -1199,7 +1305,7 @@ export interface ThinkingConfig {
 }
 
 // @public
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool;
+export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool;
 
 // @public
 export interface ToolConfig {

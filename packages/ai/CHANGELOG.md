@@ -14,7 +14,12 @@
 
 - [`9b63cd6`](https://github.com/firebase/firebase-js-sdk/commit/9b63cd60efcd02b64b0d37f81affb3eabf70f9eb) [#9192](https://github.com/firebase/firebase-js-sdk/pull/9192) - Add `thoughtSummary()` convenience method to `EnhancedGenerateContentResponse`.
 
-- [`02280d7`](https://github.com/firebase/firebase-js-sdk/commit/02280d747863445fa1c21dfda01030412a6cecff) [#9201](https://github.com/firebase/firebase-js-sdk/pull/9201) - Add App Check limited use token option to `getAI()`.
+- [`02280d7`](https://github.com/firebase/firebase-js-sdk/commit/02280d747863445fa1c21dfda01030412a6cecff) [#9201](https://github.com/firebase/firebase-js-sdk/pull/9201) - Add support for limited-use tokens with Firebase App Check.
+  These limited-use tokens are required for an upcoming optional feature called
+  _replay protection_. We recommend
+  [enabling the usage of limited-use tokens](https://firebase.google.com/docs/ai-logic/app-check)
+  now so that when replay protection becomes available, you can enable it sooner
+  because more of your users will be on versions of your app that send limited-use tokens.
 
 ### Patch Changes
 

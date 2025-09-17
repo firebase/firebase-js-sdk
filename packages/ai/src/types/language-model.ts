@@ -50,9 +50,8 @@ export enum Availability {
 }
 
 /**
- * <b>(EXPERIMENTAL)</b>
  * Configures the creation of an on-device language model session.
- * @public
+ * @beta
  */
 export interface LanguageModelCreateCoreOptions {
   topK?: number;
@@ -61,9 +60,8 @@ export interface LanguageModelCreateCoreOptions {
 }
 
 /**
- * <b>(EXPERIMENTAL)</b>
  * Configures the creation of an on-device language model session.
- * @public
+ * @beta
  */
 export interface LanguageModelCreateOptions
   extends LanguageModelCreateCoreOptions {
@@ -72,9 +70,8 @@ export interface LanguageModelCreateOptions
 }
 
 /**
- * <b>(EXPERIMENTAL)</b>
  * Options for an on-device language model prompt.
- * @public
+ * @beta
  */
 export interface LanguageModelPromptOptions {
   responseConstraint?: object;
@@ -82,25 +79,22 @@ export interface LanguageModelPromptOptions {
 }
 
 /**
- * <b>(EXPERIMENTAL)</b>
  * Options for the expected inputs for an on-device language model.
- * @public
+ * @beta
  */ export interface LanguageModelExpected {
   type: LanguageModelMessageType;
   languages?: string[];
 }
 
 /**
- * <b>(EXPERIMENTAL)</b>
  * An on-device language model prompt.
- * @public
+ * @beta
  */
 export type LanguageModelPrompt = LanguageModelMessage[];
 
 /**
- * <b>(EXPERIMENTAL)</b>
  * An on-device language model message.
- * @public
+ * @beta
  */
 export interface LanguageModelMessage {
   role: LanguageModelMessageRole;
@@ -108,9 +102,8 @@ export interface LanguageModelMessage {
 }
 
 /**
- * <b>(EXPERIMENTAL)</b>
  * An on-device language model content object.
- * @public
+ * @beta
  */
 export interface LanguageModelMessageContent {
   type: LanguageModelMessageType;
@@ -118,23 +111,20 @@ export interface LanguageModelMessageContent {
 }
 
 /**
- * <b>(EXPERIMENTAL)</b>
  * Allowable roles for on-device language model usage.
- * @public
+ * @beta
  */
 export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 
 /**
- * <b>(EXPERIMENTAL)</b>
  * Allowable types for on-device language model messages.
- * @public
+ * @beta
  */
 export type LanguageModelMessageType = 'text' | 'image' | 'audio';
 
 /**
- * <b>(EXPERIMENTAL)</b>
  * Content formats that can be provided as on-device message content.
- * @public
+ * @beta
  */
 export type LanguageModelMessageContentValue =
   | ImageBitmapSource
