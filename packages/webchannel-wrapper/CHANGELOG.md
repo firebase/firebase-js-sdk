@@ -1,5 +1,11 @@
 # @firebase/webchannel-wrapper
 
+## 1.0.5
+
+### Patch Changes
+
+- [`43276b0`](https://github.com/firebase/firebase-js-sdk/commit/43276b0414ea5a73e8d8f7e3b80275d8b910102f) [#9242](https://github.com/firebase/firebase-js-sdk/pull/9242) - Increased the buffering-proxy detection timeout to minimize the false-positive rate. Updating WebChannel to ignore duplicate messages received from the server. Fix for https://github.com/firebase/firebase-js-sdk/issues/8250.
+
 ## 1.0.4
 
 ### Patch Changes
