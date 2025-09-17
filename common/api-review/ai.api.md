@@ -133,6 +133,7 @@ export class BooleanSchema extends Schema {
 
 // @public
 export class ChatSession {
+    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     getHistory(): Promise<Content[]>;
     // (undocumented)
@@ -145,7 +146,7 @@ export class ChatSession {
     sendMessageStream(request: string | Array<string | Part>): Promise<GenerateContentStreamResult>;
     }
 
-// @public
+// @beta
 export interface ChromeAdapter {
     // @internal (undocumented)
     countTokens(request: CountTokensRequest): Promise<Response>;
@@ -520,6 +521,7 @@ export interface GenerativeContentBlob {
 
 // @public
 export class GenerativeModel extends AIModel {
+    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions, chromeAdapter?: ChromeAdapter | undefined);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
@@ -542,6 +544,8 @@ export class GenerativeModel extends AIModel {
 // @public
 export function getAI(app?: FirebaseApp, options?: AIOptions): AI;
 
+// Warning: (ae-incompatible-release-tags) The symbol "getGenerativeModel" is marked as @public, but its signature references "HybridParams" which is marked as @beta
+//
 // @public
 export function getGenerativeModel(ai: AI, modelParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 
@@ -695,7 +699,7 @@ export const HarmSeverity: {
 // @public
 export type HarmSeverity = (typeof HarmSeverity)[keyof typeof HarmSeverity];
 
-// @public
+// @beta
 export interface HybridParams {
     inCloudParams?: ModelParams;
     mode: InferenceMode;
@@ -795,7 +799,7 @@ export interface ImagenSafetySettings {
     safetyFilterLevel?: ImagenSafetyFilterLevel;
 }
 
-// @public
+// @beta
 export const InferenceMode: {
     readonly PREFER_ON_DEVICE: "prefer_on_device";
     readonly ONLY_ON_DEVICE: "only_on_device";
@@ -803,7 +807,7 @@ export const InferenceMode: {
     readonly PREFER_IN_CLOUD: "prefer_in_cloud";
 };
 
-// @public
+// @beta
 export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
 
 // @public
@@ -841,7 +845,7 @@ export const Language: {
 // @public
 export type Language = (typeof Language)[keyof typeof Language];
 
-// @public
+// @beta
 export interface LanguageModelCreateCoreOptions {
     // (undocumented)
     expectedInputs?: LanguageModelExpected[];
@@ -851,7 +855,7 @@ export interface LanguageModelCreateCoreOptions {
     topK?: number;
 }
 
-// @public
+// @beta
 export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptions {
     // (undocumented)
     initialPrompts?: LanguageModelMessage[];
@@ -859,7 +863,7 @@ export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptio
     signal?: AbortSignal;
 }
 
-// @public
+// @beta
 export interface LanguageModelExpected {
     // (undocumented)
     languages?: string[];
@@ -867,7 +871,7 @@ export interface LanguageModelExpected {
     type: LanguageModelMessageType;
 }
 
-// @public
+// @beta
 export interface LanguageModelMessage {
     // (undocumented)
     content: LanguageModelMessageContent[];
@@ -875,7 +879,7 @@ export interface LanguageModelMessage {
     role: LanguageModelMessageRole;
 }
 
-// @public
+// @beta
 export interface LanguageModelMessageContent {
     // (undocumented)
     type: LanguageModelMessageType;
@@ -883,16 +887,16 @@ export interface LanguageModelMessageContent {
     value: LanguageModelMessageContentValue;
 }
 
-// @public
+// @beta
 export type LanguageModelMessageContentValue = ImageBitmapSource | AudioBuffer | BufferSource | string;
 
-// @public
+// @beta
 export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 
-// @public
+// @beta
 export type LanguageModelMessageType = 'text' | 'image' | 'audio';
 
-// @public
+// @beta
 export interface LanguageModelPromptOptions {
     // (undocumented)
     responseConstraint?: object;
@@ -1046,7 +1050,7 @@ export interface ObjectSchemaRequest extends SchemaRequest {
     type: 'object';
 }
 
-// @public
+// @beta
 export interface OnDeviceParams {
     // (undocumented)
     createOptions?: LanguageModelCreateOptions;
