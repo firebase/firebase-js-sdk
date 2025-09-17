@@ -10,7 +10,10 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # LanguageModelCreateCoreOptions interface
-<b>(EXPERIMENTAL)</b> Configures the creation of an on-device language model session.
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Configures the creation of an on-device language model session.
 
 <b>Signature:</b>
 
@@ -22,11 +25,14 @@ export interface LanguageModelCreateCoreOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [expectedInputs](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionsexpectedinputs) | [LanguageModelExpected](./ai.languagemodelexpected.md#languagemodelexpected_interface)<!-- -->\[\] |  |
-|  [temperature](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionstemperature) | number |  |
-|  [topK](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionstopk) | number |  |
+|  [expectedInputs](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionsexpectedinputs) | [LanguageModelExpected](./ai.languagemodelexpected.md#languagemodelexpected_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> |
+|  [temperature](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionstemperature) | number | <b><i>(Public Preview)</i></b> |
+|  [topK](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionstopk) | number | <b><i>(Public Preview)</i></b> |
 
 ## LanguageModelCreateCoreOptions.expectedInputs
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 <b>Signature:</b>
 
@@ -36,6 +42,9 @@ expectedInputs?: LanguageModelExpected[];
 
 ## LanguageModelCreateCoreOptions.temperature
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 <b>Signature:</b>
 
 ```typescript
@@ -43,6 +52,9 @@ temperature?: number;
 ```
 
 ## LanguageModelCreateCoreOptions.topK
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 <b>Signature:</b>
 

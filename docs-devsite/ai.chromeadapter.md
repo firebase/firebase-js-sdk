@@ -10,7 +10,10 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ChromeAdapter interface
-<b>(EXPERIMENTAL)</b> Defines an inference "backend" that uses Chrome's on-device model, and encapsulates logic for detecting when on-device inference is possible.
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Defines an inference "backend" that uses Chrome's on-device model, and encapsulates logic for detecting when on-device inference is possible.
 
 These methods should not be called directly by the user.
 
@@ -24,11 +27,14 @@ export interface ChromeAdapter
 
 |  Method | Description |
 |  --- | --- |
-|  [generateContent(request)](./ai.chromeadapter.md#chromeadaptergeneratecontent) | Generates content using on-device inference. |
-|  [generateContentStream(request)](./ai.chromeadapter.md#chromeadaptergeneratecontentstream) | Generates a content stream using on-device inference. |
-|  [isAvailable(request)](./ai.chromeadapter.md#chromeadapterisavailable) | Checks if the on-device model is capable of handling a given request. |
+|  [generateContent(request)](./ai.chromeadapter.md#chromeadaptergeneratecontent) | <b><i>(Public Preview)</i></b> Generates content using on-device inference. |
+|  [generateContentStream(request)](./ai.chromeadapter.md#chromeadaptergeneratecontentstream) | <b><i>(Public Preview)</i></b> Generates a content stream using on-device inference. |
+|  [isAvailable(request)](./ai.chromeadapter.md#chromeadapterisavailable) | <b><i>(Public Preview)</i></b> Checks if the on-device model is capable of handling a given request. |
 
 ## ChromeAdapter.generateContent()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Generates content using on-device inference.
 
@@ -52,6 +58,9 @@ Promise&lt;Response&gt;
 
 ## ChromeAdapter.generateContentStream()
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Generates a content stream using on-device inference.
 
 This is comparable to [GenerativeModel.generateContentStream()](./ai.generativemodel.md#generativemodelgeneratecontentstream) for generating a content stream using in-cloud inference.
@@ -73,6 +82,9 @@ generateContentStream(request: GenerateContentRequest): Promise<Response>;
 Promise&lt;Response&gt;
 
 ## ChromeAdapter.isAvailable()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Checks if the on-device model is capable of handling a given request.
 

@@ -356,10 +356,9 @@ export interface FunctionCallingConfig {
 }
 
 /**
- * <b>(EXPERIMENTAL)</b>
  * Encapsulates configuration for on-device inference.
  *
- * @public
+ * @beta
  */
 export interface OnDeviceParams {
   createOptions?: LanguageModelCreateOptions;
@@ -367,9 +366,8 @@ export interface OnDeviceParams {
 }
 
 /**
- * <b>(EXPERIMENTAL)</b>
  * Configures hybrid inference.
- * @public
+ * @beta
  */
 export interface HybridParams {
   /**

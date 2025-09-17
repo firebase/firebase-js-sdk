@@ -345,7 +345,6 @@ export type ResponseModality =
   (typeof ResponseModality)[keyof typeof ResponseModality];
 
 /**
- * <b>(EXPERIMENTAL)</b>
  * Determines whether inference happens on-device or in-cloud.
  *
  * @remarks
@@ -364,7 +363,7 @@ export type ResponseModality =
  * cloud-hosted model. If not available, the SDK will fall back to an
  * on-device model.
  *
- * @public
+ * @beta
  */
 export const InferenceMode = {
   'PREFER_ON_DEVICE': 'prefer_on_device',
@@ -374,10 +373,9 @@ export const InferenceMode = {
 } as const;
 
 /**
- * <b>(EXPERIMENTAL)</b>
  * Determines whether inference happens on-device or in-cloud.
  *
- * @public
+ * @beta
  */
 export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
 

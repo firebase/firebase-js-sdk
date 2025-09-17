@@ -18,13 +18,13 @@
 import { CountTokensRequest, GenerateContentRequest } from './requests';
 
 /**
- * <b>(EXPERIMENTAL)</b> Defines an inference "backend" that uses Chrome's on-device model,
+ * Defines an inference "backend" that uses Chrome's on-device model,
  * and encapsulates logic for detecting when on-device inference is
  * possible.
  *
  * These methods should not be called directly by the user.
  *
- * @public
+ * @beta
  */
 export interface ChromeAdapter {
   /**
