@@ -10,7 +10,10 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # OnDeviceParams interface
-<b>(EXPERIMENTAL)</b> Encapsulates configuration for on-device inference.
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Encapsulates configuration for on-device inference.
 
 <b>Signature:</b>
 
@@ -22,10 +25,13 @@ export interface OnDeviceParams
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [createOptions](./ai.ondeviceparams.md#ondeviceparamscreateoptions) | [LanguageModelCreateOptions](./ai.languagemodelcreateoptions.md#languagemodelcreateoptions_interface) |  |
-|  [promptOptions](./ai.ondeviceparams.md#ondeviceparamspromptoptions) | [LanguageModelPromptOptions](./ai.languagemodelpromptoptions.md#languagemodelpromptoptions_interface) |  |
+|  [createOptions](./ai.ondeviceparams.md#ondeviceparamscreateoptions) | [LanguageModelCreateOptions](./ai.languagemodelcreateoptions.md#languagemodelcreateoptions_interface) | <b><i>(Public Preview)</i></b> |
+|  [promptOptions](./ai.ondeviceparams.md#ondeviceparamspromptoptions) | [LanguageModelPromptOptions](./ai.languagemodelpromptoptions.md#languagemodelpromptoptions_interface) | <b><i>(Public Preview)</i></b> |
 
 ## OnDeviceParams.createOptions
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 <b>Signature:</b>
 
@@ -34,6 +40,9 @@ createOptions?: LanguageModelCreateOptions;
 ```
 
 ## OnDeviceParams.promptOptions
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 <b>Signature:</b>
 

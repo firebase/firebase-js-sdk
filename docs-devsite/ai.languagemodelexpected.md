@@ -10,7 +10,10 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # LanguageModelExpected interface
-<b>(EXPERIMENTAL)</b> Options for the expected inputs for an on-device language model.
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Options for the expected inputs for an on-device language model.
 
 <b>Signature:</b>
 
@@ -22,10 +25,13 @@ export interface LanguageModelExpected
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [languages](./ai.languagemodelexpected.md#languagemodelexpectedlanguages) | string\[\] |  |
-|  [type](./ai.languagemodelexpected.md#languagemodelexpectedtype) | [LanguageModelMessageType](./ai.md#languagemodelmessagetype) |  |
+|  [languages](./ai.languagemodelexpected.md#languagemodelexpectedlanguages) | string\[\] | <b><i>(Public Preview)</i></b> |
+|  [type](./ai.languagemodelexpected.md#languagemodelexpectedtype) | [LanguageModelMessageType](./ai.md#languagemodelmessagetype) | <b><i>(Public Preview)</i></b> |
 
 ## LanguageModelExpected.languages
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 <b>Signature:</b>
 
@@ -34,6 +40,9 @@ languages?: string[];
 ```
 
 ## LanguageModelExpected.type
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 <b>Signature:</b>
 

@@ -10,7 +10,10 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # HybridParams interface
-<b>(EXPERIMENTAL)</b> Configures hybrid inference.
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Configures hybrid inference.
 
 <b>Signature:</b>
 
@@ -22,11 +25,14 @@ export interface HybridParams
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [inCloudParams](./ai.hybridparams.md#hybridparamsincloudparams) | [ModelParams](./ai.modelparams.md#modelparams_interface) | Optional. Specifies advanced params for in-cloud inference. |
-|  [mode](./ai.hybridparams.md#hybridparamsmode) | [InferenceMode](./ai.md#inferencemode) | Specifies on-device or in-cloud inference. Defaults to prefer on-device. |
-|  [onDeviceParams](./ai.hybridparams.md#hybridparamsondeviceparams) | [OnDeviceParams](./ai.ondeviceparams.md#ondeviceparams_interface) | Optional. Specifies advanced params for on-device inference. |
+|  [inCloudParams](./ai.hybridparams.md#hybridparamsincloudparams) | [ModelParams](./ai.modelparams.md#modelparams_interface) | <b><i>(Public Preview)</i></b> Optional. Specifies advanced params for in-cloud inference. |
+|  [mode](./ai.hybridparams.md#hybridparamsmode) | [InferenceMode](./ai.md#inferencemode) | <b><i>(Public Preview)</i></b> Specifies on-device or in-cloud inference. Defaults to prefer on-device. |
+|  [onDeviceParams](./ai.hybridparams.md#hybridparamsondeviceparams) | [OnDeviceParams](./ai.ondeviceparams.md#ondeviceparams_interface) | <b><i>(Public Preview)</i></b> Optional. Specifies advanced params for on-device inference. |
 
 ## HybridParams.inCloudParams
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Optional. Specifies advanced params for in-cloud inference.
 
@@ -38,6 +44,9 @@ inCloudParams?: ModelParams;
 
 ## HybridParams.mode
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Specifies on-device or in-cloud inference. Defaults to prefer on-device.
 
 <b>Signature:</b>
@@ -47,6 +56,9 @@ mode: InferenceMode;
 ```
 
 ## HybridParams.onDeviceParams
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Optional. Specifies advanced params for on-device inference.
 

@@ -22,12 +22,30 @@ export interface InlineDataPart
 
 |  Property | Type | Description |
 |  --- | --- | --- |
+|  [codeExecutionResult](./ai.inlinedatapart.md#inlinedatapartcodeexecutionresult) | never |  |
+|  [executableCode](./ai.inlinedatapart.md#inlinedatapartexecutablecode) | never |  |
 |  [functionCall](./ai.inlinedatapart.md#inlinedatapartfunctioncall) | never |  |
 |  [functionResponse](./ai.inlinedatapart.md#inlinedatapartfunctionresponse) | never |  |
 |  [inlineData](./ai.inlinedatapart.md#inlinedatapartinlinedata) | [GenerativeContentBlob](./ai.generativecontentblob.md#generativecontentblob_interface) |  |
 |  [text](./ai.inlinedatapart.md#inlinedataparttext) | never |  |
 |  [thought](./ai.inlinedatapart.md#inlinedatapartthought) | boolean |  |
 |  [videoMetadata](./ai.inlinedatapart.md#inlinedatapartvideometadata) | [VideoMetadata](./ai.videometadata.md#videometadata_interface) | Applicable if <code>inlineData</code> is a video. |
+
+## InlineDataPart.codeExecutionResult
+
+<b>Signature:</b>
+
+```typescript
+codeExecutionResult?: never;
+```
+
+## InlineDataPart.executableCode
+
+<b>Signature:</b>
+
+```typescript
+executableCode?: never;
+```
 
 ## InlineDataPart.functionCall
 
