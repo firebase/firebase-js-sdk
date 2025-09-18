@@ -1,5 +1,11 @@
 # @firebase/remote-config-types
 
+## 0.5.0
+
+### Minor Changes
+
+- [`120a308`](https://github.com/firebase/firebase-js-sdk/commit/120a30838da50f5ade4f634e97c34cbfcaff41ba) [#9221](https://github.com/firebase/firebase-js-sdk/pull/9221) - Added support for Realtime Remote Config for the web. This feature introduces a new `onConfigUpdate` API and allows web applications to receive near-instant configuration updates without requiring periodic polling.
+
 ## 0.4.0
 
 ### Minor Changes
