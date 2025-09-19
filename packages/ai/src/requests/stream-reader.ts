@@ -100,6 +100,11 @@ async function* generateResponseSequence(
       enhancedResponse = createEnhancedContentResponse(value);
     }
 
+    // Don't yield an empty parts response, skip it.
+    if (!enhancedResponse.candidates?.[0].content?.parts) {
+      continue;
+    }
+
     yield enhancedResponse;
   }
 }
@@ -197,15 +202,19 @@ export function aggregateResponses(
          * Candidates should always have content and parts, but this handles
          * possible malformed responses.
          */
-        if (candidate.content && candidate.content.parts) {
+        if (candidate.content) {
+          // Skip a candidate without parts.
+          if (!candidate.content.parts) {
+            continue;
+          }
           if (!aggregatedResponse.candidates[i].content) {
             aggregatedResponse.candidates[i].content = {
               role: candidate.content.role || 'user',
               parts: []
             };
           }
-          const newPart: Partial<Part> = {};
           for (const part of candidate.content.parts) {
+            const newPart: Part = { ...part };
             if (part.text !== undefined) {
               // The backend can send empty text parts. If these are sent back
               // (e.g. in chat history), the backend will respond with an error.
@@ -215,19 +224,11 @@ export function aggregateResponses(
               }
               newPart.text = part.text;
             }
-            if (part.functionCall) {
-              newPart.functionCall = part.functionCall;
-            }
-            if (Object.keys(newPart).length === 0) {
-              throw new AIError(
-                AIErrorCode.INVALID_CONTENT,
-                'Part should have at least one property, but there are none. This is likely caused ' +
-                  'by a malformed response from the backend.'
+            if (Object.keys(newPart).length > 0) {
+              aggregatedResponse.candidates[i].content.parts.push(
+                newPart as Part
               );
             }
-            aggregatedResponse.candidates[i].content.parts.push(
-              newPart as Part
-            );
           }
         }
       }
