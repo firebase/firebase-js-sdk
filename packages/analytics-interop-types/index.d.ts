@@ -29,6 +29,10 @@ export interface FirebaseAnalyticsInternal {
     eventParams?: { [key: string]: unknown },
     options?: AnalyticsCallOptions
   ): void;
+  setUserProperties: (
+    properties: { [key: string]: unknown },
+    options: AnalyticsCallOptions
+  ) => void;
 }
 
 export interface AnalyticsCallOptions {
