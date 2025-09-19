@@ -33,9 +33,9 @@ import {
   InstanceFactoryOptions
 } from '@firebase/component';
 import { ERROR_FACTORY, AnalyticsError } from './errors';
-import { logEvent } from './api';
+import { logEvent, setUserProperties } from './api';
 import { name, version } from '../package.json';
-import { AnalyticsCallOptions } from './public-types';
+import { AnalyticsCallOptions, CustomParams } from './public-types';
 import '@firebase/installations';
 
 declare global {
@@ -79,7 +79,11 @@ function registerAnalytics(): void {
           eventName: string,
           eventParams?: { [key: string]: unknown },
           options?: AnalyticsCallOptions
-        ) => logEvent(analytics, eventName, eventParams, options)
+        ) => logEvent(analytics, eventName, eventParams, options),
+        setUserProperties: (
+          properties: CustomParams,
+          options?: AnalyticsCallOptions
+        ) => setUserProperties(analytics, properties, options)
       };
     } catch (e) {
       throw ERROR_FACTORY.create(AnalyticsError.INTEROP_COMPONENT_REG_FAILED, {
