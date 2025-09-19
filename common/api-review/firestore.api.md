@@ -66,6 +66,34 @@ export function arrayUnion(...elements: unknown[]): FieldValue;
 export function average(field: string | FieldPath): AggregateField<number | null>;
 
 // @public
+export class BsonBinaryData {
+    constructor(subtype: number, data: Uint8Array);
+    // (undocumented)
+    readonly data: Uint8Array;
+    isEqual(other: BsonBinaryData): boolean;
+    // (undocumented)
+    readonly subtype: number;
+}
+
+// @public
+export class BsonObjectId {
+    constructor(value: string);
+    isEqual(other: BsonObjectId): boolean;
+    // (undocumented)
+    readonly value: string;
+}
+
+// @public
+export class BsonTimestamp {
+    constructor(seconds: number, increment: number);
+    // (undocumented)
+    readonly increment: number;
+    isEqual(other: BsonTimestamp): boolean;
+    // (undocumented)
+    readonly seconds: number;
+}
+
+// @public
 export class Bytes {
     static fromBase64String(base64: string): Bytes;
     static fromJSON(json: object): Bytes;
@@ -115,6 +143,14 @@ export function connectFirestoreEmulator(firestore: Firestore, host: string, por
 
 // @public
 export function count(): AggregateField<number>;
+
+// @public
+export class Decimal128Value {
+    constructor(value: string);
+    isEqual(other: Decimal128Value): boolean;
+    // (undocumented)
+    readonly stringValue: string;
+    }
 
 // @public
 export function deleteAllPersistentCacheIndexes(indexManager: PersistentCacheIndexManager): void;
@@ -359,6 +395,14 @@ export interface IndexField {
 export function initializeFirestore(app: FirebaseApp, settings: FirestoreSettings, databaseId?: string): Firestore;
 
 // @public
+export class Int32Value {
+    constructor(value: number);
+    isEqual(other: Int32Value): boolean;
+    // (undocumented)
+    readonly value: number;
+}
+
+// @public
 export function limit(limit: number): QueryLimitConstraint;
 
 // @public
@@ -387,6 +431,13 @@ export interface LoadBundleTaskProgress {
 }
 
 export { LogLevel }
+
+// @public
+export class MaxKey {
+    // (undocumented)
+    static instance(): MaxKey;
+    readonly type = "MaxKey";
+}
 
 // @public
 export interface MemoryCacheSettings {
@@ -424,6 +475,13 @@ export interface MemoryLruGarbageCollector {
 export function memoryLruGarbageCollector(settings?: {
     cacheSizeBytes?: number;
 }): MemoryLruGarbageCollector;
+
+// @public
+export class MinKey {
+    // (undocumented)
+    static instance(): MinKey;
+    readonly type = "MinKey";
+}
 
 // @public
 export function namedQuery(firestore: Firestore, name: string): Promise<Query | null>;
@@ -680,6 +738,16 @@ export class QueryStartAtConstraint extends QueryConstraint {
 
 // @public
 export function refEqual<AppModelType, DbModelType extends DocumentData>(left: DocumentReference<AppModelType, DbModelType> | CollectionReference<AppModelType, DbModelType>, right: DocumentReference<AppModelType, DbModelType> | CollectionReference<AppModelType, DbModelType>): boolean;
+
+// @public
+export class RegexValue {
+    constructor(pattern: string, options: string);
+    isEqual(other: RegexValue): boolean;
+    // (undocumented)
+    readonly options: string;
+    // (undocumented)
+    readonly pattern: string;
+}
 
 // @public
 export function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>, options?: TransactionOptions): Promise<T>;
