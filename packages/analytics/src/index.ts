@@ -82,7 +82,7 @@ function registerAnalytics(): void {
         ) => logEvent(analytics, eventName, eventParams, options),
         setUserProperties: (
           properties: CustomParams,
-          options: AnalyticsCallOptions
+          options?: AnalyticsCallOptions
         ) => setUserProperties(analytics, properties, options)
       };
     } catch (e) {

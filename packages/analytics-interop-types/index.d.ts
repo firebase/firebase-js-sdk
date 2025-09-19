@@ -31,7 +31,7 @@ export interface FirebaseAnalyticsInternal {
   ): void;
   setUserProperties: (
     properties: { [key: string]: unknown },
-    options: AnalyticsCallOptions
+    options?: AnalyticsCallOptions
   ) => void;
 }
 
