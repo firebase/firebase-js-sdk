@@ -43,7 +43,7 @@ jobs:
     - name: Setup Terraform
       if: ${{ fromJSON(env.run_terraform_steps) }}
       # This commit represents v3.1.2
-      uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      uses: hashicorp/setup-terraform@fe38bfbb36d6c5a1f3f64ef96bba7f30dfe0f038
     - name: Terraform Init
       if: ${{ fromJSON(env.run_terraform_steps) }}
       run: |
