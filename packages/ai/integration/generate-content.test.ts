@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 import {
+  BackendType,
   Content,
   GenerationConfig,
   HarmBlockThreshold,
@@ -25,11 +26,13 @@ import {
   Modality,
   Outcome,
   SafetySetting,
+  URLRetrievalStatus,
   getGenerativeModel
 } from '../src';
 import { testConfigs, TOKEN_COUNT_DELTA } from './constants';
 
-describe('Generate Content', () => {
+describe('Generate Content', function () {
+  this.timeout(20_000);
   testConfigs.forEach(testConfig => {
     describe(`${testConfig.toString()}`, () => {
       const commonGenerationConfig: GenerationConfig = {
@@ -41,19 +44,19 @@ describe('Generate Content', () => {
       const commonSafetySettings: SafetySetting[] = [
         {
           category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-          threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE
+          threshold: HarmBlockThreshold.BLOCK_NONE
         },
         {
           category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-          threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE
+          threshold: HarmBlockThreshold.BLOCK_NONE
         },
         {
           category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-          threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE
+          threshold: HarmBlockThreshold.BLOCK_NONE
         },
         {
           category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-          threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE
+          threshold: HarmBlockThreshold.BLOCK_NONE
         }
       ];
 
@@ -187,6 +190,132 @@ describe('Generate Content', () => {
           expect(groundingSupport.segment?.endIndex).to.exist;
           expect(groundingSupport.segment?.text).to.exist;
           // Since partIndex and startIndex are commonly 0, they may be omitted from responses.
+        });
+      });
+
+      describe('URL Context', async () => {
+        // URL Context is not supported in Google AI for gemini-2.0-flash
+        if (
+          testConfig.ai.backend.backendType === BackendType.GOOGLE_AI &&
+          testConfig.model === 'gemini-2.0-flash'
+        ) {
+          return;
+        }
+
+        it('generateContent: url context', async () => {
+          const model = getGenerativeModel(testConfig.ai, {
+            model: testConfig.model,
+            generationConfig: commonGenerationConfig,
+            safetySettings: commonSafetySettings,
+            tools: [{ urlContext: {} }]
+          });
+
+          const result = await model.generateContent(
+            'Summarize this website https://berkshirehathaway.com'
+          );
+          const response = result.response;
+          const urlContextMetadata =
+            response.candidates?.[0].urlContextMetadata;
+          expect(urlContextMetadata?.urlMetadata).to.exist;
+          expect(
+            urlContextMetadata?.urlMetadata.length
+          ).to.be.greaterThanOrEqual(1);
+          expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).to.exist;
+          expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).to.equal(
+            'https://berkshirehathaway.com'
+          );
+          expect(
+            urlContextMetadata?.urlMetadata[0].urlRetrievalStatus
+          ).to.equal(URLRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS);
+
+          const usageMetadata = response.usageMetadata;
+          expect(usageMetadata).to.exist;
+          expect(usageMetadata?.toolUsePromptTokenCount).to.exist;
+          expect(usageMetadata?.toolUsePromptTokenCount).to.be.greaterThan(0);
+        });
+
+        it('generateContent: url context and google search grounding', async () => {
+          const model = getGenerativeModel(testConfig.ai, {
+            model: testConfig.model,
+            generationConfig: commonGenerationConfig,
+            safetySettings: commonSafetySettings,
+            tools: [{ urlContext: {} }, { googleSearch: {} }]
+          });
+
+          const result = await model.generateContent(
+            'According to https://info.cern.ch/hypertext/WWW/TheProject.html, what is the WorldWideWeb? Search the web for other definitions.'
+          );
+          const response = result.response;
+          const trimmedText = response.text().trim();
+          const urlContextMetadata =
+            response.candidates?.[0].urlContextMetadata;
+          const groundingMetadata = response.candidates?.[0].groundingMetadata;
+          expect(trimmedText).to.contain(
+            'hypermedia information retrieval initiative'
+          );
+          expect(urlContextMetadata?.urlMetadata).to.exist;
+          expect(
+            urlContextMetadata?.urlMetadata.length
+          ).to.be.greaterThanOrEqual(1);
+          expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).to.exist;
+          expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).to.equal(
+            'https://info.cern.ch/hypertext/WWW/TheProject.html'
+          );
+          expect(
+            urlContextMetadata?.urlMetadata[0].urlRetrievalStatus
+          ).to.equal(URLRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS);
+          expect(groundingMetadata).to.exist;
+          expect(groundingMetadata?.groundingChunks).to.exist;
+          expect(
+            groundingMetadata?.groundingChunks!.length
+          ).to.be.greaterThanOrEqual(1);
+          expect(
+            groundingMetadata?.groundingSupports!.length
+          ).to.be.greaterThanOrEqual(1);
+
+          const usageMetadata = response.usageMetadata;
+          expect(usageMetadata).to.exist;
+          expect(usageMetadata?.toolUsePromptTokenCount).to.exist;
+          expect(usageMetadata?.toolUsePromptTokenCount).to.be.greaterThan(0);
+        });
+
+        it('generateContent: url context and google search grounding without URLs in prompt', async () => {
+          const model = getGenerativeModel(testConfig.ai, {
+            model: testConfig.model,
+            generationConfig: commonGenerationConfig,
+            safetySettings: commonSafetySettings,
+            tools: [{ urlContext: {} }, { googleSearch: {} }]
+          });
+
+          const result = await model.generateContent(
+            'Recommend 3 books for beginners to read to learn more about the latest advancements in Quantum Computing.'
+          );
+          const response = result.response;
+          const urlContextMetadata =
+            response.candidates?.[0].urlContextMetadata;
+          const groundingMetadata = response.candidates?.[0].groundingMetadata;
+          if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
+            expect(urlContextMetadata?.urlMetadata).to.exist;
+            expect(
+              urlContextMetadata?.urlMetadata.length
+            ).to.be.greaterThanOrEqual(1);
+            expect(urlContextMetadata?.urlMetadata[0].retrievedUrl).to.exist;
+            expect(
+              urlContextMetadata?.urlMetadata[0].urlRetrievalStatus
+            ).to.equal(URLRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS);
+            expect(groundingMetadata).to.exist;
+            expect(groundingMetadata?.groundingChunks).to.exist;
+
+            const usageMetadata = response.usageMetadata;
+            expect(usageMetadata).to.exist;
+            expect(usageMetadata?.toolUsePromptTokenCount).to.exist;
+            expect(usageMetadata?.toolUsePromptTokenCount).to.be.greaterThan(0);
+          } else {
+            // URL Context does not integrate with Google Search Grounding in Vertex AI
+            expect(urlContextMetadata?.urlMetadata).to.not.exist;
+            expect(groundingMetadata).to.exist;
+            expect(groundingMetadata?.groundingChunks).to.exist;
+          }
         });
       });
 
