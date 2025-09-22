@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # URLContextTool interface
-A tool that allows you to provide additional context to the models in the form of URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhance its response.
+A tool that allows you to provide additional context to the models in the form of public web URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhance its response.
 
 <b>Signature:</b>
 

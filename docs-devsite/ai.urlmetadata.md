@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # URLMetadata interface
-Metadata for a URL that was used to provide context to the Gemini model.
+Metadata for a single URL retrieved by the [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) tool.
 
 <b>Signature:</b>
 

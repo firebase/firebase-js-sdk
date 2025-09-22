@@ -22,11 +22,11 @@ export interface URLContextMetadata
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [urlMetadata](./ai.urlcontextmetadata.md#urlcontextmetadataurlmetadata) | [URLMetadata](./ai.urlmetadata.md#urlmetadata_interface)<!-- -->\[\] | List of URL metadata were used to provide context to the Gemini model. |
+|  [urlMetadata](./ai.urlcontextmetadata.md#urlcontextmetadataurlmetadata) | [URLMetadata](./ai.urlmetadata.md#urlmetadata_interface)<!-- -->\[\] | List of URL metadata used to provide context to the Gemini model. |
 
 ## URLContextMetadata.urlMetadata
 
-List of URL metadata were used to provide context to the Gemini model.
+List of URL metadata used to provide context to the Gemini model.
 
 <b>Signature:</b>
 

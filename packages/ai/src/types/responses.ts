@@ -117,14 +117,13 @@ export interface UsageMetadata {
   thoughtsTokenCount?: number;
   totalTokenCount: number;
   /**
-   * The number of tokens in the results from tool executions, which are provided back to the
-   * model as input.
+   * The number of tokens used by tools.
    */
   toolUsePromptTokenCount?: number;
   promptTokensDetails?: ModalityTokenCount[];
   candidatesTokensDetails?: ModalityTokenCount[];
   /**
-   * A list of tokens used by tools whose usage was triggered from a prompt, broken down by modality.
+   * A list of tokens used by tools, broken down by modality.
    */
   toolUsePromptTokensDetails?: ModalityTokenCount[];
 }
@@ -366,13 +365,13 @@ export interface Segment {
  */
 export interface URLContextMetadata {
   /**
-   * List of URL metadata were used to provide context to the Gemini model.
+   * List of URL metadata used to provide context to the Gemini model.
    */
   urlMetadata: URLMetadata[];
 }
 
 /**
- * Metadata for a URL that was used to provide context to the Gemini model.
+ * Metadata for a single URL retrieved by the {@link URLContextTool} tool.
  *
  * @public
  */
@@ -390,6 +389,18 @@ export interface URLMetadata {
 /**
  * The status of a URL retrieval.
  *
+ * @remarks
+ * <b>URL_RETRIEVAL_STATUS_UNSPECIFIED:</b> Unspecified retrieval status.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_SUCCESS:</b> The URL retrieval was successful.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_ERROR:</b> The URL retrieval failed.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_PAYWALL:</b> The URL retrieval failed because the content is behind a paywall.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_UNSAFE:</b> The URL retrieval failed because the content is unsafe.
+ * <br/>
+ *
  * @public
  */
 export const URLRetrievalStatus = {
@@ -402,7 +413,7 @@ export const URLRetrievalStatus = {
    */
   URL_RETRIEVAL_STATUS_SUCCESS: 'URL_RETRIEVAL_STATUS_SUCCESS',
   /**
-   * The URL retrieval failed due to an error.
+   * The URL retrieval failed.
    */
   URL_RETRIEVAL_STATUS_ERROR: 'URL_RETRIEVAL_STATUS_ERROR',
   /**
@@ -423,7 +434,7 @@ export const URLRetrievalStatus = {
  * <br/>
  * <b>URL_RETRIEVAL_STATUS_SUCCESS:</b> The URL retrieval was successful.
  * <br/>
- * <b>URL_RETRIEVAL_STATUS_ERROR:</b> The URL retrieval failed due to an error.
+ * <b>URL_RETRIEVAL_STATUS_ERROR:</b> The URL retrieval failed.
  * <br/>
  * <b>URL_RETRIEVAL_STATUS_PAYWALL:</b> The URL retrieval failed because the content is behind a paywall.
  * <br/>

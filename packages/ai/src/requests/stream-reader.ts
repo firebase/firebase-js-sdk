@@ -198,8 +198,13 @@ export function aggregateResponses(
         // make sure that we don't overwrite the first value urlContextMetadata object with undefined.
         // FIXME: What happens if we receive a second, valid urlContextMetadata object?
         const urlContextMetadata = candidate.urlContextMetadata as unknown;
-        if (typeof urlContextMetadata === 'object' && urlContextMetadata !== null && Object.keys(urlContextMetadata).length > 0) {
-          aggregatedResponse.candidates[i].urlContextMetadata = urlContextMetadata as URLContextMetadata;
+        if (
+          typeof urlContextMetadata === 'object' &&
+          urlContextMetadata !== null &&
+          Object.keys(urlContextMetadata).length > 0
+        ) {
+          aggregatedResponse.candidates[i].urlContextMetadata =
+            urlContextMetadata as URLContextMetadata;
         }
 
         /**

@@ -136,8 +136,8 @@ The Firebase AI Web SDK.
 |  [ToolConfig](./ai.toolconfig.md#toolconfig_interface) | Tool config. This config is shared for all tools provided in the request. |
 |  [URLContext](./ai.urlcontext.md#urlcontext_interface) | Specifies the URL Context configuration. |
 |  [URLContextMetadata](./ai.urlcontextmetadata.md#urlcontextmetadata_interface) | Metadata related to [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface)<!-- -->. |
-|  [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) | A tool that allows you to provide additional context to the models in the form of URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhance its response. |
-|  [URLMetadata](./ai.urlmetadata.md#urlmetadata_interface) | Metadata for a URL that was used to provide context to the Gemini model. |
+|  [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) | A tool that allows you to provide additional context to the models in the form of public web URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhance its response. |
+|  [URLMetadata](./ai.urlmetadata.md#urlmetadata_interface) | Metadata for a single URL retrieved by the [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) tool. |
 |  [UsageMetadata](./ai.usagemetadata.md#usagemetadata_interface) | Usage metadata about a [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
 |  [VideoMetadata](./ai.videometadata.md#videometadata_interface) | Describes the input video content. |
 |  [VoiceConfig](./ai.voiceconfig.md#voiceconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for the voice to used in speech synthesis. |
@@ -762,6 +762,8 @@ SchemaType: {
 
 The status of a URL retrieval.
 
+<b>URL\_RETRIEVAL\_STATUS\_UNSPECIFIED:</b> Unspecified retrieval status. <br/> <b>URL\_RETRIEVAL\_STATUS\_SUCCESS:</b> The URL retrieval was successful. <br/> <b>URL\_RETRIEVAL\_STATUS\_ERROR:</b> The URL retrieval failed. <br/> <b>URL\_RETRIEVAL\_STATUS\_PAYWALL:</b> The URL retrieval failed because the content is behind a paywall. <br/> <b>URL\_RETRIEVAL\_STATUS\_UNSAFE:</b> The URL retrieval failed because the content is unsafe. <br/>
+
 <b>Signature:</b>
 
 ```typescript
@@ -1070,7 +1072,7 @@ export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanS
 
 The status of a URL retrieval.
 
-<b>URL\_RETRIEVAL\_STATUS\_UNSPECIFIED:</b> Unspecified retrieval status. <br/> <b>URL\_RETRIEVAL\_STATUS\_SUCCESS:</b> The URL retrieval was successful. <br/> <b>URL\_RETRIEVAL\_STATUS\_ERROR:</b> The URL retrieval failed due to an error. <br/> <b>URL\_RETRIEVAL\_STATUS\_PAYWALL:</b> The URL retrieval failed because the content is behind a paywall. <br/> <b>URL\_RETRIEVAL\_STATUS\_UNSAFE:</b> The URL retrieval failed because the content is unsafe. <br/>
+<b>URL\_RETRIEVAL\_STATUS\_UNSPECIFIED:</b> Unspecified retrieval status. <br/> <b>URL\_RETRIEVAL\_STATUS\_SUCCESS:</b> The URL retrieval was successful. <br/> <b>URL\_RETRIEVAL\_STATUS\_ERROR:</b> The URL retrieval failed. <br/> <b>URL\_RETRIEVAL\_STATUS\_PAYWALL:</b> The URL retrieval failed because the content is behind a paywall. <br/> <b>URL\_RETRIEVAL\_STATUS\_UNSAFE:</b> The URL retrieval failed because the content is unsafe. <br/>
 
 <b>Signature:</b>
 

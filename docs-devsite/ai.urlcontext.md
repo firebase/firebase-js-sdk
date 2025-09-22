@@ -12,8 +12,6 @@ https://github.com/firebase/firebase-js-sdk
 # URLContext interface
 Specifies the URL Context configuration.
 
-Currently, this is an empty object, but it's reserved for future configuration.
-
 <b>Signature:</b>
 
 ```typescript
