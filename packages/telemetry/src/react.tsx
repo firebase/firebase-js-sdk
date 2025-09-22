@@ -15,18 +15,24 @@
  * limitations under the License.
  */
 
-/**
- * This is the file that people using Node.js will actually import. You should
- * only include this file if you have something specific about your
- * implementation that mandates having a separate entrypoint. Otherwise you can
- * just use index.ts
- */
+import React from 'react';
 
-import { registerTelemetry } from './src/register.node';
+console.log(React);
 
-registerTelemetry();
 
-export * from './src/api';
-export * from './src/public-types';
-export * from './src/next';
-export * from './src/react';
+export interface FirebaseTelemetryBoundaryProps {
+  children: React.ReactNode;
+}
+
+export class FirebaseTelemetryBoundary extends React.Component<FirebaseTelemetryBoundaryProps> {
+  constructor(public props: FirebaseTelemetryBoundaryProps) {
+    super(props);
+
+    console.info('init firebase telemetry boundary');
+  }
+
+  render(): React.ReactNode {
+    console.info('abc');
+    return this.props.children;
+  }
+}
