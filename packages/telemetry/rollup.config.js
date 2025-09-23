@@ -85,11 +85,7 @@ const reactBuilds = [
     plugins: [
       typescriptPlugin({
         typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            declarationDir: 'dist/react'
-          }
-        }
+        tsconfig: 'tsconfig.react.json'
       }),
       json()
     ],
@@ -106,11 +102,7 @@ const reactBuilds = [
     plugins: [
       typescriptPlugin({
         typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            declarationDir: 'dist/react'
-          }
-        }
+        tsconfig: 'tsconfig.react.json'
       }),
       json()
     ],
@@ -130,11 +122,7 @@ const reactNodeBuilds = [
     plugins: [
       typescriptPlugin({
         typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            declarationDir: 'dist/react'
-          }
-        }
+        tsconfig: 'tsconfig.react.json'
       }),
       json()
     ],
@@ -151,11 +139,7 @@ const reactNodeBuilds = [
     plugins: [
       typescriptPlugin({
         typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            declarationDir: 'dist/react'
-          }
-        }
+        tsconfig: 'tsconfig.react.json'
       }),
       json(),
       emitModulePackageFile()

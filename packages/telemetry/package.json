@@ -22,14 +22,14 @@
     "./react": {
       "types": "./dist/react/index.d.ts",
       "node": {
-        "import": "./dist/react-node-esm/index.node.esm.js",
-        "default": "./dist/react.node.cjs.js"
+        "import": "./dist/react/index.node.esm.js",
+        "default": "./dist/react/index.node.cjs.js"
       },
       "browser": {
-        "require": "./dist/react.cjs.js",
-        "import": "./dist/react.esm.js"
+        "require": "./dist/react/index.cjs.js",
+        "import": "./dist/react/index.esm.js"
       },
-      "default": "./dist/react.esm.js"
+      "default": "./dist/react/index.esm.js"
     },
     "./package.json": "./package.json"
   },
