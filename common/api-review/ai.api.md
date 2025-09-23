@@ -1255,7 +1255,7 @@ export function startAudioConversation(liveSession: LiveSession, options?: Start
 
 // @beta
 export interface StartAudioConversationOptions {
-    functionCallingHandler?: (functionCalls: LiveServerToolCall['functionCalls']) => Promise<FunctionResponse>;
+    functionCallingHandler?: (functionCalls: FunctionCall[]) => Promise<FunctionResponse>;
 }
 
 // @public
