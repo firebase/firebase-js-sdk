@@ -988,6 +988,7 @@ export class LiveSession {
     isClosed: boolean;
     receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation>;
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
+    sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
     sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void>;
     sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;
     }
@@ -1254,7 +1255,7 @@ export function startAudioConversation(liveSession: LiveSession, options?: Start
 
 // @beta
 export interface StartAudioConversationOptions {
-    functionCallingHandler?: (functionCalls: LiveServerToolCall['functionCalls']) => Promise<Part>;
+    functionCallingHandler?: (functionCalls: LiveServerToolCall['functionCalls']) => Promise<FunctionResponse>;
 }
 
 // @public
