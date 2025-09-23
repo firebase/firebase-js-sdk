@@ -100,8 +100,13 @@ async function* generateResponseSequence(
       enhancedResponse = createEnhancedContentResponse(value);
     }
 
-    // Don't yield an empty parts response, skip it.
-    if (!enhancedResponse.candidates?.[0].content?.parts) {
+    const firstCandidate = enhancedResponse.candidates?.[0];
+    // Don't yield a response with no useful data for the developer.
+    if (
+      !firstCandidate?.content?.parts &&
+      !firstCandidate?.finishReason &&
+      !firstCandidate?.citationMetadata
+    ) {
       continue;
     }
 
@@ -215,14 +220,11 @@ export function aggregateResponses(
           }
           for (const part of candidate.content.parts) {
             const newPart: Part = { ...part };
-            if (part.text !== undefined) {
-              // The backend can send empty text parts. If these are sent back
-              // (e.g. in chat history), the backend will respond with an error.
-              // To prevent this, ignore empty text parts.
-              if (part.text === '') {
-                continue;
-              }
-              newPart.text = part.text;
+            // The backend can send empty text parts. If these are sent back
+            // (e.g. in chat history), the backend will respond with an error.
+            // To prevent this, ignore empty text parts.
+            if (part.text === '') {
+              continue;
             }
             if (Object.keys(newPart).length > 0) {
               aggregatedResponse.candidates[i].content.parts.push(
