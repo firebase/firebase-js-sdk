@@ -58,7 +58,7 @@ export class AuthInterop implements FirebaseAuthInternal {
           'Refresh token is not a valid operation for Regional Auth instance initialized.'
         );
       }
-      const firebaseAccessToken = (await this.auth.getFirebaseAccessToken())?.token
+      const firebaseAccessToken = (await this.auth.getFirebaseAccessToken())?.token;
       if (!firebaseAccessToken) {
         return null;
       }

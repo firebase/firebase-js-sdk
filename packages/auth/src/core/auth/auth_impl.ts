@@ -38,7 +38,9 @@ import {
   Unsubscribe,
   PasswordValidationStatus,
   TenantConfig,
-  FirebaseToken
+  FirebaseToken,
+  TokenRefreshHandler,
+  RefreshIdpTokenResult
 } from '../../model/public_types';
 import {
   createSubscribe,
@@ -49,7 +51,7 @@ import {
   Subscribe
 } from '@firebase/util';
 
-import { AuthInternal, ConfigInternal, TokenRefreshHandler } from '../../model/auth';
+import { AuthInternal, ConfigInternal} from '../../model/auth';
 import { PopupRedirectResolverInternal } from '../../model/popup_redirect';
 import { UserInternal } from '../../model/user';
 import {
@@ -85,6 +87,7 @@ import { PasswordPolicyInternal } from '../../model/password_policy';
 import { PasswordPolicyImpl } from './password_policy_impl';
 import { getAccountInfo } from '../../api/account_management/account';
 import { UserImpl } from '../user/user_impl';
+import { exchangeToken } from '../strategies/exhange_token';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -92,7 +95,7 @@ interface AsyncAction {
 
 export const enum DefaultConfig {
   TOKEN_API_HOST = 'securetoken.googleapis.com',
-  API_HOST = 'identitytoolkit.googleapis.com',
+  API_HOST = 'staging-identitytoolkit.sandbox.googleapis.com',
   API_SCHEME = 'https',
   // TODO(sammansi): Update the endpoint before BYO-CIAM Private Preview Release.
   REGIONAL_API_HOST = 'autopush-identityplatform.sandbox.googleapis.com/v2alpha/'
@@ -102,7 +105,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   currentUser: User | null = null;
   emulatorConfig: EmulatorConfig | null = null;
   firebaseToken: FirebaseToken | null = null;
-  tokenRefreshHandler?: TokenRefreshHandler;
+  private tokenRefreshHandler?: TokenRefreshHandler;
   private operations = Promise.resolve();
   private persistenceManager?: PersistenceUserManager;
   private redirectPersistenceManager?: PersistenceUserManager;
@@ -236,7 +239,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         await this._updateFirebaseToken(null);
         // Awaits for the callback method to execute. The callback method
         // is responsible for performing the exchangeToken(auth, valid3pIdpToken)
-        await this.tokenRefreshHandler.refreshToken();
+        const result: RefreshIdpTokenResult = await this.tokenRefreshHandler.refreshIdpToken();
+        _assert(result.idToken && result.idpConfigId, AuthErrorCode.INVALID_CREDENTIAL);
+        await exchangeToken(this, result.idpConfigId, result.idToken);
         return this.getFirebaseAccessToken(false);
       }
 

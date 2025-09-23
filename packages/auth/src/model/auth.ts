@@ -58,10 +58,6 @@ export interface ConfigInternal extends Config {
   clientPlatform: ClientPlatform;
 }
 
-export interface TokenRefreshHandler {
-  refreshToken(): void | Promise<void>
-}
-
 /**
  * UserInternal and AuthInternal reference each other, so both of them are included in the public typings.
  * In order to exclude them, we mark them as internal explicitly.
@@ -71,7 +67,6 @@ export interface TokenRefreshHandler {
 export interface AuthInternal extends Auth {
   currentUser: User | null;
   emulatorConfig: EmulatorConfig | null;
-  tokenRefreshHandler?: TokenRefreshHandler;
   _agentRecaptchaConfig: RecaptchaConfig | null;
   _tenantRecaptchaConfigs: Record<string, RecaptchaConfig>;
   _projectPasswordPolicy: PasswordPolicy | null;
