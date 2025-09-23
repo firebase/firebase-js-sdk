@@ -3,4 +3,4 @@
 '@firebase/ai': minor
 ---
 
-Add support for the URL Context tool.
+Added support for the URL context tool, which allows the model to access content from provided public web URLs to inform and enhance its responses.
