@@ -101,91 +101,63 @@ export interface ImagenGenerationConfig {
 /**
  * A filter level controlling how aggressively to filter sensitive content.
  *
+ * @remarks
  * Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI
  * are assessed against a list of safety filters, which include 'harmful categories' (for example,
  * `violence`, `sexual`, `derogatory`, and `toxic`). This filter level controls how aggressively to
  * filter out potentially harmful content from responses. See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
  * and the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters | Responsible AI and usage guidelines}
  * for more details.
+ * <br/>
+ * <b>BLOCK_LOW_AND_ABOVE:</b> The most aggressive filtering level; most strict blocking.
+ * <br/>
+ * <b>BLOCK_MEDIUM_AND_ABOVE:</b> Blocks some sensitive prompts and responses.
+ * <br/>
+ * <b>BLOCK_ONLY_HIGH:</b> Blocks few sensitive prompts and responses.
+ * <br/>
+ * <b>BLOCK_NONE:</b> The least aggressive filtering level; blocks very few sensitive prompts and responses.
+ * Access to this feature is restricted and may require your case to be reviewed and approved by
+ * Cloud support.
  *
  * @beta
  */
 export const ImagenSafetyFilterLevel = {
-  /**
-   * The most aggressive filtering level; most strict blocking.
-   */
   BLOCK_LOW_AND_ABOVE: 'block_low_and_above',
-  /**
-   * Blocks some sensitive prompts and responses.
-   */
   BLOCK_MEDIUM_AND_ABOVE: 'block_medium_and_above',
-  /**
-   * Blocks few sensitive prompts and responses.
-   */
   BLOCK_ONLY_HIGH: 'block_only_high',
-  /**
-   * The least aggressive filtering level; blocks very few sensitive prompts and responses.
-   *
-   * Access to this feature is restricted and may require your case to be reviewed and approved by
-   * Cloud support.
-   */
   BLOCK_NONE: 'block_none'
 } as const;
 
-/**
- * A filter level controlling how aggressively to filter sensitive content.
- *
- * Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI
- * are assessed against a list of safety filters, which include 'harmful categories' (for example,
- * `violence`, `sexual`, `derogatory`, and `toxic`). This filter level controls how aggressively to
- * filter out potentially harmful content from responses. See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
- * and the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters | Responsible AI and usage guidelines}
- * for more details.
- *
- * @beta
- */
 export type ImagenSafetyFilterLevel =
   (typeof ImagenSafetyFilterLevel)[keyof typeof ImagenSafetyFilterLevel];
 
 /**
  * A filter level controlling whether generation of images containing people or faces is allowed.
  *
+ * @remarks
  * See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a>
  * documentation for more details.
+ * <br/>
+ * <b>BLOCK_ALL:</b> Disallow generation of images containing people or faces; images of people are filtered out.
+ * <br/>
+ * <b>ALLOW_ADULT:</b> Allow generation of images containing adults only; images of children are filtered out.
+ * Generation of images containing people or faces may require your use case to be
+ * reviewed and approved by Cloud support; see the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#person-face-gen | Responsible AI and usage guidelines}
+ * for more details.
+ * <br/>
+ * <b>ALLOW_ALL:</b> Allow generation of images containing adults only; images of children are filtered out.
+ * Generation of images containing people or faces may require your use case to be
+ * reviewed and approved by Cloud support; see the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#person-face-gen | Responsible AI and usage guidelines}
+ * for more details.
  *
  * @beta
  */
 export const ImagenPersonFilterLevel = {
-  /**
-   * Disallow generation of images containing people or faces; images of people are filtered out.
-   */
   BLOCK_ALL: 'dont_allow',
-  /**
-   * Allow generation of images containing adults only; images of children are filtered out.
-   *
-   * Generation of images containing people or faces may require your use case to be
-   * reviewed and approved by Cloud support; see the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#person-face-gen | Responsible AI and usage guidelines}
-   * for more details.
-   */
   ALLOW_ADULT: 'allow_adult',
-  /**
-   * Allow generation of images containing adults only; images of children are filtered out.
-   *
-   * Generation of images containing people or faces may require your use case to be
-   * reviewed and approved by Cloud support; see the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#person-face-gen | Responsible AI and usage guidelines}
-   * for more details.
-   */
   ALLOW_ALL: 'allow_all'
 } as const;
 
-/**
- * A filter level controlling whether generation of images containing people or faces is allowed.
- *
- * See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a>
- * documentation for more details.
- *
- * @beta
- */
 export type ImagenPersonFilterLevel =
   (typeof ImagenPersonFilterLevel)[keyof typeof ImagenPersonFilterLevel];
 
@@ -212,47 +184,30 @@ export interface ImagenSafetySettings {
 /**
  * Aspect ratios for Imagen images.
  *
+ * @remarks
  * To specify an aspect ratio for generated images, set the `aspectRatio` property in your
- * {@link ImagenGenerationConfig}.
- *
- * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
+ * {@link ImagenGenerationConfig}. See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
  * for more details and examples of the supported aspect ratios.
+ * <br/>
+ * <b>SQUARE:</b> Square (1:1) aspect ratio.
+ * <br/>
+ * <b>LANDSCAPE_3x4:</b> Landscape (3:4) aspect ratio.
+ * <br/>
+ * <b>PORTRAIT_4x3:</b> Portrait (4:3) aspect ratio.
+ * <br/>
+ * <b>LANDSCAPE_16x9:</b> Landscape (16:9) aspect ratio.
+ * <br/>
+ * <b>PORTRAIT_9x16:</b> Portrait (9:16) aspect ratio.
  *
  * @beta
  */
 export const ImagenAspectRatio = {
-  /**
-   * Square (1:1) aspect ratio.
-   */
   'SQUARE': '1:1',
-  /**
-   * Landscape (3:4) aspect ratio.
-   */
   'LANDSCAPE_3x4': '3:4',
-  /**
-   * Portrait (4:3) aspect ratio.
-   */
   'PORTRAIT_4x3': '4:3',
-  /**
-   * Landscape (16:9) aspect ratio.
-   */
   'LANDSCAPE_16x9': '16:9',
-  /**
-   * Portrait (9:16) aspect ratio.
-   */
   'PORTRAIT_9x16': '9:16'
 } as const;
 
-/**
- * Aspect ratios for Imagen images.
- *
- * To specify an aspect ratio for generated images, set the `aspectRatio` property in your
- * {@link ImagenGenerationConfig}.
- *
- * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
- * for more details and examples of the supported aspect ratios.
- *
- * @beta
- */
 export type ImagenAspectRatio =
   (typeof ImagenAspectRatio)[keyof typeof ImagenAspectRatio];

@@ -480,6 +480,13 @@ export interface LiveServerToolCallCancellation {
 /**
  * The types of responses that can be returned by {@link LiveSession.receive}.
  *
+ * @remarks
+ * <b>SERVER_CONTENT:</b> An incremental content update from the model.
+ * <br/>
+ * <b>TOOL_CALL:</b> A request from the model for the client to execute one or more functions.
+ * <br/>
+ * <b>TOOL_CALL_CANCELLATION:</b> Notification to cancel a previous function call triggered by {@link LiveServerToolCall}.
+ *
  * @beta
  */
 export const LiveResponseType = {
@@ -488,12 +495,5 @@ export const LiveResponseType = {
   TOOL_CALL_CANCELLATION: 'toolCallCancellation'
 };
 
-/**
- * The types of responses that can be returned by {@link LiveSession.receive}.
- * This is a property on all messages that can be used for type narrowing. This property is not
- * returned by the server, it is assigned to a server message object once it's parsed.
- *
- * @beta
- */
 export type LiveResponseType =
   (typeof LiveResponseType)[keyof typeof LiveResponseType];

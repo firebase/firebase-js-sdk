@@ -53,35 +53,26 @@ export interface AI {
 /**
  * An enum-like object containing constants that represent the supported backends
  * for the Firebase AI SDK.
- * This determines which backend service (Vertex AI Gemini API or Gemini Developer API)
- * the SDK will communicate with.
  *
- * These values are assigned to the `backendType` property within the specific backend
- * configuration objects ({@link GoogleAIBackend} or {@link VertexAIBackend}) to identify
- * which service to target.
+ * @remarks
+ * This determines which backend service (Vertex AI Gemini API or Gemini Developer API)
+ * the SDK will communicate with. These values are assigned to the `backendType` property
+ * within the specific backend configuration objects ({@link GoogleAIBackend} or
+ * {@link VertexAIBackend}) to identify which service to target.
+ * <br/>
+ * <b>VERTEX_AI:</b> Identifies the backend service for the Vertex AI Gemini API provided through Google Cloud.
+ * Use this constant when creating a {@link VertexAIBackend} configuration.
+ * <br/>
+ * <b>GOOGLE_AI:</b> Identifies the backend service for the Gemini Developer API ({@link https://ai.google/ | Google AI}).
+ * Use this constant when creating a {@link GoogleAIBackend} configuration.
  *
  * @public
  */
 export const BackendType = {
-  /**
-   * Identifies the backend service for the Vertex AI Gemini API provided through Google Cloud.
-   * Use this constant when creating a {@link VertexAIBackend} configuration.
-   */
   VERTEX_AI: 'VERTEX_AI',
-
-  /**
-   * Identifies the backend service for the Gemini Developer API ({@link https://ai.google/ | Google AI}).
-   * Use this constant when creating a {@link GoogleAIBackend} configuration.
-   */
   GOOGLE_AI: 'GOOGLE_AI'
 } as const; // Using 'as const' makes the string values literal types
 
-/**
- * Type alias representing valid backend types.
- * It can be either `'VERTEX_AI'` or `'GOOGLE_AI'`.
- *
- * @public
- */
 export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 
 /**
