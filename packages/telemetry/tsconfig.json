@@ -1,8 +1,7 @@
 {
   "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "jsx": "react"
+    "outDir": "dist"
   },
   "exclude": ["dist/**/*"]
 }

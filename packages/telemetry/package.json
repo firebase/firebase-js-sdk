@@ -19,6 +19,18 @@
       },
       "default": "./dist/index.esm.js"
     },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "node": {
+        "import": "./dist/react-node-esm/index.node.esm.js",
+        "default": "./dist/react.node.cjs.js"
+      },
+      "browser": {
+        "require": "./dist/react.cjs.js",
+        "import": "./dist/react.esm.js"
+      },
+      "default": "./dist/react.esm.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -36,14 +48,24 @@
     "test:browser": "karma start",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.* --config ../../config/mocharc.node.js",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
-    "api-report": "api-extractor run --local --verbose",
+    "api-report": "yarn api-report:main && yarn api-report:react",
+    "api-report:main": "api-extractor run --local --verbose",
+    "api-report:react": "api-extractor run --config api-extractor.react.json --local --verbose",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/telemetry-public.d.ts"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
     "@firebase/app-types": "0.x",
-    "@types/react": "19.x",
-    "react": "19.x"
+    "@types/react": "17.x || 18.x || 19.x",
+    "react": "17.x || 18.x || 19.x"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "@types/react": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@firebase/component": "0.7.0",
@@ -54,7 +76,7 @@
     "@opentelemetry/otlp-transformer": "0.205.0",
     "@opentelemetry/resources": "2.0.1",
     "@opentelemetry/sdk-logs": "0.203.0",
-    "@opentelemetry/semantic-conventions": "1.36.0",    
+    "@opentelemetry/semantic-conventions": "1.36.0",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",

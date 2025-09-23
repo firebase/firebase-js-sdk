@@ -41,7 +41,7 @@ const browserBuilds = [
   {
     input: 'index.ts',
     output: {
-      file: './dist/index.cjs.js',
+      file: pkg.exports['.'].browser.require,
       format: 'cjs',
       sourcemap: true
     },
@@ -73,4 +73,100 @@ const nodeBuilds = [
   }
 ];
 
-export default [...browserBuilds, ...nodeBuilds];
+const reactBuilds = [
+  {
+    input: 'src/react/index.ts',
+    output: {
+      file: pkg.exports['./react'].browser.import,
+      format: 'es',
+      sourcemap: true,
+      banner: `'use client';`
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            declarationDir: 'dist/react'
+          }
+        }
+      }),
+      json()
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'src/react/index.ts',
+    output: {
+      file: pkg.exports['./react'].browser.require,
+      format: 'cjs',
+      sourcemap: true,
+      banner: `'use client';`
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            declarationDir: 'dist/react'
+          }
+        }
+      }),
+      json()
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+const reactNodeBuilds = [
+  {
+    input: 'src/react/index.ts',
+    output: {
+      file: pkg.exports['./react'].node.default,
+      format: 'cjs',
+      sourcemap: true,
+      banner: `'use client';`
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            declarationDir: 'dist/react'
+          }
+        }
+      }),
+      json()
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'src/react/index.ts',
+    output: {
+      file: pkg.exports['./react'].node.import,
+      format: 'es',
+      sourcemap: true,
+      banner: `'use client';`
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            declarationDir: 'dist/react'
+          }
+        }
+      }),
+      json(),
+      emitModulePackageFile()
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+export default [
+  ...browserBuilds,
+  ...nodeBuilds,
+  ...reactBuilds,
+  ...reactNodeBuilds
+];
