@@ -15,38 +15,34 @@
  * limitations under the License.
  */
 
-import {ParseContext} from "../api/parse_context";
-import { OptionsUtil} from "../core/options_util";
+import { ParseContext } from '../api/parse_context';
+import { OptionsUtil } from '../core/options_util';
 import {
-  ApiClientObjectMap, firestoreV1ApiClientInterfaces,
+  ApiClientObjectMap,
+  firestoreV1ApiClientInterfaces,
   Stage as ProtoStage
 } from '../protos/firestore_proto_api';
-import {toNumber} from '../remote/number_serializer';
+import { toNumber } from '../remote/number_serializer';
 import {
   JsonProtoSerializer,
   ProtoSerializable,
   toMapValue,
   toPipelineValue,
-  toStringValue,
+  toStringValue
 } from '../remote/serializer';
-import {hardAssert} from '../util/assert';
+import { hardAssert } from '../util/assert';
 
 import {
   AggregateFunction,
-  BooleanExpr,
-  Expr,
+  BooleanExpression,
+  Expression,
   Field,
   field,
   Ordering
 } from './expressions';
-import {Pipeline} from './pipeline';
-import { StageOptions
-} from "./stage_options";
-import {
-  isUserData,
-  UserData
-} from "./user_data_reader";
-
+import { Pipeline } from './pipeline';
+import { StageOptions } from './stage_options';
+import { isUserData, UserData } from './user_data_reader';
 
 import Value = firestoreV1ApiClientInterfaces.Value;
 
@@ -65,11 +61,15 @@ export abstract class Stage implements ProtoSerializable<ProtoStage>, UserData {
   protected rawOptions?: Record<string, unknown>;
 
   constructor(options: StageOptions) {
-    ({rawOptions: this.rawOptions, ...this.knownOptions} = options);
+    ({ rawOptions: this.rawOptions, ...this.knownOptions } = options);
   }
 
   _readUserData(context: ParseContext): void {
-    this.optionsProto = this._optionsUtil.getOptionsProto(context, this.knownOptions, this.rawOptions);
+    this.optionsProto = this._optionsUtil.getOptionsProto(
+      context,
+      this.knownOptions,
+      this.rawOptions
+    );
   }
 
   _toProto(_: JsonProtoSerializer): ProtoStage {
@@ -87,17 +87,21 @@ export abstract class Stage implements ProtoSerializable<ProtoStage>, UserData {
  * @beta
  */
 export class AddFields extends Stage {
-  get _name(): string { return 'add_fields'; }
-  get _optionsUtil(): OptionsUtil {return new OptionsUtil({});};
+  get _name(): string {
+    return 'add_fields';
+  }
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
 
-  constructor(private fields: Map<string, Expr>, options: StageOptions) {
+  constructor(private fields: Map<string, Expression>, options: StageOptions) {
     super(options);
   }
 
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
     return {
       ...super._toProto(serializer),
-      args: [toMapValue(serializer, this.fields)],
+      args: [toMapValue(serializer, this.fields)]
     };
   }
 
@@ -117,7 +121,7 @@ export class RemoveFields extends Stage {
 
   get _optionsUtil(): OptionsUtil {
     return new OptionsUtil({});
-  };
+  }
 
   constructor(private fields: Field[], options: StageOptions) {
     super(options);
@@ -130,7 +134,7 @@ export class RemoveFields extends Stage {
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
     return {
       ...super._toProto(serializer),
-      args: this.fields.map(f => f._toProto(serializer)),
+      args: this.fields.map(f => f._toProto(serializer))
     };
   }
 
@@ -150,11 +154,13 @@ export class Aggregate extends Stage {
 
   get _optionsUtil(): OptionsUtil {
     return new OptionsUtil({});
-  };
+  }
 
-  constructor(private groups: Map<string, Expr>,
-              private accumulators: Map<string, AggregateFunction>,
-              options: StageOptions) {
+  constructor(
+    private groups: Map<string, Expression>,
+    private accumulators: Map<string, AggregateFunction>,
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -168,7 +174,7 @@ export class Aggregate extends Stage {
       args: [
         toMapValue(serializer, this.accumulators),
         toMapValue(serializer, this.groups)
-      ],
+      ]
     };
   }
 
@@ -189,9 +195,9 @@ export class Distinct extends Stage {
 
   get _optionsUtil(): OptionsUtil {
     return new OptionsUtil({});
-  };
+  }
 
-  constructor(private groups: Map<string, Expr>, options: StageOptions) {
+  constructor(private groups: Map<string, Expression>, options: StageOptions) {
     super(options);
   }
 
@@ -223,10 +229,10 @@ export class CollectionSource extends Stage {
   get _optionsUtil(): OptionsUtil {
     return new OptionsUtil({
       forceIndex: {
-        serverName: 'force_index',
-      },
+        serverName: 'force_index'
+      }
     });
-  };
+  }
 
   private formattedCollectionPath: string;
 
@@ -234,7 +240,9 @@ export class CollectionSource extends Stage {
     super(options);
 
     // prepend slash to collection string
-    this.formattedCollectionPath = collection.startsWith('/') ? collection : '/' + collection;
+    this.formattedCollectionPath = collection.startsWith('/')
+      ? collection
+      : '/' + collection;
   }
 
   /**
@@ -244,7 +252,7 @@ export class CollectionSource extends Stage {
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
     return {
       ...super._toProto(serializer),
-      args: [{referenceValue: this.formattedCollectionPath}],
+      args: [{ referenceValue: this.formattedCollectionPath }]
     };
   }
 
@@ -264,10 +272,10 @@ export class CollectionGroupSource extends Stage {
   get _optionsUtil(): OptionsUtil {
     return new OptionsUtil({
       forceIndex: {
-        serverName: 'force_index',
-      },
+        serverName: 'force_index'
+      }
     });
-  };
+  }
 
   constructor(private collectionId: string, options: StageOptions) {
     super(options);
@@ -280,7 +288,7 @@ export class CollectionGroupSource extends Stage {
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
     return {
       ...super._toProto(serializer),
-      args: [{referenceValue: ''}, {stringValue: this.collectionId}],
+      args: [{ referenceValue: '' }, { stringValue: this.collectionId }]
     };
   }
 
@@ -289,13 +297,16 @@ export class CollectionGroupSource extends Stage {
   }
 }
 
-
 /**
  * @beta
  */
 export class DatabaseSource extends Stage {
-    get _name(): string { return 'database'; }
-  get _optionsUtil(): OptionsUtil {return new OptionsUtil({});};
+  get _name(): string {
+    return 'database';
+  }
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
 
   /**
    * @internal
@@ -322,13 +333,15 @@ export class DocumentsSource extends Stage {
 
   get _optionsUtil(): OptionsUtil {
     return new OptionsUtil({});
-  };
+  }
 
   private formattedPaths: string[];
 
   constructor(docPaths: string[], options: StageOptions) {
     super(options);
-    this.formattedPaths = docPaths.map(path => path.startsWith('/') ? path : '/' + path);
+    this.formattedPaths = docPaths.map(path =>
+      path.startsWith('/') ? path : '/' + path
+    );
   }
 
   /**
@@ -339,7 +352,7 @@ export class DocumentsSource extends Stage {
     return {
       ...super._toProto(serializer),
       args: this.formattedPaths.map(p => {
-        return {referenceValue: p};
+        return { referenceValue: p };
       })
     };
   }
@@ -353,11 +366,16 @@ export class DocumentsSource extends Stage {
  * @beta
  */
 export class Where extends Stage {
-    get _name(): string { return 'where'; }
-  get _optionsUtil(): OptionsUtil {return new OptionsUtil({});};
+  get _name(): string {
+    return 'where';
+  }
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
 
-  constructor(private condition: BooleanExpr, options: StageOptions) {
-    super(options);}
+  constructor(private condition: BooleanExpression, options: StageOptions) {
+    super(options);
+  }
 
   /**
    * @internal
@@ -366,7 +384,7 @@ export class Where extends Stage {
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
     return {
       ...super._toProto(serializer),
-      args: [this.condition._toProto(serializer)],
+      args: [this.condition._toProto(serializer)]
     };
   }
 
@@ -387,17 +405,20 @@ export class FindNearest extends Stage {
   get _optionsUtil(): OptionsUtil {
     return new OptionsUtil({
       limit: {
-        serverName: 'limit',
+        serverName: 'limit'
       },
       distanceField: {
-        serverName: 'distance_field',
-      },
+        serverName: 'distance_field'
+      }
     });
-  };
+  }
 
-  constructor(private vectorValue: Expr,
-              private field: Field,
-              private distanceMeasure: "euclidean" | "cosine" | "dot_product", options: StageOptions) {
+  constructor(
+    private vectorValue: Expression,
+    private field: Field,
+    private distanceMeasure: 'euclidean' | 'cosine' | 'dot_product',
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -412,11 +433,11 @@ export class FindNearest extends Stage {
         this.field._toProto(serializer),
         this.vectorValue._toProto(serializer),
         toStringValue(this.distanceMeasure)
-      ],
+      ]
     };
   }
 
-  _readUserData(context: ParseContext) : void {
+  _readUserData(context: ParseContext): void {
     super._readUserData(context);
     readUserDataHelper(this.vectorValue, context);
     readUserDataHelper(this.field, context);
@@ -427,8 +448,12 @@ export class FindNearest extends Stage {
  * @beta
  */
 export class Limit extends Stage {
-  get _name(): string { return 'limit'; }
-  get _optionsUtil(): OptionsUtil {return new OptionsUtil({});};
+  get _name(): string {
+    return 'limit';
+  }
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
 
   constructor(private limit: number, options: StageOptions) {
     hardAssert(
@@ -446,7 +471,7 @@ export class Limit extends Stage {
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
     return {
       ...super._toProto(serializer),
-      args: [toNumber(serializer, this.limit)],
+      args: [toNumber(serializer, this.limit)]
     };
   }
 }
@@ -455,11 +480,16 @@ export class Limit extends Stage {
  * @beta
  */
 export class Offset extends Stage {
-    get _name(): string { return 'offset'; }
-  get _optionsUtil(): OptionsUtil {return new OptionsUtil({});};
+  get _name(): string {
+    return 'offset';
+  }
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
 
   constructor(private offset: number, options: StageOptions) {
-    super(options);}
+    super(options);
+  }
 
   /**
    * @internal
@@ -468,7 +498,7 @@ export class Offset extends Stage {
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
     return {
       ...super._toProto(serializer),
-      args: [toNumber(serializer, this.offset)],
+      args: [toNumber(serializer, this.offset)]
     };
   }
 }
@@ -477,11 +507,19 @@ export class Offset extends Stage {
  * @beta
  */
 export class Select extends Stage {
-    get _name(): string { return 'select'; }
-  get _optionsUtil(): OptionsUtil {return new OptionsUtil({});};
+  get _name(): string {
+    return 'select';
+  }
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
 
-  constructor(private selections: Map<string, Expr>, options: StageOptions) {
-    super(options);}
+  constructor(
+    private selections: Map<string, Expression>,
+    options: StageOptions
+  ) {
+    super(options);
+  }
 
   /**
    * @internal
@@ -490,11 +528,11 @@ export class Select extends Stage {
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
     return {
       ...super._toProto(serializer),
-      args: [toMapValue(serializer, this.selections)],
+      args: [toMapValue(serializer, this.selections)]
     };
   }
 
-  _readUserData(context: ParseContext) : void {
+  _readUserData(context: ParseContext): void {
     super._readUserData(context);
     readUserDataHelper(this.selections, context);
   }
@@ -510,7 +548,7 @@ export class Sort extends Stage {
 
   get _optionsUtil(): OptionsUtil {
     return new OptionsUtil({});
-  };
+  }
 
   constructor(private orderings: Ordering[], options: StageOptions) {
     super(options);
@@ -527,7 +565,7 @@ export class Sort extends Stage {
     };
   }
 
-  _readUserData(context: ParseContext) : void {
+  _readUserData(context: ParseContext): void {
     super._readUserData(context);
     readUserDataHelper(this.orderings, context);
   }
@@ -537,12 +575,20 @@ export class Sort extends Stage {
  * @beta
  */
 export class Sample extends Stage {
-    get _name(): string { return 'sample'; }
-  get _optionsUtil(): OptionsUtil {return new OptionsUtil({});};
+  get _name(): string {
+    return 'sample';
+  }
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
 
-  constructor(private rate: number,
-  private mode: 'percent' | 'documents', options: StageOptions) {
-    super(options);}
+  constructor(
+    private rate: number,
+    private mode: 'percent' | 'documents',
+    options: StageOptions
+  ) {
+    super(options);
+  }
 
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
     return {
@@ -551,7 +597,7 @@ export class Sample extends Stage {
     };
   }
 
-  _readUserData(context: ParseContext) : void {
+  _readUserData(context: ParseContext): void {
     super._readUserData(context);
   }
 }
@@ -566,7 +612,7 @@ export class Union extends Stage {
 
   get _optionsUtil(): OptionsUtil {
     return new OptionsUtil({});
-  };
+  }
 
   constructor(private other: Pipeline, options: StageOptions) {
     super(options);
@@ -575,11 +621,11 @@ export class Union extends Stage {
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
     return {
       ...super._toProto(serializer),
-      args: [toPipelineValue(this.other._toProto(serializer))],
+      args: [toPipelineValue(this.other._toProto(serializer))]
     };
   }
 
-  _readUserData(context: ParseContext) : void {
+  _readUserData(context: ParseContext): void {
     super._readUserData(context);
   }
 }
@@ -595,25 +641,30 @@ export class Unnest extends Stage {
   get _optionsUtil(): OptionsUtil {
     return new OptionsUtil({
       indexField: {
-        serverName: 'index_field',
-      },
+        serverName: 'index_field'
+      }
     });
-  };
+  }
 
-  constructor(private alias: string,
-              private expr: Expr,
-              options: StageOptions) {
+  constructor(
+    private alias: string,
+    private expr: Expression,
+    options: StageOptions
+  ) {
     super(options);
   }
 
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
     return {
       ...super._toProto(serializer),
-      args: [this.expr._toProto(serializer), field(this.alias)._toProto(serializer)],
+      args: [
+        this.expr._toProto(serializer),
+        field(this.alias)._toProto(serializer)
+      ]
     };
   }
 
-  _readUserData(context: ParseContext) : void {
+  _readUserData(context: ParseContext): void {
     super._readUserData(context);
     readUserDataHelper(this.expr, context);
   }
@@ -631,20 +682,20 @@ export class Replace extends Stage {
 
   get _optionsUtil(): OptionsUtil {
     return new OptionsUtil({});
-  };
+  }
 
-  constructor(private map: Expr, options: StageOptions) {
+  constructor(private map: Expression, options: StageOptions) {
     super(options);
   }
 
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
     return {
       ...super._toProto(serializer),
-      args: [this.map._toProto(serializer), toStringValue(Replace.MODE)],
+      args: [this.map._toProto(serializer), toStringValue(Replace.MODE)]
     };
   }
 
-  _readUserData(context: ParseContext) : void {
+  _readUserData(context: ParseContext): void {
     super._readUserData(context);
     readUserDataHelper(this.map, context);
   }
@@ -653,17 +704,17 @@ export class Replace extends Stage {
 /**
  * @beta
  */
-export class GenericStage extends Stage {
+export class RawStage extends Stage {
   /**
    * @private
    * @internal
    */
   constructor(
     private name: string,
-    private params: Array<AggregateFunction | Expr>,
+    private params: Array<AggregateFunction | Expression>,
     rawOptions: Record<string, unknown>
   ) {
-    super({rawOptions});
+    super({ rawOptions });
   }
 
   /**
@@ -678,7 +729,7 @@ export class GenericStage extends Stage {
     };
   }
 
-  _readUserData(context: ParseContext) : void {
+  _readUserData(context: ParseContext): void {
     super._readUserData(context);
     readUserDataHelper(this.params, context);
   }
@@ -692,7 +743,6 @@ export class GenericStage extends Stage {
   }
 }
 
-
 /**
  * Helper to read user data across a number of different formats.
  * @param name Name of the calling function. Used for error messages when invalid user data is encountered.
@@ -701,17 +751,12 @@ export class GenericStage extends Stage {
  * @private
  */
 function readUserDataHelper<
-T extends
-| Map<string, UserData>
-| UserData[]
-| UserData
+  T extends Map<string, UserData> | UserData[] | UserData
 >(expressionMap: T, context: ParseContext): T {
   if (isUserData(expressionMap)) {
     expressionMap._readUserData(context);
   } else if (Array.isArray(expressionMap)) {
-    expressionMap.forEach(readableData =>
-      readableData._readUserData(context)
-    );
+    expressionMap.forEach(readableData => readableData._readUserData(context));
   } else {
     expressionMap.forEach(expr => expr._readUserData(context));
   }

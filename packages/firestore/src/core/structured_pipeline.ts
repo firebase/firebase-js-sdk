@@ -15,35 +15,38 @@
  * limitations under the License.
  */
 
-import {ParseContext} from "../api/parse_context";
-import {UserData} from "../lite-api/user_data_reader";
+import { ParseContext } from '../api/parse_context';
+import { UserData } from '../lite-api/user_data_reader';
 import {
-  ApiClientObjectMap, firestoreV1ApiClientInterfaces,
+  ApiClientObjectMap,
+  firestoreV1ApiClientInterfaces,
   Pipeline as PipelineProto,
   StructuredPipeline as StructuredPipelineProto
 } from '../protos/firestore_proto_api';
-import {
-  JsonProtoSerializer,
-  ProtoSerializable,
-} from '../remote/serializer';
+import { JsonProtoSerializer, ProtoSerializable } from '../remote/serializer';
 
-import {OptionsUtil} from "./options_util";
+import { OptionsUtil } from './options_util';
 
-export class StructuredPipelineOptions implements UserData{
+export class StructuredPipelineOptions implements UserData {
   proto: ApiClientObjectMap<firestoreV1ApiClientInterfaces.Value> | undefined;
 
   readonly optionsUtil = new OptionsUtil({
     indexMode: {
-      serverName: 'index_mode',
+      serverName: 'index_mode'
     }
   });
 
   constructor(
     private _userOptions: Record<string, unknown> = {},
-    private _optionsOverride: Record<string, unknown> = {}) {}
+    private _optionsOverride: Record<string, unknown> = {}
+  ) {}
 
   _readUserData(context: ParseContext): void {
-    this.proto = this.optionsUtil.getOptionsProto(context, this._userOptions, this._optionsOverride);
+    this.proto = this.optionsUtil.getOptionsProto(
+      context,
+      this._userOptions,
+      this._optionsOverride
+    );
   }
 }
 
@@ -52,7 +55,7 @@ export class StructuredPipeline
 {
   constructor(
     private pipeline: ProtoSerializable<PipelineProto>,
-    private options: StructuredPipelineOptions,
+    private options: StructuredPipelineOptions
   ) {}
 
   _toProto(serializer: JsonProtoSerializer): StructuredPipelineProto {

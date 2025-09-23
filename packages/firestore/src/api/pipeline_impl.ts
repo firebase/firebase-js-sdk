@@ -24,7 +24,7 @@ import {
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult, PipelineSnapshot } from '../lite-api/pipeline-result';
 import { PipelineSource } from '../lite-api/pipeline-source';
-import { PipelineOptions } from '../lite-api/pipeline_options';
+import { PipelineExecuteOptions } from '../lite-api/pipeline_options';
 import { Stage } from '../lite-api/stage';
 import {
   newUserDataReader,
@@ -78,19 +78,21 @@ declare module './database' {
  * @return A Promise representing the asynchronous pipeline execution.
  */
 export function execute(pipeline: LitePipeline): Promise<PipelineSnapshot>;
-export function execute(options: PipelineOptions): Promise<PipelineSnapshot>;
 export function execute(
-  pipelineOrOptions: LitePipeline | PipelineOptions
+  options: PipelineExecuteOptions
+): Promise<PipelineSnapshot>;
+export function execute(
+  pipelineOrOptions: LitePipeline | PipelineExecuteOptions
 ): Promise<PipelineSnapshot> {
-  const options: PipelineOptions = !(
+  const options: PipelineExecuteOptions = !(
     pipelineOrOptions instanceof LitePipeline
   )
     ? pipelineOrOptions
     : {
-      pipeline: pipelineOrOptions
-    };
+        pipeline: pipelineOrOptions
+      };
 
-  const { pipeline, customOptions, ...rest } = options;
+  const { pipeline, rawOptions, ...rest } = options;
 
   const firestore = cast(pipeline._db, Firestore);
   const client = ensureFirestoreConfigured(firestore);
@@ -101,7 +103,10 @@ export function execute(
   );
   const context = udr.createContext(UserDataSource.Argument, 'execute');
 
-  const structuredPipelineOptions = new StructuredPipelineOptions(rest, customOptions);
+  const structuredPipelineOptions = new StructuredPipelineOptions(
+    rest,
+    rawOptions
+  );
   structuredPipelineOptions._readUserData(context);
 
   const structuredPipeline: StructuredPipeline = new StructuredPipeline(
@@ -125,10 +130,10 @@ export function execute(
           element =>
             new PipelineResult(
               pipeline._userDataWriter,
+              element.fields!,
               element.key?.path
                 ? new DocumentReference(firestore, null, element.key)
                 : undefined,
-              element.fields,
               element.createTime?.toTimestamp(),
               element.updateTime?.toTimestamp()
             )
@@ -141,14 +146,17 @@ export function execute(
 
 // Augment the Firestore class with the pipeline() factory method
 Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
-  const userDataReader =
-    newUserDataReader(this);
-  return new PipelineSource<Pipeline>(this._databaseId, userDataReader, (stages: Stage[]) => {
-    return new Pipeline(
-      this,
-      userDataReader,
-      new ExpUserDataWriter(this),
-      stages
-    );
-  });
+  const userDataReader = newUserDataReader(this);
+  return new PipelineSource<Pipeline>(
+    this._databaseId,
+    userDataReader,
+    (stages: Stage[]) => {
+      return new Pipeline(
+        this,
+        userDataReader,
+        new ExpUserDataWriter(this),
+        stages
+      );
+    }
+  );
 };

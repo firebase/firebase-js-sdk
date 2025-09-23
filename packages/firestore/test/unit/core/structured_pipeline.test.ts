@@ -15,15 +15,21 @@
  * limitations under the License.
  */
 
-import {expect} from 'chai';
+import { expect } from 'chai';
 import * as sinon from 'sinon';
 
-import {DatabaseId} from '../../../src/core/database_info';
-import {StructuredPipeline, StructuredPipelineOptions} from '../../../src/core/structured_pipeline';
-import {UserDataSource} from "../../../src/lite-api/user_data_reader";
-import {Pipeline as PipelineProto} from '../../../src/protos/firestore_proto_api';
-import {JsonProtoSerializer, ProtoSerializable} from '../../../src/remote/serializer';
-import {testUserDataReader} from "../../util/helpers";
+import { DatabaseId } from '../../../src/core/database_info';
+import {
+  StructuredPipeline,
+  StructuredPipelineOptions
+} from '../../../src/core/structured_pipeline';
+import { UserDataSource } from '../../../src/lite-api/user_data_reader';
+import { Pipeline as PipelineProto } from '../../../src/protos/firestore_proto_api';
+import {
+  JsonProtoSerializer,
+  ProtoSerializable
+} from '../../../src/remote/serializer';
+import { testUserDataReader } from '../../util/helpers';
 
 describe('StructuredPipeline', () => {
   it('should serialize the pipeline argument', () => {
@@ -31,8 +37,13 @@ describe('StructuredPipeline', () => {
       _toProto: sinon.fake.returns({} as PipelineProto)
     };
     const structuredPipelineOptions = new StructuredPipelineOptions();
-    structuredPipelineOptions._readUserData(testUserDataReader(false).createContext(UserDataSource.Argument, 'test'));
-    const structuredPipeline = new StructuredPipeline(pipeline, structuredPipelineOptions);
+    structuredPipelineOptions._readUserData(
+      testUserDataReader(false).createContext(UserDataSource.Argument, 'test')
+    );
+    const structuredPipeline = new StructuredPipeline(
+      pipeline,
+      structuredPipelineOptions
+    );
 
     const proto = structuredPipeline._toProto(
       new JsonProtoSerializer(DatabaseId.empty(), false)
@@ -54,10 +65,10 @@ describe('StructuredPipeline', () => {
     const options = new StructuredPipelineOptions({
       indexMode: 'recommended'
     });
-    options._readUserData(testUserDataReader(false).createContext(UserDataSource.Argument, 'test'));
-    const structuredPipeline = new StructuredPipeline(
-      pipeline,options
+    options._readUserData(
+      testUserDataReader(false).createContext(UserDataSource.Argument, 'test')
     );
+    const structuredPipeline = new StructuredPipeline(pipeline, options);
 
     const proto = structuredPipeline._toProto(
       new JsonProtoSerializer(DatabaseId.empty(), false)
@@ -79,17 +90,16 @@ describe('StructuredPipeline', () => {
     const pipeline: ProtoSerializable<PipelineProto> = {
       _toProto: sinon.fake.returns({} as PipelineProto)
     };
-    const options =
-        new StructuredPipelineOptions({},
-            {
-              'foo_bar': 'baz'
-            }
-        );
-    options._readUserData(testUserDataReader(false).createContext(UserDataSource.Argument, 'test'));
-    const structuredPipeline = new StructuredPipeline(
-      pipeline,
-        options
+    const options = new StructuredPipelineOptions(
+      {},
+      {
+        'foo_bar': 'baz'
+      }
     );
+    options._readUserData(
+      testUserDataReader(false).createContext(UserDataSource.Argument, 'test')
+    );
+    const structuredPipeline = new StructuredPipeline(pipeline, options);
 
     const proto = structuredPipeline._toProto(
       new JsonProtoSerializer(DatabaseId.empty(), false)
@@ -111,17 +121,16 @@ describe('StructuredPipeline', () => {
     const pipeline: ProtoSerializable<PipelineProto> = {
       _toProto: sinon.fake.returns({} as PipelineProto)
     };
-    const options =
-        new StructuredPipelineOptions({},
-            {
-              'foo.bar': 'baz'
-            }
-        );
-    options._readUserData(testUserDataReader(false).createContext(UserDataSource.Argument, 'test'));
-    const structuredPipeline = new StructuredPipeline(
-      pipeline,
-        options
+    const options = new StructuredPipelineOptions(
+      {},
+      {
+        'foo.bar': 'baz'
+      }
     );
+    options._readUserData(
+      testUserDataReader(false).createContext(UserDataSource.Argument, 'test')
+    );
+    const structuredPipeline = new StructuredPipeline(pipeline, options);
 
     const proto = structuredPipeline._toProto(
       new JsonProtoSerializer(DatabaseId.empty(), false)
@@ -147,19 +156,18 @@ describe('StructuredPipeline', () => {
     const pipeline: ProtoSerializable<PipelineProto> = {
       _toProto: sinon.fake.returns({} as PipelineProto)
     };
-    const options =
-        new StructuredPipelineOptions({
-              indexMode: 'recommended'
-            },
-            {
-              'index_mode': 'baz'
-            }
-        );
-    options._readUserData(testUserDataReader(false).createContext(UserDataSource.Argument, 'test'));
-    const structuredPipeline = new StructuredPipeline(
-      pipeline,
-        options
+    const options = new StructuredPipelineOptions(
+      {
+        indexMode: 'recommended'
+      },
+      {
+        'index_mode': 'baz'
+      }
     );
+    options._readUserData(
+      testUserDataReader(false).createContext(UserDataSource.Argument, 'test')
+    );
+    const structuredPipeline = new StructuredPipeline(pipeline, options);
 
     const proto = structuredPipeline._toProto(
       new JsonProtoSerializer(DatabaseId.empty(), false)

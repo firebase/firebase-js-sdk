@@ -1,29 +1,33 @@
-import { vector} from "../api";
+import { vector } from '../api';
 import {
   _constant,
-  AggregateFunction, AggregateWithAlias, array, constant,
-  Expr,
-  ExprWithAlias,
+  AggregateFunction,
+  AggregateWithAlias,
+  array,
+  constant,
+  Expression,
+  AliasedExpression,
   field,
-  Field, map,
+  Field,
+  map,
   Selectable
-} from "../lite-api/expressions";
-import {VectorValue} from "../lite-api/vector_value";
+} from '../lite-api/expressions';
+import { VectorValue } from '../lite-api/vector_value';
 
-import {isPlainObject} from "./input_validation";
-import {isFirestoreValue} from "./proto";
-import {isString} from "./types";
+import { isPlainObject } from './input_validation';
+import { isFirestoreValue } from './proto';
+import { isString } from './types';
 
 export function selectablesToMap(
   selectables: Array<Selectable | string>
-): Map<string, Expr> {
-  const result = new Map<string, Expr>();
+): Map<string, Expression> {
+  const result = new Map<string, Expression>();
   for (const selectable of selectables) {
     if (typeof selectable === 'string') {
       result.set(selectable as string, field(selectable));
     } else if (selectable instanceof Field) {
       result.set(selectable.alias, selectable.expr);
-    } else if (selectable instanceof ExprWithAlias) {
+    } else if (selectable instanceof AliasedExpression) {
       result.set(selectable.alias, selectable.expr);
     }
   }
@@ -34,10 +38,7 @@ export function aliasedAggregateToMap(
   aliasedAggregatees: AggregateWithAlias[]
 ): Map<string, AggregateFunction> {
   return aliasedAggregatees.reduce(
-    (
-      map: Map<string, AggregateFunction>,
-      selectable: AggregateWithAlias
-    ) => {
+    (map: Map<string, AggregateFunction>, selectable: AggregateWithAlias) => {
       map.set(selectable.alias, selectable.aggregate as AggregateFunction);
       return map;
     },
@@ -54,9 +55,9 @@ export function aliasedAggregateToMap(
  * @param value
  */
 export function vectorToExpr(
-  value: VectorValue | number[] | Expr
-): Expr {
-  if (value instanceof Expr) {
+  value: VectorValue | number[] | Expression
+): Expression {
+  if (value instanceof Expression) {
     return value;
   } else if (value instanceof VectorValue) {
     const result = constant(value);
@@ -79,7 +80,7 @@ export function vectorToExpr(
  * @internal
  * @param value
  */
-export function fieldOrExpression(value: unknown): Expr {
+export function fieldOrExpression(value: unknown): Expression {
   if (isString(value)) {
     const result = field(value);
     return result;
@@ -95,12 +96,12 @@ export function fieldOrExpression(value: unknown): Expr {
  * @internal
  * @param value
  */
-export function valueToDefaultExpr(value: unknown): Expr {
-  let result: Expr | undefined;
+export function valueToDefaultExpr(value: unknown): Expression {
+  let result: Expression | undefined;
   if (isFirestoreValue(value)) {
     return constant(value);
   }
-  if (value instanceof Expr) {
+  if (value instanceof Expression) {
     return value;
   } else if (isPlainObject(value)) {
     result = map(value as Record<string, unknown>);

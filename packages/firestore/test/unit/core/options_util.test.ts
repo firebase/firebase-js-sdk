@@ -15,19 +15,20 @@
  * limitations under the License.
  */
 
-import {expect} from "chai";
+import { expect } from 'chai';
 
-import {ParseContext} from "../../../src/api/parse_context";
-import {OptionsUtil} from "../../../src/core/options_util";
-import {
-  UserDataSource
-} from "../../../src/lite-api/user_data_reader";
-import {testUserDataReader} from "../../util/helpers";
+import { ParseContext } from '../../../src/api/parse_context';
+import { OptionsUtil } from '../../../src/core/options_util';
+import { UserDataSource } from '../../../src/lite-api/user_data_reader';
+import { testUserDataReader } from '../../util/helpers';
 
 describe('OptionsUtil', () => {
   let context: ParseContext | undefined;
   beforeEach(async () => {
-    context = testUserDataReader(false).createContext(UserDataSource.Argument, 'beforeEach');
+    context = testUserDataReader(false).createContext(
+      UserDataSource.Argument,
+      'beforeEach'
+    );
   });
 
   afterEach(async () => {
@@ -37,33 +38,28 @@ describe('OptionsUtil', () => {
   it('should support known options', () => {
     const optionsUtil = new OptionsUtil({
       fooBar: {
-        serverName: 'foo_bar',
-      },
+        serverName: 'foo_bar'
+      }
     });
-    const proto = optionsUtil.getOptionsProto(
-      context!, {
-      fooBar: 'recommended',
+    const proto = optionsUtil.getOptionsProto(context!, {
+      fooBar: 'recommended'
     });
 
     expect(proto).deep.equal({
       'foo_bar': {
-        stringValue: 'recommended',
-      },
+        stringValue: 'recommended'
+      }
     });
   });
 
   it('should support unknown options', () => {
     const optionsUtil = new OptionsUtil({});
-    const proto = optionsUtil.getOptionsProto(
-      context!,
-      {},
-      {baz: 'foo'}
-    );
+    const proto = optionsUtil.getOptionsProto(context!, {}, { baz: 'foo' });
 
     expect(proto).to.deep.equal({
       baz: {
-        stringValue: 'foo',
-      },
+        stringValue: 'foo'
+      }
     });
   });
 
@@ -72,40 +68,40 @@ describe('OptionsUtil', () => {
     const proto = optionsUtil.getOptionsProto(
       context!,
       {},
-      {'foo.bar': 'baz'}
+      { 'foo.bar': 'baz' }
     );
 
     expect(proto).to.deep.equal({
       foo: {
         mapValue: {
           fields: {
-            bar: {stringValue: 'baz'},
-          },
-        },
-      },
+            bar: { stringValue: 'baz' }
+          }
+        }
+      }
     });
   });
 
   it('should support options override', () => {
     const optionsUtil = new OptionsUtil({
       indexMode: {
-        serverName: 'index_mode',
-      },
+        serverName: 'index_mode'
+      }
     });
     const proto = optionsUtil.getOptionsProto(
       context!,
       {
-        indexMode: 'recommended',
+        indexMode: 'recommended'
       },
       {
-        'index_mode': 'baz',
+        'index_mode': 'baz'
       }
     );
 
     expect(proto).to.deep.equal({
       'index_mode': {
-        stringValue: 'baz',
-      },
+        stringValue: 'baz'
+      }
     });
   });
 
@@ -115,22 +111,22 @@ describe('OptionsUtil', () => {
         serverName: 'foo',
         nestedOptions: {
           bar: {
-            serverName: 'bar',
+            serverName: 'bar'
           },
           waldo: {
-            serverName: 'waldo',
-          },
-        },
-      },
+            serverName: 'waldo'
+          }
+        }
+      }
     });
     const proto = optionsUtil.getOptionsProto(
       context!,
       {
-        foo: {bar: 'yep', waldo: 'found'},
+        foo: { bar: 'yep', waldo: 'found' }
       },
       {
         'foo.bar': 123,
-        'foo.baz': true,
+        'foo.baz': true
       }
     );
 
@@ -139,17 +135,17 @@ describe('OptionsUtil', () => {
         mapValue: {
           fields: {
             bar: {
-              integerValue: '123',
+              integerValue: '123'
             },
             waldo: {
-              stringValue: 'found',
+              stringValue: 'found'
             },
             baz: {
-              booleanValue: true,
-            },
-          },
-        },
-      },
+              booleanValue: true
+            }
+          }
+        }
+      }
     });
   });
 
@@ -159,23 +155,23 @@ describe('OptionsUtil', () => {
         serverName: 'foo',
         nestedOptions: {
           bar: {
-            serverName: 'bar',
+            serverName: 'bar'
           },
           waldo: {
-            serverName: 'waldo',
-          },
-        },
-      },
+            serverName: 'waldo'
+          }
+        }
+      }
     });
     const proto = optionsUtil.getOptionsProto(
       context!,
       {
-        foo: {bar: 'yep', waldo: 'found'},
+        foo: { bar: 'yep', waldo: 'found' }
       },
       {
         foo: {
-          bar: 123,
-        },
+          bar: 123
+        }
       }
     );
 
@@ -184,29 +180,29 @@ describe('OptionsUtil', () => {
         mapValue: {
           fields: {
             bar: {
-              integerValue: '123',
-            },
-          },
-        },
-      },
+              integerValue: '123'
+            }
+          }
+        }
+      }
     });
   });
 
   it('will replace a top level property that is not an object if given a nested field with dot notation', () => {
     const optionsUtil = new OptionsUtil({
       foo: {
-        serverName: 'foo',
-      },
+        serverName: 'foo'
+      }
     });
 
     const proto = optionsUtil.getOptionsProto(
       context!,
       {
-        foo: 'bar',
+        foo: 'bar'
       },
       {
         'foo.bar': '123',
-        'foo.waldo': true,
+        'foo.waldo': true
       }
     );
 
@@ -215,14 +211,14 @@ describe('OptionsUtil', () => {
         mapValue: {
           fields: {
             bar: {
-              stringValue: '123',
+              stringValue: '123'
             },
             waldo: {
-              booleanValue: true,
-            },
-          },
-        },
-      },
+              booleanValue: true
+            }
+          }
+        }
+      }
     });
   });
 });

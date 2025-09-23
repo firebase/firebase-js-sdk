@@ -523,7 +523,7 @@ export function fieldPathFromArgument(
   } else if (arg instanceof FieldPath) {
     return arg._internalPath;
   } else if (arg instanceof Field) {
-    return fieldPathFromDotSeparatedString(methodName, arg.fieldName());
+    return fieldPathFromDotSeparatedString(methodName, arg.fieldName);
   } else {
     return arg._delegate._internalPath;
   }

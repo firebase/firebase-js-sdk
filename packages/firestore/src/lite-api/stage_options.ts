@@ -1,17 +1,16 @@
-import {OneOf} from "../util/types";
+import { OneOf } from '../util/types';
 
 import {
   AggregateWithAlias,
-  BooleanExpr,
-  Expr,
+  BooleanExpression,
+  Expression,
   Field,
   Ordering,
   Selectable
-} from "./expressions";
-import {Pipeline} from "./pipeline";
-import {CollectionReference, DocumentReference} from "./reference";
-import {VectorValue} from "./vector_value";
-
+} from './expressions';
+import { Pipeline } from './pipeline';
+import { CollectionReference, DocumentReference } from './reference';
+import { VectorValue } from './vector_value';
 
 /**
  * Options defining how a Stage is evaluated.
@@ -128,9 +127,9 @@ export type SelectStageOptions = StageOptions & {
  */
 export type WhereStageOptions = StageOptions & {
   /**
-   * The {@link BooleanExpr} to apply as a filter for each input document to this stage.
+   * The {@link BooleanExpression} to apply as a filter for each input document to this stage.
    */
-  condition: BooleanExpr;
+  condition: BooleanExpression;
 };
 /**
  * Options defining how an OffsetStage is evaluated. See {@link Pipeline.offset}.
@@ -215,10 +214,10 @@ export type FindNearestStageOptions = StageOptions & {
  */
 export type ReplaceWithStageOptions = StageOptions & {
   /**
-   * The name of a field that contains a map or an {@link Expr} that
+   * The name of a field that contains a map or an {@link Expression} that
    * evaluates to a map.
    */
-  map: Expr | string;
+  map: Expression | string;
 };
 /**
  * Defines the options for evaluating a sample stage within a pipeline.

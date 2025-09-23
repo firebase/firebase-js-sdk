@@ -12,14 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ParseContext} from "../api/parse_context";
-import {
-  parseData,
-} from "../lite-api/user_data_reader";
+import { ParseContext } from '../api/parse_context';
+import { parseData } from '../lite-api/user_data_reader';
 import { ObjectValue } from '../model/object_value';
 import { FieldPath } from '../model/path';
-import {ApiClientObjectMap, Value} from "../protos/firestore_proto_api";
-import {isPlainObject} from "../util/input_validation";
+import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
+import { isPlainObject } from '../util/input_validation';
 import { mapToArray } from '../util/obj';
 export type OptionsDefinitions = Record<string, OptionDefinition>;
 export interface OptionDefinition {
@@ -50,8 +48,8 @@ export class OptionsUtil {
             const nestedUtil = new OptionsUtil(optionDefinition.nestedOptions);
             protoValue = {
               mapValue: {
-                fields: nestedUtil.getOptionsProto(context, optionValue),
-              },
+                fields: nestedUtil.getOptionsProto(context, optionValue)
+              }
             };
           } else if (optionValue) {
             protoValue = parseData(optionValue, context) ?? undefined;
@@ -82,7 +80,7 @@ export class OptionsUtil {
       const optionsMap = new Map(
         mapToArray(optionsOverride, (value, key) => [
           FieldPath.fromServerFormat(key),
-          value !== undefined ? parseData(value, context) : null,
+          value !== undefined ? parseData(value, context) : null
         ])
       );
       result.setAll(optionsMap);

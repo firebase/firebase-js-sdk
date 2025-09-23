@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import {DatabaseId} from '../core/database_info';
-import {toPipeline} from '../core/pipeline-util';
-import {Code, FirestoreError} from '../util/error';
-import {isCollectionReference, isString} from "../util/types";
+import { DatabaseId } from '../core/database_info';
+import { toPipeline } from '../core/pipeline-util';
+import { Code, FirestoreError } from '../util/error';
+import { isCollectionReference, isString } from '../util/types';
 
-import {Pipeline} from './pipeline';
-import {CollectionReference, DocumentReference, Query} from './reference';
+import { Pipeline } from './pipeline';
+import { CollectionReference, DocumentReference, Query } from './reference';
 import {
   CollectionGroupSource,
   CollectionSource,
@@ -34,8 +34,8 @@ import {
   CollectionStageOptions,
   DatabaseStageOptions,
   DocumentsStageOptions
-} from "./stage_options";
-import {UserDataReader, UserDataSource} from "./user_data_reader";
+} from './stage_options';
+import { UserDataReader, UserDataSource } from './user_data_reader';
 
 /**
  * Represents the source of a Firestore {@link Pipeline}.
@@ -70,10 +70,7 @@ export class PipelineSource<PipelineType> {
    */
   collection(options: CollectionStageOptions): PipelineType;
   collection(
-    collectionOrOptions:
-      | string
-      | CollectionReference
-      | CollectionStageOptions
+    collectionOrOptions: string | CollectionReference | CollectionStageOptions
   ): PipelineType {
     // Process argument union(s) from method overloads
     const options =
@@ -98,13 +95,14 @@ export class PipelineSource<PipelineType> {
       : collectionRefOrString.path;
 
     // Create stage object
-    const stage = new CollectionSource(
-      normalizedCollection,
-      options);
+    const stage = new CollectionSource(normalizedCollection, options);
 
     // User data must be read in the context of the API method to
     // provide contextual errors
-    const parseContext = this.userDataReader.createContext(UserDataSource.Argument, 'collection');
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'collection'
+    );
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline
@@ -120,34 +118,29 @@ export class PipelineSource<PipelineType> {
    * Returns all documents from a collection ID regardless of the parent.
    * @param options - Options defining how this CollectionGroupStage is evaluated.
    */
+  collectionGroup(options: CollectionGroupStageOptions): PipelineType;
   collectionGroup(
-    options: CollectionGroupStageOptions
-  ): PipelineType;
-  collectionGroup(
-    collectionIdOrOptions:
-      | string
-      | CollectionGroupStageOptions
+    collectionIdOrOptions: string | CollectionGroupStageOptions
   ): PipelineType {
     // Process argument union(s) from method overloads
     let collectionId: string;
     let options: {};
-    if (isString(
-      collectionIdOrOptions
-    )) {
+    if (isString(collectionIdOrOptions)) {
       collectionId = collectionIdOrOptions;
       options = {};
     } else {
-      ({collectionId, ...options} = collectionIdOrOptions);
+      ({ collectionId, ...options } = collectionIdOrOptions);
     }
 
     // Create stage object
-    const stage = new CollectionGroupSource(
-      collectionId,
-      options);
+    const stage = new CollectionGroupSource(collectionId, options);
 
     // User data must be read in the context of the API method to
     // provide contextual errors
-    const parseContext = this.userDataReader.createContext(UserDataSource.Argument, 'collectionGroup');
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'collectionGroup'
+    );
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline
@@ -172,7 +165,10 @@ export class PipelineSource<PipelineType> {
 
     // User data must be read in the context of the API method to
     // provide contextual errors
-    const parseContext = this.userDataReader.createContext(UserDataSource.Argument, 'database');
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'database'
+    );
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline
@@ -198,9 +194,7 @@ export class PipelineSource<PipelineType> {
    */
   documents(options: DocumentsStageOptions): PipelineType;
   documents(
-    docsOrOptions:
-      | Array<string | DocumentReference>
-      | DocumentsStageOptions
+    docsOrOptions: Array<string | DocumentReference> | DocumentsStageOptions
   ): PipelineType {
     // Process argument union(s) from method overloads
     let options: {};
@@ -209,15 +203,13 @@ export class PipelineSource<PipelineType> {
       docs = docsOrOptions;
       options = {};
     } else {
-      ({docs, ...options} = docsOrOptions);
+      ({ docs, ...options } = docsOrOptions);
     }
 
     // Validate that all user provided references are for the same Firestore DB
     docs
       .filter(v => v instanceof DocumentReference)
-      .forEach(dr =>
-        this._validateReference(dr as DocumentReference)
-      );
+      .forEach(dr => this._validateReference(dr as DocumentReference));
 
     // Convert user land convenience types to internal types
     const normalizedDocs: string[] = docs.map(doc =>
@@ -225,13 +217,14 @@ export class PipelineSource<PipelineType> {
     );
 
     // Create stage object
-    const stage = new DocumentsSource(
-      normalizedDocs,
-      options);
+    const stage = new DocumentsSource(normalizedDocs, options);
 
     // User data must be read in the context of the API method to
     // provide contextual errors
-    const parseContext = this.userDataReader.createContext(UserDataSource.Argument, 'documents');
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'documents'
+    );
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline

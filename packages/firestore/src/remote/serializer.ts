@@ -1473,7 +1473,6 @@ export function isProtoValueSerializable(
   );
 }
 
-
 export function toMapValue(
   serializer: JsonProtoSerializer,
   input: Map<string, ProtoSerializable<ProtoValue>>

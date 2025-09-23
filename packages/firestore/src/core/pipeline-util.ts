@@ -18,12 +18,12 @@
 import { Firestore } from '../lite-api/database';
 import {
   Constant,
-  BooleanExpr,
+  BooleanExpression,
   and,
   or,
   Ordering,
-  lt,
-  gt,
+  lessThan,
+  greaterThan,
   field
 } from '../lite-api/expressions';
 import { Pipeline } from '../lite-api/pipeline';
@@ -50,7 +50,7 @@ import {
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
-export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
+export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpression {
   if (f instanceof FieldFilterInternal) {
     const fieldValue = field(f.field.toString());
     if (isNanValue(f.value)) {
@@ -72,32 +72,32 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
         case Operator.LESS_THAN:
           return and(
             fieldValue.exists(),
-            fieldValue.lt(Constant._fromProto(value))
+            fieldValue.lessThan(Constant._fromProto(value))
           );
         case Operator.LESS_THAN_OR_EQUAL:
           return and(
             fieldValue.exists(),
-            fieldValue.lte(Constant._fromProto(value))
+            fieldValue.lessThanOrEqual(Constant._fromProto(value))
           );
         case Operator.GREATER_THAN:
           return and(
             fieldValue.exists(),
-            fieldValue.gt(Constant._fromProto(value))
+            fieldValue.greaterThan(Constant._fromProto(value))
           );
         case Operator.GREATER_THAN_OR_EQUAL:
           return and(
             fieldValue.exists(),
-            fieldValue.gte(Constant._fromProto(value))
+            fieldValue.greaterThanOrEqual(Constant._fromProto(value))
           );
         case Operator.EQUAL:
           return and(
             fieldValue.exists(),
-            fieldValue.eq(Constant._fromProto(value))
+            fieldValue.equal(Constant._fromProto(value))
           );
         case Operator.NOT_EQUAL:
           return and(
             fieldValue.exists(),
-            fieldValue.neq(Constant._fromProto(value))
+            fieldValue.notEqual(Constant._fromProto(value))
           );
         case Operator.ARRAY_CONTAINS:
           return and(
@@ -109,11 +109,11 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
             Constant._fromProto(val)
           );
           if (!values) {
-            return and(fieldValue.exists(), fieldValue.eqAny([]));
+            return and(fieldValue.exists(), fieldValue.equalAny([]));
           } else if (values.length === 1) {
-            return and(fieldValue.exists(), fieldValue.eq(values[0]));
+            return and(fieldValue.exists(), fieldValue.equal(values[0]));
           } else {
-            return and(fieldValue.exists(), fieldValue.eqAny(values));
+            return and(fieldValue.exists(), fieldValue.equalAny(values));
           }
         }
         case Operator.ARRAY_CONTAINS_ANY: {
@@ -127,11 +127,11 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpr {
             Constant._fromProto(val)
           );
           if (!values) {
-            return and(fieldValue.exists(), fieldValue.notEqAny([]));
+            return and(fieldValue.exists(), fieldValue.notEqualAny([]));
           } else if (values.length === 1) {
-            return and(fieldValue.exists(), fieldValue.neq(values[0]));
+            return and(fieldValue.exists(), fieldValue.notEqual(values[0]));
           } else {
-            return and(fieldValue.exists(), fieldValue.notEqAny(values));
+            return and(fieldValue.exists(), fieldValue.notEqualAny(values));
           }
         }
         default:
@@ -250,9 +250,9 @@ function whereConditionsFromCursor(
   bound: Bound,
   orderings: Ordering[],
   position: 'before' | 'after'
-): BooleanExpr {
+): BooleanExpression {
   // The filterFunc is either greater than or less than
-  const filterFunc = position === 'before' ? lt : gt;
+  const filterFunc = position === 'before' ? lessThan : greaterThan;
   const cursors = bound.position.map(value => Constant._fromProto(value));
   const size = cursors.length;
 
@@ -260,11 +260,11 @@ function whereConditionsFromCursor(
   let value = cursors[size - 1];
 
   // Add condition for last bound
-  let condition: BooleanExpr = filterFunc(field, value);
+  let condition: BooleanExpression = filterFunc(field, value);
   if (bound.inclusive) {
     // When the cursor bound is inclusive, then the last bound
     // can be equal to the value, otherwise it's not equal
-    condition = or(condition, field.eq(value));
+    condition = or(condition, field.equal(value));
   }
 
   // Iterate backwards over the remaining bounds, adding
@@ -276,7 +276,10 @@ function whereConditionsFromCursor(
     // For each field in the orderings, the condition is either
     // a) lt|gt the cursor value,
     // b) or equal the cursor value and lt|gt the cursor values for other fields
-    condition = or(filterFunc(field, value), and(field.eq(value), condition));
+    condition = or(
+      filterFunc(field, value),
+      and(field.equal(value), condition)
+    );
   }
 
   return condition;

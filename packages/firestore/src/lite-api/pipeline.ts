@@ -21,39 +21,46 @@ import {
   Pipeline as ProtoPipeline,
   Stage as ProtoStage
 } from '../protos/firestore_proto_api';
-import {JsonProtoSerializer, ProtoSerializable} from '../remote/serializer';
-import {isPlainObject} from '../util/input_validation';
+import { JsonProtoSerializer, ProtoSerializable } from '../remote/serializer';
+import { isPlainObject } from '../util/input_validation';
 import {
-  aliasedAggregateToMap, fieldOrExpression,
+  aliasedAggregateToMap,
+  fieldOrExpression,
   selectablesToMap,
   vectorToExpr
-} from "../util/pipeline_util";
+} from '../util/pipeline_util';
 import {
   isAliasedAggregate,
-  isBooleanExpr, isExpr,
-  isField, isLitePipeline, isOrdering,
+  isBooleanExpr,
+  isExpr,
+  isField,
+  isLitePipeline,
+  isOrdering,
   isSelectable,
-  isString, toField
-} from "../util/types";
+  isString,
+  toField
+} from '../util/types';
 
-import {Firestore} from './database';
+import { Firestore } from './database';
 import {
   _mapValue,
   AggregateFunction,
   AggregateWithAlias,
-  BooleanExpr, _constant,
-  Expr,
+  BooleanExpression,
+  _constant,
+  Expression,
   Field,
   field,
   Ordering,
-  Selectable, _field
+  Selectable,
+  _field
 } from './expressions';
 import {
   AddFields,
   Aggregate,
   Distinct,
   FindNearest,
-  GenericStage,
+  RawStage,
   Limit,
   Offset,
   RemoveFields,
@@ -73,17 +80,18 @@ import {
   FindNearestStageOptions,
   LimitStageOptions,
   OffsetStageOptions,
-  RemoveFieldsStageOptions, ReplaceWithStageOptions, SampleStageOptions,
+  RemoveFieldsStageOptions,
+  ReplaceWithStageOptions,
+  SampleStageOptions,
   SelectStageOptions,
-  SortStageOptions, StageOptions, UnionStageOptions, UnnestStageOptions,
+  SortStageOptions,
+  StageOptions,
+  UnionStageOptions,
+  UnnestStageOptions,
   WhereStageOptions
-} from "./stage_options";
-import {
-  UserDataReader,
-  UserDataSource
-} from './user_data_reader';
-import {AbstractUserDataWriter} from './user_data_writer';
-
+} from './stage_options';
+import { UserDataReader, UserDataSource } from './user_data_reader';
+import { AbstractUserDataWriter } from './user_data_writer';
 
 /**
  * @beta
@@ -124,10 +132,6 @@ import {AbstractUserDataWriter} from './user_data_writer';
  *     .aggregate(avg(field("rating")).as("averageRating")));
  * ```
  */
-
-/**
- * Base-class implementation
- */
 export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   /**
    * @internal
@@ -162,8 +166,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * The added fields are defined using {@link Selectable}s, which can be:
    *
    * - {@link Field}: References an existing document field.
-   * - {@link Expr}: Either a literal value (see {@link Constant}) or a computed value
-   *   (see {@FunctionExpr}) with an assigned alias using {@link Expr#as}.
+   * - {@link Expression}: Either a literal value (see {@link Constant}) or a computed value
+   *   (see {@FunctionExpr}) with an assigned alias using {@link Expression#as}.
    *
    * Example:
    *
@@ -179,10 +183,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @param additionalFields Optional additional fields to add to the documents, specified as {@link Selectable}s.
    * @return A new Pipeline object with this stage appended to the stage list.
    */
-  addFields(
-    field: Selectable,
-    ...additionalFields: Selectable[]
-  ): Pipeline;
+  addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
   /**
    * Adds new fields to outputs from previous stages.
    *
@@ -193,8 +194,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * The added fields are defined using {@link Selectable}s, which can be:
    *
    * - {@link Field}: References an existing document field.
-   * - {@link Expr}: Either a literal value (see {@link Constant}) or a computed value
-   *   (see {@FunctionExpr}) with an assigned alias using {@link Expr#as}.
+   * - {@link Expression}: Either a literal value (see {@link Constant}) or a computed value
+   *   (see {@FunctionExpr}) with an assigned alias using {@link Expression#as}.
    *
    * Example:
    *
@@ -211,9 +212,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    */
   addFields(options: AddFieldsStageOptions): Pipeline;
   addFields(
-    fieldOrOptions:
-      | Selectable
-      | AddFieldsStageOptions,
+    fieldOrOptions: Selectable | AddFieldsStageOptions,
     ...additionalFields: Selectable[]
   ): Pipeline {
     // Process argument union(s) from method overloads
@@ -223,20 +222,21 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
       fields = [fieldOrOptions, ...additionalFields];
       options = {};
     } else {
-      ({fields, ...options} = fieldOrOptions);
+      ({ fields, ...options } = fieldOrOptions);
     }
 
     // Convert user land convenience types to internal types
-    const normalizedFields: Map<string, Expr> = selectablesToMap(fields);
+    const normalizedFields: Map<string, Expression> = selectablesToMap(fields);
 
     // Create stage object
-    const stage = new AddFields(
-      normalizedFields,
-      options);
+    const stage = new AddFields(normalizedFields, options);
 
     // User data must be read in the context of the API method to
     // provide contextual errors
-    const parseContext = this.userDataReader.createContext(UserDataSource.Argument, 'addFields');
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'addFields'
+    );
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline
@@ -284,10 +284,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    */
   removeFields(options: RemoveFieldsStageOptions): Pipeline;
   removeFields(
-    fieldValueOrOptions:
-      | Field
-      | string
-      | RemoveFieldsStageOptions,
+    fieldValueOrOptions: Field | string | RemoveFieldsStageOptions,
     ...additionalFields: Array<Field | string>
   ): Pipeline {
     // Process argument union(s) from method overloads
@@ -310,11 +307,12 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
     // User data must be read in the context of the API method to
     // provide contextual errors
-    stage._readUserData( this.userDataReader.createContext(UserDataSource.Argument, 'removeFields'));
+    stage._readUserData(
+      this.userDataReader.createContext(UserDataSource.Argument, 'removeFields')
+    );
 
     // Add stage to the pipeline
     return this._addStage(stage);
-
   }
 
   /**
@@ -326,7 +324,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   <li>{@code string}: Name of an existing field</li>
    *   <li>{@link Field}: References an existing field.</li>
    *   <li>{@link Function}: Represents the result of a function with an assigned alias name using
-   *       {@link Expr#as}</li>
+   *       {@link Expression#as}</li>
    * </ul>
    *
    * <p>If no selections are provided, the output of this stage is empty. Use {@link
@@ -363,7 +361,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   <li>{@code string}: Name of an existing field</li>
    *   <li>{@link Field}: References an existing field.</li>
    *   <li>{@link Function}: Represents the result of a function with an assigned alias name using
-   *       {@link Expr#as}</li>
+   *       {@link Expression#as}</li>
    * </ul>
    *
    * <p>If no selections are provided, the output of this stage is empty. Use {@link
@@ -386,10 +384,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    */
   select(options: SelectStageOptions): Pipeline;
   select(
-    selectionOrOptions:
-      | Selectable
-      | string
-      | SelectStageOptions,
+    selectionOrOptions: Selectable | string | SelectStageOptions,
     ...additionalSelections: Array<Selectable | string>
   ): Pipeline {
     // Process argument union(s) from method overloads
@@ -404,7 +399,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
         : selectionOrOptions.selections;
 
     // Convert user land convenience types to internal types
-    const normalizedSelections: Map<string, Expr> =
+    const normalizedSelections: Map<string, Expression> =
       selectablesToMap(selections);
 
     // Create stage object
@@ -412,7 +407,10 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
     // User data must be read in the context of the API method to
     // provide contextual errors
-    const parseContext = this.userDataReader.createContext(UserDataSource.Argument, 'select');
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'select'
+    );
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline
@@ -421,11 +419,11 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
   /**
    * Filters the documents from previous stages to only include those matching the specified {@link
-   * BooleanExpr}.
+   * BooleanExpression}.
    *
    * <p>This stage allows you to apply conditions to the data, similar to a "WHERE" clause in SQL.
    * You can filter documents based on their field values, using implementations of {@link
-   * BooleanExpr}, typically including but not limited to:
+   * BooleanExpression}, typically including but not limited to:
    *
    * <ul>
    *   <li>field comparators: {@link Function#eq}, {@link Function#lt} (less than), {@link
@@ -447,17 +445,17 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   );
    * ```
    *
-   * @param condition The {@link BooleanExpr} to apply.
+   * @param condition The {@link BooleanExpression} to apply.
    * @return A new Pipeline object with this stage appended to the stage list.
    */
-  where(condition: BooleanExpr): Pipeline;
+  where(condition: BooleanExpression): Pipeline;
   /**
    * Filters the documents from previous stages to only include those matching the specified {@link
-   * BooleanExpr}.
+   * BooleanExpression}.
    *
    * <p>This stage allows you to apply conditions to the data, similar to a "WHERE" clause in SQL.
    * You can filter documents based on their field values, using implementations of {@link
-   * BooleanExpr}, typically including but not limited to:
+   * BooleanExpression}, typically including but not limited to:
    *
    * <ul>
    *   <li>field comparators: {@link Function#eq}, {@link Function#lt} (less than), {@link
@@ -483,27 +481,22 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @return A new Pipeline object with this stage appended to the stage list.
    */
   where(options: WhereStageOptions): Pipeline;
-  where(
-    conditionOrOptions:
-      | BooleanExpr
-      | WhereStageOptions
-  ): Pipeline {
+  where(conditionOrOptions: BooleanExpression | WhereStageOptions): Pipeline {
     // Process argument union(s) from method overloads
     const options = isBooleanExpr(conditionOrOptions) ? {} : conditionOrOptions;
-    const condition: BooleanExpr = isBooleanExpr(
-      conditionOrOptions
-    )
+    const condition: BooleanExpression = isBooleanExpr(conditionOrOptions)
       ? conditionOrOptions
       : conditionOrOptions.condition;
 
     // Create stage object
-    const stage = new Where(
-      condition,
-      options);
+    const stage = new Where(condition, options);
 
     // User data must be read in the context of the API method to
     // provide contextual errors
-    const parseContext = this.userDataReader.createContext(UserDataSource.Argument, 'where');
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'where'
+    );
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline
@@ -552,9 +545,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @return A new Pipeline object with this stage appended to the stage list.
    */
   offset(options: OffsetStageOptions): Pipeline;
-  offset(
-    offsetOrOptions: number | OffsetStageOptions
-  ): Pipeline {
+  offset(offsetOrOptions: number | OffsetStageOptions): Pipeline {
     // Process argument union(s) from method overloads
     const options = isNumber(offsetOrOptions) ? {} : offsetOrOptions;
     const offset: number = isNumber(offsetOrOptions)
@@ -562,13 +553,14 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
       : offsetOrOptions.offset;
 
     // Create stage object
-    const stage = new Offset(
-      offset,
-      options);
+    const stage = new Offset(offset, options);
 
     // User data must be read in the context of the API method to
     // provide contextual errors
-    const parseContext = this.userDataReader.createContext(UserDataSource.Argument, 'offset');
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'offset'
+    );
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline
@@ -627,9 +619,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @return A new Pipeline object with this stage appended to the stage list.
    */
   limit(options: LimitStageOptions): Pipeline;
-  limit(
-    limitOrOptions: number | LimitStageOptions
-  ): Pipeline {
+  limit(limitOrOptions: number | LimitStageOptions): Pipeline {
     // Process argument union(s) from method overloads
     const options = isNumber(limitOrOptions) ? {} : limitOrOptions;
     const limit: number = isNumber(limitOrOptions)
@@ -637,13 +627,14 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
       : limitOrOptions.limit;
 
     // Create stage object
-    const stage = new Limit(
-      limit,
-      options);
+    const stage = new Limit(limit, options);
 
     // User data must be read in the context of the API method to
     // provide contextual errors
-    const parseContext = this.userDataReader.createContext(UserDataSource.Argument, 'limit');
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'limit'
+    );
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline
@@ -654,14 +645,14 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * Returns a set of distinct values from the inputs to this stage.
    *
    * This stage runs through the results from previous stages to include only results with
-   * unique combinations of {@link Expr} values ({@link Field}, {@link Function}, etc).
+   * unique combinations of {@link Expression} values ({@link Field}, {@link Function}, etc).
    *
    * The parameters to this stage are defined using {@link Selectable} expressions or strings:
    *
    * - {@code string}: Name of an existing field
    * - {@link Field}: References an existing document field.
    * - {@link AliasedExpr}: Represents the result of a function with an assigned alias name
-   *   using {@link Expr#as}.
+   *   using {@link Expression#as}.
    *
    * Example:
    *
@@ -686,14 +677,14 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * Returns a set of distinct values from the inputs to this stage.
    *
    * This stage runs through the results from previous stages to include only results with
-   * unique combinations of {@link Expr} values ({@link Field}, {@link Function}, etc).
+   * unique combinations of {@link Expression} values ({@link Field}, {@link Function}, etc).
    *
    * The parameters to this stage are defined using {@link Selectable} expressions or strings:
    *
    * - {@code string}: Name of an existing field
    * - {@link Field}: References an existing document field.
    * - {@link AliasedExpr}: Represents the result of a function with an assigned alias name
-   *   using {@link Expr#as}.
+   *   using {@link Expression#as}.
    *
    * Example:
    *
@@ -709,10 +700,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    */
   distinct(options: DistinctStageOptions): Pipeline;
   distinct(
-    groupOrOptions:
-      | string
-      | Selectable
-      | DistinctStageOptions,
+    groupOrOptions: string | Selectable | DistinctStageOptions,
     ...additionalGroups: Array<string | Selectable>
   ): Pipeline {
     // Process argument union(s) from method overloads
@@ -726,16 +714,17 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
         : groupOrOptions.groups;
 
     // Convert user land convenience types to internal types
-    const convertedGroups: Map<string, Expr> = selectablesToMap(groups);
+    const convertedGroups: Map<string, Expression> = selectablesToMap(groups);
 
     // Create stage object
-    const stage = new Distinct(
-      convertedGroups,
-      options);
+    const stage = new Distinct(convertedGroups, options);
 
     // User data must be read in the context of the API method to
     // provide contextual errors
-    const parseContext = this.userDataReader.createContext(UserDataSource.Argument, 'distinct');
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'distinct'
+    );
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline
@@ -747,7 +736,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>This stage allows you to calculate aggregate values over a set of documents. You define the
    * aggregations to perform using {@link AggregateWithAlias} expressions which are typically results of
-   * calling {@link Expr#as} on {@link AggregateFunction} instances.
+   * calling {@link Expression#as} on {@link AggregateFunction} instances.
    *
    * <p>Example:
    *
@@ -783,7 +772,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *       specifying groups is the same as putting the entire inputs into one group.</li>
    *   <li>**Accumulators:** One or more accumulation operations to perform within each group. These
    *       are defined using {@link AggregateWithAlias} expressions, which are typically created by
-   *       calling {@link Expr#as} on {@link AggregateFunction} instances. Each aggregation
+   *       calling {@link Expression#as} on {@link AggregateFunction} instances. Each aggregation
    *       calculates a value (e.g., sum, average, count) based on the documents within its group.</li>
    * </ul>
    *
@@ -804,34 +793,40 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    */
   aggregate(options: AggregateStageOptions): Pipeline;
   aggregate(
-    targetOrOptions:
-      | AggregateWithAlias
-      | AggregateStageOptions,
+    targetOrOptions: AggregateWithAlias | AggregateStageOptions,
     ...rest: AggregateWithAlias[]
   ): Pipeline {
     // Process argument union(s) from method overloads
     const options = isAliasedAggregate(targetOrOptions) ? {} : targetOrOptions;
-    const accumulators: AggregateWithAlias[] =
-      isAliasedAggregate(targetOrOptions)
-        ? [targetOrOptions, ...rest]
-        : targetOrOptions.accumulators;
-    const groups: Array<Selectable | string> =
-      isAliasedAggregate(targetOrOptions) ? [] : targetOrOptions.groups ?? [];
+    const accumulators: AggregateWithAlias[] = isAliasedAggregate(
+      targetOrOptions
+    )
+      ? [targetOrOptions, ...rest]
+      : targetOrOptions.accumulators;
+    const groups: Array<Selectable | string> = isAliasedAggregate(
+      targetOrOptions
+    )
+      ? []
+      : targetOrOptions.groups ?? [];
 
     // Convert user land convenience types to internal types
     const convertedAccumulators: Map<string, AggregateFunction> =
       aliasedAggregateToMap(accumulators);
-    const convertedGroups: Map<string, Expr> = selectablesToMap(groups);
+    const convertedGroups: Map<string, Expression> = selectablesToMap(groups);
 
     // Create stage object
     const stage = new Aggregate(
       convertedGroups,
       convertedAccumulators,
-      options);
+      options
+    );
 
     // User data must be read in the context of the API method to
     // provide contextual errors
-    const parseContext = this.userDataReader.createContext(UserDataSource.Argument, 'aggregate');
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'aggregate'
+    );
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline
@@ -881,11 +876,15 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
       vectorValue,
       field,
       options.distanceMeasure,
-      internalOptions);
+      internalOptions
+    );
 
     // User data must be read in the context of the API method to
     // provide contextual errors
-    const parseContext = this.userDataReader.createContext(UserDataSource.Argument, 'addFields');
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'addFields'
+    );
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline
@@ -917,10 +916,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @param additionalOrderings Optional additional {@link Ordering} instances specifying the additional sorting criteria.
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
    */
-  sort(
-    ordering: Ordering,
-    ...additionalOrderings: Ordering[]
-  ): Pipeline;
+  sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
   /**
    * Sorts the documents from previous stages based on one or more {@link Ordering} criteria.
    *
@@ -947,27 +943,24 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    */
   sort(options: SortStageOptions): Pipeline;
   sort(
-    orderingOrOptions:
-      | Ordering
-      | SortStageOptions,
+    orderingOrOptions: Ordering | SortStageOptions,
     ...additionalOrderings: Ordering[]
   ): Pipeline {
     // Process argument union(s) from method overloads
     const options = isOrdering(orderingOrOptions) ? {} : orderingOrOptions;
-    const orderings: Ordering[] = isOrdering(
-      orderingOrOptions
-    )
+    const orderings: Ordering[] = isOrdering(orderingOrOptions)
       ? [orderingOrOptions, ...additionalOrderings]
       : orderingOrOptions.orderings;
 
     // Create stage object
-    const stage = new Sort(
-      orderings,
-      options);
+    const stage = new Sort(orderings, options);
 
     // User data must be read in the context of the API method to
     // provide contextual errors
-    const parseContext = this.userDataReader.createContext(UserDataSource.Argument, 'sort');
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'sort'
+    );
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline
@@ -1039,10 +1032,10 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // }
    * ```
    *
-   * @param expr An {@link Expr} that when returned evaluates to a map.
+   * @param expr An {@link Expression} that when returned evaluates to a map.
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
    */
-  replaceWith(expr: Expr): Pipeline;
+  replaceWith(expr: Expression): Pipeline;
   /**
    * Fully overwrites all fields in a document with those coming from a map.
    *
@@ -1081,15 +1074,12 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    */
   replaceWith(options: ReplaceWithStageOptions): Pipeline;
   replaceWith(
-    valueOrOptions:
-      | Expr
-      | string
-      | ReplaceWithStageOptions
+    valueOrOptions: Expression | string | ReplaceWithStageOptions
   ): Pipeline {
     // Process argument union(s) from method overloads
     const options =
       isString(valueOrOptions) || isExpr(valueOrOptions) ? {} : valueOrOptions;
-    const fieldNameOrExpr: string | Expr =
+    const fieldNameOrExpr: string | Expression =
       isString(valueOrOptions) || isExpr(valueOrOptions)
         ? valueOrOptions
         : valueOrOptions.map;
@@ -1098,13 +1088,14 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     const mapExpr = fieldOrExpression(fieldNameOrExpr);
 
     // Create stage object
-    const stage = new Replace(
-      mapExpr,
-      options);
+    const stage = new Replace(mapExpr, options);
 
     // User data must be read in the context of the API method to
     // provide contextual errors
-    const parseContext = this.userDataReader.createContext(UserDataSource.Argument, 'replaceWith');
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'replaceWith'
+    );
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline
@@ -1150,9 +1141,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
    */
   sample(options: SampleStageOptions): Pipeline;
-  sample(
-    documentsOrOptions: number | SampleStageOptions
-  ): Pipeline {
+  sample(documentsOrOptions: number | SampleStageOptions): Pipeline {
     // Process argument union(s) from method overloads
     const options = isNumber(documentsOrOptions) ? {} : documentsOrOptions;
     let rate: number;
@@ -1169,14 +1158,14 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     }
 
     // Create stage object
-    const stage = new Sample(
-      rate,
-      mode,
-      options);
+    const stage = new Sample(rate, mode, options);
 
     // User data must be read in the context of the API method to
     // provide contextual errors
-    const parseContext = this.userDataReader.createContext(UserDataSource.Argument, 'sample');
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'sample'
+    );
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline
@@ -1221,11 +1210,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
    */
   union(options: UnionStageOptions): Pipeline;
-  union(
-    otherOrOptions:
-      | Pipeline
-      | UnionStageOptions
-  ): Pipeline {
+  union(otherOrOptions: Pipeline | UnionStageOptions): Pipeline {
     // Process argument union(s) from method overloads
     let options: {};
     let otherPipeline: Pipeline;
@@ -1233,17 +1218,18 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
       options = {};
       otherPipeline = otherOrOptions;
     } else {
-      ({other: otherPipeline, ...options} = otherOrOptions);
+      ({ other: otherPipeline, ...options } = otherOrOptions);
     }
 
     // Create stage object
-    const stage = new Union(
-      otherPipeline,
-      options);
+    const stage = new Union(otherPipeline, options);
 
     // User data must be read in the context of the API method to
     // provide contextual errors
-    const parseContext = this.userDataReader.createContext(UserDataSource.Argument, 'union');
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'union'
+    );
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline
@@ -1270,20 +1256,19 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * // Emit a book document for each tag of the book.
    * firestore.pipeline().collection("books")
-   *     .unnest(field("tags").as('tag'));
+   *     .unnest(field("tags").as('tag'), 'tagIndex');
    *
    * // Output:
-   * // { "title": "The Hitchhiker's Guide to the Galaxy", "tag": "comedy", ... }
-   * // { "title": "The Hitchhiker's Guide to the Galaxy", "tag": "space", ... }
-   * // { "title": "The Hitchhiker's Guide to the Galaxy", "tag": "adventure", ... }
+   * // { "title": "The Hitchhiker's Guide to the Galaxy", "tag": "comedy", "tagIndex": 0, ... }
+   * // { "title": "The Hitchhiker's Guide to the Galaxy", "tag": "space", "tagIndex": 1, ... }
+   * // { "title": "The Hitchhiker's Guide to the Galaxy", "tag": "adventure", "tagIndex": 2, ... }
    * ```
    *
    * @param selectable A selectable expression defining the field to unnest and the alias to use for each un-nested element in the output documents.
+   * @param indexField An optional string value specifying the field path to write the offset (starting at zero) into the array the un-nested element is from
    * @return A new {@code Pipeline} object with this stage appended to the stage list.
    */
-  unnest(
-    selectable: Selectable
-  ): Pipeline;
+  unnest(selectable: Selectable, indexField?: string): Pipeline;
   /**
    * Produces a document for each element in an input array.
    *
@@ -1317,36 +1302,41 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    */
   unnest(options: UnnestStageOptions): Pipeline;
   unnest(
-    selectableOrOptions:
-      | Selectable
-      | UnnestStageOptions
+    selectableOrOptions: Selectable | UnnestStageOptions,
+    indexField?: string
   ): Pipeline {
     // Process argument union(s) from method overloads
-    let options: {indexField?: string | Field} & StageOptions;
+    let options: { indexField?: Field } & StageOptions;
     let selectable: Selectable;
+    let indexFieldName: string | undefined;
     if (isSelectable(selectableOrOptions)) {
       options = {};
       selectable = selectableOrOptions;
+      indexFieldName = indexField;
     } else {
-      ({selectable, ...options} = selectableOrOptions);
+      ({
+        selectable,
+        indexField: indexFieldName,
+        ...options
+      } = selectableOrOptions);
     }
 
     // Convert user land convenience types to internal types
     const alias = selectable.alias;
-    const expr = selectable.expr as Expr;
-    if (isString(options['indexField'])) {
-      options.indexField = _field(options.indexField, 'unnest');
+    const expr = selectable.expr as Expression;
+    if (isString(indexFieldName)) {
+      options.indexField = _field(indexFieldName, 'unnest');
     }
 
     // Create stage object
-    const stage = new Unnest(
-      alias,
-      expr,
-      options);
+    const stage = new Unnest(alias, expr, options);
 
     // User data must be read in the context of the API method to
     // provide contextual errors
-    const parseContext = this.userDataReader.createContext(UserDataSource.Argument, 'unnest');
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'unnest'
+    );
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline
@@ -1377,11 +1367,11 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   rawStage(
     name: string,
     params: unknown[],
-    options?: {[key: string]: Expr | unknown}
+    options?: { [key: string]: Expression | unknown }
   ): Pipeline {
     // Convert user land convenience types to internal types
     const expressionParams = params.map((value: unknown) => {
-      if (value instanceof Expr) {
+      if (value instanceof Expression) {
         return value;
       } else if (value instanceof AggregateFunction) {
         return value;
@@ -1393,14 +1383,14 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     });
 
     // Create stage object
-    const stage = new GenericStage(
-      name,
-      expressionParams,
-      options ?? {});
+    const stage = new RawStage(name, expressionParams, options ?? {});
 
     // User data must be read in the context of the API method to
     // provide contextual errors
-    const parseContext = this.userDataReader.createContext(UserDataSource.Argument, 'rawStage');
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'rawStage'
+    );
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline

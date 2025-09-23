@@ -161,13 +161,13 @@ describe('execute(Pipeline|PipelineOptions)', () => {
     );
   });
 
-  it('serializes the pipeline generic options', async () => {
+  it('serializes the pipeline raw options', async () => {
     const firestore = newTestFirestore();
     const spy = fakePipelineResponse(firestore);
 
     await execute({
       pipeline: firestore.pipeline().collection('foo'),
-      customOptions: {
+      rawOptions: {
         'foo': 'bar'
       }
     });

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import {DocumentData} from "../lite-api/reference";
+import { DocumentData } from '../lite-api/reference';
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 

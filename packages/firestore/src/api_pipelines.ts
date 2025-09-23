@@ -29,7 +29,7 @@ export { Pipeline } from './api/pipeline';
 
 export { execute } from './api/pipeline_impl';
 
-export { PipelineOptions } from './lite-api/pipeline_options';
+export { PipelineExecuteOptions } from './lite-api/pipeline_options';
 
 export {
   StageOptions,
@@ -68,7 +68,7 @@ export {
   Offset,
   Select,
   Sort,
-  GenericStage
+  RawStage
 } from './lite-api/stage';
 
 export {
@@ -79,46 +79,44 @@ export {
   multiply,
   divide,
   mod,
-  eq,
-  neq,
-  lt,
-  lte,
-  gt,
-  gte,
+  equal,
+  notEqual,
+  lessThan,
+  lessThanOrEqual,
+  greaterThan,
+  greaterThanOrEqual,
   arrayConcat,
   arrayContains,
   arrayContainsAny,
   arrayContainsAll,
   arrayLength,
-  eqAny,
-  notEqAny,
+  equalAny,
+  notEqualAny,
   xor,
-  cond,
+  conditional,
   not,
   logicalMaximum,
   logicalMinimum,
   exists,
   isNan,
   reverse,
-  replaceFirst,
-  replaceAll,
   byteLength,
   charLength,
   like,
   regexContains,
   regexMatch,
-  strContains,
+  stringContains,
   startsWith,
   endsWith,
   toLower,
   toUpper,
   trim,
-  strConcat,
+  stringConcat,
   mapGet,
   countAll,
   count,
   sum,
-  avg,
+  average,
   and,
   or,
   minimum,
@@ -134,16 +132,10 @@ export {
   unixSecondsToTimestamp,
   timestampToUnixSeconds,
   timestampAdd,
-  timestampSub,
+  timestampSubtract,
   ascending,
   descending,
   countIf,
-  bitAnd,
-  bitOr,
-  bitXor,
-  bitNot,
-  bitLeftShift,
-  bitRightShift,
   rand,
   array,
   arrayGet,
@@ -157,20 +149,19 @@ export {
   mapRemove,
   mapMerge,
   documentId,
-  substr,
-  Expr,
-  ExprWithAlias,
+  substring,
+  Expression,
+  AliasedExpression,
   Field,
-  Constant,
-  FunctionExpr,
+  FunctionExpression,
   Ordering
 } from './lite-api/expressions';
 
 export type {
-  ExprType,
+  ExpressionType,
   AggregateWithAlias,
   Selectable,
-  BooleanExpr,
+  BooleanExpression,
   AggregateFunction
 } from './lite-api/expressions';
 

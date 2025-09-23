@@ -40,14 +40,6 @@ export class PipelineSnapshot {
     this._results = results;
   }
 
-  /**
-   * The Pipeline on which you called `execute()` in order to get this
-   * `PipelineSnapshot`.
-   */
-  get pipeline(): Pipeline {
-    return this._pipeline;
-  }
-
   /** An array of all the results in the `PipelineSnapshot`. */
   get results(): PipelineResult[] {
     return this._results;
@@ -95,7 +87,7 @@ export class PipelineResult<AppModelType = DocumentData> {
    * @internal
    * @private
    */
-  readonly _fields: ObjectValue | undefined;
+  readonly _fields: ObjectValue;
 
   /**
    * @private
@@ -104,16 +96,14 @@ export class PipelineResult<AppModelType = DocumentData> {
    * @param userDataWriter The serializer used to encode/decode protobuf.
    * @param ref The reference to the document.
    * @param fields The fields of the Firestore `Document` Protobuf backing
-   * this document (or undefined if the document does not exist).
-   * @param readTime The time when this result was read  (or undefined if
-   * the document exists only locally).
+   * this document.
    * @param createTime The time when the document was created if the result is a document, undefined otherwise.
    * @param updateTime The time when the document was last updated if the result is a document, undefined otherwise.
    */
   constructor(
     userDataWriter: AbstractUserDataWriter,
+    fields: ObjectValue,
     ref?: DocumentReference,
-    fields?: ObjectValue,
     createTime?: Timestamp,
     updateTime?: Timestamp
   ) {
@@ -164,10 +154,9 @@ export class PipelineResult<AppModelType = DocumentData> {
   }
 
   /**
-   * Retrieves all fields in the result as an object. Returns 'undefined' if
-   * the document doesn't exist.
+   * Retrieves all fields in the result as an object.
    *
-   * @returns {T|undefined} An object containing all fields in the document or
+   * @returns {T} An object containing all fields in the document or
    * 'undefined' if the document doesn't exist.
    *
    * @example
@@ -180,11 +169,7 @@ export class PipelineResult<AppModelType = DocumentData> {
    * });
    * ```
    */
-  data(): AppModelType | undefined {
-    if (this._fields === undefined) {
-      return undefined;
-    }
-
+  data(): AppModelType {
     return this._userDataWriter.convertValue(
       this._fields.value
     ) as AppModelType;

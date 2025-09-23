@@ -15,14 +15,18 @@
  * limitations under the License.
  */
 
-import {CollectionReference} from "../api";
+import { CollectionReference } from '../api';
 import {
   AggregateFunction,
-  AggregateWithAlias, BooleanExpr, Expr, field, Field,
+  AggregateWithAlias,
+  BooleanExpression,
+  Expression,
+  field,
+  Field,
   Ordering,
   Selectable
-} from "../lite-api/expressions";
-import {Pipeline as LitePipeline} from "../lite-api/pipeline";
+} from '../lite-api/expressions';
+import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 
 /** Sentinel value that sorts before any Mutation Batch ID. */
 export const BATCHID_UNKNOWN = -1;
@@ -90,19 +94,16 @@ export interface DocumentLike {
  */
 export type OneOf<T> = {
   [K in keyof T]: Pick<T, K> & {
-  [P in Exclude<keyof T, K>]?: undefined;
-};
+    [P in Exclude<keyof T, K>]?: undefined;
+  };
 }[keyof T];
 
-export function isSelectable(
-  val: unknown
-): val is Selectable {
+export function isSelectable(val: unknown): val is Selectable {
   const candidate = val as Selectable;
   return (
     candidate.selectable && isString(candidate.alias) && isExpr(candidate.expr)
   );
 }
-
 
 export function isOrdering(val: unknown): val is Ordering {
   const candidate = val as Ordering;
@@ -113,9 +114,7 @@ export function isOrdering(val: unknown): val is Ordering {
   );
 }
 
-export function isAliasedAggregate(
-  val: unknown
-): val is AggregateWithAlias {
+export function isAliasedAggregate(val: unknown): val is AggregateWithAlias {
   const candidate = val as AggregateWithAlias;
   return (
     isString(candidate.alias) &&
@@ -123,14 +122,12 @@ export function isAliasedAggregate(
   );
 }
 
-export function isExpr(val: unknown): val is Expr {
-  return val instanceof Expr;
+export function isExpr(val: unknown): val is Expression {
+  return val instanceof Expression;
 }
 
-export function isBooleanExpr(
-  val: unknown
-): val is BooleanExpr {
-  return val instanceof BooleanExpr;
+export function isBooleanExpr(val: unknown): val is BooleanExpression {
+  return val instanceof BooleanExpression;
 }
 
 export function isField(val: unknown): val is Field {

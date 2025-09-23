@@ -18,7 +18,7 @@
 import {
   StructuredPipeline,
   StructuredPipelineOptions
-} from "../core/structured_pipeline";
+} from '../core/structured_pipeline';
 import { invokeExecutePipeline } from '../remote/datastore';
 
 import { getDatastore } from './components';
@@ -107,10 +107,10 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
         element =>
           new PipelineResult(
             pipeline._userDataWriter,
+            element.fields!,
             element.key?.path
               ? new DocumentReference(pipeline._db, null, element.key)
               : undefined,
-            element.fields,
             element.createTime?.toTimestamp(),
             element.updateTime?.toTimestamp()
           )
@@ -123,7 +123,11 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
 Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
   const userDataWriter = new LiteUserDataWriter(this);
   const userDataReader = newUserDataReader(this);
-  return new PipelineSource<Pipeline>(this._databaseId, userDataReader, (stages: Stage[]) => {
-    return new Pipeline(this, userDataReader, userDataWriter, stages);
-  });
+  return new PipelineSource<Pipeline>(
+    this._databaseId,
+    userDataReader,
+    (stages: Stage[]) => {
+      return new Pipeline(this, userDataReader, userDataWriter, stages);
+    }
+  );
 };
