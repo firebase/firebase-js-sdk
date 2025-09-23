@@ -188,7 +188,7 @@ The Firebase AI Web SDK.
 |  [LanguageModelMessageContentValue](./ai.md#languagemodelmessagecontentvalue) | <b><i>(Public Preview)</i></b> Content formats that can be provided as on-device message content. |
 |  [LanguageModelMessageRole](./ai.md#languagemodelmessagerole) | <b><i>(Public Preview)</i></b> Allowable roles for on-device language model usage. |
 |  [LanguageModelMessageType](./ai.md#languagemodelmessagetype) | <b><i>(Public Preview)</i></b> Allowable types for on-device language model messages. |
-|  [LiveResponseType](./ai.md#liveresponsetype) | <b><i>(Public Preview)</i></b> The types of responses that can be returned by [LiveSession.receive()](./ai.livesession.md#livesessionreceive)<!-- -->. This is a property on all messages that can be used for type narrowing. This property is not returned by the server, it is assigned to a server message object once it's parsed. |
+|  [LiveResponseType](./ai.md#liveresponsetype) |  |
 |  [Modality](./ai.md#modality) |  |
 |  [Outcome](./ai.md#outcome) | Represents the result of the code execution. |
 |  [Part](./ai.md#part) | Content part - includes text, image/video, or function call/response part types. |
@@ -946,11 +946,6 @@ export type LanguageModelMessageType = 'text' | 'image' | 'audio';
 ```
 
 ## LiveResponseType
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-The types of responses that can be returned by [LiveSession.receive()](./ai.livesession.md#livesessionreceive)<!-- -->. This is a property on all messages that can be used for type narrowing. This property is not returned by the server, it is assigned to a server message object once it's parsed.
 
 <b>Signature:</b>
 

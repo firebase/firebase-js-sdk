@@ -953,7 +953,7 @@ export const LiveResponseType: {
     TOOL_CALL_CANCELLATION: string;
 };
 
-// @beta
+// @public (undocumented)
 export type LiveResponseType = (typeof LiveResponseType)[keyof typeof LiveResponseType];
 
 // @beta
