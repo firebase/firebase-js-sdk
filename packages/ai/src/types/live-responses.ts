@@ -49,7 +49,7 @@ export interface _LiveClientRealtimeInput {
 }
 
 /**
- * Function responses that is sent to the model in real time.
+ * Function responses that are sent to the model in real time.
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export interface _LiveClientToolResponse {
