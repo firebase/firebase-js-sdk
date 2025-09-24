@@ -45,7 +45,8 @@ import {
   log,
   sqrt,
   stringReverse,
-  length
+  length,
+  abs
 } from '../../../src/lite-api/expressions';
 import { PipelineSnapshot } from '../../../src/lite-api/pipeline-result';
 import { addEqualityMatcher } from '../../util/equality_matcher';
@@ -2583,9 +2584,12 @@ apiDescribe.only('Pipelines', persistence => {
             ifError(divide(constant(1), constant(0)), constant('was error')).as(
               'ifError'
             ),
-            ifError(divide(constant(1), constant(0)).greaterThan(1), constant(true)).not().as(
-              'ifErrorBooleanExpression'
-            ),
+            ifError(
+              divide(constant(1), constant(0)).greaterThan(1),
+              constant(true)
+            )
+              .not()
+              .as('ifErrorBooleanExpression'),
             isAbsent('foo').as('isAbsent'),
             isNotNull('title').as('titleIsNotNull'),
             isNotNan('cost').as('costIsNotNan'),
@@ -2619,9 +2623,11 @@ apiDescribe.only('Pipelines', persistence => {
             divide(constant(1), constant(0))
               .ifError(constant('was error'))
               .as('ifError'),
-            divide(constant(1), constant(0)).greaterThan(1).ifError(constant(true)).not().as(
-              'ifErrorBooleanExpression'
-            ),
+            divide(constant(1), constant(0))
+              .greaterThan(1)
+              .ifError(constant(true))
+              .not()
+              .as('ifErrorBooleanExpression'),
             field('foo').isAbsent().as('isAbsent'),
             field('title').isNotNull().as('titleIsNotNull'),
             field('cost').isNotNan().as('costIsNotNan')
@@ -3763,6 +3769,30 @@ apiDescribe.only('Pipelines', persistence => {
           .select(reverse('title').as('reverseTitle'))
       );
       expectResults(snapshot, { reverseTitle: '4891' });
+    });
+
+    it('testAbs', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(
+            constant(-10).as('neg10'),
+            constant(-22.22).as('neg22'),
+            constant(1).as('pos1')
+          )
+          .select(
+            abs('neg10').as('10'),
+            abs(field('neg22')).as('22'),
+            field('pos1').as('1')
+          )
+      );
+      expectResults(snapshot, {
+        '10': 10,
+        '22': 22.22,
+        '1': 1
+      });
     });
 
     // TODO(new-expression): Add new expression tests above this line

@@ -99,7 +99,7 @@ import {
   arrayLength,
   charLength,
   divide,
-  byteLength,
+  abs,
   not,
   toLower,
   toUpper,
@@ -1900,6 +1900,20 @@ describe('Firestore Pipelines', () => {
         ratingTimes20: 84,
         ratingPlus3: 7.2,
         ratingMod2: 0.20000000000000018
+      });
+    });
+
+    it('testAbs', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(equal('title', 'To Kill a Mockingbird'))
+          .select(abs(field('rating')).as('absRating'))
+          .limit(1)
+      );
+      expectResults(snapshot, {
+        absRating: 4.2
       });
     });
 

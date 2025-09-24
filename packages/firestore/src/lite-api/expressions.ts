@@ -1103,6 +1103,20 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * Creates an expression that computes the absolute value of a numeric value.
+   *
+   * ```typescript
+   * // Compute the absolute value of the 'price' field.
+   * field("price").abs();
+   * ```
+   *
+   * @return A new {@code Expr} representing the absolute value of the numeric value.
+   */
+  abs(): FunctionExpression {
+    return new FunctionExpression('abs', [this]);
+  }
+
+  /**
    * Creates an expression that computes e to the power of this expression.
    *
    * ```typescript
@@ -2674,11 +2688,7 @@ export class BooleanExpression extends FunctionExpression {
    * @return A new {@code Expr} representing the 'ifError' operation.
    */
   ifError(catchValue: BooleanExpression): BooleanExpression {
-    return new BooleanExpression(
-      'if_error',
-      [this, catchValue],
-      'ifError'
-    );
+    return new BooleanExpression('if_error', [this, catchValue], 'ifError');
   }
 }
 
@@ -2909,7 +2919,10 @@ export function ifError(
   tryExpr: Expression,
   catchValue: unknown
 ): FunctionExpression {
-  if (tryExpr instanceof BooleanExpression && catchValue instanceof BooleanExpression) {
+  if (
+    tryExpr instanceof BooleanExpression &&
+    catchValue instanceof BooleanExpression
+  ) {
     return tryExpr.ifError(catchValue);
   } else {
     return tryExpr.ifError(valueToDefaultExpr(catchValue));
@@ -7077,6 +7090,25 @@ export function stringReverse(stringExpression: Expression): FunctionExpression;
 export function stringReverse(field: string): FunctionExpression;
 export function stringReverse(expr: Expression | string): FunctionExpression {
   return fieldOrExpression(expr).stringReverse();
+}
+
+/**
+ * Creates an expression that computes the absolute value of a numeric value.
+ *
+ * @param expr The expression to compute the absolute value of.
+ * @return A new {@code Expr} representing the absolute value of the numeric value.
+ */
+export function abs(expr: Expression): FunctionExpression;
+
+/**
+ * Creates an expression that computes the absolute value of a numeric value.
+ *
+ * @param fieldName The field to compute the absolute value of.
+ * @return A new {@code Expr} representing the absolute value of the numeric value.
+ */
+export function abs(fieldName: string): FunctionExpression;
+export function abs(expr: Expression | string): FunctionExpression {
+  return fieldOrExpression(expr).abs();
 }
 
 // TODO(new-expression): Add new top-level expression function definitions above this line
