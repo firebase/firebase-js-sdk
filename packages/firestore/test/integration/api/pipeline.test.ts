@@ -3363,6 +3363,32 @@ apiDescribe.only('Pipelines', persistence => {
       });
     });
 
+    it('can round a numeric value to specified precision', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              foo: 4.123456
+            })
+          )
+          .select(
+            field('foo').round(0).as('0'),
+            round('foo', 1).as('1'),
+            round('foo', constant(2)).as('2'),
+            round(field('foo'), 4).as('4')
+          )
+      );
+      expectResults(snapshot, {
+        '0': 4,
+        '1': 4.1,
+        '2': 4.12,
+        '4': 4.1235
+      });
+    });
+
     it('can get the collectionId from a path', async () => {
       const snapshot = await execute(
         firestore
@@ -3532,7 +3558,7 @@ apiDescribe.only('Pipelines', persistence => {
           .collection(randomCol.path)
           .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
           .limit(1)
-          .select(field('rating').log(10).as('logRating'))
+          .select(log(field('rating'), 10).as('logRating'))
       );
       expectResults(snapshot, {
         logRating: 0.6232492903979004

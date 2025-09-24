@@ -1917,8 +1917,43 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    *
    * @return A new `Expr` representing the rounded value.
    */
-  round(): FunctionExpression {
-    return new FunctionExpression('round', [this]);
+  round(): FunctionExpression;
+  /**
+   * Creates an expression that rounds a numeric value to the specified number of decimal places.
+   *
+   * ```typescript
+   * // Round the value of the 'price' field to two decimal places.
+   * field("price").round(2);
+   * ```
+   *
+   * @param decimalPlaces A constant specifying the rounding precision in decimal places.
+   *
+   * @return A new `Expr` representing the rounded value.
+   */
+  round(decimalPlaces: number): FunctionExpression;
+  /**
+   * Creates an expression that rounds a numeric value to the specified number of decimal places.
+   *
+   * ```typescript
+   * // Round the value of the 'price' field to two decimal places.
+   * field("price").round(constant(2));
+   * ```
+   *
+   * @param decimalPlaces An expression specifying the rounding precision in decimal places.
+   *
+   * @return A new `Expr` representing the rounded value.
+   */
+  round(decimalPlaces: Expression): FunctionExpression;
+  round(decimalPlaces?: number | Expression): FunctionExpression {
+    if (decimalPlaces === undefined) {
+      return new FunctionExpression('round', [this]);
+    } else {
+      return new FunctionExpression(
+        'round',
+        [this, valueToDefaultExpr(decimalPlaces)],
+        'round'
+      );
+    }
   }
 
   /**
@@ -1964,35 +1999,6 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   ln(): FunctionExpression {
     return new FunctionExpression('ln', [this]);
-  }
-
-  /**
-   * Creates an expression that computes the logarithm of this expression to a given base.
-   *
-   * ```typescript
-   * // Compute the logarithm of the 'value' field with base 10.
-   * field("value").log(10);
-   * ```
-   *
-   * @param base The base of the logarithm.
-   * @return A new {@code Expr} representing the logarithm of the numeric value.
-   */
-  log(base: number): FunctionExpression;
-
-  /**
-   * Creates an expression that computes the logarithm of this expression to a given base.
-   *
-   * ```typescript
-   * // Compute the logarithm of the 'value' field with the base in the 'base' field.
-   * field("value").log(field("base"));
-   * ```
-   *
-   * @param base The base of the logarithm.
-   * @return A new {@code Expr} representing the logarithm of the numeric value.
-   */
-  log(base: Expression): FunctionExpression;
-  log(base: number | Expression): FunctionExpression {
-    return new FunctionExpression('log', [this, valueToDefaultExpr(base)]);
   }
 
   /**
@@ -6876,8 +6882,49 @@ export function round(fieldName: string): FunctionExpression;
  * @return A new `Expr` representing the rounded value.
  */
 export function round(expression: Expression): FunctionExpression;
-export function round(expr: Expression | string): FunctionExpression {
-  return fieldOrExpression(expr).round();
+
+/**
+ * Creates an expression that rounds a numeric value to the specified number of decimal places.
+ *
+ * ```typescript
+ * // Round the value of the 'price' field to two decimal places.
+ * round("price", 2);
+ * ```
+ *
+ * @param fieldName The name of the field to round.
+ * @param decimalPlaces A constant or expression specifying the rounding precision in decimal places.
+ * @return A new `Expr` representing the rounded value.
+ */
+export function round(
+  fieldName: string,
+  decimalPlaces: number | Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that rounds a numeric value to the specified number of decimal places.
+ *
+ * ```typescript
+ * // Round the value of the 'price' field to two decimal places.
+ * round(field("price"), constant(2));
+ * ```
+ *
+ * @param expression An expression evaluating to a numeric value, which will be rounded.
+ * @param decimalPlaces A constant or expression specifying the rounding precision in decimal places.
+ * @return A new `Expr` representing the rounded value.
+ */
+export function round(
+  expression: Expression,
+  decimalPlaces: number | Expression
+): FunctionExpression;
+export function round(
+  expr: Expression | string,
+  decimalPlaces?: number | Expression
+): FunctionExpression {
+  if (decimalPlaces === undefined) {
+    return fieldOrExpression(expr).round();
+  } else {
+    return fieldOrExpression(expr).round(valueToDefaultExpr(decimalPlaces));
+  }
 }
 
 /**
@@ -7032,7 +7079,10 @@ export function log(
   expr: Expression | string,
   base: number | Expression
 ): FunctionExpression {
-  return fieldOrExpression(expr).log(valueToDefaultExpr(base));
+  return new FunctionExpression('log', [
+    fieldOrExpression(expr),
+    valueToDefaultExpr(base)
+  ]);
 }
 
 /**

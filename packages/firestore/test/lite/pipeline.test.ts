@@ -104,7 +104,8 @@ import {
   toLower,
   toUpper,
   trim,
-  arrayGet
+  arrayGet,
+  byteLength
 } from '../../src/lite-api/expressions';
 import { documentId as documentIdFieldPath } from '../../src/lite-api/field_path';
 import { vector } from '../../src/lite-api/field_value_impl';
