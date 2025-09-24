@@ -75,6 +75,7 @@ export interface AuthInternal extends Auth {
   _isInitialized: boolean;
   _initializationPromise: Promise<void> | null;
   _persistenceManagerAvailable: Promise<void>;
+  getFirebaseAccessToken(forceRefresh?: boolean): Promise<FirebaseToken | null>;
   _updateCurrentUser(user: UserInternal | null): Promise<void>;
   _updateFirebaseToken(firebaseToken: FirebaseToken | null): Promise<void>;
 

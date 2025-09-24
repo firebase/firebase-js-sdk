@@ -28,10 +28,17 @@ interface TokenListener {
   (tok: string | null): unknown;
 }
 
+// interface FirebaseAccessTokenRefreshListener {
+//   (tok: string | null): unknown;
+// }
+
 export class AuthInterop implements FirebaseAuthInternal {
   private readonly TOKEN_EXPIRATION_BUFFER = 30_000;
   private readonly internalListeners: Map<TokenListener, Unsubscribe> =
     new Map();
+  // private readonly firebaseAccessTokenRefreshListeners:
+  //   Map<FirebaseAccessTokenRefreshListener, Unsubscribe> = 
+  //   new Map();
 
   constructor(private readonly auth: AuthInternal) {}
 
@@ -51,7 +58,11 @@ export class AuthInterop implements FirebaseAuthInternal {
           'Refresh token is not a valid operation for Regional Auth instance initialized.'
         );
       }
-      return this.getTokenForRegionalAuth();
+      const firebaseAccessToken = (await this.auth.getFirebaseAccessToken())?.token;
+      if (!firebaseAccessToken) {
+        return null;
+      }
+      return { accessToken: firebaseAccessToken ?? null};
     }
     if (!this.auth.currentUser) {
       return null;
@@ -76,6 +87,23 @@ export class AuthInterop implements FirebaseAuthInternal {
     this.updateProactiveRefresh();
   }
 
+  // addFirebaseAccessTokenRefreshListener(
+  //   listener: FirebaseAccessTokenRefreshListener): void {
+  //     this.assertAuthConfigured();
+  //     this.assertRegionalAuthConfigured();
+  //     if (this.firebaseAccessTokenRefreshListeners.has(listener)) {
+  //       return;
+  //     }
+
+  //     const unsubscribe = this.auth.onFirebaseAccessTokenRefreshTriggered(
+  //       firebaseAccessToken => {
+  //         listener(
+  //           (firebaseAccessToken as FirebaseToken)?.token || null
+  //         );
+  //       });
+  //     this.firebaseAccessTokenRefreshListeners.set(listener, unsubscribe);   
+  // }
+
   removeAuthTokenListener(listener: TokenListener): void {
     this.assertAuthConfigured();
     const unsubscribe = this.internalListeners.get(listener);
@@ -94,6 +122,13 @@ export class AuthInterop implements FirebaseAuthInternal {
       AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH
     );
   }
+
+  // private assertRegionalAuthConfigured(): void {
+  //   _assert(
+  //     this.auth.tenantConfig,
+  //     AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH)
+  //   ;
+  // }
 
   private updateProactiveRefresh(): void {
     if (this.internalListeners.size > 0) {

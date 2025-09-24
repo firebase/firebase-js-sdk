@@ -210,6 +210,7 @@ export interface Auth {
    * @param persistence - The {@link Persistence} to use.
    */
   setPersistence(persistence: Persistence): Promise<void>;
+  setTokenRefreshHandler(tokenRefreshHandler: TokenRefreshHandler): void;
   /**
    * The {@link Auth} instance's language code.
    *
@@ -359,6 +360,14 @@ export interface Persistence {
    */
   readonly type: 'SESSION' | 'LOCAL' | 'NONE' | 'COOKIE';
 }
+
+export interface TokenRefreshHandler {
+  refreshIdpToken(): Promise<RefreshIdpTokenResult>
+}
+export interface RefreshIdpTokenResult {
+  idpConfigId: string;
+  idToken: string;
+} 
 
 /**
  * Interface representing ID token result obtained from {@link User.getIdTokenResult}.
