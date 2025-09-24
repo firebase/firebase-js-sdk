@@ -101,7 +101,6 @@ export {
   isAbsent,
   isError,
   or,
-  rand,
   divide,
   isNotNan,
   map,

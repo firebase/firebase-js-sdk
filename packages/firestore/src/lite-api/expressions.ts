@@ -2168,14 +2168,6 @@ export class AggregateWithAlias implements UserData {
   ) {}
 
   /**
-   * @internal
-   * @private
-   * Indicates if this expression was created from a literal value passed
-   * by the caller.
-   */
-  _createdFromLiteral: boolean = false;
-
-  /**
    * @private
    * @internal
    */
@@ -2190,14 +2182,6 @@ export class AggregateWithAlias implements UserData {
 export class AliasedExpression implements Selectable, UserData {
   exprType: ExpressionType = 'AliasedExpression';
   selectable = true as const;
-
-  /**
-   * @internal
-   * @private
-   * Indicates if this expression was created from a literal value passed
-   * by the caller.
-   */
-  _createdFromLiteral: boolean = false;
 
   constructor(
     readonly expr: Expression,
@@ -2396,7 +2380,7 @@ export class Constant extends Expression {
    * @private
    * @internal
    */
-  _toProto(serializer: JsonProtoSerializer): ProtoValue {
+  _toProto(_: JsonProtoSerializer): ProtoValue {
     hardAssert(
       this._protoValue !== undefined,
       0x00ed,
@@ -7064,18 +7048,10 @@ export function descending(field: Expression | string): Ordering {
  */
 export class Ordering implements ProtoValueSerializable, UserData {
   constructor(
-    readonly expr: Expression,
-    readonly direction: 'ascending' | 'descending',
+    public readonly expr: Expression,
+    public readonly direction: 'ascending' | 'descending',
     readonly _methodName: string | undefined
   ) {}
-
-  /**
-   * @internal
-   * @private
-   * Indicates if this expression was created from a literal value passed
-   * by the caller.
-   */
-  _createdFromLiteral: boolean = false;
 
   /**
    * @private

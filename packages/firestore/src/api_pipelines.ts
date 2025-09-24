@@ -136,7 +136,6 @@ export {
   ascending,
   descending,
   countIf,
-  rand,
   array,
   arrayGet,
   isError,

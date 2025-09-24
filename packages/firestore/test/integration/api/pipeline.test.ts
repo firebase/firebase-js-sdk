@@ -2231,16 +2231,24 @@ apiDescribe.only('Pipelines', persistence => {
               lessThan(field('published'), 1960),
               constant(1960),
               field('published')
-            ).as('published-safe')
+            ).as('published-safe'),
+            field('rating')
+              .greaterThanOrEqual(4.5)
+              .conditional(constant('great'), constant('good'))
+              .as('rating')
           )
           .sort(field('title').ascending())
           .limit(3)
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1960 },
-        { title: 'Crime and Punishment', 'published-safe': 1960 },
-        { title: 'Dune', 'published-safe': 1965 }
+        { title: '1984', 'published-safe': 1960, rating: 'good' },
+        {
+          title: 'Crime and Punishment',
+          'published-safe': 1960,
+          rating: 'good'
+        },
+        { title: 'Dune', 'published-safe': 1965, rating: 'great' }
       );
     });
 
