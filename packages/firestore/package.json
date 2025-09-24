@@ -1,8 +1,8 @@
 {
   "name": "@firebase/firestore",
-  "version": "4.7.17",
+  "version": "4.9.2",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "description": "The Cloud Firestore component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -73,9 +73,9 @@
       "react-native": "./dist/index.rn.js",
       "browser": {
         "require": "./dist/index.cjs.js",
-        "import": "./dist/index.esm2017.js"
+        "import": "./dist/index.esm.js"
       },
-      "default": "./dist/index.esm2017.js"
+      "default": "./dist/index.esm.js"
     },
     "./lite": {
       "types": "./dist/lite/index.d.ts",
@@ -83,12 +83,12 @@
         "require": "./dist/lite/index.node.cjs.js",
         "import": "./dist/lite/index.node.mjs"
       },
-      "react-native": "./dist/lite/index.rn.esm2017.js",
+      "react-native": "./dist/lite/index.rn.esm.js",
       "browser": {
         "require": "./dist/lite/index.browser.cjs.js",
-        "import": "./dist/lite/index.browser.esm2017.js"
+        "import": "./dist/lite/index.browser.esm.js"
       },
-      "default": "./dist/lite/index.browser.esm2017.js"
+      "default": "./dist/lite/index.browser.esm.js"
     },
     "./lite/pipelines": {
       "types": "./dist/lite/pipelines.d.ts",
@@ -96,12 +96,12 @@
         "require": "./dist/lite/pipelines.node.cjs.js",
         "import": "./dist/lite/pipelines.node.mjs"
       },
-      "react-native": "./dist/lite/pipelines.rn.esm2017.js",
+      "react-native": "./dist/lite/pipelines.rn.esm.js",
       "browser": {
         "require": "./dist/lite/pipelines.browser.cjs.js",
-        "import": "./dist/lite/pipelines.browser.esm2017.js"
+        "import": "./dist/lite/pipelines.browser.esm.js"
       },
-      "default": "./dist/lite/pipelines.browser.esm2017.js"
+      "default": "./dist/lite/pipelines.browser.esm.js"
     },
     "./pipelines": {
       "types": "./pipelines/pipelines.d.ts",
@@ -109,30 +109,30 @@
         "require": "./dist/pipelines.node.cjs.js",
         "import": "./dist/pipelines.node.mjs"
       },
-      "react-native": "./dist/index.rn.esm2017.js",
+      "react-native": "./dist/index.rn.esm.js",
       "browser": {
         "require": "./dist/pipelines.cjs.js",
-        "import": "./dist/pipelines.esm2017.js"
+        "import": "./dist/pipelines.esm.js"
       },
-      "default": "./dist/pipelines.esm2017.js"
+      "default": "./dist/pipelines.esm.js"
     },
     "./package.json": "./package.json"
   },
   "main": "dist/node-cjs/index.node.cjs.js",
   "main-esm": "dist/node-esm/index.node.mjs",
   "react-native": "dist/index.rn.js",
-  "browser": "dist/browser-esm2017/index.esm2017.js",
-  "module": "dist/browser-esm2017/index.esm2017.js",
+  "browser": "dist/browser-esm2017/index.esm.js",
+  "module": "dist/browser-esm2017/index.esm.js",
   "license": "Apache-2.0",
   "files": [
     "dist",
     "lite/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.6.17",
-    "@firebase/logger": "0.4.4",
-    "@firebase/util": "1.12.0",
-    "@firebase/webchannel-wrapper": "1.0.3",
+    "@firebase/component": "0.7.0",
+    "@firebase/logger": "0.5.0",
+    "@firebase/util": "1.13.0",
+    "@firebase/webchannel-wrapper": "1.0.5",
     "@grpc/grpc-js": "~1.9.0",
     "@grpc/proto-loader": "^0.7.8",
     "tslib": "^2.1.0"
@@ -141,9 +141,9 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.13.1",
-    "@firebase/app-compat": "0.4.1",
-    "@firebase/auth": "1.10.7",
+    "@firebase/app": "0.14.3",
+    "@firebase/app-compat": "0.5.3",
+    "@firebase/auth": "1.11.0",
     "@rollup/plugin-alias": "5.1.1",
     "@rollup/plugin-json": "6.1.0",
     "@types/eslint": "7.29.0",

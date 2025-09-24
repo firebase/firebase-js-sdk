@@ -17,6 +17,8 @@
 
 import {
   FirebaseApp,
+  FirebaseAppSettings,
+  FirebaseServerAppSettings,
   FirebaseOptions,
   FirebaseServerApp
 } from './public-types';
@@ -147,16 +149,38 @@ export function _removeServiceInstance<T extends Name>(
 
 /**
  *
- * @param obj - an object of type FirebaseApp or FirebaseOptions.
+ * @param obj - an object of type FirebaseApp, FirebaseOptions or FirebaseAppSettings.
  *
  * @returns true if the provide object is of type FirebaseApp.
  *
  * @internal
  */
 export function _isFirebaseApp(
-  obj: FirebaseApp | FirebaseOptions
+  obj: FirebaseApp | FirebaseOptions | FirebaseAppSettings
 ): obj is FirebaseApp {
   return (obj as FirebaseApp).options !== undefined;
+}
+
+/**
+ *
+ * @param obj - an object of type FirebaseApp, FirebaseOptions or FirebaseAppSettings.
+ *
+ * @returns true if the provided object is of type FirebaseServerAppImpl.
+ *
+ * @internal
+ */
+export function _isFirebaseServerAppSettings(
+  obj: FirebaseApp | FirebaseOptions | FirebaseAppSettings
+): obj is FirebaseServerAppSettings {
+  if (_isFirebaseApp(obj)) {
+    return false;
+  }
+  return (
+    'authIdToken' in obj ||
+    'appCheckToken' in obj ||
+    'releaseOnDeref' in obj ||
+    'automaticDataCollectionEnabled' in obj
+  );
 }
 
 /**

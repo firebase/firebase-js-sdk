@@ -59,7 +59,7 @@ const browserBuilds = [
     ],
     plugins: [
       ...buildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2020))
     ],
     treeshake: {
       moduleSideEffects: false
@@ -78,7 +78,7 @@ const browserBuilds = [
     ],
     plugins: [
       ...buildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2020))
     ],
     treeshake: {
       moduleSideEffects: false
@@ -98,7 +98,7 @@ const nodeBuilds = [
     },
     plugins: [
       ...buildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2020))
     ],
     treeshake: {
       moduleSideEffects: false
@@ -115,7 +115,7 @@ const nodeBuilds = [
     },
     plugins: [
       ...buildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 2017)),
+      replace(generateBuildTargetReplaceConfig('esm', 2020)),
       emitModulePackageFile()
     ],
     treeshake: {
