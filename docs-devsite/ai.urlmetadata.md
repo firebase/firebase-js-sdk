@@ -10,6 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # URLMetadata interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Metadata for a single URL retrieved by the [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) tool.
 
 <b>Signature:</b>
@@ -22,10 +25,13 @@ export interface URLMetadata
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [retrievedUrl](./ai.urlmetadata.md#urlmetadataretrievedurl) | string | The retrieved URL. |
-|  [urlRetrievalStatus](./ai.urlmetadata.md#urlmetadataurlretrievalstatus) | [URLRetrievalStatus](./ai.md#urlretrievalstatus) | The status of the URL retrieval. |
+|  [retrievedUrl](./ai.urlmetadata.md#urlmetadataretrievedurl) | string | <b><i>(Public Preview)</i></b> The retrieved URL. |
+|  [urlRetrievalStatus](./ai.urlmetadata.md#urlmetadataurlretrievalstatus) | [URLRetrievalStatus](./ai.md#urlretrievalstatus) | <b><i>(Public Preview)</i></b> The status of the URL retrieval. |
 
 ## URLMetadata.retrievedUrl
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 The retrieved URL.
 
@@ -36,6 +42,9 @@ retrievedUrl?: string;
 ```
 
 ## URLMetadata.urlRetrievalStatus
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 The status of the URL retrieval.
 

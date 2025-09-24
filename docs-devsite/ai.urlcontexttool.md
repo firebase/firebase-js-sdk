@@ -10,6 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # URLContextTool interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 A tool that allows you to provide additional context to the models in the form of public web URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhance its response.
 
 <b>Signature:</b>
@@ -22,9 +25,12 @@ export interface URLContextTool
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [urlContext](./ai.urlcontexttool.md#urlcontexttoolurlcontext) | [URLContext](./ai.urlcontext.md#urlcontext_interface) | Specifies the URL Context configuration. |
+|  [urlContext](./ai.urlcontexttool.md#urlcontexttoolurlcontext) | [URLContext](./ai.urlcontext.md#urlcontext_interface) | <b><i>(Public Preview)</i></b> Specifies the URL Context configuration. |
 
 ## URLContextTool.urlContext
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Specifies the URL Context configuration.
 

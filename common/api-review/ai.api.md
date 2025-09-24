@@ -448,6 +448,8 @@ export interface GenerateContentCandidate {
     index: number;
     // (undocumented)
     safetyRatings?: SafetyRating[];
+    // Warning: (ae-incompatible-release-tags) The symbol "urlContextMetadata" is marked as @public, but its signature references "URLContextMetadata" which is marked as @beta
+    //
     // (undocumented)
     urlContextMetadata?: URLContextMetadata;
 }
@@ -1304,6 +1306,8 @@ export interface ThinkingConfig {
     thinkingBudget?: number;
 }
 
+// Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "URLContextTool" which is marked as @beta
+//
 // @public
 export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
 
@@ -1316,27 +1320,27 @@ export interface ToolConfig {
 // @public
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
 
-// @public
+// @beta
 export interface URLContext {
 }
 
-// @public
+// @beta
 export interface URLContextMetadata {
     urlMetadata: URLMetadata[];
 }
 
-// @public
+// @beta
 export interface URLContextTool {
     urlContext: URLContext;
 }
 
-// @public
+// @beta
 export interface URLMetadata {
     retrievedUrl?: string;
     urlRetrievalStatus?: URLRetrievalStatus;
 }
 
-// @public
+// @beta
 export const URLRetrievalStatus: {
     URL_RETRIEVAL_STATUS_UNSPECIFIED: string;
     URL_RETRIEVAL_STATUS_SUCCESS: string;
@@ -1345,7 +1349,7 @@ export const URLRetrievalStatus: {
     URL_RETRIEVAL_STATUS_UNSAFE: string;
 };
 
-// @public
+// @beta
 export type URLRetrievalStatus = (typeof URLRetrievalStatus)[keyof typeof URLRetrievalStatus];
 
 // @public

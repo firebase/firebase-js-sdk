@@ -361,7 +361,7 @@ export interface Segment {
 /**
  * Metadata related to {@link URLContextTool}.
  *
- * @public
+ * @beta
  */
 export interface URLContextMetadata {
   /**
@@ -373,7 +373,7 @@ export interface URLContextMetadata {
 /**
  * Metadata for a single URL retrieved by the {@link URLContextTool} tool.
  *
- * @public
+ * @beta
  */
 export interface URLMetadata {
   /**
@@ -401,7 +401,7 @@ export interface URLMetadata {
  * <b>URL_RETRIEVAL_STATUS_UNSAFE:</b> The URL retrieval failed because the content is unsafe.
  * <br/>
  *
- * @public
+ * @beta
  */
 export const URLRetrievalStatus = {
   /**
@@ -441,7 +441,7 @@ export const URLRetrievalStatus = {
  * <b>URL_RETRIEVAL_STATUS_UNSAFE:</b> The URL retrieval failed because the content is unsafe.
  * <br/>
  *
- * @public
+ * @beta
  */
 export type URLRetrievalStatus =
   (typeof URLRetrievalStatus)[keyof typeof URLRetrievalStatus];

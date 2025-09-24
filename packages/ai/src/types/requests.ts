@@ -325,7 +325,7 @@ export interface GoogleSearch {}
  * URLs. By including URLs in your request, the Gemini model will access the content from those
  * pages to inform and enhance its response.
  *
- * @public
+ * @beta
  */
 export interface URLContextTool {
   /**
@@ -337,7 +337,7 @@ export interface URLContextTool {
 /**
  * Specifies the URL Context configuration.
  *
- * @public
+ * @beta
  */
 export interface URLContext {}
 
