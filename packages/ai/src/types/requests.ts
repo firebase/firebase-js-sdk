@@ -300,7 +300,7 @@ export interface GoogleSearchTool {
 /**
  * A tool that enables the model to use code execution.
  *
- * @public
+ * @beta
  */
 export interface CodeExecutionTool {
   /**
