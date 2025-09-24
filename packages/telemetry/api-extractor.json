@@ -7,5 +7,5 @@
     "untrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>.d.ts",
     "betaTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>-public.d.ts"
   },
-  "bundledPackages": ["react"]
+  "bundledPackages": ["next"]
 }
