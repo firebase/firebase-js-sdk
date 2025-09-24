@@ -2422,12 +2422,12 @@ export function constant(value: number): Expression;
 export function constant(value: string): Expression;
 
 /**
- * Creates a `Constant` instance for a boolean value.
+ * Creates a `BooleanExpression` instance for a boolean value.
  *
  * @param value The boolean value.
  * @return A new `Constant` instance.
  */
-export function constant(value: boolean): Expression;
+export function constant(value: boolean): BooleanExpression;
 
 /**
  * Creates a `Constant` instance for a null value.
@@ -2495,8 +2495,8 @@ export function constant(value: ProtoValue): Expression;
  */
 export function constant(value: VectorValue): Expression;
 
-export function constant(value: unknown): Expression {
-  return _constant(value, 'contant');
+export function constant(value: unknown): Expression | BooleanExpression {
+  return _constant(value, 'constant');
 }
 
 /**
@@ -2508,8 +2508,12 @@ export function constant(value: unknown): Expression {
 export function _constant(
   value: unknown,
   methodName: string | undefined
-): Constant {
-  return new Constant(value, methodName);
+): Constant | BooleanExpression {
+  if (typeof value === 'boolean') {
+    return new BooleanConstant(value, methodName);
+  } else {
+    return new Constant(value, methodName);
+  }
 }
 
 /**
@@ -2629,6 +2633,62 @@ export class BooleanExpression extends FunctionExpression {
    */
   not(): BooleanExpression {
     return new BooleanExpression('not', [this], 'not');
+  }
+
+  /**
+   * Creates a conditional expression that evaluates to the 'then' expression
+   * if `this` expression evaluates to `true`,
+   * or evaluates to the 'else' expression if `this` expressions evaluates `false`.
+   *
+   * ```typescript
+   * // If 'age' is greater than 18, return "Adult"; otherwise, return "Minor".
+   * field("age").greaterThanOrEqual(18).conditional(constant("Adult"), constant("Minor"));
+   * ```
+   *
+   * @param thenExpr The expression to evaluate if the condition is true.
+   * @param elseExpr The expression to evaluate if the condition is false.
+   * @return A new {@code Expr} representing the conditional expression.
+   */
+  conditional(thenExpr: Expression, elseExpr: Expression): FunctionExpression {
+    return new FunctionExpression(
+      'conditional',
+      [this, thenExpr, elseExpr],
+      'conditional'
+    );
+  }
+}
+
+/**
+ * @private
+ * @internal
+ *
+ * To return a BooleanExpr as a constant, we need to break the pattern that expects a BooleanExpr to be a
+ * "pipeline function". Instead of building on serialization logic built into BooleanExpr,
+ * we override methods with those of an internally kept Constant value.
+ */
+export class BooleanConstant extends BooleanExpression {
+  private readonly _internalConstant: Constant;
+
+  constructor(value: boolean, readonly _methodName?: string) {
+    super('', []);
+
+    this._internalConstant = new Constant(value, _methodName);
+  }
+
+  /**
+   * @private
+   * @internal
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoValue {
+    return this._internalConstant._toProto(serializer);
+  }
+
+  /**
+   * @private
+   * @internal
+   */
+  _readUserData(context: ParseContext): void {
+    return this._internalConstant._readUserData(context);
   }
 }
 

@@ -813,6 +813,30 @@ apiDescribe.only('Pipelines', persistence => {
         }
       });
     });
+
+    it('supports boolean value constants as a BooleanExpression', async () => {
+      const snapshots = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(
+            conditional(constant(true), constant('TRUE'), constant('FALSE')).as(
+              'true'
+            ),
+            conditional(
+              constant(false),
+              constant('TRUE'),
+              constant('FALSE')
+            ).as('false')
+          )
+      );
+
+      expectResults(snapshots, {
+        'true': 'TRUE',
+        'false': 'FALSE'
+      });
+    });
   });
 
   describe('stages', () => {
