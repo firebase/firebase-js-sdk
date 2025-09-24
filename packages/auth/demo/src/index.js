@@ -159,7 +159,7 @@ class TokenRefreshHandlerImpl {
    * Opens a popup to get a 3P ID token and Config ID from the user.
    * @returns {Promise<RefreshIdpTokenResult>} A promise that resolves with the result object.
    */
-  refreshToken() {
+  refreshIdpToken() {
     log('inside here');
     console.log('inside handler - opening popup for 3p token');
 
