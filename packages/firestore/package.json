@@ -8,6 +8,7 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
     "bundle": "rollup -c",
+    "compile": "tsc --emitDeclarationOnly --declaration -p tsconfig.json",
     "prebuild": "tsc --emitDeclarationOnly --declaration -p tsconfig.json; yarn api-report",
     "build": "run-p --npm-path npm build:lite build:main",
     "build:release": "yarn build && yarn typings:public",
