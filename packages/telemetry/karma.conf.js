@@ -17,12 +17,15 @@
 
 const karmaBase = require('../../config/karma.base');
 
-const files = [`src/**/*.test.ts`];
+const files = [`src/**/*.test.ts*`];
 
 module.exports = function (config) {
   const karmaConfig = {
     ...karmaBase,
     files,
+    preprocessors: {
+      'src/**/*.test.ts*': ['webpack', 'sourcemap']
+    },
     frameworks: ['mocha']
   };
 
