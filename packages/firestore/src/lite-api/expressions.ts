@@ -2656,6 +2656,30 @@ export class BooleanExpression extends FunctionExpression {
       'conditional'
     );
   }
+
+  /**
+   * @beta
+   *
+   * Creates an expression that returns the `catch` argument if there is an
+   * error, else return the result of this expression.
+   *
+   * ```typescript
+   * // Create an expression that protects against a divide by zero error
+   * // but always returns a boolean expression.
+   * constant(50).divide('length').gt(1).ifError(constant(false));
+   * ```
+   *
+   * @param catchValue The value that will be returned if this expression
+   * produces an error.
+   * @return A new {@code Expr} representing the 'ifError' operation.
+   */
+  ifError(catchValue: BooleanExpression): BooleanExpression {
+    return new BooleanExpression(
+      'if_error',
+      [this, catchValue],
+      'ifError'
+    );
+  }
 }
 
 /**
@@ -2820,6 +2844,30 @@ export function isError(value: Expression): BooleanExpression {
  * Creates an expression that returns the `catch` argument if there is an
  * error, else return the result of the `try` argument evaluation.
  *
+ * This overload is useful when a BooleanExpression is required.
+ *
+ * ```typescript
+ * // Create an expression that protects against a divide by zero error
+ * // but always returns a boolean expression.
+ * ifError(constant(50).divide('length').gt(1), constant(false));
+ * ```
+ *
+ * @param tryExpr The try expression.
+ * @param catchExpr The catch expression that will be evaluated and
+ * returned if the tryExpr produces an error.
+ * @return A new {@code Expr} representing the 'ifError' operation.
+ */
+export function ifError(
+  tryExpr: BooleanExpression,
+  catchExpr: BooleanExpression
+): BooleanExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the `catch` argument if there is an
+ * error, else return the result of the `try` argument evaluation.
+ *
  * ```typescript
  * // Returns the first item in the title field arrays, or returns
  * // the entire title field if the array is empty or the field is another type.
@@ -2861,7 +2909,11 @@ export function ifError(
   tryExpr: Expression,
   catchValue: unknown
 ): FunctionExpression {
-  return tryExpr.ifError(valueToDefaultExpr(catchValue));
+  if (tryExpr instanceof BooleanExpression && catchValue instanceof BooleanExpression) {
+    return tryExpr.ifError(catchValue);
+  } else {
+    return tryExpr.ifError(valueToDefaultExpr(catchValue));
+  }
 }
 
 /**

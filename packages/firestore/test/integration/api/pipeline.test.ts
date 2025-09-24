@@ -2583,6 +2583,9 @@ apiDescribe.only('Pipelines', persistence => {
             ifError(divide(constant(1), constant(0)), constant('was error')).as(
               'ifError'
             ),
+            ifError(divide(constant(1), constant(0)).greaterThan(1), constant(true)).not().as(
+              'ifErrorBooleanExpression'
+            ),
             isAbsent('foo').as('isAbsent'),
             isNotNull('title').as('titleIsNotNull'),
             isNotNan('cost').as('costIsNotNan'),
@@ -2595,6 +2598,7 @@ apiDescribe.only('Pipelines', persistence => {
         ratingIsNaN: false,
         isError: true,
         ifError: 'was error',
+        ifErrorBooleanExpression: false,
         isAbsent: true,
         titleIsNotNull: true,
         costIsNotNan: false,
@@ -2615,6 +2619,9 @@ apiDescribe.only('Pipelines', persistence => {
             divide(constant(1), constant(0))
               .ifError(constant('was error'))
               .as('ifError'),
+            divide(constant(1), constant(0)).greaterThan(1).ifError(constant(true)).not().as(
+              'ifErrorBooleanExpression'
+            ),
             field('foo').isAbsent().as('isAbsent'),
             field('title').isNotNull().as('titleIsNotNull'),
             field('cost').isNotNan().as('costIsNotNan')
@@ -2625,6 +2632,7 @@ apiDescribe.only('Pipelines', persistence => {
         ratingIsNaN: false,
         isError: true,
         ifError: 'was error',
+        ifErrorBooleanExpression: false,
         isAbsent: true,
         titleIsNotNull: true,
         costIsNotNan: false
