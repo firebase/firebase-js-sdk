@@ -10,6 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ExecutableCode interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 An interface for executable code returned by the model.
 
 <b>Signature:</b>
@@ -22,10 +25,13 @@ export interface ExecutableCode
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [code](./ai.executablecode.md#executablecodecode) | string | The source code to be executed. |
-|  [language](./ai.executablecode.md#executablecodelanguage) | [Language](./ai.md#language) | The programming language of the code. |
+|  [code](./ai.executablecode.md#executablecodecode) | string | <b><i>(Public Preview)</i></b> The source code to be executed. |
+|  [language](./ai.executablecode.md#executablecodelanguage) | [Language](./ai.md#language) | <b><i>(Public Preview)</i></b> The programming language of the code. |
 
 ## ExecutableCode.code
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 The source code to be executed.
 
@@ -36,6 +42,9 @@ code?: string;
 ```
 
 ## ExecutableCode.language
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 The programming language of the code.
 

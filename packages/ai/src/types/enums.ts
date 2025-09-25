@@ -382,7 +382,7 @@ export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
 /**
  * Represents the result of the code execution.
  *
- * @public
+ * @beta
  */
 export const Outcome = {
   UNSPECIFIED: 'OUTCOME_UNSPECIFIED',
@@ -394,14 +394,14 @@ export const Outcome = {
 /**
  * Represents the result of the code execution.
  *
- * @public
+ * @beta
  */
 export type Outcome = (typeof Outcome)[keyof typeof Outcome];
 
 /**
  * The programming language of the code.
  *
- * @public
+ * @beta
  */
 export const Language = {
   UNSPECIFIED: 'LANGUAGE_UNSPECIFIED',
@@ -411,6 +411,6 @@ export const Language = {
 /**
  * The programming language of the code.
  *
- * @public
+ * @beta
  */
 export type Language = (typeof Language)[keyof typeof Language];

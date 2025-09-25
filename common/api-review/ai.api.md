@@ -175,13 +175,13 @@ export interface CitationMetadata {
     citations: Citation[];
 }
 
-// @public
+// @beta
 export interface CodeExecutionResult {
     outcome?: Outcome;
     output?: string;
 }
 
-// @public
+// @beta
 export interface CodeExecutionResultPart {
     // (undocumented)
     codeExecutionResult?: CodeExecutionResult;
@@ -203,7 +203,7 @@ export interface CodeExecutionResultPart {
     thoughtSignature?: never;
 }
 
-// @public
+// @beta
 export interface CodeExecutionTool {
     codeExecution: {};
 }
@@ -271,13 +271,13 @@ export interface ErrorDetails {
     reason?: string;
 }
 
-// @public
+// @beta
 export interface ExecutableCode {
     code?: string;
     language?: Language;
 }
 
-// @public
+// @beta
 export interface ExecutableCodePart {
     // (undocumented)
     codeExecutionResult?: never;
@@ -842,13 +842,13 @@ export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
 
-// @public
+// @beta
 export const Language: {
     UNSPECIFIED: string;
     PYTHON: string;
 };
 
-// @public
+// @beta
 export type Language = (typeof Language)[keyof typeof Language];
 
 // @beta
@@ -1064,7 +1064,7 @@ export interface OnDeviceParams {
     promptOptions?: LanguageModelPromptOptions;
 }
 
-// @public
+// @beta
 export const Outcome: {
     UNSPECIFIED: string;
     OK: string;
@@ -1072,9 +1072,12 @@ export const Outcome: {
     DEADLINE_EXCEEDED: string;
 };
 
-// @public
+// @beta
 export type Outcome = (typeof Outcome)[keyof typeof Outcome];
 
+// Warning: (ae-incompatible-release-tags) The symbol "Part" is marked as @public, but its signature references "ExecutableCodePart" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "Part" is marked as @public, but its signature references "CodeExecutionResultPart" which is marked as @beta
+//
 // @public
 export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart | ExecutableCodePart | CodeExecutionResultPart;
 
@@ -1310,6 +1313,7 @@ export interface ThinkingConfig {
     thinkingBudget?: number;
 }
 
+// Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "CodeExecutionTool" which is marked as @beta
 // Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "URLContextTool" which is marked as @beta
 //
 // @public
