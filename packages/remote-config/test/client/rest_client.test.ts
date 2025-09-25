@@ -111,6 +111,7 @@ describe('RestClient', () => {
         status: expectedResponse.status,
         eTag: expectedResponse.eTag,
         config: expectedResponse.entries,
+        templateVersion: expectedResponse.templateVersion,
         experiments: expectedResponse.experimentDescriptions
       });
     });

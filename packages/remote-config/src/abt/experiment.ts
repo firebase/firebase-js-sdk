@@ -63,16 +63,14 @@ export class Experiment {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private addExperimentToAnalytics(
-    experimentId: string,
-    variantId: string
+    _experimentId: string,
+    _variantId: string
   ): void {
     // TODO
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private removeExperimentFromAnalytics(experimentId: string): void {
+  private removeExperimentFromAnalytics(_experimentId: string): void {
     // TODO
   }
 }

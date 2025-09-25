@@ -116,7 +116,7 @@ describe('Remote Config API', () => {
             entries: response.config,
             state: 'OK',
             templateVersion: response.templateVersion,
-            experimentDescriptions: response.experiments,
+            experimentDescriptions: response.experiments
           })
       } as Response)
     );

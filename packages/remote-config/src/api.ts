@@ -118,7 +118,10 @@ export async function activate(remoteConfig: RemoteConfig): Promise<boolean> {
     rc._storage.setActiveConfigTemplateVersion(
       lastSuccessfulFetchResponse.templateVersion
     ),
-    lastSuccessfulFetchResponse.experiments && experiment.updateActiveExperiments(lastSuccessfulFetchResponse.experiments),
+    lastSuccessfulFetchResponse.experiments &&
+      experiment.updateActiveExperiments(
+        lastSuccessfulFetchResponse.experiments
+      ),
     rc._storage.setActiveConfigEtag(lastSuccessfulFetchResponse.eTag)
   ]);
   return true;
