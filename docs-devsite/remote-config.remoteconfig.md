@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # RemoteConfig interface
-The Firebase Remote Config service interface.
+/\*\* The Firebase Remote Config service interface.
 
 <b>Signature:</b>
 
