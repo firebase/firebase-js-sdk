@@ -79,13 +79,15 @@ describe('RestClient', () => {
         state: 'UPDATE',
         entries: { color: 'sparkling' },
         templateVersion: 1,
-        experimentDescriptions: [{
-          experimentId: "_exp_1",
-          variantId : "1",
-          experimentStartTime : "2025-04-06T14:13:57.597Z",
-          triggerTimeoutMillis : "15552000000",
-          timeToLiveMillis : "15552000000"
-        }]
+        experimentDescriptions: [
+          {
+            experimentId: '_exp_1',
+            variantId: '1',
+            experimentStartTime: '2025-04-06T14:13:57.597Z',
+            triggerTimeoutMillis: '15552000000',
+            timeToLiveMillis: '15552000000'
+          }
+        ]
       };
 
       fetchStub.returns(

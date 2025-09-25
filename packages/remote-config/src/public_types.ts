@@ -127,7 +127,7 @@ export interface FetchResponse {
 
   /**
    * A/B Test and Rollout experiment metadata.
-   * 
+   *
    * <p>Only defined for 200 responses.
    */
   experiments?: FirebaseExperimentDescription[];
