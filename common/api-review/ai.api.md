@@ -15,6 +15,7 @@ export interface AI {
     backend: Backend;
     // @deprecated (undocumented)
     location: string;
+    options?: AIOptions;
 }
 
 // @public
@@ -32,6 +33,7 @@ export const AIErrorCode: {
     readonly REQUEST_ERROR: "request-error";
     readonly RESPONSE_ERROR: "response-error";
     readonly FETCH_ERROR: "fetch-error";
+    readonly SESSION_CLOSED: "session-closed";
     readonly INVALID_CONTENT: "invalid-content";
     readonly API_NOT_ENABLED: "api-not-enabled";
     readonly INVALID_SCHEMA: "invalid-schema";
@@ -53,7 +55,7 @@ export abstract class AIModel {
     // Warning: (ae-forgotten-export) The symbol "ApiSettings" needs to be exported by the entry point index.d.ts
     //
     // @internal (undocumented)
-    protected _apiSettings: ApiSettings;
+    _apiSettings: ApiSettings;
     readonly model: string;
     // @internal
     static normalizeModelName(modelName: string, backendType: BackendType): string;
@@ -61,7 +63,8 @@ export abstract class AIModel {
 
 // @public
 export interface AIOptions {
-    backend: Backend;
+    backend?: Backend;
+    useLimitedUseAppCheckTokens?: boolean;
 }
 
 // @public
@@ -82,6 +85,11 @@ export class ArraySchema extends Schema {
     items: TypedSchema;
     // @internal (undocumented)
     toJSON(): SchemaRequest;
+}
+
+// @beta
+export interface AudioConversationController {
+    stop: () => Promise<void>;
 }
 
 // @public
@@ -125,7 +133,8 @@ export class BooleanSchema extends Schema {
 
 // @public
 export class ChatSession {
-    constructor(apiSettings: ApiSettings, model: string, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
+    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
+    constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
@@ -136,6 +145,15 @@ export class ChatSession {
     sendMessage(request: string | Array<string | Part>): Promise<GenerateContentResult>;
     sendMessageStream(request: string | Array<string | Part>): Promise<GenerateContentStreamResult>;
     }
+
+// @beta
+export interface ChromeAdapter {
+    // @internal (undocumented)
+    countTokens(request: CountTokensRequest): Promise<Response>;
+    generateContent(request: GenerateContentRequest): Promise<Response>;
+    generateContentStream(request: GenerateContentRequest): Promise<Response>;
+    isAvailable(request: GenerateContentRequest): Promise<boolean>;
+}
 
 // @public
 export interface Citation {
@@ -155,6 +173,39 @@ export interface Citation {
 export interface CitationMetadata {
     // (undocumented)
     citations: Citation[];
+}
+
+// @public
+export interface CodeExecutionResult {
+    outcome?: Outcome;
+    output?: string;
+}
+
+// @public
+export interface CodeExecutionResultPart {
+    // (undocumented)
+    codeExecutionResult?: CodeExecutionResult;
+    // (undocumented)
+    executableCode?: never;
+    // (undocumented)
+    fileData: never;
+    // (undocumented)
+    functionCall?: never;
+    // (undocumented)
+    functionResponse?: never;
+    // (undocumented)
+    inlineData?: never;
+    // (undocumented)
+    text?: never;
+    // (undocumented)
+    thought?: never;
+    // @internal (undocumented)
+    thoughtSignature?: never;
+}
+
+// @public
+export interface CodeExecutionTool {
+    codeExecution: {};
 }
 
 // @public
@@ -204,10 +255,10 @@ export { Date_2 as Date }
 
 // @public
 export interface EnhancedGenerateContentResponse extends GenerateContentResponse {
-    // (undocumented)
     functionCalls: () => FunctionCall[] | undefined;
     inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
+    thoughtSummary: () => string | undefined;
 }
 
 // @public
@@ -221,6 +272,34 @@ export interface ErrorDetails {
 }
 
 // @public
+export interface ExecutableCode {
+    code?: string;
+    language?: Language;
+}
+
+// @public
+export interface ExecutableCodePart {
+    // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: ExecutableCode;
+    // (undocumented)
+    fileData: never;
+    // (undocumented)
+    functionCall?: never;
+    // (undocumented)
+    functionResponse?: never;
+    // (undocumented)
+    inlineData?: never;
+    // (undocumented)
+    text?: never;
+    // (undocumented)
+    thought?: never;
+    // @internal (undocumented)
+    thoughtSignature?: never;
+}
+
+// @public
 export interface FileData {
     // (undocumented)
     fileUri: string;
@@ -231,6 +310,10 @@ export interface FileData {
 // @public
 export interface FileDataPart {
     // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
+    // (undocumented)
     fileData: FileData;
     // (undocumented)
     functionCall?: never;
@@ -240,6 +323,10 @@ export interface FileDataPart {
     inlineData?: never;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
 }
 
 // @public
@@ -262,6 +349,7 @@ export type FinishReason = (typeof FinishReason)[keyof typeof FinishReason];
 export interface FunctionCall {
     // (undocumented)
     args: object;
+    id?: string;
     // (undocumented)
     name: string;
 }
@@ -287,6 +375,10 @@ export type FunctionCallingMode = (typeof FunctionCallingMode)[keyof typeof Func
 // @public
 export interface FunctionCallPart {
     // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
+    // (undocumented)
     functionCall: FunctionCall;
     // (undocumented)
     functionResponse?: never;
@@ -294,6 +386,10 @@ export interface FunctionCallPart {
     inlineData?: never;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
 }
 
 // @public
@@ -310,6 +406,7 @@ export interface FunctionDeclarationsTool {
 
 // @public
 export interface FunctionResponse {
+    id?: string;
     // (undocumented)
     name: string;
     // (undocumented)
@@ -319,6 +416,10 @@ export interface FunctionResponse {
 // @public
 export interface FunctionResponsePart {
     // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
+    // (undocumented)
     functionCall?: never;
     // (undocumented)
     functionResponse: FunctionResponse;
@@ -326,6 +427,10 @@ export interface FunctionResponsePart {
     inlineData?: never;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
 }
 
 // @public
@@ -416,7 +521,8 @@ export interface GenerativeContentBlob {
 
 // @public
 export class GenerativeModel extends AIModel {
-    constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions);
+    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
+    constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions, chromeAdapter?: ChromeAdapter | undefined);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
@@ -438,11 +544,16 @@ export class GenerativeModel extends AIModel {
 // @public
 export function getAI(app?: FirebaseApp, options?: AIOptions): AI;
 
+// Warning: (ae-incompatible-release-tags) The symbol "getGenerativeModel" is marked as @public, but its signature references "HybridParams" which is marked as @beta
+//
 // @public
-export function getGenerativeModel(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
+export function getGenerativeModel(ai: AI, modelParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 
 // @beta
 export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
+
+// @beta
+export function getLiveGenerativeModel(ai: AI, modelParams: LiveModelParams): LiveGenerativeModel;
 
 // @public
 export class GoogleAIBackend extends Backend {
@@ -589,6 +700,13 @@ export const HarmSeverity: {
 export type HarmSeverity = (typeof HarmSeverity)[keyof typeof HarmSeverity];
 
 // @beta
+export interface HybridParams {
+    inCloudParams?: ModelParams;
+    mode: InferenceMode;
+    onDeviceParams?: OnDeviceParams;
+}
+
+// @beta
 export const ImagenAspectRatio: {
     readonly SQUARE: "1:1";
     readonly LANDSCAPE_3x4: "3:4";
@@ -600,7 +718,7 @@ export const ImagenAspectRatio: {
 // @beta
 export type ImagenAspectRatio = (typeof ImagenAspectRatio)[keyof typeof ImagenAspectRatio];
 
-// @public
+// @beta
 export interface ImagenGCSImage {
     gcsURI: string;
     mimeType: string;
@@ -681,8 +799,23 @@ export interface ImagenSafetySettings {
     safetyFilterLevel?: ImagenSafetyFilterLevel;
 }
 
+// @beta
+export const InferenceMode: {
+    readonly PREFER_ON_DEVICE: "prefer_on_device";
+    readonly ONLY_ON_DEVICE: "only_on_device";
+    readonly ONLY_IN_CLOUD: "only_in_cloud";
+    readonly PREFER_IN_CLOUD: "prefer_in_cloud";
+};
+
+// @beta
+export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
+
 // @public
 export interface InlineDataPart {
+    // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
     // (undocumented)
     functionCall?: never;
     // (undocumented)
@@ -691,6 +824,10 @@ export interface InlineDataPart {
     inlineData: GenerativeContentBlob;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
     videoMetadata?: VideoMetadata;
 }
 
@@ -698,6 +835,162 @@ export interface InlineDataPart {
 export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
+
+// @public
+export const Language: {
+    UNSPECIFIED: string;
+    PYTHON: string;
+};
+
+// @public
+export type Language = (typeof Language)[keyof typeof Language];
+
+// @beta
+export interface LanguageModelCreateCoreOptions {
+    // (undocumented)
+    expectedInputs?: LanguageModelExpected[];
+    // (undocumented)
+    temperature?: number;
+    // (undocumented)
+    topK?: number;
+}
+
+// @beta
+export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptions {
+    // (undocumented)
+    initialPrompts?: LanguageModelMessage[];
+    // (undocumented)
+    signal?: AbortSignal;
+}
+
+// @beta
+export interface LanguageModelExpected {
+    // (undocumented)
+    languages?: string[];
+    // (undocumented)
+    type: LanguageModelMessageType;
+}
+
+// @beta
+export interface LanguageModelMessage {
+    // (undocumented)
+    content: LanguageModelMessageContent[];
+    // (undocumented)
+    role: LanguageModelMessageRole;
+}
+
+// @beta
+export interface LanguageModelMessageContent {
+    // (undocumented)
+    type: LanguageModelMessageType;
+    // (undocumented)
+    value: LanguageModelMessageContentValue;
+}
+
+// @beta
+export type LanguageModelMessageContentValue = ImageBitmapSource | AudioBuffer | BufferSource | string;
+
+// @beta
+export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
+
+// @beta
+export type LanguageModelMessageType = 'text' | 'image' | 'audio';
+
+// @beta
+export interface LanguageModelPromptOptions {
+    // (undocumented)
+    responseConstraint?: object;
+}
+
+// @beta
+export interface LiveGenerationConfig {
+    frequencyPenalty?: number;
+    maxOutputTokens?: number;
+    presencePenalty?: number;
+    responseModalities?: ResponseModality[];
+    speechConfig?: SpeechConfig;
+    temperature?: number;
+    topK?: number;
+    topP?: number;
+}
+
+// @beta
+export class LiveGenerativeModel extends AIModel {
+    // Warning: (ae-forgotten-export) The symbol "WebSocketHandler" needs to be exported by the entry point index.d.ts
+    //
+    // @internal
+    constructor(ai: AI, modelParams: LiveModelParams,
+    _webSocketHandler: WebSocketHandler);
+    connect(): Promise<LiveSession>;
+    // (undocumented)
+    generationConfig: LiveGenerationConfig;
+    // (undocumented)
+    systemInstruction?: Content;
+    // (undocumented)
+    toolConfig?: ToolConfig;
+    // (undocumented)
+    tools?: Tool[];
+    }
+
+// @beta
+export interface LiveModelParams {
+    // (undocumented)
+    generationConfig?: LiveGenerationConfig;
+    // (undocumented)
+    model: string;
+    // (undocumented)
+    systemInstruction?: string | Part | Content;
+    // (undocumented)
+    toolConfig?: ToolConfig;
+    // (undocumented)
+    tools?: Tool[];
+}
+
+// @beta
+export const LiveResponseType: {
+    SERVER_CONTENT: string;
+    TOOL_CALL: string;
+    TOOL_CALL_CANCELLATION: string;
+};
+
+// @beta
+export type LiveResponseType = (typeof LiveResponseType)[keyof typeof LiveResponseType];
+
+// @beta
+export interface LiveServerContent {
+    interrupted?: boolean;
+    modelTurn?: Content;
+    turnComplete?: boolean;
+    // (undocumented)
+    type: 'serverContent';
+}
+
+// @beta
+export interface LiveServerToolCall {
+    functionCalls: FunctionCall[];
+    // (undocumented)
+    type: 'toolCall';
+}
+
+// @beta
+export interface LiveServerToolCallCancellation {
+    functionIds: string[];
+    // (undocumented)
+    type: 'toolCallCancellation';
+}
+
+// @beta
+export class LiveSession {
+    // @internal
+    constructor(webSocketHandler: WebSocketHandler, serverMessages: AsyncGenerator<unknown>);
+    close(): Promise<void>;
+    inConversation: boolean;
+    isClosed: boolean;
+    receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation>;
+    send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
+    sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void>;
+    sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;
+    }
 
 // @public
 export const Modality: {
@@ -757,11 +1050,35 @@ export interface ObjectSchemaRequest extends SchemaRequest {
     type: 'object';
 }
 
+// @beta
+export interface OnDeviceParams {
+    // (undocumented)
+    createOptions?: LanguageModelCreateOptions;
+    // (undocumented)
+    promptOptions?: LanguageModelPromptOptions;
+}
+
 // @public
-export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart;
+export const Outcome: {
+    UNSPECIFIED: string;
+    OK: string;
+    FAILED: string;
+    DEADLINE_EXCEEDED: string;
+};
+
+// @public
+export type Outcome = (typeof Outcome)[keyof typeof Outcome];
+
+// @public
+export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart | ExecutableCodePart | CodeExecutionResultPart;
 
 // @public
 export const POSSIBLE_ROLES: readonly ["user", "model", "function", "system"];
+
+// @beta
+export interface PrebuiltVoiceConfig {
+    voiceName?: string;
+}
 
 // @public
 export interface PromptFeedback {
@@ -782,6 +1099,7 @@ export interface RequestOptions {
 export const ResponseModality: {
     readonly TEXT: "TEXT";
     readonly IMAGE: "IMAGE";
+    readonly AUDIO: "AUDIO";
 };
 
 // @beta
@@ -926,6 +1244,19 @@ export interface Segment {
     text: string;
 }
 
+// @beta
+export interface SpeechConfig {
+    voiceConfig?: VoiceConfig;
+}
+
+// @beta
+export function startAudioConversation(liveSession: LiveSession, options?: StartAudioConversationOptions): Promise<AudioConversationController>;
+
+// @beta
+export interface StartAudioConversationOptions {
+    functionCallingHandler?: (functionCalls: LiveServerToolCall['functionCalls']) => Promise<Part>;
+}
+
 // @public
 export interface StartChatParams extends BaseParams {
     // (undocumented)
@@ -950,6 +1281,10 @@ export class StringSchema extends Schema {
 // @public
 export interface TextPart {
     // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
+    // (undocumented)
     functionCall?: never;
     // (undocumented)
     functionResponse?: never;
@@ -957,15 +1292,20 @@ export interface TextPart {
     inlineData?: never;
     // (undocumented)
     text: string;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: string;
 }
 
 // @public
 export interface ThinkingConfig {
+    includeThoughts?: boolean;
     thinkingBudget?: number;
 }
 
 // @public
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool;
+export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool;
 
 // @public
 export interface ToolConfig {
@@ -1001,6 +1341,11 @@ export class VertexAIBackend extends Backend {
 export interface VideoMetadata {
     endOffset: string;
     startOffset: string;
+}
+
+// @beta
+export interface VoiceConfig {
+    prebuiltVoiceConfig?: PrebuiltVoiceConfig;
 }
 
 // @public (undocumented)

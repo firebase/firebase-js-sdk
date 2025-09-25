@@ -28,6 +28,10 @@ describe('Experiment', () => {
   const analytics = {} as Provider<FirebaseAnalyticsInternalName>;
   const experiment = new Experiment(storage, analytics);
 
+describe('Experiment', () => {
+  const storage = {} as Storage;
+  const experiment = new Experiment(storage);
+
   describe('updateActiveExperiments', () => {
     beforeEach(() => {
       storage.getActiveExperiments = sinon.stub();
@@ -56,15 +60,18 @@ describe('Experiment', () => {
           experimentStartTime: '0',
           triggerTimeoutMillis: '0',
           timeToLiveMillis: '0'
-        },
+        }
       ];
       const expectedStoredExperiments = new Set(['_exp_3', '_exp_1', '_exp_2']);
-      storage.getActiveExperiments = sinon.stub().returns(new Set(['_exp_1', '_exp_2']));
-
+      storage.getActiveExperiments = sinon
+        .stub()
+        .returns(new Set(['_exp_1', '_exp_2']));
 
       await experiment.updateActiveExperiments(latestExperiments);
 
-      expect(storage.setActiveExperiments).to.have.been.calledWith(expectedStoredExperiments);
+      expect(storage.setActiveExperiments).to.have.been.calledWith(
+        expectedStoredExperiments
+      );
     });
 
     it('removes missing experiment in fetch response from storage', async () => {
@@ -78,12 +85,15 @@ describe('Experiment', () => {
         }
       ];
       const expectedStoredExperiments = new Set(['_exp_1']);
-      storage.getActiveExperiments = sinon.stub().returns(new Set(['_exp_1', '_exp_2']));
-
+      storage.getActiveExperiments = sinon
+        .stub()
+        .returns(new Set(['_exp_1', '_exp_2']));
 
       await experiment.updateActiveExperiments(latestExperiments);
 
-      expect(storage.setActiveExperiments).to.have.been.calledWith(expectedStoredExperiments);
+      expect(storage.setActiveExperiments).to.have.been.calledWith(
+        expectedStoredExperiments
+      );
     });
   });
 });

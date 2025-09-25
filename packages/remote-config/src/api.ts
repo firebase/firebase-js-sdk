@@ -22,7 +22,9 @@ import {
   LogLevel as RemoteConfigLogLevel,
   RemoteConfig,
   Value,
-  RemoteConfigOptions
+  RemoteConfigOptions,
+  ConfigUpdateObserver,
+  Unsubscribe
 } from './public_types';
 import { RemoteConfigAbortSignal } from './client/remote_config_fetch_client';
 import {
@@ -67,6 +69,9 @@ export function getRemoteConfig(
     rc._initializePromise = Promise.all([
       rc._storage.setLastSuccessfulFetchResponse(options.initialFetchResponse),
       rc._storage.setActiveConfigEtag(options.initialFetchResponse?.eTag || ''),
+      rc._storage.setActiveConfigTemplateVersion(
+        options.initialFetchResponse.templateVersion || 0
+      ),
       rc._storageCache.setLastSuccessfulFetchTimestampMillis(Date.now()),
       rc._storageCache.setLastFetchStatus('success'),
       rc._storageCache.setActiveConfig(
@@ -99,16 +104,24 @@ export async function activate(remoteConfig: RemoteConfig): Promise<boolean> {
     !lastSuccessfulFetchResponse ||
     !lastSuccessfulFetchResponse.config ||
     !lastSuccessfulFetchResponse.eTag ||
+    !lastSuccessfulFetchResponse.templateVersion ||
     lastSuccessfulFetchResponse.eTag === activeConfigEtag
   ) {
     // Either there is no successful fetched config, or is the same as current active
     // config.
     return false;
   }
-  const experiment = new Experiment(rc._storage, rc._analytics);
+  const experiment = new Experiment(rc._storage);
   await Promise.all([
     rc._storageCache.setActiveConfig(lastSuccessfulFetchResponse.config),
-    lastSuccessfulFetchResponse.experiments && experiment.updateActiveExperiments(lastSuccessfulFetchResponse.experiments),
+    rc._storage.setActiveConfigEtag(lastSuccessfulFetchResponse.eTag),
+    rc._storage.setActiveConfigTemplateVersion(
+      lastSuccessfulFetchResponse.templateVersion
+    ),
+    lastSuccessfulFetchResponse.experiments &&
+      experiment.updateActiveExperiments(
+        lastSuccessfulFetchResponse.experiments
+      ),
     rc._storage.setActiveConfigEtag(lastSuccessfulFetchResponse.eTag)
   ]);
   return true;
@@ -353,4 +366,31 @@ export async function setCustomSignals(
       `Error encountered while setting custom signals: ${error}`
     );
   }
+}
+
+// TODO: Add public document for the Remote Config Realtime API guide on the Web Platform.
+/**
+ * Starts listening for real-time config updates from the Remote Config backend and automatically
+ * fetches updates from the Remote Config backend when they are available.
+ *
+ * @remarks
+ * If a connection to the Remote Config backend is not already open, calling this method will
+ * open it. Multiple listeners can be added by calling this method again, but subsequent calls
+ * re-use the same connection to the backend.
+ *
+ * @param remoteConfig - The {@link RemoteConfig} instance.
+ * @param observer - The {@link ConfigUpdateObserver} to be notified of config updates.
+ * @returns An {@link Unsubscribe} function to remove the listener.
+ *
+ * @public
+ */
+export function onConfigUpdate(
+  remoteConfig: RemoteConfig,
+  observer: ConfigUpdateObserver
+): Unsubscribe {
+  const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;
+  rc._realtimeHandler.addObserver(observer);
+  return () => {
+    rc._realtimeHandler.removeObserver(observer);
+  };
 }

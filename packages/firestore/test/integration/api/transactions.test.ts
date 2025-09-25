@@ -593,6 +593,19 @@ apiDescribe('Database transactions', persistence => {
     }
   );
 
+  it('runTransaction with empty message reject inside', () => {
+    return withTestDb(persistence, async db => {
+      try {
+        await runTransaction(db, () => {
+          return Promise.reject();
+        });
+        expect.fail('transaction should fail');
+      } catch (err) {
+        expect(err).to.be.undefined;
+      }
+    });
+  });
+
   describe('must return a promise:', () => {
     const noop = (): void => {
       /* -_- */

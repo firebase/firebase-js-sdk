@@ -1,5 +1,12 @@
 # @firebase/functions-compat
 
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies [[`5501791`](https://github.com/firebase/firebase-js-sdk/commit/5501791d0bd665c1c7d4fcd786053a46ceff208c)]:
+  - @firebase/functions@0.13.1
+
 ## 0.4.0
 
 ### Minor Changes

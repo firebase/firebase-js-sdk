@@ -1,5 +1,69 @@
 # firebase
 
+## 12.3.0
+
+### Minor Changes
+
+- [`06ab5c4`](https://github.com/firebase/firebase-js-sdk/commit/06ab5c4f9b84085068381f6dff5e03b1b7cf4b2c) [#9236](https://github.com/firebase/firebase-js-sdk/pull/9236) - Added a new `InferenceMode` option for the hybrid on-device capability: `prefer_in_cloud`. When this mode is selected, the SDK will attempt to use a cloud-hosted model first. If the call to the cloud-hosted model fails with a network-related error, the SDK will fall back to the on-device model, if it's available.
+
+- [`120a308`](https://github.com/firebase/firebase-js-sdk/commit/120a30838da50f5ade4f634e97c34cbfcaff41ba) [#9221](https://github.com/firebase/firebase-js-sdk/pull/9221) - Added support for Realtime Remote Config for the web. This feature introduces a new `onConfigUpdate` API and allows web applications to receive near-instant configuration updates without requiring periodic polling.
+
+- [`9b8ab02`](https://github.com/firebase/firebase-js-sdk/commit/9b8ab02c543785226fafec056d39be7cf7ee03d1) [#9249](https://github.com/firebase/firebase-js-sdk/pull/9249) - Added Code Execution feature.
+
+### Patch Changes
+
+- Updated dependencies [[`06ab5c4`](https://github.com/firebase/firebase-js-sdk/commit/06ab5c4f9b84085068381f6dff5e03b1b7cf4b2c), [`a4848b4`](https://github.com/firebase/firebase-js-sdk/commit/a4848b401f6e8da16b0d0fdbfd064e8d68566555), [`120a308`](https://github.com/firebase/firebase-js-sdk/commit/120a30838da50f5ade4f634e97c34cbfcaff41ba), [`9b8ab02`](https://github.com/firebase/firebase-js-sdk/commit/9b8ab02c543785226fafec056d39be7cf7ee03d1), [`c123766`](https://github.com/firebase/firebase-js-sdk/commit/c1237662e6851936d2dd6017ab4bc7f0aa5112fd), [`43276b0`](https://github.com/firebase/firebase-js-sdk/commit/43276b0414ea5a73e8d8f7e3b80275d8b910102f)]:
+  - @firebase/app@0.14.3
+  - @firebase/ai@2.3.0
+  - @firebase/remote-config@0.7.0
+  - @firebase/firestore@4.9.2
+  - @firebase/app-compat@0.5.3
+  - @firebase/remote-config-compat@0.2.20
+  - @firebase/firestore-compat@0.4.2
+
+## 12.2.1
+
+### Patch Changes
+
+- Updated dependencies [[`095c098`](https://github.com/firebase/firebase-js-sdk/commit/095c098de1e4399f3fb2993edae45060b2a8c6d0)]:
+  - @firebase/ai@2.2.1
+
+## 12.2.0
+
+### Minor Changes
+
+- [`984086b`](https://github.com/firebase/firebase-js-sdk/commit/984086b0b1bd607d3aac4cbb8400bc61416e2959) [#9224](https://github.com/firebase/firebase-js-sdk/pull/9224) - Add support for the Gemini Live API.
+
+- [`9b63cd6`](https://github.com/firebase/firebase-js-sdk/commit/9b63cd60efcd02b64b0d37f81affb3eabf70f9eb) [#9192](https://github.com/firebase/firebase-js-sdk/pull/9192) - Add `thoughtSummary()` convenience method to `EnhancedGenerateContentResponse`.
+
+- [`02280d7`](https://github.com/firebase/firebase-js-sdk/commit/02280d747863445fa1c21dfda01030412a6cecff) [#9201](https://github.com/firebase/firebase-js-sdk/pull/9201) - Add App Check limited use token option to `getAI()`.
+
+### Patch Changes
+
+- Updated dependencies [[`984086b`](https://github.com/firebase/firebase-js-sdk/commit/984086b0b1bd607d3aac4cbb8400bc61416e2959), [`9b63cd6`](https://github.com/firebase/firebase-js-sdk/commit/9b63cd60efcd02b64b0d37f81affb3eabf70f9eb), [`84b8bed`](https://github.com/firebase/firebase-js-sdk/commit/84b8bed35b69e4713fe8f677803cb06625525a61), [`c5f08a9`](https://github.com/firebase/firebase-js-sdk/commit/c5f08a9bc5da0d2b0207802c972d53724ccef055), [`02280d7`](https://github.com/firebase/firebase-js-sdk/commit/02280d747863445fa1c21dfda01030412a6cecff), [`2058432`](https://github.com/firebase/firebase-js-sdk/commit/2058432e6c8e809d5b695e31fde582e94f1349c5), [`5501791`](https://github.com/firebase/firebase-js-sdk/commit/5501791d0bd665c1c7d4fcd786053a46ceff208c), [`cbef6c6`](https://github.com/firebase/firebase-js-sdk/commit/cbef6c6e5b752c316104f9c834e0fe21b75c3ef1)]:
+  - @firebase/ai@2.2.0
+  - @firebase/app@0.14.2
+  - @firebase/firestore@4.9.1
+  - @firebase/functions@0.13.1
+  - @firebase/app-compat@0.5.2
+  - @firebase/firestore-compat@0.4.1
+  - @firebase/functions-compat@0.4.1
+
+## 12.1.0
+
+### Minor Changes
+
+- [`e25317f`](https://github.com/firebase/firebase-js-sdk/commit/e25317f9f3c58305bc093e4f2e676690feb16db0) [#9029](https://github.com/firebase/firebase-js-sdk/pull/9029) - Add hybrid inference options to the Firebase AI SDK.
+
+### Patch Changes
+
+- Updated dependencies [[`e25317f`](https://github.com/firebase/firebase-js-sdk/commit/e25317f9f3c58305bc093e4f2e676690feb16db0), [`a4897a6`](https://github.com/firebase/firebase-js-sdk/commit/a4897a621e99f270ddf6821d587fcddd3a0c5cd1)]:
+  - @firebase/app@0.14.1
+  - @firebase/ai@2.1.0
+  - @firebase/performance@0.7.9
+  - @firebase/app-compat@0.5.1
+  - @firebase/performance-compat@0.2.22
+
 ## 12.0.0
 
 ### Major Changes

@@ -27,16 +27,26 @@ import {
   GenerateContentRequest,
   HarmBlockMethod,
   HarmBlockThreshold,
-  HarmCategory
+  HarmCategory,
+  InferenceMode,
+  Language,
+  Outcome
 } from '../types';
 import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
 import { AIError } from '../api';
 import { mapGenerateContentRequest } from '../googleai-mappers';
 import { GoogleAIBackend, VertexAIBackend } from '../backend';
+import { ChromeAdapterImpl } from './chrome-adapter';
 
 use(sinonChai);
 use(chaiAsPromised);
+
+const fakeChromeAdapter = new ChromeAdapterImpl(
+  // @ts-expect-error
+  undefined,
+  InferenceMode.PREFER_ON_DEVICE
+);
 
 const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
@@ -240,6 +250,25 @@ describe('generateContent()', () => {
       match.any
     );
   });
+  it('codeExecution', async () => {
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-code-execution.json'
+    );
+    stub(request, 'makeRequest').resolves(mockResponse as Response);
+    const result = await generateContent(
+      fakeApiSettings,
+      'model',
+      fakeRequestParams
+    );
+    const parts = result.response.candidates?.[0].content.parts;
+    expect(
+      parts?.some(part => part.codeExecutionResult?.outcome === Outcome.OK)
+    ).to.be.true;
+    expect(
+      parts?.some(part => part.executableCode?.language === Language.PYTHON)
+    ).to.be.true;
+  });
   it('blocked prompt', async () => {
     const mockResponse = getMockResponse(
       'vertexAI',
@@ -421,5 +450,26 @@ describe('generateContent()', () => {
         undefined
       );
     });
+  });
+  // TODO: define a similar test for generateContentStream
+  it('on-device', async () => {
+    const chromeAdapter = fakeChromeAdapter;
+    const isAvailableStub = stub(chromeAdapter, 'isAvailable').resolves(true);
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-basic-reply-short.json'
+    );
+    const generateContentStub = stub(chromeAdapter, 'generateContent').resolves(
+      mockResponse as Response
+    );
+    const result = await generateContent(
+      fakeApiSettings,
+      'model',
+      fakeRequestParams,
+      chromeAdapter
+    );
+    expect(result.response.text()).to.include('Mountain View, California');
+    expect(isAvailableStub).to.be.called;
+    expect(generateContentStub).to.be.calledWith(fakeRequestParams);
   });
 });

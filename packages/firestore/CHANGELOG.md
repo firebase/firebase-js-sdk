@@ -1,5 +1,20 @@
 # @firebase/firestore
 
+## 4.9.2
+
+### Patch Changes
+
+- [`43276b0`](https://github.com/firebase/firebase-js-sdk/commit/43276b0414ea5a73e8d8f7e3b80275d8b910102f) [#9242](https://github.com/firebase/firebase-js-sdk/pull/9242) - Increased the buffering-proxy detection timeout to minimize the false-positive rate. Updating WebChannel to ignore duplicate messages received from the server. Fix for https://github.com/firebase/firebase-js-sdk/issues/8250.
+
+- Updated dependencies [[`43276b0`](https://github.com/firebase/firebase-js-sdk/commit/43276b0414ea5a73e8d8f7e3b80275d8b910102f)]:
+  - @firebase/webchannel-wrapper@1.0.5
+
+## 4.9.1
+
+### Patch Changes
+
+- [`2058432`](https://github.com/firebase/firebase-js-sdk/commit/2058432e6c8e809d5b695e31fde582e94f1349c5) [#9177](https://github.com/firebase/firebase-js-sdk/pull/9177) (fixes [#9147](https://github.com/firebase/firebase-js-sdk/issues/9147)) - Fixed a bug where a rejected promise with an empty message in a transaction would cause a timeout.
+
 ## 4.9.0
 
 ### Minor Changes

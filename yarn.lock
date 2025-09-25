@@ -5021,9 +5021,9 @@ camelcase@^6.0.0, camelcase@^6.2.0:
   integrity sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==
 
 caniuse-lite@^1.0.30001688:
-  version "1.0.30001695"
-  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001695.tgz#39dfedd8f94851132795fdf9b79d29659ad9c4d4"
-  integrity sha512-vHyLade6wTgI2u1ec3WQBxv+2BrTERV28UXQu9LO6lZ9pYeMk34vjXFLOxo1A4UBA8XTL4njRQZdno/yYaSmWw==
+  version "1.0.30001731"
+  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001731.tgz"
+  integrity sha512-lDdp2/wrOmTRWuoB5DpfNkC0rJDU8DqRa6nYL6HK6sytw70QMopt/NIc/9SM7ylItlBWfACXk0tEn37UWM/+mg==
 
 caseless@~0.12.0:
   version "0.12.0"
@@ -5379,9 +5379,9 @@ cloneable-readable@^1.0.0:
     process-nextick-args "^2.0.0"
     readable-stream "^2.3.5"
 
-"closure-net@git+https://github.com/google/closure-net.git#0412666":
+"closure-net@git+https://github.com/google/closure-net.git#6f48f578d3e80fe7a85e530a5d95b9351433d135":
   version "0.0.0"
-  resolved "git+https://github.com/google/closure-net.git#0412666e8f29b8ae69decb1fdc7ead635a5cf43e"
+  resolved "git+https://github.com/google/closure-net.git#6f48f578d3e80fe7a85e530a5d95b9351433d135"
 
 cmd-shim@^4.1.0:
   version "4.1.0"

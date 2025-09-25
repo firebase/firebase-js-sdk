@@ -27,6 +27,7 @@ import { Storage } from './storage/storage';
 import { Logger } from '@firebase/logger';
 import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
 import { Provider } from '@firebase/component';
+import { RealtimeHandler } from './client/realtime_handler';
 
 const DEFAULT_FETCH_TIMEOUT_MILLIS = 60 * 1000; // One minute
 const DEFAULT_CACHE_MAX_AGE_MILLIS = 12 * 60 * 60 * 1000; // Twelve hours.
@@ -86,6 +87,10 @@ export class RemoteConfig implements RemoteConfigType {
      * @internal
      */
     readonly _logger: Logger,
+    /**
+     * @internal
+     */
+    readonly _realtimeHandler: RealtimeHandler
     /**
      * @internal
      */
