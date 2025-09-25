@@ -1,5 +1,13 @@
 # @firebase/remote-config-compat
 
+## 0.2.20
+
+### Patch Changes
+
+- Updated dependencies [[`120a308`](https://github.com/firebase/firebase-js-sdk/commit/120a30838da50f5ade4f634e97c34cbfcaff41ba)]:
+  - @firebase/remote-config@0.7.0
+  - @firebase/remote-config-types@0.5.0
+
 ## 0.2.19
 
 ### Patch Changes

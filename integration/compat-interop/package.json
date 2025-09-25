@@ -8,8 +8,8 @@
     "test:debug": "karma start --browsers Chrome --auto-watch"
   },
   "dependencies": {
-    "@firebase/app": "0.14.2",
-    "@firebase/app-compat": "0.5.2",
+    "@firebase/app": "0.14.3",
+    "@firebase/app-compat": "0.5.3",
     "@firebase/analytics": "0.10.18",
     "@firebase/analytics-compat": "0.2.24",
     "@firebase/auth": "1.11.0",
@@ -20,8 +20,8 @@
     "@firebase/messaging-compat": "0.2.23",
     "@firebase/performance": "0.7.9",
     "@firebase/performance-compat": "0.2.22",
-    "@firebase/remote-config": "0.6.6",
-    "@firebase/remote-config-compat": "0.2.19"
+    "@firebase/remote-config": "0.7.0",
+    "@firebase/remote-config-compat": "0.2.20"
   },
   "devDependencies": {
     "typescript": "5.5.4"
