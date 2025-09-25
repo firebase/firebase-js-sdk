@@ -43,7 +43,7 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 |  [CustomSignals](./remote-config.customsignals.md#customsignals_interface) | Defines the type for representing custom signals and their values.<p>The values in CustomSignals must be one of the following types:<ul> <li><code>string</code> <li><code>number</code> <li><code>null</code> </ul> |
 |  [FetchResponse](./remote-config.fetchresponse.md#fetchresponse_interface) | Defines a successful response (200 or 304).<p>Modeled after the native <code>Response</code> interface, but simplified for Remote Config's use case. |
 |  [FirebaseRemoteConfigObject](./remote-config.firebaseremoteconfigobject.md#firebaseremoteconfigobject_interface) | Defines a self-descriptive reference for config key-value pairs. |
-|  [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) | /\*\* The Firebase Remote Config service interface. |
+|  [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) | The Firebase Remote Config service interface. |
 |  [RemoteConfigOptions](./remote-config.remoteconfigoptions.md#remoteconfigoptions_interface) | Options for Remote Config initialization. |
 |  [RemoteConfigSettings](./remote-config.remoteconfigsettings.md#remoteconfigsettings_interface) | Defines configuration options for the Remote Config SDK. |
 |  [Value](./remote-config.value.md#value_interface) | Wraps a value with metadata and type-safe getters. |
