@@ -119,6 +119,46 @@ export interface ParsedToken {
 export type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
 
 /**
+ * An interface for handling the refresh of Firebase tokens.
+ *
+ * @public
+ */
+export interface TokenRefreshHandler {
+  /**
+   * Refreshes the third-party IDP token.
+   *
+   * This method should contain the logic to obtain a new, valid IDP token from
+   * your identity provider. 
+   *
+   * @returns A promise that resolves with a `RefreshIdpTokenResult` object
+   *   containing the new IDP token and its corresponding Idp Config ID.
+   */
+  refreshIdpToken(): Promise<RefreshIdpTokenResult>
+}
+
+/**
+ * The result of a third-party IDP token refresh operation.
+ *
+ * This object contains the new IDP token and the Idp Config ID of the
+ * provider that issued it.
+ *
+ * @public
+ */
+export interface RefreshIdpTokenResult {
+  /**
+   * The configuration ID of the third-party identity provider.
+   */
+  idpConfigId: string;
+
+  /**
+   * The new Id Token from the 3rd party Identity Provider.
+   */
+  idToken: string;
+}
+
+
+
+/**
  * Interface for an `Auth` error.
  *
  * @public
@@ -210,6 +250,32 @@ export interface Auth {
    * @param persistence - The {@link Persistence} to use.
    */
   setPersistence(persistence: Persistence): Promise<void>;
+  /**
+   * Registers a handler for refreshing third-party identity provider (IDP) tokens.
+   *
+   * When the Firebase access token is expired, the SDK will automatically invoke the
+   * provided handler's `refreshIdpToken()` method to obtain a new IDP token. This new
+   * token will then be exchanged for a fresh Firebase token, streamlining the
+   * authentication process.
+   *
+   * @example
+   * ```javascript
+   * class TokenRefreshHandlerImpl {
+   *   refreshIdpToken() {
+   *     // Logic to fetch a new token from your custom IDP.
+   *     // Returns a Promise that resolves with a RefreshIdpTokenResult.
+   *   }
+   * }
+   *
+   * const tokenRefreshHandler = new TokenRefreshHandlerImpl();
+   * auth.setTokenRefreshHandler(tokenRefreshHandler);
+   * ```
+   *
+   * @param tokenRefreshHandler - An object that implements the `TokenRefreshHandler`
+   *   interface, providing the logic to refresh the IDP token.
+   */
+   setTokenRefreshHandler(tokenRefreshHandler: TokenRefreshHandler): void;
+
   /**
    * The {@link Auth} instance's language code.
    *
