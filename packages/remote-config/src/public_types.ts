@@ -19,8 +19,6 @@ import { FirebaseApp, FirebaseError } from '@firebase/app';
 import { FirebaseExperimentDescription } from './client/rest_client';
 
 /**
-
-/**
  * The Firebase Remote Config service interface.
  *
  * @public

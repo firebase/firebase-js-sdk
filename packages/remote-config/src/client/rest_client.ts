@@ -18,7 +18,7 @@
 import {
   CustomSignals,
   FetchResponse,
-  FirebaseRemoteConfigObject,
+  FirebaseRemoteConfigObject
 } from '../public_types';
 import {
   RemoteConfigFetchClient,
