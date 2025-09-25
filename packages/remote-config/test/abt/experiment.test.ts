@@ -32,12 +32,14 @@ describe('Experiment', () => {
     beforeEach(() => {
       storage.getActiveExperiments = sinon.stub();
       storage.setActiveExperiments = sinon.stub();
-      analyticsProvider.get = sinon.stub().returns(Promise.resolve({
-        setUserProperties: sinon.stub()
-      }));
+      analyticsProvider.get = sinon.stub().returns(
+        Promise.resolve({
+          setUserProperties: sinon.stub()
+        })
+      );
     });
 
-    it('adds mew experiments to storage', async () => {
+    it('adds new experiments to storage', async () => {
       const latestExperiments: FirebaseExperimentDescription[] = [
         {
           experimentId: '_exp_3',
@@ -72,7 +74,9 @@ describe('Experiment', () => {
       expect(storage.setActiveExperiments).to.have.been.calledWith(
         expectedStoredExperiments
       );
-      expect(analytics.setUserProperties).to.have.been.calledWith({properties: {'_exp_1': '1'}});
+      expect(analytics.setUserProperties).to.have.been.calledWith({
+        properties: { '_exp_3': '1' }
+      });
     });
 
     it('removes missing experiment in fetch response from storage', async () => {
@@ -96,7 +100,9 @@ describe('Experiment', () => {
       expect(storage.setActiveExperiments).to.have.been.calledWith(
         expectedStoredExperiments
       );
-      expect(analytics.setUserProperties).to.have.been.calledWith({properties: {'_exp_1': null}});
+      expect(analytics.setUserProperties).to.have.been.calledWith({
+        properties: { '_exp_2': null }
+      });
     });
   });
 });

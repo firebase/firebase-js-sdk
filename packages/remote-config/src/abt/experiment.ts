@@ -52,7 +52,10 @@ export class Experiment {
   ): void {
     for (const [experimentId, experimentInfo] of experimentInfoMap.entries()) {
       if (!currentActiveExperiments.has(experimentId)) {
-        this.addExperimentToAnalytics(experimentId, experimentInfo.variantId);
+        void this.addExperimentToAnalytics(
+          experimentId,
+          experimentInfo.variantId
+        );
       }
     }
   }
@@ -63,23 +66,25 @@ export class Experiment {
   ): void {
     for (const experimentId of currentActiveExperiments) {
       if (!experimentInfoMap.has(experimentId)) {
-        this.removeExperimentFromAnalytics(experimentId);
+        void this.removeExperimentFromAnalytics(experimentId);
       }
     }
   }
 
   private async addExperimentToAnalytics(
     experimentId: string,
-    variantId: string|null
+    variantId: string | null
   ): Promise<void> {
     const analytics = await this.analyticsProvider.get();
     const customProperty = {
-      [experimentId]: variantId,
+      [experimentId]: variantId
     };
-    analytics.setUserProperties({properties: customProperty});
+    analytics.setUserProperties({ properties: customProperty });
   }
 
-  private async removeExperimentFromAnalytics(experimentId: string): Promise<void> {
-    this.addExperimentToAnalytics(experimentId, null);
+  private async removeExperimentFromAnalytics(
+    experimentId: string
+  ): Promise<void> {
+    void this.addExperimentToAnalytics(experimentId, null);
   }
 }

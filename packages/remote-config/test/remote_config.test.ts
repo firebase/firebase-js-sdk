@@ -75,7 +75,6 @@ describe('RemoteConfig', () => {
   let rc: RemoteConfigType;
   let analyticsProvider: Provider<FirebaseAnalyticsInternalName>;
 
-
   let getActiveConfigStub: sinon.SinonStub;
   let loggerDebugSpy: sinon.SinonSpy;
   let loggerLogLevelSpy: any;
