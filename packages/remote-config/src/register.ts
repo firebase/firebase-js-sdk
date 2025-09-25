@@ -66,7 +66,7 @@ export function registerRemoteConfig(): void {
     const installations = container
       .getProvider('installations-internal')
       .getImmediate();
-    const analytics = container.getProvider('analytics-internal');
+    const analyticsProvider = container.getProvider('analytics-internal');
 
     // Normalizes optional inputs.
     const { projectId, apiKey, appId } = app.options;
@@ -129,7 +129,7 @@ export function registerRemoteConfig(): void {
       storage,
       logger,
       realtimeHandler,
-      analytics
+      analyticsProvider
     );
 
     // Starts warming cache.

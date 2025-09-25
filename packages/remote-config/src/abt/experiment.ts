@@ -22,7 +22,7 @@ import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types
 export class Experiment {
   constructor(
     private readonly storage: Storage,
-    private readonly analytics: Provider<FirebaseAnalyticsInternalName>
+    private readonly analyticsProvider: Provider<FirebaseAnalyticsInternalName>
   ) {}
 
   async updateActiveExperiments(
@@ -68,14 +68,18 @@ export class Experiment {
     }
   }
 
-  private addExperimentToAnalytics(
-    _experimentId: string,
-    _variantId: string
-  ): void {
-    // TODO
+  private async addExperimentToAnalytics(
+    experimentId: string,
+    variantId: string|null
+  ): Promise<void> {
+    const analytics = await this.analyticsProvider.get();
+    const customProperty = {
+      [experimentId]: variantId,
+    };
+    analytics.setUserProperties({properties: customProperty});
   }
 
-  private removeExperimentFromAnalytics(_experimentId: string): void {
-    // TODO
+  private async removeExperimentFromAnalytics(experimentId: string): Promise<void> {
+    this.addExperimentToAnalytics(experimentId, null);
   }
 }

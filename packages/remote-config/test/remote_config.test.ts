@@ -73,7 +73,7 @@ describe('RemoteConfig', () => {
   let logger: Logger;
   let realtimeHandler: RealtimeHandler;
   let rc: RemoteConfigType;
-  let analytics: Provider<FirebaseAnalyticsInternalName>;
+  let analyticsProvider: Provider<FirebaseAnalyticsInternalName>;
 
 
   let getActiveConfigStub: sinon.SinonStub;
@@ -86,7 +86,7 @@ describe('RemoteConfig', () => {
     client = {} as RemoteConfigFetchClient;
     storageCache = {} as StorageCache;
     storage = {} as Storage;
-    analytics = {} as Provider<FirebaseAnalyticsInternalName>;
+    analyticsProvider = {} as Provider<FirebaseAnalyticsInternalName>;
     realtimeHandler = {} as RealtimeHandler;
     logger = new Logger('package-name');
     getActiveConfigStub = sinon.stub().returns(undefined);
@@ -100,7 +100,7 @@ describe('RemoteConfig', () => {
       storage,
       logger,
       realtimeHandler,
-      analytics
+      analyticsProvider
     );
   });
 

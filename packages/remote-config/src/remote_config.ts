@@ -90,10 +90,10 @@ export class RemoteConfig implements RemoteConfigType {
     /**
      * @internal
      */
-    readonly _realtimeHandler: RealtimeHandler
+    readonly _realtimeHandler: RealtimeHandler,
     /**
      * @internal
      */
-    readonly _analytics: Provider<FirebaseAnalyticsInternalName>
+    readonly _analyticsProvider: Provider<FirebaseAnalyticsInternalName>
   ) {}
 }
