@@ -23,7 +23,8 @@ export class Experiment {
   async updateActiveExperiments(
     latestExperiments: FirebaseExperimentDescription[]
   ): Promise<void> {
-    const currentActiveExperiments = await this.storage.getActiveExperiments() || new Set<string>();
+    const currentActiveExperiments =
+      (await this.storage.getActiveExperiments()) || new Set<string>();
     const experimentInfoMap = this.createExperimentInfoMap(latestExperiments);
     this.addActiveExperiments(currentActiveExperiments, experimentInfoMap);
     this.removeInactiveExperiments(currentActiveExperiments, experimentInfoMap);
@@ -42,7 +43,8 @@ export class Experiment {
 
   private addActiveExperiments(
     currentActiveExperiments: Set<string>,
-    experimentInfoMap: Map<string, FirebaseExperimentDescription>): void {
+    experimentInfoMap: Map<string, FirebaseExperimentDescription>
+  ): void {
     for (const [experimentId, experimentInfo] of experimentInfoMap.entries()) {
       if (!currentActiveExperiments.has(experimentId)) {
         this.addExperimentToAnalytics(experimentId, experimentInfo.variantId);
@@ -62,7 +64,10 @@ export class Experiment {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private addExperimentToAnalytics(experimentId: string, variantId: string): void {
+  private addExperimentToAnalytics(
+    experimentId: string,
+    variantId: string
+  ): void {
     // TODO
   }
 

@@ -392,13 +392,15 @@ describe('RemoteConfig', () => {
     const CONFIG = { key: 'val' };
     const NEW_ETAG = 'new_etag';
     const TEMPLATE_VERSION = 1;
-    const EXPERIMENTS = [{
-      "experimentId" : "_exp_1",
-      "variantId" : "1",
-      "experimentStartTime" : "2025-04-06T14:13:57.597Z",
-      "triggerTimeoutMillis" : "15552000000",
-      "timeToLiveMillis" : "15552000000"   
-    }];
+    const EXPERIMENTS = [
+      {
+        'experimentId': '_exp_1',
+        'variantId': '1',
+        'experimentStartTime': '2025-04-06T14:13:57.597Z',
+        'triggerTimeoutMillis': '15552000000',
+        'timeToLiveMillis': '15552000000'
+      }
+    ];
 
     let sandbox: sinon.SinonSandbox;
     let updateActiveExperimentsStub: sinon.SinonStub;
@@ -410,8 +412,11 @@ describe('RemoteConfig', () => {
     let setActiveConfigTemplateVersionStub: sinon.SinonStub;
 
     beforeEach(() => {
-      sandbox = sinon.createSandbox(); 
-      updateActiveExperimentsStub = sandbox.stub(Experiment.prototype, 'updateActiveExperiments');
+      sandbox = sinon.createSandbox();
+      updateActiveExperimentsStub = sandbox.stub(
+        Experiment.prototype,
+        'updateActiveExperiments'
+      );
       getLastSuccessfulFetchResponseStub = sinon.stub();
       getActiveConfigEtagStub = sinon.stub();
       getActiveConfigTemplateVersionStub = sinon.stub();
@@ -471,7 +476,12 @@ describe('RemoteConfig', () => {
 
     it('activates if fetched and active etags are different', async () => {
       getLastSuccessfulFetchResponseStub.returns(
-        Promise.resolve({ config: CONFIG, experiments: EXPERIMENTS, eTag: NEW_ETAG })
+        Promise.resolve({
+          config: CONFIG,
+          eTag: NEW_ETAG,
+          templateVersion: TEMPLATE_VERSION,
+          experiments: EXPERIMENTS
+        })
       );
       getActiveConfigEtagStub.returns(Promise.resolve(ETAG));
 
@@ -487,7 +497,12 @@ describe('RemoteConfig', () => {
 
     it('activates if fetched is defined but active config is not', async () => {
       getLastSuccessfulFetchResponseStub.returns(
-        Promise.resolve({ config: CONFIG, experiments: EXPERIMENTS, eTag: NEW_ETAG })
+        Promise.resolve({
+          config: CONFIG,
+          eTag: NEW_ETAG,
+          templateVersion: TEMPLATE_VERSION,
+          experiments: EXPERIMENTS
+        })
       );
       getActiveConfigEtagStub.returns(Promise.resolve());
 

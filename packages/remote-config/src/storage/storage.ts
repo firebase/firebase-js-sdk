@@ -170,7 +170,7 @@ export abstract class Storage {
     return this.get<Set<string>>('active_experiments');
   }
 
-  setActiveExperiments(experiments:Set<string>): Promise<void> {
+  setActiveExperiments(experiments: Set<string>): Promise<void> {
     return this.set<Set<string>>('active_experiments', experiments);
   }
 
