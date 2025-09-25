@@ -193,7 +193,8 @@ export function mapGenerateContentCandidates(
         finishMessage: candidate.finishMessage,
         safetyRatings: mappedSafetyRatings,
         citationMetadata,
-        groundingMetadata: candidate.groundingMetadata
+        groundingMetadata: candidate.groundingMetadata,
+        urlContextMetadata: candidate.urlContextMetadata
       };
       mappedCandidates.push(mappedCandidate);
     });

@@ -449,6 +449,10 @@ export interface GenerateContentCandidate {
     index: number;
     // (undocumented)
     safetyRatings?: SafetyRating[];
+    // Warning: (ae-incompatible-release-tags) The symbol "urlContextMetadata" is marked as @public, but its signature references "URLContextMetadata" which is marked as @beta
+    //
+    // (undocumented)
+    urlContextMetadata?: URLContextMetadata;
 }
 
 // @public
@@ -600,6 +604,8 @@ export interface GoogleAIGenerateContentCandidate {
     index: number;
     // (undocumented)
     safetyRatings?: SafetyRating[];
+    // (undocumented)
+    urlContextMetadata?: URLContextMetadata;
 }
 
 // Warning: (ae-internal-missing-underscore) The name "GoogleAIGenerateContentResponse" should be prefixed with an underscore because the declaration is marked as @internal
@@ -1308,9 +1314,10 @@ export interface ThinkingConfig {
 }
 
 // Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "CodeExecutionTool" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "URLContextTool" which is marked as @beta
 //
 // @public
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool;
+export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
 
 // @public
 export interface ToolConfig {
@@ -1320,6 +1327,38 @@ export interface ToolConfig {
 
 // @public
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
+
+// @beta
+export interface URLContext {
+}
+
+// @beta
+export interface URLContextMetadata {
+    urlMetadata: URLMetadata[];
+}
+
+// @beta
+export interface URLContextTool {
+    urlContext: URLContext;
+}
+
+// @beta
+export interface URLMetadata {
+    retrievedUrl?: string;
+    urlRetrievalStatus?: URLRetrievalStatus;
+}
+
+// @beta
+export const URLRetrievalStatus: {
+    URL_RETRIEVAL_STATUS_UNSPECIFIED: string;
+    URL_RETRIEVAL_STATUS_SUCCESS: string;
+    URL_RETRIEVAL_STATUS_ERROR: string;
+    URL_RETRIEVAL_STATUS_PAYWALL: string;
+    URL_RETRIEVAL_STATUS_UNSAFE: string;
+};
+
+// @beta
+export type URLRetrievalStatus = (typeof URLRetrievalStatus)[keyof typeof URLRetrievalStatus];
 
 // @public
 export interface UsageMetadata {
@@ -1332,6 +1371,8 @@ export interface UsageMetadata {
     // (undocumented)
     promptTokensDetails?: ModalityTokenCount[];
     thoughtsTokenCount?: number;
+    toolUsePromptTokenCount?: number;
+    toolUsePromptTokensDetails?: ModalityTokenCount[];
     // (undocumented)
     totalTokenCount: number;
 }

@@ -134,6 +134,10 @@ The Firebase AI Web SDK.
 |  [TextPart](./ai.textpart.md#textpart_interface) | Content part interface if the part represents a text string. |
 |  [ThinkingConfig](./ai.thinkingconfig.md#thinkingconfig_interface) | Configuration for "thinking" behavior of compatible Gemini models.<!-- -->Certain models utilize a thinking process before generating a response. This allows them to reason through complex problems and plan a more coherent and accurate answer. |
 |  [ToolConfig](./ai.toolconfig.md#toolconfig_interface) | Tool config. This config is shared for all tools provided in the request. |
+|  [URLContext](./ai.urlcontext.md#urlcontext_interface) | <b><i>(Public Preview)</i></b> Specifies the URL Context configuration. |
+|  [URLContextMetadata](./ai.urlcontextmetadata.md#urlcontextmetadata_interface) | <b><i>(Public Preview)</i></b> Metadata related to [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface)<!-- -->. |
+|  [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) | <b><i>(Public Preview)</i></b> A tool that allows you to provide additional context to the models in the form of public web URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhance its response. |
+|  [URLMetadata](./ai.urlmetadata.md#urlmetadata_interface) | <b><i>(Public Preview)</i></b> Metadata for a single URL retrieved by the [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) tool. |
 |  [UsageMetadata](./ai.usagemetadata.md#usagemetadata_interface) | Usage metadata about a [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
 |  [VideoMetadata](./ai.videometadata.md#videometadata_interface) | Describes the input video content. |
 |  [VoiceConfig](./ai.voiceconfig.md#voiceconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for the voice to used in speech synthesis. |
@@ -165,6 +169,7 @@ The Firebase AI Web SDK.
 |  [POSSIBLE\_ROLES](./ai.md#possible_roles) | Possible roles. |
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [SchemaType](./ai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
+|  [URLRetrievalStatus](./ai.md#urlretrievalstatus) | <b><i>(Public Preview)</i></b> The status of a URL retrieval. |
 
 ## Type Aliases
 
@@ -197,6 +202,7 @@ The Firebase AI Web SDK.
 |  [SchemaType](./ai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
 |  [Tool](./ai.md#tool) | Defines a tool that model can call to access external knowledge. |
 |  [TypedSchema](./ai.md#typedschema) | A type that includes all specific Schema types. |
+|  [URLRetrievalStatus](./ai.md#urlretrievalstatus) | <b><i>(Public Preview)</i></b> The status of a URL retrieval. |
 
 ## function(app, ...)
 
@@ -761,6 +767,27 @@ SchemaType: {
 }
 ```
 
+## URLRetrievalStatus
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+The status of a URL retrieval.
+
+<b>URL\_RETRIEVAL\_STATUS\_UNSPECIFIED:</b> Unspecified retrieval status. <br/> <b>URL\_RETRIEVAL\_STATUS\_SUCCESS:</b> The URL retrieval was successful. <br/> <b>URL\_RETRIEVAL\_STATUS\_ERROR:</b> The URL retrieval failed. <br/> <b>URL\_RETRIEVAL\_STATUS\_PAYWALL:</b> The URL retrieval failed because the content is behind a paywall. <br/> <b>URL\_RETRIEVAL\_STATUS\_UNSAFE:</b> The URL retrieval failed because the content is unsafe. <br/>
+
+<b>Signature:</b>
+
+```typescript
+URLRetrievalStatus: {
+    URL_RETRIEVAL_STATUS_UNSPECIFIED: string;
+    URL_RETRIEVAL_STATUS_SUCCESS: string;
+    URL_RETRIEVAL_STATUS_ERROR: string;
+    URL_RETRIEVAL_STATUS_PAYWALL: string;
+    URL_RETRIEVAL_STATUS_UNSAFE: string;
+}
+```
+
 ## AIErrorCode
 
 Standardized error codes that [AIError](./ai.aierror.md#aierror_class) can have.
@@ -1058,7 +1085,7 @@ Defines a tool that model can call to access external knowledge.
 <b>Signature:</b>
 
 ```typescript
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool;
+export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
 ```
 
 ## TypedSchema
@@ -1069,4 +1096,19 @@ A type that includes all specific Schema types.
 
 ```typescript
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
+```
+
+## URLRetrievalStatus
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+The status of a URL retrieval.
+
+<b>URL\_RETRIEVAL\_STATUS\_UNSPECIFIED:</b> Unspecified retrieval status. <br/> <b>URL\_RETRIEVAL\_STATUS\_SUCCESS:</b> The URL retrieval was successful. <br/> <b>URL\_RETRIEVAL\_STATUS\_ERROR:</b> The URL retrieval failed. <br/> <b>URL\_RETRIEVAL\_STATUS\_PAYWALL:</b> The URL retrieval failed because the content is behind a paywall. <br/> <b>URL\_RETRIEVAL\_STATUS\_UNSAFE:</b> The URL retrieval failed because the content is unsafe. <br/>
+
+<b>Signature:</b>
+
+```typescript
+export type URLRetrievalStatus = (typeof URLRetrievalStatus)[keyof typeof URLRetrievalStatus];
 ```
