@@ -391,6 +391,7 @@ describe('RemoteConfig', () => {
     const ETAG = 'etag';
     const CONFIG = { key: 'val' };
     const NEW_ETAG = 'new_etag';
+    const TEMPLATE_VERSION = 1;
     const EXPERIMENTS = [{
       "experimentId" : "_exp_1",
       "variantId" : "1",
