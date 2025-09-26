@@ -16,7 +16,6 @@
  */
 
 import { FirebaseApp, FirebaseError } from '@firebase/app';
-import { FirebaseExperimentDescription } from './client/rest_client';
 
 /**
  * The Firebase Remote Config service interface.
@@ -58,6 +57,34 @@ export interface RemoteConfig {
  */
 export interface FirebaseRemoteConfigObject {
   [key: string]: string;
+}
+
+/**
+ * Defines experiment and variant attached to a config parameter.
+ *
+ * @public
+ */
+export interface FirebaseExperimentDescription {
+  // A string of max length 22 characters and of format: _exp_<experiment_id>
+  experimentId: string;
+
+  // The variant of the experiment assigned to the app instance.
+  variantId: string;
+
+  // When the experiment was started.
+  experimentStartTime: string;
+
+  // How long the experiment can remain in STANDBY state. Valid range from 1 ms
+  // to 6 months.
+  triggerTimeoutMillis: string;
+
+  // How long the experiment can remain in ON state. Valid range from 1 ms to 6
+  // months.
+  timeToLiveMillis: string;
+
+  // A repeated of Remote Config parameter keys that this experiment is
+  // affecting the value of.
+  affectedParameterKeys?: string[];
 }
 
 /**

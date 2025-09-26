@@ -649,6 +649,8 @@ toc:
     path: /docs/reference/js/remote-config.customsignals.md
   - title: FetchResponse
     path: /docs/reference/js/remote-config.fetchresponse.md
+  - title: FirebaseExperimentDescription
+    path: /docs/reference/js/remote-config.firebaseexperimentdescription.md
   - title: FirebaseRemoteConfigObject
     path: /docs/reference/js/remote-config.firebaseremoteconfigobject.md
   - title: RemoteConfig

@@ -41,7 +41,6 @@ export function fetchConfig(remoteConfig: RemoteConfig): Promise<void>;
 export interface FetchResponse {
     config?: FirebaseRemoteConfigObject;
     eTag?: string;
-    // Warning: (ae-forgotten-export) The symbol "FirebaseExperimentDescription" needs to be exported by the entry point index.d.ts
     experiments?: FirebaseExperimentDescription[];
     status: number;
     templateVersion?: number;
@@ -52,6 +51,22 @@ export type FetchStatus = 'no-fetch-yet' | 'success' | 'failure' | 'throttle';
 
 // @public
 export type FetchType = 'BASE' | 'REALTIME';
+
+// @public
+export interface FirebaseExperimentDescription {
+    // (undocumented)
+    affectedParameterKeys?: string[];
+    // (undocumented)
+    experimentId: string;
+    // (undocumented)
+    experimentStartTime: string;
+    // (undocumented)
+    timeToLiveMillis: string;
+    // (undocumented)
+    triggerTimeoutMillis: string;
+    // (undocumented)
+    variantId: string;
+}
 
 // @public
 export interface FirebaseRemoteConfigObject {
