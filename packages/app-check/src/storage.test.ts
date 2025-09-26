@@ -16,13 +16,18 @@
  */
 
 import '../test/setup';
-import { writeTokenToStorage, readTokenFromStorage } from './storage';
+import {
+  writeTokenToStorage,
+  readTokenFromStorage,
+  readOrCreateDebugTokenFromStorage
+} from './storage';
 import * as indexeddbOperations from './indexeddb';
 import { getFakeApp } from '../test/util';
 import * as util from '@firebase/util';
 import { logger } from './logger';
 import { expect } from 'chai';
-import { stub } from 'sinon';
+import { spy, stub } from 'sinon';
+import { assert } from 'console';
 
 describe('Storage', () => {
   const app = getFakeApp();
@@ -66,5 +71,56 @@ describe('Storage', () => {
     expect(await readTokenFromStorage(app)).to.equal(undefined);
     expect(warnStub.args[0][0]).to.include('something went wrong!');
     warnStub.restore();
+  });
+
+  describe('readOrCreateDebugTokenFromStorage', () => {
+    it('returns the existing token when it exists in IndexedDB', async () => {
+      stub(indexeddbOperations, 'readDebugTokenFromIndexedDB').resolves(
+        'existing-token'
+      );
+      stub(indexeddbOperations, 'writeDebugTokenToIndexedDB').resolves();
+      const mathRandomSpy = spy(Math, 'random');
+      const randomUUIDSpy = spy(self.crypto, 'randomUUID');
+
+      const token = await readOrCreateDebugTokenFromStorage();
+      expect(token).to.equal('existing-token');
+
+      expect(randomUUIDSpy).to.not.have.been.called;
+      expect(mathRandomSpy).to.not.have.been.called;
+    });
+
+    it('does not fall back to Math.random when crypto.randomUUID exists', async () => {
+      stub(indexeddbOperations, 'readDebugTokenFromIndexedDB').resolves(
+        undefined
+      );
+      stub(indexeddbOperations, 'writeDebugTokenToIndexedDB').resolves();
+      const mathRandomSpy = spy(Math, 'random');
+      const randomUUIDSpy = spy(self.crypto, 'randomUUID');
+
+      assert(typeof crypto.randomUUID !== 'undefined');
+
+      await readOrCreateDebugTokenFromStorage();
+
+      // Verify the correct generator was used and the fallback was not
+      expect(randomUUIDSpy).to.have.been.called;
+      expect(mathRandomSpy).to.not.have.been.called;
+    });
+
+    it('falls back to non-cryptographically secure UUID generator if crypto.randomUUID() is undefined', async () => {
+      stub(indexeddbOperations, 'readDebugTokenFromIndexedDB').resolves(
+        undefined
+      );
+      stub(indexeddbOperations, 'writeDebugTokenToIndexedDB').resolves();
+      stub(self.crypto, 'randomUUID').value(undefined);
+      const mathRandomSpy = spy(Math, 'random');
+      const logSpy = spy(logger, 'warn');
+
+      await readOrCreateDebugTokenFromStorage();
+
+      expect(mathRandomSpy.called).to.be.true;
+      expect(logSpy).to.have.been.calledWith(
+        `crypto.randomUUID() was undefined. This happens in non secure contexts. Falling back to non-cryptographically secure UUID generator.`
+      );
+    });
   });
 });

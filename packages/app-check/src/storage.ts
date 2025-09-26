@@ -77,8 +77,22 @@ export async function readOrCreateDebugTokenFromStorage(): Promise<string> {
 
   if (!existingDebugToken) {
     // create a new debug token
-    // This function is only available in secure contexts. See https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts
-    const newToken = crypto.randomUUID();
+    let newToken: string;
+    if (typeof crypto.randomUUID !== 'undefined') {
+      // This function is only available in secure contexts. See https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts
+      newToken = crypto.randomUUID();
+    } else {
+      // If crypto.randomUUID is undefined, we're likely in a non secure context. This can happen
+      // when users are testing their code that isn't on their host, via HTTP without TLS.
+      logger.warn(
+        `crypto.randomUUID() was undefined. This happens in non secure contexts. Falling back to non-cryptographically secure UUID generator.`
+      );
+      newToken = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = (Math.random() * 16) | 0,
+          v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      });
+    }
     // We don't need to block on writing to indexeddb
     // In case persistence failed, a new debug token will be generated every time the page is refreshed.
     // It renders the debug token useless because you have to manually register(whitelist) the new token in the firebase console again and again.
