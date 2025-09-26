@@ -105,7 +105,8 @@ async function* generateResponseSequence(
     if (
       !firstCandidate?.content?.parts &&
       !firstCandidate?.finishReason &&
-      !firstCandidate?.citationMetadata
+      !firstCandidate?.citationMetadata &&
+      !firstCandidate?.urlContextMetadata
     ) {
       continue;
     }
