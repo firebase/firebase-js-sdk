@@ -194,6 +194,20 @@ describe('processStream', () => {
       expect(response.text()).to.equal('');
     }
   });
+  it('handles empty parts', async () => {
+    const fakeResponse = getMockResponseStreaming(
+      'googleAI',
+      'streaming-success-empty-parts.txt'
+    );
+
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
+    for await (const response of result.stream) {
+      expect(response.candidates?.[0].content.parts.length).to.be.at.least(1);
+    }
+
+    const aggregatedResponse = await result.response;
+    expect(aggregatedResponse.candidates?.[0].content.parts.length).to.equal(6);
+  });
   it('unknown enum - should ignore', async () => {
     const fakeResponse = getMockResponseStreaming(
       'vertexAI',

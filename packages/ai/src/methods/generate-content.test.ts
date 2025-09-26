@@ -386,6 +386,22 @@ describe('generateContent()', () => {
       match.any
     );
   });
+  it('empty part', async () => {
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-empty-part.json'
+    );
+    stub(request, 'makeRequest').resolves(mockResponse as Response);
+    const result = await generateContent(
+      fakeApiSettings,
+      'model',
+      fakeRequestParams
+    );
+    expect(result.response.text()).to.include(
+      'I can certainly help you with that!'
+    );
+    expect(result.response.inlineDataParts()?.length).to.equal(1);
+  });
   it('unknown enum - should ignore', async () => {
     const mockResponse = getMockResponse(
       'vertexAI',

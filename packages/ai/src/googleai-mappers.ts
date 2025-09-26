@@ -176,7 +176,7 @@ export function mapGenerateContentCandidates(
       // Throw early since developers may send a long video as input and only expect to pay
       // for inference on a small portion of the video.
       if (
-        candidate.content?.parts.some(
+        candidate.content?.parts?.some(
           part => (part as InlineDataPart)?.videoMetadata
         )
       ) {
