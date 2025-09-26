@@ -44,8 +44,6 @@ import { Pipeline } from './pipeline';
 import { StageOptions } from './stage_options';
 import { isUserData, UserData } from './user_data_reader';
 
-import Value = firestoreV1ApiClientInterfaces.Value;
-
 /**
  * @beta
  */
@@ -56,7 +54,9 @@ export abstract class Stage implements ProtoSerializable<ProtoStage>, UserData {
    * @internal
    * @protected
    */
-  protected optionsProto: ApiClientObjectMap<Value> | undefined = undefined;
+  protected optionsProto:
+    | ApiClientObjectMap<firestoreV1ApiClientInterfaces.Value>
+    | undefined = undefined;
   protected knownOptions: Record<string, unknown>;
   protected rawOptions?: Record<string, unknown>;
 
