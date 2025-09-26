@@ -61,6 +61,8 @@ export interface FirebaseRemoteConfigObject {
 
 /**
  * Defines experiment and variant attached to a config parameter.
+ *
+ * @public
  */
 export interface FirebaseExperimentDescription {
   // A string of max length 22 characters and of format: _exp_<experiment_id>
@@ -128,7 +130,7 @@ export interface FetchResponse {
   /**
    * A/B Test and Rollout experiment metadata.
    *
-   * <p>Only defined for 200 responses.
+   * @remarks Only defined for 200 responses.
    */
   experiments?: FirebaseExperimentDescription[];
 }
