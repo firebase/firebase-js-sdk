@@ -7272,3 +7272,48 @@ export class Ordering implements ProtoValueSerializable, UserData {
 
   _protoValueType: 'ProtoValue' = 'ProtoValue';
 }
+
+export function isSelectable(val: unknown): val is Selectable {
+  const candidate = val as Selectable;
+  return (
+    candidate.selectable && isString(candidate.alias) && isExpr(candidate.expr)
+  );
+}
+
+export function isOrdering(val: unknown): val is Ordering {
+  const candidate = val as Ordering;
+  return (
+    isExpr(candidate.expr) &&
+    (candidate.direction === 'ascending' ||
+      candidate.direction === 'descending')
+  );
+}
+
+export function isAliasedAggregate(val: unknown): val is AggregateWithAlias {
+  const candidate = val as AggregateWithAlias;
+  return (
+    isString(candidate.alias) &&
+    candidate.aggregate instanceof AggregateFunction
+  );
+}
+
+export function isExpr(val: unknown): val is Expression {
+  return val instanceof Expression;
+}
+
+export function isBooleanExpr(val: unknown): val is BooleanExpression {
+  return val instanceof BooleanExpression;
+}
+
+export function isField(val: unknown): val is Field {
+  return val instanceof Field;
+}
+
+export function toField(value: string | Field): Field {
+  if (isString(value)) {
+    const result = field(value);
+    return result;
+  } else {
+    return value as Field;
+  }
+}

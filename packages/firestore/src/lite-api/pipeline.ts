@@ -29,17 +29,7 @@ import {
   selectablesToMap,
   vectorToExpr
 } from '../util/pipeline_util';
-import {
-  isAliasedAggregate,
-  isBooleanExpr,
-  isExpr,
-  isField,
-  isLitePipeline,
-  isOrdering,
-  isSelectable,
-  isString,
-  toField
-} from '../util/types';
+import { isString } from '../util/types';
 
 import { Firestore } from './database';
 import {
@@ -53,7 +43,14 @@ import {
   field,
   Ordering,
   Selectable,
-  _field
+  _field,
+  isSelectable,
+  isField,
+  isBooleanExpr,
+  isAliasedAggregate,
+  toField,
+  isOrdering,
+  isExpr
 } from './expressions';
 import {
   AddFields,
@@ -1214,7 +1211,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     // Process argument union(s) from method overloads
     let options: {};
     let otherPipeline: Pipeline;
-    if (isLitePipeline(otherOrOptions)) {
+    if (isPipeline(otherOrOptions)) {
       options = {};
       otherPipeline = otherOrOptions;
     } else {
@@ -1436,4 +1433,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   ): Pipeline {
     return new Pipeline(db, userDataReader, userDataWriter, stages);
   }
+}
+
+export function isPipeline(val: unknown): val is Pipeline {
+  return val instanceof Pipeline;
 }

@@ -15,19 +15,6 @@
  * limitations under the License.
  */
 
-import { CollectionReference } from '../api';
-import {
-  AggregateFunction,
-  AggregateWithAlias,
-  BooleanExpression,
-  Expression,
-  field,
-  Field,
-  Ordering,
-  Selectable
-} from '../lite-api/expressions';
-import { Pipeline as LitePipeline } from '../lite-api/pipeline';
-
 /** Sentinel value that sorts before any Mutation Batch ID. */
 export const BATCHID_UNKNOWN = -1;
 
@@ -97,58 +84,3 @@ export type OneOf<T> = {
     [P in Exclude<keyof T, K>]?: undefined;
   };
 }[keyof T];
-
-export function isSelectable(val: unknown): val is Selectable {
-  const candidate = val as Selectable;
-  return (
-    candidate.selectable && isString(candidate.alias) && isExpr(candidate.expr)
-  );
-}
-
-export function isOrdering(val: unknown): val is Ordering {
-  const candidate = val as Ordering;
-  return (
-    isExpr(candidate.expr) &&
-    (candidate.direction === 'ascending' ||
-      candidate.direction === 'descending')
-  );
-}
-
-export function isAliasedAggregate(val: unknown): val is AggregateWithAlias {
-  const candidate = val as AggregateWithAlias;
-  return (
-    isString(candidate.alias) &&
-    candidate.aggregate instanceof AggregateFunction
-  );
-}
-
-export function isExpr(val: unknown): val is Expression {
-  return val instanceof Expression;
-}
-
-export function isBooleanExpr(val: unknown): val is BooleanExpression {
-  return val instanceof BooleanExpression;
-}
-
-export function isField(val: unknown): val is Field {
-  return val instanceof Field;
-}
-
-export function isLitePipeline(val: unknown): val is LitePipeline {
-  return val instanceof LitePipeline;
-}
-
-export function isCollectionReference(
-  val: unknown
-): val is CollectionReference {
-  return val instanceof CollectionReference;
-}
-
-export function toField(value: string | Field): Field {
-  if (isString(value)) {
-    const result = field(value);
-    return result;
-  } else {
-    return value as Field;
-  }
-}

@@ -18,12 +18,12 @@
 import { ObjectValue } from '../model/object_value';
 import { isOptionalEqual } from '../util/misc';
 
-import { Field } from './expressions';
+import { Field, isField } from './expressions';
 import { FieldPath } from './field_path';
 import { Pipeline } from './pipeline';
 import { DocumentData, DocumentReference, refEqual } from './reference';
-import { fieldPathFromArgument } from './snapshot';
 import { Timestamp } from './timestamp';
+import { fieldPathFromArgument } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
 
 export class PipelineSnapshot {
@@ -199,6 +199,9 @@ export class PipelineResult<AppModelType = DocumentData> {
   get(fieldPath: string | FieldPath | Field): any {
     if (this._fields === undefined) {
       return undefined;
+    }
+    if (isField(fieldPath)) {
+      fieldPath = fieldPath.fieldName;
     }
 
     const value = this._fields.field(

@@ -18,10 +18,15 @@
 import { DatabaseId } from '../core/database_info';
 import { toPipeline } from '../core/pipeline-util';
 import { Code, FirestoreError } from '../util/error';
-import { isCollectionReference, isString } from '../util/types';
+import { isString } from '../util/types';
 
 import { Pipeline } from './pipeline';
-import { CollectionReference, DocumentReference, Query } from './reference';
+import {
+  CollectionReference,
+  DocumentReference,
+  isCollectionReference,
+  Query
+} from './reference';
 import {
   CollectionGroupSource,
   CollectionSource,
