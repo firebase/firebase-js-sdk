@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { Content, GenerativeContentBlob, Part } from './content';
+import {
+  Content,
+  FunctionResponse,
+  GenerativeContentBlob,
+  Part
+} from './content';
 import { LiveGenerationConfig, Tool, ToolConfig } from './requests';
 
 /**
@@ -42,6 +47,17 @@ export interface _LiveClientRealtimeInput {
     mediaChunks: GenerativeContentBlob[];
   };
 }
+
+/**
+ * Function responses that are sent to the model in real time.
+ */
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export interface _LiveClientToolResponse {
+  toolResponse: {
+    functionResponses: FunctionResponse[];
+  };
+}
+
 /**
  * The first message in a Live session, used to configure generation options.
  *

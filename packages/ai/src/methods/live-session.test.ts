@@ -20,6 +20,7 @@ import { spy, stub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import {
+  FunctionResponse,
   LiveResponseType,
   LiveServerContent,
   LiveServerToolCall,
@@ -150,6 +151,35 @@ describe('LiveSession', () => {
         AIError,
         /Stream failed!/
       );
+    });
+  });
+
+  describe('sendFunctionResponses()', () => {
+    it('should send all function responses', async () => {
+      const functionResponses: FunctionResponse[] = [
+        {
+          id: 'function-call-1',
+          name: 'function-name',
+          response: {
+            result: 'foo'
+          }
+        },
+        {
+          id: 'function-call-2',
+          name: 'function-name-2',
+          response: {
+            result: 'bar'
+          }
+        }
+      ];
+      await session.sendFunctionResponses(functionResponses);
+      expect(mockHandler.send).to.have.been.calledOnce;
+      const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
+      expect(sentData).to.deep.equal({
+        toolResponse: {
+          functionResponses
+        }
+      });
     });
   });
 
