@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { vector } from '../api';
 import { ParseContext } from '../api/parse_context';
 import {
   DOCUMENT_KEY_NAME,
@@ -35,6 +34,7 @@ import { isString } from '../util/types';
 
 import { Bytes } from './bytes';
 import { documentId as documentIdFieldPath, FieldPath } from './field_path';
+import { vector } from './field_value_impl';
 import { GeoPoint } from './geo_point';
 import { DocumentReference } from './reference';
 import { Timestamp } from './timestamp';
