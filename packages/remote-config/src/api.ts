@@ -36,6 +36,7 @@ import { ERROR_FACTORY, ErrorCode, hasErrorCode } from './errors';
 import { RemoteConfig as RemoteConfigImpl } from './remote_config';
 import { Value as ValueImpl } from './value';
 import { LogLevel as FirebaseLogLevel } from '@firebase/logger';
+import { Experiment } from './abt/experiment';
 
 /**
  *
@@ -110,12 +111,18 @@ export async function activate(remoteConfig: RemoteConfig): Promise<boolean> {
     // config.
     return false;
   }
+  const experiment = new Experiment(rc._storage, rc._analyticsProvider);
   await Promise.all([
     rc._storageCache.setActiveConfig(lastSuccessfulFetchResponse.config),
     rc._storage.setActiveConfigEtag(lastSuccessfulFetchResponse.eTag),
     rc._storage.setActiveConfigTemplateVersion(
       lastSuccessfulFetchResponse.templateVersion
-    )
+    ),
+    lastSuccessfulFetchResponse.experiments &&
+      experiment.updateActiveExperiments(
+        lastSuccessfulFetchResponse.experiments
+      ),
+    rc._storage.setActiveConfigEtag(lastSuccessfulFetchResponse.eTag)
   ]);
   return true;
 }
