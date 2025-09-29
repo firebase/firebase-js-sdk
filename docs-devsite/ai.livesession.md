@@ -152,11 +152,15 @@ sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  functionResponses | [FunctionResponse](./ai.functionresponse.md#functionresponse_interface)<!-- -->\[\] | The function responses to send.  If this session has been closed. |
+|  functionResponses | [FunctionResponse](./ai.functionresponse.md#functionresponse_interface)<!-- -->\[\] | The function responses to send. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+#### Exceptions
+
+If this session has been closed.
 
 ## LiveSession.sendMediaChunks()
 

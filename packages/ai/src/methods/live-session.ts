@@ -125,7 +125,7 @@ export class LiveSession {
    * Sends function responses to the server.
    *
    * @param functionResponses - The function responses to send.
-   * @throw If this session has been closed.
+   * @throws If this session has been closed.
    *
    * @beta
    */
