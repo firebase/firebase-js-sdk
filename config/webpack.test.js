@@ -94,7 +94,7 @@ module.exports = {
   resolve: {
     modules: ['node_modules', path.resolve(__dirname, '../../node_modules')],
     mainFields: ['browser', 'module', 'main'],
-    extensions: ['.js', '.ts'],
+    extensions: ['.js', '.ts', '.tsx'],
     symlinks: true
   },
   plugins: [
