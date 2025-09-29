@@ -28,7 +28,7 @@ import { createEnhancedContentResponse } from './response-helpers';
 import * as GoogleAIMapper from '../googleai-mappers';
 import { GoogleAIGenerateContentResponse } from '../types/googleai';
 import { ApiSettings } from '../types/internal';
-import { BackendType } from '../public-types';
+import { BackendType, URLContextMetadata } from '../public-types';
 
 const responseLineRE = /^data\: (.*)(?:\n\n|\r\r|\r\n\r\n)/;
 
@@ -98,6 +98,17 @@ async function* generateResponseSequence(
       );
     } else {
       enhancedResponse = createEnhancedContentResponse(value);
+    }
+
+    const firstCandidate = enhancedResponse.candidates?.[0];
+    // Don't yield a response with no useful data for the developer.
+    if (
+      !firstCandidate?.content?.parts &&
+      !firstCandidate?.finishReason &&
+      !firstCandidate?.citationMetadata &&
+      !firstCandidate?.urlContextMetadata
+    ) {
+      continue;
     }
 
     yield enhancedResponse;
@@ -193,41 +204,48 @@ export function aggregateResponses(
         aggregatedResponse.candidates[i].groundingMetadata =
           candidate.groundingMetadata;
 
+        // The urlContextMetadata object is defined in the first chunk of the response stream.
+        // In all subsequent chunks, the urlContextMetadata object will be undefined. We need to
+        // make sure that we don't overwrite the first value urlContextMetadata object with undefined.
+        // FIXME: What happens if we receive a second, valid urlContextMetadata object?
+        const urlContextMetadata = candidate.urlContextMetadata as unknown;
+        if (
+          typeof urlContextMetadata === 'object' &&
+          urlContextMetadata !== null &&
+          Object.keys(urlContextMetadata).length > 0
+        ) {
+          aggregatedResponse.candidates[i].urlContextMetadata =
+            urlContextMetadata as URLContextMetadata;
+        }
+
         /**
          * Candidates should always have content and parts, but this handles
          * possible malformed responses.
          */
-        if (candidate.content && candidate.content.parts) {
+        if (candidate.content) {
+          // Skip a candidate without parts.
+          if (!candidate.content.parts) {
+            continue;
+          }
           if (!aggregatedResponse.candidates[i].content) {
             aggregatedResponse.candidates[i].content = {
               role: candidate.content.role || 'user',
               parts: []
             };
           }
-          const newPart: Partial<Part> = {};
           for (const part of candidate.content.parts) {
-            if (part.text !== undefined) {
-              // The backend can send empty text parts. If these are sent back
-              // (e.g. in chat history), the backend will respond with an error.
-              // To prevent this, ignore empty text parts.
-              if (part.text === '') {
-                continue;
-              }
-              newPart.text = part.text;
+            const newPart: Part = { ...part };
+            // The backend can send empty text parts. If these are sent back
+            // (e.g. in chat history), the backend will respond with an error.
+            // To prevent this, ignore empty text parts.
+            if (part.text === '') {
+              continue;
             }
-            if (part.functionCall) {
-              newPart.functionCall = part.functionCall;
-            }
-            if (Object.keys(newPart).length === 0) {
-              throw new AIError(
-                AIErrorCode.INVALID_CONTENT,
-                'Part should have at least one property, but there are none. This is likely caused ' +
-                  'by a malformed response from the backend.'
+            if (Object.keys(newPart).length > 0) {
+              aggregatedResponse.candidates[i].content.parts.push(
+                newPart as Part
               );
             }
-            aggregatedResponse.candidates[i].content.parts.push(
-              newPart as Part
-            );
           }
         }
       }

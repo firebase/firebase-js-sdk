@@ -9,33 +9,33 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# CodeExecutionTool interface
+# URLContextMetadata interface
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-A tool that enables the model to use code execution.
+Metadata related to [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-export interface CodeExecutionTool 
+export interface URLContextMetadata 
 ```
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [codeExecution](./ai.codeexecutiontool.md#codeexecutiontoolcodeexecution) | {} | <b><i>(Public Preview)</i></b> Specifies the Google Search configuration. Currently, this is an empty object, but it's reserved for future configuration options. |
+|  [urlMetadata](./ai.urlcontextmetadata.md#urlcontextmetadataurlmetadata) | [URLMetadata](./ai.urlmetadata.md#urlmetadata_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> List of URL metadata used to provide context to the Gemini model. |
 
-## CodeExecutionTool.codeExecution
+## URLContextMetadata.urlMetadata
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Specifies the Google Search configuration. Currently, this is an empty object, but it's reserved for future configuration options.
+List of URL metadata used to provide context to the Gemini model.
 
 <b>Signature:</b>
 
 ```typescript
-codeExecution: {};
+urlMetadata: URLMetadata[];
 ```

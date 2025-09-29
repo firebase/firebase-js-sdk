@@ -21,7 +21,11 @@ import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import { AIError } from '../errors';
 import { startAudioConversation } from './live-session-helpers';
-import { LiveServerContent, LiveServerToolCall, Part } from '../types';
+import {
+  FunctionResponse,
+  LiveServerContent,
+  LiveServerToolCall
+} from '../types';
 import { logger } from '../logger';
 import { isNode } from '@firebase/util';
 
@@ -62,6 +66,7 @@ class MockLiveSession {
   inConversation = false;
   send = sinon.stub();
   sendMediaChunks = sinon.stub();
+  sendFunctionResponses = sinon.stub();
   messageGenerator = new MockMessageGenerator();
   receive = (): MockMessageGenerator => this.messageGenerator;
 }
@@ -249,16 +254,21 @@ describe('Audio Conversation Helpers', () => {
     });
 
     it('should call function handler and send result on toolCall message.', async () => {
-      const handlerStub = sinon.stub().resolves({
-        functionResponse: { name: 'get_weather', response: { temp: '72F' } }
-      } as Part);
+      const functionResponse: FunctionResponse = {
+        id: '1',
+        name: 'get_weather',
+        response: { temp: '72F' }
+      };
+      const handlerStub = sinon.stub().resolves(functionResponse);
       const controller = await startAudioConversation(liveSession as any, {
         functionCallingHandler: handlerStub
       });
 
       const toolCallMessage: LiveServerToolCall = {
         type: 'toolCall',
-        functionCalls: [{ name: 'get_weather', args: { location: 'LA' } }]
+        functionCalls: [
+          { id: '1', name: 'get_weather', args: { location: 'LA' } }
+        ]
       };
 
       liveSession.messageGenerator.simulateMessage(toolCallMessage);
@@ -267,8 +277,8 @@ describe('Audio Conversation Helpers', () => {
       expect(handlerStub).to.have.been.calledOnceWith(
         toolCallMessage.functionCalls
       );
-      expect(liveSession.send).to.have.been.calledOnceWith([
-        { functionResponse: { name: 'get_weather', response: { temp: '72F' } } }
+      expect(liveSession.sendFunctionResponses).to.have.been.calledOnceWith([
+        functionResponse
       ]);
       await controller.stop();
     });
