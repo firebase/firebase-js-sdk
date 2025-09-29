@@ -2823,8 +2823,7 @@ apiDescribe.only('Pipelines', persistence => {
         });
       });
 
-      // TODO re-enabled on fix of b/446938511
-      it.skip('array contains any', async () => {
+      it('array contains any', async () => {
         const snapshot = await execute(
           firestore
             .pipeline()
@@ -3984,6 +3983,7 @@ apiDescribe.only('Pipelines', persistence => {
   describe('stage options', () => {
     describe('forceIndex', () => {
       // SKIP: requires pre-existing index
+      // eslint-disable-next-line no-restricted-properties
       it.skip('Collection Stage', async () => {
         const snapshot = await execute(
           firestore.pipeline().collection({
@@ -3995,6 +3995,7 @@ apiDescribe.only('Pipelines', persistence => {
       });
 
       // SKIP: requires pre-existing index
+      // eslint-disable-next-line no-restricted-properties
       it.skip('CollectionGroup Stage', async () => {
         const snapshot = await execute(
           firestore.pipeline().collectionGroup({

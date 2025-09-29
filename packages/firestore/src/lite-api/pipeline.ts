@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { isNumber } from 'util';
-
 import {
   Pipeline as ProtoPipeline,
   Stage as ProtoStage
@@ -29,7 +27,7 @@ import {
   selectablesToMap,
   vectorToExpr
 } from '../util/pipeline_util';
-import { isString } from '../util/types';
+import { isNumber, isString } from '../util/types';
 
 import { Firestore } from './database';
 import {
@@ -544,10 +542,15 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   offset(options: OffsetStageOptions): Pipeline;
   offset(offsetOrOptions: number | OffsetStageOptions): Pipeline {
     // Process argument union(s) from method overloads
-    const options = isNumber(offsetOrOptions) ? {} : offsetOrOptions;
-    const offset: number = isNumber(offsetOrOptions)
-      ? offsetOrOptions
-      : offsetOrOptions.offset;
+    let options: {};
+    let offset: number;
+    if (isNumber(offsetOrOptions)) {
+      options = {};
+      offset = offsetOrOptions;
+    } else {
+      options = offsetOrOptions;
+      offset = offsetOrOptions.offset;
+    }
 
     // Create stage object
     const stage = new Offset(offset, options);
