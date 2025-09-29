@@ -48,8 +48,8 @@
     "test:browser": "karma start",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha **/*.test.ts src/**/*.test.ts --config ../../config/mocharc.node.js",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
-    "api-report": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package telemetry --packageRoot . --typescriptDts ./dist/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/telemetry-public.d.ts",
-    "typings:public": "node ../../scripts/build/use_typings.js ./dist/telemetry-public.d.ts"
+    "api-report": "api-extractor run --local --verbose",
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/index.d.ts"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
@@ -102,7 +102,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "./dist/telemetry-public.d.ts",
+  "typings": "./dist/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"
