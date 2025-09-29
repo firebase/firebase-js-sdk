@@ -35,7 +35,6 @@ import { logger } from '../logger';
 import {
   _LiveClientContent,
   _LiveClientRealtimeInput,
-  _LiveClientSetup,
   _LiveClientToolResponse
 } from '../types/live-responses';
 import { WebSocketUrl } from '../requests/request';
@@ -438,8 +437,32 @@ export class LiveSession {
   }
 
   /**
-   * @deprecated Use `sendTextRealtime()`, `sendAudioRealtime()`, and `sendVideoRealtime()` instead.
+   * Sends function responses to the server.
    *
+   * @param functionResponses - The function responses to send.
+   * @throws If this session has been closed.
+   *
+   * @beta
+   */
+  async sendFunctionResponses(
+    functionResponses: FunctionResponse[]
+  ): Promise<void> {
+    if (this.isClosed) {
+      throw new AIError(
+        AIErrorCode.REQUEST_ERROR,
+        'This LiveSession has been closed and cannot be used.'
+      );
+    }
+
+    const message: _LiveClientToolResponse = {
+      toolResponse: {
+        functionResponses
+      }
+    };
+    this.webSocketHandler.send(JSON.stringify(message));
+  }
+
+  /**
    * Sends a stream of {@link GenerativeContentBlob}.
    *
    * @param mediaChunkStream - The stream of {@link GenerativeContentBlob} to send.

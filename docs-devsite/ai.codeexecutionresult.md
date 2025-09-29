@@ -10,6 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # CodeExecutionResult interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 The results of code execution run by the model.
 
 <b>Signature:</b>
@@ -22,10 +25,13 @@ export interface CodeExecutionResult
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [outcome](./ai.codeexecutionresult.md#codeexecutionresultoutcome) | [Outcome](./ai.md#outcome) | The result of the code execution. |
-|  [output](./ai.codeexecutionresult.md#codeexecutionresultoutput) | string | The output from the code execution, or an error message if it failed. |
+|  [outcome](./ai.codeexecutionresult.md#codeexecutionresultoutcome) | [Outcome](./ai.md#outcome) | <b><i>(Public Preview)</i></b> The result of the code execution. |
+|  [output](./ai.codeexecutionresult.md#codeexecutionresultoutput) | string | <b><i>(Public Preview)</i></b> The output from the code execution, or an error message if it failed. |
 
 ## CodeExecutionResult.outcome
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 The result of the code execution.
 
@@ -36,6 +42,9 @@ outcome?: Outcome;
 ```
 
 ## CodeExecutionResult.output
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 The output from the code execution, or an error message if it failed.
 

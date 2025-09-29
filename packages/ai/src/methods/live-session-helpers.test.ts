@@ -65,7 +65,7 @@ class MockLiveSession {
   isClosed = false;
   inConversation = false;
   send = sinon.stub();
-  sendAudioRealtime = sinon.stub();
+  sendMediaChunks = sinon.stub();
   sendFunctionResponses = sinon.stub();
   messageGenerator = new MockMessageGenerator();
   receive = (): MockMessageGenerator => this.messageGenerator;

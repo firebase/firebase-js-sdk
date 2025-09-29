@@ -10,6 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # URLContextMetadata interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Metadata related to [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface)<!-- -->.
 
 <b>Signature:</b>
@@ -22,9 +25,12 @@ export interface URLContextMetadata
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [urlMetadata](./ai.urlcontextmetadata.md#urlcontextmetadataurlmetadata) | [URLMetadata](./ai.urlmetadata.md#urlmetadata_interface)<!-- -->\[\] | List of URL metadata used to provide context to the Gemini model. |
+|  [urlMetadata](./ai.urlcontextmetadata.md#urlcontextmetadataurlmetadata) | [URLMetadata](./ai.urlmetadata.md#urlmetadata_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> List of URL metadata used to provide context to the Gemini model. |
 
 ## URLContextMetadata.urlMetadata
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 List of URL metadata used to provide context to the Gemini model.
 

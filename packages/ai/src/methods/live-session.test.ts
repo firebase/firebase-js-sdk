@@ -238,34 +238,6 @@ describe('LiveSession', () => {
     });
   });
 
-  describe('resumeSession()', () => {
-    it('should close existing session and start a new one using handle.send', async () => {
-      expect(session.isClosed).to.be.false;
-
-      mockHandler.simulateServerMessage({
-        setupComplete: true
-      });
-      await session.resumeSession({ handle: 'testHandle' });
-
-      expect(mockHandler.close).to.have.been.calledOnce;
-      expect(mockHandler.send).to.have.been.calledWith(match('testHandle'));
-      expect(session.isClosed).to.be.false;
-    });
-
-    it('should throw if sessionResumption is not provided', async () => {
-      const basicSession = new LiveSession(
-        { setup: { model: 'my-model' } },
-        fakeApiSettings,
-        undefined,
-        mockHandler
-      );
-      await expect(basicSession.resumeSession()).to.be.rejectedWith(
-        AIError,
-        /Cannot resume session/
-      );
-    });
-  });
-
   describe('receive()', () => {
     it('should correctly parse and transform all server message types', async () => {
       const receivePromise = (async () => {

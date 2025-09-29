@@ -28,11 +28,7 @@ import { createEnhancedContentResponse } from './response-helpers';
 import * as GoogleAIMapper from '../googleai-mappers';
 import { GoogleAIGenerateContentResponse } from '../types/googleai';
 import { ApiSettings } from '../types/internal';
-import {
-  BackendType,
-  InferenceSource,
-  URLContextMetadata
-} from '../public-types';
+import { BackendType, URLContextMetadata } from '../public-types';
 
 const responseLineRE = /^data\: (.*)(?:\n\n|\r\r|\r\n\r\n)/;
 
@@ -168,6 +164,17 @@ async function* generateResponseSequence(
       continue;
     }
 
+    const firstCandidate = enhancedResponse.candidates?.[0];
+    // Don't yield a response with no useful data for the developer.
+    if (
+      !firstCandidate?.content?.parts &&
+      !firstCandidate?.finishReason &&
+      !firstCandidate?.citationMetadata &&
+      !firstCandidate?.urlContextMetadata
+    ) {
+      continue;
+    }
+
     yield enhancedResponse;
   }
 }
@@ -275,7 +282,12 @@ export function aggregateResponses(
             urlContextMetadata as URLContextMetadata;
         }
 
+        /**
+         * Candidates should always have content and parts, but this handles
+         * possible malformed responses.
+         */
         if (candidate.content) {
+          // Skip a candidate without parts.
           if (!candidate.content.parts) {
             continue;
           }

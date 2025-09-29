@@ -510,7 +510,7 @@ export interface GoogleMapsTool {
 /**
  * A tool that enables the model to use code execution.
  *
- * @public
+ * @beta
  */
 export interface CodeExecutionTool {
   /**
@@ -529,23 +529,11 @@ export interface CodeExecutionTool {
 export interface GoogleSearch {}
 
 /**
- * Specifies the Google Maps configuration.
- *
- * @public
- */
-export interface GoogleMaps {
-  /*
-   *  If true, include the widget context token in the response.
-   */
-  enableWidget?: boolean;
-}
-
-/**
  * A tool that allows you to provide additional context to the models in the form of public web
  * URLs. By including URLs in your request, the Gemini model will access the content from those
  * pages to inform and enhance its response.
  *
- * @public
+ * @beta
  */
 export interface URLContextTool {
   /**
@@ -557,7 +545,7 @@ export interface URLContextTool {
 /**
  * Specifies the URL Context configuration.
  *
- * @public
+ * @beta
  */
 export interface URLContext {}
 

@@ -21,15 +21,7 @@ import {
   GenerativeContentBlob,
   Part
 } from './content';
-import {
-  AudioTranscriptionConfig,
-  ContextWindowCompressionConfig,
-  LiveGenerationConfig,
-  SessionResumptionConfig,
-  Tool,
-  ToolConfig
-} from './requests';
-import { Transcription } from './responses';
+import { LiveGenerationConfig, Tool, ToolConfig } from './requests';
 
 /**
  * User input that is sent to the model.

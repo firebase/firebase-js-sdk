@@ -256,10 +256,7 @@ describe('processStream', () => {
       'streaming-success-empty-parts.txt'
     );
 
-    const result = await processStream(
-      fakeResponse as Response,
-      fakeApiSettings
-    );
+    const result = processStream(fakeResponse as Response, fakeApiSettings);
     for await (const response of result.stream) {
       expect(response.candidates?.[0].content.parts.length).to.be.at.least(1);
     }
