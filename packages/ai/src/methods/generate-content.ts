@@ -28,17 +28,19 @@ import { processStream } from '../requests/stream-reader';
 import { ApiSettings } from '../types/internal';
 import * as GoogleAIMapper from '../googleai-mappers';
 import { BackendType } from '../public-types';
+import { ChromeAdapter } from '../types/chrome-adapter';
+import { callCloudOrDevice } from '../requests/hybrid-helpers';
 
-export async function generateContentStream(
+async function generateContentStreamOnCloud(
   apiSettings: ApiSettings,
   model: string,
   params: GenerateContentRequest,
   requestOptions?: RequestOptions
-): Promise<GenerateContentStreamResult> {
+): Promise<Response> {
   if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
     params = GoogleAIMapper.mapGenerateContentRequest(params);
   }
-  const response = await makeRequest(
+  return makeRequest(
     model,
     Task.STREAM_GENERATE_CONTENT,
     apiSettings,
@@ -46,25 +48,56 @@ export async function generateContentStream(
     JSON.stringify(params),
     requestOptions
   );
+}
+
+export async function generateContentStream(
+  apiSettings: ApiSettings,
+  model: string,
+  params: GenerateContentRequest,
+  chromeAdapter?: ChromeAdapter,
+  requestOptions?: RequestOptions
+): Promise<GenerateContentStreamResult> {
+  const response = await callCloudOrDevice(
+    params,
+    chromeAdapter,
+    () => chromeAdapter!.generateContentStream(params),
+    () =>
+      generateContentStreamOnCloud(apiSettings, model, params, requestOptions)
+  );
   return processStream(response, apiSettings); // TODO: Map streaming responses
 }
 
-export async function generateContent(
+async function generateContentOnCloud(
   apiSettings: ApiSettings,
   model: string,
   params: GenerateContentRequest,
   requestOptions?: RequestOptions
-): Promise<GenerateContentResult> {
+): Promise<Response> {
   if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
     params = GoogleAIMapper.mapGenerateContentRequest(params);
   }
-  const response = await makeRequest(
+  return makeRequest(
     model,
     Task.GENERATE_CONTENT,
     apiSettings,
     /* stream */ false,
     JSON.stringify(params),
     requestOptions
+  );
+}
+
+export async function generateContent(
+  apiSettings: ApiSettings,
+  model: string,
+  params: GenerateContentRequest,
+  chromeAdapter?: ChromeAdapter,
+  requestOptions?: RequestOptions
+): Promise<GenerateContentResult> {
+  const response = await callCloudOrDevice(
+    params,
+    chromeAdapter,
+    () => chromeAdapter!.generateContent(params),
+    () => generateContentOnCloud(apiSettings, model, params, requestOptions)
   );
   const generateContentResponse = await processGenerateContentResponse(
     response,

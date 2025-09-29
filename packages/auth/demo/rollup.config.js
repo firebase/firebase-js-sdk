@@ -31,11 +31,11 @@ const workerPlugins = [
     tsconfigOverride: {
       compilerOptions: {
         declaration: false,
-        target: 'es2017',
+        target: 'es2020',
         lib: [
           // TODO: remove this
           'dom',
-          'es2017',
+          'es2020',
           'webworker'
         ]
       }

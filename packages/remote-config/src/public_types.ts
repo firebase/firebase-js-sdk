@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app';
+import { FirebaseApp, FirebaseError } from '@firebase/app';
 
 /**
  * The Firebase Remote Config service interface.
@@ -52,6 +52,8 @@ export interface RemoteConfig {
 
 /**
  * Defines a self-descriptive reference for config key-value pairs.
+ *
+ *  @public
  */
 export interface FirebaseRemoteConfigObject {
   [key: string]: string;
@@ -62,6 +64,8 @@ export interface FirebaseRemoteConfigObject {
  *
  * <p>Modeled after the native `Response` interface, but simplified for Remote Config's
  * use case.
+ *
+ * @public
  */
 export interface FetchResponse {
   /**
@@ -89,6 +93,11 @@ export interface FetchResponse {
    * <p>Only defined for 200 responses.
    */
   config?: FirebaseRemoteConfigObject;
+
+  /**
+   * The version number of the config template fetched from the server.
+   */
+  templateVersion?: number;
 
   // Note: we're not extracting experiment metadata until
   // ABT and Analytics have Web SDKs.
@@ -211,6 +220,63 @@ export type LogLevel = 'debug' | 'error' | 'silent';
 export interface CustomSignals {
   [key: string]: string | number | null;
 }
+
+/**
+ * Contains information about which keys have been updated.
+ *
+ * @public
+ */
+export interface ConfigUpdate {
+  /**
+   * Parameter keys whose values have been updated from the currently activated values.
+   * Includes keys that are added, deleted, or whose value, value source, or metadata has changed.
+   */
+  getUpdatedKeys(): Set<string>;
+}
+
+/**
+ * Observer interface for receiving real-time Remote Config update notifications.
+ *
+ * NOTE: Although an `complete` callback can be provided, it will
+ * never be called because the ConfigUpdate stream is never-ending.
+ *
+ * @public
+ */
+export interface ConfigUpdateObserver {
+  /**
+   * Called when a new ConfigUpdate is available.
+   */
+  next: (configUpdate: ConfigUpdate) => void;
+
+  /**
+   * Called if an error occurs during the stream.
+   */
+  error: (error: FirebaseError) => void;
+
+  /**
+   * Called when the stream is gracefully terminated.
+   */
+  complete: () => void;
+}
+
+/**
+ * A function that unsubscribes from a real-time event stream.
+ *
+ * @public
+ */
+export type Unsubscribe = () => void;
+
+/**
+ * Indicates the type of fetch request.
+ *
+ * <ul>
+ *   <li>"BASE" indicates a standard fetch request.</li>
+ *   <li>"REALTIME" indicates a fetch request triggered by a real-time update.</li>
+ * </ul>
+ *
+ * @public
+ */
+export type FetchType = 'BASE' | 'REALTIME';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

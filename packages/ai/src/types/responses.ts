@@ -60,15 +60,34 @@ export interface EnhancedGenerateContentResponse
    */
   text: () => string;
   /**
-   * Aggregates and returns all {@link InlineDataPart}s from the {@link GenerateContentResponse}'s
-   * first candidate.
-   *
-   * @returns An array of {@link InlineDataPart}s containing data from the response, if available.
+   * Aggregates and returns every {@link InlineDataPart} from the first candidate of
+   * {@link GenerateContentResponse}.
    *
    * @throws If the prompt or candidate was blocked.
    */
   inlineDataParts: () => InlineDataPart[] | undefined;
+  /**
+   * Aggregates and returns every {@link FunctionCall} from the first candidate of
+   * {@link GenerateContentResponse}.
+   *
+   * @throws If the prompt or candidate was blocked.
+   */
   functionCalls: () => FunctionCall[] | undefined;
+  /**
+   * Aggregates and returns every {@link TextPart} with their `thought` property set
+   * to `true` from the first candidate of {@link GenerateContentResponse}.
+   *
+   * @throws If the prompt or candidate was blocked.
+   *
+   * @remarks
+   * Thought summaries provide a brief overview of the model's internal thinking process,
+   * offering insight into how it arrived at the final answer. This can be useful for
+   * debugging, understanding the model's reasoning, and verifying its accuracy.
+   *
+   * Thoughts will only be included if {@link ThinkingConfig.includeThoughts} is
+   * set to `true`.
+   */
+  thoughtSummary: () => string | undefined;
 }
 
 /**
@@ -92,9 +111,21 @@ export interface GenerateContentResponse {
 export interface UsageMetadata {
   promptTokenCount: number;
   candidatesTokenCount: number;
+  /**
+   * The number of tokens used by the model's internal "thinking" process.
+   */
+  thoughtsTokenCount?: number;
   totalTokenCount: number;
+  /**
+   * The number of tokens used by tools.
+   */
+  toolUsePromptTokenCount?: number;
   promptTokensDetails?: ModalityTokenCount[];
   candidatesTokensDetails?: ModalityTokenCount[];
+  /**
+   * A list of tokens used by tools, broken down by modality.
+   */
+  toolUsePromptTokensDetails?: ModalityTokenCount[];
 }
 
 /**
@@ -137,6 +168,7 @@ export interface GenerateContentCandidate {
   safetyRatings?: SafetyRating[];
   citationMetadata?: CitationMetadata;
   groundingMetadata?: GroundingMetadata;
+  urlContextMetadata?: URLContextMetadata;
 }
 
 /**
@@ -171,37 +203,248 @@ export interface Citation {
 }
 
 /**
- * Metadata returned to client when grounding is enabled.
+ * Metadata returned when grounding is enabled.
+ *
+ * Currently, only Grounding with Google Search is supported (see {@link GoogleSearchTool}).
+ *
+ * Important: If using Grounding with Google Search, you are required to comply with the
+ * "Grounding with Google Search" usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-search | Gemini Developer API}
+ * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+ * section within the Service Specific Terms).
+ *
  * @public
  */
 export interface GroundingMetadata {
-  webSearchQueries?: string[];
-  retrievalQueries?: string[];
   /**
-   * @deprecated
+   * Google Search entry point for web searches. This contains an HTML/CSS snippet that must be
+   * embedded in an app to display a Google Search entry point for follow-up web searches related to
+   * a model's "Grounded Response".
    */
-  groundingAttributions: GroundingAttribution[];
+  searchEntryPoint?: SearchEntrypoint;
+  /**
+   * A list of {@link GroundingChunk} objects. Each chunk represents a piece of retrieved content
+   * (for example, from a web page). that the model used to ground its response.
+   */
+  groundingChunks?: GroundingChunk[];
+  /**
+   * A list of {@link GroundingSupport} objects. Each object details how specific segments of the
+   * model's response are supported by the `groundingChunks`.
+   */
+  groundingSupports?: GroundingSupport[];
+  /**
+   * A list of web search queries that the model performed to gather the grounding information.
+   * These can be used to allow users to explore the search results themselves.
+   */
+  webSearchQueries?: string[];
+  /**
+   * @deprecated Use {@link GroundingSupport} instead.
+   */
+  retrievalQueries?: string[];
 }
 
 /**
- * @deprecated
+ * Google search entry point.
+ *
  * @public
  */
-export interface GroundingAttribution {
-  segment: Segment;
-  confidenceScore?: number;
-  web?: WebAttribution;
-  retrievedContext?: RetrievedContextAttribution;
+export interface SearchEntrypoint {
+  /**
+   * HTML/CSS snippet that must be embedded in a web page. The snippet is designed to avoid
+   * undesired interaction with the rest of the page's CSS.
+   *
+   * To ensure proper rendering and prevent CSS conflicts, it is recommended
+   * to encapsulate this `renderedContent` within a shadow DOM when embedding it
+   * into a webpage. See {@link https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM | MDN: Using shadow DOM}.
+   *
+   * @example
+   * ```javascript
+   * const container = document.createElement('div');
+   * document.body.appendChild(container);
+   * container.attachShadow({ mode: 'open' }).innerHTML = renderedContent;
+   * ```
+   */
+  renderedContent?: string;
 }
 
 /**
+ * Represents a chunk of retrieved data that supports a claim in the model's response. This is part
+ * of the grounding information provided when grounding is enabled.
+ *
+ * @public
+ */
+export interface GroundingChunk {
+  /**
+   * Contains details if the grounding chunk is from a web source.
+   */
+  web?: WebGroundingChunk;
+}
+
+/**
+ * A grounding chunk from the web.
+ *
+ * Important: If using Grounding with Google Search, you are required to comply with the
+ * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+ *
+ * @public
+ */
+export interface WebGroundingChunk {
+  /**
+   * The URI of the retrieved web page.
+   */
+  uri?: string;
+  /**
+   * The title of the retrieved web page.
+   */
+  title?: string;
+  /**
+   * The domain of the original URI from which the content was retrieved.
+   *
+   * This property is only supported in the Vertex AI Gemini API ({@link VertexAIBackend}).
+   * When using the Gemini Developer API ({@link GoogleAIBackend}), this property will be
+   * `undefined`.
+   */
+  domain?: string;
+}
+
+/**
+ * Provides information about how a specific segment of the model's response is supported by the
+ * retrieved grounding chunks.
+ *
+ * @public
+ */
+export interface GroundingSupport {
+  /**
+   * Specifies the segment of the model's response content that this grounding support pertains to.
+   */
+  segment?: Segment;
+  /**
+   * A list of indices that refer to specific {@link GroundingChunk} objects within the
+   * {@link GroundingMetadata.groundingChunks} array. These referenced chunks
+   * are the sources that support the claim made in the associated `segment` of the response.
+   * For example, an array `[1, 3, 4]` means that `groundingChunks[1]`, `groundingChunks[3]`,
+   * and `groundingChunks[4]` are the retrieved content supporting this part of the response.
+   */
+  groundingChunkIndices?: number[];
+}
+
+/**
+ * Represents a specific segment within a {@link Content} object, often used to
+ * pinpoint the exact location of text or data that grounding information refers to.
+ *
  * @public
  */
 export interface Segment {
+  /**
+   * The zero-based index of the {@link Part} object within the `parts` array
+   * of its parent {@link Content} object. This identifies which part of the
+   * content the segment belongs to.
+   */
   partIndex: number;
+  /**
+   * The zero-based start index of the segment within the specified `Part`,
+   * measured in UTF-8 bytes. This offset is inclusive, starting from 0 at the
+   * beginning of the part's content (e.g., `Part.text`).
+   */
   startIndex: number;
+  /**
+   * The zero-based end index of the segment within the specified `Part`,
+   * measured in UTF-8 bytes. This offset is exclusive, meaning the character
+   * at this index is not included in the segment.
+   */
   endIndex: number;
+  /**
+   * The text corresponding to the segment from the response.
+   */
+  text: string;
 }
+
+/**
+ * Metadata related to {@link URLContextTool}.
+ *
+ * @beta
+ */
+export interface URLContextMetadata {
+  /**
+   * List of URL metadata used to provide context to the Gemini model.
+   */
+  urlMetadata: URLMetadata[];
+}
+
+/**
+ * Metadata for a single URL retrieved by the {@link URLContextTool} tool.
+ *
+ * @beta
+ */
+export interface URLMetadata {
+  /**
+   * The retrieved URL.
+   */
+  retrievedUrl?: string;
+  /**
+   * The status of the URL retrieval.
+   */
+  urlRetrievalStatus?: URLRetrievalStatus;
+}
+
+/**
+ * The status of a URL retrieval.
+ *
+ * @remarks
+ * <b>URL_RETRIEVAL_STATUS_UNSPECIFIED:</b> Unspecified retrieval status.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_SUCCESS:</b> The URL retrieval was successful.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_ERROR:</b> The URL retrieval failed.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_PAYWALL:</b> The URL retrieval failed because the content is behind a paywall.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_UNSAFE:</b> The URL retrieval failed because the content is unsafe.
+ * <br/>
+ *
+ * @beta
+ */
+export const URLRetrievalStatus = {
+  /**
+   * Unspecified retrieval status.
+   */
+  URL_RETRIEVAL_STATUS_UNSPECIFIED: 'URL_RETRIEVAL_STATUS_UNSPECIFIED',
+  /**
+   * The URL retrieval was successful.
+   */
+  URL_RETRIEVAL_STATUS_SUCCESS: 'URL_RETRIEVAL_STATUS_SUCCESS',
+  /**
+   * The URL retrieval failed.
+   */
+  URL_RETRIEVAL_STATUS_ERROR: 'URL_RETRIEVAL_STATUS_ERROR',
+  /**
+   * The URL retrieval failed because the content is behind a paywall.
+   */
+  URL_RETRIEVAL_STATUS_PAYWALL: 'URL_RETRIEVAL_STATUS_PAYWALL',
+  /**
+   * The URL retrieval failed because the content is unsafe.
+   */
+  URL_RETRIEVAL_STATUS_UNSAFE: 'URL_RETRIEVAL_STATUS_UNSAFE'
+};
+
+/**
+ * The status of a URL retrieval.
+ *
+ * @remarks
+ * <b>URL_RETRIEVAL_STATUS_UNSPECIFIED:</b> Unspecified retrieval status.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_SUCCESS:</b> The URL retrieval was successful.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_ERROR:</b> The URL retrieval failed.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_PAYWALL:</b> The URL retrieval failed because the content is behind a paywall.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_UNSAFE:</b> The URL retrieval failed because the content is unsafe.
+ * <br/>
+ *
+ * @beta
+ */
+export type URLRetrievalStatus =
+  (typeof URLRetrievalStatus)[keyof typeof URLRetrievalStatus];
 
 /**
  * @public
@@ -281,3 +524,73 @@ export interface CountTokensResponse {
    */
   promptTokensDetails?: ModalityTokenCount[];
 }
+
+/**
+ * An incremental content update from the model.
+ *
+ * @beta
+ */
+export interface LiveServerContent {
+  type: 'serverContent';
+  /**
+   * The content that the model has generated as part of the current conversation with the user.
+   */
+  modelTurn?: Content;
+  /**
+   * Indicates whether the turn is complete. This is `undefined` if the turn is not complete.
+   */
+  turnComplete?: boolean;
+  /**
+   * Indicates whether the model was interrupted by the client. An interruption occurs when
+   * the client sends a message before the model finishes it's turn. This is `undefined` if the
+   * model was not interrupted.
+   */
+  interrupted?: boolean;
+}
+
+/**
+ * A request from the model for the client to execute one or more functions.
+ *
+ * @beta
+ */
+export interface LiveServerToolCall {
+  type: 'toolCall';
+  /**
+   * An array of function calls to run.
+   */
+  functionCalls: FunctionCall[];
+}
+
+/**
+ * Notification to cancel a previous function call triggered by {@link LiveServerToolCall}.
+ *
+ * @beta
+ */
+export interface LiveServerToolCallCancellation {
+  type: 'toolCallCancellation';
+  /**
+   * IDs of function calls that were cancelled. These refer to the `id` property of a {@link FunctionCall}.
+   */
+  functionIds: string[];
+}
+
+/**
+ * The types of responses that can be returned by {@link LiveSession.receive}.
+ *
+ * @beta
+ */
+export const LiveResponseType = {
+  SERVER_CONTENT: 'serverContent',
+  TOOL_CALL: 'toolCall',
+  TOOL_CALL_CANCELLATION: 'toolCallCancellation'
+};
+
+/**
+ * The types of responses that can be returned by {@link LiveSession.receive}.
+ * This is a property on all messages that can be used for type narrowing. This property is not
+ * returned by the server, it is assigned to a server message object once it's parsed.
+ *
+ * @beta
+ */
+export type LiveResponseType =
+  (typeof LiveResponseType)[keyof typeof LiveResponseType];

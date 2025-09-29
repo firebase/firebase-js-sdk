@@ -15,16 +15,21 @@
  * limitations under the License.
  */
 
-import { TypedSchema } from '../requests/schema-builder';
+import { ObjectSchema, TypedSchema } from '../requests/schema-builder';
 import { Content, Part } from './content';
+import {
+  LanguageModelCreateOptions,
+  LanguageModelPromptOptions
+} from './language-model';
 import {
   FunctionCallingMode,
   HarmBlockMethod,
   HarmBlockThreshold,
   HarmCategory,
+  InferenceMode,
   ResponseModality
 } from './enums';
-import { ObjectSchemaInterface, SchemaRequest } from './schema';
+import { ObjectSchemaRequest, SchemaRequest } from './schema';
 
 /**
  * Base parameters for a number of methods.
@@ -46,6 +51,17 @@ export interface ModelParams extends BaseParams {
   systemInstruction?: string | Part | Content;
 }
 
+/**
+ * Params passed to {@link getLiveGenerativeModel}.
+ * @beta
+ */
+export interface LiveModelParams {
+  model: string;
+  generationConfig?: LiveGenerationConfig;
+  tools?: Tool[];
+  toolConfig?: ToolConfig;
+  systemInstruction?: string | Part | Content;
+}
 /**
  * Request sent through {@link GenerativeModel.generateContent}
  * @public
@@ -99,7 +115,7 @@ export interface GenerationConfig {
    * value can be a class generated with a {@link Schema} static method
    * like `Schema.string()` or `Schema.object()` or it can be a plain
    * JS object matching the {@link SchemaRequest} interface.
-   * <br/>Note: This only applies when the specified `responseMIMEType` supports a schema; currently
+   * <br/>Note: This only applies when the specified `responseMimeType` supports a schema; currently
    * this is limited to `application/json` and `text/x.enum`.
    */
   responseSchema?: TypedSchema | SchemaRequest;
@@ -111,6 +127,61 @@ export interface GenerationConfig {
    *  - Only image generation (`ResponseModality.IMAGE`) is supported.
    *
    * @beta
+   */
+  responseModalities?: ResponseModality[];
+  /**
+   * Configuration for "thinking" behavior of compatible Gemini models.
+   */
+  thinkingConfig?: ThinkingConfig;
+}
+
+/**
+ * Configuration parameters used by {@link LiveGenerativeModel} to control live content generation.
+ *
+ * @beta
+ */
+export interface LiveGenerationConfig {
+  /**
+   * Configuration for speech synthesis.
+   */
+  speechConfig?: SpeechConfig;
+  /**
+   * Specifies the maximum number of tokens that can be generated in the response. The number of
+   * tokens per word varies depending on the language outputted. Is unbounded by default.
+   */
+  maxOutputTokens?: number;
+  /**
+   * Controls the degree of randomness in token selection. A `temperature` value of 0 means that the highest
+   * probability tokens are always selected. In this case, responses for a given prompt are mostly
+   * deterministic, but a small amount of variation is still possible.
+   */
+  temperature?: number;
+  /**
+   * Changes how the model selects tokens for output. Tokens are
+   * selected from the most to least probable until the sum of their probabilities equals the `topP`
+   * value. For example, if tokens A, B, and C have probabilities of 0.3, 0.2, and 0.1 respectively
+   * and the `topP` value is 0.5, then the model will select either A or B as the next token by using
+   * the `temperature` and exclude C as a candidate. Defaults to 0.95 if unset.
+   */
+  topP?: number;
+  /**
+   * Changes how the model selects token for output. A `topK` value of 1 means the select token is
+   * the most probable among all tokens in the model's vocabulary, while a `topK` value 3 means that
+   * the next token is selected from among the 3 most probably using probabilities sampled. Tokens
+   * are then further filtered with the highest selected `temperature` sampling. Defaults to 40
+   * if unspecified.
+   */
+  topK?: number;
+  /**
+   * Positive penalties.
+   */
+  presencePenalty?: number;
+  /**
+   * Frequency penalties.
+   */
+  frequencyPenalty?: number;
+  /**
+   * The modalities of the response.
    */
   responseModalities?: ResponseModality[];
 }
@@ -156,7 +227,10 @@ export interface RequestOptions {
    */
   timeout?: number;
   /**
-   * Base url for endpoint. Defaults to https://firebasevertexai.googleapis.com
+   * Base url for endpoint. Defaults to
+   * https://firebasevertexai.googleapis.com, which is the
+   * {@link https://console.cloud.google.com/apis/library/firebasevertexai.googleapis.com?project=_ | Firebase AI Logic API}
+   * (used regardless of your chosen Gemini API provider).
    */
   baseUrl?: string;
 }
@@ -165,7 +239,11 @@ export interface RequestOptions {
  * Defines a tool that model can call to access external knowledge.
  * @public
  */
-export declare type Tool = FunctionDeclarationsTool;
+export type Tool =
+  | FunctionDeclarationsTool
+  | GoogleSearchTool
+  | CodeExecutionTool
+  | URLContextTool;
 
 /**
  * Structured representation of a function declaration as defined by the
@@ -176,7 +254,7 @@ export declare type Tool = FunctionDeclarationsTool;
  * as a Tool by the model and executed by the client.
  * @public
  */
-export declare interface FunctionDeclaration {
+export interface FunctionDeclaration {
   /**
    * The name of the function to call. Must start with a letter or an
    * underscore. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with
@@ -193,8 +271,75 @@ export declare interface FunctionDeclaration {
    * format. Reflects the Open API 3.03 Parameter Object. Parameter names are
    * case-sensitive. For a function with no parameters, this can be left unset.
    */
-  parameters?: ObjectSchemaInterface;
+  parameters?: ObjectSchema | ObjectSchemaRequest;
 }
+
+/**
+ * A tool that allows a Gemini model to connect to Google Search to access and incorporate
+ * up-to-date information from the web into its responses.
+ *
+ * Important: If using Grounding with Google Search, you are required to comply with the
+ * "Grounding with Google Search" usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-search | Gemini Developer API}
+ * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+ * section within the Service Specific Terms).
+ *
+ * @public
+ */
+export interface GoogleSearchTool {
+  /**
+   * Specifies the Google Search configuration.
+   * Currently, this is an empty object, but it's reserved for future configuration options.
+   *
+   * When using this feature, you are required to comply with the "Grounding with Google Search"
+   * usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-search | Gemini Developer API}
+   * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+   * section within the Service Specific Terms).
+   */
+  googleSearch: GoogleSearch;
+}
+
+/**
+ * A tool that enables the model to use code execution.
+ *
+ * @beta
+ */
+export interface CodeExecutionTool {
+  /**
+   * Specifies the Google Search configuration.
+   * Currently, this is an empty object, but it's reserved for future configuration options.
+   */
+  codeExecution: {};
+}
+
+/**
+ * Specifies the Google Search configuration.
+ *
+ * @remarks Currently, this is an empty object, but it's reserved for future configuration options.
+ *
+ * @public
+ */
+export interface GoogleSearch {}
+
+/**
+ * A tool that allows you to provide additional context to the models in the form of public web
+ * URLs. By including URLs in your request, the Gemini model will access the content from those
+ * pages to inform and enhance its response.
+ *
+ * @beta
+ */
+export interface URLContextTool {
+  /**
+   * Specifies the URL Context configuration.
+   */
+  urlContext: URLContext;
+}
+
+/**
+ * Specifies the URL Context configuration.
+ *
+ * @beta
+ */
+export interface URLContext {}
 
 /**
  * A `FunctionDeclarationsTool` is a piece of code that enables the system to
@@ -202,7 +347,7 @@ export declare interface FunctionDeclaration {
  * outside of knowledge and scope of the model.
  * @public
  */
-export declare interface FunctionDeclarationsTool {
+export interface FunctionDeclarationsTool {
   /**
    * Optional. One or more function declarations
    * to be passed to the model along with the current user query. Model may
@@ -230,4 +375,106 @@ export interface ToolConfig {
 export interface FunctionCallingConfig {
   mode?: FunctionCallingMode;
   allowedFunctionNames?: string[];
+}
+
+/**
+ * Encapsulates configuration for on-device inference.
+ *
+ * @beta
+ */
+export interface OnDeviceParams {
+  createOptions?: LanguageModelCreateOptions;
+  promptOptions?: LanguageModelPromptOptions;
+}
+
+/**
+ * Configures hybrid inference.
+ * @beta
+ */
+export interface HybridParams {
+  /**
+   * Specifies on-device or in-cloud inference. Defaults to prefer on-device.
+   */
+  mode: InferenceMode;
+  /**
+   * Optional. Specifies advanced params for on-device inference.
+   */
+  onDeviceParams?: OnDeviceParams;
+  /**
+   * Optional. Specifies advanced params for in-cloud inference.
+   */
+  inCloudParams?: ModelParams;
+}
+
+/**
+ * Configuration for "thinking" behavior of compatible Gemini models.
+ *
+ * Certain models utilize a thinking process before generating a response. This allows them to
+ * reason through complex problems and plan a more coherent and accurate answer.
+ *
+ * @public
+ */
+export interface ThinkingConfig {
+  /**
+   * The thinking budget, in tokens.
+   *
+   * This parameter sets an upper limit on the number of tokens the model can use for its internal
+   * "thinking" process. A higher budget may result in higher quality responses for complex tasks
+   * but can also increase latency and cost.
+   *
+   * If you don't specify a budget, the model will determine the appropriate amount
+   * of thinking based on the complexity of the prompt.
+   *
+   * An error will be thrown if you set a thinking budget for a model that does not support this
+   * feature or if the specified budget is not within the model's supported range.
+   */
+  thinkingBudget?: number;
+
+  /**
+   * Whether to include "thought summaries" in the model's response.
+   *
+   * @remarks
+   * Thought summaries provide a brief overview of the model's internal thinking process,
+   * offering insight into how it arrived at the final answer. This can be useful for
+   * debugging, understanding the model's reasoning, and verifying its accuracy.
+   */
+  includeThoughts?: boolean;
+}
+
+/**
+ * Configuration for a pre-built voice.
+ *
+ * @beta
+ */
+export interface PrebuiltVoiceConfig {
+  /**
+   * The voice name to use for speech synthesis.
+   *
+   * For a full list of names and demos of what each voice sounds like, see {@link https://cloud.google.com/text-to-speech/docs/chirp3-hd | Chirp 3: HD Voices}.
+   */
+  voiceName?: string;
+}
+
+/**
+ * Configuration for the voice to used in speech synthesis.
+ *
+ * @beta
+ */
+export interface VoiceConfig {
+  /**
+   * Configures the voice using a pre-built voice configuration.
+   */
+  prebuiltVoiceConfig?: PrebuiltVoiceConfig;
+}
+
+/**
+ * Configures speech synthesis.
+ *
+ * @beta
+ */
+export interface SpeechConfig {
+  /**
+   * Configures the voice to be used in speech synthesis.
+   */
+  voiceConfig?: VoiceConfig;
 }

@@ -21,26 +21,6 @@ import { Backend } from './backend';
 export * from './types';
 
 /**
- * @deprecated Use the new {@link AI | AI} instead. The Vertex AI in Firebase SDK has been
- * replaced with the Firebase AI SDK to accommodate the evolving set of supported features and
- * services. For migration details, see the {@link https://firebase.google.com/docs/vertex-ai/migrate-to-latest-sdk | migration guide}.
- *
- * An instance of the Firebase AI SDK.
- *
- * @public
- */
-export type VertexAI = AI;
-
-/**
- * Options when initializing the Firebase AI SDK.
- *
- * @public
- */
-export interface VertexAIOptions {
-  location?: string;
-}
-
-/**
  * An instance of the Firebase AI SDK.
  *
  * Do not create this instance directly. Instead, use {@link getAI | getAI()}.
@@ -58,6 +38,10 @@ export interface AI {
    * Vertex AI Gemini API (using {@link VertexAIBackend}).
    */
   backend: Backend;
+  /**
+   * Options applied to this {@link AI} instance.
+   */
+  options?: AIOptions;
   /**
    * @deprecated use `AI.backend.location` instead.
    *
@@ -110,6 +94,11 @@ export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 export interface AIOptions {
   /**
    * The backend configuration to use for the AI service instance.
+   * Defaults to the Gemini Developer API backend ({@link GoogleAIBackend}).
    */
-  backend: Backend;
+  backend?: Backend;
+  /**
+   * Whether to use App Check limited use tokens. Defaults to false.
+   */
+  useLimitedUseAppCheckTokens?: boolean;
 }

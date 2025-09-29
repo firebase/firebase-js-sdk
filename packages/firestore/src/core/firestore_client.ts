@@ -237,23 +237,11 @@ export async function setOfflineComponentProvider(
     }
   });
 
-  offlineComponentProvider.persistence.setDatabaseDeletedListener(() => {
-    logWarn('Terminating Firestore due to IndexedDb database deletion');
-    client
-      .terminate()
-      .then(() => {
-        logDebug(
-          'Terminating Firestore due to IndexedDb database deletion ' +
-            'completed successfully'
-        );
-      })
-      .catch(error => {
-        logWarn(
-          'Terminating Firestore due to IndexedDb database deletion failed',
-          error
-        );
-      });
-  });
+  // When a user calls clearPersistence() in one client, all other clients
+  // need to be terminated to allow the delete to succeed.
+  offlineComponentProvider.persistence.setDatabaseDeletedListener(() =>
+    client.terminate()
+  );
 
   client._offlineComponents = offlineComponentProvider;
 }

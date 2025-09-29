@@ -70,7 +70,7 @@ interface NavigatorWithConnection extends Navigator {
 const RESERVED_ATTRIBUTE_PREFIXES = ['firebase_', 'google_', 'ga_'];
 const ATTRIBUTE_FORMAT_REGEX = new RegExp('^[a-zA-Z]\\w*$');
 const MAX_ATTRIBUTE_NAME_LENGTH = 40;
-const MAX_ATTRIBUTE_VALUE_LENGTH = 100;
+export const MAX_ATTRIBUTE_VALUE_LENGTH = 100;
 
 export function getServiceWorkerStatus(): ServiceWorkerStatus {
   const navigator = Api.getInstance().navigator;

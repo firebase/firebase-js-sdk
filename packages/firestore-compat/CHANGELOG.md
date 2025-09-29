@@ -1,5 +1,43 @@
 # @firebase/firestore-compat
 
+## 0.4.2
+
+### Patch Changes
+
+- Updated dependencies [[`43276b0`](https://github.com/firebase/firebase-js-sdk/commit/43276b0414ea5a73e8d8f7e3b80275d8b910102f)]:
+  - @firebase/firestore@4.9.2
+
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies [[`2058432`](https://github.com/firebase/firebase-js-sdk/commit/2058432e6c8e809d5b695e31fde582e94f1349c5)]:
+  - @firebase/firestore@4.9.1
+
+## 0.4.0
+
+### Minor Changes
+
+- [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113) [#9128](https://github.com/firebase/firebase-js-sdk/pull/9128) - Update node "engines" version to a minimum of Node 20.
+
+### Patch Changes
+
+- [`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9) [#9167](https://github.com/firebase/firebase-js-sdk/pull/9167) - Set build targets to ES2020.
+
+- Updated dependencies [[`f11b552`](https://github.com/firebase/firebase-js-sdk/commit/f11b55294a04dfe6a1216c487b1af3a7e7d07196), [`9771bff`](https://github.com/firebase/firebase-js-sdk/commit/9771bffadbc464890150dd7dd1a9a0fe2df60bf0), [`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9), [`a029ce3`](https://github.com/firebase/firebase-js-sdk/commit/a029ce39ee1ea1f6f28e79a1733ad8e8ebedf4bb), [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113)]:
+  - @firebase/firestore@4.9.0
+  - @firebase/component@0.7.0
+  - @firebase/util@1.13.0
+
+## 0.3.53
+
+### Patch Changes
+
+- Updated dependencies [[`42ac401`](https://github.com/firebase/firebase-js-sdk/commit/42ac4011787db6bb7a08f8c84f364ea86ea51e83), [`f73e08b`](https://github.com/firebase/firebase-js-sdk/commit/f73e08b212314547b39a10cd3e393f9e94776f21), [`86155b3`](https://github.com/firebase/firebase-js-sdk/commit/86155b3c8f3974f8d777232625108c14f924e035)]:
+  - @firebase/util@1.12.1
+  - @firebase/firestore@4.8.0
+  - @firebase/component@0.6.18
+
 ## 0.3.52
 
 ### Patch Changes
