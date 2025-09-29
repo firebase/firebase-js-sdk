@@ -16,6 +16,7 @@
  */
 
 import json from '@rollup/plugin-json';
+import copy from 'rollup-plugin-copy';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkg from './package.json';
@@ -87,7 +88,15 @@ const reactBuilds = [
         typescript,
         tsconfig: 'tsconfig.react.json'
       }),
-      json()
+      json(),
+      copy({
+        targets: [
+          {
+            src: 'dist/src/react/index.d.ts',
+            dest: 'dist/react'
+          }
+        ]
+      })
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },

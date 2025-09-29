@@ -5,7 +5,7 @@
   "additionalEntryPoints": [
     {
       "modulePath": "react",
-      "filePath": "<projectFolder>/dist/src/react/index.d.ts"
+      "filePath": "<projectFolder>/dist/react/index.d.ts"
     }
   ],
   "bundledPackages": ["next"]
