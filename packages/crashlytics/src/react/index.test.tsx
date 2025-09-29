@@ -18,86 +18,87 @@
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import sinon, { restore, stub } from 'sinon';
-import * as crashlytics from '../api';
+import { restore, stub } from 'sinon';
+import * as app from '@firebase/app';
+import * as telemetry from '../api';
 import { FirebaseApp } from '@firebase/app';
-import { Crashlytics } from '../public-types';
-import { FirebaseCrashlytics } from '.';
+import { Telemetry } from '../public-types';
+import { FirebaseTelemetry } from '.';
 import React from 'react';
 import { render } from '@testing-library/react';
 
 use(sinonChai);
 use(chaiAsPromised);
 
-class TestErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { error: Error | null }
-> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { error: null };
-  }
-
-  static getDerivedStateFromError(error: Error): { error: Error } {
-    return { error };
-  }
-
-  componentDidCatch(error: Error): void {
-    // We can also log here if needed
-  }
-
-  render(): React.ReactNode {
-    if (this.state.error) {
-      return null;
-    }
-    return this.props.children;
-  }
-}
-
-describe('FirebaseCrashlytics', () => {
-  let getCrashlyticsStub: sinon.SinonStub;
-  let recordErrorStub: sinon.SinonStub;
+describe.only('FirebaseTelemetry', () => {
+  let getTelemetryStub: sinon.SinonStub;
+  let captureErrorStub: sinon.SinonStub;
+  let initializeAppStub: sinon.SinonStub;
+  let getAppStub: sinon.SinonStub;
   let fakeApp: FirebaseApp;
-  let fakeCrashlytics: Crashlytics;
+  let fakeTelemetry: Telemetry;
 
   beforeEach(() => {
     fakeApp = { name: 'fakeApp' } as FirebaseApp;
-    fakeCrashlytics = {} as Crashlytics;
+    fakeTelemetry = {} as Telemetry;
 
-    getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
-      fakeCrashlytics
-    );
-    recordErrorStub = stub(crashlytics, 'recordError');
+    initializeAppStub = stub(app, 'initializeApp').returns(fakeApp);
+    getTelemetryStub = stub(telemetry, 'getTelemetry').returns(fakeTelemetry);
+    captureErrorStub = stub(telemetry, 'captureError');
+    getAppStub = stub(app, 'getApp').returns(fakeApp);
   });
 
   afterEach(() => {
     restore();
   });
 
+  it('gets telemetry with the default app if no firebaseOptions are provided', () => {
+    render(<FirebaseTelemetry />);
+    expect(initializeAppStub).not.to.have.been.called;
+  });
+
+  it('initializes a new app and gets telemetry if firebaseOptions are provided', () => {
+    const firebaseOptions = { apiKey: 'test' };
+    render(<FirebaseTelemetry firebaseOptions={firebaseOptions} />);
+    expect(initializeAppStub).to.have.been.calledWith(firebaseOptions);
+  });
+
   it('captures window errors', done => {
-    render(<FirebaseCrashlytics firebaseApp={fakeApp} />);
+    render(<FirebaseTelemetry />);
     const error = new Error('test error');
     window.onerror = () => {
       // Prevent error from bubbling up to test suite
     };
     window.addEventListener('error', (event: ErrorEvent) => {
       // Registers another listener (sequential) to confirm behaviour.
-      expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
-      expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, error);
+      expect(getTelemetryStub).to.have.been.called;
+      expect(captureErrorStub).to.have.been.calledWith(fakeTelemetry, error);
       done();
     });
     window.dispatchEvent(new ErrorEvent('error', { error }));
   });
 
   it('captures unhandled promise rejections', () => {
-    render(<FirebaseCrashlytics firebaseApp={fakeApp} />);
+    render(<FirebaseTelemetry />);
     const reason = new Error('test rejection');
     const promise = Promise.reject(reason);
     promise.catch(() => {});
     window.dispatchEvent(
       new PromiseRejectionEvent('unhandledrejection', { reason, promise })
     );
-    expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
-    expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, reason);
+    expect(getTelemetryStub).to.have.been.called;
+    expect(captureErrorStub).to.have.been.calledWith(fakeTelemetry, reason);
+  });
+
+  it('fails silently when getTelemetry fails', () => {
+    const error = new Error('getTelemetry failed');
+    initializeAppStub.throws(error);
+    const consoleWarnStub = stub(console, 'warn');
+
+    expect(() => render(<FirebaseTelemetry firebaseOptions={{}}/>)).not.to.throw();
+    expect(consoleWarnStub).to.have.been.calledWith(
+      'Firebase Telemetry was not initialized:\n',
+      error
+    );
   });
 });
