@@ -20,7 +20,7 @@ export declare namespace Instrumentation
 
 |  Type Alias | Description |
 |  --- | --- |
-|  [onRequestError](./telemetry.instrumentation.md#instrumentationonrequesterror) |  |
+|  [onRequestError](./telemetry_.instrumentation.md#instrumentationonrequesterror) |  |
 
 ## Instrumentation.onRequestError
 
