@@ -1,5 +1,26 @@
 # firebase
 
+## 12.3.0
+
+### Minor Changes
+
+- [`06ab5c4`](https://github.com/firebase/firebase-js-sdk/commit/06ab5c4f9b84085068381f6dff5e03b1b7cf4b2c) [#9236](https://github.com/firebase/firebase-js-sdk/pull/9236) - Added a new `InferenceMode` option for the hybrid on-device capability: `prefer_in_cloud`. When this mode is selected, the SDK will attempt to use a cloud-hosted model first. If the call to the cloud-hosted model fails with a network-related error, the SDK will fall back to the on-device model, if it's available.
+
+- [`120a308`](https://github.com/firebase/firebase-js-sdk/commit/120a30838da50f5ade4f634e97c34cbfcaff41ba) [#9221](https://github.com/firebase/firebase-js-sdk/pull/9221) - Added support for Realtime Remote Config for the web. This feature introduces a new `onConfigUpdate` API and allows web applications to receive near-instant configuration updates without requiring periodic polling.
+
+- [`9b8ab02`](https://github.com/firebase/firebase-js-sdk/commit/9b8ab02c543785226fafec056d39be7cf7ee03d1) [#9249](https://github.com/firebase/firebase-js-sdk/pull/9249) - Added Code Execution feature.
+
+### Patch Changes
+
+- Updated dependencies [[`06ab5c4`](https://github.com/firebase/firebase-js-sdk/commit/06ab5c4f9b84085068381f6dff5e03b1b7cf4b2c), [`a4848b4`](https://github.com/firebase/firebase-js-sdk/commit/a4848b401f6e8da16b0d0fdbfd064e8d68566555), [`120a308`](https://github.com/firebase/firebase-js-sdk/commit/120a30838da50f5ade4f634e97c34cbfcaff41ba), [`9b8ab02`](https://github.com/firebase/firebase-js-sdk/commit/9b8ab02c543785226fafec056d39be7cf7ee03d1), [`c123766`](https://github.com/firebase/firebase-js-sdk/commit/c1237662e6851936d2dd6017ab4bc7f0aa5112fd), [`43276b0`](https://github.com/firebase/firebase-js-sdk/commit/43276b0414ea5a73e8d8f7e3b80275d8b910102f)]:
+  - @firebase/app@0.14.3
+  - @firebase/ai@2.3.0
+  - @firebase/remote-config@0.7.0
+  - @firebase/firestore@4.9.2
+  - @firebase/app-compat@0.5.3
+  - @firebase/remote-config-compat@0.2.20
+  - @firebase/firestore-compat@0.4.2
+
 ## 12.2.1
 
 ### Patch Changes

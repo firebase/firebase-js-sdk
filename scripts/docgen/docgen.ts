@@ -199,7 +199,19 @@ async function generateDocs(
     `"mainEntryPointFilePath": "<projectFolder>/dist/esm/index.doc.d.ts"`
   );
 
+  /**
+   * Exclude compat as this script is only for modular docgen.
+   */
+  const packageDirectories = (
+    await mapWorkspaceToPackages([`${projectRoot}/packages/*`])
+  ).filter(path => fs.existsSync(path) && !path.includes('-compat'));
+
   try {
+    console.log(`Deleting old temp directories in each package.`);
+    for (const dir of packageDirectories) {
+      fs.rmSync(join(dir, 'temp'), { recursive: true, force: true });
+    }
+
     fs.writeFileSync(
       `${projectRoot}/packages/auth/api-extractor.json`,
       authApiConfigModified
@@ -248,13 +260,9 @@ async function generateDocs(
 
   fs.mkdirSync(tmpDir);
 
-  // TODO: Throw error if path doesn't exist once all packages add markdown support.
-  const apiJsonDirectories = (
-    await mapWorkspaceToPackages([`${projectRoot}/packages/*`])
-  )
-    .map(path => `${path}/temp`)
+  const apiJsonDirectories = packageDirectories
+    .map(path => join(path, 'temp'))
     .filter(path => fs.existsSync(path));
-
   for (const dir of apiJsonDirectories) {
     const paths = await new Promise<string[]>(resolve =>
       glob(`${dir}/*.api.json`, (err, paths) => {

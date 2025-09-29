@@ -25,7 +25,7 @@ export interface StartAudioConversationOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [functionCallingHandler](./ai.startaudioconversationoptions.md#startaudioconversationoptionsfunctioncallinghandler) | (functionCalls: [LiveServerToolCall](./ai.liveservertoolcall.md#liveservertoolcall_interface)<!-- -->\['functionCalls'\]) =&gt; Promise&lt;[Part](./ai.md#part)<!-- -->&gt; | <b><i>(Public Preview)</i></b> An async handler that is called when the model requests a function to be executed. The handler should perform the function call and return the result as a <code>Part</code>, which will then be sent back to the model. |
+|  [functionCallingHandler](./ai.startaudioconversationoptions.md#startaudioconversationoptionsfunctioncallinghandler) | (functionCalls: [FunctionCall](./ai.functioncall.md#functioncall_interface)<!-- -->\[\]) =&gt; Promise&lt;[FunctionResponse](./ai.functionresponse.md#functionresponse_interface)<!-- -->&gt; | <b><i>(Public Preview)</i></b> An async handler that is called when the model requests a function to be executed. The handler should perform the function call and return the result as a <code>Part</code>, which will then be sent back to the model. |
 
 ## StartAudioConversationOptions.functionCallingHandler
 
@@ -37,5 +37,5 @@ An async handler that is called when the model requests a function to be execute
 <b>Signature:</b>
 
 ```typescript
-functionCallingHandler?: (functionCalls: LiveServerToolCall['functionCalls']) => Promise<Part>;
+functionCallingHandler?: (functionCalls: FunctionCall[]) => Promise<FunctionResponse>;
 ```

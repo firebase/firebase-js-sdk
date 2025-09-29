@@ -29,6 +29,7 @@ export interface GenerateContentCandidate
 |  [groundingMetadata](./ai.generatecontentcandidate.md#generatecontentcandidategroundingmetadata) | [GroundingMetadata](./ai.groundingmetadata.md#groundingmetadata_interface) |  |
 |  [index](./ai.generatecontentcandidate.md#generatecontentcandidateindex) | number |  |
 |  [safetyRatings](./ai.generatecontentcandidate.md#generatecontentcandidatesafetyratings) | [SafetyRating](./ai.safetyrating.md#safetyrating_interface)<!-- -->\[\] |  |
+|  [urlContextMetadata](./ai.generatecontentcandidate.md#generatecontentcandidateurlcontextmetadata) | [URLContextMetadata](./ai.urlcontextmetadata.md#urlcontextmetadata_interface) |  |
 
 ## GenerateContentCandidate.citationMetadata
 
@@ -84,4 +85,12 @@ index: number;
 
 ```typescript
 safetyRatings?: SafetyRating[];
+```
+
+## GenerateContentCandidate.urlContextMetadata
+
+<b>Signature:</b>
+
+```typescript
+urlContextMetadata?: URLContextMetadata;
 ```
