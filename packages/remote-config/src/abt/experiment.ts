@@ -50,41 +50,37 @@ export class Experiment {
     currentActiveExperiments: Set<string>,
     experimentInfoMap: Map<string, FirebaseExperimentDescription>
   ): void {
+    const customProperty: Record<string, string | null> = {};
     for (const [experimentId, experimentInfo] of experimentInfoMap.entries()) {
       if (!currentActiveExperiments.has(experimentId)) {
-        void this.addExperimentToAnalytics(
-          experimentId,
-          experimentInfo.variantId
-        );
+        customProperty[experimentId] = experimentInfo.variantId;
       }
     }
+    void this.addExperimentToAnalytics(customProperty);
   }
 
   private removeInactiveExperiments(
     currentActiveExperiments: Set<string>,
     experimentInfoMap: Map<string, FirebaseExperimentDescription>
   ): void {
+    const customProperty: Record<string, string | null> = {};
     for (const experimentId of currentActiveExperiments) {
       if (!experimentInfoMap.has(experimentId)) {
-        void this.removeExperimentFromAnalytics(experimentId);
+        customProperty[experimentId] = null;
       }
     }
+    void this.addExperimentToAnalytics(customProperty);
   }
 
   private async addExperimentToAnalytics(
-    experimentId: string,
-    variantId: string | null
+    customProperty: Record<string, string | null>
   ): Promise<void> {
-    const analytics = await this.analyticsProvider.get();
-    const customProperty = {
-      [experimentId]: variantId
-    };
-    analytics.setUserProperties({ properties: customProperty });
-  }
-
-  private async removeExperimentFromAnalytics(
-    experimentId: string
-  ): Promise<void> {
-    void this.addExperimentToAnalytics(experimentId, null);
+    try {
+      const analytics = await this.analyticsProvider.get();
+      analytics.setUserProperties({ properties: customProperty });
+    } catch (error) {
+      console.error(`Failed to add experiment to analytics :`, error);
+      return;
+    }
   }
 }
