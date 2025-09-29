@@ -22,8 +22,8 @@
     "./react": {
       "types": "./dist/react/index.d.ts",
       "node": {
-        "import": "./dist/react/index.node.esm.js",
-        "default": "./dist/react/index.node.cjs.js"
+        "import": "./dist/react/index.esm.js",
+        "default": "./dist/react/index.cjs.js"
       },
       "browser": {
         "require": "./dist/react/index.cjs.js",
@@ -48,9 +48,11 @@
     "test:browser": "karma start",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha **/*.test.ts src/**/*.test.ts --config ../../config/mocharc.node.js",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
-    "api-report": "yarn api-report:main && yarn api-report:react",
-    "api-report:main": "api-extractor run --local --verbose",
-    "api-report:react": "api-extractor run --config api-extractor.react.json --local --verbose",
+    "api-report": "yarn api-report:react && yarn api-report:main",
+    "api-report:main": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package telemetry --packageRoot . --typescriptDts ./dist/index.d.ts --rollupDts ./dist/index.d.ts --untrimmedRollupDts ./dist/index.d.ts --publicDts ./dist/index.d.ts",
+    "api-report:main1": "api-extractor run --local --verbose",
+    "api-report:react": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package telemetry-react --packageRoot . --typescriptDts ./dist/src/react/index.d.ts --rollupDts ./dist/src/react/index.d.ts --untrimmedRollupDts ./dist/src/react/index.d.ts --publicDts ./dist/src/react/index.d.ts",
+    "api-report:react1": "api-extractor run --config api-extractor.react.json --local --verbose",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/telemetry-public.d.ts"
   },
   "peerDependencies": {

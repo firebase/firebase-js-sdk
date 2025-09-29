@@ -4,14 +4,14 @@
   "dtsRollup": {
     "enabled": true,
     "untrimmedFilePath": "<projectFolder>/dist/react/index.d.ts"
-  },
-  "apiReport": {
-    "enabled": false
-  },
-  "docModel": {
-    "enabled": false
-  },
-  "tsdocMetadata": {
-    "enabled": false
-  }
+  }//,
+  // "apiReport": {
+  //   "enabled": false
+  // },
+  // "docModel": {
+  //   "enabled": false
+  // },
+  // "tsdocMetadata": {
+  //   "enabled": false
+  // }
 }

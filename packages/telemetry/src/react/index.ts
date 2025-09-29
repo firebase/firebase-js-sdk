@@ -18,21 +18,43 @@
 import { FirebaseOptions, initializeApp } from '@firebase/app';
 import { registerTelemetry } from '../register';
 import { captureError, getTelemetry } from '../api';
-import { Component, ReactNode } from 'react';
+import { useEffect } from 'react';
 
 registerTelemetry();
 
-export interface FirebaseTelemetryProps {
-  firebaseOptions?: FirebaseOptions;
-  children?: ReactNode;
+function errorListener(event: ErrorEvent): void {
+  captureError(getTelemetry(), event.error, {});
 }
 
-export class FirebaseTelemetry extends Component<FirebaseTelemetryProps> {
-  constructor(public props: FirebaseTelemetryProps) {
-    super(props);
-  }
+function unhandledRejectionListener(event: PromiseRejectionEvent): void {
+  captureError(getTelemetry(), event.reason, {});
+}
 
-  componentDidMount(): void {
+/**
+ * Registers event listeners for uncaught errors.
+ *
+ * This should be installed near the root of your application. Caught errors, including those
+ * implicitly caught by Error Boundaries, will not be captured by this component.
+ *
+ * @example
+ * ```html
+ * <body>
+ *  <FirebaseTelemetry firebaseOptions={options} />
+ *  ... my app ...
+ * </body>
+ * ```
+ *
+ * @param firebaseOptions - Options to run {@link @firebase/app#initializeApp}. If this is not provided, initializeApp needs to be called explicitly elsewhere in your application.
+ * @returns The default {@link Telemetry} instance for the given {@link @firebase/app#FirebaseApp}.
+ *
+ * @public
+ */
+export function FirebaseTelemetry({
+  firebaseOptions
+}: {
+  firebaseOptions?: FirebaseOptions;
+}): null {
+  useEffect(() => {
     if (typeof window === 'undefined') {
       return;
     }
@@ -41,27 +63,23 @@ export class FirebaseTelemetry extends Component<FirebaseTelemetryProps> {
     process.env.OTEL_ENDPOINT = window.location.origin;
 
     try {
-      const telemetry = this.props.firebaseOptions
-        ? getTelemetry(initializeApp(this.props.firebaseOptions))
-        : getTelemetry();
-
-      window.addEventListener('error', (event: ErrorEvent) => {
-        captureError(telemetry, event.error, {});
-      });
-
-      window.addEventListener(
-        'unhandledrejection',
-        (event: PromiseRejectionEvent) => {
-          captureError(telemetry, event.reason, {});
-        }
-      );
+      if (firebaseOptions) {
+        initializeApp(firebaseOptions);
+      }
+      window.addEventListener('error', errorListener);
+      window.addEventListener('unhandledrejection', unhandledRejectionListener);
     } catch (error) {
       // Log the error here, but don't die.
       console.warn(`Firebase Telemetry was not initialized:\n`, error);
     }
-  }
+    return () => {
+      window.removeEventListener('error', errorListener);
+      window.removeEventListener(
+        'unhandledrejection',
+        unhandledRejectionListener
+      );
+    };
+  }, []);
 
-  render(): ReactNode {
-    return this.props.children;
-  }
+  return null;
 }

@@ -110,47 +110,8 @@ const reactBuilds = [
   }
 ];
 
-const reactNodeBuilds = [
-  {
-    input: 'src/react/index.ts',
-    output: {
-      file: pkg.exports['./react'].node.default,
-      format: 'cjs',
-      sourcemap: true,
-      banner: `'use client';`
-    },
-    plugins: [
-      typescriptPlugin({
-        typescript,
-        tsconfig: 'tsconfig.react.json'
-      }),
-      json()
-    ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
-  {
-    input: 'src/react/index.ts',
-    output: {
-      file: pkg.exports['./react'].node.import,
-      format: 'es',
-      sourcemap: true,
-      banner: `'use client';`
-    },
-    plugins: [
-      typescriptPlugin({
-        typescript,
-        tsconfig: 'tsconfig.react.json'
-      }),
-      json(),
-      emitModulePackageFile()
-    ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  }
-];
-
 export default [
   ...browserBuilds,
   ...nodeBuilds,
-  ...reactBuilds,
-  ...reactNodeBuilds
+  ...reactBuilds
 ];

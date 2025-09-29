@@ -27,6 +27,12 @@ https://github.com/firebase/firebase-js-sdk
 |  --- | --- |
 |  [Telemetry](./telemetry.telemetry.md#telemetry_interface) | An instance of the Firebase Telemetry SDK.<!-- -->Do not create this instance directly. Instead, use [getTelemetry()](./telemetry.md#gettelemetry_cf608e1)<!-- -->. |
 
+## Namespaces
+
+|  Namespace | Description |
+|  --- | --- |
+|  [Instrumentation](./telemetry.instrumentation.md#instrumentation_namespace) |  |
+
 ## Variables
 
 |  Variable | Description |
