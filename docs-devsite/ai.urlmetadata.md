@@ -9,47 +9,47 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# ExecutableCode interface
+# URLMetadata interface
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-An interface for executable code returned by the model.
+Metadata for a single URL retrieved by the [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) tool.
 
 <b>Signature:</b>
 
 ```typescript
-export interface ExecutableCode 
+export interface URLMetadata 
 ```
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [code](./ai.executablecode.md#executablecodecode) | string | <b><i>(Public Preview)</i></b> The source code to be executed. |
-|  [language](./ai.executablecode.md#executablecodelanguage) | [Language](./ai.md#language) | <b><i>(Public Preview)</i></b> The programming language of the code. |
+|  [retrievedUrl](./ai.urlmetadata.md#urlmetadataretrievedurl) | string | <b><i>(Public Preview)</i></b> The retrieved URL. |
+|  [urlRetrievalStatus](./ai.urlmetadata.md#urlmetadataurlretrievalstatus) | [URLRetrievalStatus](./ai.md#urlretrievalstatus) | <b><i>(Public Preview)</i></b> The status of the URL retrieval. |
 
-## ExecutableCode.code
+## URLMetadata.retrievedUrl
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-The source code to be executed.
+The retrieved URL.
 
 <b>Signature:</b>
 
 ```typescript
-code?: string;
+retrievedUrl?: string;
 ```
 
-## ExecutableCode.language
+## URLMetadata.urlRetrievalStatus
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-The programming language of the code.
+The status of the URL retrieval.
 
 <b>Signature:</b>
 
 ```typescript
-language?: Language;
+urlRetrievalStatus?: URLRetrievalStatus;
 ```

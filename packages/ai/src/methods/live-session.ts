@@ -17,6 +17,7 @@
 
 import {
   AIErrorCode,
+  FunctionResponse,
   GenerativeContentBlob,
   LiveResponseType,
   LiveServerContent,
@@ -30,7 +31,8 @@ import { WebSocketHandler } from '../websocket';
 import { logger } from '../logger';
 import {
   _LiveClientContent,
-  _LiveClientRealtimeInput
+  _LiveClientRealtimeInput,
+  _LiveClientToolResponse
 } from '../types/live-responses';
 
 /**
@@ -117,6 +119,32 @@ export class LiveSession {
       };
       this.webSocketHandler.send(JSON.stringify(message));
     });
+  }
+
+  /**
+   * Sends function responses to the server.
+   *
+   * @param functionResponses - The function responses to send.
+   * @throws If this session has been closed.
+   *
+   * @beta
+   */
+  async sendFunctionResponses(
+    functionResponses: FunctionResponse[]
+  ): Promise<void> {
+    if (this.isClosed) {
+      throw new AIError(
+        AIErrorCode.REQUEST_ERROR,
+        'This LiveSession has been closed and cannot be used.'
+      );
+    }
+
+    const message: _LiveClientToolResponse = {
+      toolResponse: {
+        functionResponses
+      }
+    };
+    this.webSocketHandler.send(JSON.stringify(message));
   }
 
   /**
