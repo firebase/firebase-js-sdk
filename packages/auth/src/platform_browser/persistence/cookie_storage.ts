@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Persistence } from '../../model/public_types';
+import { Auth, Persistence } from '../../model/public_types';
 import type { CookieChangeEvent } from 'cookie-store';
 
 const POLLING_INTERVAL_MS = 1_000;
@@ -49,12 +49,13 @@ export class CookiePersistence implements PersistenceInternal {
   listenerUnsubscribes: Map<StorageEventListener, () => void> = new Map();
 
   // used to get the URL to the backend to proxy to
-  _getFinalTarget(originalUrl: string): URL | string {
+  _getFinalTarget(auth: Auth, originalUrl: string): URL | string {
     if (typeof window === undefined) {
       return originalUrl;
     }
     const url = new URL(`${window.location.origin}/__cookies__`);
     url.searchParams.set('finalTarget', originalUrl);
+    url.searchParams.set('appName', auth.app.name);
     return url;
   }
 
