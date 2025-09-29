@@ -8,7 +8,7 @@
   "browser": "dist/index.esm.js",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./dist/index-public.d.ts",
       "node": {
         "import": "./dist/node-esm/index.node.esm.js",
         "default": "./dist/index.node.cjs.js"
@@ -20,7 +20,7 @@
       "default": "./dist/index.esm.js"
     },
     "./react": {
-      "types": "./dist/react/index.d.ts",
+      "types": "./dist/react/index-public.d.ts",
       "node": {
         "import": "./dist/react/index.esm.js",
         "default": "./dist/react/index.cjs.js"
@@ -48,8 +48,11 @@
     "test:browser": "karma start",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha **/*.test.ts src/**/*.test.ts --config ../../config/mocharc.node.js",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
-    "api-report": "api-extractor run --local --verbose",
-    "typings:public": "node ../../scripts/build/use_typings.js ./dist/index.d.ts"
+    "api-report": "yarn api-report:main && yarn api-report:react && yarn api-report:api-json",
+    "api-report:main": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package telemetry --packageRoot . --typescriptDts ./dist/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/index-public.d.ts",
+    "api-report:react": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package telemetry-react --packageRoot . --typescriptDts ./dist/react/index.d.ts --rollupDts ./dist/react/private.d.ts --untrimmedRollupDts ./dist/react/internal.d.ts --publicDts ./dist/react/index-public.d.ts",
+    "api-report:api-json": "api-extractor run --local --verbose",
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/index-public.d.ts"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",

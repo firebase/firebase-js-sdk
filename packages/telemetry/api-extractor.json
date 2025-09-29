@@ -1,6 +1,5 @@
 {
   "extends": "../../config/api-extractor.json",
-  // Point it to your entry point d.ts file.
   "mainEntryPointFilePath": "<projectFolder>/dist/index.d.ts",
   "additionalEntryPoints": [
     {
@@ -8,5 +7,14 @@
       "filePath": "<projectFolder>/dist/react/index.d.ts"
     }
   ],
+  "dtsRollup": {
+    // rollup is not supported when multiple entry points are present.
+    // npm script api-report:* is used to generate dts rollup.
+    "enabled": false
+  },
+  "apiReport": {
+    // apiReport is handled by npm script api-report:*
+    "enabled": false
+  },
   "bundledPackages": ["next"]
 }
