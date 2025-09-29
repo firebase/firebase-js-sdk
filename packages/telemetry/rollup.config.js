@@ -110,8 +110,4 @@ const reactBuilds = [
   }
 ];
 
-export default [
-  ...browserBuilds,
-  ...nodeBuilds,
-  ...reactBuilds
-];
+export default [...browserBuilds, ...nodeBuilds, ...reactBuilds];
