@@ -126,7 +126,11 @@
   "license": "Apache-2.0",
   "files": [
     "dist",
-    "lite/package.json"
+    "lite/package.json",
+    "pipelines/package.json",
+    "pipelines/pipelines.d.ts",
+    "lite/pipelines/package.json",
+    "lite/pipelines/pipelines.d.ts"
   ],
   "dependencies": {
     "@firebase/component": "0.7.0",

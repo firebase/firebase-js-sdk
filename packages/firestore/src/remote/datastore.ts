@@ -262,17 +262,20 @@ export async function invokeExecutePipeline(
     executePipelineRequest
   );
 
-  return response
+  const result: PipelineStreamElement[] = [];
+  response
     .filter(proto => !!proto.results)
-    .flatMap(proto => {
+    .forEach(proto => {
       if (proto.results!.length === 0) {
-        return fromPipelineResponse(datastoreImpl.serializer, proto);
+        result.push(fromPipelineResponse(datastoreImpl.serializer, proto));
       } else {
-        return proto.results!.map(result =>
-          fromPipelineResponse(datastoreImpl.serializer, proto, result)
+        return proto.results!.forEach(document =>
+          result.push(fromPipelineResponse(datastoreImpl.serializer, proto, document))
         );
       }
     });
+
+  return result;
 }
 
 export async function invokeRunQueryRpc(
