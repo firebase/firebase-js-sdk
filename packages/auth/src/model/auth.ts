@@ -67,6 +67,7 @@ export interface ConfigInternal extends Config {
 export interface AuthInternal extends Auth {
   currentUser: User | null;
   emulatorConfig: EmulatorConfig | null;
+  getFirebaseAccessToken(forceRefresh?: boolean): Promise<FirebaseToken | null>;
   _agentRecaptchaConfig: RecaptchaConfig | null;
   _tenantRecaptchaConfigs: Record<string, RecaptchaConfig>;
   _projectPasswordPolicy: PasswordPolicy | null;

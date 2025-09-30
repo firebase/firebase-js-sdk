@@ -274,7 +274,7 @@ export interface Auth {
    * @param tokenRefreshHandler - An object that implements the `TokenRefreshHandler`
    *   interface, providing the logic to refresh the IDP token.
    */
-   setTokenRefreshHandler(tokenRefreshHandler: TokenRefreshHandler): void;
+  setTokenRefreshHandler(tokenRefreshHandler: TokenRefreshHandler): void;
 
   /**
    * The {@link Auth} instance's language code.
