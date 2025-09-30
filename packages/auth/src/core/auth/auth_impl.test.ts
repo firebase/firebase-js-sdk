@@ -47,9 +47,11 @@ import { mockEndpointWithParams } from '../../../test/helpers/api/helper';
 import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../errors';
+import * as exchangeTokenModule from '../strategies/exhange_token';
 import {
   FirebaseToken,
-  PasswordValidationStatus
+  PasswordValidationStatus,
+  TokenRefreshHandler
 } from '../../model/public_types';
 import { PasswordPolicyImpl } from './password_policy_impl';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
@@ -301,6 +303,116 @@ describe('core/auth/auth_impl', () => {
       expect(subscription.next).to.have.been.calledWith(null);
     });
   });
+
+  describe('#setTokenRefreshHandler', () => {
+    it('sets the tokenRefreshHandler on the auth object', () => {
+      const handler: TokenRefreshHandler = {
+        refreshIdpToken: async () => ({ idToken: 'a', idpConfigId: 'b' })
+      };
+      auth.setTokenRefreshHandler(handler);
+      expect((auth as any).tokenRefreshHandler).to.eq(handler);
+    });
+
+  describe('#getFirebaseAccessToken', () => {
+    let exchangeTokenStub: sinon.SinonStub;
+    let mockToken: FirebaseToken;
+    let expiredMockToken: FirebaseToken;
+    let tokenRefreshHandler: TokenRefreshHandler;
+    const tokenKey = `firebase:persistence-token:${FAKE_APP.options.apiKey!}:${
+      FAKE_APP.name
+    }`;
+
+    beforeEach(() => {
+      exchangeTokenStub = sinon.stub(exchangeTokenModule, 'exchangeToken').resolves();
+
+      mockToken = {
+        token: 'test-token',
+        expirationTime: Date.now() + 300000 // 5 minutes from now
+      };
+      expiredMockToken = {
+        token: 'expired-test-token',
+        expirationTime: Date.now() - 1000 // 1 second ago
+      };
+      tokenRefreshHandler = {
+        refreshIdpToken: sinon.stub().resolves({
+          idToken: 'new-id-token',
+          idpConfigId: 'test-idp'
+        })
+      };
+      // Reset cached token and persistence before each test
+      (auth as any).firebaseToken = null;
+      persistenceStub._get.withArgs(tokenKey).resolves(null);
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it('should return the existing token if it is valid', async () => {
+      persistenceStub._get.withArgs(tokenKey).resolves(mockToken as any);
+      const token = await auth.getFirebaseAccessToken();
+      expect(token).to.eql(mockToken);
+      expect(exchangeTokenStub).not.to.have.been.called;
+    });
+
+    it('should return null if the token is expired and no token refresh handler is set', async () => {
+      persistenceStub._get.withArgs(tokenKey).resolves(expiredMockToken as any);
+      const token = await auth.getFirebaseAccessToken();
+      expect(token).to.be.null;
+      expect(exchangeTokenStub).not.to.have.been.called;
+    });
+
+    it('should refresh the token if it is expired and a token refresh handler is set', async () => {
+      persistenceStub._get.withArgs(tokenKey).resolves(expiredMockToken as any);
+      auth.setTokenRefreshHandler(tokenRefreshHandler);
+
+      exchangeTokenStub.callsFake(async () => {
+        // When exchangeToken is called, simulate that the new token is persisted.
+        persistenceStub._get.withArgs(tokenKey).resolves(mockToken as any);
+      });
+
+      const token = await auth.getFirebaseAccessToken();
+
+      expect(tokenRefreshHandler.refreshIdpToken).to.have.been.calledOnce;
+      expect(exchangeTokenStub).to.have.been.calledWith(auth, 'test-idp', 'new-id-token');
+      expect(token).to.eql(mockToken);
+    });
+
+    it('should force refresh the token when forceRefresh is true', async () => {
+      persistenceStub._get.withArgs(tokenKey).resolves(mockToken as any);
+      auth.setTokenRefreshHandler(tokenRefreshHandler);
+
+      exchangeTokenStub.callsFake(async () => {
+        persistenceStub._get.withArgs(tokenKey).resolves(mockToken as any);
+      });
+
+      await auth.getFirebaseAccessToken(true);
+
+      expect(tokenRefreshHandler.refreshIdpToken).to.have.been.calledOnce;
+      expect(exchangeTokenStub).to.have.been.calledWith(auth, 'test-idp', 'new-id-token');
+    });
+
+    it('should return null and log an error if token refresh fails', async () => {
+      const consoleErrorStub = sinon.stub(console, 'error');
+      persistenceStub._get.withArgs(tokenKey).resolves(expiredMockToken as any);
+      (tokenRefreshHandler.refreshIdpToken as sinon.SinonStub).rejects(new Error('refresh failed'));
+      auth.setTokenRefreshHandler(tokenRefreshHandler);
+      const token = await auth.getFirebaseAccessToken();
+      expect(token).to.be.null;
+      expect(consoleErrorStub).to.have.been.calledWith('Token refresh failed:', sinon.match.instanceOf(Error));
+    });
+
+    it('should return null and log an error if the refreshed token is invalid', async () => {
+      const consoleErrorStub = sinon.stub(console, 'error');
+      persistenceStub._get.withArgs(tokenKey).resolves(expiredMockToken as any);
+      (tokenRefreshHandler.refreshIdpToken as sinon.SinonStub).resolves({ idToken: 'new-id-token' }); // Missing idpConfigId
+      auth.setTokenRefreshHandler(tokenRefreshHandler);
+      const token = await auth.getFirebaseAccessToken();
+      expect(token).to.be.null;
+      expect(consoleErrorStub).to.have.been.calledWith('Token refresh failed:', sinon.match.instanceOf(FirebaseError));
+    });
+  });
+
 
   describe('#signOut', () => {
     it('sets currentUser to null, calls remove', async () => {
