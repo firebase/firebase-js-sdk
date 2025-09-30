@@ -128,12 +128,12 @@ export interface TokenRefreshHandler {
    * Refreshes the third-party IDP token.
    *
    * This method should contain the logic to obtain a new, valid IDP token from
-   * your identity provider. 
+   * your identity provider.
    *
    * @returns A promise that resolves with a `RefreshIdpTokenResult` object
    *   containing the new IDP token and its corresponding Idp Config ID.
    */
-  refreshIdpToken(): Promise<RefreshIdpTokenResult>
+  refreshIdpToken(): Promise<RefreshIdpTokenResult>;
 }
 
 /**

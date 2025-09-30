@@ -216,7 +216,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   setTokenRefreshHandler(tokenRefreshHandler: TokenRefreshHandler): void {
-      this.tokenRefreshHandler = tokenRefreshHandler;
+    this.tokenRefreshHandler = tokenRefreshHandler;
   }
 
   /**
@@ -249,33 +249,38 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     await this._updateCurrentUser(user, /* skipBeforeStateCallbacks */ true);
   }
 
-  async getFirebaseAccessToken(forceRefresh?: boolean): 
-    Promise<FirebaseToken | null> {
-      const firebaseAccessToken =
-        (await this.persistenceManager?.getFirebaseToken()) ?? null;
+  async getFirebaseAccessToken(
+    forceRefresh?: boolean
+  ): Promise<FirebaseToken | null> {
+    const firebaseAccessToken =
+      (await this.persistenceManager?.getFirebaseToken()) ?? null;
 
-      if (
-        firebaseAccessToken &&
-        this.isFirebaseAccessTokenValid(firebaseAccessToken) &&
-        !forceRefresh
-      ) {
-        this.firebaseToken = firebaseAccessToken;
-        this.firebaseTokenSubscription.next(this.firebaseToken);
-        return firebaseAccessToken;
-      }
+    if (
+      firebaseAccessToken &&
+      this.isFirebaseAccessTokenValid(firebaseAccessToken) &&
+      !forceRefresh
+    ) {
+      this.firebaseToken = firebaseAccessToken;
+      this.firebaseTokenSubscription.next(this.firebaseToken);
+      return firebaseAccessToken;
+    }
 
-      if (firebaseAccessToken && this.tokenRefreshHandler) {
-        // Resets the Firebase Access Token to null i.e. logs out the user.
-        await this._updateFirebaseToken(null);
+    if (firebaseAccessToken && this.tokenRefreshHandler) {
+      // Resets the Firebase Access Token to null i.e. logs out the user.
+      await this._updateFirebaseToken(null);
+      try {
         // Awaits for the callback method to execute. The callback method
         // is responsible for performing the exchangeToken(auth, valid3pIdpToken)
         const result: RefreshIdpTokenResult = await this.tokenRefreshHandler.refreshIdpToken();
         _assert(result.idToken && result.idpConfigId, AuthErrorCode.INVALID_CREDENTIAL);
         await exchangeToken(this, result.idpConfigId, result.idToken);
         return this.getFirebaseAccessToken(false);
+      } catch (error) {
+        console.error("Token refresh failed:", error);
+        return null;
       }
-
-      return null;
+    }
+    return null;
   }
 
   private async initializeCurrentUserFromIdToken(
@@ -446,11 +451,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   private isFirebaseAccessTokenValid(
     firebaseToken: FirebaseToken | null
   ): boolean {
-    if(
+    if (
       firebaseToken &&
       firebaseToken.expirationTime &&
-      (Date.now() >
-        firebaseToken.expirationTime - this.TOKEN_EXPIRATION_BUFFER)
+      Date.now() > firebaseToken.expirationTime - this.TOKEN_EXPIRATION_BUFFER
     ) {
       return false;
     }
