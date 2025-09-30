@@ -312,6 +312,7 @@ describe('core/auth/auth_impl', () => {
       auth.setTokenRefreshHandler(handler);
       expect((auth as any).tokenRefreshHandler).to.eq(handler);
     });
+  });
 
   describe('#getFirebaseAccessToken', () => {
     let exchangeTokenStub: sinon.SinonStub;
@@ -323,7 +324,9 @@ describe('core/auth/auth_impl', () => {
     }`;
 
     beforeEach(() => {
-      exchangeTokenStub = sinon.stub(exchangeTokenModule, 'exchangeToken').resolves();
+      exchangeTokenStub = sinon
+        .stub(exchangeTokenModule, 'exchangeToken')
+        .resolves();
 
       mockToken = {
         token: 'test-token',
@@ -374,7 +377,11 @@ describe('core/auth/auth_impl', () => {
       const token = await auth.getFirebaseAccessToken();
 
       expect(tokenRefreshHandler.refreshIdpToken).to.have.been.calledOnce;
-      expect(exchangeTokenStub).to.have.been.calledWith(auth, 'test-idp', 'new-id-token');
+      expect(exchangeTokenStub).to.have.been.calledWith(
+        auth,
+        'test-idp',
+        'new-id-token'
+      );
       expect(token).to.eql(mockToken);
     });
 
@@ -389,30 +396,43 @@ describe('core/auth/auth_impl', () => {
       await auth.getFirebaseAccessToken(true);
 
       expect(tokenRefreshHandler.refreshIdpToken).to.have.been.calledOnce;
-      expect(exchangeTokenStub).to.have.been.calledWith(auth, 'test-idp', 'new-id-token');
+      expect(exchangeTokenStub).to.have.been.calledWith(
+        auth,
+        'test-idp',
+        'new-id-token'
+      );
     });
 
     it('should return null and log an error if token refresh fails', async () => {
       const consoleErrorStub = sinon.stub(console, 'error');
       persistenceStub._get.withArgs(tokenKey).resolves(expiredMockToken as any);
-      (tokenRefreshHandler.refreshIdpToken as sinon.SinonStub).rejects(new Error('refresh failed'));
+      (tokenRefreshHandler.refreshIdpToken as sinon.SinonStub).rejects(
+        new Error('refresh failed')
+      );
       auth.setTokenRefreshHandler(tokenRefreshHandler);
       const token = await auth.getFirebaseAccessToken();
       expect(token).to.be.null;
-      expect(consoleErrorStub).to.have.been.calledWith('Token refresh failed:', sinon.match.instanceOf(Error));
+      expect(consoleErrorStub).to.have.been.calledWith(
+        'Token refresh failed:',
+        sinon.match.instanceOf(Error)
+      );
     });
 
     it('should return null and log an error if the refreshed token is invalid', async () => {
       const consoleErrorStub = sinon.stub(console, 'error');
       persistenceStub._get.withArgs(tokenKey).resolves(expiredMockToken as any);
-      (tokenRefreshHandler.refreshIdpToken as sinon.SinonStub).resolves({ idToken: 'new-id-token' }); // Missing idpConfigId
+      (tokenRefreshHandler.refreshIdpToken as sinon.SinonStub).resolves({
+        idToken: 'new-id-token'
+      }); // Missing idpConfigId
       auth.setTokenRefreshHandler(tokenRefreshHandler);
       const token = await auth.getFirebaseAccessToken();
       expect(token).to.be.null;
-      expect(consoleErrorStub).to.have.been.calledWith('Token refresh failed:', sinon.match.instanceOf(FirebaseError));
+      expect(consoleErrorStub).to.have.been.calledWith(
+        'Token refresh failed:',
+        sinon.match.instanceOf(FirebaseError)
+      );
     });
   });
-
 
   describe('#signOut', () => {
     it('sets currentUser to null, calls remove', async () => {
