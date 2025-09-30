@@ -698,7 +698,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * Creates an expression that checks if a field exists in the document.
+   * Creates an expression that checks if this expression evaluates to a name of
+   * the field that exists.
    *
    * ```typescript
    * // Check if the document has a field named "phoneNumber"
@@ -1889,7 +1890,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * ```
    *
    * @param key The name of the key to remove from the input map.
-   * @returns A new {@code FirestoreFunction} representing the 'mapRemove' operation.
+   * @return A new {@code Expr} that evaluates to a modified map.
    */
   mapRemove(key: string): FunctionExpr;
   /**
@@ -1903,7 +1904,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * ```
    *
    * @param keyExpr An expression that produces the name of the key to remove from the input map.
-   * @returns A new {@code FirestoreFunction} representing the 'mapRemove' operation.
+   * @return A new {@code Expr} that evaluates to a modified map.
    */
   mapRemove(keyExpr: Expr): FunctionExpr;
   mapRemove(stringExpr: Expr | string): FunctionExpr {
@@ -1916,7 +1917,8 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
   /**
    * @beta
    *
-   * Creates an expression that merges multiple map values.
+   * Creates an expression that merges multiple maps into a single map. If
+   * multiple maps have the same key, the later value is used.
    *
    * ```
    * // Merges the map in the settings field with, a map literal, and a map in
@@ -1928,8 +1930,7 @@ export abstract class Expr implements ProtoValueSerializable, UserData {
    * an expression that returns a map.
    * @param otherMaps Optional additional maps to merge. Each map is represented
    * as a literal or an expression that returns a map.
-   *
-   * @returns A new {@code FirestoreFunction} representing the 'mapMerge' operation.
+   * @return A new {@code Expr} that evaluates to a merged map.
    */
   mapMerge(
     secondMap: Record<string, unknown> | Expr,
@@ -2557,17 +2558,17 @@ export class BooleanExpr extends FunctionExpr {
  * countIf(field("is_active").eq(true)).as("numActiveDocuments");
  * ```
  *
- * @param booleanExpr - The boolean expression to evaluate on each input.
+ * @param condition The boolean expression to evaluate on each input.
  * @returns A new `AggregateFunction` representing the 'countIf' aggregation.
  */
-export function countIf(booleanExpr: BooleanExpr): AggregateFunction {
-  return booleanExpr.countIf();
+export function countIf(condition: BooleanExpr): AggregateFunction {
+  return condition.countIf();
 }
 
 /**
  * @beta
- * Creates an expression that return a pseudo-random value of type double in the
- * range of [0, 1), inclusive of 0 and exclusive of 1.
+ * Creates an expression that return a pseudo-random number of type double in
+ * the range of [0, 1), inclusive of 0 and exclusive of 1.
  *
  * @returns A new `Expr` representing the 'rand' function.
  */
@@ -3140,7 +3141,7 @@ export function isAbsent(value: Expr | string): BooleanExpr {
 /**
  * @beta
  *
- * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+ * Creates an expression that checks if tbe result of an expression is null.
  *
  * ```typescript
  * // Check if the result of a calculation is NaN
@@ -3148,14 +3149,14 @@ export function isAbsent(value: Expr | string): BooleanExpr {
  * ```
  *
  * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @return A new {@code BooleanExpr} representing the 'isNull' check.
  */
 export function isNull(value: Expr): BooleanExpr;
 
 /**
  * @beta
  *
- * Creates an expression that checks if a field's value evaluates to 'NaN' (Not a Number).
+ * Creates an expression that checks if tbe value of a field is null.
  *
  * ```typescript
  * // Check if the result of a calculation is NaN
@@ -3163,7 +3164,7 @@ export function isNull(value: Expr): BooleanExpr;
  * ```
  *
  * @param value The name of the field to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @return A new {@code BooleanExpr} representing the 'isNull' check.
  */
 export function isNull(value: string): BooleanExpr;
 export function isNull(value: Expr | string): BooleanExpr {
@@ -3181,7 +3182,7 @@ export function isNull(value: Expr | string): BooleanExpr {
  * ```
  *
  * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @return A new {@code BooleanExpr} representing the 'isNotNull' check.
  */
 export function isNotNull(value: Expr): BooleanExpr;
 
@@ -3196,7 +3197,7 @@ export function isNotNull(value: Expr): BooleanExpr;
  * ```
  *
  * @param value The name of the field to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @return A new {@code BooleanExpr} representing the 'isNotNull' check.
  */
 export function isNotNull(value: string): BooleanExpr;
 export function isNotNull(value: Expr | string): BooleanExpr {
@@ -3214,7 +3215,7 @@ export function isNotNull(value: Expr | string): BooleanExpr {
  * ```
  *
  * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNotNaN' check.
+ * @return A new {@code BooleanExpr} representing the 'isNotNaN' check.
  */
 export function isNotNan(value: Expr): BooleanExpr;
 
@@ -3229,7 +3230,7 @@ export function isNotNan(value: Expr): BooleanExpr;
  * ```
  *
  * @param value The name of the field to check.
- * @return A new {@code Expr} representing the 'isNotNaN' check.
+ * @return A new {@code BooleanExpr} representing the 'isNotNaN' check.
  */
 export function isNotNan(value: string): BooleanExpr;
 export function isNotNan(value: Expr | string): BooleanExpr {
@@ -3248,6 +3249,7 @@ export function isNotNan(value: Expr | string): BooleanExpr {
  *
  * @param mapField The name of a field containing a map value.
  * @param key The name of the key to remove from the input map.
+ * @return A new {@code Expr} that evaluates to a modified map.
  */
 export function mapRemove(mapField: string, key: string): FunctionExpr;
 /**
@@ -3262,6 +3264,7 @@ export function mapRemove(mapField: string, key: string): FunctionExpr;
  *
  * @param mapExpr An expression return a map value.
  * @param key The name of the key to remove from the input map.
+ * @return A new {@code Expr} that evaluates to a modified map.
  */
 export function mapRemove(mapExpr: Expr, key: string): FunctionExpr;
 /**
@@ -3276,6 +3279,7 @@ export function mapRemove(mapExpr: Expr, key: string): FunctionExpr;
  *
  * @param mapField The name of a field containing a map value.
  * @param keyExpr An expression that produces the name of the key to remove from the input map.
+ * @return A new {@code Expr} that evaluates to a modified map.
  */
 export function mapRemove(mapField: string, keyExpr: Expr): FunctionExpr;
 /**
@@ -3290,6 +3294,7 @@ export function mapRemove(mapField: string, keyExpr: Expr): FunctionExpr;
  *
  * @param mapExpr An expression return a map value.
  * @param keyExpr An expression that produces the name of the key to remove from the input map.
+ * @return A new {@code Expr} that evaluates to a modified map.
  */
 export function mapRemove(mapExpr: Expr, keyExpr: Expr): FunctionExpr;
 
@@ -3303,7 +3308,8 @@ export function mapRemove(
 /**
  * @beta
  *
- * Creates an expression that merges multiple map values.
+ * Creates an expression that merges multiple maps into a single map. If
+ * multiple maps have the same key, the later value is used.
  *
  * ```
  * // Merges the map in the settings field with, a map literal, and a map in
@@ -3316,6 +3322,7 @@ export function mapRemove(
  * an expression that returns a map.
  * @param otherMaps Optional additional maps to merge. Each map is represented
  * as a literal or an expression that returns a map.
+ * @return A new {@code Expr} that evaluates to a merged map.
  */
 export function mapMerge(
   mapField: string,
@@ -3326,7 +3333,8 @@ export function mapMerge(
 /**
  * @beta
  *
- * Creates an expression that merges multiple map values.
+ * Creates an expression that merges multiple maps into a single map. If
+ * multiple maps have the same key, the later value is used.
  *
  * ```
  * // Merges the map in the settings field with, a map literal, and a map in
@@ -3339,6 +3347,7 @@ export function mapMerge(
  * an expression that returns a map.
  * @param otherMaps Optional additional maps to merge. Each map is represented
  * as a literal or an expression that returns a map.
+ * @return A new {@code Expr} that evaluates to a merged map.
  */
 export function mapMerge(
   firstMap: Record<string, unknown> | Expr,
@@ -3778,6 +3787,7 @@ export function mod(fieldName: string, expression: Expr): FunctionExpr;
  * @param value The divisor constant.
  * @return A new {@code Expr} representing the modulo operation.
  */
+// TODO: Should we only accept number constants on arithmetic operations? (including others)
 export function mod(fieldName: string, value: unknown): FunctionExpr;
 export function mod(left: Expr | string, right: Expr | unknown): FunctionExpr {
   const normalizedLeft = typeof left === 'string' ? field(left) : left;
@@ -4665,7 +4675,7 @@ export function eqAny(
  *
  * @param fieldName The field to compare.
  * @param arrayExpression An expression that evaluates to an array, whose elements to check for equality to the input field.
- * @return A new {@code Expr} representing the 'IN' comparison.
+ * @return A new {@code BooleanExpr} representing the 'IN' comparison.
  */
 export function eqAny(fieldName: string, arrayExpression: Expr): BooleanExpr;
 export function eqAny(
@@ -4679,7 +4689,7 @@ export function eqAny(
 /**
  * @beta
  *
- * Creates an expression that checks if an expression is not equal to any of the provided values
+ * Creates an expression that checks if an expression is not equal to all the provided values
  * or expressions.
  *
  * ```typescript
@@ -4689,7 +4699,7 @@ export function eqAny(
  *
  * @param element The expression to compare.
  * @param values The values to check against.
- * @return A new {@code Expr} representing the 'NOT IN' comparison.
+ * @return A new {@code BooleanExpr} representing the 'NOT IN' comparison.
  */
 export function notEqAny(
   element: Expr,
@@ -4699,7 +4709,7 @@ export function notEqAny(
 /**
  * @beta
  *
- * Creates an expression that checks if a field's value is not equal to any of the provided values
+ * Creates an expression that checks if a field's value is not equal to all the provided values
  * or expressions.
  *
  * ```typescript
@@ -4709,7 +4719,7 @@ export function notEqAny(
  *
  * @param fieldName The field name to compare.
  * @param values The values to check against.
- * @return A new {@code Expr} representing the 'NOT IN' comparison.
+ * @return A new {@code BooleanExpr} representing the 'NOT IN' comparison.
  */
 export function notEqAny(
   fieldName: string,
@@ -4719,7 +4729,7 @@ export function notEqAny(
 /**
  * @beta
  *
- * Creates an expression that checks if an expression is not equal to any of the provided values
+ * Creates an expression that checks if an expression is not equal to all the provided values
  * or expressions.
  *
  * ```typescript
@@ -4729,14 +4739,14 @@ export function notEqAny(
  *
  * @param element The expression to compare.
  * @param arrayExpression The values to check against.
- * @return A new {@code Expr} representing the 'NOT IN' comparison.
+ * @return A new {@code BooleanExpr} representing the 'NOT IN' comparison.
  */
 export function notEqAny(element: Expr, arrayExpression: Expr): BooleanExpr;
 
 /**
  * @beta
  *
- * Creates an expression that checks if a field's value is not equal to any of the values in the evaluated expression.
+ * Creates an expression that checks if a field's value is not equal to all the values in the evaluated expression.
  *
  * ```typescript
  * // Check if the 'status' field is not equal to any value in the field 'rejectedStatuses'
@@ -4745,7 +4755,7 @@ export function notEqAny(element: Expr, arrayExpression: Expr): BooleanExpr;
  *
  * @param fieldName The field name to compare.
  * @param arrayExpression The values to check against.
- * @return A new {@code Expr} representing the 'NOT IN' comparison.
+ * @return A new {@code BooleanExpr} representing the 'NOT IN' comparison.
  */
 export function notEqAny(fieldName: string, arrayExpression: Expr): BooleanExpr;
 
@@ -4774,7 +4784,7 @@ export function notEqAny(
  * @param first The first condition.
  * @param second The second condition.
  * @param additionalConditions Additional conditions to 'XOR' together.
- * @return A new {@code Expr} representing the logical 'XOR' operation.
+ * @return A new {@code BooleanExpr} representing the logical 'XOR' operation.
  */
 export function xor(
   first: BooleanExpr,
@@ -4952,7 +4962,7 @@ export function logicalMinimum(
  * ```
  *
  * @param value An expression evaluates to the name of the field to check.
- * @return A new {@code Expr} representing the 'exists' check.
+ * @return A new {@code BooleanExpr} representing the 'exists' check.
  */
 export function exists(value: Expr): BooleanExpr;
 
@@ -4967,7 +4977,7 @@ export function exists(value: Expr): BooleanExpr;
  * ```
  *
  * @param fieldName The field name to check.
- * @return A new {@code Expr} representing the 'exists' check.
+ * @return A new {@code BooleanExpr} representing the 'exists' check.
  */
 export function exists(fieldName: string): BooleanExpr;
 export function exists(valueOrField: Expr | string): BooleanExpr {
@@ -4985,7 +4995,7 @@ export function exists(valueOrField: Expr | string): BooleanExpr {
  * ```
  *
  * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @return A new {@code BooleanExpr} representing the 'isNaN' check.
  */
 export function isNan(value: Expr): BooleanExpr;
 
@@ -5000,7 +5010,7 @@ export function isNan(value: Expr): BooleanExpr;
  * ```
  *
  * @param fieldName The name of the field to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
+ * @return A new {@code BooleanExpr} representing the 'isNaN' check.
  */
 export function isNan(fieldName: string): BooleanExpr;
 export function isNan(value: Expr | string): BooleanExpr {
@@ -5018,21 +5028,21 @@ export function isNan(value: Expr | string): BooleanExpr {
  * ```
  *
  * @param stringExpression An expression evaluating to a string value, which will be reversed.
- * @return A new {@code Expr} representing the reversed string.
+ * @return A new {@code BooleanExpr} representing the reversed string.
  */
 export function reverse(stringExpression: Expr): FunctionExpr;
 
 /**
  * @beta
  *
- * Creates an expression that reverses a string value in the specified field.
+ * Creates an expression that reverses a string value from the specified field.
  *
  * ```typescript
  * // Reverse the value of the 'myString' field.
  * reverse("myString");
  * ```
  *
- * @param field The name of the field representing the string to reverse.
+ * @param field The name of the field that contains the string to reverse.
  * @return A new {@code Expr} representing the reversed string.
  */
 export function reverse(field: string): FunctionExpr;
@@ -5050,13 +5060,13 @@ export function reverse(expr: Expr | string): FunctionExpr {
  * replaceFirst(field("message"), "hello", "hi");
  * ```
  *
- * @param value The expression representing the string to perform the replacement on.
+ * @param stringExpression The expression representing the string to perform the replacement on.
  * @param find The substring to search for.
- * @param replace The substring to replace the first occurrence of 'find' with.
+ * @param replace The replacement for the first occurrence of 'find'.
  * @return A new {@code Expr} representing the string with the first occurrence replaced.
  */
 export function replaceFirst(
-  value: Expr,
+  stringExpression: Expr,
   find: string,
   replace: string
 ): FunctionExpr;
@@ -5072,13 +5082,13 @@ export function replaceFirst(
  * replaceFirst(field("message"), field("findField"), field("replaceField"));
  * ```
  *
- * @param value The expression representing the string to perform the replacement on.
+ * @param stringExpression The expression representing the string to perform the replacement on.
  * @param find The expression representing the substring to search for.
- * @param replace The expression representing the substring to replace the first occurrence of 'find' with.
+ * @param replace The expression representing the replacement for first occurrence of 'find'.
  * @return A new {@code Expr} representing the string with the first occurrence replaced.
  */
 export function replaceFirst(
-  value: Expr,
+  stringExpression: Expr,
   find: Expr,
   replace: Expr
 ): FunctionExpr;
@@ -5086,7 +5096,7 @@ export function replaceFirst(
 /**
  * @beta
  *
- * Creates an expression that replaces the first occurrence of a substring within a string represented by a field with another substring.
+ * Creates an expression that replaces the first occurrence of a substring within the specified string field.
  *
  * ```typescript
  * // Replace the first occurrence of "hello" with "hi" in the 'message' field.
@@ -5095,7 +5105,7 @@ export function replaceFirst(
  *
  * @param fieldName The name of the field representing the string to perform the replacement on.
  * @param find The substring to search for.
- * @param replace The substring to replace the first occurrence of 'find' with.
+ * @param replace The replacement for the first occurrence of 'find'.
  * @return A new {@code Expr} representing the string with the first occurrence replaced.
  */
 export function replaceFirst(
@@ -5124,13 +5134,13 @@ export function replaceFirst(
  * replaceAll(field("message"), "hello", "hi");
  * ```
  *
- * @param value The expression representing the string to perform the replacement on.
+ * @param stringExpression The expression representing the string to perform the replacement on.
  * @param find The substring to search for.
  * @param replace The substring to replace all occurrences of 'find' with.
  * @return A new {@code Expr} representing the string with all occurrences replaced.
  */
 export function replaceAll(
-  value: Expr,
+  stringExpression: Expr,
   find: string,
   replace: string
 ): FunctionExpr;
@@ -5146,13 +5156,13 @@ export function replaceAll(
  * replaceAll(field("message"), field("findField"), field("replaceField"));
  * ```
  *
- * @param value The expression representing the string to perform the replacement on.
+ * @param stringExpression The expression representing the string to perform the replacement on.
  * @param find The expression representing the substring to search for.
  * @param replace The expression representing the substring to replace all occurrences of 'find' with.
  * @return A new {@code Expr} representing the string with all occurrences replaced.
  */
 export function replaceAll(
-  value: Expr,
+  stringExpression: Expr,
   find: Expr,
   replace: Expr
 ): FunctionExpr;
@@ -5424,7 +5434,7 @@ export function regexContains(
  *
  * @param fieldName The name of the field containing the string.
  * @param pattern The regular expression to use for the match.
- * @return A new {@code Expr} representing the regular expression match.
+ * @return A new {@code Expr} representing the regular expression match comparison.
  */
 export function regexMatch(fieldName: string, pattern: string): BooleanExpr;
 
@@ -5440,7 +5450,7 @@ export function regexMatch(fieldName: string, pattern: string): BooleanExpr;
  *
  * @param fieldName The name of the field containing the string.
  * @param pattern The regular expression to use for the match.
- * @return A new {@code Expr} representing the regular expression match.
+ * @return A new {@code Expr} representing the regular expression match comparison.
  */
 export function regexMatch(fieldName: string, pattern: Expr): BooleanExpr;
 
@@ -5457,7 +5467,7 @@ export function regexMatch(fieldName: string, pattern: Expr): BooleanExpr;
  *
  * @param stringExpression The expression representing the string to match against.
  * @param pattern The regular expression to use for the match.
- * @return A new {@code Expr} representing the regular expression match.
+ * @return A new {@code Expr} representing the regular expression match comparison.
  */
 export function regexMatch(
   stringExpression: Expr,
@@ -5477,7 +5487,7 @@ export function regexMatch(
  *
  * @param stringExpression The expression representing the string to match against.
  * @param pattern The regular expression to use for the match.
- * @return A new {@code Expr} representing the regular expression match.
+ * @return A new {@code Expr} representing the regular expression match comparison.
  */
 export function regexMatch(stringExpression: Expr, pattern: Expr): BooleanExpr;
 export function regexMatch(
@@ -5499,7 +5509,7 @@ export function regexMatch(
  * strContains("description", "example");
  * ```
  *
- * @param fieldName The name of the field containing the string.
+ * @param fieldName The name of the field to perform the comparison on.
  * @param substring The substring to search for.
  * @return A new {@code Expr} representing the 'contains' comparison.
  */
@@ -5515,7 +5525,7 @@ export function strContains(fieldName: string, substring: string): BooleanExpr;
  * strContains("description", field("keyword"));
  * ```
  *
- * @param fieldName The name of the field containing the string.
+ * @param fieldName The name of the field to perform the comparison on.
  * @param substring The expression representing the substring to search for.
  * @return A new {@code Expr} representing the 'contains' comparison.
  */
@@ -5717,7 +5727,7 @@ export function endsWith(
  * toLower("name");
  * ```
  *
- * @param fieldName The name of the field containing the string.
+ * @param fieldName The name of the field containing the string to convert to lowercase.
  * @return A new {@code Expr} representing the lowercase string.
  */
 export function toLower(fieldName: string): FunctionExpr;
@@ -5750,7 +5760,7 @@ export function toLower(expr: Expr | string): FunctionExpr {
  * toUpper("title");
  * ```
  *
- * @param fieldName The name of the field containing the string.
+ * @param fieldName The name of the field containing the string to convert to uppercase.
  * @return A new {@code Expr} representing the uppercase string.
  */
 export function toUpper(fieldName: string): FunctionExpr;
@@ -5783,7 +5793,7 @@ export function toUpper(expr: Expr | string): FunctionExpr {
  * trim("userInput");
  * ```
  *
- * @param fieldName The name of the field containing the string.
+ * @param fieldName The name of the field containing the string to trim.
  * @return A new {@code Expr} representing the trimmed string.
  */
 export function trim(fieldName: string): FunctionExpr;
@@ -5817,8 +5827,8 @@ export function trim(expr: Expr | string): FunctionExpr {
  * ```
  *
  * @param fieldName The field name containing the initial string value.
- * @param secondString An expression or string literal to concatenate.
- * @param otherStrings Optional additional expressions or literals (typically strings) to concatenate.
+ * @param secondString A string expression or string literal to concatenate.
+ * @param otherStrings Optional additional string expressions or string literals to concatenate.
  * @return A new {@code Expr} representing the concatenated string.
  */
 export function strConcat(
@@ -5836,9 +5846,9 @@ export function strConcat(
  * strConcat(field("firstName"), " ", field("lastName"));
  * ```
  *
- * @param firstString The initial string expression to concatenate to.
- * @param secondString An expression or string literal to concatenate.
- * @param otherStrings Optional additional expressions or literals (typically strings) to concatenate.
+ * @param firstString The expression representing the initial string value.
+ * @param secondString A string expression or string literal to concatenate.
+ * @param otherStrings Optional additional string expressions or string literals to concatenate.
  * @return A new {@code Expr} representing the concatenated string.
  */
 export function strConcat(
@@ -5868,10 +5878,10 @@ export function strConcat(
  * ```
  *
  * @param fieldName The field name of the map field.
- * @param subField The key to access in the map.
+ * @param key The key to access in the map.
  * @return A new {@code Expr} representing the value associated with the given key in the map.
  */
-export function mapGet(fieldName: string, subField: string): FunctionExpr;
+export function mapGet(fieldName: string, key: string): FunctionExpr;
 
 /**
  * @beta
@@ -6337,7 +6347,7 @@ export function euclideanDistance(
 /**
  * @beta
  *
- * Creates an expression that calculates the length of a Firestore Vector.
+ * Creates an expression that calculates the length (dimension) of a Firestore Vector.
  *
  * ```typescript
  * // Get the vector length (dimension) of the field 'embedding'.
@@ -6345,22 +6355,22 @@ export function euclideanDistance(
  * ```
  *
  * @param vectorExpression The expression representing the Firestore Vector.
- * @return A new {@code Expr} representing the length of the array.
+ * @return A new {@code Expr} representing the length of the vector.
  */
 export function vectorLength(vectorExpression: Expr): FunctionExpr;
 
 /**
  * @beta
  *
- * Creates an expression that calculates the length of a Firestore Vector represented by a field.
+ * Creates an expression that calculates the length (dimension) of a Firestore Vector represented by a field.
  *
  * ```typescript
  * // Get the vector length (dimension) of the field 'embedding'.
  * vectorLength("embedding");
  * ```
  *
- * @param fieldName The name of the field representing the Firestore Vector.
- * @return A new {@code Expr} representing the length of the array.
+ * @param fieldName The name of the field containing the Firestore Vector.
+ * @return A new {@code Expr} representing the length (dimension) of the vector.
  */
 export function vectorLength(fieldName: string): FunctionExpr;
 export function vectorLength(expr: Expr | string): FunctionExpr {
@@ -6586,7 +6596,7 @@ export function timestampToUnixSeconds(expr: Expr | string): FunctionExpr {
  * ```
  *
  * @param timestamp The expression representing the timestamp.
- * @param unit The expression evaluates to unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
+ * @param unit The expression evaluates to unit of time. Valid units include 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
  * @param amount The expression evaluates to amount of the unit.
  * @return A new {@code Expr} representing the resulting timestamp.
  */
@@ -6627,7 +6637,7 @@ export function timestampAdd(
  * timestampAdd("timestamp", "day", 1);
  * ```
  *
- * @param fieldName The name of the field representing the timestamp.
+ * @param fieldName The name of the field that contains the timestamp.
  * @param unit The unit of time to add (e.g., "day", "hour").
  * @param amount The amount of time to add.
  * @return A new {@code Expr} representing the resulting timestamp.
@@ -6666,7 +6676,7 @@ export function timestampAdd(
  * ```
  *
  * @param timestamp The expression representing the timestamp.
- * @param unit The expression evaluates to unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
+ * @param unit The expression evaluates to unit of time. Valid units include 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
  * @param amount The expression evaluates to amount of the unit.
  * @return A new {@code Expr} representing the resulting timestamp.
  */
@@ -6707,7 +6717,7 @@ export function timestampSub(
  * timestampSub("timestamp", "day", 1);
  * ```
  *
- * @param fieldName The name of the field representing the timestamp.
+ * @param fieldName The name of the field that contains the timestamp.
  * @param unit The unit of time to subtract (e.g., "day", "hour").
  * @param amount The amount of time to subtract.
  * @return A new {@code Expr} representing the resulting timestamp.
