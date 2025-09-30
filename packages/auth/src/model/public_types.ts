@@ -156,8 +156,6 @@ export interface RefreshIdpTokenResult {
   idToken: string;
 }
 
-
-
 /**
  * Interface for an `Auth` error.
  *
