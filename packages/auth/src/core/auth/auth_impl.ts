@@ -271,12 +271,16 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       try {
         // Awaits for the callback method to execute. The callback method
         // is responsible for performing the exchangeToken(auth, valid3pIdpToken)
-        const result: RefreshIdpTokenResult = await this.tokenRefreshHandler.refreshIdpToken();
-        _assert(result.idToken && result.idpConfigId, AuthErrorCode.INVALID_CREDENTIAL);
+        const result: RefreshIdpTokenResult =
+          await this.tokenRefreshHandler.refreshIdpToken();
+        _assert(
+          result.idToken && result.idpConfigId,
+          AuthErrorCode.INVALID_CREDENTIAL
+        );
         await exchangeToken(this, result.idpConfigId, result.idToken);
         return this.getFirebaseAccessToken(false);
       } catch (error) {
-        console.error("Token refresh failed:", error);
+        console.error('Token refresh failed:', error);
         return null;
       }
     }
