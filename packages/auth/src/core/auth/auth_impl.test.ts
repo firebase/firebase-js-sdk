@@ -353,7 +353,7 @@ describe('core/auth/auth_impl', () => {
     it('should return the existing token if it is valid', async () => {
       persistenceStub._get.withArgs(tokenKey).resolves(mockToken as any);
       const token = await auth.getFirebaseAccessToken();
-      expect(token).to.eql(mockToken);
+      expect(token).to.eql('test-token');
       expect(exchangeTokenStub).not.to.have.been.called;
     });
 
@@ -381,7 +381,7 @@ describe('core/auth/auth_impl', () => {
         'test-idp',
         'new-id-token'
       );
-      expect(token).to.eql(mockToken);
+      expect(token).to.eql('test-token');
     });
 
     it('should force refresh the token when forceRefresh is true', async () => {
@@ -449,7 +449,7 @@ describe('core/auth/auth_impl', () => {
       await regionalAuth._updateFirebaseToken(token);
       await regionalAuth.signOut();
       expect(persistenceStub._remove).to.have.been.called;
-      expect(regionalAuth.getFirebaseAccessToken()).to.be.null;
+      expect(await regionalAuth.getFirebaseAccessToken()).to.be.null;
     });
     it('is blocked if a beforeAuthStateChanged callback throws', async () => {
       await auth._updateCurrentUser(testUser(auth, 'test'));

@@ -18,14 +18,18 @@
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as sinon from 'sinon';
+import * as mockFetch from '../../../test/helpers/mock_fetch';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import {
   regionalTestAuth,
+  regionalTestAuthWithTokenRefreshHandler,
   testAuth,
   testUser
 } from '../../../test/helpers/mock_auth';
+import { RegionalEndpoint } from '../../api';
+import { mockRegionalEndpointWithParent } from '../../../test/helpers/api/helper';
 import { AuthInternal } from '../../model/auth';
 import { UserInternal } from '../../model/user';
 import { AuthInterop } from './firebase_internal';
@@ -227,17 +231,32 @@ describe('core/auth/firebase_internal', () => {
 
 describe('core/auth/firebase_internal - Regional Firebase Auth', () => {
   let regionalAuth: AuthInternal;
+  let regionalAuthWithRefreshToken: AuthInternal;
   let regionalAuthInternal: AuthInterop;
+  let regionalAuthWithRefreshTokenInternal: AuthInterop;
   let now: number;
   beforeEach(async () => {
     regionalAuth = await regionalTestAuth();
     regionalAuthInternal = new AuthInterop(regionalAuth);
+    regionalAuthWithRefreshToken =
+      await regionalTestAuthWithTokenRefreshHandler();
+    regionalAuthWithRefreshTokenInternal = new AuthInterop(
+      regionalAuthWithRefreshToken
+    );
     now = Date.now();
     sinon.stub(Date, 'now').returns(now);
+    mockFetch.setUp();
+    mockRegionalEndpointWithParent(
+      RegionalEndpoint.EXCHANGE_TOKEN,
+      'projects/test-project-id/locations/us/tenants/tenant-1/idpConfigs/idp-config',
+      'test-api-key',
+      { accessToken: 'access-token-new', expiresIn: 10_000 }
+    );
   });
 
   afterEach(() => {
     sinon.restore();
+    mockFetch.tearDown();
   });
 
   context('getFirebaseToken', () => {
@@ -265,7 +284,8 @@ describe('core/auth/firebase_internal - Regional Firebase Auth', () => {
         expirationTime: now - 5_000
       });
       expect(await regionalAuthInternal.getToken()).to.null;
-      expect(regionalAuth.firebaseToken).to.null;
+      const firebaseToken = await regionalAuth.getFirebaseAccessToken();
+      expect(firebaseToken).to.null;
     });
 
     it('logs out if token is expiring in next 5 seconds', async () => {
@@ -274,24 +294,36 @@ describe('core/auth/firebase_internal - Regional Firebase Auth', () => {
         expirationTime: now + 5_000
       });
       expect(await regionalAuthInternal.getToken()).to.null;
-      expect(regionalAuth.firebaseToken).to.null;
+      const firebaseToken = await regionalAuth.getFirebaseAccessToken();
+      expect(firebaseToken).to.null;
     });
 
-    it('logs warning if getToken is called with forceRefresh true', async () => {
-      sinon.stub(console, 'warn');
+    it('returns refreshIdToken if getToken is called with forceRefresh true', async () => {
+      await regionalAuthWithRefreshToken._updateFirebaseToken({
+        token: 'access-token',
+        expirationTime: now + 30_000
+      });
+      expect(await regionalAuthWithRefreshTokenInternal.getToken(true)).to.eql({
+        accessToken: 'access-token-new'
+      });
+    });
+
+    it('returns refreshIdToken if current idToken is expired', async () => {
+      await regionalAuthWithRefreshToken._updateFirebaseToken({
+        token: 'access-token',
+        expirationTime: now - 5_000
+      });
+      expect(await regionalAuthWithRefreshTokenInternal.getToken()).to.eql({
+        accessToken: 'access-token-new'
+      });
+    });
+
+    it('returns null if current idToken is expired and tokenRefreshHandler is not implemented', async () => {
       await regionalAuth._updateFirebaseToken({
         token: 'access-token',
-        expirationTime: now + 300_000
+        expirationTime: now - 5_000
       });
-      expect(await regionalAuthInternal.getToken(true)).to.eql({
-        accessToken: 'access-token'
-      });
-      expect(console.warn).to.have.been.calledWith(
-        sinon.match.string,
-        sinon.match(
-          /Refresh token is not a valid operation for Regional Auth instance initialized\./
-        )
-      );
+      expect(await regionalAuthInternal.getToken()).to.eql(null);
     });
   });
 });

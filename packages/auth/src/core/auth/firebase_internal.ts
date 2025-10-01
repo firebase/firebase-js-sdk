@@ -22,7 +22,6 @@ import { AuthInternal } from '../../model/auth';
 import { UserInternal } from '../../model/user';
 import { _assert } from '../util/assert';
 import { AuthErrorCode } from '../errors';
-import { _logWarn } from '../util/log';
 
 interface TokenListener {
   (tok: string | null): unknown;
@@ -46,11 +45,6 @@ export class AuthInterop implements FirebaseAuthInternal {
     this.assertAuthConfigured();
     await this.auth._initializationPromise;
     if (this.auth.tenantConfig) {
-      if (forceRefresh) {
-        _logWarn(
-          'Refresh token is not a valid operation for Regional Auth instance initialized.'
-        );
-      }
       const accessToken = await this.getTokenForRegionalAuth(forceRefresh);
       return accessToken ? { accessToken } : null;
     }
