@@ -398,14 +398,6 @@ export interface Auth {
    * {@link @firebase/app#FirebaseServerApp}.
    */
   signOut(): Promise<void>;
-  /**
-   * The token response initialized via {@link exchangeToken} endpoint.
-   *
-   * @remarks
-   * This field is only supported for {@link Auth} instance that have defined
-   * {@link TenantConfig}.
-   */
-  readonly firebaseToken: FirebaseToken | null;
 }
 
 /**
@@ -1036,13 +1028,6 @@ export interface ReactNativeAsyncStorage {
    * @param key - storage key.
    */
   removeItem(key: string): Promise<void>;
-}
-
-export interface FirebaseToken {
-  // The firebase access token (JWT signed by Firebase Auth).
-  readonly token: string;
-  // The time in milliseconds when the access token expires.
-  readonly expirationTime: number;
 }
 
 /**

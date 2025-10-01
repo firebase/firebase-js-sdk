@@ -51,7 +51,8 @@ export class AuthInterop implements FirebaseAuthInternal {
           'Refresh token is not a valid operation for Regional Auth instance initialized.'
         );
       }
-      return this.getTokenForRegionalAuth();
+      const accessToken = await this.getTokenForRegionalAuth(forceRefresh);
+      return accessToken ? { accessToken } : null;
     }
     if (!this.auth.currentUser) {
       return null;
@@ -103,23 +104,11 @@ export class AuthInterop implements FirebaseAuthInternal {
     }
   }
 
-  private async getTokenForRegionalAuth(): Promise<{
-    accessToken: string;
-  } | null> {
-    if (!this.auth.firebaseToken) {
-      return null;
-    }
+  private async getTokenForRegionalAuth(
+    forceRefresh?: boolean
+  ): Promise<string | null> {
+    const firebaseToken = await this.auth.getFirebaseAccessToken(forceRefresh);
 
-    if (
-      !this.auth.firebaseToken.expirationTime ||
-      Date.now() >
-        this.auth.firebaseToken.expirationTime - this.TOKEN_EXPIRATION_BUFFER
-    ) {
-      await this.auth._updateFirebaseToken(null);
-      return null;
-    }
-
-    const accessToken = await this.auth.firebaseToken.token;
-    return { accessToken };
+    return firebaseToken;
   }
 }

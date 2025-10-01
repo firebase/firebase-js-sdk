@@ -38,7 +38,6 @@ import {
   Unsubscribe,
   PasswordValidationStatus,
   TenantConfig,
-  FirebaseToken,
   RefreshIdpTokenResult,
   TokenRefreshHandler
 } from '../../model/public_types';
@@ -51,7 +50,7 @@ import {
   Subscribe
 } from '@firebase/util';
 
-import { AuthInternal, ConfigInternal } from '../../model/auth';
+import { AuthInternal, ConfigInternal, FirebaseToken } from '../../model/auth';
 import { PopupRedirectResolverInternal } from '../../model/popup_redirect';
 import { UserInternal } from '../../model/user';
 import {
@@ -104,7 +103,7 @@ export const enum DefaultConfig {
 export class AuthImpl implements AuthInternal, _FirebaseService {
   currentUser: User | null = null;
   emulatorConfig: EmulatorConfig | null = null;
-  firebaseToken: FirebaseToken | null = null;
+  private firebaseToken: FirebaseToken | null = null;
   private tokenRefreshHandler?: TokenRefreshHandler;
   private operations = Promise.resolve();
   private persistenceManager?: PersistenceUserManager;
@@ -249,9 +248,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     await this._updateCurrentUser(user, /* skipBeforeStateCallbacks */ true);
   }
 
-  async getFirebaseAccessToken(
-    forceRefresh?: boolean
-  ): Promise<FirebaseToken | null> {
+  async getFirebaseAccessToken(forceRefresh?: boolean): Promise<string | null> {
     const firebaseAccessToken =
       (await this.persistenceManager?.getFirebaseToken()) ?? null;
 
@@ -262,7 +259,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     ) {
       this.firebaseToken = firebaseAccessToken;
       this.firebaseTokenSubscription.next(this.firebaseToken);
-      return firebaseAccessToken;
+      return firebaseAccessToken.token;
     }
 
     if (firebaseAccessToken && this.tokenRefreshHandler) {

@@ -32,7 +32,7 @@ import {
   testAuth,
   testUser
 } from '../../../test/helpers/mock_auth';
-import { AuthInternal } from '../../model/auth';
+import { AuthInternal, FirebaseToken } from '../../model/auth';
 import { UserInternal } from '../../model/user';
 import { PersistenceInternal } from '../persistence';
 import { inMemoryPersistence } from '../persistence/in_memory';
@@ -49,7 +49,6 @@ import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../errors';
 import * as exchangeTokenModule from '../strategies/exhange_token';
 import {
-  FirebaseToken,
   PasswordValidationStatus,
   TokenRefreshHandler
 } from '../../model/public_types';
@@ -450,7 +449,7 @@ describe('core/auth/auth_impl', () => {
       await regionalAuth._updateFirebaseToken(token);
       await regionalAuth.signOut();
       expect(persistenceStub._remove).to.have.been.called;
-      expect(regionalAuth.firebaseToken).to.be.null;
+      expect(regionalAuth.getFirebaseAccessToken()).to.be.null;
     });
     it('is blocked if a beforeAuthStateChanged callback throws', async () => {
       await auth._updateCurrentUser(testUser(auth, 'test'));
