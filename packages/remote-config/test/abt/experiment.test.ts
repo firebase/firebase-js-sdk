@@ -34,11 +34,9 @@ describe('Experiment', () => {
     beforeEach(() => {
       storage.getActiveExperiments = sinon.stub();
       storage.setActiveExperiments = sinon.stub();
-      analyticsProvider.get = sinon.stub().returns(
-        Promise.resolve({
-          setUserProperties: sinon.stub()
-        })
-      );
+      analyticsProvider.getImmediate = sinon.stub().returns({
+        setUserProperties: sinon.stub()
+      });
     });
 
     it('adds new experiments to storage', async () => {
@@ -69,7 +67,7 @@ describe('Experiment', () => {
       storage.getActiveExperiments = sinon
         .stub()
         .returns(new Set(['_exp_1', '_exp_2']));
-      const analytics = await analyticsProvider.get();
+      const analytics = analyticsProvider.getImmediate();
 
       await experiment.updateActiveExperiments(latestExperiments);
 
@@ -95,7 +93,7 @@ describe('Experiment', () => {
       storage.getActiveExperiments = sinon
         .stub()
         .returns(new Set(['_exp_1', '_exp_2']));
-      const analytics = await analyticsProvider.get();
+      const analytics = analyticsProvider.getImmediate();
 
       await experiment.updateActiveExperiments(latestExperiments);
 
