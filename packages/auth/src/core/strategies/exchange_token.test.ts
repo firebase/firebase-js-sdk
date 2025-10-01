@@ -53,7 +53,7 @@ describe('core/strategies/exchangeToken', () => {
       RegionalEndpoint.EXCHANGE_TOKEN,
       'projects/test-project-id/locations/us/tenants/tenant-1/idpConfigs/idp-config',
       'test-api-key',
-      { accessToken: 'outbound-token', expiresIn: 10 }
+      { accessToken: 'outbound-token', expiresIn: 10_000 }
     );
 
     const accessToken = await exchangeToken(
@@ -72,8 +72,8 @@ describe('core/strategies/exchangeToken', () => {
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'
     );
-    expect(regionalAuth.firebaseToken?.token).to.equal('outbound-token');
-    expect(regionalAuth.firebaseToken?.expirationTime).to.equal(now + 10_000);
+    const firebaseToken = await regionalAuth.getFirebaseAccessToken();
+    expect(firebaseToken).to.equal('outbound-token');
   });
 
   it('throws exception for default Auth', async () => {
@@ -117,6 +117,7 @@ describe('core/strategies/exchangeToken', () => {
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'
     );
-    expect(regionalAuth.firebaseToken).is.null;
+    const accessToken = await regionalAuth.getFirebaseAccessToken();
+    expect(accessToken).is.null;
   });
 });
