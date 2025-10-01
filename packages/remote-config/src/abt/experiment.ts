@@ -18,10 +18,12 @@ import { Storage } from '../storage/storage';
 import { FirebaseExperimentDescription } from '../public_types';
 import { Provider } from '@firebase/component';
 import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
+import { Logger } from '@firebase/logger';
 
 export class Experiment {
   constructor(
     private readonly storage: Storage,
+    private readonly logger: Logger,
     private readonly analyticsProvider: Provider<FirebaseAnalyticsInternalName>
   ) {}
 
@@ -76,10 +78,14 @@ export class Experiment {
     customProperty: Record<string, string | null>
   ): Promise<void> {
     try {
-      const analytics = await this.analyticsProvider.get();
-      analytics.setUserProperties({ properties: customProperty });
+      const analytics = this.analyticsProvider.getImmediate({ optional: true });
+      if (analytics) {
+        analytics.setUserProperties({ properties: customProperty });
+      } else {
+        this.logger.warn(`Analytics is not imported correctly`);
+      }
     } catch (error) {
-      console.error(`Failed to add experiment to analytics :`, error);
+      this.logger.error(`Failed to add experiment to analytics : ${error}`);
       return;
     }
   }

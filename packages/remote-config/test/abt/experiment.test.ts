@@ -22,11 +22,13 @@ import { FirebaseExperimentDescription } from '../../src/public_types';
 import { Storage } from '../../src/storage/storage';
 import { Provider } from '@firebase/component';
 import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
+import { Logger } from '@firebase/logger';
 
 describe('Experiment', () => {
   const storage = {} as Storage;
   const analyticsProvider = {} as Provider<FirebaseAnalyticsInternalName>;
-  const experiment = new Experiment(storage, analyticsProvider);
+  const logger = {} as Logger;
+  const experiment = new Experiment(storage, logger, analyticsProvider);
 
   describe('updateActiveExperiments', () => {
     beforeEach(() => {

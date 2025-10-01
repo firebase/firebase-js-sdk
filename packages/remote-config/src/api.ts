@@ -111,7 +111,11 @@ export async function activate(remoteConfig: RemoteConfig): Promise<boolean> {
     // config.
     return false;
   }
-  const experiment = new Experiment(rc._storage, rc._analyticsProvider);
+  const experiment = new Experiment(
+    rc._storage,
+    rc._logger,
+    rc._analyticsProvider
+  );
   const updateActiveExperiments = lastSuccessfulFetchResponse.experiments
     ? experiment.updateActiveExperiments(
         lastSuccessfulFetchResponse.experiments
