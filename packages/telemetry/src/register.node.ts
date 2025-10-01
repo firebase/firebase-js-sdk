@@ -21,15 +21,19 @@ import { TELEMETRY_TYPE } from './constants';
 import { name, version } from '../package.json';
 import { TelemetryService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
+import { TelemetryOptions } from './public-types';
 
 export function registerTelemetry(): void {
   _registerComponent(
     new Component(
       TELEMETRY_TYPE,
-      container => {
+      (container, { options }: { options?: TelemetryOptions }) => {
+        // TODO: change to default endpoint once it exists
+        const endpointUrl = options?.endpointUrl || 'http://localhost';
+
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
-        const loggerProvider = createLoggerProvider();
+        const loggerProvider = createLoggerProvider(endpointUrl);
         const appCheckProvider = container.getProvider('app-check-internal');
 
         return new TelemetryService(app, loggerProvider, appCheckProvider);

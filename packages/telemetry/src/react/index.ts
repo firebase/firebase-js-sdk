@@ -15,20 +15,15 @@
  * limitations under the License.
  */
 
-import { FirebaseOptions, initializeApp } from '@firebase/app';
+import { FirebaseOptions, getApp, initializeApp } from '@firebase/app';
 import { registerTelemetry } from '../register';
 import { captureError, getTelemetry } from '../api';
+import { TelemetryOptions } from '../public-types';
 import { useEffect } from 'react';
 
 registerTelemetry();
 
-function errorListener(event: ErrorEvent): void {
-  captureError(getTelemetry(), event.error, {});
-}
-
-function unhandledRejectionListener(event: PromiseRejectionEvent): void {
-  captureError(getTelemetry(), event.reason, {});
-}
+export * from '../public-types';
 
 /**
  * Registers event listeners for uncaught errors.
@@ -45,22 +40,30 @@ function unhandledRejectionListener(event: PromiseRejectionEvent): void {
  * ```
  *
  * @param firebaseOptions - Options to run {@link @firebase/app#initializeApp}. If this is not provided, initializeApp needs to be called explicitly elsewhere in your application.
+ * @param telemetryOptions - {@link TelemetryOptions} that configure the Telemetry instance.
  * @returns The default {@link Telemetry} instance for the given {@link @firebase/app#FirebaseApp}.
  *
  * @public
  */
 export function FirebaseTelemetry({
-  firebaseOptions
+  firebaseOptions,
+  telemetryOptions
 }: {
   firebaseOptions?: FirebaseOptions;
+  telemetryOptions?: TelemetryOptions;
 }): null {
   useEffect(() => {
     if (typeof window === 'undefined') {
       return;
     }
 
-    // TODO: This will be removed once there is a default endpoint
-    process.env.OTEL_ENDPOINT = window.location.origin;
+    const errorListener = (event: ErrorEvent): void => {
+      captureError(getTelemetry(getApp(), telemetryOptions), event.error, {});
+    };
+
+    const unhandledRejectionListener = (event: PromiseRejectionEvent): void => {
+      captureError(getTelemetry(getApp(), telemetryOptions), event.reason, {});
+    };
 
     try {
       if (firebaseOptions) {

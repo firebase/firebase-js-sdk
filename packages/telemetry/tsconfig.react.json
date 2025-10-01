@@ -5,5 +5,6 @@
     "declarationDir": "dist/react",
     "jsx": "react"
   },
+  // "include": ["src/react/index.ts", "src/public-types.ts"]
   "include": ["src/react/index.ts"]
 }
