@@ -150,8 +150,8 @@ async function getActiveUserBlocking() {
 }
 
 class RefreshIdpTokenResult {
-    idpConfigId;
-    idToken;
+  idpConfigId;
+  idToken;
 }
 
 class TokenRefreshHandlerImpl {
@@ -220,11 +220,11 @@ class TokenRefreshHandlerImpl {
       const $modal = $(`#${modalId}`);
 
       // 3. Setup Event Handlers
-      
+
       // Handle Submit button click
       $modal.find('#token-submit-btn').on('click', () => {
         isSubmitted = true;
-        
+
         // Read values from *both* input fields
         const configId = $modal.find('#idp-config-id-input-field').val();
         const token = $modal.find('#id-token-input-field').val();
@@ -235,14 +235,14 @@ class TokenRefreshHandlerImpl {
         const result = new RefreshIdpTokenResult();
         result.idpConfigId = configId;
         result.idToken = token;
-        
+
         resolve(result); // Resolve the promise with the object
       });
 
       // Handle modal being closed (by 'x', 'Cancel' button, backdrop click, or ESC)
       $modal.on('hidden.bs.modal', () => {
         $modal.remove(); // Clean up the modal from the DOM
-        
+
         // If the modal was hidden *without* submitting, reject the promise
         if (!isSubmitted) {
           reject(new Error('User cancelled token input.'));
@@ -254,7 +254,6 @@ class TokenRefreshHandlerImpl {
     });
   }
 }
-
 
 /**
  * Refreshes the current user data in the UI, displaying a user info box if
@@ -2198,7 +2197,7 @@ function initApp() {
     popupRedirectResolver: browserPopupRedirectResolver,
     tenantConfig: tenantConfig
   });
-  const tokenRefreshHandler = new TokenRefreshHandlerImpl(); 
+  const tokenRefreshHandler = new TokenRefreshHandlerImpl();
   regionalAuth.setTokenRefreshHandler(tokenRefreshHandler);
 
   const firebaseTokenStatus = document.getElementById('firebase-token-status');
@@ -2212,7 +2211,6 @@ function initApp() {
     }
     console.log('firebaseToken after delay: ', regionalAuth.firebaseToken);
   }, 1000);
-
 
   tempApp = initializeApp(
     {
