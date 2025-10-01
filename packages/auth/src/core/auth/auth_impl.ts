@@ -455,14 +455,13 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   private isFirebaseAccessTokenValid(
     firebaseToken: FirebaseToken | null
   ): boolean {
-    if (
-      firebaseToken &&
-      firebaseToken.expirationTime &&
-      Date.now() > firebaseToken.expirationTime - this.TOKEN_EXPIRATION_BUFFER
-    ) {
+    if (!firebaseToken || !firebaseToken.expirationTime) {
       return false;
     }
-    return true;
+
+    return (
+      Date.now() < firebaseToken.expirationTime - this.TOKEN_EXPIRATION_BUFFER
+    );
   }
 
   private async initializeFirebaseToken(): Promise<void> {
