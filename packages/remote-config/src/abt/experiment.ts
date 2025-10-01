@@ -19,13 +19,19 @@ import { FirebaseExperimentDescription } from '../public_types';
 import { Provider } from '@firebase/component';
 import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
 import { Logger } from '@firebase/logger';
+import { RemoteConfig } from '../remote_config';
+import { ERROR_FACTORY, ErrorCode } from '../errors';
 
 export class Experiment {
-  constructor(
-    private readonly storage: Storage,
-    private readonly logger: Logger,
-    private readonly analyticsProvider: Provider<FirebaseAnalyticsInternalName>
-  ) {}
+  private storage: Storage;
+  private logger: Logger;
+  private analyticsProvider: Provider<FirebaseAnalyticsInternalName>;
+
+  constructor(rc: RemoteConfig) {
+    this.storage = rc._storage;
+    this.logger = rc._logger;
+    this.analyticsProvider = rc._analyticsProvider;
+  }
 
   async updateActiveExperiments(
     latestExperiments: FirebaseExperimentDescription[]
@@ -58,7 +64,7 @@ export class Experiment {
         customProperty[experimentId] = experimentInfo.variantId;
       }
     }
-    void this.addExperimentToAnalytics(customProperty);
+    this.addExperimentToAnalytics(customProperty);
   }
 
   private removeInactiveExperiments(
@@ -71,22 +77,29 @@ export class Experiment {
         customProperty[experimentId] = null;
       }
     }
-    void this.addExperimentToAnalytics(customProperty);
+    this.addExperimentToAnalytics(customProperty);
   }
 
-  private async addExperimentToAnalytics(
+  private addExperimentToAnalytics(
     customProperty: Record<string, string | null>
-  ): Promise<void> {
+  ): void {
+    if (Object.keys(customProperty).length === 0) {
+      return;
+    }
     try {
       const analytics = this.analyticsProvider.getImmediate({ optional: true });
       if (analytics) {
         analytics.setUserProperties({ properties: customProperty });
       } else {
+        // TODO: Update warning message
         this.logger.warn(`Analytics is not imported correctly`);
       }
     } catch (error) {
+      // TODO: Update error message
       this.logger.error(`Failed to add experiment to analytics : ${error}`);
-      return;
+      throw ERROR_FACTORY.create(ErrorCode.ANALYTICS_UNAVAILABLE, {
+        originalErrorMessage: (error as Error)?.message
+      });
     }
   }
 }

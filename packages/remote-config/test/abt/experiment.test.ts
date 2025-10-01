@@ -23,12 +23,18 @@ import { Storage } from '../../src/storage/storage';
 import { Provider } from '@firebase/component';
 import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
 import { Logger } from '@firebase/logger';
+import { RemoteConfig } from '../../src/remote_config';
 
 describe('Experiment', () => {
   const storage = {} as Storage;
   const analyticsProvider = {} as Provider<FirebaseAnalyticsInternalName>;
   const logger = {} as Logger;
-  const experiment = new Experiment(storage, logger, analyticsProvider);
+  const rc = {
+    _storage: storage,
+    _analyticsProvider: analyticsProvider,
+    _logger: logger
+  } as RemoteConfig;
+  const experiment = new Experiment(rc);
 
   describe('updateActiveExperiments', () => {
     beforeEach(() => {
