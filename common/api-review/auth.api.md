@@ -88,13 +88,13 @@ export interface Auth {
     readonly config: Config;
     readonly currentUser: User | null;
     readonly emulatorConfig: EmulatorConfig | null;
-    readonly firebaseToken: FirebaseToken | null;
     languageCode: string | null;
     readonly name: string;
     onAuthStateChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
     onIdTokenChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
     setPersistence(persistence: Persistence): Promise<void>;
     readonly settings: AuthSettings;
+    setTokenRefreshHandler(tokenRefreshHandler: TokenRefreshHandler): void;
     signOut(): Promise<void>;
     readonly tenantConfig?: TenantConfig;
     tenantId: string | null;
@@ -388,14 +388,6 @@ export const FactorId: {
 
 // @public
 export function fetchSignInMethodsForEmail(auth: Auth, email: string): Promise<string[]>;
-
-// @public (undocumented)
-export interface FirebaseToken {
-    // (undocumented)
-    readonly expirationTime: number;
-    // (undocumented)
-    readonly token: string;
-}
 
 // @public
 export function getAdditionalUserInfo(userCredential: UserCredential): AdditionalUserInfo | null;
@@ -744,6 +736,12 @@ export class RecaptchaVerifier implements ApplicationVerifierInternal {
     }
 
 // @public
+export interface RefreshIdpTokenResult {
+    idpConfigId: string;
+    idToken: string;
+}
+
+// @public
 export function reload(user: User): Promise<void>;
 
 // @public
@@ -813,6 +811,11 @@ export function signOut(auth: Auth): Promise<void>;
 export interface TenantConfig {
     location: string;
     tenantId: string;
+}
+
+// @public
+export interface TokenRefreshHandler {
+    refreshIdpToken(): Promise<RefreshIdpTokenResult>;
 }
 
 // @public
