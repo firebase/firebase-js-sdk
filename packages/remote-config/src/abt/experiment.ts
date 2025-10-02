@@ -96,7 +96,6 @@ export class Experiment {
       }
     } catch (error) {
       // TODO: Update error message
-      this.logger.error(`Failed to add experiment to analytics : ${error}`);
       throw ERROR_FACTORY.create(ErrorCode.ANALYTICS_UNAVAILABLE, {
         originalErrorMessage: (error as Error)?.message
       });
