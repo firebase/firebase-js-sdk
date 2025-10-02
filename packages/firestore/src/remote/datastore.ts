@@ -270,7 +270,9 @@ export async function invokeExecutePipeline(
         result.push(fromPipelineResponse(datastoreImpl.serializer, proto));
       } else {
         return proto.results!.forEach(document =>
-          result.push(fromPipelineResponse(datastoreImpl.serializer, proto, document))
+          result.push(
+            fromPipelineResponse(datastoreImpl.serializer, proto, document)
+          )
         );
       }
     });
