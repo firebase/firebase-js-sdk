@@ -46,8 +46,10 @@ import {
 import * as api from '../src/api';
 import { fetchAndActivate } from '../src';
 import { restore } from 'sinon';
-import { RealtimeHandler } from '../src/client/realtime_handler';
 import { Experiment } from '../src/abt/experiment';
+import { Provider } from '@firebase/component';
+import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
+import { RealtimeHandler } from '../src/client/realtime_handler';
 
 describe('RemoteConfig', () => {
   const ACTIVE_CONFIG = {
@@ -71,6 +73,7 @@ describe('RemoteConfig', () => {
   let logger: Logger;
   let realtimeHandler: RealtimeHandler;
   let rc: RemoteConfigType;
+  let analyticsProvider: Provider<FirebaseAnalyticsInternalName>;
 
   let getActiveConfigStub: sinon.SinonStub;
   let loggerDebugSpy: sinon.SinonSpy;
@@ -82,6 +85,7 @@ describe('RemoteConfig', () => {
     client = {} as RemoteConfigFetchClient;
     storageCache = {} as StorageCache;
     storage = {} as Storage;
+    analyticsProvider = {} as Provider<FirebaseAnalyticsInternalName>;
     realtimeHandler = {} as RealtimeHandler;
     logger = new Logger('package-name');
     getActiveConfigStub = sinon.stub().returns(undefined);
@@ -94,7 +98,8 @@ describe('RemoteConfig', () => {
       storageCache,
       storage,
       logger,
-      realtimeHandler
+      realtimeHandler,
+      analyticsProvider
     );
   });
 
@@ -433,6 +438,10 @@ describe('RemoteConfig', () => {
       storageCache.setActiveConfig = setActiveConfigStub;
       storage.setActiveConfigTemplateVersion =
         setActiveConfigTemplateVersionStub;
+    });
+
+    afterEach(() => {
+      sandbox.restore();
     });
 
     afterEach(() => {

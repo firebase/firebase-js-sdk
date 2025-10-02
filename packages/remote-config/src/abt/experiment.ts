@@ -16,9 +16,22 @@
  */
 import { Storage } from '../storage/storage';
 import { FirebaseExperimentDescription } from '../public_types';
+import { Provider } from '@firebase/component';
+import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
+import { Logger } from '@firebase/logger';
+import { RemoteConfig } from '../remote_config';
+import { ERROR_FACTORY, ErrorCode } from '../errors';
 
 export class Experiment {
-  constructor(private readonly storage: Storage) {}
+  private storage: Storage;
+  private logger: Logger;
+  private analyticsProvider: Provider<FirebaseAnalyticsInternalName>;
+
+  constructor(rc: RemoteConfig) {
+    this.storage = rc._storage;
+    this.logger = rc._logger;
+    this.analyticsProvider = rc._analyticsProvider;
+  }
 
   async updateActiveExperiments(
     latestExperiments: FirebaseExperimentDescription[]
@@ -45,32 +58,47 @@ export class Experiment {
     currentActiveExperiments: Set<string>,
     experimentInfoMap: Map<string, FirebaseExperimentDescription>
   ): void {
+    const customProperty: Record<string, string | null> = {};
     for (const [experimentId, experimentInfo] of experimentInfoMap.entries()) {
       if (!currentActiveExperiments.has(experimentId)) {
-        this.addExperimentToAnalytics(experimentId, experimentInfo.variantId);
+        customProperty[experimentId] = experimentInfo.variantId;
       }
     }
+    this.addExperimentToAnalytics(customProperty);
   }
 
   private removeInactiveExperiments(
     currentActiveExperiments: Set<string>,
     experimentInfoMap: Map<string, FirebaseExperimentDescription>
   ): void {
+    const customProperty: Record<string, string | null> = {};
     for (const experimentId of currentActiveExperiments) {
       if (!experimentInfoMap.has(experimentId)) {
-        this.removeExperimentFromAnalytics(experimentId);
+        customProperty[experimentId] = null;
       }
     }
+    this.addExperimentToAnalytics(customProperty);
   }
 
   private addExperimentToAnalytics(
-    _experimentId: string,
-    _variantId: string
+    customProperty: Record<string, string | null>
   ): void {
-    // TODO
-  }
-
-  private removeExperimentFromAnalytics(_experimentId: string): void {
-    // TODO
+    if (Object.keys(customProperty).length === 0) {
+      return;
+    }
+    try {
+      const analytics = this.analyticsProvider.getImmediate({ optional: true });
+      if (analytics) {
+        analytics.setUserProperties({ properties: customProperty });
+      } else {
+        // TODO: Update warning message
+        this.logger.warn(`Analytics is not imported correctly`);
+      }
+    } catch (error) {
+      // TODO: Update error message
+      throw ERROR_FACTORY.create(ErrorCode.ANALYTICS_UNAVAILABLE, {
+        originalErrorMessage: (error as Error)?.message
+      });
+    }
   }
 }

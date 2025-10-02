@@ -20,18 +20,32 @@ import * as sinon from 'sinon';
 import { Experiment } from '../../src/abt/experiment';
 import { FirebaseExperimentDescription } from '../../src/public_types';
 import { Storage } from '../../src/storage/storage';
+import { Provider } from '@firebase/component';
+import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
+import { Logger } from '@firebase/logger';
+import { RemoteConfig } from '../../src/remote_config';
 
 describe('Experiment', () => {
   const storage = {} as Storage;
-  const experiment = new Experiment(storage);
+  const analyticsProvider = {} as Provider<FirebaseAnalyticsInternalName>;
+  const logger = {} as Logger;
+  const rc = {
+    _storage: storage,
+    _analyticsProvider: analyticsProvider,
+    _logger: logger
+  } as RemoteConfig;
+  const experiment = new Experiment(rc);
 
   describe('updateActiveExperiments', () => {
     beforeEach(() => {
       storage.getActiveExperiments = sinon.stub();
       storage.setActiveExperiments = sinon.stub();
+      analyticsProvider.getImmediate = sinon.stub().returns({
+        setUserProperties: sinon.stub()
+      });
     });
 
-    it('adds mew experiments to storage', async () => {
+    it('adds new experiments to storage', async () => {
       const latestExperiments: FirebaseExperimentDescription[] = [
         {
           experimentId: '_exp_3',
@@ -59,12 +73,16 @@ describe('Experiment', () => {
       storage.getActiveExperiments = sinon
         .stub()
         .returns(new Set(['_exp_1', '_exp_2']));
+      const analytics = analyticsProvider.getImmediate();
 
       await experiment.updateActiveExperiments(latestExperiments);
 
       expect(storage.setActiveExperiments).to.have.been.calledWith(
         expectedStoredExperiments
       );
+      expect(analytics.setUserProperties).to.have.been.calledWith({
+        properties: { '_exp_3': '1' }
+      });
     });
 
     it('removes missing experiment in fetch response from storage', async () => {
@@ -81,12 +99,16 @@ describe('Experiment', () => {
       storage.getActiveExperiments = sinon
         .stub()
         .returns(new Set(['_exp_1', '_exp_2']));
+      const analytics = analyticsProvider.getImmediate();
 
       await experiment.updateActiveExperiments(latestExperiments);
 
       expect(storage.setActiveExperiments).to.have.been.calledWith(
         expectedStoredExperiments
       );
+      expect(analytics.setUserProperties).to.have.been.calledWith({
+        properties: { '_exp_2': null }
+      });
     });
   });
 });
