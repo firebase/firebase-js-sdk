@@ -19,35 +19,6 @@ import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import {
-  AggregateFunction,
-  arrayGet,
-  ascending,
-  BooleanExpression,
-  byteLength,
-  FunctionExpression,
-  timestampAdd,
-  timestampToUnixMicros,
-  timestampToUnixMillis,
-  timestampToUnixSeconds,
-  toLower,
-  unixMicrosToTimestamp,
-  unixMillisToTimestamp,
-  vectorLength,
-  countDistinct,
-  ceil,
-  floor,
-  exp,
-  pow,
-  round,
-  collectionId,
-  ln,
-  log,
-  sqrt,
-  stringReverse,
-  length,
-  abs
-} from '../../../src/lite-api/expressions';
 import { PipelineSnapshot } from '../../../src/lite-api/pipeline-result';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
@@ -140,7 +111,34 @@ import {
   field,
   constant,
   _internalPipelineToExecutePipelineRequestProto,
-  FindNearestStageOptions
+  FindNearestStageOptions,
+  AggregateFunction,
+  arrayGet,
+  ascending,
+  BooleanExpression,
+  byteLength,
+  FunctionExpression,
+  timestampAdd,
+  timestampToUnixMicros,
+  timestampToUnixMillis,
+  timestampToUnixSeconds,
+  toLower,
+  unixMicrosToTimestamp,
+  unixMillisToTimestamp,
+  vectorLength,
+  countDistinct,
+  ceil,
+  floor,
+  exp,
+  pow,
+  round,
+  collectionId,
+  ln,
+  log,
+  sqrt,
+  stringReverse,
+  len as length,
+  abs
 } from '../util/pipeline_export';
 
 use(chaiAsPromised);

@@ -149,19 +149,32 @@ export {
   mapMerge,
   documentId,
   substring,
+  countDistinct,
+  ceil,
+  floor,
+  exp,
+  pow,
+  round,
+  collectionId,
+  ln,
+  log,
+  sqrt,
+  stringReverse,
+  length as len,
+  abs,
   Expression,
   AliasedExpression,
   Field,
   FunctionExpression,
-  Ordering
+  Ordering,
+  BooleanExpression,
+  AggregateFunction
 } from './lite-api/expressions';
 
 export type {
   ExpressionType,
   AggregateWithAlias,
   Selectable,
-  BooleanExpression,
-  AggregateFunction
 } from './lite-api/expressions';
 
 export { _internalPipelineToExecutePipelineRequestProto } from './remote/internal_serializer';
