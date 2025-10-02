@@ -2050,6 +2050,71 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
     return new FunctionExpression('string_reverse', [this]);
   }
 
+  /**
+   * Creates an expression that returns the `elseValue` argument if this expression results in an absent value, else
+   * return the result of the this expression evaluation.
+   *
+   * ```typescript
+   * // Returns the value of the optional field 'optional_field', or returns 'default_value'
+   * // if the field is absent.
+   * field("optional_field").ifAbsent("default_value")
+   * ```
+   *
+   * @param elseValue The value that will be returned if this Expression evaluates to an absent value.
+   * @return A new [Expression] representing the ifAbsent operation.
+   */
+  ifAbsent(elseValue: unknown): Expression;
+
+  /**
+   * Creates an expression that returns the `elseValue` argument if this expression results in an absent value, else
+   * return the result of this expression evaluation.
+   *
+   * ```typescript
+   * // Returns the value of the optional field 'optional_field', or if that is
+   * // absent, then returns the value of the field `
+   * field("optional_field").ifAbsent(field('default_field'))
+   * ```
+   *
+   * @param elseExpression The Expression that will be evaluated if this Expression evaluates to an absent value.
+   * @return A new [Expression] representing the ifAbsent operation.
+   */
+  ifAbsent(elseExpression: unknown): Expression;
+
+  ifAbsent(elseValueOrExpression: Expression | unknown): Expression {
+    return new FunctionExpression('if_absent', [this, valueToDefaultExpr(elseValueOrExpression)], 'ifAbsent');
+  }
+
+  /**
+   * Creates an expression that joins the elements of an array into a string.
+   *
+   * ```typescript
+   * // Join the elements of the 'tags' field with the delimiter from the 'separator' field.
+   * field("tags").join(field("separator"))
+   * ```
+   *
+   * @param delimiterExpression The expression that evaluates to the delimiter string.
+   * @return A new Expression representing the join operation.
+   */
+  join(delimiterExpression: Expression): Expression;
+
+  /**
+   * Creates an expression that joins the elements of an array field into a string.
+   *
+   * ```typescript
+   * // Join the elements of the 'tags' field with a comma and space.
+   * field("tags").join(", ")
+   * ```
+   *
+   * @param delimiter The string to use as a delimiter.
+   * @return A new Expression representing the join operation.
+   */
+  join(delimiter: string): Expression;
+
+  join(delimeterValueOrExpression: string | Expression): Expression {
+    return new FunctionExpression('join', [this, valueToDefaultExpr(delimeterValueOrExpression)], 'join');
+  }
+
+
   // TODO(new-expression): Add new expression method definitions above this line
 
   /**
@@ -6771,6 +6836,37 @@ export function timestampSubtract(
 /**
  * @beta
  *
+ * Creates an expression that evaluates to the current server timestamp.
+ *
+ * ```typescript
+ * // Get the current server timestamp
+ * currentTimestamp()
+ * ```
+ *
+ * @return A new Expression representing the current server timestamp.
+ */
+export function currentTimestamp(): FunctionExpression {
+  return new FunctionExpression('current_timestamp', [], 'currentTimestamp');
+}
+
+/**
+ * Creates an expression that raises an error with the given message. This could be useful for
+ * debugging purposes.
+ *
+ * ```typescript
+ * // Raise an error with the message "simulating an evaluation error".
+ * error("simulating an evaluation error")
+ * ```
+ *
+ * @return A new Expression representing the error() operation.
+ */
+export function error(message: string): Expression {
+  return new FunctionExpression('error', [constant(message)], 'currentTimestamp');
+}
+
+/**
+ * @beta
+ *
  * Creates an expression that performs a logical 'AND' operation on multiple filter conditions.
  *
  * ```typescript
@@ -7230,6 +7326,133 @@ export function abs(expr: Expression): FunctionExpression;
 export function abs(fieldName: string): FunctionExpression;
 export function abs(expr: Expression | string): FunctionExpression {
   return fieldOrExpression(expr).abs();
+}
+
+/**
+ * Creates an expression that returns the `elseExpr` argument if `ifExpr` is absent, else return
+ * the result of the `ifExpr` argument evaluation.
+ *
+ * ```typescript
+ * // Returns the value of the optional field 'optional_field', or returns 'default_value'
+ * // if the field is absent.
+ * ifAbsent(field("optional_field"), constant("default_value"))
+ * ```
+ *
+ * @param ifExpr The expression to check for absence.
+ * @param elseExpr The expression that will be evaluated and returned if [ifExpr] is absent.
+ * @return A new Expression representing the ifAbsent operation.
+ */
+export function ifAbsent(ifExpr: Expression, elseExpr: Expression): Expression;
+
+/**
+ * Creates an expression that returns the `elseValue` argument if `ifExpr` is absent, else
+ * return the result of the `ifExpr` argument evaluation.
+ *
+ * ```typescript
+ * // Returns the value of the optional field 'optional_field', or returns 'default_value'
+ * // if the field is absent.
+ * ifAbsent(field("optional_field"), "default_value")
+ * ```
+ *
+ * @param ifExpr The expression to check for absence.
+ * @param elseValue The value that will be returned if `ifExpr` evaluates to an absent value.
+ * @return A new [Expression] representing the ifAbsent operation.
+ */
+export function ifAbsent(ifExpr: Expression, elseValue: unknown): Expression;
+
+/**
+ * Creates an expression that returns the `elseExpr` argument if `ifFieldName` is absent, else
+ * return the value of the field.
+ *
+ * ```typescript
+ * // Returns the value of the optional field 'optional_field', or returns the value of
+ * // 'default_field' if 'optional_field' is absent.
+ * ifAbsent("optional_field", field("default_field"))
+ * ```
+ *
+ * @param ifFieldName The field to check for absence.
+ * @param elseExpr The expression that will be evaluated and returned if `ifFieldName` is
+ * absent.
+ * @return A new Expression representing the ifAbsent operation.
+ */
+export function ifAbsent(ifFieldName: string, elseExpr: Expression): Expression;
+
+/**
+ * Creates an expression that returns the `elseValue` argument if `ifFieldName` is absent, else
+ * return the value of the field.
+ *
+ * ```typescript
+ * // Returns the value of the optional field 'optional_field', or returns 'default_value'
+ * // if the field is absent.
+ * ifAbsent("optional_field", "default_value")
+ * ```
+ *
+ * @param ifFieldName The field to check for absence.
+ * @param elseValue The value that will be returned if [ifFieldName] is absent.
+ * @return A new Expression representing the ifAbsent operation.
+ */
+export function ifAbsent(ifFieldName: string | Expression, elseValue: Expression | unknown): Expression;
+export function ifAbsent(fieldNameOrExpression: string | Expression, elseValue: Expression | unknown): Expression {
+  return fieldOrExpression(fieldNameOrExpression).ifAbsent(valueToDefaultExpr(elseValue));
+}
+
+/**
+ * Creates an expression that joins the elements of an array into a string.
+ *
+ * ```typescript
+ * // Join the elements of the 'tags' field with a comma and space.
+ * join("tags", ", ")
+ * ```
+ *
+ * @param arrayFieldName The name of the field containing the array.
+ * @param delimiter The string to use as a delimiter.
+ * @return A new Expression representing the join operation.
+ */
+export function join(arrayFieldName: string, delimiter: string): Expression;
+
+/**
+ * Creates an expression that joins the elements of an array into a string.
+ *
+ * ```typescript
+ * // Join an array of string using the delimiter from the 'separator' field.
+ * join(array(['foo', 'bar']), field("separator"))
+ * ```
+ *
+ * @param arrayExpression An expression that evaluates to an array.
+ * @param delimiterExpression The expression that evaluates to the delimiter string.
+ * @return A new Expression representing the join operation.
+ */
+export function join(arrayExpression: Expression, delimiterExpression: Expression): Expression;
+
+/**
+ * Creates an expression that joins the elements of an array into a string.
+ *
+ * ```typescript
+ * // Join the elements of the 'tags' field with a comma and space.
+ * join(field("tags"), ", ")
+ * ```
+ *
+ * @param arrayExpression An expression that evaluates to an array.
+ * @param delimiter The string to use as a delimiter.
+ * @return A new Expression representing the join operation.
+ */
+export function join(arrayExpression: Expression, delimiter: string): Expression;
+
+/**
+ * Creates an expression that joins the elements of an array into a string.
+ *
+ * ```typescript
+ * // Join the elements of the 'tags' field with the delimiter from the 'separator' field.
+ * join('tags', field("separator"))
+ * ```
+ *
+ * @param arrayFieldName The name of the field containing the array.
+ * @param delimiterExpression The expression that evaluates to the delimiter string.
+ * @return A new Expression representing the join operation.
+ */
+export function join(arrayFieldName: string, delimiterExpression: Expression): Expression;
+export function join(fieldNameOrExpression: string | Expression, delimiterValueOrExpression: Expression | string): Expression {
+  return fieldOrExpression(fieldNameOrExpression).join(valueToDefaultExpr(delimiterValueOrExpression));
 }
 
 // TODO(new-expression): Add new top-level expression function definitions above this line

@@ -139,7 +139,9 @@ import {
   stringReverse,
   len as length,
   abs,
-  concat
+  concat,
+  error,
+  currentTimestamp, ifAbsent, join
 } from '../util/pipeline_export';
 
 use(chaiAsPromised);
@@ -986,26 +988,6 @@ apiDescribe.only('Pipelines', persistence => {
             .aggregate(countDistinct('genre').as('distinctGenres'))
         );
         expectResults(snapshot, { distinctGenres: 8 });
-      });
-    });
-
-    describe('concat stage', () => {
-      it('can concat fields', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .addFields(
-              concat('author', ' ', field('title')).as('display'),
-              field('author').concat(': ', field('title')).as('display2')
-            )
-            .where(equal('author', 'Douglas Adams'))
-            .select('display', 'display2')
-        );
-        expectResults(snapshot, {
-          display: "Douglas Adams The Hitchhiker's Guide to the Galaxy",
-          display2: "Douglas Adams: The Hitchhiker's Guide to the Galaxy"
-        });
       });
     });
 
@@ -3836,6 +3818,98 @@ apiDescribe.only('Pipelines', persistence => {
         '10': 10,
         '22': 22.22,
         '1': 1
+      });
+    });
+
+    it('can concat fields', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .addFields(
+            concat('author', ' ', field('title')).as('display'),
+            field('author').concat(': ', field('title')).as('display2')
+          )
+          .where(equal('author', 'Douglas Adams'))
+          .select('display', 'display2')
+      );
+      expectResults(snapshot, {
+        display: "Douglas Adams The Hitchhiker's Guide to the Galaxy",
+        display2: "Douglas Adams: The Hitchhiker's Guide to the Galaxy"
+      });
+    });
+
+    it('supports currentTimestamp', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .addFields(
+            currentTimestamp().as('now')
+          )
+          .select('now')
+      );
+      let now = snapshot.results[0].get('now') as Timestamp;
+      expect(now).instanceof(Timestamp);
+      expect(now.toDate().getUTCSeconds() - (new Date()).getUTCSeconds()).lessThan(5000);
+    });
+
+    it('supports error', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(
+            isError(error('test error')).as('error')
+          ));
+
+      expectResults(snapshot, {
+        'error': true,
+      });
+    });
+
+    it('supports ifAbsent', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(map({
+            title: 'foo'
+          }))
+          .select(
+            ifAbsent('title', 'default title').as('title'),
+            field('name').ifAbsent('default name').as('name'),
+            field('name').ifAbsent(field('title')).as('nameOrTitle'),
+          ));
+
+      expectResults(snapshot, {
+        title: 'foo',
+        name: 'default name',
+        nameOrTitle: 'foo'
+      });
+    });
+
+    it.only('supports join', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(map({
+            tags: ['foo', 'bar', 'baz'],
+            delimeter: '|'
+          }))
+          .select(
+            join('tags', ',').as('csv'),
+            field('tags').join('|').as('or')
+          ));
+
+      expectResults(snapshot, {
+        csv: 'foo,bar,baz',
+        or: 'foo|bar|baz'
       });
     });
 
