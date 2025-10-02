@@ -44,7 +44,14 @@ export interface _LiveClientContent {
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export interface _LiveClientRealtimeInput {
   realtimeInput: {
-    mediaChunks: GenerativeContentBlob[];
+    text?: string;
+    audio?: GenerativeContentBlob;
+    video?: GenerativeContentBlob;
+
+    /**
+     * @deprecated Use `text`, `audio`, and `video` instead.
+     */
+    mediaChunks?: GenerativeContentBlob[];
   };
 }
 

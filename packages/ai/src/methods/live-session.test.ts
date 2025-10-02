@@ -110,6 +110,42 @@ describe('LiveSession', () => {
     });
   });
 
+  describe('sendTextRealtime()', () => {
+    it('should send a correctly formatted realtimeInput message', async () => {
+      const text = 'foo';
+      await session.sendTextRealtime(text);
+      expect(mockHandler.send).to.have.been.calledOnce;
+      const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
+      expect(sentData).to.deep.equal({
+        realtimeInput: { text }
+      });
+    });
+  });
+
+  describe('sendAudioRealtime()', () => {
+    it('should send a correctly formatted realtimeInput message', async () => {
+      const blob = { data: 'abcdef', mimeType: 'audio/pcm' };
+      await session.sendAudioRealtime(blob);
+      expect(mockHandler.send).to.have.been.calledOnce;
+      const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
+      expect(sentData).to.deep.equal({
+        realtimeInput: { audio: blob }
+      });
+    });
+  });
+
+  describe('sendVideoRealtime()', () => {
+    it('should send a correctly formatted realtimeInput message', async () => {
+      const blob = { data: 'abcdef', mimeType: 'image/jpeg' };
+      await session.sendVideoRealtime(blob);
+      expect(mockHandler.send).to.have.been.calledOnce;
+      const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
+      expect(sentData).to.deep.equal({
+        realtimeInput: { video: blob }
+      });
+    });
+  });
+
   describe('sendMediaChunks()', () => {
     it('should send a correctly formatted realtimeInput message', async () => {
       const chunks = [{ data: 'base64', mimeType: 'audio/webm' }];

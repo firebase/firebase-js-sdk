@@ -154,6 +154,45 @@ describe('Live', function () {
         });
       });
 
+      describe('sendTextRealtime()', () => {
+        it('should send a single text chunk and receive a response', async () => {
+          const model = getLiveGenerativeModel(testConfig.ai, {
+            model: testConfig.model,
+            generationConfig: textLiveGenerationConfig
+          });
+          const session = await model.connect();
+          const responsePromise = nextTurnText(session.receive());
+
+          await session.sendTextRealtime('Are you an AI? Yes or No.');
+
+          const responseText = await responsePromise;
+          expect(responseText).to.include('Yes');
+
+          await session.close();
+        });
+      });
+
+      describe('sendAudioRealtime()', () => {
+        it('should send a single audio chunk and receive a response', async () => {
+          const model = getLiveGenerativeModel(testConfig.ai, {
+            model: testConfig.model,
+            generationConfig: textLiveGenerationConfig
+          });
+          const session = await model.connect();
+          const responsePromise = nextTurnText(session.receive());
+
+          await session.sendAudioRealtime({
+            data: HELLO_AUDIO_PCM_BASE64, // "Hey, can you hear me?"
+            mimeType: 'audio/pcm'
+          });
+
+          const responseText = await responsePromise;
+          expect(responseText).to.include('Yes');
+
+          await session.close();
+        });
+      });
+
       describe('sendMediaChunks()', () => {
         it('should send a single audio chunk and receive a response', async () => {
           const model = getLiveGenerativeModel(testConfig.ai, {

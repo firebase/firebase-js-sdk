@@ -184,7 +184,7 @@ export class AudioConversationRunner {
         mimeType: 'audio/pcm',
         data: base64
       };
-      void this.liveSession.sendMediaChunks([chunk]);
+      void this.liveSession.sendAudioRealtime(chunk);
     };
   }
 
