@@ -138,7 +138,8 @@ import {
   sqrt,
   stringReverse,
   len as length,
-  abs
+  abs,
+  concat
 } from '../util/pipeline_export';
 
 use(chaiAsPromised);
@@ -985,6 +986,26 @@ apiDescribe.only('Pipelines', persistence => {
             .aggregate(countDistinct('genre').as('distinctGenres'))
         );
         expectResults(snapshot, { distinctGenres: 8 });
+      });
+    });
+
+    describe('concat stage', () => {
+      it('can concat fields', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .addFields(
+              concat('author', ' ', field('title')).as('display'),
+              field('author').concat(': ', field('title')).as('display2')
+            )
+            .where(equal('author', 'Douglas Adams'))
+            .select('display', 'display2')
+        );
+        expectResults(snapshot, {
+          display: "Douglas Adams The Hitchhiker's Guide to the Galaxy",
+          display2: "Douglas Adams: The Hitchhiker's Guide to the Galaxy"
+        });
       });
     });
 

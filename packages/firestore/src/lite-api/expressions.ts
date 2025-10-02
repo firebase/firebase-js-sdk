@@ -1047,6 +1047,27 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * Creates an expression that concatenates expression results together.
+   *
+   * ```typescript
+   * // Combine the 'firstName', ' ', and 'lastName' fields into a single value.
+   * field("firstName").concat(constant(" "), field("lastName"));
+   * ```
+   *
+   * @param second The additional expression or literal to concatenate.
+   * @param others Optional additional expressions or literals to concatenate.
+   * @return A new `Expr` representing the concatenated value.
+   */
+  concat(
+    second: Expression | unknown,
+    ...others: Array<Expression | unknown>
+  ): FunctionExpression {
+    const elements = [second, ...others];
+    const exprs = elements.map(valueToDefaultExpr);
+    return new FunctionExpression('concat', [this, ...exprs], 'concat');
+  }
+
+  /**
    * Creates an expression that reverses this string expression.
    *
    * ```typescript
@@ -7140,6 +7161,56 @@ export function stringReverse(stringExpression: Expression): FunctionExpression;
 export function stringReverse(field: string): FunctionExpression;
 export function stringReverse(expr: Expression | string): FunctionExpression {
   return fieldOrExpression(expr).stringReverse();
+}
+
+/**
+ * Creates an expression that concatenates strings, arrays, or blobs. Types cannot be mixed.
+ *
+ * ```typescript
+ * // Concatenate the 'firstName' and 'lastName' fields with a space in between.
+ * concat(field("firstName"), " ", field("lastName"))
+ * ```
+ *
+ * @param first The first expressions to concatenate.
+ * @param second The second literal or expression to concatenate.
+ * @param others Additional literals or expressions to concatenate.
+ * @return A new `Expression` representing the concatenation.
+ */
+export function concat(
+  first: Expression,
+  second: Expression | unknown,
+  ...others: Array<Expression | unknown>
+): FunctionExpression;
+
+/**
+ * Creates an expression that concatenates strings, arrays, or blobs. Types cannot be mixed.
+ *
+ * ```typescript
+ * // Concatenate a field with a literal string.
+ * concat(field("firstName"), "Doe")
+ * ```
+ *
+ * @param fieldName The name of a field to concatenate.
+ * @param second The second literal or expression to concatenate.
+ * @param others Additional literal or expressions to concatenate.
+ * @return A new `Expression` representing the concatenation.
+ */
+export function concat(
+  fieldName: string,
+  second: Expression | unknown,
+  ...others: Array<Expression | unknown>
+): FunctionExpression;
+
+export function concat(
+  fieldNameOrExpression: string | Expression,
+  second: Expression | unknown,
+  ...others: Array<Expression | unknown>
+): FunctionExpression {
+  return new FunctionExpression('concat', [
+    fieldOrExpression(fieldNameOrExpression),
+    valueToDefaultExpr(second),
+    ...others.map(valueToDefaultExpr)
+  ]);
 }
 
 /**

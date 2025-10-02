@@ -162,6 +162,7 @@ export {
   stringReverse,
   length as len,
   abs,
+  concat,
   Expression,
   AliasedExpression,
   Field,
@@ -174,7 +175,7 @@ export {
 export type {
   ExpressionType,
   AggregateWithAlias,
-  Selectable,
+  Selectable
 } from './lite-api/expressions';
 
 export { _internalPipelineToExecutePipelineRequestProto } from './remote/internal_serializer';
