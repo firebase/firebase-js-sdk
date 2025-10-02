@@ -24,8 +24,8 @@ export interface Telemetry
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [app](./telemetry_.telemetry.md#telemetryapp) | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) this [Telemetry](./telemetry_.telemetry.md#telemetry_interface) instance is associated with. |
-|  [loggerProvider](./telemetry_.telemetry.md#telemetryloggerprovider) | LoggerProvider | The  this [Telemetry](./telemetry_.telemetry.md#telemetry_interface) instance uses. |
+|  [app](./telemetry_react.telemetry.md#telemetryapp) | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) this [Telemetry](./telemetry_.telemetry.md#telemetry_interface) instance is associated with. |
+|  [loggerProvider](./telemetry_react.telemetry.md#telemetryloggerprovider) | LoggerProvider | The  this [Telemetry](./telemetry_.telemetry.md#telemetry_interface) instance uses. |
 
 ## Telemetry.app
 

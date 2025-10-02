@@ -70,6 +70,7 @@
   },
   "dependencies": {
     "@firebase/component": "0.7.0",
+    "@firebase/util": "1.13.0",
     "@opentelemetry/api": "1.9.0",
     "@opentelemetry/api-logs": "0.203.0",
     "@opentelemetry/exporter-logs-otlp-http": "0.203.0",
@@ -82,7 +83,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.14.2",
+    "@firebase/app": "0.14.3",
     "@opentelemetry/sdk-trace-web": "2.1.0",
     "@rollup/plugin-json": "6.1.0",
     "@testing-library/dom": "10.4.1",

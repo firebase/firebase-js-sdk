@@ -16,8 +16,9 @@
  */
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
+import { deepEqual } from '@firebase/util';
 import { TELEMETRY_TYPE } from './constants';
-import { Telemetry } from './public-types';
+import { Telemetry, TelemetryOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { trace } from '@opentelemetry/api';
@@ -40,17 +41,33 @@ declare module '@firebase/component' {
  * ```
  *
  * @param app - The {@link @firebase/app#FirebaseApp} to use.
+ * @param options - {@link TelemetryOptions} that configure the Telemetry instance.
  * @returns The default {@link Telemetry} instance for the given {@link @firebase/app#FirebaseApp}.
  *
  * @public
  */
-export function getTelemetry(app: FirebaseApp = getApp()): Telemetry {
+export function getTelemetry(
+  app: FirebaseApp = getApp(),
+  options?: TelemetryOptions
+): Telemetry {
   // Dependencies
   const telemetryProvider: Provider<'telemetry'> = _getProvider(
     app,
     TELEMETRY_TYPE
   );
 
+  if (telemetryProvider.isInitialized()) {
+    const initialOptions = telemetryProvider.getOptions();
+    if (
+      (!initialOptions && !options) ||
+      (initialOptions && options && deepEqual(initialOptions, options))
+    ) {
+      return telemetryProvider.getImmediate();
+    }
+    throw new Error('Firebase Telemetry is already initialized');
+  }
+
+  telemetryProvider.initialize({ options });
   return telemetryProvider.getImmediate();
 }
 

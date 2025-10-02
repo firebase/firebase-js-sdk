@@ -16,16 +16,19 @@ https://github.com/firebase/firebase-js-sdk
 |  Function | Description |
 |  --- | --- |
 |  <b>function(app, ...)</b> |
-|  [getTelemetry(app)](./telemetry_.md#gettelemetry_cf608e1) | Returns the default [Telemetry](./telemetry_.telemetry.md#telemetry_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings. |
+|  [getTelemetry(app, options)](./telemetry_.md#gettelemetry_448bdc6) | Returns the default [Telemetry](./telemetry_.telemetry.md#telemetry_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings. |
 |  <b>function(telemetry, ...)</b> |
 |  [captureError(telemetry, error, attributes)](./telemetry_.md#captureerror_862e6b3) | Enqueues an error to be uploaded to the Firebase Telemetry API. |
 |  [flush(telemetry)](./telemetry_.md#flush_8975134) | Flushes all enqueued telemetry data immediately, instead of waiting for default batching. |
+|  <b>function(telemetryOptions, ...)</b> |
+|  [nextOnRequestError(telemetryOptions)](./telemetry_.md#nextonrequesterror_3bd5542) | Automatically report uncaught errors from server routes to Firebase Telemetry. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
-|  [Telemetry](./telemetry_.telemetry.md#telemetry_interface) | An instance of the Firebase Telemetry SDK.<!-- -->Do not create this instance directly. Instead, use [getTelemetry()](./telemetry_.md#gettelemetry_cf608e1)<!-- -->. |
+|  [Telemetry](./telemetry_.telemetry.md#telemetry_interface) | An instance of the Firebase Telemetry SDK.<!-- -->Do not create this instance directly. Instead, use [getTelemetry()](./telemetry_.md#gettelemetry_448bdc6)<!-- -->. |
+|  [TelemetryOptions](./telemetry_.telemetryoptions.md#telemetryoptions_interface) | Options for initialized the Telemetry service using [getTelemetry()](./telemetry_.md#gettelemetry_448bdc6)<!-- -->. |
 
 ## Namespaces
 
@@ -33,22 +36,16 @@ https://github.com/firebase/firebase-js-sdk
 |  --- | --- |
 |  [Instrumentation](./telemetry_.instrumentation.md#instrumentation_namespace) |  |
 
-## Variables
-
-|  Variable | Description |
-|  --- | --- |
-|  [nextOnRequestError](./telemetry_.md#nextonrequesterror) | Automatically report uncaught errors from server routes to Firebase Telemetry. |
-
 ## function(app, ...)
 
-### getTelemetry(app) {:#gettelemetry_cf608e1}
+### getTelemetry(app, options) {:#gettelemetry_448bdc6}
 
 Returns the default [Telemetry](./telemetry_.telemetry.md#telemetry_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getTelemetry(app?: FirebaseApp): Telemetry;
+export declare function getTelemetry(app?: FirebaseApp, options?: TelemetryOptions): Telemetry;
 ```
 
 #### Parameters
@@ -56,6 +53,7 @@ export declare function getTelemetry(app?: FirebaseApp): Telemetry;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) to use. |
+|  options | [TelemetryOptions](./telemetry_.telemetryoptions.md#telemetryoptions_interface) | [TelemetryOptions](./telemetry_.telemetryoptions.md#telemetryoptions_interface) that configure the Telemetry instance. |
 
 <b>Returns:</b>
 
@@ -117,22 +115,37 @@ Promise&lt;void&gt;
 
 a promise which is resolved when all flushes are complete
 
-## nextOnRequestError
+## function(telemetryOptions, ...)
+
+### nextOnRequestError(telemetryOptions) {:#nextonrequesterror_3bd5542}
 
 Automatically report uncaught errors from server routes to Firebase Telemetry.
 
 <b>Signature:</b>
 
 ```typescript
-nextOnRequestError: Instrumentation.onRequestError
+export declare function nextOnRequestError(telemetryOptions?: TelemetryOptions): Instrumentation.onRequestError;
 ```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  telemetryOptions | [TelemetryOptions](./telemetry_.telemetryoptions.md#telemetryoptions_interface) | [TelemetryOptions](./telemetry_.telemetryoptions.md#telemetryoptions_interface) that configure the Telemetry instance. |
+
+<b>Returns:</b>
+
+[Instrumentation.onRequestError](./telemetry_.instrumentation.md#instrumentationonrequesterror)
+
+A request error handler for use in Next.js' instrumentation file
 
 ### Example
 
 
 ```javascript
 // In instrumentation.ts (https://nextjs.org/docs/app/guides/instrumentation):
-export { nextOnRequestError as onRequestError }  from 'firebase/telemetry'
+import { nextOnRequestError } from 'firebase/telemetry'
+export const onRequestError = nextOnRequestError();
 
 ```
 

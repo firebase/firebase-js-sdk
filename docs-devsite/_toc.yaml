@@ -699,6 +699,12 @@ toc:
   section:
   - title: Telemetry
     path: /docs/reference/js/telemetry_.telemetry.md
+  - title: TelemetryOptions
+    path: /docs/reference/js/telemetry_.telemetryoptions.md
 - title: telemetry/react
   path: /docs/reference/js/telemetry_react.md
-  section: []
+  section:
+  - title: Telemetry
+    path: /docs/reference/js/telemetry_react.telemetry.md
+  - title: TelemetryOptions
+    path: /docs/reference/js/telemetry_react.telemetryoptions.md

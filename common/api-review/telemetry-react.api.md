@@ -4,12 +4,26 @@
 
 ```ts
 
+import { FirebaseApp } from '@firebase/app';
 import { FirebaseOptions } from '@firebase/app';
+import { LoggerProvider } from '@opentelemetry/sdk-logs';
 
 // @public
-export function FirebaseTelemetry({ firebaseOptions }: {
+export function FirebaseTelemetry({ firebaseOptions, telemetryOptions }: {
     firebaseOptions?: FirebaseOptions;
+    telemetryOptions?: TelemetryOptions;
 }): null;
+
+// @public
+export interface Telemetry {
+    app: FirebaseApp;
+    loggerProvider: LoggerProvider;
+}
+
+// @public
+export interface TelemetryOptions {
+    endpointUrl?: string;
+}
 
 
 // (No @packageDocumentation comment for this package)

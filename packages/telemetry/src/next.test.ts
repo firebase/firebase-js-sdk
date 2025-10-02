@@ -66,7 +66,7 @@ describe('nextOnRequestError', () => {
       revalidateReason: undefined
     };
 
-    await nextOnRequestError(error, errorRequest, errorContext);
+    await nextOnRequestError()(error, errorRequest, errorContext);
 
     expect(getTelemetryStub).to.have.been.calledOnceWith(fakeApp);
     expect(captureErrorStub).to.have.been.calledOnceWith(fakeTelemetry, error, {
