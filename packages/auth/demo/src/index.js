@@ -1615,10 +1615,10 @@ function onFinalizeSignInWithTotpMultiFactor(event) {
   }, onAuthError);
 }
 
-async function exchangeCIAMToken(token) {
+async function exchangeCIAMToken(idpConfigId, token) {
   const firebaseToken = await exchangeToken(
     regionalAuth,
-    (idpConfigId = 'Bar-e2e-idpconfig-002'),
+    idpConfigId,
     token
   );
   return firebaseToken;
@@ -1627,11 +1627,12 @@ async function exchangeCIAMToken(token) {
 function onExchangeToken(event) {
   event.preventDefault();
   const byoCiamInput = document.getElementById('byo-ciam-token');
+  const idpConfigId = document.getElementById('idp-config-id');
   const firebaseTokenStatus = document.getElementById('firebase-token-status');
 
   firebaseTokenStatus.textContent = 'Exchanging token...';
 
-  exchangeCIAMToken(byoCiamInput.value)
+  exchangeCIAMToken(idpConfigId.value, byoCiamInput.value)
     .then(response => {
       firebaseTokenStatus.textContent = '✅ Firebase token is set: ' + response;
       console.log('Token:', response);
