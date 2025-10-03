@@ -20,7 +20,7 @@ import { User } from '../auth/user';
 import { Aggregate } from '../core/aggregate';
 import { DatabaseId } from '../core/database_info';
 import { queryToAggregateTarget, Query, queryToTarget } from '../core/query';
-import { Pipeline } from '../lite-api/pipeline';
+import { StructuredPipeline } from '../core/structured_pipeline';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -244,14 +244,12 @@ export async function invokeBatchGetDocumentsRpc(
 
 export async function invokeExecutePipeline(
   datastore: Datastore,
-  pipeline: Pipeline
+  structuredPipeline: StructuredPipeline
 ): Promise<PipelineStreamElement[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const executePipelineRequest: ProtoExecutePipelineRequest = {
     database: getEncodedDatabaseId(datastoreImpl.serializer),
-    structuredPipeline: {
-      pipeline: pipeline._toProto(datastoreImpl.serializer)
-    }
+    structuredPipeline: structuredPipeline._toProto(datastoreImpl.serializer)
   };
 
   const response = await datastoreImpl.invokeStreamingRPC<
@@ -264,17 +262,22 @@ export async function invokeExecutePipeline(
     executePipelineRequest
   );
 
-  return response
+  const result: PipelineStreamElement[] = [];
+  response
     .filter(proto => !!proto.results)
-    .flatMap(proto => {
+    .forEach(proto => {
       if (proto.results!.length === 0) {
-        return fromPipelineResponse(datastoreImpl.serializer, proto);
+        result.push(fromPipelineResponse(datastoreImpl.serializer, proto));
       } else {
-        return proto.results!.map(result =>
-          fromPipelineResponse(datastoreImpl.serializer, proto, result)
+        return proto.results!.forEach(document =>
+          result.push(
+            fromPipelineResponse(datastoreImpl.serializer, proto, document)
+          )
         );
       }
     });
+
+  return result;
 }
 
 export async function invokeRunQueryRpc(

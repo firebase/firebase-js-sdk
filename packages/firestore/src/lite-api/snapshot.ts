@@ -15,15 +15,13 @@
  * limitations under the License.
  */
 
-import { Compat, getModularInstance } from '@firebase/util';
+import { getModularInstance } from '@firebase/util';
 
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { FieldPath as InternalFieldPath } from '../model/path';
 import { arrayEquals } from '../util/misc';
 
 import { Firestore } from './database';
-import { Field } from './expressions';
 import { FieldPath } from './field_path';
 import {
   DocumentData,
@@ -35,7 +33,7 @@ import {
   WithFieldValue
 } from './reference';
 import {
-  fieldPathFromDotSeparatedString,
+  fieldPathFromArgument,
   UntypedFirestoreDataConverter
 } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
@@ -509,22 +507,4 @@ export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(
   }
 
   return false;
-}
-
-/**
- * Helper that calls `fromDotSeparatedString()` but wraps any error thrown.
- */
-export function fieldPathFromArgument(
-  methodName: string,
-  arg: string | FieldPath | Compat<FieldPath> | Field
-): InternalFieldPath {
-  if (typeof arg === 'string') {
-    return fieldPathFromDotSeparatedString(methodName, arg);
-  } else if (arg instanceof FieldPath) {
-    return arg._internalPath;
-  } else if (arg instanceof Field) {
-    return fieldPathFromDotSeparatedString(methodName, arg.fieldName());
-  } else {
-    return arg._delegate._internalPath;
-  }
 }

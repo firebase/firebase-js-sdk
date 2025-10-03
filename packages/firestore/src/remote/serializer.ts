@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { ParseContext } from '../api/parse_context';
 import { Aggregate } from '../core/aggregate';
 import { Bound } from '../core/bound';
 import { DatabaseId } from '../core/database_info';
@@ -41,7 +40,6 @@ import { TargetId } from '../core/types';
 import { Bytes } from '../lite-api/bytes';
 import { GeoPoint } from '../lite-api/geo_point';
 import { Timestamp } from '../lite-api/timestamp';
-import { UserDataReader } from '../lite-api/user_data_reader';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -1473,10 +1471,6 @@ export function isProtoValueSerializable(
     typeof value._toProto === 'function' &&
     value._protoValueType === 'ProtoValue'
   );
-}
-
-export interface UserData {
-  _readUserData(dataReader: UserDataReader, context?: ParseContext): void;
 }
 
 export function toMapValue(

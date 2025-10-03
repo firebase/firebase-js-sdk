@@ -16,3 +16,10 @@
  */
 
 export { toByteStreamReader } from '../browser/byte_stream_reader';
+
+// This is not included in the RN lite-bundle, but the rollup build
+// will fail if these exports are not defined.
+export {
+  buildDocumentSnapshotJsonBundle,
+  buildQuerySnapshotJsonBundle
+} from '../browser/snapshot_to_json';

@@ -440,6 +440,12 @@ export class CollectionReference<
   }
 }
 
+export function isCollectionReference(
+  val: unknown
+): val is CollectionReference {
+  return val instanceof CollectionReference;
+}
+
 /**
  * Gets a `CollectionReference` instance that refers to the collection at
  * the specified absolute path.
