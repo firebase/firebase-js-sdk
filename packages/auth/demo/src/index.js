@@ -1616,11 +1616,7 @@ function onFinalizeSignInWithTotpMultiFactor(event) {
 }
 
 async function exchangeCIAMToken(idpConfigId, token) {
-  const firebaseToken = await exchangeToken(
-    regionalAuth,
-    idpConfigId,
-    token
-  );
+  const firebaseToken = await exchangeToken(regionalAuth, idpConfigId, token);
   return firebaseToken;
 }
 
