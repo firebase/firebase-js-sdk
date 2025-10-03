@@ -47,6 +47,7 @@ import {
 import { RESTTransport } from '../network/transport/rest';
 
 import { MutationManager } from './Mutation';
+import { Cache as DataConnectCache } from '../cache/Cache';
 
 /**
  * Connector Config for calling Data Connect backend.
@@ -104,6 +105,7 @@ export class DataConnect {
   _isUsingGeneratedSdk: boolean = false;
   _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base;
   private _appCheckTokenProvider?: AppCheckTokenProvider;
+  private cache: DataConnectCache;
   // @internal
   constructor(
     public readonly app: FirebaseApp,
@@ -120,6 +122,7 @@ export class DataConnect {
         this._transportOptions = parseOptions(host);
       }
     }
+    this.cache = new DataConnectCache();
   }
   // @internal
   _useGeneratedSdk(): void {
@@ -191,13 +194,14 @@ export class DataConnect {
         this._transportOptions.sslEnabled
       );
     }
-    this._queryManager = new QueryManager(this._transport);
+    this._queryManager = new QueryManager(this._transport, this.cache);
     this._mutationManager = new MutationManager(this._transport);
   }
 
   // @internal
   enableEmulator(transportOptions: TransportOptions): void {
     if (
+      this._transportOptions &&
       this._initialized &&
       !areTransportOptionsEqual(this._transportOptions, transportOptions)
     ) {

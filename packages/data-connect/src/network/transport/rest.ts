@@ -40,7 +40,7 @@ export class RESTTransport implements DataConnectTransport {
   constructor(
     options: DataConnectOptions,
     private apiKey?: string | undefined,
-    private appId?: string,
+    private appId?: string | null,
     private authProvider?: AuthTokenProvider | undefined,
     private appCheckProvider?: AppCheckTokenProvider | undefined,
     transportOptions?: TransportOptions | undefined,
@@ -106,12 +106,15 @@ export class RESTTransport implements DataConnectTransport {
     this._accessToken = newToken;
   }
 
-  async getWithAuth(forceToken = false): Promise<string> {
+  async getWithAuth(forceToken = false): Promise<string | null> {
     let starterPromise: Promise<string | null> = new Promise(resolve =>
       resolve(this._accessToken)
     );
     if (this.appCheckProvider) {
-      this._appCheckToken = (await this.appCheckProvider.getToken())?.token;
+      const appCheckToken = (await this.appCheckProvider.getToken());
+      if(appCheckToken) {
+        this._appCheckToken = appCheckToken.token;
+      }
     }
     if (this.authProvider) {
       starterPromise = this.authProvider

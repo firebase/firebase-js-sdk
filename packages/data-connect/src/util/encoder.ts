@@ -20,4 +20,5 @@ export let encoderImpl: HmacImpl;
 export function setEncoder(encoder: HmacImpl): void {
   encoderImpl = encoder;
 }
+// TODO(mtewani): Fix issue where if fields are out of order, caching breaks.
 setEncoder(o => JSON.stringify(o));

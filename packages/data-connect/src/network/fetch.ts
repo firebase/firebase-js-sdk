@@ -56,7 +56,7 @@ export function dcFetch<T, U>(
   url: string,
   body: DataConnectFetchBody<U>,
   { signal }: AbortController,
-  appId: string | null,
+  appId: string | null | undefined,
   accessToken: string | null,
   appCheckToken: string | null,
   _isUsingGen: boolean,
@@ -98,7 +98,7 @@ export function dcFetch<T, U>(
       );
     })
     .then(async response => {
-      let jsonResponse = null;
+      let jsonResponse: MessageObject;
       try {
         jsonResponse = await response.json();
       } catch (e) {
@@ -128,14 +128,16 @@ export function dcFetch<T, U>(
           response
         );
       }
-      return res;
+      return res as { data: T, errors: []};
     });
 }
 interface MessageObject {
   message?: string;
+  errors: [];
+  data: Record<string, unknown> | null;
 }
 function getMessage(obj: MessageObject): string {
-  if ('message' in obj) {
+  if ('message' in obj && obj.message) {
     return obj.message;
   }
   return JSON.stringify(obj);

@@ -35,16 +35,9 @@ import {
 import { logDebug } from '../logger';
 import { DataConnectTransport } from '../network';
 import { encoderImpl } from '../util/encoder';
-import { setIfNotExists } from '../util/map';
+import { Cache as DataConnectCache, ServerValues } from '../cache/Cache';
 
 import { Code, DataConnectError } from './error';
-
-interface TrackedQuery<Data, Variables> {
-  ref: Omit<OperationRef<Data, Variables>, 'dataConnect'>;
-  subscriptions: Array<DataConnectSubscription<Data, Variables>>;
-  currentCache: OpResult<Data> | null;
-  lastError: DataConnectError | null;
-}
 
 function getRefSerializer<Data, Variables>(
   queryRef: QueryRef<Data, Variables>,
@@ -69,31 +62,32 @@ function getRefSerializer<Data, Variables>(
 }
 
 export class QueryManager {
-  _queries: Map<string, TrackedQuery<unknown, unknown>>;
-  constructor(private transport: DataConnectTransport) {
-    this._queries = new Map();
-  }
-  track<Data, Variables>(
+  // _queries: Map<string, TrackedQuery<unknown, unknown>>;
+  private callbacks = new Map<
+    string,
+    DataConnectSubscription<unknown, unknown>[]
+  >();
+  constructor(
+    private transport: DataConnectTransport,
+    private cache: DataConnectCache
+  ) {}
+
+  updateCache<Data, Variables>(
     queryName: string,
-    variables: Variables,
-    initialCache?: OpResult<Data>
-  ): TrackedQuery<Data, Variables> {
-    const ref: TrackedQuery<Data, Variables>['ref'] = {
-      name: queryName,
-      variables,
-      refType: QUERY_STR
-    };
-    const key = encoderImpl(ref);
-    const newTrackedQuery: TrackedQuery<Data, Variables> = {
-      ref,
-      subscriptions: [],
-      currentCache: initialCache || null,
-      lastError: null
-    };
-    // @ts-ignore
-    setIfNotExists(this._queries, key, newTrackedQuery);
-    return this._queries.get(key) as TrackedQuery<Data, Variables>;
+    variables: unknown,
+    result: QueryResult<Data, Variables>
+  ) {
+    this.cache.update(
+      encoderImpl({
+        name: queryName,
+        variables,
+        refType: QUERY_STR
+      }),
+      result.data as ServerValues
+    );
+    console.log('updated cache!');
   }
+
   addSubscription<Data, Variables>(
     queryRef: OperationRef<Data, Variables>,
     onResultCallback: OnResultSubscription<Data, Variables>,
@@ -105,59 +99,46 @@ export class QueryManager {
       variables: queryRef.variables,
       refType: QUERY_STR
     });
-    const trackedQuery = this._queries.get(key) as TrackedQuery<
-      Data,
-      Variables
-    >;
-    const subscription = {
-      userCallback: onResultCallback,
-      errCallback: onErrorCallback
-    };
     const unsubscribe = (): void => {
-      const trackedQuery = this._queries.get(key)!;
-      trackedQuery.subscriptions = trackedQuery.subscriptions.filter(
-        sub => sub !== subscription
-      );
-    };
-    if (initialCache && trackedQuery.currentCache !== initialCache) {
-      logDebug('Initial cache found. Comparing dates.');
-      if (
-        !trackedQuery.currentCache ||
-        (trackedQuery.currentCache &&
-          compareDates(
-            trackedQuery.currentCache.fetchTime,
-            initialCache.fetchTime
-          ))
-      ) {
-        trackedQuery.currentCache = initialCache;
+      if(!this.callbacks.has(key)) {
+        const callbackList = this.callbacks.get(key)!;
+        callbackList.forEach(subscription => {
+          subscription.unsubscribe();
+        });
+        this.callbacks.set(key, []);
       }
+      
+    };
+
+    if (initialCache) {
+      // TODO: The type might be wrong here
+      this.cache.update(key, initialCache.data as ServerValues);
     }
-    if (trackedQuery.currentCache !== null) {
-      const cachedData = trackedQuery.currentCache.data;
+
+    // TODO: How is the cache getting retrieved by the query?
+    // Are we checking inside the CacheProvider for the TTL to see whether we should re-fetch?
+    if (this.cache.containsResultTree(key)) {
+      const cachedData = JSON.parse(this.cache.getResultJSON(key));
       onResultCallback({
         data: cachedData,
         source: SOURCE_CACHE,
         ref: queryRef as QueryRef<Data, Variables>,
         toJSON: getRefSerializer(
           queryRef as QueryRef<Data, Variables>,
-          trackedQuery.currentCache.data,
+          cachedData,
           SOURCE_CACHE
         ),
-        fetchTime: trackedQuery.currentCache.fetchTime
+        // TODO: Update this to the right value
+        // fetchTime: trackedQuery.currentCache.fetchTime
+        fetchTime: new Date().toISOString()
       });
-      if (trackedQuery.lastError !== null && onErrorCallback) {
-        onErrorCallback(undefined);
-      }
-    }
-
-    trackedQuery.subscriptions.push({
-      userCallback: onResultCallback,
-      errCallback: onErrorCallback,
-      unsubscribe
-    });
-    if (!trackedQuery.currentCache) {
+      // TODO: Handle lastError
+      //   if (trackedQuery.lastError !== null && onErrorCallback) {
+      //     onErrorCallback(undefined);
+      //   }
+    } else {
       logDebug(
-        `No cache available for query ${
+        `Cache not available for query ${
           queryRef.name
         } with variables ${JSON.stringify(
           queryRef.variables
@@ -167,6 +148,16 @@ export class QueryManager {
       // We want to ignore the error and let subscriptions handle it
       promise.then(undefined, err => {});
     }
+
+    if (!this.callbacks.has(key)) {
+      this.callbacks.set(key, []);
+    }
+    this.callbacks.get(key)!.push({
+      userCallback: onResultCallback,
+      errCallback: onErrorCallback,
+      unsubscribe
+    });
+
     return unsubscribe;
   }
   executeQuery<Data, Variables>(
@@ -183,7 +174,27 @@ export class QueryManager {
       variables: queryRef.variables,
       refType: QUERY_STR
     });
-    const trackedQuery = this._queries.get(key)!;
+    // TODO: Check if the cache is stale
+    if(this.cache.containsResultTree(key) && !this.cache.getResultTree(key).isStale()) {
+      const cacheResult: Data = JSON.parse(this.cache.getResultJSON(key));
+      const result: QueryResult<Data, Variables> = {
+          ...cacheResult,
+          source: SOURCE_CACHE,
+          ref: queryRef,
+          data: cacheResult,
+          toJSON: getRefSerializer(queryRef, cacheResult, SOURCE_CACHE),
+          fetchTime: new Date().toISOString()
+        };
+      this.cache.getResultTree(key).updateAccessed();
+
+      return Promise.resolve(result);
+    } else {
+      logDebug(
+        `No Cache found for query ${
+          queryRef.name
+        } with variables ${JSON.stringify(queryRef.variables)}. Calling executeQuery`
+      );
+    }
     const result = this.transport.invokeQuery<Data, Variables>(
       queryRef.name,
       queryRef.variables
@@ -198,19 +209,21 @@ export class QueryManager {
           toJSON: getRefSerializer(queryRef, res.data, SOURCE_SERVER),
           fetchTime
         };
-        trackedQuery.subscriptions.forEach(subscription => {
-          subscription.userCallback(result);
-        });
-        trackedQuery.currentCache = {
-          data: res.data,
-          source: SOURCE_CACHE,
-          fetchTime
-        };
+        const subscribers = this.callbacks.get(key);
+        if (subscribers !== undefined) {
+          subscribers.forEach(subscription => {
+            subscription.userCallback(result);
+          });
+        }
+        // TODO: Fix servervalues type
+        this.cache.getResultTree(key).updateAccessed();
+        this.cache.update(key, result.data as ServerValues);
         return result;
       },
       err => {
-        trackedQuery.lastError = err;
-        trackedQuery.subscriptions.forEach(subscription => {
+        // TODO: Update cache with query's last error
+        // trackedQuery.lastError = err;
+        this.callbacks.get(key)?.forEach(subscription => {
           if (subscription.errCallback) {
             subscription.errCallback(err);
           }

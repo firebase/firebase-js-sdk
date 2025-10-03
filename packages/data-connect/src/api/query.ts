@@ -105,7 +105,7 @@ export function queryRef<Data, Variables>(
   variables: Variables
 ): QueryRef<Data, Variables>;
 /**
- * Execute Query
+ * Execute QueryG
  * @param dcInstance Data Connect instance to use.
  * @param queryName Query to execute
  * @param variables Variables to execute with
@@ -119,12 +119,16 @@ export function queryRef<Data, Variables>(
   initialCache?: QueryResult<Data, Variables>
 ): QueryRef<Data, Variables> {
   dcInstance.setInitialized();
-  dcInstance._queryManager.track(queryName, variables, initialCache);
+  if(initialCache !== undefined) {
+    console.log('updating cache!');
+    dcInstance._queryManager.updateCache(queryName, variables, initialCache);
+  }
+  // dcInstance._queryManager.track(queryName, variables, initialCache);
   return {
     dataConnect: dcInstance,
     refType: QUERY_STR,
     name: queryName,
-    variables
+    variables: variables as Variables
   };
 }
 /**

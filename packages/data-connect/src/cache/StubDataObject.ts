@@ -1,4 +1,4 @@
-import { DataConnectError } from '../api';
+import { DataConnectError } from '../core/error';
 import { BackingDataObject } from './BackingDataObject';
 import { CacheProvider } from './CacheProvider';
 
@@ -20,9 +20,16 @@ export class StubDataObject {
         'StubDataObject initialized with non-object value'
       );
     }
+    if(values === null) {
+      return;
+    }
     
-      this.globalId = values[GLOBAL_ID_KEY];
-      if (values.hasOwnProperty(GLOBAL_ID_KEY)) {
+    
+      if (
+        values.hasOwnProperty(GLOBAL_ID_KEY) &&
+        typeof values[GLOBAL_ID_KEY] === 'string'
+      ) {
+        this.globalId = values[GLOBAL_ID_KEY];
         this.backingData = cacheProvider.getBdo(this.globalId);
       }
       for (const key in values) {
@@ -35,8 +42,8 @@ export class StubDataObject {
                 if(!this.objectLists[key]) {
                     this.objectLists[key] = [];
                 }
-                const objArray = [];
-                const scalarArray = [];
+                const objArray: StubDataObject[] = [];
+                const scalarArray: NonNullable<ScalarValue>[] = [];
                 for(const value of values[key]) {
                     if(typeof value === 'object') {
                         if(Array.isArray(value)) {
@@ -64,6 +71,10 @@ export class StubDataObject {
                     this.scalars[key] = [];
                 }
             } else {
+              if(values[key] === null) {
+                this.scalars[key] = null;
+                continue;
+              }
               const stubDataObject = new StubDataObject(
                 values[key],
                 cacheProvider
@@ -72,6 +83,7 @@ export class StubDataObject {
             }
           } else {
             if(this.backingData) {
+                // TODO: Track only the fields we need for the BDO
                 this.backingData.updateServerValue(key, values[key]);
             } else {
                 this.scalars[key] = values[key];
@@ -82,5 +94,31 @@ export class StubDataObject {
       if(this.backingData) {
         cacheProvider.updateBackingData(this.backingData);
       }
+    }
+    toJson(): object {
+        const resultObject: object = {
+
+        };
+        for(const key in this.backingData) {
+            if(this.backingData.hasOwnProperty(key)) {
+                resultObject[key] = this.backingData[key];
+            }
+        }
+        for(const key in this.scalars) {
+            if(this.scalars.hasOwnProperty(key)) {
+                resultObject[key] = this.scalars[key];
+            }
+        }
+        for(const key in this.references) {
+            if(this.references.hasOwnProperty(key)) {
+                resultObject[key] = this.references[key].toJson();
+            }
+        }
+        for(const key in this.objectLists) {
+            if(this.objectLists.hasOwnProperty(key)) {
+                resultObject[key] = this.objectLists[key].map(obj => obj.toJson());
+            }
+        }
+        return resultObject;
     }
 }

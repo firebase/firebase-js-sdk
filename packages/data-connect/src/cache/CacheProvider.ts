@@ -1,10 +1,10 @@
 import { BackingDataObject } from "./BackingDataObject";
+import { ResultTree } from "./ResultTree";
 
-export class CacheProvider {
-    createGlobalId(): string {
-        throw new Error("Method not implemented.");
-    }
-    getBdo(globalId: string): BackingDataObject {
-        throw new Error("Method not implemented.");
-    }
+export interface CacheProvider {
+    getBdo(globalId: string): BackingDataObject;
+    updateBackingData(backingData: BackingDataObject): void;
+    createGlobalId(): string;
+    getResultTree(queryId: string): ResultTree | undefined;
+    setResultTree(queryId: string, resultTree: ResultTree): void;
 }
