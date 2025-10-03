@@ -97,7 +97,7 @@ export const enum DefaultConfig {
   API_HOST = 'identitytoolkit.googleapis.com',
   API_SCHEME = 'https',
   // TODO(sammansi): Update the endpoint before BYO-CIAM Private Preview Release.
-  REGIONAL_API_HOST = 'autopush-identityplatform.sandbox.googleapis.com/v2alpha/'
+  REGIONAL_API_HOST = 'identityplatform.googleapis.com/v2beta/'
 }
 
 export class AuthImpl implements AuthInternal, _FirebaseService {
