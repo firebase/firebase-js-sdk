@@ -16,8 +16,7 @@
  */
 
 import { getAccountInfo } from '../../api/account_management/account';
-import { ApiKey, AppName, AuthInternal } from '../../model/auth';
-import { FirebaseToken } from '../../model/public_types';
+import { ApiKey, AppName, AuthInternal, FirebaseToken } from '../../model/auth';
 import { UserInternal } from '../../model/user';
 import { PersistedBlob, PersistenceInternal } from '../persistence';
 import { UserImpl } from '../user/user_impl';

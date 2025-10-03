@@ -310,8 +310,6 @@ toc:
     path: /docs/reference/js/auth.emulatorconfig.md
   - title: FacebookAuthProvider
     path: /docs/reference/js/auth.facebookauthprovider.md
-  - title: FirebaseToken
-    path: /docs/reference/js/auth.firebasetoken.md
   - title: GithubAuthProvider
     path: /docs/reference/js/auth.githubauthprovider.md
   - title: GoogleAuthProvider
@@ -368,10 +366,14 @@ toc:
     path: /docs/reference/js/auth.recaptchaparameters.md
   - title: RecaptchaVerifier
     path: /docs/reference/js/auth.recaptchaverifier.md
+  - title: RefreshIdpTokenResult
+    path: /docs/reference/js/auth.refreshidptokenresult.md
   - title: SAMLAuthProvider
     path: /docs/reference/js/auth.samlauthprovider.md
   - title: TenantConfig
     path: /docs/reference/js/auth.tenantconfig.md
+  - title: TokenRefreshHandler
+    path: /docs/reference/js/auth.tokenrefreshhandler.md
   - title: TotpMultiFactorAssertion
     path: /docs/reference/js/auth.totpmultifactorassertion.md
   - title: TotpMultiFactorGenerator

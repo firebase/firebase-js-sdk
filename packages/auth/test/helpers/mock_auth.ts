@@ -18,7 +18,11 @@
 import { FirebaseApp } from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
-import { PopupRedirectResolver } from '../../src/model/public_types';
+import {
+  PopupRedirectResolver,
+  TokenRefreshHandler,
+  RefreshIdpTokenResult
+} from '../../src/model/public_types';
 import { debugErrorMap } from '../../src';
 
 import { AuthImpl } from '../../src/core/auth/auth_impl';
@@ -116,6 +120,30 @@ export async function testAuth(
   auth.persistenceLayer = persistence;
   auth.settings.appVerificationDisabledForTesting = true;
   return auth;
+}
+
+class TokenRefreshHandlerImpl implements TokenRefreshHandler {
+  async refreshIdpToken(): Promise<RefreshIdpTokenResult> {
+    // Fetch the token for their custom Idp configured...
+    return {
+      idToken: 'new-token', // The new token string
+      idpConfigId: 'idp-config' // The ID for your IdP
+    };
+  }
+}
+
+export async function regionalTestAuthWithTokenRefreshHandler(
+  popupRedirectResolver?: PopupRedirectResolver,
+  persistence = new MockPersistenceLayer(),
+  skipAwaitOnInit?: boolean
+): Promise<TestAuth> {
+  const regionalAuth = await regionalTestAuth(
+    popupRedirectResolver,
+    persistence,
+    skipAwaitOnInit
+  );
+  regionalAuth.setTokenRefreshHandler(new TokenRefreshHandlerImpl());
+  return regionalAuth;
 }
 
 export async function regionalTestAuth(

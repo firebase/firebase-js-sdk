@@ -20,7 +20,6 @@ import {
   AuthSettings,
   Config,
   EmulatorConfig,
-  FirebaseToken,
   PasswordPolicy,
   PasswordValidationStatus,
   PopupRedirectResolver,
@@ -59,6 +58,16 @@ export interface ConfigInternal extends Config {
 }
 
 /**
+ * @internal
+ */
+export interface FirebaseToken {
+  // The firebase access token (JWT signed by Firebase Auth).
+  readonly token: string;
+  // The time in milliseconds when the access token expires.
+  readonly expirationTime: number;
+}
+
+/**
  * UserInternal and AuthInternal reference each other, so both of them are included in the public typings.
  * In order to exclude them, we mark them as internal explicitly.
  *
@@ -67,6 +76,7 @@ export interface ConfigInternal extends Config {
 export interface AuthInternal extends Auth {
   currentUser: User | null;
   emulatorConfig: EmulatorConfig | null;
+  getFirebaseAccessToken(forceRefresh?: boolean): Promise<string | null>;
   _agentRecaptchaConfig: RecaptchaConfig | null;
   _tenantRecaptchaConfigs: Record<string, RecaptchaConfig>;
   _projectPasswordPolicy: PasswordPolicy | null;

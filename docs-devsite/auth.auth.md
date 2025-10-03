@@ -28,7 +28,6 @@ export interface Auth
 |  [config](./auth.auth.md#authconfig) | [Config](./auth.config.md#config_interface) | The [Config](./auth.config.md#config_interface) used to initialize this instance. |
 |  [currentUser](./auth.auth.md#authcurrentuser) | [User](./auth.user.md#user_interface) \| null | The currently signed-in user (or null). |
 |  [emulatorConfig](./auth.auth.md#authemulatorconfig) | [EmulatorConfig](./auth.emulatorconfig.md#emulatorconfig_interface) \| null | The current emulator configuration (or null). |
-|  [firebaseToken](./auth.auth.md#authfirebasetoken) | [FirebaseToken](./auth.firebasetoken.md#firebasetoken_interface) \| null | The token response initialized via [exchangeToken()](./auth.md#exchangetoken_b6b1871) endpoint. |
 |  [languageCode](./auth.auth.md#authlanguagecode) | string \| null | The [Auth](./auth.auth.md#auth_interface) instance's language code. |
 |  [name](./auth.auth.md#authname) | string | The name of the app associated with the <code>Auth</code> service instance. |
 |  [settings](./auth.auth.md#authsettings) | [AuthSettings](./auth.authsettings.md#authsettings_interface) | The [Auth](./auth.auth.md#auth_interface) instance's settings. |
@@ -44,6 +43,7 @@ export interface Auth
 |  [onAuthStateChanged(nextOrObserver, error, completed)](./auth.auth.md#authonauthstatechanged) | Adds an observer for changes to the user's sign-in state. |
 |  [onIdTokenChanged(nextOrObserver, error, completed)](./auth.auth.md#authonidtokenchanged) | Adds an observer for changes to the signed-in user's ID token. |
 |  [setPersistence(persistence)](./auth.auth.md#authsetpersistence) | Changes the type of persistence on the <code>Auth</code> instance. |
+|  [setTokenRefreshHandler(tokenRefreshHandler)](./auth.auth.md#authsettokenrefreshhandler) | Registers a handler for refreshing third-party identity provider (IDP) tokens.<!-- -->When the Firebase access token is expired, the SDK will automatically invoke the provided handler's <code>refreshIdpToken()</code> method to obtain a new IDP token. This new token will then be exchanged for a fresh Firebase token, streamlining the authentication process. |
 |  [signOut()](./auth.auth.md#authsignout) | Signs out the current user. This does not automatically revoke the user's ID token. |
 |  [updateCurrentUser(user)](./auth.auth.md#authupdatecurrentuser) | Asynchronously sets the provided user as [Auth.currentUser](./auth.auth.md#authcurrentuser) on the [Auth](./auth.auth.md#auth_interface) instance. |
 |  [useDeviceLanguage()](./auth.auth.md#authusedevicelanguage) | Sets the current language to the default device/browser preference. |
@@ -86,18 +86,6 @@ The current emulator configuration (or null).
 
 ```typescript
 readonly emulatorConfig: EmulatorConfig | null;
-```
-
-## Auth.firebaseToken
-
-The token response initialized via [exchangeToken()](./auth.md#exchangetoken_b6b1871) endpoint.
-
-This field is only supported for [Auth](./auth.auth.md#auth_interface) instance that have defined [TenantConfig](./auth.tenantconfig.md#tenantconfig_interface)<!-- -->.
-
-<b>Signature:</b>
-
-```typescript
-readonly firebaseToken: FirebaseToken | null;
 ```
 
 ## Auth.languageCode
@@ -282,6 +270,44 @@ Promise&lt;void&gt;
 
 ```javascript
 auth.setPersistence(browserSessionPersistence);
+
+```
+
+## Auth.setTokenRefreshHandler()
+
+Registers a handler for refreshing third-party identity provider (IDP) tokens.
+
+When the Firebase access token is expired, the SDK will automatically invoke the provided handler's `refreshIdpToken()` method to obtain a new IDP token. This new token will then be exchanged for a fresh Firebase token, streamlining the authentication process.
+
+<b>Signature:</b>
+
+```typescript
+setTokenRefreshHandler(tokenRefreshHandler: TokenRefreshHandler): void;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  tokenRefreshHandler | [TokenRefreshHandler](./auth.tokenrefreshhandler.md#tokenrefreshhandler_interface) | An object that implements the <code>TokenRefreshHandler</code> interface, providing the logic to refresh the IDP token. |
+
+<b>Returns:</b>
+
+void
+
+### Example
+
+
+```javascript
+class TokenRefreshHandlerImpl {
+  refreshIdpToken() {
+    // Logic to fetch a new token from your custom IDP.
+    // Returns a Promise that resolves with a RefreshIdpTokenResult.
+  }
+}
+
+const tokenRefreshHandler = new TokenRefreshHandlerImpl();
+auth.setTokenRefreshHandler(tokenRefreshHandler);
 
 ```
 

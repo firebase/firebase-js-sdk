@@ -118,7 +118,6 @@ Firebase Authentication
 |  [ConfirmationResult](./auth.confirmationresult.md#confirmationresult_interface) | A result from a phone number sign-in, link, or reauthenticate call. |
 |  [Dependencies](./auth.dependencies.md#dependencies_interface) | The dependencies that can be used to initialize an [Auth](./auth.auth.md#auth_interface) instance. |
 |  [EmulatorConfig](./auth.emulatorconfig.md#emulatorconfig_interface) | Configuration of Firebase Authentication Emulator. |
-|  [FirebaseToken](./auth.firebasetoken.md#firebasetoken_interface) |  |
 |  [IdTokenResult](./auth.idtokenresult.md#idtokenresult_interface) | Interface representing ID token result obtained from [User.getIdTokenResult()](./auth.user.md#usergetidtokenresult)<!-- -->. |
 |  [MultiFactorAssertion](./auth.multifactorassertion.md#multifactorassertion_interface) | The base class for asserting ownership of a second factor. |
 |  [MultiFactorError](./auth.multifactorerror.md#multifactorerror_interface) | The error thrown when the user needs to provide a second factor to sign in successfully. |
@@ -139,7 +138,9 @@ Firebase Authentication
 |  [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | A resolver used for handling DOM specific operations like [signInWithPopup()](./auth.md#signinwithpopup_770f816) or [signInWithRedirect()](./auth.md#signinwithredirect_770f816)<!-- -->. |
 |  [ReactNativeAsyncStorage](./auth.reactnativeasyncstorage.md#reactnativeasyncstorage_interface) | Interface for a supplied <code>AsyncStorage</code>. |
 |  [RecaptchaParameters](./auth.recaptchaparameters.md#recaptchaparameters_interface) | Interface representing reCAPTCHA parameters.<!-- -->See the [reCAPTCHA docs](https://developers.google.com/recaptcha/docs/display#render_param) for the list of accepted parameters. All parameters are accepted except for <code>sitekey</code>: Firebase Auth provisions a reCAPTCHA for each project and will configure the site key upon rendering.<!-- -->For an invisible reCAPTCHA, set the <code>size</code> key to <code>invisible</code>. |
+|  [RefreshIdpTokenResult](./auth.refreshidptokenresult.md#refreshidptokenresult_interface) | The result of a third-party IDP token refresh operation.<!-- -->This object contains the new IDP token and the Idp Config ID of the provider that issued it. |
 |  [TenantConfig](./auth.tenantconfig.md#tenantconfig_interface) | The tenant config that can be used to initialize a Regional [Auth](./auth.auth.md#auth_interface) instance. |
+|  [TokenRefreshHandler](./auth.tokenrefreshhandler.md#tokenrefreshhandler_interface) | An interface for handling the refresh of Firebase tokens. |
 |  [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactorassertion_interface) | The class for asserting ownership of a TOTP second factor. Provided by [TotpMultiFactorGenerator.assertionForEnrollment()](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforenrollment) and [TotpMultiFactorGenerator.assertionForSignIn()](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforsignin)<!-- -->. |
 |  [TotpMultiFactorInfo](./auth.totpmultifactorinfo.md#totpmultifactorinfo_interface) | The subclass of the [MultiFactorInfo](./auth.multifactorinfo.md#multifactorinfo_interface) interface for TOTP second factors. The <code>factorId</code> of this second factor is [FactorId](./auth.md#factorid)<!-- -->.TOTP. |
 |  [User](./auth.user.md#user_interface) | A user account. |
