@@ -167,6 +167,8 @@ export {
   error,
   ifAbsent,
   join,
+  log10,
+  arraySum,
   Expression,
   AliasedExpression,
   Field,

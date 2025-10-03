@@ -2081,7 +2081,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   ifAbsent(elseExpression: unknown): Expression;
 
   ifAbsent(elseValueOrExpression: Expression | unknown): Expression {
-    return new FunctionExpression('if_absent', [this, valueToDefaultExpr(elseValueOrExpression)], 'ifAbsent');
+    return new FunctionExpression(
+      'if_absent',
+      [this, valueToDefaultExpr(elseValueOrExpression)],
+      'ifAbsent'
+    );
   }
 
   /**
@@ -2111,9 +2115,40 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   join(delimiter: string): Expression;
 
   join(delimeterValueOrExpression: string | Expression): Expression {
-    return new FunctionExpression('join', [this, valueToDefaultExpr(delimeterValueOrExpression)], 'join');
+    return new FunctionExpression(
+      'join',
+      [this, valueToDefaultExpr(delimeterValueOrExpression)],
+      'join'
+    );
   }
 
+  /**
+   * Creates an expression that computes the base-10 logarithm of a numeric value.
+   *
+   * ```typescript
+   * // Compute the base-10 logarithm of the 'value' field.
+   * field("value").log10();
+   * ```
+   *
+   * @return A new {@code Expr} representing the base-10 logarithm of the numeric value.
+   */
+  log10(): FunctionExpression {
+    return new FunctionExpression('log10', [this]);
+  }
+
+  /**
+   * Creates an expression that computes the sum of the elements in an array.
+   *
+   * ```typescript
+   * // Compute the sum of the elements in the 'scores' field.
+   * field("scores").arraySum();
+   * ```
+   *
+   * @return A new {@code Expr} representing the sum of the elements in the array.
+   */
+  arraySum(): FunctionExpression {
+    return new FunctionExpression('sum', [this]);
+  }
 
   // TODO(new-expression): Add new expression method definitions above this line
 
@@ -6861,7 +6896,11 @@ export function currentTimestamp(): FunctionExpression {
  * @return A new Expression representing the error() operation.
  */
 export function error(message: string): Expression {
-  return new FunctionExpression('error', [constant(message)], 'currentTimestamp');
+  return new FunctionExpression(
+    'error',
+    [constant(message)],
+    'currentTimestamp'
+  );
 }
 
 /**
@@ -7391,9 +7430,17 @@ export function ifAbsent(ifFieldName: string, elseExpr: Expression): Expression;
  * @param elseValue The value that will be returned if [ifFieldName] is absent.
  * @return A new Expression representing the ifAbsent operation.
  */
-export function ifAbsent(ifFieldName: string | Expression, elseValue: Expression | unknown): Expression;
-export function ifAbsent(fieldNameOrExpression: string | Expression, elseValue: Expression | unknown): Expression {
-  return fieldOrExpression(fieldNameOrExpression).ifAbsent(valueToDefaultExpr(elseValue));
+export function ifAbsent(
+  ifFieldName: string | Expression,
+  elseValue: Expression | unknown
+): Expression;
+export function ifAbsent(
+  fieldNameOrExpression: string | Expression,
+  elseValue: Expression | unknown
+): Expression {
+  return fieldOrExpression(fieldNameOrExpression).ifAbsent(
+    valueToDefaultExpr(elseValue)
+  );
 }
 
 /**
@@ -7422,7 +7469,10 @@ export function join(arrayFieldName: string, delimiter: string): Expression;
  * @param delimiterExpression The expression that evaluates to the delimiter string.
  * @return A new Expression representing the join operation.
  */
-export function join(arrayExpression: Expression, delimiterExpression: Expression): Expression;
+export function join(
+  arrayExpression: Expression,
+  delimiterExpression: Expression
+): Expression;
 
 /**
  * Creates an expression that joins the elements of an array into a string.
@@ -7436,7 +7486,10 @@ export function join(arrayExpression: Expression, delimiterExpression: Expressio
  * @param delimiter The string to use as a delimiter.
  * @return A new Expression representing the join operation.
  */
-export function join(arrayExpression: Expression, delimiter: string): Expression;
+export function join(
+  arrayExpression: Expression,
+  delimiter: string
+): Expression;
 
 /**
  * Creates an expression that joins the elements of an array into a string.
@@ -7450,9 +7503,75 @@ export function join(arrayExpression: Expression, delimiter: string): Expression
  * @param delimiterExpression The expression that evaluates to the delimiter string.
  * @return A new Expression representing the join operation.
  */
-export function join(arrayFieldName: string, delimiterExpression: Expression): Expression;
-export function join(fieldNameOrExpression: string | Expression, delimiterValueOrExpression: Expression | string): Expression {
-  return fieldOrExpression(fieldNameOrExpression).join(valueToDefaultExpr(delimiterValueOrExpression));
+export function join(
+  arrayFieldName: string,
+  delimiterExpression: Expression
+): Expression;
+export function join(
+  fieldNameOrExpression: string | Expression,
+  delimiterValueOrExpression: Expression | string
+): Expression {
+  return fieldOrExpression(fieldNameOrExpression).join(
+    valueToDefaultExpr(delimiterValueOrExpression)
+  );
+}
+
+/**
+ * Creates an expression that computes the base-10 logarithm of a numeric value.
+ *
+ * ```typescript
+ * // Compute the base-10 logarithm of the 'value' field.
+ * log10("value");
+ * ```
+ *
+ * @param fieldName The name of the field to compute the base-10 logarithm of.
+ * @return A new `Expr` representing the base-10 logarithm of the numeric value.
+ */
+export function log10(fieldName: string): FunctionExpression;
+
+/**
+ * Creates an expression that computes the base-10 logarithm of a numeric value.
+ *
+ * ```typescript
+ * // Compute the base-10 logarithm of the 'value' field.
+ * log10(field("value"));
+ * ```
+ *
+ * @param expression An expression evaluating to a numeric value, which the base-10 logarithm will be computed for.
+ * @return A new `Expr` representing the base-10 logarithm of the numeric value.
+ */
+export function log10(expression: Expression): FunctionExpression;
+export function log10(expr: Expression | string): FunctionExpression {
+  return fieldOrExpression(expr).log10();
+}
+
+/**
+ * Creates an expression that computes the sum of the elements in an array.
+ *
+ * ```typescript
+ * // Compute the sum of the elements in the 'scores' field.
+ * arraySum("scores");
+ * ```
+ *
+ * @param fieldName The name of the field to compute the sum of.
+ * @return A new `Expr` representing the sum of the elements in the array.
+ */
+export function arraySum(fieldName: string): FunctionExpression;
+
+/**
+ * Creates an expression that computes the sum of the elements in an array.
+ *
+ * ```typescript
+ * // Compute the sum of the elements in the 'scores' field.
+ * arraySum(field("scores"));
+ * ```
+ *
+ * @param expression An expression evaluating to a numeric array, which the sum will be computed for.
+ * @return A new `Expr` representing the sum of the elements in the array.
+ */
+export function arraySum(expression: Expression): FunctionExpression;
+export function arraySum(expr: Expression | string): FunctionExpression {
+  return fieldOrExpression(expr).arraySum();
 }
 
 // TODO(new-expression): Add new top-level expression function definitions above this line

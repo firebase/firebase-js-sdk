@@ -141,7 +141,11 @@ import {
   abs,
   concat,
   error,
-  currentTimestamp, ifAbsent, join
+  currentTimestamp,
+  ifAbsent,
+  join,
+  log10,
+  arraySum
 } from '../util/pipeline_export';
 
 use(chaiAsPromised);
@@ -3821,6 +3825,36 @@ apiDescribe.only('Pipelines', persistence => {
       });
     });
 
+    it('can compute the base-10 logarithm of a numeric value', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal('The Lord of the Rings'))
+          .limit(1)
+          .select(field('rating').log10().as('log10Rating'))
+      );
+      expect(snapshot.results[0]!.data().log10Rating).to.be.closeTo(
+        0.672,
+        0.001
+      );
+    });
+
+    it('can compute the base-10 logarithm of a numeric value with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal('The Lord of the Rings'))
+          .limit(1)
+          .select(log10('rating').as('log10Rating'))
+      );
+      expect(snapshot.results[0]!.data().log10Rating).to.be.closeTo(
+        0.672,
+        0.001
+      );
+    });
+
     it('can concat fields', async () => {
       const snapshot = await execute(
         firestore
@@ -3845,28 +3879,28 @@ apiDescribe.only('Pipelines', persistence => {
           .pipeline()
           .collection(randomCol.path)
           .limit(1)
-          .addFields(
-            currentTimestamp().as('now')
-          )
+          .addFields(currentTimestamp().as('now'))
           .select('now')
       );
-      let now = snapshot.results[0].get('now') as Timestamp;
+      const now = snapshot.results[0].get('now') as Timestamp;
       expect(now).instanceof(Timestamp);
-      expect(now.toDate().getUTCSeconds() - (new Date()).getUTCSeconds()).lessThan(5000);
+      expect(
+        now.toDate().getUTCSeconds() - new Date().getUTCSeconds()
+      ).lessThan(5000);
     });
 
-    it('supports error', async () => {
+    // Not implemented in backend
+    it.skip('supports error', async () => {
       const snapshot = await execute(
         firestore
           .pipeline()
           .collection(randomCol.path)
           .limit(1)
-          .select(
-            isError(error('test error')).as('error')
-          ));
+          .select(isError(error('test error')).as('error'))
+      );
 
       expectResults(snapshot, {
-        'error': true,
+        'error': true
       });
     });
 
@@ -3876,14 +3910,17 @@ apiDescribe.only('Pipelines', persistence => {
           .pipeline()
           .collection(randomCol.path)
           .limit(1)
-          .replaceWith(map({
-            title: 'foo'
-          }))
+          .replaceWith(
+            map({
+              title: 'foo'
+            })
+          )
           .select(
             ifAbsent('title', 'default title').as('title'),
             field('name').ifAbsent('default name').as('name'),
-            field('name').ifAbsent(field('title')).as('nameOrTitle'),
-          ));
+            field('name').ifAbsent(field('title')).as('nameOrTitle')
+          )
+      );
 
       expectResults(snapshot, {
         title: 'foo',
@@ -3892,24 +3929,54 @@ apiDescribe.only('Pipelines', persistence => {
       });
     });
 
-    it.only('supports join', async () => {
+    it('supports join', async () => {
       const snapshot = await execute(
         firestore
           .pipeline()
           .collection(randomCol.path)
           .limit(1)
-          .replaceWith(map({
-            tags: ['foo', 'bar', 'baz'],
-            delimeter: '|'
-          }))
-          .select(
-            join('tags', ',').as('csv'),
-            field('tags').join('|').as('or')
-          ));
+          .replaceWith(
+            map({
+              tags: ['foo', 'bar', 'baz'],
+              delimeter: '|'
+            })
+          )
+          .select(join('tags', ',').as('csv'), field('tags').join('|').as('or'))
+      );
 
       expectResults(snapshot, {
         csv: 'foo,bar,baz',
         or: 'foo|bar|baz'
+      });
+    });
+
+    it('can compute the sum of the elements in an array', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal('The Lord of the Rings'))
+          .limit(1)
+          .addFields(array([150, 200]).as('sales'))
+          .select(field('sales').arraySum().as('totalSales'))
+      );
+      expectResults(snapshot, {
+        totalSales: 350
+      });
+    });
+
+    it('can compute the sum of the elements in an array with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal('The Lord of the Rings'))
+          .limit(1)
+          .addFields(array([150, 200]).as('sales'))
+          .select(arraySum('sales').as('totalSales'))
+      );
+      expectResults(snapshot, {
+        totalSales: 350
       });
     });
 
