@@ -155,7 +155,7 @@ export interface FileDataPart {
 /**
  * Represents the code that is executed by the model.
  *
- * @public
+ * @beta
  */
 export interface ExecutableCodePart {
   text?: never;
@@ -175,7 +175,7 @@ export interface ExecutableCodePart {
 /**
  * Represents the code execution result from the model.
  *
- * @public
+ * @beta
  */
 export interface CodeExecutionResultPart {
   text?: never;
@@ -195,7 +195,7 @@ export interface CodeExecutionResultPart {
 /**
  * An interface for executable code returned by the model.
  *
- * @public
+ * @beta
  */
 export interface ExecutableCode {
   /**
@@ -211,7 +211,7 @@ export interface ExecutableCode {
 /**
  * The results of code execution run by the model.
  *
- * @public
+ * @beta
  */
 export interface CodeExecutionResult {
   /**

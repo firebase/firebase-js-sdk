@@ -9,43 +9,33 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# LanguageModelExpected interface
+# URLContextTool interface
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Options for the expected inputs for an on-device language model.
+A tool that allows you to provide additional context to the models in the form of public web URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhance its response.
 
 <b>Signature:</b>
 
 ```typescript
-export interface LanguageModelExpected 
+export interface URLContextTool 
 ```
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [languages](./ai.languagemodelexpected.md#languagemodelexpectedlanguages) | string\[\] | <b><i>(Public Preview)</i></b> |
-|  [type](./ai.languagemodelexpected.md#languagemodelexpectedtype) | [LanguageModelMessageType](./ai.md#languagemodelmessagetype) | <b><i>(Public Preview)</i></b> |
+|  [urlContext](./ai.urlcontexttool.md#urlcontexttoolurlcontext) | [URLContext](./ai.urlcontext.md#urlcontext_interface) | <b><i>(Public Preview)</i></b> Specifies the URL Context configuration. |
 
-## LanguageModelExpected.languages
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-<b>Signature:</b>
-
-```typescript
-languages?: string[];
-```
-
-## LanguageModelExpected.type
+## URLContextTool.urlContext
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
+Specifies the URL Context configuration.
+
 <b>Signature:</b>
 
 ```typescript
-type: LanguageModelMessageType;
+urlContext: URLContext;
 ```

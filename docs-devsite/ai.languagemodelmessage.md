@@ -10,7 +10,10 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # LanguageModelMessage interface
-<b>(EXPERIMENTAL)</b> An on-device language model message.
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+An on-device language model message.
 
 <b>Signature:</b>
 
@@ -22,10 +25,13 @@ export interface LanguageModelMessage
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [content](./ai.languagemodelmessage.md#languagemodelmessagecontent) | [LanguageModelMessageContent](./ai.languagemodelmessagecontent.md#languagemodelmessagecontent_interface)<!-- -->\[\] |  |
-|  [role](./ai.languagemodelmessage.md#languagemodelmessagerole) | [LanguageModelMessageRole](./ai.md#languagemodelmessagerole) |  |
+|  [content](./ai.languagemodelmessage.md#languagemodelmessagecontent) | [LanguageModelMessageContent](./ai.languagemodelmessagecontent.md#languagemodelmessagecontent_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> |
+|  [role](./ai.languagemodelmessage.md#languagemodelmessagerole) | [LanguageModelMessageRole](./ai.md#languagemodelmessagerole) | <b><i>(Public Preview)</i></b> |
 
 ## LanguageModelMessage.content
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 <b>Signature:</b>
 
@@ -34,6 +40,9 @@ content: LanguageModelMessageContent[];
 ```
 
 ## LanguageModelMessage.role
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 <b>Signature:</b>
 

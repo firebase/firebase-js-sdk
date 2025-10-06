@@ -133,6 +133,7 @@ export class BooleanSchema extends Schema {
 
 // @public
 export class ChatSession {
+    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     getHistory(): Promise<Content[]>;
     // (undocumented)
@@ -145,7 +146,7 @@ export class ChatSession {
     sendMessageStream(request: string | Array<string | Part>): Promise<GenerateContentStreamResult>;
     }
 
-// @public
+// @beta
 export interface ChromeAdapter {
     // @internal (undocumented)
     countTokens(request: CountTokensRequest): Promise<Response>;
@@ -174,13 +175,13 @@ export interface CitationMetadata {
     citations: Citation[];
 }
 
-// @public
+// @beta
 export interface CodeExecutionResult {
     outcome?: Outcome;
     output?: string;
 }
 
-// @public
+// @beta
 export interface CodeExecutionResultPart {
     // (undocumented)
     codeExecutionResult?: CodeExecutionResult;
@@ -202,7 +203,7 @@ export interface CodeExecutionResultPart {
     thoughtSignature?: never;
 }
 
-// @public
+// @beta
 export interface CodeExecutionTool {
     codeExecution: {};
 }
@@ -270,13 +271,13 @@ export interface ErrorDetails {
     reason?: string;
 }
 
-// @public
+// @beta
 export interface ExecutableCode {
     code?: string;
     language?: Language;
 }
 
-// @public
+// @beta
 export interface ExecutableCodePart {
     // (undocumented)
     codeExecutionResult?: never;
@@ -448,6 +449,10 @@ export interface GenerateContentCandidate {
     index: number;
     // (undocumented)
     safetyRatings?: SafetyRating[];
+    // Warning: (ae-incompatible-release-tags) The symbol "urlContextMetadata" is marked as @public, but its signature references "URLContextMetadata" which is marked as @beta
+    //
+    // (undocumented)
+    urlContextMetadata?: URLContextMetadata;
 }
 
 // @public
@@ -520,6 +525,7 @@ export interface GenerativeContentBlob {
 
 // @public
 export class GenerativeModel extends AIModel {
+    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions, chromeAdapter?: ChromeAdapter | undefined);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
@@ -542,6 +548,8 @@ export class GenerativeModel extends AIModel {
 // @public
 export function getAI(app?: FirebaseApp, options?: AIOptions): AI;
 
+// Warning: (ae-incompatible-release-tags) The symbol "getGenerativeModel" is marked as @public, but its signature references "HybridParams" which is marked as @beta
+//
 // @public
 export function getGenerativeModel(ai: AI, modelParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 
@@ -596,6 +604,8 @@ export interface GoogleAIGenerateContentCandidate {
     index: number;
     // (undocumented)
     safetyRatings?: SafetyRating[];
+    // (undocumented)
+    urlContextMetadata?: URLContextMetadata;
 }
 
 // Warning: (ae-internal-missing-underscore) The name "GoogleAIGenerateContentResponse" should be prefixed with an underscore because the declaration is marked as @internal
@@ -695,7 +705,7 @@ export const HarmSeverity: {
 // @public
 export type HarmSeverity = (typeof HarmSeverity)[keyof typeof HarmSeverity];
 
-// @public
+// @beta
 export interface HybridParams {
     inCloudParams?: ModelParams;
     mode: InferenceMode;
@@ -795,7 +805,7 @@ export interface ImagenSafetySettings {
     safetyFilterLevel?: ImagenSafetyFilterLevel;
 }
 
-// @public
+// @beta
 export const InferenceMode: {
     readonly PREFER_ON_DEVICE: "prefer_on_device";
     readonly ONLY_ON_DEVICE: "only_on_device";
@@ -803,7 +813,7 @@ export const InferenceMode: {
     readonly PREFER_IN_CLOUD: "prefer_in_cloud";
 };
 
-// @public
+// @beta
 export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
 
 // @public
@@ -832,16 +842,16 @@ export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
 
-// @public
+// @beta
 export const Language: {
     UNSPECIFIED: string;
     PYTHON: string;
 };
 
-// @public
+// @beta
 export type Language = (typeof Language)[keyof typeof Language];
 
-// @public
+// @beta
 export interface LanguageModelCreateCoreOptions {
     // (undocumented)
     expectedInputs?: LanguageModelExpected[];
@@ -851,7 +861,7 @@ export interface LanguageModelCreateCoreOptions {
     topK?: number;
 }
 
-// @public
+// @beta
 export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptions {
     // (undocumented)
     initialPrompts?: LanguageModelMessage[];
@@ -859,7 +869,7 @@ export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptio
     signal?: AbortSignal;
 }
 
-// @public
+// @beta
 export interface LanguageModelExpected {
     // (undocumented)
     languages?: string[];
@@ -867,7 +877,7 @@ export interface LanguageModelExpected {
     type: LanguageModelMessageType;
 }
 
-// @public
+// @beta
 export interface LanguageModelMessage {
     // (undocumented)
     content: LanguageModelMessageContent[];
@@ -875,7 +885,7 @@ export interface LanguageModelMessage {
     role: LanguageModelMessageRole;
 }
 
-// @public
+// @beta
 export interface LanguageModelMessageContent {
     // (undocumented)
     type: LanguageModelMessageType;
@@ -883,16 +893,16 @@ export interface LanguageModelMessageContent {
     value: LanguageModelMessageContentValue;
 }
 
-// @public
+// @beta
 export type LanguageModelMessageContentValue = ImageBitmapSource | AudioBuffer | BufferSource | string;
 
-// @public
+// @beta
 export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 
-// @public
+// @beta
 export type LanguageModelMessageType = 'text' | 'image' | 'audio';
 
-// @public
+// @beta
 export interface LanguageModelPromptOptions {
     // (undocumented)
     responseConstraint?: object;
@@ -984,6 +994,7 @@ export class LiveSession {
     isClosed: boolean;
     receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation>;
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
+    sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
     sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void>;
     sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;
     }
@@ -1046,7 +1057,7 @@ export interface ObjectSchemaRequest extends SchemaRequest {
     type: 'object';
 }
 
-// @public
+// @beta
 export interface OnDeviceParams {
     // (undocumented)
     createOptions?: LanguageModelCreateOptions;
@@ -1054,7 +1065,7 @@ export interface OnDeviceParams {
     promptOptions?: LanguageModelPromptOptions;
 }
 
-// @public
+// @beta
 export const Outcome: {
     UNSPECIFIED: string;
     OK: string;
@@ -1062,9 +1073,12 @@ export const Outcome: {
     DEADLINE_EXCEEDED: string;
 };
 
-// @public
+// @beta
 export type Outcome = (typeof Outcome)[keyof typeof Outcome];
 
+// Warning: (ae-incompatible-release-tags) The symbol "Part" is marked as @public, but its signature references "ExecutableCodePart" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "Part" is marked as @public, but its signature references "CodeExecutionResultPart" which is marked as @beta
+//
 // @public
 export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart | ExecutableCodePart | CodeExecutionResultPart;
 
@@ -1250,7 +1264,7 @@ export function startAudioConversation(liveSession: LiveSession, options?: Start
 
 // @beta
 export interface StartAudioConversationOptions {
-    functionCallingHandler?: (functionCalls: LiveServerToolCall['functionCalls']) => Promise<Part>;
+    functionCallingHandler?: (functionCalls: FunctionCall[]) => Promise<FunctionResponse>;
 }
 
 // @public
@@ -1300,8 +1314,11 @@ export interface ThinkingConfig {
     thinkingBudget?: number;
 }
 
+// Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "CodeExecutionTool" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "URLContextTool" which is marked as @beta
+//
 // @public
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool;
+export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
 
 // @public
 export interface ToolConfig {
@@ -1311,6 +1328,38 @@ export interface ToolConfig {
 
 // @public
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
+
+// @beta
+export interface URLContext {
+}
+
+// @beta
+export interface URLContextMetadata {
+    urlMetadata: URLMetadata[];
+}
+
+// @beta
+export interface URLContextTool {
+    urlContext: URLContext;
+}
+
+// @beta
+export interface URLMetadata {
+    retrievedUrl?: string;
+    urlRetrievalStatus?: URLRetrievalStatus;
+}
+
+// @beta
+export const URLRetrievalStatus: {
+    URL_RETRIEVAL_STATUS_UNSPECIFIED: string;
+    URL_RETRIEVAL_STATUS_SUCCESS: string;
+    URL_RETRIEVAL_STATUS_ERROR: string;
+    URL_RETRIEVAL_STATUS_PAYWALL: string;
+    URL_RETRIEVAL_STATUS_UNSAFE: string;
+};
+
+// @beta
+export type URLRetrievalStatus = (typeof URLRetrievalStatus)[keyof typeof URLRetrievalStatus];
 
 // @public
 export interface UsageMetadata {
@@ -1323,6 +1372,8 @@ export interface UsageMetadata {
     // (undocumented)
     promptTokensDetails?: ModalityTokenCount[];
     thoughtsTokenCount?: number;
+    toolUsePromptTokenCount?: number;
+    toolUsePromptTokensDetails?: ModalityTokenCount[];
     // (undocumented)
     totalTokenCount: number;
 }

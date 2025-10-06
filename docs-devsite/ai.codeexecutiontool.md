@@ -10,6 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # CodeExecutionTool interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 A tool that enables the model to use code execution.
 
 <b>Signature:</b>
@@ -22,9 +25,12 @@ export interface CodeExecutionTool
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [codeExecution](./ai.codeexecutiontool.md#codeexecutiontoolcodeexecution) | {} | Specifies the Google Search configuration. Currently, this is an empty object, but it's reserved for future configuration options. |
+|  [codeExecution](./ai.codeexecutiontool.md#codeexecutiontoolcodeexecution) | {} | <b><i>(Public Preview)</i></b> Specifies the Google Search configuration. Currently, this is an empty object, but it's reserved for future configuration options. |
 
 ## CodeExecutionTool.codeExecution
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Specifies the Google Search configuration. Currently, this is an empty object, but it's reserved for future configuration options.
 

@@ -57,12 +57,12 @@ The Firebase AI Web SDK.
 |  [AIOptions](./ai.aioptions.md#aioptions_interface) | Options for initializing the AI service using [getAI()](./ai.md#getai_a94a413)<!-- -->. This allows specifying which backend to use (Vertex AI Gemini API or Gemini Developer API) and configuring its specific options (like location for Vertex AI). |
 |  [AudioConversationController](./ai.audioconversationcontroller.md#audioconversationcontroller_interface) | <b><i>(Public Preview)</i></b> A controller for managing an active audio conversation. |
 |  [BaseParams](./ai.baseparams.md#baseparams_interface) | Base parameters for a number of methods. |
-|  [ChromeAdapter](./ai.chromeadapter.md#chromeadapter_interface) | <b>(EXPERIMENTAL)</b> Defines an inference "backend" that uses Chrome's on-device model, and encapsulates logic for detecting when on-device inference is possible.<!-- -->These methods should not be called directly by the user. |
+|  [ChromeAdapter](./ai.chromeadapter.md#chromeadapter_interface) | <b><i>(Public Preview)</i></b> Defines an inference "backend" that uses Chrome's on-device model, and encapsulates logic for detecting when on-device inference is possible.<!-- -->These methods should not be called directly by the user. |
 |  [Citation](./ai.citation.md#citation_interface) | A single citation. |
 |  [CitationMetadata](./ai.citationmetadata.md#citationmetadata_interface) | Citation metadata that may be found on a [GenerateContentCandidate](./ai.generatecontentcandidate.md#generatecontentcandidate_interface)<!-- -->. |
-|  [CodeExecutionResult](./ai.codeexecutionresult.md#codeexecutionresult_interface) | The results of code execution run by the model. |
-|  [CodeExecutionResultPart](./ai.codeexecutionresultpart.md#codeexecutionresultpart_interface) | Represents the code execution result from the model. |
-|  [CodeExecutionTool](./ai.codeexecutiontool.md#codeexecutiontool_interface) | A tool that enables the model to use code execution. |
+|  [CodeExecutionResult](./ai.codeexecutionresult.md#codeexecutionresult_interface) | <b><i>(Public Preview)</i></b> The results of code execution run by the model. |
+|  [CodeExecutionResultPart](./ai.codeexecutionresultpart.md#codeexecutionresultpart_interface) | <b><i>(Public Preview)</i></b> Represents the code execution result from the model. |
+|  [CodeExecutionTool](./ai.codeexecutiontool.md#codeexecutiontool_interface) | <b><i>(Public Preview)</i></b> A tool that enables the model to use code execution. |
 |  [Content](./ai.content.md#content_interface) | Content type for both prompts and response candidates. |
 |  [CountTokensRequest](./ai.counttokensrequest.md#counttokensrequest_interface) | Params for calling [GenerativeModel.countTokens()](./ai.generativemodel.md#generativemodelcounttokens) |
 |  [CountTokensResponse](./ai.counttokensresponse.md#counttokensresponse_interface) | Response from calling [GenerativeModel.countTokens()](./ai.generativemodel.md#generativemodelcounttokens)<!-- -->. |
@@ -70,8 +70,8 @@ The Firebase AI Web SDK.
 |  [Date\_2](./ai.date_2.md#date_2_interface) | Protobuf google.type.Date |
 |  [EnhancedGenerateContentResponse](./ai.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponse_interface) | Response object wrapped with helper methods. |
 |  [ErrorDetails](./ai.errordetails.md#errordetails_interface) | Details object that may be included in an error response. |
-|  [ExecutableCode](./ai.executablecode.md#executablecode_interface) | An interface for executable code returned by the model. |
-|  [ExecutableCodePart](./ai.executablecodepart.md#executablecodepart_interface) | Represents the code that is executed by the model. |
+|  [ExecutableCode](./ai.executablecode.md#executablecode_interface) | <b><i>(Public Preview)</i></b> An interface for executable code returned by the model. |
+|  [ExecutableCodePart](./ai.executablecodepart.md#executablecodepart_interface) | <b><i>(Public Preview)</i></b> Represents the code that is executed by the model. |
 |  [FileData](./ai.filedata.md#filedata_interface) | Data pointing to a file uploaded on Google Cloud Storage. |
 |  [FileDataPart](./ai.filedatapart.md#filedatapart_interface) | Content part interface if the part represents [FileData](./ai.filedata.md#filedata_interface) |
 |  [FunctionCall](./ai.functioncall.md#functioncall_interface) | A predicted [FunctionCall](./ai.functioncall.md#functioncall_interface) returned from the model that contains a string representing the [FunctionDeclaration.name](./ai.functiondeclaration.md#functiondeclarationname) and a structured JSON object containing the parameters and their values. |
@@ -93,7 +93,7 @@ The Firebase AI Web SDK.
 |  [GroundingChunk](./ai.groundingchunk.md#groundingchunk_interface) | Represents a chunk of retrieved data that supports a claim in the model's response. This is part of the grounding information provided when grounding is enabled. |
 |  [GroundingMetadata](./ai.groundingmetadata.md#groundingmetadata_interface) | Metadata returned when grounding is enabled.<!-- -->Currently, only Grounding with Google Search is supported (see [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface)<!-- -->).<!-- -->Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or Vertex AI Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
 |  [GroundingSupport](./ai.groundingsupport.md#groundingsupport_interface) | Provides information about how a specific segment of the model's response is supported by the retrieved grounding chunks. |
-|  [HybridParams](./ai.hybridparams.md#hybridparams_interface) | <b>(EXPERIMENTAL)</b> Configures hybrid inference. |
+|  [HybridParams](./ai.hybridparams.md#hybridparams_interface) | <b><i>(Public Preview)</i></b> Configures hybrid inference. |
 |  [ImagenGCSImage](./ai.imagengcsimage.md#imagengcsimage_interface) | An image generated by Imagen, stored in a Cloud Storage for Firebase bucket.<!-- -->This feature is not available yet. |
 |  [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface) | Configuration options for generating images with Imagen.<!-- -->See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images-imagen) for more details. |
 |  [ImagenGenerationResponse](./ai.imagengenerationresponse.md#imagengenerationresponse_interface) | The response from a request to generate images with Imagen. |
@@ -101,12 +101,12 @@ The Firebase AI Web SDK.
 |  [ImagenModelParams](./ai.imagenmodelparams.md#imagenmodelparams_interface) | Parameters for configuring an [ImagenModel](./ai.imagenmodel.md#imagenmodel_class)<!-- -->. |
 |  [ImagenSafetySettings](./ai.imagensafetysettings.md#imagensafetysettings_interface) | Settings for controlling the aggressiveness of filtering out sensitive content.<!-- -->See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details. |
 |  [InlineDataPart](./ai.inlinedatapart.md#inlinedatapart_interface) | Content part interface if the part represents an image. |
-|  [LanguageModelCreateCoreOptions](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptions_interface) | <b>(EXPERIMENTAL)</b> Configures the creation of an on-device language model session. |
-|  [LanguageModelCreateOptions](./ai.languagemodelcreateoptions.md#languagemodelcreateoptions_interface) | <b>(EXPERIMENTAL)</b> Configures the creation of an on-device language model session. |
-|  [LanguageModelExpected](./ai.languagemodelexpected.md#languagemodelexpected_interface) | <b>(EXPERIMENTAL)</b> Options for the expected inputs for an on-device language model. |
-|  [LanguageModelMessage](./ai.languagemodelmessage.md#languagemodelmessage_interface) | <b>(EXPERIMENTAL)</b> An on-device language model message. |
-|  [LanguageModelMessageContent](./ai.languagemodelmessagecontent.md#languagemodelmessagecontent_interface) | <b>(EXPERIMENTAL)</b> An on-device language model content object. |
-|  [LanguageModelPromptOptions](./ai.languagemodelpromptoptions.md#languagemodelpromptoptions_interface) | <b>(EXPERIMENTAL)</b> Options for an on-device language model prompt. |
+|  [LanguageModelCreateCoreOptions](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptions_interface) | <b><i>(Public Preview)</i></b> Configures the creation of an on-device language model session. |
+|  [LanguageModelCreateOptions](./ai.languagemodelcreateoptions.md#languagemodelcreateoptions_interface) | <b><i>(Public Preview)</i></b> Configures the creation of an on-device language model session. |
+|  [LanguageModelExpected](./ai.languagemodelexpected.md#languagemodelexpected_interface) | <b><i>(Public Preview)</i></b> Options for the expected inputs for an on-device language model. |
+|  [LanguageModelMessage](./ai.languagemodelmessage.md#languagemodelmessage_interface) | <b><i>(Public Preview)</i></b> An on-device language model message. |
+|  [LanguageModelMessageContent](./ai.languagemodelmessagecontent.md#languagemodelmessagecontent_interface) | <b><i>(Public Preview)</i></b> An on-device language model content object. |
+|  [LanguageModelPromptOptions](./ai.languagemodelpromptoptions.md#languagemodelpromptoptions_interface) | <b><i>(Public Preview)</i></b> Options for an on-device language model prompt. |
 |  [LiveGenerationConfig](./ai.livegenerationconfig.md#livegenerationconfig_interface) | <b><i>(Public Preview)</i></b> Configuration parameters used by [LiveGenerativeModel](./ai.livegenerativemodel.md#livegenerativemodel_class) to control live content generation. |
 |  [LiveModelParams](./ai.livemodelparams.md#livemodelparams_interface) | <b><i>(Public Preview)</i></b> Params passed to [getLiveGenerativeModel()](./ai.md#getlivegenerativemodel_f2099ac)<!-- -->. |
 |  [LiveServerContent](./ai.liveservercontent.md#liveservercontent_interface) | <b><i>(Public Preview)</i></b> An incremental content update from the model. |
@@ -115,7 +115,7 @@ The Firebase AI Web SDK.
 |  [ModalityTokenCount](./ai.modalitytokencount.md#modalitytokencount_interface) | Represents token counting info for a single modality. |
 |  [ModelParams](./ai.modelparams.md#modelparams_interface) | Params passed to [getGenerativeModel()](./ai.md#getgenerativemodel_c63f46a)<!-- -->. |
 |  [ObjectSchemaRequest](./ai.objectschemarequest.md#objectschemarequest_interface) | Interface for JSON parameters in a schema of [SchemaType](./ai.md#schematype) "object" when not using the <code>Schema.object()</code> helper. |
-|  [OnDeviceParams](./ai.ondeviceparams.md#ondeviceparams_interface) | <b>(EXPERIMENTAL)</b> Encapsulates configuration for on-device inference. |
+|  [OnDeviceParams](./ai.ondeviceparams.md#ondeviceparams_interface) | <b><i>(Public Preview)</i></b> Encapsulates configuration for on-device inference. |
 |  [PrebuiltVoiceConfig](./ai.prebuiltvoiceconfig.md#prebuiltvoiceconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for a pre-built voice. |
 |  [PromptFeedback](./ai.promptfeedback.md#promptfeedback_interface) | If the prompt was blocked, this will be populated with <code>blockReason</code> and the relevant <code>safetyRatings</code>. |
 |  [RequestOptions](./ai.requestoptions.md#requestoptions_interface) | Params passed to [getGenerativeModel()](./ai.md#getgenerativemodel_c63f46a)<!-- -->. |
@@ -134,6 +134,10 @@ The Firebase AI Web SDK.
 |  [TextPart](./ai.textpart.md#textpart_interface) | Content part interface if the part represents a text string. |
 |  [ThinkingConfig](./ai.thinkingconfig.md#thinkingconfig_interface) | Configuration for "thinking" behavior of compatible Gemini models.<!-- -->Certain models utilize a thinking process before generating a response. This allows them to reason through complex problems and plan a more coherent and accurate answer. |
 |  [ToolConfig](./ai.toolconfig.md#toolconfig_interface) | Tool config. This config is shared for all tools provided in the request. |
+|  [URLContext](./ai.urlcontext.md#urlcontext_interface) | <b><i>(Public Preview)</i></b> Specifies the URL Context configuration. |
+|  [URLContextMetadata](./ai.urlcontextmetadata.md#urlcontextmetadata_interface) | <b><i>(Public Preview)</i></b> Metadata related to [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface)<!-- -->. |
+|  [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) | <b><i>(Public Preview)</i></b> A tool that allows you to provide additional context to the models in the form of public web URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhance its response. |
+|  [URLMetadata](./ai.urlmetadata.md#urlmetadata_interface) | <b><i>(Public Preview)</i></b> Metadata for a single URL retrieved by the [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) tool. |
 |  [UsageMetadata](./ai.usagemetadata.md#usagemetadata_interface) | Usage metadata about a [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
 |  [VideoMetadata](./ai.videometadata.md#videometadata_interface) | Describes the input video content. |
 |  [VoiceConfig](./ai.voiceconfig.md#voiceconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for the voice to used in speech synthesis. |
@@ -157,14 +161,15 @@ The Firebase AI Web SDK.
 |  [ImagenAspectRatio](./ai.md#imagenaspectratio) | Aspect ratios for Imagen images.<!-- -->To specify an aspect ratio for generated images, set the <code>aspectRatio</code> property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.<!-- -->See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details and examples of the supported aspect ratios. |
 |  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details. |
 |  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
-|  [InferenceMode](./ai.md#inferencemode) | <b>(EXPERIMENTAL)</b> Determines whether inference happens on-device or in-cloud. |
-|  [Language](./ai.md#language) | The programming language of the code. |
+|  [InferenceMode](./ai.md#inferencemode) | <b><i>(Public Preview)</i></b> Determines whether inference happens on-device or in-cloud. |
+|  [Language](./ai.md#language) | <b><i>(Public Preview)</i></b> The programming language of the code. |
 |  [LiveResponseType](./ai.md#liveresponsetype) | <b><i>(Public Preview)</i></b> The types of responses that can be returned by [LiveSession.receive()](./ai.livesession.md#livesessionreceive)<!-- -->. |
 |  [Modality](./ai.md#modality) | Content part modality. |
-|  [Outcome](./ai.md#outcome) | Represents the result of the code execution. |
+|  [Outcome](./ai.md#outcome) | <b><i>(Public Preview)</i></b> Represents the result of the code execution. |
 |  [POSSIBLE\_ROLES](./ai.md#possible_roles) | Possible roles. |
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [SchemaType](./ai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
+|  [URLRetrievalStatus](./ai.md#urlretrievalstatus) | <b><i>(Public Preview)</i></b> The status of a URL retrieval. |
 
 ## Type Aliases
 
@@ -183,20 +188,21 @@ The Firebase AI Web SDK.
 |  [ImagenAspectRatio](./ai.md#imagenaspectratio) | Aspect ratios for Imagen images.<!-- -->To specify an aspect ratio for generated images, set the <code>aspectRatio</code> property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.<!-- -->See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details and examples of the supported aspect ratios. |
 |  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details. |
 |  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
-|  [InferenceMode](./ai.md#inferencemode) | <b>(EXPERIMENTAL)</b> Determines whether inference happens on-device or in-cloud. |
-|  [Language](./ai.md#language) | The programming language of the code. |
-|  [LanguageModelMessageContentValue](./ai.md#languagemodelmessagecontentvalue) | <b>(EXPERIMENTAL)</b> Content formats that can be provided as on-device message content. |
-|  [LanguageModelMessageRole](./ai.md#languagemodelmessagerole) | <b>(EXPERIMENTAL)</b> Allowable roles for on-device language model usage. |
-|  [LanguageModelMessageType](./ai.md#languagemodelmessagetype) | <b>(EXPERIMENTAL)</b> Allowable types for on-device language model messages. |
+|  [InferenceMode](./ai.md#inferencemode) | <b><i>(Public Preview)</i></b> Determines whether inference happens on-device or in-cloud. |
+|  [Language](./ai.md#language) | <b><i>(Public Preview)</i></b> The programming language of the code. |
+|  [LanguageModelMessageContentValue](./ai.md#languagemodelmessagecontentvalue) | <b><i>(Public Preview)</i></b> Content formats that can be provided as on-device message content. |
+|  [LanguageModelMessageRole](./ai.md#languagemodelmessagerole) | <b><i>(Public Preview)</i></b> Allowable roles for on-device language model usage. |
+|  [LanguageModelMessageType](./ai.md#languagemodelmessagetype) | <b><i>(Public Preview)</i></b> Allowable types for on-device language model messages. |
 |  [LiveResponseType](./ai.md#liveresponsetype) | <b><i>(Public Preview)</i></b> The types of responses that can be returned by [LiveSession.receive()](./ai.livesession.md#livesessionreceive)<!-- -->. This is a property on all messages that can be used for type narrowing. This property is not returned by the server, it is assigned to a server message object once it's parsed. |
 |  [Modality](./ai.md#modality) | Content part modality. |
-|  [Outcome](./ai.md#outcome) | Represents the result of the code execution. |
+|  [Outcome](./ai.md#outcome) | <b><i>(Public Preview)</i></b> Represents the result of the code execution. |
 |  [Part](./ai.md#part) | Content part - includes text, image/video, or function call/response part types. |
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [Role](./ai.md#role) | Role is the producer of the content. |
 |  [SchemaType](./ai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
 |  [Tool](./ai.md#tool) | Defines a tool that model can call to access external knowledge. |
 |  [TypedSchema](./ai.md#typedschema) | A type that includes all specific Schema types. |
+|  [URLRetrievalStatus](./ai.md#urlretrievalstatus) | <b><i>(Public Preview)</i></b> The status of a URL retrieval. |
 
 ## function(app, ...)
 
@@ -619,7 +625,10 @@ ImagenSafetyFilterLevel: {
 
 ## InferenceMode
 
-<b>(EXPERIMENTAL)</b> Determines whether inference happens on-device or in-cloud.
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Determines whether inference happens on-device or in-cloud.
 
 <b>PREFER\_ON\_DEVICE:</b> Attempt to make inference calls using an on-device model. If on-device inference is not available, the SDK will fall back to using a cloud-hosted model. <br/> <b>ONLY\_ON\_DEVICE:</b> Only attempt to make inference calls using an on-device model. The SDK will not fall back to a cloud-hosted model. If on-device inference is not available, inference methods will throw. <br/> <b>ONLY\_IN\_CLOUD:</b> Only attempt to make inference calls using a cloud-hosted model. The SDK will not fall back to an on-device model. <br/> <b>PREFER\_IN\_CLOUD:</b> Attempt to make inference calls to a cloud-hosted model. If not available, the SDK will fall back to an on-device model.
 
@@ -635,6 +644,9 @@ InferenceMode: {
 ```
 
 ## Language
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 The programming language of the code.
 
@@ -682,6 +694,9 @@ Modality: {
 ```
 
 ## Outcome
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Represents the result of the code execution.
 
@@ -737,6 +752,27 @@ SchemaType: {
     readonly BOOLEAN: "boolean";
     readonly ARRAY: "array";
     readonly OBJECT: "object";
+}
+```
+
+## URLRetrievalStatus
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+The status of a URL retrieval.
+
+<b>URL\_RETRIEVAL\_STATUS\_UNSPECIFIED:</b> Unspecified retrieval status. <br/> <b>URL\_RETRIEVAL\_STATUS\_SUCCESS:</b> The URL retrieval was successful. <br/> <b>URL\_RETRIEVAL\_STATUS\_ERROR:</b> The URL retrieval failed. <br/> <b>URL\_RETRIEVAL\_STATUS\_PAYWALL:</b> The URL retrieval failed because the content is behind a paywall. <br/> <b>URL\_RETRIEVAL\_STATUS\_UNSAFE:</b> The URL retrieval failed because the content is unsafe. <br/>
+
+<b>Signature:</b>
+
+```typescript
+URLRetrievalStatus: {
+    URL_RETRIEVAL_STATUS_UNSPECIFIED: string;
+    URL_RETRIEVAL_STATUS_SUCCESS: string;
+    URL_RETRIEVAL_STATUS_ERROR: string;
+    URL_RETRIEVAL_STATUS_PAYWALL: string;
+    URL_RETRIEVAL_STATUS_UNSAFE: string;
 }
 ```
 
@@ -879,7 +915,10 @@ export type ImagenSafetyFilterLevel = (typeof ImagenSafetyFilterLevel)[keyof typ
 
 ## InferenceMode
 
-<b>(EXPERIMENTAL)</b> Determines whether inference happens on-device or in-cloud.
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Determines whether inference happens on-device or in-cloud.
 
 <b>Signature:</b>
 
@@ -888,6 +927,9 @@ export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
 ```
 
 ## Language
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 The programming language of the code.
 
@@ -899,7 +941,10 @@ export type Language = (typeof Language)[keyof typeof Language];
 
 ## LanguageModelMessageContentValue
 
-<b>(EXPERIMENTAL)</b> Content formats that can be provided as on-device message content.
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Content formats that can be provided as on-device message content.
 
 <b>Signature:</b>
 
@@ -909,7 +954,10 @@ export type LanguageModelMessageContentValue = ImageBitmapSource | AudioBuffer |
 
 ## LanguageModelMessageRole
 
-<b>(EXPERIMENTAL)</b> Allowable roles for on-device language model usage.
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Allowable roles for on-device language model usage.
 
 <b>Signature:</b>
 
@@ -919,7 +967,10 @@ export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 
 ## LanguageModelMessageType
 
-<b>(EXPERIMENTAL)</b> Allowable types for on-device language model messages.
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Allowable types for on-device language model messages.
 
 <b>Signature:</b>
 
@@ -951,6 +1002,9 @@ export type Modality = (typeof Modality)[keyof typeof Modality];
 ```
 
 ## Outcome
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Represents the result of the code execution.
 
@@ -1010,7 +1064,7 @@ Defines a tool that model can call to access external knowledge.
 <b>Signature:</b>
 
 ```typescript
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool;
+export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
 ```
 
 ## TypedSchema
@@ -1021,4 +1075,19 @@ A type that includes all specific Schema types.
 
 ```typescript
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
+```
+
+## URLRetrievalStatus
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+The status of a URL retrieval.
+
+<b>URL\_RETRIEVAL\_STATUS\_UNSPECIFIED:</b> Unspecified retrieval status. <br/> <b>URL\_RETRIEVAL\_STATUS\_SUCCESS:</b> The URL retrieval was successful. <br/> <b>URL\_RETRIEVAL\_STATUS\_ERROR:</b> The URL retrieval failed. <br/> <b>URL\_RETRIEVAL\_STATUS\_PAYWALL:</b> The URL retrieval failed because the content is behind a paywall. <br/> <b>URL\_RETRIEVAL\_STATUS\_UNSAFE:</b> The URL retrieval failed because the content is unsafe. <br/>
+
+<b>Signature:</b>
+
+```typescript
+export type URLRetrievalStatus = (typeof URLRetrievalStatus)[keyof typeof URLRetrievalStatus];
 ```

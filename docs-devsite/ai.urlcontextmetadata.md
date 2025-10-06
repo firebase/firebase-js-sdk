@@ -9,43 +9,33 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# LanguageModelExpected interface
+# URLContextMetadata interface
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Options for the expected inputs for an on-device language model.
+Metadata related to [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-export interface LanguageModelExpected 
+export interface URLContextMetadata 
 ```
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [languages](./ai.languagemodelexpected.md#languagemodelexpectedlanguages) | string\[\] | <b><i>(Public Preview)</i></b> |
-|  [type](./ai.languagemodelexpected.md#languagemodelexpectedtype) | [LanguageModelMessageType](./ai.md#languagemodelmessagetype) | <b><i>(Public Preview)</i></b> |
+|  [urlMetadata](./ai.urlcontextmetadata.md#urlcontextmetadataurlmetadata) | [URLMetadata](./ai.urlmetadata.md#urlmetadata_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> List of URL metadata used to provide context to the Gemini model. |
 
-## LanguageModelExpected.languages
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-<b>Signature:</b>
-
-```typescript
-languages?: string[];
-```
-
-## LanguageModelExpected.type
+## URLContextMetadata.urlMetadata
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
+List of URL metadata used to provide context to the Gemini model.
+
 <b>Signature:</b>
 
 ```typescript
-type: LanguageModelMessageType;
+urlMetadata: URLMetadata[];
 ```

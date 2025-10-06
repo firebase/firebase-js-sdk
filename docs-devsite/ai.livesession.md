@@ -39,6 +39,7 @@ export declare class LiveSession
 |  [close()](./ai.livesession.md#livesessionclose) |  | <b><i>(Public Preview)</i></b> Closes this session. All methods on this session will throw an error once this resolves. |
 |  [receive()](./ai.livesession.md#livesessionreceive) |  | <b><i>(Public Preview)</i></b> Yields messages received from the server. This can only be used by one consumer at a time. |
 |  [send(request, turnComplete)](./ai.livesession.md#livesessionsend) |  | <b><i>(Public Preview)</i></b> Sends content to the server. |
+|  [sendFunctionResponses(functionResponses)](./ai.livesession.md#livesessionsendfunctionresponses) |  | <b><i>(Public Preview)</i></b> Sends function responses to the server. |
 |  [sendMediaChunks(mediaChunks)](./ai.livesession.md#livesessionsendmediachunks) |  | <b><i>(Public Preview)</i></b> Sends realtime input to the server. |
 |  [sendMediaStream(mediaChunkStream)](./ai.livesession.md#livesessionsendmediastream) |  | <b><i>(Public Preview)</i></b> Sends a stream of [GenerativeContentBlob](./ai.generativecontentblob.md#generativecontentblob_interface)<!-- -->. |
 
@@ -125,6 +126,33 @@ send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<vo
 |  --- | --- | --- |
 |  request | string \| Array&lt;string \| [Part](./ai.md#part)<!-- -->&gt; | The message to send to the model. |
 |  turnComplete | boolean | Indicates if the turn is complete. Defaults to false. |
+
+<b>Returns:</b>
+
+Promise&lt;void&gt;
+
+#### Exceptions
+
+If this session has been closed.
+
+## LiveSession.sendFunctionResponses()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Sends function responses to the server.
+
+<b>Signature:</b>
+
+```typescript
+sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  functionResponses | [FunctionResponse](./ai.functionresponse.md#functionresponse_interface)<!-- -->\[\] | The function responses to send. |
 
 <b>Returns:</b>
 

@@ -9,43 +9,47 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# LanguageModelMessageContent interface
+# URLMetadata interface
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-An on-device language model content object.
+Metadata for a single URL retrieved by the [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) tool.
 
 <b>Signature:</b>
 
 ```typescript
-export interface LanguageModelMessageContent 
+export interface URLMetadata 
 ```
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [type](./ai.languagemodelmessagecontent.md#languagemodelmessagecontenttype) | [LanguageModelMessageType](./ai.md#languagemodelmessagetype) | <b><i>(Public Preview)</i></b> |
-|  [value](./ai.languagemodelmessagecontent.md#languagemodelmessagecontentvalue) | [LanguageModelMessageContentValue](./ai.md#languagemodelmessagecontentvalue) | <b><i>(Public Preview)</i></b> |
+|  [retrievedUrl](./ai.urlmetadata.md#urlmetadataretrievedurl) | string | <b><i>(Public Preview)</i></b> The retrieved URL. |
+|  [urlRetrievalStatus](./ai.urlmetadata.md#urlmetadataurlretrievalstatus) | [URLRetrievalStatus](./ai.md#urlretrievalstatus) | <b><i>(Public Preview)</i></b> The status of the URL retrieval. |
 
-## LanguageModelMessageContent.type
+## URLMetadata.retrievedUrl
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
+The retrieved URL.
+
 <b>Signature:</b>
 
 ```typescript
-type: LanguageModelMessageType;
+retrievedUrl?: string;
 ```
 
-## LanguageModelMessageContent.value
+## URLMetadata.urlRetrievalStatus
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
+The status of the URL retrieval.
+
 <b>Signature:</b>
 
 ```typescript
-value: LanguageModelMessageContentValue;
+urlRetrievalStatus?: URLRetrievalStatus;
 ```
