@@ -313,7 +313,7 @@ function callPerformance(app) {
 async function callAI(app) {
   console.log('[AI] start');
   const ai = getAI(app, { backend: new VertexAIBackend() });
-  const model = getGenerativeModel(ai, { model: 'gemini-1.5-flash' });
+  const model = getGenerativeModel(ai, { model: 'gemini-2.5-flash' });
   const result = await model.countTokens('abcdefg');
   console.log(`[AI] counted tokens: ${result.totalTokens}`);
 }

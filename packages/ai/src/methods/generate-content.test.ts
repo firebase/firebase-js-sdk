@@ -249,6 +249,57 @@ describe('generateContent()', () => {
       false,
       match.any
     );
+
+    it('url context', async () => {
+      const mockResponse = getMockResponse(
+        'vertexAI',
+        'unary-success-url-context.json'
+      );
+      const makeRequestStub = stub(request, 'makeRequest').resolves(
+        mockResponse as Response
+      );
+      const result = await generateContent(
+        fakeApiSettings,
+        'model',
+        fakeRequestParams
+      );
+      expect(result.response.text()).to.include(
+        'The temperature is 67°F (19°C)'
+      );
+      const groundingMetadata =
+        result.response.candidates?.[0].groundingMetadata;
+      expect(groundingMetadata).to.not.be.undefined;
+      expect(groundingMetadata!.searchEntryPoint?.renderedContent).to.contain(
+        'div'
+      );
+      expect(groundingMetadata!.groundingChunks?.length).to.equal(2);
+      expect(groundingMetadata!.groundingChunks?.[0].web?.uri).to.contain(
+        'https://vertexaisearch.cloud.google.com'
+      );
+      expect(groundingMetadata!.groundingChunks?.[0].web?.title).to.equal(
+        'accuweather.com'
+      );
+      expect(groundingMetadata!.groundingSupports?.length).to.equal(3);
+      expect(
+        groundingMetadata!.groundingSupports?.[0].groundingChunkIndices
+      ).to.deep.equal([0]);
+      expect(groundingMetadata!.groundingSupports?.[0].segment).to.deep.equal({
+        endIndex: 56,
+        text: 'The current weather in London, United Kingdom is cloudy.'
+      });
+      expect(groundingMetadata!.groundingSupports?.[0].segment?.partIndex).to.be
+        .undefined;
+      expect(groundingMetadata!.groundingSupports?.[0].segment?.startIndex).to
+        .be.undefined;
+
+      expect(makeRequestStub).to.be.calledWith(
+        'model',
+        Task.GENERATE_CONTENT,
+        fakeApiSettings,
+        false,
+        match.any
+      );
+    });
   });
   it('codeExecution', async () => {
     const mockResponse = getMockResponse(
@@ -334,6 +385,22 @@ describe('generateContent()', () => {
       false,
       match.any
     );
+  });
+  it('empty part', async () => {
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-empty-part.json'
+    );
+    stub(request, 'makeRequest').resolves(mockResponse as Response);
+    const result = await generateContent(
+      fakeApiSettings,
+      'model',
+      fakeRequestParams
+    );
+    expect(result.response.text()).to.include(
+      'I can certainly help you with that!'
+    );
+    expect(result.response.inlineDataParts()?.length).to.equal(1);
   });
   it('unknown enum - should ignore', async () => {
     const mockResponse = getMockResponse(

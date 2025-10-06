@@ -60,9 +60,9 @@ The Firebase AI Web SDK.
 |  [ChromeAdapter](./ai.chromeadapter.md#chromeadapter_interface) | <b><i>(Public Preview)</i></b> Defines an inference "backend" that uses Chrome's on-device model, and encapsulates logic for detecting when on-device inference is possible.<!-- -->These methods should not be called directly by the user. |
 |  [Citation](./ai.citation.md#citation_interface) | A single citation. |
 |  [CitationMetadata](./ai.citationmetadata.md#citationmetadata_interface) | Citation metadata that may be found on a [GenerateContentCandidate](./ai.generatecontentcandidate.md#generatecontentcandidate_interface)<!-- -->. |
-|  [CodeExecutionResult](./ai.codeexecutionresult.md#codeexecutionresult_interface) | The results of code execution run by the model. |
-|  [CodeExecutionResultPart](./ai.codeexecutionresultpart.md#codeexecutionresultpart_interface) | Represents the code execution result from the model. |
-|  [CodeExecutionTool](./ai.codeexecutiontool.md#codeexecutiontool_interface) | A tool that enables the model to use code execution. |
+|  [CodeExecutionResult](./ai.codeexecutionresult.md#codeexecutionresult_interface) | <b><i>(Public Preview)</i></b> The results of code execution run by the model. |
+|  [CodeExecutionResultPart](./ai.codeexecutionresultpart.md#codeexecutionresultpart_interface) | <b><i>(Public Preview)</i></b> Represents the code execution result from the model. |
+|  [CodeExecutionTool](./ai.codeexecutiontool.md#codeexecutiontool_interface) | <b><i>(Public Preview)</i></b> A tool that enables the model to use code execution. |
 |  [Content](./ai.content.md#content_interface) | Content type for both prompts and response candidates. |
 |  [CountTokensRequest](./ai.counttokensrequest.md#counttokensrequest_interface) | Params for calling [GenerativeModel.countTokens()](./ai.generativemodel.md#generativemodelcounttokens) |
 |  [CountTokensResponse](./ai.counttokensresponse.md#counttokensresponse_interface) | Response from calling [GenerativeModel.countTokens()](./ai.generativemodel.md#generativemodelcounttokens)<!-- -->. |
@@ -70,8 +70,8 @@ The Firebase AI Web SDK.
 |  [Date\_2](./ai.date_2.md#date_2_interface) | Protobuf google.type.Date |
 |  [EnhancedGenerateContentResponse](./ai.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponse_interface) | Response object wrapped with helper methods. |
 |  [ErrorDetails](./ai.errordetails.md#errordetails_interface) | Details object that may be included in an error response. |
-|  [ExecutableCode](./ai.executablecode.md#executablecode_interface) | An interface for executable code returned by the model. |
-|  [ExecutableCodePart](./ai.executablecodepart.md#executablecodepart_interface) | Represents the code that is executed by the model. |
+|  [ExecutableCode](./ai.executablecode.md#executablecode_interface) | <b><i>(Public Preview)</i></b> An interface for executable code returned by the model. |
+|  [ExecutableCodePart](./ai.executablecodepart.md#executablecodepart_interface) | <b><i>(Public Preview)</i></b> Represents the code that is executed by the model. |
 |  [FileData](./ai.filedata.md#filedata_interface) | Data pointing to a file uploaded on Google Cloud Storage. |
 |  [FileDataPart](./ai.filedatapart.md#filedatapart_interface) | Content part interface if the part represents [FileData](./ai.filedata.md#filedata_interface) |
 |  [FunctionCall](./ai.functioncall.md#functioncall_interface) | A predicted [FunctionCall](./ai.functioncall.md#functioncall_interface) returned from the model that contains a string representing the [FunctionDeclaration.name](./ai.functiondeclaration.md#functiondeclarationname) and a structured JSON object containing the parameters and their values. |
@@ -134,6 +134,10 @@ The Firebase AI Web SDK.
 |  [TextPart](./ai.textpart.md#textpart_interface) | Content part interface if the part represents a text string. |
 |  [ThinkingConfig](./ai.thinkingconfig.md#thinkingconfig_interface) | Configuration for "thinking" behavior of compatible Gemini models.<!-- -->Certain models utilize a thinking process before generating a response. This allows them to reason through complex problems and plan a more coherent and accurate answer. |
 |  [ToolConfig](./ai.toolconfig.md#toolconfig_interface) | Tool config. This config is shared for all tools provided in the request. |
+|  [URLContext](./ai.urlcontext.md#urlcontext_interface) | <b><i>(Public Preview)</i></b> Specifies the URL Context configuration. |
+|  [URLContextMetadata](./ai.urlcontextmetadata.md#urlcontextmetadata_interface) | <b><i>(Public Preview)</i></b> Metadata related to [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface)<!-- -->. |
+|  [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) | <b><i>(Public Preview)</i></b> A tool that allows you to provide additional context to the models in the form of public web URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhance its response. |
+|  [URLMetadata](./ai.urlmetadata.md#urlmetadata_interface) | <b><i>(Public Preview)</i></b> Metadata for a single URL retrieved by the [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) tool. |
 |  [UsageMetadata](./ai.usagemetadata.md#usagemetadata_interface) | Usage metadata about a [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
 |  [VideoMetadata](./ai.videometadata.md#videometadata_interface) | Describes the input video content. |
 |  [VoiceConfig](./ai.voiceconfig.md#voiceconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for the voice to used in speech synthesis. |
@@ -158,13 +162,14 @@ The Firebase AI Web SDK.
 |  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling whether generation of images containing people or faces is allowed. |
 |  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling how aggressively to filter sensitive content. |
 |  [InferenceMode](./ai.md#inferencemode) | <b><i>(Public Preview)</i></b> Determines whether inference happens on-device or in-cloud. |
-|  [Language](./ai.md#language) | The programming language of the code. |
+|  [Language](./ai.md#language) | <b><i>(Public Preview)</i></b> The programming language of the code. |
 |  [LiveResponseType](./ai.md#liveresponsetype) | <b><i>(Public Preview)</i></b> The types of responses that can be returned by [LiveSession.receive()](./ai.livesession.md#livesessionreceive)<!-- -->. |
 |  [Modality](./ai.md#modality) | Content part modality. |
-|  [Outcome](./ai.md#outcome) | Represents the result of the code execution. |
+|  [Outcome](./ai.md#outcome) | <b><i>(Public Preview)</i></b> Represents the result of the code execution. |
 |  [POSSIBLE\_ROLES](./ai.md#possible_roles) | Possible roles. |
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [SchemaType](./ai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
+|  [URLRetrievalStatus](./ai.md#urlretrievalstatus) | <b><i>(Public Preview)</i></b> The status of a URL retrieval. |
 
 ## Type Aliases
 
@@ -184,19 +189,20 @@ The Firebase AI Web SDK.
 |  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) |  |
 |  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) |  |
 |  [InferenceMode](./ai.md#inferencemode) | <b><i>(Public Preview)</i></b> Determines whether inference happens on-device or in-cloud. |
-|  [Language](./ai.md#language) | The programming language of the code. |
+|  [Language](./ai.md#language) | <b><i>(Public Preview)</i></b> The programming language of the code. |
 |  [LanguageModelMessageContentValue](./ai.md#languagemodelmessagecontentvalue) | <b><i>(Public Preview)</i></b> Content formats that can be provided as on-device message content. |
 |  [LanguageModelMessageRole](./ai.md#languagemodelmessagerole) | <b><i>(Public Preview)</i></b> Allowable roles for on-device language model usage. |
 |  [LanguageModelMessageType](./ai.md#languagemodelmessagetype) | <b><i>(Public Preview)</i></b> Allowable types for on-device language model messages. |
 |  [LiveResponseType](./ai.md#liveresponsetype) |  |
 |  [Modality](./ai.md#modality) |  |
-|  [Outcome](./ai.md#outcome) | Represents the result of the code execution. |
+|  [Outcome](./ai.md#outcome) | <b><i>(Public Preview)</i></b> Represents the result of the code execution. |
 |  [Part](./ai.md#part) | Content part - includes text, image/video, or function call/response part types. |
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [Role](./ai.md#role) | Role is the producer of the content. |
 |  [SchemaType](./ai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
 |  [Tool](./ai.md#tool) | Defines a tool that model can call to access external knowledge. |
 |  [TypedSchema](./ai.md#typedschema) | A type that includes all specific Schema types. |
+|  [URLRetrievalStatus](./ai.md#urlretrievalstatus) | <b><i>(Public Preview)</i></b> The status of a URL retrieval. |
 
 ## function(app, ...)
 
@@ -664,6 +670,9 @@ InferenceMode: {
 
 ## Language
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 The programming language of the code.
 
 <b>Signature:</b>
@@ -714,6 +723,9 @@ Modality: {
 ```
 
 ## Outcome
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Represents the result of the code execution.
 
@@ -773,6 +785,27 @@ SchemaType: {
     readonly BOOLEAN: "boolean";
     readonly ARRAY: "array";
     readonly OBJECT: "object";
+}
+```
+
+## URLRetrievalStatus
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+The status of a URL retrieval.
+
+<b>URL\_RETRIEVAL\_STATUS\_UNSPECIFIED:</b> Unspecified retrieval status. <br/> <b>URL\_RETRIEVAL\_STATUS\_SUCCESS:</b> The URL retrieval was successful. <br/> <b>URL\_RETRIEVAL\_STATUS\_ERROR:</b> The URL retrieval failed. <br/> <b>URL\_RETRIEVAL\_STATUS\_PAYWALL:</b> The URL retrieval failed because the content is behind a paywall. <br/> <b>URL\_RETRIEVAL\_STATUS\_UNSAFE:</b> The URL retrieval failed because the content is unsafe. <br/>
+
+<b>Signature:</b>
+
+```typescript
+URLRetrievalStatus: {
+    URL_RETRIEVAL_STATUS_UNSPECIFIED: string;
+    URL_RETRIEVAL_STATUS_SUCCESS: string;
+    URL_RETRIEVAL_STATUS_ERROR: string;
+    URL_RETRIEVAL_STATUS_PAYWALL: string;
+    URL_RETRIEVAL_STATUS_UNSAFE: string;
 }
 ```
 
@@ -898,6 +931,9 @@ export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
 
 ## Language
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 The programming language of the code.
 
 <b>Signature:</b>
@@ -963,6 +999,9 @@ export type Modality = (typeof Modality)[keyof typeof Modality];
 
 ## Outcome
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Represents the result of the code execution.
 
 <b>Signature:</b>
@@ -1023,7 +1062,7 @@ Defines a tool that model can call to access external knowledge.
 <b>Signature:</b>
 
 ```typescript
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool;
+export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
 ```
 
 ## TypedSchema
@@ -1034,4 +1073,19 @@ A type that includes all specific Schema types.
 
 ```typescript
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
+```
+
+## URLRetrievalStatus
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+The status of a URL retrieval.
+
+<b>URL\_RETRIEVAL\_STATUS\_UNSPECIFIED:</b> Unspecified retrieval status. <br/> <b>URL\_RETRIEVAL\_STATUS\_SUCCESS:</b> The URL retrieval was successful. <br/> <b>URL\_RETRIEVAL\_STATUS\_ERROR:</b> The URL retrieval failed. <br/> <b>URL\_RETRIEVAL\_STATUS\_PAYWALL:</b> The URL retrieval failed because the content is behind a paywall. <br/> <b>URL\_RETRIEVAL\_STATUS\_UNSAFE:</b> The URL retrieval failed because the content is unsafe. <br/>
+
+<b>Signature:</b>
+
+```typescript
+export type URLRetrievalStatus = (typeof URLRetrievalStatus)[keyof typeof URLRetrievalStatus];
 ```
