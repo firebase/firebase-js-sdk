@@ -603,5 +603,6 @@ export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
   MISSING_RECAPTCHA_VERSION: 'auth/missing-recaptcha-version',
   INVALID_RECAPTCHA_VERSION: 'auth/invalid-recaptcha-version',
   INVALID_REQ_TYPE: 'auth/invalid-req-type',
-  INVALID_HOSTING_LINK_DOMAIN: 'auth/invalid-hosting-link-domain'
+  INVALID_HOSTING_LINK_DOMAIN: 'auth/invalid-hosting-link-domain',
+  MISSING_PASSWORD: 'auth/missing-password'
 } as const;
