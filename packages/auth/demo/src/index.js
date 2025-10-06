@@ -157,34 +157,20 @@ class RefreshIdpTokenResult {
 class TokenRefreshHandlerImpl {
   /**
    * Opens a popup to get a 3P ID token and Config ID from the user.
-   * @returns {Promise<RefreshIdpTokenResult>} A promise that resolves with the result object.
+   * @returns {Promise<RefreshIdpTokenResult>} A promise that returns IdpConfigId and 3p IDP Id token.
    */
   refreshIdpToken() {
     log('inside here');
     console.log('inside handler - opening popup for 3p token');
 
-    // This function handles the popup logic and returns the required object
     return this.promptForTokenAndConfigId();
   }
 
-  /**
-   * Opens a Bootstrap modal to ask the user for an ID token and IDP Config ID.
-   *
-   * This function dynamically creates a modal, shows it, and waits for
-   * user input. It returns a Promise that resolves or rejects based
-   * on the user's action.
-   *
-   * @returns {Promise<RefreshIdpTokenResult>} A promise that resolves with the
-   * RefreshIdpTokenResult object, or rejects if the user cancels.
-   */
   promptForTokenAndConfigId() {
-    // We return a Promise that will be resolved/rejected by the modal's buttons
     return new Promise((resolve, reject) => {
-      // A flag to track if the promise has been settled
       let isSubmitted = false;
       const modalId = 'third-party-token-modal';
 
-      // 1. Define Modal HTML with two input fields
       const modalHtml = `
         <div class="modal fade" id="${modalId}" tabindex="-1" role="dialog" aria-labelledby="tokenModalLabel">
           <div class="modal-dialog" role="document">
@@ -215,41 +201,32 @@ class TokenRefreshHandlerImpl {
         </div>
       `;
 
-      // 2. Append modal to body and get a jQuery reference
       $('body').append(modalHtml);
       const $modal = $(`#${modalId}`);
 
-      // 3. Setup Event Handlers
-
-      // Handle Submit button click
       $modal.find('#token-submit-btn').on('click', () => {
         isSubmitted = true;
 
-        // Read values from *both* input fields
         const configId = $modal.find('#idp-config-id-input-field').val();
         const token = $modal.find('#id-token-input-field').val();
 
         $modal.modal('hide'); // Hide the modal
 
-        // Create the result object as requested
         const result = new RefreshIdpTokenResult();
         result.idpConfigId = configId;
         result.idToken = token;
 
-        resolve(result); // Resolve the promise with the object
+        resolve(result);
       });
 
-      // Handle modal being closed (by 'x', 'Cancel' button, backdrop click, or ESC)
       $modal.on('hidden.bs.modal', () => {
-        $modal.remove(); // Clean up the modal from the DOM
+        $modal.remove();
 
-        // If the modal was hidden *without* submitting, reject the promise
         if (!isSubmitted) {
           reject(new Error('User cancelled token input.'));
         }
       });
 
-      // 4. Show the modal
       $modal.modal('show');
     });
   }
