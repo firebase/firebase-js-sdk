@@ -73,6 +73,18 @@ export const BackendType = {
   GOOGLE_AI: 'GOOGLE_AI'
 } as const; // Using 'as const' makes the string values literal types
 
+/**
+ * An enum-like object containing constants that represent the supported backends
+ * for the Firebase AI SDK.
+ *
+ * @remarks
+ * This determines which backend service (Vertex AI Gemini API or Gemini Developer API)
+ * the SDK will communicate with. These values are assigned to the `backendType` property
+ * within the specific backend configuration objects ({@link GoogleAIBackend} or
+ * {@link VertexAIBackend}) to identify which service to target.
+ *
+ * @public
+ */
 export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 
 /**

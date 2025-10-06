@@ -128,6 +128,19 @@ export const ImagenSafetyFilterLevel = {
   BLOCK_NONE: 'block_none'
 } as const;
 
+/**
+ * A filter level controlling how aggressively to filter sensitive content.
+ *
+ * @remarks
+ * Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI
+ * are assessed against a list of safety filters, which include 'harmful categories' (for example,
+ * `violence`, `sexual`, `derogatory`, and `toxic`). This filter level controls how aggressively to
+ * filter out potentially harmful content from responses. See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
+ * and the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters | Responsible AI and usage guidelines}
+ * for more details.
+ *
+ * @beta
+ */
 export type ImagenSafetyFilterLevel =
   (typeof ImagenSafetyFilterLevel)[keyof typeof ImagenSafetyFilterLevel];
 
@@ -158,6 +171,15 @@ export const ImagenPersonFilterLevel = {
   ALLOW_ALL: 'allow_all'
 } as const;
 
+/**
+ * A filter level controlling whether generation of images containing people or faces is allowed.
+ *
+ * @remarks
+ * See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a>
+ * documentation for more details.
+ *
+ * @beta
+ */
 export type ImagenPersonFilterLevel =
   (typeof ImagenPersonFilterLevel)[keyof typeof ImagenPersonFilterLevel];
 
@@ -209,5 +231,15 @@ export const ImagenAspectRatio = {
   'PORTRAIT_9x16': '9:16'
 } as const;
 
+/**
+ * Aspect ratios for Imagen images.
+ *
+ * @remarks
+ * To specify an aspect ratio for generated images, set the `aspectRatio` property in your
+ * {@link ImagenGenerationConfig}. See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
+ * for more details and examples of the supported aspect ratios.
+ *
+ * @beta
+ */
 export type ImagenAspectRatio =
   (typeof ImagenAspectRatio)[keyof typeof ImagenAspectRatio];

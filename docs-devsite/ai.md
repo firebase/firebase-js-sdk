@@ -176,25 +176,25 @@ The Firebase AI Web SDK.
 |  Type Alias | Description |
 |  --- | --- |
 |  [AIErrorCode](./ai.md#aierrorcode) | Standardized error codes that [AIError](./ai.aierror.md#aierror_class) can have. |
-|  [BackendType](./ai.md#backendtype) |  |
-|  [BlockReason](./ai.md#blockreason) |  |
-|  [FinishReason](./ai.md#finishreason) |  |
+|  [BackendType](./ai.md#backendtype) | An enum-like object containing constants that represent the supported backends for the Firebase AI SDK. |
+|  [BlockReason](./ai.md#blockreason) | Reason that a prompt was blocked. |
+|  [FinishReason](./ai.md#finishreason) | Reason that a candidate finished. |
 |  [FunctionCallingMode](./ai.md#functioncallingmode) |  |
-|  [HarmBlockMethod](./ai.md#harmblockmethod) |  |
-|  [HarmBlockThreshold](./ai.md#harmblockthreshold) |  |
-|  [HarmCategory](./ai.md#harmcategory) |  |
-|  [HarmProbability](./ai.md#harmprobability) |  |
-|  [HarmSeverity](./ai.md#harmseverity) |  |
-|  [ImagenAspectRatio](./ai.md#imagenaspectratio) |  |
-|  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) |  |
-|  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) |  |
+|  [HarmBlockMethod](./ai.md#harmblockmethod) | This property is not supported in the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->). |
+|  [HarmBlockThreshold](./ai.md#harmblockthreshold) | Threshold above which a prompt or candidate will be blocked. |
+|  [HarmCategory](./ai.md#harmcategory) | Harm categories that would cause prompts or candidates to be blocked. |
+|  [HarmProbability](./ai.md#harmprobability) | Probability that a prompt or candidate matches a harm category. |
+|  [HarmSeverity](./ai.md#harmseverity) | Harm severity levels. |
+|  [ImagenAspectRatio](./ai.md#imagenaspectratio) | <b><i>(Public Preview)</i></b> Aspect ratios for Imagen images. |
+|  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling whether generation of images containing people or faces is allowed. |
+|  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | <b><i>(Public Preview)</i></b> A filter level controlling how aggressively to filter sensitive content. |
 |  [InferenceMode](./ai.md#inferencemode) | <b><i>(Public Preview)</i></b> Determines whether inference happens on-device or in-cloud. |
 |  [Language](./ai.md#language) | <b><i>(Public Preview)</i></b> The programming language of the code. |
 |  [LanguageModelMessageContentValue](./ai.md#languagemodelmessagecontentvalue) | <b><i>(Public Preview)</i></b> Content formats that can be provided as on-device message content. |
 |  [LanguageModelMessageRole](./ai.md#languagemodelmessagerole) | <b><i>(Public Preview)</i></b> Allowable roles for on-device language model usage. |
 |  [LanguageModelMessageType](./ai.md#languagemodelmessagetype) | <b><i>(Public Preview)</i></b> Allowable types for on-device language model messages. |
-|  [LiveResponseType](./ai.md#liveresponsetype) |  |
-|  [Modality](./ai.md#modality) |  |
+|  [LiveResponseType](./ai.md#liveresponsetype) | <b><i>(Public Preview)</i></b> The types of responses that can be returned by [LiveSession.receive()](./ai.livesession.md#livesessionreceive)<!-- -->. |
+|  [Modality](./ai.md#modality) | Content part modality. |
 |  [Outcome](./ai.md#outcome) | <b><i>(Public Preview)</i></b> Represents the result of the code execution. |
 |  [Part](./ai.md#part) | Content part - includes text, image/video, or function call/response part types. |
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
@@ -821,6 +821,10 @@ export type AIErrorCode = (typeof AIErrorCode)[keyof typeof AIErrorCode];
 
 ## BackendType
 
+An enum-like object containing constants that represent the supported backends for the Firebase AI SDK.
+
+This determines which backend service (Vertex AI Gemini API or Gemini Developer API) the SDK will communicate with. These values are assigned to the `backendType` property within the specific backend configuration objects ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class) or [VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class)<!-- -->) to identify which service to target.
+
 <b>Signature:</b>
 
 ```typescript
@@ -829,6 +833,8 @@ export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 
 ## BlockReason
 
+Reason that a prompt was blocked.
+
 <b>Signature:</b>
 
 ```typescript
@@ -836,6 +842,8 @@ export type BlockReason = (typeof BlockReason)[keyof typeof BlockReason];
 ```
 
 ## FinishReason
+
+Reason that a candidate finished.
 
 <b>Signature:</b>
 
@@ -854,6 +862,8 @@ export type FunctionCallingMode = (typeof FunctionCallingMode)[keyof typeof Func
 
 ## HarmBlockMethod
 
+This property is not supported in the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->).
+
 <b>Signature:</b>
 
 ```typescript
@@ -861,6 +871,8 @@ export type HarmBlockMethod = (typeof HarmBlockMethod)[keyof typeof HarmBlockMet
 ```
 
 ## HarmBlockThreshold
+
+Threshold above which a prompt or candidate will be blocked.
 
 <b>Signature:</b>
 
@@ -870,6 +882,8 @@ export type HarmBlockThreshold = (typeof HarmBlockThreshold)[keyof typeof HarmBl
 
 ## HarmCategory
 
+Harm categories that would cause prompts or candidates to be blocked.
+
 <b>Signature:</b>
 
 ```typescript
@@ -877,6 +891,8 @@ export type HarmCategory = (typeof HarmCategory)[keyof typeof HarmCategory];
 ```
 
 ## HarmProbability
+
+Probability that a prompt or candidate matches a harm category.
 
 <b>Signature:</b>
 
@@ -886,6 +902,8 @@ export type HarmProbability = (typeof HarmProbability)[keyof typeof HarmProbabil
 
 ## HarmSeverity
 
+Harm severity levels.
+
 <b>Signature:</b>
 
 ```typescript
@@ -893,6 +911,13 @@ export type HarmSeverity = (typeof HarmSeverity)[keyof typeof HarmSeverity];
 ```
 
 ## ImagenAspectRatio
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Aspect ratios for Imagen images.
+
+To specify an aspect ratio for generated images, set the `aspectRatio` property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details and examples of the supported aspect ratios.
 
 <b>Signature:</b>
 
@@ -902,6 +927,13 @@ export type ImagenAspectRatio = (typeof ImagenAspectRatio)[keyof typeof ImagenAs
 
 ## ImagenPersonFilterLevel
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+A filter level controlling whether generation of images containing people or faces is allowed.
+
+See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details.
+
 <b>Signature:</b>
 
 ```typescript
@@ -909,6 +941,13 @@ export type ImagenPersonFilterLevel = (typeof ImagenPersonFilterLevel)[keyof typ
 ```
 
 ## ImagenSafetyFilterLevel
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+A filter level controlling how aggressively to filter sensitive content.
+
+Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, `violence`<!-- -->, `sexual`<!-- -->, `derogatory`<!-- -->, and `toxic`<!-- -->). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details.
 
 <b>Signature:</b>
 
@@ -983,6 +1022,11 @@ export type LanguageModelMessageType = 'text' | 'image' | 'audio';
 
 ## LiveResponseType
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+The types of responses that can be returned by [LiveSession.receive()](./ai.livesession.md#livesessionreceive)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -990,6 +1034,8 @@ export type LiveResponseType = (typeof LiveResponseType)[keyof typeof LiveRespon
 ```
 
 ## Modality
+
+Content part modality.
 
 <b>Signature:</b>
 

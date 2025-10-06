@@ -68,6 +68,11 @@ export const HarmCategory = {
   HARM_CATEGORY_DANGEROUS_CONTENT: 'HARM_CATEGORY_DANGEROUS_CONTENT'
 } as const;
 
+/**
+ * Harm categories that would cause prompts or candidates to be blocked.
+ *
+ * @public
+ */
 export type HarmCategory = (typeof HarmCategory)[keyof typeof HarmCategory];
 
 /**
@@ -95,6 +100,11 @@ export const HarmBlockThreshold = {
   OFF: 'OFF'
 } as const;
 
+/**
+ * Threshold above which a prompt or candidate will be blocked.
+ *
+ * @public
+ */
 export type HarmBlockThreshold =
   (typeof HarmBlockThreshold)[keyof typeof HarmBlockThreshold];
 
@@ -113,6 +123,11 @@ export const HarmBlockMethod = {
   PROBABILITY: 'PROBABILITY'
 } as const;
 
+/**
+ * This property is not supported in the Gemini Developer API ({@link GoogleAIBackend}).
+ *
+ * @public
+ */
 export type HarmBlockMethod =
   (typeof HarmBlockMethod)[keyof typeof HarmBlockMethod];
 
@@ -137,6 +152,11 @@ export const HarmProbability = {
   HIGH: 'HIGH'
 } as const;
 
+/**
+ * Probability that a prompt or candidate matches a harm category.
+ *
+ * @public
+ */
 export type HarmProbability =
   (typeof HarmProbability)[keyof typeof HarmProbability];
 
@@ -164,6 +184,11 @@ export const HarmSeverity = {
   HARM_SEVERITY_UNSUPPORTED: 'HARM_SEVERITY_UNSUPPORTED'
 } as const;
 
+/**
+ * Harm severity levels.
+ *
+ * @public
+ */
 export type HarmSeverity = (typeof HarmSeverity)[keyof typeof HarmSeverity];
 
 /**
@@ -187,6 +212,11 @@ export const BlockReason = {
   PROHIBITED_CONTENT: 'PROHIBITED_CONTENT'
 } as const;
 
+/**
+ * Reason that a prompt was blocked.
+ *
+ * @public
+ */
 export type BlockReason = (typeof BlockReason)[keyof typeof BlockReason];
 
 /**
@@ -225,6 +255,11 @@ export const FinishReason = {
   MALFORMED_FUNCTION_CALL: 'MALFORMED_FUNCTION_CALL'
 } as const;
 
+/**
+ * Reason that a candidate finished.
+ *
+ * @public
+ */
 export type FinishReason = (typeof FinishReason)[keyof typeof FinishReason];
 
 /**
@@ -280,6 +315,11 @@ export const Modality = {
   DOCUMENT: 'DOCUMENT'
 } as const;
 
+/**
+ * Content part modality.
+ *
+ * @public
+ */
 export type Modality = (typeof Modality)[keyof typeof Modality];
 
 /**

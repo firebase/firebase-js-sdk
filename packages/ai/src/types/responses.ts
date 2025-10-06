@@ -592,5 +592,10 @@ export const LiveResponseType = {
   TOOL_CALL_CANCELLATION: 'toolCallCancellation'
 };
 
+/**
+ * The types of responses that can be returned by {@link LiveSession.receive}.
+ *
+ * @beta
+ */
 export type LiveResponseType =
   (typeof LiveResponseType)[keyof typeof LiveResponseType];

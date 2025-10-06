@@ -104,7 +104,7 @@ export const BackendType: {
     readonly GOOGLE_AI: "GOOGLE_AI";
 };
 
-// @public (undocumented)
+// @public
 export type BackendType = (typeof BackendType)[keyof typeof BackendType];
 
 // @public
@@ -123,7 +123,7 @@ export const BlockReason: {
     readonly PROHIBITED_CONTENT: "PROHIBITED_CONTENT";
 };
 
-// @public (undocumented)
+// @public
 export type BlockReason = (typeof BlockReason)[keyof typeof BlockReason];
 
 // @public
@@ -342,7 +342,7 @@ export const FinishReason: {
     readonly MALFORMED_FUNCTION_CALL: "MALFORMED_FUNCTION_CALL";
 };
 
-// @public (undocumented)
+// @public
 export type FinishReason = (typeof FinishReason)[keyof typeof FinishReason];
 
 // @public
@@ -656,7 +656,7 @@ export const HarmBlockMethod: {
     readonly PROBABILITY: "PROBABILITY";
 };
 
-// @public (undocumented)
+// @public
 export type HarmBlockMethod = (typeof HarmBlockMethod)[keyof typeof HarmBlockMethod];
 
 // @public
@@ -668,7 +668,7 @@ export const HarmBlockThreshold: {
     readonly OFF: "OFF";
 };
 
-// @public (undocumented)
+// @public
 export type HarmBlockThreshold = (typeof HarmBlockThreshold)[keyof typeof HarmBlockThreshold];
 
 // @public
@@ -679,7 +679,7 @@ export const HarmCategory: {
     readonly HARM_CATEGORY_DANGEROUS_CONTENT: "HARM_CATEGORY_DANGEROUS_CONTENT";
 };
 
-// @public (undocumented)
+// @public
 export type HarmCategory = (typeof HarmCategory)[keyof typeof HarmCategory];
 
 // @public
@@ -690,7 +690,7 @@ export const HarmProbability: {
     readonly HIGH: "HIGH";
 };
 
-// @public (undocumented)
+// @public
 export type HarmProbability = (typeof HarmProbability)[keyof typeof HarmProbability];
 
 // @public
@@ -702,7 +702,7 @@ export const HarmSeverity: {
     readonly HARM_SEVERITY_UNSUPPORTED: "HARM_SEVERITY_UNSUPPORTED";
 };
 
-// @public (undocumented)
+// @public
 export type HarmSeverity = (typeof HarmSeverity)[keyof typeof HarmSeverity];
 
 // @beta
@@ -721,7 +721,7 @@ export const ImagenAspectRatio: {
     readonly PORTRAIT_9x16: "9:16";
 };
 
-// @public (undocumented)
+// @beta
 export type ImagenAspectRatio = (typeof ImagenAspectRatio)[keyof typeof ImagenAspectRatio];
 
 // @beta
@@ -785,7 +785,7 @@ export const ImagenPersonFilterLevel: {
     readonly ALLOW_ALL: "allow_all";
 };
 
-// @public (undocumented)
+// @beta
 export type ImagenPersonFilterLevel = (typeof ImagenPersonFilterLevel)[keyof typeof ImagenPersonFilterLevel];
 
 // @beta
@@ -796,7 +796,7 @@ export const ImagenSafetyFilterLevel: {
     readonly BLOCK_NONE: "block_none";
 };
 
-// @public (undocumented)
+// @beta
 export type ImagenSafetyFilterLevel = (typeof ImagenSafetyFilterLevel)[keyof typeof ImagenSafetyFilterLevel];
 
 // @beta
@@ -959,7 +959,7 @@ export const LiveResponseType: {
     TOOL_CALL_CANCELLATION: string;
 };
 
-// @public (undocumented)
+// @beta
 export type LiveResponseType = (typeof LiveResponseType)[keyof typeof LiveResponseType];
 
 // @beta
@@ -1009,7 +1009,7 @@ export const Modality: {
     readonly DOCUMENT: "DOCUMENT";
 };
 
-// @public (undocumented)
+// @public
 export type Modality = (typeof Modality)[keyof typeof Modality];
 
 // @public
