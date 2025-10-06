@@ -16,13 +16,13 @@
  */
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
-import { deepEqual } from '@firebase/util';
 import { TELEMETRY_TYPE } from './constants';
 import { Telemetry, TelemetryOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { trace } from '@opentelemetry/api';
 import { TelemetryService } from './service';
+import { encodeInstanceIdentifier } from './helpers';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -50,25 +50,13 @@ export function getTelemetry(
   app: FirebaseApp = getApp(),
   options?: TelemetryOptions
 ): Telemetry {
-  // Dependencies
   const telemetryProvider: Provider<'telemetry'> = _getProvider(
     app,
     TELEMETRY_TYPE
   );
-
-  if (telemetryProvider.isInitialized()) {
-    const initialOptions = telemetryProvider.getOptions();
-    if (
-      (!initialOptions && !options) ||
-      (initialOptions && options && deepEqual(initialOptions, options))
-    ) {
-      return telemetryProvider.getImmediate();
-    }
-    throw new Error('Firebase Telemetry is already initialized');
-  }
-
-  telemetryProvider.initialize({ options });
-  return telemetryProvider.getImmediate();
+  const finalOptions: TelemetryOptions = options || {};
+  const identifier = encodeInstanceIdentifier(finalOptions);
+  return telemetryProvider.getImmediate({ identifier });
 }
 
 /**
