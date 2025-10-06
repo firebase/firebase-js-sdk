@@ -15,11 +15,18 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  [FirebaseTelemetry({ firebaseOptions })](./telemetry_react.md#firebasetelemetry_537af3f) | Registers event listeners for uncaught errors.<!-- -->This should be installed near the root of your application. Caught errors, including those implicitly caught by Error Boundaries, will not be captured by this component. |
+|  [FirebaseTelemetry({ firebaseOptions, telemetryOptions })](./telemetry_react.md#firebasetelemetry_f37eb31) | Registers event listeners for uncaught errors.<!-- -->This should be installed near the root of your application. Caught errors, including those implicitly caught by Error Boundaries, will not be captured by this component. |
 
-## function({ firebaseOptions }, ...)
+## Interfaces
 
-### FirebaseTelemetry({ firebaseOptions }) {:#firebasetelemetry_537af3f}
+|  Interface | Description |
+|  --- | --- |
+|  [Telemetry](./telemetry_react.telemetry.md#telemetry_interface) | An instance of the Firebase Telemetry SDK.<!-- -->Do not create this instance directly. Instead, use [getTelemetry()](./telemetry_.md#gettelemetry_448bdc6)<!-- -->. |
+|  [TelemetryOptions](./telemetry_react.telemetryoptions.md#telemetryoptions_interface) | Options for initialized the Telemetry service using [getTelemetry()](./telemetry_.md#gettelemetry_448bdc6)<!-- -->. |
+
+## function({ firebaseOptions, telemetryOptions }, ...)
+
+### FirebaseTelemetry({ firebaseOptions, telemetryOptions }) {:#firebasetelemetry_f37eb31}
 
 Registers event listeners for uncaught errors.
 
@@ -28,8 +35,9 @@ This should be installed near the root of your application. Caught errors, inclu
 <b>Signature:</b>
 
 ```typescript
-export declare function FirebaseTelemetry({ firebaseOptions }: {
+export declare function FirebaseTelemetry({ firebaseOptions, telemetryOptions }: {
     firebaseOptions?: FirebaseOptions;
+    telemetryOptions?: TelemetryOptions;
 }): null;
 ```
 
@@ -37,7 +45,7 @@ export declare function FirebaseTelemetry({ firebaseOptions }: {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  { firebaseOptions } | { firebaseOptions?: [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface)<!-- -->; } |  |
+|  { firebaseOptions, telemetryOptions } | { firebaseOptions?: [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface)<!-- -->; telemetryOptions?: [TelemetryOptions](./telemetry_.telemetryoptions.md#telemetryoptions_interface)<!-- -->; } |  |
 
 <b>Returns:</b>
 

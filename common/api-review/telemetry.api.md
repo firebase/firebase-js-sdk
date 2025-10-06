@@ -16,17 +16,22 @@ export function captureError(telemetry: Telemetry, error: unknown, attributes?: 
 export function flush(telemetry: Telemetry): Promise<void>;
 
 // @public
-export function getTelemetry(app?: FirebaseApp): Telemetry;
+export function getTelemetry(app?: FirebaseApp, options?: TelemetryOptions): Telemetry;
 
 export { Instrumentation }
 
 // @public
-export const nextOnRequestError: Instrumentation.onRequestError;
+export function nextOnRequestError(telemetryOptions?: TelemetryOptions): Instrumentation.onRequestError;
 
 // @public
 export interface Telemetry {
     app: FirebaseApp;
     loggerProvider: LoggerProvider;
+}
+
+// @public
+export interface TelemetryOptions {
+    endpointUrl?: string;
 }
 
 
