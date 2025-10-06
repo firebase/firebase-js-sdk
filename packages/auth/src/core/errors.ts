@@ -560,6 +560,7 @@ export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
   MISSING_MFA_INFO: 'auth/missing-multi-factor-info',
   MISSING_MFA_SESSION: 'auth/missing-multi-factor-session',
   MISSING_PHONE_NUMBER: 'auth/missing-phone-number',
+  MISSING_PASSWORD: 'auth/missing-password',
   MISSING_SESSION_INFO: 'auth/missing-verification-id',
   MODULE_DESTROYED: 'auth/app-deleted',
   NEED_CONFIRMATION: 'auth/account-exists-with-different-credential',
@@ -603,6 +604,5 @@ export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
   MISSING_RECAPTCHA_VERSION: 'auth/missing-recaptcha-version',
   INVALID_RECAPTCHA_VERSION: 'auth/invalid-recaptcha-version',
   INVALID_REQ_TYPE: 'auth/invalid-req-type',
-  INVALID_HOSTING_LINK_DOMAIN: 'auth/invalid-hosting-link-domain',
-  MISSING_PASSWORD: 'auth/missing-password'
+  INVALID_HOSTING_LINK_DOMAIN: 'auth/invalid-hosting-link-domain'
 } as const;

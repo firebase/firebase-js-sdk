@@ -1,11 +1,8 @@
 {
   "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "types": ["mocha", "chai"],
-    "esModuleInterop": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true
+    "outDir": "dist"
   },
+  "types": ["jasmine"],
   "exclude": ["dist/**/*", "demo/**/*"]
 }
