@@ -115,7 +115,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   private redirectUser: UserInternal | null = null;
   private isProactiveRefreshEnabled = false;
   private readonly EXPECTED_PASSWORD_POLICY_SCHEMA_VERSION: number = 1;
-  private readonly TOKEN_EXPIRATION_BUFFER = 30_000;
+  // 1 minute buffer for expiry
+  // Intended for tokens issued by IdentityPlatform APIs in regionalized Firebase Auth, which can
+  // have expiry as low as 5 minutes. This should provide enough buffer to the Firebase SDKs for
+  // token usage before it expires.
+  private readonly TOKEN_EXPIRATION_BUFFER = 60_000;
 
   // Any network calls will set this to true and prevent subsequent emulator
   // initialization

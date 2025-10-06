@@ -317,6 +317,7 @@ describe('core/auth/auth_impl', () => {
     let exchangeTokenStub: sinon.SinonStub;
     let mockToken: FirebaseToken;
     let expiredMockToken: FirebaseToken;
+    let soonToExpireMockToken: FirebaseToken;
     let tokenRefreshHandler: TokenRefreshHandler;
     const tokenKey = `firebase:persistence-token:${FAKE_APP.options.apiKey!}:${
       FAKE_APP.name
@@ -330,6 +331,10 @@ describe('core/auth/auth_impl', () => {
       mockToken = {
         token: 'test-token',
         expirationTime: Date.now() + 300000 // 5 minutes from now
+      };
+      soonToExpireMockToken = {
+        token: 'test-token',
+        expirationTime: Date.now() + 60000 // 1 minutes from now
       };
       expiredMockToken = {
         token: 'expired-test-token',
@@ -362,6 +367,28 @@ describe('core/auth/auth_impl', () => {
       const token = await auth.getFirebaseAccessToken();
       expect(token).to.be.null;
       expect(exchangeTokenStub).not.to.have.been.called;
+    });
+
+    it('should refresh the token if token is expiring in next 1 minute and a token refresh handler is set', async () => {
+      persistenceStub._get
+        .withArgs(tokenKey)
+        .resolves(soonToExpireMockToken as any);
+      auth.setTokenRefreshHandler(tokenRefreshHandler);
+
+      exchangeTokenStub.callsFake(async () => {
+        // When exchangeToken is called, simulate that the new token is persisted.
+        persistenceStub._get.withArgs(tokenKey).resolves(mockToken as any);
+      });
+
+      const token = await auth.getFirebaseAccessToken();
+
+      expect(tokenRefreshHandler.refreshIdpToken).to.have.been.calledOnce;
+      expect(exchangeTokenStub).to.have.been.calledWith(
+        auth,
+        'test-idp',
+        'new-id-token'
+      );
+      expect(token).to.eql('test-token');
     });
 
     it('should refresh the token if it is expired and a token refresh handler is set', async () => {
