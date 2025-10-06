@@ -160,9 +160,6 @@ class TokenRefreshHandlerImpl {
    * @returns {Promise<RefreshIdpTokenResult>} A promise that returns IdpConfigId and 3p IDP Id token.
    */
   refreshIdpToken() {
-    log('inside here');
-    console.log('inside handler - opening popup for 3p token');
-
     return this.promptForTokenAndConfigId();
   }
 
