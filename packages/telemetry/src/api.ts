@@ -22,7 +22,6 @@ import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { trace } from '@opentelemetry/api';
 import { TelemetryService } from './service';
-import { encodeInstanceIdentifier } from './helpers';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -54,8 +53,7 @@ export function getTelemetry(
     app,
     TELEMETRY_TYPE
   );
-  const finalOptions: TelemetryOptions = options || {};
-  const identifier = encodeInstanceIdentifier(finalOptions);
+  const identifier = options?.endpointUrl || '';
   return telemetryProvider.getImmediate({ identifier });
 }
 
