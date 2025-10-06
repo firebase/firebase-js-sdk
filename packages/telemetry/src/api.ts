@@ -17,7 +17,7 @@
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
 import { TELEMETRY_TYPE } from './constants';
-import { Telemetry } from './public-types';
+import { Telemetry, TelemetryOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { trace } from '@opentelemetry/api';
@@ -40,18 +40,21 @@ declare module '@firebase/component' {
  * ```
  *
  * @param app - The {@link @firebase/app#FirebaseApp} to use.
+ * @param options - {@link TelemetryOptions} that configure the Telemetry instance.
  * @returns The default {@link Telemetry} instance for the given {@link @firebase/app#FirebaseApp}.
  *
  * @public
  */
-export function getTelemetry(app: FirebaseApp = getApp()): Telemetry {
-  // Dependencies
+export function getTelemetry(
+  app: FirebaseApp = getApp(),
+  options?: TelemetryOptions
+): Telemetry {
   const telemetryProvider: Provider<'telemetry'> = _getProvider(
     app,
     TELEMETRY_TYPE
   );
-
-  return telemetryProvider.getImmediate();
+  const identifier = options?.endpointUrl || '';
+  return telemetryProvider.getImmediate({ identifier });
 }
 
 /**

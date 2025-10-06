@@ -37,13 +37,16 @@ import { FetchTransportEdge } from './fetch-transport.edge';
  *
  * @internal
  */
-export function createLoggerProvider(): LoggerProvider {
+export function createLoggerProvider(endpointUrl: string): LoggerProvider {
   const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: 'firebase_telemetry_service'
   });
-  const otlpEndpoint = `${process.env.OTEL_ENDPOINT}/api/v1/logs`;
+  if (endpointUrl.endsWith('/')) {
+    endpointUrl = endpointUrl.slice(0, -1);
+  }
+  const otlpEndpoint = `${endpointUrl}/api/v1/logs`;
 
-  if (process?.env?.NEXT_RUNTIME === 'edge') {
+  if (typeof process !== 'undefined' && process?.env?.NEXT_RUNTIME === 'edge') {
     // We need a slightly custom implementation for the Edge Runtime, because it doesn't have access
     // to many features available in Node.
     const logExporter = new OTLPLogExporterEdge({ url: otlpEndpoint });

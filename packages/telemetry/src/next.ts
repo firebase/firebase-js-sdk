@@ -19,6 +19,7 @@ import { getApp } from '@firebase/app';
 import { captureError, getTelemetry } from './api';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { Instrumentation } from 'next';
+import { TelemetryOptions } from './public-types';
 
 export { Instrumentation };
 
@@ -28,25 +29,29 @@ export { Instrumentation };
  * @example
  * ```javascript
  * // In instrumentation.ts (https://nextjs.org/docs/app/guides/instrumentation):
- * export { nextOnRequestError as onRequestError }  from 'firebase/telemetry'
+ * import { nextOnRequestError } from 'firebase/telemetry'
+ * export const onRequestError = nextOnRequestError();
  * ```
+ *
+ * @param telemetryOptions - {@link TelemetryOptions} that configure the Telemetry instance.
+ * @returns A request error handler for use in Next.js' instrumentation file
  *
  * @public
  */
-export const nextOnRequestError: Instrumentation.onRequestError = async (
-  error,
-  errorRequest,
-  errorContext
-) => {
-  const telemetry = getTelemetry(getApp());
+export function nextOnRequestError(
+  telemetryOptions?: TelemetryOptions
+): Instrumentation.onRequestError {
+  return async (error, errorRequest, errorContext) => {
+    const telemetry = getTelemetry(getApp(), telemetryOptions);
 
-  const attributes = {
-    'nextjs_path': errorRequest.path,
-    'nextjs_method': errorRequest.method,
-    'nextjs_router_kind': errorContext.routerKind,
-    'nextjs_route_path': errorContext.routePath,
-    'nextjs_route_type': errorContext.routeType
+    const attributes = {
+      'nextjs_path': errorRequest.path,
+      'nextjs_method': errorRequest.method,
+      'nextjs_router_kind': errorContext.routerKind,
+      'nextjs_route_path': errorContext.routePath,
+      'nextjs_route_type': errorContext.routeType
+    };
+
+    captureError(telemetry, error, attributes);
   };
-
-  captureError(telemetry, error, attributes);
-};
+}

@@ -25,7 +25,17 @@ import {
   SimpleSpanProcessor,
   WebTracerProvider
 } from '@opentelemetry/sdk-trace-web';
-import { captureError, flush } from './api';
+import {
+  FirebaseApp,
+  initializeApp,
+  _registerComponent,
+  _addOrOverwriteComponent
+} from '@firebase/app';
+import { Component, ComponentType } from '@firebase/component';
+import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
+import { captureError, flush, getTelemetry } from './api';
+import { TelemetryService } from './service';
+import { registerTelemetry } from './register';
 
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';
@@ -63,6 +73,33 @@ describe('Top level API', () => {
   beforeEach(() => {
     // Clear the logs before each test.
     emittedLogs.length = 0;
+  });
+
+  describe('getTelemetry()', () => {
+    it('works without options', () => {
+      expect(getTelemetry(getFakeApp())).to.be.instanceOf(TelemetryService);
+      // Two instances are the same
+      expect(getTelemetry(getFakeApp())).to.equal(getTelemetry(getFakeApp()));
+    });
+
+    it('works with options: no endpointUrl', () => {
+      expect(getTelemetry(getFakeApp(), {})).to.equal(
+        getTelemetry(getFakeApp())
+      );
+    });
+
+    it('works with options: endpointUrl set', () => {
+      const app = getFakeApp();
+      expect(getTelemetry(app, { endpointUrl: 'http://endpoint1' })).to.equal(
+        getTelemetry(app, { endpointUrl: 'http://endpoint1' })
+      );
+      expect(
+        getTelemetry(app, { endpointUrl: 'http://endpoint1' })
+      ).not.to.equal(getTelemetry(app, { endpointUrl: 'http://endpoint2' }));
+      expect(
+        getTelemetry(app, { endpointUrl: 'http://endpoint1' })
+      ).not.to.equal(getTelemetry(app, {}));
+    });
   });
 
   describe('captureError()', () => {
@@ -189,3 +226,32 @@ describe('Top level API', () => {
     });
   });
 });
+
+function getFakeApp(): FirebaseApp {
+  registerTelemetry();
+  _registerComponent(
+    new Component(
+      'app-check-internal',
+      () => {
+        return {} as FirebaseAppCheckInternal;
+      },
+      ComponentType.PUBLIC
+    )
+  );
+  const app = initializeApp({});
+  _addOrOverwriteComponent(
+    app,
+    //@ts-ignore
+    new Component(
+      'heartbeat',
+      // @ts-ignore
+      () => {
+        return {
+          triggerHeartbeat: () => {}
+        };
+      },
+      ComponentType.PUBLIC
+    )
+  );
+  return app;
+}

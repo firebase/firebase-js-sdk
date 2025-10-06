@@ -26,16 +26,23 @@ export function registerTelemetry(): void {
   _registerComponent(
     new Component(
       TELEMETRY_TYPE,
-      (container, {}) => {
+      (container, { instanceIdentifier }) => {
+        if (instanceIdentifier === undefined) {
+          throw new Error('TelemetryService instance identifier is undefined');
+        }
+
+        // TODO: change to default endpoint once it exists
+        const endpointUrl = instanceIdentifier || 'http://localhost';
+
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
-        const loggerProvider = createLoggerProvider();
+        const loggerProvider = createLoggerProvider(endpointUrl);
         const appCheckProvider = container.getProvider('app-check-internal');
 
         return new TelemetryService(app, loggerProvider, appCheckProvider);
       },
       ComponentType.PUBLIC
-    )
+    ).setMultipleInstances(true)
   );
 
   registerVersion(name, version);

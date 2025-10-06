@@ -34,3 +34,16 @@ export interface Telemetry {
   /** The {@link LoggerProvider} this {@link Telemetry} instance uses. */
   loggerProvider: LoggerProvider;
 }
+
+/**
+ * Options for initialized the Telemetry service using {@link getTelemetry | getTelemetry()}.
+ *
+ * @public
+ */
+export interface TelemetryOptions {
+  /**
+   * The URL for the endpoint to which telemetry data should be sent, in the Open Telemetry format.
+   * By default, data will be sent to Firebase.
+   */
+  endpointUrl?: string;
+}

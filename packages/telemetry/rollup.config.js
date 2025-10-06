@@ -94,6 +94,10 @@ const reactBuilds = [
           {
             src: 'dist/src/react/index.d.ts',
             dest: 'dist/react'
+          },
+          {
+            src: 'dist/src/public-types.d.ts',
+            dest: 'dist'
           }
         ]
       })
