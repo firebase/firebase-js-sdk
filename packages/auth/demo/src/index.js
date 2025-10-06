@@ -149,6 +149,86 @@ async function getActiveUserBlocking() {
   }
 }
 
+class RefreshIdpTokenResult {
+  idpConfigId;
+  idToken;
+}
+
+class TokenRefreshHandlerImpl {
+  /**
+   * Opens a popup to get a 3P ID token and Config ID from the user.
+   * @returns {Promise<RefreshIdpTokenResult>} A promise that returns IdpConfigId and 3p IDP Id token.
+   */
+  refreshIdpToken() {
+    return this.promptForTokenAndConfigId();
+  }
+
+  promptForTokenAndConfigId() {
+    return new Promise((resolve, reject) => {
+      let isSubmitted = false;
+      const modalId = 'third-party-token-modal';
+
+      const modalHtml = `
+        <div class="modal fade" id="${modalId}" tabindex="-1" role="dialog" aria-labelledby="tokenModalLabel">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="tokenModalLabel">Enter 3P Token Details</h4>
+              </div>
+              <div class="modal-body">
+                <p>Please enter the third-party token details:</p>
+                <div class="form-group">
+                  <label for="idp-config-id-input-field">IDP Config ID</label>
+                  <input type="text" class="form-control" id="idp-config-id-input-field" placeholder="eg: idp.example.com">
+                </div>
+                <div class="form-group">
+                  <label for="id-token-input-field">ID Token</label>
+                  <input type="text" class="form-control" id="id-token-input-field" placeholder="Paste ID Token here">
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="token-submit-btn">Submit</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      $('body').append(modalHtml);
+      const $modal = $(`#${modalId}`);
+
+      $modal.find('#token-submit-btn').on('click', () => {
+        isSubmitted = true;
+
+        const configId = $modal.find('#idp-config-id-input-field').val();
+        const token = $modal.find('#id-token-input-field').val();
+
+        $modal.modal('hide'); // Hide the modal
+
+        const result = new RefreshIdpTokenResult();
+        result.idpConfigId = configId;
+        result.idToken = token;
+
+        resolve(result);
+      });
+
+      $modal.on('hidden.bs.modal', () => {
+        $modal.remove();
+
+        if (!isSubmitted) {
+          reject(new Error('User cancelled token input.'));
+        }
+      });
+
+      $modal.modal('show');
+    });
+  }
+}
+
 /**
  * Refreshes the current user data in the UI, displaying a user info box if
  * a user is signed in, or removing it.
@@ -1509,23 +1589,20 @@ function onFinalizeSignInWithTotpMultiFactor(event) {
   }, onAuthError);
 }
 
-async function exchangeCIAMToken(token) {
-  const firebaseToken = await exchangeToken(
-    regionalAuth,
-    (idpConfigId = 'Bar-e2e-idpconfig-002'),
-    token
-  );
+async function exchangeCIAMToken(idpConfigId, token) {
+  const firebaseToken = await exchangeToken(regionalAuth, idpConfigId, token);
   return firebaseToken;
 }
 
 function onExchangeToken(event) {
   event.preventDefault();
   const byoCiamInput = document.getElementById('byo-ciam-token');
+  const idpConfigId = document.getElementById('idp-config-id');
   const firebaseTokenStatus = document.getElementById('firebase-token-status');
 
   firebaseTokenStatus.textContent = 'Exchanging token...';
 
-  exchangeCIAMToken(byoCiamInput.value)
+  exchangeCIAMToken(idpConfigId.value, byoCiamInput.value)
     .then(response => {
       firebaseTokenStatus.textContent = '✅ Firebase token is set: ' + response;
       console.log('Token:', response);
@@ -2092,6 +2169,8 @@ function initApp() {
     popupRedirectResolver: browserPopupRedirectResolver,
     tenantConfig: tenantConfig
   });
+  const tokenRefreshHandler = new TokenRefreshHandlerImpl();
+  regionalAuth.setTokenRefreshHandler(tokenRefreshHandler);
 
   const firebaseTokenStatus = document.getElementById('firebase-token-status');
   setTimeout(async () => {
