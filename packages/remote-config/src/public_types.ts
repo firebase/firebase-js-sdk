@@ -82,8 +82,7 @@ export interface FirebaseExperimentDescription {
   // months.
   timeToLiveMillis: string;
 
-  // A repeated of Remote Config parameter keys that this experiment is
-  // affecting the value of.
+  // Which all parameters are affected by this experiment.
   affectedParameterKeys?: string[];
 }
 
@@ -128,7 +127,7 @@ export interface FetchResponse {
   templateVersion?: number;
 
   /**
-   * A/B Test and Rollout experiment metadata.
+   * Metadata for A/B testing and Remote Config Rollout experiments.
    *
    * @remarks Only defined for 200 responses.
    */
