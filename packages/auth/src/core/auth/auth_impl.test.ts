@@ -369,8 +369,10 @@ describe('core/auth/auth_impl', () => {
       expect(exchangeTokenStub).not.to.have.been.called;
     });
 
-    it('should refresh the token if it is expired and a token refresh handler is set', async () => {
-      persistenceStub._get.withArgs(tokenKey).resolves(expiredMockToken as any);
+    it('should refresh the token if token is expiring in next 1 minute and a token refresh handler is set', async () => {
+      persistenceStub._get
+        .withArgs(tokenKey)
+        .resolves(soonToExpireMockToken as any);
       auth.setTokenRefreshHandler(tokenRefreshHandler);
 
       exchangeTokenStub.callsFake(async () => {
@@ -389,10 +391,8 @@ describe('core/auth/auth_impl', () => {
       expect(token).to.eql('test-token');
     });
 
-    it('should refresh the token if token is expiring in next 1 minute and a token refresh handler is set', async () => {
-      persistenceStub._get
-        .withArgs(tokenKey)
-        .resolves(soonToExpireMockToken as any);
+    it('should refresh the token if it is expired and a token refresh handler is set', async () => {
+      persistenceStub._get.withArgs(tokenKey).resolves(expiredMockToken as any);
       auth.setTokenRefreshHandler(tokenRefreshHandler);
 
       exchangeTokenStub.callsFake(async () => {
