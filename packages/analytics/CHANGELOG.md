@@ -1,5 +1,11 @@
 # @firebase/analytics
 
+## 0.10.19
+
+### Patch Changes
+
+- [`1bcf83d`](https://github.com/firebase/firebase-js-sdk/commit/1bcf83d7f0640dff67c20939fb9af7bae6a941e0) [#9263](https://github.com/firebase/firebase-js-sdk/pull/9263) - Expose `setUserProperties` on internal Analytics instance.
+
 ## 0.10.18
 
 ### Patch Changes
