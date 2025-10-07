@@ -1648,14 +1648,18 @@ function onInitializeRegionalAuthClick() {
   }
 }
 
+function clearRegionalAuthInstance() {
+  localStorage.removeItem('regionalAuthTenantId');
+  localStorage.removeItem('tokenRefreshHandlerType'); // Clear handler choice
+  $('#tenant-id-input').val('');
+  regionalAuth = null;
+  $('#regional-auth-status').text('regionalAuth is not initialized');
+  $('#token-handler-status').text('Token refresh handler is not set.');
+}
+
 function onExchangeToken(event) {
   event.preventDefault();
-  if (!regionalAuth) {
-    onAuthError({
-      code: 'auth-not-initialized',
-      message:
-        'Regional Auth is not initialized. Please enter a Tenant ID and initialize.'
-    });
+  if (!validateRegionalAuth()) {
     return;
   }
 
@@ -1678,12 +1682,7 @@ function onExchangeToken(event) {
 }
 
 function onSetSuccessfulHandlerClick() {
-  if (!regionalAuth) {
-    onAuthError({
-      code: 'auth-not-initialized',
-      message:
-        'Regional Auth is not initialized. Please enter a Tenant ID and initialize.'
-    });
+  if (!validateRegionalAuth()) {
     return;
   }
 
@@ -1696,12 +1695,7 @@ function onSetSuccessfulHandlerClick() {
 }
 
 function onSetFailureHandlerClick() {
-  if (!regionalAuth) {
-    onAuthError({
-      code: 'auth-not-initialized',
-      message:
-        'Regional Auth is not initialized. Please enter a Tenant ID and initialize.'
-    });
+  if (!validateRegionalAuth()) {
     return;
   }
 
@@ -1711,6 +1705,18 @@ function onSetFailureHandlerClick() {
   $('#token-handler-status').text(
     '✅ Token refresh handler is set to failure.'
   );
+}
+
+function validateRegionalAuth() {
+  if (!regionalAuth) {
+    onAuthError({
+      code: 'auth-not-initialized',
+      message:
+        'Regional Auth is not initialized. Please enter a Tenant ID and initialize.'
+    });
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -2611,6 +2617,7 @@ function initApp() {
   $('#initialize-regional-auth-btn').click(onInitializeRegionalAuthClick);
   $('#set-successful-handler-btn').click(onSetSuccessfulHandlerClick);
   $('#set-failure-handler-btn').click(onSetFailureHandlerClick);
+  $('#clear-regional-auth-id-btn').click(clearRegionalAuthInstance);
 }
 
 $(initApp);
