@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ImagenGenerationConfig interface
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Configuration options for generating images with Imagen.
 
 See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images-imagen) for more details.
@@ -27,16 +24,13 @@ export interface ImagenGenerationConfig
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [addWatermark](./ai.imagengenerationconfig.md#imagengenerationconfigaddwatermark) | boolean | <b><i>(Public Preview)</i></b> Whether to add an invisible watermark to generated images.<!-- -->If set to <code>true</code>, an invisible SynthID watermark is embedded in generated images to indicate that they are AI generated. If set to <code>false</code>, watermarking will be disabled.<!-- -->For Imagen 3 models, the default value is <code>true</code>; see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen">addWatermark</a> documentation for more details.<!-- -->When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this will default to true, and cannot be turned off. |
-|  [aspectRatio](./ai.imagengenerationconfig.md#imagengenerationconfigaspectratio) | [ImagenAspectRatio](./ai.md#imagenaspectratio) | <b><i>(Public Preview)</i></b> The aspect ratio of the generated images. The default value is square 1:1. Supported aspect ratios depend on the Imagen model, see [ImagenAspectRatio](./ai.md#imagenaspectratio) for more details. |
-|  [imageFormat](./ai.imagengenerationconfig.md#imagengenerationconfigimageformat) | [ImagenImageFormat](./ai.imagenimageformat.md#imagenimageformat_class) | <b><i>(Public Preview)</i></b> The image format of the generated images. The default is PNG.<!-- -->See [ImagenImageFormat](./ai.imagenimageformat.md#imagenimageformat_class) for more details. |
-|  [negativePrompt](./ai.imagengenerationconfig.md#imagengenerationconfignegativeprompt) | string | <b><i>(Public Preview)</i></b> A description of what should be omitted from the generated images.<!-- -->Support for negative prompts depends on the Imagen model.<!-- -->See the [documentation](http://firebase.google.com/docs/vertex-ai/model-parameters#imagen) for more details.<!-- -->This is no longer supported in the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->) in versions greater than <code>imagen-3.0-generate-002</code>. |
-|  [numberOfImages](./ai.imagengenerationconfig.md#imagengenerationconfignumberofimages) | number | <b><i>(Public Preview)</i></b> The number of images to generate. The default value is 1.<!-- -->The number of sample images that may be generated in each request depends on the model (typically up to 4); see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen">sampleCount</a> documentation for more details. |
+|  [addWatermark](./ai.imagengenerationconfig.md#imagengenerationconfigaddwatermark) | boolean | Whether to add an invisible watermark to generated images.<!-- -->If set to <code>true</code>, an invisible SynthID watermark is embedded in generated images to indicate that they are AI generated. If set to <code>false</code>, watermarking will be disabled.<!-- -->For Imagen 3 models, the default value is <code>true</code>; see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen">addWatermark</a> documentation for more details.<!-- -->When using the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->), this will default to true, and cannot be turned off. |
+|  [aspectRatio](./ai.imagengenerationconfig.md#imagengenerationconfigaspectratio) | [ImagenAspectRatio](./ai.md#imagenaspectratio) | The aspect ratio of the generated images. The default value is square 1:1. Supported aspect ratios depend on the Imagen model, see [ImagenAspectRatio](./ai.md#imagenaspectratio) for more details. |
+|  [imageFormat](./ai.imagengenerationconfig.md#imagengenerationconfigimageformat) | [ImagenImageFormat](./ai.imagenimageformat.md#imagenimageformat_class) | The image format of the generated images. The default is PNG.<!-- -->See [ImagenImageFormat](./ai.imagenimageformat.md#imagenimageformat_class) for more details. |
+|  [negativePrompt](./ai.imagengenerationconfig.md#imagengenerationconfignegativeprompt) | string | A description of what should be omitted from the generated images.<!-- -->Support for negative prompts depends on the Imagen model.<!-- -->See the [documentation](http://firebase.google.com/docs/vertex-ai/model-parameters#imagen) for more details.<!-- -->This is no longer supported in the Gemini Developer API ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->) in versions greater than <code>imagen-3.0-generate-002</code>. |
+|  [numberOfImages](./ai.imagengenerationconfig.md#imagengenerationconfignumberofimages) | number | The number of images to generate. The default value is 1.<!-- -->The number of sample images that may be generated in each request depends on the model (typically up to 4); see the <a href="http://firebase.google.com/docs/vertex-ai/model-parameters#imagen">sampleCount</a> documentation for more details. |
 
 ## ImagenGenerationConfig.addWatermark
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Whether to add an invisible watermark to generated images.
 
@@ -54,9 +48,6 @@ addWatermark?: boolean;
 
 ## ImagenGenerationConfig.aspectRatio
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 The aspect ratio of the generated images. The default value is square 1:1. Supported aspect ratios depend on the Imagen model, see [ImagenAspectRatio](./ai.md#imagenaspectratio) for more details.
 
 <b>Signature:</b>
@@ -66,9 +57,6 @@ aspectRatio?: ImagenAspectRatio;
 ```
 
 ## ImagenGenerationConfig.imageFormat
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 The image format of the generated images. The default is PNG.
 
@@ -81,9 +69,6 @@ imageFormat?: ImagenImageFormat;
 ```
 
 ## ImagenGenerationConfig.negativePrompt
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 A description of what should be omitted from the generated images.
 
@@ -100,9 +85,6 @@ negativePrompt?: string;
 ```
 
 ## ImagenGenerationConfig.numberOfImages
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 The number of images to generate. The default value is 1.
 
