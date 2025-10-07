@@ -229,6 +229,12 @@ class TokenRefreshHandlerImpl {
   }
 }
 
+class TokenRefreshHandlerFailureImpl {
+  refreshIdpToken() {
+    return Promise.reject(new Error('Simulated failure to refresh IDP token.'));
+  }
+}
+
 /**
  * Refreshes the current user data in the UI, displaying a user info box if
  * a user is signed in, or removing it.
@@ -1594,8 +1600,69 @@ async function exchangeCIAMToken(idpConfigId, token) {
   return firebaseToken;
 }
 
+function onInitializeRegionalAuthClick() {
+  const tenantId = $('#tenant-id-input').val();
+  if (!tenantId) {
+    alertError('Please enter a Tenant ID.');
+    return;
+  }
+
+  try {
+    const tenantConfig = {
+      location: 'global',
+      tenantId: tenantId
+    };
+
+    const regionalApp = initializeApp(config, `${auth.name}-rgcip`);
+
+    regionalAuth = initializeAuth(regionalApp, {
+      persistence: indexedDBLocalPersistence,
+      popupRedirectResolver: browserPopupRedirectResolver,
+      tenantConfig: tenantConfig
+    });
+    $('#regional-auth-status').text('✅ regionalAuth is initialized');
+    $('#token-handler-status').text('Token refresh handler is not set.');
+    const handlerType = localStorage.getItem('tokenRefreshHandlerType');
+    if (handlerType === 'success') {
+      onSetSuccessfulHandlerClick();
+    } else if (handlerType === 'failure') {
+      onSetFailureHandlerClick();
+    }
+    const firebaseTokenStatus = document.getElementById(
+      'firebase-token-status'
+    );
+    setTimeout(async () => {
+      const firebaseToken = await regionalAuth.getFirebaseAccessToken();
+      if (firebaseToken) {
+        firebaseTokenStatus.textContent =
+          '✅ Firebase token is set: ' + firebaseToken;
+      } else {
+        firebaseTokenStatus.textContent =
+          'No CIAM token found. User not logged in.';
+      }
+      console.log('firebaseToken after delay: ', firebaseToken);
+    }, 1000);
+    localStorage.setItem('regionalAuthTenantId', tenantId);
+  } catch (error) {
+    onAuthError(error);
+  }
+}
+
+function clearRegionalAuthInstance() {
+  localStorage.removeItem('regionalAuthTenantId');
+  localStorage.removeItem('tokenRefreshHandlerType'); // Clear handler choice
+  $('#tenant-id-input').val('');
+  regionalAuth = null;
+  $('#regional-auth-status').text('regionalAuth is not initialized');
+  $('#token-handler-status').text('Token refresh handler is not set.');
+}
+
 function onExchangeToken(event) {
   event.preventDefault();
+  if (!validateRegionalAuth()) {
+    return;
+  }
+
   const byoCiamInput = document.getElementById('byo-ciam-token');
   const idpConfigId = document.getElementById('idp-config-id');
   const firebaseTokenStatus = document.getElementById('firebase-token-status');
@@ -1610,7 +1677,46 @@ function onExchangeToken(event) {
     .catch(error => {
       (firebaseTokenStatus.textContent = 'Error exchanging token: '), error;
       console.error('Error exchanging token:', error);
+      onAuthError(error);
     });
+}
+
+function onSetSuccessfulHandlerClick() {
+  if (!validateRegionalAuth()) {
+    return;
+  }
+
+  const tokenRefreshHandler = new TokenRefreshHandlerImpl();
+  regionalAuth.setTokenRefreshHandler(tokenRefreshHandler);
+  localStorage.setItem('tokenRefreshHandlerType', 'success');
+  $('#token-handler-status').text(
+    '✅ Token refresh handler is set to success.'
+  );
+}
+
+function onSetFailureHandlerClick() {
+  if (!validateRegionalAuth()) {
+    return;
+  }
+
+  const tokenRefreshHandler = new TokenRefreshHandlerFailureImpl();
+  regionalAuth.setTokenRefreshHandler(tokenRefreshHandler);
+  localStorage.setItem('tokenRefreshHandlerType', 'failure');
+  $('#token-handler-status').text(
+    '✅ Token refresh handler is set to failure.'
+  );
+}
+
+function validateRegionalAuth() {
+  if (!regionalAuth) {
+    onAuthError({
+      code: 'auth-not-initialized',
+      message:
+        'Regional Auth is not initialized. Please enter a Tenant ID and initialize.'
+    });
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -2158,32 +2264,11 @@ function initApp() {
     connectAuthEmulator(auth, AUTH_EMULATOR_URL);
   }
 
-  let tenantConfig = {
-    'location': 'global',
-    'tenantId': 'Foo-e2e-tenant-001'
-  };
-  const regionalApp = initializeApp(config, `${auth.name}-rgcip`);
-
-  regionalAuth = initializeAuth(regionalApp, {
-    persistence: indexedDBLocalPersistence,
-    popupRedirectResolver: browserPopupRedirectResolver,
-    tenantConfig: tenantConfig
-  });
-  const tokenRefreshHandler = new TokenRefreshHandlerImpl();
-  regionalAuth.setTokenRefreshHandler(tokenRefreshHandler);
-
-  const firebaseTokenStatus = document.getElementById('firebase-token-status');
-  setTimeout(async () => {
-    const firebaseToken = await regionalAuth.getFirebaseAccessToken();
-    if (firebaseToken) {
-      firebaseTokenStatus.textContent =
-        '✅ Firebase token is set: ' + firebaseToken;
-    } else {
-      firebaseTokenStatus.textContent =
-        'No CIAM token found. User not logged in.';
-    }
-    console.log('firebaseToken after delay: ', firebaseToken);
-  }, 1000);
+  const persistedTenantId = localStorage.getItem('regionalAuthTenantId');
+  if (persistedTenantId) {
+    $('#tenant-id-input').val(persistedTenantId);
+    onInitializeRegionalAuthClick();
+  }
 
   tempApp = initializeApp(
     {
@@ -2528,6 +2613,11 @@ function initApp() {
 
   // Performs Exchange Token
   $('#exchange-token').click(onExchangeToken);
+
+  $('#initialize-regional-auth-btn').click(onInitializeRegionalAuthClick);
+  $('#set-successful-handler-btn').click(onSetSuccessfulHandlerClick);
+  $('#set-failure-handler-btn').click(onSetFailureHandlerClick);
+  $('#clear-regional-auth-id-btn').click(clearRegionalAuthInstance);
 }
 
 $(initApp);
