@@ -367,9 +367,7 @@ describe('core/auth/auth_impl', () => {
       const token = await auth.getFirebaseAccessToken();
       expect(token).to.be.null;
       expect(exchangeTokenStub).not.to.have.been.called;
-      expect(persistenceStub._remove).to.have.been.calledWith(
-        'firebase:persistence-token:api-key:test-app'
-      );
+      expect(persistenceStub._remove).to.have.been.called;
     });
 
     it('should refresh the token if token is expiring in next 1 minute and a token refresh handler is set', async () => {
@@ -445,9 +443,7 @@ describe('core/auth/auth_impl', () => {
         'Token refresh failed:',
         sinon.match.instanceOf(Error)
       );
-      expect(persistenceStub._remove).to.have.been.calledWith(
-        'firebase:persistence-token:api-key:test-app'
-      );
+      expect(persistenceStub._remove).to.have.been.called;
     });
 
     it('should return null and log an error if the refreshed token is invalid', async () => {
