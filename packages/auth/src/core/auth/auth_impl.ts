@@ -267,7 +267,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     }
 
     // Resets the Firebase Access Token to null i.e. logs out the user.
-    await this._updateFirebaseToken(null);
+    await this.signOut();
     if (firebaseAccessToken && this.tokenRefreshHandler) {
       try {
         // Awaits for the callback method to execute. The callback method
