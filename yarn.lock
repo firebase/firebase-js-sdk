@@ -1324,19 +1324,6 @@
   resolved "https://registry.npmjs.org/@eslint/js/-/js-8.57.1.tgz#de633db3ec2ef6a3c89e2f19038063e8a122e2c2"
   integrity sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==
 
-"@firebase/firestore@4.9.2":
-  version "4.9.2"
-  resolved "https://registry.npmjs.org/@firebase/firestore/-/firestore-4.9.2.tgz#0c65203f9754d5aa801ec31c6f885445cfb346f4"
-  integrity sha512-iuA5+nVr/IV/Thm0Luoqf2mERUvK9g791FZpUJV1ZGXO6RL2/i/WFJUj5ZTVXy5pRjpWYO+ZzPcReNrlilmztA==
-  dependencies:
-    "@firebase/component" "0.7.0"
-    "@firebase/logger" "0.5.0"
-    "@firebase/util" "1.13.0"
-    "@firebase/webchannel-wrapper" "1.0.5"
-    "@grpc/grpc-js" "~1.9.0"
-    "@grpc/proto-loader" "^0.7.8"
-    tslib "^2.1.0"
-
 "@gar/promisify@^1.0.1":
   version "1.1.3"
   resolved "https://registry.npmjs.org/@gar/promisify/-/promisify-1.1.3.tgz#555193ab2e3bb3b6adc3d551c9c030d9e860daf6"
