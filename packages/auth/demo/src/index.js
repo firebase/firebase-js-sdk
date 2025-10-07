@@ -1690,7 +1690,9 @@ function onSetSuccessfulHandlerClick() {
   const tokenRefreshHandler = new TokenRefreshHandlerImpl();
   regionalAuth.setTokenRefreshHandler(tokenRefreshHandler);
   localStorage.setItem('tokenRefreshHandlerType', 'success');
-  $('#token-handler-status').text('✅ Token refresh handler is set to success.');
+  $('#token-handler-status').text(
+    '✅ Token refresh handler is set to success.'
+  );
 }
 
 function onSetFailureHandlerClick() {
@@ -1706,7 +1708,9 @@ function onSetFailureHandlerClick() {
   const tokenRefreshHandler = new TokenRefreshHandlerFailureImpl();
   regionalAuth.setTokenRefreshHandler(tokenRefreshHandler);
   localStorage.setItem('tokenRefreshHandlerType', 'failure');
-  $('#token-handler-status').text('✅ Token refresh handler is set to failure.');
+  $('#token-handler-status').text(
+    '✅ Token refresh handler is set to failure.'
+  );
 }
 
 /**
