@@ -853,6 +853,26 @@
             </div>
             <div class="tab-pane" id="tab-byo-ciam-content">
               <h2>Sign in with your CIAM token</h2>
+
+              <!-- Initialize Regional Auth -->
+              <div class="group">Initialize Regional Auth</div>
+              <div class="form-group">
+                <label for="tenant-id-input">Tenant ID</label>
+                <input type="text" class="form-control" id="tenant-id-input" placeholder="Enter Tenant ID">
+              </div>
+              <button class="btn btn-primary" id="initialize-regional-auth-btn">Initialize Regional Auth</button>
+              <div id="regional-auth-status"></div>
+              <hr>
+
+              <!-- Set Token Refresh Handler -->
+              <div class="group">Set Token Refresh Handler</div>
+              <button class="btn btn-success" id="set-successful-handler-btn">Set Token Refresh Handler (Success)</button>
+              <button class="btn btn-danger" id="set-failure-handler-btn">Set Token Refresh Handler (Failure)</button>
+              <div id="token-handler-status"></div>
+              <hr>
+
+              <!-- Exchange Token -->
+              <div class="group">Exchange Token</div>
               <div id="firebase-token-status">No CIAM token found. User not logged in.</div>
               <input type="text" id="idp-config-id" class="form-control" placeholder="IDP Config ID" />
               <input type="text" id="byo-ciam-token"
