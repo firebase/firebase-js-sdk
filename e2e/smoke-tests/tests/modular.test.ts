@@ -314,8 +314,8 @@ describe('MODULAR', () => {
       ai = getAI(app, { backend: new VertexAIBackend() });
     });
     it('getGenerativeModel() and countTokens()', async () => {
-      const model = getGenerativeModel(ai, { model: 'gemini-1.5-flash' });
-      expect(model.model).toMatch(/gemini-1.5-flash$/);
+      const model = getGenerativeModel(ai, { model: 'gemini-2.5-flash' });
+      expect(model.model).toMatch(/gemini-2.5-flash$/);
       const result = await model.countTokens('abcdefg');
       expect(result.totalTokens).toBeTruthy;
     });

@@ -175,13 +175,13 @@ export interface CitationMetadata {
     citations: Citation[];
 }
 
-// @public
+// @beta
 export interface CodeExecutionResult {
     outcome?: Outcome;
     output?: string;
 }
 
-// @public
+// @beta
 export interface CodeExecutionResultPart {
     // (undocumented)
     codeExecutionResult?: CodeExecutionResult;
@@ -203,7 +203,7 @@ export interface CodeExecutionResultPart {
     thoughtSignature?: never;
 }
 
-// @public
+// @beta
 export interface CodeExecutionTool {
     codeExecution: {};
 }
@@ -271,13 +271,13 @@ export interface ErrorDetails {
     reason?: string;
 }
 
-// @public
+// @beta
 export interface ExecutableCode {
     code?: string;
     language?: Language;
 }
 
-// @public
+// @beta
 export interface ExecutableCodePart {
     // (undocumented)
     codeExecutionResult?: never;
@@ -449,6 +449,10 @@ export interface GenerateContentCandidate {
     index: number;
     // (undocumented)
     safetyRatings?: SafetyRating[];
+    // Warning: (ae-incompatible-release-tags) The symbol "urlContextMetadata" is marked as @public, but its signature references "URLContextMetadata" which is marked as @beta
+    //
+    // (undocumented)
+    urlContextMetadata?: URLContextMetadata;
 }
 
 // @public
@@ -549,7 +553,7 @@ export function getAI(app?: FirebaseApp, options?: AIOptions): AI;
 // @public
 export function getGenerativeModel(ai: AI, modelParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 
-// @beta
+// @public
 export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
 
 // @beta
@@ -600,6 +604,8 @@ export interface GoogleAIGenerateContentCandidate {
     index: number;
     // (undocumented)
     safetyRatings?: SafetyRating[];
+    // (undocumented)
+    urlContextMetadata?: URLContextMetadata;
 }
 
 // Warning: (ae-internal-missing-underscore) The name "GoogleAIGenerateContentResponse" should be prefixed with an underscore because the declaration is marked as @internal
@@ -706,7 +712,7 @@ export interface HybridParams {
     onDeviceParams?: OnDeviceParams;
 }
 
-// @beta
+// @public
 export const ImagenAspectRatio: {
     readonly SQUARE: "1:1";
     readonly LANDSCAPE_3x4: "3:4";
@@ -715,16 +721,16 @@ export const ImagenAspectRatio: {
     readonly PORTRAIT_9x16: "9:16";
 };
 
-// @beta
+// @public
 export type ImagenAspectRatio = (typeof ImagenAspectRatio)[keyof typeof ImagenAspectRatio];
 
-// @beta
+// @public
 export interface ImagenGCSImage {
     gcsURI: string;
     mimeType: string;
 }
 
-// @beta
+// @public
 export interface ImagenGenerationConfig {
     addWatermark?: boolean;
     aspectRatio?: ImagenAspectRatio;
@@ -733,13 +739,13 @@ export interface ImagenGenerationConfig {
     numberOfImages?: number;
 }
 
-// @beta
+// @public
 export interface ImagenGenerationResponse<T extends ImagenInlineImage | ImagenGCSImage> {
     filteredReason?: string;
     images: T[];
 }
 
-// @beta
+// @public
 export class ImagenImageFormat {
     compressionQuality?: number;
     static jpeg(compressionQuality?: number): ImagenImageFormat;
@@ -747,13 +753,13 @@ export class ImagenImageFormat {
     static png(): ImagenImageFormat;
 }
 
-// @beta
+// @public
 export interface ImagenInlineImage {
     bytesBase64Encoded: string;
     mimeType: string;
 }
 
-// @beta
+// @public
 export class ImagenModel extends AIModel {
     constructor(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
     generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
@@ -765,24 +771,24 @@ export class ImagenModel extends AIModel {
     safetySettings?: ImagenSafetySettings;
 }
 
-// @beta
+// @public
 export interface ImagenModelParams {
     generationConfig?: ImagenGenerationConfig;
     model: string;
     safetySettings?: ImagenSafetySettings;
 }
 
-// @beta
+// @public
 export const ImagenPersonFilterLevel: {
     readonly BLOCK_ALL: "dont_allow";
     readonly ALLOW_ADULT: "allow_adult";
     readonly ALLOW_ALL: "allow_all";
 };
 
-// @beta
+// @public
 export type ImagenPersonFilterLevel = (typeof ImagenPersonFilterLevel)[keyof typeof ImagenPersonFilterLevel];
 
-// @beta
+// @public
 export const ImagenSafetyFilterLevel: {
     readonly BLOCK_LOW_AND_ABOVE: "block_low_and_above";
     readonly BLOCK_MEDIUM_AND_ABOVE: "block_medium_and_above";
@@ -790,10 +796,10 @@ export const ImagenSafetyFilterLevel: {
     readonly BLOCK_NONE: "block_none";
 };
 
-// @beta
+// @public
 export type ImagenSafetyFilterLevel = (typeof ImagenSafetyFilterLevel)[keyof typeof ImagenSafetyFilterLevel];
 
-// @beta
+// @public
 export interface ImagenSafetySettings {
     personFilterLevel?: ImagenPersonFilterLevel;
     safetyFilterLevel?: ImagenSafetyFilterLevel;
@@ -836,13 +842,13 @@ export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
 
-// @public
+// @beta
 export const Language: {
     UNSPECIFIED: string;
     PYTHON: string;
 };
 
-// @public
+// @beta
 export type Language = (typeof Language)[keyof typeof Language];
 
 // @beta
@@ -988,6 +994,7 @@ export class LiveSession {
     isClosed: boolean;
     receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation>;
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
+    sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
     sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void>;
     sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;
     }
@@ -1058,7 +1065,7 @@ export interface OnDeviceParams {
     promptOptions?: LanguageModelPromptOptions;
 }
 
-// @public
+// @beta
 export const Outcome: {
     UNSPECIFIED: string;
     OK: string;
@@ -1066,9 +1073,12 @@ export const Outcome: {
     DEADLINE_EXCEEDED: string;
 };
 
-// @public
+// @beta
 export type Outcome = (typeof Outcome)[keyof typeof Outcome];
 
+// Warning: (ae-incompatible-release-tags) The symbol "Part" is marked as @public, but its signature references "ExecutableCodePart" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "Part" is marked as @public, but its signature references "CodeExecutionResultPart" which is marked as @beta
+//
 // @public
 export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart | ExecutableCodePart | CodeExecutionResultPart;
 
@@ -1254,7 +1264,7 @@ export function startAudioConversation(liveSession: LiveSession, options?: Start
 
 // @beta
 export interface StartAudioConversationOptions {
-    functionCallingHandler?: (functionCalls: LiveServerToolCall['functionCalls']) => Promise<Part>;
+    functionCallingHandler?: (functionCalls: FunctionCall[]) => Promise<FunctionResponse>;
 }
 
 // @public
@@ -1304,8 +1314,11 @@ export interface ThinkingConfig {
     thinkingBudget?: number;
 }
 
+// Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "CodeExecutionTool" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "URLContextTool" which is marked as @beta
+//
 // @public
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool;
+export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
 
 // @public
 export interface ToolConfig {
@@ -1315,6 +1328,38 @@ export interface ToolConfig {
 
 // @public
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
+
+// @beta
+export interface URLContext {
+}
+
+// @beta
+export interface URLContextMetadata {
+    urlMetadata: URLMetadata[];
+}
+
+// @beta
+export interface URLContextTool {
+    urlContext: URLContext;
+}
+
+// @beta
+export interface URLMetadata {
+    retrievedUrl?: string;
+    urlRetrievalStatus?: URLRetrievalStatus;
+}
+
+// @beta
+export const URLRetrievalStatus: {
+    URL_RETRIEVAL_STATUS_UNSPECIFIED: string;
+    URL_RETRIEVAL_STATUS_SUCCESS: string;
+    URL_RETRIEVAL_STATUS_ERROR: string;
+    URL_RETRIEVAL_STATUS_PAYWALL: string;
+    URL_RETRIEVAL_STATUS_UNSAFE: string;
+};
+
+// @beta
+export type URLRetrievalStatus = (typeof URLRetrievalStatus)[keyof typeof URLRetrievalStatus];
 
 // @public
 export interface UsageMetadata {
@@ -1327,6 +1372,8 @@ export interface UsageMetadata {
     // (undocumented)
     promptTokensDetails?: ModalityTokenCount[];
     thoughtsTokenCount?: number;
+    toolUsePromptTokenCount?: number;
+    toolUsePromptTokensDetails?: ModalityTokenCount[];
     // (undocumented)
     totalTokenCount: number;
 }
