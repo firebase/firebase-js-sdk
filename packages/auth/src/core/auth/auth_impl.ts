@@ -267,8 +267,6 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     }
 
     if (firebaseAccessToken && this.tokenRefreshHandler) {
-      // Resets the Firebase Access Token to null i.e. logs out the user.
-      await this._updateFirebaseToken(null);
       try {
         // Awaits for the callback method to execute. The callback method
         // is responsible for performing the exchangeToken(auth, valid3pIdpToken)
@@ -282,9 +280,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         return this.getFirebaseAccessToken(false);
       } catch (error) {
         console.error('Token refresh failed:', error);
-        return null;
       }
     }
+    // Signs out the user i.e. sets the firebaseToken to null if firebase token is not valid and refresh token handler is not set/ successful.
+    await this.signOut();
     return null;
   }
 
