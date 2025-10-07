@@ -33,7 +33,7 @@ import { Firestore } from './database';
 import {
   _mapValue,
   AggregateFunction,
-  AggregateWithAlias,
+  AliasedAggregate,
   BooleanExpression,
   _constant,
   Expression,
@@ -735,7 +735,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * Performs aggregation operations on the documents from previous stages.
    *
    * <p>This stage allows you to calculate aggregate values over a set of documents. You define the
-   * aggregations to perform using {@link AggregateWithAlias} expressions which are typically results of
+   * aggregations to perform using {@link AliasedAggregate} expressions which are typically results of
    * calling {@link Expression#as} on {@link AggregateFunction} instances.
    *
    * <p>Example:
@@ -749,15 +749,15 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *     );
    * ```
    *
-   * @param accumulator The first {@link AggregateWithAlias}, wrapping an {@link AggregateFunction}
+   * @param accumulator The first {@link AliasedAggregate}, wrapping an {@link AggregateFunction}
    *     and providing a name for the accumulated results.
-   * @param additionalAccumulators Optional additional {@link AggregateWithAlias}, each wrapping an {@link AggregateFunction}
+   * @param additionalAccumulators Optional additional {@link AliasedAggregate}, each wrapping an {@link AggregateFunction}
    *     and providing a name for the accumulated results.
    * @return A new Pipeline object with this stage appended to the stage list.
    */
   aggregate(
-    accumulator: AggregateWithAlias,
-    ...additionalAccumulators: AggregateWithAlias[]
+    accumulator: AliasedAggregate,
+    ...additionalAccumulators: AliasedAggregate[]
   ): Pipeline;
   /**
    * Performs optionally grouped aggregation operations on the documents from previous stages.
@@ -771,7 +771,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *       If no grouping fields are provided, a single group containing all documents is used. Not
    *       specifying groups is the same as putting the entire inputs into one group.</li>
    *   <li>**Accumulators:** One or more accumulation operations to perform within each group. These
-   *       are defined using {@link AggregateWithAlias} expressions, which are typically created by
+   *       are defined using {@link AliasedAggregate} expressions, which are typically created by
    *       calling {@link Expression#as} on {@link AggregateFunction} instances. Each aggregation
    *       calculates a value (e.g., sum, average, count) based on the documents within its group.</li>
    * </ul>
@@ -793,14 +793,12 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    */
   aggregate(options: AggregateStageOptions): Pipeline;
   aggregate(
-    targetOrOptions: AggregateWithAlias | AggregateStageOptions,
-    ...rest: AggregateWithAlias[]
+    targetOrOptions: AliasedAggregate | AggregateStageOptions,
+    ...rest: AliasedAggregate[]
   ): Pipeline {
     // Process argument union(s) from method overloads
     const options = isAliasedAggregate(targetOrOptions) ? {} : targetOrOptions;
-    const accumulators: AggregateWithAlias[] = isAliasedAggregate(
-      targetOrOptions
-    )
+    const accumulators: AliasedAggregate[] = isAliasedAggregate(targetOrOptions)
       ? [targetOrOptions, ...rest]
       : targetOrOptions.accumulators;
     const groups: Array<Selectable | string> = isAliasedAggregate(

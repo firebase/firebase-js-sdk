@@ -180,7 +180,7 @@ export {
 
 export type {
   ExpressionType,
-  AggregateWithAlias,
+  AliasedAggregate,
   Selectable
 } from './lite-api/expressions';
 

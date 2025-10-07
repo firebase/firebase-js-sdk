@@ -2260,11 +2260,11 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
    * ```
    *
    * @param name The alias to assign to this AggregateFunction.
-   * @return A new {@link AggregateWithAlias} that wraps this
+   * @return A new {@link AliasedAggregate} that wraps this
    *     AggregateFunction and associates it with the provided alias.
    */
-  as(name: string): AggregateWithAlias {
-    return new AggregateWithAlias(this, name, 'as');
+  as(name: string): AliasedAggregate {
+    return new AliasedAggregate(this, name, 'as');
   }
 
   /**
@@ -2301,7 +2301,7 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
  *
  * An AggregateFunction with alias.
  */
-export class AggregateWithAlias implements UserData {
+export class AliasedAggregate implements UserData {
   constructor(
     readonly aggregate: AggregateFunction,
     readonly alias: string,
@@ -7702,8 +7702,8 @@ export function isOrdering(val: unknown): val is Ordering {
   );
 }
 
-export function isAliasedAggregate(val: unknown): val is AggregateWithAlias {
-  const candidate = val as AggregateWithAlias;
+export function isAliasedAggregate(val: unknown): val is AliasedAggregate {
+  const candidate = val as AliasedAggregate;
   return (
     isString(candidate.alias) &&
     candidate.aggregate instanceof AggregateFunction

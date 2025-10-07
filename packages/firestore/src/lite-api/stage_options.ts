@@ -1,7 +1,7 @@
 import { OneOf } from '../util/types';
 
 import {
-  AggregateWithAlias,
+  AliasedAggregate,
   BooleanExpression,
   Expression,
   Field,
@@ -168,7 +168,7 @@ export type AggregateStageOptions = StageOptions & {
    * The {@link AliasedAggregate} values specifying aggregate operations to
    * perform on the input documents.
    */
-  accumulators: AggregateWithAlias[];
+  accumulators: AliasedAggregate[];
   /**
    * The {@link Selectable} expressions or field names to consider when determining
    * distinct value combinations (groups), which will be aggregated over.

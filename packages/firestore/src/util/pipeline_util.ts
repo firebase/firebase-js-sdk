@@ -2,7 +2,7 @@ import { vector } from '../api';
 import {
   _constant,
   AggregateFunction,
-  AggregateWithAlias,
+  AliasedAggregate,
   array,
   constant,
   Expression,
@@ -35,10 +35,10 @@ export function selectablesToMap(
 }
 
 export function aliasedAggregateToMap(
-  aliasedAggregatees: AggregateWithAlias[]
+  aliasedAggregatees: AliasedAggregate[]
 ): Map<string, AggregateFunction> {
   return aliasedAggregatees.reduce(
-    (map: Map<string, AggregateFunction>, selectable: AggregateWithAlias) => {
+    (map: Map<string, AggregateFunction>, selectable: AliasedAggregate) => {
       map.set(selectable.alias, selectable.aggregate as AggregateFunction);
       return map;
     },

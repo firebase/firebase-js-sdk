@@ -166,7 +166,7 @@ export {
   FunctionExpression,
   Ordering,
   ExpressionType,
-  AggregateWithAlias,
+  AliasedAggregate,
   Selectable,
   BooleanExpression,
   AggregateFunction
