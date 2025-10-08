@@ -118,11 +118,11 @@
     },
     "./package.json": "./package.json"
   },
-  "main": "dist/node-cjs/index.node.cjs.js",
-  "main-esm": "dist/node-esm/index.node.mjs",
+  "main": "dist/index.node.cjs.js",
+  "main-esm": "dist/index.node.mjs",
   "react-native": "dist/index.rn.js",
-  "browser": "dist/browser-esm2017/index.esm.js",
-  "module": "dist/browser-esm2017/index.esm.js",
+  "browser": "dist/index.esm.js",
+  "module": "dist/index.esm.js",
   "license": "Apache-2.0",
   "files": [
     "dist",
@@ -173,7 +173,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "types": "dist/index.d.ts",
+  "types": "dist/firestore/src/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"
