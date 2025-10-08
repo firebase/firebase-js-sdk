@@ -1621,7 +1621,7 @@ function onInitializeRegionalAuthClick() {
       popupRedirectResolver: browserPopupRedirectResolver,
       tenantConfig: tenantConfig
     });
-    authInternalProvider = _getProvider(regionalApp, 'auth-internal')
+    authInternalProvider = _getProvider(regionalApp, 'auth-internal');
     $('#regional-auth-status').text('✅ regionalAuth is initialized');
     $('#token-handler-status').text('Token refresh handler is not set.');
     const handlerType = localStorage.getItem('tokenRefreshHandlerType');
