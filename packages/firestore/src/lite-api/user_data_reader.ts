@@ -1079,3 +1079,11 @@ function fieldMaskContains(
 ): boolean {
   return haystack.some(v => v.isEqual(needle));
 }
+
+export interface UserData {
+  _readUserData(context: ParseContext): void;
+}
+
+export function isUserData(value: unknown): value is UserData {
+  return typeof (value as UserData)._readUserData === 'function';
+}

@@ -187,8 +187,8 @@ const allBuilds = [
     output: [
       {
         dir: 'dist/lite/',
-        entryFileNames: '[name].esm2017.js',
-        chunkFileNames: 'common-[hash].esm2017.js',
+        entryFileNames: '[name].esm.js',
+        chunkFileNames: 'common-[hash].esm.js',
         format: 'es',
         sourcemap: true
       }
@@ -207,8 +207,8 @@ const allBuilds = [
     input: ['./lite/index.ts', './lite/pipelines/pipelines.ts'],
     output: {
       dir: 'dist/lite/',
-      entryFileNames: '[name].rn.esm2017.js',
-      chunkFileNames: 'common-[hash].rn.esm2017.js',
+      entryFileNames: '[name].rn.esm.js',
+      chunkFileNames: 'common-[hash].rn.esm.js',
       format: 'es',
       sourcemap: true
     },

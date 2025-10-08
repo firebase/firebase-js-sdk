@@ -8,6 +8,7 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
     "bundle": "rollup -c",
+    "compile": "tsc --emitDeclarationOnly --declaration -p tsconfig.json",
     "prebuild": "tsc --emitDeclarationOnly --declaration -p tsconfig.json; yarn api-report",
     "build": "run-p --npm-path npm build:lite build:main",
     "build:release": "yarn build && yarn typings:public",
@@ -95,12 +96,12 @@
         "require": "./dist/lite/pipelines.node.cjs.js",
         "import": "./dist/lite/pipelines.node.mjs"
       },
-      "react-native": "./dist/lite/pipelines.rn.esm2017.js",
+      "react-native": "./dist/lite/pipelines.rn.esm.js",
       "browser": {
         "require": "./dist/lite/pipelines.browser.cjs.js",
-        "import": "./dist/lite/pipelines.browser.esm2017.js"
+        "import": "./dist/lite/pipelines.browser.esm.js"
       },
-      "default": "./dist/lite/pipelines.browser.esm2017.js"
+      "default": "./dist/lite/pipelines.browser.esm.js"
     },
     "./pipelines": {
       "types": "./pipelines/pipelines.d.ts",
@@ -108,24 +109,28 @@
         "require": "./dist/pipelines.node.cjs.js",
         "import": "./dist/pipelines.node.mjs"
       },
-      "react-native": "./dist/index.rn.esm2017.js",
+      "react-native": "./dist/index.rn.esm.js",
       "browser": {
         "require": "./dist/pipelines.cjs.js",
-        "import": "./dist/pipelines.esm2017.js"
+        "import": "./dist/pipelines.esm.js"
       },
-      "default": "./dist/pipelines.esm2017.js"
+      "default": "./dist/pipelines.esm.js"
     },
     "./package.json": "./package.json"
   },
-  "main": "dist/node-cjs/index.node.cjs.js",
-  "main-esm": "dist/node-esm/index.node.mjs",
+  "main": "dist/index.node.cjs.js",
+  "main-esm": "dist/index.node.mjs",
   "react-native": "dist/index.rn.js",
   "browser": "dist/index.esm.js",
   "module": "dist/index.esm.js",
   "license": "Apache-2.0",
   "files": [
     "dist",
-    "lite/package.json"
+    "lite/package.json",
+    "pipelines/package.json",
+    "pipelines/pipelines.d.ts",
+    "lite/pipelines/package.json",
+    "lite/pipelines/pipelines.d.ts"
   ],
   "dependencies": {
     "@firebase/component": "0.7.0",
@@ -168,7 +173,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "types": "dist/index.d.ts",
+  "types": "dist/firestore/src/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"

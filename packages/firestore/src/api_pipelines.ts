@@ -17,6 +17,8 @@
 
 export { PipelineSource } from './lite-api/pipeline-source';
 
+export { OneOf } from './util/types';
+
 export {
   PipelineResult,
   PipelineSnapshot,
@@ -27,9 +29,32 @@ export { Pipeline } from './api/pipeline';
 
 export { execute } from './api/pipeline_impl';
 
+export { PipelineExecuteOptions } from './lite-api/pipeline_options';
+
+export {
+  StageOptions,
+  CollectionStageOptions,
+  CollectionGroupStageOptions,
+  DatabaseStageOptions,
+  DocumentsStageOptions,
+  AddFieldsStageOptions,
+  RemoveFieldsStageOptions,
+  SelectStageOptions,
+  WhereStageOptions,
+  OffsetStageOptions,
+  LimitStageOptions,
+  DistinctStageOptions,
+  AggregateStageOptions,
+  FindNearestStageOptions,
+  ReplaceWithStageOptions,
+  SampleStageOptions,
+  UnionStageOptions,
+  UnnestStageOptions,
+  SortStageOptions
+} from './lite-api/stage_options';
+
 export {
   Stage,
-  FindNearestOptions,
   AddFields,
   Aggregate,
   Distinct,
@@ -43,7 +68,7 @@ export {
   Offset,
   Select,
   Sort,
-  GenericStage
+  RawStage
 } from './lite-api/stage';
 
 export {
@@ -54,46 +79,44 @@ export {
   multiply,
   divide,
   mod,
-  eq,
-  neq,
-  lt,
-  lte,
-  gt,
-  gte,
+  equal,
+  notEqual,
+  lessThan,
+  lessThanOrEqual,
+  greaterThan,
+  greaterThanOrEqual,
   arrayConcat,
   arrayContains,
   arrayContainsAny,
   arrayContainsAll,
   arrayLength,
-  eqAny,
-  notEqAny,
+  equalAny,
+  notEqualAny,
   xor,
-  cond,
+  conditional,
   not,
   logicalMaximum,
   logicalMinimum,
   exists,
   isNan,
   reverse,
-  replaceFirst,
-  replaceAll,
   byteLength,
   charLength,
   like,
   regexContains,
   regexMatch,
-  strContains,
+  stringContains,
   startsWith,
   endsWith,
   toLower,
   toUpper,
   trim,
-  strConcat,
+  stringConcat,
   mapGet,
   countAll,
   count,
   sum,
-  avg,
+  average,
   and,
   or,
   minimum,
@@ -109,19 +132,12 @@ export {
   unixSecondsToTimestamp,
   timestampToUnixSeconds,
   timestampAdd,
-  timestampSub,
+  timestampSubtract,
   ascending,
   descending,
   countIf,
-  bitAnd,
-  bitOr,
-  bitXor,
-  bitNot,
-  bitLeftShift,
-  bitRightShift,
-  rand,
   array,
-  arrayOffset,
+  arrayGet,
   isError,
   ifError,
   isAbsent,
@@ -132,21 +148,40 @@ export {
   mapRemove,
   mapMerge,
   documentId,
-  substr,
-  Expr,
-  ExprWithAlias,
+  substring,
+  countDistinct,
+  ceil,
+  floor,
+  exp,
+  pow,
+  round,
+  collectionId,
+  ln,
+  log,
+  sqrt,
+  stringReverse,
+  length as len,
+  abs,
+  concat,
+  currentTimestamp,
+  error,
+  ifAbsent,
+  join,
+  log10,
+  arraySum,
+  Expression,
+  AliasedExpression,
   Field,
-  Constant,
-  FunctionExpr,
-  Ordering
+  FunctionExpression,
+  Ordering,
+  BooleanExpression,
+  AggregateFunction
 } from './lite-api/expressions';
 
 export type {
-  ExprType,
-  AggregateWithAlias,
-  Selectable,
-  BooleanExpr,
-  AggregateFunction
+  ExpressionType,
+  AliasedAggregate,
+  Selectable
 } from './lite-api/expressions';
 
 export { _internalPipelineToExecutePipelineRequestProto } from './remote/internal_serializer';
