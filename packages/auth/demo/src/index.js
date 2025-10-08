@@ -22,7 +22,7 @@
  *   package.
  */
 
-import { initializeApp } from '@firebase/app';
+import { initializeApp, _getProvider } from '@firebase/app';
 import {
   applyActionCode,
   browserLocalPersistence,
@@ -97,6 +97,7 @@ const AUTH_EMULATOR_URL = 'http://localhost:9099';
 let app = null;
 let auth = null;
 let regionalAuth = null;
+let authInternalProvider = null;
 let currentTab = null;
 let lastUser = null;
 let applicationVerifier = null;
@@ -1620,6 +1621,7 @@ function onInitializeRegionalAuthClick() {
       popupRedirectResolver: browserPopupRedirectResolver,
       tenantConfig: tenantConfig
     });
+    authInternalProvider = _getProvider(regionalApp, 'auth-internal');
     $('#regional-auth-status').text('✅ regionalAuth is initialized');
     $('#token-handler-status').text('Token refresh handler is not set.');
     const handlerType = localStorage.getItem('tokenRefreshHandlerType');
@@ -1705,6 +1707,29 @@ function onSetFailureHandlerClick() {
   $('#token-handler-status').text(
     '✅ Token refresh handler is set to failure.'
   );
+}
+
+async function getFirebaseTokenInterop(forceRefresh) {
+  if (!validateRegionalAuth()) {
+    return;
+  }
+  const tokenDisplay = document.getElementById('tokenDisplay');
+  tokenDisplay.textContent = 'Loading token...';
+  try {
+    const authInternal = authInternalProvider.getImmediate();
+    const token = await authInternal.getToken(forceRefresh);
+
+    if (token && token.accessToken) {
+      // The token object has an accessToken property
+      // as per the FirebaseAuthTokenData interface.
+      tokenDisplay.textContent = token.accessToken;
+    } else {
+      tokenDisplay.textContent = 'No token available.';
+    }
+  } catch (error) {
+    console.error('Error getting token:', error);
+    tokenDisplay.textContent = 'Error getting token. See console for details.';
+  }
 }
 
 function validateRegionalAuth() {
@@ -2618,6 +2643,13 @@ function initApp() {
   $('#set-successful-handler-btn').click(onSetSuccessfulHandlerClick);
   $('#set-failure-handler-btn').click(onSetFailureHandlerClick);
   $('#clear-regional-auth-id-btn').click(clearRegionalAuthInstance);
+
+  $('#interop-getToken-btn').click(() => {
+    getFirebaseTokenInterop(false);
+  });
+  $('#interop-getToken-forceRefresh-btn').click(() => {
+    getFirebaseTokenInterop(true);
+  });
 }
 
 $(initApp);
