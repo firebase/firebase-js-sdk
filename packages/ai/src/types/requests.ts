@@ -184,6 +184,21 @@ export interface LiveGenerationConfig {
    * The modalities of the response.
    */
   responseModalities?: ResponseModality[];
+  /**
+   * Output response MIME type of the generated text when using live generation.
+   * Supported MIME types include `text/plain` (default), `application/json` (JSON response),
+   * and `text/x.enum`.
+   */
+  responseMimeType?: string;
+  /**
+   * Output response schema used to constrain the live model's response when a schema-capable
+   * MIME type is selected. This can be a class generated with a {@link Schema} static method
+   * like `Schema.string()` or `Schema.object()` or it can be a plain object matching
+   * {@link SchemaRequest}.
+   * <br/>Note: This only applies when the specified `responseMimeType` supports a schema; currently
+   * this is limited to `application/json` and `text/x.enum`.
+   */
+  responseSchema?: TypedSchema | SchemaRequest;
 }
 
 /**

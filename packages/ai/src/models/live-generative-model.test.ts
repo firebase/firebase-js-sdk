@@ -168,4 +168,33 @@ describe('LiveGenerativeModel', () => {
     mockHandler.simulateServerMessage({ setupComplete: true });
     await connectPromise;
   });
+
+  it('connect() should include structured output config in setup', async () => {
+    const { Schema } = await import('../requests/schema-builder');
+    const enumSchema = Schema.enumString({ enum: ['drama', 'comedy', 'documentary'] });
+    const model = new LiveGenerativeModel(
+      fakeAI,
+      {
+        model: 'gemini-pro',
+        generationConfig: {
+          responseMimeType: 'text/x.enum',
+          responseSchema: enumSchema
+        }
+      },
+      mockHandler
+    );
+
+    const connectPromise = model.connect();
+    await clock.runAllAsync();
+
+    const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
+    expect(sentData.setup.generationConfig.responseMimeType).to.equal('text/x.enum');
+    expect(sentData.setup.generationConfig.responseSchema).to.deep.equal({
+      type: 'string',
+      enum: ['drama', 'comedy', 'documentary']
+    });
+
+    mockHandler.simulateServerMessage({ setupComplete: true });
+    await connectPromise;
+  });
 });
